@@ -444,6 +444,38 @@ suite('dialer/handled_call', function() {
         assert.equal(contact.tel[0].type, MockContacts.mType);
       });
     });
+
+    suite('emergency calls', function() {
+      test('is emergency call', function() {
+        mockCall = new MockCall('112', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isTrue(subject.recentsEntry.emergency);
+      });
+
+      test('is not emergency call', function() {
+        mockCall = new MockCall('111', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isFalse(subject.recentsEntry.emergency);
+      });
+    });
+
+    suite('voicemail calls', function() {
+      test('is voicemail call', function() {
+        mockCall = new MockCall('123', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isTrue(subject.recentsEntry.voicemail);
+      });
+
+      test('is not voicemail call', function() {
+        mockCall = new MockCall('111', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isFalse(subject.recentsEntry.voicemail);
+      });
+    });
   });
 
   suite('without node', function() {
