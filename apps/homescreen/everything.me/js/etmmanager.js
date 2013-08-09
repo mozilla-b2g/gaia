@@ -52,7 +52,7 @@ var EvmeManager = (function EvmeManager() {
     }
 
     function getApps() {
-        return GridManager.getApps();
+        return GridManager.getApps(true);
     }
 
     function getAppIcon(app) {
