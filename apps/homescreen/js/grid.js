@@ -838,12 +838,19 @@ var GridManager = (function() {
     return bookmarkIcons[bookmarkURL];
   }
 
-  // Ways to enumerate installed apps & bookmarks and find out whether
-  // a certain "origin" is available as an existing installed app or
-  // bookmark. Only used by Everything.me at this point.
-  function getApps() {
+  /**
+   * Ways to enumerate installed apps & bookmarks and find out whether
+   * a certain "origin" is available as an existing installed app or
+   * bookmark. Only used by Everything.me at this point.
+   * @param {Boolean} disallows hidden apps
+   */
+  function getApps(suppressHiddenRoles) {
     var apps = [];
     for (var origin in appsByOrigin) {
+      if (suppressHiddenRoles &&
+        HIDDEN_ROLES.indexOf(appsByOrigin[origin].manifest.role) !== -1) {
+        continue;
+      }
       apps.push(appsByOrigin[origin]);
     }
     return apps;
