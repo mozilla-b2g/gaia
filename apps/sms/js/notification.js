@@ -1,27 +1,21 @@
 (function(exports) {
   'use strict';
 
-  var settings = {};
-  var mozSettings = navigator.mozSettings;
+  function entry(key, value) {
+    settings[key] = urls[key] ? urls[key].set(value) : value;
+  }
 
+  var mozSettings = navigator.mozSettings;
+  var settings = {};
   var urls = {
     'notification.ringtone': new SettingsURL()
   };
 
-  function entry(key, value) {
-    if (urls[key]) {
-      urls[key].set(value);
-      settings[key] = true;
-    } else {
-      settings[key] = value;
-    }
-  }
-
-  ([
+  [
     'audio.volume.notification',
     'notification.ringtone',
     'vibration.enabled'
-  ]).forEach(function(key) {
+  ].forEach(function(key) {
     if (mozSettings) {
       var request = mozSettings.createLock().get(key);
       request.onsuccess = function() {
