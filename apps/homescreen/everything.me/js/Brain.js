@@ -200,10 +200,6 @@ Evme.Brain = new function Evme_Brain() {
                 Brain.Helper.showDefault();
                 document.body.classList.add(CLASS_WHEN_SHOWING_SHORTCUTS);
             }
-
-            if (!tipKeyboard) {
-                tipKeyboard = new Evme.Tip(TIPS.SEARCHBAR_FOCUS);
-            }
         };
 
         // Searchbar blurred. Keyboard hides.
