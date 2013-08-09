@@ -34,6 +34,7 @@
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
     <script defer src="shared/js/gesture_detector.js"></script>
+    <script defer src="shared/js/settings_url.js"></script>
     -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="js/startup.js"></script>
@@ -206,7 +207,7 @@
         data-number="${number}" data-source="contacts" data-name="${name}" data-display="${type}${separator}${carrier}${number}">
         ${photoHTML}
         <p class="name">${nameHTML}</p>
-        <p>
+        <p class="number">
           ${type}${separator}${carrier}${numberHTML}
         </p>
       </a>

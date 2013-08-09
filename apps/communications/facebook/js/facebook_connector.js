@@ -170,10 +170,6 @@ if (!window.FacebookConnector) {
             });
           }).bind(this); // successCb
 
-          photoCbs.timeout = function noop() {
-            // Do nothing...
-          };
-
           self.downloadContactPicture(friend, acc_tk, photoCbs);
         } // if friend
         else {
@@ -321,15 +317,8 @@ if (!window.FacebookConnector) {
       },
 
       downloadContactPicture: function(contact, access_token, callbacks) {
-        return fb.utils.getFriendPicture(contact.uid,
-          function(blobPicture) {
-            if (blobPicture) {
-              callbacks.success(blobPicture);
-            }
-            else {
-              callbacks.timeout();
-            }
-          }, access_token, importUtils.getPreferredPictureDetail());
+        return fb.utils.getFriendPicture(contact.uid, callbacks.success,
+                        access_token, importUtils.getPreferredPictureDetail());
       },
 
       oncontactsloaded: function(lfriends) {

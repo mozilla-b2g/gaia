@@ -8,6 +8,7 @@ requireApp('system/js/lockscreen.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_mobile_connection.js');
 requireApp('system/test/unit/mock_mobile_operator.js');
+requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
 
 
@@ -28,12 +29,15 @@ suite('system/LockScreen >', function() {
   var realL10n;
   var realMobileOperator;
   var realMobileConnection;
+  var realMozTelephony;
   var realIccHelper;
   var realClock;
   var realFtuLauncher;
   var domConnstate;
   var domConnstateL1;
   var domConnstateL2;
+  var domPasscodePad;
+  var domEmergencyCallBtn;
   var DUMMYTEXT1 = 'foo';
 
   setup(function() {
@@ -44,6 +48,9 @@ suite('system/LockScreen >', function() {
 
     realMobileOperator = window.MobileOperator;
     window.MobileOperator = MockMobileOperator;
+
+    realMozTelephony = navigator.mozTelephony;
+    navigator.mozTelephony = window.MockNavigatorMozTelephony;
 
     realClock = window.Clock;
     window.Clock = MockClock;
@@ -62,6 +69,14 @@ suite('system/LockScreen >', function() {
     domConnstate.appendChild(domConnstateL1);
     domConnstate.appendChild(domConnstateL2);
     document.body.appendChild(domConnstate);
+
+    domPasscodePad = document.createElement('div');
+    domPasscodePad.id = 'lockscreen-passcode-pad';
+    domEmergencyCallBtn = document.createElement('a');
+    domEmergencyCallBtn.dataset.key = 'e';
+    domPasscodePad.appendChild(domEmergencyCallBtn);
+    document.body.appendChild(domPasscodePad);
+    subject.passcodePad = domPasscodePad;
 
     subject.connstate = domConnstate;
 
@@ -100,14 +115,33 @@ suite('system/LockScreen >', function() {
     assert.equal(domConnstateL2.textContent, exceptedText);
   });
 
+  test('Emergency call: should disable emergency-call button',
+  function() {
+    navigator.mozTelephony.calls = {length: 1};
+    var evt = {type: 'callschanged'};
+    subject.handleEvent(evt);
+    assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
+  });
+
+  test('Emergency call: should enable emergency-call button',
+  function() {
+    navigator.mozTelephony.calls = {length: 0};
+    var evt = {type: 'callschanged'};
+    subject.handleEvent(evt);
+    assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
+  });
+
   teardown(function() {
     navigator.mozL10n = realL10n;
     window.MobileOperator = realMobileOperator;
     window.navigator.mozMobileConnection = realMobileConnection;
+    navigator.mozTelephony = realMozTelephony;
     window.IccHelper = realIccHelper;
     window.Clock = window.realClock;
     window.FtuLauncher = realFtuLauncher;
 
     document.body.removeChild(domConnstate);
+    document.body.removeChild(domPasscodePad);
+    subject.passcodePad = null;
   });
 });

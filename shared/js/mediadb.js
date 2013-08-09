@@ -880,7 +880,8 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      var getRequest = this.storage.get(filename);
+      var storage = navigator.getDeviceStorage(this.mediaType);
+      var getRequest = storage.get(filename);
       getRequest.onsuccess = function() {
         callback(getRequest.result);
       };
@@ -901,7 +902,8 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      this.storage.delete(filename).onerror = function(e) {
+      var storage = navigator.getDeviceStorage(this.mediaType);
+      storage.delete(filename).onerror = function(e) {
         console.error('MediaDB.deleteFile(): Failed to delete', filename,
                       'from DeviceStorage:', e.target.error);
       };
@@ -1177,7 +1179,8 @@ var MediaDB = (function() {
       if (this.state !== MediaDB.READY)
         throw Error('MediaDB is not ready. State: ' + this.state);
 
-      var freereq = this.storage.freeSpace();
+      var storage = navigator.getDeviceStorage(this.mediaType);
+      var freereq = storage.freeSpace();
       freereq.onsuccess = function() {
         callback(freereq.result);
       };
@@ -1253,7 +1256,9 @@ var MediaDB = (function() {
     };
 
     function enumerateNextStorage() {
-      ds_cursor = storages[storageIndex].enumerate(dir, options);
+      // The || {} on the next line is required to make enumerate work properly
+      // on v1-train.
+      ds_cursor = storages[storageIndex].enumerate(dir, options || {});
       ds_cursor.onsuccess = onsuccess;
       ds_cursor.onerror = onerror;
     };

@@ -317,12 +317,10 @@ if (typeof Contacts.extServices === 'undefined') {
         break;
 
         case 'import_updated':
-          Contacts.navigation.home(function fb_finished() {
-            extensionFrame.contentWindow.postMessage({
+          extensionFrame.contentWindow.postMessage({
               type: 'contacts_loaded',
               data: ''
             }, fb.CONTACTS_APP_ORIGIN);
-          });
         break;
 
         case 'sync_finished':

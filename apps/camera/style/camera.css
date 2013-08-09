@@ -99,20 +99,20 @@ html, body {
   display:none
 }
 
-#cancel-pick[disabled=disabled] {
-  opacity: 0.5;
-}
-
 #cancel-pick span {
   background-image: url(images/actionicon_cancel.png);
 }
 
-#capture-button[disabled=disabled] {
+#toggle-camera[disabled=disabled],
+#toggle-flash[disabled=disabled],
+#cancel-pick[disabled=disabled],
+#capture-button[disabled=disabled],
+#switch-button[disabled=disabled] {
   opacity: 0.5;
 }
 
-#switch-button[disabled=disabled] {
-  opacity: 0.5;
+body.recording #toggle-camera {
+  display: none;
 }
 
 #capture-button {

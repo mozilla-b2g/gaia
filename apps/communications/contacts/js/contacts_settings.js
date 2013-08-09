@@ -8,12 +8,22 @@ var contacts = window.contacts || {};
  **/
 contacts.Settings = (function() {
 
-  var orderCheckBox,
+  var navigationHandler,
+    importSettingsBack,
+    orderCheckBox,
     orderByLastName,
-    simImportLink,
-    sdImportLink,
-    importLiveButton,
-    importGmailButton,
+    importSettingsPanel,
+    importSettingsTitle,
+    importContacts,
+    exportContacts,
+    importOptions,
+    exportOptions,
+    importLiveOption,
+    importGmailOption,
+    importSimOption,
+    exportSimOption,
+    importSDOption,
+    exportSDOption,
     fbImportOption,
     fbImportCheck,
     fbUpdateButton,
@@ -57,33 +67,63 @@ contacts.Settings = (function() {
     orderCheckBox.checked = value;
   };
 
+  var updateImportTitle = function updateImportTitle(l10nString) {
+    importSettingsTitle.dataset.l10nId = l10nString;
+    importSettingsTitle.innerHTML = _(l10nString);
+  };
+
   // Initialises variables and listener for the UI
   var initContainers = function initContainers() {
     var orderItem = document.getElementById('settingsOrder');
     orderCheckBox = orderItem.querySelector('[name="order.lastname"]');
     orderItem.addEventListener('click', onOrderingChange.bind(this));
+    // Creating a navigation handler from this view
+    navigationHandler = new navigationStack('view-settings');
 
-    simImportLink = document.querySelector('[data-l10n-id="importSim2"]');
-    simImportLink.addEventListener('click', function onSimImportHandler() {
-      window.setTimeout(onSimImport, 0);
+    // Init panel & elements for caching them
+    importSettingsPanel = document.getElementById('import-settings');
+    importSimOption = document.getElementById('import-sim-option');
+    exportSimOption = document.getElementById('export-sim-option');
+    importSDOption = document.getElementById('import-sd-option');
+    exportSDOption = document.getElementById('export-sd-option');
+    importSettingsTitle = document.getElementById('import-settings-title');
+    importLiveOption = document.getElementById('import-gmail-option');
+    importGmailOption = document.getElementById('import-live-option');
+
+    /*
+     * Adding listeners
+     */
+
+    // Listener for updating the timestamp based on extServices
+    window.addEventListener('message', function updateList(e) {
+      if (e.data.type === 'import_updated') {
+        updateTimestamps();
+      }
     });
 
-    noSimMsg = document.querySelector('#no-sim');
+    // Navigation back
+    importSettingsBack = document.getElementById('import-settings-back');
+    importSettingsBack.addEventListener('click', importSettingsBackHandler);
 
-    sdImportLink = document.querySelector('[data-l10n-id="importMemoryCard"]');
-    sdImportLink.addEventListener('click', function onSimImportHandler() {
-      window.setTimeout(onSdImport, 0);
-    });
-    noMemoryCardMsg = document.querySelector('#no-memorycard');
+    // Handlers for the navigation through the panels
+    importContacts = document.getElementById('importContacts');
+    importContacts.firstElementChild.
+      addEventListener('click', importContactsHandler);
 
-    // Gmail & Hotmail import
-    importLiveButton = document.querySelector('[data-l10n-id="importOutlook"]');
-    importGmailButton = document.querySelector('[data-l10n-id="importGmail"]');
+    exportContacts = document.getElementById('exportContacts');
+    exportContacts.firstElementChild.
+      addEventListener('click', exportContactsHandler);
 
-    importLiveButton.onclick = Contacts.extServices.importLive;
-    importGmailButton.onclick = Contacts.extServices.importGmail;
+    // Handlers for the actions related with EXPORT/IMPORT
+    importOptions = document.getElementById('import-options');
+    importOptions.addEventListener('click', importOptionsHandler);
 
-    importSources = document.querySelectorAll('#importSources li[data-source]');
+    exportOptions = document.getElementById('export-options');
+    exportOptions.addEventListener('click', exportOptionsHandler);
+
+    // Getting import sources for updating timestamp & secondary info
+    importSources =
+      document.querySelectorAll('#import-options li[data-source]');
 
     if (fb.isEnabled) {
       fbImportOption = document.querySelector('#settingsFb');
@@ -117,6 +157,65 @@ contacts.Settings = (function() {
     }
   };
 
+  // UI event handlers
+  function importSettingsBackHandler() {
+    navigationHandler.back(function navigateBackHandler() {
+        // Removing the previous assigned style for having
+        // a clean view
+        importSettingsPanel.classList.remove('export');
+        importSettingsPanel.classList.remove('import');
+    });
+  };
+
+  function importContactsHandler() {
+      // Hide elements for export and transition
+      importSettingsPanel.classList.add('import');
+      updateImportTitle('importContactsTitle');
+      navigationHandler.go('import-settings', 'right-left');
+  };
+
+  function exportContactsHandler() {
+      // Hide elements for import and transition
+      importSettingsPanel.classList.add('export');
+      updateImportTitle('exportContactsTitle');
+      navigationHandler.go('import-settings', 'right-left');
+  };
+
+  function importOptionsHandler(e) {
+    var source = e.target.parentNode.dataset.source;
+    switch (source) {
+      case 'sim':
+        window.setTimeout(onSimImport, 0);
+        break;
+      case 'sd':
+        window.setTimeout(onSdImport, 0);
+        break;
+      case 'gmail':
+        Contacts.extServices.importGmail();
+        break;
+      case 'live':
+        Contacts.extServices.importLive();
+        break;
+    }
+  };
+
+  function exportOptionsHandler(e) {
+    var source = e.target.parentNode.dataset.source;
+    switch (source) {
+      case 'sim':
+        // TODO Add export to SIM functionality
+        break;
+      case 'sd':
+        // TODO Add export to SD functionality
+        break;
+      case 'bluetooth':
+        // TODO Add export to Bluetooth functionality
+        break;
+    }
+  };
+
+  // Options checking & updating
+
   var checkSIMCard = function checkSIMCard() {
     if (!IccHelper.enabled) {
       enableSIMImport(false);
@@ -126,18 +225,28 @@ contacts.Settings = (function() {
     enableSIMImport(IccHelper.cardState);
   };
 
+  // Disables/Enables an option and show the error if needed
+  var updateOptionStatus =
+    function updateOptionStatus(domOption, disabled, error) {
+    var optionButton = domOption.firstElementChild;
+    if (disabled) {
+      optionButton.setAttribute('disabled', 'disabled');
+      if (error) {
+        domOption.classList.add('error');
+      } else {
+        domOption.classList.remove('error');
+      }
+    } else {
+      optionButton.removeAttribute('disabled');
+      domOption.classList.remove('error');
+    }
+  };
+
   // Disables/Enables the actions over the sim import functionality
   var enableSIMImport = function enableSIMImport(cardState) {
-    var enable = (cardState === 'ready');
-    var importSim = document.getElementById('settingsSIM').firstElementChild;
-    if (enable) {
-      importSim.removeAttribute('disabled');
-      noSimMsg.classList.add('hide');
-    }
-    else {
-      importSim.setAttribute('disabled', 'disabled');
-      noSimMsg.classList.remove('hide');
-    }
+    var disabled = (cardState !== 'ready');
+    updateOptionStatus(importSimOption, disabled, true);
+    updateOptionStatus(exportSimOption, disabled, true);
   };
 
   /**
@@ -145,19 +254,8 @@ contacts.Settings = (function() {
    * @param {Boolean} cardState Whether storage import should be enabled or not.
    */
   var enableStorageImport = function enableStorageImport(cardState) {
-    var importStorage = document.getElementById('settingsStorage');
-    var importStorageButton = importStorage.firstElementChild;
-
-    if (cardState) {
-      importStorage.classList.add('importService');
-      importStorageButton.removeAttribute('disabled');
-      noMemoryCardMsg.classList.add('hide');
-    }
-    else {
-      importStorage.classList.remove('importService');
-      importStorageButton.setAttribute('disabled', 'disabled');
-      noMemoryCardMsg.classList.remove('hide');
-    }
+    updateOptionStatus(importSDOption, !cardState, true);
+    updateOptionStatus(exportSDOption, !cardState, true);
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -409,9 +507,11 @@ contacts.Settings = (function() {
     importer.onfinish = function import_finish() {
       window.setTimeout(function onfinish_import() {
         resetWait(wakeLock);
-        Contacts.navigation.home();
         if (importedContacts !== 0) {
-          window.importUtils.setTimestamp('sim');
+          window.importUtils.setTimestamp('sim', function() {
+            // Once the timestamp is saved, update the list
+            updateTimestamps();
+          });
           if (!cancelled) {
             Contacts.showStatus(_('simContacts-imported3', {
               n: importedContacts
@@ -443,7 +543,7 @@ contacts.Settings = (function() {
         callback: function() {
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
-          simImportLink.click();
+          window.setTimeout(onSimImport, 0);
         }
       };
       ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
@@ -504,14 +604,16 @@ contacts.Settings = (function() {
 
       importer.process(function import_finish() {
         window.setTimeout(function onfinish_import() {
-          window.importUtils.setTimestamp('sd');
-          resetWait(wakeLock);
-          Contacts.navigation.home();
-          if (!cancelled) {
-            Contacts.showStatus(_('memoryCardContacts-imported3', {
-              n: importedContacts
-            }));
-          }
+          window.importUtils.setTimestamp('sd', function() {
+            // Once the timestamp is saved, update the list
+            updateTimestamps();
+            resetWait(wakeLock);
+            if (!cancelled) {
+              Contacts.showStatus(_('memoryCardContacts-imported3', {
+                n: importedContacts
+              }));
+            }
+          });
         }, DELAY_FEEDBACK);
       });
     }
@@ -581,14 +683,8 @@ contacts.Settings = (function() {
     }
 
     // Other import services settings
-    if (navigator.onLine === false) {
-      importGmailButton.setAttribute('disabled', 'disabled');
-      importLiveButton.setAttribute('disabled', 'disabled');
-    }
-    else {
-      importGmailButton.removeAttribute('disabled');
-      importLiveButton.removeAttribute('disabled');
-    }
+    updateOptionStatus(importGmailOption, !navigator.onLine, true);
+    updateOptionStatus(importLiveOption, !navigator.onLine, true);
   };
 
   function saveStatus(data) {
@@ -640,6 +736,7 @@ contacts.Settings = (function() {
   }
 
   var updateTimestamps = function updateTimestamps() {
+    // TODO Add the same functionality to 'EXPORT' methods when ready.
     Array.prototype.forEach.call(importSources, function(node) {
       window.importUtils.getTimestamp(node.dataset.source,
                                       function(time) {
@@ -670,6 +767,7 @@ contacts.Settings = (function() {
     'refresh': refresh,
     'onLineChanged': checkOnline,
     'cardStateChanged': checkSIMCard,
-    'updateTimestamps': updateTimestamps
+    'updateTimestamps': updateTimestamps,
+    'navigation': navigationHandler
   };
 })();

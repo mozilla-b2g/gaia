@@ -139,6 +139,9 @@ var LockScreen = {
     window.addEventListener('screenchange', this);
     document.addEventListener('visibilitychange', this);
 
+    /* Telephony changes */
+    navigator.mozTelephony.addEventListener('callschanged', this);
+
     /* Gesture */
     this.area.addEventListener('touchstart', this);
     this.areaCamera.addEventListener('touchstart', this);
@@ -207,10 +210,12 @@ var LockScreen = {
       }
     });
 
+    var wallpaperURL = new SettingsURL();
+
     SettingsListener.observe('wallpaper.image',
                              'resources/images/backgrounds/default.png',
                              function(value) {
-                               self.updateBackground(value);
+                               self.updateBackground(wallpaperURL.set(value));
                                self.overlay.classList.remove('uninit');
                              });
 
@@ -420,6 +425,15 @@ var LockScreen = {
 
         evt.stopImmediatePropagation();
         evt.stopPropagation();
+        break;
+
+      case 'callschanged':
+        var emergencyCallBtn = this.passcodePad.querySelector('a[data-key=e]');
+        if (!!navigator.mozTelephony.calls.length) {
+          emergencyCallBtn.classList.add('disabled');
+        } else {
+          emergencyCallBtn.classList.remove('disabled');
+        }
         break;
     }
   },

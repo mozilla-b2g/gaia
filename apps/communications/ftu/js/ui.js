@@ -193,6 +193,7 @@ var UIManager = {
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');
       UIManager.tutorialScreen.classList.add('show');
+      Tutorial.manageStep();
     });
 
     // Enable sharing performance data (saving to settings)

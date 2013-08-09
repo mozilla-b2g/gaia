@@ -508,20 +508,34 @@ var ThreadUI = global.ThreadUI = {
     this.enableSend();
   },
 
+  // scroll position is considered as "manual" if the view is not completely
+  // scrolled to the bottom
+  isScrolledManually: false,
+
   // We define an edge for showing the following chunk of elements
   manageScroll: function thui_manageScroll(oEvent) {
+    var scrollTop = this.container.scrollTop;
+    var scrollHeight = this.container.scrollHeight;
+    var clientHeight = this.container.clientHeight;
+
+    this.isScrolledManually = ((scrollTop + clientHeight) < scrollHeight);
+
     // kEdge will be the limit (in pixels) for showing the next chunk
     var kEdge = 30;
-    var currentScroll = this.container.scrollTop;
-    if (currentScroll < kEdge) {
-      var previous = this.container.scrollHeight;
+    if (scrollTop < kEdge) {
       this.showChunkOfMessages(this.CHUNK_SIZE);
       // We update the scroll to the previous position
       // taking into account the previous offset to top
       // and the current height due to we have added a new
       // chunk of visible messages
       this.container.scrollTop =
-        (this.container.scrollHeight - previous) + currentScroll;
+        (this.container.scrollHeight - scrollHeight) + scrollTop;
+    }
+  },
+
+  scrollViewToBottom: function thui_scrollViewToBottom() {
+    if (!this.isScrolledManually) {
+      this.container.scrollTop = this.container.scrollHeight;
     }
   },
 
@@ -612,10 +626,6 @@ var ThreadUI = global.ThreadUI = {
       (window.location.hash == '#new' && !hasRecipients);
 
     this.sendButton.disabled = disableSendMessage;
-  },
-
-  scrollViewToBottom: function thui_scrollViewToBottom() {
-    this.container.scrollTop = this.container.scrollHeight;
   },
 
   // updates the counter for sms segments when in text only mode
@@ -867,6 +877,7 @@ var ThreadUI = global.ThreadUI = {
       var carrierText;
 
       this.headerText.dataset.isContact = !!details.isContact;
+      this.headerText.dataset.title = contactName;
       this.headerText.textContent = navigator.mozL10n.get(
         'thread-header-text', {
           name: contactName,
@@ -938,6 +949,8 @@ var ThreadUI = global.ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createDocumentFragment();
+    var scrollViewToBottom = ThreadUI.scrollViewToBottom.bind(ThreadUI);
+
     dataArray.forEach(function(messageData) {
       var mediaElement, textElement;
 
@@ -945,7 +958,7 @@ var ThreadUI = global.ThreadUI = {
         var attachment = new Attachment(messageData.blob, {
           name: messageData.name
         });
-        var mediaElement = attachment.render();
+        var mediaElement = attachment.render(scrollViewToBottom);
         container.appendChild(mediaElement);
         attachmentMap.set(mediaElement, attachment);
       }
@@ -1019,7 +1032,6 @@ var ThreadUI = global.ThreadUI = {
   // the classNames array also passed in, returns an HTML string
   _createNotDownloadedHTML:
   function thui_createNotDownloadedHTML(message, classNames) {
-
     var _ = navigator.mozL10n.get;
 
     // default strings:
@@ -1331,7 +1343,6 @@ var ThreadUI = global.ThreadUI = {
       }
       return;
     }
-
   },
 
   handleEvent: function thui_handleEvent(evt) {
@@ -1849,10 +1860,16 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    this.activateContact({
-      number: this.headerText.dataset.number,
-      isContact: this.headerText.dataset.isContact === 'true' ? true : false
-    });
+    var isContact = this.headerText.dataset.isContact;
+    var number = this.headerText.dataset.number;
+    if (isContact === 'true') {
+      this.genPrompt(isContact, number);
+    } else {
+      this.activateContact({
+        number: this.headerText.dataset.number,
+        isContact: false
+      });
+    }
   },
 
   onParticipantClick: function onParticipantClick(event) {
@@ -1864,7 +1881,10 @@ var ThreadUI = global.ThreadUI = {
 
     isContact = target.dataset.source === 'contacts' ? true : false;
     number = target.dataset.number;
+    this.genPrompt(isContact, number);
+  },
 
+  genPrompt: function thui_genPrompt(isContact, number) {
     Contacts.findByPhoneNumber(number, function(results) {
       var ul = document.createElement('ul');
       var contact = isContact ? results[0] : {
@@ -1941,11 +1961,12 @@ var ThreadUI = global.ThreadUI = {
     var _ = navigator.mozL10n.get;
     var thread = Threads.get(Threads.lastId || Threads.currentId);
     var number = opt.number;
-    var name = opt.name || number;
+    var email = opt.email;
+    var name = opt.name || number || email;
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
     var items = [];
-    var params;
+    var params, props;
 
     // Multi-participant activation for for a single, known
     // recipient contact, that is not triggered from a message,
@@ -1953,30 +1974,42 @@ var ThreadUI = global.ThreadUI = {
     if ((thread && thread.participants.length === 1) &&
         isContact && !inMessage) {
 
-      ActivityPicker.call(number);
+      ActivityPicker.dial(number);
       return;
     }
 
-    // All activations will see a "Call" option
-    items.push({
-      name: _('call'),
-      method: function oCall(param) {
-        ActivityPicker.call(param);
-      },
-      params: [number]
-    });
-
-    // Multi-participant activations or in-message numbers
-    // will include a "Send Message" option in the menu
-    if ((thread && thread.participants.length > 1) || inMessage) {
+    // All non-email activations will see a "Call" option
+    if (email) {
       items.push({
-        name: _('sendMessage'),
+        name: _('sendEmail'),
         method: function oCall(param) {
-          ActivityPicker.sendMessage(param);
+          ActivityPicker.dial(param);
+        },
+        params: [email]
+      });
+    } else {
+      items.push({
+        name: _('call'),
+        method: function oCall(param) {
+          ActivityPicker.dial(param);
         },
         params: [number]
       });
+
+
+      // Multi-participant activations or in-message numbers
+      // will include a "Send Message" option in the menu
+      if ((thread && thread.participants.length > 1) || inMessage) {
+        items.push({
+          name: _('sendMessage'),
+          method: function oCall(param) {
+            ActivityPicker.sendMessage(param);
+          },
+          params: [number]
+        });
+      }
     }
+
 
     // Combine the items and complete callback into
     // a single params object.
@@ -1993,6 +2026,10 @@ var ThreadUI = global.ThreadUI = {
 
     } else {
 
+      props = [
+        number ? {tel: number} : {email: email}
+      ];
+
       params.header = number;
       params.items.push({
           name: _('createNewContact'),
@@ -2001,7 +2038,7 @@ var ThreadUI = global.ThreadUI = {
               param, ThreadUI.onCreateContact
             );
           },
-          params: [{'tel': number}]
+          params: props
         },
         {
           name: _('addToExistingContact'),
@@ -2010,7 +2047,7 @@ var ThreadUI = global.ThreadUI = {
               param, ThreadUI.onCreateContact
             );
           },
-          params: [{'tel': number}]
+          params: props
         }
       );
     }
@@ -2024,7 +2061,6 @@ var ThreadUI = global.ThreadUI = {
     var options = new OptionMenu(params);
     options.show();
   },
-
 
   onCreateContact: function thui_onCreateContact() {
     ThreadListUI.updateContactsInfo();

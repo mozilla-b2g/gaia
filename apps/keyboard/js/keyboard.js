@@ -383,6 +383,11 @@ function initKeyboard() {
     handleKeyboardSound();
   });
 
+  // Gaia UI Test may change this setting to disable keyboard FTU
+  navigator.mozSettings.addObserver('keyboard.ftu.enabled', function(e) {
+    toShowKeyboardFTU = e.settingValue;
+  });
+
   for (var group in keyboardGroups) {
 
     var settingName = 'keyboard.layouts.' + group;

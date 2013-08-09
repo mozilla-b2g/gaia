@@ -1,35 +1,32 @@
+'use strict';
+
 requireApp('communications/dialer/js/mmi.js');
+
+requireApp('communications/dialer/test/unit/mock_l10n.js');
 
 requireApp('communications/dialer/test/unit/mock_mmi_ui.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
 
 const TINY_TIMEOUT = 5;
 
-if (!this.LazyL10n) {
-  this.LazyL10n = null;
-}
+var mocksHelperForMMI = new MocksHelper([
+  'LazyL10n'
+]).init();
 
 suite('dialer/mmi', function() {
+  mocksHelperForMMI.attachTestHelpers();
   var keys = {};
-  var realLazyL10n;
 
   suiteSetup(function() {
     MmiManager._conn = MockMozMobileConnection;
     MmiManager._ui = MockMmiUI;
     window.addEventListener('message',
                             MmiManager._ui.postMessage.bind(MmiManager._ui));
-    realLazyL10n = window.LazyL10n;
-    window.LazyL10n = MockLazyL10n;
     MmiManager.ready = true;
   });
 
-  suiteTeardown(function() {
-    window.LazyL10n = realLazyL10n;
-  });
-
   teardown(function() {
-    MmiManager._conn.teardown();
+    MmiManager._conn.mTeardown();
     MmiManager._ui.teardown();
   });
 

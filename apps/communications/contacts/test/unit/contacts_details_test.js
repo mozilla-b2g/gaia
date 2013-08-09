@@ -562,6 +562,25 @@ suite('Render contact', function() {
       subject.render(null, TAG_OPTIONS);
       assert.isFalse(container.querySelector('#find-merge-button').disabled);
     });
+
+    test('FB Imported Contact -> Find Duplicates does not appear', function() {
+      window.fb.setIsFbContact(true);
+      window.fb.setIsFbLinked(false);
+
+      subject.render(null, TAG_OPTIONS);
+      assert.isNull(container.querySelector('#find-merge-button'));
+    });
+
+    test('FB Linked Contact -> Find Duplicates appears', function() {
+      window.fb.setIsFbContact(true);
+      window.fb.setIsFbLinked(true);
+
+      subject.render(null, TAG_OPTIONS);
+      assert.isNotNull(container.querySelector('#find-merge-button'));
+
+      window.fb.setIsFbContact(false);
+      window.fb.setIsFbLinked(false);
+    });
   });
 
 });

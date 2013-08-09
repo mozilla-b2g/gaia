@@ -54,8 +54,9 @@ var mocksHelperForThreadUI = new MocksHelper([
 mocksHelperForThreadUI.init();
 
 suite('thread_ui.js >', function() {
-  var sendButton;
   var input;
+  var container;
+  var sendButton;
   var composeForm;
   var recipient;
 
@@ -126,8 +127,9 @@ suite('thread_ui.js >', function() {
     mocksHelper.setup();
     loadBodyHTML('/index.html');
 
-    sendButton = document.getElementById('messages-send-button');
     input = document.getElementById('messages-input');
+    container = document.getElementById('messages-container');
+    sendButton = document.getElementById('messages-send-button');
     composeForm = document.getElementById('messages-compose-form');
 
     ThreadUI.recipients = null;
@@ -142,6 +144,45 @@ suite('thread_ui.js >', function() {
     MockNavigatormozMobileMessage.mTeardown();
     mocksHelper.teardown();
     ThreadUI._mozMobileMessage = realMozMobileMessage;
+  });
+
+  suite('scrolling', function() {
+    teardown(function() {
+      container.innerHTML = '';
+    });
+    setup(function() {
+      // we don't have CSS so we must force the scroll here
+      container.style.overflow = 'scroll';
+      container.style.height = '50px';
+      // fake content
+      var innerHTML = '';
+      for (var i = 0; i < 99; i++) {
+        innerHTML += ThreadUI.tmpl.message.interpolate({
+          id: String(i),
+          bodyHTML: 'test #' + i
+        });
+      }
+      container.innerHTML = innerHTML;
+    });
+
+    test('scroll 100px, should be detected as a manual scroll', function(done) {
+      container.addEventListener('scroll', function onscroll() {
+        container.removeEventListener('scroll', onscroll);
+        assert.ok(ThreadUI.isScrolledManually);
+        done();
+      });
+      container.scrollTop = 100;
+    });
+
+    test('scroll to bottom, should be detected as an automatic scroll',
+    function(done) {
+      container.addEventListener('scroll', function onscroll() {
+        container.removeEventListener('scroll', onscroll);
+        assert.isFalse(ThreadUI.isScrolledManually);
+        done();
+      });
+      container.scrollTop = container.scrollHeight;
+    });
   });
 
   suite('Search', function() {
@@ -1486,8 +1527,8 @@ suite('thread_ui.js >', function() {
       this.sinon.spy(LinkActionHandler, 'onContextMenu');
 
       this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
-        return '<a data-phonenumber="' + phone +
-        '" data-action="phone-link">' + phone + '</a>';
+        return '<a data-dial="' + phone +
+        '" data-action="dial-link">' + phone + '</a>';
       });
 
       ThreadUI.appendMessage({
@@ -1543,7 +1584,6 @@ suite('thread_ui.js >', function() {
       assert.ok(LinkActionHandler.onContextMenu.called);
     });
   });
-
 
   suite('Message resending UI', function() {
     setup(function() {
@@ -1678,7 +1718,6 @@ suite('thread_ui.js >', function() {
   });
 
   suite('Render Contact', function() {
-
     test('Rendered Contact "givenName familyName"', function() {
       var ul = document.createElement('ul');
       var contact = new MockContact();
@@ -1959,15 +1998,16 @@ suite('thread_ui.js >', function() {
 
   suite('Header Actions/Display', function() {
     setup(function() {
+      Threads.delete(1);
       window.location.hash = '';
-      MockActivityPicker.call.mSetup();
+      MockActivityPicker.dial.mSetup();
       MockOptionMenu.mSetup();
     });
 
     teardown(function() {
       Threads.delete(1);
       window.location.hash = '';
-      MockActivityPicker.call.mTeardown();
+      MockActivityPicker.dial.mTeardown();
       MockOptionMenu.mTeardown();
     });
 
@@ -1988,8 +2028,8 @@ suite('thread_ui.js >', function() {
           });
 
           assert.equal(MockOptionMenu.calls.length, 0);
-          assert.ok(MockActivityPicker.call.called);
-          assert.equal(MockActivityPicker.call.calledWith, '999');
+          assert.ok(MockActivityPicker.dial.called);
+          assert.equal(MockActivityPicker.dial.calledWith, '999');
         });
 
         test('Single unknown', function() {
@@ -2090,23 +2130,22 @@ suite('thread_ui.js >', function() {
         test('Single known', function() {
 
           Threads.set(1, {
-            participants: ['999']
+            participants: ['+12125559999']
           });
 
           window.location.hash = '#thread=1';
 
-          ThreadUI.headerText.dataset.isContact = true;
-          ThreadUI.headerText.dataset.number = '999';
+
+          ThreadUI.headerText.dataset.isContact = 'true';
+          ThreadUI.headerText.dataset.number = '+12125559999';
 
           ThreadUI.onHeaderActivation();
-
-          var calls = MockOptionMenu.calls;
 
           // Does not initiate an OptionMenu
           assert.equal(MockOptionMenu.calls.length, 0);
 
           // Does initiate a "call" activity
-          assert.equal(MockActivityPicker.call.called, 1);
+          assert.equal(MockActivityPicker.dial.called, 1);
         });
 
         test('Single unknown', function() {
@@ -2196,14 +2235,14 @@ suite('thread_ui.js >', function() {
     suite('Multi participant', function() {
       setup(function() {
         window.location.hash = '';
-        MockActivityPicker.call.mSetup();
+        MockActivityPicker.dial.mSetup();
         MockOptionMenu.mSetup();
       });
 
       teardown(function() {
         Threads.delete(1);
         window.location.hash = '';
-        MockActivityPicker.call.mTeardown();
+        MockActivityPicker.dial.mTeardown();
         MockOptionMenu.mTeardown();
       });
 
@@ -2222,8 +2261,8 @@ suite('thread_ui.js >', function() {
 
           ThreadUI.onHeaderActivation();
 
-          assert.equal(MockActivityPicker.call.called, false);
-          assert.equal(MockActivityPicker.call.calledWith, null);
+          assert.equal(MockActivityPicker.dial.called, false);
+          assert.equal(MockActivityPicker.dial.calledWith, null);
         });
 
         test('DOES NOT Invoke Options', function() {
@@ -2341,7 +2380,6 @@ suite('thread_ui.js >', function() {
 
       });
     });
-
   });
 
   suite('Sending Behavior (onSendClick)', function() {

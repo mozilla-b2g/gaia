@@ -163,7 +163,7 @@ suite('grid.js >', function() {
         realRequestAnimationFrame = null;
       });
 
-      test('should be able to pan', function() {
+      test('should not be able to pan if user is on landing page', function() {
         this.sinon.useFakeTimers();
 
         var start = { x: 100, y: 100 };
@@ -184,7 +184,7 @@ suite('grid.js >', function() {
 
         this.sinon.clock.tick();
         var currentPage = document.getElementById('landing-page');
-        assert.include(currentPage.style.MozTransform, 'translateX');
+        assert.equal(currentPage.style.MozTransform, '');
         sendTouchEvent('touchend', containerNode, move);
         sendMouseEvent('mouseup', containerNode, move);
       });

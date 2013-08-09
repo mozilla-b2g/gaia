@@ -8,9 +8,10 @@
 .apps > div {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 7.6rem);
   text-align: center;
   margin: 0 auto;
+  overflow: hidden;
   display: none;
   /*
    * We use this rule to make gecko think that they're visible so they are
@@ -91,7 +92,7 @@ body[data-transitioning] .apps > div {
 
 /* Handling the case where the status bar is double size */
 /* XXX remove when the homescreen layout gets more dynamic */
-@media screen and (max-height: 440px) {
+@media screen and (max-height: 440px) and (orientation: portrait) {
   .apps ol > li > div {
     margin-top: .2rem;
   }

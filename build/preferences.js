@@ -144,7 +144,6 @@ if (DEVICE_DEBUG) {
   // actor
   prefs.push(["devtools.debugger.enable-content-actors", true]);
   prefs.push(["devtools.debugger.prompt-connection", false]);
-  prefs.push(["devtools.debugger.remote-enabled", true]);
 }
 
 function writePrefs() {
