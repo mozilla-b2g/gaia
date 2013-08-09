@@ -283,7 +283,7 @@ webapp-manifests: install-xulrunner-sdk
 	@#cat profile/webapps/webapps.json
 
 # Generate profile/webapps/APP/application.zip
-webapp-zip: stamp-commit-hash install-xulrunner-sdk
+webapp-zip: webapp-optimize stamp-commit-hash install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@rm -rf apps/system/camera
 	@cp -r apps/camera apps/system/camera
