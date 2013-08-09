@@ -148,7 +148,7 @@ ul#alarms li.alarm-cell:active {
   height: 100%;
   display: block;
   text-decoration: none;
-  font: lighter 1.4rem 'MozTT', sans-serif;
+  font: lighter 1.4rem sans-serif;
   color: #737D80;
 }
 

@@ -115,7 +115,7 @@
   position: absolute;
   width: calc(100% - (100% / 3));
   height: 100%;
-  font: 2.2rem/4.4rem 'MozTT',sans-serif;
+  font: 2.2rem/4.4rem sans-serif;
   text-align: center;
   background-color: #00A5C5;
   pointer-events: none;
@@ -132,7 +132,7 @@ div.animation-on {
 
 .picker-unit {
   position: relative;
-  font: 2.2rem/5.6rem 'MozTT',sans-serif;
+  font: 2.2rem/5.6rem sans-serif;
   color: #fff;
   text-align: center;
   vertical-align: middle;
