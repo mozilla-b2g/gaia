@@ -2813,6 +2813,17 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('Contact Picker Behavior(contactPickButton)', function() {
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'assimilateRecipients');
+    });
+
+    test('assimilate called after mousedown on picker button', function() {
+      ThreadUI.contactPickButton.dispatchEvent(new CustomEvent('mousedown'));
+      assert.ok(ThreadUI.assimilateRecipients.called);
+    });
+  });
+
   suite('setMessageBody', function() {
     setup(function() {
       this.sinon.stub(Compose, 'clear');

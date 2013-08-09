@@ -467,6 +467,9 @@ var ThreadUI = global.ThreadUI = {
 
   // Create a recipient from contacts activity.
   requestContact: function thui_requestContact() {
+    // assimilate stranded string before picking a contact.
+    this.assimilateRecipients();
+
     if (typeof MozActivity === 'undefined') {
       console.log('MozActivity unavailable');
       return;
