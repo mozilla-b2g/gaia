@@ -1,8 +1,16 @@
 (function(exports) {
   'use strict';
 
-  var settings = {};
+  function entry(key, value) {
+    settings[key] = urls[key] ? urls[key].set(value) : value;
+  }
+
   var mozSettings = navigator.mozSettings;
+  var settings = {};
+  var urls = {
+    'notification.ringtone': new SettingsURL()
+  };
+
   [
     'audio.volume.notification',
     'notification.ringtone',
