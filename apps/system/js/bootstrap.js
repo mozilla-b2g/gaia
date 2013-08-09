@@ -71,13 +71,15 @@ window.addEventListener('localized', function onlocalized() {
   document.documentElement.dir = navigator.mozL10n.language.direction;
 });
 
+var wallpaperURL = new SettingsURL();
+
 // Define the default background to use for all homescreens
 SettingsListener.observe(
   'wallpaper.image',
   'resources/images/backgrounds/default.png',
   function setWallpaper(value) {
     document.getElementById('screen').style.backgroundImage =
-      'url(' + value + ')';
+      'url(' + wallpaperURL.set(value) + ')';
   }
 );
 
