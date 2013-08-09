@@ -457,7 +457,7 @@
     var height;
 
     var appOrientation = this.manifest.orientation;
-    var orientation = OrientationObserver.determine(appOrientation);
+    var orientation = this.determineOrientation(appOrientation);
 
     this.frame.classList.remove(this.currentOrientation);
     this.currentOrientation = orientation;
@@ -486,6 +486,35 @@
   AppWindow.prototype.isFullScreen = function aw_isFullScreen() {
     return this._fullScreen;
   };
+
+  AppWindow.prototype._defaultOrientation = null;
+
+  AppWindow.prototype.determineOrientation =
+    function aw_determineOrientation(orientation) {
+      if (this._defaultOrientation) {
+        return this._defaultOrientation;
+      } else if (!orientation) {
+        this._defaultOrientation = 'portrait-primary';
+        return this._defaultOrientation;
+      }
+
+      if (!Array.isArray(orientation))
+        orientation = [orientation];
+
+      orientation.every(function orientationIterator(o) {
+        if (o.endsWith('-primary') || o.endsWith('-secondary')) {
+          this._defaultOrientation = o;
+          return false;
+        }
+      }, this);
+
+      // Make a guess to the orientation,
+      // if there's no '-primary' or '-secondary' suffix.
+      if (!this._defaultOrientation)
+        this._defaultOrientation = orientation[0] + '-primary';
+
+      return this._defaultOrientation;
+    };
 
   // Queueing a cleaning task for styles set for rotate transition.
   // We need to clear rotate after orientation changes; however when
