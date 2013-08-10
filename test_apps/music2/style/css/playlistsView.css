@@ -20,11 +20,11 @@
 
 .playlistsView .icon {
   background-size: 60% auto;
-  background-image: url('../radio-unchecked.png');
+  background-image: url('../images/radio-unchecked.png');
 }
 
 .playlistsView .currentPlaylist {
-  background-image: url('../radio-checked.png');
+  background-image: url('../images/radio-checked.png');
 }
 
 .playlistsView .playlistTitle {
@@ -42,7 +42,7 @@
 }
 
 .playlistsView .gotoPlaylistButton {
-  background-image: url('../headers/images/icons/back-rtl.png');
+  background-image: url('../images/header/back-rtl.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 80% auto;
@@ -61,7 +61,7 @@
   bottom: 0em;
   right: 3em;
 
-  background-image: url('../nosave.png'); /*Cris Dobbins, from The Noun Project*/
+  background-image: url('../images/nosave.png'); /*Cris Dobbins, from The Noun Project*/
   background-repeat: no-repeat;
   background-position: center center;
   background-size: 80% auto;

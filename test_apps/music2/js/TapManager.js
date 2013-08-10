@@ -1,11 +1,14 @@
 function TapManager(dom){
   this.dom = dom;
+  this.dom.tapManager = this;
 
-  Utils.setupPassParent(this, 'down');
-  Utils.setupPassParent(this, 'up');
-  Utils.setupPassParent(this, 'tap');
-  Utils.setupPassParent(this, 'long');
-  Utils.setupPassParent(this, 'longTap');
+  Router.route(this, [
+    'down',
+    'up',
+    'tap',
+    'long',
+    'longTap',
+  ]);
 
   this.state = {
     startX: 0,
@@ -22,6 +25,7 @@ function TapManager(dom){
 }
 
 TapManager.prototype = {
+  name: "tapManager",
   //========================
   //  STATE
   //========================

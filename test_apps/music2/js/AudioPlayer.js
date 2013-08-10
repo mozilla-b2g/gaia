@@ -1,12 +1,14 @@
 var AudioPlayer = function(){
   this.audioPlayer = document.getElementById('audioPlayer');
 
-  Utils.setupPassParent(this, 'isPlaying');
-  Utils.setupPassParent(this, 'isStopped');
-  Utils.setupPassParent(this, 'isEnded');
-  Utils.setupPassParent(this, 'isPaused');
-  Utils.setupPassParent(this, 'setCurrentTime');
-  Utils.setupPassParent(this, 'setTotalTime');
+  Router.route(this, [
+    'isPlaying',
+    'isStopped',
+    'isEnded',
+    'isPaused',
+    'timeUpdated'
+  ]);
+
 
   this.audioPlayer.addEventListener('play', this.isPlaying);
   this.audioPlayer.addEventListener('pause', this.isPaused);
@@ -15,6 +17,7 @@ var AudioPlayer = function(){
 }
 
 AudioPlayer.prototype = {
+  name: "AudioPlayer",
   play: function(source){
     if (source !== undefined){
       source.play(this.audioPlayer);
@@ -35,7 +38,6 @@ AudioPlayer.prototype = {
       this.audioPlayer.currentTime = time;
   },
   timeupdateEvent: function(){
-    this.setTotalTime(Math.round(this.audioPlayer.duration));
-    this.setCurrentTime(Math.round(this.audioPlayer.currentTime));
+    this.timeUpdated(Math.round(this.audioPlayer.currentTime), Math.round(this.audioPlayer.duration));
   },
 }

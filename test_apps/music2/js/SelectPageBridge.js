@@ -2,12 +2,15 @@ var SelectPageBridge = function(){
   this.dom = {};
   this.dom.selectPageDiv = document.getElementById('selectMusicPage');
   
-  Utils.setupPassParent(this, 'enqueueIntoCurrentPlaylist');
-  Utils.setupPassParent(this, 'createTemporaryPlaylistFromSources');
-  Utils.setupPassParent(this, 'enqueueIntoCustomPlaylist');
+  Router.route(this, [
+    'enqueueIntoCurrentPlaylist',
+    'createTemporaryPlaylistFromSources',
+    'enqueueIntoCustomPlaylist',
+  ]);
 }
 
 SelectPageBridge.prototype = {
+  name: "SelectPageBridge",
   setPageDiv: function(pageDiv){
     this.dom.selectPageDiv.appendChild(pageDiv);
   }
