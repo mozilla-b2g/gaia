@@ -4,6 +4,8 @@ function MockAudio() {
   MockAudio.instances.push(this);
 }
 
+MockAudio.instances = [];
+
 MockAudio.mSetup = function() {
   MockAudio.instances = [];
 };
