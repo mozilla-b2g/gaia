@@ -16,6 +16,7 @@
   <link rel="stylesheet" type="text/css" href="style/css/header.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/itemList.css"></link>
+  <link rel="stylesheet" type="text/css" href="style/css/menu.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/playlistView.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/playlistsView.css"></link>
@@ -27,6 +28,8 @@
   <link rel="stylesheet" type="text/css" href="style/css/playlistDrawer.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/mediaLibraryPage.css"></link>
+  <link rel="stylesheet" type="text/css" href="style/css/mediaLibraryPagePanel.css"></link>
+  <link rel="stylesheet" type="text/css" href="style/css/mediaLibraryPageNotifications.css"></link>
 
   <!-- =====================
       SCRIPTS
@@ -36,171 +39,125 @@
     <script src="js/Utils.js"></script>
     <script src="js/TapManager.js"></script>
     <script src="js/Router.js"></script>
+    <script src="js/RouterMonitor.js"></script>
     <script src="js/TransitionUtils.js"></script>
 
   <!--==================  UI ================== -->
+    <script src="js/UI/MusicUI.js"></script>
     <script src="js/UI/ViewEvents.js"></script>
+    <script src="js/UI/Views.js"></script>
     <script src="js/UI/ViewVisibility.js"></script>
 
     <script src="js/UI/UIItem.js"></script>
     <script src="js/UI/UIItemDrag.js"></script>
     <script src="js/UI/UIItemList.js"></script>
 
-    <script src="js/UI/SeekBar.js"></script>
-    <script src="js/UI/CurrentMusicPageControls.js"></script>
-    <script src="js/UI/CurrentMusicPageSource.js"></script>
-    <script src="js/UI/PlaylistView.js"></script>
-    <script src="js/UI/PlaylistsView.js"></script>
-    <script src="js/UI/CurrentMusicPage.js"></script>
+    <script src="js/UI/Menu.js"></script>
 
-    <script src="js/UI/PlaylistDrawer.js"></script>
+    <!--================== CurrentPlaylist ================== -->
+      <script src="js/UI/CurrentPlaylist/NowPlaying.js"></script>
+      <script src="js/UI/CurrentPlaylist/SeekBar.js"></script>
+      <script src="js/UI/CurrentPlaylist/CurrentMusicPageControls.js"></script>
+      <script src="js/UI/CurrentPlaylist/CurrentMusicPageSource.js"></script>
+      <script src="js/UI/CurrentPlaylist/CurrentMusicPage.js"></script>
+      <script src="js/UI/CurrentPlaylist/CurrentMusicPageOptions.js"></script>
 
-    <script src="js/UI/UI.js"></script>
+    <!--================== MusicLibrary ================== -->
+      <script src="js/UI/MediaLibrary/PanelTools.js"></script>
+      <script src="js/UI/MediaLibrary/MediaLibraryPage.js"></script>
+      <script src="js/UI/MediaLibrary/MediaLibraryPanelManager.js"></script>
 
-    <script src="js/SelectPageBridge.js"></script>
+      <!--==================  panels ================== -->
+        <script src="js/UI/MediaLibrary/MediaLibraryMainPanel.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryCategoryPanel.js"></script>
 
-    <!--==================  pages ================== -->
-      <script src="shared/js/mediadb.js"></script>
-      <script src="shared/js/async_storage.js"></script>
-      <script src="js/MediaLibraryPage/FileAudioSource.js"></script>
-      <script src="js/MediaLibraryPage/metadata_scripts.js"></script>
-      <script src="js/MediaLibraryPage/MusicDB.js"></script>
-      <script src="js/MediaLibraryPage/MediaLibraryPageNotifications.js"></script>
-      <script src="js/MediaLibraryPage/MediaLibraryPagePanel.js"></script>
-      <script src="js/MediaLibraryPage/MediaLibraryPagePanelView.js"></script>
-      <script src="js/MediaLibraryPage/MediaLibraryPagePanelManager.js"></script>
-      <script src="js/MediaLibraryPage/MediaLibraryPage.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryPlaylistPanel.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryPlaylistsPanel.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryDiscoverPanel.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibrarySearchPanel.js"></script>
+
+        <script src="js/UI/MediaLibrary/MediaLibraryMusicPanelFactory.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryAlbumPanel.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryArtistPanel.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryAllMusicPanel.js"></script>
+
+        <script src="js/UI/MediaLibrary/PlaylistView.js"></script>
+        <script src="js/UI/MediaLibrary/PlaylistsView.js"></script>
+        <script src="js/UI/MediaLibrary/PlaylistDrawer.js"></script>
+        <script src="js/UI/MediaLibrary/MediaLibraryPageNotifications.js"></script>
 
   <!--==================  app ================== -->
+    <script src="shared/js/mediadb.js"></script>
+    <script src="shared/js/async_storage.js"></script>
+
+    <script src="js/metadata_scripts.js"></script>
+
+    <script src="js/MusicDB.js"></script>
+    <script src="js/MusicLibrary.js"></script>
+
+    <script src="js/Song.js"></script>
+    <script src="js/Tests.js"></script>
+
     <script src="js/AudioPlayer.js"></script>
     <script src="js/Playlist.js"></script>
-    <script src="js/PlaylistStorage.js"></script>
     <script src="js/UI/PlaylistUI.js"></script>
-    <script src="js/PlaylistManager.js"></script>
+    <script src="js/PlayingPlaylist.js"></script>
+    <script src="js/Playlists.js"></script>
 
     <script src="js/Music.js"></script> 
+    
+    <script src="js/Bridge.js"></script>
 </head>
 <body>
-    <!-- =====================
-        PAGES
-    ====================== -->
-    
-      <div id="selectMusicPage" class="page center fastTransition">
-        <div id="selectPageContentOverlay" class="contentOverlay hidden fastTransition"></div>
-
-        <div class="header">
-          <div class="leftHeaderElem">
-            <div id="toggleSettingsDrawer"></div>
-          </div>
-          <div class="rightHeaderElem">
-            <div id="gotoCurrentMusicPage"></div>
-          </div>
-        </div>
-
-        <div id="mediaLibraryPage" class="selectSourcePage">
-          <div id="mediaLibraryPagePanel">
-            <div id="mediaLibraryPagePanelNotifications" class="fastTransition up">
-            
-            </div>
-            <div id="mediaLibraryPagePanelTitle">
-              <div id="mediaLibraryPagePanelPop" class="hidden"></div>
-              <img src = "" id="mediaLibraryPagePanelAlbum" class="hidden"></img>
-              <div id="mediaLibraryPagePanelTitleText"></div>
-              <div id="mediaLibraryPagePanelControls" class="hidden">
-                <div id="mediaLibraryPagePanelControlPlay"></div>
-                <div id="mediaLibraryPagePanelControlAdd"></div>
-              </div>
-            </div>
-            <div id="mediaLibraryPagePanelList">
-              <div id="mediaLibraryPagePanelSubCategories"></div>
-              <div id="mediaLibraryPagePanelItems"></div>
-            </div>
-          </div>
-        </div>
-        <div id="nowPlayingControls" class="hidden">
-            <div id="nowPlayingInfo">
-              <img src = "" id="nowPlayingSourceImg"></img>
-              <div id="nowPlayingText"></div>
-            </div>
-            <div id="nowPlayingTogglePlay"></div>
-        </div>
-      </div>
-
-      <div id="currentMusicPage" class="page right fastTransition">
-      <div id="currentMusicContentOverlay" class="contentOverlay hidden fastTransition"></div>
-
-        <div class="header">
-          <div class="leftHeaderElem">
-            <div id="gotoSelectMusicPage"></div>
-          </div>
-          <div id="currentMusicPageHeaderTitle" class="headerTitle center"></div>
-          <div class="rightHeaderElem">
-            <div id="togglePlaylistDrawer"></div>
-
-          </div>
-        </div>
-
-        <audio id="audioPlayer" class="hidden"></audio>
-        <div id="currentSourceView">
-          <div id="currentSourceInfo" class="fastTransition"></div>
-          <img src = "" id="currentSourceImg" ></img>
-        </div>
-        <div id="currentPlaylistView" class="hidden">
-        
-        </div>
-        <div id="toggleCurrentMusicPageView"></div>
-        <div class="controls">
-          <div id="seek">
-            <span id="seekElapsed">00:00</span>
-            <div id="seekBar">
-              <progress id="seekBarProgress" value="0"></progress>
-              <div id="seekBarIndicator"></div>
-            </div>
-            <span id="seekRemaining">00:00</span>
-          </div>
-          <div class="nav">
-            <div id="playPrev"></div>
-            <div id="togglePlay"></div>
-            <div id="playNext"></div>
-          </div>
-        </div>
-      </div>
-
-  <!-- =====================
-      META DRAWER
-  ====================== -->
-  <div id="settingsDrawer" class="drawer left out fastTransition">
-    <div class="header">
-      <div class="headerTitle left"> Settings </div>
-    </div>
-
-    <div id="settings">
-      <div class="version"> version: 0.1.1 </div>
-    </div>
-
+  <!--================== MusicLibrary ================== -->
+  <div id="mediaLibraryPage" class="page center">
+    <div id="mediaLibraryPagePanelNotifications" class="fastTransition up"></div>
+    <div id="visiblePanel"></div>
+    <div id="hiddenPanels" class="hidden"></div>
   </div>
 
-  <!-- =====================
-      PLAYLIST DRAWER
-  ====================== -->
-  <div id="playlistDrawer" class="drawer right out fastTransition">
+  <!--================== CurrentMusic ================== -->
+  <div id="currentMusicPage" class="page bottom fastTransition">
+    <div id="currentMusicContentOverlay" class="contentOverlay hidden fastTransition"></div>
+    <div id="nowPlayingControls" class="hidden">
+        <div id="nowPlayingInfo">
+          <img src = "" id="nowPlayingSourceImg"></img>
+          <div id="nowPlayingText" class="fastTransition"></div>
+          <div id="nowPlayingNotificationText" class="fastTransition"></div>
+        </div>
+        <div id="nowPlayingTogglePlay"></div>
+    </div>
+
     <div class="header">
-      <div class="headerTitle left"> Playlists </div>
+      <div id="gotoSelectMusicPage" class="leftHeaderElem"></div>
+      <div id="playingPlaylistButtons" class="rightHeaderElem">
+        <div id="deletePlaylist" class="hidden"></div>
+        <div id="savePlaylist" class="hidden"></div>
+      </div>
+      <div id="currentMusicPageHeaderTitle" class="headerTitle centerRight"></div>
     </div>
-    <div id="playlistDrawerTitle" class="hidden">
-      <div id="playlistDrawerTitleBack"></div>
-      <div id="playlistDrawerTitleContent"></div>
-      <div id="playlistDrawerTitleEdit"></div>
-      <div id="playlistDrawerTitleDel"></div>
-    </div>
-    <div id="playlistDrawerPlaylists">
 
+    <audio id="audioPlayer" class="hidden"></audio>
+    <div id="currentSourceView">
+      <div id="currentSourceInfo" class="fastTransition"></div>
+      <img src = "" id="currentSourceImg" ></img>
     </div>
-    <div id="playlistDrawerPlaylistItems" class="hidden">
-
-    </div>
-    <div id="playlistDrawerNewPlaylist">
-      new playlist
+    <div id="currentPlaylistView" class="hidden"></div>
+    <div id="toggleCurrentMusicPageView"></div>
+    <div class="controls">
+      <div id="seek">
+        <span id="seekElapsed">00:00</span>
+        <div id="seekBar">
+          <progress id="seekBarProgress" value="0"></progress>
+          <div id="seekBarIndicator"></div>
+        </div>
+        <span id="seekRemaining">00:00</span>
+      </div>
+      <div class="nav">
+        <div id="playPrev"></div>
+        <div id="togglePlay"></div>
+        <div id="playNext"></div>
+      </div>
     </div>
   </div>
 

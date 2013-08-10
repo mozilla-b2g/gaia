@@ -15,7 +15,7 @@
   -moz-box-sizing: border-box;
   overflow: hidden;
 
-  background-image: url('../images/scroll_bar_bg.png');
+  background-image: url('../images/controls/scroll_bar_bg.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
@@ -44,31 +44,31 @@
 }
 
 #playPrev {
-  background-image: url('../images/IconAction_Media_SkipBackwards_30x30.png');
+  background-image: url('../images/controls/backwards.png');
 }
 
 #playNext {
-  background-image: url('../images/IconAction_Media_SkipForward_30x30.png');
+  background-image: url('../images/controls/forwards.png');
 }
 
 #togglePlay {
-  background-image: url('../images/IconAction_Media_Play_30x30.png');
+  background-image: url('../images/controls/play.png');
 }
 
 #togglePlay.pause {
-  background-image: url('../images/IconAction_Media_Pause_30x30.png');
+  background-image: url('../images/controls/pause.png');
 }
 
 #togglePlay.disabled {
-  background-image: url('../play_disabled.png');
+  background-image: url('../images/controls/play_disabled.png');
 }
 
 #playNext.disabled {
-  background-image: url('../forward_disabled.png');
+  background-image: url('../images/controls/forward_disabled.png');
 }
 
 #playPrev.disabled {
-  background-image: url('../backwards_disabled.png');
+  background-image: url('../images/controls/backwards_disabled.png');
 }
 
 #seekBar {
@@ -82,7 +82,7 @@
 }
 
 #seekBarProgress {
-  background-image: url("../images/timeline.png");
+  background-image: url("../images/controls/timeline.png");
   position: absolute;
   width: 100%;
   left: 0;
@@ -95,7 +95,7 @@
 }
 
 #seekBarProgress::-moz-progress-bar {
-  background: url("../images/timeline_filled.png");
+  background: url("../images/controls/timeline_filled.png");
   border-radius: 0.5rem;
 }
 
@@ -105,7 +105,7 @@
   height: 4em;
   width: 4em;
   top: calc(50% - 2em);
-  background-image: url("../images/scrubber.png");
+  background-image: url("../images/controls/scrubber.png");
   background-position: center;
   background-repeat: no-repeat;
   background-size: auto 60%;
@@ -118,7 +118,7 @@
 }
 
 #seekBarIndicator.disabled {
-  background-image: url("../scrubber_disable.png");
+  background-image: url("../images/controls/scrubber_disable.png");
 }
 
 #seekBarIndicator.highlight {

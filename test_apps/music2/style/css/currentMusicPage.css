@@ -1,12 +1,18 @@
+#currentMusicPage {
+  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
+  z-index: 500;
+}
+
 #nowPlayingControls {
-  position: fixed;
+  position: absolute;
   height: 3.5rem;
-  bottom: 0;
+  bottom: 100%;
   left: 0;
   right: 0;
   z-index: 3;
   border-top: 1px solid #445;
   background: rgba(0, 0, 0, .75);
+  overflow: hidden;
 }
 
 #nowPlayingInfo { 
@@ -32,10 +38,37 @@
 
 #nowPlayingText {
   position: absolute;
-  left: 5rem;
+  left: 4rem;
   right: 0rem;
   top: .5rem;
   bottom: .5rem;
+  transform: translateY(0%);
+}
+
+#nowPlayingText.out {
+  transform: translateY(100%);
+}
+
+#nowPlayingNotificationText {
+  position: absolute;
+  left: 4rem;
+  right: 0rem;
+  top: .5rem;
+  bottom: .5rem;
+  transform: translateY(200%);
+  z-index: 1;
+
+  font-size: 1.125rem;
+  line-height: 2.5rem;
+  color: white;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#nowPlayingNotificationText.in {
+  transform: translateY(0%);
 }
 
 #nowPlayingText > * {
@@ -62,11 +95,11 @@
   background-repeat: no-repeat;
   background-position: center center;
   background-size: auto 70%;
-  background-image: url('../images/IconAction_Media_Play_30x30.png');
+  background-image: url('../images/controls/play.png');
 }
 
 #nowPlayingTogglePlay.pause {
-  background-image: url('../images/IconAction_Media_Pause_30x30.png');
+  background-image: url('../images/controls/pause.png');
 }
 
 
@@ -82,13 +115,13 @@
   background-repeat: no-repeat;
   background-position: center top;
   background-size: auto 200%;
-  background-image: url('../images/iconaction_media_playlistfilter.png');
+  background-image: url('../images/playlist.png');
   background-color: rgba(0, 0, 0, .5);
   border-radius: .25rem;
 }
 
 #toggleCurrentMusicPageView.switchSong {
-  background-image: url('../images/iconaction_media_albumfilter.png');
+  background-image: url('../images/album.png');
 }
 
 #currentSourceView {
