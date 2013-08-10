@@ -84,6 +84,10 @@ var EvmeManager = (function EvmeManager() {
         return Icon.prototype.MAX_ICON_SIZE;
     }
 
+    function isEvmeVisible(isVisible) {
+        GridManager.setLandingPageOpacity(isVisible ? 0.4 : 0);
+    }
+
     return {
         openApp: openApp,
 
@@ -98,6 +102,8 @@ var EvmeManager = (function EvmeManager() {
         getAppName: getAppName,
 
         openUrl: openUrl,
+
+        isEvmeVisible: isEvmeVisible,
 
         menuShow: menuShow,
         menuHide: menuHide,

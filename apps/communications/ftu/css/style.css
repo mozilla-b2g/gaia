@@ -1108,6 +1108,6 @@ i.hack-first-child {
 }
 
 #tutorial-screen .step-state:before {
-  width: calc(100% / 5);
+  width: calc(100% / 4);
   background: #FFFFFF;
 }

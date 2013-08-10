@@ -28,6 +28,7 @@ var GridManager = (function() {
   var kPageTransitionDuration = 300;
   var overlay, overlayStyle;
   var overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
+  var landingPageOpacity = 0;
 
   var numberOfSpecialPages = 0, landingPage, prevLandingPage, nextLandingPage;
   var pages = [];
@@ -272,6 +273,9 @@ var GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
           var pan = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
             currentX = getX(e);
             deltaX = getDeltaX(e);
 
@@ -282,22 +286,14 @@ var GridManager = (function() {
           };
         } else {
           var setOpacityToOverlay = noop;
-          if (currentPage === prevLandingPage) {
+          if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               if (!forward)
                 return;
 
-              var opacity = opacityOnAppGridPageMax -
-                    (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = opacityStepFunction(opacity);
-            };
-          } else if (currentPage === landingPage) {
-            setOpacityToOverlay = function() {
-              if (!forward)
-                return;
-
-              var opacity = (Math.abs(deltaX) / windowWidth) *
-                            opacityOnAppGridPageMax;
+              var opacity = landingPageOpacity +
+                            (Math.abs(deltaX) / windowWidth) *
+                            (opacityOnAppGridPageMax - landingPageOpacity);
               overlayStyle.opacity = opacityStepFunction(opacity);
             };
           } else {
@@ -306,12 +302,16 @@ var GridManager = (function() {
                 return;
 
               var opacity = opacityOnAppGridPageMax -
-                    (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+                    (Math.abs(deltaX) / windowWidth) *
+                    (opacityOnAppGridPageMax - landingPageOpacity);
               overlayStyle.opacity = opacityStepFunction(opacity);
             };
           }
 
           var pan = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
             currentX = getX(e);
             deltaX = getDeltaX(e);
 
@@ -373,7 +373,8 @@ var GridManager = (function() {
 
   function applyEffectOverlay(index) {
     overlayStyle.MozTransition = overlayTransition;
-    overlayStyle.opacity = index === landingPage ? 0 : opacityOnAppGridPageMax;
+    overlayStyle.opacity =
+      (index === landingPage ? landingPageOpacity : opacityOnAppGridPageMax);
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -478,7 +479,6 @@ var GridManager = (function() {
   var lastGoingPageTimestamp = 0;
 
   function goToPage(index, callback) {
-    document.location.hash = (index === landingPage ? 'root' : '');
     if (index < 0 || index >= pages.length)
       return;
 
@@ -1239,6 +1239,13 @@ var GridManager = (function() {
     dirCtrl: dirCtrl,
 
     pageHelper: pageHelper,
+
+    setLandingPageOpacity: function setLandingPageOpacity(value) {
+      landingPageOpacity = value;
+      if (currentPage === landingPage) {
+        applyEffectOverlay(0);
+      }
+    },
 
     get landingPage() {
       return landingPage;
