@@ -1121,7 +1121,6 @@ Evme.Brain = new function Evme_Brain() {
             app = apps[i];
             if (app) {
               icons[app.id] = app.icon;
-              shortcutsToUpdate[key].push(app.id);
             }
           }
           shortcutsToUpdate[key] = Object.keys(icons);
@@ -1871,8 +1870,6 @@ Evme.Brain = new function Evme_Brain() {
                         "iconsFormat": iconsFormat,
                         "clear": !hasInstalledApps && appsCurrentOffset == 0
                     });
-                    
-                    onComplete(apps);
 
                     if (iconsResponse) {
                         iconsCachedFromLastRequest = iconsResponse.cached;
@@ -1892,6 +1889,8 @@ Evme.Brain = new function Evme_Brain() {
                     } else {
                         Evme.Apps.getElement().classList.remove("has-more");
                     }
+                    
+                    onComplete(apps);
                 }
             }
 
