@@ -137,6 +137,7 @@ var CallLogDBManager = {
                 // we have finished the upgrades. please keep this
                 // in sync for future upgrades, since otherwise it
                 // will call the default: and abort the transaction :(
+                self._notifyObservers('upgradedone');
                 break;
               default:
                 event.target.transaction.abort();
@@ -290,6 +291,7 @@ var CallLogDBManager = {
       }
 
       if (groupCount == 0) {
+        next();
         return;
       }
 
@@ -306,7 +308,6 @@ var CallLogDBManager = {
           store.put(groups[group]).onsuccess = function onsuccess() {
             groupCount--;
             if (groupCount == 0) {
-              self._notifyObservers('upgradedone');
               next();
             }
           };
@@ -511,7 +512,6 @@ var CallLogDBManager = {
           groupsStore.openCursor().onsuccess = (function(event) {
             var cursorGroups = event.target.result;
             if (!cursorGroups) {
-              this._notifyObservers('upgradedone');
               next();
               return;
             }
