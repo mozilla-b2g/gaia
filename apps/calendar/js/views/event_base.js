@@ -275,17 +275,14 @@ Calendar.ns('Views').EventBase = (function() {
       var last = this.app.router.last;
 
       if (last && last.path) {
-        if (!(/^\/event/.test(last.path) ||
-              /^\/day/.test(last.path) ||
-              /^\/month/.test(last.path) ||
-              /^\/week/.test(last.path))) {
-          // We came from some place suspicious so go back to default.
+        if (!(/^\/(day|event|month|week)/.test(last.path))) {
+          // We came from some place suspicious so fall back to default.
           this._returnTo = this.DEFAULT_VIEW;
         } else {
           // Return to the default view if we just added an event.
           // Else go back to where we came from.
-          this._returnTo =
-            /^\/event\/add\//.test(last.path) ? this.DEFAULT_VIEW : last.path;
+          this._returnTo = /^\/event\/add\//.test(last.path) ?
+              this.DEFAULT_VIEW : last.path;
         }
       }
 
