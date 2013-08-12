@@ -154,3 +154,43 @@ suite('extended header', function() {
   });
 
 });
+
+suite('unsynchronized tags', function() {
+
+  setup(function() {
+    this.timeout(1000);
+  });
+
+  [3, 4].forEach(function(version) {
+    test('id3v2.' + version + ' whole tag', function(done) {
+      parseMetadata(
+        '/test-data/id3v2.' + version + '-allunsync.mp3',
+        function(metadata) {
+          assert.equal(metadata.artist, 'AC/DC');
+          assert.equal(metadata.album, 'Dirty Deeds Done Dirt Cheap');
+          assert.equal(metadata.title, 'Problem Child');
+          assert.equal(metadata.tracknum, 5);
+          // For now, just test that we got the expected size for the album art.
+          assert.equal(metadata.picture.end - metadata.picture.start, 11);
+        },
+        done
+      );
+    });
+  });
+
+  test('id3v2.4 selected frames', function(done) {
+    parseMetadata(
+      '/test-data/id3v2.4-framesunsync.mp3',
+      function(metadata) {
+        assert.equal(metadata.artist, 'AC/DC');
+        assert.equal(metadata.album, 'Dirty Deeds Done Dirt Cheap');
+        assert.equal(metadata.title, 'Problem Child');
+        assert.equal(metadata.tracknum, 5);
+        // For now, just test that we got the expected size for the album art.
+        assert.equal(metadata.picture.end - metadata.picture.start, 11);
+      },
+      done
+    );
+  });
+
+});
