@@ -635,6 +635,7 @@
     var target = event.target;
     var keyCode = event.keyCode;
     var editable = 'false';
+    var lastElement = view.inner.lastElementChild;
     var typed, recipient, length, last, list, previous;
 
     // All keyboard events will need some information
@@ -695,7 +696,8 @@
           // If Recipient is clicked while another is actively
           // being editted, save the in-edit recipient before
           // transforming the target into an editable recipient.
-          typed = view.inner.lastElementChild.textContent.trim();
+          typed = lastElement && lastElement.isPlaceholder ?
+            lastElement.textContent.trim() : '';
 
           if (typed) {
             owner.add({
