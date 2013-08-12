@@ -1212,6 +1212,7 @@ Evme.Brain = new function Evme_Brain() {
             app = apps[i];
             if (app) {
               icons[app.id] = app.icon;
+              shortcutsToUpdate[key].push(app.id);
             }
           }
 
