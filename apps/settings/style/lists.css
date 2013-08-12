@@ -110,6 +110,7 @@ ul li > label.pack-switch + small {
 ul li > small:not(:empty) + a,
 ul li > small:not(:empty) + span {
   line-height: 4.4rem;
+  padding-bottom: 0.1rem; /* Bug 903438 */
 }
 
 
