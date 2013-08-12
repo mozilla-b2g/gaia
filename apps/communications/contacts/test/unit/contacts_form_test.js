@@ -204,7 +204,9 @@ suite('Render contact form', function() {
         for (var i = 0; i < toCheck.length; i++) {
           var element = 'add-' + toCheck[i];
           assert.isTrue(content.indexOf(element + '-0') > -1);
-          assert.isTrue(content.indexOf(element + '-1') === -1);
+          assert.isTrue(content.indexOf(element + '-1') > -1);
+          assert.isTrue(content.indexOf(element + '-2') === -1);
+
 
           var domElement0 = document.querySelector('#' + element + '-' + '0');
           assert.isTrue(domElement0.classList.contains('removed') &&
