@@ -418,21 +418,23 @@ function showCurrentView(callback) {
   // to display thumbnails in TilesView
   // it's possibly not loaded so load it
   LazyLoader.load('js/metadata_scripts.js', function() {
-    // If it's in picking mode we will just enumerate all the songs
-    // and don't need to enumerate data for TilesView
+    // If it's in picking mode we will just get all the songs
+    // and sort the results by the song title.
+    // We don't need to enumerate data for TilesView
     // because mix page is not needed in picker mode
     if (pendingPick) {
       ListView.clean();
 
       knownSongs.length = 0;
-      listHandle =
-        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
-                          function(song) {
-                            ListView.update(TabBar.option, song);
-                            // Push the song to knownSongs then
-                            // we can display a correct overlay
-                            knownSongs.push(song);
-                          });
+      musicdb.getAll(function(results) {
+        results.sort(compareResultsByTitle);
+
+        ListView.dataSource = results;
+        ListView.batchUpdate(TabBar.option, LIST_BATCH_SIZE, true);
+        // Assign the results to knownSongs then
+        // we can display a correct overlay
+        knownSongs = results;
+     }.bind(this));
 
       if (callback)
         callback();
@@ -448,11 +450,12 @@ function showCurrentView(callback) {
     {
       ListView.clean();
 
+      var key = 'metadata.' + TabBar.option;
       listHandle =
-        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
-                          function(song) {
-                            ListView.update(TabBar.option, song);
-                          });
+        musicdb.enumerateAll(key, null, 'nextunique', function(results) {
+          ListView.dataSource = results;
+          ListView.batchUpdate(TabBar.option, LIST_BATCH_SIZE, true);
+        });
     }
 
     // Enumerate existing song entries in the database
@@ -483,6 +486,16 @@ function showCurrentView(callback) {
                                             callback();
                                       });
   });
+}
+
+// This comparing function will be used on sorting
+// all the results of MediaDB.getAll() by title.
+function compareResultsByTitle(a, b) {
+  if (a.metadata.title > b.metadata.title)
+    return 1;
+  else if (a.metadata.title < b.metadata.title)
+    return -1;
+  return 0;
 }
 
 // This Application has five modes: TILES, SEARCH, LIST, SUBLIST, and PLAYER
@@ -958,7 +971,6 @@ function createListElement(option, data, index, highlight) {
   li.className = 'list-item';
 
   var a = document.createElement('a');
-  a.href = '#';
   a.dataset.index = index;
   a.dataset.option = option;
 
@@ -1009,16 +1021,17 @@ function createListElement(option, data, index, highlight) {
     case 'artist':
     case 'album':
     case 'title':
-      var parent = document.createElement('div');
-      parent.className = 'list-image-parent';
-      parent.classList.add('default-album-' + index % 10);
-      var img = document.createElement('img');
-      img.className = 'list-image';
+      // Use background image instead of creating img elements can reduce
+      // the amount of total elements in the DOM tree, it can save memory
+      // and gecko can render the elements faster as well.
+      var setBackground = function(url) {
+        if (url)
+          li.style.backgroundImage = 'url(' + url + ')';
+        else
+          li.classList.add('default-album-' + index % 10);
+      };
 
-      if (data.metadata.picture) {
-        parent.appendChild(img);
-        displayAlbumArt(img, data);
-      }
+      getThumbnailURL(data, setBackground);
 
       if (option === 'artist') {
         var artistSpan = document.createElement('span');
@@ -1060,8 +1073,6 @@ function createListElement(option, data, index, highlight) {
         li.appendChild(artistSpan);
       }
 
-      li.appendChild(parent);
-
       a.dataset.keyRange = data.metadata[option];
       a.dataset.option = option;
 
@@ -1092,6 +1103,9 @@ function createListElement(option, data, index, highlight) {
   return li;
 }
 
+// Assuming the ListView will prepare 6 pages for batch loading.
+// Each page contains 7 list elements.
+var LIST_BATCH_SIZE = 7 * 6;
 // View of List
 var ListView = {
   get view() {
@@ -1126,11 +1140,17 @@ var ListView = {
   init: function lv_init() {
     this.dataSource = [];
     this.index = 0;
+    this.firstLetters = [];
     this.lastFirstLetter = null;
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
     this.searchInput.addEventListener('focus', this);
+
+    this.moveTimer = null;
+    this.scrollTimer = null;
+    this.view.addEventListener('touchmove', this);
+    this.view.addEventListener('scroll', this);
   },
 
   clean: function lv_clean() {
@@ -1140,8 +1160,10 @@ var ListView = {
 
     this.dataSource = [];
     this.index = 0;
+    this.firstLetters.length = 0;
     this.lastFirstLetter = null;
     this.anchor.innerHTML = '';
+    this.anchor.style.height = 0;
     this.view.scrollTop = 0;
     this.hideSearch();
   },
@@ -1153,6 +1175,25 @@ var ListView = {
       this.view.scrollTop = this.searchBox.offsetHeight;
   },
 
+  createHeader: function lv_createHeader(option, result) {
+    // This function basically create the section header of the list elements.
+    // When we hit the different first letter, this function will use it to
+    // create a new header then keep it, until to hit another different one,
+    // it will create the next header with the new first letter.
+    var firstLetter = result.metadata[option].charAt(0);
+    var headerLi;
+
+    if (this.lastFirstLetter != firstLetter) {
+      this.lastFirstLetter = firstLetter;
+
+      headerLi = document.createElement('li');
+      headerLi.className = 'list-header';
+      headerLi.textContent = this.lastFirstLetter || '?';
+    }
+
+    return headerLi;
+  },
+
   update: function lv_update(option, result) {
     if (result === null) {
       showCorrectOverlay();
@@ -1162,22 +1203,103 @@ var ListView = {
     this.dataSource.push(result);
 
     if (option !== 'playlist') {
-      var firstLetter = result.metadata[option].charAt(0);
-
-      if (this.lastFirstLetter != firstLetter) {
-        this.lastFirstLetter = firstLetter;
-
-        var headerLi = document.createElement('li');
-        headerLi.className = 'list-header';
-        headerLi.textContent = this.lastFirstLetter || '?';
-
-        this.anchor.appendChild(headerLi);
+      var header = this.createHeader(option, result);
+      if (header) {
+        this.anchor.appendChild(header);
       }
     }
 
     this.anchor.appendChild(createListElement(option, result, this.index));
 
     this.index++;
+  },
+
+  adjustHeight: function lv_adjustHeight(option) {
+    // This function will try to calculate the final height of the ListView,
+    // base on the total height of the different children elements. To adjust
+    // the height of the ListView is because, if we let the height increases
+    // every time when we append a new child, that will cause lots of repaint,
+    // which might kill the performance and the user experiences, also we might
+    // see the scroll bar will shrink continually. So after we finished the
+    // first painting of the ListView, at the same time we will also apply the
+    // total height that we calculated to the ListView.
+    var previousFirstLetter;
+    for (var i = 0; i < this.dataSource.length; i++) {
+      var metadata = this.dataSource[i].metadata;
+      var firstLetter = metadata[option].charAt(0);
+      if (previousFirstLetter !== firstLetter) {
+        this.firstLetters.push(firstLetter);
+        previousFirstLetter = firstLetter;
+      }
+    }
+
+    var headerHeight = this.anchor.firstChild.offsetHeight;
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var bottomHeight = parseInt(getComputedStyle(this.anchor.lastChild, null).
+      getPropertyValue('margin-bottom'));
+    var count = this.dataSource.length;
+
+    this.anchor.style.height = (
+      headerHeight * this.firstLetters.length +
+      itemHeight * count +
+      bottomHeight
+    ) + 'px';
+  },
+
+  judgeAndUpdate: function lv_judgeAndUpdate() {
+    // When the scrolling transition is idle or almost idle, it would be a good
+    // timing to create and append children to the ui, so that the users won't
+    // feel the jagging when every time the ui repaints, and this function can
+    // help to judge and see how many elements it should append and update to
+    // the ListView. Basically it just check where is the scrolled position and
+    // how many children are already on the ui(in the DOM tree), then give the
+    // approximately range to the batchUpdate(), so that we can only update the
+    // region we want, and the amount of elements is average that we can draw
+    // in the precious idle time, and the users will have very little chance to
+    // see the ListView is empty.
+    if (!this.anchor.lastChild)
+      return;
+
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var scrolledHeight = this.view.scrollTop + this.view.offsetHeight;
+    var position = Math.round(scrolledHeight / itemHeight);
+    var last = this.anchor.children.length;
+    var range = position + this.firstLetters.length - last;
+
+    if (range < LIST_BATCH_SIZE)
+      this.batchUpdate(TabBar.option, range + LIST_BATCH_SIZE);
+  },
+
+  batchUpdate: function lv_update(option, range, firstPaint) {
+    // See where is the last index we have for the existing children, and start
+    // to create the rest elements from it, note that here we use fragment to
+    // update all the new elements at once, this is for reducing the amount of
+    // appending child to the DOM tree.
+    var start = this.index;
+    var end = start + range;
+    var fragment = document.createDocumentFragment();
+
+    if (end > this.dataSource.length)
+      end = this.dataSource.length;
+
+    for (var i = start; i < end; i++) {
+      var data = this.dataSource[i];
+      var header = this.createHeader(option, data);
+
+      if (header)
+        fragment.appendChild(header);
+
+      fragment.appendChild(createListElement(option, data, this.index));
+      this.index++;
+    }
+
+    this.anchor.appendChild(fragment);
+
+    // Since the total count of dataSource is known, we can use it to calculate
+    // the correct height and assign it to the view, so that the length of
+    // the scroll bar will not change every time when batch updating executes.
+    if (firstPaint)
+      this.adjustHeight(option);
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -1223,7 +1345,15 @@ var ListView = {
                 PlayerView.setSourceType(TYPE_MIX);
 
                 PlayerView.dataSource = this.dataSource;
-                PlayerView.play(targetIndex);
+                if (PlayerView.shuffleOption) {
+                  // Shuffled list does not exist yet in all songs.
+                  // Here we need to create a new shuffled list
+                  // and start from the song which the user clicked.
+                  PlayerView.shuffleList(targetIndex);
+                  PlayerView.play(PlayerView.shuffledList[0]);
+                } else {
+                  PlayerView.play(targetIndex);
+                }
             }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
@@ -1260,6 +1390,40 @@ var ListView = {
           SearchView.search(target.value);
         }
 
+        break;
+
+      case 'touchmove':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.moveTimer)
+          clearTimeout(this.moveTimer);
+
+        // If the move timer is not cancelled, it should be a suitable time
+        // to update the ui because we don't want to render elements while
+        // the list is scrolling.
+        this.moveTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.moveTimer = null;
+        }.bind(this), 50);
+        break;
+
+      case 'scroll':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.scrollTimer)
+          clearTimeout(this.scrollTimer);
+
+        // If the user try to scroll as possible as it can, after the scrolling
+        // stops, we can see where the position is and try to render the rest
+        // elements that should be displayed on the screen.
+        this.scrollTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.scrollTimer = null;
+        }.bind(this), 1000);
         break;
 
       default:
@@ -1690,14 +1854,30 @@ var TabBar = {
             break;
           case 'tabs-artists':
           case 'tabs-albums':
+            ModeManager.start(MODE_LIST);
+            ListView.clean();
+
+            var key = 'metadata.' + this.option;
+            listHandle =
+              musicdb.enumerateAll(key, null, 'nextunique', function(results) {
+                ListView.dataSource = results;
+                ListView.batchUpdate(this.option, LIST_BATCH_SIZE, true);
+              }.bind(this));
+
+            break;
           case 'tabs-songs':
             ModeManager.start(MODE_LIST);
             ListView.clean();
 
-            listHandle =
-              musicdb.enumerate('metadata.' + this.option, null,
-                                'nextunique',
-                                ListView.update.bind(ListView, this.option));
+            // There might be lots songs in the users storages so here we use
+            // getAll() instead of enumerateAll(). It can be more responsive
+            // because it's faster no matter the collection is large or small.
+            musicdb.getAll(function(results) {
+              results.sort(compareResultsByTitle);
+
+              ListView.dataSource = results;
+              ListView.batchUpdate(this.option, LIST_BATCH_SIZE, true);
+            }.bind(this));
 
             break;
         }
