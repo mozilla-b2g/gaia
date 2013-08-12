@@ -116,7 +116,7 @@ var AppInstallManager = {
     if (manifest.size) {
       this.size.textContent = this.humanizeSize(manifest.size);
     } else {
-      this.size.textContent = _('unknown');
+      this.size.textContent = _('unknown-size');
     }
 
     // Wrap manifest to get localized properties
@@ -125,10 +125,11 @@ var AppInstallManager = {
     this.msg.textContent = msg;
 
     if (manifest.developer) {
-      this.authorName.textContent = manifest.developer.name || _('unknown');
+      this.authorName.textContent = manifest.developer.name ||
+        _('unknown-author');
       this.authorUrl.textContent = manifest.developer.url || '';
     } else {
-      this.authorName.textContent = _('unknown');
+      this.authorName.textContent = _('unknown-author');
       this.authorUrl.textContent = '';
     }
 

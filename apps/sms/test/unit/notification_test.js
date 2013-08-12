@@ -4,10 +4,14 @@ requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/test/unit/mock_audio.js');
 requireApp('sms/test/unit/mock_navigator_vibrate.js');
 
+var mocksHelperNotifications = new MocksHelper(['SettingsURL']).init();
+
 suite('check the ringtone and vibrate function', function() {
   var realAudio;
   var realMozSettings;
   var realVibrate;
+
+  mocksHelperNotifications.attachTestHelpers();
 
   suiteSetup(function(done) {
     // Stash references to the original objects
@@ -35,12 +39,14 @@ suite('check the ringtone and vibrate function', function() {
     this.sinon.spy(Audio.prototype, 'play');
     this.sinon.spy(navigator, 'vibrate');
     this.sinon.spy(window, 'Audio');
-  });
 
-  teardown(function() {
-    Audio.prototype.play.restore();
-    navigator.vibrate.restore();
-    window.Audio.restore();
+    this.sinon.stub(SettingsURL.prototype, 'get', function() {
+      return 'ringtone';
+    });
+
+    this.sinon.stub(SettingsURL.prototype, 'set', function(value) {
+      return value;
+    });
   });
 
   function triggerObservers(settings) {
@@ -70,6 +76,9 @@ suite('check the ringtone and vibrate function', function() {
 
       assert.ok(Audio.called);
       assert.deepEqual(navigator.vibrate.args[0][0], [200, 200, 200, 200]);
+      assert.deepEqual(MockAudio.instances[0], {
+        src: 'ringtone', mozAudioChannelType: 'notification'
+      });
     });
   });
 
@@ -91,6 +100,9 @@ suite('check the ringtone and vibrate function', function() {
 
       assert.ok(Audio.called);
       assert.equal(navigator.vibrate.args.length, 0);
+      assert.deepEqual(MockAudio.instances[0], {
+        src: 'ringtone', mozAudioChannelType: 'notification'
+      });
     });
   });
 
