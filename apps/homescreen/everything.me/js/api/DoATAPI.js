@@ -94,7 +94,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             });
         }
 
-        self.Session.init();
+        self.Session.init(options.callback);
     };
     
     this.search = function search(options, callback, noSession) {
@@ -722,7 +722,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "CACHE_ERROR": "cache error"
         };
         
-        this.init = function init() {
+        this.init = function init(callback) {
             Evme.Storage.get(_key, function storageGot(sessionFromCache) {
                 var createCause;
 
@@ -739,6 +739,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 if (!_session) {
                     self.create(null, null, createCause);
                 }
+
+                callback && callback();
             });
         };
         
