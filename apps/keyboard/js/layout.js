@@ -16,9 +16,10 @@ const Keyboards = {
         { value: '5' } , { value: '6' }, { value: '7' } , { value: '8' },
         { value: '9' }, { value: '0' }
       ], [
-        { value: '@' }, { value: '#' }, { value: '$' }, { value: '%' },
+        { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
+        { value: '%' },
         { value: '&' } , { value: '*' }, { value: '-' }, { value: '+' },
-        { value: '(' }, { value: ')' }
+        { value: '(' }, { value: ')' }, { value: '_', visible: ['email']}
       ], [
         { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
         { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
@@ -249,7 +250,8 @@ const Keyboards = {
         ], [
           { value: '-' }, { value: '/' }, { value: ':' }, { value: ';' },
           { value: '(' } , { value: ')' }, { value: '€' }, { value: '&' },
-          { value: '@' }, { value: '%' }
+          { value: '@', hidden: ['email'] }, { value: '%' },
+          { value: '_', visible: ['email']}
         ], [
           { value: '#+=', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
           { value: '¿' }, { value: '?' }, { value: '¡' }, { value: '!' },
@@ -345,8 +347,9 @@ const Keyboards = {
         ], [
           { value: '-' }, { value: '/' }, { value: ':' }, { value: ';' },
           { value: '(' } , { value: ')' },
-          { value: 'R$', compositeKey: 'R$' }, { value: '&' }, { value: '@' },
-          { value: '%' }
+          { value: 'R$', compositeKey: 'R$' }, { value: '&' },
+          { value: '@', hidden: ['email'] },
+          { value: '%' }, { value: '_', visible: ['email']}
         ], [
           { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
           { value: '?' }, {value: '!' }, { value: '«' }, { value: '»' },
