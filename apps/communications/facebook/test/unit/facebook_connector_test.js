@@ -70,7 +70,7 @@ suite('Facebook Connector Tests', function() {
         assert.equal(adapted.email[0].type[0], 'personal');
         assert.equal(adapted.email[0].value, 'ppburetaxyz@gmail.com');
 
-        assert.equal(adapted.tel[0].type, 'personal');
+        assert.equal(adapted.tel[0].type[0], 'personal');
         assert.equal(adapted.tel[0].value, '+34609274801');
 
         assert.equal(adapted.fbInfo.org[0], 'Telefonica');
@@ -79,6 +79,11 @@ suite('Facebook Connector Tests', function() {
         assert.equal(adapted.fbInfo.adr[0].locality, 'Valladolid');
         assert.equal(adapted.fbInfo.adr[0].region, 'Castilla y Leon');
         assert.equal(adapted.fbInfo.adr[0].countryName, 'Spain');
+
+        assert.equal(adapted.fbInfo.adr[1].type[0], 'current');
+        assert.equal(adapted.fbInfo.adr[1].locality, 'Greater London');
+        assert.equal(adapted.fbInfo.adr[1].region, 'London');
+        assert.equal(adapted.fbInfo.adr[1].countryName, 'United Kingdom');
 
         assert.equal(adapted.fbInfo.bday.getMonth(), 11);
         assert.equal(adapted.fbInfo.bday.getDate(), 3);
