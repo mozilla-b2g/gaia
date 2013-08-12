@@ -125,23 +125,20 @@ html, body {
 }
 
 .notification > div:first-of-type {
-  width: 19.5rem;
-  margin: 1rem 0 0 5rem;
+  width: calc(100% - 12rem);
+  margin-top: 1rem;
   font-size: 1.5rem;
   font-weight: 500;
-  line-height: 1.9rem;
-  color: #FFFFFF;
+  color: #fff;
 }
 
 .notification > div {
-  margin: 0 0 0 5rem;
-  padding: 0;
-  width: calc(100% - 5.5rem);
+  width: calc(100% - 6.5rem);
+  margin-left: 5rem;
   color: #bfbfbf;
   font-size: 1.4rem;
   line-height: 1.9rem;
   min-height: 1.9rem;
-  font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -149,15 +146,13 @@ html, body {
 
 .notification > .timestamp {
   position: absolute;
-  right: 0;
   top: -.2rem;
-  /* 5.5rem + 19.5rem = 25rem */
-  left: 25rem;
+  right: 1.5rem;
   color: #52B6CC;
-  margin: 1.3rem 1.5rem 0 0;
+  margin-top: 1.3rem;
   padding: 0;
   display: inline;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: bold;
   line-height: 1.6rem;
   overflow: hidden;
