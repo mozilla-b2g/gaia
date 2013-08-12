@@ -1808,6 +1808,8 @@ var ThreadUI = global.ThreadUI = {
         li.innerHTML = this.tmpl.contact.interpolate(data, {
           safe: ['nameHTML', 'numberHTML', 'srcAttr', 'photoHTML']
         });
+        // scan for translatable stuff
+        navigator.mozL10n.translate(li);
       } else {
         li.innerHTML = this.tmpl.number.interpolate(data);
       }

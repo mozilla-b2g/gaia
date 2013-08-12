@@ -84,6 +84,7 @@ suite('thread_ui.js >', function() {
   }
 
   suiteSetup(function(done) {
+    this.timeout(5000);
     mocksHelper.suiteSetup();
 
     realMozL10n = navigator.mozL10n;
@@ -2192,10 +2193,11 @@ suite('thread_ui.js >', function() {
         isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
-
-      assert.ok(
-        html.contains('Mobile | +<span class="highlight">346578888888</span>')
-      );
+      console.log(html);
+      assert.ok(html.contains(
+        '<span data-l10n-id="Mobile">Mobile</span> | ' +
+        '+<span class="highlight">346578888888</span>'
+      ));
     });
 
     test('Rendered Contact "type | carrier, number"', function() {
@@ -2212,7 +2214,10 @@ suite('thread_ui.js >', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('Mobile | TEF, +346578888888'));
+      assert.ok(html.contains(
+        '<span data-l10n-id="Mobile">Mobile</span> | ' +
+        'TEF, +346578888888'
+      ));
     });
 
     test('Rendered Contact highlighted "type | carrier, number"', function() {
@@ -2231,7 +2236,8 @@ suite('thread_ui.js >', function() {
 
       assert.ok(
         html.contains(
-          'Mobile | TEF, +<span class="highlight">346578888888</span>'
+          '<span data-l10n-id="Mobile">Mobile</span> | ' +
+          'TEF, +<span class="highlight">346578888888</span>'
         )
       );
     });
@@ -2458,16 +2464,16 @@ suite('thread_ui.js >', function() {
           assert.equal(items.length, 4);
 
           // The first item is a "call" option
-          assert.equal(items[0].name, 'sendEmail');
+          assert.equal(items[0].l10nId, 'sendEmail');
 
           // The second item is a "createNewContact" option
-          assert.equal(items[1].name, 'createNewContact');
+          assert.equal(items[1].l10nId, 'createNewContact');
 
           // The third item is a "addToExistingContact" option
-          assert.equal(items[2].name, 'addToExistingContact');
+          assert.equal(items[2].l10nId, 'addToExistingContact');
 
           // The fourth and last item is a "cancel" option
-          assert.equal(items[3].name, 'cancel');
+          assert.equal(items[3].l10nId, 'cancel');
         });
         test('Multiple known', function() {
 
