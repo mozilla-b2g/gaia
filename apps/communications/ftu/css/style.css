@@ -230,6 +230,7 @@ a {
 }
 
 #unlock-sim-screen section label {
+  display: inline-block;
   padding: 1.5rem 3rem 0.5rem 3rem;
   color: black;
   font-size: 1.5rem;
