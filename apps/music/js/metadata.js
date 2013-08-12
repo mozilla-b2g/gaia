@@ -299,7 +299,18 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     function parseID3(id3) {
       // skip the extended header, if there is one
       if (has_extended_header) {
-        id3.advance(id3.readUnsignedInt());
+        if (id3version === 4) {
+          var extended_header_size = id3.readID3Uint28BE();
+          // In id3v2.4, the size includes itself, i.e. the rest of the header
+          // is |extended_header_size - 4|.
+          id3.advance(extended_header_size - 4);
+        }
+        else { // id3version === 3
+          var extended_header_size = id3.readUnsignedInt();
+          // In id3v2.3, the size *excludes* itself, i.e. the rest of the header
+          // is |extended_header_size|.
+          id3.advance(extended_header_size);
+        }
       }
 
       // Now we have a series of frames, each of which is one ID3 tag
