@@ -1,0 +1,19 @@
+{
+  "name": "UICC Demo",
+  "description": "UICC Demo",
+  "type": "certified",
+  "launch_path": "/uicc.html",
+  "permissions": {
+    "telephony":{},
+    "mobileconnection":{},
+    "nfc":{}
+  },
+  "developer": {
+    "name": "Deutsche Telekom",
+    "url": "http://www.laboratories.telekom.com"
+  },
+  "icons": {
+    "120": "/style/icons/Uicc.png"
+  },
+  "default_locale": "en"
+}
