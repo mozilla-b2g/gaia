@@ -186,8 +186,8 @@ var KeypadManager = {
 
   render: function hk_render(layoutType) {
     if (layoutType == 'oncall') {
-      if (CallScreen.activeCall) {
-        this._phoneNumber = CallScreen.activeCall.call.number;
+      if (CallsHandler.activeCall) {
+        this._phoneNumber = CallsHandler.activeCall.call.number;
       }
       this._isKeypadClicked = false;
       this.phoneNumberViewContainer.classList.add('keypad-visible');
@@ -250,7 +250,7 @@ var KeypadManager = {
 
   hangUpCallFromKeypad: function hk_hangUpCallFromKeypad(event) {
     CallScreen.body.classList.remove('showKeypad');
-    OnCallHandler.end();
+    CallsHandler.end();
   },
 
   formatPhoneNumber: function kh_formatPhoneNumber(ellipsisSide, maxFontSize) {
@@ -480,25 +480,25 @@ var KeypadManager = {
   replacePhoneNumber:
     function kh_replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize) {
       if (this._onCall) {
-        CallScreen.activeCall.
+        CallsHandler.activeCall.
           replacePhoneNumber(phoneNumber, ellipsisSide, maxFontSize);
       }
   },
 
   restorePhoneNumber: function kh_restorePhoneNumber() {
     if (this._onCall) {
-      CallScreen.activeCall.restorePhoneNumber();
+      CallsHandler.activeCall.restorePhoneNumber();
     }
   },
 
   replaceAdditionalContactInfo:
     function kh_updateAdditionalContactInfo(additionalContactInfo) {
-    CallScreen.activeCall.replaceAdditionalContactInfo(additionalContactInfo);
+    CallsHandler.activeCall.replaceAdditionalContactInfo(additionalContactInfo);
   },
 
   restoreAdditionalContactInfo: function kh_restoreAdditionalContactInfo() {
     if (this._onCall) {
-      CallScreen.activeCall.restoreAdditionalContactInfo();
+      CallsHandler.activeCall.restoreAdditionalContactInfo();
     }
   },
 
