@@ -57,6 +57,8 @@ var TelephonyHelper = (function() {
             displayMessage('DeviceNotAccepted');
           } else if (errorName === 'RadioNotAvailable') {
             displayMessage('FlightMode');
+          } else if (errorName === 'BusyError') {
+            displayMessage('CalleeIsBusy');
           } else {
             // If the call failed for some other reason we should still
             // display something to the user. See bug 846403.
@@ -97,6 +99,10 @@ var TelephonyHelper = (function() {
       case 'UnableToCall':
         dialogTitle = 'unableToCallTitle';
         dialogBody = 'unableToCallMessage';
+        break;
+      case 'CalleeIsBusy':
+        dialogTitle = 'calleeIsBusyTitle';
+        dialogBody = 'calleeIsBusyMessage';
         break;
       default:
         console.error('Invalid message argument'); // Should never happen
