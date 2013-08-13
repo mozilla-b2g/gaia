@@ -7,9 +7,9 @@ var MovistarColombiaConfig = {
   credit: { currency: '$' },
   balance: {
     destination: '611',
-    text: 'SALDO',
-    senders: ['612'],
-    regexp: 'Saldo Recarga: ([0-9,]+)\\.([0-9]{2}) \\$'
+    text: 'SALDO,A',
+    senders: ['612', '611'],
+    regexp: 'Saldo total:\\$([0-9,]+)\\.([0-9]{2})'
   },
   topup: {
     ussd_destination: '*611#'
