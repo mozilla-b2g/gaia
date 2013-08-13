@@ -468,7 +468,7 @@ header .icon:after {
 }
 
 #play:after {
-  background-position: 2.3rem 0.8rem;
+  background-position: 50%;
   background-repeat: no-repeat;
   content: " ";
   display: block;
