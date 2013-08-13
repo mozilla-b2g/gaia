@@ -202,6 +202,10 @@ var MessageManager = {
   },
 
   onHashChange: function mm_onHashChange(e) {
+    // Ensure that no specific element is left focused
+    // when changing UI panels
+    document.activeElement.blur();
+
     // Group Participants should never persist any hash changes
     ThreadUI.groupView.reset();
 
