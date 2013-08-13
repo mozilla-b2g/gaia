@@ -2432,7 +2432,6 @@ suite('thread_ui.js >', function() {
       MessageManager.sendSMS.mTeardown();
     });
 
-
     test('SMS, 1 Recipient, stays in view', function() {
       ThreadUI.recipients.add({
         number: '999'

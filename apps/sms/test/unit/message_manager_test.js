@@ -274,4 +274,28 @@ suite('message_manager.js >', function() {
       assert.ok(ThreadUI.setMessageBody.calledWith('Youtube url'));
     });
   });
+
+  suite('onHashChange', function() {
+    setup(function() {
+      this.sinon.spy(document.activeElement, 'blur');
+      this.sinon.spy(ThreadUI, 'cancelEdit');
+      this.sinon.spy(ThreadListUI, 'cancelEdit');
+      this.sinon.spy(ThreadUI.groupView, 'reset');
+
+      MessageManager.onHashChange();
+    });
+
+    test('Remove any focus left on specific elements ', function() {
+      assert.ok(document.activeElement.blur.called);
+    });
+
+    test('Exit edit mode (Thread or Message) ', function() {
+      assert.ok(ThreadUI.cancelEdit.called);
+      assert.ok(ThreadListUI.cancelEdit.called);
+    });
+
+    test('Reset Group Participants View ', function() {
+      assert.ok(ThreadUI.groupView.reset.called);
+    });
+  });
 });
