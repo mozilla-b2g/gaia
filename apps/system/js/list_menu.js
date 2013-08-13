@@ -144,7 +144,9 @@ var ListMenu = {
       case 'screenchange':
         if (!evt.detail.screenEnabled) {
           this.hide();
-          this.oncancel();
+          if (this.oncancel) {
+            this.oncancel();
+          }
         }
         break;
 

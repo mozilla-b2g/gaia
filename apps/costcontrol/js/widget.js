@@ -16,7 +16,7 @@ var Widget = (function() {
   function onReady() {
     var mobileConnection = window.navigator.mozMobileConnection;
     if (!mobileConnection) {
-      console.error('No mozMobileConnection available');
+      debug('No mozMobileConnection available.');
       return;
     }
     var cardState = checkCardState();
