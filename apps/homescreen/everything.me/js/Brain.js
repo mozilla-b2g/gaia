@@ -1117,6 +1117,7 @@ Evme.Brain = new function Evme_Brain() {
               icons = {},
               numberOfIconsInShortcut = (Evme.Utils.getIconGroup() || []).length;
               
+          shortcutsToUpdate[key] = [];
           for (var i=0,app; i<numberOfIconsInShortcut; i++) {
             app = apps[i];
             if (app) {
@@ -1124,7 +1125,6 @@ Evme.Brain = new function Evme_Brain() {
               shortcutsToUpdate[key].push(app.id);
             }
           }
-          shortcutsToUpdate[key] = Object.keys(icons);
           
           Evme.DoATAPI.Shortcuts.update({
             "shortcuts": shortcutsToUpdate,
