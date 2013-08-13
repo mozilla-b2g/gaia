@@ -439,6 +439,10 @@ article:not(:target) #keypad-delete {
   transition: transform 0.4s ease-in-out;
 }
 
+#suggestion-overlay > menu {
+  height: 100%;
+}
+
 #suggestion-overlay.display {
   transform: translateY(0%);
 }
@@ -460,8 +464,9 @@ article:not(:target) #keypad-delete {
 }
 
 #suggestion-list {
-  height: 33rem;
+  height: calc(100% - 13rem);
   overflow: auto;
+  margin-top: 5rem;
   padding: 0 2rem 0 2rem;
   list-style: none outside none;
 }
