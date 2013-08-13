@@ -7,14 +7,13 @@ suite('ClockView', function() {
     // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
     // system's time zone
     this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
+    loadBodyHTML('/index.html');
   });
 
   suite('updateDaydate', function() {
 
     suiteSetup(function() {
-      this.dayDateElem = document.createElement('div');
-      this.dayDateElem.id = 'clock-day-date';
-      document.body.appendChild(this.dayDateElem);
+      this.dayDateElem = document.getElementById('clock-day-date');
     });
 
     setup(function() {
@@ -53,12 +52,8 @@ suite('ClockView', function() {
   suite('updateDigitalClock', function() {
 
     suiteSetup(function() {
-      this.timeElem = document.createElement('div');
-      this.timeElem.id = 'clock-time';
-      document.body.appendChild(this.timeElem);
-      this.hourStateElem = document.createElement('div');
-      this.hourStateElem.id = 'clock-hour24-state';
-      document.body.appendChild(this.hourStateElem);
+      this.timeElem = document.getElementById('clock-time');
+      this.hourStateElem = document.getElementById('clock-hour24-state');
     });
 
     setup(function() {
@@ -104,15 +99,9 @@ suite('ClockView', function() {
   suite('updateAnalogClock', function() {
 
     suiteSetup(function() {
-      this.secondHand = document.createElement('rect');
-      this.secondHand.id = 'secondhand';
-      document.body.appendChild(this.secondHand);
-      this.minuteHand = document.createElement('rect');
-      this.minuteHand.id = 'minutehand';
-      document.body.appendChild(this.minuteHand);
-      this.hourHand = document.createElement('rect');
-      this.hourHand.id = 'hourhand';
-      document.body.appendChild(this.hourHand);
+      this.secondHand = document.getElementById('secondhand');
+      this.minuteHand = document.getElementById('minutehand');
+      this.hourHand = document.getElementById('hourhand');
     });
 
     setup(function() {
