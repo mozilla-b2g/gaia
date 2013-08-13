@@ -264,7 +264,7 @@ function bug344618_polyfill() {
       thumb.style.left = (100 * pos) + '%';
     };
 
-    // move the throbber to the proper position, according to mouse events
+    // move the throbber to the proper position, according to touch events
     var updatePosition = function updatePosition(event) {
       var pointer = event.changedTouches && event.changedTouches[0] ?
                     event.changedTouches[0] :
@@ -310,13 +310,9 @@ function bug344618_polyfill() {
       notify();
     };
 
-    slider.addEventListener('mousedown', onClick);
     slider.addEventListener('touchstart', onClick);
-    thumb.addEventListener('mousedown', onDragStart);
     thumb.addEventListener('touchstart', onDragStart);
-    label.addEventListener('mousemove', onDragMove);
     label.addEventListener('touchmove', onDragMove);
-    label.addEventListener('mouseup', onDragStop);
     label.addEventListener('touchend', onDragStop);
     label.addEventListener('touchcancel', onDragStop);
 

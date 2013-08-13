@@ -8,14 +8,18 @@ if (!this.LazyL10n) {
 
 suite('dialer/call_log', function() {
   var realL10n;
+  var realCallLogL10n;
 
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockMozL10n;
+    realCallLogL10n = CallLog._;
+    CallLog._ = MockMozL10n.get;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    CallLog._ = realCallLogL10n;
   });
 
   var incomingGroup = {
@@ -84,6 +88,26 @@ suite('dialer/call_log', function() {
     retryCount: 0
   };
 
+  var voicemailGroup = {
+    id: '123',
+    lastEntryDate: Date.now(),
+    number: '123',
+    type: 'dialing',
+    status: 'connected',
+    retryCount: 3,
+    voicemail: true
+  };
+
+  var emergencyGroup = {
+    id: '123',
+    lastEntryDate: Date.now(),
+    number: '112',
+    type: 'dialing',
+    status: 'connected',
+    retryCount: 1,
+    emergency: true
+  };
+
   var dummyContactWithName = {
     name: 'XX',
     org: 'Mozilla',
@@ -146,7 +170,15 @@ suite('dialer/call_log', function() {
     if (group.contact) {
       assert.equal(primaryInfoMain.innerHTML, group.contact.primaryInfo);
     } else {
-      assert.equal(primaryInfoMain.innerHTML, group.number);
+      // Labels checking
+      if (group.voicemail || group.emergency) {
+        var expected =
+          group.voicemail ? 'voiceMail' :
+            (group.emergency ? 'emergencyNumber' : '');
+        assert.equal(primaryInfoMain.innerHTML, expected);
+      } else {
+        assert.equal(primaryInfoMain.innerHTML, group.number);
+      }
     }
 
     // Additional info.
@@ -168,7 +200,12 @@ suite('dialer/call_log', function() {
       }
       assert.equal(addInfo.innerHTML, expAddInfo);
     } else {
-      assert.equal(addInfo, null, 'No additional info');
+      // Labels checking
+      if (group.voicemail || group.emergency) {
+        assert.equal(addInfo.innerHTML, group.number);
+      } else {
+        assert.equal(addInfo, null, 'No additional info');
+      }
     }
 
     // Call time.
@@ -243,6 +280,14 @@ suite('dialer/call_log', function() {
 
     test('No contact group', function(done) {
       checkGroupDOM(CallLog.createGroup(noContactGroup), noContactGroup, done);
+    });
+
+    test('Voicemail group', function(done) {
+      checkGroupDOM(CallLog.createGroup(voicemailGroup), voicemailGroup, done);
+    });
+
+    test('Emergency group', function(done) {
+      checkGroupDOM(CallLog.createGroup(emergencyGroup), emergencyGroup, done);
     });
   });
 

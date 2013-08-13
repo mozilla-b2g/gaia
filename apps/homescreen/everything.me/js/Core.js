@@ -46,7 +46,21 @@ window.Evme = new function Evme_Core() {
         Evme.DoATAPI.init({
             "apiKey": data.apiKey,
             "appVersion": data.appVersion,
-            "authCookieName": data.authCookieName
+            "authCookieName": data.authCookieName,
+            "callback": function callback() {
+                Evme.Analytics.init({
+                    "config": data.analytics,
+                    "namespace": Evme,
+                    "DoATAPI": Evme.DoATAPI,
+                    "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
+                    "Brain": Evme.Brain,
+                    "connectionLow": Evme.Utils.connection().speed != Evme.Utils.connection().SPEED_HIGH,
+                    "sessionObj": Evme.DoATAPI.Session.get(),
+                    "pageRenderStartTs": head_ts,
+                    "SEARCH_SOURCES": data.searchSources,
+                    "PAGEVIEW_SOURCES": data.pageViewSources
+                });
+            }
         });
 
         initObjects(data);
@@ -192,19 +206,6 @@ window.Evme = new function Evme_Core() {
 
         Evme.SearchHistory.init({
             "maxEntries": data.maxHistoryEntries
-        });
-
-        Evme.Analytics.init({
-            "config": data.analytics,
-            "namespace": Evme,
-            "DoATAPI": Evme.DoATAPI,
-            "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
-            "Brain": Evme.Brain,
-            "connectionLow": Evme.Utils.connection().speed != Evme.Utils.connection().SPEED_HIGH,
-            "sessionObj": Evme.DoATAPI.Session.get(),
-            "pageRenderStartTs": head_ts,
-            "SEARCH_SOURCES": data.searchSources,
-            "PAGEVIEW_SOURCES": data.pageViewSources
         });
 
         Evme.EventHandler.trigger(NAME, "init", {"deviceId": Evme.DoATAPI.getDeviceId()});

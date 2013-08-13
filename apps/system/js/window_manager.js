@@ -1144,15 +1144,21 @@ var WindowManager = (function() {
       return;
     var manifest = app.manifest;
 
-    if (manifest.orientation) {
-      var rv = screen.mozLockOrientation(manifest.orientation);
+    var orientation = manifest.orientation;
+    if (orientation) {
+      if (!Array.isArray(orientation)) {
+        orientation = [orientation];
+      }
+      var rv = screen.mozLockOrientation.apply(screen, orientation);
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
-                     origin, 'orientation', manifest.orientation);
+                     origin, 'orientation', orientation);
         // Prevent breaking app size on desktop since we've resized landscape
         // apps for transition.
         if (app.frame.dataset.orientation == 'landscape-primary' ||
-            app.frame.dataset.orientation == 'landscape-secondary') {
+            app.frame.dataset.orientation == 'landscape-secondary' ||
+            app.currentOrientation == 'landscape-primary' ||
+            app.currentOrientation == 'landscape-secondary') {
           app.resize();
         }
       }

@@ -772,7 +772,7 @@ function renderKeyboard(keyboardName) {
 
     // And draw the layout
     IMERender.draw(currentLayout, {
-      uppercase: isUpperCase,
+      uppercase: isUpperCaseLocked || isUpperCase,
       inputType: currentInputType,
       showCandidatePanel: needsCandidatePanel()
     });

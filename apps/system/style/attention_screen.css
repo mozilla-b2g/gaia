@@ -27,7 +27,8 @@
   display: none;
 }
 
-#attention-screen.status-mode > iframe {
+#attention-screen.status-mode > iframe,
+#screen.lockscreen-camera > #attention-screen > iframe {
   margin-top: 0;
   height: 100%;
 }

@@ -11,7 +11,8 @@
 }
 
 #screen:-moz-full-screen-ancestor > #permission-screen,
-#screen.fullscreen-app #permission-screen {
+#screen.fullscreen-app #permission-screen,
+#screen.lockscreen-camera #permission-screen {
   top: 0;
   height: 100%;
 }

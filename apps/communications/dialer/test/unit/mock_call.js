@@ -5,6 +5,12 @@ function MockCall(aNumber, aState) {
   this.number = aNumber;
   this.state = aState;
 
+  this.mEmergencyNumbers = ['112', '911'];
+  this.emergency = this.mEmergencyNumbers.indexOf(this.number) >= 0;
+
+  this.mVoicemailNumbers = ['123'];
+  this.voicemail = this.mVoicemailNumbers.indexOf(this.number) >= 0;
+
   this.addEventListener = (function(event, handler) {
     if (event == 'statechange') {
       this._listenerAdded = true;
