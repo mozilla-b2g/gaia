@@ -63,6 +63,12 @@
         "type": "url",
         "url": { "required":true, "pattern":"mailto:.{1,16384}" }
       }
+    },
+    "nfc-ndef-discovered": {
+      "filters": {
+        "type": "uri",
+        "url": { "required":true, "pattern":"mailto:.{1,16384}" }
+      }
     }
   },
   "orientation": "portrait-primary"
