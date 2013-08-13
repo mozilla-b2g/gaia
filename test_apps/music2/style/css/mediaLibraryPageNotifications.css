@@ -1,0 +1,62 @@
+
+#mediaLibraryPagePanelNotifications {
+  position: absolute;
+  top: 0rem;
+  min-height: 3.5rem;
+  left: 1rem;
+  right: 1rem;
+  border: 1px solid #445;
+  border-top: none;
+  background: rgba(0, 0, 0, .75);
+  z-index: 3;
+}
+
+#mediaLibraryPagePanelNotifications.up {
+  top: -3.0rem;
+  opacity: 0;
+}
+
+#mediaLibraryPagePanelNotifications .text {
+  width: 100%;
+
+  text-align: center;
+  line-height: 2.0rem;
+  font-size: 1.333333em;
+}
+
+#mediaLibraryPagePanelNotifications .question {
+  position: absolute;
+  top: 0;
+  left: 20%;
+  right: 20%;
+  bottom: 0;
+  text-align: center;
+  font-weight: bold;
+}
+
+#mediaLibraryPagePanelNotifications .no,
+#mediaLibraryPagePanelNotifications .yes {
+  position: absolute;
+  top: 0;
+  width: 20%;
+  bottom: 0;
+}
+
+
+#mediaLibraryPagePanelNotifications .no {
+  left: 0;
+  background-image: url('../images/header/up.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 50%;
+}
+
+#mediaLibraryPagePanelNotifications .yes {
+  right: 0;
+  background-image: url('../images/repeat.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 80%;
+}
+
+

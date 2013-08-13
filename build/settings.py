@@ -27,6 +27,7 @@ settings = {
  "bluetooth.debugging.enabled": False,
  "bluetooth.suspended": False,
  "camera.shutter.enabled": True,
+ "camera.recording.preferredSizes": [],
  "clear.remote-windows.data": False,
  "debug.console.enabled": False,
  "debug.grid.enabled": False,

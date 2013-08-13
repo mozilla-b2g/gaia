@@ -9,7 +9,7 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Open Sans', sans-serif;
+  font-family: sans-serif;
   color: #fff;
 }
 
@@ -71,7 +71,7 @@ body {
   border: 0.1rem solid #9f9f9f;
   border-radius: 0.3rem;
   font-size: 1.6rem;
-  font-family: 'Open Sans', Sans-serif;
+  font-family: sans-serif;
   font-weight: 600;
   line-height: 3.8rem;
   color: #333;
@@ -121,13 +121,13 @@ button.affirmative:active {
   bottom: 0;
   white-space: nowrap;
   padding: 0 0 7rem;  /*remove the top padding*/
-  font-family: "Open Sans", Sans-serif;
+  font-family: sans-serif;
   color: #fff;
 }
 
 #time-picker-popup h3,
 #spin-date-picker-popup h3 {
-    font-family: 'Open Sans', Sans-serif;
+    font-family: sans-serif;
     font-weight: normal;
     font-size: 1.6rem;
     line-height: 1em;

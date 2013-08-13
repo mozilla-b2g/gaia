@@ -103,27 +103,6 @@ var Bluetooth = {
       window.dispatchEvent(evt);
     };
 
-    /* for v1, we only support two use cases for bluetooth connection:
-     *   1. connecting with a headset
-     *   2. transfering a file to/from another device
-     * So we need to monitor their event messages to know we are (aren't)
-     * connected, then summarize to an event and dispatch to StatusBar
-     */
-
-    // In headset connected case:
-    navigator.mozSetMessageHandler('bluetooth-hfp-status-changed',
-      function bt_hfpStatusChanged(message) {
-        self._setProfileConnected(self.Profiles.HFPHSP, message.connected);
-        self.updateConnected();
-      }
-    );
-
-    navigator.mozSetMessageHandler('bluetooth-sco-status-changed',
-      function bt_scoStatusChanged(message) {
-        self._setProfileConnected(self.Profiles.SCO, message.connected);
-      }
-    );
-
     /* In file transfering case:
      * since System Message can't be listened in two js files within a app,
      * so we listen here but dispatch events to bluetooth_transfer.js
@@ -166,6 +145,27 @@ var Bluetooth = {
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_gotDefaultAdapter(evt) {
       self.defaultAdapter = req.result;
+      self.initWithAdapter(self.defaultAdapter);
+    };
+  },
+
+  initWithAdapter: function bt_initWithAdapter(adapter) {
+    /* for v1, we only support two use cases for bluetooth connection:
+     *   1. connecting with a headset
+     *   2. transfering a file to/from another device
+     * So we need to listen to corresponding events to know we are (aren't)
+     * connected, then summarize to an event and dispatch to StatusBar
+     */
+
+    // In headset connected case:
+    var self = this;
+    adapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
+      self._setProfileConnected(self.Profiles.HFPHSP, evt.status);
+      self.updateConnected();
+    };
+
+    adapter.onscostatuschanged = function bt_scoStatusChanged(evt) {
+      self._setProfileConnected(self.Profiles.SCO, evt.status);
     };
   },
 

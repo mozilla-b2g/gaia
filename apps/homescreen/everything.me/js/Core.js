@@ -3,7 +3,9 @@ window.Evme = new function Evme_Core() {
         recalculateHeightRetries = 1,
         TIMEOUT_BEFORE_INIT_SESSION = "FROM CONFIG",
         OPACITY_CHANGE_DURATION = 300,
-        head_ts = new Date().getTime();
+        head_ts = new Date().getTime(),
+
+        CLASS_WHEN_SHOWING_SHORTCUTS = 'evme-display-shortcuts';
 
     this.shouldSearchOnInputBlur = true;
 
@@ -14,6 +16,8 @@ window.Evme = new function Evme_Core() {
         apiHost && Evme.api.setHost(apiHost);
 
         TIMEOUT_BEFORE_INIT_SESSION = data.timeoutBeforeSessionInit;
+        
+        window.addEventListener('contextmenu', onContextMenu, true);
 
         Evme.Brain.init({
             "numberOfAppsToLoad": data.numberOfAppsToLoad+(Evme.Utils.devicePixelRatio>1? data.apps.appsPerRow: 0),
@@ -26,7 +30,21 @@ window.Evme = new function Evme_Core() {
         Evme.DoATAPI.init({
             "apiKey": data.apiKey,
             "appVersion": data.appVersion,
-            "authCookieName": data.authCookieName
+            "authCookieName": data.authCookieName,
+            "callback": function callback() {
+                Evme.Analytics.init({
+                    "config": data.analytics,
+                    "namespace": Evme,
+                    "DoATAPI": Evme.DoATAPI,
+                    "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
+                    "Brain": Evme.Brain,
+                    "connectionLow": Evme.Utils.connection().speed != Evme.Utils.connection().SPEED_HIGH,
+                    "sessionObj": Evme.DoATAPI.Session.get(),
+                    "pageRenderStartTs": head_ts,
+                    "SEARCH_SOURCES": data.searchSources,
+                    "PAGEVIEW_SOURCES": data.pageViewSources
+                });
+            }
         });
 
         initObjects(data);
@@ -40,16 +58,44 @@ window.Evme = new function Evme_Core() {
     this.pageMove = function pageMove(value) {
         Evme.BackgroundImage.changeOpacity(Math.floor(value*100)/100);
     };
+    
+    this.onSwipeFromPage = function onSwipeFromPage() {
+      
+    };
 
+    this.onHomeButtonPress = function onHomeButtonPress() {
+        Evme.Searchbar.clearIfHasQuery();
+        Evme.Searchbar.blur();
+
+        if (
+          Evme.BackgroundImage.closeFullScreen() ||
+          Evme.Brain.Shortcuts.hideIfEditing() ||
+          Evme.Brain.ShortcutsCustomize.hideIfOpen() ||
+          Evme.Brain.ShortcutsCustomize.hideIfRequesting()
+        ) {
+          // return true to prevent homescreen from performing its own home button actions
+          return true;
+        }
+
+        document.body.classList.remove(CLASS_WHEN_SHOWING_SHORTCUTS);
+
+        // return false to allow homescreen to perform its own home button actions
+        return false;
+    };
+
+    this.searchFromOutside = function searchFromOutside(query) {
+        Evme.Brain.Searcher.searchExactFromOutside(query);
+    };
     this.onShow = function onShow() {
+        self.displayed = true;
         document.body.classList.add('evme-displayed');
     };
     this.onHide = function onHide() {
+        self.displayed = false;
         document.body.classList.remove('evme-displayed');
-
-        Evme.Brain.Shortcuts.doneEdit();
-        Evme.Brain.SmartFolder.closeCurrent();
-        Evme.Shortcuts.scrollTo(0,0);
+        Evme.Searchbar.blur();
+        document.body.classList.remove(CLASS_WHEN_SHOWING_SHORTCUTS);
+        Evme.Brain.Shortcuts.hideIfEditing();
     };
 
     this.onHideStart = function onHideStart(source) {
@@ -69,6 +115,15 @@ window.Evme = new function Evme_Core() {
         Evme.Searchbar.blur();
         return false; // allow navigation to homescreen
     };
+    
+    function onContextMenu(e) {
+      if (self.displayed && 
+          (Evme.Searchbar.getValue() ||
+          document.body.classList.contains(CLASS_WHEN_SHOWING_SHORTCUTS))
+          ) {
+        e.stopImmediatePropagation();
+      }
+    }
 
     function initObjects(data) {
         Evme.Features.init({
@@ -135,19 +190,6 @@ window.Evme = new function Evme_Core() {
 
         Evme.SearchHistory.init({
             "maxEntries": data.maxHistoryEntries
-        });
-
-        Evme.Analytics.init({
-            "config": data.analytics,
-            "namespace": Evme,
-            "DoATAPI": Evme.DoATAPI,
-            "getCurrentAppsRowsCols": Evme.Apps.getCurrentRowsCols,
-            "Brain": Evme.Brain,
-            "connectionLow": Evme.Utils.connection().speed != Evme.Utils.connection().SPEED_HIGH,
-            "sessionObj": Evme.DoATAPI.Session.get(),
-            "pageRenderStartTs": head_ts,
-            "SEARCH_SOURCES": data.searchSources,
-            "PAGEVIEW_SOURCES": data.pageViewSources
         });
     
         Evme.Tasker.init({

@@ -8,6 +8,8 @@ Evme.Utils = new function Evme_Utils() {
         CONTAINER_ID = "evmeContainer",
         COOKIE_NAME_CREDENTIALS = "credentials",
         
+        CLASS_WHEN_KEYBOARD_VISIBLE = 'evme-keyboard-visible',
+        
         OSMessages = this.OSMessages = {
             "APP_CLICK": "open-in-app",
             "APP_INSTALL": "add-bookmark",
@@ -18,7 +20,8 @@ Evme.Utils = new function Evme_Utils() {
             "MENU_HEIGHT": "menu-height",
             "GET_ALL_APPS": "get-all-apps",
             "GET_APP_ICON": "get-app-icon",
-            "GET_APP_NAME": "get-app-name"
+            "GET_APP_NAME": "get-app-name",
+            "EVME_OPEN": "evme-open"
         };
     
     
@@ -28,7 +31,7 @@ Evme.Utils = new function Evme_Utils() {
 
     this.EMPTY_IMAGE = "../../images/empty.gif";
 
-    this.APPS_FONT_SIZE = 13 * self.devicePixelRatio;
+    this.APPS_FONT_SIZE = 12 * self.devicePixelRatio;
 
     this.ICONS_FORMATS = {
         "Small": 10,
@@ -126,6 +129,9 @@ Evme.Utils = new function Evme_Utils() {
                 return EvmeManager.getAppName(data);
             case OSMessages.GET_ICON_SIZE:
                 return EvmeManager.getIconSize();
+            case OSMessages.EVME_OPEN:
+                EvmeManager.isEvmeVisible(data.isVisible);
+                break;
         }
     };
 
@@ -202,7 +208,7 @@ Evme.Utils = new function Evme_Utils() {
     
     this.writeTextToCanvas = function writeTextToCanvas(options) {
       var context = options.context,
-          text = options.text.split(' '),
+          text = options.text ? options.text.split(' ') : [],
           offset = options.offset || 0,
           lineWidth = 0,
           currentLine = 0,
@@ -223,7 +229,7 @@ Evme.Utils = new function Evme_Utils() {
       context.shadowOffsetY = 1;
       context.shadowBlur = 3;
       context.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      context.font = '300 ' + FONT_SIZE + 'px Feura Sans';
+      context.font = '600 ' + FONT_SIZE + 'px sans-serif';
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words
@@ -334,9 +340,11 @@ Evme.Utils = new function Evme_Utils() {
         self.isKeyboardVisible = value;
         
         if (self.isKeyboardVisible) {
-            Evme.$("#" + CONTAINER_ID).classList.add("keyboard-visible");
+            elContainer.classList.add('keyboard-visible');
+            document.body.classList.add(CLASS_WHEN_KEYBOARD_VISIBLE);
         } else {
-            Evme.$("#" + CONTAINER_ID).classList.remove("keyboard-visible");
+            elContainer.classList.remove('keyboard-visible');
+            document.body.classList.remove(CLASS_WHEN_KEYBOARD_VISIBLE);
         }
     };
 

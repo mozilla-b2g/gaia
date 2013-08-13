@@ -4,7 +4,7 @@ html, body {
   width: 100%;
   padding: 0;
   margin: 0;
-  font-family: 'Open Sans', sans-serif;
+  font-family: sans-serif;
   background: #F4F4F4;
 }
 
@@ -48,7 +48,7 @@ body[role="application"] section[role="region"] > header a, body[role="applicati
   background: none repeat scroll 0 0 transparent;
   border: medium none;
   color: #FFFFFF;
-  font: 600 1.4rem/1.1em "Open Sans",Sans-serif;
+  font: 600 1.4rem/1.1em sans-serif;
   overflow: hidden;
   padding: 0;
 }
@@ -60,7 +60,7 @@ body[role="application"] button, body[role="application"] a[role="button"] {
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
   color: #333333;
   display: inline-block;
-  font-family: 'Open Sans',Sans-serif;
+  font-family: sans-serif;
   font-size: 1.6rem;
   font-weight: 600;
   height: 3.8rem;
@@ -152,7 +152,7 @@ body[role="application"] section[role="region"] > header menu[type="toolbar"] bu
 
 body[role="application"] section[role="region"] > header h1 {
   display: block;
-  font: 2.2rem/4.8rem "Open Sans",Sans-serif;
+  font: 2.2rem/4.8rem sans-serif;
   height: 100%;
   margin: 0 0 0 3rem;
   overflow: hidden;
@@ -168,7 +168,7 @@ body[role="application"] section[role="region"].body {
 body[role="application"] section[role="region"].body .user_details{
   overflow: hidden;
   margin-bottom: 1rem;
-  font-family: "Open Sans",Sans-serif;
+  font-family: sans-serif;
   font-size: 1.8rem;
 
   height: 0;
@@ -201,7 +201,7 @@ body[role="application"] section[role="region"].body .msg_area textarea {
   background: url("images/shadow_input.png") repeat-x scroll left top #FFFFFF;
   border: 1px solid #D1D1D1;
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
-  font-family: "Open Sans",Sans-serif;
+  font-family: sans-serif;
   font-size: 1.4rem;
 
 }
@@ -227,7 +227,7 @@ body[role="application"] section[role="region"].body #counter{
   position: absolute;
   right: 1rem;
   bottom: 0.5rem;
-  font-family: "Open Sans",Sans-serif;
+  font-family: sans-serif;
   font-size: 2rem;
   color: #9B9B9B;
 }
@@ -254,13 +254,13 @@ body[role="application"] section[role="region"].body #notification #title{
   margin: 10rem 2rem 1rem 2rem;
   border-bottom: 1px solid #000;
   padding: 0rem 1rem 1rem 1rem;
-  font-family: "Open Sans",Sans-serif;
+  font-family: sans-serif;
   font-size: 2rem;
 }
 body[role="application"] section[role="region"].body #notification #msg{
   margin: 0rem 2rem 5rem 2rem;
   padding: 0rem 1rem 1rem 1rem;
-  font-family: "Open Sans",Sans-serif;
+  font-family: sans-serif;
   font-size: 1.8rem;
 }
 

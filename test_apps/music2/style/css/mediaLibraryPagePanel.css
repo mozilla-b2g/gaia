@@ -1,0 +1,376 @@
+
+#visiblePanel .panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#visiblePanel .panel .title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid #bbb;
+}
+
+#visiblePanel .panel > .content {
+  position: absolute;
+  top: 4rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#visiblePanel .panel > .content.album {
+  top: 7rem;
+}
+
+/*============== title ===============*/
+
+.panel .title .back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background-image: url('../images/header/back.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 75% auto;
+  width: 2em;
+}
+
+.panel .title .back:after {
+  position: absolute;
+  content: "";
+  display: block;
+  left: 100%;
+  top: 0;
+  bottom: 0;
+  width: 0.25rem;
+  margin-left: -.125rem;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% 80%;
+  background-image: url(../images/header/separator.png);
+}
+
+.panel .title .titleText {
+  position: relative;
+  left: 2.5rem;
+  width: calc(100% - 2.5rem)
+}
+
+.panel .title .titleText > input {
+  margin-top: .5rem;
+  border: none;
+  width: calc(100% - .5rem);
+  color: white;
+  -moz-box-sizing: border-box;
+  padding: .5rem;
+
+  background: none;
+  font-size: 1.333333rem;
+}
+
+.panel .title .titleText > input:focus {
+  text-decoration: underline;
+}
+
+.panel .title .titleText > input:-moz-placeholder {
+  color: #999;
+}
+.panel .title .titleText > input:focus:-moz-placeholder {
+  color: transparent;
+}
+
+.panel .title .titleText > * {
+  font-size: 1.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel .title .titleText > *:first-child {
+  font-size: 1.75rem;
+  color: white;
+  line-height: 4rem;
+}
+
+.panel .title .titleText.right > * {
+  font-size: 1.25rem;
+  padding-left: .5rem;
+}
+
+.panel .title .titleText.right > *:first-child {
+  font-size: 1.5rem;
+  padding-top: 1rem;
+  padding-left: 0;
+  line-height: 100%;
+}
+
+.panel .title .titleText {
+  min-height: 4rem;
+}
+
+.panel .title .titleText.right {
+  left: 8rem;
+  width: calc(100% - 8rem);
+  height: 7rem;
+}
+
+.panel .title .albumCover {
+  position: absolute;
+  padding-top: 1rem;
+  top: 0;
+  left: 2.5rem;
+  width: 5rem;
+  height: 5rem;
+}
+
+.panel .title .controls {
+  position: absolute;
+  left: 8rem;
+  height: 2.5rem;
+  right: 0;
+  top: 4.5rem;
+}
+
+.panel .title .controls > * {
+  width: 50%;
+  height: 100%;
+  float: left;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 75%;
+}
+
+.panel .title .controls > .play {
+  background-image: url('../images/controls/play.png');
+}
+
+.panel .title .controls > .shuffle {
+  background-image: url('../images/shuffle.png');
+}
+
+.panel .title .controls > .add {
+  background-image: url('../images/add.png');
+}
+
+
+/*============== content ===============*/
+
+#visiblePanel .items {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+}
+
+.items .uiItem .right {
+  padding-left: 4rem;
+}
+
+#visiblePanel .gotoPanelButton {
+  font-size: 1.33333rem;
+  line-height: 3rem;
+  height: 3rem;
+
+  background-image: url('../images/header/back-rtl.png');
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 2rem auto;
+  padding-right: 3.5rem;
+}
+
+#mediaLibraryPage .gotoPanelButton .fields {
+  min-height: 0em;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*============== albums ===============*/
+
+.items .albumCover {
+  position: absolute;
+  left: .5rem;
+  top: .5rem;
+  height: 3rem;
+  width: 3rem;
+}
+
+.albumItem {
+  float: left;
+}
+
+.albumItem.half {
+  width: 50%;
+}
+
+.albumItem.third {
+  width: 33%;
+}
+
+.albumItem > .content {
+  padding: .5rem;
+}
+
+.albumItem .album {
+  position: relative;
+}
+
+.albumItem .album > img {
+  width: 100%;
+}
+
+.albumItem .text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: .25rem;
+  background: rgba(0, 0, 0, .5);
+}
+
+.albumItem .buttonDown .text {
+  background-color: #008aaa;
+}
+
+.song .track {
+  position: absolute;
+  padding-top: .75em;
+  height: 1rem;
+  width: 1.5rem;
+  text-align: center;
+  font-size: 1em;
+  padding-left: 0;
+}
+
+
+.song .fields {
+  padding-top: .75em;
+  padding-bottom: .75em;
+}
+
+.song .fields > * {
+  padding-left: .5em;
+  color: #aac;
+  padding-bottom: .125em;
+}
+
+.song .fields > *:nth-child(2) {
+  color: #ddf;
+}
+
+.song .fields > *:first-child {
+  font-size: 1.25rem;
+  padding-left: 0;
+  color: white;
+  padding-bottom: .25em;
+}
+
+.song .add {
+  background-image: url('../images/add.png');
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 2rem auto;
+  padding-right: 3.5rem;
+}
+
+.subtitle > .content {
+  padding-left: 0;
+}
+
+.subtitle > .content > * {
+  padding: .5rem;
+  font-size: 1.5rem;
+  text-decoration: underline;
+  color: white;
+}
+
+.items > *:last-child {
+  margin-bottom: 4rem;
+}
+
+/*============== playlists ===============*/
+
+.title .menu-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  height: 100%;
+  width: 4rem;
+
+}
+
+.items.playlists > .text,
+.items.playlist > .text {
+  width: 100%;
+  -moz-box-sizing: border-box;
+  padding: 1em;
+  text-align: center;
+  font-size: 1.5em;
+}
+
+.items.playlists .noicon {
+  display: none;
+}
+
+.items.playlists .icon {
+  background-size: 60% auto;
+  background-image: url('../images/radio-unchecked.png');
+}
+
+.items.playlists .currentPlaylist {
+  background-image: url('../images/radio-checked.png');
+}
+
+.items.playlists .playlistTitle {
+  font-size: 1.25em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  padding-top: .75em;
+  padding-bottom: .75em;
+}
+
+.items.playlists .gotoPlaylistButton {
+  background-image: url('../images/header/back-rtl.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 80% auto;
+  width: 100%;
+  height: 100%;
+}
+
+
+.playlistPanel .playlistTitle {
+  padding-right: 4rem;
+}
+
+.items.playlist .content {
+  position: relative;
+}
+
+.items.playlist .albumCover {
+  position: absolute;
+  left: 2rem;
+  width: 5rem;
+  top: calc(50% - 2.5rem);
+  height: auto;
+  -moz-box-sizing: border-box;
+}
+
+.items.playlist .right {
+  width: calc(100% - 5.5rem);
+  min-height: 5rem;
+  margin-left: 5.5rem;
+  padding-left: 0;
+}

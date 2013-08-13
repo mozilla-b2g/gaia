@@ -38,6 +38,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
         el.addEventListener("blur", cbBlur);
         el.addEventListener("keydown", inputKeyDown);
         el.addEventListener("keyup", inputKeyUp);
+        el.addEventListener('contextmenu', onContextMenu);
         
         var elButtonClear = Evme.$("#button-clear");
         elButtonClear.addEventListener("touchstart", function onTouchStart(e){
@@ -50,7 +51,11 @@ Evme.Searchbar = new function Evme_Searchbar() {
     };
     
     this.getValue = function getValue() {
-        return value;
+        return trim(value) === '' ? '' : value;
+    };
+    
+    this.isFocused = function getIsFocused() {
+        return isFocused;
     };
     
     this.setValue = function setValue(newValue, bPerformSearch, bDontBlur) {
@@ -157,7 +162,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
         if (currentValue !== value) {
             value = currentValue;
 
-            if (value === "") {
+            if (self.getValue() === '') {
                 timeoutSearchOnBackspace && window.clearTimeout(timeoutSearchOnBackspace);
                 cbEmpty();
             } else {
@@ -172,6 +177,10 @@ Evme.Searchbar = new function Evme_Searchbar() {
                 }
             }
         }
+    }
+
+    function onContextMenu(e) {
+        e.stopPropagation();
     }
 
     function pasted(e) {

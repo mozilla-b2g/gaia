@@ -1,0 +1,34 @@
+.menu-icon {
+  background-image: url('../images/header/menu.png');
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 50% auto;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 750;
+}
+
+.menu-list {
+  position: fixed;
+
+  width: 6rem;
+  z-index: 1000;
+  background: #222;
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, .5);
+  border-top: 1px solid #111;
+
+}
+
+.menu-list > * {
+  min-height: 3rem;
+  width: 100%;
+  line-height: 3rem;
+  font-size: 1.25rem;
+  text-align: center;
+}

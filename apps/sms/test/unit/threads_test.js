@@ -3,6 +3,9 @@
 requireApp('sms/js/threads.js');
 
 suite('Threads', function() {
+  suiteSetup(function() {
+    window.location.hash = '';
+  });
 
   teardown(function() {
     Threads.clear();

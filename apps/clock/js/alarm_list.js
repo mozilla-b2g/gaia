@@ -71,7 +71,7 @@ var AlarmList = {
   },
 
   buildAlarmContent: function al_buildAlarmContent(alarm) {
-    var summaryRepeat = (alarm.repeat === '0000000') ?
+    var summaryRepeat = (Utils.isEmptyRepeat(alarm.repeat)) ?
       '' : Utils.summarizeDaysOfWeek(alarm.repeat);
     var isChecked = alarm.enabled ? ' checked="true"' : '';
     var d = new Date();

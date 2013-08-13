@@ -1,5 +1,3 @@
 'use strict';
 
-requireApp('system/test/unit/mocks_helper.js');
-
-
+require('/shared/test/unit/mocks/mocks_helper.js');

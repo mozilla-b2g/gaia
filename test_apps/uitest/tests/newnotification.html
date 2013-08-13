@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>new Notification() test</title>
+    <script defer src="../js/newnotification.js"></script>
+    <style>
+    button {
+      font-size: 40px;
+    }
+    </style>
+  </head>
+  <body>
+    <h1>new Notification()</h1>
+
+    <h2>Call on mozbrowser frame:</h2>
+    <p><button id="button1">Notification</button></p>
+    <p><button id="button2">Notification (10 sec delay)</button></p>
+    <p><button id="button3">5 Notifications (10 sec delay)</button></p>
+
+    <h2>Call on this iframe within mozbrowser:</h2>
+    <p><button id="button4">Notification</button></p>
+    <p><button id="button5">Notification (10 sec delay)</button></p>
+    <p><button id="button6">5 Notifications (10 sec delay)</button></p>
+
+    <p>Press back button to go back.</p>
+  </body>
+</html>

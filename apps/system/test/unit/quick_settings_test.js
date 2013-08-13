@@ -1,26 +1,16 @@
 // Quick Settings Test
 'use strict';
 
-// Ignore leak, otherwise an error would occur when using MockMozActivity.
-mocha.setup({ignoreLeaks: true});
-
-requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
-requireApp('system/test/unit/mock_navigator_moz_mobile_connection.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/test/unit/mock_activity.js');
 
 requireApp('system/js/quick_settings.js');
 
-var mocksForQuickSettings = ['SettingsListener'];
-
-mocksForQuickSettings.forEach(function(mockName) {
-  if (! window[mockName]) {
-    window[mockName] = null;
-  }
-});
+var mocksForQuickSettings = new MocksHelper(['SettingsListener']).init();
 
 suite('quick settings > ', function() {
   var realWifiManager;
@@ -29,12 +19,10 @@ suite('quick settings > ', function() {
   var realSettings;
   var realMozMobileConnection;
   var realActivity;
-  var mocksHelper;
   var fakeQuickSettingsNode;
 
+  mocksForQuickSettings.attachTestHelpers();
   suiteSetup(function() {
-    mocksHelper = new MocksHelper(mocksForQuickSettings);
-    mocksHelper.suiteSetup();
     realWifiManager = navigator.mozWifiManager;
     navigator.mozWifiManager = MockWifiManager;
     realSettings = navigator.mozSettings;
@@ -53,7 +41,6 @@ suite('quick settings > ', function() {
   });
 
   suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
     navigator.mozWifiManager = realWifiManager;
     window.SettingsListener = realSettingsListener;
     navigator.MozMobileConnection = realMozMobileConnection;
@@ -65,7 +52,6 @@ suite('quick settings > ', function() {
   });
 
   setup(function() {
-    mocksHelper.setup();
     fakeQuickSettingsNode = document.createElement('div');
     fakeQuickSettingsNode.id = 'quick-settings';
     document.body.appendChild(fakeQuickSettingsNode);
@@ -138,5 +124,3 @@ suite('quick settings > ', function() {
       MockNavigatorSettings.mSettings['wifi.connect_via_settings'], false);
   });
 });
-mocha.setup({ignoreLeaks: false});
-

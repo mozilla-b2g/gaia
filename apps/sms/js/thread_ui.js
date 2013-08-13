@@ -41,7 +41,7 @@ function thui_generateSmilSlides(slides, content) {
 
 var ThreadUI = global.ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
-  LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
+  LAST_MESSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
@@ -508,20 +508,34 @@ var ThreadUI = global.ThreadUI = {
     this.enableSend();
   },
 
+  // scroll position is considered as "manual" if the view is not completely
+  // scrolled to the bottom
+  isScrolledManually: false,
+
   // We define an edge for showing the following chunk of elements
   manageScroll: function thui_manageScroll(oEvent) {
+    var scrollTop = this.container.scrollTop;
+    var scrollHeight = this.container.scrollHeight;
+    var clientHeight = this.container.clientHeight;
+
+    this.isScrolledManually = ((scrollTop + clientHeight) < scrollHeight);
+
     // kEdge will be the limit (in pixels) for showing the next chunk
     var kEdge = 30;
-    var currentScroll = this.container.scrollTop;
-    if (currentScroll < kEdge) {
-      var previous = this.container.scrollHeight;
+    if (scrollTop < kEdge) {
       this.showChunkOfMessages(this.CHUNK_SIZE);
       // We update the scroll to the previous position
       // taking into account the previous offset to top
       // and the current height due to we have added a new
       // chunk of visible messages
       this.container.scrollTop =
-        (this.container.scrollHeight - previous) + currentScroll;
+        (this.container.scrollHeight - scrollHeight) + scrollTop;
+    }
+  },
+
+  scrollViewToBottom: function thui_scrollViewToBottom() {
+    if (!this.isScrolledManually) {
+      this.container.scrollTop = this.container.scrollHeight;
     }
   },
 
@@ -612,10 +626,6 @@ var ThreadUI = global.ThreadUI = {
       (window.location.hash == '#new' && !hasRecipients);
 
     this.sendButton.disabled = disableSendMessage;
-  },
-
-  scrollViewToBottom: function thui_scrollViewToBottom() {
-    this.container.scrollTop = this.container.scrollHeight;
   },
 
   // updates the counter for sms segments when in text only mode
@@ -733,82 +743,133 @@ var ThreadUI = global.ThreadUI = {
     this.scrollViewToBottom();
   },
 
+  findNextContainer: function thui_findNextContainer(container) {
+    if (!container) {
+      return null;
+    }
+
+    var nextContainer = container;
+    do {
+      nextContainer = nextContainer.nextElementSibling;
+    } while (nextContainer && nextContainer.tagName !== 'UL');
+
+    return nextContainer;
+  },
+
+  findFirstContainer: function thui_findFirstLastContainer() {
+    var container = this.container.firstElementChild;
+    if (container && container.tagName !== 'UL') {
+      container = this.findNextContainer(container);
+    }
+    return container;
+  },
+
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   getMessageContainer:
     function thui_getMessageContainer(messageTimestamp, hidden) {
-    var normalizedTimestamp = Utils.getDayDate(messageTimestamp);
-    var referenceTime = Date.now();
-    var messageContainer;
-    // If timestamp belongs to [referenceTime, referenceTime - TimeBuffer]
+    var startOfDayTimestamp = Utils.getDayDate(messageTimestamp);
+    var now = Date.now();
+    var messageContainer, header;
+    // If timestamp belongs to [now, now - TimeBuffer]
+    var lastMessageDelay = this.LAST_MESSAGES_BUFFERING_TIME;
     var isLastMessagesBlock =
-    (messageTimestamp >= (referenceTime - this.LAST_MESSSAGES_BUFFERING_TIME));
+      (messageTimestamp >= (now - lastMessageDelay));
+
     // Is there any container with our requirements?
     if (isLastMessagesBlock) {
       messageContainer = document.getElementById('last-messages');
+      if (messageContainer) {
+        var oldTimestamp = messageContainer.dataset.timestamp;
+        var oldDayTimestamp = Utils.getDayDate(oldTimestamp);
+        var shouldCreateNewBlock =
+          (oldDayTimestamp !== startOfDayTimestamp) || // new day
+          (oldTimestamp < messageTimestamp - lastMessageDelay); // too old
+
+        if (shouldCreateNewBlock) {
+          messageContainer.id = 'mc_' + Utils.getDayDate(oldTimestamp);
+          messageContainer.dataset.timestamp = oldDayTimestamp;
+          messageContainer = null;
+        }
+      }
     } else {
-      messageContainer = document.getElementById('mc_' + normalizedTimestamp);
+      messageContainer = document.getElementById('mc_' + startOfDayTimestamp);
     }
 
     if (messageContainer) {
+      header = messageContainer.previousElementSibling;
+      if (messageTimestamp < header.dataset.time) {
+        header.dataset.time = messageTimestamp;
+      }
       return messageContainer;
     }
+
     // If there is no messageContainer we have to create it
-    // Create DOM Element for header
-    var header = document.createElement('header');
+    // Create DOM Elements
+    header = document.createElement('header');
+    messageContainer = document.createElement('ul');
+
     // Append 'time-update' state
     header.dataset.timeUpdate = true;
     header.dataset.time = messageTimestamp;
+
+    // Add text
+    var content, timeOnly = false;
+    if (isLastMessagesBlock) {
+      var lastContainer = this.container.lastElementChild;
+      if (lastContainer) {
+        var lastDay = Utils.getDayDate(lastContainer.dataset.timestamp);
+        if (lastDay === startOfDayTimestamp) {
+          // same day -> show only the time
+          header.dataset.timeOnly = 'true';
+        }
+      }
+
+      messageContainer.id = 'last-messages';
+      messageContainer.dataset.timestamp = messageTimestamp;
+    } else {
+      messageContainer.id = 'mc_' + startOfDayTimestamp;
+      messageContainer.dataset.timestamp = startOfDayTimestamp;
+    }
+
     if (hidden) {
       header.classList.add('hidden');
-    }
-    // Add text
-    var content;
-    if (!isLastMessagesBlock) {
-      content = Utils.getHeaderDate(messageTimestamp) + ' ' +
-                Utils.getFormattedHour(messageTimestamp);
     } else {
-      content = Utils.getFormattedHour(messageTimestamp);
-      header.dataset.hourOnly = 'true';
+      Utils.updateTimeHeader(header);
     }
-    header.innerHTML = content;
-    // Create list element for ul
-    messageContainer = document.createElement('ul');
-    if (!isLastMessagesBlock) {
-      messageContainer.id = 'mc_' + normalizedTimestamp;
-    } else {
-      messageContainer.id = 'last-messages';
-    }
-    messageContainer.dataset.timestamp = normalizedTimestamp;
+
     // Where do I have to append the Container?
-    // If is the first block or is the 'last-messages' one should be the
-    // most recent one.
-    if (isLastMessagesBlock || !ThreadUI.container.firstElementChild) {
-      ThreadUI.container.appendChild(header);
-      ThreadUI.container.appendChild(messageContainer);
+    // If is the 'last-messages' one should be the most recent one.
+    if (isLastMessagesBlock) {
+      this.container.appendChild(header);
+      this.container.appendChild(messageContainer);
       return messageContainer;
     }
+
     // In other case we have to look for the right place for appending
     // the message
-    var messageContainers = ThreadUI.container.getElementsByTagName('ul');
     var insertBeforeContainer;
-    for (var i = 0, l = messageContainers.length; i < l; i++) {
-      if (normalizedTimestamp < messageContainers[i].dataset.timestamp) {
-        insertBeforeContainer = messageContainers[i];
-        break;
-      }
+    var curContainer = this.findFirstContainer();
+
+    while (curContainer &&
+           +curContainer.dataset.timestamp < startOfDayTimestamp) {
+      curContainer = this.findNextContainer(curContainer);
     }
-    // If is undefined we try witn the 'last-messages' block
-    if (!insertBeforeContainer) {
-      insertBeforeContainer = document.getElementById('last-messages');
-    }
+
+    insertBeforeContainer = curContainer;
+
     // Finally we append the container & header in the right position
+    // With this function, "inserting before 'null'" means "appending"
+    this.container.insertBefore(messageContainer,
+      insertBeforeContainer ? insertBeforeContainer.previousSibling : null);
+    this.container.insertBefore(header, messageContainer);
+
+    // if the next container is the same date => we must update his header
     if (insertBeforeContainer) {
-      ThreadUI.container.insertBefore(messageContainer,
-        insertBeforeContainer.previousSibling);
-      ThreadUI.container.insertBefore(header, messageContainer);
-    } else {
-      ThreadUI.container.appendChild(header);
-      ThreadUI.container.appendChild(messageContainer);
+      var nextContainerTimestamp = insertBeforeContainer.dataset.timestamp;
+      if (startOfDayTimestamp === Utils.getDayDate(nextContainerTimestamp)) {
+        header = insertBeforeContainer.previousElementSibling;
+        header.dataset.timeOnly = 'true';
+      }
     }
     return messageContainer;
   },
@@ -939,6 +1000,8 @@ var ThreadUI = global.ThreadUI = {
 
   createMmsContent: function thui_createMmsContent(dataArray) {
     var container = document.createDocumentFragment();
+    var scrollViewToBottom = ThreadUI.scrollViewToBottom.bind(ThreadUI);
+
     dataArray.forEach(function(messageData) {
       var mediaElement, textElement;
 
@@ -946,7 +1009,7 @@ var ThreadUI = global.ThreadUI = {
         var attachment = new Attachment(messageData.blob, {
           name: messageData.name
         });
-        var mediaElement = attachment.render();
+        var mediaElement = attachment.render(scrollViewToBottom);
         container.appendChild(mediaElement);
         attachmentMap.set(mediaElement, attachment);
       }
@@ -1014,13 +1077,14 @@ var ThreadUI = global.ThreadUI = {
       end: onMessagesRendered
     };
     MessageManager.getMessages(renderingOptions);
+    // force the next scroll to bottom
+    this.isScrolledManually = false;
   },
 
   // generates the html for not-downloaded messages - pushes class names into
   // the classNames array also passed in, returns an HTML string
   _createNotDownloadedHTML:
   function thui_createNotDownloadedHTML(message, classNames) {
-
     var _ = navigator.mozL10n.get;
 
     // default strings:
@@ -1138,7 +1202,7 @@ var ThreadUI = global.ThreadUI = {
 
     messageDOM.dataset.timestamp = timestamp;
     // Add to the right position
-    var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
+    var messageContainer = this.getMessageContainer(timestamp, hidden);
     if (!messageContainer.firstElementChild) {
       messageContainer.appendChild(messageDOM);
     } else {
@@ -1164,7 +1228,11 @@ var ThreadUI = global.ThreadUI = {
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
     var elements = ThreadUI.container.getElementsByClassName('hidden');
     for (var i = elements.length - 1; i >= 0; i--) {
-      elements[i].classList.remove('hidden');
+      var element = elements[i];
+      element.classList.remove('hidden');
+      if (element.tagName === 'HEADER') {
+        Utils.updateTimeHeader(element);
+      }
     }
   },
 
@@ -1332,7 +1400,6 @@ var ThreadUI = global.ThreadUI = {
       }
       return;
     }
-
   },
 
   handleEvent: function thui_handleEvent(evt) {
@@ -1850,13 +1917,15 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    var isContact = this.headerText.dataset.isContact;
     var number = this.headerText.dataset.number;
-    if (isContact === 'true') {
-      this.genPrompt(isContact, number);
+
+    if (this.headerText.dataset.isContact === 'true') {
+      this.promptContact({
+        number: number
+      });
     } else {
-      this.activateContact({
-        number: this.headerText.dataset.number,
+      this.prompt({
+        number: number,
         isContact: false
       });
     }
@@ -1867,16 +1936,21 @@ var ThreadUI = global.ThreadUI = {
     event.preventDefault();
 
     var target = event.target;
-    var isContact, number;
 
-    isContact = target.dataset.source === 'contacts' ? true : false;
-    number = target.dataset.number;
-    this.genPrompt(isContact, number);
+    this.promptContact({
+      number: target.dataset.number
+    });
   },
 
-  genPrompt: function thui_genPrompt(isContact, number) {
+  promptContact: function thui_promptContact(opts) {
+    opts = opts || {};
+
+    var inMessage = opts.inMessage || false;
+    var number = opts.number || '';
+
     Contacts.findByPhoneNumber(number, function(results) {
       var ul = document.createElement('ul');
+      var isContact = results && results.length;
       var contact = isContact ? results[0] : {
         tel: [{ value: number }]
       };
@@ -1891,10 +1965,11 @@ var ThreadUI = global.ThreadUI = {
         isSuggestion: false
       });
 
-      this.activateContact({
+      this.prompt({
         name: name,
         number: number,
         isContact: isContact,
+        inMessage: inMessage,
         body: ul
       });
     }.bind(this));
@@ -1943,19 +2018,20 @@ var ThreadUI = global.ThreadUI = {
     });
   },
 
-  activateContact: function thui_activateContact(opt) {
+  prompt: function thui_prompt(opt) {
     function complete() {
       window.location.href = '#thread=' + Threads.lastId;
     }
 
     var _ = navigator.mozL10n.get;
     var thread = Threads.get(Threads.lastId || Threads.currentId);
-    var number = opt.number;
-    var name = opt.name || number;
+    var number = opt.number || '';
+    var email = opt.email || '';
+    var name = opt.name || number || email;
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
     var items = [];
-    var params;
+    var params, props;
 
     // Multi-participant activation for for a single, known
     // recipient contact, that is not triggered from a message,
@@ -1963,30 +2039,42 @@ var ThreadUI = global.ThreadUI = {
     if ((thread && thread.participants.length === 1) &&
         isContact && !inMessage) {
 
-      ActivityPicker.call(number);
+      ActivityPicker.dial(number);
       return;
     }
 
-    // All activations will see a "Call" option
-    items.push({
-      name: _('call'),
-      method: function oCall(param) {
-        ActivityPicker.call(param);
-      },
-      params: [number]
-    });
-
-    // Multi-participant activations or in-message numbers
-    // will include a "Send Message" option in the menu
-    if ((thread && thread.participants.length > 1) || inMessage) {
+    // All non-email activations will see a "Call" option
+    if (email) {
       items.push({
-        name: _('sendMessage'),
+        name: _('sendEmail'),
         method: function oCall(param) {
-          ActivityPicker.sendMessage(param);
+          ActivityPicker.dial(param);
+        },
+        params: [email]
+      });
+    } else {
+      items.push({
+        name: _('call'),
+        method: function oCall(param) {
+          ActivityPicker.dial(param);
         },
         params: [number]
       });
+
+
+      // Multi-participant activations or in-message numbers
+      // will include a "Send Message" option in the menu
+      if ((thread && thread.participants.length > 1) || inMessage) {
+        items.push({
+          name: _('sendMessage'),
+          method: function oCall(param) {
+            ActivityPicker.sendMessage(param);
+          },
+          params: [number]
+        });
+      }
     }
+
 
     // Combine the items and complete callback into
     // a single params object.
@@ -1997,11 +2085,13 @@ var ThreadUI = global.ThreadUI = {
 
     // If this is a known contact, display an option menu
     // with buttons for "Call" and "Cancel"
-    if (isContact) {
+    params.section = typeof opt.body !== 'undefined' ? opt.body : name;
 
-      params.section = typeof opt.body !== 'undefined' ? opt.body : name;
+    if (!isContact) {
 
-    } else {
+      props = [
+        number ? {tel: number} : {email: email}
+      ];
 
       params.header = number;
       params.items.push({
@@ -2011,7 +2101,7 @@ var ThreadUI = global.ThreadUI = {
               param, ThreadUI.onCreateContact
             );
           },
-          params: [{'tel': number}]
+          params: props
         },
         {
           name: _('addToExistingContact'),
@@ -2020,7 +2110,7 @@ var ThreadUI = global.ThreadUI = {
               param, ThreadUI.onCreateContact
             );
           },
-          params: [{'tel': number}]
+          params: props
         }
       );
     }
@@ -2034,7 +2124,6 @@ var ThreadUI = global.ThreadUI = {
     var options = new OptionMenu(params);
     options.show();
   },
-
 
   onCreateContact: function thui_onCreateContact() {
     ThreadListUI.updateContactsInfo();

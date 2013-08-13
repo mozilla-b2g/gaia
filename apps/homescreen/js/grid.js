@@ -26,6 +26,7 @@ var GridManager = (function() {
 
   var opacityOnAppGridPageMax = .7;
   var kPageTransitionDuration, overlayTransition, overlay, overlayStyle;
+  var landingPageOpacity = 0;
 
   var numberOfSpecialPages = 0, landingPage, prevLandingPage, nextLandingPage;
   var pages = [];
@@ -187,7 +188,7 @@ var GridManager = (function() {
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
-        if (currentPage || numberOfSpecialPages === 1)
+        if (currentPage)
           evt.stopPropagation();
         touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
@@ -287,6 +288,9 @@ var GridManager = (function() {
         // Generate a function accordingly to the current page position.
         if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
           var pan = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
             currentX = getX(e);
             deltaX = panningResolver.getDeltaX(e);
 
@@ -297,19 +301,14 @@ var GridManager = (function() {
           };
         } else {
           var setOpacityToOverlay = noop;
-          if (currentPage === prevLandingPage) {
+          if (currentPage === landingPage) {
             setOpacityToOverlay = function() {
               if (!forward)
                 return;
 
-              var opacity = opacityOnAppGridPageMax -
-                    (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
-              overlayStyle.opacity = opacityStepFunction(opacity);
-            };
-          } else if (currentPage === landingPage) {
-            setOpacityToOverlay = function() {
-              var opacity = (Math.abs(deltaX) / windowWidth) *
-                            opacityOnAppGridPageMax;
+              var opacity = landingPageOpacity +
+                            (Math.abs(deltaX) / windowWidth) *
+                            (opacityOnAppGridPageMax - landingPageOpacity);
               overlayStyle.opacity = opacityStepFunction(opacity);
             };
           } else {
@@ -318,12 +317,16 @@ var GridManager = (function() {
                 return;
 
               var opacity = opacityOnAppGridPageMax -
-                    (Math.abs(deltaX) / windowWidth) * opacityOnAppGridPageMax;
+                    (Math.abs(deltaX) / windowWidth) *
+                    (opacityOnAppGridPageMax - landingPageOpacity);
               overlayStyle.opacity = opacityStepFunction(opacity);
             };
           }
 
           var pan = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
             currentX = getX(e);
             deltaX = panningResolver.getDeltaX(e);
 
@@ -398,7 +401,8 @@ var GridManager = (function() {
 
   function applyEffectOverlay(index) {
     overlayStyle.MozTransition = overlayTransition;
-    overlayStyle.opacity = index === landingPage ? 0 : opacityOnAppGridPageMax;
+    overlayStyle.opacity =
+      (index === landingPage ? landingPageOpacity : opacityOnAppGridPageMax);
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -412,9 +416,7 @@ var GridManager = (function() {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
-      } else if (!forward && page > 0 &&
-                 (page === landingPage || page >= nextLandingPage + 1 ||
-                    (page === nextLandingPage && !Homescreen.isInEditMode()))) {
+      } else if (!forward && page > 0) {
         page = page - 1;
       }
     } else if (!isPanning && evt) {
@@ -465,17 +467,6 @@ var GridManager = (function() {
     }
   }
 
-  var captureHashchange = false;
-
-  function hashchange(evt) {
-    if (!captureHashchange) {
-      return;
-    }
-
-    captureHashchange = false;
-    evt.stopImmediatePropagation();
-  }
-
   function goToPageCallback(index, fromPage, toPage, dispatchEvents, callback) {
     delete document.body.dataset.transitioning;
 
@@ -522,14 +513,6 @@ var GridManager = (function() {
   function goToPage(index, callback) {
     if (index < 0 || index >= pages.length)
       return;
-
-    if (index === landingPage) {
-      // Homescreen won't call to this method due to stop the propagation
-      captureHashchange = true;
-      document.location.hash = 'root';
-    } else {
-      document.location.hash = '';
-    }
 
     var delay = touchEndTimestamp - lastGoingPageTimestamp ||
                 kPageTransitionDuration;
@@ -855,12 +838,19 @@ var GridManager = (function() {
     return bookmarkIcons[bookmarkURL];
   }
 
-  // Ways to enumerate installed apps & bookmarks and find out whether
-  // a certain "origin" is available as an existing installed app or
-  // bookmark. Only used by Everything.me at this point.
-  function getApps() {
+  /**
+   * Ways to enumerate installed apps & bookmarks and find out whether
+   * a certain "origin" is available as an existing installed app or
+   * bookmark. Only used by Everything.me at this point.
+   * @param {Boolean} disallows hidden apps
+   */
+  function getApps(suppressHiddenRoles) {
     var apps = [];
     for (var origin in appsByOrigin) {
+      if (suppressHiddenRoles &&
+        HIDDEN_ROLES.indexOf(appsByOrigin[origin].manifest.role) !== -1) {
+        continue;
+      }
       apps.push(appsByOrigin[origin]);
     }
     return apps;
@@ -894,6 +884,7 @@ var GridManager = (function() {
     // See also pageHelper.saveAll().
     numberOfSpecialPages = container.children.length;
     landingPage = numberOfSpecialPages - 1;
+    currentPage = numberOfSpecialPages - 1;
     prevLandingPage = landingPage - 1;
     nextLandingPage = landingPage + 1;
     for (var i = 0; i < container.children.length; i++) {
@@ -1196,7 +1187,6 @@ var GridManager = (function() {
     kPageTransitionDuration = options.swipeTransitionDuration;
     overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
-    window.addEventListener('hashchange', hashchange);
     IconRetriever.init();
 
     // Initialize the grid from the state saved in IndexedDB.
@@ -1330,6 +1320,13 @@ var GridManager = (function() {
     dirCtrl: dirCtrl,
 
     pageHelper: pageHelper,
+
+    setLandingPageOpacity: function setLandingPageOpacity(value) {
+      landingPageOpacity = value;
+      if (currentPage === landingPage) {
+        applyEffectOverlay(0);
+      }
+    },
 
     get landingPage() {
       return landingPage;

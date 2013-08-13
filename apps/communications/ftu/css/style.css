@@ -230,6 +230,7 @@ a {
 }
 
 #unlock-sim-screen section label {
+  display: inline-block;
   padding: 1.5rem 3rem 0.5rem 3rem;
   color: black;
   font-size: 1.5rem;
@@ -300,6 +301,10 @@ a {
  * Wifi
  */
 
+#wifi {
+  top: 1.5rem;
+}
+
 #wifi [data-type="list"] li > p {
   pointer-events: none;
 }
@@ -333,7 +338,7 @@ a {
 */
 
 #wifi-wrapper {
-  top: 0;
+  top: -1rem;
   bottom: 5.5rem;
 }
 
@@ -1139,7 +1144,7 @@ i.hack-first-child {
 }
 
 #tutorial-screen .step-state:before {
-  width: calc(100% / 5);
+  width: calc(100% / 4);
   background: #FFFFFF;
 }
 

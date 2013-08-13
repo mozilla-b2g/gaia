@@ -94,6 +94,7 @@ for app in $APPS; do
   LINE=
   case $app in
     communications/dialer)
+      echo "Starting dialer"
       adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json
       DIALER_INFO=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "communications.*/localId")
       IFS='/' read -a DIALER_PARTS <<< "$DIALER_INFO"
@@ -111,26 +112,36 @@ for app in $APPS; do
       ;;
 
     gallery)
+      echo "Starting gallery"
       $SCRIPT_DIR/generateImages.sh $IMAGE_COUNT
       LINE=" Gallery:        $(printf "%4d" $IMAGE_COUNT)"
       ;;
 
     music)
+      echo "Starting music"
       $SCRIPT_DIR/generateMusicFiles.sh $MUSIC_COUNT
       LINE=" Music:          $(printf "%4d" $MUSIC_COUNT)"
       ;;
 
     video)
+      echo "Starting video"
       $SCRIPT_DIR/generateVideos.sh $VIDEO_COUNT
       LINE=" Videos:         $(printf "%4d" $VIDEO_COUNT)"
       ;;
 
     communications/contacts)
+      echo "Starting contacts"
       adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite /data/local/indexedDB/chrome$IDB_PATH/3406066227csotncta.sqlite
+      ATTACHMENT_DIR=$SCRIPT_DIR/contactsDb-$CONTACT_COUNT
+      tar -xvzf $SCRIPT_DIR/ContactPictures-$CONTACT_COUNT.tar.gz -C $SCRIPT_DIR
+      adb shell "rm /data/local/indexedDB/chrome$IDB_PATH/3406066227csotncta/*"
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ /data/local/indexedDB/chrome$IDB_PATH/3406066227csotncta/
+      rm -rf $ATTACHMENT_DIR/
       LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
       ;;
 
     sms)
+      echo "Starting sms"
       adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite /data/local/indexedDB/chrome$IDB_PATH/226660312ssm.sqlite
       ATTACHMENT_DIR=$SCRIPT_DIR/smsDb-$SMS_COUNT
       tar -xvzf $SCRIPT_DIR/Attachments-$SMS_COUNT.tar.gz -C $SCRIPT_DIR

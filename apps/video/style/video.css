@@ -68,8 +68,11 @@ li .inner {
   top: 0;
 }
 li .img {
-  background-repeat: no-repeat;
-  background-position: center center;
+  /* background image will be configure in video.js, and it is croped with
+   * 210 * devicePixelRatio, 120 * devicePixelRatio. So, we just need to make
+   * it be fullsize in this container.
+   */
+  background-size: 100%;
   height: 12rem;
   width: 21rem;
   overflow: hidden;

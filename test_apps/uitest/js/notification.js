@@ -47,15 +47,15 @@ function delay(callback) {
 
 var clickHandlers = {
   'button1': parentFrameNoti,
-  'button2': function () { delay(parentFrameNoti) },
-  'button3': function () { delay(parentFrameNoti5) },
+  'button2': function() { delay(parentFrameNoti); },
+  'button3': function() { delay(parentFrameNoti5); },
 
-  'button4': noti,
-  'button5': function () { delay(noti) },
-  'button6': function () { delay(noti5) }
+  'button4': function() { noti(); },
+  'button5': function() { delay(noti); },
+  'button6': function() { delay(noti5); }
 };
 
-document.body.addEventListener('click', function (evt) {
+document.body.addEventListener('click', function(evt) {
   if (clickHandlers[evt.target.id || evt.target.dataset.fn])
     clickHandlers[evt.target.id || evt.target.dataset.fn].call(this, evt);
 });

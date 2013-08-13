@@ -650,7 +650,7 @@ var WindowManager = (function() {
         'setVisible' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
-      runningApps[homescreen].iframe.src = homescreenURL;
+      runningApps[homescreen].iframe.src = homescreenURL + Date.now();
       runningApps[homescreen].resize();
     }
 
@@ -914,15 +914,21 @@ var WindowManager = (function() {
       return;
     var manifest = app.manifest;
 
-    if (manifest.orientation) {
-      var rv = screen.mozLockOrientation(manifest.orientation);
+    var orientation = manifest.orientation;
+    if (orientation) {
+      if (!Array.isArray(orientation)) {
+        orientation = [orientation];
+      }
+      var rv = screen.mozLockOrientation.apply(screen, orientation);
       if (rv === false) {
         console.warn('screen.mozLockOrientation() returned false for',
-                     origin, 'orientation', manifest.orientation);
+                     origin, 'orientation', orientation);
         // Prevent breaking app size on desktop since we've resized landscape
         // apps for transition.
         if (app.frame.dataset.orientation == 'landscape-primary' ||
-            app.frame.dataset.orientation == 'landscape-secondary') {
+            app.frame.dataset.orientation == 'landscape-secondary' ||
+            app.currentOrientation == 'landscape-primary' ||
+            app.currentOrientation == 'landscape-secondary') {
           app.resize();
         }
       }
@@ -1720,24 +1726,35 @@ var WindowManager = (function() {
   // Watch for window.open usages in order to open wrapper frames
   window.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
     var detail = evt.detail;
-    var features;
-    try {
-      features = JSON.parse(detail.features);
-    } catch (e) {
-      features = {};
-    }
 
-    // Handles only call to window.open with `{remote: true}` feature.
-    if (!features.remote)
+    if (typeof detail.features !== 'string')
       return;
 
-    // XXX bug 819882: for now, only allows homescreen to open oop windows
+    // Turn '&' separated string into object for easy access
+    var features = detail.features
+      .split('&')
+      .reduce(function(acc, feature) {
+        feature = feature
+          .split('=')
+          .map(function(featureElem) { return featureElem.trim(); });
+        if (feature.length !== 2)
+          return acc;
+
+        acc[decodeURIComponent(feature[0])] = decodeURIComponent(feature[1]);
+        return acc;
+      }, {});
+
+    // Handles only call to window.open with `remote=true` feature.
+    if (!remote in features || features.remote !== 'true')
+      return;
+
     var callerIframe = evt.target;
     var callerFrame = callerIframe.parentNode;
     var manifestURL = callerIframe.getAttribute('mozapp');
     var callerApp = Applications.getByManifestURL(manifestURL);
-    if (!callerApp || !callerFrame.classList.contains('homescreen'))
+    if (!hasPermission(callerApp, 'open-remote-window'))
       return;
+
     var callerOrigin = callerApp.origin;
 
     // So, we are going to open a remote window.
@@ -1779,26 +1796,21 @@ var WindowManager = (function() {
     var title = '', icon = '', remote = false, useAsyncPanZoom = false;
     var originName, originURL, searchName, searchURL;
 
-    try {
-      var features = JSON.parse(detail.features);
-      var regExp = new RegExp('&nbsp;', 'g');
+    title = features.name || url;
+    icon = features.icon || '';
 
-      title = features.name.replace(regExp, ' ') || url;
-      icon = features.icon || '';
+    if (originName in features) {
+      originName = features.originName;
+      originURL = features.originUrl;
+    }
 
-      if (features.origin) {
-        originName = features.origin.name.replace(regExp, ' ');
-        originURL = decodeURIComponent(features.origin.url);
-      }
+    if (searchName in features) {
+      searchName = features.searchName;
+      searchURL = features.searchUrl;
+    }
 
-      if (features.search) {
-        searchName = features.search.name.replace(regExp, ' ');
-        searchURL = decodeURIComponent(features.search.url);
-      }
-
-      if (features.useAsyncPanZoom)
-        useAsyncPanZoom = true;
-    } catch (ex) { }
+    if (useAsyncPanZoom in features && features.useAsyncPanZoom === 'true')
+      useAsyncPanZoom = true;
 
     // If we don't reuse an existing app, open a brand new one
     var iframe;

@@ -1,47 +1,60 @@
 
 var Music = function() {
 
-  //window.router = new Router('DEBUG');
-  window.router = new Router();
-  window.router.on('unserialize', this.unserializeSource.bind(this));
+  this.playingPlaylist = new PlayingPlaylist();
+  this.playlists = new Playlists();
 
-  this.selectPagesByName = {};
-  this.currentSelectPage = null;
+  this.playlists.onselectPlaylist = this.playingPlaylist.switchToPlaylist.bind(this.playingPlaylist);
+  this.playingPlaylist.onsavePlaylistToPlaylists = this.playlists.savePlaylist.bind(this.playlists);
 
-  this.ui = new UI();
-  
-  this.selectPageBridge = new SelectPageBridge();
+  this.playlists.ondeletedPlaylist = this.playingPlaylist.deletedPlaylist.bind(this.playingPlaylist);
+  this.playlists.onrenamedPlaylist = this.playingPlaylist.renamedPlaylist.bind(this.playingPlaylist);
+  this.playlists.onshuffledPlaylist = this.playingPlaylist.shuffledPlaylist.bind(this.playingPlaylist);
+  this.playlists.ondeletedItemFromPlaylist = this.playingPlaylist.deletedItemFromPlaylist.bind(this.playingPlaylist);
+  this.playlists.onaddedToPlaylist = this.playingPlaylist.addedToPlaylist.bind(this.playingPlaylist);
+  this.playlists.onmovedItemInPlaylist = this.playingPlaylist.movedItemInPlaylist.bind(this.playingPlaylist);
 
-  this.mediaLibraryPage = new MediaLibraryPage(this.selectPageBridge);
+  this.audioPlayer = new AudioPlayer();
 
-  this.playlistManager = new PlaylistManager(this.ui.currentMusicPage, this.ui.playlistDrawer);
+  this.playingPlaylist.onplaySong = this.audioPlayer.play.bind(this.audioPlayer);
+  this.playingPlaylist.onpauseSong = this.audioPlayer.pause.bind(this.audioPlayer);
+  this.playingPlaylist.onstopSong = this.audioPlayer.stop.bind(this.audioPlayer);
 
-  this.selectPageBridge.onenqueueIntoCurrentPlaylist = this.playlistManager.appendAudioSourcesToCurrent.bind(this.playlistManager);
-  this.selectPageBridge.oncreateTemporaryPlaylistFromSources = this.playlistManager.createTemporaryPlaylistFromSources.bind(this.playlistManager);
-  this.selectPageBridge.onenqueueIntoCustomPlaylist = this.playlistManager.ui.enqueueIntoCustomPlaylist.bind(this.playlistManager.ui);
+  this.audioPlayer.onisEnded = this.playingPlaylist.playNext.bind(this.playingPlaylist);
 
-  //on error, reset img src
-  var imgs = document.getElementsByTagName('img');
-  for (var i = 0; i < imgs.length; i++){
-    var img = imgs[i];
-    (function(img){
-      img.onerror = function(){
-        img.src = '';
-      };
-    })(img);
-  }
-  
-  //this.ui.viewVisibility.showCurrentMusicPage();
-  //setTimeout(function(){
-  //  this.ui.viewVisibility.togglePlaylistDrawer();
-  //}.bind(this), 750);
+  Router.route(this, [
+    'requestTargetPlaylist',
+    'requestSourceFromSong',
+  ]);
 
+  this.playingPlaylist.onrequestSourceFromSong = this.requestSourceFromSong;
+  this.playlists.onrequestSourceFromSong = this.requestSourceFromSong;
+
+  this.playingPlaylist.onsave = this.playlists.savePlaylist.bind(this.playlists);
+  this.playlists.oncreatedPlaylist = this.playingPlaylist.createdPlaylist.bind(this.playingPlaylist);
 }
 
 Music.prototype = {
-  unserializeSource: function(serializedSource){
-    return this.mediaLibraryPage.unserialize(serializedSource.data);
-  },
+  name: "music",
+  addSongsToCustom: function(title, songs){
+    var hasCurrent = this.playingPlaylist.playlist !== null;
+    console.log(hasCurrent);
+    this.requestTargetPlaylist(this.playlists.playlists, title, hasCurrent, function(choice){
+      if (choice === 'new'){
+        var playlistId = this.playlists.createEmptyPlaylist(title);
+        this.playlists.addToPlaylist(playlistId, songs);
+
+        if (!hasCurrent){
+          this.playingPlaylist.switchToPlaylist(this.playlists.playlists[playlistId], playlistId);
+        }
+      }
+      else if (choice === 'current'){
+        this.playingPlaylist.enqueue(title, songs);
+      }
+      else if (choice !== 'cancel'){
+        this.playlists.addToPlaylist(choice, songs);
+      }
+    }.bind(this));
+  }
 }
 
-window.addEventListener('load', function() new Music() );

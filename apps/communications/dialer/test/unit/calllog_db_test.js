@@ -455,6 +455,71 @@ suite('dialer/call_log_db', function() {
     });
   });
 
+  suite('Calling Voicemail and Emergency', function() {
+    var result;
+    var voicemailCall = {
+      number: '123',
+      type: 'dialing',
+      date: days[0],
+      voicemail: true,
+      emergency: false
+    };
+
+    var emergencyCall = {
+      number: '112',
+      type: 'dialing',
+      date: days[1],
+      voicemail: false,
+      emergency: true
+    };
+
+    test('Add a voicemail call', function(done) {
+      CallLogDBManager.add(voicemailCall, function(res) {
+        result = res;
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.length(groups, 1);
+          checkGroup(
+            groups[0], voicemailCall, voicemailCall.date, 1, true, result);
+          assert.isTrue(groups[0].voicemail);
+          CallLogDBManager.getRecentList(function(recents) {
+            assert.length(recents, 1);
+            checkCall(recents[0], voicemailCall);
+            assert.isTrue(recents[0].voicemail);
+            done();
+          }, null, true);
+        }, null, true);
+      });
+    });
+
+    test('Add an emergency call', function(done) {
+      CallLogDBManager.add(emergencyCall, function(res) {
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.length(groups, 2);
+          checkGroup(
+            groups[0], voicemailCall, voicemailCall.date, 1, true, result);
+          assert.isTrue(groups[0].voicemail);
+          checkGroup(
+            groups[1], emergencyCall, emergencyCall.date, 1, true, res);
+          assert.isTrue(groups[1].emergency);
+          CallLogDBManager.getRecentList(function(recents) {
+            assert.length(recents, 2);
+            checkCall(recents[0], emergencyCall);
+            assert.isTrue(recents[0].emergency);
+            checkCall(recents[1], voicemailCall);
+            assert.isTrue(recents[1].voicemail);
+            done();
+          }, null, true);
+        }, null, true);
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
   suite('Get last outgoing group', function() {
     var call = {
       number: numbers[1],

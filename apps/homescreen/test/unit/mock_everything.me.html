@@ -1,52 +1,41 @@
-<div class="page" id="evmePage" role="search-page">
-  <form id="loading-overlay" role="dialog" data-type="confirm">
-    <section>
-      <h1 data-l10n-id="loadingEvme2">Loading&hellip;</h1>
-      <p role="status">
-        <span>0%</span>
-        <progress value="0" max="100"></progress>
-      </p>
-    </section>
-  </form>
-  <div id="evmeContainer">
-    <div id="search" class="active">
-        <div id="search-header">
-            <form action="/#!/search" id="search-rapper">
-                <fieldset>
-                    <div id="search-q-bg">
-                        <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" />
-                        <span id="default-text" data-l10n-id="evme-searchbar-default"></span>
-                    </div>
-                    <div id="helper-tip"><b></b></div>
-                </fieldset>
-            </form>
-            <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
-        </div>
-        <div id="header">
-            <div id="helper-header">
-                <h1 id="search-title"></h1>
-                <div id="helper-rapper">
-                    <div id="helper">
-                        <ul></ul>
-                    </div>
-                </div>
+      <div id="landing-page" data-current-page="true">
+        <div id="evme-activation-icon"></div>
+
+          <div id="evmeContainer">
+            <div id="search" class="active">
+              <div id="search-header">
+                  <form action="/#!/search" id="search-rapper">
+                      <fieldset>
+                          <div id="search-q-bg">
+                              <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" x-inputmode="verbatim" />
+                              <span id="default-text" data-l10n-id="evme-searchbar-default2"></span>
+                          </div>
+                          <div id="helper-tip"><b></b></div>
+                      </fieldset>
+                  </form>
+                  <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
+              </div>
+              <div id="header">
+                  <div id="helper-header">
+                      <h1 id="search-title"></h1>
+                      <div id="helper-rapper">
+                          <div id="helper">
+                              <ul></ul>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+              <div id="evmeApps" class="evme-apps">
+                  <ul id="evmeAppsList"></ul>
+              </div>
             </div>
-        </div>
-        <div id="evmeApps" class="evme-apps">
-            <ul id="evmeAppsList"></ul>
-        </div>
-    </div>
 
-    <div id="shortcuts">
-        <div id="shortcuts-list">
-            <ul id="shortcuts-items"></ul>
-        </div>
-        <div id="shortcuts-loading"></div>
-    </div>
-    <section id="evmeBanner" role="status"></section>
-  </div>
-</div>
-
-<footer id="footer">
-  <div class="dockWrapper"></div>
-</footer>
+            <div id="shortcuts">
+                <div id="shortcuts-list">
+                    <ul id="shortcuts-items"></ul>
+                </div>
+                <div id="shortcuts-loading"></div>
+            </div>
+            <section id="evmeBanner" role="status" class="noreset"></section>
+          </div>
+      </div>

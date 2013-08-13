@@ -91,6 +91,21 @@ Evme.SearchHistory = new function Evme_SearchHistory() {
             } else {
                 history = [];
             }
+            
+            var changed = false;
+            for (var i=0; i<history.length; i++) {
+              if (!history[i].query.replace(/\s/g, '')) {
+                history.splice(i, 1);
+                i--;
+                changed = true;
+              }
+            }
+            
+            if (changed) {
+              saveToStorage();
+            }
+            
+            Evme.EventHandler.trigger(NAME, "populate");
         });
     }
 }

@@ -437,16 +437,24 @@ var Settings = {
         var button = select.previousElementSibling;
         // link the button with the select element
         var index = select.selectedIndex;
+        var updateButton = function(selection) {
+          var args = selection.dataset.l10nArgs;
+          var argsObj = args ? JSON.parse(args) : null;
+          if (selection.dataset.l10nId) {
+            localize(button, selection.dataset.l10nId, argsObj);
+          } else {
+            button.textContent = selection.textContent;
+          }
+        };
+
         if (index >= 0) {
           var selection = select.options[index];
-          button.textContent = selection.textContent;
-          button.dataset.l10nId = selection.dataset.l10nId;
+          updateButton(selection);
         }
         if (parent.classList.contains('fake-select')) {
           select.addEventListener('change', function() {
             var newSelection = this.options[this.selectedIndex];
-            button.textContent = newSelection.textContent;
-            button.dataset.l10nId = newSelection.dataset.l10nId;
+            updateButton(newSelection);
           });
         }
       };
