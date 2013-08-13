@@ -2193,7 +2193,7 @@ suite('thread_ui.js >', function() {
         isSuggestion: true
       });
       html = ul.firstElementChild.innerHTML;
-      console.log(html);
+
       assert.ok(html.contains(
         '<span data-l10n-id="Mobile">Mobile</span> | ' +
         '+<span class="highlight">346578888888</span>'
