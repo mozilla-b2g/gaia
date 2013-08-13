@@ -80,7 +80,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.mozAudioChannelType = 'content';
 
     // show|hide controls over the player
-    dom.videoControls.addEventListener('mousedown', playerMousedown);
+    dom.videoControls.addEventListener('touchstart', playerMousedown);
 
     // Rescale when window size changes. This should get called when
     // orientation changes.
@@ -329,8 +329,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
 
     // Capture all mouse moves and the mouse up
-    document.addEventListener('mousemove', mousemoveHandler, true);
-    document.addEventListener('mouseup', mouseupHandler, true);
+    document.addEventListener('touchmove', mousemoveHandler, true);
+    document.addEventListener('touchend', mouseupHandler, true);
 
     function position(event) {
       var rect = dom.sliderWrapper.getBoundingClientRect();
@@ -341,8 +341,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
 
     function mouseupHandler(event) {
-      document.removeEventListener('mousemove', mousemoveHandler, true);
-      document.removeEventListener('mouseup', mouseupHandler, true);
+      document.removeEventListener('touchmove', mousemoveHandler, true);
+      document.removeEventListener('touchend', mouseupHandler, true);
 
       dragging = false;
 

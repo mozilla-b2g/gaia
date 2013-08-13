@@ -112,9 +112,9 @@ var PlayerView = {
 
     // Seeking audio too frequently causes the Desktop build hangs
     // A related Bug 739094 in Bugzilla
-    this.seekRegion.addEventListener('mousedown', this);
-    this.seekRegion.addEventListener('mousemove', this);
-    this.seekRegion.addEventListener('mouseup', this);
+    this.seekRegion.addEventListener('touchstart', this);
+    this.seekRegion.addEventListener('touchmove', this);
+    this.seekRegion.addEventListener('touchend', this);
 
     this.audio.addEventListener('play', this);
     this.audio.addEventListener('pause', this);
@@ -624,11 +624,11 @@ var PlayerView = {
       case 'pause':
         this.playControl.classList.add('is-pause');
         break;
-      case 'mousedown':
-      case 'mousemove':
-        if (evt.type === 'mousedown') {
-          target.setCapture(false);
-          MouseEventShim.setCapture();
+      case 'touchstart':
+      case 'touchmove':
+        if (evt.type === 'touchstart') {
+          target.setCapture(true);
+          // MouseEventShim.setCapture();
           this.isSeeking = true;
           this.seekIndicator.classList.add('highlight');
         }
@@ -643,7 +643,7 @@ var PlayerView = {
           this.setSeekBar(this.audio.startTime, this.audio.duration, seekTime);
         }
         break;
-      case 'mouseup':
+      case 'touchend':
         this.isSeeking = false;
         this.seekIndicator.classList.remove('highlight');
 

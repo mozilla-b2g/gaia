@@ -733,8 +733,8 @@ function dragSlider(e) {
   }
 
   // Capture all mouse moves and the mouse up
-  document.addEventListener('mousemove', mousemoveHandler, true);
-  document.addEventListener('mouseup', mouseupHandler, true);
+  document.addEventListener('touchmove', mousemoveHandler, true);
+  document.addEventListener('touchend', mouseupHandler, true);
 
   function position(event) {
     var rect = dom.sliderWrapper.getBoundingClientRect();
@@ -745,8 +745,8 @@ function dragSlider(e) {
   }
 
   function mouseupHandler(event) {
-    document.removeEventListener('mousemove', mousemoveHandler, true);
-    document.removeEventListener('mouseup', mouseupHandler, true);
+    document.removeEventListener('touchmove', mousemoveHandler, true);
+    document.removeEventListener('touchend', mouseupHandler, true);
 
     dragging = false;
 
@@ -848,7 +848,7 @@ function restoreVideo() {
 }
 
 // show|hide controls over the player
-dom.videoControls.addEventListener('mousedown', playerMousedown);
+dom.videoControls.addEventListener('touchstart', playerMousedown);
 
 // Force repainting of titles for enable overflow event
 function forceRepaintTitles() {
