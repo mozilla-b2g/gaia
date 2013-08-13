@@ -58,15 +58,16 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       this.disconnected();
       break;
     case 'resuming':
-      OnCallHandler.updateKeypadEnabled();
+      CallsHandler.updateKeypadEnabled();
       this.node.classList.remove('held');
       if (this.photo) {
-        CallScreen.setCallerContactImage(this.photo, true, false);
+        CallScreen.setCallerContactImage(this.photo,
+                                         {force: true, mask: false});
       }
       CallScreen.syncSpeakerEnabled();
       break;
     case 'held':
-      OnCallHandler.updateKeypadEnabled();
+      CallsHandler.updateKeypadEnabled();
       this.node.classList.add('held');
       break;
     case 'busy':
@@ -159,7 +160,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       self.replaceAdditionalContactInfo(self._cachedAdditionalInfo);
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
-        CallScreen.setCallerContactImage(self.photo, true, false);
+        CallScreen.setCallerContactImage(self.photo,
+                                         {force: true, mask: false});
         if (typeof self.photo === 'string') {
           contactCopy.photo = self.photo;
         } else {
@@ -270,7 +272,7 @@ HandledCall.prototype.connected = function hc_connected() {
 };
 
 HandledCall.prototype.busy = function hc_busy() {
-  OnCallHandler.notifyBusyLine();
+  CallsHandler.notifyBusyLine();
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
@@ -288,7 +290,7 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
 
     Voicemail.check(entry.number, function(isVoicemailNumber) {
       entry.voicemail = isVoicemailNumber;
-      OnCallHandler.addRecentEntry(entry);
+      CallsHandler.addRecentEntry(entry);
     });
   }
 

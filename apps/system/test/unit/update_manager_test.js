@@ -9,7 +9,7 @@ requireApp('system/test/unit/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_chrome_event.js');
-requireApp('system/test/unit/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
