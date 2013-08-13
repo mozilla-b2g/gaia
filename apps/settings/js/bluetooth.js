@@ -364,11 +364,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         }
       );
 
-      navigator.mozSetMessageHandler('bluetooth-hfp-status-changed',
-        function bt_getConnectedMessage(message) {
-          showDeviceConnected(message.address, message.connected);
-        }
-      );
+      defaultAdapter.onhfpstatuschanged = function bt_getConnectedMessage(evt) {
+        showDeviceConnected(evt.address, evt.status);
+      };
 
       // get paired device and restore connection
       // if we have one device connected before.
