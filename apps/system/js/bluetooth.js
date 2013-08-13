@@ -55,7 +55,11 @@ var Bluetooth = {
     var self = this;
 
     SettingsListener.observe('bluetooth.enabled', true, function(value) {
-      if (!bluetooth) {
+      if (bluetooth) {
+        if (value) {
+          self._setDiscoverable(true, self._visibleTimeoutTime);
+        }
+      } else {
         // roll back the setting value to notify the UIs
         // that Bluetooth interface is not available
         if (value) {
@@ -64,6 +68,19 @@ var Bluetooth = {
           });
         }
         return;
+      }
+    });
+
+    settings.addObserver('bluetooth.visible', function(event) {
+      var visible = event.settingValue;
+      if (visible) {
+        self._setDiscoverable(true);
+      } else {
+        // clear the timer if bluetooth.visible is disabled
+        if (self._visibleTimeout) {
+          clearTimeout(self._visibleTimeout);
+          self._visibleTimeout = null;
+        }
       }
     });
 
@@ -86,10 +103,6 @@ var Bluetooth = {
     // when bluetooth adapter is ready, emit event to notify QuickSettings
     // and try to get defaultAdapter at this moment
     bluetooth.onadapteradded = function bt_onAdapterAdded() {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('bluetooth-adapter-added',
-        /* canBubble */ true, /* cancelable */ false, null);
-      window.dispatchEvent(evt);
       self.initDefaultAdapter();
     };
     // if bluetooth is enabled in booting time, try to get adapter now
@@ -166,6 +179,12 @@ var Bluetooth = {
     var req = bluetooth.getDefaultAdapter();
     req.onsuccess = function bt_gotDefaultAdapter(evt) {
       self.defaultAdapter = req.result;
+      self._setDiscoverable(true, self._visibleTimeoutTime);
+
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('bluetooth-adapter-added',
+        /* canBubble */ true, /* cancelable */ false, null);
+      window.dispatchEvent(evt);
     };
   },
 
@@ -191,6 +210,34 @@ var Bluetooth = {
   // This function is called by external (BluetoothTransfer) for re-use adapter
   getAdapter: function bt_getAdapter() {
     return this.defaultAdapter;
+  },
+
+  _visibleTimeoutTime: 120000, // visibility will timeout after 2 minutes
+  _visibleTimeout: null,
+  _setDiscoverable: function bt_setDiscoverable(visible, timeout) {
+    var self = this;
+    var _setDiscoverableFunc = function() {
+      var bluetooth = window.navigator.mozBluetooth;
+      var settings = window.navigator.mozSettings;
+
+      settings.createLock().set({'bluetooth.visible': visible});
+      self.defaultAdapter.setDiscoverable(visible);
+      if (visible && timeout) {
+        if (!self._visibleTimeout) {
+          self._visibleTimeout = setTimeout(function() {
+            self._setDiscoverable(false);
+          }, timeout);
+        }
+      }
+    };
+
+    if (this.defaultAdapter) {
+      _setDiscoverableFunc();
+    } else {
+      window.addEventListener('bluetooth-adapter-added', function() {
+        _setDiscoverableFunc();
+      });
+    }
   }
 };
 
