@@ -1,39 +1,66 @@
 /* global parseAudioMetadata */
-/* exported parseMetadata */
+/* exported parseMetadata, loadPicture */
 
 'use strict';
 
 require('/js/metadata_scripts.js');
 
-function parseMetadata(filename, callback, done) {
-
-  // Override getThumbnailURL, since we don't need/want to talk to the
-  // indexedDB here.
-  window.getThumbnailURL = function(fileinfo, callback) {
-    callback(null);
-  };
-
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', filename);
-  xhr.onload = function() {
-    assert.equal(xhr.status, 200);
-    parseAudioMetadata(
-      new Blob([this.response]),
-      function(metadata) {
-        callback(metadata);
-        done();
-      },
-      function(error) {
-        assert.equal(null, error);
-        done();
+function _fetch(url) {
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.onload = function() {
+      if (xhr.status != 200) {
+        reject(new Error('Failed with status: ' + xhr.status));
+      } else {
+        resolve(this.response);
       }
-    );
-  };
-  xhr.onerror = xhr.ontimeout = function() {
-    assert.ok(false);
-    done();
-  };
-  xhr.responseType = 'arraybuffer';
-  xhr.send();
+    };
+    xhr.onerror = xhr.ontimeout = function() {
+      reject(new Error('Failed'));
+    };
+    xhr.responseType = 'arraybuffer';
+    xhr.send();
+  });
 }
 
+
+function parseMetadata(filename) {
+  return _fetch(filename).then(function(data) {
+    return new Promise(function(resolve, reject) {
+      parseAudioMetadata(
+        new Blob([data]),
+        function(metadata) {
+          if (metadata.picture) {
+            var reader = new FileReader();
+            reader.readAsArrayBuffer(metadata.picture.blob);
+            reader.onload = function(event) {
+              metadata.picture = {
+                flavor: metadata.picture.flavor,
+                type: metadata.picture.blob.type,
+                data: new Uint8Array(event.target.result)
+              };
+              resolve(metadata);
+            };
+            reader.onerror = function(event) {
+              reject(event.target.error);
+            };
+          } else {
+            resolve(metadata);
+          }
+        },
+        function(error) { reject(error); }
+      );
+    });
+  });
+}
+
+function loadPicture(url, type, flavor) {
+  return _fetch(url).then(function(data) {
+    return {
+      flavor: flavor,
+      type: type,
+      data: new Uint8Array(data)
+    };
+  });
+}
