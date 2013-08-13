@@ -1,0 +1,54 @@
+{
+  "name": "NFC Demo",
+  "description": "NFC Demo",
+  "launch_path": "/nfc.html",
+  "type": "certified",
+  "permissions": {
+    "nfc":{}
+  },
+  "developer": {
+    "name": "Deutsche Telekom",
+    "url": "http://www.laboratories.telekom.com"
+  },
+  "icons": {
+    "120": "/style/icons/Nfc.png"
+  },
+  "default_locale": "en",
+  "activities": {
+    "nfc-write-request-status-disabled": {
+      "filters": {
+        "type": "info"
+      }
+    },
+    "nfc-ndefdisconnected-disabled": {
+      "filters": {
+        "type": "info"
+      }
+    },
+    "nfc-ndef-discovered": {
+      "filters": {
+        "type": "empty"
+      }
+    },
+    "nfc-ndef-discovered": {
+      "filters": {
+        "type": "webtelephony/number"
+      },
+      "href": "/dialer/index.html#keyboard-view",
+      "disposition": "window"
+    },
+    "nfc-ndef-discovered": {
+      "filters": {
+        "type": "text/x-vCard"
+      },
+      "disposition": "inline",
+      "href": "/contacts/index.html?new"
+    },
+    "nfc-ndef-discovered": {
+      "filters": {
+        "type": "uri"
+      }
+    }
+  }
+}
+
