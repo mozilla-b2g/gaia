@@ -194,3 +194,26 @@ suite('unsynchronized tags', function() {
   });
 
 });
+
+suite('multivalue frames', function() {
+
+  setup(function() {
+    this.timeout(1000);
+  });
+
+  ['latin1', 'utf16', 'utf16be', 'utf8'].forEach(function(encoding) {
+    test('id3v2.4 ' + encoding, function(done) {
+      parseMetadata(
+        '/test-data/id3v2.4-multivalue-' + encoding + '.mp3',
+        function(metadata) {
+          assert.equal(metadata.artist, 'Dynatron / Perturbator');
+          assert.equal(metadata.album, 'I Am the Night');
+          assert.equal(metadata.title, 'Volcanic Machinery');
+          assert.equal(metadata.tracknum, 13);
+        },
+        done
+      );
+    });
+  });
+
+});
