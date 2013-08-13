@@ -121,35 +121,32 @@ extend(EvmeApp, Bookmark);
 
 EvmeApp.prototype.launch = function evmeapp_launch(url, name, useAsyncPanZoom) {
     var features = {
-      name: this.manifest.name.replace(/\s/g, '&nbsp;'),
+      name: this.manifest.name,
       icon: this.manifest.icons['60'],
       remote: true,
       useAsyncPanZoom: useAsyncPanZoom
     };
 
     if (!GridManager.getIconForBookmark(this.origin)) {
-      features.origin = {
-        name: features.name,
-        url: encodeURIComponent(this.origin)
-      };
+      features.originName = features.name;
+      features.originUrl = this.origin;
     }
 
     if (url && url !== this.origin && !GridManager.getIconForBookmark(url)) {
       var searchName = navigator.mozL10n.get('wrapper-search-name', {
         topic: name,
         name: this.manifest.name
-      }).replace(/\s/g, '&nbsp;');
+      });
 
       features.name = searchName;
-      features.search = {
-        name: searchName,
-        url: encodeURIComponent(url)
-      };
+      features.searchName = searchName;
+      features.searchUrl = url;
     }
 
-    // The third parameter is received in window_manager without whitespaces
-    // so we decice replace them for &nbsp;
     // We use `e.me` name in order to always reuse the same window
     // so that we can only open one e.me app at a time
-    return window.open(url || this.origin, 'e.me', JSON.stringify(features));
+    return window.open(url || this.origin, 'e.me', Object.keys(features)
+      .map(function(key) {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
+    }).join('&'));
 };
