@@ -55,9 +55,6 @@ window.addEventListener('localized', function showBody() {
     }
   );
 
-  // also update time headers
-  Utils.updateTimeHeaders();
-
   // also look for elements with data-l10n-date-format and localize them
   Array.prototype.forEach.call(
     document.querySelectorAll('[data-l10n-date-format]'),

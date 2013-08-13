@@ -130,15 +130,6 @@
       });
     },
 
-    iframeLoad: function(event) {
-      // Bubble click events from inside the iframe.
-      var iframe = event.target;
-      var clickOnFrame = iframe.click.bind(iframe);
-      navigator.mozL10n.translate(iframe.contentDocument.body);
-      iframe.contentDocument.addEventListener('click', clickOnFrame);
-      iframe.contentDocument.addEventListener('contextmenu', clickOnFrame);
-    },
-
     render: function(readyCallback) {
       /**
        * A <div> container suits most of the cases where we want to display an
@@ -190,7 +181,7 @@
           // Attach click listeners and fire the callback when rendering is
           // complete: we can't bind `readyCallback' to the `load' event
           // listener because it would break our unit tests.
-          container.addEventListener('load', this.iframeLoad.bind(this));
+          container.addEventListener('load', iframeLoad);
           container.src = 'data:text/html,' + tmplSrc;
         } else { // <div>
           container.innerHTML = this.getAttachmentSrc(thumbnail, tmplID);
@@ -242,6 +233,16 @@
       };
     }
   };
+
+  function iframeLoad(event) {
+    // Bubble click events from inside the iframe.
+    var iframe = event.target;
+    var clickOnFrame = iframe.click.bind(iframe);
+    navigator.mozL10n.translate(iframe.contentDocument.body);
+    iframe.contentDocument.addEventListener('click', clickOnFrame);
+    iframe.contentDocument.addEventListener('contextmenu', clickOnFrame);
+  }
+
 
   exports.Attachment = Attachment;
 }(this));
