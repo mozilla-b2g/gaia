@@ -362,7 +362,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
             break;
           case 'TRCK':
           case 'TRK':
-            tagvalue = parseInt(readText(id3, tagsize));
+            tagvalue = parseInt(readText(id3, tagsize), 10);
             break;
           case 'APIC':
           case 'PIC':
