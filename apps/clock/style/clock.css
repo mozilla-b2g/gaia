@@ -202,4 +202,3 @@ html, body {
 body.hidden *[data-l10n-id] {
   visibility: hidden;
 }
-
