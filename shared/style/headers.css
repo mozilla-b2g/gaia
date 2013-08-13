@@ -221,7 +221,7 @@ section[role="region"] > header:first-child > a {
   left: 0;
   width: 5rem;
   height: 5rem;
-  background: url(headers/images/ui/separator-large.png) no-repeat 2rem center / auto 4.8rem;
+  background: url(headers/images/ui/separator-large.png) no-repeat 1.9rem center / auto 4.8rem;
   overflow: hidden;
 }
 
@@ -297,7 +297,7 @@ section[role="region"].skin-dark > header:first-child > a .icon:after,
 .skin-dark section[role="region"] > header:first-child > a .icon:after,
 section[role="region"].skin-dark > header:first-child > button .icon:after,
 .skin-dark section[role="region"] > header:first-child > button .icon:after {
-  background: #26272c url(headers/images/ui/dark/negative.png) repeat-x 0 0;
+  background: #26272c url(headers/images/ui/dark/negative.png) repeat-x 0 100% / auto 100%;
 }
 
 section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:last-child,
