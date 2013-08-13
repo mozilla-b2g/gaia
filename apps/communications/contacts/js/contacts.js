@@ -241,8 +241,14 @@ var Contacts = (function() {
   var dataPickHandler = function dataPickHandler() {
     var type, dataSet, noDataStr, selectDataStr;
     var theContact = currentFbContact || currentContact;
+
     // Add the new pick type here:
     switch (ActivityHandler.activityDataType) {
+      case 'webcontacts/tel':
+        type = 'contact';
+        dataSet = theContact.tel;
+        noDataStr = _('no_phones');
+        break;
       case 'webcontacts/contact':
         type = 'number';
         dataSet = theContact.tel;
@@ -274,8 +280,14 @@ var Contacts = (function() {
         break;
       case 1:
         // if one required type of data
-        data = dataSet[0].value;
-        result[type] = data;
+        if (ActivityHandler.activityDataType == 'webcontacts/tel') {
+          result = {};
+          copyContactData(theContact, result);
+        } else {
+          data = dataSet[0].value;
+          result[type] = data;
+        }
+
         ActivityHandler.postPickSuccess(result);
         break;
       default:
@@ -288,12 +300,35 @@ var Contacts = (function() {
         }
 
         prompt1.onchange = function onchange(itemData) {
+          if (ActivityHandler.activityDataType == 'webcontacts/tel') {
+            // filter phone from data.tel to take out the rest
+            result = {};
+            copyContactData(theContact, result);
+            result.tel = filterPhoneNumberForActivity(itemData, result.tel);
+          } else {
+            result[type] = itemData;
+          }
           prompt1.hide();
-          result[type] = itemData;
           ActivityHandler.postPickSuccess(result);
         };
         prompt1.show();
     } // switch
+  };
+
+  var copyContactData = function copyContactData(source, dest) {
+    for (var prop in Object.getPrototypeOf(source)) {
+      dest[prop] = source[prop];
+    }
+  };
+
+  var filterPhoneNumberForActivity =
+      function filterPhoneNumberForActivity(itemData, dataSet) {
+
+    function isSamePhone(item) {
+      return item.value == itemData;
+    }
+
+    return dataSet.filter(isSamePhone);
   };
 
   var contactListClickHandler = function originalHandler(id) {
