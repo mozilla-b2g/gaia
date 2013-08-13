@@ -490,7 +490,7 @@ li button.icon-fb-profile:before {
 
 li button.icon-add:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png);
-  background-size: 2.8rem;
+  background-size: auto;
 }
 
 
