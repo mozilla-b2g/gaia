@@ -1,3 +1,12 @@
+/**
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
+ */
+
+/* Copyright © 2013, Deutsche Telekom, Inc. */
+
+
 // Applet ID
 var aid = [0xD2, 0x76, 0x00, 0x01, 0x18, 0x00, 0x02, 0xFF,
            0x49, 0x50, 0x25, 0x89, 0xC0, 0x01, 0x9B, 0x01];
