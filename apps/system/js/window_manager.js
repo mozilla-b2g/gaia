@@ -1730,9 +1730,9 @@ var WindowManager = (function() {
     if (typeof detail.features !== 'string')
       return;
 
-    // Turn '&' separated string into object for easy access
+    // Turn ',' separated 'key=value' string into object for easy access
     var features = detail.features
-      .split('&')
+      .split(',')
       .reduce(function(acc, feature) {
         feature = feature
           .split('=')
