@@ -1,0 +1,47 @@
+#settings ul {
+  margin: 0;
+  padding: 0;
+}
+
+#settings li {
+  margin: 1rem 3rem;
+  list-style-type: none;
+}
+
+#settings li button {
+  margin: 0;
+  height: auto;
+  line-height: 2rem;
+  padding: 1rem 1.5rem;
+}
+
+#settings li#enable-cookies {
+  margin-bottom: 2rem;
+}
+
+#settings [disabled="disabled"] {
+  opacity: 0.7;
+}
+
+.fake-select {
+  display: block;
+  width: 100%;
+  position: relative;
+}
+
+.fake-select button {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.fake-select select {
+  width: 100%;
+  height: 4.1rem;
+  background-color: red;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+}
