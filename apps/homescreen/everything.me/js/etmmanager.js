@@ -148,5 +148,5 @@ EvmeApp.prototype.launch = function evmeapp_launch(url, name, useAsyncPanZoom) {
     return window.open(url || this.origin, 'e.me', Object.keys(features)
       .map(function(key) {
       return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
-    }).join('&'));
+    }).join(','));
 };
