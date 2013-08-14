@@ -176,9 +176,13 @@ contacts.Settings = (function() {
 
   function exportContactsHandler() {
       // Hide elements for import and transition
-      importSettingsPanel.classList.add('export');
-      updateImportTitle('exportContactsTitle');
-      navigationHandler.go('import-settings', 'right-left');
+      LazyLoader.load(['/contacts/js/export/contacts_exporter.js'],
+        function() {
+          importSettingsPanel.classList.add('export');
+          updateImportTitle('exportContactsTitle');
+          navigationHandler.go('import-settings', 'right-left');
+        }
+      );
   };
 
   function importOptionsHandler(e) {
@@ -201,6 +205,7 @@ contacts.Settings = (function() {
 
   function exportOptionsHandler(e) {
     var source = e.target.parentNode.dataset.source;
+    var strategy = null;
     switch (source) {
       case 'sim':
         // TODO Add export to SIM functionality
@@ -212,6 +217,37 @@ contacts.Settings = (function() {
         // TODO Add export to Bluetooth functionality
         break;
     }
+    if (strategy == null) {
+      return;
+    }
+
+    doExport(strategy);
+  };
+
+  function doExport(strategy) {
+    // Launch the selection mode in the list, and then invoke
+    // the export with the selected strategy.
+    contacts.List.selectFromList(_('exportContactsTitle'),
+      function onSelectedContacts(promise) {
+        // Resolve the promise, meanwhile show an overlay to
+        // warn the user of the ongoin operation, dismiss it
+        // once we have the result
+        utils.overlay.show(_('preparing-contacts'), null, 'spinner');
+        promise.onsuccess = function onSuccess(ids) {
+          var exporter = new ContactsExporter(strategy);
+          exporter.init(ids, function onExporterReady() {
+            // Leave the contact exporter to deal with the overlay
+            exporter.start();
+          });
+        };
+        promise.onerror = function onError() {
+          utils.overlay.hide();
+        };
+      },
+      null,
+      navigationHandler,
+      'popup'
+    );
   };
 
   // Options checking & updating
@@ -246,7 +282,8 @@ contacts.Settings = (function() {
   var enableSIMImport = function enableSIMImport(cardState) {
     var disabled = (cardState !== 'ready');
     updateOptionStatus(importSimOption, disabled, true);
-    updateOptionStatus(exportSimOption, disabled, true);
+    // TODO: uncomment this once we have the SIM export ready
+    //updateOptionStatus(exportSimOption, disabled, true);
   };
 
   /**
@@ -255,7 +292,8 @@ contacts.Settings = (function() {
    */
   var enableStorageImport = function enableStorageImport(cardState) {
     updateOptionStatus(importSDOption, !cardState, true);
-    updateOptionStatus(exportSDOption, !cardState, true);
+    // TODO: uncomment this once we have the SD export ready
+    //updateOptionStatus(exportSDOption, !cardState, true);
   };
 
   // Callback that will modify the ui depending if we imported or not
