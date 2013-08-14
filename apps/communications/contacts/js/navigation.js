@@ -117,6 +117,8 @@ function navigationStack(currentView) {
     var currentView = this.stack.pop();
     var current = document.getElementById(currentView.view);
     var currentClassList = current.classList;
+    current.style.zIndex = this.stack.length;
+
     var nextView = this.stack[this.stack.length - 1];
     var transition = currentView.transition;
 
@@ -164,6 +166,7 @@ function navigationStack(currentView) {
         }
       });
     }
+
     waitForAnimation(current, callback);
     _currentView = nextView.view;
   };

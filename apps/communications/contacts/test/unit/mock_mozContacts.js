@@ -2,6 +2,7 @@
 
 var MockMozContacts = {
   limit: 20,
+  find: function dummy() {},
   getAll: function getAll() {
     return {
       set onsuccess(callback) {

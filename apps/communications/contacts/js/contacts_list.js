@@ -35,7 +35,8 @@ contacts.List = (function() {
       selectActionButton = null,
       groupList = null,
       searchList = null,
-      selectedCount = 0;
+      selectedCount = 0,
+      selectNavigationController = null;
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -1391,9 +1392,11 @@ contacts.List = (function() {
 
     Also provide a callback to be invoqued when we enter in select mode.
   */
-  var selectFromList = function selectFromList(title, action, callback) {
+  var selectFromList = function selectFromList(title, action, callback, 
+      navigationController, transitionType) {
     selectedCount = 0;
     inSelectMode = true;
+    selectNavigationController = navigationController;
 
     if (selectForm === null) {
       selectForm = document.getElementById('selectable-form');
@@ -1476,6 +1479,8 @@ contacts.List = (function() {
       callback();
     }
 
+    selectNavigationController.go('view-contacts-list', transitionType);
+
     if (contacts.List.total == 0) {
       var emptyPromise = createSelectPromise();
       emptyPromise.resolve([]);
@@ -1488,6 +1493,7 @@ contacts.List = (function() {
   var exitSelectMode = function exitSelectMode(canceling) {
     inSelectMode = false;
     selectAllChecked = false;
+    selectNavigationController.back();
 
     // Hide and show buttons
     selectForm.classList.add('hide');

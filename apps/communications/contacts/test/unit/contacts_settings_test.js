@@ -7,12 +7,14 @@ requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
+requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/contacts_settings.js');
 
 if (!this._) this._ = null;
 if (!this.utils) this.utils = null;
+if (!navigator.mozContacts) navigator.mozContacts = null;
 
 if (!window.Rest) {
   window.Rest = null;
