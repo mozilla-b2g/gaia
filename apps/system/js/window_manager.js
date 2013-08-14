@@ -953,33 +953,16 @@ var WindowManager = (function() {
     });
 
   function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
-    var iframe = origFrame || document.createElement('iframe');
-    iframe.setAttribute('mozallowfullscreen', 'true');
+    var browser_config = {
+      origin: origin,
+      url: url,
+      name: name,
+      manifest: manifest,
+      manifestURL: manifestURL,
+      isHomescreen: (origin === homescreen)
+    };
 
-    var frame = document.createElement('div');
-    frame.appendChild(iframe);
-    frame.className = 'appWindow';
-
-    iframe.dataset.frameOrigin = origin;
-    // Save original frame URL in order to restore it on frame load error
-    iframe.dataset.frameURL = url;
-
-    // Note that we don't set the frame size here.  That will happen
-    // when we display the app in setDisplayedApp()
-
-    // frames are began unloaded.
-    iframe.dataset.unloaded = true;
-
-    if (!manifestURL) {
-      frame.setAttribute('data-wrapper', 'true');
-      return frame;
-    }
-
-    // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
-    // They also need to be marked as 'mozapp' to be recognized as apps by the
-    // platform.
-    iframe.setAttribute('mozbrowser', 'true');
-
+    // TODO: Move into browser configuration helper.
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
     //
@@ -995,13 +978,37 @@ var WindowManager = (function() {
     ];
 
     if (outOfProcessBlackList.indexOf(manifestURL) === -1) {
-      // FIXME: content shouldn't control this directly
-      iframe.setAttribute('remote', 'true');
+      browser_config.oop = true;
     }
 
-    iframe.setAttribute('mozapp', manifestURL);
-    iframe.src = url;
+    var browser = new BrowserFrame(browser_config, origFrame);
 
+    var iframe = browser.element;
+
+    // TODO: Move into appWindow's render function.
+    var frame = document.createElement('div');
+    frame.appendChild(iframe);
+    frame.className = 'appWindow';
+
+    // TODO: Remove this line later.
+    // We won't need to store origin or url in iframe element anymore.
+    iframe.dataset.frameOrigin = origin;
+    // Save original frame URL in order to restore it on frame load error
+    iframe.dataset.frameURL = url;
+
+    // Note that we don't set the frame size here.  That will happen
+    // when we display the app in setDisplayedApp()
+
+    // TODO: Will become app window's attribute.
+    // frames are began unloaded.
+    iframe.dataset.unloaded = true;
+
+    if (!manifestURL) {
+      frame.setAttribute('data-wrapper', 'true');
+      return frame;
+    }
+
+    // TODO: Move into app window.
     // Add minimal chrome if the app needs it.
     if (manifest.chrome && manifest.chrome.navigation === true) {
       frame.setAttribute('data-wrapper', 'true');
