@@ -16,7 +16,6 @@ MocksHelper.prototype = {
 
   init: function mh_init() {
     this.mocks.forEach(function(objName) {
-      console.log(objName);
       if (!window[objName]) {
         window[objName] = null;
       }
