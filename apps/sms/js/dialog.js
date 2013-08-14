@@ -49,6 +49,7 @@ var Dialog = function(params) {
   this.form = document.createElement('form');
   this.form.dataset.type = 'confirm';
   this.form.setAttribute('role', 'dialog');
+  this.form.tabIndex = -1;
 
   // We fill the main info
 
@@ -137,6 +138,7 @@ var Dialog = function(params) {
 // We prototype functions to show/hide the UI of action-menu
 Dialog.prototype.show = function() {
   document.body.appendChild(this.form);
+  this.form.focus();
 };
 
 Dialog.prototype.hide = function() {

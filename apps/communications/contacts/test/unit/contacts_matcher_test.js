@@ -14,6 +14,10 @@ if (!this.contact) {
   this.contact = null;
 }
 
+if (!this.contactFB) {
+  this.contactFB = null;
+}
+
 suite('Test Contacts Matcher', function() {
   function assertDefaultMatch(results) {
     assert.equal(Object.keys(results).length, 1);
@@ -543,6 +547,64 @@ suite('Test Contacts Matcher', function() {
       };
 
       testMismatch(myObj, 'active', done);
+    });
+  });
+
+  suite('Test Contacts Matcher. Active Mode. Facebook Contacts', function() {
+    suiteSetup(function() {
+      contactFB = {
+        id: '1B',
+        givenName: ['Carlos'],
+        familyName: ['Álvarez del Río'],
+        tel: [{
+          type: ['home'],
+          value: '676767671'
+        }],
+        email: [{
+          type: ['personal'],
+          value: 'jj@jj.com'
+        }],
+        category: ['facebook']
+    };
+
+      MockFindMatcher.setData(contactFB);
+
+      realmozContacts = navigator.mozContacts;
+      navigator.mozContacts = MockFindMatcher;
+    });
+
+    test('A Facebook Imported Contact never matches', function(done) {
+      var contactObj = Object.create(contact);
+      contactObj.id = '9876';
+      contactObj.category = null;
+
+      testMismatch(contactObj, 'active', done);
+    });
+
+    test('A Facebook linked Contact can match', function(done) {
+      var contactObj = Object.create(contactFB);
+      contactObj.id = '9876';
+      contactObj.category = null;
+      contactFB.category = ['facebook', 'fb_linked', '123456789'];
+
+      testMatch(contactObj, 'active', done);
+    });
+
+    test('Two FB linked Contacts can match if they link the same Friend',
+      function(done) {
+        var contactObj = Object.create(contactFB);
+        contactObj.id = '9876';
+
+        testMatch(contactObj, 'active', done);
+    });
+
+    test('A FB linked Contact cannot match with a Contact linked to another',
+      function(done) {
+        var contactObj = Object.create(contactFB);
+        contactObj.id = '9876';
+        contactObj.category = ['facebook', 'fb_linked', '987654321'];
+
+        testMismatch(contactObj, 'active', done);
     });
   });
 });

@@ -1,8 +1,16 @@
 (function(exports) {
   'use strict';
 
-  var settings = {};
+  function entry(key, value) {
+    settings[key] = urls[key] ? urls[key].set(value) : value;
+  }
+
   var mozSettings = navigator.mozSettings;
+  var settings = {};
+  var urls = {
+    'notification.ringtone': new SettingsURL()
+  };
+
   [
     'audio.volume.notification',
     'notification.ringtone',
@@ -11,11 +19,11 @@
     if (mozSettings) {
       var request = mozSettings.createLock().get(key);
       request.onsuccess = function() {
-        settings[key] = request.result[key];
+        entry(key, request.result[key]);
       };
 
       mozSettings.addObserver(key, function(event) {
-        settings[key] = event.settingValue;
+        entry(key, event.settingValue);
       });
     }
   });

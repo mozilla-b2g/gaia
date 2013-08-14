@@ -3,7 +3,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 100;
+  z-index: 1000;
   background: rgba(0, 0, 0, .5);
 }
 
@@ -56,14 +56,14 @@
   top: 3em;
   width: 3.75em;
   height: 3em;
-  background-image: url('../down.png');
+  background-image: url('../images/header/down.png');
   background-repeat: no-repeat;
   background-position: center center;
   background-size: auto 50%;
 }
 
 .uiItem > .toggleMore.unhide {
-  background-image: url('../up.png');
+  background-image: url('../images/header/up.png');
 }
 
 .uiItem > .more {

@@ -62,6 +62,7 @@
           <menu type="toolbar">
             <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
             <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
+            <button  id="select-action" class="hide"></button>
           </menu>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>
@@ -98,7 +99,8 @@
               <form id="search-container" class="search" role="search">
                 <p>
                   <label for="search" id="search-start">
-                    <input type="search" name="search" class="textfield" placeholder="Search" data-l10n-id="search-contact">
+                    <input type="search" name="search" class="textfield" x-inputmode="verbatim"
+                           placeholder="Search" data-l10n-id="search-contact">
                   </label>
                 </p>
               </form>
@@ -107,17 +109,27 @@
               </section>
             </div>
           </div>
+          <form id="selectable-form" role="dialog" data-type="confirm" class="hide no-overlay">
+            <menu id="select-all-wrapper">
+             <button id="deselect-all" class="edit-button" data-l10n-id="deselectAll" disabled>
+                Deselect all
+              </button>
+              <button id="select-all" class="edit-button" data-l10n-id="selectAll">
+                Select all
+              </button>
+            </menu>
+          </form>
         </article>
         <div id='fixed-container' class='fixed-title'></div>
       </section>
 
       <section id="search-view" class="view">
         <form id="searchview-container" class="search" role="search">
-          <button id='cancel-search' data-l10n-id="cancel" type="submit">Cancel</button>
+          <button id="cancel-search" data-l10n-id="cancel" type="submit">Cancel</button>
           <p>
             <label for="search-contact">
-              <input type="search" name="search" class="textfield" placeholder="Search"
-                     id="search-contact" data-l10n-id="search-contact">
+              <input type="search" name="search" class="textfield" x-inputmode="verbatim"
+                     id="search-contact" placeholder="Search" data-l10n-id="search-contact">
               <button type="reset">Clear</button>
             </label>
           </p>
@@ -134,7 +146,6 @@
             <progress  class="small"></progress>
           </p>
         </section>
-
       </section>    <!-- Search view -->
 
       <section id='view-screenshot' role="region" class="view hide">
@@ -267,7 +278,6 @@
             </section>
         </article>
       </section>
-
 
       <!-- Edit Section -->
       <section id='view-contact-form' role="region" class="view view-bottom view-edit-contact">

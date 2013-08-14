@@ -12,8 +12,7 @@ suite('Dialog', function() {
   suiteSetup(function() {
     loadBodyHTML('/index.html');
     navigator.mozL10n = MockL10n;
-    params =
-    {
+    params = {
       title: {
         value: 'Foo Title',
         l10n: false
@@ -30,7 +29,6 @@ suite('Dialog', function() {
           }
         }
       }
-
     };
   });
 
@@ -68,6 +66,17 @@ suite('Dialog', function() {
     // We check the type
     var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
     assert.equal(dialogForm.dataset.type, 'confirm');
+  });
+
+
+  test('Focus', function() {
+    var dialog = new Dialog(params);
+
+    this.sinon.spy(dialog.form, 'focus');
+
+    dialog.show();
+
+    assert.ok(dialog.form.focus.called);
   });
 
   test('Checking the structure. Default.', function() {

@@ -4,18 +4,16 @@ requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_manifest_helper.js');
-requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
-requireApp('system/test/unit/mocks_helper.js');
 
 requireApp('system/js/app_install_manager.js');
 
-var mocksForAppInstallManager = [
+var mocksForAppInstallManager = new MocksHelper([
   'StatusBar',
   'SystemBanner',
   'NotificationScreen',
@@ -23,13 +21,7 @@ var mocksForAppInstallManager = [
   'UtilityTray',
   'ModalDialog',
   'ManifestHelper'
-];
-
-mocksForAppInstallManager.forEach(function(mockName) {
-  if (! window[mockName]) {
-    window[mockName] = null;
-  }
-});
+]).init();
 
 suite('system/AppInstallManager >', function() {
   var realL10n;
@@ -42,8 +34,7 @@ suite('system/AppInstallManager >', function() {
   var lastL10nParams = null;
   var lastDispatchedResponse = null;
 
-  var mocksHelper;
-
+  mocksForAppInstallManager.attachTestHelpers();
   suiteSetup(function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = {
@@ -67,9 +58,6 @@ suite('system/AppInstallManager >', function() {
 
     realRequestWakeLock = navigator.requestWakeLock;
     navigator.requestWakeLock = MockNavigatorWakeLock.requestWakeLock;
-
-    mocksHelper = new MocksHelper(mocksForAppInstallManager);
-    mocksHelper.suiteSetup();
   });
 
   suiteTeardown(function() {
@@ -88,8 +76,6 @@ suite('system/AppInstallManager >', function() {
 
     navigator.requestWakeLock = realRequestWakeLock;
     realRequestWakeLock = null;
-
-    mocksHelper.suiteTeardown();
   });
 
   setup(function() {
@@ -167,8 +153,6 @@ suite('system/AppInstallManager >', function() {
     document.body.appendChild(fakeDownloadCancelDialog);
     document.body.appendChild(fakeNotif);
 
-    mocksHelper.setup();
-
     AppInstallManager.init();
   });
 
@@ -180,7 +164,6 @@ suite('system/AppInstallManager >', function() {
     lastDispatchedResponse = null;
     lastL10nParams = null;
 
-    mocksHelper.teardown();
     MockNavigatorWakeLock.mTeardown();
   });
 

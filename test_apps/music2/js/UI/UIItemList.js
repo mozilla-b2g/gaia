@@ -7,7 +7,7 @@ var UIItemList = function(div){
 
   this.draggable = false;
 
-  Utils.setupPassParent(this, 'elemMoved');
+  Router.route(this, 'elemMoved');
 }
 
 UIItemList.prototype = {
@@ -22,15 +22,27 @@ UIItemList.prototype = {
     this.dom.list.classList.remove('hidden');
   },
   append: function(item){
-    var div = item.createDiv();
+    if (!item.dom.div)
+      item.createDiv();
+    var div = item.dom.div;
     if (this.draggable){
       this.setupHold(item);
     }
     this.dom.list.appendChild(div);
+    item.index = this.items.length;
     this.items.push(item);
   },
   remove: function(item){
+    var index = this.items.indexOf(item);
     this.dom.list.removeChild(item.dom.div);
+    item.dom.div.style.background = 'blue';
+    this.items.splice(index, 1);
+    for (var i = index; i < this.items.length; i++){
+      this.items[i].index = i;
+    }
+  },
+  itemByIndex: function(index){
+    return this.items[index];
   },
   setupHold: function(item){
     var drag = new UIItemDrag(item.dom.div, this.dom.list);

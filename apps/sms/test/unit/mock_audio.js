@@ -1,15 +1,18 @@
 'use strict';
 
 function MockAudio() {
-  MockAudio.isPlayed = false;
+  MockAudio.instances.push(this);
 }
 
-MockAudio.prototype.play = function() {
-  MockAudio.isPlayed = true;
-};
+MockAudio.instances = [];
 
-MockAudio.prototype.pause = function() {};
+MockAudio.mSetup = function() {
+  MockAudio.instances = [];
+};
 
 MockAudio.mTeardown = function() {
-  MockAudio.isPlayed = false;
+  MockAudio.instances = [];
 };
+
+MockAudio.prototype.play = function() {};
+MockAudio.prototype.pause = function() {};

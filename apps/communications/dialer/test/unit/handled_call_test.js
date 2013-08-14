@@ -2,7 +2,7 @@
 
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_on_call.js');
+requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
@@ -16,7 +16,7 @@ requireApp('communications/dialer/js/voicemail.js');
 var mocksHelperForHandledCall = new MocksHelper([
   'Contacts',
   'CallScreen',
-  'OnCallHandler',
+  'CallsHandler',
   'KeypadManager',
   'Utils',
   'LazyL10n'
@@ -200,7 +200,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('save recents entry', function() {
-      assert.equal(subject.recentsEntry, MockOnCallHandler.mLastEntryAdded);
+      assert.equal(subject.recentsEntry, MockCallsHandler.mLastEntryAdded);
     });
 
     test('remove listener', function() {
@@ -222,7 +222,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('playing busy tone', function() {
-      assert.isTrue(MockOnCallHandler.mNotifyBusyLineCalled);
+      assert.isTrue(MockCallsHandler.mNotifyBusyLineCalled);
     });
   });
 
@@ -233,7 +233,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('disable keypad', function() {
-      assert.equal(MockOnCallHandler.mUpdateKeypadEnabledCalled, false);
+      assert.equal(MockCallsHandler.mUpdateKeypadEnabledCalled, false);
     });
 
     test('add the css class', function() {
@@ -244,7 +244,7 @@ suite('dialer/handled_call', function() {
   suite('resuming', function() {
     setup(function() {
       MockCallScreen.mSyncSpeakerCalled = false;
-      MockOnCallHandler.mUpdateKeypadEnabledCalled = false;
+      MockCallsHandler.mUpdateKeypadEnabledCalled = false;
       mockCall._resume();
     });
 
@@ -253,7 +253,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('enable keypad', function() {
-      assert.equal(MockOnCallHandler.mUpdateKeypadEnabledCalled, true);
+      assert.equal(MockCallsHandler.mUpdateKeypadEnabledCalled, true);
     });
 
     test('sync speaker', function() {
@@ -442,6 +442,38 @@ suite('dialer/handled_call', function() {
         assert.equal(contact.tel[0].value, MockContacts.mCalledWith);
         assert.equal(contact.tel[0].carrier, MockContacts.mCarrier);
         assert.equal(contact.tel[0].type, MockContacts.mType);
+      });
+    });
+
+    suite('emergency calls', function() {
+      test('is emergency call', function() {
+        mockCall = new MockCall('112', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isTrue(subject.recentsEntry.emergency);
+      });
+
+      test('is not emergency call', function() {
+        mockCall = new MockCall('111', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isFalse(subject.recentsEntry.emergency);
+      });
+    });
+
+    suite('voicemail calls', function() {
+      test('is voicemail call', function() {
+        mockCall = new MockCall('123', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isTrue(subject.recentsEntry.voicemail);
+      });
+
+      test('is not voicemail call', function() {
+        mockCall = new MockCall('111', 'dialing');
+        subject = new HandledCall(mockCall, fakeNode);
+        mockCall._disconnect();
+        assert.isFalse(subject.recentsEntry.voicemail);
       });
     });
   });

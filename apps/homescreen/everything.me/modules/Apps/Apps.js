@@ -316,7 +316,7 @@ Evme.Apps = new function Evme_Apps() {
     
     function touchMove(e) {
         var y = scroll.y;
-        if (shouldFadeBG) {
+        if (shouldFadeBG && !Evme.Utils.isKeyboardVisible) {
             var _fadeBy = scroll.distY/MAX_SCROLL_FADE;
             
             if (_fadeBy < fadeBy) {
@@ -332,7 +332,8 @@ Evme.Apps = new function Evme_Apps() {
     }
     
     function touchEnd(data) {
-        if (shouldFadeBG && scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
+        if (shouldFadeBG && !Evme.Utils.isKeyboardVisible &&
+            scroll.distY >= FULLSCREEN_THRESHOLD*MAX_SCROLL_FADE) {
             showingFullScreen = true;
             cbScrolledToTop();
             window.setTimeout(function onTimeout(){
@@ -695,7 +696,7 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           'class': 'new',
           'id': 'app_' + cfg.id,
           'data-name': cfg.name
-        }, '<canvas></canvas>');
+        }, '<img />');
         
         self.update();
         
@@ -759,10 +760,6 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
         }
     };
     
-    this.getIconCanvas = function getIconData() {
-      return Evme.$('canvas', el)[0];
-    };
-    
     function drawIconIntoCanvas(callback) {
       var SHADOW_OFFSET = Evme.Apps.APPS_SHADOW_OFFSET,
           SHADOW_BLUR = Evme.Apps.APPS_SHADOW_BLUR,
@@ -771,7 +768,8 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           TEXT_MARGIN = Evme.Apps.APPS_TEXT_MARGIN,
           SIZE = (cfg.installed? 58 : 44) * Evme.Utils.devicePixelRatio,
           FULL_SIZE = SIZE + SHADOW_OFFSET + SHADOW_BLUR,
-          canvas = Evme.$('canvas', el)[0],
+          canvas = document.createElement('canvas'),
+          elImage = Evme.$('img', el)[0],
           context = canvas.getContext('2d'),
           icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon(),
           image = new Image();
@@ -807,6 +805,8 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           context.shadowBlur = SHADOW_BLUR;
           context.shadowColor = 'rgba(0, 0, 0, 0.6)';
           context.drawImage(this, (TEXT_WIDTH-FULL_SIZE)/2, 0);
+          
+          elImage.src = canvas.toDataURL('image/png');
 
           if (callback instanceof Function) {
             callback(canvas);
@@ -849,6 +849,10 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
 
     this.getIcon = function getIcon() {
         return cfg.icon;
+    };
+
+    this.getIconData = function getIconData() {
+        return Evme.$('img', el)[0].src;
     };
     
     this.getCfg = function getCfg() {

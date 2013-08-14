@@ -28,9 +28,12 @@ var Browser = {
   previousScreen: null,
   currentScreen: 'page-screen',
 
-  DEFAULT_SEARCH_PROVIDER_URL: 'www.google.com',
-  DEFAULT_SEARCH_PROVIDER_TITLE: 'Google',
-  DEFAULT_SEARCH_PROVIDER_ICON: 'http://www.google.com/favicon.ico',
+  // These constants are set from browser settings,
+  // populated from init.json on first run
+  DEFAULT_SEARCH_PROVIDER_URL: '',
+  DEFAULT_SEARCH_PROVIDER_TITLE: '',
+  DEFAULT_SEARCH_PROVIDER_ICON: '',
+
   DEFAULT_FAVICON: 'style/images/favicon.png',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
@@ -74,13 +77,20 @@ var Browser = {
     this._awesomeListTemplate = document.createElement('ul');
     this._awesomeListTemplate.setAttribute('role', 'listbox');
 
-    // Load homepage once Places is initialised
-    // (currently homepage is blank)
-    Places.init((function(firstRun) {
+    BrowserDB.init((function() {
       this.selectTab(this.createTab());
-      if (firstRun)
-        this.populateDefaultData();
       this.addressBarState = this.VISIBLE;
+      BrowserDB.getSetting('defaultSearchEngine', (function(uri) {
+        if (!uri)
+          return;
+        BrowserDB.getSearchEngine(uri, (function(searchEngine) {
+          if (!searchEngine)
+            return;
+          this.DEFAULT_SEARCH_PROVIDER_URL = searchEngine.uri;
+          this.DEFAULT_SEARCH_PROVIDER_TITLE = searchEngine.title;
+          this.DEFAULT_SEARCH_PROVIDER_ICON = searchEngine.iconUri;
+        }).bind(this));
+      }).bind(this));
     }).bind(this));
   },
 
@@ -108,7 +118,6 @@ var Browser = {
     if (this.hasLoaded)
       return;
 
-    console.log('----------loadink!');
     var elementsToLoad = [
       // DOM Nodes with commented content to load
       this.awesomescreen,
@@ -140,10 +149,8 @@ var Browser = {
     ];
 
     var jsFiles = [
-      'js/date_helper.js',
       'js/modal_dialog.js',
-      'js/authentication_dialog.js',
-      'js/browser_extensions.js'
+      'js/authentication_dialog.js'
     ];
 
     var domElements = [
@@ -170,7 +177,6 @@ var Browser = {
             mozL10n.translate(element);
           });
         });
-
         domElements.forEach(function createElementRef(name) {
           this[this.toCamelCase(name)] = document.getElementById(name);
         }, this);
@@ -252,83 +258,81 @@ var Browser = {
      AuthenticationDialog.init(false);
   },
 
-  populateDefaultData: function browser_populateDefaultData() {
-    console.log('Populating default data.');
+  /**
+   * Get configuration data from init.json file generated at build time.
+   *
+   * Try to get data for the operator variant specified in system settings,
+   * otherwise fall back to the default if provided.
+   *
+   * @param {Object} specifying operator variant as variant.mcc & variant.mnc.
+   * @param {Function} callback Called with config data object or null.
+   */
+  getConfigurationData: function browser_getDefaultData(variant, callback) {
+    var DEFAULT_MCC = '000';
+    var DEFAULT_MNC = '000';
 
-    var DEFAULT_BOOKMARK = '000000';
-    var iccSettings = { mcc: '-1', mnc: '-1' };
-
-    // Read the mcc/mnc settings, then trigger callback.
-    // pattern from system/js/operator_variant/operator_variant.js
-    function getICCSettings(callback, data) {
-      var transaction = navigator.mozSettings.createLock();
-      var mccKey = 'operatorvariant.mcc';
-      var mncKey = 'operatorvariant.mnc';
-
-      var mccRequest = transaction.get(mccKey);
-      mccRequest.onsuccess = function() {
-        iccSettings.mcc = mccRequest.result[mccKey] || '0';
-        var mncRequest = transaction.get(mncKey);
-        mncRequest.onsuccess = function() {
-          iccSettings.mnc = mncRequest.result[mncKey] || '0';
-          callback(data);
-        };
-      };
-    }
-
-    function addDefaultBookmarks(data) {
-      // Save bookmarks
-      data.bookmarks.forEach(function browser_addDefaultBookmarks(bookmark) {
-        Places.addBookmark(bookmark.uri, bookmark.title);
-        if (bookmark.iconUri)
-          Places.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
-      });
-    }
-
-    // pad leading zeros
-    function zfill(code, len) {
-      var c = code;
-      while (c.length < len) c = '0' + c;
-      return c;
-    }
-
-    /* Match best bookmark setting by
-     * 1. check carrier with region
-     * 2. check carrier
-     * 3. fallback to no SIM card case
-     */
-    function customizeDefaultBookmark(data) {
-      var DEFAULT_MNC = '000';
-      var codename = DEFAULT_BOOKMARK; //fallback to no SIM card case
-      var pad_mcc = zfill(iccSettings.mcc, 3);
-      var pad_mnc = zfill(iccSettings.mnc, 3);
-      if (data[pad_mcc + pad_mnc]) {
-        codename = pad_mcc + pad_mnc;
-      } else if (data[pad_mcc + DEFAULT_MNC]) {
-        codename = pad_mcc + DEFAULT_MNC;
-      }
-      addDefaultBookmarks(data[codename]);
-    }
-
-    // Fetch default data
     var xhr = new XMLHttpRequest();
     xhr.open('GET', '/js/init.json', true);
-    xhr.addEventListener('load', (function browser_defaultDataListener() {
-      if (!(xhr.status === 200 | xhr.status === 0))
-        return;
 
+    xhr.addEventListener('load', (function browser_defaultDataListener() {
+      if (!(xhr.status === 200 | xhr.status === 0)) {
+        console.error('Unknown response when getting configuration data.');
+        return;
+      }
       var data = JSON.parse(xhr.responseText);
-      if (data[DEFAULT_BOOKMARK]) { //has default bookmark
-        getICCSettings(customizeDefaultBookmark, data);
+      var mccCode = NumberHelper.zfill(variant.mcc, 3);
+      var mncCode = NumberHelper.zfill(variant.mnc, 3);
+
+      if (data[mccCode + mncCode]) {
+        callback(data[mccCode + mncCode]);
+      } else if (data[mccCode + DEFAULT_MNC]) {
+        callback(data[mccCode + DEFAULT_MNC]);
+      } else if (data[DEFAULT_MCC + DEFAULT_MNC]) {
+        callback(DEFAULT_MCC + DEFAULT_MNC);
       } else {
-        console.log('No default bookmark.');
+        callback(null);
+        console.error('No configuration data found.');
       }
 
     }).bind(this), false);
+
     xhr.onerror = function getDefaultDataError() {
-      console.log('Error getting default data.');
+      callback(null);
+      console.error('Error getting configuration data.');
     };
+
     xhr.send();
+  },
+
+  /**
+   * Get the MCC/MNC operator codes as stored in system settings.
+   *
+   * @param {Function} callback Called with result as object with both values.
+   */
+  getOperatorVariant: function browser_getOperatorVariant(callback) {
+    var variant = { mcc: '0', mnc: '0' }; // Fall back to {0, 0}
+    var transaction = navigator.mozSettings.createLock();
+    var mccKey = 'operatorvariant.mcc';
+    var mncKey = 'operatorvariant.mnc';
+    var mccRequest = transaction.get(mccKey);
+
+    mccRequest.onsuccess = function() {
+      variant.mcc = mccRequest.result[mccKey] || '0';
+      var mncRequest = transaction.get(mncKey);
+
+      mncRequest.onsuccess = function() {
+        variant.mnc = mncRequest.result[mncKey] || '0';
+        callback(variant);
+      };
+
+      mncRequest.onerror = function() {
+        callback(variant);
+      };
+    };
+
+    mccRequest.onerror = function() {
+      callback(variant);
+    };
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
@@ -423,7 +427,7 @@ var Browser = {
             if (this.currentScreen === this.TABS_SCREEN) {
               this.showTabScreen();
             }
-            Places.updateScreenshot(tab.url, tab.screenshot);
+            BrowserDB.updateScreenshot(tab.url, tab.screenshot);
           }).bind(this);
         }
 
@@ -432,7 +436,7 @@ var Browser = {
           var a = document.createElement('a');
           a.href = tab.url;
           var iconUrl = a.protocol + '//' + a.hostname + '/' + 'favicon.ico';
-          Places.setAndLoadIconForPage(tab.url, iconUrl);
+          BrowserDB.setAndLoadIconForPage(tab.url, iconUrl);
         }
 
         // We always show the address bar when loading
@@ -458,7 +462,7 @@ var Browser = {
       case 'mozbrowsertitlechange':
         if (evt.detail) {
           tab.title = evt.detail;
-          Places.setPageTitle(tab.url, tab.title);
+          BrowserDB.setPageTitle(tab.url, tab.title);
           if (isCurrentTab && !tab.loading &&
               this.currentScreen === this.PAGE_SCREEN) {
             this.setUrlBar(tab.title);
@@ -474,7 +478,7 @@ var Browser = {
       case 'mozbrowsericonchange':
         if (evt.detail && evt.detail != tab.iconUrl) {
           tab.iconUrl = evt.detail;
-          Places.setAndLoadIconForPage(tab.url, tab.iconUrl);
+          BrowserDB.setAndLoadIconForPage(tab.url, tab.iconUrl);
         }
         break;
 
@@ -595,7 +599,7 @@ var Browser = {
     }
 
     this.setUrlButtonMode(
-      this.isNotURL(input) ? this.SEARCH : this.GO
+      UrlHelper.isNotURL(input) ? this.SEARCH : this.GO
     );
 
     this.updateAwesomeScreen(input);
@@ -696,9 +700,9 @@ var Browser = {
     var hasScheme = !!(rscheme.exec(input) || [])[0];
 
     // No protocol, could be a search term
-    if (this.isNotURL(input)) {
-      return 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
-        '/search?q=' + input;
+    if (UrlHelper.isNotURL(input) && this.DEFAULT_SEARCH_PROVIDER_URL) {
+      return this.DEFAULT_SEARCH_PROVIDER_URL +
+        '?q=' + input;
     }
 
     // No scheme, prepend basic protocol and return
@@ -767,7 +771,7 @@ var Browser = {
     e.preventDefault();
     if (!this.currentTab.url)
       return;
-    Places.addBookmark(this.currentTab.url, this.currentTab.title,
+    BrowserDB.addBookmark(this.currentTab.url, this.currentTab.title,
       Toolbar.refreshBookmarkButton.bind(Toolbar));
     this.hideBookmarkMenu();
   },
@@ -777,7 +781,7 @@ var Browser = {
     if (!this.bookmarkMenuRemove.dataset.url)
       return;
 
-    Places.removeBookmark(this.bookmarkMenuRemove.dataset.url,
+    BrowserDB.removeBookmark(this.bookmarkMenuRemove.dataset.url,
       Toolbar.refreshBookmarkButton.bind(Toolbar));
     this.hideBookmarkMenu();
     // refresh bookmark tab
@@ -789,7 +793,7 @@ var Browser = {
       if (!url)
         return;
       this.bookmarkMenu.classList.remove('hidden');
-      Places.getBookmark(url, (function(bookmark) {
+      BrowserDB.getBookmark(url, (function(bookmark) {
         if (bookmark) {
           if (from && from === 'bookmarksTab') { //show actions in bookmark tab
 
@@ -844,7 +848,7 @@ var Browser = {
       return;
     this.hideBookmarkMenu();
     this.bookmarkEntrySheet.classList.remove('hidden');
-    Places.getBookmark(this.currentTab.url, (function(bookmark) {
+    BrowserDB.getBookmark(this.currentTab.url, (function(bookmark) {
       if (!bookmark) {
         this.hideBookmarkEntrySheet();
         return;
@@ -867,11 +871,11 @@ var Browser = {
     var title = this.bookmarkTitle.value;
     var previousUrl = this.bookmarkPreviousUrl.value;
     if (url != previousUrl) {
-      Places.removeBookmark(previousUrl,
+      BrowserDB.removeBookmark(previousUrl,
         Toolbar.refreshBookmarkButton.bind(Toolbar));
-      Places.updateBookmark(url, title);
+      BrowserDB.updateBookmark(url, title);
     } else {
-      Places.updateBookmark(url, title);
+      BrowserDB.updateBookmark(url, title);
     }
     this.hideBookmarkEntrySheet();
   },
@@ -880,7 +884,7 @@ var Browser = {
     if (!this.currentTab.url)
       return;
 
-    Places.getPlace(this.currentTab.url, (function(place) {
+    BrowserDB.getPlace(this.currentTab.url, (function(place) {
       new MozActivity({
         name: 'save-bookmark',
         data: {
@@ -896,7 +900,7 @@ var Browser = {
   },
 
   updateHistory: function browser_updateHistory(url) {
-    Places.addVisit(url);
+    BrowserDB.addVisit(url);
     Toolbar.refreshButtons();
   },
 
@@ -979,7 +983,7 @@ var Browser = {
     } else {
       this.results.classList.remove('hidden');
     }
-    Places.getTopSites(20, filter, this.showResults.bind(this));
+    BrowserDB.getTopSites(20, filter, this.showResults.bind(this));
   },
 
   /**
@@ -992,11 +996,11 @@ var Browser = {
 
   showResults: function browser_showResults(visited, filter) {
     this._appendAwesomeScreenItems(this.results, visited);
-    if (visited.length < 2 && filter) {
+    if (visited.length < 2 && filter && this.DEFAULT_SEARCH_PROVIDER_URL) {
       var data = {
         title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
-        uri: 'http://' + this.DEFAULT_SEARCH_PROVIDER_URL +
-          '/search?q=' + filter,
+        uri: this.DEFAULT_SEARCH_PROVIDER_URL +
+          '?q=' + filter,
         iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
         description: _('search-for') + ' "' + filter + '"'
       };
@@ -1007,7 +1011,7 @@ var Browser = {
       var item = this._defaultListItemTemplate.cloneNode(true);
       item.firstElementChild.href = data.uri;
       item.firstElementChild.childNodes[1].innerHTML =
-        Utils.createHighlightHTML(data.description);
+        HtmlHelper.createHighlightHTML(data.description);
 
       this.results.firstElementChild.appendChild(item);
     }
@@ -1017,7 +1021,7 @@ var Browser = {
     this.deselectAwesomescreenTabs();
     this.topSitesTab.classList.add('selected');
     this.topSites.classList.add('selected');
-    Places.getTopSites(20, null, this.showTopSites.bind(this));
+    BrowserDB.getTopSites(20, null, this.showTopSites.bind(this));
   },
 
 
@@ -1061,7 +1065,7 @@ var Browser = {
     this.deselectAwesomescreenTabs();
     this.historyTab.classList.add('selected');
     this.history.classList.add('selected');
-    Places.getHistory(this.showGlobalHistory.bind(this));
+    BrowserDB.getHistory(this.showGlobalHistory.bind(this));
   },
 
   showGlobalHistory: function browser_showGlobalHistory(visits) {
@@ -1176,7 +1180,6 @@ var Browser = {
 
   drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(data,
     filter, current_tab) {
-
     var entry;
     var cache = this._itemListCache;
     if (cache[data.uri]) {
@@ -1195,14 +1198,14 @@ var Browser = {
 
     link.href = data.uri;
     var titleText = data.title ? data.title : data.url;
-    title.innerHTML = Utils.createHighlightHTML(titleText, filter);
+    title.innerHTML = HtmlHelper.createHighlightHTML(titleText, filter);
 
     if (data.uri == this.ABOUT_PAGE_URL) {
       url.textContent = 'about:';
     } else if (data.description) {
-      url.innerHTML = Utils.createHighlightHTML(data.description);
+      url.innerHTML = HtmlHelper.createHighlightHTML(data.description);
     } else {
-      url.innerHTML = Utils.createHighlightHTML(data.uri, filter);
+      url.innerHTML = HtmlHelper.createHighlightHTML(data.uri, filter);
     }
 
     // Enable longpress manipulation in bookmark tab
@@ -1220,7 +1223,7 @@ var Browser = {
       return entry;
     }
 
-    Places.db.getIcon(data.iconUri, (function(icon) {
+    BrowserDB.db.getIcon(data.iconUri, (function(icon) {
       if (icon && icon.failed != true && icon.data) {
         var imgUrl = window.URL.createObjectURL(icon.data);
         link.style.backgroundImage = 'url(' + imgUrl + ')' + underlay;
@@ -1276,7 +1279,7 @@ var Browser = {
     this.deselectAwesomescreenTabs();
     this.bookmarksTab.classList.add('selected');
     this.bookmarks.classList.add('selected');
-    Places.getBookmarks(this.showBookmarks.bind(this));
+    BrowserDB.getBookmarks(this.showBookmarks.bind(this));
   },
 
   showBookmarks: function browser_showBookmarks(bookmarks) {
@@ -1677,7 +1680,7 @@ var Browser = {
   showStartscreen: function browser_showStartscreen() {
     document.body.classList.add('start-page');
     this.startscreen.classList.remove('hidden');
-    Places.getTopSites(this.MAX_TOP_SITES, null,
+    BrowserDB.getTopSites(this.MAX_TOP_SITES, null,
       function(places) {
       this.showTopSiteThumbnails(places);
       this.loadRemaining();
@@ -1921,8 +1924,8 @@ var Browser = {
 
   clearHistory: function browser_clearHistory() {
     var self = this;
-    Places.clearHistory(function() {
-      Places.getTopSites(self.MAX_TOP_SITES, null,
+    BrowserDB.clearHistory(function() {
+      BrowserDB.getTopSites(self.MAX_TOP_SITES, null,
                          self.showTopSiteThumbnails.bind(self));
       var tabIds = Object.keys(self.tabs);
       tabIds.forEach(function(tabId) {
@@ -2123,42 +2126,6 @@ var Browser = {
   }
 };
 
-// Taken (and modified) from /apps/sms/js/searchUtils.js
-// and /apps/sms/js/utils.js
-var Utils = {
-  createHighlightHTML: function ut_createHighlightHTML(text, searchRegExp) {
-    if (!searchRegExp) {
-      return Utils.escapeHTML(text);
-    }
-    searchRegExp = new RegExp(searchRegExp, 'gi');
-    var sliceStrs = text.split(searchRegExp);
-    var patterns = text.match(searchRegExp);
-    if (!patterns) {
-      return Utils.escapeHTML(text);
-    }
-    var str = '';
-    for (var i = 0; i < patterns.length; i++) {
-      str = str +
-        Utils.escapeHTML(sliceStrs[i]) + '<span class="highlight">' +
-        Utils.escapeHTML(patterns[i]) + '</span>';
-    }
-    str += Utils.escapeHTML(sliceStrs.pop());
-    return str;
-  },
-
-  escapeHTML: function ut_escapeHTML(str, escapeQuotes) {
-    var span = document.createElement('span');
-    span.textContent = str;
-
-    // Escape space for displaying multiple space in message.
-    span.innerHTML = span.innerHTML.replace(/\s/g, '&nbsp;');
-
-    if (escapeQuotes)
-      return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;'); //"
-    return span.innerHTML;
-  }
-};
-
 window.addEventListener('load', function browserOnLoad(evt) {
   window.removeEventListener('load', browserOnLoad);
   Browser.init();
@@ -2167,10 +2134,8 @@ window.addEventListener('load', function browserOnLoad(evt) {
 
 function actHandle(activity) {
   if (Browser.hasLoaded) {
-    console.log('--- loaded');
     Browser.handleActivity(activity);
   } else {
-    console.log('--- nie loaded');
     Browser.waitingActivities.push(activity);
   }
   activity.postResult({ status: 'accepted' });

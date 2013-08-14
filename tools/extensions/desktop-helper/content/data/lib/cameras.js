@@ -10,7 +10,19 @@
       pictureSizes: [{
         width: 600,
         height: 600
-      }]
+      }],
+      previewSizes: [{
+        width: 600,
+        height: 600
+      }],
+      recorderProfiles: {
+        cif: {
+          video: {
+            width: 600,
+            height: 600
+          }
+        }
+      }
     },
 
     getListOfCameras: function() {
@@ -28,6 +40,7 @@
         function(stream) {
            this.stream = stream;
            callback(this);
+           this.onPreviewStateChange('started');
         }.bind(this),
         function() {
           console.log('Could not initialize camera.');

@@ -1,51 +1,28 @@
 
-* priority
-? low priority / questionable
 
-=====================
-core
-=====================
   ==================== features =====================
+
+    intro screen
+    hold for more options
+      drag
+      favorite
+      stats
 
   ===================== bugs =====================
 
-*    more performant playlist manipulation
-    show tracknumber if doesn't match playlist number
-?    possibly inconsistant album art
-?    show source as unavailable
+  album art flickers
+
+  not setting song state error:
+    create playlist
+    play first song
+    delete first song
+    tap what is now the second song
 
   ===================== enhancements =====================
 
-*    add animation for switch playlist/source
-?    edit playlist view w/out switching
-?    replace trash can with item signifying remove, not delete
-    option to change playlist list order
-    don't just hide content in transitions
+    A-Z view for long lists
+    change switch current playlist view icon
+    make now playing draggable
 
   ===================== maintainability =====================
-
-  remove router
-
-=====================
-music library
-=====================
-  ==================== features =====================
-
-?    favoriting
-        drag to side of screen?
-*    search
-
-  ===================== bugs =====================
-
-  ===================== enhancements =====================
-
-*    panel loading indicator
-?    way to hide musicdb notifications
-    panel switch transitions (fade)
-
-    A-Z view (with skip to letter)
-    better queries for performance
-
-  ===================== maintainability =====================
-
 

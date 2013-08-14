@@ -201,7 +201,25 @@ suiteGroup('Views.EventBase', function() {
       assert.equal(subject.returnTo(), subject.DEFAULT_VIEW);
     });
 
-    suite('update', function() {
+    test('/advanced-settings returnTo', function() {
+      subject.app.router.last = {
+        path: '/advanced-settings/'
+      };
+
+      subject.dispatch({ params: {} });
+      assert.strictEqual(subject.returnTo(), subject.DEFAULT_VIEW);
+    });
+
+    test('/day returnTo', function() {
+      subject.app.router.last = {
+        path: '/day/'
+      };
+
+      subject.dispatch({ params: {} });
+      assert.strictEqual(subject.returnTo(), '/day/');
+    });
+
+   suite('update', function() {
       var busytime;
       var event;
 

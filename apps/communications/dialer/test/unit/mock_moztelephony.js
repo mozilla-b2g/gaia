@@ -4,11 +4,18 @@ var MockMozTelephony = {
   dial: function() {},
   dialEmergency: function() {},
   active: null,
-  calls: null,
+  calls: [],
+
+  mTriggerCallsChanged: function() {
+    if (this.oncallschanged) {
+      this.oncallschanged();
+    }
+  },
 
   mTeardown: function() {
     this.active = null;
-    this.calls = null;
+    this.calls = [];
+    this.mTriggerCallsChanged();
   }
 };
 

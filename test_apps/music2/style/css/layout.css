@@ -17,19 +17,6 @@
   right: 0;
 }
 
-.page.left {
-  transform: translateX(-100%);
+.page.bottom {
+  transform: translateY(100%);
 }
-
-.page.right {
-  transform: translateX(100%);
-}
-
-.page.partialLeft {
-  transform: translateX(-75%);
-}
-
-.page.partialRight {
-  transform: translateX(75%);
-}
-

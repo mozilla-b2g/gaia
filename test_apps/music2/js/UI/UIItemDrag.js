@@ -11,7 +11,7 @@ var UIItemDrag = function(div, list){
     currentDropDir: 'above'
   };
 
-  Utils.setupPassParent(this, 'moved');
+  Router.route(this, 'moved');
 
   this.tapManager.onlong = this.start.bind(this);
 
@@ -19,11 +19,15 @@ var UIItemDrag = function(div, list){
 
 }
 UIItemDrag.prototype = {
+  name: "UIItemDrag",
   addEvent: function(div, eventName, fn){
     div.addEventListener(eventName, fn);
     this.fns.push({ 'type': eventName, 'fn': fn, 'div': div });
   },
   start: function(x, y){
+    if (this.dom.list.childNodes.length === 1)
+      return;
+
     this.dom.div.classList.add('floating');
     this.dom.div.style.top = (y - this.dom.div.clientHeight/2) + 'px';
 
@@ -41,6 +45,9 @@ UIItemDrag.prototype = {
 
     this.dom.list.removeChild(this.dom.div);
     document.body.appendChild(this.dom.div);
+
+    var listRect = this.dom.list.getBoundingClientRect();
+    this.setDropPoint(listRect, x, y);
   },
   stop: function(){
     document.body.removeChild(this.dom.div);

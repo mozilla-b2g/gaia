@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -18,6 +19,7 @@
     <script defer src="shared/js/manifest_helper.js"></script>
     <script defer src="shared/js/icc_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
+    <script defer src="shared/js/settings_url.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -234,7 +236,7 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window.css">
-    <script defer src="js/orientation_observer.js"></script>
+    <script defer src="js/error.js"></script>
     <script defer src="js/window.js"></script>
     <script defer src="js/window_manager.js"></script>
 
@@ -722,6 +724,10 @@
         <div id="permission-dialog" role="dialog">
           <div class="inner">
             <h2 id="permission-message"></h2>
+            <div id="permission-more-info" class="hidden">
+              <a id="permission-more-info-link" data-l10n-id="more-info" href="#">More Info…</a>
+              <div id="permission-more-info-box" class="hidden"> </div>
+            </div>
             <div id="permission-remember-section">
               <a data-l10n-id="remember-my-choice" id="permission-remember-label">Remember my choice</a>
               <label class="pack-switch">

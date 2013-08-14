@@ -100,7 +100,7 @@ var returnToCamera = true;
 var Camera = {
   _initialised: false,
   _cameras: null,
-  _camera: 0,
+  _cameraNumber: 0,
   _captureMode: null,
   _recording: false,
 
@@ -170,6 +170,7 @@ var Camera = {
 
   _videoProfile: {},
 
+  preferredRecordingSizes: null,
   _shutterKey: 'camera.shutter.enabled',
   _shutterSound: null,
   _shutterSoundEnabled: true,
@@ -270,7 +271,7 @@ var Camera = {
       this.setCaptureMode(this.CAMERA);
     }
 
-    this.loadCameraPreview(this._camera, function() {
+    this.loadCameraPreview(this._cameraNumber, function() {
       PerformanceTestingHelper.dispatch('camera-preview-loaded');
       var files = [
         'style/filmstrip.css',
@@ -352,6 +353,8 @@ var Camera = {
       navigator.mozSettings.addObserver(this._shutterKey, (function(e) {
         this._shutterSoundEnabled = e.settingValue;
       }).bind(this));
+
+      this.getPreferredSizes();
     }
 
     this._storageState = this.STORAGE_INIT;
@@ -440,15 +443,19 @@ var Camera = {
   enableButtons: function camera_enableButtons() {
     this.captureButton.removeAttribute('disabled');
     this.switchButton.removeAttribute('disabled');
+    this.toggleButton.removeAttribute('disabled');
+    this.toggleFlashBtn.removeAttribute('disabled');
 
     if (this._pendingPick) {
-      this.cancelPickButton.removeAttribute('disabled', 'disabled');
+      this.cancelPickButton.removeAttribute('disabled');
     }
   },
 
   disableButtons: function camera_disableButtons() {
     this.switchButton.setAttribute('disabled', 'disabled');
     this.captureButton.setAttribute('disabled', 'disabled');
+    this.toggleButton.setAttribute('disabled', 'disabled');
+    this.toggleFlashBtn.setAttribute('disabled', 'disabled');
 
     if (this._pendingPick) {
       this.cancelPickButton.setAttribute('disabled', 'disabled');
@@ -481,8 +488,19 @@ var Camera = {
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
       this.viewfinder.play();
-      this.enableButtons();
     }
+    Camera._cameraObj.onPreviewStateChange = function(state) {
+      // We disabled the buttons above. Now we wait for the preview
+      // stream to actually start up before we enable them again. If we
+      // do this in the getPreviewStream() callback it might be too early
+      // and we can still cause deadlock in the camera hardware.
+      // See Bug 890427.
+      if (state === 'started') {
+        Camera.enableButtons();
+        // Only do this once
+        Camera._cameraObj.onPreviewStateChange = null;
+      }
+    };
     if (this._captureMode === this.CAMERA) {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
@@ -494,17 +512,19 @@ var Camera = {
   },
 
   toggleCamera: function camera_toggleCamera() {
-    this._camera = 1 - this._camera;
+    this._cameraNumber = 1 - this._cameraNumber;
     // turn off flash light before switch to front camera
     var flash = this._flashState[this._captureMode];
     flash.currentMode = 0;
     this.updateFlashUI();
-    this.loadCameraPreview(this._camera, this.enableButtons.bind(this));
+    // Disable the buttons so the user can't use them while we're switching.
+    this.disableButtons();
+    this.loadCameraPreview(this._cameraNumber, this.enableButtons.bind(this));
     this.setToggleCameraStyle();
   },
 
   setToggleCameraStyle: function camera_setToggleCameraStyle() {
-    var modeName = this._camera === 0 ? 'back' : 'front';
+    var modeName = this._cameraNumber === 0 ? 'back' : 'front';
     this.toggleButton.setAttribute('data-mode', modeName);
   },
 
@@ -545,7 +565,7 @@ var Camera = {
   },
 
   startRecording: function camera_startRecording() {
-    this.toggleButton.classList.add('hidden');
+    document.body.classList.add('recording');
     this._sizeLimitAlertActive = false;
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
@@ -638,7 +658,7 @@ var Camera = {
   },
 
   stopRecording: function camera_stopRecording() {
-    this.toggleButton.classList.remove('hidden');
+    document.body.classList.remove('recording');
     var self = this;
     this._cameraObj.stopRecording();
     this._recording = false;
@@ -825,22 +845,31 @@ var Camera = {
       Filmstrip.show();
   },
 
-  loadCameraPreview: function camera_loadCameraPreview(camera, callback) {
+  loadCameraPreview: function camera_loadCameraPreview(cameraNumber, callback) {
 
     this.viewfinder.mozSrcObject = null;
     this._timeoutId = 0;
     this._cameras = navigator.mozCameras.getListOfCameras();
-    var options = {camera: this._cameras[this._camera]};
+    var options = {camera: this._cameras[cameraNumber]};
 
     function gotPreviewScreen(stream) {
       this.viewfinder.mozSrcObject = stream;
       this.viewfinder.play();
+      this._previewActive = true;
 
       if (callback) {
-        callback();
+        // Even though we have the stream now, the camera hardware hasn't
+        // started displaying it yet. We need to wait until the preview
+        // has actually started displaying before calling the callback.
+        // See Bug 890427.
+        Camera._cameraObj.onPreviewStateChange = function(state) {
+          if (state === 'started') {
+            Camera._cameraObj.onPreviewStateChange = null;
+            callback();
+          }
+        };
       }
 
-      this._previewActive = true;
     }
 
     function gotCamera(camera) {
@@ -849,9 +878,15 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.pickPictureSize(camera.capabilities.pictureSizes);
-      this._videoProfile =
-        this.pickVideoProfile(camera.capabilities.recorderProfiles);
-
+      this.getPreferredSizes((function() {
+        this._videoProfile =
+          this.pickVideoProfile(camera.capabilities.recorderProfiles);
+          if (this._captureMode === this.VIDEO) {
+            this._videoProfile.rotation = this._phoneOrientation;
+            this._cameraObj.getPreviewStreamVideoMode(
+              this._videoProfile, gotPreviewScreen.bind(this));
+          }
+      }).bind(this));
       this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
 
@@ -864,10 +899,6 @@ var Camera = {
       if (this._captureMode === this.CAMERA) {
         camera.getPreviewStream(this._previewConfig,
                                 gotPreviewScreen.bind(this));
-      } else {
-        this._videoProfile.rotation = this._phoneOrientation;
-        this._cameraObj.getPreviewStreamVideoMode(this._videoProfile,
-                                                  gotPreviewScreen.bind(this));
       }
     }
 
@@ -924,7 +955,7 @@ var Camera = {
       height = screenHeight;
     }
 
-    if (this._camera == 1) {
+    if (this._cameraNumber == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
       translateX = width;
@@ -994,7 +1025,7 @@ var Camera = {
   startPreview: function camera_startPreview() {
     this.screenWakeLock();
     this.viewfinder.play();
-    this.loadCameraPreview(this._camera, this.previewEnabled.bind(this));
+    this.loadCameraPreview(this._cameraNumber, this.previewEnabled.bind(this));
     this._previewActive = true;
   },
 
@@ -1340,11 +1371,23 @@ var Camera = {
   },
 
   pickVideoProfile: function camera_pickVideoProfile(profiles) {
-    var profileName;
+    var profileName, matchedProfileName;
+
+    if (this.preferredRecordingSizes) {
+      for (var i = 0; i < this.preferredRecordingSizes.length; i++) {
+        if (this.preferredRecordingSizes[i] in profiles) {
+          matchedProfileName = this.preferredRecordingSizes[i];
+          break;
+        }
+      }
+    }
+
     // Attempt to find low resolution profile if accessed via pick activity
     if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes &&
         'qcif' in profiles) {
       profileName = 'qcif';
+    } else if (matchedProfileName) {
+      profileName = matchedProfileName;
     // Default to cif profile
     } else if ('cif' in profiles) {
       profileName = 'cif';
@@ -1396,6 +1439,22 @@ var Camera = {
       if (callback)
         callback.call(Camera);
     });
+  },
+
+  getPreferredSizes: function camera_getPreferredSized(callback) {
+    var key = 'camera.recording.preferredSizes';
+    if (this.preferredRecordingSizes && callback) {
+      callback();
+      return;
+    }
+
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = (function onsuccess() {
+      this.preferredRecordingSizes = req.result[key] || [];
+      if (callback) {
+        callback();
+      }
+    }.bind(this));
   }
 };
 

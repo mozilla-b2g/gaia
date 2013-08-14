@@ -415,9 +415,7 @@ contacts.Form = (function() {
 
   var saveContact = function saveContact() {
     saveButton.setAttribute('disabled', 'disabled');
-    if (mode === 'add') {
-      showThrobber();
-    }
+    showThrobber();
 
     currentContact = currentContact || {};
     currentContact = deviceContact || currentContact;
@@ -505,12 +503,6 @@ contacts.Form = (function() {
     }
 
     updateCategoryForImported(contact);
-
-    if (mode === 'edit') {
-      // We just implement the matching feature for addding contacts right now
-      doSave(contact);
-      return;
-    }
 
     var callbacks = cookMatchingCallbacks(contact);
     cancelHandler = doCancel.bind(callbacks);
@@ -609,7 +601,14 @@ contacts.Form = (function() {
 
     LazyLoader.load(['/contacts/js/contacts_merger.js',
                      '/contacts/js/merger_adapter.js'], function() {
-      contacts.adaptAndMerge(contact, list, callbacks);
+      if (mode === 'add') {
+        contacts.adaptAndMerge(contact, list, callbacks);
+      }
+      else {
+        // In edit mode the master contact should be the one edited at the
+        // moment
+        contacts.Merger.merge(contact, list, callbacks);
+      }
     });
   };
 

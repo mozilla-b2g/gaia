@@ -102,7 +102,7 @@ contacts.Search = (function() {
     });
   };
 
-  //Search mode instructions
+  // Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
     evt.preventDefault();
     searchView.classList.remove('insearchmode');
@@ -111,6 +111,7 @@ contacts.Search = (function() {
       hideProgressResults();
 
       searchBox.value = '';
+
       // Resetting state
       contactNodes = null;
       searchTextCache = {};
@@ -477,6 +478,14 @@ contacts.Search = (function() {
     searchList.removeChild(contact);
   };
 
+  var selectRow = function s_selectRow(id) {
+    var check = searchList.querySelector(
+      '#search-view input[value="' + id + '"]');
+    if (check) {
+      check.checked = !check.checked;
+    }
+  };
+
   function showProgress() {
     searchNoResult.classList.add('hide');
     searchProgress.classList.remove('hidden');
@@ -503,6 +512,7 @@ contacts.Search = (function() {
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
     // The purpose of this method is only for unit tests
-    'load': onLoad
+    'load': onLoad,
+    'selectRow': selectRow
   };
 })();
