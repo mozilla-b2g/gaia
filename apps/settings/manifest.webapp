@@ -18,6 +18,7 @@
     "device-storage:sdcard":{ "access": "readonly" },
     "device-storage:apps":{ "access": "readonly" },
     "webapps-manage":{},
+    "open-remote-window":{},
     "permissions":{},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
