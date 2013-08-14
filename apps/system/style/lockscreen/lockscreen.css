@@ -17,7 +17,7 @@
 }
 
 #screen.active-statusbar > #lockscreen {
-  top: 40rem;
+  top: 4rem;
   height: calc(100% - 4rem);
 }
 
