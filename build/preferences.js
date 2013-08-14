@@ -147,7 +147,10 @@ if (DEVICE_DEBUG) {
 }
 
 function writePrefs() {
-  let userJs = getFile(GAIA_DIR, PROFILE_FOLDER, 'user.js');
+  let userJs = Cc['@mozilla.org/file/local;1']
+                 .createInstance(Ci.nsILocalFile);
+  userJs.initWithPath(PROFILE_DIR);
+  userJs.append('user.js');
   let content = prefs.map(function (entry) {
     return 'user_pref("' + entry[0] + '", ' + JSON.stringify(entry[1]) + ');';
   }).join('\n');
