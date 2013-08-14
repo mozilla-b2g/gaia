@@ -46,6 +46,7 @@ var KeyboardManager = {
   // This is a map from type_group to an object arrays.
   // Each element in the object arrays represents a keyboard layout:
   // {
+  //    id: the unique id of the keyboard, the key of entry_point
   //    name: the keyboard layout's name
   //    appName: the keyboard app name
   //    origin: the keyboard's origin
@@ -135,20 +136,19 @@ var KeyboardManager = {
     var self = this;
     apps.forEach(function(app) {
       var entryPoints = app.manifest.entry_points;
-      for (var name in entryPoints) {
-        var launchPath = entryPoints[name].launch_path;
-        if (!entryPoints[name].types) {
+      for (var key in entryPoints) {
+        if (!entryPoints[key].types) {
           console.warn('the keyboard app did not declare type.');
           continue;
         }
         var appOrigin = app.origin;
-        var layoutName = name;
+        var layoutId = key;
 
-        if (!KeyboardHelper.getLayoutEnabled(appOrigin, layoutName)) {
+        if (!KeyboardHelper.getLayoutEnabled(appOrigin, layoutId)) {
           continue;
         }
 
-        var supportTypes = entryPoints[name].types;
+        var supportTypes = entryPoints[key].types;
         supportTypes.forEach(function(type) {
           if (!type || !(type in BASE_TYPE))
             return;
@@ -158,10 +158,11 @@ var KeyboardManager = {
             self.keyboardLayouts[type].activit = 0;
 
           self.keyboardLayouts[type].push({
-            'name': name,
+            'id': key,
+            'name': entryPoints[key].name,
             'appName': app.manifest.name,
             'origin': app.origin,
-            'path': launchPath,
+            'path': entryPoints[key].launch_path,
             'index': self.keyboardLayouts[type].length
           });
         });
@@ -207,7 +208,7 @@ var KeyboardManager = {
   launchLayoutFrame: function km_launchLayoutFrame(layout) {
     if (this.isRunningLayout(layout)) {
       this._debug('this layout is running');
-      return this.runningLayouts[layout.origin][layout.name];
+      return this.runningLayouts[layout.origin][layout.id];
     }
     var layoutFrame = null;
     if (this.isRunningKeyboard(layout)) {
@@ -230,13 +231,13 @@ var KeyboardManager = {
     // TODO make sure setVisible function is ready
     layoutFrame.setVisible(false);
     layoutFrame.hidden = true;
-    layoutFrame.dataset.frameName = layout.name;
+    layoutFrame.dataset.frameName = layout.id;
     layoutFrame.dataset.frameOrigin = layout.origin;
     layoutFrame.dataset.framePath = layout.path;
     if (!(layout.origin in this.runningLayouts))
       this.runningLayouts[layout.origin] = {};
 
-    this.runningLayouts[layout.origin][layout.name] = layoutFrame;
+    this.runningLayouts[layout.origin][layout.id] = layoutFrame;
     return layoutFrame;
   },
 
@@ -247,7 +248,7 @@ var KeyboardManager = {
   isRunningLayout: function km_isRunningLayout(layout) {
     if (!this.isRunningKeyboard(layout))
       return false;
-    return this.runningLayouts[layout.origin].hasOwnProperty(layout.name);
+    return this.runningLayouts[layout.origin].hasOwnProperty(layout.id);
   },
 
   loadKeyboardLayout: function km_loadKeyboardLayout(layout) {
@@ -344,10 +345,10 @@ var KeyboardManager = {
       this.hideKeyboard();
     }
 
-    for (var name in this.runningLayouts[origin]) {
-      var frame = this.runningLayouts[origin][name];
+    for (var id in this.runningLayouts[origin]) {
+      var frame = this.runningLayouts[origin][id];
       windows.removeChild(frame);
-      delete this.runningLayouts[origin][name];
+      delete this.runningLayouts[origin][id];
     }
 
     delete this.runningLayouts[origin];
@@ -360,17 +361,17 @@ var KeyboardManager = {
       KeyboardHelper.keyboardSettings = [];
       apps.forEach(function(app) {
         var entryPoints = app.manifest.entry_points;
-        for (var name in entryPoints) {
-          var launchPath = entryPoints[name].launch_path;
-          if (!entryPoints[name].types) {
+        for (var key in entryPoints) {
+          var launchPath = entryPoints[key].launch_path;
+          if (!entryPoints[key].types) {
             console.warn('the keyboard app did not declare type.');
             continue;
           }
           // for settings
           KeyboardHelper.keyboardSettings.push({
-            'layoutName': name,
-            'appOrigin': app.origin,
-            'enabled': false
+            layoutId: key,
+            appOrigin: app.origin,
+            enabled: false
           });
         }
       });
@@ -378,10 +379,10 @@ var KeyboardManager = {
       for (var i in temSettings) {
         if (!temSettings[i].enabled)
           continue;
-        var layoutName = temSettings[i].layoutName;
+        var layoutId = temSettings[i].layoutId;
         var layoutOrigin = temSettings[i].appOrigin;
         for (var j in KeyboardHelper.keyboardSettings) {
-          if (KeyboardHelper.keyboardSettings[j].layoutName === layoutName &&
+          if (KeyboardHelper.keyboardSettings[j].layoutId === layoutId &&
             KeyboardHelper.keyboardSettings[j].appOrigin === layoutOrigin) {
             KeyboardHelper.keyboardSettings[j].enabled = true;
           }
