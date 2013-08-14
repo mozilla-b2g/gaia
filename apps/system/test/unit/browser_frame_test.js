@@ -5,7 +5,7 @@ requireApp('system/js/browser_frame.js');
 
 suite('browser class > ', function() {
   test('Simple browser frame instance creation..', function() {
-    var browserFrame = new BrowserFrame('unit-test.gaia');
+    var browserFrame = new BrowserFrame({ url: 'unit-test.gaia' });
     assert.equal(browserFrame.element.getAttribute('mozbrowser'), 'true');
   });
 });
