@@ -393,3 +393,314 @@ var getBluetooth = function() {
     getDefaultAdapter: function() {}
   };
 };
+
+/*
+ * An Observable is able to notify its property change. It is initialized by an
+ * ordinary object.
+ */
+var Observable = function(obj) {
+  var _eventHandlers = {};
+  var _observable = {
+    observe: function o_observe(p, handler) {
+      var handlers = _eventHandlers[p];
+      if (handlers) {
+        handlers.push(handler);
+      }
+    }
+  };
+
+  var _getFunc = function(p) {
+    return function() {
+      return _observable['_' + p];
+    };
+  };
+
+  var _setFunc = function(p) {
+    return function(value) {
+      var oldValue = _observable['_' + p];
+      if (oldValue !== value) {
+        _observable['_' + p] = value;
+        var handlers = _eventHandlers[p];
+        if (handlers) {
+          handlers.forEach(function(handler) {
+            handler(value, oldValue);
+          });
+        }
+      }
+     };
+  };
+
+  for (var p in obj) {
+    _eventHandlers[p] = [];
+
+    Object.defineProperty(_observable, '_' + p, {
+      value: obj[p],
+      writable: true
+    });
+
+    Object.defineProperty(_observable, p, {
+      enumerable: true,
+      get: _getFunc(p),
+      set: _setFunc(p)
+    });
+  }
+
+  return _observable;
+};
+
+/*
+ * An ObservableArray is able to notify its change through four basic operations
+ * including 'insert', 'remove', 'replace', 'reset'. It is initialized by an
+ * ordinary array.
+ */
+var ObservableArray = function(array) {
+  var _array = array || [];
+  var _eventHandlers = {
+    'insert': [],
+    'remove': [],
+    'replace': [],
+    'reset': []
+  };
+
+  var _notify = function(eventType, data) {
+    var handlers = _eventHandlers[eventType];
+    handlers.forEach(function(handler) {
+      handler({
+        type: eventType,
+        data: data
+      });
+    });
+  };
+
+  return {
+    get length() {
+      return _array.length;
+    },
+
+    get array() {
+      return _array;
+    },
+
+    forEach: function oa_foreach(func) {
+      _array.forEach(func);
+    },
+
+    observe: function oa_observe(eventType, handler) {
+      var handlers = _eventHandlers[eventType];
+      if (handlers) {
+        handlers.push(handler);
+      }
+    },
+
+    push: function oa_push(item) {
+      _array.push(item);
+
+      _notify('insert', {
+        index: _array.length - 1,
+        count: 1,
+        items: [item]
+      });
+    },
+
+    pop: function oa_pop() {
+      var item = _array.pop();
+
+      _notify('remove', {
+        index: _array.length,
+        count: 1
+      });
+
+      return item;
+    },
+
+    splice: function oa_splice(index, count) {
+      if (arguments.length < 2)
+        return;
+
+      var addedItems = Array.prototype.slice.call(arguments, 2);
+      _array.splice(_array, arguments);
+
+      _notify('remove', {
+        index: index,
+        count: count
+      });
+
+      _notify('insert', {
+        index: index,
+        count: addedItems.length,
+        items: addedItems
+      });
+    },
+
+    set: function oa_set(index, value) {
+      if (index < 0 || index >= _array.length)
+        return;
+
+      var oldValue = _array[index];
+      _array[index] = value;
+      _notify('replace', {
+        index: index,
+        oldValue: oldValue,
+        newValue: value
+      });
+    },
+
+    get: function oa_get(index) {
+      return _array[index];
+    },
+
+    reset: function oa_reset(array) {
+      _array = array;
+      _notify('reset', {
+        items: _array
+      });
+    }
+  };
+};
+
+/*
+ * A ListView takes an ObservableArray or an ordinary array, and generate the
+ * corresponding DOM elements of the content in the array using the specified
+ * template function. If the array is an ObservableArray, ListView updates the
+ * DOM elements accordingly when the array is manipulated.
+ */
+var ListView = function(root, observableArray, templateFunc) {
+  var _observableArray = null;
+  var _root = root;
+  var _templateFunc = templateFunc;
+  var _enabled = true;
+
+  var _handleEvent = function(event) {
+    if (!_enabled) {
+      return;
+    }
+
+    var data = event.data;
+    switch (event.type) {
+      case 'insert':
+        _insert(data.index, data.items);
+        break;
+      case 'remove':
+        _remove(data.index, data.count);
+        break;
+      case 'replace':
+        _replace(data.index, data.newValue);
+        break;
+      case 'reset':
+        _reset(data.items || []);
+      default:
+        break;
+    }
+  };
+
+  var _insert = function(index, items) {
+    // add DOM elements
+    if (items.length > 0) {
+      var nextElement =
+        _root.querySelector('li:nth-child(' + (index + 1) + ')');
+      for (var i = items.length - 1; i >= 0; i--) {
+        var curElement = _templateFunc(items[i]);
+        _root.insertBefore(curElement, nextElement);
+        nextElement = curElement;
+      }
+    }
+  };
+
+  var _remove = function(index, count) {
+    if (count === 0)
+      return;
+
+    // remove DOM elements
+    if (count === _root.childElementCount) {
+      // clear all
+      while (_root.firstElementChild) {
+        _root.removeChild(_root.firstElementChild);
+      }
+    } else {
+      var nextElement =
+        _root.querySelector('li:nth-child(' + (index + 1) + ')');
+      for (var i = 0; i < count; i++) {
+        if (nextElement) {
+          var temp = nextElement.nextElementSibling;
+          _root.removeChild(nextElement);
+          nextElement = temp;
+        }
+      }
+    }
+  };
+
+  var _replace = function(index, value) {
+    var element = _root.querySelector('li:nth-child(' + (index + 1) + ')');
+    if (element) {
+      _templateFunc(value, element);
+    }
+  };
+
+  var _reset = function(items) {
+    var itemCount = items.length;
+    var elementCount = _root.childElementCount;
+
+    if (itemCount == 0) {
+      _remove(0, elementCount);
+    } else if (itemCount <= elementCount) {
+      items.forEach(function(item, index) {
+        _replace(index, item);
+      });
+      // remove extra elements
+      _remove(itemCount, elementCount - itemCount);
+    } else {
+      var slicedItems = items.slice(0, elementCount);
+      var remainingItems = items.slice(elementCount);
+
+      slicedItems.forEach(function(item, index) {
+        _replace(index, item);
+      });
+      // add extra elements
+      _insert(elementCount, remainingItems);
+    }
+  };
+
+  var _enabledChanged = function() {
+    if (_enabled) {
+      _reset(_observableArray.array);
+    }
+  };
+
+  var view = {
+    set: function lv_set(observableArray) {
+      // clear all existing items
+      if (_observableArray) {
+        _remove(0, _observableArray.length);
+      }
+
+      _observableArray = observableArray;
+      if (_observableArray) {
+        if (_observableArray.constructor === Array) {
+          _insert(0, _observableArray);
+        } else {
+          _observableArray.observe('insert', _handleEvent);
+          _observableArray.observe('remove', _handleEvent);
+          _observableArray.observe('replace', _handleEvent);
+          _observableArray.observe('reset', _handleEvent);
+
+          _insert(0, _observableArray.array);
+        }
+      }
+    },
+
+    set enabled(value) {
+      if (_enabled !== value) {
+        _enabled = value;
+        _enabledChanged();
+      }
+    },
+
+    get enabled() {
+      return _enabled;
+    }
+  };
+
+  view.set(observableArray);
+  return view;
+};
+
