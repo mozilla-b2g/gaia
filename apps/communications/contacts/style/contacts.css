@@ -667,3 +667,7 @@ section[role="region"] > header .icon.icon-settings
   height: 100%;
   overflow: scroll;
 }
+
+#call-or-pick-tel {
+  background-color: rgb(27,168,198);
+}

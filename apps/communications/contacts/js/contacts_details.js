@@ -1,7 +1,7 @@
 'use strict';
 
 var contacts = window.contacts || {};
-
+/** Contact properties */
 contacts.Details = (function() {
   var photoPos = 7;
   var initMargin = 8;
@@ -380,6 +380,13 @@ contacts.Details = (function() {
       var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
       callOrPickButton.dataset['tel'] = telField.value;
       callOrPickButton.addEventListener('click', onCallOrPickClicked);
+
+      var searchBox = document.querySelector('#search-contact');
+      if (searchBox && searchBox.value) {
+        if (telField.value.contains(searchBox.value)) {
+          callOrPickButton.className = 'call-or-pick-tel';
+        }
+      }
 
       listContainer.appendChild(template);
     }
