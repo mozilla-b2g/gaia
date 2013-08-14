@@ -113,3 +113,12 @@ body.hidden *[data-l10n-id] {
 .no-opacity {
   opacity: 0 !important;
 }
+
+/* Stratched contact view */
+#views[data-lockon] .icon {
+  display: none;
+}
+
+#views[data-lockon=contacts] #iframe-contacts-container {
+  height: 100%;
+}

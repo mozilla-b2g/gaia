@@ -250,6 +250,10 @@ var CallHandler = (function callHandler() {
       });
     } else if (data.type && data.type === 'contactsiframe') {
       handleContactsIframeRequest(data.message);
+    } else if (data.type && data.type === 'lock-navbar') {
+      NavbarManager.lock(data.from);
+    } else if (data.type && data.type === 'unlock-navbar') {
+      NavbarManager.unlock(data.from);
     }
   }
   window.addEventListener('message', handleMessage);
@@ -440,6 +444,12 @@ var NavbarManager = {
   },
 
   update: function nm_update() {
+
+    var views = document.getElementById('views');
+    if (views.dataset.lockon == 'contacts') {
+      window.location.hash = '#contacts-view';
+    }
+
     var recent = document.getElementById('option-recents');
     var contacts = document.getElementById('option-contacts');
     var keypad = document.getElementById('option-keypad');
@@ -491,6 +501,16 @@ var NavbarManager = {
         keypad.classList.add('toolbar-option-selected');
         break;
     }
+  },
+
+  lock: function(from) {
+    var views = document.getElementById('views');
+    views.dataset.lockon = from;
+  },
+
+  unlock: function(from) {
+    var views = document.getElementById('views');
+    delete views.dataset.lockon;
   }
 };
 

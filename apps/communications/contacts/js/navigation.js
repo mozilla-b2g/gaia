@@ -65,6 +65,11 @@ function navigationStack(currentView) {
     if (_currentView === nextView)
       return;
 
+    var parent = window.parent;
+    if (nextView == 'view-contact-details') {
+      parent.postMessage(
+        {type: 'lock-navbar', from: 'contacts'}, COMMS_APP_ORIGIN);
+    }
     // Remove items that match nextView from the stack to prevent duplicates.
     this.stack = this.stack.filter(function(item) {
       return item.view != nextView;
@@ -124,6 +129,11 @@ function navigationStack(currentView) {
 
     var forwardsClasses = this.transitions[transition].forwards;
     var backwardsClasses = this.transitions[transition].backwards;
+
+    if (nextView.view == 'view-contacts-list') {
+      parent.postMessage(
+        {type: 'unlock-navbar', from: 'contacts'}, COMMS_APP_ORIGIN);
+    }
 
     // Add backwards class to current view.
     if (backwardsClasses.current) {
