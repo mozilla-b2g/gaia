@@ -29,6 +29,8 @@ var recentlyAddedTitleL10nId = 'playlists-recently-added';
 var mostPlayedTitleL10nId = 'playlists-most-played';
 var leastPlayedTitleL10nId = 'playlists-least-played';
 
+var IS_LARGE_SCREEN = ScreenLayout.isLarge();
+
 // The MediaDB object that manages the filesystem and the database of metadata
 // See init()
 var musicdb;
@@ -784,27 +786,30 @@ var TilesView = {
     albumName.dataset.l10nId = result.metadata.album ? '' : unknownAlbumL10nId;
     titleBar.appendChild(artistName);
 
-    // There are 6 tiles in one group
-    // and the first tile is the main-tile
-    // so we mod 6 to find out who is the main-tile
-    if (this.index % 6 === 0) {
-      tile.classList.add('main-tile');
-      artistName.classList.add('main-tile-title');
+    if (IS_LARGE_SCREEN) {
       titleBar.appendChild(albumName);
     } else {
-      tile.classList.add('sub-tile');
-      artistName.classList.add('sub-tile-title');
-    }
+      // There are 6 tiles in one group
+      // and the first tile is the main-tile
+      // so we mod 6 to find out who is the main-tile
+      if (this.index % 6 === 0) {
+        tile.classList.add('main-tile');
+        artistName.classList.add('main-tile-title');
+        titleBar.appendChild(albumName);
+      } else {
+        tile.classList.add('sub-tile');
+        artistName.classList.add('sub-tile-title');
+      }
 
-    // Since 6 tiles are in one group
-    // the even group will be floated to left
-    // the odd group will be floated to right
-    if (Math.floor(this.index / 6) % 2 === 0) {
-      tile.classList.add('float-left');
-    } else {
-      tile.classList.add('float-right');
+      // Since 6 tiles are in one group
+      // the even group will be floated to left
+      // the odd group will be floated to right
+      if (Math.floor(this.index / 6) % 2 === 0) {
+        tile.classList.add('float-left');
+      } else {
+        tile.classList.add('float-right');
+      }
     }
-
     var NUM_INITIALLY_VISIBLE_TILES = 8;
     var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
