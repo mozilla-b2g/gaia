@@ -95,6 +95,11 @@ var CustomDialog = (function() {
         menu.dataset['items'] = 1;
 
         no = document.createElement('button');
+
+        // The default type of the button element is "Submit",
+        // and form submit in system app would make system app reload.
+        no.type = 'button';
+
         var noText = document.createTextNode(cancel.title);
         no.appendChild(noText);
         no.id = 'dialog-no';
@@ -104,6 +109,11 @@ var CustomDialog = (function() {
         if (confirm) {
           menu.dataset['items'] = 2;
           yes = document.createElement('button');
+
+          // The default type of button element is "Submit",
+          // and form submit in system app would make system app reload.
+          yes.type = 'button';
+
           var yesText = document.createTextNode(confirm.title);
           yes.appendChild(yesText);
           yes.id = 'dialog-yes';
