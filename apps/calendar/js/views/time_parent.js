@@ -45,7 +45,7 @@ Calendar.ns('Views').TimeParent = (function() {
       if (
           Math.abs(data.dy) > (Math.abs(data.dx) - XSWIPE_OFFSET)
       ) {
-        return;
+        return false;
       }
 
       var dir = data.direction;
@@ -57,6 +57,7 @@ Calendar.ns('Views').TimeParent = (function() {
       } else {
         controller.move(this._previousTime(this.date));
       }
+      return true;
     },
 
     handleEvent: function(e) {

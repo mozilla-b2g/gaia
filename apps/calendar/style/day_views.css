@@ -130,7 +130,7 @@
 /* months day view */
 
 #months-day-view .day-events {
-  height: -moz-calc(100% - 3rem);
+  height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
 }
