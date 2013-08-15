@@ -725,40 +725,53 @@ Calendar.ns('Service').Caldav = (function() {
         var result = self._formatEvent(etag.value, url, ical, event);
         stream.emit('event', result);
 
-        var options = {
-          maxDate: self._defaultMaxDate(),
-          now: ICAL.Time.now()
-        };
+        // if event is recurring we ignore expansion of busytimes and
+        // components because expandComponents already takes care of
+        // that later.
+        if (!event.isRecurring()) {
+          var options = {
+            maxDate: self._defaultMaxDate(),
+            now: ICAL.Time.now()
+          };
 
-        self.expandRecurringEvent(event, options, stream,
-                                  function(err, iter, lastRecurrenceId) {
+          self.expandRecurringEvent(event, options, stream,
+                                    function(err) {
 
-          if (err) {
-            callback(err);
-            return;
-          }
+            if (err) {
+              callback(err);
+              return;
+            }
 
-          if (!event.isRecurring()) {
             stream.emit('component', {
               eventId: result.id,
               isRecurring: false,
               ical: ical
             });
-          } else {
-            stream.emit('component', {
-              eventId: result.id,
-              lastRecurrenceId: lastRecurrenceId,
-              ical: ical,
-              iterator: iter
+
+            stream.emit('eventComplete', {
+              eventId: result.id
             });
-          }
+
+            callback(null);
+          });
+        } else {
+          // reduce the event start time by one second because exapnd
+          // components compares minium date greater than (exclusively) 0.
+          var reducedTime = event.startDate.clone();
+          reducedTime.second -= 1;
+          var date = self.formatICALTime(reducedTime);
+          stream.emit('component', {
+            eventId: result.id,
+            lastRecurrenceId: date,
+            ical: ical
+          });
 
           stream.emit('eventComplete', {
             eventId: result.id
           });
 
           callback(null);
-        });
+        }
       });
     },
 

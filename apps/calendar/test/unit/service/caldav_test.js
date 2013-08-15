@@ -672,40 +672,28 @@ suite('service/caldav', function() {
               'events'
             );
 
-            var expandOptions = expandCalls[1];
-
-            assert.deepEqual(
-              expandOptions.maxDate.toJSDate(),
-              subject._defaultMaxDate().toJSDate(),
-              'expand options max date'
-            );
-
-            occurrences.forEach(function(item) {
-              assert.equal(item.eventId, icalEvent.uid);
-            });
-
-            var lastOccurence = occurrences[occurrences.length - 1];
-
             assert.length(components, 1, 'has component');
-
+            // reduce the event start time by one second because exapnd
+            // components compares minium date greater than (exclusively) 0,
+            // so the icalEvent would only be started on the second
+            // recurrence if we did not subtract the date.
+            var reducedDate = icalEvent.startDate.clone();
+            reducedDate.second -= 1;
+            var date = subject.formatICALTime(reducedDate);
             assert.hasProperties(
               components[0],
               {
                 eventId: events[0].id,
                 ical: fixtures.recurringEvent,
-                lastRecurrenceId: lastOccurence.recurrenceId
+                lastRecurrenceId: date
               }
             );
 
-            assert.ok(components[0].iterator, 'has iterator');
-
-            var iter = new ICAL.RecurExpansion(
-              components[0].iterator
-            );
+            assert.ok(!components[0].iterator, 'no iterator');
 
             assert.deepEqual(
               components[0].lastRecurrenceId,
-              subject.formatICALTime(iter.last),
+              date,
               'sends viable ical iterator'
             );
           });
