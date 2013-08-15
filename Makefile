@@ -576,18 +576,26 @@ test-perf:
 	# All echo calls help create a JSON array
 	adb forward tcp:2828 tcp:2828
 	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
-	echo '['; \
-	for app in ${APPS}; \
-	do \
-		if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
-			FIRST_LOOP_ITERATION=done; \
-		else \
-			echo ','; \
-		fi; \
-		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
-		REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
-	done; \
-	echo ']';
+	if [ "${REPORTER}" = "ConsoleMozPerf" ]; then \
+		for app in ${APPS}; \
+		do \
+			FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
+			REPORTER=ConsoleMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
+		done; \
+	else \
+		echo '['; \
+		for app in ${APPS}; \
+		do \
+			if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
+				FIRST_LOOP_ITERATION=done; \
+			else \
+				echo ','; \
+			fi; \
+			FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
+			REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
+		done; \
+		echo ']'; \
+	fi; 
 
 .PHONY: tests
 tests: webapp-manifests offline
