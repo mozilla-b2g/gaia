@@ -70,5 +70,11 @@
      { "bluetooth-opp-transfer-start": "/index.html" },
      { "icc-stkcommand": "/index.html" },
      { "cdma-info-rec-received": "/index.html" }
-  ]
+  ],
+  "connections": {
+    "mediacomms": {
+      "description": "Communication with media apps for now playing info",
+      "rules": {}
+    }
+  }
 }
