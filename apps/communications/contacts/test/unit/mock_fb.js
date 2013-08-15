@@ -51,7 +51,7 @@ Mockfb.contacts = function() {
         this.result[FB_ID].name = [this.result[FB_ID].givenName + ' ' +
                               this.result[FB_ID].familyName];
         this.result[FB_ID].org[0] = 'FB';
-        this.result[FB_ID].adr[0] = Mockfb.getAddress();
+        this.result[FB_ID].adr = Mockfb.getAddresses();
 
         callback.call(this);
       },
@@ -152,7 +152,7 @@ Mockfb.Contact = function(devContact, mozCid) {
         this.result.name = [this.result.givenName + ' ' +
                               this.result.familyName];
         this.result.org[0] = 'FB';
-        this.result.adr[0] = Mockfb.getAddress();
+        this.result.adr = Mockfb.getAddresses();
 
         callback.call(this);
       },
@@ -185,7 +185,7 @@ Mockfb.Contact = function(devContact, mozCid) {
     deviceContact.name = [deviceContact.givenName + ' ' +
                           deviceContact.familyName];
     deviceContact.org[0] = 'FB';
-    deviceContact.adr[0] = Mockfb.getAddress();
+    deviceContact.adr = Mockfb.getAddresses();
 
     return deviceContact;
   };
@@ -196,7 +196,7 @@ Mockfb.Contact = function(devContact, mozCid) {
         // Fetch FB data, that is returning a contact info
         this.result = [];
         this.result[0] = new MockContactAllFields();
-        this.result[0].adr[0] = Mockfb.getAddress();
+        this.result[0].adr = Mockfb.getAddresses();
         this.result[1] = {
           '+346578888888': true,
           'test@test.com': true,
@@ -242,12 +242,21 @@ Mockfb.getWorksAt = function(fbData) {
   return 'Telefónica';
 };
 
-Mockfb.getAddress = function(fbData) {
-  var out = {};
-  out.type = ['home'];
-  out.locality = 'Palencia';
-  out.region = 'Castilla y León';
-  out.countryName = 'España';
+Mockfb.getAddresses = function(fbData) {
+  var out = [];
+
+  out.push({
+    'type': ['home'],
+    'locality': 'Palencia',
+    'region': 'Castilla y León',
+    'countryName': 'España'
+  });
+  out.push({
+    'type': ['current'],
+    'locality': 'Greater London',
+    'region': 'London',
+    'countryName': 'United Kingdom'
+  });
 
   return out;
 };
