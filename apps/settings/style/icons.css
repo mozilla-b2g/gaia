@@ -197,6 +197,7 @@ aside.connecting {
 
  #menuItem-callWaiting .alert-label > span {
   position: absolute;
+  right: 1.5rem;
   width: 3rem;
   height: 3rem;
   background-image: url(images/call_waiting_disabled.png);
