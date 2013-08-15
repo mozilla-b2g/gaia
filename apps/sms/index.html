@@ -110,8 +110,17 @@
                 <span class="icon icon-user"></span>
               </a>
             </menu>
-            <section id="messages-recipients-list" class="singleline">
-            </section>
+            <!-- When overflow occurs in the recipients list, scrolling is
+            commonly triggered automatically through focus and keyboard events.
+            In these cases, white space described by CSS `padding-bottom` will
+            not be automatically scrolled into view (because the element will
+            only scroll far enough to bring the cursor into view). A container
+            element is necessary to consistently render this vertical space
+            (instead realized with CSS `margin-bottom`). -->
+            <div id="messages-recipients-list-container">
+              <section id="messages-recipients-list" class="singleline">
+              </section>
+            </div>
           </section>
           <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
             Carrier unknown
@@ -336,8 +345,7 @@
     <div id="height-rule-tmpl" class="hide">
       <!--
       #messages-recipients-list.multiline {
-        overflow-y: scroll;
-        height: ${height}px;
+        max-height: ${height}px;
       }
       -->
     </div>

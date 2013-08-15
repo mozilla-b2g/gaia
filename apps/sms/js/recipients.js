@@ -582,11 +582,10 @@
 
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
-    view.outer.addEventListener('transitionend', function te() {
-      var last;
+    view.inner.parentNode.addEventListener('transitionend', function te() {
+      var last = view.inner.lastElementChild;
 
       if (state.visible === 'singleline' && opts.refocus) {
-        last = view.inner.lastElementChild;
 
         if (opts.refocus) {
           opts.refocus.focus();
@@ -600,12 +599,12 @@
             last = view.inner.lastElementChild;
           }
         }
-
-        last.scrollIntoView(true);
       }
 
+      last.scrollIntoView(true);
+
       state.isTransitioning = false;
-      view.outer.removeEventListener('transitionend', te, false);
+      this.removeEventListener('transitionend', te, false);
     });
 
     // Commence the transition
