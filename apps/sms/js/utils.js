@@ -32,34 +32,39 @@
           length = headers.length,
           i, ts, header, headerDate, formattedHour, newHeader;
 
-      if (length) {
-        for (i = 0; i < length; i++) {
-          header = headers[i];
-          ts = header.dataset.time;
-          headerDate = Utils.getHeaderDate(ts);
-          formattedHour = Utils.getFormattedHour(ts);
-
-          // only date
-          if (header.dataset.isThread) {
-            newHeader = headerDate;
-
-          // only time
-          } else if (header.dataset.hourOnly) {
-            newHeader = formattedHour;
-
-          // date + time
-          } else {
-            newHeader = headerDate + ' ' + formattedHour;
-          }
-
-          if (newHeader !== header.textContent) {
-            header.textContent = newHeader;
-          }
-        }
+      for (i = 0; i < length; i++) {
+        Utils.updateTimeHeader(headers[i]);
       }
 
       FixedHeader.updateHeaderContent();
     },
+
+    updateTimeHeader: function ut_updateTimeHeader(header) {
+      var ts = header.dataset.time;
+      if (!ts) {
+        return;
+      }
+
+      var newHeader;
+
+      // only date
+      if (header.dataset.isThread === 'true') {
+        newHeader = Utils.getHeaderDate(ts);
+
+      // only time
+      } else if (header.dataset.timeOnly === 'true') {
+        newHeader = Utils.getFormattedHour(ts);
+
+      // date + time
+      } else {
+        newHeader = Utils.getHeaderDate(ts) + ' ' + Utils.getFormattedHour(ts);
+      }
+
+      if (newHeader !== header.textContent) {
+        header.textContent = newHeader;
+      }
+    },
+
     startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
       var updateFunction = (function() {
         this.updateTimeHeaders();
@@ -99,11 +104,11 @@
       return this.date.shared.getTime();
     },
     getHeaderDate: function ut_giveHeaderDate(time) {
-      this.date.shared.setTime(+time);
       var _ = navigator.mozL10n.get;
       var today = Utils.getDayDate(Date.now());
       var otherDay = Utils.getDayDate(time);
       var dayDiff = (today - otherDay) / 86400000;
+      this.date.shared.setTime(+time);
 
       if (isNaN(dayDiff)) {
         return _('incorrectDate');
@@ -118,7 +123,7 @@
 
       return dayDiff === 0 && _('today') ||
         dayDiff === 1 && _('yesterday') ||
-        dayDiff < 4 && this.date.format.localeFormat(this.date.shared, '%A') ||
+        dayDiff < 6 && this.date.format.localeFormat(this.date.shared, '%A') ||
         this.date.format.localeFormat(this.date.shared, '%x');
     },
     getFontSize: function ut_getFontSize() {
