@@ -30,11 +30,13 @@ var FakeMusic = {
 
   play: function() {
     this._mode = 'playing';
+    document.getElementById('play-pause').classList.remove('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'PLAYING'});
   },
 
   pause: function() {
     this._mode = 'paused';
+    document.getElementById('play-pause').classList.add('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'PAUSED'});
   },
 
@@ -47,6 +49,7 @@ var FakeMusic = {
 
   stop: function() {
     this._mode = 'stopped';
+    document.getElementById('play-pause').classList.remove('is-paused');
     FakeMusicComms.notifyStatusChanged({playStatus: 'STOPPED'});
   },
 
