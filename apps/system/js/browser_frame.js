@@ -45,12 +45,16 @@ var BrowserFrame = (function invocation() {
     if (config.manifestURL)
       browser.setAttribute('mozapp', config.manifestURL);
 
-    if (config.useAsyncPanZoom)
+    if (config.useAsyncPanZoom) {
+      // XXX: Move this dataset assignment into app window object.
+      browser.dataset.useAsyncPanZoom = true;
       browser.setAttribute('mozasyncpanzoom', 'true');
+    }
 
     setMozAppType(browser, config);
 
-    browser.src = config.url;
+    if (config.url)
+      browser.src = config.url;
 
     browser.id = BrowserFrame.className + this._id;
 
