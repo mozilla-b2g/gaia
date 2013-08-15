@@ -352,12 +352,6 @@ webapp-optimize: install-xulrunner-sdk
 optimize-clean: install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
 
-# Populate appcache
-offline-cache: webapp-manifests install-xulrunner-sdk
-	@echo "Populate external apps appcache"
-	@$(call run-js-command, offline-cache)
-	@echo "Done"
-
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
 ifeq ($(DESKTOP),1)
