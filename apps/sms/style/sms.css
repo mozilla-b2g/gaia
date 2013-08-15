@@ -776,7 +776,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   border: .1rem solid #4d4d4d;
   color: #2c2c2c;
   height: 2.2rem;
-  margin: .8rem .5rem -0.8rem 0;
+  margin: 0 .5rem 0 0;
   border-radius: .3rem;
   font-size: 1.7rem;
 }
