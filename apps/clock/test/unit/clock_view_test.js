@@ -122,7 +122,10 @@ suite('ClockView', function() {
         var node = this[hand].childNodes[0];
 
         [].forEach.call(node.attributes, function(attr) {
-          node.removeAttribute(attr.nodeName);
+          // Guard against environments
+          if (typeof attr !== 'undefined') {
+            node.removeAttribute(attr.nodeName);
+          }
         });
       }, this);
     });
