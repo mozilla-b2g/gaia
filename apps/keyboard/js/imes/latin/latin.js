@@ -104,7 +104,10 @@
   const SEMICOLON = 59;
 
   const WS = /^\s+$/;                    // all whitespace characters
-  const WORDSEP = /^[\s.,?!;:]+$/;       // word separator characters
+
+  // word separator characters
+  // U+FFFC is the placeholder character for non-text object
+  const WORDSEP = /^[\s.,?!;:\ufffc]+$/;
 
   const DOUBLE_SPACE_TIME = 700; // ms between spaces to convert to ". "
 
