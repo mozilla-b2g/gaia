@@ -320,6 +320,7 @@ var LockScreen = {
       case 'cardstatechange':
       case 'iccinfochange':
         this.updateConnState();
+        break;
 
       case 'click':
         if (!evt.target.dataset.key)
