@@ -265,13 +265,6 @@ var ClockView = {
     document.getElementById('alarms').className = 'count' + type;
   },
 
-  hide: function cv_hide() {
-    setTimeout(function() {
-      this.digital.className = '';
-      this.analog.className = '';
-    }.bind(this), 500);
-  },
-
   show: function cv_show(mode) {
     var isAnalog = false;
     var previous, hiding, showing;
