@@ -92,6 +92,17 @@ suite('Contacts', function(done) {
                     ]);
                   }
 
+                  if (filter.filterValue === 'acme') {
+                    return MockContact.list([
+                      // true
+                      { familyName: ['Smith'], org: ['Acme'] },
+                      // false
+                      { givenName: ['doug'], familyName: ['dooley'] },
+                      // true
+                      { givenName: ['Acme'], familyName: ['Smith'] }
+                    ]);
+                  }
+
                   // All other cases
                   return MockContact.list();
                 }());
@@ -214,6 +225,25 @@ suite('Contacts', function(done) {
         // navigator.mozContacts.find was called?
         assert.equal(mHistory.length, 1);
         assert.equal(mHistory[0].filter.filterValue, '911');
+        assert.isNull(mHistory[0].request.error);
+
+        done();
+      });
+    });
+
+    test('(string[org], ...) Match', function(done) {
+      var mozContacts = navigator.mozContacts;
+
+      Contacts.findByString('initech', function(contacts) {
+        var mHistory = mozContacts.mHistory;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 1);
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mHistory.length, 1);
+        assert.equal(mHistory[0].filter.filterValue, 'initech');
         assert.isNull(mHistory[0].request.error);
 
         done();
@@ -512,6 +542,30 @@ suite('Contacts', function(done) {
         // navigator.mozContacts.find was called?
         assert.equal(mozContacts.mHistory.length, 1);
         assert.deepEqual(mozContacts.mHistory[0].filter.filterValue, 'do');
+
+        done();
+      });
+    });
+
+    test('Contact validation, org', function(done) {
+      Contacts.findByString('acme smi', function(contacts) {
+        var mozContacts = navigator.mozContacts;
+
+        // contacts were found
+        assert.ok(Array.isArray(contacts));
+        assert.equal(contacts.length, 2);
+
+        /**
+         * The two matching contacts are:
+         *
+         * { familyName: ['Smith'], org: ['Acme'] }
+         * { givenName: ['Acme'], familyName: ['Smith'] }
+         *
+         */
+
+        // navigator.mozContacts.find was called?
+        assert.equal(mozContacts.mHistory.length, 1);
+        assert.deepEqual(mozContacts.mHistory[0].filter.filterValue, 'acme');
 
         done();
       });

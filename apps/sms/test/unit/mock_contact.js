@@ -9,10 +9,18 @@ function MockContact(name) {
   if (!(this instanceof MockContact)) {
     return new MockContact(name);
   }
+  var data;
+
+  // This serves only to make readable
+  // sense of the  assignments that will follow.
+  if (typeof name === 'object') {
+    data = name;
+  }
+
   this.id = '1';
 
-  this.familyName = name.familyName;
-  this.givenName = name.givenName;
+  this.familyName = data.familyName || ['Hughes'];
+  this.givenName = data.givenName || ['Howard'];
   this.name = [
     [this.givenName, this.familyName].join(' ')
   ];
@@ -40,9 +48,7 @@ function MockContact(name) {
     'favorite'
   ];
 
-  this.org = [
-    ''
-  ];
+  this.org = data.org || ['Initech'];
 }
 
 /*
