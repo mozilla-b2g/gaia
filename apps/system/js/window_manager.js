@@ -77,6 +77,15 @@ var WindowManager = (function() {
     windows.classList.add('slow-transition');
   }
 
+  // Requested orientation by the current running application
+  var _currentSetOrientationOrigin;
+  var _globalOrientation;
+
+  SettingsListener.observe('screen.orientation.lock', false, function(value) {
+    _globalOrientation = value ? 'portrait-primary' : null;
+    setOrientationForApp(_currentSetOrientationOrigin);
+  });
+
   //
   // The set of running apps.
   // This is a map from app origin to an object like this:
@@ -898,12 +907,16 @@ var WindowManager = (function() {
   function setOrientationForInlineActivity(frame) {
     if ('orientation' in frame.dataset) {
       screen.mozLockOrientation(frame.dataset.orientation);
+    } else if (_globalOrientation) { // Global orientation lock set?
+      screen.mozLockOrientation(_globalOrientation);
     } else {  // If no orientation was requested, then let it rotate
       screen.mozUnlockOrientation();
     }
   }
 
   function setOrientationForApp(origin) {
+    _currentSetOrientationOrigin = origin;
+
     if (origin == null) { // No app is currently running.
       screen.mozLockOrientation('portrait-primary');
       return;
@@ -914,7 +927,7 @@ var WindowManager = (function() {
       return;
     var manifest = app.manifest;
 
-    var orientation = manifest.orientation;
+    var orientation = manifest.orientation || _globalOrientation;
     if (orientation) {
       if (!Array.isArray(orientation)) {
         orientation = [orientation];
