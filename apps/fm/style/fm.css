@@ -216,7 +216,7 @@ div#fav-list-container > div {
   font-size: 2.3rem;
   font-weight: 300;
   height: 4.4rem;
-  margin: 0 2rem 0 2rem;
+  margin: 0 2rem;
   padding-bottom: 0.2rem;
   clear: both;
   border-top: .1rem solid #3D4045;
@@ -249,7 +249,7 @@ div#fav-list-container div.selected div.fav-list-remove-button {
 
 div#fav-list-container div.fav-list-frequency {
   float: right;
-  padding: 0.8rem -moz-calc(50% - 0.2rem) 0 0;
+  padding: 0.8rem -moz-calc(50% - 2.4rem) 0 0;
   text-align: right;
   width: 6rem;
 }
