@@ -40,7 +40,7 @@ const TYPE_GROUP_MAPPING = {
 const FOCUS_CHANGE_DELAY = 20;
 
 var KeyboardManager = {
-  keyboardFrameContainer: document.getElementById('keyboard-frame'),
+  keyboardFrameContainer: document.getElementById('keyboards'),
 
   // The set of installed keyboard apps grouped by type_group.
   // This is a map from type_group to an object arrays.
@@ -98,17 +98,17 @@ var KeyboardManager = {
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
-      if (evt.detail.type === 'inputmethod-showall') {
-        self.showAll();
-      } else if (evt.detail.type === 'inputmethod-next') {
-        self.switchToNext();
-      } else if (evt.detail.type === 'inputmethod-contextchange') {
-        var contextChangeEvent = {
-          'detail': {
-            'type': evt.detail.inputType
-          }
-        };
-        self.inputFocusChange(contextChangeEvent);
+      var type = evt.detail.type;
+      switch (type) {
+        case 'inputmethod-showall':
+          self.showAll();
+          break;
+        case 'inputmethod-next':
+          self.switchToNext();
+          break;
+        case 'inputmethod-contextchange':
+          self.inputFocusChange(evt);
+          break;
       }
     });
   },
@@ -150,7 +150,7 @@ var KeyboardManager = {
 
         var supportTypes = entryPoints[name].types;
         supportTypes.forEach(function(type) {
-          if (!type || !(type in TYPE_GROUP))
+          if (!type || !(type in BASE_TYPE))
             return;
 
           if (!self.keyboardLayouts[type])
@@ -170,11 +170,11 @@ var KeyboardManager = {
   },
 
   inputFocusChange: function km_inputFocusChange(evt) {
-    // let value selector notice the event
+    // XXX Send the fake event to value selector
 
     window.dispatchEvent(new CustomEvent('inputfocuschange', evt));
 
-    var type = evt.detail.type;
+    var type = evt.detail.inputType;
 
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now

@@ -27,7 +27,7 @@ var ValueSelector = {
       var typeToHandle = ['select-one', 'select-multiple', 'date',
         'time', 'datetime', 'datetime-local', 'blur'];
 
-      var currentInputType = evt.detail.type;
+      var currentInputType = evt.detail.inputType;
       // handle the <select> element and inputs with type of date/time
       // in system app for now
       if (typeToHandle.indexOf(currentInputType) == -1)

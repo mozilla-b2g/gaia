@@ -8,7 +8,7 @@
  * (Need mozApps.mgmt permission)
  */
 
-const TYPE_GROUP = {
+const BASE_TYPE = {
   'text': true,
   'url': true,
   'email': true,
@@ -37,8 +37,8 @@ var KeyboardHelper = {
     settings.addObserver(SETTINGS_KEY, this.getKeyboardSettings.bind(this));
   },
 
-  setLayoutEnabled: function kh_setLayoutEnabled(appOrigin, layoutName,
-  enabled) {
+  setLayoutEnabled: function kh_setLayoutEnabled(appOrigin,
+                                                 layoutName, enabled) {
     for (var i = 0; i < this.keyboardSettings.length; i++) {
       if (this.keyboardSettings[i].appOrigin === appOrigin &&
         this.keyboardSettings[i].layoutName === layoutName) {
