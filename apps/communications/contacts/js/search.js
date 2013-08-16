@@ -1,7 +1,7 @@
 'use strict';
 
 var contacts = window.contacts || {};
-
+/** Contacts search properties */
 contacts.Search = (function() {
   var inSearchMode = false,
       searchView,
@@ -30,6 +30,7 @@ contacts.Search = (function() {
       remainingPending = true,
       imgLoader,
       searchEnabled = false,
+      regExp = /[\s+\.\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|\"\&\@\#\%\_\'\"\!]/g,
       source = null;
 
   var onLoad = function onLoad() {
@@ -270,6 +271,7 @@ contacts.Search = (function() {
     for (var c = from; c < end && c < contacts.length; c++) {
       var contact = contacts[c].node || contacts[c];
       var contactText = contacts[c].text || getSearchText(contacts[c]);
+      contactText = contactText.replace(regExp, '');
       if (!pattern.test(contactText)) {
         if (contact.dataset.uuid in currentSet) {
           searchList.removeChild(currentSet[contact.dataset.uuid]);
@@ -401,7 +403,7 @@ contacts.Search = (function() {
       emptySearch = false;
       // The remaining results have not been added yet
       remainingPending = true;
-      var pattern = new RegExp(thisSearchText, 'i');
+      var pattern = new RegExp(thisSearchText.replace(regExp, ''), 'i');
       var contactsToSearch = getContactsToSearch(thisSearchText,
                                                prevTextToSearch);
       var state = {
