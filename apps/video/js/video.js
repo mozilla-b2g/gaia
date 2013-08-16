@@ -9,8 +9,9 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom',
            'thumbnails-cancel-button', 'thumbnails-number-selected',
            'fullscreen-view', 'crop-view',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
-           'player', 'overlay', 'overlay-title',
-           'overlay-text', 'videoControls', 'videoBar', 'videoActionBar',
+           'player', 'overlay', 'overlay-title', 'overlay-text',
+           'overlay-menu', 'storage-setting-button',
+           'videoControls', 'videoBar', 'videoActionBar',
            'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
            'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
            'slider-wrapper', 'throbber', 'delete-video-button',
@@ -90,6 +91,18 @@ function init() {
   });
 
   dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
+
+  // Click to open the media storage panel when the default storage is
+  // unavailable.
+  dom.storageSettingButton.addEventListener('click', function() {
+    var activity = new MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'mediaStorage'
+      }
+    });
+  });
 }
 
 function showSelectView() {
@@ -430,8 +443,19 @@ function showOverlay(id) {
     return;
   }
 
-  dom.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
-  dom.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+  if (id === 'nocard') {
+    dom.overlayMenu.classList.remove('hidden');
+  } else {
+    dom.overlayMenu.classList.add('hidden');
+  }
+
+  if (id === 'nocard') {
+    dom.overlayTitle.textContent = navigator.mozL10n.get('nocard2-title');
+    dom.overlayText.textContent = navigator.mozL10n.get('nocard2-text');
+  } else {
+    dom.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
+    dom.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+  }
   dom.overlay.classList.remove('hidden');
 }
 

@@ -56,8 +56,8 @@ section {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  bottom: 0;
+  right: 0;
 
   /* almost transparent gray */
   background-color: rgba(0, 0, 0, 0.4);
@@ -93,7 +93,8 @@ section {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
-  margin: 0 0.5rem -1rem 0.5rem;
+  margin: 0 0.5rem 0 0.5rem;
+  padding: 0;
 }
 
 #overlay-text {
@@ -102,6 +103,15 @@ section {
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
+}
+
+#overlay-menu {
+  z-index: 1;
+}
+
+/* For overriding the style from BB */
+#overlay-menu.hidden {
+  display: none;
 }
 
 /*
