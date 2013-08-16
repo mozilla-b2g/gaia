@@ -686,10 +686,43 @@ bubble above the key when you tap and hold. */
 /* For FTU tip dialog */
 #confirm-dialog {
   pointer-events: auto;
+  text-align: center;
 }
 
-.tip-image {
-  width: 28.9rem;
+#confirm-dialog .tip-section {
+  background-position: center center;
+  display: inline-block;
+  height: 31rem;
+}
+
+@media (orientation:landscape) {
+  #confirm-dialog .tip-section {
+    background: url(images/ftu_keyboard_landscape.png) no-repeat top left;
+    width:47rem;
+  }
+}
+
+@media (orientation:portrait) {
+  #confirm-dialog .tip-section {
+    background: url(images/ftu_keyboard.png) no-repeat top left;
+    width:28.9rem;
+  }
+}
+
+@media (min-width:768px) and (orientation:landscape) {
+  #confirm-dialog .tip-section {
+    background: url(images/ftu_keyboard_landscape@2x.png) no-repeat top left;
+    width: 35rem;
+    height: 23rem;
+  }
+}
+
+@media (min-width:768px) and (orientation:portrait) {
+  #confirm-dialog .tip-section {
+    background: url(images/ftu_keyboard@2x.png) no-repeat top left;
+    width: 23rem;
+    height: 25rem;
+  }
 }
 
 #confirm-dialog button.recommend.active {
