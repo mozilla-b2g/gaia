@@ -786,7 +786,7 @@ var Browser = {
       Toolbar.refreshBookmarkButton.bind(Toolbar));
     this.hideBookmarkMenu();
     // refresh bookmark tab
-    this.showBookmarksTab();
+    this.showBookmarksTab(true);
   },
 
   // responsible to show the specific action menu
@@ -830,6 +830,13 @@ var Browser = {
       }).bind(this));
   },
 
+  bindBookmarkTabContextMenu:
+    function browser_bindBookmarkTabContextMenu(link) {
+    var that = this;
+    link.addEventListener('contextmenu', function() {
+      that.showBookmarkTabContextMenu(link.href);
+    });
+  },
   // Adaptor to show menu while press bookmark star
   showBookmarkMenu: function browser_showBookmarkMenu() {
     this.showActionMenu(this.currentTab.url);
@@ -1035,11 +1042,12 @@ var Browser = {
    * @return {Node}
    * @private
    */
-  _appendAwesomeScreenItems: function(parent, itemList) {
+  _appendAwesomeScreenItems: function(parent, itemList, current_tab) {
     var newList = this._awesomeListTemplate.cloneNode();
     itemList.forEach(function(data) {
       if (!data) return;
-      newList.appendChild(this.drawAwesomescreenListItem(data));
+      newList.appendChild(
+        this.drawAwesomescreenListItem(data, null, current_tab));
     }, this);
 
     var oldList = parent.firstElementChild;
@@ -1185,6 +1193,9 @@ var Browser = {
     var cache = this._itemListCache;
     if (cache[data.uri]) {
       entry = cache[data.uri].cloneNode(true);
+      if (current_tab === 'bookmark') {
+        this.bindBookmarkTabContextMenu(entry.firstChild);
+      }
       this._clearItemCache();
       return entry;
     }
@@ -1211,10 +1222,7 @@ var Browser = {
 
     // Enable longpress manipulation in bookmark tab
     if (current_tab === 'bookmark') {
-      var that = this;
-      link.addEventListener('contextmenu', function() {
-        that.showBookmarkTabContextMenu(link.href);
-      });
+      this.bindBookmarkTabContextMenu(link);
     }
 
     var underlay = ',url(./style/images/favicon-underlay.png)';
@@ -1270,13 +1278,14 @@ var Browser = {
     parent.appendChild(ul);
   },
 
-  showBookmarksTab: function browser_showBookmarksTab() {
+  showBookmarksTab: function browser_showBookmarksTab(needRefresh) {
+
     // Do nothing if we are already in the bookmarks tab
     if (this.bookmarksTab.classList.contains('selected') &&
-      this.bookmarks.classList.contains('selected')) {
+      this.bookmarks.classList.contains('selected') &&
+      !needRefresh) {
       return;
     }
-
     this.deselectAwesomescreenTabs();
     this.bookmarksTab.classList.add('selected');
     this.bookmarks.classList.add('selected');
@@ -1284,7 +1293,7 @@ var Browser = {
   },
 
   showBookmarks: function browser_showBookmarks(bookmarks) {
-    this._appendAwesomeScreenItems(this.bookmarks, bookmarks);
+    this._appendAwesomeScreenItems(this.bookmarks, bookmarks, 'bookmark');
   },
 
   openInNewTab: function browser_openInNewTab(url) {
