@@ -16,7 +16,7 @@
     'bday': '1978-12-20',
     'email': [
       {
-        'type': 'Personal',
+        'type': ['Personal'],
         'value': 'test@test.com'
       }
     ],
@@ -30,7 +30,7 @@
     'tel': [
       {
         'value': '+346578888888',
-        'type': 'Mobile',
+        'type': ['Mobile'],
         'carrier': 'TEF'
       }
     ],
