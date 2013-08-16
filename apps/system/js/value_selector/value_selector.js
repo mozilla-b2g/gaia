@@ -23,11 +23,11 @@ var ValueSelector = {
   init: function vs_init() {
     var self = this;
 
-    window.navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+    window.addEventListener('inputfocuschange', function onfocuschange(evt) {
       var typeToHandle = ['select-one', 'select-multiple', 'date',
         'time', 'datetime', 'datetime-local', 'blur'];
 
-      var currentInputType = evt.detail.type;
+      var currentInputType = evt.detail.inputType;
       // handle the <select> element and inputs with type of date/time
       // in system app for now
       if (typeToHandle.indexOf(currentInputType) == -1)
@@ -72,7 +72,7 @@ var ValueSelector = {
           self.hide();
           break;
       }
-    };
+    });
 
     this._element = document.getElementById('value-selector');
     this._element.addEventListener('mousedown', this);
