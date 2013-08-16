@@ -113,6 +113,8 @@
     defaultMochaReporter: 'HTML'
   });
 
+  worker.use(TestAgent.Common.BlanketCoverEvents);
+
   worker.on({
 
     'open': function() {
