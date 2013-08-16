@@ -183,7 +183,9 @@ var Browser = {
         }, this);
 
         this.initRemainingListeners();
+        document.body.classList.add('loaded');
         this.hasLoaded = true;
+
         if (this.waitingActivities.length) {
           this.waitingActivities.forEach(this.handleActivity, this);
         }
