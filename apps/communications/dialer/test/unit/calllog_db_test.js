@@ -2,6 +2,7 @@ requireApp('communications/dialer/js/call_log_db.js');
 requireApp('communications/dialer/js/utils.js');
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
+requireApp('communications/dialer/test/unit/mock_tone_player.js');
 
 if (!this.Contacts) {
   this.Contacts = null;
@@ -11,9 +12,12 @@ if (!this.LazyLoader) {
   this.LazyLoader = null;
 }
 
+var TonePlayer;
+
 suite('dialer/call_log_db', function() {
   var realLazyLoader;
   var realContacts;
+  var realTonePlayer;
 
   // According to mock_contacts.js, 123 will have an associated test contact
   // 111 will have no contact associated and 222 will have more than 1 contact
@@ -76,17 +80,21 @@ suite('dialer/call_log_db', function() {
     checkGroupId(call.groupId, CallLogDBManager._getGroupId(call));
   }
 
-  setup(function() {
+  suiteSetup(function() {
     realLazyLoader = window.LazyLoader;
     window.LazyLoader = MockLazyLoader;
 
     realContacts = window.Contacts;
     window.Contacts = MockContacts;
+
+    realTonePlayer = TonePlayer;
+    TonePlayer = MockTonePlayer;
   });
 
-  teardown(function() {
+  suiteTeardown(function() {
     window.LazyLoader = realLazyLoader;
     window.Contacts = realContacts;
+    TonePlayer = realTonePlayer;
   });
 
   suite('Clean up', function() {
