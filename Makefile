@@ -657,7 +657,7 @@ test-agent-bootstrap-apps:
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)
-APP_TEST_LIST=$(shell find apps/$(APP)/test/unit -name '*_test.js')
+APP_TEST_LIST=$(shell find apps/$(APP) -name '*_test.js' | grep '/test/unit/')
 endif
 .PHONY: test-agent-test
 test-agent-test:
