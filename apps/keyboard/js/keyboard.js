@@ -1683,17 +1683,16 @@ function showKeyboard(state) {
     });
   }
 
-  inputContext.getText().onsuccess = function gotText() {
+  var state = {
+    type: inputContext.inputType,
+    inputmode: inputContext.inputMode,
+    selectionStart: inputContext.selectionStart,
+    selectionEnd: inputContext.selectionEnd,
+    value: ''
+  };
 
+  function doShowKeyboard() {
     if (inputMethod.activate) {
-      var state = {
-        type: inputContext.inputType,
-        inputmode: inputContext.inputMode,
-        selectionStart: inputContext.selectionStart,
-        selectionEnd: inputContext.selectionEnd,
-        value: this.result
-      };
-
       inputMethod.activate(Keyboards[keyboardName].autoCorrectLanguage,
         state, {
           suggest: suggestionsEnabled,
@@ -1704,7 +1703,14 @@ function showKeyboard(state) {
     // render the keyboard after activation, which will determine the state
     // of uppercase/suggestion, etc.
     renderKeyboard(keyboardName);
-  };
+  }
+
+  inputContext.getText().then(function gotText(value) {
+    state.value = value;
+    doShowKeyboard();
+  }, function failedToGetText() {
+    doShowKeyboard();
+  });
 }
 
 // Hide keyboard
