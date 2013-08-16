@@ -10,10 +10,11 @@ var Filmstrip = (function() {
   var items = [];
   var currentItemIndex;
 
+  var DEVICE_RATIO = window.devicePixelRatio;
   // Maximum number of thumbnails in the filmstrip
   var MAX_THUMBNAILS = 5;
-  var THUMBNAIL_WIDTH = 46;  // size of each thumbnail
-  var THUMBNAIL_HEIGHT = 46;
+  var THUMBNAIL_WIDTH = 46 * DEVICE_RATIO;  // size of each thumbnail
+  var THUMBNAIL_HEIGHT = 46 * DEVICE_RATIO;
 
   // Timer for auto-hiding the filmstrip
   var hideTimer = null;
