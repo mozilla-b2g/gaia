@@ -5,15 +5,20 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Browser</title>
     <!-- Shared CSS-->
-    <!-- <link rel="stylesheet" href="shared/style/headers.css" type="text/css">
-    <link rel="stylesheet" href="shared/style/buttons.css" type="text/css">
-    <link rel="stylesheet" href="shared/style/input_areas.css" type="text/css">
-    <link rel="stylesheet" href="shared/style/status.css" type="text/css">
-    <link rel="stylesheet" href="shared/style/confirm.css" type="text/css"> -->
+    <!-- <link rel="stylesheet" href="shared/style/headers.css"> -->
+    <!-- <link rel="stylesheet" href="shared/style/input_areas.css"> -->
+    <!-- <link rel="stylesheet" href="shared/style/status.css"> -->
+    <!-- <link rel="stylesheet" href="shared/style/confirm.css"> -->
+
+    <!-- <link rel="stylesheet" href="style/modal_dialog/modal_dialog.css"> -->
+    <!-- <link rel="stylesheet" href="style/modal_dialog/prompt.css"> -->
+    <!-- <link rel="stylesheet" href="style/themes/default/core.css"> -->
+    <!-- <link rel="stylesheet" href="style/themes/default/buttons.css"> -->
 
     <!-- Specific style -->
     <link rel="stylesheet" href="style/browser.css" type="text/css">
     <link rel="stylesheet" href="style/toolbar.css" type="text/css">
+
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="shared/locales/branding.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -191,62 +196,68 @@
     -->
     </section>
 
-    <form role="dialog" id="modal-dialog-confirm" data-type="confirm"
-      tabindex="-1" hidden>
-      <!--
-        <section>
-          <p><span id="modal-dialog-confirm-message"></span></p>
-        </section>
+    <div id="modal-dialog">
+
+      <div id="modal-dialog-alert" role="dialog" tabindex="-1">
+        <!--
+        <div class="modal-dialog-message-container inner">
+          <h3 id="modal-dialog-alert-title"></h3>
+          <p>
+            <span id="modal-dialog-alert-message"></span>
+          </p>
+        </div>
         <menu>
-          <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
-          <button id="modal-dialog-confirm-ok" data-l10n-id="ok">OK</button>
+          <button id="modal-dialog-alert-ok" data-l10n-id="ok" class="affirmative">OK</button>
         </menu>
-      -->
-    </form>
+        -->
+      </div>
 
-    <form role="dialog" id="modal-dialog-alert" data-type="confirm"
-      tabindex="-1" hidden>
-    <!--
-      <section>
-        <p><span id="modal-dialog-alert-message"></span></p>
-      </section>
-      <menu>
-        <button id="modal-dialog-alert-ok" class="full" data-l10n-id="ok">OK</button>
-      </menu>
-    -->
-    </form>
+      <div id="modal-dialog-confirm" role="dialog" tabindex="-1">
+        <!--
+        <div class="modal-dialog-message-container inner">
+          <h3 id="modal-dialog-confirm-title"></h3>
+          <p>
+            <span id="modal-dialog-confirm-message"></span>
+          </p>
+        </div>
+        <menu data-items="2">
+          <button id="modal-dialog-confirm-cancel" data-l10n-id="cancel">Cancel</button>
+          <button id="modal-dialog-confirm-ok" data-l10n-id="ok" class="affirmative">OK</button>
+        </menu>
+        -->
+      </div>
 
-    <form role="dialog" id="modal-dialog-prompt" data-type="confirm"
-      tabindex="-1" hidden>
-    <!--
-      <section>
-        <p>
-          <span id="modal-dialog-prompt-message"></span>
-          <input id="modal-dialog-prompt-input" />
-        </p>
-      </section>
-      <menu>
-        <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">
-          Cancel
-        </button>
-        <button id="modal-dialog-prompt-ok" data-l10n-id="ok">OK</button>
-      </menu>
-    -->
-    </form>
+      <div id="modal-dialog-prompt" role="dialog" tabindex="-1">
+        <!--
+        <div class="modal-dialog-message-container inner">
+          <h3 id="modal-dialog-prompt-title"></h3>
+          <p>
+            <span id="modal-dialog-prompt-message"></span>
+            <input id="modal-dialog-prompt-input" />
+          </p>
+        </div>
+        <menu data-items="2">
+          <button id="modal-dialog-prompt-cancel" data-l10n-id="cancel">Cancel</button>
+          <button id="modal-dialog-prompt-ok" data-l10n-id="ok" class="affirmative">OK</button>
+        </menu>
+        -->
+      </div>
 
-    <form role="dialog" id="modal-dialog-custom-prompt" data-type="confirm"
-      tabindex="-1" hidden>
-    <!--
-      <section>
-        <p><span id="modal-dialog-custom-prompt-message"></span></p>
-        <label class="pack-checkbox">
-          <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" />
-          <span></span>
-        </label>
-      </section>
-      <menu id="modal-dialog-custom-prompt-buttons"></menu>
-    -->
-    </form>
+      <div id="modal-dialog-custom-prompt" role="dialog" tabindex="-1">
+        <!--
+        <div class="modal-dialog-message-container inner">
+          <h3 id="modal-dialog-custom-prompt-title"></h3>
+          <p><span id="modal-dialog-custom-prompt-message"></span></p>
+          <label class="pack-checkbox">
+            <input id="modal-dialog-custom-prompt-checkbox" type="checkbox" />
+            <span></span>
+          </label>
+        </div>
+        <menu id="modal-dialog-custom-prompt-buttons"></menu>
+        -->
+      </div>
+
+    </div>
 
     <section role="region" id="settings" class="skin-organic">
     <!--
