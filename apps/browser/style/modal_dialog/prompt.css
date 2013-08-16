@@ -1,0 +1,50 @@
+/* ----------------------------------
+ * STYLES FOR PROMPT
+ * Requires:
+    menu-dialoges/core.css
+    other/buttons/style.css
+ * ---------------------------------- */
+
+[role="dialog"] p {
+  font-weight: lighter;
+  font-size: 2.2rem;
+  color: #FAFAFA;
+  margin: 0;
+}
+
+[role="dialog"] p:last-child {
+  overflow-x: hidden;
+  overflow-y: auto;
+  word-wrap: break-word;
+}
+
+[role="dialog"] .content {
+  font-weight: lighter;
+  font-size: 2.2rem;
+  color: #fff;
+  border-bottom: 0.1rem solid #777;
+  margin: 0;
+  padding: 2.5rem 0 2rem 0;
+}
+
+[role="dialog"] .content img {
+  float: left;
+  margin-right: 2rem;
+}
+
+[role="dialog"] .content strong {
+  font-weight: lighter;
+}
+
+[role="dialog"] .content small {
+  font-size: 1.4rem;
+  font-weight: normal;
+  color: #cbcbcb;
+  display: block;
+}
+
+/* Since considering 20px height of status bar,
+   overwrite padding top which is defined in shared/style/confirm.css*/
+form[role="dialog"][data-type="confirm"] {
+  padding: 2rem 0 7rem;
+}

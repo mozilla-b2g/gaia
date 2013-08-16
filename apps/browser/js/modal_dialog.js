@@ -95,6 +95,7 @@ var ModalDialog = {
 
     var message = evt.detail.message;
     var elements = this.elements;
+    document.body.classList.add('modal-active');
 
     function escapeHTML(str) {
       var span = document.createElement('span');
@@ -111,12 +112,12 @@ var ModalDialog = {
     switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
-        elements.alert.hidden = false;
+        elements.alert.classList.add('visible');
         elements.alert.focus();
         break;
 
       case 'prompt':
-        elements.prompt.hidden = false;
+        elements.prompt.classList.add('visible');
         elements.promptInput.value = evt.detail.initialValue;
         elements.promptMessage.innerHTML = message;
         elements.prompt.focus();
@@ -124,11 +125,13 @@ var ModalDialog = {
 
       case 'custom-prompt':
         var prompt = evt.detail;
-        elements.customPrompt.hidden = false;
+        elements.customPrompt.classList.add('visible');
         elements.customPromptMessage.innerHTML = prompt.message;
 
         // Display custom list of buttons
         elements.customPromptButtons.innerHTML = '';
+        elements.customPromptButtons.setAttribute('data-items',
+                                                  prompt.buttons.length);
         for (var i = 0, l = prompt.buttons.length; i < l; i++) {
           var button = prompt.buttons[i];
           var domElement = document.createElement('button');
@@ -164,7 +167,7 @@ var ModalDialog = {
         break;
 
       case 'confirm':
-        elements.confirm.hidden = false;
+        elements.confirm.classList.add('visible');
         elements.confirmMessage.innerHTML = message;
         elements.confirm.focus();
         break;
@@ -172,6 +175,7 @@ var ModalDialog = {
   },
 
   hide: function md_hide() {
+    document.body.classList.remove('modal-active');
     var evt = this.currentEvents[this.currentOrigin][0];
     if (!evt)
       return;
@@ -181,6 +185,7 @@ var ModalDialog = {
 
   // When user clicks OK button on alert/confirm/prompt
   confirmHandler: function md_confirmHandler(target) {
+    document.body.classList.remove('modal-active');
     var elements = this.elements;
 
     var evt = this.currentEvents[this.currentOrigin][0];
@@ -188,12 +193,12 @@ var ModalDialog = {
 
     switch (type) {
       case 'alert':
-        elements.alert.hidden = true;
+        elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         evt.detail.returnValue = elements.promptInput.value;
-        elements.prompt.hidden = true;
+        elements.prompt.classList.remove('visible');
         break;
 
       case 'custom-prompt':
@@ -203,12 +208,12 @@ var ModalDialog = {
         if (evt.detail.showCheckbox)
           returnValue.checked = elements.customPromptCheckbox.checked;
         evt.detail.returnValue = returnValue;
-        elements.customPrompt.hidden = true;
+        elements.customPrompt.classList.remove('visible');
         break;
 
       case 'confirm':
         evt.detail.returnValue = true;
-        elements.confirm.hidden = true;
+        elements.confirm.classList.remove('visible');
         break;
     }
 
@@ -227,19 +232,19 @@ var ModalDialog = {
 
     switch (type) {
       case 'alert':
-        elements.alert.hidden = true;
+        elements.alert.classList.remove('visible');
         break;
 
       case 'prompt':
         /* return null when click cancel */
         evt.detail.returnValue = null;
-        elements.prompt.hidden = true;
+        elements.prompt.classList.remove('visible');
         break;
 
       case 'confirm':
         /* return false when click cancel */
         evt.detail.returnValue = false;
-        elements.confirm.hidden = true;
+        elements.confirm.classList.remove('visible');
         break;
     }
 
