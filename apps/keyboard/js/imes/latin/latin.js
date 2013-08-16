@@ -561,16 +561,17 @@
       keyboard.sendKey(BACKSPACE);
       keyboard.sendKey(keycode);
       keyboard.sendKey(SPACE);
+      var punctuationChar = String.fromCharCode(keycode);
 
-      var newtext = String.fromCharCode(keycode) + ' ';
-
+      var newtext = punctuationChar + ' ';
+      var oldtext = ' ' + punctuationChar;
       inputText = inputText.substring(0, cursor - 1) +
         newtext +
         inputText.substring(cursor);
       cursor++;
 
       // Remember this change so we can revert it on backspace
-      revertTo = ' ';
+      revertTo = oldtext;
       revertFrom = newtext;
       justAutoCorrected = false;
     }
