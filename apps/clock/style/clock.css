@@ -80,17 +80,6 @@ html, body {
   position: relative;
 }
 
-#clock-hour24-state.alarm-set-indicator::after {
-  background: url("images/alarm_indicator.png") no-repeat;
-  background-size: 1.8rem;
-  position: absolute;
-  height: 1.8rem;
-  width: 1.8rem;
-  top: -4.2rem;
-  left: 1.6rem;
-  content: "";
-}
-
 #clock-day-date {
   font-weight: lighter;
   font-size: 2.1rem;
