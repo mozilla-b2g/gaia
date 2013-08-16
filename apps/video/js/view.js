@@ -24,6 +24,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var storage;       // A device storage object used by the save button
   var saved = false; // Did we save it?
   var endedTimer;    // The workaround of bug 783512.
+  var videoRotation = 0;
 
   initUI();
 
@@ -44,6 +45,17 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
         dom.menu.hidden = false;
       });
     }
+
+    // to hide player because it shows in the wrong rotation.
+    dom.player.classList.add('hidden');
+    // video rotation is not parsed, parse it.
+    getVideoRotation(blob, function(rotation) {
+      videoRotation = rotation;
+      // show player when player size and rotation are correct.
+      dom.player.classList.remove('hidden');
+      // start to play the video that showPlayer also calls setPlayerSize.
+      showPlayer(url, title);
+    });
   }
 
   if (type !== 'video/youtube') {
@@ -212,7 +224,6 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
   }
 
-  // Make the video fit the container
   function setPlayerSize() {
     var containerWidth = window.innerWidth;
     var containerHeight = window.innerHeight;
@@ -222,20 +233,53 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     if (!dom.player.videoWidth || !dom.player.videoHeight)
       return;
 
-    var width = dom.player.videoWidth;
-    var height = dom.player.videoHeight;
+    var width, height; // The size the video will appear, after rotation
+
+    switch (videoRotation) {
+    case 0:
+    case 180:
+      width = dom.player.videoWidth;
+      height = dom.player.videoHeight;
+      break;
+    case 90:
+    case 270:
+      width = dom.player.videoHeight;
+      height = dom.player.videoWidth;
+    }
+
     var xscale = containerWidth / width;
     var yscale = containerHeight / height;
     var scale = Math.min(xscale, yscale);
 
-    // scale large videos down, and scale small videos up
+    // scale large videos down and scale small videos up
+    // this might result in lower image quality for small videos
     width *= scale;
     height *= scale;
 
     var left = ((containerWidth - width) / 2);
     var top = ((containerHeight - height) / 2);
 
-    var transform = 'translate(' + left + 'px,' + top + 'px)';
+    var transform;
+    switch (videoRotation) {
+    case 0:
+      transform = 'translate(' + left + 'px,' + top + 'px)';
+      break;
+    case 90:
+      transform =
+        'translate(' + (left + width) + 'px,' + top + 'px) ' +
+        'rotate(90deg)';
+      break;
+    case 180:
+      transform =
+        'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
+        'rotate(180deg)';
+      break;
+    case 270:
+      transform =
+        'translate(' + left + 'px,' + (top + height) + 'px) ' +
+        'rotate(270deg)';
+      break;
+    }
 
     transform += ' scale(' + scale + ')';
 
