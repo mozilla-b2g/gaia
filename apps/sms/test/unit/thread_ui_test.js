@@ -776,6 +776,83 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('Recipient Assimiliation', function() {
+
+    setup(function() {
+      this.sinon.spy(ThreadUI.recipients, 'visible');
+      this.sinon.spy(ThreadUI.recipients, 'add');
+
+      Threads.set(1, {
+        participants: ['999']
+      });
+    });
+
+    teardown(function() {
+      Threads.delete(1);
+      window.location.hash = '';
+    });
+
+    suite('New Conversation', function() {
+      var node;
+
+      setup(function() {
+        window.location.hash = '#new';
+
+        node = document.createElement('span');
+        node.isPlaceholder = true;
+        node.textContent = '999';
+
+        ThreadUI.recipientsList.appendChild(node);
+      });
+
+      teardown(function() {
+        ThreadUI.recipientsList.removeChild(node);
+      });
+
+      test('Will assimilate recipients', function() {
+        var visible, add;
+
+        ThreadUI.assimilateRecipients();
+
+        visible = ThreadUI.recipients.visible;
+        add = ThreadUI.recipients.add;
+
+        assert.ok(visible.called);
+        assert.equal(visible.args[0][0], 'singleline');
+        assert.include(visible.args[0][1], 'refocus');
+        assert.include(visible.args[0][1], 'noPreserve');
+        assert.equal(visible.args[0][1].refocus, ThreadUI.input);
+        assert.isTrue(visible.args[0][1].noPreserve);
+
+        assert.ok(add.called);
+        assert.deepEqual(add.args[0][0], {
+          name: '999',
+          number: '999',
+          source: 'manual'
+        });
+      });
+    });
+
+    suite('Existing Conversation', function() {
+
+      setup(function() {
+        window.location.hash = '#thread=1';
+      });
+
+      test('Will not assimilate recipients ', function() {
+        var visible, add;
+
+        ThreadUI.assimilateRecipients();
+
+        visible = ThreadUI.recipients.visible;
+        add = ThreadUI.recipients.add;
+
+        assert.isFalse(visible.called);
+        assert.isFalse(add.called);
+      });
+    });
+  });
+
   suite('message status update handlers >', function() {
     suiteSetup(function() {
       this.fakeMessage = {
