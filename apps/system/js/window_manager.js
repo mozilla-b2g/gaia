@@ -953,33 +953,16 @@ var WindowManager = (function() {
     });
 
   function createFrame(origFrame, origin, url, name, manifest, manifestURL) {
-    var iframe = origFrame || document.createElement('iframe');
-    iframe.setAttribute('mozallowfullscreen', 'true');
+    var browser_config = {
+      origin: origin,
+      url: url,
+      name: name,
+      manifest: manifest,
+      manifestURL: manifestURL,
+      isHomescreen: (origin === homescreen)
+    };
 
-    var frame = document.createElement('div');
-    frame.appendChild(iframe);
-    frame.className = 'appWindow';
-
-    iframe.dataset.frameOrigin = origin;
-    // Save original frame URL in order to restore it on frame load error
-    iframe.dataset.frameURL = url;
-
-    // Note that we don't set the frame size here.  That will happen
-    // when we display the app in setDisplayedApp()
-
-    // frames are began unloaded.
-    iframe.dataset.unloaded = true;
-
-    if (!manifestURL) {
-      frame.setAttribute('data-wrapper', 'true');
-      return frame;
-    }
-
-    // Most apps currently need to be hosted in a special 'mozbrowser' iframe.
-    // They also need to be marked as 'mozapp' to be recognized as apps by the
-    // platform.
-    iframe.setAttribute('mozbrowser', 'true');
-
+    // TODO: Move into browser configuration helper.
     // These apps currently have bugs preventing them from being
     // run out of process. All other apps will be run OOP.
     //
@@ -995,13 +978,37 @@ var WindowManager = (function() {
     ];
 
     if (outOfProcessBlackList.indexOf(manifestURL) === -1) {
-      // FIXME: content shouldn't control this directly
-      iframe.setAttribute('remote', 'true');
+      browser_config.oop = true;
     }
 
-    iframe.setAttribute('mozapp', manifestURL);
-    iframe.src = url;
+    var browser = new BrowserFrame(browser_config, origFrame);
 
+    var iframe = browser.element;
+
+    // TODO: Move into appWindow's render function.
+    var frame = document.createElement('div');
+    frame.appendChild(iframe);
+    frame.className = 'appWindow';
+
+    // TODO: Remove this line later.
+    // We won't need to store origin or url in iframe element anymore.
+    iframe.dataset.frameOrigin = origin;
+    // Save original frame URL in order to restore it on frame load error
+    iframe.dataset.frameURL = url;
+
+    // Note that we don't set the frame size here.  That will happen
+    // when we display the app in setDisplayedApp()
+
+    // TODO: Will become app window's attribute.
+    // frames are began unloaded.
+    iframe.dataset.unloaded = true;
+
+    if (!manifestURL) {
+      frame.setAttribute('data-wrapper', 'true');
+      return frame;
+    }
+
+    // TODO: Move into app window.
     // Add minimal chrome if the app needs it.
     if (manifest.chrome && manifest.chrome.navigation === true) {
       frame.setAttribute('data-wrapper', 'true');
@@ -1267,11 +1274,8 @@ var WindowManager = (function() {
   });
 
   // Watch chrome event that order to close an app
-  window.addEventListener('mozChromeEvent', function(e) {
-    if (e.detail.type == 'webapps-close') {
-      var app = Applications.getByManifestURL(e.detail.manifestURL);
-      kill(app.origin);
-    }
+  window.addEventListener('killapp', function(e) {
+    kill(e.detail.origin);
   });
 
   function getIconForSplash(manifest) {
@@ -1289,53 +1293,23 @@ var WindowManager = (function() {
     return icons[sizes[0]];
   }
 
-  // There are two types of mozChromeEvent we need to handle
-  // in order to launch the app for Gecko
-  window.addEventListener('mozChromeEvent', function(e) {
+  // TODO: Move into app window.
+  window.addEventListener('launchapp', windowLauncher);
+
+  // TODO: Remove this.
+  function windowLauncher(e) {
+    // TODO: Move into app window's attribute.
     var startTime = Date.now();
-
-    var manifestURL = e.detail.manifestURL;
-    if (!manifestURL)
+    var config = e.detail;
+    // Don't need to launch system app.
+    if (config.url === window.location.href)
       return;
 
-    var app = Applications.getByManifestURL(manifestURL);
-    if (!app)
-      return;
-
-    var manifest = app.manifest;
-    var name = new ManifestHelper(manifest).name;
-    var origin = app.origin;
-    var splash = getIconForSplash(app.manifest);
-
-    // Check if it's a virtual app from a entry point.
-    // If so, change the app name and origin to the
-    // entry point.
-    var entryPoints = manifest.entry_points;
-    if (entryPoints && manifest.type == 'certified') {
-      var givenPath = e.detail.url.substr(origin.length);
-
-      // Workaround here until the bug (to be filed) is fixed
-      // Basicly, gecko is sending the URL without launch_path sometimes
-      for (var ep in entryPoints) {
-        var currentEp = entryPoints[ep];
-        var path = givenPath;
-        if (path.indexOf('?') != -1) {
-          path = path.substr(0, path.indexOf('?'));
-        }
-
-        //Remove the origin and / to find if if the url is the entry point
-        if (path.indexOf('/' + ep) == 0 &&
-            (currentEp.launch_path == path)) {
-          origin = origin + currentEp.launch_path;
-          name = new ManifestHelper(currentEp).name;
-          splash = getIconForSplash(new ManifestHelper(currentEp));
-        }
-      }
-    }
-
+    var splash = getIconForSplash(config.manifest);
+    // TODO: Move into app Window.
     if (splash) {
       var a = document.createElement('a');
-      a.href = origin;
+      a.href = config.origin;
       splash = a.protocol + '//' + a.hostname + ':' + (a.port || 80) + splash;
 
       // Start to load the image in background to avoid flickering if possible.
@@ -1343,93 +1317,81 @@ var WindowManager = (function() {
       img.src = splash;
     }
 
-    switch (e.detail.type) {
-      // mozApps API is asking us to launch the app
-      // We will launch it in foreground
-      case 'webapps-launch':
-        if (origin == homescreen) {
-          // No need to append a frame if is homescreen
-          setDisplayedApp();
+    if (!config.isSystemMessage) {
+      if (config.origin == homescreen) {
+        // No need to append a frame if is homescreen
+        setDisplayedApp();
+      } else {
+        if (!isRunning(config.origin)) {
+          appendFrame(null, config.origin, config.url,
+                      config.name, config.manifest, config.manifestURL);
+        }
+        // TODO: Move below iframe hack into app window.
+        runningApps[config.origin].iframe.dataset.start = startTime;
+        runningApps[config.origin].iframe.splash = splash;
+        setDisplayedApp(config.origin, null);
+      }
+    } else {
+      if (config.isActivity && config.inline) {
+        // Inline activities behaves more like a dialog,
+        // let's deal them here.
+        startInlineActivity(config.origin, config.url,
+                            config.name, config.manifest, config.manifestURL);
+
+        return;
+      }
+
+      // If the message specifies we only have to show the app,
+      // then we don't have to do anything here
+      if (config.changeURL) {
+        if (isRunning(config.origin)) {
+          // If the app is in foreground, it's too risky to change it's
+          // URL. We'll ignore this request.
+          if (displayedApp !== config.origin) {
+            var iframe = getAppFrame(config.origin).firstChild;
+
+            // If the app is opened and it is loaded to the correct page,
+            // then there is nothing to do.
+            if (iframe.src !== config.url) {
+              // Rewrite the URL of the app frame to the requested URL.
+              // XXX: We could ended opening URls not for the app frame
+              // in the app frame. But we don't care.
+              iframe.src = config.url;
+            }
+          }
+        } else if (config.origin !== homescreen) {
+          // XXX: We could ended opening URls not for the app frame
+          // in the app frame. But we don't care.
+          var app = appendFrame(null, config.origin, config.url,
+                                config.name, config.manifest,
+                                config.manifestURL,
+                                /* expectingSystemMessage */
+                                true);
+
+          // set the size of the iframe
+          // so Cards View will get a correct screenshot of the frame
+          if (config.stayBackground) {
+            app.resize(false);
+            if ('setVisible' in app.iframe)
+              app.iframe.setVisible(false);
+          }
         } else {
-          if (!isRunning(origin)) {
-            appendFrame(null, origin, e.detail.url,
-                        name, app.manifest, app.manifestURL);
-          }
-          runningApps[origin].iframe.dataset.start = startTime;
-          runningApps[origin].iframe.splash = splash;
-          setDisplayedApp(origin, null, 'window');
+          ensureHomescreen();
         }
-        break;
-      // System Message Handler API is asking us to open the specific URL
-      // that handles the pending system message.
-      // We will launch it in background if it's not handling an activity.
-      case 'open-app':
-        // If the system message goes to System app,
-        // we should not be launching that in a frame.
-        if (e.detail.url === window.location.href)
-          return;
+      }
 
-        if (e.detail.isActivity && e.detail.target.disposition &&
-            e.detail.target.disposition == 'inline') {
-          // Inline activities behaves more like a dialog,
-          // let's deal them here.
-          startInlineActivity(origin, e.detail.url,
-                              name, manifest, app.manifestURL);
+      // We will only bring apps to the foreground when the message
+      // specifically requests it.
+      if (!config.isActivity)
+        return;
 
-          return;
-        }
+      // XXX: the correct way would be for UtilityTray to close itself
+      // when there is a appwillopen/appopen event.
+      UtilityTray.hide();
 
-        // If the message specifies we only have to show the app,
-        // then we don't have to do anything here
-        if (!e.detail.onlyShowApp) {
-          if (isRunning(origin)) {
-            // If the app is in foreground, it's too risky to change it's
-            // URL. We'll ignore this request.
-            if (displayedApp !== origin) {
-              var iframe = getAppFrame(origin).firstChild;
-
-              // If the app is opened and it is loaded to the correct page,
-              // then there is nothing to do.
-              if (iframe.src !== e.detail.url) {
-                // Rewrite the URL of the app frame to the requested URL.
-                // XXX: We could ended opening URls not for the app frame
-                // in the app frame. But we don't care.
-                iframe.src = e.detail.url;
-              }
-            }
-          } else if (origin !== homescreen) {
-            // XXX: We could ended opening URls not for the app frame
-            // in the app frame. But we don't care.
-            var app = appendFrame(null, origin, e.detail.url,
-                                  name, manifest, app.manifestURL,
-                                  /* expectingSystemMessage */ true);
-
-            // set the size of the iframe
-            // so Cards View will get a correct screenshot of the frame
-            if (!e.detail.isActivity) {
-              app.resize(false);
-              if ('setVisible' in app.iframe)
-                app.iframe.setVisible(false);
-            }
-          } else {
-            ensureHomescreen();
-          }
-        }
-
-        // We will only bring apps to the foreground when the message
-        // specifically requests it.
-        if (!e.detail.showApp)
-          return;
-
-        // XXX: the correct way would be for UtilityTray to close itself
-        // when there is a appwillopen/appopen event.
-        UtilityTray.hide();
-
-        setDisplayedApp(origin);
-
-        break;
+      setDisplayedApp(config.origin);
     }
-  });
+  };
 
   // If the application tried to close themselves by calling window.close()
   // we will handle that here.
@@ -1730,9 +1692,9 @@ var WindowManager = (function() {
     if (typeof detail.features !== 'string')
       return;
 
-    // Turn '&' separated string into object for easy access
+    // Turn ',' separated 'key=value' string into object for easy access
     var features = detail.features
-      .split('&')
+      .split(',')
       .reduce(function(acc, feature) {
         feature = feature
           .split('=')

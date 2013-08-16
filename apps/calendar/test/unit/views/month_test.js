@@ -138,6 +138,24 @@ suiteGroup('Views.Month', function() {
     });
   });
 
+  test('#_onswipe', function() {
+    var date = new Date(2012, 4, 10);
+    var expected = new Date(2012, 5, 1);
+    subject.date = date;
+
+    subject._onswipe({
+      dy: 0,
+      dx: 100,
+      direction: 'left'
+    });
+
+    assert.deepEqual(
+      subject.controller.selectedDay,
+      expected,
+      'selects first day of month'
+    );
+  });
+
   test('#_createChild', function() {
     var time = new Date(2012, 1, 1);
     var child = subject._createChild(time);

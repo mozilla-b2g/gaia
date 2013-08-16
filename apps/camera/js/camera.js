@@ -206,6 +206,10 @@ var Camera = {
     return document.getElementById('overlay');
   },
 
+  get storageSettingButton() {
+    return document.getElementById('storage-setting-button');
+  },
+
   get viewfinder() {
     return document.getElementById('viewfinder');
   },
@@ -246,8 +250,12 @@ var Camera = {
     return document.getElementById('overlay-close-button');
   },
 
-  get overlayMenuGroup() {
-    return document.getElementById('overlay-menu-group');
+  get overlayMenuClose() {
+    return document.getElementById('overlay-menu-close');
+  },
+
+  get overlayMenuStorage() {
+    return document.getElementById('overlay-menu-storage');
   },
 
   // We have seperated init and delayedInit as we want to make sure
@@ -331,6 +339,8 @@ var Camera = {
       .addEventListener('click', this.cancelPick.bind(this));
     this.overlayCloseButton
       .addEventListener('click', this.cancelPick.bind(this));
+    this.storageSettingButton
+      .addEventListener('click', this.storageSettingPressed.bind(this));
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -1122,6 +1132,18 @@ var Camera = {
     }
   },
 
+  storageSettingPressed: function camera_storageSettingPressed() {
+    // Click to open the media storage panel when the default storage
+    // is unavailable.
+    var activity = new MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'mediaStorage'
+      }
+    });
+  },
+
   _addPictureToStorage: function camera_addPictureToStorage(blob, callback) {
     DCFApi.createDCFFilename(this._pictureStorage, 'image',
                              function(path, name) {
@@ -1238,8 +1260,10 @@ var Camera = {
     if (this._storageState === this.STORAGE_AVAILABLE) {
       // Preview may have previously been paused if storage
       // was not available
-      // not trigger preview while in pick mode
-      if (!this._previewActive && !document.hidden && !this._pendingPick) {
+      // Don't start the preview when confirm dialog is showing. The choices of
+      // ConfirmDialog call the startPreview or close this activity.
+      if (!this._previewActive && !document.hidden &&
+          !ConfirmDialog.isShowing()) {
         this.startPreview();
       }
       this.showOverlay(null);
@@ -1254,7 +1278,7 @@ var Camera = {
       this.showOverlay('pluggedin');
       break;
     case this.STORAGE_CAPACITY:
-      this.showOverlay('nospace2');
+      this.showOverlay('nospace');
       break;
     }
     if (this._previewActive) {
@@ -1307,14 +1331,29 @@ var Camera = {
       return;
     }
 
-    if (this._pendingPick) {
-      this.overlayMenuGroup.classList.remove('hidden');
+    if (id === 'nocard') {
+      this.overlayMenuClose.classList.add('hidden');
+      this.overlayMenuStorage.classList.remove('hidden');
     } else {
-      this.overlayMenuGroup.classList.add('hidden');
+      if (this._pendingPick) {
+        this.overlayMenuClose.classList.remove('hidden');
+        this.overlayMenuStorage.classList.add('hidden');
+      } else {
+        this.overlayMenuClose.classList.add('hidden');
+        this.overlayMenuStorage.classList.add('hidden');
+      }
     }
 
-    this.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
-    this.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+    if (id === 'nocard') {
+      this.overlayTitle.textContent = navigator.mozL10n.get('nocard2-title');
+      this.overlayText.textContent = navigator.mozL10n.get('nocard2-text');
+    } else if (id === 'nospace') {
+      this.overlayTitle.textContent = navigator.mozL10n.get('nospace2-title');
+      this.overlayText.textContent = navigator.mozL10n.get('nospace2-text');
+    } else {
+      this.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
+      this.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+    }
     this.overlay.classList.remove('hidden');
   },
 

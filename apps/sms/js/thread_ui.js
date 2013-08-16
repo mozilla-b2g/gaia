@@ -247,12 +247,8 @@ var ThreadUI = global.ThreadUI = {
     subheaderMutation.observe(document.getElementById('thread-messages'), {
       attributes: true
     });
-    this.recipientsList.addEventListener('transitionend',
-      subheaderMutationHandler);
 
     ThreadUI.setInputMaxHeight();
-
-    generateHeightRule();
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -455,8 +451,6 @@ var ThreadUI = global.ThreadUI = {
       this.updateInputHeight();
     }
 
-    generateHeightRule();
-
     // Scroll to bottom
     this.scrollViewToBottom();
     // Make sure the caret in the "Compose" area is visible
@@ -534,8 +528,8 @@ var ThreadUI = global.ThreadUI = {
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
-    if (!this.isScrolledManually) {
-      this.container.scrollTop = this.container.scrollHeight;
+    if (!this.isScrolledManually && this.container.lastElementChild) {
+      this.container.lastElementChild.scrollIntoView(false);
     }
   },
 
@@ -566,7 +560,9 @@ var ThreadUI = global.ThreadUI = {
     // triggers a synchronous workflow (bug 891029).
     this.container.style.borderBottomWidth = null;
     viewHeight = this.container.offsetHeight;
-    this.input.style.maxHeight = (viewHeight - adjustment) + 'px';
+    var maxHeight = viewHeight - adjustment;
+    this.input.style.maxHeight = maxHeight + 'px';
+    generateHeightRule(maxHeight);
   },
 
   back: function thui_back() {
@@ -2168,40 +2164,17 @@ window.confirm = window.confirm; // allow override in unit tests
  * to the recipients list to set its height for
  * multiline mode.
  *
- * @return {Boolean} true if rule was created, false if not.
+ * @param {Number} available The height (in pixels) available.
+ *
+ * @return {Boolean} true if rule was modified, false if not.
  */
-function generateHeightRule() {
-  var available, css, computed, occupied, index,
-      sheet, sheets, style, tmpl;
 
-  occupied = generateHeightRule.occupied;
+function generateHeightRule(available) {
+  var css, index, sheet, sheets, style, tmpl,
+    natural = ThreadUI.recipientsList.scrollHeight,
+    height = Math.min(natural, available);
 
-  if (occupied == null) {
-    computed = {
-      list: window.getComputedStyle(
-        ThreadUI.recipientsList, null
-      ),
-      carrier: window.getComputedStyle(
-        document.getElementById('contact-carrier'), null
-      )
-    };
-
-    occupied = generateHeightRule.occupied = [
-      // This magic number ensures no part of the input
-      // area "shifts" downward. Without this, the placeholder
-      // text in the input appears to move ever so slightly.
-      2,
-      ThreadUI.INPUT_MARGIN,
-      ThreadUI.subheader.scrollHeight,
-      ThreadUI.sendButton.scrollHeight,
-      parseInt(computed.list.getPropertyValue('margin-bottom'), 10),
-      parseInt(computed.carrier.getPropertyValue('height'), 10)
-    ].reduce(function(a, b) { return a + b; });
-  }
-
-  available = ThreadUI.container.clientHeight - occupied;
-
-  if (available === generateHeightRule.available) {
+  if (height === generateHeightRule.prev) {
     return false;
   }
 
@@ -2216,7 +2189,7 @@ function generateHeightRule() {
   tmpl = generateHeightRule.tmpl || Utils.Template('height-rule-tmpl');
 
   css = tmpl.interpolate({
-    height: String(available)
+    height: String(height)
   }, { safe: ['height'] });
 
   if (generateHeightRule.index) {
@@ -2225,7 +2198,7 @@ function generateHeightRule() {
 
   sheet.insertRule(css, index);
 
-  generateHeightRule.available = available;
+  generateHeightRule.prev = height;
   generateHeightRule.index = index;
   generateHeightRule.sheet = sheet;
   generateHeightRule.tmpl = tmpl;

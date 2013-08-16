@@ -9,13 +9,21 @@ var MockFbGraphData = {
       'last_name': 'Bureta',
       'pic_big':
       'http://profile.ak.fbcdn.net/hprofile-ak-ash3/49136_779462559_2920_n.jpg',
-      'current_location': {
+      'hometown_location': {
         'city': 'Valladolid',
         'state': 'Castilla y Leon',
         'country': 'Spain',
         'zip': '',
         'id': 108236755863231,
         'name': 'Valladolid, Spain'
+      },
+      'current_location': {
+        'city': 'Greater London',
+        'state': 'London',
+        'country': 'United Kingdom',
+        'zip': '',
+        'id': 902104567293783,
+        'name': 'London, United Kingdom'
       },
       'middle_name': 'Angel',
       'birthday_date': '12/03/1984',
@@ -44,8 +52,7 @@ var MockFbGraphData = {
           'is_verified': true,
           'is_sms_enabled': false
         }
-      ],
-      'hometown_location': null
+      ]
     }
   ]
 };

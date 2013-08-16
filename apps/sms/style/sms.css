@@ -331,7 +331,7 @@ section.has-carrier .article-list header:first-child {
 }
 
 .article-list[data-type="list"] > ul:last-child {
-  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
 }
 
 .article-list header,
@@ -740,9 +740,10 @@ section[role="region"].new #messages-to-field {
 }
 
 #messages-recipients-list {
-  height: 2.4rem;
+  height: 3.6rem;
   padding-top: 1.2rem;
   margin-bottom: 0.8rem;
+  -moz-box-sizing: border-box;
 
   transition: height 0.2s ease-in-out;
   /* From JS, Make this overflow:scroll when it's time to make this field
@@ -762,7 +763,6 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 */
 #messages-recipients-list.singleline {
   overflow-y: hidden;
-  height: 2.4rem;
 }
 
 .recipient {

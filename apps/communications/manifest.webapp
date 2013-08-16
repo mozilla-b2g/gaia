@@ -91,7 +91,7 @@
       "filters": {
         "type": {
           "required": true,
-          "value": ["webcontacts/contact","webcontacts/email"]
+          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel"]
         }
        },
       "disposition": "inline",

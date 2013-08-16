@@ -79,6 +79,9 @@ ol.link-list li:only-child a {
 
 #time-views > #month-view {
   height: calc(65% - 5rem);
+  box-shadow: 0px 5px 5px 0px rgba(1, 1, 1, 0.2);
+  position: relative;
+  z-index: 20;
 }
 
 #time-views > #months-day-view {
@@ -272,8 +275,7 @@ body[data-path^="/month/"] section.month.previous {
 
 section.month {
   z-index: 200;
-  top: 4.9rem;
-  height: calc(65% - 5rem);
+  height: 100%;
   position: absolute;
   color: #484848;
   width: 100%;
@@ -448,17 +450,6 @@ Indicators are in units of 12
 .rtl .busy-indicator .busy-10 { right: 74.97%; }
 .rtl .busy-indicator .busy-11 { right: 83.3%; }
 .rtl .busy-indicator .busy-12 { right: 91.63%; }
-
-/* sub: months day view */
-
-#months-day-view  h1 {
-  padding: 0.2rem 1.5rem 0;
-  font-size: 1.5rem;
-  font-weight: 500;
-  line-height: 2.8rem;
-  color: #F93700;
-  border-bottom: 0.1rem solid #F93700;
-}
 
 /** sub: view selector **/
 
