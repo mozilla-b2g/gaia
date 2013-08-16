@@ -238,12 +238,12 @@
     // Bubble click events from inside the iframe.
     var iframe = event.target;
     var clickOnFrame = iframe.click.bind(iframe);
+
+    iframe.removeEventListener('load', iframeLoad);
     navigator.mozL10n.translate(iframe.contentDocument.body);
     iframe.contentDocument.addEventListener('click', clickOnFrame);
     iframe.contentDocument.addEventListener('contextmenu', clickOnFrame);
-    iframe.removeEventListener('load', iframeLoad);
   }
-
 
   exports.Attachment = Attachment;
 }(this));
