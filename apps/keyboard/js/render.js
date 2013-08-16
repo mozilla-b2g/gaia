@@ -20,6 +20,9 @@ const IMERender = (function() {
 
   var layoutWidth = 10;
 
+  var numberOfCandidatesPerRow = 8;
+  var candidateUnitWidth;
+
   var inputMethodName; // used as a CSS class on the candidatePanel
 
   // Initialize the render. It needs some business logic to determine:
@@ -238,117 +241,245 @@ const IMERender = (function() {
     }
   };
 
+  var toggleCandidatePanel = function(expand) {
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
+
+    if (expand) {
+      IMERender.ime.classList.remove('candidate-panel');
+      IMERender.ime.classList.add('full-candidate-panel');
+    } else {
+      IMERender.ime.classList.remove('full-candidate-panel');
+      IMERender.ime.classList.add('candidate-panel');
+    }
+
+    resizeCandidatePanelToggleButton();
+  };
+
+  var resizeCandidatePanelToggleButton = function() {
+    var candidatePanelToggleButton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
+
+    if (candidatePanelToggleButton) {
+      candidatePanelToggleButton.style.width =
+        (IMERender.isFullCandidataPanelShown() ?
+         candidateUnitWidth - 8 : candidateUnitWidth) + 'px';
+    }
+  };
+
+  var isFullCandidataPanelShown = function() {
+    return IMERender.ime.classList.contains('full-candidate-panel');
+  };
+
   // Show candidates
   // Each candidate is a string or an array of two strings
   var showCandidates = function(candidates, noWindowHeightUpdate) {
     // TODO: Save the element
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var candidatePanelToggleButton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
 
     if (candidatePanel) {
+      candidatePanel.dataset.candidateIndicator = 0;
+
       candidatePanel.innerHTML = '';
       candidatePanel.scrollTop = candidatePanel.scrollLeft = 0;
 
-      // If there were too many candidate
-      delete candidatePanel.dataset.truncated;
-      if (candidates.length > 74) {
-        candidates = candidates.slice(0, 74);
-        candidatePanel.dataset.truncated = true;
-      }
+      var docFragment = document.createDocumentFragment();
 
-      // Make sure all of the candidates are defined
-      candidates = candidates.filter(function(c) { return !!c });
+      if (inputMethodName == 'latin') {
+        candidates.forEach(function buildCandidateEntry(candidate) {
+          // Make sure all of the candidates are defined
+          if (!candidate) return;
 
-      candidates.forEach(function buildCandidateEntry(candidate) {
-        // Each candidate gets its own div
-        var div = document.createElement('div');
-        // Size the div based on the # of candidates (-2% for margins)
-        div.style.width = (100 / candidates.length - 2) + '%';
-        candidatePanel.appendChild(div);
+          // Each candidate gets its own div
+          var div = document.createElement('div');
+          // Size the div based on the # of candidates (-2% for margins)
+          div.style.width = (100 / candidates.length - 2) + '%';
+          docFragment.appendChild(div);
 
-        var text, data, correction = false;
-        if (typeof candidate === 'string') {
-          if (candidate[0] === '*') { // it is an autocorrection candidate
-            candidate = candidate.substring(1);
-            correction = true;
-          }
-          data = text = candidate;
-        }
-        else {
-          text = candidate[0];
-          data = candidate[1];
-        }
-
-        var span = fitText(div, text);
-        span.dataset.selection = true;
-        span.dataset.data = data;
-        if (correction)
-          span.classList.add('autocorrect');
-
-        // Put the text in a span and make it fit in the container
-        function fitText(container, text) {
-          container.textContent = '';
-          if (!text)
-            return;
-          var span = document.createElement('span');
-          span.textContent = text;
-          container.appendChild(span);
-
-          // Measure the width of the element, and return the scale that
-          // we can use to make it fit in the container. The return values
-          // are restricted to a set that matches the standard font sizes
-          // we use in Gaia.
-          //
-          // Note that this only works if the element is display:inline
-          function getScale(element, container) {
-            var elementWidth = element.getBoundingClientRect().width;
-            var s = container.clientWidth / elementWidth;
-            if (s >= 1)
-              return 1;    // 10pt font "Body Large"
-            if (s >= .8)
-              return .8;   // 8pt font "Body"
-            if (s >= .7)
-              return .7;   // 7pt font "Body Medium"
-            if (s >= .65)
-              return .65;  // 6.5pt font "Body Small"
-            if (s >= .6)
-              return .6;   // 6pt font "Body Mini"
-            return s;      // Something smaller than 6pt.
-          }
-
-          var limit = .6;  // Dont use a scale smaller than this
-          var scale = getScale(span, container);
-
-          // If the text does not fit within the scaling limit,
-          // reduce the length of the text by replacing characters in
-          // the middle with ...
-          if (scale < limit) {
-            var charactersReplaced = text.length % 2;
-            while (scale < limit && charactersReplaced < text.length - 2) {
-              charactersReplaced += 2;
-              var halflen = (text.length - charactersReplaced) / 2;
-              span.textContent = text.substring(0, halflen) +
-                '…' +
-                text.substring(text.length - halflen);
-              scale = getScale(span, container);
+          var text, data, correction = false;
+          if (typeof candidate === 'string') {
+            if (candidate[0] === '*') { // it is an autocorrection candidate
+              candidate = candidate.substring(1);
+              correction = true;
             }
-          }
-
-          // The scaling and centering we do only works if the span
-          // is display:block or inline-block
-          span.style.display = 'inline-block';
-          if (scale < 1) {
-            span.style.width = (100 / scale) + '%';
-            span.style.transformOrigin = 'left';
-            span.style.transform = 'scale(' + scale + ')';
+            data = text = candidate;
           }
           else {
-            span.style.width = '100%';
+            text = candidate[0];
+            data = candidate[1];
           }
 
-          return span;
-        }
-      });
+          var span = fitText(div, text);
+          span.dataset.selection = true;
+          span.dataset.data = data;
+          if (correction)
+            span.classList.add('autocorrect');
+
+          // Put the text in a span and make it fit in the container
+          function fitText(container, text) {
+            container.textContent = '';
+            if (!text)
+              return null;
+            var span = document.createElement('span');
+            span.textContent = text;
+            container.appendChild(span);
+
+            // Measure the width of the element, and return the scale that
+            // we can use to make it fit in the container. The return values
+            // are restricted to a set that matches the standard font sizes
+            // we use in Gaia.
+            //
+            // Note that this only works if the element is display:inline
+            function getScale(element, container) {
+              var elementWidth = element.getBoundingClientRect().width;
+              var s = container.clientWidth / elementWidth;
+              if (s >= 1)
+                return 1;    // 10pt font "Body Large"
+              if (s >= .8)
+                return .8;   // 8pt font "Body"
+              if (s >= .7)
+                return .7;   // 7pt font "Body Medium"
+              if (s >= .65)
+                return .65;  // 6.5pt font "Body Small"
+              if (s >= .6)
+                return .6;   // 6pt font "Body Mini"
+              return s;      // Something smaller than 6pt.
+            }
+
+            var limit = .6;  // Dont use a scale smaller than this
+            var scale = getScale(span, container);
+
+            // If the text does not fit within the scaling limit,
+            // reduce the length of the text by replacing characters in
+            // the middle with ...
+            if (scale < limit) {
+              var charactersReplaced = text.length % 2;
+              while (scale < limit && charactersReplaced < text.length - 2) {
+                charactersReplaced += 2;
+                var halflen = (text.length - charactersReplaced) / 2;
+                span.textContent = text.substring(0, halflen) +
+                  '…' +
+                  text.substring(text.length - halflen);
+                scale = getScale(span, container);
+              }
+            }
+
+            // The scaling and centering we do only works if the span
+            // is display:block or inline-block
+            span.style.display = 'inline-block';
+            if (scale < 1) {
+              span.style.width = (100 / scale) + '%';
+              span.style.transformOrigin = 'left';
+              span.style.transform = 'scale(' + scale + ')';
+            }
+            else {
+              span.style.width = '100%';
+            }
+
+            return span;
+          }
+        });
+      } else {
+        candidatePanelToggleButton.style.display = 'none';
+        docFragment = candidatesFragmentCode(1, candidates, true);
+      }
+
+      candidatePanel.appendChild(docFragment);
     }
+  };
+
+  var showMoreCandidates = function(rowLimit, candidates) {
+    if (!rowLimit) rowLimit = -1;
+    if (!candidates) return;
+    document.getElementById('keyboard-candidate-panel').appendChild(
+      candidatesFragmentCode(rowLimit, candidates)
+    );
+  };
+
+  var getNumberOfCandidatesPerRow = function() {
+    return numberOfCandidatesPerRow;
+  };
+
+  var candidatesFragmentCode = function(rowLimit, candidates, indentFirstRow) {
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+    var candidatePanelToggleButton =
+      document.getElementById('keyboard-candidate-panel-toggle-button');
+
+    var docFragment = document.createDocumentFragment();
+    if (candidates.length == 0) {
+      return docFragment;
+    }
+
+    var rowDiv = document.createElement('div');
+    rowDiv.classList.add('candidate-row');
+    if (indentFirstRow) {
+      rowDiv.classList.add('candidate-row-first');
+    }
+
+    var nowUnit = 0;
+    var rowCount = 0;
+
+    if (rowLimit < 0) {
+      rowLimit = Number.Infinity;
+    }
+
+    var candidatesLength = candidates.length;
+
+    for (var i = 0; i < candidatesLength; i++) {
+      var cand = candidates[i][0];
+      var data = candidates[i][1];
+      var span = document.createElement('span');
+      var unit = (cand.length >> 1) + 1;
+
+      span.textContent = cand;
+      span.dataset.selection = true;
+      span.dataset.data = data;
+      span.style.width = (unit * candidateUnitWidth - 2) + 'px';
+
+      nowUnit += unit;
+
+      var needBreak = false;
+      if (rowCount == 0 && indentFirstRow &&
+          nowUnit == numberOfCandidatesPerRow && i != candidatesLength - 1) {
+        needBreak = true;
+      }
+
+      if (nowUnit > numberOfCandidatesPerRow || needBreak) {
+        if (rowCount == 0) {
+          candidatePanelToggleButton.style.display = 'block';
+        }
+
+        if (rowCount >= rowLimit - 1) {
+          break;
+        }
+
+        docFragment.appendChild(rowDiv);
+        rowCount++;
+
+        rowDiv = document.createElement('div');
+        rowDiv.classList.add('candidate-row');
+        nowUnit = unit;
+      }
+
+      rowDiv.appendChild(span);
+    }
+
+    if (i != candidatesLength) {
+      candidatePanel.dataset.truncated = true;
+    } else {
+      delete candidatePanel.dataset.truncated;
+    }
+
+    candidatePanel.dataset.rowCount = rowCount + 1;
+    candidatePanel.dataset.candidateIndicator =
+      parseInt(candidatePanel.dataset.candidateIndicator) + i;
+
+    docFragment.appendChild(rowDiv);
+    rowDiv = null;
+
+    return docFragment;
   };
 
   // Show keyboard layout alternatives
@@ -567,6 +698,19 @@ const IMERender = (function() {
           });
         }
       }
+
+      candidateUnitWidth =
+        Math.floor(keyboard.clientWidth / numberOfCandidatesPerRow);
+
+      [].forEach.call(
+        keyboard.querySelectorAll('.candidate-row span'),
+        function(item) {
+          var unit = (item.textContent.length >> 1) + 1;
+          item.style.width = (unit * candidateUnitWidth - 2) + 'px';
+        }
+      );
+
+      resizeCandidatePanelToggleButton();
     }
   };
 
@@ -599,11 +743,20 @@ const IMERender = (function() {
 
   var candidatePanelToggleButtonCode = function() {
     var toggleButton = document.createElement('span');
-    toggleButton.textContent = '⇪';
     toggleButton.id = 'keyboard-candidate-panel-toggle-button';
-    if (inputMethodName)
-      toggleButton.classList.add(inputMethodName);
     toggleButton.dataset.keycode = -4;
+    if (inputMethodName) {
+      toggleButton.classList.add(inputMethodName);
+    }
+
+    var toggleButtonImage = document.createElement('span');
+    toggleButtonImage.id = 'keyboard-candidate-panel-toggle-button-image';
+    toggleButton.appendChild(toggleButtonImage);
+
+    toggleButton.style.width =
+      Math.floor(document.getElementById('keyboard').clientWidth /
+                 numberOfCandidatesPerRow) + 'px';
+
     return toggleButton;
   };
 
@@ -695,6 +848,10 @@ const IMERender = (function() {
     'getHeight': getHeight,
     'getKeyArray': getKeyArray,
     'getKeyWidth': getKeyWidth,
-    'getKeyHeight': getKeyHeight
+    'getKeyHeight': getKeyHeight,
+    'showMoreCandidates': showMoreCandidates,
+    'toggleCandidatePanel': toggleCandidatePanel,
+    'isFullCandidataPanelShown': isFullCandidataPanelShown,
+    'getNumberOfCandidatesPerRow': getNumberOfCandidatesPerRow
   };
 })();
