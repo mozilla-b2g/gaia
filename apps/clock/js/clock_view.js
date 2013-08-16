@@ -265,14 +265,6 @@ var ClockView = {
     document.getElementById('alarms').className = 'count' + type;
   },
 
-  showHideAlarmSetIndicator: function cv_showHideAlarmSetIndicator(enabled) {
-    if (enabled) {
-      this.hourState.classList.add('alarm-set-indicator');
-    } else {
-      this.hourState.classList.remove('alarm-set-indicator');
-    }
-  },
-
   hide: function cv_hide() {
     setTimeout(function() {
       this.digital.className = '';
