@@ -94,7 +94,10 @@ var ClockView = {
 
     this.analog.addEventListener('click', handler, false);
     this.digital.addEventListener('click', handler, false);
-
+    this.hands = {};
+    ['second', 'minute', 'hour'].forEach(function(hand) {
+      this.hands[hand] = document.getElementById(hand + 'hand');
+    }, this);
     // Kick off the day date display (upper left string)
     this.updateDayDate();
 
@@ -159,52 +162,37 @@ var ClockView = {
     if (opts.needsResize) {
       this.resizeAnalogClock();
     }
-
-    // Update the SVG clock graphic to show current time
-    var now = new Date(); // Current time
-    var sec = now.getSeconds(); // Seconds
-    var min = now.getMinutes(); // Minutes
-    var hour = (now.getHours() % 12) + min / 60; // Fractional hours
-    var lastHour = (now.getHours() - 1 % 12) + min / 60;
-    // 6 degrees per second
-    this.setTransform('secondhand', sec * 6, (sec - 1) * 6);
-    // Inverse angle 180 degrees for rect hands
-    // 6 degrees per minute
-    this.setTransform('minutehand', min * 6 - 180, (min - 1) * 6 - 180);
-    // 30 degrees per hour
-    this.setTransform('hourhand', hour * 30 - 180, (lastHour) * 30 - 180);
-
+    var now = new Date();
+    var sec, min, hour;
+    sec = now.getSeconds();
+    min = now.getMinutes();
+    // hours progress gradually
+    hour = (now.getHours() % 12) + min / 60;
+    this.setTransform('second', sec);
+    this.setTransform('minute', min);
+    this.setTransform('hour', hour);
+    // update again in one second
     this.timeouts.analog = setTimeout(
       this.updateAnalogClock.bind(this), 1000 - now.getMilliseconds()
     );
   },
 
-  setTransform: function cv_setTransform(id, angle, from) {
-    !this.rotation && (this.rotation = {});
-    // Get SVG elements for the hands of the clock
-    var hand = document.getElementById(id);
-    // Set an SVG attribute on them to move them around the clock face
-    if (!this.rotation[id]) {
-      this.rotation[id] =
-        document.createElementNS('http://www.w3.org/2000/svg',
-                                 'animateTransform');
+  setTransform: function cv_setTransform(id, angle) {
+    var hand = this.hands[id];
+    // return correct angle for different hands
+    function conv(timeFrag) {
+      var mult, offset;
+      // generate a conformable number to rotate about
+      // 30 degrees per hour 6 per second and minute
+      mult = id === 'hour' ? 30 : 6;
+      // note the minute and hour hands are reversed relative to the secondhand
+      offset = id === 'second' ? 0 : 180;
+      // we generate the angle from the fractional sec/min/hour
+      return (timeFrag * mult) - offset;
     }
-    if (!hand) { return; }
-
-    // In order to repaint once see, i use this trick. See Bug 817993
-    var rotate = this.rotation[id];
-    // don't repaint unless hand has changed
-    if (rotate.getAttribute('to') == angle + ',135,135')
-      return;
-
-    rotate.setAttribute('attributeName', 'transform');
-    rotate.setAttribute('attributeType', 'xml');
-    rotate.setAttribute('type', 'rotate');
-    rotate.setAttribute('from', from + ',135,135');
-    rotate.setAttribute('to', angle + ',135,135');
-    rotate.setAttribute('dur', '0.001s');
-    rotate.setAttribute('fill', 'freeze');
-    hand.appendChild(rotate);
+    // Use transform rotate on the rect itself vs on a child element
+    // avoids unexpected behavior if either dur and fill are set to defaults
+    hand.setAttribute('transform', 'rotate(' + conv(angle) + ',135,135)');
   },
 
   handleEvent: function cv_handleEvent(event) {
