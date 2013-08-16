@@ -145,6 +145,7 @@ var LockScreen = {
     /* Gesture */
     this.area.addEventListener('touchstart', this);
     this.areaCamera.addEventListener('touchstart', this);
+    this.altCamera.addEventListener('touchstart', this);
     this.areaUnlock.addEventListener('touchstart', this);
     this.iconContainer.addEventListener('touchstart', this);
 
@@ -332,7 +333,8 @@ var LockScreen = {
 
       case 'touchstart':
         if (evt.target === this.areaUnlock ||
-           evt.target === this.areaCamera) {
+           evt.target === this.areaCamera ||
+           evt.target === this.altCamera) {
           evt.preventDefault();
           this.handleIconClick(evt.target);
           break;
@@ -503,6 +505,7 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
+      case this.altCamera:
         var panelOrFullApp = function panelOrFullApp() {
           // If the passcode is enabled and it has a timeout which has passed
           // switch to secure camera
