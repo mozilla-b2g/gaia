@@ -18,7 +18,7 @@
  * ObservableArrays.
  */
 var KeyboardContext = (function() {
-  var _layoutDict = null; // stores layout indexed by appOrigin and layoutName
+  var _layoutDict = null; // stores layout indexed by appOrigin and layoutId
 
   var _keyboards = ObservableArray([]);
   var _enabledLayouts = ObservableArray([]);
@@ -37,10 +37,11 @@ var KeyboardContext = (function() {
   };
 
   var Layout =
-    function(name, appName, appOrigin, description, types, enabled) {
+    function(id, appName, appOrigin, name, description, types, enabled) {
       var _observable = Observable({
-        name: name,
+        id: id,
         appName: appName,
+        name: name,
         description: description,
         types: types,
         enabled: enabled
@@ -52,11 +53,11 @@ var KeyboardContext = (function() {
         if (keyboardSettings) {
           for (var i = 0; i < keyboardSettings.length; i++) {
             var layout = keyboardSettings[i];
-            if (layout.appOrigin === appOrigin && layout.layoutName === name) {
+            if (layout.appOrigin === appOrigin && layout.layoutId === id) {
               if (layout.enabled !== newValue) {
                 layout.enabled = newValue;
 
-                KeyboardHelper.setLayoutEnabled(appOrigin, layout.layoutName,
+                KeyboardHelper.setLayoutEnabled(appOrigin, layout.layoutId,
                 layout.enabled);
               }
               break;
@@ -77,7 +78,7 @@ var KeyboardContext = (function() {
         var keyboard, layout;
 
         keyboard = _layoutDict[rawLayout.appOrigin];
-        layout = keyboard ? keyboard[rawLayout.layoutName] : null;
+        layout = keyboard ? keyboard[rawLayout.layoutId] : null;
 
         if (layout) {
           if (rawLayout.enabled) {
@@ -101,18 +102,19 @@ var KeyboardContext = (function() {
         var layouts = [];
 
         _layoutDict[rawKeyboard.origin] = {};
-        for (var name in entryPoints) {
-          var rawLayout = entryPoints[name];
+        for (var key in entryPoints) {
+          var rawLayout = entryPoints[key];
           var launchPath = rawLayout.launch_path;
-          if (!entryPoints[name].types) {
+          if (!entryPoints[key].types) {
             console.warn('the keyboard app did not declare type.');
             continue;
           }
-          var layout = Layout(name, keyboardManifest.name,
-                              rawKeyboard.origin, rawLayout.description,
+          var layout = Layout(key, keyboardManifest.name,
+                              rawKeyboard.origin, rawLayout.name,
+                              rawLayout.description,
                               rawLayout.types, false);
           layouts.push(layout);
-          _layoutDict[rawKeyboard.origin][name] = layout;
+          _layoutDict[rawKeyboard.origin][key] = layout;
         }
 
         _keyboards.push(Keyboard(keyboardManifest.name,

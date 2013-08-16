@@ -37,11 +37,11 @@ var KeyboardHelper = {
     settings.addObserver(SETTINGS_KEY, this.getKeyboardSettings.bind(this));
   },
 
-  setLayoutEnabled: function kh_setLayoutEnabled(appOrigin, layoutName,
+  setLayoutEnabled: function kh_setLayoutEnabled(appOrigin, layoutId,
   enabled) {
     for (var i = 0; i < this.keyboardSettings.length; i++) {
       if (this.keyboardSettings[i].appOrigin === appOrigin &&
-        this.keyboardSettings[i].layoutName === layoutName) {
+        this.keyboardSettings[i].layoutId === layoutId) {
         this.keyboardSettings[i].enabled = enabled;
         this.saveToSettings();
         break;
@@ -49,11 +49,11 @@ var KeyboardHelper = {
     }
   },
 
-  getLayoutEnabled: function kh_getLayoutEnabled(appOrigin, layoutName) {
+  getLayoutEnabled: function kh_getLayoutEnabled(appOrigin, layoutId) {
     var enabledValue = false;
     for (var i = 0; i < this.keyboardSettings.length; i++) {
       if (this.keyboardSettings[i].appOrigin == appOrigin &&
-        this.keyboardSettings[i].layoutName == layoutName) {
+        this.keyboardSettings[i].layoutId == layoutId) {
         enabledValue = this.keyboardSettings[i].enabled;
         break;
       }
@@ -73,17 +73,17 @@ var KeyboardHelper = {
           self.keyboardSettings = [];
           apps.forEach(function(app) {
             var entryPoints = app.manifest.entry_points;
-            for (var name in entryPoints) {
-              var launchPath = entryPoints[name].launch_path;
-              if (!entryPoints[name].types) {
+            for (var key in entryPoints) {
+              var launchPath = entryPoints[key].launch_path;
+              if (!entryPoints[key].types) {
                 console.warn('the keyboard app did not declare type.');
                 continue;
               }
               // for settings
               self.keyboardSettings.push({
-                'layoutName': name,
-                'appOrigin': app.origin,
-                'enabled': false
+                layoutId: key,
+                appOrigin: app.origin,
+                enabled: false
               });
             }
           });
@@ -99,21 +99,21 @@ var KeyboardHelper = {
           }
 
           defaultLayout.push({
-            'layoutName': 'English',
-            'appOrigin': hackOrigin
+            layoutId: 'en',
+            appOrigin: hackOrigin
           });
 
           defaultLayout.push({
-            'layoutName': 'number',
-            'appOrigin': hackOrigin
+            layoutId: 'number',
+            appOrigin: hackOrigin
           });
 
           for (var j = 0; j < defaultLayout.length; j++) {
             var appOrigin = defaultLayout[j].appOrigin;
-            var layoutName = defaultLayout[j].layoutName;
+            var layoutId = defaultLayout[j].layoutId;
             for (var i = 0; i < self.keyboardSettings.length; i++) {
               if (self.keyboardSettings[i].appOrigin === appOrigin &&
-                self.keyboardSettings[i].layoutName === layoutName) {
+                self.keyboardSettings[i].layoutId === layoutId) {
                 self.keyboardSettings[i].enabled = true;
                 break;
               }
