@@ -31,6 +31,8 @@ var Browser = {
   DEFAULT_SEARCH_PROVIDER_URL: 'www.google.com',
   DEFAULT_SEARCH_PROVIDER_TITLE: 'Google',
   DEFAULT_SEARCH_PROVIDER_ICON: 'http://www.google.com/favicon.ico',
+
+  DEVICE_RATIO: window.devicePixelRatio,
   DEFAULT_FAVICON: 'style/images/favicon.png',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
@@ -425,11 +427,11 @@ var Browser = {
           this.setUrlBar(tab.title || tab.url);
           this.setUrlButtonMode(this.REFRESH);
         }
-
         // Capture screenshot for tab thumbnail
         if (tab.dom.getScreenshot) {
-          tab.dom.getScreenshot(this.MAX_THUMBNAIL_WIDTH,
-            this.MAX_THUMBNAIL_HEIGHT).onsuccess = (function(e) {
+          tab.dom.getScreenshot(this.MAX_THUMBNAIL_WIDTH * this.DEVICE_RATIO,
+            this.MAX_THUMBNAIL_HEIGHT * this.DEVICE_RATIO).onsuccess =
+          (function(e) {
             tab.screenshot = e.target.result;
             if (this.currentScreen === this.TABS_SCREEN) {
               this.showTabScreen();
