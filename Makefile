@@ -32,6 +32,24 @@
 # JSHINTRC=<path> will use this config file when running jshint               #
 #                                                                             #
 ###############################################################################
+#                                                                             #
+# XULrunner download and location configuration                               #
+#                                                                             #
+# USE_LOCAL_XULRUNNER_SDK  : if you have a local XULrunner installation and   #
+#                            wants to use it                                  #
+#                                                                             #
+# XULRUNNER_DIRECTORY      : if you use USE_LOCAL_XULRUNNER_SDK, this is      #
+#                            where your local XULrunner installation is       #
+#                                                                             #
+# XULRUNNER_BASE_DIRECTORY : if you don't use USE_LOCAL_XULRUNNER_SDK, this   #
+#                            is where you want the automatic XULrunner        #
+#                            download to uncompress.                          #
+#                                                                             #
+# Submakes will get XULRUNNER_DIRECTORY, XULRUNNERSDK and XPCSHELLSDK as      #
+# absolute paths.                                                             #
+#                                                                             #
+###############################################################################
+
 -include local.mk
 
 # .b2g.mk recorded the make flags from Android.mk
@@ -75,6 +93,9 @@ PROFILE_FOLDER?=profile-debug
 endif
 
 PROFILE_FOLDER?=profile
+
+STAGE_FOLDER?=build_stage
+export STAGE_FOLDER
 
 LOCAL_DOMAINS?=1
 
@@ -382,13 +403,14 @@ ifneq ($(DEBUG),1)
 endif
 endif
 
+.PHONY: app-makefiles
 app-makefiles:
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
 			for mfile in `find $$d -mindepth 1 -maxdepth 1 -name "Makefile"` ;\
 			do \
-				make -C `dirname $$mfile`; \
+				make -C `dirname $$mfile` || exit 1 ;\
 			done; \
 		fi; \
 	done;
@@ -474,7 +496,12 @@ reference-workload-x-heavy:
 
 # The install-xulrunner target arranges to get xulrunner downloaded and sets up
 # some commands for invoking it. But it is platform dependent
+# IMPORTANT: you should generally change the directory name when you change the
+# URL unless you know what you're doing
 XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013/08/2013-08-07-03-02-16-mozilla-central/xulrunner-26.0a1.en-US.
+XULRUNNER_BASE_DIRECTORY?=xulrunner-sdk-26
+XULRUNNER_DIRECTORY?=$(XULRUNNER_BASE_DIRECTORY)/xulrunner-sdk
+XULRUNNER_URL_FILE=$(XULRUNNER_BASE_DIRECTORY)/.url
 
 ifeq ($(SYS),Darwin)
 # For mac we have the xulrunner-sdk so check for this directory
@@ -487,14 +514,14 @@ else
 # 64-bit
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
 endif
-XULRUNNERSDK=./xulrunner-sdk/bin/XUL.framework/Versions/Current/run-mozilla.sh
-XPCSHELLSDK=./xulrunner-sdk/bin/XUL.framework/Versions/Current/xpcshell
+XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/run-mozilla.sh)
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell)
 
 else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
 # For windows we only have one binary
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_URL)win32.sdk.zip
 XULRUNNERSDK=
-XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
 
 else
 # Otherwise, assume linux
@@ -506,23 +533,37 @@ XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
 else
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)i686.sdk.tar.bz2
 endif
-XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
-XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
+XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/run-mozilla.sh)
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
 endif
+
+# It's difficult to figure out XULRUNNERSDK in subprocesses; it's complex and
+# some builders may want to override our find logic (ex: TBPL).
+# So let's export these variables to external processes.
+export XULRUNNER_DIRECTORY XULRUNNERSDK XPCSHELLSDK
 
 .PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+	@echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
-ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
-	rm -rf xulrunner-sdk
+ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell test -d $(XULRUNNER_DIRECTORY) && cat $(XULRUNNER_URL_FILE) 2> /dev/null))
+# must download the xulrunner sdk
+	rm -rf $(XULRUNNER_BASE_DIRECTORY)
+	@echo "Downloading XULRunner..."
 	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	unzip xulrunner*.zip && rm xulrunner*.zip
+	mkdir "$(XULRUNNER_BASE_DIRECTORY)"
+	@echo "Unzipping XULRunner..."
+	unzip -q xulrunner*.zip -d "$(XULRUNNER_BASE_DIRECTORY)" && rm -f xulrunner*.zip
 else
-	tar xjf xulrunner*.tar.bz2 && rm xulrunner*.tar.bz2
-endif
-	@echo $(XULRUNNER_SDK_DOWNLOAD) > .xulrunner-url
-endif
+	mkdir $(XULRUNNER_BASE_DIRECTORY)
+	tar xjf xulrunner*.tar.bz2 -C $(XULRUNNER_BASE_DIRECTORY) && rm -f xulrunner*.tar.bz2 || \
+		( echo; \
+		echo "We failed extracting the XULRunner SDK archive which may be corrupted."; \
+		echo "You should run 'make really-clean' and try again." ; false )
+endif # MINGW32
+	@echo $(XULRUNNER_SDK_DOWNLOAD) > $(XULRUNNER_URL_FILE)
+endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
@@ -951,11 +992,11 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER)
+	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER) $(STAGE_FOLDER)
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-sdk .xulrunner-url node_modules
+	rm -rf xulrunner-* .xulrunner-* node_modules
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
