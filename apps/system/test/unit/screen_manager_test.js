@@ -176,10 +176,8 @@ suite('system/ScreenManager', function() {
 
     test('Testing sleep event', function() {
       var stubTurnOff = sinon.stub(ScreenManager, 'turnScreenOff');
-      ScreenManager._screenOffBy = 'NOREASON';
       ScreenManager.handleEvent({'type': 'sleep'});
-      assert.equal(ScreenManager._screenOffBy, 'powerkey');
-      assert.isTrue(stubTurnOff.calledWith(true));
+      assert.isTrue(stubTurnOff.calledWith(true, 'powerkey'));
       stubTurnOff.restore();
     });
 
@@ -230,7 +228,6 @@ suite('system/ScreenManager', function() {
         ScreenManager.handleEvent({'type': 'userproximity'});
         assert.isTrue(stubTurnOn.called);
         assert.isFalse(stubTurnOff.called);
-        assert.equal(ScreenManager._screenOffBy, '');
       });
 
       test('if evt.near is yes', function() {
@@ -238,8 +235,7 @@ suite('system/ScreenManager', function() {
         stubBluetooth.isProfileConnected = sinon.stub().returns(false);
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
-        assert.isTrue(stubTurnOff.calledWith(true));
-        assert.equal(ScreenManager._screenOffBy, 'proximity');
+        assert.isTrue(stubTurnOff.calledWith(true, 'proximity'));
       });
     });
 
@@ -393,8 +389,7 @@ suite('system/ScreenManager', function() {
 
     test('turn off screen with instant argument', function() {
       ScreenManager.screenEnabled = true;
-      ScreenManager._screenOffBy = 'powerkey';
-      assert.isTrue(ScreenManager.turnScreenOff(true));
+      assert.isTrue(ScreenManager.turnScreenOff(true, 'powerkey'));
       fakeTimers.tick(20);
       assert.isTrue(stubRemoveListener.calledTwice);
       assert.isTrue(stubSetIdle.calledWith(0));
@@ -714,8 +709,7 @@ suite('system/ScreenManager', function() {
     test('if screenEnabled is true', function() {
       ScreenManager.screenEnabled = true;
       ScreenManager.toggleScreen();
-      assert.equal(ScreenManager._screenOffBy, 'toggle');
-      assert.isTrue(stubTurnOff.called);
+      assert.isTrue(stubTurnOff.calledWith(true, 'powerkey'));
       assert.isFalse(stubTurnOn.called);
     });
 
