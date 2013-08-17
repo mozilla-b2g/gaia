@@ -63,6 +63,7 @@
     <script defer src="js/settings.js"></script>
 
     <!-- shared helper library -->
+    <!--<script defer src="shared/js/keyboard_helper.js"></script>-->
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
@@ -1580,6 +1581,39 @@
       -->
     </section>
 
+    <!-- Personalization :: Keyboard :: Select Keyboard :: Add More Keyboards -->
+    <section role="region" id="keyboard-selection-addMore">
+      <!--
+      <header>
+        <a href="#keyboard-selection"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="addMoreKeyboards"> Add more keyboards </h1>
+      </header>
+
+      <div id="keyboardAppContainer">
+      </div>
+      -->
+    </section>
+
+    <!-- Personalization :: Keyboard :: Select Keyboard -->
+    <section role="region" id="keyboard-selection">
+      <!--
+      <header>
+        <a href="#keyboard"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="selectKeyboard"> Select keyboard </h1>
+      </header>
+
+      <div>
+        <ul id="enabledKeyboardList">
+        </ul>
+        <ul>
+          <li>
+            <button data-l10n-id="addMoreKeyboards" data-href="#keyboard-selection-addMore">Add more keyboards</button>
+          </li>
+        </ul>
+      </div>
+      -->
+    </section>
+
     <!-- Personalization :: Keyboard -->
     <section role="region" id="keyboard">
       <!--
@@ -1589,7 +1623,7 @@
       </header>
 
       <div>
-        <ul>
+        <ul hidden>
           <li>
             <label class="pack-checkbox">
               <input type="checkbox" name="keyboard.vibration"/>
@@ -1620,135 +1654,40 @@
           </li>
         </ul>
 
-        <header>
-          <h2 data-l10n-id="keyboardLayouts">Layouts</h2>
-        </header>
-        <ul id="keyboard-layouts">
-          <li id="language-keyboard">
-            <small></small>
-            <a></a>
-          </li>
+        <ul>
           <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.english" checked />
-              <span></span>
-            </label>
-            <a data-l10n-id="english">English</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.dvorak"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="dvorak">English (Dvorak)</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.spanish"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="spanish">Spanish</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.portuguese"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="portuguese">Portuguese (Brazilian)</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.polish"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="polish">Polish</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.catalan"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="catalan">Catalan</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.czech"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="czech">Czech</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.french"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="french">French</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.german"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="german">German</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.norwegian"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="norwegian">Norwegian</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.russian"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="russian">Russian</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.serbian"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="serbian">Serbian</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.slovak"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="slovak">Slovak</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.turkish"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="turkish">Turkish</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.arabic"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="arabic">Arabic</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.hebrew"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="hebrew">Hebrew</a>
-          </li>
-          <li>
-            <label class="pack-checkbox">
-              <input type="checkbox" name="keyboard.layouts.greek"/>
-              <span></span>
-            </label>
-            <a data-l10n-id="greek">Greek</a>
+            <a href="#keyboard-selection" data-l10n-id="activeKeyboard">Active keyboard</a>
           </li>
         </ul>
+        <header>
+          <h2 data-l10n-id="installed">Installed</h2>
+        </header>
+        <ul id="allKeyboardList" hidden>
+        </ul>
+
+        <div id="textLayoutList" hidden>
+          <header>
+            <h2 data-l10n-id="keyboardlayouts">layouts</h2>
+          </header>
+          <ul></ul>
+        </div>
+
+        <div id="numberLayoutList" hidden>
+          <header>
+            <h2 data-l10n-id="numberKeyboardLayouts">Number Layouts</h2>
+          </header>
+          <ul></ul>
+        </div>
+
+        <div id="optionLayoutList" hidden>
+          <header>
+            <h2 data-l10n-id="optionKeyboardLayouts">Option Layouts</h2>
+          </header>
+          <ul></ul>
+        </div>
+  
       </div>
+      <script src="js/keyboard.js"></script>
       -->
     </section>
 
