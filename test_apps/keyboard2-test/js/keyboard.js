@@ -125,8 +125,6 @@ const defaultInputMethod = {
   displaysCandidates: function() { return false; }
 };
 
-var inputContext = null;
-
 // The keyboard app can display different layouts for different languages
 // We sometimes refer to these different layouts as "keyboards", so this single
 // keyboard app can display many different keyboards.  The currently displayed
@@ -298,11 +296,6 @@ var eventHandlers = {
   'mousemove': onMouseMove
 };
 
-// For "swipe down to hide" feature
-var touchStartCoordinate;
-var toShowKeyboardFTU = false;
-const SWIPE_VELOCICTY_THRESHOLD = 0.4;
-
 // The first thing we do when the keyboard app loads is query all the
 // keyboard-related settings. Only once we have the current settings values
 // do we initialize the rest of the keyboard
@@ -318,7 +311,6 @@ function getKeyboardSettings() {
     'keyboard.autocorrect': true,
     'keyboard.vibration': false,
     'keyboard.clicksound': false,
-    'keyboard.ftu.enabled': false,
     'audio.volume.notification': 7
   };
 
@@ -332,14 +324,12 @@ function getKeyboardSettings() {
     clickEnabled = values['keyboard.clicksound'];
     isSoundEnabled = !!values['audio.volume.notification'];
 
-    // To see if this is first time the user launches the keyboard
-    toShowKeyboardFTU = values['keyboard.ftu.enabled'];
-
     handleKeyboardSound();
 
     // set default input method with hash value
     if (window.location.hash !== '') {
       var hashKey = window.location.hash.substring(1);
+      console.log('hashKey' + hashKey);
 
       if (keyboardHashKey.indexOf(hashKey) !== -1) {
         keyboardName = hashKey;
@@ -395,11 +385,6 @@ function initKeyboard() {
     handleKeyboardSound();
   });
 
-  // Gaia UI Test may change this setting to disable keyboard FTU
-  navigator.mozSettings.addObserver('keyboard.ftu.enabled', function(e) {
-    toShowKeyboardFTU = e.settingValue;
-  });
-
   // Initialize the rendering module
   IMERender.init(getUpperCaseValue, isSpecialKeyObj);
 
@@ -407,33 +392,6 @@ function initKeyboard() {
   for (var event in eventHandlers) {
     IMERender.ime.addEventListener(event, eventHandlers[event]);
   }
-
-  // Prevent focus being taken away by tip window
-  var tipWindow = document.getElementById('confirm-dialog');
-  function tipFocusHandler(evt) {
-    evt.preventDefault();
-  }
-
-  tipWindow.addEventListener('mousedown', tipFocusHandler);
-
-  var tipButton = document.getElementById('ftu-ok');
-  tipButton.addEventListener('click', function(evt) {
-    // Need to preventDefault or it will make the input lose the focus
-    evt.preventDefault();
-    tipWindow.hidden = true;
-  });
-
-  /* To simulate :active effect for button */
-  tipButton.addEventListener('mousedown', function mouseDownHandler(evt) {
-    tipButton.classList.add('active');
-  });
-
-  var inActiveHandlers = ['mouseup', 'mouseleave'];
-  inActiveHandlers.forEach(function addInActiveHandler(evtName) {
-    tipButton.addEventListener(evtName, function inActiveHandler(evt) {
-      tipButton.classList.remove('active');
-    });
-  });
 
   dimensionsObserver = new MutationObserver(function() {
     updateTargetWindowHeight();
@@ -445,8 +403,29 @@ function initKeyboard() {
     attributes: true, attributeFilter: ['class', 'style', 'data-hidden']
   });
 
+  window.addEventListener('mozvisibilitychange', function visibilityHandler() {
+    var inputType = window.navigator.mozKeyboard.inputType;
+
+    var state = {
+      type: inputType,
+      choices: null,
+      value: '',
+      inputmode: '',
+      selectionStart: 0,
+      selectionEnd: 0
+    };
+
+    if (!document.mozHidden) {
+      showKeyboard(state);
+    } else {
+      hideKeyboard();
+    }
+  });
+
   window.addEventListener('hashchange', function() {
     var inputMethodName = window.location.hash.substring(1);
+
+    console.log('hashchange: ' + inputMethodName);
     setKeyboardName(inputMethodName);
     resetKeyboard();
     renderKeyboard(keyboardName);
@@ -455,28 +434,18 @@ function initKeyboard() {
   // Handle resize events
   window.addEventListener('resize', onResize);
 
-  // Need to listen to both mozvisibilitychange and oninputcontextchange,
-  // because we are not sure which will happen first and we will call
-  // showKeyboard() when mozHidden is false and we got inputContext
-  window.addEventListener('mozvisibilitychange', function visibilityHandler() {
-    var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName);
-
-    if (!document.mozHidden && inputContext) {
-      showKeyboard();
-    } else {
-      hideKeyboard();
-    }
-  });
-
-  window.navigator.mozInputMethod.oninputcontextchange = function() {
-    inputContext = navigator.mozInputMethod.inputcontext;
-    if (!document.mozHidden && inputContext) {
-      showKeyboard();
-    } else {
-      hideKeyboard();
-    }
-  };
+  if (!document.mozHidden) {
+    //XXX: so far we cannot get state from IME WebAPI
+    var state = {
+      type: 'text',
+      choices: null,
+      value: '',
+      inputmode: '',
+      selectionStart: 0,
+      selectionEnd: 0
+    };
+    showKeyboard(state);
+  }
 }
 
 function handleKeyboardSound() {
@@ -809,7 +778,7 @@ function renderKeyboard(keyboardName) {
 
     // And draw the layout
     IMERender.draw(currentLayout, {
-      uppercase: isUpperCaseLocked || isUpperCase,
+      uppercase: isUpperCase,
       inputType: currentInputType,
       showCandidatePanel: needsCandidatePanel()
     });
@@ -984,7 +953,7 @@ function setMenuTimeout(target, coords, touchId) {
 // Show alternatives for the HTML node key
 function showAlternatives(key) {
   // Get the key object from layout
-  var alternatives, altMap, value, keyObj, uppercaseValue, needsCapitalization;
+  var alternatives, altMap, value, keyObj, uppercaseValue;
   var r = key ? key.dataset.row : -1, c = key ? key.dataset.column : -1;
   if (r < 0 || c < 0 || r === undefined || c === undefined)
     return;
@@ -1001,46 +970,21 @@ function showAlternatives(key) {
   value = keyObj.value;
   alternatives = altMap[value] || '';
 
-  // If in uppercase, look for uppercase alternatives. If we don't find any
-  // then set a flag so we can manually capitalize the alternatives below.
+  // If in uppercase, look for other alternatives or use default's
   if (isUpperCase || isUpperCaseLocked) {
     uppercaseValue = getUpperCaseValue(keyObj);
-    if (altMap[uppercaseValue]) {
-      alternatives = altMap[uppercaseValue];
-    }
-    else {
-      needsCapitalization = true;
-    }
+    alternatives = altMap[uppercaseValue] || alternatives.toLocaleUpperCase();
   }
 
   // Split alternatives
-  // If the alternatives are delimited by spaces, it means that one or more
-  // of them is more than a single character long.
   if (alternatives.indexOf(' ') != -1) {
     alternatives = alternatives.split(' ');
 
-    // If there is just a single multi-character alternative, it will have
-    // trailing whitespace which we have to discard here.
+    // Check just one item
     if (alternatives.length === 2 && alternatives[1] === '')
       alternatives.pop();
 
-    if (needsCapitalization) {
-      for (var i = 0; i < alternatives.length; i++) {
-        if (isUpperCaseLocked) {
-          // Caps lock is on, so capitalize all the characters
-          alternatives[i] = alternatives[i].toLocaleUpperCase();
-        }
-        else {
-          // We're in uppercase, but not locked, so just capitalize 1st char.
-          alternatives[i] = alternatives[i][0].toLocaleUpperCase() +
-            alternatives[i].substring(1);
-        }
-      }
-    }
   } else {
-    // No spaces, so all of the alternatives are single characters
-    if (needsCapitalization) // Capitalize them all at once before splitting
-      alternatives = alternatives.toLocaleUpperCase();
     alternatives = alternatives.split('');
   }
 
@@ -1150,11 +1094,6 @@ function onTouchStart(evt) {
 
     touchedKeys[touchId] = { target: target, x: touch.pageX, y: touch.pageY };
     startPress(target, touch, touchId);
-
-    touchStartCoordinate = { touchId: touchId,
-                             pageX: touch.pageX,
-                             pageY: touch.pageY,
-                             timeStamp: evt.timeStamp };
   });
 }
 
@@ -1187,35 +1126,6 @@ function onTouchEnd(evt) {
   touchCount = evt.touches.length;
 
   handleTouches(evt, function handleTouchEnd(touch, touchId) {
-
-    // Swipe down can trigger hiding the keyboard
-    if (touchStartCoordinate && touchStartCoordinate.touchId == touchId) {
-      var dx = touch.pageX - touchStartCoordinate.pageX;
-      var dy = touch.pageY - touchStartCoordinate.pageY;
-      var dt = evt.timeStamp - touchStartCoordinate.timeStamp;
-      var vy = dy / dt;
-
-      var keyboardHeight = IMERender.ime.scrollHeight;
-
-      // hide the keyboard if:
-      // 1. swipe down
-      // 2. the distance is longer than half of the keyboard
-      if ((dy > keyboardHeight / 2 && dy > dx) &&
-          vy > SWIPE_VELOCICTY_THRESHOLD) {
-
-        // de-activate the highlighted effect
-        if (touchedKeys[touchId] && touchedKeys[touchId].target)
-          IMERender.unHighlightKey(touchedKeys[touchId].target);
-
-        clearTimeout(deleteTimeout);
-        clearInterval(deleteInterval);
-        clearTimeout(menuTimeout);
-
-        window.navigator.mozKeyboard.removeFocus();
-        return;
-      }
-    }
-
     // Because of bug 822558, we sometimes get two touchend events,
     // so we should bail if we've already handled one touchend.
     if (!touchedKeys[touchId])
@@ -1434,6 +1344,19 @@ function endPress(target, coords, touchId) {
   if (keyCode != KeyEvent.DOM_VK_SPACE)
     isContinousSpacePressed = false;
 
+  // Handle composite key (key that sends more than one code)
+  var sendCompositeKey = function sendCompositeKey(compositeKey) {
+    compositeKey.split('').forEach(function sendEachKey(key) {
+      window.navigator.mozKeyboard.sendKey(0, key.charCodeAt(0));
+    });
+  };
+
+  var compositeKey = target.dataset.compositekey;
+  if (compositeKey) {
+    sendCompositeKey(compositeKey);
+    return;
+  }
+
   // Handle normal key
   switch (keyCode) {
 
@@ -1502,17 +1425,7 @@ function endPress(target, coords, touchId) {
 
     // Normal key
   default:
-    if (target.dataset.compositekey) {
-      // Keys with this attribute set send more than a single character
-      // Like ".com" or "2nd" or (in Catalan) "l·l".
-      var compositeKey = target.dataset.compositekey;
-      for (var i = 0; i < compositeKey.length; i++) {
-        inputMethod.click(compositeKey.charCodeAt(i));
-      }
-    }
-    else {
-      inputMethod.click(keyCode);
-    }
+    inputMethod.click(keyCode);
     break;
   }
 }
@@ -1591,7 +1504,7 @@ function switchKeyboard(target) {
       // In practice, just about everything uses the latin input method now
       // so this only occurs when the users switches from Hebrew or Arabic
       // to a latin or cyrillic alphabet. XXX: See Bug 888076
-      navigator.mozInputMethod.mgmt.removeFocus();
+      navigator.mozKeyboard.removeFocus();
     }
   }
 
@@ -1602,7 +1515,6 @@ function switchToNextIME() {
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.next();
 }
-
 
 function showIMEList() {
   var mgmt = navigator.mozInputMethod.mgmt;
@@ -1620,31 +1532,19 @@ function resetKeyboard() {
   isUpperCaseLocked = false;
 }
 
-// This is a wrapper around inputContext.sendKey()
+// This is a wrapper around mozKeyboard.sendKey()
 // We use it in the defaultInputMethod and in the interface object
 // we pass to real input methods
 function sendKey(keyCode) {
   switch (keyCode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
   case KeyEvent.DOM_VK_RETURN:
-    if (inputContext) {
-      inputContext.sendKey(keyCode, 0, 0);
-    }
+    window.navigator.mozKeyboard.sendKey(keyCode, 0);
     break;
 
   default:
-    if (inputContext) {
-      inputContext.sendKey(0, keyCode, 0);
-    }
+    window.navigator.mozKeyboard.sendKey(0, keyCode);
     break;
-  }
-}
-
-function replaceSurroundingText(text, offset, length) {
-  if (inputContext) {
-    inputContext.replaceSurroundingText(text, offset, length);
-  } else {
-    console.warn('no inputContext for replaceSurroudingText');
   }
 }
 
@@ -1659,52 +1559,23 @@ function showKeyboard(state) {
     setKeyboardName(defaultKeyboardName);
   }
 
-  inputContext = navigator.mozInputMethod.inputcontext;
   IMERender.showIME();
 
-  if (inputContext) {
-    currentInputMode = inputContext.inputMode;
-    currentInputType = mapInputType(inputContext.inputType);
-  } else {
-    console.error('Cannot get inputContext');
-    currentInputMode = '';
-    currentInputType = mapInputType('text');
-  }
+  currentInputMode = state.inputmode;
+  currentInputType = mapInputType(state.type);
 
   resetKeyboard();
 
-  if (toShowKeyboardFTU) {
-    var dialog = document.getElementById('confirm-dialog');
-    dialog.hidden = false;
-    toShowKeyboardFTU = false;
-
-    navigator.mozSettings.createLock().set({
-      'keyboard.ftu.enabled': false
+  if (inputMethod.activate) {
+    inputMethod.activate(Keyboards[keyboardName].autoCorrectLanguage, state, {
+      suggest: suggestionsEnabled,
+      correct: correctionsEnabled
     });
   }
 
-  inputContext.getText().onsuccess = function gotText() {
-
-    if (inputMethod.activate) {
-      var state = {
-        type: inputContext.inputType,
-        inputmode: inputContext.inputMode,
-        selectionStart: inputContext.selectionStart,
-        selectionEnd: inputContext.selectionEnd,
-        value: this.result
-      };
-
-      inputMethod.activate(Keyboards[keyboardName].autoCorrectLanguage,
-        state, {
-          suggest: suggestionsEnabled,
-          correct: correctionsEnabled
-        });
-    }
-
-    // render the keyboard after activation, which will determine the state
-    // of uppercase/suggestion, etc.
-    renderKeyboard(keyboardName);
-  };
+  // render the keyboard after activation, which will determine the state
+  // of uppercase/suggestion, etc.
+  renderKeyboard(keyboardName);
 }
 
 // Hide keyboard
@@ -1779,9 +1650,13 @@ function loadIMEngine(name) {
     },
     setLayoutPage: setLayoutPage,
     setUpperCase: setUpperCase,
-    resetUpperCase: resetUpperCase,
-    replaceSurroundingText: replaceSurroundingText
+    resetUpperCase: resetUpperCase
   };
+
+  if (typeof navigator.mozKeyboard.replaceSurroundingText === 'function') {
+    glue.replaceSurroundingText =
+      navigator.mozKeyboard.replaceSurroundingText.bind(navigator.mozKeyboard);
+  }
 
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];

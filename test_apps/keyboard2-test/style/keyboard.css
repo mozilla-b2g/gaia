@@ -1,0 +1,688 @@
+/* Media definitions */
+@media screen and (max--moz-device-pixel-ratio: 1.5) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  pointer-events: none;
+}
+
+body {
+  overflow: hidden;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0
+}
+
+.cache {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: -1;
+  opacity: 0;
+  overflow: hidden;
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Keyboard */
+#keyboard {
+  position: absolute;
+  bottom: 0;
+  z-index: 15;
+  width: 100%;
+  background: #6a6f73;
+  border-top: solid 1px #000;
+  pointer-events: auto;
+}
+
+/* Rows */
+.keyboard-row {
+  width: 100%;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+}
+
+.keyboard-row.first-row {
+  padding-top: 0.5rem;
+  border-top: solid 1px #a6a9ab;
+}
+
+/* Buttons: logic keys */
+.keyboard-key {
+  -moz-box-sizing: border-box;
+  padding: 0 0.1rem;
+  border: none;
+  background: url(images/key-shadow.png) no-repeat center -1px;
+  background-size: 100% 100%;
+  min-width: 2.6rem;
+  display: inline-block;
+}
+
+/* Visible keys */
+.keyboard-key > .visual-wrapper,
+.keyboard-key.special-key.big-key > .visual-wrapper {
+  display: inline-block;
+  height: 4rem;
+  width: 100%;
+  -moz-box-sizing: border-box;
+  position: relative;
+  border: solid 1px #000;
+  background: #252220 url(images/key-bg.png) no-repeat center bottom;
+  background-size: 100% 100%;
+}
+
+/* Standard key styles. */
+.keyboard-key > .visual-wrapper > span,
+.keyboard-key.special-key.big-key > .visual-wrapper > span {
+  /*
+    top - begin | top - end
+    bottom - begin  | bottom - end
+  */
+  background: 
+    url(images/key-radius-tb.png) no-repeat left top,
+    url(images/key-radius-te.png) no-repeat right top,
+    url(images/key-radius-bb.png) no-repeat left bottom,
+    url(images/key-radius-be.png) no-repeat right bottom,
+    url(images/key-light.png) repeat-x left 1px;
+  position: absolute;
+  top: -1px;
+  bottom: -1px;
+  left: -1px;
+  right: -1px;
+  font: 2.4rem/3.9rem MozTT, Sans-serif;
+  font-weight: 500;
+  text-align: center;
+  color: #fff;
+}
+
+/* Highlights */
+.keyboard-key:not(.special-key).highlighted {
+  position: relative;
+  z-index: 100;
+}
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper {
+  background: #6ec5d5;
+  border-radius: 0 0  0.3rem 0.3rem;
+  border: solid 1px #8BD1DD;
+  border-top: none;
+  margin: -0.5rem 0 0;
+  height: 4.3rem;
+}
+
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+.keyboard-key:not(.special-key).highlighted:last-child > .visual-wrapper:after {
+  right: -0.2rem;
+  border-radius: 0.6rem 0 0 0.6rem; 
+}
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5rem;
+  background: #6ec5d5;
+  z-index: 1;
+} 
+
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper > span {
+  font: 3.8rem/4.5rem MozTT, Sans-serif;
+  font-weight: 500;
+  background: #6ec5d5;
+  color: #1a3f46;
+  border: solid 1px #8BD1DD;
+  border-radius: 0.3rem;
+  height: 5.2rem;
+  top: -5.3rem;
+  left: -0.8rem;
+  right: -0.8rem;
+}
+
+.keyboard-key:not(.special-key).highlighted > .visual-wrapper > span:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+.keyboard-key:not(.special-key).highlighted:last-child > .visual-wrapper > span:after {
+  right: -0.2rem;
+  border-radius: 0.6rem 0 0 0.6rem;
+}
+
+.keyboard-key:not(.special-key).highlighted:last-child  > .visual-wrapper > span {
+  right: -1px;
+  border-bottom-right-radius: 0;
+}
+.keyboard-key:not(.special-key).highlighted:last-child  #keyboard-accent-char-menu {
+  right: -1px;
+}
+
+
+.keyboard-key:not(.special-key).highlighted:first-child  > .visual-wrapper > span {
+  left: -1px;
+  border-bottom-left-radius: 0;
+}
+.keyboard-key:not(.special-key).highlighted:first-child  #keyboard-accent-char-menu {
+  left: -1px;
+}
+
+
+/*  Special keys */
+.keyboard-key.special-key > .visual-wrapper {
+  border-color: #2a2c2e;
+  background: #43474a;
+}
+.keyboard-key.special-key > .visual-wrapper > span { 
+   /*
+    top - begin | top - end
+    bottom - begin  | bottom - end
+  */
+  background:
+    url(images/key-radius-special-tb.png) no-repeat left top,
+    url(images/key-radius-special-te.png) no-repeat right top,
+    url(images/key-radius-special-bb.png) no-repeat left bottom,
+    url(images/key-radius-special-be.png) no-repeat right bottom,
+    url(images/key-light-special.png) repeat-x left 1px;
+  font-size: 1.5rem;
+  line-height: 4rem;
+  font-family: 'Keyboard Symbols', sans-serif;
+  color: #ccc;
+}
+
+/* Highlight for special keys */
+.keyboard-key.special-key.highlighted > .visual-wrapper {
+  background: #4AB6CB;
+  border-radius: 0.3rem;
+  border: solid 1px #3f5459;
+}
+.keyboard-key.special-key.highlighted > .visual-wrapper > span {
+  background: none;
+  color: #1e4a52;
+ }
+.keyboard-key.special-key.highlighted > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  left: -0.2rem;
+  right: -0.2rem;
+  top: -0.2rem;
+  bottom: -0.25rem;
+  z-index: -1;
+  background: #4495A8;
+  border-radius: 0.3rem;
+}
+
+/* Spacebar exceptions */
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper {
+  background: #4AB6CB;
+  border-radius: 0.3rem;
+  border: solid 1px #3f5459;
+  height: 4rem;
+}
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.2rem;
+  right: -0.2rem;
+  top: -0.2rem;
+  bottom: -0.25rem;
+  z-index: -1;
+  background: #4495A8;
+  border-radius: 0.3rem;
+}
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper:before,
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span,
+.keyboard-key.highlighted[data-keycode="32"] > .visual-wrapper > span:after {
+  display: none;
+}
+
+/* Key states */
+/* Active */
+.keyboard-key.kbr-key-active > .visual-wrapper > span {
+  color: #4495A8;
+}
+/* Hold */
+.keyboard-key.kbr-key-hold> .visual-wrapper {
+  background: #4AB6CB;
+  border-radius: 0.3rem;
+  border: solid 1px #3f5459;
+}
+.keyboard-key.kbr-key-hold> .visual-wrapper > span {
+  background: none;
+  color: #1e4a52;
+ }
+
+ /* Alt menu enabled */
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper {
+  background: #6EC5D5;
+  border: 1px solid #92D3E0;
+  border-top: none;
+  height: 4.5rem;
+}
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span:after {
+  display: none;
+}
+.keyboard-key.highlighted.kbr-menu-on  > .visual-wrapper:before {
+  background: #6EC5D5;
+}
+.keyboard-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+  background: transparent;
+  border-color: transparent;
+}
+
+/* Alternatives menu -- this menu appears when you tap and hold a key that has
+alternative special (accented) characters. The menu "grows" out of the key
+and displays the list of alternatives. */
+#keyboard-accent-char-menu {
+  position: absolute;
+  bottom: 0;
+  left: 0.6rem;
+  margin-bottom: -1px;
+  height: 5.8rem;
+  border-radius: 0.3rem;
+  background: #333;
+  border: 1px solid #000;
+  white-space: nowrap;
+  overflow: visible;
+  display: none;
+}
+#keyboard-accent-char-menu:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: -0.5rem;
+  bottom: -0.6rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem 0.6rem 0.6rem 0;
+}
+.keyboard-key:first-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0.3rem 0;
+}
+.keyboard-key:last-child #keyboard-accent-char-menu {
+  border-radius: 0.3rem 0.3rem 0 0.3rem;
+}
+
+#keyboard-accent-char-menu.show {
+  display: block;
+}
+
+/* Alternatives from right */
+#keyboard-accent-char-menu.kbr-menu-right {
+  left: auto;
+  right: 0.6rem;
+}
+
+/* Non keyboard key styles in menu */
+#keyboard-accent-char-menu .keyboard-key {
+  background: none;
+  height: 100%;
+  vertical-align: top;
+  top: -1px;
+  position: relative;
+}
+#keyboard-accent-char-menu .keyboard-key:first-child {
+  padding-left: 0;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted:first-child > .visual-wrapper {
+  left: -1px;
+}
+#keyboard-accent-char-menu .keyboard-key:last-child {
+  padding-right: 0;
+}
+#keyboard-accent-char-menu .keyboard-key.highlighted:last-child > .visual-wrapper {
+  border-right: none;
+  right: 1px;
+}
+
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper {
+  background: none;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  height: 5.8rem;
+}
+
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper  span {
+  background: none;
+}
+
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after, 
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:before,
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span:after {
+  display: none;
+}
+
+/* Styles for keys in accent menu (not highlighted). */
+#keyboard-accent-char-menu .keyboard-key > .visual-wrapper > span {
+  border: none;
+  font: 3rem/5rem MozTT, Sans-serif;
+  font-weight: 500;
+  color: #fff;
+}
+
+/* Highlighted non keboard key style */
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper {
+  background: #6ec5d5;
+  border: solid 0.2rem #6ec5d5;
+  -moz-box-sizing: content-box;
+  border-top: solid 1px #8BD1DD;
+  border-bottom: solid 1px #6ec5d5;
+}
+
+/* Highlighted special accent characters. These keys appear in the popover
+bubble above the key when you tap and hold. */
+#keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper > span {
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 100%;
+  font-weight: normal;
+  color: #1a3f46;
+  background: none;
+}
+
+/* Language alternatives */
+#keyboard-accent-char-menu.kbr-menu-lang {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: auto;
+  top: auto;
+  margin-bottom: -2px;
+  height: auto;
+  max-height: 34rem;
+  white-space: normal;
+}
+
+/* Special key menu enabled */
+.keyboard-key.special-key.highlighted.kbr-menu-on {
+  position: relative;
+  z-index: 100;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper {
+  border-radius: 0 0 0.3rem 0.3rem;
+  margin-top: -0.5rem;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper > span {
+  color: #fff;
+  line-height: 5.2rem;
+  border: none;
+}
+
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:after {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 0.5rem;
+  bottom: -0.5rem;
+  right: -0.5rem;
+  z-index: -1;
+  background: url(images/dark-alpha.png) repeat left top;
+  border-radius: 0.6rem;
+}
+.keyboard-key.special-key.highlighted.kbr-menu-on > .visual-wrapper:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0.5rem;
+  z-index: 1;
+} 
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key {
+  padding: 0;
+  display: block;
+  height: 4rem;
+  top: 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper {
+  -moz-box-sizing: border-box;
+  border: none;
+  border-bottom: solid 1px #92D3E0;
+  width: 10rem;
+  height: 4rem;
+}
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:first-child > .visual-wrapper {
+  border-radius: 0.3rem 0.3rem 0 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.highlighted > .visual-wrapper {
+  left: 0;
+  right: 0;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key > .visual-wrapper > span { 
+  font-family: 'MozTT', Sans-serif;  
+  font-weight: 500;
+  font-size: 1.8rem;
+  line-height: 4rem;
+}
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key:last-child {
+  margin-bottom: 0.8rem;
+}
+
+
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper {
+  background: #333;
+}
+#keyboard-accent-char-menu.kbr-menu-lang > .keyboard-key.kbr-key-hold > .visual-wrapper > span {
+  color: #fff;
+}
+
+
+/* IMEs */
+#keyboard-pending-symbol-panel {
+  position: absolute;
+  top: -35px;
+  left: 0;
+  height: 32px;
+  line-height: 32px;
+  font-size: 24px;
+  width: auto;
+  padding: 0 8px;
+  background: rgba(245, 245, 245, 0.7);
+  color: rgb(36, 36, 36);
+  border-top-right-radius: 8px;
+  border-top: 1px solid #d5d5d5;
+  border-right: 1px solid #d5d5d5;
+  white-space: nowrap;
+}
+
+#keyboard-pending-symbol-panel:empty {
+  display: none;
+}
+
+#keyboard-candidate-panel {
+  height: 64px;
+  overflow: auto;
+  white-space: nowrap;
+  color: black;
+  background: rgb(176, 174, 168);
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+  display: none;
+  margin: 0 -1rem 0 -1rem;
+}
+
+#keyboard.candidate-panel #keyboard-candidate-panel {
+  display: block;
+  width: -moz-calc(100% - 62px + 1rem);
+  overflow-y: hidden;
+}
+
+/* for latin suggestions we don't need such a tall box */
+/* and in latin we hide the toggle button, so we can be full-width */
+#keyboard.candidate-panel #keyboard-candidate-panel.latin {
+  height: 30px;
+  width: 100%;
+  background: none;
+  margin: 0;
+  border: none;
+}
+
+#keyboard.full-candidate-panel {
+  padding-top: 66px;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel {
+  display: block;
+  position: absolute;
+  white-space: normal;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  border: none;
+  border-top: 2px solid #a3a3a3;
+  z-index: 1;
+  margin:0; padding:0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel span {
+  border-top: 1px solid #e8e8ff;
+  border-bottom: 1px solid #808098;
+}
+
+#keyboard-candidate-panel[data-truncated]::after {
+  content: '…';
+  background: none ! important;
+  border-color: transparent ! important;
+  color: #666;
+}
+
+#keyboard-candidate-panel span,
+#keyboard-candidate-panel[data-truncated]::after {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  font-size: 32px;
+  line-height: 60px;
+  min-width: 60px;
+  display: inline-block;
+  height: 64px;
+  padding: 0 10px;
+  text-align: center;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+#keyboard-candidate-panel.latin span,
+#keyboard-candidate-panel[data-truncated].latin::after {
+  font-family: 'MozTT', sans-serif;
+  font-size: 10pt;
+  line-height: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  margin: 3px;
+}
+
+#keyboard-candidate-panel-toggle-button {
+  border-left: 1px solid #e8e8ff;
+  border-right: 1px solid #808098;
+  border-bottom: 1px solid #808098;
+  position: absolute;
+  font-size: 32px;
+  line-height: 60px;
+  right: 0;
+  top: 1px;
+  text-align: center;
+  box-shadow: -4px 0 5px -5px black;
+  width: 60px;
+  height: 64px;
+  color: black;
+  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+  display: none;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
+  display: block;
+  border-top: 1px solid #e8e8ff;
+  top: 0;
+  z-index: 1;
+}
+
+#keyboard.candidate-panel #keyboard-candidate-panel-toggle-button {
+  display: block;
+}
+
+/*
+ * Don't display the toggle button for latin suggestions.
+ * For now, at least, we only ever get 3 at a time 
+ */
+#keyboard.candidate-panel #keyboard-candidate-panel-toggle-button.latin {
+  display: none;
+}
+
+#keyboard-candidate-panel span[data-active],
+#keyboard-candidate-panel-toggle-button[data-active] {
+  background: -moz-linear-gradient(bottom, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
+}
+
+/* Pending panel highlight */
+.keyboard-pending-symbols-highlight-green {
+  background: #33aa33;
+}
+
+.keyboard-pending-symbols-highlight-red {
+  background: #aa3333;
+}
+
+.keyboard-pending-symbols-highlight-blue {
+  background: #3333aa;
+}
+
+/* A note to show on the key to indicate the alternative char */
+.alt-note {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  color: #999;
+  font: 1.6rem/1.6rem "Keyboard Symbols", Sans-serif;
+}
+
+.keyboard-key.highlighted  .alt-note {
+  visibility: hidden;
+}
+
+.keyboard-key.big-key.highlighted .alt-note {
+  visibility: visible;
+  color: #555;
+}
