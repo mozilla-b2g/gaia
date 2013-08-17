@@ -210,6 +210,7 @@ const keyboardGroups = {
   'norwegian': ['nb'],
   'slovak': ['sk'],
   'turkish': ['tr-Q', 'tr-F'],
+  'romanian': ['ro'],
   'russian': ['ru'],
   'serbian': ['sr-Latn', 'sr-Cyrl'],
   'hebrew': ['he'],
