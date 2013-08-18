@@ -492,7 +492,7 @@ var Settings = {
             case 'deviceinfo.software':
               var _ = navigator.mozL10n.get;
               var text = _('brandShortName') + ' ' +
-                result['deviceinfo.os'];
+                result['deviceinfo.os'] + (result['deviceinfo.os']?'h':'');
               spanFields[i].textContent = text;
               break;
 
