@@ -16,7 +16,6 @@ var CallsHandler = (function callsHandler() {
   var closing = false;
   var animating = false;
   var ringing = false;
-  var busyNotificationLock = false;
 
   /* === Settings === */
   var activePhoneSound = null;
@@ -119,7 +118,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function addCall(call) {
-    busyNotificationLock = false;
     // Once we already have 1 call, we need to care about incoming
     // calls and insert new dialing calls.
     if (handledCalls.length &&
@@ -318,7 +316,7 @@ var CallsHandler = (function callsHandler() {
   }
 
   function exitCallScreen(animate) {
-    if (closing || busyNotificationLock) {
+    if (closing) {
       return;
     }
 
@@ -544,7 +542,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function end() {
-    busyNotificationLock = false;
     // If there is an active call we end this one
     if (telephony.active) {
       telephony.active.hangUp();
@@ -603,24 +600,6 @@ var CallsHandler = (function callsHandler() {
     postToMainWindow(message);
   }
 
-  function notifyBusyLine() {
-    busyNotificationLock = true;
-    // ANSI call waiting tone for a 3 seconds window.
-    var sequence = [[480, 620, 500],
-                    [0, 0, 500],
-                    [480, 620, 500],
-                    [0, 0, 500],
-                    [480, 620, 500],
-                    [0, 0, 500]];
-    TonePlayer.playSequence(sequence);
-    setTimeout(function busyLineStopped() {
-      if (handledCalls.length === 0) {
-        busyNotificationLock = false;
-        exitCallScreen(true);
-      }
-    }, 3000);
-  }
-
   function activeCall() {
     var telephonyActiveCall = telephony.active;
     var activeCall = null;
@@ -652,7 +631,6 @@ var CallsHandler = (function callsHandler() {
 
     addRecentEntry: addRecentEntry,
 
-    notifyBusyLine: notifyBusyLine,
     activeCall: activeCall
   };
 })();
