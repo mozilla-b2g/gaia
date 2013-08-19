@@ -1707,7 +1707,7 @@ var WindowManager = (function() {
       }, {});
 
     // Handles only call to window.open with `remote=true` feature.
-    if (!remote in features || features.remote !== 'true')
+    if (!'remote' in features || features.remote !== 'true')
       return;
 
     var callerIframe = evt.target;
@@ -1761,17 +1761,17 @@ var WindowManager = (function() {
     title = features.name || url;
     icon = features.icon || '';
 
-    if (originName in features) {
+    if ('originName' in features) {
       originName = features.originName;
       originURL = features.originUrl;
     }
 
-    if (searchName in features) {
+    if ('searchName' in features) {
       searchName = features.searchName;
       searchURL = features.searchUrl;
     }
 
-    if (useAsyncPanZoom in features && features.useAsyncPanZoom === 'true')
+    if ('useAsyncPanZoom' in features && features.useAsyncPanZoom === 'true')
       useAsyncPanZoom = true;
 
     // If we don't reuse an existing app, open a brand new one
