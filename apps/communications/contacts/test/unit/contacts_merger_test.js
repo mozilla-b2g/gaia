@@ -44,8 +44,7 @@ suite('Contacts Merging Tests', function() {
   suiteSetup(function() {
     toMergeContacts = [{
         matchingContact: null,
-        matchedValues: [],
-        target: 'yy'
+        matchings: {}
       }
     ];
 
@@ -183,8 +182,14 @@ suite('Contacts Merging Tests', function() {
           value: '+3467676767'
         }]
       },
-      target: '67676767',
-      matchedValues: ['+3467676767']
+      matchings: {
+        'tel': [
+          {
+            target: '67676767',
+            matchedValue: '+3467676767'
+          }
+        ]
+      }
     };
 
     var masterContact = new MasterContact();
@@ -417,8 +422,7 @@ suite('Contacts Merging Tests', function() {
         ],
         photo: ['cool.jpg']
       },
-      matchedValues: [],
-      target: 'xx'
+      matchings: {}
     });
 
    toMergeContact.matchingContact = {

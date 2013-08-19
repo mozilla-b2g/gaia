@@ -12,6 +12,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_list.js');
 requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_navigation.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
 requireApp('communications/contacts/test/unit/mock_activities.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
@@ -1319,6 +1320,7 @@ suite('Render contacts list', function() {
         'normalMode': 'show' // We don't care, the form will be hide
       }
     };
+
     suiteSetup(function(done) {
       window.fb.isEnabled = false;
       //resetDom(document);
@@ -1355,7 +1357,7 @@ suite('Render contacts list', function() {
         assert.equal(selectActionTitle, selectActionButton.textContent);
 
         done();
-      });
+      }, MockNavigation, 'transition');
     });
 
     suite('Selection checks', function() {
@@ -1364,7 +1366,7 @@ suite('Render contacts list', function() {
         doLoad(subject, mockContacts, function() {
           subject.selectFromList('', null, function() {
             done();
-          });
+          }, MockNavigation, 'transition');
         });
       });
 
@@ -1391,7 +1393,7 @@ suite('Render contacts list', function() {
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          });
+          }, MockNavigation, 'transition');
         });
       });
 
@@ -1426,7 +1428,7 @@ suite('Render contacts list', function() {
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          });
+          }, MockNavigation, 'transition');
         });
 
       });
@@ -1437,7 +1439,7 @@ suite('Render contacts list', function() {
           var checks = list.querySelectorAll('input[type="checkbox"]');
           assert.equal(contactsRows.length, checks.length);
           done();
-        });
+        }, MockNavigation, 'transition');
       });
     });
   });

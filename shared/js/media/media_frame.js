@@ -229,7 +229,7 @@ MediaFrame.prototype.clear = function clear() {
 
   // Hide the image
   this.image.style.display = 'none';
-  this.image.src = null;  // XXX: use about:blank or '' here?
+  this.image.src = '';  // Use '' instead of null. See Bug 901410
 
   // Hide the video player
   if (this.video) {

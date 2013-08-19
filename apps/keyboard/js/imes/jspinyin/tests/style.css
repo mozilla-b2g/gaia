@@ -1,0 +1,22 @@
+input[type="text"] {
+  font-size: 1.5rem;
+  width: 18rem;
+}
+
+button, input[type="button"] {
+  width: 9rem;
+  height: 2.5rem;
+  font-size: 1.5rem;
+}
+
+#log, #status {
+  margin-top: 1rem;
+}
+
+#output {
+  margin-top: 1rem;
+}
+
+p {
+  margin: 0.3rem;
+}

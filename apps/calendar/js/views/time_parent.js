@@ -42,9 +42,7 @@ Calendar.ns('Views').TimeParent = (function() {
     },
 
     _onswipe: function(data) {
-      if (
-          Math.abs(data.dy) > (Math.abs(data.dx) - XSWIPE_OFFSET)
-      ) {
+      if (Math.abs(data.dy) > (Math.abs(data.dx) - XSWIPE_OFFSET)) {
         return false;
       }
 

@@ -13,7 +13,6 @@
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/blobview.js"></script>
     <script defer src="shared/js/media/get_video_rotation.js"></script>
-    <script defer src="shared/js/mouse_event_shim.js"></script>
     <script defer src="js/metadata.js"></script>
     <script defer src="js/db.js"></script>
     <script defer src="js/video.js"></script>
@@ -46,9 +45,7 @@
 
     <!-- 'fullscreen' (maximized) video player -->
     <section role="region" id="fullscreen-view" class="hidden">
-      <div id="crop-view">
-        <video src="about:blank" id="player"></video>
-      </div>
+      <video src="about:blank" id="player"></video>
       <!-- video controls -->
       <div id="videoControls" class="hidden">
 

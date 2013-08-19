@@ -158,6 +158,13 @@ suite('telephony helper', function() {
       });
     });
 
+    test('should handle BusyError', function() {
+      subject.call('123');
+      mockCall.onerror(createCallError('BusyError'));
+      spyConfirmShow.calledWith('numberIsBusyTitle',
+                                'numberIsBusyMessage');
+    });
+
     test('should handle DeviceNotAcceptedError', function() {
       subject.call('123');
       mockCall.onerror(createCallError('DeviceNotAcceptedError'));
