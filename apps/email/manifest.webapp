@@ -53,8 +53,8 @@
     },
     "share": {
       "filters": {
-        "type": "image/*"
-       },
+        "type": ["image/*", "url"]
+      },
       "disposition": "window",
       "returnValue": true
     },
