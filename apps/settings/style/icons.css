@@ -4,23 +4,22 @@
  */
 
 .menu-item {
-  padding-left: 5.5rem;
+  padding-left: 4rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
 }
 
 .menu-item-desc {
-  left: 5.5rem;
+  left: 4rem;
 }
 
 .menu-item::before {
+  content: '';
   position: absolute;
   top: calc((6.2rem - 3.2rem) / 2);
-  left: calc((5.5rem - 2.8rem) / 2);
+  left: calc((2.5rem - 2.8rem) / 2);
   width: 3rem;
   height: 3rem;
-
-  content: '';
   background-image: url(images/icons_sprite.gif);
   background-size: 15rem;
 }
@@ -149,7 +148,7 @@ li:active:not(.disabled) .menu-item::before,
 aside.pack-end {
   position: absolute;
   z-index: 2;
-  right: 3rem;
+  right: 1.5rem;
   margin: 0 0 0 0.5rem;
   text-align: right;
  }

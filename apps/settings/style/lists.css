@@ -11,11 +11,12 @@ ul {
 }
 
 ul li {
+  -moz-box-sizing: border-box;
   position: relative;
+  min-height: 6rem;
+  margin: 0 1.5rem;
   border-bottom: 0.1rem solid #e6e6e3;
   color: #000;
-  -moz-box-sizing: border-box;
-  min-height: 6rem;
 }
 
 ul li.sound-setting {
@@ -36,7 +37,7 @@ ul li > span {
   height: 6rem;
   font-size: 1.9rem;
   line-height: 6rem;
-  padding: 0 3rem;
+  padding: 0 1.5rem;
 }
 
 ul li.active,
@@ -56,7 +57,7 @@ ul li.disabled > a {
 
 ul > li > progress {
   display: inline-block;
-  margin: 0 0 0 3rem;
+  margin: 0;
   padding: 0;
 }
 
@@ -72,7 +73,7 @@ ul > li > progress + span {
 /* description + value on the same line */
 ul li > a span {
   position: absolute;
-  right: 3rem;
+  right: 1.5rem;
   color: #505859;
 }
 
@@ -87,8 +88,8 @@ ul li > * {
 /* sublines */
 ul li > small {
   position: absolute;
-  left: 3rem;
-  right: 3rem;
+  left: 1.5rem;
+  right: 1.5rem;
   top: 50%;
   padding-top: 0.4rem;
   font-size: 1.4rem;
@@ -122,8 +123,8 @@ ul li button,
 ul li a[role="button"] {
   position: relative;
   top: 1.1rem;
-  left: 3rem;
-  width: calc(100% - 6rem);
+  left: 1.5rem;
+  width: calc(100% - 3rem);
 }
 
 /* custom styles for boolean inputs (see /shared/style/switches.css) */
@@ -146,7 +147,7 @@ ul li > label.pack-checkbox > span,
 ul li > label.pack-radio > span,
 ul li > label.pack-switch > input + span {
   left: auto;
-  right: 3rem;
+  right: 0;
 }
 
 ul li > label.pack-checkbox ~ a,
@@ -173,7 +174,7 @@ ul li p {
   font-size: 1.9rem;
   font-weight: 400;
   margin: 0;
-  padding: 1rem 3rem 1.2rem;
+  padding: 1rem 1.5rem 1.2rem;
 }
 
 ul li p + label:not([for]) {
@@ -185,7 +186,7 @@ ul li p + input[type="text"],
 ul li p + input[type="number"],
 ul li p + input[type="tel"],
 ul li p + input[type="password"] {
-  width: calc(100% - 6rem);
+  width: calc(100% - 3rem);
   margin: -1rem auto 1rem;
 }
 
@@ -207,8 +208,8 @@ input[type=range]:-moz-focusring {
 ul li > label input[type="range"] {
   position: relative;
   top: calc(50% - 1.5rem);
-  left: 6.5rem;
-  right: 8.5rem;
+  left: 5rem;
+  right: 7rem;
   height: 3rem;
   width: calc(100% - 15rem);
 }
@@ -240,13 +241,13 @@ input[type=range]:active::-moz-range-thumb {
 
 ul li.sound-setting > label input[type="range"] {
   margin: 0 auto;
-  width: calc(100% - 6rem);
-  left: 3rem;
+  width: calc(100% - 3rem);
+  left: 1.5rem;
 }
 
 ul li#brightness-manual > label input[type="range"] {
   margin: 0 auto;
-  width: calc(100% - 13rem);
+  width: calc(100% - 10rem);
 }
 
 /**
@@ -289,10 +290,10 @@ ul li > label.bug344618_polyfill div:before {
 ul li > label.bug344618_polyfill div {
   position: relative;
   top: calc(50% - 1.5rem);
-  left: 3rem;
-  right: 3rem;
+  left: 1.5rem;
+  right: 1.5rem;
   height: 3rem;
-  width: calc(100% - 6rem);
+  width: calc(100% - 3rem);
 }
 
 /* fill */
@@ -361,7 +362,7 @@ ul li p + select {
 .fake-select {
   position: relative;
   display: block;
-  padding: 1.1rem 3rem;
+  padding: 1.1rem 0;
   margin: 0;
   height: 3.8rem;
 }
@@ -381,8 +382,8 @@ ul li p + select {
 .fake-select > select {
   position: absolute;
   top: 0;
-  left: 3rem;
-  width: calc(100% - 6rem);
+  left: 0;
+  width: 100%;
   height: 3.8rem;
   border: none;
   background: red;
@@ -402,7 +403,7 @@ section[role="region"] > ul > li > p + .fake-select {
 
 ul > li progress[value] {
   display: block;
-  width: calc(100% - 6rem);
+  width: calc(100% - 3rem);
   height: 3rem;
   margin: 3rem auto;
   background: #e7e7e7;
