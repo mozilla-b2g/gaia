@@ -54,7 +54,7 @@ var icc_worker = {
     var _ = navigator.mozL10n.get;
     DUMP('STK_CMD_SET_UP_CALL:', command.options);
     var options = command.options;
-    if (options.confirmMessage == '') {
+    if (!options.confirmMessage) {
       options.confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
           'number': options.address
