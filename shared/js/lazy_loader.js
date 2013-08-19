@@ -16,21 +16,39 @@ var LazyLoader = (function() {
     this._isLoading = {};
   }
 
+  function error(target, file) {
+    window.console.error('Error while loading %s: %s', target, file);
+  }
+
   LazyLoader.prototype = {
 
     _js: function(file, callback) {
       var script = document.createElement('script');
       script.src = file;
-      script.addEventListener('load', callback);
+      function scriptHandler() {
+        error('script', script.src);
+        script.removeEventListener('error', scriptHandler);
+      }
+      script.addEventListener('load', function load() {
+        callback();
+        script.removeEventListener('load', load);
+        script.removeEventListener('error', scriptHandler);
+      });
+      script.addEventListener('error', scriptHandler);
       document.head.appendChild(script);
       this._isLoading[file] = script;
     },
 
     _css: function(file, callback) {
       var style = document.createElement('link');
+      function styleHandler() {
+        error('style sheet', style.href);
+        style.removeEventListener('error', styleHandler);
+      }
       style.type = 'text/css';
       style.rel = 'stylesheet';
       style.href = file;
+      style.addEventListener('error', styleHandler);
       document.head.appendChild(style);
       callback();
     },
