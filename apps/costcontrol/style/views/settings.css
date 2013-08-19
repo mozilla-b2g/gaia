@@ -35,7 +35,7 @@
 .settings li {
   border-bottom: solid 0.1rem #e0e0dd;
   font-size: 1.6rem;
-  padding: 1.2rem 0 1.2rem 1.5rem;
+  padding: 1.2rem 0;
   margin-left: 1.5rem;
   margin-right: 1.5rem;
   position: relative;
@@ -44,7 +44,12 @@
 }
 
 .settings li p {
+  margin: 0 1.5rem;
   overflow: hidden;
+}
+
+.settings li button {
+  background: #fafafa url(../bb/buttons/images/ui/default.png) repeat-x left bottom / auto 100%;
 }
 
 .settings li p:only-of-type {
