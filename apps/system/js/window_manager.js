@@ -442,7 +442,8 @@ var WindowManager = (function() {
       // The "real" fix for this defect is tracked in bug 842102.
       setTimeout(function _setVisible() { iframe.setVisible(false); }, 50);
     }
-
+    // XXX: This removal will wrongly remove 'fullscreen-app' class when
+    // switching two full-screen apps. We should reconsider when to remove it.
     screenElement.classList.remove('fullscreen-app');
 
     // Inform keyboardmanager that we've finished the transition
