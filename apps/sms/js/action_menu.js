@@ -155,9 +155,9 @@ var OptionMenu = function(options) {
 
 // We prototype functions to show/hide the UI of action-menu
 OptionMenu.prototype.show = function() {
-  // We append the element to body
-  document.body.appendChild(this.form);
+  // We translate and append the element to body
   navigator.mozL10n.translate(this.form);
+  document.body.appendChild(this.form);
 };
 
 OptionMenu.prototype.hide = function() {
