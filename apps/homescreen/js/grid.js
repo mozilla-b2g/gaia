@@ -847,11 +847,18 @@ var GridManager = (function() {
   function getApps(suppressHiddenRoles) {
     var apps = [];
     for (var origin in appsByOrigin) {
+      var app = appsByOrigin[origin];
+
+      // app.manifest is null until the downloadsuccess/downloadapplied event
+      var manifest = app.manifest || app.updateManifest;
+
       if (suppressHiddenRoles &&
-        HIDDEN_ROLES.indexOf(appsByOrigin[origin].manifest.role) !== -1) {
+         (HIDDEN_ROLES.indexOf(manifest.role) !== -1 ||
+          manifest.entry_points
+        )) {
         continue;
       }
-      apps.push(appsByOrigin[origin]);
+      apps.push(app);
     }
     return apps;
   }
