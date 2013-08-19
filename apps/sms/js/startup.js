@@ -57,7 +57,7 @@ window.addEventListener('localized', function showBody() {
 
   // also look for elements with data-l10n-date-format and localize them
   Array.prototype.forEach.call(
-    document.querySelectorAll('[data-l10n-date-format]'),
+    document.getElementsByClassName('not-downloaded-message'),
     function(element) {
       if (!(element.dataset.l10nArgs && element.dataset.l10nId &&
             element.dataset.l10nDate)) {

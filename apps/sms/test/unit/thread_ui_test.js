@@ -2175,7 +2175,8 @@ suite('thread_ui.js >', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('Mobile | +346578888888'));
+      assert.ok(html.contains('<span data-l10n-id="Mobile">Mobile</span> | ' +
+        '+346578888888'));
     });
 
     test('Rendered Contact highlighted "type | number"', function() {
