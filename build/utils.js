@@ -283,16 +283,3 @@ function getDistributionFileContent(name, defaultContent) {
   }
   return JSON.stringify(defaultContent, null, '  ');
 }
-
-function getAbsoluteOrRelativePath(path) {
-  // First check relative path to gaia folder
-  let abs_path_chunks = [GAIA_DIR].concat(path.split(/\/|\\/));
-  let file = getFile.apply(null, abs_path_chunks);
-  if (!file.exists()) {
-    try {
-      // Then check absolute path
-      return getFile(SETTINGS_PATH);
-    } catch(e) {}
-  }
-  return file;
-}

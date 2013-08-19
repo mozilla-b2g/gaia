@@ -476,10 +476,6 @@ define run-js-command
 	const GAIA_ENGINE = "xpcshell";                                             \
 	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";                   \
 	const GAIA_APPDIRS = "$(GAIA_APPDIRS)";                                     \
-	const NOFTU = "$(NOFTU)";                                                   \
-	const REMOTE_DEBUGGER = "$(REMOTE_DEBUGGER)";                               \
-	const TARGET_BUILD_VARIANT = "$(TARGET_BUILD_VARIANT)";                     \
-	const SETTINGS_PATH = "$(SETTINGS_PATH)";                                   \
 	';                                                                          \
 	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
 endef
@@ -812,9 +808,30 @@ purge:
 	$(ADB) remount
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
+# Build the settings.json file from settings.py
+ifeq ($(NOFTU), 1)
+SETTINGS_ARG += --noftu
+endif
+
+ifeq ($(REMOTE_DEBUGGER), 1)
+SETTINGS_ARG += --enable-debugger
+endif
+
+ifeq ($(DEBUG),1)
+SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp
+endif
+
+# We want the console to be disabled for device builds using the user variant.
+ifneq ($(TARGET_BUILD_VARIANT),user)
+SETTINGS_ARG += --console
+endif
+
 $(PROFILE_FOLDER)/settings.json:
-	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
-	@$(call run-js-command, settings)
+ifneq ($(GAIA_DEV_PIXELS_PER_PX),1)
+	python build/settings.py $(SETTINGS_ARG) --profile-folder $(PROFILE_FOLDER) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@$(GAIA_DEV_PIXELS_PER_PX)x.jpg --override $(SETTINGS_PATH) --output $(PROFILE_FOLDER)/settings.json
+else
+	python build/settings.py $(SETTINGS_ARG) --profile-folder $(PROFILE_FOLDER) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $(PROFILE_FOLDER)/settings.json
+endif
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
