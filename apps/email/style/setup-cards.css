@@ -283,3 +283,23 @@ section.card-settings-account li span.button select {
   font-size: 1.7rem;
   font-weight: bold;
 }
+
+
+.sup-manual-account-type {
+  font-size: 1.7rem;
+  font-weight: bold;
+  background: none;
+  border: transparent;
+  margin-left: -1.5rem;
+  padding: 0.7rem 0 0.7rem 1.5rem;
+}
+
+li.sup-manual-account-type-container {
+  overflow: hidden;
+  min-height: 100%;
+  border-bottom: none;
+}
+
+li.sup-manual-account-type-container .button {
+  margin: 0;
+}
