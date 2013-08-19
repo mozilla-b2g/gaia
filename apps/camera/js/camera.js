@@ -96,7 +96,6 @@ var DCFApi = (function() {
 })();
 
 var screenLock = null;
-var returnToCamera = true;
 var Camera = {
   _initialised: false,
   _cameras: null,
@@ -314,7 +313,7 @@ var Camera = {
 
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
-    this.screenWakeLock();
+    this.requestScreenWakeLock();
     this.setToggleCameraStyle();
 
     // We lock the screen orientation and deal with rotating
@@ -432,22 +431,16 @@ var Camera = {
     }
   },
 
-  screenTimeout: function camera_screenTimeout() {
-    if (screenLock && !returnToCamera) {
+  releaseScreenWakeLock: function camera_releaseScreenWakeLock() {
+    if (screenLock && Filmstrip.isPreviewShown()) {
       screenLock.unlock();
       screenLock = null;
     }
   },
-  screenWakeLock: function camera_screenWakeLock() {
-    if (!screenLock && returnToCamera) {
+  requestScreenWakeLock: function camera_requestScreenWakeLock() {
+    if (!screenLock && !Filmstrip.isPreviewShown()) {
       screenLock = navigator.requestWakeLock('screen');
     }
-  },
-  setReturnToCamera: function camera_setReturnToCamera() {
-    returnToCamera = true;
-  },
-  resetReturnToCamera: function camera_resetReturnToCamera() {
-    returnToCamera = false;
   },
 
   enableButtons: function camera_enableButtons() {
@@ -1033,7 +1026,7 @@ var Camera = {
   },
 
   startPreview: function camera_startPreview() {
-    this.screenWakeLock();
+    this.requestScreenWakeLock();
     this.viewfinder.play();
     this.loadCameraPreview(this._cameraNumber, this.previewEnabled.bind(this));
     this._previewActive = true;
@@ -1047,7 +1040,7 @@ var Camera = {
   },
 
   stopPreview: function camera_stopPreview() {
-    this.screenTimeout();
+    this.releaseScreenWakeLock();
     if (this._recording) {
       this.stopRecording();
     }
@@ -1245,9 +1238,23 @@ var Camera = {
       break;
     case 'unavailable':
       this._storageState = this.STORAGE_NOCARD;
+      if (Filmstrip.isPreviewShown()) {
+        // If media frame is shown and storage is unavailable or shared, it may
+        // be a video or a picture is opened. We should go back to camera mode
+        // to prevent file deleted or file lock. If the video is playing, camera
+        // app will be killed becase of mounting as sdcard and file is locked.
+        Filmstrip.hidePreview();
+      }
       break;
     case 'shared':
       this._storageState = this.STORAGE_UNMOUNTED;
+      if (Filmstrip.isPreviewShown()) {
+        // If media frame is shown and storage is unavailable or shared, it may
+        // be a video or a picture is opened. We should go back to camera mode
+        // to prevent file deleted or file lock. If the video is playing, camera
+        // app will be killed becase of mounting as sdcard and file is locked.
+        Filmstrip.hidePreview();
+      }
       break;
     }
   },
