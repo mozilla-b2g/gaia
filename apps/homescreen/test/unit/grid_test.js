@@ -316,4 +316,50 @@ suite('grid.js >', function() {
     });
   });
 
+  suite('apps >', function() {
+      var manifests = [
+        {
+          role: 'app'
+        },
+        {
+          role: 'keyboard'
+        },
+        {
+          role: 'app',
+          entry_points: [
+            {}, {}
+          ]
+        }
+      ];
+
+      // Install a few fake applications
+      setup(function(done) {
+        manifests.forEach(function(manifest, idx) {
+          GridManager.install(new MockApp({
+            origin: 'fake' + idx,
+            manifest: manifest
+          }));
+        });
+
+        // Install something with updateManifest, but not manifest
+        GridManager.install(new MockApp({
+          origin: 'updateManifestOnly',
+          manifest: undefined,
+          updateManifest: {
+            role: 'keyboard'
+          }
+        }));
+
+        setTimeout(done.bind(null, undefined), SAVE_STATE_WAIT_TIMEOUT);
+      });
+
+      test('#getApps', function() {
+        var allApps = GridManager.getApps();
+        assert.equal(allApps.length, 4, 'all apps returned');
+
+        var visibleApps = GridManager.getApps(true);
+        assert.equal(visibleApps.length, 1, 'non-visible apps not returned');
+      });
+  });
+
 });
