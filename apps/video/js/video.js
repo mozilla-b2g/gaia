@@ -63,6 +63,11 @@ var storageState;
 var currentOverlay;
 
 var dragging = false;
+// touch start id is the identifier of touch event. we only need to process
+// events related to this id.
+var touchStartID = null;
+var isPausedWhileDragging;
+var sliderRect;
 
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
@@ -472,7 +477,13 @@ function setVideoPlaying(playing) {
   }
 }
 
-function playerMousedown(event) {
+function handlePlayerTouchStart(event) {
+  // If we have a touch start event, we don't need others.
+  if (null != touchStartID) {
+    return;
+  }
+  touchStartID = event.changedTouches[0].identifier;
+
   // If we interact with the controls before they fade away,
   // cancel the fade
   if (controlFadeTimeout) {
@@ -481,12 +492,17 @@ function playerMousedown(event) {
   }
   if (!controlShowing) {
     showVideoControls(true);
+    // preventDefault can prevent to dispatch click event to delete and share if
+    // user touch at the place they are.
+    event.preventDefault();
     return;
   }
   if (event.target == dom.play) {
     setVideoPlaying(dom.player.paused);
   } else if (event.target == dom.close) {
     hidePlayer(true);
+    // call preventDefault to prevent the click for underlying thumbnail items.
+    event.preventDefault();
   } else if (event.target == dom.sliderWrapper) {
     dragSlider(event);
   } else if (event.target == dom.pickerDone && pendingPick) {
@@ -803,56 +819,66 @@ function timeUpdated() {
 
 // handle drags on the time slider
 function dragSlider(e) {
-
-  var isPaused = dom.player.paused;
+  isPausedWhileDragging = dom.player.paused;
   dragging = true;
+  // calculate the slider wrapper size for slider dragging.
+  sliderRect = dom.sliderWrapper.getBoundingClientRect();
 
   // We can't do anything if we don't know our duration
   if (dom.player.duration === Infinity)
     return;
 
-  if (!isPaused) {
+  if (!isPausedWhileDragging) {
     dom.player.pause();
   }
 
-  // Capture all mouse moves and the mouse up
-  document.addEventListener('mousemove', mousemoveHandler, true);
-  document.addEventListener('mouseup', mouseupHandler, true);
+  handlePlayerTouchMove(e);
+}
 
-  function position(event) {
-    var rect = dom.sliderWrapper.getBoundingClientRect();
-    var position = (event.clientX - rect.left) / rect.width;
-    position = Math.max(position, 0);
-    position = Math.min(position, 1);
-    return position;
+function handlePlayerTouchEnd(event) {
+  // We don't care the event not related to touchStartID
+  if (!event.changedTouches.identifiedTouch(touchStartID)) {
+    return;
+  }
+  touchStartID = null;
+
+  if (!dragging) {
+    // We don't need to do anything without dragging.
+    return;
   }
 
-  function mouseupHandler(event) {
-    document.removeEventListener('mousemove', mousemoveHandler, true);
-    document.removeEventListener('mouseup', mouseupHandler, true);
+  dragging = false;
 
-    dragging = false;
+  dom.playHead.classList.remove('active');
 
-    dom.playHead.classList.remove('active');
+  if (dom.player.currentTime === dom.player.duration) {
+    pause();
+  } else if (!isPausedWhileDragging) {
+    dom.player.play();
+  }
+}
 
-    if (dom.player.currentTime === dom.player.duration) {
-      pause();
-    } else if (!isPaused) {
-      dom.player.play();
-    }
+function handlePlayerTouchMove(event) {
+  if (!dragging) {
+    return;
   }
 
-  function mousemoveHandler(event) {
-    var pos = position(event);
-    var percent = pos * 100 + '%';
-    dom.playHead.classList.add('active');
-    dom.playHead.style.left = percent;
-    dom.elapsedTime.style.width = percent;
-    dom.player.currentTime = dom.player.duration * pos;
-    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+  var touch = event.changedTouches.identifiedTouch(touchStartID);
+  // We don't care the event not related to touchStartID
+  if (!touch) {
+    return;
   }
 
-  mousemoveHandler(e);
+  var pos = (touch.clientX - sliderRect.left) / sliderRect.width;
+  pos = Math.max(pos, 0);
+  pos = Math.min(pos, 1);
+
+  var percent = pos * 100 + '%';
+  dom.playHead.classList.add('active');
+  dom.playHead.style.left = percent;
+  dom.elapsedTime.style.width = percent;
+  dom.player.currentTime = dom.player.duration * pos;
+  dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
 }
 
 // XXX if we don't have metadata about the video name
@@ -930,8 +956,11 @@ function restoreVideo() {
   });
 }
 
-// show|hide controls over the player
-dom.videoControls.addEventListener('mousedown', playerMousedown);
+// handles buttons, slider dragging, and show/hide video controls
+dom.videoControls.addEventListener('touchstart', handlePlayerTouchStart);
+// handles slider dragging
+dom.videoControls.addEventListener('touchmove', handlePlayerTouchMove);
+dom.videoControls.addEventListener('touchend', handlePlayerTouchEnd);
 
 // Force repainting of titles for enable overflow event
 function forceRepaintTitles() {
