@@ -155,7 +155,7 @@ suite('extended header', function() {
 
 });
 
-suite('unsynchronized tags', function() {
+suite('unsynchronized data', function() {
 
   setup(function() {
     this.timeout(1000);

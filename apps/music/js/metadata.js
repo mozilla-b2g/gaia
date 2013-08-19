@@ -44,8 +44,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var RATED = 'rated';
   var PLAYED = 'played';
 
-  // Map id3v2 tag ids to metadata property names
-  var ID3V2TAGS = {
+  // Map id3v2 frame ids to metadata property names
+  var ID3V2FRAMES = {
     TIT2: TITLE,
     TT2: TITLE,
     TPE1: ARTIST,
@@ -58,8 +58,8 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     PIC: IMAGE
   };
 
-  // Map ogg tagnames to metadata property names
-  var OGGTAGS = {
+  // Map ogg field names to metadata property names
+  var OGGFIELDS = {
     title: TITLE,
     artist: ARTIST,
     album: ALBUM,
@@ -67,7 +67,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   };
 
   // Map MP4 atom names to metadata property names
-  var MP4TAGS = {
+  var MP4ATOMS = {
     '\xa9alb': ALBUM,
     '\xa9art': ARTIST,
     '\xa9ART': ARTIST,
@@ -138,7 +138,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       if (magic.substring(0, 3) === 'ID3') {
-        // parse ID3v2 tags in an MP3 file
+        // parse ID3v2 tag in an MP3 file
         parseID3v2Metadata(header);
       }
       else if (magic.substring(0, 4) === 'OggS') {
@@ -163,7 +163,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
       else if ((header.getUint16(0, false) & 0xFFFE) === 0xFFFA) {
         // If this looks like an MP3 file, then look for ID3v1 metadata
-        // tags at the end of the file. But even if there is no metadata
+        // tag at the end of the file. But even if there is no metadata
         // treat this as a playable file.
 
         BlobView.get(blob, blob.size - 128, 128, function(footer, error) {
@@ -175,7 +175,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           try {
             var magic = footer.getASCIIText(0, 3);
             if (magic === 'TAG') {
-              // It is an MP3 file with ID3v1 tags
+              // It is an MP3 file with an ID3v1 tag
               parseID3v1Metadata(footer);
             }
             else {
@@ -310,9 +310,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         }
       }
 
-      // Now we have a series of frames, each of which is one ID3 tag
+      // Now we have a series of frames, each of which is one ID3 field
       while (id3.index < id3.byteLength) {
-        var tagid, tagsize, tagflags, this_unsynchronized = false;
+        var frameid, framesize, frameflags, frame_unsynchronized = false;
 
         // If there is a null byte here, then we've found padding
         // and we're done
@@ -321,91 +321,91 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         switch (id3version) {
         case 2:
-          tagid = id3.readASCIIText(3);
-          tagsize = id3.readUint24();
-          tagflags = 0;
+          frameid = id3.readASCIIText(3);
+          framesize = id3.readUint24();
+          frameflags = 0;
           break;
         case 3:
-          tagid = id3.readASCIIText(4);
-          tagsize = id3.readUnsignedInt();
-          tagflags = id3.readUnsignedShort();
+          frameid = id3.readASCIIText(4);
+          framesize = id3.readUnsignedInt();
+          frameflags = id3.readUnsignedShort();
           break;
         case 4:
-          tagid = id3.readASCIIText(4);
-          tagsize = id3.readID3Uint28BE();
-          tagflags = id3.readUnsignedShort();
-          this_unsynchronized = ((tagflags & 0x02) !== 0);
+          frameid = id3.readASCIIText(4);
+          framesize = id3.readID3Uint28BE();
+          frameflags = id3.readUnsignedShort();
+          frame_unsynchronized = ((frameflags & 0x02) !== 0);
           break;
         }
 
-        var nexttag = id3.index + tagsize;
-        var tagname = ID3V2TAGS[tagid];
+        var nextframe = id3.index + framesize;
+        var propname = ID3V2FRAMES[frameid];
 
-        // Skip tags we don't care about
-        if (!tagname) {
-          id3.index = nexttag;
+        // Skip frames we don't care about
+        if (!propname) {
+          id3.index = nextframe;
           continue;
         }
 
-        // Skip compressed, encrypted, or grouped tags that
+        // Skip compressed, encrypted, or grouped frames that
         // we can't decode
-        if ((tagflags & 0xFD) !== 0) {
-          console.warn('Skipping', tagid, 'tag with flags', tagflags);
-          id3.index = nexttag;
+        if ((frameflags & 0xFD) !== 0) {
+          console.warn('Skipping', frameid, 'frame with flags', frameflags);
+          id3.index = nextframe;
           continue;
         }
 
-        // Wrap it in try so we don't crash the whole thing on one bad tag
+        // Wrap it in try so we don't crash the whole thing on one bad frame
         try {
-          var tagblob, tagvalue;
+          var frameblob, framevalue;
 
-          if (this_unsynchronized) {
-            tagblob = deunsync(id3, tagsize);
-            tagsize = tagblob.sliceLength;
+          if (frame_unsynchronized) {
+            frameblob = deunsync(id3, framesize);
+            framesize = frameblob.sliceLength;
           }
           else {
-            tagblob = id3;
+            frameblob = id3;
           }
 
-          // Now get the tag value
-          switch (tagid) {
+          // Now get the frame value
+          switch (frameid) {
           case 'TIT2':
           case 'TT2':
           case 'TPE1':
           case 'TP1':
           case 'TALB':
           case 'TAL':
-            tagvalue = readTextFrame(tagblob, tagsize);
+            framevalue = readTextFrame(frameblob, framesize);
             break;
           case 'TRCK':
           case 'TRK':
-            tagvalue = parseInt(readTextFrame(tagblob, tagsize), 10);
+            framevalue = parseInt(readTextFrame(frameblob, framesize), 10);
             break;
           case 'APIC':
           case 'PIC':
-            tagvalue = readPicFrame(tagblob, tagsize, tagid);
+            framevalue = readPicFrame(frameblob, framesize, frameid);
             break;
           }
 
-          if (tagvalue !== null)
-            metadata[tagname] = tagvalue;
+          if (framevalue !== null)
+            metadata[propname] = framevalue;
         }
         catch (e) {
-          console.warn('Error parsing mp3 metadata tag', tagid, ':', e);
+          console.warn('Error parsing mp3 metadata frame', frameid, ':', e);
         }
 
-        // Make sure we're at the start of the next tag before continuing
-        id3.index = nexttag;
+        // Make sure we're at the start of the next frame before continuing
+        id3.index = nextframe;
       }
 
       handleCoverArt(metadata);
     }
 
-    function deunsync(view, tagsize) {
+    function deunsync(view, framesize) {
       // To de-unsychronize a frame, we need to convert all instances of
       // |0xff 00| to |0xff|.
-      var data = new Uint8Array(tagsize), was0xff = false, dataIndex = 0;
-      for (var i = 0; i < tagsize; i++) {
+      var data = new Uint8Array(framesize), was0xff = false, dataIndex = 0;
+      for (var i = 0; i < framesize; i++) {
         var b = view.readUnsignedByte();
         if (was0xff && b === 0x00)
           continue;
@@ -422,7 +422,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       var start = view.index;
       var encoding = view.readUnsignedByte();
       var mimetype;
-      // mimetype is different for old PIC tags and new APIC tags
+      // mimetype is different for old PIC frames and new APIC frames
       if (id === 'PIC') {
         mimetype = view.readASCIIText(3);
         if (mimetype === 'JPG')
@@ -569,9 +569,10 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var comment = page.readUTF8Text(comment_length);
         var equal = comment.indexOf('=');
         if (equal !== -1) {
-          var tag = comment.substring(0, equal).toLowerCase().replace(' ', '');
-          var propname = OGGTAGS[tag];
-          if (propname) { // Do we care about this tag?
+          var fieldname = comment.substring(0, equal).toLowerCase()
+                                 .replace(' ', '');
+          var propname = OGGFIELDS[fieldname];
+          if (propname) { // Do we care about this field?
             var value = comment.substring(equal + 1);
             if (seen_fields.hasOwnProperty(propname)) {
               // If we already have a value, append this new one.
@@ -819,11 +820,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var size = data.readUnsignedInt();
         var type = data.readASCIIText(4);
         var next = data.index + size - 8;
-        var tagname = MP4TAGS[type];
-        if (tagname) {
+        var propname = MP4ATOMS[type];
+        if (propname) {
           try {
             var value = getMetadataValue(data, next, type);
-            metadata[tagname] = value;
+            metadata[propname] = value;
           }
           catch (e) {
             console.warn('skipping', type, ':', e);
@@ -835,7 +836,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
     // Find the data atom and return its value or throw an error
     // We handle UTF-8 strings, numbers, and blobs
-    function getMetadataValue(data, end, tagtype) {
+    function getMetadataValue(data, end, atomtype) {
       // Loop until we find a data atom
       while (data.index < end) {
         var size = data.readUnsignedInt();
@@ -853,7 +854,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var datasize = size - 16; // the rest of the atom is the value
 
         // Special case for track number
-        if (tagtype === 'trkn') {
+        if (atomtype === 'trkn') {
           data.advance(2);
           return data.readUnsignedShort();
         }
