@@ -22,8 +22,11 @@
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';
     this.source = opts.source || 'manual';
-    this.display = opts.display || '';
+    this.type = opts.type || '';
+    this.separator = opts.separator || '';
+    this.carrier = opts.carrier || '';
   }
+
   /**
    * set
    *
@@ -956,6 +959,18 @@
         }
       };
 
+      // build fragment for dialog body
+      var dialogBody = document.createDocumentFragment();
+      if (recipient.type) {
+        var typeElement = document.createElement('span');
+        navigator.mozL10n.localize(typeElement, recipient.type);
+        dialogBody.appendChild(typeElement);
+      }
+
+      dialogBody.appendChild(document.createTextNode(
+        recipient.separator + recipient.carrier + recipient.number
+      ));
+
       // Dialog will have a closure reference to the response
       // object, therefore it's not necessary to pass it around
       // as an explicit param list item.
@@ -966,7 +981,7 @@
             l10n: false
           },
           body: {
-            value: recipient.display,
+            value: dialogBody,
             l10n: false
           },
           options: {

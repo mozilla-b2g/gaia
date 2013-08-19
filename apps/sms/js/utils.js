@@ -483,15 +483,6 @@
         // Get the title in the standard way
         var details = Utils.getContactDetails(tel, contact);
         var info = Utils.getDisplayObject(details.title || null, tel);
-        /*
-          XXX: We need to move this to use a single point for
-          formating:
-          ${type}${separator}${carrier}${numberHTML}
-        */
-        info.display = info.type +
-          info.separator +
-          info.carrier +
-          tel.value;
 
         callback(info);
       });
