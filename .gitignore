@@ -42,7 +42,6 @@ manifest.appcache
 /.xulrunner-url
 /xulrunner/
 /xulrunner-sdk/
-/tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
 /build/custom-extensions.json

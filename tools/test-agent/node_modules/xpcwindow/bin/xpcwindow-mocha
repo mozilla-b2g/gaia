@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Determine current location
+SOURCE="${BASH_SOURCE[0]}"
+if [ -h "$SOURCE" ];
+then
+  ORIG_SOURCE=$SOURCE;
+  while [ -h "$SOURCE" ] ; do SOURCE="$(readlink "$SOURCE")"; done
+  DIR="$( cd "$(dirname $ORIG_SOURCE)" && cd -P "$( dirname "$SOURCE" )" && pwd )"
+else
+  DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
+fi
+
+$DIR/xpcwindow $DIR/_xpcwindow-mocha.js $@
