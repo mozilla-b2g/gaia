@@ -320,12 +320,29 @@ function ImapConnection (options) {
   this.namespaces = { personal: [], other: [], shared: [] };
   this.capabilities = [];
   this.enabledCapabilities = [];
+  // The list of capabilities the server advertises that we want to ignore
+  // because they are broken on the server.  If blacklisting at runtime, use
+  // the blacklistCapability method.
+  this.blacklistedCapabilities = this._options.blacklistedCapabilities || [];
 };
 util.inherits(ImapConnection, EventEmitter);
 exports.ImapConnection = ImapConnection;
 
 ImapConnection.prototype.hasCapability = function(name) {
   return this.capabilities.indexOf(name) !== -1;
+};
+
+ImapConnection.prototype.blacklistCapability = function(name) {
+  var blacklist = this.blacklistedCapabilities;
+  name = up(name); // normalized to upper-case
+  // bail if already blacklisted
+  if (blacklist.indexOf(name) !== -1)
+    return;
+  blacklist.push(name);
+  // remove from known capabilities if present
+  var idx = this.capabilities.indexOf(name);
+  if (idx !== -1)
+    this.capabilities.splice(idx, 1);
 };
 
 ImapConnection.prototype._findAndShiftRequestByPrefix = function(prefix) {
@@ -2490,6 +2507,9 @@ function ImapProber(credentials, connInfo, _LOG) {
   this._conn.connect(this.onLoggedIn.bind(this));
   this._conn.on('error', this.onError.bind(this));
 
+  this.tzOffset = null;
+  this.blacklistedCapabilities = null;
+
   this.onresult = null;
   this.error = null;
   this.errorDetails = { server: connInfo.hostname };
@@ -2512,14 +2532,26 @@ ImapProber.prototype = {
     }
 
     console.log('PROBE:IMAP happy, TZ offset:', tzOffset / (60 * 60 * 1000));
-    this.error = null;
+    this.tzOffset = tzOffset;
+
+    exports.checkServerProblems(this._conn,
+                                this.onServerProblemsChecked.bind(this));
+  },
+
+  onServerProblemsChecked: function(err, blacklistedCapabilities) {
+    if (err) {
+      this.onError(err);
+      return;
+    }
+
+    this.blacklistedCapabilities = blacklistedCapabilities;
 
     var conn = this._conn;
     this._conn = null;
 
     if (!this.onresult)
       return;
-    this.onresult(this.error, conn, tzOffset);
+    this.onresult(this.error, conn, this.tzOffset, blacklistedCapabilities);
     this.onresult = false;
   },
 
@@ -2742,6 +2774,74 @@ var getTZOffset = exports.getTZOffset = function getTZOffset(conn, callback) {
   }
   var uidsTried = 0;
   conn.openBox('INBOX', true, gotInbox);
+};
+
+/**
+ * Check for server problems and determine if they are fatal or if we can work
+ * around them.  We run this as part of the probing step so we can avoid
+ * creating the account at all if it's not going to work.
+ *
+ * This is our hit-list:
+ *
+ * - Broken SPECIAL-USE implementation.  We detect this and work-around it by
+ *   blacklisting the SPECIAL-USE capability.  daum.net currently advertises
+ *   SPECIAL-USE but its implementation is deeply broken.  From
+ *   https://bugzilla.mozilla.org/show_bug.cgi?id=904022#c4 we have:
+ *   - SPECIAL-USE does not actually seem to be listing any defined special-use
+ *     flags
+ *   - Our RETURN (SPECIAL-USE) command seems to be displaying folders that are
+ *     hidden from the normal LIST command.  It seems like those folders should
+ *     still be listed under a straight up 'LIST "" "*"' command.
+ *   - The core bug here, 'LIST "" "*" RETURN (SPECIAL-USE)' is being
+ *     interpreted as 'LIST (SPECIAL-USE) "" "*"' where only folders with
+ *     SPECIAL-USE flags should be returned.  Of course, since no special use
+ *     flags are actually returned, that's still buggy.
+ *
+ * Other notes:
+ *
+ * - We haven't seen a broken XLIST implementation yet so we're not checking it.
+ *
+ * @param conn {ImapConnection}
+ * @param callback {Function(err, nullOrListOfBlacklistedCapabilities)}
+ */
+exports.checkServerProblems = function(conn, callback) {
+  // If there is no SPECIAL-USE capability, there is nothing for us to check.
+  if (!conn.hasCapability('SPECIAL-USE')) {
+    callback(null, null);
+  }
+
+  function hasInbox(boxesRoot) {
+    for (var boxName in boxesRoot) {
+      if (boxName.toLowerCase() === 'inbox') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Our success metric is that if our SPECIAL-USE LIST invocation returns the
+  // Inbox, then it's not broken.  This is the simplest and most straightforward
+  // test because RFC 3501 demands that Inbox exists at that path, avoiding
+  // namespace complications.  (The personal namespace can be rooted under
+  // INBOX, but INBOX is still exists and is chock full of messages.)
+  conn.getBoxes(function(err, boxesRoot) {
+    // No inbox?  Let's turn off SPECIAL-USE and see if we find the Inbox.
+    if (!hasInbox(boxesRoot)) {
+      conn.blacklistCapability('SPECIAL-USE');
+      conn.getBoxes(function(err, boxesRoot) {
+        // Blacklist if we found an inbox.
+        if (hasInbox(boxesRoot))
+          callback(null, ['SPECIAL-USE']);
+        // Fatally bad news.  Create a better IMAP error message and string if
+        // we ever encounter a server that we actually can't support at all.
+        else
+          callback('server-problem', null);
+      });
+      return;
+    }
+    // Found the inbox; the server is fine.  Hooray for good IMAP servers!
+    callback(null, null);
+  });
 };
 
 }); // end define
