@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" http-equiv="Content-Type">
+
+    <title>Value selector</title>
+    <link rel="stylesheet" href="../value_selector.css">
+
+    <style type="text/css">
+      html, body { font-size: 10px; margin: 0; padding: 0; }
+    </style>
+
+  </head>
+
+  <body>
+
+  <form role="dialog" data-type="value-selector">
+    <section class="scrollable">
+      <h1>Select</h1>
+      <ol role="listbox">
+        <li><label> <span>None</span></label></li>
+        <li><label> <span>At time of event</span></label></li>
+        <li><label> <span>5 minutes before</span></label></li>
+        <li><label> <span>15 minutes before</span></label></li>
+        <li aria-checked="true"><label> <span>30 minutes before</span></label></li>
+        <li><label> <span>1 hour before</span></label></li>
+        <li><label> <span>2 hours before</span></label></li>
+        <li><label> <span>1 day before</span></label></li>
+      </ol>
+    </section>
+    <menu>
+      <button class="affirmative full">OK</button>
+    </menu>
+  </form>
+
+  </body>
+</html>
