@@ -2,6 +2,9 @@ MockAlarmList = {
   alarmList: [],
   refreshingAlarms: [],
   count: 0,
+  banner: {
+    show: function() {}
+  },
   handleEvent: function() {},
   alarmEditView: function() {},
   init: function() {},

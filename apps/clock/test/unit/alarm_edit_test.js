@@ -40,6 +40,7 @@ suite('AlarmEditView', function() {
     AlarmList = al;
     AlarmManager = am;
     AlarmsDB = _AlarmsDB;
+    navigator.mozL10n = nml;
     ActiveAlarm.handler.restore();
   });
 
@@ -76,7 +77,6 @@ suite('AlarmEditView', function() {
       this.sinon.stub(AlarmEdit, 'getRepeatSelect');
 
       this.sinon.stub(AlarmManager, 'toggleAlarm');
-      this.sinon.stub(AlarmManager, 'renderBannerBar');
       this.sinon.stub(AlarmManager, 'updateAlarmStatusBar');
 
       // Define the stubs to return the same values set in the
@@ -95,6 +95,7 @@ suite('AlarmEditView', function() {
 
     test('should save an alarm, no id', function(done) {
       this.sinon.stub(AlarmList, 'refreshItem');
+      this.sinon.stub(AlarmList.banner, 'show');
       AlarmEdit.alarm = new Alarm({
         hour: 5,
         minute: 17,
@@ -103,7 +104,6 @@ suite('AlarmEditView', function() {
         }
       });
       AlarmEdit.element.dataset.id = null;
-
       AlarmEdit.save(function(err, alarm) {
         assert.ok(!err);
         assert.ok(alarm.id);
@@ -113,7 +113,7 @@ suite('AlarmEditView', function() {
         assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
 
         // Rendered BannerBar
-        assert.ok(AlarmManager.renderBannerBar.calledOnce);
+        assert.ok(AlarmList.banner.show.calledOnce);
         assert.ok(AlarmManager.updateAlarmStatusBar.calledOnce);
         done();
       });
@@ -122,6 +122,7 @@ suite('AlarmEditView', function() {
 
     test('should save an alarm, existing id', function(done) {
       this.sinon.stub(AlarmList, 'refreshItem');
+      this.sinon.stub(AlarmList.banner, 'show');
       var curid = AlarmsDB.idCount++;
       AlarmEdit.alarm = new Alarm({
         id: curid,
@@ -142,7 +143,7 @@ suite('AlarmEditView', function() {
         assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
 
         // Rendered BannerBar
-        assert.ok(AlarmManager.renderBannerBar.calledOnce);
+        assert.ok(AlarmList.banner.show.calledOnce);
         assert.ok(AlarmManager.updateAlarmStatusBar.calledOnce);
         done();
       });

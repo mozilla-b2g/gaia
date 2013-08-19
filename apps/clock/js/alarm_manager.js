@@ -59,12 +59,6 @@ var AlarmManager = {
     alarm.setEnabled(enabled, callback);
   },
 
-  renderBannerBar: function am_renderBannerBar(date) {
-    LazyLoader.load(['js/banner.js'], function() {
-      BannerView.setStatus(date);
-    });
-  },
-
   updateAlarmStatusBar: function am_updateAlarmStatusBar() {
     var request = navigator.mozAlarms.getAll();
     request.onsuccess = function(e) {

@@ -61,6 +61,7 @@ var AlarmList = {
     this.template = new Template('alarm-list-item-tmpl');
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
+    this.banner = new Banner('banner-countdown', 'banner-tmpl');
     this.refresh();
     AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
   },
@@ -210,7 +211,7 @@ var AlarmList = {
       // setEnabled saves to database
       alarm.setEnabled(!alarm.enabled, function al_putAlarm(err, alarm) {
         if (alarm.enabled) {
-          AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+          this.banner.show(alarm.getNextAlarmFireTime());
         }
         this.refreshItem(alarm);
         AlarmManager.updateAlarmStatusBar();
