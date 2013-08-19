@@ -842,7 +842,7 @@ var GridManager = (function() {
    * Ways to enumerate installed apps & bookmarks and find out whether
    * a certain "origin" is available as an existing installed app or
    * bookmark. Only used by Everything.me at this point.
-   * @param {Boolean} disallows hidden apps
+   * @param {Boolean} disallows hidden apps.
    */
   function getApps(suppressHiddenRoles) {
     var apps = [];
@@ -1002,7 +1002,8 @@ var GridManager = (function() {
   }
 
   function hasOfflineCache(app) {
-    return app.manifest.appcache_path != null;
+    var manifest = app ? app.manifest || app.updateManifest : null;
+    return manifest.appcache_path != null;
   }
 
   /*
