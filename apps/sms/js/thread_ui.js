@@ -372,8 +372,13 @@ var ThreadUI = global.ThreadUI = {
   },
 
   assimilateRecipients: function thui_assimilateRecipients() {
+    var isNew = window.location.hash === '#new';
     var node = this.recipientsList.lastChild;
     var typed;
+
+    if (!isNew || node === null) {
+      return;
+    }
 
     // Restore the recipients list input area to
     // single line view.
