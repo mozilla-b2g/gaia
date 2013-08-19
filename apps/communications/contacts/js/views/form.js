@@ -674,11 +674,10 @@ contacts.Form = (function() {
 
   var createName = function createName(myContact) {
     if (myContact.givenName || myContact.familyName) {
-      var name = myContact.givenName || '';
-      name += ' ';
-      if (myContact.familyName) {
-        name += myContact.familyName;
-      }
+      var name = (myContact.givenName && myContact.familyName) ?
+          myContact.givenName + ' ' + myContact.familyName :
+          myContact.givenName || myContact.familyName;
+
       myContact.name = [name];
     }
   };
