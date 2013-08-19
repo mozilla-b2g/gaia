@@ -316,7 +316,7 @@ suite('grid.js >', function() {
     });
   });
 
-  suite('apps >', function() {
+  suite('#getApps >', function() {
       var manifests = [
         {
           role: 'app'
@@ -353,12 +353,24 @@ suite('grid.js >', function() {
         setTimeout(done.bind(null, undefined), SAVE_STATE_WAIT_TIMEOUT);
       });
 
-      test('#getApps', function() {
+      test('returns all apps', function() {
         var allApps = GridManager.getApps();
-        assert.equal(allApps.length, 4, 'all apps returned');
+        assert.equal(allApps.length, 4);
+      });
 
-        var visibleApps = GridManager.getApps(true);
-        assert.equal(visibleApps.length, 1, 'non-visible apps not returned');
+      test('filters apps', function() {
+        var visibleApps = GridManager.getApps(false, true);
+        assert.equal(visibleApps.length, 2);
+      });
+
+      test('flattens entry points', function() {
+        var allApps = GridManager.getApps(true);
+        assert.equal(allApps.length, 5);
+      });
+
+      test('filters and flattens entry points', function() {
+        var visibleApps = GridManager.getApps(true, true);
+        assert.equal(visibleApps.length, 3);
       });
   });
 
