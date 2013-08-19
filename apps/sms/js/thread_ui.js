@@ -370,19 +370,23 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  assimilateRecipients: function thui_assimilateRecipients() {
+  assimilateRecipients: function thui_assimilateRecipients(sending) {
     var isNew = window.location.hash === '#new';
     var node = this.recipientsList.lastChild;
     var typed;
+    var refocuselem = this.input;
 
     if (!isNew || node === null) {
       return;
     }
 
+    if (sending) {
+      refocuselem = this.sendButton;
+    }
     // Restore the recipients list input area to
     // single line view.
     this.recipients.visible('singleline', {
-      refocus: this.input,
+      refocus: refocuselem,
       noPreserve: true
     });
 
@@ -1470,7 +1474,7 @@ var ThreadUI = global.ThreadUI = {
     // User may return to recipients, type a new recipient
     // manually and then click the sendButton without "accepting"
     // the recipient.
-    this.assimilateRecipients();
+    this.assimilateRecipients(true);
 
     // not sure why this happens - replace me if you know
     this.container.classList.remove('hide');
