@@ -103,6 +103,15 @@ var icc_events = {
       });
   },
 
+  handleUserActivityEvent:
+    function icc_events_handleUserActivity(idleObserverObject) {
+      DUMP(' STK User Activity');
+      this.downloadEvent({
+        eventType: icc._icc.STK_EVENT_TYPE_USER_ACTIVITY
+      });
+      navigator.removeIdleObserver(idleObserverObject);
+    },
+
   register: function icc_events_register(eventList) {
     DUMP('icc_events_register - Events list:', eventList);
     for (var evt in eventList) {
@@ -127,6 +136,19 @@ var icc_events = {
           });
         break;
       case icc._icc.STK_EVENT_TYPE_USER_ACTIVITY:
+        DUMP('icc_events_register - User activity event');
+        var stkUserActivity = {
+          time: 5,
+          onidle: function() {
+            DUMP('STK Event - User activity - Going to idle');
+          },
+          onactive: function() {
+            DUMP('STK Event - User activity - Going to active');
+            icc_events.handleUserActivityEvent(stkUserActivity);
+          }
+        };
+        navigator.addIdleObserver(stkUserActivity);
+        break;
       case icc._icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
       case icc._icc.STK_EVENT_TYPE_CARD_READER_STATUS:
         DUMP('icc_events_register - TODO event: ', eventList[evt]);
