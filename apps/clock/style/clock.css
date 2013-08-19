@@ -154,16 +154,15 @@ html, body {
 #banner-countdown {
   z-index: -1;
   opacity: 0;
-  bottom: -2rem;
   -moz-transition: all 600ms ease;
 }
 #banner-countdown.visible {
   z-index: 1;
   opacity: 1;
-  bottom: 0;
   -moz-transition: all 600ms ease;
 }
-#banner-countdown > p > strong {
+
+#banner-countdown strong {
   white-space: nowrap;
 }
 

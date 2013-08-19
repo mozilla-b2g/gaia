@@ -355,7 +355,7 @@ var AlarmEdit = {
           return;
         }
         AlarmList.refreshItem(alarm);
-        AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+        AlarmList.banner.show(alarm.getNextAlarmFireTime());
         AlarmManager.updateAlarmStatusBar();
         callback && callback(null, alarm);
       });

@@ -6,22 +6,27 @@ requireApp('clock/js/alarm_manager.js');
 requireApp('clock/js/alarm_edit.js');
 requireApp('clock/js/alarm_list.js');
 requireApp('clock/js/active_alarm.js');
+requireApp('clock/js/banner.js');
+requireApp('clock/js/clock_view.js');
 
 requireApp('clock/test/unit/mocks/mock_alarmsDB.js');
 requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
 requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
+requireApp('clock/test/unit/mocks/mock_banner.js');
 requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
 requireApp('clock/test/unit/mocks/mock_mozAlarm.js');
 
 suite('AlarmList', function() {
-  var am, nml, nma, fixture, dom;
+  var am, bn, nml, nma, fixture, dom;
 
   suiteSetup(function() {
     am = AlarmManager;
+    bn = Banner;
     nml = navigator.mozL10n;
     nma = navigator.mozAlarms;
 
     AlarmManager = MockAlarmManager;
+    Banner = MockBanner;
     navigator.mozL10n = MockL10n;
     navigator.mozAlarms = MockMozAlarms;
 
@@ -32,6 +37,7 @@ suite('AlarmList', function() {
 
   suiteTeardown(function() {
     AlarmManager = am;
+    Banner = bn;
     navigator.mozL10n = nml;
     navigator.mozAlarms = nma;
   });
