@@ -12500,7 +12500,7 @@ MailBridge.prototype = {
           var rTo, rCc, rBcc;
           // clobber the sender's e-mail with the reply-to
           var effectiveAuthor = {
-            name: msg.refAuthor.name,
+            name: msg.refAuthor.name ? msg.refAuthor.name.trim() : '',
             address: (header.replyTo && header.replyTo.address) ||
                      msg.refAuthor.address,
           };
