@@ -121,8 +121,6 @@ ul#alarms:before {
 
 ul#alarms.scroll-up:before {
   opacity: 1;
-  transition-property: opacity;
-  transition-duration: 300ms;
 }
 
 ul#alarms:after {
@@ -135,13 +133,11 @@ ul#alarms:after {
   top: 100%;
   margin-top: -6em;
   margin-left: -1.5em;
-  opacity: 0.0;
+  opacity: 0;
 }
 
 ul#alarms.scroll-down:after {
   opacity: 1;
-  transition-property: opacity;
-  transition-duration: 300ms;
 }
 
 ul#alarms li.alarm-cell { /* 6rem, including a 0.13rem border */

@@ -7,6 +7,8 @@ var AlarmList = {
   alarmList: [],
   refreshingAlarms: [],
   _previousAlarmCount: 0,
+  _scrollTimeoutID: 0,
+  _scrollThreshold: 0,
 
   get alarms() {
     delete this.alarms;
@@ -24,12 +26,20 @@ var AlarmList = {
   },
 
   showHideScrollIndicators: function al_showHideScrollIndicators() {
-    var threshold = 10; // hide indicators when scroll is close enough to an end
+    this._scrollTimeoutID = 0;
     var element = this.alarms;
     var hasTop = element.classList.contains('scroll-up');
     var hasDown = element.classList.contains('scroll-down');
 
-    if (element.scrollTop < threshold) {
+    if (!this._scrollThreshold) {
+      var alarmCell = document.querySelector('.alarm-cell');
+      if (alarmCell) {
+        this._scrollThreshold =
+          alarmCell.getBoundingClientRect().height * 3 / 5;
+      }
+    }
+
+    if (element.scrollTop < this._scrollThreshold) {
       if (hasTop) {
         element.classList.remove('scroll-up');
       }
@@ -39,7 +49,7 @@ var AlarmList = {
       }
     }
 
-    if (element.scrollTop > element.scrollTopMax - threshold) {
+    if (element.scrollTop > element.scrollTopMax - this._scrollThreshold) {
       if (hasDown) {
         element.classList.remove('scroll-down');
       }
@@ -47,6 +57,13 @@ var AlarmList = {
       if (!hasDown) {
         element.classList.add('scroll-down');
       }
+    }
+  },
+
+  handleScrollEvent: function al_handleScrollEvent() {
+    if (!this._scrollTimeoutID) {
+      this._scrollTimeoutID = setTimeout(
+        this.showHideScrollIndicators.bind(this), 150);
     }
   },
 
@@ -87,7 +104,7 @@ var AlarmList = {
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
     this.alarms.addEventListener('scroll',
-      this.showHideScrollIndicators.bind(this));
+      this.handleScrollEvent.bind(this));
     this.refresh();
     AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
   },
