@@ -1,16 +1,16 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
-requireApp('communications/contacts/test/unit/mock_fb.js');
-requireApp('communications/contacts/test/unit/mock_sdcard.js');
-requireApp('communications/contacts/test/unit/mock_icc_helper.js');
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
-requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
-requireApp('communications/contacts/test/unit/mock_mozContacts.js');
-requireApp('communications/contacts/js/import_utils.js');
-requireApp('communications/contacts/js/navigation.js');
-requireApp('communications/contacts/js/contacts_settings.js');
+requireApp('../communications/contacts/test/unit/mock_contacts.js');
+requireApp('../communications/contacts/test/unit/mock_asyncstorage.js');
+requireApp('../communications/contacts/test/unit/mock_fb.js');
+requireApp('../communications/contacts/test/unit/mock_sdcard.js');
+requireApp('../communications/contacts/test/unit/mock_icc_helper.js');
+requireApp('../communications/dialer/test/unit/mock_confirm_dialog.js');
+requireApp('../communications/contacts/test/unit/mock_vcard_parser.js');
+requireApp('../communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('../communications/contacts/js/import_utils.js');
+requireApp('../communications/contacts/js/navigation.js');
+requireApp('../communications/contacts/js/views/settings.js');
 
 if (!this._) this._ = null;
 if (!this.utils) this.utils = null;

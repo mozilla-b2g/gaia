@@ -161,6 +161,20 @@ contacts.Form = (function() {
         saveButton.removeAttribute('disabled');
       }
     });
+
+    // Add listeners
+    utils.listeners.add({
+      '#save-button': saveContact,
+      '#contact-form button[data-field-type]': newField
+    });
+  };
+
+  var saveContact = function saveContact() {
+    return contacts.Form.saveContact();
+  };
+
+  var newField = function newField(evt) {
+    return contacts.Form.onNewFieldClicked(evt);
   };
 
   var render = function cf_render(contact, callback, pFbContactData,
