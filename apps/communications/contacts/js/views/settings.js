@@ -212,10 +212,13 @@ contacts.Settings = (function() {
 
   function exportOptionsHandler(e) {
     var source = e.target.parentNode.dataset.source;
-    var strategy = null;
     switch (source) {
       case 'sim':
-        // TODO Add export to SIM functionality
+        LazyLoader.load(['/contacts/js/export/sim.js'],
+          function() {
+            doExport(new ContactsSIMExport());
+          }
+        );
         break;
       case 'sd':
         // TODO Add export to SD functionality
@@ -224,11 +227,6 @@ contacts.Settings = (function() {
         // TODO Add export to Bluetooth functionality
         break;
     }
-    if (strategy == null) {
-      return;
-    }
-
-    doExport(strategy);
   };
 
   function doExport(strategy) {
