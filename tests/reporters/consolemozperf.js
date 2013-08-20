@@ -9,14 +9,10 @@
 (function(global) {
 
 function ConsoleMozPerfReporter(runner) {
-  importScripts("../reporters/basemozreporter.js");
-  
-  BasePerfReporter(runner, function(obj){
-    process.stdout.write(generateConsoleOut(obj));
-  });  
-}
+   global.Mocha.reporters.BaseMozPerfReporter.call(this, runner);
+};
 
-function generateConsoleOut(objOut) {
+ConsoleMozPerfReporter.prototype.printResult = function consolePrintResult(objOut) {
   var consoleOut = 'Application: ' + objOut.stats.application + '\n\n';
   consoleOut += 'Stats: \n';
   for (var key in objOut.stats) {
@@ -57,8 +53,8 @@ function generateConsoleOut(objOut) {
 
   consoleOut += '-----------------------------------';
 
-  return consoleOut;
-}
+  process.stdout.write(consoleOut);
+};
 
 global.Mocha.reporters.ConsoleMozPerf = ConsoleMozPerfReporter;
 })(this);

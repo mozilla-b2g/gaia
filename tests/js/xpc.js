@@ -63,6 +63,7 @@
 
   require('/test_apps/test-agent/common/vendor/mocha/mocha.js');
   require('/tests/reporters/jsonmoztest.js');
+  require('/tests/reporters/basemozreporter.js');
   require('/tests/reporters/jsonmozperf.js');
   require('/tests/reporters/consolemozperf.js');
   Mocha.reporters.JSONMozTest = JSONMozTestReporter;

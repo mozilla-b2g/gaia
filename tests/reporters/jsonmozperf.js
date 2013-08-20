@@ -9,16 +9,13 @@
 
 (function(global) {
 
-
-
 function JSONMozPerfReporter(runner) {
-  importScripts("../reporters/basemozreporter.js");
+  global.Mocha.reporters.BaseMozPerfReporter.call(this, runner);
+};  
 
-  BasePerfReporter(runner, function(obj){
+JSONMozPerfReporter.prototype.printResult = function jsonPrintResult(obj){
     process.stdout.write(JSON.stringify(obj, null, 2));
-  }); 
-
-}  
+}; 
 
 global.Mocha.reporters.JSONMozPerf = JSONMozPerfReporter;
 })(this);

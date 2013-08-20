@@ -1,9 +1,12 @@
 /*
- * This function is the Base of all performance reporters. The reporter callback is the function 
- * that will be called when the runner end run the test 
+ * This function is the Base of all performance reporters.
  */  
 
-function BasePerfReporter(runner, reporterCallback) {
+'use strict';
+
+(function(global) {
+
+function BaseMozPerfReporter(runner) {
   global.Mocha.reporters.Base.call(this, runner);
 
   // "mocha" is the Mocha instance
@@ -53,9 +56,11 @@ function BasePerfReporter(runner, reporterCallback) {
       passes: passes
     };
 
-    reporterCallback(obj);
+    self.bPrintResult(obj);
   });
-}
+};
+
+BaseMozPerfReporter.prototype.printResult = function basePrintResult(obj){};
 
 function cleanErr(test) {
   var err = test.err;
@@ -86,3 +91,5 @@ function average(arr) {
   return sum / arr.length;
 };
 
+global.Mocha.reporters.BaseMozPerfReporter = BaseMozPerfReporter;
+})(this);
