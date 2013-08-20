@@ -3542,7 +3542,7 @@ $mailchewStrings.events.on('strings', function(strings) {
 exports.generateReplyBody = function generateReplyMessage(reps, authorPair,
                                                           msgDate,
                                                           identity, refGuid) {
-  var useName = authorPair.name || authorPair.address;
+  var useName = authorPair.name ? authorPair.name.trim() : authorPair.address;
 
   var textMsg = '\n\n' +
                 l10n_wroteString.replace('{name}', useName) + ':\n',
