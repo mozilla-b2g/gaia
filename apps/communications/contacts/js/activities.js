@@ -153,7 +153,7 @@ var ActivityHandler = {
   filterPhoneNumberForActivity:
   function ah_filterPhoneNumberForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
-      return item.value == itemData;
+      return item.value == itemData.value;
     });
   },
 
