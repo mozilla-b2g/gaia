@@ -21,7 +21,7 @@ pref("general.useragent.override.bb.com.br", "\\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.orkut.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826712
 pref("general.useragent.override.noticias.uol.com.br", "\\(Mobile#(Android; Mobile"); // bug 826715
 pref("general.useragent.override.olx.com.br", "\\(Mobile#(Android; Mobile"); // bug 826720
-pref("general.useragent.override.bancobrasil.com.br", "\\(Mobile#(Android; Mobile"); // bug 826736
+pref("general.useragent.override.bancobrasil.com.br", "\\(Mobile#(Android; Mobile"); // bug 826711
 pref("general.useragent.override.techtudo.com.br", "\\(Mobile#(Android; Mobile"); // bug 826845
 pref("general.useragent.override.ebay.com", "\\(Mobile#(Android; Mobile"); // bug 826958
 pref("general.useragent.override.bing.com", "\\(Mobile#(Android; Mobile"); // bug 827622
