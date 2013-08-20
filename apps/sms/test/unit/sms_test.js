@@ -173,6 +173,7 @@ suite('SMS App Unit-Test', function() {
     // Setup. We need an async. way due to threads are rendered
     // async.
     setup(function(done) {
+      this.sinon.spy(navigator.mozL10n, 'localize');
       MessageManager.getThreads(ThreadListUI.renderThreads, done);
       _tci = ThreadListUI.checkInputs;
     });
@@ -242,14 +243,12 @@ suite('SMS App Unit-Test', function() {
         assertNumOfElementsByClass(ThreadListUI.container, 1, 'unread');
       });
 
-      test('Update thread with contact info', function() {
+      test('Update thread with contact name localized', function() {
         // Given a number, we should retrieve the contact and update the info
         var threadWithContact = document.getElementById('thread-1');
-        var contactName =
-          threadWithContact.getElementsByClassName('name')[0].innerHTML;
-        assert.equal(
-          contactName, 'thread-header-text{"name":"Pepito O\'Hare","n":0}'
-        );
+        var contactName = threadWithContact.getElementsByClassName('name')[0];
+        assert.deepEqual(navigator.mozL10n.localize.args[0],
+          [contactName, 'thread-header-text', {name: 'Pepito O\'Hare', n: 0}]);
       });
     });
 
