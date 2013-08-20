@@ -58,7 +58,7 @@ var EverythingME = {
       input = document.getElementById('search-q');
       if (input) {
         if (existingQuery) {
-          EvmeFacade.searchFromOutside(existingQuery);
+          input.value = existingQuery;
         }
 
         EvmeFacade.Searchbar && EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
