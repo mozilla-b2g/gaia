@@ -374,10 +374,7 @@ var ThreadUI = global.ThreadUI = {
 
     // Restore the recipients list input area to
     // single line view.
-    this.recipients.visible('singleline', {
-      refocus: this.input,
-      noPreserve: true
-    });
+    this.recipients.visible('singleline');
 
     do {
       if (node.isPlaceholder) {

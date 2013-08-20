@@ -519,7 +519,14 @@
     var range = document.createRange();
     var selection = window.getSelection();
 
-    node = node || view.inner.lastElementChild;
+    if (!node) {
+      node = view.inner.lastElementChild;
+      if (!node.isPlaceholder) {
+        node = view.inner.appendChild(
+          this.placeholder
+        );
+      }
+    }
 
     if (node && node.isPlaceholder) {
       node.contentEditable = true;
@@ -584,24 +591,25 @@
     // the last child element in the recipients list view
     view.inner.parentNode.addEventListener('transitionend', function te() {
       var last = view.inner.lastElementChild;
+      var previous;
 
-      if (state.visible === 'singleline' && opts.refocus) {
+      if (location.hash === '#new' && state.visible === 'singleline') {
+        while (last !== null && last.isPlaceholder) {
+          previous = last.previousElementSibling;
+          if (!last.textContent) {
+            last.parentNode.removeChild(last);
+          }
+          last = previous;
+        }
 
         if (opts.refocus) {
           opts.refocus.focus();
-        } else {
-          last.focus();
-        }
-
-        if (opts.refocus && opts.noPreserve) {
-          while (last.isPlaceholder) {
-            last.parentNode.removeChild(last);
-            last = view.inner.lastElementChild;
-          }
         }
       }
 
-      last.scrollIntoView(true);
+      if (last !== null) {
+        last.scrollIntoView(true);
+      }
 
       state.isTransitioning = false;
       this.removeEventListener('transitionend', te, false);
@@ -781,12 +789,6 @@
           //
           // 2. Focus for fat fingering!
           //
-          if (!view.inner.lastElementChild.isPlaceholder) {
-            view.inner.appendChild(
-              this.placeholder
-            );
-          }
-
           if (view.state.visible !== 'singleline') {
             this.visible('singleline', {
               refocus: this
