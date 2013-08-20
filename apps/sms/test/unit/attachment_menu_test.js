@@ -52,9 +52,9 @@ suite('attachment_menu_test.js', function() {
     });
 
     // generate checks for image, video, audio, and unknown button texts
-    ['image', 'video', 'audio', ''].forEach(function(type) {
-      var typeAppend = type ? '-' + type : type;
-      suite(type || 'unknown', function() {
+    ['image', 'video', 'audio', 'other'].forEach(function(type) {
+      var typeAppend = '-' + type;
+      suite(type, function() {
         setup(function() {
           this.blob = new Blob(['test'],
             { type: type + '/whatever' });

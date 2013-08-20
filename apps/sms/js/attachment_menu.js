@@ -23,8 +23,9 @@ var AttachmentMenu = {
     // Localize the name of the file type
     var types = ['image', 'audio', 'video'];
     var mimeFirstPart = blob.type.substr(0, blob.type.indexOf('/'));
-    var fileType = '';
 
+    // default to -other
+    var fileType = '-other';
     if (types.indexOf(mimeFirstPart) > -1) {
       fileType = '-' + mimeFirstPart;
     }
