@@ -17,26 +17,24 @@ var AttachmentMenu = {
   open: function(attachment) {
     var name = attachment.name;
     var blob = attachment.blob;
-    var _ = navigator.mozL10n.get;
+    var l10n = navigator.mozL10n;
     var fileName = name.substr(name.lastIndexOf('/') + 1);
 
     // Localize the name of the file type
     var types = ['image', 'audio', 'video'];
     var mimeFirstPart = blob.type.substr(0, blob.type.indexOf('/'));
-    var fileType;
-    if (mimeFirstPart.indexOf(mimeFirstPart) > -1) {
-      fileType = _('attachment-type-' + mimeFirstPart);
-    }
-    else {
+
+    // default to -other
+    var fileType = 'other';
+    if (types.indexOf(mimeFirstPart) > -1) {
       fileType = mimeFirstPart;
     }
 
     this.header.textContent = fileName;
-    this.viewButton.textContent = _('view-attachment');
-    this.removeButton.textContent = _('remove-attachment', {type: fileType});
-    this.replaceButton.textContent = _('replace-attachment',
-      {type: fileType});
-    this.cancelButton.textContent = _('cancel');
+
+    l10n.localize(this.viewButton, 'view-attachment-' + fileType);
+    l10n.localize(this.removeButton, 'remove-attachment-' + fileType);
+    l10n.localize(this.replaceButton, 'replace-attachment-' + fileType);
 
     this.el.className = '';
 
