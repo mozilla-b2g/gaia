@@ -41,6 +41,8 @@ suite('Recipients', function() {
 
     this.sinon.spy(Recipients.prototype, 'render');
     this.sinon.spy(Recipients.View.prototype, 'render');
+    this.sinon.spy(Recipients.View.prototype, 'visible');
+    this.sinon.spy(Element.prototype, 'scrollIntoView');
 
     recipients = new Recipients({
       outer: 'messages-to-field',
@@ -625,6 +627,89 @@ suite('Recipients', function() {
           });
 
           MockDialog.triggers.confirm();
+        });
+      });
+    });
+
+    suite('Visibility Modes', function() {
+      var outer, inner, target, visible;
+
+      setup(function() {
+        location.hash = '#new';
+
+        outer = document.getElementById('messages-to-field');
+        inner = document.getElementById('messages-recipients-list');
+        target = document.createElement('input');
+        visible = Recipients.View.prototype.visible;
+
+        this.sinon.spy(target, 'focus');
+      });
+
+      teardown(function() {
+        location.hash = '';
+      });
+
+      suite('to singleline ', function() {
+        setup(function() {
+          recipients.visible('multiline');
+        });
+        test('singleline ', function() {
+          // Assert the last state is multiline
+          assert.equal(visible.args[0][0], 'multiline');
+
+          // Next, set back to singleline
+          recipients.visible('singleline');
+
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'singleline');
+        });
+
+        test('singleline + refocus ', function() {
+          // Assert the last state is multiline
+          assert.equal(visible.args[0][0], 'multiline');
+
+          outer.addEventListener('transitionend', function handler() {
+            var last = inner.lastElementChild;
+
+            assert.ok(target.focus.called);
+            assert.ok(visible.called);
+            assert.equal(visible.args[0][0], 'singleline');
+            assert.deepEqual(visible.args[0][1], {
+              refocus: target
+            });
+
+            assert.ok(target.focus.called);
+            assert.ok(last.scrollIntoView.called);
+
+            done();
+
+            outer.removeEventListener('transitionend', handler);
+          });
+
+          recipients.visible('singleline', {
+            refocus: target
+          });
+
+          outer.dispatchEvent(
+            new CustomEvent('transitionend')
+          );
+        });
+      });
+
+      suite('to multiline ', function() {
+        setup(function() {
+          recipients.visible('singleline');
+        });
+
+        test('multiline ', function() {
+          // Assert the last state is singleline
+          assert.equal(visible.args[0][0], 'singleline');
+
+          // Next, set back to multiline
+          recipients.visible('multiline');
+
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'multiline');
         });
       });
     });
