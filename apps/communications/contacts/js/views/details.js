@@ -58,6 +58,10 @@ contacts.Details = (function() {
 
     wrapper = dom.querySelector('#contact-detail-wrapper');
     initPullEffect(cover);
+
+    utils.listeners.add({
+      '#toggle-favorite': toggleFavorite
+    });
   };
 
   var setContact = function cd_setContact(currentContact) {
