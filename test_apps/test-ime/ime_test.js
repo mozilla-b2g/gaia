@@ -35,28 +35,18 @@ suite('Input Method', function() {
         sk = icc.sendKey(c, 0, 0);
       }
 
-      sk.onsuccess = function() {
+      sk.then(function() {
         if (++completed === chars.length) {
-          var gt = navigator.mozInputMethod.inputcontext.getText();
-
-          gt.onsuccess = function() {
-            /*dump('sendKeys result ' + JSON.stringify({
-                expected: expected,
-                result: v
-              }) + '\n'); */
-
-            assert.strictEqual(expected, gt.result);
+          navigator.mozInputMethod.inputcontext.getText().then(function(v) {
+            assert.equal(expected, v);
             next();
-          };
-
-          gt.onerror = function() {
-            assert.strictEqual(true, gt.error);
-          };
+          }, function(err) {
+            assert.strictEqual(true, err);
+          });
         }
-      };
-      sk.onerror = function() {
-        assert.strictEqual(true, sk.error);
-      };
+      }, function(err) {
+        assert.strictEqual(true, err);
+      });
     });
   }
 
@@ -66,28 +56,27 @@ suite('Input Method', function() {
    * @param {Function} callback Callback with 1 arg that holds inputcontext
    */
   function onIcc(needIc, callback) {
-    navigator.mozInputMethod.oninputcontextchange = function onicc() {
+    navigator.mozInputMethod.addEventListener('inputcontextchange', function onicc() {
       if (!navigator.mozInputMethod.inputcontext && needIc) {
         return;
       }
+      navigator.mozInputMethod.removeEventListener('inputcontextchange', onicc);
       callback(navigator.mozInputMethod.inputcontext);
-    };
+    });
   }
 
   setup(function(next) {
-    navigator.mozInputMethod.oninputcontextchange = function() {
-      if (navigator.mozInputMethod.inputcontext) {
-        if (navigator.mozInputMethod.inputcontext.textAfterCursor === 'sfw') {
-          navigator.mozInputMethod.oninputcontextchange = function() {
-            next();
-          };
+    container.innerHTML = '';
 
-          container.innerHTML = '';
-          document.querySelector('#sfw input').blur();
-        }
-      }
-    };
-    document.querySelector('#sfw input').focus();
+    // no active context? go along
+    if (!navigator.mozInputMethod.inputcontext) {
+      return next();
+    }
+
+    // otherwise wait for the blur() action
+    onIcc(false, function() {
+      next();
+    });
   });
 
   suiteTeardown(function() {
@@ -96,37 +85,29 @@ suite('Input Method', function() {
 
   suite('InputContextChange events', function() {
     test('Event fires on textbox focus', function(next) {
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        if (!navigator.mozInputMethod.inputcontext)
-          return;
-        assert.equal(navigator.mozInputMethod.inputcontext.inputType,
-          'text');
+      onIcc(true, function(ic) {
+        assert.equal(ic.inputType, 'text');
         next();
-      };
+      });
       container.innerHTML = '<input type="text" id="test" />';
       document.querySelector('#test').focus();
     });
 
     test('Event fires on textarea focus', function(next) {
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        if (!navigator.mozInputMethod.inputcontext)
-          return;
-        assert.equal(navigator.mozInputMethod.inputcontext.inputType,
-          'textarea');
+      onIcc(true, function(ic) {
+        assert.equal(ic.inputType, 'textarea');
         next();
-      };
+      });
       container.innerHTML = '<textarea id="test2">Hi!</textarea>';
       document.querySelector('#test2').focus();
     });
 
     test('Event fires on contenteditable focus', function(next) {
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        if (!navigator.mozInputMethod.inputcontext)
-          return;
-        assert.equal(navigator.mozInputMethod.inputcontext.inputType,
+      onIcc(true, function(ic) {
+        assert.equal(ic.inputType,
           'textarea');
         next();
-      };
+      });
       container.innerHTML = '<div id="test3" contenteditable="true">Hi</div>';
       document.querySelector('#test3').focus();
     });
@@ -156,11 +137,9 @@ suite('Input Method', function() {
 
     test('No event on type="range"', function(next) {
       var fired = false;
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        if (!navigator.mozInputMethod.inputcontext)
-          return;
+      onIcc(true, function() {
         fired = true;
-      };
+      });
       container.innerHTML = '<input type="range" min="0" max="100" step="1"/>';
       document.querySelector('input[type=range]').focus();
       setTimeout(function() {
@@ -188,7 +167,7 @@ suite('Input Method', function() {
     });
 
     test('Event fires on textbox blur', function(next) {
-      container.innerHTML = '<input type="text" id="test" />';
+      container.innerHTML = '<input type="text" id="test" value="this is tb" />';
       var el = document.querySelector('#test');
       el.focus();
 
@@ -234,19 +213,14 @@ suite('Input Method', function() {
     function getText(html, id, expected, next) {
       container.innerHTML = html;
 
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        if (!navigator.mozInputMethod.inputcontext)
-          return;
-
-        var r = navigator.mozInputMethod.inputcontext.getText();
-        r.onerror = function() {
-          assert.strictEqual(true, r.error.name);
-        };
-        r.onsuccess = function() {
-          assert.equal(expected, r.result);
+      onIcc(true, function(ic) {
+        ic.getText().then(function(v) {
+          assert.equal(expected, v);
           next();
-        };
-      };
+        }, function(err) {
+          assert.strictEqual(true, err);
+        });
+      });
 
       document.querySelector('#' + id).focus();
     }
@@ -271,12 +245,10 @@ suite('Input Method', function() {
     test('Handle backspace', function(next) {
       container.innerHTML = '<input type="text" id="test" value="" />';
 
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        if (navigator.mozInputMethod.inputcontext) {
-          sendKeys(['J', 'a', 'm', KeyEvent.DOM_VK_BACK_SPACE, 'n'],
-            'Jan', next);
-        }
-      };
+      onIcc(true, function() {
+        sendKeys(['J', 'a', 'm', KeyEvent.DOM_VK_BACK_SPACE, 'n'],
+          'Jan', next);
+      });
       document.querySelector('#test').focus();
     });
 
@@ -303,23 +275,16 @@ suite('Input Method', function() {
     test('Cursor movement', function(next) {
       container.innerHTML = '<input type="text" id="test" value="" />';
 
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        if (!navigator.mozInputMethod.inputcontext)
-          return;
-
-        var ic = navigator.mozInputMethod.inputcontext;
-
+      onIcc(true, function(ic) {
         sendKeys(['a', 'b', 'c'], 'abc', function() {
-          var r = ic.setSelectionRange(1, 0);
-
-          r.onsuccess = function() {
-            sendKeys(['d', 'e'], 'adebc', next);
-          };
-          r.onerror = function() {
-            assert.strictEqual(true, r.error);
-          };
+          var r = ic.setSelectionRange(1, 0).then(function() {
+            sendKeys(['d', 'e'],
+             'adebc', next);
+          }, function(err) {
+            assert.strictEqual(true, err);
+          });
         });
-      };
+      });
       document.querySelector('#test').focus();
     });
   });
@@ -329,18 +294,18 @@ suite('Input Method', function() {
     test('Contenteditable with CR', function(next) {
       onIcc(true, function(ic) {
         sendKeys(['J', 'a'], 'Ja', function() {
-          ic.replaceSurroundingText('Jay\r', 2, 0).onsuccess = function() {
+          ic.replaceSurroundingText('Jay\r', 2, 0).then(function() {
             // The \n after to shouldn't be here. Wtf?
             sendKeys(['t', 'o'], 'Jay\nto\n', function() {
-              ic.replaceSurroundingText('tof\r', 2, 0).onsuccess = function() {
-                ic.getText().onsuccess = function() {
+              ic.replaceSurroundingText('tof\r', 2, 0).then(function() {
+                ic.getText().then(function(v) {
                   // Oh hi, here's another newline...
-                  assert.equal(this.result, 'Jay\ntof\n\n');
+                  assert.equal(v, 'Jay\ntof\n\n');
                   next();
-                };
-              };
+                });
+              });
             });
-          };
+          });
         });
       });
 
@@ -351,16 +316,16 @@ suite('Input Method', function() {
     test('Textarea with CR', function(next) {
       onIcc(true, function(ic) {
         sendKeys(['J', 'a'], 'Ja', function() {
-          ic.replaceSurroundingText('Jay\r', 2, 0).onsuccess = function() {
+          ic.replaceSurroundingText('Jay\r', 2, 0).then(function() {
             sendKeys(['t', 'o'], 'Jay\nto', function() {
-              ic.replaceSurroundingText('tof\r', 2, 0).onsuccess = function() {
-                ic.getText().onsuccess = function() {
-                  assert.equal(this.result, 'Jay\ntof\n');
+              ic.replaceSurroundingText('tof\r', 2, 0).then(function() {
+                ic.getText().then(function(v) {
+                  assert.equal(v, 'Jay\ntof\n');
                   next();
-                };
-              };
+                });
+              });
             });
-          };
+          });
         });
       });
 

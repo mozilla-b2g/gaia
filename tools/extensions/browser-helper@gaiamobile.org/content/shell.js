@@ -12,6 +12,7 @@ let Cu = Components.utils;
 let Cr = Components.results;
 
 Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/Keyboard.jsm');
 
 // Various helpers coming from /b2g/chrome/content/shell.js
 function getContentWindow() {
