@@ -283,69 +283,152 @@ suite('calls handler', function() {
     });
 
     suite('CallsHandler.holdAndAnswer()', function() {
-      var firstCall;
-      var waitingCall;
+      suite('handledCalls.length < 2', function() {
+        test('should do nothing when there is no call', function() {
+          var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
+          CallsHandler.holdAndAnswer();
+          assert.isTrue(hideIncomingSpy.notCalled);
+        });
 
-      setup(function() {
-        firstCall = new MockCall('543552', 'incoming');
-        waitingCall = new MockCall('12334', 'incoming');
+        test('should do nothing when there is one call', function() {
+          var call = new MockCall('543552', 'connected');
+          telephonyAddCall.call(this, call, {trigger: true});
+          MockMozTelephony.active = call;
 
-        telephonyAddCall.call(this, firstCall, {trigger: true});
-        MockMozTelephony.active = firstCall;
-        telephonyAddCall.call(this, waitingCall, {trigger: true});
+          var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
+          var holdSpy = this.sinon.spy(call, 'hold');
+          CallsHandler.holdAndAnswer();
+          assert.isTrue(hideIncomingSpy.notCalled);
+          assert.isTrue(holdSpy.notCalled);
+        });
       });
 
-      test('should put the first call on hold', function() {
-        var holdSpy = this.sinon.spy(firstCall, 'hold');
-        CallsHandler.holdAndAnswer();
-        assert.isTrue(holdSpy.calledOnce);
+      suite('the first call is connected and the second call is incoming',
+        function() {
+          var connectedCall;
+          var incomingCall;
+
+          setup(function() {
+            connectedCall = new MockCall('543552', 'connected');
+            incomingCall = new MockCall('12334', 'incoming');
+
+            telephonyAddCall.call(this, connectedCall, {trigger: true});
+            MockMozTelephony.active = connectedCall;
+            telephonyAddCall.call(this, incomingCall, {trigger: true});
+          });
+
+          test('should put the first call on hold', function() {
+            var holdSpy = this.sinon.spy(connectedCall, 'hold');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(holdSpy.calledOnce);
+          });
+
+          test('should hide the call waiting UI', function() {
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(hideSpy.calledOnce);
+          });
       });
 
-      test('should answer the call waiting', function() {
-        var answerSpy = this.sinon.spy(waitingCall, 'answer');
-        CallsHandler.holdAndAnswer();
-        assert.isTrue(answerSpy.calledOnce);
-      });
+      suite('the first call is held and the second call is incoming',
+        function() {
+          var heldCall;
+          var incomingCall;
 
-      test('should hide the call waiting UI', function() {
-        var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
-        CallsHandler.holdAndAnswer();
-        assert.isTrue(hideSpy.calledOnce);
+          setup(function() {
+            heldCall = new MockCall('543552', 'held');
+            incomingCall = new MockCall('12334', 'incoming');
+
+            telephonyAddCall.call(this, heldCall, {trigger: true});
+            telephonyAddCall.call(this, incomingCall, {trigger: true});
+          });
+
+          test('should answer the incoming call', function() {
+            var answerSpy = this.sinon.spy(incomingCall, 'answer');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(answerSpy.calledOnce);
+          });
+
+          test('should hide the call waiting UI', function() {
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(hideSpy.calledOnce);
+          });
       });
     });
 
     suite('CallsHandler.endAndAnswer()', function() {
-      var firstCall;
-      var waitingCall;
+      suite('handledCalls.length < 2', function() {
+        test('should do nothing when there is no call', function() {
+          var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
+          CallsHandler.endAndAnswer();
+          assert.isTrue(hideIncomingSpy.notCalled);
+        });
 
-      setup(function() {
-        firstCall = new MockCall('543552', 'incoming');
-        waitingCall = new MockCall('12334', 'incoming');
+        test('should do nothing when there is one call', function() {
+          var call = new MockCall('543552', 'connected');
+          telephonyAddCall.call(this, call, {trigger: true});
+          MockMozTelephony.active = call;
 
-        telephonyAddCall.call(this, firstCall, {trigger: true});
-        MockMozTelephony.active = firstCall;
-        telephonyAddCall.call(this, waitingCall, {trigger: true});
+          var hideIncomingSpy = this.sinon.spy(CallScreen, 'hideIncoming');
+          var hangUpSpy = this.sinon.spy(call, 'hangUp');
+          CallsHandler.endAndAnswer();
+          assert.isTrue(hideIncomingSpy.notCalled);
+          assert.isTrue(hangUpSpy.notCalled);
+        });
       });
 
-      test('should hang up the first call', function() {
-        var hangUpSpy = this.sinon.spy(firstCall, 'hangUp');
-        CallsHandler.endAndAnswer();
-        assert.isTrue(hangUpSpy.calledOnce);
+      suite('the first call is connected and the second call is incoming',
+        function() {
+          var connectedCall;
+          var incomingCall;
+
+          setup(function() {
+            connectedCall = new MockCall('543552', 'connected');
+            incomingCall = new MockCall('12334', 'incoming');
+
+            telephonyAddCall.call(this, connectedCall, {trigger: true});
+            MockMozTelephony.active = connectedCall;
+            telephonyAddCall.call(this, incomingCall, {trigger: true});
+          });
+
+          test('should hang up the active call', function() {
+            var hangUpSpy = this.sinon.spy(MockMozTelephony.active, 'hangUp');
+            CallsHandler.endAndAnswer();
+            assert.isTrue(hangUpSpy.calledOnce);
+          });
+
+          test('should hide the call waiting UI', function() {
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(hideSpy.calledOnce);
+          });
       });
 
-      test('should answer the waiting call once the first one is disconnected',
-      function() {
-        var answerSpy = this.sinon.spy(waitingCall, 'answer');
-        CallsHandler.endAndAnswer();
-        assert.isTrue(answerSpy.notCalled);
-        firstCall._disconnect();
-        assert.isTrue(answerSpy.calledOnce);
-      });
+      suite('the first call is held and the second call is incoming',
+        function() {
+          var heldCall;
+          var incomingCall;
 
-      test('should hide the call waiting UI', function() {
-        var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
-        CallsHandler.holdAndAnswer();
-        assert.isTrue(hideSpy.calledOnce);
+          setup(function() {
+            heldCall = new MockCall('543552', 'held');
+            incomingCall = new MockCall('12334', 'incoming');
+
+            telephonyAddCall.call(this, heldCall, {trigger: true});
+            telephonyAddCall.call(this, incomingCall, {trigger: true});
+          });
+
+          test('should hang up the held call', function() {
+            var hangUpSpy = this.sinon.spy(heldCall, 'hangUp');
+            CallsHandler.endAndAnswer();
+            assert.isTrue(hangUpSpy.calledOnce);
+          });
+
+          test('should hide the call waiting UI', function() {
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(hideSpy.calledOnce);
+          });
       });
     });
 
