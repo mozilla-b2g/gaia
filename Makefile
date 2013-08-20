@@ -557,7 +557,7 @@ node_modules:
 	npm install
 
 b2g: node_modules
-	./node_modules/.bin/mozilla-download --verbose --product b2g $@
+	./node_modules/mozilla-download/bin/mozilla-download --verbose --product b2g $@
 
 .PHONY: test-integration
 test-integration:
