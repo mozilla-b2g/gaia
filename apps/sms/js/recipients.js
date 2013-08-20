@@ -581,23 +581,21 @@
     view.outer.addEventListener('transitionend', function te() {
       var last;
 
-      if (state.visible === 'singleline' && opts.refocus) {
+      if (location.hash === '#new' && state.visible === 'singleline') {
         last = view.inner.lastElementChild;
 
         if (opts.refocus) {
           opts.refocus.focus();
-        } else {
-          last.focus();
         }
 
-        if (opts.refocus && opts.noPreserve) {
-          while (last.isPlaceholder) {
-            last.parentNode.removeChild(last);
-            last = view.inner.lastElementChild;
-          }
+        while (last !== null && last.isPlaceholder) {
+          last.parentNode.removeChild(last);
+          last = view.inner.lastElementChild;
         }
 
-        last.scrollIntoView(true);
+        if (last !== null) {
+          last.scrollIntoView(true);
+        }
       }
 
       state.isTransitioning = false;
