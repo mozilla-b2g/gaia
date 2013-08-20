@@ -545,6 +545,24 @@ var Camera = {
     }
   },
 
+  turnOffFlash: function camera_turnOffFlash() {
+    var flash = this._flashState[this._captureMode];
+    flash.currentMode = 0;
+    this.setFlashMode();
+  },
+
+  // isAuto: true if caller want to set it as auto; false for always light.
+  // Auto mode only works when camera is currently at camera mode (not video).
+  turnOnFlash: function camera_turnOnFlash(isAuto) {
+    var flash = this._flashState[this._captureMode];
+    if (this._captureMode === this.CAMERA) {
+      flash.currentMode = isAuto ? 1 : 2;
+    } else {
+      flash.currentMode = 1;
+    }
+    this.setFlashMode();
+  },
+
   toggleFlash: function camera_toggleFlash() {
     var flash = this._flashState[this._captureMode];
     flash.currentMode = (flash.currentMode + 1) % flash.modes.length;
@@ -1521,6 +1539,7 @@ Camera.init();
 
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
+    Camera.turnOffFlash();
     Camera.stopPreview();
     Camera.cancelPick();
     Camera.cancelPositionUpdate();
