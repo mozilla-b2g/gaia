@@ -171,6 +171,7 @@ settings = {
  "ums.volume.sdcard.enabled": True,
  "ums.volume.extsdcard.enabled": False,
  "vibration.enabled": True,
+ "wap.push.enabled": False,
  "wifi.enabled": True,
  "wifi.screen_off_timeout": 600000,
  "wifi.suspended": False,
