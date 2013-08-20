@@ -1,8 +1,8 @@
 'use strict';
 
+require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_contact_all_fields.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_value_selector.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
@@ -89,20 +89,9 @@ suite('Test Activities', function() {
   suite('Pick activity handling', function() {
     var activity,
         contact,
-        result,
-        secondPhone,
-        secondEmail;
+        result;
 
     setup(function() {
-      secondPhone = {
-        'type': ['Mobile'],
-        'value': '07345124376',
-        'carrier': 'O2'
-      };
-      secondEmail = {
-        'type': ['Work'],
-        'value': 'work@my-job.com'
-      };
       activity = {
         source: {
           name: 'pick',
@@ -134,14 +123,17 @@ suite('Test Activities', function() {
       assert.equal(ConfirmDialog.text, _('no_phones'));
     });
 
-     test('webcontacts/tel, 1 results', function() {
+     test('webcontacts/tel, 1 result', function() {
       activity.source.data.type = 'webcontacts/tel';
       ActivityHandler._currentActivity = activity;
+      // We want to test only with one phone, so erase the last one
+      contact.tel.pop();
       // we need to create a object from data to compare prototypes
       // check activities.js > function copyContactData
       var newContact = Object.create(contact);
       ActivityHandler.dataPickHandler(newContact);
       assert.isFalse(ConfirmDialog.showing);
+      // Check if all the properties are the same
       for (var prop in contact)
         assert.equal(result[prop], contact[prop]);
     });
@@ -154,9 +146,11 @@ suite('Test Activities', function() {
       var newContact = Object.create(contact);
       ActivityHandler.dataPickHandler(newContact);
       assert.isFalse(ConfirmDialog.showing);
-      // Mock returns always the first option from the select
+      // Mock returns always the first option from the select, so we need
+      // to compare to a contact with only the first phone
+      contact.tel = [contact.tel[0]];
       for (var prop in contact)
-        assert.equal(result[prop], contact[prop]);
+        assert.deepEqual(result[prop], contact[prop]);
     });
 
     test('webcontacts/contact, 0 results', function() {
@@ -174,13 +168,12 @@ suite('Test Activities', function() {
       ActivityHandler._currentActivity = activity;
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
-      assert.equal(result.number, contact.tel[0].value);
+      assert.equal(result.number.value, contact.tel[0].value);
     });
 
     test('webcontacts/contact, many results', function() {
       activity.source.data.type = 'webcontacts/contact';
       ActivityHandler._currentActivity = activity;
-      contact.tel.push(secondPhone);
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
@@ -202,13 +195,12 @@ suite('Test Activities', function() {
       ActivityHandler._currentActivity = activity;
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
-      assert.equal(result.email, contact.email[0].value);
+      assert.equal(result.email.value, contact.email[0].value);
     });
 
     test('webcontacts/email, many results', function() {
       activity.source.data.type = 'webcontacts/email';
       ActivityHandler._currentActivity = activity;
-      contact.email.push(secondEmail);
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select

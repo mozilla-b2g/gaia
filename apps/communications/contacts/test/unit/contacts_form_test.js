@@ -1,3 +1,4 @@
+require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 //Avoiding lint checking the DOM file renaming it to .html
 requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 
@@ -5,7 +6,6 @@ requireApp('communications/contacts/js/contacts_form.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_contact_all_fields.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 
 var subject,
@@ -136,6 +136,10 @@ suite('Render contact form', function() {
 
   suite('Render edit form', function() {
     test('with all fields', function() {
+      // For this test we need a contact with the same number of items
+      // on the used fields (phone, address, email, note)
+      mockContact.tel.pop();
+      mockContact.email.pop();
       subject.render(mockContact);
       var cont = document.body.innerHTML;
       var toCheck = ['phone', 'address', 'email', 'note'];
@@ -169,7 +173,8 @@ suite('Render contact form', function() {
         for (var i = 0; i < toCheck.length; i++) {
           var element = 'add-' + toCheck[i];
           assert.isTrue(cont.indexOf(element + '-0') > -1);
-          assert.isTrue(cont.indexOf(element + '-1') == -1);
+          assert.isTrue(cont.indexOf(element + '-1') > -1);
+          assert.isTrue(cont.indexOf(element + '-2') == -1);
 
           var domElement0 = document.querySelector('#' + element + '-' + '0');
           assert.isTrue(domElement0.classList.contains('removed') &&
