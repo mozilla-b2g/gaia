@@ -377,10 +377,16 @@ var CallsHandler = (function callsHandler() {
         answer();
         break;
       case 'CHLD=1':
-        endAndAnswer();
+        // End the active call and answer the other one
+        if (handledCalls.length === 1) {
+          end();
+        } else {
+          endAndAnswer();
+        }
         break;
       case 'CHLD=2':
-        if (telephony.calls.length === 1) {
+        // Hold the active call and answer the other one
+        if (handledCalls.length === 1) {
           holdOrResumeSingleCall();
         } else {
           holdAndAnswer();
@@ -459,30 +465,32 @@ var CallsHandler = (function callsHandler() {
   }
 
   function holdAndAnswer() {
-    var callToAnswerIndex = handledCalls.length - 1;
-    var callToHoldIndex = callToAnswerIndex - 1;
-    var callToAnswer = handledCalls[callToAnswerIndex].call;
-
-    if (handledCalls[callToHoldIndex]) {
-      handledCalls[callToHoldIndex].call.hold();
+    if (handledCalls.length < 2) {
+      return;
     }
-    callToAnswer.answer();
+
+    if (telephony.active) {
+      // connected, incoming
+      telephony.active.hold(); // the incoming call is answered by gecko
+    } else {
+      // held, incoming
+      var lastCall = handledCalls[handledCalls.length - 1].call;
+      lastCall.answer(); // the previous call is held by gecko
+    }
 
     CallScreen.hideIncoming();
   }
 
   function endAndAnswer() {
-    var callToAnswerIndex = handledCalls.length - 1;
-    var callToEndIndex = callToAnswerIndex - 1;
-    var callToAnswer = handledCalls[callToAnswerIndex].call;
+    if (handledCalls.length < 2) {
+      return;
+    }
 
-    if (handledCalls[callToEndIndex]) {
-      var callToEnd = handledCalls[callToEndIndex].call;
-      callToEnd.addEventListener('disconnected', function disconnected() {
-        callToEnd.removeEventListener('disconnected', disconnected);
-        callToAnswer.answer();
-      });
-      callToEnd.hangUp();
+    var callToEnd = telephony.active ||           // connected, incoming
+      handledCalls[handledCalls.length - 2].call; // held, incoming
+
+    if (callToEnd) {
+      callToEnd.hangUp(); // the incoming call is answered by gecko
     }
 
     CallScreen.hideIncoming();

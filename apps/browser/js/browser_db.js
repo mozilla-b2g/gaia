@@ -50,17 +50,11 @@ var BrowserDB = {
             this.addSearchEngine(searchEngine.uri, searchEngine.title,
               searchEngine.iconUri);
             if (searchEngine.uri == defaultSearchEngine) {
-              Browser.DEFAULT_SEARCH_PROVIDER_URL = searchEngine.uri;
-              Browser.DEFAULT_SEARCH_PROVIDER_TITLE = searchEngine.title;
-              Browser.DEFAULT_SEARCH_PROVIDER_ICON = searchEngine.iconUri;
+              Browser.setSearchProvider(searchEngine.uri, searchEngine.title,
+                searchEngine.iconUri);
             }
+            this.setAndLoadIconForPage(searchEngine.uri, searchEngine.iconUri);
           }, this);
-
-          if (Browser.DEFAULT_SEARCH_PROVIDER_URL &&
-              Browser.DEFAULT_SEARCH_PROVIDER_ICON) {
-            this.setAndLoadIconForPage(Browser.DEFAULT_SEARCH_PROVIDER_URL,
-              Browser.DEFAULT_SEARCH_PROVIDER_ICON);
-          }
         }
 
       }).bind(BrowserDB));
@@ -130,6 +124,10 @@ var BrowserDB = {
 
   getBookmarks: function browserDB_getBookmarks(callback) {
     this.db.getAllBookmarks(callback);
+  },
+
+  getSearchEngines: function browserDB_getAllSearchEngines(callback) {
+    this.db.getAllSearchEngines(callback);
   },
 
   removeBookmark: function browserDB_removeBookmark(uri, callback) {
@@ -943,6 +941,26 @@ BrowserDB.db = {
     request.onerror = function onError(event) {
       if (event.target.errorCode == IDBDatabaseException.NOT_FOUND_ERR)
         callback();
+    };
+  },
+
+  getAllSearchEngines: function db_getAllSearchEngines(callback) {
+    var result = [];
+    var db = this._db;
+
+    var transaction = db.transaction('search_engines');
+    var objectStore = transaction.objectStore('search_engines');
+
+    objectStore.openCursor(null, 'next').onsuccess =
+      function onSuccess(e) {
+      var cursor = e.target.result;
+      if (cursor) {
+        result.push(cursor.value);
+        cursor.continue();
+      }
+    };
+    transaction.oncomplete = function db_bookmarkTransactionComplete() {
+      callback(result);
     };
   },
 

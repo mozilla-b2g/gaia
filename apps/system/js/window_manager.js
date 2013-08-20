@@ -1643,7 +1643,7 @@ var WindowManager = (function() {
     // Alternatively, if home screen is not the displaying app,
     // we will not relaunch it until the foreground app is closed.
     // (to be dealt in setDisplayedApp(), not here)
-    if (displayedApp == homescreen) {
+    if (displayedApp == origin && homescreen === origin) {
       kill(origin, function relaunchHomescreen() {
         setDisplayedApp(homescreen);
       });
@@ -1655,16 +1655,57 @@ var WindowManager = (function() {
     kill(origin);
   });
 
+  window.addEventListener('launchwrapper', function(evt) {
+    var config = evt.detail;
+    var app = runningApps[config.origin];
+    if (!app) {
+      var browser = new BrowserFrame(config);
+      var iframe = browser.element;
+      iframe.addEventListener('mozbrowserloadstart', function start() {
+        iframe.dataset.loading = true;
+        wrapperHeader.classList.add('visible');
+      });
 
-  function hasPermission(app, permission) {
-    var mozPerms = navigator.mozPermissionSettings;
-    if (!mozPerms)
-      return false;
+      iframe.addEventListener('mozbrowserloadend', function end() {
+        delete iframe.dataset.loading;
+        wrapperHeader.classList.remove('visible');
+      });
 
-    var value = mozPerms.get(permission, app.manifestURL, app.origin, false);
+      app = appendFrame(iframe, config.origin, config.url, config.title, {
+        'name': config.title
+      }, null, /* expectingSystemMessage */ false);
 
-    return (value === 'allow');
-  }
+      // XXX: Move this into app window.
+      // Set the window name in order to reuse this app if we try to open
+      // a new window with same name
+      app.windowName = config.windowName;
+    } else {
+      iframe = app.iframe;
+
+      // XXX: Move this into app window.
+      // Do not touch the name here directly.
+      // Update app name for the card view
+      app.manifest.name = config.title;
+    }
+
+    // XXX: Move into app window object.
+    // Do not use dataset to communicate with others
+    // to avoid conflict.
+    iframe.dataset.name = config.title;
+    iframe.dataset.icon = config.icon;
+
+    if (config.originName)
+      iframe.dataset.originName = config.originName;
+    if (config.originURL)
+      iframe.dataset.originURL = config.originURL;
+
+    if (config.searchName)
+      iframe.dataset.searchName = config.searchName;
+    if (config.searchURL)
+      iframe.dataset.searchURL = config.searchURL;
+
+    setDisplayedApp(config.origin);
+  });
 
   // Use a setting in order to be "called" by settings app
   navigator.mozSettings.addObserver(
@@ -1684,158 +1725,6 @@ var WindowManager = (function() {
       var lock = navigator.mozSettings.createLock();
       lock.set({'clear.remote-windows.data': false});
     });
-
-  // Watch for window.open usages in order to open wrapper frames
-  window.addEventListener('mozbrowseropenwindow', function handleWrapper(evt) {
-    var detail = evt.detail;
-
-    if (typeof detail.features !== 'string')
-      return;
-
-    // Turn ',' separated 'key=value' string into object for easy access
-    var features = detail.features
-      .split(',')
-      .reduce(function(acc, feature) {
-        feature = feature
-          .split('=')
-          .map(function(featureElem) { return featureElem.trim(); });
-        if (feature.length !== 2)
-          return acc;
-
-        acc[decodeURIComponent(feature[0])] = decodeURIComponent(feature[1]);
-        return acc;
-      }, {});
-
-    // Handles only call to window.open with `remote=true` feature.
-    if (!remote in features || features.remote !== 'true')
-      return;
-
-    var callerIframe = evt.target;
-    var callerFrame = callerIframe.parentNode;
-    var manifestURL = callerIframe.getAttribute('mozapp');
-    var callerApp = Applications.getByManifestURL(manifestURL);
-    if (!hasPermission(callerApp, 'open-remote-window'))
-      return;
-
-    var callerOrigin = callerApp.origin;
-
-    // So, we are going to open a remote window.
-    // Now, avoid PopupManager listener to be fired.
-    evt.stopImmediatePropagation();
-
-    var name = detail.name;
-    var url = detail.url;
-
-    // Use fake origin for named windows in order to be able to reuse them,
-    // otherwise always open a new window for '_blank'.
-    var origin = null;
-    var app = null;
-    if (name == '_blank') {
-      origin = url;
-
-      // Just bring on top if a wrapper window is already running with this url
-      if (origin in runningApps &&
-          runningApps[origin].windowName == '_blank') {
-        setDisplayedApp(origin);
-        return;
-      }
-    } else {
-      origin = 'window:' + name + ',source:' + callerOrigin;
-
-      var runningApp = runningApps[origin];
-      if (runningApp && runningApp.windowName === name) {
-        if (runningApp.iframe.src === url) {
-          // If the url is already loaded, just display the app
-          setDisplayedApp(origin);
-          return;
-        } else {
-          // Wrapper context shouldn't be shared between two apps -> killing
-          kill(origin);
-        }
-      }
-    }
-
-    var title = '', icon = '', remote = false, useAsyncPanZoom = false;
-    var originName, originURL, searchName, searchURL;
-
-    title = features.name || url;
-    icon = features.icon || '';
-
-    if (originName in features) {
-      originName = features.originName;
-      originURL = features.originUrl;
-    }
-
-    if (searchName in features) {
-      searchName = features.searchName;
-      searchURL = features.searchUrl;
-    }
-
-    if (useAsyncPanZoom in features && features.useAsyncPanZoom === 'true')
-      useAsyncPanZoom = true;
-
-    // If we don't reuse an existing app, open a brand new one
-    var iframe;
-    if (!app) {
-      // Bug 807438: Move new window document OOP
-      // Ignore `event.detail.frameElement` for now in order
-      // to create a remote system app frame.
-      // So that new window documents are going to share
-      // system app content processes data jar.
-      iframe = document.createElement('iframe');
-      iframe.setAttribute('mozbrowser', 'true');
-      iframe.setAttribute('remote', 'true');
-
-      iframe.addEventListener('mozbrowserloadstart', function start() {
-        iframe.dataset.loading = true;
-        wrapperHeader.classList.add('visible');
-      });
-
-      iframe.addEventListener('mozbrowserloadend', function end() {
-        delete iframe.dataset.loading;
-        wrapperHeader.classList.remove('visible');
-      });
-
-      // `mozasyncpanzoom` only works when added before attaching the iframe
-      // node to the document.
-      if (useAsyncPanZoom) {
-        iframe.dataset.useAsyncPanZoom = true;
-        iframe.setAttribute('mozasyncpanzoom', 'true');
-      }
-
-      var app = appendFrame(iframe, origin, url, title, {
-        'name': title
-      }, null, /* expectingSystemMessage */ false);
-
-      // Set the window name in order to reuse this app if we try to open
-      // a new window with same name
-      app.windowName = name;
-    } else {
-      iframe = app.iframe;
-
-      // Update app name for the card view
-      app.manifest.name = title;
-    }
-
-    iframe.dataset.name = title;
-    iframe.dataset.icon = icon;
-
-    if (originName)
-      iframe.dataset.originName = originName;
-    if (originURL)
-      iframe.dataset.originURL = originURL;
-
-    if (searchName)
-      iframe.dataset.searchName = searchName;
-    if (searchURL)
-      iframe.dataset.searchURL = searchURL;
-
-    // First load blank page in order to hide previous website
-    iframe.src = url;
-
-    setDisplayedApp(origin);
-  }, true); // Use capture in order to catch the event before PopupManager does
-
 
   // Stop running the app with the specified origin
   function kill(origin, callback) {
