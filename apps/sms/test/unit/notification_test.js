@@ -70,8 +70,8 @@ suite('check the ringtone and vibrate function', function() {
       navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
-      Notification.ringtone();
-      Notification.vibrate();
+      NotificationUtils.ringtone();
+      NotificationUtils.vibrate();
 
       assert.ok(Audio.prototype.play.called);
       assert.ok(navigator.vibrate.called);
@@ -94,8 +94,8 @@ suite('check the ringtone and vibrate function', function() {
       navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
-      Notification.ringtone();
-      Notification.vibrate();
+      NotificationUtils.ringtone();
+      NotificationUtils.vibrate();
 
       assert.ok(Audio.prototype.play.called);
       assert.ok(!navigator.vibrate.called);
@@ -118,8 +118,8 @@ suite('check the ringtone and vibrate function', function() {
       navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
-      Notification.ringtone();
-      Notification.vibrate();
+      NotificationUtils.ringtone();
+      NotificationUtils.vibrate();
 
       assert.ok(!Audio.prototype.play.called);
       assert.ok(navigator.vibrate.called);
@@ -139,8 +139,8 @@ suite('check the ringtone and vibrate function', function() {
       navigator.mozSettings.createLock().set(settings);
       triggerObservers(settings);
 
-      Notification.ringtone();
-      Notification.vibrate();
+      NotificationUtils.ringtone();
+      NotificationUtils.vibrate();
 
       assert.ok(!Audio.prototype.play.called);
       assert.ok(!navigator.vibrate.called);
