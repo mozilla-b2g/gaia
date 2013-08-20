@@ -135,4 +135,64 @@ suite('AlarmEditView', function() {
       });
     });
   });
+
+  suite('initTimeSelect', function() {
+    var alarm;
+
+    suiteSetup(function() {
+      alarm = AlarmEdit.alarm;
+    });
+
+    suiteTeardown(function() {
+      AlarmEdit.alarm = alarm;
+    });
+
+    test('0:0, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '0';
+      AlarmEdit.alarm.minute = '0';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '00:00');
+    });
+
+    test('3:5, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '3';
+      AlarmEdit.alarm.minute = '5';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '03:05');
+    });
+
+    test('9:25, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '9';
+      AlarmEdit.alarm.minute = '25';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '09:25');
+    });
+
+    test('12:55, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '12';
+      AlarmEdit.alarm.minute = '55';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '12:55');
+    });
+
+    test('15:5, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '15';
+      AlarmEdit.alarm.minute = '5';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '15:05');
+    });
+
+    test('23:0, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '23';
+      AlarmEdit.alarm.minute = '0';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '23:00');
+    });
+  });
 });
