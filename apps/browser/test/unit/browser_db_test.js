@@ -286,6 +286,28 @@ suite('BrowserDB', function() {
       });
     });
 
+    test('getAllSearchEngines', function(done) {
+      var search_engine1 = {
+        uri: 'http://google.com/search',
+        title: 'Google',
+        iconUri: DATA_URI
+      };
+      var search_engine2 = {
+        uri: 'http://yahoo.com/search',
+        title: 'Yahoo',
+        iconUri: DATA_URI
+      };
+      BrowserDB.db.saveSearchEngine(search_engine1, function() {
+        BrowserDB.db.saveSearchEngine(search_engine2, function() {
+          BrowserDB.db.getAllSearchEngines(function(engines) {
+            done(function() {
+              assert.equal(engines.length, 2);
+            });
+          });
+        });
+      });
+    });
+
   });
 
   suite('BrowserDB', function() {

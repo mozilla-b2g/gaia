@@ -28,11 +28,11 @@ var Browser = {
   previousScreen: null,
   currentScreen: 'page-screen',
 
-  // These constants are set from browser settings,
+  // These variables are set from browser settings,
   // populated from init.json on first run
-  DEFAULT_SEARCH_PROVIDER_URL: '',
-  DEFAULT_SEARCH_PROVIDER_TITLE: '',
-  DEFAULT_SEARCH_PROVIDER_ICON: '',
+  defaultSearchProviderUri: '',
+  defaultSearchProviderTitle: '',
+  defaultSearchProviderIconUri: '',
 
   DEVICE_RATIO: window.devicePixelRatio,
   DEFAULT_FAVICON: 'style/images/favicon.png',
@@ -87,9 +87,8 @@ var Browser = {
         BrowserDB.getSearchEngine(uri, (function(searchEngine) {
           if (!searchEngine)
             return;
-          this.DEFAULT_SEARCH_PROVIDER_URL = searchEngine.uri;
-          this.DEFAULT_SEARCH_PROVIDER_TITLE = searchEngine.title;
-          this.DEFAULT_SEARCH_PROVIDER_ICON = searchEngine.iconUri;
+          this.setSearchProvider(searchEngine.uri, searchEngine.title,
+            searchEngine.iconUri);
         }).bind(this));
       }).bind(this));
     }).bind(this));
@@ -144,30 +143,27 @@ var Browser = {
       'shared/style/confirm.css',
       'style/action_menu.css',
       'style/authentication_dialog.css',
+      'style/settings.css',
 
       // shared JS files
       'shared/js/gesture_detector.js'
     ];
 
     var jsFiles = [
+      'js/settings.js',
       'js/modal_dialog.js',
       'js/authentication_dialog.js'
     ];
 
     var domElements = [
-      'tab-headers', 'top-sites', 'bookmarks', 'history',
-      'top-sites-tab', 'bookmarks-tab', 'history-tab',
-      'tabs-list', 'settings-button', 'settings-done-button',
-      'about-browser-button', 'clear-history-button', 'close-tab',
-      'try-reloading', 'bookmark-menu-add', 'bookmark-menu-remove',
-      'bookmark-menu-cancel', 'bookmark-menu-edit',
+      'tab-headers', 'top-sites', 'bookmarks', 'history', 'top-sites-tab',
+      'bookmarks-tab', 'history-tab', 'tabs-list', 'settings-button',
+      'close-tab', 'try-reloading', 'bookmark-menu-add',
+      'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet-cancel', 'bookmark-entry-sheet-done',
       'bookmark-title', 'bookmark-url', 'bookmark-previous-url',
-      'bookmark-menu-add-home', 'new-tab-button',
-      'clear-private-data-button', 'results', 'tab-panels',
-      'danger-dialog-message',
-      'danger-dialog-cancel',
-      'danger-dialog-ok'
+      'bookmark-menu-add-home', 'new-tab-button', 'results', 'tab-panels',
+      'danger-dialog-message', 'danger-dialog-cancel', 'danger-dialog-ok'
     ];
 
     var loadBrowserFiles = function() {
@@ -203,14 +199,8 @@ var Browser = {
        this.showBookmarksTab.bind(this));
      this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
      this.settingsButton.addEventListener('click',
-       this.showSettingsScreen.bind(this));
+       Settings.show.bind(Settings));
      this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
-     this.settingsDoneButton.addEventListener('click',
-       this.hideSettingsScreen.bind(this));
-     this.aboutBrowserButton.addEventListener('click',
-       this.showAboutPage.bind(this));
-     this.clearHistoryButton.addEventListener('click',
-       this.clearHistoryPressed.bind(this));
      this.closeTab.addEventListener('click',
        this.handleCloseTab.bind(this));
      this.tryReloading.addEventListener('click',
@@ -233,8 +223,6 @@ var Browser = {
       this.handleAwesomescreenCancel.bind(this));
      this.topSiteThumbnails.addEventListener('click',
        this.followLink.bind(this));
-     this.clearPrivateDataButton.addEventListener('click',
-       this.clearPrivateDataPressed.bind(this));
 
     this.tabsSwipeMngr.browser = this;
      ['mousedown', 'pan', 'tap', 'swipe'].forEach(function(evt) {
@@ -255,6 +243,7 @@ var Browser = {
      document.addEventListener('visibilitychange',
        this.handleVisibilityChange.bind(this));
 
+     Settings.init();
      ModalDialog.init();
      AuthenticationDialog.init(false);
   },
@@ -334,6 +323,20 @@ var Browser = {
     mccRequest.onerror = function() {
       callback(variant);
     };
+  },
+
+  /**
+   * Sets the default search provider used by awesomebar.
+   *
+   * @param {String} uri URI of search engine.
+   * @param {String} title Title of search engine.
+   * @param {String} iconUri URI of icon, usually data URI.
+   */
+  setSearchProvider: function browser_setSearchProvider(uri, title, iconUri) {
+    this.defaultSearchProviderUri = uri;
+    this.defaultSearchProviderTitle = title;
+    this.defaultSearchProviderIconUri = iconUri;
+    this._defaultListItemTemplate = null; // clear cached element
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
@@ -701,8 +704,8 @@ var Browser = {
     var hasScheme = !!(rscheme.exec(input) || [])[0];
 
     // No protocol, could be a search term
-    if (UrlHelper.isNotURL(input) && this.DEFAULT_SEARCH_PROVIDER_URL) {
-      return this.DEFAULT_SEARCH_PROVIDER_URL +
+    if (UrlHelper.isNotURL(input) && this.defaultSearchProviderUri) {
+      return this.defaultSearchProviderUri +
         '?q=' + input;
     }
 
@@ -997,12 +1000,12 @@ var Browser = {
 
   showResults: function browser_showResults(visited, filter) {
     this._appendAwesomeScreenItems(this.results, visited);
-    if (visited.length < 2 && filter && this.DEFAULT_SEARCH_PROVIDER_URL) {
+    if (visited.length < 2 && filter && this.defaultSearchProviderUri) {
       var data = {
-        title: this.DEFAULT_SEARCH_PROVIDER_TITLE,
-        uri: this.DEFAULT_SEARCH_PROVIDER_URL +
+        title: this.defaultSearchProviderTitle,
+        uri: this.defaultSearchProviderUri +
           '?q=' + filter,
-        iconUri: this.DEFAULT_SEARCH_PROVIDER_ICON,
+        iconUri: this.defaultSearchProviderIconUri,
         description: _('search-for') + ' "' + filter + '"'
       };
 
@@ -1860,23 +1863,13 @@ var Browser = {
     return li;
   },
 
-  showSettingsScreen: function browser_showSettingsScreen() {
-    document.body.classList.add(this.SETTINGS_SCREEN);
-    this.clearHistoryButton.disabled = false;
-    this.clearPrivateDataButton.disabled = false;
-  },
-
-  hideSettingsScreen: function browser_showSettingsScreen() {
-    document.body.classList.remove(this.SETTINGS_SCREEN);
-  },
-
   showAboutPage: function browser_showAboutPage() {
     var tab = this.createTab(this.ABOUT_PAGE_URL);
     this.hideCurrentTab();
     this.selectTab(tab);
     this.setTabVisibility(this.currentTab, true);
     this.updateTabsCount();
-    this.hideSettingsScreen();
+    Settings.hide();
     this.showPageScreen();
   },
 
@@ -1911,42 +1904,21 @@ var Browser = {
     this.dangerDialogCancel.addEventListener('click', cancel);
   },
 
-  clearHistoryPressed: function browser_clearHistoryPressed() {
-    this.showDangerDialog('confirm-clear-browsing-history',
-                     this.clearHistoryButton,
-                     this.clearHistory.bind(this));
-  },
-
-  clearPrivateDataPressed: function browser_clearPrivateDataPressed() {
-    this.showDangerDialog('confirm-clear-cookies-and-stored-data',
-                          this.clearPrivateDataButton,
-                          this.clearPrivateData.bind(this));
-  },
-
-  clearHistory: function browser_clearHistory() {
-    var self = this;
-    BrowserDB.clearHistory(function() {
-      BrowserDB.getTopSites(self.MAX_TOP_SITES, null,
-                         self.showTopSiteThumbnails.bind(self));
-      var tabIds = Object.keys(self.tabs);
-      tabIds.forEach(function(tabId) {
-        var tab = self.tabs[tabId];
-        if (tab.dom.purgeHistory) {
-          tab.dom.purgeHistory().onsuccess = function(e) {
-            if (tab == self.currentTab) {
-              Toolbar.refreshButtons();
-            }
-          };
-        }
-      });
-    });
-  },
-
-  clearPrivateData: function browser_clearPrivateData() {
-    var request = navigator.mozApps.getSelf();
-    request.onsuccess = function() {
-      request.result.clearBrowserData();
-    };
+  /**
+   * Clear session history for all tabs.
+   */
+  clearTabsSessionHistory: function browser_clearTabsSessionHistory() {
+    var tabIds = Object.keys(this.tabs);
+    tabIds.forEach(function(tabId) {
+      var tab = this.tabs[tabId];
+      if (tab.dom.purgeHistory) {
+        tab.dom.purgeHistory().onsuccess = function(e) {
+          if (tab == this.currentTab) {
+            Toolbar.refreshButtons();
+          }
+        };
+      }
+    }, this);
   },
 
   screenSwipeMngr: {
