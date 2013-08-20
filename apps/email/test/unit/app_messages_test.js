@@ -2,6 +2,7 @@ requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
 
 
+mocha.globals(['htmlCacheRestoreDetectedActivity']);
 suite('appMessages', function() {
   var subject;
 
@@ -24,7 +25,6 @@ suite('appMessages', function() {
     var spy;
 
     setup(function() {
-      mocha.globals(['htmlCacheRestoreDetectedActivity']);
       spy = sinon.spy(navigator, 'mozHasPendingMessage');
     });
 
