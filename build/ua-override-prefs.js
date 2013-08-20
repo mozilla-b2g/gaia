@@ -3,7 +3,7 @@
 pref("general.useragent.override.accounts.google.com", "\\(Mobile#(Android; Mobile"); // bug 805164
 pref("general.useragent.override.maps.google.com", "\\(Mobile#(Android; Mobile"); // bug 802981
 pref("general.useragent.override.uol.com.br", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826330
-pref("general.useragent.override.live.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 826332
+pref("general.useragent.override.live.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 759111
 pref("general.useragent.override.globo.com", "\\(Mobile#(Android; Mobile"); // bug 826335
 pref("general.useragent.override.yahoo.com", "\\(Mobile#(Android; Mobile"); // bug 826338
 pref("general.useragent.override.mercadolivre.com.br", "\\(Mobile#(Android; Mobile"); // bug 826342
