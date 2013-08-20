@@ -26,7 +26,8 @@ suite('dialer/handled_call', function() {
   const VOICEMAIL_NUMBER = '123';
   var subject;
   var mockCall;
-  var fakeNode;
+
+  var templates;
 
   var phoneNumber;
 
@@ -42,45 +43,41 @@ suite('dialer/handled_call', function() {
       }
       callback(isVoicemailNumber);
     });
+
+    templates = document.createElement('div');
+    templates.innerHTML = '<section id="handled-call-template" hidden>' +
+                            '<div class="numberWrapper">' +
+                              '<div class="number font-light"></div>' +
+                            '</div>' +
+                            '<div class="fake-number font-light"></div>' +
+                            '<div class="additionalContactInfo"></div>' +
+                            '<div class="duration">' +
+                              '<span class="font-light"></span>' +
+                              '<div class="direction">' +
+                                '<div></div>' +
+                              '</div>' +
+                            '</div>' +
+                          '</section>';
+    document.body.appendChild(templates);
   });
 
   suiteTeardown(function() {
+    templates.parentNode.removeChild(templates);
     Voicemail.check.restore();
   });
 
   setup(function() {
-    fakeNode = document.createElement('section');
-    fakeNode.id = 'test';
-    fakeNode.innerHTML = [
-      '<div class="numberWrapper">',
-        '<div class="number"></div>',
-      '</div>',
-      '<div class="numberWrapper">',
-        '<div class="number">',
-        '</div>',
-      '</div>',
-      '<div class="fake-number">',
-      '</div>',
-      '<div class="additionalContactInfo">',
-      '</div>',
-      '<div class="duration">',
-        '<span></span>',
-        '<div class="direction">',
-          '<div>',
-          '</div>',
-        '</div>',
-      '</div>'
-    ].join('');
-
-    document.body.appendChild(fakeNode);
-
     mockCall = new MockCall(String(phoneNumber), 'dialing');
-    subject = new HandledCall(mockCall, fakeNode);
+    subject = new HandledCall(mockCall);
+
+    document.body.appendChild(subject.node);
   });
 
   teardown(function() {
-    var el = document.getElementById('test');
-    el.parentNode.removeChild(el);
+    var node = subject.node;
+    if (node && node.parentNode) {
+      node.parentNode.removeChild(node);
+    }
   });
 
   suite('initialization', function() {
@@ -100,8 +97,41 @@ suite('dialer/handled_call', function() {
       assert.isTrue(mockCall._listenerAdded);
     });
 
-    test('node', function() {
-      assert.equal(subject.node, fakeNode);
+    suite('node', function() {
+      test('should not have an id', function() {
+        assert.equal(subject.node.id, '');
+      });
+
+      test('should not be hidden', function() {
+        assert.isFalse(subject.node.hidden);
+      });
+
+      test('should have a numberNode in a numberWrapper', function() {
+        var numberNode = subject.node.querySelector('.numberWrapper .number');
+        assert.equal(subject.numberNode, numberNode);
+      });
+
+      test('should have an additionalContactInfo node', function() {
+        var additionalNode =
+          subject.node.querySelector('.additionalContactInfo');
+        assert.equal(subject.additionalInfoNode, additionalNode);
+      });
+
+      test('should have a duration node', function() {
+        var durationNode = subject.node.querySelector('.duration');
+        assert.equal(subject.durationNode, durationNode);
+      });
+
+      test('should have a duration child node', function() {
+        var durationChildNode = subject.node.querySelector('.duration span');
+        assert.equal(subject.durationChildNode, durationChildNode);
+        assert.isTrue(durationChildNode.classList.contains('font-light'));
+      });
+
+      test('should have a direction node', function() {
+        var directionNode = subject.node.querySelector('.duration .direction');
+        assert.equal(subject.directionNode, directionNode);
+      });
     });
 
     test('duration outgoing', function() {
@@ -111,7 +141,7 @@ suite('dialer/handled_call', function() {
 
     test('duration incoming', function() {
       mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
 
       assert.ok(subject.durationChildNode);
       assert.equal(subject.durationChildNode.textContent, 'incoming');
@@ -132,16 +162,11 @@ suite('dialer/handled_call', function() {
 
     test('support for calls already connected at init', function() {
       mockCall = new MockCall(String(phoneNumber), 'connected');
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
 
       assert.isTrue(MockCallScreen.mEnableKeypadCalled);
-      assert.isFalse(fakeNode.hidden);
-      assert.equal(subject.directionNode.className,
-                   'direction outgoing ongoing-out');
-    });
-
-    test('occupied', function() {
-      assert.equal(fakeNode.dataset.occupied, 'true');
+      assert.isFalse(subject.node.hidden);
+      assert.isTrue(subject.directionNode.classList.contains('ongoing-out'));
     });
   });
 
@@ -151,7 +176,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('show the node', function() {
-      assert.isFalse(fakeNode.hidden);
+      assert.isFalse(subject.node.hidden);
     });
 
     test('ensure the callscreen in connected mode', function() {
@@ -192,27 +217,43 @@ suite('dialer/handled_call', function() {
   });
 
   suite('on disconnect', function() {
+    var node;
+
     setup(function() {
+      node = subject.node;
+
       mockCall._connect();
       MockCallScreen.mute();
       MockCallScreen.turnSpeakerOn();
       mockCall._disconnect();
     });
 
-    test('save recents entry', function() {
+    test('should save the recents entry', function() {
       assert.equal(subject.recentsEntry, MockCallsHandler.mLastEntryAdded);
     });
 
-    test('remove listener', function() {
+    test('should remove listener on the call', function() {
       assert.isTrue(mockCall._listenerRemoved);
     });
 
-    test('clear the ticker', function() {
+    test('should nullify the call', function() {
+      assert.isNull(subject.call);
+    });
+
+    test('should nullify the photo', function() {
+      assert.isNull(subject.photo);
+    });
+
+    test('should clear the ticker', function() {
       assert.equal(subject._ticker, null);
     });
 
-    test('occupied', function() {
-      assert.equal(fakeNode.dataset.occupied, 'false');
+    test('should remove the node from the dom', function() {
+      assert.isNull(node.parentNode);
+    });
+
+    test('should nullify the node', function() {
+      assert.isNull(subject.node);
     });
   });
 
@@ -226,7 +267,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('add the css class', function() {
-      assert.equal(fakeNode.className, 'held');
+      assert.isTrue(subject.node.classList.contains('held'));
     });
   });
 
@@ -238,7 +279,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('remove the css class', function() {
-      assert.equal(fakeNode.className, '');
+      assert.isFalse(subject.node.classList.contains('held'));
     });
 
     test('enable keypad', function() {
@@ -252,14 +293,12 @@ suite('dialer/handled_call', function() {
 
   suite('call direction', function() {
     test('before connexion', function() {
-      assert.equal(subject.directionNode.className,
-                   'direction outgoing');
+      assert.isTrue(subject.directionNode.classList.contains('outgoing'));
     });
 
     test('after connexion', function() {
       mockCall._connect();
-      assert.equal(subject.directionNode.className,
-                   'direction outgoing ongoing-out');
+      assert.isTrue(subject.directionNode.classList.contains('ongoing-out'));
     });
   });
 
@@ -275,7 +314,7 @@ suite('dialer/handled_call', function() {
     suite('type incoming', function() {
       setup(function() {
         mockCall = new MockCall('888', 'incoming');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
       });
 
       test('type', function() {
@@ -305,7 +344,7 @@ suite('dialer/handled_call', function() {
     suite('type outgoing', function() {
       setup(function() {
         mockCall = new MockCall('888', 'dialing');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
       });
 
       test('type', function() {
@@ -338,7 +377,7 @@ suite('dialer/handled_call', function() {
       var contactInfo;
       setup(function() {
         mockCall = new MockCall('111', 'incoming');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
         mockCall._disconnect();
       });
 
@@ -354,7 +393,7 @@ suite('dialer/handled_call', function() {
       var contactInfo;
       setup(function() {
         mockCall = new MockCall('222', 'incoming');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
         mockCall._disconnect();
       });
 
@@ -396,7 +435,7 @@ suite('dialer/handled_call', function() {
       var contactInfo;
       setup(function() {
         mockCall = new MockCall('888', 'incoming');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
         mockCall._disconnect();
       });
 
@@ -437,14 +476,14 @@ suite('dialer/handled_call', function() {
     suite('emergency calls', function() {
       test('is emergency call', function() {
         mockCall = new MockCall('112', 'dialing');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
         mockCall._disconnect();
         assert.isTrue(subject.recentsEntry.emergency);
       });
 
       test('is not emergency call', function() {
         mockCall = new MockCall('111', 'dialing');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
         mockCall._disconnect();
         assert.isFalse(subject.recentsEntry.emergency);
       });
@@ -453,164 +492,148 @@ suite('dialer/handled_call', function() {
     suite('voicemail calls', function() {
       test('is voicemail call', function() {
         mockCall = new MockCall('123', 'dialing');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
         mockCall._disconnect();
         assert.isTrue(subject.recentsEntry.voicemail);
       });
 
       test('is not voicemail call', function() {
         mockCall = new MockCall('111', 'dialing');
-        subject = new HandledCall(mockCall, fakeNode);
+        subject = new HandledCall(mockCall);
         mockCall._disconnect();
         assert.isFalse(subject.recentsEntry.voicemail);
       });
     });
   });
 
-  suite('without node', function() {
-    setup(function() {
-      mockCall = new MockCall('12345', 'incoming');
-      subject = new HandledCall(mockCall);
-    });
-
-    test('call event listener', function() {
-      assert.isTrue(mockCall._listenerAdded);
-    });
-
-    test('no node', function() {
-      assert.typeOf(subject.node, 'undefined');
-    });
-
-    test('recents entry after refusal', function() {
-      mockCall._disconnect();
-      assert.equal(subject.recentsEntry.type, 'incoming');
-      assert.equal(subject.recentsEntry.status, null);
-    });
-
-    test('show should do nothing', function() {
-      subject.show(); // will trigger a js error if failing
-    });
-
-    test('hide should do nothing', function() {
-      subject.hide(); // will trigger a js error if failing
-    });
-  });
-
   test('should display contact name', function() {
     mockCall = new MockCall('888', 'incoming');
-    subject = new HandledCall(mockCall, fakeNode);
+    subject = new HandledCall(mockCall);
 
-    var numberNode = fakeNode.querySelector('.numberWrapper .number');
-    assert.equal(numberNode.textContent, 'test name');
+    assert.equal(subject.numberNode.textContent, 'test name');
   });
 
   test('should display withheld-number l10n key', function() {
     mockCall = new MockCall('', 'incoming');
-    subject = new HandledCall(mockCall, fakeNode);
+    subject = new HandledCall(mockCall);
 
-    var numberNode = fakeNode.querySelector('.numberWrapper .number');
-    assert.equal(numberNode.textContent, 'withheld-number');
+    assert.equal(subject.numberNode.textContent, 'withheld-number');
   });
 
   test('should display emergency number label', function() {
     mockCall = new MockCall('112', 'dialing');
     mockCall.emergency = true;
-    subject = new HandledCall(mockCall, fakeNode);
+    subject = new HandledCall(mockCall);
 
-    var numberNode = fakeNode.querySelector('.numberWrapper .number');
-    assert.equal(numberNode.textContent, 'emergencyNumber');
+    assert.equal(subject.numberNode.textContent, 'emergencyNumber');
   });
 
   test('should display voicemail label', function() {
     mockCall = new MockCall('123', 'dialing');
-    subject = new HandledCall(mockCall, fakeNode);
+    subject = new HandledCall(mockCall);
 
-    var numberNode = fakeNode.querySelector('.numberWrapper .number');
-    assert.equal(numberNode.textContent, 'voiceMail');
+    assert.equal(subject.numberNode.textContent, 'voiceMail');
   });
 
   suite('additional information', function() {
-    var additionalInfoNode;
-
-    setup(function() {
-      additionalInfoNode = fakeNode.querySelector('.additionalContactInfo');
-    });
-
     test('check additional info updated', function() {
       mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
-      assert.equal(additionalInfoNode.textContent, '888');
+      subject = new HandledCall(mockCall);
+      assert.equal(subject.additionalInfoNode.textContent, '888');
     });
 
     test('check without additional info', function() {
       mockCall = new MockCall('999', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
-      assert.equal('', additionalInfoNode.textContent);
+      subject = new HandledCall(mockCall);
+      assert.equal('', subject.additionalInfoNode.textContent);
     });
 
-    test('check replace additional info', function() {
-      mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
-      subject.replaceAdditionalContactInfo('test additional info');
-      assert.equal(additionalInfoNode.textContent, 'test additional info');
+    suite('additional contact info', function() {
+      setup(function() {
+        mockCall = new MockCall('888', 'incoming');
+        subject = new HandledCall(mockCall);
+      });
+
+      suite('when there are additional infos to display', function() {
+        setup(function() {
+          subject.replaceAdditionalContactInfo('test additional info');
+        });
+
+        test('should update the text content', function() {
+          assert.equal(subject.additionalInfoNode.textContent,
+                       'test additional info');
+        });
+
+        test('should add the proper css class', function() {
+          assert.isTrue(subject.node.classList.contains('additionalInfo'));
+        });
+      });
+
+      suite('when there aren\'t additional infos to display', function() {
+        setup(function() {
+          subject.replaceAdditionalContactInfo('');
+        });
+
+        test('should empty the text content', function() {
+          assert.equal(subject.additionalInfoNode.textContent, '');
+        });
+
+        test('should remove the css class', function() {
+          assert.isFalse(subject.node.classList.contains('additionalInfo'));
+        });
+      });
     });
 
     test('check restore additional info', function() {
       mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
       subject.replaceAdditionalContactInfo('test additional info');
       subject.restoreAdditionalContactInfo();
-      assert.equal(additionalInfoNode.textContent, '888');
+      assert.equal(subject.additionalInfoNode.textContent, '888');
     });
   });
 
   suite('phone number', function() {
-    var numberNode;
-
-    setup(function() {
-      numberNode = fakeNode.querySelector('.numberWrapper .number');
-    });
-
     test('check replace number', function() {
       mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
 
       subject.replacePhoneNumber('12345678');
-      assert.equal(numberNode.textContent, '12345678');
+      assert.equal(subject.numberNode.textContent, '12345678');
     });
 
     test('check restore number', function() {
       mockCall = new MockCall('888', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
 
       subject.replacePhoneNumber('12345678');
       subject.restorePhoneNumber();
-      assert.equal(numberNode.textContent, 'test name');
+      assert.equal(subject.numberNode.textContent, 'test name');
     });
 
     test('check restore withheld-number', function() {
       mockCall = new MockCall('', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
 
       subject.restorePhoneNumber();
-      assert.equal(numberNode.textContent, 'withheld-number');
+      assert.equal(subject.numberNode.textContent, 'withheld-number');
     });
 
    test('check restore voicemail number', function() {
       mockCall = new MockCall('123', 'incoming');
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
 
       subject.restorePhoneNumber();
-      assert.equal(numberNode.textContent, 'voiceMail');
+      assert.equal(subject.numberNode.textContent, 'voiceMail');
     });
 
    test('check restore emergency number', function() {
       mockCall = new MockCall('112', 'incoming');
       mockCall.emergency = true;
-      subject = new HandledCall(mockCall, fakeNode);
+      subject = new HandledCall(mockCall);
 
       subject.restorePhoneNumber();
-      assert.equal(numberNode.textContent, 'emergencyNumber');
+      assert.equal(subject.numberNode.textContent, 'emergencyNumber');
     });
   });
 

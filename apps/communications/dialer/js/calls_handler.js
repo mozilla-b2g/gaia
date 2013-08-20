@@ -139,9 +139,9 @@ var CallsHandler = (function callsHandler() {
     }
 
     // Find an available node for displaying the call
-    var node = CallScreen.calls.querySelector('.call[data-occupied="false"]');
-    var hc = new HandledCall(call, node);
+    var hc = new HandledCall(call);
     handledCalls.push(hc);
+    CallScreen.insertCall(hc.node);
 
     if (call.state === 'incoming') {
       call.addEventListener('statechange', function callStateChange() {
@@ -165,6 +165,7 @@ var CallsHandler = (function callsHandler() {
     if (handledCalls.length > 1) {
       // New incoming call, signaling the user.
       if (call.state === 'incoming') {
+        hc.hide();
         handleCallWaiting(call);
 
       // User performed another outgoing call. show its status.

@@ -390,8 +390,8 @@ button[disabled] .icon-keypad-visibility {
   font-weight: lighter;
 }
 
-#calls[data-count="1"] > section .numberWrapper
-  .number.noAdditionalContactInfo {
+#calls[data-count="1"] > section:not(.additionalInfo) .numberWrapper
+  .number {
   height: 8rem;
   line-height: 8rem;
   padding: 0;
@@ -417,8 +417,8 @@ button[disabled] .icon-keypad-visibility {
   color: white;
 }
 
-#calls[data-count="1"] > section
-  .additionalContactInfo.noAdditionalContactInfo {
+#calls[data-count="1"] > section:not(.additionalInfo)
+  .additionalContactInfo {
   display: none;
 }
 
@@ -643,9 +643,7 @@ button[disabled] .icon-keypad-visibility {
   }
 
   #calls > section .numberWrapper .number,
-  #calls[data-count="1"] > section .numberWrapper .number,
-  #calls > section .numberWrapper .number.noAdditionalContactInfo,
-  #calls[data-count="1"] > section .numberWrapper .number.noAdditionalContactInfo {
+  #calls[data-count="1"] > section .numberWrapper .number {
     width: 100%;
     height: calc(100% - 1rem);
     padding: 0.5rem 0;
