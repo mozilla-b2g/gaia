@@ -588,13 +588,15 @@
         }
 
         if (opts.refocus && opts.noPreserve) {
-          while (last.isPlaceholder) {
+          while (last !== null && last.isPlaceholder) {
             last.parentNode.removeChild(last);
             last = view.inner.lastElementChild;
           }
         }
 
-        last.scrollIntoView(true);
+        if (last !== null) {
+          last.scrollIntoView(true);
+        }
       }
 
       state.isTransitioning = false;
