@@ -42,11 +42,18 @@ contacts.Settings = (function() {
   var init = function initialize() {
     // To listen to card state changes is needed for enabling import from SIM
     if (IccHelper.enabled) {
-      IccHelper.oncardstatechange = Contacts.cardStateChanged;
+      IccHelper.oncardstatechange = contacts.Settings.cardStateChanged;
     }
     fb.init(function onFbInit() {
       initContainers();
     });
+    utils.listeners.add({
+      '#settings-close': hideSettings
+    });
+  };
+
+  var hideSettings = function hideSettings() {
+    contacts.Settings.close();
   };
 
   // Get the different values that we will show in the app
