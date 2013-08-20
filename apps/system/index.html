@@ -20,6 +20,7 @@
     <script defer src="shared/js/icc_helper.js"></script>
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
+    <script defer src="shared/js/advanced_timer.js"></script>
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -35,6 +36,9 @@
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/switches.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/value_selector.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/date_selector.css">
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/time_selector.css">
 
     <link rel="stylesheet" type="text/css" href="style/fake-notification.css"/>
 
@@ -143,8 +147,6 @@
 
     <!-- Value selector -->
     <link rel="stylesheet" type="text/css" href="style/value_selector/value_selector.css">
-    <link rel="stylesheet" type="text/css" href="style/value_selector/time_picker.css">
-    <link rel="stylesheet" type="text/css" href="style/value_selector/spin_date_picker.css">
     <script defer src="js/value_selector/value_picker.js"></script>
     <script defer src="js/value_selector/spin_date_picker.js"></script>
     <script defer src="js/value_selector/value_selector.js"></script>
@@ -209,9 +211,6 @@
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/permissions.ini">
 
-    <!-- include building blocks -->
-    <link rel="stylesheet" type="text/css" href="style/bb/value_selector.css">
-
     <!-- Payment -->
     <script defer src="js/payment.js"></script>
 
@@ -227,6 +226,7 @@
 
     <!-- Browser class -->
     <link rel="stylesheet" type="text/css" href="style/browser_frame/browser_frame.css">
+    <script defer src="js/browser_config_helper.js"></script>
     <script defer src="js/browser_frame.js"></script>
 
     <!-- Captive Portal Login -->
@@ -236,9 +236,11 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window.css">
-    <script defer src="js/orientation_observer.js"></script>
+    <script defer src="js/error.js"></script>
     <script defer src="js/window.js"></script>
+    <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/window_manager.js"></script>
+    <script defer src="js/app_window_factory.js"></script>
 
     <!-- Entry Sheet -->
     <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
@@ -337,8 +339,7 @@
           data-level="100" charging hidden></div>
         <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
           data-level="4" hidden></div>
-        <div id="statusbar-data" class="sb-icon sb-icon-data"
-          data-type="" hidden></div>
+        <div id="statusbar-data" class="sb-icon" hidden></div>
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
         <div id="statusbar-signal" class="sb-icon sb-icon-signal"
           data-level="5" hidden></div>
@@ -441,7 +442,7 @@
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">
         <!-- Unlock SIM Pin dialog -->
-        <div id="simpin-dialog" role="dialog" data-z-index-level="simpin-dialog" hidden>
+        <div id="simpin-dialog" role="dialog" class="generic-dialog" data-z-index-level="simpin-dialog" hidden>
           <section role="region">
             <header>
               <button type="reset">
@@ -507,7 +508,7 @@
 
         <!-- Crash reporter -->
         <div id="crash-dialog">
-          <form role="dialog" data-type="confirm">
+          <form role="dialog" class="generic-dialog" data-type="confirm">
             <section id="crash-dialog-contents">
               <h1 id="crash-dialog-title"></h1>
               <p data-l10n-id="crash-dialog-message">Would you like to send Mozilla a report about the crash to help us fix the problem? (Reports are sent over Wi-Fi only)</p>
@@ -548,7 +549,7 @@
             </header>
           </section>
           <div id="frame-container">
-            <div id="popup-error-dialog" role="dialog">
+            <div id="popup-error-dialog" role="dialog" class="generic-dialog">
               <div class="inner">
                 <h3 data-l10n-id="error-title" id="popup-error-title">Hmm, the app is having problems.</h3>
                 <p>
@@ -577,9 +578,9 @@
         </div>
 
         <div id="authentication-dialog">
-          <!--div id="authentication-dialog-ftp" role="dialog">
+          <!--div id="authentication-dialog-ftp" role="dialog" class="generic-dialog">
           </div-->
-          <div id="authentication-dialog-http-authentication" role="dialog">
+          <div id="authentication-dialog-http-authentication" role="dialog" class="generic-dialog">
             <div class="authentication-dialog-message-container inner">
               <h3 id="authentication-dialog-title"></h3>
               <p>
@@ -600,7 +601,7 @@
         </div>
 
         <div id="modal-dialog">
-          <div id="modal-dialog-alert" role="dialog" tabindex="-1">
+          <div id="modal-dialog-alert" role="dialog" class="generic-dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-alert-title"></h3>
               <p>
@@ -612,7 +613,7 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-confirm" role="dialog" tabindex="-1">
+          <div id="modal-dialog-confirm" role="dialog" class="generic-dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-confirm-title"></h3>
               <p>
@@ -625,7 +626,7 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-prompt" role="dialog" tabindex="-1">
+          <div id="modal-dialog-prompt" role="dialog" class="generic-dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-prompt-title"></h3>
               <p>
@@ -667,8 +668,8 @@
         </form>
 
         <!-- Time Picker -->
-        <div id="time-picker-popup" hidden>
-          <h3 data-l10n-id="select-time">Select time</h3>
+        <div id="time-picker-popup" role="dialog" data-type="time-selector" hidden>
+          <h1 data-l10n-id="select-time">Select time</h1>
           <div id="time-picker">
             <div class="picker-container">
               <div class="picker-bar-background"></div>
@@ -686,15 +687,15 @@
               </div>
             </div>
           </div>
-          <div id="time-picker-buttons">
+          <menu id="time-picker-buttons">
             <button class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
             <button class="value-selector-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
-          </div>
+          </menu>
         </div>
 
         <!-- Spin Date Picker -->
-        <div id="spin-date-picker-popup" hidden>
-          <h3 data-l10n-id="select-day">Select day</h3>
+        <div role="dialog" data-type="date-selector" id="spin-date-picker-popup" hidden>
+          <h1 data-l10n-id="select-day">Select day</h1>
           <div id="spin-date-picker">
             <div class="picker-container">
               <div class="picker-bar-background"></div>
@@ -721,7 +722,7 @@
       </div>
 
       <div id="permission-screen" data-z-index-level="permission-screen">
-        <div id="permission-dialog" role="dialog">
+        <div id="permission-dialog" role="dialog" class="generic-dialog">
           <div class="inner">
             <h2 id="permission-message"></h2>
             <div id="permission-more-info" class="hidden">
@@ -743,7 +744,7 @@
         </div>
       </div>
 
-      <form id="app-install-dialog" class='app-install-dialog'
+      <form id="app-install-dialog" class='app-install-dialog generic-dialog'
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
         <section>
@@ -764,7 +765,7 @@
         </section>
       </form>
 
-      <form id="app-install-cancel-dialog" class='app-install-dialog'
+      <form id="app-install-cancel-dialog" class='app-install-dialog generic-dialog'
             data-type="confirm" role="dialog"
             data-z-index-level="app-install-dialog">
         <section>
@@ -781,7 +782,7 @@
         </section>
       </form>
 
-      <form id="app-download-cancel-dialog" class='app-install-dialog'
+      <form id="app-download-cancel-dialog" class='app-install-dialog generic-dialog'
         data-type="confirm" role="dialog"
         data-z-index-level="app-install-dialog">
         <section>
@@ -799,7 +800,7 @@
 
       <form id="updates-download-dialog" data-type="confirm" role="dialog"
             data-z-index-level="updates-download-dialog" data-nowifi="false"
-            data-data-connection-inline-warning="false">
+            data-data-connection-inline-warning="false" class="generic-dialog">
         <section>
           <h1>
             Updates
@@ -821,7 +822,7 @@
         </menu>
       </form>
 
-      <form id="updates-viaDataConnection-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-viaDataConnection-dialog">
+      <form id="updates-viaDataConnection-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-viaDataConnection-dialog" class="generic-dialog">
         <section>
           <h1 data-l10n-id="downloadUpdatesViaDataConnection">
             Download updates via data connection?
@@ -844,6 +845,9 @@
             <div id="lockscreen-header">
               <div id="lockscreen-connstate" hidden><span></span><span></span></div>
               <div id="lockscreen-mute" hidden></div>
+              <div id="lockscreen-alt-camera" class="lockscreen-icon">
+                <div role="button" data-l10n-id="camera-a11y-button" aria-label="Camera"></div>
+              </div>
               <div class="lockscreen-clock">
                 <span id="lockscreen-clock-numbers"></span>
                 <span id="lockscreen-clock-meridiem"></span>
@@ -910,7 +914,7 @@
         <div id="toaster-detail"></div>
       </div>
 
-      <div id="listmenu" data-z-index-level="list-menu" role="dialog">
+      <div id="listmenu" data-z-index-level="list-menu" role="dialog" class="generic-dialog">
         <menu class="actions">
         </menu>
       </div>
@@ -925,7 +929,7 @@
 
       <!-- icc / stk -->
       <div id="icc-view" data-z-index-level="icc-view">
-        <form role="dialog" data-type="confirm" id="icc-alert">
+        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-alert">
           <section>
             <h1 data-l10n-id="icc-message">STK Message</h1>
             <p id="icc-alert-msg"></p>
@@ -934,7 +938,7 @@
             <button type="button" data-l10n-id="ok" id="icc-alert-btn" class="recommend full">Ok</button>
           </menu>
         </form>
-        <form role="dialog" data-type="confirm" id="icc-confirm">
+        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
           <section>
             <h1 data-l10n-id="icc-message">STK Message</h1>
             <p id="icc-confirm-msg"></p>
@@ -945,7 +949,7 @@
               <button type="button" data-l10n-id="ok" id="icc-confirm-btn" class="recommend">Ok</button>
           </menu>
         </form>
-        <form role="dialog" data-type="confirm" id="icc-asyncconfirm">
+        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-asyncconfirm">
           <section>
             <h1 data-l10n-id="icc-message">STK Message</h1>
             <p id="icc-asyncconfirm-msg"></p>
@@ -955,7 +959,7 @@
             <button type="button" data-l10n-id="yes" id="icc-asyncconfirm-btn-yes" class="recommend">Yes</button>
           </menu>
         </form>
-        <form role="dialog" data-type="confirm" id="icc-input">
+        <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-input">
           <section>
             <h1 data-l10n-id="icc-inputtitle">STK Query</h1>
             <p id="icc-input-msg"></p>
@@ -986,7 +990,7 @@
         </menu>
       </div>
 
-      <section id="system-banner" role="dialog" class="banner"
+      <section id="system-banner" role="dialog" class="banner generic-dialog"
           data-z-index-level="system-notification-banner" data-button="false">
         <p></p>
         <button></button>

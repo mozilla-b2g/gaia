@@ -41,7 +41,7 @@ function thui_generateSmilSlides(slides, content) {
 
 var ThreadUI = global.ThreadUI = {
   // Time buffer for the 'last-messages' set. In this case 10 min
-  LAST_MESSSAGES_BUFFERING_TIME: 10 * 60 * 1000,
+  LAST_MESSAGES_BUFFERING_TIME: 10 * 60 * 1000,
   CHUNK_SIZE: 10,
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
@@ -247,12 +247,8 @@ var ThreadUI = global.ThreadUI = {
     subheaderMutation.observe(document.getElementById('thread-messages'), {
       attributes: true
     });
-    this.recipientsList.addEventListener('transitionend',
-      subheaderMutationHandler);
 
     ThreadUI.setInputMaxHeight();
-
-    generateHeightRule();
   },
 
   // Initialize Recipients list and Recipients.View (DOM)
@@ -375,8 +371,13 @@ var ThreadUI = global.ThreadUI = {
   },
 
   assimilateRecipients: function thui_assimilateRecipients() {
+    var isNew = window.location.hash === '#new';
     var node = this.recipientsList.lastChild;
     var typed;
+
+    if (!isNew || node === null) {
+      return;
+    }
 
     // Restore the recipients list input area to
     // single line view.
@@ -455,8 +456,6 @@ var ThreadUI = global.ThreadUI = {
       this.updateInputHeight();
     }
 
-    generateHeightRule();
-
     // Scroll to bottom
     this.scrollViewToBottom();
     // Make sure the caret in the "Compose" area is visible
@@ -534,8 +533,8 @@ var ThreadUI = global.ThreadUI = {
   },
 
   scrollViewToBottom: function thui_scrollViewToBottom() {
-    if (!this.isScrolledManually) {
-      this.container.scrollTop = this.container.scrollHeight;
+    if (!this.isScrolledManually && this.container.lastElementChild) {
+      this.container.lastElementChild.scrollIntoView(false);
     }
   },
 
@@ -566,7 +565,9 @@ var ThreadUI = global.ThreadUI = {
     // triggers a synchronous workflow (bug 891029).
     this.container.style.borderBottomWidth = null;
     viewHeight = this.container.offsetHeight;
-    this.input.style.maxHeight = (viewHeight - adjustment) + 'px';
+    var maxHeight = viewHeight - adjustment;
+    this.input.style.maxHeight = maxHeight + 'px';
+    generateHeightRule(maxHeight);
   },
 
   back: function thui_back() {
@@ -743,82 +744,133 @@ var ThreadUI = global.ThreadUI = {
     this.scrollViewToBottom();
   },
 
+  findNextContainer: function thui_findNextContainer(container) {
+    if (!container) {
+      return null;
+    }
+
+    var nextContainer = container;
+    do {
+      nextContainer = nextContainer.nextElementSibling;
+    } while (nextContainer && nextContainer.tagName !== 'UL');
+
+    return nextContainer;
+  },
+
+  findFirstContainer: function thui_findFirstLastContainer() {
+    var container = this.container.firstElementChild;
+    if (container && container.tagName !== 'UL') {
+      container = this.findNextContainer(container);
+    }
+    return container;
+  },
+
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   getMessageContainer:
     function thui_getMessageContainer(messageTimestamp, hidden) {
-    var normalizedTimestamp = Utils.getDayDate(messageTimestamp);
-    var referenceTime = Date.now();
-    var messageContainer;
-    // If timestamp belongs to [referenceTime, referenceTime - TimeBuffer]
+    var startOfDayTimestamp = Utils.getDayDate(messageTimestamp);
+    var now = Date.now();
+    var messageContainer, header;
+    // If timestamp belongs to [now, now - TimeBuffer]
+    var lastMessageDelay = this.LAST_MESSAGES_BUFFERING_TIME;
     var isLastMessagesBlock =
-    (messageTimestamp >= (referenceTime - this.LAST_MESSSAGES_BUFFERING_TIME));
+      (messageTimestamp >= (now - lastMessageDelay));
+
     // Is there any container with our requirements?
     if (isLastMessagesBlock) {
       messageContainer = document.getElementById('last-messages');
+      if (messageContainer) {
+        var oldTimestamp = messageContainer.dataset.timestamp;
+        var oldDayTimestamp = Utils.getDayDate(oldTimestamp);
+        var shouldCreateNewBlock =
+          (oldDayTimestamp !== startOfDayTimestamp) || // new day
+          (oldTimestamp < messageTimestamp - lastMessageDelay); // too old
+
+        if (shouldCreateNewBlock) {
+          messageContainer.id = 'mc_' + Utils.getDayDate(oldTimestamp);
+          messageContainer.dataset.timestamp = oldDayTimestamp;
+          messageContainer = null;
+        }
+      }
     } else {
-      messageContainer = document.getElementById('mc_' + normalizedTimestamp);
+      messageContainer = document.getElementById('mc_' + startOfDayTimestamp);
     }
 
     if (messageContainer) {
+      header = messageContainer.previousElementSibling;
+      if (messageTimestamp < header.dataset.time) {
+        header.dataset.time = messageTimestamp;
+      }
       return messageContainer;
     }
+
     // If there is no messageContainer we have to create it
-    // Create DOM Element for header
-    var header = document.createElement('header');
+    // Create DOM Elements
+    header = document.createElement('header');
+    messageContainer = document.createElement('ul');
+
     // Append 'time-update' state
     header.dataset.timeUpdate = true;
     header.dataset.time = messageTimestamp;
+
+    // Add text
+    var content, timeOnly = false;
+    if (isLastMessagesBlock) {
+      var lastContainer = this.container.lastElementChild;
+      if (lastContainer) {
+        var lastDay = Utils.getDayDate(lastContainer.dataset.timestamp);
+        if (lastDay === startOfDayTimestamp) {
+          // same day -> show only the time
+          header.dataset.timeOnly = 'true';
+        }
+      }
+
+      messageContainer.id = 'last-messages';
+      messageContainer.dataset.timestamp = messageTimestamp;
+    } else {
+      messageContainer.id = 'mc_' + startOfDayTimestamp;
+      messageContainer.dataset.timestamp = startOfDayTimestamp;
+    }
+
     if (hidden) {
       header.classList.add('hidden');
-    }
-    // Add text
-    var content;
-    if (!isLastMessagesBlock) {
-      content = Utils.getHeaderDate(messageTimestamp) + ' ' +
-                Utils.getFormattedHour(messageTimestamp);
     } else {
-      content = Utils.getFormattedHour(messageTimestamp);
-      header.dataset.hourOnly = 'true';
+      Utils.updateTimeHeader(header);
     }
-    header.innerHTML = content;
-    // Create list element for ul
-    messageContainer = document.createElement('ul');
-    if (!isLastMessagesBlock) {
-      messageContainer.id = 'mc_' + normalizedTimestamp;
-    } else {
-      messageContainer.id = 'last-messages';
-    }
-    messageContainer.dataset.timestamp = normalizedTimestamp;
+
     // Where do I have to append the Container?
-    // If is the first block or is the 'last-messages' one should be the
-    // most recent one.
-    if (isLastMessagesBlock || !ThreadUI.container.firstElementChild) {
-      ThreadUI.container.appendChild(header);
-      ThreadUI.container.appendChild(messageContainer);
+    // If is the 'last-messages' one should be the most recent one.
+    if (isLastMessagesBlock) {
+      this.container.appendChild(header);
+      this.container.appendChild(messageContainer);
       return messageContainer;
     }
+
     // In other case we have to look for the right place for appending
     // the message
-    var messageContainers = ThreadUI.container.getElementsByTagName('ul');
     var insertBeforeContainer;
-    for (var i = 0, l = messageContainers.length; i < l; i++) {
-      if (normalizedTimestamp < messageContainers[i].dataset.timestamp) {
-        insertBeforeContainer = messageContainers[i];
-        break;
-      }
+    var curContainer = this.findFirstContainer();
+
+    while (curContainer &&
+           +curContainer.dataset.timestamp < startOfDayTimestamp) {
+      curContainer = this.findNextContainer(curContainer);
     }
-    // If is undefined we try witn the 'last-messages' block
-    if (!insertBeforeContainer) {
-      insertBeforeContainer = document.getElementById('last-messages');
-    }
+
+    insertBeforeContainer = curContainer;
+
     // Finally we append the container & header in the right position
+    // With this function, "inserting before 'null'" means "appending"
+    this.container.insertBefore(messageContainer,
+      insertBeforeContainer ? insertBeforeContainer.previousSibling : null);
+    this.container.insertBefore(header, messageContainer);
+
+    // if the next container is the same date => we must update his header
     if (insertBeforeContainer) {
-      ThreadUI.container.insertBefore(messageContainer,
-        insertBeforeContainer.previousSibling);
-      ThreadUI.container.insertBefore(header, messageContainer);
-    } else {
-      ThreadUI.container.appendChild(header);
-      ThreadUI.container.appendChild(messageContainer);
+      var nextContainerTimestamp = insertBeforeContainer.dataset.timestamp;
+      if (startOfDayTimestamp === Utils.getDayDate(nextContainerTimestamp)) {
+        header = insertBeforeContainer.previousElementSibling;
+        header.dataset.timeOnly = 'true';
+      }
     }
     return messageContainer;
   },
@@ -1026,6 +1078,8 @@ var ThreadUI = global.ThreadUI = {
       end: onMessagesRendered
     };
     MessageManager.getMessages(renderingOptions);
+    // force the next scroll to bottom
+    this.isScrolledManually = false;
   },
 
   // generates the html for not-downloaded messages - pushes class names into
@@ -1149,7 +1203,7 @@ var ThreadUI = global.ThreadUI = {
 
     messageDOM.dataset.timestamp = timestamp;
     // Add to the right position
-    var messageContainer = ThreadUI.getMessageContainer(timestamp, hidden);
+    var messageContainer = this.getMessageContainer(timestamp, hidden);
     if (!messageContainer.firstElementChild) {
       messageContainer.appendChild(messageDOM);
     } else {
@@ -1175,7 +1229,11 @@ var ThreadUI = global.ThreadUI = {
   showChunkOfMessages: function thui_showChunkOfMessages(number) {
     var elements = ThreadUI.container.getElementsByClassName('hidden');
     for (var i = elements.length - 1; i >= 0; i--) {
-      elements[i].classList.remove('hidden');
+      var element = elements[i];
+      element.classList.remove('hidden');
+      if (element.tagName === 'HEADER') {
+        Utils.updateTimeHeader(element);
+      }
     }
   },
 
@@ -2111,40 +2169,17 @@ window.confirm = window.confirm; // allow override in unit tests
  * to the recipients list to set its height for
  * multiline mode.
  *
- * @return {Boolean} true if rule was created, false if not.
+ * @param {Number} available The height (in pixels) available.
+ *
+ * @return {Boolean} true if rule was modified, false if not.
  */
-function generateHeightRule() {
-  var available, css, computed, occupied, index,
-      sheet, sheets, style, tmpl;
 
-  occupied = generateHeightRule.occupied;
+function generateHeightRule(available) {
+  var css, index, sheet, sheets, style, tmpl,
+    natural = ThreadUI.recipientsList.scrollHeight,
+    height = Math.min(natural, available);
 
-  if (occupied == null) {
-    computed = {
-      list: window.getComputedStyle(
-        ThreadUI.recipientsList, null
-      ),
-      carrier: window.getComputedStyle(
-        document.getElementById('contact-carrier'), null
-      )
-    };
-
-    occupied = generateHeightRule.occupied = [
-      // This magic number ensures no part of the input
-      // area "shifts" downward. Without this, the placeholder
-      // text in the input appears to move ever so slightly.
-      2,
-      ThreadUI.INPUT_MARGIN,
-      ThreadUI.subheader.scrollHeight,
-      ThreadUI.sendButton.scrollHeight,
-      parseInt(computed.list.getPropertyValue('margin-bottom'), 10),
-      parseInt(computed.carrier.getPropertyValue('height'), 10)
-    ].reduce(function(a, b) { return a + b; });
-  }
-
-  available = ThreadUI.container.clientHeight - occupied;
-
-  if (available === generateHeightRule.available) {
+  if (height === generateHeightRule.prev) {
     return false;
   }
 
@@ -2159,7 +2194,7 @@ function generateHeightRule() {
   tmpl = generateHeightRule.tmpl || Utils.Template('height-rule-tmpl');
 
   css = tmpl.interpolate({
-    height: String(available)
+    height: String(height)
   }, { safe: ['height'] });
 
   if (generateHeightRule.index) {
@@ -2168,7 +2203,7 @@ function generateHeightRule() {
 
   sheet.insertRule(css, index);
 
-  generateHeightRule.available = available;
+  generateHeightRule.prev = height;
   generateHeightRule.index = index;
   generateHeightRule.sheet = sheet;
   generateHeightRule.tmpl = tmpl;

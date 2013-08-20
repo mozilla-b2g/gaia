@@ -54,7 +54,7 @@ var icc_worker = {
     var _ = navigator.mozL10n.get;
     DUMP('STK_CMD_SET_UP_CALL:', command.options);
     var options = command.options;
-    if (options.confirmMessage == '') {
+    if (!options.confirmMessage) {
       options.confirmMessage = _(
         'icc-confirmCall-defaultmessage', {
           'number': options.address
@@ -409,9 +409,53 @@ var icc_worker = {
 
   // STK_CMD_TIMER_MANAGEMENT
   '0x27': function STK_CMD_TIMER_MANAGEMENT(command, iccManager) {
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=817954
-    DUMP('STK_CMD_TIMER_MANAGEMENT', command.options);
-    icc_worker.dummy(iccManager);
+    DUMP('STK_CMD_TIMER_MANAGEMENT:', command.options);
+    var a_timer = advanced_timer;
+    var options = command.options;
+    var pendingTime = 0;
+    switch (options.timerAction) {
+      case iccManager._icc.STK_TIMER_START:
+        a_timer.start(options.timerId, options.timerValue * 1000,
+          function() {
+            DUMP('Timer expiration - ' + options.timerId);
+            iccManager._icc.sendStkTimerExpiration({
+              'timerId': options.timerId
+            });
+          });
+        iccManager.responseSTKCommand({
+          timer: {
+            'timerId': options.timerId,
+            'timerValue': options.timerValue,
+            'timerAction': iccManager._icc.STK_TIMER_START
+          },
+          resultCode: iccManager._icc.STK_RESULT_OK
+        });
+        break;
+
+      case iccManager._icc.STK_TIMER_DEACTIVATE:
+        pendingTime = a_timer.stop(options.timerId) / 1000;
+        iccManager.responseSTKCommand({
+          timer: {
+            'timerId': options.timerId,
+            'timerValue': pendingTime,
+            'timerAction': iccManager._icc.STK_TIMER_DEACTIVATE
+          },
+          resultCode: iccManager._icc.STK_RESULT_OK
+        });
+        break;
+
+      case iccManager._icc.STK_TIMER_GET_CURRENT_VALUE:
+        pendingTime = a_timer.queryPendingTime(options.timerId) / 1000;
+        iccManager.responseSTKCommand({
+          timer: {
+            'timerId': options.timerId,
+            'timerValue': pendingTime,
+            'timerAction': iccManager._icc.STK_TIMER_GET_CURRENT_VALUE
+          },
+          resultCode: iccManager._icc.STK_RESULT_OK
+        });
+        break;
+    }
   },
 
   // STK_CMD_SET_UP_IDLE_MODE_TEXT

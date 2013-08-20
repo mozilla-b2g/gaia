@@ -1,3 +1,5 @@
+'use strict';
+
 /*
  * APIStatsEvents class
  */
@@ -57,7 +59,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
     function stringify(old){
         var temp = {};
         
-        for (key in old){
+	for (var key in old){
             var value = old[key];
                 value = JSON.stringify(value);
             temp[key] = value;

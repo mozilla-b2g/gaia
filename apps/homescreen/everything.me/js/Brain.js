@@ -640,14 +640,9 @@ Evme.Brain = new function Evme_Brain() {
               return;
             }
 
-            // experience is more "important" than the query, so if we got it
-            // we reomve the query
             for (var i=0,shortcut; shortcut=shortcuts[i++];) {
               if (!shortcut.experienceId) {
                 shortcut.experienceId = shortcutsToSend[shortcut.query];
-              }
-              if (shortcut.experienceId) {
-                delete shortcut.query;
               }
             }
 

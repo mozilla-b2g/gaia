@@ -9,8 +9,12 @@ function MockDialog(params) {
       MockDialog.triggers[option].called = true;
       params.options[option].method();
     };
-  });
 
+    // Setup the initial |false| value, this
+    // prevents assert.isFalse from failing
+    // on |undefined| trigger properties
+    MockDialog.triggers[option].called = false;
+  });
 }
 
 MockDialog.triggers = {};

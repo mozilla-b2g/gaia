@@ -199,13 +199,12 @@ var AlarmManager = {
     if (!navigator.mozAlarms)
       return;
     var request = navigator.mozAlarms.getAll();
-    request.onsuccess = function(e) {
-      var hasAlarmEnabled = !!e.target.result.length;
-      navigator.mozSettings.createLock().set({'alarm.enabled':
-          hasAlarmEnabled});
-      ClockView.showHideAlarmSetIndicator(hasAlarmEnabled);
+    request.onsuccess = function(event) {
+      navigator.mozSettings.createLock().set({
+        'alarm.enabled': !!event.target.result.length
+      });
     };
-    request.onerror = function(e) {
+    request.onerror = function(event) {
       console.log('get all alarm fail');
     };
   },

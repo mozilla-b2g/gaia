@@ -262,7 +262,7 @@ if (!window.FacebookConnector) {
 
       adaptDataForSaving: function fbAdapt(cfdata) {
         var worksAt = fb.getWorksAt(cfdata);
-        var address = fb.getAddress(cfdata);
+        var address = fb.getAddresses(cfdata);
 
         var birthDate = null;
         if (cfdata.birthday_date && cfdata.birthday_date.length > 0) {
@@ -275,7 +275,7 @@ if (!window.FacebookConnector) {
         };
 
         if (address) {
-          fbInfo.adr = [address];
+          fbInfo.adr = address;
         }
 
         // This is the short telephone number to enable indexing

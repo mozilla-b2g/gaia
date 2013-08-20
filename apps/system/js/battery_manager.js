@@ -8,7 +8,7 @@ var BatteryManager = {
   TRANSITION_SPEED: 1.8,
   TRANSITION_FRACTION: 0.30,
 
-  AUTO_SHUTDOWN_LEVEL: 0.00,
+  AUTO_SHUTDOWN_LEVEL: 0.02,
   EMPTY_BATTERY_LEVEL: 0.1,
 
   _battery: window.navigator.battery,

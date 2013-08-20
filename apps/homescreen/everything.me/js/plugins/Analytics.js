@@ -1,8 +1,18 @@
+'use strict';
+
 /*
  * Analytics class
  */
 Evme.Analytics = new function Evme_Analytics() {
-    var self = this, ga, idle, providers = [], immediateProviders = [], queueArr = [], maxQueueCount, getCurrentAppsRowsCols, STORAGE_QUERY = "analyticsLastSearchQuery",
+    var self = this,
+	ga, idle, providers = [],
+	immediateProviders = [],
+	queueArr = [],
+	maxQueueCount,
+	getCurrentAppsRowsCols, getCurrentSearchQuery, getCurrentSearchSource,
+
+	STORAGE_QUERY = "analyticsLastSearchQuery",
+
         // Google Analytics load props
         GAScriptLoadStatus, GAScriptLoadSubscribers = [];
     
@@ -24,9 +34,9 @@ Evme.Analytics = new function Evme_Analytics() {
     
     this.init = function init(_options) {
         // override defaults
-        for (i in _options){ options[i] = _options[i]; }
+	for (var i in _options){ options[i] = _options[i]; }
         if (_options.config){
-            for (i in _options.config){ options[i] = _options.config[i]; }
+	    for (var i in _options.config){ options[i] = _options.config[i]; }
         }
         
         // if enabled
@@ -53,7 +63,7 @@ Evme.Analytics = new function Evme_Analytics() {
             var requestsPerEventCount = 0;
 
             // register providers
-            for (name in options.providers){
+	    for (var name in options.providers){
                 var object = options.namespace[name],
                     params = options.providers[name];
                 

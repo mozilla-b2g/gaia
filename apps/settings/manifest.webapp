@@ -38,10 +38,8 @@
     }
   },
   "messages": ["bluetooth-pairing-request",
-               "bluetooth-authorize",
                "bluetooth-cancel",
-               "bluetooth-pairedstatuschanged",
-               "bluetooth-hfp-status-changed"],
+               "bluetooth-pairedstatuschanged"],
   "locales": {
     "ar": {
       "name": "الضبط",

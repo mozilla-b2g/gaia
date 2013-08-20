@@ -301,11 +301,11 @@ suite('ThreadUI Integration', function() {
       }
     };
 
-    suiteSetup(function() {
+    setup(function() {
       window.location.hash = '#new';
     });
 
-    suiteTeardown(function() {
+    teardown(function() {
       window.location.hash = '';
     });
 

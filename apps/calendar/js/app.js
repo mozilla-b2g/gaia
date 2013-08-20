@@ -213,10 +213,10 @@ Calendar.App = (function(window) {
         this._loader.load('group', name, callback);
       }
 
-      if (!this._pendingObjets) {
-        this._pendingObjets = [[name, callback]];
+      if (!this._pendingObjects) {
+        this._pendingObjects = [[name, callback]];
       } else {
-        this._pendingObjets.push([name, callback]);
+        this._pendingObjects.push([name, callback]);
         return;
       }
 
@@ -235,14 +235,14 @@ Calendar.App = (function(window) {
           self.loadObject = loadObject;
 
           // begin processing existing requests
-          self._pendingObjets.forEach(function(pair) {
+          self._pendingObjects.forEach(function(pair) {
             // ['ObjectName', function() { ... }]
             loadObject.call(self, pair[0], pair[1]);
           });
 
         }
 
-        delete this._pendingObjets;
+        delete self._pendingObjects;
       }
 
       this.loadScript('/js/ext/notamd.js', next);

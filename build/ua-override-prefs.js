@@ -44,23 +44,17 @@ pref("general.useragent.override.elpais.com.co", "Mozilla/5.0 (Linux; Android 4.
 pref("general.useragent.override.olx.com.co", "\\(Mobile#(Android; Mobile"); // bug 827672
 pref("general.useragent.override.avianca.com", "\\(Mobile#(Android; Mobile"); // bug 827674
 pref("general.useragent.override.marca.com", "\\(Mobile#(Android; Mobile"); // bug 827678
-pref("general.useragent.override.wp.pl", "\\(Mobile#(Android; Mobile"); // bug 828351
 pref("general.useragent.override.gazeta.pl", "\\(Mobile#(Android; Mobile"); // bug 828354
-pref("general.useragent.override.o2.pl", "\\(Mobile#(Android; Mobile"); // bug 828356
 pref("general.useragent.override.sport.pl", "\\(Mobile#(Android; Mobile"); // bug 828360
-pref("general.useragent.override.tvn24.pl", "\\(Mobile#(Android; Mobile"); // bug 828362
 pref("general.useragent.override.nk.pl", "\\(Mobile#(Android; Mobile"); // bug 828364
 pref("general.useragent.override.wyborcza.biz", "\\(Mobile#(Android; Mobile"); // bug 828366
 pref("general.useragent.override.money.pl", "\\(Mobile#(Android; Mobile"); // bug 828369
 pref("general.useragent.override.ingbank.pl", "\\(Mobile#(Android; Mobile"); // bug 828371
-pref("general.useragent.override.tablica.pl", "\\(Mobile#(Android; Mobile"); // bug 828374
 pref("general.useragent.override.plotek.pl", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 828376
 pref("general.useragent.override.wyborcza.pl", "\\(Mobile#(Android; Mobile"); // bug 828378
 pref("general.useragent.override.deser.pl", "\\(Mobile#(Android; Mobile"); // bug 828380
-pref("general.useragent.override.as.com", "\\(Mobile#(Android; Mobile"); // bug 828383
 pref("general.useragent.override.ebay.es", "\\(Mobile#(Android; Mobile"); // bug 828386
 pref("general.useragent.override.infojobs.net", "\\(Mobile#(Android; Mobile"); // bug 828392
-pref("general.useragent.override.elconfidencial.com", "\\(Mobile#(Android; Mobile"); // bug 828397
 pref("general.useragent.override.antena3.com", "\\(Mobile#(Android; Mobile"); // bug 828399
 pref("general.useragent.override.ingdirect.es", "\\(Mobile#(Android; Mobile"); // bug 828401
 pref("general.useragent.override.fotocasa.es", "\\(Mobile#(Android; Mobile"); // bug 828403
@@ -72,7 +66,6 @@ pref("general.useragent.override.booking.com", "\\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.publico.es", "\\(Mobile#(Android; Mobile"); // bug 828422
 pref("general.useragent.override.mercadolibre.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828425
 pref("general.useragent.override.olx.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828433
-pref("general.useragent.override.rincondelvago.com", "\\(Mobile#(Android; Mobile"); // bug 828435
 pref("general.useragent.override.movistar.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828439
 pref("general.useragent.override.bumeran.com.ve", "\\(Mobile#(Android; Mobile"); // bug 828445
 pref("general.useragent.override.petardas.com", "\\(Mobile#(Android; Mobile"); // bug 828448
@@ -97,14 +90,12 @@ pref("general.useragent.override.edmunds.com", "\\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.icanhas.cheezburger.com", "\\(Mobile#(Android; Mobile"); // bug 843197
 pref("general.useragent.override.citibank.com", "\\(Mobile#(Android; Mobile"); // bug 843151
 pref("general.useragent.override.games.com", "\\(Mobile#(Android; Mobile"); // bug 843153
-pref("general.useragent.override.nba.com", "\\(Mobile#(Android; Mobile"); // bug 843154
 pref("general.useragent.override.orbitz.com", "\\(Mobile#(Android; Mobile"); // bug 843156
 pref("general.useragent.override.starwoodhotels.com", "\\(Mobile#(Android; Mobile"); // bug 843158
 pref("general.useragent.override.ehow.com", "\\(Mobile#(Android; Mobile"); // bug 843160
 pref("general.useragent.override.urbanspoon.com", "\\(Mobile#(Android; Mobile"); // bug 843162
 pref("general.useragent.override.virginatlantic.com", "\\(Mobile#(Android; Mobile"); // bug 843165
 pref("general.useragent.override.cheaptickets.com", "\\(Mobile#(Android; Mobile"); // bug 843168
-pref("general.useragent.override.etsy.com", "\\(Mobile#(Android; Mobile"); // bug 843170
 pref("general.useragent.override.zimbio.com", "\\(Mobile#(Android; Mobile"); // bug 843172
 pref("general.useragent.override.tylted.com", "\\(Mobile#(Android; Mobile"); // bug 843176
 pref("general.useragent.override.txt2nite.com", "\\(Mobile#(Android; Mobile"); // bug 843178
@@ -115,7 +106,6 @@ pref("general.useragent.override.3g.qq.com", "\\(Mobile#(Android; Mobile"); // b
 pref("general.useragent.override.aprod.hu", "\\(Mobile#(Android; Mobile"); // bug 878220
 pref("general.useragent.override.arukereso.hu", "\\(Mobile#(Android; Mobile"); // bug 878222
 pref("general.useragent.override.badoo.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 878224
-pref("general.useragent.override.bet365.com", "\\(Mobile#(Android; Mobile"); // bug 878226
 pref("general.useragent.override.blikk.hu", "\\(Mobile#(Android; Mobile"); // bug 878228
 pref("general.useragent.override.citromail.hu", "\\(Mobile#(Android; Mobile"); // bug 878230
 pref("general.useragent.override.hazipatika.com", "\\(Mobile#(Android; Mobile"); // bug 878232
@@ -148,12 +138,10 @@ pref("general.useragent.override.banorte.com", "\\(Mobile#(Android; Mobile"); //
 pref("general.useragent.override.buenastareas.com", "\\(Mobile#(Android; Mobile"); // bug 878634
 pref("general.useragent.override.cnn.com", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 878635
 pref("general.useragent.override.eluniversal.com.mx", "\\(Mobile#(Android; Mobile"); // bug 878637
-pref("general.useragent.override.flickr.com", "\\(Mobile#(Android; Mobile"); // bug 878638
 pref("general.useragent.override.hootsuite.com", "\\(Mobile#(Android; Mobile"); // bug 878640
 pref("general.useragent.override.mercadolibre.com.mx", "\\(Mobile#(Android; Mobile"); // bug 878642
 pref("general.useragent.override.olx.com.mx", "\\(Mobile#(Android; Mobile"); // bug 878645
 pref("general.useragent.override.sat.gob.mx", "\\(Mobile#(Android; Mobile"); // bug 878647
 pref("general.useragent.override.univision.com", "\\(Mobile#(Android; Mobile"); // bug 878649
-pref("general.useragent.override.b92.net", "\\(Mobile#(Android; Mobile"); // bug 878651
 pref("general.useragent.override.redstarbelgrade.info", "\\(Mobile#(Android; Mobile"); // bug 878653
 pref("general.useragent.override.vesti-online.com", "\\(Mobile#(Android; Mobile"); // bug 878655

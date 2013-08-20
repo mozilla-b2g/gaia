@@ -28,8 +28,8 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  bottom: 0;
+  right: 0;
 
   /* almost transparent gray */
   background-color: rgba(0, 0, 0, 0.4);
@@ -66,7 +66,8 @@ body {
   font-weight: normal;
   font-size: 1.9rem;
   color: #fff;
-  margin: 0 0.5rem -1rem 0.5rem;
+  margin: 0 0.5rem 0 0.5rem;
+  padding: 0;
 }
 
 #overlay-text {
@@ -75,6 +76,15 @@ body {
   font-weight: 300;
   font-size: 2.5rem;
   color: #ebebeb;
+}
+
+#overlay-menu {
+  z-index: 100;
+}
+
+/* For overriding the style from BB */
+#overlay-menu.hidden {
+  display: none;
 }
 
 /* Spinner */
@@ -720,7 +730,7 @@ button::-moz-focus-inner {
   background-position: center center;
   background-repeat: no-repeat;
   background-color: transparent;
-  background-size: 2.4rem;
+  background-size: 2.2rem;
 }
 
 .star-on {
@@ -782,39 +792,21 @@ button::-moz-focus-inner {
 
 #player-seek-bar-progress::-moz-progress-bar {
   border-radius: 0.5rem;
-  background: url("./images/timeline_filled.png");
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background: url("./images/timeline_filled.png") no-repeat 50% 50% / 100% 100%;
 }
 
 #player-seek-bar-indicator {
   position: absolute;
-  top: calc(50% - 4.05rem);
-  width: 6.5rem;
-  height: 6.5rem;
-  border-radius: 50%;
-  background-image: url("./images/scrubber.png");
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 2.7rem;
-  background-color: transparent;
-  border: solid 0.8rem transparent;
-  transition: background-color 300ms ease,
-              border 300ms ease;
+  top: calc(50% - 2.25rem);
+  width: 8.1rem;
+  height: 4.5rem;
+  background: url("./images/scrubber.png") no-repeat 50% 50% / 2.7rem;
   pointer-events: none;
 }
 
 #player-seek-bar-indicator.highlight {
-  /* background-image does not support transition
-   * so here we use background-color and border on a div
-   * to draw an image just like
-   * url("./images/scrubber_pressed.png")
-   * that image is also committed
-   * if UX wants to use the original image
-   */
-  background-color: rgba(0, 180, 225, 0.85);
-  border: solid 0.8rem rgba(0, 0, 0, 0.3);
+  background-image: url("./images/scrubber_pressed.png");
+  background-size: 8.1rem 4.5rem;
 }
 
 #player-controls {
@@ -822,7 +814,7 @@ button::-moz-focus-inner {
   width: 100%;
   height: 5.5rem;
   overflow: hidden;
-  background: rgba(0, 0, 0, 1);
+  background: #000;
 }
 
 #player-controls-previous,

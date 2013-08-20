@@ -96,7 +96,6 @@ if (DEBUG) {
 
   prefs.push(["javascript.options.showInConsole", true]);
   prefs.push(["browser.dom.window.dump.enabled", true]);
-  prefs.push(["javascript.options.strict", true]);
   prefs.push(["dom.report_all_js_exceptions", true]);
   prefs.push(["webgl.verbose", true]);
 

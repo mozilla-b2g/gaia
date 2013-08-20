@@ -5,6 +5,11 @@ function MockCall(aNumber, aState) {
   this.number = aNumber;
   this.state = aState;
 
+  this.answer = function() {};
+  this.hangUp = function() {};
+  this.hold = function() {};
+  this.resume = function() {};
+
   this.mEmergencyNumbers = ['112', '911'];
   this.emergency = this.mEmergencyNumbers.indexOf(this.number) >= 0;
 
@@ -15,6 +20,10 @@ function MockCall(aNumber, aState) {
     if (event == 'statechange') {
       this._listenerAdded = true;
       this._handler = handler;
+    }
+
+    if (event == 'disconnected') {
+      this._disconnectHandler = handler;
     }
   }).bind(this);
 
@@ -29,39 +38,48 @@ function MockCall(aNumber, aState) {
   this._connect = (function() {
     if (this._handler) {
       this.state = 'connected';
-      this._handler.handleEvent({call: this});
-    }
-  }).bind(this);
-
-  this._busy = (function() {
-    if (this._handler) {
-      this.state = 'busy';
-      this._handler.handleEvent({call: this});
+      if ('handleEvent' in this._handler) {
+        this._handler.handleEvent({call: this});
+      }
     }
   }).bind(this);
 
   this._disconnect = (function() {
     if (this._handler) {
       this.state = 'disconnected';
-      this._handler.handleEvent({call: this});
+      if ('handleEvent' in this._handler) {
+        this._handler.handleEvent({call: this});
+      }
+    }
+
+    if (this._disconnectHandler) {
+      this._disconnectHandler();
     }
   }).bind(this);
 
   this._hold = (function() {
     if (this._handler) {
       this.state = 'holding';
-      this._handler.handleEvent({call: this});
+      if ('handleEvent' in this._handler) {
+        this._handler.handleEvent({call: this});
+      }
       this.state = 'held';
-      this._handler.handleEvent({call: this});
+      if ('handleEvent' in this._handler) {
+        this._handler.handleEvent({call: this});
+      }
     }
   }).bind(this);
 
   this._resume = (function() {
     if (this._handler) {
       this.state = 'resuming';
-      this._handler.handleEvent({call: this});
+      if ('handleEvent' in this._handler) {
+        this._handler.handleEvent({call: this});
+      }
       this.state = 'resumed';
-      this._handler.handleEvent({call: this});
+      if ('handleEvent' in this._handler) {
+        this._handler.handleEvent({call: this});
+      }
     }
   }).bind(this);
 }

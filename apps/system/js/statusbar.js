@@ -498,9 +498,15 @@ var StatusBar = {
         return;
       }
 
+      var type = this.mobileDataIconTypes[data.type];
       icon.hidden = false;
-      icon.dataset.type =
-        this.mobileDataIconTypes[data.type] || 'circle';
+      icon.textContent = '';
+      icon.classList.remove('sb-icon-data-circle');
+      if (type) {
+        icon.textContent = type;
+      } else {
+        icon.classList.add('sb-icon-data-circle');
+      }
     },
 
 

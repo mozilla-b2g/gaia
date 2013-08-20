@@ -19,18 +19,24 @@ if (!this.contactFB) {
 }
 
 suite('Test Contacts Matcher', function() {
-  function assertDefaultMatch(results) {
+  function assertDefaultMatch(results, matchingFields) {
     assert.equal(Object.keys(results).length, 1);
     assert.equal(Object.keys(results)[0], '1B');
     var matchingContact = results['1B'].matchingContact;
     assert.equal(matchingContact.email[0].value, 'jj@jj.com');
     assert.equal(matchingContact.tel[0].value, '676767671');
+
+    if (matchingFields) {
+      matchingFields.forEach(function(matchingField) {
+        assert.isDefined(results['1B'].matchings[matchingField]);
+      });
+    }
   }
 
-  function testMatch(myObj, mode, done) {
+  function testMatch(myObj, mode, matchingFields, done) {
     var cbs = {
       onmatch: function(results) {
-        assertDefaultMatch(results);
+        assertDefaultMatch(results, matchingFields);
         done();
       },
       onmismatch: function() {
@@ -90,7 +96,7 @@ suite('Test Contacts Matcher', function() {
       myObj.id = '1A';
       myObj.email = [];
 
-      testMatch(myObj, 'passive', done);
+      testMatch(myObj, 'passive', null, done);
     });
 
     test('Matching by name and phone number. Accents', function(done) {
@@ -99,7 +105,7 @@ suite('Test Contacts Matcher', function() {
       myObj.email = [];
       myObj.familyName = ['Alvarez delrio'];
 
-      testMatch(myObj, 'passive', done);
+      testMatch(myObj, 'passive', null, done);
     });
 
     test('Matching by name and phone number. Name defined in the name prop',
@@ -118,7 +124,7 @@ suite('Test Contacts Matcher', function() {
         contact.familyName = ['  '];
         contact.name = ['Carlos Álvarez del rio'];
 
-        testMatch(myObj, 'passive', function() {
+        testMatch(myObj, 'passive', null, function() {
           contact.givenName = saveGN;
           contact.familyName = saveFN;
           contact.name = null;
@@ -131,14 +137,14 @@ suite('Test Contacts Matcher', function() {
       myObj.id = '1A';
       myObj.tel = null;
 
-      testMatch(myObj, 'passive', done);
+      testMatch(myObj, 'passive', null, done);
     });
 
     test('Matching by name, e-mail and phone number', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
 
-      testMatch(myObj, 'passive', done);
+      testMatch(myObj, 'passive', null, done);
     });
 
     test('Phone number matches but name does not match', function(done) {
@@ -217,7 +223,7 @@ suite('Test Contacts Matcher', function() {
         var saveGN = contact.givenName;
         contact.givenName = [];
 
-        testMatch(myObj, 'passive', function() {
+        testMatch(myObj, 'passive', null, function() {
           contact.givenName = saveGN;
           done();
         });
@@ -232,7 +238,7 @@ suite('Test Contacts Matcher', function() {
         var saveFN = contact.familyName;
         contact.familyName = [];
 
-        testMatch(myObj, 'passive', function() {
+        testMatch(myObj, 'passive', null, function() {
           contact.familyName = saveFN;
           done();
         });
@@ -267,7 +273,7 @@ suite('Test Contacts Matcher', function() {
 
       MockFindMatcher.setData(existingContact);
 
-      testMatch(simObj, 'passive', function() {
+      testMatch(simObj, 'passive', null, function() {
         MockFindMatcher.setData(contact);
         done();
       });
@@ -303,7 +309,7 @@ suite('Test Contacts Matcher', function() {
 
         MockFindMatcher.setData(existingSimContact);
 
-        testMatch(incomingContact, 'passive', function() {
+        testMatch(incomingContact, 'passive', null, function() {
           MockFindMatcher.setData(contact);
           done();
         });
@@ -323,7 +329,7 @@ suite('Test Contacts Matcher', function() {
       myObj.givenName = [];
       myObj.familyName = null;
 
-      testMatch(myObj, 'active', done);
+      testMatch(myObj, 'active', ['tel'], done);
     });
 
     test('Matching by email', function(done) {
@@ -336,7 +342,7 @@ suite('Test Contacts Matcher', function() {
       myObj.givenName = ['Lucas'];
       myObj.familyName = ['Petrov'];
 
-      testMatch(myObj, 'active', done);
+      testMatch(myObj, 'active', ['email'], done);
     });
 
     test('Matching by phone and email', function(done) {
@@ -345,7 +351,7 @@ suite('Test Contacts Matcher', function() {
       myObj.givenName = ['  '];
       myObj.familyName = [' '];
 
-      testMatch(myObj, 'active', done);
+      testMatch(myObj, 'active', ['tel', 'email'], done);
     });
 
     test('Matching by name', function(done) {
@@ -357,14 +363,14 @@ suite('Test Contacts Matcher', function() {
         value: '9999999'
       }];
 
-      testMatch(myObj, 'active', done);
+      testMatch(myObj, 'active', ['name'], done);
     });
 
     test('Matching by phone, email and name', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
 
-      testMatch(myObj, 'active', done);
+      testMatch(myObj, 'active', ['tel', 'email', 'name'], done);
     });
 
     test('Matching by name. givenName startsWith', function(done) {
@@ -374,7 +380,7 @@ suite('Test Contacts Matcher', function() {
       myObj.tel = null;
       myObj.givenName = ['Carlos Ángel'];
 
-      testMatch(myObj, 'active', done);
+      testMatch(myObj, 'active', ['name'], done);
     });
 
     test('familyName matches but givenName not. Mismatch', function(done) {
@@ -496,7 +502,7 @@ suite('Test Contacts Matcher', function() {
 
       MockFindMatcher.setData(existingContact);
 
-      testMatch(simObj, 'active', function() {
+      testMatch(simObj, 'active', ['name'], function() {
         MockFindMatcher.setData(contact);
         done();
       });
@@ -528,7 +534,7 @@ suite('Test Contacts Matcher', function() {
 
         MockFindMatcher.setData(existingSimContact);
 
-        testMatch(incomingContact, 'active', function() {
+        testMatch(incomingContact, 'active', ['name'], function() {
           MockFindMatcher.setData(contact);
           done();
         });
@@ -584,10 +590,10 @@ suite('Test Contacts Matcher', function() {
     test('A Facebook linked Contact can match', function(done) {
       var contactObj = Object.create(contactFB);
       contactObj.id = '9876';
-      contactObj.category = null;
       contactFB.category = ['facebook', 'fb_linked', '123456789'];
+      contactObj.category = [];
 
-      testMatch(contactObj, 'active', done);
+      testMatch(contactObj, 'active', ['tel', 'email'], done);
     });
 
     test('Two FB linked Contacts can match if they link the same Friend',
@@ -595,13 +601,13 @@ suite('Test Contacts Matcher', function() {
         var contactObj = Object.create(contactFB);
         contactObj.id = '9876';
 
-        testMatch(contactObj, 'active', done);
+        testMatch(contactObj, 'active', ['tel', 'email'], done);
     });
 
     test('A FB linked Contact cannot match with a Contact linked to another',
       function(done) {
         var contactObj = Object.create(contactFB);
-        contactObj.id = '9876';
+        contactObj.id = 'xc9876';
         contactObj.category = ['facebook', 'fb_linked', '987654321'];
 
         testMismatch(contactObj, 'active', done);

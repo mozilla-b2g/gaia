@@ -235,8 +235,8 @@ var frequencyDialer = {
 
   _addEventListeners: function() {
     function _removeEventListeners() {
-      document.body.removeEventListener('mouseup', fd_body_mouseup, false);
-      document.body.removeEventListener('mousemove', fd_body_mousemove, false);
+      document.body.removeEventListener('touchend', fd_body_touchend, false);
+      document.body.removeEventListener('touchmove', fd_body_touchmove, false);
     }
 
     function cloneEvent(evt) {
@@ -244,7 +244,7 @@ var frequencyDialer = {
         evt = evt.touches[0];
       }
       return { x: evt.clientX, y: evt.clientX,
-               timestamp: MouseEventShim.getEventTimestamp(evt) };
+               timestamp: evt.timeStamp };
     }
 
     var self = this;
@@ -272,7 +272,7 @@ var frequencyDialer = {
       return movingSpace;
     }
 
-    function fd_body_mousemove(event) {
+    function fd_body_touchmove(event) {
       event.stopPropagation();
       currentEvent = cloneEvent(event);
 
@@ -298,7 +298,7 @@ var frequencyDialer = {
       startEvent = currentEvent;
     }
 
-    function fd_body_mouseup(event) {
+    function fd_body_touchend(event) {
       event.stopPropagation();
       _removeEventListeners();
 
@@ -318,7 +318,7 @@ var frequencyDialer = {
       currentSpeed = 0;
     }
 
-    function fd_mousedown(event) {
+    function fd_touchstart(event) {
       event.stopPropagation();
 
       // Stop animation
@@ -328,11 +328,11 @@ var frequencyDialer = {
       tunedFrequency = self._currentFreqency;
 
       _removeEventListeners();
-      document.body.addEventListener('mousemove', fd_body_mousemove, false);
-      document.body.addEventListener('mouseup', fd_body_mouseup, false);
+      document.body.addEventListener('touchmove', fd_body_touchmove, false);
+      document.body.addEventListener('touchend', fd_body_touchend, false);
     }
 
-    $('dialer-container').addEventListener('mousedown', fd_mousedown, false);
+    $('dialer-container').addEventListener('touchstart', fd_touchstart, false);
   },
 
   _initUI: function() {

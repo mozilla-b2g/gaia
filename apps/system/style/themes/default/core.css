@@ -3,7 +3,7 @@
  * Is required for all the subcomponents (except banner)
  * ---------------------------------- */
 
-[role="dialog"] {
+[role="dialog"].generic-dialog {
   position: absolute;
   top: 0;
   left: 0;
@@ -19,7 +19,7 @@
   overflow: hidden;
 }
 
-[role="dialog"]:before {
+[role="dialog"].generic-dialog:before {
   content: "";
   display: inline-block;
   vertical-align: middle;
@@ -27,7 +27,7 @@
   height: 100%;
 }
 
-[role="dialog"] .inner {
+[role="dialog"].generic-dialog .inner {
   display: inline-block;
   width: calc(100% - 3rem);
   margin-left: -0.1rem; /* need to fix the white-space: nowrap */
@@ -36,7 +36,7 @@
   white-space: normal;
 }
 
-[role="dialog"] h3 {
+[role="dialog"].generic-dialog h3 {
   font-weight: normal;
   font-size: 1.6rem;
   line-height: 1em;
@@ -46,7 +46,7 @@
   padding-bottom: 1rem;
 }
 
-[role="dialog"] menu:not([type="toolbar"]) {
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) {
   white-space: nowrap;
   margin: 0;
   padding: 1.5rem;
@@ -60,20 +60,20 @@
   bottom: 0;
 }
 
-[role="dialog"] menu:not([type="toolbar"]) button:last-child,
-[role="dialog"] menu:not([type="toolbar"]) a[role="button"]:last-child {
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:last-child {
   margin-left: 1rem;
 }
 
-[role="dialog"] menu:not([type="toolbar"]) button,
-[role="dialog"] menu:not([type="toolbar"]) a[role="button"],
-[role="dialog"] menu:not([type="toolbar"]) button:first-child,
-[role="dialog"] menu:not([type="toolbar"]) a[role="button"]:first-child {
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) button,
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"],
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) button:first-child,
+[role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:first-child {
   margin: 0;
 }
 
-[role="dialog"] menu:not([type="toolbar"])[data-items="2"] button,
-[role="dialog"] menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
+[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button,
+[role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"] {
   width: calc((100% - 1rem) / 2);
 }
 
@@ -82,19 +82,19 @@
  * INLINE BANNER
  * ---------------------------------- */
 
-[role="dialog"].inline {
+[role="dialog"].generic-dialog.inline {
   position: relative;
   margin: -0.4rem 0 0 0;
   padding: 1rem 0 0 0;
   background: rgba(0,0,0,0.83);
 }
 
-[role="dialog"].inline p {
+[role="dialog"].generic-dialog.inline p {
   border: 0;
   padding: 1rem 1.5rem;
 }
 
-[role="dialog"].inline menu {
+[role="dialog"].generic-dialog.inline menu {
   position: relative;
   background: none;
 }

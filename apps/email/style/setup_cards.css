@@ -295,6 +295,12 @@ section.card-settings-account li span.button select {
   padding: 0.7rem 0 0.7rem 1.5rem;
 }
 
-.sup-manual-account-type-container {
+li.sup-manual-account-type-container {
   overflow: hidden;
+  min-height: 100%;
+  border-bottom: none;
+}
+
+li.sup-manual-account-type-container .button {
+  margin: 0;
 }

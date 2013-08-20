@@ -25,6 +25,15 @@ Calendar.ns('Views').Month = (function() {
 
     SELECTED: 'selected',
 
+    _onswipe: function() {
+      var didSwipe = Parent.prototype._onswipe.apply(this, arguments);
+
+      // If we changed months, set the selected day to the 1st
+      if (didSwipe) {
+        this.controller.selectedDay = this.date;
+      }
+    },
+
     _clearSelectedDay: function() {
       var day = this.element.querySelector(
         this.selectors.selectedDay
