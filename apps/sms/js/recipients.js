@@ -963,7 +963,11 @@
       var dialogBody = document.createDocumentFragment();
       if (recipient.type) {
         var typeElement = document.createElement('span');
-        navigator.mozL10n.localize(typeElement, recipient.type);
+        if (!navigator.mozL10n.get(recipient.type)) {
+          typeElement.textContent = recipient.type;
+        } else {
+          navigator.mozL10n.localize(typeElement, recipient.type);
+        }
         dialogBody.appendChild(typeElement);
       }
 

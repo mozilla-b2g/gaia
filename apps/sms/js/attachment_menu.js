@@ -25,16 +25,16 @@ var AttachmentMenu = {
     var mimeFirstPart = blob.type.substr(0, blob.type.indexOf('/'));
 
     // default to -other
-    var fileType = '-other';
+    var fileType = 'other';
     if (types.indexOf(mimeFirstPart) > -1) {
-      fileType = '-' + mimeFirstPart;
+      fileType = mimeFirstPart;
     }
 
     this.header.textContent = fileName;
 
-    l10n.localize(this.viewButton, 'view-attachment' + fileType);
-    l10n.localize(this.removeButton, 'remove-attachment' + fileType);
-    l10n.localize(this.replaceButton, 'replace-attachment' + fileType);
+    l10n.localize(this.viewButton, 'view-attachment-' + fileType);
+    l10n.localize(this.removeButton, 'remove-attachment-' + fileType);
+    l10n.localize(this.replaceButton, 'replace-attachment-' + fileType);
 
     this.el.className = '';
 

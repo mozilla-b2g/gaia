@@ -53,7 +53,6 @@ suite('attachment_menu_test.js', function() {
 
     // generate checks for image, video, audio, and unknown button texts
     ['image', 'video', 'audio', 'other'].forEach(function(type) {
-      var typeAppend = '-' + type;
       suite(type, function() {
         setup(function() {
           this.blob = new Blob(['test'],
@@ -64,21 +63,21 @@ suite('attachment_menu_test.js', function() {
         test('sets view text', function() {
           assert.ok(
             navigator.mozL10n.localize.calledWith(
-              AttachmentMenu.viewButton, 'view-attachment' + typeAppend
+              AttachmentMenu.viewButton, 'view-attachment-' + type
             )
           );
         });
         test('sets remove text', function() {
           assert.ok(
             navigator.mozL10n.localize.calledWith(
-              AttachmentMenu.removeButton, 'remove-attachment' + typeAppend
+              AttachmentMenu.removeButton, 'remove-attachment-' + type
             )
           );
         });
         test('sets replace text', function() {
           assert.ok(
             navigator.mozL10n.localize.calledWith(
-              AttachmentMenu.replaceButton, 'replace-attachment' + typeAppend
+              AttachmentMenu.replaceButton, 'replace-attachment-' + type
             )
           );
         });
