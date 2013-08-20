@@ -11,6 +11,8 @@
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
     <link rel="stylesheet" type="text/css" href="style/music.css"/>
+    <!-- Reponsive design for large device -->
+    <link rel="stylesheet" type="text/css" href="style/music_lg.css" media="(min-width: 992px)"/>
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
@@ -20,6 +22,7 @@
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/text_normalizer.js"></script>
+    <script defer src="shared/js/screen_layout.js"></script>
     <!-- Specific code -->
     <script defer src="js/utils.js"></script>
     <script defer src="js/music.js"></script>
@@ -73,37 +76,42 @@
         <div id="views-sublist-anchor"></div>
       </div>
       <div id="views-player" class="view hidden">
-        <div id="player-cover">
-          <img id="player-cover-image" />
-          <div id="player-cover-caption">
-            <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
-            <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
-          </div>
-          <div id="player-cover-buttons">
-            <button id="player-album-repeat" class="player-cover-button"></button>
-            <div id="player-album-rating">
-              <button class="rating-star" data-rating="1"></button>
-              <button class="rating-star" data-rating="2"></button>
-              <button class="rating-star" data-rating="3"></button>
-              <button class="rating-star" data-rating="4"></button>
-              <button class="rating-star" data-rating="5"></button>
+        <div id="player-container">
+          <div id="player-cover">
+            <img id="player-cover-image" />
+            <div id="player-cover-caption">
+              <div id="player-cover-artist" data-l10n-id="songArtist">Song Artist</div>
+              <div id="player-cover-album" data-l10n-id="songAlbum">Song Album</div>
             </div>
-            <button id="player-album-shuffle" class="player-cover-button"></button>
+            <div id="player-cover-buttons">
+              <button id="player-album-repeat-mobile" class="player-cover-button player-album-repeat"></button>
+              <div id="player-album-rating">
+                <button class="rating-star" data-rating="1"></button>
+                <button class="rating-star" data-rating="2"></button>
+                <button class="rating-star" data-rating="3"></button>
+                <button class="rating-star" data-rating="4"></button>
+                <button class="rating-star" data-rating="5"></button>
+              </div>
+              <button id="player-album-shuffle-mobile" class="player-cover-button player-album-shuffle"></button>
+            </div>
+          </div>
+          <div id="player-seek">
+            <span id="player-seek-elapsed">00:00</span>
+            <div id="player-seek-bar">
+              <progress id="player-seek-bar-progress" value="0"></progress>
+              <div id="player-seek-bar-indicator"></div>
+            </div>
+            <span id="player-seek-remaining">00:00</span>
+          </div>
+          <div id="player-controls">
+            <button id="player-album-repeat-tablet" class="player-cover-button player-album-repeat"></button>
+            <button id="player-controls-previous" class="player-controls-button"></button>
+            <button id="player-controls-play" class="player-controls-button is-pause"></button>
+            <button id="player-controls-next" class="player-controls-button"></button>
+            <button id="player-album-shuffle-tablet" class="player-cover-button player-album-shuffle"></button>
           </div>
         </div>
-        <div id="player-seek">
-          <span id="player-seek-elapsed">00:00</span>
-          <div id="player-seek-bar">
-            <progress id="player-seek-bar-progress" value="0"></progress>
-            <div id="player-seek-bar-indicator"></div>
-          </div>
-          <span id="player-seek-remaining">00:00</span>
-        </div>
-        <div id="player-controls">
-          <button id="player-controls-previous" class="player-controls-button"></button>
-          <button id="player-controls-play" class="player-controls-button is-pause"></button>
-          <button id="player-controls-next" class="player-controls-button"></button>
-        </div>
+        <div id="player-list-container"></div>
         <audio id="player-audio" class="hidden"></audio>
       </div>
     </div>

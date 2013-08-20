@@ -581,6 +581,15 @@ body.picker-mode #title-player {
   background-image: url('./images/AlbumArt10_small.png');
   background-size: 100% 100%;
 }
+#player-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#player-list-container {
+  display: none;
+}
 
 #player-cover {
   position: relative;
@@ -663,15 +672,16 @@ body.picker-mode #title-player {
   bottom: calc(-100% + 5rem);
 }
 
-#player-album-shuffle,
+.player-album-shuffle,
 #player-album-rating,
-#player-album-repeat {
+.player-album-repeat {
   position: relative;
   float: left;
 }
 
-#player-album-shuffle,
-#player-album-repeat {
+button.player-cover-button.player-album-shuffle,
+button.player-cover-button.player-album-repeat {
+  display: block;
   top: 10%;
   width: calc(25% - 2rem);
   height: 80%;
@@ -683,26 +693,29 @@ body.picker-mode #title-player {
   background-repeat: no-repeat;
   background-size: 3rem;
 }
-
-#player-album-shuffle {
+#player-album-shuffle-tablet,
+#player-album-repeat-tablet {
+  display: none;
+}
+button.player-album-shuffle {
   background-image: url("./images/IconAction_Media_ShuffleOff_30x30.png");
 }
 
-#player-album-shuffle:disabled,
-#player-album-shuffle.shuffle-on {
+button.player-album-shuffle:disabled,
+button.player-album-shuffle.shuffle-on {
   background-image: url("./images/IconAction_Media_ShuffleOn_30x30.png");
 }
 
-#player-album-repeat.repeat-off {
+button.player-album-repeat.repeat-off {
   background-image: url("./images/IconAction_Media_RepeatOff_30x30.png");
 }
 
-#player-album-repeat:disabled,
-#player-album-repeat.repeat-list {
+button.player-album-repeat:disabled,
+button.player-album-repeat.repeat-list {
   background-image: url("./images/IconAction_Media_RepeatList_30x30.png");
 }
 
-#player-album-repeat.repeat-song {
+button.player-album-repeat.repeat-song {
   background-image: url("./images/IconAction_Media_RepeatSong_30x30.png");
 }
 
@@ -883,7 +896,6 @@ button::-moz-focus-inner {
   transition: background 200ms ease;
 }
 .player-controls-button:hover {
-  background: transparent;
 }
 .player-controls-button:active {
   background: rgb(0, 138, 170);
@@ -939,7 +951,6 @@ button::-moz-focus-inner {
   transition: background 200ms ease;
 }
 .player-cover-button:hover {
-  background: transparent;
 }
 .player-cover-button:active {
   background: rgb(0, 138, 170);

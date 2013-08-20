@@ -12,6 +12,8 @@ var REPEAT_OFF = 0;
 var REPEAT_LIST = 1;
 var REPEAT_SONG = 2;
 
+var IS_LARGE_SCREEN = ScreenLayout.isLarge();
+
 // We get headphoneschange event when the headphones is plugged or unplugged
 // A related Bug 809106 in Bugzilla
 var acm = navigator.mozAudioChannelManager;
@@ -37,6 +39,11 @@ var PlayerView = {
   get view() {
     delete this._view;
     return this._view = document.getElementById('views-player');
+  },
+
+  get list() {
+    delete this._list;
+    return this._list = document.getElementById('player-list-container');
   },
 
   get audio() {
@@ -67,6 +74,9 @@ var PlayerView = {
         // Also, show or hide the Now Playing button depending on
         // whether content is queued
         TitleBar.playerIcon.hidden = (this._dataSource.length < 1);
+        if (IS_LARGE_SCREEN) {
+          this.updateList();
+        }
       } else {
         // These buttons aren't necessary when playing a blob or a single track
         this.shuffleButton.disabled = true;
@@ -84,9 +94,18 @@ var PlayerView = {
     this.timeoutID;
     this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
+    if (IS_LARGE_SCREEN) {
+      this.repeatButton =
+        document.getElementById('player-album-repeat-tablet');
+      this.shuffleButton =
+        document.getElementById('player-album-shuffle-tablet');
+    } else {
+      this.repeatButton =
+        document.getElementById('player-album-repeat-mobile');
+      this.shuffleButton =
+        document.getElementById('player-album-shuffle-mobile');
+    }
 
-    this.repeatButton = document.getElementById('player-album-repeat');
-    this.shuffleButton = document.getElementById('player-album-shuffle');
 
     this.ratings = document.getElementById('player-album-rating').children;
 
@@ -133,6 +152,13 @@ var PlayerView = {
 
     this.dataSource = [];
     this.playingBlob = null;
+  },
+  // This function generate play list for tablet device
+  updateList: function pv_updateList() {
+    this.list.innerHTML = '';
+    for (var i = 0; i < this.dataSource.length; i++) {
+      this.list.appendChild(createListElement('song', this.dataSource[i], i));
+    }
   },
 
   setSourceType: function pv_setSourceType(type) {
@@ -573,7 +599,8 @@ var PlayerView = {
 
             break;
 
-          case 'player-album-repeat':
+          case 'player-album-repeat-mobile':
+          case 'player-album-repeat-tablet':
             this.showInfo();
 
             var newValue = ++this.repeatOption % 3;
@@ -587,7 +614,8 @@ var PlayerView = {
 
             break;
 
-          case 'player-album-shuffle':
+          case 'player-album-shuffle-mobile':
+          case 'player-album-shuffle-tablet':
             this.showInfo();
 
             var newValue = !this.shuffleOption;
@@ -614,6 +642,10 @@ var PlayerView = {
 
           musicdb.updateMetadata(songData.name, songData.metadata);
           this.setRatings(newRating);
+        }
+
+        if (target.dataset.option == 'song') {
+          this.play(target.dataset.index);
         }
 
         break;
