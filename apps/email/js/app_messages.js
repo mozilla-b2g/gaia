@@ -4,28 +4,28 @@ define(function(require) {
   var evt = require('evt'),
       queryURI = require('query_uri');
 
-  var appMessages = evt.mix({
-    /**
-     * Whether or not we have pending messages.
-     *
-     * @param {string} type message type.
-     * @return {boolean} Whether or there are pending message(s) of the type.
-     */
-    hasPending: function(type) {
-      // htmlCacheRestoreDetectedActivity defined in html_cache_restore,
-      // see comment for it.
-      return (type === 'activity' && window.htmlCacheRestoreDetectedActivity) ||
-             (navigator.mozHasPendingMessage &&
-              navigator.mozHasPendingMessage(type));
-    }
-  });
+  var appMessages = evt.mix({});
+
+  /**
+   * Whether or not we have pending messages.
+   *
+   * @param {string} type message type.
+   * @return {boolean} Whether or there are pending message(s) of the type.
+   */
+  appMessages.hasPending = function(type) {
+    // htmlCacheRestoreDetectedActivity defined in html_cache_restore,
+    // see comment for it.
+    return (type === 'activity' && window.htmlCacheRestoreDetectedActivity) ||
+           (navigator.mozHasPendingMessage &&
+            navigator.mozHasPendingMessage(type));
+  };
 
   /**
    * Perform requested activity.
    *
    * @param {MozActivityRequestHandler} req activity invocation.
    */
-  function onActivityRequest(req) {
+  appMessages.onActivityRequest = function(req) {
     // Parse the activity request.
     var source = req.source;
     var sourceData = source.data;
@@ -43,7 +43,6 @@ define(function(require) {
       appMessages.emitWhenListener('activity', 'share', {
         body: url
       }, req);
-
       return;
     }
 
@@ -56,10 +55,10 @@ define(function(require) {
       attachmentBlobs: attachmentBlobs,
       attachmentNames: attachmentNames
     }, req);
-  }
+  };
 
   if ('mozSetMessageHandler' in navigator) {
-    navigator.mozSetMessageHandler('activity', onActivityRequest);
+    navigator.mozSetMessageHandler('activity', appMessages.onActivityRequest);
   } else {
     console.warn('Activity support disabled!');
   }
