@@ -277,6 +277,11 @@ var LockScreen = {
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
+        // Don't lock if screen is turned off by promixity sensor.
+        if (evt.detail.screenOffBy == 'proximity') {
+          break;
+        }
+
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
         // when it's being turned back on

@@ -131,6 +131,8 @@ suite('system/LockScreen >', function() {
     assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
   });
 
+  // XXX: Test 'Screen off: by proximity sensor'.
+
   teardown(function() {
     navigator.mozL10n = realL10n;
     window.MobileOperator = realMobileOperator;
