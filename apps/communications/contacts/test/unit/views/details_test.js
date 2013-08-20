@@ -4,7 +4,8 @@ requireApp('communications/contacts/test/unit/mock_details_dom.js.html');
 require('/shared/js/text_normalizer.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 
-requireApp('communications/contacts/js/contacts_details.js');
+requireApp('communications/contacts/js/views/details.js');
+requireApp('communications/contacts/js/utilities/event_listeners.js');
 requireApp('communications/contacts/js/utilities/templates.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
