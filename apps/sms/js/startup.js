@@ -40,12 +40,14 @@ var lazyLoadFiles = [
   'style/notification.css'
 ];
 
-window.addEventListener('localized', function showBody() {
+window.addEventListener('localized', function localized() {
+  // This will be called during startup, and any time the languange is changed
+
   // Set the 'lang' and 'dir' attributes to <html> when the page is translated
   document.documentElement.lang = navigator.mozL10n.language.code;
   document.documentElement.dir = navigator.mozL10n.language.direction;
 
-  // look for any iframes and localize them - mozL10n doesn't do this
+  // Look for any iframes and localize them - mozL10n doesn't do this
   Array.prototype.forEach.call(document.querySelectorAll('iframe'),
     function forEachIframe(iframe) {
       var doc = iframe.contentDocument;
@@ -55,7 +57,9 @@ window.addEventListener('localized', function showBody() {
     }
   );
 
-  // also look for elements with data-l10n-date-format and localize them
+  // Also look for not-downloaded-message and re-translate the date message.
+  // More complex because the argument to the l10n string is itself a formatted
+  // date using l10n.
   Array.prototype.forEach.call(
     document.getElementsByClassName('not-downloaded-message'),
     function(element) {
