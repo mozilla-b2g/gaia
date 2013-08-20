@@ -65,7 +65,7 @@ function updateNextReset(trackingPeriod, value, callback) {
   setNextReset(nextReset, callback);
 }
 
-function resetData() {
+function resetData(onsuccess, onerror) {
 
   // Sets the fixing value for the current SIM
   asyncStorage.getItem('dataUsageTags', function _updateTags(tags) {
@@ -81,6 +81,7 @@ function resetData() {
       end: now,
       connectionType: 'mobile'
     });
+    mobileRequest.onerror = onerror;
     mobileRequest.onsuccess = function _onMobileForToday() {
       var data = mobileRequest.result.data;
       debug('Data length should be 1 and it is', data.length);
@@ -115,6 +116,7 @@ function resetData() {
       end: now,
       connectionType: 'wifi'
     });
+    wifiRequest.onerror = onerror;
     wifiRequest.onsuccess = function _onWiFiForToday() {
       var data = wifiRequest.result.data;
       debug('Data length should be 1 and it is', data.length);
@@ -125,13 +127,13 @@ function resetData() {
       if (data[0].txBytes) {
         currentWifiUsage += data[0].txBytes;
       }
-      asyncStorage.setItem('wifiFixing', currentWifiUsage);
+      asyncStorage.setItem('wifiFixing', currentWifiUsage, onsuccess);
     };
 
   });
 }
 
-function resetTelephony() {
+function resetTelephony(callback) {
   ConfigManager.setOption({
     lastTelephonyReset: new Date(),
     lastTelephonyActivity: {
@@ -139,12 +141,15 @@ function resetTelephony() {
       smscount: 0,
       timestamp: new Date()
     }
-  });
+  }, callback);
 }
 
-function resetAll() {
-  resetData();
-  resetTelephony();
+function resetAll(callback) {
+  resetData(thenResetTelephony, thenResetTelephony);
+
+  function thenResetTelephony() {
+    resetTelephony(callback);
+  }
 }
 
 function getDataLimit(settings) {
