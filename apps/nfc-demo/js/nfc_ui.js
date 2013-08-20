@@ -41,7 +41,6 @@ postPendingMessage: function(msgRecord) {
     $('#nfc_tag_write_dialog').click();
     if (this.isConnected) {
       this.writePendingMessage();
-      this.closeTagWriteDialog();
     }
   }
 },
@@ -65,14 +64,18 @@ writePendingMessage: function() {
 },
 
 closeTagWriteDialog: function() {
+  debug('XXXX Closing dialog. XXXX');
   $('.ui-dialog').dialog('close');
 },
 
 // Common Nfc UI Write Dialog.
 commonRequestHandler: function(pending) {
+  debug('In commonRequestHandler: ' + pending);
   if (pending != null) {
+    debug('In commonRequestHandler func set.');
     //console.log("bind to onsuccess/onerror");
     pending.onsuccess = function() {
+      debug('In commonRequestHandler onsuccess.');
       var msg = this.result;
       var message = 'Tag write successful. (Message: ' +
         JSON.stringify(msg) + ')';
@@ -86,6 +89,7 @@ commonRequestHandler: function(pending) {
       nfcUI.appendTextAndScroll($(nfcUI.messageArea), message + '\n');
     };
     pending.onerror = function(e) {
+      debug('In commonRequestHandler onerror.');
       var msg = this.error;
       // Print error object.
       var message = 'Error writing tag. (Result: ' + JSON.stringify(msg) + ')';

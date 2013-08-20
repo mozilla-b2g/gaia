@@ -38,7 +38,8 @@
     "audio-channel-content":{},
     "cellbroadcast":{},
     "keyboard":{},
-    "nfc":{}
+    "nfc":{},
+    "nfc-manager":{}
   },
   "locales": {
     "ar": {
@@ -71,7 +72,7 @@
      { "icc-stkcommand": "/index.html" },
      { "bluetooth-hfp-status-changed": "/index.html" },
      { "bluetooth-sco-status-changed": "/index.html" },
-     { "nfc-tech-discovered": "/index.html" },
-     { "nfc-tech-lost": "/index.html" }
+     { "nfc-manager-tech-discovered": "/index.html" },
+     { "nfc-manager-tech-lost": "/index.html" }
   ]
 }

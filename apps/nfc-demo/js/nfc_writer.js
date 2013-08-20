@@ -267,6 +267,7 @@ postContactFormToNdef: function(elementRef) {
 
 // Empty Tag:
 postEmptyTag: function() {
+  console.log('XXXX Post empty tag XXXX');
   var records = [new NdefRecord(nfc.tnf_empty, nfc.rtd_text, null, null)];
   nfcUI.postPendingMessage(records);
 }

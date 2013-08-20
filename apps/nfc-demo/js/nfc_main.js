@@ -229,24 +229,55 @@ function launchBrowser(URL) {
       };
 }
 
-function handleNdefDiscovered(ndefmessages) {
-  debug('Incoming message: ' + ndefmessages);
-  debug('NdefMessage Length:' + ndefmessages.length);
-  handleNdefDiscoveredMessages(ndefmessages);
+function handleNdefDiscovered() {
+  // Process:
+  var handled = false;
+  var detailreq = navigator.mozNfc.ndefDetails();
+  debug('NDEF Details Request submitted.');
+  detailreq.onsuccess = function() {
+    // NDEF Message with array of NDEFRecords
+    debug('Details NDEF success');
+    debug('detailreq.result: ' + JSON.stringify(detailreq.result));
+    var readreq = navigator.mozNfc.ndefRead();
+    readreq.onsuccess = function() {
+      debug('Read success.');
+      debug('readreq: ' + JSON.stringify(readreq.result.records));
+      // Update UI:
+      handleNdefDiscoveredMessages(readreq.result.records);
+      handled = true;
+    };
+    readreq.onerror = function() {
+      debug('ERROR: Failed to read NDEF on tag.');
+    };
+  };
+  detailreq.onerror = function() {
+    debug('ERROR: Failed to get NDEF details.');
+  };
+  return handled;
 }
 
 // NDEF only:
-function handleNdefDiscoveredMessages(messages) {
+function handleNdefDiscoveredMessages(ndefmessage) {
   debug('Found tag!');
-  nfcUI.setConnectedState(true);
-  $('#taglist').css('display', 'inline');
 
+  if (ndefmessage === undefined) {
+    debug('No messages in discovery.');
+    var html = '<li data-role="list-divider" role="heading">NDEF Tag</li>';
+    $('#taglist').html(html);
+    $('#taglist').listview('refresh');
+    return;
+  }
+
+  debug('Incoming message: ' + JSON.stringify(ndefmessage));
+  debug('NdefMessage Length:' + ndefmessage.length);
+
+  $('#taglist').css('display', 'inline');
   $('#actionlist').css('display', 'inline');
 
   var html = '<li data-role="list-divider" role="heading">NDEF Tag</li>';
 
-  for (var i = 0; i < messages.length; i++) {
-    var record = messages[i];
+  for (var i = 0; i < ndefmessage.length; i++) {
+    var record = ndefmessage[i];
     console.log('RECORD: ' + JSON.stringify(record));
 
     //Dump generic data
@@ -312,142 +343,107 @@ function handleNdefDiscoveredMessages(messages) {
     });
   });
   $('#actionlist').listview('refresh');
-
-  nfcUI.writePendingMessage();
 }
 
-function handleTechnologyDiscovered(event) {
+function handleAsTechType(techType) {
+  var handled = false;
+  debug('Tech is ' + techType);
+
+  if (techType == 'NDEF') {
+    handled = handleNdefDiscovered();
+  } else if (tech[i] == 'NFC_A') {
+    debug('NFCA unsupported: ' + nfcevent.content);
+  } else if (tech[i] == 'MIFARE_ULTRALIGHT') {
+    debug('MiFare unsupported: ' + nfcevent.message);
+  } else {
+    debug('Unknown or unsupported tag tech type');
+  }
+  return handled;
+}
+
+function handleTechnologyDiscovered(nfcevent) {
   debug('Called handleTechnologyDiscovered notification');
-  debug('EventContents: ' + JSON.stringify(event.message.content));
-  var tech = event.message.content.tech;
+  debug('EventContents: ' + JSON.stringify(nfcevent.message.content));
+  var techs = nfcevent.message.content.tech;
   var handled = false;
 
-  // Priority:
-  for (var i in tech) {
-    debug('Here!: ' + i);
-    if (tech[i] == 'NDEF') {
-      debug('Tech is NDEF');
-      var detailreq = navigator.mozNfc.ndefDetails();
-      //var detailreq = window.navigator.mozNfc.ndefRead();
-      debug('NDEF Details Request submitted.');
-      detailreq.onsuccess = function() {
-        // NDEF Message with array of NDEFRecords
-        debug('Details NDEF success');
-        debug('detailreq.result: ' + JSON.stringify(detailreq.result));
-        var readreq = navigator.mozNfc.ndefRead();
-        readreq.onsuccess = function() {
-          debug('Read success.');
-          debug('readreq: ' + JSON.stringify(readreq.result.records));
-          handleNdefDiscovered(readreq.result.records);
-        };
-        readreq.onerror = function() {
-          debug('ERROR: Failed to read NDEF on tag.');
-        };
-      };
-      detailreq.onerror = function() {
-        debug('ERROR: Failed to get NDEF details.');
-      };
-
-      handled = true;
-    } else if (tech[i] == 'NFC_A') {
-      debug('NFCA unsupported: ' + event.content);
-    } else if (tech[i] == 'MIFARE_ULTRALIGHT') {
-      debug('MiFare unsupported: ' + event.message);
-    } else {
-      debug('Unknown or unsupported tag tech type');
-    }
-
-    if (handled == true) {
+  // Force Tech Priority:
+  var prio = ['NDEF', 'NFC_A', 'MIFARE_ULTRALIGHT'];
+  for (var ti = 0; ti < prio.length; ti++) {
+    var i = techs.indexOf(prio[ti]);
+    if (i != -1) {
+      handled = handleAsTechType(prio[ti]);
       break;
     }
   }
-
-  // If there is a pending tag write, apply that write now.
-  nfcUI.writePendingMessage();
+  return handled;
 }
 
-function addNfcConnectListeners() {
-  debug('Starting Tag Discovery...');
-
-  // Generic Tag Discovery
-  navigator.mozNfc.ontechdiscovered =
-    function main_handleTechnologyDiscoveredMessages(event) {
-      handleTechnologyDiscovered(event);
-    };
+function handleTagDiscoveredMessages(nfcevent) {
+  debug('Unimplemented NFC Tag Handler');
 }
 
-function removeNfcConnectListener() {
-  debug('Stopping Tag Discovery...');
-  navigator.mozNfc.ontechdiscovered = null;
-}
-
-function addNfcDisconnectListener() {
-  navigator.mozNfc.ontechlost = function(event) {
-    var message = 'Nfc Tech no longer in range.';
-    nfcUI.setConnectedState(false);
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-  };
-}
-
-function removeNfcDisconnectListener() {
-  navigator.mozNfc.ontechlost = null;
-}
-
+var dbgcnt = 0;
 function debug(message) {
-  console.log('DEBUG:' + message);
-  nfcUI.appendTextAndScroll($('#area'), message + '\n');
+  dbgcnt++;
+  console.log('DEBUG:(' + dbgcnt + ') ' + message);
+  nfcUI.appendTextAndScroll($('#area'), '(' + dbgcnt + ') ' + message + '\n');
 }
 
 function setListenState(boolState) {
   if (boolState == true) {
     $('#buttontext').text('Stop Tag Discovery');
     isListening = true;
-    addNfcConnectListeners();
-    addNfcDisconnectListener();
   } else {
     $('#buttontext').text('Start Tag Discovery');
     $('#taglist').css('display', 'none');
     $('#actionlist').css('display', 'none');
     isListening = false;
-    removeNfcConnectListener();
-    removeNfcDisconnectListener();
   }
 }
 
+/**
+ * NfcActivityHandler is the entry point of all discovery messages.
+ */
 function NfcActivityHandler(activity) {
+  debug('XX Activity Handler');
+
   var activityName = activity.source.name;
   var data = activity.source.data;
+
+  debug('XX Received Activity: name: ' + activityName);
   switch (activityName) {
   case 'nfc-ndef-discovered':
-    debug('XX Received Activity: name: ' + activityName);
     debug('XX Received Activity: nfc ndef message(s): ' +
-          JSON.stringify(data.record));
-    handleNdefDiscoveredMessages(data.record);
+          JSON.stringify(data.records));
+    nfcUI.setConnectedState(true);
+    // If there is a pending tag write, apply that write now.
+    nfcUI.writePendingMessage();
+    handleNdefDiscovered();
     break;
-  case 'nfc-technology-discovered':
-    debug('XX Received Activity: name: ' + activityName);
-    debug('XX Received Activity: nfc-technology message(s): ' +
-          JSON.stringify(data.record));
-    handleTechnologyDiscoveredMessages(data.record);
+  case 'nfc-tech-discovered':
+    debug('XX Received Activity: nfc technology message(s): ' +
+          JSON.stringify(data.records));
+    nfcUI.setConnectedState(true);
+    // If there is a pending tag write, apply that write now.
+    nfcUI.writePendingMessage();
+    handleTechnologyDiscovered(data.records);
     break;
   case 'nfc-tag-discovered':
-    debug('XX Received Activity: name: ' + activityName);
-    debug('XX Received Activity: nfc-tag message(s): ' +
-          JSON.stringify(data.record));
-    handleTagDiscoveredMessages(data.record);
-    break;
-  case 'nfc-write-request-status':
-    // Apps should use the callback.
-    debug('XX Received Activity: nfc-write-request-status: ' +
-          JSON.stringify(data));
+    debug('XX Received Activity: nfc tag message(s): ' +
+          JSON.stringify(data.records));
+    nfcUI.setConnectedState(true);
+    handleTagDiscoveredMessages(data.records);
     break;
   case 'nfc-tech-lost':
     debug('XX Received Activity: nfc-tech-lost: ' +
           JSON.stringify(data));
+    nfcUI.setConnectedState(false);
     break;
   case 'ndefpush-receive':
     debug('XX Received Activity: ndefpush-receive: ' +
           JSON.stringify(data));
+    nfcUI.setConnectedState(true);
     break;
   }
 }
@@ -462,6 +458,8 @@ $(document).bind('ready', function() {
       setListenState(false);
     }
   });
+  // By default, set to listening immediately.
+  setListenState(true);
 
   navigator.mozSetMessageHandler('activity', NfcActivityHandler);
 

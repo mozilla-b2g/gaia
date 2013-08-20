@@ -120,20 +120,9 @@
    * NFC certified app permissions can still receive activity messages.
    */
   window.navigator.mozSetMessageHandler(
-    'nfc-tech-discovered', handleTechnologyDiscovered);
+    'nfc-manager-tech-discovered', handleTechnologyDiscovered);
   window.navigator.mozSetMessageHandler(
-    'nfc-tech-lost', handleTechLost);
-
-  // Dom Request Responses. Non-System Apps should just use the DOMRequest
-  // onsuccess/onerror callbacks.
-  /*
-  window.navigator.mozSetMessageHandler(
-    'nfc-ndef-details', handleNdefDetailsResponse);
-  window.navigator.mozSetMessageHandler(
-    'nfc-ndef-read', handleNdefReadResponse);
-  window.navigator.mozSetMessageHandler(
-    'nfc-ndef-write', handleNdefWriteResponse);
-  */
+    'nfc-manager-tech-lost', handleTechLost);
 
   /**
    * Events:
@@ -197,7 +186,7 @@
       data: {
         type: 'webtelephony/number',
         number: number,
-        record: [record]
+        records: [record]
       }
     });
   }
@@ -236,6 +225,12 @@
       }
       if (handle) {
         action.push(handle);
+        // Normal message handing only fires the first NdefRecord
+        // in the array, so attach full ndefmessage for apps to
+        // further process.
+        if (i == 0) {
+          action[0].records = ndefmessages;
+        }
       }
     }
     if (action.length <= 0) {
@@ -281,12 +276,12 @@
   }
 
   // TODO:
-  function handleNdefFormattableDiscovered(command) {
+  function handleNdefFormattableDiscovered() {
     return handleNdefDiscovered(command);
   }
 
   function handleTechnologyDiscovered(command) {
-    debug('TechnologyDiscovered: ' + JSON.stringify(command));
+    debug('Technology Discovered: ' + JSON.stringify(command));
 
     if (!acceptNfcEvents()) {
       debug('Ignoring NFC technology tag message. Screen state is disabled.');
@@ -296,35 +291,42 @@
     debug('NFC Events accepted');
     debug('command.content.tech: ' + command.content.tech);
     var handled = false;
-    var tech = command.content.tech;
+    var techs = command.content.tech;
 
-    // Tech handling priority:
-    for (var i in tech) {
-      debug('NFC.js: Here!: ' + i);
-      if (tech[i] == 'NDEF') {
+    // Force Tech Priority:
+    var prio = ['NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
+    for (var ti = 0; ti < prio.length; ti++) {
+      debug('Going through NFC Technologies: ' + i);
+      var i = techs.indexOf(prio[ti]);
+      if (i != -1) {
+        if (techs[i] == 'NDEF') {
           handled = handleNdefDiscovered();
-      } else if (tech[i] == 'NFC_A') {
-        debug('NFCA unsupported: ' + command.content);
-      } else if (tech[i] == 'MIFARE_ULTRALIGHT') {
-        debug('MiFare unsupported: ' + command.content);
-      } else {
-        debug('Unknown or unsupported tag tech type');
-      }
+        } else if (techs[i] == 'NDEF_FORMATTABLE') {
+          handled = handleNdefFormattableDiscovered();
+        } else if (techs[i] == 'NFC_A') {
+          debug('NFCA unsupported: ' + command.content);
+        } else if (techs[i] == 'MIFARE_ULTRALIGHT') {
+          debug('MiFare unsupported: ' + command.content);
+        } else {
+          debug('Unknown or unsupported tag tech type');
+        }
 
-      if (handled == true) {
-        break;
+        if (handled == true) {
+          break;
+        }
       }
     }
 
     if (handled == false) {
       // Fire off activity to whoever is registered to handle a generic binary
       // blob tag (TODO: tagRead).
-      var technologyTag = command.content.tag;
+      var technologyTags = command.content.tag;
       var a = new MozActivity({
         name: 'tag-discovered',
         data: {
           type: 'tag',
-          tag: technologyTag
+          sessionId: command.sessionId,
+          tag: technologyTags
         }
       });
     }
@@ -336,6 +338,7 @@
       name: 'nfc-tech-lost',
       data: {
         type: 'info',
+        sessionId: command.sessionId,
         message: ''
       }
     });
@@ -346,10 +349,12 @@
    * NDEF parsing functions
    */
   function handleEmpty(record) {
+    debug('XXXXXXXXXXXXXXXXXXXXXXXXXXXX Activity for empty tag.');
     return {
       name: 'nfc-ndef-discovered',
       data: {
-        type: 'empty'
+        type: 'empty',
+        records: [record]
       }
     };
   }
@@ -393,7 +398,7 @@
         text: text,
         language: language,
         encoding: encodingString,
-        record: [record]
+        records: [record]
       }
     };
     return activityText;
@@ -409,7 +414,6 @@
 
     if (prefix == 'tel:') {
       // handle special case
-      // (FIXME: dialer doesn't currently handle parsing a full ndef message):
       var number = record.payload.substring(1);
       debug('XXXXXXXXXXXXXXX Handle Ndef URI type, TEL XXXXXXXXXXXXXXXX');
       activityText = {
@@ -418,7 +422,7 @@
           type: 'webtelephony/number',
           number: number,
           uri: prefix + record.payload.substring(1),
-          record: [record]
+          records: [record]
         }
       };
     } else {
@@ -428,7 +432,7 @@
           type: 'uri',
           rtd: record.type,
           uri: prefix + record.payload.substring(1),
-          record: [record]
+          records: [record]
         }
       };
     }
@@ -447,7 +451,7 @@
         name: 'nfc-ndef-discovered',
         data: {
           type: record.type,
-          record: [record]
+          records: [record]
         }
       };
     }
@@ -545,7 +549,7 @@
       data: {
         type: 'webcontacts/contact',
         params: vcard,
-        record: [record]
+        records: [record]
       }
     };
     return activityText;
@@ -557,7 +561,7 @@
       data: {
         type: 'external-type',
         rtd: record.type,
-        record: [record]
+        records: [record]
       }
     };
     return activityText;
@@ -569,8 +573,8 @@
     var activityText = {
       name: 'nfc-ndef-discovered',
       data: {
-        type: 'smart-poster',
-        record: [record]
+        type: 'smartposter',
+        records: [record]
       }
     };
     return activityText;
@@ -584,7 +588,7 @@
       data: {
         type: 'smartposter-action',
         action: smartaction,
-        record: [record]
+        records: [record]
       }
     };
     return activityText;
