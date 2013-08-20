@@ -1,3 +1,5 @@
+'use strict';
+
 function MockRecipients(setup) {
   this.setup = setup;
   this.recipientsList = document.getElementById(setup.inner);
@@ -17,6 +19,16 @@ MockRecipients.prototype.add = function(contact) {
   this.length++;
   this.numbers.push(contact.number);
   this.emit('add', this.length);
+  return this;
+};
+
+MockRecipients.prototype.remove = function(phone) {
+  var index = this.numbers.indexOf(phone);
+  if (index != -1) {
+    this.numbers.splice(this.numbers.indexOf(phone), 1);
+    this.length--;
+    this.emit('remove', this.length);
+  }
   return this;
 };
 
