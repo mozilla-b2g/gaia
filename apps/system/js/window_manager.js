@@ -1643,7 +1643,7 @@ var WindowManager = (function() {
     // Alternatively, if home screen is not the displaying app,
     // we will not relaunch it until the foreground app is closed.
     // (to be dealt in setDisplayedApp(), not here)
-    if (displayedApp == homescreen) {
+    if (displayedApp == origin && homescreen === origin) {
       kill(origin, function relaunchHomescreen() {
         setDisplayedApp(homescreen);
       });
