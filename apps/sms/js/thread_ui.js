@@ -46,10 +46,13 @@ var ThreadUI = global.ThreadUI = {
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
+  // delay between 2 counter updates while composing a message
+  UPDATE_DELAY: 500,
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
   inThread: false,
+  _updateTimeout: null,
   init: function thui_init() {
     var templateIds = [
       'contact',
@@ -89,7 +92,7 @@ var ThreadUI = global.ThreadUI = {
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
 
-    Compose.on('type', this.messageComposerTypeHandler.bind(this));
+    Compose.on('type', this.onMessageTypeChange.bind(this));
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -230,6 +233,8 @@ var ThreadUI = global.ThreadUI = {
 
     // Initialized here, but used in ThreadUI.cleanFields
     this.previousHash = null;
+
+    this._updateTimeout = null;
 
     // Cache fixed measurement while init
     var style = window.getComputedStyle(this.input, null);
@@ -408,19 +413,37 @@ var ThreadUI = global.ThreadUI = {
     } while (node = node.previousSibling);
   },
 
-  // Message composer type changed:
-  messageComposerTypeHandler: function thui_messageComposerTypeHandler(event) {
+  onMessageTypeChange: function thui_onMessageType(event) {
     // if we are changing to sms type, we might want to cancel
     if (Compose.type === 'sms') {
-      if (this.updateSmsSegmentLimit()) {
-        return event.preventDefault();
-      }
-    }
+      this.updateSmsSegmentLimit(function segmentLimitCallback(overLimit) {
+        if (overLimit) {
+          // we can't change to sms after all
+          Compose.type = 'mms';
+          return;
+        }
 
+        this.messageComposerTypeHandler();
+      }.bind(this));
+    } else {
+      this.messageComposerTypeHandler();
+    }
+  },
+
+  // Message composer type changed:
+  messageComposerTypeHandler: function thui_messageComposerTypeHandler() {
     this.updateCounter();
 
-    var message = 'converted-to-' + Compose.type;
-    navigator.mozL10n.localize(this.convertNotice.querySelector('p'), message);
+    var oldType = this.composeForm.dataset.messageType;
+    var type = Compose.type;
+    if (oldType === type) {
+      return;
+    }
+    this.composeForm.dataset.messageType = type;
+
+    var message = 'converted-to-' + type;
+    var messageContainer = this.convertNotice.querySelector('p');
+    navigator.mozL10n.localize(messageContainer, message);
     this.convertNotice.classList.remove('hide');
 
     if (this._convertNoticeTimeout) {
@@ -621,9 +644,9 @@ var ThreadUI = global.ThreadUI = {
     this.sendButton.disabled = disableSendMessage;
   },
 
-  // updates the counter for sms segments when in text only mode
-  // returns true when the limit is over the segment limit
-  updateSmsSegmentLimit: function thui_updateSmsSegmentLimit() {
+  // asynchronously updates the counter for sms segments when in text only mode
+  // pass 'true' to the callback when the limit is over the segment limit
+  updateSmsSegmentLimit: function thui_updateSmsSegmentLimit(callback) {
     if (!(this._mozMobileMessage &&
           this._mozMobileMessage.getSegmentInfoForText)) {
       return false;
@@ -634,23 +657,27 @@ var ThreadUI = global.ThreadUI = {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
     var kMaxConcatenatedMessages = 10;
 
-    // Use backend api for precise sms segmetation information.
-    var smsInfo = this._mozMobileMessage.getSegmentInfoForText(value);
-    var segments = smsInfo.segments;
-    var availableChars = smsInfo.charsAvailableInLastSegment;
+    // Use backend api for precise sms segmentation information.
+    var smsInfoRequest = this._mozMobileMessage.getSegmentInfoForText(value);
+    smsInfoRequest.onsuccess = (function onSmsInfo(e) {
+      var smsInfo = e.target.result;
+      var segments = smsInfo.segments;
+      var availableChars = smsInfo.charsAvailableInLastSegment;
 
-    // in MMS mode, the counter value isn't used anyway, so we can update this
-    this.sendButton.dataset.counter = availableChars + '/' + segments;
+      // in MMS mode, the counter value isn't used anyway, so we can update this
+      this.sendButton.dataset.counter = availableChars + '/' + segments;
 
-    // if we are going to force MMS, this is true anyway, so adding has-counter
-    // again doesn't hurt us.
-    if (segments && (segments > 1 || availableChars <= 10)) {
-      this.sendButton.classList.add('has-counter');
-    } else {
+      // if we are going to force MMS, this is true anyway, so adding
+      // has-counter again doesn't hurt us.
+      var showCounter = (segments && (segments > 1 || availableChars <= 10));
+      this.sendButton.classList.toggle('has-counter', showCounter);
+
+      var overLimit = segments > kMaxConcatenatedMessages;
+      callback(overLimit);
+    }).bind(this);
+    smsInfoRequest.onerror = (function onSmsInfoError(e) {
       this.sendButton.classList.remove('has-counter');
-    }
-
-    return segments > kMaxConcatenatedMessages;
+    }).bind(this);
   },
 
   // will return true if we can send the message, false if we can't send the
@@ -660,13 +687,31 @@ var ThreadUI = global.ThreadUI = {
 
     if (Compose.type === 'mms') {
       return this.updateCounterForMms();
+    } else {
+      Compose.lock = false;
+      if (this._updateTimeout === null) {
+        this._updateTimeout = setTimeout(this.updateCounterForSms.bind(this),
+            this.UPDATE_DELAY);
+      }
+      return true;
     }
+  },
 
-    Compose.lock = false;
+  updateCounterForSms: function thui_updateCounterForSms() {
+    // We nullify this timeout here rather than in the updateSmsSegmentLimit
+    // callback because otherwise we could display an information that is not
+    // current.
+    // With the timeout, the risk of having 2 requests in the same time,
+    // returning in a different order, which would actually display old
+    // information, is very tiny, so we should be good without adding another
+    // lock.
+    this._updateTimeout = null;
     this.maxLengthNotice.classList.add('hide');
-    if (this.updateSmsSegmentLimit()) {
-      Compose.type = 'mms';
-    }
+    this.updateSmsSegmentLimit((function segmentLimitCallback(overLimit) {
+      if (overLimit) {
+        Compose.type = 'mms';
+      }
+    }).bind(this));
     return true;
   },
 

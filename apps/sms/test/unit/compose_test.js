@@ -462,42 +462,13 @@ suite('compose_test.js', function() {
 
       test('Message switches type when adding/removing attachment',
         function() {
-        // form must have the data-message-type set
-        assert.equal(form.dataset.messageType, 'sms');
-
-        expectType = 'mms';
-        Compose.append(mockAttachment());
-        assert.equal(form.dataset.messageType, 'mms');
-        assert.equal(typeChange.called, 1);
-
-        expectType = 'sms';
-        Compose.clear();
-        assert.equal(form.dataset.messageType, 'sms');
-        assert.equal(typeChange.called, 2);
-      });
-      test('Message type switch is cancelable', function() {
         expectType = 'mms';
         Compose.append(mockAttachment());
         assert.equal(typeChange.called, 1);
 
-        // bind a cancel
-        function cancelChange(event) {
-          event.preventDefault();
-        }
-        Compose.on('type', cancelChange);
-
         expectType = 'sms';
         Compose.clear();
         assert.equal(typeChange.called, 2);
-        // type is still mms because we canceled
-        assert.equal(Compose.type, 'mms');
-        assert.equal(form.dataset.messageType, 'mms');
-
-        // unbind cancel
-        Compose.off('type', cancelChange);
-        Compose.clear();
-        assert.equal(Compose.type, 'sms');
-        assert.equal(form.dataset.messageType, 'sms');
       });
     });
   });
