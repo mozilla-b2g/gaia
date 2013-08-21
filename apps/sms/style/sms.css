@@ -721,7 +721,7 @@ section[role="region"].new #messages-to-field {
   top: 0;
   z-index: -1;
 
-  padding: 1.6rem 4rem 0;
+  padding: 0 4rem;
   -moz-box-sizing: border-box;
   border-bottom: 0.1rem solid #4d4d4d;
   width: 100%;
@@ -731,6 +731,9 @@ section[role="region"].new #messages-to-field {
   transform: translateY(calc(-100% + 4.5rem));
 }
 
+#messages-recipients-list {
+  padding-top: 1.4rem;
+}
 /*
 Used by Recipients.View to display multi or single line.
 Do not remove.
@@ -768,9 +771,17 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 }
 
 .recipient[contenteditable=true] {
-  background: none;
-  border: none;
   overflow: hidden;
+  /* Editable recipients have no `padding-left` so that they align with
+   * "assimilated" recipients (see `ThreadUI.assimilateRecipients`), but they
+   * maintain twice the `padding-right` so they wrap as if "assimilated". For
+   * discussion of this behavior, see "Bug 905260 - [messages] padding issues
+   * in the recipient panel". */
+  padding-left: 0;
+  padding-right: 1.6rem;
+
+  background: none;
+  border-color: transparent;
   white-space: normal;
   text-overflow: normal;
   color: black;
@@ -784,15 +795,13 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 .recipient[contenteditable=true]:empty {
   margin: 0;
   padding: 0;
+  border-width: 0;
 }
 
 .recipient[contenteditable=true]:empty:focus {
   margin-right: 0.5rem;
   padding: 0 0.8rem;
-}
-
-.recipient:focus {
-  font-size: 1.8rem;
+  border-width: 0.1rem;
 }
 
 .article-list[data-type="list"] ul.contact-list {
