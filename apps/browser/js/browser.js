@@ -1725,7 +1725,6 @@ var Browser = {
     var text = document.createTextNode(title);
 
     var close = document.createElement('button');
-    close.appendChild(document.createTextNode('✕'));
     close.classList.add('close');
     close.setAttribute('data-id', tab.id);
     a.appendChild(close);
