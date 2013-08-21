@@ -1,3 +1,5 @@
+/* This is a built file do not modify directly */
+
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2938,7 +2940,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       });
 
       self._loadTestHelpers(box, function() {
-        tests.forEach(function(test) {
+        tests.sort().forEach(function(test) {
           box.require(test);
         });
       });
