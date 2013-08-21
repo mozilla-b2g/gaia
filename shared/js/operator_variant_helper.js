@@ -34,17 +34,19 @@
  * @constructor
  */
 function OperatorVariantHelper(listener, persistKey, checkNow) {
+  var errMsg = null;
+
   // OperatorVariantHelper requires mozMobileConnection to be present.
   var mobileConnection = window.navigator.mozMobileConnection;
   if (!mobileConnection) {
-    let errMsg = 'Expected mozMobileConnection to be present.';
+    errMsg = 'Expected mozMobileConnection to be present.';
     console.error(errMsg);
     throw new Error(errMsg);
   }
 
   // The IccHelper should be enabled as well.
-  if (!IccHelper.enabled) {
-    let errMsg = 'Expected IccHelper to be enabled.';
+  if (IccHelper === undefined || !IccHelper.enabled) {
+    errMsg = 'Expected IccHelper to be enabled.';
     console.error(errMsg);
     throw new Error(errMsg);
   }
@@ -52,7 +54,7 @@ function OperatorVariantHelper(listener, persistKey, checkNow) {
   // And mozSettings must be present.
   var settings = window.navigator.mozSettings;
   if (!settings) {
-    let errMsg = 'Expected mozSettings to be present.';
+    errMsg = 'Expected mozSettings to be present.';
     console.error(errMsg);
     throw new Error(errMsg);
   }
@@ -111,22 +113,42 @@ OperatorVariantHelper.prototype = {
   },
 
   /**
-   * Get the saved ICC Settings (MCC/MNC).
+   * Get the saved ICC Settings (MCC/MNC). Optionally, skip verifying these
+   * values against current values reported by the SIM card.
+   *
+   * @param {Boolean} verifyAgainstSIM Verify saved values against live value
+   *                                   reported by SIM card. Defaults to true.
    */
-  getICCSettings: function() {
+  getICCSettings: function(verifyAgainstSIM) {
+    // Default verifying against the SIM card to true.
+    if (verifyAgainstSIM === undefined) {
+      verifyAgainstSIM = true;
+    }
+
     var transaction = this.settings.createLock();
 
     var mccRequest = transaction.get(this.MCC_SETTINGS_KEY);
 
     mccRequest.onsuccess = (function() {
       this._iccSettings.mcc = mccRequest.result[this.MCC_SETTINGS_KEY] || '0';
-
       var mncRequest = transaction.get(this.MNC_SETTINGS_KEY);
       mncRequest.onsuccess = (function() {
         this._iccSettings.mnc = mncRequest.result[this.MNC_SETTINGS_KEY] || '0';
-        this.checkICCInfo();
+        if (verifyAgainstSIM) {
+          // Verify values against live value reported by SIM card before
+          // calling the listener.
+          this.checkICCInfo();
+        }
+        else {
+          // Not verifying against SIM card values, call listener immediately.
+          try {
+            this._listener(this._iccSettings.mcc, this._iccSettings.mnc);
+          }
+          catch (e) {
+            console.error('Listener threw an error!', e);
+          }
+        }
       }).bind(this);
-
     }).bind(this);
   },
 
@@ -191,7 +213,7 @@ OperatorVariantHelper.prototype = {
   },
 
   /**
-   *
+   * Revert persisted key that tracks if customizations have been applied.
    */
   revert: function() {
     var transaction = this.settings.createLock();
@@ -268,5 +290,39 @@ OperatorVariantHelper.prototype = {
       // Clear our reference to the bound listener.
       this._addedListener = null;
     }
+  }
+};
+
+/**
+ * Simple function to get the operator variant values (MCC / MNC pair) that are
+ * cached. This function will not verify these values against the live SIM card
+ * values.
+ *
+ * @param {Function} callback Callback that will receive the MCC / MNC values.
+ *                            Function signature -- function(mcc, mnc) { ... }.
+ */
+var SimpleOperatorVariantHelper = {
+  // The mozSettings key for the saved MCC.
+  get MCC_SETTINGS_KEY() {
+    return 'operatorvariant.mcc';
+  },
+
+  // The mozSettings key for the saved MNC.
+  get MNC_SETTINGS_KEY() {
+    return 'operatorvariant.mnc';
+  },
+
+  getOperatorVariant: function(callback) {
+    var transaction = window.navigator.mozSettings.createLock();
+    var mccRequest = transaction.get(this.MCC_SETTINGS_KEY);
+
+    mccRequest.onsuccess = (function() {
+      var mcc = mccRequest.result[this.MCC_SETTINGS_KEY] || '0';
+      var mncRequest = transaction.get(this.MNC_SETTINGS_KEY);
+      mncRequest.onsuccess = (function() {
+        var mnc = mncRequest.result[this.MNC_SETTINGS_KEY] || '0';
+        callback(mcc, mnc);
+      }).bind(this);
+    }).bind(this);
   }
 };
