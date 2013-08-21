@@ -31,28 +31,6 @@ if (LOCAL_DOMAINS) {
 }
 
 if (DESKTOP) {
-  // Set system app as default firefox tab
-  prefs.push(["browser.startup.homepage", homescreen]);
-  prefs.push(["startup.homepage_welcome_url", ""]);
-  // Disable dialog asking to set firefox as default OS browser
-  prefs.push(["browser.shell.checkDefaultBrowser", false]);
-  // Automatically open devtools on the firefox os panel
-  prefs.push(["devtools.toolbox.host", "side"]);
-  prefs.push(["devtools.toolbox.sidebar.width", 800]);
-  prefs.push(["devtools.toolbox.selectedTool", "firefox-os-controls"]);
-  // Disable session store to ensure having only one tab opened
-  prefs.push(["browser.sessionstore.max_tabs_undo", 0]);
-  prefs.push(["browser.sessionstore.max_windows_undo", 0]);
-  prefs.push(["browser.sessionstore.restore_on_demand", false]);
-  prefs.push(["browser.sessionstore.resume_from_crash", false]);
-
-  prefs.push(["dom.mozBrowserFramesEnabled", true]);
-  prefs.push(["b2g.ignoreXFrameOptions", true]);
-  prefs.push(["network.disable.ipc.security", true]);
-
-  prefs.push(["dom.ipc.tabs.disabled", true]);
-  prefs.push(["browser.ignoreNativeFrameTextSelection", true]);
-  prefs.push(["ui.dragThresholdX", 25]);
   prefs.push(["dom.w3c_touch_events.enabled", 1]);
 
   // Enable apis use on the device
