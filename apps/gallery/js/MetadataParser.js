@@ -158,7 +158,8 @@ var metadataParser = (function() {
                                 metadataCallback,
                                 metadataError,
                                 false,
-                                bigFile);
+                                bigFile,
+                                {});
     }
 
     function gotImageSize(metadata) {
@@ -182,21 +183,25 @@ var metadataParser = (function() {
       else {
         // If there wasn't a preview image, then generate a preview and
         // thumbnail from the full size image.
-        createThumbnailAndPreview(file,
-                                  metadataCallback,
-                                  metadataError,
-                                  false,
-                                  bigFile);
+        useFullsizeImage();
       }
 
       function previewerror(msg) {
         // The preview isn't a valid jpeg file, so use the full image to
         // create a preview and a thumbnail
+        console.error(msg);
+        useFullsizeImage();
+      }
+
+      function useFullsizeImage() {
+        // Since a number of different cases use the same fallback method
+        // define it in one place for easier code flow.
         createThumbnailAndPreview(file,
                                   metadataCallback,
                                   metadataError,
                                   false,
-                                  bigFile);
+                                  bigFile,
+                                  metadata);
       }
 
       function previewsuccess(previewmetadata) {
@@ -207,36 +212,18 @@ var metadataParser = (function() {
         // A preview is big enough if at least one dimension is >= the
         // screen size in both portait and landscape mode.
         if ((pw >= sw || ph >= sh) && (pw >= sh || ph >= sw)) {
-          // The final argument true means don't actually create a preview
+          metadata.preview.width = pw;
+          metadata.preview.height = ph;
+          // The 4th argument true means don't actually create a preview
           createThumbnailAndPreview(previewblob,
-                                    function(m) {
-                                      metadata.preview.width = m.width;
-                                      metadata.preview.height = m.height;
-                                      metadata.thumbnail = m.thumbnail;
-                                      metadataCallback(metadata);
-                                    },
-                                    function(errmsg) {
-                                      // If something went wrong with the
-                                      // preview blob, then fall back on
-                                      // the full-size image
-                                      console.warn('Error creating thumbnail' +
-                                                   ' from preview:', errmsg);
-                                      createThumbnailAndPreview(file,
-                                                               metadataCallback,
-                                                               metadataError,
-                                                               false,
-                                                               bigFile);
-                                    },
-                                    true,
-                                    bigFile);
-        }
-        else {
-          // Preview isn't big enough so get one the hard way
-          createThumbnailAndPreview(file,
                                     metadataCallback,
-                                    metadataError,
-                                    false,
-                                    bigFile);
+                                    previewerror,
+                                    true,
+                                    bigFile,
+                                    metadata);
+        } else {
+          // Preview isn't big enough so get one the hard way
+          useFullsizeImage();
         }
       }
     }
@@ -248,8 +235,7 @@ var metadataParser = (function() {
   // If anything goes wrong, pass an error message to the error function.
   // If it is a large image, create and save a preview for it as well.
   function createThumbnailAndPreview(file, callback, error, nopreview,
-                                     bigFile) {
-    var metadata = {};
+                                     bigFile, metadata) {
     var url = URL.createObjectURL(file);
     offscreenImage.src = url;
 
@@ -261,8 +247,15 @@ var metadataParser = (function() {
 
     offscreenImage.onload = function() {
       URL.revokeObjectURL(url);
-      var iw = metadata.width = offscreenImage.width;
-      var ih = metadata.height = offscreenImage.height;
+
+      var iw = offscreenImage.width;
+      var ih = offscreenImage.height;
+
+      // Don't overwrite the metadata in the case we read a previewblob.
+      if (!nopreview) {
+        metadata.width = iw;
+        metadata.height = ih;
+      }
 
       // If this is a big image, then decoding it takes a lot of memory.
       // We set this flag to prevent the user from zooming in on other

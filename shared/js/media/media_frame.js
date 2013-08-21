@@ -32,6 +32,7 @@ function MediaFrame(container, includeVideo) {
     container = document.getElementById(container);
   this.container = container;
   this.image = document.createElement('img');
+  this.image.style.transformOrigin = 'center center';
   this.container.appendChild(this.image);
   this.image.style.display = 'none';
   if (includeVideo !== false) {
@@ -54,7 +55,7 @@ function MediaFrame(container, includeVideo) {
 }
 
 MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
-                                                          preview)
+                                                          preview, orientation)
 {
   this.clear();  // Reset everything
 
@@ -63,6 +64,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   this.fullsizeWidth = width;
   this.fullsizeHeight = height;
   this.preview = preview;
+  this.orientation = orientation;
 
   // Keep track of what kind of content we have
   this.displayingImage = true;
@@ -123,8 +125,16 @@ MediaFrame.prototype._displayImage = function _displayImage(blob) {
     preload.removeEventListener('load', onload);
 
     self.image.src = preload.src;
-    self.itemWidth = preload.width;
-    self.itemHeight = preload.height;
+
+    // Switch height & width for rotated images
+    if (self.orientation.rotation == 0 || self.orientation.rotation == 180) {
+      self.itemWidth = preload.width;
+      self.itemHeight = preload.height;
+    } else {
+      self.itemWidth = preload.height;
+      self.itemHeight = preload.width;
+    }
+
     self.computeFit();
     self.setPosition();
     self.image.style.display = 'block';
@@ -146,13 +156,19 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
   newimage.src = this.url = URL.createObjectURL(this.imageblob);
 
   // Add the new image to the container before the current preview image
-  // Because it comes first it will be obscured the the preview
+  // Because it comes first it will be obscured by the preview
   this.container.insertBefore(newimage, oldimage);
 
   // Resize the preview image to be the same size as the full image.
   // It will be pixelated, but it will be ready right away.
-  this.itemWidth = this.oldimage.width = this.fullsizeWidth;
-  this.itemHeight = this.oldimage.height = this.fullsizeHeight;
+  if (this.orientation.rotation == 0 || this.orientation.rotation == 180) {
+    this.itemWidth = this.oldimage.width = this.fullsizeWidth;
+    this.itemHeight = this.oldimage.height = this.fullsizeHeight;
+  } else {
+    this.itemWidth = this.oldimage.height = this.fullsizeHeight;
+    this.itemHeight = this.oldimage.width = this.fullsizeWidth;
+  }
+
   this.computeFit();
   this.setPosition();
 
@@ -263,9 +279,32 @@ MediaFrame.prototype.setPosition = function setPosition() {
   if (!this.fit || !this.displayingImage)
     return;
 
+  var dx = this.fit.left, dy = this.fit.top;
+
+  // We have to adjust the translation to account for the fact that the
+  // scaling is being done around the middle of the image, rather than the
+  // upper-left corner.  And we have to make this adjustment differently
+  // for different rotations.
+  switch (this.orientation.rotation) {
+  case 0:
+  case 180:
+    dx += (this.fit.width - this.itemWidth) / 2;
+    dy += (this.fit.height - this.itemHeight) / 2;
+    break;
+  case 90:
+  case 270:
+    dx += (this.fit.width - this.itemHeight) / 2;
+    dy += (this.fit.height - this.itemWidth) / 2;
+    break;
+  }
+
+  var sx = this.fit.scale * this.orientation.mirrored;
+  var sy = this.fit.scale;
+
   var transform =
-    'translate(' + this.fit.left + 'px,' + this.fit.top + 'px) ' +
-    'scale(' + this.fit.scale + ')';
+    'translate(' + dx + 'px, ' + dy + 'px) ' +
+    'scale(' + sx + ',' + sy + ')' +
+    'rotate(' + this.orientation.rotation + 'deg) ';
 
   this.image.style.transform = transform;
   if (this.oldimage)
@@ -356,12 +395,12 @@ MediaFrame.prototype.resize = function resize() {
 };
 
 // Zoom in by the specified factor, adjusting the pan amount so that
-// the image pixels at (centerX, centerY) remain at that position.
+// the image pixels at (fixedX, fixedY) remain at that position.
 // Assume that zoom gestures can't be done in the middle of swipes, so
 // if we're calling zoom, then the swipe property will be 0.
 // If time is specified and non-zero, then we set a CSS transition
 // to animate the zoom.
-MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
+MediaFrame.prototype.zoom = function zoom(scale, fixedX, fixedY, time) {
   // Ignore zooms if we're not displaying an image
   if (!this.displayingImage)
     return;
@@ -385,10 +424,10 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
   this.fit.width = Math.floor(this.itemWidth * this.fit.scale);
   this.fit.height = Math.floor(this.itemHeight * this.fit.scale);
 
-  // centerX and centerY are in viewport coordinates.
+  // fixedX and fixedY are in viewport coordinates.
   // These are the photo coordinates displayed at that point in the viewport
-  var photoX = centerX - this.fit.left;
-  var photoY = centerY - this.fit.top;
+  var photoX = fixedX - this.fit.left;
+  var photoY = fixedY - this.fit.top;
 
   // After zooming, these are the new photo coordinates.
   // Note we just use the relative scale amount here, not this.fit.scale
@@ -396,11 +435,11 @@ MediaFrame.prototype.zoom = function zoom(scale, centerX, centerY, time) {
   photoY = Math.floor(photoY * scale);
 
   // To keep that point still, here are the new left and top values we need
-  this.fit.left = centerX - photoX;
-  this.fit.top = centerY - photoY;
+  this.fit.left = fixedX - photoX;
+  this.fit.top = fixedY - photoY;
 
   // Now make sure we didn't pan too much: If the image fits on the
-  // screen, center it. If the image is bigger than the screen, then
+  // screen, fixed it. If the image is bigger than the screen, then
   // make sure we haven't gone past any edges
   if (this.fit.width <= this.viewportWidth) {
     this.fit.left = (this.viewportWidth - this.fit.width) / 2;
