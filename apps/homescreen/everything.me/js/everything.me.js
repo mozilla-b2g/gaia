@@ -39,6 +39,8 @@ var EverythingME = {
     function onContextMenu(e) {
       e.stopPropagation();
     }
+    
+    EverythingME.migrateStorage();
   },
   
   activate: function EverythingME_activate(e) {
@@ -188,6 +190,81 @@ var EverythingME = {
       var resource = list[i];
       resource.parentNode.removeChild(resource);
     }
+  },
+
+  // copy relevant user data from 1.0.1 to 1.1 versions
+  migrateStorage: function EverythingME_migrateStorage() {
+    var migrationStorageKey = 'migrated_1.0.1_to_1.1';
+
+    asyncStorage.getItem(migrationStorageKey, function evmeMigration(value) {
+      if (value === true) {
+        // this means we already migrated, so everything's a-ok
+        return;
+      }
+
+      // first mark as "migrated", so if we have an error we won't keep running this
+      asyncStorage.setItem(migrationStorageKey, true);
+
+      // start the migration
+      console.log('[EVME migration] migrating from 1.0.1 to 1.1...');
+
+      // these are properties that don't need special attention -
+      // simply copy from sync to async, oldKey: newKey
+      var AUTOMATIC_KEYS = {
+        'userHistory': 'evme-userHistory',
+        'localShortcuts': 'evme-localShortcuts',
+        'localShortcutsIcons': 'evme-localShortcutsIcons'
+      };
+
+      for (var key in AUTOMATIC_KEYS) {
+        EverythingME.copyStorageToDB(key, AUTOMATIC_KEYS[key]);
+      }
+
+      console.log('[EVME migration] complete successfully!');
+    });
+  },
+  
+  copyStorageToDB: function copyStorageToDB(oldKey, newKey) {
+    console.log('[EVME migration] [' + oldKey + ']: retrieving...');
+
+    try {
+      var oldValue = window.localStorage[oldKey];
+
+      if (!oldValue) {
+        console.log('[EVME migration] [' + oldKey + ']: no value');
+        return false;
+      }
+
+      console.log('[EVME migration] [' + oldKey + '] got value: ' + oldValue);
+      oldValue = JSON.parse(oldValue);
+      if (!oldValue) {
+        console.log('[EVME migration] [' + oldKey + ']: invalid json: ' + window.localStorage[oldKey]);
+        deleteOld();
+        return false;
+      }
+
+      // convert old structure to new
+      var newValue = {
+        'value': oldValue._v,
+        'expires': oldValue._e
+      };
+
+      console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saving: ' + JSON.stringify(newValue));
+      asyncStorage.setItem(newKey, newValue, function onsaved() {
+        console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saved, remove old data');
+        deleteOld();
+      });
+    } catch(ex) {
+      deleteOld();
+      console.warn('[EVME migration] [' + oldKey + ']: error: ' + oldValue + ' (' + ex.message + ')');
+    }
+    
+    function deleteOld() {
+      window.localStorage[oldKey] = null;
+      delete window.localStorage[oldKey];
+    }
+
+    return true;
   }
 };
 
