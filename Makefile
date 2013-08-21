@@ -527,7 +527,8 @@ extensions:
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
 ifeq ($(DESKTOP),1)
-	cp -r tools/extensions/* $(EXT_DIR)/
+	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
+	cp -r tools/extensions/httpd $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
 	cp -r tools/extensions/httpd $(EXT_DIR)/
