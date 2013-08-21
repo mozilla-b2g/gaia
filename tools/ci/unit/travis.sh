@@ -48,7 +48,7 @@ echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minu
 DEBUG=1 WGET_OPTS=-nv make &> /dev/null
 
 echo "Starting test-agent-server and waiting for server to start on port ${TEST_AGENT_PORT}"
-make test-agent-server &> /dev/null &
+DEBUG=* make test-agent-server &
 waiting_port $TEST_AGENT_PORT
 
 echo 'Starting Firefox'
