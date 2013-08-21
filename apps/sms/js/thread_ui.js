@@ -2165,13 +2165,15 @@ window.confirm = window.confirm; // allow override in unit tests
  * to the recipients list to set its height for
  * multiline mode.
  *
- * @param {Number} height available height (in pixels).
+ * @param {Number} available The height (in pixels) available.
  *
  * @return {Boolean} true if rule was modified, false if not.
  */
 
-function generateHeightRule(height) {
-  var css, index, sheet, sheets, style, tmpl;
+function generateHeightRule(available) {
+  var css, index, sheet, sheets, style, tmpl,
+    natural = ThreadUI.recipientsList.scrollHeight,
+    height = Math.min(natural, available);
 
   if (height === generateHeightRule.prev) {
     return false;
