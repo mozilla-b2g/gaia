@@ -87,14 +87,14 @@ section[role="region"] > div {
  */
 
 .explanation {
-  padding: 0.5rem 3rem;
+  padding: 0.5rem 1.5rem;
   font-style: italic;
   font-size: 1.4rem;
   color: #505859;
 }
 
 .description {
-  padding: 1rem 2rem 1rem 3rem;
+  padding: 1rem 1.5rem;
   font-size: 1.7rem;
   line-height: 2.3rem;
   white-space: normal;
@@ -126,7 +126,7 @@ section[role="region"] > div {
   font-style: normal;
   position: relative;
   margin-top: -2rem;
-  padding: 0.5rem 6rem 1.3rem 3.1rem;
+  padding: 0.5rem 4rem 1.3rem 1.5rem;
   white-space: normal;
 }
 
@@ -182,8 +182,8 @@ section li.password {
 
 section li.password > label {
   top: 8.6rem;
-  left: 3rem;
-  width: calc(100% - 6rem);
+  left: 1.5rem;
+  width: calc(100% - 3rem);
   height: 3rem;
   z-index: 1;
 }
@@ -196,7 +196,7 @@ section li.password > label > span {
 section li.password > span {
   position: absolute;
   top: 8.6rem;
-  left: 6rem;
+  left: 4.5rem;
   padding: 0;
   height: 3rem;
   color: #848484;
@@ -205,7 +205,7 @@ section li.password > span {
 }
 
 section li.password > p {
-  padding: 0 3rem;
+  padding: 0 1.5rem;
   line-height: 4.4rem;
 }
 
@@ -264,13 +264,16 @@ section li.password > p {
 #mediaStorage .stackedbar-color-label {
   display: inline-block;
   height: 2rem;
-  left: 0.5rem;
+  left: 1.5rem;
   padding: 0;
   position: absolute;
   top: 2.1rem;
   width: 2rem;
 }
 
+#mediaStorage .stackedbar-color-label + a {
+  padding-left: 4rem;
+}
 /******************************************************************************
  * Call settings
  */
@@ -419,7 +422,7 @@ ul li > label .range-icons {
   bottom: 0;
   left: 0;
   margin: 0 auto;
-  width: calc(100% - 5.4rem);
+  width: calc(100% - 2.3rem);
   height: 3rem;
   pointer-events: none;
 }
@@ -429,17 +432,16 @@ ul li > label .range-icons.brightness {
     url(images/range_icons_brightness_min.png) no-repeat 0 50%,
     url(images/range_icons_brightness_max.png) no-repeat 100% 50%;
   background-size: 3rem;
-  left: 2.5rem;
+  left: 1rem;
   right: auto;
 }
 
 #brightness-manual div {
   position: relative;
   top: calc(50% - 1.5rem);
-  left: 7.5rem;
-  right: 7.5rem;
+  left: 5rem;
   height: 3rem;
-  width: calc(100% - 15rem);
+  width: calc(100% - 10.7rem);
 }
 
 
