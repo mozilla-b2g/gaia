@@ -1,7 +1,12 @@
 'use strict';
 
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/contact2vcard.js');
+
+var mocksHelperForContact2vcard = new MocksHelper([
+  'mozContact'
+]).init();
 
 suite('mozContact to vCard', function() {
   function contains(vcard) {
@@ -15,6 +20,8 @@ suite('mozContact to vCard', function() {
     'I////////yH5BAEAAB8ALAAAAAAQABAAAAWD4CeOZDlimOitnvlhXefFiyCs3NkZMe9QDMGi' +
     'k3t1BgZDIcZgHCCxHAyxKRQmnYOkoYgaNYMNr3JoEB6dDBGmyWxihwNBgVZz2Js3YB+JWNpr' +
     'HW15YgA2FxkaRB8JgoQxHQEbdiKNg4R5iYuVgpcZmkUjHDEapYqbJRyjkKouoqqhIyEAOw==';
+
+  mocksHelperForContact2vcard.attachTestHelpers();
 
   suite('mozContact to vCard', function() {
     test('ISO Date conversion', function(done) {
