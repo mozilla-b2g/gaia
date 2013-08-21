@@ -20,7 +20,6 @@ Evme.Utils = new function Evme_Utils() {
             "MENU_HEIGHT": "menu-height",
             "GET_ALL_APPS": "get-all-apps",
             "GET_APP_ICON": "get-app-icon",
-            "GET_APP_NAME": "get-app-name",
             "EVME_OPEN": "evme-open"
         };
     
@@ -125,8 +124,6 @@ Evme.Utils = new function Evme_Utils() {
                 return EvmeManager.getApps();
             case OSMessages.GET_APP_ICON:
                 return EvmeManager.getAppIcon(data);
-            case OSMessages.GET_APP_NAME:
-                return EvmeManager.getAppName(data);
             case OSMessages.GET_ICON_SIZE:
                 return EvmeManager.getIconSize();
             case OSMessages.EVME_OPEN:
