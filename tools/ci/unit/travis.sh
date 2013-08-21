@@ -47,15 +47,6 @@ make common-install &> /dev/null
 echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
 DEBUG=1 WGET_OPTS=-nv make &> /dev/null
 
-echo "Starting test-agent-server and waiting for server to start on port ${TEST_AGENT_PORT}"
-make test-agent-server &> /dev/null &
-waiting_port $TEST_AGENT_PORT
-
-echo 'Starting Firefox'
-firefox/firefox -profile `pwd`/profile-debug "$TESTAGENT_URL" &> /dev/null &
-waiting_port 8080
-sleep 5
-
 echo
 section_echo 'make lint'
 make lint
@@ -71,6 +62,15 @@ PROFILE_FOLDER=profile-test make &> /dev/null
 make test-integration
 INTEGRATION_TEST_RESULT_STATUS=$?
 echo
+
+echo "Starting test-agent-server and waiting for server to start on port ${TEST_AGENT_PORT}"
+make test-agent-server &> /dev/null &
+waiting_port $TEST_AGENT_PORT
+
+echo 'Starting Firefox'
+firefox/firefox -profile `pwd`/profile-debug "$TESTAGENT_URL" &> /dev/null &
+waiting_port 8080
+sleep 5
 
 section_echo 'make test-agent-test'
 make test-agent-test REPORTER=Min
