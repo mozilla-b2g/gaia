@@ -271,10 +271,14 @@
     var index = typeof recipOrIndex === 'number' ?
       recipOrIndex : list.indexOf(recipOrIndex);
 
+    if (index === -1) {
+      return this;
+    }
+
     list.splice(index, 1);
     this.emit('remove', list.length);
 
-    return this.render();
+    return this.render(index);
   };
 
   Recipients.prototype.render = function() {

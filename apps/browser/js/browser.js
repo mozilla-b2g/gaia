@@ -141,6 +141,10 @@ var Browser = {
       'shared/style/input_areas.css',
       'shared/style/status.css',
       'shared/style/confirm.css',
+      'style/modal_dialog/modal_dialog.css',
+      'style/modal_dialog/prompt.css',
+      'style/themes/default/core.css',
+      'style/themes/default/buttons.css',
       'style/action_menu.css',
       'style/authentication_dialog.css',
       'style/settings.css',
@@ -1835,7 +1839,6 @@ var Browser = {
     var text = document.createTextNode(title);
 
     var close = document.createElement('button');
-    close.appendChild(document.createTextNode('✕'));
     close.classList.add('close');
     close.setAttribute('data-id', tab.id);
     a.appendChild(close);
