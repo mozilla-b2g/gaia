@@ -1,6 +1,6 @@
 requireApp('communications/contacts/js/utilities/vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_contact.js');
+requireApp('system/shared/test/unit/mocks/mock_moz_contact.js');
 
 var vcf1 = 'BEGIN:VCARD\n' +
   'VERSION:2.1\n' +
@@ -110,6 +110,10 @@ var vcf5 = 'BEGIN:VCARD\n' +
   'TEL;CELL:+72682252873\n' +
   'END:VCARD';
 
+var mocksHelperForVCardParsing = new MocksHelper([
+  'mozContact'
+]).init();
+
 suite('vCard parsing settings', function() {
   function stub(additionalCode, ret) {
     if (additionalCode && typeof additionalCode !== 'function')
@@ -128,20 +132,18 @@ suite('vCard parsing settings', function() {
     return nfn;
   }
 
-  var realMozContact, realMozContacts;
+  mocksHelperForVCardParsing.attachTestHelpers();
+
+  var realMozContacts;
   suite('SD Card import', function() {
     setup(function() {
       realMozContacts = navigator.mozContacts;
       navigator.mozContacts = MockMozContacts;
 
-      if (window.mozContact)
-        realMozContact = window.mozContact;
-      window.mozContact = MockMozContact;
     });
 
     teardown(function() {
       navigator.mozContacts = realMozContacts;
-      window.mozContact = realMozContact || null;
     });
 
     test('- should properly decode Quoted Printable texts ', function(done) {
