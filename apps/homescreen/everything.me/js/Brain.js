@@ -837,7 +837,8 @@ Evme.Brain = new function Evme_Brain() {
                 "query": Searcher.getDisplayedQuery(),
                 "source": Searcher.getDisplayedSource(),
                 "icon": data.data.icon,
-                "installed": data.data.installed || false
+                "installed": data.data.installed || false,
+                "entryPoint": data.data.entryPoint
             };
 
             var elApp = data.el,
@@ -928,7 +929,11 @@ Evme.Brain = new function Evme_Brain() {
         this.appRedirectExecute = function appRedirectExecute(data){
             var appIcon = Evme.Utils.formatImageData(data.icon);
             if (data.installed) {
-                GridManager.getAppByOrigin(data.appUrl).launch();
+                if (data.entryPoint) {
+                    GridManager.getAppByOrigin(data.appUrl).launch(data.entryPoint);
+                } else {
+                    GridManager.getAppByOrigin(data.appUrl).launch();
+                }
             } else {
                 Evme.Utils.getRoundIcon(appIcon, function onIconReady(roundedAppIcon) {
                     Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_CLICK, {
@@ -1737,19 +1742,21 @@ Evme.Brain = new function Evme_Brain() {
             }
 
             for (var i=0; i<_apps.length; i++) {
-                var app = _apps[i],
-                    name = Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_NAME, app);
+                var icon = _apps[i],
+                    app = icon.app,
+                    name = icon.descriptor.name;
 
                 if (regex.test(name) || typeApps && typeApps.indexOf(app.manifest.name) !== -1) {
                     apps.push({
                        'id': app._id,
                        'name': name,
+                       'entryPoint': icon.descriptor.entry_point,
                        'installed': true,
                        'appUrl': app.origin,
                        'favUrl': app.origin,
                        'appType': app.isBookmark ? 'bookmark' : 'installed',
                        'preferences': '',
-                       'icon': Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_ICON, app),
+                       'icon': Evme.Utils.sendToOS(Evme.Utils.OSMessages.GET_APP_ICON, icon.descriptor),
                        'requiresLocation': false,
                        'appNativeUrl': '',
                        'numShares': 0,
