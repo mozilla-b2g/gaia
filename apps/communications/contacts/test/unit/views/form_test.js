@@ -292,6 +292,49 @@ suite('Render contact form', function() {
     });
   });
 
+  suite('Generate full contact name', function() {
+    test('given name is empty', function() {
+      var deviceContact = new MockContactAllFields();
+      deviceContact.givenName = null;
+      deviceContact.name = null;
+
+      subject.render(deviceContact);
+      subject.saveContact();
+      assert.equal(deviceContact.name[0], deviceContact.familyName);
+    });
+
+    test('family name is empty', function() {
+      var deviceContact = new MockContactAllFields();
+      deviceContact.familyName = null;
+      deviceContact.name = null;
+
+      subject.render(deviceContact);
+      subject.saveContact();
+      assert.equal(deviceContact.name[0], deviceContact.givenName);
+    });
+
+    test('both name fields are empty', function() {
+      var deviceContact = new MockContactAllFields();
+      deviceContact.givenName = null;
+      deviceContact.familyName = null;
+      deviceContact.name = null;
+
+      subject.render(deviceContact);
+      subject.saveContact();
+      assert.equal(deviceContact.name[0], undefined);
+    });
+
+    test('both name fields are present', function() {
+      var deviceContact = new MockContactAllFields();
+      deviceContact.name = null;
+
+      subject.render(deviceContact);
+      subject.saveContact();
+      assert.equal(deviceContact.name[0],
+        deviceContact.givenName + ' ' + deviceContact.familyName);
+    });
+  });
+
   function assertEmpty(id) {
     var fields = document.querySelectorAll('#' + id + ' input');
     for (var i = 0; i < fields.length; i++) {
