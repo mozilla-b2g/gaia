@@ -355,7 +355,7 @@ optimize-clean: install-xulrunner-sdk
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
 ifeq ($(DESKTOP),1)
-	python build/additional-extensions.py --gaia-dir="$(CURDIR)" --profile-dir="$(PROFILE_FOLDER)"
+	#python build/additional-extensions.py --gaia-dir="$(CURDIR)" --profile-dir="$(PROFILE_FOLDER)"
 else ifeq ($(DEBUG),1)
 	touch $(PROFILE_FOLDER)/installed-extensions.json
 endif
