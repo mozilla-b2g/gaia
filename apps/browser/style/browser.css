@@ -940,3 +940,16 @@ li[role="listitem"] small {
 #save-media-status.visible {
   display: block;
 }
+
+#dialog-overlay {
+  display: none;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+.modal-active #dialog-overlay {
+  display: block;
+}
