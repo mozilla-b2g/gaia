@@ -117,7 +117,7 @@ p.meta {
 .view {
   overflow: hidden;
   height: 100%;
-  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center / 0.9rem;
+  background: url(images/widget/icons/icon-go.png) no-repeat calc(100% - 0.8rem) center / 3rem;
 }
 
 .info {
