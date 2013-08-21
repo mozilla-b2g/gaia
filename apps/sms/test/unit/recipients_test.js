@@ -52,8 +52,11 @@ suite('Recipients', function() {
       source: 'none',
       // Mapped to node attr, not true boolean
       editable: 'true',
-      // Disambiguation 'display' attribute
-      display: 'Type | Carrier, Number'
+
+      // Disambiguation 'display' attributes
+      type: 'Type',
+      separator: ' | ',
+      carrier: 'Carrier'
     };
   });
 

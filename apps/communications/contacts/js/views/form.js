@@ -161,6 +161,20 @@ contacts.Form = (function() {
         saveButton.removeAttribute('disabled');
       }
     });
+
+    // Add listeners
+    utils.listeners.add({
+      '#save-button': saveContact,
+      '#contact-form button[data-field-type]': newField
+    });
+  };
+
+  var saveContact = function saveContact() {
+    return contacts.Form.saveContact();
+  };
+
+  var newField = function newField(evt) {
+    return contacts.Form.onNewFieldClicked(evt);
   };
 
   var render = function cf_render(contact, callback, pFbContactData,
@@ -660,11 +674,10 @@ contacts.Form = (function() {
 
   var createName = function createName(myContact) {
     if (myContact.givenName || myContact.familyName) {
-      var name = myContact.givenName || '';
-      name += ' ';
-      if (myContact.familyName) {
-        name += myContact.familyName;
-      }
+      var name = (myContact.givenName && myContact.familyName) ?
+          myContact.givenName + ' ' + myContact.familyName :
+          myContact.givenName || myContact.familyName;
+
       myContact.name = [name];
     }
   };

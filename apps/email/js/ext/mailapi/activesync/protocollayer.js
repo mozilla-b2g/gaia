@@ -2589,7 +2589,9 @@
     };
 
     xhr.ontimeout = xhr.onerror = function() {
-      aCallback(new Error('Error getting Autodiscover URL'));
+      // Something bad happened in the network layer, so treat this like an HTTP
+      // error.
+      aCallback(new HttpError('Error getting Autodiscover URL', null));
     };
 
     // TODO: use something like
@@ -2668,12 +2670,20 @@
     /*
      * Initialize the connection with a server and account credentials.
      *
-     * @param aServer the ActiveSync server to connect to
+     * @param aURL the ActiveSync URL to connect to
      * @param aUsername the account's username
      * @param aPassword the account's password
      */
-    open: function(aServer, aUsername, aPassword) {
-      this.baseUrl = aServer + '/Microsoft-Server-ActiveSync';
+    open: function(aURL, aUsername, aPassword) {
+      // XXX: We add the default service path to the URL if it's not already
+      // there. This is a hack to work around the failings of Hotmail (and
+      // possibly other servers), which doesn't provide the service path in its
+      // URL. If it turns out this causes issues with other domains, remove it.
+      var servicePath = '/Microsoft-Server-ActiveSync';
+      this.baseUrl = aURL;
+      if (!this.baseUrl.endsWith(servicePath))
+        this.baseUrl += servicePath;
+
       this._username = aUsername;
       this._password = aPassword;
     },
@@ -2780,9 +2790,13 @@
           return;
         }
 
+        // These headers are comma-separated lists. Sometimes, people like to
+        // put spaces after the commas, so make sure we trim whitespace too.
         var result = {
-          versions: xhr.getResponseHeader('MS-ASProtocolVersions').split(','),
-          commands: xhr.getResponseHeader('MS-ASProtocolCommands').split(','),
+          versions: xhr.getResponseHeader('MS-ASProtocolVersions')
+                       .split(/\s*,\s*/),
+          commands: xhr.getResponseHeader('MS-ASProtocolCommands')
+                       .split(/\s*,\s*/)
         };
 
         aCallback(null, result);

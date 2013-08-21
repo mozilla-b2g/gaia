@@ -84,6 +84,7 @@ suite('thread_ui.js >', function() {
   }
 
   suiteSetup(function(done) {
+    this.timeout(5000);
     mocksHelper.suiteSetup();
 
     realMozL10n = navigator.mozL10n;
@@ -354,12 +355,13 @@ suite('thread_ui.js >', function() {
   });
 
   suite('updateCounter() >', function() {
-    var banner, convertBanner, shouldEnableSend, form;
+    var banner, convertBanner, shouldEnableSend, form, localize;
 
     setup(function() {
       banner = document.getElementById('messages-max-length-notice');
       convertBanner = document.getElementById('messages-convert-notice');
       form = document.getElementById('messages-compose-form');
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
 
     suite('no characters entered >', function() {
@@ -623,9 +625,11 @@ suite('thread_ui.js >', function() {
         assert.isFalse(banner.classList.contains('hide'));
       });
 
-      test('banner has at size limit text', function() {
-        assert.equal(banner.querySelector('p').textContent,
-          'messages-max-length-text');
+      test('banner localized', function() {
+        assert.ok(
+          localize.calledWith(banner.querySelector('p'),
+            'messages-max-length-text')
+        );
       });
 
       test('message type is mms', function() {
@@ -658,9 +662,11 @@ suite('thread_ui.js >', function() {
         assert.isFalse(banner.classList.contains('hide'));
       });
 
-      test('banner has at size limit text', function() {
-        assert.equal(banner.querySelector('p').textContent,
-          'messages-exceeded-length-text');
+      test('banner localized', function() {
+        assert.ok(
+          localize.calledWith(banner.querySelector('p'),
+            'messages-exceeded-length-text')
+        );
       });
 
       test('message type is mms', function() {
@@ -674,12 +680,13 @@ suite('thread_ui.js >', function() {
   });
 
   suite('message type conversion >', function() {
-    var convertBanner, convertBannerText, form;
+    var convertBanner, convertBannerText, form, localize;
     setup(function() {
       this.sinon.useFakeTimers();
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
       form = document.getElementById('messages-compose-form');
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
     test('sms to mms and back displays banner', function() {
       // cause a type switch event to happen
@@ -687,8 +694,12 @@ suite('thread_ui.js >', function() {
       assert.isTrue(sendButton.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
-      assert.equal(convertBannerText.textContent, 'converted-to-mms',
-        'conversion banner has mms message');
+
+      assert.ok(
+        localize.calledWith(convertBannerText, 'converted-to-mms'),
+        'conversion banner has mms message'
+      );
+      localize.reset();
 
       this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -703,8 +714,10 @@ suite('thread_ui.js >', function() {
       assert.isFalse(sendButton.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
-      assert.equal(convertBannerText.textContent, 'converted-to-sms',
-        'conversion banner has sms message');
+      assert.ok(
+        localize.calledWith(convertBannerText, 'converted-to-sms'),
+        'conversion banner has sms message'
+      );
 
       this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -728,8 +741,11 @@ suite('thread_ui.js >', function() {
       ThreadUI.updateCounter();
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
-      assert.equal(convertBannerText.textContent, 'converted-to-mms',
-        'conversion banner has mms message');
+      assert.ok(
+        localize.calledWith(convertBannerText, 'converted-to-mms'),
+        'conversion banner has mms message'
+      );
+      localize.reset();
 
       this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -744,8 +760,11 @@ suite('thread_ui.js >', function() {
 
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
-      assert.equal(convertBannerText.textContent, 'converted-to-sms',
-        'conversion banner has sms message');
+      assert.ok(
+        localize.calledWith(convertBannerText, 'converted-to-sms'),
+        'conversion banner has sms message'
+      );
+      localize.reset();
 
       this.sinon.clock.tick(2999);
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -766,8 +785,11 @@ suite('thread_ui.js >', function() {
       ThreadUI.updateCounter();
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
-      assert.equal(convertBannerText.textContent, 'converted-to-mms',
-        'conversion banner has mms message');
+      assert.ok(
+        localize.calledWith(convertBannerText, 'converted-to-mms'),
+        'conversion banner has mms message'
+      );
+      localize.reset();
 
       this.sinon.clock.tick(1500);
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -778,8 +800,11 @@ suite('thread_ui.js >', function() {
 
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
-      assert.equal(convertBannerText.textContent, 'converted-to-sms',
-        'conversion banner has sms message');
+      assert.ok(
+        localize.calledWith(convertBannerText, 'converted-to-sms'),
+        'conversion banner has sms message'
+      );
+      localize.reset();
 
       // long enough to go past the previous timeout 1500 + 2000 > 3000
       this.sinon.clock.tick(2000);
@@ -1307,6 +1332,7 @@ suite('thread_ui.js >', function() {
   });
 
   suite('not-downloaded', function() {
+    var localize;
     var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
     var testMessages = [{
       id: 1,
@@ -1359,6 +1385,7 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
     suite('pending message', function() {
       var message = testMessages[0];
@@ -1370,6 +1397,7 @@ suite('thread_ui.js >', function() {
         element = document.getElementById('message-' + message.id);
         notDownloadedMessage = element.querySelector('.not-downloaded-message');
         button = element.querySelector('button');
+
       });
       test('element has correct data-message-id', function() {
         assert.equal(element.dataset.messageId, message.id);
@@ -1387,8 +1415,12 @@ suite('thread_ui.js >', function() {
         assert.isTrue(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(notDownloadedMessage.textContent,
-          'not-downloaded-mms{"date":"date_stub"}');
+        assert.equal(notDownloadedMessage.dataset.l10nId,
+          'not-downloaded-mms',
+          'localization id set correctly');
+        assert.equal(notDownloadedMessage.dataset.l10nArgs,
+          '{"date":"date_stub"}',
+          'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
         assert.equal(Utils.date.format.localeFormat.args[0][0],
@@ -1397,7 +1429,7 @@ suite('thread_ui.js >', function() {
           'dateTimeFormat_%x');
       });
       test('button text is correct', function() {
-        assert.equal(button.textContent, 'downloading');
+        assert.equal(button.dataset.l10nId, 'downloading');
       });
       suite('clicking', function() {
         setup(function() {
@@ -1437,8 +1469,12 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(notDownloadedMessage.textContent,
-          'not-downloaded-mms{"date":"date_stub"}');
+        assert.equal(notDownloadedMessage.dataset.l10nId,
+          'not-downloaded-mms',
+          'localization id set correctly');
+        assert.equal(notDownloadedMessage.dataset.l10nArgs,
+          '{"date":"date_stub"}',
+          'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
         assert.equal(Utils.date.format.localeFormat.args[0][0],
@@ -1447,16 +1483,17 @@ suite('thread_ui.js >', function() {
           'dateTimeFormat_%x');
       });
       test('button text is correct', function() {
-        assert.equal(button.textContent, 'download');
+        assert.equal(button.dataset.l10nId, 'download');
       });
       suite('clicking', function() {
         setup(function() {
+          localize.reset();
           ThreadUI.handleMessageClick({
             target: button
           });
         });
         test('changes download text', function() {
-          assert.equal(button.textContent, 'downloading');
+          assert.ok(localize.calledWith(button, 'downloading'));
         });
         test('error class absent', function() {
           assert.isFalse(element.classList.contains('error'));
@@ -1469,6 +1506,7 @@ suite('thread_ui.js >', function() {
         });
         suite('response error', function() {
           setup(function() {
+            localize.reset();
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
           test('error class present', function() {
@@ -1478,7 +1516,7 @@ suite('thread_ui.js >', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
           test('changes download text', function() {
-            assert.equal(button.textContent, 'download');
+            assert.ok(localize.calledWith(button, 'download'));
           });
         });
         suite('response success', function() {
@@ -1519,8 +1557,12 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(notDownloadedMessage.textContent,
-          'not-downloaded-mms{"date":"date_stub"}');
+        assert.equal(notDownloadedMessage.dataset.l10nId,
+          'not-downloaded-mms',
+          'localization id set correctly');
+        assert.equal(notDownloadedMessage.dataset.l10nArgs,
+          '{"date":"date_stub"}',
+          'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
         assert.equal(Utils.date.format.localeFormat.args[0][0],
@@ -1529,16 +1571,17 @@ suite('thread_ui.js >', function() {
           'dateTimeFormat_%x');
       });
       test('button text is correct', function() {
-        assert.equal(button.textContent, 'download');
+        assert.equal(button.dataset.l10nId, 'download');
       });
       suite('clicking', function() {
         setup(function() {
+          localize.reset();
           ThreadUI.handleMessageClick({
             target: button
           });
         });
         test('changes download text', function() {
-          assert.equal(button.textContent, 'downloading');
+          assert.ok(localize.calledWith(button, 'downloading'));
         });
         test('error class absent', function() {
           assert.isFalse(element.classList.contains('error'));
@@ -1551,6 +1594,7 @@ suite('thread_ui.js >', function() {
         });
         suite('response error', function() {
           setup(function() {
+            localize.reset();
             MessageManager.retrieveMMS.returnValues[0].onerror();
           });
           test('error class present', function() {
@@ -1560,7 +1604,7 @@ suite('thread_ui.js >', function() {
             assert.isFalse(element.classList.contains('pending'));
           });
           test('changes download text', function() {
-            assert.equal(button.textContent, 'download');
+            assert.ok(localize.calledWith(button, 'download'));
           });
         });
         suite('response success', function() {
@@ -1602,8 +1646,12 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(notDownloadedMessage.textContent,
-          'expired-mms{"date":"date_stub"}');
+        assert.equal(notDownloadedMessage.dataset.l10nId,
+          'expired-mms',
+          'localization id set correctly');
+        assert.equal(notDownloadedMessage.dataset.l10nArgs,
+          '{"date":"date_stub"}',
+          'localization arguments set correctly');
       });
       test('date is correctly determined', function() {
         assert.equal(Utils.date.format.localeFormat.args[0][0],
@@ -1653,6 +1701,7 @@ suite('thread_ui.js >', function() {
       timestamp: new Date(Date.now() - 100000),
       expiryDate: new Date(Date.now())
     }];
+    var localize;
     setup(function() {
       this.sinon.stub(Utils.date.format, 'localeFormat', function() {
         return 'date_stub';
@@ -1660,6 +1709,7 @@ suite('thread_ui.js >', function() {
       this.sinon.stub(MessageManager, 'retrieveMMS', function() {
         return {};
       });
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
 
     suite('no attachment message', function() {
@@ -1684,8 +1734,9 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(noAttachmentMessage.textContent,
-          'no-attachment-text');
+        assert.ok(
+          localize.calledWith(noAttachmentMessage, 'no-attachment-text')
+        );
       });
       suite('clicking', function() {
         setup(function() {
@@ -1721,8 +1772,9 @@ suite('thread_ui.js >', function() {
         assert.isFalse(element.classList.contains('pending'));
       });
       test('message is correct', function() {
-        assert.equal(noAttachmentMessage.textContent,
-          'no-attachment-text');
+        assert.ok(
+          localize.calledWith(noAttachmentMessage, 'no-attachment-text')
+        );
       });
       suite('clicking', function() {
         setup(function() {
@@ -2123,7 +2175,8 @@ suite('thread_ui.js >', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('Mobile | +346578888888'));
+      assert.ok(html.contains('<span data-l10n-id="Mobile">Mobile</span> | ' +
+        '+346578888888'));
     });
 
     test('Rendered Contact highlighted "type | number"', function() {
@@ -2142,9 +2195,10 @@ suite('thread_ui.js >', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(
-        html.contains('Mobile | +<span class="highlight">346578888888</span>')
-      );
+      assert.ok(html.contains(
+        '<span data-l10n-id="Mobile">Mobile</span> | ' +
+        '+<span class="highlight">346578888888</span>'
+      ));
     });
 
     test('Rendered Contact "type | carrier, number"', function() {
@@ -2161,7 +2215,10 @@ suite('thread_ui.js >', function() {
       });
       html = ul.firstElementChild.innerHTML;
 
-      assert.ok(html.contains('Mobile | TEF, +346578888888'));
+      assert.ok(html.contains(
+        '<span data-l10n-id="Mobile">Mobile</span> | ' +
+        'TEF, +346578888888'
+      ));
     });
 
     test('Rendered Contact highlighted "type | carrier, number"', function() {
@@ -2180,7 +2237,8 @@ suite('thread_ui.js >', function() {
 
       assert.ok(
         html.contains(
-          'Mobile | TEF, +<span class="highlight">346578888888</span>'
+          '<span data-l10n-id="Mobile">Mobile</span> | ' +
+          'TEF, +<span class="highlight">346578888888</span>'
         )
       );
     });
@@ -2370,16 +2428,16 @@ suite('thread_ui.js >', function() {
           assert.equal(items.length, 4);
 
           // The first item is a "call" option
-          assert.equal(items[0].name, 'call');
+          assert.equal(items[0].l10nId, 'call');
 
           // The second item is a "createNewContact" option
-          assert.equal(items[1].name, 'createNewContact');
+          assert.equal(items[1].l10nId, 'createNewContact');
 
           // The third item is a "addToExistingContact" option
-          assert.equal(items[2].name, 'addToExistingContact');
+          assert.equal(items[2].l10nId, 'addToExistingContact');
 
           // The fourth and last item is a "cancel" option
-          assert.equal(items[3].name, 'cancel');
+          assert.equal(items[3].l10nId, 'cancel');
         });
 
         test('Single unknown (email)', function() {
@@ -2407,16 +2465,16 @@ suite('thread_ui.js >', function() {
           assert.equal(items.length, 4);
 
           // The first item is a "call" option
-          assert.equal(items[0].name, 'sendEmail');
+          assert.equal(items[0].l10nId, 'sendEmail');
 
           // The second item is a "createNewContact" option
-          assert.equal(items[1].name, 'createNewContact');
+          assert.equal(items[1].l10nId, 'createNewContact');
 
           // The third item is a "addToExistingContact" option
-          assert.equal(items[2].name, 'addToExistingContact');
+          assert.equal(items[2].l10nId, 'addToExistingContact');
 
           // The fourth and last item is a "cancel" option
-          assert.equal(items[3].name, 'cancel');
+          assert.equal(items[3].l10nId, 'cancel');
         });
         test('Multiple known', function() {
 
@@ -2443,13 +2501,13 @@ suite('thread_ui.js >', function() {
           assert.equal(items.length, 3);
 
           // The first item is a "call" option
-          assert.equal(items[0].name, 'call');
+          assert.equal(items[0].l10nId, 'call');
 
           // The second item is a "send message" option
-          assert.equal(items[1].name, 'sendMessage');
+          assert.equal(items[1].l10nId, 'sendMessage');
 
           // The third and last item is a "cancel" option
-          assert.equal(items[2].name, 'cancel');
+          assert.equal(items[2].l10nId, 'cancel');
         });
 
         test('Multiple unknown', function() {
@@ -2477,19 +2535,19 @@ suite('thread_ui.js >', function() {
           assert.equal(items.length, 5);
 
           // The first item is a "call" option
-          assert.equal(items[0].name, 'call');
+          assert.equal(items[0].l10nId, 'call');
 
           // The second item is a "sendMessage" option
-          assert.equal(items[1].name, 'sendMessage');
+          assert.equal(items[1].l10nId, 'sendMessage');
 
           // The third item is a "createNewContact" option
-          assert.equal(items[2].name, 'createNewContact');
+          assert.equal(items[2].l10nId, 'createNewContact');
 
           // The fourth item is a "addToExistingContact" option
-          assert.equal(items[3].name, 'addToExistingContact');
+          assert.equal(items[3].l10nId, 'addToExistingContact');
 
           // The fifth and last item is a "cancel" option
-          assert.equal(items[4].name, 'cancel');
+          assert.equal(items[4].l10nId, 'cancel');
         });
       });
 
@@ -2600,10 +2658,12 @@ suite('thread_ui.js >', function() {
     });
 
     suite('Multi participant', function() {
+      var localize;
       setup(function() {
         window.location.hash = '';
         MockActivityPicker.dial.mSetup();
         MockOptionMenu.mSetup();
+        localize = this.sinon.spy(navigator.mozL10n, 'localize');
       });
 
       teardown(function() {
@@ -2658,9 +2718,9 @@ suite('thread_ui.js >', function() {
             // Change to #group-view (per ThreadUI.onHeaderActivation())
             window.onhashchange = function() {
               assert.equal(window.location.hash, '#group-view');
-              assert.equal(
-                ThreadUI.headerText.textContent, 'participant{"n":2}'
-              );
+              assert.deepEqual(localize.args[0], [
+                ThreadUI.headerText, 'participant', {n: 2}
+              ]);
               // View should not go back to thread view when header is
               // activated in group-view
               ThreadUI.onHeaderActivation();
