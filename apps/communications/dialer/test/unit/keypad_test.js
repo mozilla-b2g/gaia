@@ -1,81 +1,39 @@
-requireApp('communications/dialer/test/unit/mock_dialer_index.html.js');
-requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
-requireApp('communications/dialer/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_utils.js');
-requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
-requireApp('communications/dialer/test/unit/mock_l10n.js');
-requireApp('communications/dialer/test/unit/mock_call_handler.js');
+'use strict';
+
 requireApp('communications/dialer/js/keypad.js');
 
-if (!this.CallLogDBManager) {
-  this.CallLogDBManager = null;
-}
+requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
+requireApp('communications/dialer/test/unit/mock_utils.js');
+requireApp('communications/dialer/test/unit/mock_call_handler.js');
+requireApp('communications/dialer/test/unit/mock_call_log_db_manager.js');
+requireApp('communications/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('communications/dialer/test/unit/mock_tone_player.js');
 
-if (!this.SettingsListener) {
-  this.SettingsListener = null;
-}
+requireApp('communications/dialer/test/unit/mock_dialer_index.html.js');
 
-if (!this.Contacts) {
-  this.Contacts = null;
-}
-
-if (!this.CallHandler) {
-  this.CallHandler = null;
-}
-
-if (!this.Utils) {
-  this.Utils = null;
-}
-
-if (!this.LazyLoader) {
-  this.LazyLoader = null;
-}
-
-if (!this.LazyL10n) {
-  this.LazyL10n = null;
-}
+var mocksHelperForKeypad = new MocksHelper([
+  'LazyLoader',
+  'Utils',
+  'CallHandler',
+  'CallLogDBManager',
+  'SettingsListener',
+  'TonePlayer'
+]).init();
 
 suite('dialer/keypad', function() {
   var subject;
-  var realCallLogDBManager;
-  var realContacts;
-  var realUtils;
-  var realCallHandler;
-  var realLazyLoader;
-  var realLazyL10n;
   var previousBody;
 
-  suiteSetup(function(done) {
+  mocksHelperForKeypad.attachTestHelpers();
+
+  suiteSetup(function() {
     previousBody = document.body.innerHTML;
     document.body.innerHTML = MockDialerIndexHtml;
     subject = KeypadManager;
-    realCallLogDBManager = CallLogDBManager;
-    window.CallLogDBManager = MockCallLogDBManager;
-    realContacts = Contacts;
-    window.Contacts = MockContacts;
-    realUtils = Utils;
-    window.Utils = MockUtils;
-    realCallHandler = CallHandler;
-    window.CallHandler = MockCallHandler;
-    realLazyLoader = LazyLoader;
-    window.LazyLoader = MockLazyLoader;
-    realLazyL10n = LazyL10n;
-    window.LazyL10n = MockLazyL10n;
-    CallLogDBManager.deleteAll(done);
   });
 
   suiteTeardown(function() {
-    window.CallLogDBManager = realCallLogDBManager;
-    window.Contacts = realContacts;
-    window.Utils = realUtils;
-    window.CallHandler = realCallHandler;
-    window.LazyLoader = realLazyLoader;
-    window.LazyL10n = realLazyL10n;
     document.body.innerHTML = previousBody;
-  });
-
-  teardown(function(done) {
-    CallLogDBManager.deleteAll(done);
   });
 
   suite('Keypad Manager', function() {
