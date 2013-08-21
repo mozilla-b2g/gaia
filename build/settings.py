@@ -64,6 +64,7 @@ settings = {
  "keyboard.layouts.norwegian": False,
  "keyboard.layouts.slovak": False,
  "keyboard.layouts.turkish": False,
+ "keyboard.layouts.romanian": False,
  "keyboard.layouts.russian": False,
  "keyboard.layouts.arabic": False,
  "keyboard.layouts.hebrew": False,

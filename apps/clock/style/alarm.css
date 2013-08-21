@@ -21,14 +21,6 @@ ul, ol {
   right: 0;
   margin-top: 2.1rem;
   margin-right: 1.5rem;
-  transition:  height 0.1s, width 0.1s, top 0.1s, right 0.1s;
-}
-
-#alarm-new:active {
-  top: 0;
-  right: 0;
-  height: 3.4rem;
-  width: 4.0rem;
 }
 
 /* View */
@@ -187,6 +179,6 @@ a.alarm-item > .repeat {
   text-overflow: ellipsis;
 }
 
-#digital-clock-background.visible ~ #alarms.count4 li:first-child {
+#digital-clock.visible ~ #alarms.count4 li:first-child {
   background: none;
 }

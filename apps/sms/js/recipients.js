@@ -22,8 +22,11 @@
     this.email = opts.email || '';
     this.editable = opts.editable || 'true';
     this.source = opts.source || 'manual';
-    this.display = opts.display || '';
+    this.type = opts.type || '';
+    this.separator = opts.separator || '';
+    this.carrier = opts.carrier || '';
   }
+
   /**
    * set
    *
@@ -268,10 +271,14 @@
     var index = typeof recipOrIndex === 'number' ?
       recipOrIndex : list.indexOf(recipOrIndex);
 
+    if (index === -1) {
+      return this;
+    }
+
     list.splice(index, 1);
     this.emit('remove', list.length);
 
-    return this.render();
+    return this.render(index);
   };
 
   Recipients.prototype.render = function() {
@@ -575,11 +582,10 @@
 
     // Once the transition has ended, the set focus to
     // the last child element in the recipients list view
-    view.outer.addEventListener('transitionend', function te() {
-      var last;
+    view.inner.parentNode.addEventListener('transitionend', function te() {
+      var last = view.inner.lastElementChild;
 
       if (state.visible === 'singleline' && opts.refocus) {
-        last = view.inner.lastElementChild;
 
         if (opts.refocus) {
           opts.refocus.focus();
@@ -593,12 +599,12 @@
             last = view.inner.lastElementChild;
           }
         }
-
-        last.scrollIntoView(true);
       }
 
+      last.scrollIntoView(true);
+
       state.isTransitioning = false;
-      view.outer.removeEventListener('transitionend', te, false);
+      this.removeEventListener('transitionend', te, false);
     });
 
     // Commence the transition
@@ -956,6 +962,22 @@
         }
       };
 
+      // build fragment for dialog body
+      var dialogBody = document.createDocumentFragment();
+      if (recipient.type) {
+        var typeElement = document.createElement('span');
+        if (!navigator.mozL10n.get(recipient.type)) {
+          typeElement.textContent = recipient.type;
+        } else {
+          navigator.mozL10n.localize(typeElement, recipient.type);
+        }
+        dialogBody.appendChild(typeElement);
+      }
+
+      dialogBody.appendChild(document.createTextNode(
+        recipient.separator + recipient.carrier + recipient.number
+      ));
+
       // Dialog will have a closure reference to the response
       // object, therefore it's not necessary to pass it around
       // as an explicit param list item.
@@ -966,7 +988,7 @@
             l10n: false
           },
           body: {
-            value: recipient.display,
+            value: dialogBody,
             l10n: false
           },
           options: {

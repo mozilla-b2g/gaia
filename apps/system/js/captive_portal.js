@@ -29,7 +29,7 @@ var CaptivePortal = {
 
       this.entrySheet = new EntrySheet(document.getElementById('screen'),
                                       url,
-                                      new BrowserFrame(url));
+                                      new BrowserFrame({url: url}));
       this.entrySheet.open();
       return;
     }

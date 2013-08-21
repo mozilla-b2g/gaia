@@ -34,7 +34,7 @@ Bookmark.prototype = {
 
     window.open(this.url, '_blank', Object.keys(features).map(function(key) {
       return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
-    }).join('&'));
+    }).join(','));
   },
 
   uninstall: function bookmark_uninstall() {

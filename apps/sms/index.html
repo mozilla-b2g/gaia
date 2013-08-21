@@ -110,8 +110,17 @@
                 <span class="icon icon-user"></span>
               </a>
             </menu>
-            <section id="messages-recipients-list" class="singleline">
-            </section>
+            <!-- When overflow occurs in the recipients list, scrolling is
+            commonly triggered automatically through focus and keyboard events.
+            In these cases, white space described by CSS `padding-bottom` will
+            not be automatically scrolled into view (because the element will
+            only scroll far enough to bring the cursor into view). A container
+            element is necessary to consistently render this vertical space
+            (instead realized with CSS `margin-bottom`). -->
+            <div id="messages-recipients-list-container">
+              <section id="messages-recipients-list" class="singleline">
+              </section>
+            </div>
           </section>
           <div id="contact-carrier" data-l10n-id="carrier-unknown" class="carrier-wrapper">
             Carrier unknown
@@ -188,10 +197,10 @@
         <form id="attachment-options" role="dialog" data-type="action">
           <header></header>
           <menu>
-            <button id="attachment-options-view"></button>
+            <button id="attachment-options-view" data-l10n-id="view-attachment"></button>
             <button id="attachment-options-remove"></button>
             <button id="attachment-options-replace"></button>
-            <button id="attachment-options-cancel"></button>
+            <button id="attachment-options-cancel" data-l10n-id="cancel"></button>
           </menu>
         </form>
       </div>
@@ -204,11 +213,12 @@
     <div id="messages-contact-tmpl" class="hide">
       <!--
       <a class="suggestion"
-        data-number="${number}" data-source="contacts" data-name="${name}" data-display="${type}${separator}${carrier}${number}">
+        data-number="${number}" data-source="contacts" data-name="${name}"
+        data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
         ${photoHTML}
         <p class="name">${nameHTML}</p>
         <p class="number">
-          ${type}${separator}${carrier}${numberHTML}
+          <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${numberHTML}
         </p>
       </a>
       -->
@@ -232,8 +242,12 @@
 
     <div id="messages-not-downloaded-tmpl" class="hide">
       <!--
-      <span class="not-downloaded-message">${message}</span>
-      <form><button class="download">${download}</button></form>
+      <span class="not-downloaded-message"
+            data-l10n-id="${messageL10nId}"
+            data-l10n-args="${messageL10nArgs}"
+            data-l10n-date="${messageL10nDate}"
+            data-l10n-date-format="${messageL10nDateFormat}"></span>
+      <form><button class="download" data-l10n-id="${downloadL10nId}"></button></form>
       -->
     </div>
 
@@ -283,7 +297,8 @@
       <!--
       <span class="recipient" x-inputmode="verbatim"
         contenteditable="${editable}"
-        data-number="${number}" data-source="${source}" data-name="${name}" data-display="${display}">
+        data-number="${number}" data-source="${source}" data-name="${name}"
+        data-carrier="${carrier}" data-separator="${separator}" data-type="${type}">
         ${name}
       </span>
       -->
@@ -295,7 +310,7 @@
         <div class="thumbnail-placeholder ${type}-placeholder">
           <div class="${errorClass}"></div>
         </div>
-        <div class="size-indicator">${size}</div>
+        <div class="size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
       <div class="file-name">${fileName}</div>
       -->
@@ -305,7 +320,7 @@
       <!--
       <div class="attachment">
         <div class="thumbnail" style="background-image: url(${imgData})"></div>
-        <div class="size-indicator">${size}</div>
+        <div class="size-indicator" data-l10n-id="${sizeL10nId}" data-l10n-args="${sizeL10nArgs}"></div>
       </div>
       <div class="file-name">${fileName}</div>
       -->
@@ -330,8 +345,7 @@
     <div id="height-rule-tmpl" class="hide">
       <!--
       #messages-recipients-list.multiline {
-        overflow-y: scroll;
-        height: ${height}px;
+        max-height: ${height}px;
       }
       -->
     </div>

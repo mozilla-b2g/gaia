@@ -1,3 +1,4 @@
+require('/shared/js/device_storage/enumerate_all.js');
 require('/shared/js/mediadb.js');
 
 suite('MediaDB', function() {

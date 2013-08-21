@@ -1,3 +1,10 @@
+requireApp('calendar/test/unit/service/helper.js');
+requireLib('presets.js');
+requireLib('ext/ical.js');
+requireLib('ext/caldav.js');
+requireLib('ext/uuid.js');
+requireLib('service/ical_recur_expansion.js');
+requireLib('service/caldav.js');
 requireLib('worker/manager.js');
 
 /**
@@ -118,18 +125,22 @@ suite('worker/manager', function() {
     });
 
     test('#stream', function(done) {
+      var onEnd = null;
       this.timeout(12000);
       var stream = subject.stream('test', 'stream');
       var dataReceived = [], errorReceived = null;
 
       stream.on('data', function(data) { dataReceived.push(data); });
       stream.on('error', function(error) { errorReceived = error; });
+      stream.on('end', function(end) { onEnd = end});
 
       stream.request(function(data) {
         done(function() {
           assert.deepEqual(dataReceived, ['data one', 'data two']);
           assert.equal(data, 'stream finito');
           assert.equal(errorReceived, null);
+          assert.ok(onEnd);
+          assert.equal(onEnd[0], data);
         });
       });
 

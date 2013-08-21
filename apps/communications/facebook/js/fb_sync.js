@@ -155,9 +155,9 @@ if (!fb.sync) {
       }
       cfdata.fbInfo.bday = birthDate;
 
-      var address = fb.getAddress(cfdata);
+      var address = fb.getAddresses(cfdata);
       if (address) {
-        cfdata.fbInfo.adr = [address];
+        cfdata.fbInfo.adr = address;
       }
 
       if (cfdata.shortTelephone) {

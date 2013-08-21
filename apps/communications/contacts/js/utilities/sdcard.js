@@ -25,15 +25,17 @@ if (!utils.sdcard) {
     }
   };
 
-  SdCard.deviceStorage
-    .addEventListener('change', function sd_deviceStorageChangeHandler(e) {
-      SdCard.updateStorageState(e.reason);
-    });
+  if (SdCard.deviceStorage) {
+    SdCard.deviceStorage
+      .addEventListener('change', function sd_deviceStorageChangeHandler(e) {
+        SdCard.updateStorageState(e.reason);
+      });
 
-  if (SdCard.status === SdCard.NOT_INITIALIZED) {
-    SdCard.deviceStorage.available().onsuccess = (function(e) {
-      SdCard.updateStorageState(e.target.result);
-    });
+    if (SdCard.status === SdCard.NOT_INITIALIZED) {
+      SdCard.deviceStorage.available().onsuccess = (function(e) {
+        SdCard.updateStorageState(e.target.result);
+      });
+    }
   }
 
   /**

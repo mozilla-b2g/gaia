@@ -96,7 +96,6 @@ var DCFApi = (function() {
 })();
 
 var screenLock = null;
-var returnToCamera = true;
 var Camera = {
   _initialised: false,
   _cameras: null,
@@ -206,6 +205,10 @@ var Camera = {
     return document.getElementById('overlay');
   },
 
+  get storageSettingButton() {
+    return document.getElementById('storage-setting-button');
+  },
+
   get viewfinder() {
     return document.getElementById('viewfinder');
   },
@@ -246,8 +249,12 @@ var Camera = {
     return document.getElementById('overlay-close-button');
   },
 
-  get overlayMenuGroup() {
-    return document.getElementById('overlay-menu-group');
+  get overlayMenuClose() {
+    return document.getElementById('overlay-menu-close');
+  },
+
+  get overlayMenuStorage() {
+    return document.getElementById('overlay-menu-storage');
   },
 
   // We have seperated init and delayedInit as we want to make sure
@@ -306,7 +313,7 @@ var Camera = {
 
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
-    this.screenWakeLock();
+    this.requestScreenWakeLock();
     this.setToggleCameraStyle();
 
     // We lock the screen orientation and deal with rotating
@@ -331,6 +338,8 @@ var Camera = {
       .addEventListener('click', this.cancelPick.bind(this));
     this.overlayCloseButton
       .addEventListener('click', this.cancelPick.bind(this));
+    this.storageSettingButton
+      .addEventListener('click', this.storageSettingPressed.bind(this));
 
     if (!navigator.mozCameras) {
       this.captureButton.setAttribute('disabled', 'disabled');
@@ -422,22 +431,16 @@ var Camera = {
     }
   },
 
-  screenTimeout: function camera_screenTimeout() {
-    if (screenLock && !returnToCamera) {
+  releaseScreenWakeLock: function camera_releaseScreenWakeLock() {
+    if (screenLock && Filmstrip.isPreviewShown()) {
       screenLock.unlock();
       screenLock = null;
     }
   },
-  screenWakeLock: function camera_screenWakeLock() {
-    if (!screenLock && returnToCamera) {
+  requestScreenWakeLock: function camera_requestScreenWakeLock() {
+    if (!screenLock && !Filmstrip.isPreviewShown()) {
       screenLock = navigator.requestWakeLock('screen');
     }
-  },
-  setReturnToCamera: function camera_setReturnToCamera() {
-    returnToCamera = true;
-  },
-  resetReturnToCamera: function camera_resetReturnToCamera() {
-    returnToCamera = false;
   },
 
   enableButtons: function camera_enableButtons() {
@@ -1023,7 +1026,7 @@ var Camera = {
   },
 
   startPreview: function camera_startPreview() {
-    this.screenWakeLock();
+    this.requestScreenWakeLock();
     this.viewfinder.play();
     this.loadCameraPreview(this._cameraNumber, this.previewEnabled.bind(this));
     this._previewActive = true;
@@ -1037,7 +1040,7 @@ var Camera = {
   },
 
   stopPreview: function camera_stopPreview() {
-    this.screenTimeout();
+    this.releaseScreenWakeLock();
     if (this._recording) {
       this.stopRecording();
     }
@@ -1120,6 +1123,18 @@ var Camera = {
       });
       this._pendingPick = null;
     }
+  },
+
+  storageSettingPressed: function camera_storageSettingPressed() {
+    // Click to open the media storage panel when the default storage
+    // is unavailable.
+    var activity = new MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'mediaStorage'
+      }
+    });
   },
 
   _addPictureToStorage: function camera_addPictureToStorage(blob, callback) {
@@ -1223,9 +1238,23 @@ var Camera = {
       break;
     case 'unavailable':
       this._storageState = this.STORAGE_NOCARD;
+      if (Filmstrip.isPreviewShown()) {
+        // If media frame is shown and storage is unavailable or shared, it may
+        // be a video or a picture is opened. We should go back to camera mode
+        // to prevent file deleted or file lock. If the video is playing, camera
+        // app will be killed becase of mounting as sdcard and file is locked.
+        Filmstrip.hidePreview();
+      }
       break;
     case 'shared':
       this._storageState = this.STORAGE_UNMOUNTED;
+      if (Filmstrip.isPreviewShown()) {
+        // If media frame is shown and storage is unavailable or shared, it may
+        // be a video or a picture is opened. We should go back to camera mode
+        // to prevent file deleted or file lock. If the video is playing, camera
+        // app will be killed becase of mounting as sdcard and file is locked.
+        Filmstrip.hidePreview();
+      }
       break;
     }
   },
@@ -1238,8 +1267,10 @@ var Camera = {
     if (this._storageState === this.STORAGE_AVAILABLE) {
       // Preview may have previously been paused if storage
       // was not available
-      // not trigger preview while in pick mode
-      if (!this._previewActive && !document.hidden && !this._pendingPick) {
+      // Don't start the preview when confirm dialog is showing. The choices of
+      // ConfirmDialog call the startPreview or close this activity.
+      if (!this._previewActive && !document.hidden &&
+          !ConfirmDialog.isShowing()) {
         this.startPreview();
       }
       this.showOverlay(null);
@@ -1254,7 +1285,7 @@ var Camera = {
       this.showOverlay('pluggedin');
       break;
     case this.STORAGE_CAPACITY:
-      this.showOverlay('nospace2');
+      this.showOverlay('nospace');
       break;
     }
     if (this._previewActive) {
@@ -1307,14 +1338,29 @@ var Camera = {
       return;
     }
 
-    if (this._pendingPick) {
-      this.overlayMenuGroup.classList.remove('hidden');
+    if (id === 'nocard') {
+      this.overlayMenuClose.classList.add('hidden');
+      this.overlayMenuStorage.classList.remove('hidden');
     } else {
-      this.overlayMenuGroup.classList.add('hidden');
+      if (this._pendingPick) {
+        this.overlayMenuClose.classList.remove('hidden');
+        this.overlayMenuStorage.classList.add('hidden');
+      } else {
+        this.overlayMenuClose.classList.add('hidden');
+        this.overlayMenuStorage.classList.add('hidden');
+      }
     }
 
-    this.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
-    this.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+    if (id === 'nocard') {
+      this.overlayTitle.textContent = navigator.mozL10n.get('nocard2-title');
+      this.overlayText.textContent = navigator.mozL10n.get('nocard2-text');
+    } else if (id === 'nospace') {
+      this.overlayTitle.textContent = navigator.mozL10n.get('nospace2-title');
+      this.overlayText.textContent = navigator.mozL10n.get('nospace2-text');
+    } else {
+      this.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
+      this.overlayText.textContent = navigator.mozL10n.get(id + '-text');
+    }
     this.overlay.classList.remove('hidden');
   },
 

@@ -563,6 +563,70 @@ const Keyboards = {
       ]
     ]
   },
+  ro: {
+    label: 'Romanian',
+    menuLabel: 'Română',
+    imEngine: 'latin',
+    alt: {
+      a: 'ăâ',
+      d: 'đ',
+      e: '€',
+      i: 'î',
+      l: 'ł',
+      s: 'ș',
+      t: 'ț',
+      '.': ',?!;:'
+    },
+    keys: [
+      [
+        { value: 'q' }, { value: 'w' }, { value: 'e' } , { value: 'r' },
+        { value: 't' } , { value: 'y' }, { value: 'u' } , { value: 'i' },
+        { value: 'o' }, { value: 'p' }
+      ], [
+        { value: 'a' }, { value: 's' }, { value: 'd' }, { value: 'f' },
+        { value: 'g' } , { value: 'h' }, { value: 'j' }, { value: 'k' },
+        { value: 'l' },
+        { value: ':', visible: ['url']}, { value: '_', visible: ['email']}
+      ], [
+        { value: '⇪', ratio: 1.5, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
+        { value: 'z' }, { value: 'x' }, { value: 'c' }, { value: 'v' },
+        { value: 'b' }, { value: 'n' }, { value: 'm' },
+        { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+      ], [
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
+      ]
+    ],
+    alternateLayout: {
+      alt: {
+        '0': 'º',
+        '$': '€£¥',
+        '?': '¿',
+        '!': '¡',
+        '\"': '„”'
+      },
+      keys: [
+        [
+          { value: '1' }, { value: '2' }, { value: '3' } , { value: '4' },
+          { value: '5' } , { value: '6' }, { value: '7' } , { value: '8' },
+          { value: '9' }, { value: '0' }
+        ], [
+          { value: '@', hidden: ['email'] }, { value: '#' }, { value: '$' },
+          { value: '%' }, { value: '&' } , { value: '*' }, { value: '-' },
+          { value: '+' }, { value: '(' }, { value: ')' },
+          { value: '_', visible: ['email'] }
+        ], [
+          { value: 'ALT', ratio: 1.5, keyCode: KeyEvent.DOM_VK_ALT },
+          { value: '!' }, { value: '\"' }, { value: "'" }, { value: ':' },
+          { value: ';' }, { value: '/' }, { value: '?' },
+          { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+        ], [
+          { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+          { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
+        ]
+      ]
+    }
+  },
   ru: {
     label: 'Russian',
     menuLabel: 'Pусский',
@@ -718,10 +782,10 @@ const Keyboards = {
       ]
     ]
   },
-  tr: {
-    label: 'Turkish',
+  'tr-Q': {
+    label: 'Turkish Q',
     imEngine: 'latin',
-    menuLabel: 'Türkçe',
+    menuLabel: 'Türkçe Q',
     upperCase: {
       'i': 'İ'
     },
@@ -753,6 +817,46 @@ const Keyboards = {
       ], [
         { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
         { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
+      ]
+    ]
+  },
+  'tr-F': {
+    label: 'Turkish F',
+    imEngine: 'latin',
+    menuLabel: 'Türkçe F',
+    upperCase: {
+      'i': 'İ'
+    },
+    alt: {
+      d: '¥',
+      i: 'ß',
+      f: '@',
+      j: '«',
+      ö: '»',
+      p: '£',
+      s: 'μ',
+      v: '¢',
+      u: 'æ',
+      '.': ',?!;:'
+    },
+    width: 12,
+    keys: [
+      [
+        { value: 'f' }, { value: 'g' }, { value: 'ğ' }, { value: 'ı' },
+        { value: 'o' }, { value: 'd' }, { value: 'r' }, { value: 'n' },
+        { value: 'h' }, { value: 'p' }, { value: 'q' }, { value: 'w' }
+      ], [
+        { value: 'u' }, { value: 'i' }, { value: 'e' }, { value: 'a' },
+        { value: 'ü' }, { value: 't' }, { value: 'k' }, { value: 'm' },
+        { value: 'l' }, { value: 'y' }, { value: 'ş' }, { value: 'x' }
+      ], [
+        { value: '⇪', ratio: 2, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
+        { value: 'j' }, { value: 'ö' }, { value: 'v' }, { value: 'c' },
+        { value: 'ç' }, { value: 'z' }, { value: 's' }, { value: 'b'},
+        { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+      ], [
+        { value: '&nbsp', ratio: 9.5, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '↵', ratio: 2.5, keyCode: KeyEvent.DOM_VK_RETURN }
       ]
     ]
   },

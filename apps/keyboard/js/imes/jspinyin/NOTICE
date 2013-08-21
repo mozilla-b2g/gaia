@@ -1,10 +1,10 @@
-   Jspinyin is a simplified/traditional Chinese input method for gaia and is 
-   licensed under the Apache Version 2.0, 2012. The original code is based
-   on the Google PinyinIME project as part of the android project hosted at: 
+   Jspinyin is a Simplified Chinese input method for gaia and is licensed under
+   the Apache Version 2.0, 2012. The original code is based on the Google
+   PinyinIME project as part of the android project hosted at:
    http://android.googlesource.com/platform/packages/inputmethods/PinyinIME.
-   
-   We rewrote the original code with JavaScript and added support for 
-   traditional Chinese inputting. 
+
+   We use Emscripten (https://github.com/kripken/emscripten) to compile the
+   original code into JavaScript version.
 
 ==========================================================================
    Copyright notice for jspinyin.

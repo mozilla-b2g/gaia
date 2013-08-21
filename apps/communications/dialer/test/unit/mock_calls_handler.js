@@ -1,6 +1,5 @@
 var MockCallsHandler = {
   mLastEntryAdded: null,
-  mNotifyBusyLineCalled: false,
   mUpdateKeypadEnabledCalled: true,
 
   updateKeypadEnabled: function() {
@@ -12,13 +11,8 @@ var MockCallsHandler = {
     this.mLastEntryAdded = entry;
   },
 
-  notifyBusyLine: function notifyBusyLine() {
-    this.mNotifyBusyLineCalled = true;
-  },
-
   mTeardown: function() {
     this.mLastEntryAdded = null;
-    this.mNotifyBusyLineCalled = false;
     this.mUpdateKeypadEnabledCalled = true;
   }
 };

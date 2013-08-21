@@ -36,6 +36,7 @@
 }
 
 .hint.hide {
+  visibility: hidden;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, visibility 0s linear 0.2s;
 }

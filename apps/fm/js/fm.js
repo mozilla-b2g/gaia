@@ -235,7 +235,7 @@ var frequencyDialer = {
 
   _addEventListeners: function() {
     function _removeEventListeners() {
-      document.body.removeEventListener('touchstart', fd_body_touchend, false);
+      document.body.removeEventListener('touchend', fd_body_touchend, false);
       document.body.removeEventListener('touchmove', fd_body_touchmove, false);
     }
 
@@ -244,7 +244,7 @@ var frequencyDialer = {
         evt = evt.touches[0];
       }
       return { x: evt.clientX, y: evt.clientX,
-               timestamp: evt.timestamp };
+               timestamp: evt.timeStamp };
     }
 
     var self = this;
