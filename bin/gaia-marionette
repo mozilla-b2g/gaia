@@ -17,7 +17,7 @@ if [ ! -d $DIR/../profile-test ]; then
 fi
 
 # wrap marionette-mocha with gaia's defaults.
-$DIR/../node_modules/.bin/marionette-mocha \
+$DIR/../node_modules/marionette-js-runner/bin/marionette-mocha \
   --timeout 10s \
   --ui tdd \
   --profile-builder $SHARED/profile_builder.js \
