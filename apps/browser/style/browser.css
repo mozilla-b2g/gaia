@@ -178,20 +178,17 @@ input[type="image"] {
 }
 
 #tabs-list .close:active {
-  color: #666;
+  background-image: url(images/tab-icon-pressed-closetab.png);
 }
 
 #tabs-list .close {
-  border: 0;
   position: absolute;
   right: 0;
-  height: 100%;
-  width: 5rem;
   top: 0;
-  background: transparent;
-  font-size: 2.8rem;
-  color: white;
-  padding-bottom: 0.7rem;
+  width: 5rem;
+  height: 100%;
+  border: 0;
+  background: url(images/tab-icon-pressed-closetab.png) no-repeat 50% 50% / 3rem;
 }
 
 #main-screen {
