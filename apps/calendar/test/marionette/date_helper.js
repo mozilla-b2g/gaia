@@ -5,10 +5,15 @@
 var DateHelper = {
   /**
    * @param {Date} date some date object to get a formatted day from.
-   * @return {string} something like xx-yy-zz for input[type="date"].
+   * @return {string} something like yyyy-mm-dd for input[type="date"].
    */
   formatDay: function(date) {
-    var components = [date.getMonth() + 1, date.getDate(), date.getFullYear];
+    // http://www.w3.org/TR/html-markup/references.html#refsRFC3339
+    var components = [
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate()
+    ];
     return components.map(addZeros).join('-');
   },
 
