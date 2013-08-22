@@ -709,7 +709,7 @@ suite('system/ScreenManager', function() {
     test('if screenEnabled is true', function() {
       ScreenManager.screenEnabled = true;
       ScreenManager.toggleScreen();
-      assert.isTrue(stubTurnOff.calledWith(true, 'powerkey'));
+      assert.isTrue(stubTurnOff.calledWith(true, 'toggle'));
       assert.isFalse(stubTurnOn.called);
     });
 
