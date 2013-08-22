@@ -1,0 +1,25 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  font-size: 10px;
+  background-color: white;
+  overflow: hidden;
+  height: 100%;
+}
+
+#ringtones {
+  overflow: auto;
+  height: calc(100% - 5rem);
+  width: 100%;
+  font-size: 2.4rem;
+}
+
+#ringtones > label {
+  display: block;
+  border-bottom: solid gray 1px;
+  padding: 1rem;
+}
+
+#ringtones > label > input {
+  margin-right: 1rem;
+}

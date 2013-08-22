@@ -5,10 +5,6 @@
   'use strict';
 
   var lists = {
-    'ringtones': {
-      settingName: 'dialer.ringtone',
-      element: document.getElementById('ringtones-list')
-    },
     'notifications': {
       settingName: 'notification.ringtone',
       element: document.getElementById('notifications-list')
@@ -218,3 +214,57 @@
   };
 })();
 
+/*
+ * The code above handles sounds the old way. It only exists now to handle
+ * alert tones.  The code below is the new activities-based ringtone selection
+ * code.
+ */
+(function() {
+  'use strict';
+
+  // This is the button the user clicks to select a new ringtone
+  var button = document.getElementById('ring-tone-selection');
+
+  // The button looks like a select element. By default it just reads
+  // "change". But we want it to display the name of the current ringtone
+  navigator.mozSettings.createLock()
+    .get('dialer.ringtone.name')
+    .onsuccess = function(e) {
+      button.textContent = e.target.result['dialer.ringtone.name'];
+    };
+
+  // When the user clicks the button, we launch an activity to allow the
+  // user to select new ringtone.
+  button.onclick = function() {
+    var activity = new MozActivity({
+      name: 'pick',
+      data: {
+        type: 'ringtone'
+      }
+    });
+
+    activity.onsuccess = function() {
+      if (!activity.result.blob)
+        return;
+
+      var reader = new FileReader();
+      reader.readAsDataURL(activity.result.blob);
+      reader.onload = function() {
+        var settings = {};
+        settings['dialer.ringtone'] = reader.result;
+
+        if (activity.result.name) {
+          button.textContent = activity.result.name;
+          settings['dialer.ringtone.name'] = activity.result.name;
+        }
+        else {
+          button.textContent = navigator.mozL10n.get('change');
+          settings['dialer.ringtone.name'] = '';
+        }
+
+        navigator.mozSettings.createLock().set(settings);
+      };
+    };
+  };
+
+}());
