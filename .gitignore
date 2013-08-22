@@ -41,7 +41,7 @@ manifest.appcache
 /profile.tar.gz
 /.xulrunner-url
 /xulrunner/
-/xulrunner-sdk/
+/xulrunner-sdk*/
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
