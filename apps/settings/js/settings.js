@@ -843,7 +843,8 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
   handleRadioAndCardState();
 
-  LazyLoader.load(['js/utils.js'], startupLocale);
+  LazyLoader.load(['js/utils.js', 'js/mvvm/models.js', 'js/mvvm/views.js'],
+    startupLocale);
   LazyLoader.load([
       'shared/js/keyboard_helper.js',
       'js/airplane_mode.js',

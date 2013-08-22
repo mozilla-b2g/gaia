@@ -25,11 +25,13 @@ var KeyboardHelper = {
           launch_path: '/settings.html',
           entry_points: {
             'layout1': {
+              'name': 'layout1',
               'launch_path': '/index.html#layout1',
               'description': 'layout1',
               'types': ['url', 'text']
             },
             'layout2': {
+              'name': 'layout2',
               'launch_path': '/index.html#layout2',
               'description': 'layout2',
               'types': ['number', 'text']
@@ -50,6 +52,7 @@ var KeyboardHelper = {
           launch_path: '/settings.html',
           entry_points: {
             'layout1': {
+              'name': 'layout1',
               'launch_path': '/index.html#layout1',
               'description': 'layout1',
               'types': ['url']
@@ -70,6 +73,7 @@ var KeyboardHelper = {
           launch_path: '/settings.html',
           entry_points: {
             'layout1': {
+              'name': 'layout1',
               'launch_path': '/index.html#layout1',
               'description': 'layout1',
               'types': ['number']
@@ -82,22 +86,22 @@ var KeyboardHelper = {
     this.keyboardSettings = [
       {
         appOrigin: 'app://app1.gaiamobile.org',
-        layoutName: 'layout1',
+        layoutId: 'layout1',
         enabled: true
       },
       {
         appOrigin: 'app://app1.gaiamobile.org',
-        layoutName: 'layout2',
+        layoutId: 'layout2',
         enabled: false
       },
       {
         appOrigin: 'app://app2.gaiamobile.org',
-        layoutName: 'layout1',
+        layoutId: 'layout1',
         enabled: false
       },
       {
         appOrigin: 'app://app3.gaiamobile.org',
-        layoutName: 'layout1',
+        layoutId: 'layout1',
         enabled: true
       }
     ];
@@ -106,11 +110,11 @@ var KeyboardHelper = {
   getInstalledKeyboards: function(callback) {
     callback(this.keyboards);
   },
-  setLayoutEnabled: function(appOrigin, layoutName, enabled) {
+  setLayoutEnabled: function(appOrigin, layoutId, enabled) {
     for (var i = 0; i < this.keyboardSettings.length; i++) {
       var layout = this.keyboardSettings[i];
       if (layout.appOrigin === appOrigin &&
-          layout.layoutName === layoutName) {
+          layout.layoutId === layoutId) {
         layout.enabled = enabled;
 
         var evt = document.createEvent('CustomEvent');
@@ -122,4 +126,3 @@ var KeyboardHelper = {
 };
 
 KeyboardHelper._init();
-

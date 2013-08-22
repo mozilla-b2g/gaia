@@ -9,13 +9,32 @@
  * - Get all installed keyboard apps and layouts.
  * - Enable or disable keyboard layouts.
  * - Notify keyboard layout changes via the 'keyboardsrefresh' event.
+ *
+ * This javascript file defines the following modules:
+ * - KeyboardContext
+ *   KeyboardContext provides lists of all installed keyboards and enabled
+ *   layouts. The lists are kept updated based on the events from
+ *   KeyboardHelper. KeyboardContext handles only data and does not involve in
+ *   any UI logic.
+ *
+ * - Panel
+ *   Panel is designed to be initialized with a panel ID, and reflects if it is
+ *   visible to users via the `visible` property.
+ *
+ * - KeyboardPanel
+ * - EnabledLayoutsPanel
+ * - InstalledLayoutsPanel
+ *   In the panels we initialize a ListView with the data provided by
+ *   KeyboardContext. Templates for generating UI elements are also defined
+ *   here. The three panel used Panel for observing the visibility change. Which
+ *   is for avoiding unnecessary UI changes when the panels are not visible to
+ *   users.
  */
 
 /*
  * KeyboardContext provides installed keyboard apps and enabled keyboard layouts
  * in terms of ObservableArrays. It listens to the changes of installed apps
- * (not finished yet) and keyboard.enabled-layouts, and update the
- * ObservableArrays.
+ * and keyboard.enabled-layouts, and update the ObservableArrays.
  */
 var KeyboardContext = (function() {
   var _layoutDict = null; // stores layout indexed by appOrigin and layoutId
@@ -49,42 +68,28 @@ var KeyboardContext = (function() {
 
       // Layout enabled changed.
       _observable.observe('enabled', function(newValue, oldValue) {
-        var keyboardSettings = KeyboardHelper.keyboardSettings;
-        if (keyboardSettings) {
-          for (var i = 0; i < keyboardSettings.length; i++) {
-            var layout = keyboardSettings[i];
-            if (layout.appOrigin === appOrigin && layout.layoutId === id) {
-              if (layout.enabled !== newValue) {
-                layout.enabled = newValue;
+        KeyboardHelper.setLayoutEnabled(appOrigin, id, newValue);
+      });
 
-                KeyboardHelper.setLayoutEnabled(appOrigin, layout.layoutId,
-                layout.enabled);
-              }
-              break;
-            }
-          }
-        }
-    });
-
-    return _observable;
+      return _observable;
   };
 
-  var _refreshEnabledLayout = function() {
+  var _refreshEnabledLayouts = function() {
     var enabledLayouts = [];
     var keyboardSettings = KeyboardHelper.keyboardSettings;
 
     if (keyboardSettings) {
-      keyboardSettings.forEach(function(rawLayout) {
+      keyboardSettings.forEach(function(layoutSetting) {
         var keyboard, layout;
 
-        keyboard = _layoutDict[rawLayout.appOrigin];
-        layout = keyboard ? keyboard[rawLayout.layoutId] : null;
+        keyboard = _layoutDict[layoutSetting.appOrigin];
+        layout = keyboard ? keyboard[layoutSetting.layoutId] : null;
 
         if (layout) {
-          if (rawLayout.enabled) {
+          if (layoutSetting.enabled) {
             enabledLayouts.push(layout);
           }
-          layout.enabled = rawLayout.enabled;
+          layout.enabled = layoutSetting.enabled;
         }
       });
     }
@@ -95,32 +100,31 @@ var KeyboardContext = (function() {
     KeyboardHelper.getInstalledKeyboards(function(allKeyboards) {
       _layoutDict = {};
 
-      allKeyboards.forEach(function(rawKeyboard) {
+      allKeyboards.forEach(function(keyboardAppInstance) {
         // get all layouts in a keyboard app
-        var keyboardManifest = rawKeyboard.manifest;
+        var keyboardManifest = keyboardAppInstance.manifest;
         var entryPoints = keyboardManifest.entry_points;
         var layouts = [];
 
-        _layoutDict[rawKeyboard.origin] = {};
+        _layoutDict[keyboardAppInstance.origin] = {};
         for (var key in entryPoints) {
-          var rawLayout = entryPoints[key];
-          var launchPath = rawLayout.launch_path;
+          var layoutInstance = entryPoints[key];
           if (!entryPoints[key].types) {
             console.warn('the keyboard app did not declare type.');
             continue;
           }
           var layout = Layout(key, keyboardManifest.name,
-                              rawKeyboard.origin, rawLayout.name,
-                              rawLayout.description,
-                              rawLayout.types, false);
+                              keyboardAppInstance.origin, layoutInstance.name,
+                              layoutInstance.description,
+                              layoutInstance.types, false);
           layouts.push(layout);
-          _layoutDict[rawKeyboard.origin][key] = layout;
+          _layoutDict[keyboardAppInstance.origin][key] = layout;
         }
 
         _keyboards.push(Keyboard(keyboardManifest.name,
                                  keyboardManifest.description,
                                  keyboardManifest.launch_path,
-                                 layouts, rawKeyboard));
+                                 layouts, keyboardAppInstance));
       });
 
       callback();
@@ -134,22 +138,23 @@ var KeyboardContext = (function() {
        *      keyboard installed/uninstalled, and keyboard change. We should
        *      have finer events in the future.
        */
-      _refreshEnabledLayout();
+      _refreshEnabledLayouts();
     });
 
     _refreshInstalledKeyboards(function() {
-      _refreshEnabledLayout();
+      _refreshEnabledLayouts();
       callback();
     });
   };
 
   var _ready = function(callback) {
-    if (callback) {
-      if (_isReady) {
-        callback();
-      } else {
-        _callbacks.push(callback);
-      }
+    if (!callback)
+      return;
+
+    if (_isReady) {
+      callback();
+    } else {
+      _callbacks.push(callback);
     }
   };
 
@@ -174,14 +179,14 @@ var KeyboardContext = (function() {
   };
 })();
 
-var Panel = function(url) {
-  var _url = url;
+var Panel = function(id) {
+  var _id = id;
   var _panel = Observable({
-    visible: (_url === Settings.currentPanel)
+    visible: (_id === Settings.currentPanel)
   });
 
   window.addEventListener('panelready', function() {
-    _panel.visible = (_url === Settings.currentPanel);
+    _panel.visible = (_id === Settings.currentPanel);
   });
 
   return _panel;
@@ -190,6 +195,8 @@ var Panel = function(url) {
 var KeyboardPanel = (function() {
   var _panel = null;
   var _listView = null;
+
+  // A template function for generating an UI element for a keyboard object.
   var _keyboardTemplate = function kl_keyboardTemplate(keyboard, recycled) {
     var container = null;
     var span;
@@ -202,12 +209,11 @@ var KeyboardPanel = (function() {
 
       container.classList.add('keyboard-menuItem');
       container.appendChild(span);
-
-      container.addEventListener('click', function() {
-        keyboard.app.launch();
-      });
     }
 
+    container.onclick = function() {
+      keyboard.app.launch();
+    };
     span.textContent = keyboard.name;
     return container;
   };
@@ -226,8 +232,8 @@ var KeyboardPanel = (function() {
   };
 
   return {
-    init: function kl_init(url) {
-      _panel = Panel(url);
+    init: function kl_init(panelID) {
+      _panel = Panel(panelID);
       _panel.observe('visible', _visibilityChanged);
       _initAllKeyboardListView();
     }
@@ -237,6 +243,8 @@ var KeyboardPanel = (function() {
 var EnabledLayoutsPanel = (function() {
   var _panel = null;
   var _listView = null;
+
+  // A template function for generating an UI element for a layout object.
   var _layoutTemplate = function ks_layoutTemplate(layout, recycled) {
     var container = null;
     var span;
@@ -266,8 +274,8 @@ var EnabledLayoutsPanel = (function() {
   };
 
   return {
-    init: function ks_init(url) {
-      _panel = Panel(url);
+    init: function ks_init(panelID) {
+      _panel = Panel(panelID);
       _panel.observe('visible', _visibilityChanged);
       _initEnabledLayoutListView();
     }
@@ -277,6 +285,8 @@ var EnabledLayoutsPanel = (function() {
 var InstalledLayoutsPanel = (function() {
   var _panel = null;
   var _listView = null;
+
+  // A template function for generating an UI element for a layout object.
   var _layoutTemplate = function ksa_layoutTemplate(layout, recycled) {
     var container = null;
     var layoutName, checkbox;
@@ -299,14 +309,12 @@ var InstalledLayoutsPanel = (function() {
 
       container.appendChild(label);
       container.appendChild(layoutName);
-
-      // event handlers
-      checkbox.addEventListener('change', function() {
-        layout.enabled = this.checked;
-      });
     }
 
-    //XXX we should display an unique name here, not just layout name.
+    checkbox.onchange = function() {
+      layout.enabled = this.checked;
+    };
+
     layoutName.textContent = layout.name;
     checkbox.checked = layout.enabled;
 
@@ -337,8 +345,8 @@ var InstalledLayoutsPanel = (function() {
   };
 
   return {
-    init: function ksa_init(url) {
-      _panel = Panel(url);
+    init: function ksa_init(panelID) {
+      _panel = Panel(panelID);
       _panel.observe('visible', _visibilityChanged);
       _initInstalledLayoutListView();
     }
