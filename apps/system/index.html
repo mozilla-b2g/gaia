@@ -233,6 +233,10 @@
     <!-- Captive Portal Login -->
     <script defer src="js/captive_portal.js"></script>
 
+    <!-- CDMA Emergency Callback Mode Manager-->
+    <script defer src="js/emergency_callback_manager.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/emergency_callback_manager/emergency_callback_manager.css">
+
     <!-- Windows -->
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
@@ -328,6 +332,8 @@
       <div id="statusbar" data-z-index-level="statusbar">
         <!-- Carrier & date label -->
         <div id="statusbar-label" class="sb-start-upper"></div>
+        <!-- CDMA emergency callback Notification -->
+        <div id="statusbar-emergency-cb-notification" class="sb-start sb-icon sb-emergency-cb-icon-notification" hidden></div>
         <!-- Notification -->
         <div id="statusbar-notification" class="sb-start sb-icon sb-icon-notification"
           data-num="" hidden></div>
@@ -385,6 +391,15 @@
             <div class="activity">
             </div>
             <div class="message">
+            </div>
+          </div>
+          <!-- Emergency callback Manager -->
+          <div id="emergency-callback-notification" class="fake-notification">
+            <div class="icon">
+            </div>
+            <div class="message" data-l10n-id="emergency-callback-mode">
+            </div>
+            <div class="timer">
             </div>
           </div>
           <!-- Storage watcher notification -->
@@ -824,6 +839,23 @@
         </menu>
       </form>
 
+      <form id="emergency-callback-dialog" role="dialog" data-type="confirm"
+            data-z-index-level="emergency-callback-dialog" class="generic-dialog">
+        <section>
+          <h1 data-l10n-id="confirmation">Confirmation</h1>
+          <p id="emergency-callback-dialog-wrapper">
+            <img id="emergency-callback-icon"/>
+            <strong data-l10n-id="emergency-callback-mode">Emergency call back mode</strong>
+            <small id="emergency-callback-timer"></small>
+          </p>
+          <p data-l10n-id="emergency-callback-dialog-message">Telecom services and internet are disable due to emergency call back mode. Would you like to turn off the mode?</p>
+        </section>
+        <menu data-items="2">
+          <button type="reset" id="emergency-callback-stay-button" data-l10n-id="cancel">Cancel</button>
+          <button class="recommend" type="button" id="emergency-callback-exit-button" data-l10n-id="Ok">ok</button>
+        </menu>
+      </form>
+
       <form id="updates-viaDataConnection-dialog" data-type="confirm" role="dialog" data-z-index-level="updates-viaDataConnection-dialog" class="generic-dialog">
         <section>
           <h1 data-l10n-id="downloadUpdatesViaDataConnection">
@@ -907,6 +939,15 @@
         <div class="icon">
         </div>
         <div class="message">
+        </div>
+      </div>
+
+      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster">
+        <div class="icon">
+        </div>
+        <div class="message" data-l10n-id="emergency-callback-mode">
+        </div>
+        <div class="timer">
         </div>
       </div>
 
