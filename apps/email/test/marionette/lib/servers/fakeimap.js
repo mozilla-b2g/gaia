@@ -47,7 +47,9 @@ function use(options, mochaContext) {
   var imapStack;
 
   suiteSetup(function(done) {
+    this.timeout('20s');
     server.create(function(err, control) {
+      console.log('CREATE ERR', err);
       controlServer = control;
       done(err);
     });
