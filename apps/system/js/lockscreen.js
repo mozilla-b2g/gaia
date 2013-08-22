@@ -140,6 +140,7 @@ var LockScreen = {
     /* Gesture */
     this.area.addEventListener('mousedown', this);
     this.areaCamera.addEventListener('click', this);
+    this.altCamera.addEventListener('click', this);
     this.areaUnlock.addEventListener('click', this);
     this.iconContainer.addEventListener('mousedown', this);
 
@@ -299,7 +300,8 @@ var LockScreen = {
 
       case 'click':
         if (evt.target === this.areaUnlock ||
-           evt.target === this.areaCamera) {
+           evt.target === this.areaCamera ||
+           evt.target === this.altCamera) {
           this.handleIconClick(evt.target);
           break;
         }
@@ -470,6 +472,7 @@ var LockScreen = {
     var self = this;
     switch (target) {
       case this.areaCamera:
+      case this.altCamera:
         var panelOrFullApp = function panelOrFullApp() {
           // If the passcode is enabled and it has a timeout which has passed
           // switch to secure camera

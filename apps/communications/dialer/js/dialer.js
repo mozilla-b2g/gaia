@@ -180,7 +180,7 @@ var CallHandler = (function callHandler() {
       if (command[3] === '>') {
         var pos = parseInt(command.substring(4), 10);
 
-        CallLogDBManager.getGroupAtIndex(pos, 'lastEntryDate', true, null,
+        CallLogDBManager.getGroupAtPosition(pos, 'lastEntryDate', true, null,
           function(result) {
             if (result && (typeof result === 'object') && result.number) {
               CallHandler.call(result.number);
