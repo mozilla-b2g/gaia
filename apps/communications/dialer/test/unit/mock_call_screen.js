@@ -11,6 +11,9 @@ var MockCallScreen = {
   setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
   },
+  setMute: function(value) {
+    this.mMuteOn = value;
+  },
   mute: function() {
     this.mMuteOn = true;
   },

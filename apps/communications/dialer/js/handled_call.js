@@ -24,6 +24,7 @@ function HandledCall(aCall, aNode) {
     return;
 
   this.node = aNode;
+  this.muted = false;
   this.durationNode = aNode.querySelector('.duration');
   this.durationChildNode = aNode.querySelector('.duration span');
   this.directionNode = aNode.querySelector('.duration .direction');
@@ -266,6 +267,7 @@ HandledCall.prototype.connected = function hc_connected() {
   this.updateDirection();
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
+  CallScreen.setMute(this.muted);
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {

@@ -108,6 +108,15 @@ var CallScreen = {
     CallsHandler.toggleMute();
   },
 
+  setMute: function cs_setMute(value) {
+    value ? this.mute() : this.unmute();
+  },
+
+  mute: function cs_mute() {
+    this.muteButton.classList.add('mute');
+    CallsHandler.mute();
+  },
+
   unmute: function cs_unmute() {
     this.muteButton.classList.remove('mute');
     CallsHandler.unmute();
