@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['alert', 'NotificationUtils']);
+mocha.globals(['alert', 'Notify']);
 
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -229,8 +229,8 @@ suite('ActivityHandler', function() {
       });
 
       setup(function() {
-        this.sinon.stub(NotificationUtils, 'ringtone');
-        this.sinon.stub(NotificationUtils, 'vibrate');
+        this.sinon.stub(Notify, 'ringtone');
+        this.sinon.stub(Notify, 'vibrate');
 
         message = MockMessages.sms({ messageClass: 'class-0' });
         MockNavigatormozSetMessageHandler.mTrigger('sms-received', message);
@@ -238,14 +238,14 @@ suite('ActivityHandler', function() {
       });
 
       test('play ringtone', function() {
-        var spied = NotificationUtils.ringtone;
+        var spied = Notify.ringtone;
         assert.ok(spied.called);
-        spied = NotificationUtils.vibrate;
+        spied = Notify.vibrate;
         assert.ok(spied.called);
       });
 
       test('vibrate', function() {
-        var spied = NotificationUtils.vibrate;
+        var spied = Notify.vibrate;
         assert.ok(spied.called);
       });
     });

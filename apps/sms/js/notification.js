@@ -51,7 +51,7 @@
     }
   }
 
-  var NotificationUtils = {
+  var Notify = {
     ringtone: function notification_ringtone() {
       if (settings['audio.volume.notification'] &&
           settings['notification.ringtone']) {
@@ -66,5 +66,5 @@
     }
   };
 
-  exports.NotificationUtils = NotificationUtils;
+  exports.Notify = Notify;
 }(this));
