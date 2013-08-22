@@ -108,23 +108,27 @@ function iconDescriptor(directory, app_name, entry_point) {
 // zeroth grid page is the dock
 let customize = {'homescreens': [
   [
-    ['apps', 'communications', 'dialer'],
+/** TRAVIS!!        ['apps', 'communications', 'dialer'],
     ['apps', 'sms'],
     ['apps', 'communications', 'contacts'],
     ['apps', 'browser']
+*/
   ], [
+  /** TRAVIS!!     
     ['apps', 'camera'],
     ['apps', 'gallery'],
     ['apps', 'fm'],
     ['apps', 'settings'],
     [GAIA_EXTERNAL_APP_SRCDIR, 'marketplace.firefox.com']
+*/
   ], [
-    ['apps', 'calendar'],
+/** TRAVIS!!        ['apps', 'calendar'], */
     ['apps', 'clock'],
     ['apps', 'costcontrol'],
-    ['apps', 'email'],
+/** TRAVIS!!    ['apps', 'email'],
     ['apps', 'music'],
     ['apps', 'video']
+*/
   ]
 ],
   'search_page': {
@@ -200,6 +204,7 @@ let init = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR,
 writeContent(init, JSON.stringify(content));
 
 // SMS
+/** TRAVIS!!    
 init = getFile(GAIA_DIR, 'apps', 'sms', 'js', 'blacklist.json');
 content = ['4850', '7000'];
 
@@ -263,7 +268,8 @@ content = {
 };
 
 writeContent(init, getDistributionFileContent('browser', content));
-
+*/
+/** TRAVIS!!     
 // Active Sensors
 init = getFile(GAIA_DIR, 'apps', 'settings', 'resources', 'sensors.json');
 content = { ambientLight: true };
@@ -284,7 +290,7 @@ content = {
 };
 
 writeContent(init, getDistributionFileContent('network', content));
-
+*/
 // ICC / STK
 init = getFile(GAIA_DIR, 'apps', 'system', 'resources', 'icc.json');
 content = {
@@ -299,6 +305,7 @@ content = {};
 
 writeContent(init, getDistributionFileContent('wapuaprof.json', content));
 
+/** TRAVIS!!    
 // Calendar Config
 init = getFile(GAIA_DIR, 'apps', 'calendar', 'js', 'presets.js');
 content = {
@@ -361,7 +368,8 @@ content = {
 
 writeContent(init, 'Calendar.Presets = ' +
              getDistributionFileContent('calendar', content) + ';');
-
+*/
+/** TRAVIS!!    
 // Communications config
 init = getFile(GAIA_DIR, 'apps', 'communications', 'contacts', 'config.json');
 content = {
@@ -388,3 +396,4 @@ if (OFFICIAL === '1') {
 
 writeContent(init, 'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
   getDistributionFileContent('communications_services', content) + ';');
+*/
