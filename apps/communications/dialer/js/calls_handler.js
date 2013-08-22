@@ -566,8 +566,16 @@ var CallsHandler = (function callsHandler() {
     handledCalls[lastCallIndex].call.hangUp();
   }
 
+  function mute() {
+    telephony.muted = true;
+    var activeCall = this.activeCall();
+    activeCall && (activeCall.muted = true);
+  }
+
   function unmute() {
     telephony.muted = false;
+    var activeCall = this.activeCall();
+    activeCall && (activeCall.muted = false);
   }
 
   function turnSpeakerOn() {
@@ -589,7 +597,7 @@ var CallsHandler = (function callsHandler() {
   }
 
   function toggleMute() {
-    telephony.muted = !telephony.muted;
+    telephony.muted ? this.unmute() : this.mute();
   }
 
   function toggleSpeaker() {
@@ -633,6 +641,7 @@ var CallsHandler = (function callsHandler() {
     updateKeypadEnabled: updateKeypadEnabled,
     toggleMute: toggleMute,
     toggleSpeaker: toggleSpeaker,
+    mute: mute,
     unmute: unmute,
     turnSpeakerOn: turnSpeakerOn,
     turnSpeakerOff: turnSpeakerOff,

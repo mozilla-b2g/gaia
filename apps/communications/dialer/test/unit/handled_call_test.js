@@ -189,6 +189,12 @@ suite('dialer/handled_call', function() {
     test('speaker initially off', function() {
       assert.isFalse(MockCallScreen.mSpeakerOn);
     });
+
+    test('recall mute status', function() {
+      subject.muted = true;
+      mockCall._connect();
+      assert.isTrue(MockCallScreen.mMuteOn);
+    });
   });
 
   suite('on disconnect', function() {

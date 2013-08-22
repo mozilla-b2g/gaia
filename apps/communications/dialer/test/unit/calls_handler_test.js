@@ -519,5 +519,45 @@ suite('calls handler', function() {
         });
       });
     });
+
+    suite('CallsHandler.toggleMute()', function() {
+      var firstHandledCall;
+      var secondHandledCall;
+      setup(function() {
+        var firstCall = new MockCall('12345', 'incoming');
+        var secondCall = new MockCall('54321', 'incoming');
+
+        firstHandledCall =
+            telephonyAddCall.call(this, firstCall, {trigger: true});
+        secondHandledCall =
+            telephonyAddCall.call(this, secondCall, {trigger: true});
+        MockMozTelephony.active = secondCall;
+        MockMozTelephony.muted = false;
+      });
+
+      test('should set muted properties for the active call',
+      function() {
+        CallsHandler.toggleMute();
+        assert.isTrue(secondHandledCall.muted);
+        CallsHandler.toggleMute();
+        assert.isFalse(secondHandledCall.muted);
+      });
+
+      test('should set muted properties to for mozTelephony',
+      function() {
+        CallsHandler.toggleMute();
+        assert.isTrue(MockMozTelephony.muted);
+        CallsHandler.toggleMute();
+        assert.isFalse(MockMozTelephony.muted);
+      });
+
+      test('should not set muted properties for inactive calls',
+      function() {
+        CallsHandler.toggleMute();
+        assert.isFalse(firstHandledCall.muted);
+        CallsHandler.toggleMute();
+        assert.isFalse(firstHandledCall.muted);
+      });
+    });
   });
 });

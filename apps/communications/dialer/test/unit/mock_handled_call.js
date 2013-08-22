@@ -2,6 +2,7 @@
 
 function MockHandledCall(call) {
   this.call = call;
+  this.muted = false;
 }
 
 MockHandledCall.prototype.handleEvent = function hc_handle(evt) {
