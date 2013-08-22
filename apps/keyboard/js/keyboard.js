@@ -221,6 +221,7 @@ const keyboardGroups = {
   'german': ['de'],
   'hungarian': ['hu'],
   'norwegian': ['nb'],
+  'swedish': ['sv'],
   'slovak': ['sk'],
   'turkish': ['tr-Q', 'tr-F'],
   'romanian': ['ro'],
