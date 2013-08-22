@@ -223,30 +223,24 @@ Calendar.App = (function(window) {
       // Loading NotAnd and the load config is not really needed
       // for the initial load so we lazily load them the first time we
       // need to load a file...
-
-      var pending = 2;
       var self = this;
 
       function next() {
-        if (!--pending) {
-          // initialize loader
-          NotAmd.nextTick = Calendar.nextTick;
-          self._loader = NotAmd(Calendar.LoadConfig);
-          self.loadObject = loadObject;
+        // initialize loader
+        NotAmd.nextTick = Calendar.nextTick;
+        self._loader = NotAmd(Calendar.LoadConfig);
+        self.loadObject = loadObject;
 
-          // begin processing existing requests
-          self._pendingObjects.forEach(function(pair) {
-            // ['ObjectName', function() { ... }]
-            loadObject.call(self, pair[0], pair[1]);
-          });
-
-        }
+        // begin processing existing requests
+        self._pendingObjects.forEach(function(pair) {
+          // ['ObjectName', function() { ... }]
+          loadObject.call(self, pair[0], pair[1]);
+        });
 
         delete self._pendingObjects;
       }
 
-      this.loadScript('/js/ext/notamd.js', next);
-      this.loadScript('/js/load_config.js', next);
+      LazyLoader.load(['/js/ext/notamd.js', '/js/load_config.js'], next);
     },
 
     /**
@@ -357,8 +351,6 @@ Calendar.App = (function(window) {
       document.body.classList.remove('loading');
       this._routes();
 
-      setTimeout(this.loadDOM.bind(this), 0);
-
        //lazy load recurring event expander so as not to impact initial load.
       this.loadObject('Controllers.RecurringEvents', function() {
         self.recurringEventsController =
@@ -375,6 +367,10 @@ Calendar.App = (function(window) {
       this.view('FirstTimeUse', function(firstTimeUse) {
         firstTimeUse.doFirstTime();
       });
+
+      setTimeout(function nextTick() {
+        this.view('Errors');
+      }.bind(this), 0);
     },
 
     /**
@@ -416,55 +412,6 @@ Calendar.App = (function(window) {
       this.db.load(function() {
         next();
       });
-    },
-
-    /**
-     * Why is this random function here???
-     * To load the lazy loader... then this is used there.
-     */
-    loadScript: function(source, cb) {
-      var el = document.createElement('script');
-      el.src = source;
-      el.type = 'text/javascript';
-      el.async = false;
-      el.defer = true;
-
-      el.onerror = function scriptError(err) {
-        cb(new Error('could not load script "' + source + '"'));
-      };
-
-      el.onload = function scriptLoad() {
-        cb();
-      };
-
-      document.head.appendChild(el);
-    },
-
-    /**
-     * Loads delayed DOM nodes specified by div.delay
-     * Each .delay node has a single comment with markup
-     * This gets us to the initial render ~400ms faster
-     */
-    loadDOM: function() {
-      var delayedNodes = document.querySelectorAll('.delay');
-      for (var i = 0, node; node = delayedNodes[i]; i++) {
-        var newEl = document.createElement('div');
-        newEl.innerHTML = node.childNodes[0].nodeValue;
-
-        // translate content
-        navigator.mozL10n.translate(newEl);
-
-        var parent = node.parentNode;
-        var lastEl = node.nextElementSibling;
-        var child;
-        while (child = newEl.children[0]) {
-          parent.insertBefore(child, lastEl);
-        }
-
-        parent.removeChild(node);
-      }
-
-      this.view('Errors');
     },
 
     /**
