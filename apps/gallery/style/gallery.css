@@ -302,7 +302,7 @@ body.hidden *[data-l10n-id] {
 }
 
 #throbber {
-  height: 2.4rem;
+  height: 2.133rem;
   background: url(images/progress.png) repeat-x center center / 1rem;
 }
 
@@ -315,7 +315,7 @@ body.hidden *[data-l10n-id] {
     transform: translateY(0rem);
   }
   to {
-    transform: translateY(-2.1rem);
+    transform: translateY(-1.866rem);
   }
 }
 
