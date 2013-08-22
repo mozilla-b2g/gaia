@@ -70,7 +70,7 @@ ifeq ($(CLEAN_PROFILE), 1)
 	rm -rf $(GAIA_PATH)/profile $(GAIA_PATH)/profile.tar.gz
 endif
 	echo $(GAIA_MAKE_FLAGS) > $(GAIA_PATH)/.b2g.mk
-	$(MAKE) -j1 -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) profile
+	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) profile
 	@if [ ! -d $(GAIA_PATH)/profile/indexedDB ]; then \
 	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) webapps; \
 	else \
