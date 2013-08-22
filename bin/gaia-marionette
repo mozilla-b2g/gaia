@@ -12,7 +12,7 @@ SHARED=$DIR/../shared/test/integration/
 make -C $DIR/../ b2g
 
 # make sure node_modules are 100% up to date
-cd $DIR/.. && npm install && cd $DIR
+`cd $DIR && npm install`
 
 # tests can timeout without the profile-test folder so build it here.
 if [ ! -d $DIR/../profile-test ]; then
