@@ -1198,11 +1198,13 @@ ICAL.parse = (function() {
     var valuePos = line.indexOf(VALUE_DELIMITER);
     var paramPos = line.indexOf(PARAM_DELIMITER);
 
-    var nextPos = 0;
+    var lastParamIndex;
+    var lastValuePos;
+
     // name of property or begin/end
     var name;
     var value;
-    var params;
+    var params = {};
 
     /**
      * Different property cases
@@ -1214,6 +1216,8 @@ ICAL.parse = (function() {
      * 2. ATTENDEE;ROLE=REQ-PARTICIPANT;
      *    // ROLE= is a param because : has not happened yet
      */
+      // when the parameter delimiter is after the
+      // value delimiter then its not a parameter.
 
     if ((paramPos !== -1 && valuePos !== -1)) {
       // when the parameter delimiter is after the
@@ -1223,20 +1227,23 @@ ICAL.parse = (function() {
       }
     }
 
+    var parsedParams;
     if (paramPos !== -1) {
-      // when there are parameters (ATTENDEE;RSVP=TRUE;)
-      name = parser._formatName(line.substr(0, paramPos));
-      params = parser._parseParameters(line, paramPos);
-      if (valuePos !== -1) {
-        value = line.substr(valuePos + 1);
+      name = line.substring(0, paramPos).toLowerCase();
+      parsedParams = parser._parseParameters(line.substring(paramPos), 0);
+      params = parsedParams[0];
+      lastParamIndex = parsedParams[1].length + parsedParams[2] + paramPos;
+      if ((lastValuePos =
+        line.substring(lastParamIndex).indexOf(VALUE_DELIMITER)) !== -1) {
+        value = line.substring(lastParamIndex + lastValuePos + 1);
       }
     } else if (valuePos !== -1) {
       // without parmeters (BEGIN:VCAENDAR, CLASS:PUBLIC)
-      name = parser._formatName(line.substr(0, valuePos));
-      value = line.substr(valuePos + 1);
+      name = line.substring(0, valuePos).toLowerCase();
+      value = line.substring(valuePos + 1);
 
       if (name === 'begin') {
-        var newComponent = [parser._formatName(value), [], []];
+        var newComponent = [value.toLowerCase(), [], []];
         if (state.stack.length === 1) {
           state.component.push(newComponent);
         } else {
@@ -1245,9 +1252,7 @@ ICAL.parse = (function() {
         state.stack.push(state.component);
         state.component = newComponent;
         return;
-      }
-
-      if (name === 'end') {
+      } else if (name === 'end') {
         state.component = state.stack.pop();
         return;
       }
@@ -1279,9 +1284,6 @@ ICAL.parse = (function() {
         valueType = propertyDetails.detectType(value);
       }
     }
-
-    // at this point params is mandatory per jcal spec
-    params = params || {};
 
     // attempt to determine value
     if (!valueType) {
@@ -1347,6 +1349,9 @@ ICAL.parse = (function() {
     var pos = 0;
     var delim = PARAM_NAME_DELIMITER;
     var result = {};
+    var name;
+    var value;
+    var type;
 
     // find the next '=' sign
     // use lastParam and pos to find name
@@ -1356,54 +1361,43 @@ ICAL.parse = (function() {
     while ((pos !== false) &&
            (pos = helpers.unescapedIndexOf(line, delim, pos + 1)) !== -1) {
 
-      var name = line.substr(lastParam + 1, pos - lastParam - 1);
+      name = line.substr(lastParam + 1, pos - lastParam - 1);
 
       var nextChar = line[pos + 1];
-      var substrOffset = -2;
-
       if (nextChar === '"') {
         var valuePos = pos + 2;
         pos = helpers.unescapedIndexOf(line, '"', valuePos);
-        var value = line.substr(valuePos, pos - valuePos);
+        value = line.substr(valuePos, pos - valuePos);
         lastParam = helpers.unescapedIndexOf(line, PARAM_DELIMITER, pos);
       } else {
         var valuePos = pos + 1;
-        substrOffset = -1;
 
         // move to next ";"
         var nextPos = helpers.unescapedIndexOf(line, PARAM_DELIMITER, valuePos);
-
         if (nextPos === -1) {
           // when there is no ";" attempt to locate ":"
           nextPos = helpers.unescapedIndexOf(line, VALUE_DELIMITER, valuePos);
-          // no more tokens end of the line use .length
+
           if (nextPos === -1) {
             nextPos = line.length;
-            // because we are at the end we don't need to trim
-            // the found value of substr offset is zero
-            substrOffset = 0;
-          } else {
-            // next token is the beginning of the value
-            // so we must stop looking for the '=' token.
-            pos = false;
           }
+          pos = false;
         } else {
           lastParam = nextPos;
         }
 
-        var value = line.substr(valuePos, nextPos - valuePos);
+        value = line.substr(valuePos, nextPos - valuePos);
       }
-
-      var type = DEFAULT_TYPE;
 
       if (name in design.param && design.param[name].valueType) {
         type = design.param[name].valueType;
+      } else {
+        type = DEFAULT_TYPE;
       }
 
-      result[parser._formatName(name)] = parser._parseValue(value, type);
+      result[name.toLowerCase()] = parser._parseValue(value, type);
     }
-
-    return result;
+    return [result, value, valuePos];
   }
 
   /**
@@ -6637,4 +6631,3 @@ ICAL.ComponentParser = (function() {
   return ComponentParser;
 
 }());
-

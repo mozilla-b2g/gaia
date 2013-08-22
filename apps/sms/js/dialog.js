@@ -1,3 +1,4 @@
+(function(exports) {
 'use strict';
 
 /*
@@ -37,13 +38,30 @@
   }
 */
 
+// helper to localize an element given parameters
+function createLocalizedElement(tagName, param) {
+  var element = document.createElement(tagName);
+
+  // if we passed in a HTML Fragment, it is already localized
+  if (param.value.nodeType) {
+    element.appendChild(param.value);
+
+  // otherwise if l10n is not false, we use the l10n localize method
+  } else if (param.l10n !== false) {
+    navigator.mozL10n.localize(element, param.value);
+
+  // otherwise - stuff text in here...
+  } else {
+    element.textContent = param.value;
+  }
+  return element;
+}
 
 var Dialog = function(params) {
   // We need, at least, one cancel option string
   if (!params || !params.options || !params.options.cancel) {
     return;
   }
-  var _ = navigator.mozL10n.get;
   var handlers = new WeakMap();
    // Create the structure
   this.form = document.createElement('form');
@@ -53,20 +71,9 @@ var Dialog = function(params) {
 
   // We fill the main info
 
-  // The title should take into account localization as well
-  var titleDOM = document.createElement('strong');
-  var title = (!params.title.l10n) ? params.title.value : _(params.title.value);
-  titleDOM.textContent = title;
-  if (params.title.l10n) {
-    titleDOM.dataset.l10nId = params.title.value;
-  }
-  // We make the same for the body
-  var bodyDOM = document.createElement('small');
-  var body = (!params.body.l10n) ? params.body.value : _(params.body.value);
-  bodyDOM.textContent = body;
-  if (params.body.l10n) {
-    bodyDOM.dataset.l10nId = params.body.value;
-  }
+  // take into account localization as well
+  var titleDOM = createLocalizedElement('strong', params.title);
+  var bodyDOM = createLocalizedElement('small', params.body);
 
   // Adding this elements to the DOM
   var infoSection = document.createElement('section');
@@ -83,26 +90,14 @@ var Dialog = function(params) {
   // per button
   var menu = document.createElement('menu');
   // Default button (Cancel button). It's mandatory
-  var cancelButton = document.createElement('button');
   var cancelOption = params.options.cancel;
-  var cancel = !cancelOption.text.l10n ?
-      cancelOption.text.value : _(cancelOption.text.value);
-  cancelButton.textContent = cancel;
-  if (cancelOption.text.l10n) {
-    cancelButton.dataset.l10nId = cancelOption.text.value;
-  }
+  var cancelButton = createLocalizedElement('button', cancelOption.text);
   handlers.set(cancelButton, cancelOption);
 
   if (params.options.confirm) {
     var confirmOption = params.options.confirm;
-    var confirmButton = document.createElement('button');
-    var confirm = !confirmOption.text.l10n ?
-        confirmOption.text.value : _(confirmOption.text.value);
-    confirmButton.textContent = confirm;
+    var confirmButton = createLocalizedElement('button', confirmOption.text);
     cancelButton.className = 'recommend';
-    if (confirmOption.text.l10n) {
-      confirmButton.dataset.l10nId = confirmOption.text.value;
-    }
     handlers.set(confirmButton, confirmOption);
     menu.appendChild(confirmButton);
   } else {
@@ -144,3 +139,9 @@ Dialog.prototype.show = function() {
 Dialog.prototype.hide = function() {
   document.body.removeChild(this.form);
 };
+
+exports.Dialog = Dialog;
+
+// end global closure
+}(this));
+

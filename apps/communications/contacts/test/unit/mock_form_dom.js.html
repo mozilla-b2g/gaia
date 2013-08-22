@@ -1,10 +1,11 @@
 var MockFormDom = '<section id="view-contact-form" role="region" data-mirror="mirror-contact-form" class="view view-edit-contact">';
     MockFormDom += '<header>';
-    MockFormDom += '      <button class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>';
+    MockFormDom += '      <button id="cancel-edit" class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>';
     MockFormDom += '      <menu type="toolbar" role="menu" id="contact-form-actions">';
     MockFormDom += '        <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>';
     MockFormDom += '      </menu>';
     MockFormDom += '      <h1 id="contact-form-title"></h1>';
+    MockFormDom += '      <progress id="throbber" value="0" max="100" class="pack-activity hide"></progress>';
     MockFormDom += '    </header>';
 
     MockFormDom += '    <!-- PHONE TEMPLATE -->';

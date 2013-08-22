@@ -1,11 +1,10 @@
 'use strict';
 
 requireApp('sms/js/action_menu.js');
-
-
+requireApp('sms/test/unit/mock_l10n.js');
 
 suite('OptionMenu', function() {
-  var options, menu, formHeader, formSection;
+  var options, menu, formHeader, formSection, realL10n;
 
   suiteSetup(function() {
     options = {
@@ -21,13 +20,23 @@ suite('OptionMenu', function() {
           params: ['foo']
         },
         {
-          name: 'cancel'
+          l10nId: 'cancel',
+          l10nArgs: { test: true }
         }
       ]
     };
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
   });
 
   setup(function() {
+    this.sinon.spy(navigator.mozL10n, 'localize');
+    this.sinon.spy(navigator.mozL10n, 'translate');
+
     menu = new OptionMenu(options);
 
     formHeader = menu.form.querySelector('header');
@@ -49,23 +58,29 @@ suite('OptionMenu', function() {
       assert.ok(OptionMenu.prototype.hide);
     });
 
-    test('menu.show()', function() {
-      menu.show();
-      assert.equal(
-        menu.form, document.body.lastElementChild
-      );
-    });
+    suite('menu.show()', function() {
+      setup(function() {
+        menu.show();
+      });
 
-    test('menu.hide()', function() {
-      menu.show();
-      assert.equal(
-        menu.form, document.body.lastElementChild
-      );
+      test('appends element to body', function() {
+        assert.equal(
+          menu.form, document.body.lastElementChild
+        );
+      });
+      test('calls navigator.mozL10n.translate', function() {
+        assert.ok(navigator.mozL10n.translate.calledWith(menu.form));
+      });
 
-      menu.hide();
-      assert.notEqual(
-        menu.form, document.body.lastElementChild
-      );
+      suite('menu.hide()', function() {
+        setup(function() {
+          menu.hide();
+        });
+
+        test('removes element from DOM', function() {
+          assert.equal(menu.parentElement, null);
+        });
+      });
     });
   });
 
@@ -124,8 +139,20 @@ suite('OptionMenu', function() {
   });
 
   suite('Options', function() {
+    var buttons;
+    setup(function() {
+      buttons = menu.form.querySelectorAll('button');
+    });
     test('Buttons', function() {
-      assert.equal(menu.form.querySelectorAll('button').length, 2);
+      assert.equal(buttons.length, 2);
+    });
+    test('Button Text', function() {
+      assert.equal(buttons[0].textContent, options.items[0].name);
+    });
+    test('Localized button', function() {
+      assert.ok(navigator.mozL10n.localize.calledWith(
+        buttons[1], options.items[1].l10nId, options.items[1].l10nArgs
+      ), 'localized with mozL10n.localize');
     });
   });
 

@@ -91,7 +91,7 @@
       "filters": {
         "type": {
           "required": true,
-          "value": ["webcontacts/contact","webcontacts/email"]
+          "value": ["webcontacts/contact","webcontacts/email","webcontacts/tel"]
         }
        },
       "disposition": "inline",
@@ -123,21 +123,6 @@
       "returnValue": true
     },
     "dial": {
-      "filters": {
-        "type": "webtelephony/number",
-        "number": { "pattern":"[\\d\\s+#*().-]{0,50}" }
-      },
-      "href": "/dialer/index.html#keyboard-view",
-      "disposition": "window"
-    },
-    "nfc-ndef-discovered": {
-      "filters": {
-        "type": "text/vcard"
-      },
-      "disposition": "inline",
-      "href": "/contacts/index.html?new"
-    },
-    "nfc-ndef-discovered": {
       "filters": {
         "type": "webtelephony/number",
         "number": { "pattern":"[\\d\\s+#*().-]{0,50}" }

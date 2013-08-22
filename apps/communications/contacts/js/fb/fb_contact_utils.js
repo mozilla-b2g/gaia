@@ -209,12 +209,12 @@ fb.getBirthDate = function getBirthDate(sbday) {
   return out;
 };
 
-fb.getAddress = function(fbdata) {
+fb.getAddresses = function(fbdata) {
 
-  function fillAddress(fbAddress) {
+  function fillAddress(fbAddress, type) {
     var outAddr = {};
 
-    outAddr.type = ['home'];
+    outAddr.type = [type];
     outAddr.locality = fbAddress.city || '';
     outAddr.region = fbAddress.state || '';
     outAddr.countryName = fbAddress.country || '';
@@ -222,13 +222,18 @@ fb.getAddress = function(fbdata) {
     return outAddr;
   }
 
-  var out;
+  var out = [];
+  var addrTypes = {
+    'home': 'hometown_location',
+    'current': 'current_location'
+  };
 
-  var addressInfo = fbdata.current_location || fbdata.hometown_location;
-  if (addressInfo) {
-    out = fillAddress(addressInfo);
-  }
-
+  Object.keys(addrTypes).forEach(function onAddressType(type) {
+    var addrObj = fbdata[addrTypes[type]];
+    if (addrObj) {
+      out.push(fillAddress(addrObj, type));
+    }
+  });
   return out;
 };
 

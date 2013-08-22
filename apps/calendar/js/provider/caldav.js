@@ -270,6 +270,21 @@ Calendar.ns('Provider').Caldav = (function() {
         calendar: calendar
       });
 
+      pull.on('complete', function() {
+        var trans = pull.calendarStore.db.transaction(
+          ['calendars', 'events', 'busytimes', 'alarms', 'icalComponents'],
+          'readwrite'
+        );
+
+        calendar.error = undefined;
+
+        calendar.lastEventSyncToken = calendar.remote.syncToken;
+        calendar.lastEventSyncDate = syncStart;
+
+        calendarStore.persist(calendar, trans);
+        callback();
+
+      });
       var calendarStore = this.app.store('Calendar');
       var syncStart = new Date();
 
@@ -283,26 +298,6 @@ Calendar.ns('Provider').Caldav = (function() {
             })
           );
         }
-
-        var trans = pull.commit(function(commitErr) {
-          if (commitErr) {
-            callback(err);
-            return;
-          }
-          callback(null);
-        });
-
-        /**
-         * Successfully synchronizing a calendar indicates we can remove this
-         * error.
-         */
-        calendar.error = undefined;
-
-        calendar.lastEventSyncToken = calendar.remote.syncToken;
-        calendar.lastEventSyncDate = syncStart;
-
-        calendarStore.persist(calendar, trans);
-
       });
 
       return pull;
@@ -414,30 +409,34 @@ Calendar.ns('Provider').Caldav = (function() {
           groups[calendarId].push(comp);
         });
 
-        var pullGroups = [];
+        var streamAndPullGroup = [];
         var pending = 0;
         var options = {
           maxDate: Calendar.Calc.dateToTransport(maxDate)
         };
 
-        function next(err, pull) {
-          pullGroups.push(pull);
+        function next(err, streamAndPull) {
+          streamAndPullGroup.push(streamAndPull);
           if (!(--pending)) {
-            var trans = self.app.db.transaction(
-              ['icalComponents', 'alarms', 'busytimes'],
-              'readwrite'
-            );
+            var pullCompleteCounter = 0;
 
-            trans.oncomplete = function() {
-              callback(null, true);
-            };
-
-            trans.onerror = function(event) {
-              callback(event.result.error.name);
-            };
-
-            pullGroups.forEach(function(pull) {
-              pull.commit(trans);
+            /**
+             *  Request stream data and wait for complete of all pulls
+             *  and streams of streamAndPullGroup. When all pulls are
+             *  complete, fire callback.
+             */
+            streamAndPullGroup.forEach(function(streamPull) {
+              streamPull.pull.on('complete', function() {
+                pullCompleteCounter++;
+                if (pullCompleteCounter === streamAndPullGroup.length) {
+                  callback(null, true);
+                }
+              });
+              streamPull.stream.request(function(err) {
+                if (err) {
+                  callback(err);
+                }
+              });
             });
           }
         }
@@ -484,13 +483,13 @@ Calendar.ns('Provider').Caldav = (function() {
             ]
           }
         );
-
-        stream.request(function(err) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          callback(null, pull);
+        // We pass back the stream and its associated caldavpullevent,
+        // because we want to stream and commit events only when all
+        // calendar account combinations have had corresponding pull
+        // and stream objects created.
+        callback(null, {
+          stream: stream,
+          pull: pull
         });
 
       }.bind(this));

@@ -30,13 +30,13 @@ var AlarmList = {
       return;
 
     if (link === this.newAlarmButton) {
-      ClockView.hide();
+
       this.alarmEditView();
     } else if (link.classList.contains('input-enable')) {
       this.toggleAlarmEnableState(link.checked,
         this.getAlarmFromList(parseInt(link.dataset.id, 10)));
     } else if (link.classList.contains('alarm-item')) {
-      ClockView.hide();
+
       this.alarmEditView(this.getAlarmFromList(
         parseInt(link.dataset.id, 10)));
     }

@@ -12,8 +12,6 @@ var ThreadListUI = {
   inEditMode: false,
 
   init: function thlui_init() {
-    var _ = navigator.mozL10n.get;
-
     this.tmpl = {
       thread: Utils.Template('messages-thread-tmpl')
     };
@@ -122,7 +120,7 @@ var ThreadListUI = {
         };
       }
 
-      name.textContent = navigator.mozL10n.get('thread-header-text', {
+      navigator.mozL10n.localize(name, 'thread-header-text', {
         name: title,
         n: others
       });
@@ -148,7 +146,6 @@ var ThreadListUI = {
   },
 
   checkInputs: function thlui_checkInputs() {
-    var _ = navigator.mozL10n.get;
     var selected = ThreadListUI.selectedInputs.length;
 
     if (selected === ThreadListUI.allInputs.length) {
@@ -159,11 +156,11 @@ var ThreadListUI = {
     if (selected) {
       this.uncheckAllButton.disabled = false;
       this.deleteButton.classList.remove('disabled');
-      this.editMode.innerHTML = _('selected', {n: selected});
+      navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
     } else {
       this.uncheckAllButton.disabled = true;
       this.deleteButton.classList.add('disabled');
-      this.editMode.innerHTML = _('editMode');
+      navigator.mozL10n.localize(this.editMode, 'editMode');
     }
   },
 
@@ -175,7 +172,6 @@ var ThreadListUI = {
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
     this.delNumList = [];
-    this.editMode.textContent = navigator.mozL10n.get('editMode');
     this.checkInputs();
   },
 

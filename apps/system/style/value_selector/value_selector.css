@@ -1,7 +1,7 @@
 #value-selector {
   width: 100%;
-  height: 100%;
-  top: 0;
+  top: 2rem;
+  bottom: 0;
   left: 0;
   position: absolute;
   transition: opacity 0.5s;
@@ -24,153 +24,10 @@
   top: 0;
 }
 
-#select-options-buttons,
-#time-picker-buttons,
-#spin-date-picker-buttons {
-  /* from building blocks, core.css - menu:not([type="toolbar"]*/
-  white-space: nowrap;
-  margin: 0;
-  padding: 0;
-  border-top: 0.2rem solid;
-  -moz-border-top-colors: #000 rgba(255, 255, 255, 0.1);
-  background: #2d2d2d url(../themes/default/images/ui/pattern.png) repeat left top;
-  display: block;
-  overflow: hidden;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  text-align: center;
-  font-size: 0; /* to get rid of the spacing between 2 buttons */
-}
-
-#value-selector button:first-child {
-    margin-right: 0;
-}
-
-#select-options-buttons button,
-#time-picker-buttons button,
-#spin-date-picker-buttons button {
-  /* from building block - other/buttons/style.css*/
-  width: calc((100% - 4.5rem) / 2);  /*overridden for 2 buttons*/
-  -moz-box-sizing: border-box;
-  height: 4rem;
-  margin: 1.4rem 1.5rem;
-  padding: 0 1.5rem;
-  display: inline-block;
-  vertical-align: middle;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  background: #fafafa url(../themes/default/images/ui/default.png) repeat-x left bottom;
-  border: 0.1rem solid #9f9f9f;
-  border-radius: 0.3rem;
-  font-size: 1.6rem;
-  font-weight: 600;
-  line-height: 3.8rem;
-  color: #333;
-  text-align: center;
-  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
-  text-decoration: none;
-  outline: none;
-}
-
-/* Affirmative */
-#value-selector button.affirmative {
-  background-image: url(../themes/default/images/ui/affirmative.png);
-  background-color: #00caf2;
-  border-color: #00acce;
-}
-
-#select-options-buttons button.full {
-  width: calc(100% - 4.5rem);
-  margin: 1.5rem;
-}
-
-/*active class used to complement the "return false" in onmousedown effect */
-#value-selector button.active,
-button.affirmative.active {
-  border-color: #008aaa;
-  background: #008aaa;
-  color: #333;
-}
-
-#value-selector-container li {
-  height: 4.6rem;
-  line-height: 4.6rem;
-}
-
 #value-selector-container li > label {
   pointer-events: none;
-}
-
-#value-selector-container li.active label span {
-  background: #00ABCC;
-  color: #fff !important;
-}
-
-#time-picker-popup,
-#spin-date-picker-popup {
-  top: 0;
-  padding: 0 0 7rem;  /*remove the top padding*/
-
-  /* from building blocks, core.css - [role=dialog]*/
-  background: url(../themes/default/images/ui/pattern.png) repeat left top, url(../themes/default/images/ui/gradient.png) no-repeat left top;
-  background-size: auto auto, 100% 100%;
-  overflow: hidden;
-  position: absolute;
-  z-index: 100;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  white-space: nowrap;
-  padding: 0 0 7rem;  /*remove the top padding*/
-  color: #fff;
-}
-
-#time-picker-popup h3,
-#spin-date-picker-popup h3 {
-  height: 4.8rem;
-  margin: 0 0 1.5rem;
-  padding: 2rem 3rem 0;
-  color: #fff;
-  font-family: sans-serif;
-  font-weight: 400;
-  font-size: 1.9rem;
-  line-height: 4.8rem;
-  border-bottom: 0.2rem solid;
-  -moz-border-bottom-colors: #000 rgba(255, 255, 255, 0.1);
-  background: rgba(0,0,0, .2);
 }
 
 .value-picker > *[data-disabled="true"] {
   visibility: hidden;
 }
-
-/* The following rules is to override the styles defined in building blocks of value selector */
-#value-selector li {
-  height: auto;
-  padding-bottom: 0;
-  line-height: 3.9rem;
-}
-
-#value-selector li span {
-  padding: 1rem 1.5rem;
-  line-height: 4rem;
-  word-wrap: break-word;
-}
-
-#value-selector li input:checked + span,
-#value-selector li[aria-checked="true"] span {
-  padding-right: 2.6rem;
-  margin-right: 1.2rem;
-  background: transparent url("../bb/value_selector/images/icons/checked.png") no-repeat 100% 50%;
-  background-size: 1.9rem;
-}
-
-html[dir="rtl"] #value-selector li input:checked + span,
-html[dir="rtl"] #value-selector li[aria-checked="true"] span {
-  padding-left: 2.6rem;
-  margin-left: 1.2rem;
-}
-

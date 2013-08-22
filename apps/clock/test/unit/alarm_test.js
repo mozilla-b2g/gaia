@@ -1,101 +1,198 @@
-requireApp('clock/js/utils.js');
 requireApp('clock/js/alarmsdb.js');
 requireApp('clock/js/alarm_edit.js');
-requireApp('clock/js/alarm_manager.js');
 requireApp('clock/js/alarm_list.js');
+requireApp('clock/js/alarm_manager.js');
+requireApp('clock/js/utils.js');
+
+requireApp('clock/test/unit/mocks/mock_alarm_list.js');
+requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
+requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
+requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
+
 
 suite('AlarmEditView', function() {
-  var subject;
+  var al, am, nml;
+  var id = 1;
 
-  before(function() {
-    subject = AlarmEdit;
+  suiteSetup(function() {
+    al = AlarmList;
+    am = AlarmManager;
+    nml = navigator.mozL10n;
 
+    AlarmList = MockAlarmList;
+    AlarmManager = MockAlarmManager;
+    navigator.mozL10n = MockmozL10n;
+
+    loadBodyHTML('/index.html');
+  });
+
+  suiteTeardown(function() {
+    AlarmList = al;
+    AlarmManager = am;
+    navigator.mozL10n = nml;
+  });
+
+
+  setup(function() {
     // shim the edit alarm view
-    delete subject.element;
-    subject.element = document.createElement('div');
-    subject.element.dataset.id = '';
-    delete subject.labelInput;
-    subject.labelInput = document.createElement('input');
-    delete subject.timeSelect;
-    subject.timeSelect = document.createElement('input');
-    subject.initTimeSelect();
+    delete AlarmEdit.labelInput;
+    AlarmEdit.labelInput = document.createElement('input');
+    delete AlarmEdit.timeSelect;
+    AlarmEdit.timeSelect = document.createElement('input');
+    AlarmEdit.initTimeSelect();
 
-    sinon.stub(subject, 'getSoundSelect');
-    sinon.stub(subject, 'getVibrateSelect');
-    sinon.stub(subject, 'getSnoozeSelect');
-    sinon.stub(subject, 'getRepeatSelect');
-  });
 
-  beforeEach(function() {
-    subject.alarm = subject.getDefaultAlarm();
-    subject.getSoundSelect.returns(subject.alarm.sound);
-    subject.getVibrateSelect.returns(subject.alarm.vibrate);
-    subject.getSnoozeSelect.returns(subject.alarm.snooze);
-    subject.getRepeatSelect.returns(subject.alarm.repeat);
-  });
+    this.sinon.stub(AlarmEdit, 'getSoundSelect');
+    this.sinon.stub(AlarmEdit, 'getVibrateSelect');
+    this.sinon.stub(AlarmEdit, 'getSnoozeSelect');
+    this.sinon.stub(AlarmEdit, 'getRepeatSelect');
 
-  after(function() {
-    subject.getSoundSelect.restore();
-    subject.getVibrateSelect.restore();
-    subject.getSnoozeSelect.restore();
-    subject.getRepeatSelect.restore();
+    this.sinon.stub(AlarmManager, 'toggleAlarm');
+
+    this.sinon.stub(AlarmManager, 'putAlarm', function(alarm, callback) {
+      alarm.id = id++;
+      callback(alarm);
+    });
+
+    this.sinon.stub(AlarmManager, 'delete', function(alarm, callback) {
+      callback(alarm);
+    });
+
+    AlarmEdit.alarm = AlarmEdit.getDefaultAlarm();
+
+    // Define the stubs to return the same values set in the
+    // default alarm object.
+    AlarmEdit.getSoundSelect.returns(AlarmEdit.alarm.sound);
+    AlarmEdit.getVibrateSelect.returns(AlarmEdit.alarm.vibrate);
+    AlarmEdit.getSnoozeSelect.returns(AlarmEdit.alarm.snooze);
+    AlarmEdit.getRepeatSelect.returns(AlarmEdit.alarm.repeat);
   });
 
   test('should save and delete an alarm', function(done) {
-    var spyRefresh = sinon.stub(AlarmList, 'refresh');
-    subject.save(function(alarm) {
+    this.sinon.stub(AlarmList, 'refresh');
+
+    AlarmEdit.save(function(alarm) {
       assert.ok(alarm.id);
-      sinon.assert.calledOnce(spyRefresh);
-      subject.alarm = alarm;
-      subject.element.dataset.id = alarm.id;
-      subject.delete(function() {
-        sinon.assert.calledTwice(spyRefresh);
-        AlarmList.refresh.restore();
+      assert.ok(AlarmList.refresh.calledOnce);
+      assert.ok(AlarmManager.putAlarm.calledOnce);
+      assert.ok(AlarmManager.toggleAlarm.calledOnce);
+
+      AlarmEdit.alarm = alarm;
+      AlarmEdit.element.dataset.id = alarm.id;
+
+      AlarmEdit.delete(function() {
+        assert.ok(AlarmList.refresh.calledTwice);
         done();
       });
     });
   });
 
   test('should add an alarm with sound, no vibrate', function(done) {
-    var spyRefresh = sinon.stub(AlarmList, 'refresh');
+    this.sinon.stub(AlarmList, 'refresh');
 
     // mock the view to turn off vibrate
-    subject.getVibrateSelect.returns('0');
-    subject.save(function(alarm) {
+    AlarmEdit.getVibrateSelect.returns(0);
+    AlarmEdit.save(function(alarm) {
       assert.ok(alarm.id);
-      sinon.assert.calledOnce(spyRefresh);
-      AlarmList.refresh.restore();
-      AlarmManager.getAlarmById(alarm.id, function(alarm) {
-        assert.equal(alarm.vibrate, 0);
-        assert.notEqual(alarm.sound, 0);
+      assert.ok(AlarmList.refresh.calledOnce);
+      assert.ok(AlarmManager.putAlarm.calledOnce);
+      assert.ok(AlarmManager.toggleAlarm.calledOnce);
+
+
+      assert.equal(alarm.vibrate, 0);
+      assert.notEqual(alarm.sound, 0);
+
+      done();
+    });
+  });
+
+  test('should update existing alarm with no sound, vibrate', function(done) {
+    this.sinon.stub(AlarmList, 'refresh');
+
+    // mock the view to turn sound on and vibrate off
+    AlarmEdit.getVibrateSelect.returns(0);
+    AlarmEdit.save(function(alarm) {
+      assert.ok(alarm.id);
+      assert.ok(AlarmList.refresh.calledOnce);
+      assert.ok(AlarmManager.putAlarm.calledOnce);
+      assert.ok(AlarmManager.toggleAlarm.calledOnce);
+
+      AlarmEdit.getVibrateSelect.returns(1);
+      AlarmEdit.getSoundSelect.returns(0);
+
+      AlarmEdit.alarm = alarm;
+      AlarmEdit.element.dataset.id = alarm.id;
+
+      AlarmEdit.save(function(alarm) {
+        assert.ok(alarm.id);
+        assert.ok(AlarmList.refresh.calledTwice);
+        assert.ok(AlarmManager.putAlarm.calledTwice);
+        assert.ok(AlarmManager.toggleAlarm.calledTwice);
+
+        assert.equal(alarm.vibrate, 1);
+        assert.equal(alarm.sound, 0);
         done();
       });
     });
   });
 
-  test('should update existing alarm with no sound, vibrate', function(done) {
-    var spyRefresh = sinon.stub(AlarmList, 'refresh');
+  suite('initTimeSelect', function() {
+    var alarm;
 
-    // mock the view to turn sound on and vibrate off
-    subject.getVibrateSelect.returns('0');
-    subject.save(function(alarm) {
-      assert.ok(alarm.id);
-      sinon.assert.calledOnce(spyRefresh);
-      subject.getVibrateSelect.returns('1');
-      subject.getSoundSelect.returns('0');
-      subject.alarm = alarm;
-      subject.element.dataset.id = alarm.id;
-      subject.save(function(alarm) {
-        assert.ok(alarm.id);
-        sinon.assert.calledTwice(spyRefresh);
-        AlarmList.refresh.restore();
-        AlarmManager.getAlarmById(alarm.id, function(alarm) {
-          assert.equal(alarm.vibrate, 1);
-          assert.equal(alarm.sound, 0);
-          done();
-        });
-      });
+    suiteSetup(function() {
+      alarm = AlarmEdit.alarm;
+    });
+
+    suiteTeardown(function() {
+      AlarmEdit.alarm = alarm;
+    });
+
+    test('0:0, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '0';
+      AlarmEdit.alarm.minute = '0';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '00:00');
+    });
+
+    test('3:5, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '3';
+      AlarmEdit.alarm.minute = '5';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '03:05');
+    });
+
+    test('9:25, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '9';
+      AlarmEdit.alarm.minute = '25';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '09:25');
+    });
+
+    test('12:55, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '12';
+      AlarmEdit.alarm.minute = '55';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '12:55');
+    });
+
+    test('15:5, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '15';
+      AlarmEdit.alarm.minute = '5';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '15:05');
+    });
+
+    test('23:0, should init time select with format of system time picker',
+      function() {
+      AlarmEdit.alarm.hour = '23';
+      AlarmEdit.alarm.minute = '0';
+      AlarmEdit.initTimeSelect();
+      assert.equal(AlarmEdit.timeSelect.value, '23:00');
     });
   });
-
 });

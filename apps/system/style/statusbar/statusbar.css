@@ -79,7 +79,7 @@ body, html {
   bottom: 0.1rem;
 }
 
-#statusbar-time {
+#statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
   position: relative;
@@ -89,6 +89,11 @@ body, html {
 #statusbar-time span {
   margin: 0 0.3rem;
   font-size: 1rem;
+}
+
+#statusbar-data:not(.sb-icon-data-circle) {
+  background: none;
+  width: auto;
 }
 
 .sb-icon {
@@ -196,31 +201,7 @@ body, html {
   background-position: -8.4rem -6rem;
 }
 
-.sb-icon-data[data-type="H+"] {
-  background-position: 0 -8rem;
-}
-
-.sb-icon-data[data-type="H"] {
-  background-position: -2.1rem -8rem;
-}
-
-.sb-icon-data[data-type="4G"] {
-  background-position: -4.2rem -8rem;
-}
-
-.sb-icon-data[data-type="3G"] {
-  background-position: -6.3rem -8rem;
-}
-
-.sb-icon-data[data-type="E"] {
-  background-position: -8.4rem -8rem;
-}
-
-.sb-icon-data[data-type="2G"] {
-  background-position: -10.5rem -8rem;
-}
-
-.sb-icon-data[data-type="circle"] {
+.sb-icon-data-circle {
   background-position: -12.6rem -8rem;
 }
 

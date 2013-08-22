@@ -10,10 +10,11 @@ var Filmstrip = (function() {
   var items = [];
   var currentItemIndex;
 
+  var DEVICE_RATIO = window.devicePixelRatio;
   // Maximum number of thumbnails in the filmstrip
   var MAX_THUMBNAILS = 5;
-  var THUMBNAIL_WIDTH = 46;  // size of each thumbnail
-  var THUMBNAIL_HEIGHT = 46;
+  var THUMBNAIL_WIDTH = 46 * DEVICE_RATIO;  // size of each thumbnail
+  var THUMBNAIL_HEIGHT = 46 * DEVICE_RATIO;
 
   // Timer for auto-hiding the filmstrip
   var hideTimer = null;
@@ -31,7 +32,7 @@ var Filmstrip = (function() {
   var offscreenImage = new Image();
 
   // Set up event handlers
-  cameraButton.onclick = returnToCameraMode;
+  cameraButton.onclick = hidePreview;
   deleteButton.onclick = deleteCurrentItem;
   shareButton.onclick = shareCurrentItem;
   mediaFrame.addEventListener('swipe', handleSwipe);
@@ -94,8 +95,7 @@ var Filmstrip = (function() {
   };
 
   function previewItem(index) {
-    Camera.resetReturnToCamera();
-    Camera.screenTimeout();
+    Camera.releaseScreenWakeLock();
     // Don't redisplay the item if it is already displayed
     if (currentItemIndex === index)
       return;
@@ -124,9 +124,12 @@ var Filmstrip = (function() {
     });
   }
 
-  function returnToCameraMode() {
-    Camera.setReturnToCamera();
-    Camera.screenWakeLock();
+  function isPreviewShown() {
+    return !preview.classList.contains('offscreen');
+  }
+
+  function hidePreview() {
+    Camera.requestScreenWakeLock();
     Camera.viewfinder.play();        // Restart the viewfinder
     show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
     preview.classList.add('offscreen');
@@ -170,7 +173,7 @@ var Filmstrip = (function() {
 
       // If there are no more items, go back to the camera
       if (items.length === 0) {
-        returnToCameraMode();
+        hidePreview();
       }
       else {
         // Otherwise, switch the frame to display the next item. But if
@@ -234,7 +237,7 @@ var Filmstrip = (function() {
     switch (e.detail.direction) {
     case 'up':   // close the preview if the swipe is fast enough
       if (e.detail.vy < -1)
-        returnToCameraMode();
+        hidePreview();
       break;
     case 'left': // go to next image if fast enough
       if (e.detail.vx < -1 && currentItemIndex < items.length - 1)
@@ -362,7 +365,7 @@ var Filmstrip = (function() {
   // forget all of our state. This also exits preview mode if we're in it.
   function clear() {
     if (!preview.classList.contains('offscreen'))
-      returnToCameraMode();
+      hidePreview();
     items.forEach(function(item) {
       filmstrip.removeChild(item.element);
       URL.revokeObjectURL(item.element.src);
@@ -537,6 +540,8 @@ var Filmstrip = (function() {
     addVideo: addVideo,
     deleteItem: deleteItem,
     clear: clear,
-    setOrientation: setOrientation
+    setOrientation: setOrientation,
+    hidePreview: hidePreview,
+    isPreviewShown: isPreviewShown
   };
 }());

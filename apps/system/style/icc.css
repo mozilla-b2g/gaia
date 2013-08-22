@@ -15,6 +15,10 @@
   display: none;
 }
 
+#icc-input {
+  padding: 2rem 0px 20rem;
+}
+
 #icc-input menu button:first-child,
 #icc-confirm menu button:first-child {
   margin: 0;
@@ -39,15 +43,23 @@
 
 #icc-input.yesnomode button,
 #icc-input.yesnomode menu span {
-    width: calc((100% - 3rem) /4);
+  width: calc((100% - 3rem) /4);
 }
 #icc-input.yesnomode menu .yesnoenabled {
-    margin-left: 1rem;
+  margin-left: 1rem;
 }
 #icc-input.yesnomode menu .yesnoenabled button {
-    width: 100%;
+  width: 100%;
 }
 
 #icc-input.yesnomode .yesnodisabled {
   display: none;
+}
+
+#icc-input .yesnodisabled button[disabled] {
+  background: none repeat scroll 0% 0% rgb(95, 95, 95);
+  color: rgb(77, 77, 77);
+  text-shadow: none;
+  border-color: rgb(77, 77, 77);
+  pointer-events: none;
 }
