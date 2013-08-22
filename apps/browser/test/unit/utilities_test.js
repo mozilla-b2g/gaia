@@ -8,6 +8,8 @@ suite('URL Helper', function() {
       'a . b ?',
       'what is mozilla',
       'what is mozilla?',
+      'www.blah.com foo',
+      'a?some b',
       'docshell site:mozilla.org',
       '?mozilla',
       '?site:mozilla.org docshell'
@@ -18,16 +20,15 @@ suite('URL Helper', function() {
 
   test('isNotURL => false', function() {
     [
+      'http://foo',
       'blerg.co.uk',
       'blach.com',
       'www.blah.com',
-      'www.blah.com foo',
       'a:80',
       'a?',
       'a?b',
-      'a?some b',
-      'data:foo',
-      'http://foo.com'
+      'http://foo.com',
+      'data:about'
     ].forEach(function(input) {
       assert.ok(!UrlHelper.isNotURL(input));
     });
