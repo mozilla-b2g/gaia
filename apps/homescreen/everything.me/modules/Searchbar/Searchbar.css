@@ -83,14 +83,14 @@
         
     #evmeContainer #button-clear {
         position: absolute;
-        top: 1.4rem;
-        right: 0.4rem;
+        top: 1rem;
+        right: 0;
         z-index: 30;
-        width: 2rem;
-        height: 2rem;
+        width: 2.6rem;
+        height: 2.6rem;
         cursor: pointer;
         font-size: 0;
-        background: url(/everything.me/images/search-clear.png) no-repeat 0 0/1.7rem;
+        background: url(/everything.me/images/clear.png) no-repeat 50% 50% / 1.7rem 1.6rem;
         -moz-user-select: none;
         overflow: hidden;
         display: none;
