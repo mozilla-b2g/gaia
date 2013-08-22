@@ -206,7 +206,7 @@ var metadataParser = (function() {
         // If the preview is big enough, use it to create a thumbnail.
         // A preview is big enough if at least one dimension is >= the
         // screen size in both portait and landscape mode.
-        if ((pw >= sw || pw >= sh) && (pw >= sh || ph >= sw)) {
+        if ((pw >= sw || ph >= sh) && (pw >= sh || ph >= sw)) {
           // The final argument true means don't actually create a preview
           createThumbnailAndPreview(previewblob,
                                     function(m) {
