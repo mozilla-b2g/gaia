@@ -689,24 +689,17 @@ form.bottom[role="search"].messages-compose-form {
 }
 
 /*
-  Styles related to the new layout of the composer
+  Styles related to the layout of the composer
 */
-
-
 #messages-to-field {
-  display: none;
-  text-align: left;
-  min-height: 3.5rem;
-  overflow: hidden;
-  border-bottom: .1rem solid #4d4d4d;
-  color: black;
   position: relative;
-  background-color: #fff;
-  margin: 0;
-  padding: 0 1.5rem;
   z-index: 10;
+
+  display: none;
+
+  text-align: left;
+  color: black;
   font-size: 1.465rem;
-  transition: height 0.2s ease-in-out;
 }
 
 section[role="region"].new #messages-to-field {
@@ -714,41 +707,28 @@ section[role="region"].new #messages-to-field {
 }
 
 #to-label {
-  margin: 1.5rem 0.5rem 0 0;
+  margin: 1.5rem 0 0 1.5rem;
+  overflow: hidden;
 
   white-space: nowrap;
   color: black;
   font-size: 1.465rem;
   float: left;
-  overflow: hidden;
 }
 
-#add-contact {
-  display: inline-block;
-  text-align: center;
-  width: 3rem;
+#messages-recipients-list-container {
   position: absolute;
-  right: 0;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-  font-size: 3rem;
-  font-weight: bold;
-  color: black;
-  height: 4rem;
-  line-height: 4rem;
-}
+  top: 0;
+  z-index: -1;
 
-#messages-recipients-list {
-  height: 3.6rem;
-  padding-top: 1.2rem;
-  margin-bottom: 0.8rem;
+  padding: 1.6rem 4rem 0;
   -moz-box-sizing: border-box;
+  border-bottom: 0.1rem solid #4d4d4d;
+  width: 100%;
 
-  transition: height 0.2s ease-in-out;
-  /* From JS, Make this overflow:scroll when it's time to make this field
-   * scrollable */
-  overflow: hidden;
+  background-color: #fff;
+  transition: transform 0.2s ease-in-out;
+  transform: translateY(calc(-100% + 4.5rem));
 }
 
 /*
@@ -757,26 +737,32 @@ Do not remove.
 
 generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 #messages-recipients-list.multiline {
-  overflow-y: scroll;
-  height: {max available height}px;
+  max-height: {max available height}px;
 }
 */
 #messages-recipients-list.singleline {
   overflow-y: hidden;
 }
+#messages-recipients-list.multiline {
+  overflow-y: scroll;
+}
+.multiline #messages-recipients-list-container {
+  transform: translateY(0);
+}
 
 .recipient {
-  background: -moz-linear-gradient(#fff, #f1f1f1);
-  padding: 0 0.8rem;
   display: inline-block;
   overflow: hidden;
+  max-width: calc(100% - 2.3rem);
+  height: 2.2rem;
+  border: .1rem solid #4d4d4d;
+  padding: 0 0.8rem;
+
+  background: -moz-linear-gradient(#fff, #f1f1f1);
   white-space: nowrap;
   text-overflow: ellipsis;
-  max-width: calc(100% - 2.3rem);
-  border: .1rem solid #4d4d4d;
   color: #2c2c2c;
-  height: 2.2rem;
-  margin: .8rem .5rem -0.8rem 0;
+  margin-right: 0.5rem;
   border-radius: .3rem;
   font-size: 1.7rem;
 }
@@ -791,18 +777,21 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   font-size: 1.8rem;
 }
 
+/* Disable padding and margin on empty contenteditable recipients when they do
+ * not have focus. This allows the Recipients List to intelligently collapse
+ * when the final row contains no "assimilated" (i.e. non-contenteditable)
+ * recipients. */
 .recipient[contenteditable=true]:empty {
-  margin: .8rem 0 -0.8rem 0;
-  padding: 0 0;
+  margin: 0;
+  padding: 0;
 }
 
 .recipient[contenteditable=true]:empty:focus {
-  margin: .8rem .5rem -0.8rem 0;
+  margin-right: 0.5rem;
   padding: 0 0.8rem;
 }
 
 .recipient:focus {
-  /*border: dotted 1px red;*/
   font-size: 1.8rem;
 }
 
@@ -875,7 +864,6 @@ section[role="region"].new .article-list[data-type="list"]  li {
 }
 
 .subheader menu {
-  margin-top: 1.3rem;
-
+  margin: 1.5rem 1.5rem 0 0;
   float: right;
 }

@@ -50,7 +50,7 @@
     document.getElementById('icc-stk-app-back').onclick = stkResGoBack;
     document.getElementById('icc-stk-help-exit').onclick = updateMenu;
 
-    window.onunload = function() {
+    window.onbeforeunload = function() {
       responseSTKCommand({
         resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
       }, true);

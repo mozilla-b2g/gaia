@@ -97,6 +97,7 @@ if (DEBUG) {
   prefs.push(["javascript.options.showInConsole", true]);
   prefs.push(["browser.dom.window.dump.enabled", true]);
   prefs.push(["dom.report_all_js_exceptions", true]);
+  prefs.push(["dom.w3c_touch_events.enabled", 1]);
   prefs.push(["webgl.verbose", true]);
 
   // Turn off unresponsive script dialogs so test-agent can keep running...

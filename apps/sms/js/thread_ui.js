@@ -461,6 +461,9 @@ var ThreadUI = global.ThreadUI = {
 
   // Create a recipient from contacts activity.
   requestContact: function thui_requestContact() {
+    // assimilate stranded string before picking a contact.
+    this.assimilateRecipients();
+
     if (typeof MozActivity === 'undefined') {
       console.log('MozActivity unavailable');
       return;
@@ -2165,15 +2168,13 @@ window.confirm = window.confirm; // allow override in unit tests
  * to the recipients list to set its height for
  * multiline mode.
  *
- * @param {Number} available The height (in pixels) available.
+ * @param {Number} height available height (in pixels).
  *
  * @return {Boolean} true if rule was modified, false if not.
  */
 
-function generateHeightRule(available) {
-  var css, index, sheet, sheets, style, tmpl,
-    natural = ThreadUI.recipientsList.scrollHeight,
-    height = Math.min(natural, available);
+function generateHeightRule(height) {
+  var css, index, sheet, sheets, style, tmpl;
 
   if (height === generateHeightRule.prev) {
     return false;
