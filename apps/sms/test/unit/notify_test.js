@@ -26,7 +26,7 @@ suite('check the ringtone and vibrate function', function() {
     navigator.mozSettings = MockNavigatorSettings;
     navigator.vibrate = MockVibrate;
 
-    requireApp('sms/js/notification.js', done);
+    requireApp('sms/js/notify.js', done);
   });
 
   suiteTeardown(function() {

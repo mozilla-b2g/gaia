@@ -221,7 +221,7 @@ suite('ActivityHandler', function() {
       suiteSetup(function(done) {
         realMozSettings = navigator.mozSettings;
         navigator.mozSettings = MockNavigatorSettings;
-        requireApp('sms/js/notification.js', done);
+        requireApp('sms/js/notify.js', done);
       });
 
       suiteTeardown(function() {
