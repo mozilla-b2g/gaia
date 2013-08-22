@@ -372,7 +372,7 @@ contacts.Matcher = (function() {
       };
 
       reqName.onerror = function(e) {
-        window.console.error('Error while trying to find by name: ',
+        window.console.warn('Error while trying to find by name: ',
                                 e.target.error.name);
         resultsByName = [];
         notifyFindNameReady();

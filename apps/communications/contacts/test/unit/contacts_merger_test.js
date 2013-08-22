@@ -86,6 +86,23 @@ suite('Contacts Merging Tests', function() {
       }});
   });
 
+  test('Merge accepts matching results without the `matchings` field',
+                                                                function(done) {
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred Albert'],
+      familyName: ['Müller']
+    };
+    delete toMergeContact.matchings;
+
+    contacts.Merger.merge(new MasterContact(), toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.givenName[0], 'Alfred Albert');
+        assert.equal(result.familyName[0], 'Müller');
+
+        done();
+    }});
+  });
+
   test('Merge first name and last name. incoming names empty', function(done) {
     toMergeContact.matchingContact = {
       givenName: [],
