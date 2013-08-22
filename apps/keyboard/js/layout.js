@@ -632,7 +632,8 @@ const Keyboards = {
     menuLabel: 'Pусский',
     imEngine: 'latin',
     alt: {
-      // incomplete
+      е: 'ё',
+      ь: 'ъ'
     },
     width: 11,
     keys: [
