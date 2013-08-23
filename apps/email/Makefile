@@ -1,16 +1,16 @@
 SYS=$(shell uname -s)
 
 ifeq ($(SYS),Darwin)
-XULRUNNERSDK=../../xulrunner-sdk/bin/XUL.framework/Versions/Current/run-mozilla.sh
-XPCSHELLSDK=../../xulrunner-sdk/bin/XUL.framework/Versions/Current/xpcshell
+XULRUNNERSDK=../../xulrunner-sdk-26/bin/XUL.framework/Versions/Current/run-mozilla.sh
+XPCSHELLSDK=../../xulrunner-sdk-26/bin/XUL.framework/Versions/Current/xpcshell
 else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
 # For windows we only have one binary
 XULRUNNERSDK=
-XPCSHELLSDK=../../xulrunner-sdk/bin/xpcshell
+XPCSHELLSDK=../../xulrunner-sdk-26/bin/xpcshell
 else
 # Otherwise, assume linux
-XULRUNNERSDK=../../xulrunner-sdk/bin/run-mozilla.sh
-XPCSHELLSDK=../../xulrunner-sdk/bin/xpcshell
+XULRUNNERSDK=../../xulrunner-sdk-26/bin/run-mozilla.sh
+XPCSHELLSDK=../../xulrunner-sdk-26/bin/xpcshell
 endif
 
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
