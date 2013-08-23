@@ -1,11 +1,13 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
+require('/shared/js/setImmediate.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 requireApp('communications/contacts/js/views/search.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/templates.js');
+requireApp('communications/contacts/js/utilities/cursor.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
@@ -1332,9 +1334,14 @@ suite('Render contacts list', function() {
 
     test('enter select mode', function(done) {
       var selectActionTitle = 'title';
-      subject.selectFromList(selectActionTitle, null, function onSelectMode() {
-        // Check visibility
+      subject.initSelectFromList(function() {
+        var cursor = subject.selectFromList({
+          title: selectActionTitle,
+          navigation: MockNavigation,
+          transition: 'transition'
+        });
 
+        // Check visibility
         for (var i in elements) {
           var element = elements[i];
 
@@ -1357,18 +1364,32 @@ suite('Render contacts list', function() {
         assert.equal(selectActionTitle, selectActionButton.textContent);
         assert.isTrue(selectActionButton.disabled);
 
+        cursor.end();
+
         done();
-      }, MockNavigation, 'transition');
+      });
     });
 
     suite('Selection checks', function() {
+      var cursor = null;
+
       suiteSetup(function(done) {
         mockContacts = new MockContactsList();
         doLoad(subject, mockContacts, function() {
-          subject.selectFromList('', null, function() {
+          subject.initSelectFromList(function() {
+            cursor = subject.selectFromList({
+              title: '',
+              navigation: MockNavigation,
+              transition: 'transition'
+            });
             done();
-          }, MockNavigation, 'transition');
+          });
         });
+      });
+
+      suiteTeardown(function(done) {
+        cursor.end();
+        done();
       });
 
       function setCheck(contactCheck, value, callback) {
@@ -1438,16 +1459,27 @@ suite('Render contacts list', function() {
     });
 
     suite('Exit select mode', function() {
+      var cursor = null;
+
       suiteSetup(function(done) {
         mockContacts = new MockContactsList();
         doLoad(subject, mockContacts, function() {
-          subject.selectFromList('', null, function() {
-            // Simulate the click to close
+          subject.initSelectFromList(function() {
+            cursor = subject.selectFromList({
+              title: '',
+              navigation: MockNavigation,
+              transition: 'transition'
+            });
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          }, MockNavigation, 'transition');
+          });
         });
+      });
+
+      suiteTeardown(function(done) {
+        cursor.end();
+        done();
       });
 
       test('check visibility of components', function() {
@@ -1473,26 +1505,39 @@ suite('Render contacts list', function() {
     });
 
     suite('Multiple select mode', function() {
+      var cursor = null;
       suiteSetup(function(done) {
         mockContacts = new MockContactsList();
         subject.load(mockContacts);
         doLoad(subject, mockContacts, function() {
-          subject.selectFromList('', null, function() {
+          subject.initSelectFromList(function() {
+            cursor = subject.selectFromList({
+              title: '',
+              navigation: MockNavigation,
+              transition: 'transition'
+            });
             var close = document.querySelector('#cancel_activity');
             close.click();
             done();
-          }, MockNavigation, 'transition');
+          });
         });
-
       });
+
+      suiteTeardown(function(done) {
+        cursor.end();
+        done();
+      });
+
       test('check elements after 2nd enter in select mode', function(done) {
-        subject.selectFromList('title', null, function onSelectMode() {
-          // Check we have the correct amount of checkboxes (or labels)
-          var contactsRows = list.querySelectorAll('li');
-          var checks = list.querySelectorAll('input[type="checkbox"]');
-          assert.equal(contactsRows.length, checks.length);
-          done();
-        }, MockNavigation, 'transition');
+        var cursor2 = subject.selectFromList({
+          title: 'title',
+          navigation: MockNavigation,
+          transition: 'transition'
+        });
+        var contactsRows = list.querySelectorAll('li');
+        var checks = list.querySelectorAll('input[type="checkbox"]');
+        assert.equal(contactsRows.length, checks.length);
+        done();
       });
     });
   });

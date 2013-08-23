@@ -33,12 +33,13 @@ contacts.List = (function() {
       inSelectMode = false,
       selectForm = null,
       selectActionButton = null,
-      groupList = null,
       searchList = null,
-      currentlySelected = 0,
+      selectedCount = 0,
       selectNavigationController = null,
-      boundSelectAction4Select = null,
-      boundSelectAction4Close = null;
+      rowsOnScreen = {},
+      selectedContacts = {},
+      selectClose = null,
+      selectCursor = null;
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -51,6 +52,14 @@ contacts.List = (function() {
   var NOP_FUNCTION = function() {};
 
   var onscreen = function(el) {
+    var id = el.dataset.uuid;
+    var group = el.dataset.group;
+    if (!id || !group)
+      return;
+
+    rowsOnScreen[id] = rowsOnScreen[id] || {};
+    rowsOnScreen[id][group] = el;
+
     // Save the element reference to process in a batch from a timer callback.
     toRender.push(el);
 
@@ -64,12 +73,16 @@ contacts.List = (function() {
   var doRenderTimer = function doRenderTimer() {
     renderTimer = null;
     monitor.pauseMonitoringMutations();
+    var idList = [];
     while (toRender.length) {
       var row = toRender.shift();
       var id = row.dataset.uuid;
       renderLoadedContact(row, id);
+      updateRowStyle(row, true);
       renderPhoto(row, id);
+      idList.push(id);
     }
+    updateRowSelection(idList);
     monitor.resumeMonitoringMutations(false);
   };
 
@@ -77,7 +90,6 @@ contacts.List = (function() {
     if (el.dataset.rendered)
       return;
     id = id || el.dataset.uuid;
-    renderSelectCheck(el, id);
     var group = el.dataset.group;
     var contact = loadedContacts[id] ? loadedContacts[id][group] : null;
     if (!contact)
@@ -97,6 +109,13 @@ contacts.List = (function() {
   };
 
   var offscreen = function(el) {
+    var id = el.dataset.uuid;
+    var group = el.dataset.group;
+    if (!id || !group)
+      return;
+
+    delete rowsOnScreen[id][group];
+
     // Save the element reference to process in a batch from a timer callback.
     toRelease.push(el);
 
@@ -112,6 +131,7 @@ contacts.List = (function() {
     monitor.pauseMonitoringMutations();
     while (toRelease.length) {
       var row = toRelease.shift();
+      updateRowStyle(row, false);
       releasePhoto(row);
     }
     monitor.resumeMonitoringMutations(false);
@@ -183,6 +203,8 @@ contacts.List = (function() {
       var id = node.dataset.uuid;
       renderLoadedContact(node, id);
       renderPhoto(node, id);
+      updateRowStyle(node, true);
+      updateSingleRowSelection(node, id);
       return node.cloneNode();
     },
 
@@ -314,15 +336,6 @@ contacts.List = (function() {
     headers[group] = contactsContainer;
   };
 
-  var renderSelectCheck = function renderSelectCheck(row, contactId) {
-    if (!inSelectMode || row.dataset.selectRendered) {
-      return;
-    }
-    var check = getSelectCheck(contactId);
-    row.insertBefore(check, row.firstChildElement);
-    row.dataset.selectRendered = true;
-  };
-
   // Render basic DOM structure and text for the contact.  If a placeholder
   // has already been created then it may be provided in the optional second
   // argument.  Photos and social marks are lazy loaded.
@@ -335,6 +348,10 @@ contacts.List = (function() {
     container.className = 'contact-item';
     var timestampDate = contact.updated || contact.published || new Date();
     container.dataset.updated = timestampDate.getTime();
+
+    var check = getSelectCheck(contact.id);
+    container.appendChild(check);
+
     // contactInner is a link with 3 p elements:
     // name, socaial marks and org
     var display = getDisplayName(contact);
@@ -446,6 +463,7 @@ contacts.List = (function() {
     if (!ele) {
       ele = document.createElement('p');
     }
+    ele.classList.add('contact-text');
     var givenName = (contact.givenName && contact.givenName[0]) || '';
     var familyName = (contact.familyName && contact.familyName[0]) || '';
 
@@ -562,6 +580,8 @@ contacts.List = (function() {
       ph = null;
     }
 
+    selectedContacts[contact.id] = false;
+
     return nodes;
   }
 
@@ -573,9 +593,6 @@ contacts.List = (function() {
     // If above the fold for list, render immediately
     if (list.children.length < rowsPerPage) {
       renderContact(contact, ph);
-      renderSelectCheck(ph, contact.id);
-
-    // Otherwise save contact to render later
     }
 
     if (!loadedContacts[contact.id])
@@ -749,6 +766,7 @@ contacts.List = (function() {
       span.textContent = content;
     }
     var meta = document.createElement('p');
+    meta.classList.add('contact-text');
     meta.appendChild(span);
     link.appendChild(meta);
     return meta;
@@ -846,6 +864,21 @@ contacts.List = (function() {
     }
   };
 
+  var getEnrichedContactById = function(contactId, successCb, errorCb) {
+    if (typeof successCb !== 'function') {
+      throw new Error('getEnrichedContactById() requires callback!');
+    }
+
+    getContactById(contactId, function(contact, fbData) {
+      var enrichedContact = null;
+      if (fb.isFbContact(contact)) {
+        var fbContact = new fb.Contact(contact);
+        enrichedContact = fbContact.merge(fbData);
+      }
+      successCb(contact, enrichedContact);
+    }, errorCb);
+  };
+
   var getAllContacts = function cl_getAllContacts(errorCb, successCb) {
     loading = true;
     initOrder(function onInitOrder() {
@@ -917,6 +950,8 @@ contacts.List = (function() {
     FixedHeader.refresh();
     if (imgLoader)
       imgLoader.reload();
+
+    selectedContacts[contact.id] = false;
   };
 
   var hasName = function hasName(contact) {
@@ -1002,6 +1037,7 @@ contacts.List = (function() {
       }
     });
     delete photosById[id];
+    delete selectedContacts[id];
     var selector = 'section header:not(.hide)';
     var visibleElements = groupsList.querySelectorAll(selector);
     var showNoContacts = visibleElements.length === 0;
@@ -1085,12 +1121,7 @@ contacts.List = (function() {
     }
 
     // Passed an ID, so look up contact
-    getContactById(idOrContact, function(contact, fbData) {
-      var enrichedContact = null;
-      if (fb.isFbContact(contact)) {
-        var fbContact = new fb.Contact(contact);
-        enrichedContact = fbContact.merge(fbData);
-      }
+    getEnrichedContactById(idOrContact, function(contact, enrichedContact) {
       refreshContact(contact, enrichedContact, callback);
     });
   };
@@ -1113,13 +1144,14 @@ contacts.List = (function() {
 
   function onClickHandler(evt) {
     var target = evt.target;
-    var dataset = target.dataset || {};
-    var parentDataset = target.parentNode ?
-                          (target.parentNode.dataset || {}) : {};
-    var uuid = dataset.uuid || parentDataset.uuid;
+    var uuid = target.dataset.uuid;
+    if (!uuid && target.parentNode) {
+      target = target.parentNode;
+      uuid = target.dataset.uuid;
+    }
     if (uuid) {
       callbacks.forEach(function(callback) {
-        callback(uuid);
+        callback(uuid, target);
       });
     }
     evt.preventDefault();
@@ -1192,6 +1224,7 @@ contacts.List = (function() {
   */
   var buildSelectCheck = function buildSelectCheck() {
     var label = document.createElement('label');
+    label.classList.add('contact-checkbox');
     label.classList.add('pack-checkbox');
     var input = document.createElement('input');
     input.name = 'selectIds[]';
@@ -1203,208 +1236,204 @@ contacts.List = (function() {
     return label;
   };
 
-  /*
-    Grab the selected items, if selected, and perform
-    the action specified when we entered in select mode.
+  function handleSelectAll(evt) {
+    selectAllContacts();
+    updateRowSelection(Object.keys(selectedContacts));
+    updateSelectionButtons();
+    evt.preventDefault();
+  }
 
-    We will return a promise, that will be inmediatelly
-    fullfiled when we select manually the contacts.
+  function handleDeselectAll(evt) {
+    deselectAllContacts();
+    updateRowSelection(Object.keys(selectedContacts));
+    updateSelectionButtons();
+    evt.preventDefault();
+  }
 
-    If we click in select all, the promise will be resolved
-    in the future, once all contacts are fecth and filter wich
-    ones are selected.
-  */
-  var selectAction = function selectAction(action) {
-    if (action == null) {
-      exitSelectMode();
+  function updateSelectionButtons() {
+    var numSelected = 0;
+    var numContacts = 0;
+    for (var id in selectedContacts) {
+      numContacts += 1;
+      if (selectedContacts[id]) {
+        numSelected += 1;
+      }
     }
 
-    var selectionPromise = createSelectPromise();
-
-    if (selectAllChecked) {
-      action(selectionPromise);
-      selectionPromise.resolve();
+    if (numSelected < 1) {
+      selectAll.disabled = false;
+      deselectAll.disabled = true;
+      selectActionButton.disabled = true;
       return;
     }
 
-    var selected = document.querySelectorAll('[name="selectIds[]"]:checked');
-
-    if (selected.length == 0) {
+    if (numSelected === numContacts) {
+      selectAll.disabled = true;
+      deselectAll.disabled = false;
+      selectActionButton.disabled = false;
       return;
     }
 
-    var ids = [];
-    selected = Array.prototype.slice.call(selected, 0);
-    selected.forEach(function onSelected(contact) {
-      ids.push(contact.value);
-    });
+    selectAll.disabled = false;
+    deselectAll.disabled = false;
+    selectActionButton.disabled = false;
+  }
 
-    action(selectionPromise);
-    selectionPromise.resolve(ids);
-  };
+  function createSelectCursor(opts) {
+    var useEnriched = !!opts.enriched;
+    var loadContact = !!opts.load;
+    var canceled = false;
+    var idList = null;
 
-  /*
-    Controls the buttons for select all and deselect all
-    when in select mode, when we click in a row or in the
-    mass selection buttons.
+    var cursor = new contacts.Cursor();
 
-    Second parameter is a boolean that indicates if a row was
-    selected or unselected
-  */
-  var handleSelection = function handleSelection(evt) {
-    var action = null;
-    if (evt) {
-      evt.preventDefault();
-      action = evt.target.id;
-    }
+    cursor.on('next', function cursorNext() {
+      if (canceled) {
+        return;
+      }
 
-    var selected = document.querySelectorAll('[name="selectIds[]"]:checked');
-    currentlySelected = selected.length;
-    var selectAllDisabled = false;
-    var deselectAllDisabled = false;
-
-    switch (action) {
-      case 'deselect-all':
-        selectAllChecked = false;
-        selected = Array.prototype.slice.call(selected, 0);
-        selected.forEach(function onSelected(check) {
-          check.checked = false;
-        });
-
-        currentlySelected = 0;
-
-        deselectAllDisabled = true;
-        break;
-      case 'select-all':
-        selectAllChecked = true;
-        var all = document.querySelectorAll('[name="selectIds[]"]');
-        all = Array.prototype.slice.call(all, 0);
-        all.forEach(function onAll(check) {
-          check.checked = true;
-        });
-
-        currentlySelected = contacts.List.total;
-
-        selectAllDisabled = true;
-        break;
-      default:
-        // We checked in a row, check the mass selection/deselection buttons
-        selectAllDisabled = currentlySelected == contacts.List.total;
-        deselectAllDisabled = currentlySelected == 0;
-        break;
-    }
-
-    selectActionButton.disabled = currentlySelected == 0;
-    selectAll.disabled = selectAllDisabled;
-    deselectAll.disabled = deselectAllDisabled;
-  };
-
-  /*
-    If we perform a selection over the list of contacts
-    and we don't have all the info yet, we send a promise
-    to the select action.
-  */
-  var createSelectPromise = function createSelectPromise() {
-    var promise = {
-      canceled: false,
-      _selected: [],
-      resolved: false,
-      successCb: null,
-      errorCb: null,
-      resolve: function resolve(values) {
-        var self = this;
-        setTimeout(function onResolve() {
-          // If we have the values parameter we can directly
-          // resolve this promise
-          if (values) {
-            exitSelectMode();
-            self._selected = values;
-            self.resolved = true;
-            if (self.successCb) {
-              self.successCb(values);
-            }
-            return;
-          }
-
-          // We don't know if we render all the contacts and their checks,
-          // so fetch ALL the contacts and remove those one we un selected
-          // remember this is a promise, so is already async.
-          var notChecked = document.querySelectorAll(
-            '[name="selectIds[]"]:not(:checked)');
-          var notSelectedIds = {};
-          for (var i = 0; i < notChecked.length; i++) {
-            notSelectedIds[notChecked[i].value] = true;
-          }
-          var notSelectedCount = notChecked.length;
-          var request = navigator.mozContacts.find({});
-          request.onsuccess = function onAllContacts() {
-            request.result.forEach(function onContact(contact) {
-              if (notSelectedCount == 0 ||
-                notSelectedIds[contact.id] == undefined) {
-                self._selected.push(contact.id);
-              }
-            });
-
-            self.resolved = true;
-            exitSelectMode();
-            if (self.successCb) {
-              self.successCb(self._selected);
-            }
-          };
-          request.onerror = function onError() {
-            exitSelectMode();
-            self.reject();
-          };
-        }, 0);
-      },
-      reject: function reject() {
-        this.canceled = true;
-        exitSelectMode();
-
-        if (this.errorCb) {
-          this.errorCb();
+      // Initialize our list of selected IDs the first time we are asked
+      // for the next contact after selection mode ends.
+      if (!idList) {
+        if (inSelectMode) {
+          return;
         }
-      },
-      set onsuccess(callback) {
-        if (this.resolved) {
-          callback(this._selected);
-        } else {
-          this.successCb = callback;
-        }
-      },
-      set onerror(callback) {
-        if (this.canceled) {
-          callback();
-        } else {
-          this.errorCb = callback;
+
+        idList = [];
+        for (var id in selectedContacts) {
+          if (selectedContacts[id]) {
+            idList.push(id);
+          }
         }
       }
-    };
 
-    return promise;
+      var id = idList.shift();
+      if (!id) {
+        cursor.end();
+        return;
+      }
+
+      if (!loadContact) {
+        cursor.push(id);
+        return;
+      }
+
+      // Look to see if the contact is in our cache
+      for (var group in loadedContacts[id]) {
+        var contact = loadedContacts[id][group];
+        if (!contact) {
+          // No cached contact, so load below
+          continue;
+        } else if (useEnriched && fb.isFbContact(contact)) {
+          // Handle the enriched load below
+          break;
+        }
+        cursor.push(id, contact);
+        return;
+      }
+
+      getEnrichedContactById(id, function success(contact, enrichedContact) {
+        if (canceled) {
+          return;
+        }
+
+        if (useEnriched && enrichedContact) {
+          cursor.push(id, enrichedContact);
+        } else {
+          cursor.push(id, contact);
+        }
+      }, function error() {
+        // Can't load the contact, so just pass the ID
+        cursor.push(id);
+      });
+    });
+
+    cursor.on('cancel', function cursorCancel() {
+      canceled = true;
+      deselectAllContacts();
+      exitSelectMode();
+    });
+    return cursor;
+  }
+
+  var initSelectFromList = function initSelectFromList(cb) {
+    var deps = [
+      '/shared/js/setImmediate.js',
+      '/contacts/js/utilities/cursor.js'
+    ];
+    LazyLoader.load(deps, function() {
+      fb.init(function() {
+        if (typeof cb === 'function') {
+          cb();
+        }
+      });
+    });
   };
 
-  /*
-    Set the list in select mode, allowing you to configure an action to
-    be executed when the user does the selection as well as a title to
-    identify such action.
+  // Get a selection of contacts from the user.  Example usage:
+  //
+  //  var cursor = contacts.List.selectFromList({
+  //    navigation: myNavigationStack,
+  //    load: true,
+  //    enriched: true
+  //  });
+  //
+  //  cursor.on('dismissed', function() {
+  //    // selection list dismissed, so show overlay, etc.
+  //  });
+  //
+  //  cursor.on('data', function(id, contact) {
+  //    // do something with id and contact...
+  //    // then get the next contact
+  //    cursor.next();
+  //  });
+  //
+  //  cursor.on('end', function() {
+  //    // all selected contacts provided, finalize our operations...
+  //  });
+  //
+  //  cursor.on('cancel', function() {
+  //    // canceled, cleanup... 'end' event will be emitted after this
+  //  });
+  //
+  // Options are shown below.  Defaults are shown in [brackets].
+  //
+  //  title:        title string to display in the selection button ['Select']
+  //  transition:   transition type for the navigator controller    ['popup']
+  //  navigation:   navigation stack object to use (required)
+  //  load:         true if contacts should be loaded and provided  [false]
+  //  enriched:     true if loaded contacts should be enriched      [false]
+  //
+  var selectFromList = function selectFromList(opts) {
+    opts = opts || {};
 
-    Also provide a callback to be invoqued when we enter in select mode.
-  */
-  var selectFromList = function selectFromList(title, action, callback,
-      navigationController, transitionType) {
+    if (!opts.navigation) {
+      throw new Error('selectFromList() requires a navigation object.');
+    }
+
+    var title = opts.title || 'Select';
+    var transitionType = opts.transition || 'popup';
+
     inSelectMode = true;
-    selectNavigationController = navigationController;
+    deselectAllContacts();
+    selectNavigationController = opts.navigation;
+
+    selectCursor = createSelectCursor(opts);
 
     if (selectForm === null) {
       selectForm = document.getElementById('selectable-form');
 
       selectActionButton = document.getElementById('select-action');
       selectActionButton.disabled = true;
+      selectActionButton.addEventListener('click', function onSelected(evt) {
+        exitSelectMode();
+        selectCursor.emit('dismissed');
+        selectCursor.next();
+      });
       selectAll = document.getElementById('select-all');
-      selectAll.addEventListener('click', handleSelection);
+      selectAll.addEventListener('click', handleSelectAll);
       deselectAll = document.getElementById('deselect-all');
-      deselectAll.addEventListener('click', handleSelection);
+      deselectAll.addEventListener('click', handleDeselectAll);
     }
 
     scrollable.classList.add('selecting');
@@ -1419,84 +1448,72 @@ contacts.List = (function() {
 
     selectActionButton.classList.remove('hide');
     selectActionButton.textContent = title;
-    // Clear any previous click action and setup the current one
-    selectActionButton.removeEventListener('click', boundSelectAction4Select);
-    boundSelectAction4Select = selectAction.bind(null, action);
-    selectActionButton.addEventListener('click', boundSelectAction4Select);
 
     // Show the select all/ deselecta ll butons
     selectForm.classList.remove('hide');
 
     // Setup the list in selecting mode (the search one as well)
-    if (groupList == null) {
-      groupList = document.getElementById('groups-list');
-    }
-    groupList.classList.add('selecting');
     if (searchList == null) {
       searchList = document.getElementById('search-list');
     }
     searchList.classList.add('selecting');
 
-    // Append the checkboxes if necessary
-    var domNodes = contactsListView.querySelectorAll(NODE_SELECTOR);
-    domNodes = Array.prototype.slice.call(domNodes, 0);
+    // Update style of nodes on screen
     if (monitor != null) {
       monitor.pauseMonitoringMutations();
     }
-    domNodes.forEach(function onNode(node) {
-      renderSelectCheck(node, node.getAttribute('data-uuid'));
-    });
+    for (var id in rowsOnScreen) {
+      for (var group in rowsOnScreen[id]) {
+        updateRowSelection([id]);
+        updateRowStyle(rowsOnScreen[id][group], true);
+      }
+    }
     if (monitor != null) {
       monitor.resumeMonitoringMutations(false);
     }
 
-
     // Setup cancel select mode
     var close = document.getElementById('cancel_activity');
     close.removeEventListener('click', Contacts.cancel);
-    if (!boundSelectAction4Close) {
-      boundSelectAction4Close = selectAction.bind(null, null);
-    }
-    close.addEventListener('click', boundSelectAction4Close);
+    selectClose = function() {
+      selectCursor.cancel();
+    };
+    close.addEventListener('click', selectClose);
     close.classList.remove('hide');
 
     clearClickHandlers();
-    handleClick(function handleSelectClick(id) {
-      var check = document.querySelector('input[value="' + id + '"]');
-      if (!check) {
-        return;
-      }
-
+    handleClick(function handleSelectClick(id, row) {
       // TODO: Find a better way to handle selection to both
       // the search list and the contacts one
-      if (contacts.Search && contacts.Search.isInSearchMode) {
+      if (contacts.Search && contacts.Search.isInSearchMode()) {
         contacts.Search.selectRow(id);
       }
 
-      check.checked = !check.checked;
+      if (selectedContacts[id]) {
+        deselectRow(row, id);
+        updateRowSelection([id]);
+        updateSelectionButtons();
+        return;
+      }
 
-      handleSelection(null);
+      selectRow(row, id);
+      updateRowSelection([id]);
+      updateSelectionButtons();
     });
 
-    if (callback) {
-      callback();
-    }
+    updateSelectionButtons();
 
     selectNavigationController.go('view-contacts-list', transitionType);
 
-    if (contacts.List.total == 0) {
-      var emptyPromise = createSelectPromise();
-      emptyPromise.resolve([]);
-    }
+    return selectCursor;
   };
 
   /*
     Returns back the list to it's normal behaviour
   */
-  var exitSelectMode = function exitSelectMode(canceling) {
+  var exitSelectMode = function exitSelectMode() {
     inSelectMode = false;
     selectAllChecked = false;
-    currentlySelected = 0;
     selectNavigationController.back();
 
     // Hide and show buttons
@@ -1513,30 +1530,108 @@ contacts.List = (function() {
     selectActionButton.disabled = true;
     selectActionButton.classList.add('hide');
 
-    // Clean the checks
-    setTimeout(function clearAllChecks() {
-      var all = document.querySelectorAll('[name="selectIds[]"]:checked');
-      all = Array.prototype.slice.call(all, 0);
-      all.forEach(function onAll(check) {
-        check.checked = false;
-      });
-    }, 0);
-
     // Not in select mode
-    groupList.classList.remove('selecting');
     searchList.classList.remove('selecting');
     scrollable.classList.remove('selecting');
+
+    // Update style of nodes on screen
+    if (monitor != null) {
+      monitor.pauseMonitoringMutations();
+    }
+    for (var id in rowsOnScreen) {
+      for (var group in rowsOnScreen[id]) {
+        updateRowStyle(rowsOnScreen[id][group], true);
+      }
+    }
+    if (monitor != null) {
+      monitor.resumeMonitoringMutations(false);
+    }
 
     // Restore contact list default click handler
     clearClickHandlers();
     handleClick(Contacts.showContactDetail);
 
     // Restore close button
-    var close = document.getElementById('cancel_activity');
-    close.removeEventListener('click', boundSelectAction4Close);
-    close.addEventListener('click', Contacts.cancel);
-    close.classList.add('hide');
+    if (selectClose) {
+      var close = document.getElementById('cancel_activity');
+      close.removeEventListener('click', selectClose);
+      selectClose = null;
+      close.addEventListener('click', Contacts.cancel);
+      close.classList.add('hide');
+    }
   };
+
+  // TODO: Disable checkboxes for Facebook contacts depending on config
+  function updateRowStyle(row, onscreen) {
+    if (inSelectMode && onscreen) {
+      addClassToNodes(row, '.contact-checkbox',
+                           'contact-checkbox-selecting');
+      addClassToNodes(row, '.contact-text',
+                           'contact-text-selecting');
+    } else {
+      removeClassFromNodes(row, '.contact-checkbox-selecting',
+                                'contact-checkbox-selecting');
+      removeClassFromNodes(row, '.contact-text-selecting',
+                                'contact-text-selecting');
+    }
+  }
+
+  function updateRowSelection(idList) {
+    for (var id in rowsOnScreen) {
+      for (var group in rowsOnScreen[id]) {
+        var row = rowsOnScreen[id][group];
+        if (idList.indexOf(id) > -1) {
+          updateSingleRowSelection(row, id);
+        }
+      }
+    }
+  }
+
+  function updateSingleRowSelection(row, id) {
+    var id = id || row.dataset.uuid;
+    var check = row.querySelector('input[value="' + id + '"]');
+    if (!check) {
+      return;
+    }
+
+    check.checked = !!selectedContacts[id];
+  }
+
+  function selectRow(row, id) {
+    id = id || row.dataset.uuid;
+    selectedContacts[id] = true;
+  }
+
+  function deselectRow(row, id) {
+    id = id || row.dataset.uuid;
+    selectedContacts[id] = false;
+  }
+
+  function selectAllContacts() {
+    for (var id in selectedContacts) {
+      selectedContacts[id] = true;
+    }
+  }
+
+  function deselectAllContacts() {
+    for (var id in selectedContacts) {
+      selectedContacts[id] = false;
+    }
+  }
+
+  function addClassToNodes(container, selector, clazz) {
+    var nodes = container.querySelectorAll(selector);
+    for (var i = 0, n = nodes.length; i < n; ++i) {
+      nodes[i].classList.add(clazz);
+    }
+  }
+
+  function removeClassFromNodes(container, selector, clazz) {
+    var nodes = container.querySelectorAll(selector);
+    for (var i = 0, n = nodes.length; i < n; ++i) {
+      nodes[i].classList.remove(clazz);
+    }
+  }
 
   return {
     'init': init,
@@ -1556,6 +1651,7 @@ contacts.List = (function() {
     'hasPhoto' : hasPhoto,
     'renderFbData': renderFbData,
     'getHighlightedName': getHighlightedName,
+    'initSelectFromList': initSelectFromList,
     'selectFromList': selectFromList,
     get chunkSize() {
       return CHUNK_SIZE;
