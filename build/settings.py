@@ -268,7 +268,6 @@ def main():
     ringtone_file = open(ringtone_name, "rb");
     ringtone_base64 = base64.b64encode(ringtone_file.read())
     settings["dialer.ringtone"] = "data:audio/ogg;base64," + ringtone_base64.decode("utf-8")
-    settings["dialer.ringtone.name"] = "ringer_classic_courier.opus"
 
     # Grab notifier_bell.opus and convert it into a base64 string
     notification_name = "shared/resources/media/notifications/notifier_bell.opus"
