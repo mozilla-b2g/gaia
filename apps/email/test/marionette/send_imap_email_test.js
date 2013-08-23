@@ -3,7 +3,13 @@ var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
 
 marionette('send email via IMAP', function() {
-  var client = marionette.client();
+  var client = marionette.client({
+    settings: {
+      // disable keyboard ftu because it blocks our display
+      'keyboard.ftu.enabled': false
+    }
+  });
+
   var app;
   setup(function() {
     app = new Email(client);
