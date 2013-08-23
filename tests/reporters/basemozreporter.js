@@ -56,7 +56,7 @@ function BaseMozPerfReporter(runner) {
       passes: passes
     };
 
-    self.bPrintResult(obj);
+    self.printResult(obj);
   });
 };
 

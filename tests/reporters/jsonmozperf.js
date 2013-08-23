@@ -9,6 +9,7 @@
 
 (function(global) {
 
+
 function JSONMozPerfReporter(runner) {
   global.Mocha.reporters.BaseMozPerfReporter.call(this, runner);
 };  
