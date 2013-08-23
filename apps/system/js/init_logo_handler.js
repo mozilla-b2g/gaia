@@ -63,6 +63,18 @@ var InitLogoHandler = {
 
   _setReady: function ilh_setReady() {
     this.ready = true;
+    var elem = this.logoLoader.element;
+    if (elem && elem.tagName.toLowerCase() == 'video') {
+      // Play video just after the element is first painted.
+      window.addEventListener('mozChromeEvent', function startVideo(e) {
+        if (e.detail.type == 'system-first-paint') {
+          window.removeEventListener('mozChromeEvent', startVideo);
+          if (elem && elem.ended === false) {
+            elem.play();
+          }
+        }
+      });
+    }
     if (this.readyCallBack) {
       this.readyCallBack();
       this.readyCallBack = null;
@@ -98,30 +110,29 @@ var InitLogoHandler = {
 
       var elem = self.logoLoader.element;
       if (elem.tagName.toLowerCase() == 'video' && !elem.ended) {
+        // compability: ensure movie being played here in case
+        // system-first-paint is not supported by Gecko.
+        elem.play();
         elem.onended = function() {
           elem.classList.add('hide');
-          // XXX workaround of bug 831747
-          // Unload the video. This releases the video decoding hardware
-          // so other apps can use it.
-          elem.removeAttribute('src');
-          elem.load();
         };
       } else {
         elem.classList.add('hide');
-        if (elem.tagName.toLowerCase() == 'video') {
-            // XXX workaround of bug 831747
-            // Unload the video. This releases the video decoding hardware
-            // so other apps can use it.
-            elem.removeAttribute('src');
-            elem.load();
-        }
       }
 
       self.carrierLogo.addEventListener('transitionend',
       function transCarrierLogo(evt) {
         evt.stopPropagation();
         self.carrierLogo.removeEventListener('transitionend', transCarrierLogo);
+        if (elem.tagName.toLowerCase() == 'video') {
+          // XXX workaround of bug 831747
+          // Unload the video. This releases the video decoding hardware
+          // so other apps can use it.
+          elem.removeAttribute('src');
+          elem.load();
+        }
         self.carrierLogo.parentNode.removeChild(self.carrierLogo);
+
         self.osLogo.classList.add('hide');
         self.carrierPowerOnElement = null;
       });
