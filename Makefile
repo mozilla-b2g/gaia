@@ -403,7 +403,7 @@ reference-workload-x-heavy:
 # IMPORTANT: you should generally change the directory name when you change the
 # URL unless you know what you're doing
 XULRUNNER_SDK_URL=http://ftp.mozilla.org/pub/mozilla.org/xulrunner/nightly/2013/08/2013-08-07-03-02-16-mozilla-central/xulrunner-26.0a1.en-US.
-XULRUNNER_DIRECTORY=xulrunner-sdk-26
+XULRUNNER_DIRECTORY?=xulrunner-sdk-26
 XULRUNNER_URL_FILE=$(XULRUNNER_DIRECTORY)/.url
 
 ifeq ($(SYS),Darwin)
@@ -442,6 +442,7 @@ endif
 
 .PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
+	@echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat $(XULRUNNER_URL_FILE) 2> /dev/null))
 # must download the xulrunner sdk
