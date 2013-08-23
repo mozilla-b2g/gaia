@@ -8,7 +8,6 @@
  *    ['/path/to/file.js', '/path/to/file.css', 'domNode'], callback
  *   );
  */
-
 var LazyLoader = (function() {
 
   function LazyLoader() {
@@ -36,6 +35,15 @@ var LazyLoader = (function() {
     },
 
     _html: function(domNode, callback) {
+
+      // The next few lines are for loading web components in DEBUG mode
+      if (domNode.getAttribute('is')) {
+        this.load(['/shared/js/web_components.js'], function() {
+          WebComponents.populate(callback);
+        }.bind(this));
+        return;
+      }
+
       for (var i = 0; i < domNode.childNodes.length; i++) {
         if (domNode.childNodes[i].nodeType == document.COMMENT_NODE) {
           domNode.innerHTML = domNode.childNodes[i].nodeValue;

@@ -4,6 +4,7 @@
  * Bug #841422 has been filed to move these tests
  */
 require('/shared/js/lazy_loader.js');
+require('/shared/js/web_components.js');
 
 mocha.setup({globals: ['jsCount', 'totalResult']});
 
@@ -138,6 +139,20 @@ suite('lazy loader', function() {
         document.getElementById('lazyload-me').toString(),
         '[object HTMLDivElement]'
       );
+      done();
+    });
+  });
+
+  test('populate web components', function(done) {
+    document.body.innerHTML = [
+      '<link rel="import" href="/test/unit/support/elements.html"> ',
+      '<div id="wrapper" is="custom-content"></div>'
+      ].join('');
+
+    var wrapper = document.getElementById('wrapper');
+
+    LazyLoader.load(wrapper, function() {
+      assert.equal(wrapper.innerHTML, 'hello.');
       done();
     });
   });

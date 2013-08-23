@@ -248,6 +248,48 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 }
 
 /**
+ * Part of our polyfill for web components
+ * Inserts components into the DOM as comment nodes
+ * @param {HTMLDocument} doc DOM document of the file.
+ * @param {Object} webapp details of current web app.
+ */
+function optimize_embedWebComponents(doc, app, htmlFile) {
+  let imports = doc.querySelectorAll('link[rel="import"]');
+  if (!imports.length) {
+    return;
+  }
+
+  // Mapping of all custom element templates
+  var elementTemplates = {};
+
+  Array.prototype.forEach.call(imports, function eachImport(eachImport) {
+    let content = optimize_getFileContent(app, htmlFile, eachImport.href);
+    content = '<div>' + content + '</div>';
+
+    let DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
+    let elementRoot = (new DOMParser()).
+        parseFromString(content, 'text/html');
+    let elements = elementRoot.querySelectorAll('element');
+
+    // Remove import node from doc
+    eachImport.parentNode.removeChild(eachImport);
+
+    for (let i = 0, iLen = elements.length; i < iLen; i++) {
+      var element = elements[i];
+      var template = element.querySelector('template');
+      elementTemplates[element.getAttribute('name')] = template.innerHTML;
+    }
+  });
+
+  // Insert comment node
+  var replaceableElements = doc.querySelectorAll('*[is]');
+  Array.prototype.forEach.call(replaceableElements, function eachEl(el) {
+    el.innerHTML = '<!--' + elementTemplates[el.getAttribute('is')] + '-->';
+    el.removeAttribute('is');
+  });
+}
+
+/**
  * Creates a dictionary for all l10n entities that are required by the HTML
  * document, and include it as an inline JSON.
  *
@@ -425,6 +467,7 @@ function optimize_compile(webapp, file, callback) {
 
       // save localized / optimized document
       let newFile = new FileUtils.File(file.path + '.' + GAIA_DEFAULT_LOCALE);
+      optimize_embedWebComponents(win.document, webapp, newFile);
       optimize_embedL10nResources(win.document, subDict);
       optimize_concatL10nResources(win.document, webapp, fullDict);
       optimize_aggregateJsResources(win.document, webapp, newFile);
