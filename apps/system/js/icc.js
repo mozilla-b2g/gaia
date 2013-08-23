@@ -15,12 +15,16 @@ var icc = {
     this.protectForms();
     this.getIccInfo();
     var self = this;
-    this.clearMenuCache(function() {
-      window.navigator.mozSetMessageHandler('icc-stkcommand',
-        function callHandleSTKCommand(message) {
-          self.handleSTKCommand(message);
-        });
-    });
+
+    // Waiting enough time to finish SIM initialization (have a valid ICCID)
+    setTimeout(function stk_init() {
+      self.clearMenuCache(function() {
+        window.navigator.mozSetMessageHandler('icc-stkcommand',
+          function callHandleSTKCommand(message) {
+            self.handleSTKCommand(message);
+          });
+      });
+    }, 10000);
 
     var self = this;
     // Update displayTextTimeout with settings parameter
@@ -68,17 +72,38 @@ var icc = {
            window.navigator.mozMobileConnection.icc;
   },
 
+  getICCID: function icc_getICCID() {
+    if (!IccHelper.enabled) {
+      DUMP('No ICC Helper, faking iccId to force cache cleaning');
+      return new Date().getTime();
+    }
+    return IccHelper.iccInfo.iccid;
+  },
+
   clearMenuCache: function icc_clearMenuCache(callback) {
     if (typeof callback != 'function') {
       callback = function() {};
     }
-    // Remove previous menu
-    var resetApplications = window.navigator.mozSettings.createLock().set({
-      'icc.applications': '{}'
-    });
-    resetApplications.onsuccess = function icc_resetApplications() {
-      DUMP('STK Cache Reseted');
-      callback();
+    // Check if cached menu is of this SIM or not
+    var self = this;
+    var reqApplications =
+      window.navigator.mozSettings.createLock().get('icc.applications');
+    reqApplications.onsuccess = function icc_getApplications() {
+      var json = reqApplications.result['icc.applications'];
+      var menu = json && JSON.parse(json);
+      if (menu && menu.iccId == self.getICCID()) {
+        DUMP('SIM unchanged, not cleaning STK cache');
+        return callback();
+      }
+      DUMP('SIM Changed, cleaning STK cache . . .');
+      // Remove previous menu
+      var resetApplications = window.navigator.mozSettings.createLock().set({
+        'icc.applications': '{}'
+      });
+      resetApplications.onsuccess = function icc_resetApplications() {
+        DUMP('STK Cache Reseted');
+        callback();
+      };
     };
   },
 
