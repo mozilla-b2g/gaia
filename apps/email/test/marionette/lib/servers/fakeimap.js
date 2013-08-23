@@ -49,7 +49,6 @@ function use(options, mochaContext) {
   suiteSetup(function(done) {
     this.timeout('20s');
     server.create(function(err, control) {
-      console.log('CREATE ERR', err);
       controlServer = control;
       done(err);
     });
