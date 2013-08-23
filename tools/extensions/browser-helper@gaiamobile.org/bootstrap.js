@@ -180,6 +180,13 @@ function startup(data, reason) {
         Cu.import('resource://keyboard.js/Keyboard.jsm');
         mm.addMessageListener('Forms:Input', Keyboard);
         mm.addMessageListener('Forms:SelectionChange', Keyboard);
+        mm.addMessageListener('Forms:GetText:Result:OK', Keyboard);
+        mm.addMessageListener('Forms:GetText:Result:Error', Keyboard);
+        mm.addMessageListener('Forms:SetSelectionRange:Result:OK', Keyboard);
+        mm.addMessageListener('Forms:ReplaceSurroundingText:Result:OK', Keyboard);
+        mm.addMessageListener('Forms:SendKey:Result:OK', Keyboard);
+        mm.addMessageListener('Forms:SequenceError', Keyboard);
+        mm.addMessageListener('Forms:GetContext:Result:OK', Keyboard);
         mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
       } catch(e) {
         debug('Can\'t load Keyboard.jsm. Likely because the keyboard addon is not here.');

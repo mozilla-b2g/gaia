@@ -24,6 +24,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   var storage;       // A device storage object used by the save button
   var saved = false; // Did we save it?
   var endedTimer;    // The workaround of bug 783512.
+  var videoRotation = 0;
+  // touch start id is the identifier of touch event. we only need to process
+  // events related to this id.
+  var touchStartID = null;
+  var isPausedWhileDragging;
+  var sliderRect;
 
   initUI();
 
@@ -44,9 +50,21 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
         dom.menu.hidden = false;
       });
     }
-  }
 
-  showPlayer(url, title);
+    // to hide player because it shows in the wrong rotation.
+    dom.player.classList.add('hidden');
+    // video rotation is not parsed, parse it.
+    getVideoRotation(blob, function(rotation) {
+      videoRotation = rotation;
+      // show player when player size and rotation are correct.
+      dom.player.classList.remove('hidden');
+      // start to play the video that showPlayer also calls setPlayerSize.
+      showPlayer(url, title);
+    });
+  } else {
+    // In the url case, we don't need to calculate the rotation.
+    showPlayer(url, title);
+  }
 
   // Terminate video playback when visibility is changed.
   window.addEventListener('visibilitychange',
@@ -61,7 +79,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // so we'll play the video without going into fullscreen mode.
 
     // Get all the elements we use by their id
-    var ids = ['player', 'fullscreen-view', 'crop-view', 'videoControls',
+    var ids = ['player', 'fullscreen-view', 'videoControls',
                'close', 'play', 'playHead',
                'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
                'slider-wrapper', 'spinner-overlay',
@@ -80,7 +98,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.player.mozAudioChannelType = 'content';
 
     // show|hide controls over the player
-    dom.videoControls.addEventListener('mousedown', playerMousedown);
+    dom.videoControls.addEventListener('touchstart', handlePlayerTouchStart);
+    dom.videoControls.addEventListener('touchmove', handlePlayerTouchMove);
+    dom.videoControls.addEventListener('touchend', handlePlayerTouchEnd);
 
     // Rescale when window size changes. This should get called when
     // orientation changes.
@@ -116,7 +136,12 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
   }
 
-  function playerMousedown(event) {
+  function handlePlayerTouchStart(event) {
+    // If we have a touch start event, we don't need others.
+    if (null != touchStartID) {
+      return;
+    }
+    touchStartID = event.changedTouches[0].identifier;
     // If we interact with the controls before they fade away,
     // cancel the fade
     if (controlFadeTimeout) {
@@ -125,6 +150,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     }
     if (!controlShowing) {
       setControlsVisibility(true);
+      // add preventDefault to prevent click dispatching.
+      event.preventDefault();
       return;
     }
     if (event.target == dom.play) {
@@ -134,6 +161,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
         pause();
     } else if (event.target == dom.close) {
       done();
+      event.preventDefault();
     } else if (event.target == dom.save) {
       save();
     } else if (event.target == dom.sliderWrapper) {
@@ -177,12 +205,66 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     });
   }
 
-  // Align vertically fullscreen view
   function setPlayerSize() {
-    var containerHeight = (window.innerHeight > dom.player.offsetHeight) ?
-      window.innerHeight : dom.player.offsetHeight;
-    dom.cropView.style.marginTop = (containerHeight / 2) * -1 + 'px';
-    dom.cropView.style.height = containerHeight + 'px';
+    var containerWidth = window.innerWidth;
+    var containerHeight = window.innerHeight;
+
+    // Don't do anything if we don't know our size.
+    // This could happen if we get a resize event before our metadata loads
+    if (!dom.player.videoWidth || !dom.player.videoHeight)
+      return;
+
+    var width, height; // The size the video will appear, after rotation
+
+    switch (videoRotation) {
+    case 0:
+    case 180:
+      width = dom.player.videoWidth;
+      height = dom.player.videoHeight;
+      break;
+    case 90:
+    case 270:
+      width = dom.player.videoHeight;
+      height = dom.player.videoWidth;
+    }
+
+    var xscale = containerWidth / width;
+    var yscale = containerHeight / height;
+    var scale = Math.min(xscale, yscale);
+
+    // scale large videos down and scale small videos up
+    // this might result in lower image quality for small videos
+    width *= scale;
+    height *= scale;
+
+    var left = ((containerWidth - width) / 2);
+    var top = ((containerHeight - height) / 2);
+
+    var transform;
+    switch (videoRotation) {
+    case 0:
+      transform = 'translate(' + left + 'px,' + top + 'px)';
+      break;
+    case 90:
+      transform =
+        'translate(' + (left + width) + 'px,' + top + 'px) ' +
+        'rotate(90deg)';
+      break;
+    case 180:
+      transform =
+        'translate(' + (left + width) + 'px,' + (top + height) + 'px) ' +
+        'rotate(180deg)';
+      break;
+    case 270:
+      transform =
+        'translate(' + left + 'px,' + (top + height) + 'px) ' +
+        'rotate(270deg)';
+      break;
+    }
+
+    transform += ' scale(' + scale + ')';
+
+    dom.player.style.transform = transform;
   }
 
   // show video player
@@ -317,55 +399,66 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
   // handle drags on the time slider
   function dragSlider(e) {
-    var isPaused = dom.player.paused;
+    isPausedWhileDragging = dom.player.paused;
     dragging = true;
+    // calculate the slider wrapper size for slider dragging.
+    sliderRect = dom.sliderWrapper.getBoundingClientRect();
 
     // We can't do anything if we don't know our duration
     if (dom.player.duration === Infinity)
       return;
 
-    if (!isPaused) {
+    if (!isPausedWhileDragging) {
       dom.player.pause();
     }
 
-    // Capture all mouse moves and the mouse up
-    document.addEventListener('mousemove', mousemoveHandler, true);
-    document.addEventListener('mouseup', mouseupHandler, true);
+    handlePlayerTouchMove(e);
+  }
 
-    function position(event) {
-      var rect = dom.sliderWrapper.getBoundingClientRect();
-      var position = (event.clientX - rect.left) / rect.width;
-      position = Math.max(position, 0);
-      position = Math.min(position, 1);
-      return position;
+  function handlePlayerTouchEnd(event) {
+    // We don't care the event not related to touchStartID
+    if (!event.changedTouches.identifiedTouch(touchStartID)) {
+      return;
+    }
+    touchStartID = null;
+
+    if (!dragging) {
+      // We don't need to do anything without dragging.
+      return;
     }
 
-    function mouseupHandler(event) {
-      document.removeEventListener('mousemove', mousemoveHandler, true);
-      document.removeEventListener('mouseup', mouseupHandler, true);
+    dragging = false;
 
-      dragging = false;
+    dom.playHead.classList.remove('active');
 
-      dom.playHead.classList.remove('active');
+    if (dom.player.currentTime === dom.player.duration) {
+      pause();
+    } else if (!isPausedWhileDragging) {
+      dom.player.play();
+    }
+  }
 
-      if (dom.player.currentTime === dom.player.duration) {
-        pause();
-      } else if (!isPaused) {
-        dom.player.play();
-      }
+  function handlePlayerTouchMove(event) {
+    if (!dragging) {
+      return;
     }
 
-    function mousemoveHandler(event) {
-      var pos = position(event);
-      var percent = pos * 100 + '%';
-      dom.playHead.classList.add('active');
-      dom.playHead.style.left = percent;
-      dom.elapsedTime.style.width = percent;
-      dom.player.currentTime = dom.player.duration * pos;
-      dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+    var touch = event.changedTouches.identifiedTouch(touchStartID);
+    // We don't care the event not related to touchStartID
+    if (!touch) {
+      return;
     }
 
-    mousemoveHandler(e);
+    var pos = (touch.clientX - sliderRect.left) / sliderRect.width;
+    pos = Math.max(pos, 0);
+    pos = Math.min(pos, 1);
+
+    var percent = pos * 100 + '%';
+    dom.playHead.classList.add('active');
+    dom.playHead.style.left = percent;
+    dom.elapsedTime.style.width = percent;
+    dom.player.currentTime = dom.player.duration * pos;
+    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
   }
 
   function formatDuration(duration) {

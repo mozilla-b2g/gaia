@@ -52,7 +52,7 @@ var EvmeManager = (function EvmeManager() {
     }
 
     function getApps() {
-        return GridManager.getApps(true);
+        return GridManager.getApps(true /* Flatten */, true /* Hide hidden */);
     }
 
     function getAppIcon(app) {
@@ -62,22 +62,6 @@ var EvmeManager = (function EvmeManager() {
                 'renderedIcon' in iconObject.descriptor) {
             return iconObject.descriptor.renderedIcon;
         }
-    }
-
-    function getAppName(app) {
-        var manifest = app.manifest;
-        if (!manifest) {
-            return null;
-        }
-
-        if ('locales' in manifest) {
-            var locale = manifest.locales[document.documentElement.lang];
-            if (locale && locale.name) {
-                return locale.name;
-            }
-        }
-
-        return manifest.name;
     }
 
     function getIconSize() {
@@ -99,7 +83,6 @@ var EvmeManager = (function EvmeManager() {
         },
         getApps: getApps,
         getAppIcon: getAppIcon,
-        getAppName: getAppName,
 
         openUrl: openUrl,
 
@@ -148,5 +131,5 @@ EvmeApp.prototype.launch = function evmeapp_launch(url, name, useAsyncPanZoom) {
     return window.open(url || this.origin, 'e.me', Object.keys(features)
       .map(function(key) {
       return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
-    }).join('&'));
+    }).join(','));
 };

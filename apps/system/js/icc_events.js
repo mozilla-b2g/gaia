@@ -95,6 +95,31 @@ var icc_events = {
       });
   },
 
+  handleBrowserTerminationEvent:
+    function icc_events_handleBrowserTerminationEvent(evt) {
+      DUMP(' STK Browser termination');
+      this.downloadEvent({
+        eventType: icc._icc.STK_EVENT_TYPE_BROWSER_TERMINATION
+      });
+  },
+
+  handleUserActivityEvent:
+    function icc_events_handleUserActivity(idleObserverObject) {
+      DUMP(' STK User Activity');
+      this.downloadEvent({
+        eventType: icc._icc.STK_EVENT_TYPE_USER_ACTIVITY
+      });
+      navigator.removeIdleObserver(idleObserverObject);
+    },
+
+  handleIdleScreenAvailableEvent:
+    function icc_events_handleIdleScreenAvailableEvent() {
+      DUMP(' STK IDLE screen available');
+      this.downloadEvent({
+        eventType: icc._icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE
+      });
+  },
+
   register: function icc_events_register(eventList) {
     DUMP('icc_events_register - Events list:', eventList);
     for (var evt in eventList) {
@@ -119,7 +144,27 @@ var icc_events = {
           });
         break;
       case icc._icc.STK_EVENT_TYPE_USER_ACTIVITY:
+        DUMP('icc_events_register - User activity event');
+        var stkUserActivity = {
+          time: 5,
+          onidle: function() {
+            DUMP('STK Event - User activity - Going to idle');
+          },
+          onactive: function() {
+            DUMP('STK Event - User activity - Going to active');
+            icc_events.handleUserActivityEvent(stkUserActivity);
+          }
+        };
+        navigator.addIdleObserver(stkUserActivity);
+        break;
       case icc._icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
+        DUMP('icc_events_register - Idle screen available event');
+        window.addEventListener('lock',
+          function register_icc_event_idlescreen() {
+            icc_events.handleIdleScreenAvailableEvent();
+            window.removeEventListener('lock', register_icc_event_idlescreen);
+          });
+        break;
       case icc._icc.STK_EVENT_TYPE_CARD_READER_STATUS:
         DUMP('icc_events_register - TODO event: ', eventList[evt]);
         break;
@@ -132,6 +177,19 @@ var icc_events = {
           });
         break;
       case icc._icc.STK_EVENT_TYPE_BROWSER_TERMINATION:
+        DUMP('icc_events_register - Browser termination event');
+        window.addEventListener('appterminated',
+          function icc_events_browsertermination(e) {
+            var app = Applications.getByManifestURL(e.detail.origin +
+              '/manifest.webapp');
+            if (!app) {
+              return;
+            }
+            if (app.manifest.permissions.browser) {
+              self.handleBrowserTerminationEvent(e);
+            }
+          });
+        break;
       case icc._icc.STK_EVENT_TYPE_DATA_AVAILABLE:
       case icc._icc.STK_EVENT_TYPE_CHANNEL_STATUS:
       case icc._icc.STK_EVENT_TYPE_SINGLE_ACCESS_TECHNOLOGY_CHANGED:

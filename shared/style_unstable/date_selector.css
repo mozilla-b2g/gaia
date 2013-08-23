@@ -1,0 +1,246 @@
+/* ----------------------------------
+ * Date selector
+ * ---------------------------------- */
+
+/* Main dialog setup */
+[role="dialog"][data-type="date-selector"] {
+  background: url(date_selector/images/ui/pattern.png) repeat left top, url(date_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 0 7rem;
+  color: #fff;
+  font-family: sans-serif;
+}
+
+[role="dialog"][data-type="date-selector"] h1 {
+  font-weight: 400;
+  font-size: 1.9rem;
+  line-height: 4.8rem;
+  color: #fff;
+  border-bottom: 0.1rem solid #616262;
+  background: rgba(0 ,0, 0, .2);
+  margin: 0;
+  padding: 0 3rem 1rem;
+  height: 4.8rem;
+  -moz-box-sizing: border-box;
+}
+
+/* Date picker */
+[role="dialog"][data-type="date-selector"] .picker-container {
+  -moz-box-sizing: border-box;
+  position: relative;
+  width: calc(100% - 5rem);
+  height: 22.5rem;
+  margin: 5.4rem auto 0;
+  padding-top: 8.8rem;
+  border-left:  0.1rem solid #111;
+  border-right: 0.1rem solid #111;
+  overflow: hidden;
+}
+
+[role="dialog"][data-type="date-selector"] .picker-container:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  border-top: solid 0.7rem;
+  -moz-border-top-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+[role="dialog"][data-type="date-selector"] .picker-container:after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border-bottom: solid 0.7rem;
+  -moz-border-bottom-colors:
+    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
+    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.05);
+  z-index: 10;
+}
+
+[role="dialog"][data-type="date-selector"] .picker-bar-background {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 7.4rem;
+  height: 100%;
+  background: url(date_selector/images/ui/pattern-time.png);
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
+[role="dialog"][data-type="date-selector"] .value-picker-month-wrapper,
+[role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+  -moz-box-sizing: border-box;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5.4rem;
+  height: 100%;
+  padding-top: 8.3rem;
+  border-right: solid 0.2rem;
+  -moz-border-right-colors: #1d1d1d #4a4a4a;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
+  left: 5.4rem;
+  width: 14rem;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+  left: auto;
+  right: 0;
+  width: 7.4rem;
+}
+
+/*DMY*/
+[role="dialog"][data-type="date-selector"] .DMY .value-picker-year-wrapper {
+  border: none;
+}
+
+/*YMD*/
+[role="dialog"][data-type="date-selector"] .YMD .value-picker-year-wrapper {
+  left: 0;
+  right: auto;
+}
+
+[role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper {
+  left: 7.4rem;
+}
+
+[role="dialog"][data-type="date-selector"] .YMD .value-picker-date-wrapper {
+  left: auto;
+  right: 0;
+  border: none;
+}
+
+/*MDY*/
+[role="dialog"][data-type="date-selector"] .MDY .value-picker-month-wrapper {
+  left: 0;
+}
+
+[role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper {
+  left: 14rem;
+}
+
+[role="dialog"][data-type="date-selector"] .MDY .value-picker-year-wrapper {
+  border: none;
+}
+
+[role="dialog"][data-type="date-selector"] .value-picker-date,
+[role="dialog"][data-type="date-selector"] .value-picker-month,
+[role="dialog"][data-type="date-selector"] .value-picker-year {
+  -moz-user-select: none;
+  position: relative;
+  width: 100%;
+  z-index: 1;
+}
+
+[role="dialog"][data-type="date-selector"] .value-indicator {
+  position: absolute;
+  width: 100%;
+  height: 4.6rem;
+  background-color: #00A5C5;
+  box-shadow: 0 0 0.7rem rgba(0,0,0, .4);
+  opacity: .99;
+  pointer-events: none;
+}
+
+[role="dialog"][data-type="date-selector"] .animation-on {
+  transition-duration: 0.5s;
+  transition-property: transform;
+}
+
+[role="dialog"][data-type="date-selector"]  .picker-unit {
+  position: relative;
+  font: 2.2rem/5.6rem 'MozTT',sans-serif;
+  color: #fff;
+  text-align: center;
+  vertical-align: middle;
+  width: 100%;
+  height: 5.6rem;
+  pointer-events: none;
+}
+
+/* Menu & buttons setup */
+[role="dialog"][data-type="date-selector"] menu {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
+  background: #2d2d2d url(date_selector/images/ui/pattern.png) repeat left top;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+[role="dialog"][data-type="date-selector"] menu button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+[role="dialog"][data-type="date-selector"] menu button {
+  width: calc((100% - 1rem) / 2);
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(date_selector/images/ui/default.png) repeat-x left bottom/ auto 100%;
+  border: 0.1rem solid #a6a6a6;
+  border-radius: 0.3rem;
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Press (default & affirmative) */
+[role="dialog"][data-type="date-selector"] menu button:active,
+[role="dialog"][data-type="date-selector"] menu button.affirmative:active {
+  border-color: #008aaa;
+  color: #333;
+}
+
+/* affirmative */
+[role="dialog"][data-type="date-selector"] menu button.affirmative {
+  background-image: url(date_selector/images/ui/affirmative.png);
+  background-color: #00caf2;
+  border-color: #008eab;
+}
+
+[role="dialog"][data-type="date-selector"] menu button:last-child {
+  margin-left: 1rem;
+}
+
+[role="dialog"][data-type="date-selector"] menu button,
+[role="dialog"][data-type="date-selector"] menu button:first-child {
+  margin: 0;
+}
+
+[role="dialog"][data-type="date-selector"] menu button.full {
+  width: 100%;
+}

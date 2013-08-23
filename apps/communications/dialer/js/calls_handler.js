@@ -16,7 +16,6 @@ var CallsHandler = (function callsHandler() {
   var closing = false;
   var animating = false;
   var ringing = false;
-  var busyNotificationLock = false;
 
   /* === Settings === */
   var activePhoneSound = null;
@@ -119,7 +118,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function addCall(call) {
-    busyNotificationLock = false;
     // Once we already have 1 call, we need to care about incoming
     // calls and insert new dialing calls.
     if (handledCalls.length &&
@@ -318,7 +316,7 @@ var CallsHandler = (function callsHandler() {
   }
 
   function exitCallScreen(animate) {
-    if (closing || busyNotificationLock) {
+    if (closing) {
       return;
     }
 
@@ -379,10 +377,16 @@ var CallsHandler = (function callsHandler() {
         answer();
         break;
       case 'CHLD=1':
-        endAndAnswer();
+        // End the active call and answer the other one
+        if (handledCalls.length === 1) {
+          end();
+        } else {
+          endAndAnswer();
+        }
         break;
       case 'CHLD=2':
-        if (telephony.calls.length === 1) {
+        // Hold the active call and answer the other one
+        if (handledCalls.length === 1) {
           holdOrResumeSingleCall();
         } else {
           holdAndAnswer();
@@ -461,30 +465,32 @@ var CallsHandler = (function callsHandler() {
   }
 
   function holdAndAnswer() {
-    var callToAnswerIndex = handledCalls.length - 1;
-    var callToHoldIndex = callToAnswerIndex - 1;
-    var callToAnswer = handledCalls[callToAnswerIndex].call;
-
-    if (handledCalls[callToHoldIndex]) {
-      handledCalls[callToHoldIndex].call.hold();
+    if (handledCalls.length < 2) {
+      return;
     }
-    callToAnswer.answer();
+
+    if (telephony.active) {
+      // connected, incoming
+      telephony.active.hold(); // the incoming call is answered by gecko
+    } else {
+      // held, incoming
+      var lastCall = handledCalls[handledCalls.length - 1].call;
+      lastCall.answer(); // the previous call is held by gecko
+    }
 
     CallScreen.hideIncoming();
   }
 
   function endAndAnswer() {
-    var callToAnswerIndex = handledCalls.length - 1;
-    var callToEndIndex = callToAnswerIndex - 1;
-    var callToAnswer = handledCalls[callToAnswerIndex].call;
+    if (handledCalls.length < 2) {
+      return;
+    }
 
-    if (handledCalls[callToEndIndex]) {
-      var callToEnd = handledCalls[callToEndIndex].call;
-      callToEnd.addEventListener('disconnected', function disconnected() {
-        callToEnd.removeEventListener('disconnected', disconnected);
-        callToAnswer.answer();
-      });
-      callToEnd.hangUp();
+    var callToEnd = telephony.active ||           // connected, incoming
+      handledCalls[handledCalls.length - 2].call; // held, incoming
+
+    if (callToEnd) {
+      callToEnd.hangUp(); // the incoming call is answered by gecko
     }
 
     CallScreen.hideIncoming();
@@ -544,7 +550,6 @@ var CallsHandler = (function callsHandler() {
   }
 
   function end() {
-    busyNotificationLock = false;
     // If there is an active call we end this one
     if (telephony.active) {
       telephony.active.hangUp();
@@ -603,24 +608,6 @@ var CallsHandler = (function callsHandler() {
     postToMainWindow(message);
   }
 
-  function notifyBusyLine() {
-    busyNotificationLock = true;
-    // ANSI call waiting tone for a 3 seconds window.
-    var sequence = [[480, 620, 500],
-                    [0, 0, 500],
-                    [480, 620, 500],
-                    [0, 0, 500],
-                    [480, 620, 500],
-                    [0, 0, 500]];
-    TonePlayer.playSequence(sequence);
-    setTimeout(function busyLineStopped() {
-      if (handledCalls.length === 0) {
-        busyNotificationLock = false;
-        exitCallScreen(true);
-      }
-    }, 3000);
-  }
-
   function activeCall() {
     var telephonyActiveCall = telephony.active;
     var activeCall = null;
@@ -652,7 +639,6 @@ var CallsHandler = (function callsHandler() {
 
     addRecentEntry: addRecentEntry,
 
-    notifyBusyLine: notifyBusyLine,
     activeCall: activeCall
   };
 })();

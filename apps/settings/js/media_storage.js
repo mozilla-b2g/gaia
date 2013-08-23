@@ -138,8 +138,8 @@ Volume.prototype.createView = function volume_createView(listRoot) {
 Volume.prototype.updateStorageInfo = function volume_updateStorageInfo() {
   // Update the storage details
   var self = this;
-  this.stackedbar.reset();
   this.getStats(function(sizes) {
+    self.stackedbar.reset();
     ITEM_TYPE.forEach(function(type) {
       var element = self.rootElement.querySelector('.color-' + type + ' .size');
       DeviceStorageHelper.showFormatedSize(element, 'storageSize', sizes[type]);
@@ -454,12 +454,13 @@ var StackedBar = function(div) {
       items.forEach(function(item) {
         var className = 'color-' + item.type;
         var ele = container.querySelector('.' + className);
-        if (!ele)
+        if (!ele) {
           ele = document.createElement('span');
-        ele.classList.add(className);
-        ele.classList.add('stackedbar-item');
+          ele.classList.add(className);
+          ele.classList.add('stackedbar-item');
+          container.appendChild(ele);
+        }
         ele.style.width = (item.value * 100) / totalSize + '%';
-        container.appendChild(ele);
       });
     },
 

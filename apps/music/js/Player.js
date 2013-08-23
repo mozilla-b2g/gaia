@@ -112,9 +112,9 @@ var PlayerView = {
 
     // Seeking audio too frequently causes the Desktop build hangs
     // A related Bug 739094 in Bugzilla
-    this.seekRegion.addEventListener('mousedown', this);
-    this.seekRegion.addEventListener('mousemove', this);
-    this.seekRegion.addEventListener('mouseup', this);
+    this.seekRegion.addEventListener('touchstart', this);
+    this.seekRegion.addEventListener('touchmove', this);
+    this.seekRegion.addEventListener('touchend', this);
 
     this.audio.addEventListener('play', this);
     this.audio.addEventListener('pause', this);
@@ -545,7 +545,6 @@ var PlayerView = {
     var target = evt.target;
       if (!target)
         return;
-
     switch (evt.type) {
       case 'click':
         switch (target.id) {
@@ -624,38 +623,32 @@ var PlayerView = {
       case 'pause':
         this.playControl.classList.add('is-pause');
         break;
-      case 'mousedown':
-      case 'mousemove':
-        if (evt.type === 'mousedown') {
-          target.setCapture(false);
-          MouseEventShim.setCapture();
+      case 'touchstart':
+      case 'touchmove':
+        if (evt.type === 'touchstart') {
           this.isSeeking = true;
           this.seekIndicator.classList.add('highlight');
         }
         if (this.isSeeking && this.audio.duration > 0) {
           // target is the seek bar
-          var x = (evt.clientX - target.offsetLeft) / target.offsetWidth;
+          var touch = evt.touches[0];
+          var x = (touch.clientX - target.offsetLeft) / target.offsetWidth;
           if (x < 0)
             x = 0;
           if (x > 1)
             x = 1;
-          var seekTime = x * this.seekBar.max;
-          this.setSeekBar(this.audio.startTime, this.audio.duration, seekTime);
+          this.seekTime = x * this.seekBar.max;
+          this.setSeekBar(this.audio.startTime,
+            this.audio.duration, this.seekTime);
         }
         break;
-      case 'mouseup':
-        this.isSeeking = false;
+      case 'touchend':
         this.seekIndicator.classList.remove('highlight');
-
-        if (this.audio.duration > 0) {
-          var x = (evt.clientX - target.offsetLeft) / target.offsetWidth;
-          if (x < 0)
-            x = 0;
-          if (x > 1)
-            x = 1;
-          var seekTime = x * this.seekBar.max;
-          this.seekAudio(seekTime);
+        if (this.audio.duration > 0 && this.isSeeking) {
+          this.seekAudio(this.seekTime);
+          this.seekTime = 0;
         }
+        this.isSeeking = false;
         break;
       case 'timeupdate':
         if (!this.isSeeking)

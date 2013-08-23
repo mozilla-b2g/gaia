@@ -6,6 +6,7 @@
     <title>Music</title>
     <!-- Include shared building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/tabs.css"/>
@@ -14,7 +15,7 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <!-- Shared code -->
     <script defer src="shared/js/l10n.js"></script>
-    <script defer src="shared/js/mouse_event_shim.js"></script>
+    <script defer src="shared/js/device_storage/enumerate_all.js"></script>
     <script defer src="shared/js/mediadb.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
@@ -159,12 +160,16 @@
       <div id="scan-title"></div>
     </div>
     <!-- display messages like "Scanning", "No Songs" and "No SD Card" here -->
-    <div id="overlay" class="hidden">
-      <div id="overlay-content">
+    <form id="overlay" role="dialog" data-type="confirm" class="hidden">
+      <section id="overlay-content">
         <h1 id="overlay-title"></h1>
-        <p id="overlay-text"><p>
-      </div>
-    </div>
+        <p id="overlay-text"></p>
+      </section>
+      <menu id="overlay-menu" class="hidden">
+        <button type="button" id="storage-setting-button" class="full"
+                data-l10n-id="storage-setting-button">Media storage settings</button>
+      </menu>
+    </form>
     <!-- display this at startup while we load music -->
     <div id="spinner-overlay"><progress id="spinner"></progress></div>
   </body>

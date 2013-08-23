@@ -294,6 +294,19 @@ function init() {
       }, DELETE_BATCH_TIMEOUT);
     }
   };
+
+  // Click to open the media storage panel when the default storage
+  // is unavailable.
+  document.getElementById('storage-setting-button').
+    addEventListener('click', function() {
+      var activity = new MozActivity({
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'mediaStorage'
+      }
+    });
+  });
 }
 
 //
@@ -351,8 +364,21 @@ function showOverlay(id) {
     return;
   }
 
-  var title = navigator.mozL10n.get(id + '-title');
-  var text = navigator.mozL10n.get(id + '-text');
+  var menu = document.getElementById('overlay-menu');
+  if (id === 'nocard') {
+    menu.classList.remove('hidden');
+  } else {
+    menu.classList.add('hidden');
+  }
+
+  var title, text;
+  if (id === 'nocard') {
+    title = navigator.mozL10n.get('nocard2-title');
+    text = navigator.mozL10n.get('nocard2-text');
+  } else {
+    title = navigator.mozL10n.get(id + '-title');
+    text = navigator.mozL10n.get(id + '-text');
+  }
 
   var titleElement = document.getElementById('overlay-title');
   var textElement = document.getElementById('overlay-text');

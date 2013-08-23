@@ -1,0 +1,183 @@
+/* ----------------------------------
+ * Value selector (Single & Multiple)
+ * ---------------------------------- */
+
+/* Main dialog setup */
+form[role="dialog"][data-type="value-selector"] {
+  background: url(value_selector/images/ui/pattern.png) repeat left top, url(value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  overflow: hidden;
+  position: absolute;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 0 7rem;
+  color: #fff;
+  font-family: sans-serif;
+}
+
+form[role="dialog"][data-type="value-selector"] > section {
+  padding: 0 1.5rem 0;
+  -moz-box-sizing: padding-box;
+  width: 100%;
+  height: 100%;
+}
+
+form[role="dialog"][data-type="value-selector"] h1 {
+  font-weight: 400;
+  font-size: 1.9rem;
+  line-height: 4.8rem;
+  color: #fff;
+  border-bottom: 0.1rem solid #616262;
+  background: rgba(0 ,0, 0, .2);
+  margin: 0 -1.5rem;
+  padding: 0 3rem 1rem;
+  height: 4.8rem;
+  -moz-box-sizing: border-box;
+}
+
+/* Specific component code */
+form[role="dialog"][data-type="value-selector"] [role="listbox"] {
+  position: relative;
+  padding: 0 1.5rem;
+  margin: 0 -1.5rem;
+  max-height: calc(100% - 5rem);
+  overflow: auto;
+  border-top: solid 0.1rem #222323;
+}
+
+form[role="dialog"][data-type="value-selector"] .scrollable:before {
+  content: "";
+  display: block;
+  position: absolute;
+  pointer-events: none;
+  top: 4.8rem;
+  left: 0;
+  right: 0;
+  bottom: 6.9rem;
+  background: url(value_selector/images/ui/shadow.png) repeat-x left top, url(value_selector/images/ui/shadow-invert.png) repeat-x left bottom;
+}
+
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
+  margin: 0;
+  padding: 0;
+  height: auto;
+  list-style: none;
+  position: relative;
+  border-bottom: 0.1rem solid #666;
+  font-weight: lighter;
+  font-size: 2.2rem;
+  line-height: 3.9rem;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li label {
+  border-bottom: 0.1rem solid #000;
+  outline: none;
+  display: block;
+  color: #fff;
+}
+
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
+  display: block;
+  padding: 1rem 1.5rem;
+  line-height: 4rem;
+  word-wrap: break-word;
+}
+
+/* Pressed status */
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active,
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label span {
+  background: #00ABCC;
+  color: #fff!important;
+}
+
+/* Checked status */
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-checked="true"] span {
+  padding-right: 2.6rem;
+  margin-right: 1.2rem;
+  color: #00abcd;
+  background: transparent url(value_selector/images/icons/checked.png) no-repeat 100% 50%;
+  background-size: 1.9rem;
+}
+
+
+/* Menu & buttons setup */
+form[role="dialog"][data-type="value-selector"] menu {
+  white-space: nowrap;
+  margin: 0;
+  padding: 1.5rem;
+  border-top: solid 0.1rem rgba(255, 255, 255, 0.1);
+  background: #2d2d2d url(value_selector/images/ui/pattern.png) repeat left top;
+  display: block;
+  overflow: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+form[role="dialog"][data-type="value-selector"] menu button::-moz-focus-inner {
+  border: none;
+  outline: none;
+}
+
+form[role="dialog"][data-type="value-selector"] menu button {
+  width: calc((100% - 1rem) / 2);
+  height: 3.8rem;
+  margin: 0 0 1rem;
+  padding: 0 1.5rem;
+  -moz-box-sizing: border-box;
+  display: inline-block;
+  vertical-align: middle;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  background: #fafafa url(value_selector/images/ui/default.png) repeat-x left bottom/ auto 100%;
+  border: 0.1rem solid #a6a6a6;
+  border-radius: 0.3rem;
+  font-weight: 500;
+  font-size: 1.6rem;
+  line-height: 3.8rem;
+  color: #333;
+  text-align: center;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  text-decoration: none;
+  outline: none;
+}
+
+/* Press (default & affirmative) */
+form[role="dialog"][data-type="value-selector"] menu button:active,
+form[role="dialog"][data-type="value-selector"] menu button.affirmative:active {
+  border-color: #008aaa;
+  color: #333;
+}
+
+/* affirmative */
+form[role="dialog"][data-type="value-selector"] menu button.affirmative {
+  background-image: url(value_selector/images/ui/affirmative.png);
+  background-color: #00caf2;
+  border-color: #008eab;
+}
+
+form[role="dialog"][data-type="value-selector"] menu button:last-child {
+  margin-left: 1rem;
+}
+
+form[role="dialog"][data-type="value-selector"] menu button,
+form[role="dialog"][data-type="value-selector"] menu button:first-child {
+  margin: 0;
+}
+
+form[role="dialog"][data-type="value-selector"] menu button.full {
+  width: 100%;
+}
+
+/* Right to left tweaks */
+html[dir="rtl"] #value-selector li input:checked + span,
+html[dir="rtl"] #value-selector li[aria-checked="true"] span {
+  padding-left: 2.6rem;
+  margin-left: 1.2rem;
+}

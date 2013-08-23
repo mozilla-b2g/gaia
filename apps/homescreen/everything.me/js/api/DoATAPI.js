@@ -253,6 +253,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 
                         shortcuts = Evme.__config['_' + STORAGE_KEY_SHORTCUTS];
                         icons = Evme.__config['_' + STORAGE_KEY_ICONS];
+
+                        // save the default shortcuts, so if won't keep taking the default ones
+                        self.set({
+                          "shortcuts": shortcuts,
+                          "icons": icons
+                        });
                     }
 
                     didClear = false;

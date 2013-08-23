@@ -39,6 +39,9 @@ suite('Recipients', function() {
 
     mocksHelper.setup();
 
+    this.sinon.spy(Recipients.prototype, 'render');
+    this.sinon.spy(Recipients.View.prototype, 'render');
+
     recipients = new Recipients({
       outer: 'messages-to-field',
       inner: 'messages-recipients-list',
@@ -52,8 +55,11 @@ suite('Recipients', function() {
       source: 'none',
       // Mapped to node attr, not true boolean
       editable: 'true',
-      // Disambiguation 'display' attribute
-      display: 'Type | Carrier, Number'
+
+      // Disambiguation 'display' attributes
+      type: 'Type',
+      separator: ' | ',
+      carrier: 'Carrier'
     };
   });
 
@@ -130,9 +136,20 @@ suite('Recipients', function() {
       assert.deepEqual(recipient, fixture);
       assert.ok(isValid(recipient, '999'));
 
-
       recipients.remove(recipient);
       assert.equal(recipients.length, 0);
+
+      assert.ok(recipients.render.calledTwice);
+    });
+
+    test('recipients.remove(nonexistant) ', function() {
+      var recipient;
+
+      recipients.add(fixture);
+      recipients.remove(null);
+      assert.equal(recipients.length, 1);
+
+      assert.ok(recipients.render.calledOnce);
     });
 
     test('recipients.remove(index) ', function() {

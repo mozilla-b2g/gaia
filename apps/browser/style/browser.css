@@ -62,6 +62,19 @@ input[type="image"] {
   display: block;
 }
 
+#settings {
+  font-size: 1.6rem;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #eeefea;
+  width: 100%;
+  height: 100%;
+  z-index: 150;
+  transition: 0.5s ease-in-out;
+  transform: translateY(100%);
+}
+
 .settings-screen #settings {
   display: block;
   transform: translateY(0%);
@@ -165,20 +178,17 @@ input[type="image"] {
 }
 
 #tabs-list .close:active {
-  color: #666;
+  background-image: url(images/tab-icon-pressed-closetab.png);
 }
 
 #tabs-list .close {
-  border: 0;
   position: absolute;
   right: 0;
-  height: 100%;
-  width: 5rem;
   top: 0;
-  background: transparent;
-  font-size: 2.8rem;
-  color: white;
-  padding-bottom: 0.7rem;
+  width: 5rem;
+  height: 100%;
+  border: 0;
+  background: url(images/tab-icon-pressed-closetab.png) no-repeat 50% 50% / 3rem;
 }
 
 #main-screen {
@@ -849,52 +859,8 @@ li[role="listitem"] small {
               url('images/icon-pressed-bg.png') 100% no-repeat;
 }
 
-#settings {
-  font-size: 1.6rem;
-  position: absolute;
-  left: 0;
-  top: 0;
-  background-color: #eeefea;
-  width: 100%;
-  height: 100%;
-  z-index: 150;
-  transition: 0.5s ease-in-out;
-  transform: translateY(100%);
-}
-
 #danger-dialog {
   z-index: 200;
-}
-
-#settings ul {
-  margin: 0;
-  padding: 0;
-}
-
-#settings li {
-  margin: 1rem 3rem;
-  list-style-type: none;
-}
-
-#settings li button {
-  margin: 0;
-  height: auto;
-  line-height: 2rem;
-  padding: 1rem 1.5rem;
-}
-
-
-#settings li#enable-cookies {
-  margin-bottom: 2rem;
-}
-
-#enable-cookies input {
-  position: relative;
-  top: -0.2rem;
-}
-
-#settings [disabled="disabled"] {
-  opacity: 0.7;
 }
 
 /** Bookmark Menu **/
@@ -972,5 +938,18 @@ li[role="listitem"] small {
 }
 
 #save-media-status.visible {
+  display: block;
+}
+
+#dialog-overlay {
+  display: none;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+.modal-active #dialog-overlay {
   display: block;
 }
