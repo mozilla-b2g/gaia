@@ -252,18 +252,14 @@ var ThreadUI = global.ThreadUI = {
 
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
-    function recipientsChanged(count) {
-      var message = count ?
-        (count > 1 ? 'recipient[many]' : 'recipient[one]') :
-        'newMessage';
-
-      navigator.mozL10n.localize(this.headerText, message, {n: count});
-
+    var recipientsChanged = (function recipientsChanged() {
+      // update composer header whenever recipients change
+      this.updateComposerHeader();
       // check for enable send whenever recipients change
       this.enableSend();
       // Clean search result after recipient count change.
       this.container.textContent = '';
-    }
+    }).bind(this);
 
     if (this.recipients) {
       this.recipients.length = 0;
@@ -276,8 +272,8 @@ var ThreadUI = global.ThreadUI = {
         template: this.tmpl.recipient
       });
 
-      this.recipients.on('add', recipientsChanged.bind(this));
-      this.recipients.on('remove', recipientsChanged.bind(this));
+      this.recipients.on('add', recipientsChanged);
+      this.recipients.on('remove', recipientsChanged);
     }
     this.container.textContent = '';
   },

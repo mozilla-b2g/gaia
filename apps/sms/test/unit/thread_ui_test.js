@@ -3000,6 +3000,47 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('recipient handling yields correct header', function() {
+    var localize;
+    setup(function() {
+      location.hash = '#new';
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
+    });
+
+    teardown(function() {
+      location.hash = '';
+    });
+
+    test('no recipients', function() {
+      ThreadUI.updateComposerHeader();
+      assert.deepEqual(localize.args[0], [
+        ThreadUI.headerText, 'newMessage'
+      ]);
+    });
+
+    test('add one recipient', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      assert.deepEqual(localize.args[0], [
+        ThreadUI.headerText, 'recipient', {n: 1}
+      ]);
+    });
+
+    test('add two recipients', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+      assert.ok(localize.calledTwice);
+      assert.deepEqual(localize.args[1], [
+        ThreadUI.headerText, 'recipient', {n: 2}
+      ]);
+    });
+  });
+
   suite('initSentAudio', function() {
     test('calling function does not throw uncaught exception ', function() {
       assert.doesNotThrow(ThreadUI.initSentAudio);
