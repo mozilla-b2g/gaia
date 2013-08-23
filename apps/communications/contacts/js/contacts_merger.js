@@ -50,15 +50,8 @@ contacts.Merger = (function() {
     var telsHash;
     var mergedContact = {};
 
-    mergedContact.givenName = masterContact.givenName || [''];
-    mergedContact.familyName = masterContact.familyName || [''];
-
-    var recGivenName = mergedContact.givenName;
-    var recFamilyName = mergedContact.familyName;
-
-    var maxLengthGivenName = (recGivenName[0] && recGivenName[0].length) || 0;
-    var maxLengthFamilyName = (recFamilyName[0] &&
-                                recFamilyName[0].length) || 0;
+    mergedContact.givenName = masterContact.givenName || [];
+    mergedContact.familyName = masterContact.familyName || [];
 
     mergedContact.photo = masterContact.photo || [];
     mergedContact.bday = masterContact.bday;
@@ -92,22 +85,17 @@ contacts.Merger = (function() {
     mergedContact.url = masterContact.url || [];
     mergedContact.note = masterContact.note || [];
 
+    var mergeGivenName =
+      newMergePreservingMaster(mergedContact, 'givenName');
+
+    var mergeFamilyName =
+      newMergePreservingMaster(mergedContact, 'familyName');
+
     matchingContacts.forEach(function(aResult) {
       var theMatchingContact = aResult.matchingContact;
 
-      var givenName = theMatchingContact.givenName;
-      if (isDefined(givenName) && givenName[0].length > maxLengthGivenName) {
-        maxLengthGivenName = givenName[0].length;
-        recGivenName.pop();
-        recGivenName.push(givenName[0]);
-      }
-
-      var familyName = theMatchingContact.familyName;
-      if (isDefined(familyName) && familyName[0].length > maxLengthFamilyName) {
-        maxLengthFamilyName = familyName[0].length;
-        recFamilyName.pop();
-        recFamilyName.push(familyName[0]);
-      }
+      mergeGivenName(theMatchingContact);
+      mergeFamilyName(theMatchingContact);
 
       if (!mergedContact.bday && theMatchingContact.bday) {
         mergedContact.bday = theMatchingContact.bday;
@@ -167,11 +155,7 @@ contacts.Merger = (function() {
 
     }); // matchingResults
 
-
-    mergedContact.name = [(Array.isArray(recGivenName) && recGivenName[0] ?
-                           recGivenName[0] : '') + ' ' +
-                (Array.isArray(recFamilyName) && recFamilyName[0] ?
-                            recFamilyName[0] : '')];
+    mergedContact.name = utils.contactFields.composeName(mergedContact);
 
     var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
                   'bday', 'adr', 'category', 'url', 'note', 'photo'];
@@ -200,6 +184,26 @@ contacts.Merger = (function() {
       window.console.error('Error while saving merged Contact: ',
                            req.error.name);
       typeof callbacks.error === 'function' && callbacks.error(req.error);
+    };
+  }
+
+  function newMergePreservingMaster(master, fieldName) {
+    var targetField = master[fieldName] = (master[fieldName] || []),
+        targetFieldHash = {};
+
+    for (var i = 0, l = targetField.length; i < l; i++) {
+      targetFieldHash[targetField[i]] = true;
+    }
+
+    return function mergePreservingMaster(contactToMerge) {
+      var fieldValue, sourceField = contactToMerge[fieldName] || [];
+      for (var j = 0, l = sourceField.length; j < l; j++) {
+        fieldValue = sourceField[j];
+        if (!targetFieldHash[fieldValue]) {
+          targetField.push(fieldValue);
+          targetFieldHash[fieldValue] = true;
+        }
+      }
     };
   }
 

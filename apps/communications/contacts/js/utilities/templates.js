@@ -35,20 +35,53 @@ if (!utils.templates) {
     *
     */
     function getTemplate(target, data) {
-      // Multi templates temporarily disabled to avoid eval usage
-      // TODO: Implement an alternative for eval
+      var template;
       var templates = target.querySelectorAll('*[data-template]');
-      if (templates.length === 0) {
-        throw new Error('No template declared');
-      }
-      if (templates.length > 1 && templates.item(0).dataset.condition) {
-        throw new Error('Only one template supported in this version');
+
+      var total = templates.length;
+
+      var multi = false;
+      if (total > 1) {
+        multi = true;
       }
 
-      return {
-        template: templates.item(0),
-        isMulti: false
-      };
+      if (total > 0) {
+        var condition = templates.item(0).dataset.condition;
+
+        // If the first has no condition it will be selected by default
+        // The most frequent case will be that the first is the one that wins
+        if (!condition) {
+           template = templates.item(0);
+        }
+
+        var evaluation;
+        if (condition) {
+          evaluation = get(data, condition);
+          if (evaluation) {
+            // The rest will be ignored
+            total = 1;
+            template = templates.item(0);
+          }
+        }
+
+        for (var c = 1; c < total; c++) {
+          var condition = templates.item(c).dataset.condition;
+
+          if (condition) {
+            evaluation = get(data, condition);
+            if (evaluation) {
+              template = templates.item(c);
+              break;
+            }
+          } else if (!template) {
+            // Just to be sure that if there is no a condition
+            // something will be selected
+            template = templates.item(c);
+          }
+        } // Iteration trying to find a template
+      } // total templates > 0
+
+      return {template: template, isMulti: multi};
     }
 
     /**
@@ -61,18 +94,53 @@ if (!utils.templates) {
      */
     function templateReplace(data) {
       return function(text, property) {
-        var out;
-        if (property.indexOf('.') === -1) {
-          out = data[property];
-        } else {
-            throw new Error('Dotted expressions not supported');
+        var ret = get(data, property);
+        if (typeof ret === 'undefined') {
+          ret = '';
         }
-
-        if (typeof out === 'undefined') {
-          out = text;
-        }
-        return out;
+        return ret;
       }
+    }
+
+    /**
+     *   Look recursively for an object field or subfield.
+     *
+     *   @param {Object} data the object where looking into.
+     *
+     *   @param {String} path dotted (Java-package-like) path to the field
+     *   to be retrieved.
+     *
+     *   @return {AnyType} data into the given field.
+     *
+     */
+    function get(data, path) {
+
+      function doGet(data, fields) {
+        var ret;
+        // Base case: goal reached
+        if (fields.length === 0) {
+          if (typeof data === 'function') {
+            ret = data();
+          }
+          else {
+            ret = data;
+          }
+
+        // Recursive case: access the field and look into
+        } else if (data !== null && typeof data !== 'undefined') {
+          var field = fields.shift();
+          if (typeof data[field] === 'function') {
+            ret = doGet(data[field](), fields);
+          }
+          else {
+            ret = doGet(data[field], fields);
+          }
+        }
+        return ret;
+      }
+
+      var fieldList = path.split('.');
+      return doGet(data, fieldList);
     }
 
     /**
@@ -94,7 +162,7 @@ if (!utils.templates) {
      *
      *
      */
-    function add(element, data, mode, targetNode) {
+    function add(element, data, mode) {
       // It is supported both the element itself or a selector
       var target = getTarget(element);
       var newElem;
@@ -123,12 +191,12 @@ if (!utils.templates) {
 
         if (template) {
           newElem = this.render(template, oneData);
-          target = targetNode || target;
+
           if (mode === 'A') {
              target.appendChild(newElem);
           } else if (mode === 'P') { // Append mode
             if (target.firstChild) {
-              target.insertBefore(newElem, ele.firstChild);
+              target.insertBefore(newElem, target.firstChild);
             } else {
               target.appendChild(newElem);
             }
@@ -159,10 +227,10 @@ if (!utils.templates) {
      *
      *
      */
-    Templates.append = function(element, data, targetNode) {
+    Templates.append = function(element, data) {
       var f = add.bind(this);
 
-      return f(element, data, 'A', targetNode);
+      return f(element, data, 'A');
     };
 
 
@@ -182,10 +250,10 @@ if (!utils.templates) {
      *
      *
      */
-    Templates.prepend = function(element, data, targetNode) {
+    Templates.prepend = function(element, data) {
        var f = add.bind(this);
 
-      return f(element, data, 'P', targetNode);
+      return f(element, data, 'P');
     };
 
 

@@ -22,6 +22,7 @@
     <script defer type="text/javascript" src="/contacts/js/merger_adapter.js"></script>
     <script defer type="text/javascript" src="/contacts/js/import_utils.js"></script>
     <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js"></script>
+    <script defer type="text/javascript" src="js/utilities/contact_fields.js"></script>
     <script defer type="text/javascript" src="js/utilities/templates.js"></script>
     <script defer type="text/javascript" src="js/utilities/event_listeners.js"></script>
     <script defer type="text/javascript" src="/contacts/js/utilities/image_loader.js"></script>
@@ -99,8 +100,8 @@
                   <aside class="pack-end">
                     <img data-src="#contactPictureUri#">
                   </aside>
-                  <p data-order-by="firstName"><strong>#givenName#</strong> #familyName#</p>
-                  <p data-order-by="lastName">#givenName# <strong>#familyName#</strong></p>
+                  <p data-order-by="firstName"><strong>#givenName.0#</strong> #familyName.0#</p>
+                  <p data-order-by="lastName">#givenName.0# <strong>#familyName.0#</strong></p>
                   <p>#email1#</p>
                 </li>
               </ol>

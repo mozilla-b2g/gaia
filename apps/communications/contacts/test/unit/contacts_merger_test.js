@@ -1,4 +1,5 @@
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
+requireApp('communications/contacts/js/utilities/contact_fields.js');
 requireApp('communications/contacts/js/contacts_merger.js');
 
 if (!this.toMergeContacts) {
@@ -71,21 +72,6 @@ suite('Contacts Merging Tests', function() {
     });
   }
 
-  test('Merge first name and last name. First name prefix', function(done) {
-    toMergeContact.matchingContact = {
-      givenName: ['Alfred Albert'],
-      familyName: ['Müller']
-    };
-
-    contacts.Merger.merge(new MasterContact(), toMergeContacts, {
-      success: function(result) {
-        assert.equal(result.givenName[0], 'Alfred Albert');
-        assert.equal(result.familyName[0], 'Müller');
-
-        done();
-      }});
-  });
-
   test('Merge accepts matching results without the `matchings` field',
                                                                 function(done) {
     toMergeContact.matchingContact = {
@@ -96,18 +82,79 @@ suite('Contacts Merging Tests', function() {
 
     contacts.Merger.merge(new MasterContact(), toMergeContacts, {
       success: function(result) {
-        assert.equal(result.givenName[0], 'Alfred Albert');
+        done();
+      }
+    });
+  });
+
+  test('Merge first name and last name. Keeps master entries.', function(done) {
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred Albert'],
+      familyName: ['Müller']
+    };
+
+    contacts.Merger.merge(new MasterContact(), toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.givenName[0], 'Alfred');
         assert.equal(result.familyName[0], 'Müller');
 
         done();
-    }});
+      }});
   });
+
+  test(
+    'Merge first name and last name keeping master entries. ' +
+    'Merging info is preserved. Duplicated last name is ignored.',
+    function(done) {
+      toMergeContact.matchingContact = {
+        givenName: ['Alfred Albert'],
+        familyName: ['Müller']
+      };
+
+      contacts.Merger.merge(new MasterContact(), toMergeContacts, {
+        success: function(result) {
+          assert.equal(result.givenName.length, 2);
+          assert.equal(result.familyName.length, 1);
+
+          assert.equal(result.givenName[0], 'Alfred');
+          assert.equal(result.familyName[0], 'Müller');
+
+          assert.equal(result.givenName[1], 'Alfred Albert');
+
+          done();
+      }});
+    }
+  );
+
+  test(
+    'Merge first name and last name keeping master entries. ' +
+    'Merging info is preserved. Duplicated given name is ignored.',
+    function(done) {
+      toMergeContact.matchingContact = {
+        givenName: ['Alfred'],
+        familyName: ['Müller Füller']
+      };
+
+      contacts.Merger.merge(new MasterContact(), toMergeContacts, {
+        success: function(result) {
+          assert.equal(result.givenName.length, 1);
+          assert.equal(result.familyName.length, 2);
+
+          assert.equal(result.givenName[0], 'Alfred');
+          assert.equal(result.familyName[0], 'Müller');
+
+          assert.equal(result.familyName[1], 'Müller Füller');
+
+          done();
+      }});
+    }
+  );
 
   test('Merge first name and last name. incoming names empty', function(done) {
     toMergeContact.matchingContact = {
       givenName: [],
       familyName: [],
-       tel: [{
+      tel: [{
         type: ['work'],
         value: '67676767'
       }]
@@ -126,14 +173,13 @@ suite('Contacts Merging Tests', function() {
     toMergeContact.matchingContact = {
       givenName: ['Alfred'],
       familyName: ['Müller von Bismarck'],
-       tel: [{
+      tel: [{
         type: ['work'],
         value: '67676767'
       }]
     };
 
     var masterContact = new MasterContact();
-
     masterContact.givenName = null;
     masterContact.familyName = null;
 
@@ -142,6 +188,55 @@ suite('Contacts Merging Tests', function() {
         assert.equal(result.givenName[0], 'Alfred');
         assert.equal(result.familyName[0], 'Müller von Bismarck');
 
+        done();
+    }});
+  });
+
+  test('Composed name field. Only given name.', function(done) {
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred']
+    };
+
+    var masterContact = new MasterContact();
+    masterContact.givenName = null;
+    masterContact.familyName = null;
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.name, 'Alfred');
+        done();
+    }});
+  });
+
+  test('Composed name field. Only last name.', function(done) {
+    toMergeContact.matchingContact = {
+      familyName: ['Müller']
+    };
+
+    var masterContact = new MasterContact();
+    masterContact.givenName = null;
+    masterContact.familyName = null;
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.name, 'Müller');
+        done();
+    }});
+  });
+
+  test('Composed name field. Name and family name.', function(done) {
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred'],
+      familyName: ['Müller']
+    };
+
+    var masterContact = new MasterContact();
+    masterContact.givenName = null;
+    masterContact.familyName = null;
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.name, 'Alfred Müller');
         done();
     }});
   });
@@ -413,11 +508,20 @@ suite('Contacts Merging Tests', function() {
   });
 
   test('Multiple merges', function(done) {
+   toMergeContact.matchingContact = {
+      givenName: ['Alfred'],
+      familyName: ['Füller'],
+      tel: [{
+          type: ['mobile'],
+          value: '3456789'
+      }]
+    };
+
    toMergeContacts.push({
       matchingContact: {
         id: '1B',
-        givenName: ['Alfred'],
-        familyName: ['Müller'],
+        givenName: ['Al'],
+        familyName: ['Mueller'],
         tel: [{
           type: ['mobile'],
           value: '3456789'
@@ -442,17 +546,13 @@ suite('Contacts Merging Tests', function() {
       matchings: {}
     });
 
-   toMergeContact.matchingContact = {
-      givenName: ['Alfred'],
-      familyName: ['Müller'],
-      tel: [{
-          type: ['mobile'],
-          value: '3456789'
-      }]
-    };
-
     contacts.Merger.merge(new MasterContact(), toMergeContacts, {
       success: function(result) {
+        assert.deepEqual(result.givenName, ['Alfred', 'Al']);
+        assert.deepEqual(result.familyName, ['Müller', 'Füller', 'Mueller']);
+
+        assert.equal(result.name, 'Alfred Müller');
+
         assertFieldValues(result.givenName, ['Alfred']);
         assertFieldValues(result.familyName, ['Müller']);
 
