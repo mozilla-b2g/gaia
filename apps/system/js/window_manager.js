@@ -327,7 +327,7 @@ var WindowManager = (function() {
 
       // If this is a cold launch let's wait for the app to load first
       var iframe = openFrame.firstChild;
-      if ('unpainted' in iframe.dataset) {
+      if ('unpainted' in iframe.dataset && 'unloaded' in iframe.dataset) {
 
         if ('wrapper' in frame.dataset)
           wrapperFooter.classList.add('visible');
@@ -478,6 +478,8 @@ var WindowManager = (function() {
   windows.addEventListener('mozbrowserloadend', function loadend(evt) {
     var iframe = evt.target;
     var frame = iframe.parentNode;
+
+    delete iframe.dataset.unloaded;
 
     if (iframe.dataset.unpainted) {
       iframe.addEventListener('mozbrowserfirstpaint', function painted() {
@@ -1190,6 +1192,8 @@ var WindowManager = (function() {
 
     // frames are began unpainted.
     iframe.dataset.unpainted = true;
+
+    iframe.dataset.unloaded = true;
 
     if (!manifestURL) {
       frame.setAttribute('data-wrapper', 'true');
