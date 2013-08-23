@@ -25,6 +25,11 @@ prefs.push(["network.http.max-connections-per-server", 15]);
 
 // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know what prefs is for ril debugging
 prefs.push(["ril.debugging.enabled", false]);
+// Gaia has no vCard/vCalendar for now. Override MMS version to v1.1:
+// TODO: remove this override after having vCard/vCalendar implemented in Gaia.
+// @see bug 885683 - [Messages] MMS doesn't support sending and receiving vCard attachments.
+// @see bug 905548 - [Messages] MMS doesn't support sending and receiving vCalendar attachments.
+prefs.push(["dom.mms.version", 0x11]);
 
 if (LOCAL_DOMAINS) {
   prefs.push(["network.dns.localDomains", domains.join(",")]);
