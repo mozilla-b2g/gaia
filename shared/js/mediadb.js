@@ -1213,6 +1213,8 @@ var MediaDB = (function() {
 
   /* Details of helper functions follow */
 
+  var DUMMYFILE_FROM_CAMERA = /DCIM\/\d{3}MZLLA\/\.VID_\d{4}\.3gp$/;
+
   //
   // Return true if media db should ignore this file.
   //
@@ -1237,9 +1239,14 @@ var MediaDB = (function() {
   // give us a name only, not the file object.
   // Ignore files having directories beginning with .
   // Bug https://bugzilla.mozilla.org/show_bug.cgi?id=838179
+  // Ignore all dummy files from camera, see bug 908035 for this part.
   function ignoreName(filename) {
-    var path = filename.substring(0, filename.lastIndexOf('/') + 1);
-    return (path[0] === '.' || path.indexOf('/.') !== -1);
+    if (DUMMYFILE_FROM_CAMERA.test(filename)) {
+      return true;
+    } else {
+      var path = filename.substring(0, filename.lastIndexOf('/') + 1);
+      return (path[0] === '.' || path.indexOf('/.') !== -1);
+    }
   }
 
   // Tell the db to start a manual scan. I think we don't do

@@ -193,6 +193,10 @@ var Camera = {
   // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
   ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
 
+  // Minimum video duration length for creating a video that contains at least
+  // few samples, see bug 899864.
+  MIN_RECORDING_TIME: 500,
+
   get overlayTitle() {
     return document.getElementById('overlay-title');
   },
@@ -578,7 +582,13 @@ var Camera = {
     };
     var onsuccess = (function onsuccess() {
       document.body.classList.add('capturing');
-      captureButton.removeAttribute('disabled');
+      // If the duration is too short, there may be no track been record. That
+      // creates corrupted video files. Because media file needs some samples.
+      // To have more information on video track, we wait for 500ms to have
+      // few video and audio samples, see bug 899864.
+      window.setTimeout(function() {
+        captureButton.removeAttribute('disabled');
+      }, Camera.MIN_RECORDING_TIME);
       this._recording = true;
       this.startRecordingTimer();
 
@@ -730,7 +740,10 @@ var Camera = {
           URL.revokeObjectURL(url);
           offscreenVideo.removeAttribute('src');
           offscreenVideo.load();
-          console.warn('not a video file', filename);
+          console.warn('not a video file', filename, 'delete it!');
+          // we need to delete all corrupted video files, those of them may be
+          // tracks without samples, see bug 899864.
+          Camera._videoStorage.delete(filename);
         };
 
         offscreenVideo.onloadedmetadata = function() {

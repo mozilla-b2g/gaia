@@ -302,6 +302,7 @@ var Connectivity = (function(window, document, undefined) {
         }));
       }, 1500);
     };
+
     // Bind message handler for incoming pairing requests
     navigator.mozSetMessageHandler('bluetooth-pairing-request',
       function bt_gotPairingRequestMessage(message) {
