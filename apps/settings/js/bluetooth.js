@@ -344,11 +344,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     // when DefaultAdapter is ready.
     function initial() {
       // Bind message handler for incoming pairing requests
-      navigator.mozSetMessageHandler('bluetooth-pairing-request',
-        function bt_gotPairingRequestMessage(message) {
-          onRequestPairing(message);
-        }
-      );
+      window.removeEventListener('bluetooth-pairing-request', onRequestPairing);
+      window.addEventListener('bluetooth-pairing-request', onRequestPairing);
 
       navigator.mozSetMessageHandler('bluetooth-cancel',
         function bt_gotCancelMessage(message) {
@@ -686,6 +683,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     }
 
     function onRequestPairing(evt) {
+      var evt = evt.detail;
       var showPairView = function bt_showPairView() {
         var device = {
           address: evt.address,
