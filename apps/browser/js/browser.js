@@ -282,7 +282,7 @@ var Browser = {
       } else if (data[mccCode + DEFAULT_MNC]) {
         callback(data[mccCode + DEFAULT_MNC]);
       } else if (data[DEFAULT_MCC + DEFAULT_MNC]) {
-        callback(DEFAULT_MCC + DEFAULT_MNC);
+        callback(data[DEFAULT_MCC + DEFAULT_MNC]);
       } else {
         callback(null);
         console.error('No configuration data found.');
