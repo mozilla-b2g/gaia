@@ -71,15 +71,22 @@ suite('calls handler', function() {
   suite('telephony.oncallschanged handling', function() {
     suite('receiving a first incoming call', function() {
       var mockCall;
+      var mockHC;
 
       setup(function() {
         mockCall = new MockCall('12334', 'incoming');
-        telephonyAddCall.call(this, mockCall);
+        mockHC = telephonyAddCall.call(this, mockCall);
       });
 
       test('should instanciate a handled call', function() {
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(mockCall));
+      });
+
+      test('should insert the handled call node in the CallScreen', function() {
+        var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(insertSpy.calledWith(mockHC.node));
       });
 
       test('should render the CallScreen in incoming mode', function() {
@@ -108,18 +115,31 @@ suite('calls handler', function() {
 
     suite('receiving an extra incoming call', function() {
       var extraCall;
+      var extraHC;
 
       setup(function() {
         var firstCall = new MockCall('543552', 'incoming');
         extraCall = new MockCall('12334', 'incoming');
 
         telephonyAddCall.call(this, firstCall, {trigger: true});
-        telephonyAddCall.call(this, extraCall);
+        extraHC = telephonyAddCall.call(this, extraCall);
       });
 
       test('should instanciate another handled call', function() {
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(extraCall));
+      });
+
+      test('should insert the handled call node in the CallScreen', function() {
+        var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(insertSpy.calledWith(extraHC.node));
+      });
+
+      test('should hide the handled call node', function() {
+        var hideSpy = this.sinon.spy(extraHC, 'hide');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(hideSpy.calledOnce);
       });
 
       test('should show the call waiting UI', function() {
@@ -142,6 +162,7 @@ suite('calls handler', function() {
 
     suite('receiving a third call', function() {
       var overflowCall;
+      var overflowHC;
       var hangupSpy;
 
       setup(function() {
@@ -152,7 +173,7 @@ suite('calls handler', function() {
         telephonyAddCall.call(this, firstCall, {trigger: true});
         telephonyAddCall.call(this, extraCall, {trigger: true});
 
-        telephonyAddCall.call(this, overflowCall);
+        overflowHC = telephonyAddCall.call(this, overflowCall);
         hangupSpy = this.sinon.spy(overflowCall, 'hangUp');
       });
 
@@ -164,6 +185,13 @@ suite('calls handler', function() {
       test('should still instanciate a handled call', function() {
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(HandledCall.calledWith(overflowCall));
+      });
+
+      test('should not insert the handled call node in the CallScreen',
+      function() {
+        var insertSpy = this.sinon.spy(MockCallScreen, 'insertCall');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(insertSpy.notCalled);
       });
     });
 

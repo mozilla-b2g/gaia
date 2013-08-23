@@ -1,6 +1,6 @@
 'use strict';
 
-function HandledCall(aCall, aNode) {
+function HandledCall(aCall) {
   this._ticker = null;
   this.photo = null;
 
@@ -13,24 +13,23 @@ function HandledCall(aCall, aNode) {
     type: this.call.state,
     number: this.call.number,
     emergency: this.call.emergency || false,
-    voicemail: false
+    voicemail: false,
+    status: null
   };
 
   this._initialState = this.call.state;
   this._cachedInfo = '';
   this._cachedAdditionalInfo = '';
 
-  if (!aNode)
-    return;
+  this.node = document.getElementById('handled-call-template').cloneNode(true);
+  this.node.id = '';
+  this.node.hidden = false;
 
-  this.node = aNode;
-  this.durationNode = aNode.querySelector('.duration');
-  this.durationChildNode = aNode.querySelector('.duration span');
-  this.directionNode = aNode.querySelector('.duration .direction');
-  this.numberNode = aNode.querySelector('.numberWrapper .number');
-  this.additionalInfoNode = aNode.querySelector('.additionalContactInfo');
-
-  this.node.dataset.occupied = 'true';
+  this.durationNode = this.node.querySelector('.duration');
+  this.durationChildNode = this.node.querySelector('.duration span');
+  this.directionNode = this.node.querySelector('.duration .direction');
+  this.numberNode = this.node.querySelector('.numberWrapper .number');
+  this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
 
   this.updateCallNumber();
 
@@ -186,12 +185,10 @@ HandledCall.prototype.replaceAdditionalContactInfo =
   if (!additionalContactInfo ||
     additionalContactInfo.trim() === '') {
     this.additionalInfoNode.textContent = '';
-    this.additionalInfoNode.classList.add('noAdditionalContactInfo');
-    this.numberNode.classList.add('noAdditionalContactInfo');
+    this.node.classList.remove('additionalInfo');
   } else {
-    this.numberNode.classList.remove('noAdditionalContactInfo');
-    this.additionalInfoNode.classList.remove('noAdditionalContactInfo');
     this.additionalInfoNode.textContent = additionalContactInfo;
+    this.node.classList.add('additionalInfo');
   }
 };
 
@@ -242,22 +239,22 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
 
 HandledCall.prototype.remove = function hc_remove() {
   this.call.removeEventListener('statechange', this);
+  this.call = null;
+  this.photo = null;
 
-  if (!this.node)
-    return;
-
-  this.node.dataset.occupied = 'false';
   clearInterval(this._ticker);
   this._ticker = null;
+
+  if (this.node.parentNode) {
+    this.node.parentNode.removeChild(this.node);
+  }
+  this.node = null;
 };
 
 HandledCall.prototype.connected = function hc_connected() {
   if (this.recentsEntry.type === 'incoming') {
     this.recentsEntry.status = 'connected';
   }
-
-  if (!this.node)
-    return;
 
   this.node.hidden = false;
   this.node.classList.remove('held');
@@ -287,22 +284,13 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
     });
   }
 
-  if (!this.node)
-    return;
-
   this.remove();
 };
 
 HandledCall.prototype.show = function hc_show() {
-  if (!this.node)
-    return;
-
   this.node.hidden = false;
 };
 
 HandledCall.prototype.hide = function hc_hide() {
-  if (!this.node)
-    return;
-
   this.node.hidden = true;
 };

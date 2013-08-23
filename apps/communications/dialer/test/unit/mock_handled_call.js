@@ -2,6 +2,7 @@
 
 function MockHandledCall(call) {
   this.call = call;
+  this.node = document.createElement('section'); // fake dom
 }
 
 MockHandledCall.prototype.handleEvent = function hc_handle(evt) {
