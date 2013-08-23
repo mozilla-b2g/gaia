@@ -660,7 +660,8 @@ body {
   height: calc(100% - 2rem - 5rem);
 }
 
-#screen.active-statusbar #dialog-overlay {
+#screen.active-statusbar #dialog-overlay,
+#screen.active-statusbar.fullscreen-app #dialog-overlay {
   top: 4rem;
   height: calc(100% - 4rem);
 }
