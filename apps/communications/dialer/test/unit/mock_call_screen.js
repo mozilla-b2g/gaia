@@ -1,4 +1,5 @@
 var MockCallScreen = {
+  insertCall: function() {},
   enableKeypad: function() {
     this.mEnableKeypadCalled = true;
   },
