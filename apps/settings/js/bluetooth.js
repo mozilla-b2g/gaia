@@ -343,10 +343,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     // do default actions (start discover avaliable devices)
     // when DefaultAdapter is ready.
     function initial() {
-      // Listen bluetooth-apring-request event from connectivity.js
-      window.addEventListener('bluetooth-pairing-request',
-        function bt_gotPairingRequestMessage(evt) {
-          var message = evt.detail;
+      // Bind message handler for incoming pairing requests
+      navigator.mozSetMessageHandler('bluetooth-pairing-request',
+        function bt_gotPairingRequestMessage(message) {
           onRequestPairing(message);
         }
       );
