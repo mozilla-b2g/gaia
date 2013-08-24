@@ -145,7 +145,7 @@ var TrustedUIManager = {
       return;
     }
 
-    WindowManager.toggleHomescreen(true);
+    this.publish('trusteduishow', { origin: origin });
     var frame = app.frame;
     frame.classList.add('back');
     frame.classList.remove('restored');
@@ -158,12 +158,22 @@ var TrustedUIManager = {
     }
   },
 
+  publish: function trui_publish(evtName, detail) {
+    var evt = new CustomEvent(evtName, {
+      bubbles: true,
+      cancelable: true,
+      detail: detail
+    });
+
+    window.dispatchEvent(evt);
+  },
+
   _restoreCallerApp: function trui_restoreCallerApp(origin) {
     var frame = WindowManager.getAppFrame(origin);
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
     if (!WindowManager.getCurrentDisplayedApp().isHomescreen) {
-      WindowManager.toggleHomescreen(false);
+      this.publish('trusteduihide', { origin: origin });
     }
     if (WindowManager.getDisplayedApp() == origin) {
       frame.classList.add('restored');
