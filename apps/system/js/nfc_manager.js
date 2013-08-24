@@ -252,26 +252,68 @@
     }
   }
 
+  function doConnect() {
+    var nfc = window.navigator.mozNfc;
+    var connected = false;
+
+    var conn = nfc.connect(6);
+    conn.onsuccess = function() {
+      debug('DBG: Success');
+      connected = true;
+    };
+    conn.onerror = function() {
+      debug('Cannot connect to NFC tech');
+    };
+
+    return connected;
+  }
+
+  function doDisconnect() {
+    var nfc = window.navigator.mozNfc;
+    var disconnected = false;
+
+    var conn = nfc.disconnect();
+    conn.onsuccess = function() {
+      debug('NFC tech disconnected');
+      disconnected = true;
+    };
+    conn.onerror = function() {
+      debug('Disconnect failed.');
+    };
+
+    return disconnected;
+  }
+
   function handleNdefDiscovered() {
+    var connected = false;
     var handled = false;
+    var nfc = window.navigator.mozNfc;
 
-    var req = window.navigator.mozNfc.ndefRead();
-    debug('System read 1:');
-    req.onsuccess = function() {
-      debug('System read 2: ' + JSON.stringify(req.result));
-      var action = handleNdefMessages(req.result.records);
+    var conn = nfc.connect(6);
+    conn.onsuccess = function() {
+      debug('DBG: Success');
 
-      if (action.length <= 0) {
-        debug('Unimplemented. Handle Unknown type.');
-      } else {
-        debug('Action: ' + JSON.stringify(action[0]));
-        var a = new MozActivity(action[0]);
-      }
-      handled = true;
+      var req = nfc.ndefRead();
+      debug('System read 1:');
+      req.onsuccess = function() {
+        debug('System read 2: ' + JSON.stringify(req.result));
+        var action = handleNdefMessages(req.result.records);
+
+        if (action.length <= 0) {
+          debug('Unimplemented. Handle Unknown type.');
+        } else {
+          debug('Action: ' + JSON.stringify(action[0]));
+          var a = new MozActivity(action[0]);
+        }
+        handled = true;
+        doDisconnect();
+      };
+      req.onerror = function() {
+        debug('Error reading NDEF record');
+        doDisconnect();
+      };
     };
-    req.onerror = function() {
-      debug('Error reading NDEF record');
-    };
+
     return handled;
   }
 
@@ -294,12 +336,17 @@
     var techs = command.content.tech;
 
     // Force Tech Priority:
-    var prio = ['NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
-    for (var ti = 0; ti < prio.length; ti++) {
+    var pri = ['P2P', 'NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
+    for (var ti = 0; ti < pri.length; ti++) {
       debug('Going through NFC Technologies: ' + i);
-      var i = techs.indexOf(prio[ti]);
+      var i = techs.indexOf(pri[ti]);
       if (i != -1) {
-        if (techs[i] == 'NDEF') {
+        if (techs[i] == 'P2P') {
+          // FIXME: Do P2P UI: ask user if P2P event is acceptable in the app's
+          // current user context to accept a message via registered app
+          // callback/message. If so, fire P2P NDEF to app.
+          // If not, drop message.
+        } else if (techs[i] == 'NDEF') {
           handled = handleNdefDiscovered();
         } else if (techs[i] == 'NDEF_FORMATTABLE') {
           handled = handleNdefFormattableDiscovered();
