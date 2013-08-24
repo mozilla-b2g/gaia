@@ -79,7 +79,7 @@ var NotificationScreen = {
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
-    window.addEventListener('foreground', this.handleAppopen.bind(this));
+    window.addEventListener('appforeground', this.handleAppopen.bind(this));
     window.addEventListener('ftuopen', this);
     window.addEventListener('ftudone', this);
 

@@ -53,11 +53,6 @@ var WindowManager = (function() {
     dump('WindowManager: ' + str + '\n');
   }
 
-  // Holds the origin of the home screen, which should be the first
-  // app we launch through web activity during boot
-  var homescreen = null;
-  var homescreenURL = '';
-  var homescreenManifestURL = '';
   // keep the reference of inline activity frame here
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
@@ -131,7 +126,7 @@ var WindowManager = (function() {
 
     // If the origin is null, make the homescreen visible.
     if (origin == null) {
-      setDisplayedApp(homescreen);
+      setDisplayedApp(HomescreenLauncher.origin);
       return;
     }
 
@@ -140,7 +135,7 @@ var WindowManager = (function() {
     // we would need the manifest URL and the specific entry point.
     console.warn('No running app is being identified as "' + origin + '". ' +
                  'Showing home screen instead.');
-    setDisplayedApp(homescreen);
+    setDisplayedApp(HomescreenLauncher.origin);
   }
 
   function isRunning(origin) {
@@ -232,7 +227,7 @@ var WindowManager = (function() {
 
   window.addEventListener('ftuskip', function skipFTU() {
     InitLogoHandler.animate();
-    setDisplayedApp(homescreen);
+    setDisplayedApp(HomescreenLauncher.origin);
   });
 
   // Open and close app animations
@@ -340,8 +335,7 @@ var WindowManager = (function() {
 
     app.addClearRotateTransition();
     // Set orientation for the new app
-    setOrientationForApp(displayedApp);
-
+    app.setOrientation();
   }
 
   // Execute when the application is actually loaded
@@ -349,7 +343,6 @@ var WindowManager = (function() {
     var iframe = frame.firstChild;
 
     if (displayedApp == iframe.dataset.frameOrigin) {
-      windows.classList.add('active');
       frame.classList.add('active');
 
       if ('wrapper' in frame.dataset) {
@@ -363,7 +356,7 @@ var WindowManager = (function() {
 
       if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
         // Set homescreen visibility to false
-        toggleHomescreen(false);
+        HomescreenLauncher.getHomescreen().setVisible(false);
       }
 
       // Give the focus to the frame
@@ -377,11 +370,7 @@ var WindowManager = (function() {
     // Dispatch an 'appopen' event.
     var manifestURL = runningApps[displayedApp].manifestURL;
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, {
-      manifestURL: manifestURL,
-      origin: displayedApp,
-      isHomescreen: (manifestURL === homescreenManifestURL)
-    });
+    evt.initCustomEvent('appopen', true, false, runningApps[displayedApp]);
     iframe.dispatchEvent(evt);
   }
 
@@ -391,8 +380,6 @@ var WindowManager = (function() {
     var origin = iframe.dataset.frameOrigin;
 
     frame.classList.remove('active');
-    windows.classList.remove('active');
-
     runningApps[origin].addClearRotateTransition();
 
     // set the closed frame visibility to false
@@ -453,17 +440,6 @@ var WindowManager = (function() {
     }
   });
 
-  windows.addEventListener('mozbrowservisibilitychange',
-    function visibilitychange(e) {
-      var target = e.target;
-
-      var type = e.detail.visible ? 'foreground' : 'background';
-      var detail = { manifestURL: target.getAttribute('mozapp') };
-      var evt = new CustomEvent(type, { detail: detail, bubbles: true });
-      target.dispatchEvent(evt);
-    }
-  );
-
   // setFrameBackground() will attach the manifest icon as a background
   function setFrameBackground(frame, callback) {
     var splash = frame.firstChild.splash;
@@ -489,17 +465,15 @@ var WindowManager = (function() {
     // Make window visible to screenreader
     app.frame.removeAttribute('aria-hidden');
 
-    if (origin === homescreen) {
+    if (origin === HomescreenLauncher.origin) {
       // Call the openCallback only once. We have to use tmp var as
       // openCallback can be a method calling the callback
       // (like the `removeFrame` callback in `kill()` ).
       var tmpCallback = openCallback;
       openCallback = null;
-      tmpCallback();
 
-      windows.classList.add('active');
-      openFrame.classList.add('homescreen');
-      openFrame.firstChild.focus();
+      HomescreenLauncher.getHomescreen().open(tmpCallback);
+
       setOpenFrame(null);
       displayedApp = origin;
 
@@ -518,34 +492,32 @@ var WindowManager = (function() {
 
       // Make sure we're not called twice.
       transitionOpenCallback = null;
-
       preCallback();
       openFrame.classList.add('opening');
+      HomescreenLauncher.getHomescreen().close();
     };
 
     if ('unloaded' in openFrame.firstChild.dataset) {
       setFrameBackground(openFrame, transitionOpenCallback);
     } else {
-      waitForNextPaint(openFrame, transitionOpenCallback);
+      app._waitForNextPaint(transitionOpenCallback);
     }
 
     // Set the frame to be visible.
-    if ('setVisible' in openFrame.firstChild) {
-      if (!AttentionScreen.isFullyVisible()) {
-        openFrame.firstChild.setVisible(true);
-      } else {
-        // If attention screen is fully visible now,
-        // don't give the open frame visible.
-        // This is the case that homescreen is restarted behind attention screen
+    if (!AttentionScreen.isFullyVisible()) {
+      app.setVisible(true);
+    } else {
+      // If attention screen is fully visible now,
+      // don't give the open frame visible.
+      // This is the case that homescreen is restarted behind attention screen
 
-        // XXX: After bug 822325 is fixed in gecko,
-        // we don't need to check trusted ui state here anymore.
-        // We do this because we don't want the trustedUI opener
-        // is killed in background due to OOM.
-        if (!TrustedUIManager.hasTrustedUI(
-            openFrame.firstChild.dataset.frameOrigin))
-          openFrame.firstChild.setVisible(false);
-      }
+      // XXX: After bug 822325 is fixed in gecko,
+      // we don't need to check trusted ui state here anymore.
+      // We do this because we don't want the trustedUI opener
+      // is killed in background due to OOM.
+      if (!TrustedUIManager.hasTrustedUI(
+          openFrame.firstChild.dataset.frameOrigin))
+        app.setVisible(false);
     }
   }
 
@@ -586,23 +558,11 @@ var WindowManager = (function() {
 
     var onSwitchWindow = isSwitchWindow();
 
-    var homescreenFrame;
-
     if (!onSwitchWindow) {
-      // Animate the window close.  Ensure the homescreen is in the
-      // foreground since it will be shown during the animation.
-      homescreenFrame = ensureHomescreen();
-
       // invoke openWindow to show homescreen here
-      openWindow(homescreen, null);
-
-      // set orientation for homescreen app
-      setOrientationForApp(homescreen);
-
-      // Set the size of both homescreen app and the closing app
-      // since the orientation had changed.
-      runningApps[homescreen].resize();
-
+      // XXX: This doesn't really do the opening. Clean it.
+      displayedApp = HomescreenLauncher.origin;
+      HomescreenLauncher.getHomescreen().setVisible(true);
       app.setRotateTransition();
     }
 
@@ -635,12 +595,13 @@ var WindowManager = (function() {
       // Start the transition
       if (!onSwitchWindow) {
         closeAnimation();
-        homescreenFrame.classList.add('zoom-out');
+        HomescreenLauncher.getHomescreen().open();
       }
     };
 
     onSwitchWindow ? transitionCloseCallback() :
-                     waitForNextPaint(homescreenFrame, transitionCloseCallback);
+                     HomescreenLauncher.getHomescreen().
+                     _waitForNextPaint(transitionCloseCallback);
   }
 
   function isSwitchWindow() {
@@ -658,76 +619,6 @@ var WindowManager = (function() {
       // Ask openWindow() to show a card on the left waiting to be opened
       openWindow(origin, noop, closeAnimation);
     });
-  }
-
-  // Ensure the homescreen is loaded and return its frame.  Restarts
-  // the homescreen app if it was killed in the background.
-  // Note: this function would not invoke openWindow(homescreen),
-  // which should be handled in setDisplayedApp and in closeWindow()
-  function ensureHomescreen(reset) {
-    // If the url of the homescreen is not known at this point do nothing.
-    if (!homescreen || !homescreenManifestURL) {
-      return null;
-    }
-
-    if (!isRunning(homescreen)) {
-      var app = Applications.getByManifestURL(homescreenManifestURL);
-      appendFrame(null, homescreen, homescreenURL,
-                  app.manifest.name, app.manifest, app.manifestURL,
-                  /* expectingSystemMessage */ false);
-      runningApps[homescreen].iframe.dataset.start = Date.now();
-      runningApps[homescreen].resize();
-      if (displayedApp != homescreen &&
-        'setVisible' in runningApps[homescreen].iframe)
-        runningApps[homescreen].iframe.setVisible(false);
-    } else if (reset) {
-      runningApps[homescreen].iframe.src = homescreenURL + Date.now();
-      runningApps[homescreen].resize();
-    }
-
-    return runningApps[homescreen].frame;
-  }
-
-  navigator.mozSettings.addObserver('homescreen.manifestURL', function(event) {
-    kill(homescreen);
-    retrieveHomescreen(function() {
-      setDisplayedApp(homescreen);
-    });
-  });
-
-  function retrieveHomescreen(callback) {
-    var lock = navigator.mozSettings.createLock();
-    var setting = lock.get('homescreen.manifestURL');
-    setting.onsuccess = function() {
-      var app =
-        Applications.getByManifestURL(this.result['homescreen.manifestURL']);
-
-      // XXX This is a one-day workaround to not break everybody and make sure
-      // work can continue.
-      if (!app) {
-        var tmpURL = document.location.toString()
-                                      .replace('system', 'homescreen')
-                                      .replace('index.html', 'manifest.webapp');
-        app = Applications.getByManifestURL(tmpURL);
-      }
-
-      if (app) {
-        homescreenManifestURL = app.manifestURL;
-        homescreen = app.origin;
-        homescreenURL = app.origin + '/index.html#root';
-
-        callback(app);
-      }
-
-      // Dispatch an event here for battery check.
-      window.dispatchEvent(new CustomEvent('homescreen-ready'));
-    };
-  }
-
-  function toggleHomescreen(visible) {
-    var homescreenFrame = ensureHomescreen();
-    if (homescreenFrame)
-      runningApps[homescreen].setVisible(visible);
   }
 
   // This is an event listener which listens to an iframe's 'mozbrowserloadend'
@@ -762,14 +653,11 @@ var WindowManager = (function() {
 
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
-    var currentApp = displayedApp, newApp = origin || homescreen;
+    var currentApp = displayedApp, newApp = origin ||
+      HomescreenLauncher.origin;
 
-    var homescreenFrame = null;
-    // Returns the frame reference of the home screen app.
-    // Restarts the homescreen app if it was killed in the background.
-    homescreenFrame = ensureHomescreen();
-    homescreenFrame.classList.remove('zoom-in');
-    homescreenFrame.classList.remove('zoom-out');
+    if (newApp === HomescreenLauncher.origin)
+      HomescreenLauncher.getHomescreen();
 
     // Cancel transitions waiting to be started.
     transitionOpenCallback = null;
@@ -806,24 +694,17 @@ var WindowManager = (function() {
       }
     }
 
-    if (newApp == homescreen && !AttentionScreen.isFullyVisible()) {
-      toggleHomescreen(true);
-    }
-
     setOpenFrame(null);
     setCloseFrame(null);
     screenElement.classList.remove('switch-app');
     screenElement.classList.remove('fullscreen-app');
 
     // Dispatch an appwillopen event only when we open an app
-    if (newApp != currentApp) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appwillopen', true, true, {
-        origin: newApp,
-        isHomescreen: (newApp === homescreen)
-      });
-
+    if (newApp != currentApp && newApp != HomescreenLauncher.origin) {
       var app = runningApps[newApp];
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('appwillopen', true, true, app);
+
       // Allows listeners to cancel app opening and so stay on homescreen
       if (!app.iframe.dispatchEvent(evt)) {
         if (callback) {
@@ -856,9 +737,9 @@ var WindowManager = (function() {
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
-      if (newApp == homescreen) {
+      if (newApp == HomescreenLauncher.origin) {
         // relaunch homescreen
-        openWindow(homescreen, callback);
+        HomescreenLauncher.getHomescreen().open(callback);
       } else {
         if (runningApps[newApp].isFullScreen()) {
           screenElement.classList.add('fullscreen-app');
@@ -871,52 +752,29 @@ var WindowManager = (function() {
       }
     }
     // Case 2: null --> app
-    else if (FtuLauncher.isFtuRunning() && newApp !== homescreen) {
+    else if (FtuLauncher.isFtuRunning() &&
+             newApp !== HomescreenLauncher.origin) {
       openWindow(newApp, function windowOpened() {
         InitLogoHandler.animate(callback);
       });
     }
     // Case 3: null->homescreen
-    else if ((!currentApp && newApp == homescreen)) {
+    else if ((!currentApp && newApp == HomescreenLauncher.origin)) {
       openWindow(newApp, callback);
     }
     // Case 4: homescreen->app
-    else if ((!currentApp && newApp == homescreen) ||
-             (currentApp == homescreen && newApp)) {
-      var zoomInPreCallback = function() {
-        homescreenFrame.classList.add('zoom-in');
-        // Hide homescreen from screenreader
-        homescreenFrame.setAttribute('aria-hidden', 'true');
-      };
-      var zoomInCallback = function() {
-        homescreenFrame.classList.remove('zoom-in');
-        if (callback) {
-          callback();
-        }
-      };
-      openWindow(newApp, zoomInCallback, zoomInPreCallback);
+    else if ((!currentApp && newApp == HomescreenLauncher.origin) ||
+             (currentApp == HomescreenLauncher.origin && newApp)) {
+      openWindow(newApp, callback);
     }
     // Case 5: app->homescreen
-    else if (currentApp && currentApp != homescreen && newApp == homescreen) {
-      var zoomOutCallback = function() {
-        homescreenFrame.classList.remove('zoom-out');
-        if (callback) {
-          callback();
-        }
-      };
-      closeWindow(currentApp, zoomOutCallback);
+    else if (currentApp && currentApp != HomescreenLauncher.origin &&
+             newApp == HomescreenLauncher.origin) {
+      closeWindow(currentApp, callback);
     }
     // Case 6: app-to-app transition
     else {
       switchWindow(newApp, callback);
-    }
-
-    // Set homescreen as active,
-    // to control the z-index between homescreen & keyboard iframe
-    if ((newApp == homescreen) && homescreenFrame) {
-      homescreenFrame.classList.add('active');
-    } else {
-      homescreenFrame.classList.remove('active');
     }
 
     // Record the time when app was launched,
@@ -949,29 +807,8 @@ var WindowManager = (function() {
     var app = runningApps[origin];
     if (!app)
       return;
-    var manifest = app.manifest;
 
-    var orientation = manifest.orientation || _globalOrientation;
-    if (orientation) {
-      if (!Array.isArray(orientation)) {
-        orientation = [orientation];
-      }
-      var rv = screen.mozLockOrientation.apply(screen, orientation);
-      if (rv === false) {
-        console.warn('screen.mozLockOrientation() returned false for',
-                     origin, 'orientation', orientation);
-        // Prevent breaking app size on desktop since we've resized landscape
-        // apps for transition.
-        if (app.frame.dataset.orientation == 'landscape-primary' ||
-            app.frame.dataset.orientation == 'landscape-secondary' ||
-            app.currentOrientation == 'landscape-primary' ||
-            app.currentOrientation == 'landscape-secondary') {
-          app.resize();
-        }
-      }
-    } else {  // If no orientation was requested, then let it rotate
-      screen.mozUnlockOrientation();
-    }
+    app.setOrientation(_globalOrientation);
   }
 
   // update app name when language setting changes
@@ -995,8 +832,7 @@ var WindowManager = (function() {
       url: url,
       name: name,
       manifest: manifest,
-      manifestURL: manifestURL,
-      isHomescreen: (origin === homescreen)
+      manifestURL: manifestURL
     };
 
     // TODO: Move into browser configuration helper.
@@ -1077,16 +913,6 @@ var WindowManager = (function() {
     // window.open method.
     iframe.name = 'main';
 
-    // If this frame corresponds to the homescreen, set mozapptype=homescreen
-    // so we're less likely to kill this frame's process when we're running low
-    // on memory.
-    //
-    // We must do this before we the appendChild() call below. Once
-    // we add this frame to the document, we can't change its app type.
-    if (origin === homescreen) {
-      iframe.setAttribute('mozapptype', 'homescreen');
-    }
-
     if (expectingSystemMessage) {
       iframe.setAttribute('expecting-system-message',
                           'expecting-system-message');
@@ -1121,8 +947,7 @@ var WindowManager = (function() {
       manifestURL: manifestURL,
       frame: frame,
       iframe: iframe,
-      launchTime: 0,
-      isHomescreen: (manifestURL === homescreenManifestURL)
+      launchTime: 0
     });
     runningApps[origin] = app;
 
@@ -1134,6 +959,15 @@ var WindowManager = (function() {
 
     return app;
   }
+
+  window.addEventListener('homescreencreated', function onHomeCreated(e) {
+    runningApps[HomescreenLauncher.origin] = e.detail;
+  });
+
+  window.addEventListener('homescreen-changed',
+    function onHomeChanged(evt) {
+      setDisplayedApp();
+    });
 
   function startInlineActivity(origin, url, name, manifest, manifestURL) {
     // If the same inline activity frame is existed and showing,
@@ -1257,7 +1091,7 @@ var WindowManager = (function() {
   function restoreRunningApp() {
     // Give back focus to the displayed app
     var app = runningApps[displayedApp];
-    setOrientationForApp(displayedApp);
+    app.setOrientation();
     if (app && app.iframe) {
       app.iframe.focus();
       app.setVisible(true);
@@ -1362,7 +1196,7 @@ var WindowManager = (function() {
     }
 
     if (!config.isSystemMessage) {
-      if (config.origin == homescreen) {
+      if (config.origin == HomescreenLauncher.origin) {
         // No need to append a frame if is homescreen
         setDisplayedApp();
       } else {
@@ -1403,7 +1237,7 @@ var WindowManager = (function() {
               iframe.src = config.url;
             }
           }
-        } else if (config.origin !== homescreen) {
+        } else if (config.origin !== HomescreenLauncher.origin) {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
           var app = appendFrame(null, config.origin, config.url,
@@ -1420,7 +1254,7 @@ var WindowManager = (function() {
               app.iframe.setVisible(false);
           }
         } else {
-          ensureHomescreen();
+          HomescreenLauncher.getHomescreen().ensure();
         }
       }
 
@@ -1687,18 +1521,6 @@ var WindowManager = (function() {
     if (displayedApp == origin)
       handleAppCrash();
 
-    // If the crashing app is the home screen app and it is the displaying app
-    // we will need to relaunch it right away.
-    // Alternatively, if home screen is not the displaying app,
-    // we will not relaunch it until the foreground app is closed.
-    // (to be dealt in setDisplayedApp(), not here)
-    if (displayedApp == origin && homescreen === origin) {
-      kill(origin, function relaunchHomescreen() {
-        setDisplayedApp(homescreen);
-      });
-      return;
-    }
-
     // Actually remove the frame, and trigger the closing transition
     // if the app is currently displaying
     kill(origin);
@@ -1756,31 +1578,9 @@ var WindowManager = (function() {
     setDisplayedApp(config.origin);
   });
 
-  // Use a setting in order to be "called" by settings app
-  navigator.mozSettings.addObserver(
-    'clear.remote-windows.data',
-    function clearRemoteWindowsData(setting) {
-      var shouldClear = setting.settingValue;
-      if (!shouldClear)
-        return;
-
-      // Delete all storage and cookies from our content processes
-      var request = navigator.mozApps.getSelf();
-      request.onsuccess = function() {
-        request.result.clearBrowserData();
-      };
-
-      // Reset the setting value to false
-      var lock = navigator.mozSettings.createLock();
-      lock.set({'clear.remote-windows.data': false});
-    });
-
   // Stop running the app with the specified origin
-  function kill(origin, callback) {
+  function kill(origin) {
     if (!isRunning(origin)) {
-      if (callback) {
-        setTimeout(callback);
-      }
       return;
     }
 
@@ -1789,9 +1589,6 @@ var WindowManager = (function() {
     // we flag it as being killed in order to avoid trying to remove it twice.
     // (Check required because of bug 814583)
     if (app.killed) {
-      if (callback) {
-        setTimeout(callback);
-      }
       return;
     }
     app.killed = true;
@@ -1811,35 +1608,13 @@ var WindowManager = (function() {
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp) {
-      // when the homescreen is displayed and being
-      // killed we need to forcibly restart it...
-      if (origin === homescreen) {
-        removeFrame(origin);
-
-        // XXX workaround bug 810431.
-        // we need this here and not in other situations
-        // as it is expected that homescreen frame is available.
-        setTimeout(function() {
-          setDisplayedApp();
-
-          if (callback) {
-            callback();
-          }
-        });
-      } else {
-        setDisplayedApp(homescreen, function() {
+      if (origin !== HomescreenLauncher.origin) {
+        setDisplayedApp(HomescreenLauncher.origin, function() {
           removeFrame(origin);
-          if (callback) {
-            setTimeout(callback);
-          }
         });
       }
-
     } else {
       removeFrame(origin);
-      if (callback) {
-        setTimeout(callback);
-      }
     }
 
     // Send a synthentic 'appterminated' event.
@@ -1898,40 +1673,18 @@ var WindowManager = (function() {
       document.mozCancelFullScreen();
     }
 
-    if (displayedApp !== homescreen || inTransition) {
+    if (displayedApp !== HomescreenLauncher.origin || inTransition) {
       // Make sure this happens before activity frame is removed.
       // Because we will be asked by a 'activity-done' event from gecko
       // to relaunch to activity caller, and this is the only way to
       // determine if we are going to homescreen or the original app.
       activityCallerOrigin = '';
 
-      setDisplayedApp(homescreen);
+      setDisplayedApp(HomescreenLauncher.origin);
     } else {
       stopInlineActivity(true);
-      ensureHomescreen(true);
+      HomescreenLauncher.getHomescreen().ensure(true);
     }
-  });
-
-  // Cancel dragstart event to workaround
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=783076
-  // which stops OOP home screen pannable with left mouse button on
-  // B2G/Desktop.
-  windows.addEventListener('dragstart', function(evt) {
-    evt.preventDefault();
-  }, true);
-
-  // With all important event handlers in place, we can now notify
-  // Gecko that we're ready for certain system services to send us
-  // messages (e.g. the radio).
-  // Note that shell.js starts listen for the mozContentEvent event at
-  // mozbrowserloadstart, which sometimes does not happen till window.onload.
-  window.addEventListener('load', function wm_loaded() {
-    window.removeEventListener('load', wm_loaded);
-
-    var evt = new CustomEvent('mozContentEvent',
-      { bubbles: true, cancelable: false,
-        detail: { type: 'system-message-listener-ready' } });
-    window.dispatchEvent(evt);
   });
 
   // Return the object that holds the public API
@@ -1957,9 +1710,6 @@ var WindowManager = (function() {
 
       return app.manifest.orientation;
     },
-    toggleHomescreen: toggleHomescreen,
-    retrieveHomescreen: retrieveHomescreen,
     screenshots: screenshots
   };
 }());
-
