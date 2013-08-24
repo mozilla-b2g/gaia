@@ -7,12 +7,30 @@ var DateHelper = require('./date_helper'),
 
 
 /**
+ * Sets a field value.
+ *
+ * @param {Marionette.Client} client to use.
+ * @param {Marionette.Element} element target for value.
+ * @param {String} value to set.
+ * @private
+ */
+function setValue(client, element, value) {
+  client.executeScript(function(element, value) {
+    element.value = value;
+  }, [element, value]);
+}
+
+
+/**
  * @constructor
  * @param {Marionette.Client} client Marionette client to use.
  */
 function Calendar(client) {
-  this.client = client;
+  this.client = client.scope({
+    searchTimeout: 20000
+  });
 }
+
 module.exports = Calendar;
 
 
@@ -303,22 +321,18 @@ Calendar.prototype = {
     this.editEventTitle.sendKeys([title]);
     this.editEventLocation.sendKeys([location]);
 
-    // TODO(gareth): Sending keys to input[type="date"] or input[type="time"]
-    //     doesn't work, but we shouldn't do this either...
-    this.client.executeScript(function(startDay, startTime, endDay, endTime) {
-      function setSelector(selector, val) {
-        document.querySelector(selector).value = val;
-      }
+    var form = this.editEventForm;
+    var updateFormValues = {
+      startDate: startDay,
+      startTime: startTime,
+      endDate: endDay,
+      endTime: endTime
+    };
 
-      setSelector('#modify-event-view input[name="startDate"]', startDay);
-      setSelector('#modify-event-view input[name="startTime"]', startTime);
-      setSelector('#modify-event-view input[name="endDate"]', endDay);
-      setSelector('#modify-event-view input[name="endTime"]', endTime);
-      document
-          .querySelector('#modify-event-view select[name="alarm[]"]')
-          .options[1]
-          .selected = true;
-    }, [startDay, startTime, endDay, endTime]);
+    for (var key in updateFormValues) {
+      var element = form.findElement('[name="' + key + '"]');
+      setValue(this.client, element, updateFormValues[key]);
+    }
 
     // Save event.
     this.editEventSaveButton.click();
