@@ -705,7 +705,8 @@ const Keyboards = {
     imEngine: 'latin',
     autoCorrectLanguage: 'ru',
     alt: {
-      // incomplete
+      е: 'ё',
+      ь: 'ъ'
     },
     width: 11,
     keys: [
