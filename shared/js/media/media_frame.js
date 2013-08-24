@@ -70,9 +70,22 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   // Make the image element visible
   this.image.style.display = 'block';
 
+  function bigEnough(preview) {
+    if (!preview.width || !preview.height)
+      return false;
+
+    // A preview is big enough if at least one dimension is >= the
+    // screen size in both portait and landscape mode.
+    var sw = window.innerWidth;
+    var sh = window.innerHeight;
+
+    return ((preview.width >= sw || preview.height >= sh) && // portrait
+            (preview.width >= sh || preview.height >= sw));  // landscape
+  }
+
   // If the preview is at least as big as the screen, display that.
   // Otherwise, display the full-size image.
-  if (preview && (preview.start || preview.filename)) {
+  if (preview && (preview.start || preview.filename) && bigEnough(preview)) {
     this.displayingPreview = true;
     if (preview.start) {
       this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
