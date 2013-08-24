@@ -107,3 +107,12 @@ suite('Date Helper', function() {
   });
 
 });
+
+suite('HTML Helper', function() {
+
+  test('createHighlightHTML', function() {
+    var result = HtmlHelper.createHighlightHTML('abc', 'b');
+    assert.equal(result, 'a<span class="highlight">b</span>c');
+  });
+
+});
