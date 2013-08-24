@@ -61,8 +61,24 @@ window.addEventListener('localized', function() {
     // We'll enable it below in the open() function if needed.
     $('menu').hidden = true;
 
-    blob = activityData.blob;
-    open(blob);
+    // Make a local copy of the blob before opening it to workaround bug 908432
+    copyBlob(activityData.blob, function(localCopy) {
+      blob = localCopy;
+      open(blob);
+    });
+  }
+
+  // Read the content of a (possibly file-backed, cross-process) blob into an
+  // array buffer, and then create a new in-memory, in process blob from
+  // that array buffer. This is part of the workaround for the crash in
+  // bug 908432.
+  function copyBlob(original, callback) {
+    var reader = new FileReader();
+    reader.readAsArrayBuffer(original);
+    reader.onload = function() {
+      var copy = new Blob([reader.result], { type: original.type });
+      callback(copy);
+    };
   }
 
   // Display the specified blob, unless it is too big to display
