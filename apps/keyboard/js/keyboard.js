@@ -1707,7 +1707,16 @@ function showKeyboard(state) {
     renderKeyboard(keyboardName);
   }
 
-  inputContext.getText().then(function gotText(value) {
+  var promise = inputContext.getText();
+
+  // XXX: Bug 906096, make keyboard can show up in Firefox Nightly
+  // before the IME WebAPI is ready
+  if (!promise.then) {
+    doShowKeyboard();
+    return;
+  }
+
+  promise.then(function gotText(value) {
     state.value = value;
     doShowKeyboard();
   }, function failedToGetText() {
