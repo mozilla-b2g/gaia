@@ -8,6 +8,8 @@
       this[key] = configuration[key];
     }
 
+    this.config = configuration;
+
     // Check if it's a fullscreen app.
     var manifest = this.manifest;
     if ('entry_points' in manifest && manifest.entry_points &&
@@ -302,8 +304,13 @@
   AppWindow.prototype.publish = function(event, detail) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(this.eventPrefix + event,
-                        true, false, detail || this.config);
-    this.frame.dispatchEvent(evt);
+                        true, false, detail || this);
+
+    if (this.frame) {
+      this.frame.dispatchEvent(evt);
+    } else {
+      window.dispatchEvent(evt);
+    }
   };
 
   /**
@@ -449,5 +456,29 @@
 
     this.publish('resize', {changeActivityFrame: changeActivityFrame});
   };
+
+  AppWindow.prototype.setOrientation =
+    function aw_setOrientation(globalOrientation) {
+      var manifest = this.manifest || this.config.manifest;
+
+      var orientation = manifest.orientation || globalOrientation;
+      if (orientation) {
+        var rv = screen.mozLockOrientation(orientation);
+        if (rv === false) {
+          console.warn('screen.mozLockOrientation() returned false for',
+                       origin, 'orientation', orientation);
+          // Prevent breaking app size on desktop since we've resized landscape
+          // apps for transition.
+          if (this.frame.dataset.orientation == 'landscape-primary' ||
+              this.frame.dataset.orientation == 'landscape-secondary' ||
+              this.currentOrientation == 'landscape-primary' ||
+              this.currentOrientation == 'landscape-secondary') {
+            this.resize();
+          }
+        }
+      } else {  // If no orientation was requested, then let it rotate
+        screen.mozUnlockOrientation();
+      }
+    };
 
 }(this));
