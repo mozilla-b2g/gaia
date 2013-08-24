@@ -383,6 +383,7 @@ const Keyboards = {
     label: 'Czech',
     menuLabel: 'Česká',
     imEngine: 'latin',
+    autoCorrectLanguage: 'cs',
     alt: {
       a: 'á',
       c: 'č',
@@ -520,6 +521,7 @@ const Keyboards = {
     label: 'Hungarian',
     menuLabel: 'Magyar',
     imEngine: 'latin',
+    autoCorrectLanguage: 'hu',
     alt: {
       a: 'áàâäåãāæª',
       c: 'çćč',
@@ -590,6 +592,7 @@ const Keyboards = {
     label: 'Croatian',
     menuLabel: 'Hrvatski',
     imEngine: 'latin',
+    autoCorrectLanguage: 'hr',
     alt: {
       c: 'čćç',
       d: 'đ',
@@ -626,6 +629,7 @@ const Keyboards = {
     label: 'Dutch',
     menuLabel: 'Nederlands',
     imEngine: 'latin',
+    autoCorrectLanguage: 'nl',
     alt: {
       a: 'áäâàæãåā',
       e: 'éëêèęėē',
@@ -707,6 +711,7 @@ const Keyboards = {
     label: 'Romanian',
     menuLabel: 'Română',
     imEngine: 'latin',
+    autoCorrectLanguage: 'ro',
     alt: {
       a: 'ăâ',
       d: 'đ',
@@ -771,6 +776,7 @@ const Keyboards = {
     label: 'Russian',
     menuLabel: 'Pусский',
     imEngine: 'latin',
+    autoCorrectLanguage: 'ru',
     alt: {
       // incomplete
     },
@@ -799,6 +805,7 @@ const Keyboards = {
     label: 'Serbian (Cyrillic)',
     menuLabel: 'Српски (ћирилица)',
     imEngine: 'latin',
+    autoCorrectLanguage: 'sr',
     alt: {
       // incomplete
     },
@@ -925,6 +932,7 @@ const Keyboards = {
   tr: {
     label: 'Turkish',
     imEngine: 'latin',
+    autoCorrectLanguage: 'tr',
     menuLabel: 'Türkçe',
     upperCase: {
       'i': 'İ'
@@ -1269,6 +1277,7 @@ const Keyboards = {
     label: 'Greek',
     menuLabel: 'Greek',
     imEngine: 'latin',
+    autoCorrectLanguage: 'el',
     alt: {
       α: 'ά',
       ε: 'έ€',
