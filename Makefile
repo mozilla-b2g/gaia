@@ -326,7 +326,7 @@ app-makefiles:
 	do \
 		for mfile in `find $$d -mindepth 1 -maxdepth 1 -name "Makefile"` ;\
 		do \
-			make -C `dirname $$mfile`; \
+			$(MAKE) -C `dirname $$mfile`; \
 		done; \
 	done;
 
@@ -418,14 +418,14 @@ else
 # 64-bit
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_MAC_SDK_URL)x86_64.sdk.tar.bz2
 endif
-XULRUNNERSDK=./$(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/run-mozilla.sh
-XPCSHELLSDK=./$(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell
+XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/run-mozilla.sh)
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/XUL.framework/Versions/Current/xpcshell)
 
 else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
 # For windows we only have one binary
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_SDK_URL)win32.sdk.zip
 XULRUNNERSDK=
-XPCSHELLSDK=./$(XULRUNNER_DIRECTORY)/bin/xpcshell
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
 
 else
 # Otherwise, assume linux
@@ -437,9 +437,11 @@ XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)x86_64.sdk.tar.bz2
 else
 XULRUNNER_SDK_DOWNLOAD=$(XULRUNNER_LINUX_SDK_URL)i686.sdk.tar.bz2
 endif
-XULRUNNERSDK=./$(XULRUNNER_DIRECTORY)/bin/run-mozilla.sh
-XPCSHELLSDK=./$(XULRUNNER_DIRECTORY)/bin/xpcshell
+XULRUNNERSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/run-mozilla.sh)
+XPCSHELLSDK=$(abspath $(XULRUNNER_DIRECTORY)/bin/xpcshell)
 endif
+# we need these variables in external processes
+export XULRUNNER_DIRECTORY XULRUNNERSDK XPCSHELLSDK
 
 .PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
