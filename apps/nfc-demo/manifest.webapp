@@ -22,7 +22,7 @@
     },
     "nfc-ndef-discovered": {
       "filters": {
-        "type": ["empty", "webtelephony/number", "text/vcard", "text", "uri"]
+        "type": ["empty", "webtelephony/number", "text/vcard", "text", "uri", "*"]
       }
     }
   }

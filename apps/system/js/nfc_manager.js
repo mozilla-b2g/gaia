@@ -252,36 +252,16 @@
     }
   }
 
-  function doConnect() {
+  function doClose() {
     var nfc = window.navigator.mozNfc;
-    var connected = false;
 
-    var conn = nfc.connect(6);
-    conn.onsuccess = function() {
-      debug('DBG: Success');
-      connected = true;
-    };
-    conn.onerror = function() {
-      debug('Cannot connect to NFC tech');
-    };
-
-    return connected;
-  }
-
-  function doDisconnect() {
-    var nfc = window.navigator.mozNfc;
-    var disconnected = false;
-
-    var conn = nfc.disconnect();
+    var conn = nfc.close();
     conn.onsuccess = function() {
       debug('NFC tech disconnected');
-      disconnected = true;
     };
     conn.onerror = function() {
       debug('Disconnect failed.');
     };
-
-    return disconnected;
   }
 
   function handleNdefDiscovered() {
@@ -306,11 +286,11 @@
           var a = new MozActivity(action[0]);
         }
         handled = true;
-        doDisconnect();
+        doClose();
       };
       req.onerror = function() {
         debug('Error reading NDEF record');
-        doDisconnect();
+        doClose();
       };
     };
 
