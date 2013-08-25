@@ -89,5 +89,20 @@ var MimeMapper = {
 
   guessTypeFromExtension: function(extension) {
     return this._extensionToTypeMap[extension];
+  },
+
+  isFilenameMatchesType: function(filename, mimetype) {
+    var array = filename.split('.');
+    var extension = array[array.length - 1];
+    var guessedType = this.guessTypeFromExtension(extension);
+    return (guessedType == mimetype);
+  },
+
+  ensureFilenameMatchesType: function(filename, mimetype) {
+    if (!this.isFilenameMatchesType(filename, mimetype)) {
+      var guessedExt = this.guessExtensionFromType(mimetype);
+      filename += '.' + guessedExt;
+    }
+    return filename;
   }
 };
