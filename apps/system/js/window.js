@@ -12,8 +12,7 @@
     var manifest = this.manifest;
     if ('entry_points' in manifest && manifest.entry_points &&
         manifest.type == 'certified') {
-      var miniManifest = manifest.entry_points[this.origin.split('/')[3]];
-      manifest = miniManifest || manifest;
+      manifest = manifest.entry_points[this.origin.split('/')[3]];
     }
     this._fullScreen = 'fullscreen' in manifest ? manifest.fullscreen : false;
 
