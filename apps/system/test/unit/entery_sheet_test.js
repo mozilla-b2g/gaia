@@ -2,7 +2,6 @@
 
 /* Unit test of entry_sheet.js */
 requireApp('system/js/entry_sheet.js');
-requireApp('system/js/browser.js');
 
 suite('entry sheet class > ', function() {
   test('Simple entry sheet instance creation..', function() {
