@@ -1,7 +1,7 @@
 
 'use strict';
 
-const DragDropManager = (function() {
+var DragDropManager = (function() {
 
   /*
    * It defines the time (in ms) while checking limits is disabled

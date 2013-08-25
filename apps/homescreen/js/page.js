@@ -1042,7 +1042,7 @@ dockProto.placeIcon = function pg_placeIcon(node, from, to, transition) {
     node.style.MozTransition = transition;
 };
 
-const TextOverflowDetective = (function() {
+var TextOverflowDetective = (function() {
 
   var iconFakeWrapperWidth;
   var iconFakeLabel;
