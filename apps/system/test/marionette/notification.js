@@ -1,19 +1,30 @@
 'use strict';
 var util = require('util');
 
-function NotificationTest(client, origin, tag) {
+function NotificationTest(client, origin, tag, title, body) {
   this.client = client;
   this.origin = origin;
   this.tag = tag;
+  this.client.executeScript(function(notifyTag, notifyTitle, notifyBody) {
+    if (window.wrappedJSObject.persistNotify === undefined) {
+      window.wrappedJSObject.persistNotify = [];
+    }
+    window.wrappedJSObject.persistNotify[notifyTag] =
+      new Notification(notifyTitle, { body: notifyBody, tag: notifyTag });
+  }, [this.tag, title, body]);
 }
 
 module.exports = NotificationTest;
 
-NotificationTest.Selector = Object.freeze({
-  containerElement: '[data-notification-id="%s#tag:%s"]',
-  titleElement: '[data-notification-id="%s#tag:%s"] > div',
-  bodyElement: '[data-notification-id="%s#tag:%s"] > .detail'
-});
+NotificationTest.Selector = Object.freeze((function() {
+  var baseSelector = '#desktop-notifications-container > ' +
+      '[data-notification-id="%s#tag:%s"]';
+  return {
+    containerElement: baseSelector,
+    titleElement: baseSelector + ' > div',
+    bodyElement: baseSelector + ' > .detail'
+  };
+})());
 
 NotificationTest.prototype = {
   client: null,
@@ -41,11 +52,17 @@ NotificationTest.prototype = {
     return this.bodyElement.getAttribute('textContent');
   },
   get titleText() {
-   return this.titleElement.getAttribute('textContent');
+    return this.titleElement.getAttribute('textContent');
   },
-  createNotification: function(notifyTitle, notifyBody) {
+  replace: function(title, body) {
     this.client.executeScript(function(notifyTag, notifyTitle, notifyBody) {
-      new Notification(notifyTitle, { body: notifyBody, tag: notifyTag });
-    }, [this.tag, notifyTitle, notifyBody]);
+      window.wrappedJSObject.persistNotify[notifyTag] =
+        new Notification(notifyTitle, { body: notifyBody, tag: notifyTag });
+    }, [this.tag, title, body]);
+  },
+  close: function() {
+    this.client.executeScript(function(notifyTag) {
+      window.wrappedJSObject.persistNotify[notifyTag].close();
+    }, [this.tag]);
   }
 };
