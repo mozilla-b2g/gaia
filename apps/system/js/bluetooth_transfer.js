@@ -451,10 +451,18 @@ var BluetoothTransfer = {
       a.onerror = function(e) {
         var msg = 'open activity error:' + a.error.name;
         self.debug(msg);
-        // Cannot identify MIMETYPE
-        // So, show cannot open file dialog with unknow media type
-        UtilityTray.hide();
-        self.showUnknownMediaPrompt(fileName);
+        switch (a.error.name) {
+        case 'NO_PROVIDER':
+          UtilityTray.hide();
+          // Cannot identify MIMETYPE
+          // So, show cannot open file dialog with unknow media type
+          self.showUnknownMediaPrompt(fileName);
+          return;
+        case 'ActivityCanceled':
+        case 'USER_ABORT':
+        default:
+          return;
+        }
       };
       a.onsuccess = function(e) {
         var msg = 'open activity onsuccess';
