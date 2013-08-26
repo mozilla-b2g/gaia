@@ -324,7 +324,12 @@ Calendar.ns('Views').ModifyAccount = (function() {
       var usernameType = this.model.usernameType;
       this.fields['user'].type = (usernameType === undefined) ?
           'text' : usernameType;
-   },
+
+      var self = this;
+      Calendar.nextTick(function() {
+        self.fields['user'].focus();
+      });
+    },
 
     destroy: function() {
       var list = this.element.classList;
