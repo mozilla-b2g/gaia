@@ -184,6 +184,10 @@ def setup_logging(volume=1, console=True, filename=None):
         logger.addHandler(file_handler)
 
 
+def make_relative(path, gaia):
+    return path[len(gaia)+1:]
+
+
 def main():
     parser = OptionParser("%prog [OPTIONS] [LOCALES...] - create multilocale Gaia")
     parser.add_option("-v", "--verbose", 
@@ -204,6 +208,9 @@ def main():
                       action="store", dest="config_file",
                       help=("path to the languages.json config file; "
                             "will be used instead of LOCALES"))
+    parser.add_option("--gaia",
+                      action="store", dest="gaia",
+                      help="path to gaia directory")
 
     options, locales = parser.parse_args()
 
@@ -219,6 +226,8 @@ def main():
         parser.error("You need to specify at least one --target")
     if options.source is None and not options.onlyini:
         parser.error("You need to specify --source (unless you meant --ini)")
+    if options.gaia is None:
+        parser.error("You need to specify --gaia")
 
     if "en-US" in locales:
         locales.remove("en-US")
@@ -235,12 +244,14 @@ def main():
     # 2. copy properties files as per the inis
     for ini_file in ini_files:
         log.info("########## copying locale files as per %s" % ini_file)
+        ini_file = make_relative(ini_file, options.gaia)
         copy_properties(options.source, locales, ini_file)
 
     # 3. edit manifests
     manifest_files = find_files(options.target, 'manifest.webapp')
     for manifest_file in manifest_files:
         log.info("########## adding localized names to %s" % manifest_file)
+        manifest_file = make_relative(manifest_file, options.gaia)
         add_locale_manifest(options.source, locales, manifest_file)
 
 
