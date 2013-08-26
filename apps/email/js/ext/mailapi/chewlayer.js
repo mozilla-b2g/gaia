@@ -2146,7 +2146,7 @@ HTMLSanitizer.prototype = {
         this.complete = true;
       }
     } else {
-      this.output += escapeHTMLEntities(text);
+      this.output += escapeHTMLTextKeepingExistingEntities(text);
     }
   },
 
@@ -2798,7 +2798,11 @@ function makeReverseEntities () {
   });
 }
 
-function escapeHTMLEntities(text) {
+/**
+ * Escapes HTML characters like [<>"'&] in the text,
+ * leaving existing HTML entities intact.
+ */
+function escapeHTMLTextKeepingExistingEntities(text) {
   return text.replace(/[<>"']|&(?![#a-zA-Z0-9]+;)/g, function(c) {
     return '&#' + c.charCodeAt(0) + ';';
   });
@@ -2828,6 +2832,30 @@ exports.unescapeHTMLEntities = function unescapeHTMLEntities(text) {
     return converted;
   });
 };
+
+/**
+ * Renders text content safe for injecting into HTML by
+ * replacing all characters which could be used to create HTML elements.
+ */
+exports.escapePlaintextIntoElementContext = function (text) {
+  return text.replace(/[&<>"'\/]/g, function(c) {
+    var code = c.charCodeAt(0);
+    return '&' + (entities[code] || '#' + code) + ';';
+  });
+}
+
+/**
+ * Escapes all characters with ASCII values less than 256, other than
+ * alphanumeric characters, with the &#xHH; format to prevent
+ * switching out of the attribute.
+ */
+exports.escapePlaintextIntoAttribute = function (text) {
+  return text.replace(/[\u0000-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u0100]/g, function(c) {
+    var code = c.charCodeAt(0);
+    return '&' + (entities[code] || '#' + code) + ';';
+  });
+}
+
 
 }); // end define
 ;
@@ -3376,18 +3404,21 @@ exports.generateSnippet = function generateSnippet(htmlString) {
  */
 exports.wrapTextIntoSafeHTMLString = function(text, wrapTag,
                                               transformNewlines, attrs) {
-  if (transformNewlines === undefined)
+  if (transformNewlines === undefined) {
     transformNewlines = true;
+  }
 
   wrapTag = wrapTag || 'div';
 
+  text = $bleach.escapePlaintextIntoElementContext(text);
   text = transformNewlines ? text.replace(/\n/g, '<br/>') : text;
 
   var attributes = '';
   if (attrs) {
     var len = attrs.length;
     for (var i = 0; i < len; i += 2) {
-      attributes += ' ' + attrs[i] + '="' + attrs[i + 1] +'"';
+      attributes += ' ' + attrs[i] + '="' +
+        $bleach.escapePlaintextIntoAttribute(attrs[i + 1]) + '"';
     }
   }
 
