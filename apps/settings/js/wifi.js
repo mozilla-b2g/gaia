@@ -600,7 +600,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       var dialog = document.getElementById(dialogID);
 
       // authentication fields
-      var identity, password, showPassword;
+      var identity, password, showPassword, eap, simPin;
       if (dialogID != 'wifi-status') {
         identity = dialog.querySelector('input[name=identity]');
         identity.value = network.identity || '';
@@ -614,6 +614,10 @@ navigator.mozL10n.ready(function wifiSettings() {
         showPassword.onchange = function() {
           password.type = this.checked ? 'text' : 'password';
         };
+
+        eap = dialog.querySelector('li.eap select');
+
+        simPin = dialog.querySelector('input[name=simPin]');
       }
 
       if (dialogID === 'wifi-joinHidden') {
@@ -638,8 +642,14 @@ navigator.mozL10n.ready(function wifiSettings() {
       if (password) {
         var checkPassword = function checkPassword() {
           dialog.querySelector('button[type=submit]').disabled =
-            !WifiHelper.isValidInput(key, password.value, identity.value);
+            !WifiHelper.isValidInput(key, password.value, identity.value,
+              eap.value, simPin.value);
         };
+        eap.onchange = function() {
+          checkPassword();
+          changeDisplay(key);
+        };
+        simPin.oninput = checkPassword;
         password.oninput = checkPassword;
         identity.oninput = checkPassword;
         checkPassword();
@@ -671,6 +681,7 @@ navigator.mozL10n.ready(function wifiSettings() {
           dialog.querySelector('[data-security]').textContent =
               security || _('securityNone');
           dialog.dataset.security = security;
+          changeDisplay(security);
           break;
 
         case 'wifi-joinHidden':
@@ -680,10 +691,41 @@ navigator.mozL10n.ready(function wifiSettings() {
             WifiHelper.setSecurity(network, [key]);
             dialog.dataset.security = key;
             checkPassword();
+            changeDisplay(key);
           };
           security.onchange = onSecurityChange;
           onSecurityChange();
           break;
+      }
+
+      // change element display
+      function changeDisplay(security) {
+        if (security === 'WEP' || security === 'WPA-PSK') {
+          simPin.parentNode.style.display = 'none';
+          identity.parentNode.style.display = 'none';
+          password.parentNode.style.display = 'block';
+        } else if (security === 'WPA-EAP') {
+          if (eap) {
+            switch (eap.value) {
+              case 'SIM':
+              case 'AKA':
+              case 'AKA\'':
+                simPin.parentNode.style.display = 'block';
+                identity.parentNode.style.display = 'none';
+                password.parentNode.style.display = 'none';
+                break;
+              default:
+                simPin.parentNode.style.display = 'none';
+                identity.parentNode.style.display = 'block';
+                password.parentNode.style.display = 'block';
+                break;
+            }
+          }
+        } else {
+          simPin.parentNode.style.display = 'none';
+          identity.parentNode.style.display = 'none';
+          password.parentNode.style.display = 'none';
+        }
       }
 
       // reset dialog box
@@ -692,6 +734,7 @@ navigator.mozL10n.ready(function wifiSettings() {
           gWifiManager.connectionInfoUpdate = null;
         }
         if (dialogID != 'wifi-status') {
+          simPin.value = '';
           identity.value = '';
           password.value = '';
           showPassword.checked = false;
@@ -704,7 +747,8 @@ navigator.mozL10n.ready(function wifiSettings() {
           network.ssid = dialog.querySelector('input[name=ssid]').value;
         }
         if (key) {
-          WifiHelper.setPassword(network, password.value, identity.value);
+          WifiHelper.setPassword(network, password.value, identity.value,
+            eap.value, simPin.value);
         }
         if (callback) {
           callback();

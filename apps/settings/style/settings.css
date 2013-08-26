@@ -164,12 +164,16 @@ ul[data-state="ready"] li[data-state="ready"] {
 
 section li.password,
 section li.password[hidden],
+section li.eap,
+section li.simpin,
 section li.identity {
   display: none;
 }
 
 section[data-security*="WEP"] li.password,
 section[data-security*="WPA"] li.password,
+section[data-security*="EAP"] li.eap,
+section[data-security*="EAP"] li.simpin,
 section[data-security*="EAP"] li.identity {
   display: block;
 }
