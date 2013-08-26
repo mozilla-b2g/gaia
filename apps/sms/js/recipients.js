@@ -803,7 +803,7 @@
 
       case 'keyup':
 
-        // Last character is a semi-colorn treat as an
+        // Last character is a semi-colon, treat as an
         // "accept" of this recipient.
         if (typed && typed[length - 1] === ';') {
           isAcceptedRecipient = true;
@@ -826,6 +826,10 @@
           });
         }
 
+        if (!typed && keyCode === event.DOM_VK_BACK_SPACE) {
+          isPreventingDefault = true;
+          isDeletingRecipient = true;
+        }
 
 
         break;
