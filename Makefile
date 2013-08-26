@@ -449,7 +449,10 @@ ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat $(XULRUNNER_URL_FILE) 2> /dev/null)
 	rm -rf $(XULRUNNER_DIRECTORY)
 	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-	unzip xulrunner*.zip && rm xulrunner*.zip
+	unzipdir="`mktemp -d`" ;\
+	unzip xulrunner*.zip -d "$$unzipdir" ;\
+	mv "$$unzipdir"/xulrunner-sdk $(XULRUNNER_DIRECTORY) ;\
+	rm xulrunner*.zip && rm -r "$$unzipdir"
 else
 	mkdir $(XULRUNNER_DIRECTORY)
 	tar xjf xulrunner*.tar.bz2 --strip-components=1 -C $(XULRUNNER_DIRECTORY) && rm xulrunner*.tar.bz2 || \
