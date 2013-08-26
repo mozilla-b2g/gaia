@@ -43,6 +43,7 @@ suite('Recipients', function() {
     this.sinon.spy(Recipients.View.prototype, 'render');
     this.sinon.spy(Recipients.View.prototype, 'visible');
     this.sinon.spy(Element.prototype, 'scrollIntoView');
+    this.sinon.spy(HTMLElement.prototype, 'focus');
 
     recipients = new Recipients({
       outer: 'messages-to-field',
@@ -593,6 +594,61 @@ suite('Recipients', function() {
           assert.isTrue(view.lastElementChild.isPlaceholder);
           assert.equal(view.lastElementChild.contentEditable, 'true');
         });
+
+        test('deleting sole recipient ', function() {
+          var view = document.getElementById('messages-recipients-list');
+          var event;
+
+          fixture.source = 'manual';
+
+          HTMLElement.prototype.focus.reset();
+
+          // This accounts for the first call to "focus"
+          recipients.add(fixture).focus();
+
+          assert.isTrue(view.firstElementChild.focus.called);
+
+          event = new CustomEvent('keyup', {
+            bubbles: true
+          });
+
+          event.keyCode = KeyEvent.DOM_VK_BACK_SPACE;
+          event.DOM_VK_BACK_SPACE = KeyEvent.DOM_VK_BACK_SPACE;
+
+          view.firstElementChild.textContent = '';
+
+          HTMLElement.prototype.focus.reset();
+
+          // This accounts for the second call to "focus"
+          view.firstElementChild.dispatchEvent(event);
+
+          assert.isTrue(view.firstElementChild.focus.called);
+        });
+
+        test('deleting recipient ', function() {
+          var view = document.getElementById('messages-recipients-list');
+          var event;
+
+          fixture.source = 'manual';
+
+          recipients.add(fixture);
+          recipients.add(fixture);
+
+          event = new CustomEvent('keyup', {
+            bubbles: true
+          });
+
+          event.keyCode = KeyEvent.DOM_VK_BACK_SPACE;
+          event.DOM_VK_BACK_SPACE = KeyEvent.DOM_VK_BACK_SPACE;
+
+          view.firstElementChild.textContent = '';
+
+          HTMLElement.prototype.focus.reset();
+
+          view.lastElementChild.dispatchEvent(event);
+
+          assert.isTrue(view.lastElementChild.focus.called);
+        });
       });
     });
 
@@ -656,12 +712,10 @@ suite('Recipients', function() {
       setup(function() {
         location.hash = '#new';
 
-        outer = document.getElementById('messages-to-field');
+        outer = document.getElementById('messages-recipients-list-container');
         inner = document.getElementById('messages-recipients-list');
         target = document.createElement('input');
         visible = Recipients.View.prototype.visible;
-
-        this.sinon.spy(target, 'focus');
       });
 
       teardown(function() {
@@ -671,7 +725,9 @@ suite('Recipients', function() {
       suite('to singleline ', function() {
         setup(function() {
           recipients.visible('multiline');
+          outer.className = 'multiline';
         });
+
         test('singleline ', function() {
           // Assert the last state is multiline
           assert.equal(visible.args[0][0], 'multiline');
@@ -683,27 +739,16 @@ suite('Recipients', function() {
           assert.equal(visible.args[1][0], 'singleline');
         });
 
-        test('singleline + refocus ', function() {
+        test('singleline + refocus (with recipients) ', function() {
+          var startedAt = Date.now();
+
+          // Clear the spy intel
+          target.focus.reset();
+
+          recipients.add(fixture);
+
           // Assert the last state is multiline
           assert.equal(visible.args[0][0], 'multiline');
-
-          outer.addEventListener('transitionend', function handler() {
-            var last = inner.lastElementChild;
-
-            assert.ok(target.focus.called);
-            assert.ok(visible.called);
-            assert.equal(visible.args[0][0], 'singleline');
-            assert.deepEqual(visible.args[0][1], {
-              refocus: target
-            });
-
-            assert.ok(target.focus.called);
-            assert.ok(last.scrollIntoView.called);
-
-            done();
-
-            outer.removeEventListener('transitionend', handler);
-          });
 
           recipients.visible('singleline', {
             refocus: target
@@ -712,6 +757,42 @@ suite('Recipients', function() {
           outer.dispatchEvent(
             new CustomEvent('transitionend')
           );
+
+          var last = inner.lastElementChild;
+
+          assert.ok(target.focus.called);
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'singleline');
+          assert.deepEqual(visible.args[1][1], {
+            refocus: target
+          });
+
+          assert.ok(last.scrollIntoView.called);
+        });
+
+        test('singleline + refocus (no recipients) ', function() {
+          var startedAt = Date.now();
+
+          // Clear the spy intel
+          target.focus.reset();
+
+          // Assert the last state is multiline
+          assert.equal(visible.args[0][0], 'multiline');
+
+          recipients.visible('singleline', {
+            refocus: target
+          });
+
+          outer.dispatchEvent(
+            new CustomEvent('transitionend')
+          );
+
+          assert.ok(target.focus.called);
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'singleline');
+          assert.deepEqual(visible.args[1][1], {
+            refocus: target
+          });
         });
       });
 
