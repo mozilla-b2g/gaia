@@ -15,10 +15,6 @@ var GridManager = (function() {
   var OPACITY_STEPS = 40; // opacity steps between [0,1]
   var HIDDEN_ROLES = ['system', 'keyboard', 'homescreen'];
 
-  // Holds the list of single variant apps that have been installed
-  // previously already
-  var svPreviouslyInstalledApps = [];
-
   var container;
 
   var windowWidth = window.innerWidth;
@@ -457,7 +453,6 @@ var GridManager = (function() {
     saveStateTimeout = window.setTimeout(function saveStateTrigger() {
       saveStateTimeout = null;
       pageHelper.saveAll();
-      HomeState.saveSVInstalledApps(GridManager.svPreviouslyInstalledApps);
     }, SAVE_STATE_TIMEOUT);
   }
 
@@ -1025,30 +1020,6 @@ var GridManager = (function() {
     return manifest.appcache_path != null;
   }
 
-  function isPreviouslyInstalled(manifest) {
-    for (var i = 0, elemNum = svPreviouslyInstalledApps.length;
-         i < elemNum; i++) {
-      if (svPreviouslyInstalledApps[i].manifest === manifest) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /*
-   * SV - Return the single operator app (identify by manifest) or undefined
-   * if the manifesURL doesn't correspond with a SV app
-   */
-  function getSingleVariantApp(manifestURL) {
-    var singleVariantApps = Configurator.getSingleVariantApps();
-    if (manifestURL in singleVariantApps) {
-      var app = singleVariantApps[manifestURL];
-      if (app.screen && app.location) {
-        return app;
-      }
-    }
-  }
-
   /*
    * Builds a descriptor for an icon object
    */
@@ -1115,11 +1086,6 @@ var GridManager = (function() {
     rememberIcon(icon);
 
     var index = getFirstPageWithEmptySpace();
-    var svApp = getSingleVariantApp(app.manifestURL);
-    if (svApp && !isPreviouslyInstalled(app.manifestURL)) {
-      index = svApp.screen;
-      icon.descriptor.desiredPos = svApp.location;
-    }
 
     if (index < pages.length) {
       pages[index].appendIcon(icon);
@@ -1262,8 +1228,6 @@ var GridManager = (function() {
         return;
       }
       pageHelper.addPage(convertDescriptorsToIcons(pageState));
-    }, function eachSVApp(svApp) {
-      GridManager.svPreviouslyInstalledApps.push(svApp);
     }, function onState() {
       initApps();
       callback();
@@ -1279,8 +1243,6 @@ var GridManager = (function() {
   return {
 
     hiddenRoles: HIDDEN_ROLES,
-
-    svPreviouslyInstalledApps: svPreviouslyInstalledApps,
 
     /*
      * Initializes the grid manager

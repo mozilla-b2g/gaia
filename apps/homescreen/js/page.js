@@ -49,7 +49,7 @@ Icon.prototype = {
   // element dataset and allow us to uniquely look up the Icon object from
   // the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL',
-                           'useAsyncPanZoom', 'desiredPos'],
+                           'useAsyncPanZoom'],
 
   /**
    * The Application (or Bookmark) object corresponding to this icon.
@@ -75,11 +75,11 @@ Icon.prototype = {
   /*
    * Renders the icon into the page
    *
-   * @param{Object} where the icon should be rendered.
+   * @param{Object} where the icon should be rendered
    *
-   * @param{Object} where the draggable element should be appended.
+   * @param{Object} where the draggable element should be appended
    */
-  render: function icon_render() {
+  render: function icon_render(target) {
     /*
      * <li role="button" aria-label="label" class="icon" data-manifestURL="zzz">
      *   <div>
@@ -144,6 +144,8 @@ Icon.prototype = {
     if (descriptor.removable === true) {
       this.appendOptions();
     }
+
+    target.appendChild(container);
 
     if (this.downloading) {
       //XXX: Bug 816043 We need to force the repaint to show the span
@@ -896,61 +898,16 @@ Page.prototype = {
   },
 
   /*
-   * Move the apps in position higher than 'pos' one position ahead if they have
-   * a desiredPosition lower than their actual position
-   */
-  _moveAhead: function(pos) {
-    // When a new sv app is installed, the previously sv apps installed in
-    // higher positions will have been moved.
-    // This function restores their previous position if needed
-    var iconList = this.olist.children;
-    var numIcons = iconList.length;
-
-    for (var i = pos; i < numIcons; i++) {
-      var iconPos = iconList[i].dataset && iconList[i].dataset.desiredPos;
-      if (i > iconPos) {
-        this.olist.insertBefore(iconList[i], iconList[i - 1]);
-      }
-    }
-  },
-
-  /*
-   * Insert an icon in the page
-   */
-  _insertIcon: function insertIcon(icon) {
-    var iconList = this.olist.children;
-    var container = icon.container;
-
-    // Inserts the icon in the closest possible space to its desired position,
-    // keeping the order of all existing icons with desired position
-    if ('desiredPos' in icon.descriptor) {
-      var desiredPos = icon.descriptor.desiredPos;
-      var manifest = icon.descriptor.manifestURL;
-      // Add to the installed SV apps array
-      GridManager.svPreviouslyInstalledApps.push({'manifest': manifest});
-      var numIcons = iconList.length;
-      for (var i = 0; (i < numIcons) && (i <= desiredPos); i++) {
-        var iconPos = iconList[i].dataset && iconList[i].dataset.desiredPos;
-        if ((iconPos > desiredPos) || (i === desiredPos)) {
-          this.olist.insertBefore(container, iconList[i]);
-          this._moveAhead(i + 1);
-          return;
-        }
-      }
-    }
-    this.olist.appendChild(container);
-  },
-
-  /*
    * Appends an icon to the end of the page
    *
    * @param{Object} moz app or icon object
    */
   appendIcon: function pg_appendIcon(icon) {
     if (!icon.container) {
-      icon.render();
+      icon.render(this.olist, this.container);
+      return;
     }
-    this._insertIcon(icon);
+    this.olist.appendChild(icon.container);
   },
 
   /**
