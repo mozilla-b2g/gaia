@@ -236,7 +236,7 @@ endif
 
 GAIA_LOCALES_PATH?=locales
 LOCALES_FILE?=shared/resources/languages.json
-GAIA_LOCALE_SRCDIRS=shared $(GAIA_APPDIRS)
+GAIA_LOCALE_SRCDIRS=$(CURDIR)$(SEP)shared $(GAIA_APPDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
@@ -295,6 +295,7 @@ ifneq ($(LOCALE_BASEDIR),)
 	python $(CURDIR)/build/multilocale.py \
 		--config '$(LOCALES_FILE)' \
 		--source '$(LOCALE_BASEDIR)' \
+		--gaia '$(CURDIR)' \
 		$$targets;
 	@echo "Done"
 ifneq ($(LOCALES_FILE),shared/resources/languages.json)
