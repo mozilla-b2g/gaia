@@ -574,6 +574,25 @@ suite('Recipients', function() {
           assert.equal(recipients.length, 1);
           assert.equal(view.children.length, 1);
         });
+
+        test('focusing with no placeholder at the end add one', function() {
+          var view = document.getElementById('messages-recipients-list');
+
+          fixture.source = 'contacts';
+
+          recipients.add(fixture).focus();
+
+          // Remove the placeholder
+          view.removeChild(view.lastElementChild);
+
+          // focus on the view
+          view.click();
+
+          // assert a placeholder has been added and is focused
+          assert.equal(view.children.length, 2);
+          assert.isTrue(view.lastElementChild.isPlaceholder);
+          assert.equal(view.lastElementChild.contentEditable, 'true');
+        });
       });
     });
 
