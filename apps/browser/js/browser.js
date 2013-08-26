@@ -47,6 +47,7 @@ var Browser = {
   FIRST_TAB: 'tab_0',
   MAX_SAVING_RETRIES: 100, // max number of retries when saving images with a
                            // new name.
+
   urlButtonMode: null,
   addressBarState: null,
 
@@ -296,37 +297,6 @@ var Browser = {
     };
 
     xhr.send();
-  },
-
-  /**
-   * Get the MCC/MNC operator codes as stored in system settings.
-   *
-   * @param {Function} callback Called with result as object with both values.
-   */
-  getOperatorVariant: function browser_getOperatorVariant(callback) {
-    var variant = { mcc: '0', mnc: '0' }; // Fall back to {0, 0}
-    var transaction = navigator.mozSettings.createLock();
-    var mccKey = 'operatorvariant.mcc';
-    var mncKey = 'operatorvariant.mnc';
-    var mccRequest = transaction.get(mccKey);
-
-    mccRequest.onsuccess = function() {
-      variant.mcc = mccRequest.result[mccKey] || '0';
-      var mncRequest = transaction.get(mncKey);
-
-      mncRequest.onsuccess = function() {
-        variant.mnc = mncRequest.result[mncKey] || '0';
-        callback(variant);
-      };
-
-      mncRequest.onerror = function() {
-        callback(variant);
-      };
-    };
-
-    mccRequest.onerror = function() {
-      callback(variant);
-    };
   },
 
   /**
