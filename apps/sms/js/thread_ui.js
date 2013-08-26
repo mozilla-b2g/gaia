@@ -1115,10 +1115,24 @@ var ThreadUI = global.ThreadUI = {
     });
   },
 
+  // Check deliveryStatus for both single and multiple recipient case.
+  // In multiple recipient case, we return true only when all the recipients
+  // deliveryStatus set to success.
+  isDeliveryStatusSuccess: function thui_isDeliveryStatusSuccess(message) {
+    var statusSet = message.deliveryStatus;
+    if (Array.isArray(statusSet)) {
+      return statusSet.every(function(status) {
+        return status === 'success';
+      });
+    } else {
+      return statusSet === 'success';
+    }
+  },
+
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
-    var isDelivered = message.deliveryStatus === 'success';
+    var isDelivered = this.isDeliveryStatusSuccess(message);
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
@@ -1551,6 +1565,11 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onDeliverySuccess: function thui_onDeliverySuccess(message) {
+    // We need to make sure all the recipients status got success event.
+    if (!this.isDeliveryStatusSuccess(message)) {
+      return;
+    }
+
     var messageDOM = document.getElementById('message-' + message.id);
 
     if (!messageDOM) {
