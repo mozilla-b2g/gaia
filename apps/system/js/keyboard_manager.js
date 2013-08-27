@@ -85,7 +85,6 @@ var KeyboardManager = {
     this.keyboardFrameContainer.classList.add('hide');
 
     // get enabled keyboard from mozSettings, parse their manifest
-    this.updateLayouts();
 
     // For Bug 812115: hide the keyboard when the app is closed here,
     // since it would take a longer round-trip to receive focuschange
@@ -495,4 +494,13 @@ var KeyboardManager = {
   }
 };
 
-KeyboardManager.init();
+if (Applications.ready) {
+  KeyboardManager.init();
+  LazyLoader.load('shared/js/keyboard_helper.js');
+} else {
+  window.addEventListener('applicationready', function mozAppsReady(event) {
+    window.removeEventListener('applicationready', mozAppsReady);
+    KeyboardManager.init();
+    LazyLoader.load('shared/js/keyboard_helper.js');
+  });
+}
