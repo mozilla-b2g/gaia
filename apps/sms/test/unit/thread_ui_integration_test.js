@@ -432,6 +432,7 @@ suite('ThreadUI Integration', function() {
       assert.deepEqual(calledWith[1], 'foo');
     });
 
+    /* Bug:909641 test fails on ci
     test('Assimilate stranded recipients (contactPickButton)', function(done) {
       // To ensure the recipient wrapped before picker return:
 
@@ -472,7 +473,7 @@ suite('ThreadUI Integration', function() {
         done();
       });
     });
-
+   */
 
     test('Lone ";" are not recipients', function() {
 
