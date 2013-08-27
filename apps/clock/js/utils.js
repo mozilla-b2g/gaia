@@ -2,6 +2,112 @@
 'use strict';
 
 var Utils = {};
+// Maintain references to millisecond multipliers
+var dateMultipliers = {
+  days: 1000 * 60 * 60 * 24,
+  hours: 1000 * 60 * 60,
+  minutes: 1000 * 60,
+  seconds: 1000,
+  milliseconds: 1
+};
+var units = Object.keys(dateMultipliers);
+
+Utils.dateMath = {
+  /**
+   * Convert object literals containing interval length to milliseconds
+   *
+   * @param {Object|Date|Number} interval An object literal containing days,
+   *                                      hours, minutes etc.
+   *                                      Optionally a number or date object.
+   * @param {Object} opts Options object with a unitsPartial property containing
+   *                      (if desired) a restriction on which properties will be
+   *                      searched on the interval
+   * @return {Number} Millisecond value for interval length
+   */
+  toMS: function(interval, opts) {
+    var converted, sign, unitsPartial;
+
+    // if a millisecond interval or a Date is passed in, return that
+    if (interval instanceof Date || typeof interval === 'number') {
+      return +interval;
+    }
+
+    opts = opts || {};
+    unitsPartial = opts.unitsPartial || units;
+    // Allow for 'hours' or 'hour'
+    unitsPartial = unitsPartial.map(function(unit) {
+      // String.prototype.endsWith is available in FF17+
+      return unit.endsWith('s') ? unit : unit.concat('s');
+    });
+
+    // some will exit early when it returns a truthy value
+    sign = unitsPartial.some(function(unit) {
+      return interval[unit] < 0;
+    });
+    // Using as a multiplier later
+    sign = sign ? -1 : 1;
+    // collect passed in units and multiply by their millisecond/unit count
+    converted = unitsPartial.map(function(unit) {
+      var partial;
+      // we're storing the sign out of the iterator
+      partial = Math.abs(interval[unit]);
+      // A missing property and 0 should be treated the same
+      return partial ? partial * dateMultipliers[unit] : 0;
+    });
+
+    // add up each millisecond-converted term and multiply total by sign
+    return sign * converted.reduce(function(a, b) { return a + b; });
+  },
+  /**
+   * Convert millisecond values to object literals conformable to toMS()
+   *
+   * @param {Number} interval A millisecond value.
+   * @param {Object} [opts] Options object with a unitsPartial property
+   *                        containing (if desired) a restriction on which
+   *                        properties will be reated for the return value
+   * @return {Object} Object literal with properties as deliniated by opts
+   */
+  fromMS: function(interval, opts) {
+    var times, sign, unitsPartial;
+
+    opts = opts || {};
+    unitsPartial = opts.unitsPartial || units;
+    // Allow for 'hours' or 'hour'
+    unitsPartial = unitsPartial.map(function(unit) {
+      // String.prototype.endsWith is available in FF17+
+      return unit.endsWith('s') ? unit : unit.concat('s');
+    });
+    // For negative intervals (time previous to now)
+    // update interval to absolute value and store the sign
+    // to apply to all units
+    if (interval < 0) {
+      sign = -1;
+      interval = Math.abs(interval);
+    } else {
+      sign = 1;
+    }
+
+    // divide the time interval by the highest millisecond multiplier
+    // store the truncated result and subtract that from the interval
+    // update the interval to be the remainder
+    times = unitsPartial.map(function(unit, index) {
+      var truncated, mult;
+      mult = dateMultipliers[unit];
+      truncated = Math.floor(interval / mult);
+      interval = interval - (truncated * mult);
+      // units are either all positive or negative
+      // only iterate to needed specificity
+      return sign * truncated;
+    });
+
+    // Populate the returned object using units as property names
+    // and times for values
+    return times.reduce(function(out, unitTime, index) {
+      out[unitsPartial[index]] = unitTime;
+      return out;
+    }, {});
+  }
+};
 
 Utils.extend = function(initialObject, extensions) {
   // extend({}, a, b, c ... d) -> {...}
