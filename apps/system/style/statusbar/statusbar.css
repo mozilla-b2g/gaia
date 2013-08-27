@@ -409,3 +409,7 @@ body, html {
   background-position: 0 0;
   background-size: 1.6rem 1.6rem;
 }
+
+.sb-icon-playing {
+  background-position: -18.9rem -8rem;
+}
