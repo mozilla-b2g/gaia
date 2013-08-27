@@ -851,7 +851,6 @@ suite('thread_ui.js >', function() {
         ThreadUI.recipientsList.removeChild(node);
       });
 
-      /* Bug 909644
       test('Will assimilate recipients', function() {
         var visible, add;
 
@@ -862,10 +861,6 @@ suite('thread_ui.js >', function() {
 
         assert.ok(visible.called);
         assert.equal(visible.args[0][0], 'singleline');
-        assert.include(visible.args[0][1], 'refocus');
-        assert.include(visible.args[0][1], 'noPreserve');
-        assert.equal(visible.args[0][1].refocus, ThreadUI.input);
-        assert.isTrue(visible.args[0][1].noPreserve);
 
         assert.ok(add.called);
         assert.deepEqual(add.args[0][0], {
@@ -874,7 +869,6 @@ suite('thread_ui.js >', function() {
           source: 'manual'
         });
       });
-     */
     });
 
     suite('Existing Conversation', function() {
