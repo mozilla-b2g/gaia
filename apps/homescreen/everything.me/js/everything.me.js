@@ -150,6 +150,8 @@ var EverythingME = {
           'js/helpers/EventHandler.js',
           'js/helpers/Idle.js',
           'shared/js/settings_listener.js',
+          'shared/js/icc_helper.js',
+          'shared/js/mobile_operator.js',
           'js/plugins/Analytics.js',
           'js/plugins/APIStatsEvents.js',
           'js/Brain.js',
