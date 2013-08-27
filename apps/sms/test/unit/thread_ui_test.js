@@ -1317,6 +1317,8 @@ suite('thread_ui.js >', function() {
   });
 
   suite('buildMessageDOM >', function() {
+    var payload = 'hello <a href="world">world</a>';
+
     setup(function() {
       this.sinon.spy(MockUtils, 'escapeHTML');
       this.sinon.stub(MockSMIL, 'parse');
@@ -1332,17 +1334,157 @@ suite('thread_ui.js >', function() {
       });
     }
 
-    test('escapes the body for SMS', function() {
-      var payload = 'hello <a href="world">world</a>';
+    test('escapes the body for SMS ', function() {
       ThreadUI.buildMessageDOM(buildSMS(payload));
       assert.ok(MockUtils.escapeHTML.calledWith(payload));
     });
 
-    test('escapes all text for MMS', function() {
-      var payload = 'hello <a href="world">world</a>';
+    test('escapes all text for MMS ', function() {
       MockSMIL.parse.yields([{ text: payload }]);
       ThreadUI.buildMessageDOM(buildMMS(payload));
       assert.ok(MockUtils.escapeHTML.calledWith(payload));
+    });
+
+    suite('option normalization ', function() {
+      setup(function() {
+        MockSMIL.parse.yields([{ text: payload }]);
+      });
+
+      test('defaults, no explicit options ', function() {
+        this.sinon.stub(ThreadUI, 'buildMessageDOM', function(message, opts) {
+          assert.deepEqual(opts, { isHidden: false, isSelected: false });
+          return document.createElement('li');
+        });
+
+        ThreadUI.appendMessage(buildMMS(payload));
+      });
+
+      test('defaults, missing isHidden, isSelected: true ', function() {
+        this.sinon.stub(ThreadUI, 'buildMessageDOM', function(message, opts) {
+          assert.deepEqual(opts, { isHidden: false, isSelected: true });
+          return document.createElement('li');
+        });
+
+        ThreadUI.appendMessage(buildMMS(payload), { isSelected: true });
+      });
+
+      test('defaults, missing isHidden, isSelected: false ', function() {
+        this.sinon.stub(ThreadUI, 'buildMessageDOM', function(message, opts) {
+          assert.deepEqual(opts, { isHidden: false, isSelected: false });
+          return document.createElement('li');
+        });
+
+        ThreadUI.appendMessage(buildMMS(payload), { isSelected: false });
+      });
+
+      test('defaults, missing isSelected, isHidden: true ', function() {
+        this.sinon.stub(ThreadUI, 'buildMessageDOM', function(message, opts) {
+          assert.deepEqual(opts, { isHidden: true, isSelected: false });
+          return document.createElement('li');
+        });
+
+        ThreadUI.appendMessage(buildMMS(payload), { isHidden: true });
+      });
+
+      test('defaults, missing isSelected, isHidden: false ', function() {
+        this.sinon.stub(ThreadUI, 'buildMessageDOM', function(message, opts) {
+          assert.deepEqual(opts, { isHidden: false, isSelected: false });
+          return document.createElement('li');
+        });
+
+        ThreadUI.appendMessage(buildMMS(payload), { isHidden: false });
+      });
+    });
+
+    suite('isHidden ', function() {
+      setup(function() {
+        MockSMIL.parse.yields([{ text: payload }]);
+      });
+
+      test('defaults to false ', function() {
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload)
+        );
+
+        assert.ok(!element.classList.contains('hidden'));
+      });
+
+      test('true ', function() {
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload), { isHidden: true }
+        );
+
+        assert.ok(element.classList.contains('hidden'));
+      });
+
+      test('false ', function() {
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload), { isHidden: false }
+        );
+
+        assert.ok(!element.classList.contains('hidden'));
+      });
+    });
+
+    suite('isSelected ', function() {
+
+      suiteSetup(function() {
+        Threads.set(1);
+        window.location.hash = '#thread=1';
+      });
+
+      suiteTeardown(function() {
+        Threads.delete(1);
+        window.location.hash = '';
+      });
+
+      setup(function() {
+        MockSMIL.parse.yields([{ text: payload }]);
+      });
+
+      test('defaults to false ', function() {
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload)
+        );
+
+        assert.ok(!element.classList.contains('selected'));
+      });
+
+      test('true ', function() {
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload), { isSelected: true }
+        );
+
+        assert.ok(element.classList.contains('selected'));
+      });
+
+      test('false ', function() {
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload), { isSelected: false }
+        );
+
+        assert.ok(!element.classList.contains('selected'));
+      });
+
+      test('false overrides Threads.active.selectAll ', function() {
+        Threads.active.selectAll = true;
+
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload), { isSelected: false }
+        );
+
+        assert.ok(!element.classList.contains('selected'));
+      });
+
+      test('default defers to Threads.active.selectAll ', function() {
+        Threads.active.selectAll = true;
+
+        var element = ThreadUI.buildMessageDOM(
+          buildMMS(payload)
+        );
+
+        assert.ok(element.classList.contains('selected'));
+      });
     });
   });
 

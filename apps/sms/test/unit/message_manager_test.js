@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('sms/js/threads.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_messages.js');
@@ -423,6 +424,107 @@ suite('message_manager.js >', function() {
             );
           });
         });
+      });
+    });
+  });
+
+  suite('getMessages() >', function() {
+    setup(function() {
+      var MobileMessage = MessageManager._mozMobileMessage;
+
+      this.sinon.stub(MobileMessage, 'getMessages', function() {
+        return {
+          onsuccess: function() {},
+          onerror: function() {}
+        };
+      });
+
+      this.sinon.stub(Threads, 'set', function(id, record) {
+        return {
+          selectAll: false,
+          deleteAll: false,
+          messages: []
+        };
+      });
+
+      this.sinon.stub(Threads, 'get', function(id) {
+        return {
+          selectAll: false,
+          deleteAll: false,
+          messages: []
+        };
+      });
+
+      MessageManager.getMessages({
+        each: function() {},
+        end: function() {},
+        endArgs: {},
+        filter: {
+          threadId: 1
+        },
+        invert: true
+      });
+    });
+
+    test('MobileMessage.getMessages', function() {
+      var gm = MessageManager._mozMobileMessage.getMessages;
+      assert.ok(gm.called);
+      assert.deepEqual(gm.args, [[{threadId: 1}, false]]);
+    });
+
+    suite('Checks for a thread 1', function() {
+      setup(function() {
+        this.sinon.stub(Threads, 'has', function(id, record) {
+          return false;
+        });
+
+        MessageManager.getMessages({
+          each: function() {},
+          end: function() {},
+          endArgs: {},
+          filter: {
+            threadId: 1
+          },
+          invert: true
+        });
+      });
+
+      test('not found', function() {
+        assert.ok(Threads.has.called);
+        assert.equal(Threads.has.args[0][0], 1);
+
+        assert.ok(Threads.set.called);
+        assert.equal(Threads.set.args[0][0], 1);
+        assert.equal(Threads.set.args[0].length, 1);
+        // Unfound threads will call set with 1 arg to
+        // create a default thread.
+      });
+    });
+
+    suite('Checks for a thread 2', function() {
+      setup(function() {
+        this.sinon.stub(Threads, 'has', function(id, record) {
+          return true;
+        });
+
+        MessageManager.getMessages({
+          each: function() {},
+          end: function() {},
+          endArgs: {},
+          filter: {
+            threadId: 1
+          },
+          invert: true
+        });
+      });
+
+      test('found', function() {
+        assert.ok(Threads.has.called);
+        assert.equal(Threads.has.args[0][0], 1);
+
+        assert.ok(Threads.set.called);
+        assert.equal(Threads.set.args[0][0], 1);
+        assert.equal(Threads.set.args[0].length, 1);
       });
     });
   });

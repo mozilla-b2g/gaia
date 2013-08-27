@@ -9,5 +9,14 @@ var MockThreads = {
 
   has: function() {
     return false;
+  },
+  get: function() {
+  },
+  set: function(id, record) {
+    return {
+      selectAll: false,
+      deleteAll: false,
+      messages: []
+    };
   }
 };

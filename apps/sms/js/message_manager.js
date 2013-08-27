@@ -71,7 +71,7 @@ var MessageManager = {
 
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
-    var threadId;
+    var thread, threadId;
 
     if (message.messageClass && message.messageClass === 'class-0') {
       return;
@@ -87,16 +87,16 @@ var MessageManager = {
 
     threadId = message.threadId;
 
-    if (Threads.has(threadId)) {
-      Threads.get(threadId).messages.push(message);
-    }
+    // Create a default (as a placeholder) or update
+    // an existing thread.
+    Threads.set(threadId).messages.push(message);
 
     if (threadId === Threads.currentId) {
-      //Append message and mark as unread
+      // Append message and mark as unread
       this.markMessagesRead([message.id], true, function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
       });
-      ThreadUI.appendMessage(message);
+      ThreadUI.appendMessage(message, { isSelected: false });
       ThreadUI.scrollViewToBottom();
       Utils.updateTimeHeaders();
     } else {
@@ -307,6 +307,7 @@ var MessageManager = {
         return;
       }
       if (callback) {
+        MessageManager.getThreads.total = threads.length;
         callback(threads, extraArg);
       }
     };
@@ -339,9 +340,17 @@ var MessageManager = {
     var each = options.each;
     var filter = options.filter;
     var invert = options.invert;
+    var threadId = filter.threadId;
     var end = options.end;
     var endArgs = options.endArgs;
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
+    var messages;
+
+    // Get the existing cache of messages for this thread
+    // or create a new default thread entry in the cache
+    messages = Threads.has(threadId) ?
+      Threads.get(threadId).messages :
+      Threads.set(threadId).messages;
 
     cursor.onsuccess = function onsuccess() {
       if (!this.done) {
@@ -349,6 +358,10 @@ var MessageManager = {
         if (each) {
           shouldContinue = each(this.result);
         }
+
+        // Always capture messages objects to update the Thread cache
+        messages.push(this.result);
+
         // if each returns false the iteration stops
         if (shouldContinue !== false) { // if this is undefined this is fine
           this.continue();
@@ -514,3 +527,6 @@ var MessageManager = {
     };
   }
 };
+
+
+MessageManager.getThreads.total = 0;

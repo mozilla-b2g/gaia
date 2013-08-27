@@ -35,6 +35,9 @@ suite('thread_list_ui', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = nativeMozL10n;
+
+    Threads.List.selectAll = false;
+    Threads.List.deleteAll = false;
   });
 
   function insertMockMarkup(someDate) {
@@ -202,6 +205,7 @@ suite('thread_list_ui', function() {
 
   suite('delete', function() {
     setup(function() {
+      Threads.List.deleting.length = 0;
       this.selectedInputs = [{value: 1}, {value: 2}];
       this.sinon.stub(ThreadListUI, 'getSelectedInputs', function() {
         return this.selectedInputs;
@@ -222,6 +226,7 @@ suite('thread_list_ui', function() {
       setup(function() {
         this.sinon.stub(WaitingScreen, 'show');
         this.sinon.stub(WaitingScreen, 'hide');
+        this.sinon.stub(ThreadListUI, 'removeThread');
         this.sinon.stub(window, 'confirm').returns(true);
         ThreadListUI.delete();
       });
@@ -232,55 +237,57 @@ suite('thread_list_ui', function() {
         assert.deepEqual(window.confirm.args[0],
           ['deleteThreads-confirmation2']);
       });
+
       test('called MessageManager.getMessages twice', function() {
         assert.equal(MessageManager.getMessages.args.length, 2);
       });
-      suite('getMessages({ each: })', function() {
+
+      test('removed threads', function() {
+        assert.deepEqual(
+          ThreadListUI.removeThread.args, [[1], [2]]
+        );
+      });
+
+      suite('getMessages({ end: })', function() {
         setup(function() {
           this.sinon.stub(MessageManager, 'deleteMessage');
-          // call the "each" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].each({ id: 3 });
+          // call the "end" function with a fake threadId
+          MessageManager.getMessages.args[0][0].end(1);
         });
         test('MessageManager.deleteMessage called', function() {
-          assert.ok(MessageManager.deleteMessage.calledWith(3));
+          assert.deepEqual(
+            MessageManager.deleteMessage.args[0][0], []
+          );
         });
       });
+
       suite('first getMessages', function() {
         setup(function() {
           this.sinon.stub(Threads, 'delete');
-          this.sinon.stub(ThreadListUI, 'removeThread');
-          // call the "end" function passed to getMessages with fake message
-          MessageManager.getMessages.args[0][0].end();
+          MessageManager.getMessages.args[0][0].end(1);
         });
+
         test('is for the right thread', function() {
           assert.equal(
-            MessageManager.getMessages.args[0][0].filter.threadId, 2);
+            MessageManager.getMessages.args[0][0].endArgs, 1
+          );
         });
-        test('end calls removeThread for correct thread', function() {
-          assert.equal(ThreadListUI.removeThread.args[0][0], 2);
-        });
+
         test('end calls Threads.delete with correct thread', function() {
-          assert.equal(Threads.delete.args[0][0], 2);
+          assert.equal(Threads.delete.args[0][0], 1);
         });
-        test('end doesnt hide waiting screen (yet)', function() {
-          assert.isFalse(WaitingScreen.hide.called);
-        });
+
         suite('sencond getMessages', function() {
           setup(function() {
-            MessageManager.getMessages.args[1][0].end();
+            MessageManager.getMessages.args[1][0].end(2);
           });
           test('is for the right thread', function() {
             assert.equal(
-              MessageManager.getMessages.args[1][0].filter.threadId, 1);
-          });
-          test('end calls removeThread for correct thread', function() {
-            assert.equal(ThreadListUI.removeThread.args[1][0], 1);
+              MessageManager.getMessages.args[1][0].endArgs, 2
+            );
           });
           test('end calls Threads.delete with correct thread', function() {
-            assert.equal(Threads.delete.args[1][0], 1);
-          });
-          test('end calls hide waiting screen', function() {
-            assert.isTrue(WaitingScreen.hide.called);
+            assert.equal(Threads.delete.args[1][0], 2);
           });
         });
       });
@@ -288,6 +295,12 @@ suite('thread_list_ui', function() {
   });
 
   suite('createThread', function() {
+    var payload = 'hello <a href="world">world</a>';
+
+    suiteTeardown(function() {
+      ThreadListUI.container.textContent = '';
+    });
+
     setup(function() {
       this.sinon.spy(MockUtils, 'escapeHTML');
     });
@@ -315,15 +328,94 @@ suite('thread_list_ui', function() {
     }
 
     test('escapes the body for SMS', function() {
-      var payload = 'hello <a href="world">world</a>';
       ThreadListUI.createThread(buildSMSThread(payload));
       assert.ok(MockUtils.escapeHTML.calledWith(payload));
     });
 
     test('escapes the body for MMS', function() {
-      var payload = 'hello <a href="world">world</a>';
       ThreadListUI.createThread(buildMMSThread(payload));
       assert.ok(MockUtils.escapeHTML.calledWith(payload));
+    });
+
+    suite('option normalization ', function() {
+      test('defaults, no explicit options ', function() {
+        this.sinon.stub(ThreadListUI, 'createThread', function(message, opts) {
+          assert.deepEqual(opts, { isSelected: false });
+          return document.createElement('li');
+        });
+
+        ThreadListUI.appendThread(buildMMSThread(payload));
+      });
+
+      test('isSelected: true ', function() {
+        this.sinon.stub(ThreadListUI, 'createThread', function(message, opts) {
+          assert.deepEqual(opts, { isSelected: true });
+          return document.createElement('li');
+        });
+
+        ThreadListUI.appendThread(
+          buildMMSThread(payload), { isSelected: true }
+        );
+      });
+
+      test('isSelected: false ', function() {
+        this.sinon.stub(ThreadListUI, 'createThread', function(message, opts) {
+          assert.deepEqual(opts, { isSelected: false });
+          return document.createElement('li');
+        });
+
+        ThreadListUI.appendThread(
+          buildMMSThread(payload), { isSelected: false }
+        );
+      });
+    });
+
+    suite('isSelected ', function() {
+
+      test('defaults to false ', function() {
+        var element = ThreadListUI.createThread(
+          buildMMSThread(payload)
+        );
+
+        assert.ok(!element.querySelector('input[type="checkbox"]').checked);
+      });
+
+      test('true ', function() {
+        var element = ThreadListUI.createThread(
+          buildMMSThread(payload), { isSelected: true }
+        );
+
+
+        assert.ok(element.querySelector('input[type="checkbox"]').checked);
+      });
+
+      test('false ', function() {
+        var element = ThreadListUI.createThread(
+          buildMMSThread(payload), { isSelected: false }
+        );
+
+        assert.ok(!element.querySelector('input[type="checkbox"]').checked);
+      });
+
+      test('false overrides Threads.List.selectAll ', function() {
+        Threads.List.selectAll = true;
+
+        var element = ThreadListUI.createThread(
+          buildMMSThread(payload), { isSelected: false }
+        );
+
+        assert.ok(!element.querySelector('input[type="checkbox"]').checked);
+      });
+
+      test('default defers to Threads.List.selectAll ', function() {
+        Threads.List.selectAll = true;
+
+        var element = ThreadListUI.createThread(
+          buildMMSThread(payload)
+        );
+
+        assert.ok(element.querySelector('input[type="checkbox"]').checked);
+      });
     });
   });
 
@@ -335,10 +427,24 @@ suite('thread_list_ui', function() {
       this.sinon.stub(ThreadListUI, 'mark');
       this.sinon.stub(ThreadListUI, 'setEmpty');
       this.sinon.spy(FixedHeader, 'refresh');
+      this.sinon.spy(Threads, 'set');
     });
 
     teardown(function() {
       Threads.clear();
+    });
+
+    suite('Threads.set', function() {
+      var message;
+      setup(function() {
+        message = MockMessages.sms();
+        ThreadListUI.onMessageReceived(message);
+      });
+
+      test('Threads.set called and has message', function() {
+        assert.ok(Threads.set.called);
+        assert.equal(Threads.set.args[0][0], message.threadId);
+      });
     });
 
     suite('in empty welcome screen,', function() {

@@ -7,6 +7,9 @@ var MockMessageManager = {
       callback();
     }
   },
+  deleteMessages: function(messageIds, callback) {
+    this.deleteMessage(messageIds, callback);
+  },
   onHashChange: function() {},
   launchComposer: function() {},
   sendSMS: function() {

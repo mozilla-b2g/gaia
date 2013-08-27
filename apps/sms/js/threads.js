@@ -19,22 +19,57 @@
     for (var p in thread) {
       this[p] = thread[p];
     }
+
+    var messages = [];
+    var ids = [];
+
+    this.selectAll = false;
+    this.deleteAll = false;
+
     this.messages = [];
+
+
+    function push(record) {
+      if (ids.indexOf(+record.id) !== -1) {
+        return messages.length;
+      }
+
+      messages.push(record);
+      ids.push(+record.id);
+
+      this.messages.length = 0;
+
+      for (var i = 0; i < messages.length; i++) {
+        this.messages[i] = messages[i];
+      }
+    }
+    // Overwrite push with special push that
+    // prevents duplicates non-duplicate push
+    Object.defineProperty(this.messages, 'push', {
+      value: push.bind(this)
+    });
+
   }
 
-  exports.Threads = {
-    set: function(id, thread) {
-      var old;
+  var Threads = {
+    set: function(id, record) {
+      var old, thread;
       id = +id;
+      record = record || {};
+
       if (threads.has(id)) {
         // Updates the reference
         old = threads.get(id);
-        for (var p in thread) {
-          old[p] = thread[p];
+        for (var p in record) {
+          old[p] = record[p];
         }
-        return threads;
+        return old;
       }
-      return threads.set(id, new Thread(thread));
+
+      thread = new Thread(record);
+      threads.set(id, thread);
+
+      return thread;
     },
     get: function(id) {
       return threads.get(+id);
@@ -75,5 +110,16 @@
     }
   };
 
+  // Flags used for deleting the entire list
+  // of threads if the user selects to do so
+  Threads.List = {
+    selectAll: false,
+    deleteAll: false,
+    deleting: [],
+    tracking: {}
+  };
+
   window.addEventListener('hashchange', cacheId);
+
+  exports.Threads = Threads;
 }(this));

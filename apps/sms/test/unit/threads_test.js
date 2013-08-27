@@ -7,6 +7,12 @@ suite('Threads', function() {
     window.location.hash = '';
   });
 
+  var defaults = {
+    deleteAll: false,
+    selectAll: false,
+    messages: []
+  };
+
   teardown(function() {
     Threads.clear();
   });
@@ -26,7 +32,26 @@ suite('Threads', function() {
 
     test('Threads.set(key, val)', function() {
       Threads.set(1, {});
-      assert.deepEqual(Threads.get(1), { messages: [] });
+      assert.deepEqual(Threads.get(1), defaults);
+      assert.equal(Threads.size, 1);
+    });
+
+    test('Threads.set(key, val) returns thread', function() {
+      assert.deepEqual(Threads.set(1, {}), defaults);
+      assert.equal(Threads.size, 1);
+    });
+
+    test('Threads.set(key, val) updates existing thread', function() {
+      var thread = Threads.set(1, {});
+
+      assert.deepEqual(Threads.set(1, { foo: 'bar' }), thread);
+      assert.equal(Threads.size, 1);
+    });
+
+    test('Threads.set(key) no value, creates default', function() {
+      var thread = Threads.set(1, {});
+
+      assert.deepEqual(Threads.set(1, { foo: 'bar' }), thread);
       assert.equal(Threads.size, 1);
     });
 
@@ -53,6 +78,21 @@ suite('Threads', function() {
     });
   });
 
+  suite('Threads.List', function() {
+    test('selectAll', function() {
+      assert.isFalse(Threads.List.selectAll);
+    });
+    test('deleteAll', function() {
+      assert.isFalse(Threads.List.deleteAll);
+    });
+    test('deleting', function() {
+      assert.deepEqual(Threads.List.deleting, []);
+    });
+    test('tracking', function() {
+      assert.deepEqual(Threads.List.tracking, {});
+    });
+  });
+
   suite('Operational', function() {
     setup(function() {
       window.location.hash = '';
@@ -76,11 +116,57 @@ suite('Threads', function() {
       window.location.hash = '#thread=5';
       assert.deepEqual(Threads.active, {
         a: 'alpha',
+        selectAll: false,
+        deleteAll: false,
         messages: []
       });
 
       window.location.hash = '';
       assert.equal(Threads.active, null);
+    });
+
+    test('Threads.get(#).messages', function() {
+      var thread;
+
+      Threads.set(6, { b: 'beta' });
+
+      thread = Threads.get(6);
+
+      assert.deepEqual(thread, {
+        b: 'beta',
+        selectAll: false,
+        deleteAll: false,
+        messages: []
+      });
+
+      Threads.get(6).messages.push({id: 1});
+
+      assert.deepEqual(thread, {
+        b: 'beta',
+        selectAll: false,
+        deleteAll: false,
+        messages: [{id: 1}]
+      });
+
+      // Attempt to add a duplicate
+      Threads.get(6).messages.push({id: 1});
+
+      assert.deepEqual(thread, {
+        b: 'beta',
+        selectAll: false,
+        deleteAll: false,
+        messages: [{id: 1}]
+      });
+
+      // Attempt to add a new
+      Threads.get(6).messages.push({id: 2});
+
+      assert.deepEqual(thread, {
+        b: 'beta',
+        selectAll: false,
+        deleteAll: false,
+        messages: [{id: 1}, {id: 2}]
+      });
     });
   });
 });

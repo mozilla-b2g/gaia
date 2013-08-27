@@ -67,6 +67,7 @@
       type: 'mms',
       read: true,
       delivery: 'received',
+      deliveryStatus: 'success',
       subject: 'Test MMS Image message',
       smil: '<smil><body><par><img src="example.jpg"/>' +
             '<text src="text1"/></par></body></smil>',
@@ -86,6 +87,7 @@
       type: 'mms',
       read: true,
       delivery: 'sent',
+      deliveryStatus: 'success',
       subject: 'Test MMS Image message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><img src="example.jpg"/></par></body></smil>',
@@ -101,44 +103,49 @@
   });
 
   getTestFile('/test/unit/media/video.ogv', function(testVideoBlob) {
-    messagesDb.messages.push({
-      id: messagesDb.id++,
-      threadId: 6,
-      sender: '052780',
-      type: 'mms',
-      read: true,
-      delivery: 'received',
-      subject: 'Test MMS Video message',
-      smil: '<smil><body><par><video src="example.ogv"/>' +
-            '<text src="text1"/></par></body></smil>',
-      attachments: [{
-        location: 'text1',
-        content: new Blob(['This is a video message'], { type: 'text/plain' })
-      },{
-        location: 'example.ogv',
-        content: testVideoBlob
-      }],
-      timestamp: new Date()
-    });
-    messagesDb.messages.push({
-      id: messagesDb.id++,
-      threadId: 6,
-      sender: '052780',
-      type: 'mms',
-      read: true,
-      delivery: 'sent',
-      subject: 'Test MMS Video message',
-      smil: '<smil><body><par><text src="text1"/></par>' +
-            '<par><video src="example.ogv"/></par></body></smil>',
-      attachments: [{
-        location: 'text1',
-        content: new Blob(['sent video message'], { type: 'text/plain' })
-      },{
-        location: 'example.ogv',
-        content: testVideoBlob
-      }],
-      timestamp: new Date()
-    });
+    var k = 100;
+    while (--k) {
+      messagesDb.messages.push({
+        id: messagesDb.id++,
+        threadId: 6,
+        sender: '052780',
+        type: 'mms',
+        read: true,
+        delivery: 'received',
+        deliveryStatus: 'success',
+        subject: 'Test MMS Video message',
+        smil: '<smil><body><par><video src="example.ogv"/>' +
+              '<text src="text1"/></par></body></smil>',
+        attachments: [{
+          location: 'text1',
+          content: new Blob(['This is a video message'], { type: 'text/plain' })
+        },{
+          location: 'example.ogv',
+          content: testVideoBlob
+        }],
+        timestamp: new Date()
+      });
+      messagesDb.messages.push({
+        id: messagesDb.id++,
+        threadId: 6,
+        sender: '052780',
+        type: 'mms',
+        read: true,
+        delivery: 'sent',
+        deliveryStatus: 'success',
+        subject: 'Test MMS Video message',
+        smil: '<smil><body><par><text src="text1"/></par>' +
+              '<par><video src="example.ogv"/></par></body></smil>',
+        attachments: [{
+          location: 'text1',
+          content: new Blob(['sent video message'], { type: 'text/plain' })
+        },{
+          location: 'example.ogv',
+          content: testVideoBlob
+        }],
+        timestamp: new Date()
+      });
+    }
   });
   getTestFile('/test/unit/media/audio.oga', function(testAudioBlob) {
     messagesDb.messages.push({
@@ -148,6 +155,7 @@
       read: true,
       type: 'mms',
       delivery: 'received',
+      deliveryStatus: 'success',
       subject: 'Test MMS audio message',
       smil: '<smil><body><par><audio src="example.ogg"/>' +
             '<text src="text1"/></par></body></smil>',
@@ -167,6 +175,7 @@
       read: true,
       type: 'mms',
       delivery: 'sent',
+      deliveryStatus: 'success',
       subject: 'Test MMS audio message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><audio src="example.ogg"/></par></body></smil>',
@@ -569,7 +578,7 @@
   messagesDb.messages.push({
     threadId: 10,
     receivers: ['+12125551234', '+15551237890'],
-    delivery: 'received',
+    delivery: 'sent',
     id: messagesDb.id++,
     read: true,
     type: 'mms',
@@ -589,6 +598,9 @@
     timestamp: new Date()
   });
 
+  messagesDb.messages.forEach(function(message) {
+    message.deliveryStatus = 'success';
+  });
 
   // Internal publisher/subscriber implementation
   var allHandlers = {};
@@ -1049,7 +1061,7 @@
   //    invoked in the event of a success
   //  - onerror: Function that may be set by the suer. If set, will be invoked
   //    in the event of a failure
-  MockNavigatormozMobileMessage.delete = function(id) {
+  MockNavigatormozMobileMessage.delete = function(messageIds) {
     var request = {
       error: null
     };
@@ -1059,7 +1071,12 @@
     var isEmptyThread = false;
     var idx, len, threadId;
 
+    if (!Array.isArray(messageIds)) {
+      messageIds = [messageIds];
+    }
+
     setTimeout(function() {
+
       if (simulation.failState()) {
         request.error = {
           name: 'mock delete error'
@@ -1072,16 +1089,18 @@
 
       request.result = false;
 
-      for (idx = 0, len = msgs.length; idx < len; ++idx) {
-        if (msgs[idx].id === id) {
-          request.result = true;
-          threadId = msgs[idx].threadId;
-          msgs.splice(idx, 1);
-          break;
+      for (var id of messageIds) {
+        for (idx = 0, len = msgs.length; idx < len; ++idx) {
+          if (msgs[idx].id === id) {
+            request.result = true;
+            threadId = msgs[idx].threadId;
+            msgs.splice(idx, 1);
+            break;
+          }
         }
       }
 
-      isEmptyThread = !!msgs.filter(function(msg) {
+      isEmptyThread = !msgs.filter(function(msg) {
         return msg.threadId === threadId;
       }).length;
 
@@ -1210,4 +1229,91 @@
     };
   };
 
+
+  var sender = 1234569999;
+  var data = new WeakMap();
+
+
+  function Populate(type, num, interval) {
+    var count, interval;
+
+    if (type === 'messages' && !Threads.active) {
+      console.log('Populate messages from within the message view');
+      return;
+    }
+
+    count = 0;
+    interval = setInterval(function() {
+
+      var event = new CustomEvent('received');
+      var threadId = type === 'messages' ?
+        Threads.currentId : messagesDb.id++;
+      var messageId = messagesDb.id++;
+      var body, timestamp;
+
+      if (type === 'messages') {
+        sender = Threads.active.messages.reduce(function(sender, message) {
+          if (message.sender) {
+            return message.sender;
+          }
+          if (message.receivers) {
+            return message.receivers[
+              Math.floor(Math.random() * message.receivers.length)
+            ];
+          }
+          return sender;
+        }, '');
+      }
+
+      body = 'Message from ' + sender;
+      timestamp = new Date();
+
+      if (type === 'threads') {
+
+        messagesDb.threads.push({
+          id: threadId,
+          participants: [String(sender)],
+          lastMessageType: 'sms',
+          body: body,
+          timestamp: timestamp,
+          unreadCount: 1
+        });
+
+        sender++;
+      }
+
+      messagesDb.messages.push({
+        id: messageId,
+        threadId: threadId,
+        sender: String(sender),
+        read: true,
+        body: body,
+        delivery: 'received',
+        type: 'sms',
+        timestamp: timestamp
+      });
+
+      event.message = messagesDb.messages[messagesDb.messages.length - 1];
+
+      MessageManager.onMessageReceived(event);
+
+      if (++count === num) {
+        clearInterval(interval);
+        data.set(this, null);
+      }
+    }, interval);
+
+    data.set(this, interval);
+  }
+
+  Populate.prototype.stop = function() {
+    clearInterval(data.get(this));
+  };
+
+  window.Z = ['threads', 'messages'].reduce(function(exports, api) {
+    exports[api] = function(num = 1, interval = 3e3) {
+      return new Populate(api, num, interval);
+    };
+    return exports;
+  }, {});
 }(this));

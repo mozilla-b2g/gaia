@@ -1,6 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
+(function(exports) {
 'use strict';
 
 var ThreadListUI = {
@@ -28,7 +28,6 @@ var ThreadListUI = {
 
     this.mainWrapper = document.getElementById('main-wrapper');
 
-    this.delNumList = [];
     this.fullHeight = this.container.offsetHeight;
 
     this.checkAllButton.addEventListener(
@@ -130,6 +129,8 @@ var ThreadListUI = {
   },
 
   handleEvent: function thlui_handleEvent(evt) {
+    var selectAll = this.selectedInputs.length === this.allInputs.length;
+
     switch (evt.type) {
       case 'click':
         // Duck type determination; if the click event occurred on
@@ -137,6 +138,13 @@ var ThreadListUI = {
         // been a checkbox and proceed w/ validation condition
         if (evt.target.type && evt.target.type === 'checkbox') {
           ThreadListUI.checkInputs();
+
+          // Only update Threads.List.selectAll when
+          // the user has actually interacted with the App.
+          // ThreadListUI.checkInputs is called from too many
+          // locations within the code and can results in setting
+          // Threads.List.selectAll incorrectly.
+          Threads.List.selectAll = selectAll;
         }
         break;
       case 'submit':
@@ -146,17 +154,26 @@ var ThreadListUI = {
   },
 
   checkInputs: function thlui_checkInputs() {
-    var selected = ThreadListUI.selectedInputs.length;
+    var selected = this.selectedInputs;
+    var all = this.allInputs;
+    var hasSelectedAll = false;
+    var label;
 
-    if (selected === ThreadListUI.allInputs.length) {
+    if (selected.length === all.length) {
       this.checkAllButton.disabled = true;
+      hasSelectedAll = true;
     } else {
       this.checkAllButton.disabled = false;
     }
-    if (selected) {
+
+    if (selected.length > 0) {
       this.uncheckAllButton.disabled = false;
       this.deleteButton.classList.remove('disabled');
-      navigator.mozL10n.localize(this.editMode, 'selected', {n: selected});
+      label = Threads.List.selectAll || hasSelectedAll ?
+        'selected-all' : 'selected';
+      navigator.mozL10n.localize(this.editMode, label, {
+        n: selected.length
+      });
     } else {
       this.uncheckAllButton.disabled = true;
       this.deleteButton.classList.add('disabled');
@@ -171,7 +188,7 @@ var ThreadListUI = {
       inputs[i].checked = false;
       inputs[i].parentNode.parentNode.classList.remove('undo-candidate');
     }
-    this.delNumList = [];
+    navigator.mozL10n.localize(this.editMode, 'editMode');
     this.checkInputs();
   },
 
@@ -187,72 +204,88 @@ var ThreadListUI = {
     for (var i = 0; i < length; i++) {
       inputs[i].checked = value;
     }
+
+    Threads.List.selectAll = value;
+
     this.checkInputs();
   },
 
   removeThread: function(threadId) {
     var li = document.getElementById('thread-' + threadId);
-    var parent = li.parentNode;
-    parent.removeChild(li);
+    var parent;
 
-    // remove the header and the ul for an empty list
-    if (!parent.firstElementChild) {
-      var grandparent = parent.parentNode;
-      grandparent.removeChild(parent.previousSibling);
-      grandparent.removeChild(parent);
-      FixedHeader.refresh();
+    if (li !== null) {
+      parent = li.parentNode;
+      parent.removeChild(li);
 
-      // if we have no more elements, set empty classes
-      if (!this.container.querySelector('li')) {
-        this.setEmpty(true);
+      // remove the header and the ul for an empty list
+      if (!parent.firstElementChild) {
+        var grandparent = parent.parentNode;
+        grandparent.removeChild(parent.previousSibling);
+        grandparent.removeChild(parent);
+        FixedHeader.refresh();
+
+        // if we have no more elements, set empty classes
+        if (!this.container.querySelector('li')) {
+          this.setEmpty(true);
+        }
       }
     }
+    return true;
   },
 
   delete: function thlui_delete() {
     var question = navigator.mozL10n.get('deleteThreads-confirmation2');
-    var messageIds = [];
-    var threadIds, threadId, filter, count;
-
-    function checkDone(threadId) {
-      Threads.delete(threadId);
-      // Cleanup the DOM
-      this.removeThread(threadId);
-
-      if (--count === 0) {
-        this.cancelEdit();
-        WaitingScreen.hide();
-      }
-    }
+    var selected = this.selectedInputs.slice();
 
     if (confirm(question)) {
+      // Upon confirmation to Delete Threads...
+      //
+      // If the user had selected all threads, update
+      // the deleteAll flag accordingly. This will be
+      // used to optimize the following operations.
+      Threads.List.deleteAll = Threads.List.selectAll;
+
       WaitingScreen.show();
 
-      threadIds = this.selectedInputs.map(function(input) {
-        return input.value;
-      });
+      selected.forEach(function(input) {
 
-      count = threadIds.length;
+        // Push the "id", as input.value coerced
+        // to a number, to the list of threadIds for
+        // removal processing.
+        //
+        // MozSmsFilter and all other platform APIs
+        // expect this value to be a number.
+        Threads.List.deleting.push(+input.value);
 
-      // Remove and coerce the threadId back to a number
-      // MozSmsFilter and all other platform APIs
-      // expect this value to be a number.
-      while (threadId = +threadIds.pop()) {
+      }.bind(this));
 
-        // Filter and request all messages with this threadId
-        filter = new MozSmsFilter();
-        filter.threadId = threadId;
+      // Bulk remove threads from the DOM now
+      // so that the user may continue using
+      // the device as soon as possible.
+      if (Threads.List.deleteAll &&
+          this.getAllInputs.length === selected.length) {
 
-        MessageManager.getMessages({
-          filter: filter,
-          invert: true,
-          each: function each(message) {
-            MessageManager.deleteMessage(message.id);
-            return true;
-          },
-          end: checkDone.bind(this, threadId)
-        });
+        this.container.textContent = '';
+        this.setEmpty(true);
+        FixedHeader.refresh();
+      } else {
+        // Otherwise iterate and remove each explicitly
+        // selected message node from the DOM.
+        for (var id of Threads.List.deleting) {
+          this.removeThread(id);
+        }
       }
+
+      this.delete.process();
+
+      // Thread nodes are now removed from the DOM,
+      // so safely exit from edit mode.
+      this.cancelEdit(function() {
+        // The DOM has been updated and user access
+        // to the interface can be restored.
+        WaitingScreen.hide();
+      });
     }
   },
 
@@ -268,24 +301,40 @@ var ThreadListUI = {
   startEdit: function thlui_edit() {
     this.inEditMode = true;
     this.cleanForm();
-    this.mainWrapper.classList.toggle('edit');
+    this.mainWrapper.classList.add('edit');
   },
 
-  cancelEdit: function thlui_cancelEdit() {
+  cancelEdit: function thlui_cancelEdit(ontransitionend) {
+    Threads.List.selectAll = false;
+
+    function onTransitionEnd() {
+      this.removeEventListener('transitionend', onTransitionEnd);
+      if (typeof ontransitionend === 'function') {
+        ontransitionend();
+      }
+    }
+
     this.inEditMode = false;
+
+    this.mainWrapper.addEventListener('transitionend', onTransitionEnd);
     this.mainWrapper.classList.remove('edit');
   },
 
-  renderThreads: function thlui_renderThreads(threads, renderCallback) {
+  renderThreads: function thlui_renderThreads(threads, optsOrCallback) {
 
     // shut down this render
     var abort = false;
+    var onrendered = typeof optsOrCallback === 'function' ?
+      optsOrCallback : null;
+    var opts = onrendered === null ?
+      optsOrCallback : {};
+
+    opts = threadOpts(opts);
 
     // we store the function to kill the previous render on the function itself
     if (thlui_renderThreads.abort) {
       thlui_renderThreads.abort();
     }
-
 
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854417
     // Refactor the rendering method: do not empty the entire
@@ -316,8 +365,35 @@ var ThreadListUI = {
           if (abort) {
             return;
           }
-          ThreadListUI.appendThread(threads.pop());
-          appendThreads(threads, callback);
+
+          var k = -1;
+          var thread;
+
+          // If Threads.List.deleteAll becomes true,
+          // prevent further rendering of threads.
+          //
+          // Capture the remaining thread ids and
+          // process them for deletion.
+          //
+          // This will never include new threads born
+          // from received messages.
+          //
+          if (Threads.List.deleteAll) {
+            while (thread = threads[++k]) {
+              Threads.List.deleting.push(thread.id);
+            }
+            ThreadListUI.delete.process();
+            Threads.List.selectAll = Threads.List.deleteAll = false;
+            threads.length = 0;
+            return;
+          } else {
+
+            ThreadListUI.appendThread(threads.pop(), {
+              isSelected: Threads.List.selectAll
+            });
+
+            appendThreads(threads, callback);
+          }
         });
       };
 
@@ -329,8 +405,8 @@ var ThreadListUI = {
         // Boot update of headers
         Utils.updateTimeHeaders();
         // Once the rendering it's done, callback if needed
-        if (renderCallback) {
-          renderCallback();
+        if (onrendered) {
+          onrendered();
         }
       });
     } else {
@@ -338,15 +414,15 @@ var ThreadListUI = {
       FixedHeader.refresh();
 
       // Callback if exist
-      if (renderCallback) {
+      if (onrendered) {
         setTimeout(function executeCB() {
-          renderCallback();
+          onrendered();
         });
       }
     }
   },
 
-  createThread: function thlui_createThread(thread) {
+  createThread: function thlui_createThread(thread, opts) {
     // Create DOM element
     var li = document.createElement('li');
     var timestamp = thread.timestamp.getTime();
@@ -355,6 +431,8 @@ var ThreadListUI = {
     var number = participants[0];
     var id = thread.id;
     var bodyHTML = Utils.escapeHTML(thread.body || '');
+
+    opts = threadOpts(opts);
 
     li.id = 'thread-' + id;
     li.dataset.threadId = id;
@@ -376,6 +454,16 @@ var ThreadListUI = {
     }, {
       safe: ['id', 'bodyHTML']
     });
+
+    // If this is a newly rendered node, from previously existing
+    // nodes and the user has tapped "Select All", then this
+    // should be "born" selected.
+    //
+    // Otherwise, an explicit `isSelected: false` will be set
+    // for newly arrived & created threads
+    if (opts.isSelected) {
+      li.querySelector('input[type="checkbox"]').checked = true;
+    }
 
     return li;
   },
@@ -417,10 +505,10 @@ var ThreadListUI = {
     var threadMockup = this.createThreadMockup(message);
     var threadId = message.threadId;
 
-    if (!Threads.get(threadId)) {
-      Threads.set(threadId, threadMockup);
-      Threads.get(threadId).messages.push(message);
-    }
+    // This will either set new or update an existing thread.
+    // Any message objects that already exist for this thread
+    // will be silently rejected to avoid dups.
+    Threads.set(threadId, threadMockup).messages.push(message);
 
     if (this.container.querySelector('ul')) {
       var timestamp = threadMockup.timestamp.getTime();
@@ -437,18 +525,21 @@ var ThreadListUI = {
         this.removeThread(threadId);
       }
 
-      this.appendThread(threadMockup);
+      this.appendThread(threadMockup, { isSelected: false });
       FixedHeader.refresh();
       this.setEmpty(false);
     } else {
-      this.renderThreads([threadMockup]);
+      this.renderThreads([threadMockup], { isSelected: false });
     }
   },
 
-  appendThread: function thlui_appendThread(thread) {
+  appendThread: function thlui_appendThread(thread, opts) {
     var timestamp = thread.timestamp.getTime();
+
+    opts = threadOpts(opts);
+
     // We create the DOM element of the thread
-    var node = this.createThread(thread);
+    var node = this.createThread(thread, opts);
 
     // Update info given a number
     this.setContact(node);
@@ -457,6 +548,7 @@ var ThreadListUI = {
     var threadsContainerID = 'threadsContainer_' +
                               Utils.getDayDate(thread.timestamp);
     var threadsContainer = document.getElementById(threadsContainerID);
+
     // If there is no container we create & insert it to the DOM
     if (!threadsContainer) {
       // We create the fragment with groul 'header' & 'ul'
@@ -536,6 +628,81 @@ var ThreadListUI = {
   }
 };
 
+ThreadListUI.delete.process = function() {
+  var k = -1;
+  var deleting = Threads.List.deleting.slice();
+  var filter, id;
+
+  // Create an "end" handler that can
+  // have a bound threadId param, otherwise
+  // the threadId is lost by the time the
+  // end handler is called.
+  function onEnd(threadId) {
+    var list = Threads.List.tracking[threadId];
+
+    MessageManager.deleteMessages(list, function() {
+
+      Threads.delete(threadId);
+
+      Threads.List.deleting.splice(
+        Threads.List.deleting.indexOf(threadId), 1
+      );
+
+      // Once all reference threadIds have been
+      // have been removed, the deleteAll flag
+      // is reset to false.
+      if (!Threads.List.deleting.length) {
+
+        Threads.List.deleteAll = false;
+      }
+
+      delete Threads.List.tracking[threadId];
+    });
+  }
+
+  // Create a shared MozSmsFilter.
+  // Initialization of MozSmsFilter object's is
+  // an inordinately expensive operation.
+  //
+  //  See: http://jsperf.com/mozsmsfilter-vs-messagesfilter
+  //
+  // Unfortunately, using a plain object with a
+  // |threadId| property throws an exception.
+  //
+  filter = new MozSmsFilter();
+
+  while (id = deleting[++k]) {
+
+    filter.threadId = id;
+
+    // Create a cache for tracking message.ids
+    // corresponding to a particular thread
+    // (keyed by id).
+    //
+    // - In the "each" handler, this is used
+    //    to capture the message.id of each
+    //    message returned by the cursor.
+    //
+    // - In the "end" handler, this is used to
+    //    send the final list of message.ids to
+    //    This is used by the onEnd
+    //
+    Threads.List.tracking[id] = [];
+
+    MessageManager.getMessages({
+      filter: filter,
+      invert: true,
+      endArgs: id,
+      each: function each(message) {
+        Threads.List.tracking[message.threadId].push(message.id);
+        return true;
+      },
+      end: onEnd.bind(this, id)
+    });
+  }
+};
+
+
 Object.defineProperty(ThreadListUI, 'allInputs', {
   get: function() {
     return this.getAllInputs();
@@ -547,3 +714,22 @@ Object.defineProperty(ThreadListUI, 'selectedInputs', {
     return this.getSelectedInputs();
   }
 });
+
+/**
+ * threadOpts
+ *
+ * Normalize options object for thread node creation
+ */
+function threadOpts(opts) {
+
+  opts = opts || {};
+
+  opts.isSelected = typeof opts.isSelected !== 'undefined' ?
+    opts.isSelected : Threads.List.selectAll;
+
+  return opts;
+}
+
+exports.ThreadListUI = ThreadListUI;
+
+}(this));
