@@ -8,6 +8,14 @@ function HandledCall(aCall) {
 
   aCall.addEventListener('statechange', this);
 
+  aCall.ongroupchange = (function onGroupChange() {
+    if (this.call.group) {
+      CallScreen.moveToGroup(this.node);
+    } else {
+      CallScreen.insertCall(this.node);
+    }
+  }).bind(this);
+
   this.recentsEntry = {
     date: Date.now(),
     type: this.call.state,
@@ -239,7 +247,6 @@ HandledCall.prototype.updateDirection = function hc_updateDirection() {
 
 HandledCall.prototype.remove = function hc_remove() {
   this.call.removeEventListener('statechange', this);
-  this.call = null;
   this.photo = null;
 
   clearInterval(this._ticker);

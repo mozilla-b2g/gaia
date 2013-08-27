@@ -10,6 +10,7 @@ var CallScreen = {
   views: document.getElementById('views'),
 
   calls: document.getElementById('calls'),
+  groupCalls: document.getElementById('group-call-details'),
 
   mainContainer: document.getElementById('main-container'),
   callToolbar: document.getElementById('co-advanced'),
@@ -29,8 +30,8 @@ var CallScreen = {
   incomingIgnore: document.getElementById('incoming-ignore'),
   lockedContactPhoto: document.getElementById('locked-contact-photo'),
 
-  set callsCount(count) {
-    this.calls.dataset.count = count;
+  set bigDuration(enabled) {
+    this.calls.classList.toggle('big-duration', enabled);
   },
 
   init: function cs_init() {
@@ -74,6 +75,10 @@ var CallScreen = {
 
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
+  },
+
+  moveToGroup: function cs_moveToGroup(node) {
+    this.groupCalls.appendChild(node);
   },
 
   resizeHandler: function cs_resizeHandler() {

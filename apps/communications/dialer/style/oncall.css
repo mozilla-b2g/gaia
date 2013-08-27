@@ -347,7 +347,7 @@ button[disabled] .icon-keypad-visibility {
   z-index: 500;
 }
 
-#calls[data-count="1"] {
+#calls.big-duration {
   height: 22rem;
 }
 
@@ -368,17 +368,17 @@ button[disabled] .icon-keypad-visibility {
   padding-right: 1.5rem;
 }
 
-#calls[data-count="1"] > section {
+#calls.big-duration > section {
   height: 22rem;
   background-color: transparent;
 }
 
-#calls[data-count="1"] > section .numberWrapper {
+#calls.big-duration > section .numberWrapper {
   background: #01c5ed;
   overflow: auto;
 }
 
-#calls[data-count="1"] > section .numberWrapper .number {
+#calls.big-duration > section .numberWrapper .number {
   height: 2.5rem;
   padding: 2rem 0 0 0;
   font-size: 3.3rem;
@@ -390,7 +390,7 @@ button[disabled] .icon-keypad-visibility {
   font-weight: lighter;
 }
 
-#calls[data-count="1"] > section:not(.additionalInfo) .numberWrapper
+#calls.big-duration > section:not(.additionalInfo) .numberWrapper
   .number {
   height: 8rem;
   line-height: 8rem;
@@ -404,7 +404,7 @@ button[disabled] .icon-keypad-visibility {
   white-space: nowrap;
 }
 
-#calls[data-count="1"] > section .additionalContactInfo {
+#calls.big-duration > section .additionalContactInfo {
   height: 1.2rem;
   width: -moz-available;
   white-space: nowrap;
@@ -417,12 +417,12 @@ button[disabled] .icon-keypad-visibility {
   color: white;
 }
 
-#calls[data-count="1"] > section:not(.additionalInfo)
+#calls.big-duration > section:not(.additionalInfo)
   .additionalContactInfo {
   display: none;
 }
 
-#calls[data-count="1"] > section .duration {
+#calls.big-duration > section .duration {
   position: absolute;
   top: 10rem;
   left: 0;
@@ -430,13 +430,13 @@ button[disabled] .icon-keypad-visibility {
   width: 100%;
 }
 
-#calls[data-count="1"] > section .duration > span {
+#calls.big-duration > section .duration > span {
   font-size: 2.7rem;
   line-height: 11.1rem;
   text-shadow: 0 0.2rem 0.1rem rgba(0,0,0,0.3);
 }
 
-#calls[data-count="1"] > section .duration.isTimer > span {
+#calls.big-duration > section .duration.isTimer > span {
   font-size: 5.9rem;
   line-height: 8.1rem;
 }
@@ -450,7 +450,7 @@ button[disabled] .icon-keypad-visibility {
   opacity: 0.7;
 }
 
-#calls[data-count="1"] > section.held {
+#calls.big-duration > section.held {
   background-image: url('images/DialerIcon_35x35_paused.png');
   background-size: 1.6rem;
   background-position: top 2rem right 2rem;
@@ -458,21 +458,21 @@ button[disabled] .icon-keypad-visibility {
   opacity: 0.7;
 }
 
-#calls[data-count="1"] > section.held .numberWrapper {
+#calls.big-duration > section.held .numberWrapper {
   background-color: #1c1818;
 }
 
-#calls[data-count="1"] > section.held,
-#calls[data-count="1"] > section.held .duration,
-#calls[data-count="1"] > section.held .additionalContactInfo {
+#calls.big-duration > section.held,
+#calls.big-duration > section.held .duration,
+#calls.big-duration > section.held .additionalContactInfo {
   background: none;
 }
 
-#calls[data-count="1"] > section.held .numberWrapper .number {
+#calls.big-duration > section.held .numberWrapper .number {
   color: white;
 }
 
-#calls[data-count="1"]> section.held .duration {
+#calls.big-duration > section.held .duration {
   display: block;
 }
 
@@ -488,14 +488,14 @@ button[disabled] .icon-keypad-visibility {
   display: none;
 }
 
-#calls[data-count="1"] > section .duration > .direction {
+#calls.big-duration > section .duration > .direction {
   display: inline-block;
   width: 3.5rem;
   height: 6.5rem;
   padding: 0;
 }
 
-#calls[data-count="1"] > section .duration > .direction > div {
+#calls.big-duration > section .duration > .direction > div {
   width: 3.5rem;
   height: 3.5rem;
   margin: 4rem 0 0 1rem;
@@ -503,23 +503,23 @@ button[disabled] .icon-keypad-visibility {
   background-size: 2.4rem;
 }
 
-#calls[data-count="1"] > section .duration > .direction.incoming > div {
+#calls.big-duration > section .duration > .direction.incoming > div {
   background-image: url('images/incoming_icon.png');
 }
 
-#calls[data-count="1"] > section .duration > .direction.outgoing > div {
+#calls.big-duration > section .duration > .direction.outgoing > div {
   background-image: url('images/outgoing_icon.png');
 }
 
-#calls[data-count="1"] > section .duration > .direction.ongoing-in > div {
+#calls.big-duration > section .duration > .direction.ongoing-in > div {
   background-image: url('images/incoming_icon.png');
 }
 
-#calls[data-count="1"] > section .duration > .direction.ongoing-out > div {
+#calls.big-duration > section .duration > .direction.ongoing-out > div {
   background-image: url('images/outgoing_icon.png');
 }
 
-#calls[data-count="1"] > section.held .duration > .direction > div {
+#calls.big-duration > section.held .duration > .direction > div {
   background-image: url('images/hold_icon.png');
 }
 
@@ -606,6 +606,11 @@ button[disabled] .icon-keypad-visibility {
   margin: 1.5rem;
 }
 
+/* Conference group support */
+#group-call-details {
+  display:none; /* TODO */
+}
+
 /* Handling the status bar mode */
 @media screen and (max-height: 4.5em ) {
   body {
@@ -631,20 +636,20 @@ button[disabled] .icon-keypad-visibility {
   }
 
   #calls > section,
-  #calls[data-count="1"] > section {
+  #calls.big-duration > section {
     width: 100%;
     height: 100%;
     background-color: transparent;
   }
 
  #calls > section .numberWrapper,
- #calls[data-count="1"] > section .numberWrapper {
+ #calls.big-duration > section .numberWrapper {
     height: 100%;
     background-color: transparent;
   }
 
   #calls > section .numberWrapper .number,
-  #calls[data-count="1"] > section .numberWrapper .number {
+  #calls.big-duration > section .numberWrapper .number {
     width: 100%;
     height: calc(100% - 1rem);
     padding: 0.5rem 0;

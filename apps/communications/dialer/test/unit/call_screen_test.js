@@ -9,6 +9,7 @@ if (!this.CallScreen) {
 suite('call screen', function() {
   var screen;
   var calls;
+  var groupCalls;
 
   setup(function(done) {
     screen = document.createElement('div');
@@ -19,6 +20,10 @@ suite('call screen', function() {
     calls.id = 'calls';
     screen.appendChild(calls);
 
+    groupCalls = document.createElement('article');
+    groupCalls.id = 'group-call-details';
+    screen.appendChild(groupCalls);
+
     requireApp('communications/dialer/js/call_screen.js', done);
   });
 
@@ -27,11 +32,13 @@ suite('call screen', function() {
   });
 
   suite('calls', function() {
-    suite('callsCount setter', function() {
-      test('should update the dataset', function() {
-        assert.isUndefined(calls.dataset.count);
-        CallScreen.callsCount = 12;
-        assert.equal(calls.dataset.count, 12);
+    suite('bigDuration setter', function() {
+      test('should toggle the class', function() {
+        assert.isFalse(calls.classList.contains('big-duration'));
+        CallScreen.bigDuration = true;
+        assert.isTrue(calls.classList.contains('big-duration'));
+        CallScreen.bigDuration = false;
+        assert.isFalse(calls.classList.contains('big-duration'));
       });
     });
 
@@ -40,6 +47,14 @@ suite('call screen', function() {
         var fakeNode = document.createElement('section');
         CallScreen.insertCall(fakeNode);
         assert.equal(fakeNode.parentNode, CallScreen.calls);
+      });
+    });
+
+    suite('moveToGroup', function() {
+      test('should insert the node in the group calls article', function() {
+        var fakeNode = document.createElement('section');
+        CallScreen.moveToGroup(fakeNode);
+        assert.equal(fakeNode.parentNode, CallScreen.groupCalls);
       });
     });
   });
