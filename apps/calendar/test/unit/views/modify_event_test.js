@@ -1,6 +1,8 @@
 requireLib('provider/abstract.js');
 requireLib('template.js');
 requireLib('querystring.js');
+requireElements('calendar/elements/modify_event.html');
+requireElements('calendar/elements/show_event.html');
 
 suiteGroup('Views.ModifyEvent', function() {
 
@@ -72,47 +74,18 @@ suiteGroup('Views.ModifyEvent', function() {
   var realGo;
 
   teardown(function() {
-    var el = document.getElementById('test');
-    el.parentNode.removeChild(el);
     Calendar.App.go = realGo;
   });
 
-  setup(function(done) {
-    var div = document.createElement('div');
-    div.id = 'test';
-    div.innerHTML = [
-      '<div id="event-view">',
-        '<button class="edit">edit</button>',
-        '<button class="cancel">cancel</button>',
-      '</div>',
-      '<div id="modify-event-view">',
-        '<button class="save">save</button>',
-        '<button class="cancel">cancel</button>',
-        '<button class="delete-record">delete</button>',
-        '<section role="status">',
-          '<div class="errors"></div>',
-        '</section>',
-        '<form>',
-          '<input type="checkbox" name="allday" />',
-          '<input name="title" />',
-          '<input type="date" name="startDate" />',
-          '<span id="start-date-locale"></span>',
-          '<input type="date" name="endDate" />',
-          '<span id="end-date-locale"></span>',
-          '<input type="time" name="startTime" />',
-          '<span id="start-time-locale"></span>',
-          '<input type="time" name="endTime" />',
-          '<span id="end-time-locale"></span>',
-          '<input name="location" />',
-          '<textarea name="description"></textarea>',
-          '<input name="currentCalendar" />',
-          '<select name="calendarId"></select>',
-          '<div class="alarms"></div>',
-        '</form>',
-      '</div>'
-    ].join('');
+  suiteTemplate('show-event', {
+    id: 'event-view'
+  });
 
-    document.body.appendChild(div);
+  suiteTemplate('modify-event', {
+    id: 'modify-event-view'
+  });
+
+  setup(function(done) {
     app = testSupport.calendar.app();
     realGo = app.go;
 
