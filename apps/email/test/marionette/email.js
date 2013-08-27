@@ -30,7 +30,16 @@ const Selector = {
   composeSubjectInput: '.card-compose .cmp-subject-text',
   composeBodyInput: '.card-compose .cmp-body-text',
   composeSendButton: '.card-compose .cmp-send-btn',
-  refreshButton: '.card.center .msg-refresh-btn'
+  composeBackButton: '.card-compose .cmp-back-btn',
+  composeDraftDiscard: '#cmp-draft-discard',
+  refreshButton: '.card.center .msg-refresh-btn',
+  messageHeaderItem: '.msg-messages-container .msg-header-item',
+  cardMessageReader: '.card-message-reader',
+  replyMenuButton: '.msg-reply-btn',
+  replyMenu: '.msg-reply-menu',
+  replyMenuReply: '.msg-reply-menu-reply',
+  replyMenuForward: '.msg-reply-menu-forward',
+  replyMenuAll: '.msg-reply-menu-reply-all'
 };
 
 Email.prototype = {
@@ -104,6 +113,17 @@ Email.prototype = {
       sendKeys(string);
   },
 
+  getComposeBody: function() {
+    return this.client.helper.
+      waitForElement(Selector.composeBodyInput).getAttribute('value');
+  },
+
+  abortCompose: function() {
+    this.client.helper.waitForElement(Selector.composeBackButton).tap();
+    this.client.helper.waitForElement(Selector.composeDraftDiscard).tap();
+    this._waitForTransitionEnd();
+  },
+
   tapSend: function() {
     var client = this.client;
     /*
@@ -139,6 +159,39 @@ Email.prototype = {
     client.apps.switchToApp(Email.EMAIL_ORIGIN);
     // wait for the document body to know we're really launched
     client.helper.waitForElement('body');
+  },
+
+  tapEmailAtIndex: function(index) {
+    var client = this.client;
+    var element = client.findElements(Selector.messageHeaderItem)[index];
+    element.tap();
+    this._waitForTransitionEnd();
+  },
+
+  /**
+   * Opens the reply menu and selects 'reply', 'all', or 'forward'.
+   */
+  tapReply: function(mode) {
+    var client = this.client;
+    // open the reply menu
+    client.findElement(Selector.replyMenuButton).tap();
+    client.helper.waitForElement(Selector.replyMenu);
+    // select the appropriate option
+    var whichButton;
+    switch (mode) {
+    case 'all':
+      whichButton = Selector.replyMenuAll;
+      break;
+    case 'forward':
+      whichButton = Selector.replyMenuForward;
+      break;
+    case 'reply':
+    default:
+      whichButton = Selector.replyMenuReply;
+      break;
+    }
+    client.findElement(whichButton).tap();
+    this._waitForTransitionEnd();
   },
 
   _waitForTransitionEnd: function() {
