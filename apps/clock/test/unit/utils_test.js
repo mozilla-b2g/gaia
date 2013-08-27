@@ -113,6 +113,123 @@ suite('Time functions', function() {
     });
   });
 
+  suite('#dateMath', function() {
+    suiteSetup(function() {
+      // The timestamp for "Tue Jul 16 2013 06:00:00" GMT
+      this.sixAm = 1373954400000;
+      // Set clock so calls to new Date() and Date.now() will not vary
+      // across test locales
+      this.clock = sinon.useFakeTimers(this.sixAm);
+      this.dat = new Date(this.sixAm + 15120000);
+      this.allNeg = {
+        hours: -4,
+        minutes: -15,
+        seconds: -2
+      };
+      this.someNeg = {
+        hours: 4,
+        minutes: -15,
+        seconds: 2
+      };
+      this.overflow = {
+        hours: 4,
+        minutes: 0,
+        seconds: 902
+      };
+      this.skip = {
+        hours: 4,
+        seconds: 902
+      };
+    });
+
+    suiteTeardown(function() {
+      this.clock.restore();
+    });
+
+    suite('toMS', function() {
+      test('returns correct millisecond value ', function() {
+        assert.equal(
+          Utils.dateMath.toMS(this.skip),
+          15302000
+        );
+        assert.equal(
+          Utils.dateMath.toMS(this.overflow),
+          15302000
+        );
+      });
+      test('any/all negative input result in negative output ', function() {
+        assert.ok(Utils.dateMath.toMS(this.someNeg) < 0);
+        assert.ok(Utils.dateMath.toMS(this.allNeg) < 0);
+      });
+      test('all positive input result in positive output ', function() {
+        assert.ok(Utils.dateMath.toMS(this.dat) > 0);
+        assert.ok(Utils.dateMath.toMS(this.skip) > 0);
+      });
+      test('accepts plural or singular unit names ', function() {
+        assert.equal(
+          Utils.dateMath.toMS(this.skip, {unitsPartial: ['hours', 'second']}),
+          15302000
+        );
+      });
+    });
+
+    suite('fromMS', function() {
+      suiteSetup(function() {
+        this.negtime = -140000;
+        this.hour = 1000 * 60 * 60;
+        this.fourish = 15120000;
+      });
+      test('returns a correctly formed object ', function() {
+        assert.deepEqual(
+          Utils.dateMath.fromMS(this.fourish, {
+            unitsPartial: ['hours', 'minutes']
+          }),
+          {
+            hours: 4,
+            minutes: 12
+          }
+        );
+      });
+      test('returns correct signs ', function() {
+        var pos, neg;
+        pos = Utils.dateMath.fromMS(this.hour);
+        neg = Utils.dateMath.fromMS(this.negtime);
+        assert.ok(Object.keys(pos).every(function(unit) {
+          return pos[unit] >= 0;
+        }));
+        assert.ok(Object.keys(neg).every(function(unit) {
+          return neg[unit] <= 0;
+        }));
+      });
+      test('returns desired granularity ', function() {
+        assert.deepEqual(
+          Utils.dateMath.fromMS(this.hour, {unitsPartial: ['minutes']}),
+          {
+            minutes: 60
+          }
+        );
+        assert.deepEqual(
+          Utils.dateMath.fromMS(this.fourish, {unitsPartial: ['minutes']}),
+          {
+            minutes: 252
+          }
+        );
+      });
+      test('accepts plural or singular unit names ', function() {
+        assert.deepEqual(
+          Utils.dateMath.fromMS(this.fourish, {
+            unitsPartial: ['hour', 'minute']
+          }),
+          {
+            hours: 4,
+            minutes: 12
+          }
+        );
+      });
+    });
+  });
+
+
   suite('extend tests', function() {
 
     function hasOwn(obj, prop) {
