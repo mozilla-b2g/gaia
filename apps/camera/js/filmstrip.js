@@ -47,8 +47,12 @@ var Filmstrip = (function() {
   setOrientation(Camera._phoneOrientation);
 
   // In secure mode, we never want the user to see the share button.
-  if (Camera._secureMode)
+  // We also remove the delete button because we currently can't
+  // display confirmation dialogs in the system app.
+  if (Camera._secureMode) {
     shareButton.parentNode.removeChild(shareButton);
+    deleteButton.parentNode.removeChild(deleteButton);
+  }
 
   function isShown() {
     return !document.body.classList.contains('filmstriphidden');
@@ -140,6 +144,11 @@ var Filmstrip = (function() {
    }
 
   function deleteCurrentItem() {
+    // The button should be gone, but hard exit from this function
+    // just in case.
+    if (Camera._secureMode)
+      return;
+
     var item = items[currentItemIndex];
     var msg, storage, filename;
 
@@ -154,10 +163,7 @@ var Filmstrip = (function() {
       filename = item.filename;
     }
 
-    // The system app is not allowed to use confirm, I think
-    // so if we're running in secure mode, just delete the file without
-    // confirmation
-    if (Camera._secureMode || confirm(msg)) {
+    if (confirm(msg)) {
       // Remove the item from the array of items
       items.splice(currentItemIndex, 1);
 
