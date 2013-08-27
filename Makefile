@@ -160,8 +160,11 @@ ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
 SEP_FOR_SED=\\\\
+BUILDDIR := file:///$(shell pwd -W)/build/
 # Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
 MSYS_FIX=/
+else
+BUILDDIR := file:///$(CURDIR)/build/
 endif
 
 ifndef GAIA_APP_CONFIG
@@ -275,6 +278,39 @@ PYTHON_MINOR := $(word 2,$(PYTHON_FULL))
 MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
+
+
+define BUILD_CONFIG
+exports.config = {
+	"GAIA_DIR" : "$(CURDIR)",
+	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)",
+	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)",
+	"GAIA_SCHEME" : "$(SCHEME)",
+	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)",
+	"DEBUG" : $(DEBUG),
+	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS),
+	"DESKTOP" : $(DESKTOP),
+	"DEVICE_DEBUG" : $(DEVICE_DEBUG),
+	"HOMESCREEN" : "$(HOMESCREEN)",
+	"GAIA_PORT" : "$(GAIA_PORT)",
+	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)",
+	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))",
+	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)",
+	"PRODUCTION" : "$(PRODUCTION)",
+	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)",
+	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)",
+	"DOGFOOD" : "$(DOGFOOD)",
+	"OFFICIAL" : "$(MOZILLA_OFFICIAL)",
+	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)",
+	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)",
+	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)",
+	"GAIA_ENGINE" : "xpcshell",
+	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)",
+	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)"
+}
+
+endef
+export BUILD_CONFIG
 
 # Generate profile/
 
@@ -441,8 +477,12 @@ XULRUNNERSDK=./$(XULRUNNER_DIRECTORY)/bin/run-mozilla.sh
 XPCSHELLSDK=./$(XULRUNNER_DIRECTORY)/bin/xpcshell
 endif
 
+.PHONY: build-config-js
+build-config-js:
+	echo "$$BUILD_CONFIG" > $(CURDIR)$(SEP)build$(SEP)config.js
+
 .PHONY: install-xulrunner-sdk
-install-xulrunner-sdk:
+install-xulrunner-sdk: build-config-js
 	@echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat $(XULRUNNER_URL_FILE) 2> /dev/null))
@@ -466,32 +506,10 @@ endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
-	echo "run-js-command $1";                                                   \
-	JS_CONSTS='                                                                 \
-	const GAIA_DIR = "$(CURDIR)";                                               \
-	const PROFILE_DIR = "$(CURDIR)$(SEP)$(PROFILE_FOLDER)";                     \
-	const PROFILE_FOLDER = "$(PROFILE_FOLDER)";                                 \
-	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
-	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
-	const DESKTOP = $(DESKTOP);                                                 \
-	const DEVICE_DEBUG = $(DEVICE_DEBUG);                                       \
-	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
-	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
-	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
-	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
-	const PRODUCTION = "$(PRODUCTION)";                                         \
-	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
-	const GAIA_DEV_PIXELS_PER_PX = "$(GAIA_DEV_PIXELS_PER_PX)";                 \
-	const DOGFOOD = "$(DOGFOOD)";                                               \
-	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
-	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
-	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
-	const GAIA_CONCAT_LOCALES = "$(GAIA_CONCAT_LOCALES)";                       \
-	const GAIA_ENGINE = "xpcshell";                                             \
-	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";                   \
-	const GAIA_APPDIRS = "$(GAIA_APPDIRS)";                                     \
-	';                                                                          \
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
+	echo "run-js-command $1";
+	$(XULRUNNERSDK) $(XPCSHELLSDK) \
+		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
+		-f build/xpcshell-commonjs.js  -e "require('$(strip $1)').execute()"
 endef
 
 # Optional files that may be provided to extend the set of default

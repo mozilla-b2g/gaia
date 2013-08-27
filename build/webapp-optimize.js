@@ -1,3 +1,8 @@
+var utils = require('./utils');
+var config = require('./config').config;
+const { Cc, Ci, Cr, Cu, CC } = require('chrome');
+Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/FileUtils.jsm');
 
 function debug(str) {
   //dump(' -*- webapp-optimize.js: ' + str + '\n');
@@ -9,12 +14,12 @@ function debug(str) {
  */
 
 var win = { navigator: {} };
-Services.scriptloader.loadSubScript('file:///' + GAIA_DIR +
+Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
     '/shared/js/l10n.js?reload=' + new Date().getTime(), win);
 
 
 let scope = {};
-Services.scriptloader.loadSubScript('file:///' + GAIA_DIR +
+Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
     '/build/jsmin.js?reload=' + new Date().getTime(), scope);
 const { JSMin } = scope;
 
@@ -23,7 +28,7 @@ const { JSMin } = scope;
  * (the default locale is always the last element in this array)
  */
 
-var l10nLocales = [GAIA_DEFAULT_LOCALE];
+var l10nLocales = [config.GAIA_DEFAULT_LOCALE];
 function newDictionary() {
   let dictionary = {};
   l10nLocales.forEach(function(lang) {
@@ -51,9 +56,9 @@ const L10N_OPTIMIZATION_BLACKLIST = [
 
 /**
  * Optimization helpers -- these environment variables are used:
- *   - GAIA_INLINE_LOCALES  - embed the minimum l10n data in HTML files
- *   - GAIA_CONCAT_LOCALES  - aggregates l10n files
- *   - GAIA_OPTIMIZE        - aggregates JS files
+ *   - config.GAIA_INLINE_LOCALES  - embed the minimum l10n data in HTML files
+ *   - config.GAIA_CONCAT_LOCALES  - aggregates l10n files
+ *   - config.GAIA_OPTIMIZE        - aggregates JS files
  */
 
 /**
@@ -76,18 +81,18 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
     file = htmlFile.parent.clone();
   }
   if (paths[0] == 'shared') {
-    file = getFile(GAIA_DIR);
+    file = utils.getFile(config.GAIA_DIR);
   }
 
   paths.forEach(function appendPath(name) {
     file.append(name);
-    if (isSubjectToBranding(file.path)) {
-      file.append((OFFICIAL == 1) ? 'official' : 'unofficial');
+    if (utils.isSubjectToBranding(file.path)) {
+      file.append((config.OFFICIAL == 1) ? 'official' : 'unofficial');
     }
   });
 
   try {
-    return getFileContent(file);
+    return utils.getFileContent(file);
   } catch (e) {
     dump(file.path + ' could not be found.\n');
     return '';
@@ -99,10 +104,10 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
  * Depending on the script tags there are two files made:
  *
  * - defered scripts (<script defer src= ...) :
- *    $(Gaia.aggregatePrefix)defer_$(html_filename).js
+ *    $(utils.Gaia.aggregatePrefix)defer_$(html_filename).js
  *
  * - normal scripts (<script src=...) :
- *    $(Gaia.aggregatePrefix)$(html_filename).js
+ *    $(utils.Gaia.aggregatePrefix)$(html_filename).js
  *
  *
  * Also it is possible to skip aggregation on a per script basis:
@@ -118,7 +123,7 @@ function optimize_getFileContent(webapp, htmlFile, relativePath) {
  * @param {NSFile} htmlFile filename/path of the document.
  */
 function optimize_aggregateJsResources(doc, webapp, htmlFile) {
-  if (GAIA_OPTIMIZE !== '1' ||
+  if (config.GAIA_OPTIMIZE !== '1' ||
       JS_AGGREGATION_BLACKLIST.indexOf(webapp.sourceDirectoryName) >= 0)
     return;
 
@@ -204,14 +209,14 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
   rootUrl = rootUrl.replace(webapp.manifestFile.parent.path, '') || '.';
   // the above will yield something like: '', '/facebook/', '/contacts/', etc...
 
-  function writeAggregatedScript(config) {
+  function writeAggregatedScript(conf) {
     // skip if we don't have any content to write.
-    if (!config.content)
+    if (!conf.content)
       return;
 
     // prefix the file we are about to write content to.
     let scriptBaseName =
-      Gaia.aggregatePrefix + config.prefix + baseName + '.js';
+      utils.Gaia.aggregatePrefix + conf.prefix + baseName + '.js';
 
     let target = rootDirectory.clone();
     target.append(scriptBaseName);
@@ -219,15 +224,15 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
     debug('writing aggregated source file: ' + target.path);
 
     // write the contents of the aggregated script
-    writeContent(target, config.content);
+    utils.writeContent(target, conf.content);
 
     let script = doc.createElement('script');
-    let lastScript = config.lastNode;
+    let lastScript = conf.lastNode;
 
     script.src = rootUrl + '/' + scriptBaseName;
     script.defer = lastScript.defer;
-    // use the config's type if given (for text/javascript;version=x)
-    script.type = config.type || lastScript.type;
+    // use the conf's type if given (for text/javascript;version=x)
+    script.type = conf.type || lastScript.type;
 
     debug('writing to path="' + target.path + '" src="' + script.src + '"');
 
@@ -299,7 +304,7 @@ function optimize_embedWebComponents(doc, app, htmlFile) {
  *                            data-l10n-id attributes.
  */
 function optimize_embedL10nResources(doc, dictionary) {
-  if (GAIA_INLINE_LOCALES !== '1')
+  if (config.GAIA_INLINE_LOCALES !== '1')
     return;
 
   // split the l10n dictionary on a per-locale basis,
@@ -324,7 +329,7 @@ function optimize_embedL10nResources(doc, dictionary) {
  *                            strings that are loaded by the HTML document.
  */
 function optimize_concatL10nResources(doc, webapp, dictionary) {
-  if (GAIA_CONCAT_LOCALES !== '1')
+  if (config.GAIA_CONCAT_LOCALES !== '1')
     return;
 
   var resources = doc.querySelectorAll('link[type="application/l10n"]');
@@ -383,7 +388,7 @@ function optimize_serializeHTMLDocument(doc, file) {
   let innerHTML = docElt.innerHTML.replace(/  \n*<\/body>\n*/, '  </body>\n');
   htmlStr += '>\n  ' + innerHTML + '\n</html>\n';
 
-  writeContent(file, doctypeStr + htmlStr);
+  utils.writeContent(file, doctypeStr + htmlStr);
 }
 
 /**
@@ -401,11 +406,11 @@ function optimize_compile(webapp, file, callback) {
   /**
    * For each HTML file, we retrieve two multi-locale dictionaries:
    *
-   *  - subDict (used with GAIA_INLINE_LOCALES)
+   *  - subDict (used with config.GAIA_INLINE_LOCALES)
    *    = minimal set of strings required to translate all HTML elements that
    *    use data-l10n-id attributes; it gets embedded in the HTML document.
    *
-   *  - fullDict (used with GAIA_CONCAT_LOCALES)
+   *  - fullDict (used with config.GAIA_CONCAT_LOCALES)
    *    = full set of all l10n strings that are loaded by the HTML document,
    *    including subDict and all strings that are used dynamically from JS;
    *    it gets merged into webapp.dictionary.
@@ -416,7 +421,7 @@ function optimize_compile(webapp, file, callback) {
   // catch console.[log|warn|info] calls and redirect them to `dump()'
   // XXX for some reason, this won't work if gDEBUG >= 2 in l10n.js
   function optimize_dump(str) {
-    dump(file.path.replace(GAIA_DIR, '') + ': ' + str + '\n');
+    dump(file.path.replace(config.GAIA_DIR, '') + ': ' + str + '\n');
   }
 
   win.console = {
@@ -466,7 +471,8 @@ function optimize_compile(webapp, file, callback) {
       docElt.lang = mozL10n.language.code;
 
       // save localized / optimized document
-      let newFile = new FileUtils.File(file.path + '.' + GAIA_DEFAULT_LOCALE);
+      let newFile = new FileUtils.File(file.path + '.' +
+        config.GAIA_DEFAULT_LOCALE);
       optimize_embedWebComponents(win.document, webapp, newFile);
       optimize_embedL10nResources(win.document, subDict);
       optimize_concatL10nResources(win.document, webapp, fullDict);
@@ -481,7 +487,7 @@ function optimize_compile(webapp, file, callback) {
   // load and parse the HTML document
   let DOMParser = CC('@mozilla.org/xmlextras/domparser;1', 'nsIDOMParser');
   win.document = (new DOMParser()).
-      parseFromString(getFileContent(file), 'text/html');
+      parseFromString(utils.getFileContent(file), 'text/html');
 
   // If this HTML document uses l10n.js, pre-localize it --
   //   note: a document can use l10n.js by including either l10n.js or
@@ -498,73 +504,81 @@ function optimize_compile(webapp, file, callback) {
 }
 
 
-/**
- * Pre-translate all HTML files for the default locale
- */
+function execute() {
+  /**
+   * Pre-translate all HTML files for the default locale
+   */
 
-debug('Begin');
+  debug('Begin');
 
-if (GAIA_INLINE_LOCALES === '1' || GAIA_CONCAT_LOCALES === '1') {
-  l10nLocales = [];
+  if (config.GAIA_INLINE_LOCALES === '1' ||
+      config.GAIA_CONCAT_LOCALES === '1') {
+    l10nLocales = [];
 
-  // LOCALES_FILE is a relative path by default: shared/resources/languages.json
-  // -- but it can be an absolute path when doing a multilocale build.
-  let abs_path_chunks = [GAIA_DIR].concat(LOCALES_FILE.split(/\/|\\/));
-  let file = getFile.apply(null, abs_path_chunks);
-  if (!file.exists()) {
-    file = getFile(LOCALES_FILE);
-  }
-  let locales = JSON.parse(getFileContent(file));
-
-  // ensure the default locale comes last in `l10nLocales'.
-  for (let lang in locales) {
-    if (lang != GAIA_DEFAULT_LOCALE) {
-      l10nLocales.push(lang);
+    // LOCALES_FILE is a relative path by default:
+    // shared/resources/languages.json
+    // -- but it can be an absolute path when doing a multilocale build.
+    let abs_path_chunks = [config.GAIA_DIR]
+      .concat(config.LOCALES_FILE.split(/\/|\\/));
+    let file = utils.getFile.apply(null, abs_path_chunks);
+    if (!file.exists()) {
+      file = utils.getFile(config.LOCALES_FILE);
     }
+    let locales = JSON.parse(utils.getFileContent(file));
+
+    // ensure the default locale comes last in `l10nLocales'.
+    for (let lang in locales) {
+      if (lang != config.GAIA_DEFAULT_LOCALE) {
+        l10nLocales.push(lang);
+      }
+    }
+    l10nLocales.push(config.GAIA_DEFAULT_LOCALE);
   }
-  l10nLocales.push(GAIA_DEFAULT_LOCALE);
-}
 
-Gaia.webapps.forEach(function(webapp) {
-  // if BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME)
-    return;
-
-  debug(webapp.sourceDirectoryName);
-
-  let filesToProcess = [];
-  webapp.dictionary = newDictionary();
-
-  function writeDictionaries() {
-    if (filesToProcess.length || GAIA_CONCAT_LOCALES !== '1')
+  utils.Gaia.webapps.forEach(function(webapp) {
+    // if BUILD_APP_NAME isn't `*`, we only accept one webapp
+    if (config.BUILD_APP_NAME != '*' &&
+      webapp.sourceDirectoryName != config.BUILD_APP_NAME)
       return;
 
-    // all HTML documents in the webapp have been optimized:
-    // create one concatenated l10n file per locale for all HTML documents
+    debug(webapp.sourceDirectoryName);
 
-    // create the /locales-obj directory if necessary
-    let localeDir = webapp.buildDirectoryFile.clone();
-    localeDir.append('locales-obj');
-    ensureFolderExists(localeDir);
+    let filesToProcess = [];
+    webapp.dictionary = newDictionary();
 
-    // create all JSON dictionaries in /locales-obj
-    for (let lang in webapp.dictionary) {
-      let file = localeDir.clone();
-      file.append(lang + '.json');
-      writeContent(file, JSON.stringify(webapp.dictionary[lang]));
+    function writeDictionaries() {
+      if (filesToProcess.length || config.GAIA_CONCAT_LOCALES !== '1')
+        return;
+
+      // all HTML documents in the webapp have been optimized:
+      // create one concatenated l10n file per locale for all HTML documents
+
+      // create the /locales-obj directory if necessary
+      let localeDir = webapp.buildDirectoryFile.clone();
+      localeDir.append('locales-obj');
+      utils.ensureFolderExists(localeDir);
+
+      // create all JSON dictionaries in /locales-obj
+      for (let lang in webapp.dictionary) {
+        let file = localeDir.clone();
+        file.append(lang + '.json');
+        utils.writeContent(file, JSON.stringify(webapp.dictionary[lang]));
+      }
     }
-  }
 
-  // optimize all HTML documents in the webapp
-  let files = ls(webapp.buildDirectoryFile, true, /^(shared|tests?)$/);
-  files.forEach(function(file) {
-    if (/\.html$/.test(file.leafName)) {
-      filesToProcess.push(file);
+    // optimize all HTML documents in the webapp
+    let files = utils.ls(webapp.buildDirectoryFile, true, /^(shared|tests?)$/);
+    files.forEach(function(file) {
+      if (/\.html$/.test(file.leafName)) {
+        filesToProcess.push(file);
+      }
+    });
+    while (filesToProcess.length) {
+      optimize_compile(webapp, filesToProcess.pop(), writeDictionaries);
     }
   });
-  while (filesToProcess.length) {
-    optimize_compile(webapp, filesToProcess.pop(), writeDictionaries);
-  }
-});
 
-debug('End');
+  debug('End');
+}
+
+exports.execute = execute;
