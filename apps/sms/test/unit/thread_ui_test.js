@@ -851,6 +851,7 @@ suite('thread_ui.js >', function() {
         ThreadUI.recipientsList.removeChild(node);
       });
 
+      /* Bug 909644
       test('Will assimilate recipients', function() {
         var visible, add;
 
@@ -873,6 +874,7 @@ suite('thread_ui.js >', function() {
           source: 'manual'
         });
       });
+     */
     });
 
     suite('Existing Conversation', function() {
