@@ -39,7 +39,7 @@ var EverythingME = {
     function onContextMenu(e) {
       e.stopPropagation();
     }
-    
+
     EverythingME.migrateStorage();
   },
   
@@ -190,12 +190,17 @@ var EverythingME = {
   },
 
   // copy relevant user data from 1.0.1 to 1.1 versions
-  migrateStorage: function EverythingME_migrateStorage() {
+  migrateStorage: function EverythingME_migrateStorage(onComplete) {
     var migrationStorageKey = 'migrated_1.0.1_to_1.1';
 
+    if (!onComplete) {
+      onComplete = function() {};
+    }
+
     asyncStorage.getItem(migrationStorageKey, function evmeMigration(value) {
+      // this means we already migrated, so everything's a-ok
       if (value === true) {
-        // this means we already migrated, so everything's a-ok
+        onComplete();
         return;
       }
 
@@ -208,20 +213,32 @@ var EverythingME = {
       // these are properties that don't need special attention -
       // simply copy from sync to async, oldKey: newKey
       var AUTOMATIC_KEYS = {
-        'userHistory': 'evme-userHistory',
-        'localShortcuts': 'evme-localShortcuts',
-        'localShortcutsIcons': 'evme-localShortcutsIcons'
-      };
+            'userHistory': 'evme-userHistory',
+            'localShortcuts': 'evme-localShortcuts',
+            'localShortcutsIcons': 'evme-localShortcutsIcons'
+          },
+          numberOfKeys = Object.keys(AUTOMATIC_KEYS).length,
+          numberOfKeysDone = 0;
 
       for (var key in AUTOMATIC_KEYS) {
-        EverythingME.copyStorageToDB(key, AUTOMATIC_KEYS[key]);
+        EverythingME.copyStorageToDB(key, AUTOMATIC_KEYS[key], onDataMigrated);
       }
-
-      console.log('[EVME migration] complete successfully!');
+      
+      function onDataMigrated() {
+        numberOfKeysDone++;
+        if (numberOfKeysDone >= numberOfKeys) {
+          console.log('[EVME migration] complete successfully!');
+          onComplete();
+        }
+      }
     });
   },
   
-  copyStorageToDB: function copyStorageToDB(oldKey, newKey) {
+  copyStorageToDB: function copyStorageToDB(oldKey, newKey, onComplete) {
+    if (!onComplete) {
+      onComplete = function() {};
+    }
+
     console.log('[EVME migration] [' + oldKey + ']: retrieving...');
 
     try {
@@ -229,6 +246,7 @@ var EverythingME = {
 
       if (!oldValue) {
         console.log('[EVME migration] [' + oldKey + ']: no value');
+        onComplete(false);
         return false;
       }
 
@@ -237,6 +255,7 @@ var EverythingME = {
       if (!oldValue) {
         console.log('[EVME migration] [' + oldKey + ']: invalid json: ' + window.localStorage[oldKey]);
         deleteOld();
+        onComplete(false);
         return false;
       }
 
@@ -250,10 +269,13 @@ var EverythingME = {
       asyncStorage.setItem(newKey, newValue, function onsaved() {
         console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saved, remove old data');
         deleteOld();
+        onComplete(true);
       });
     } catch(ex) {
       deleteOld();
       console.warn('[EVME migration] [' + oldKey + ']: error: ' + oldValue + ' (' + ex.message + ')');
+      onComplete(false);
+      return false;
     }
     
     function deleteOld() {
