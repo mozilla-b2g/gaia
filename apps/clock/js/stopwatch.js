@@ -4,8 +4,9 @@
 
   function Stopwatch() {
     this.startTime = 0;
-    this.stopTime = 0;
+    this.totalElapsed = 0;
     this.started = false;
+    this.lapTimes = [];
   };
 
   Stopwatch.prototype = {
@@ -15,25 +16,51 @@
     start: function sw_start() {
       if (!this.started) {
         this.startTime = new Date().getTime();
-        this.stopTime = 0;
         this.started = true;
       }
     },
 
-    stop: function sw_stop() {
-      this.started = false;
+    pause: function sw_pause() {
+      if (this.started) {
+        this.started = false;
+        var elapsed = new Date().getTime() - this.startTime;
+        this.totalElapsed += elapsed;
+      }
     },
 
     reset: function sw_reset() {
-      this.startTime = 0;
-      this.stopTime = 0;
+      this.startTime = new Date().getTime();
+      this.totalElapsed = 0;
       this.started = false;
+      this.lapTimes = [];
+    },
+
+    lap: function sw_lap() {
+      if (this.started) {
+        var lastLapTime = {};
+        var newLapTime = {};
+        if (this.lapTimes.length > 0) {
+          lastLapTime = this.lapTimes[this.lapTimes.length - 1];
+          newLapTime.duration = new Date().getTime() - lastLapTime.time;
+        } else {
+          newLapTime.duration = new Date().getTime() - this.startTime;
+        }
+        newLapTime.time = new Date().getTime();
+        this.lapTimes.push(newLapTime);
+        return newLapTime.duration;
+      } else {
+        return 0;
+      }
     },
 
     getElapsedTime: function sw_elapsed() {
-      var e = new Date().getTime() - this.startTime;
-      return e;
-    },
+      var elapsed = 0;
+      if (this.started)
+        elapsed = new Date().getTime() - this.startTime;
+      elapsed += this.totalElapsed;
+
+      return elapsed;
+    }
 
   };
 
