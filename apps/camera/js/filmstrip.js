@@ -45,9 +45,12 @@ var Filmstrip = (function() {
   // Start off with it positioned correctly.
   setOrientation(Camera._phoneOrientation);
 
-  // In secure mode, we never want the user to see the share button.
-  if (Camera._secureMode)
+  // In secure mode, we never want the user to see
+  // the share or delete buttons.
+  if (Camera._secureMode) {
     shareButton.parentNode.removeChild(shareButton);
+    deleteButton.parentNode.removeChild(deleteButton);
+  }
 
   function isShown() {
     return !document.body.classList.contains('filmstriphidden');
@@ -137,6 +140,11 @@ var Filmstrip = (function() {
    }
 
   function deleteCurrentItem() {
+    // The button should be gone, but hard exit from this function
+    // just in case.
+    if (Camera._secureMode)
+      return;
+
     var item = items[currentItemIndex];
     var msg, storage, filename;
 
@@ -200,7 +208,6 @@ var Filmstrip = (function() {
                        e.target.error);
         };
       }
-
     }
   }
 
