@@ -68,3 +68,5 @@ manifest.appcache
 /test_external_apps/*/test/unit/_sandbox.html
 /test_external_apps/*/test/unit/_proxy.html
 apps/*, external-apps/* & GAIA_DISTRIBUTION_DIR
+
+/build/config.js

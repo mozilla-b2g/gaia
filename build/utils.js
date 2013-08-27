@@ -1,6 +1,6 @@
-const { 'classes': Cc, 'interfaces': Ci, 'results': Cr, 'utils': Cu,
-        'Constructor': CC } = Components;
+var config = require('./config').config;
 
+const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
@@ -34,7 +34,7 @@ function getDir(dirName, maybeGaiaSubDir) {
 
   if (!dir || !dir.exists()) {
     // Assume directory is a subdirectory of GAIA_DIR
-    dir = new FileUtils.File(GAIA_DIR);
+    dir = new FileUtils.File(config.GAIA_DIR);
     dirName.split('/').forEach(function(name) {
       dir.append(name);
     });
@@ -188,12 +188,12 @@ function makeWebappsObject(appdirs) {
         let manifest = manifestFile.exists() ? manifestFile : updateFile;
 
         // Use the folder name as the the domain name
-        let domain = appDir.leafName + '.' + GAIA_DOMAIN;
+        let domain = appDir.leafName + '.' + config.GAIA_DOMAIN;
 
         let webapp = {
           manifest: getJSON(manifest),
           manifestFile: manifest,
-          url: GAIA_SCHEME + domain + (GAIA_PORT ? GAIA_PORT : ''),
+          url: config.GAIA_SCHEME + domain + (config.GAIA_PORT ? config.GAIA_PORT : ''),
           domain: domain,
           sourceDirectoryFile: manifestFile.parent,
           buildDirectoryFile: manifestFile.parent,
@@ -234,11 +234,11 @@ function makeWebappsObject(appdirs) {
 }
 
 const Gaia = {
-  engine: GAIA_ENGINE,
-  sharedFolder: getFile(GAIA_DIR, 'shared'),
-  webapps: makeWebappsObject(GAIA_APPDIRS.split(' ')),
+  engine: config.GAIA_ENGINE,
+  sharedFolder: getFile(config.GAIA_DIR, 'shared'),
+  webapps: makeWebappsObject(config.GAIA_APPDIRS.split(' ')),
   aggregatePrefix: 'gaia_build_',
-  distributionDir: GAIA_DISTRIBUTION_DIR
+  distributionDir: config.GAIA_DISTRIBUTION_DIR
 };
 
 function registerProfileDirectory() {
@@ -249,7 +249,7 @@ function registerProfileDirectory() {
         throw Cr.NS_ERROR_FAILURE;
       }
 
-      return new FileUtils.File(PROFILE_DIR);
+      return new FileUtils.File(config.PROFILE_DIR);
     },
 
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider,
@@ -267,7 +267,7 @@ if (Gaia.engine === 'xpcshell') {
 }
 
 function gaiaOriginURL(name) {
-  return GAIA_SCHEME + name + '.' + GAIA_DOMAIN + (GAIA_PORT ? GAIA_PORT : '');
+  return config.GAIA_SCHEME + name + '.' + config.GAIA_DOMAIN + (config.GAIA_PORT ? config.GAIA_PORT : '');
 }
 
 function gaiaManifestURL(name) {
@@ -283,3 +283,19 @@ function getDistributionFileContent(name, defaultContent) {
   }
   return JSON.stringify(defaultContent, null, '  ');
 }
+
+exports.isSubjectToBranding = isSubjectToBranding;
+exports.getDir = getDir;
+exports.getSubDirs = getSubDirs;
+exports.ls = ls;
+exports.getFileContent = getFileContent;
+exports.writeContent = writeContent;
+exports.getFile = getFile;
+exports.ensureFolderExists = ensureFolderExists;
+exports.getJSON = getJSON;
+exports.makeWebappsObject = makeWebappsObject;
+exports.Gaia = Gaia;
+exports.registerProfileDirectory = registerProfileDirectory;
+exports.gaiaOriginURL = gaiaOriginURL;
+exports.gaiaManifestURL = gaiaManifestURL;
+exports.getDistributionFileContent = getDistributionFileContent;

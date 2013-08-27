@@ -1,3 +1,7 @@
+var utils = require('./utils');
+var config = require('./config').config;
+const { Cc, Ci, Cr, Cu } = require('chrome');
+
 const INSTALL_TIME = 132333986000;
 // Match this to value in applications-data.js
 
@@ -6,11 +10,11 @@ function debug(msg) {
 }
 
 let io = Cc['@mozilla.org/network/io-service;1']
-           .getService(Components.interfaces.nsIIOService);
+           .getService(Ci.nsIIOService);
 
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                .createInstance(Ci.nsILocalFile);
-webappsTargetDir.initWithPath(PROFILE_DIR);
+webappsTargetDir.initWithPath(config.PROFILE_DIR);
 // Create profile folder if doesn't exists
 if (!webappsTargetDir.exists())
   webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
@@ -69,7 +73,7 @@ function checkOrigin(origin) {
 }
 
 function fillCommsAppManifest(webapp, webappTargetDir) {
-  let manifestContent = getFileContent(webapp.manifestFile);
+  let manifestContent = utils.getFileContent(webapp.manifestFile);
   var manifestObject = JSON.parse(manifestContent);
 
   let redirects = manifestObject.redirects;
@@ -87,9 +91,10 @@ function fillCommsAppManifest(webapp, webappTargetDir) {
     'facebook_logout': 'redirectLogout'
   };
 
-  let content = JSON.parse(getFileContent(getFile(GAIA_DIR, 'build',
-                                       'communications_services.json')));
-  let custom = getDistributionFileContent('communications_services', content);
+  let content = JSON.parse(utils.getFileContent(utils.getFile(config.GAIA_DIR,
+    'build', 'communications_services.json')));
+  let custom = utils.getDistributionFileContent('communications_services',
+    content);
   let commsServices = JSON.parse(custom);
 
   let newRedirects = [];
@@ -106,8 +111,8 @@ function fillCommsAppManifest(webapp, webappTargetDir) {
 
   debug(webappTargetDir.path);
 
-  let file = getFile(webappTargetDir.path, 'manifest.webapp');
-  writeContent(file, JSON.stringify(manifestObject));
+  let file = utils.getFile(webappTargetDir.path, 'manifest.webapp');
+  utils.writeContent(file, JSON.stringify(manifestObject));
 }
 
 function fillAppManifest(webapp) {
@@ -134,7 +139,8 @@ function fillAppManifest(webapp) {
   // permissions set based on a principal are not working.
   // To make it works the system app will be assigned an id of 0, which
   // is the equivalent of the const NO_APP_ID.
-  if (DESKTOP && webappTargetDirName == ('system.' + GAIA_DOMAIN)) {
+  if (config.DESKTOP &&
+    webappTargetDirName == ('system.' + config.GAIA_DOMAIN)) {
     localId = 0;
   }
 
@@ -267,30 +273,36 @@ function fillExternalAppManifest(webapp) {
   };
 }
 
-Gaia.webapps.forEach(function(webapp) {
-  // If BUILD_APP_NAME isn't `*`, we only accept one webapp
-  if (BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != BUILD_APP_NAME) {
-    return;
+function execute() {
+  utils.Gaia.webapps.forEach(function(webapp) {
+    // If BUILD_APP_NAME isn't `*`, we only accept one webapp
+    if (config.BUILD_APP_NAME != '*' &&
+      webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
+      return;
+    }
+
+    if (webapp.metaData) {
+      fillExternalAppManifest(webapp);
+    } else {
+      fillAppManifest(webapp);
+    }
+  });
+
+  if (errors.length) {
+    var introMessage = 'We got ' + errors.length + ' manifest error' +
+      ((errors.length > 1) ? 's' : '') + ' while building:';
+    errors.unshift(introMessage);
+    var message = errors.join('\n * ') + '\n';
+    throw new Error(message);
   }
 
-  if (webapp.metaData) {
-    fillExternalAppManifest(webapp);
-  } else {
-    fillAppManifest(webapp);
-  }
-});
+  // Write webapps global manifest
+  let manifestFile = webappsTargetDir.clone();
+  manifestFile.append('webapps.json');
 
-if (errors.length) {
-  var introMessage = 'We got ' + errors.length + ' manifest error' +
-    ((errors.length > 1) ? 's' : '') + ' while building:';
-  errors.unshift(introMessage);
-  var message = errors.join('\n * ') + '\n';
-  throw new Error(message);
+  // stringify json with 2 spaces indentation
+  utils.writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
+
 }
 
-// Write webapps global manifest
-let manifestFile = webappsTargetDir.clone();
-manifestFile.append('webapps.json');
-
-// stringify json with 2 spaces indentation
-writeContent(manifestFile, JSON.stringify(manifests, null, 2) + '\n');
+exports.execute = execute;
