@@ -1,4 +1,47 @@
-'use strict';
+(function(exports) {
+
+  'use strict';
+
+  function Stopwatch() {
+    this.startTime = 0;
+    this.stopTime = 0;
+    this.started = false;
+  };
+
+  Stopwatch.prototype = {
+
+    constructor: Stopwatch,
+
+    start: function sw_start() {
+      if (!this.started) {
+        this.startTime = new Date().getTime();
+        this.stopTime = 0;
+        this.started = true;
+      }
+    },
+
+    stop: function sw_stop() {
+      this.started = false;
+    },
+
+    reset: function sw_reset() {
+      this.startTime = 0;
+      this.stopTime = 0;
+      this.started = false;
+    },
+
+    getElapsedTime: function sw_elapsed() {
+      var e = new Date().getTime() - this.startTime;
+      return e;
+    },
+
+  };
+
+  exports.Stopwatch = Stopwatch;
+
+})(this);
+
+/*'use strict';
 
 var StopWatch = {
   _elapsed: 0,
@@ -76,4 +119,5 @@ window.addEventListener('load', function onLoad() {
   StopWatch.actionButton.onclick = StopWatch.start.bind(StopWatch);
   StopWatch.resetButton.onclick = StopWatch.reset.bind(StopWatch);
 });
+*/
 
