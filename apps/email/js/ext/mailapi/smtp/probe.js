@@ -45,7 +45,7 @@ function NetSocket(port, host, crypto) {
   this._sendMessage = routerInfo.sendMessage;
   this._unregisterWithRouter = routerInfo.unregister;
 
-  var args = [host, port, { useSSL: crypto, binaryType: 'arraybuffer' }];
+  var args = [host, port, { useSSL: crypto, useSecureTransport: crypto, binaryType: 'arraybuffer' }];
   this._sendMessage('open', args);
 
   EventEmitter.call(this);
