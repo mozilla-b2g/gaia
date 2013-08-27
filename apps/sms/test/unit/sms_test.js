@@ -73,6 +73,9 @@ suite('SMS App Unit-Test', function() {
   suiteTeardown(function() {
     navigator.mozL10n = nativeMozL10n;
     GestureDetector = realGestureDetector;
+
+    Threads.List.selectAll = false;
+    Threads.List.deleteAll = false;
   });
 
   // Define some useful functions for the following tests
@@ -264,18 +267,22 @@ suite('SMS App Unit-Test', function() {
       test('Select all/Deselect All buttons', function() {
         ThreadListUI.startEdit();
         // Retrieve all inputs
-        var inputs = ThreadListUI.container.getElementsByTagName('input');
-        // Activate all inputs
-        for (var i = inputs.length - 1; i >= 0; i--) {
-          inputs[i].checked = true;
-        }
-
         var checkAllButton =
           document.getElementById('threads-check-all-button');
         var uncheckAllButton =
           document.getElementById('threads-uncheck-all-button');
+        var editMode = document.getElementById('threads-edit-mode');
+        var inputs = ThreadListUI.container.getElementsByTagName('input');
+
+        // Activate all inputs
+        for (var i = inputs.length - 1; i >= 0; i--) {
+          inputs[i].checked = true;
+        }
+        assert.equal(editMode.textContent, 'Edit mode');
 
         ThreadListUI.checkInputs();
+
+        assert.equal(editMode.textContent, 'selected-all');
         assert.isTrue(checkAllButton.disabled);
         assert.isFalse(uncheckAllButton.disabled);
         // Deactivate all inputs
@@ -285,6 +292,7 @@ suite('SMS App Unit-Test', function() {
         ThreadListUI.checkInputs();
         assert.isFalse(checkAllButton.disabled);
         assert.isTrue(uncheckAllButton.disabled);
+
         // Activate only one
         inputs[0].checked = true;
         ThreadListUI.checkInputs();
@@ -298,13 +306,15 @@ suite('SMS App Unit-Test', function() {
 
         var checkboxes =
           ThreadListUI.container.querySelectorAll('input[type=checkbox]');
-        assert.equal(5,
-          [].slice.call(checkboxes).filter(function(i) {
-            return i.checked;
-          }).length, 'All items should be checked');
 
-        // now a new message comes in for a new thread...
-        ThreadListUI.appendThread({
+        assert.equal(5, [].filter.call(checkboxes, function(i) {
+          return i.checked;
+        }).length, 'All items should be checked');
+
+        // Use ThreadListUI.onMessageReceived to simulate an incoming message,
+        // ThreadListUI.appendMessage is not aware of the source of a new
+        // message, which makes a difference in how the message is rendered.
+        ThreadListUI.onMessageReceived({
           participants: ['287138'],
           body: 'Recibidas!',
           id: 9999,
@@ -402,9 +412,25 @@ suite('SMS App Unit-Test', function() {
     suite('Thread-messages Edit mode (bubbles view)', function() {
       // Setup for getting all messages rendered before every test
       setup(function(done) {
+        Threads.set(1, {
+          participants: ['999']
+        });
+        window.location.hash = '#thread=1';
         ThreadUI.renderMessages({}, function() {
           done();
         });
+
+        MessageManager.threadMessages =
+          document.getElementById('thread-messages');
+
+        MessageManager.mainWrapper =
+          document.getElementById('main-wrapper');
+      });
+
+      teardown(function() {
+        Threads.delete(1);
+        ThreadUI.cancelEdit();
+        window.location.hash = '';
       });
 
       test('Check edit mode form', function() {
@@ -412,19 +438,24 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select/Deselect all', function() {
+        var checkAllButton =
+          document.getElementById('messages-check-all-button');
+        var uncheckAllButton =
+          document.getElementById('messages-uncheck-all-button');
+        var editMode = document.getElementById('messages-edit-mode');
         var inputs = ThreadUI.container.getElementsByTagName('input');
+
+        assert.equal(editMode.textContent, 'Edit mode');
+
         // Activate all inputs
         for (var i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
           ThreadUI.chooseMessage(inputs[i]);
         }
-
-        var checkAllButton =
-          document.getElementById('messages-check-all-button');
-        var uncheckAllButton =
-          document.getElementById('messages-uncheck-all-button');
-
+        assert.equal(editMode.textContent, 'Edit mode');
         ThreadUI.checkInputs();
+        assert.equal(editMode.textContent, 'selected-all');
+
         assert.isTrue(checkAllButton.disabled);
         assert.isFalse(uncheckAllButton.disabled);
 
@@ -445,28 +476,28 @@ suite('SMS App Unit-Test', function() {
         assert.isFalse(uncheckAllButton.disabled);
       });
 
-      test('Select all while receiving new message', function(done) {
+      test('Select all while receiving new message', function() {
         ThreadUI.startEdit();
         ThreadUI.toggleCheckedAll(true);
 
         var checkboxes =
           ThreadUI.container.querySelectorAll('input[type=checkbox]');
         assert.equal(checkboxes.length, 5);
-        assert.equal(checkboxes.length,
-          [].slice.call(checkboxes).filter(function(i) {
+        assert.equal(checkboxes.length, [].filter.call(checkboxes, function(i) {
             return i.checked;
-          }).length, 'All items should be checked');
+        }).length, 'All items should be checked');
 
-        // now a new message comes in...
+        // To simulate a newly arrived message, ThreadUI.appendMessage
+        // must be called with the additional opt param.
         ThreadUI.appendMessage({
-          sender: '197746797',
+          sender: '9999999999',
           body: 'Recibidas!',
           delivery: 'received',
           id: 9999,
           timestamp: new Date(),
           type: 'sms',
           channel: 'sms'
-        });
+        }, { isSelected: false });
 
         // new checkbox should have been added
         checkboxes =
@@ -481,32 +512,28 @@ suite('SMS App Unit-Test', function() {
         assert.isFalse(document.getElementById('messages-uncheck-all-button')
           .hasAttribute('disabled'), 'Uncheck all enabled');
 
-        // now delete the selected messages...
-        MessageManager.deleteMessages = stub(function(list, itCb) {
-          setTimeout(itCb);
-        });
 
-        window.confirm = stub(true);
+        MessageManager.getThreads.restore();
 
-        setTimeout(function() {
-          assert.equal(window.confirm.callCount, 1);
-          assert.equal(MessageManager.deleteMessages.callCount, 1);
-          assert.equal(MessageManager.deleteMessages.calledWith[0].length, 5);
-          assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
-            'correct number of Thread li');
-          assert.equal(
-            ThreadUI.container.querySelector('#message-9999 p').textContent,
-            'Recibidas!');
-          assert.isTrue(MessageManager.getThreads.called);
-          MessageManager.getThreads.restore();
+        this.sinon.stub(window, 'confirm').returns(true);
+        this.sinon.stub(MessageManager, 'deleteMessages');
+        this.sinon.stub(MessageManager, 'getThreads').callsArg(1);
 
-          done();
-        }, 1500); // only the last one is slow. What is blocking?
+        ThreadUI.delete();
+
+        assert.ok(window.confirm.called);
+        assert.ok(MessageManager.deleteMessages.called);
+        assert.equal(MessageManager.deleteMessages.args[0][0].length, 5);
+        assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
+        assert.equal(
+          ThreadUI.container.querySelector('#message-9999').textContent.trim(),
+          'Recibidas!'
+        );
+
 
         window.history.back = stub();
         MessageManager.getThreads.restore();
-        this.sinon.stub(MessageManager, 'getThreads').callsArg(1);
-        ThreadUI.delete();
+        MessageManager.deleteMessages.restore();
       });
 
       test('checkInputs should fire in edit mode', function(done) {

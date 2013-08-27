@@ -21,6 +21,17 @@ var MockNavigatormozMobileMessage = {
     return this.mNextSegmentInfo || this.mDefaultSegmentInfo;
   },
 
+  getMessages: function() {
+    var cursor = {
+      result: null
+    };
+    setTimeout(function() {
+      cursor.onsuccess();
+    });
+    return cursor;
+
+  },
+
   getThreads: function() {
     var cursor = {
       result: null

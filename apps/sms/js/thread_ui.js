@@ -4,6 +4,24 @@
 'use strict';
 
 var attachmentMap = new WeakMap();
+var messagesNodes = (function() {
+  var cache = new Map();
+
+  return {
+    set: function(key, node) {
+      return cache.set(key, node);
+    },
+    get: function(key) {
+      return cache.get(key);
+    },
+    delete: function(key) {
+      return cache.delete(key);
+    },
+    clear: function() {
+      cache = new Map();
+    }
+  };
+}());
 
 function thui_mmsAttachmentClick(target) {
   var attachment = attachmentMap.get(target);
@@ -759,7 +777,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Adds a new grouping header if necessary (today, tomorrow, ...)
   getMessageContainer:
-    function thui_getMessageContainer(messageTimestamp, hidden) {
+    function thui_getMessageContainer(messageTimestamp, opts) {
     var startOfDayTimestamp = Utils.getDayDate(messageTimestamp);
     var now = Date.now();
     var messageContainer, header;
@@ -767,6 +785,8 @@ var ThreadUI = global.ThreadUI = {
     var lastMessageDelay = this.LAST_MESSAGES_BUFFERING_TIME;
     var isLastMessagesBlock =
       (messageTimestamp >= (now - lastMessageDelay));
+
+    opts = messageOpts(opts);
 
     // Is there any container with our requirements?
     if (isLastMessagesBlock) {
@@ -824,7 +844,7 @@ var ThreadUI = global.ThreadUI = {
       messageContainer.dataset.timestamp = startOfDayTimestamp;
     }
 
-    if (hidden) {
+    if (opts.isHidden) {
       header.classList.add('hidden');
     } else {
       Utils.updateTimeHeader(header);
@@ -1056,7 +1076,7 @@ var ThreadUI = global.ThreadUI = {
           // stop the iteration
           return false;
         }
-        self.appendMessage(message,/*hidden*/ true);
+        self.appendMessage(message, { isHidden: true });
         self.messageIndex++;
         if (self.messageIndex === self.CHUNK_SIZE) {
           self.showFirstChunk();
@@ -1126,20 +1146,20 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
+  buildMessageDOM: function thui_buildMessageDOM(message, opts) {
     var bodyHTML = '';
     var delivery = message.delivery;
     var isDelivered = this.isDeliveryStatusSuccess(message);
     var messageDOM = document.createElement('li');
-
     var classNames = ['message', message.type, delivery];
-
     var notDownloaded = delivery === 'not-downloaded';
     var attachments = message.attachments;
     // Returning attachments would be different based on gecko version:
     // null in b2g18 / empty array in master.
     var noAttachment = (message.type === 'mms' && !notDownloaded &&
       (attachments === null || attachments.length === 0));
+
+    opts = messageOpts(opts);
 
     if (delivery === 'received' || notDownloaded) {
       classNames.push('incoming');
@@ -1151,7 +1171,7 @@ var ThreadUI = global.ThreadUI = {
       classNames.push('delivered');
     }
 
-    if (hidden) {
+    if (opts.isHidden) {
       classNames.push('hidden');
     }
 
@@ -1192,10 +1212,17 @@ var ThreadUI = global.ThreadUI = {
       });
     }
 
+    if (opts.isSelected) {
+      messageDOM.classList.add('selected');
+      messageDOM.querySelector('input[type="checkbox"]').checked = true;
+    }
+
+    messagesNodes.set('message-' + message.id, messageDOM);
+
     return messageDOM;
   },
 
-  appendMessage: function thui_appendMessage(message, hidden) {
+  appendMessage: function thui_appendMessage(message, opts) {
     var timestamp = message.timestamp.getTime();
 
     // look for an old message and remove it first - prevent anything from ever
@@ -1206,12 +1233,15 @@ var ThreadUI = global.ThreadUI = {
       this.removeMessageDOM(messageDOM);
     }
 
+    opts = messageOpts(opts);
+
     // build messageDOM adding the links
-    messageDOM = this.buildMessageDOM(message, hidden);
+    messageDOM = this.buildMessageDOM(message, opts);
 
     messageDOM.dataset.timestamp = timestamp;
     // Add to the right position
-    var messageContainer = this.getMessageContainer(timestamp, hidden);
+    var messageContainer = this.getMessageContainer(timestamp, opts);
+
     if (!messageContainer.firstElementChild) {
       messageContainer.appendChild(messageDOM);
     } else {
@@ -1230,6 +1260,9 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (this.mainWrapper.classList.contains('edit')) {
+      if (!opts.isSelected) {
+        Threads.active.selectAll = false;
+      }
       this.checkInputs();
     }
   },
@@ -1273,6 +1306,11 @@ var ThreadUI = global.ThreadUI = {
       inputs[i].checked = value;
       this.chooseMessage(inputs[i]);
     }
+
+    // Keep track of the selection state, this is used
+    // in the delete operation to optimize the process.
+    Threads.active.selectAll = value;
+
     this.checkInputs();
   },
 
@@ -1280,50 +1318,120 @@ var ThreadUI = global.ThreadUI = {
     this.inEditMode = true;
     this.cleanForm();
 
-    this.mainWrapper.classList.toggle('edit');
+    this.mainWrapper.classList.add('edit');
 
-    // Ensure the Edit Mode menu does not occlude the final messages in the
-    // thread.
+    // Ensure the Edit Mode menu does not occlude the
+    // final messages in the thread.
     this.container.style.borderBottomWidth =
       this.editForm.querySelector('menu').offsetHeight + 'px';
   },
 
   delete: function thui_delete() {
     var question = navigator.mozL10n.get('deleteMessages-confirmation');
+    var selected = ThreadUI.selectedInputs.slice();
+    var length = selected.length;
+    var messageIds;
+
+
     if (window.confirm(question)) {
-      WaitingScreen.show();
-      var delNumList = [];
-      var inputs = ThreadUI.selectedInputs;
-      var length = inputs.length;
-      for (var i = 0; i < length; i++) {
-        delNumList.push(+inputs[i].value);
+      // Upon confirmation to Delete Messages...
+      //
+      // If the user had selected all messages, update
+      // the deleteAll flag accordingly. This will be
+      // used to optimize the following operations.
+      Threads.active.deleteAll = Threads.active.selectAll;
+
+      // For cases where the user has explicitly selected
+      // all messages by "Select All" + "Delete", stop
+      // rendering messages and end the cursor.
+      // (See: ThreadUI.renderMessages)
+      if (Threads.active.deleteAll) {
+        this.stopRendering();
       }
 
-      // Method for deleting all inputs selected
-      var deleteMessages = function() {
-        MessageManager.getThreads(ThreadListUI.renderThreads,
-        function afterRender() {
-          var completeDeletionDone = false;
-          // Then sending/received messages
-          for (var i = 0; i < length; i++) {
-            ThreadUI.removeMessageDOM(inputs[i].parentNode.parentNode);
+      WaitingScreen.show();
+
+      messageIds = selected.map(function(input) {
+        // Return the "id" stored as input.value, coerced
+        // to a number, to the list of messageIds for
+        // removal processing.
+        //
+        // MozSmsFilter and all other platform APIs
+        // expect this value to be a number.
+        return +input.value;
+      }.bind(this));
+
+      // If the user had selected all messages...
+      //
+      //   1. Clear the contents of the message list container
+      //   2. Reset the entire messagesNodes cache, this will
+      //      break the remaining references to the nodes therein.
+      //
+      if (Threads.active.deleteAll) {
+        this.container.textContent = '';
+        messagesNodes.clear();
+      } else {
+        // Otherwise iterate and remove each explicitly
+        // selected message node from the DOM.
+        //
+        // Optimize node access by using the cached
+        // message node; this prevents unwanted DOM access
+        for (var id of messageIds) {
+          this.removeMessageDOM(
+            messagesNodes.get('message-' + id)
+          );
+        }
+      }
+
+      MessageManager.deleteMessages(messageIds, function deleteMessages() {
+        var thread, list, container, header;
+
+        // If the user had selected all messages...
+        //
+        //   (thread list view)
+        //
+        //   1. Locate and remove the thread node
+        //   2. If removing the thread node left an empty container
+        //      and date header, remove those as well.
+        //
+        if (Threads.active.deleteAll) {
+          thread = document.getElementById('thread-' + Threads.currentId);
+
+          if (thread) {
+            list = thread.parentNode;
+            header = list.previousSibling;
+            container = list.parentNode;
+
+            // Step 1.
+            // When removing an entire thread of messages,
+            // make sure the thread node itself is also removed.
+            thread.parentNode.removeChild(thread);
+
+            // Step 2.
+            // When removing an entire thread, check if this is also
+            // the only thread for the given date container. If so,
+            // remove the date container and its "header" as well.
+            if (!list.children.length) {
+              container.removeChild(list);
+              container.removeChild(header);
+            }
           }
 
-          ThreadUI.cancelEdit();
+          window.location.hash = '#thread-list';
+        }
 
-          if (!ThreadUI.container.firstElementChild) {
-            window.location.hash = '#thread-list';
-          }
-
-          WaitingScreen.hide();
-        });
-      };
-
-      MessageManager.deleteMessages(delNumList, deleteMessages);
+        WaitingScreen.hide();
+      });
     }
   },
 
   cancelEdit: function thlui_cancelEdit() {
+    var thread = Threads.get(Threads.lastId) || Threads.active;
+    if (thread) {
+      thread.selectAll = thread.deleteAll = false;
+    }
+
+
     this.inEditMode = false;
     this.updateInputHeight();
     this.mainWrapper.classList.remove('edit');
@@ -1341,17 +1449,24 @@ var ThreadUI = global.ThreadUI = {
 
   checkInputs: function thui_checkInputs() {
     var selected = this.selectedInputs;
-    var allInputs = this.allInputs;
-    if (selected.length == allInputs.length) {
+    var all = this.allInputs;
+    var hasSelectedAll = false;
+    var label;
+
+    if (selected.length === all.length) {
       this.checkAllButton.disabled = true;
+      hasSelectedAll = true;
     } else {
       this.checkAllButton.disabled = false;
     }
     if (selected.length > 0) {
       this.uncheckAllButton.disabled = false;
       this.deleteButton.classList.remove('disabled');
-      navigator.mozL10n.localize(this.editMode, 'selected',
-        {n: selected.length});
+      label = Threads.active.selectAll || hasSelectedAll ?
+        'selected-all' : 'selected';
+      navigator.mozL10n.localize(this.editMode, label, {
+        n: selected.length
+      });
     } else {
       this.uncheckAllButton.disabled = true;
       this.deleteButton.classList.add('disabled');
@@ -1424,6 +1539,16 @@ var ThreadUI = global.ThreadUI = {
 
         var input = evt.target.parentNode.querySelector('input');
         if (input) {
+
+          // If the user had previously selected all messages,
+          // but has now manually deselected a messages,
+          // set the Threads.active.selectAll flag to false
+          // to avoid entering the scorched earth path in
+          // ThreadUI.delete().
+          if (Threads.active.selectAll && input.checked) {
+            Threads.active.selectAll = false;
+          }
+
           this.chooseMessage(input);
           this.checkInputs();
         }
@@ -1630,6 +1755,7 @@ var ThreadUI = global.ThreadUI = {
     var messagesContainer = messageDOM.parentNode;
 
     messagesContainer.removeChild(messageDOM);
+    messagesNodes.delete(messageDOM.id);
 
     // was this the last one in the ul?
     if (!messagesContainer.firstElementChild) {
@@ -2171,6 +2297,24 @@ ThreadUI.groupView.reset = function groupViewReset() {
 };
 
 window.confirm = window.confirm; // allow override in unit tests
+
+/**
+ * messageOpts
+ *
+ * Normalize options object for message node creation
+ */
+function messageOpts(opts) {
+
+  opts = opts || {};
+
+  opts.isHidden = typeof opts.isHidden !== 'undefined' ?
+    opts.isHidden : false;
+
+  opts.isSelected = typeof opts.isSelected !== 'undefined' ?
+    opts.isSelected : !!(Threads.active && Threads.active.selectAll);
+
+  return opts;
+}
 
 /**
  * generateHeightRule
