@@ -69,12 +69,12 @@
   top: -2.5rem;
   left: 1rem;
   background: url("images/video_pause_button.png") rgba(0,0,0,.5) no-repeat
-              center center / 9.6rem;
+              center center / 3rem;
 }
 
 .videoPlayerPauseButton:active {
-  background: url("images/video_pause_button.png") no-repeat center center / 9.6rem,
-              url("images/video_play_focus.png") no-repeat center center / 9.6rem;
+  background: url("images/video_pause_button.png") no-repeat center center / 3rem,
+              url("images/video_play_focus.png") no-repeat center center / 10.6rem;
 }
 
 button::-moz-focus-inner {
