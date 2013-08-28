@@ -35,7 +35,7 @@ contacts.List = (function() {
       selectActionButton = null,
       groupList = null,
       searchList = null,
-      selectedCount = 0,
+      currentlySelected = 0,
       selectNavigationController = null;
 
   // Key on the async Storage
@@ -1247,7 +1247,7 @@ contacts.List = (function() {
     Second parameter is a boolean that indicates if a row was
     selected or unselected
   */
-  var handleSelection = function handleSelection(evt, selected) {
+  var handleSelection = function handleSelection(evt) {
     var action = null;
     if (evt) {
       evt.preventDefault();
@@ -1255,7 +1255,7 @@ contacts.List = (function() {
     }
 
     var selected = document.querySelectorAll('[name="selectIds[]"]:checked');
-    var countSelected = selected.length;
+    currentlySelected = selected.length;
     var selectAllDisabled = false;
     var deselectAllDisabled = false;
 
@@ -1267,7 +1267,7 @@ contacts.List = (function() {
           check.checked = false;
         });
 
-        selectedCount = 0;
+        currentlySelected = 0;
 
         deselectAllDisabled = true;
         break;
@@ -1279,23 +1279,18 @@ contacts.List = (function() {
           check.checked = true;
         });
 
-        selectedCount = contacts.List.total;
+        currentlySelected = contacts.List.total;
 
         selectAllDisabled = true;
         break;
       default:
-        if (selected) {
-          selectedCount++;
-        } else {
-          selectedCount--;
-        }
-
         // We checked in a row, check the mass selection/deselection buttons
-        selectAllDisabled = countSelected == contacts.List.total;
-        deselectAllDisabled = countSelected == 0;
+        selectAllDisabled = currentlySelected == contacts.List.total;
+        deselectAllDisabled = currentlySelected == 0;
         break;
     }
 
+    selectActionButton.disabled = currentlySelected == 0;
     selectAll.disabled = selectAllDisabled;
     deselectAll.disabled = deselectAllDisabled;
   };
@@ -1392,9 +1387,8 @@ contacts.List = (function() {
 
     Also provide a callback to be invoqued when we enter in select mode.
   */
-  var selectFromList = function selectFromList(title, action, callback, 
+  var selectFromList = function selectFromList(title, action, callback,
       navigationController, transitionType) {
-    selectedCount = 0;
     inSelectMode = true;
     selectNavigationController = navigationController;
 
@@ -1402,6 +1396,7 @@ contacts.List = (function() {
       selectForm = document.getElementById('selectable-form');
 
       selectActionButton = document.getElementById('select-action');
+      selectActionButton.disabled = true;
       selectActionButton.addEventListener('click', function onSelected(evt) {
         selectAction(action);
       });
@@ -1472,7 +1467,7 @@ contacts.List = (function() {
 
       check.checked = !check.checked;
 
-      handleSelection(null, check.checked);
+      handleSelection(null);
     });
 
     if (callback) {
