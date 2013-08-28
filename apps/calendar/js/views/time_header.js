@@ -115,8 +115,8 @@ Calendar.ns('Views').TimeHeader = (function() {
             navigator.mozL10n.get(this.scales.singleMonth)
           );
         }
-
-        return scale + this.app.dateFormat.localeFormat(
+        // Should have a space between two months
+        return scale + ' ' + this.app.dateFormat.localeFormat(
             lastWeekday,
             navigator.mozL10n.get(this.scales.month)
         );
