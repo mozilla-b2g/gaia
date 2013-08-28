@@ -45,7 +45,13 @@ function NetSocket(port, host, crypto) {
   this._sendMessage = routerInfo.sendMessage;
   this._unregisterWithRouter = routerInfo.unregister;
 
-  var args = [host, port, { useSSL: crypto, binaryType: 'arraybuffer' }];
+  var args = [host, port,
+              {
+                // Bug 784816 is changing useSSL into useSecureTransport for
+                // spec compliance.  Use both during the transition period.
+                useSSL: crypto, useSecureTransport: crypto,
+                binaryType: 'arraybuffer'
+              }];
   this._sendMessage('open', args);
 
   EventEmitter.call(this);
