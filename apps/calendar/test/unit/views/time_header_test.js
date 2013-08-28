@@ -86,8 +86,7 @@ suiteGroup('Views.TimeHeader', function() {
       '%B %Y'
     );
     var out = subject.getScale('week');
-    assert.include(out, firstMonth);
-    assert.include(out, secondMonth);
+    assert.equal(out, firstMonth + ' ' + secondMonth);
   });
 
   test('#_updateTitle', function() {
