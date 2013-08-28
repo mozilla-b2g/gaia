@@ -116,42 +116,36 @@ var HtmlHelper = {
 
 
 var UrlHelper = {
-  // Ported from:
-  // http://mxr.mozilla.org/mozilla-central/source/docshell/base/nsDefaultURIFixup.cpp#783
   isNotURL: function htmlHelper_isNotURL(input) {
-    // NOTE: NotFound is equal to the upper bound of Uint32 (2^32-1)
-    var dLoc = input.indexOf('.') >>> 0;
-    var cLoc = input.indexOf(':') >>> 0;
-    var sLoc = input.indexOf(' ') >>> 0;
-    var mLoc = input.indexOf('?') >>> 0;
-    var qLoc = Math.min(input.indexOf('"') >>> 0, input.indexOf('\'') >>> 0);
+    var schemeReg = /^\w+\:\/\//;
 
-    // Space at 0 index treated as NotFound
-    if (sLoc === 0) {
-      sLoc = -1 >>> 0;
-    }
-
-    // Question Mark at 0 index is a keyword search
-    if (mLoc == 0) {
+    // in bug 904731, we use <input type='url' value=''> to
+    // validate url. However, there're still some cases
+    // need extra validation. We'll remove it til bug fixed
+    // for native form validation.
+    //
+    // for cases, ?abc and "a? b" which should searching query
+    var case1Reg = /^(\?)|(\?.+\s)/;
+    // for cases, pure string
+    var case2Reg = /[\?\.\s\:]/;
+    // for cases, data:uri
+    var case3Reg = /^(data\:)/;
+    var str = input.trim();
+    if (case1Reg.test(str) || !case2Reg.test(str)) {
       return true;
     }
-
-    // Space before Dot, Or Quote before Dot
-    // Space before Colon, Or Quote before Colon
-    // Space before QuestionMark, Or Quote before QuestionMark
-    if ((sLoc < dLoc || qLoc < dLoc) &&
-        (sLoc < cLoc || qLoc < cLoc) &&
-        (sLoc < mLoc || qLoc < mLoc)) {
-      return true;
+    if (case3Reg.test(str)) {
+      return false;
     }
-
-    // NotFound will always be greater then the length
-    // If there is no Colon, no Dot and no QuestionMark
-    // there is no way this is a URL
-    if (cLoc > input.length && dLoc > input.length && mLoc > input.length) {
-      return true;
+    // require basic scheme before form validation
+    if (!schemeReg.test(str)) {
+      str = 'http://' + str;
     }
-
-    return false;
+    if (!this.urlValidate) {
+      this.urlValidate = document.createElement('input');
+      this.urlValidate.setAttribute('type', 'url');
+    }
+    this.urlValidate.setAttribute('value', str);
+    return !this.urlValidate.validity.valid;
   }
 };
