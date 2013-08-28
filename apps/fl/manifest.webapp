@@ -1,0 +1,48 @@
+{
+  "name": "Purchased Media",
+  "description": "Download and manage forward locked music, ringtones and wallpaper",
+  "type": "certified",
+  "role": "system",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Purchased Media",
+      "description": "Download and manage forward locked music, ringtones and wallpaper"
+    }
+  },
+  "default_locale": "en-US",
+  "activities": {
+    "view" : {
+      "filters": {
+        "type": "application/vnd.oma.dd+xml"
+      },
+      "disposition": "inline",
+      "href": "download.html",
+      "returnValue": true
+    },
+    "pick" : {
+      "filters": {
+        "type": ["wallpaper", "ringtone"],
+        "includeLocked": {
+          "required": true,
+          "value": true
+        }
+      },
+      "disposition": "inline",
+      "href": "pick.html",
+      "returnValue": true
+    }
+  },
+  "permissions": {
+    "systemXHR":{},
+    "storage":{},
+    "settings":{ "access": "readwrite" },
+    "device-storage:music":{ "access": "readwrite" }
+  },
+  "icons": {
+    "60": "/style/icons/60/fl.png"
+  }
+}

@@ -35,26 +35,42 @@ var Wallpaper = {
     var self = this;
     var settings = navigator.mozSettings;
     var onWallpaperClick = function wallpaper_onWallpaperClick() {
-      var a = new MozActivity({
-        name: 'pick',
-        data: {
-          type: 'image/jpeg',
-          width: 320,
-          height: 480
-        }
-      });
-
-      a.onsuccess = function onPickSuccess() {
-        if (!a.result.blob)
-          return;
-
-        navigator.mozSettings.createLock().set({
-          'wallpaper.image': a.result.blob
+      ForwardLock.getKey(function(secret) {
+        var a = new MozActivity({
+          name: 'pick',
+          data: {
+            type: ['wallpaper', 'image/*'],
+            includeLocked: (secret !== null),
+            width: 320,
+            height: 480
+          }
         });
-      };
-      a.onerror = function onPickError() {
-        console.warn('pick failed!');
-      };
+
+        a.onsuccess = function onPickSuccess() {
+          var blob = a.result.blob;
+
+          if (!blob)
+            return;
+
+          if (blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
+            // If this is a locked image from the locked content app, unlock it
+            ForwardLock.unlockBlob(secret, blob, function(unlocked) {
+              setWallpaper(unlocked);
+            });
+          } else {
+            setWallpaper(blob);
+          }
+
+          function setWallpaper(blob) {
+            navigator.mozSettings.createLock().set({
+              'wallpaper.image': blob
+            });
+          }
+        };
+        a.onerror = function onPickError() {
+          console.warn('pick failed!');
+        };
+      });
     };
     this.preview.addEventListener('click', onWallpaperClick);
     this.button.addEventListener('click', onWallpaperClick);
@@ -62,4 +78,3 @@ var Wallpaper = {
 };
 
 Wallpaper.init();
-
