@@ -1,0 +1,32 @@
+{
+  "name": "WAP Push manager",
+  "description": "Receives, filters and displays WAP Push messages",
+  "type": "certified",
+  "role": "system",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "locales": {
+    "en-US": {
+      "name": "WAP Push manager",
+      "description": "Receives, filters and displays WAP Push messages"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "30": "/style/icons/wappush.png"
+  },
+  "orientation": "portrait-primary",
+  "messages": [
+     { "notification": "/index.html" },
+     { "wappush-received": "/index.html" }
+  ],
+  "permissions": {
+    "attention": {},
+    "desktop-notification": {},
+    "settings": { "access": "readonly" },
+    "wappush": {}
+  }
+}
