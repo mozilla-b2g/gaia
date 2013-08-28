@@ -1,0 +1,41 @@
+html {
+  font-size: 10px;
+}
+
+html,body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  color: white;
+}
+
+#wappush-test {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  color: black;
+  z-index: 1;
+}
+
+#wappush-screen {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  color: black;
+  z-index: 1;
+}
+
+#wappush-container {
+  height: -moz-calc(100% - 5rem - 5rem);
+  overflow: auto;
+}
+
+#message {
+  font-size: 2rem;
+  padding: 1rem;
+  white-space: pre-line;
+  word-wrap: break-word;
+}
