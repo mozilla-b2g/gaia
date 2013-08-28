@@ -821,6 +821,7 @@ const Keyboards = {
   sk: {
     label: 'Slovak',
     imEngine: 'latin',
+    autoCorrectLanguage: 'sk',
     menuLabel: 'Slovenčina',
     alt: {
       a: 'áàâąãäæ',
