@@ -22,18 +22,19 @@ var icc = {
         });
     });
 
+    var self = this;
     // Update displayTextTimeout with settings parameter
     var reqDisplayTimeout = window.navigator.mozSettings.createLock().get(
       'icc.displayTextTimeout');
     reqDisplayTimeout.onsuccess = function icc_getDisplayTimeout() {
-      this._displayTextTimeout =
+      self._displayTextTimeout =
         reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
     // Update inputTimeout with settings parameter
     var reqInputTimeout = window.navigator.mozSettings.createLock().get(
       'icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
-      this._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
+      self._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
   },
 
@@ -325,6 +326,8 @@ var icc = {
   },
 
   input: function(message, timeout, options, callback) {
+    var self = this;
+    var timeoutId = null;
     /**
      * Check if the length of the input is valid.
      *
@@ -334,6 +337,23 @@ var icc = {
      */
     function checkInputLengthValid(inputLen, minLen, maxLen) {
       return (inputLen >= minLen) && (inputLen <= maxLen);
+    }
+    function clearInputTimeout() {
+      if (timeoutId) {
+        DUMP('clearing previous STK INPUT timeout');
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    }
+    function setInputTimeout() {
+      DUMP('setting new STK INPUT timeout to - ', timeout);
+      if (timeout) {
+        clearInputTimeout();
+        timeoutId = setTimeout(function() {
+          self.hideViews();
+          callback(false);
+        }, timeout);
+      }
     }
 
     if (!this.icc_input) {
@@ -350,8 +370,7 @@ var icc = {
     if (typeof callback != 'function') {
       callback = function() {};
     }
-    var self = this;
-    var timeoutId = null;
+    setInputTimeout();
 
     // Help
     this.icc_input_btn_help.disabled = !options.isHelpAvailable;
@@ -375,7 +394,7 @@ var icc = {
       this.icc_input_btn.disabled = !checkInputLengthValid(
         this.icc_input_box.value.length, options.minLength, options.maxLength);
       this.icc_input_box.onkeyup = function(event) {
-        clearTimeout(timeoutId);
+        setInputTimeout();
         if (self.icc_input_box.type === 'tel') {
           // Removing unauthorized characters
           self.icc_input_box.value =
@@ -389,7 +408,7 @@ var icc = {
         }
       };
       this.icc_input_btn.onclick = function() {
-        clearTimeout(timeoutId);
+        clearInputTimeout();
         self.hideViews();
         callback(true, self.icc_input_box.value);
       };
@@ -398,12 +417,12 @@ var icc = {
       this.icc_input.classList.add('yesnomode');
       this.icc_input_box.type = 'hidden';
       this.icc_input_btn_yes.onclick = function(event) {
-        clearTimeout(timeoutId);
+        clearInputTimeout();
         self.hideViews();
         callback(true, 1);
       };
       this.icc_input_btn_no.onclick = function(event) {
-        clearTimeout(timeoutId);
+        clearInputTimeout();
         self.hideViews();
         callback(true, 0);
       };
@@ -416,13 +435,13 @@ var icc = {
 
     // STK Default response (BACK and HELP)
     this.icc_input_btn_back.onclick = function() {
-      clearTimeout(timeoutId);
+      clearInputTimeout();
       self.hideViews();
       self.backResponse();
       callback(null);
     };
     this.icc_input_btn_help.onclick = function() {
-      clearTimeout(timeoutId);
+      clearInputTimeout();
       self.hideViews();
       self.responseSTKCommand({
         resultCode: self._icc.STK_RESULT_HELP_INFO_REQUIRED
