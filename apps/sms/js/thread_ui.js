@@ -635,7 +635,11 @@ var ThreadUI = global.ThreadUI = {
     var kMaxConcatenatedMessages = 10;
 
     // Use backend api for precise sms segmetation information.
-    var smsInfo = this._mozMobileMessage.getSegmentInfoForText(value);
+    try {
+      var smsInfo = this._mozMobileMessage.getSegmentInfoForText(value);
+    } catch (e) {
+      return false;
+    }
     var segments = smsInfo.segments;
     var availableChars = smsInfo.charsAvailableInLastSegment;
 
