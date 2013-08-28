@@ -9,7 +9,7 @@
   },
   "permissions": {
     "settings":{ "access": "readwrite" },
-    "keyboard":{}
+    "input":{}
   },
   "locales": {
     "en-US": {
