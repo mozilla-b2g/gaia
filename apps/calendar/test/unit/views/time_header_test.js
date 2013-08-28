@@ -22,11 +22,12 @@ suiteGroup('Views.TimeHeader', function() {
   setup(function() {
     var div = document.createElement('div');
     div.id = 'test';
+    div.style.width = '380px';
     div.innerHTML = [
       '<div id="wrapper"></div>',
-      '<header id="time-header">',
+      '<header style="width: 380px;" id="time-header">',
         '<button class="settings"></button>',
-        '<h1></h1>',
+        '<h1 style="width: 380px;">I AM TE HFOO</h1>',
       '</div>'
     ].join('');
 
@@ -71,9 +72,20 @@ suiteGroup('Views.TimeHeader', function() {
     );
   });
 
+  test('#getScale shortform', function() {
+    controller.move(new Date(2012, 10, 30));
+    var shortScale = subject.getScale('week', true);
+    var normalScale = subject.getScale('week');
+
+    assert.isTrue(
+      shortScale.length < normalScale.length,
+      'short form is actually shorter'
+    );
+  });
+
   // When week starts in one month
   // and ends in another we need
-  // 'Month1 Month2 Year' like header.
+  // 'Month1 Month2 Year' like header
   test('#getScale for week', function() {
     controller.move(new Date(2012, 0, 30));
     var firstMonth = fmt.localeFormat(
@@ -88,6 +100,31 @@ suiteGroup('Views.TimeHeader', function() {
     var out = subject.getScale('week');
     assert.include(out, firstMonth);
     assert.include(out, secondMonth);
+  });
+
+  // 'November December 2012' use short form: 'Nov Dec 2012'
+  test('#getScale for week short forms', function() {
+    controller.move(new Date(2012, 10, 30));
+    var firstMonth = fmt.localeFormat(
+      new Date(2012, 10, 30),
+      '%b '
+    );
+    var secondMonth = fmt.localeFormat(
+      new Date(2012, 11, 1),
+      '%b %Y'
+    );
+    var out = subject.getScale('week');
+    // This is always too small so the short form is forced
+    subject.title.style.maxWidth = '10px';
+    var textWidth = subject._getTextWidth(subject.title, out);
+    controller.scale = 'week';
+    subject._updateTitle();
+    assert.operator(textWidth, '>', subject.title.clientWidth);
+
+    assert.equal(
+      subject.title.textContent,
+      firstMonth + secondMonth
+    );
   });
 
   test('#_updateTitle', function() {
