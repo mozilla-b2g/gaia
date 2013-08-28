@@ -21,7 +21,8 @@ WHITELIST = \
  ro.dict \
  ru.dict \
  sk.dict \
- sr.dict \
+ sr-Cyrl.dict \
+ sr-Latn.dict \
  tr.dict
 
 %.dict: %_wordlist.xml xml2dict.py

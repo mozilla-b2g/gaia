@@ -733,7 +733,7 @@ const Keyboards = {
     label: 'Serbian (Cyrillic)',
     menuLabel: 'Српски (ћирилица)',
     imEngine: 'latin',
-    autoCorrectLanguage: 'sr',
+    autoCorrectLanguage: 'sr-Cyrl',
     alt: {
       // incomplete
     },
@@ -762,6 +762,7 @@ const Keyboards = {
     label: 'Serbian (Latin)',
     menuLabel: 'Srpski',
     imEngine: 'latin',
+    autoCorrectLanguage: 'sr-Latn',
     alt: {
       c: 'čć',
       d: 'đ',
