@@ -641,7 +641,9 @@ var CallsHandler = (function callsHandler() {
 
     addRecentEntry: addRecentEntry,
 
-    activeCall: activeCall
+    get activeCall() {
+      return activeCall();
+    }
   };
 })();
 

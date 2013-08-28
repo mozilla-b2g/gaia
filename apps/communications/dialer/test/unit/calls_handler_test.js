@@ -547,5 +547,22 @@ suite('calls handler', function() {
         });
       });
     });
+
+    suite('CallsHandler.activeCall', function() {
+      var inactiveCall;
+      var activeCall;
+      setup(function() {
+        inactiveCall = new MockCall('543552', 'incoming');
+        activeCall = new MockCall('12334', 'connected');
+        telephonyAddCall.call(this, activeCall, {trigger: true});
+        telephonyAddCall.call(this, inactiveCall, {trigger: true});
+        MockMozTelephony.active = activeCall;
+      });
+
+      test('should get active call', function() {
+        var activeHandlerCall = CallsHandler.activecall;
+          assert.equal(CallsHandler.activeCall.call, activeCall);
+      });
+    });
   });
 });
