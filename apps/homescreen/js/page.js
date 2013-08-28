@@ -725,19 +725,23 @@ Page.prototype = {
     if (!this.ready) {
       var self = this;
       var ensureCallbackID = null;
-      self.container.addEventListener('onpageready', function onPageReady(e) {
+      var onPageReady = function onPageReady(e) {
         e.target.removeEventListener('onpageready', onPageReady);
         if (ensureCallbackID !== null) {
           window.clearTimeout(ensureCallbackID);
           self.doDragLeave(callback, reflow);
         }
-      });
+      };
+      self.container.addEventListener('onpageready', onPageReady);
 
       // We ensure that there is not a transitionend lost on dragging
       ensureCallbackID = window.setTimeout(function() {
         ensureCallbackID = null;
         self.container.removeEventListener('onpageready', onPageReady);
-        self.doDragLeave(callback, reflow);
+        self.doDragLeave(function onfinish() {
+          self.setReady(true);
+          callback();
+        }, reflow);
       }, this.FALLBACK_READY_EVENT_DELAY);
 
       return;
