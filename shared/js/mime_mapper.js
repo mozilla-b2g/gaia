@@ -36,10 +36,14 @@ var MimeMapper = {
     'video/mpeg': 'mpg',
     'video/ogg': 'ogg',
     'video/webm': 'webm',
-    'video/3gpp': '3gp'
+    'video/3gpp': '3gp',
     // Application
     // If we want to support some types, like pdf, just add
     // 'application/pdf': 'pdf'
+    'application/vcard': 'vcf',
+    // Text
+    'text/vcard': 'vcf',
+    'text/x-vcard': 'vcf'
   },
 
   // This list only contains the mimetypes we currently supported
@@ -69,10 +73,12 @@ var MimeMapper = {
     'ogx': 'video/ogg',
     'webm': 'video/webm',
     '3gp': 'video/3gpp',
-    'ogg': 'video/ogg'
+    'ogg': 'video/ogg',
     // Application
     // If we want to support some extensions, like pdf, just add
     // 'pdf': 'application/pdf'
+    // Text
+    'vcf': 'text/vcard'
   },
 
   isSupportedType: function(mimetype) {
