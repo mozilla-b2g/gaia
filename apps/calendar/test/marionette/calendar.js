@@ -63,8 +63,6 @@ Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
  */
 Calendar.Selector = Object.freeze({
   addEventButton: 'a[href="/event/add/"]',
-  weekButton: 'a[href="/week/"]',
-  hintSwipeToNavigate: '#hint-swipe-to-navigate',
   editEventForm: '#modify-event-view form',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',
   editEventEndDate: '#modify-event-view input[name="endDate"]',
@@ -107,19 +105,6 @@ Calendar.prototype = {
     return this.client.findElement(Calendar.Selector.addEventButton);
   },
 
-  /**
-   * @return {Marionette.Element} Element to click to go to week view.
-   */
-  get weekButton() {
-    return this.client.findElement(Calendar.Selector.weekButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element of hint navigate.
-   */
-  get hintSwipeToNavigate() {
-    return this.client.findElement(Calendar.Selector.hintSwipeToNavigate);
-  },
 
   /**
    * @return {Marionette.Element} Input for event alarm.
@@ -387,11 +372,6 @@ Calendar.prototype = {
     return url.indexOf(Calendar.ORIGIN) !== -1;
   },
 
-  isWeekViewActive: function() {
-    var actual = this.client.getUrl();
-    var expected = Calendar.ORIGIN + '/week/';
-    return actual === expected;
-  },
 
   /**
    * @return {boolean} Whether or not the calendar month view is active.
