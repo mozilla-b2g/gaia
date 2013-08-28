@@ -1,5 +1,5 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+ /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*
  * keyboard.js:
@@ -200,10 +200,10 @@ var redrawTimeout = 0;
 const keyboardGroups = {
   'english': ['en'],
   'dvorak': ['en-Dvorak'],
-  'spanish' : ['es'],
-  'portuguese' : ['pt_BR'],
-  'polish' : ['pl'],
-  'catalan' : ['ca'],
+  'spanish': ['es'],
+  'portuguese': ['pt_BR'],
+  'polish': ['pl'],
+  'catalan': ['ca'],
   'czech': ['cz'],
   'french': ['fr'],
   'german': ['de'],
@@ -293,6 +293,25 @@ var eventHandlers = {
 var touchStartCoordinate;
 var toShowKeyboardFTU = false;
 const SWIPE_VELOCICTY_THRESHOLD = 0.4;
+
+var swiping = {
+  startMovePos: null,
+  happening: false, // Whether a swiping action is happening or not
+  lastMousex: -1,
+  mouseTravel: 0, // Distance traveled by swiping since the last move detection.
+  keyWidth: 0, // Width of a single keyboard key
+  stepDistance: 0, // Swiping distance required to move the cursor 1 character.
+  projectedPos: null // Projected cursor position during swiping
+};
+
+navigator.mozKeyboard.onselectionchange = function updateCursorPosition() {
+  swiping.projectedPos = navigator.mozKeyboard.selectionEnd;
+
+  if (inputMethod && inputMethod.onSelectionChange) {
+    inputMethod.onSelectionChange(navigator.mozKeyboard.selectionStart,
+      navigator.mozKeyboard.selectionEnd);
+  }
+};
 
 // The first thing we do when the keyboard app loads is query all the
 // keyboard-related settings. Only once we have the current settings values
@@ -398,15 +417,17 @@ function initKeyboard() {
       return function layoutCallback(e) {
         enabledKeyboardGroups[name] = e.settingValue;
         handleNewKeyboards();
-      }
+      };
     };
 
     navigator.mozSettings.addObserver(settingName,
-                                      createLayoutCallback(settingName));
+      createLayoutCallback(settingName));
   }
 
   // Initialize the rendering module
   IMERender.init(getUpperCaseValue, isSpecialKeyObj);
+  swiping.keyWidth = IMERender.getKeyWidth();
+  swiping.stepDistance = swiping.keyWidth / 2;
 
   // Attach event listeners to the element that does rendering
   for (var event in eventHandlers) {
@@ -539,7 +560,7 @@ function handleNewKeyboards() {
   // If no keyboards were selected, use a default
   if (enabledKeyboardNames.length === 0)
     Array.prototype.push.apply(enabledKeyboardNames,
-                               defaultKeyboardNames);
+      defaultKeyboardNames);
 
   // Now load each of these keyboards and their input methods
   for (var i = 0; i < enabledKeyboardNames.length; i++)
@@ -555,24 +576,24 @@ function handleNewKeyboards() {
 function mapInputType(type) {
   switch (type) {
     // basic types
-  case 'url':
-  case 'tel':
-  case 'email':
-  case 'text':
-    return type;
-    break;
+    case 'url':
+    case 'tel':
+    case 'email':
+    case 'text':
+      return type;
+      break;
 
     // default fallback and textual types
-  case 'password':
-  case 'search':
-  default:
-    return 'text';
-    break;
+    case 'password':
+    case 'search':
+    default:
+      return 'text';
+      break;
 
-  case 'number':
-  case 'range': // XXX: should be different from number
-    return 'number';
-    break;
+    case 'number':
+    case 'range': // XXX: should be different from number
+      return 'number';
+      break;
   }
 }
 
@@ -606,7 +627,7 @@ function modifyLayout(keyboardName) {
       break;
     case 'number':
       altLayoutName = currentInputMode === 'digit' ?
-                                           'pinLayout' : 'numberLayout';
+        'pinLayout' : 'numberLayout';
       break;
     // The matches when type="password", "text", or "search",
     // see mapInputType() for details
@@ -705,71 +726,71 @@ function modifyLayout(keyboardName) {
     if (!layout['typeInsensitive']) {
       switch (currentInputType) {
         // adds . / and .com
-      case 'url':
-        space.ratio -= 5;
-        row.splice(c, 1, // delete space
-                   { value: '.', ratio: 1, keyCode: 46 },
-                   { value: '/', ratio: 2, keyCode: 47 },
-                   // As we are removing the space we need to assign
-                   // the extra space (i.e to .com)
-                   { value: '.com',
-                     ratio: 2 + space.ratio,
-                     compositeKey: '.com'
-                   }
-                  );
+        case 'url':
+          space.ratio -= 5;
+          row.splice(c, 1, // delete space
+            { value: '.', ratio: 1, keyCode: 46 },
+            { value: '/', ratio: 2, keyCode: 47 },
+            // As we are removing the space we need to assign
+            // the extra space (i.e to .com)
+            { value: '.com',
+              ratio: 2 + space.ratio,
+              compositeKey: '.com'
+            }
+          );
 
-        break;
+          break;
 
         // adds @ and .
-      case 'email':
-        space.ratio -= 2;
-        row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
-        row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
-        break;
+        case 'email':
+          space.ratio -= 2;
+          row.splice(c, 0, { value: '@', ratio: 1, keyCode: 64 });
+          row.splice(c + 2, 0, { value: '.', ratio: 1, keyCode: 46 });
+          break;
 
         // adds . and , to both sides of the space bar
-      case 'text':
-        var overwrites = layout.textLayoutOverwrite || {};
-        var next = c;
-        if (overwrites['.'] !== false) {
-          space.ratio -= 1;
-          next++;
-        }
-
-        // Add ',' to 2nd level
-        if (layoutPage !== LAYOUT_PAGE_DEFAULT) {
-
-          if (overwrites[','] !== false) {
+        case 'text':
+          var overwrites = layout.textLayoutOverwrite || {};
+          var next = c;
+          if (overwrites['.'] !== false) {
             space.ratio -= 1;
             next++;
           }
 
-          var commaKey = {value: ',', keyCode: 44, ratio: 1};
+          // Add ',' to 2nd level
+          if (layoutPage !== LAYOUT_PAGE_DEFAULT) {
 
-          if (overwrites[',']) {
-            commaKey.value = overwrites[','];
-            commaKey.keyCode = overwrites[','].charCodeAt(0);
-            row.splice(c, 0, commaKey);
-          } else if (overwrites[','] !== false) {
-            row.splice(c, 0, commaKey);
+            if (overwrites[','] !== false) {
+              space.ratio -= 1;
+              next++;
+            }
+
+            var commaKey = {value: ',', keyCode: 44, ratio: 1};
+
+            if (overwrites[',']) {
+              commaKey.value = overwrites[','];
+              commaKey.keyCode = overwrites[','].charCodeAt(0);
+              row.splice(c, 0, commaKey);
+            } else if (overwrites[','] !== false) {
+              row.splice(c, 0, commaKey);
+            }
           }
-        }
 
-        if (overwrites['.']) {
-          row.splice(next, 0, {
-            value: overwrites['.'],
-            ratio: 1,
-            keyCode: overwrites['.'].charCodeAt(0)
-          });
-        } else if (overwrites['.'] !== false) {
-          row.splice(next, 0, {
-            value: '.',
-            ratio: 1,
-            keyCode: 46
-          });
-        }
+          if (overwrites['.']) {
+            row.splice(next, 0, {
+              value: overwrites['.'],
+              ratio: 1,
+              keyCode: overwrites['.'].charCodeAt(0)
+            });
+          } else if (overwrites['.'] !== false) {
+            row.splice(next, 0, {
+              value: '.',
+              ratio: 1,
+              keyCode: 46
+            });
+          }
 
-        break;
+          break;
       }
     }
   } else {
@@ -840,7 +861,7 @@ function renderKeyboard(keyboardName) {
   if (!showsCandidates && isKeyboardRendered) {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
     var candidatePanelHeight = (candidatePanel) ?
-                               candidatePanel.scrollHeight : 0;
+      candidatePanel.scrollHeight : 0;
     document.location.hash = 'show=' +
       (IMERender.ime.scrollHeight - candidatePanelHeight);
 
@@ -856,11 +877,11 @@ function renderKeyboard(keyboardName) {
 function setUpperCase(upperCase, upperCaseLocked) {
 
   upperCaseLocked = (typeof upperCaseLocked == 'undefined') ?
-                     isUpperCaseLocked : upperCaseLocked;
+    isUpperCaseLocked : upperCaseLocked;
 
   // Do nothing if the states are not changed
   if (isUpperCase == upperCase &&
-      isUpperCaseLocked == upperCaseLocked)
+    isUpperCaseLocked == upperCaseLocked)
     return;
 
   isUpperCaseLocked = upperCaseLocked;
@@ -884,9 +905,8 @@ function setUpperCase(upperCase, upperCaseLocked) {
 }
 
 function resetUpperCase() {
-  if (isUpperCase &&
-      !isUpperCaseLocked &&
-      layoutPage === LAYOUT_PAGE_DEFAULT) {
+  if (isUpperCase && !isUpperCaseLocked &&
+    layoutPage === LAYOUT_PAGE_DEFAULT) {
     setUpperCase(false);
   }
 }
@@ -1265,6 +1285,7 @@ function onMouseDown(evt) {
 // The coords object can either be a mouse event or a touch. We just expect the
 // coords object to have clientX, clientY, pageX, and pageY properties.
 function startPress(target, coords, touchId) {
+  swiping.startMovePos = { x: coords.pageX, y: coords.pageY };
   if (!isNormalKey(target))
     return;
 
@@ -1297,13 +1318,12 @@ function startPress(target, coords, touchId) {
   }
 }
 
-
 function inMenuLockedArea(lockedArea, coords) {
   return (lockedArea &&
-          coords.pageY >= lockedArea.top &&
-          coords.pageY <= lockedArea.bottom &&
-          coords.pageX >= lockedArea.left &&
-          coords.pageX <= lockedArea.right);
+    coords.pageY >= lockedArea.top &&
+    coords.pageY <= lockedArea.bottom &&
+    coords.pageX >= lockedArea.left &&
+    coords.pageX <= lockedArea.right);
 }
 
 function onMouseMove(evt) {
@@ -1329,8 +1349,8 @@ function movePress(target, coords, touchId) {
   }
 
   if (isShowingKeyboardLayoutMenu &&
-      target.dataset && target.dataset.keyboard) {
-      KeyboardMenuScroll.scrollKeyboardMenu(target, coords);
+    target.dataset && target.dataset.keyboard) {
+    KeyboardMenuScroll.scrollKeyboardMenu(target, coords);
   }
 
   var oldTarget = touchEventsPresent ? touchedKeys[touchId].target : currentKey;
@@ -1342,6 +1362,45 @@ function movePress(target, coords, touchId) {
 
   // Update highlight: remove from older
   IMERender.unHighlightKey(oldTarget);
+
+  var mozKeyboard = navigator.mozKeyboard;
+  var hasKeyboardAPI = mozKeyboard && mozKeyboard.setSelectionRange;
+  var isLongSwipe = swiping.startMovePos && Math.abs(swiping.startMovePos.x -
+    coords.pageX) > swiping.keyWidth;
+
+  // If swipe is happening and it is longer than the length of a single key
+  if (hasKeyboardAPI && !isShowingAlternativesMenu &&
+    (swiping.happening || isLongSwipe)) {
+
+    var direction = coords.pageX > swiping.lastMouseX ? 1 : -1;
+
+    if (swiping.lastMouseX > -1) {
+      swiping.mouseTravel += Math.abs(coords.pageX - swiping.lastMouseX);
+    }
+    swiping.lastMouseX = coords.pageX;
+
+    if (swiping.mouseTravel > swiping.stepDistance) {
+      var times = Math.floor(swiping.mouseTravel / swiping.stepDistance);
+      swiping.projectedPos = swiping.projectedPos + (direction * times);
+      mozKeyboard.setSelectionRange(swiping.projectedPos, swiping.projectedPos);
+      swiping.mouseTravel = 0;
+
+      // this should be in mozKeyboard.onselectionchange but that ignores
+      // events originating from itself
+      if (inputMethod && inputMethod.onSelectionChange) {
+        inputMethod.onSelectionChange(swiping.projectedPos,
+          swiping.projectedPos);
+      }
+    }
+
+    swiping.happening = true;
+
+    clearTimeout(deleteTimeout);
+    clearInterval(deleteInterval);
+    clearTimeout(menuTimeout);
+    hideAlternatives();
+    return;
+  }
 
   var keyCode = parseInt(target.dataset.keycode);
 
@@ -1357,14 +1416,13 @@ function movePress(target, coords, touchId) {
 
   // Hide of alternatives menu if the touch moved out of it
   if (target.parentNode !== IMERender.menu &&
-      isShowingAlternativesMenu &&
-      !inMenuLockedArea(menuLockedArea, coords))
+    isShowingAlternativesMenu && !inMenuLockedArea(menuLockedArea, coords))
     hideAlternatives();
 
   // Hide keyboard layout menu if the touch moved out of its locked area
   if (isShowingKeyboardLayoutMenu &&
       !inMenuLockedArea(layoutMenuLockedArea, coords)) {
-      hideKeyboardLayoutMenu();
+    hideKeyboardLayoutMenu();
   }
 
   // Control showing alternatives menu
@@ -1388,6 +1446,7 @@ function onMouseUp(evt) {
 
 // The user is releasing a key so the key has been pressed. The meat is here.
 function endPress(target, coords, touchId) {
+  swiping.startMovePos = null;
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
@@ -1395,6 +1454,12 @@ function endPress(target, coords, touchId) {
   var wasShowingKeyboardLayoutMenu = isShowingKeyboardLayoutMenu;
   hideAlternatives();
   hideKeyboardLayoutMenu();
+
+  if (swiping.happening === true) {
+    swiping.happening = false;
+    swiping.lastMouseX = -1;
+    return;
+  }
 
   if (!target || !isNormalKey(target))
     return;
@@ -1437,24 +1502,15 @@ function endPress(target, coords, touchId) {
   // Handle normal key
   switch (keyCode) {
 
-  case BASIC_LAYOUT:
-    // Return to default page
-    setLayoutPage(LAYOUT_PAGE_DEFAULT);
-    break;
+    case BASIC_LAYOUT:
+      // Return to default page
+      setLayoutPage(LAYOUT_PAGE_DEFAULT);
+      break;
 
-  case ALTERNATE_LAYOUT:
-    // Switch to numbers+symbols page
-    setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
-    break;
-
-  case KeyEvent.DOM_VK_ALT:
-    // alternate between pages 1 and 2 of SYMBOLS
-    if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
-      setLayoutPage(LAYOUT_PAGE_SYMBOLS_II);
-    } else {
+    case ALTERNATE_LAYOUT:
+      // Switch to numbers+symbols page
       setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
-    }
-    break;
+      break;
 
     // Switch language (keyboard)
   case SWITCH_KEYBOARD:
@@ -1464,41 +1520,50 @@ function endPress(target, coords, touchId) {
       switchKeyboard(target);
     break;
 
+    case KeyEvent.DOM_VK_ALT:
+      // alternate between pages 1 and 2 of SYMBOLS
+      if (layoutPage === LAYOUT_PAGE_SYMBOLS_I) {
+        setLayoutPage(LAYOUT_PAGE_SYMBOLS_II);
+      } else {
+        setLayoutPage(LAYOUT_PAGE_SYMBOLS_I);
+      }
+      break;
+
     // Expand / shrink the candidate panel
-  case TOGGLE_CANDIDATE_PANEL:
-    if (IMERender.ime.classList.contains('candidate-panel')) {
-      IMERender.ime.classList.remove('candidate-panel');
-      IMERender.ime.classList.add('full-candidate-panel');
-    } else {
-      IMERender.ime.classList.add('candidate-panel');
-      IMERender.ime.classList.remove('full-candidate-panel');
-    }
-    break;
+    case TOGGLE_CANDIDATE_PANEL:
+      if (IMERender.ime.classList.contains('candidate-panel')) {
+        IMERender.ime.classList.remove('candidate-panel');
+        IMERender.ime.classList.add('full-candidate-panel');
+      } else {
+        IMERender.ime.classList.add('candidate-panel');
+        IMERender.ime.classList.remove('full-candidate-panel');
+      }
+      break;
 
     // Shift or caps lock
-  case KeyEvent.DOM_VK_CAPS_LOCK:
+    case KeyEvent.DOM_VK_CAPS_LOCK:
 
-    // Already waiting for caps lock
-    if (isWaitingForSecondTap) {
-      isWaitingForSecondTap = false;
+      // Already waiting for caps lock
+      if (isWaitingForSecondTap) {
+        isWaitingForSecondTap = false;
 
-      setUpperCase(true, true);
+        setUpperCase(true, true);
 
-      // Normal behavior: set timeout for second tap and toggle caps
-    } else {
+        // Normal behavior: set timeout for second tap and toggle caps
+      } else {
 
-      isWaitingForSecondTap = true;
-      window.setTimeout(
-        function() {
-          isWaitingForSecondTap = false;
-        },
-        CAPS_LOCK_TIMEOUT
-      );
+        isWaitingForSecondTap = true;
+        window.setTimeout(
+          function() {
+            isWaitingForSecondTap = false;
+          },
+          CAPS_LOCK_TIMEOUT
+        );
 
-      // Toggle caps
-      setUpperCase(!isUpperCase, false);
-    }
-    break;
+        // Toggle caps
+        setUpperCase(!isUpperCase, false);
+      }
+      break;
 
     // Normal key
   default:
@@ -1614,14 +1679,14 @@ function resetKeyboard() {
 // we pass to real input methods
 function sendKey(keyCode) {
   switch (keyCode) {
-  case KeyEvent.DOM_VK_BACK_SPACE:
-  case KeyEvent.DOM_VK_RETURN:
-    window.navigator.mozKeyboard.sendKey(keyCode, 0);
-    break;
+    case KeyEvent.DOM_VK_BACK_SPACE:
+    case KeyEvent.DOM_VK_RETURN:
+      window.navigator.mozKeyboard.sendKey(keyCode, 0);
+      break;
 
-  default:
-    window.navigator.mozKeyboard.sendKey(0, keyCode);
-    break;
+    default:
+      window.navigator.mozKeyboard.sendKey(0, keyCode);
+      break;
   }
 }
 
@@ -1728,11 +1793,8 @@ function loadIMEngine(name) {
       currentCandidates = candidates;
       IMERender.showCandidates(candidates);
     },
-    sendPendingSymbols:
-    function kc_glue_sendPendingSymbols(symbols,
-                                        highlightStart,
-                                        highlightEnd,
-                                        highlightState) {
+    sendPendingSymbols: function kc_glue_sendPendingSymbols(
+        symbols, highlightStart, highlightEnd, highlightState) {
 
       IMERender.showPendingSymbols(
         symbols,
@@ -1773,7 +1835,7 @@ function loadIMEngine(name) {
 // for symbols
 function updateLayoutParams() {
   if (inputMethod.setLayoutParams &&
-      layoutPage === LAYOUT_PAGE_DEFAULT) {
+    layoutPage === LAYOUT_PAGE_DEFAULT) {
     inputMethod.setLayoutParams({
       keyboardWidth: IMERender.getWidth(),
       keyboardHeight: getKeyCoordinateY(IMERender.getHeight()),
@@ -1836,7 +1898,7 @@ function getSettings(settings, callback) {
   catch (e) {
     // If settings is broken, just return the default values
     console.warn('Exception in mozSettings.createLock():', e,
-                 '\nUsing default values');
+      '\nUsing default values');
     for (var p in settings)
       results[p] = settings[p];
     callback(results);
@@ -1855,7 +1917,7 @@ function getSettings(settings, callback) {
     }
     catch (e) {
       console.warn('Exception querying setting', name, ':', e,
-                   '\nUsing default value');
+        '\nUsing default value');
       recordResult(name, settings[name]);
       return;
     }
@@ -1936,13 +1998,13 @@ var KeyboardMenuScroll = {
       if (Math.abs(this.currentCoords.pageY - menuTop) < scrollThreshold) {
         scrolled = scroll(-scrollStep);
       } else if (Math.abs(this.currentCoords.pageY - menuBottom) <
-                 scrollThreshold) {
+        scrollThreshold) {
         scrolled = scroll(scrollStep);
       }
 
       if (scrolled)
         this.scrollTimeout = window.setTimeout(doScroll.bind(this),
-                                               TIMEOUT_FOR_NEXT_SCROLL);
+          TIMEOUT_FOR_NEXT_SCROLL);
       else
         this.scrollTimeout = null;
     }
@@ -1954,5 +2016,5 @@ var KeyboardMenuScroll = {
     // Add a delay so that it will not start scrolling down
     // when you move upwards from language switching button
     this.scrollTimeout = window.setTimeout(doScroll.bind(this), 100);
- }
+  }
 };

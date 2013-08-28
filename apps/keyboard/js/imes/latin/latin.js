@@ -51,7 +51,8 @@
     click: click,
     select: select,
     setLayoutParams: setLayoutParams,
-    setLanguage: setLanguage
+    setLanguage: setLanguage,
+    onSelectionChange: onSelectionChange
   };
 
   // This is the object that is passed to init().
@@ -928,5 +929,20 @@
 
     var c = inputText[i];
     return c === '.' || c === '?' || c === '!';
+  }
+
+  /**
+   * Keyboard.js forwards selectionchange event from mozKeyboard
+   * so we can keep state in sync.
+   * Will be fixed in a nicer way in new keyboard API so this can go then.
+   */
+  function onSelectionChange(start, end) {
+    if (start < 0) return;
+    if (start > inputText.length) return;
+
+    cursor = start;
+    selection = start !== end ? end : 0;
+
+    updateSuggestions();
   }
 }());
