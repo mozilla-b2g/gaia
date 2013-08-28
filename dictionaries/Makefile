@@ -20,6 +20,7 @@ WHITELIST = \
  pt_br.dict \
  ro.dict \
  ru.dict \
+ sk.dict \
  sr.dict \
  tr.dict
 
