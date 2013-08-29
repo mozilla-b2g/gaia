@@ -441,15 +441,19 @@ var Camera = {
   enableButtons: function camera_enableButtons() {
     this.captureButton.removeAttribute('disabled');
     this.switchButton.removeAttribute('disabled');
+    this.toggleButton.removeAttribute('disabled');
+    this.toggleFlashBtn.removeAttribute('disabled');
 
     if (this._pendingPick) {
-      this.cancelPickButton.removeAttribute('disabled', 'disabled');
+      this.cancelPickButton.removeAttribute('disabled');
     }
   },
 
   disableButtons: function camera_disableButtons() {
     this.switchButton.setAttribute('disabled', 'disabled');
     this.captureButton.setAttribute('disabled', 'disabled');
+    this.toggleButton.setAttribute('disabled', 'disabled');
+    this.toggleFlashBtn.setAttribute('disabled', 'disabled');
 
     if (this._pendingPick) {
       this.cancelPickButton.setAttribute('disabled', 'disabled');
@@ -559,7 +563,7 @@ var Camera = {
   },
 
   startRecording: function camera_startRecording() {
-    this.toggleButton.classList.add('hidden');
+    document.body.classList.add('recording');
     this._sizeLimitAlertActive = false;
     var captureButton = this.captureButton;
     var switchButton = this.switchButton;
@@ -652,7 +656,7 @@ var Camera = {
   },
 
   stopRecording: function camera_stopRecording() {
-    this.toggleButton.classList.remove('hidden');
+    document.body.classList.remove('recording');
     var self = this;
     this._cameraObj.stopRecording();
     this._recording = false;
