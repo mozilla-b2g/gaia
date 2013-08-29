@@ -518,12 +518,7 @@ function execute() {
     // LOCALES_FILE is a relative path by default:
     // shared/resources/languages.json
     // -- but it can be an absolute path when doing a multilocale build.
-    let abs_path_chunks = [config.GAIA_DIR]
-      .concat(config.LOCALES_FILE.split(/\/|\\/));
-    let file = utils.getFile.apply(null, abs_path_chunks);
-    if (!file.exists()) {
-      file = utils.getFile(config.LOCALES_FILE);
-    }
+    let file = utils.getAbsoluteOrRelativePath(config.LOCALES_FILE); 
     let locales = JSON.parse(utils.getFileContent(file));
 
     // ensure the default locale comes last in `l10nLocales'.
