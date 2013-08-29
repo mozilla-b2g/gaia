@@ -17,12 +17,18 @@ function NotificationTest(client, origin, tag, title, body) {
 module.exports = NotificationTest;
 
 NotificationTest.Selector = Object.freeze((function() {
-  var baseSelector = '#desktop-notifications-container > ' +
+  var desktopSelector = '#desktop-notifications-container > ' +
       '[data-notification-id="%s#tag:%s"]';
+
+  var traySelector = '#notifications-lockscreen-container > ' +
+      '[data-notification-id="%s#tag:%s"]';
+
+
   return {
-    containerElement: baseSelector,
-    titleElement: baseSelector + ' > div',
-    bodyElement: baseSelector + ' > .detail'
+    containerElement: desktopSelector,
+    titleElement: desktopSelector + ' > div',
+    bodyElement: desktopSelector + ' > .detail',
+    trayElement: traySelector
   };
 })());
 
@@ -33,6 +39,12 @@ NotificationTest.prototype = {
   get containerElement() {
     return this.client.findElement(
       util.format(NotificationTest.Selector.containerElement,
+                  this.origin,
+                  this.tag));
+  },
+  get trayElement() {
+    return this.client.findElement(
+      util.format(NotificationTest.Selector.trayElement,
                   this.origin,
                   this.tag));
   },
