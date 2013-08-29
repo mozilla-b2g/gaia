@@ -9,6 +9,7 @@ var ids = ['thumbnail-list-view', 'thumbnails-bottom',
            'thumbnails-cancel-button', 'thumbnails-number-selected',
            'fullscreen-view',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
+           'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
            'overlay-menu', 'storage-setting-button',
            'videoControls', 'videoBar', 'videoActionBar',
@@ -95,6 +96,9 @@ function init() {
     });
   });
 
+  dom.thumbnailsSingleInfoButton.addEventListener('click', showInfoView);
+  dom.infoCloseButton.addEventListener('click', hideInfoView);
+
   dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
 
   // Click to open the media storage panel when the default storage is
@@ -108,6 +112,44 @@ function init() {
       }
     });
   });
+}
+
+function showInfoView() {
+  //Get the length of the playing video
+  var length = isFinite(currentVideo.metadata.duration) ?
+      MediaUtils.formatDuration(currentVideo.metadata.duration) : '';
+  //Get the video size
+  var size = isFinite(currentVideo.size) ?
+      MediaUtils.formatSize(currentVideo.size) : '';
+  //Check if video type has prefix 'video/' e.g. video/mp4
+  var type = currentVideo.type;
+  if (type) {
+    var index = currentVideo.type.indexOf('/');
+    type = index > -1 ?
+      currentVideo.type.slice(index + 1) : currentVideo.type;
+  }
+  //Get the resolution of the playing video
+  var resolution = (currentVideo.metadata.width &&
+      currentVideo.metadata.height) ? currentVideo.metadata.width + 'x' +
+      currentVideo.metadata.height : '';
+  //Create data object to fill in the fields of info overlay view
+  var data = {
+    'info-name': currentVideo.metadata.title,
+    'info-length': length,
+    'info-size': size,
+    'info-type': type,
+    'info-date': MediaUtils.formatDate(currentVideo.date),
+    'info-resolution': resolution
+  };
+
+  //Populate info overlay view
+  MediaUtils.populateMediaInfo(data);
+  //Show the video info view
+  dom.infoView.classList.remove('hidden');
+}
+
+function hideInfoView() {
+  dom.infoView.classList.add('hidden');
 }
 
 function showSelectView() {
@@ -371,9 +413,25 @@ function createThumbnailItem(videonum) {
   if (isFinite(videodata.metadata.duration)) {
     var d = Math.round(videodata.metadata.duration);
     var after = document.createElement('span');
-    after.className = 'after';
-    after.textContent = ' ' + formatDuration(d);
+    after.className = 'after line-break';
+    after.textContent = ' ' + MediaUtils.formatDuration(d);
     details.appendChild(after);
+  }
+
+  if (isFinite(videodata.size)) {
+    var size = document.createElement('span');
+    size.className = 'after';
+    size.textContent = ' ' + MediaUtils.formatSize(videodata.size);
+    details.appendChild(size);
+  }
+
+  if (videodata.type) {
+    var type = document.createElement('span');
+    type.className = 'after';
+    var pos = videodata.type.indexOf('/');
+    type.textContent = ' ' + (pos > -1 ?
+                        videodata.type.slice(pos + 1) : videodata.type);
+    details.appendChild(type);
   }
 
   details.addEventListener('overflow', detailsOverflowHandler);
@@ -633,7 +691,8 @@ function showPlayer(videonum, autoPlay) {
 
   setVideoUrl(dom.player, currentVideo, function() {
 
-    dom.durationText.textContent = formatDuration(dom.player.duration);
+    dom.durationText.textContent = MediaUtils.formatDuration(
+      dom.player.duration);
     timeUpdated();
 
     dom.play.classList.remove('paused');
@@ -793,7 +852,8 @@ function timeUpdated() {
 
     var percent = (dom.player.currentTime / dom.player.duration) * 100 + '%';
 
-    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+    dom.elapsedText.textContent = MediaUtils.formatDuration(
+      dom.player.currentTime);
     dom.elapsedTime.style.width = percent;
     // Don't move the play head if the user is dragging it.
     if (!dragging)
@@ -878,7 +938,8 @@ function handlePlayerTouchMove(event) {
   dom.playHead.style.left = percent;
   dom.elapsedTime.style.width = percent;
   dom.player.currentTime = dom.player.duration * pos;
-  dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+  dom.elapsedText.textContent = MediaUtils.formatDuration(
+    dom.player.currentTime);
 }
 
 // XXX if we don't have metadata about the video name
@@ -894,25 +955,6 @@ function toCamelCase(str) {
   return str.replace(/\-(.)/g, function replacer(str, p1) {
     return p1.toUpperCase();
   });
-}
-
-function padLeft(num, length) {
-  var r = String(num);
-  while (r.length < length) {
-    r = '0' + r;
-  }
-  return r;
-}
-
-function formatDuration(duration) {
-  var minutes = Math.floor(duration / 60);
-  var seconds = Math.floor(duration % 60);
-  if (minutes < 60) {
-    return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
-  }
-  var hours = Math.floor(minutes / 60);
-  minutes = Math.floor(minutes % 60);
-  return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
 }
 
  // Pause on visibility change
