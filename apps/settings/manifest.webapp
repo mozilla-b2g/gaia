@@ -38,8 +38,7 @@
     }
   },
   "messages": ["bluetooth-pairing-request",
-               "bluetooth-cancel",
-               "bluetooth-pairedstatuschanged"],
+               "bluetooth-cancel"],
   "locales": {
     "ar": {
       "name": "الضبط",

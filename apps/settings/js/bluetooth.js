@@ -353,12 +353,10 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         }
       );
 
-      navigator.mozSetMessageHandler('bluetooth-pairedstatuschanged',
-        function bt_getPairedMessage(message) {
-          dispatchEvent(new CustomEvent('bluetooth-pairedstatuschanged'));
-          showDevicePaired(message.paired, 'Authentication Failed');
-        }
-      );
+      defaultAdapter.onpairedstatuschanged = function bt_getPairedMessage(evt) {
+        dispatchEvent(new CustomEvent('bluetooth-pairedstatuschanged'));
+        showDevicePaired(evt.status, 'Authentication Failed');
+      };
 
       defaultAdapter.onhfpstatuschanged = function bt_getConnectedMessage(evt) {
         showDeviceConnected(evt.address, evt.status);
