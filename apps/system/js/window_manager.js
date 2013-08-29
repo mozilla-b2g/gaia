@@ -1880,19 +1880,6 @@ var WindowManager = (function() {
     window.dispatchEvent(evt);
   });
 
-  // This is code copied from
-  // http://dl.dropbox.com/u/8727858/physical-events/index.html
-  // It appears to workaround the Nexus S bug where we're not
-  // getting orientation data.  See:
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
-  // It seems it needs to be in both window_manager.js and bootstrap.js.
-  function dumbListener2(event) {}
-  window.addEventListener('devicemotion', dumbListener2);
-
-  window.setTimeout(function() {
-    window.removeEventListener('devicemotion', dumbListener2);
-  }, 2000);
-
   // Return the object that holds the public API
   return {
     launch: launch,
