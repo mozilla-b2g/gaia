@@ -70,7 +70,7 @@ suite('Stopwatch', function() {
       assert.equal(l.getTime(), oneHour);
     });
 
-    test('lap multiple times', function() {
+    test('lap 3 times', function() {
       var l1 = this.sw.lap();
       this.clock.tick(oneHour);
       var l2 = this.sw.lap();
