@@ -34,7 +34,7 @@ section[role="region"] > header:first-child h1 {
   display: block;
   overflow: hidden;
   margin: 0 0 0 3rem;
-  padding-right: 1rem;
+  padding-right: 0.5rem;
   height: 100%;
   font-weight: normal;
 }
