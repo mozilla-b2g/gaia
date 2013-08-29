@@ -4,6 +4,9 @@
   // register the global
   window.navigator;
 
+  var htmlFragments;
+  var requestedFragments = {};
+
   var Common = window.parent.CommonResourceLoader,
       // mocha test methods we want to provide
       // yield support to.
@@ -36,6 +39,54 @@
 
   window.requireApp = function(url, cb) {
     require(TestUrlResolver.resolve(url), cb);
+  };
+
+  /**
+   * Appends a templated node to the body for a suite
+   * Removes the node at teardown.
+   * @param {String} is the type of element.
+   * @param {Object} attrs optional attributes.
+   */
+  window.suiteTemplate = function(is, attrs) {
+
+    var testElement;
+
+    setup(function ta_template() {
+      var foundElement = htmlFragments.querySelector('element[name="' + is + '"]');
+      testElement = document.createElement(foundElement.getAttribute('extends') || 'div');
+      var template = foundElement.querySelector('template');
+      testElement.innerHTML = template.innerHTML;
+
+      attrs = attrs || {};
+      for (var i in attrs) {
+        testElement.setAttribute(i, attrs[i]);
+      }
+
+      document.body.appendChild(testElement);
+    });
+
+    teardown(function ta_teardown() {
+      testElement.parentNode.removeChild(testElement);
+    });
+  };
+
+  window.requireElements = function(url) {
+
+    url = TestUrlResolver.resolve(url);
+
+    if (requestedFragments[url]) {
+      return;
+    }
+    requestedFragments[url] = true;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, false /* intentional sync */);
+    xhr.send();
+
+    if (!htmlFragments) {
+      htmlFragments = document.createElement('div');
+    }
+    htmlFragments.innerHTML += xhr.responseText;
   };
 
 

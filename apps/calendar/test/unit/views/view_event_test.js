@@ -1,6 +1,7 @@
 requireLib('provider/abstract.js');
 requireLib('template.js');
 requireLib('templates/alarm.js');
+requireElements('calendar/elements/show_event.html');
 
 suiteGroup('Views.ViewEvent', function() {
 
@@ -44,50 +45,15 @@ suiteGroup('Views.ViewEvent', function() {
 
   teardown(function() {
     Calendar.App.go = realGo;
-    var el = document.getElementById('test');
-    el.parentNode.removeChild(el);
     delete app._providers.Test;
+  });
+
+  suiteTemplate('show-event', {
+    id: 'event-view'
   });
 
   setup(function(done) {
     realGo = Calendar.App.go;
-    var div = document.createElement('div');
-    div.id = 'test';
-    div.innerHTML = [
-      '<div id="event-view">',
-        '<button class="edit">edit</button>',
-        '<button class="cancel">cancel</button>',
-          '<div class="title">',
-            '<span class="content"></span>',
-          '</div>',
-          '<div class="location">',
-            '<span class="content"></span>',
-          '</div>',
-          '<div class="current-calendar">',
-            '<span class="content"></span>',
-          '</div>',
-          '<div class="start-date">',
-            '<span class="content"></span>',
-            '<span class="start-time">',
-              '<span class="content"></span>',
-            '</span>',
-          '</div>',
-          '<div class="end-date">',
-            '<span class="content"></span>',
-            '<span class="end-time">',
-              '<span class="content"></span>',
-            '</span>',
-          '</div>',
-          '<div class="alarms">',
-            '<span class="content"></span>',
-          '</div>',
-          '<div class="description">',
-            '<span class="content"></span>',
-          '</div>',
-      '</div>'
-    ].join('');
-
-    document.body.appendChild(div);
     app = testSupport.calendar.app();
 
     eventStore = app.store('Event');
@@ -181,7 +147,7 @@ suiteGroup('Views.ViewEvent', function() {
   test('#_getEl', function() {
     var expected = subject.fieldRoot.querySelector('.title');
     assert.ok(expected);
-    assert.equal(expected.tagName.toLowerCase(), 'div');
+    assert.equal(expected.tagName.toLowerCase(), 'li');
 
     var result = subject.getEl('title');
 
