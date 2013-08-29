@@ -1,0 +1,39 @@
+{
+  "settings": {},
+  "carrier":{
+    "phone_number": "",
+    "country": "",
+    "network": ""
+  },
+  "imei": "",
+  "remote_phone_number": "",
+  "wifi": {
+    "ssid": ""
+  },
+  "email": {
+    "gmail": {
+      "name": "",
+      "email": "",
+      "password": ""
+    },
+    "IMAP": {
+      "name": "",
+      "email": "",
+      "password": "",
+      "imap_hostname": "",
+      "imap_name": "",
+      "imap_port": "",
+      "smtp_hostname": "",
+      "smtp_name": "",
+      "smtp_port": ""
+    },
+    "ActiveSync":{
+      "name": "",
+      "email": "",
+      "password": "",
+      "active_sync_hostname": "",
+      "active_sync_username": ""
+    }
+
+  }
+}
