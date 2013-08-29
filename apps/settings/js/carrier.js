@@ -314,8 +314,18 @@ var Carrier = {
       }
 
       // set current APN to 'custom' on user modification
+      // and sanitize addresses
       advForm.onchange = function onCustomInput(event) {
         lastItem.querySelector('input').checked = true;
+
+        var addresskeys = ['mmsproxy', 'httpProxyHost'];
+        addresskeys.forEach(function(addresskey) {
+          if (event.target.dataset.setting ==
+              'ril.' + usage + '.' + addresskey) {
+            event.target.value = sanitizeAddress(event.target.value);
+          }
+        });
+
         storeCustomAPNSettingFields();
       };
 
