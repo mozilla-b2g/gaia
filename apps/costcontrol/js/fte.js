@@ -212,7 +212,7 @@
 
     // Validate when in step 2 in order to restore buttons and errors
     if (step === 2) {
-      balanceLowLimitView.validate();
+      balanceLowLimitView && balanceLowLimitView.validate();
     }
   }
 
