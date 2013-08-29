@@ -20,64 +20,73 @@ suite('Stopwatch', function() {
   setup(function() {
     sw = new Stopwatch();
     this.clock = this.sinon.useFakeTimers(this.sixAm);
+
+    sw.start();
+    this.clock.tick(this.oneHour);
   });
 
   teardown(function() {
     this.clock.restore();
-  });
-
-  test('start & elapse 1 hr', function() {
-    sw.start();
-    this.clock.tick(this.oneHour);
-    assert.equal(sw.getElapsedTime().getTime(), this.oneHour);
-  });
-
-  test('start & elapse 1 hr & pause', function() {
-    sw.start();
-    this.clock.tick(this.oneHour);
-    sw.pause();
-    this.clock.tick(this.oneHour); // do not elapse this hour
-    assert.equal(sw.getElapsedTime().getTime(), this.oneHour);
-  });
-
-  test('start & elapse 1hr & lap', function() {
-    sw.start();
-    this.clock.tick(this.oneHour);
-    var l = sw.lap();
-    assert.equal(l.getTime(), this.oneHour);
-  });
-
-  test('start & lap multiple times', function() {
-    sw.start();
-    this.clock.tick(this.oneHour);
-    var l1 = sw.lap();
-    this.clock.tick(this.oneHour);
-    var l2 = sw.lap();
-    this.clock.tick(this.oneHour);
-    var l3 = sw.lap();
-    console.log(sw.lapTimes);
-    assert.equal(l1.getTime(), this.oneHour);
-    assert.equal(l2.getTime(), this.oneHour);
-    assert.equal(l3.getTime(), this.oneHour);
-  });
-
-  test('pause & elapse 1 hr & resume', function() {
-    sw.start();
-    this.clock.tick(this.oneHour);
-    sw.pause();
-    this.clock.tick(this.oneHour); // do not elapse this hour
-    sw.start();
-    this.clock.tick(this.oneHour);
-    assert.equal(sw.getElapsedTime().getTime(), this.oneHour + this.oneHour);
-  });
-
-  test('pause & elapse 1hr & reset', function() {
-    sw.start();
-    this.clock.tick(this.oneHour);
-    sw.pause();
-    this.clock.tick(this.oneHour);
     sw.reset();
-    this.clock.tick(this.oneHour);
-    assert.equal(sw.getElapsedTime().getTime(), 0);
   });
+
+  suite('start', function() {
+
+    test('elapse 1hr', function() {
+      assert.equal(sw.getElapsedTime().getTime(), this.oneHour);
+    });
+
+  });
+
+  suite('pause', function() {
+
+    test('elapse 1hr & pause', function() {
+      sw.pause();
+      this.clock.tick(this.oneHour); // do not elapse this hour
+      assert.equal(sw.getElapsedTime().getTime(), this.oneHour);
+    });
+
+  });
+
+  suite('lap', function() {
+
+    test('elapse 1hr & lap', function() {
+      var l = sw.lap();
+      assert.equal(l.getTime(), this.oneHour);
+    });
+
+    test('lap multiple times', function() {
+      var l1 = sw.lap();
+      this.clock.tick(this.oneHour);
+      var l2 = sw.lap();
+      this.clock.tick(this.oneHour);
+      var l3 = sw.lap();
+      assert.equal(l1.getTime(), this.oneHour);
+      assert.equal(l2.getTime(), this.oneHour);
+      assert.equal(l3.getTime(), this.oneHour);
+    });
+
+  });
+
+  suite('resume after a pause', function() {
+
+    test('pause & elapse 1 hr & resume', function() {
+      sw.pause();
+      this.clock.tick(this.oneHour); // do not elapse this hour
+      sw.start();
+      this.clock.tick(this.oneHour);
+      assert.equal(sw.getElapsedTime().getTime(), this.oneHour + this.oneHour);
+    });
+
+  });
+
+  suite('reset', function() {
+
+    test('elapse 1hr & reset', function() {
+      sw.reset();
+      assert.equal(sw.getElapsedTime().getTime(), 0);
+    });
+
+  });
+
 });
