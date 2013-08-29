@@ -18,6 +18,8 @@ requireApp('sms/js/threads.js');
 requireApp('sms/js/message_manager.js');
 requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/attachment.js');
+requireApp('sms/js/fixed_header.js');
 
 var mHelperIntegration = new MocksHelper([
   'MessageManager'
@@ -430,6 +432,48 @@ suite('ThreadUI Integration', function() {
       assert.deepEqual(calledWith[1], 'foo');
     });
 
+    test('Assimilate stranded recipients (contactPickButton)', function(done) {
+      // To ensure the recipient wrapped before picker return:
+
+      // 1. Add some content to the message
+      Compose.append('foo');
+
+      // 2. Create a recipient
+      ThreadUI.recipients.add({
+        number: '111'
+      });
+
+      children = ThreadUI.recipientsList.children;
+      recipients = ThreadUI.recipients;
+
+      // Set text in the placeholder, as if the user has typed
+      // something before jumping to the input field
+      children[1].textContent = '222';
+
+      // Simulate contact pick
+      ThreadUI.requestContact();
+
+      // Simulate the picker activity success
+      setTimeout(function onsuccess() {
+        ThreadUI.recipients.add({
+          number: '333'
+        });
+
+        // There are now three recipients after picker activity success
+        assert.equal(recipients.length, 3);
+        // And four displayed children,
+        // (the recipient "avatars" and a
+        // placeholder for the next entry)
+        assert.equal(children.length, 4);
+        assert.ok(is.corresponding(recipients.list[0], children[0], '111'));
+        assert.ok(is.corresponding(recipients.list[1], children[1], '222'));
+        assert.ok(is.corresponding(recipients.list[2], children[2], '333'));
+        assert.ok(is.placeholder(children[3]));
+        done();
+      });
+    });
+
+
     test('Lone ";" are not recipients', function() {
 
 
@@ -453,7 +497,6 @@ suite('ThreadUI Integration', function() {
         ThreadUI.recipientsList.children[0].textContent, ''
       );
     });
-
 
     test('Taps on in-progress recipients do nothing special', function() {
 
