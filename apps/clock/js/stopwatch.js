@@ -24,6 +24,21 @@
     },
 
     /**
+    * getElapsedTime Calculates the total elapsed duration since the
+    *                stopwatch was started
+    *
+    * @return {Date} return total elapsed duration
+    */
+    getElapsedTime: function sw_elapsed() {
+      var elapsed = 0;
+      if (this._started)
+        elapsed = new Date().getTime() - this._startTime;
+      elapsed += this._totalElapsed;
+
+      return new Date(elapsed);
+    },
+
+    /**
     * pause Pauses the stopwatch timer
     */
     pause: function sw_pause() {
@@ -32,16 +47,6 @@
         var elapsed = new Date().getTime() - this._startTime;
         this._totalElapsed += elapsed;
       }
-    },
-
-    /**
-    * reset Resets the stopwatch timer back to 00:00, clears laps
-    */
-    reset: function sw_reset() {
-      this._startTime = new Date().getTime();
-      this._totalElapsed = 0;
-      this._started = false;
-      this._laps = [];
     },
 
     /**
@@ -72,18 +77,13 @@
     },
 
     /**
-    * getElapsedTime Calculates the total elapsed duration since the
-    *                stopwatch was started
-    *
-    * @return {Date} return total elapsed duration
+    * reset Resets the stopwatch timer back to 00:00, clears laps
     */
-    getElapsedTime: function sw_elapsed() {
-      var elapsed = 0;
-      if (this._started)
-        elapsed = new Date().getTime() - this._startTime;
-      elapsed += this._totalElapsed;
-
-      return new Date(elapsed);
+    reset: function sw_reset() {
+      this._startTime = new Date().getTime();
+      this._totalElapsed = 0;
+      this._started = false;
+      this._laps = [];
     }
 
   };

@@ -1,90 +1,98 @@
 requireApp('clock/js/stopwatch.js');
 requireApp('clock/js/utils.js');
 
-// http://www.reddit.com/r/mildlyinteresting/comments/1l4224/i_started_the_stopwatch_when_i_got_my_iphone_3/
-
 suite('Stopwatch', function() {
-  var sw;
+
+  // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
+  // system's time zone
+  var sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
+  var oneHour = 1 * 60 * 60 * 1000;
 
   suiteSetup(function() {
-    // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
-    // system's time zone
-    this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
-    this.oneHour = 1 * 60 * 60 * 1000;
-  });
-
-  suiteTeardown(function() {
-    // Nothing to teardown?
+    this.sw = new Stopwatch();
   });
 
   setup(function() {
-    sw = new Stopwatch();
-    this.clock = this.sinon.useFakeTimers(this.sixAm);
-
-    sw.start();
-    this.clock.tick(this.oneHour);
+    this.clock = this.sinon.useFakeTimers(sixAm);
   });
 
   teardown(function() {
     this.clock.restore();
-    sw.reset();
+    this.sw.reset();
   });
 
-  suite('start', function() {
+  suite('getElapsedTime', function() {
 
-    test('elapse 1hr', function() {
-      assert.equal(sw.getElapsedTime().getTime(), this.oneHour);
+    test('before start', function() {
+      assert.equal(this.sw.getElapsedTime().getTime(), 0);
+    });
+
+    test('after start', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+      assert.equal(this.sw.getElapsedTime().getTime(), oneHour);
     });
 
   });
 
   suite('pause', function() {
 
+    setup(function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+    });
+
     test('elapse 1hr & pause', function() {
-      sw.pause();
-      this.clock.tick(this.oneHour); // do not elapse this hour
-      assert.equal(sw.getElapsedTime().getTime(), this.oneHour);
+      this.sw.pause();
+      this.clock.tick(oneHour); // do not elapse this hour
+      assert.equal(this.sw.getElapsedTime().getTime(), oneHour);
+    });
+
+    test('pause & elapse 1 hr & resume', function() {
+      this.sw.pause();
+      this.clock.tick(oneHour); // do not elapse this hour
+      this.sw.start();
+      this.clock.tick(oneHour);
+      assert.equal(this.sw.getElapsedTime().getTime(), oneHour + oneHour);
     });
 
   });
 
   suite('lap', function() {
 
+    setup(function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+    });
+
     test('elapse 1hr & lap', function() {
-      var l = sw.lap();
-      assert.equal(l.getTime(), this.oneHour);
+      var l = this.sw.lap();
+      assert.equal(l.getTime(), oneHour);
     });
 
     test('lap multiple times', function() {
-      var l1 = sw.lap();
-      this.clock.tick(this.oneHour);
-      var l2 = sw.lap();
-      this.clock.tick(this.oneHour);
-      var l3 = sw.lap();
-      assert.equal(l1.getTime(), this.oneHour);
-      assert.equal(l2.getTime(), this.oneHour);
-      assert.equal(l3.getTime(), this.oneHour);
-    });
-
-  });
-
-  suite('resume after a pause', function() {
-
-    test('pause & elapse 1 hr & resume', function() {
-      sw.pause();
-      this.clock.tick(this.oneHour); // do not elapse this hour
-      sw.start();
-      this.clock.tick(this.oneHour);
-      assert.equal(sw.getElapsedTime().getTime(), this.oneHour + this.oneHour);
+      var l1 = this.sw.lap();
+      this.clock.tick(oneHour);
+      var l2 = this.sw.lap();
+      this.clock.tick(oneHour);
+      var l3 = this.sw.lap();
+      assert.equal(l1.getTime(), oneHour);
+      assert.equal(l2.getTime(), oneHour);
+      assert.equal(l3.getTime(), oneHour);
     });
 
   });
 
   suite('reset', function() {
 
+    setup(function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+    });
+
     test('elapse 1hr & reset', function() {
-      sw.reset();
-      assert.equal(sw.getElapsedTime().getTime(), 0);
+      this.sw.reset();
+      assert.equal(this.sw.getElapsedTime().getTime(), 0);
     });
 
   });
