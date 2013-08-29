@@ -8,10 +8,8 @@ from gaiatest import GaiaTestCase
 class TestWiFiSettings(GaiaTestCase):
 
     def test_set_wifi(self):
-        setting_name = 'wifi.enabled'
-
         self.data_layer.enable_wifi()
-        self.assertTrue(self.data_layer.get_setting(setting_name))
+        self.assertTrue(self.data_layer.is_wifi_enabled)
 
         self.data_layer.disable_wifi()
-        self.assertFalse(self.data_layer.get_setting(setting_name))
+        self.assertFalse(self.data_layer.is_wifi_enabled)

@@ -19,6 +19,7 @@ class TestKill(GaiaTestCase):
             running_apps.append(self.apps.launch(app))
 
         for app in running_apps:
+            self.apps.launch(app.name)
             self.apps.kill(app)
 
         self.check_no_apps_running()
