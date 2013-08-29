@@ -674,12 +674,16 @@ function SettingsAccountCard(domNode, mode, args) {
   domNode.getElementsByClassName('tng-account-type')[0].textContent =
     (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
 
-  var synchronizeNode = domNode.getElementsByClassName(
-    'tng-account-synchronize')[0];
-  synchronizeNode.value = this.account.syncRange;
-  synchronizeNode.addEventListener(
-    'change', this.onChangeSynchronize.bind(this), false);
-
+  if (this.account.type === 'activesync') {
+    var synchronizeNode = domNode.getElementsByClassName(
+      'tng-account-synchronize')[0];
+    synchronizeNode.value = this.account.syncRange;
+    synchronizeNode.addEventListener(
+      'change', this.onChangeSynchronize.bind(this), false);
+  } else {
+    domNode.getElementsByClassName(
+      'synchronize-setting')[0].style.display = 'none';
+  }
   this.account.servers.forEach(function(server, index) {
     var serverNode = tngNodes['account-settings-server'].cloneNode(true);
     var serverLabel =
