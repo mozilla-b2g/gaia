@@ -255,7 +255,7 @@ var ClockView = {
   },
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
-    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount() + 1);
     this.container.className = 'marks' + type;
     document.getElementById('alarms').className = 'count' + type;
   },
@@ -264,8 +264,8 @@ var ClockView = {
     var isAnalog = false;
     var previous, hiding, showing;
 
-    if (window.location.hash !== 'alarm-view') {
-      window.location.hash = 'alarm-view';
+    if (location.hash !== '#alarm-panel') {
+      location.hash = '#alarm-panel';
     }
 
     // The clock display mode is either

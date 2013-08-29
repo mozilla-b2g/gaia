@@ -12,7 +12,7 @@ var AlarmEdit = {
 
   get element() {
     delete this.element;
-    return this.element = document.getElementById('alarm');
+    return this.element = document.getElementById('alarm-edit-panel');
   },
 
   get scrollList() {
@@ -112,6 +112,7 @@ var AlarmEdit = {
     this.snoozeMenu.addEventListener('click', this);
     this.snoozeSelect.addEventListener('blur', this);
     this.deleteButton.addEventListener('click', this);
+    this.init = function() {};
   },
 
   handleEvent: function aev_handleEvent(evt) {
@@ -183,15 +184,9 @@ var AlarmEdit = {
   },
 
   load: function aev_load(alarm) {
-    if (this.element.classList.contains('hidden')) {
-      this.element.classList.remove('hidden');
-      this.init();
-    }
-
+    this.init();
     // scroll to top of form list
     this.scrollList.scrollTop = 0;
-
-    window.location.hash = 'alarm';
 
     if (!alarm) {
       this.element.classList.add('new');
@@ -217,6 +212,7 @@ var AlarmEdit = {
     this.refreshVibrateMenu();
     this.initSnoozeSelect();
     this.refreshSnoozeMenu();
+    location.hash = '#alarm-edit-panel';
   },
 
   initTimeSelect: function aev_initTimeSelect() {
