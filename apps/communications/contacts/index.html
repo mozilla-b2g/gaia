@@ -47,6 +47,9 @@
 
     <!-- For the build system to include in zip:
     <link href="/shared/js/tag_visibility_monitor.js">
+    <link href="/shared/js/contact2vcard.js">
+    <link href="/shared/js/device_storage/get_storage_if_available.js">
+    <link href="/shared/js/device_storage/get_unused_filename.js">
     -->
 
   </head>
@@ -579,21 +582,18 @@
                 <li id="export-sim-option" data-source="sim">
                   <button class="icon icon-sim" data-l10n-id="simCard">
                     SIM card
-                    <p><span></span><time></time></p>
                   </button>
                   <p class="error-message" data-l10n-id="noSimMsg"></p>
                 </li>
                 <li id="export-sd-option" data-source="sd">
-                  <button class="icon icon-sd" data-l10n-id="memoryCard" disabled="disabled">
+                  <button class="icon icon-sd" data-l10n-id="memoryCard">
                     Memory card
-                    <p><span></span><time></time></p>
                   </button>
                   <p class="error-message" data-l10n-id="noMemoryCardMsg"></p>
                 </li>
                 <li id="export-bluetooth-option" data-source="bluetooth">
-                  <button class="icon" data-l10n-id="bluetooth" disabled="disabled">
+                  <button class="icon icon-bluetooth" data-l10n-id="bluetooth" disabled="disabled">
                     Bluetooth
-                    <p><span></span><time></time></p>
                   </button>
                 </li>
               </ul>
