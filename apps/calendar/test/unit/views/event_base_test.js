@@ -88,8 +88,9 @@ suiteGroup('Views.EventBase', function() {
     var callsUpdateUI;
     setup(function() {
       callsUpdateUI = false;
-      subject._updateUI = function() {
+      subject._updateUI = function(callback) {
         callsUpdateUI = true;
+        Calendar.nextTick(callback);
       };
     });
 

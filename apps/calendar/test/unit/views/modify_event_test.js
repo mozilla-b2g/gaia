@@ -692,7 +692,6 @@ suiteGroup('Views.ModifyEvent', function() {
             assert.equal(updated._id, event._id, 'updates correcet event');
 
             var data = subject.formData();
-            data.alarms = [];
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 
@@ -723,7 +722,8 @@ suiteGroup('Views.ModifyEvent', function() {
         subject.onfirstseen();
         subject.onafteronfirstseen = function() {
           subject.dispatch({ params: {} });
-          subject.ondispatch = function() {
+
+          subject.onupdatealarms = function() {
             // must come after dispatch
             subject._returnTo = '/foo';
             done();
@@ -737,9 +737,6 @@ suiteGroup('Views.ModifyEvent', function() {
         provider.createEvent = function(event, callback) {
           done(function() {
             var data = subject.formData();
-
-            data.alarms = [];
-
             assert.hasProperties(subject.event, data, 'updated model');
             assert.isTrue(list.contains(subject.PROGRESS));
 

@@ -88,7 +88,7 @@ Calendar.ns('Views').ViewEvent = (function() {
     /**
      * Updates the UI to use values from the current model.
      */
-    _updateUI: function() {
+    _updateUI: function(callback) {
       var model = this.event;
 
       this.setContent('title', model.title);
@@ -150,6 +150,8 @@ Calendar.ns('Views').ViewEvent = (function() {
       this.setContent('alarms', alarmContent, 'innerHTML');
 
       this.setContent('description', model.description);
+
+      Calendar.nextTick(callback);
     },
 
     oninactive: function() {
