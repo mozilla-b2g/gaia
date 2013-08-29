@@ -218,7 +218,8 @@
         name: 'open',
         data: {
           type: this.blob.type,
-          filename: this.name,
+          filename:
+            MimeMapper.ensureFilenameMatchesType(this.name, this.blob.type),
           blob: this.blob,
           allowSave: options && options.allowSave
         }
