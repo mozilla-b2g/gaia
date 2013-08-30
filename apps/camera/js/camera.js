@@ -1239,8 +1239,10 @@ var Camera = {
     if (this._storageState === this.STORAGE_AVAILABLE) {
       // Preview may have previously been paused if storage
       // was not available
-      // not trigger preview while in pick mode
-      if (!this._previewActive && !document.mozHidden && !this._pendingPick) {
+      // Don't start the preview when confirm dialog is showing. The choices of
+      // ConfirmDialog call the startPreview or close this activity.
+      if (!this._previewActive && !document.hidden &&
+          !ConfirmDialog.isShowing()) {
         this.startPreview();
       }
       this.showOverlay(null);

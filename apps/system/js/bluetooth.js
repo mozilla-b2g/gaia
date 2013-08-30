@@ -17,6 +17,7 @@ var Bluetooth = {
     if (!window.navigator.mozSettings)
       return;
 
+    var telephony = window.navigator.mozTelephony;
     var bluetooth = window.navigator.mozBluetooth;
     var settings = window.navigator.mozSettings;
     var self = this;
@@ -39,7 +40,7 @@ var Bluetooth = {
     if (settings) {
       settings.addObserver('telephony.speaker.enabled',
         function bt_onSpeakerEnabledChange(event) {
-          if (self.defaultAdapter && self.hfpHspConnected) {
+          if (self.defaultAdapter && self.hfpHspConnected && telephony.active) {
             if (event.settingValue) {
               self.defaultAdapter.disconnectSco();
             } else {

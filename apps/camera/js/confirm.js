@@ -59,9 +59,14 @@ var ConfirmDialog = (function() {
     frame.displayVideo(blob, posterBlob, width, height, rotation);
   }
 
+  function isShowing() {
+    return !confirm.hidden;
+  }
+
   // Export the public functions of this module
   return {
     confirmImage: confirmImage,
-    confirmVideo: confirmVideo
+    confirmVideo: confirmVideo,
+    isShowing: isShowing
   };
 })();
