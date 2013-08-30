@@ -84,6 +84,26 @@ suite('Stopwatch', function() {
 
   });
 
+  suite('getLaps', function() {
+
+    setup(function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+    });
+
+    test('after 3 laps', function() {
+      this.sw.lap();
+      this.clock.tick(oneHour);
+      this.sw.lap();
+      this.clock.tick(oneHour + oneHour);
+      this.sw.lap();
+      assert.equal(this.sw.getLaps()[0], oneHour);
+      assert.equal(this.sw.getLaps()[1], oneHour);
+      assert.equal(this.sw.getLaps()[2], oneHour + oneHour);
+    })
+
+  });
+
   suite('reset', function() {
 
     setup(function() {

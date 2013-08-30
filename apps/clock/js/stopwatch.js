@@ -14,11 +14,11 @@
    * start Starts the stopwatch, either from a reset or paused state
    */
     start: function sw_start() {
-      if (this._started) {
+      if (this._isStarted) {
         return;
       }
-      this._startTime = new Date().getTime();
-      this._started = true;
+      this._startTime = Date.now();
+      this._isStarted = true;
     },
 
     /**
@@ -27,10 +27,10 @@
     *
     * @return {Date} return total elapsed duration
     */
-    getElapsedTime: function sw_elapsed() {
+    getElapsedTime: function sw_getElapsedTime() {
       var elapsed = 0;
-      if (this._started) {
-        elapsed = new Date().getTime() - this._startTime;
+      if (this._isStarted) {
+        elapsed = Date.now() - this._startTime;
       }
       elapsed += this._totalElapsed;
 
@@ -41,11 +41,11 @@
     * pause Pauses the stopwatch
     */
     pause: function sw_pause() {
-      if (!this._started) {
+      if (!this._isStarted) {
         return;
       }
-      this._started = false;
-      var elapsed = new Date().getTime() - this._startTime;
+      this._isStarted = false;
+      var elapsed = Date.now() - this._startTime;
       this._totalElapsed += elapsed;
     },
 
@@ -56,7 +56,7 @@
     * @return {Date} return the lap duration
     */
     lap: function sw_lap() {
-      if (!this._started) {
+      if (!this._isStarted) {
         return new Date(0);
       }
 
@@ -69,11 +69,24 @@
         lastLapTime = this._startTime;
       }
 
-      newLap.duration = new Date().getTime() - lastLapTime;
-      newLap.time = new Date().getTime();
+      newLap.duration = Date.now() - lastLapTime;
+      newLap.time = Date.now();
       this._laps.push(newLap);
 
       return new Date(newLap.duration);
+    },
+
+    /**
+    * getLaps Returns an array of lap durations, sorted by oldest first
+    *
+    * @return {Array} return an array of lap durations
+    */
+    getLaps: function sw_getLaps() {
+      var l = [];
+      for (var i = 0; i < this._laps.length; i++) {
+        l.push(this._laps[i].duration);
+      }
+      return l;
     },
 
     /**
@@ -82,7 +95,7 @@
     reset: function sw_reset() {
       this._startTime = 0;
       this._totalElapsed = 0;
-      this._started = false;
+      this._isStarted = false;
       this._laps = [];
     }
 
