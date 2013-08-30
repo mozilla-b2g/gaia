@@ -49,6 +49,7 @@ var MockContacts = {
     home: function() {}
   },
   checkCancelableActivity: function() {},
+  cancel: function() {},
   view: function(view, callback) {
     callback();
   }

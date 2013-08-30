@@ -1,16 +1,17 @@
 require('/shared/js/lazy_loader.js');
 require('/shared/test/unit/load_body_html_helper.js');
-requireApp('../communications/contacts/test/unit/mock_contacts.js');
-requireApp('../communications/contacts/test/unit/mock_asyncstorage.js');
-requireApp('../communications/contacts/test/unit/mock_fb.js');
-requireApp('../communications/contacts/test/unit/mock_sdcard.js');
-requireApp('../communications/contacts/test/unit/mock_icc_helper.js');
-requireApp('../communications/dialer/test/unit/mock_confirm_dialog.js');
-requireApp('../communications/contacts/test/unit/mock_vcard_parser.js');
-requireApp('../communications/contacts/test/unit/mock_mozContacts.js');
-requireApp('../communications/contacts/js/import_utils.js');
-requireApp('../communications/contacts/js/navigation.js');
-requireApp('../communications/contacts/js/views/settings.js');
+requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
+requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_sdcard.js');
+requireApp('communications/contacts/test/unit/mock_icc_helper.js');
+requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
+requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/js/import_utils.js');
+requireApp('communications/contacts/js/navigation.js');
+requireApp('communications/contacts/js/views/settings.js');
+requireApp('communications/contacts/js/utilities/event_listeners.js');
 
 if (!this._) this._ = null;
 if (!this.utils) this.utils = null;
@@ -82,7 +83,7 @@ suite('Contacts settings', function() {
     });
 
     test('show SD Card import if SD card is present', function() {
-      navigator.getDeviceStorage = stub(true);
+      utils.sdcard.checkStorageCard = function() { return true; };
       contacts.Settings.refresh();
       var importSdOption = document.getElementById('import-sd-option');
       assert.equal(importSdOption
@@ -94,10 +95,8 @@ suite('Contacts settings', function() {
     });
 
     test('no SD card import if no SD card is present', function() {
-      var realSdCheck = utils.sdcard.checkStorageCard;
       utils.sdcard.checkStorageCard = function() { return false; };
       contacts.Settings.refresh();
-      utils.sdcard.checkStorageCard = realSdCheck;
 
       var importSdOption = document.getElementById('import-sd-option');
       assert.equal(importSdOption
