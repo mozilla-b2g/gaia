@@ -7,6 +7,7 @@ import filecmp
 import shutil
 
 LOCAL_APPS_FOLDER = 'svoperapps'
+CONF_OUTPUT_FILENAME = 'singlevariantconf.json'
 
 def getOrigin(url):
     origin = urlparse.urlsplit(url)
@@ -158,11 +159,48 @@ def fetch_apps(data, profile_path, distribution_path):
         deleteFolder(os.path.join(distribution_path, app))
         os.rmdir(os.path.join(distribution_path, app))
 
+def fetch_conf(data, profile_path, apps_path):
+    print 'Generating metadata'
+
+    """ Get apps to check faster if operator's apps are valid and get access to manifests """
+    apps = data['apps']
+
+    """ Iterate through operators  """
+    output = {}
+    output_homescreen = {}
+    for operator in data['operators']:
+        """ Build an array with the apps for one operator and check if id is valid"""
+        row = []
+        row_homescreen = []
+        for app in operator['apps']:
+            app_id = app['id']
+            if not apps.has_key(app_id):
+                raise Exception("Invalid application id \'" + app_id + "\'")
+
+            row.append(app_id)
+
+            app['manifest'] = apps[app_id]
+            if app.has_key('id'):
+                del app['id']
+            row_homescreen.append(app)
+
+        """ For each mcc-mnc create an object with its apps array and add it to output """
+        for mcc in operator['mcc-mnc']:
+            output[mcc] = row
+            output_homescreen[mcc] = row_homescreen
+
+    with open(os.path.join(profile_path, LOCAL_APPS_FOLDER, CONF_OUTPUT_FILENAME), 'w') as temp_file:
+        temp_file.write(json.dumps(output))
+
+    with open(os.path.join(apps_path, 'homescreen', 'js', CONF_OUTPUT_FILENAME), 'w') as temp_file:
+        temp_file.write(json.dumps(output_homescreen))
+
 def main():
     """ Arguments & options management """
     parser = optparse.OptionParser(description="Prepare local applications")
     parser.add_option('-l', '--local-apps-path', help="Path to the JSON defining the local apps")
     parser.add_option('-p', '--profile-path', help="Path to the profile folder")
+    parser.add_option('-g', '--apps-path', help="Path to the gaia applications folder")
     parser.add_option('-d', '--distribution-path', help="Path to the gaia distribution folder")
     (options, args) = parser.parse_args()
 
@@ -171,6 +209,9 @@ def main():
 
     if not options.profile_path:
         parser.error('profile-path not given')
+
+    if not options.apps_path:
+        parser.error('apps-path not given')
 
     if not options.distribution_path:
         parser.error('distribution-path not given')
@@ -184,6 +225,9 @@ def main():
 
     """ Prepare apps """
     fetch_apps(data, options.profile_path, options.distribution_path)
+
+    """ Generate internal JSON based on mnc/mcc """
+    fetch_conf(data, options.profile_path, options.apps_path)
 
 if __name__ == "__main__":
   main()
