@@ -202,7 +202,8 @@ var Settings = {
       });
     }
     // register web activity handler
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
+    navigator.mozSetMessageHandler('activity',
+              this.webActivityHandler.bind(this));
 
     // preset all inputs that have a `name' attribute
     this.presetPanel();
@@ -550,6 +551,35 @@ var Settings = {
         setTimeout(function settings_goToSection() {
           Settings.currentPanel = section;
         });
+        break;
+      case 'configure-overlay':
+        document.body.classList.add('overlay-mode');
+        var section = activityRequest.source.data.section || 'root';
+        var overlay = document.getElementById(section);
+
+        Settings.currentPanel = section;
+
+        var postResult = function(result) {
+          document.body.classList.remove('overlay-mode');
+          activityRequest.postResult(result);
+        };
+
+        var prepareOverlay = function() {
+          var submitButton = overlay.querySelector('[type=submit]');
+          var resetButton = overlay.querySelector('[type=reset]');
+          submitButton.onclick = postResult.bind(this, true);
+          resetButton.onclick = postResult.bind(this, false);
+        };
+
+        if (overlay.childNodes.length) {
+          prepareOverlay(overlay);
+        } else {
+          // if the overlay hasn't been loaded yet, wait for it
+          window.addEventListener('panelready', function onPanelReady(evt) {
+            window.removeEventListener('panelready', onPanelReady);
+            prepareOverlay();
+          });
+        }
         break;
     }
   },
@@ -934,6 +964,13 @@ window.addEventListener('load', function loadSettings() {
 
     Settings.currentPanel = href;
     e.preventDefault();
+  });
+  document.addEventListener('visbilitychange', function() {
+    // overlay-mode is for the `configure-overlay` web activity overlay only,
+    // as a fail safe we will always remove this styling when unloading the app
+    if (document.visibilityState === 'hidden') {
+      document.body.classList.remove('overlay-mode');
+    }
   });
 });
 
