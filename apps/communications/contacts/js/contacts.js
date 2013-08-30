@@ -632,6 +632,7 @@ var Contacts = (function() {
 
   var addAsyncScripts = function addAsyncScripts() {
     var lazyLoadFiles = [
+      '/contacts/js/utilities/contact_fields.js',
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
       '/contacts/js/confirm_dialog.js',
