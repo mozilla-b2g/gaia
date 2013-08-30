@@ -2,22 +2,18 @@
 
   'use strict';
 
-  var priv = new WeakMap();
+  var wm = new WeakMap();
+
+  function Defaults() {
+    this.startTime = 0;
+    this.totalElapsed = 0;
+    this.isStarted = false;
+    this.laps = [];
+  }
 
   function Stopwatch() {
-    priv.set(this, {});
-
-    this.reset();
+    wm.set(this, new Defaults());
   };
-
-  Object.defineProperty(Stopwatch, 'DEFAULTS', {
-    value: {
-      startTime: 0,
-      totalElapsed: 0,
-      isStarted: false,
-      laps: []
-    }
-  });
 
   Stopwatch.prototype = {
 
@@ -27,25 +23,26 @@
     * start Starts the stopwatch, either from a reset or paused state
     */
     start: function sw_start() {
-      if (priv.get(this)['isStarted']) {
+      var sw = wm.get(this);
+      if (sw.isStarted) {
         return;
       }
-      priv.get(this)['startTime'] = Date.now();
-      priv.get(this)['isStarted'] = true;
+      sw.startTime = Date.now();
+      sw.isStarted = true;
     },
 
     /**
     * getElapsedTime Calculates the total elapsed duration since the
     *                stopwatch was started
-    *
     * @return {Date} return total elapsed duration
     */
     getElapsedTime: function sw_getElapsedTime() {
+      var sw = wm.get(this);
       var elapsed = 0;
-      if (priv.get(this)['isStarted']) {
-        elapsed = Date.now() - priv.get(this)['startTime'];
+      if (sw.isStarted) {
+        elapsed = Date.now() - sw.startTime;
       }
-      elapsed += priv.get(this)['totalElapsed'];
+      elapsed += sw.totalElapsed;
 
       return new Date(elapsed);
     },
@@ -54,50 +51,49 @@
     * pause Pauses the stopwatch
     */
     pause: function sw_pause() {
-      if (!priv.get(this)['isStarted']) {
+      var sw = wm.get(this);
+      if (!sw.isStarted) {
         return;
       }
-      priv.get(this)['isStarted'] = false;
-      var elapsed = Date.now() - priv.get(this)['startTime'];
-      priv.get(this)['totalElapsed'] += elapsed;
+      sw.isStarted = false;
+      var elapsed = Date.now() - sw.startTime;
+      sw.totalElapsed += elapsed;
     },
 
     /**
     * lap Calculates a new lap duration since the last lap time
     *     If the stopwatch isn't currently running, returns 0
-    *
     * @return {Date} return the lap duration
     */
     lap: function sw_lap() {
-      if (!priv.get(this)['isStarted']) {
+      var sw = wm.get(this);
+      if (!sw.isStarted) {
         return new Date(0);
       }
 
       var lastLapTime;
       var newLap = {};
 
-      if (priv.get(this)['laps'].length > 0) {
-        var l = priv.get(this)['laps'];
-        lastLapTime = l[l.length - 1].time;
+      if (sw.laps.length > 0) {
+        lastLapTime = sw.laps[sw.laps.length - 1].time;
       } else {
-        lastLapTime = priv.get(this)['startTime'];
+        lastLapTime = sw.startTime;
       }
 
       newLap.duration = Date.now() - lastLapTime;
       newLap.time = Date.now();
-      priv.get(this)['laps'].push(newLap);
+      sw.laps.push(newLap);
 
       return new Date(newLap.duration);
     },
 
     /**
     * getLapDurations Returns an array of lap durations, sorted by oldest first
-    *
     * @return {Array} return an array of lap durations
     */
     getLapDurations: function sw_getLapDurations() {
-      var l = priv.get(this)['laps'];
-      return l.map(function(lap) {
+      var sw = wm.get(this);
+      return sw.laps.map(function(lap) {
         return lap.duration;
       });
     },
@@ -106,7 +102,7 @@
     * reset Resets the stopwatch back to 0, clears laps
     */
     reset: function sw_reset() {
-      Utils.extend(priv.get(this), Stopwatch.DEFAULTS);
+      wm.set(this, new Defaults());
     }
 
   };
