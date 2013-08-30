@@ -41,27 +41,29 @@ form[role="dialog"][data-type="edit"] header:after {
 
 form[role="dialog"][data-type="edit"] header h1 {
   font-size: 2.5rem;
-  line-height: 5rem;
+  line-height: 4.9rem;
   text-align: left;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
   overflow: hidden;
-  margin: 0 0 0 3rem;
-  height: 100%
+  margin: 0;
+  padding: 0 1rem 0 3rem;
+  height: 100%;
+  font-weight: normal;
 }
 
 form[role="dialog"][data-type="edit"] header button {
   border: none;
-  background: none;
   padding: 0;
   overflow: hidden;
-  font-weight: normal;
-  font-size: 1.4rem;
+  font-weight: 400;
+  font-size: 1.5rem;
   line-height: 1.1em;
   color: #fff;
   border-radius: 0;
+  text-decoration: none;
 }
 
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] {
@@ -72,16 +74,16 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] {
 }
 
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
-  height: 5rem;
+  height: 4.9rem;
   min-width: 5rem;
   width: auto;
   margin-bottom: 0;
   border-radius: 0;
-  line-height: 5rem;
+  line-height: 4.9rem;
   float: left;
   font-weight: normal;
   background: none;
-  padding: 0 1.75rem;
+  padding: 0 1rem;
   -moz-box-sizing: border-box;
   text-align: center;
   text-shadow: none;
@@ -95,41 +97,65 @@ form[role="dialog"][data-type="edit"] header menu button {
 }
 
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:last-child {
-  background: url(edit_mode/images/ui/separator.png) no-repeat left center / auto 3.4rem;;
-  margin-left: -0.2rem;
+  background: url(edit_mode/images/ui/separator.png) no-repeat left center / auto 4.8rem;;
+  margin-left: -0.1rem;
   z-index: 1;
 }
 
 /* Press state */
-form[role="dialog"][data-type="edit"] header button:active .icon:after,
+form[role="dialog"][data-type="edit"] header button::-moz-focus-inner,
+form[role="dialog"][data-type="edit"] header button:active,
+form[role="dialog"][data-type="edit"] header button:focus {
+  outline: none !important;
+  border: none !important;
+}
+
+form[role="dialog"][data-type="edit"] header button:active:after,
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:active  {
   background: #008aaa !important;
-  transition: background 0.2s ease;
   color: #fff;
 }
 
-form[role="dialog"][data-type="edit"] header button:first-letter {
-  text-transform: uppercase;
+/* Disabled state */
+form[role="dialog"][data-type="edit"]  header menu[type="toolbar"] button[disabled]  {
+  opacity: 0.5;
 }
 
 form[role="dialog"][data-type="edit"] header > button {
+  position: relative;
+  width: 5rem;
+  height: 4.9rem;
+  background: none;
+  float: left;
+  overflow: visible;
+  margin-right: -4rem;
+}
+
+form[role="dialog"][data-type="edit"] header > button:after {
+  content: "";
   position: absolute;
   left: 0;
-  width: 4rem;
-  height: 5rem;
-  background: url(edit_mode/images/ui/separator-large.png) no-repeat 2rem center / auto 4.8rem;
-  overflow: hidden;
-  text-align: center;
+  top: 0;
+  z-index: -1;
+  width: 3.2rem;
+  height: 4.9rem;
+  background: url(edit_mode/images/ui/separator.png) no-repeat right center / 0.1rem 4.8rem;
 }
 
 form[role="dialog"][data-type="edit"] header > button span {
-  background: url(edit_mode/images/icons/close.png) no-repeat center center / 3rem auto;
-  overflow: visible;
-  font: 0/0 a;
-  position: static;
-  margin-left: -2rem;
-  height: 4.9rem;
+  position: relative;
+  float: none;
   display: block;
+  width: 3rem;
+  height: 4.9rem;
+  margin: 0;
+  background: transparent no-repeat center center / 3rem auto;
+  font-size: 0;
+  overflow: hidden;
+}
+
+form[role="dialog"][data-type="edit"] header .icon.icon-close {
+  background-image: url(edit_mode/images/icons/close.png);
 }
 
 form[role="dialog"][data-type="edit"] header > button span:after {
@@ -138,8 +164,9 @@ form[role="dialog"][data-type="edit"] header > button span:after {
   left: 0;
   top: 0;
   z-index: -1;
-  width: 2rem;
+  width: 3.2rem;
   height: 4.9rem;
+  background: url(edit_mode/images/ui/separator.png) no-repeat right center / 0.2rem 4.8rem;
 }
 
 /* Menu */
