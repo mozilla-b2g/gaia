@@ -14,7 +14,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": "ringtone"
+        "type": ["ringtone", "alerttone"]
        },
       "disposition": "inline",
       "returnValue": true,
