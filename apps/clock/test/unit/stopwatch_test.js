@@ -57,7 +57,7 @@ suite('Stopwatch', function() {
 
   suite('lap', function() {
 
-    test('lap before start', function() {
+    test('before start', function() {
       var l = this.sw.lap();
       assert.equal(l.getTime(), 0);
     });
