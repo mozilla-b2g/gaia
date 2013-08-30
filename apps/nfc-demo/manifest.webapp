@@ -4,7 +4,8 @@
   "launch_path": "/nfc.html",
   "type": "certified",
   "permissions": {
-    "nfc":{ "access": "readwrite" }
+    "nfc":{ "access": "readwrite" },
+    "settings":{ "access": "readwrite" }
   },
   "developer": {
     "name": "Deutsche Telekom",

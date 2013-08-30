@@ -186,7 +186,7 @@ function launchDialer(telurl) {
   var number = telurl.substring('tel:'.length);
   console.log('Adding number ' + number + ' to settings');
   if (navigator.mozSettings) {
-    var request = navigator.mozSettings.getLock().set(
+    var request = navigator.mozSettings.createLock().set(
                     { 'nfc.dial_number': number});
     request.onsuccess = function() {
       launchDialerApp();
@@ -390,11 +390,29 @@ function debug(message) {
   nfcUI.appendTextAndScroll($('#area'), '(' + dbgcnt + ') ' + message + '\n');
 }
 
+function setNfcPowerLevel(level) {
+  if (!navigator.mozSettings) {
+     debug('Settings or missing permissions.');
+     return;
+  }
+  var request = navigator.mozSettings.createLock().set({
+    'nfc.powerlevel': level
+  });
+  request.onsuccess = function() {
+    debug('Power level set successfully.');
+  };
+  request.onerror = function() {
+    debug('Power level set failure');
+  };
+}
+
 function setListenState(boolState) {
   if (boolState == true) {
+    setNfcPowerLevel(1);
     $('#buttontext').text('Stop Tag Discovery');
     isListening = true;
   } else {
+    setNfcPowerLevel(0);
     $('#buttontext').text('Start Tag Discovery');
     $('#taglist').css('display', 'none');
     $('#actionlist').css('display', 'none');

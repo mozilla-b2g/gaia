@@ -94,6 +94,7 @@ settings = {
  "lockscreen.unlock-sound.enabled": False,
  "mail.sent-sound.enabled": True,
  "message.sent-sound.enabled": True,
+ "nfc.powerlevel": 1,
  "operatorvariant.mcc": "0",
  "operatorvariant.mnc": "0",
  "phone.ring.keypad": True,
