@@ -31,7 +31,7 @@ suite('AlarmEditView', function() {
     AlarmList = MockAlarmList;
     AlarmManager = MockAlarmManager;
     AlarmsDB = new MockAlarmsDB();
-    navigator.mozL10n = MockmozL10n;
+    navigator.mozL10n = MockL10n;
 
     loadBodyHTML('/index.html');
   });

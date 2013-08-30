@@ -548,7 +548,7 @@ suite('ThreadUI Integration', function() {
       ThreadUI.recipients = new Recipients({
         outer: 'messages-to-field',
         inner: 'messages-recipients-list',
-        template: new Utils.Template('messages-recipient-tmpl')
+        template: new Template('messages-recipient-tmpl')
       });
 
       ThreadUI.recipients.add({

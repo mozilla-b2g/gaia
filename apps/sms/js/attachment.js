@@ -120,7 +120,7 @@
       // interpolate the #attachment-[no]preview-tmpl template
       thumbnail = thumbnail || {};
       var sizeL10n = this.sizeForL10n;
-      return Utils.Template(tmplID).interpolate({
+      return Template(tmplID).interpolate({
         type: this.type,
         errorClass: thumbnail.error ? 'corrupted' : '',
         imgData: thumbnail.data,
@@ -167,7 +167,7 @@
         container.classList.add(previewClass);
 
         if (this.isDraft) { // <iframe>
-          var tmplSrc = Utils.Template('attachment-draft-tmpl').interpolate({
+          var tmplSrc = Template('attachment-draft-tmpl').interpolate({
             previewClass: previewClass,
             baseURL: location.protocol + '//' + location.host + '/',
             attachmentHTML: this.getAttachmentSrc(thumbnail, tmplID)

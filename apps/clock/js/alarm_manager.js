@@ -70,7 +70,7 @@ var AlarmManager = {
     request.onsuccess = function(e) {
       var hasAlarmEnabled = false;
       var generator = Utils.async.generator(function(err) {
-        if (!err) {
+        if (!err && navigator.mozSettings) {
           navigator.mozSettings.createLock().set({
             'alarm.enabled': hasAlarmEnabled
           });

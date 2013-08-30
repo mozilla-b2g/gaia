@@ -1318,7 +1318,7 @@ suite('thread_ui.js >', function() {
 
   suite('buildMessageDOM >', function() {
     setup(function() {
-      this.sinon.spy(MockUtils, 'escapeHTML');
+      this.sinon.spy(Template, 'escape');
       this.sinon.stub(MockSMIL, 'parse');
     });
 
@@ -1335,14 +1335,14 @@ suite('thread_ui.js >', function() {
     test('escapes the body for SMS', function() {
       var payload = 'hello <a href="world">world</a>';
       ThreadUI.buildMessageDOM(buildSMS(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
 
     test('escapes all text for MMS', function() {
       var payload = 'hello <a href="world">world</a>';
       MockSMIL.parse.yields([{ text: payload }]);
       ThreadUI.buildMessageDOM(buildMMS(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
   });
 
