@@ -3,6 +3,21 @@
 
 var Utils = {};
 
+Utils.extend = function(initialObject, extensions) {
+  // extend({}, a, b, c ... d) -> {...}
+  // rightmost properties (on 'd') take precedence
+  extensions = Array.prototype.slice.call(arguments, 1);
+  for (var i = 0; i < extensions.length; i++) {
+    var extender = extensions[i];
+    for (var prop in extender) {
+      if (Object.prototype.hasOwnProperty.call(extender, prop)) {
+        initialObject[prop] = extender[prop];
+      }
+    }
+  }
+  return initialObject;
+};
+
 Utils.escapeHTML = function(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
@@ -10,49 +25,6 @@ Utils.escapeHTML = function(str, escapeQuotes) {
   if (escapeQuotes)
     return span.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#x27;');
   return span.innerHTML;
-};
-
-Utils.summarizeDaysOfWeek = function(repeat) {
-  var _ = navigator.mozL10n.get;
-  // Build a bitset
-  var value = 0;
-  for (var i = 0; i < DAYS.length; i++) {
-    var dayName = DAYS[i];
-    if (repeat[dayName] === true) {
-      value |= (1 << i);
-    }
-  }
-  var summary;
-  if (value === 127) { // 127 = 0b1111111
-    summary = _('everyday');
-  } else if (value === 31) { // 31 = 0b0011111
-    summary = _('weekdays');
-  } else if (value === 96) { // 96 = 0b1100000
-    summary = _('weekends');
-  } else if (value !== 0) { // any day was true
-    var weekdays = [];
-    for (var i = 0; i < DAYS.length; i++) {
-      var dayName = DAYS[i];
-      if (repeat[dayName]) {
-        // Note: here, Monday is the first day of the week
-        // whereas in JS Date(), it's Sunday -- hence the (+1) here.
-        weekdays.push(_('weekday-' + ((i + 1) % 7) + '-short'));
-      }
-      summary = weekdays.join(', ');
-    }
-  } else { // no day was true
-    summary = _('never');
-  }
-  return summary;
-};
-
-Utils.isEmptyRepeat = function(repeat) {
-  for (var i in repeat) {
-    if (repeat[i] === true) {
-      return false;
-    }
-  }
-  return true;
 };
 
 Utils.is12hFormat = function() {
@@ -68,44 +40,6 @@ Utils.getLocaleTime = function(d) {
     t: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
     p: is12h ? f.localeFormat(d, '%p') : ''
   };
-};
-
-// check alarm has passed or not
-Utils.isAlarmPassToday = function(hour, minute) {
-  var now = new Date();
-  if (hour > now.getHours() ||
-      (hour == now.getHours() && minute > now.getMinutes())) {
-    return false;
-  }
-  return true;
-};
-
-// get the next alarm fire time
-Utils.isDateInRepeat = function alarm_isDateInRepeat(repeat, date) {
-  // return true if repeat contains date
-  var day = DAYS[(date.getDay() + 6) % 7];
-  return !!repeat[day];
-};
-
-Utils.repeatDays = function alarm_repeatDays(repeat) {
-  var count = 0;
-  for (var i in repeat) {
-    if (repeat[i]) {
-      count++;
-    }
-  }
-  return count;
-};
-
-Utils.getNextAlarmFireTime = function(alarm) {
-  var now = new Date(), next = new Date();
-  next.setHours(alarm.hour, alarm.minute, 0, 0);
-  while (next < now ||
-          !(Utils.repeatDays(alarm.repeat) === 0 ||
-            Utils.isDateInRepeat(alarm.repeat, next))) {
-    next.setDate(next.getDate() + 1);
-  }
-  return next;
 };
 
 Utils.changeSelectByValue = function(selectElement, value) {
@@ -160,6 +94,117 @@ Utils.parseTime = function(time) {
     hour: hour,
     minute: +minute // now cast minute to int
   };
+};
+
+Utils.safeCpuLock = function(timeoutMs, fn) {
+    /*
+     * safeCpuLock
+     *
+     * Create a CPU lock that is automatically released after
+     * timeoutMs.
+     *
+     *
+     * @timeoutMs {integer} a number of milliseconds
+     * @callback {Function} a function to be called after
+     *           all other generated callbacks have been
+     *           called
+     *           function ([err]) -> undefined
+     */
+  var cpuWakeLock, unlockTimeout;
+  var unlockFn = function() {
+    clearTimeout(unlockTimeout);
+    if (cpuWakeLock) {
+      cpuWakeLock.unlock();
+      cpuWakeLock = null;
+    }
+  };
+  unlockTimeout = setTimeout(unlockFn, timeoutMs);
+  try {
+    cpuWakeLock = navigator.requestWakeLock('cpu');
+    fn(unlockFn);
+  } catch (err) {
+    unlockFn();
+    throw err;
+  }
+};
+
+Utils.async = {
+
+  generator: function(latchCallback) {
+    /*
+     * Generator
+     *
+     * Create an async generator. Each time the generator is
+     * called, it will return a new callback. When all issued
+     * callbacks have been called, the latchCallback is called.
+     *
+     * If any of the callbacks are called with and error as
+     * the first argument, the latchCallback will be called
+     * immediately with that error.
+     *
+     * @latchCallback {Function} a function to be called after
+     *           all other generated callbacks have been
+     *           called
+     *           function ([err]) -> undefined
+     */
+    var tracker = new Map();
+    var issuedCallbackCount = 0;
+    var disabled = false;
+    var testFn = function(err) {
+      var trackerSize;
+      if (!disabled) {
+        // FF18 defines size to be a method, so we need to test here:
+        // Remove with FF18 support
+        if (typeof tracker.size === 'function') {
+          trackerSize = tracker.size();
+        } else {
+          trackerSize = tracker.size;
+        }
+        if (err || trackerSize === issuedCallbackCount) {
+          disabled = true;
+          latchCallback && latchCallback(err);
+        }
+      }
+    };
+    return function() {
+      return (function() {
+        var i = issuedCallbackCount++;
+        return function(err) {
+          tracker.set(i, true);
+          testFn(err);
+        };
+      })();
+    };
+  },
+
+  namedParallel: function(names, latchCallback) {
+    /*
+     * namedParallel
+     *
+     * Create an async namedParallel.
+     *
+     * The return value is an object containing the parameters
+     * specified in the names array. Each parameter is set to
+     * a callback. When all callbacks have been called, latchCallback
+     * is called.
+     *
+     * If any named callback is called with an error as the first
+     * parameter, latchCallback is immediately called with that
+     * error. Future calls to callbacks are then no-ops.
+     *
+     * @names {List<String>} - A list of strings to be used as
+     *        parameter names for callbacks on the returned object.
+     */
+    var generator = Utils.async.generator(latchCallback);
+    var done = generator();
+    var ret = {};
+    for (var i = 0; i < names.length; i++) {
+      ret[names[i]] = generator();
+    }
+    done();
+    return ret;
+  }
+
 };
 
 exports.Utils = Utils;
