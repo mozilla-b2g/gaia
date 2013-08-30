@@ -1,12 +1,15 @@
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
+require('/shared/js/text_normalizer.js');
+require('/shared/js/lazy_loader.js');
 //Avoiding lint checking the DOM file renaming it to .html
-requireApp('../communications/contacts/test/unit/mock_form_dom.js.html');
+requireApp('communications/contacts/test/unit/mock_form_dom.js.html');
 
-requireApp('../communications/contacts/js/views/form.js');
-requireApp('../communications/contacts/js/utilities/templates.js');
-requireApp('../communications/contacts/js/utilities/dom.js');
-requireApp('../communications/contacts/test/unit/mock_contacts.js');
-requireApp('../communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/js/views/form.js');
+requireApp('communications/contacts/js/utilities/templates.js');
+requireApp('communications/contacts/js/utilities/dom.js');
+requireApp('communications/contacts/js/utilities/event_listeners.js');
+requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_fb.js');
 
 var subject,
     realL10n,
@@ -293,6 +296,13 @@ suite('Render contact form', function() {
   });
 
   suite('Generate full contact name', function() {
+    setup(function() {
+      // Bypass the contacts matcher when saving contact
+      LazyLoader.load(['/contacts/js/contacts_matcher.js'], function() {
+          contacts.Matcher.match = function() {};
+      });
+    });
+
     test('given name is empty', function() {
       var deviceContact = new MockContactAllFields();
       deviceContact.givenName = null;
