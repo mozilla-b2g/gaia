@@ -86,6 +86,36 @@ else
 REPORTER?=Spec
 endif
 
+ifeq ($(REPORTER), JSONMozPerf)
+  define PERF_REPORTER_HEADER
+  echo '['; 
+  endef
+
+  define PERF_BETWEEN_TEST_RULE
+  if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
+	FIRST_LOOP_ITERATION=done; \
+  else \
+  	echo ','; \
+  fi; 
+  endef
+
+  define PERF_REPORTER_FOOTER
+  echo ']'; 
+  endef
+
+else
+
+  define PERF_REPORTER_HEADER
+  endef
+
+  define PERF_BETWEEN_TEST_RULE
+  endef
+
+  define PERF_REPORTER_FOOTER
+  endef
+
+endif
+
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
 
@@ -580,26 +610,15 @@ test-perf:
 	# All echo calls help create a JSON array
 	adb forward tcp:2828 tcp:2828
 	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
-	if [ "${REPORTER}" = "JSONMozPerf" ]; then \
-		echo '['; \
-		for app in ${APPS}; \
-		do \
-			if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
-				FIRST_LOOP_ITERATION=done; \
-			else \
-				echo ','; \
-			fi; \
-			FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
-			REPORTER=${REPORTER} ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
-		done; \
-		echo ']'; \
-	else \
-		for app in ${APPS}; \
-		do \
-			FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
-			REPORTER=${REPORTER} ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
-		done; \
-	fi; 
+	${PERF_REPORTER_HEADER} \
+	for app in ${APPS}; \
+	do \
+		${PERF_BETWEEN_TEST_RULE} \
+		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
+		REPORTER=${REPORTER} ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
+	done; \
+	${PERF_REPORTER_FOOTER}
+	
 
 .PHONY: tests
 tests: webapp-manifests offline
