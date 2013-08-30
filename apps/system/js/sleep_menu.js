@@ -241,7 +241,6 @@ var SleepMenu = {
           elem.removeAttribute('src');
           elem.load();
         };
-        elem.play();
       } else {
         div.addEventListener('animationend', function() {
           elem.classList.add('hide');
