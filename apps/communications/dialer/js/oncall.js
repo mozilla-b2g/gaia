@@ -785,8 +785,8 @@ var OnCallHandler = (function onCallHandler() {
                     [0, 0, 500]];
     TonePlayer.playSequence(sequence);
     setTimeout(function busyLineStopped() {
+      busyNotificationLock = false;
       if (handledCalls.length === 0) {
-        busyNotificationLock = false;
         exitCallScreen(true);
       }
     }, 3000);
