@@ -317,6 +317,60 @@ suite('grid.js >', function() {
     });
   });
 
+  suite('install single variant apps >', function() {
+    var mockAppSV;
+
+    // This var shoud match the content of mock_configurator
+    var svApps = [
+      {
+        'screen': 1,
+        'manifest' : 'https://aHost/aMan1',
+        'location' : 15
+      },
+      {
+        'screen' : 2,
+        'manifest' : 'https://aHost/aMan2',
+        'location' : 6
+      },
+      {
+        'screen' : 2,
+        'manifest' : 'https://aHost/aMan3',
+        'location': 0
+      }
+    ];
+
+    svApps.forEach(function(svApp) {
+      test('should save the icon with desiredPos in the correctpage',
+           function(done) {
+        MockHomeState.mLastSavedGrid = null;
+        mockAppSV = new MockApp({'manifestURL': svApp.manifest});
+        MockAppsMgmt.mTriggerOninstall(mockAppSV);
+
+        setTimeout(function() {
+          var grd = MockHomeState.mLastSavedGrid;
+
+          assert.ok(grd, 'Grid is not set');
+          assert.equal(grd.length, svApp.screen + 1,
+                       'Grid does not have the right number of screens');
+          assert.equal(grd[svApp.screen].index, svApp.screen,
+                       'App was not installed on the correct screen');
+          assert.ok(grd[svApp.screen].icons,
+                    'The screen does not have a icons structure');
+
+          var icns = grd[svApp.screen].icons[0];
+          assert.ok(icns, 'The screen does not have any icons');
+          assert.isTrue(icns.desiredPos !== undefined,
+                        'The single variant app does not have a desiredPos');
+          assert.equal(icns.desiredPos, svApp.location,
+                       'App does not have the correct DesiredPosition');
+
+          done();
+        }, SAVE_STATE_WAIT_TIMEOUT);
+
+      });
+    });
+  });
+
   suite('#getApps >', function() {
       var manifests = [
         {

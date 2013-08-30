@@ -2,11 +2,13 @@
 
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_homescreen.js');
+requireApp('homescreen/test/unit/mock_iccHelper.js');
 
 // Unit tests for configurator library
 requireApp('homescreen/js/configurator.js');
 
 var mocksHelperForConfigurator = new MocksHelper([
+  'IccHelper',
   'XMLHttpRequest',
   'Homescreen'
 ]);
@@ -84,6 +86,49 @@ suite('configurator.js >', function() {
     assert.isUndefined(Configurator.getSection('petecan'));
   });
 
+  /*
+   * It tests the public method "getSingleVariantApps" getting properties/values
+   */
+  test('getSingleVariantApps  >', function() {
+    sendResponseText('{ "search_page":{ "provider": "em","enabled": false },' +
+                      '"tap_threshold": 10,' +
+                      '"swipe": { "threshold": 0.4, "friction": 0.1,' +
+                                 '"transition_duration": 300 } }');
+
+    MockIccHelper.fireEvent('iccinfochange', '214', '007');
+    sendResponseText('{"214-007": [{"screen": 2,' +
+                     '"manifest": "https://aHost/aMan1",' +
+                     '"location": 15},' +
+                     '{"screen": 2,' +
+                     '"manifest": "https://aHost/aMan2",' +
+                     '"location": 6},' +
+                     '{"screen": 2,' +
+                     '"manifest": "https://aHost/aMan3",' +
+                     '"location": 3}],' +
+                     '"214-006": [{"screen": 2,' +
+                     '"manifest": "https://aHost/aMan4",' +
+                     '"location": 3}]}');
+
+    var singleVariantApps = Configurator.getSingleVariantApps();
+    assert.equal(singleVariantApps['https://aHost/aMan3'].screen, 2);
+    assert.equal(singleVariantApps['https://aHost/aMan3'].manifest,
+                 'https://aHost/aMan3');
+    assert.equal(singleVariantApps['https://aHost/aMan3'].location, 3);
+    assert.equal(singleVariantApps['https://aHost/aManNoExist'], undefined);
+    assert.equal(singleVariantApps['https://aHost/aMan4'], undefined);
+  });
+
+  /*
+   * It checks what happens when there is an error parsing the SingleVariant
+   * configuration file
+   */
+  test('SV - Error parsing configuration >', function() {
+    sendResponseText('{ "search_page":{ "provider": "em","enabled": false },');
+    MockIccHelper.fireEvent('iccinfochange', '214', '007');
+    sendResponseText('{Something that is wrong{');
+    var singleVariantApps = Configurator.getSingleVariantApps();
+    assert.equal(Object.keys(singleVariantApps).length, 0);
+  });
   /*
    * It checks the conditions when there is NOT a search provider
    */

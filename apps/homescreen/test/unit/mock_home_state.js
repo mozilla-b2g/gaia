@@ -11,7 +11,15 @@ var MockHomeState = {
     this.mLastSavedGrid = state;
   },
 
+  saveSVInstalledApps: function mhs_saveSVInstalledApps(svApps) {
+    this.mLastSavedInstalledApps = svApps;
+  },
+
+  getSVApps: function mhs_getSVApps() { },
+
   mLastSavedGrid: null,
+
+  mLastSavedInstalledApps: null,
 
   mTeardown: function mhs_mTeardown() {
     this.mLastSavedGrid = null;
