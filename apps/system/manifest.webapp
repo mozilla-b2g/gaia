@@ -38,8 +38,8 @@
     "audio-channel-content":{},
     "cellbroadcast":{},
     "keyboard":{},
-    "nfc":{},
-    "nfc-manager":{}
+    "nfc":{ "access": "readonly" },
+    "nfc-manager":{ "access": "readonly" }
   },
   "locales": {
     "ar": {
