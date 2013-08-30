@@ -419,7 +419,7 @@ contacts.Settings = (function() {
         }
       };
       ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
-      Contacts.hideOverlay();
+      resetWait(wakeLock);
     };
 
     importer.start();
@@ -500,7 +500,7 @@ contacts.Settings = (function() {
         }
       };
       ConfirmDialog.show(null, _('sdContacts-error'), cancel, retry);
-      Contacts.hideOverlay();
+      resetWait(wakeLock);
     }
   };
 
