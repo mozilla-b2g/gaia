@@ -100,12 +100,19 @@ var AlarmList = {
            '</a>';
   },
 
-  createItem: function al_createItem(alarm, appendTarget) {
+  createItem: function al_createItem(alarm, prependTarget) {
+    /**
+     * createItem
+     *
+     * Render and then prepend an alarm to the DOM element
+     * prependTarget
+     *
+     */
     var li = document.createElement('li');
     li.className = 'alarm-cell';
     li.innerHTML = this.buildAlarmContent(alarm);
-    if (appendTarget) {
-      appendTarget.appendChild(li);
+    if (prependTarget) {
+      prependTarget.insertBefore(li, prependTarget.firstChild);
       if (this._previousAlarmCount !== this.getAlarmCount()) {
         this._previousAlarmCount = this.getAlarmCount();
         ClockView.resizeAnalogClock();
@@ -117,6 +124,9 @@ var AlarmList = {
   refreshItem: function al_refreshItem(alarm) {
     if (!this.getAlarmFromList(alarm.id)) {
       this.alarmList.push(alarm);
+      this.alarmList.sort(function(a, b) {
+        return a.id - b.id;
+      });
       this.createItem(alarm, this.alarms);
     } else {
       this.setAlarmFromList(alarm.id, alarm);
@@ -130,10 +140,20 @@ var AlarmList = {
   },
 
   fillList: function al_fillList(alarmDataList) {
+    /**
+     * fillList
+     *
+     * Render all alarms in alarmDataList to the DOM in
+     * decreasing order
+     *
+     */
     this.alarmList = alarmDataList;
     var content = '';
     this.alarms.innerHTML = '';
-    alarmDataList.forEach(function al_fillEachList(alarm) {
+    alarmDataList.sort(function(a, b) {
+      return a.id - b.id;
+    }).forEach(function al_fillEachList(alarm) {
+      // prepend the rendered alarm to the alarm list
       this.createItem(alarm, this.alarms);
     }.bind(this));
   },
