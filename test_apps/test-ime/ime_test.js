@@ -15,33 +15,20 @@ suite('Input Method', function() {
 
   var container = document.getElementById('workspace');
 
-  /**
-   * Listens once to an inputcontextchange and then discards the event
-   * @param {Boolean} needIc Specify whether NULL for the inputcontext is OK
-   * @param {Function} callback Callback with 1 arg that holds inputcontext
-   */
-  function onIcc(needIc, callback) {
-    navigator.mozInputMethod.addEventListener('inputcontextchange', function onicc() {
-      if (!navigator.mozInputMethod.inputcontext && needIc) {
-        return;
-      }
-      navigator.mozInputMethod.removeEventListener('inputcontextchange', onicc);
-      callback(navigator.mozInputMethod.inputcontext);
-    });
-  }
-
   setup(function(next) {
-    container.innerHTML = '';
+    navigator.mozInputMethod.oninputcontextchange = function() {
+      if (navigator.mozInputMethod.inputcontext) {
+        if (navigator.mozInputMethod.inputcontext.textAfterCursor === 'sfw') {
+          navigator.mozInputMethod.oninputcontextchange = function() {
+            next();
+          };
 
-    // no active context? go along
-    if (!navigator.mozInputMethod.inputcontext) {
-      return next();
-    }
-
-    // otherwise wait for the blur() action
-    onIcc(false, function() {
-      next();
-    });
+          container.innerHTML = '';
+          document.querySelector('#sfw input').blur();
+        }
+      }
+    };
+    document.querySelector('#sfw input').focus();
   });
 
   suiteTeardown(function() {
@@ -50,38 +37,48 @@ suite('Input Method', function() {
 
   suite('InputContextChange events', function() {
     test('Event fires on textbox focus', function(next) {
-      onIcc(true, function(ic) {
-        assert.equal(ic.inputType, 'text');
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        if (!navigator.mozInputMethod.inputcontext)
+          return;
+        assert.equal(navigator.mozInputMethod.inputcontext.inputType,
+          'text');
         next();
-      });
+      };
       container.innerHTML = '<input type="text" id="test" />';
       document.querySelector('#test').focus();
     });
 
     test('Event fires on textarea focus', function(next) {
-      onIcc(true, function(ic) {
-        assert.equal(ic.inputType, 'textarea');
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        if (!navigator.mozInputMethod.inputcontext)
+          return;
+        assert.equal(navigator.mozInputMethod.inputcontext.inputType,
+          'textarea');
         next();
-      });
+      };
       container.innerHTML = '<textarea id="test2">Hi!</textarea>';
       document.querySelector('#test2').focus();
     });
 
     test('Event fires on contenteditable focus', function(next) {
-      onIcc(true, function(ic) {
-        assert.equal(ic.inputType,
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        if (!navigator.mozInputMethod.inputcontext)
+          return;
+        assert.equal(navigator.mozInputMethod.inputcontext.inputType,
           'textarea');
         next();
-      });
+      };
       container.innerHTML = '<div id="test3" contenteditable="true">Hi</div>';
       document.querySelector('#test3').focus();
     });
 
     test('No event on type="range"', function(next) {
       var fired = false;
-      onIcc(true, function() {
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        if (!navigator.mozInputMethod.inputcontext)
+          return;
         fired = true;
-      });
+      };
       container.innerHTML = '<input type="range" min="0" max="100" step="1"/>';
       document.querySelector('input[type=range]').focus();
       setTimeout(function() {
@@ -109,17 +106,15 @@ suite('Input Method', function() {
     });
 
     test('Event fires on textbox blur', function(next) {
-      container.innerHTML = '<input type="text" id="test" value="this is tb" />';
+      container.innerHTML = '<input type="text" id="test" />';
       var el = document.querySelector('#test');
       el.focus();
 
-      setTimeout(function() {
-        onIcc(false, function(ic) {
-          assert.equal(ic, null);
-          next();
-        });
-        el.blur();
-      }, 50);
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        assert.equal(navigator.mozInputMethod.inputcontext, null);
+        next();
+      };
+      el.blur();
     });
 
     test('Event fires on textarea blur', function(next) {
@@ -127,13 +122,11 @@ suite('Input Method', function() {
       var el = document.querySelector('#test2');
       el.focus();
 
-      setTimeout(function() {
-        onIcc(false, function(ic) {
-          assert.equal(ic, null);
-          next();
-        });
-        el.blur();
-      }, 50);
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        assert.equal(navigator.mozInputMethod.inputcontext, null);
+        next();
+      };
+      el.blur();
     });
 
     test('Event fires on contenteditable blur', function(next) {
@@ -141,13 +134,11 @@ suite('Input Method', function() {
       var el = document.querySelector('#test3');
       el.focus();
 
-      setTimeout(function() {
-        onIcc(false, function(ic) {
-          assert.equal(ic, null);
-          next();
-        });
-        el.blur();
-      }, 50);
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        assert.equal(navigator.mozInputMethod.inputcontext, null);
+        next();
+      };
+      el.blur();
     });
   });
 
@@ -155,14 +146,19 @@ suite('Input Method', function() {
     function getText(html, id, expected, next) {
       container.innerHTML = html;
 
-      onIcc(true, function(ic) {
-        ic.getText().then(function(v) {
-          assert.equal(expected, v);
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        if (!navigator.mozInputMethod.inputcontext)
+          return;
+
+        var r = navigator.mozInputMethod.inputcontext.getText();
+        r.onerror = function() {
+          assert.strictEqual(true, r.error.name);
+        };
+        r.onsuccess = function() {
+          assert.equal(expected, r.result);
           next();
-        }, function(err) {
-          assert.strictEqual(true, err);
-        });
-      });
+        };
+      };
 
       document.querySelector('#' + id).focus();
     }
@@ -198,44 +194,55 @@ suite('Input Method', function() {
           sk = icc.sendKey(c, 0, 0);
         }
 
-        sk.then(function() {
+        sk.onsuccess = function() {
           if (++completed === chars.length) {
-            navigator.mozInputMethod.inputcontext.getText().then(function(v) {
-              assert.equal(expected, v);
+            var r = navigator.mozInputMethod.inputcontext.getText();
+            r.onerror = function() {
+              assert.strictEqual(true, r.error.name);
+            };
+            r.onsuccess = function() {
+              assert.equal(expected, r.result);
               next();
-            }, function(err) {
-              assert.strictEqual(true, err);
-            });
+            };
           }
-        }, function(err) {
-          assert.strictEqual(true, err);
-        });
+        };
+        sk.onerror = function() {
+          assert.strictEqual(true, sk.error.name);
+        };
       });
     }
 
     test('Handle backspace', function(next) {
       container.innerHTML = '<input type="text" id="test" value="" />';
 
-      onIcc(true, function() {
-        sendKeys(['J', 'a', 'm', KeyEvent.DOM_VK_BACK_SPACE, 'n'],
-          'Jan', next);
-      });
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        if (navigator.mozInputMethod.inputcontext) {
+          sendKeys(['J', 'a', 'm', KeyEvent.DOM_VK_BACK_SPACE, 'n'],
+            'Jan', next);
+        }
+      };
       document.querySelector('#test').focus();
     });
 
     test('Cursor movement', function(next) {
       container.innerHTML = '<input type="text" id="test" value="" />';
 
-      onIcc(true, function(ic) {
+      navigator.mozInputMethod.oninputcontextchange = function() {
+        if (!navigator.mozInputMethod.inputcontext)
+          return;
+
         sendKeys(['a', 'b', 'c'], 'abc', function() {
-          var r = ic.setSelectionRange(1, 0).then(function() {
+          var r =
+            navigator.mozInputMethod.inputcontext.setSelectionRange(1, 0);
+          r.onsuccess = function() {
             sendKeys(['d', 'e'],
-             'adebc', next);
-          }, function(err) {
-            assert.strictEqual(true, err);
-          });
+               'adebc', next);
+          };
+          r.onerror = function() {
+            assert.strictEqual(true, r.error.name);
+          };
         });
-      });
+      };
       document.querySelector('#test').focus();
     });
   });
