@@ -6,12 +6,11 @@ var _ = navigator.mozL10n.get;
 
 var RingView = {
 
-  ringtonePlayer: null,
-  vibrateInterval: null,
-  screenLock: null,
-  firedAlarm: {},
-  message: {},
-  started: false,
+  _ringtonePlayer: null,
+  _vibrateInterval: null,
+  _screenLock: null,
+  _onFireAlarm: {},
+  _started: false,
 
   get time() {
     delete this.time;
@@ -40,8 +39,8 @@ var RingView = {
 
   init: function rv_init() {
     document.addEventListener('visibilitychange', this);
-    this.firedAlarm = window.opener.ActiveAlarm.firedAlarm;
-    this.message = window.opener.ActiveAlarm.message;
+    this._onFireAlarm = window.opener.ActiveAlarm.getOnFireAlarm();
+    var self = this;
     if (!document.hidden) {
       this.startAlarmNotification();
     } else {
@@ -55,16 +54,16 @@ var RingView = {
       // We should just put a "silent" alarm screen
       // underneath the oncall screen
         if (!document.hidden) {
-          this.startAlarmNotification();
+          self.startAlarmNotification();
         }
         // Our final chance is to rely on visibilitychange event handler.
-      }.bind(this), 0);
+      }, 0);
     }
 
     navigator.mozL10n.ready(function rv_waitLocalized() {
-      this.setAlarmTime();
-      this.setAlarmLabel();
-    }.bind(this));
+      self.setAlarmTime();
+      self.setAlarmLabel();
+    });
 
     this.snoozeButton.addEventListener('click', this);
     this.closeButton.addEventListener('click', this);
@@ -79,10 +78,10 @@ var RingView = {
     }
 
     if (enabled) {
-      this.screenLock = navigator.requestWakeLock('screen');
-    } else if (this.screenLock) {
-      this.screenLock.unlock();
-      this.screenLock = null;
+      this._screenLock = navigator.requestWakeLock('screen');
+    } else if (this._screenLock) {
+      this._screenLock.unlock();
+      this._screenLock = null;
     }
   },
 
@@ -99,7 +98,8 @@ var RingView = {
   },
 
   ring: function rv_ring() {
-    var ringtonePlayer = this.ringtonePlayer = new Audio();
+    this._ringtonePlayer = new Audio();
+    var ringtonePlayer = this._ringtonePlayer;
     ringtonePlayer.addEventListener('mozinterruptbegin', this);
     ringtonePlayer.mozAudioChannelType = 'alarm';
     ringtonePlayer.loop = true;
@@ -118,7 +118,7 @@ var RingView = {
 
   vibrate: function rv_vibrate() {
     if ('vibrate' in navigator) {
-      this.vibrateInterval = window.setInterval(function vibrate() {
+      this._vibrateInterval = window.setInterval(function vibrate() {
         navigator.vibrate([1000]);
       }, 2000);
       /* If user don't handle the onFire alarm,
@@ -133,15 +133,15 @@ var RingView = {
 
   startAlarmNotification: function rv_startAlarmNotification() {
     // Ensure called only once.
-    if (this.started)
+    if (this._started)
       return;
 
-    this.started = true;
+    this._started = true;
     this.setWakeLockEnabled(true);
-    if (this.firedAlarm.sound) {
+    if (this._onFireAlarm.sound) {
       this.ring();
     }
-    if (this.firedAlarm.vibrate == 1) {
+    if (this._onFireAlarm.vibrate == 1) {
       this.vibrate();
     }
   },
@@ -149,22 +149,22 @@ var RingView = {
   stopAlarmNotification: function rv_stopAlarmNotification(action) {
     switch (action) {
     case 'ring':
-      if (this.ringtonePlayer) {
-        this.ringtonePlayer.pause();
-      }
+      if (this._ringtonePlayer)
+        this._ringtonePlayer.pause();
+
       break;
     case 'vibrate':
-      if (this.vibrateInterval) {
-        window.clearInterval(this.vibrateInterval);
-      }
+      if (this._vibrateInterval)
+        window.clearInterval(this._vibrateInterval);
+
       break;
     default:
-      if (this.ringtonePlayer) {
-        this.ringtonePlayer.pause();
-      }
-      if (this.vibrateInterval) {
-        window.clearInterval(this.vibrateInterval);
-      }
+      if (this._ringtonePlayer)
+        this._ringtonePlayer.pause();
+
+      if (this._vibrateInterval)
+        window.clearInterval(this._vibrateInterval);
+
       break;
     }
     this.setWakeLockEnabled(false);
@@ -172,17 +172,17 @@ var RingView = {
 
   getAlarmTime: function am_getAlarmTime() {
     var d = new Date();
-    d.setHours(this.message.date.getHours());
-    d.setMinutes(this.message.date.getMinutes());
+    d.setHours(this._onFireAlarm.hour);
+    d.setMinutes(this._onFireAlarm.minute);
     return d;
   },
 
   getAlarmLabel: function am_getAlarmLabel() {
-    return this.firedAlarm.label;
+    return this._onFireAlarm.label;
   },
 
   getAlarmSound: function am_getAlarmSound() {
-    return this.firedAlarm.sound;
+    return this._onFireAlarm.sound;
   },
 
   handleEvent: function rv_handleEvent(evt) {
