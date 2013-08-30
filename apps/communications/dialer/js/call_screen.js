@@ -72,6 +72,10 @@ var CallScreen = {
     this.syncSpeakerEnabled();
   },
 
+  insertCall: function cs_insertCall(node) {
+    this.calls.appendChild(node);
+  },
+
   resizeHandler: function cs_resizeHandler() {
     // If a user has the keypad opened, we want to display the number called
     // while in status bar mode. And restore the digits typed when exiting.

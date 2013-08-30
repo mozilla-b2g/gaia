@@ -214,23 +214,17 @@ section {
   margin-bottom: 4rem;
 }
 
-/* For HD phones, width: 320px * 1.5 = 480px */
-@media all and (width: 320px) and (resolution: 1.5dppx) {
-  .thumbnail {
-    width: calc(100% / 3 - 0.1rem);
-    padding-bottom: calc(100% / 3 - 0.1rem );
-  }
-}
-
 @media (orientation: landscape) {
   /* 4 thumbnails for each row in landscape mode. */
   .thumbnail {
-    width: calc(100% / 4 - 0.1rem);
-    padding-bottom: calc(100% / 4 - 0.1rem);
+    width: calc((100% - 0.3rem) / 4);
+    padding-bottom: calc((100%  - 0.3rem) / 4);
   }
-
   .thumbnail:nth-child(3n) {
     margin-right: 0.1rem;
+  }
+  .thumbnail:nth-child(4n) {
+    margin-right: 0;
   }
 }
 

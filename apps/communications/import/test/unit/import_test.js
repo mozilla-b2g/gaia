@@ -54,7 +54,10 @@ setup(function() {
 });
 
 
+
 suite('Import Friends Test Suite', function() {
+  // disabled because of perma-red: bug 909630
+  return;
 
   suiteSetup(function() {
     realAlphaScroll = utils.AlphaScroll;

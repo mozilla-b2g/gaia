@@ -45,7 +45,7 @@ make common-install &> /dev/null
 
 # Make gaia for test-agent environment
 echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
-DEBUG=1 WGET_OPTS=-nv make &> /dev/null
+DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make &> /dev/null
 
 echo "Starting test-agent-server and waiting for server to start on port ${TEST_AGENT_PORT}"
 make test-agent-server &> /dev/null &

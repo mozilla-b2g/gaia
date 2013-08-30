@@ -183,7 +183,9 @@ var Browser = {
         }, this);
 
         this.initRemainingListeners();
+        document.body.classList.add('loaded');
         this.hasLoaded = true;
+
         if (this.waitingActivities.length) {
           this.waitingActivities.forEach(this.handleActivity, this);
         }
@@ -282,7 +284,7 @@ var Browser = {
       } else if (data[mccCode + DEFAULT_MNC]) {
         callback(data[mccCode + DEFAULT_MNC]);
       } else if (data[DEFAULT_MCC + DEFAULT_MNC]) {
-        callback(DEFAULT_MCC + DEFAULT_MNC);
+        callback(data[DEFAULT_MCC + DEFAULT_MNC]);
       } else {
         callback(null);
         console.error('No configuration data found.');
@@ -296,37 +298,6 @@ var Browser = {
     };
 
     xhr.send();
-  },
-
-  /**
-   * Get the MCC/MNC operator codes as stored in system settings.
-   *
-   * @param {Function} callback Called with result as object with both values.
-   */
-  getOperatorVariant: function browser_getOperatorVariant(callback) {
-    var variant = { mcc: '0', mnc: '0' }; // Fall back to {0, 0}
-    var transaction = navigator.mozSettings.createLock();
-    var mccKey = 'operatorvariant.mcc';
-    var mncKey = 'operatorvariant.mnc';
-    var mccRequest = transaction.get(mccKey);
-
-    mccRequest.onsuccess = function() {
-      variant.mcc = mccRequest.result[mccKey] || '0';
-      var mncRequest = transaction.get(mncKey);
-
-      mncRequest.onsuccess = function() {
-        variant.mnc = mncRequest.result[mncKey] || '0';
-        callback(variant);
-      };
-
-      mncRequest.onerror = function() {
-        callback(variant);
-      };
-    };
-
-    mccRequest.onerror = function() {
-      callback(variant);
-    };
   },
 
   /**

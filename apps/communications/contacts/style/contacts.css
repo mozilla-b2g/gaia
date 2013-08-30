@@ -523,6 +523,10 @@ section[role="region"] > header .icon.icon-settings
   background-image: url(/contacts/style/images/outlook_icon.png);
 }
 
+#import-settings [data-type="list"] li button.icon-bluetooth:before {
+  background-image: url(/contacts/style/images/bluetooth_icon.png);
+}
+
 #view-settings li button {
   height: 5.5rem;
   line-height: 1.9rem;

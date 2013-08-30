@@ -1,7 +1,8 @@
 'use strict';
 
 var CallsHandler = (function callsHandler() {
-  var COMMS_APP_ORIGIN = 'app://communications.gaiamobile.org';
+  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+    document.location.host;
 
   // Changing this will probably require markup changes
   var CALLS_LIMIT = 2;
@@ -139,9 +140,9 @@ var CallsHandler = (function callsHandler() {
     }
 
     // Find an available node for displaying the call
-    var node = CallScreen.calls.querySelector('.call[data-occupied="false"]');
-    var hc = new HandledCall(call, node);
+    var hc = new HandledCall(call);
     handledCalls.push(hc);
+    CallScreen.insertCall(hc.node);
 
     if (call.state === 'incoming') {
       call.addEventListener('statechange', function callStateChange() {
@@ -165,6 +166,7 @@ var CallsHandler = (function callsHandler() {
     if (handledCalls.length > 1) {
       // New incoming call, signaling the user.
       if (call.state === 'incoming') {
+        hc.hide();
         handleCallWaiting(call);
 
       // User performed another outgoing call. show its status.
@@ -639,7 +641,9 @@ var CallsHandler = (function callsHandler() {
 
     addRecentEntry: addRecentEntry,
 
-    activeCall: activeCall
+    get activeCall() {
+      return activeCall();
+    }
   };
 })();
 

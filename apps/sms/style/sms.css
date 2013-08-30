@@ -777,6 +777,15 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   font-size: 1.8rem;
 }
 
+/* Disable padding and margin on empty contenteditable recipients when they do
+ * not have focus. This allows the Recipients List to intelligently collapse
+ * when the final row contains no "assimilated" (i.e. non-contenteditable)
+ * recipients. */
+.recipient[contenteditable=true]:empty {
+  margin: 0;
+  padding: 0;
+}
+
 .recipient[contenteditable=true]:empty:focus {
   margin-right: 0.5rem;
   padding: 0 0.8rem;

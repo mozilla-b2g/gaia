@@ -1,6 +1,8 @@
 kFontStep = 4;
 
 var MockKeypadManager = {
+  maxFontSize: 12,
+  minFontSize: 8,
   formatPhoneNumber:
     function khm_formatPhoneNumber(ellipsisSide) {
     this.mFormatPhoneNumberCalled = true;

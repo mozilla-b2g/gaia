@@ -1,7 +1,12 @@
 'use strict';
 
+require('/shared/test/unit/mocks/mock_moz_contact.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/contact2vcard.js');
+
+var mocksHelperForContact2vcard = new MocksHelper([
+  'mozContact'
+]).init();
 
 suite('mozContact to vCard', function() {
   function contains(vcard) {
@@ -15,6 +20,8 @@ suite('mozContact to vCard', function() {
     'I////////yH5BAEAAB8ALAAAAAAQABAAAAWD4CeOZDlimOitnvlhXefFiyCs3NkZMe9QDMGi' +
     'k3t1BgZDIcZgHCCxHAyxKRQmnYOkoYgaNYMNr3JoEB6dDBGmyWxihwNBgVZz2Js3YB+JWNpr' +
     'HW15YgA2FxkaRB8JgoQxHQEbdiKNg4R5iYuVgpcZmkUjHDEapYqbJRyjkKouoqqhIyEAOw==';
+
+  mocksHelperForContact2vcard.attachTestHelpers();
 
   suite('mozContact to vCard', function() {
     test('ISO Date conversion', function(done) {
@@ -84,6 +91,27 @@ suite('mozContact to vCard', function() {
       ContactToVcard([new mozContact], function(vcard) {
         assert.strictEqual(vcard, null);
         done();
+      });
+    });
+
+    test('Convert contact to vcard blob', function(done) {
+      var contact = new MockContactAllFields();
+      ContactToVcardBlob([contact], function(blob) {
+        assert.isNotNull(blob);
+        assert.equal('text/vcard', blob.type);
+        // Fetch the same content as a normal vcard
+        ContactToVcard([contact], function(vcard) {
+          // Size of blob in bytes should be the length of the string
+          assert.equal(vcard.length, blob.size);
+          // Read the content and verify that is what we generate
+          var reader = new FileReader();
+          reader.addEventListener('loadend', function() {
+            var blobContent = reader.result;
+            assert.equal(blobContent, vcard);
+            done();
+          });
+          reader.readAsText(blob);
+        });
       });
     });
   });

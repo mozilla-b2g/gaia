@@ -33,9 +33,7 @@
    */
   window.addEventListener('mute', function() {
     // Turn off vibration for really silence.
-    SettingsListener.getSettingsLock().set({
-      'vibration.enabled': false
-    });
+    setVibrationEnabled(false);
     enterSilentMode('notification');
   });
 
@@ -46,9 +44,7 @@
    */
   window.addEventListener('unmute', function() {
     // Turn on vibration.
-    SettingsListener.getSettingsLock().set({
-      'vibration.enabled': true
-    });
+    setVibrationEnabled(true);
     leaveSilentMode('notification');
     leaveSilentMode('content');
   });
@@ -58,6 +54,50 @@
   var currentChannel = 'none';
 
   var vibrationEnabled = true;
+  var vibrationUserPreference = (function() {
+    var _settingsKey = 'vibration.enabled';
+    var _preferenceKey = 'preference.vibration.enabled';
+    var _enabled = null;
+    var _obj = {
+      get enabled() {
+        if (_enabled === null) {
+          return true;
+        } else {
+          return _enabled;
+        }
+      },
+      set enabled(value) {
+        if (value != _enabled) {
+          window.asyncStorage.setItem(_preferenceKey, value,
+            function set_onsuccess() {
+              _enabled = value;
+          });
+        }
+      }
+    };
+
+    // initialize the value
+    window.asyncStorage.getItem(_preferenceKey, function get_onsuccess(value) {
+      if (value === null) {
+        var req = SettingsListener.getSettingsLock().get(_settingsKey);
+        req.onsuccess = function get_onsuccess() {
+          _enabled = req.result[_settingsKey];
+          if (_enabled == null) {
+            _enabled = true;
+          }
+          _obj.enabled = _enabled; // write back to async storage
+        };
+        req.onerror = function get_onerror() {
+          _enabled = true;
+          _obj.enabled = _enabled; // write back to async storage
+        };
+      } else {
+        _enabled = value;
+      }
+    });
+
+    return _obj;
+  })();
 
   // Cache the volume when entering silent mode.
   // Currently only two channel would be used for mute.
@@ -278,6 +318,7 @@
     'bt_sco': 15
   };
   var pendingRequestCount = 0;
+  var setVibrationEnabledCount = 0;
 
   // We have three virtual states here:
   // OFF -> VIBRATION -> MUTE
@@ -326,9 +367,20 @@
   })(fetchCachedVolume);
 
   SettingsListener.observe('vibration.enabled', true, function(vibration) {
+    var setBySelf = false;
+    if (setVibrationEnabledCount > 0) {
+      setVibrationEnabledCount--;
+      setBySelf = true;
+    }
+
     if (pendingRequestCount)
       return;
 
+    // XXX: If the value does not set by sound manager, we assume it comes from
+    //      the settings app and consider it as user preference.
+    if (!setBySelf) {
+      vibrationUserPreference.enabled = vibration;
+    }
     vibrationEnabled = vibration;
   });
 
@@ -423,9 +475,13 @@
         state = 'MUTE';
         vibrationEnabled = true;
       } else {
+        // Restore the vibration setting only when leaving silent mode.
+        if (currentVolume <= 0) {
+          vibrationEnabled = vibrationUserPreference.enabled;
+        }
         state = 'OFF';
-        vibrationEnabled = false;
       }
+
       return state;
     } else {
       if (currentVolume + delta <= 0) {
@@ -551,9 +607,7 @@
     }
 
     if (vibrationEnabledOld != vibrationEnabled) {
-      SettingsListener.getSettingsLock().set({
-        'vibration.enabled': vibrationEnabled
-      });
+      setVibrationEnabled(vibrationEnabled);
     }
 
     var steps =
@@ -601,5 +655,11 @@
     };
   }
 
+  function setVibrationEnabled(enabled) {
+    setVibrationEnabledCount++;
+    SettingsListener.getSettingsLock().set({
+      'vibration.enabled': enabled
+    });
+  }
 })();
 

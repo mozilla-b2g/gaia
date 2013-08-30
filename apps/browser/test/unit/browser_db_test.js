@@ -1,13 +1,57 @@
 // Stub of Browser object.
 var Browser = {
-  getOperatorVariant: function browser_getOperatorVariant() {
+  getConfigurationData: function browser_getDefaultData(variant, callback) {
+    var mccCode = NumberHelper.zfill(variant.mcc, 3);
+    var mncCode = NumberHelper.zfill(variant.mnc, 3);
+
+    // Customization test data.
+    var data = {
+      '000000': {
+        bookmarks: [
+          {
+            title: 'customize test 1',
+            uri: 'http://customize.test.mozilla.org/1'
+          },
+          {
+            title: 'customize test 2',
+            uri: 'http://customize.test.mozilla.org/2'
+          }
+        ],
+        searchEngines: [
+          {
+            title: 'customize search test 1',
+            uri: 'http://customize.test.mozilla.org/search/1',
+            iconUri: DATA_URI
+          }
+        ],
+        settings: {
+          defaultSearchEngine: 'http://customize.test.mozilla.org/search/1'
+        }
+      }
+    };
+
+    // Imitate real getConfigurationData function by creating JSON from our
+    // object and parsing it before returning it.
+    var json = JSON.stringify(data);
+
+    // Select the data from the object.
+    var parsed = JSON.parse(json);
+
+    // Done, notify callback.
+    callback(parsed[mccCode + mncCode]);
+
     return;
   },
-  getConfigurationData: function browser_getConfigurationData() {
+
+  setSearchProvider: function browser_setSearchProvider(uri, title, iconUri) {
     return;
   }
 };
 
+requireApp('browser/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('browser/shared/js/simple_operator_variant_helper.js');
+
+requireApp('browser/js/utilities.js');
 requireApp('browser/js/browser_db.js');
 
 const DATA_URI =
@@ -32,6 +76,57 @@ var clearBrowserStores = function(done) {
 };
 
 suite('BrowserDB', function() {
+  var realMozSettings = null;
+
+  suite('BrowserDB.operatorVariantCustomization', function() {
+
+    setup(function(done) {
+      realMozSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+
+      BrowserDB.init(function() {
+        var itemsToAdd = 3;
+        BrowserDB.populate(0, function() {
+          if (--itemsToAdd <= 0) {
+            done();
+          }
+        });
+      });
+    });
+
+    teardown(function(done) {
+      navigator.mozSettings = realMozSettings;
+      clearBrowserStores(done);
+    });
+
+    test('Operator Variant Customization -- Bookmarks', function(done) {
+      BrowserDB.db.getAllBookmarks(function(bookmarks) {
+        assert.equal(bookmarks.length, 2);
+
+        assert.equal(bookmarks[0].uri, 'http://customize.test.mozilla.org/2');
+        assert.equal(bookmarks[0].title, 'customize test 2');
+
+        assert.equal(bookmarks[1].uri, 'http://customize.test.mozilla.org/1');
+        assert.equal(bookmarks[1].title, 'customize test 1');
+
+        done();
+      });
+    });
+
+    test('Operator Variant Customization -- Search Engines', function(done) {
+      BrowserDB.getSearchEngine(
+        'http://customize.test.mozilla.org/search/1',
+        function(searchEngine) {
+          assert.equal(searchEngine.uri,
+                       'http://customize.test.mozilla.org/search/1');
+          assert.equal(searchEngine.title,
+                       'customize search test 1');
+
+          done();
+        }
+      );
+    });
+  });
 
   suite('BrowserDB.db', function() {
     setup(function(done) {

@@ -62,6 +62,10 @@ function startup(data, reason) {
       ResponsiveUIManager.once('on', function(event, tab, responsive) {
         let document = tab.ownerDocument;
 
+        browserWindow.shell = {
+          sendChromeEvent: sendChromeEvent
+        };
+
         // Ensure tweaking only the first responsive mode opened
         responsive.stack.classList.add('os-mode');
 

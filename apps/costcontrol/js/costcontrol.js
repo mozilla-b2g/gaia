@@ -360,12 +360,21 @@ var CostControl = (function() {
   function requestDataStatistics(configuration, settings, callback, result) {
     debug('Statistics out of date. Requesting fresh data...');
 
+    var maxAge = statistics.sampleRate * 1000 * statistics.maxStorageSamples;
+    var minimumStart = new Date(Date.now() - maxAge);
+    debug('The max age for samples is ' + minimumStart);
+
     // If settings.lastDataReset is not set let's use the past week. This is
     // only for not breaking dogfooders build and this can be remove at some
     // point in the future (and since this sentence has been said multiple times
     // this code will probably stay here for a while).
-    var start = toMidnight(new Date(settings.lastDataReset ||
-                                    Date.now() - 7 * DAY));
+    var start = new Date(settings.lastDataReset || Date.now() - 7 * DAY);
+    if (start < minimumStart) {
+      console.warn('Start date is surpassing the maximum age for the ' +
+                   'samples. Setting to ' + minimumStart);
+      start = minimumStart;
+    }
+    start = toMidnight(start);
 
     var today = toMidnight(new Date());
 

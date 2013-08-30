@@ -21,23 +21,6 @@ Calendar.LoadConfig = (function() {
     return str.replace(SLASH, '.');
   }
 
-  function loadStylesheet(source, cb) {
-    var el = document.createElement('link');
-    el.href = source;
-    el.rel = 'stylesheet';
-    el.type = 'text/css';
-
-    el.onerror = function stylesheetError(err) {
-      cb(new Error('could not load stylesheet "' + source + '"'));
-    };
-
-    el.onload = function stylesheetLoad() {
-      cb();
-    };
-
-    document.head.appendChild(el);
-  }
-
   var config = {
     jsRoot: '/js/',
     styleRoot: '/style/',
@@ -46,6 +29,19 @@ Calendar.LoadConfig = (function() {
     storeRoot: 'store/',
 
     plugins: {
+
+      dom: function(id, obs, cb) {
+        var node = document.getElementById(id);
+        if (!node) {
+          return cb();
+        }
+
+        LazyLoader.load([node], function nodeLoad() {
+          navigator.mozL10n.translate(node);
+          cb();
+        });
+      },
+
       js: function lc_importJS(file, obs, cb) {
         var name = camelize(file);
         var existsInPage = Calendar.ns(name, true);
@@ -57,13 +53,12 @@ Calendar.LoadConfig = (function() {
         }
 
         var file = this.config.jsRoot + file + '.js';
-
-        Calendar.App.loadScript(file, cb);
+        LazyLoader.load([file], cb);
       },
 
       style: function lc_importStylesheet(file, obs, cb) {
         var file = this.config.styleRoot + file + '.css';
-        loadStylesheet(file, cb);
+        LazyLoader.load([file], cb);
       },
 
       storeLoad: function lc_loadStore(file, obs, cb) {
@@ -120,6 +115,8 @@ Calendar.LoadConfig = (function() {
       'Views.Settings': {
         group: ['Templates.Calendar'],
 
+        dom: ['settings'],
+
         js: [
           'view',
           'views/settings'
@@ -161,6 +158,8 @@ Calendar.LoadConfig = (function() {
       'Views.ModifyEvent': {
         group: ['Views.EventBase'],
 
+        dom: ['modify-event-view'],
+
         js: [
           'querystring',
           'utils/input_parser',
@@ -173,6 +172,8 @@ Calendar.LoadConfig = (function() {
 
       'Views.ViewEvent': {
         group: ['Views.EventBase'],
+
+        dom: ['event-view'],
 
         js: [
           'templates/alarm',
@@ -193,6 +194,9 @@ Calendar.LoadConfig = (function() {
 
       'Views.ModifyAccount': {
         group: ['Utils.AccountCreation'],
+
+        dom: ['modify-account-view'],
+
         js: [
           'view',
           'presets',
@@ -205,6 +209,7 @@ Calendar.LoadConfig = (function() {
       },
 
       'Views.Errors': {
+        dom: ['lazy-styles', 'errors'],
         js: ['view', 'views/errors']
       },
 
@@ -255,6 +260,8 @@ Calendar.LoadConfig = (function() {
           'Presets'
         ],
 
+        dom: ['create-account-view'],
+
         js: [
           'views/create_account'
         ]
@@ -270,6 +277,8 @@ Calendar.LoadConfig = (function() {
 
       'Views.AdvancedSettings': {
         group: ['Templates.Account'],
+
+        dom: ['advanced-settings-view'],
 
         js: [
           'templates/alarm',
@@ -417,6 +426,9 @@ Calendar.LoadConfig = (function() {
       },
 
       'OAuthWindow': {
+
+        dom: ['oauth2'],
+
         js: [
           'querystring',
           'oauth_window'

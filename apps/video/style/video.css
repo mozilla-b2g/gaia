@@ -99,8 +99,12 @@ li .after {
   color: #95a3a6;
 }
 
+span.line-break {
+  display:block;
+}
+
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view {
+#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #info-view {
   position: absolute;
   top: 0;
   left: 0;
@@ -401,7 +405,7 @@ footer {
 
 #thumbnails-single-delete-button {
   position: absolute;
-  width: 50%;
+  width: 35%;
   height: 100%;
   left: 0;
   background-image: url('images/iconaction_delete_30x30.png');
@@ -411,13 +415,21 @@ footer {
 
 #thumbnails-single-share-button {
   position: absolute;
-  width: 50%;
+  width: 35%;
   height: 100%;
-  left: 50%;
+  left: 35%;
   background-image: url('images/iconaction_share_30x30.png');
   background-size: 3rem;
 }
 
+#thumbnails-single-info-button {
+  position: absolute;
+  width: 30%;
+  height: 100%;
+  left: 70%;
+  background-image: url('images/iconaction_media_info_30x30.png');
+  background-size: 3rem;
+}
 header .icon:after {
   background: none !important;
 }
@@ -574,6 +586,74 @@ header .icon:after {
   height: 4.5rem;
   margin: -1rem 0 0 -3.93rem;
   top: 1rem;
+}
+
+#info-close-button {
+  outline: none;
+  padding: 0 1rem;
+  width: calc(100% - 4rem);
+  height: 4rem;
+  -moz-box-sizing: border-box;
+  vertical-align: middle;
+  text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
+  color: #333;
+  font-weight: 500;
+  border: solid 0.1rem #a6a6a6;
+  margin: 1.5rem 2rem 1.5rem 2rem;
+  text-align: center;
+  font-size: 1.8rem;
+}
+
+#info-view {
+  z-index: 100;
+  opacity: 0.95;
+}
+
+#info-view ul{
+  background:
+  url(images/ui/pattern.png) repeat left top,
+  url(images/ui/gradient.png) no-repeat left top;
+  background-size: auto auto, 100% 100%;
+  height: calc(100% - 7rem);
+}
+
+#info-view footer {
+  height: 7rem;
+  background: url(images/ui/pattern.png) repeat scroll left top rgb(45, 45, 45);
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
+}
+
+#info-view span {
+  display: block;
+  font-size: 1.6rem;
+  line-height: 1.6rem;
+  font-weight: 400;
+  color: #8a9699;
+  padding: 1rem 0 0 1rem;
+}
+
+#info-view span.value {
+  color: #ffffff;
+  font-size: 1.9rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  padding: 0.3rem 0 0 1rem;
+}
+
+#info-view li {
+  width: calc(100% - 4rem);
+  height: 4.8rem;
+  overflow: hidden;
+  padding-bottom: 1.2rem;
+  margin-left: 2rem;
+}
+
+#info-view li:first-child {
+  padding-top: 0.6rem;
+}
+
+#info-view li:last-child {
+  border-bottom: none;
 }
 
 @media screen and (orientation: portrait) {

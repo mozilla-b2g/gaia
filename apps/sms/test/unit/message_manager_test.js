@@ -279,8 +279,13 @@ suite('message_manager.js >', function() {
     setup(function() {
       this.sinon.spy(document.activeElement, 'blur');
       this.sinon.spy(ThreadUI, 'cancelEdit');
+      this.sinon.spy(ThreadUI, 'renderMessages');
+      this.sinon.stub(ThreadUI, 'updateHeaderData');
       this.sinon.spy(ThreadListUI, 'cancelEdit');
+      this.sinon.spy(ThreadListUI, 'mark');
       this.sinon.spy(ThreadUI.groupView, 'reset');
+      this.sinon.spy(MessageManager, 'launchComposer');
+      this.sinon.stub(MessageManager, 'slide');
 
       MessageManager.onHashChange();
     });
@@ -296,6 +301,129 @@ suite('message_manager.js >', function() {
 
     test('Reset Group Participants View ', function() {
       assert.ok(ThreadUI.groupView.reset.called);
+    });
+
+    suite('> Switch to #new', function() {
+      setup(function() {
+        this.activity = MessageManager.activity = { test: true };
+        window.location.hash = '#new';
+        MessageManager.onHashChange();
+      });
+      teardown(function() {
+        MessageManager.activity = null;
+      });
+      test('called launchComposer with activity', function() {
+        assert.ok(MessageManager.launchComposer.calledWith(this.activity));
+      });
+
+      suite('> Switch to #thread=100', function() {
+        setup(function() {
+          // reset states
+          MessageManager.threadMessages.classList.add('new');
+          MessageManager.slide.reset();
+          ThreadUI.updateHeaderData.reset();
+          ThreadUI.inThread = false;
+
+          this.threadId = MockThreads.currentId = 100;
+          window.location.hash = '#thread=' + this.threadId;
+          MessageManager.onHashChange();
+        });
+        teardown(function() {
+          MockThreads.currentId = null;
+        });
+        test('removes "new" class from messages', function() {
+          assert.isFalse(
+            MessageManager.threadMessages.classList.contains('new')
+          );
+        });
+        test('calls ThreadListUI.mark', function() {
+          assert.ok(
+            ThreadListUI.mark.calledWith(this.threadId, 'read')
+          );
+        });
+        test('calls updateHeaderData', function() {
+          assert.ok(
+            ThreadUI.updateHeaderData.called
+          );
+        });
+
+        suite('> header data updated', function() {
+          setup(function() {
+            ThreadUI.updateHeaderData.yield();
+          });
+          test('does not call MessageManager.slide', function() {
+            assert.isFalse(
+              MessageManager.slide.called
+            );
+          });
+          test('sets ThreadUI.inThread', function() {
+            assert.isTrue(
+              ThreadUI.inThread
+            );
+          });
+          test('calls ThreadUI.renderMessages', function() {
+            assert.ok(ThreadUI.renderMessages.called);
+            assert.equal(
+              ThreadUI.renderMessages.args[0][0].threadId, this.threadId
+            );
+          });
+        });
+      });
+    });
+
+    suite('> Switch to #thread=100', function() {
+      setup(function() {
+        // reset states
+        MessageManager.threadMessages.classList.remove('new');
+        MessageManager.slide.reset();
+        ThreadUI.updateHeaderData.reset();
+        ThreadUI.inThread = false;
+
+        this.threadId = MockThreads.currentId = 100;
+        window.location.hash = '#thread=' + this.threadId;
+        MessageManager.onHashChange();
+      });
+      teardown(function() {
+        MockThreads.currentId = null;
+      });
+      test('calls ThreadListUI.mark', function() {
+        assert.ok(
+          ThreadListUI.mark.calledWith(this.threadId, 'read')
+        );
+      });
+      test('calls updateHeaderData', function() {
+        assert.ok(
+          ThreadUI.updateHeaderData.called
+        );
+      });
+
+      suite('> header data updated', function() {
+        setup(function() {
+          ThreadUI.updateHeaderData.yield();
+        });
+        test('calls MessageManager.slide', function() {
+          assert.ok(
+            MessageManager.slide.called
+          );
+        });
+
+        suite('> slide completed', function() {
+          setup(function() {
+            MessageManager.slide.yield();
+          });
+          test('sets ThreadUI.inThread', function() {
+            assert.isTrue(
+              ThreadUI.inThread
+            );
+          });
+          test('calls ThreadUI.renderMessages', function() {
+            assert.ok(ThreadUI.renderMessages.called);
+            assert.equal(
+              ThreadUI.renderMessages.args[0][0].threadId, this.threadId
+            );
+          });
+        });
+      });
     });
   });
 });

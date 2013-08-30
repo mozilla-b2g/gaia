@@ -59,7 +59,8 @@ if (!contacts.MatchingController) {
         abort();
       };
 
-      var matcherDependencies = ['/shared/js/text_normalizer.js',
+      var matcherDependencies = ['/contacts/js/utilities/contact_fields.js',
+                                 '/shared/js/text_normalizer.js',
                                  '/contacts/js/contacts_matcher.js'];
       LazyLoader.load(matcherDependencies, function loaded() {
         parent.contacts.List.getContactById(cid, function success(mContact) {

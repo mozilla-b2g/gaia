@@ -227,7 +227,8 @@ SystemUpdatable.prototype.showApplyPrompt = function() {
 
   var confirm = {
     title: _('installNow'),
-    callback: this.acceptInstall.bind(this)
+    callback: this.acceptInstall.bind(this),
+    recommend: true
   };
 
   UtilityTray.hide();

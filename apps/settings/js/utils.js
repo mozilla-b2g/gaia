@@ -393,3 +393,19 @@ var getBluetooth = function() {
     getDefaultAdapter: function() {}
   };
 };
+
+function isIP(address) {
+  return /^\d+\.\d+\.\d+\.\d+$/.test(address);
+}
+
+// Remove additional 0 in front of IP digits.
+// Notice that this is not following standard dot-decimal notation, just for
+// possible error tolarance.
+// (Values starting with 0 stand for octal representation by standard)
+function sanitizeAddress(input) {
+  if (isIP(input)) {
+    return input.replace(/0*(\d+)/g, '$1');
+  } else {
+    return input;
+  }
+}

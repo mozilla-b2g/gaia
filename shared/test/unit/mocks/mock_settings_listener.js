@@ -1,5 +1,28 @@
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
+var MockLock = {
+  locks: [],
+  mCallbacks: {},
+  mObject: {},
+  set: function set(lock) {
+    for (var name in lock) {
+      var object = {};
+      object[name] = lock[name];
+      MockNavigatorSettings.createLock().set(object);
+    }
+    this.locks.push(lock);
+    return this.mCallbacks;
+  },
+  get: function get(name) {
+    this.mObject[name] = {};
+    return this.mObject[name];
+  },
+  clear: function clearLocks() {
+    this.locks = [];
+    this.mCallbacks = {};
+  }
+};
+
 var MockSettingsListener = {
   observe: function msl_observe(name, defaultValue, cb) {
     this.mName = name;
@@ -9,16 +32,7 @@ var MockSettingsListener = {
   },
 
   getSettingsLock: function msl_getSettingsLock() {
-    var set = function set(settings) {
-      for (var name in settings) {
-        var object = {};
-        object[name] = settings[name];
-        MockNavigatorSettings.createLock().set(object);
-      }
-    };
-    return {
-      set: set
-    };
+    return MockLock;
   },
 
   mName: null,

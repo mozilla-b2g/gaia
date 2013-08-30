@@ -1,6 +1,7 @@
 var AlarmEdit = {
 
-  alarm: {},
+  alarm: null,
+  alarmRef: null,
   timePicker: {
     hour: null,
     minute: null,
@@ -125,10 +126,12 @@ var AlarmEdit = {
         break;
       case this.doneButton:
         ClockView.show();
-        if (!this.save()) {
-          evt.preventDefault();
-          return;
-        }
+        this.save(function aev_saveCallback(err, alarm) {
+          if (err) {
+            return;
+          }
+          AlarmList.refreshItem(alarm);
+        });
         break;
       case this.timeMenu:
         this.focusMenu(this.timeSelect);
@@ -179,25 +182,6 @@ var AlarmEdit = {
     setTimeout(function() { menu.focus(); }, 10);
   },
 
-  getDefaultAlarm: function aev_getDefaultAlarm() {
-    // Reset the required message with default value
-    var now = new Date();
-    return {
-      id: '', // for Alarm APP indexedDB id
-      normalAlarmId: '', // for request AlarmAPI id (once, repeat)
-      snoozeAlarmId: '', // for request AlarmAPI id (snooze)
-      label: '',
-      hour: now.getHours(), // use current hour
-      minute: now.getMinutes(), // use current minute
-      enabled: true,
-      repeat: {},
-      sound: 'ac_classic_clock_alarm.opus',
-      vibrate: 1,
-      snooze: 5,
-      color: 'Darkorange'
-    };
-  },
-
   load: function aev_load(alarm) {
     if (this.element.classList.contains('hidden')) {
       this.element.classList.remove('hidden');
@@ -212,12 +196,12 @@ var AlarmEdit = {
     if (!alarm) {
       this.element.classList.add('new');
       this.alarmTitle.textContent = _('newAlarm');
-      alarm = this.getDefaultAlarm();
+      alarm = new Alarm();
     } else {
       this.element.classList.remove('new');
       this.alarmTitle.textContent = _('editAlarm');
     }
-    this.alarm = alarm;
+    this.alarm = new Alarm(alarm);
 
     this.element.dataset.id = alarm.id;
     this.labelInput.value = alarm.label;
@@ -275,8 +259,12 @@ var AlarmEdit = {
   },
 
   refreshRepeatMenu: function aev_refreshRepeatMenu(repeatOpts) {
-    var daysOfWeek = (repeatOpts) ? repeatOpts : this.alarm.repeat;
-    this.repeatMenu.textContent = Utils.summarizeDaysOfWeek(daysOfWeek);
+    var daysOfWeek;
+    if (repeatOpts) {
+      this.alarm.repeat = this.getRepeatSelect();
+    }
+    daysOfWeek = this.alarm.repeat;
+    this.repeatMenu.textContent = this.alarm.summarizeDaysOfWeek(daysOfWeek);
   },
 
   initSoundSelect: function aev_initSoundSelect() {
@@ -355,35 +343,46 @@ var AlarmEdit = {
     var error = false;
 
     this.alarm.label = this.labelInput.value;
-    this.alarm.enabled = true;
 
     var time = this.getTimeSelect();
-    this.alarm.hour = time.hour;
-    this.alarm.minute = time.minute;
+    this.alarm.time = [time.hour, time.minute];
     this.alarm.repeat = this.getRepeatSelect();
     this.alarm.sound = this.getSoundSelect();
     this.alarm.vibrate = this.getVibrateSelect();
     this.alarm.snooze = parseInt(this.getSnoozeSelect(), 10);
 
     if (!error) {
-      AlarmManager.putAlarm(this.alarm, function al_putAlarmList(alarm) {
-        AlarmManager.toggleAlarm(alarm, alarm.enabled);
-        AlarmList.refresh();
-        callback && callback(alarm);
+      this.alarm.cancel();
+      this.alarm.setEnabled(true, function(err, alarm) {
+        if (err) {
+          callback && callback(err, alarm);
+          return;
+        }
+        AlarmList.refreshItem(alarm);
+        AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+        AlarmManager.updateAlarmStatusBar();
+        callback && callback(null, alarm);
       });
+    } else {
+      // error
+      if (callback) {
+        callback(error);
+      }
     }
 
     return !error;
   },
 
   delete: function aev_delete(callback) {
-    if (!this.element.dataset.id)
+    if (!this.alarm.id) {
+      setTimeout(callback.bind(null, new Error('no alarm id')), 0);
       return;
+    }
 
-    var alarm = this.alarm;
-    AlarmManager.delete(alarm, function aev_delete() {
+    this.alarm.delete(function aev_delete(err, alarm) {
       AlarmList.refresh();
-      callback && callback(alarm);
+      AlarmManager.updateAlarmStatusBar();
+      callback && callback(err, alarm);
     });
   }
 

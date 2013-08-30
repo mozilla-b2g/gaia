@@ -127,6 +127,9 @@ function processFirstQueuedItem() {
       // And process the next video in the queue
       setTimeout(processFirstQueuedItem);
     });
+  }, function(err) {
+    console.error('getFile error: ', fileinfo.name, err);
+    processFirstQueuedItem();
   });
 }
 
