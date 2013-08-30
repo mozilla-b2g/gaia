@@ -5,6 +5,7 @@ var MimeMapper,
     templateNode = require('tmpl!./message_reader.html'),
     msgDeleteConfirmNode = require('tmpl!./msg/delete_confirm.html'),
     msgContactMenuNode = require('tmpl!./msg/contact_menu.html'),
+    msgReplyMenuNode = require('tmpl!./msg/reply_menu.html'),
     msgBrowseConfirmNode = require('tmpl!./msg/browse_confirm.html'),
     msgPeepBubbleNode = require('tmpl!./msg/peep_bubble.html'),
     msgAttachmentItemNode = require('tmpl!./msg/attachment_item.html'),
@@ -86,14 +87,14 @@ function MessageReaderCard(domNode, mode, args) {
   this.htmlBodyNodes = [];
 
   this._on('msg-back-btn', 'click', 'onBack', true);
-  this._on('msg-reply-btn', 'click', 'onReply');
-  this._on('msg-reply-all-btn', 'click', 'onReplyAll');
+  this._on('msg-reply-btn', 'click', 'onReplyMenu');
   this._on('msg-delete-btn', 'click', 'onDelete');
   this._on('msg-star-btn', 'click', 'onToggleStar');
   this._on('msg-move-btn', 'click', 'onMove');
-  this._on('msg-forward-btn', 'click', 'onForward');
   this._on('msg-envelope-bar', 'click', 'onEnvelopeClick');
   this._on('msg-reader-load-infobar', 'click', 'onLoadBarClick');
+
+  this.disableReply();
 
   this.scrollContainer =
     domNode.getElementsByClassName('scrollregion-below-header')[0];
@@ -173,7 +174,7 @@ MessageReaderCard.prototype = {
     Cards.removeCardAndSuccessors(this.domNode, 'animate');
   },
 
-  onReply: function(event) {
+  reply: function() {
     Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage(null, function() {
       Cards.pushCard('compose', 'default', 'animate',
@@ -181,7 +182,7 @@ MessageReaderCard.prototype = {
     });
   },
 
-  onReplyAll: function(event) {
+  replyAll: function() {
     Cards.eatEventsUntilNextCard();
     var composer = this.header.replyToMessage('all', function() {
       Cards.pushCard('compose', 'default', 'animate',
@@ -189,20 +190,15 @@ MessageReaderCard.prototype = {
     });
   },
 
-  onForward: function(event) {
-    // If we don't have a body yet, we can't forward the message.  In the future
-    // we should visibly disable the button until the body has been retrieved.
-    if (!this.body)
-      return;
-
+  forward: function() {
     var needToPrompt = this.header.hasAttachments ||
       this.body.embeddedImageCount > 0;
 
     var forwardMessage = (function() {
       Cards.eatEventsUntilNextCard();
       var composer = this.header.forwardMessage('inline', function() {
-             Cards.pushCard('compose', 'default', 'animate',
-                            { composer: composer });
+        Cards.pushCard('compose', 'default', 'animate',
+                       { composer: composer });
       });
     }.bind(this));
 
@@ -222,6 +218,63 @@ MessageReaderCard.prototype = {
       );
     } else {
       forwardMessage();
+    }
+  },
+
+  // TODO: canReplyAll should be moved into GELAM.
+  /** Returns true if Reply All should be shown as a distinct option. */
+  canReplyAll: function() {
+    // If any e-mail is listed as 'to' or 'cc' and doesn't match this
+    // user's account, 'Reply All' should be enabled.
+    var myAddresses = model.account.identities.map(function(ident) {
+      return ident.address;
+    });
+
+    var otherAddresses = (this.header.to || []).concat(this.header.cc || []);
+    if (this.header.replyTo) {
+      otherAddresses.push(this.header.replyTo.author);
+    }
+    for (var i = 0; i < otherAddresses.length; i++) {
+      if (myAddresses.indexOf(otherAddresses[i].address) == -1) {
+        return true;
+      }
+    }
+
+    return false;
+  },
+
+  onReplyMenu: function(event) {
+    var contents = msgReplyMenuNode.cloneNode(true);
+    document.body.appendChild(contents);
+
+    // reply menu selection handling
+    var formSubmit = (function(evt) {
+      document.body.removeChild(contents);
+      switch (evt.explicitOriginalTarget.className) {
+      case 'msg-reply-menu-reply':
+        this.reply();
+        break;
+      case 'msg-reply-menu-reply-all':
+        this.replyAll();
+        break;
+      case 'msg-reply-menu-forward':
+        this.forward();
+        break;
+      case 'msg-reply-menu-cancel':
+        break;
+      }
+      return false;
+    }).bind(this);
+    contents.addEventListener('submit', formSubmit);
+
+    if (!this.canForward()) {
+      contents.querySelector('.msg-reply-menu-forward')
+        .classList.add('collapsed');
+    }
+
+    if (!this.canReplyAll()) {
+      contents.querySelector('.msg-reply-menu-reply-all')
+        .classList.add('collapsed');
     }
   },
 
@@ -733,12 +786,24 @@ MessageReaderCard.prototype = {
             .addEventListener('click',
                               this.onViewAttachmentClick.bind(
                                 this, attachmentNode, attachment));
+          this.enableReply();
         }
       }.bind(this));
     }
     else {
       attachmentsContainer.classList.add('collapsed');
+      this.enableReply();
     }
+  },
+
+  disableReply: function() {
+    var btn = this.domNode.getElementsByClassName('msg-reply-btn')[0];
+    btn.setAttribute('aria-disabled', true);
+  },
+
+  enableReply: function() {
+    var btn = this.domNode.getElementsByClassName('msg-reply-btn')[0];
+    btn.removeAttribute('aria-disabled');
   },
 
   die: function() {
