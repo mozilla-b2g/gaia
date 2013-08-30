@@ -6,7 +6,6 @@ var MockUtils = {
   camelCase: Utils.camelCase,
   date: Utils.date,
   startTimeHeaderScheduler: function() {},
-  Template: Utils.Template,
   getFontSize: function() {
     return 12;
   },
@@ -17,7 +16,6 @@ var MockUtils = {
   updateTimeHeader: function() {},
   // real code needed here to map types
   typeFromMimeType: Utils.typeFromMimeType,
-  escapeHTML: Utils.escapeHTML,
   escapeRegex: Utils.escapeRegex,
   params: Utils.params,
   getContactDisplayInfo: Utils.getContactDisplayInfo,

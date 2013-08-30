@@ -75,11 +75,6 @@ var ClockView = {
     return this.dayDate = document.getElementById('clock-day-date');
   },
 
-  get alarmNewBtn() {
-    delete this.alarmNewBtn;
-    return this.alarmNewBtn = document.getElementById('alarm-new');
-  },
-
   get container() {
     delete this.container;
     return this.container =
