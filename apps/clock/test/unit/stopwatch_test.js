@@ -3,9 +3,6 @@ requireApp('clock/js/utils.js');
 
 suite('Stopwatch', function() {
 
-  // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
-  // system's time zone
-  var sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
   var oneHour = 1 * 60 * 60 * 1000;
 
   suiteSetup(function() {
@@ -13,7 +10,7 @@ suite('Stopwatch', function() {
   });
 
   setup(function() {
-    this.clock = this.sinon.useFakeTimers(sixAm);
+    this.clock = this.sinon.useFakeTimers();
   });
 
   teardown(function() {
@@ -60,17 +57,21 @@ suite('Stopwatch', function() {
 
   suite('lap', function() {
 
-    setup(function() {
-      this.sw.start();
-      this.clock.tick(oneHour);
+    test('lap before start', function() {
+      var l = this.sw.lap();
+      assert.equal(l.getTime(), 0);
     });
 
     test('elapse 1hr & lap', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
       var l = this.sw.lap();
       assert.equal(l.getTime(), oneHour);
     });
 
     test('lap 3 times', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
       var l1 = this.sw.lap();
       this.clock.tick(oneHour);
       var l2 = this.sw.lap();
