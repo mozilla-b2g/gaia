@@ -85,11 +85,11 @@ var StatusBar = {
     'ehrpd': '4G', // 4G CDMA
     'hspa+': 'H+', // 3.5G HSPA+
     'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
-    'evdo0': '3G', 'evdoa': '3G', 'evdob': '3G', '1xrtt': '3G', // 3G CDMA
+    'evdo0': 'Ev', 'evdoa': 'Ev', 'evdob': 'Ev', // 3G CDMA
     'umts': '3G', // 3G
     'edge': 'E', // EDGE
-    'is95a': '2G', 'is95b': '2G', // 2G CDMA
-    'gprs': '2G'
+    'gprs': '2G',
+    '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x' // 2G CDMA
   },
 
   geolocationActive: false,
