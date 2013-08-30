@@ -69,7 +69,7 @@ suite('Stopwatch', function() {
       assert.equal(l.getTime(), oneHour);
     });
 
-    test('lap 3 times', function() {
+    test('3 times', function() {
       this.sw.start();
       this.clock.tick(oneHour);
       var l1 = this.sw.lap();
@@ -84,7 +84,7 @@ suite('Stopwatch', function() {
 
   });
 
-  suite('getLaps', function() {
+  suite('getLapDurations', function() {
 
     setup(function() {
       this.sw.start();
@@ -97,9 +97,9 @@ suite('Stopwatch', function() {
       this.sw.lap();
       this.clock.tick(oneHour + oneHour);
       this.sw.lap();
-      assert.equal(this.sw.getLaps()[0], oneHour);
-      assert.equal(this.sw.getLaps()[1], oneHour);
-      assert.equal(this.sw.getLaps()[2], oneHour + oneHour);
+      assert.equal(this.sw.getLapDurations()[0], oneHour);
+      assert.equal(this.sw.getLapDurations()[1], oneHour);
+      assert.equal(this.sw.getLapDurations()[2], oneHour + oneHour);
     });
 
   });

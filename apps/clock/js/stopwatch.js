@@ -2,23 +2,36 @@
 
   'use strict';
 
+  var priv = new WeakMap();
+
   function Stopwatch() {
+    priv.set(this, {});
+
     this.reset();
   };
+
+  Object.defineProperty(Stopwatch, 'DEFAULTS', {
+    value: {
+      startTime: 0,
+      totalElapsed: 0,
+      isStarted: false,
+      laps: []
+    }
+  });
 
   Stopwatch.prototype = {
 
     constructor: Stopwatch,
 
-   /**
-   * start Starts the stopwatch, either from a reset or paused state
-   */
+    /**
+    * start Starts the stopwatch, either from a reset or paused state
+    */
     start: function sw_start() {
-      if (this._isStarted) {
+      if (priv.get(this)['isStarted']) {
         return;
       }
-      this._startTime = Date.now();
-      this._isStarted = true;
+      priv.get(this)['startTime'] = Date.now();
+      priv.get(this)['isStarted'] = true;
     },
 
     /**
@@ -29,10 +42,10 @@
     */
     getElapsedTime: function sw_getElapsedTime() {
       var elapsed = 0;
-      if (this._isStarted) {
-        elapsed = Date.now() - this._startTime;
+      if (priv.get(this)['isStarted']) {
+        elapsed = Date.now() - priv.get(this)['startTime'];
       }
-      elapsed += this._totalElapsed;
+      elapsed += priv.get(this)['totalElapsed'];
 
       return new Date(elapsed);
     },
@@ -41,12 +54,12 @@
     * pause Pauses the stopwatch
     */
     pause: function sw_pause() {
-      if (!this._isStarted) {
+      if (!priv.get(this)['isStarted']) {
         return;
       }
-      this._isStarted = false;
-      var elapsed = Date.now() - this._startTime;
-      this._totalElapsed += elapsed;
+      priv.get(this)['isStarted'] = false;
+      var elapsed = Date.now() - priv.get(this)['startTime'];
+      priv.get(this)['totalElapsed'] += elapsed;
     },
 
     /**
@@ -56,47 +69,44 @@
     * @return {Date} return the lap duration
     */
     lap: function sw_lap() {
-      if (!this._isStarted) {
+      if (!priv.get(this)['isStarted']) {
         return new Date(0);
       }
 
       var lastLapTime;
       var newLap = {};
 
-      if (this._laps.length > 0) {
-        lastLapTime = this._laps[this._laps.length - 1].time;
+      if (priv.get(this)['laps'].length > 0) {
+        var l = priv.get(this)['laps'];
+        lastLapTime = l[l.length - 1].time;
       } else {
-        lastLapTime = this._startTime;
+        lastLapTime = priv.get(this)['startTime'];
       }
 
       newLap.duration = Date.now() - lastLapTime;
       newLap.time = Date.now();
-      this._laps.push(newLap);
+      priv.get(this)['laps'].push(newLap);
 
       return new Date(newLap.duration);
     },
 
     /**
-    * getLaps Returns an array of lap durations, sorted by oldest first
+    * getLapDurations Returns an array of lap durations, sorted by oldest first
     *
     * @return {Array} return an array of lap durations
     */
-    getLaps: function sw_getLaps() {
-      var l = [];
-      for (var i = 0; i < this._laps.length; i++) {
-        l.push(this._laps[i].duration);
-      }
-      return l;
+    getLapDurations: function sw_getLapDurations() {
+      var l = priv.get(this)['laps'];
+      return l.map(function(lap) {
+        return lap.duration;
+      });
     },
 
     /**
     * reset Resets the stopwatch back to 0, clears laps
     */
     reset: function sw_reset() {
-      this._startTime = 0;
-      this._totalElapsed = 0;
-      this._isStarted = false;
-      this._laps = [];
+      Utils.extend(priv.get(this), Stopwatch.DEFAULTS);
     }
 
   };
