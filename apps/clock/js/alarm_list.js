@@ -7,6 +7,8 @@ var AlarmList = {
   alarmList: [],
   refreshingAlarms: [],
   _previousAlarmCount: 0,
+  _scrollTimeoutID: 0,
+  _scrollThreshold: 0,
 
   get alarms() {
     delete this.alarms;
@@ -21,6 +23,48 @@ var AlarmList = {
   get newAlarmButton() {
     delete this.newAlarmButton;
     return this.newAlarmButton = document.getElementById('alarm-new');
+  },
+
+  showHideScrollIndicators: function al_showHideScrollIndicators() {
+    this._scrollTimeoutID = 0;
+    var element = this.alarms;
+    var hasTop = element.classList.contains('scroll-up');
+    var hasDown = element.classList.contains('scroll-down');
+
+    if (!this._scrollThreshold) {
+      var alarmCell = document.querySelector('.alarm-cell');
+      if (alarmCell) {
+        this._scrollThreshold =
+          alarmCell.getBoundingClientRect().height * 3 / 5;
+      }
+    }
+
+    if (element.scrollTop < this._scrollThreshold) {
+      if (hasTop) {
+        element.classList.remove('scroll-up');
+      }
+    } else {
+      if (!hasTop) {
+        element.classList.add('scroll-up');
+      }
+    }
+
+    if (element.scrollTop > element.scrollTopMax - this._scrollThreshold) {
+      if (hasDown) {
+        element.classList.remove('scroll-down');
+      }
+    } else {
+      if (!hasDown) {
+        element.classList.add('scroll-down');
+      }
+    }
+  },
+
+  handleScrollEvent: function al_handleScrollEvent() {
+    if (!this._scrollTimeoutID) {
+      this._scrollTimeoutID = setTimeout(
+        this.showHideScrollIndicators.bind(this), 150);
+    }
   },
 
   handleEvent: function al_handleEvent(evt) {
@@ -59,6 +103,8 @@ var AlarmList = {
   init: function al_init() {
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
+    this.alarms.addEventListener('scroll',
+      this.handleScrollEvent.bind(this));
     this.refresh();
     AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
   },
@@ -123,6 +169,7 @@ var AlarmList = {
       ClockView.resizeAnalogClock();
     }
 
+    this.showHideScrollIndicators();
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
