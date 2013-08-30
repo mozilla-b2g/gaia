@@ -100,7 +100,7 @@ suite('Stopwatch', function() {
       assert.equal(this.sw.getLaps()[0], oneHour);
       assert.equal(this.sw.getLaps()[1], oneHour);
       assert.equal(this.sw.getLaps()[2], oneHour + oneHour);
-    })
+    });
 
   });
 
