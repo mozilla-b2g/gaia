@@ -10,6 +10,7 @@
     "120": "/style/icons/Uitest.png"
   },
   "permissions": {
+    "power":{},
     "backgroundservice":{},
     "attention":{},
     "contacts":{ "access": "readwrite" },

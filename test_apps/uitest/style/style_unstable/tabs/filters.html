@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Filters</title>
+  <meta name="description" content="Filters can be used to enable the user to view a single set of data in a different lens">
+
+  <link rel="stylesheet" href="../tabs.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+    
+    body[role="application"] ul[role="tablist"][data-type="filter"] {
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body role="application">
+  <section role="region">
+
+    <h2 class="bb-docs">Default position</h2>
+    <ul role="tablist" data-type="filter" data-items="2">
+      <li id="filter1-1" role="tab"><a href="#filter1-1">Action 01</a></li>
+      <li id="filter1-2" role="tab"><a href="#filter1-2">Action 02</a></li>
+    </ul>
+
+    <ul role="tablist" data-type="filter" data-items="3">
+      <li id="filter2-1" role="tab"><a href="#filter2-1">Action 01</a></li>
+      <li id="filter2-2" role="tab"><a href="#filter2-2">Action 02</a></li>
+      <li id="filter2-3" role="tab"><a href="#filter2-3">Action 02</a></li>
+    </ul>
+
+    <ul role="tablist" data-type="filter" data-items="4">
+      <li id="filter3-1" role="tab"><a href="#filter3-1">Action 01</a></li>
+      <li id="filter3-2" role="tab"><a href="#filter3-2">Action 02</a></li>
+      <li id="filter3-3" role="tab"><a href="#filter3-3">Action 03</a></li>
+      <li id="filter3-4" role="tab"><a href="#filter3-4">Action 04</a></li>
+    </ul>
+
+    <h2 class="bb-docs">Bottom position</h2>
+
+    <ul role="tablist" data-type="filter" class="bottom" data-items="4">
+      <li id="filter4-1" role="tab"><a href="#filter4-1">Action 01</a></li>
+      <li id="filter4-2" role="tab"><a href="#filter4-2">Action 02</a></li>
+      <li id="filter4-3" role="tab"><a href="#filter4-3">Action 02</a></li>
+      <li id="filter4-4" role="tab"><a href="#filter4-4">Action 02</a></li>
+    </ul>
+
+  </section>
+</body>
+</html>

@@ -13,6 +13,10 @@ var UITest = {
     delete this.APItests;
     return this.APItests = document.getElementById('API-tests');
   },
+  get HWtests() {
+    delete this.HWtests;
+    return this.HWtests = document.getElementById('HW-tests');
+  },
   get iframe() {
     delete this.iframe;
     return this.iframe = document.getElementById('test-iframe');
@@ -72,12 +76,26 @@ var UITest = {
 	if (window.location.hash == '#UI')
 	{
 	  this.UItests.classList.remove('invisible');
-	  this.APItests.classList.add('invisible');
+	  if(!this.HWtests.classList.contains('invisible'))
+		this.HWtests.classList.add('invisible');
+	  if(!this.APItests.classList.contains('invisible'))
+	  	this.APItests.classList.add('invisible');
 	}
 	else if(window.location.hash == '#API')
 	{
-	  this.UItests.classList.add('invisible');
 	  this.APItests.classList.remove('invisible');
+	  if(!this.UItests.classList.contains('invisible'))
+		this.UItests.classList.add('invisible');
+	  if(!this.HWtests.classList.contains('invisible'))
+	  	this.HWtests.classList.add('invisible');
+	}
+	else if(window.location.hash == '#HW')
+	{
+	  this.HWtests.classList.remove('invisible');
+	  if(!this.UItests.classList.contains('invisible'))
+		this.UItests.classList.add('invisible');
+	  if(!this.APItests.classList.contains('invisible'))
+	  	this.APItests.classList.add('invisible');
 	}
 	else
 	{

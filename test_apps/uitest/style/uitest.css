@@ -21,7 +21,7 @@ body {
   position: absolute;
   display: block;
   width: 100%;
-  height: calc(100% - 2rem);
+  height: calc(100% - 3rem);
   -moz-transition: -moz-transform 0.3s ease;
   top: 0;
 }
