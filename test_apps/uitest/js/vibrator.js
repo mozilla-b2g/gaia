@@ -9,7 +9,7 @@ var clickHandlers = {
     window.navigator.vibrate([200,100,200]);
   },
   'longTime': function () {
-    window.navigator.vibrate(100000);
+    window.navigator.vibrate(10000);
   }
 };
 
