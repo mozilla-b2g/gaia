@@ -1,6 +1,6 @@
 /*global mocha requireApp suite test assert setup suiteTeardown */
 
-mocha.setup({ ui: 'tdd', ignoreLeaks: true });
+mocha.setup('tdd');
 window.assert = chai.assert;
 
 navigator.mozSettings.createLock().set({
@@ -77,29 +77,6 @@ suite('Input Method', function() {
       document.querySelector('#test3').focus();
     });
 
-    test('Event fires on designMode=on focus', function(next) {
-      onIcc(true, function(ic) {
-        assert.equal(ic.inputType, 'textarea');
-        next();
-      });
-      container.innerHTML = '<iframe id="test"></iframe>';
-      var iframe = container.querySelector('iframe');
-      iframe.contentDocument.designMode = 'on';
-      iframe.focus();
-    });
-
-    test('Event fires on iframe body contenteditable focus', function(next) {
-      // <body contenteditable>contentEditable</body>
-      onIcc(true, function(ic) {
-        assert.equal(ic.inputType, 'textarea');
-        next();
-      });
-      container.innerHTML = '<iframe id="test"></iframe>';
-      var iframe = container.querySelector('iframe');
-      iframe.contentDocument.body.setAttribute('contenteditable', true);
-      iframe.focus();
-    });
-
     test('No event on type="range"', function(next) {
       var fired = false;
       onIcc(true, function() {
@@ -142,7 +119,7 @@ suite('Input Method', function() {
           next();
         });
         el.blur();
-      }, 100);
+      }, 50);
     });
 
     test('Event fires on textarea blur', function(next) {
@@ -156,7 +133,7 @@ suite('Input Method', function() {
           next();
         });
         el.blur();
-      }, 100);
+      }, 50);
     });
 
     test('Event fires on contenteditable blur', function(next) {
@@ -170,7 +147,7 @@ suite('Input Method', function() {
           next();
         });
         el.blur();
-      }, 100);
+      }, 50);
     });
   });
 
@@ -264,4 +241,5 @@ suite('Input Method', function() {
   });
 });
 
+mocha.checkLeaks();
 mocha.run();

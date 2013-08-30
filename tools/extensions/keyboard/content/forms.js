@@ -327,13 +327,12 @@ let FormAssistant = {
           break;
         }
 
-        // Focusing on Window, Document or iFrame should focus body
-        if (target instanceof HTMLHtmlElement)
-          target = target.document.body;
-        else if (target instanceof HTMLDocument)
-          target = target.body;
-        else if (target instanceof HTMLIFrameElement)
-          target = target.contentDocument.body;
+        if (target instanceof HTMLDocument ||
+            // Bug 811177, we don't support editing the entire document.
+            target instanceof HTMLBodyElement ||
+            target == content) {
+          break;
+        }
 
         if (isContentEditable(target)) {
           this.showKeyboard(this.getTopLevelEditable(target));
@@ -630,11 +629,24 @@ let FormAssistant = {
 
   getTopLevelEditable: function fa_getTopLevelEditable(element) {
     function retrieveTopLevelEditable(element) {
+      // Retrieve the top element that is editable
+      if (element instanceof HTMLHtmlElement)
+        element = element.ownerDocument.body;
+      else if (element instanceof HTMLDocument)
+        element = element.body;
+
       while (element && !isContentEditable(element))
         element = element.parentNode;
 
-      return element;
+      // Return the container frame if we are into a nested editable frame
+      if (element &&
+          element instanceof HTMLBodyElement &&
+          element.ownerDocument.defaultView != content.document.defaultView)
+        return element.ownerDocument.defaultView.frameElement;
     }
+
+    if (element instanceof HTMLIFrameElement)
+      return element;
 
     return retrieveTopLevelEditable(element) || element;
   },
@@ -699,6 +711,14 @@ function isContentEditable(element) {
   }
 
   if (element.isContentEditable || element.designMode == "on")
+    return true;
+
+  // If a body element is editable and the body is the child of an
+  // iframe we can assume this is an advanced HTML editor
+  if (element instanceof HTMLIFrameElement &&
+      element.contentDocument &&
+      (element.contentDocument.body.isContentEditable ||
+       element.contentDocument.designMode == "on"))
     return true;
 
   return element.ownerDocument && element.ownerDocument.designMode == "on";
