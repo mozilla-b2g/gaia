@@ -115,10 +115,11 @@
     this.persist = function(contactData, successCb, errorCb) {
       var cbs = {
         onmatch: function(matches) {
+          var masterContactIndex = Object.keys(matches)[0];
           contacts.adaptAndMerge(this, matches, {
             success: successCb,
             error: errorCb
-          });
+          }, masterContactIndex);
         }.bind(contactData),
         onmismatch: function() {
           saveMozContact(this, successCb, errorCb);

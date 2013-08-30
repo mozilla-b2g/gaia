@@ -524,17 +524,6 @@ fb.Contact = function(deviceContact, cid) {
     return copied;
   }
 
-  function createName(contact) {
-    contact.name = [];
-
-    if (Array.isArray(contact.givenName)) {
-      contact.name[0] = contact.givenName[0] + ' ';
-    }
-
-    if (Array.isArray(contact.familyName))
-      contact.name[0] += contact.familyName[0];
-  }
-
   function propagateNames(from, to) {
     var isGivenNamePropagated = propagateField('givenName', from, to);
     var isFamilyNamePropagated = propagateField('familyName', from, to);
@@ -547,7 +536,7 @@ fb.Contact = function(deviceContact, cid) {
       if (isFamilyNamePropagated)
         fb.setPropagatedFlag('familyName', to);
 
-      createName(to);
+      to.name = utils.contactFields.composeName(to);
     }
   }
 
@@ -559,7 +548,7 @@ fb.Contact = function(deviceContact, cid) {
     if (fb.isPropagated('familyName', to))
       to['familyName'] = from['familyName'];
 
-    createName(to);
+    to.name = utils.contactFields.composeName(to);
   }
 
   function doLink(contactdata, fbFriend, out) {

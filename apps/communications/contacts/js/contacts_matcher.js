@@ -372,8 +372,7 @@ contacts.Matcher = (function() {
       };
 
       reqName.onerror = function(e) {
-        window.console.warn('Error while trying to find by name: ',
-                                e.target.error.name);
+        window.console.warn('No matching contacts while looking for name.');
         resultsByName = [];
         notifyFindNameReady();
         if (isEmptyStr(aContact.familyName)) {

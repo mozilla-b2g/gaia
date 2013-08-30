@@ -156,7 +156,8 @@ function SimContactsImporter() {
             }
           };
 
-          contacts.adaptAndMerge(this, results, mergeCbs);
+          var masterContactIndex = Object.keys(results)[0];
+          contacts.adaptAndMerge(this, results, mergeCbs, masterContactIndex);
         }.bind(item),
         onmismatch: function() {
           saveContact(this);
