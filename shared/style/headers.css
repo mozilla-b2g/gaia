@@ -148,12 +148,22 @@ section[role="region"] > header:first-child button:focus {
   border: none !important;
 }
 
+section[role="region"] > header:first-child a:not([aria-disabled="true"]):not(:active) .icon:after,
+section[role="region"] > header:first-child button:not(:disabled):not(:active) .icon:after {
+  /* keep the #008aaa for 1s so it's visible when back animation kicks in */
+  transition: background-color 1.0s ease-in;
+}
+
 section[role="region"] > header:first-child a:not([aria-disabled="true"]):active .icon:after,
 section[role="region"] > header:first-child button:not(:disabled):active .icon:after,
 section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
 section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
   background: #008aaa !important;
-  transition: background 0.2s ease;
+}
+
+section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):not(:active),
+section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):not(:active) {
+  transition: background 0.1s step-end;
 }
 
 /* Disabled state */
@@ -221,7 +231,7 @@ section[role="region"] > header:first-child > button,
 section[role="region"] > header:first-child > a {
   position: absolute;
   left: 0;
-  width: 5rem;
+  width: 8rem;
   height: 5rem;
   background: url(headers/images/ui/separator-large.png) no-repeat 2rem top / 0.2rem 5rem;
   overflow: hidden;
