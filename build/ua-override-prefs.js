@@ -35,7 +35,6 @@ pref("general.useragent.override.lancenet.com.br", "\\(Mobile#(Android; Mobile")
 pref("general.useragent.override.webmotors.com.br", "\\(Mobile#(Android; Mobile"); // bug 827573
 pref("general.useragent.override.mercadolibre.com.co", "\\(Mobile#(Android; Mobile"); // bug 827661
 pref("general.useragent.override.elespectador.com", "\\(Mobile#(Android; Mobile"); // bug 827664
-pref("general.useragent.override.slideshare.net", "\\(Mobile#(Android; Mobile"); // bug 827666
 pref("general.useragent.override.scribd.com", "\\(Mobile#(Android; Mobile"); // bug 827668
 pref("general.useragent.override.elpais.com.co", "Mozilla/5.0 (Linux; Android 4.0.4; Galaxy Nexus Build/IMM76B) AppleWebKit/535.19 (KHTML, like Gecko) Chrome/18.0.1025.133 Mobile Safari/535.19"); // bug 827670
 pref("general.useragent.override.olx.com.co", "\\(Mobile#(Android; Mobile"); // bug 827672
