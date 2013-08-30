@@ -187,6 +187,7 @@ ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
 	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
 	DISTRIBUTION_APP_CONFIG := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps.list
+	DISTRIBUTION_LOCAL_APPS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)local-apps.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -195,6 +196,9 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 	ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
 		GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
+	endif
+	ifneq ($(wildcard $(DISTRIBUTION_LOCAL_APPS)),)
+		LOCAL_APPS_PATH := $(DISTRIBUTION_LOCAL_APPS)
 	endif
 endif
 
@@ -318,7 +322,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -383,6 +387,9 @@ webapp-zip: webapp-optimize install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
+ifdef LOCAL_APPS_PATH
+	@rm $(CURDIR)/apps/homescreen/js/singlevariantconf.json
+endif
 endif
 
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
@@ -408,6 +415,11 @@ ifdef CONTACTS_PATH
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
 else
 	@rm -f $(PROFILE_FOLDER)/contacts.json
+endif
+
+local-apps:
+ifdef LOCAL_APPS_PATH
+	python build/local-apps.py usage --local-apps-path=$(LOCAL_APPS_PATH) --profile-path=$(PROFILE_FOLDER) --apps-path=$(CURDIR)/apps --distribution-path=$(GAIA_DISTRIBUTION_DIR)
 endif
 
 # Create webapps
@@ -782,6 +794,11 @@ ifeq ($(BUILD_APP_NAME),*)
 else
 	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
 	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
+endif
+
+ifdef LOCAL_APPS_PATH
+	$(ADB) shell 'rm -r $(MSYS_FIX)/data/local/svoperapps'
+	$(ADB) push $(PROFILE_FOLDER)/svoperapps $(MSYS_FIX)/data/local/svoperapps
 endif
 	@echo "Installed gaia into $(PROFILE_FOLDER)/."
 	@echo 'Starting b2g'
