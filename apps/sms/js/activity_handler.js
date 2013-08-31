@@ -219,7 +219,7 @@ var ActivityHandler = {
     }
     this.isLocked = false;
     var threadId = message.threadId ? message.threadId : null;
-    var body = message.body ? Utils.escapeHTML(message.body) : '';
+    var body = message.body ? Template.escape(message.body) : '';
     var number = message.number ? message.number : '';
     var contact = message.contact ? message.contact : null;
     var threadHash = '#thread=' + threadId;
@@ -399,7 +399,7 @@ var ActivityHandler = {
           if (!contact) {
             console.error('We got a null contact for sender:', sender);
           } else if (contact.length && contact[0].name) {
-            var senderName = Utils.escapeHTML(contact[0].name[0]);
+            var senderName = Template.escape(contact[0].name[0]);
             sender = senderName.length == 0 ?
               message.sender : contact[0].name[0];
           }

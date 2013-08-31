@@ -9,6 +9,7 @@ var lazyLoadFiles = [
   'shared/js/notification_helper.js',
   'shared/js/gesture_detector.js',
   'shared/js/settings_url.js',
+  'shared/js/template.js',
   'js/dialog.js',
   'js/blacklist.js',
   'js/contacts.js',

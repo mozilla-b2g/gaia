@@ -66,7 +66,7 @@ function SMIL_generateSlides(data, slide, slideIndex) {
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
       // just to be safe, remove any non-standard characters from the filename
-      name = Utils.escapeHTML(slide.name);
+      name = Template.escape(slide.name);
       name = name.substr(name.lastIndexOf('/') + 1);
       name = SMIL_generateUniqueLocation(data, name);
       media = '<' + blobType + ' src="' + name + '" region="Image"/>';

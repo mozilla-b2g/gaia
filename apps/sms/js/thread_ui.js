@@ -220,7 +220,7 @@ var ThreadUI = global.ThreadUI = {
 
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =
-        Utils.Template('messages-' + name + '-tmpl');
+        Template('messages-' + name + '-tmpl');
       return tmpls;
     }, {});
 
@@ -1009,7 +1009,7 @@ var ThreadUI = global.ThreadUI = {
         textElement = document.createElement('span');
 
         // escape text for html and look for clickable numbers, etc.
-        var text = Utils.escapeHTML(messageData.text);
+        var text = Template.escape(messageData.text);
         text = LinkHelper.searchAndLinkClickableData(text);
 
         textElement.innerHTML = text;
@@ -1156,7 +1156,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (message.type && message.type === 'sms') {
-      var escapedBody = Utils.escapeHTML(message.body || '');
+      var escapedBody = Template.escape(message.body || '');
       bodyHTML = LinkHelper.searchAndLinkClickableData(escapedBody);
     }
 
@@ -1730,7 +1730,7 @@ var ThreadUI = global.ThreadUI = {
     var renderPhoto = params.renderPhoto;
 
     // We search on the escaped HTML via a regular expression
-    var escaped = Utils.escapeRegex(Utils.escapeHTML(input));
+    var escaped = Utils.escapeRegex(Template.escape(input));
     var escsubs = escaped.split(/\s+/);
     // Build a list of regexes used for highlighting suggestions
     var regexps = {
@@ -1778,7 +1778,7 @@ var ThreadUI = global.ThreadUI = {
       var data = Utils.getDisplayObject(details.title, current);
 
       ['name', 'number'].forEach(function(key) {
-        var escapedData = Utils.escapeHTML(data[key]);
+        var escapedData = Template.escape(data[key]);
         if (isSuggestion) {
           // When rendering a suggestion, we highlight the matched substring.
           // The approach is to escape the html and the search string, and
@@ -2200,7 +2200,7 @@ function generateHeightRule(height) {
 
   sheet = generateHeightRule.sheet || sheets[sheets.length - 1];
   index = generateHeightRule.index || sheet.cssRules.length;
-  tmpl = generateHeightRule.tmpl || Utils.Template('height-rule-tmpl');
+  tmpl = generateHeightRule.tmpl || Template('height-rule-tmpl');
 
   css = tmpl.interpolate({
     height: String(height)

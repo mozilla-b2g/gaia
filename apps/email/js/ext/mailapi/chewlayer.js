@@ -2146,7 +2146,7 @@ HTMLSanitizer.prototype = {
         this.complete = true;
       }
     } else {
-      this.output += escapeHTMLTextKeepingExistingEntities(text);
+      this.output += escapeHTMLEntities(text);
     }
   },
 
@@ -2798,11 +2798,7 @@ function makeReverseEntities () {
   });
 }
 
-/**
- * Escapes HTML characters like [<>"'&] in the text,
- * leaving existing HTML entities intact.
- */
-function escapeHTMLTextKeepingExistingEntities(text) {
+function escapeHTMLEntities(text) {
   return text.replace(/[<>"']|&(?![#a-zA-Z0-9]+;)/g, function(c) {
     return '&#' + c.charCodeAt(0) + ';';
   });
@@ -2832,30 +2828,6 @@ exports.unescapeHTMLEntities = function unescapeHTMLEntities(text) {
     return converted;
   });
 };
-
-/**
- * Renders text content safe for injecting into HTML by
- * replacing all characters which could be used to create HTML elements.
- */
-exports.escapePlaintextIntoElementContext = function (text) {
-  return text.replace(/[&<>"'\/]/g, function(c) {
-    var code = c.charCodeAt(0);
-    return '&' + (entities[code] || '#' + code) + ';';
-  });
-}
-
-/**
- * Escapes all characters with ASCII values less than 256, other than
- * alphanumeric characters, with the &#xHH; format to prevent
- * switching out of the attribute.
- */
-exports.escapePlaintextIntoAttribute = function (text) {
-  return text.replace(/[\u0000-\u002F\u003A-\u0040\u005B-\u0060\u007B-\u0100]/g, function(c) {
-    var code = c.charCodeAt(0);
-    return '&' + (entities[code] || '#' + code) + ';';
-  });
-}
-
 
 }); // end define
 ;
