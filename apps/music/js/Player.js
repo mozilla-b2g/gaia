@@ -541,6 +541,30 @@ var PlayerView = {
         (remainingTime > 0) ? '-' + formatTime(remainingTime) : '---:--';
   },
 
+  share: function pv_shareFile(targetIndex) {
+    var songData = this.dataSource[this.currentIndex];
+    var filename = songData.name;
+
+    musicdb.getFile(filename, function(file) {
+      var name = filename.substring(filename.lastIndexOf('/') + 1);
+
+      var a = new MozActivity({
+        name: 'share',
+        data: {
+          type: file.type,
+          number: 1,
+          blobs: [file],
+          filenames: [name],
+          filepaths: [filename]
+        }
+      });
+
+      a.onerror = function(e) {
+        console.warn('share activity error:', a.error.name);
+      };
+    });
+  },
+
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
       if (!target)
@@ -598,6 +622,10 @@ var PlayerView = {
             });
 
             this.setShuffle(newValue, this.currentIndex);
+
+            break;
+          case 'player-bluetooth-transfer':
+            this.share(this.currentIndex);
 
             break;
         }
