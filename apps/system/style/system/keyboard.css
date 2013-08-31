@@ -1,4 +1,4 @@
-#keyboards {
+#keyboard-frame {
   /* See the new mozpasspointerevents attribute added in bug 796452 */
   pointer-events: none;
 
@@ -13,22 +13,22 @@
 }
 
 @media not all and (-moz-physical-home-button) {
-  #screen:not(.software-button-disabled) #keyboards {
+  #screen:not(.software-button-disabled) #keyboard-frame {
     bottom: 5rem;
   }
 }
 
-#screen.software-button-enabled #keyboards {
+#screen.software-button-enabled #keyboard-frame {
   bottom: 5rem;
 }
 
-#keyboards.hide {
+#keyboard-frame.hide {
   visibility: hidden;
 
   transform: translateY(100%);
 }
 
-#keyboards iframe {
+#keyboard-frame iframe {
   position: absolute;
   bottom: 0;
 
