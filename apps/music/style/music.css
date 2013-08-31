@@ -659,6 +659,24 @@ body.picker-mode #title-player {
   font-size: 1.7rem;
 }
 
+#player-bluetooth-transfer {
+  top: -80%;
+  width: calc(25% - 2rem);
+  height: 80%;
+  padding: 0;
+  border-radius: 3.5rem;
+  margin: 0 1rem;
+  font-weight: 500;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+  background-image: url("./images/iconaction_media_bluetooth_30x30.png");
+  position: relative;
+  top: -90%;
+  right: -77%;
+  z-index: 1;
+}
+
 #player-cover-buttons {
   bottom: calc(-100% + 5rem);
 }
