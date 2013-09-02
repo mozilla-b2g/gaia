@@ -99,6 +99,7 @@ define(function(require) {
     this.element.innerHTML = html;
 
     this.container.addEventListener('touchstart', this, false);
+    this.container.addEventListener('mousedown', this, false);
     this.container.addEventListener('pan', this, false);
     this.container.addEventListener('swipe', this, false);
 
@@ -160,6 +161,15 @@ define(function(require) {
   Spinner.prototype.ontouchstart = function(event) {
     event.preventDefault();
   };
+
+  /**
+   * onmousedown - prevents default action (stops scrolling)
+   * This is necessary for the Spinner to behave correctly in the integration
+   * test environment, where touch events are not available.
+   * TODO: Remove this handler (and its binding) with the resolution of
+   * "Bug 822898 - Implement pointer events"
+   */
+  Spinner.prototype.onmousedown = Spinner.prototype.ontouchstart;
 
   Spinner.prototype.onpan = function(event) {
     event.stopPropagation();
