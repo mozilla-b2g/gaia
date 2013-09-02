@@ -171,29 +171,32 @@ a {
 }
 
 .step-3.step-state:before {
-  transform: translateX(200%);
+  transform: translateX(100%);
 }
 
 .step-4.step-state:before {
-  transform: translateX(300%);
+  transform: translateX(200%);
 }
 
 .step-5.step-state:before {
-  transform: translateX(400%);
+  transform: translateX(300%);
 }
 
 .step-6.step-state:before {
-  transform: translateX(500%);
+  transform: translateX(400%);
 }
 
 .step-7.step-state:before {
-  transform: translateX(600%);
+  transform: translateX(500%);
 }
 
 .step-8.step-state:before {
-  transform: translateX(700%);
+  transform: translateX(600%);
 }
 
+.step-9.step-state:before {
+  transform: translateX(700%);
+}
 /*
   Header conditional button
 */
@@ -274,6 +277,14 @@ a {
     pointer-events: none;
 }
 
+#skip-pin-button.send-only {
+     display:none;
+}
+
+#unlock-sim-button.send-only  {
+  width: 100%;
+}
+
 #hidden-wifi-authentication input[type="password"] {
   pointer-events: auto;
 }
@@ -295,6 +306,21 @@ a {
   overflow-y: scroll;
   overflow-x: hidden;
   padding-top: 0;
+}
+/*
+  #SIM_mandatory
+*/
+#SIM_mandatory {
+  padding: 1.5rem 3rem 0 3rem;
+  width: calc(100% - 6rem);
+}
+
+#SIM_mandatory p {
+  margin: 0;
+  color: #000;
+  padding: 0 0 2rem 0;
+  font-size: 1.35rem;
+  line-height: 1.8rem;
 }
 
 /*

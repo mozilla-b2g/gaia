@@ -7,6 +7,7 @@ requireApp('communications/ftu/test/unit/mock_icc_helper.js');
 requireApp('communications/ftu/test/unit/mock_l10n.js');
 
 requireApp('communications/ftu/js/sim_manager.js');
+requireApp('communications/ftu/js/navigation.js');
 
 var _;
 var mocksHelperForNavigation = new MocksHelper([
@@ -246,6 +247,14 @@ suite('sim mgmt >', function() {
 
   function createDOM() {
     var markup =
+    '<header>' +
+    ' <menu type="toolbar">' +
+    '   <button id="wifi-refresh-button" data-l10n-id="refresh">' +
+    '     Refresh' +
+    '   </button>' +
+    ' </menu>' +
+    ' <h1 id="main-title"></h1>' +
+    '</header>' +
     '<section id="activation-screen"></section>' +
     // Import from SIM
     '<button id="sim-import-button">' +
@@ -321,6 +330,24 @@ suite('sim mgmt >', function() {
     '     Send' +
     '   </button>' +
     ' </nav>' +
+    '</section>' +
+    '<section id="activation-screen"' +
+    ' role="region" class="skin-organic no-options">' +
+    ' <menu role="navigation" id="nav-bar" class="forward-only">' +
+    '   <button id="back" class="button-left back">' +
+    '     Back' +
+    '     <span></span>' +
+    '   </button>' +
+    '   <button class="recommend forward" id="forward">' +
+    '     Next' +
+    '     <span></span>' +
+    '   </button>' +
+    '   <button class="recommend" id="wifi-join-button">' +
+    '     Join' +
+    '   </button>' +
+    ' </menu>' +
+    ' <a href="https://www.mozilla.org/privacy/firefox-os/"' +
+    '    class="external" title="URL title">url text</a>' +
     '</section>';
 
     container = document.createElement('div');
