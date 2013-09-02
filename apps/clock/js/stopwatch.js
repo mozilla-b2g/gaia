@@ -12,7 +12,7 @@
   }
 
   function Stopwatch() {
-    wm.set(this, new Defaults());
+    this.reset();
   };
 
   Stopwatch.prototype = {
