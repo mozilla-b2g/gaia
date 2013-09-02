@@ -435,6 +435,9 @@
 
       In order to workaround facebook contact issue(bug 895817), it should be
       able to handle the case about phone number without matched contact.
+
+      Phone number comes directly from the activity in the case we call 'pick'
+      from SMS App.
     */
     getContactDisplayInfo: function(resolver, phoneNumber, callback) {
       resolver(phoneNumber, function onContacts(contacts) {
@@ -454,15 +457,20 @@
         }
 
         var telLength = (contact && contact.tel) ? contact.tel.length : 0;
-        var tel = (telLength > 0) ? null :
-          {type: [''], value: phoneNumber, carrier: ''};
-
-        for (var i = 0; i < telLength && tel == null; i++) {
+        var tel;
+        // Look for the right tel. A contact can contains more than
+        // one contact, so we need to identify which one is the right one.
+        for (var i = 0; i < telLength; i++) {
           if (contact.tel[i].value === phoneNumber) {
             tel = contact.tel[i];
+            break;
           }
         }
-
+        // If after looking there is no tel. matching, we apply
+        // directly the phoneNumber
+        if (!tel) {
+          tel = {type: [''], value: phoneNumber, carrier: ''};
+        }
         // Get the title in the standard way
         var details = Utils.getContactDetails(tel, contact);
         var info = Utils.getDisplayObject(details.title || null, tel);
