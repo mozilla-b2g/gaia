@@ -67,6 +67,7 @@
      { "bluetooth-opp-update-progress": "/index.html" },
      { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
      { "bluetooth-opp-transfer-start": "/index.html" },
-     { "icc-stkcommand": "/index.html" }
+     { "icc-stkcommand": "/index.html" },
+     { "cdma-info-rec-received": "/index.html" }
   ]
 }

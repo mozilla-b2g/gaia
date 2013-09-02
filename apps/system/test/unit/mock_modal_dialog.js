@@ -19,6 +19,12 @@ var MockModalDialog = {
     }, this);
   },
 
+  showWithPseudoEvent: function mmd_showWIthPseudoEvent(param) {
+    if (this.mCallback) {
+      this.mCallback(param);
+    }
+  },
+
   mMethodCalled: function mmd_mMethodCalled(name, args) {
     this[name].mWasCalled = true;
     this[name].mArgs = args;
