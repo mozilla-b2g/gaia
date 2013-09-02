@@ -1,0 +1,53 @@
+{
+  "tabs": {
+    "alarm": "#alarm-tab a",
+    "timer": "#timer-tab a",
+    "stopwatch": "#stopwatch-tab a"
+  },
+  "panels": {
+    "alarm": "#alarm-panel",
+    "timer": "#timer-panel",
+    "stopwatch": "#stopwatch-panel"
+  },
+  "alarm": {
+    "analogClock": "#analog-clock",
+    "digitalClock": "#digital-clock",
+    "form": "#alarm-edit-panel",
+    "openFormBtn": "#alarm-new",
+    "closeFormBtn": "#alarm-close",
+    "doneBtn": "#alarm-done",
+    "deleteBtn": "#alarm-delete",
+    "nameInput": "#edit-alarm [name='alarm.label']",
+    "timeInput": "#time-select",
+    "list": "#alarms",
+    "listItem": ".alarm-cell",
+    "enabler": ".alarm-cell .alarmEnable",
+    "enabledCheck": ".alarm-cell input[type='checkbox']",
+    "countdownBanner": "#banner-countdown"
+  },
+  "timer": {
+    "createBtn": "#timer-create",
+    "countdown": "#timer-time",
+    "pauseBtn": "#timer-pause",
+    "resumeBtn": "#timer-start",
+    "cancelBtn": "#timer-cancel",
+    "timeDisplay": "#timer-time-display",
+    "spinner": {
+      "hour": ".picker-hours-wrapper",
+      "hours": ".picker-hours-wrapper .picker-unit",
+      "minute": ".picker-minutes-wrapper",
+      "minutes": ".picker-minutes-wrapper .picker-unit",
+      "second": ".picker-seconds-wrapper",
+      "seconds": ".picker-seconds-wrapper .picker-unit"
+    }
+  },
+  "stopwatch": {
+    "timeDisplay": ".stopwatch-time",
+    "startBtn": ".stopwatch-start",
+    "resetBtn": ".stopwatch-reset",
+    "pauseBtn": ".stopwatch-pause",
+    "lapBtn": ".stopwatch-lap",
+    "resumeBtn": ".stopwatch-resume",
+    "lap": ".lap-cell"
+  }
+}
