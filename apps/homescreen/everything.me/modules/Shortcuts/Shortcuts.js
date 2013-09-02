@@ -14,9 +14,7 @@ Evme.Shortcuts = new function Evme_Shortcuts() {
         
         scroll = new Scroll(Evme.$("#shortcuts-list", el));
         
-        if (navigator.mozSettings) {
-          navigator.mozSettings.addObserver('language.current', onLanguageChange);
-        }
+        window.addEventListener('localized', onLanguageChange);
         
         Evme.EventHandler.trigger(NAME, "init");
     };

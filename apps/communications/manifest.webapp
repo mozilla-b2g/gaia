@@ -98,6 +98,14 @@
       "href": "/contacts/index.html?pick",
       "returnValue": true
     },
+    "import": {
+      "filters": {
+        "type": ["text/x-vcard", "text/vcard", "application/vcard"]
+      },
+      "disposition": "inline",
+      "href": "/contacts/index.html?open",
+      "returnValue": true
+    },
     "open": {
       "filters": {
         "type": "webcontacts/contact"

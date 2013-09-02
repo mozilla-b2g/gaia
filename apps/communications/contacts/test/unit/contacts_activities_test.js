@@ -2,22 +2,28 @@
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 requireApp('communications/contacts/js/activities.js');
-requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
-requireApp('communications/contacts/test/unit/mock_value_selector.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_lazy_loader.js');
+requireApp('communications/contacts/test/unit/mock_value_selector.js');
+requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 
 if (!this._)
   this._ = null;
 
+if (!this.utils)
+  this.utils = null;
+
 var mocksHelperForActivities = new MocksHelper([
   'Contacts',
-  'ConfirmDialog'
+  'ConfirmDialog',
+  'LazyLoader'
 ]).init();
 
 suite('Test Activities', function() {
   var realMozL10n,
-      real_;
+      real_,
+      realImport;
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
@@ -26,15 +32,35 @@ suite('Test Activities', function() {
     real_ = window._;
     window._ = navigator.mozL10n.get;
 
+    if (!window.utils)
+      window.utils = {};
+
+    window.utils.overlay = {
+      show: function() {},
+      hide: function() {}
+    };
+
+    window.utils.importedID = null;
+    realImport = window.utils.importFromVcard;
+    window.utils.importFromVcard = function(file, callback) {
+      callback(this.importedID);
+    };
     mocksHelperForActivities.suiteSetup();
   });
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
+    window.utils.importFromVcard = realImport;
     mocksHelperForActivities.suiteTeardown();
   });
 
   suite('Activity launching', function() {
+    setup(function() {
+      ActivityHandler._currentActivity = null;
+      ActivityHandler._launchedAsInlineActivity = false;
+      utils.importedID = null;
+      document.location.hash = '';
+    });
 
     test('New contact', function() {
       var activity = {
@@ -44,7 +70,7 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
-      assert.equal(document.location.hash, '#view-contact-form');
+      assert.include(document.location.hash, 'view-contact-form');
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
@@ -56,7 +82,7 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
-      assert.equal(document.location.hash, '#view-contact-details');
+      assert.include(document.location.hash, 'view-contact-details');
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
@@ -68,21 +94,51 @@ suite('Test Activities', function() {
         }
       };
       ActivityHandler.handle(activity);
-      assert.equal(document.location.hash, '#add-parameters');
+      assert.include(document.location.hash, 'add-parameters');
       assert.equal(ActivityHandler._currentActivity, activity);
     });
 
-
     test('Pick contact', function() {
+      ActivityHandler._launchedAsInlineActivity = true;
       var activity = {
         source: {
           name: 'pick',
           data: {}
         }
       };
-      ActivityHandler.launch_activity(activity, 'pick');
       ActivityHandler.handle(activity);
       assert.equal(ActivityHandler._currentActivity, activity);
+    });
+
+    test('Import one contact from vcard (open details)', function() {
+      var activity = {
+        source: {
+          name: 'import',
+          data: {
+            blob: 'blob'
+          }
+        }
+      };
+      utils.importedID = '1';
+      ActivityHandler.handle(activity);
+      assert.equal(ActivityHandler._currentActivity, activity);
+      assert.include(document.location.hash, 'view-contact-details');
+      assert.include(document.location.hash, 'id=1');
+    });
+
+    test('Import vcard to open list (multiple contacts)', function() {
+      var activity = {
+        source: {
+          name: 'import',
+          data: {
+            blob: 'blob'
+          }
+        }
+      };
+      ActivityHandler.handle(activity);
+      assert.equal(ActivityHandler._currentActivity, activity);
+      assert.include(document.location.hash, 'view-contact-details');
+      assert.equal(document.location.hash.indexOf('id'), -1);
     });
   });
 

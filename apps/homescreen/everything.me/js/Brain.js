@@ -597,60 +597,73 @@ Evme.Brain = new function Evme_Brain() {
         Evme.DoATAPI.Shortcuts.get(null, function onSuccess(data){
           var appsKey = [],
               currentShortcuts = data && data.response && data.response.shortcuts || [],
-              shortcutsToSend = {};
-  
+              queriesToExperiences = {},
+              shortcutsToSend = [];
+
           for (var i=0, shortcut, query; shortcut=currentShortcuts[i++];) {
               query = shortcut.query;
-  
-              if (shortcut.experienceId && !query) {
-                  query = Evme.Utils.l10n('shortcut', 'id-' + Evme.Utils.shortcutIdToKey(shortcut.experienceId));
+
+              if (shortcut.experienceId) {
+                var l10nKey = 'id-' + Evme.Utils.shortcutIdToKey(shortcut.experienceId);
+                query = Evme.Utils.l10n('shortcut', l10nKey) || query;
               }
-              
+
               if (query) {
                   shortcutsToSend[query.toLowerCase()] = shortcut.experienceId;
+                  shortcutsToSend.push(query);
+
+                  // the appsKey will be used later on to determine change
+                  appsKey = appsKey.concat(shortcut.appIds);
               }
-              
-              // the appsKey will be used later on to determine change
-              appsKey = appsKey.concat(shortcut.appIds);
           }
-          
+
+          Evme.Utils.log('Request updated shortcuts: ' + JSON.stringify(shortcuts));
+
           // re-request all the user's shortcuts to upadte them from the API
           // otherwise the shortcut icons will remain static and will never change, even if
           // the apps inside them have
           Evme.DoATAPI.shortcutsGet({
-            "queries": JSON.stringify(Object.keys(shortcutsToSend)),
+            "queries": JSON.stringify(shortcutsToSend),
             "_NOCACHE": true
           }, function onShortcutsGet(response) {
             var shortcuts = response.response.shortcuts,
                 icons = response.response.icons,
+                updatedShortcuts = [],
                 newAppsKey = [];
-            
+
             if (!shortcuts || !icons) {
               return;
             }
-            
+
             // create a key from the new shortcuts' icons to determine change
             for (var i=0,shortcut; shortcut=shortcuts[i++];) {
               newAppsKey = newAppsKey.concat(shortcut.appIds);
             }
-            
+
             // if the icons haven't changed- no need to update everything and cause a UI refresh
             if (appsKey.join(',') === newAppsKey.join(',')) {
               Evme.Utils.log('Shortcuts keys are the same- no need to refresh')
               return;
             }
 
-            for (var i=0,shortcut; shortcut=shortcuts[i++];) {
+            for (var i=0, shortcut; shortcut=shortcuts[i++];) {
               if (!shortcut.experienceId) {
-                shortcut.experienceId = shortcutsToSend[shortcut.query];
+                shortcut.experienceId = shortcutsToSend[shortcut.query.toLowerCase()];
+              }
+
+              for (var j=0,currentShortcut; currentShortcut=shortcutsToSend[j++];) {
+                if (shortcut.query === currentShortcut) {
+                  updatedShortcuts[j - 1] = shortcut;
+                  break;
+                }
               }
             }
 
-            Evme.Utils.log('Updating shortcuts: ' + JSON.stringify(shortcuts));
-            
+            Evme.Utils.log('Updating shortcuts: ' + JSON.stringify(updatedShortcuts));
+
             Evme.DoATAPI.Shortcuts.clear(function onShortcuteCleared(){
               Evme.DoATAPI.Shortcuts.add({
-                  "shortcuts": shortcuts,
+                  "shortcuts": updatedShortcuts,
                   "icons": icons
               }, function onSuccess(){
                   Brain.Shortcuts.loadFromAPI();

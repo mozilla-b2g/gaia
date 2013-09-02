@@ -285,7 +285,7 @@ const Keyboards = {
       ]
     }
   },
-  pt_BR: {
+  'pt-BR': {
     label: 'Portuguese',
     menuLabel: 'Português',
     imEngine: 'latin',
