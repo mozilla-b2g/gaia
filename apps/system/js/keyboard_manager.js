@@ -40,7 +40,7 @@ const TYPE_GROUP_MAPPING = {
 const FOCUS_CHANGE_DELAY = 20;
 
 var KeyboardManager = {
-  keyboardFrameContainer: document.getElementById('keyboard-frame'),
+  keyboardFrameContainer: document.getElementById('keyboards'),
 
   // The set of installed keyboard layouts grouped by type_group.
   // This is a map from type_group to an object arrays.
