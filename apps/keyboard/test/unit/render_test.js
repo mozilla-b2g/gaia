@@ -121,7 +121,7 @@ suite('Renderer', function() {
       assert.equal(all[0].clientWidth, all[1].clientWidth * 2);
     });
 
-    test('Side keys should fill up space', function() {
+    test('Side keys should fill up space', function(next) {
       Object.defineProperty(Window.prototype, 'innerWidth',
         makeDescriptor(200));
       Object.defineProperty(ime, 'clientWidth',
@@ -138,25 +138,27 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout);
+      IMERender.resizeUI(layout, function() {
+        var visual = row.querySelectorAll('.visual-wrapper');
+        assert.equal(visual[0].clientWidth, visual[1].clientWidth,
+          'Visually same');
 
-      var visual = row.querySelectorAll('.visual-wrapper');
-      assert.equal(visual[0].clientWidth, visual[1].clientWidth,
-        'Visually same');
+        var keys = row.querySelectorAll('.keyboard-key');
 
-      var keys = row.querySelectorAll('.keyboard-key');
+        var totalWidth = 200;
 
-      var totalWidth = 200;
+        // due to pixels not being able to be .5 this can end up being 1 diff
+        assert.equal(totalWidth,
+          keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth);
 
-      // due to pixels not being able to be .5 this can end up being 1 diff
-      assert.equal(totalWidth,
-        keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth);
+        assert.equal(keys[0].classList.contains('float-key-first'), true);
+        assert.equal(keys[2].classList.contains('float-key-last'), true);
 
-      assert.equal(keys[0].classList.contains('float-key-first'), true);
-      assert.equal(keys[2].classList.contains('float-key-last'), true);
+        next();
+      });
     });
 
-    test('Side keys should fill up space in landscape', function() {
+    test('Side keys should fill up space in landscape', function(next) {
       Object.defineProperty(Window.prototype, 'innerWidth',
         makeDescriptor(400));
       Object.defineProperty(ime, 'clientWidth',
@@ -173,22 +175,24 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout);
+      IMERender.resizeUI(layout, function() {
+        var visual = row.querySelectorAll('.visual-wrapper');
+        assert.equal(visual[0].clientWidth, visual[1].clientWidth,
+          'Visually same');
 
-      var visual = row.querySelectorAll('.visual-wrapper');
-      assert.equal(visual[0].clientWidth, visual[1].clientWidth,
-        'Visually same');
+        var keys = row.querySelectorAll('.keyboard-key');
 
-      var keys = row.querySelectorAll('.keyboard-key');
+        assert.equal(400,
+          keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth);
 
-      assert.equal(400,
-        keys[0].clientWidth + keys[1].clientWidth + keys[2].clientWidth);
+        assert.equal(keys[0].classList.contains('float-key-first'), true);
+        assert.equal(keys[2].classList.contains('float-key-last'), true);
 
-      assert.equal(keys[0].classList.contains('float-key-first'), true);
-      assert.equal(keys[2].classList.contains('float-key-last'), true);
+        next();
+      });
     });
 
-    test('Sidekeys should adjust space when rotating', function() {
+    test('Sidekeys should adjust space when rotating', function(next) {
       Object.defineProperty(Window.prototype, 'innerWidth',
         makeDescriptor(400));
       Object.defineProperty(ime, 'clientWidth',
@@ -205,24 +209,27 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout);
+      IMERender.resizeUI(layout, function() {
+        var visual = row.querySelectorAll('.visual-wrapper');
 
-      var visual = row.querySelectorAll('.visual-wrapper');
+        Object.defineProperty(Window.prototype, 'innerWidth',
+          makeDescriptor(700));
+        Object.defineProperty(ime, 'clientWidth',
+          makeDescriptor(700));
+        Object.defineProperty(Window.prototype, 'innerHeight',
+          makeDescriptor(1000));
 
-      Object.defineProperty(Window.prototype, 'innerWidth',
-        makeDescriptor(700));
-      Object.defineProperty(ime, 'clientWidth',
-        makeDescriptor(700));
-      Object.defineProperty(Window.prototype, 'innerHeight',
-        makeDescriptor(1000));
+        IMERender.resizeUI(layout);
 
-      IMERender.resizeUI(layout);
+        assert.equal(visual[0].clientWidth, visual[1].clientWidth,
+          'Visually same');
 
-      assert.equal(visual[0].clientWidth, visual[1].clientWidth,
-        'Visually same');
+        next();
+      });
+
     });
 
-    test('GetKeyArray sanity', function() {
+    test('GetKeyArray sanity', function(next) {
       createKeyboardRow(
         ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'], 10);
 
@@ -233,22 +240,24 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout);
+      IMERender.resizeUI(layout, function() {
+        var keyArray = IMERender.getKeyArray();
 
-      var keyArray = IMERender.getKeyArray();
+        var visuals = [].slice.call(
+          document.querySelectorAll('.visual-wrapper'));
 
-      var visuals = [].slice.call(
-        document.querySelectorAll('.visual-wrapper'));
+        visuals.forEach(function(v, ix) {
+          assert.equal(v.offsetLeft, keyArray[ix].x, 'x for ' + ix);
+          assert.equal(v.offsetTop, keyArray[ix].y, 'y for ' + ix);
+          assert.equal(v.clientWidth, keyArray[ix].width, 'width for ' + ix);
+          assert.equal(v.clientHeight, keyArray[ix].height, 'height for ' + ix);
+        });
 
-      visuals.forEach(function(v, ix) {
-        assert.equal(v.offsetLeft, keyArray[ix].x, 'x for ' + ix);
-        assert.equal(v.offsetTop, keyArray[ix].y, 'y for ' + ix);
-        assert.equal(v.clientWidth, keyArray[ix].width, 'width for ' + ix);
-        assert.equal(v.clientHeight, keyArray[ix].height, 'height for ' + ix);
+        next();
       });
     });
 
-    test('GetKeyArray sanity for filled up space', function() {
+    test('GetKeyArray sanity for filled up space', function(next) {
       createKeyboardRow(['a', 'b', 'c'], 3);
 
       var layout = {
@@ -258,20 +267,21 @@ suite('Renderer', function() {
         ]
       };
 
-      IMERender.resizeUI(layout);
+      IMERender.resizeUI(layout, function() {
+        var keyArray = IMERender.getKeyArray();
 
-      var keyArray = IMERender.getKeyArray();
+        var visuals = [].slice.call(
+          document.querySelectorAll('.visual-wrapper'));
 
-      var visuals = [].slice.call(
-        document.querySelectorAll('.visual-wrapper'));
+        visuals.forEach(function(v, ix) {
+          assert.equal(v.offsetLeft, keyArray[ix].x, 'x for ' + ix);
+          assert.equal(v.offsetTop, keyArray[ix].y, 'y for ' + ix);
+          assert.equal(v.clientWidth, keyArray[ix].width, 'width for ' + ix);
+          assert.equal(v.clientHeight, keyArray[ix].height, 'height for ' + ix);
+        });
 
-      visuals.forEach(function(v, ix) {
-        assert.equal(v.offsetLeft, keyArray[ix].x, 'x for ' + ix);
-        assert.equal(v.offsetTop, keyArray[ix].y, 'y for ' + ix);
-        assert.equal(v.clientWidth, keyArray[ix].width, 'width for ' + ix);
-        assert.equal(v.clientHeight, keyArray[ix].height, 'height for ' + ix);
+        next();
       });
-
     });
   });
 
@@ -428,6 +438,113 @@ suite('Renderer', function() {
       };
       IMERender.draw(layout);
       assert.equal(ime.classList.contains('candidate-panel'), false);
+    });
+
+    suite('showCandidates', function() {
+      test('Three candidates literal HTML', function() {
+        var el = document.createElement('div');
+        el.id = 'keyboard-candidate-panel';
+        ime.appendChild(el);
+
+        IMERender.showCandidates(['trah', 'lah', 'lo'], true);
+
+        assert.equal(el.outerHTML,
+          '<div id="keyboard-candidate-panel"><div style="width: 31.3333%;">' +
+          '<span data-data="trah" data-selection="true" style="display: inli' +
+          'ne-block; width: 100%;">trah</span></div><div style="width: 31.33' +
+          '33%;"><span data-data="lah" data-selection="true" style="display:' +
+          ' inline-block; width: 100%;">lah</span></div><div style="width: 3' +
+          '1.3333%;"><span data-data="lo" data-selection="true" style="displ' +
+          'ay: inline-block; width: 100%;">lo</span></div></div>');
+      });
+
+      test('Three candidates', function() {
+        var el = document.createElement('div');
+        el.id = 'keyboard-candidate-panel';
+        ime.appendChild(el);
+
+        IMERender.showCandidates(['trah', 'lah', 'lo'], true);
+
+        var spans = el.querySelectorAll('span');
+        assert.equal(spans.length, 3);
+        assert.equal(spans[0].textContent, 'trah');
+        assert.equal(spans[0].dataset.data, 'trah');
+        assert.equal(spans[1].textContent, 'lah');
+        assert.equal(spans[1].dataset.data, 'lah');
+        assert.equal(spans[2].textContent, 'lo');
+        assert.equal(spans[2].dataset.data, 'lo');
+        assert.equal([].every.call(spans, function(s) {
+          return s.parentNode.style.width === '31.3333%';
+        }), true);
+      });
+
+      test('Zero candidates', function() {
+        var el = document.createElement('div');
+        el.id = 'keyboard-candidate-panel';
+        ime.appendChild(el);
+
+        IMERender.showCandidates([], true);
+
+        var spans = el.querySelectorAll('span');
+        assert.equal(spans.length, 0);
+      });
+
+      test('Candidate with star', function() {
+        var el = document.createElement('div');
+        el.id = 'keyboard-candidate-panel';
+        ime.appendChild(el);
+
+        var can = ['*awesome', 'moar', 'whoo'];
+        IMERender.showCandidates(can, true);
+
+        var spans = el.querySelectorAll('span');
+        assert.equal(spans.length, 3);
+        assert.equal(spans[0].classList.contains('autocorrect'), true);
+        assert.equal(spans[1].classList.contains('autocorrect'), false);
+        assert.equal(spans[2].classList.contains('autocorrect'), false);
+      });
+
+      test('Scaling to 0.6', function() {
+        var el = document.createElement('div');
+        el.id = 'keyboard-candidate-panel';
+        ime.appendChild(el);
+
+        IMERender.getScale = function() {
+          return 0.6;
+        };
+
+        var can = ['thisisverylongword', 'alsoverylongword', 'whatup'];
+        IMERender.showCandidates(can, true);
+
+        var spans = el.querySelectorAll('span');
+        assert.equal(spans[0].textContent, can[0]);
+        assert.equal(spans[1].textContent, can[1]);
+        assert.equal(spans[2].textContent, can[2]);
+        assert.equal(spans[0].style.width, '166.667%');
+        assert.equal(spans[0].style.transformOrigin, 'left center 0px');
+        assert.equal(spans[0].style.transform, 'scale(0.6)');
+      });
+
+      test('Scaling to 0.5', function() {
+        var el = document.createElement('div');
+        el.id = 'keyboard-candidate-panel';
+        ime.appendChild(el);
+
+        IMERender.getScale = function() {
+          return 0.5;
+        };
+
+        var can = ['thisisverylongword', 'alsoverylongword', 'whatup'];
+        IMERender.showCandidates(can, true);
+
+        var spans = el.querySelectorAll('span');
+        assert.equal(spans[0].textContent, 't…d');
+        assert.equal(spans[1].textContent, 'a…d');
+        assert.equal(spans[2].textContent, 'w…p');
+        assert.equal(spans[0].style.width, '200%');
+        assert.equal(spans[0].style.transformOrigin, 'left center 0px');
+        assert.equal(spans[0].style.transform, 'scale(0.5)');
+      });
     });
   });
 });
