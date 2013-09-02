@@ -131,7 +131,7 @@ var CallLogDBManager = {
                 self._upgradeSchemaVersion4(db, txn, next);
                 break;
               case 4:
-                self._upgradeSchemaVersion5(txn, next);
+                self._upgradeSchemaVersion5(next);
                 break;
               case 5:
                 // we have finished the upgrades. please keep this
@@ -486,55 +486,12 @@ var CallLogDBManager = {
     };
   },
   /**
-   * Upgrade schema to version 5. Add new 'emergency' and 'voicemail' bool
-   * fields, to store whether a call was made to an emergency number or
-   * to voicemail.
-   *
-   * param db
-   *        Database instance.
-   * param transaction
-   *        IDB transaction instance.
+   * Nothing to be done for version 5 since 'voicemail' and 'emergency' boolean
+   * flags don't need a schema upgrade: their default value is false for
+   * already existent data.
    */
-  _upgradeSchemaVersion5: function upgradeSchemaVersion5(transaction, next) {
-    this._newTxn('readwrite', [this._dbGroupsStore],
-                 (function(error, txn, store) {
-        if (error) {
-          console.log('Error upgrading the database ' + error);
-          return;
-        }
-
-        var groupsCount = 0;
-        var groupsTotalCount = 0;
-        var groupsProgress = 0;
-
-        var groupsStore = txn.objectStore(this._dbGroupsStore);
-        var performGroupsUpgrade = (function() {
-          groupsStore.openCursor().onsuccess = (function(event) {
-            var cursorGroups = event.target.result;
-            if (!cursorGroups) {
-              next();
-              return;
-            }
-
-            var record = cursorGroups.value;
-            record.emergency = false;
-            record.voicemail = false;
-            groupsStore.put(record);
-            cursorGroups.continue();
-
-            groupsCount += 1;
-            groupsProgress =
-              Math.round(((groupsCount / groupsTotalCount) * 100));
-            this._notifyObservers('upgradeprogress', groupsProgress);
-          }).bind(this);
-        }).bind(this);
-
-        groupsStore.count().onsuccess = function(event) {
-          groupsTotalCount = event.target.result;
-          performGroupsUpgrade();
-        };
-      }).bind(this)
-    );
+  _upgradeSchemaVersion5: function upgradeSchemaVersion5(next) {
+    next();
   },
   /**
    * Helper function to get the group ID from a recent call object.
