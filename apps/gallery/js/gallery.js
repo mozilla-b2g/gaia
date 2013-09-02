@@ -134,7 +134,7 @@ function init() {
   // The camera buttons should launch the camera app
   $('fullscreen-camera-button').onclick = launchCameraApp;
   $('thumbnails-camera-button').onclick = launchCameraApp;
-  $('goto-camera-button').onclick = launchCameraApp;
+  $('overlay-camera-button').onclick = launchCameraApp;
 
   // Clicking on the delete button in thumbnail select mode deletes all
   // selected items
@@ -1144,7 +1144,7 @@ function showOverlay(id) {
     // hide any special elements
     $('overlay-menu').classList.add('hidden');
     $('storage-setting-button').classList.add('hidden');
-    $('goto-camera-button').classList.add('hidden');
+    $('overlay-camera-button').classList.add('hidden');
 
     var title, text;
     switch (currentOverlay) {
@@ -1169,7 +1169,7 @@ function showOverlay(id) {
         title = navigator.mozL10n.get('emptygallery2-title');
         text = navigator.mozL10n.get('emptygallery2-text');
         $('overlay-menu').classList.remove('hidden');
-        $('goto-camera-button').classList.remove('hidden');
+        $('overlay-camera-button').classList.remove('hidden');
         break;
       case 'upgrade':
         title = navigator.mozL10n.get('upgrade-title');
