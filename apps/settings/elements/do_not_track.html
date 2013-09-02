@@ -7,6 +7,29 @@
     </header>
 
     <div>
+      <ul>
+        <li class="description">
+          <label class="pack-radio">
+            <input type="radio" name="privacy.donottrackheader.value" value="0"/>
+            <span></span>
+          </label>
+          <p data-l10n-id="doNotTrackActions">Tell websites and apps that I do not want to be tracked</p>
+        </li>
+        <li class="description">
+          <label class="pack-radio">
+            <input type="radio" name="privacy.donottrackheader.value" value="1"/>
+            <span></span>
+          </label>
+          <p data-l10n-id="allowTracking">Tell websites and apps that I want to be tracked</p>
+        </li>
+        <li class="description">
+          <label class="pack-radio">
+            <input type="radio" name="privacy.donottrackheader.value" value="-1"/>
+            <span></span>
+          </label>
+          <p data-l10n-id="doNotHavePrefOnTracking">Do not tell websites and apps anything about my tracking preferences</p>
+        </li>
+      </ul> 
       <header>
         <h2 data-l10n-id="doNotTrack-dt">How does Do Not Track work?</h2>
       </header>
@@ -22,17 +45,14 @@
             websites, nor cause your device to forget your private information —
             such as the contents of shopping carts, location information, or
             log-in information.
-        </p>
-        </li>
-        <li>
-          <label class="pack-checkbox">
-            <input type="checkbox" name="privacy.donottrackheader.enabled" />
-            <span></span>
-          </label>
-          <a data-l10n-id="doNotTrack">Do Not Track</a>
+          </p>
+          <p>
+            <a href="http://dnt.mozilla.org" data-l10n-id="learn-more" class="link-text">Learn More</a>
+          </p> 
         </li>
       </ul>
     </div>
 
+    <script src="js/do_not_track.js"></script> 
   </template>
 </element>
