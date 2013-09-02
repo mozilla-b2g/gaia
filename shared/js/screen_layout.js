@@ -37,12 +37,21 @@ var ScreenLayout = {
     })(this.defaultQueries);
   },
 
-  getCurrentLayout: function sl_getCurrentLayout() {
-    // return current matching type from "defaultQueries"
-    for (var name in this.defaultQueries) {
-      if (this.queries[name].matches) {
-        return name;
+  // name: |String|, ex: 'tiny', 'small', 'medium'
+  //
+  // tell user what type it is now
+  // if type is undeined, it will return matching type from "defaultQueries"
+  // if type is given, it will return boolean based on all watching queries
+  getCurrentLayout: function sl_getCurrentLayout(type) {
+    if (type === undefined) {
+      for (var name in this.defaultQueries) {
+        if (this.queries[name].matches) {
+          return name;
+        }
       }
+    }
+    if (typeof this.queries[type] !== 'undefined') {
+      return this.queries[type].matches;
     }
     return false;
   },
@@ -67,7 +76,7 @@ var ScreenLayout = {
   },
 
   unwatch: function sl_unwatch(name) {
-    if (this.queries[name].media) {
+    if (this.queries[name]) {
       this.queries[name].removeListener(this);
     }
   },
