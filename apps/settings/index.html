@@ -67,7 +67,6 @@
     <!--<script defer src="shared/js/mobile_operator.js"></script>-->
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
-    <!--<script defer src="shared/js/icc_helper.js"></script>-->
     <!--<script defer src="/shared/js/settings_listener.js"></script> -->
 
     <!-- all non-#root panels will lazy-load their own scripts -->
@@ -596,6 +595,9 @@
                 <option value="CLIR_SUPPRESSION" data-l10n-id="callerId-show">Show number</option>
               </select>
             </p>
+          </li>
+          <li id="menuItem-fdn">
+            <a data-href="#call-fdnSettings" data-l10n-id="fdn">Fixed dialing numbers</a>
           </li>
         </ul>
 
@@ -1894,6 +1896,47 @@
       -->
     </section>
 
+    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->
+    <section role="region" id="call-fdnSettings">
+      <!--
+      <header>
+        <a href="#root"><span class="icon icon-back">back</span></a>
+        <h1 data-l10n-id="fdnSettings"> Fixed dialing numbers </h1>
+      </header>
+
+      <div>
+        <ul>
+          <li class="description">
+            <p>
+              Restrict which numbers can be dialed from this phone.
+              (Emergency numbers will always be dialable)
+            </p>
+          </li>
+          <li id="fdn-enabled">
+            <label class="pack-switch">
+              <input type="checkbox" data-ignore />
+              <span></span>
+            </label>
+            <small></small>
+            <a data-l10n-id="fdnSettings">Fixed dialing numbers</a>
+          </li>
+          <li>
+            <small data-l10n-id="fdn-authorizedNumbers-desc">List of numbers that can be called</small>
+            <a data-l10n-id="fdn-authorizedNumbers">Authorized numbers</a>
+          </li>
+          <li id="fdn-changePIN">
+            <label>
+              <button name="changeSimPin2" data-l10n-id="fdn-resetPIN">Reset PIN2 code</button>
+            </label>
+          </li>
+        </ul>
+      </div>
+
+      <script src="js/simcard_fdn.js"></script>
+      <script src="js/simcard_dialog.js"></script>
+      -->
+    </section>
+
     <!-- Security :: SIM Security -->
     <section role="region" id="simpin">
       <!--
@@ -1913,7 +1956,6 @@
             it’s on, any device containing the SIM card will request the PIN upon
             restart.
             </p>
-
             <p data-l10n-id="simPinIntro2">
               A SIM PIN is not the same as the Passcode used to unlock the device.
             </p>
@@ -1933,6 +1975,25 @@
             <label>
               <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
             </label>
+          </li>
+        </ul>
+
+        <header>
+          <h2>What is FDN?</h2>
+        </header>
+        <ul>
+          <li class="description">
+            <p>
+              Restrict which numbers can be dialed from this phone.
+              (Emergency numbers will always be dialable)
+            </p>
+          </li>
+          <li>
+            <a data-href="#call-fdnSettings" data-l10n-id="fdn">Fixed dialing numbers</a>
+          </li>
+          <li>
+            <small data-l10n-id="fdnList-expl">List of numbers that can be called</small>
+            <a data-href="#call-fdnList" data-l10n-id="fdnList">Authorized numbers</a>
           </li>
         </ul>
       </div>
@@ -2850,8 +2911,8 @@
         <h1 data-l10n-id="settings"> Settings </h1>
       </header>
 
-      <!-- Main :: Network & Connectivity -->
       <div>
+        <!-- Main :: Network & Connectivity -->
         <header>
           <h2 data-l10n-id="networkAndConnectivity">Network &amp; Connectivity</h2>
         </header>

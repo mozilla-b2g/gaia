@@ -177,6 +177,30 @@ var SimPinDialog = {
     this.clear();
   },
 
+  enableFdn: function spl_enableFdn() {
+    var pin = this.pinInput.value;
+    if (pin === '')
+      return;
+
+    var options = {lockType: 'fdn', pin2: pin, enabled: true};
+    this.setCardLock(options);
+    this.clear();
+  },
+
+  disableFdn: function spl_disableFdn() {
+    var pin = this.pinInput.value;
+    if (pin === '')
+      return;
+
+    var options = {lockType: 'fdn', pin2: pin, enabled: false};
+    this.setCardLock(options);
+    this.clear();
+  },
+
+  unlockFdn: function spl_unlockFdn() {
+    // TODO
+  },
+
   setCardLock: function spl_setCardLock(options) {
     var self = this;
     var req = IccHelper.setCardLock(options);
@@ -186,7 +210,8 @@ var SimPinDialog = {
         self.onsuccess();
     };
   },
-  inputFieldControl: function spl_inputField(isPin,  isPuk, isNewPin) {
+
+  inputFieldControl: function spl_inputField(isPin, isPuk, isNewPin) {
     this.pinArea.hidden = !isPin;
     this.pukArea.hidden = !isPuk;
     this.newPinArea.hidden = !isNewPin;
@@ -195,10 +220,11 @@ var SimPinDialog = {
 
   verify: function spl_verify() {
     switch (this.action) {
+      // PIN lock
       case 'unlock':
-        if (this.lockType === 'pin')
+        if (this.lockType === 'pin') {
           this.unlockPin();
-        else {
+        } else if (this.lockType === 'puk') {
           this.unlockPuk();
         }
         break;
@@ -208,10 +234,16 @@ var SimPinDialog = {
       case 'changePin':
         this.changePin();
         break;
+      // FDN lock
+      case 'enableFdn':
+        this.enableFdn();
+        break;
+      case 'disableFdn':
+        this.disableFdn();
+        break;
     }
     return false;
   },
-
 
   clear: function spl_clear() {
     this.errorMsg.hidden = true;
@@ -246,6 +278,14 @@ var SimPinDialog = {
         this.inputFieldControl(true, false, true);
         this.dialogTitle.textContent = _('newpinTitle') || '';
         break;
+      case 'enableFdn':
+        this.inputFieldControl(true, false, false);
+        this.dialogTitle.textContent = 'Enable FDN';
+        break;
+      case 'disableFdn':
+        this.inputFieldControl(true, false, false);
+        this.dialogTitle.textContent = 'Disable FDN';
+        break;
     }
 
     IccHelper.getCardLockRetryCount(this.lockType, (function(retryCount) {
@@ -270,7 +310,6 @@ var SimPinDialog = {
       this.pukInput.focus();
     else
       this.pinInput.focus();
-
   },
 
   close: function spl_close() {
