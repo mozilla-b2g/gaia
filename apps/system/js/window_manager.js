@@ -1748,16 +1748,17 @@ var WindowManager = (function() {
       return;
     }
 
+    var app = runningApps[origin];
     // As we can't immediatly remove runningApps entry,
     // we flag it as being killed in order to avoid trying to remove it twice.
     // (Check required because of bug 814583)
-    if (runningApps[origin].killed) {
+    if (app.killed) {
       if (callback) {
         setTimeout(callback);
       }
       return;
     }
-    runningApps[origin].killed = true;
+    app.killed = true;
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp) {
@@ -1796,7 +1797,11 @@ var WindowManager = (function() {
     // Let other system app module know an app is
     // being killed, removed or crashed.
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appterminated', true, false, { origin: origin });
+    var manifestURL = app.manifestURL;
+    evt.initCustomEvent('appterminated', true, false, {
+      origin: origin,
+      manifestURL: manifestURL
+    });
     window.dispatchEvent(evt);
   }
 
