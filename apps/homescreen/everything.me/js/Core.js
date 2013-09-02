@@ -181,7 +181,8 @@ window.Evme = new function Evme_Core() {
     });
 
     Evme.BackgroundImage.init({
-      "el": Evme.$("#search-overlay")
+      "el": Evme.$("#search-overlay"),
+      "elFullScreenParent": Evme.$("#evmeOverlay")
     });
 
     Evme.SearchResults = new Evme.ResultManager();
