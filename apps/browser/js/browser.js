@@ -40,6 +40,7 @@ var Browser = {
     '/about.html',
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
+  SCROLL_THRESHOLD: 10,
   MAX_URL_ITEM_CACHE: 50, // Max items cached for awesome bar predictions
   MAX_TOP_SITES: 4, // max number of top sites to display
   MAX_THUMBNAIL_WIDTH: 140,
@@ -58,6 +59,7 @@ var Browser = {
   // store the current scroll position, so we can re-calculate whether
   // we need to show the addressbar when loading the page is complete
   lastScrollOffset: 0,
+  prevScrollOffset: 0,
 
   init: function browser_init() {
     this.getAllElements();
@@ -522,11 +524,15 @@ var Browser = {
   },
 
   handleScroll: function browser_handleScroll(evt) {
+    this.prevScrollOffset = this.lastScrollOffset;
     this.lastScrollOffset = evt.detail.top;
 
-    if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
+    if (((this.prevScrollOffset - evt.detail.top) > this.SCROLL_THRESHOLD) ||
+       (evt.detail.top < this.LOWER_SCROLL_THRESHOLD)) {
       this.showAddressBar();
-    } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
+    } else if ((evt.detail.top - this.prevScrollOffset >
+                this.SCROLL_THRESHOLD) &&
+      (evt.detail.top > this.UPPER_SCROLL_THRESHOLD)) {
       this.hideAddressBar();
     }
   },
