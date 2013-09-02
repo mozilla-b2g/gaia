@@ -1,7 +1,7 @@
 Evme.__config = {
     "appVersion": "2.0.145",
     "apiHost": "api.everything.me",
-    "apiKey": "68f36b726c1961d488b63054f30d312c",
+    "apiKey": "65106dbdb655b25f2defa18ab7d1ecd8",
     "authCookieName": "prod-credentials",
     "debugMode": false,
     "unsupportedRedirectMode": false,
