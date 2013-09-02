@@ -827,6 +827,7 @@ li[role="listitem"] small {
 
 #refresh a {
   background-image: url('images/refresh.png');
+  background-position: auto;
 }
 
 .hidden {
