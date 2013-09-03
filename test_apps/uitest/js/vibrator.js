@@ -1,5 +1,7 @@
-durationDisplay = document.getElementById('duration-display');
-timesDisplay = document.getElementById('times-display');
+'use strict'
+var durationDisplay = document.getElementById('duration-display');
+var timesDisplay = document.getElementById('times-display');
+
 var clickHandlers = {
   'off': function () {
     window.navigator.vibrate(0);
@@ -16,7 +18,7 @@ var clickHandlers = {
   'custom-pattern': function () {
     var timesNum = parseInt(times.value);
     var pattern = [];
-    for(i = 0; i < timesNum*2; i++)
+    for(var i = 0; i < timesNum*2; i++)
     {
 	pattern.push(parseInt(duration.value));
     }
