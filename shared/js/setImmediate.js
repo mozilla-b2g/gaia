@@ -1,22 +1,58 @@
-(function (global, undefined) {
+// Copyright (c) 2012 Barnesandnoble.com, llc, Donavon West, and Domenic Denicola
+//
+// Permission is hereby granted, free of charge, to any person obtaining
+// a copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to
+// permit persons to whom the Software is furnished to do so, subject to
+// the following conditions:
+//
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+// NOTE: This is an import of the NobleJS setImmediate() polyfill located here:
+//
+//         https://github.com/NobleJS/setImmediate
+//
+//       It has been customized in the following ways:
+//
+//         1) Non-gecko browser compatibility code has been removed.  The
+//            postMessage() implementation is always used.
+//         2) The support for executing strings with eval() has been
+//            disabled and will now throw an exception.
+//         3) Always attach to prototype of window
+//         4) Convert test code to use suite() and test().
+//
+//       The style of this code is different from the rest of gaia, but
+//       we chose to minimize non-functional changes in order to make
+//       importing fixes from upstream easier in the future.
+//
+// XXX: Remove this file if/when bug 686201 land.
+
+(function () {
     "use strict";
 
     var tasks = (function () {
         function Task(handler, args) {
+            if (typeof handler !== "function") {
+                throw new Error("setImmediate() handler must be a function; eval not supported");
+            }
             this.handler = handler;
             this.args = args;
         }
         Task.prototype.run = function () {
-            // See steps in section 5 of the spec.
-            if (typeof this.handler === "function") {
-                // Choice of `thisArg` is not in the setImmediate spec; `undefined` is in the setTimeout spec though:
-                // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html
-                this.handler.apply(undefined, this.args);
-            } else {
-                var scriptSource = "" + this.handler;
-                /*jshint evil: true */
-                eval(scriptSource);
-            }
+            // Choice of `thisArg` is not in the setImmediate spec; `undefined` is in the setTimeout spec though:
+            // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html
+            this.handler.apply(undefined, this.args);
         };
 
         var nextHandle = 1; // Spec says greater than zero
@@ -50,7 +86,7 @@
                 } else {
                     // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
                     // "too much recursion" error.
-                    global.setTimeout(function () {
+                    window.setTimeout(function () {
                         tasks.runIfPresent(handle);
                     }, 0);
                 }
@@ -61,68 +97,8 @@
         };
     }());
 
-    function canUseNextTick() {
-        // Don't get fooled by e.g. browserify environments.
-        return typeof process === "object" &&
-               Object.prototype.toString.call(process) === "[object process]";
-    }
-
-    function canUseMessageChannel() {
-        return !!global.MessageChannel;
-    }
-
-    function canUsePostMessage() {
-        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
-        // where `global.postMessage` means something completely different and can't be used for this purpose.
-
-        if (!global.postMessage || global.importScripts) {
-            return false;
-        }
-
-        var postMessageIsAsynchronous = true;
-        var oldOnMessage = global.onmessage;
-        global.onmessage = function () {
-            postMessageIsAsynchronous = false;
-        };
-        global.postMessage("", "*");
-        global.onmessage = oldOnMessage;
-
-        return postMessageIsAsynchronous;
-    }
-
-    function canUseReadyStateChange() {
-        return "document" in global && "onreadystatechange" in global.document.createElement("script");
-    }
-
-    function installNextTickImplementation(attachTo) {
-        attachTo.setImmediate = function () {
-            var handle = tasks.addFromSetImmediateArguments(arguments);
-
-            process.nextTick(function () {
-                tasks.runIfPresent(handle);
-            });
-
-            return handle;
-        };
-    }
-
-    function installMessageChannelImplementation(attachTo) {
-        var channel = new global.MessageChannel();
-        channel.port1.onmessage = function (event) {
-            var handle = event.data;
-            tasks.runIfPresent(handle);
-        };
-        attachTo.setImmediate = function () {
-            var handle = tasks.addFromSetImmediateArguments(arguments);
-
-            channel.port2.postMessage(handle);
-
-            return handle;
-        };
-    }
-
     function installPostMessageImplementation(attachTo) {
-        // Installs an event handler on `global` for the `message` event: see
+        // Installs an event handler on `window` for the `message` event: see
         // * https://developer.mozilla.org/en/DOM/window.postMessage
         // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
 
@@ -136,83 +112,29 @@
             // This will catch all incoming messages (even from other windows!), so we need to try reasonably hard to
             // avoid letting anyone else trick us into firing off. We test the origin is still this window, and that a
             // (randomly generated) unpredictable identifying prefix is present.
-            if (event.source === global && isStringAndStartsWith(event.data, MESSAGE_PREFIX)) {
+            if (event.source === window && isStringAndStartsWith(event.data, MESSAGE_PREFIX)) {
                 var handle = event.data.substring(MESSAGE_PREFIX.length);
                 tasks.runIfPresent(handle);
             }
         }
-        if (global.addEventListener) {
-            global.addEventListener("message", onGlobalMessage, false);
-        } else {
-            global.attachEvent("onmessage", onGlobalMessage);
-        }
+        window.addEventListener("message", onGlobalMessage, false);
 
         attachTo.setImmediate = function () {
             var handle = tasks.addFromSetImmediateArguments(arguments);
 
-            // Make `global` post a message to itself with the handle and identifying prefix, thus asynchronously
+            // Make `window` post a message to itself with the handle and identifying prefix, thus asynchronously
             // invoking our onGlobalMessage listener above.
-            global.postMessage(MESSAGE_PREFIX + handle, "*");
+            window.postMessage(MESSAGE_PREFIX + handle, "*");
 
             return handle;
         };
     }
 
-    function installReadyStateChangeImplementation(attachTo) {
-        attachTo.setImmediate = function () {
-            var handle = tasks.addFromSetImmediateArguments(arguments);
+    if (!window.setImmediate) {
+        // If supported, we should attach to the prototype of window, since that is where setTimeout et al. live.
+        var attachTo = Object.getPrototypeOf(window);
 
-            // Create a <script> element; its readystatechange event will be fired asynchronously once it is inserted
-            // into the document. Do so, thus queuing up the task. Remember to clean up once it's been called.
-            var scriptEl = global.document.createElement("script");
-            scriptEl.onreadystatechange = function () {
-                tasks.runIfPresent(handle);
-
-                scriptEl.onreadystatechange = null;
-                scriptEl.parentNode.removeChild(scriptEl);
-                scriptEl = null;
-            };
-            global.document.documentElement.appendChild(scriptEl);
-
-            return handle;
-        };
-    }
-
-    function installSetTimeoutImplementation(attachTo) {
-        attachTo.setImmediate = function () {
-            var handle = tasks.addFromSetImmediateArguments(arguments);
-
-            global.setTimeout(function () {
-                tasks.runIfPresent(handle);
-            }, 0);
-
-            return handle;
-        };
-    }
-
-    if (!global.setImmediate) {
-        // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
-        var attachTo = typeof Object.getPrototypeOf === "function" && "setTimeout" in Object.getPrototypeOf(global) ?
-                          Object.getPrototypeOf(global)
-                        : global;
-
-        if (canUseNextTick()) {
-            // For Node.js before 0.9
-            installNextTickImplementation(attachTo);
-        } else if (canUsePostMessage()) {
-            // For non-IE10 modern browsers
-            installPostMessageImplementation(attachTo);
-        } else if (canUseMessageChannel()) {
-            // For web workers, where supported
-            installMessageChannelImplementation(attachTo);
-        } else if (canUseReadyStateChange()) {
-            // For IE 6–8
-            installReadyStateChangeImplementation(attachTo);
-        } else {
-            // For older browsers
-            installSetTimeoutImplementation(attachTo);
-        }
-
+        installPostMessageImplementation(attachTo);
         attachTo.clearImmediate = tasks.remove;
     }
-}(typeof global === "object" && global ? global : this));
+}());
