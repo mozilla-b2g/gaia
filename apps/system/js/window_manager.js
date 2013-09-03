@@ -1356,7 +1356,7 @@ var WindowManager = (function() {
 
       // If the message specifies we only have to show the app,
       // then we don't have to do anything here
-      if (config.changeURL) {
+      if (config.changeURL || config.extra.noLaunch) {
         if (isRunning(config.origin)) {
           // If the app is in foreground, it's too risky to change it's
           // URL. We'll ignore this request.
@@ -1372,6 +1372,8 @@ var WindowManager = (function() {
               iframe.src = config.url;
             }
           }
+        } else if (config.extra.noLaunch) {
+          return;
         } else if (config.origin !== homescreen) {
           // XXX: We could ended opening URls not for the app frame
           // in the app frame. But we don't care.
