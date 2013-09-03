@@ -1,5 +1,6 @@
 var MockCallScreen = {
   insertCall: function() {},
+  moveToGroup: function() {},
   enableKeypad: function() {
     this.mEnableKeypadCalled = true;
   },
@@ -34,10 +35,10 @@ var MockCallScreen = {
     this.mHideIncomingCalled = true;
   },
 
-  set callsCount(count) {
-    this.mCallsCount = count;
+  set bigDuration(value) {
+    this.mBigDuration = value;
   },
-  mCallsCount: null,
+  mBigDuration: null,
 
   // Fake dom
   calls: document.createElement('div'),
@@ -63,7 +64,7 @@ var MockCallScreen = {
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
     this.incomingNumber = document.createElement('div');
-    this.mCallsCount = null;
+    this.mBigDuration = null;
   }
 };
 

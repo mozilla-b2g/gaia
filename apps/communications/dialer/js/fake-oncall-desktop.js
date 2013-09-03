@@ -27,7 +27,7 @@ if (window.location.pathname.endsWith('oncall.html')) {
 
   duration.querySelector('.direction').classList.add('ongoing-in');
 
-  CallScreen.callsCount = 1;
+  CallScreen.bigDuration = true;
   CallScreen.render('connected'); // Change this for various states
   CallScreen.screen.classList.add('displayed');
 } else {
