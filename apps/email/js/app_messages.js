@@ -37,24 +37,22 @@ define(function(require) {
         dataType = sourceData.type;
 
     // To assist in bug analysis, log the start of the activity here.
-    dump('Received activity: ' + activityName);
+    console.log('Received activity: ' + activityName);
 
-    if (activityName === 'share' && dataType === 'url') {
-      appMessages.emitWhenListener('activity', 'share', {
-        body: url
-      }, req);
-      return;
+    var data = {};
+    if (dataType === 'url') {
+      data.body = url;
+    } else {
+      data.to = urlParts[0];
+      data.subject = urlParts[1];
+      data.body = typeof urlParts[2] === 'string' ? urlParts[2] : null;
+      data.cc = urlParts[3];
+      data.bcc = urlParts[4];
+      data.attachmentBlobs = attachmentBlobs;
+      data.attachmentNames = attachmentNames;
     }
 
-    appMessages.emitWhenListener('activity', activityName, {
-      to: urlParts[0],
-      subject: urlParts[1],
-      body: typeof urlParts[2] === 'string' ? urlParts[2] : null,
-      cc: urlParts[3],
-      bcc: urlParts[4],
-      attachmentBlobs: attachmentBlobs,
-      attachmentNames: attachmentNames
-    }, req);
+    appMessages.emitWhenListener('activity', activityName, data, req);
   };
 
   if ('mozSetMessageHandler' in navigator) {
