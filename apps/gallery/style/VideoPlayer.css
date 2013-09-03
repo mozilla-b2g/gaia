@@ -23,14 +23,14 @@
   height: 10.6rem;
   left: calc(50% - 5.3rem);
   top: calc(50% - 5.3rem);
-  background: url("images/video_play_button.png") no-repeat center center / 10.6rem,
-              url("images/video_play_normal.png") no-repeat center center / 10.6rem;
+  background: url("images/video_play_button.png") no-repeat center center / 10rem,
+              url("images/video_play_normal.png") no-repeat center center / 10rem;
   border-width: 0;
 }
 
 .videoPlayerPlayButton:active {
-  background: url("images/video_play_button.png") no-repeat center center / 10.6rem,
-              url("images/video_play_focus.png") no-repeat center center / 10.6rem;
+  background: url("images/video_play_button.png") no-repeat center center / 10rem,
+              url("images/video_play_focus.png") no-repeat center center / 10rem;
 }
 
 .videoPlayerPlayButton.hidden {
