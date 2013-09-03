@@ -1,10 +1,9 @@
 function generatorTest() {
   // Add a new contact to the database
-  var testContact = new mozContact();
-  testContact.init({
-    givenName: 'Kennedy',
-    familyName: 'Cooley',
-    name: 'Kennedy Cooley'
+  var testContact = new mozContact({
+    givenName: ['Kennedy'],
+    familyName: ['Cooley'],
+    name: ['Kennedy Cooley']
   });
 
   // Save the contact, and yield until the save is done
