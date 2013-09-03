@@ -174,9 +174,6 @@ var Camera = {
   _videoProfile: {},
 
   preferredRecordingSizes: null,
-  _shutterKey: 'camera.shutter.enabled',
-  _shutterSound: null,
-  _shutterSoundEnabled: true,
 
   PROMPT_DELAY: 2000,
 
@@ -302,7 +299,8 @@ var Camera = {
         '/shared/js/lazy_l10n.js',
         'js/panzoom.js',
         'js/filmstrip.js',
-        'js/confirm.js'
+        'js/confirm.js',
+        'js/soundeffect.js'
       ];
       loader.load(files, function() {
         LazyL10n.get(function localized() {
@@ -358,19 +356,9 @@ var Camera = {
       this.galleryButton.setAttribute('disabled', 'disabled');
     }
 
-    this._shutterSound = new Audio('./resources/sounds/shutter.ogg');
-    this._shutterSound.mozAudioChannelType = 'notification';
+    SoundEffect.init();
 
     if ('mozSettings' in navigator) {
-      var req = navigator.mozSettings.createLock().get(this._shutterKey);
-      req.onsuccess = (function onsuccess() {
-        this._shutterSoundEnabled = req.result[this._shutterKey];
-      }).bind(this);
-
-      navigator.mozSettings.addObserver(this._shutterKey, (function(e) {
-        this._shutterSoundEnabled = e.settingValue;
-      }).bind(this));
-
       this.getPreferredSizes();
     }
 
@@ -651,6 +639,7 @@ var Camera = {
         config.maxFileSizeBytes = Math.min(config.maxFileSizeBytes,
                                            maxFileSizeBytes);
       }
+      SoundEffect.playRecordingStartSound();
       this._cameraObj.startRecording(config,
                                      this._videoStorage, this._videoPath,
                                      onsuccess, onerror);
@@ -703,6 +692,9 @@ var Camera = {
     document.body.classList.remove('recording');
     var self = this;
     this._cameraObj.stopRecording();
+    // play camcorder shutter sound while stop recording.
+    SoundEffect.playRecordingEndSound();
+
     this._recording = false;
     // Register a listener for writing completion of current video file
     (function(videoStorage, videofile) {
@@ -936,9 +928,8 @@ var Camera = {
       this.enableCameraFeatures(camera.capabilities);
 
       camera.onShutter = (function() {
-        if (this._shutterSoundEnabled) {
-          this._shutterSound.play();
-        }
+        // play shutter sound.
+        SoundEffect.playCameraShutterSound();
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
       if (this._captureMode === this.CAMERA) {

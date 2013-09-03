@@ -129,6 +129,7 @@ function execute() {
    'bluetooth.debugging.enabled': false,
    'bluetooth.suspended': false,
    'camera.shutter.enabled': true,
+   'camera.recordingsound.enabled': false,
    'camera.recording.preferredSizes': [],
    'clear.remote-windows.data': false,
    'debug.console.enabled': false,
