@@ -10,9 +10,16 @@ const HomeState = (function() {
   var database = null;
   var initQueue = [];
 
-  function loadInitialState(iterator, success, error) {
+  function loadInitialState(iterator, success, error, offset) {
     var grid = Configurator.getSection('grid') || [];
 
+    // push empty pages at the beginning of the grid
+    offset = offset || 0;
+    for (var i = 0; i < offset; i++) {
+      grid.splice(1, 0, []);
+    }
+
+    // add the actual grid pages from the configurator
     for (var i = 0; i < grid.length; i++) {
       grid[i] = {
         index: i,
@@ -141,14 +148,15 @@ const HomeState = (function() {
      * Initialize the database and return the homescreen state to the
      * success callback.
      */
-    init: function st_init(iteratorGrid, success, error, iteratorSVApps) {
+    init: function st_init(iteratorGrid, success, error, extra) {
+      extra = extra || {};
       openDB(function(emptyDB) {
         if (emptyDB) {
-          loadInitialState(iteratorGrid, success, error);
+          loadInitialState(iteratorGrid, success, error, extra.offset);
           return;
         }
         HomeState.getGrid(iteratorGrid, success, error);
-        HomeState.getSVApps(iteratorSVApps);
+        HomeState.getSVApps(extra.iteratorSVApps);
       }, error);
     },
 

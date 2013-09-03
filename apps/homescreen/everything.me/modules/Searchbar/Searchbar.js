@@ -4,6 +4,8 @@ Evme.Searchbar = new function Evme_Searchbar() {
         value = "", isFocused = false,
         timeoutSearchOnBackspace = null, timeoutPause = null, timeoutIdle = null,
         intervalPolling = null,
+
+        pending,
         
         SEARCHBAR_POLLING_INTERVAL = 300,
         TIMEOUT_BEFORE_SEARCHING_ON_BACKSPACE = 500,
