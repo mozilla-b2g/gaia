@@ -389,8 +389,6 @@ VCFReader.vcardToContact = function(vcard) {
   VCFReader.processAddr(vcard, obj);
   VCFReader.processComm(vcard, obj);
   VCFReader.processFields(vcard, obj);
-  var contact = new mozContact();
-  contact.init(obj);
 
-  return contact;
+  return new mozContact(obj);
 };

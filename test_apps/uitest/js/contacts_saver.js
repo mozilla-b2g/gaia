@@ -10,8 +10,7 @@ function ContactsSaver(data) {
   }
 
   function saveContact(cdata) {
-    var contact = new mozContact();
-    contact.init(cdata);
+    var contact = new mozContact(cdata);
     var req = navigator.mozContacts.save(contact);
     req.onsuccess = function(e) {
       if (typeof self.onsaved === 'function') {
