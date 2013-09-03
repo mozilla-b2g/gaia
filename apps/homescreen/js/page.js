@@ -216,7 +216,7 @@ Icon.prototype = {
   },
 
   loadCachedIcon: function icon_loadCachedImage() {
-    var oldRenderedIcon = this.descriptor.oldRenderedIcon;
+    var oldRenderedIcon = this.oldRenderedIcon;
     if (oldRenderedIcon && oldRenderedIcon instanceof Blob) {
       this.renderBlob(oldRenderedIcon);
     } else {
@@ -237,6 +237,7 @@ Icon.prototype = {
       img.onload = img.onerror = null;
       window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
+      self.isDefaultIcon = false;
     };
 
     img.onerror = function icon_loadError() {
@@ -270,6 +271,8 @@ Icon.prototype = {
       self.renderBlob(blob);
       image.onload = image.onerror = null;
     }
+
+    this.isDefaultIcon = true;
   },
 
   renderImageForBookMark: function icon_renderImageForBookmark(img) {
@@ -401,7 +404,7 @@ Icon.prototype = {
         descriptor.icon == oldDescriptor.icon) {
       this.descriptor.renderedIcon = oldDescriptor.renderedIcon;
     } else {
-      this.descriptor.oldRenderedIcon = oldDescriptor.renderedIcon;
+      this.oldRenderedIcon = oldDescriptor.renderedIcon;
       this.fetchImageData();
     }
     if (descriptor.updateTime != oldDescriptor.updateTime ||
@@ -565,6 +568,17 @@ Icon.prototype = {
 
   getWidth: function icon_getWidth() {
     return this.container.getBoundingClientRect().width;
+  },
+
+  /*
+   * Returns the descriptor object
+   */
+  getDescriptor: function icon_getDescriptor() {
+    if (this.isDefaultIcon) {
+      delete this.descriptor.renderedIcon;
+    }
+
+    return this.descriptor;
   }
 };
 
@@ -959,7 +973,7 @@ Page.prototype = {
     var nodes = this.olist.children;
     return Array.prototype.map.call(nodes, function marshall(node) {
       var icon = GridManager.getIcon(node.dataset);
-      return icon.descriptor;
+      return icon.getDescriptor();
     });
   }
 };
