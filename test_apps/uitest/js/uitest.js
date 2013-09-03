@@ -1,10 +1,6 @@
 'use stricts';
 
 var UITest = {
-  get testList() {
-    delete this.testList;
-    return this.testList = document.getElementById('test-list');
-  },
   get UItests() {
     delete this.UItests;
     return this.UItests = document.getElementById('UI-tests');
@@ -77,35 +73,35 @@ var UITest = {
 	{
 	  this.UItests.classList.remove('invisible');
 	  if(!this.HWtests.classList.contains('invisible'))
-		this.HWtests.classList.add('invisible');
+	    this.HWtests.classList.add('invisible');
 	  if(!this.APItests.classList.contains('invisible'))
-	  	this.APItests.classList.add('invisible');
+	    this.APItests.classList.add('invisible');
 	}
 	else if(window.location.hash == '#API')
 	{
 	  this.APItests.classList.remove('invisible');
 	  if(!this.UItests.classList.contains('invisible'))
-		this.UItests.classList.add('invisible');
+	    this.UItests.classList.add('invisible');
 	  if(!this.HWtests.classList.contains('invisible'))
-	  	this.HWtests.classList.add('invisible');
+	    this.HWtests.classList.add('invisible');
 	}
 	else if(window.location.hash == '#HW')
 	{
 	  this.HWtests.classList.remove('invisible');
 	  if(!this.UItests.classList.contains('invisible'))
-		this.UItests.classList.add('invisible');
+	    this.UItests.classList.add('invisible');
 	  if(!this.APItests.classList.contains('invisible'))
-	  	this.APItests.classList.add('invisible');
+	    this.APItests.classList.add('invisible');
 	}
 	else
 	{
-	        var name = this.getNameFromHash();
-		if (!name) {
-		  this.closeTest();
-		  return;
-		}
-		this.panelTitle.textContent = name;
-		this.openTest(name);
+	  var name = this.getNameFromHash();
+	  if (!name) {
+	    this.closeTest();
+	    return;
+	  }
+	  this.panelTitle.textContent = name;
+	  this.openTest(name);
 	}
         break;
       case 'transitionend':

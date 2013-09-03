@@ -17,49 +17,35 @@ body {
   overflow: hidden;
 }
 
-.panel {
-  position: absolute;
-  display: block;
-  width: 100%;
-  height: calc(100% - 3rem);
-  -moz-transition: -moz-transform 0.3s ease;
-  top: 0;
-}
-
-.tab {
-  position: absolute;
-  display: block;
-  width: 100%;
-  bottom: 0;
-}
-
 .invisible {
   display: none;
 }
 
-#test-panel {
+.panel {
+  position: absolute;
+  display: block;
+  width: 100%;
+  height: 100%;
+  -moz-transition: -moz-transform 0.3s ease;
+  top: 0;
+}
+
+.test-panel {
   -moz-transform: translateX(-100%);
 }
 
-#UI-tests {
+.selection-panel{
   -moz-transform: translateX(0);
 }
 
-#API-tests {
-  -moz-transform: translateX(0);
-}
-
-body.test #test-panel {
-  -moz-transform: translateX(0);
-}
-
-body.test #UI-tests {
+body.test .selection-panel{
   -moz-transform: translateX(100%);
 }
 
-body.test #API-tests {
-  -moz-transform: translateX(100%);
+body.test .test-panel {
+  -moz-transform: translateX(0);
 }
+	
 .toolbar {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -79,21 +65,6 @@ body.test #API-tests {
   height: 64px;
   border-bottom: solid 3px #9b9b9b;
 }
-
-.list {
-  position: absolute;
-  top: 64px;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  overflow-y: auto;
-  -moz-user-select: none;
-
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
-
 .toolbar-title {
   font-size: 26px;
   font-weight: bold;
@@ -107,13 +78,24 @@ body.test #API-tests {
   white-space: nowrap;
 }
 
-#test-list {
-    background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-    margin: 0;
-    padding: 0;
+.list {
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
+  margin: 0;
+  padding: 0;
+
+  position: absolute;
+  top: 64px;
+  bottom: 3rem;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  -moz-user-select: none;
+
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
-#test-list > li {
+.list > li {
   -moz-box-sizing: border-box;
   height: 56px;
   padding: 4px 16px;
@@ -125,7 +107,7 @@ body.test #API-tests {
   font-weight: 600;
 }
 
-#test-list > li > a {
+.list > li > a {
   display: block;
   outline: none;
   width: 100%; height: 100%;
@@ -133,7 +115,7 @@ body.test #API-tests {
   text-decoration: none;
 }
 
-#test-list > li:active {
+.list > li:active {
   background: hsla(35,100%,50%,.2);
 }
 
