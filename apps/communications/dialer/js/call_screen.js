@@ -73,6 +73,22 @@ var CallScreen = {
     this.syncSpeakerEnabled();
   },
 
+  toggle: function cs_toggle(callback) {
+    var screen = this.screen;
+    screen.classList.toggle('displayed');
+
+    if (!callback) {
+      return;
+    }
+
+    screen.addEventListener('transitionend', function trWait() {
+      screen.removeEventListener('transitionend', trWait);
+      if (typeof(callback) == 'function') {
+        callback();
+      }
+    });
+  },
+
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
   },

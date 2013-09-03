@@ -295,9 +295,13 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
 };
 
 HandledCall.prototype.show = function hc_show() {
-  this.node.hidden = false;
+  if (this.node) {
+    this.node.hidden = false;
+  }
 };
 
 HandledCall.prototype.hide = function hc_hide() {
-  this.node.hidden = true;
+  if (this.node) {
+    this.node.hidden = true;
+  }
 };

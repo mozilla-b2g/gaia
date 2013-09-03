@@ -81,6 +81,12 @@ suite('calls handler', function() {
         assert.isTrue(renderSpy.calledWith('incoming'));
       });
 
+      test('should toggle the CallScreen', function() {
+        var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(toggleSpy.calledOnce);
+      });
+
       test('should update the CallScreen\'s duration style', function() {
         MockMozTelephony.mTriggerCallsChanged();
         assert.equal(MockCallScreen.mBigDuration, true);
@@ -96,6 +102,21 @@ suite('calls handler', function() {
         var speakerSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(speakerSpy.calledOnce);
+      });
+    });
+
+    suite('> hanging up the last incoming call', function() {
+      setup(function() {
+        var mockCall = new MockCall('12334', 'incoming');
+        var mockHC = telephonyAddCall.call(this, mockCall, {trigger: true});
+
+        MockMozTelephony.calls = [];
+      });
+
+      test('should toggle the CallScreen', function() {
+        var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(toggleSpy.calledOnce);
       });
     });
 
@@ -266,6 +287,42 @@ suite('calls handler', function() {
       test('should update the CallScreen\'s duration style', function() {
         MockMozTelephony.mTriggerCallsChanged();
         assert.equal(MockCallScreen.mBigDuration, true);
+      });
+    });
+
+    suite('> people disconnecting from a conference call', function() {
+      var firstConfCall, firstHC;
+      var secondConfCall, secondHC;
+
+      setup(function() {
+        firstConfCall = new MockCall('543552', 'incoming');
+        secondConfCall = new MockCall('54353523', 'incoming');
+
+        firstHC = telephonyAddCall.call(this, firstConfCall, {trigger: true});
+        secondHC = telephonyAddCall.call(this, secondConfCall, {trigger: true});
+
+        MockMozTelephony.calls = [];
+        MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+                                                  secondConfCall];
+
+        MockMozTelephony.mTriggerGroupCallsChanged();
+        MockMozTelephony.mTriggerCallsChanged();
+
+        MockMozTelephony.calls = [firstConfCall];
+        MockMozTelephony.conferenceGroup.calls = [secondConfCall];
+
+        MockMozTelephony.mTriggerGroupCallsChanged();
+        MockMozTelephony.mTriggerCallsChanged();
+
+        MockMozTelephony.calls = [];
+        MockMozTelephony.conferenceGroup.calls = [];
+      });
+
+      test('should toggle the CallScreen', function() {
+        var toggleSpy = this.sinon.spy(MockCallScreen, 'toggle');
+        MockMozTelephony.mTriggerCallsChanged();
+        MockMozTelephony.mTriggerGroupCallsChanged();
+        assert.isTrue(toggleSpy.calledOnce);
       });
     });
   });
