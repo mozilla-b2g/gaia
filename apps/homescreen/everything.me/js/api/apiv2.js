@@ -135,10 +135,14 @@ Evme.api = new function Evme_api() {
                 
                 try {
                     response = JSON.parse(httpRequest.responseText);
-                } catch(ex){}
+                } catch(ex){
+                    console.error('Error from e.me API (invalid JSON): ' + ex.message + '(' + url + '?' + params + ')');
+                }
                 
                 if (response) {
                     callback(response, url + "?" + params);
+                } else {
+                    console.warn('No response to send back to client. original response: ' + httpRequest.responseText);
                 }
             }
         };

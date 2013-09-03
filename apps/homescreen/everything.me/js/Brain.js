@@ -400,7 +400,6 @@ Evme.Brain = new function Evme_Brain() {
 
         // transition to default items
         this.showDefault = function showDefault() {
-            Searcher.cancelRequests();
             Evme.BackgroundImage.loadDefault();
 
             if (Evme.Searchbar.getValue() == "" && !Evme.Utils.isKeyboardVisible) {
@@ -1731,7 +1730,7 @@ Evme.Brain = new function Evme_Brain() {
                         
                         // only try to refresh location of it's a "real" search- with keyboard down
                         if (exact && appsCurrentOffset === 0 && !Evme.Utils.isKeyboardVisible) {
-                            Evme.Location.updateIfNeeded();
+                            window.mozRequestAnimationFrame(Evme.Location.updateIfNeeded);
                         }
                     }, removeSession);
                 }
