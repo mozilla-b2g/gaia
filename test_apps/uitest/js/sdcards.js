@@ -39,8 +39,8 @@ var clickHandlers = {
       }
 
       var cardTotal = document.querySelector("#card"+i+" > p > .totalSpace");
-      var cardFree = document.querySelector("#card"+i+" > p >.freeSpace");
-      var cardUsed = document.querySelector("#card"+i+" > p >.usedSpace");
+      var cardFree = document.querySelector("#card"+i+" > p > .freeSpace");
+      var cardUsed = document.querySelector("#card"+i+" > p > .usedSpace");
 
       var reqFree = sdcards[i].freeSpace();
       reqFree.onsuccess = function () {
