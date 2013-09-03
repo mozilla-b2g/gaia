@@ -295,8 +295,6 @@ function ImapConnection (options) {
     numCapRecvs: 0,
     isReady: false,
     isIdle: true,
-    tmrKeepalive: null,
-    tmoKeepalive: 10000,
     tmrConn: null,
     curData: null,
     // The number of bytes that we should accumulate into curData before we try
@@ -698,7 +696,7 @@ ImapConnection.prototype.connect = function(loginCb) {
       }
 
       var sendBox = false;
-      clearTimeoutFunc(self._state.tmrKeepalive);
+
       if (self._state.status === STATES.BOXSELECTING) {
         if (data[1] === 'OK') {
           sendBox = true;
@@ -779,27 +777,9 @@ ImapConnection.prototype.connect = function(loginCb) {
 
       var recentCmd = recentReq.command;
       if (self._LOG) self._LOG.cmd_end(recentReq.prefix, recentCmd, /^LOGIN$/.test(recentCmd) ? '***BLEEPING OUT LOGON***' : recentReq.cmddata);
-      if (self._state.requests.length === 0
-          && recentCmd !== 'LOGOUT') {
-        if (self._state.status === STATES.BOXSELECTED &&
-            self.capabilities.indexOf('IDLE') > -1) {
-          // According to RFC 2177, we should re-IDLE at least every 29
-          // minutes to avoid disconnection by the server
-          self._send('IDLE', null, undefined, undefined, true);
-        }
-        self._state.tmrKeepalive = setTimeoutFunc(function() {
-          if (self._state.isIdle) {
-            if (self._state.ext.idle.state === IDLE_READY) {
-              self._state.ext.idle.timeWaited += self._state.tmoKeepalive;
-              if (self._state.ext.idle.timeWaited >= self._state.ext.idle.MAX_WAIT)
-                // restart IDLE
-                self._send('IDLE', null, undefined, undefined, true);
-            } else if (self.capabilities.indexOf('IDLE') === -1)
-              self._noop();
-          }
-        }, self._state.tmoKeepalive);
-      } else
+      if (self._state.requests.length !== 0 || recentCmd === 'LOGOUT') {
         process.nextTick(function() { self._send(); });
+      }
 
       self._state.isIdle = true;
     } else if (data[0] === 'IDLE') {
@@ -1664,8 +1644,6 @@ ImapConnection.prototype._login = function(cb) {
   }
 };
 ImapConnection.prototype._reset = function() {
-  if (this._state.tmrKeepalive)
-    clearTimeoutFunc(this._state.tmrKeepalive);
   if (this._state.tmrConn)
     clearTimeoutFunc(this._state.tmrConn);
   this._state.status = STATES.NOCONNECT;
@@ -1693,10 +1671,6 @@ ImapConnection.prototype._resetBox = function() {
   this._state.box.name = null;
   this._state.box.messages.total = 0;
   this._state.box.messages.new = 0;
-};
-ImapConnection.prototype._noop = function() {
-  if (this._state.status >= STATES.AUTH)
-    this._send('NOOP', null);
 };
 // bypass=true means to not push a command.  This is used exclusively for the
 // auto-idle functionality.  IDLE happens automatically when nothing else is
@@ -1777,8 +1751,6 @@ ImapConnection.prototype._writeRequest = function(request, realRequest) {
       cmd = request.command,
       data = request.cmddata,
       dispatch = request.dispatch;
-
-  clearTimeoutFunc(this._state.tmrKeepalive);
 
   // If we are currently in IDLE, we need to exit it before we send the
   // actual command.  We mark it as a bypass so it does't mess with the
