@@ -5,21 +5,27 @@ var clickHandlers = {
     document.getElementById('numOfCards').innerHTML = sdcards.length;
 
     // Clear previous result
-    var cardsDisplay = document.getElementById('cardsInfo');
+    var cardsInfo = document.getElementById('cardsInfo');
+    for(var i = 0; i < sdcards.length; i++)
+    {
+      var cardInfo = document.querySelector("#card"+i);
+      if(cardInfo != undefined)
+        cardsInfo.removeChild(card);
+    }
 
     // Display SD cards info
     for(var i = 0; i < sdcards.length; i++)
     {
-      var cardDisplay = document.createElement("P");
-      cardsDisplay.appendChild(cardDisplay);
+      var template = document.getElementById("card#");
+      var cardInfo = template.cloneNode(true);
+      cardInfo.id = "card"+i;
+      cardInfo.classList.remove('invisible');
+      cardsInfo.appendChild(cardInfo);
 
-      var cardNo = document.createElement("P");
-      cardNo.appendChild(document.createTextNode("SD card #"+ i));
-      cardDisplay.appendChild(cardNo);
+      var cardNo = document.querySelector("#card"+i+" > .no");
+      cardNo.appendChild(document.createTextNode(i));
 
-      var cardStatus = document.createElement("P");
-      cardStatus.appendChild(document.createTextNode("status: "));
-      cardDisplay.appendChild(cardStatus);
+      var cardStatus = document.querySelector("#card"+i+" > .status");
 
       var reqAvailable = sdcards[i].available();
       reqAvailable.onsuccess = function () {
@@ -32,41 +38,27 @@ var clickHandlers = {
         cardStatus.appendChild(document.createTextNode("Unable to get the space used by the SDCard: " + this.error));
       }
 
-      var PTotal = document.createElement("P");
-      var PFree = document.createElement("P");
-      var PUsed = document.createElement("P");
-      PTotal.appendChild(document.createElement("SPAN"));
-      PFree.appendChild(document.createElement("SPAN"));
-      PUsed.appendChild(document.createElement("SPAN"));
-
-      PTotal.insertBefore(document.createTextNode("Total space: "),PTotal.firstChild);
-      PFree.insertBefore(document.createTextNode("Free space: "),PFree.firstChild);
-      PUsed.insertBefore(document.createTextNode("Used space: "),PUsed.firstChild);
-      PTotal.appendChild(document.createTextNode(" GB"));
-      PFree.appendChild(document.createTextNode(" GB"));
-      PUsed.appendChild(document.createTextNode(" GB"));
-
-      cardDisplay.appendChild(PTotal);
-      cardDisplay.appendChild(PFree);
-      cardDisplay.appendChild(PUsed);
+      var cardTotal = document.querySelector("#card"+i+" > p > .totalSpace");
+      var cardFree = document.querySelector("#card"+i+" > p >.freeSpace");
+      var cardUsed = document.querySelector("#card"+i+" > p >.usedSpace");
 
       var reqFree = sdcards[i].freeSpace();
       reqFree.onsuccess = function () {
 	var spaceGB = this.result / Math.pow(10,9);
-        PFree.childNodes[1].innerHTML = spaceGB;
-	if(PTotal.childNodes[1].innerHTML == "")
-          PTotal.childNodes[1].innerHTML = spaceGB;
+        cardFree.innerHTML = spaceGB;
+	if(cardTotal.innerHTML == "")
+          cardTotal.innerHTML = spaceGB;
 	else
-          PTotal.childNodes[1].innerHTML = parseFloat(PTotal.childNodes[1].innerHTML) + spaceGB;
+          cardTotal.innerHTML = parseFloat(cardTotal.innerHTML) + spaceGB;
       }
       var reqUsed = sdcards[i].usedSpace();
       reqUsed.onsuccess = function () {
 	var spaceGB = this.result / Math.pow(10,9);
-        PUsed.childNodes[1].innerHTML = spaceGB;
-	if(PTotal.childNodes[1].innerHTML == "")
-          PTotal.childNodes[1].innerHTML = spaceGB;
+        cardUsed.innerHTML = spaceGB;
+	if(cardTotal.innerHTML == "")
+          cardTotal.innerHTML = spaceGB;
 	else
-          PTotal.childNodes[1].innerHTML = parseFloat(PTotal.childNodes[1].innerHTML) + spaceGB;
+          cardTotal.innerHTML = parseFloat(cardTotal.innerHTML) + spaceGB;
       }
     }
   }

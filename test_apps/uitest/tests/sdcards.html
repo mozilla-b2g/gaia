@@ -7,12 +7,23 @@
     <style>
 	button {
 	  font-size: 40px;
-	}
+        }
+        .invisible {
+          display: none;
+        }
     </style>
   </head>
   <body>
     <p>This device constains <span id="numOfCards">?</span> SD cards.</p>
-    <p id="cardsInfo"></p>
+    <div id="cardsInfo">
+      <div id="card#" class="invisible">
+        <p class="no">SD card #</p>
+        <p class="status">Status: </p>
+        <p>Total space: <span class="totalSpace"></span> GB</p>
+        <p>Free space: <span class="freeSpace"></span> GB</p>
+        <p>Used space: <span class="usedSpace"></span> GB</p>
+      </div>
+    </div>
     <button id="check">Check</button>
   </body>
 </html>
