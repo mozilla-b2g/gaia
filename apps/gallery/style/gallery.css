@@ -114,6 +114,14 @@ section {
   display: none;
 }
 
+#overlay-menu button.hidden {
+  display: none;
+}
+
+#overlay-menu button.full {
+  margin: 0;
+}
+
 /*
  * Thumbnails are implemented as <li> elements in a <ul> with background-image
  * set to display the image. We use background-size: cover to automatically
