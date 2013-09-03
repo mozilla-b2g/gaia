@@ -323,6 +323,36 @@ suite('page.js >', function() {
         });
       });
 
+      suite('icons > getDescriptor works fine', function() {
+        function createIcon(isDefault) {
+          var app = new MockApp();
+          var descriptor = {
+            manifestURL: app.manifestURL,
+            name: app.name,
+            renderedIcon: 'rendered'
+          };
+
+          icon = new Icon(descriptor, app);
+          icon.isDefault = isDefault;
+
+          return icon;
+        }
+
+        test('renderedIcon is not defined for icons by default ', function() {
+          createIcon(true, function(icon) {
+            assert.isNull(icon.getDescriptor().renderedIcon);
+          });
+        });
+
+        test('renderedIcon is defined for icons with correct rendered image ',
+             function() {
+          createIcon(false, function(icon) {
+            assert.equal(icon.getDescriptor().renderedIcon, 'rendered');
+          });
+        });
+
+      });
+
       suite('Offline ready apps >', function() {
         function createIcon(data, done) {
           var app = new MockApp();
