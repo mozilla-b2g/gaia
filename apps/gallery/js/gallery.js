@@ -131,9 +131,10 @@ function init() {
   // In crop view, the done button finishes the pick
   $('crop-done-button').onclick = cropAndEndPick;
 
-  // The camera buttons should both launch the camera app
+  // The camera buttons should launch the camera app
   $('fullscreen-camera-button').onclick = launchCameraApp;
   $('thumbnails-camera-button').onclick = launchCameraApp;
+  $('overlay-camera-button').onclick = launchCameraApp;
 
   // Clicking on the delete button in thumbnail select mode deletes all
   // selected items
@@ -1140,11 +1141,10 @@ function showOverlay(id) {
   LazyLoader.load('shared/style/confirm.css', function() {
     currentOverlay = id;
 
-    if (currentOverlay === 'nocard') {
-      $('overlay-menu').classList.remove('hidden');
-    } else {
-      $('overlay-menu').classList.add('hidden');
-    }
+    // hide any special elements
+    $('overlay-menu').classList.add('hidden');
+    $('storage-setting-button').classList.add('hidden');
+    $('overlay-camera-button').classList.add('hidden');
 
     var title, text;
     switch (currentOverlay) {
@@ -1154,6 +1154,8 @@ function showOverlay(id) {
       case 'nocard':
         title = navigator.mozL10n.get('nocard3-title');
         text = navigator.mozL10n.get('nocard3-text');
+        $('overlay-menu').classList.remove('hidden');
+        $('storage-setting-button').classList.remove('hidden');
         break;
       case 'pluggedin':
         title = navigator.mozL10n.get('pluggedin2-title');
@@ -1166,6 +1168,8 @@ function showOverlay(id) {
       case 'emptygallery':
         title = navigator.mozL10n.get('emptygallery2-title');
         text = navigator.mozL10n.get('emptygallery2-text');
+        $('overlay-menu').classList.remove('hidden');
+        $('overlay-camera-button').classList.remove('hidden');
         break;
       case 'upgrade':
         title = navigator.mozL10n.get('upgrade-title');
