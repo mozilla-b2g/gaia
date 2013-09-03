@@ -39,6 +39,9 @@ function readFileAsDataURL(file, mimetype, callback) {
 function setWallpaper(wallpaper_filename, callback) {
   // Grab wallpaper.jpg and convert it into a base64 string
   let wallpaper = utils.getAbsoluteOrRelativePath(wallpaper_filename);
+  if (!wallpaper.exists()) {
+    wallpaper = utils.getAbsoluteOrRelativePath('build/wallpaper.jpg');
+  }
   readFileAsDataURL(wallpaper, 'image/jpeg', function(dataURL) {
     settings['wallpaper.image'] = dataURL;
     callback();
