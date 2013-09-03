@@ -10,7 +10,7 @@ requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('communications/ftu/js/sim_manager.js');
 requireApp('communications/ftu/js/navigation.js');
 
-requireApp('communications/ftu/test/unit/mock_sim_manager.html.js');
+require('/shared/test/unit/load_body_html_helper.js');
 
 var _;
 var mocksHelperForSimManager = new MocksHelper([
@@ -20,14 +20,12 @@ var mocksHelperForSimManager = new MocksHelper([
 
 suite('sim mgmt >', function() {
   var realL10n,
-      realMozMobileConnection,
-      realHTML;
+      realMozMobileConnection;
   var mocksHelper = mocksHelperForSimManager;
   var conn, container, navigationSpy;
 
   suiteSetup(function() {
-    realHTML = document.body.innerHTML;
-    document.body.innerHTML = MockImportSimManagerHTML;
+    loadBodyHTML('/ftu/index.html');
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
@@ -47,8 +45,7 @@ suite('sim mgmt >', function() {
   });
 
   suiteTeardown(function() {
-    document.body.innerHTML = realHTML;
-    realHTML = null;
+    document.body.innerHTML = '';
 
     navigator.mozMobileConnection = realMozMobileConnection;
     realMozMobileConnection = null;
@@ -297,6 +294,28 @@ suite('sim mgmt >', function() {
         assert.isTrue(UIManager.activationScreen.classList.contains('show'));
         assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
       });
+    });
+  });
+
+  suite('No Telephony', function() {
+    var realMozMobileConnection;
+
+    setup(function() {
+      realMozMobileConnection = navigator.mozMobileConnection;
+      // no telephony API
+      navigator.mozMobileConnection = null;
+
+      SimManager.init();
+    });
+
+    teardown(function() {
+      navigator.mozMobileConnection = realMozMobileConnection;
+      realMozMobileConnection = null;
+    });
+
+    test('hide sim import section', function() {
+      SimManager.skip();
+      assert.isFalse(UIManager.simImport.classList.contains('show'));
     });
   });
 

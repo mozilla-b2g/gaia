@@ -115,6 +115,11 @@ var SimManager = {
   },
 
   checkSIMButton: function sm_checkSIMButton() {
+    if (!this.mobConn) {
+      UIManager.simImport.classList.add('hidden');
+      return;
+    }
+
     var simOption = UIManager.simImportButton;
     // If there is an unlocked SIM we activate import from SIM
     if (!SimManager.alreadyImported && SimManager.available()) {
