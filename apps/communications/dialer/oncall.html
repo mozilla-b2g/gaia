@@ -28,6 +28,7 @@
     <script defer type="application/javascript" src="/dialer/js/utils.js"></script>
     <script defer type="application/javascript" src="/dialer/js/call_screen.js"></script>
     <script defer type="application/javascript" src="/dialer/js/calls_handler.js"></script>
+    <script defer type="application/javascript" src="/dialer/js/conference_group_handler.js"></script>
     <script defer type="application/javascript" src="/dialer/js/voicemail.js"></script>
     <script defer type="application/javascript" src="/dialer/js/handled_call.js"></script>
 
@@ -57,6 +58,20 @@
             </div>
           </div>
         </section>
+        <section id="group-call" hidden>
+          <div class="numberWrapper">
+            <div id="group-call-label" class="number font-light"></div>
+          </div>
+          <div id="group-call-summary" class="additionalContactInfo"></div>
+          <div class="duration">
+            <span class="font-light"></span>
+            <div class="direction">
+              <div></div>
+            </div>
+          </div>
+        </section>
+      </article>
+      <article id="group-call-details">
       </article>
       <article id="main-container">
         <div id="actions-container">
