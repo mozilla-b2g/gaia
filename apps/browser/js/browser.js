@@ -462,7 +462,10 @@ var Browser = {
         break;
 
       case 'mozbrowsercontextmenu':
-        this.showContextMenu(evt);
+        if (!this.contextMenuHasCalled) {
+          this.contextMenuHasCalled = true;
+          this.showContextMenu(evt);
+        }
         break;
 
       case 'mozbrowsersecuritychange':
@@ -1392,7 +1395,7 @@ var Browser = {
     var dialog = document.createElement('section');
     var menu = document.createElement('menu');
     var list = document.createElement('ul');
-
+    var self = this;
     // SystemTargets are default elements that have contextmenu
     // actions associated
     evt.detail.systemTargets.forEach(function(item) {
@@ -1412,6 +1415,7 @@ var Browser = {
             icon: item.icon,
             label: item.label,
             callback: function() {
+              self.contextMenuHasCalled = false;
               evt.detail.contextMenuItemSelected(item.id);
             }
           });
@@ -1447,6 +1451,7 @@ var Browser = {
     list.appendChild(cancel);
 
     cancel.addEventListener('click', function(e) {
+      self.contextMenuHasCalled = false;
       document.body.removeChild(dialog);
     });
 
