@@ -36,12 +36,31 @@ function readFileAsDataURL(file, mimetype, callback) {
   reader.readAsDataURL(req.response);
 }
 
-function setWallpaper(wallpaper_filename, callback) {
-  // Grab wallpaper.jpg and convert it into a base64 string
-  let wallpaper = utils.getAbsoluteOrRelativePath(wallpaper_filename);
+function setWallpaper(callback) {
+  // Grab the default wallpaper and convert it into a base64 string
+  let devpixels = '';
+  if (config.GAIA_DEV_PIXELS_PER_PX != '1') {
+    devpixels = '@' + config.GAIA_DEV_PIXELS_PER_PX + 'x';
+  }
+
+  let wallpaper = utils.getAbsoluteOrRelativePath(
+    config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default' +
+    devpixels + '.jpg');
+
+  if (!wallpaper.exists()) {
+    wallpaper = utils.getAbsoluteOrRelativePath(
+      config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default.jpg');
+  }
+
+  if (!wallpaper.exists()) {
+    wallpaper = utils.getAbsoluteOrRelativePath(
+      'build/wallpaper' + devpixels + '.jpg');
+  }
+
   if (!wallpaper.exists()) {
     wallpaper = utils.getAbsoluteOrRelativePath('build/wallpaper.jpg');
   }
+
   readFileAsDataURL(wallpaper, 'image/jpeg', function(dataURL) {
     settings['wallpaper.image'] = dataURL;
     callback();
@@ -263,14 +282,6 @@ function execute() {
    'wap.push.enabled': false
   };
 
-  let wallpaper_filename;
-  if (config.GAIA_DEV_PIXELS_PER_PX != '1') {
-    wallpaper_filename = 'build/wallpaper@' +
-      config.GAIA_DEV_PIXELS_PER_PX + 'x.jpg';
-  } else {
-    wallpaper_filename = 'build/wallpaper.jpg';
-  }
-
   //We want the console to be disabled for device builds using the user variant.
   if (config.TARGET_BUILD_VARIANT != 'user')
     settings['debug.console.enabled'] = true;
@@ -302,9 +313,9 @@ function execute() {
 
 
 
-  // Run all asynchronous code before overwritting and writting settings file
+  // Run all asynchronous code before overwriting and writing settings file
   let done = false;
-  setWallpaper(wallpaper_filename, function() {
+  setWallpaper(function() {
     setRingtone(function() {
       setNotification(function() {
         overrideSettings();
