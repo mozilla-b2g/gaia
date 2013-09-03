@@ -46,6 +46,7 @@ $(LOCAL_INSTALLED_MODULE):
 	@echo Gaia install path: $(GAIA_APP_INSTALL_PATH)
 	mkdir -p $(GAIA_PROFILE_INSTALL_PARENT) $(GAIA_APP_INSTALL_PARENT)
 	rm -rf $(GAIA_APP_INSTALL_PATH)
+	@rm -rf $(GAIA_APP_INSTALL_PARENT)/svoperapps
 	cd $(GAIA_PROFILE_INSTALL_PARENT) && tar xfz $(abspath $<)
 	mkdir -p $(TARGET_OUT)/b2g
 	cp $(GAIA_PATH)/profile/user.js $(TARGET_OUT)/b2g/user.js
@@ -71,9 +72,17 @@ ifeq ($(CLEAN_PROFILE), 1)
 endif
 	echo $(GAIA_MAKE_FLAGS) > $(GAIA_PATH)/.b2g.mk
 	$(MAKE) -C $(GAIA_PATH) $(GAIA_MAKE_FLAGS) profile
-	@if [ ! -d $(GAIA_PATH)/profile/indexedDB ]; then \
-	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) webapps; \
-	else \
-	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) indexedDB webapps; \
+	@FOLDERS='webapps'; \
+	if [ -d $(GAIA_PATH)/profile/indexedDB ]; then \
+	FOLDERS="indexedDB $${FOLDERS}"; \
+	fi; \
+	if [ -d $(GAIA_PATH)/profile/svoperapps ]; then \
+	FOLDERS="svoperapps $${FOLDERS}"; \
+	fi; \
+	cd $(GAIA_PATH)/profile && tar cfz $(abspath $@) $${FOLDERS}; \
+	if [ -d $(GAIA_PATH)/profile/indexedDB ]; then \
 	rm -rf $(GAIA_PATH)/profile/indexedDB; \
+	fi; \
+	if [ -d $(GAIA_PATH)/profile/svoperapps ]; then \
+	rm -rf $(GAIA_PATH)/profile/svoperapps; \
 	fi
