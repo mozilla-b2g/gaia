@@ -1,6 +1,6 @@
+'use strict'
 function turnOn() {
     navigator.mozPower.screenEnabled = true;
-    alert(navigator.mozPower.screenEnabled);
 }
 
 var fullscreenDiv = document.getElementById('fullscreen-div');
