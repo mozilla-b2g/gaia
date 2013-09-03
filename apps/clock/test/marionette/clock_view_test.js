@@ -82,9 +82,22 @@ marionette('Clock', function() {
     setup(function() {
       this.elems.alarmFormBtn.click();
       assert.ok(this.elems.alarmForm.displayed(), 'Alarm form is displayed');
+      var i = 0;
+      console.log('setup');
       client.waitFor(function() {
+        console.log('  waiting..');
+        if (i > 0) {
+          var html = client.executeScript(function() {
+            return document.documentElement.innerHTML;
+          });
+          console.log(html);
+        }
+        i++;
         return this.elems.alarmCreateBtn.displayed();
-      }.bind(this));
+      }.bind(this), {
+        interval: 5000,
+        timeout: 7000
+      });
     });
 
     test('Creation', function() {
