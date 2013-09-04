@@ -85,18 +85,22 @@ marionette('Clock', function() {
       var i = 0;
       console.log('setup');
       client.waitFor(function() {
-        console.log('  waiting..');
-        if (i > 0) {
+        console.log('  waiting... #' + i + ': ' +
+          client.executeScript(function() {
+            return window.location.toString();
+          })
+        );
+        /*if (i > 0) {
           var html = client.executeScript(function() {
             return document.documentElement.innerHTML;
           });
           console.log(html);
-        }
+        }*/
         i++;
         return this.elems.alarmCreateBtn.displayed();
       }.bind(this), {
-        interval: 5000,
-        timeout: 7000
+        interval: 1000,
+        timeout: 9000
       });
     });
 
