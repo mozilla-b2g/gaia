@@ -861,10 +861,6 @@ suite('thread_ui.js >', function() {
 
         assert.ok(visible.called);
         assert.equal(visible.args[0][0], 'singleline');
-        assert.include(visible.args[0][1], 'refocus');
-        assert.include(visible.args[0][1], 'noPreserve');
-        assert.equal(visible.args[0][1].refocus, ThreadUI.input);
-        assert.isTrue(visible.args[0][1].noPreserve);
 
         assert.ok(add.called);
         assert.deepEqual(add.args[0][0], {
@@ -1022,9 +1018,28 @@ suite('thread_ui.js >', function() {
     });
 
     suite('onDeliverySuccess >', function() {
-      test('adds the "delivered" class to the message element', function() {
+      teardown(function() {
+        this.fakeMessage.deliveryStatus = null;
+      });
+      test('sms delivery success', function() {
+        this.fakeMessage.deliveryStatus = 'success';
         ThreadUI.onDeliverySuccess(this.fakeMessage);
         assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('mms delivery success', function() {
+        this.fakeMessage.deliveryStatus = ['success'];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('multiple recipients mms delivery success', function() {
+        this.fakeMessage.deliveryStatus = ['success', 'success'];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('not all recipients return mms delivery success', function() {
+        this.fakeMessage.deliveryStatus = ['success', 'pending'];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isFalse(this.container.classList.contains('delivered'));
       });
     });
   });
@@ -1303,7 +1318,7 @@ suite('thread_ui.js >', function() {
 
   suite('buildMessageDOM >', function() {
     setup(function() {
-      this.sinon.spy(MockUtils, 'escapeHTML');
+      this.sinon.spy(Template, 'escape');
       this.sinon.stub(MockSMIL, 'parse');
     });
 
@@ -1320,14 +1335,14 @@ suite('thread_ui.js >', function() {
     test('escapes the body for SMS', function() {
       var payload = 'hello <a href="world">world</a>';
       ThreadUI.buildMessageDOM(buildSMS(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
 
     test('escapes all text for MMS', function() {
       var payload = 'hello <a href="world">world</a>';
       MockSMIL.parse.yields([{ text: payload }]);
       ThreadUI.buildMessageDOM(buildMMS(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
   });
 
@@ -2997,6 +3012,47 @@ suite('thread_ui.js >', function() {
       test('calls focus', function() {
         assert.ok(Compose.focus.called);
       });
+    });
+  });
+
+  suite('recipient handling yields correct header', function() {
+    var localize;
+    setup(function() {
+      location.hash = '#new';
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
+    });
+
+    teardown(function() {
+      location.hash = '';
+    });
+
+    test('no recipients', function() {
+      ThreadUI.updateComposerHeader();
+      assert.deepEqual(localize.args[0], [
+        ThreadUI.headerText, 'newMessage'
+      ]);
+    });
+
+    test('add one recipient', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      assert.deepEqual(localize.args[0], [
+        ThreadUI.headerText, 'recipient', {n: 1}
+      ]);
+    });
+
+    test('add two recipients', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+      assert.ok(localize.calledTwice);
+      assert.deepEqual(localize.args[1], [
+        ThreadUI.headerText, 'recipient', {n: 2}
+      ]);
     });
   });
 

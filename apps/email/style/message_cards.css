@@ -406,7 +406,18 @@ input.msg-search-text-tease {
   background-color: #424242;;
 }
 
-.msg-reply-all-btn {
+.msg-reader-action-toolbar {
+  text-align: center;
+}
+
+.msg-reader-action-toolbar .msg-delete-btn {
+  position: absolute;
+  left: 0;
+}
+
+.msg-reader-action-toolbar .msg-move-btn {
+  position: absolute;
+  right: 0;
 }
 
 /* We need to use !important on the buttons because shared/style/buttons.css definesa more specific
@@ -553,4 +564,26 @@ input.msg-search-text-tease {
   top: 5rem;
   width: 100%;
   z-index: 10;
+}
+
+.msg-reply-menu button:before {
+  content: "";
+  display: block;
+  float: left;
+  width: 3rem;
+  height: 3rem;
+  margin: 0.5rem 1rem 0 0;
+  background: transparent no-repeat top left 100% 100%;
+}
+
+.msg-reply-menu-reply:before {
+  background-image: url("../shared/style/headers/images/icons/reply.png");
+}
+
+.msg-reply-menu-reply-all:before {
+  background-image: url("../shared/style/headers/images/icons/reply-all.png");
+}
+
+.msg-reply-menu-forward:before {
+  background-image: url("images/icons/forward.png");
 }

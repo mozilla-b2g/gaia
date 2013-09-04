@@ -16,37 +16,6 @@ suite('load_config', function() {
     }
   });
 
-  function testExpectedError(plugin, name) {
-    var msg = 'expected error loading: "' +
-              plugin + '" with name "' + name + '"';
-
-
-    test(msg, function(done) {
-      subject.onerror = function(err) {
-        done(function() {
-          assert.ok(err, 'provides error');
-          assert.instanceOf(err, Error);
-
-          assert.include(
-            err.message,
-            name,
-            'has descriptive error message'
-          );
-
-          assert.include(
-            err.message,
-            plugin,
-            'includes plugin name'
-          );
-        });
-      };
-
-      subject.load(plugin, name, function() {
-        // noop...
-      });
-    });
-  }
-
   var config;
   var subject;
   var app;
@@ -95,8 +64,6 @@ suite('load_config', function() {
     });
   });
 
-  testExpectedError('js', 'foobarxmissing');
-
   test('load style', function(done) {
     subject.onerror = function(err) {
       done(err);
@@ -112,8 +79,6 @@ suite('load_config', function() {
       });
     });
   });
-
-  testExpectedError('style', 'fobarxmissing');
 
   test('load existing store', function(done) {
     subject.onerror = function(err) {

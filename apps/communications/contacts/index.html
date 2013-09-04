@@ -47,6 +47,9 @@
 
     <!-- For the build system to include in zip:
     <link href="/shared/js/tag_visibility_monitor.js">
+    <link href="/shared/js/contact2vcard.js">
+    <link href="/shared/js/device_storage/get_storage_if_available.js">
+    <link href="/shared/js/device_storage/get_unused_filename.js">
     -->
 
   </head>
@@ -168,8 +171,7 @@
         <header id='details-view-header'>
           <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
           <menu type="toolbar">
-            <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit-contact"
-                                                                   data-l10n-id="edit" data-l10n-id="edit">edit</span></button>
+            <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit-contact" data-l10n-id="edit">edit</span></button>
           </menu>
           <h1 id='contact-name-title'></h1>
           <sup id='favorite-star' class='hide'></sup>
@@ -458,7 +460,7 @@
       <section id="view-select-tag" role="region" class="view view-right view-select-tag">
         <header>
           <button id="settings-cancel" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
-          <menu type="toolbar" id="contact-form-actions">
+          <menu type="toolbar" id="tag-selection-actions">
             <button id="settings-done" role="menuitem" data-l10n-id="done">Done</button>
           </menu>
           <h1 data-l10n-id="label">Label</h1>
@@ -580,27 +582,24 @@
                 <li id="export-sim-option" data-source="sim">
                   <button class="icon icon-sim" data-l10n-id="simCard">
                     SIM card
-                    <p><span></span><time></time></p>
                   </button>
                   <p class="error-message" data-l10n-id="noSimMsg"></p>
                 </li>
                 <li id="export-sd-option" data-source="sd">
-                  <button class="icon icon-sd" data-l10n-id="memoryCard" disabled="disabled">
+                  <button class="icon icon-sd" data-l10n-id="memoryCard">
                     Memory card
-                    <p><span></span><time></time></p>
                   </button>
                   <p class="error-message" data-l10n-id="noMemoryCardMsg"></p>
                 </li>
                 <li id="export-bluetooth-option" data-source="bluetooth">
-                  <button class="icon" data-l10n-id="bluetooth" disabled="disabled">
+                  <button class="icon icon-bluetooth" data-l10n-id="bluetooth" disabled="disabled">
                     Bluetooth
-                    <p><span></span><time></time></p>
                   </button>
                 </li>
               </ul>
-            </section> 
+            </section>
           </article>
-        </section>  
+        </section>
       </article>
 
     <form data-type="confirm" id="loading-overlay" class="hide no-opacity" role="dialog">

@@ -35,12 +35,10 @@ var Browser = {
   defaultSearchProviderIconUri: '',
 
   DEVICE_RATIO: window.devicePixelRatio,
-  DEFAULT_FAVICON: 'style/images/favicon.png',
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
     '/about.html',
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
-  MAX_URL_ITEM_CACHE: 50, // Max items cached for awesome bar predictions
   MAX_TOP_SITES: 4, // max number of top sites to display
   MAX_THUMBNAIL_WIDTH: 140,
   MAX_THUMBNAIL_HEIGHT: 100,
@@ -74,9 +72,8 @@ var Browser = {
     this.tabsBadge.addEventListener('click',
       this.handleTabsBadgeClicked.bind(this));
 
-    // Template for the awesome list. When it is needed, this will be cloned.
-    this._awesomeListTemplate = document.createElement('ul');
-    this._awesomeListTemplate.setAttribute('role', 'listbox');
+    // Hack to make integration tests pass, see bug 912150
+    this.urlInput.addEventListener('click', this.urlFocus.bind(this));
 
     BrowserDB.init((function() {
       this.selectTab(this.createTab());
@@ -105,7 +102,7 @@ var Browser = {
       'toolbar-start', 'url-bar', 'url-input', 'url-button', 'awesomescreen',
       'ssl-indicator', 'tabs-badge', 'throbber', 'frames', 'main-screen',
       'crashscreen', 'bookmark-menu', 'bookmark-entry-sheet',
-      'awesomescreen-cancel-button', 'startscreen', 'top-site-thumbnails',
+      'startscreen', 'top-site-thumbnails',
       'no-top-sites', 'tray', 'danger-dialog'];
 
     // Loop and add element with camel style name to Modal Dialog attribute.
@@ -148,25 +145,26 @@ var Browser = {
       'style/action_menu.css',
       'style/authentication_dialog.css',
       'style/settings.css',
+      'style/awesomescreen.css',
 
       // shared JS files
       'shared/js/gesture_detector.js'
     ];
 
     var jsFiles = [
+      'js/awesomescreen.js',
       'js/settings.js',
       'js/modal_dialog.js',
       'js/authentication_dialog.js'
     ];
 
     var domElements = [
-      'tab-headers', 'top-sites', 'bookmarks', 'history', 'top-sites-tab',
-      'bookmarks-tab', 'history-tab', 'tabs-list', 'settings-button',
+      'tabs-list', 'settings-button',
       'close-tab', 'try-reloading', 'bookmark-menu-add',
       'bookmark-menu-remove', 'bookmark-menu-cancel', 'bookmark-menu-edit',
       'bookmark-entry-sheet-cancel', 'bookmark-entry-sheet-done',
       'bookmark-title', 'bookmark-url', 'bookmark-previous-url',
-      'bookmark-menu-add-home', 'new-tab-button', 'results', 'tab-panels',
+      'bookmark-menu-add-home', 'new-tab-button',
       'danger-dialog-message', 'danger-dialog-cancel', 'danger-dialog-ok'
     ];
 
@@ -183,7 +181,9 @@ var Browser = {
         }, this);
 
         this.initRemainingListeners();
+        document.body.classList.add('loaded');
         this.hasLoaded = true;
+
         if (this.waitingActivities.length) {
           this.waitingActivities.forEach(this.handleActivity, this);
         }
@@ -195,13 +195,6 @@ var Browser = {
   },
 
   initRemainingListeners: function browser_initRemainingListeners() {
-    this.tabPanels.addEventListener('click', this.followLink.bind(this));
-    this.results.addEventListener('click', this.followLink.bind(this));
-     this.topSitesTab.addEventListener('click',
-       this.showTopSitesTab.bind(this));
-     this.bookmarksTab.addEventListener('click',
-       this.showBookmarksTab.bind(this));
-     this.historyTab.addEventListener('click', this.showHistoryTab.bind(this));
      this.settingsButton.addEventListener('click',
        Settings.show.bind(Settings));
      this.newTabButton.addEventListener('click', this.handleNewTab.bind(this));
@@ -223,8 +216,6 @@ var Browser = {
        this.hideBookmarkEntrySheet.bind(this));
      this.bookmarkEntrySheetDone.addEventListener('click',
        this.saveBookmark.bind(this));
-     this.awesomescreenCancelButton.addEventListener('click',
-      this.handleAwesomescreenCancel.bind(this));
      this.topSiteThumbnails.addEventListener('click',
        this.followLink.bind(this));
 
@@ -249,6 +240,7 @@ var Browser = {
 
      Settings.init();
      ModalDialog.init();
+     Awesomescreen.init();
      AuthenticationDialog.init(false);
   },
 
@@ -282,7 +274,7 @@ var Browser = {
       } else if (data[mccCode + DEFAULT_MNC]) {
         callback(data[mccCode + DEFAULT_MNC]);
       } else if (data[DEFAULT_MCC + DEFAULT_MNC]) {
-        callback(DEFAULT_MCC + DEFAULT_MNC);
+        callback(data[DEFAULT_MCC + DEFAULT_MNC]);
       } else {
         callback(null);
         console.error('No configuration data found.');
@@ -299,37 +291,6 @@ var Browser = {
   },
 
   /**
-   * Get the MCC/MNC operator codes as stored in system settings.
-   *
-   * @param {Function} callback Called with result as object with both values.
-   */
-  getOperatorVariant: function browser_getOperatorVariant(callback) {
-    var variant = { mcc: '0', mnc: '0' }; // Fall back to {0, 0}
-    var transaction = navigator.mozSettings.createLock();
-    var mccKey = 'operatorvariant.mcc';
-    var mncKey = 'operatorvariant.mnc';
-    var mccRequest = transaction.get(mccKey);
-
-    mccRequest.onsuccess = function() {
-      variant.mcc = mccRequest.result[mccKey] || '0';
-      var mncRequest = transaction.get(mncKey);
-
-      mncRequest.onsuccess = function() {
-        variant.mnc = mncRequest.result[mncKey] || '0';
-        callback(variant);
-      };
-
-      mncRequest.onerror = function() {
-        callback(variant);
-      };
-    };
-
-    mccRequest.onerror = function() {
-      callback(variant);
-    };
-  },
-
-  /**
    * Sets the default search provider used by awesomebar.
    *
    * @param {String} uri URI of search engine.
@@ -340,7 +301,6 @@ var Browser = {
     this.defaultSearchProviderUri = uri;
     this.defaultSearchProviderTitle = title;
     this.defaultSearchProviderIconUri = iconUri;
-    this._defaultListItemTemplate = null; // clear cached element
   },
 
   // Clicking the page preview on the left gutter of the tab page opens
@@ -373,22 +333,12 @@ var Browser = {
     this.showTabScreen();
   },
 
-  handleAwesomescreenCancel: function browser_handleAwesomescreenCancel(e) {
-    if (this.previousScreen === this.PAGE_SCREEN) {
-      this.showPageScreen();
-    } else {
-      this.deleteTab(this.currentTab.id);
-      this.showTabScreen();
-    }
-    this.updateSecurityIcon();
-  },
-
   handleNewTab: function browserHandleNewTab(e) {
     this.inTransition = true;
     var tabId = this.createTab();
     this.showNewTabAnimation((function browser_showNewTabAnimation() {
       this.selectTab(tabId);
-      this.showAwesomeScreen();
+      Awesomescreen.show();
     }).bind(this));
   },
 
@@ -491,7 +441,10 @@ var Browser = {
         break;
 
       case 'mozbrowsercontextmenu':
-        this.showContextMenu(evt);
+        if (!this.contextMenuHasCalled) {
+          this.contextMenuHasCalled = true;
+          this.showContextMenu(evt);
+        }
         break;
 
       case 'mozbrowsersecuritychange':
@@ -600,6 +553,7 @@ var Browser = {
 
   handleUrlInputKeypress: function browser_handleUrlInputKeypress(evt) {
     var input = this.urlInput.value;
+    Awesomescreen.update(input);
 
     if (input === '') {
       this.setUrlButtonMode(null);
@@ -609,8 +563,6 @@ var Browser = {
     this.setUrlButtonMode(
       UrlHelper.isNotURL(input) ? this.SEARCH : this.GO
     );
-
-    this.updateAwesomeScreen(input);
   },
 
   showCrashScreen: function browser_showCrashScreen() {
@@ -790,10 +742,11 @@ var Browser = {
       return;
 
     BrowserDB.removeBookmark(this.bookmarkMenuRemove.dataset.url,
-      Toolbar.refreshBookmarkButton.bind(Toolbar));
+      function() {
+        Toolbar.refreshBookmarkButton();
+        Awesomescreen.refreshBookmarks();
+    });
     this.hideBookmarkMenu();
-    // refresh bookmark tab
-    this.showBookmarksTab();
   },
 
   // responsible to show the specific action menu
@@ -924,12 +877,15 @@ var Browser = {
   },
 
   urlFocus: function browser_urlFocus(e) {
+    // Hack to make integration tests pass, see bug 912150
+    if (this.urlBar.classList.contains('focus'))
+      return;
     this.urlBar.classList.add('focus');
     if (this.currentScreen === this.PAGE_SCREEN) {
       this.urlInput.value = this.currentTab.url;
       this.sslIndicator.value = '';
       this.setUrlBar(this.currentTab.url);
-      this.showAwesomeScreen();
+      Awesomescreen.show();
       this.shouldFocus = true;
     } else if (this.currentScreen === this.AWESOME_SCREEN) {
       this.shouldFocus = true;
@@ -973,325 +929,6 @@ var Browser = {
         this.urlButton.style.backgroundImage = 'url(style/images/search.png)';
         break;
     }
-  },
-
-  deselectAwesomescreenTabs: function browser_deselectAwesomescreenTabs() {
-    this.topSites.classList.remove('selected');
-    this.topSitesTab.classList.remove('selected');
-    this.bookmarks.classList.remove('selected');
-    this.bookmarksTab.classList.remove('selected');
-    this.history.classList.remove('selected');
-    this.historyTab.classList.remove('selected');
-  },
-
-  updateAwesomeScreen: function browser_updateAwesomeScreen(filter) {
-    if (!filter) {
-      this.results.classList.add('hidden');
-      filter = false;
-    } else {
-      this.results.classList.remove('hidden');
-    }
-    BrowserDB.getTopSites(20, filter, this.showResults.bind(this));
-  },
-
-  /**
-   * Holds a DOM element for the default result in the awesome bar. Needed to
-   * avoid recreating it on every keystroke, causing flickering.
-   * @private
-   * @type {Node}
-   */
-  _defaultListItemTemplate: null,
-
-  showResults: function browser_showResults(visited, filter) {
-    this._appendAwesomeScreenItems(this.results, visited);
-    if (visited.length < 2 && filter && this.defaultSearchProviderUri) {
-      var data = {
-        title: this.defaultSearchProviderTitle,
-        uri: this.defaultSearchProviderUri +
-          '?q=' + filter,
-        iconUri: this.defaultSearchProviderIconUri,
-        description: _('search-for') + ' "' + filter + '"'
-      };
-
-      if (!this._defaultListItemTemplate)
-        this._defaultListItemTemplate = this.drawAwesomescreenListItem(data);
-
-      var item = this._defaultListItemTemplate.cloneNode(true);
-      item.firstElementChild.href = data.uri;
-      item.firstElementChild.childNodes[1].innerHTML =
-        HtmlHelper.createHighlightHTML(data.description);
-
-      this.results.firstElementChild.appendChild(item);
-    }
-  },
-
-  showTopSitesTab: function browser_showTopSitesTab() {
-    this.deselectAwesomescreenTabs();
-    this.topSitesTab.classList.add('selected');
-    this.topSites.classList.add('selected');
-    BrowserDB.getTopSites(20, null, this.showTopSites.bind(this));
-  },
-
-
-  /**
-   * Replaces `parent` child nodes with new ones generated from the
-   * `itemList` array. This function is called exclusively to generate awesome
-   * bar results list fast and without flickering.
-   * @param {Node} parent
-   * @param {Array} itemList
-   * @return {Node}
-   * @private
-   */
-  _appendAwesomeScreenItems: function(parent, itemList) {
-    var newList = this._awesomeListTemplate.cloneNode();
-    itemList.forEach(function(data) {
-      if (!data) return;
-      newList.appendChild(this.drawAwesomescreenListItem(data));
-    }, this);
-
-    var oldList = parent.firstElementChild;
-    if (oldList) {
-      parent.replaceChild(newList, oldList);
-    } else {
-      parent.appendChild(newList);
-    }
-
-    return parent;
-  },
-
-  showTopSites: function browser_showTopSites(topSites) {
-    this._appendAwesomeScreenItems(this.topSites, topSites);
-  },
-
-  showHistoryTab: function browser_showHistoryTab() {
-    // Do nothing if we are already in the history tab
-    if (this.historyTab.classList.contains('selected') &&
-      this.history.classList.contains('selected')) {
-      return;
-    }
-
-    this.deselectAwesomescreenTabs();
-    this.historyTab.classList.add('selected');
-    this.history.classList.add('selected');
-    BrowserDB.getHistory(this.showGlobalHistory.bind(this));
-  },
-
-  showGlobalHistory: function browser_showGlobalHistory(visits) {
-    this.history.innerHTML = '';
-    var thresholds = [
-      new Date().valueOf(),              // 0. Now
-      DateHelper.todayStarted(),         // 1. Today
-      DateHelper.yesterdayStarted(),     // 2. Yesterday
-      DateHelper.thisWeekStarted(),      // 3. This week
-      DateHelper.thisMonthStarted(),     // 4. This month
-      DateHelper.lastSixMonthsStarted(), // 5. Six months
-      0                                  // 6. Epoch!
-    ];
-    var threshold = 0;
-    var month = null;
-    var year = null;
-    var urls = []; // List of URLs under each heading for de-duplication
-
-    var fragment = document.createDocumentFragment();
-    visits.forEach(function browser_processVisit(visit) {
-      var timestamp = visit.timestamp;
-      // Draw new heading if new threshold reached
-      if (timestamp > 0 && timestamp < thresholds[threshold]) {
-        urls = [];
-        threshold = this.incrementHistoryThreshold(timestamp, threshold,
-          thresholds);
-        // Special case for month headings
-        if (threshold != 5)
-          this.drawHistoryHeading(fragment, threshold);
-      }
-      if (threshold === 5) {
-        var timestampDate = new Date(timestamp);
-        if (timestampDate.getMonth() != month ||
-          timestampDate.getFullYear() != year) {
-          urls = [];
-          month = timestampDate.getMonth();
-          year = timestampDate.getFullYear();
-          this.drawHistoryHeading(fragment, threshold, timestamp);
-        }
-      }
-      // If not a duplicate, draw list item & add to list
-      if (urls.indexOf(visit.uri) == -1) {
-        urls.push(visit.uri);
-        fragment.appendChild(this.drawAwesomescreenListItem(visit));
-      }
-    }, this);
-
-    if (fragment.childNodes.length)
-      this.history.appendChild(fragment);
-  },
-
-  incrementHistoryThreshold: function browser_incrementHistoryThreshold(
-    timestamp, currentThreshold, thresholds) {
-    var newThreshold = currentThreshold += 1;
-    if (timestamp < thresholds[newThreshold]) {
-      return browser_incrementHistoryThreshold(timestamp, newThreshold,
-        thresholds);
-    }
-    return newThreshold;
-  },
-
-  /**
-   * Creates a template for awesome bar list items and returns a cloned node
-   * from it, ready to use.
-   * @return {Node}
-   * @private
-   */
-  _createListItemTemplate: function() {
-    if (!this._awesomeScreenItemTemplate) {
-      var entry = document.createElement('li');
-      var link = document.createElement('a');
-      var title = document.createElement('h5');
-      var url = document.createElement('small');
-      entry.setAttribute('role', 'listitem');
-
-      link.appendChild(title);
-      link.appendChild(url);
-      entry.appendChild(link);
-      this._awesomeScreenItemTemplate = entry;
-    }
-
-    return this._awesomeScreenItemTemplate.cloneNode(true);
-  },
-
-  /**
-   * Holds a DOM element list for the recently used items in the awesome bar.
-   * Needed to avoid needlessly recreating the list on every keystroke, causing
-   * flickering.
-   * @private
-   * @type {Object.<string, Node>}
-   */
-  _itemListCache: {},
-
-  /**
-   * Makes sure that we don't fill up too much memory caching list items for
-   * the awesome list.
-   * @private
-   */
-  _clearItemCache: function() {
-    // Avoid calling too many timeout listeners in case this gets called a lot.
-    if (this._itemListCacheTimeout)
-      clearTimeout(this._itemListCacheTimeout);
-
-    var cache = this._itemListCache;
-    this._itemListCacheTimeout = setTimeout(function() {
-      var keys = Object.keys(cache);
-      while (keys.length > this.MAX_URL_ITEM_CACHE) {
-        delete cache[keys.shift()];
-      }
-    }, 100);
-  },
-
-  drawAwesomescreenListItem: function browser_drawAwesomescreenListItem(data,
-    filter, current_tab) {
-    var entry;
-    var cache = this._itemListCache;
-    if (cache[data.uri]) {
-      entry = cache[data.uri].cloneNode(true);
-      this._clearItemCache();
-      return entry;
-    }
-    this._clearItemCache();
-
-    entry = this._createListItemTemplate();
-    cache[data.uri] = entry;
-
-    var link = entry.firstChild;
-    var title = link.firstChild;
-    var url = link.childNodes[1];
-
-    link.href = data.uri;
-    var titleText = data.title ? data.title : data.url;
-    title.innerHTML = HtmlHelper.createHighlightHTML(titleText, filter);
-
-    if (data.uri == this.ABOUT_PAGE_URL) {
-      url.textContent = 'about:';
-    } else if (data.description) {
-      url.innerHTML = HtmlHelper.createHighlightHTML(data.description);
-    } else {
-      url.innerHTML = HtmlHelper.createHighlightHTML(data.uri, filter);
-    }
-
-    // Enable longpress manipulation in bookmark tab
-    if (current_tab === 'bookmark') {
-      var that = this;
-      link.addEventListener('contextmenu', function() {
-        that.showBookmarkTabContextMenu(link.href);
-      });
-    }
-
-    var underlay = ',url(./style/images/favicon-underlay.png)';
-    if (!data.iconUri) {
-      link.style.backgroundImage =
-        'url(' + this.DEFAULT_FAVICON + ')' + underlay;
-      return entry;
-    }
-
-    BrowserDB.db.getIcon(data.iconUri, (function(icon) {
-      if (icon && icon.failed != true && icon.data) {
-        var imgUrl = window.URL.createObjectURL(icon.data);
-        link.style.backgroundImage = 'url(' + imgUrl + ')' + underlay;
-      } else {
-        link.style.backgroundImage =
-          'url(' + this.DEFAULT_FAVICON + ')' + underlay;
-      }
-    }).bind(this));
-
-    return entry;
-  },
-
-  drawHistoryHeading: function browser_drawHistoryHeading(parent, threshold,
-    timestamp) {
-    var LABELS = [
-      'future',
-      'today',
-      'yesterday',
-      'last-7-days',
-      'this-month',
-      'last-6-months',
-      'older-than-6-months'
-    ];
-
-    var text = '';
-
-    // Special case for month headings
-    if (threshold == 5 && timestamp) {
-      var date = new Date(timestamp);
-      var now = new Date();
-      text = _('month-' + date.getMonth());
-      if (date.getFullYear() != now.getFullYear())
-        text += ' ' + date.getFullYear();
-    } else {
-      text = _(LABELS[threshold]);
-    }
-
-    var h3 = document.createElement('h3');
-    var textNode = document.createTextNode(text);
-    var ul = this._awesomeListTemplate.cloneNode();
-    h3.appendChild(textNode);
-    parent.appendChild(h3);
-    parent.appendChild(ul);
-  },
-
-  showBookmarksTab: function browser_showBookmarksTab() {
-    // Do nothing if we are already in the bookmarks tab
-    if (this.bookmarksTab.classList.contains('selected') &&
-      this.bookmarks.classList.contains('selected')) {
-      return;
-    }
-
-    this.deselectAwesomescreenTabs();
-    this.bookmarksTab.classList.add('selected');
-    this.bookmarks.classList.add('selected');
-    BrowserDB.getBookmarks(this.showBookmarks.bind(this));
-  },
-
-  showBookmarks: function browser_showBookmarks(bookmarks) {
-    this._appendAwesomeScreenItems(this.bookmarks, bookmarks);
   },
 
   openInNewTab: function browser_openInNewTab(url) {
@@ -1421,7 +1058,7 @@ var Browser = {
     var dialog = document.createElement('section');
     var menu = document.createElement('menu');
     var list = document.createElement('ul');
-
+    var self = this;
     // SystemTargets are default elements that have contextmenu
     // actions associated
     evt.detail.systemTargets.forEach(function(item) {
@@ -1441,6 +1078,7 @@ var Browser = {
             icon: item.icon,
             label: item.label,
             callback: function() {
+              self.contextMenuHasCalled = false;
               evt.detail.contextMenuItemSelected(item.id);
             }
           });
@@ -1476,6 +1114,7 @@ var Browser = {
     list.appendChild(cancel);
 
     cancel.addEventListener('click', function(e) {
+      self.contextMenuHasCalled = false;
       document.body.removeChild(dialog);
     });
 
@@ -1749,23 +1388,6 @@ var Browser = {
       thumbnail.appendChild(title);
       this.topSiteThumbnails.appendChild(thumbnail);
     }, this);
-  },
-
-  showAwesomeScreen: function browser_showAwesomeScreen() {
-    this.results.classList.add('hidden');
-    this.tabsBadge.innerHTML = '';
-    // Ensure the user cannot interact with the browser until the
-    // transition has ended, this will not be triggered unless the
-    // use is navigating from the tab screen.
-    var pageShown = (function() {
-      this.mainScreen.removeEventListener('transitionend', pageShown, true);
-      this.inTransition = false;
-    }).bind(this);
-    this.mainScreen.addEventListener('transitionend', pageShown, true);
-    this.switchScreen(this.AWESOME_SCREEN);
-    var buttonMode = this.urlInput.value === '' ? null : this.GO;
-    this.setUrlButtonMode(buttonMode);
-    this.showTopSitesTab();
   },
 
   showPageScreen: function browser_showPageScreen() {

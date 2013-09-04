@@ -41,11 +41,14 @@ suite('Recipients', function() {
 
     this.sinon.spy(Recipients.prototype, 'render');
     this.sinon.spy(Recipients.View.prototype, 'render');
+    this.sinon.spy(Recipients.View.prototype, 'visible');
+    this.sinon.spy(Element.prototype, 'scrollIntoView');
+    this.sinon.spy(HTMLElement.prototype, 'focus');
 
     recipients = new Recipients({
       outer: 'messages-to-field',
       inner: 'messages-recipients-list',
-      template: new Utils.Template('messages-recipient-tmpl')
+      template: new Template('messages-recipient-tmpl')
     });
 
     fixture = {
@@ -572,6 +575,80 @@ suite('Recipients', function() {
           assert.equal(recipients.length, 1);
           assert.equal(view.children.length, 1);
         });
+
+        test('focusing with no placeholder at the end add one', function() {
+          var view = document.getElementById('messages-recipients-list');
+
+          fixture.source = 'contacts';
+
+          recipients.add(fixture).focus();
+
+          // Remove the placeholder
+          view.removeChild(view.lastElementChild);
+
+          // focus on the view
+          view.click();
+
+          // assert a placeholder has been added and is focused
+          assert.equal(view.children.length, 2);
+          assert.isTrue(view.lastElementChild.isPlaceholder);
+          assert.equal(view.lastElementChild.contentEditable, 'true');
+        });
+
+        test('deleting sole recipient ', function() {
+          var view = document.getElementById('messages-recipients-list');
+          var event;
+
+          fixture.source = 'manual';
+
+          HTMLElement.prototype.focus.reset();
+
+          // This accounts for the first call to "focus"
+          recipients.add(fixture).focus();
+
+          assert.isTrue(view.firstElementChild.focus.called);
+
+          event = new CustomEvent('keyup', {
+            bubbles: true
+          });
+
+          event.keyCode = KeyEvent.DOM_VK_BACK_SPACE;
+          event.DOM_VK_BACK_SPACE = KeyEvent.DOM_VK_BACK_SPACE;
+
+          view.firstElementChild.textContent = '';
+
+          HTMLElement.prototype.focus.reset();
+
+          // This accounts for the second call to "focus"
+          view.firstElementChild.dispatchEvent(event);
+
+          assert.isTrue(view.firstElementChild.focus.called);
+        });
+
+        test('deleting recipient ', function() {
+          var view = document.getElementById('messages-recipients-list');
+          var event;
+
+          fixture.source = 'manual';
+
+          recipients.add(fixture);
+          recipients.add(fixture);
+
+          event = new CustomEvent('keyup', {
+            bubbles: true
+          });
+
+          event.keyCode = KeyEvent.DOM_VK_BACK_SPACE;
+          event.DOM_VK_BACK_SPACE = KeyEvent.DOM_VK_BACK_SPACE;
+
+          view.firstElementChild.textContent = '';
+
+          HTMLElement.prototype.focus.reset();
+
+          view.lastElementChild.dispatchEvent(event);
+
+          assert.isTrue(view.lastElementChild.focus.called);
+        });
       });
     });
 
@@ -625,6 +702,114 @@ suite('Recipients', function() {
           });
 
           MockDialog.triggers.confirm();
+        });
+      });
+    });
+
+    suite('Visibility Modes', function() {
+      var outer, inner, target, visible;
+
+      setup(function() {
+        location.hash = '#new';
+
+        outer = document.getElementById('messages-recipients-list-container');
+        inner = document.getElementById('messages-recipients-list');
+        target = document.createElement('input');
+        visible = Recipients.View.prototype.visible;
+      });
+
+      teardown(function() {
+        location.hash = '';
+      });
+
+      suite('to singleline ', function() {
+        setup(function() {
+          recipients.visible('multiline');
+          outer.className = 'multiline';
+        });
+
+        test('singleline ', function() {
+          // Assert the last state is multiline
+          assert.equal(visible.args[0][0], 'multiline');
+
+          // Next, set back to singleline
+          recipients.visible('singleline');
+
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'singleline');
+        });
+
+        test('singleline + refocus (with recipients) ', function() {
+          var startedAt = Date.now();
+
+          // Clear the spy intel
+          target.focus.reset();
+
+          recipients.add(fixture);
+
+          // Assert the last state is multiline
+          assert.equal(visible.args[0][0], 'multiline');
+
+          recipients.visible('singleline', {
+            refocus: target
+          });
+
+          outer.dispatchEvent(
+            new CustomEvent('transitionend')
+          );
+
+          var last = inner.lastElementChild;
+
+          assert.ok(target.focus.called);
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'singleline');
+          assert.deepEqual(visible.args[1][1], {
+            refocus: target
+          });
+
+          assert.ok(last.scrollIntoView.called);
+        });
+
+        test('singleline + refocus (no recipients) ', function() {
+          var startedAt = Date.now();
+
+          // Clear the spy intel
+          target.focus.reset();
+
+          // Assert the last state is multiline
+          assert.equal(visible.args[0][0], 'multiline');
+
+          recipients.visible('singleline', {
+            refocus: target
+          });
+
+          outer.dispatchEvent(
+            new CustomEvent('transitionend')
+          );
+
+          assert.ok(target.focus.called);
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'singleline');
+          assert.deepEqual(visible.args[1][1], {
+            refocus: target
+          });
+        });
+      });
+
+      suite('to multiline ', function() {
+        setup(function() {
+          recipients.visible('singleline');
+        });
+
+        test('multiline ', function() {
+          // Assert the last state is singleline
+          assert.equal(visible.args[0][0], 'singleline');
+
+          // Next, set back to multiline
+          recipients.visible('multiline');
+
+          assert.ok(visible.called);
+          assert.equal(visible.args[1][0], 'multiline');
         });
       });
     });

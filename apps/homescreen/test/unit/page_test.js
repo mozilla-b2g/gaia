@@ -6,6 +6,10 @@ requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
 
+require('/shared/js/screen_layout.js');
+
+requireApp('homescreen/test/unit/mock_page.html.js');
+
 requireApp('homescreen/js/page.js');
 
 var mocksHelperForPage = new MocksHelper([
@@ -14,6 +18,7 @@ var mocksHelperForPage = new MocksHelper([
   'IconRetriever',
   'GridManager'
 ]);
+
 mocksHelperForPage.init();
 
 suite('page.js >', function() {
@@ -69,7 +74,8 @@ suite('page.js >', function() {
         done();
       }
 
-      icon.render(iconsContainer);
+      icon.render();
+      iconsContainer.appendChild(icon.container);
 
       // icon.img is instanciated in icon.render
       var img = icon.img;
@@ -323,6 +329,36 @@ suite('page.js >', function() {
         });
       });
 
+      suite('icons > getDescriptor works fine', function() {
+        function createIcon(isDefault) {
+          var app = new MockApp();
+          var descriptor = {
+            manifestURL: app.manifestURL,
+            name: app.name,
+            renderedIcon: 'rendered'
+          };
+
+          icon = new Icon(descriptor, app);
+          icon.isDefault = isDefault;
+
+          return icon;
+        }
+
+        test('renderedIcon is not defined for icons by default ', function() {
+          createIcon(true, function(icon) {
+            assert.isNull(icon.getDescriptor().renderedIcon);
+          });
+        });
+
+        test('renderedIcon is defined for icons with correct rendered image ',
+             function() {
+          createIcon(false, function(icon) {
+            assert.equal(icon.getDescriptor().renderedIcon, 'rendered');
+          });
+        });
+
+      });
+
       suite('Offline ready apps >', function() {
         function createIcon(data, done) {
           var app = new MockApp();
@@ -409,8 +445,86 @@ suite('page.js >', function() {
       dragSuite();
 
     });
+  });
 
+  suite('page >', function() {
 
+    suite('appendIcon >', function() {
 
+      var wrapperNode = null;
+      var page = null;
+      var initLength = 0;
+      var app;
+      var testData = [
+        {
+          name: 'at the end',
+          manifestURL: 'https://aHost/aMan1'
+        },
+        {
+          desiredPos: 3,
+          name: 'on the middle',
+          manifestURL: 'https://aHost/aMan2'
+        },
+        {
+          desiredPos: 1,
+          name: 'on the middle, with existing fixed icons',
+          manifestURL: 'https://aHost/aMan3'
+        },
+        {
+          desiredPos: 0,
+          name: 'at the first position, with existing fixed icons',
+          manifestURL: 'https://aHost/aMan4'
+        }
+      ];
+
+      suiteSetup(function() {
+        wrapperNode = document.createElement('section');
+        wrapperNode.innerHTML = MockPageHtml;
+        document.body.appendChild(wrapperNode);
+
+        page = new Page(document.getElementById('appendIconPage'));
+        page.olist = document.querySelector('#appendIconPage > ol');
+        GridManager.init(page);
+      });
+
+      testData.forEach(function(aTest) {
+        test('Icon has been added on the correct position ' +
+             aTest.name, function() {
+          initLength = page.olist && page.olist.children &&
+                       page.olist.children.length;
+          app = new MockApp({'manifestURL' : aTest.manifestURL,
+                             'name': aTest.name});
+          var descriptor = {
+             manifestURL: app.manifestURL,
+             name: app.name,
+             icon: 'data:image/png;base64,iVBORw0KGgoA',
+             desiredPos: aTest.desiredPos
+          };
+          var icon = new Icon(descriptor, app);
+          page.appendIcon(icon);
+          var addedIcon = page.olist.children[aTest.desiredPos !== undefined ?
+                                              aTest.desiredPos :
+                                              initLength];
+          assert.equal(page.olist.children.length, initLength + 1,
+                       'Icon has been added');
+          assert.equal(addedIcon.dataset.manifestURL, app.manifestURL,
+                       'Icon is not on the correct position');
+          assert.equal(addedIcon.dataset.desiredPos, aTest.desiredPos,
+                       'Icon desiredPos is not correctly set');
+
+          for (var i = 0; i < initLength + 1; i++) {
+            if (icon.dataset && icon.dataset.desiredPos !== undefined) {
+              assert.equal(icon.dataset.desiredPos, i,
+                           'An icon is not on its correct position');
+            }
+          }
+        });
+      });
+
+      suiteTeardown(function() {
+        mocksHelperForPage.suiteTeardown();
+        document.body.removeChild(wrapperNode);
+      });
+    });
   });
 });

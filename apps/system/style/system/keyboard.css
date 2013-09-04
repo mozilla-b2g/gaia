@@ -1,4 +1,4 @@
-#keyboard-frame {
+#keyboards {
   /* See the new mozpasspointerevents attribute added in bug 796452 */
   pointer-events: none;
 
@@ -9,26 +9,26 @@
   height: 100%;
 
   transform: translateY(0);
-  -moz-transition: visibility 0.2s ease, -moz-transform 0.2s ease;
+  transition: visibility 0.2s ease, transform 0.4s ease;
 }
 
 @media not all and (-moz-physical-home-button) {
-  #screen:not(.software-button-disabled) #keyboard-frame {
+  #screen:not(.software-button-disabled) #keyboards {
     bottom: 5rem;
   }
 }
 
-#screen.software-button-enabled #keyboard-frame {
+#screen.software-button-enabled #keyboards {
   bottom: 5rem;
 }
 
-#keyboard-frame.hide {
+#keyboards.hide {
   visibility: hidden;
 
   transform: translateY(100%);
 }
 
-#keyboard-frame iframe {
+#keyboards iframe {
   position: absolute;
   bottom: 0;
 

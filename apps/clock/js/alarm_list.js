@@ -6,7 +6,7 @@ var AlarmList = {
 
   alarmList: [],
   refreshingAlarms: [],
-  _previousAlarmCount: 0,
+  count: 0,
 
   get alarms() {
     delete this.alarms;
@@ -22,6 +22,8 @@ var AlarmList = {
     delete this.newAlarmButton;
     return this.newAlarmButton = document.getElementById('alarm-new');
   },
+
+  template: null,
 
   handleEvent: function al_handleEvent(evt) {
 
@@ -57,6 +59,7 @@ var AlarmList = {
   },
 
   init: function al_init() {
+    this.template = new Template('alarm-list-item-tmpl');
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
     this.refresh();
@@ -64,65 +67,106 @@ var AlarmList = {
   },
 
   refresh: function al_refresh() {
-    var self = this;
-    AlarmManager.getAlarmList(function al_gotAlarmList(list) {
-      self.fillList(list);
-    });
+    AlarmsDB.getAlarmList(function al_gotAlarmList(err, list) {
+      if (!err) {
+        this.fillList(list);
+      } else {
+        console.error(err);
+      }
+    }.bind(this));
   },
 
-  buildAlarmContent: function al_buildAlarmContent(alarm) {
-    var summaryRepeat = (Utils.isEmptyRepeat(alarm.repeat)) ?
-      '' : Utils.summarizeDaysOfWeek(alarm.repeat);
-    var isChecked = alarm.enabled ? ' checked="true"' : '';
+  render: function al_render(alarm) {
+    var repeat = alarm.isRepeating() ?
+      alarm.summarizeDaysOfWeek() : '';
+    var isActive = alarm.registeredAlarms.normal ||
+      alarm.registeredAlarms.snooze;
+    var checked = !!isActive ? 'checked=true' : '';
+
     var d = new Date();
     d.setHours(alarm.hour);
     d.setMinutes(alarm.minute);
+
+    var id = alarm.id + '';
     var time = Utils.getLocaleTime(d);
-    var label = (alarm.label === '') ?
-      _('alarm') : Utils.escapeHTML(alarm.label);
-    return '<label class="alarmList alarmEnable">' +
-           '  <input class="input-enable"' +
-                 '" data-id="' + alarm.id +
-                 '" type="checkbox"' + isChecked + '>' +
-           '  <span></span>' +
-           '</label>' +
-           '<a href="#alarm" class="alarm-item" data-id="' + alarm.id + '">' +
-           '  <span class="time">' +
-                time.t + '<span class="period">' + time.p + '</span>' +
-           '  </span>' +
-           '  <span class="label">' + label + '</span>' +
-           '  <span class="repeat">' + summaryRepeat + '</span>' +
-           '</a>';
+    var label = alarm.label ? alarm.label : _('alarm');
+
+    return this.template.interpolate({
+      id: id,
+      checked: checked,
+      label: label,
+      meridian: time.p,
+      repeat: repeat,
+      time: time.t
+    });
   },
 
+  createItem: function al_createItem(alarm, prependTarget) {
+    /**
+     * createItem
+     *
+     * Render and then prepend an alarm to the DOM element
+     * prependTarget
+     *
+     */
+    var count = this.getAlarmCount();
+    var li = document.createElement('li');
+    li.className = 'alarm-cell';
+    li.id = 'alarm-' + alarm.id;
+    li.innerHTML = this.render(alarm);
+
+    if (prependTarget) {
+      prependTarget.insertBefore(li, prependTarget.firstChild);
+
+      if (this.count !== count) {
+        this.count = count;
+        ClockView.resizeAnalogClock();
+      }
+    }
+    return li;
+  },
 
   refreshItem: function al_refreshItem(alarm) {
-    this.setAlarmFromList(alarm.id, alarm);
-    var id = 'a[data-id="' + alarm.id + '"]';
-    var alarmItem = this.alarms.querySelector(id);
-    alarmItem.parentNode.innerHTML = this.buildAlarmContent(alarm);
-    // clear the refreshing alarm's flag
-    var index = this.refreshingAlarms.indexOf(alarm.id);
-    this.refreshingAlarms.splice(index, 1);
+    var li, index;
+    var id = alarm.id;
+
+    if (!this.getAlarmFromList(id)) {
+      this.alarmList.push(alarm);
+      this.alarmList.sort(function(a, b) {
+        return a.id - b.id;
+      });
+      this.createItem(alarm, this.alarms);
+    } else {
+      this.setAlarmFromList(id, alarm);
+      li = this.alarms.querySelector('#alarm-' + id);
+      li.innerHTML = this.render(alarm);
+
+      // clear the refreshing alarm's flag
+      index = this.refreshingAlarms.indexOf(id);
+
+      if (index !== -1) {
+        this.refreshingAlarms.splice(index, 1);
+      }
+    }
   },
 
-  fillList: function al_fillList(alarmDataList) {
-    this.alarmList = alarmDataList;
-    var content = '';
-
+  fillList: function al_fillList(alarmList) {
+    /**
+     * fillList
+     *
+     * Render all alarms in alarmList to the DOM in
+     * decreasing order
+     *
+     */
     this.alarms.innerHTML = '';
-    alarmDataList.forEach(function al_fillEachList(alarm) {
-      var li = document.createElement('li');
-      li.className = 'alarm-cell';
-      li.innerHTML = this.buildAlarmContent(alarm);
-      this.alarms.appendChild(li);
+    this.alarmList = alarmList;
+
+    alarmList.sort(function(a, b) {
+      return a.id - b.id;
+    }).forEach(function al_fillEachList(alarm) {
+      // prepend the rendered alarm to the alarm list
+      this.createItem(alarm, this.alarms);
     }.bind(this));
-
-    if (this._previousAlarmCount !== this.getAlarmCount()) {
-      this._previousAlarmCount = this.getAlarmCount();
-      ClockView.resizeAnalogClock();
-    }
-
   },
 
   getAlarmFromList: function al_getAlarmFromList(id) {
@@ -147,32 +191,35 @@ var AlarmList = {
   },
 
   toggleAlarmEnableState: function al_toggleAlarmEnableState(enabled, alarm) {
+    // Todo: queue actions instead of dropping them
     if (this.refreshingAlarms.indexOf(alarm.id) !== -1) {
       return;
     }
-
-    if (alarm.enabled === enabled)
-      return;
-
-    alarm.enabled = enabled;
-    this.refreshingAlarms.push(alarm.id);
-
-    var self = this;
-    AlarmManager.putAlarm(alarm, function al_putAlarm(alarm) {
-      if (!alarm.enabled && !alarm.normalAlarmId && !alarm.snoozeAlarmId) {
-        self.refreshItem(alarm);
-      } else {
-        AlarmManager.toggleAlarm(alarm, alarm.enabled);
+    var changed = false;
+    // has a snooze active
+    if (alarm.registeredAlarms.snooze !== undefined) {
+      if (!enabled) {
+        alarm.cancel('snooze');
+        changed = true;
       }
-    });
-  },
-
-  deleteCurrent: function al_deleteCurrent(id) {
-    var alarm = this.getAlarmFromList(id);
-    var self = this;
-    AlarmManager.delete(alarm, function al_deleted() {
-      self.refresh();
-    });
+    }
+    // normal state needs to change
+    if (alarm.enabled !== enabled) {
+      this.refreshingAlarms.push(alarm.id);
+      // setEnabled saves to database
+      alarm.setEnabled(!alarm.enabled, function al_putAlarm(err, alarm) {
+        if (alarm.enabled) {
+          AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+        }
+        this.refreshItem(alarm);
+        AlarmManager.updateAlarmStatusBar();
+      }.bind(this));
+    } else {
+      if (changed) {
+        alarm.save();
+      }
+      AlarmManager.updateAlarmStatusBar();
+    }
   }
 
 };

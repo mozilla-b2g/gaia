@@ -120,7 +120,7 @@
       // interpolate the #attachment-[no]preview-tmpl template
       thumbnail = thumbnail || {};
       var sizeL10n = this.sizeForL10n;
-      return Utils.Template(tmplID).interpolate({
+      return Template(tmplID).interpolate({
         type: this.type,
         errorClass: thumbnail.error ? 'corrupted' : '',
         imgData: thumbnail.data,
@@ -167,7 +167,7 @@
         container.classList.add(previewClass);
 
         if (this.isDraft) { // <iframe>
-          var tmplSrc = Utils.Template('attachment-draft-tmpl').interpolate({
+          var tmplSrc = Template('attachment-draft-tmpl').interpolate({
             previewClass: previewClass,
             baseURL: location.protocol + '//' + location.host + '/',
             attachmentHTML: this.getAttachmentSrc(thumbnail, tmplID)
@@ -214,11 +214,18 @@
     },
 
     view: function(options) {
+      // Make sure media is openable and savable even if:
+      //   - Blob mimetype is unsupported but file extension is valid.
+      //   - File extenion is missing or invalid but mimetype is supported.
+
+      var mimetype =
+        MimeMapper.guessTypeFromFileProperties(this.name, this.blob.type);
+      var filename = MimeMapper.ensureFilenameMatchesType(this.name, mimetype);
       var activity = new MozActivity({
         name: 'open',
         data: {
-          type: this.blob.type,
-          filename: this.name,
+          type: mimetype,
+          filename: filename,
           blob: this.blob,
           allowSave: options && options.allowSave
         }

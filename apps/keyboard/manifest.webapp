@@ -1,20 +1,175 @@
 {
-  "name": "Keyboard",
-  "description": "Gaia Keyboard",
+  "name": "Built-in Keyboard",
+  "description": "Built-in Keyboard",
   "type": "certified",
   "role": "keyboard",
+  "launch_path": "/settings.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "settings":{ "access": "readwrite" },
-    "keyboard":{}
+    "settings": { "access": "readwrite" },
+    "keyboard": {}
+  },
+  "entry_points": {
+    "en": {
+      "launch_path": "/index.html#en",
+      "name": "English",
+      "description": "English layout",
+      "types": ["url", "text"],
+      "locales": {
+        "en-US": {
+          "name": "English",
+          "description": "English layout"
+        },
+        "zh-TW": {
+          "name": "英文",
+          "description": "英文鍵盤"
+        }
+      }
+    },
+    "en-Dvorak": {
+      "launch_path": "/index.html#en-Dvorak",
+      "name": "English (Dvorak)",
+      "description": "Dvorak layout",
+      "types": ["url", "text"]
+    },
+    "es": {
+      "launch_path": "/index.html#es",
+      "name": "Spanish",
+      "description": "Spanish layout",
+      "types": ["url", "text"]
+    },
+    "pt-BR": {
+      "launch_path": "/index.html#pt-BR",
+      "name": "Portuguese Brazilian",
+      "description": "Portuguese Brazilian layout",
+      "types": ["url", "text"]
+    },
+    "pl": {
+      "launch_path": "/index.html#pl",
+      "name": "Polish",
+      "description": "Polish layout",
+      "types": ["url", "text"]
+    },
+    "ca": {
+      "launch_path": "/index.html#ca",
+      "name": "Catalan",
+      "description": "Catalan layout",
+      "types": ["url", "text"]
+    },
+    "cz": {
+      "launch_path": "/index.html#cz",
+      "name": "Czech",
+      "description": "Czech layout",
+      "types": ["url", "text"]
+    },
+    "fr": {
+      "launch_path": "/index.html#fr",
+      "name": "French",
+      "description": "French layout",
+      "types": ["url", "text"]
+    },
+    "de": {
+      "launch_path": "/index.html#de",
+      "name": "German",
+      "description": "German layout",
+      "types": ["url", "text"]
+    },
+    "nb": {
+      "launch_path": "/index.html#nb",
+      "name": "Norwegian Bokmal",
+      "description": "Norwegian Bokmal layout",
+      "types": ["url", "text"]
+    },
+    "sk": {
+      "launch_path": "/index.html#sk",
+      "name": "Slovak",
+      "description": "Slovak layout",
+      "types": ["url", "text"]
+    },
+    "tr-Q": {
+      "launch_path": "/index.html#tr-Q",
+      "name": "Turkish Q",
+      "description": "Turkish Q layout",
+      "types": ["url", "text"]
+    },
+    "tr-F": {
+      "launch_path": "/index.html#tr-F",
+      "name": "Turkish F",
+      "description": "Turkish F layout",
+      "types": ["url", "text"]
+    },
+    "ro": {
+      "launch_path": "/index.html#ro",
+      "name": "Romanian",
+      "description": "Romanian layout",
+      "types": ["url", "text"]
+    },
+    "ru": {
+      "launch_path": "/index.html#ru",
+      "name": "Russian",
+      "description": "Russian layout",
+      "types": ["url", "text"]
+    },
+    "sr-Cyrl": {
+      "launch_path": "/index.html#sr-Cyrl",
+      "name": "Serbian (Cyrillic)",
+      "description": "Serbian (Cyrillic) layout",
+      "types": ["url", "text"]
+    },
+    "sr-Latn": {
+      "launch_path": "/index.html#sr-Latn",
+      "name": "Serbian (Latin)",
+      "description": "Serbian (Latin) layout",
+      "types": ["url", "text"]
+    },
+    "ar": {
+      "launch_path": "/index.html#ar",
+      "name": "Arabic",
+      "description": "Arabic layout",
+      "types": ["url", "text"]
+    },
+    "he": {
+      "launch_path": "/index.html#he",
+      "name": "Hebrew",
+      "description": "Hebrew layout",
+      "types": ["url", "text"]
+    },
+    "hu": {
+      "launch_path": "/index.html#hu",
+      "name": "Hungarian",
+      "description": "Hungarian layout",
+      "types": ["url", "text"]
+    },
+    "el": {
+      "launch_path": "/index.html#el",
+      "name": "Greek",
+      "description": "Greek layout",
+      "types": ["url", "text"]
+    },
+    "zh-Hans-Pinyin": {
+      "launch_path": "/index.html#zh-Hans-Pinyin",
+      "name": "Pinyin",
+      "description": "Pinyin",
+      "types": ["url", "text"]
+    },
+    "number": {
+      "launch_path": "/index.html#numberLayout",
+      "name": "Number",
+      "description": "Number layout",
+      "types": ["number"]
+    }
   },
   "locales": {
     "en-US": {
-      "name": "Keyboard",
-      "description": "Gaia Keyboard"
+      "name": "Built-in Keyboard",
+      "description": "Built-in Keyboard"
+    },
+    "zh-TW": {
+      "name": "預設鍵盤",
+      "description": "預設鍵盤"
     }
   },
   "default_locale": "en-US"

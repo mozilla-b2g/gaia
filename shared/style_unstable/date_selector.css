@@ -75,7 +75,7 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 7.4rem;
+  width: 27%;
   height: 100%;
   background: url(date_selector/images/ui/pattern-time.png);
 }
@@ -87,7 +87,7 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 5.4rem;
+  width: 21%;
   height: 100%;
   padding-top: 8.3rem;
   border-right: solid 0.2rem;
@@ -95,14 +95,14 @@
 }
 
 [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
-  left: 5.4rem;
-  width: 14rem;
+  left: 21%;
+  width: 52%;
 }
 
 [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
   left: auto;
   right: 0;
-  width: 7.4rem;
+  width: 27%;
 }
 
 /*DMY*/
@@ -117,7 +117,7 @@
 }
 
 [role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper {
-  left: 7.4rem;
+  left: 27%;
 }
 
 [role="dialog"][data-type="date-selector"] .YMD .value-picker-date-wrapper {
@@ -132,7 +132,7 @@
 }
 
 [role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper {
-  left: 14rem;
+  left: 52%;
 }
 
 [role="dialog"][data-type="date-selector"] .MDY .value-picker-year-wrapper {

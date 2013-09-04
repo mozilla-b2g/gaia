@@ -2,23 +2,23 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
-requireApp('/contacts/test/unit/mock_asyncstorage.js');
-requireApp('../communications/contacts/js/search.js');
-requireApp('../communications/contacts/js/views/list.js');
-requireApp('../communications/contacts/js/utilities/dom.js');
-requireApp('../communications/contacts/js/utilities/templates.js');
-requireApp('../communications/contacts/test/unit/mock_contacts.js');
-requireApp('../communications/contacts/test/unit/mock_contacts_list.js');
-requireApp('../communications/contacts/test/unit/mock_contacts_shortcuts.js');
-requireApp('../communications/contacts/test/unit/mock_fixed_header.js');
-requireApp('../communications/contacts/test/unit/mock_fb.js');
-requireApp('../communications/contacts/test/unit/mock_navigation.js');
-requireApp('../communications/contacts/test/unit/mock_extfb.js');
-requireApp('../communications/contacts/test/unit/mock_activities.js');
-requireApp('../communications/contacts/test/unit/mock_utils.js');
-requireApp('../communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/js/search.js');
+requireApp('communications/contacts/js/views/list.js');
+requireApp('communications/contacts/js/utilities/dom.js');
+requireApp('communications/contacts/js/utilities/templates.js');
+requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
+requireApp('communications/contacts/test/unit/mock_contacts.js');
+requireApp('communications/contacts/test/unit/mock_contacts_list.js');
+requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
+requireApp('communications/contacts/test/unit/mock_fixed_header.js');
+requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_navigation.js');
+requireApp('communications/contacts/test/unit/mock_extfb.js');
+requireApp('communications/contacts/test/unit/mock_activities.js');
+requireApp('communications/contacts/test/unit/mock_utils.js');
+requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp(
-        '../communications/contacts/test/unit/mock_performance_testing_helper.js');
+        'communications/contacts/test/unit/mock_performance_testing_helper.js');
 
 // We're going to swap those with mock objects
 // so we need to make sure they are defined.
@@ -1355,6 +1355,7 @@ suite('Render contacts list', function() {
         var selectActionButton = document.getElementById(
           elements['selectActionButton'].id);
         assert.equal(selectActionTitle, selectActionButton.textContent);
+        assert.isTrue(selectActionButton.disabled);
 
         done();
       }, MockNavigation, 'transition');
@@ -1370,6 +1371,23 @@ suite('Render contacts list', function() {
         });
       });
 
+      function setCheck(contactCheck, value, callback) {
+        contactCheck.checked = value;
+        contactCheck.addEventListener('click', function doCallback(evt) {
+          contactCheck.removeEventListener('click', doCallback);
+          setTimeout(callback);
+        });
+        contactCheck.click();
+      }
+
+      function uncheck(contactCheck, callback) {
+        setCheck(contactCheck, false, callback);
+      }
+
+      function check(contactCheck, callback) {
+        setCheck(contactCheck, true, callback);
+      }
+
       test('all rows have input for selecting with correct id', function() {
         var contactsRows = list.querySelectorAll('li');
         var uuids = [];
@@ -1381,6 +1399,41 @@ suite('Render contacts list', function() {
         for (var check of checks) {
           assert.include(uuids, check.value);
         }
+      });
+
+      test('if no contact is selected, action button is disabled',
+                                                                function(done) {
+        var selectActionButton =
+          document.getElementById(elements['selectActionButton'].id);
+
+        var contactCheck = list.querySelector('input[type="checkbox"]');
+        contactCheck.dataset.uuid = contactCheck.value;
+        check(contactCheck, doUncheck);
+
+        function doUncheck() {
+          uncheck(contactCheck, assertActionButtonDisabled);
+        }
+
+        function assertActionButtonDisabled() {
+          assert.isTrue(selectActionButton.disabled);
+          done();
+        };
+      });
+
+      test('if some contact is selected, action button is enabled',
+                                                                function(done) {
+        var selectActionButton =
+          document.getElementById(elements['selectActionButton'].id);
+
+        var contactCheck = list.querySelector('input[type="checkbox"]');
+        contactCheck.dataset.uuid = contactCheck.value;
+        check(contactCheck, assertActionButtonEnabled);
+
+        function assertActionButtonEnabled() {
+          assert.isFalse(selectActionButton.disabled);
+          done();
+        };
+
       });
     });
 

@@ -1,0 +1,72 @@
+<element name="modify-account" extends="section">
+  <template>
+    <header>
+      <button class="cancel">
+        <span data-l10n-id="back" class="cancel icon icon-back">Back</span>
+      </button>
+
+      <menu type="toolbar">
+        <button class="save">
+          <span data-l10n-id="save">Save</span>
+        </button>
+      </menu>
+
+      <h1 data-l10n-id="account-header">Account</h1>
+    </header>
+
+    <section class="during-progress">
+      <div>
+        <progress class="small"></progress>
+        <span data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</span>
+      </div>
+    </section>
+
+    <form>
+      <fieldset>
+        <ol>
+          <li class="user">
+            <input name="user" data-l10n-id="field-user" x-inputmode="verbatim" placeholder="Username" />
+          </li>
+          <li class="password">
+            <input name="password" data-l10n-id="field-password" placeholder="Password" type="password" />
+          </li>
+          <li class="full-url">
+            <input name="fullUrl"
+              type="url"
+              data-l10n-id="field-full-url"
+              placeholder="URL" />
+
+          </li>
+          <li class="sync-errors">
+            <p data-l10n-id="modify-account-unable-to-sync">>uNaBle to SynC</p>
+          </li>
+          <li class="oauth2-sign-in">
+            <button data-l10n-id="modify-account-sign-in" class="force-oauth2"></button>
+          </li>
+          <li>
+            <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
+              Remove Local Data
+            </a>
+          </li>
+        </ol>
+      </fieldset>
+    </form>
+
+    <section role="status">
+      <p class="errors"></p>
+    </section>
+
+    <form role="dialog" data-type="confirm" id="remove-account-dialog">
+      <section>
+        <h1 data-l10n-id="remove-account-dialog">Remove Account</h1>
+        <p data-l10n-id="remove-account-dialog-details">
+          Removing this account will also remove your local copy of associated calendars and events.
+        </p>
+      </section>
+      <menu>
+        <button class="delete-cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="danger delete-confirm" data-l10n-id="confirm">Confirm</button>
+      </menu>
+    </form>
+  </template>
+</element>

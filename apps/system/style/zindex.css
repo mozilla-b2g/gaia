@@ -55,7 +55,7 @@
   z-index: 65535;
 }
 
-#screen > [data-z-index-level="keyboard-frame"] {
+#screen > [data-z-index-level="keyboards"] {
   z-index: 65536;
 }
 
@@ -119,7 +119,7 @@
 }
 
 /* Keep keyboard under lockscreen when locked */
-#screen.locked > [data-z-index-level="keyboard-frame"] {
+#screen.locked > [data-z-index-level="keyboards"] {
   z-index: 2044;
 }
 
@@ -206,7 +206,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="system-overlay"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="dialog-overlay"],
 
-#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboard-frame"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="keyboards"],
 
 #screen:-moz-full-screen-ancestor > [data-z-index-level="notification-toaster"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="cards-view"],

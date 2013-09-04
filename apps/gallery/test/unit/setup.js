@@ -14,7 +14,7 @@
   l10nLink('/shared/locales/date.ini');
 
   // setup localization....
-  requireApp('/shared/js/l10n.js', function() {
+  require('/shared/js/l10n.js', function() {
     // Massive hack to trick l10n to load... (TODO: upstream a fix to l10n.js)
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
@@ -30,6 +30,6 @@
     });
   });
 
-  requireApp('/shared/js/l10n_date.js');
+  require('/shared/js/l10n_date.js');
 
 }(this));

@@ -1,5 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+/* API Summary:
+   stopSendingFile(in DOMString aDeviceAddress);
+   confirmReceivingFile(in DOMString aDeviceAddress, in bool aConfirmation); */
 'use strict';
 
 var BluetoothTransfer = {
@@ -130,6 +133,10 @@ var BluetoothTransfer = {
                                     });
           });
         } else {
+          var adapter = Bluetooth.getAdapter();
+          if (adapter != null)
+            adapter.confirmReceivingFile(address, false);
+
           self.showStorageUnavaliablePrompt(errorMessage);
         }
     });
@@ -305,6 +312,14 @@ var BluetoothTransfer = {
     var address = evt.address;
     var id = 'div[data-id="' + address + '"]';
     var finishedTask = this.transferStatusList.querySelector(id);
+    // If we decline receiving file, Bluetooth won't callback
+    // 'bluetooth-opp-transfer-start', 'bluetooth-opp-update-progress' event.
+    // So that there is no progress element which was created on notification.
+    // There is only 'bluetooth-opp-transfer-complete' event to notify Gaia the
+    // transferring request in failed case.
+    if (finishedTask == null)
+      return;
+
     finishedTask.removeEventListener('click',
                                      this.onCancelTransferTask.bind(this));
     this.transferStatusList.removeChild(finishedTask);
@@ -428,25 +443,41 @@ var BluetoothTransfer = {
       var mappedType = (MimeMapper.isSupportedType(originalType)) ?
         originalType : MimeMapper.guessTypeFromExtension(extension);
 
-      var a = new MozActivity({
-        name: 'open',
+      var activityOptions = {
         data: {
           type: mappedType,
           blob: file,
           // XXX: https://bugzilla.mozilla.org/show_bug.cgi?id=812098
           // Pass the file name for Music APP since it can not open blob
-          filename: file.name
+          filename: fileName
         }
-      });
+      };
+
+      switch (mappedType) {
+        case 'text/x-vcard':
+          activityOptions.name = 'import';
+          break;
+        default:
+          activityOptions.name = 'open';
+      }
+
+      var a = new MozActivity(activityOptions);
 
       a.onerror = function(e) {
         var msg = 'open activity error:' + a.error.name;
         self.debug(msg);
-        // Cannot identify MIMETYPE
-        // So, show cannot open file dialog with unknow media type
-        UtilityTray.hide();
-        if (a.error.name === 'NO_PROVIDER')
+        switch (a.error.name) {
+        case 'NO_PROVIDER':
+          UtilityTray.hide();
+          // Cannot identify MIMETYPE
+          // So, show cannot open file dialog with unknow media type
           self.showUnknownMediaPrompt(fileName);
+          return;
+        case 'ActivityCanceled':
+        case 'USER_ABORT':
+        default:
+          return;
+        }
       };
       a.onsuccess = function(e) {
         var msg = 'open activity onsuccess';

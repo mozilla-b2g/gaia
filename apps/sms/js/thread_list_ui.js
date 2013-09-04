@@ -13,7 +13,7 @@ var ThreadListUI = {
 
   init: function thlui_init() {
     this.tmpl = {
-      thread: Utils.Template('messages-thread-tmpl')
+      thread: Template('messages-thread-tmpl')
     };
 
     // TODO: https://bugzilla.mozilla.org/show_bug.cgi?id=854413
@@ -354,7 +354,7 @@ var ThreadListUI = {
     var participants = thread.participants;
     var number = participants[0];
     var id = thread.id;
-    var bodyHTML = Utils.escapeHTML(thread.body || '');
+    var bodyHTML = Template.escape(thread.body || '');
 
     li.id = 'thread-' + id;
     li.dataset.threadId = id;

@@ -1,3 +1,9 @@
+require('/shared/js/template.js');
+require('/shared/js/async_storage.js');
+require('/shared/test/unit/load_body_html_helper.js');
+requireApp('clock/js/constants.js');
+
+
 requireApp('email/test/unit/mock_l10n.js', function() {
 
   var nativeMozL10n;
@@ -6,11 +12,3 @@ requireApp('email/test/unit/mock_l10n.js', function() {
   navigator.mozL10n = MockL10n;
 
 });
-
-if (typeof asyncStorage === 'undefined') {
-  require('/shared/js/async_storage.js');
-}
-
-if (typeof loadBodyHTML === 'undefined') {
-  require('/shared/test/unit/load_body_html_helper.js');
-}

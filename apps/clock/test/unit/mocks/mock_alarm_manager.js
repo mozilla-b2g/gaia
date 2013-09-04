@@ -1,11 +1,6 @@
 MockAlarmManager = {
   toggleAlarm: function() {},
-  set: function() {},
-  unset: function() {},
-  delete: function() {},
-  getAlarmList: function() {},
-  getAlarmById: function() {},
-  putAlarm: function() {},
+  renderBannerBar: function() {},
   updateAlarmStatusBar: function() {},
   regUpdateAlarmEnableState: function() {}
 };

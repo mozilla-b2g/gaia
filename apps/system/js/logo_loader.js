@@ -25,10 +25,10 @@ var LogoLoader = (function(window) {
   ll_LogoLoader.prototype = {
     _initVideo: function ll_initVideo() {
       var video = document.createElement('video');
+      video.preload = 'auto';
       video.src = this.videoPath;
-      video.setAttribute('autoplay', null);
       var self = this;
-      video.oncanplay = function() {
+      video.onloadeddata = function() {
         self._onLogoLoaded(video);
       };
       video.onerror = function() {

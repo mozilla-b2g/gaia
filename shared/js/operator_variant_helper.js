@@ -34,17 +34,19 @@
  * @constructor
  */
 function OperatorVariantHelper(listener, persistKey, checkNow) {
+  var errMsg = null;
+
   // OperatorVariantHelper requires mozMobileConnection to be present.
   var mobileConnection = window.navigator.mozMobileConnection;
   if (!mobileConnection) {
-    let errMsg = 'Expected mozMobileConnection to be present.';
+    errMsg = 'Expected mozMobileConnection to be present.';
     console.error(errMsg);
     throw new Error(errMsg);
   }
 
   // The IccHelper should be enabled as well.
-  if (!IccHelper.enabled) {
-    let errMsg = 'Expected IccHelper to be enabled.';
+  if (IccHelper === undefined || !IccHelper.enabled) {
+    errMsg = 'Expected IccHelper to be enabled.';
     console.error(errMsg);
     throw new Error(errMsg);
   }
@@ -52,7 +54,7 @@ function OperatorVariantHelper(listener, persistKey, checkNow) {
   // And mozSettings must be present.
   var settings = window.navigator.mozSettings;
   if (!settings) {
-    let errMsg = 'Expected mozSettings to be present.';
+    errMsg = 'Expected mozSettings to be present.';
     console.error(errMsg);
     throw new Error(errMsg);
   }
@@ -112,6 +114,9 @@ OperatorVariantHelper.prototype = {
 
   /**
    * Get the saved ICC Settings (MCC/MNC).
+   *
+   * @param {Boolean} verifyAgainstSIM Verify saved values against live value
+   *                                   reported by SIM card. Defaults to true.
    */
   getICCSettings: function() {
     var transaction = this.settings.createLock();
@@ -120,13 +125,11 @@ OperatorVariantHelper.prototype = {
 
     mccRequest.onsuccess = (function() {
       this._iccSettings.mcc = mccRequest.result[this.MCC_SETTINGS_KEY] || '0';
-
       var mncRequest = transaction.get(this.MNC_SETTINGS_KEY);
       mncRequest.onsuccess = (function() {
         this._iccSettings.mnc = mncRequest.result[this.MNC_SETTINGS_KEY] || '0';
         this.checkICCInfo();
       }).bind(this);
-
     }).bind(this);
   },
 
@@ -191,7 +194,7 @@ OperatorVariantHelper.prototype = {
   },
 
   /**
-   *
+   * Revert persisted key that tracks if customizations have been applied.
    */
   revert: function() {
     var transaction = this.settings.createLock();

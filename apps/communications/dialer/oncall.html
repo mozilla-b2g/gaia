@@ -28,6 +28,7 @@
     <script defer type="application/javascript" src="/dialer/js/utils.js"></script>
     <script defer type="application/javascript" src="/dialer/js/call_screen.js"></script>
     <script defer type="application/javascript" src="/dialer/js/calls_handler.js"></script>
+    <script defer type="application/javascript" src="/dialer/js/conference_group_handler.js"></script>
     <script defer type="application/javascript" src="/dialer/js/voicemail.js"></script>
     <script defer type="application/javascript" src="/dialer/js/handled_call.js"></script>
 
@@ -44,39 +45,33 @@
     <article id="call-screen" data-layout>
       <div id="locked-contact-photo"></div>
       <article id="calls" data-count="0">
-        <section class="call" data-occupied="false">
+        <section id="handled-call-template" hidden>
           <div class="numberWrapper">
-            <div class="number font-light noAdditionalContactInfo"></div>
+            <div class="number font-light"></div>
           </div>
-          <div class="fake-number font-light">
-          </div>
-          <div class="additionalContactInfo noAdditionalContactInfo">
-          </div>
+          <div class="fake-number font-light"></div>
+          <div class="additionalContactInfo"></div>
           <div class="duration">
             <span class="font-light"></span>
             <div class="direction">
-              <div>
-              </div>
+              <div></div>
             </div>
           </div>
         </section>
-        <section class="call" data-occupied="false" hidden>
+        <section id="group-call" hidden>
           <div class="numberWrapper">
-            <div class="number font-light noAdditionalContactInfo">
-            </div>
+            <div id="group-call-label" class="number font-light"></div>
           </div>
-          <div class="fake-number font-light">
-          </div>
-          <div class="additionalContactInfo noAdditionalContactInfo">
-          </div>
-          <div class="duration font-light">
-            <span></span>
+          <div id="group-call-summary" class="additionalContactInfo"></div>
+          <div class="duration">
+            <span class="font-light"></span>
             <div class="direction">
-              <div>
-              </div>
+              <div></div>
             </div>
           </div>
         </section>
+      </article>
+      <article id="group-call-details">
       </article>
       <article id="main-container">
         <div id="actions-container">

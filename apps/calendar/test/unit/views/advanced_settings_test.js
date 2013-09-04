@@ -1,6 +1,7 @@
 requireLib('models/account.js');
 requireLib('presets.js');
 requireLib('store/setting.js');
+requireElements('calendar/elements/advanced_settings.html');
 
 suiteGroup('Views.AdvancedSettings', function() {
 
@@ -52,34 +53,12 @@ suiteGroup('Views.AdvancedSettings', function() {
     );
   }
 
-  teardown(function() {
-    var el = document.getElementById('test');
-    el.parentNode.removeChild(el);
+  var db;
+  suiteTemplate('advanced-settings', {
+    id: 'advanced-settings-view'
   });
 
-  var db;
   setup(function(done) {
-    var div = document.createElement('div');
-    div.id = 'test';
-    div.innerHTML = [
-      '<div id="advanced-settings-view">',
-        '<header class="account-list-header">',
-          '<h2 data-l10n-id="account-list-header">Accounts</h2>',
-        '</header>',
-        '<ul class="account-list"></ul>',
-      '</div>',
-      '<select name="syncFrequency" id="setting-sync-frequency">',
-        '<option value="null">null</option>',
-        '<option value="15">15</option>',
-        '<option value="30">30</option>',
-        '<option selected value="60">60</option>',
-      '</select>',
-      '<div id="default-event-alarm"><span class="button"></span></div>',
-      '<div id="default-allday-alarm"><span class="button"></span></div>'
-    ].join('');
-
-    document.body.appendChild(div);
-
     app = testSupport.calendar.app();
     db = app.db;
 

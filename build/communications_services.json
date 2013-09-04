@@ -25,7 +25,7 @@
     "appOrigin":
       "app://communications.gaiamobile.org",
     "redirectURI":
-      "https://www.mozilla.org/",
+      "https://www.mozilla.org/index.html",
     "loginPage":
       "https://login.live.com/oauth20_authorize.srf?",
     "applicationId":

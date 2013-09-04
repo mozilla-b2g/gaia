@@ -4,6 +4,7 @@
 var currentPage;
 
 var MockGridManager = {
+  svPreviouslyInstalledApps: [],
   markDirtyState: function() {},
   localize: function() {},
   onDragStart: function() {},

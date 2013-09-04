@@ -285,7 +285,7 @@ const Keyboards = {
       ]
     }
   },
-  pt_BR: {
+  'pt-BR': {
     label: 'Portuguese',
     menuLabel: 'Português',
     imEngine: 'latin',
@@ -387,6 +387,7 @@ const Keyboards = {
     label: 'Czech',
     menuLabel: 'Česká',
     imEngine: 'latin',
+    autoCorrectLanguage: 'cs',
     alt: {
       a: 'á',
       c: 'č',
@@ -637,6 +638,7 @@ const Keyboards = {
     label: 'Romanian',
     menuLabel: 'Română',
     imEngine: 'latin',
+    autoCorrectLanguage: 'ro',
     alt: {
       a: 'ăâ',
       d: 'đ',
@@ -701,8 +703,10 @@ const Keyboards = {
     label: 'Russian',
     menuLabel: 'Pусский',
     imEngine: 'latin',
+    autoCorrectLanguage: 'ru',
     alt: {
-      // incomplete
+      е: 'ё',
+      ь: 'ъ'
     },
     width: 11,
     keys: [
@@ -729,6 +733,7 @@ const Keyboards = {
     label: 'Serbian (Cyrillic)',
     menuLabel: 'Српски (ћирилица)',
     imEngine: 'latin',
+    autoCorrectLanguage: 'sr-Cyrl',
     alt: {
       // incomplete
     },
@@ -757,6 +762,7 @@ const Keyboards = {
     label: 'Serbian (Latin)',
     menuLabel: 'Srpski',
     imEngine: 'latin',
+    autoCorrectLanguage: 'sr-Latn',
     alt: {
       c: 'čć',
       d: 'đ',
@@ -816,6 +822,7 @@ const Keyboards = {
   sk: {
     label: 'Slovak',
     imEngine: 'latin',
+    autoCorrectLanguage: 'sk',
     menuLabel: 'Slovenčina',
     alt: {
       a: 'áàâąãäæ',
@@ -855,6 +862,7 @@ const Keyboards = {
   'tr-Q': {
     label: 'Turkish Q',
     imEngine: 'latin',
+    autoCorrectLanguage: 'tr',
     menuLabel: 'Türkçe Q',
     upperCase: {
       'i': 'İ'
@@ -893,6 +901,7 @@ const Keyboards = {
   'tr-F': {
     label: 'Turkish F',
     imEngine: 'latin',
+    autoCorrectLanguage: 'tr',
     menuLabel: 'Türkçe F',
     upperCase: {
       'i': 'İ'
@@ -1239,6 +1248,7 @@ const Keyboards = {
     label: 'Greek',
     menuLabel: 'Greek',
     imEngine: 'latin',
+    autoCorrectLanguage: 'el',
     alt: {
       α: 'ά',
       ε: 'έ€',
