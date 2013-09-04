@@ -31,6 +31,7 @@
         CLASS_WHEN_HAS_QUERY = 'evme-has-query',
         CLASS_WHEN_COLLECTION_VISIBLE = 'evme-collection-visible',
         CLASS_WHEN_LOADING_SHORTCUTS_SUGGESTIONS = 'evme-suggest-collections-loading',
+        CLASS_WHEN_SAVING_TO_HOMESCREEN = 'save-to-homescreen',
 
         L10N_SYSTEM_ALERT = 'alert',
 
@@ -672,12 +673,15 @@ this.InstalledAppsService = new function InstalledAppsService() {
         }
 
         function saveToHomescreen(data, showConfirm) {
-            var isAppInstalled = EvmeManager.isAppInstalled(data.app.getFavLink());
+            var isAppInstalled = EvmeManager.isAppInstalled(data.app.getFavLink()),
+                classList = data.el.classList;
 
             if (isAppInstalled) {
+                classList.add(CLASS_WHEN_SAVING_TO_HOMESCREEN);
                 window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'app-install-exists', {
                     'name': data.data.name
                 }));
+                classList.remove(CLASS_WHEN_SAVING_TO_HOMESCREEN);
                 return;
             }
 
@@ -685,7 +689,12 @@ this.InstalledAppsService = new function InstalledAppsService() {
                 var msg = Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'app-install-confirm', {
                     'name': data.data.name
                 });
-                if (!window.confirm(msg)) {
+
+                classList.add(CLASS_WHEN_SAVING_TO_HOMESCREEN);
+                var saved = window.confirm(msg);
+                classList.remove(CLASS_WHEN_SAVING_TO_HOMESCREEN);
+
+                if (!saved) {
                     return;
                 }
             }
