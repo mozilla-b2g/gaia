@@ -102,6 +102,10 @@ suite('dialer/handled_call', function() {
         assert.equal(subject.node.id, '');
       });
 
+      test('should have the handled-call class', function() {
+        assert.isTrue(subject.node.classList.contains('handled-call'));
+      });
+
       test('should not be hidden', function() {
         assert.isFalse(subject.node.hidden);
       });
