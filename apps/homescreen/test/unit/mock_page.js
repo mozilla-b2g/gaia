@@ -4,6 +4,11 @@ requireApp('homescreen/test/unit/mock_icon.js');
 
 function MockPage(container, icons) {
   this.container = container;
+  if (icons) {
+    this.icons = icons;
+  } else {
+    this.icons = [];
+  }
 }
 
 MockPage.prototype = {
@@ -12,13 +17,17 @@ MockPage.prototype = {
   },
 
   getIconDescriptors: function() {
+    return Array.prototype.map.call(this.icons, function(icon) {
+      return icon.descriptor;
+    });
   },
 
   moveByWithEffect: function mp_moveByWithEffect() {
     MockPage.mMoveByWithEffectCalled = true;
   },
 
-  appendIcon: function mp_appendIcon() {
+  appendIcon: function mp_appendIcon(icon) {
+    this.icons.push(icon);
   },
 
   getFirstIcon: function mp_getFirstIcon() {
@@ -43,4 +52,3 @@ MockPage.mTeardown = function mp_mTeardown() {
 };
 
 var MockDock = MockPage;
-
