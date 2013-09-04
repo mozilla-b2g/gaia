@@ -4,31 +4,29 @@
  */
 
 .menu-item {
-  padding-left: 5.5rem;
+  padding-left: 4rem;
   background-repeat: no-repeat;
   background-position: 1.4rem center;
 }
 
 .menu-item-desc {
-  left: 5.5rem;
+  left: 4rem;
 }
 
 .menu-item::before {
-  position: absolute;
-  top: calc((6.2rem - 32px) / 2);
-  left: calc((5.5rem - 28px) / 2);
-  width: 30px;
-  height: 30px;
-
   content: '';
+  position: absolute;
+  top: calc((6.2rem - 3.2rem) / 2);
+  left: calc((2.9rem - 2.8rem) / 2);
+  width: 3rem;
+  height: 3rem;
   background-image: url(images/icons_sprite.gif);
-  background-size: 15rem 18rem;
+  background-size: 15rem;
 }
 
 li:active:not(.disabled) .menu-item::before,
 .menu-item:focus::before {
   background-image: url(images/icons_sprite_active.gif);
-  background-size: 15rem 18rem;
 }
 
 #menuItem-airplaneMode::before {
@@ -147,11 +145,10 @@ li:active:not(.disabled) .menu-item::before,
 /******************************************************************************
  * Wi-Fi icons
  */
-
 aside.pack-end {
   position: absolute;
   z-index: 2;
-  right: 3rem;
+  right: 1.5rem;
   margin: 0 0 0 0.5rem;
   text-align: right;
  }
@@ -192,6 +189,7 @@ aside.connecting {
  100%   { background-position: -12.8rem center; }
 }
 
+
 /******************************************************************************
  * Call Settings icons
  */
@@ -202,7 +200,8 @@ aside.connecting {
   width: 3rem;
   height: 3rem;
   background-image: url(images/call_waiting_disabled.png);
-  background-size: 3rem 3rem;
+  background-size: 3rem;
+  background-repeat: no-repeat;
  }
 
 
@@ -348,7 +347,7 @@ aside.connecting {
   content: "";
   width: 3.3rem;
   height: 3.3rem;
-  background: url(images/privacy_sprite.png) no-repeat 3rem 3rem / 9.6rem;
+  background: url(/shared/resources/branding/privacy_sprite.png) no-repeat 3rem 3rem / 9.6rem;
   position: absolute;
   left: 1.5rem;
   top: 50%;
@@ -366,6 +365,7 @@ aside.connecting {
 .privacy-marketPlace:before {
   background-position: -6.4rem 0;
 }
+
 
 /******************************************************************************
  * Right-To-Left layout
