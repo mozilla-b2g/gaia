@@ -150,15 +150,18 @@ a.alarm-item > span {
 
 a.alarm-item > .time {
   position: absolute;
-  top: 1.3rem;
+  top: 1.0rem;
   left: 0.2rem;
   font-size: 2.8rem;
+  font-family: 'Fira Sans', sans-serif;
+  font-weight: lighter;
   color: #CFE2E5;
 }
 
 a.alarm-item .period {
   font-size: 1.4rem;
-  color: #737D80;
+  font-weight: normal;
+  color: #5C6466;
   margin-left: 0.2rem;
 }
 
@@ -167,6 +170,8 @@ a.alarm-item > .label {
   left: 12.5rem;
   right: 4.5rem;
   top: 2.35rem;
+  font-family: 'Fira Sans', sans-serif;
+  color: #737D80;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -175,8 +180,22 @@ a.alarm-item > .label {
 a.alarm-item > .repeat {
   position: absolute;
   top: 4.2rem;
-  left: 1.2rem;
+  left: 0.2rem;
+  font-family: 'Fira Sans', sans-serif;
   text-overflow: ellipsis;
+  color: #A1B0B2;
+}
+
+a.alarm-item.with-repeat > .time {
+  top: 0.3rem;
+}
+
+a.alarm-item.with-repeat > .label {
+  top: 1.65rem;
+}
+
+a.alarm-item.with-repeat > .repeat {
+  top: 3.6rem;
 }
 
 #digital-clock.visible ~ #alarms.count4 li:first-child {
