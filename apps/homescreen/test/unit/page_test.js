@@ -6,6 +6,7 @@ requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
 
+require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/page.js');
 
 var mocksHelperForPage = new MocksHelper([
