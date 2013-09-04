@@ -18,9 +18,7 @@ function Icon(descriptor, app) {
 
 
 // Support rendering icons for different screens
-var BASE_WIDTH = 320;
 var SCALE_RATIO = window.devicePixelRatio;
-var MIN_ICON_SIZE = 52;
 var MAX_ICON_SIZE = 60;
 var ICON_PADDING_IN_CANVAS = 4;
 var ICONS_PER_ROW = 4;
@@ -30,8 +28,6 @@ var DRAGGING_TRANSITION = '-moz-transform .3s';
 Icon.prototype = {
 
   MAX_ICON_SIZE: MAX_ICON_SIZE,
-
-  MIN_ICON_SIZE: MIN_ICON_SIZE,
 
   // It defines the time (in ms) to ensure that the onDragStop method finishes
   FALLBACK_DRAG_STOP_DELAY: 1000,
@@ -381,6 +377,10 @@ Icon.prototype = {
   },
 
   updateAppStatus: function icon_updateAppStatus(app) {
+    // change default icon size for tablet+ device
+    if (ScreenLayout.getCurrentLayout() !== 'tiny') {
+      MAX_ICON_SIZE = 100;
+    }
     if (app) {
       this.downloading = app.downloading;
       this.cancelled = (app.installState === 'pending') && !app.downloading;
