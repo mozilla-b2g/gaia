@@ -158,7 +158,7 @@
   {"cc":"US", "offset":"-06:00,-05:00", "city":"Menominee"},
   {"cc":"MX", "offset":"-06:00,-05:00", "city":"Merida"},
   {"cc":"US", "offset":"-08:00,-08:00", "city":"Metlakatla"},
-  {"cc":"MX", "offset":"-06:00,-05:00", "city":"Mexico_City"},
+  {"cc":"MX", "offset":"-06:00,-05:00", "city":"Mexico_City", "name":"Ciudad de México"},
   {"cc":"PM", "offset":"-03:00,-02:00", "city":"Miquelon"},
   {"cc":"CA", "offset":"-04:00,-03:00", "city":"Moncton"},
   {"cc":"MX", "offset":"-06:00,-05:00", "city":"Monterrey"},
