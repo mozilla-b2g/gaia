@@ -66,16 +66,19 @@ writePendingMessage: function() {
 ndefMakeReadOnly: function() {
   req = nfcWriter.ndefMakeReadOnly();
   if (!req) {
-    nfcUI.appendTextAndScroll($(nfcUI.messageArea), 'MakeReadOnly No Tag Present.\n');
+    nfcUI.appendTextAndScroll($(nfcUI.messageArea),
+      'MakeReadOnly No Tag Present.\n');
   }
   req.onsuccess = function() {
     var msg = this.result;
-    nfcUI.appendTextAndScroll($(nfcUI.messageArea), 'MakeReadOnly result: ' + msg + ' \n');
+    nfcUI.appendTextAndScroll($(nfcUI.messageArea),
+      'MakeReadOnly result: ' + msg + ' \n');
   };
   req.onerror = function() {
-    var msg = this.result;
-    nfcUI.appendTextAndScroll($(nfcUI.messageArea), 'MakeReadOnly result: ' + msg + ' \n');
-  }
+    var msg = this.error;
+    nfcUI.appendTextAndScroll($(nfcUI.messageArea),
+      'MakeReadOnly error: ' + msg + ' \n');
+  };
 },
 
 closeTagWriteDialog: function() {
