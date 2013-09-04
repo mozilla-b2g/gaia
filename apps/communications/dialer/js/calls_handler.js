@@ -97,7 +97,9 @@ var CallsHandler = (function callsHandler() {
     });
 
     // Removing any ended calls to handledCalls
-    handledCalls.forEach(function handledCallIterator(hc, index) {
+    for (var index = (handledCalls.length - 1); index >= 0; index--) {
+      var hc = handledCalls[index];
+
       var stillHere = telephony.calls.some(function hcIterator(call) {
         return (call == hc.call);
       });
@@ -110,7 +112,7 @@ var CallsHandler = (function callsHandler() {
       if (!stillHere) {
         removeCall(index);
       }
-    });
+    }
 
     if (handledCalls.length === 0) {
       exitCallScreen(false);
@@ -303,12 +305,7 @@ var CallsHandler = (function callsHandler() {
     displayed = !displayed;
     animating = true;
 
-    var callScreen = CallScreen.screen;
-    callScreen.classList.toggle('displayed');
-
-    callScreen.addEventListener('transitionend', function trWait() {
-      callScreen.removeEventListener('transitionend', trWait);
-
+    CallScreen.toggle(function transitionend() {
       animating = false;
 
       // We did animate the call screen off the viewport
@@ -349,6 +346,7 @@ var CallsHandler = (function callsHandler() {
   }
 
   function closeWindow() {
+    closing = false;
     window.close();
   }
 

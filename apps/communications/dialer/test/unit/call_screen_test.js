@@ -24,6 +24,13 @@ suite('call screen', function() {
     groupCalls.id = 'group-call-details';
     screen.appendChild(groupCalls);
 
+    // Replace the existing elements
+    // Since we can't make the CallScreen look for them again
+    if (CallScreen != null) {
+      CallScreen.screen = screen;
+      CallScreen.calls = calls;
+    }
+
     requireApp('communications/dialer/js/call_screen.js', done);
   });
 
@@ -55,6 +62,45 @@ suite('call screen', function() {
         var fakeNode = document.createElement('section');
         CallScreen.moveToGroup(fakeNode);
         assert.equal(fakeNode.parentNode, CallScreen.groupCalls);
+      });
+    });
+  });
+
+  suite('toggling', function() {
+    test('should toggle the displayed classlist', function() {
+      var toggleSpy = this.sinon.spy(screen.classList, 'toggle');
+      CallScreen.toggle();
+      assert.isTrue(toggleSpy.calledWith('displayed'));
+    });
+
+    suite('when a callback is given', function() {
+      var addEventListenerSpy;
+      var removeEventListenerSpy;
+      var spyCallback;
+
+      setup(function() {
+        addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+        removeEventListenerSpy = this.sinon.spy(screen, 'removeEventListener');
+        spyCallback = this.sinon.spy();
+        CallScreen.toggle(spyCallback);
+      });
+
+      test('should listen for transitionend', function() {
+        assert.isTrue(addEventListenerSpy.calledWith('transitionend'));
+      });
+
+      suite('once the transition ended', function() {
+        setup(function() {
+          addEventListenerSpy.yield();
+        });
+
+        test('should remove the event listener', function() {
+          assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
+        });
+
+        test('should trigger the callback', function() {
+          assert.isTrue(spyCallback.calledOnce);
+        });
       });
     });
   });
