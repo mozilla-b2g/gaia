@@ -23,7 +23,7 @@ setConnectedState: function(connectedState) {
 },
 
 getConnectedState: function() {
-  return isConnected;
+  return this.isConnected;
 },
 
 hasPendingMessage: function() {
@@ -63,9 +63,32 @@ writePendingMessage: function() {
   }
 },
 
+ndefMakeReadOnly: function() {
+  req = nfcWriter.ndefMakeReadOnly();
+  if (!req) {
+    nfcUI.appendTextAndScroll($(nfcUI.messageArea), 'MakeReadOnly No Tag Present.\n');
+  }
+  req.onsuccess = function() {
+    var msg = this.result;
+    nfcUI.appendTextAndScroll($(nfcUI.messageArea), 'MakeReadOnly result: ' + msg + ' \n');
+  };
+  req.onerror = function() {
+    var msg = this.result;
+    nfcUI.appendTextAndScroll($(nfcUI.messageArea), 'MakeReadOnly result: ' + msg + ' \n');
+  }
+},
+
 closeTagWriteDialog: function() {
-  debug('XXXX Closing dialog. XXXX');
-  $('.ui-dialog').dialog('close');
+  if ($('.ui-dialog')) {
+    debug('XXXX Closing dialog. XXXX');
+    $('.ui-dialog').dialog('close');
+  } else {
+    // FIXME: Use notification of dialog onload instead of timeout.
+    setTimeout(function() {
+      debug('XXXX Closing dialog. XXXX');
+      $('.ui-dialog').dialog('close');
+    }, 1000);
+  }
 },
 
 // Common Nfc UI Write Dialog.

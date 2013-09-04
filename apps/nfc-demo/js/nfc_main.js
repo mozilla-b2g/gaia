@@ -481,6 +481,10 @@ $(document).bind('ready', function() {
 
   navigator.mozSetMessageHandler('activity', NfcActivityHandler);
 
+  $('#make_read_only_button').click(function(event) {
+    nfcUI.ndefMakeReadOnly();
+  });
+
   // Attach event handlers to each ui action button:
   $('#button_nfc_empty_id').click(function(event) {
     nfcWriter.postEmptyTag();

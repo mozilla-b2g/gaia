@@ -270,6 +270,15 @@ postEmptyTag: function() {
   console.log('XXXX Post empty tag XXXX');
   var records = [new NdefRecord(nfc.tnf_empty, nfc.rtd_text, null, null)];
   nfcUI.postPendingMessage(records);
+},
+
+ndefMakeReadOnly: function() {
+  if (nfcUI.getConnectedState()) {
+    nfcUI.appendTextAndScroll($('#area'), 'Making Tag read only.\n');
+    return window.navigator.mozNfc.ndefMakeReadOnly();
+  } else {
+    return null;
+  }
 }
 
 }; // nfcWriter
