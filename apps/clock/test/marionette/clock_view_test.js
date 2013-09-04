@@ -87,7 +87,12 @@ marionette('Clock', function() {
       client.waitFor(function() {
         console.log('  waiting... #' + i + ': ' +
           client.executeScript(function() {
-            return window.location.toString();
+            var target = document.querySelector('.view:target');
+            if (target) {
+              target = target.outerHTML.split(/[\r\n]/)[0].replace(/>.*/, '>');
+            }
+            return 'location: ' + window.location.toString() + '\r\n' +
+              'target: ' + target;
           })
         );
         /*if (i > 0) {
