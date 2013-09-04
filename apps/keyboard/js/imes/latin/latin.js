@@ -342,6 +342,21 @@
       justAutoCorrected = false;
     }
 
+    // If the user has typed return and there are spaces before the cursor
+    // delete them all before sending the return key. We do this because
+    // for content editable elements, trailing spaces before newlines cause
+    // strange behavior and we get out of sync with the content in the
+    // element. So to prevent this we simply prevent trailing spaces.
+    // See bug 902847.
+    if (keycode === RETURN && !selection) {
+      while (cursor > 0 && inputText[cursor - 1] === ' ') {
+        keyboard.sendKey(BACKSPACE);
+        inputText = inputText.substring(0, cursor - 1) +
+          inputText.substring(cursor);
+        cursor--;
+      }
+    }
+
     if (selection) {
       // If there is selected text, don't do anything fancy here.
       handleKey(keycode);
@@ -413,17 +428,16 @@
           correctionDisabled = false;
       }
     } else {
+      // The Enter key generates a \r carriage return but it causes a
+      // newline character to be inserted.
+      var c = (keycode === RETURN) ? '\n' : String.fromCharCode(keycode);
       if (selection) {
         inputText =
-          inputText.substring(0, cursor) +
-          String.fromCharCode(keycode) +
-          inputText.substring(selection);
+          inputText.substring(0, cursor) + c + inputText.substring(selection);
         selection = 0;
       } else {
         inputText =
-          inputText.substring(0, cursor) +
-          String.fromCharCode(keycode) +
-          inputText.substring(cursor);
+          inputText.substring(0, cursor) + c + inputText.substring(cursor);
       }
       cursor++;
     }
@@ -438,24 +452,16 @@
   // content and cursor position.
   function replaceBeforeCursor(oldWord, newWord) {
     var oldWordLen = oldWord.length;
-    if (keyboard.replaceSurroundingText) {
-      keyboard.replaceSurroundingText(newWord, oldWordLen, 0);
-    }
-    else {
-      // Find the first character in currentWord and newWord that differs
-      // so we know how many backspaces we need to send.
-      for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
-        if (oldWord[firstdiff] !== newWord[firstdiff])
-          break;
-      }
 
-      // Backspace as far as that first difference
-      for (var i = oldWordLen; i > firstdiff; i--)
-        keyboard.sendKey(BACKSPACE);
-
-      // And send the first different character and all that follow
-      keyboard.sendString(newWord.substring(firstdiff));
+    // Find the first character in currentWord and newWord that differs
+    // so we know how much we have to delete
+    for (var firstdiff = 0; firstdiff < oldWordLen; firstdiff++) {
+      if (oldWord[firstdiff] !== newWord[firstdiff])
+        break;
     }
+    keyboard.replaceSurroundingText(newWord.substring(firstdiff),
+                                    oldWordLen - firstdiff,
+                                    0);
 
     // Now update internal state
     inputText =
@@ -668,6 +674,10 @@
     // a new word here, which means that if auto-correction was disabled
     // we can re-enable it now.
     correctionDisabled = false;
+
+    // Forget any pending auto correction because the user just explicitly
+    // chose a suggestion
+    autoCorrection = null;
 
     // Clear the suggestions
     keyboard.sendCandidates([]);
