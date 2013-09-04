@@ -250,12 +250,7 @@ appMessages.on('activity', function(type, data, rawActivity) {
   function promptEmptyAccount() {
     var req = confirm(mozL10n.get('setup-empty-account-prompt'));
     if (!req) {
-      // We want to do the right thing, but currently this won't even dump
-      // us in the home-screen app.  This is because our activity has
-      // disposition: window rather than inline.
       rawActivity.postError('cancelled');
-      // So our workaround is to close our window.
-      window.close();
     }
 
     // No longer need to wait for the activity to complete, it needs
