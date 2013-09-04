@@ -6,10 +6,14 @@ requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_moz_activity.js');
+requireApp('sms/test/unit/mock_mime_mapper.js');
 
 var MocksHelperForAttachment = new MocksHelper([
   'AttachmentMenu',
-  'Utils'
+  'Utils',
+  'MozActivity',
+  'MimeMapper'
 ]).init();
 
 suite('attachment_test.js', function() {
@@ -177,6 +181,37 @@ suite('attachment_test.js', function() {
       assertThumbnailPlaceholder(el, 'video');
       assert.isNull(el.querySelector('div.corrupted'));
       done();
+    });
+  });
+
+  suite('view attachment with open activity', function() {
+    setup(function() {
+      this.sinon.spy(MimeMapper, 'guessTypeFromFileProperties');
+      this.sinon.spy(MimeMapper, 'ensureFilenameMatchesType');
+    });
+
+    test('Open normal image attachment', function() {
+      var attachment = new Attachment(testImageBlob, {
+        name: 'IMG_0554.jpg'
+      });
+      var typeSpy = MimeMapper.guessTypeFromFileProperties;
+      var matchSpy = MimeMapper.ensureFilenameMatchesType;
+      attachment.view();
+      assert.ok(typeSpy.calledWith('IMG_0554.jpg', 'image/jpeg'));
+      assert.ok(matchSpy.calledWith('IMG_0554.jpg', typeSpy.returnValues[0]));
+      assert.equal(MockMozActivity.calls.length, 1);
+    });
+
+    test('Filename has no extension', function() {
+      var attachment = new Attachment(testImageBlob, {
+        name: 'IMG_0554'
+      });
+      var typeSpy = MimeMapper.guessTypeFromFileProperties;
+      var matchSpy = MimeMapper.ensureFilenameMatchesType;
+      attachment.view();
+      assert.ok(typeSpy.calledWith('IMG_0554', 'image/jpeg'));
+      assert.ok(matchSpy.calledWith('IMG_0554', typeSpy.returnValues[0]));
+      assert.equal(MockMozActivity.calls.length, 1);
     });
   });
 });
