@@ -1,0 +1,59 @@
+<element name="carrier-operatorSettings" extends="section">
+  <template>
+
+    <header>
+      <a href="#carrier"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="networkOperator"> Network Operator </h1>
+    </header>
+
+    <div id="carrier-operatorSettings-content">
+      <ul>
+        <li>
+          <p data-l10n-id="operator-networkType">Network Type</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="ril.radio.preferredNetworkType" id="preferredNetworkType">
+            </select>
+          </p>
+        </li>
+        <li id="operator-roaming-preference">
+          <p data-l10n-id="operator-roamingPreference">Roaming preference</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="operator-roaming-preference-selector">
+              <option data-l10n-id="operator-roamingPreference-home" value="home">Home</option>
+              <option data-l10n-id="operator-roamingPreference-any" value="any">Any</option>
+              <option data-l10n-id="operator-roamingPreference-affiliated" value="affiliated">Affiliated</option>
+            </select>
+          </p>
+        </li>
+        <li id="operator-autoSelect">
+          <label class="pack-switch">
+            <input type="checkbox" data-ignore/>
+            <span></span>
+          </label>
+          <small></small>
+          <a data-l10n-id="operator-autoSelect">Automatic Selection</a>
+        </li>
+      </ul>
+
+      <header id="availableOperatorsHeader">
+        <h2 data-l10n-id="availableOperators"> Network Operators in the Area </h2>
+      </header>
+      <ul id="availableOperators" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="operator-turnAutoSelectOff">
+          Turn Automatic Selection off to view available network operators.
+        </li>
+        <li class="explanation" data-state="on" data-l10n-id="scanning">
+          Searching…
+        </li>
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

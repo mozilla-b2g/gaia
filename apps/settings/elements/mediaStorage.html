@@ -1,0 +1,51 @@
+<element name="mediaStorage" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="mediaStorage"> Media Storage </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input id="ums-switch" type="checkbox" data-ignore />
+            <span></span>
+          </label>
+          <small id="ums-desc">Disabled</small>
+          <a data-l10n-id="enableUSBStorage">Enable USB storage</a>
+        </li>
+      </ul>
+      <div id="volume-list">
+      </div>
+      <header>
+        <h2 data-l10n-id="advanced">Advanced</h2>
+      </header>
+      <ul>
+        <li>
+          <p data-l10n-id="default-media-location">Default media location</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="defaultMediaLocation" name="device.storage.writable.name">
+            </select>
+          </p>
+        </li>
+        <li data-l10n-id="default-media-location-msg" class="explanation">
+          Choose where photos, videos, music and downloads are stored by default.
+        </li>
+      </ul>
+    </div>
+    <form data-type="confirm" role="dialog" id="default-location-popup-container" hidden>
+      <section>
+        <p data-l10n-id="change-default-location-confirm">Changing the default media storage volume will effect where photos, videos, downloads and other media will be saved to by default. Existing data will remain in its current location.</p>
+      </section>
+      <menu>
+        <button id="default-location-cancel-btn" data-l10n-id="cancel">Cancel</button>
+        <button id="default-location-change-btn" data-l10n-id="change">Change</button>
+      </menu>
+    </form>
+    <script src="js/media_storage.js"></script>
+
+  </template>
+</element>

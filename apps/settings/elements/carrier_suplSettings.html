@@ -1,0 +1,64 @@
+<element name="carrier-suplSettings" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <menu type="toolbar">
+        <button type="submit"><span data-l10n-id="ok">OK</span></button>
+      </menu>
+      <h1 data-l10n-id="suplSettings"> A-GPS Settings </h1>
+    </header>
+
+    <div>
+      <ul class="apnSettings-list">
+        <li class="apnSettings-custom">
+          <label class="pack-radio">
+            <input type="radio" data-setting="ril.supl.carrier" name="suplApnSettingsCarrier" value="_custom_" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="custom">(custom settings)</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
+      <ul class="apnSettings-advanced">
+        <li>
+          <p data-l10n-id="apn">APN</p>
+          <input type="text" data-setting="ril.supl.apn" />
+        </li>
+        <li>
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-setting="ril.supl.user" />
+        </li>
+        <li>
+          <p data-l10n-id="password">password</p>
+          <input type="text" data-setting="ril.supl.passwd" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyHost">HTTP Proxy Host</p>
+          <input type="text" data-setting="ril.supl.httpProxyHost" />
+        </li>
+        <li>
+          <p data-l10n-id="httpProxyPort">HTTP Proxy Port</p>
+          <input type="text" data-setting="ril.supl.httpProxyPort" />
+        </li>
+        <li>
+          <p data-l10n-id="apn-authType">Authentication</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="ril-supl-authType" data-setting="ril.supl.authtype">
+              <option value="notDefined" data-l10n-id="apn-authType-notDefined">Not defined</option>
+              <option value="none" data-l10n-id="apn-authType-none">None</option>
+              <option value="pap" data-l10n-id="apn-authType-pap">PAP</option>
+              <option value="chap" data-l10n-id="apn-authType-chap">CHAP</option>
+              <option value="papOrChap" data-l10n-id="apn-authType-papOrChap">PAP or CHAP</option>
+            </select>
+          </p>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

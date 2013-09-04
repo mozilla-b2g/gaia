@@ -1,0 +1,77 @@
+<element name="improveBrowserOS" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="improveBrowserOS">Improve Browser OS</h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <label>
+            <button data-href="http://input.mozilla.org/feedback" data-l10n-id="sendMozillaFeedback"></button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="performanceData">Performance Data</h2>
+      </header>
+      <ul>
+        <li>
+          <p class="description">
+            <span data-l10n-id="performanceDataInfo">
+              Help us improve Browser OS by sharing data about your phone.
+            </span>
+            <a href="http://mozilla.org/telemetry" data-l10n-id="learn-more" class="link-text">Learn More</a>
+          </p>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.performance_data.shared" />
+            <span></span>
+          </label>
+          <a data-l10n-id="sharePerformanceData">Submit performance data</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="crashReports">Crash Reports</h2>
+      </header>
+      <ul>
+        <li>
+          <p class="description">
+            <span data-l10n-id="crashReportInfo">
+              Sending Mozilla a report when a crash occurs helps us fix the problem
+              for everyone. Reports are sent over Wi-Fi only.
+            </span>
+            <a href="#crashReports" data-l10n-id="learn-more" class="link-text">Learn More</a>
+          </p>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" name="app.reportCrashes" value="always"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="alwaysSendReport">Always send a report</a>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" name="app.reportCrashes" value="never" />
+            <span></span>
+          </label>
+          <a data-l10n-id="neverSendReport">Never send a report</a>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" name="app.reportCrashes" value="ask" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="askToSendReport2">Ask each time</a>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

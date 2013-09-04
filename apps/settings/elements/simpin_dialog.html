@@ -1,0 +1,62 @@
+<element name="simpin-dialog" extends="section">
+  <template>
+
+    <header>
+      <button type="reset">
+        <span data-l10n-id="back" class="icon icon-back">Back</span>
+      </button>
+      <menu type="toolbar">
+      <button data-l10n-id="done" type="submit">Done</button>
+      </menu>
+      <h1></h1>
+    </header>
+
+    <div>
+      <div class="container">
+        <div id="errorMsg" class="error" hidden>
+          <div id="messageHeader">The PIN was incorrect.</div>
+          <span id="messageBody">3 tries left.</span>
+        </div>
+
+        <div id="triesLeft" data-l10-id="inputCodeRetriesLeft">
+          3 tries left
+        </div>
+
+        <div id="pinArea" class="sim-code-area">
+          <div data-l10n-id="simPin">SIM PIN</div>
+          <div class="input-wrapper">
+            <input type="password" x-inputmode="digit" name="simpin" size="8" maxlength="8" />
+          </div>
+        </div>
+
+        <div id="pukArea" class="sim-code-area">
+          <div data-l10n-id="pukCode">PUK Code</div>
+          <div class="input-wrapper">
+            <input type="password" x-inputmode="digit" name="simpuk" size="8" maxlength="8" />
+          </div>
+        </div>
+
+        <div id="newPinArea" class="sim-code-area">
+          <div data-l10n-id="newSimPinMsg">
+            Create PIN (must contain 4 to 8 digits)
+          </div>
+          <div class="input-wrapper">
+            <input type="password" x-inputmode="digit" name="newSimpin" size="8" maxlength="8" />
+          </div>
+        </div>
+
+        <div id="confirmPinArea" class="sim-code-area">
+          <div data-l10n-id="confirmNewSimPinMsg">
+            Confirm New PIN
+          </div>
+          <div class="input-wrapper">
+            <input type="password" x-inputmode="digit" name="confirmNewSimpin" size="8" maxlength="8" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/simcard_dialog.js"></script>
+
+  </template>
+</element>
