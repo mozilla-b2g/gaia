@@ -326,10 +326,14 @@ function setupFrameContent(n, frame) {
     }
     else {
       // Otherwise, just display the image
-      frame.displayImage(imagefile,
-                         fileinfo.metadata.width,
-                         fileinfo.metadata.height,
-                         fileinfo.metadata.preview);
+      // Note: There is a default value for orientation since some
+      // images don't have EXIF data to retrieve this information.
+      frame.displayImage(
+        imagefile,
+        fileinfo.metadata.width,
+        fileinfo.metadata.height,
+        fileinfo.metadata.preview,
+        fileinfo.metadata.orientation || {rotation: 0, mirrored: 1});
     }
   });
 }
