@@ -31,6 +31,7 @@ function HandledCall(aCall) {
 
   this.node = document.getElementById('handled-call-template').cloneNode(true);
   this.node.id = '';
+  this.node.classList.add('handled-call');
   this.node.hidden = false;
 
   this.durationNode = this.node.querySelector('.duration');
