@@ -1,0 +1,62 @@
+<element name="wifi-joinHidden" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <menu type="toolbar">
+        <button type="submit"><span data-l10n-id="ok">OK</span></button>
+      </menu>
+      <h1 data-l10n-id="authentication"> Authentication </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <p data-l10n-id="ssid-name">SSID Network Name</p>
+          <input type="text" data-ignore name="ssid" />
+        </li>
+        <li>
+          <p data-l10n-id="security">Security</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select>
+              <option data-l10n-id="securityNone">none</option>
+              <option>WEP</option>
+              <option selected>WPA-PSK</option>
+              <option>WPA-EAP</option>
+            </select>
+          </p>
+        </li>
+        <li class="eap">
+          <p data-l10n-id="eap">EAP method</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select>
+              <option value="SIM">EAP-SIM</option>
+              <option value="AKA">EAP-AKA</option>
+              <option value="AKA'">EAP-AKA'</option>
+            </select>
+          </p>
+        </li>
+        <li class="simpin">
+          <p data-l10n-id="simPin">SIM PIN</p>
+          <input type="text" data-ignore name="simPin" />
+        </li>
+        <li class="identity">
+          <p data-l10n-id="identity">identity</p>
+          <input type="text" data-ignore name="identity" />
+        </li>
+        <li class="password">
+          <label class="pack-checkbox">
+            <input type="checkbox" data-ignore name="show-pwd" id="pwd-joinHidden" />
+            <span></span>
+          </label>
+          <span data-l10n-id="showPassword">show password</span>
+          <p data-l10n-id="password">password</p>
+          <input type="password" data-ignore name="password" maxlength="63" />
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

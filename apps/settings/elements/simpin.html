@@ -1,0 +1,48 @@
+<element name="simpin" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="simSecurity"> SIM Security </h1>
+    </header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="whatIsSimPin">What is a SIM PIN?</h2>
+      </header>
+      <ul>
+        <li class="description">
+          <p data-l10n-id="simPinIntro1">
+          A SIM PIN prevents access to the SIM card cellular data networks. When
+          it’s on, any device containing the SIM card will request the PIN upon
+          restart.
+          </p>
+
+          <p data-l10n-id="simPinIntro2">
+            A SIM PIN is not the same as the Passcode used to unlock the device.
+          </p>
+        </li>
+      </ul>
+      <ul>
+        <li id="simpin-enabled">
+          <label class="pack-switch">
+            <input type="checkbox" data-ignore/>
+            <span></span>
+          </label>
+          <a data-l10n-id="simPin">SIM PIN</a>
+        </li>
+      </ul>
+      <ul>
+        <li id="simpin-change">
+          <label>
+            <button data-l10n-id="changeSimPin" name="changeSimPin">Change PIN</button>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/simcard_lock.js"></script>
+    <script src="js/simcard_dialog.js"></script>
+
+  </template>
+</element>

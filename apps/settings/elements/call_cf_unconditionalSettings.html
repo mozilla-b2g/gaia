@@ -1,0 +1,30 @@
+<element name="call-cf-unconditionalSettings" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <menu type="toolbar">
+        <button type="submit"><span data-l10n-id="ok">OK</span></button>
+      </menu>
+      <h1 data-l10n-id="callForwarding"> Call forwarding </h1>
+    </header>
+
+    <div>
+      <ul id="cf-unconditional-advanced">
+        <li>
+          <p data-l10n-id="cf-alwaysUseThisNumber">Always use this number</p>
+          <input type="tel" id="cf-unconditional-number" data-setting="ril.cf.unconditional.number" disabled/>
+        </li>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" data-setting="ril.cf.unconditional.enabled"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="callForwardingUnconditionalShort">Always</small>
+          <a data-l10n-id="callForwardingForward">Forward</a>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

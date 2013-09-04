@@ -200,7 +200,7 @@ var Settings = {
     this.presetPanel();
   },
 
-  loadPanel: function settings_loadPanel(panel) {
+  loadPanel: function settings_loadPanel(panel, cb) {
     if (!panel) {
       return;
     }
@@ -208,13 +208,10 @@ var Settings = {
     this.loadPanelStylesheetsIfNeeded();
 
     // apply the HTML markup stored in the first comment node
-    for (var i = 0, il = panel.childNodes.length; i < il; i++) {
-      if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
-        panel.innerHTML = panel.childNodes[i].nodeValue;
-        break;
-      }
-    }
+    LazyLoader.load([panel], this.afterPanelLoad.bind(this, panel, cb));
+  },
 
+  afterPanelLoad: function(panel, cb) {
     // translate content
     navigator.mozL10n.translate(panel);
 
@@ -252,12 +249,16 @@ var Settings = {
         };
       }
     }
+    if (cb) {
+      cb();
+    }
   },
 
   lazyLoad: function settings_lazyLoad(panel) {
-    if (panel.children.length) { // already initialized
+    if (panel.dataset.rendered) { // already initialized
       return;
     }
+    panel.dataset.rendered = true;
 
     // load the panel and its sub-panels (dependencies)
     // (load the main panel last because it contains the scripts)
@@ -266,8 +267,10 @@ var Settings = {
     for (var i = 0, il = subPanels.length; i < il; i++) {
       this.loadPanel(subPanels[i]);
     }
-    this.loadPanel(panel);
+    this.loadPanel(panel, this.panelLoaded.bind(this, panel, subPanels));
+  },
 
+  panelLoaded: function(panel, subPanels) {
     // panel-specific initialization tasks
     switch (panel.id) {
       case 'display':             // <input type="range"> + brightness control

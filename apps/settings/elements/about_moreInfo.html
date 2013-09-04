@@ -1,0 +1,82 @@
+<element name="about-moreInfo" extends="section">
+  <template>
+
+    <header>
+      <button type="reset">
+        <span data-l10n-id="back" class="icon icon-back">Back</span>
+      </button>
+      <h1 data-l10n-id="more-info"> More Information </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <small data-name="deviceinfo.os"></small>
+          <span data-l10n-id="os-version"> OS Version </span>
+        </li>
+        <li>
+          <small data-name="deviceinfo.firmware_revision"></small>
+          <span data-l10n-id="firmware_revision"> Firmware Revision </span>
+        </li>
+        <li>
+          <small data-name="deviceinfo.hardware"></small>
+          <span data-l10n-id="hardware_revision"> Hardware Revision </span>
+        </li>
+        <li>
+          <small data-name="deviceinfo.mac"></small>
+          <span data-l10n-id="macAddress"> MAC address </span>
+        </li>
+        <li>
+          <small id="deviceInfo-imei"></small>
+          <span data-l10n-id="deviceInfo-IMEI"> IMEI </span>
+        </li>
+        <li>
+          <small id="deviceInfo-iccid"></small>
+          <span data-l10n-id="deviceInfo-ICCID"> ICCID </span>
+        </li>
+        <li>
+          <small data-name="deviceinfo.platform_version"></small>
+          <span data-l10n-id="platform_version"> Platform Version </span>
+        </li>
+        <li>
+          <small data-name="deviceinfo.platform_build_id"></small>
+          <span data-l10n-id="build-id"> Build Identifier </span>
+        </li>
+        <li>
+          <small data-name="deviceinfo.update_channel"></small>
+          <span data-l10n-id="update-channel"> Update Channel </span>
+        </li>
+        <li>
+          <label>
+            <button id="reset-phone" data-l10n-id="reset-phone">Reset Phone</button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="gitInfo"> Git commit info </h2>
+      </header>
+      <ul>
+        <li>
+          <small id="gaia-commit-hash"></small>
+          <span id="gaia-commit-date"></span>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="devSettings"> Developer Settings </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button data-href="#about-moreInfo-developer"
+              data-l10n-id="developer">Developer</button>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/factory_reset.js"></script>
+
+  </template>
+</element>

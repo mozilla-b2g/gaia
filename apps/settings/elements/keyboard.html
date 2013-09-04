@@ -1,0 +1,77 @@
+<element name="keyboard" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="keyboard"> Keyboard </h1>
+    </header>
+
+    <div>
+      <ul hidden>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="keyboard.vibration"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="vibration">Vibration</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="keyboard.clicksound" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="clickSound">Click sound</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="keyboard.autocorrect"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="autoCorrect">Auto correction</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="keyboard.wordsuggestion"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="wordSuggestion">Word Suggestion</a>
+        </li>
+      </ul>
+
+      <ul>
+        <li>
+          <a href="#keyboard-selection" data-l10n-id="activeKeyboard">Active keyboard</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="installed">Installed</h2>
+      </header>
+      <ul id="allKeyboardList" hidden>
+      </ul>
+
+      <div id="textLayoutList" hidden>
+        <header>
+          <h2 data-l10n-id="keyboardlayouts">layouts</h2>
+        </header>
+        <ul></ul>
+      </div>
+
+      <div id="numberLayoutList" hidden>
+        <header>
+          <h2 data-l10n-id="numberKeyboardLayouts">Number Layouts</h2>
+        </header>
+        <ul></ul>
+      </div>
+
+      <div id="optionLayoutList" hidden>
+        <header>
+          <h2 data-l10n-id="optionKeyboardLayouts">Option Layouts</h2>
+        </header>
+        <ul></ul>
+      </div>
+
+    </div>
+    <script src="js/keyboard.js"></script>
+
+  </template>
+</element>

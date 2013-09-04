@@ -1,0 +1,63 @@
+<element name="dateTime" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="dateAndTime"> Date &amp; Time </h1>
+    </header>
+
+    <div>
+      <ul id="time-auto" data-state="auto" hidden>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" name="time.nitz.automatic-update.enabled" class="uninit"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="setTimeManually">Set Manually</h2>
+      </header>
+      <ul id="time-manual">
+        <li>
+          <label>
+            <input type="date" id="date-picker" min="1970-1-1" max="2037-12-31"/>
+          </label>
+          <a data-l10n-id="dateMessage">Date <span id="clock-date"></span> </a>
+        </li>
+        <li>
+          <label>
+            <input type="time" id="time-picker" />
+          </label>
+          <a data-l10n-id="timeMessage">Time <span id="clock-time"></span> </a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="timezoneMessage">Time zone</h2>
+      </header>
+      <ul id="timezone">
+        <li>
+          <p data-l10n-id="tz-region">Region</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="timezone-region"></select>
+          </p>
+        </li>
+        <li>
+          <p data-l10n-id="tz-city">City</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="timezone-city"></select>
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <script src="shared/js/tz_select.js"></script>
+    <script src="js/date_time.js"></script>
+
+  </template>
+</element>
