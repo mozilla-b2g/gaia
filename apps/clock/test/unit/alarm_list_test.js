@@ -98,6 +98,22 @@ suite('AlarmList', function() {
         dom.innerHTML = AlarmList.render(fixture);
         assert.equal(dom.querySelector('.repeat').textContent, '');
       });
+
+      test('repeat, with-repeat class', function() {
+        fixture.repeat = { monday: true };
+        dom.innerHTML = AlarmList.render(fixture);
+        assert.isTrue(
+          dom.querySelector('.alarm-item').classList.contains('with-repeat')
+        );
+      });
+
+      test('no repeat, without with-repeat class', function() {
+        fixture.label = '';
+        dom.innerHTML = AlarmList.render(fixture);
+        assert.isFalse(
+          dom.querySelector('.alarm-item').classList.contains('with-repeat')
+        );
+      });
     });
   });
 });

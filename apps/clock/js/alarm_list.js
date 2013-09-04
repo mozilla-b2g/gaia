@@ -79,6 +79,7 @@ var AlarmList = {
   render: function al_render(alarm) {
     var repeat = alarm.isRepeating() ?
       alarm.summarizeDaysOfWeek() : '';
+    var withRepeat = alarm.isRepeating() ? ' with-repeat' : '';
     var isActive = alarm.registeredAlarms.normal ||
       alarm.registeredAlarms.snooze;
     var checked = !!isActive ? 'checked=true' : '';
@@ -97,6 +98,7 @@ var AlarmList = {
       label: label,
       meridian: time.p,
       repeat: repeat,
+      withRepeat: withRepeat,
       time: time.t
     });
   },
