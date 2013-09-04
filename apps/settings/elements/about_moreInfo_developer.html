@@ -1,0 +1,138 @@
+<element name="about-moreInfo-developer" extends="section">
+  <template>
+
+    <header>
+      <button type="reset">
+        <span data-l10n-id="back" class="icon icon-back">Back</span>
+      </button>
+      <h1 data-l10n-id="developer"> Developer </h1>
+    </header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="debug">Debug</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.grid.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="grid">Grid</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.fps.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="fps-monitor">Show frames per second</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.paint-flashing.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="paint-flashing">Flash repainted area</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="layers.draw-borders"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="layers-draw-borders">Flash repainted area</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.log-animations.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="log-animations">Log slow animations</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.ttl.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="ttl-monitor">Show time to load</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="devtools.debugger.remote-enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="remote-debugging">Remote Debugging</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="wifi.debugging.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wifi-debugging">Wi-Fi output in adb</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="bluetooth.debugging.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="bluetooth-debugging">Bluetooth output in adb</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="dom.mozContacts.debugging.enabled" />
+            <span></span>
+          </label>
+          <a data-l10n-id="contacts-debugging">Contacts debugging output in adb</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.console.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="console-enabled">Console enabled</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="software-button.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="software-button-enabled">Software home button enabled</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.gaia.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="debug-gaia-enabled">Gaia debug traces</a>
+        </li>
+        <li>
+          <label>
+            <button id="ftuLauncher" data-l10n-id="launch-ftu">Launch FTU</button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="keyboardLayouts">Keyboard Layouts</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="keyboard.layouts.zhuyin"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="traditionalChinese-desc">Zhuyin</small>
+          <a data-l10n-id="traditionalChinese">Traditional Chinese</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="keyboard.layouts.pinyin"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="simplifiedChinese-desc">Pinyin</small>
+          <a data-l10n-id="simplifiedChinese">Simplified Chinese</a>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

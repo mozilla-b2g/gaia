@@ -1,0 +1,22 @@
+<element name="call-voiceMailSettings" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <menu type="toolbar">
+        <button type="submit"><span data-l10n-id="ok">OK</span></button>
+      </menu>
+      <h1 data-l10n-id="voiceMail"> Voicemail </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <p data-l10n-id="voiceMail-number">Voicemail Number</p>
+          <input type="tel" id="vm-number" data-setting="ril.iccInfo.mbdn"/>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

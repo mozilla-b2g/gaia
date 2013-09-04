@@ -1,0 +1,50 @@
+<element name="wifi-wps" extends="section">
+  <template>
+
+    <header>
+      <button type="reset"><span data-l10n-id="back" class="icon icon-back">Back</span></button>
+      <menu type="toolbar">
+        <button type="submit"><span data-l10n-id="ok">OK</span></button>
+      </menu>
+      <h1 data-l10n-id="wpsMessage"> Connect with WPS </h1>
+    </header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="wpsMethodSelection">Select WPS method:</h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="pbc" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="wpsPbcLabel">Button connection</a>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="myPin" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wpsMyPinLabel">My PIN connection</a>
+        </li>
+        <li>
+          <label class="pack-radio">
+            <input type="radio" data-setting="wifi.wps.method" name="wpsMethodSelection" value="apPin" />
+            <span></span>
+          </label>
+          <a data-l10n-id="wpsApPinLabel">AP PIN connection</a>
+        </li>
+        <li id="wifi-wps-pin-area">
+          <p data-l10n-id="wpsPinDescription">PIN is 4 or 8 digits</p>
+          <input type="text" />
+        </li>
+        <li id="wifi-wps-pin-aps">
+          <p data-l10n-id="wpsPinAps">Select an opposite device</p>
+          <select></select>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

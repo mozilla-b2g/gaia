@@ -1,0 +1,117 @@
+<element name="call" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="callSettings"> Call Settings </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <small id="voiceMail-desc"></small>
+          <a data-href="#call-voiceMailSettings" data-l10n-id="voiceMail">Voicemail</a>
+        </li>
+        <li id="menuItem-voicePrivacyMode" hidden>
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore/>
+            <span></span>
+          </label>
+          <a data-l10n-id="voicePrivacyMode">Voice privacy mode</a>
+        </li>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" name="wap.push.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="wapPush">WAP Push</a>
+        </li>
+        <li id="menuItem-callWaiting" data-state="off">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore/>
+            <span></span>
+          </label>
+          <label class="alert-label" hidden>
+            <span></span>
+          </label>
+          <a data-l10n-id="callWaiting">Call Waiting</a>
+        </li>
+        <li id="menuItem-cellBroadcast" class="disabled">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore disabled />
+            <span></span>
+          </label>
+          <a data-l10n-id="callBroadcastService">Cell broadcast service</a>
+        </li>
+        <li id="menuItem-callerId" class="disabled">
+          <a data-l10n-id="callerId">Caller ID</a>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="ril-callerId" data-setting="ril.callerId">
+              <option value="CLIR_DEFAULT" data-l10n-id="callerId-default">Network default</option>
+              <option value="CLIR_INVOCATION" data-l10n-id="callerId-hide">Hide number</option>
+              <option value="CLIR_SUPPRESSION" data-l10n-id="callerId-show">Show number</option>
+            </select>
+          </p>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
+      </header>
+      <ul>
+        <li id="li-cfu-desc" class="disabled">
+          <small id="cfu-desc"></small>
+          <a id="menuItem-callForwardingUnconditional" data-href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
+        </li>
+        <li id="li-cfmb-desc" class="disabled">
+          <small id="cfmb-desc"></small>
+          <a id="menuItem-callForwardingMobileBusy" data-href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
+        </li>
+        <li id="li-cfnrep-desc" class="disabled">
+          <small id="cfnrep-desc"></small>
+          <a id="menuItem-callForwardingNoReply" data-href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
+        </li>
+        <li id="li-cfnrea-desc" class="disabled">
+          <small id="cfnrea-desc"></small>
+          <a id="menuItem-callForwardingNotReachable" data-href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
+        </li>
+      </ul>
+    </div>
+
+    <form role="dialog" data-type="confirm" hidden class="cw-alert">
+      <section>
+        <h1 data-l10n-id="confirmCallWaitingTitle">Unable to confirm call waiting preferences</h1>
+        <p>
+          <strong data-l10n-id="confirmCallWaitingDesc">The device is currently unable to communicate with the carrier. Try setting the preference again.</strong>
+        </p>
+        <p class="cw-alert-sub-p">
+          <label class="pack-switch cw-alert-checkbox-label">
+            <input type="checkbox" data-ignore/>
+            <span></span>
+          </label>
+          <span data-l10n-id="callWaiting">Call Waiting</span>
+        </p>
+      </section>
+      <menu>
+        <button class="cw-alert-cancel" data-l10n-id="cancel">Cancel</button>
+        <button class="cw-alert-set recommend" data-l10n-id="set">Set</button>
+      </menu>
+    </form>
+
+    <form role="dialog" data-type="confirm" hidden class="cf-alert">
+      <section>
+        <h1 data-l10n-id="callForwardingConfirmTitle">Call forwarding confirmation message</h1>
+        <p>
+          <strong id="cf-confirm-message"></strong>
+        </p>
+      </section>
+      <menu>
+        <button class="cf-alert-continue full" data-l10n-id="continue">Continue</button>
+      </menu>
+    </form>
+
+    <script src="js/call.js"></script>
+
+  </template>
+</element>

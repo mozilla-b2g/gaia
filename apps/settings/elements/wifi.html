@@ -1,0 +1,64 @@
+<element name="wifi" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="wifi"> Wi-Fi </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li id="wifi-enabled">
+          <label class="pack-switch">
+            <input type="checkbox" data-ignore/>
+            <span></span>
+          </label>
+          <a data-l10n-id="wifi">Wi-Fi</a>
+        </li>
+        <li hidden>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="wifi.notification"/>
+            <span></span>
+          </label>
+          <small data-l10n-id="networkNotification-expl">Notify me when an open network is available</small>
+          <a data-l10n-id="networkNotification">Network notification</a>
+        </li>
+        <li id="wps-column">
+          <small data-l10n-id="wpsDescription2">Automatic Wi-Fi setup</small>
+          <a data-l10n-id="wpsMessage">Connect with WPS</a>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="availableNetworks"> Available Networks </h2>
+      </header>
+      <ul id="wifi-availableNetworks" data-state="off">
+        <li class="explanation" data-state="off" data-l10n-id="wifi-disabled">
+          Turn Wi-Fi on to view available networks.
+        </li>
+        <li data-state="on">
+          <progress></progress><span data-l10n-id="scanning">Searching…</span>
+        </li>
+        <li data-state="ready">
+          <label>
+            <button data-l10n-id="scanNetworks">Search Again</button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="advancedSettings"> Advanced Settings </h2>
+      </header>
+      <ul>
+        <li>
+          <label>
+            <button id="manageNetworks" data-l10n-id="manageNetworks">Manage Networks</button>
+          </label>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/wifi.js"></script>
+
+  </template>
+</element>

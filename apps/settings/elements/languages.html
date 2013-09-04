@@ -1,0 +1,46 @@
+<element name="languages" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="language"> Language </h1>
+    </header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="sample-format">Sample Format</h2>
+      </header>
+      <ul>
+        <li class="description">
+          <p id="region-date">Friday, September 28 2012</p>
+          <p id="region-time">06:54 PM</p>
+        </li>
+        <li>
+          <p data-l10n-id="language">Language</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">Language</button>
+            <select name="language.current"></select>
+          </p>
+        </li>
+        <li hidden>
+          <p data-l10n-id="region">Region</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="region.current">
+              <option value="BR">Brasil</option>
+              <option value="CO">Columbia</option>
+              <option value="ES">España</option>
+              <option value="FR">France</option>
+              <option value="PT">Portugal</option>
+              <option value="TW">Taiwan</option>
+              <option value="UK">United Kingdom</option>
+              <option value="US">United States</option>
+              <option value="VZ">Venezuela</option>
+            </select>
+          </p>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>
