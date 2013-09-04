@@ -224,8 +224,8 @@ var Carrier = {
         });
         // fill authType field and push it to keys.
         var authType = document.getElementById('ril-' + usage + '-authType');
-        apnToBeMerged['authType'] = authType.value;
-        keys.push('authType');
+        apnToBeMerged['authtype'] = authType.value;
+        keys.push('authtype');
 
         var newApnsForIccCards = [];
         for (var iccCardIndex = 0;
