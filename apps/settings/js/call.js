@@ -715,6 +715,53 @@ var Calls = (function(window, document, undefined) {
     request.onerror = function() {};
   }
 
+  function initVoicePrivacyMode() {
+    if (!mobileConnection) {
+      return;
+    }
+
+    // get network type
+    loadJSON('/resources/network.json', function loadNetwork(network) {
+      var supportCDMA = false;
+
+      if (network.types) {
+        var typesStr = network.types.join();
+        supportCDMA = (typesStr.indexOf('cdma') >= 0);
+      }
+
+      if (!supportCDMA)
+        return;
+
+      var privacyModeItem =
+        document.getElementById('menuItem-voicePrivacyMode');
+      var privacyModeInput =
+        privacyModeItem.querySelector('input');
+
+      var getReq = mobileConnection.getVoicePrivacyMode();
+      getReq.onsuccess = function get_vpm_success() {
+        privacyModeItem.hidden = false;
+        privacyModeInput.checked = getReq.result;
+      };
+      getReq.onerror = function get_vpm_error() {
+        console.warn('get voice privacy mode: ' + getReq.error.name);
+        if (getReq.error.name === 'RequestNotSupported' ||
+            getReq.error.name === 'GenericFailure') {
+          privacyModeItem.hidden = true;
+        }
+      };
+
+      privacyModeInput.addEventListener('change',
+        function vpm_inputChanged() {
+          var originalValue = !this.checked;
+          var setReq = mobileConnection.setVoicePrivacyMode(originalValue);
+          setReq.onerror = function get_vpm_error() {
+            // restore the value if failed.
+            privacyModeInput.checked = originalValue;
+          };
+      });
+    });
+  }
+
   // Call subpanel navigation control.
   window.addEventListener('panelready', function(e) {
     // If navigation is from #root to #call panels then update UI always.
@@ -741,6 +788,7 @@ var Calls = (function(window, document, undefined) {
     // Startup.
     init: function calls_init() {
       initVoiceMailSettings();
+      initVoicePrivacyMode();
       initCallWaiting();
       initCellBroadcast();
       initCallerId();
