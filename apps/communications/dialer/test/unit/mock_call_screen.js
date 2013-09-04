@@ -1,6 +1,11 @@
 var MockCallScreen = {
   insertCall: function() {},
   moveToGroup: function() {},
+  toggle: function(cb) {
+    if (typeof(cb) == 'function') {
+      cb();
+    }
+  },
   enableKeypad: function() {
     this.mEnableKeypadCalled = true;
   },
