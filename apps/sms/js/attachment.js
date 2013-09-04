@@ -214,11 +214,18 @@
     },
 
     view: function(options) {
+      // Make sure media is openable and savable even if:
+      //   - Blob mimetype is unsupported but file extension is valid.
+      //   - File extenion is missing or invalid but mimetype is supported.
+
+      var mimetype =
+        MimeMapper.guessTypeFromFileProperties(this.name, this.blob.type);
+      var filename = MimeMapper.ensureFilenameMatchesType(this.name, mimetype);
       var activity = new MozActivity({
         name: 'open',
         data: {
-          type: this.blob.type,
-          filename: this.name,
+          type: mimetype,
+          filename: filename,
           blob: this.blob,
           allowSave: options && options.allowSave
         }
