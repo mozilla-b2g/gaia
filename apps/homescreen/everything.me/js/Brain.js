@@ -635,21 +635,15 @@ Evme.Brain = new function Evme_Brain() {
         this.hold = function hold(data) {
             currentHoldData = data;
 
-            // in collection
-            if (Evme.Collection.isOpen()) {
-                if (data.app.cfg.isStatic === true) {
-                    Evme.Collection.toggleEditMode(true);
-                } else if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
+            if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
+                if (Evme.Collection.isOpen()) {
                     Evme.Collection.toggleEditMode(false);
                     openCloudAppMenu(data);
-                }
-            }
-                
-            // in search
-            else {
-                if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
+                } else {
                     saveToHomescreen(data, true);
                 }
+            } else if (data.app.type === Evme.RESULT_TYPE.INSTALLED && !Evme.Collection.editMode) {
+                Evme.Collection.toggleEditMode(true);
             }
         };
 

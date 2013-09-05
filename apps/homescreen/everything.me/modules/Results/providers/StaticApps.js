@@ -30,7 +30,6 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
 
     for (var i = 0, app; app = apps[i++];) {
       app.isRemovable = true;
-      app.isStatic = true;
       
       var result,
           el;
