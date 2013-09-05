@@ -14,7 +14,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
                 "feature": "{feature}",
                 "src": "{source}"
             },
-            "AppsMore_show": {
+            "DoATAPI_loadmore": {
                 "userEvent":"loadMore"
             },
             "Core_redirectedToApp": {
@@ -32,7 +32,7 @@ Evme.APIStatsEvents = function Evme_APIStatsEvents(Sandbox){
                 "query": "{query}",
                 "feature": "{source}"
             },
-            "App_addToHomeScreen": {
+            "Result_addToHomeScreen": {
                 "userEvent": "addToHomeScreen",
                 "appName": "{name}",
                 "appId": "{id}"
