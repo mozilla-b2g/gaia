@@ -11,6 +11,7 @@ var MockMozTelephony = {
     hold: function() {},
     resume: function() {}
   },
+  speakerEnabled: false,
 
   mTriggerCallsChanged: function() {
     if (this.oncallschanged) {
@@ -35,6 +36,7 @@ var MockMozTelephony = {
     this.calls = [];
     this.conferenceGroup.calls = [];
     this.conferenceGroup.state = null;
+    this.speakerEnabled = false;
     this.mTriggerCallsChanged();
     this.mTriggerGroupCallsChanged();
   },

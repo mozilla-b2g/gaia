@@ -527,7 +527,7 @@ window.addEventListener('load', function startup(evt) {
 // Listening to the keyboard being shown
 // Waiting for issue 787444 being fixed
 window.onresize = function(e) {
-  if (window.innerHeight < 460) {
+  if (window.innerHeight < 440) {
     document.body.classList.add('with-keyboard');
   } else {
     document.body.classList.remove('with-keyboard');
