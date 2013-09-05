@@ -449,9 +449,10 @@ function initKeyboard() {
 
   window.addEventListener('hashchange', function() {
     var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName);
-    resetKeyboard();
-    showKeyboard();
+    setKeyboardName(inputMethodName, function() {
+      resetKeyboard();
+      showKeyboard();
+    });
   }, false);
 
   // Handle resize events
@@ -462,13 +463,13 @@ function initKeyboard() {
   // showKeyboard() when mozHidden is false and we got inputContext
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
     var inputMethodName = window.location.hash.substring(1);
-    setKeyboardName(inputMethodName);
-
-    if (!document.mozHidden && inputContext) {
-      showKeyboard();
-    } else {
-      hideKeyboard();
-    }
+    setKeyboardName(inputMethodName, function() {
+      if (!document.mozHidden && inputContext) {
+        showKeyboard();
+      } else {
+        hideKeyboard();
+      }
+    });
   });
 
   window.navigator.mozInputMethod.oninputcontextchange = function() {
@@ -491,7 +492,7 @@ function handleKeyboardSound() {
   }
 }
 
-function setKeyboardName(name) {
+function setKeyboardName(name, callback) {
   var keyboard;
 
   if (name in Keyboards) {
@@ -510,11 +511,15 @@ function setKeyboardName(name) {
     }
   }
 
-  if (keyboard.imEngine)
-    inputMethod = InputMethods[keyboard.imEngine];
-
-  if (!inputMethod)
+  if (keyboard.imEngine) {
+    loadIMEngine(name, function() {
+      inputMethod = InputMethods[keyboard.imEngine];
+      callback();
+    });
+  } else {
     inputMethod = defaultInputMethod;
+    callback();
+  }
 }
 
 // Support function for render
@@ -1529,77 +1534,6 @@ function getKeyCoordinateY(y) {
   return y - yBias;
 }
 
-// Called from the endPress() function above when the user releases the
-// switch keyboard layout key.
-function switchKeyboard(target) {
-  var currentLayoutName = keyboardName;
-  var newLayoutName;
-  var currentLayout, newLayout;
-
-  if (target.dataset.keyboard) {
-    // If the user selected a keyboard from the menu, use that one
-    newLayoutName = target.dataset.keyboard;
-  }
-  else {
-    // Otherwise, if they just tapped the switch keyboard button, then
-    // cycle through the keyboards. But if the menu was displayed and no
-    // item selected, then do nothing.
-    var index = enabledKeyboardNames.indexOf(currentLayoutName);
-    newLayoutName =
-      enabledKeyboardNames[(index + 1) % enabledKeyboardNames.length];
-  }
-
-  // if no keyboard was selected, don't do anything.
-  if (!newLayoutName)
-    return;
-
-  // Set the new keyboard and save the setting.
-  setKeyboardName(newLayoutName);
-  navigator.mozSettings.createLock().set({
-    'keyboard.current': newLayoutName
-  });
-
-  // If the old layout and the new layout use the same input method
-  // and if that input method has a setLanguage function then we tell
-  // the IM what the autocorrect language for this keyboard is.
-  currentLayout = Keyboards[currentLayoutName];
-  newLayout = Keyboards[newLayoutName];
-  if (currentLayout.imEngine === newLayout.imEngine) {
-    // If the two keyboards use different languages, set the new language
-    // We do this even if the new language is undefined, so that the
-    // IM can discard its old dictionary
-    if (inputMethod && inputMethod.setLanguage &&
-        currentLayout.autoCorrectLanguage !== newLayout.autoCorrectLanguage)
-      inputMethod.setLanguage(newLayout.autoCorrectLanguage);
-  }
-  else {
-    if (!newLayout.imEngine) {
-      // If we're switching to a keyboard with no input method then
-      // Deactivate the current input method, if there is one
-      if (inputMethod) {
-        if (inputMethod.deactivate)
-          inputMethod.deactivate();
-        inputMethod = defaultInputMethod;
-      }
-    }
-    else {
-      // Otherwise we are switching from a keyboard with no input method.
-      // This means that we have not been tracking the state of the input
-      // and have no way to initalize the new input method. We can't start
-      // using the new input method until the user dismisses the keyboard
-      // and reopens it. The best we can do in this case is to force
-      // the keyboard to be dismissed. Then when the user re-focuses the
-      // input field they'll get they keyboard and input method they want.
-      // In practice, just about everything uses the latin input method now
-      // so this only occurs when the users switches from Hebrew or Arabic
-      // to a latin or cyrillic alphabet. XXX: See Bug 888076
-      navigator.mozInputMethod.mgmt.removeFocus();
-    }
-  }
-
-  renderKeyboard(keyboardName);  // And display it.
-}
-
 function switchToNextIME() {
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.next();
@@ -1658,7 +1592,8 @@ function showKeyboard(state) {
   // If no keyboard has been selected yet, choose the first enabled one.
   // This will also set the inputMethod
   if (!keyboardName) {
-    setKeyboardName(defaultKeyboardName);
+    setKeyboardName(defaultKeyboardName, showKeyboard.bind(this, state));
+    return;
   }
 
   inputContext = navigator.mozInputMethod.inputcontext;
@@ -1755,15 +1690,18 @@ function loadKeyboard(name) {
     loadIMEngine(name);
 }
 
-function loadIMEngine(name) {
+function loadIMEngine(name, callback) {
   var keyboard = Keyboards[name];
   var sourceDir = './js/imes/';
   var imEngine = keyboard.imEngine;
 
   // Same IME Engine could be load by multiple keyboard layouts
   // keep track of it by adding a placeholder to the registration point
-  if (InputMethods[imEngine])
+  if (InputMethods[imEngine]) {
+    if (callback)
+      callback();
     return;
+  }
 
   var script = document.createElement('script');
   script.src = sourceDir + imEngine + '/' + imEngine + '.js';
@@ -1803,6 +1741,8 @@ function loadIMEngine(name) {
   script.addEventListener('load', function IMEngineLoaded() {
     var engine = InputMethods[imEngine];
     engine.init(glue);
+    if (callback)
+      callback();
   });
 
   document.body.appendChild(script);
