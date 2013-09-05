@@ -355,8 +355,9 @@ contacts.Matcher = (function() {
 
     var resultsByName = null;
     if (!isEmptyStr(aContact.name)) {
+      var targetName = aContact.name[0].trim();
       var reqName = navigator.mozContacts.find({
-        filterValue: aContact.name[0].trim(),
+        filterValue: targetName,
         filterBy: ['name'],
         filterOp: 'equals'
       });
@@ -367,17 +368,16 @@ contacts.Matcher = (function() {
         });
         notifyFindNameReady();
         if (isEmptyStr(aContact.familyName)) {
-          processByNameEnd(finalResult, resultsByName, callbacks);
+          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
         }
       };
 
       reqName.onerror = function(e) {
-        window.console.warn('Error while trying to find by name: ',
-                                e.target.error.name);
+        window.console.warn('No matching contacts when looking for name.');
         resultsByName = [];
         notifyFindNameReady();
         if (isEmptyStr(aContact.familyName)) {
-          processByNameEnd(finalResult, resultsByName, callbacks);
+          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
         }
       };
     }
@@ -387,8 +387,9 @@ contacts.Matcher = (function() {
     }
 
     if (!isEmptyStr(aContact.familyName)) {
+      var targetFamilyName = aContact.familyName[0].trim();
       var reqFamilyName = navigator.mozContacts.find({
-        filterValue: aContact.familyName[0].trim(),
+        filterValue: targetFamilyName,
         filterBy: ['familyName'],
         filterOp: 'equals'
       });
@@ -424,8 +425,10 @@ contacts.Matcher = (function() {
           finalResult[aMatching.contact.id] = {
             matchings: {
               'name': [{
-                target: '',
-                matchedValue: ''
+                target: targetFamilyName,
+                matchedValue: Array.isArray(aMatching.contact.name) ?
+                              aMatching.contact.name[0] :
+                              getCompleteName(aMatching.contact)
               }]
             },
             matchingContact: aMatching.contact
@@ -433,19 +436,19 @@ contacts.Matcher = (function() {
         });
 
         if (resultsByName) {
-          processByNameEnd(finalResult, resultsByName, callbacks);
+          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
         }
         else {
           document.addEventListener('by_name_ready', function nameReady() {
             document.removeEventListener('by_name_ready', nameReady);
-            processByNameEnd(finalResult, resultsByName, callbacks);
+            endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
           });
         }
       };
 
       reqFamilyName.onerror = function(e) {
-        window.console.error('Error while trying to find by familyName: ',
-                             e.target.error.name);
+        window.console.warn(
+                          'No matching contacts when looking for family name.');
         notifyMismatch(callbacks);
       };
     }
@@ -499,14 +502,15 @@ contacts.Matcher = (function() {
     return out;
   }
 
-  function processByNameEnd(finalResult, resultsByName, callbacks) {
+  function endOfMatchByName(finalResult, targetName, resultsByName, callbacks) {
     resultsByName.forEach(function(aResult) {
       var matchingObj = {
         matchings: {
           'name': [{
-            // If target is the empty string then target === matchedValue
-            target: '',
-            matchedValue: aResult.name[0]
+            target: targetName,
+            matchedValue: Array.isArray(aResult.name) ?
+                          aResult.name[0] :
+                          getCompleteName(aResult)
           }]
         },
         matchingContact: aResult
@@ -516,7 +520,8 @@ contacts.Matcher = (function() {
         finalResult[aResult.id] = matchingObj;
       }
       else {
-        finalResult[aResult.id].matchings['name'] = matchingObj;
+        finalResult[aResult.id].matchings['name'] =
+          matchingObj.matchings['name'];
       }
     });
 
@@ -526,6 +531,20 @@ contacts.Matcher = (function() {
     else {
       notifyMismatch(callbacks);
     }
+  }
+
+  function getCompleteName(contact) {
+    var givenName = Array.isArray(contact.givenName) ?
+                    contact.givenName[0] : '';
+
+    var familyName = Array.isArray(contact.familyName) ?
+                    contact.familyName[0] : '';
+
+    var completeName = givenName && familyName ?
+                       givenName + ' ' + familyName :
+                       givenName || familyName;
+
+    return completeName;
   }
 
   function isEmpty(collection) {
