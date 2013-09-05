@@ -1,0 +1,12 @@
+{
+  "name": "Movies",
+  "description": "Movies smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Movies",
+      "description": "Movies"
+    }
+  },
+  "default_locale": "en-US"
+}

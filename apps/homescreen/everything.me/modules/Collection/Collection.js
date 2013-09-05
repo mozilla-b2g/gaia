@@ -70,7 +70,7 @@
 
     this.remove = function removeCollection(id, params) {
       params = params || {};
-      
+
       EvmeManager.removeGridItem({
         "id": id,
         "onConfirm": function onConfirm() {
@@ -121,7 +121,7 @@
         self.update(currentSettings, {
           "apps": currentSettings.apps.concat(cloudAppData)
         });
-          
+
       });
     };
 
@@ -351,7 +351,7 @@
               var extraIconsData = shortcut.appIds.map(function wrapIcon(appId){
                 return {"id": appId, "icon": roundIcons[appId]};
               });
-              
+
               createPreinstalledCollection(shortcut.experienceId, extraIconsData, gridPosition);
 
             });
@@ -363,7 +363,8 @@
 
       // create the icon, create the collection, add it to homescreen
       function createPreinstalledCollection(experienceId, extraIconsData, position) {
-        var l10nkey = 'id-' + Evme.Utils.shortcutIdToKey(experienceId),
+        var key = Evme.Utils.shortcutIdToKey(experienceId),
+          l10nkey = 'id-' + key,
           query = Evme.Utils.l10n('shortcut', l10nkey);
 
         var apps = Evme.InstalledAppsService.getMatchingApps({
@@ -371,7 +372,7 @@
         });
 
         var collectionSettings = new Evme.CollectionSettings({
-          "id": Evme.Utils.uuid(),
+          "id": Evme.Utils.getCollectionId(key),
           "experienceId": experienceId,
           "query": query,
           "extraIconsData": extraIconsData,
@@ -401,11 +402,11 @@
     this.experienceId = args.experienceId;
 
     this.apps = args.apps || [];
-        
+
     // TODO save only reference, get data from IconManager
     // get static apps' icons from InstalledAppsService
     this.extraIconsData = args.extraIconsData || [];  // list of {"id": 3, "icon": "base64icon"}
-    
+
   };
 
   /**

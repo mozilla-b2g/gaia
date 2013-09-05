@@ -1,0 +1,12 @@
+{
+  "name": "Tv",
+  "description": "Tv smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Tv",
+      "description": "Television"
+    }
+  },
+  "default_locale": "en-US"
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Shopping",
+  "description": "Shopping smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Shopping",
+      "description": "Shopping"
+    }
+  },
+  "default_locale": "en-US"
+}
