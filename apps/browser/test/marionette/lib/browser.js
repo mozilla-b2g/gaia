@@ -8,13 +8,15 @@ function Browser(client) {
 }
 
 /**
- * @type String Origin of browser app
+ * @type {string} Origin of browser app.
  */
 Browser.URL = 'app://browser.gaiamobile.org';
 
 Browser.Selectors = {
   'searchBar': '#url-input',
   'searchButton': '#url-button',
+  'shareButton': '#share-button',
+  'shareMenu': '#list-menu-root',
   'mozbrowser': 'iframe[mozbrowser]'
 };
 
@@ -34,6 +36,29 @@ Browser.prototype = {
 
   get searchButton() {
     return findElement(this.client, 'searchButton');
+  },
+
+  get shareButton() {
+    return findElement(this.client, 'shareButton');
+  },
+
+  // TODO(gareth): Move this shareMenu stuff into the helper.
+  get shareMenu() {
+    // Switch to the system app first.
+    this.client.switchToFrame();
+    return this.client.helper.waitForElement(Browser.Selectors['shareMenu']);
+  },
+
+  clickShareEmail: function() {
+    var shareMenu = this.shareMenu;
+    var list = shareMenu.findElements('a');
+    for (var i = 0; i < list.length; i++) {
+      var link = list[i];
+      if (link.text() === 'E-Mail') {
+        link.click();
+        break;
+      }
+    }
   },
 
   /**
