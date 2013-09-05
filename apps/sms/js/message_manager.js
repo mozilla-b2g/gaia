@@ -92,8 +92,8 @@ var MessageManager = {
     }
 
     if (threadId === Threads.currentId) {
-      //Append message and mark as unread
-      this.markMessagesRead([message.id], true, function() {
+      //Append message and mark as read
+      this.markMessagesRead([message.id], function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
       });
       ThreadUI.appendMessage(message);
@@ -245,7 +245,6 @@ var MessageManager = {
         break;
       default:
         var threadId = Threads.currentId;
-        var filter;
         var willSlide = true;
 
         var finishTransition = function finishTransition() {
@@ -255,14 +254,11 @@ var MessageManager = {
           // in the thread.
           if (!ThreadUI.inThread) {
             ThreadUI.inThread = true;
-            ThreadUI.renderMessages(filter);
+            ThreadUI.renderMessages(threadId);
           }
         };
 
         if (threadId) {
-          filter = new MozSmsFilter();
-          filter.threadId = threadId;
-
           // if we were previously composing a message - remove the class
           // and skip the "slide" animation
           if (this.threadMessages.classList.contains('new')) {
@@ -331,6 +327,9 @@ var MessageManager = {
       each: callback function invoked for each message
       end: callback function invoked when cursor is "done"
       endArgs: specify arguments for the "end" callback
+      done: callback function invoked when we stopped iterating, either because
+            it's the end or because it was stopped. It's invoked after the "end"
+            callback.
       filter: a MozMessageFilter or similar object
       invert: option to invert the selection
     }
@@ -341,6 +340,7 @@ var MessageManager = {
     var invert = options.invert;
     var end = options.end;
     var endArgs = options.endArgs;
+    var done = options.done;
     var cursor = this._mozMobileMessage.getMessages(filter, !invert);
 
     cursor.onsuccess = function onsuccess() {
@@ -352,16 +352,18 @@ var MessageManager = {
         // if each returns false the iteration stops
         if (shouldContinue !== false) { // if this is undefined this is fine
           this.continue();
+        } else {
+          done && done();
         }
       } else {
-        if (end) {
-          end(endArgs);
-        }
+        end && end(endArgs);
+        done && done();
       }
     };
     cursor.onerror = function onerror() {
       var msg = 'Reading the database. Error: ' + this.error.name;
       console.log(msg);
+      done && done();
     };
   },
 
@@ -499,7 +501,27 @@ var MessageManager = {
     this.deleteMessage(list, callback);
   },
 
-  markMessagesRead: function mm_markMessagesRead(list, value, callback) {
+  markThreadRead: function mm_markThreadRead(threadId, callback) {
+    var filter = new MozSmsFilter();
+    filter.threadId = threadId;
+    filter.read = false;
+
+    var messagesUnreadIDs = [];
+    var changeStatusOptions = {
+      each: function addUnreadMessage(message) {
+        messagesUnreadIDs.push(message.id);
+        return true;
+      },
+      filter: filter,
+      invert: true,
+      end: function handleUnread() {
+        MessageManager.markMessagesRead(messagesUnreadIDs);
+      }
+    };
+    MessageManager.getMessages(changeStatusOptions);
+  },
+
+  markMessagesRead: function mm_markMessagesRead(list, callback) {
     if (!this._mozMobileMessage || !list.length) {
       return;
     }
@@ -508,14 +530,14 @@ var MessageManager = {
     // 'markMessageRead' until a previous call is completed. This way any
     // other potential call to the API, like the one for getting a message
     // list, could be done within the calls to mark the messages as read.
-    var req = this._mozMobileMessage.markMessageRead(list.pop(), value);
+    var req = this._mozMobileMessage.markMessageRead(list.pop(), true);
 
     req.onsuccess = (function onsuccess() {
       if (!list.length && callback) {
         callback(req.result);
         return;
       }
-      this.markMessagesRead(list, value, callback);
+      this.markMessagesRead(list, callback);
     }).bind(this);
 
     req.onerror = function onerror() {

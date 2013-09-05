@@ -4,6 +4,8 @@ var MockNavigatormozMobileMessage = {
   _mSmsRequest: null,
   _mMmsRequest: null,
   _mSegmentInfoRequests: [],
+  _mMarkReadRequest: null,
+  _mMessagesRequest: null,
 
   send: function(recipients, content) {
     this._mSmsRequest = [];
@@ -16,6 +18,49 @@ var MockNavigatormozMobileMessage = {
   sendMMS: function() {
     this._mMmsRequest = {};
     return this._mMmsRequest;
+  },
+
+  markMessageRead: function(messageId, value) {
+    this._mMarkReadRequest = {};
+    return this._mMarkReadRequest;
+  },
+
+  mTriggerMarkReadSuccess: function() {
+    var evt = { target: { result: null } };
+
+    if (this._mMarkReadRequest && this._mMarkReadRequest.onsuccess) {
+      var current = this._mMarkReadRequest;
+      this._mMarkReadRequest = null;
+      current.onsuccess.call(evt.target, evt);
+    }
+  },
+
+  getMessages: function(filter, invert) {
+    this._mMessagesRequest = {};
+    return this._mMessagesRequest;
+  },
+
+  mTriggerMessagesRequest: function(messages) {
+    var mock = this;
+    if (this._mMessagesRequest && this._mMessagesRequest.onsuccess) {
+      var cursor = {
+        done: false,
+        continue: function() {
+          var next = messages.shift();
+          if (next === undefined) {
+            this.result = null;
+            this.done = true;
+          } else {
+            this.result = next;
+          }
+
+          var evt = { target: cursor };
+          mock._mMessagesRequest.onsuccess.call(this, evt);
+        }
+      };
+
+      cursor.continue();
+    }
   },
 
   getSegmentInfoForText: function() {
@@ -122,5 +167,7 @@ var MockNavigatormozMobileMessage = {
     this._mSegmentInfoRequests = [];
     this._mSmsRequest = null;
     this._mMmsRequest = null;
+    this._mMarkReadRequest = null;
+    this._mMessagesRequest = null;
   }
 };

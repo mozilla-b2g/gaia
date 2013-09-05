@@ -14,7 +14,9 @@ var MockMessageManager = {
   },
   sendMMS: function() {
     return {};
-  }
+  },
+  markMessagesRead: function() {},
+  markThreadRead: function() {}
 };
 
 MockMessageManager.mSetup = function() {
