@@ -413,7 +413,7 @@ suite('page.js >', function() {
 
         test('Bookmarks are not offline ready apps ', function(done) {
           createIcon({
-            type: GridItemsFactory.TYPE.BOOKMARK
+            isBookmark: true
           }, function() {
             checkOfflineReady('false');
             done();

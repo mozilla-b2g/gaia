@@ -1,23 +1,10 @@
 Evme.Helper = new function Evme_Helper() {
-    var NAME = "Helper",
-        self = this,
-        el = null,
-        elWrapper = null,
-        elTitle = null,
-        elList = null,
-        elTip = null,
-        _data = {},
-        defaultText = "",
-        scroll = null,
-        currentDisplayedType = "",
-        timeoutShowRefine = null,
-        queryForSuggestions = "",
-        lastVisibleItem,
-        clicked = false,
-        title = '',
-        titleVisible = false,
-        bShouldAnimate = true,
-        ftr = {};
+    var NAME = "Helper", self = this,
+        el = null, elWrapper = null, elTitle = null, elList = null, elTip = null,
+        _data = {}, defaultText = "", scroll = null, currentDisplayedType = "", timeoutShowRefine = null,
+        queryForSuggestions = "", lastVisibleItem, clicked = false, titleVisible = false,
+        
+        bShouldAnimate = true, ftr = {};
            
     this.init = function init(options) {
         !options && (options = {});        
@@ -25,16 +12,18 @@ Evme.Helper = new function Evme_Helper() {
         // features
         if (options.features){
             for (var i in options.features) {
-                ftr[i] = options.features[i];
+                ftr[i] = options.features[i]
             }
         }
 
         el = options.el;
         elTitle = options.elTitle;
         elTip = options.elTip;
+        
         elWrapper = el.parentNode;
         elList = Evme.$("ul", el)[0];
 
+        
         elList.addEventListener("click", elementClick, false);
         elTitle.addEventListener("click", titleClicked, false);
         
@@ -312,9 +301,7 @@ Evme.Helper = new function Evme_Helper() {
         scroll.scrollTo(0,0);
     };
 
-    this.setTitle = function setTitle(newTitle, type) {
-        title = newTitle;
-
+    this.setTitle = function setTitle(title, type) {
         if (!title) {
             elTitle.innerHTML = '<b ' + Evme.Utils.l10nAttr(NAME, 'title-empty') + '></b>';
             return false;
@@ -347,7 +334,7 @@ Evme.Helper = new function Evme_Helper() {
         } else {
             elTitle.classList.add("notype");
         }
-
+        
         return html;
     };
     
@@ -540,14 +527,14 @@ Evme.Helper = new function Evme_Helper() {
         var val = elClicked.dataset.suggestion,
             valToSend = (val || "").replace(/[\[\]]/g, "").toLowerCase(),
             index = elClicked.dataset.index,
-            source = elClicked.dataset.source,
+            source = elClicked.dataset.source, 
             type = elClicked.dataset.type;
             
         if (val) {
             cbClick(elClicked, index, isVisibleItem(index), val, valToSend, source, type);
         }
     }
-   
+    
     function titleClicked(e){
         e.preventDefault();
         e.stopPropagation();

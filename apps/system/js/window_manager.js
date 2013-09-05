@@ -432,9 +432,7 @@ var WindowManager = (function() {
      * we should draw in the blank space. */
 
     /* Only allow opaque colors */
-    // TODOEVME - this kept throwing errors when homescreen launched,
-    // bgcolor was null
-    if (backgroundColor && backgroundColor.indexOf('rgb(') != -1) {
+    if (backgroundColor.indexOf('rgb(') != -1) {
       iframe.style.backgroundColor = backgroundColor;
     }
   });
@@ -661,8 +659,6 @@ var WindowManager = (function() {
         'setVisible' in runningApps[homescreen].iframe)
         runningApps[homescreen].iframe.setVisible(false);
     } else if (reset) {
-      // EVME adding Date.now() so the hashchange (in homescreen app)
-      // will always happen
       runningApps[homescreen].iframe.src = homescreenURL + Date.now();
       runningApps[homescreen].resize();
     }

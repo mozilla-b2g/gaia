@@ -45,7 +45,7 @@ Icon.prototype = {
   // element dataset and allow us to uniquely look up the Icon object from
   // the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL',
-                           'useAsyncPanZoom'],
+                           'useAsyncPanZoom', 'desiredPos'],
 
   /**
    * The Application (or Bookmark) object corresponding to this icon.
@@ -63,10 +63,9 @@ Icon.prototype = {
   },
 
   isOfflineReady: function icon_isOfflineReady() {
-    return this.descriptor.type === GridItemsFactory.TYPE.COLLECTION ||
-      !(this.descriptor.isHosted &&
+    return !(this.descriptor.isHosted &&
       !this.descriptor.hasOfflineCache ||
-      this.descriptor.type === GridItemsFactory.TYPE.BOOKMARK);
+      this.descriptor.isBookmark);
   },
 
   /*
@@ -84,41 +83,20 @@ Icon.prototype = {
      */
 
     var container = this.container = document.createElement('li');
-    var dataset = container.dataset;
-
-    dataset.offlineReady = this.isOfflineReady();
+    this.container.dataset.offlineReady = this.isOfflineReady();
     container.className = 'icon';
     if (this.descriptor.hidden) {
       delete this.descriptor.hidden;
-      dataset.visible = false;
+      container.dataset.visible = false;
     }
 
     var descriptor = this.descriptor;
-    dataset.isIcon = true;
+    container.dataset.isIcon = true;
     this._descriptorIdentifiers.forEach(function(prop) {
       var value = descriptor[prop];
-      if (value)
-        dataset[prop] = value;
+      if (value !== undefined)
+        container.dataset[prop] = value;
     });
-
-    // For single variant
-    var value = descriptor['desiredPos'];
-    if (value !== undefined)
-      dataset['desiredPos'] = value;
-
-    // Collection (as bookmarks)
-    if (descriptor.type === GridItemsFactory.TYPE.COLLECTION) {
-      dataset.isCollection = true;
-      dataset.isEmpty = descriptor.isEmpty;
-      dataset.collectionId = descriptor.id;
-      dataset.collectionName = descriptor.name;
-    } else {
-      dataset.origin = descriptor.manifestURL ||
-                                 descriptor.bookmarkURL;
-      if (descriptor.entry_point) {
-        dataset.entryPoint = descriptor.entry_point;
-      }
-    }
 
     var localizedName = descriptor.localizedName || descriptor.name;
     container.setAttribute('role', 'button');
@@ -319,11 +297,6 @@ Icon.prototype = {
       return;
     }
 
-    var canvas = this.createCanvas(img);
-    canvas.toBlob(this.renderBlob.bind(this));
-  },
-
-  createCanvas: function icon_createCanvas(img) {
     var canvas = document.createElement('canvas');
     canvas.width = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
     canvas.height = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
@@ -350,7 +323,7 @@ Icon.prototype = {
                   width, height);
     ctx.fill();
 
-    return canvas;
+    canvas.toBlob(this.renderBlob.bind(this));
   },
 
   // The url that is passed as a parameter to the callback must be revoked
@@ -418,9 +391,8 @@ Icon.prototype = {
     this.descriptor = descriptor;
     descriptor.removable === true ? this.appendOptions() : this.removeOptions();
 
-    // Update dataset properties
+    // Update offline availability
     this.container.dataset.offlineReady = this.isOfflineReady();
-    this.container.dataset.isEmpty = descriptor.isEmpty;
 
     if (descriptor.updateTime == oldDescriptor.updateTime &&
         descriptor.icon == oldDescriptor.icon) {
@@ -458,8 +430,7 @@ Icon.prototype = {
    */
   translate: function icon_translate() {
     var descriptor = this.descriptor;
-    if (descriptor.type === GridItemsFactory.TYPE.COLLECTION ||
-        descriptor.type === GridItemsFactory.TYPE.BOOKMARK)
+    if (descriptor.bookmarkURL)
       return;
 
     var app = this.app;
@@ -499,10 +470,6 @@ Icon.prototype = {
 
     var draggableElem = this.draggableElem = document.createElement('div');
     draggableElem.className = 'draggable';
-    if (this.descriptor.type !== GridItemsFactory.TYPE.COLLECTION) {
-      // Collections cannot be appended to others so this operation isn't needed
-      this.savePostion(draggableElem.dataset);
-    }
 
     // For some reason, cloning and moving a node re-triggers the blob
     // URI to be validated. So we assign a new blob URI to the image
@@ -531,30 +498,6 @@ Icon.prototype = {
     document.body.appendChild(draggableElem);
   },
 
-  /*
-   * Saves the current container (page or dock) and  position.
-   *
-   * * pageType -> 'dock' or 'page' types
-   * * pageIndex -> index of page (no needed for dock)
-   * * iconIndex -> index of icon inside page or dock container
-   *
-   * @param{Object} Source object to set results
-   */
-  savePostion: function icon_savePosition(obj) {
-    var page;
-
-    if (this.container.parentNode === DockManager.page.olist) {
-      page = DockManager.page;
-      obj.pageType = 'dock';
-    } else {
-      page = GridManager.pageHelper.getCurrent();
-      obj.pageType = 'page';
-      obj.pageIndex = GridManager.pageHelper.getCurrentPageNumber();
-    }
-
-    obj.iconIndex = page.getIconIndex(this.container);
-  },
-
   addClassToDragElement: function icon_addStyleToDragElement(className) {
     this.draggableElem.classList.add(className);
   },
@@ -564,32 +507,18 @@ Icon.prototype = {
   },
 
   /*
-   * This method is invoked when the drag gesture finishes. If x and y are
-   * defined, the icon flies to this position
-   *
-   * @param{Function} callback will be performed when animations finishes
-   *
-   * @param{Integer} x-coordinate
-   *
-   * @param{Integer} y-coordinate
-   *
-   * @param{Integer} scale factor of the animation
+   * This method is invoked when the drag gesture finishes
    */
-  onDragStop: function icon_onDragStop(callback, tx , ty, scale) {
+  onDragStop: function icon_onDragStop(callback) {
     var container = this.container;
 
-    var x = tx,
-        y = ty;
+    var rect = container.getBoundingClientRect();
+    var x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
+    x -= this.initXCenter;
 
-    if (typeof x === 'undefined') {
-      var rect = container.getBoundingClientRect();
-      x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
-      x -= this.initXCenter;
-
-      y = (rect.top + rect.bottom) / 2 +
-              (this.initHeight - (rect.bottom - rect.top)) / 2;
-      y -= this.initYCenter;
-    }
+    var y = (rect.top + rect.bottom) / 2 +
+            (this.initHeight - (rect.bottom - rect.top)) / 2;
+    y -= this.initYCenter;
 
     var draggableElem = this.draggableElem;
     var style = draggableElem.style;
@@ -613,8 +542,7 @@ Icon.prototype = {
     }, this.FALLBACK_DRAG_STOP_DELAY);
 
     var content = draggableElem.querySelector('div');
-    scale = typeof scale !== 'undefined' ? scale : 1;
-    content.style.MozTransform = 'scale(' + scale + ')';
+    content.style.MozTransform = 'scale(1)';
     content.addEventListener('transitionend', function tEnd(e) {
       e.target.removeEventListener('transitionend', tEnd);
       if (fallbackID !== null) {
@@ -648,7 +576,7 @@ Icon.prototype = {
   }
 };
 
-function TemplateIcon(iconable) {
+function TemplateIcon(isBookmark) {
   var descriptor = {
     name: 'templateIcon',
     hidden: true,
@@ -656,7 +584,7 @@ function TemplateIcon(iconable) {
   };
 
   var app = {};
-  if (iconable) {
+  if (isBookmark) {
     app.iconable = true;
   }
 
@@ -688,9 +616,8 @@ TemplateIcon.prototype = {
  * @param {Array} icons [optional]
  *                List of Icon objects.
  */
-function Page(container, icons, numberOfIcons) {
+function Page(container, icons) {
   this.container = this.movableContainer = container;
-  this.numberOfIcons = numberOfIcons;
   if (icons)
     this.render(icons);
   this.iconsWhileDragging = [];
@@ -713,8 +640,8 @@ Page.prototype = {
    */
   render: function pg_render(icons) {
     this.olist = document.createElement('ol');
-    for (var i = 0, icon; icon = icons[i++];) {
-      this.appendIcon(icon);
+    for (var i = 0; i < icons.length; i++) {
+      this.appendIcon(icons[i]);
     }
     this.container.appendChild(this.olist);
   },
@@ -773,6 +700,7 @@ Page.prototype = {
       if (this.iconsWhileDragging.length === 0)
         this.iconsWhileDragging = Array.prototype.slice.call(iconList, 0,
                                                              iconList.length);
+
       this.animate(this.iconsWhileDragging, originIcon.container,
                    targetIcon.container);
     } else {
@@ -794,7 +722,6 @@ Page.prototype = {
     this.draggableNode = draggableNode;
     this.beforeNode = upward ? targetNode.nextSibling : targetNode;
     this.placeIcon(draggableNode, draggableIndex, targetIndex);
-
 
     var self = this;
     targetNode.addEventListener('transitionend', function onTransitionEnd(e) {
@@ -844,7 +771,6 @@ Page.prototype = {
           self.doDragLeave(callback, reflow);
         }
       };
-
       self.container.addEventListener('onpageready', onPageReady);
 
       // We ensure that there is not a transitionend lost on dragging
@@ -928,31 +854,6 @@ Page.prototype = {
   },
 
   /*
-   * Adds an icon at the position specified
-   *
-   * @param{Object} icon object
-   * @param{Number} index to insert at
-   */
-  appendIconAt: function pg_appendIconAt(icon, index) {
-    var olist = this.olist,
-        children = this.olist.children;
-
-    if (children[index] && children[index] === icon.container) {
-      return;
-    }
-
-    if (!icon.container) {
-      icon.render();
-    }
-
-    if (children[index]) {
-      olist.insertBefore(icon.container, children[index]);
-    } else {
-      olist.appendChild(icon.container);
-    }
-  },
-
-  /*
    * Adds an icon to the begining of the page
    *
    * @param{Object} icon object
@@ -993,25 +894,6 @@ Page.prototype = {
     if (!lastIcon)
       return null;
     return GridManager.getIcon(lastIcon.dataset);
-  },
-
-  /*
-   * Returns the last visible icon of the page
-   */
-  getLastVisibleIcon: function pg_getLastVisibleIcon() {
-    if (this.getNumIcons() <= this.numberOfIcons) {
-      return this.getLastIcon();
-    } else {
-      var node = this.olist.children[this.numberOfIcons - 1];
-      if (this.iconsWhileDragging.length > 0)
-        node = this.iconsWhileDragging[this.numberOfIcons - 1];
-
-      if (!node) {
-        return null;
-      }
-
-      return GridManager.getIcon(node.dataset);
-    }
   },
 
   /*
@@ -1094,7 +976,7 @@ Page.prototype = {
    * @param {Object} icon the icon to be added.
    */
   appendIconVisible: function pg_appendIconVisible(icon) {
-    if (this.getNumIcons() >= this.numberOfIcons) {
+    if (this.getNumIcons() >= this.maxIcons) {
       this.insertBeforeLastIcon(icon);
     } else {
       this.appendIcon(icon);
@@ -1132,18 +1014,6 @@ Page.prototype = {
       var icon = GridManager.getIcon(node.dataset);
       return icon.getDescriptor();
     });
-  },
-
-  getIndex: function pg_getIndex() {
-    var pages = this.container.parentNode.children;
-    pages = Array.prototype.slice.call(pages, 0, pages.length);
-    return pages.indexOf(this.container);
-  },
-
-  getIconIndex: function pg_getIconIndex(icon) {
-    var icons = this.olist.children;
-    icons = Array.prototype.slice.call(icons, 0, icons.length);
-    return icons.indexOf(icon);
   }
 };
 

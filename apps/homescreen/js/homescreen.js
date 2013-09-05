@@ -15,7 +15,7 @@ var Homescreen = (function() {
   var initialized = false, landingPage;
   onConnectionChange(navigator.onLine);
 
-  function initialize(lPage, onInit) {
+  function initialize(lPage) {
     if (initialized) {
       return;
     }
@@ -30,8 +30,6 @@ var Homescreen = (function() {
       gridSelector: '.apps',
       dockSelector: '.dockWrapper',
       tapThreshold: Configurator.getSection('tap_threshold'),
-      moveCollectionThreshold:
-                        Configurator.getSection('move_collection_threshold'),
       // It defines the threshold to consider a gesture like a swipe. Number
       // in the range 0.0 to 1.0, both included, representing the screen width
       swipeThreshold: swipeSection.threshold,
@@ -40,7 +38,7 @@ var Homescreen = (function() {
     };
 
     GridManager.init(options, function gm_init() {
-      window.addEventListener('hashchange', function onHashChange() {
+      window.addEventListener('hashchange', function() {
         if (!window.location.hash.replace('#', '')) {
           return;
         }
@@ -53,7 +51,6 @@ var Homescreen = (function() {
         } else {
           GridManager.goToPage(landingPage);
         }
-
         GridManager.ensurePanning();
       });
 
@@ -63,12 +60,8 @@ var Homescreen = (function() {
         // start to pan while home is loading
         GridManager.goToPage(landingPage);
       }
-      DragDropManager.init(options);
+      DragDropManager.init();
       Wallpaper.init();
-
-      if (onInit instanceof Function) {
-        onInit();
-      }
     });
   }
 
@@ -128,35 +121,22 @@ var Homescreen = (function() {
      *
      * @param {Application} app
      *                      The application object.
-     * @param {Object} extra
-     *                      Extra callbacks and data.
      */
-    showAppDialog: function h_showAppDialog(app, extra) {
-      extra = extra || {};
-
+    showAppDialog: function h_showAppDialog(app) {
       var title, body;
       var cancel = {
         title: _('cancel'),
-        callback: function onCancel() {
-          if (extra.onCancel)
-            extra.onCancel();
-
-          ConfirmDialog.hide();
-        }
+        callback: ConfirmDialog.hide
       };
 
       var confirm = {
         callback: function onAccept() {
           ConfirmDialog.hide();
-          if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-              app.type === GridItemsFactory.TYPE.BOOKMARK) {
+          if (app.isBookmark) {
             app.uninstall();
           } else {
             navigator.mozApps.mgmt.uninstall(app);
           }
-
-          if (extra.onConfirm)
-            extra.onConfirm();
         },
         applyClass: 'danger'
       };
@@ -164,8 +144,7 @@ var Homescreen = (function() {
       // Show a different prompt if the user is trying to remove
       // a bookmark shortcut instead of an app.
       var manifest = app.manifest || app.updateManifest;
-      if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-          app.type === GridItemsFactory.TYPE.BOOKMARK) {
+      if (app.isBookmark) {
         title = _('remove-title-2', { name: manifest.name });
         body = _('remove-body', { name: manifest.name });
         confirm.title = _('remove');
@@ -185,8 +164,8 @@ var Homescreen = (function() {
     },
 
     didEvmePreventHomeButton: function() {
-      var evme = window.EvmeFacade;
-      return evme && evme.onHomeButtonPress && evme.onHomeButtonPress();
+      var evme = ('EvmeFacade' in window) && window.EvmeFacade;
+      return evme.onHomeButtonPress && evme.onHomeButtonPress();
     },
 
     init: initialize,

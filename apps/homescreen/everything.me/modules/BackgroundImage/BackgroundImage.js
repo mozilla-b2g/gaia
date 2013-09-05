@@ -10,10 +10,8 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
 
         defaultImage = options.defaultImage || "";
         el = options.el;
+        elementsToFade = options.elementsToFade;
         elStyle = el.style;
-
-        elementsToFade = document.querySelectorAll('*[data-opacity-on-swipe=true]');
-        elementsToFade = Array.prototype.slice.call(elementsToFade, 0);
 
         Evme.EventHandler.trigger(NAME, "init");
     };
@@ -39,8 +37,6 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
                 elCurrentImage.style.backgroundImage = 'url(' + currentImage.image + ')';
                 el.appendChild(elCurrentImage);
 
-		cbUpdated(currentImage);
-
                 window.setTimeout(function onTimeout(){
                     elCurrentImage.classList.add("visible");
 
@@ -49,6 +45,8 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
                     }, 300);
                 }, 10);
             }
+
+            cbUpdated(currentImage);
         }
     };
 
@@ -61,16 +59,16 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
     };
 
     function onElementsToFade(cb) {
-        for (var i=0, el; el=elementsToFade[i++];) {
+        for (var i=0, el=elementsToFade[i]; el; el=elementsToFade[++i]) {
             cb.call(el);
         }
     }
 
     this.fadeFullScreen = function fadeFullScreen(per) {
-        per = Math.max(1 - (Math.round(per*100)/100), 0);
-        for (var i=0, el; el=elementsToFade[i++];) {
-          el.style.opacity = per;
-        }
+        per = 1 - (Math.round(per*100)/100);
+        onElementsToFade(function onElement(){
+            this.style.opacity = per;
+        });
     };
 
     this.cancelFullScreenFade = function cancelFullScreenFade() {
@@ -206,8 +204,6 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
             elRemove.classList.remove("visible");
             currentImage = {};
 
-	    cbRemoved();
-
             window.setTimeout(function onTimeout(){
                 Evme.$remove(elRemove);
             }, TIMEOUT_BEFORE_REMOVING_OLD_IMAGE);
@@ -222,10 +218,6 @@ Evme.BackgroundImage = new function Evme_BackgroundImage() {
         Evme.EventHandler.trigger(NAME, "updated", {
             "image": image
         });
-    }
-
-    function cbRemoved() {
-	Evme.EventHandler.trigger(NAME, "removed");
     }
 
     function cbLoaded() {
