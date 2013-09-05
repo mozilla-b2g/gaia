@@ -77,6 +77,7 @@ var clearBrowserStores = function(done) {
 
 suite('BrowserDB', function() {
   var realMozSettings = null;
+  this.timeout(5000);
 
   suite('BrowserDB.operatorVariantCustomization', function() {
 
