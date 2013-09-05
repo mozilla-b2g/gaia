@@ -28,12 +28,9 @@ define(function(require) {
       // Parse the activity request.
       var source = req.source;
       var sourceData = source.data;
-      var activityName = source.name,
-          attachmentBlobs = sourceData.blobs,
-          attachmentNames = sourceData.filenames,
-          url = sourceData.url || sourceData.URI,
-          urlParts = url ? queryURI(url) : [],
-          dataType = sourceData.type;
+      var activityName = source.name;
+      var dataType = sourceData.type;
+      var url = sourceData.url || sourceData.URI;
 
       // To assist in bug analysis, log the start of the activity here.
       console.log('Received activity: ' + activityName);
@@ -42,13 +39,14 @@ define(function(require) {
       if (dataType === 'url') {
         data.body = url;
       } else {
+        var urlParts = url ? queryURI(url) : [];
         data.to = urlParts[0];
         data.subject = urlParts[1];
         data.body = typeof urlParts[2] === 'string' ? urlParts[2] : null;
         data.cc = urlParts[3];
         data.bcc = urlParts[4];
-        data.attachmentBlobs = attachmentBlobs;
-        data.attachmentNames = attachmentNames;
+        data.attachmentBlobs = sourceData.blobs;
+        data.attachmentNames = sourceData.filenames;
       }
 
       this.emitWhenListener('activity', activityName, data, req);
