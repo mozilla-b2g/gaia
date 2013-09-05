@@ -28,7 +28,12 @@ Evme.Utils = new function Evme_Utils() {
           "MENU_HEIGHT": "menu-height",
           "EVME_OPEN": "evme-open",
           "GET_ICON_SIZE": "get-icon-size"
-        };
+        },
+
+        host = document.location.host,
+        domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2'),
+        protocol = document.location.protocol,
+        homescreenOrigin = protocol + '//homescreen.' + domain;
 
     this.PIXEL_RATIO_NAMES = {
       NORMAL: 'normal',
@@ -129,6 +134,10 @@ Evme.Utils = new function Evme_Utils() {
 
     this.uuid = function generateUUID() {
         return Evme.uuid();
+    };
+
+    this.getCollectionId = function getCollectionId(key) {
+        return homescreenOrigin + '/collections/' + key + '/manifest.webapp';
     };
 
     this.sendToOS = function sendToOS(type, data) {
@@ -237,7 +246,7 @@ Evme.Utils = new function Evme_Utils() {
      * Round all icons in an icon map object
      * @param  {Object}   {1: src1, 2: src2 ...}
      * @param  {Function} Function to call when done
-     *  
+     *
      * @return {Object}   {1: round1, 2: round2 ...}
      */
     this.roundIconsMap = function roundIconsMap(iconsMap, callback) {
@@ -414,7 +423,7 @@ Evme.Utils = new function Evme_Utils() {
      * Append or overrite a url string with query parameter key=value.
      * insertParam('app://homescreen.gaiamobile.org:8080', 'appId', 123) =>
      *   app://homescreen.gaiamobile.org:8080?appId=123
-     *   
+     *
      * adopted from http://stackoverflow.com/a/487049/1559840
      */
     this.insertParam = function insertParam(url, key, value) {

@@ -1,0 +1,12 @@
+{
+  "name": "Sports",
+  "description": "Sports smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Sports",
+      "description": "Sports"
+    }
+  },
+  "default_locale": "en-US"
+}

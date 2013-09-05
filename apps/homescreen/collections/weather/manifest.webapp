@@ -1,0 +1,12 @@
+{
+  "name": "Weather",
+  "description": "Weather smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Weather",
+      "description": "Weather"
+    }
+  },
+  "default_locale": "en-US"
+}

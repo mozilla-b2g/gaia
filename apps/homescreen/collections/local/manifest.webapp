@@ -1,0 +1,12 @@
+{
+  "name": "Local",
+  "description": "Local smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Local",
+      "description": "Local"
+    }
+  },
+  "default_locale": "en-US"
+}

@@ -270,8 +270,14 @@ function gaiaOriginURL(name) {
   return config.GAIA_SCHEME + name + '.' + config.GAIA_DOMAIN + (config.GAIA_PORT ? config.GAIA_PORT : '');
 }
 
-function gaiaManifestURL(name) {
-  return gaiaOriginURL(name) + '/manifest.webapp';
+function gaiaManifestURL(name, subdomain) {
+  var url = gaiaOriginURL(name);
+
+  if (subdomain) {
+    url += '/' + subdomain;
+  }
+
+  return  url + '/manifest.webapp';
 }
 
 function getDistributionFileContent(name, defaultContent) {

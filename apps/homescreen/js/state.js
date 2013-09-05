@@ -10,14 +10,8 @@ const HomeState = (function() {
   var database = null;
   var initQueue = [];
 
-  function loadInitialState(iterator, success, error, offset) {
+  function loadInitialState(iterator, success, error) {
     var grid = Configurator.getSection('grid') || [];
-
-    // push empty pages at the beginning of the grid
-    offset = offset || 0;
-    for (var i = 0; i < offset; i++) {
-      grid.splice(1, 0, []);
-    }
 
     // add the actual grid pages from the configurator
     for (var i = 0; i < grid.length; i++) {
@@ -152,7 +146,7 @@ const HomeState = (function() {
       extra = extra || {};
       openDB(function(emptyDB) {
         if (emptyDB) {
-          loadInitialState(iteratorGrid, success, error, extra.offset);
+          loadInitialState(iteratorGrid, success, error);
           return;
         }
         HomeState.getGrid(iteratorGrid, success, error);

@@ -1,0 +1,12 @@
+{
+  "name": "Utilities",
+  "description": "Utilities smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Utilities",
+      "description": "Utilities"
+    }
+  },
+  "default_locale": "en-US"
+}

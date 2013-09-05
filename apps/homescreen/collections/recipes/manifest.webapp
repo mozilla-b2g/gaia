@@ -1,0 +1,12 @@
+{
+  "name": "Recipes",
+  "description": "Recipes smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Recipes",
+      "description": "Recipes"
+    }
+  },
+  "default_locale": "en-US"
+}

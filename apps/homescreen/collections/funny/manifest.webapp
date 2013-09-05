@@ -1,0 +1,12 @@
+{
+  "name": "Funny",
+  "description": "Funny smart collection",
+  "role": "collection",
+  "locales": {
+    "en-US": {
+      "name": "Funny",
+      "description": "Funny"
+    }
+  },
+  "default_locale": "en-US"
+}
