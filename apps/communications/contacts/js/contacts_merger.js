@@ -50,15 +50,8 @@ contacts.Merger = (function() {
     var telsHash;
     var mergedContact = {};
 
-    mergedContact.givenName = masterContact.givenName || [''];
-    mergedContact.familyName = masterContact.familyName || [''];
-
-    var recGivenName = mergedContact.givenName;
-    var recFamilyName = mergedContact.familyName;
-
-    var maxLengthGivenName = (recGivenName[0] && recGivenName[0].length) || 0;
-    var maxLengthFamilyName = (recFamilyName[0] &&
-                                recFamilyName[0].length) || 0;
+    mergedContact.givenName = masterContact.givenName || [];
+    mergedContact.familyName = masterContact.familyName || [];
 
     mergedContact.photo = masterContact.photo || [];
     mergedContact.bday = masterContact.bday;
@@ -96,17 +89,17 @@ contacts.Merger = (function() {
       var theMatchingContact = aResult.matchingContact;
 
       var givenName = theMatchingContact.givenName;
-      if (isDefined(givenName) && givenName[0].length > maxLengthGivenName) {
-        maxLengthGivenName = givenName[0].length;
-        recGivenName.pop();
-        recGivenName.push(givenName[0]);
+      if (Array.isArray(givenName)) {
+        if (mergedContact.givenName.indexOf(givenName[0]) === -1) {
+          mergedContact.givenName.push(givenName[0]);
+        }
       }
 
       var familyName = theMatchingContact.familyName;
-      if (isDefined(familyName) && familyName[0].length > maxLengthFamilyName) {
-        maxLengthFamilyName = familyName[0].length;
-        recFamilyName.pop();
-        recFamilyName.push(familyName[0]);
+      if (Array.isArray(familyName)) {
+        if (mergedContact.familyName.indexOf(familyName[0]) === -1) {
+          mergedContact.familyName.push(familyName[0]);
+        }
       }
 
       if (!mergedContact.bday && theMatchingContact.bday) {
@@ -167,11 +160,10 @@ contacts.Merger = (function() {
 
     }); // matchingResults
 
-
-    mergedContact.name = [(Array.isArray(recGivenName) && recGivenName[0] ?
-                           recGivenName[0] : '') + ' ' +
-                (Array.isArray(recFamilyName) && recFamilyName[0] ?
-                            recFamilyName[0] : '')];
+    mergedContact.name = [((mergedContact.givenName[0] ?
+                           mergedContact.givenName[0] : '') + ' ' +
+                          (mergedContact.familyName[0] ?
+                            mergedContact.familyName[0] : '')).trim()];
 
     var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
                   'bday', 'adr', 'category', 'url', 'note', 'photo'];
