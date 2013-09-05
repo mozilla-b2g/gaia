@@ -72,6 +72,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
     var myName = '';
 
+    var MAX_DEVICE_NAME_LENGTH = 20;
+
     visibleCheckBox.onchange = function changeDiscoverable() {
       setDiscoverable(this.checked);
     };
@@ -83,27 +85,51 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       var nameEntered = window.prompt(_('change-phone-name'), myName);
 
-      // Bug 847459: Default name of the bluetooth device is set by bluetoothd
-      // to the value of the Android ro.product.model property upon first
-      // start. In case the user gives an empty bluetooth device name, we want
-      // to revert to the original ro.product.model. Gecko exposes it under
-      // the deviceinfo.product_model setting.
-      var deviceInfo = settings.createLock().get('deviceinfo.product_model');
-      deviceInfo.onsuccess = function bt_getProductModel() {
-        var productModel = deviceInfo.result['deviceinfo.product_model'];
+      // If users click cancel button, we will get null here.
+      if (nameEntered === null) {
+        return;
+      }
 
-        nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
+      nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
 
-        if (nameEntered === myName || !bluetooth.enabled || !defaultAdapter) {
-          return;
+      if (nameEntered.length > MAX_DEVICE_NAME_LENGTH) {
+        var wantToRetry = window.confirm(_('bluetooth-name-maxlength-alert',
+              { length: MAX_DEVICE_NAME_LENGTH }));
+
+        if (wantToRetry) {
+          renameBtnClicked();
         }
+        return;
+      }
 
-        var req = defaultAdapter.setName(nameEntered || productModel);
-        req.onsuccess = function bt_renameSuccess() {
-          myName = visibleName.textContent = defaultAdapter.name;
+      if (nameEntered === myName || !bluetooth.enabled || !defaultAdapter) {
+        return;
+      }
+
+      if (nameEntered !== '') {
+        updateDeviceName(nameEntered);
+      }
+      else {
+        // Bug 847459: Default name of the bluetooth device is set by bluetoothd
+        // to the value of the Android ro.product.model property upon first
+        // start. In case the user gives an empty bluetooth device name, we want
+        // to revert to the original ro.product.model. Gecko exposes it under
+        // the deviceinfo.product_model setting.
+        var deviceInfo = settings.createLock().get('deviceinfo.product_model');
+        deviceInfo.onsuccess = function bt_getProductModel() {
+          var productModel = deviceInfo.result['deviceinfo.product_model'];
+          updateDeviceName(productModel);
         };
-      };
+      }
     };
+
+    function updateDeviceName(nameEntered) {
+      var req = defaultAdapter.setName(nameEntered);
+
+      req.onsuccess = function bt_renameSuccess() {
+        myName = visibleName.textContent = defaultAdapter.name;
+      };
+    }
 
     // immediatly UI update, DOM element manipulation.
     function updateDeviceInfo(show) {
