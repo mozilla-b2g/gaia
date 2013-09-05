@@ -25,12 +25,14 @@ var MockNavigatormozApps = {
 
   mLastRequest: null,
 
-  _mLaunch: function mnma_launch() {
+  _mLaunch: function mnma_launch(entryPoint) {
     this.mAppWasLaunched = true;
+    this.mAppWasLaunchedWithEntryPoint = entryPoint;
   },
 
   mTeardown: function mnma_mTeardown() {
     this.mAppWasLaunched = false;
+    this.mAppWasLaunchedWithEntryPoint = null;
     this.mLastRequest = null;
   }
 };
