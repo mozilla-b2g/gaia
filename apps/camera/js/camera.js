@@ -157,14 +157,18 @@ var Camera = {
 
   _flashState: {
     camera: {
-      supported: false,
+      defaultMode: 1,
+      supported: [], // delay the array initialization to enableCameraFeatures.
       modes: ['off', 'auto', 'on'],
-      currentMode: 1 // default flash mode is 'auto'
+      currentMode: [] // default flash mode is 'auto'
+                      // delay the array initialization when needed.
     },
     video: {
-      supported: false,
+      defaultMode: 0,
+      supported: [], // delay the array initialization to enableCameraFeatures.
       modes: ['off', 'torch'],
-      currentMode: 0
+      currentMode: [] // default flash mode is 'off'
+                      // delay the array initialization when needed.
     }
   },
 
@@ -510,8 +514,6 @@ var Camera = {
   toggleCamera: function camera_toggleCamera() {
     this._cameraNumber = 1 - this._cameraNumber;
     // turn off flash light before switch to front camera
-    var flash = this._flashState[this._captureMode];
-    flash.currentMode = 0;
     this.updateFlashUI();
     // Disable the buttons so the user can't use them while we're switching.
     this.disableButtons();
@@ -526,17 +528,20 @@ var Camera = {
 
   updateFlashUI: function camera_updateFlashUI() {
     var flash = this._flashState[this._captureMode];
-    if (flash.supported) {
+    if (flash.supported[this._cameraNumber]) {
       this.setFlashMode();
       this.toggleFlashBtn.classList.remove('hidden');
     } else {
       this.toggleFlashBtn.classList.add('hidden');
+      // alsways set flash mode as off while it is not supported.
+      // It may be very useful at the case of video.
+      this._cameraObj.flashMode = flash.modes[0];
     }
   },
 
   turnOffFlash: function camera_turnOffFlash() {
     var flash = this._flashState[this._captureMode];
-    flash.currentMode = 0;
+    flash.currentMode[this._cameraNumber] = 0;
     this.setFlashMode();
   },
 
@@ -545,22 +550,28 @@ var Camera = {
   turnOnFlash: function camera_turnOnFlash(isAuto) {
     var flash = this._flashState[this._captureMode];
     if (this._captureMode === this.CAMERA) {
-      flash.currentMode = isAuto ? 1 : 2;
+      flash.currentMode[this._cameraNumber] = isAuto ? 1 : 2;
     } else {
-      flash.currentMode = 1;
+      flash.currentMode[this._cameraNumber] = 1;
     }
     this.setFlashMode();
   },
 
   toggleFlash: function camera_toggleFlash() {
     var flash = this._flashState[this._captureMode];
-    flash.currentMode = (flash.currentMode + 1) % flash.modes.length;
+    flash.currentMode[this._cameraNumber] =
+               (flash.currentMode[this._cameraNumber] + 1) % flash.modes.length;
     this.setFlashMode();
   },
 
   setFlashMode: function camera_setFlashMode() {
     var flash = this._flashState[this._captureMode];
-    var flashModeName = flash.modes[flash.currentMode];
+    if ((typeof flash.currentMode[this._cameraNumber]) === 'undefined') {
+      flash.currentMode[this._cameraNumber] = flash.defaultMode;
+    }
+
+    var flashModeName = flash.modes[flash.currentMode[this._cameraNumber]];
+
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this._cameraObj.flashMode = flashModeName;
   },
@@ -1022,11 +1033,11 @@ var Camera = {
     if (flashModes) {
       // Check camera flash support
       var flash = this._flashState[this.CAMERA];
-      flash.supported = isSubset(flash.modes, flashModes);
+      flash.supported[this._cameraNumber] = isSubset(flash.modes, flashModes);
 
       // Check video flash support
       flash = this._flashState[this.VIDEO];
-      flash.supported = isSubset(flash.modes, flashModes);
+      flash.supported[this._cameraNumber] = isSubset(flash.modes, flashModes);
 
       this.updateFlashUI();
     } else {
