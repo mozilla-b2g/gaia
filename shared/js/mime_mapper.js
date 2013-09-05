@@ -74,6 +74,10 @@ var MimeMapper = {
     // If we want to support some extensions, like pdf, just add
     // 'pdf': 'application/pdf'
   },
+  _parseExtension: function(filename) {
+    var array = filename.split('.');
+    return array.length > 1 ? array.pop() : '';
+  },
 
   isSupportedType: function(mimetype) {
     return (mimetype in this._typeToExtensionMap);
@@ -83,11 +87,40 @@ var MimeMapper = {
     return (extension in this._extensionToTypeMap);
   },
 
+  isFilenameMatchesType: function(filename, mimetype) {
+    var extension = this._parseExtension(filename);
+    var guessedType = this.guessTypeFromExtension(extension);
+    return (guessedType == mimetype);
+  },
+
   guessExtensionFromType: function(mimetype) {
     return this._typeToExtensionMap[mimetype];
   },
 
   guessTypeFromExtension: function(extension) {
     return this._extensionToTypeMap[extension];
+  },
+
+  // If mimetype is not in the supported list, we will try to
+  // predict the possible valid mimetype based on extension.
+  guessTypeFromFileProperties: function(filename, mimetype) {
+    var extension = this._parseExtension(filename);
+    var type = this.isSupportedType(mimetype) ?
+      mimetype : this.guessTypeFromExtension(extension);
+    return type || '';
+  },
+
+  // if mimetype is not supported, preserve the original extension
+  // and add the predict result as new extension.
+  // If both filename and mimetype are not supported, return the original
+  // filename.
+  ensureFilenameMatchesType: function(filename, mimetype) {
+    if (!this.isFilenameMatchesType(filename, mimetype)) {
+      var guessedExt = this.guessExtensionFromType(mimetype);
+      if (guessedExt) {
+        filename += '.' + guessedExt;
+      }
+    }
+    return filename;
   }
 };
