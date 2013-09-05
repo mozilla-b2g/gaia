@@ -180,9 +180,11 @@ def cli():
         appsdir = os.path.join(os.path.dirname(os.path.abspath(options.profile)), 'apps')
         for root, dirs, files in os.walk(appsdir):
             for file in files:
-                full_path = os.path.relpath(os.path.join(root, file), appsdir)
-                if full_path[-8:] == '_test.js' and full_path not in disabled:
-                    tests.append(full_path)
+                # only include tests in a 'unit' directory
+                if os.path.basename(root) == 'unit':
+                    full_path = os.path.relpath(os.path.join(root, file), appsdir)
+                    if full_path.endswith('_test.js') and full_path not in disabled:
+                        tests.append(full_path)
 
     runner = GaiaUnitTestRunner(binary=options.binary,
                                 profile=options.profile)

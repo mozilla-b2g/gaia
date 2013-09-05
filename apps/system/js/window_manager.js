@@ -77,6 +77,15 @@ var WindowManager = (function() {
     windows.classList.add('slow-transition');
   }
 
+  // Requested orientation by the current running application
+  var _currentSetOrientationOrigin;
+  var _globalOrientation;
+
+  SettingsListener.observe('screen.orientation.lock', false, function(value) {
+    _globalOrientation = value ? 'portrait-primary' : null;
+    setOrientationForApp(_currentSetOrientationOrigin);
+  });
+
   //
   // The set of running apps.
   // This is a map from app origin to an object like this:
@@ -898,12 +907,16 @@ var WindowManager = (function() {
   function setOrientationForInlineActivity(frame) {
     if ('orientation' in frame.dataset) {
       screen.mozLockOrientation(frame.dataset.orientation);
+    } else if (_globalOrientation) { // Global orientation lock set?
+      screen.mozLockOrientation(_globalOrientation);
     } else {  // If no orientation was requested, then let it rotate
       screen.mozUnlockOrientation();
     }
   }
 
   function setOrientationForApp(origin) {
+    _currentSetOrientationOrigin = origin;
+
     if (origin == null) { // No app is currently running.
       screen.mozLockOrientation('portrait-primary');
       return;
@@ -914,7 +927,7 @@ var WindowManager = (function() {
       return;
     var manifest = app.manifest;
 
-    var orientation = manifest.orientation;
+    var orientation = manifest.orientation || _globalOrientation;
     if (orientation) {
       if (!Array.isArray(orientation)) {
         orientation = [orientation];
@@ -1264,9 +1277,15 @@ var WindowManager = (function() {
   // Because we know when and who to re-launch when activity ends.
   window.addEventListener('mozChromeEvent', function(e) {
     if (e.detail.type == 'activity-done') {
-      // Remove the top most frame every time we get an 'activity-done' event.
       stopInlineActivity();
-      if (!inlineActivityFrames.length && !activityCallerOrigin) {
+      if (runningApps[displayedApp].activityCaller) {
+        // Display activity callee if there's one bind to current activity.
+        var caller = runningApps[displayedApp].activityCaller;
+        delete caller.activityCallee;
+        delete runningApps[displayedApp].activityCaller;
+        setDisplayedApp(caller.origin);
+      } else if (!inlineActivityFrames.length && !activityCallerOrigin) {
+        // Remove the top most frame every time we get an 'activity-done' event.
         setDisplayedApp(activityCallerOrigin);
         activityCallerOrigin = '';
       }
@@ -1384,6 +1403,11 @@ var WindowManager = (function() {
       // specifically requests it.
       if (!config.isActivity)
         return;
+
+      var caller = runningApps[displayedApp];
+
+      runningApps[config.origin].activityCaller = caller;
+      caller.activityCallee = runningApps[config.origin];
 
       // XXX: the correct way would be for UtilityTray to close itself
       // when there is a appwillopen/appopen event.
@@ -1735,16 +1759,30 @@ var WindowManager = (function() {
       return;
     }
 
+    var app = runningApps[origin];
     // As we can't immediatly remove runningApps entry,
     // we flag it as being killed in order to avoid trying to remove it twice.
     // (Check required because of bug 814583)
-    if (runningApps[origin].killed) {
+    if (app.killed) {
       if (callback) {
         setTimeout(callback);
       }
       return;
     }
-    runningApps[origin].killed = true;
+    app.killed = true;
+
+    // Remove callee <-> caller reference before we remove the window.
+    if ('activityCaller' in runningApps[origin] &&
+        runningApps[origin].activityCaller) {
+      delete runningApps[origin].activityCaller.activityCallee;
+      delete runningApps[origin].activityCaller;
+    }
+
+    if ('activityCallee' in runningApps[origin] &&
+        runningApps[origin].activityCallee) {
+      delete runningApps[origin].activityCallee.activityCaller;
+      delete runningApps[origin].activityCallee;
+    }
 
     // If the app is the currently displayed app, switch to the homescreen
     if (origin === displayedApp) {
@@ -1783,7 +1821,11 @@ var WindowManager = (function() {
     // Let other system app module know an app is
     // being killed, removed or crashed.
     var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appterminated', true, false, { origin: origin });
+    var manifestURL = app.manifestURL;
+    evt.initCustomEvent('appterminated', true, false, {
+      origin: origin,
+      manifestURL: manifestURL
+    });
     window.dispatchEvent(evt);
   }
 
@@ -1866,19 +1908,6 @@ var WindowManager = (function() {
         detail: { type: 'system-message-listener-ready' } });
     window.dispatchEvent(evt);
   });
-
-  // This is code copied from
-  // http://dl.dropbox.com/u/8727858/physical-events/index.html
-  // It appears to workaround the Nexus S bug where we're not
-  // getting orientation data.  See:
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=753245
-  // It seems it needs to be in both window_manager.js and bootstrap.js.
-  function dumbListener2(event) {}
-  window.addEventListener('devicemotion', dumbListener2);
-
-  window.setTimeout(function() {
-    window.removeEventListener('devicemotion', dumbListener2);
-  }, 2000);
 
   // Return the object that holds the public API
   return {

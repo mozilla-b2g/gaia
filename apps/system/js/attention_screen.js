@@ -62,6 +62,15 @@ var AttentionScreen = {
     }
   },
 
+  toggle: function as_toggle(evt) {
+    if (evt.detail.height <= 40) {
+      evt.target.dataset.appRequestedSmallSize = true;
+      this.hide();
+    } else {
+      this.show();
+    }
+  },
+
   appOpenHandler: function as_appHandler(evt) {
     // If the user presses the home button we will still hide the attention
     // screen. But in the case of an app crash we'll keep it fully open
@@ -105,6 +114,7 @@ var AttentionScreen = {
     attentionFrame.dataset.frameName = evt.detail.name;
     attentionFrame.dataset.frameOrigin = evt.target.dataset.frameOrigin;
     attentionFrame.dataset.manifestURL = manifestURL;
+    attentionFrame.addEventListener('mozbrowserresize', this.toggle.bind(this));
 
     // We would like to put the dialer call screen on top of all other
     // attention screens by ensure it is the last iframe in the DOM tree
@@ -233,6 +243,8 @@ var AttentionScreen = {
     // Attention screen now only support portrait mode.
     screen.mozLockOrientation('portrait-primary');
 
+    this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize = false;
+
     // leaving "status-mode".
     this.attentionScreen.classList.remove('status-mode');
     // there shouldn't be a transition from "status-mode" to "active-statusbar"
@@ -298,6 +310,12 @@ var AttentionScreen = {
       return;
 
     var attentionFrame = this.attentionScreen.lastElementChild;
+    // We don't want to reopen the attention screen when the app requested a
+    // statusbar attention screen
+    if (attentionFrame.dataset.appRequestedSmallSize) {
+      return;
+    }
+
     var frameOrigin = attentionFrame.dataset.frameOrigin;
     if (origin === frameOrigin) {
       this.show();

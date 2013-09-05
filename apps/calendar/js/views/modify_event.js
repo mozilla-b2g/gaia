@@ -681,7 +681,10 @@ Calendar.ns('Views').ModifyEvent = (function() {
           });
         }
 
-        if (value !== 'none') {
+        // Bug_898242 to show an event when default is 'none',
+        // we check if the event is not saved, if so, we push
+        // the default alarm on to the list.
+        if ((value === 'none' && this.isSaved()) || value !== 'none') {
           alarms.push({
             layout: layout
           });

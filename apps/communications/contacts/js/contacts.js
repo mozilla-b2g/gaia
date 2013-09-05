@@ -92,7 +92,6 @@ var Contacts = (function() {
           }
         });
         break;
-
       case 'add-parameters':
         initContactsList();
         initForm(function onInitForm() {
@@ -103,7 +102,6 @@ var Contacts = (function() {
           showApp();
         });
         break;
-
       default:
         showApp();
     }

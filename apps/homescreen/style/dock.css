@@ -56,3 +56,53 @@
 #footer li > div > *:not(img) {
   display: none;
 }
+
+/* For tablet+ Device */
+@media (min-width: 768px) and (orientation: landscape) {
+  #footer {
+    height: 16rem;
+  }
+
+  #footer .dockWrapper {
+    width: 160%;
+  }
+
+  #footer ol {
+    margin-top: 2.5rem;
+  }
+
+  #footer li {
+    width: calc(100% / 8);
+  }
+
+  #footer > div li,
+  #footer > div.scrollable li {
+    width: 22rem;
+  }
+
+  #footer > div li:first-child {
+    width: 10rem;
+    padding-left: 15rem;
+    padding-right: 6rem;
+  }
+
+  #footer li:first-child span.options {
+    left: 15rem;
+  }
+
+  #footer > div li:last-child:not(:first-child) {
+    width: 10rem;
+    padding-right: 15rem;
+    padding-left: 6rem;
+  }
+
+  #footer li:last-child:not(:first-child) span.options {
+    left: 6rem;
+  }
+
+  #footer li span.options {
+    width: calc(50% - .5rem);
+    height: 4.5rem;
+    background: url(../resources/images/delete.png) no-repeat left top / 4.5rem;
+  }
+}

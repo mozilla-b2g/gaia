@@ -1,6 +1,8 @@
 requireLib('provider/abstract.js');
 requireLib('template.js');
 requireLib('querystring.js');
+requireElements('calendar/elements/modify_event.html');
+requireElements('calendar/elements/show_event.html');
 
 suiteGroup('Views.ModifyEvent', function() {
 
@@ -72,47 +74,18 @@ suiteGroup('Views.ModifyEvent', function() {
   var realGo;
 
   teardown(function() {
-    var el = document.getElementById('test');
-    el.parentNode.removeChild(el);
     Calendar.App.go = realGo;
   });
 
-  setup(function(done) {
-    var div = document.createElement('div');
-    div.id = 'test';
-    div.innerHTML = [
-      '<div id="event-view">',
-        '<button class="edit">edit</button>',
-        '<button class="cancel">cancel</button>',
-      '</div>',
-      '<div id="modify-event-view">',
-        '<button class="save">save</button>',
-        '<button class="cancel">cancel</button>',
-        '<button class="delete-record">delete</button>',
-        '<section role="status">',
-          '<div class="errors"></div>',
-        '</section>',
-        '<form>',
-          '<input type="checkbox" name="allday" />',
-          '<input name="title" />',
-          '<input type="date" name="startDate" />',
-          '<span id="start-date-locale"></span>',
-          '<input type="date" name="endDate" />',
-          '<span id="end-date-locale"></span>',
-          '<input type="time" name="startTime" />',
-          '<span id="start-time-locale"></span>',
-          '<input type="time" name="endTime" />',
-          '<span id="end-time-locale"></span>',
-          '<input name="location" />',
-          '<textarea name="description"></textarea>',
-          '<input name="currentCalendar" />',
-          '<select name="calendarId"></select>',
-          '<div class="alarms"></div>',
-        '</form>',
-      '</div>'
-    ].join('');
+  suiteTemplate('show-event', {
+    id: 'event-view'
+  });
 
-    document.body.appendChild(div);
+  suiteTemplate('modify-event', {
+    id: 'modify-event-view'
+  });
+
+  setup(function(done) {
     app = testSupport.calendar.app();
     realGo = app.go;
 
@@ -887,6 +860,8 @@ suiteGroup('Views.ModifyEvent', function() {
 
     var defaultAllDayAlarm;
     var defaultEventAlarm;
+    var morning = 3600 * 9;
+    var oneHour = 3600;
 
     setup(function(done) {
       var pending = 3;
@@ -1017,6 +992,88 @@ suiteGroup('Views.ModifyEvent', function() {
         done();
       });
     });
+
+    function testDefaultAlarms(isAllDay, defaultValue, done) {
+      settingStore.getValue('alldayAlarmDefault', function(err, value) {
+        var defaultAlarm = value;
+        var defaultAlarmKey;
+        if (isAllDay === true) {
+          defaultAlarmKey = 'alldayAlarmDefault';
+        } else {
+          defaultAlarmKey = 'standardAlarmDefault';
+        }
+        settingStore.set(defaultAlarmKey, defaultValue, function(err, value) {
+          provider.createEvent = function(event, callback) {
+            var data = subject.formData();
+
+            callback();
+
+            if (defaultValue === 'none') {
+              assert.deepEqual(
+                data.alarms[0].trigger,
+                123,
+                'alarms'
+              );
+            } else {
+              assert.deepEqual(
+                data.alarms[0].trigger,
+                defaultValue,
+                'alarms'
+              );
+            }
+            settingStore.set(defaultAlarmKey, defaultAlarm,
+              function(err, value) {
+                done();
+              }
+            );
+          };
+          var allday = subject.getEl('allday');
+          allday.checked = isAllDay;
+          subject.event.isAllDay = isAllDay;
+          subject.updateAlarms(isAllDay, function() {
+            var allAlarms = subject.alarmList.querySelectorAll('select');
+            var firstSelect = allAlarms[0];
+            assert.ok(firstSelect);
+            if (defaultValue === 'none') {
+              assert.equal(allAlarms.length, 1);
+              var newOption = document.createElement('option');
+              newOption.value = '123';
+              firstSelect.appendChild(newOption);
+              firstSelect.value = '123';
+            } else {
+              assert.equal(allAlarms.length, 2);
+            }
+            subject.primary();
+          });
+        });
+      });
+    }
+
+    test('Bug 898242 - when allday alarm default is none', function(done) {
+      var isAllDay = true;
+      var defaultValue = 'none';
+      testDefaultAlarms(isAllDay, defaultValue, done);
+    });
+
+    test('Bug 898242 - when allday alarm default is not none', function(done) {
+      var isAllDay = true;
+      var defaultValue = morning;
+      testDefaultAlarms(isAllDay, defaultValue, done);
+    });
+
+    test('Bug 898242 - when standard alarm default is none', function(done) {
+      var isAllDay = false;
+      var defaultValue = 'none';
+      testDefaultAlarms(isAllDay, defaultValue, done);
+    });
+
+    test('Bug 898242 - when standard alarm default is not none',
+      function(done) {
+        var isAllDay = false;
+        var defaultValue = oneHour;
+        testDefaultAlarms(isAllDay, defaultValue, done);
+      }
+    );
   });
 
   suite('#returnTo', function() {

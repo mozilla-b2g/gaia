@@ -40,15 +40,34 @@ var Voicemail = {
     }
 
     var text = title;
-    var voicemailNumber = navigator.mozVoicemail.number;
-    if (voicemailNumber) {
-      text = _('dialNumber', { number: voicemailNumber });
+
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      return;
     }
 
-    this.hideNotification();
-    if (status.hasMessages) {
-      this.showNotification(title, text, voicemailNumber);
-    }
+    // Fetch voicemail number from 'ril.iccInfo.mbdn' settings before
+    // looking up |navigator.mozVoicemail.number|.
+    // Some SIM card may not provide MBDN info
+    // but we could still use settings to overload that.
+    var transaction = settings.createLock();
+    var request = transaction.get('ril.iccInfo.mbdn');
+    request.onsuccess = function() {
+      var number = request.result['ril.iccInfo.mbdn'];
+      var voicemail = navigator.mozVoicemail;
+      if (!number && voicemail && voicemail.number) {
+        number = voicemail.number;
+      }
+      if (number) {
+        text = _('dialNumber', { number: number });
+      }
+
+      Voicemail.hideNotification();
+      if (status.hasMessages) {
+        Voicemail.showNotification(title, text, number);
+      }
+    };
+    request.onerror = function() {};
   },
 
   showNotification: function vm_showNotification(title, text, voicemailNumber) {
@@ -69,7 +88,6 @@ var Voicemail = {
       if (!telephony) {
         return;
       }
-
       telephony.dial(voicemailNumber);
     }
 

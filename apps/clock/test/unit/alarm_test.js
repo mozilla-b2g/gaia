@@ -1,198 +1,466 @@
+requireApp('clock/js/constants.js');
+requireApp('clock/js/utils.js');
+requireApp('clock/js/alarm.js');
 requireApp('clock/js/alarmsdb.js');
+requireApp('clock/js/alarm_manager.js');
 requireApp('clock/js/alarm_edit.js');
 requireApp('clock/js/alarm_list.js');
-requireApp('clock/js/alarm_manager.js');
-requireApp('clock/js/utils.js');
+requireApp('clock/js/active_alarm.js');
 
+requireApp('clock/test/unit/mocks/mock_alarmsDB.js');
 requireApp('clock/test/unit/mocks/mock_alarm_list.js');
 requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
 requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
 requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
+requireApp('clock/test/unit/mocks/mock_mozAlarm.js');
 
+suite('Alarm Test', function() {
 
-suite('AlarmEditView', function() {
-  var al, am, nml;
-  var id = 1;
+  var nativeMozL10n = navigator.mozL10n;
+  var nativeAlarmsDB = window.AlarmsDB;
+  var nativeActiveAlarmHandler;
 
   suiteSetup(function() {
-    al = AlarmList;
-    am = AlarmManager;
-    nml = navigator.mozL10n;
-
-    AlarmList = MockAlarmList;
-    AlarmManager = MockAlarmManager;
-    navigator.mozL10n = MockmozL10n;
-
-    loadBodyHTML('/index.html');
+    navigator.mozL10n = MockL10n;
+    window.AlarmsDB = new MockAlarmsDB();
+    navigator.mozAlarms = new MockMozAlarms(
+      ActiveAlarm.handler);
   });
 
   suiteTeardown(function() {
-    AlarmList = al;
-    AlarmManager = am;
-    navigator.mozL10n = nml;
+    navigator.mozL10n = nativeMozL10n;
+    window.AlarmsDB = nativeAlarmsDB;
   });
-
 
   setup(function() {
-    // shim the edit alarm view
-    delete AlarmEdit.labelInput;
-    AlarmEdit.labelInput = document.createElement('input');
-    delete AlarmEdit.timeSelect;
-    AlarmEdit.timeSelect = document.createElement('input');
-    AlarmEdit.initTimeSelect();
-
-
-    this.sinon.stub(AlarmEdit, 'getSoundSelect');
-    this.sinon.stub(AlarmEdit, 'getVibrateSelect');
-    this.sinon.stub(AlarmEdit, 'getSnoozeSelect');
-    this.sinon.stub(AlarmEdit, 'getRepeatSelect');
-
-    this.sinon.stub(AlarmManager, 'toggleAlarm');
-
-    this.sinon.stub(AlarmManager, 'putAlarm', function(alarm, callback) {
-      alarm.id = id++;
-      callback(alarm);
-    });
-
-    this.sinon.stub(AlarmManager, 'delete', function(alarm, callback) {
-      callback(alarm);
-    });
-
-    AlarmEdit.alarm = AlarmEdit.getDefaultAlarm();
-
-    // Define the stubs to return the same values set in the
-    // default alarm object.
-    AlarmEdit.getSoundSelect.returns(AlarmEdit.alarm.sound);
-    AlarmEdit.getVibrateSelect.returns(AlarmEdit.alarm.vibrate);
-    AlarmEdit.getSnoozeSelect.returns(AlarmEdit.alarm.snooze);
-    AlarmEdit.getRepeatSelect.returns(AlarmEdit.alarm.repeat);
+    this.sinon.stub(ActiveAlarm, 'handler');
   });
 
-  test('should save and delete an alarm', function(done) {
-    this.sinon.stub(AlarmList, 'refresh');
+  suite('Date handling', function() {
 
-    AlarmEdit.save(function(alarm) {
-      assert.ok(alarm.id);
-      assert.ok(AlarmList.refresh.calledOnce);
-      assert.ok(AlarmManager.putAlarm.calledOnce);
-      assert.ok(AlarmManager.toggleAlarm.calledOnce);
+    var clockSetter = function(thisVal) {
+      return function(x) {
+        this.sinon.clock.tick(
+          (-1 * this.sinon.clock.tick()) + x);
+      }.bind(thisVal);
+    };
 
-      AlarmEdit.alarm = alarm;
-      AlarmEdit.element.dataset.id = alarm.id;
+    var days = ['monday', 'tuesday', 'wednesday', 'thursday',
+                'friday', 'saturday', 'sunday'];
 
-      AlarmEdit.delete(function() {
-        assert.ok(AlarmList.refresh.calledTwice);
-        done();
+    setup(function() {
+      // Wed Jul 17 2013 19:07:18 GMT-0400 (EDT)
+      this.startDate = new Date(1374102438043);
+      this.startDate.setHours(19, 7, 18);
+      while (this.startDate.getDay() !== 3) {
+        this.startDate.setHours(this.startDate.getHours() + 24);
+      }
+      this.start = this.startDate.getTime();
+      this.alarm = new Alarm({
+        hour: this.startDate.getHours(),
+        minute: this.startDate.getMinutes(),
+        repeat: {
+          tuesday: true, thursday: true, saturday: true,
+          sunday: true
+        }
+      });
+      this.sinon.useFakeTimers();
+    });
+
+    suite('initialization', function() {
+      test('time', function() {
+        assert.deepEqual(this.alarm.time, [19, 7]);
+      });
+      test('repeat', function() {
+        assert.deepEqual(this.alarm.repeat, {
+          tuesday: true, thursday: true,
+          saturday: true, sunday: true
+        });
       });
     });
-  });
 
-  test('should add an alarm with sound, no vibrate', function(done) {
-    this.sinon.stub(AlarmList, 'refresh');
-
-    // mock the view to turn off vibrate
-    AlarmEdit.getVibrateSelect.returns(0);
-    AlarmEdit.save(function(alarm) {
-      assert.ok(alarm.id);
-      assert.ok(AlarmList.refresh.calledOnce);
-      assert.ok(AlarmManager.putAlarm.calledOnce);
-      assert.ok(AlarmManager.toggleAlarm.calledOnce);
-
-
-      assert.equal(alarm.vibrate, 0);
-      assert.notEqual(alarm.sound, 0);
-
-      done();
-    });
-  });
-
-  test('should update existing alarm with no sound, vibrate', function(done) {
-    this.sinon.stub(AlarmList, 'refresh');
-
-    // mock the view to turn sound on and vibrate off
-    AlarmEdit.getVibrateSelect.returns(0);
-    AlarmEdit.save(function(alarm) {
-      assert.ok(alarm.id);
-      assert.ok(AlarmList.refresh.calledOnce);
-      assert.ok(AlarmManager.putAlarm.calledOnce);
-      assert.ok(AlarmManager.toggleAlarm.calledOnce);
-
-      AlarmEdit.getVibrateSelect.returns(1);
-      AlarmEdit.getSoundSelect.returns(0);
-
-      AlarmEdit.alarm = alarm;
-      AlarmEdit.element.dataset.id = alarm.id;
-
-      AlarmEdit.save(function(alarm) {
-        assert.ok(alarm.id);
-        assert.ok(AlarmList.refresh.calledTwice);
-        assert.ok(AlarmManager.putAlarm.calledTwice);
-        assert.ok(AlarmManager.toggleAlarm.calledTwice);
-
-        assert.equal(alarm.vibrate, 1);
-        assert.equal(alarm.sound, 0);
-        done();
+    suite('configuration', function() {
+      test('time', function() {
+        this.alarm.time = [15, 43];
+        assert.deepEqual(this.alarm.time, [15, 43]);
+      });
+      test('repeat', function() {
+        this.alarm.repeat = {
+          monday: true,
+          tuesday: true
+        };
+        assert.deepEqual(this.alarm.repeat, {
+          monday: true, tuesday: true
+        });
       });
     });
-  });
 
-  suite('initTimeSelect', function() {
-    var alarm;
+    suite('Alarm snooze', function() {
 
-    suiteSetup(function() {
-      alarm = AlarmEdit.alarm;
+      test('snooze for 5 minutes', function() {
+        clockSetter(this)(this.start);
+        this.alarm.snooze = 5;
+        assert.equal(this.alarm.getNextSnoozeFireTime().getTime(),
+                     this.start + (5 * 60 * 1000));
+      });
+
+      test('snooze for 5 minutes, test seconds and milliseconds', function() {
+        var msOffset = 12512;
+        clockSetter(this)(this.start + msOffset);
+        this.alarm.snooze = 5;
+        assert.equal(this.alarm.getNextSnoozeFireTime().getTime(),
+          this.start + (5 * 60 * 1000) + msOffset);
+      });
+
+      test('snooze for 5 minutes', function() {
+        clockSetter(this)(this.start);
+        this.alarm.snooze = null;
+        assert.equal(this.alarm.getNextSnoozeFireTime(), null,
+          'no snooze set, getNextSnoozeFireTime should be null');
+      });
+
     });
 
-    suiteTeardown(function() {
-      AlarmEdit.alarm = alarm;
+    test('Alarm custom summary', function() {
+      // Account for week beginning differences between date and alarm order
+      var shortNames = [1, 2, 3, 4, 5, 6, 0].map(function(x) {
+        return 'weekday-' + x + '-short';
+      });
+      // test all possible combinations, except special cases
+      for (var i = 0; i < 128; i++) {
+        /*
+          0 => never
+          31 => weekdays
+          96 => weekends
+          127 => every day
+        */
+        if ([0, 31, 96, 127].indexOf(i) !== -1) {
+          continue;
+        }
+        var expected = [];
+        var repeat = {};
+        for (var j = 0; j < 7; j++) {
+          if ((i & (1 << j)) !== 0) {
+            expected.push(shortNames[j]);
+            repeat[days[j]] = true;
+          }
+        }
+        this.alarm.repeat = repeat;
+        // Assorted days test
+        assert.equal(this.alarm.summarizeDaysOfWeek(),
+          expected.join(', '),
+          'Summarizing ' + JSON.stringify(repeat));
+      }
     });
 
-    test('0:0, should init time select with format of system time picker',
-      function() {
-      AlarmEdit.alarm.hour = '0';
-      AlarmEdit.alarm.minute = '0';
-      AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '00:00');
+    test('Weekend alarm summary', function() {
+      // Weekend test
+      this.alarm.repeat = {saturday: true, sunday: true};
+      assert.equal(this.alarm.summarizeDaysOfWeek(), 'weekends');
     });
 
-    test('3:5, should init time select with format of system time picker',
-      function() {
-      AlarmEdit.alarm.hour = '3';
-      AlarmEdit.alarm.minute = '5';
-      AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '03:05');
+    test('Weekday alarm summary', function() {
+      // Weekdays test
+      this.alarm.repeat = {
+        monday: true, tuesday: true, wednesday: true,
+        thursday: true, friday: true
+      };
+      // Everyday test
+      assert.equal(this.alarm.summarizeDaysOfWeek(), 'weekdays');
     });
 
-    test('9:25, should init time select with format of system time picker',
-      function() {
-      AlarmEdit.alarm.hour = '9';
-      AlarmEdit.alarm.minute = '25';
-      AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '09:25');
+    test('Every day alarm summary', function() {
+      this.alarm.repeat = {
+        monday: true, tuesday: true, wednesday: true,
+        thursday: true, friday: true, saturday: true,
+        sunday: true
+      };
+      assert.equal(this.alarm.summarizeDaysOfWeek(), 'everyday');
     });
 
-    test('12:55, should init time select with format of system time picker',
-      function() {
-      AlarmEdit.alarm.hour = '12';
-      AlarmEdit.alarm.minute = '55';
-      AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '12:55');
+    test('Never alarm summary', function() {
+      // never test
+      this.alarm.repeat = {};
+      assert.equal(this.alarm.summarizeDaysOfWeek(), 'never');
     });
 
-    test('15:5, should init time select with format of system time picker',
-      function() {
-      AlarmEdit.alarm.hour = '15';
-      AlarmEdit.alarm.minute = '5';
-      AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '15:05');
+    test('Alarm Passed Today', function() {
+      var setClock = clockSetter(this);
+      // Wed Jul 17 2013 06:30:00 GMT-0400 (EDT)
+      var alarmDate = new Date(1374057000000);
+      alarmDate.setHours(18, 30, 0);
+      var alarmTime = alarmDate.getTime();
+      // set the alarm time
+      this.alarm.time = [alarmDate.getHours(), alarmDate.getMinutes()];
+      // test all combinations of +/- minute/hour
+      var minuteOffsets = [-61, -60, -1, 0, 1, 60, 61];
+      for (var i = 0; i < minuteOffsets.length; i++) {
+        setClock(alarmTime + (minuteOffsets[i] * 60000));
+        assert.equal(this.alarm.isAlarmPassedToday(),
+          minuteOffsets[i] >= 0);
+      }
     });
 
-    test('23:0, should init time select with format of system time picker',
-      function() {
-      AlarmEdit.alarm.hour = '23';
-      AlarmEdit.alarm.minute = '0';
-      AlarmEdit.initTimeSelect();
-      assert.equal(AlarmEdit.timeSelect.value, '23:00');
+    suite('isDateInRepeat', function() {
+
+      var daymap = new Map();
+
+      var repeatodd = {
+        monday: true, // 1
+        wednesday: true, // 3
+        friday: true // 5
+      };
+
+      var repeateven = {
+        sunday: true, // 0
+        tuesday: true, // 2
+        thursday: true, // 4
+        saturday: true // 6
+      };
+
+      var cur = new Date();
+      for (var i = 0; i < 7; i++) {
+        daymap.set(cur.getDay(), cur);
+        cur = new Date(cur.getTime() + (24 * 3600 * 1000));
+      }
+
+      for (var el of daymap) {
+        (function(el) {
+          var repday = (el[0] + 6) % 7;
+          var oddeven = ((el[0] % 2) === 1) ? repeatodd : repeateven;
+          var evenodd = ((el[0] % 2) === 0) ? repeatodd : repeateven;
+          test(days[repday] + '[' + el[0] + '] is in ' +
+               JSON.stringify(oddeven), function() {
+            var testalarm = new Alarm({
+              repeat: oddeven
+            });
+            assert.ok(testalarm.isDateInRepeat(daymap.get(el[0])));
+          });
+          test(days[repday] + '[' + el[0] + '] is not in ' +
+               JSON.stringify(evenodd), function() {
+            var testalarm = new Alarm({
+              repeat: evenodd
+            });
+            assert.ok(!testalarm.isDateInRepeat(daymap.get(el[0])));
+          });
+        })(el);
+      }
+    });
+
+    suite('repeatDays', function() {
+      for (var i = 0; i <= 7; i++) {
+        var rep = {};
+        for (var j = 0; j < i; j++) {
+          rep[days[j]] = true;
+        }
+        (function(testrepeat, value) {
+          test(JSON.stringify(testrepeat) + ' has ' + value + ' repeat days',
+            function() {
+            var testalarm = new Alarm({
+              repeat: testrepeat
+            });
+            assert.equal(testalarm.repeatDays(), value);
+          });
+        })(rep, i);
+      }
+    });
+
+    suite('Next alarm time', function() {
+
+      var alarmTime, alarmDate, setClock;
+
+      setup(function() {
+        setClock = clockSetter(this);
+        // Wed Jul 17 2013 06:30:00 GMT-0400 (EDT)
+        alarmTime = 1374057000000;
+        alarmDate = new Date(alarmTime);
+        alarmDate.setHours(6, 30, 0);
+        while (alarmDate.getDay() !== 3) {
+          alarmDate.setHours(alarmDate.getHours() + 24);
+        }
+        alarmTime = alarmDate.getTime();
+        this.alarm.time = [alarmDate.getHours(), alarmDate.getMinutes()];
+        this.alarm.repeat = {};
+      });
+
+      test('No repeat -> today', function() {
+        setClock(alarmTime - 60000);
+        assert.equal(this.alarm.getNextAlarmFireTime().getTime(), alarmTime);
+      });
+
+      test('No repeat -> tomorrow', function() {
+        setClock(alarmTime + 60000);
+        assert.equal(this.alarm.getNextAlarmFireTime().getTime(),
+          alarmTime + (24 * 60 * 60 * 1000));
+      });
+
+      for (var i = 0; i <= 7; i++) {
+        // starting on wednesday, today, then loop around and cover
+        // wednesday, tomorrow
+        var thisDay = days[(2 + i) % 7];
+        test('Check ' +
+             ((i > 0) ? 'alarm-passed' : 'alarm-today') +
+             ' with repeat ' + thisDay, (function(i, thisDay) {
+          return function() {
+            var compareDate = new Date(alarmTime);
+            compareDate.setDate(compareDate.getDate() + i);
+            if (i === 0) {
+              setClock(alarmTime - 60000);
+            } else {
+              setClock(alarmTime + 60000);
+            }
+            // choose a repeat day
+            var repeat = {};
+            repeat[thisDay] = true;
+            this.alarm.repeat = repeat;
+            assert.equal(this.alarm.getNextAlarmFireTime().getTime(),
+                         compareDate.getTime());
+          };
+        })(i, thisDay));
+      }
+    });
+
+    suite('Alarm scheduling', function() {
+      var navMozAlarms, setClock;
+
+      suiteSetup(function() {
+        navMozAlarms = navigator.mozAlarms;
+        navigator.mozAlarms = new MockMozAlarms(
+          ActiveAlarm.handler);
+      });
+
+      suiteTeardown(function() {
+        navigator.mozAlarms = navMozAlarms;
+      });
+
+      setup(function() {
+        setClock = clockSetter(this);
+        this.date = new Date(1374102438043);
+        // 6:17 on a Wednesday
+        this.date.setHours(6, 17, 0, 0);
+        while (this.date.getDay() !== 3) {
+          this.date = new Date(this.date.getTime() + (24 * 3600 * 1000));
+        }
+        setClock(this.date.getTime());
+
+        this.alarm = new Alarm({
+          id: 1,
+          repeat: { wednesday: true, friday: true },
+          hour: this.date.getHours(),
+          minute: this.date.getMinutes(),
+          snooze: 17
+        });
+      });
+
+      teardown(function() {
+        var alarms = navigator.mozAlarms.alarms;
+        for (var i = 0; i < alarms.length; i++) {
+          clearTimeout(alarms[i].timeout);
+        }
+        navigator.mozAlarms.alarms = [];
+      });
+
+      test('Scheduling a normal alarm for the first time, repeat',
+        function(done) {
+        var cur = this.date.getTime() + (60 * 1000);
+        setClock(cur);
+        this.alarm.schedule({
+          type: 'normal', first: true
+        }, function(err, alarm) {
+          var alarms = navigator.mozAlarms.alarms;
+          assert.equal(alarms.length, 1);
+          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].date.getTime(),
+            this.date.getTime() + (2 * 24 * 3600 * 1000));
+          done();
+        }.bind(this));
+        this.sinon.clock.tick(1000);
+      });
+
+      test('Scheduling a normal alarm for the first time, no repeat',
+        function(done) {
+        this.alarm.repeat = {};
+        var cur = this.date.getTime() + (60 * 1000);
+        setClock(cur);
+        this.alarm.schedule({
+          type: 'normal', first: true
+        }, function(err, alarm) {
+          var alarms = navigator.mozAlarms.alarms;
+          assert.equal(alarms.length, 1);
+          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].date.getTime(),
+            this.date.getTime() + (24 * 3600 * 1000));
+          done();
+        }.bind(this));
+        this.sinon.clock.tick(1000);
+      });
+
+      test('Scheduling a normal alarm for the second time, repeat',
+        function(done) {
+        setClock(this.date.getTime());
+        this.alarm.schedule({
+          type: 'normal', first: false
+        }, function(err, alarm) {
+          var alarms = navigator.mozAlarms.alarms;
+          assert.equal(alarms.length, 1);
+          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].date.getTime(),
+            this.date.getTime() + (2 * 24 * 3600 * 1000));
+          done();
+        }.bind(this));
+        this.sinon.clock.tick(1000);
+      });
+
+      test('Scheduling a normal alarm for the first time, no repeat',
+        function(done) {
+        this.alarm.repeat = {};
+        var cur = this.date.getTime() + (60 * 1000);
+        setClock(cur);
+        this.alarm.schedule({
+          type: 'normal', first: true
+        }, function(err, alarm) {
+          var alarms = navigator.mozAlarms.alarms;
+          assert.equal(alarms.length, 1);
+          assert.equal(alarms[0].id, alarm.registeredAlarms['normal']);
+          assert.equal(alarms[0].date.getTime(),
+            this.date.getTime() + (24 * 3600 * 1000));
+          done();
+        }.bind(this));
+        this.sinon.clock.tick(1000);
+      });
+
+      test('Scheduling a normal alarm for the second time, no repeat',
+        function(done) {
+        this.alarm.repeat = {};
+        var cur = this.date.getTime() + (60 * 1000);
+        setClock(cur);
+        this.alarm.schedule({
+          type: 'normal', first: false
+        }, function(err, alarm) {
+          var alarms = navigator.mozAlarms.alarms;
+          assert.equal(alarms.length, 0);
+          done();
+        }.bind(this));
+        this.sinon.clock.tick(1000);
+      });
+
+      test('Scheduling a snooze alarm',
+        function(done) {
+        this.alarm.repeat = {};
+        setClock(this.date.getTime());
+        this.alarm.schedule({
+          type: 'snooze'
+        }, function(err, alarm) {
+          var alarms = navigator.mozAlarms.alarms;
+          assert.equal(alarms.length, 1);
+          assert.equal(alarms[0].id, alarm.registeredAlarms['snooze']);
+          assert.equal(alarms[0].date.getTime(),
+            this.date.getTime() + (17 * 60 * 1000));
+          done();
+        }.bind(this));
+        this.sinon.clock.tick(1000);
+      });
     });
   });
 });
+

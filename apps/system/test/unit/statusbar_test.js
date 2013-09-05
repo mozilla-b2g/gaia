@@ -541,4 +541,57 @@ suite('system/Statusbar', function() {
       assert.include(label_content, 'PR');
     });
   });
+
+  suite('media information', function() {
+    test('geolocation is activating', function() {
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'geolocation-status',
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.geolocation.hidden, false);
+    });
+    test('camera is recording', function() {
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'recording-status',
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.recording.hidden, false);
+    });
+    test('usb is unmounting', function() {
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'volume-state-changed',
+          active: true
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.usb.hidden, false);
+    });
+    test('headphones is plugged in', function() {
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'headphones-status-changed',
+          state: 'on'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.headphones.hidden, false);
+    });
+    test('audio player is playing', function() {
+      var evt = new CustomEvent('mozChromeEvent', {
+        detail: {
+          type: 'audio-channel-changed',
+          channel: 'content'
+        }
+      });
+      StatusBar.handleEvent(evt);
+      assert.equal(StatusBar.icons.playing.hidden, false);
+    });
+  });
 });

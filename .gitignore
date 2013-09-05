@@ -20,6 +20,7 @@ manifest.appcache
 /apps/*/test/unit/_proxy.html
 /apps/*/locales-obj
 /apps/*/shared
+/apps/settings/resources/network.json
 /apps/settings/resources/support.json
 /apps/settings/resources/sensors.json
 /apps/system/resources/icc.json
@@ -41,7 +42,7 @@ manifest.appcache
 /profile.tar.gz
 /.xulrunner-url
 /xulrunner/
-/xulrunner-sdk/
+/xulrunner-sdk*/
 /tools/test-agent/node_modules
 /test-output.xml
 /mocha-test-results.html
@@ -68,3 +69,5 @@ manifest.appcache
 /test_external_apps/*/test/unit/_sandbox.html
 /test_external_apps/*/test/unit/_proxy.html
 apps/*, external-apps/* & GAIA_DISTRIBUTION_DIR
+
+/build/config.js

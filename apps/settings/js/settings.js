@@ -200,7 +200,7 @@ var Settings = {
     this.presetPanel();
   },
 
-  loadPanel: function settings_loadPanel(panel) {
+  loadPanel: function settings_loadPanel(panel, cb) {
     if (!panel) {
       return;
     }
@@ -208,13 +208,10 @@ var Settings = {
     this.loadPanelStylesheetsIfNeeded();
 
     // apply the HTML markup stored in the first comment node
-    for (var i = 0, il = panel.childNodes.length; i < il; i++) {
-      if (panel.childNodes[i].nodeType == document.COMMENT_NODE) {
-        panel.innerHTML = panel.childNodes[i].nodeValue;
-        break;
-      }
-    }
+    LazyLoader.load([panel], this.afterPanelLoad.bind(this, panel, cb));
+  },
 
+  afterPanelLoad: function(panel, cb) {
     // translate content
     navigator.mozL10n.translate(panel);
 
@@ -252,12 +249,16 @@ var Settings = {
         };
       }
     }
+    if (cb) {
+      cb();
+    }
   },
 
   lazyLoad: function settings_lazyLoad(panel) {
-    if (panel.children.length) { // already initialized
+    if (panel.dataset.rendered) { // already initialized
       return;
     }
+    panel.dataset.rendered = true;
 
     // load the panel and its sub-panels (dependencies)
     // (load the main panel last because it contains the scripts)
@@ -266,8 +267,10 @@ var Settings = {
     for (var i = 0, il = subPanels.length; i < il; i++) {
       this.loadPanel(subPanels[i]);
     }
-    this.loadPanel(panel);
+    this.loadPanel(panel, this.panelLoaded.bind(this, panel, subPanels));
+  },
 
+  panelLoaded: function(panel, subPanels) {
     // panel-specific initialization tasks
     switch (panel.id) {
       case 'display':             // <input type="range"> + brightness control
@@ -304,7 +307,7 @@ var Settings = {
         setTimeout(this.updateLanguagePanel);
         break;
       case 'keyboard':
-        Settings.updateKeyboardPanel();
+        //Settings.updateKeyboardPanel();
         break;
       case 'battery':             // full battery status
         Battery.update();
@@ -783,50 +786,50 @@ var Settings = {
   },
 
   updateKeyboardPanel: function settings_updateKeyboardPanel() {
-    var panel = document.getElementById('keyboard');
+    // var panel = document.getElementById('keyboard');
     // Update the keyboard layouts list from the Keyboard panel
-    if (panel) {
-      this.getSupportedKbLayouts(function updateKbList(keyboards) {
-        var kbLayoutsList = document.getElementById('keyboard-layouts');
-        // Get pointers to the top list entry and its labels which are used to
-        // pin the language associated keyboard at the top of the keyboards list
-        var pinnedKb = document.getElementById('language-keyboard');
-        var pinnedKbLabel = pinnedKb.querySelector('a');
-        var pinnedKbSubLabel = pinnedKb.querySelector('small');
-        pinnedKbSubLabel.textContent = '';
+    // if (panel) {
+    //   this.getSupportedKbLayouts(function updateKbList(keyboards) {
+    //     var kbLayoutsList = document.getElementById('keyboard-layouts');
+    //   // Get pointers to the top list entry and its labels which are used to
+    // // pin the language associated keyboard at the top of the keyboards list
+    //     var pinnedKb = document.getElementById('language-keyboard');
+    //     var pinnedKbLabel = pinnedKb.querySelector('a');
+    //     var pinnedKbSubLabel = pinnedKb.querySelector('small');
+    //     pinnedKbSubLabel.textContent = '';
 
-        // Get the current language and its associate keyboard layout
-        var currentLang = document.documentElement.lang;
-        var langKeyboard = keyboards.layout[currentLang];
+    //     // Get the current language and its associate keyboard layout
+    //     var currentLang = document.documentElement.lang;
+    //     var langKeyboard = keyboards.layout[currentLang];
 
-        var kbSelector = 'input[name="keyboard.layouts.' + langKeyboard + '"]';
-        var kbListQuery = kbLayoutsList.querySelector(kbSelector);
+    //  var kbSelector = 'input[name="keyboard.layouts.' + langKeyboard + '"]';
+    //     var kbListQuery = kbLayoutsList.querySelector(kbSelector);
 
-        if (kbListQuery) {
-          // Remove the entry from the list since it will be pinned on top
-          // of the Keyboard Layouts list
-          var kbListEntry = kbListQuery.parentNode.parentNode;
-          kbListEntry.hidden = true;
+    //     if (kbListQuery) {
+    //       // Remove the entry from the list since it will be pinned on top
+    //       // of the Keyboard Layouts list
+    //       var kbListEntry = kbListQuery.parentNode.parentNode;
+    //       kbListEntry.hidden = true;
 
-          var label = kbListEntry.querySelector('a');
-          var sub = kbListEntry.querySelector('small');
-          pinnedKbLabel.dataset.l10nId = label.dataset.l10nId;
-          pinnedKbLabel.textContent = label.textContent;
-          if (sub) {
-            pinnedKbSubLabel.dataset.l10nId = sub.dataset.l10nId;
-            pinnedKbSubLabel.textContent = sub.textContent;
-          }
-        } else {
-          // If the current language does not have an associated keyboard,
-          // fallback to the default keyboard: 'en'
-          // XXX update this if the list order in index.html changes
-          var englishEntry = kbLayoutsList.children[1];
-          englishEntry.hidden = true;
-          pinnedKbLabel.dataset.l10nId = 'english';
-          pinnedKbSubLabel.textContent = '';
-        }
-      });
-    }
+    //       var label = kbListEntry.querySelector('a');
+    //       var sub = kbListEntry.querySelector('small');
+    //       pinnedKbLabel.dataset.l10nId = label.dataset.l10nId;
+    //       pinnedKbLabel.textContent = label.textContent;
+    //       if (sub) {
+    //         pinnedKbSubLabel.dataset.l10nId = sub.dataset.l10nId;
+    //         pinnedKbSubLabel.textContent = sub.textContent;
+    //       }
+    //     } else {
+    //       // If the current language does not have an associated keyboard,
+    //       // fallback to the default keyboard: 'en'
+    //       // XXX update this if the list order in index.html changes
+    //       var englishEntry = kbLayoutsList.children[1];
+    //       englishEntry.hidden = true;
+    //       pinnedKbLabel.dataset.l10nId = 'english';
+    //       pinnedKbSubLabel.textContent = '';
+    //     }
+    //   });
+    // }
   }
 };
 
@@ -843,8 +846,10 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
   handleRadioAndCardState();
 
-  LazyLoader.load(['js/utils.js'], startupLocale);
+  LazyLoader.load(['js/utils.js', 'js/mvvm/models.js', 'js/mvvm/views.js'],
+    startupLocale);
   LazyLoader.load([
+      'shared/js/keyboard_helper.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'shared/js/async_storage.js',
@@ -993,13 +998,13 @@ function initLocale() {
 
   // update the keyboard layouts list by resetting the top pinned element,
   // since it displays the previous language setting
-  var kbLayoutsList = document.getElementById('keyboard-layouts');
-  if (kbLayoutsList) {
-    var prevKbLayout = kbLayoutsList.querySelector('li[hidden]');
-    prevKbLayout.hidden = false;
+  // var kbLayoutsList = document.getElementById('keyboard-layouts');
+  // if (kbLayoutsList) {
+  //   var prevKbLayout = kbLayoutsList.querySelector('li[hidden]');
+  //   prevKbLayout.hidden = false;
 
-    Settings.updateKeyboardPanel();
-  }
+  //   Settings.updateKeyboardPanel();
+  // }
 }
 
 // Do initialization work that doesn't depend on the DOM, as early as

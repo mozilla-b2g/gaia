@@ -80,10 +80,9 @@
     "time": {},
     "audio-channel-telephony":{},
     "audio-channel-ringer":{},
-    "browser":{},
     "idle":{},
     "storage": {},
-    "device-storage:sdcard": { "access": "readonly" }
+    "device-storage:sdcard": { "access": "readcreate" }
   },
   "orientation": "portrait-primary",
   "activities": {
@@ -96,6 +95,14 @@
        },
       "disposition": "inline",
       "href": "/contacts/index.html?pick",
+      "returnValue": true
+    },
+    "import": {
+      "filters": {
+        "type": ["text/x-vcard", "text/vcard", "application/vcard"]
+      },
+      "disposition": "inline",
+      "href": "/contacts/index.html?open",
       "returnValue": true
     },
     "open": {

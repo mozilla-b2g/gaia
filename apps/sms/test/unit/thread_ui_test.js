@@ -133,6 +133,8 @@ suite('thread_ui.js >', function() {
     sendButton = document.getElementById('messages-send-button');
     composeForm = document.getElementById('messages-compose-form');
 
+    this.sinon.useFakeTimers();
+
     ThreadUI.recipients = null;
     ThreadUI.init();
     realMozMobileMessage = ThreadUI._mozMobileMessage;
@@ -234,11 +236,14 @@ suite('thread_ui.js >', function() {
       test('button should not be disabled if there is some text ' +
         'but too many segments', function() {
 
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        Compose.append('Hola');
+        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
+        var segmentInfo = {
           segments: 11,
           charsAvailableInLastSegment: 10
         };
-        Compose.append('Hola');
+        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
         assert.isFalse(sendButton.disabled);
       });
@@ -362,22 +367,136 @@ suite('thread_ui.js >', function() {
       convertBanner = document.getElementById('messages-convert-notice');
       form = document.getElementById('messages-compose-form');
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
+
+      // let any update timeout play so that we don't have false errors
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
+      // and reset any previous possible state
+      MockNavigatormozMobileMessage.mTeardown();
+    });
+
+    function updateCounter(segmentInfo) {
+      // display the banner to check that it is correctly hidden
+      banner.classList.remove('hide');
+
+      // add a lock to check that it is correctly removed
+      Compose.lock = true;
+
+      shouldEnableSend = ThreadUI.updateCounter();
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+    }
+
+    var initialText = 'some text';
+    var followingText = 'some other text';
+
+    test('do not call getSegmentInfoForText twice in a row', function() {
+      var spy = this.sinon.spy(MockNavigatormozMobileMessage,
+        'getSegmentInfoForText');
+
+      Compose.append(initialText);
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY / 2);
+      Compose.append(followingText);
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
+      assert.equal(spy.callCount, 1);
+      assert.ok(spy.calledWith(initialText + followingText));
+    });
+
+    test('getSegmentInfoForText error hides the counter', function() {
+      sendButton.classList.add('has-counter');
+      Compose.append(initialText);
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoError();
+
+      assert.isFalse(sendButton.classList.contains('has-counter'));
+    });
+
+    suite('asynchronous tricky tests >', function() {
+      var spy;
+
+      var segmentInfo1 = {
+        segments: 1,
+        charsAvailableInLastSegment: 50
+      };
+
+      var segmentInfo2 = {
+        segments: 1,
+        charsAvailableInLastSegment: 40
+      };
+
+      setup(function() {
+        spy = this.sinon.spy(MockNavigatormozMobileMessage,
+          'getSegmentInfoForText');
+
+        Compose.append(initialText);
+        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
+        // the user appends more text before the segment info request returns
+        Compose.append(followingText);
+
+        // wait for the next update delay => should fire
+        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
+      });
+
+      teardown(function() {
+        Compose.clear();
+      });
+
+      test('getSegmentInfoForText got called twice', function() {
+        assert.equal(spy.callCount, 2);
+        assert.ok(spy.getCall(0).calledWith(initialText));
+        assert.ok(spy.getCall(1).calledWith(initialText + followingText));
+      });
+
+      test('segment info requests return ordered', function() {
+        // answer the first request
+        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
+          segmentInfo1, 0
+        );
+
+        // answer the second request
+        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
+          segmentInfo2, 0
+        );
+
+        var subject = sendButton.dataset.counter;
+        var expected = segmentInfo2.charsAvailableInLastSegment + '/' +
+          segmentInfo2.segments;
+
+        assert.equal(subject, expected);
+      });
+
+      test('2 segment info requests return unordered', function() {
+        // answer the last request
+        // the index argument is not necessary here but it's esaier to read
+        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
+          segmentInfo2, 1
+        );
+
+        // then answer the first request
+        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(
+          segmentInfo1, 0
+        );
+
+        var subject = sendButton.dataset.counter;
+        var expected = segmentInfo1.charsAvailableInLastSegment + '/' +
+          segmentInfo1.segments;
+
+        // note: this is wrong, but this won't happen in real life
+        assert.equal(subject, expected);
+      });
     });
 
     suite('no characters entered >', function() {
       setup(function() {
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        var segmentInfo = {
           segments: 0,
           charsAvailableInLastSegment: 0
         };
 
-        // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
-
-        // add a lock to check that it is correctly removed
-        Compose.lock = true;
-
-        shouldEnableSend = ThreadUI.updateCounter();
+        updateCounter.call(this, segmentInfo);
       });
 
       test('no counter is displayed', function() {
@@ -395,18 +514,12 @@ suite('thread_ui.js >', function() {
 
     suite('in first segment >', function() {
       setup(function() {
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        var segmentInfo = {
           segments: 1,
           charsAvailableInLastSegment: 20
         };
 
-        // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
-
-        // add a lock to check that it is correctly removed
-        Compose.lock = true;
-
-        shouldEnableSend = ThreadUI.updateCounter();
+        updateCounter.call(this, segmentInfo);
       });
 
       test('no counter is displayed', function() {
@@ -431,18 +544,11 @@ suite('thread_ui.js >', function() {
           availableChars = 10;
 
       setup(function() {
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        var segmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
-
-        // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
-
-        // add a lock to check that it is correctly removed
-        Compose.lock = true;
-
-        shouldEnableSend = ThreadUI.updateCounter();
+        updateCounter.call(this, segmentInfo);
       });
 
       test('a counter is displayed', function() {
@@ -468,18 +574,11 @@ suite('thread_ui.js >', function() {
           availableChars = 20;
 
       setup(function() {
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        var segmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
-
-        // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
-
-        // add a lock to check that it is correctly removed
-        Compose.lock = true;
-
-        shouldEnableSend = ThreadUI.updateCounter();
+        updateCounter.call(this, segmentInfo);
       });
 
       test('a counter is displayed', function() {
@@ -506,18 +605,11 @@ suite('thread_ui.js >', function() {
           availableChars = 20;
 
       setup(function() {
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        var segmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
-
-        // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
-
-        // add a lock to check that it is correctly removed
-        Compose.lock = true;
-
-        shouldEnableSend = ThreadUI.updateCounter();
+        updateCounter.call(this, segmentInfo);
       });
 
       test('a counter is displayed', function() {
@@ -543,18 +635,11 @@ suite('thread_ui.js >', function() {
           availableChars = 0;
 
       setup(function() {
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
+        var segmentInfo = {
           segments: segment,
           charsAvailableInLastSegment: availableChars
         };
-
-        // display the banner to check that it is correctly hidden
-        banner.classList.remove('hide');
-
-        // add a lock to check that it is correctly removed
-        Compose.lock = true;
-
-        shouldEnableSend = ThreadUI.updateCounter();
+        updateCounter.call(this, segmentInfo);
       });
 
       test('a counter is displayed', function() {
@@ -576,24 +661,13 @@ suite('thread_ui.js >', function() {
     });
 
     suite('too many segments >', function() {
-      var segment = 11,
-          availableChars = 25;
+      var segmentInfo = {
+        segments: 11,
+        charsAvailableInLastSegment: 25
+      };
 
       setup(function() {
-        MockNavigatormozMobileMessage.mNextSegmentInfo = {
-          segments: segment,
-          charsAvailableInLastSegment: availableChars
-        };
-
-        // add a lock to check that it is correctly removed
-        Compose.lock = true;
-
-        shouldEnableSend = ThreadUI.updateCounter();
-      });
-
-      test('a counter is displayed', function() {
-        var expected = availableChars + '/' + segment;
-        assert.equal(sendButton.dataset.counter, expected);
+        updateCounter.call(this, segmentInfo);
       });
 
       test('message type is mms', function() {
@@ -602,6 +676,30 @@ suite('thread_ui.js >', function() {
 
       test('lock is disabled', function() {
         assert.isFalse(Compose.lock);
+      });
+
+      suite('trying to move back to sms >', function() {
+        setup(function() {
+          // waiting some seconds so that the existing possible banner is hidden
+          this.sinon.clock.tick(5000);
+          this.sinon.spy(MockNavigatormozMobileMessage,
+            'getSegmentInfoForText');
+          Compose.type = 'sms';
+          MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+        });
+
+        test('getSegmentInfoForText was called', function() {
+          assert.ok(MockNavigatormozMobileMessage.getSegmentInfoForText.called);
+        });
+
+        test('message type is still mms', function() {
+          assert.equal(Compose.type, 'mms');
+          assert.equal(form.dataset.messageType, 'mms');
+        });
+
+        test('the convertion notice is not displayed', function() {
+          assert.ok(convertBanner.classList.contains('hide'));
+        });
       });
     });
 
@@ -682,7 +780,6 @@ suite('thread_ui.js >', function() {
   suite('message type conversion >', function() {
     var convertBanner, convertBannerText, form, localize;
     setup(function() {
-      this.sinon.useFakeTimers();
       convertBanner = document.getElementById('messages-convert-notice');
       convertBannerText = convertBanner.querySelector('p');
       form = document.getElementById('messages-compose-form');
@@ -694,6 +791,8 @@ suite('thread_ui.js >', function() {
       assert.isTrue(sendButton.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
+      assert.equal(composeForm.dataset.messageType, 'mms',
+        'the composer has type mms');
 
       assert.ok(
         localize.calledWith(convertBannerText, 'converted-to-mms'),
@@ -710,10 +809,14 @@ suite('thread_ui.js >', function() {
         'conversion banner is hidden at 3 seconds');
 
       Compose.type = 'sms';
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess();
 
       assert.isFalse(sendButton.classList.contains('has-counter'));
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
+      assert.equal(composeForm.dataset.messageType, 'sms',
+        'the composer has type sms');
       assert.ok(
         localize.calledWith(convertBannerText, 'converted-to-sms'),
         'conversion banner has sms message'
@@ -731,16 +834,21 @@ suite('thread_ui.js >', function() {
 
     test('character limit from sms to mms and back displays banner',
       function() {
+      ThreadUI.updateCounter();
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
 
       // go over the limit
-      MockNavigatormozMobileMessage.mNextSegmentInfo = {
+      var segmentInfo = {
         segments: 11,
         charsAvailableInLastSegment: 0
       };
 
-      ThreadUI.updateCounter();
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
+      assert.equal(composeForm.dataset.messageType, 'mms',
+        'the composer has type mms');
       assert.ok(
         localize.calledWith(convertBannerText, 'converted-to-mms'),
         'conversion banner has mms message'
@@ -755,11 +863,15 @@ suite('thread_ui.js >', function() {
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
-      MockNavigatormozMobileMessage.mNextSegmentInfo.segments = 0;
       Compose.clear();
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+      segmentInfo.segments = 0;
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
+      assert.equal(composeForm.dataset.messageType, 'sms',
+        'the composer has type sms');
       assert.ok(
         localize.calledWith(convertBannerText, 'converted-to-sms'),
         'conversion banner has sms message'
@@ -775,14 +887,18 @@ suite('thread_ui.js >', function() {
         'conversion banner is hidden at 3 seconds');
 
     });
+
     test('converting from sms to mms and back quickly', function() {
+      ThreadUI.updateCounter();
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
       // go over the limit
-      MockNavigatormozMobileMessage.mNextSegmentInfo = {
+      var segmentInfo = {
         segments: 11,
         charsAvailableInLastSegment: 0
       };
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
-      ThreadUI.updateCounter();
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for mms');
       assert.ok(
@@ -795,8 +911,10 @@ suite('thread_ui.js >', function() {
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is still shown');
 
-      MockNavigatormozMobileMessage.mNextSegmentInfo.segments = 0;
       Compose.clear();
+      this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+      segmentInfo.segments = 0;
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
       assert.isFalse(convertBanner.classList.contains('hide'),
         'conversion banner is shown for sms');
@@ -861,10 +979,6 @@ suite('thread_ui.js >', function() {
 
         assert.ok(visible.called);
         assert.equal(visible.args[0][0], 'singleline');
-        assert.include(visible.args[0][1], 'refocus');
-        assert.include(visible.args[0][1], 'noPreserve');
-        assert.equal(visible.args[0][1].refocus, ThreadUI.input);
-        assert.isTrue(visible.args[0][1].noPreserve);
 
         assert.ok(add.called);
         assert.deepEqual(add.args[0][0], {
@@ -1022,9 +1136,28 @@ suite('thread_ui.js >', function() {
     });
 
     suite('onDeliverySuccess >', function() {
-      test('adds the "delivered" class to the message element', function() {
+      teardown(function() {
+        this.fakeMessage.deliveryStatus = null;
+      });
+      test('sms delivery success', function() {
+        this.fakeMessage.deliveryStatus = 'success';
         ThreadUI.onDeliverySuccess(this.fakeMessage);
         assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('mms delivery success', function() {
+        this.fakeMessage.deliveryStatus = ['success'];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('multiple recipients mms delivery success', function() {
+        this.fakeMessage.deliveryStatus = ['success', 'success'];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isTrue(this.container.classList.contains('delivered'));
+      });
+      test('not all recipients return mms delivery success', function() {
+        this.fakeMessage.deliveryStatus = ['success', 'pending'];
+        ThreadUI.onDeliverySuccess(this.fakeMessage);
+        assert.isFalse(this.container.classList.contains('delivered'));
       });
     });
   });
@@ -1054,6 +1187,7 @@ suite('thread_ui.js >', function() {
 
     setup(function() {
       today = new Date(2013, 11, 31, 23, 59);
+      this.sinon.clock.restore();
       this.sinon.useFakeTimers(+today);
 
       lastYear = new Date(2012, 11, 31);
@@ -1303,7 +1437,7 @@ suite('thread_ui.js >', function() {
 
   suite('buildMessageDOM >', function() {
     setup(function() {
-      this.sinon.spy(MockUtils, 'escapeHTML');
+      this.sinon.spy(Template, 'escape');
       this.sinon.stub(MockSMIL, 'parse');
     });
 
@@ -1320,65 +1454,72 @@ suite('thread_ui.js >', function() {
     test('escapes the body for SMS', function() {
       var payload = 'hello <a href="world">world</a>';
       ThreadUI.buildMessageDOM(buildSMS(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
 
     test('escapes all text for MMS', function() {
       var payload = 'hello <a href="world">world</a>';
       MockSMIL.parse.yields([{ text: payload }]);
       ThreadUI.buildMessageDOM(buildMMS(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
   });
 
   suite('not-downloaded', function() {
     var localize;
     var ONE_DAY_TIME = 24 * 60 * 60 * 1000;
-    var testMessages = [{
-      id: 1,
-      threadId: 8,
-      sender: '123456',
-      type: 'mms',
-      delivery: 'not-downloaded',
-      deliveryStatus: ['pending'],
-      subject: 'Pending download',
-      timestamp: new Date(Date.now() - 150000),
-      expiryDate: new Date(Date.now() + ONE_DAY_TIME)
-    },
-    {
-      id: 2,
-      threadId: 8,
-      sender: '123456',
-      type: 'mms',
-      delivery: 'not-downloaded',
-      deliveryStatus: ['manual'],
-      subject: 'manual download',
-      timestamp: new Date(Date.now() - 150000),
-      expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
-    },
-    {
-      id: 3,
-      threadId: 8,
-      sender: '123456',
-      type: 'mms',
-      delivery: 'not-downloaded',
-      deliveryStatus: ['error'],
-      subject: 'error download',
-      timestamp: new Date(Date.now() - 150000),
-      expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
-    },
-    {
-      id: 4,
-      threadId: 8,
-      sender: '123456',
-      type: 'mms',
-      delivery: 'not-downloaded',
-      deliveryStatus: ['error'],
-      subject: 'Error download',
-      timestamp: new Date(Date.now() - 150000),
-      expiryDate: new Date(Date.now() - ONE_DAY_TIME)
-    }];
+
+    function getTestMessage(index) {
+      var testMessages = [{
+        id: 1,
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryStatus: ['pending'],
+        subject: 'Pending download',
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+      },
+      {
+        id: 2,
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryStatus: ['manual'],
+        subject: 'manual download',
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+      },
+      {
+        id: 3,
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryStatus: ['error'],
+        subject: 'error download',
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
+      },
+      {
+        id: 4,
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'not-downloaded',
+        deliveryStatus: ['error'],
+        subject: 'Error download',
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now() - ONE_DAY_TIME)
+      }];
+
+      return testMessages[index];
+    }
+
     setup(function() {
+      // we do this here because of sinon fake timers
       this.sinon.stub(Utils.date.format, 'localeFormat', function() {
         return 'date_stub';
       });
@@ -1388,11 +1529,12 @@ suite('thread_ui.js >', function() {
       localize = this.sinon.spy(navigator.mozL10n, 'localize');
     });
     suite('pending message', function() {
-      var message = testMessages[0];
+      var message;
       var element;
       var notDownloadedMessage;
       var button;
       setup(function() {
+        message = getTestMessage(0);
         ThreadUI.appendMessage(message);
         element = document.getElementById('message-' + message.id);
         notDownloadedMessage = element.querySelector('.not-downloaded-message');
@@ -1443,11 +1585,12 @@ suite('thread_ui.js >', function() {
       });
     });
     suite('manual message', function() {
-      var message = testMessages[1];
+      var message;
       var element;
       var notDownloadedMessage;
       var button;
       setup(function() {
+        message = getTestMessage(1);
         ThreadUI.appendMessage(message);
         element = document.getElementById('message-' + message.id);
         notDownloadedMessage = element.querySelector('.not-downloaded-message');
@@ -1531,11 +1674,12 @@ suite('thread_ui.js >', function() {
       });
     });
     suite('error message', function() {
-      var message = testMessages[2];
+      var message;
       var element;
       var notDownloadedMessage;
       var button;
       setup(function() {
+        message = getTestMessage(2);
         ThreadUI.appendMessage(message);
         element = document.getElementById('message-' + message.id);
         notDownloadedMessage = element.querySelector('.not-downloaded-message');
@@ -1620,11 +1764,12 @@ suite('thread_ui.js >', function() {
     });
 
     suite('expired message', function() {
-      var message = testMessages[3];
+      var message;
       var element;
       var notDownloadedMessage;
       var button;
       setup(function() {
+        message = getTestMessage(3);
         ThreadUI.appendMessage(message);
         element = document.getElementById('message-' + message.id);
         notDownloadedMessage = element.querySelector('.not-downloaded-message');
@@ -1673,34 +1818,39 @@ suite('thread_ui.js >', function() {
   });
 
   suite('No attachment error handling', function() {
-    var testMessages = [{
-      id: 1,
-      threadId: 8,
-      sender: '123456',
-      type: 'mms',
-      delivery: 'received',
-      deliveryStatus: ['success'],
-      subject: 'No attachment testing',
-      smil: '<smil><body><par><text src="cid:1"/>' +
-            '</par></body></smil>',
-      attachments: null,
-      timestamp: new Date(Date.now() - 150000),
-      expiryDate: new Date(Date.now())
-    },
-    {
-      id: 2,
-      threadId: 8,
-      sender: '123456',
-      type: 'mms',
-      delivery: 'received',
-      deliveryStatus: ['success'],
-      subject: 'Empty attachment testing',
-      smil: '<smil><body><par><text src="cid:1"/>' +
-            '</par></body></smil>',
-      attachments: [],
-      timestamp: new Date(Date.now() - 100000),
-      expiryDate: new Date(Date.now())
-    }];
+    function getTestMessage(index) {
+      var testMessages = [{
+        id: 1,
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'received',
+        deliveryStatus: ['success'],
+        subject: 'No attachment testing',
+        smil: '<smil><body><par><text src="cid:1"/>' +
+              '</par></body></smil>',
+        attachments: null,
+        timestamp: new Date(Date.now() - 150000),
+        expiryDate: new Date(Date.now())
+      },
+      {
+        id: 2,
+        threadId: 8,
+        sender: '123456',
+        type: 'mms',
+        delivery: 'received',
+        deliveryStatus: ['success'],
+        subject: 'Empty attachment testing',
+        smil: '<smil><body><par><text src="cid:1"/>' +
+              '</par></body></smil>',
+        attachments: [],
+        timestamp: new Date(Date.now() - 100000),
+        expiryDate: new Date(Date.now())
+      }];
+
+      return testMessages[index];
+    }
+
     var localize;
     setup(function() {
       this.sinon.stub(Utils.date.format, 'localeFormat', function() {
@@ -1713,10 +1863,11 @@ suite('thread_ui.js >', function() {
     });
 
     suite('no attachment message', function() {
-      var message = testMessages[0];
+      var message;
       var element;
       var noAttachmentMessage;
       setup(function() {
+        message = getTestMessage(0);
         ThreadUI.appendMessage(message);
         element = document.getElementById('message-' + message.id);
         noAttachmentMessage = element.querySelector('p');
@@ -1751,10 +1902,11 @@ suite('thread_ui.js >', function() {
     });
 
     suite('Empty attachment message', function() {
-      var message = testMessages[1];
+      var message;
       var element;
       var noAttachmentMessage;
       setup(function() {
+        message = getTestMessage(1);
         ThreadUI.appendMessage(message);
         element = document.getElementById('message-' + message.id);
         noAttachmentMessage = element.querySelector('p');
@@ -2943,6 +3095,17 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('Contact Picker Behavior(contactPickButton)', function() {
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'assimilateRecipients');
+    });
+
+    test('assimilate called after mousedown on picker button', function() {
+      ThreadUI.contactPickButton.dispatchEvent(new CustomEvent('mousedown'));
+      assert.ok(ThreadUI.assimilateRecipients.called);
+    });
+  });
+
   suite('setMessageBody', function() {
     setup(function() {
       this.sinon.stub(Compose, 'clear');
@@ -2986,6 +3149,47 @@ suite('thread_ui.js >', function() {
       test('calls focus', function() {
         assert.ok(Compose.focus.called);
       });
+    });
+  });
+
+  suite('recipient handling yields correct header', function() {
+    var localize;
+    setup(function() {
+      location.hash = '#new';
+      localize = this.sinon.spy(navigator.mozL10n, 'localize');
+    });
+
+    teardown(function() {
+      location.hash = '';
+    });
+
+    test('no recipients', function() {
+      ThreadUI.updateComposerHeader();
+      assert.deepEqual(localize.args[0], [
+        ThreadUI.headerText, 'newMessage'
+      ]);
+    });
+
+    test('add one recipient', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      assert.deepEqual(localize.args[0], [
+        ThreadUI.headerText, 'recipient', {n: 1}
+      ]);
+    });
+
+    test('add two recipients', function() {
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+      ThreadUI.recipients.add({
+        number: '888'
+      });
+      assert.ok(localize.calledTwice);
+      assert.deepEqual(localize.args[1], [
+        ThreadUI.headerText, 'recipient', {n: 2}
+      ]);
     });
   });
 

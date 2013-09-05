@@ -93,8 +93,7 @@ utils.status = (function() {
   }
 
   function getPath() {
-    var path = document.querySelector('[src*="' + FILE_NAME + '.js"]').src;
-    return path.substring(0, path.lastIndexOf('/') + 1);
+    return '/js/components/';
   }
 
   /*

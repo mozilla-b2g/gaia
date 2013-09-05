@@ -1,0 +1,67 @@
+<element name="hotspot" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="internetSharing"> Internet Sharing </h1>
+    </header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="internetSharing-wifi"> Wi-Fi </h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" name="tethering.wifi.enabled" class="uninit"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="wifi-hotspot">Wi-Fi Hotspot</a>
+        </li>
+        <li class="description" data-l10n-id="internetSharing-wifi-desc">
+          Allow other devices to share my phone’s Internet connection by connecting via Wi-Fi.
+        </li>
+        <li>
+          <a data-l10n-id="wifi-name">Name
+            <span data-name="tethering.wifi.ssid"></span>
+          </a>
+        </li>
+        <li class="password-item" hidden>
+          <a data-l10n-id="wifi-password">Password
+            <span data-name="tethering.wifi.security.password"></span>
+          </a>
+        </li>
+        <li>
+          <a data-l10n-id="wifi-security">Security
+            <span data-name="tethering.wifi.security.type"></span>
+          </a>
+        </li>
+        <li id="hotspot-settings-section">
+          <label>
+            <button class="icon icon-view"
+            data-l10n-id="hotspotSettings">Hotspot Settings</button>
+          </label>
+        </li>
+      </ul>
+
+      <header>
+        <h2 data-l10n-id="internetSharing-usb"> USB </h2>
+      </header>
+      <ul>
+        <li>
+          <label class="pack-switch">
+            <input type="checkbox" name="tethering.usb.enabled" class="uninit"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="usb-tethering">USB Tethering</a>
+        </li>
+        <li class="description" data-l10n-id="internetSharing-usb-desc">
+          Share my phone’s Internet connection with a USB-connected device.
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/hotspot.js"></script>
+
+  </template>
+</element>

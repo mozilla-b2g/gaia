@@ -12,7 +12,31 @@ contacts.Merger = (function() {
   // The matchingContacts are the contacts which information will merged with
   // the master. It is an Array in which the elements should be ordered
   // by priority i.e. the data from the first elements might take precedence
-  // over the data of the last elements according to the merging rules
+  // over the data of the last elements according to the merging rules.
+  //
+  // Each element in the array is an objects with the following keys:
+  //   * matchingContact: the Contact object matching one or more targets.
+  //   * matchings: optional, an object whose entries are arrays of
+  //     field-matching objects indexed by the field name.
+  //
+  // Each field-matching object has two fields:
+  //   * target: the value that field matched with.
+  //   * matchedValue: the value from the matchingContact field matching the
+  //     target.
+  //
+  // Here is an example:
+  // {
+  //   matchingContact: { ... },
+  //   matchings: {
+  //     'tel': [{
+  //       target: '600000000',
+  //       matchedValue: '+34600000000'
+  //     }]
+  //   }
+  // }
+  //
+  // The `matchings` field can be not present if the matching contact comes
+  // from an external source not related with the matching algorithm.
   function doMerge(pmasterContact, pmatchingContacts, callbacks) {
     window.setTimeout(function contactsMerge() {
       mergeAll(pmasterContact, pmatchingContacts, callbacks);
@@ -26,15 +50,8 @@ contacts.Merger = (function() {
     var telsHash;
     var mergedContact = {};
 
-    mergedContact.givenName = masterContact.givenName || [''];
-    mergedContact.familyName = masterContact.familyName || [''];
-
-    var recGivenName = mergedContact.givenName;
-    var recFamilyName = mergedContact.familyName;
-
-    var maxLengthGivenName = (recGivenName[0] && recGivenName[0].length) || 0;
-    var maxLengthFamilyName = (recFamilyName[0] &&
-                                recFamilyName[0].length) || 0;
+    mergedContact.givenName = masterContact.givenName || [];
+    mergedContact.familyName = masterContact.familyName || [];
 
     mergedContact.photo = masterContact.photo || [];
     mergedContact.bday = masterContact.bday;
@@ -69,39 +86,40 @@ contacts.Merger = (function() {
     mergedContact.note = masterContact.note || [];
 
     matchingContacts.forEach(function(aResult) {
-      var aDeviceContact = aResult.matchingContact;
+      var theMatchingContact = aResult.matchingContact;
 
-      var givenName = aDeviceContact.givenName;
-      if (isDefined(givenName) && givenName[0].length > maxLengthGivenName) {
-        maxLengthGivenName = givenName[0].length;
-        recGivenName.pop();
-        recGivenName.push(givenName[0]);
+      var givenName = theMatchingContact.givenName;
+      if (Array.isArray(givenName)) {
+        if (mergedContact.givenName.indexOf(givenName[0]) === -1) {
+          mergedContact.givenName.push(givenName[0]);
+        }
       }
 
-      var familyName = aDeviceContact.familyName;
-      if (isDefined(familyName) && familyName[0].length > maxLengthFamilyName) {
-        maxLengthFamilyName = familyName[0].length;
-        recFamilyName.pop();
-        recFamilyName.push(familyName[0]);
+      var familyName = theMatchingContact.familyName;
+      if (Array.isArray(familyName)) {
+        if (mergedContact.familyName.indexOf(familyName[0]) === -1) {
+          mergedContact.familyName.push(familyName[0]);
+        }
       }
 
-      if (!mergedContact.bday && aDeviceContact.bday) {
-        mergedContact.bday = aDeviceContact.bday;
+      if (!mergedContact.bday && theMatchingContact.bday) {
+        mergedContact.bday = theMatchingContact.bday;
       }
 
-      if (isDefined(aDeviceContact.org) && mergedContact.org.length === 0) {
-        mergedContact.org = aDeviceContact.org;
+      if (isDefined(theMatchingContact.org) && mergedContact.org.length === 0) {
+        mergedContact.org = theMatchingContact.org;
       }
-      if (isDefined(aDeviceContact.category)) {
-        populateNoDuplicates(aDeviceContact.category, categoriesHash,
+      if (isDefined(theMatchingContact.category)) {
+        populateNoDuplicates(theMatchingContact.category, categoriesHash,
                               mergedContact.category);
       }
 
-      populateEmails(aDeviceContact.email, emailsHash, mergedContact.email);
+      populateEmails(theMatchingContact.email, emailsHash, mergedContact.email);
 
-      if (Array.isArray(aDeviceContact.tel)) {
-        var telMatchings = aResult.matchings['tel'];
-        aDeviceContact.tel.forEach(function(aTel) {
+      if (Array.isArray(theMatchingContact.tel)) {
+        var theMatchings = aResult.matchings || {};
+        var telMatchings = theMatchings['tel'];
+        theMatchingContact.tel.forEach(function(aTel) {
           var theValue = aTel.value;
           var target = theValue, matchedValue = '';
           if (telMatchings) {
@@ -126,25 +144,26 @@ contacts.Merger = (function() {
             telsHash[target] = true;
             telsHash[matchedValue] = true;
           }
-      });
-    }
-
-      if (!isDefined(mergedContact.photo) && isDefined(aDeviceContact.photo)) {
-        mergedContact.photo.push(aDeviceContact.photo[0]);
+        });
       }
 
-      populateField(aDeviceContact.adr, mergedContact.adr, DEFAULT_ADR_TYPE);
+      if (!isDefined(mergedContact.photo) &&
+                                          isDefined(theMatchingContact.photo)) {
+        mergedContact.photo.push(theMatchingContact.photo[0]);
+      }
 
-      populateField(aDeviceContact.url, mergedContact.url);
-      populateField(aDeviceContact.note, mergedContact.note);
+      populateField(theMatchingContact.adr, mergedContact.adr,
+                                                              DEFAULT_ADR_TYPE);
+
+      populateField(theMatchingContact.url, mergedContact.url);
+      populateField(theMatchingContact.note, mergedContact.note);
 
     }); // matchingResults
 
-
-    mergedContact.name = [(Array.isArray(recGivenName) && recGivenName[0] ?
-                           recGivenName[0] : '') + ' ' +
-                (Array.isArray(recFamilyName) && recFamilyName[0] ?
-                            recFamilyName[0] : '')];
+    mergedContact.name = [((mergedContact.givenName[0] ?
+                           mergedContact.givenName[0] : '') + ' ' +
+                          (mergedContact.familyName[0] ?
+                            mergedContact.familyName[0] : '')).trim()];
 
     var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
                   'bday', 'adr', 'category', 'url', 'note', 'photo'];

@@ -196,6 +196,7 @@ aside.connecting {
 
  #menuItem-callWaiting .alert-label > span {
   position: absolute;
+  right: 1.5rem;
   width: 3rem;
   height: 3rem;
   background-image: url(images/call_waiting_disabled.png);
@@ -365,6 +366,26 @@ aside.connecting {
   background-position: -6.4rem 0;
 }
 
+/******************************************************************************
+ * Keyboard icons
+ */
+
+ .keyboard-menuItem {
+  padding-right: 6rem;
+ }
+
+ .keyboard-menuItem:before {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  background-size: 3rem 3rem;
+  background-repeat: no-repeat;
+  background-image: url(images/settings.png);
+  position: absolute;
+  right: 3rem;
+  top: 50%;
+  margin-top: -1.5rem;
+ }
 
 /******************************************************************************
  * Right-To-Left layout

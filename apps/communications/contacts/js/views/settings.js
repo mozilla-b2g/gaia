@@ -212,23 +212,31 @@ contacts.Settings = (function() {
 
   function exportOptionsHandler(e) {
     var source = e.target.parentNode.dataset.source;
-    var strategy = null;
     switch (source) {
       case 'sim':
-        // TODO Add export to SIM functionality
+        LazyLoader.load(['/contacts/js/export/sim.js'],
+          function() {
+            doExport(new ContactsSIMExport());
+          }
+        );
         break;
       case 'sd':
-        // TODO Add export to SD functionality
+        LazyLoader.load(
+          [
+            '/shared/js/device_storage/get_storage_if_available.js',
+            '/shared/js/device_storage/get_unused_filename.js',
+            '/shared/js/contact2vcard.js',
+            '/contacts/js/export/sd.js'
+          ],
+          function() {
+            doExport(new ContactsSDExport());
+          }
+        );
         break;
       case 'bluetooth':
-        // TODO Add export to Bluetooth functionality
+        // TODO Add export to bluetooth functionality
         break;
     }
-    if (strategy == null) {
-      return;
-    }
-
-    doExport(strategy);
   };
 
   function doExport(strategy) {

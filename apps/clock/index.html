@@ -28,8 +28,10 @@
     <!-- Specific code -->
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/async_storage.js"></script>
+    <script defer src="shared/js/template.js"></script>
     <script defer src="js/constants.js"></script>
     <script defer src="js/utils.js"></script>
+    <script defer src="js/alarm.js"></script>
     <script defer src="js/active_alarm.js"></script>
     <script defer src="js/alarmsdb.js"></script>
     <script defer src="js/clock.js"></script>
@@ -145,5 +147,22 @@
         </menu>
       --></form>
     </div>
+
+    <div id="alarm-list-item-tmpl" class="hide">
+      <!--
+      <label class="alarmList alarmEnable">
+        <input class="input-enable" data-id="${id}" type="checkbox" ${checked}>
+        <span></span>
+      </label>
+      <a href="#alarm" class="alarm-item" data-id="${id}">
+        <span class="time">
+          ${time} <span class="period">${meridian}</span>
+        </span>
+        <span class="label">${label}</span>
+        <span class="repeat">${repeat}</span>
+      </a>
+      -->
+    </div>
+
   </body>
 </html>

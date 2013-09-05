@@ -81,6 +81,12 @@
  *          not update any metadata, client app still needs to return
  *          file.metadata.
  *
+ *       excludeFilter:
+ *          excludeFilter is used when client app wants MediaDB to filter out
+ *          additional media files. It must be a regular expression object. The
+ *          matched files are filtered out. The original filtering behavior of
+ *          MediaDB will not be change even if excludeFilter is supplied.
+ *
  * MediaDB STATE
  *
  * A MediaDB object must asynchronously open a connection to its database, and
@@ -368,6 +374,10 @@ var MediaDB = (function() {
     this.scanning = false;  // becomes true while scanning
     this.parsingBigFiles = false;
     this.updateRecord = options.updateRecord; // for data upgrade from client.
+    if (options.excludeFilter && (options.excludeFilter instanceof RegExp)) {
+      // only regular expression object is accepted.
+      this.clientExcludeFilter = options.excludeFilter;
+    }
 
     // While scanning, we attempt to send change events in batches.
     // After finding a new or deleted file, we'll wait this long before
@@ -807,7 +817,7 @@ var MediaDB = (function() {
 
       function fileChangeHandler(e) {
         var filename = e.path;
-        if (ignoreName(filename))
+        if (ignoreName(media, filename))
           return;
 
         // insertRecord and deleteRecord will send events to the client once
@@ -1225,7 +1235,7 @@ var MediaDB = (function() {
   // and the type of this file is not a member of that list, then ignore it.
   //
   function ignore(media, file) {
-    if (ignoreName(file.name))
+    if (ignoreName(media, file.name))
       return true;
     if (media.mimeTypes && media.mimeTypes.indexOf(file.type) === -1)
       return true;
@@ -1237,9 +1247,13 @@ var MediaDB = (function() {
   // give us a name only, not the file object.
   // Ignore files having directories beginning with .
   // Bug https://bugzilla.mozilla.org/show_bug.cgi?id=838179
-  function ignoreName(filename) {
-    var path = filename.substring(0, filename.lastIndexOf('/') + 1);
-    return (path[0] === '.' || path.indexOf('/.') !== -1);
+  function ignoreName(media, filename) {
+    if (media.clientExcludeFilter && media.clientExcludeFilter.test(filename)) {
+      return true;
+    } else {
+      var path = filename.substring(0, filename.lastIndexOf('/') + 1);
+      return (path[0] === '.' || path.indexOf('/.') !== -1);
+    }
   }
 
   // With the removal of composite storage, this function emulates

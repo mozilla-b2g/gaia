@@ -1,6 +1,7 @@
 'use strict';
 
 var ContactToVcard;
+var ContactToVcardBlob;
 
 function ISODateString(d) {
   function pad(n) {
@@ -61,6 +62,17 @@ function ISODateString(d) {
   function joinFields(fields) {
     return fields.filter(function(f) { return !!f; }).join('\n');
   }
+
+  function toBlob(vcard) {
+    return new Blob([vcard], {'type': 'text/vcard'});
+  }
+
+  ContactToVcardBlob = function(contacts, callback) {
+    ContactToVcard(contacts, function onVcard(vcard) {
+      vcard = vcard ? toBlob(vcard) : null;
+      callback(toBlob(vcard));
+    });
+  };
 
   ContactToVcard = function(ctArray, callback) {
     var numContacts = ctArray.length;

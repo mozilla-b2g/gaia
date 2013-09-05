@@ -55,3 +55,9 @@ html, body {
   text-align: center;
 }
 
+/* Hide the description area when screen height is too small. */
+@media screen and (max-height: 400px) {
+  #pair-description {
+    display: none;
+  }
+}

@@ -160,8 +160,11 @@ ifneq (,$(findstring MINGW32_,$(SYS)))
 CURDIR:=$(shell pwd -W | sed -e 's|/|\\\\|g')
 SEP=\\
 SEP_FOR_SED=\\\\
+BUILDDIR := file:///$(shell pwd -W)/build/
 # Mingw mangle path and append c:\mozilla-build\msys\data in front of paths
 MSYS_FIX=/
+else
+BUILDDIR := file://$(CURDIR)/build/
 endif
 
 ifndef GAIA_APP_CONFIG
@@ -184,6 +187,7 @@ ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
 	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
 	DISTRIBUTION_APP_CONFIG := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps.list
+	DISTRIBUTION_LOCAL_APPS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)local-apps.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -192,6 +196,9 @@ ifdef GAIA_DISTRIBUTION_DIR
 	endif
 	ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
 		GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
+	endif
+	ifneq ($(wildcard $(DISTRIBUTION_LOCAL_APPS)),)
+		LOCAL_APPS_PATH := $(DISTRIBUTION_LOCAL_APPS)
 	endif
 endif
 
@@ -236,7 +243,7 @@ endif
 
 GAIA_LOCALES_PATH?=locales
 LOCALES_FILE?=shared/resources/languages.json
-GAIA_LOCALE_SRCDIRS=shared $(GAIA_APPDIRS)
+GAIA_LOCALE_SRCDIRS=$(CURDIR)$(SEP)shared $(GAIA_APPDIRS)
 GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
@@ -276,9 +283,46 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
+
+define BUILD_CONFIG
+exports.config = {
+	"GAIA_DIR" : "$(CURDIR)",
+	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)",
+	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)",
+	"GAIA_SCHEME" : "$(SCHEME)",
+	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)",
+	"DEBUG" : $(DEBUG),
+	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS),
+	"DESKTOP" : $(DESKTOP),
+	"DEVICE_DEBUG" : $(DEVICE_DEBUG),
+	"HOMESCREEN" : "$(HOMESCREEN)",
+	"GAIA_PORT" : "$(GAIA_PORT)",
+	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)",
+	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))",
+	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)",
+	"PRODUCTION" : "$(PRODUCTION)",
+	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)",
+	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)",
+	"DOGFOOD" : "$(DOGFOOD)",
+	"OFFICIAL" : "$(MOZILLA_OFFICIAL)",
+	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)",
+	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)",
+	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)",
+	"GAIA_ENGINE" : "xpcshell",
+	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)",
+	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)",
+	"NOFTU" : "$(NOFTU)",
+	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)",
+	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)",
+	"SETTINGS_PATH" : "$(SETTINGS_PATH)"
+}
+
+endef
+export BUILD_CONFIG
+
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale applications-data preferences app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -295,6 +339,7 @@ ifneq ($(LOCALE_BASEDIR),)
 	python $(CURDIR)/build/multilocale.py \
 		--config '$(LOCALES_FILE)' \
 		--source '$(LOCALE_BASEDIR)' \
+		--gaia '$(CURDIR)' \
 		$$targets;
 	@echo "Done"
 ifneq ($(LOCALES_FILE),shared/resources/languages.json)
@@ -342,6 +387,9 @@ webapp-zip: webapp-optimize install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
+ifdef LOCAL_APPS_PATH
+	@rm $(CURDIR)/apps/homescreen/js/singlevariantconf.json
+endif
 endif
 
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
@@ -367,6 +415,11 @@ ifdef CONTACTS_PATH
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
 else
 	@rm -f $(PROFILE_FOLDER)/contacts.json
+endif
+
+local-apps:
+ifdef LOCAL_APPS_PATH
+	python build/local-apps.py usage --local-apps-path=$(LOCAL_APPS_PATH) --profile-path=$(PROFILE_FOLDER) --apps-path=$(CURDIR)/apps --distribution-path=$(GAIA_DISTRIBUTION_DIR)
 endif
 
 # Create webapps
@@ -436,8 +489,12 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
+.PHONY: build-config-js
+build-config-js:
+	echo "$$BUILD_CONFIG" > $(CURDIR)$(SEP)build$(SEP)config.js
+
 .PHONY: install-xulrunner-sdk
-install-xulrunner-sdk:
+install-xulrunner-sdk: build-config-js
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
 	rm -rf xulrunner-sdk
@@ -452,32 +509,10 @@ endif
 endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
-	echo "run-js-command $1";                                                   \
-	JS_CONSTS='                                                                 \
-	const GAIA_DIR = "$(CURDIR)";                                               \
-	const PROFILE_DIR = "$(CURDIR)$(SEP)$(PROFILE_FOLDER)";                     \
-	const PROFILE_FOLDER = "$(PROFILE_FOLDER)";                                 \
-	const GAIA_SCHEME = "$(SCHEME)"; const GAIA_DOMAIN = "$(GAIA_DOMAIN)";      \
-	const DEBUG = $(DEBUG); const LOCAL_DOMAINS = $(LOCAL_DOMAINS);             \
-	const DESKTOP = $(DESKTOP);                                                 \
-	const DEVICE_DEBUG = $(DEVICE_DEBUG);                                       \
-	const HOMESCREEN = "$(HOMESCREEN)"; const GAIA_PORT = "$(GAIA_PORT)";       \
-	const GAIA_LOCALES_PATH = "$(GAIA_LOCALES_PATH)";                           \
-	const LOCALES_FILE = "$(subst \,\\,$(LOCALES_FILE))";                       \
-	const BUILD_APP_NAME = "$(BUILD_APP_NAME)";                                 \
-	const PRODUCTION = "$(PRODUCTION)";                                         \
-	const GAIA_OPTIMIZE = "$(GAIA_OPTIMIZE)";                                   \
-	const GAIA_DEV_PIXELS_PER_PX = "$(GAIA_DEV_PIXELS_PER_PX)";                 \
-	const DOGFOOD = "$(DOGFOOD)";                                               \
-	const OFFICIAL = "$(MOZILLA_OFFICIAL)";                                     \
-	const GAIA_DEFAULT_LOCALE = "$(GAIA_DEFAULT_LOCALE)";                       \
-	const GAIA_INLINE_LOCALES = "$(GAIA_INLINE_LOCALES)";                       \
-	const GAIA_CONCAT_LOCALES = "$(GAIA_CONCAT_LOCALES)";                       \
-	const GAIA_ENGINE = "xpcshell";                                             \
-	const GAIA_DISTRIBUTION_DIR = "$(GAIA_DISTRIBUTION_DIR)";                   \
-	const GAIA_APPDIRS = "$(GAIA_APPDIRS)";                                     \
-	';                                                                          \
-	$(XULRUNNERSDK) $(XPCSHELLSDK) -e "$$JS_CONSTS" -f build/utils.js "build/$(strip $1).js"
+	echo "run-js-command $1";
+	$(XULRUNNERSDK) $(XPCSHELLSDK) \
+		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
+		-f build/xpcshell-commonjs.js -e "require('$(strip $1)').execute()"
 endef
 
 # Optional files that may be provided to extend the set of default
@@ -760,6 +795,11 @@ else
 	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
 	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
 endif
+
+ifdef LOCAL_APPS_PATH
+	$(ADB) shell 'rm -r $(MSYS_FIX)/data/local/svoperapps'
+	$(ADB) push $(PROFILE_FOLDER)/svoperapps $(MSYS_FIX)/data/local/svoperapps
+endif
 	@echo "Installed gaia into $(PROFILE_FOLDER)/."
 	@echo 'Starting b2g'
 	$(ADB) shell start b2g
@@ -808,30 +848,9 @@ purge:
 	$(ADB) remount
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
-# Build the settings.json file from settings.py
-ifeq ($(NOFTU), 1)
-SETTINGS_ARG += --noftu
-endif
-
-ifeq ($(REMOTE_DEBUGGER), 1)
-SETTINGS_ARG += --enable-debugger
-endif
-
-ifeq ($(DEBUG),1)
-SETTINGS_ARG += --homescreen=http://homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp
-endif
-
-# We want the console to be disabled for device builds using the user variant.
-ifneq ($(TARGET_BUILD_VARIANT),user)
-SETTINGS_ARG += --console
-endif
-
-$(PROFILE_FOLDER)/settings.json:
-ifneq ($(GAIA_DEV_PIXELS_PER_PX),1)
-	python build/settings.py $(SETTINGS_ARG) --profile-folder $(PROFILE_FOLDER) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper@$(GAIA_DEV_PIXELS_PER_PX)x.jpg --override $(SETTINGS_PATH) --output $(PROFILE_FOLDER)/settings.json
-else
-	python build/settings.py $(SETTINGS_ARG) --profile-folder $(PROFILE_FOLDER) --locale $(GAIA_DEFAULT_LOCALE) --homescreen $(SCHEME)homescreen.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --ftu $(SCHEME)communications.$(GAIA_DOMAIN)$(GAIA_PORT)/manifest.webapp --wallpaper build/wallpaper.jpg --override $(SETTINGS_PATH) --output $(PROFILE_FOLDER)/settings.json
-endif
+$(PROFILE_FOLDER)/settings.json: install-xulrunner-sdk
+	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+	@$(call run-js-command, settings)
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts

@@ -20,7 +20,10 @@ Evme.Tasker = new function Evme_Tasker() {
 
     // trigger when language changes. pass "true" to force the trigger
     navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
-      self.trigger(true);
+      window.addEventListener('localized', function localized() {
+        window.removeEventListener('localized', localized);
+        self.trigger(true);
+      });
     });
 
     // set the alarm

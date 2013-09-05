@@ -109,6 +109,7 @@ html, body {
 #capture-button[disabled=disabled],
 #switch-button[disabled=disabled] {
   opacity: 0.5;
+  pointer-events: none;
 }
 
 body.recording #toggle-camera {

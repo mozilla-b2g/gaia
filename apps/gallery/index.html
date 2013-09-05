@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="style/gallery.css" type="text/css" />
     <link rel="stylesheet" href="style/VideoPlayer.css" type="text/css" />
     <link rel="stylesheet" href="shared/style/headers.css" type="text/css" />
+    <!-- Reponsive design for large device -->
+    <link rel="stylesheet" href="style/gallery_large.css" type="text/css" media="(min-width: 768px)" />
     <!-- this file is loaded lazily but is listed here so it gets packaged
     <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
     -->
@@ -43,7 +45,8 @@
       </footer>
     </section>
 
-    <section role="region" id="fullscreen-view" class="hidden">
+    <section role="region" id="fullscreen-view" class="hidden skin-organic">
+
       <div id="frames">
         <!-- the current photo plus next and previous waiting in the wings -->
         <div id="frame1" class="frame"></div>
@@ -51,8 +54,8 @@
         <div id="frame3" class="frame"></div>
       </div>
 
+      <button id="fullscreen-back-button" type="reset"></button>
       <footer id="fullscreen-toolbar">
-        <a id="fullscreen-back-button" class="button"></a>
         <a id="fullscreen-camera-button" class="button"></a>
         <a id="fullscreen-edit-button" class="button"></a>
         <a id="fullscreen-share-button" class="button"></a>
@@ -174,8 +177,10 @@
         <p id="overlay-text"></p>
       </section>
       <menu id="overlay-menu" class="hidden">
-        <button type="button" id="storage-setting-button" class="full"
+        <button type="button" id="storage-setting-button" class="hidden full"
                 data-l10n-id="storage-setting-button">Media storage settings</button>
+        <button type="button" id="overlay-camera-button" class="hidden full"
+                data-l10n-id="overlay-camera-button">Go to Camera</button>
       </menu>
     </form>
 

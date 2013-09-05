@@ -18,18 +18,18 @@ var BrowserDB = {
    *
    * @param {Integer} upgradeFrom Version of database being upgraded from.
    */
-  populate: function browserDB_populate(upgradeFrom) {
+  populate: function browserDB_populate(upgradeFrom, callback) {
     console.log('Populating browser database.');
 
-    Browser.getOperatorVariant((function(variant) {
-      Browser.getConfigurationData(variant, (function(data) {
+    SimpleOperatorVariantHelper.getOperatorVariant((function(mcc, mnc) {
+      Browser.getConfigurationData({ mcc: mcc, mnc: mnc }, (function(data) {
 
         // Populate bookmarks if upgrading from version 0 or below
         if (upgradeFrom < 1 && data.bookmarks) {
           data.bookmarks.forEach(function(bookmark) {
             if (!bookmark.uri || !bookmark.title)
               return;
-            this.addBookmark(bookmark.uri, bookmark.title);
+            this.addBookmark(bookmark.uri, bookmark.title, callback);
             if (bookmark.iconUri)
               this.setAndLoadIconForPage(bookmark.uri, bookmark.iconUri);
           }, this);
@@ -48,7 +48,7 @@ var BrowserDB = {
               !searchEngine.iconUri)
               return;
             this.addSearchEngine(searchEngine.uri, searchEngine.title,
-              searchEngine.iconUri);
+              searchEngine.iconUri, callback);
             if (searchEngine.uri == defaultSearchEngine) {
               Browser.setSearchProvider(searchEngine.uri, searchEngine.title,
                 searchEngine.iconUri);

@@ -289,7 +289,7 @@ suite('thread_list_ui', function() {
 
   suite('createThread', function() {
     setup(function() {
-      this.sinon.spy(MockUtils, 'escapeHTML');
+      this.sinon.spy(Template, 'escape');
     });
 
     function buildSMSThread(payload) {
@@ -317,13 +317,13 @@ suite('thread_list_ui', function() {
     test('escapes the body for SMS', function() {
       var payload = 'hello <a href="world">world</a>';
       ThreadListUI.createThread(buildSMSThread(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
 
     test('escapes the body for MMS', function() {
       var payload = 'hello <a href="world">world</a>';
       ThreadListUI.createThread(buildMMSThread(payload));
-      assert.ok(MockUtils.escapeHTML.calledWith(payload));
+      assert.ok(Template.escape.calledWith(payload));
     });
   });
 

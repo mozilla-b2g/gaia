@@ -20,6 +20,8 @@
     <script defer src="shared/js/mime_mapper.js"></script>
     <script defer src="shared/js/settings_url.js"></script>
     <script defer src="shared/js/advanced_timer.js"></script>
+    <script defer src="shared/js/lazy_loader.js"></script>
+    <!-- <script defer src="shared/js/keyboard_helper.js"></script> -->
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -357,6 +359,7 @@
         <div id="statusbar-geolocation" class="sb-icon sb-icon-geolocation" hidden></div>
         <div id="statusbar-usb" class="sb-icon sb-icon-usb" hidden></div>
         <div id="statusbar-call-forwarding" class="sb-icon sb-icon-call-forwarding" hidden></div>
+        <div id="statusbar-playing" class="sb-icon sb-icon-playing" hidden></div>
 
         <!-- Activity -->
         <!-- HACK: We use images instead of divs to enforce allocation of a
@@ -642,7 +645,7 @@
             </menu>
           </div>
 
-          <div id="modal-dialog-select-one" role="dialog" tabindex="-1">
+          <div id="modal-dialog-select-one" role="dialog" class="generic-dialog" tabindex="-1">
             <div class="modal-dialog-message-container inner">
               <h3 id="modal-dialog-select-one-title"></h3>
               <ul id="modal-dialog-select-one-menu"></ul>
@@ -922,7 +925,7 @@
       </div>
 
       <!-- keyboard -->
-      <div id="keyboard-frame" class="hide" data-z-index-level="keyboard-frame"></div>
+      <div id="keyboards" class="hide" data-z-index-level="keyboards"></div>
 
       <div id="cards-view" data-z-index-level="cards-view">
         <ul>

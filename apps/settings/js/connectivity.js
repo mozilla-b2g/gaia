@@ -163,7 +163,7 @@ var Connectivity = (function(window, document, undefined) {
     'evdo0': '3G CDMA',
     'evdoa': '3G CDMA',
     'evdob': '3G CDMA',
-    '1xrtt': '3G CDMA',
+    '1xrtt': '2G CDMA',
     'umts' : '3G UMTS',
     'edge' : '2G EDGE',
     'is95a': '2G CDMA',
@@ -302,6 +302,7 @@ var Connectivity = (function(window, document, undefined) {
         }));
       }, 1500);
     };
+
     // Bind message handler for incoming pairing requests
     navigator.mozSetMessageHandler('bluetooth-pairing-request',
       function bt_gotPairingRequestMessage(message) {

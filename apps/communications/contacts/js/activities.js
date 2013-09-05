@@ -31,7 +31,8 @@ var ActivityHandler = {
     var hash = action;
     var param, params = [];
     if (activity.source &&
-        activity.source.data && activity.source.data.params) {
+        activity.source.data &&
+        activity.source.data.params) {
       var originalParams = activity.source.data.params;
       for (var i in originalParams) {
         param = originalParams[i];
@@ -42,6 +43,7 @@ var ActivityHandler = {
     document.location.hash = hash;
   },
   handle: function ah_handle(activity) {
+
     switch (activity.source.name) {
       case 'new':
         this.launch_activity(activity, 'view-contact-form');
@@ -55,12 +57,36 @@ var ActivityHandler = {
       case 'pick':
         if (!this._launchedAsInlineActivity)
           return;
-
         this._currentActivity = activity;
         Contacts.navigation.home();
         break;
+      case 'import':
+        this.importContactsFromFile(activity);
+        break;
     }
     Contacts.checkCancelableActivity();
+  },
+
+  importContactsFromFile: function ah_importContactFromVcard(activity) {
+    var self = this;
+    if (activity.source &&
+        activity.source.data &&
+        activity.source.data.blob) {
+      LazyLoader.load([
+        '/contacts/js/utilities/import_from_vcard.js',
+        '/contacts/js/utilities/overlay.js'
+      ], function loaded() {
+        utils.importFromVcard(activity.source.data.blob, function imported(id) {
+          if (id) {
+            activity.source.data.params = {id: id};
+          }
+          self.launch_activity(activity, 'view-contact-details');
+        });
+      });
+    } else {
+      this._currentActivity.postError('wrong parameters');
+      this._currentActivity = null;
+    }
   },
 
   dataPickHandler: function ah_dataPickHandler(theContact) {

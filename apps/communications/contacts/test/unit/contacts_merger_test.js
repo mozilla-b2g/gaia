@@ -79,11 +79,30 @@ suite('Contacts Merging Tests', function() {
 
     contacts.Merger.merge(new MasterContact(), toMergeContacts, {
       success: function(result) {
-        assert.equal(result.givenName[0], 'Alfred Albert');
+        assert.equal(result.givenName[0], 'Alfred');
+        assert.equal(result.givenName[1], 'Alfred Albert');
         assert.equal(result.familyName[0], 'Müller');
 
         done();
       }});
+  });
+
+  test('Merge accepts matching results without the `matchings` field',
+                                                                function(done) {
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred Albert'],
+      familyName: ['Müller']
+    };
+    delete toMergeContact.matchings;
+
+    contacts.Merger.merge(new MasterContact(), toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.givenName[0], 'Alfred');
+        assert.equal(result.givenName[1], 'Alfred Albert');
+        assert.equal(result.familyName[0], 'Müller');
+
+        done();
+    }});
   });
 
   test('Merge first name and last name. incoming names empty', function(done) {

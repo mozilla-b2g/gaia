@@ -46,10 +46,13 @@ var ThreadUI = global.ThreadUI = {
   // duration of the notification that message type was converted
   CONVERTED_MESSAGE_DURATION: 3000,
   IMAGE_RESIZE_DURATION: 3000,
+  // delay between 2 counter updates while composing a message
+  UPDATE_DELAY: 500,
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
   inThread: false,
+  _updateTimeout: null,
   init: function thui_init() {
     var templateIds = [
       'contact',
@@ -89,7 +92,7 @@ var ThreadUI = global.ThreadUI = {
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
 
-    Compose.on('type', this.messageComposerTypeHandler.bind(this));
+    Compose.on('type', this.onMessageTypeChange.bind(this));
 
     this.toField.addEventListener(
       'keypress', this.toFieldKeypress.bind(this), true
@@ -220,7 +223,7 @@ var ThreadUI = global.ThreadUI = {
 
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =
-        Utils.Template('messages-' + name + '-tmpl');
+        Template('messages-' + name + '-tmpl');
       return tmpls;
     }, {});
 
@@ -230,6 +233,8 @@ var ThreadUI = global.ThreadUI = {
 
     // Initialized here, but used in ThreadUI.cleanFields
     this.previousHash = null;
+
+    this._updateTimeout = null;
 
     // Cache fixed measurement while init
     var style = window.getComputedStyle(this.input, null);
@@ -252,18 +257,14 @@ var ThreadUI = global.ThreadUI = {
 
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
-    function recipientsChanged(count) {
-      var message = count ?
-        (count > 1 ? 'recipient[many]' : 'recipient[one]') :
-        'newMessage';
-
-      navigator.mozL10n.localize(this.headerText, message, {n: count});
-
+    var recipientsChanged = (function recipientsChanged() {
+      // update composer header whenever recipients change
+      this.updateComposerHeader();
       // check for enable send whenever recipients change
       this.enableSend();
       // Clean search result after recipient count change.
       this.container.textContent = '';
-    }
+    }).bind(this);
 
     if (this.recipients) {
       this.recipients.length = 0;
@@ -276,8 +277,8 @@ var ThreadUI = global.ThreadUI = {
         template: this.tmpl.recipient
       });
 
-      this.recipients.on('add', recipientsChanged.bind(this));
-      this.recipients.on('remove', recipientsChanged.bind(this));
+      this.recipients.on('add', recipientsChanged);
+      this.recipients.on('remove', recipientsChanged);
     }
     this.container.textContent = '';
   },
@@ -378,10 +379,7 @@ var ThreadUI = global.ThreadUI = {
 
     // Restore the recipients list input area to
     // single line view.
-    this.recipients.visible('singleline', {
-      refocus: this.input,
-      noPreserve: true
-    });
+    this.recipients.visible('singleline');
 
     do {
       if (node.isPlaceholder) {
@@ -415,19 +413,37 @@ var ThreadUI = global.ThreadUI = {
     } while (node = node.previousSibling);
   },
 
-  // Message composer type changed:
-  messageComposerTypeHandler: function thui_messageComposerTypeHandler(event) {
+  onMessageTypeChange: function thui_onMessageType(event) {
     // if we are changing to sms type, we might want to cancel
     if (Compose.type === 'sms') {
-      if (this.updateSmsSegmentLimit()) {
-        return event.preventDefault();
-      }
-    }
+      this.updateSmsSegmentLimit(function segmentLimitCallback(overLimit) {
+        if (overLimit) {
+          // we can't change to sms after all
+          Compose.type = 'mms';
+          return;
+        }
 
+        this.messageComposerTypeHandler();
+      }.bind(this));
+    } else {
+      this.messageComposerTypeHandler();
+    }
+  },
+
+  // Message composer type changed:
+  messageComposerTypeHandler: function thui_messageComposerTypeHandler() {
     this.updateCounter();
 
-    var message = 'converted-to-' + Compose.type;
-    navigator.mozL10n.localize(this.convertNotice.querySelector('p'), message);
+    var oldType = this.composeForm.dataset.messageType;
+    var type = Compose.type;
+    if (oldType === type) {
+      return;
+    }
+    this.composeForm.dataset.messageType = type;
+
+    var message = 'converted-to-' + type;
+    var messageContainer = this.convertNotice.querySelector('p');
+    navigator.mozL10n.localize(messageContainer, message);
     this.convertNotice.classList.remove('hide');
 
     if (this._convertNoticeTimeout) {
@@ -461,6 +477,9 @@ var ThreadUI = global.ThreadUI = {
 
   // Create a recipient from contacts activity.
   requestContact: function thui_requestContact() {
+    // assimilate stranded string before picking a contact.
+    this.assimilateRecipients();
+
     if (typeof MozActivity === 'undefined') {
       console.log('MozActivity unavailable');
       return;
@@ -625,9 +644,9 @@ var ThreadUI = global.ThreadUI = {
     this.sendButton.disabled = disableSendMessage;
   },
 
-  // updates the counter for sms segments when in text only mode
-  // returns true when the limit is over the segment limit
-  updateSmsSegmentLimit: function thui_updateSmsSegmentLimit() {
+  // asynchronously updates the counter for sms segments when in text only mode
+  // pass 'true' to the callback when the limit is over the segment limit
+  updateSmsSegmentLimit: function thui_updateSmsSegmentLimit(callback) {
     if (!(this._mozMobileMessage &&
           this._mozMobileMessage.getSegmentInfoForText)) {
       return false;
@@ -638,23 +657,27 @@ var ThreadUI = global.ThreadUI = {
     // https://bugzilla.mozilla.org/show_bug.cgi?id=813686#c0
     var kMaxConcatenatedMessages = 10;
 
-    // Use backend api for precise sms segmetation information.
-    var smsInfo = this._mozMobileMessage.getSegmentInfoForText(value);
-    var segments = smsInfo.segments;
-    var availableChars = smsInfo.charsAvailableInLastSegment;
+    // Use backend api for precise sms segmentation information.
+    var smsInfoRequest = this._mozMobileMessage.getSegmentInfoForText(value);
+    smsInfoRequest.onsuccess = (function onSmsInfo(e) {
+      var smsInfo = e.target.result;
+      var segments = smsInfo.segments;
+      var availableChars = smsInfo.charsAvailableInLastSegment;
 
-    // in MMS mode, the counter value isn't used anyway, so we can update this
-    this.sendButton.dataset.counter = availableChars + '/' + segments;
+      // in MMS mode, the counter value isn't used anyway, so we can update this
+      this.sendButton.dataset.counter = availableChars + '/' + segments;
 
-    // if we are going to force MMS, this is true anyway, so adding has-counter
-    // again doesn't hurt us.
-    if (segments && (segments > 1 || availableChars <= 10)) {
-      this.sendButton.classList.add('has-counter');
-    } else {
+      // if we are going to force MMS, this is true anyway, so adding
+      // has-counter again doesn't hurt us.
+      var showCounter = (segments && (segments > 1 || availableChars <= 10));
+      this.sendButton.classList.toggle('has-counter', showCounter);
+
+      var overLimit = segments > kMaxConcatenatedMessages;
+      callback(overLimit);
+    }).bind(this);
+    smsInfoRequest.onerror = (function onSmsInfoError(e) {
       this.sendButton.classList.remove('has-counter');
-    }
-
-    return segments > kMaxConcatenatedMessages;
+    }).bind(this);
   },
 
   // will return true if we can send the message, false if we can't send the
@@ -664,13 +687,31 @@ var ThreadUI = global.ThreadUI = {
 
     if (Compose.type === 'mms') {
       return this.updateCounterForMms();
+    } else {
+      Compose.lock = false;
+      if (this._updateTimeout === null) {
+        this._updateTimeout = setTimeout(this.updateCounterForSms.bind(this),
+            this.UPDATE_DELAY);
+      }
+      return true;
     }
+  },
 
-    Compose.lock = false;
+  updateCounterForSms: function thui_updateCounterForSms() {
+    // We nullify this timeout here rather than in the updateSmsSegmentLimit
+    // callback because otherwise we could display an information that is not
+    // current.
+    // With the timeout, the risk of having 2 requests in the same time,
+    // returning in a different order, which would actually display old
+    // information, is very tiny, so we should be good without adding another
+    // lock.
+    this._updateTimeout = null;
     this.maxLengthNotice.classList.add('hide');
-    if (this.updateSmsSegmentLimit()) {
-      Compose.type = 'mms';
-    }
+    this.updateSmsSegmentLimit((function segmentLimitCallback(overLimit) {
+      if (overLimit) {
+        Compose.type = 'mms';
+      }
+    }).bind(this));
     return true;
   },
 
@@ -1013,7 +1054,7 @@ var ThreadUI = global.ThreadUI = {
         textElement = document.createElement('span');
 
         // escape text for html and look for clickable numbers, etc.
-        var text = Utils.escapeHTML(messageData.text);
+        var text = Template.escape(messageData.text);
         text = LinkHelper.searchAndLinkClickableData(text);
 
         textElement.innerHTML = text;
@@ -1116,10 +1157,24 @@ var ThreadUI = global.ThreadUI = {
     });
   },
 
+  // Check deliveryStatus for both single and multiple recipient case.
+  // In multiple recipient case, we return true only when all the recipients
+  // deliveryStatus set to success.
+  isDeliveryStatusSuccess: function thui_isDeliveryStatusSuccess(message) {
+    var statusSet = message.deliveryStatus;
+    if (Array.isArray(statusSet)) {
+      return statusSet.every(function(status) {
+        return status === 'success';
+      });
+    } else {
+      return statusSet === 'success';
+    }
+  },
+
   buildMessageDOM: function thui_buildMessageDOM(message, hidden) {
     var bodyHTML = '';
     var delivery = message.delivery;
-    var isDelivered = message.deliveryStatus === 'success';
+    var isDelivered = this.isDeliveryStatusSuccess(message);
     var messageDOM = document.createElement('li');
 
     var classNames = ['message', message.type, delivery];
@@ -1146,7 +1201,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (message.type && message.type === 'sms') {
-      var escapedBody = Utils.escapeHTML(message.body || '');
+      var escapedBody = Template.escape(message.body || '');
       bodyHTML = LinkHelper.searchAndLinkClickableData(escapedBody);
     }
 
@@ -1552,6 +1607,11 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onDeliverySuccess: function thui_onDeliverySuccess(message) {
+    // We need to make sure all the recipients status got success event.
+    if (!this.isDeliveryStatusSuccess(message)) {
+      return;
+    }
+
     var messageDOM = document.getElementById('message-' + message.id);
 
     if (!messageDOM) {
@@ -1715,7 +1775,7 @@ var ThreadUI = global.ThreadUI = {
     var renderPhoto = params.renderPhoto;
 
     // We search on the escaped HTML via a regular expression
-    var escaped = Utils.escapeRegex(Utils.escapeHTML(input));
+    var escaped = Utils.escapeRegex(Template.escape(input));
     var escsubs = escaped.split(/\s+/);
     // Build a list of regexes used for highlighting suggestions
     var regexps = {
@@ -1763,7 +1823,7 @@ var ThreadUI = global.ThreadUI = {
       var data = Utils.getDisplayObject(details.title, current);
 
       ['name', 'number'].forEach(function(key) {
-        var escapedData = Utils.escapeHTML(data[key]);
+        var escapedData = Template.escape(data[key]);
         if (isSuggestion) {
           // When rendering a suggestion, we highlight the matched substring.
           // The approach is to escape the html and the search string, and
@@ -2185,7 +2245,7 @@ function generateHeightRule(height) {
 
   sheet = generateHeightRule.sheet || sheets[sheets.length - 1];
   index = generateHeightRule.index || sheet.cssRules.length;
-  tmpl = generateHeightRule.tmpl || Utils.Template('height-rule-tmpl');
+  tmpl = generateHeightRule.tmpl || Template('height-rule-tmpl');
 
   css = tmpl.interpolate({
     height: String(height)

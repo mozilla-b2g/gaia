@@ -11,6 +11,12 @@ var MockCallsHandler = {
     this.mLastEntryAdded = entry;
   },
 
+  toggleMute: function() {},
+  unmute: function() {},
+  toggleSpeaker: function() {},
+  turnSpeakerOn: function() {},
+  turnSpeakerOff: function() {},
+
   mTeardown: function() {
     this.mLastEntryAdded = null;
     this.mUpdateKeypadEnabledCalled = true;

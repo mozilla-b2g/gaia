@@ -13,10 +13,11 @@ contacts.adaptAndMerge = function(incomingContact, matches, callbacks) {
     matchingContacts.push(matches[listIds[j]]);
   }
   // Finally the last matching is the incoming itself
+  // XXX: it has no `matchings` entry as it does not come from the matching
+  // algorithm.
+  // Now only used here but consider to provide a constructor in the future.
   matchingContacts.push({
-    matchingContact: incomingContact,
-    target: '',
-    matchedValues: []
+    matchingContact: incomingContact
   });
 
   contacts.Merger.merge(masterContact, matchingContacts, callbacks);

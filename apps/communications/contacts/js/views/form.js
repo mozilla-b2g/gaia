@@ -615,14 +615,7 @@ contacts.Form = (function() {
 
     LazyLoader.load(['/contacts/js/contacts_merger.js',
                      '/contacts/js/merger_adapter.js'], function() {
-      if (mode === 'add') {
-        contacts.adaptAndMerge(contact, list, callbacks);
-      }
-      else {
-        // In edit mode the master contact should be the one edited at the
-        // moment
-        contacts.Merger.merge(contact, list, callbacks);
-      }
+      contacts.Merger.merge(contact, list, callbacks);
     });
   };
 

@@ -6,7 +6,7 @@ marionette('creating an event', function() {
   var client = marionette.client();
 
   var app, expected;
-  setup(function(done) {
+  setup(function() {
     app = new Calendar(client);
     app.launch();
 
@@ -20,8 +20,9 @@ marionette('creating an event', function() {
     expected = app.createEvent();
 
     // Wait until we return to the base, month view.
-    var active = app.isMonthViewActive.bind(app, client);
-    client.helper.waitFor(active, done);
+    client.waitFor(function() {
+      return app.isMonthViewActive();
+    });
   });
 
   test('should make an event visible in the month day view', function() {
@@ -32,7 +33,7 @@ marionette('creating an event', function() {
     assert.strictEqual(els.length, 1);
   });
 
-  test('should display the created event in read-only view', function(done) {
+  test('should display the created event in read-only view', function() {
     // Get the day's events at the bottom of the month view.
     var els = app.monthViewDayEvents;
 
@@ -42,11 +43,12 @@ marionette('creating an event', function() {
 
     // Wait until we see the read-only event view.
     var active = app.isViewEventViewActive.bind(app, client);
-    client.helper.waitFor(active, function() {
+    client.waitFor(function() {
       // Verify event's details to make sure they were set correctly.
-      var actual = app.getViewEventEvent();
-      assert.deepEqual(actual, expected);
-      done();
+      return app.isViewEventViewActive();
     });
+
+    var actual = app.getViewEventEvent();
+    assert.deepEqual(actual, expected);
   });
 });

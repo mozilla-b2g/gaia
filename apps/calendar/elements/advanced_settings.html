@@ -1,0 +1,67 @@
+<element name="advanced-settings" extends="section">
+  <template>
+    <header>
+      <menu type="toolbar">
+        <a href="/settings/">
+          <span data-l10n-id="done">Done</span>
+        </a>
+      </menu>
+      <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
+    </header>
+
+    <section class="content">
+      <div class="errors"></div>
+
+      <header class="account-list-header">
+        <h2 data-l10n-id="account-list-header">
+          Accounts
+        </h2>
+      </header>
+
+      <ol class="account-list link-list">
+      </ol>
+
+      <header>
+        <h2 data-l10n-id="advanced-settings-personalization">
+          Personalization
+        </h2>
+      </header>
+
+      <ol class="settings-list link-list">
+        <li>
+          <label>
+            <span data-l10n-id="sync-frequency">Sync Calendar</span>
+            <span class="button icon icon-dialog">
+              <select id="setting-sync-frequency" name="syncFrequency">
+                <option data-l10n-id="sync-frequency-15min" value="15">15 min</option>
+                <option data-l10n-id="sync-frequency-30min" value="30">30 min</option>
+                <option data-l10n-id="sync-frequency-manual" value="null">Manual</option>
+              </select>
+            </span>
+          </label>
+        </li>
+      </ol>
+
+      <header>
+        <h2 data-l10n-id="advanced-settings-reminders">
+          Reminders
+        </h2>
+      </header>
+
+      <ol class="settings-list link-list">
+        <li>
+          <label id="default-event-alarm">
+            <span data-l10n-id="events">Events</span>
+            <span class="button icon icon-dialog"></span>
+          </label>
+        </li>
+        <li>
+          <label id="default-allday-alarm">
+            <span data-l10n-id="allday-events">All-day Events</span>
+            <span class="button icon icon-dialog"></span>
+          </label>
+        </li>
+      </ol>
+    </section>
+  </template>
+</element>

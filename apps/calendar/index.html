@@ -19,6 +19,7 @@
   <!--- shared scripts -->
   <script defer src="/shared/js/l10n.js" charset="utf-8"></script>
   <script defer src="/shared/js/gesture_detector.js" charset="utf-8"></script>
+  <script defer src="/shared/js/lazy_loader.js" charset="utf-8"></script>
   <script defer src="/shared/js/l10n_date.js" charset="utf-8"></script>
   <script defer src="/shared/js/notification_helper.js" charset="utf-8"></script>
 
@@ -85,56 +86,23 @@
   <script defer src="/js/controllers/sync.js" charset="utf-8"></script>
   <script defer src="/js/controllers/alarm.js" charset="utf-8"></script>
   <script defer src="/js/app.js" charset="utf-8"></script>
+
+  <link rel="import" href="/elements/errors.html">
+  <link rel="import" href="/elements/lazy_styles.html">
+  <link rel="import" href="/elements/advanced_settings.html">
+  <link rel="import" href="/elements/create_account.html">
+  <link rel="import" href="/elements/modify_account.html">
+  <link rel="import" href="/elements/modify_event.html">
+  <link rel="import" href="/elements/oauth.html">
+  <link rel="import" href="/elements/settings.html">
+  <link rel="import" href="/elements/show_event.html">
 </head>
 
 <body role="application" class="loading">
-<div class="delay"><!--
 
-<link rel="stylesheet" type="text/css" href="/style/forms.css">
-<link rel="stylesheet" type="text/css" href="/style/overlay.css">
-
-<link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
-<link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
-<link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
-<link rel="stylesheet" type="text/css" href="/shared/style/status.css">
-<link rel="stylesheet" type="text/css" href="/shared/style_unstable/progress_activity.css">
-
-<section id="errors" role="status">
-  <p class="errors"></p>
-</section>
-<section class="skin-organic" id="settings" role="region">
-
-  <header>
-    <menu type="toolbar">
-      <a href="/select-preset/">
-        <span class="icon icon-add">Create Account</span>
-      </a>
-    </menu>
-    <h1 data-l10n-id="settings-header">Calendars</h1>
-  </header>
-
-  <ol class="calendars">
-  </ol>
-
-  <div role="toolbar">
-    <ul>
-      <li>
-        <a class="settings" href="/advanced-settings/" data-l10n-id="advanced-settings">
-          Account Settings
-        </a>
-      </li>
-    </ul>
-
-    <ul class="end">
-      <li>
-        <button class="sync update">
-          <span class="icon">Sync</span>
-        </button>
-      </li>
-    </ul>
-  </div>
-</section>
---></div>
+<section is="lazy-styles" id="lazy-styles"></section>
+<section is="errors" id="errors" role="status"></section>
+<section is="settings" class="skin-organic" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
   <header id="time-header">
@@ -178,13 +146,9 @@
     </section>
   </section>
 
-  <section id="day-view">
-  </section>
+  <section id="day-view"></section>
 
-  <div class="delay"><!--
-  <section id="week-view">
-  </section>
-  --></div>
+  <section id="week-view"></section>
 
   <menu id="view-selector">
     <li class="today">
@@ -206,348 +170,12 @@
   </menu>
 </section>
 
-<div class="delay"><!--
-<section class="fullscreen-view skin-organic" id="create-account-view" role="region">
-  <header>
-    <button class="cancel">
-      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
-    </button>
-
-    <h1 data-l10n-id="add-account">
-      Add an account
-    </h1>
-  </header>
-
-  <ol id="create-account-presets" class="link-list">
-  </ol>
-
-</section>
-
-<section
-    class="fullscreen-view in-progress skin-organic"
-    role="region"
-    id="advanced-settings-view">
-
-  <header>
-    <menu type="toolbar">
-      <a href="/settings/">
-        <span data-l10n-id="done">Done</span>
-      </a>
-    </menu>
-    <h1 data-l10n-id="advanced-settings-header">Calendar Settings</h1>
-  </header>
-
-  <section class="content">
-    <div class="errors"></div>
-
-    <header class="account-list-header">
-      <h2 data-l10n-id="account-list-header">
-        Accounts
-      </h2>
-    </header>
-
-    <ol class="account-list link-list">
-    </ol>
-
-    <header>
-      <h2 data-l10n-id="advanced-settings-personalization">
-        Personalization
-      </h2>
-    </header>
-
-    <ol class="settings-list link-list">
-      <li>
-        <label>
-          <span data-l10n-id="sync-frequency">Sync Calendar</span>
-          <span class="button icon icon-dialog">
-            <select id="setting-sync-frequency" name="syncFrequency">
-              <option data-l10n-id="sync-frequency-15min" value="15">15 min</option>
-              <option data-l10n-id="sync-frequency-30min" value="30">30 min</option>
-              <option data-l10n-id="sync-frequency-manual" value="null">Manual</option>
-            </select>
-          </span>
-        </label>
-      </li>
-    </ol>
-
-    <header>
-      <h2 data-l10n-id="advanced-settings-reminders">
-        Reminders
-      </h2>
-    </header>
-
-    <ol class="settings-list link-list">
-      <li>
-        <label id="default-event-alarm">
-          <span data-l10n-id="events">Events</span>
-          <span class="button icon icon-dialog"></span>
-        </label>
-      </li>
-      <li>
-        <label id="default-allday-alarm">
-          <span data-l10n-id="allday-events">All-day Events</span>
-          <span class="button icon icon-dialog"></span>
-        </label>
-      </li>
-    </ol>
-  </section>
-</section>
-
-<section class="fullscreen-view" id="modify-event-view" role="region">
-  <header>
-    <button class="cancel">
-      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
-    </button>
-
-    <menu type="toolbar">
-      <button class="save">
-        <span data-l10n-id="save" class="save-text">Save</span>
-        <span data-l10n-id="done" class="done-text">Done</span>
-      </button>
-    </menu>
-
-    <h1 data-l10n-id="add-event-header">
-      Create Event
-    </h1>
-  </header>
-
-  <form>
-    <ol>
-      <li class="title">
-        <input name="title" data-l10n-id="event-title" x-inputmode="latin-prose" placeholder="Title" />
-      </li>
-
-      <li class="location">
-        <input name="location" data-l10n-id="event-location" x-inputmode="latin-prose" placeholder="Where?" />
-      </li>
-
-      <li class="allday">
-        <label class="pack-checkbox">
-          <input name="allday" type="checkbox" />
-          <span></span>
-        </label>
-        <a data-l10n-id="event-is-allday">All Day Event?</a>
-      </li>
-
-      <li class="start-date">
-        <span class="button icon icon-dialog">
-          <label>
-            <input name="startDate" data-l10n-id="event-start-date" placeholder="Date" type="date" class="hidden-input" />
-          </label>
-          <span class="datetime" id="start-date-locale"></span>
-        </span>
-      </li>
-
-      <li class="start-time">
-        <span class="button icon icon-dialog">
-          <label>
-            <input type="time" data-l10n-id="event-start-time" placeholder="Start Time" name="startTime" class="hidden-input" />
-          </label>
-          <span class="datetime" id="start-time-locale"></span>
-        </span>
-      </li>
-
-      <li class="end-date">
-        <span class="button icon icon-dialog">
-          <label>
-            <input name="endDate" data-l10n-id="event-end-date" placeholder="Date" type="date" class="hidden-input" />
-          </label>
-          <span class="datetime" id="end-date-locale"></span>
-        </span>
-      </li>
-
-      <li class="end-time">
-        <span class="button icon icon-dialog">
-          <label>
-            <input type="time" data-l10n-id="event-end-time" placeholder="End Time" name="endTime" class="hidden-input" />
-          </label>
-          <span class="datetime" id="end-time-locale"></span>
-        </span>
-      </li>
-
-      <li class="current-calendar">
-        <span class="button icon icon-dialog" aria-disabled="true">
-          <input name="currentCalendar" />
-        </span>
-      </li>
-
-      <li class="calendar-id">
-        <span class="button icon icon-dialog">
-          <select name="calendarId">
-          </select>
-        </span>
-      </li>
-
-      <li>
-        <h3 data-l10n-id="remind-me">Remind me</h3>
-        <div class="alarms">
-        </div>
-      </li>
-
-      <li class="notes">
-        <textarea class="fieldbox" name="description" data-l10n-id="event-description" x-inputmode="latin-prose" placeholder="Notes"></textarea>
-      </li>
-
-      <li class="delete">
-        <a role="button" data-l10n-id="event-delete" class="danger delete-record">
-          Delete Event
-        </a>
-      </li>
-
-    </ol>
-
-    <section role="status">
-      <p class="errors"></p>
-    </section>
-  </form>
-</section>
-
-<section class="fullscreen-view" id="event-view" role="region">
-  <header>
-    <button class="cancel">
-      <span data-l10n-id="cancel" class="icon icon-back">Cancel</span>
-    </button>
-
-    <menu type="toolbar">
-      <button class="edit">
-        <span data-l10n-id="edit">Edit</span>
-      </button>
-    </menu>
-
-    <h1 data-l10n-id="add-event-header">
-      Event
-    </h1>
-  </header>
-
-  <section data-type="list">
-    <ul>
-      <li class="title">
-        <h1><span class="content"></span></h1>
-      </li>
-
-      <li class="location">
-        <span class="content"></span>
-      </li>
-
-      <li class="current-calendar">
-        <span class="content"></span>
-      </li>
-
-      <li class="start-date">
-        <span data-l10n-id="from-time">From: </span>
-        <span class="content"></span>
-        <span class="start-time">
-          <span class="content"></span>
-        </span>
-      </li>
-
-      <li class="end-date">
-        <span data-l10n-id="to-time">To: </span>
-        <span class="content"></span>
-        <span class="end-time">
-          <span class="content"></span>
-        </span>
-      </li>
-
-      <li class="alarms">
-        <h2 data-l10n-id="remind-me">Remind me</h2>
-        <span class="content"></span>
-      </li>
-
-      <li class="description">
-        <strong>Notes</strong><br>
-        <span class="content"></span>
-      </li>
-
-    </ul>
-  </section>
-</section>
-
-<section class="fullscreen-view skin-dark" id="oauth2" role="region">
-  <header>
-    <button class="cancel">
-      <span data-l10n-id="back" class="cancel icon icon-back">Back</span>
-    </button>
-    <h1 class="oauth-browser-title">
-      &nbsp;
-    </h1>
-  </header>
-  <div class="browser-container">
-  </div>
-</section>
-
-<section class="fullscreen-view skin-organic" id="modify-account-view" role="region">
-  <header>
-    <button class="cancel">
-      <span data-l10n-id="back" class="cancel icon icon-back">Back</span>
-    </button>
-
-    <menu type="toolbar">
-      <button class="save">
-        <span data-l10n-id="save">Save</span>
-      </button>
-    </menu>
-
-    <h1 data-l10n-id="account-header">Account</h1>
-  </header>
-
-  <section class="during-progress">
-    <div>
-      <progress class="small"></progress>
-      <span data-l10n-id="modify-account-setting-up">SeTtiNg uP ACcOunt</span>
-    </div>
-  </section>
-
-  <form>
-    <fieldset>
-      <ol>
-        <li class="user">
-          <input name="user" data-l10n-id="field-user" x-inputmode="verbatim" placeholder="Username" />
-        </li>
-        <li class="password">
-          <input name="password" data-l10n-id="field-password" placeholder="Password" type="password" />
-        </li>
-        <li class="full-url">
-          <input name="fullUrl"
-            type="url"
-            data-l10n-id="field-full-url"
-            placeholder="URL" />
-
-        </li>
-        <li class="sync-errors">
-          <p data-l10n-id="modify-account-unable-to-sync">>uNaBle to SynC</p>
-        </li>
-        <li class="oauth2-sign-in">
-          <button data-l10n-id="modify-account-sign-in" class="force-oauth2"></button>
-        </li>
-        <li>
-          <a data-l10n-id="remove-account-data" role="button" href="#remove-account-dialog" class="danger delete-record">
-            Remove Local Data
-          </a>
-        </li>
-      </ol>
-    </fieldset>
-  </form>
-
-  <section role="status">
-    <p class="errors"></p>
-  </section>
-
-  <form role="dialog" data-type="confirm" id="remove-account-dialog">
-    <section>
-      <h1 data-l10n-id="remove-account-dialog">Remove Account</h1>
-      <p data-l10n-id="remove-account-dialog-details">
-        Removing this account will also remove your local copy of associated calendars and events.
-      </p>
-    </section>
-    <menu>
-      <button class="delete-cancel" data-l10n-id="cancel">Cancel</button>
-      <button class="danger delete-confirm" data-l10n-id="confirm">Confirm</button>
-    </menu>
-  </form>
-
-</section>
---></div>
+<section is="create-account" class="fullscreen-view skin-organic" id="create-account-view" role="region"></section>
+<section is="advanced-settings" class="fullscreen-view in-progress skin-organic" role="region" id="advanced-settings-view"></section>
+<section is="modify-event" class="fullscreen-view" id="modify-event-view" role="region"></section>
+<section is="show-event" class="fullscreen-view" id="event-view" role="region"></section>
+<section is="oauth" class="fullscreen-view skin-dark" id="oauth2" role="region"></section>
+<section is="modify-account" class="fullscreen-view skin-organic" id="modify-account-view" role="region">
 
 </body>
 </html>

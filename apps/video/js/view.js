@@ -44,7 +44,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // If the app that initiated this activity wants us to allow the
     // user to save this blob as a file, and if device storage is available
     // and if there is enough free space, then display a save button.
-    if (data.allowSave && data.filename) {
+    if (data.allowSave && data.filename && checkFilename()) {
       getStorageIfAvailable('videos', blob.size, function(ds) {
         storage = ds;
         dom.menu.hidden = false;
@@ -125,6 +125,16 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       document.documentElement.lang = navigator.mozL10n.language.code;
       document.documentElement.dir = navigator.mozL10n.language.direction;
     });
+  }
+
+  function checkFilename() {
+    var dotIdx = data.filename.lastIndexOf('.');
+    if (dotIdx > -1) {
+      var ext = data.filename.substr(dotIdx + 1);
+      return MimeMapper.guessTypeFromExtension(ext) === blob.type;
+    } else {
+      return false;
+    }
   }
 
   function setControlsVisibility(visible) {
@@ -273,7 +283,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.videoTitle.textContent = title || '';
     dom.player.src = url;
     dom.player.onloadedmetadata = function() {
-      dom.durationText.textContent = formatDuration(dom.player.duration);
+      dom.durationText.textContent = MediaUtils.formatDuration(
+        dom.player.duration);
       timeUpdated();
 
       dom.play.classList.remove('paused');
@@ -390,7 +401,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       return;
     percent += '%';
 
-    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
+    dom.elapsedText.textContent = MediaUtils.formatDuration(
+      dom.player.currentTime);
     dom.elapsedTime.style.width = percent;
     // Don't move the play head if the user is dragging it.
     if (!dragging)
@@ -458,26 +470,8 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     dom.playHead.style.left = percent;
     dom.elapsedTime.style.width = percent;
     dom.player.currentTime = dom.player.duration * pos;
-    dom.elapsedText.textContent = formatDuration(dom.player.currentTime);
-  }
-
-  function formatDuration(duration) {
-    function padLeft(num, length) {
-      var r = String(num);
-      while (r.length < length) {
-        r = '0' + r;
-      }
-      return r;
-    }
-
-    var minutes = Math.floor(duration / 60);
-    var seconds = Math.floor(duration % 60);
-    if (minutes < 60) {
-      return padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
-    }
-    var hours = Math.floor(minutes / 60);
-    minutes = Math.floor(minutes % 60);
-    return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
+    dom.elapsedText.textContent = MediaUtils.formatDuration(
+      dom.player.currentTime);
   }
 
   function showBanner(msg) {

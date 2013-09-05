@@ -152,14 +152,18 @@ var Camera = {
 
   _flashState: {
     camera: {
-      supported: false,
+      defaultMode: 1,
+      supported: [], // delay the array initialization to enableCameraFeatures.
       modes: ['off', 'auto', 'on'],
-      currentMode: 1 // default flash mode is 'auto'
+      currentMode: [] // default flash mode is 'auto'
+                      // delay the array initialization when needed.
     },
     video: {
-      supported: false,
+      defaultMode: 0,
+      supported: [], // delay the array initialization to enableCameraFeatures.
       modes: ['off', 'torch'],
-      currentMode: 0
+      currentMode: [] // default flash mode is 'off'
+                      // delay the array initialization when needed.
     }
   },
 
@@ -192,6 +196,10 @@ var Camera = {
   MAX_IMAGE_RES: 1600 * 1200, // Just under 2 megapixels
   // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
   ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
+
+  // Minimum video duration length for creating a video that contains at least
+  // few samples, see bug 899864.
+  MIN_RECORDING_TIME: 500,
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
@@ -517,8 +525,6 @@ var Camera = {
   toggleCamera: function camera_toggleCamera() {
     this._cameraNumber = 1 - this._cameraNumber;
     // turn off flash light before switch to front camera
-    var flash = this._flashState[this._captureMode];
-    flash.currentMode = 0;
     this.updateFlashUI();
     // Disable the buttons so the user can't use them while we're switching.
     this.disableButtons();
@@ -533,23 +539,50 @@ var Camera = {
 
   updateFlashUI: function camera_updateFlashUI() {
     var flash = this._flashState[this._captureMode];
-    if (flash.supported) {
+    if (flash.supported[this._cameraNumber]) {
       this.setFlashMode();
       this.toggleFlashBtn.classList.remove('hidden');
     } else {
       this.toggleFlashBtn.classList.add('hidden');
+      // alsways set flash mode as off while it is not supported.
+      // It may be very useful at the case of video.
+      this._cameraObj.flashMode = flash.modes[0];
     }
+  },
+
+  turnOffFlash: function camera_turnOffFlash() {
+    var flash = this._flashState[this._captureMode];
+    flash.currentMode[this._cameraNumber] = 0;
+    this.setFlashMode();
+  },
+
+  // isAuto: true if caller want to set it as auto; false for always light.
+  // Auto mode only works when camera is currently at camera mode (not video).
+  turnOnFlash: function camera_turnOnFlash(isAuto) {
+    var flash = this._flashState[this._captureMode];
+    if (this._captureMode === this.CAMERA) {
+      flash.currentMode[this._cameraNumber] = isAuto ? 1 : 2;
+    } else {
+      flash.currentMode[this._cameraNumber] = 1;
+    }
+    this.setFlashMode();
   },
 
   toggleFlash: function camera_toggleFlash() {
     var flash = this._flashState[this._captureMode];
-    flash.currentMode = (flash.currentMode + 1) % flash.modes.length;
+    flash.currentMode[this._cameraNumber] =
+               (flash.currentMode[this._cameraNumber] + 1) % flash.modes.length;
     this.setFlashMode();
   },
 
   setFlashMode: function camera_setFlashMode() {
     var flash = this._flashState[this._captureMode];
-    var flashModeName = flash.modes[flash.currentMode];
+    if ((typeof flash.currentMode[this._cameraNumber]) === 'undefined') {
+      flash.currentMode[this._cameraNumber] = flash.defaultMode;
+    }
+
+    var flashModeName = flash.modes[flash.currentMode[this._cameraNumber]];
+
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this._cameraObj.flashMode = flashModeName;
   },
@@ -578,7 +611,13 @@ var Camera = {
     };
     var onsuccess = (function onsuccess() {
       document.body.classList.add('capturing');
-      captureButton.removeAttribute('disabled');
+      // If the duration is too short, there may be no track been record. That
+      // creates corrupted video files. Because media file needs some samples.
+      // To have more information on video track, we wait for 500ms to have
+      // few video and audio samples, see bug 899864.
+      window.setTimeout(function() {
+        captureButton.removeAttribute('disabled');
+      }, Camera.MIN_RECORDING_TIME);
       this._recording = true;
       this.startRecordingTimer();
 
@@ -730,7 +769,10 @@ var Camera = {
           URL.revokeObjectURL(url);
           offscreenVideo.removeAttribute('src');
           offscreenVideo.load();
-          console.warn('not a video file', filename);
+          console.warn('not a video file', filename, 'delete it!');
+          // we need to delete all corrupted video files, those of them may be
+          // tracks without samples, see bug 899864.
+          Camera._videoStorage.delete(filename);
         };
 
         offscreenVideo.onloadedmetadata = function() {
@@ -1013,11 +1055,11 @@ var Camera = {
     if (flashModes) {
       // Check camera flash support
       var flash = this._flashState[this.CAMERA];
-      flash.supported = isSubset(flash.modes, flashModes);
+      flash.supported[this._cameraNumber] = isSubset(flash.modes, flashModes);
 
       // Check video flash support
       flash = this._flashState[this.VIDEO];
-      flash.supported = isSubset(flash.modes, flashModes);
+      flash.supported[this._cameraNumber] = isSubset(flash.modes, flashModes);
 
       this.updateFlashUI();
     } else {
@@ -1508,6 +1550,7 @@ Camera.init();
 
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
+    Camera.turnOffFlash();
     Camera.stopPreview();
     Camera.cancelPick();
     Camera.cancelPositionUpdate();
