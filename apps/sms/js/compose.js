@@ -78,7 +78,6 @@ var Compose = (function() {
     }
 
     if (!hasFrames && state.type === 'mms') {
-      // this operation is cancelable
       compose.type = 'sms';
     }
 
@@ -523,18 +522,9 @@ var Compose = (function() {
         return state.type;
       }
       if (value !== state.type) {
-        var event = new CustomEvent('type', {
-          cancelable: true
-        });
-        // store the old value in case of cancel
-        var oldValue = state.type;
+        var event = new CustomEvent('type');
         state.type = value;
         trigger('type', event);
-        if (event.defaultPrevented) {
-          state.type = oldValue;
-        } else {
-          dom.form.dataset.messageType = state.type;
-        }
       }
       return state.type;
     }
