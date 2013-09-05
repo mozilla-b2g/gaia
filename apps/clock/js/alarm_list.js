@@ -45,9 +45,11 @@ var AlarmList = {
   },
 
   alarmEditView: function(alarm) {
+    window.ALARMEDITVIEW = 1;
     LazyLoader.load(
       ['js/alarm_edit.js'],
       function() {
+        window.ALARMEDITVIEW = 2;
         AlarmEdit.load(alarm);
     });
   },

@@ -83,11 +83,17 @@ marionette('Clock', function() {
     function getState(client) {
       return client.executeScript(function() {
         var target = document.querySelector('.view:target');
+        var win = this.wrappedJSObject;
         if (target) {
           target = target.outerHTML.split(/[\r\n]/)[0].replace(/>.*/, '>');
         }
-        return '    location: ' + window.location.toString() + '\n' +
-          '    target: ' + target;
+        return '    ' + [
+          'location: ' + window.location.toString(),
+          'target: ' + target,
+          'ClockView.isInitialized: ' + win.ClockView.isInitialized,
+          'LOCALIZED: ' + win.LOCALIZED,
+          'ALARMEDITVIEW: ' + win.ALARMEDITVIEW
+        ].join('\n    ');
       });
     };
 
@@ -101,12 +107,6 @@ marionette('Clock', function() {
       client.waitFor(function() {
         console.log('  waiting... #' + i + ':');
         console.log(getState(client));
-        /*if (i > 0) {
-          var html = client.executeScript(function() {
-            return document.documentElement.innerHTML;
-          });
-          console.log(html);
-        }*/
         i++;
         return this.elems.alarmCreateBtn.displayed();
       }.bind(this), {
