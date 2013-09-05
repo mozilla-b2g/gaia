@@ -20,6 +20,7 @@ manifest.appcache
 /apps/*/test/unit/_proxy.html
 /apps/*/locales-obj
 /apps/*/shared
+/apps/settings/resources/network.json
 /apps/settings/resources/support.json
 /apps/settings/resources/sensors.json
 /apps/system/resources/icc.json
