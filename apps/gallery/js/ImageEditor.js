@@ -284,6 +284,9 @@ function undoCropHandler() {
 }
 
 function exitEditMode(saved) {
+  // Enables the save button once the edited image has been saved
+  $('edit-save-button').disabled = false;
+
   // Revoke the blob URL we've been using
   URL.revokeObjectURL(editedPhotoURL);
   editedPhotoURL = null;
@@ -322,6 +325,10 @@ function exitEditMode(saved) {
 // change event when we manually add something to it or at least have that
 // option
 function saveEditedImage() {
+  // Save button disabled to prevent the user triggering multiple
+  // save operations
+  $('edit-save-button').disabled = true;
+
   // If we are in crop mode, perform the crop before saving
   if ($('edit-crop-button').classList.contains('selected'))
     imageEditor.cropImage();
