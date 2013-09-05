@@ -112,6 +112,11 @@ section[role="region"] > div {
   font-size: 1.7rem;
 }
 
+.description small {
+  font-size: 1.7rem;
+  color: #505859;
+}
+
 .link-text, .tel-text a {
   font-size: 1.4rem;
   color: #336699;
