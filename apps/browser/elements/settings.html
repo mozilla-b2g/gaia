@@ -1,0 +1,44 @@
+<element name="settings" extends="section">
+  <template>
+
+    <header id="settings-header">
+      <menu type="toolbar">
+        <button id="settings-done-button" role="menuitem" data-l10n-id="done">Done</button>
+      </menu>
+      <h1 data-l10n-id="browser-settings">Browser Settings</h1>
+    </header>
+    <ul>
+      <li>
+        <button id="about-browser-button"
+        data-l10n-id="about-browser" class="icon icon-view">About Browser</button>
+      </li>
+    </ul>
+    <header>
+      <h2 data-l10n-id="privacy-and-security">Privacy & Security</h2>
+    </header>
+    <ul>
+      <li>
+        <button id="clear-history-button"
+        data-l10n-id="clear-browsing-history">Clear browsing history</button>
+      </li>
+      <li>
+        <button id="clear-private-data-button"
+        data-l10n-id="clear-cookies-and-stored-data">Clear cookies and stored data</button>
+      </li>
+    </ul>
+    <header>
+      <h2 data-l10n-id="search-engines">Search Engines</h2>
+    </header>
+    <ul>
+      <li>
+        <p data-l10n-id="default-search-engine">Default search engine</p>
+        <span class="fake-select">
+          <button id="search-engine-button" disabled="true" class="icon icon-dialog">...</button>
+          <select id="search-engine-select" disabled="true">
+          </select>
+        </span>
+      </li>
+    </ul>
+
+  </template>
+</element>

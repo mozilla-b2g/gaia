@@ -1,0 +1,22 @@
+<element name="http-authentication-dialog" extends="section">
+  <template>
+
+    <header>
+      <button id="http-authentication-cancel">
+        <span class="icon icon-close">close</span>
+      </button>
+      <menu type="toolbar">
+        <button id="http-authentication-ok" data-l10n-id="login">Login</button>
+      </menu>
+      <h1 data-l10n-id="login-to-a-website">Login to a website</h1>
+    </header>
+    <span id="http-authentication-message"></span>
+    <label data-l10n-id="username">Username
+      <input type="text" id="http-authentication-username" />
+    </label>
+    <label data-l10n-id="password">Password
+      <input id="http-authentication-password" type="password" />
+    </label>
+
+  </template>
+</element>
