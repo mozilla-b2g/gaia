@@ -154,7 +154,9 @@ function init() {
       }
     });
   };
-
+  $('overlay-cancel-button').onclick = function() {
+    cancelPick();
+  };
   // Handle resize events
   window.onresize = resizeHandler;
 
@@ -244,17 +246,11 @@ function initDB() {
   // We don't need one of these handlers for the video db, since both
   // will get the same event at more or less the same time.
   photodb.onunavailable = function(event) {
-    // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
-    // session during a pick activity, just abort the pick.
-    if (pendingPick) {
-      cancelPick();
-      return;
-    }
-
     // Switch back to the thumbnail view. If we were viewing or editing an image
     // it might not be there anymore when the MediaDB becomes available again.
     setView(thumbnailListView);
 
+    // If storage becomes unavailble (e.g. the user starts a USB Mass Storage
     // Lock the user out of the app, and tell them why
     var why = event.detail;
     if (why === MediaDB.NOCARD)
@@ -1116,10 +1112,10 @@ function showOverlay(id) {
     currentOverlay = id;
 
     // hide any special elements
-    $('overlay-menu').classList.add('hidden');
     $('storage-setting-button').classList.add('hidden');
     $('overlay-camera-button').classList.add('hidden');
-
+    $('overlay-cancel-button').classList.add('hidden');
+    $('overlay-menu').classList.add('hidden');
     var title, text;
     switch (currentOverlay) {
       case null:
@@ -1129,28 +1125,52 @@ function showOverlay(id) {
         title = navigator.mozL10n.get('nocard3-title');
         text = navigator.mozL10n.get('nocard3-text');
         $('overlay-menu').classList.remove('hidden');
-        $('storage-setting-button').classList.remove('hidden');
+        if (pendingPick) {
+          $('overlay-cancel-button').classList.remove('hidden');
+        } else {
+          $('storage-setting-button').classList.remove('hidden');
+        }
         break;
       case 'pluggedin':
         title = navigator.mozL10n.get('pluggedin2-title');
         text = navigator.mozL10n.get('pluggedin2-text');
+        if (pendingPick) {
+          $('overlay-cancel-button').classList.remove('hidden');
+          $('overlay-menu').classList.remove('hidden');
+        }
         break;
       case 'scanning':
         title = navigator.mozL10n.get('scanning-title');
         text = navigator.mozL10n.get('scanning-text');
+        if (pendingPick) {
+          $('overlay-cancel-button').classList.remove('hidden');
+          $('overlay-menu').classList.remove('hidden');
+        }
         break;
       case 'emptygallery':
         title = navigator.mozL10n.get('emptygallery2-title');
         text = navigator.mozL10n.get('emptygallery2-text');
         $('overlay-menu').classList.remove('hidden');
-        $('overlay-camera-button').classList.remove('hidden');
+        if (pendingPick) {
+          $('overlay-cancel-button').classList.remove('hidden');
+        } else {
+          $('overlay-camera-button').classList.remove('hidden');
+        }
         break;
       case 'upgrade':
         title = navigator.mozL10n.get('upgrade-title');
         text = navigator.mozL10n.get('upgrade-text');
+        if (pendingPick) {
+          $('overlay-cancel-button').classList.remove('hidden');
+          $('overlay-menu').classList.remove('hidden');
+        }
         break;
       default:
         console.warn('Reference to undefined overlay', currentOverlay);
+        if (pendingPick) {
+          $('overlay-cancel-button').classList.remove('hidden');
+          $('overlay-menu').classList.remove('hidden');
+        }
         return;
     }
 
