@@ -266,10 +266,14 @@ var SimPinDialog = {
     this.origin = origin;
     Settings.currentPanel = '#simpin-dialog';
 
-    if (action === 'unlock' && this.lockType === 'puk')
-      this.pukInput.focus();
-    else
-      this.pinInput.focus();
+    var self = this;
+    window.addEventListener('panelready', function inputFocus() {
+      window.removeEventListener('panelready', inputFocus);
+      if (action === 'unlock' && self.lockType === 'puk')
+        self.pukInput.focus();
+      else
+        self.pinInput.focus();
+    });
 
   },
 
