@@ -1931,14 +1931,19 @@ var unexpectedBridgeDataError = reportError,
 //                       something that looks domain-namey.  We differ from the
 //                       next case in that we do not constrain the top-level
 //                       domain as tightly and do not require a trailing path
-//                       indicator of "/".
+//                       indicator of "/".  This is IDN root compatible.
 //   [a-z0-9.\-]{2,250}[.][a-z]{2,4}\/
 //                       Detect a non-www domain, but requiring a trailing "/"
-//                       to indicate a path.
+//                       to indicate a path.  This only detects IDN domains
+//                       with a non-IDN root.  This is reasonable in cases where
+//                       there is no explicit http/https start us out, but
+//                       unreasonable where there is.  Our real fix is the bug
+//                       to port the Thunderbird/gecko linkification logic.
 //
 //                       Domain names can be up to 253 characters long, and are
 //                       limited to a-zA-Z0-9 and '-'.  The roots don't have
-//                       hyphens.
+//                       hyphens unless they are IDN roots.  Root zones can be
+//                       found here: http://www.iana.org/domains/root/db
 //  )
 //  [-\w.!~*'();,/?:@&=+$#%]*
 //                       path onwards. We allow the set of characters that
@@ -1956,8 +1961,21 @@ var RE_UNEAT_LAST_URL_CHARS = /(?:[),;.!?]|[.!?]\)|\)[.!?])$/;
 // our above regex currently requires them.
 var RE_HTTP = /^https?:/i;
 // Note: the [^\s] is fairly international friendly, but might be too friendly.
+//
+// Note: We've added support for IDN domains in the e-mail regexp.  We would
+// expect optimal presentation of IDN-based e-mail addresses to be using HTML
+// mails with an 'a' tag so that the human-readable address is present/visible,
+// but we can't be sure of that.
+//
+// Brief analysis:
+//   [a-z0-9.\-]{2,250}[.][a-z0-9\-]{2,32}
+//                       Domain portion.  We have looser constraints on the
+//                       root in terms of size since we already have the '@'
+//                       giving us a high probability of an e-mail address.
+//                       Otherwise we use the same base regexp from our URL
+//                       logic.
 var RE_MAIL =
-  /(^|[\s(,;])([^(,;@\s]+@[^.\s]+.[a-z]+)/m;
+  /(^|[\s(,;])([^(,;@\s]+@[a-z0-9.\-]{2,250}[.][a-z0-9\-]{2,32})/im;
 var RE_MAILTO = /^mailto:/i;
 
 var MailUtils = {
