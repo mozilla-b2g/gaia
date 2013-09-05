@@ -260,7 +260,7 @@ IMEngine.prototype = {
   },
 
   _start: function engine_start() {
-    if (this._isWorking)
+    if (!this.emEngine || this._isWorking)
       return;
     this._isWorking = true;
     debug('Start keyQueue loop.');
@@ -492,6 +492,8 @@ IMEngine.prototype = {
 
             debug('Succeeded in opening emEngine.');
           }
+
+          self._start();
         };
       }
 
@@ -582,6 +584,8 @@ IMEngine.prototype = {
    */
   select: function engine_select(text, data) {
     IMEngineBase.prototype.select.call(this, text, data);
+    if (!this.emEngine)
+      return;
     var candDataObject = new IMEngine.CandidateData(0, ['', '']);
     candDataObject.deserialize(data);
     if (this._pendingSymbols) {
@@ -615,6 +619,7 @@ IMEngine.prototype = {
     this._pendingSymbols = '';
     this._historyText = '';
     this._sendPendingSymbols();
+    this._keypressQueue = [];
     this._isWorking = false;
   },
 
@@ -625,7 +630,8 @@ IMEngine.prototype = {
     var inputType = state.type;
     IMEngineBase.prototype.activate.call(this, language, state, options);
     debug('Activate. Input type: ' + inputType);
-    this.emEngine.flushCache();
+    if (this.emEngine)
+      this.emEngine.flushCache();
     var keyboard = this._inputTraditionalChinese ?
       'zh-Hans-Pinyin-tr' : 'zh-Hans-Pinyin';
     if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
