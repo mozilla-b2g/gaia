@@ -3,7 +3,9 @@
 // and the code in metadata.js to ensure that the videos[] array is up to date.
 //
 function initDB() {
-  videodb = new MediaDB('videos');
+  // use excludeFilter to ignore dummy files from camera.
+  videodb = new MediaDB('videos', null,
+                        {excludeFilter: /DCIM\/\d{3}MZLLA\/\.VID_\d{4}\.3gp$/});
 
   videodb.onupgrading = function(evt) {
     // show dialog in upgradestart, when it finished, it will turned to ready.
