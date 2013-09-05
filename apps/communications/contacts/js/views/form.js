@@ -673,13 +673,17 @@ contacts.Form = (function() {
   };
 
   var createName = function createName(myContact) {
-    if (myContact.givenName || myContact.familyName) {
-      var name = (myContact.givenName && myContact.familyName) ?
-          myContact.givenName + ' ' + myContact.familyName :
-          myContact.givenName || myContact.familyName;
+    var givenName = Array.isArray(myContact.givenName) ?
+                    myContact.givenName[0] : '';
 
-      myContact.name = [name];
-    }
+    var familyName = Array.isArray(myContact.familyName) ?
+                     myContact.familyName[0] : '';
+
+    var completeName = givenName && familyName ?
+                       givenName + ' ' + familyName :
+                       givenName || familyName;
+
+    myContact.name = completeName ? [completeName] : [];
   };
 
   var setPropagatedFlag = function setPropagatedFlag(field, value, contact) {
