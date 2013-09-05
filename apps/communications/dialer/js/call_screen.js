@@ -18,6 +18,7 @@ var CallScreen = {
   muteButton: document.getElementById('mute'),
   speakerButton: document.getElementById('speaker'),
   keypadButton: document.getElementById('keypad-visibility'),
+  placeNewCallButton: document.getElementById('place-new-call'),
 
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
@@ -37,6 +38,8 @@ var CallScreen = {
   init: function cs_init() {
     this.muteButton.addEventListener('click', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('click', this.showKeypad.bind(this));
+    this.placeNewCallButton.addEventListener('click',
+                                             this.placeNewCall.bind(this));
     this.speakerButton.addEventListener('click',
                                     this.toggleSpeaker.bind(this));
     this.answerButton.addEventListener('click',
@@ -129,27 +132,27 @@ var CallScreen = {
   },
 
   toggleMute: function cs_toggleMute() {
-    this.muteButton.classList.toggle('mute');
+    this.muteButton.classList.toggle('active-state');
     CallsHandler.toggleMute();
   },
 
   unmute: function cs_unmute() {
-    this.muteButton.classList.remove('mute');
+    this.muteButton.classList.remove('active-state');
     CallsHandler.unmute();
   },
 
   toggleSpeaker: function cs_toggleSpeaker() {
-    this.speakerButton.classList.toggle('speak');
+    this.speakerButton.classList.toggle('active-state');
     CallsHandler.toggleSpeaker();
   },
 
   turnSpeakerOn: function cs_turnSpeakerOn() {
-    this.speakerButton.classList.add('speak');
+    this.speakerButton.classList.add('active-state');
     CallsHandler.turnSpeakerOn();
   },
 
   turnSpeakerOff: function cs_turnSpeakerOff() {
-    this.speakerButton.classList.remove('speak');
+    this.speakerButton.classList.remove('active-state');
     CallsHandler.turnSpeakerOff();
   },
 
@@ -162,6 +165,14 @@ var CallScreen = {
     KeypadManager.restorePhoneNumber();
     KeypadManager.restoreAdditionalContactInfo();
     this.body.classList.remove('showKeypad');
+  },
+
+  placeNewCall: function cs_placeNewCall() {
+    navigator.mozApps.getSelf().onsuccess = function(evt) {
+      var app = evt.target.result;
+      app.launch('dialer');
+      window.resizeTo(100, 40);
+    };
   },
 
   render: function cs_render(layout_type) {
@@ -192,9 +203,9 @@ var CallScreen = {
 
   syncSpeakerEnabled: function cs_syncSpeakerEnabled() {
     if (navigator.mozTelephony.speakerEnabled) {
-      this.speakerButton.classList.add('speak');
+      this.speakerButton.classList.add('active-state');
     } else {
-      this.speakerButton.classList.remove('speak');
+      this.speakerButton.classList.remove('active-state');
     }
   },
 

@@ -211,41 +211,35 @@ body.hidden *[data-l10n-id] {
   border-right: 0;
 }
 
-#mute > span {
+.co-advanced-option .icon {
   display: inline-block;
-  background: url('images/ActionIcon_40x40_mute.png');
   background-size: 4rem;
   width: 4rem;
   height: 4rem;
 }
 
-#mute.mute > span {
+.active-state .icon {
   background-position: 0 -4rem;
 }
 
-button[disabled] .icon-keypad-visibility {
+button[disabled] .icon {
   opacity: 0.6;
 }
 
+.icon-mute {
+  background-image: url('images/ActionIcon_40x40_mute.png');
+}
+
 .icon-keypad-visibility {
-  display:inline-block;
-  background:url('images/ActionIcon_40x40_dialpad.png') ;
-  background-size: 4rem;
-  width:4rem;
-  height:4rem;
+  background-image: url('images/ActionIcon_40x40_dialpad.png');
 }
 
-#speaker span {
-  display:inline-block;
-  background:url('images/ActionIcon_40x40_speaker.png') ;
-  background-size: 4rem;
-  width:4rem;
-  height:4rem;
-  opacity: 1.0;
+.icon-place-new-call {
+  background-image:url('images/ActionIcon_40x40_placenewcall.png');
 }
 
-#speaker.speak  > span {
-  background-position: 0 -4rem;
+.icon-speaker {
+  background-image:url('images/ActionIcon_40x40_speaker.png') ;
 }
 
 #callbar {
