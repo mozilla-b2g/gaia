@@ -19,9 +19,10 @@ var GridManager = (function() {
   var container;
 
   var windowWidth = window.innerWidth;
-  var swipeThreshold, swipeFriction, tapThreshold;
+  var swipeThreshold, swipeFriction, tapThreshold, swipeVelocity, swipeDistance;
 
   var dragging = false;
+  var earlySwipe = true;
 
   var defaultAppIcon, defaultBookmarkIcon;
 
@@ -40,7 +41,7 @@ var GridManager = (function() {
     right: 0
   };
 
-  var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
+  var startEvent, isPanning = false, startX, currentX, deltaX,
       noop = function() {};
 
   var isTouch = 'ontouchstart' in window;
@@ -176,23 +177,26 @@ var GridManager = (function() {
       return Math.round(opacity * OPACITY_STEPS) / OPACITY_STEPS;
   }
 
+  function handleTouchStart(evt) {
+    touchStartTimestamp = evt.timeStamp;
+    deltaX = 0;
+    attachEvents();
+    isPanning = false;
+    panningResolver.reset();
+  }
+
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
         if (currentPage || numberOfSpecialPages === 1)
           evt.stopPropagation();
-        touchStartTimestamp = evt.timeStamp;
         startEvent = isTouch ? evt.touches[0] : evt;
-        deltaX = 0;
-        attachEvents();
-        removePanHandler = noop;
-        isPanning = false;
+        handleTouchStart(evt);
         addActive(evt.target);
-        panningResolver.reset();
         break;
 
       case touchmove:
-        if (evt.preventPanning === true) {
+        if (evt.preventPanning === true && earlySwipe) {
           return;
         }
 
@@ -202,7 +206,7 @@ var GridManager = (function() {
         currentX = getX(evt);
         deltaX = panningResolver.getDeltaX(evt);
 
-        if (deltaX === 0)
+        if (deltaX === 0 || isNaN(deltaX))
           return;
 
         document.body.dataset.transitioning = 'true';
@@ -218,6 +222,47 @@ var GridManager = (function() {
 
         // Since we're panning, the icon we're over shouldn't be active
         removeActive();
+        var dontSwipeBeyondFirstPage = !(!forward && currentPage == 0);
+        var dontSwipeBeyondLastPage = !(forward &&
+                                        currentPage == pages.length - 1);
+        if (earlySwipe &&
+            Math.abs(currentX - startX) > swipeDistance &&
+            Math.abs(panningResolver.getVelocity()) > swipeVelocity &&
+            dontSwipeBeyondFirstPage &&
+            dontSwipeBeyondLastPage) {
+          // Full page transition detected early in 1st touchmove event
+          window.removeEventListener(touchend, handleEvent);
+          touchEndTimestamp = evt ? evt.timeStamp : Number.MAX_VALUE;
+          mozRequestAnimationFrame(function panTouchEnd() {
+            onTouchEnd((deltaX > 0) ? swipeThreshold : -swipeThreshold, evt);
+          });
+          window.pan = function(e) {
+            handleTouchEnd();
+            startEvent = e.touches[0];
+            handleTouchStart(e);
+            earlySwipe = false;
+          };
+          var touchendCompleted = false;
+          window.removePanHandler = function(e) {
+            handleTouchEnd();
+            touchendCompleted = true;
+          };
+          var container = pages[currentPage].container;
+          container.addEventListener('transitionend', function transitionEnd(e)
+          {
+            container.removeEventListener('transitionend', transitionEnd, true);
+            if (!touchendCompleted) {
+              window.addEventListener(touchmove, window.pan, true);
+            }
+          }, true);
+          window.addEventListener(touchend, window.removePanHandler, true);
+          return;
+        }
+        earlySwipe = true;
+
+        // Pan detected in 1st touchmove event
+        // This will start partial page transition
+        // Full page transition will happen on touchend event
 
         var refresh;
 
@@ -278,7 +323,7 @@ var GridManager = (function() {
 
         // Generate a function accordingly to the current page position.
         if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
-          var pan = function(e) {
+          window.pan = function(e) {
             currentX = getX(e);
             deltaX = panningResolver.getDeltaX(e);
 
@@ -315,7 +360,7 @@ var GridManager = (function() {
             };
           }
 
-          var pan = function(e) {
+          window.pan = function(e) {
             currentX = getX(e);
             deltaX = panningResolver.getDeltaX(e);
 
@@ -329,21 +374,17 @@ var GridManager = (function() {
           };
         }
 
-        var container = pages[currentPage].container;
-        container.addEventListener(touchmove, pan, true);
+        window.addEventListener(touchmove, window.pan, true);
 
-        removePanHandler = function removePanHandler(e) {
+        window.removePanHandler = function(e) {
           touchEndTimestamp = e ? e.timeStamp : Number.MAX_VALUE;
-          window.removeEventListener(touchend, removePanHandler, true);
-
-          container.removeEventListener(touchmove, pan, true);
-
+          handleTouchEnd();
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
           });
         };
 
-        window.addEventListener(touchend, removePanHandler, true);
+        window.addEventListener(touchend, window.removePanHandler, true);
         window.removeEventListener(touchend, handleEvent);
 
         break;
@@ -352,6 +393,7 @@ var GridManager = (function() {
         releaseEvents();
         pageHelper.getCurrent().tap(evt.target);
         removeActive();
+        earlySwipe = true;
         break;
 
       case 'contextmenu':
@@ -362,7 +404,7 @@ var GridManager = (function() {
 
         if (currentPage > landingPage && 'isIcon' in evt.target.dataset) {
           evt.stopImmediatePropagation();
-          removePanHandler();
+          window.removePanHandler();
           Homescreen.setMode('edit');
           removeActive();
           DragDropManager.start(evt, {
@@ -412,6 +454,11 @@ var GridManager = (function() {
   function releaseEvents() {
     window.removeEventListener(touchmove, handleEvent);
     window.removeEventListener(touchend, handleEvent);
+  }
+
+  function handleTouchEnd() {
+    window.removeEventListener(touchmove, window.pan, true);
+    window.removeEventListener(touchend, window.removePanHandler, true);
   }
 
   function exitFromEditMode() {
@@ -1173,6 +1220,8 @@ var GridManager = (function() {
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
+    swipeVelocity = options.swipeVelocity;
+    swipeDistance = options.swipeDistance;
     overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
 
     window.addEventListener('hashchange', hashchange);
