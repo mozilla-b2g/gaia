@@ -17,8 +17,5 @@ var WaitingScreen = {
   },
   hide: function ws_hide() {
     this.loading.classList.remove('show-loading');
-  },
-  update: function ws_update(text) {
-    this.loadingHeader.innerHTML = text;
   }
 };
