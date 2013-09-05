@@ -36,6 +36,8 @@ const Wallpaper = (function() {
   }
 
   return {
+    select: onHomescreenContextmenu,
+
     init: function init() {
       var overlay = document.getElementById('icongrid');
       overlay.addEventListener('contextmenu', onHomescreenContextmenu);

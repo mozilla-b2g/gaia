@@ -29,15 +29,15 @@
 }
 
 .overDock > div > *:not(img) {
-	opacity: 0;
+  opacity: 0;
 }
 
 @-moz-keyframes shake {
   0% { -moz-transform: scale(1); }
-	25% { -moz-transform: scale(1.05); }
+  25% { -moz-transform: scale(1.05); }
   50% { -moz-transform: scale(1); }
   75% { -moz-transform: scale(0.95); }
-	100% { -moz-transform: scale(1); }
+  100% { -moz-transform: scale(1); }
 }
 
 @-moz-keyframes none {}
@@ -69,5 +69,48 @@ body[data-mode = 'edit'] ol > li[data-dragging] {
 }
 
 body[data-dragging] ol > li {
-	opacity: 0.7;
+  opacity: 0.7;
+}
+
+body[data-mode = 'edit'] ol > li.hidden {
+  opacity: 0;
+}
+
+/* This rules implement the circle behind collections during dragging */
+
+body[data-mode = 'edit'] ol > li[data-is-collection = 'true'] > div > img {
+  transform: scale(1);
+  transition: transform .3s;
+}
+
+body[data-dragging] ol > li[data-is-collection = 'true'] > div > img {
+  transform: scale(0.8);
+}
+
+body[data-mode = 'edit'] ol > li[data-is-collection = 'true'] > div::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 8rem;
+  height: 8rem;
+  background: white;
+  border-radius: 50%;
+  margin: -0.5rem 0 0 -4rem;
+  opacity: 0.2;
+
+  transform: scale(0.8);
+  transition: transform .3s;
+}
+
+body[data-dragging] ol > li[data-is-collection = 'true'].hover > div::before {
+	transform: scale(1);
+	opacity: 0.4;
+}
+
+/* This rules changes the axe icon for a plus symbol */
+
+body[data-dragging] ol > li[data-is-collection = 'true'].hover > span.options,
+body[data-dragging] #footer li[data-is-collection = 'true'].hover > span.options {
+  background: url(../resources/images/plus_small_ico.png) no-repeat left top / 2.4rem;
 }
