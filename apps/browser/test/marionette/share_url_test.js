@@ -52,7 +52,7 @@ marionette('share url from browser', function() {
       client.apps.switchToApp(EMAIL_ORIGIN);
     });
 
-    test('should have coolpage.html in body', function() {
+    test.skip('should have coolpage.html in body', function() {
       // TODO(gareth): Test that we are in the compose email view
       //     and that the email body has the coolpage.html.
       client.helper.wait(3000);
