@@ -44,7 +44,7 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
     // If the app that initiated this activity wants us to allow the
     // user to save this blob as a file, and if device storage is available
     // and if there is enough free space, then display a save button.
-    if (data.allowSave && data.filename) {
+    if (data.allowSave && data.filename && checkFilename()) {
       getStorageIfAvailable('videos', blob.size, function(ds) {
         storage = ds;
         dom.menu.hidden = false;
@@ -125,6 +125,16 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
       document.documentElement.lang = navigator.mozL10n.language.code;
       document.documentElement.dir = navigator.mozL10n.language.direction;
     });
+  }
+
+  function checkFilename() {
+    var dotIdx = data.filename.lastIndexOf('.');
+    if (dotIdx > -1) {
+      var ext = data.filename.substr(dotIdx + 1);
+      return MimeMapper.guessTypeFromExtension(ext) === blob.type;
+    } else {
+      return false;
+    }
   }
 
   function setControlsVisibility(visible) {
