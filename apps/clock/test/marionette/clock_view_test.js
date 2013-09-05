@@ -79,22 +79,28 @@ marionette('Clock', function() {
 
   suite('New Alarm', function() {
 
+    // Return state of provided client as a string (for debugging purposes)
+    function getState(client) {
+      return client.executeScript(function() {
+        var target = document.querySelector('.view:target');
+        if (target) {
+          target = target.outerHTML.split(/[\r\n]/)[0].replace(/>.*/, '>');
+        }
+        return '    location: ' + window.location.toString() + '\n' +
+          '    target: ' + target;
+      });
+    };
+
     setup(function() {
+      console.log('setup');
+      console.log(getState(client));
+
       this.elems.alarmFormBtn.click();
       assert.ok(this.elems.alarmForm.displayed(), 'Alarm form is displayed');
       var i = 0;
-      console.log('setup');
       client.waitFor(function() {
-        console.log('  waiting... #' + i + ': ' +
-          client.executeScript(function() {
-            var target = document.querySelector('.view:target');
-            if (target) {
-              target = target.outerHTML.split(/[\r\n]/)[0].replace(/>.*/, '>');
-            }
-            return 'location: ' + window.location.toString() + '\r\n' +
-              'target: ' + target;
-          })
-        );
+        console.log('  waiting... #' + i + ':');
+        console.log(getState(client));
         /*if (i > 0) {
           var html = client.executeScript(function() {
             return document.documentElement.innerHTML;
