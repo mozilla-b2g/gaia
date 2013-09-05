@@ -63,6 +63,8 @@ var TelephonyHelper = (function() {
             displayMessage('FlightMode');
           } else if (errorName === 'BusyError') {
             displayMessage('NumberIsBusy');
+          } else if (errorName === 'FDNBlockedError') {
+            displayMessage('FixedDialingNumbers');
           } else {
             // If the call failed for some other reason we should still
             // display something to the user. See bug 846403.
@@ -107,6 +109,10 @@ var TelephonyHelper = (function() {
       case 'NumberIsBusy':
         dialogTitle = 'numberIsBusyTitle';
         dialogBody = 'numberIsBusyMessage';
+        break;
+      case 'FixedDialingNumbers':
+        dialogTitle = 'fdnIsEnabledTitle';
+        dialogBody = 'fdnIsEnabledMessage';
         break;
       default:
         console.error('Invalid message argument'); // Should never happen
