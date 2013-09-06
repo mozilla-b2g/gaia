@@ -1,0 +1,137 @@
+html, body {
+  font-size: 10px;
+}
+
+#emergency-callback-notification {
+  display: none;
+  overflow: hidden;
+}
+
+#emergency-callback-notification.displayed {
+  display: block;
+}
+
+@keyframes fn-rotate {
+  from {
+    transform: rotate(1deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#emergency-callback-notification > .icon {
+  float: left;
+  display: block;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 1.8rem 1rem;
+}
+
+#emergency-callback-notification > .icon,
+#emergency-callback-toaster > .icon {
+  background-image: url('images/emergency-callback-icon.png');
+  background-size: 2.4rem;
+}
+
+#emergency-callback-toaster > .icon {
+  float: left;
+  display: block;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin: 1.3rem;
+}
+
+#emergency-callback-toaster > .message {
+  position: absolute;
+  left: 5rem;
+  top: 1rem;
+  width: calc(100% - 9.5rem);
+  line-height: 2.8rem;
+}
+
+#emergency-callback-toaster > .timer {
+  position: absolute;
+  right: 0rem;
+  top: 1rem;
+  width: 4rem;
+  line-height: 2.8rem;
+}
+
+#emergency-callback-notification > .message {
+  margin: 1rem 0 0 5rem;
+  width: calc(100% - 5.5rem);
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1.9rem;
+  color: #FFFFFF;
+}
+
+#emergency-callback-notification > .timer {
+  margin: 0.3rem 0px 0px 5rem;
+  width: calc(100% - 5.5rem);
+  color: #bfbfbf;
+  font-size: 1.4rem;
+  line-height: 1.9rem;
+  font-weight: 400;
+  text-overflow: ellipsis;
+}
+
+
+#emergency-callback-toaster {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5rem;
+  color: #52b8cc;
+  font-size: 1.5rem;
+  font-weight: 500;
+  overflow: hidden;
+  background-image: url('images/grey-noise-bg.png');
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  -moz-box-sizing: border-box;
+  border-bottom: 0.1rem #2c2c2c solid;
+  transform: translateY(-5rem);
+  transition: transform .3s ease-in-out;
+}
+
+#emergency-callback-toaster.displayed {
+  transform: translateY(0);
+}
+
+#emergency-callback-dialog {
+  /* Increasing padding size form 1.5 to 3.5rem for confirm dialogs with statusbar active */
+  padding-top: 3.5rem;
+  display: none;
+}
+
+#emergency-callback-dialog.visible {
+  display: inline-block;
+  pointer-events: auto;
+}
+
+#emergency-callback-dialog img {
+  position: absolute;
+}
+
+#emergency-callback-dialog img {
+  position: absolute;
+  top: calc(50% - 3.2rem);
+}
+
+#emergency-callback-dialog-wrapper > :not(img) {
+  display: block;
+  margin-left: 8rem;
+}
+
+#emergency-callback-icon {
+  background-image: url('images/emergency-callback-icon.png');
+  width: 6.4rem;
+  height: 6.4rem;
+  margin-left: -0.5rem;
+}
+
+
