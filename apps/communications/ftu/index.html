@@ -19,6 +19,7 @@
   <link rel="stylesheet" type="text/css" href="/contacts/style/status.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/style.css">
   <link rel="stylesheet" type="text/css" href="/ftu/css/fb_extensions.css">
+  <link rel="stylesheet" type="text/css" href="/ftu/css/responsive.css">
   <link rel="stylesheet" type="text/css" href="/facebook/style/curtain_frame.css">
 
   <title>Welcome to Browser OS</title>
@@ -43,6 +44,7 @@
   <script type="text/javascript" src="/shared/js/tz_select.js"></script>
 
   <!-- Code for the FTU App -->
+  <script defer type="text/javascript" src="/shared/js/screen_layout.js"></script>
   <script defer type="text/javascript" src="/shared/js/text_normalizer.js"></script>
   <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
   <script defer type="text/javascript" src="/ftu/js/basket-client.js"></script>
@@ -65,6 +67,8 @@
   <script defer type="text/javascript" src="/ftu/js/memcard_manager.js"></script>
   <script defer type="text/javascript" src="/ftu/js/wifi.js"></script>
   <script defer type="text/javascript" src="/ftu/js/import_services.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/utils.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/tutorial_steps.js"></script>
   <script defer type="text/javascript" src="/ftu/js/tutorial.js"></script>
   <script defer type="text/javascript" src="/ftu/js/navigation.js"></script>
   <script defer type="text/javascript" src="/ftu/js/data_mobile.js"></script>
@@ -527,7 +531,9 @@
     </menu>
   </section>
 
-  <section id="finish-screen" role="region">
+  <!-- for tiny devices -->
+
+  <section id="finish-screen" class="finish-screen-base" role="region">
     <section class="content">
       <h1 data-l10n-id="startYourPhone">
         Start your Phone Tour!
@@ -550,78 +556,112 @@
     </section>
   </section>
 
-  <section id="tutorial-screen" role="region">
+  <section id="tutorial-screen" class="tutorial-screen-base" role="region">
     <ol id="tutorial-progress" class="step-state">
       <li>step 1</li>
       <li>step 2</li>
       <li>step 3</li>
       <li>step 4</li>
       <li>step 5</li>
+      <li>step 6</li>
+      <li>step 7</li>
+      <li>step 8</li>
     </ol>
     <article role="main">
       <section role="region" id="step1">
         <div>
           <header id="step1Header">
-            Swipe from right to left to browse your apps.
+            step1 placeholder
           </header>
         </div>
         <section>
-          <img id="step1Img">
+          <img id="step1Img" class="step-img-base">
         </section>
       </section>
       <section role="region" id="step2">
         <div>
           <header id="step2Header">
-            Swipe from left to right to discover new apps.
+            step2 placeholder
           </header>
         </div>
         <section>
-          <img id="step2Img">
+          <img id="step2Img" class="step-img-base">
         </section>
       </section>
       <section role="region" id="step3">
         <div>
           <header id="step3Header">
-            Tap and hold on an icon to delete or move it.
+            step3 placeholder
           </header>
         </div>
         <section>
-          <img id="step3Img">
+          <img id="step3Img" class="step-img-base">
         </section>
       </section>
       <section role="region" id="step4">
         <div>
           <header id="step4Header">
-            Swipe down to access recent notifications, credit information and settings.
+            step4 placeholder
           </header>
         </div>
         <section>
-          <img id="step4Img">
+          <img id="step4Img" class="step-img-base">
         </section>
       </section>
       <section role="region" id="step5">
         <div>
           <header id="step5Header">
-            Tap and hold the home button to browse and close recent apps.
+            step5 placeholder
           </header>
         </div>
         <section>
-          <img id="step5Img">
+          <img id="step5Img" class="step-img-base">
+        </section>
+      </section>
+      <section role="region" id="step6">
+        <div>
+          <header id="step6Header">
+            step6 placeholder
+          </header>
+        </div>
+        <section>
+          <img id="step6Img" class="step-img-base">
+        </section>
+      </section>
+      <section role="region" id="step7">
+        <div>
+          <header id="step7Header">
+            step7 placeholder
+          </header>
+        </div>
+        <section>
+          <img id="step7Img" class="step-img-base">
+        </section>
+      </section>
+      <section role="region" id="step8">
+        <div>
+          <header id="step8Header">
+            step8 placeholder
+          </header>
+        </div>
+        <section>
+          <img id="step8Img" class="step-img-base">
         </section>
       </section>
     </article>
-    <nav role="navigation" id="tutorialNavBar" class="forward-only">
-      <button id="backTutorial" class="button-left back" data-l10n-id="navbar-back">
+    <nav role="navigation" id="tutorial-nav-bar" class="forward-only">
+      <button id="back-tutorial" class="button-left back" data-l10n-id="navbar-back">
         Back
         <span></span>
       </button>
-      <button class="recommend forward" id="forwardTutorial" data-l10n-id="navbar-next">
+      <button id="forward-tutorial" class="recommend forward" data-l10n-id="navbar-next">
         Next
         <span></span>
       </button>
     </nav>
   </section>
-  <section id="tutorialFinish" role="region">
+
+  <section id="tutorial-finish-tiny" class="tutorial-finish-base" role="region">
     <section class="content">
       <h1 data-l10n-id="thatsIt">
         That's it!
@@ -636,6 +676,22 @@
       </menu>
     </section>
   </section>
+  <!-- end of tiny devices -->
+
+  <!-- for large devices -->
+  <section id="tutorial-finish-large" class="tutorial-finish-base" role="region">
+    <section class="content">
+      <header> 
+        <p data-l10n-id="thatsIt1Tablet">
+          That’s it ! You’re ready to enjoy your new tablet. 
+        </p>
+        <p data-l10n-id="thatsIt2Tablet">
+          Swipe up from bottom to leave tutorial
+        </p>
+      </header>
+    </section>
+  </section>
+  <!-- end of large devices -->
 
   <form role='dialog' data-type='confirm' id='offline-error-dialog'>
     <section>

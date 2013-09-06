@@ -492,18 +492,18 @@ aside.connecting {
   Finish process
 */
 
-#finish-screen, #tutorialFinish {
+.finish-screen-base, .tutorial-finish-base {
   opacity: 0;
   z-index: 3010;
   transition: all 1s ease;
   background: url(images/bg_grey-noise.png);
 }
 
-#finish-screen.show, #tutorialFinish.show {
+.finish-screen-base.show, .tutorial-finish-base.show {
   opacity: 1;
 }
 
-#finish-screen h1, #tutorialFinish h1 {
+.finish-screen-base h1, .tutorial-finish-base h1 {
   margin: 0;
   color: white;
   font-size: 3rem;
@@ -512,7 +512,7 @@ aside.connecting {
   line-height: 4rem;
 }
 
-#finish-screen h2, #tutorialFinish h2 {
+.finish-screen-base h2, .tutorial-finish-base h2 {
   margin: 0;
   color: white;
   font-size: 1.9rem;
@@ -521,38 +521,41 @@ aside.connecting {
   line-height: 2rem;
 }
 
-#finish-screen p, #tutorialFinish p {
+.finish-screen-base p, .tutorial-finish-base p {
   margin: 0;
   color: white;
   font-size: 1.4rem;
   font-weight: normal;
 }
 
-#finish-screen .content {
+.finish-screen-base .content {
   background: url(images/icon_tour.png) no-repeat center 95% / 16.9rem;
 }
 
-#tutorialFinish .content {
+.tutorial-finish-base .content {
   background: url(images/thumb_up.png) no-repeat center 70% / 14.4rem;
 }
 
-#finish-screen .content, #tutorialFinish .content {
+.finish-screen-base .content, .tutorial-finish-base .content {
   height: calc(100% - 6rem);
   padding: 0 3rem;
   width: calc(100% - 6rem);
   background-size: 17.6rem;
 }
 
-#finish-screen [role=navigation],#tutorialFinish [role=navigation] {
+.finish-screen-base [role=navigation],.tutorial-finish-base [role=navigation] {
   border-top: .1rem solid #697476;
 }
 
-#finish-screen [role=navigation] button,#tutorialFinish [role=navigation] button {
+.finish-screen-base [role=navigation] button,.tutorial-finish-base [role=navigation] button {
   text-align: center;
 }
 
-#step1Img, #step2Img, #step3Img, #step4Img, #step5Img {
+.step-img-base {
   width: 28.9rem;
+}
+.step-img-base.hide {
+  visibility: hidden;
 }
 
 /*
@@ -565,15 +568,16 @@ aside.connecting {
 }
 
 #time_zone_overlay {
-  background-position: bottom;
+  background-position: center top;
   background-repeat: no-repeat;
   background-size: 100%;
   position: relative;
   position: absolute;
-  z-index: 10;
+  z-index: 2;
   width: 100%;
-  height: 21.5rem;
-  margin-top: 0.5rem;
+  height: 100%;
+  padding-top: 0.5rem;
+  -moz-box-sizing: border-box;
 }
 
 #time_zone_overlay.UTC0000 { background-image: url('images/timezone/+0000.png'); }
@@ -620,13 +624,14 @@ aside.connecting {
 
 #time_zone_map {
   background-image: url('images/timezone/map.png') ;
-  background-position: bottom;
+  background-position: center top;
   background-repeat: no-repeat;
   background-size: 100%;
-  position: relative;
-  height: 21.5rem;
+  /*position: relative;*/
+  height: 100%;
   width: 100%;
-  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  -moz-box-sizing: border-box;
   z-index: 1;
 }
 
@@ -639,6 +644,8 @@ aside.connecting {
   line-height: 1.8rem;
   padding: 2rem 1.5rem 0 1.5rem;
   font-weight: 500;
+  z-index: 10;
+  position: relative;
 }
 
 #date_and_time h2 {
@@ -649,6 +656,8 @@ aside.connecting {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  z-index: 10;
+  position: relative;
 }
 
 #date_and_time h1,h2 {
@@ -1125,35 +1134,68 @@ i.hack-first-child {
   Tutorial
 */
 
-#tutorial-screen [role=main] > [role=region] {
+.tutorial-screen-base [role=main] > [role=region] {
   background: url(images/bg_grey-noise.png);
   color: white;
 }
 
-#tutorial-screen [role=main] {
+.tutorial-screen-base [role=main] {
   top: 0;
   bottom: 0;
 }
 
-#tutorial-screen header {
+.tutorial-screen-base header {
   height: 5rem;
   font-size: 1.4rem;
   padding: 3rem 1.5rem 1rem 1.5rem;
   text-align: left;
 }
 
-#tutorial-screen section {
+.tutorial-screen-base section {
   text-align: center;
 }
 
 /* Tutorial Steps state */
-#tutorial-screen .step-state {
+.tutorial-screen-base .step-state {
   border-bottom: none;
   top: 1.5rem;
 }
 
-#tutorial-screen .step-state:before {
-  width: calc(100% / 4);
+/* if you want to add your steps, you have to change the denominator */
+.tutorial-screen-base .step-state:before {
+  width: calc(100% / 5);
   background: #FFFFFF;
+}
+
+#tutorial-progress.step-1.step-state:before {
+  transform: translateX(0);
+}
+
+#tutorial-progress.step-2.step-state:before {
+  transform: translateX(100%);
+}
+
+#tutorial-progress.step-3.step-state:before {
+  transform: translateX(200%);
+}
+
+#tutorial-progress.step-4.step-state:before {
+  transform: translateX(300%);
+}
+
+#tutorial-progress.step-5.step-state:before {
+  transform: translateX(400%);
+}
+
+#tutorial-progress.step-6.step-state:before {
+  transform: translateX(500%);
+}
+
+#tutorial-progress.step-7.step-state:before {
+  transform: translateX(600%);
+}
+
+#tutorial-progress.step-8.step-state:before {
+  transform: translateX(700%);
 }
 
