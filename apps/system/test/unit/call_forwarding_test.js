@@ -5,6 +5,29 @@ mocha.globals(['IccHelper', 'asyncStorage']);
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
+var MockLock_for_MozSettings = {
+  locks: [],
+  mCallbacks: {},
+  mObject: {},
+  set: function set(lock) {
+    for (var name in lock) {
+      var object = {};
+      object[name] = lock[name];
+      MockNavigatorSettings.createLock().set(object);
+    }
+    this.locks.push(lock);
+    return this.mCallbacks;
+  },
+  get: function get(name) {
+    this.mObject[name] = {};
+    return this.mObject[name];
+  },
+  clear: function clearLocks() {
+    this.locks = [];
+    this.mCallbacks = {};
+  }
+};
+
 var MockMozSettings = {
   _listeners: {},
 
@@ -12,7 +35,7 @@ var MockMozSettings = {
     this._listeners[event] = listener;
   },
   createLock: function createLock() {
-    return MockLock;
+    return MockLock_for_MozSettings;
   }
 };
 
@@ -54,7 +77,7 @@ suite('Call Forwarding >', function() {
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockAsyncStorage;
 
-    MockLock.clear();
+    MockLock_for_MozSettings.clear();
     MockIccHelper.mProps.cardState = 'ready';
     MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo';
 
@@ -99,23 +122,23 @@ suite('Call Forwarding >', function() {
     });
 
     test('test lock ril.cf.enabled is false', function() {
-      //assert.isFalse(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isFalse(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
     });
 
     test('test initCallForwardingIconState has been excuted', function() {
-      MockLock.clear();
+      MockLock_for_MozSettings.clear();
       MockAsyncStorage._get_listeners['ril.cf.enabled.dummy_iccInfo'](true);
-      assert.isTrue(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isTrue(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
 
-      MockLock.clear();
+      MockLock_for_MozSettings.clear();
       MockAsyncStorage
         ._get_listeners['ril.cf.enabled.dummy_iccInfo_of_cardstatechange'](true);
-      assert.isTrue(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isTrue(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
 
-      MockLock.clear();
+      MockLock_for_MozSettings.clear();
       MockAsyncStorage
         ._get_listeners['ril.cf.enabled.dummy_iccInfo_of_iccinfochange'](true);
-      assert.isTrue(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isTrue(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
     });
   });
 
@@ -128,11 +151,11 @@ suite('Call Forwarding >', function() {
         action: 1 // _cfAction.CALL_FORWARD_ACTION_ENABLE
       };
       MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_cfstatechange';
-      MockLock.clear();
+      MockLock_for_MozSettings.clear();
 
       MockMozMobileConnection._listeners['cfstatechange'](fakeEvent);
 
-      assert.isTrue(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isTrue(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
       assert.isTrue(MockAsyncStorage
         ._set_listeners['ril.cf.enabled.dummy_iccInfo_of_cfstatechange']);
     });
@@ -145,11 +168,11 @@ suite('Call Forwarding >', function() {
         action: 3 // _cfAction.CALL_FORWARD_ACTION_REGISTRATION
       };
       MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_cfstatechange';
-      MockLock.clear();
+      MockLock_for_MozSettings.clear();
 
       MockMozMobileConnection._listeners['cfstatechange'](fakeEvent);
 
-      assert.isTrue(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isTrue(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
       assert.isTrue(MockAsyncStorage
         ._set_listeners['ril.cf.enabled.dummy_iccInfo_of_cfstatechange']);
     });
@@ -162,11 +185,11 @@ suite('Call Forwarding >', function() {
         action: 3 // _cfAction.CALL_FORWARD_ACTION_REGISTRATION
       };
       MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_cfstatechange';
-      MockLock.clear();
+      MockLock_for_MozSettings.clear();
 
       MockMozMobileConnection._listeners['cfstatechange'](fakeEvent);
 
-      assert.isFalse(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isFalse(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
       assert.isFalse(MockAsyncStorage
         ._set_listeners['ril.cf.enabled.dummy_iccInfo_of_cfstatechange']);
     });
@@ -179,11 +202,11 @@ suite('Call Forwarding >', function() {
       };
       MockIccHelper.mProps.iccInfo.iccid =
         'dummy_iccInfo_of_mozSettings_observer';
-      MockLock.clear();
+      MockLock_for_MozSettings.clear();
 
       MockMozSettings._listeners['ril.cf.carrier.enabled'](fakeEvent);
 
-      assert.isTrue(MockLock.locks[0]['ril.cf.enabled']);
+      assert.isTrue(MockLock_for_MozSettings.locks[0]['ril.cf.enabled']);
       assert.isTrue(MockAsyncStorage
         ._set_listeners['ril.cf.enabled.dummy_iccInfo_of_mozSettings_observer']);
     });
