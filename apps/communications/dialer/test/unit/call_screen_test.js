@@ -24,6 +24,7 @@ suite('call screen', function() {
   var screen;
   var calls;
   var groupCalls;
+  var groupCallsList;
   var muteButton;
   var speakerButton;
   var statusMessage,
@@ -54,9 +55,13 @@ suite('call screen', function() {
     calls.id = 'calls';
     screen.appendChild(calls);
 
-    groupCalls = document.createElement('article');
+    groupCalls = document.createElement('form');
     groupCalls.id = 'group-call-details';
     screen.appendChild(groupCalls);
+
+    groupCallsList = document.createElement('ul');
+    groupCallsList.id = 'group-call-details-list';
+    groupCalls.appendChild(groupCallsList);
 
     muteButton = document.createElement('button');
     muteButton.id = 'mute';
@@ -79,6 +84,8 @@ suite('call screen', function() {
       CallScreen.calls = calls;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
+      CallScreen.groupCalls = groupCalls;
+      CallScreen.groupCallsList = groupCallsList;
     }
 
     requireApp('communications/dialer/js/call_screen.js', done);
@@ -124,7 +131,7 @@ suite('call screen', function() {
       test('should insert the node in the group calls article', function() {
         var fakeNode = document.createElement('section');
         CallScreen.moveToGroup(fakeNode);
-        assert.equal(fakeNode.parentNode, CallScreen.groupCalls);
+        assert.equal(fakeNode.parentNode, CallScreen.groupCallsList);
       });
     });
   });
@@ -344,7 +351,18 @@ suite('call screen', function() {
           assert.isFalse(bannerClass.contains('visible'));
         });
       });
+    });
+  });
 
+  suite('Toggling the group details screen', function() {
+    test('should show group details', function() {
+      CallScreen.showGroupDetails();
+      assert.isTrue(groupCalls.classList.contains('display'));
+    });
+
+    test('should hide group details', function() {
+      CallScreen.hideGroupDetails();
+      assert.isFalse(groupCalls.classList.contains('display'));
     });
   });
 });

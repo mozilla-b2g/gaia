@@ -40,6 +40,10 @@ function HandledCall(aCall) {
   this.durationChildNode = this.node.querySelector('.duration span');
   this.numberNode = this.node.querySelector('.numberWrapper .number');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
+  this.hangupButton = this.node.querySelector('.hangup-button');
+  this.hangupButton.onclick = (function() {
+    this.call.hangUp();
+  }.bind(this));
 
   this.updateCallNumber();
 

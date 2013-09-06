@@ -46,6 +46,7 @@ suite('dialer/handled_call', function() {
     templates = document.createElement('div');
     templates.innerHTML = '<section id="handled-call-template" hidden>' +
                             '<div class="numberWrapper">' +
+                              '<div class="hangup-button"></div>' +
                               '<div class="number font-light"></div>' +
                             '</div>' +
                             '<div class="fake-number font-light"></div>' +
@@ -729,6 +730,17 @@ suite('dialer/handled_call', function() {
       mockCall.group = null;
       mockCall.ongroupchange(mockCall);
       assert.isTrue(insertCallSpy.calledWith(subject.node));
+    });
+  });
+
+  suite('Controls displayed when in a group', function() {
+    test('hangup button', function() {
+      mockCall = new MockCall(String(phoneNumber), 'connected');
+      subject = new HandledCall(mockCall);
+
+      var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
+      subject.hangupButton.onclick();
+      assert.isTrue(hangUpSpy.calledOnce);
     });
   });
 });

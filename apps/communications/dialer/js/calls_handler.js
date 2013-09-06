@@ -753,6 +753,7 @@ var CallsHandler = (function callsHandler() {
     turnSpeakerOff: turnSpeakerOff,
 
     addRecentEntry: addRecentEntry,
+    checkCalls: onCallsChanged,
 
     get activeCall() {
       return activeCall();
