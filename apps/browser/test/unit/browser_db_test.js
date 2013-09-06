@@ -81,10 +81,16 @@ suite('BrowserDB', function() {
 
   suite('BrowserDB.operatorVariantCustomization', function() {
 
-    setup(function(done) {
+    suiteSetup(function() {
       realMozSettings = navigator.mozSettings;
       navigator.mozSettings = MockNavigatorSettings;
+    });
 
+    suiteTeardown(function() {
+      navigator.mozSettings = realMozSettings;
+    });
+
+    setup(function(done) {
       BrowserDB.init(function() {
         var itemsToAdd = 3;
         BrowserDB.populate(0, function() {
@@ -96,7 +102,6 @@ suite('BrowserDB', function() {
     });
 
     teardown(function(done) {
-      navigator.mozSettings = realMozSettings;
       clearBrowserStores(done);
     });
 
