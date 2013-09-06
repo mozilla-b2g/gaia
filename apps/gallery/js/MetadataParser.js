@@ -33,7 +33,9 @@ var metadataParser = (function() {
   // cropping the edges as needed to make it fit, and then extract the
   // thumbnail image as a blob and pass it to the callback.
   // This utility function is used by both the image and video metadata parsers
-  function createThumbnailFromElement(elt, video, rotation, callback) {
+  function createThumbnailFromElement(elt, video, rotation, 
+                                      mirrored, callback) 
+  {
     // Create a thumbnail image
     var canvas = document.createElement('canvas');
     var context = canvas.getContext('2d');
@@ -54,23 +56,35 @@ var metadataParser = (function() {
     var x = Math.round((eltwidth - w) / 2);
     var y = Math.round((eltheight - h) / 2);
 
-    // If a rotation is specified, rotate the canvas context
-    if (rotation) {
+    var centerX = Math.floor(THUMBNAIL_WIDTH / 2);
+    var centerY = Math.floor(THUMBNAIL_HEIGHT / 2);
+
+    // If a orientation is specified, rotate/mirroring the canvas context.
+    if (rotation || mirrored) {
       context.save();
+      // All transformation are applied to the center of the thumbnail.
+      context.translate(centerX, centerY);
+    }
+
+    if (mirrored) {
+      context.scale(-1, 1);
+    }
+    if (rotation) {
       switch (rotation) {
       case 90:
-        context.translate(THUMBNAIL_WIDTH, 0);
         context.rotate(Math.PI / 2);
         break;
       case 180:
-        context.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
         context.rotate(Math.PI);
         break;
       case 270:
-        context.translate(0, THUMBNAIL_HEIGHT);
         context.rotate(-Math.PI / 2);
         break;
       }
+    }
+
+    if (rotation || mirrored) {
+      context.translate(-centerX, -centerY);
     }
 
     // Draw that region of the image into the canvas, scaling it down
@@ -78,7 +92,7 @@ var metadataParser = (function() {
                       0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
     // Restore the default rotation so the play arrow comes out correctly
-    if (rotation) {
+    if (rotation || mirrored) {
       context.restore();
     }
 
@@ -275,18 +289,16 @@ var metadataParser = (function() {
       if (metadata.width <= THUMBNAIL_WIDTH &&
           metadata.height <= THUMBNAIL_HEIGHT) {
         offscreenImage.src = '';
-        //
-        // XXX
-        // Because of a gecko bug, we can't just store the image file itself
-        // we've got to create an equivalent but distinct blob.
-        // When https://bugzilla.mozilla.org/show_bug.cgi?id=794619 is fixed
-        // the line below can change to just assign file.
-        //
-        metadata.thumbnail = file.slice(0, file.size, file.type);
+        metadata.thumbnail = file;
         callback(metadata);
       }
       else {
-        createThumbnailFromElement(offscreenImage, false, 0, gotThumbnail);
+        createThumbnailFromElement(
+          offscreenImage,
+          false,
+          metadata.rotation || 0,
+          metadata.mirrored || false,
+          gotThumbnail);
       }
 
       function gotThumbnail(thumbnail) {
@@ -410,7 +422,10 @@ var metadataParser = (function() {
         metadata.width = offscreenImage.width;
         metadata.height = offscreenImage.height;
 
-        createThumbnailFromElement(offscreenImage, true, metadata.rotation,
+        createThumbnailFromElement(offscreenImage,
+                                   true,
+                                   metadata.rotation,
+                                   false,
                                    function(thumbnail) {
                                      metadata.thumbnail = thumbnail;
                                      offscreenImage.src = '';
