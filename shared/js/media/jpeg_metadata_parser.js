@@ -120,28 +120,36 @@ function parseJPEGMetadata(file, metadataCallback, metadataError) {
       switch (exif.ORIENTATION) {
         case undefined:
         case 1:
-          metadata.orientation = {rotation: 0, mirrored: 1};
+          metadata.rotation = 0;
+          metadata.mirrored = false;
           break;
         case 2:
-          metadata.orientation = {rotation: 0, mirrored: -1};
+          metadata.rotation = 0;
+          metadata.mirrored = true;
           break;
         case 3:
-          metadata.orientation = {rotation: 180, mirrored: 1};
+          metadata.rotation = 180;
+          metadata.mirrored = false;
           break;
         case 4:
-          metadata.orientation = {rotation: 180, mirrored: -1};
+          metadata.rotation = 180;
+          metadata.mirrored = true;
           break;
         case 5:
-          metadata.orientation = {rotation: 90, mirrored: -1};
+          metadata.rotation = 90;
+          metadata.mirrored = true;
           break;
         case 6:
-          metadata.orientation = {rotation: 90, mirrored: 1};
+          metadata.rotation = 90;
+          metadata.mirrored = false;
           break;
         case 7:
-          metadata.orientation = {rotation: 270, mirrored: -1};
+          metadata.rotation = 270;
+          metadata.mirrored = true;
           break;
         case 8:
-          metadata.orientation = {rotation: 270, mirrored: 1};
+          metadata.rotation = 270;
+          metadata.mirrored = false;
           break;
         default:
           throw Error('Unknown Exif code for orientation');

@@ -333,7 +333,8 @@ function setupFrameContent(n, frame) {
         fileinfo.metadata.width,
         fileinfo.metadata.height,
         fileinfo.metadata.preview,
-        fileinfo.metadata.orientation || {rotation: 0, mirrored: 1});
+        fileinfo.metadata.rotation || 0,
+        fileinfo.metadata.mirrored || false);
     }
   });
 }
