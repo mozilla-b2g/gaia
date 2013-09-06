@@ -56,7 +56,7 @@
     });
   }
 
-  //settings.createLock().set({'ril.cf.enabled': false});
+  settings.createLock().set({'ril.cf.enabled': false});
 
   initCallForwardingIconState();
   IccHelper.addEventListener('cardstatechange', function() {

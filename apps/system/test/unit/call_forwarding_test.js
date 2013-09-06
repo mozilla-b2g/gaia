@@ -11,7 +11,7 @@ var MockMozSettings = {
   addObserver: function addObserver(event, listener) {
     this._listeners[event] = listener;
   },
-  createLock: function createLock(event, listener) {
+  createLock: function createLock() {
     return MockLock;
   }
 };
