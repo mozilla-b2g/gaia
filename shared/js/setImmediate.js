@@ -26,11 +26,12 @@
 //       It has been customized in the following ways:
 //
 //         1) Non-gecko browser compatibility code has been removed.  The
-//            postMessage() implementation is always used.
+//            postMessage() implementation is always used, except for
+//            web workers.  There we use setTimeout(0) since MessageChannel
+//            is not implemented in gecko yet.  (Bug 911972)
 //         2) The support for executing strings with eval() has been
 //            disabled and will now throw an exception.
-//         3) Always attach to prototype of window
-//         4) Convert test code to use suite() and test().
+//         3) Convert test code to use suite() and test().
 //
 //       The style of this code is different from the rest of gaia, but
 //       we chose to minimize non-functional changes in order to make
@@ -38,7 +39,7 @@
 //
 // XXX: Remove this file if/when bug 686201 land.
 
-(function () {
+(function (global) {
     "use strict";
 
     var tasks = (function () {
@@ -86,7 +87,7 @@
                 } else {
                     // Delay by doing a setTimeout. setImmediate was tried instead, but in Firefox 7 it generated a
                     // "too much recursion" error.
-                    window.setTimeout(function () {
+                    global.setTimeout(function () {
                         tasks.runIfPresent(handle);
                     }, 0);
                 }
@@ -97,9 +98,18 @@
         };
     }());
 
+    function canUsePostMessage() {
+        // The test against `importScripts` prevents this implementation from being installed inside a web worker,
+        // where `global.postMessage` means something completely different and can't be used for this purpose.
+
+        // NOTE: removed async test since it will always pass on gecko
+
+        return global.postMessage && !global.importScripts;
+    }
+
     function installPostMessageImplementation(attachTo) {
-        // Installs an event handler on `window` for the `message` event: see
-        // * https://developer.mozilla.org/en/DOM/window.postMessage
+        // Installs an event handler on `global` for the `message` event: see
+        // * https://developer.mozilla.org/en/DOM/global.postMessage
         // * http://www.whatwg.org/specs/web-apps/current-work/multipage/comms.html#crossDocumentMessages
 
         var MESSAGE_PREFIX = "com.bn.NobleJS.setImmediate" + Math.random();
@@ -109,32 +119,54 @@
         }
 
         function onGlobalMessage(event) {
-            // This will catch all incoming messages (even from other windows!), so we need to try reasonably hard to
-            // avoid letting anyone else trick us into firing off. We test the origin is still this window, and that a
+            // This will catch all incoming messages (even from other globals!), so we need to try reasonably hard to
+            // avoid letting anyone else trick us into firing off. We test the origin is still this global, and that a
             // (randomly generated) unpredictable identifying prefix is present.
-            if (event.source === window && isStringAndStartsWith(event.data, MESSAGE_PREFIX)) {
+            if (event.source === global && isStringAndStartsWith(event.data, MESSAGE_PREFIX)) {
                 var handle = event.data.substring(MESSAGE_PREFIX.length);
                 tasks.runIfPresent(handle);
             }
         }
-        window.addEventListener("message", onGlobalMessage, false);
+        global.addEventListener("message", onGlobalMessage, false);
 
         attachTo.setImmediate = function () {
             var handle = tasks.addFromSetImmediateArguments(arguments);
 
-            // Make `window` post a message to itself with the handle and identifying prefix, thus asynchronously
+            // Make `global` post a message to itself with the handle and identifying prefix, thus asynchronously
             // invoking our onGlobalMessage listener above.
-            window.postMessage(MESSAGE_PREFIX + handle, "*");
+            global.postMessage(MESSAGE_PREFIX + handle, "*");
 
             return handle;
         };
     }
 
-    if (!window.setImmediate) {
-        // If supported, we should attach to the prototype of window, since that is where setTimeout et al. live.
-        var attachTo = Object.getPrototypeOf(window);
+    function installSetTimeoutImplementation(attachTo) {
+        attachTo.setImmediate = function () {
+            var handle = tasks.addFromSetImmediateArguments(arguments);
 
-        installPostMessageImplementation(attachTo);
+            global.setTimeout(function () {
+                tasks.runIfPresent(handle);
+            }, 0);
+
+            return handle;
+        };
+    }
+
+    if (!global.setImmediate) {
+        // If supported, we should attach to the prototype of global, since that is where setTimeout et al. live.
+        var attachTo = typeof Object.getPrototypeOf === "function" && "setTimeout" in Object.getPrototypeOf(global) ?
+                          Object.getPrototypeOf(global)
+                        : global;
+
+        if (canUsePostMessage()) {
+            // For non-IE10 modern browsers
+            installPostMessageImplementation(attachTo);
+        } else {
+            // NOTE: fallback for web workers in gecko
+            // XXX: replace with MessageChannel impl after bug 911972 lands
+            installSetTimeoutImplementation(attachTo);
+        }
+
         attachTo.clearImmediate = tasks.remove;
     }
-}());
+}(this));
