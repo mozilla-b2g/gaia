@@ -1,5 +1,3 @@
-var config = require('./config').config;
-
 const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
@@ -8,58 +6,6 @@ Cu.import('resource://gre/modules/Services.jsm');
 function isSubjectToBranding(path) {
   return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
          /branding[\/\\]initlogo.png/.test(path);
-}
-
-/**
- * Return a File object representing the directory of a given name/path.
- *
- * @param {String} dirName The name of the directory in GAIA_DIR or a full path.
- * @param {Boolean} maybeGaiaSubDir
- *        If true, try to locate the dir within GAIA_DIR.
- * @return {File} dir the File object.
- */
-function getDir(dirName, maybeGaiaSubDir) {
-
-  let dir;
-
-  // Assume directory is a absolute path first:
-  try {
-    dir = new FileUtils.File(dirName);
-  } catch (e) {
-    //dump('-*- utils.js cannot find ' + dirName + '\n');
-  }
-
-  if (!maybeGaiaSubDir)
-    return dir;
-
-  if (!dir || !dir.exists()) {
-    // Assume directory is a subdirectory of GAIA_DIR
-    dir = new FileUtils.File(config.GAIA_DIR);
-    dirName.split('/').forEach(function(name) {
-      dir.append(name);
-    });
-  }
-
-  return dir;
-}
-
-/**
- * Return an array of sub dir object with given dir object
- *
- * @param {File} dir The directory to search for sub directories.
- * @return {Array} The list of all sub directories.
- */
-function getSubDirs(dir) {
-  let subDirs = [];
-  let files = dir.directoryEntries;
-  while (files.hasMoreElements()) {
-    let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-    if (file.isDirectory()) {
-      subDirs.push(file);
-    }
-  }
-
-  return subDirs;
 }
 
 /**
@@ -165,7 +111,7 @@ function getJSON(file) {
   }
 }
 
-function makeWebappsObject(appdirs) {
+function makeWebappsObject(appdirs, domain, scheme, port) {
   return {
     forEach: function(fun) {
       appdirs.forEach(function(app) {
@@ -188,13 +134,12 @@ function makeWebappsObject(appdirs) {
         let manifest = manifestFile.exists() ? manifestFile : updateFile;
 
         // Use the folder name as the the domain name
-        let domain = appDir.leafName + '.' + config.GAIA_DOMAIN;
-
+        let appDomain = appDir.leafName + '.' + domain;
         let webapp = {
           manifest: getJSON(manifest),
           manifestFile: manifest,
-          url: config.GAIA_SCHEME + domain + (config.GAIA_PORT ? config.GAIA_PORT : ''),
-          domain: domain,
+          url: scheme + appDomain + (port ? port : ''),
+          domain: appDomain,
           sourceDirectoryFile: manifestFile.parent,
           buildDirectoryFile: manifestFile.parent,
           sourceDirectoryName: appDir.leafName,
@@ -233,15 +178,7 @@ function makeWebappsObject(appdirs) {
   };
 }
 
-const Gaia = {
-  engine: config.GAIA_ENGINE,
-  sharedFolder: getFile(config.GAIA_DIR, 'shared'),
-  webapps: makeWebappsObject(config.GAIA_APPDIRS.split(' ')),
-  aggregatePrefix: 'gaia_build_',
-  distributionDir: config.GAIA_DISTRIBUTION_DIR
-};
-
-function registerProfileDirectory() {
+function registerProfileDirectory(profileDir) {
   let directoryProvider = {
     getFile: function provider_getFile(prop, persistent) {
       persistent.value = true;
@@ -249,7 +186,7 @@ function registerProfileDirectory() {
         throw Cr.NS_ERROR_FAILURE;
       }
 
-      return new FileUtils.File(config.PROFILE_DIR);
+      return new FileUtils.File(profileDir);
     },
 
     QueryInterface: XPCOMUtils.generateQI([Ci.nsIDirectoryServiceProvider,
@@ -262,21 +199,29 @@ function registerProfileDirectory() {
     .registerProvider(directoryProvider);
 }
 
-if (Gaia.engine === 'xpcshell') {
-  registerProfileDirectory();
+function getGaia(options) {
+  registerProfileDirectory(options.PROFILE_DIR);
+  return {
+    engine: options.GAIA_ENGINE,
+    sharedFolder: getFile(options.GAIA_DIR, 'shared'),
+    webapps: makeWebappsObject(options.GAIA_APPDIRS.split(' '),
+      options.GAIA_DOMAIN, options.GAIA_SCHEME, options.GAIA_PORT),
+    aggregatePrefix: 'gaia_build_',
+    distributionDir: options.GAIA_DISTRIBUTION_DIR
+  }
 }
 
-function gaiaOriginURL(name) {
-  return config.GAIA_SCHEME + name + '.' + config.GAIA_DOMAIN + (config.GAIA_PORT ? config.GAIA_PORT : '');
+function gaiaOriginURL(name, scheme, domain, port) {
+  return scheme + name + '.' + domain + (port ? port : '');
 }
 
-function gaiaManifestURL(name) {
-  return gaiaOriginURL(name) + '/manifest.webapp';
+function gaiaManifestURL(name, scheme, domain, port) {
+  return gaiaOriginURL(name, scheme, domain, port) + '/manifest.webapp';
 }
 
-function getDistributionFileContent(name, defaultContent) {
-  if (Gaia.distributionDir) {
-    let distributionFile = getFile(Gaia.distributionDir, name + '.json');
+function getDistributionFileContent(name, defaultContent, distDir) {
+  if (distDir) {
+    let distributionFile = getFile(distDir, name + '.json');
     if (distributionFile.exists()) {
       return getFileContent(distributionFile);
     }
@@ -284,9 +229,9 @@ function getDistributionFileContent(name, defaultContent) {
   return JSON.stringify(defaultContent, null, '  ');
 }
 
-function getAbsoluteOrRelativePath(path) {
+function getAbsoluteOrRelativePath(path, gaiaDir) {
   // First check relative path to gaia folder
-  let abs_path_chunks = [config.GAIA_DIR].concat(path.split(/\/|\\/));
+  let abs_path_chunks = [gaiaDir].concat(path.split(/\/|\\/));
   let file = getFile.apply(null, abs_path_chunks);
   if (!file.exists()) {
     try {
@@ -298,8 +243,6 @@ function getAbsoluteOrRelativePath(path) {
 }
 
 exports.isSubjectToBranding = isSubjectToBranding;
-exports.getDir = getDir;
-exports.getSubDirs = getSubDirs;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
 exports.writeContent = writeContent;
@@ -307,9 +250,8 @@ exports.getFile = getFile;
 exports.ensureFolderExists = ensureFolderExists;
 exports.getJSON = getJSON;
 exports.makeWebappsObject = makeWebappsObject;
-exports.Gaia = Gaia;
-exports.registerProfileDirectory = registerProfileDirectory;
 exports.gaiaOriginURL = gaiaOriginURL;
 exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = getDistributionFileContent;
 exports.getAbsoluteOrRelativePath = getAbsoluteOrRelativePath
+exports.getGaia = getGaia;

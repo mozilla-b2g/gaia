@@ -1,6 +1,7 @@
 var utils = require('./utils');
-var config = require('./config').config;
+var config;
 const { Cc, Ci, Cr, Cu } = require('chrome');
+Cu.import('resource://gre/modules/Services.jsm');
 
 const INSTALL_TIME = 132333986000;
 // Match this to value in applications-data.js
@@ -14,15 +15,6 @@ let io = Cc['@mozilla.org/network/io-service;1']
 
 let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                .createInstance(Ci.nsILocalFile);
-webappsTargetDir.initWithPath(config.PROFILE_DIR);
-// Create profile folder if doesn't exists
-if (!webappsTargetDir.exists())
-  webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
-// Create webapps folder if doesn't exists
-webappsTargetDir.append('webapps');
-if (!webappsTargetDir.exists())
-  webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
-
 let manifests = {};
 
 let id = 1;
@@ -273,8 +265,19 @@ function fillExternalAppManifest(webapp) {
   };
 }
 
-function execute() {
-  utils.Gaia.webapps.forEach(function(webapp) {
+function execute(options) {
+  config = options;
+
+  webappsTargetDir.initWithPath(config.PROFILE_DIR);
+  // Create profile folder if doesn't exists
+  if (!webappsTargetDir.exists())
+    webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+  // Create webapps folder if doesn't exists
+  webappsTargetDir.append('webapps');
+  if (!webappsTargetDir.exists())
+    webappsTargetDir.create(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0755', 8));
+
+  utils.getGaia(config).webapps.forEach(function(webapp) {
     // If BUILD_APP_NAME isn't `*`, we only accept one webapp
     if (config.BUILD_APP_NAME != '*' &&
       webapp.sourceDirectoryName != config.BUILD_APP_NAME) {
