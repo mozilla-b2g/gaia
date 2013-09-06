@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+
+  <title>Tabs</title>
+  <meta name="description" content="Allows multiple instances to be contained within a single window. Tabs are used as a navigational widget for switching between sets of views. ">
+
+  <link rel="stylesheet" href="../tabs.css">
+
+  <!--
+    This <style> and <link> is only used for the example code, is no needed for the real case use
+  -->
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-size: 10px;
+      background-color: #fff;
+    }
+
+    body {
+      background: none;
+    }
+
+    h2.bb-docs {
+      font-size: 1.8rem;
+      font-family: sans-serif;
+      font-weight: lighter;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+
+    /* icons */
+    #panel1 a:after {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAB4CAYAAADlnULlAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAANcSURBVHja7Ji/TxRBFMc/a4gJJyZWYmcwQQuwuINETzu1ZZDu6CCrjf+RMSuVWpmQoaYDt5Ej8UdhTIRYKY0FsBHEezZjcix7u7N7yy2aeckld7c777Ozu/Ped76eiFBFnKOicGAH/v/AQwXHjAGj5vcO8AU4ypVFRGw/MyKyLCK7cjJ2zbFZEfFs8tkA6yKyJvbRNmP6ArdEJJL8EYnIfFFwS0Q6CUm3RGRCRG5lwDsispAX3BCR/R4J35lzblrM/EBEppIYScvJA54BtRJWzXmTy7NZxwpolLhk6yZnJnjxFOrFYhZ4CLh3CuAH8WIVB48BF08BfAG4lgYetUjy96XbBr7lgF/ut1aPATeAT8B4PGHsAt/b1upxy8r0wZybVoAmY2Oudx/3YipzCPgBjNj0F+Ar8DtlxlfM933gUncHi9/qI2AVmLUAe8BVy8ezGm+bSet46RTe6ucnrjpB0HvA2xKr1yYwDXSyZizAYyAqAXpocnXyKJD5Hm3RNjoi4hcVAr6I/CwAPUyD2kqfhois55Q+U2Vorm6xp1PEnhaRhyJyziafV2CbWoq89dz+2IEd2IEd2IEdOFFX+2F/+i5o1oqBBykE8oBnAB+4n7DF2QNW/TBaAnTQrEkZz7gOrAHabG2S9lUj5tgysOGHUb1fcAtYB+7m9DzW/TCaLwpuAS+B4dj/28AkcDtl7DDwwg+jhbzgBhAk2UTALvDRYovjAU/9MJqyBZfuc/lh5Hyuwflcfhg5n6sanysO/m7ZSl8Dc8BnU6dPdCc/jCZj43bSwFsmUZbPNWFmfMznirXV7jqwbzoYA/e5gmbtbPhcSWANtEuEbgIrNuDSfa6gWevYdqc28MhcRNEQ4EnQrG3k7cevzMwPCkB/mZkGRRVIANwB3uR8ps00qK3mahvpo8xLspdwzp45NgdM97q9RUvmivn0lLd5dLXzuRzYgR3YgR3YgasHHxMCSinbMYlCQGtdDJwRmT6XUmoJ0FrranwupVR1PpdSqjqfSym1kBdcms+llKrO51JKOZ9rcD6XUsr5XLnj7Plc3U1CKTU4nyvW3c6Gz6W1dj5Xok1Uqs+ltR68z6W1HrzPpbUevM+VBrXVXLl9rl63t2jJzPS58shb53M5sAP/++A/AwAknA95gJpZoQAAAABJRU5ErkJggg==);
+    }
+
+    #panel2 a:after {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAB4CAYAAADlnULlAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAAOcSURBVHja7Jq9axxHGIefcw5/XJUzCGw4K2UEThohGc6BgFOp8UAw6XSBZEG4SR/8B7hIGUyMi4uN3US4MLwpXAhkcKH1l9xIitQFyYlsUBGDrUUImdeF5qLz+fZ2Z28Oycn8YOE+3pvnZt6Zd3Z/TElV2Q8dYp8UwAE8MJUL/q4CjNjXK0Di3IKqulxVVb2qqpu6p037WdWlLRfokKoua7qWbYx38LRm63be9ko5S2YNWANKWZkDPgGe+ZrVX+SAYmPO+lxOxxzm6zGf4AUHcK7YvDku2QZPZ8QtAZ/bXHvpsQJTwHaPmG0bo4MoIOdUdbXLMlq13+F7ObXrKHAe+My+XwR+B7ZcGikd5Fufss3dAtDoETdpez+Va/PJyMWwqs635XJHVRtd4ibtdy3N298WqtU1VV3vMpE64Y0OaEvrtg1n8GyPzaAFT4O2NOsKHsuxE+1kQFsa68ZIm1zjOSbdR/bK0rjLrD7iceUcdgG/8gh+7QL+2yN43QX8h0fwimvJfA6c6BP6AjjpWjJnPPR2pkit/s0DeLrI7lQCPu4T/DLtxqAUHIEADuAADuAP026K4qRQY8165eD7XK5DXQWuAhvAvL027GfVQYGHgDngou1xe+8vAnNRnAwNAnylbXi7aQT4xTe4BnyTI+5CFCenfIKDz9V3bF7wU+thZWnJxnoD5/a5mvWK+l5Oc8AEuy5up9aAiWa9MjeoknkP+NSHz1WkVm8Bt+11MHyuKE4WoziZiuKk3C94GHgIXLNDez0FPgncYNfdvQY8jOJkuCi4BjwARjsMl054w0LbjZhR4EEUJ7UiOb6Z8lDdgrd0ne7uz0nbxle5nxajOBkDHmek4U3bH+ml8Wa98iTvUAefqx8Fn6sneI1dj6pfvWjWK3+6FpD/ps/Vq3LdBY73CX6ZelcYfK4ADuAADuAA9vnshDHmHZ9LRJx9LqfdyRhTBS4D37JnOSX2xv2SiPzjHWyMGQLuk245rQBfisiG7xx79bly9dgY43SeS0TCea7C4P+ZzyUiuX0uG+tvOYlIps9lY/xXLru0up7nEpEP4zxXOUcPy8D3wA/ATyJyKyVuEvgR+Bn4VUR2CvfYGDMM3GHPcnoDfNcJt9AbbZ7IU+BrEVlzBtsy+Yj3Lad34MaYBt0tp+fAGRH5y3Woe/pcxpjWe38+lzHGq88lIsHnCj7Xv9q/81zGGC/nuUQknOfKrFzB5wrgAHbS2wEAlqZKRUMP/rgAAAAASUVORK5CYII=);
+    }
+
+    #panel3 a:after {
+      background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAB4CAYAAADlnULlAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAAE4SURBVHja7JdBTsJQFEUvxlF3I4OSbqKb6DpkgOvoHsiDPVQd1A2oAydMhGEnkNTJJ/m8fAOiDVHPS0jad8M/HfSEy6jve11irnShAQwY8N8E55J692mjfJbIZ1HeJvL8FPB7Yrf+Qr455cwU+E3S1u1eP7nez0t0/eyybTjzKHgnae6+uIju7yWtovtV2O1n6R58Hs48mBG/TniMx3iMTniMx3gMGDBgwIABAwb8D8DXflE1XS7pwa2fJI2jXn3r8jtJ07rIVDVdK+nG5ZO6yB7p1YP36rrIjvfqqunOfmHqIkOnX+Bx+C97lsfhHcFjPMZjPMbjgT1GJ8CAAQMGDBgw4OF7dVmWyV5tZuOQJ3u1mU1DnuzVZkavPhwz+/FeHc6kV+MxHuMxOuExHuMxHgMGDPib8zEAXEF5RgN/yzkAAAAASUVORK5CYII=);
+    }
+  </style>
+</head>
+<body role="application">
+
+  <section role="region">
+    <!-- if your tabs are at the top, remove class="bottom" -->
+    <ul role="tablist" data-items="4" class="bottom">
+      <li id="panel1" role="tab">
+        <a href="#panel1" class="icon">comms</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel2" role="tab">
+        <a href="#panel2" class="icon">contacts</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel3" role="tab" aria-disabled="true">
+        <a class="icon">dialer</a>
+        <div role="tabpanel"></div>
+      </li>
+      <li id="panel4" role="tab">
+        <a href="#panel4">Tab name</a>
+        <div role="tabpanel"></div>
+      </li>
+    </ul>
+  </section>
+
+</body>
+</html>

@@ -1,9 +1,17 @@
 'use stricts';
 
 var UITest = {
-  get testList() {
-    delete this.testList;
-    return this.testList = document.getElementById('test-list');
+  get UItests() {
+    delete this.UItests;
+    return this.UItests = document.getElementById('UI-tests');
+  },
+  get APItests() {
+    delete this.APItests;
+    return this.APItests = document.getElementById('API-tests');
+  },
+  get HWtests() {
+    delete this.HWtests;
+    return this.HWtests = document.getElementById('HW-tests');
   },
   get iframe() {
     delete this.iframe;
@@ -18,7 +26,8 @@ var UITest = {
     return this.panelTitle = document.getElementById('test-panel-title');
   },
   init: function ut_init() {
-    this.testList.addEventListener('click', this);
+    this.UItests.addEventListener('click', this);
+    this.APItests.removeEventListener('click', this);
     this.iframe.addEventListener('load', this);
     this.iframe.addEventListener('unload', this);
     document.body.addEventListener('transitionend', this);
@@ -31,7 +40,8 @@ var UITest = {
       this.openTest(name);
   },
   uninit: function ut_uninit() {
-    this.testList.removeEventListener('click', this);
+    this.UItests.removeEventListener('click', this);
+    this.APItests.removeEventListener('click', this);
     this.iframe.removeEventListener('load', this);
     this.iframe.removeEventListener('unload', this);
     document.body.removeEventListener('transitionend', this);
@@ -59,13 +69,40 @@ var UITest = {
         this.iframe.contentWindow.removeEventListener('keyup', this);
         break;
       case 'hashchange':
-        var name = this.getNameFromHash();
-        if (!name) {
-          this.closeTest();
-          return;
-        }
-        this.panelTitle.textContent = name;
-        this.openTest(name);
+	if (window.location.hash == '#UI')
+	{
+	  this.UItests.classList.remove('invisible');
+	  if(!this.HWtests.classList.contains('invisible'))
+	    this.HWtests.classList.add('invisible');
+	  if(!this.APItests.classList.contains('invisible'))
+	    this.APItests.classList.add('invisible');
+	}
+	else if(window.location.hash == '#API')
+	{
+	  this.APItests.classList.remove('invisible');
+	  if(!this.UItests.classList.contains('invisible'))
+	    this.UItests.classList.add('invisible');
+	  if(!this.HWtests.classList.contains('invisible'))
+	    this.HWtests.classList.add('invisible');
+	}
+	else if(window.location.hash == '#HW')
+	{
+	  this.HWtests.classList.remove('invisible');
+	  if(!this.UItests.classList.contains('invisible'))
+	    this.UItests.classList.add('invisible');
+	  if(!this.APItests.classList.contains('invisible'))
+	    this.APItests.classList.add('invisible');
+	}
+	else
+	{
+	  var name = this.getNameFromHash();
+	  if (!name) {
+	    this.closeTest();
+	    return;
+	  }
+	  this.panelTitle.textContent = name;
+	  this.openTest(name);
+	}
         break;
       case 'transitionend':
         var name = this.getNameFromHash();
