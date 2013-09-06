@@ -952,7 +952,7 @@ var WindowManager = (function() {
   }
 
   window.addEventListener('homescreencreated', function onHomeCreated(evt) {
-    runningApps[evt.detail.origin] = evt.detail;
+    runningApps[HomescreenLauncher.origin] = evt.detail;
     numRunningApps++;
   });
 
