@@ -1,0 +1,38 @@
+<element name="telephony-tab" extends="section">
+  <template>
+
+    <section>
+      <ul>
+        <li>
+          <p id="telephony-time">
+          </p>
+          <dl>
+            <dt data-l10n-id="call-made">
+              Call made
+            </dt>
+            <dd>
+              <span id="telephony-calltime">
+                50
+              </span>
+            </dd>
+            <dt data-l10n-id="sms-sent">
+              SMS Sent
+            </dt>
+            <dd>
+              <span id="telephony-smscount">
+                30
+              </span>
+            </dd>
+          </dl>
+        </li>
+        <li id="billing-cycle">
+          <time id="reset-date">26 Dec</time>
+          <p data-l10n-id="billing-cycle-ends">Billing cycle ends</p>
+          <span class="meta" data-l10n-id="tracking-will-reset">Tracking will reset on this date</span>
+        </li>
+      </ul>
+      <script type="text/javascript" defer src="js/views/telephony.js"></script>
+    </section>
+
+  </template>
+</element>
