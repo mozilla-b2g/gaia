@@ -28,7 +28,7 @@
                  "text/vcard", "text",
                  "webcontacts/contact", "webcontacts/email",
                  "webtelephony/number", "websms/sms",
-                 "uri", "smartposter", "smartposter-action",
+                 "uri",
                  "*"
                 ]
       }
