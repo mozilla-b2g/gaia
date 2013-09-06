@@ -84,11 +84,13 @@ suite('Call Forwarding >', function() {
 
   suite('init', function() {
     setup(function() {
-      //MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_cardstatechange';
-      //MockIccHelper.mEventListeners['cardstatechange'][0]();
+      MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_cardstatechange';
+      MockIccHelper.mEventListeners['cardstatechange'][MockIccHelper.
+        mEventListeners['cardstatechange'].length - 1]();
 
-      //MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_iccinfochange';
-      //MockIccHelper.mEventListeners['iccinfochange'][0]();
+      MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_iccinfochange';
+      MockIccHelper.mEventListeners['iccinfochange'][MockIccHelper.
+        mEventListeners['iccinfochange'].length - 1]();
     });
 
     test('test lock ril.cf.enabled is false', function() {
