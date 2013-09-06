@@ -359,7 +359,9 @@ var AlarmEdit = {
           return;
         }
         AlarmList.refreshItem(alarm);
-        AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+        LazyLoader.load(['js/banner.js'], function() {
+          new Banner(alarm.getNextAlarmFireTime());
+        });
         AlarmManager.updateAlarmStatusBar();
         callback && callback(null, alarm);
       });
