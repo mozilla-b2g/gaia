@@ -499,26 +499,103 @@ bubble above the key when you tap and hold. */
   display: none;
 }
 
-#keyboard-candidate-panel {
-  height: 6.4rem;
-  overflow: auto;
-  white-space: nowrap;
-  color: black;
-  border-top: 0.1rem solid #e8e8ff;
-  border-bottom: 0.1rem solid #808098;
-  display: none;
-  margin: 0 -1rem 0 -1rem;
+#keyboard.full-candidate-panel {
+  padding-top: 4.6rem;
 }
 
-#keyboard.candidate-panel #keyboard-candidate-panel {
+#keyboard-candidate-panel {
   display: block;
-  width: -moz-calc(100% - 6.2rem + 1rem);
-  overflow-y: hidden;
+  background: #252220;
+  padding: 0;
+  margin: -1rem 0rem 0.8rem 0rem;
+  border: none;
+  border-top: 0.1rem solid #000000;
+  border-bottom: 0.1rem solid #000000;
+  height: 3.8rem;
+  width: 100%;
+  overflow: hidden;
+  white-space: normal;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel {
+  overflow-y: auto;
+
+  position: absolute;
+  top: 0.8rem;
+  height: 100%;
+  z-index: 1;
+  margin-bottom:0;
+}
+
+#keyboard-candidate-panel-toggle-button {
+  display: none;
+  z-index: 1;
+  background-color: #252220;
+  position: absolute;
+  right: 0rem;
+  top: -0.14rem;
+  font-size: 0;
+  height: 3.8rem;
+}
+
+#keyboard-candidate-panel-toggle-button-image {
+  display: block;
+  background: transparent url('images/icon_extend.png') center center no-repeat;
+  height: 100%;
+  pointer-events: none;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
+  display: block;
+  right: 8px;
+}
+
+#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button-image {
+  background-image: url('images/icon_close.png');
+  margin-left: 8px;
+}
+
+#keyboard-candidate-panel .candidate-row {
+  border-top: 0.1rem solid #000000;
+}
+
+#keyboard-candidate-panel .candidate-row-first {
+  border-top: none;
+}
+
+#keyboard.candidate-panel #keyboard-candidate-panel .candidate-row {
+  display: none;
+}
+
+#keyboard.candidate-panel #keyboard-candidate-panel .candidate-row-first {
+  display: block;
+}
+
+#keyboard-candidate-panel-toggle-button.highlighted,
+#keyboard-candidate-panel .candidate-row span.highlighted {
+  background-color: #008eab;
+  color: #333333;
+}
+
+#keyboard-candidate-panel .candidate-row span {
+  display: inline-block;
+  margin: 0;
+  padding: 0 2px 0 0;
+  min-width: -moz-calc(4rem - 2px);
+  height: 3.8rem;
+  font-size: 2rem;
+  color: #a6a6a6;
+  text-align: center;
+  line-height: 3.8rem;
+  background: transparent url('images/divider.png') right center no-repeat;
+  border: none;
 }
 
 /* for latin suggestions we don't need such a tall box */
 /* and in latin we hide the toggle button, so we can be full-width */
 #keyboard.candidate-panel #keyboard-candidate-panel.latin {
+  display: block;
+  white-space: nowrap;
   height: 3rem;
   width: -moz-calc(100% - 1rem);
   background: #000;
@@ -530,48 +607,18 @@ bubble above the key when you tap and hold. */
   overflow: hidden;
 }
 
-#keyboard.full-candidate-panel {
-  padding-top: 6.6rem;
-}
-
-#keyboard.full-candidate-panel #keyboard-candidate-panel {
-  display: block;
-  position: absolute;
-  white-space: normal;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  border: none;
-  border-top: 0.2rem solid #a3a3a3;
-  z-index: 1;
-  margin:0;
-  padding:0;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-#keyboard.full-candidate-panel #keyboard-candidate-panel span {
-  border-top: 0.1rem solid #e8e8ff;
-  border-bottom: 0.1rem solid #808098;
-}
-
-#keyboard-candidate-panel[data-truncated]::after {
+#keyboard.full-candidate-panel #keyboard-candidate-panel[data-truncated]::after {
   content: '…';
   background: none ! important;
   border-color: transparent ! important;
-  color: #666;
-}
 
-#keyboard-candidate-panel span,
-#keyboard-candidate-panel[data-truncated]::after {
-  font-size: 3.2rem;
-  line-height: 6rem;
-  min-width: 5rem;
-  display: inline-block;
-  height: 6.4rem;
-  padding: 0 1rem;
+  display: block;
   text-align: center;
-  background: #ccc;
+  margin: 0;
+  height: 3.8rem;
+  font-size: 2rem;
+  color: #a6a6a6;
+  line-height: 3.8rem;
 }
 
 #keyboard-candidate-panel.latin > div {
@@ -603,31 +650,6 @@ bubble above the key when you tap and hold. */
 
 #keyboard-candidate-panel.latin span.autocorrect {
   color: #0ac;
-}
-
-#keyboard-candidate-panel-toggle-button {
-  position: absolute;
-  font-size: 3.2rem;
-  line-height: 6rem;
-  right: 0;
-  top: 0.1rem;
-  text-align: center;
-  width: 6rem;
-  height: 6.4rem;
-  color: black;
-  background: -moz-linear-gradient(top, rgb(191,191,183) 10%, rgb(161,158,153) 90%);
-  display: none;
-}
-
-#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
-  display: block;
-  border-top: 0.1rem solid #e8e8ff;
-  top: 0;
-  z-index: 1;
-}
-
-#keyboard.candidate-panel #keyboard-candidate-panel-toggle-button {
-  display: block;
 }
 
 /*
