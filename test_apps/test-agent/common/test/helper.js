@@ -37,8 +37,8 @@
     Assertion.prototype.assert = chaiAssert;
   }
 
-  window.requireApp = function(url, cb) {
-    require(TestUrlResolver.resolve(url), cb);
+  window.requireApp = function(url, cb, options) {
+    require(TestUrlResolver.resolve(url), cb, options);
   };
 
   /**
