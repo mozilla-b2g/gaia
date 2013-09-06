@@ -257,15 +257,8 @@ var ThreadUI = global.ThreadUI = {
 
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
-    function recipientsChanged(count) {
-      var message = count ?
-        (count > 1 ? 'recipient[many]' : 'recipient[one]') :
-        'newMessage';
-
-      this.headerText.textContent = navigator.mozL10n.get(message, {
-        n: count
-      });
-
+    function recipientsChanged() {
+      this.updateComposerHeader();
       // check for enable send whenever recipients change
       this.enableSend();
       // Clean search result after recipient count change.
