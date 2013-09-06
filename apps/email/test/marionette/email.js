@@ -1,3 +1,4 @@
+/*jshint node: true, browser: true */
 function Email(client) {
   this.client = client;
 }
@@ -47,27 +48,12 @@ Email.prototype = {
     return this.client.findElement(Selector.notificationBar);
   },
 
-  setupImapEmail: function() {
-    const USER_NAME = 'GAIA';
-    const EMAIL_ADDRESS = 'marionette.js.client@gmail.com';
-    const PASSWORD = 'tpemozilla';
-    // wait for the setup page is loaded
-    this.client.helper.
-      waitForElement(Selector.manualConfigButton);
-    // setup a IMAP email account
-    this._setupTypeName(USER_NAME);
-    this._setupTypeEmail(EMAIL_ADDRESS);
-    this._setupTypePassword(PASSWORD);
-    this._setupTapNext();
-    this._waitForSetupCompleted();
-    this._tapContinue();
-  },
-
   manualSetupImapEmail: function(server) {
     // wait for the setup page is loaded
     this.client.helper.
       waitForElement(Selector.manualConfigButton).
       tap();
+    this._waitForTransitionEnd('setup_manual_config');
     // setup a IMAP email account
     var email = server.imap.username + '@' + server.imap.hostname;
     this._manualSetupTypeName(server.imap.username);
@@ -92,7 +78,7 @@ Email.prototype = {
   tapCompose: function() {
     this.client.findElement(Selector.composeButton).tap();
     // wait for being in the compose page
-    this._waitForTransitionEnd();
+    this._waitForTransitionEnd('compose');
   },
 
   typeTo: function(email) {
@@ -118,10 +104,10 @@ Email.prototype = {
       waitForElement(Selector.composeBodyInput).getAttribute('value');
   },
 
-  abortCompose: function() {
+  abortCompose: function(cardId) {
     this.client.helper.waitForElement(Selector.composeBackButton).tap();
     this.client.helper.waitForElement(Selector.composeDraftDiscard).tap();
-    this._waitForTransitionEnd();
+    this._waitForTransitionEnd(cardId);
   },
 
   tapSend: function() {
@@ -141,16 +127,17 @@ Email.prototype = {
       tap();
     // wait for being in the email list page
     client.helper.waitForElement(Selector.refreshButton);
-    this._waitForTransitionEnd();
+    this._waitForTransitionEnd('message_list');
+  },
+
+  tapRefreshButton: function() {
+    this.client.
+      findElement(Selector.refreshButton).
+      tap();
   },
 
   waitForNewEmail: function() {
-    var client = this.client;
-    client.
-      findElement(Selector.refreshButton).
-      tap();
-    // show a new email notification
-    client.helper.waitForElement(Selector.notificationBar);
+    this.client.helper.waitForElement(Selector.notificationBar);
   },
 
   launch: function() {
@@ -165,7 +152,7 @@ Email.prototype = {
     var client = this.client;
     var element = client.findElements(Selector.messageHeaderItem)[index];
     element.tap();
-    this._waitForTransitionEnd();
+    this._waitForTransitionEnd('message_reader');
   },
 
   /**
@@ -191,27 +178,19 @@ Email.prototype = {
       break;
     }
     client.findElement(whichButton).tap();
-    this._waitForTransitionEnd();
+    this._waitForTransitionEnd('compose');
   },
 
-  _waitForTransitionEnd: function() {
+  _waitForTransitionEnd: function(cardId) {
     var client = this.client;
     client.waitFor(function() {
-      var condition = false;
-      client.executeScript(
-        function() {
-          return window.wrappedJSObject.
-                   require('mail_common').
-                   Cards.
-                   _eatingEventsUntilNextCard;
-        },
-        function(error, result) {
-          if (result === false) {
-            condition = true;
-          }
-        }
-      );
-      return condition;
+      return client.executeScript(function(cardId) {
+        var Cards = window.wrappedJSObject.require('mail_common').Cards,
+            card = Cards._cardStack[Cards.activeCardIndex],
+            cardNode = card && card.domNode;
+        return cardNode && cardNode.dataset.type === cardId &&
+               !Cards._eatingEventsUntilNextCard;
+      }, [cardId]);
     });
   },
 
@@ -231,13 +210,6 @@ Email.prototype = {
     this.client.
       findElement(Selector.setupPasswordInput).
       sendKeys(password);
-  },
-
-  _setupTapNext: function() {
-    this._waitForTransitionEnd();
-    this.client.
-      findElement(Selector.nextButton).
-      tap();
   },
 
   _manualSetupTypeName: function(name) {
@@ -317,7 +289,7 @@ Email.prototype = {
   },
 
   _manualSetupTapNext: function() {
-    this._waitForTransitionEnd();
+    this._waitForTransitionEnd('setup_manual_config');
     this.client.
       findElement(Selector.manualNextButton).
       tap();
