@@ -209,8 +209,10 @@ contacts.Form = (function() {
     formTitle.setAttribute('data-l10n-id', 'editContact');
     formTitle.textContent = _('editContact');
     currentContactId.value = contact.id;
-    givenName.value = contact.givenName || '';
-    familyName.value = contact.familyName || '';
+    givenName.value = Array.isArray(contact.givenName) ?
+                      contact.givenName[0] : '';
+    familyName.value = Array.isArray(contact.familyName) ?
+                       contact.familyName[0] : '';
     company.value = contact.org && contact.org.length > 0 ? contact.org[0] : '';
 
     if (nonEditableValues[company.value]) {

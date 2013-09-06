@@ -64,6 +64,9 @@ if (!utils.templates) {
         var out;
         if (property.indexOf('.') === -1) {
           out = data[property];
+          if (Array.isArray(out) && out.length > 0) {
+            out = out[0];
+          }
         } else {
             throw new Error('Dotted expressions not supported');
         }
