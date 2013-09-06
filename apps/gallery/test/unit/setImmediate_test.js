@@ -26,11 +26,12 @@
 //       It has been customized in the following ways:
 //
 //         1) Non-gecko browser compatibility code has been removed.  The
-//            postMessage() implementation is always used.
+//            postMessage() implementation is always used, except for
+//            web workers.  There we use setTimeout(0) since MessageChannel
+//            is not implemented in gecko yet.  (Bug 911972)
 //         2) The support for executing strings with eval() has been
 //            disabled and will now throw an exception.
-//         3) Always attach to prototype of window
-//         4) Convert test code to use suite() and test().
+//         3) Convert test code to use suite() and test().
 //
 //       The style of this code is different from the rest of gaia, but
 //       we chose to minimize non-functional changes in order to make
@@ -132,5 +133,13 @@ suite("setImmediate polyfill", function() {
             assert.ok(!!e, "received exception when attempting eval");
             done();
         }
+    });
+
+    test("When inside a web worker context, setImmediate calls the passed handler", function (done) {
+        var worker = new window.Worker("setImmediate_worker.js");
+        worker.addEventListener("message", function (event) {
+            assert.strictEqual(event.data, "TEST");
+            done();
+        }, false);
     });
 });
