@@ -1,13 +1,15 @@
 (function(window) {
   var currentManifestURL = '';
-  var origin = '';
   var instance = undefined;
 
   var HomescreenLauncher = {
     ready: false,
 
     get origin() {
-      return origin;
+      // We don't really care the origin of homescreen,
+      // and it may change when we swap the homescreen app.
+      // So we use a fixed string here.
+      return 'homescreen';
     },
 
     init: function hl_init() {
@@ -36,15 +38,10 @@
               instance.setBrowserConfig(value);
               instance.render();
               // Update origin;
-              origin = instance.origin;
               window.dispatchEvent(new CustomEvent('homescreen-changed'));
             } else {
               instance.ensure();
             }
-          } else {
-            // Since there's no homescreen window instance now,
-            // we have to caculate the origin on our own.
-            origin = Applications.getByManifestURL(value).origin;
           }
 
           self.ready = true;
