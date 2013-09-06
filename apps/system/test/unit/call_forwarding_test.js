@@ -68,13 +68,27 @@ suite('Call Forwarding >', function() {
     window.asyncStorage = realAsyncStorage;
   });
 
+  suite('race codition check', function() {
+    test('test mozSettings', function() {
+      assert.equal(typeof navigator.mozSettings, 'object');
+    });
+
+    test('test mozMobileConnection', function() {
+      assert.equal(typeof navigator.mozMobileConnection, 'object');
+    });
+
+    test('test IccHelper', function() {
+      assert.equal(typeof IccHelper, 'object');
+    });
+  });
+
   suite('init', function() {
     setup(function() {
-      MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_cardstatechange';
-      MockIccHelper.mEventListeners['cardstatechange'][0]();
+      //MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_cardstatechange';
+      //MockIccHelper.mEventListeners['cardstatechange'][0]();
 
-      MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_iccinfochange';
-      MockIccHelper.mEventListeners['iccinfochange'][0]();
+      //MockIccHelper.mProps.iccInfo.iccid = 'dummy_iccInfo_of_iccinfochange';
+      //MockIccHelper.mEventListeners['iccinfochange'][0]();
     });
 
     test('test lock ril.cf.enabled is false', function() {
