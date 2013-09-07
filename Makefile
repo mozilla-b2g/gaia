@@ -599,7 +599,7 @@ test-perf:
 	adb forward tcp:2828 tcp:2828
 	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
 	$(PERF_REPORTER_HEADER) \
-	for app in ${APPS}; \
+	for app in $(APPS); \
 	do \
 		$(PERF_BETWEEN_TEST_RULE) \
 		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
