@@ -596,6 +596,9 @@ endif
 node_modules:
 	npm install
 
+node_modules/gaia-marionette: node_modules
+	ln -s $(PWD)/shared/test/marionette node_modules/gaia-marionette
+
 b2g: node_modules
 	./node_modules/.bin/mozilla-download --verbose --product b2g $@
 
@@ -603,7 +606,9 @@ b2g: node_modules
 test-integration:
 	# override existing profile-test folder.
 	PROFILE_FOLDER=profile-test make
-	./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js")
+	./bin/gaia-marionette \
+		$(shell find shared/test/marionette -name "*_test.js") \
+		$(shell find . -path "*test/marionette/*_test.js")
 
 .PHONY: test-perf
 test-perf:

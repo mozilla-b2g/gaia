@@ -72,8 +72,6 @@ test files should end in _test.js.
 All integration tests run under a node environment. You need node >= 0.8
 for this to work predictably.
 
-Shared code for tests lives under shared/test/integration.
-
 #### Invoking a test
 
 ```sh
@@ -91,6 +89,33 @@ automatically picked up by `make test-integration`.
 
 ```sh
 make test-integration
+```
+
+### Shared Helpers
+
+Shared code for tests lives under shared/test/marionette. The directory
+is symlinked to node_modules so you can do something like this:
+
+```js
+var gaiaHelpers = require('gaia-marionette');
+```
+
+The intent for "shared" gaia code is that it is only ever useful to
+gaia. If you even think something might be useful outside of the context
+of this gigantic repo its better to have a subproject (with its own repo
+and a real npm package).
+
+#### requireFromApp
+
+```js
+// lets say you have some super amazing thing with a notification and
+// you want to reuse some code from another apps tests.
+var gaiaHelpers = require('gaia-marionette');
+var SharedCode = gaiaHelpers.requireFromApp('system',
+'lib/notifications');
+
+// the path is mapped to apps/system/test/marionette/lib/notifications.js
+
 ```
 
 #### Where to find documentation

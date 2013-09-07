@@ -6,7 +6,7 @@ SOURCE="${BASH_SOURCE[0]}"
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 
 # where all gaia specific customizations for mocha-marionette live.
-SHARED=$DIR/../shared/test/integration
+SHARED=$DIR/../shared/test/marionette
 
 # download b2g-desktop (if its not present)
 make -C $DIR/../ b2g
