@@ -154,7 +154,7 @@ suite('L10n', function() {
     test('ARIA labels', function() {
       elem.dataset.l10nId = 'a11y-label';
       _translate(elem);
-      assert.equal(elem.getAttribute('aria-label'), 'label via ARIA');
+      assert.equal(elem['aria-label'], 'label via ARIA');
     });
   });
 
