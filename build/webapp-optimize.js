@@ -394,7 +394,11 @@ function optimize_concatL10nResources(doc, webapp, dictionary) {
 
   var resources = doc.querySelectorAll('link[type="application/l10n"]');
   if (resources.length) {
+    let meta = doc.createElement('meta');
+    meta.name = 'locales';
+    meta.content = l10nLocales.join(',');
     let parentNode = resources[0].parentNode;
+    parentNode.insertBefore(meta, resources[0]);
     let fetch = false;
     for (let i = 0; i < resources.length; i++) {
       let link = resources[i];
