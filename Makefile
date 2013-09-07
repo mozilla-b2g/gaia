@@ -597,7 +597,7 @@ node_modules:
 	npm install
 
 node_modules/gaia-marionette: node_modules
-	ln -s $(PWD)/shared/test/marionette node_modules/gaia-marionette
+	ln -s $(shell pwd)/shared/test/marionette node_modules/gaia-marionette
 
 b2g: node_modules
 	./node_modules/.bin/mozilla-download --verbose --product b2g $@
