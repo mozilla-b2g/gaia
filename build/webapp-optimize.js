@@ -26,7 +26,10 @@ var l10nLocales;
 function newDictionary() {
   let dictionary = {};
   l10nLocales.forEach(function(lang) {
-    dictionary[lang] = {};
+    dictionary[lang] = {
+      type: 'WebL10n',
+      body: {}
+    };
   });
   return dictionary;
 }
@@ -420,8 +423,8 @@ function optimize_concatL10nResources(doc, webapp, dictionary) {
 
   // merge the l10n dictionary into webapp.dictionary
   for (let lang in dictionary) {
-    for (let id in dictionary[lang]) {
-      webapp.dictionary[lang][id] = dictionary[lang][id];
+    for (let id in dictionary[lang].body) {
+      webapp.dictionary[lang].body[id] = dictionary[lang].body[id];
     }
   }
 }
