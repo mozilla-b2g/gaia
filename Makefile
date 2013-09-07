@@ -102,18 +102,6 @@ ifeq ($(REPORTER), JSONMozPerf)
   define PERF_REPORTER_FOOTER
   echo ']'; 
   endef
-
-else
-
-  define PERF_REPORTER_HEADER
-  endef
-
-  define PERF_BETWEEN_TEST_RULE
-  endef
-
-  define PERF_REPORTER_FOOTER
-  endef
-
 endif
 
 GAIA_INSTALL_PARENT?=/data/local
@@ -610,14 +598,14 @@ test-perf:
 	# All echo calls help create a JSON array
 	adb forward tcp:2828 tcp:2828
 	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
-	${PERF_REPORTER_HEADER} \
+	$(PERF_REPORTER_HEADER) \
 	for app in ${APPS}; \
 	do \
-		${PERF_BETWEEN_TEST_RULE} \
+		$(PERF_BETWEEN_TEST_RULE) \
 		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
-		REPORTER=${REPORTER} ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
+		REPORTER=$(REPORTER) ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
 	done; \
-	${PERF_REPORTER_FOOTER}
+	$(PERF_REPORTER_FOOTER)
 	
 
 .PHONY: tests
