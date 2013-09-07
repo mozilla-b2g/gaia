@@ -10,8 +10,29 @@
     document.head.appendChild(resource);
   }
 
+  function l10nScript(ast, langs) {
+    for (var i = 0, lang; lang = langs[i]; i++) {
+      var inline = document.createElement('script');
+      inline.setAttribute('type', 'application/l10n');
+      inline.setAttribute('lang', lang);
+      inline.textContent = JSON.stringify(ast);
+      document.head.appendChild(inline);
+    }
+  }
+
   l10nLink('/locales/locales.ini');
   l10nLink('/shared/locales/date.ini');
+
+  l10nScript({
+    type: 'WebL10n',
+    body: {
+      'inline-translation-test': {
+        value: {
+          content: 'static content provided by inlined JSON'
+        }
+      }
+    }
+  }, ['fr']);
 
   // setup localization....
   require('/shared/js/l10n.js', function() {

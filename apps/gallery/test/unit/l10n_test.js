@@ -3,7 +3,6 @@
  * TODO: Shared code unit tests should not be in gallery
  * Bug #841422 has been filed to move these tests
  */
-require('/shared/js/l10n.js');
 
 suite('L10n', function() {
   var _;
@@ -37,10 +36,6 @@ suite('L10n', function() {
     'a11y-label.ariaLabel      = label via ARIA'
   ].join('\n');
 
-  var inlineL10Props = {
-    'inline-translation-test': {'_': 'static content provided by inlined JSON'}
-  };
-
   var key_cropImage = 'cropimage';
   var key_delete = 'delete-n-items';
   var key_euroSign = 'euroSign';
@@ -48,9 +43,11 @@ suite('L10n', function() {
   var key_multiLine = 'multiLine';
   var key_backslash = 'trailingBackslash';
 
+  var xhr;
+
   // Do not begin tests until the test locale has been loaded.
   suiteSetup(function(done) {
-    var xhr = sinon.useFakeXMLHttpRequest();
+    xhr = sinon.useFakeXMLHttpRequest();
 
     xhr.onCreate = function(request) {
       setTimeout(function() {
@@ -62,22 +59,23 @@ suite('L10n', function() {
     _translate = navigator.mozL10n.translate;
     _localize = navigator.mozL10n.localize;
 
-    var lang = 'en-US';
-
-    var inline = document.createElement('script');
-    inline.setAttribute('type', 'application/l10n');
-    inline.setAttribute('lang', lang);
-    inline.textContent = JSON.stringify(inlineL10Props);
-    document.head.appendChild(inline);
+    // We need to set a different locale here than en-US, because en-US being
+    // the default has already been loaded and prepared by setup.js.  L20n
+    // won't re-download the resources if we try to set the language to en-US
+    // again here.
+    var lang = 'fr';
 
     navigator.mozL10n.language.code = lang;
     navigator.mozL10n.ready(function suiteSetup_ready() {
       // Make sure to remove this event listener in case we re-translate
-      // below.  The xhr mock won't exist any more.
+      // below.
       window.removeEventListener('localized', suiteSetup_ready);
-      xhr.restore();
       done();
     });
+  });
+
+  suiteTeardown(function() {
+    xhr.restore();
   });
 
   suite('get', function() {
@@ -237,24 +235,25 @@ suite('L10n', function() {
       document.body.removeChild(elem);
     });
 
+    test('downloaded translation', function(done) {
+      elem.dataset.l10nId = 'cropimage';
+      assert.equal(elem.textContent, '');
+      setLang('fr', done, function() {
+        assert.equal(elem.textContent, 'Crop');
+        done();
+      });
+    });
+
     test('inline translation', function(done) {
       elem.dataset.l10nId = 'inline-translation-test';
       assert.equal(elem.textContent, '');
-      setLang('en-US', done, function() {
+      setLang('fr', done, function() {
         assert.equal(elem.textContent,
             'static content provided by inlined JSON');
         done();
       });
     });
 
-    test('downloaded translation', function(done) {
-      elem.dataset.l10nId = 'cropimage';
-      assert.equal(elem.textContent, '');
-      setLang('en-US', done, function() {
-        assert.equal(elem.textContent, 'Crop');
-        done();
-      });
-    });
   });
 });
 
