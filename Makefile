@@ -499,7 +499,7 @@ build-config-js:
 install-xulrunner-sdk: build-config-js
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
-	rm -rf xulrunner-sdk
+	rm -rf xulrunner-sdk xulrunner*.zip xulrunner*.tar.bz2
 	$(DOWNLOAD_CMD) $(XULRUNNER_SDK_DOWNLOAD)
 ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
 	unzip xulrunner*.zip && rm xulrunner*.zip
@@ -889,7 +889,7 @@ clean:
 
 # clean out build products
 really-clean: clean
-	rm -rf xulrunner-sdk .xulrunner-url
+	rm -rf xulrunner-sdk .xulrunner-url xulrunner*.zip xulrunner*.tar.bz2
 
 .PHONY: install-git-hook
 install-git-hook:
