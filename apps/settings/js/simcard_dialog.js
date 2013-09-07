@@ -7,12 +7,17 @@ function SimPinDialog(dialog) {
   if (!window.navigator.mozMobileConnection || !IccHelper.enabled)
     return;
 
-  // `_origin' records the dialog caller (updated by the `show()' method):
-  // when the dialog is closed, we can relocate back to the caller's div.
-  var _origin = '';
-  var _action = 'unlock';
-  var _lockType = 'pin';
   var _localize = navigator.mozL10n.localize;
+
+
+  /**
+   * Global variables and callbacks -- updated by the main `show()' method
+   */
+
+  var _origin = '';       // id of the dialog caller
+  var _action = 'unlock'; // requested action
+  var _onsuccess = function() {};
+  var _oncancel = function() {};
 
 
   /**
@@ -79,29 +84,29 @@ function SimPinDialog(dialog) {
 
 
   /**
-   * SIM card state and errors
+   * SIM card state
    */
 
-  function handleCardState() {
+  /* function handleCardState() {
+    var lockType = 'pin';
     switch (IccHelper.cardState) {
       case 'pinRequired':
-        _lockType = 'pin';
         setInputMode('pin');
-        pinInput.focus();
+        // pinInput.focus();
         showMessage();
         break;
       case 'pukRequired':
-        _lockType = 'puk';
+        lockType = 'puk';
         setInputMode('puk');
-        pukInput.focus();
+        // pukInput.focus();
         showMessage('simCardLockedMsg', 'enterPukMsg');
         break;
       default:
         skip();
         break;
     }
-    _localize(dialogTitle, _lockType + 'Title');
-  }
+    _localize(dialogTitle, lockType + 'Title');
+  } */
 
   IccHelper.addEventListener('icccardlockerror', function(event) {
     var count = event.retryCount;
@@ -109,7 +114,7 @@ function SimPinDialog(dialog) {
       skip();
       return;
     }
-    var type = event.lockType;
+    var type = event.lockType; // expected: 'pin', 'fdn', 'puk'
     var msgId = (count > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
     showMessage(type + 'ErrorMsg', type + msgId, { n: count });
     showRetryCount(count);
@@ -209,18 +214,17 @@ function SimPinDialog(dialog) {
 
 
   /**
-   * Dialog box handling -- expose a `show' method
+   * Dialog box handling
    */
 
-  function verify() {
+  function verify() { // apply PIN|PUK
     switch (_action) {
       // PIN lock
-      case 'unlock':
-        if (_lockType === 'pin') {
-          unlockPin();
-        } else if (_lockType === 'puk') {
-          unlockPuk();
-        }
+      case 'unlockPin':
+        unlockPin();
+        break;
+      case 'unlockPuk':
+        unlockPuk();
         break;
       case 'enableLock':
         enableLock(true);
@@ -232,7 +236,7 @@ function SimPinDialog(dialog) {
         changePin('pin');
         break;
 
-      // FDN lock
+      // PIN2 lock (FDN)
       case 'enableFdn':
         enableFdn(true);
         break;
@@ -255,61 +259,6 @@ function SimPinDialog(dialog) {
     confirmPinInput.value = '';
   }
 
-  function _onsuccess() {};
-  function _oncancel() {};
-
-  function show(action, onsuccess, oncancel) {
-    var dialogPanel = '#' + dialog.id;
-    if (dialogPanel == Settings.currentPanel)
-      return;
-
-    dialogDone.disabled = true;
-    _lockType = 'pin';
-
-    switch (action) {
-      case 'unlock':
-        handleCardState();
-        break;
-      case 'enableLock':
-      case 'disableLock':
-        setInputMode('pin');
-        _localize(dialogTitle, 'pinTitle');
-        break;
-      case 'changePin':
-      case 'changePin2': // XXX should set _lockType to 'pin2'?
-        setInputMode('new');
-        _localize(dialogTitle, 'newpinTitle');
-        break;
-      case 'enableFdn':  // XXX should set _lockType to 'fdn'?
-      case 'disableFdn': // XXX should set _lockType to 'fdn'?
-        setInputMode('pin');
-        _localize(dialogTitle, 'fdnTitle');
-        break;
-    }
-
-    IccHelper.getCardLockRetryCount(_lockType, showRetryCount);
-
-    if (onsuccess && typeof onsuccess === 'function') {
-      _onsuccess = onsuccess;
-    }
-    if (oncancel && typeof oncancel === 'function') {
-      _oncancel = oncancel;
-    }
-
-    _action = action;
-    _origin = Settings.currentPanel;
-    Settings.currentPanel = dialogPanel;
-
-    window.addEventListener('panelready', function inputFocus() {
-      window.removeEventListener('panelready', inputFocus);
-      if (action === 'unlock' && _lockType === 'puk') {
-        pukInput.focus();
-      } else {
-        pinInput.focus();
-      }
-    });
-  }
-
   function close() {
     clear();
     if (_origin) {
@@ -321,6 +270,94 @@ function SimPinDialog(dialog) {
     close();
     _oncancel();
     return false;
+  }
+
+
+  /**
+   * Expose a main `show()' method
+   */
+
+  function initUI(action) {
+    var lockType = 'pin';
+
+    switch (action) {
+      case 'unlock': // => action can be either `unlockPin' or `unlockPuk'
+        switch (IccHelper.cardState) {
+          case 'pinRequired':
+            action = 'unlockPin';
+            showMessage();
+            break;
+          case 'pukRequired':
+            lockType = 'puk';
+            action = 'unlockPuk';
+            showMessage('simCardLockedMsg', 'enterPukMsg');
+            break;
+          default:
+            return '';
+        }
+        setInputMode(lockType);
+        _localize(dialogTitle, lockType + 'Title');
+        break;
+
+      case 'enableLock':
+      case 'disableLock':
+        setInputMode('pin');
+        _localize(dialogTitle, 'pinTitle');
+        break;
+
+      case 'enableFdn':
+      case 'disableFdn':
+        lockType = 'pin2';
+        setInputMode('pin');
+        _localize(dialogTitle, 'fdnTitle');
+        break;
+
+      case 'changePin2':
+        lockType = 'pin2';
+      case 'changePin':
+        setInputMode('new');
+        _localize(dialogTitle, 'newpinTitle');
+        break;
+
+      default:
+        console.error('unsupported "' + action + '" action');
+        return '';
+    }
+
+    // display the number of remaining retries if necessary
+    // XXX only works with the emulator, see bug 905173
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
+    IccHelper.getCardLockRetryCount(lockType, showRetryCount);
+    return action;
+  }
+
+  function show(action, onsuccess, oncancel) {
+    var dialogPanel = '#' + dialog.id;
+    if (dialogPanel == Settings.currentPanel) {
+      return;
+    }
+    dialogDone.disabled = true;
+
+    _action = initUI(action);
+    if (!_action) {
+      skip();
+      return;
+    }
+
+    _origin = Settings.currentPanel;
+    Settings.currentPanel = dialogPanel;
+
+    _onsuccess = (typeof onsuccess === 'function') ? onsuccess : function() {};
+    _oncancel = (typeof oncancel === 'function') ? oncancel : function() {};
+
+    window.addEventListener('panelready', function inputFocus() {
+      window.removeEventListener('panelready', inputFocus);
+      if (_action === 'unlockPuk') {
+        pukInput.focus();
+      } else {
+        pinInput.focus();
+      }
+    });
   }
 
   return {
