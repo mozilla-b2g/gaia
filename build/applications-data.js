@@ -205,9 +205,8 @@ function execute(options) {
 				 customize.move_collection_threshold : 1500;
   // It defines the threshold in pixels to consider a gesture like a tap event
   let tap_threshold = (customize.tap_threshold) ? customize.tap_threshold : 10;
-  // It defines the threshold to consider a gesture like a swipe. Number
-  // in the range 0.0 to 1.0, both included, representing the screen width
-  let swipe_threshold = 0.4;
+  // It defines the threshold to consider a gesture like a swipe.
+  let swipe_threshold = 128;
   // By default we define the virtual friction to .1 px/ms/ms
   let swipe_friction = 0.1;
   // Page transition duration defined in ms (300 ms by default)
