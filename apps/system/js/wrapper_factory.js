@@ -13,6 +13,9 @@
     },
 
     handleEvent: function wf_handleEvent(evt) {
+      // Prevent Gecko from opening this
+      evt.preventDefault();
+
       var detail = evt.detail;
 
       // If it's a normal window.open request, ignore.

@@ -163,6 +163,9 @@ var PopupManager = {
         break;
 
       case 'mozbrowseropenwindow':
+        // Prevent Gecko from opening this
+        evt.preventDefault();
+
         var detail = evt.detail;
         var openerType = evt.target.dataset.frameType;
         var openerOrigin = evt.target.dataset.frameOrigin;
