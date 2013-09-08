@@ -217,9 +217,8 @@ var GridManager = (function() {
         // the tap when we've moved far enough.
         startX = startEvent.pageX;
         currentX = getX(evt);
-        deltaX = panningResolver.getDeltaX(evt);
 
-        if (deltaX === 0)
+        if (currentX === startX)
           return;
 
         document.body.dataset.transitioning = 'true';
@@ -238,8 +237,10 @@ var GridManager = (function() {
 
         var refresh;
 
+        var previous, next, pan;
+
         if (currentPage === 0) {
-          var next = pages[currentPage + 1].container.style;
+          next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX <= 0) {
               next.MozTransform =
@@ -250,7 +251,7 @@ var GridManager = (function() {
             }
           };
         } else if (currentPage === pages.length - 1) {
-          var previous = pages[currentPage - 1].container.style;
+          previous = pages[currentPage - 1].container.style;
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
@@ -261,8 +262,8 @@ var GridManager = (function() {
             }
           };
         } else {
-          var previous = pages[currentPage - 1].container.style;
-          var next = pages[currentPage + 1].container.style;
+          previous = pages[currentPage - 1].container.style;
+          next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX >= 0) {
               previous.MozTransform =
@@ -290,12 +291,9 @@ var GridManager = (function() {
           };
         }
 
-        // We should move the pages with the first touchmove event
-        window.mozRequestAnimationFrame(refresh);
-
         // Generate a function accordingly to the current page position.
         if (currentPage > nextLandingPage || Homescreen.isInEditMode()) {
-          var pan = function(e) {
+          pan = function(e) {
             e.preventDefault();
             e.stopImmediatePropagation();
 
@@ -331,7 +329,7 @@ var GridManager = (function() {
             };
           }
 
-          var pan = function(e) {
+          pan = function(e) {
             e.preventDefault();
             e.stopImmediatePropagation();
 
@@ -364,6 +362,9 @@ var GridManager = (function() {
 
         window.addEventListener(touchend, removePanHandler, true);
         window.removeEventListener(touchend, handleEvent);
+
+        // immediately start to pan
+        pan(evt);
 
         break;
 
