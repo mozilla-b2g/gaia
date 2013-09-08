@@ -96,7 +96,8 @@ if (!contacts.MatchingController) {
         Object.keys(duplicateContacts).forEach(function(cid) {
           parent.contacts.List.getContactById(cid, function success(contact) {
             duplicateContacts[cid] = {
-              matchingContact: contact
+              matchingContact: contact,
+              matchings: duplicateContacts[cid].matchings
             };
             matchingReady();
           }, matchingReady);

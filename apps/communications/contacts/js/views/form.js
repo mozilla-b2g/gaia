@@ -542,7 +542,10 @@ contacts.Form = (function() {
               // UI ready, passing duplicate contacts
               var duplicateContacts = {};
               Object.keys(results).forEach(function(id) {
-                duplicateContacts[id] = id;
+                duplicateContacts[id] = {
+                  matchingContactId: id,
+                  matchings: results[id].matchings
+                };
               });
 
               window.postMessage({

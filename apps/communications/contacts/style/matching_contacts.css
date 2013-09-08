@@ -5,17 +5,11 @@
 #main {
   position: fixed;
   top: 5rem;
-  height: calc(100% - 5rem);
+  height: calc(100% - 11.8rem);
   width: calc(100% + 0.8rem);
   overflow-x: hidden;
   overflow-y: auto;
-}
-
-#contacts-list-container {
-  width: calc(100% - 5rem - 0.8rem) !important;
-  margin: 0;
-  margin-left: 2.5rem;
-  padding: 0 !important;
+  background: #F4F4F4;
 }
 
 #contacts-list-container label {
@@ -39,8 +33,18 @@
   border-bottom: none !important;
 }
 
-#contacts-list-container > ol > li[data-disabled="true"] {
-  opacity: 0.4;
+/* BB overrides */
+
+[data-type="list"] li[aria-disabled="true"] {
+  pointer-events: auto;
+}
+
+li p.match-main-reason {
+  color: #008eab;
+}
+
+li[aria-disabled="true"] p.match-main-reason {
+  color: #5b5b5b;
 }
 
 /* Suggested duplicate contacts for xxx */
@@ -48,15 +52,13 @@
 #duplicate-msg {
   width: 100%;
   z-index: 1;
-  border-bottom: 0.1rem solid #E6E6E6;
   padding: 0.4rem 0;
 }
 
 #duplicate-msg > p {
-  font-size: 1.3rem;
-  font-weight: 600;
-  line-height: 1.8rem;
-  margin: 0 3rem;
+  font-size: 1.8rem;
+  line-height: 2.2rem;
+  margin: 1rem 3rem;
 }
 
 #footer {
@@ -65,18 +67,11 @@
   position: fixed;
 }
 
+#footer menu {
+  border-top: #d8d8d8 0.1rem solid;
+  background: #e8e8e8;
+}
+
 #footer button {
   pointer-events: auto;
-}
-
-body[data-mode="matching"] #footer {
-  display: none;
-}
-
-body[data-mode="listing"] #merge-close, body[data-mode="listing"] #merge-action {
-  display: none;
-}
-
-body[data-mode="listing"] #main {
-  height: calc(100% - 11.9rem); /* Header + footer */
 }
