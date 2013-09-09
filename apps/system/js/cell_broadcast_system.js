@@ -26,11 +26,19 @@ var CellBroadcastSystem = {
 
   settingsChangedHandler: function cbs_settingsChangedHandler(event) {
     this._settingsDisabled = event.settingValue;
+
+    if (this._settingsDisabled) {
+      LockScreen.setCellbroadcastLabel();
+    }
   },
 
   show: function cbs_show(event) {
     var conn = window.navigator.mozMobileConnection;
     var msg = event.message;
+
+    if (this._settingsDisabled) {
+      return;
+    }
 
     if (conn &&
         conn.voice.network.mcc === MobileOperator.BRAZIL_MCC &&
@@ -39,11 +47,7 @@ var CellBroadcastSystem = {
       return;
     }
 
-    if (this._settingsDisabled) {
-      return;
-    }
-
-    var title = navigator.mozL10n.get('system-alert');
+    var title = navigator.mozL10n.get('cb-channel', {channel: msg.messageId});
     var showDialog = function() {
       ModalDialog.showWithPseudoEvent({
         title: title,

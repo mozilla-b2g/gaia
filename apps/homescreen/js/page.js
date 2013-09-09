@@ -793,7 +793,7 @@ Page.prototype = {
         if (icon.app)
           Homescreen.showAppDialog(icon.app);
       }
-    } else if ('isIcon' in elem.dataset &&
+    } else if ('isIcon' in elem.dataset && this.olist &&
                !this.olist.getAttribute('disabled')) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
