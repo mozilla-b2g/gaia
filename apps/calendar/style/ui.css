@@ -194,8 +194,6 @@ ol.link-list li:only-child a {
 }
 
 /* create account view */
-
-#create-account-view > ol,
 #create-account-view > p {
   margin: 0 2rem;
 }
