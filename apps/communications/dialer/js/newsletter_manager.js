@@ -2,7 +2,7 @@
 
 var NewsletterManager = {
   load: function nlm_load() {
-    loader.load('/shared/js/async_storage.js',
+    LazyLoader.load('/shared/js/async_storage.js',
                 function finishLoading() {
                   NewsletterManager.start();
                 });
@@ -22,7 +22,7 @@ var NewsletterManager = {
   },
 
   sendNewsletter: function nlm_sendNewsletter(emailAddress) {
-    loader.load('/ftu/js/basket-client.js', function basketLoaded() {
+    LazyLoader.load('/ftu/js/basket-client.js', function basketLoaded() {
       Basket.send(emailAddress, function itemSent(err, data) {
         if (data && data.status == 'ok') {
           window.asyncStorage.removeItem('newsletter_email');
