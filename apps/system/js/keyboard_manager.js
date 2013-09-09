@@ -275,6 +275,9 @@ var KeyboardManager = {
   },
 
   handleKeyboardRequest: function km_handleKeyboardRequest(evt) {
+    // Prevent Gecko from opening this
+    evt.preventDefault();
+
     var url = evt.detail.url;
     this._debug('handleKeyboardRequest: ' + url);
     // everything is hack here! will be removed after having real platform API

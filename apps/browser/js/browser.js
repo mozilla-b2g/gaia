@@ -613,6 +613,9 @@ var Browser = {
   },
 
   handleWindowOpen: function browser_handleWindowOpen(evt) {
+    // Prevent Gecko from opening this
+    evt.preventDefault();
+
     var url = evt.detail.url;
     var frame = evt.detail.frameElement;
     var tab = this.createTab(url, frame);

@@ -81,6 +81,9 @@ var AttentionScreen = {
 
   // show the attention screen overlay with newly created frame
   open: function as_open(evt) {
+    // Prevent Gecko from opening this
+    evt.preventDefault();
+
     if (evt.detail.features != 'attention')
       return;
 
