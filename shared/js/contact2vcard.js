@@ -1,5 +1,8 @@
 'use strict';
 
+var VCARD_VERSION = '4.0';
+var HEADER = 'BEGIN:VCARD\nVERSION:' + VCARD_VERSION + '\n';
+var FOOTER = 'END:VCARD\n';
 var ContactToVcard;
 var ContactToVcardBlob;
 
@@ -82,7 +85,7 @@ function ISODateString(d) {
     function appendVcard(vcard) {
       processed += 1;
       if (vcard)
-        vcardString += vcard + '\n';
+        vcardString += HEADER + vcard + '\n' + FOOTER;
 
       if (numContacts === processed) {
         if (!vcardString || /^\s+$/.test(vcardString))
