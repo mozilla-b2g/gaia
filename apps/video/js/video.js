@@ -985,13 +985,20 @@ var restoreTime;
 
 // Call this when the app is hidden
 function releaseVideo() {
-  restoreTime = dom.player.currentTime;
+  // readyState = 0: no metadata loaded, we don't need to save the currentTime
+  // of player. It is always 0 and can't be used to restore the state of video.
+  if (dom.player.readyState > 0) {
+    restoreTime = dom.player.currentTime;
+  }
   dom.player.removeAttribute('src');
   dom.player.load();
 }
 
 // Call this when the app becomes visible again
 function restoreVideo() {
+  if (!restoreTime) {
+    return;
+  }
   setVideoUrl(dom.player, currentVideo, function() {
     setPlayerSize();
     dom.player.currentTime = restoreTime;
