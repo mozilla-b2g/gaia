@@ -75,7 +75,7 @@ class Base:
         else:
             self.output.append(string)
 
-    def handle_event(self, event, data):
+    def handle_event(self, event, data, testname):
         """ handles test events. The base class
             is mostly responsible for incrementing the
             reusable logic that the children then use.
@@ -104,4 +104,4 @@ class Base:
         methodName = 'on_' + event.replace(' ', '_')
 
         if (hasattr(self, methodName)):
-            getattr(self, methodName)(data)
+            getattr(self, methodName)(data, testname)
