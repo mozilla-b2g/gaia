@@ -30,7 +30,10 @@ contacts.Search = (function() {
       remainingPending = true,
       imgLoader,
       searchEnabled = false,
-      source = null;
+      source = null,
+      // Time to delay between search chunks if contacts are still being
+      // loaded.  This minimizes spinning which just slows down the load.
+      SEARCH_DELAY_DURING_LOAD = 250;
 
   var onLoad = function onLoad() {
     searchView = document.getElementById('search-view');
@@ -42,14 +45,14 @@ contacts.Search = (function() {
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
   // functions on the adapter object:
-  //    getNodes()            An Array of all contact DOM nodes
-  //    getFirstNode()        First contact DOM node
-  //    getNextNode(node)     Given a node, find the next node
-  //    expectMoreNodes()     True if nodes will be added via appendNodes()
-  //    clone(node)           Clone the given contact node
-  //    getNodeById(id)       Get the node matching the given ID, or null
-  //    getSearchText(node)   Get the search text from the given node
-  //    click(event)          Click event handler to use
+  //    getNodes()              An Array of all contact DOM nodes
+  //    getFirstNode()          First contact DOM node
+  //    getNextNode(node)       Given a node, find the next node
+  //    expectMoreNodes()       True if nodes will be added via appendNodes()
+  //    clone(node)             Clone the given contact node
+  //    getNodeById(id)         Get the node matching the given ID, or null
+  //    getSearchText(node, cb) Get the search text for the node via async cb
+  //    click(event)            Click event handler to use
   var init = function load(_source, defaultEnabled) {
     if (!_source)
       throw new Error('Search requires a contact source!');
@@ -257,6 +260,37 @@ contacts.Search = (function() {
     imgLoader.reload();
   }
 
+  // Asynchronously load all of the search text for the given list of
+  // contacts.  Pass an object to the callback that maps contact IDs to
+  // their resulting search text.
+  function loadSearchText(contacts, from, length, cb) {
+    var end = Math.min(from + length, contacts.length);
+    var num = end - from;
+
+    var textCount = 0;
+    var searchText = {};
+
+    var updateSearchTextEntry = function(id, text) {
+      searchText[id] = text;
+      textCount += 1;
+      if (textCount >= num && typeof cb === 'function') {
+        cb(searchText);
+      }
+    };
+
+    for (var c = from; c < end && c < contacts.length; c++) {
+      var contact = contacts[c].node || contacts[c];
+      if (contacts[c].text) {
+        updateSearchTextEntry(contact.dataset.uuid, contacts[c].text);
+        continue;
+      }
+
+      getSearchText(contact, function(contactText, node) {
+        updateSearchTextEntry(node.dataset.uuid, contactText);
+      });
+    }
+  }
+
   function doSearch(contacts, from, searchText, pattern, state) {
     // Check whether the user enter a new term or not
     if (currentTextToSearch.localeCompare(searchText) !== 0) {
@@ -265,81 +299,80 @@ contacts.Search = (function() {
       return;
     }
 
-    // Search the next chunk of contacts
-    var end = from + CHUNK_SIZE;
-    for (var c = from; c < end && c < contacts.length; c++) {
-      var contact = contacts[c].node || contacts[c];
-      var contactText = contacts[c].text || getSearchText(contacts[c]);
-      if (!pattern.test(contactText)) {
-        if (contact.dataset.uuid in currentSet) {
-          searchList.removeChild(currentSet[contact.dataset.uuid]);
-          delete currentSet[contact.dataset.uuid];
-        }
-      } else {
-        if (state.count === 0) {
-          hideProgressResults();
-        }
-        // Only an initial page of elements is loaded in the search list
-        if (Object.keys(currentSet).length < searchPageSize &&
-            !(contact.dataset.uuid in currentSet)) {
-          var clonedNode = getClone(contact);
-          currentSet[contact.dataset.uuid] = clonedNode;
-          searchList.appendChild(clonedNode);
-        }
+    loadSearchText(contacts, from, CHUNK_SIZE, function(map) {
+      // Search the next chunk of contacts
+      var end = from + CHUNK_SIZE;
+      for (var c = from; c < end && c < contacts.length; c++) {
+        var contact = contacts[c].node || contacts[c];
+        var contactText = map[contact.dataset.uuid];
+        if (!pattern.test(contactText)) {
+          if (contact.dataset.uuid in currentSet) {
+            searchList.removeChild(currentSet[contact.dataset.uuid]);
+            delete currentSet[contact.dataset.uuid];
+          }
+        } else {
+          if (state.count === 0) {
+            hideProgressResults();
+          }
+          // Only an initial page of elements is loaded in the search list
+          if (Object.keys(currentSet).length < searchPageSize &&
+              !(contact.dataset.uuid in currentSet)) {
+            var clonedNode = getClone(contact);
+            currentSet[contact.dataset.uuid] = clonedNode;
+            searchList.appendChild(clonedNode);
+          }
 
-        state.searchables.push({
-          node: contact,
-          text: contactText
-        });
-        state.count++;
+          state.searchables.push({
+            node: contact,
+            text: contactText
+          });
+          state.count++;
+        }
       }
-    }
 
-    // If we are still searching through the list, then schedule
-    // the next batch of search comparisons.
-    if (c < contacts.length) {
-      searchTimer = window.setTimeout(function do_search() {
-        searchTimer = null;
-        doSearch(contacts, from + CHUNK_SIZE, searchText,
-                 pattern, state);
-      }, 0);
-      return;
-
-    // If we expect to get more nodes, for example if the source is
-    // still loading, then delay finalizing the end of the search
-    } else if (source.expectMoreNodes()) {
-      // Since we're blocked waiting on more contacts to be provided,
-      // use some delay here to avoid a tight spin loop.
-      var delay = 250;
-      searchTimer = window.setTimeout(function do_search() {
-        doSearch(contacts, Math.min(end, contacts.length), searchText,
-                 pattern, state);
-      }, delay);
-      return;
-
-    // Or we are complete with no results found
-    } else if (state.count === 0) {
-      showNoResults();
-
-      canReuseSearchables = false;
-
-    // Or we are complete with results that might have images to render
-    } else {
-      imgLoader.reload();
-      searchableNodes = state.searchables;
-      canReuseSearchables = true;
-      // If the user wished to scroll let's add the remaining results
-      if (blurList === true) {
-        searchTimer = window.setTimeout(function() {
+      // If we are still searching through the list, then schedule
+      // the next batch of search comparisons.
+      if (c < contacts.length) {
+        searchTimer = window.setTimeout(function do_search() {
           searchTimer = null;
-          addRemainingResults(searchableNodes, searchPageSize);
-        },0);
-      }
-    }
+          doSearch(contacts, from + CHUNK_SIZE, searchText,
+                   pattern, state);
+        }, 0);
+        return;
 
-    if (typeof state.searchDoneCb === 'function') {
-      state.searchDoneCb();
-    }
+      // If we expect to get more nodes, for example if the source is
+      // still loading, then delay finalizing the end of the search
+      } else if (source.expectMoreNodes()) {
+        searchTimer = window.setTimeout(function do_search() {
+          doSearch(contacts, Math.min(end, contacts.length), searchText,
+                   pattern, state);
+        }, SEARCH_DELAY_DURING_LOAD);
+        return;
+
+      // Or we are complete with no results found
+      } else if (state.count === 0) {
+        showNoResults();
+
+        canReuseSearchables = false;
+
+      // Or we are complete with results that might have images to render
+      } else {
+        imgLoader.reload();
+        searchableNodes = state.searchables;
+        canReuseSearchables = true;
+        // If the user wished to scroll let's add the remaining results
+        if (blurList === true) {
+          searchTimer = window.setTimeout(function() {
+            searchTimer = null;
+            addRemainingResults(searchableNodes, searchPageSize);
+          },0);
+        }
+      }
+
+      if (typeof state.searchDoneCb === 'function') {
+        state.searchDoneCb();
+      }
+    });
   }
 
   var enableSearch = function enableSearch() {
@@ -368,17 +401,19 @@ contacts.Search = (function() {
 
     // If we have a current search then we need to determine whether the
     // new nodes should show up in that search.
-    var pattern = new RegExp(currentTextToSearch, 'i');
-    for (var i = 0, n = nodes.length; i < n; ++i) {
-      var node = nodes[i];
-      var nodeText = getSearchText(node);
-      if (pattern.test(nodeText)) {
-        searchableNodes.push({
-          node: node,
-          text: nodeText
-        });
+    loadSearchText(nodes, 0, nodes.length, function(searchText) {
+      var pattern = new RegExp(currentTextToSearch, 'i');
+      for (var i = 0, n = nodes.length; i < n; ++i) {
+        var node = nodes[i];
+        var nodeText = searchText[node.dataset.uuid];
+        if (pattern.test(nodeText)) {
+          searchableNodes.push({
+            node: node,
+            text: nodeText
+          });
+        }
       }
-    }
+    });
   };
 
   var search = function performSearch(searchDoneCb) {
@@ -416,22 +451,23 @@ contacts.Search = (function() {
     }
   };
 
-  function getSearchText(contact) {
-    var out = '';
-
+  function getSearchText(contact, callback) {
     var uuid = contact.dataset.uuid;
-    if (uuid) {
-      out = searchTextCache[uuid];
-      if (!out) {
-        out = source.getSearchText(contact);
-        searchTextCache[uuid] = out;
-      }
-    }
-    else {
+    if (!uuid) {
       window.console.error('Search: Not uuid found for the provided node');
+      return callback('', contact);
     }
 
-    return out;
+    var out = searchTextCache[uuid];
+    if (out) {
+      return callback(out, contact);
+    }
+
+    source.getSearchText(contact, function(text) {
+      searchTextCache[uuid] = text;
+      if (callback)
+        callback(text, contact);
+    });
   }
 
   var getContactsDom = function contactsDom() {

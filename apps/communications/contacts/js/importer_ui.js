@@ -161,8 +161,12 @@ if (typeof window.importer === 'undefined') {
       getNodeById: function(id) {
         return contactsList.querySelector('[data-uuid="' + id + '"]');
       },
-      getSearchText: function(node) {
-        return node.dataset.search;
+      getSearchText: function(node, callback) {
+        // Call this synchronously to avoid the time penalty of
+        // setTimeout(cb, 0) for every contact being imported.
+        if (typeof callback === 'function') {
+          callback(node.dataset.search, node);
+        }
       },
       click: onSearchResultCb
     }; // searchSource
