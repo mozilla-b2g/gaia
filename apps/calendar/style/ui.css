@@ -150,11 +150,9 @@ ol.link-list li:only-child a {
   bottom: 0;
   left: 0;
   width: calc(100% + 3rem);
-  padding-top: 0.8rem;
+  padding: 0.8rem 1rem 0;
   font-size: 1.7rem;
   font-weight: 500;
-  text-indent: -1.5rem;
-  text-align: center;
 }
 
 #advanced-settings-view .settings-list label span:first-child {
