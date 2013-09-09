@@ -19,7 +19,11 @@ var TelephonyHelper = (function() {
 
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
     var telephony = navigator.mozTelephony;
-    if (telephony) {
+    if (!telephony) {
+      return;
+    }
+
+    LazyLoader.load('/shared/js/icc_helper.js', function() {
       var conn = window.navigator.mozMobileConnection;
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
@@ -68,7 +72,7 @@ var TelephonyHelper = (function() {
       } else {
         displayMessage('UnableToCall');
       }
-    }
+    });
   }
 
   var isValid = function t_isValid(sanitizedNumber) {

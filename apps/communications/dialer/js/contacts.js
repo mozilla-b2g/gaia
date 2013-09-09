@@ -89,8 +89,8 @@ var Contacts = {
   },
 
   findByNumber: function findByNumber(number, callback) {
-    loader.load(['/contacts/js/fb/fb_data.js',
-                 '/contacts/js/fb/fb_contact_utils.js'],
+    LazyLoader.load(['/contacts/js/fb/fb_data.js',
+                     '/contacts/js/fb/fb_contact_utils.js'],
                   this._findByNumber.bind(this, number, callback));
   },
 
@@ -195,8 +195,8 @@ var Contacts = {
       callback(null);
     }
 
-    loader.load(['/contacts/js/fb/fb_data.js',
-                 '/contacts/js/fb/fb_contact_utils.js'], function() {
+    LazyLoader.load(['/contacts/js/fb/fb_data.js',
+                     '/contacts/js/fb/fb_contact_utils.js'], function() {
       for (var i = 0, length = contacts.length; i < length; i++) {
         if (fb.isFbLinked(contacts[i])) {
           var fbReq = fb.contacts.get(fb.getFriendUid(contacts[i]));
