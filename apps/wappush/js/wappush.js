@@ -14,13 +14,34 @@ window.addEventListener('localized', function localized() {
  * to post notifications and display their contents
  */
 var WapPushManager = {
+   /** Settings key for enabling/disabling WAP Push messages */
+   _wapPushEnableKey: 'wap.push.enabled',
+
+   /** Enable/disable WAP Push notifications */
+   _wapPushEnabled: true,
+
   /**
    * Initialize the WAP Push manager, this only subscribes to the
    * wappush-received message handler at the moment
    */
   init: function wpm_init() {
-    window.navigator.mozSetMessageHandler('wappush-received',
-      this.onWapPushReceived.bind(this));
+    if ('mozSettings' in navigator) {
+      // Read the global setting
+      var req = navigator.mozSettings.createLock().get(this._wapPushEnableKey);
+
+      req.onsuccess = (function() {
+        this._wapPushEnabled = req.result[this._wapPushEnableKey];
+
+        // Start listening to WAP Push messages only after we read the pref
+        window.navigator.mozSetMessageHandler('wappush-received',
+          this.onWapPushReceived.bind(this));
+      }).bind(this);
+
+      navigator.mozSettings.addObserver(this._wapPushEnableKey, (function(v) {
+        this._wapPushEnabled = v.settingValue;
+      }).bind(this));
+    }
+
     window.navigator.mozSetMessageHandler('notification',
       this.onNotification.bind(this));
   },
@@ -53,6 +74,11 @@ var WapPushManager = {
   onWapPushReceived: function wpm_onWapPushReceived(message) {
     var self = this;
     var timestamp = Date.now();
+
+    if (!this._wapPushEnabled) {
+       window.close();
+       return;
+    }
 
     asyncStorage.setItem(timestamp.toString(), message, function() {
       navigator.mozApps.getSelf().onsuccess = function(event) {
