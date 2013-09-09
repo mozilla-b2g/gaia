@@ -500,18 +500,18 @@ bubble above the key when you tap and hold. */
 }
 
 #keyboard.full-candidate-panel {
-  padding-top: 4.6rem;
+  padding-top: 3.4rem;
 }
 
 #keyboard-candidate-panel {
   display: block;
   background: #252220;
   padding: 0;
-  margin: -1rem 0rem 0.8rem 0rem;
+  margin: -0.6rem 0rem 0.2rem 0rem;
   border: none;
   border-top: 0.1rem solid #000000;
   border-bottom: 0.1rem solid #000000;
-  height: 3.8rem;
+  height: 2.8rem;
   width: 100%;
   overflow: hidden;
   white-space: normal;
@@ -521,10 +521,10 @@ bubble above the key when you tap and hold. */
   overflow-y: auto;
 
   position: absolute;
-  top: 0.8rem;
-  height: 100%;
+  top: 0.2rem;
+  height: -moz-calc(100% - 0.4rem);
   z-index: 1;
-  margin-bottom:0;
+  margin: 0;
 }
 
 #keyboard-candidate-panel-toggle-button {
@@ -533,9 +533,9 @@ bubble above the key when you tap and hold. */
   background-color: #252220;
   position: absolute;
   right: 0rem;
-  top: -0.14rem;
+  top: 0.34rem;
   font-size: 0;
-  height: 3.8rem;
+  height: 2.8rem;
 }
 
 #keyboard-candidate-panel-toggle-button-image {
@@ -582,11 +582,11 @@ bubble above the key when you tap and hold. */
   margin: 0;
   padding: 0 2px 0 0;
   min-width: -moz-calc(4rem - 2px);
-  height: 3.8rem;
+  height: 2.8rem;
   font-size: 2rem;
   color: #a6a6a6;
   text-align: center;
-  line-height: 3.8rem;
+  line-height: 2.8rem;
   background: transparent url('images/divider.png') right center no-repeat;
   border: none;
 }
@@ -615,10 +615,10 @@ bubble above the key when you tap and hold. */
   display: block;
   text-align: center;
   margin: 0;
-  height: 3.8rem;
+  height: 2.8rem;
   font-size: 2rem;
   color: #a6a6a6;
-  line-height: 3.8rem;
+  line-height: 2.8rem;
 }
 
 #keyboard-candidate-panel.latin > div {
