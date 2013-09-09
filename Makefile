@@ -885,7 +885,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug $(PROFILE_FOLDER)
+	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER)
 
 # clean out build products
 really-clean: clean
