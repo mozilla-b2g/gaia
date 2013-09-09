@@ -93,7 +93,8 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   if (preview && (preview.start || preview.filename) && bigEnough(preview)) {
     this.displayingPreview = true;
     if (preview.start) {
-      this._displayImage(blob.slice(preview.start, preview.end, 'image/jpeg'));
+      this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
+      this._displayImage(this.previewblob);
     }
     else {
       var storage = navigator.getDeviceStorage('pictures');
