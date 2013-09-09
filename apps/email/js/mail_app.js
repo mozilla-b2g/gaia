@@ -3,7 +3,7 @@
  * startup and eventually notifications.
  **/
 /*jshint browser: true */
-/*global define, requirejs, console, confirm, TestUrlResolver */
+/*global define, requirejs, confirm, console, TestUrlResolver */
 
 // Set up loading of scripts, but only if not in tests, which set up
 // their own config.
@@ -26,29 +26,39 @@ if (typeof TestUrlResolver === 'undefined') {
     },
     shim: {
       l10ndate: ['l10nbase'],
+
       'shared/js/mime_mapper': {
         exports: 'MimeMapper'
+      },
+
+      'shared/js/notification_helper': {
+        exports: 'NotificationHelper'
       }
-    }
+    },
+    definePrim: 'prim'
   });
 }
 
 // Named module, so it is the same before and after build, and referenced
 // in the require at the end of this file.
-define('mail_app', function(require) {
+define('mail_app', function(require, exports, module) {
 
-var htmlCache = require('html_cache'),
-    common = require('mail_common'),
-    model = require('model'),
+var appMessages = require('app_messages'),
+    htmlCache = require('html_cache'),
     mozL10n = require('l10n!'),
-    appMessages = require('app_messages'),
+    common = require('mail_common'),
+    evt = require('evt'),
+    model = require('model'),
     Cards = common.Cards,
     activityCallback = null;
 
-model.firstRun = function(MailAPI) {
+require('sync');
+require('wake_locks');
+
+model.latestOnce('api', function(api) {
   // If our password is bad, we need to pop up a card to ask for the updated
   // password.
-  MailAPI.onbadlogin = function(account, problem) {
+  api.onbadlogin = function(account, problem) {
     switch (problem) {
       case 'bad-user-or-pass':
         Cards.pushCard('setup_fix_password', 'default', 'animate',
@@ -68,7 +78,7 @@ model.firstRun = function(MailAPI) {
     }
   };
 
-  MailAPI.useLocalizedStrings({
+  api.useLocalizedStrings({
     wrote: mozL10n.get('reply-quoting-wrote'),
     originalMessage: mozL10n.get('forward-original-message'),
     forwardHeaderLabels: {
@@ -90,24 +100,13 @@ model.firstRun = function(MailAPI) {
       localdrafts: mozL10n.get('folder-localdrafts')
     }
   });
-};
-
-function makeFolderPickerInit() {
-  // Generates default folder picker init for a message_list. Assumes
-  // that the model is already populated with the correct data.
-  return {
-    account: model.account,
-    foldersSlice: model.foldersSlice,
-    acctsSlice: model.acctsSlice
-  };
-}
+});
 
 // Handle cases where a default card is needed for back navigation
 // after a non-default entry point (like an activity) is triggered.
 Cards.pushDefaultCard = function(onPushed) {
   model.latestOnce('foldersSlice', function() {
     Cards.pushCard('message_list', 'nonsearch', 'none', {
-      folderPickerInit: makeFolderPickerInit(),
       onPushed: onPushed
     },
     // Default to "before" placement.
@@ -117,33 +116,33 @@ Cards.pushDefaultCard = function(onPushed) {
 
 Cards._init();
 
-var waitForActivity = false,
+var finalCardStateCallback,
+    waitForAppMessage = false,
+    startedInBackground = false,
     cachedNode = Cards._cardsNode.children[0],
     startCardId = cachedNode && cachedNode.getAttribute('data-type');
 
-function pushStartCard(id, addedArgs) {
-  var startCardArgs = {
-    'setup_account_info': [
-      'setup_account_info', 'default', 'immediate',
-      {
-        cachedNode: cachedNode,
-        allowBack: false,
-        onPushed: function(impl) {
-          htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
-        }
+var startCardArgs = {
+  'setup_account_info': [
+    'setup_account_info', 'default', 'immediate',
+    {
+      onPushed: function(impl) {
+        htmlCache.delayedSaveFromNode(impl.domNode.cloneNode(true));
       }
-    ],
-    'message_list': [
-      'message_list', 'nonsearch', 'immediate',
-      {
-        cachedNode: cachedNode
-      }
-    ]
-  };
+    }
+  ],
+  'message_list': [
+    'message_list', 'nonsearch', 'immediate', {}
+  ]
+};
 
+function pushStartCard(id, addedArgs) {
   var args = startCardArgs[id];
   if (!args)
     throw new Error('Invalid start card: ' + id);
+
+  //Add in cached node to use (could be null)
+  args[3].cachedNode = cachedNode;
 
   // Mix in addedArgs to the args object that is passed to pushCard.
   if (addedArgs) {
@@ -155,12 +154,23 @@ function pushStartCard(id, addedArgs) {
   return Cards.pushCard.apply(Cards, args);
 }
 
-if (appMessages.hasPending('activity')) {
+if (appMessages.hasPending('activity') ||
+    appMessages.hasPending('notification')) {
   // There is an activity, do not use the cache node, start fresh,
   // and block normal first card selection, wait for activity.
   cachedNode = null;
-  waitForActivity = true;
-} else if (cachedNode) {
+  waitForAppMessage = true;
+}
+
+if (appMessages.hasPending('alarm')) {
+  // There is an alarm, do not use the cache node, start fresh,
+  // as we were woken up just for the alarm.
+  cachedNode = null;
+  startedInBackground = true;
+}
+
+// If still have a cached node, then show it.
+if (cachedNode) {
   // Wire up a card implementation to the cached node.
   if (startCardId) {
     pushStartCard(startCardId);
@@ -169,48 +179,122 @@ if (appMessages.hasPending('activity')) {
   }
 }
 
+/**
+ * When determination of real start state is known after
+ * getting data, then make sure the correct card is
+ * shown. If the card used from cache is not correct,
+ * wipe out the cards and start fresh.
+ * @param  {String} cardId the desired card ID.
+ */
 function resetCards(cardId, args) {
-  // If this is the second pass through resetCards (so startCardId
-  // will be null) as a result of account switches, or if the cached
-  // startCardId did not match what was desired, clear the cards
-  // and push a new one.
-  if (!startCardId || cardId !== startCardId) {
-    startCardId = null;
-    cachedNode = null;
+  cachedNode = null;
+
+  var startArgs = startCardArgs[cardId],
+      query = [startArgs[0], startArgs[1]];
+
+  if (!Cards.hasCard(query)) {
     Cards.removeAllCards();
     pushStartCard(cardId, args);
-    return true;
   }
-  return false;
 }
+
+/**
+ * Tracks what final card state should be shown. If the
+ * app started up hidden for a cronsync, do not actually
+ * show the UI until the app becomes visible, so that
+ * extra work can be avoided for the hidden cronsync case.
+ */
+function showFinalCardState(fn) {
+  if (startedInBackground && document.hidden) {
+    finalCardStateCallback = fn;
+  } else {
+    fn();
+  }
+}
+
+/**
+ * Shows the message list. Assumes that the correct
+ * account and inbox have already been selected.
+ */
+function showMessageList(args) {
+  showFinalCardState(function() {
+    resetCards('message_list', args);
+  });
+}
+
+// Handles visibility changes: if the app becomes visible
+// being hidden via a cronsync startup, trigger UI creation.
+document.addEventListener('visibilitychange', function onVisibilityChange() {
+  if (startedInBackground && finalCardStateCallback && !document.hidden) {
+    finalCardStateCallback();
+    finalCardStateCallback = null;
+  }
+}, false);
+
+// Some event modifications during setup do not have full account
+// IDs. This listener catches those modifications and applies
+// them when the data is available.
+evt.on('accountModified', function(accountId, data) {
+  model.latestOnce('acctsSlice', function() {
+    var account = model.getAccount(accountId);
+    if (account)
+      account.modifyAccount(data);
+  });
+});
+
+// The add account UI flow is requested.
+evt.on('addAccount', function() {
+  Cards.removeAllCards();
+
+  // Show the first setup card again.
+  pushStartCard('setup_account_info', {
+    allowBack: true
+  });
+});
+
+function resetApp() {
+  Cards.removeAllCards();
+  model.init();
+}
+
+// An account was deleted. Burn it all to the ground and
+// rise like a phoenix. Prefer a UI event vs. a slice
+// listen to give flexibility about UI construction:
+// an acctsSlice splice change may not warrant removing
+// all the cards.
+evt.on('accountDeleted', resetApp);
+evt.on('resetApp', resetApp);
+
+// A request to show the latest account in the UI.
+// Usually triggered after an account has been added.
+evt.on('showLatestAccount', function() {
+  Cards.removeAllCards();
+
+  model.latestOnce('acctsSlice', function(acctsSlice) {
+    var account = acctsSlice.items[acctsSlice.items.length - 1];
+    model.changeAccount(account, function() {
+      pushStartCard('message_list');
+    });
+  });
+});
 
 model.on('acctsSlice', function() {
   if (!model.hasAccount()) {
     resetCards('setup_account_info');
-  }
-});
+  } else {
+    model.latestOnce('foldersSlice', function() {
+      if (waitForAppMessage)
+        return;
 
-model.on('foldersSlice', function() {
-  // If started via an activity, hold off on regular card insertion.
-  if (waitForActivity) {
-    waitForActivity = false;
-    return;
-  }
+      // If an activity was waiting for an account, trigger it now.
+      if (activityCallback) {
+        var activityCb = activityCallback;
+        activityCallback = null;
+        return activityCb();
+      }
 
-  // If an acctivity was waiting for an account, trigger it now.
-  if (activityCallback) {
-    var activityCb = activityCallback;
-    activityCallback = null;
-    return activityCb();
-  }
-
-  var args = {
-    folderPickerInit: makeFolderPickerInit()
-  };
-
-  if (!resetCards('message_list', args)) {
-    // There is an exising message_list, so just tell it the data.
-    Cards.tellCard(['message_list', 'nonsearch'], args);
+      showMessageList();
+    });
   }
 });
 
@@ -255,7 +339,7 @@ appMessages.on('activity', function(type, data, rawActivity) {
 
     // No longer need to wait for the activity to complete, it needs
     // normal card flow
-    waitForActivity = false;
+    waitForAppMessage = false;
 
     activityCallback = initComposer;
   }
@@ -278,6 +362,51 @@ appMessages.on('activity', function(type, data, rawActivity) {
       }
     });
   }
+});
+
+appMessages.on('notification', function(data) {
+  var type = data ? data.type : '';
+
+  model.latestOnce('foldersSlice', function latestFolderSlice() {
+    function onCorrectFolder() {
+      function onPushed() {
+        waitForAppMessage = false;
+      }
+
+      if (type === 'message_list') {
+        showMessageList({
+          onPushed: onPushed
+        });
+      } else if (type === 'message_reader') {
+        Cards.pushCard(data.type, 'default', 'immediate', {
+          messageSuid: data.messageSuid,
+          backOnMissingMessage: true,
+          onPushed: onPushed
+        });
+      } else {
+        console.error('unhandled notification type: ' + type);
+      }
+    }
+
+    var acctsSlice = model.acctsSlice,
+        accountId = data.accountId;
+
+    if (model.account.id === accountId) {
+      return model.selectInbox(onCorrectFolder);
+    } else {
+      var newAccount;
+      acctsSlice.items.some(function(account) {
+        if (account.id === accountId) {
+          newAccount = account;
+          return true;
+        }
+      });
+
+      if (newAccount) {
+        model.changeAccount(newAccount, onCorrectFolder);
+      }
+    }
+  });
 });
 
 model.init();

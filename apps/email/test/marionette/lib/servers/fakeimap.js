@@ -13,14 +13,19 @@ var DEFAULT_OPTIONS = Object.freeze({
  *
  * @param {Object} state target.
  * @param {Object} stack to pull updates from.
+ * @param {Object} options for setup.
  */
-function updateState(state, stack) {
+function updateState(state, stack, options) {
+  if (!options) {
+    options = DEFAULT_OPTIONS;
+  }
+
   state.imap = { port: stack.imapPort };
   state.smtp = { port: stack.smtpPort };
 
   [state.imap, state.smtp].forEach(function(serverState) {
-    serverState.username = DEFAULT_OPTIONS.credentials.username;
-    serverState.password = DEFAULT_OPTIONS.credentials.password;
+    serverState.username = options.credentials.username;
+    serverState.password = options.credentials.password;
     serverState.hostname = 'localhost';
   });
 }
@@ -46,6 +51,10 @@ function use(options, mochaContext) {
   // current imap/smtp servers
   var imapStack;
 
+  if (options === null) {
+    options = DEFAULT_OPTIONS;
+  }
+
   suiteSetup(function(done) {
     this.timeout('20s');
     server.create(function(err, control) {
@@ -56,9 +65,9 @@ function use(options, mochaContext) {
 
   // we need a new stack each test
   setup(function(done) {
-    controlServer.createImapStack(DEFAULT_OPTIONS, function(err, imap) {
+    controlServer.createImapStack(options, function(err, imap) {
       // update the state information
-      updateState(state, imap);
+      updateState(state, imap, options);
 
       imapStack = imap;
       done(err);

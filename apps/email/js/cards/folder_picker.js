@@ -1,11 +1,12 @@
-/*global define, navigator */
+/*global define */
 define(function(require) {
 
 var templateNode = require('tmpl!./folder_picker.html'),
     fldFolderItemNode = require('tmpl!./fld/folder_item.html'),
     FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
     common = require('mail_common'),
-    MailAPI = require('api'),
+    date = require('date'),
+    model = require('model'),
     mozL10n = require('l10n!'),
     Cards = common.Cards,
     bindContainerHandler = common.bindContainerHandler;
@@ -14,16 +15,6 @@ require('css!style/folder_cards');
 
 function FolderPickerCard(domNode, mode, args) {
   this.domNode = domNode;
-
-  this.foldersSlice = args.foldersSlice;
-  this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
-  this.foldersSlice.onchange = this.onFoldersChange.bind(this);
-
-  this.curAccount = args.curAccount;
-  this.curFolder = args.curFolder;
-  this.mostRecentSyncTimestamp = 0;
-
-  this.acctsSlice = args.acctsSlice;
 
   this.foldersContainer =
     domNode.getElementsByClassName('fld-folders-container')[0];
@@ -41,10 +32,8 @@ function FolderPickerCard(domNode, mode, args) {
   this.lastSyncedAtNode =
     domNode.getElementsByClassName('fld-nav-last-synced-value')[0];
 
-  // - DOM!
-  this.updateSelfDom();
-  // since the slice is already populated, generate a fake notification
-  this.onFoldersSplice(0, 0, this.foldersSlice.items, true, false);
+  this._boundUpdateAccount = this.updateAccount.bind(this);
+  model.latest('account', this._boundUpdateAccount);
 }
 FolderPickerCard.prototype = {
   nextCards: ['settings_main', 'account_picker'],
@@ -65,40 +54,58 @@ FolderPickerCard.prototype = {
     this.mostRecentSyncTimestamp = 0;
 
     if (oldAccount !== account) {
-      this.curAccount = account;
-
-      // update header
-      this.domNode.getElementsByClassName('fld-folders-header-account-label')[0]
-        .textContent = account.name;
-
-      // kill the old slice and its related DOM
-      this.foldersSlice.die();
       this.foldersContainer.innerHTML = '';
-      this.lastSyncedAtNode.textContent = '';
-      this.lastSyncedAtNode.removeAttribute('data-time');
+      date.setPrettyNodeDate(this.lastSyncedAtNode);
 
-      // stop the user from doing anything until we load the folders for the
-      // account and then transition to our card.
-      Cards.eatEventsUntilNextCard();
+      model.latestOnce('folder', function(folder) {
+        this.curAccount = account;
 
-      // load the folders for the account
-      this.foldersSlice = MailAPI.viewFolders('account', account);
-      this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
-      this.foldersSlice.onchange = this.onFoldersChange.bind(this);
-      // This will cause the splice handler to select the inbox for us; we do
-      // this in the splice handler rather than in oncomplete because the splice
-      // handler happens first and creates the DOM, and so this way it will set
-      // the selection to be reflected in the DOM from the get-go.
-      this.curFolder = null;
+        // - DOM!
+        this.updateSelfDom();
+
+        // update header
+        this.domNode
+            .getElementsByClassName('fld-folders-header-account-label')[0]
+            .textContent = account.name;
+
+        // If no current folder, means this is the first startup, do some
+        // work to populate the
+        if (!this.curFolder) {
+          this.curFolder = folder;
+        }
+
+        // Clean up any old bindings.
+        if (this.foldersSlice) {
+          this.foldersSlice.onsplice = null;
+          this.foldersSlice.onchange = null;
+        }
+
+        this.foldersSlice = model.foldersSlice;
+
+        // since the slice is already populated, generate a fake notification
+        this.onFoldersSplice(0, 0, this.foldersSlice.items, true, false);
+
+        // Listen for changes in the foldersSlice.
+        // TODO: perhaps slices should implement an event listener
+        // interface vs. only allowing one handler. This is slightly
+        // dangerous in that other cards may access model.foldersSlice
+        // and could decide to set these handlers, wiping these ones
+        // out. However, so far folder_picker is the only one that cares
+        // about these dynamic updates.
+        this.foldersSlice.onsplice = this.onFoldersSplice.bind(this);
+        this.foldersSlice.onchange = this.onFoldersChange.bind(this);
+      }.bind(this));
     }
   },
   onShowAccounts: function() {
+    if (!this.curAccount)
+      return;
+
     // Add account picker before this folder list.
     Cards.pushCard(
       'account_picker', 'navigation', 'animate',
       {
-        acctsSlice: this.acctsSlice,
-        curAccount: this.curAccount
+        curAccountId: this.curAccount.id
       },
       // Place to left of message list
       'left');
@@ -106,18 +113,6 @@ FolderPickerCard.prototype = {
 
   onFoldersSplice: function(index, howMany, addedItems,
                              requested, moreExpected) {
-    // automatically select the inbox if this is an oncomplete case and we have
-    // no selected folder.
-    if (!this.curFolder && !moreExpected) {
-      // Now that we can populate ourselves, move to us.
-      Cards.moveToCard(this);
-
-      // Also, get the folder card started because of the tray visibility issue.
-      this.curFolder = this.foldersSlice.getFirstFolderWithType('inbox',
-                                                                addedItems);
-      this._showFolder(this.curFolder);
-    }
-
     var foldersContainer = this.foldersContainer;
 
     var folder;
@@ -156,19 +151,15 @@ FolderPickerCard.prototype = {
 
   updateLastSyncedUI: function() {
     if (this.mostRecentSyncTimestamp) {
-      this.lastSyncedAtNode.dataset.time =
-        this.mostRecentSyncTimestamp.valueOf();
-      this.lastSyncedAtNode.dataset.compactFormat = true;
-      this.lastSyncedAtNode.textContent =
-        common.prettyDate(this.mostRecentSyncTimestamp, true);
-    }
-    else {
+      date.setPrettyNodeDate(this.lastSyncedAtNode,
+                             this.mostRecentSyncTimestamp);
+    } else {
       this.lastSyncedAtNode.textContent = mozL10n.get('account-never-synced');
     }
   },
 
   updateSelfDom: function(isAccount) {
-    var str = isAccount ? navigator.mozL10n.get('settings-account-section') :
+    var str = isAccount ? mozL10n.get('settings-account-section') :
       this.curAccount.name;
     this.domNode.getElementsByClassName('fld-folders-header-account-label')[0]
       .textContent = str;
@@ -220,7 +211,7 @@ FolderPickerCard.prototype = {
    * Tell the message-list to show this folder; exists for single code path.
    */
   _showFolder: function(folder) {
-    Cards.tellCard(['message_list', 'nonsearch'], { folder: folder });
+    model.changeFolder(folder);
   },
 
   /**
@@ -229,6 +220,7 @@ FolderPickerCard.prototype = {
    * graphical glitches.
    */
   die: function() {
+    model.removeListener('account', this._boundUpdateAccount);
   }
 };
 Cards.defineCard({

@@ -2756,6 +2756,8 @@ ActiveSyncAccount.prototype = {
       problems: this.problems,
 
       syncRange: this.accountDef.syncRange,
+      syncInterval: this.accountDef.syncInterval,
+      notifyOnNew: this.accountDef.notifyOnNew,
 
       identities: this.identities,
 
@@ -2783,34 +2785,6 @@ ActiveSyncAccount.prototype = {
 
   get numActiveConns() {
     return 0;
-  },
-
-  saveAccountState: function asa_saveAccountState(reuseTrans, callback,
-                                                  reason) {
-    if (!this._alive) {
-      this._LOG.accountDeleted('saveAccountState');
-      return;
-    }
-
-    var account = this;
-    var perFolderStuff = [];
-    for (var iter in Iterator(this.folders)) {
-      var folder = iter[1];
-      var folderStuff = this._folderStorages[folder.id]
-                           .generatePersistenceInfo();
-      if (folderStuff)
-        perFolderStuff.push(folderStuff);
-    }
-
-    this._LOG.saveAccountState(reason);
-    var trans = this._db.saveAccountFolderStates(
-      this.id, this._folderInfos, perFolderStuff, this._deadFolderIds,
-      function stateSaved() {
-        if (callback)
-         callback();
-      }, reuseTrans);
-    this._deadFolderIds = null;
-    return trans;
   },
 
   /**
@@ -3379,6 +3353,8 @@ ActiveSyncAccount.prototype = {
   runOp: $acctmixins.runOp,
   getFirstFolderWithType: $acctmixins.getFirstFolderWithType,
   getFolderByPath: $acctmixins.getFolderByPath,
+  saveAccountState: $acctmixins.saveAccountState,
+  runAfterSaves: $acctmixins.runAfterSaves
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
@@ -3545,6 +3521,10 @@ exports.configurator = {
           type: 'activesync',
           syncRange: 'auto',
 
+          syncInterval: userDetails.syncInterval || 0,
+          notifyOnNew: userDetails.hasOwnProperty('notifyOnNew') ?
+                       userDetails.notifyOnNew : true,
+
           credentials: credentials,
           connInfo: {
             server: domainInfo.incoming.server
@@ -3583,6 +3563,9 @@ exports.configurator = {
 
       type: 'activesync',
       syncRange: oldAccountDef.syncRange,
+      syncInterval: oldAccountDef.syncInterval || 0,
+      notifyOnNew: oldAccountDef.hasOwnProperty('notifyOnNew') ?
+                   oldAccountDef.notifyOnNew : true,
 
       credentials: credentials,
       connInfo: {
