@@ -16,7 +16,7 @@ var CallHandler = (function callHandler() {
   window.addEventListener('load', function getSettingsListener() {
     window.removeEventListener('load', getSettingsListener);
 
-      loader.load('/shared/js/settings_listener.js', function() {
+      LazyLoader.load('/shared/js/settings_listener.js', function() {
         SettingsListener.observe('lockscreen.locked', null, function(value) {
           if (value) {
             screenState = 'locked';
@@ -79,7 +79,7 @@ var CallHandler = (function callHandler() {
   }
 
   function handleNotificationRequest(number) {
-    loader.load('/dialer/js/utils.js', function() {
+    LazyLoader.load('/dialer/js/utils.js', function() {
       Contacts.findByNumber(number, function lookup(contact, matchingTel) {
         LazyL10n.get(function localized(_) {
           var title = _('missedCall');
@@ -289,7 +289,7 @@ var CallHandler = (function callHandler() {
       }
     };
 
-    loader.load('/dialer/js/telephony_helper.js', function() {
+    LazyLoader.load('/dialer/js/telephony_helper.js', function() {
       TelephonyHelper.call(number, oncall, connected, disconnected, error);
     });
   }
@@ -364,13 +364,13 @@ var CallHandler = (function callHandler() {
 
   /* === MMI === */
   function init() {
-    loader.load(['/shared/js/mobile_operator.js',
-                 '/dialer/js/mmi.js',
-                 '/dialer/js/mmi_ui.js',
-                 '/shared/style/headers.css',
-                 '/shared/style/input_areas.css',
-                 '/shared/style_unstable/progress_activity.css',
-                 '/dialer/style/mmi.css'], function() {
+    LazyLoader.load(['/shared/js/mobile_operator.js',
+                     '/dialer/js/mmi.js',
+                     '/dialer/js/mmi_ui.js',
+                     '/shared/style/headers.css',
+                     '/shared/style/input_areas.css',
+                     '/shared/style_unstable/progress_activity.css',
+                     '/dialer/style/mmi.css'], function() {
 
       if (window.navigator.mozSetMessageHandler) {
         window.navigator.mozSetMessageHandler('telephony-new-call', newCall);
@@ -426,12 +426,12 @@ var NavbarManager = {
       return;
     }
     var self = this;
-    loader.load(['/shared/js/async_storage.js',
-                 '/shared/js/notification_helper.js',
-                 '/shared/js/simple_phone_matcher.js',
-                 '/dialer/js/contacts.js',
-                 '/dialer/js/call_log.js',
-                 '/dialer/style/call_log.css'], function rs_loaded() {
+    LazyLoader.load(['/shared/js/async_storage.js',
+                     '/shared/js/notification_helper.js',
+                     '/shared/js/simple_phone_matcher.js',
+                     '/dialer/js/contacts.js',
+                     '/dialer/js/call_log.js',
+                     '/dialer/style/call_log.css'], function rs_loaded() {
                     self.resourcesLoaded = true;
                     if (cb && typeof cb === 'function') {
                       cb();
@@ -508,17 +508,17 @@ window.addEventListener('load', function startup(evt) {
     var lazyPanelsElements = lazyPanels.map(function toElement(id) {
       return document.getElementById(id);
     });
-    loader.load(lazyPanelsElements);
+    LazyLoader.load(lazyPanelsElements);
 
     CallHandler.init();
     LazyL10n.get(function loadLazyFilesSet() {
-      loader.load(['/contacts/js/fb/fb_data.js',
-                   '/contacts/js/fb/fb_contact_utils.js',
-                   '/shared/style/confirm.css',
-                   '/contacts/js/confirm_dialog.js',
-                   '/dialer/js/newsletter_manager.js',
-                   '/shared/style/edit_mode.css',
-                   '/shared/style/headers.css']);
+      LazyLoader.load(['/contacts/js/fb/fb_data.js',
+                       '/contacts/js/fb/fb_contact_utils.js',
+                       '/shared/style/confirm.css',
+                       '/contacts/js/confirm_dialog.js',
+                       '/dialer/js/newsletter_manager.js',
+                       '/shared/style/edit_mode.css',
+                       '/shared/style/headers.css']);
       lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
