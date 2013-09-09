@@ -356,10 +356,12 @@ contacts.Matcher = (function() {
     var resultsByName = null;
     if (!isEmptyStr(aContact.name)) {
       var targetName = aContact.name[0].trim();
+      // Filter by familyName using startsWith. Gecko 'startsWith' operation
+      // acts as 'equal' but does not match case.
       var reqName = navigator.mozContacts.find({
         filterValue: targetName,
         filterBy: ['name'],
-        filterOp: 'equals'
+        filterOp: 'startsWith'
       });
 
       reqName.onsuccess = function() {
@@ -389,10 +391,12 @@ contacts.Matcher = (function() {
 
     if (!isEmptyStr(aContact.familyName)) {
       var targetFamilyName = aContact.familyName[0].trim();
+      // Filter by familyName using startsWith. Gecko 'startsWith' operation
+      // acts as 'equal' but does not match case.
       var reqFamilyName = navigator.mozContacts.find({
         filterValue: targetFamilyName,
         filterBy: ['familyName'],
-        filterOp: 'equals'
+        filterOp: 'startsWith'
       });
 
       reqFamilyName.onsuccess = function() {
