@@ -470,6 +470,9 @@ var WindowManager = (function() {
     // set the size of the opening app
     app.resize();
 
+    // Make window visible to screenreader
+    app.frame.removeAttribute('aria-hidden');
+
     if (origin === homescreen) {
       // Call the openCallback only once. We have to use tmp var as
       // openCallback can be a method calling the callback
@@ -561,6 +564,9 @@ var WindowManager = (function() {
     setCloseFrame(app.frame);
     closeCallback = callback || noop;
     ready = ready || noop;
+
+    // Make window invisible to screenreader
+    app.frame.setAttribute('aria-hidden', 'true');
 
     var onSwitchWindow = isSwitchWindow();
 
@@ -863,6 +869,8 @@ var WindowManager = (function() {
              (currentApp == homescreen && newApp)) {
       var zoomInPreCallback = function() {
         homescreenFrame.classList.add('zoom-in');
+        // Hide homescreen from screenreader
+        homescreenFrame.setAttribute('aria-hidden', 'true');
       };
       var zoomInCallback = function() {
         homescreenFrame.classList.remove('zoom-in');
@@ -1002,6 +1010,7 @@ var WindowManager = (function() {
     var frame = document.createElement('div');
     frame.appendChild(iframe);
     frame.className = 'appWindow';
+    frame.setAttribute('role', 'region');
 
     // TODO: Remove this line later.
     // We won't need to store origin or url in iframe element anymore.
