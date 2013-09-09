@@ -1,0 +1,86 @@
+/**
+ * Landscape support. This is a temporal file. *MUST* be removed when new Building blocks
+ * will be available.
+ */
+
+@media screen and (orientation: landscape) {
+
+  /*
+    Tweaks for headers
+  */
+  .view-header {
+    height: 3.7rem !important;
+  }
+
+  .view-header h1 {
+    line-height: 3.5rem !important;
+  }
+
+  .view-header .action {
+    line-height: 3.5rem !important;
+  }
+
+  .bb-subheader h2 {
+    line-height: 0.9rem !important;
+  }
+
+  section[role="region"] > header:first-child menu[type="toolbar"] a {
+    height: 100% !important;
+  }
+
+  section[role="region"] > header:first-child > button,
+  section[role="region"] > header:first-child > a {
+    height: 100% !important;
+  }
+
+  section[role="region"] > header:first-child .icon {
+    height: 100% !important;
+  }
+
+  /*
+    Tweaks for SMS App
+  */
+  .fixed-title {
+    top: 3.7rem !important;
+  }
+
+  .subheader {
+    top: 3.7rem !important;
+  }
+
+  .view-body {
+    height: calc(100% - 3.7rem) !important;
+  }
+  #threads-no-messages {
+    height: calc(100% - 3.7rem) !important;
+  }
+  .article-list[data-type="list"] ul.contact-list {
+    max-height: calc(100% - 3.7rem) !important;
+  }
+  /*
+    Tweaks for edit mode
+  */
+
+  form[role="dialog"][data-type="edit"] header {
+    height: 3.7rem !important;
+  }
+
+  form[role="dialog"][data-type="edit"] header h1 {
+    line-height: 3.5rem !important;
+  }
+
+  form[role="dialog"][data-type="edit"] header .action {
+    line-height: 3.5rem !important;
+  }
+
+  form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button,
+  form[role="dialog"][data-type="edit"] header > button,
+  form[role="dialog"][data-type="edit"] header > button span {
+    height: 3.7rem !important;
+    line-height: 3.7rem !important;
+  }
+
+  form[role="dialog"][data-type="edit"] > menu {
+    padding: .5rem !important;
+  }
+}
