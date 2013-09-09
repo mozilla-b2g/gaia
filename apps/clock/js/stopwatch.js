@@ -20,6 +20,16 @@
     constructor: Stopwatch,
 
     /**
+    * isStarted Returns the isStarted state
+    *
+    * @return {boolean} return isStarted state
+    */
+    isStarted: function sw_isStarted() {
+      var sw = wm.get(this);
+      return sw.isStarted;
+    },
+
+    /**
     * start Starts the stopwatch, either from a reset or paused state
     */
     start: function sw_start() {
@@ -80,7 +90,8 @@
         lastLapTime = sw.startTime;
       }
 
-      newLap.duration = Date.now() - lastLapTime;
+      var lastTime = lastLapTime > sw.startTime ? lastLapTime : sw.startTime;
+      newLap.duration = Date.now() - lastTime;
       newLap.time = Date.now();
       sw.laps.push(newLap);
 
