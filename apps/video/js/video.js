@@ -366,10 +366,7 @@ function share(blobs) {
 function updateDialog() {
   if (videos.length !== 0 && (!storageState || playerShowing)) {
     showOverlay(null);
-    return;
-  }
-
-  if (storageState === MediaDB.UPGRADING) {
+  } else if (storageState === MediaDB.UPGRADING) {
     showOverlay('upgrade');
   } else if (storageState === MediaDB.NOCARD) {
     showOverlay('nocard');
