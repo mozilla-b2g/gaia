@@ -22,6 +22,7 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
     pending_envs = []
     passes = 0
     failures = 0
+    current_test = None
 
     def initialize(self, tests=None, runner=None, logger=None):
         self.tests = tests
@@ -37,13 +38,12 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
         self.run_tests(self.tests)
 
     def run_tests(self, tests):
-        def format(value):
-            if (value[0] != '/'):
-                value = '/' + value
-            return value
+        self.tests = tests
+        self.run_next_test()
 
-        tests = map(format, tests)
-        self.emit('run tests', {'tests': tests})
+    def run_next_test(self):
+        self.current_test = self.tests.pop()
+        self.emit('run tests', {'tests': ["/%s" % self.current_test] })
 
     def on_envs_complete(self):
         exitCode = 0
@@ -95,7 +95,7 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
             if not (test_env in self.envs):
                 return
 
-            self.envs[test_env].handle_event(test_event, test_data)
+            self.envs[test_env].handle_event(test_event, test_data, self.current_test)
 
             # remove from pending and trigger test complete check.
             if (test_event == 'end'):
@@ -105,8 +105,11 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
                 self.passes += self.envs[test_env].passes
                 self.failures += self.envs[test_env].failures
 
+                if self.tests:
+                    self.run_next_test()
+
                 # now that envs are totally complete show results.
-                if (len(self.pending_envs) == 0):
+                elif (len(self.pending_envs) == 0):
                     self.on_envs_complete()
 
     def on_close(self):
