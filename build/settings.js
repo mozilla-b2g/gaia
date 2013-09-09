@@ -204,6 +204,7 @@ function execute() {
    'phone.ring.keypad': true,
    'powersave.enabled': false,
    'powersave.threshold': -1,
+   'privacy.donottrackheader.value': '-1',
    'privacy.donottrackheader.enabled': false,
    'ril.data.suspended': false,
    'ril.iccInfo.mbdn': '',
