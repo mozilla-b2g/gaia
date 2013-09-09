@@ -81,6 +81,7 @@ html, body {
 }
 
 #clock-day-date {
+  font-family: 'Fira Sans', sans-serif;
   font-weight: lighter;
   font-size: 2.1rem;
   margin: 2.6rem 0 0 1.5rem;
@@ -93,6 +94,7 @@ html, body {
 
 #clock-day-date b {
   font-weight: normal;
+  color: #A1B0B2;
 }
 
 #analog-clock-container {
