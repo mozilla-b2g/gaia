@@ -11,11 +11,11 @@ function SimPinDialog(dialog) {
 
 
   /**
-   * Global variables and callbacks -- updated by the main `show()' method
+   * Global variables and callbacks -- set by the main `show()' method
    */
 
-  var _origin = '';       // id of the dialog caller
-  var _action = 'unlock'; // requested action
+  var _origin = ''; // id of the dialog caller (specific to the Settings app)
+  var _action = ''; // requested action: unlock*, enable*, disable*, change*
   var _onsuccess = function() {};
   var _oncancel = function() {};
 
@@ -71,7 +71,7 @@ function SimPinDialog(dialog) {
     errorMsg.hidden = false;
   }
 
-  // "[n] tries left" messages
+  // "[n] tries left" error messages
   var triesLeftMsg = dialog.querySelector('.sim-triesLeft');
   function showRetryCount(retryCount) {
     if (!retryCount) {
@@ -82,42 +82,33 @@ function SimPinDialog(dialog) {
     }
   }
 
-
-  /**
-   * SIM card state
-   */
-
-  /* function handleCardState() {
-    var lockType = 'pin';
-    switch (IccHelper.cardState) {
-      case 'pinRequired':
-        setInputMode('pin');
-        // pinInput.focus();
-        showMessage();
-        break;
-      case 'pukRequired':
-        lockType = 'puk';
-        setInputMode('puk');
-        // pukInput.focus();
-        showMessage('simCardLockedMsg', 'enterPukMsg');
-        break;
-      default:
-        skip();
-        break;
-    }
-    _localize(dialogTitle, lockType + 'Title');
-  } */
-
+  // card lock error messages
   IccHelper.addEventListener('icccardlockerror', function(event) {
-    var count = event.retryCount;
-    if (!count) {
+    var type = event.lockType; // expected: 'pin', 'fdn', 'puk'
+    if (!type) {
       skip();
       return;
     }
-    var type = event.lockType; // expected: 'pin', 'fdn', 'puk'
+
+    // after three strikes, ask for PUK/PUK2
+    var count = event.retryCount;
+    if (count == 0) {
+      if (type === 'pin') {
+        _action = initUI('unlock_puk');
+        pukInput.focus();
+      } else if (type === 'fdn') {
+        _action = initUI('unlock_puk2');
+        pukInput.focus();
+      } else { // out of PUK/PUK2: we're doomed
+        skip();
+      }
+      return;
+    }
+
     var msgId = (count > 1) ? 'AttemptMsg3' : 'LastChanceMsg';
     showMessage(type + 'ErrorMsg', type + msgId, { n: count });
     showRetryCount(count);
+
     if (type === 'pin' || type === 'fdn') {
       pinInput.focus();
     } else if (type === 'puk') {
@@ -139,7 +130,8 @@ function SimPinDialog(dialog) {
     clear();
   }
 
-  function unlockPuk() {
+  function unlockPuk(lockType) { // lockType = `puk' or `puk2'
+    lockType = lockType || 'puk';
     var puk = pukInput.value;
     var newPin = newPinInput.value;
     var confirmPin = confirmPinInput.value;
@@ -152,7 +144,7 @@ function SimPinDialog(dialog) {
       confirmPinInput.value = '';
       return;
     }
-    unlockCardLock({ lockType: 'puk', puk: puk, newPin: newPin });
+    unlockCardLock({ lockType: lockType, puk: puk, newPin: newPin });
     clear();
   }
 
@@ -188,6 +180,7 @@ function SimPinDialog(dialog) {
   }
 
   function changePin(lockType) { // lockType = `pin' or `pin2'
+    lockType = lockType || 'pin';
     var pin = pinInput.value;
     var newPin = newPinInput.value;
     var confirmPin = confirmPinInput.value;
@@ -219,31 +212,36 @@ function SimPinDialog(dialog) {
 
   function verify() { // apply PIN|PUK
     switch (_action) {
-      // PIN lock
-      case 'unlockPin':
+      // unlock SIM
+      case 'unlock_pin':
         unlockPin();
         break;
-      case 'unlockPuk':
-        unlockPuk();
+      case 'unlock_puk':
+        unlockPuk('puk');
         break;
-      case 'enableLock':
+      case 'unlock_puk2':
+        unlockPuk('puk2');
+        break;
+
+      // PIN lock
+      case 'enable_lock':
         enableLock(true);
         break;
-      case 'disableLock':
+      case 'disable_lock':
         enableLock(false);
         break;
-      case 'changePin':
+      case 'change_pin':
         changePin('pin');
         break;
 
       // PIN2 lock (FDN)
-      case 'enableFdn':
+      case 'enable_fdn':
         enableFdn(true);
         break;
-      case 'disableFdn':
+      case 'disable_fdn':
         enableFdn(false);
         break;
-      case 'changePin2':
+      case 'change_pin2':
         changePin('pin2');
         break;
     }
@@ -278,43 +276,46 @@ function SimPinDialog(dialog) {
    */
 
   function initUI(action) {
-    var lockType = 'pin';
+    dialogDone.disabled = true;
 
+    var lockType = 'pin'; // used to query the number of retries left
     switch (action) {
-      case 'unlock': // => action can be either `unlockPin' or `unlockPuk'
-        switch (IccHelper.cardState) {
-          case 'pinRequired':
-            action = 'unlockPin';
-            showMessage();
-            break;
-          case 'pukRequired':
-            lockType = 'puk';
-            action = 'unlockPuk';
-            showMessage('simCardLockedMsg', 'enterPukMsg');
-            break;
-          default:
-            return '';
-        }
-        setInputMode(lockType);
-        _localize(dialogTitle, lockType + 'Title');
-        break;
-
-      case 'enableLock':
-      case 'disableLock':
+      case 'unlock_pin':
+        showMessage();
         setInputMode('pin');
         _localize(dialogTitle, 'pinTitle');
         break;
 
-      case 'enableFdn':
-      case 'disableFdn':
+      case 'unlock_puk':
+        lockType = 'puk';
+        setInputMode('puk');
+        showMessage('simCardLockedMsg', 'enterPukMsg');
+        _localize(dialogTitle, 'pukTitle');
+        break;
+
+      case 'unlock_puk2':
+        lockType = 'puk2';
+        setInputMode('puk');
+        showMessage('simCardLockedMsg', 'enterPukMsg');
+        _localize(dialogTitle, 'pukTitle');
+        break;
+
+      case 'enable_lock':
+      case 'disable_lock':
+        setInputMode('pin');
+        _localize(dialogTitle, 'pinTitle');
+        break;
+
+      case 'enable_fdn':
+      case 'disable_fdn':
         lockType = 'pin2';
         setInputMode('pin');
         _localize(dialogTitle, 'fdnTitle');
         break;
 
-      case 'changePin2':
+      case 'change_pin2':
         lockType = 'pin2';
-      case 'changePin':
+      case 'change_pin':
         setInputMode('new');
         _localize(dialogTitle, 'newpinTitle');
         break;
@@ -325,8 +326,9 @@ function SimPinDialog(dialog) {
     }
 
     // display the number of remaining retries if necessary
-    // XXX only works with the emulator, see bug 905173
+    // XXX this only works with the emulator (and some commercial RIL stacks...)
     // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
+    // => DO NOT RELY ON THIS!!!
     IccHelper.getCardLockRetryCount(lockType, showRetryCount);
     return action;
   }
@@ -336,7 +338,6 @@ function SimPinDialog(dialog) {
     if (dialogPanel == Settings.currentPanel) {
       return;
     }
-    dialogDone.disabled = true;
 
     _action = initUI(action);
     if (!_action) {
@@ -352,7 +353,7 @@ function SimPinDialog(dialog) {
 
     window.addEventListener('panelready', function inputFocus() {
       window.removeEventListener('panelready', inputFocus);
-      if (_action === 'unlockPuk') {
+      if (_action === 'unlock_puk' || _action === 'unlock_puk2') {
         pukInput.focus();
       } else {
         pinInput.focus();

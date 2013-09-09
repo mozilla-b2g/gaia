@@ -20,7 +20,7 @@ var SimPinLock = {
     };
     var cardStateL10nId = cardStateMapping[IccHelper.cardState || 'null'];
     if (cardStateL10nId) { // no SIM card
-      localize(simSecurityDesc, cardStateL10nId);
+      localize(this.simSecurityDesc, cardStateL10nId);
       this.simPinCheckBox.disabled = true;
       this.changeSimPinItem.hidden = true;
       return;
@@ -31,7 +31,7 @@ var SimPinLock = {
     var req = IccHelper.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
-      localize(self.simSecurityDesc, (enabled ? 'enabled' : 'disabled'));
+      localize(self.simSecurityDesc, enabled ? 'enabled' : 'disabled');
       self.simPinCheckBox.disabled = false;
       self.simPinCheckBox.checked = enabled;
       self.changeSimPinItem.hidden = !enabled;
@@ -56,7 +56,7 @@ var SimPinLock = {
       var enabled = this.checked;
       switch (IccHelper.cardState) {
         case 'pukRequired':
-          pinDialog.show('unlock',
+          pinDialog.show('unlock_puk',
             function() {
               // successful unlock puk will be in simcard lock enabled state
               self.simPinCheckBox.checked = true;
@@ -69,7 +69,7 @@ var SimPinLock = {
           );
           break;
         default:
-          pinDialog.show((enabled ? 'enableLock' : 'disableLock'),
+          pinDialog.show(enabled ? 'enable_lock' : 'disable_lock',
             function() {
               self.updateSimCardStatus();
             },
@@ -82,7 +82,7 @@ var SimPinLock = {
       }
     };
     this.changeSimPinButton.onclick = function spl_changePin() {
-      pinDialog.show('changePin');
+      pinDialog.show('change_pin');
     };
 
     this.updateSimCardStatus();

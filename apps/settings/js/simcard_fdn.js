@@ -7,41 +7,48 @@ var SimFdnLock = {
   dialog: document.getElementById('call-pin2-dialog'),
   simFdnDesc: document.querySelector('#fdn-enabled small'),
   simFdnCheckBox: document.querySelector('#fdn-enabled input'),
-  changeSimFdnItem: document.getElementById('fdn-changePIN'),
-  changeSimFdnButton: document.querySelector('#fdn-changePIN button'),
+  changePin2Item: document.getElementById('fdn-changePIN2'),
+  changePin2Button: document.querySelector('#fdn-changePIN2 button'),
+  resetPin2Item: document.getElementById('fdn-changePIN2'),
+  resetPin2Button: document.querySelector('#fdn-resetPIN2 button'),
 
   updateFdnStatus: function spl_updateSimStatus() {
     var self = this;
     var req = IccHelper.getCardLock('fdn');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
-      localize(self.simFdnDesc, (enabled ? 'enabled' : 'disabled'));
+      localize(self.simFdnDesc, enabled ? 'enabled' : 'disabled');
       self.simFdnCheckBox.disabled = false;
       self.simFdnCheckBox.checked = enabled;
-      self.changeSimFdnItem.hidden = !enabled;
+      self.changePin2Item.hidden = !enabled;
     };
   },
 
   init: function spl_init() {
-    if (!IccHelper.enabled)
+    if (!IccHelper.enabled) {
       return;
+    }
 
     var callback = this.updateFdnStatus.bind(this);
     IccHelper.addEventListener('cardstatechange', callback);
 
     var pinDialog = new SimPinDialog(this.dialog);
 
-    this.simFdnCheckBox.onchange = function spl_toggleSimFdn() {
-      var action = this.checked ? 'enableFdn' : 'disableFdn';
-      if (IccHelper.cardState === 'puk2Required') {
-        action = 'unlockFdn';
-        return; // TODO (not implemented yet, early way out)
+    this.simFdnCheckBox.onchange = function spl_togglePin2() {
+      console.log('cardState = ' + IccHelper.cardState);
+      var action = this.checked ? 'enable_fdn' : 'disable_fdn';
+      if (IccHelper.cardState === 'puk2Required') { // XXX not implemented yet
+        action = 'unlock_puk2';
       }
       pinDialog.show(action, callback, callback);
     };
 
-    this.changeSimFdnButton.onclick = function spl_changePin2() {
-      pinDialog.show('changePin2');
+    this.changePin2Button.onclick = function spl_changePin2() {
+      pinDialog.show('change_pin2');
+    };
+
+    this.resetPin2Button.onclick = function spl_resetPin2() {
+      pinDialog.show('unlock_puk2');
     };
 
     this.updateFdnStatus();
