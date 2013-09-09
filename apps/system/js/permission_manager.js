@@ -21,6 +21,8 @@ var PermissionManager = {
   remember: document.getElementById('permission-remember-checkbox'),
   rememberSection: document.getElementById('permission-remember-section'),
 
+  currentOrigin: undefined,
+  currentPermission: undefined,
   init: function pm_init() {
     var self = this;
 
@@ -30,6 +32,8 @@ var PermissionManager = {
       switch (detail.type) {
         case 'permission-prompt':
           self.overlay.dataset.type = detail.permission;
+          self.currentPermission = detail.permission;
+          self.currentOrigin = detail.origin;
           self.handlePermissionPrompt(detail).bind(self);
           break;
         case 'cancel-permission-prompt':
@@ -73,7 +77,7 @@ var PermissionManager = {
       var message =
         _('fullscreen-request', { 'origin': detail.fullscreenorigin });
       this.fullscreenRequest =
-        this.requestPermission(message, '',
+        this.requestPermission(detail.origin, detail.permission, message, '',
                                             /* yesCallback */ null,
                                             /* noCallback */ function() {
                                               document.mozCancelFullScreen();
@@ -95,7 +99,8 @@ var PermissionManager = {
 
     var moreInfoText = _(permissionID + '-more-info');
     var self = this;
-    this.requestPermission(str, moreInfoText,
+    this.requestPermission(detail.origin, detail.permission,
+      str, moreInfoText,
       function pm_permYesCB() {
         self.dispatchResponse(detail.id, 'permission-allow',
           self.remember.checked);
@@ -106,9 +111,11 @@ var PermissionManager = {
     });
   },
 
+  responseStatus: undefined,
   dispatchResponse: function pm_dispatchResponse(id, type, remember) {
     var event = document.createEvent('CustomEvent');
     remember = remember ? true : false;
+    this.responseStatus = type;
 
     event.initCustomEvent('mozContentEvent', true, true, {
       id: id,
@@ -151,6 +158,16 @@ var PermissionManager = {
     if (this.pending.length == 0)
       return;
     var request = this.pending.shift();
+    // bug 907075 Dismiss continuous same permission request but
+    // dispatch mozContentEvent as well if remember is checked
+    if (this.remember.checked) {
+      if ((this.currentOrigin === request.origin) &&
+        (this.currentPermission === request.permission)) {
+        this.dispatchResponse(request.id, this.responseStatus,
+          this.remember.checked);
+        return;
+      }
+    }
     this.showPermissionPrompt(request.id,
                          request.message,
                          request.moreInfoText,
@@ -177,7 +194,8 @@ var PermissionManager = {
     this.showNextPendingRequest();
   },
 
-  requestPermission: function pm_requestPermission(msg, moreInfoText,
+  requestPermission: function pm_requestPermission(origin, permission,
+                                   msg, moreInfoText,
                                    yescallback, nocallback) {
     var id = this.nextRequestID;
     this.nextRequestID = (this.nextRequestID + 1) % 1000000;
@@ -186,7 +204,9 @@ var PermissionManager = {
       // There is already a permission request being shown, queue this one.
       this.pending.push({
         id: id,
+        permission: permission,
         message: msg,
+        origin: origin,
         moreInfoText: moreInfoText,
         yescallback: yescallback,
         nocallback: nocallback
