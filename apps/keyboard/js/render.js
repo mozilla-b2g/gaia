@@ -127,6 +127,10 @@ const IMERender = (function() {
           className = layout.keyClassName;
         }
 
+        if (key.className) {
+          className += ' ' + key.className;
+        }
+
         var ratio = key.ratio || 1;
         rowLayoutWidth += ratio;
 

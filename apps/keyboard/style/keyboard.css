@@ -296,6 +296,14 @@ button::-moz-focus-inner {
   display: none;
 }
 
+.keyboard-key.pinyin-ch-ellipsis > .visual-wrapper > span {
+  font-size: 1.6rem;
+}
+
+span.pinyin-toggle-button-small {
+  font-size: 70%;
+}
+
 /* Alternatives menu -- this menu appears when you tap and hold a key that has
 alternative special (accented) characters. The menu "grows" out of the key
 and displays the list of alternatives. */

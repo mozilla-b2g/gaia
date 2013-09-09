@@ -159,8 +159,6 @@ IMEngine.prototype = {
   // if the length of the syllables buffer is reached.
   _kBufferLenLimit: 30,
 
-  _symbolLayoutFullMode: true,
-
   // Remember the candidate length of last searching result because we don't
   // want to output all candidates at a time.
   // Set it to 0 when we don't need the candidates buffer anymore.
@@ -289,7 +287,7 @@ IMEngine.prototype = {
 
     // Select the first candidate if needed.
     if (code === KeyEvent.DOM_VK_RETURN ||
-        !this._isSymbol(code) ||
+        !this._isPinyinKey(code) ||
         this._pendingSymbols.length >= this._kBufferLenLimit) {
       debug('Nono-bopomofo key is pressed or the input is too long.');
       var sendKey = true;
@@ -298,7 +296,6 @@ IMEngine.prototype = {
           // candidate list exists; output the first candidate
           debug('Sending first candidate.');
           this._glue.sendString(this._firstCandidate);
-          this.empty();
           // no return here
           if (code === KeyEvent.DOM_VK_RETURN) {
             sendKey = false;
@@ -309,6 +306,7 @@ IMEngine.prototype = {
 
       //pass the key to IMEManager for default action
       debug('Default action.');
+      this.empty();
       if (sendKey) {
         this._glue.sendKey(code);
       }
@@ -325,16 +323,17 @@ IMEngine.prototype = {
     this._updateCandidatesAndSymbols(this._next.bind(this));
   },
 
-  _isSymbol: function engine_isSymbol(code) {
+  _isPinyinKey: function engine_isPinyinKey(code) {
+    if (this._keyboard == 'zh-Hans-Pinyin') {
+      // '
+      if (code == 39) {
+        return true;
+      }
 
-    // '
-    if (code == 39) {
-      return true;
-    }
-
-    // a-z
-    if (code >= 97 && code <= 122) {
-      return true;
+      // a-z
+      if (code >= 97 && code <= 122) {
+        return true;
+      }
     }
 
     return false;
@@ -410,9 +409,16 @@ IMEngine.prototype = {
   },
 
   _alterKeyboard: function engine_changeKeyboard(keyboard) {
-    this._keyboard = keyboard;
+    this._resetKeypressQueue();
     this.empty();
+
+    this._keyboard = keyboard;
     this._glue.alterKeyboard(keyboard);
+  },
+
+  _resetKeypressQueue: function engine_abortKeypressQueue() {
+    this._keypressQueue = [];
+    this._isWorking = false;
   },
 
   /**
@@ -523,6 +529,7 @@ IMEngine.prototype = {
     document.body.removeChild(document.getElementById('libpinyin_js'));
     document.body.removeChild(document.getElementById('user_dict_js'));
 
+    this._resetKeypressQueue();
     this.empty();
   },
 
@@ -538,21 +545,22 @@ IMEngine.prototype = {
     IMEngineBase.prototype.click.call(this, keyCode);
 
     switch (keyCode) {
-      case -11:
+      case -11: // Switch to Pinyin Panel
         this._alterKeyboard('zh-Hans-Pinyin');
         break;
-      case -12:
-        this._symbolLayoutFullMode = false;
-        this._alterKeyboard('zh-Hans-Pinyin-Symbol');
-        break;
-      case -13:
-        this._symbolLayoutFullMode = true;
-        this._alterKeyboard('zh-Hans-Pinyin-Symbol-Full');
-        break;
-      case -14:
-        var keyboard = this._symbolLayoutFullMode ?
-          'zh-Hans-Pinyin-Symbol-Full' : 'zh-Hans-Pinyin-Symbol';
-        this._alterKeyboard(keyboard);
+      case -20: // Switch to Chinese Symbol Panel, Same page
+      case -21: // Switch to Chinese Symbol Panel, Page 1
+      case -22: // Switch to Chinese Symbol Panel, Page 2
+      case -30: // Switch to English Symbol Panel, Same page
+      case -31: // Switch to English Symbol Panel, Page 1
+      case -32: // Switch to English Symbol Panel, Page 2
+        var index = Math.abs(keyCode);
+        var symbolType = index < 30 ? 'Ch' : 'En';
+        var symbolPage = index % 10;
+        if (!symbolPage)
+          symbolPage = this._keyboard.substr(-1);
+        this._alterKeyboard(
+          'zh-Hans-Pinyin-Symbol-' + symbolType + '-' + symbolPage);
         break;
       default:
         this._keypressQueue.push(keyCode);
@@ -611,8 +619,6 @@ IMEngine.prototype = {
     this._firstCandidate = '';
     this._sendPendingSymbols();
     this._sendCandidates([]);
-    this._keypressQueue = [];
-    this._isWorking = false;
   },
 
   /**
