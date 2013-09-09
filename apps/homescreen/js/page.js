@@ -94,7 +94,7 @@ Icon.prototype = {
     container.dataset.isIcon = true;
     this._descriptorIdentifiers.forEach(function(prop) {
       var value = descriptor[prop];
-      if (value !== undefined)
+      if (value || value === 0)
         container.dataset[prop] = value;
     });
 
