@@ -225,6 +225,41 @@ suite('calls handler', function() {
       });
     });
 
+    suite('> receiving an extra incoming call in CDMA mode', function() {
+      var mockCall;
+
+      setup(function() {
+        mockCall = new MockCall('543552', 'incoming');
+
+        telephonyAddCall.call(this, mockCall, {trigger: true});
+        telephonyAddCdmaCall.call(this, '123456');
+      });
+
+      test('should show the call waiting UI', function() {
+        var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(showSpy.calledOnce);
+      });
+
+      test('should play the call waiting tone', function() {
+        var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(playSpy.calledOnce);
+      });
+
+      test('should do the same after answering another call', function() {
+        MockMozTelephony.mTriggerCallsChanged();
+        var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
+        var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+        var holdSpy = this.sinon.spy(mockCall, 'hold');
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(showSpy.calledOnce);
+        CallsHandler.holdAndAnswer();
+        assert.isTrue(hideSpy.calledOnce);
+        assert.isTrue(holdSpy.calledOnce);
+      });
+    });
+
     suite('> extra call ending', function() {
       var hideSpy;
 
@@ -539,6 +574,37 @@ suite('calls handler', function() {
             assert.isTrue(hideSpy.calledOnce);
           });
       });
+
+      suite('> second incoming call in CDMA mode',
+        function() {
+          var call;
+
+          setup(function() {
+            call = new MockCall('543552', 'incoming');
+
+            telephonyAddCall.call(this, call, {trigger: true});
+            MockMozTelephony.active = call;
+            call.secondNumber = '12345';
+            call.state = 'connected';
+          });
+
+          test('should invoke hold to answer the second call', function() {
+            var holdSpy = this.sinon.spy(call, 'hold');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(holdSpy.calledOnce);
+          });
+
+          test('should hide the call waiting UI', function() {
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(hideSpy.calledOnce);
+          });
+
+          test('should update the CallScreen\'s CDMA call waiting', function() {
+            CallsHandler.holdAndAnswer();
+            assert.equal(MockCallScreen.mCdmaCallWaiting, true);
+          });
+      });
     });
 
     suite('> CallsHandler.endAndAnswer()', function() {
@@ -615,6 +681,36 @@ suite('calls handler', function() {
           });
       });
 
+      suite('> second incoming call in CDMA mode',
+        function() {
+          var mockCall;
+
+          setup(function() {
+            mockCall = new MockCall('543552', 'incoming');
+
+            telephonyAddCall.call(this, mockCall, {trigger: true});
+            MockMozTelephony.active = mockCall;
+            telephonyAddCdmaCall.call(this, '123456');
+          });
+
+          test('should invoke hold to answer the second call', function() {
+            var holdSpy = this.sinon.spy(mockCall, 'hold');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(holdSpy.calledOnce);
+          });
+
+          test('should hide the call waiting UI', function() {
+            var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+            CallsHandler.holdAndAnswer();
+            assert.isTrue(hideSpy.calledOnce);
+          });
+
+          test('should update the CallScreen\'s CDMA call waiting', function() {
+            CallsHandler.holdAndAnswer();
+            assert.equal(MockCallScreen.mCdmaCallWaiting, true);
+          });
+      });
+
       suite('when a conference call is active', function() {
         var firstConfCall;
         var secondConfCall;
@@ -683,6 +779,30 @@ suite('calls handler', function() {
       });
     });
 
+    suite('> CallsHandler.ignore() in CDMA mode', function() {
+      var mockCall;
+
+      setup(function() {
+        mockCall = new MockCall('543552', 'incoming');
+
+        telephonyAddCall.call(this, mockCall, {trigger: true});
+        MockMozTelephony.active = mockCall;
+        telephonyAddCdmaCall.call(this, '123456', {trigger: true});
+      });
+
+      test('should not hang up the only call', function() {
+        var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
+        CallsHandler.ignore();
+        assert.isTrue(hangUpSpy.notCalled);
+      });
+
+      test('should hide the call waiting UI', function() {
+        var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
+        CallsHandler.ignore();
+        assert.isTrue(hideSpy.calledOnce);
+      });
+    });
+
     suite('> CallsHandler.toggleCalls()', function() {
       suite('> toggling a simple call', function() {
         var mockCall;
@@ -733,6 +853,25 @@ suite('calls handler', function() {
         test('should hold the active call and gecko will resume the other one',
         function() {
           var holdSpy = this.sinon.spy(extraCall, 'hold');
+          CallsHandler.toggleCalls();
+          assert.isTrue(holdSpy.calledOnce);
+        });
+      });
+
+      suite('> toggling between 2 calls in CDMA mode', function() {
+        var mockCall;
+
+        setup(function() {
+          mockCall = new MockCall('543552', 'incoming');
+
+          telephonyAddCall.call(this, mockCall, {trigger: true});
+          MockMozTelephony.active = mockCall;
+          telephonyAddCdmaCall.call(this, '123456');
+        });
+
+        test('should hold the active call and gecko will resume the other one',
+        function() {
+          var holdSpy = this.sinon.spy(mockCall, 'hold');
           CallsHandler.toggleCalls();
           assert.isTrue(holdSpy.calledOnce);
         });

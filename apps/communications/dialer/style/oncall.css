@@ -367,6 +367,33 @@ button[disabled] .icon {
   background-color: transparent;
 }
 
+#calls[data-cdma-call-waiting="false"] > section .switch-calls {
+  display: none;
+}
+
+#calls[data-cdma-call-waiting="true"] > section .switch-calls {
+  background: #01c5ed;
+  height: 7.5rem;
+  width: auto;
+  float: right;
+  padding: 0rem;
+}
+
+#switch-calls-button {
+  display: block;
+  margin: 1.5rem 1.3rem 0rem 0rem;
+  padding: 0rem;
+  height: 4rem;
+  width: 12.8rem;
+  border: 0;
+  border-radius: .3rem;
+  background: url('images/ActionIcon_40x40_switchlines.png'),
+              url('images/btn_switchlines.png');
+  background-size: 4rem, auto 100%;
+  background-position: center, center;
+  background-repeat: no-repeat, repeat-x;
+}
+
 #calls.big-duration > section .numberWrapper {
   background: #01c5ed;
   overflow: auto;
@@ -391,6 +418,12 @@ button[disabled] .icon {
   padding: 0;
 }
 
+#calls[data-cdma-call-waiting="true"] > section .numberWrapper .number {
+  font-size: 2.6rem;
+  padding-top: 1.5rem;
+  padding-bottom: 0.5rem;
+}
+
 #calls > section .fake-number {
   position: absolute;
   line-height: 0rem;
@@ -400,7 +433,6 @@ button[disabled] .icon {
 
 #calls.big-duration > section .additionalContactInfo {
   height: 1.2rem;
-  width: -moz-available;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -411,9 +443,25 @@ button[disabled] .icon {
   color: white;
 }
 
+#calls[data-cdma-call-waiting="true"] > section .additionalContactInfo {
+  height: 1.5rem;
+  padding: 0 2rem 1.5rem 2rem;
+  font-size: 1.4rem;
+}
+
 #calls.big-duration > section:not(.additionalInfo)
   .additionalContactInfo {
   display: none;
+}
+
+#calls[data-cdma-call-waiting="false"] > section .shadow {
+  display: none;
+}
+
+#calls[data-cdma-call-waiting="true"] > section .shadow {
+  background: url('images/Shadow_SwitchBg.png');
+  height: 0.9rem;
+  width: 100%;
 }
 
 #calls.big-duration > section .duration {

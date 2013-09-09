@@ -44,13 +44,19 @@
   <body>
     <article id="call-screen" data-layout>
       <div id="locked-contact-photo"></div>
-      <article id="calls" data-count="0">
+      <article id="calls" data-count="0" data-cdma-call-waiting="false">
         <section id="handled-call-template" hidden>
+          <div class="switch-calls">
+            <span role="button" id="switch-calls-button">
+            </span>
+          </div>
           <div class="numberWrapper">
             <div class="number font-light"></div>
           </div>
           <div class="fake-number font-light"></div>
           <div class="additionalContactInfo"></div>
+          <div class="shadow">
+          </div>
           <div class="duration">
             <span class="font-light"></span>
             <div class="direction">
