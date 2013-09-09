@@ -35,6 +35,10 @@ var CallScreen = {
     this.calls.classList.toggle('big-duration', enabled);
   },
 
+  set cdmaCallWaiting(enabled) {
+    this.calls.dataset.cdmaCallWaiting = enabled;
+  },
+
   init: function cs_init() {
     this.muteButton.addEventListener('click', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('click', this.showKeypad.bind(this));
