@@ -16,7 +16,8 @@ window.addEventListener('localized', function showPanel() {
     activity = activityRequest;
     if (settings && bluetooth &&
         (activity.source.name == 'share') &&
-        (activity.source.data.filepaths != null)) {
+        (activity.source.data.blobs &&
+         activity.source.data.blobs.length > 0)) {
       isBluetoothEnabled();
     } else {
       var msg = 'Cannot transfer without blobs data!';
@@ -269,20 +270,9 @@ window.addEventListener('localized', function showPanel() {
     // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
     var transferRequest = defaultAdapter.connect(targetDevice.address, 0x1105);
     transferRequest.onsuccess = function bt_connSuccess() {
-      // XXX: Bug 811615 - Miss file name when passing file by Web Activity.
-      // If above issue is fixed,
-      // we could refine following code to pass blob to API directly.
-      var filepaths = activity.source.data.filepaths;
-      var storage = navigator.getDeviceStorage('sdcard');
-      filepaths.forEach(function(filepath) {
-        var getRequest = storage.get(filepath);
-        getRequest.onsuccess = function() {
-          defaultAdapter.sendFile(targetDevice.address, getRequest.result);
-        };
-        getRequest.onerror = function() {
-          var errmsg = getRequest.error && getRequest.error.name;
-          console.error('Bluetooth.getFile:', errmsg);
-        };
+      var blobs = activity.source.data.blobs;
+      blobs.forEach(function(blob) {
+        defaultAdapter.sendFile(targetDevice.address, blob);
       });
 
       activity.postResult('transferred');

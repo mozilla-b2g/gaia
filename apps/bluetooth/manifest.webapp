@@ -28,7 +28,6 @@
   },
   "permissions": {
     "bluetooth":{},
-    "device-storage:sdcard":{ "access": "readonly" },
     "settings":{ "access": "readwrite" }
   }
 }
