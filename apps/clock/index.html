@@ -6,6 +6,7 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
+    <link rel="stylesheet" type="text/css" href="style/stopwatch.css">
     <link rel="stylesheet" type="text/css" href="style/tabs.css">
     <link rel="stylesheet" type="text/css" href="style/views.css">
 
@@ -45,6 +46,8 @@
     <script defer src="js/clock_view.js"></script>
     <script defer src="js/alarm_list.js"></script>
     <script defer src="js/alarm_manager.js"></script>
+    <script defer src="js/stopwatch.js"></script>
+    <script defer src="js/stopwatch_panel.js"></script>
     <script defer src="js/tabs.js"></script>
     <script defer src="js/app.js"></script>
     -->
@@ -92,7 +95,18 @@
           <h2>Timer View Placeholder</h2>
         </div>
         <div id="stopwatch-panel" class="panel hidden">
-          <h2>Stopwatch View Placeholder</h2>
+          <div class="stopwatch-time"></div>
+          <menu id="stopwatch-controls">
+            <button class="stopwatch-start edit-button" data-l10n-id="start">Start</button>
+            <button class="stopwatch-pause edit-button recommend" data-l10n-id="pause">Pause</button>
+            <button class="stopwatch-resume edit-button" data-l10n-id="resume">Resume</button>
+            <button class="stopwatch-reset edit-button danger" data-l10n-id="reset">Reset</button>
+            <button class="stopwatch-lap edit-button" data-l10n-id="lap">Lap</button>
+          </menu>
+          <div class="stopwatch-lap-list">
+            <!-- list of exisiting alarms, to be populated -->
+            <ul class="stopwatch-laps"></ul>
+          </div>
         </div>
       </div>
       <form id="alarm-edit-panel" role="dialog" class="panel hidden" data-type="edit">
@@ -189,6 +203,17 @@
     <div id="banner-tmpl" class="hide">
       <!--
         <p>${notice}</p>
+      -->
+    </div>
+
+    <div id="lap-list-item-tmpl" class="hide">
+      <!--
+      <div class="lap-name">
+        Lap ${num}
+      </div>
+      <div class="lap-duration">
+        ${time}
+      </div>
       -->
     </div>
 

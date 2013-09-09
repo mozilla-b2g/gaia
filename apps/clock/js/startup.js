@@ -17,6 +17,7 @@ function initialize() {
 // separated into stages, stuff in stage 2 requires stuff in stage 1, etc...
 var loadQueue = [
   [
+    'shared/style/buttons.css',
     'shared/js/async_storage.js',
     'shared/js/template.js',
     'js/constants.js',
@@ -36,6 +37,10 @@ var loadQueue = [
     'js/alarm_list.js',
     'js/banner.js',
     'js/alarm_manager.js'
+  ],
+  [
+    'js/stopwatch.js',
+    'js/stopwatch_panel.js'
   ],
   [
     'js/app.js'
