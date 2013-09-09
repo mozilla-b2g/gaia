@@ -531,6 +531,11 @@ Cards = {
     return this._findCard(query, true) > -1;
   },
 
+  isVisible: function(cardImpl) {
+    return !!(cardImpl.domNode &&
+              cardImpl.domNode.classList.contains('center'));
+  },
+
   findCardObject: function(query) {
     return this._cardStack[this._findCard(query)];
   },
@@ -843,6 +848,9 @@ Cards = {
 
       removeClass(beginNode, 'no-anim');
       removeClass(endNode, 'no-anim');
+
+      if (cardInst && cardInst.onCardVisible)
+        cardInst.onCardVisible();
     }
 
     // Hide toaster while active card index changed:
@@ -895,12 +903,15 @@ Cards = {
         Toaster.pendingStack.pop();
       }
 
-      // If any action to to at the end of transition trigger now.
+      // If any action to do at the end of transition trigger now.
       if (this._afterTransitionAction) {
         var afterTransitionAction = this._afterTransitionAction;
         this._afterTransitionAction = null;
         afterTransitionAction();
       }
+
+      if (activeCard.cardImpl.onCardVisible)
+        activeCard.cardImpl.onCardVisible();
 
       // If the card has next cards that can be preloaded, load them now.
       // Use of nextCards should be balanced with startup performance.

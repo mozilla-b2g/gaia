@@ -6,9 +6,12 @@ var templateNode = require('tmpl!./settings_account.html'),
                              require('tmpl!./tng/account_settings_server.html'),
     tngAccountDeleteConfirmNode =
                               require('tmpl!./tng/account_delete_confirm.html'),
+    evt = require('evt'),
     common = require('mail_common'),
     model = require('model'),
     mozL10n = require('l10n!'),
+    prefsMixin = require('./account_prefs_mixins'),
+    mix = require('mix'),
     Cards = common.Cards,
     ConfirmDialog = common.ConfirmDialog;
 
@@ -19,54 +22,50 @@ function SettingsAccountCard(domNode, mode, args) {
   this.domNode = domNode;
   this.account = args.account;
 
-  var serversContainer =
-    domNode.getElementsByClassName('tng-account-server-container')[0];
+  var serversContainer = this.nodeFromClass('tng-account-server-container');
 
-  domNode.getElementsByClassName('tng-account-header-label')[0]
-    .textContent = args.account.name;
+  this.nodeFromClass('tng-account-header-label').
+       textContent = args.account.name;
 
-  domNode.getElementsByClassName('tng-back-btn')[0]
+  this._bindPrefs('tng-account-check-interval', 'tng-notify-mail');
+
+  this.nodeFromClass('tng-back-btn')
     .addEventListener('click', this.onBack.bind(this), false);
 
-  domNode.getElementsByClassName('tng-account-delete')[0]
+  this.nodeFromClass('tng-account-delete')
     .addEventListener('click', this.onDelete.bind(this), false);
 
-  // Handle default account checkbox. If already a default, then the checkbox
-  // cannot be unchecked. The default is changed by going to an account that
-  // is not the default and checking that checkbox.
-  var defaultLabelNode = domNode.getElementsByClassName('tng-default-label')[0];
-  var defaultInputNode = domNode.getElementsByClassName('tng-default-input')[0];
-  if (this.account.isDefault) {
-    defaultInputNode.disabled = true;
-    defaultInputNode.checked = true;
-  } else {
-
-    defaultLabelNode.addEventListener('click', function(evt) {
-      evt.stopPropagation();
-      evt.preventBubble();
-
-      if (!defaultInputNode.disabled) {
-        defaultInputNode.disabled = true;
-        defaultInputNode.checked = true;
-        this.account.modifyAccount({ setAsDefault: true });
-      }
-    }.bind(this), false);
-  }
+  var identity = this.account.identities[0];
+  this.nodeFromClass('tng-account-name').
+       textContent = (identity && identity.name) || this.account.name;
 
   // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
-  domNode.getElementsByClassName('tng-account-type')[0].textContent =
+  this.nodeFromClass('tng-account-type').textContent =
     (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
 
+  // Handle default account checkbox. If already a default, then the
+  // checkbox cannot be unchecked. The default is changed by going to an
+  // account that is not the default and checking that checkbox.
+  this.defaultLabelNode = this.nodeFromClass('tng-default-label');
+  this.defaultInputNode = this.nodeFromClass('tng-default-input');
+  if (this.account.isDefault) {
+    this.defaultInputNode.disabled = true;
+    this.defaultInputNode.checked = true;
+  } else {
+    this.defaultLabelNode.addEventListener('click',
+                                  this.onChangeDefaultAccount.bind(this),
+                                  false);
+  }
+
   if (this.account.type === 'activesync') {
-    var synchronizeNode = domNode.getElementsByClassName(
-      'tng-account-synchronize')[0];
+    var synchronizeNode = this.nodeFromClass('tng-account-synchronize');
     synchronizeNode.value = this.account.syncRange;
     synchronizeNode.addEventListener(
       'change', this.onChangeSynchronize.bind(this), false);
   } else {
-    domNode.getElementsByClassName(
-      'synchronize-setting')[0].style.display = 'none';
+    this.nodeFromClass('synchronize-setting').style.display = 'none';
   }
+
   this.account.servers.forEach(function(server, index) {
     var serverNode = tngAccountSettingsServerNode.cloneNode(true);
     var serverLabel =
@@ -79,9 +78,8 @@ function SettingsAccountCard(domNode, mode, args) {
     serversContainer.appendChild(serverNode);
   }.bind(this));
 
-  domNode.getElementsByClassName('tng-account-credentials')[0]
-    .addEventListener('click',
-      this.onClickCredentials.bind(this), false);
+  this.nodeFromClass('tng-account-credentials')
+    .addEventListener('click', this.onClickCredentials.bind(this), false);
 }
 SettingsAccountCard.prototype = {
   onBack: function() {
@@ -107,16 +105,20 @@ SettingsAccountCard.prototype = {
       'right');
   },
 
+  onChangeDefaultAccount: function(event) {
+    event.stopPropagation();
+    if (event.preventBubble)
+      event.preventBubble();
+
+    if (!this.defaultInputNode.disabled) {
+      this.defaultInputNode.disabled = true;
+      this.defaultInputNode.checked = true;
+      this.account.modifyAccount({ setAsDefault: true });
+    }
+  },
+
   onChangeSynchronize: function(event) {
     this.account.modifyAccount({syncRange: event.target.value});
-
-    // If we just changed the currently-selected account, refresh the
-    // currently-open folder to propagate the syncRange change.
-    var curAccount = Cards.findCardObject(['folder_picker', 'navigation'])
-                          .cardImpl.curAccount;
-    if (curAccount.id === this.account.id) {
-      Cards.findCardObject(['message_list', 'nonsearch']).cardImpl.onRefresh();
-    }
   },
 
   onDelete: function() {
@@ -131,8 +133,7 @@ SettingsAccountCard.prototype = {
         id: 'account-delete-ok',
         handler: function() {
           account.deleteAccount();
-          Cards.removeAllCards();
-          model.init();
+          evt.emit('accountDeleted', account);
         }
       },
       { // Cancel
@@ -145,6 +146,10 @@ SettingsAccountCard.prototype = {
   die: function() {
   }
 };
+
+// Wire up some common pref handlers.
+mix(SettingsAccountCard.prototype, prefsMixin);
+
 Cards.defineCardWithDefaultMode(
     'settings_account',
     { tray: false },

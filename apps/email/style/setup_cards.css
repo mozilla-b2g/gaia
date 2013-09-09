@@ -165,6 +165,18 @@ li a:active {
   background-color: #008AAA;
 }
 
+.list-text-with-sub {
+  padding: 2rem 0 1rem 0;
+}
+
+.list-text-with-sub .list-text {
+  line-height: 2.2rem;
+}
+
+li.select-item {
+  padding: 1rem 0 1rem 0;
+}
+
 .list-text {
   display: block;
   text-decoration: none;
@@ -187,14 +199,30 @@ li a:active {
   white-space: nowrap;
   color: #52B6CC;
   font-size: 1.8rem;
+  line-height: 5.5rem;
+}
+
+.list-sub-text {
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #5b5b5b;
+  font-size: 1.6rem;
+  padding-left: 3rem;
+}
+
+li .aside.start {
+  float: left;
+  width: calc(100% - 12rem);
 }
 
 li .aside.end {
-  position: absolute;
   float: right;
-  right: 0.5rem;
-  top: 0;
-  line-height: 5.5rem;
+}
+
+.aside.end .pack-switch {
+  padding-right: 3rem;
 }
 
 li.align-center {
@@ -252,25 +280,26 @@ li.settings-input-list {
   opacity: 0;
 }
 
-section.card-settings-account li {
+section.card-settings-account-common li {
   margin: 0 auto;
   overflow: hidden;
   width: 100%;
 }
 
-section.card-settings-account li.synchronize-setting label {
+section.card-settings-account-common li.syncinterval-setting label,
+section.card-settings-account-common li.synchronize-setting label {
   height: 3.5rem;
   line-height: 3.5rem;
   width: auto;
 }
 
-section.card-settings-account li span.button {
+section.card-settings-account-common li span.button {
   display: block;
   margin: 0 auto 1rem auto;
   width: calc(100% - 3rem);
 }
 
-section.card-settings-account li span.button select {
+section.card-settings-account-common li span.button select {
   padding-left: 0;
   text-align: left;
   text-indent: -0.22rem;
@@ -278,6 +307,11 @@ section.card-settings-account li span.button select {
   width: calc(100% + 10rem) !important;
 }
 
+section.card-settings-account-common li .pack-checkbox {
+  margin-top: 0.2rem;
+}
+
+.tng-account-check-interval,
 .tng-account-synchronize {
   background: none;
   border: transparent;

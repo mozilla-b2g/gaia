@@ -6,12 +6,13 @@ module.exports = Email;
 
 Email.EMAIL_ORIGIN = 'app://email.gaiamobile.org';
 
-const Selector = {
+var Selector = {
   notificationBar: '.card-message-list .msg-list-topbar',
   setupNameInput: '.card-setup-account-info .sup-info-name',
   setupEmailInput: '.card-setup-account-info .sup-info-email',
   setupPasswordInput: '.card-setup-account-info .sup-info-password',
-  nextButton: '.sup-account-header .sup-info-next-btn',
+  nextButton: '.card-setup-account-info .sup-info-next-btn',
+  prefsNextButton: '.card-setup-account-prefs .sup-info-next-btn',
   manualSetupNameInput: '.sup-manual-form .sup-info-name',
   manualSetupEmailInput: '.sup-manual-form .sup-info-email',
   manualSetupPasswordInput: '.sup-manual-form .sup-info-password',
@@ -40,7 +41,11 @@ const Selector = {
   replyMenu: '.msg-reply-menu',
   replyMenuReply: '.msg-reply-menu-reply',
   replyMenuForward: '.msg-reply-menu-forward',
-  replyMenuAll: '.msg-reply-menu-reply-all'
+  replyMenuAll: '.msg-reply-menu-reply-all',
+  folderListButton: '.msg-list-header .msg-folder-list-btn',
+  settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
+  addAccountButton: '.tng-accounts-container .tng-account-add',
+  accountListButton: '.fld-folders-header .fld-accounts-btn'
 };
 
 Email.prototype = {
@@ -50,9 +55,7 @@ Email.prototype = {
 
   manualSetupImapEmail: function(server) {
     // wait for the setup page is loaded
-    this.client.helper.
-      waitForElement(Selector.manualConfigButton).
-      tap();
+    this._waitForElementNoTransition(Selector.manualConfigButton).tap();
     this._waitForTransitionEnd('setup_manual_config');
     // setup a IMAP email account
     var email = server.imap.username + '@' + server.imap.hostname;
@@ -70,13 +73,66 @@ Email.prototype = {
     this._manualSetupTypeSmtpPort(server.smtp.port);
     this._manualSetupUpdateSocket('manualSetupSmtpSocket');
 
-    this._manualSetupTapNext();
-    this._waitForSetupCompleted();
-    this._tapContinue();
+    this._finishSetup(Selector.manualNextButton);
+  },
+
+  _finishSetup: function(nextSelector) {
+    this._tapNext(nextSelector);
+    this._waitForElementNoTransition(Selector.prefsNextButton);
+    this._tapNext(Selector.prefsNextButton, 'setup_done');
+
+    this._waitForElementNoTransition(Selector.showMailButton);
+    this.client.
+      findElement(Selector.showMailButton).
+      tap();
+    this._waitForTransitionEnd('message_list');
+  },
+
+  tapFolderListButton: function() {
+    this._tapSelector(Selector.folderListButton);
+    this._waitForElementNoTransition(Selector.settingsButton);
+    this._waitForTransitionEnd('folder_picker');
+  },
+
+  tapFolderListCloseButton: function() {
+    this._tapSelector(Selector.folderListButton);
+    this._waitForElementNoTransition(Selector.settingsButton);
+    this._waitForTransitionEnd('message_list');
+  },
+
+  tapAccountListButton: function() {
+    // XXX: Workaround util http://bugzil.la/912873 is fixed.
+    // Wait for 500ms to let the element be clickable
+    this.client.helper.wait(500);
+    this._waitForElementNoTransition(Selector.accountListButton).tap();
+    this._waitForTransitionEnd('account_picker');
+  },
+
+  switchAccount: function(number) {
+    var accountSelector = '.acct-list-container ' +
+                          'a:nth-child(' + number + ')';
+    this.client.
+      findElement(accountSelector).
+      tap();
+    this._waitForTransitionEnd('folder_picker');
+  },
+
+  tapSettingsButton: function() {
+    this.client.
+      findElement(Selector.settingsButton).
+      tap();
+    this._waitForTransitionEnd('settings_main');
+  },
+
+  tapAddAccountButton: function() {
+    this.client.
+      findElement(Selector.addAccountButton).
+      tap();
+    this._waitForTransitionEnd('setup_account_info');
   },
 
   tapCompose: function() {
-    this.client.findElement(Selector.composeButton).tap();
+    this._tapSelector(Selector.composeButton);
     // wait for being in the compose page
     this._waitForTransitionEnd('compose');
   },
@@ -100,13 +156,13 @@ Email.prototype = {
   },
 
   getComposeBody: function() {
-    return this.client.helper.
-      waitForElement(Selector.composeBodyInput).getAttribute('value');
+    return this._waitForElementNoTransition(Selector.composeBodyInput)
+           .getAttribute('value');
   },
 
   abortCompose: function(cardId) {
-    this.client.helper.waitForElement(Selector.composeBackButton).tap();
-    this.client.helper.waitForElement(Selector.composeDraftDiscard).tap();
+    this._waitForElementNoTransition(Selector.composeBackButton).tap();
+    this._waitForElementNoTransition(Selector.composeDraftDiscard).tap();
     this._waitForTransitionEnd(cardId);
   },
 
@@ -126,7 +182,7 @@ Email.prototype = {
       findElement(Selector.composeSendButton).
       tap();
     // wait for being in the email list page
-    client.helper.waitForElement(Selector.refreshButton);
+    this._waitForElementNoTransition(Selector.refreshButton);
     this._waitForTransitionEnd('message_list');
   },
 
@@ -137,7 +193,7 @@ Email.prototype = {
   },
 
   waitForNewEmail: function() {
-    this.client.helper.waitForElement(Selector.notificationBar);
+    this._waitForElementNoTransition(Selector.notificationBar);
   },
 
   launch: function() {
@@ -188,9 +244,20 @@ Email.prototype = {
         var Cards = window.wrappedJSObject.require('mail_common').Cards,
             card = Cards._cardStack[Cards.activeCardIndex],
             cardNode = card && card.domNode;
-        return cardNode && cardNode.dataset.type === cardId &&
+        return cardNode && cardNode.classList.contains('center') &&
+               cardNode.dataset.type === cardId &&
                !Cards._eatingEventsUntilNextCard;
       }, [cardId]);
+    });
+  },
+
+  _waitForNoTransition: function() {
+    var client = this.client;
+    client.waitFor(function() {
+      return client.executeScript(function() {
+        var Cards = window.wrappedJSObject.require('mail_common').Cards;
+        return !Cards._eatingEventsUntilNextCard;
+      });
     });
   },
 
@@ -210,6 +277,21 @@ Email.prototype = {
     this.client.
       findElement(Selector.setupPasswordInput).
       sendKeys(password);
+  },
+
+  _waitForElementNoTransition: function(selector) {
+    this._waitForNoTransition();
+    return this.client.helper.waitForElement(selector);
+  },
+
+  _tapSelector: function(selector) {
+    this.client.findElement(selector).tap();
+  },
+
+  _tapNext: function(selector, cardId) {
+    this._tapSelector(selector);
+    if (cardId)
+      this._waitForTransitionEnd(cardId);
   },
 
   _manualSetupTypeName: function(name) {
@@ -286,22 +368,25 @@ Email.prototype = {
       // fakeserver.
       select.value = 'plain';
     });
-  },
-
-  _manualSetupTapNext: function() {
-    this._waitForTransitionEnd('setup_manual_config');
-    this.client.
-      findElement(Selector.manualNextButton).
-      tap();
-  },
-
-  _waitForSetupCompleted: function() {
-    this.client.helper.waitForElement(Selector.showMailButton);
-  },
-
-  _tapContinue: function() {
-    this.client.
-      findElement(Selector.showMailButton).
-      tap();
   }
 };
+
+/*
+// Optionally log all calls done to prototype methods. Uncomment this
+// section to get traces when trying to debug where flow gets stuck.
+Object.keys(Email.prototype).forEach(function(key) {
+  var desc = Object.getOwnPropertyDescriptor(Email.prototype, key);
+  if (!desc.get && !desc.set && typeof Email.prototype[key] === 'function') {
+    var oldMethod = Email.prototype[key];
+    Email.prototype[key] = function() {
+
+      var args = Array.prototype.slice.call(arguments, 0).map(function(arg) {
+        return String(arg);
+      }).join(', ');
+
+      console.log('Email.' + key + '(' + args + ')');
+      return oldMethod.apply(this, arguments);
+    };
+  }
+});
+*/

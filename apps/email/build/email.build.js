@@ -3,6 +3,9 @@
   baseUrl: 'js',
   dir: '../../../build_stage/email',
   mainConfigFile: '../js/mail_app.js',
+  paths: {
+    prim: 'empty:'
+  },
 /*
   wrap: {
     start: 'plog("@@@ START OF BUILD LAYER");',
