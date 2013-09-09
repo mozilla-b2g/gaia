@@ -60,7 +60,7 @@
 
   var hashMark = 0;
   var activityCounter = 0;
-  var ACTIVITY_THRESHOLD = 250;
+  var ACTIVITY_THRESHOLD = 75;
   function _onNetworkActivity() {
     activityCounter++;
     if (activityCounter === ACTIVITY_THRESHOLD) {
