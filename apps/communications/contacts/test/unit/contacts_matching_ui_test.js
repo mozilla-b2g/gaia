@@ -18,7 +18,8 @@ suite('Matching duplicate contacts UI Test Suite', function() {
       mergeAction, realL10n;
 
   var masterContact = {
-    name: ['Manolo García']
+    givenName: ['Manolo'],
+    familyName: ['García']
   };
 
   var dataImage = 'data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=';
