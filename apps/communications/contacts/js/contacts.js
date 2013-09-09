@@ -483,9 +483,11 @@ var Contacts = (function() {
       callback();
     } else {
       Contacts.view('Settings', function viewLoaded() {
-        settingsReady = true;
-        contacts.Settings.init();
-        callback();
+        LazyLoader.load(['/shared/js/icc_helper.js'], function() {
+          settingsReady = true;
+          contacts.Settings.init();
+          callback();
+        });
       });
     }
   };
