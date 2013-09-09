@@ -295,9 +295,9 @@ function execute() {
   // Built-in keyboard hash keys (without 'en' which is the default layout)
   let builtInKeyboards = [
     'en-Dvorak', 'es', 'pt-BR', 'pl',
-    'cz', 'fr', 'de', 'nb', 'sk',
-    'tr-Q', 'tr-F', 'ru', 'sr-Cyrl', 'sr-Latn',
-    'ar', 'he', 'el',
+    'ca', 'cz', 'fr', 'de', 'nb', 'sk',
+    'tr-Q', 'tr-F', 'ro', 'ru', 'sr-Cyrl', 'sr-Latn',
+    'ar', 'he', 'hu', 'el',
     'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
     'numberLayout'
   ];

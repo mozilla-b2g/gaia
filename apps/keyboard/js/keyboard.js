@@ -225,9 +225,9 @@ const defaultKeyboardNames = ['en'];
 
 const keyboardHashKey = [
   'en', 'en-Dvorak', 'es', 'pt-BR', 'pl',
-  'cz', 'fr', 'de', 'nb', 'sk',
-  'tr-Q', 'tr-F', 'ru', 'sr-Cyrl', 'sr-Latn',
-  'ar', 'he', 'el',
+  'ca', 'cz', 'fr', 'de', 'nb', 'sk',
+  'tr-Q', 'tr-F', 'ro', 'ru', 'sr-Cyrl', 'sr-Latn',
+  'ar', 'he', 'hu', 'el',
   'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
   'numberLayout'
 ];
@@ -336,7 +336,7 @@ function getKeyboardSettings() {
         keyboardName = defaultKeyboardNames[0];
       }
     } else {
-      keyboardName = defaultKeyboardNames[0];
+      keyboardName = currentKeyboardName;
     }
 
     // And create an array of all enabled keyboard layouts from the set

@@ -136,6 +136,8 @@ var KeyboardManager = {
       var initType = self.showingLayout.type;
       var initIndex = self.showingLayout.index;
       self.launchLayoutFrame(self.keyboardLayouts[initType][initIndex]);
+      // Switch to the newly enabled keyboard
+      self.switchToLatestKeyboard();
     }
     KeyboardHelper.getInstalledKeyboards(resetLayoutList);
   },
@@ -461,6 +463,21 @@ var KeyboardManager = {
       self.keyboardLayouts[showed.type].activit = index;
       self.resetShowingKeyboard();
       self.setKeyboardToShow(showed.type, index);
+    }, FOCUS_CHANGE_DELAY);
+  },
+
+  switchToLatestKeyboard: function km_switchToLatestKb() {
+    clearTimeout(this.switchChangeTimeout);
+
+    var self = this;
+    var showed = this.showingLayout;
+
+    this.switchChangeTimeout = setTimeout(function keyboardSwitchLayout() {
+      var index = self.keyboardLayouts[showed.type].length - 1;
+      if (!self.keyboardLayouts[showed.type])
+        showed.type = 'text';
+      self.keyboardLayouts[showed.type].activit = index;
+      self.resetShowingKeyboard();
     }, FOCUS_CHANGE_DELAY);
   },
 
