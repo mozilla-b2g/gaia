@@ -69,7 +69,7 @@ void function() {
 
       if (query) {
         Evme.CollectionSettings.createByQuery(query, extra, function onCreate(collectionSettings) {
-          addCollectionToHomescreen(collectionSettings, gridPosition, {
+          updateGrid(collectionSettings, gridPosition, {
             "callback": function onAddedToHomescreen() {
               callback(collectionSettings);
             }
@@ -95,20 +95,47 @@ void function() {
      * and update the homescreen icon if needed.
      */
     this.update = function updateCollection(collectionSettings, data, callback=Evme.Utils.NOOP){
-      Evme.CollectionSettings.update(collectionSettings, data, function onUpdate(updatedSettings){
-        // TODO compare ids of collectionSettings.app with data.apps
-        // and collectionSettings.extraIconsData with data.extraIconsData
-        // to conclude homescreen icon should be updated
-        if ('apps' in data || 'extraIconsData' in data || 'name' in data) {
-          addCollectionToHomescreen(updatedSettings);
-        }
+      var pluck = Evme.Utils.pluck;
+      var shouldUpdateIcon = false;
+      var numIcons = Evme.Config.numberOfAppInCollectionIcon;
 
+      var originalIcons = pluck(collectionSettings.extraIconsData, 'icon'),
+          originalAppIds = pluck(collectionSettings.apps, 'id');
+
+      Evme.CollectionSettings.update(collectionSettings, data, function onUpdate(updatedSettings){
         // collection is open and apps changed
         if (currentSettings && 'apps' in data) {
           resultsManager.renderStaticApps(updatedSettings.apps);
         }
 
         callback(updatedSettings);
+
+        // update the homescreen icon when necessary
+
+        // collection rename
+        if ('name' in data) {
+          shouldUpdateIcon = true;
+        }
+
+        // first 3 apps changed
+        if (!shouldUpdateIcon && 'apps' in data) {
+          shouldUpdateIcon = !Evme.Utils.arraysEqual(originalAppIds, 
+                                pluck(updatedSettings.apps, 'id'), numIcons);
+        }
+
+        // cloud results changed and needed for icon (less than 3 static apps)
+        if (!shouldUpdateIcon && 'extraIconsData' in data) {
+          var numApps = ('apps' in data) ? data.apps.length : originalAppIds.length;;
+
+          if (numApps < numIcons){
+            shouldUpdateIcon = !Evme.Utils.arraysEqual(originalIcons, 
+                                pluck(updatedSettings.extraIconsData, 'icon'), numIcons);
+          }
+        }
+
+        if (shouldUpdateIcon) {
+          updateGrid(updatedSettings);
+        }
       });
     };
 
@@ -400,12 +427,39 @@ void function() {
    * code should not call CollectionStorage.update directly
    */
   Evme.CollectionSettings.update = function update(settings, data, cb) {
-    // remove duplicates
-    if ('apps' in data){
-      data.apps = Evme.Utils.unique(data.apps, 'id');
+    var cleanData = {};
+
+    // remove app duplicates
+    if ('apps' in data) {
+      cleanData.apps = Evme.Utils.unique(data.apps, 'id');
     }
 
-    Evme.CollectionStorage.update(settings, data, cb);
+    // check validity of extra icons
+    if ('extraIconsData' in data) {
+      var cleanExtraIconsData = data.extraIconsData.filter(function validData(iconData){
+        return (iconData.id && iconData.icon);
+      });
+
+      if (cleanExtraIconsData.length === Evme.Config.numberOfAppInCollectionIcon) {
+        cleanData.extraIconsData = cleanExtraIconsData;
+      }
+    }
+
+    // everything else
+    for (var prop in data) {
+      if (prop === 'apps' || prop === 'extraIconsData') {
+        continue;
+      }
+
+      cleanData[prop] = data[prop];
+    }
+
+    // if nothing to update
+    if (Object.keys(cleanData).length === 0) {
+      cb(settings);
+    } else {
+      Evme.CollectionStorage.update(settings, cleanData, cb);
+    }
   };
 
   Evme.CollectionSettings.updateAll = function updateAll() {
@@ -446,7 +500,7 @@ void function() {
    * Add a collection to the homescreen.
    * If collection exists only update the icon.
    */
-  function addCollectionToHomescreen(settings, gridPosition, extra) {
+  function updateGrid(settings, gridPosition, extra) {
     var icons = Evme.Utils.pluck(settings.apps, 'icon');
 
     if (icons.length < Evme.Config.numberOfAppInCollectionIcon) {
