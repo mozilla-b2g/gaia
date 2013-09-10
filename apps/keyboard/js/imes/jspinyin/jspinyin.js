@@ -102,6 +102,7 @@ IMEngineBase.prototype = {
   init: function engineBase_init(glue) {
     this._glue = glue;
   },
+
   /**
    * Destruction.
    */
@@ -133,6 +134,12 @@ IMEngineBase.prototype = {
    * Notifies when the IM is shown
    */
   activate: function engineBase_activate(language, state, options) {
+  },
+
+  /**
+   * Called when the keyboard is hidden
+   */
+  deactivate: function engineBase_deactivate() {
   }
 };
 
@@ -447,7 +454,7 @@ IMEngine.prototype = {
           var openDecoder =
             Module.cwrap('im_open_decoder', 'number', ['string', 'string']);
 
-          if (!openDecoder('data/dict.data', 'user.dict')) {
+          if (!openDecoder('data/dict.data', 'data/user_dict.data')) {
             debug('Failed to open emEngine.');
           }
 
@@ -487,10 +494,16 @@ IMEngine.prototype = {
         };
       }
 
-      var script2 = document.createElement('script');
-      script2.id = 'libpinyin_js';
-      script2.src = path + '/libpinyin.js';
-      document.body.appendChild(script2);
+      function appendScript(id, src) {
+        var script = document.createElement('script');
+        script.id = id;
+        script.src = src;
+        document.body.appendChild(script);
+      }
+
+      // JS to support user dictionary.
+      appendScript('user_dict_js', path + '/user_dict.js');
+      appendScript('libpinyin_js', path + '/libpinyin.js');
     });
     document.body.appendChild(script1);
   },
@@ -508,6 +521,7 @@ IMEngine.prototype = {
 
     document.body.removeChild(document.getElementById('empinyin_files_js'));
     document.body.removeChild(document.getElementById('libpinyin_js'));
+    document.body.removeChild(document.getElementById('user_dict_js'));
 
     this.empty();
   },
@@ -616,6 +630,32 @@ IMEngine.prototype = {
     }
 
     this._glue.alterKeyboard(keyboard);
+  },
+
+  /**
+   * Override
+   */
+  deactivate: function engine_deactivate() {
+    IMEngineBase.prototype.deactivate.call(this);
+    debug('Deactivate.');
+
+    if (this.emEngine && Module['saveUserDictFileToDB']) {
+      this.emEngine.flushCache();
+
+      var request = Module['saveUserDictFileToDB']('data/user_dict.data');
+
+      if (!request) {
+        return;
+      }
+
+      request.onsuccess = function() {
+        debug('Saved user dictionary to DB.');
+      };
+
+      request.onerror = function() {
+        debug('Failed to save user dictionary to DB.');
+      };
+    }
   },
 
   getMoreCandidates: function engine_getMore(indicator, maxCount, callback) {
