@@ -1,0 +1,34 @@
+<element name="call-fdn" extends="section">
+  <template>
+    
+    <header>
+      <a href="#call"><span data-l10n-id="back" class="icon icon-back">Back</span></a>
+      <h1 data-l10n-id="fdn"> Fixed Dialing Numbers </h1>
+    </header>
+
+    <div>
+      <ul>
+        <li class="explanation" data-l10n-id="fdn-description">Restrict which number can be dialed from this phone. (Emergency numbers will always we dialable)</li>
+        <li id="menuItem-fdnEnable">
+          <label class="pack-switch">
+            <input type="checkbox" class="uninit"/>
+            <span></span>
+          </label>
+          <a href="#call-fdn-pin2-reset" data-l10n-id="fdn">Fixed Dialing Numbers</a>
+        </li>
+        <li>
+          <small data-l10n-id="fdn-authorizedNumbersDesc">list of Numbers that can be called</small>
+          <a data-href="#call-fdn-authorized-numbers" data-l10n-id="fdn-authorizedNumbers">
+            Authorized numbers
+          </a>
+        </li>
+        <li>
+          <a data-href="#call-fdn-pin2-reset" data-l10n-id="fdn-resetPIN2">
+            Reset PIN2 code
+          </a>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>
