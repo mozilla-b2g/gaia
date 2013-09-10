@@ -1550,6 +1550,7 @@ function copyTempDouble(ptr) {
         }
         delete path.parentObject.contents[path.name];
       }};
+      Module['FS'] = FS;
   var ___dirent_struct_layout={__size__:1040,d_ino:0,d_name:4,d_off:1028,d_reclen:1032,d_type:1036};function _open(path, oflag, varargs) {
       // int open(const char *path, int oflag, ...);
       // http://pubs.opengroup.org/onlinepubs/009695399/functions/open.html
