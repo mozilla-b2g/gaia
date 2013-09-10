@@ -84,11 +84,16 @@ suite('call screen', function() {
 
   suite('calls', function() {
     suite('setters', function() {
-      test('bigDuration should toggle the class', function() {
+      test('singleLine should toggle the class', function() {
+        assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
-        CallScreen.bigDuration = true;
+
+        CallScreen.singleLine = true;
+        assert.isTrue(calls.classList.contains('single-line'));
         assert.isTrue(calls.classList.contains('big-duration'));
-        CallScreen.bigDuration = false;
+
+        CallScreen.singleLine = false;
+        assert.isFalse(calls.classList.contains('single-line'));
         assert.isFalse(calls.classList.contains('big-duration'));
       });
 
@@ -156,7 +161,7 @@ suite('call screen', function() {
   });
 
   suite('toggleMute', function() {
-    test('should change active-state', function() {
+    test('should change active-state class', function() {
       var classList = CallScreen.muteButton.classList;
       var originalState = classList.contains('active-state');
 
@@ -165,6 +170,17 @@ suite('call screen', function() {
 
       CallScreen.toggleMute();
       assert.equal(classList.contains('active-state'), originalState);
+    });
+
+    test('should change muted class', function() {
+      var classList = CallScreen.calls.classList;
+      var originalState = classList.contains('muted');
+
+      CallScreen.toggleMute();
+      assert.notEqual(classList.contains('muted'), originalState);
+
+      CallScreen.toggleMute();
+      assert.equal(classList.contains('muted'), originalState);
     });
 
     test('should call CallsHandler.toggleMute', function() {
@@ -180,6 +196,13 @@ suite('call screen', function() {
 
       CallScreen.unmute();
       assert.isFalse(classList.contains('active-state'));
+    });
+
+    test('should remove muted', function() {
+      var classList = CallScreen.calls.classList;
+
+      CallScreen.unmute();
+      assert.isFalse(classList.contains('muted'));
     });
 
     test('should call CallsHandler.unmute', function() {

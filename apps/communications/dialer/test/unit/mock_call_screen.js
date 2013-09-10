@@ -40,10 +40,10 @@ var MockCallScreen = {
     this.mHideIncomingCalled = true;
   },
 
-  set bigDuration(value) {
-    this.mBigDuration = value;
+  set singleLine(value) {
+    this.mSingleLine = value;
   },
-  mBigDuration: null,
+  mSingleLine: null,
 
   set cdmaCallWaiting(enabled) {
     this.mCdmaCallWaiting = enabled;
@@ -74,7 +74,7 @@ var MockCallScreen = {
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
     this.incomingNumber = document.createElement('div');
-    this.mBigDuration = null;
+    this.mSingleLine = null;
   }
 };
 
