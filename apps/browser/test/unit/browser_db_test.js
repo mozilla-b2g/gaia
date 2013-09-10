@@ -79,16 +79,16 @@ suite('BrowserDB', function() {
   var realMozSettings = null;
   this.timeout(5000);
 
+  suiteSetup(function() {
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
+  });
+
   suite('BrowserDB.operatorVariantCustomization', function() {
-
-    suiteSetup(function() {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-    });
-
-    suiteTeardown(function() {
-      navigator.mozSettings = realMozSettings;
-    });
 
     setup(function(done) {
       BrowserDB.init(function() {
