@@ -51,9 +51,9 @@ var PermissionManager = {
     // XXX: We should make permission dialog be embededd in appWindow
     // Gaia bug is https://bugzilla.mozilla.org/show_bug.cgi?id=853711
     // Gecko bug is https://bugzilla.mozilla.org/show_bug.cgi?id=852013
-    window.addEventListener('home', this.discardPermissionRequest).bind(this);
+    window.addEventListener('home', this.discardPermissionRequest.bind(this));
     window.addEventListener('holdhome',
-      this.discardPermissionRequest).bind(this);
+      this.discardPermissionRequest.bind(this));
   },
 
 
