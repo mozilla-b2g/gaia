@@ -1,0 +1,22 @@
+<element name="bookmark-entry-sheet" extends="section">
+  <template>
+
+    <header>
+      <button id="bookmark-entry-sheet-cancel">
+        <span class="icon icon-close" data-l10n-id="cancel">Cancel</span>
+      </button>
+      <menu type="toolbar">
+        <button id="bookmark-entry-sheet-done" data-l10n-id="done">Done</button>
+      </menu>
+      <h1 data-l10n-id="edit-bookmark">Edit Bookmark</h1>
+    </header>
+    <label data-l10n-id="page-title">
+      Page Title <input type="text" id="bookmark-title"></input>
+    </label>
+    <label data-l10n-id="address">
+      Address <input type="url" id="bookmark-url"></input>
+    </label>
+    <input type="hidden" id="bookmark-previous-url"></input>
+
+  </template>
+</element>
