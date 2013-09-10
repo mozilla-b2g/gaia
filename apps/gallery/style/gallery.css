@@ -497,7 +497,6 @@ footer {
 }
 
 #edit-view {
-  background: #444;
 }
 
 #edit-title {
@@ -531,9 +530,9 @@ footer {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 5rem;
+  height: 5.5rem;
   bottom: 4rem;
-  background: #555;
+  background: url(images/options-background.png);
 }
 
 /* All the effect options radio buttons share these styles */
@@ -744,39 +743,40 @@ a.filter-faded {
   left: 0;
   width: 100%;
   height: 5rem;
-  background-color: #444;
   font-size: 1.4rem;
 }
 
 #sliderbar {
   position: relative;
-  height: 2rem;
+  height: 2.6rem;
   padding: 0;
   margin: 0;
-  overflow: hidden;
+  background: url(images/slider-background.png);
 }
 
 #sliderline {
   position: absolute;
-  height: 0.2rem;
-  top: 50%;
-  left: 10%;
-  right: 10%;
+  height: 0.5rem;
+  top: 1rem;
+  left: 3.5rem;
+  right: 3.5rem;
   margin: 0;
+  border-radius: 3px;
+  background: url(images/slider-line.png) repeat-x;
+  border: none;
 }
 
 #sliderthumb {
   position: absolute;
-  width: 4rem;
-  height: 4rem;
-  top: -1rem;
-  left: calc(10% - 2rem);
-  border-radius: 50%;
-  background-color: #eee;
-  text-align: center;
-  padding-top: 1.2rem;
-  font-size: 1.4rem;
-  color: black;
+  width: 3.6rem;
+  height: 2.6rem;
+  left: calc(3.9rem - 1.8rem);
+  background: url(images/slider-scrubber.png) no-repeat center center;
+  font: 0/0 a;
+}
+
+#sliderthumb.active {
+  background-image: url(images/slider-scrubber-active.png);
 }
 
 #sliderlabels {
@@ -784,46 +784,46 @@ a.filter-faded {
   height: 3rem;
   padding: 0;
   margin: 0;
-  background-color: #222;
   color: white;
-  border-top: solid #eee 0.1rem;
 }
 
 .sliderlabel {
   position: absolute;
-  top: 0;
-  height: 0.5rem;
-  border-left: solid #eee 0.1rem;
+  top: -0.2rem;
+  height: 0.8rem;
+  background: url(images/slider-marker.png) no-repeat top left;
+  color: #8a9699;
+  font-size: 1.5rem;
 }
 
 .sliderlabel:after {
   content: attr(data-label);
   position: relative;
-  display: block;
   text-align: center;
-  top: 0.5rem;
-  width: 10rem;
-  left: -5rem;
+  top: 0.9rem;
+  width: 1rem;
+  left: calc(-50%  + 0.1rem);
 }
 
 #slider-3 {
-  left: calc(10% + 0 * 80%/6);
+  left: 3.9rem;
 }
 #slider-2 {
-  left: calc(10% + 1 * 80%/6);
+  left: calc(3.9rem + (100% - 2 * 3.9rem) / 6);
 }
 #slider-1 {
-  left: calc(10% + 2 * 80%/6);
+  left: calc(3.9rem + (100% - 2 * 3.9rem) * 2 / 6);
 }
 #slider0 {
-  left: calc(10% + 3 * 80%/6);
+  left: calc(3.9rem + (100% - 2 * 3.9rem) * 3 / 6);
+  color: #fff;
 }
 #slider1 {
-  left: calc(10% + 4 * 80%/6);
+  left: calc(3.9rem + (100% - 2 * 3.9rem) * 4 / 6);
 }
 #slider2 {
-  left: calc(10% + 5 * 80%/6);
+  left: calc(3.9rem + (100% - 2 * 3.9rem) * 5 / 6);
 }
 #slider3 {
-  left: calc(10% + 6 * 80%/6);
+  left: calc(3.9rem + (100% - 2 * 3.9rem));
 }
