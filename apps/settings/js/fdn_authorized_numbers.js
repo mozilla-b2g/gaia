@@ -3,7 +3,7 @@
 var FDN_AuthorizedNumbers = {
 
   icc: null,
-  contacts: null,
+  contacts: [],
 
   init: function() {
     this.icc = navigator.mozIccManager ||
@@ -23,17 +23,25 @@ var FDN_AuthorizedNumbers = {
     }
 
     request.onsuccess = function onsuccess() {
-      this.contacts = request.result; // array of mozContact elements
-      for (var a in request.result[0]) {
-        console.log('-------- ', a);
+      var result = request.result;
+
+      for (var i = 0, l = result.length; i < l; i++) {
+        this.contacts.push(
+          {
+            name: result[i].name || '',
+            number: result[i].tel[0].value || ''
+          }
+        );
       }
-      console.log('-------- request', request.result.length);
-    };
+
+      if (typeof cb === 'function') {
+        cb(this.contacts);
+      }
+    };.bind(this);
 
     request.onerror = function error() {
-      console.log('chujnia z kutasuwom');
-      if (typeof this.onerror === 'function') {
-        this.onerror(request.error);
+      if (typeof er === 'function') {
+        er(request.error);
       }
     };
   }
@@ -42,4 +50,3 @@ var FDN_AuthorizedNumbers = {
 };
 
 FDN_AuthorizedNumbers.init();
-FDN_AuthorizedNumbers.getContacts();
