@@ -120,7 +120,7 @@ var Settings = {
     button.textContent = selection.textContent;
     BrowserDB.updateSetting(selection.value, 'defaultSearchEngine');
     BrowserDB.getSearchEngine(selection.value, function(engine) {
-       Browser.setSearchProvider(engine.uri, engine.title, engine.iconUri);
+       Browser.searchEngine = engine;
     });
   }
 
