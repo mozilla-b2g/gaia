@@ -731,7 +731,7 @@ MessageReaderCard.prototype = {
         if (body.checkForExternalImages(bodyNode))
           hasExternalImages = true;
         if (showEmbeddedImages)
-          body.showEmbeddedImages(bodyNode);
+          body.showEmbeddedImages(bodyNode, this.iframeResizeHandler);
       }
 
       if (iRep === 0) {
