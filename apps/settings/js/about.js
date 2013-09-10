@@ -99,18 +99,25 @@ var About = {
     if (!IccHelper.enabled)
       return;
 
+    var deviceInfoIccid = document.getElementById('deviceInfo-iccid');
+    var deviceInfoMsisdn = document.getElementById('deviceInfo-msisdn');
+    var deviceInfoImei = document.getElementById('deviceInfo-imei');
     var info = IccHelper.iccInfo;
-    document.getElementById('deviceInfo-iccid').textContent = info.iccid;
-    document.getElementById('deviceInfo-msisdn').textContent = info.msisdn ||
+    if (!navigator.mozTelephony) {
+      deviceInfoIccid.parentNode.hidden = true;
+      deviceInfoMsisdn.parentNode.hidden = true;
+      deviceInfoImei.parentNode.hidden = true;
+    } else {
+      deviceInfoIccid.textContent = info.iccid;
+      deviceInfoMsisdn.textContent = info.msisdn ||
       navigator.mozL10n.get('unknown-phoneNumber');
-
-    var req = mobileConnection.sendMMI('*#06#');
-    req.onsuccess = function getIMEI() {
-      if (req.result && req.result.statusMessage) {
-        document.getElementById('deviceInfo-imei').textContent =
-          req.result.statusMessage;
-      }
-    };
+      var req = mobileConnection.sendMMI('*#06#');
+      req.onsuccess = function getIMEI() {
+        if (req.result && req.result.statusMessage) {
+          deviceInfoImei.textContent = req.result.statusMessage;
+        }
+      };
+    }
   },
 
   checkForUpdates: function about_checkForUpdates() {
