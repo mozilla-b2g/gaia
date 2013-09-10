@@ -10,24 +10,6 @@
   height: 3rem;
 }
 
-#permissionsListHeader + ul li select {
-  width: 25%;
-  padding: 0.5rem;
-  border: 0;
-  background: #367fa2;
-  text-align: center;
-  color: black;
-  font-size: 1.4rem;
-}
-
-#permissionsListHeader + ul li select[value='allow'] {
-  background-color: #22aa22;
-}
-
-#permissionsListHeader + ul li select[value='deny'] {
-  background-color: #da4e49;
-}
-
 #uninstall-app {
   display: block;
   margin: auto;
