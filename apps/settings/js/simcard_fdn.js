@@ -11,6 +11,7 @@ var SimFdnLock = {
   changePin2Button: document.querySelector('#fdn-changePIN2 button'),
   resetPin2Item: document.getElementById('fdn-changePIN2'),
   resetPin2Button: document.querySelector('#fdn-resetPIN2 button'),
+  contactsContainer: document.getElementById('fdn-contactsContainer'),
 
   updateFdnStatus: function spl_updateSimStatus() {
     var self = this;
@@ -28,6 +29,9 @@ var SimFdnLock = {
     if (!IccHelper.enabled) {
       return;
     }
+
+    FDN_AuthorizedNumbers.init();
+    this.renderAuthorizedNumbers();
 
     var callback = this.updateFdnStatus.bind(this);
     IccHelper.addEventListener('cardstatechange', callback);
@@ -52,6 +56,34 @@ var SimFdnLock = {
     };
 
     this.updateFdnStatus();
+  },
+
+  renderAuthorizedNumbers: function() {
+    this.contactsContainer.innerHTML = '';
+
+    FDN_AuthorizedNumbers.getContacts(null, function(contacts) {
+      var contact;
+      for (var i = 0, l = contacts.length; i < l; i++) {
+        contact = this.renderFDNContact(
+          contacts[i].name,
+          contacts[i].number
+        );
+        this.contactsContainer.appendChild(contact);
+      }
+    }.bind(this));
+  },
+
+  renderFDNContact: function(name, number) {
+    var li = document.createElement('li');
+    var nameContainer = document.createElement('span');
+    var numberContainer = document.createElement('small');
+
+    nameContainer.textContent = name;
+    numberContainer.textContent = number;
+    li.appendChild(numberContainer);
+    li.appendChild(nameContainer);
+
+    return li;
   }
 };
 

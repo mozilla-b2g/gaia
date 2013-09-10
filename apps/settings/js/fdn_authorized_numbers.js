@@ -48,5 +48,3 @@ var FDN_AuthorizedNumbers = {
 
 
 };
-
-FDN_AuthorizedNumbers.init();
