@@ -89,11 +89,13 @@ var Configurator = (function() {
     }
 
     var getMccMnc = function getMccMnc() {
-      var mcc = IccHelper.iccInfo.mcc;
-      var mnc = IccHelper.iccInfo.mnc;
-      if ((mcc !== undefined) && (mcc !== null) &&
-          (mnc !== undefined) && (mnc !== null)) {
-        return normalizeCode(mcc) + '-' + normalizeCode(mnc);
+      if (IccHelper.iccInfo) {
+        var mcc = IccHelper.iccInfo.mcc;
+        var mnc = IccHelper.iccInfo.mnc;
+        if ((mcc !== undefined) && (mcc !== null) &&
+            (mnc !== undefined) && (mnc !== null)) {
+          return normalizeCode(mcc) + '-' + normalizeCode(mnc);
+        }
       }
     };
 
