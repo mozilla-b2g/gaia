@@ -76,7 +76,7 @@ var WapPushManager = {
     var timestamp = Date.now();
 
     if (!this._wapPushEnabled) {
-       window.close();
+       this.close();
        return;
     }
 
@@ -95,7 +95,7 @@ var WapPushManager = {
             self.displayWapPushMessage(timestamp);
           });
 
-        window.close();
+        self.close();
       };
     });
   },
@@ -119,6 +119,8 @@ var WapPushManager = {
    * @param {Number} timestamp The message timestamp
    */
   displayWapPushMessage: function wpm_displayWapPushMessage(timestamp) {
+    var self = this;
+
     asyncStorage.getItem(timestamp, function(message) {
       var protocol = window.location.protocol;
       var host = window.location.host;
@@ -132,18 +134,30 @@ var WapPushManager = {
 
       var messageScreen = window.open(uri, 'wappush_attention', 'attention');
 
-      messageScreen.onload = function() {
+      messageScreen.onload = function(evt) {
         messageScreen.WapMessageScreen.init();
         asyncStorage.removeItem(timestamp);
       };
-      messageScreen.onunload = function() {
+
+      messageScreen.onunload = function(evt) {
         // Close the parent window to hide the application from the cards view
-        window.close();
+        if (evt.target.location != 'about:blank') {
+          self.close();
+          return;
+        }
       };
     },
     function(error) {
       console.log('Could not retrieve the message:' + error + '\n');
     });
+  },
+
+  /**
+   * Closes the application, lets the event loop run once to ensure clean
+   * termination of pending events.
+   */
+  close: function wpm_close() {
+    window.setTimeout(window.close);
   }
 };
 
