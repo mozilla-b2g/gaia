@@ -17,6 +17,17 @@ var TelephonyHelper = (function() {
     startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
   };
 
+  function notifyBusyLine() {
+    // ANSI call waiting tone for a 3 seconds window.
+    var sequence = [[480, 620, 500],
+                    [0, 0, 500],
+                    [480, 620, 500],
+                    [0, 0, 500],
+                    [480, 620, 500],
+                    [0, 0, 500]];
+    TonePlayer.playSequence(sequence);
+  };
+
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
     var telephony = navigator.mozTelephony;
     if (!telephony) {
@@ -62,6 +73,7 @@ var TelephonyHelper = (function() {
           } else if (errorName === 'RadioNotAvailable') {
             displayMessage('FlightMode');
           } else if (errorName === 'BusyError') {
+            notifyBusyLine();
             displayMessage('NumberIsBusy');
           } else {
             // If the call failed for some other reason we should still
