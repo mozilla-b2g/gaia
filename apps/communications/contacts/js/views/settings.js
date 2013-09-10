@@ -36,6 +36,7 @@ contacts.Settings = (function() {
     newOrderByLastName = null,
     ORDER_KEY = 'order.lastname',
     PENDING_LOGOUT_KEY = 'pendingLogout',
+    umsSettingsKey = 'ums.enabled',
     importSources;
 
   // Initialise the settings screen (components, listeners ...)
@@ -50,6 +51,11 @@ contacts.Settings = (function() {
     utils.listeners.add({
       '#settings-close': hideSettings
     });
+    if (navigator.mozSettings) {
+      navigator.mozSettings.addObserver(umsSettingsKey, function(evt) {
+        enableStorageOptions(!evt.settingValue, 'sdUMSEnabled');
+      });
+    }
   };
 
   var hideSettings = function hideSettings() {
@@ -318,10 +324,24 @@ contacts.Settings = (function() {
   /**
    * Disables/Enables the actions over the sdcard import functionality
    * @param {Boolean} cardState Whether storage import should be enabled or not.
+   * @param {String} alternativeError Provide an alternative message if sd is
+   *    not enabled despite that the card is present.
    */
-  var enableStorageOptions = function enableStorageOptions(cardState) {
+  var enableStorageOptions = function enableStorageOptions(cardState,
+    alternativeError) {
     updateOptionStatus(importSDOption, !cardState, true);
     updateOptionStatus(exportSDOption, !cardState, true);
+
+    var importSDErrorMessage = 'noMemoryCardMsg';
+    var exportSDErrorMessage = 'noMemoryCardMsgExport';
+    if (alternativeError) {
+      importSDErrorMessage = exportSDErrorMessage = alternativeError;
+    }
+
+    importSDOption.querySelector('p.error-message').textContent =
+      _(importSDErrorMessage);
+    exportSDOption.querySelector('p').textContent =
+      _(exportSDErrorMessage);
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -849,13 +869,34 @@ contacts.Settings = (function() {
     });
   };
 
-  var refresh = function refresh() {
+  var checkUMSEnabled = function checkUMSEnabled(cb) {
+    if (!navigator.mozSettings) {
+      return;
+    }
+
+    var req = navigator.mozSettings.createLock().get(umsSettingsKey);
+    req.onsuccess = function onUMSValue() {
+      enableStorageOptions(!req.result[umsSettingsKey], 'sdUMSEnabled');
+
+      if (typeof cb === 'function') {
+        cb();
+      }
+    };
+    req.onerror = function onUMSError() {
+      if (typeof cb === 'function') {
+        cb();
+      }
+    };
+  };
+
+  var refresh = function refresh(cb) {
     getData();
     checkOnline();
     checkSIMCard();
     enableStorageOptions(utils.sdcard.checkStorageCard());
     updateTimestamps();
     checkExport();
+    checkUMSEnabled(cb);
   };
 
   return {
