@@ -138,6 +138,21 @@ suite('Render contact form', function() {
   });
 
   suite('Render edit form', function() {
+
+    test('with no name', function() {
+      mockContact.givenName.pop();
+      subject.render(mockContact);
+      var nameField = document.querySelector('#givenName');
+      assert.equal(nameField.value, '');
+    });
+
+    test('with no last name', function() {
+      mockContact.familyName.pop();
+      subject.render(mockContact);
+      var nameField = document.querySelector('#familyName');
+      assert.equal(nameField.value, '');
+    });
+
     test('with all fields', function() {
       // For this test we need a contact with the same number of items
       // on the used fields (phone, address, email, note)
