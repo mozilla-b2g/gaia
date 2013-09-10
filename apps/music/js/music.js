@@ -1223,6 +1223,7 @@ var ListView = {
                 PlayerView.setSourceType(TYPE_MIX);
 
                 PlayerView.dataSource = this.dataSource;
+                PlayerView.setShuffle(true);
                 PlayerView.play(targetIndex);
             }.bind(this));
           } else if (option) {
