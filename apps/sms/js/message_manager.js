@@ -377,16 +377,21 @@ var MessageManager = {
     // The returned value is not a DOM request!
     // Instead, It's an array of DOM requests.
     var i = 0;
-    var requestResult = { success: [], error: [] };
+    var requestResult = { hasError: false, return: [] };
 
     requests = this._mozMobileMessage.send(recipients, content);
     var numberOfRequests = requests.length;
 
-    requests.forEach(function(request) {
+    requests.forEach(function(request, idx) {
       request.onsuccess = function onSuccess(event) {
         onsuccess && onsuccess(event.target.result);
 
-        requestResult.success.push(event.target.result);
+        requestResult.return.push({
+          success: true,
+          result: event.target.result,
+          recipient: recipients[idx]
+        });
+
         if (i === numberOfRequests - 1) {
           oncomplete && oncomplete(requestResult);
         }
@@ -397,7 +402,13 @@ var MessageManager = {
         console.log('Error Sending: ' + JSON.stringify(event.target.error));
         onerror && onerror(event.target.error);
 
-        requestResult.error.push(event.target.error);
+        requestResult.hasError = true;
+        requestResult.return.push({
+          success: false,
+          code: event.target.error,
+          recipient: recipients[idx]
+        });
+
         if (i === numberOfRequests - 1) {
           oncomplete && oncomplete(requestResult);
         }

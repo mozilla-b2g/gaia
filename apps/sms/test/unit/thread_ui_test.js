@@ -1132,6 +1132,17 @@ suite('thread_ui.js >', function() {
           assert.equal(MockDialog.calls[0].body.value,
                       'sendAirplaneModeBody');
         });
+
+        test('show FDN blockage error', function() {
+          ThreadUI.showSendMessageError(
+              'FdnCheckError',
+              ['123', '456', '789']
+          );
+          assert.equal(MockDialog.calls[0].title.value,
+                      'fdnBlockedTitle');
+          assert.equal(MockDialog.calls[0].body.value,
+                      'fdnBlockedBody');
+        });
       });
     });
 

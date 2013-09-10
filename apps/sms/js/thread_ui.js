@@ -1550,9 +1550,23 @@ var ThreadUI = global.ThreadUI = {
     if (messageType === 'sms') {
       MessageManager.sendSMS(recipients, content[0], null, null,
         function onComplete(requestResult) {
-          if (requestResult.error.length > 0) {
-            var errorName = requestResult.error[0].name;
-            this.showSendMessageError(errorName);
+          if (requestResult.hasError) {
+            var errors = {};
+            requestResult.return.forEach(function(result) {
+              if (result.success) {
+                return;
+              }
+
+              if (errors[result.code.name] === undefined) {
+                errors[result.code.name] = [result.recipient];
+              } else {
+                errors[result.code.name].push(result.recipient);
+              }
+            });
+
+            for (var key in errors) {
+              this.showSendMessageError(key, errors[key]);
+            }
           }
         }.bind(this)
       );
@@ -1621,9 +1635,10 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.classList.add('delivered');
   },
 
-  showSendMessageError: function mm_sendMessageOnError(errorName) {
+  showSendMessageError: function mm_sendMessageOnError(errorName, recipients) {
     var messageTitle = '';
     var messageBody = '';
+    var messageBodyParams = {};
     var buttonLabel = '';
 
     switch (errorName) {
@@ -1637,6 +1652,15 @@ var ThreadUI = global.ThreadUI = {
         messageTitle = 'sendAirplaneModeTitle';
         messageBody = 'sendAirplaneModeBody';
         buttonLabel = 'sendAirplaneModeBtnOk';
+        break;
+      case 'FdnCheckError':
+        messageTitle = 'fdnBlockedTitle';
+        messageBody = 'fdnBlockedBody';
+        messageBodyParams = {
+          n: recipients.length,
+          numbers: recipients.join('<br />')
+        };
+        buttonLabel = 'fdnBlockedBtnOk';
         break;
       case 'NoSignalError':
       case 'NotFoundError':
@@ -1656,7 +1680,7 @@ var ThreadUI = global.ThreadUI = {
       },
       body: {
         value: messageBody,
-        l10n: true
+        l10n: messageBodyParams
       },
       options: {
         cancel: {
