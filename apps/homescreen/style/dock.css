@@ -58,17 +58,24 @@
 }
 
 /* For tablet+ Device */
-@media (min-width: 768px) and (orientation: landscape) {
+@media (min-width: 768px) {
   #footer {
     height: 16rem;
   }
 
-  #footer .dockWrapper {
-    width: 160%;
-  }
-
   #footer ol {
     margin-top: 2.5rem;
+  }
+
+  #footer > div li,
+  #footer > div.scrollable li {
+    width: 15rem;
+  }
+}
+
+@media (min-width: 768px) and (orientation: landscape) {
+  #footer .dockWrapper {
+    width: 160%;
   }
 
   #footer li {

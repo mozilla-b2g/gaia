@@ -79,12 +79,18 @@ suite('BrowserDB', function() {
   var realMozSettings = null;
   this.timeout(5000);
 
+  suiteSetup(function() {
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
+  });
+
   suite('BrowserDB.operatorVariantCustomization', function() {
 
     setup(function(done) {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-
       BrowserDB.init(function() {
         var itemsToAdd = 3;
         BrowserDB.populate(0, function() {
@@ -96,7 +102,6 @@ suite('BrowserDB', function() {
     });
 
     teardown(function(done) {
-      navigator.mozSettings = realMozSettings;
       clearBrowserStores(done);
     });
 
@@ -104,11 +109,21 @@ suite('BrowserDB', function() {
       BrowserDB.db.getAllBookmarks(function(bookmarks) {
         assert.equal(bookmarks.length, 2);
 
-        assert.equal(bookmarks[0].uri, 'http://customize.test.mozilla.org/2');
-        assert.equal(bookmarks[0].title, 'customize test 2');
+        // We can't yet guarantee order of bookmarks (bug 895807)
+        if (bookmarks[0].uri == 'http://customize.test.mozilla.org/2') {
+          assert.equal(bookmarks[0].uri, 'http://customize.test.mozilla.org/2');
+          assert.equal(bookmarks[0].title, 'customize test 2');
 
-        assert.equal(bookmarks[1].uri, 'http://customize.test.mozilla.org/1');
-        assert.equal(bookmarks[1].title, 'customize test 1');
+          assert.equal(bookmarks[1].uri, 'http://customize.test.mozilla.org/1');
+          assert.equal(bookmarks[1].title, 'customize test 1');
+        } else {
+          assert.equal(bookmarks[1].uri, 'http://customize.test.mozilla.org/2');
+          assert.equal(bookmarks[1].title, 'customize test 2');
+
+          assert.equal(bookmarks[0].uri, 'http://customize.test.mozilla.org/1');
+          assert.equal(bookmarks[0].title, 'customize test 1');
+        }
+
 
         done();
       });

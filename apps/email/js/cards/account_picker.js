@@ -3,7 +3,9 @@ define(function(require) {
 
 var templateNode = require('tmpl!./account_picker.html'),
     fldAccountItemNode = require('tmpl!./fld/account_item.html'),
+    date = require('date'),
     common = require('mail_common'),
+    model = require('model'),
     Cards = common.Cards,
     bindContainerHandler = common.bindContainerHandler;
 
@@ -13,8 +15,9 @@ var templateNode = require('tmpl!./account_picker.html'),
 function AccountPickerCard(domNode, mode, args) {
   this.domNode = domNode;
 
-  this.curAccount = args.curAccount;
-  this.acctsSlice = args.acctsSlice;
+  this.curAccountId = args.curAccountId;
+
+  this.acctsSlice = model.api.viewAccounts(false);
   this.acctsSlice.onsplice = this.onAccountsSplice.bind(this);
   this.acctsSlice.onchange = this.onAccountsChange.bind(this);
 
@@ -28,21 +31,13 @@ function AccountPickerCard(domNode, mode, args) {
 
   domNode.getElementsByClassName('fld-nav-settings-btn')[0]
     .addEventListener('click', this.onShowSettings.bind(this), false);
-
-  // since the slice is already populated, generate a fake notification
-  this.onAccountsSplice(0, 0, this.acctsSlice.items, true, false);
 }
 
 AccountPickerCard.prototype = {
   nextCards: ['settings_main'],
 
   die: function() {
-    // Since this card is destroyed when hidden,
-    // detach listeners from the acctSlice.
-    if (this.acctsSlice) {
-      this.acctsSlice.onsplice = null;
-      this.acctsSlice.onchange = null;
-    }
+    this.acctsSlice.die();
   },
 
   onShowSettings: function() {
@@ -63,15 +58,32 @@ AccountPickerCard.prototype = {
     }
 
     var insertBuddy = (index >= accountsContainer.childElementCount) ?
-                        null : accountsContainer.children[index],
-        self = this;
+                        null : accountsContainer.children[index];
+
     addedItems.forEach(function(account) {
       var accountNode = account.element =
         fldAccountItemNode.cloneNode(true);
       accountNode.account = account;
-      self.updateAccountDom(account, true);
+      this.updateAccountDom(account, true);
       accountsContainer.insertBefore(accountNode, insertBuddy);
-    });
+
+      //fetch last sync date for display
+      this.fetchLastSyncDate(account,
+                   accountNode.querySelector('.fld-account-lastsync-value'));
+    }.bind(this));
+  },
+
+  fetchLastSyncDate: function(account, node) {
+    var foldersSlice = model.api.viewFolders('account', account);
+    foldersSlice.oncomplete = (function() {
+      var inbox = foldersSlice.getFirstFolderWithType('inbox'),
+          lastSyncTime = inbox && inbox.lastSyncedAt;
+
+      if (lastSyncTime) {
+        date.setPrettyNodeDate(node, lastSyncTime);
+      }
+      foldersSlice.die();
+    }).bind(this);
   },
 
   onHideAccounts: function() {
@@ -91,7 +103,7 @@ AccountPickerCard.prototype = {
         .textContent = account.name;
     }
 
-    if (account === this.curAccount) {
+    if (account.id === this.curAccountId) {
       accountNode.classList.add('fld-account-selected');
     }
     else {
@@ -105,12 +117,11 @@ AccountPickerCard.prototype = {
    * things get permutationally complex.
    */
   onClickAccount: function(accountNode, event) {
-    var oldAccount = this.curAccount,
-        account = this.curAccount = accountNode.account;
+    var oldAccountId = this.curAccountId,
+        accountId = this.curAccountId = accountNode.account.id;
 
-    if (oldAccount !== account) {
-      var folderCard = Cards.findCardObject(['folder_picker', 'navigation']);
-      folderCard.cardImpl.updateAccount(account);
+    if (oldAccountId !== accountId) {
+      model.changeAccountFromId(accountId);
     }
 
     this.onHideAccounts();

@@ -327,13 +327,15 @@
         clearTimeout(closing);
         ConfigManager.requestAll(function _onInfo(configuration, settings) {
 
-          var isBalanceResponse = configuration.balance &&
-                                  configuration.balance.senders
-                                    .indexOf(sms.sender) > -1;
+          var isBalanceResponse =
+            configuration.balance &&
+            Array.isArray(configuration.balance.senders) &&
+            configuration.balance.senders.indexOf(sms.sender) > -1;
 
-          var isTopupResponse = configuration.topup &&
-                                configuration.topup.senders
-                                  .indexOf(sms.sender) > -1;
+          var isTopupResponse =
+            configuration.topup &&
+            Array.isArray(configuration.topup.senders) &&
+            configuration.topup.senders.indexOf(sms.sender) > -1;
 
           // Non expected SMS
           if (!isBalanceResponse && !isTopupResponse) {

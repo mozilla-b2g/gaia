@@ -1,0 +1,4 @@
+{
+  "data-cover-only": "js/",
+  "data-cover-never": "['http://clock.gaiamobile.org:8080/js/alarm.js']"
+}

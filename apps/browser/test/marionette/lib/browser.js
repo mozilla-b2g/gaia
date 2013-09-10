@@ -75,6 +75,14 @@ Browser.prototype = {
   launch: function() {
     this.client.apps.launch(Browser.URL);
     this.client.apps.switchToApp(Browser.URL);
+  },
+
+  /**
+   * Back to Browser app frame
+   */
+  backToApp: function() {
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Browser.URL);
   }
 };
 

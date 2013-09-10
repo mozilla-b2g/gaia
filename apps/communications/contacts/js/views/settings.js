@@ -269,11 +269,11 @@ contacts.Settings = (function() {
 
   var checkSIMCard = function checkSIMCard() {
     if (!IccHelper.enabled) {
-      enableSIMImport(false);
+      enableSIMOptions(false);
       return;
     }
 
-    enableSIMImport(IccHelper.cardState);
+    enableSIMOptions(IccHelper.cardState);
   };
 
   // Disables/Enables an option and show the error if needed
@@ -294,21 +294,19 @@ contacts.Settings = (function() {
   };
 
   // Disables/Enables the actions over the sim import functionality
-  var enableSIMImport = function enableSIMImport(cardState) {
+  var enableSIMOptions = function enableSIMOptions(cardState) {
     var disabled = (cardState !== 'ready');
     updateOptionStatus(importSimOption, disabled, true);
-    // TODO: uncomment this once we have the SIM export ready
-    //updateOptionStatus(exportSimOption, disabled, true);
+    updateOptionStatus(exportSimOption, disabled, true);
   };
 
   /**
    * Disables/Enables the actions over the sdcard import functionality
    * @param {Boolean} cardState Whether storage import should be enabled or not.
    */
-  var enableStorageImport = function enableStorageImport(cardState) {
+  var enableStorageOptions = function enableStorageOptions(cardState) {
     updateOptionStatus(importSDOption, !cardState, true);
-    // TODO: uncomment this once we have the SD export ready
-    //updateOptionStatus(exportSDOption, !cardState, true);
+    updateOptionStatus(exportSDOption, !cardState, true);
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -810,7 +808,7 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
-    enableStorageImport(utils.sdcard.checkStorageCard());
+    enableStorageOptions(utils.sdcard.checkStorageCard());
     updateTimestamps();
   };
 

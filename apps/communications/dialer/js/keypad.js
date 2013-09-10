@@ -1,7 +1,6 @@
 'use strict';
 
 var kFontStep = 4;
-var loader = LazyLoader;
 
 // Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
@@ -23,7 +22,7 @@ if (window.SettingsListener) {
 } else {
   window.addEventListener('load', function onLoad() {
     window.removeEventListener('load', onLoad);
-    loader.load('/shared/js/settings_listener.js', observeKeypadSound);
+    LazyLoader.load('/shared/js/settings_listener.js', observeKeypadSound);
   });
 }
 
@@ -169,8 +168,8 @@ var KeypadManager = {
     TonePlayer.init(this._onCall ? 'telephony' : 'normal');
 
     this.render();
-    loader.load(['/shared/style/action_menu.css',
-                 '/dialer/js/suggestion_bar.js']);
+    LazyLoader.load(['/shared/style/action_menu.css',
+                     '/dialer/js/suggestion_bar.js']);
   },
 
   moveCaretToEnd: function hk_util_moveCaretToEnd(el) {

@@ -23,6 +23,8 @@ suite('Matching duplicate contacts UI Test Suite', function() {
 
   var dataImage = 'data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=';
 
+  var CORRECT_MATCHED_VALUE = '$correct$';
+
   var dupContacts = {
     '1a': {
       matchingContact: {
@@ -32,6 +34,12 @@ suite('Matching duplicate contacts UI Test Suite', function() {
         photo: [dataImage],
         email: [{
           value: 'man@tid.es'
+        }]
+      },
+      matchings: {
+        'name': [{
+          target: 'Manolo',
+          matchedValue: CORRECT_MATCHED_VALUE
         }]
       }
     },
@@ -45,6 +53,16 @@ suite('Matching duplicate contacts UI Test Suite', function() {
           value: 'man@tid.es'
         }, {
           value: 'man@telefonica.es'
+        }]
+      },
+      matchings: {
+        'name': [{
+          target: 'Manolo',
+          matchedValue: 'Manolo Garcia'
+        }],
+        'email': [{
+          target: 'man@tid.es',
+          matchedValue: CORRECT_MATCHED_VALUE
         }]
       }
     },
@@ -61,6 +79,20 @@ suite('Matching duplicate contacts UI Test Suite', function() {
           value: '+346578888881',
           type: 'Mobile'
         }]
+      },
+      matchings: {
+        'name': [{
+          target: 'Manolo',
+          matchedValue: 'Manolo Garcia'
+        }],
+        'email': [{
+          target: 'man@tid.es',
+          matchedValue: 'man@tid.es'
+        }],
+        'tel': [{
+          target: '+346578888881',
+          matchedValue: CORRECT_MATCHED_VALUE
+        }]
       }
     }
   };
@@ -72,8 +104,10 @@ suite('Matching duplicate contacts UI Test Suite', function() {
     assert.isTrue(paragraphs[0].textContent === contact.givenName[0] + ' ' +
                                                          contact.familyName[0]);
 
-    // The first e-mail is displayed correctly
-    assert.isTrue(paragraphs[1].textContent === contact.email[0].value);
+    // The second paragraph is the main reason for matching
+    // The current preference is tel, email and name
+    // Check in selectMainReason() of contacts_matching_ui.js
+    assert.equal(paragraphs[1].textContent, CORRECT_MATCHED_VALUE);
 
     // The image is ready for the image loader
     assert.isTrue(item.querySelector('img').dataset.src == dataImage);

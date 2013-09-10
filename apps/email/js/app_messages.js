@@ -1,8 +1,21 @@
 /*jshint browser: true */
 /*global define, console */
 define(function(require) {
-  var evt = require('evt'),
+  var appSelf = require('app_self'),
+      evt = require('evt'),
+      queryString = require('query_string'),
       queryURI = require('query_uri');
+
+  var pending = {};
+  // htmlCacheRestorePendingMessage defined in html_cache_restore,
+  // see comment for it.
+  var cachedList = (window.htmlCacheRestorePendingMessage &&
+                    window.htmlCacheRestorePendingMessage.length) ?
+      window.htmlCacheRestorePendingMessage : [];
+  // Convert the cached list to named properties on pending.
+  cachedList.forEach(function(type) {
+    pending[type] = true;
+  });
 
   var appMessages = evt.mix({
     /**
@@ -12,9 +25,7 @@ define(function(require) {
      * @return {boolean} Whether or there are pending message(s) of the type.
      */
     hasPending: function(type) {
-      // htmlCacheRestoreDetectedActivity defined in html_cache_restore,
-      // see comment for it.
-      return (type === 'activity' && window.htmlCacheRestoreDetectedActivity) ||
+      return pending.hasOwnProperty(type) ||
              (navigator.mozHasPendingMessage &&
               navigator.mozHasPendingMessage(type));
     },
@@ -50,11 +61,35 @@ define(function(require) {
       }
 
       this.emitWhenListener('activity', activityName, data, req);
+    },
+
+    /**
+     * TODO: Document and test this!
+     */
+    onNotificationRequest: function(msg) {
+      if (!msg.clicked)
+        return;
+
+      appSelf.latest('self', function(app) {
+        if (document.hidden)
+          app.launch();
+      });
+
+      console.log('email got notification click: ' + msg);
+      console.log(JSON.stringify(msg, null, '  '));
+
+      // icon url parsing is a cray cray way to pass day day
+      var data = queryString.toObject((msg.imageURL || '').split('#')[1]);
+      appMessages.emitWhenListener('notification', data);
     }
   });
 
   if ('mozSetMessageHandler' in navigator) {
     navigator.mozSetMessageHandler('activity', appMessages.onActivityRequest);
+    navigator.mozSetMessageHandler(
+      'notification', appMessages.onNotificationRequest);
+    // Do not listen for navigator.mozSetMessageHandler('alarm') type, that is
+    // only done in the back end's cronsync for now.
   } else {
     console.warn('Activity support disabled!');
   }

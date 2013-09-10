@@ -27,6 +27,9 @@
 
     reporter: null
   });
+  worker.use(TestAgent.BrowserWorker.BlanketDriver, {
+    blanketUrl: CommonResourceLoader.url('/common/vendor/blanket/blanket.js')
+  });
 
   //enable let, yield, etc...
   worker.loader.type = 'application/javascript;version=1.8';

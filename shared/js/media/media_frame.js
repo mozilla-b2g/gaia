@@ -54,8 +54,12 @@ function MediaFrame(container, includeVideo) {
   };
 }
 
-MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
-                                                          preview, orientation)
+MediaFrame.prototype.displayImage = function displayImage(blob,
+                                                          width,
+                                                          height,
+                                                          preview,
+                                                          rotation,
+                                                          mirrored)
 {
   this.clear();  // Reset everything
 
@@ -64,7 +68,8 @@ MediaFrame.prototype.displayImage = function displayImage(blob, width, height,
   this.fullsizeWidth = width;
   this.fullsizeHeight = height;
   this.preview = preview;
-  this.orientation = orientation;
+  this.rotation = rotation;
+  this.mirrored = mirrored;
 
   // Keep track of what kind of content we have
   this.displayingImage = true;
@@ -127,7 +132,7 @@ MediaFrame.prototype._displayImage = function _displayImage(blob) {
     self.image.src = preload.src;
 
     // Switch height & width for rotated images
-    if (self.orientation.rotation == 0 || self.orientation.rotation == 180) {
+    if (self.rotation == 0 || self.rotation == 180) {
       self.itemWidth = preload.width;
       self.itemHeight = preload.height;
     } else {
@@ -161,7 +166,7 @@ MediaFrame.prototype._switchToFullSizeImage = function _switchToFull() {
 
   // Resize the preview image to be the same size as the full image.
   // It will be pixelated, but it will be ready right away.
-  if (this.orientation.rotation == 0 || this.orientation.rotation == 180) {
+  if (this.rotation == 0 || this.rotation == 180) {
     this.itemWidth = this.oldimage.width = this.fullsizeWidth;
     this.itemHeight = this.oldimage.height = this.fullsizeHeight;
   } else {
@@ -285,7 +290,7 @@ MediaFrame.prototype.setPosition = function setPosition() {
   // scaling is being done around the middle of the image, rather than the
   // upper-left corner.  And we have to make this adjustment differently
   // for different rotations.
-  switch (this.orientation.rotation) {
+  switch (this.rotation) {
   case 0:
   case 180:
     dx += (this.fit.width - this.itemWidth) / 2;
@@ -298,13 +303,13 @@ MediaFrame.prototype.setPosition = function setPosition() {
     break;
   }
 
-  var sx = this.fit.scale * this.orientation.mirrored;
+  var sx = this.mirrored ? -this.fit.scale : this.fit.scale;
   var sy = this.fit.scale;
 
   var transform =
     'translate(' + dx + 'px, ' + dy + 'px) ' +
     'scale(' + sx + ',' + sy + ')' +
-    'rotate(' + this.orientation.rotation + 'deg) ';
+    'rotate(' + this.rotation + 'deg) ';
 
   this.image.style.transform = transform;
   if (this.oldimage)

@@ -21,32 +21,6 @@ suite('appMessages', function() {
     assert.notStrictEqual(subject, undefined);
   });
 
-  suite('#hasPending', function() {
-    var spy;
-
-    setup(function() {
-      spy = sinon.spy(navigator, 'mozHasPendingMessage');
-    });
-
-    teardown(function() {
-      navigator.mozHasPendingMessage.restore();
-    });
-
-    test('should be a function', function() {
-      assert.ok(typeof subject.hasPending === 'function');
-    });
-
-    test('should be true for activity if cached pending', function() {
-      window.htmlCacheRestoreDetectedActivity = true;
-      assert.ok(subject.hasPending('activity'));
-    });
-
-    test('should call navigator.mozHasPendingMessage', function() {
-      subject.hasPending('cheese');
-      sinon.assert.calledWith(spy, 'cheese');
-    });
-  });
-
   suite('#onActivityRequest', function() {
     var spy;
 

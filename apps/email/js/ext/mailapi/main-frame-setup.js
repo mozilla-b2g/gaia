@@ -54,6 +54,8 @@ function MailAccount(api, wireRep, acctsSlice) {
   this.type = wireRep.type;
   this.name = wireRep.name;
   this.syncRange = wireRep.syncRange;
+  this.syncInterval = wireRep.syncInterval;
+  this.notifyOnNew = wireRep.notifyOnNew;
 
   /**
    * Is the account currently enabled, as in will we talk to the server?
@@ -111,6 +113,8 @@ MailAccount.prototype = {
   __update: function(wireRep) {
     this.enabled = wireRep.enabled;
     this.problems = wireRep.problems;
+    this.syncInterval = wireRep.syncInterval;
+    this.notifyOnNew = wireRep.notifyOnNew;
     this._wireRep.defaultPriority = wireRep.defaultPriority;
   },
 
@@ -178,7 +182,7 @@ function MailSenderIdentity(api, wireRep) {
   this._api = api;
   this.id = wireRep.id;
 
-  this.name = wireRep.displayName;
+  this.name = wireRep.name;
   this.address = wireRep.address;
   this.replyTo = wireRep.replyTo;
   this.signature = wireRep.signature;
@@ -1784,8 +1788,7 @@ MessageComposition.prototype = {
 
 };
 
-
-var LEGAL_CONFIG_KEYS = ['syncCheckIntervalEnum'];
+var LEGAL_CONFIG_KEYS = [];
 
 /**
  * Error reporting helper; we will probably eventually want different behaviours
@@ -3066,6 +3069,35 @@ MailAPI.prototype = {
   },
 
   //////////////////////////////////////////////////////////////////////////////
+  // mode setting for back end universe. Set interactive
+  // if the user has been exposed to the UI and it is a
+  // longer lived application, not just a cron sync.
+  setInteractive: function() {
+    this.__bridgeSend({
+      type: 'setInteractive'
+    });
+  },
+
+  //////////////////////////////////////////////////////////////////////////////
+  // cron syncing
+
+  /**
+   * Receive events about the start and stop of periodic syncing
+   */
+  _recv_cronSyncStart: function ma__recv_cronSyncStart(msg) {
+    if (this.oncronsyncstart)
+      this.oncronsyncstart(msg.accountIds);
+    return true;
+  },
+
+  _recv_cronSyncStop: function ma__recv_cronSyncStop(msg) {
+    if (this.oncronsyncstop)
+      this.oncronsyncstop(msg.accountsResults);
+    return true;
+  },
+
+
+  //////////////////////////////////////////////////////////////////////////////
   // Localization
 
   /**
@@ -3117,6 +3149,7 @@ MailAPI.prototype = {
     }
     return name;
   },
+
 
   //////////////////////////////////////////////////////////////////////////////
   // Configuration
@@ -3192,12 +3225,24 @@ define('mailapi/worker-support/main-router',[],function() {
   var worker = null;
 
   function register(module) {
-    var name = module.name;
+    var action,
+        name = module.name;
+
     modules.push(module);
 
-    listeners[name] = function(msg) {
-      module.process(msg.uid, msg.cmd, msg.args);
-    };
+    if (module.process) {
+      action = function(msg) {
+        module.process(msg.uid, msg.cmd, msg.args);
+      };
+    } else if (module.dispatch) {
+      action = function(msg) {
+        if (module.dispatch[msg.cmd]) {
+          module.dispatch[msg.cmd].apply(module.dispatch, msg.args);
+        }
+      };
+    }
+
+    listeners[name] = action;
 
     module.sendMessage = function(uid, cmd, args, transferArgs) {
     //dump('\x1b[34mM => w: send: ' + name + ' ' + uid + ' ' + cmd + '\x1b[0m\n');
@@ -3414,103 +3459,267 @@ define('mailapi/worker-support/configparser-main',[],function() {
   return self;
 });
 
-define('mailapi/worker-support/cronsync-main',[],function() {
+/*jshint browser: true */
+/*global define, console */
+define('mailapi/worker-support/cronsync-main',['require','evt'],function(require) {
   'use strict';
 
+  var evt = require('evt');
+
   function debug(str) {
-    //dump('CronSync: ' + str + '\n');
+    console.log('cronsync-main: ' + str);
   }
 
-  function clearAlarms() {
-    if (navigator.mozAlarms) {
-      var req = navigator.mozAlarms.getAll();
-      req.onsuccess = function(event) {
+  function makeData(accountIds, interval, date) {
+    return {
+      type: 'sync',
+      accountIds: accountIds,
+      interval: interval,
+      timestamp: date.getTime()
+    };
+  }
+
+  // Creates a string key from an array of string IDs. Uses a space
+  // separator since that cannot show up in an ID.
+  function makeAccountKey(accountIds) {
+    return 'id' + accountIds.join(' ');
+  }
+
+  // Converts 'interval' + intervalInMillis to just a intervalInMillis
+  // Number.
+  var prefixLength = 'interval'.length;
+  function toInterval(intervalKey) {
+    return parseInt(intervalKey.substring(prefixLength), 10);
+  }
+
+  // Makes sure two arrays have the same values, account IDs.
+  function hasSameValues(ary1, ary2) {
+    if (ary1.length !== ary2.length)
+      return false;
+
+    var hasMismatch = ary1.some(function(item, i) {
+      return item !== ary2[i];
+    });
+
+    return !hasMismatch;
+  }
+
+  if (navigator.mozSetMessageHandler) {
+    navigator.mozSetMessageHandler('alarm', function onAlarm(alarm) {
+      // Do not bother with alarms that are not sync alarms.
+      var data = alarm.data;
+      if (!data || data.type !== 'sync')
+        return;
+
+      // Need to acquire the wake locks during this alarm notification
+      // turn of the event loop -- later turns are not guaranteed to
+      // be up and running. However, knowing when to release the locks
+      // is only known to the front end, so publish event about it.
+      // Need a CPU lock since otherwise the app can be paused
+      // mid-function, which could lead to unexpected behavior, and the
+      // sync should be completed as quick as possible to then close
+      // down the app.
+      // TODO: removed wifi wake lock due to network complications, to
+      // be addressed in a separate changset.
+      if (navigator.requestWakeLock) {
+        var locks = [
+          navigator.requestWakeLock('cpu')
+        ];
+
+        debug('wake locks acquired: ' + locks +
+              ' for account IDs: ' + data.accountIds);
+
+        evt.emitWhenListener('cronSyncWakeLocks',
+                             makeAccountKey(data.accountIds), locks);
+      }
+
+      dispatcher._sendMessage('alarm', [data.accountIds, data.interval]);
+    });
+  }
+
+  var dispatcher = {
+    _routeReady: false,
+    _routeQueue: [],
+    _sendMessage: function(type, args) {
+      if (this._routeReady) {
+        // sendMessage is added to routeRegistration by the main-router module.
+        routeRegistration.sendMessage(null, type, args);
+      } else {
+        this._routeQueue.push([type, args]);
+      }
+    },
+
+    /**
+     * Called by worker side to indicate it can now receive messages.
+     */
+    hello: function() {
+      this._routeReady = true;
+      if (this._routeQueue.length) {
+        var queue = this._routeQueue;
+        this._routeQueue = [];
+        queue.forEach(function(args) {
+          this._sendMessage(args[0], args[1]);
+        }.bind(this));
+      }
+    },
+
+    /**
+     * Clears all sync-based alarms. Normally not called, except perhaps for
+     * tests or debugging.
+     */
+    clearAll: function() {
+      var mozAlarms = navigator.mozAlarms;
+      if (!mozAlarms)
+        return;
+
+      var r = mozAlarms.getAll();
+
+      r.onsuccess = function(event) {
         var alarms = event.target.result;
-        for (var i = 0; i < alarms.length; i++) {
-          navigator.mozAlarms.remove(alarms[i].id);
+        if (!alarms)
+          return;
+
+        alarms.forEach(function(alarm) {
+          if (alarm.data && alarm.data.type === 'sync')
+            mozAlarms.remove(alarm.id);
+        });
+      }.bind(this);
+      r.onerror = function(err) {
+        console.error('cronsync-main clearAll mozAlarms.getAll: error: ' +
+                      err);
+      }.bind(this);
+    },
+
+    /**
+     * Makes sure there is an alarm set for every account in
+     * the list.
+     * @param  {Object} syncData. An object with keys that are
+     * 'interval' + intervalInMilliseconds, and values are arrays
+     * of account IDs that should be synced at that interval.
+     */
+    ensureSync: function (syncData) {
+      var mozAlarms = navigator.mozAlarms;
+      if (!mozAlarms)
+        return;
+
+      debug('ensureSync called');
+
+      var request = mozAlarms.getAll();
+
+      request.onsuccess = function(event) {
+        var alarms = event.target.result;
+        if (!alarms)
+          return;
+
+        // Find all IDs being tracked by alarms
+        var expiredAlarmIds = [],
+            okAlarmIntervals = {},
+            uniqueAlarms = {};
+
+        alarms.forEach(function(alarm) {
+          // Only care about sync alarms.
+          if (!alarm.data || !alarm.data.type || alarm.data.type !== 'sync')
+            return;
+
+          var intervalKey = 'interval' + alarm.data.interval,
+              wantedAccountIds = syncData[intervalKey];
+
+          if (!wantedAccountIds || !hasSameValues(wantedAccountIds,
+                                                  alarm.data.accountIds)) {
+            debug('account array mismatch, canceling existing alarm');
+            expiredAlarmIds.push(alarm.id);
+          } else {
+            // Confirm the existing alarm is still good.
+            var interval = toInterval(intervalKey),
+                now = Date.now(),
+                alarmTime = alarm.data.timestamp,
+                accountKey = makeAccountKey(wantedAccountIds);
+
+            // If the interval is nonzero, and there is no other alarm found
+            // for that account combo, and if it is not in the past and if it
+            // is not too far in the future, it is OK to keep.
+            if (interval && !uniqueAlarms.hasOwnProperty(accountKey) &&
+                alarmTime > now && alarmTime < now + interval) {
+              debug('existing alarm is OK');
+              uniqueAlarms[accountKey] = true;
+              okAlarmIntervals[intervalKey] = true;
+            } else {
+              debug('existing alarm is out of interval range, canceling');
+              expiredAlarmIds.push(alarm.id);
+            }
+          }
+        });
+
+        expiredAlarmIds.forEach(function(alarmId) {
+          mozAlarms.remove(alarmId);
+        });
+
+        var alarmMax = 0,
+            alarmCount = 0,
+            self = this;
+
+        // Called when alarms are confirmed to be set.
+        function done() {
+          alarmCount += 1;
+          if (alarmCount < alarmMax)
+            return;
+
+          // Indicate ensureSync has completed because the
+          // back end is waiting to hear alarm was set before
+          // triggering sync complete.
+          self._sendMessage('syncEnsured');
         }
 
-        debug("clearAlarms: done.");
-      };
+        Object.keys(syncData).forEach(function(intervalKey) {
+          // Skip if the existing alarm is already good.
+          if (okAlarmIntervals.hasOwnProperty(intervalKey))
+            return;
 
-      req.onerror = function(event) {
-        debug("clearAlarms: failure.");
+          var interval = toInterval(intervalKey),
+              accountIds = syncData[intervalKey],
+              date = new Date(Date.now() + interval);
+
+          // Do not set an timer for a 0 interval, bad things happen.
+          if (!interval)
+            return;
+
+          alarmMax += 1;
+
+          var alarmRequest = mozAlarms.add(date, 'ignoreTimezone',
+                                       makeData(accountIds, interval, date));
+
+          alarmRequest.onsuccess = function() {
+            debug('success: mozAlarms.add for ' + 'IDs: ' + accountIds +
+                  ' at ' + interval + 'ms');
+            done();
+          };
+
+          alarmRequest.onerror = function(err) {
+            console.error('cronsync-main mozAlarms.add for IDs: ' +
+                          accountIds +
+                          ' failed: ' + err);
+          };
+        });
+
+        // If no alarms were added, indicate ensureSync is done.
+        if (!alarmMax)
+          done();
+      }.bind(this);
+
+      request.onerror = function(err) {
+        console.error('cronsync-main ensureSync mozAlarms.getAll: error: ' +
+                      err);
       };
     }
-  }
-
-  function addAlarm(time) {
-    if (navigator.mozAlarms) {
-      var req = navigator.mozAlarms.add(time, 'ignoreTimezone', {});
-
-      req.onsuccess = function() {
-        debug('addAlarm: done.');
-      };
-
-      req.onerror = function(event) {
-        debug('addAlarm: failure.');
-
-        var target = event.target;
-        console.warn('err:', target && target.error && target.error.name);
-      };
-    }
-  }
-
-  var gApp, gIconUrl;
-  navigator.mozApps.getSelf().onsuccess = function(event) {
-    gApp = event.target.result;
-    if (gApp)
-      gIconUrl = gApp.installOrigin + '/style/icons/Email.png';
   };
 
-  /**
-   * Try and bring up the given header in the front-end.
-   *
-   * XXX currently, we just cause the app to display, but we don't do anything
-   * to cause the actual message to be displayed.  Right now, since the back-end
-   * and the front-end are in the same app, we can easily tell ourselves to do
-   * things, but in the separated future, we might want to use a webactivity,
-   * and as such we should consider using that initially too.
-   */
-  function showApp(header) {
-    gApp.launch();
-  }
-
-  function showNotification(uid, title, body) {
-    var success = function() {
-      self.sendMessage(uid, 'showNotification', true);
-    };
-
-    var close = function() {
-      self.sendMessage(uid, 'showNotification', false);
-    };
-
-    NotificationHelper.send(title, body, gIconUrl, success, close);
-  }
-
-  var self = {
-    name: 'cronsyncer',
+  var routeRegistration = {
+    name: 'cronsync',
     sendMessage: null,
-    process: function(uid, cmd, args) {
-      debug('process ' + cmd);
-      switch (cmd) {
-        case 'clearAlarms':
-          clearAlarms.apply(this, args);
-          break;
-        case 'addAlarm':
-          addAlarm.apply(this, args);
-          break;
-        case 'showNotification':
-          args.unshift(uid);
-          showNotification.apply(this, args);
-          break;
-        case 'showApp':
-          showApp.apply(this, args);
-          break;
-      }
-    }
+    dispatch: dispatcher
   };
-  return self;
+
+  return routeRegistration;
 });
 
 define('mailapi/worker-support/devicestorage-main',[],function() {
@@ -3615,6 +3824,9 @@ if (("indexedDB" in window) && window.indexedDB) {
  *
  * Explanation of most recent bump:
  *
+ * Bumping to 22 because of account changes around cronsyncing, an "undefined"
+ * error with summaries and some constant changes.
+ *
  * Bumping to 21 because of massive error in partial fetching merges.
  *
  * Bumping to 20 because of block sizing changes.
@@ -3629,7 +3841,7 @@ if (("indexedDB" in window) && window.indexedDB) {
  * Bumping to 17 because we changed the folder representation to store
  * hierarchy.
  */
-var CUR_VERSION = 21;
+var CUR_VERSION = 22;
 
 /**
  * What is the lowest database version that we are capable of performing a
@@ -4204,9 +4416,7 @@ define('mailapi/main-frame-setup',
     sendMessage: null,
     process: function(uid, cmd, args) {
       var online = navigator.onLine;
-      var hasPendingAlarm = navigator.mozHasPendingMessage &&
-                            navigator.mozHasPendingMessage('alarm');
-      control.sendMessage(uid, 'hello', [online, hasPendingAlarm]);
+      control.sendMessage(uid, 'hello', [online]);
 
       window.addEventListener('online', function(evt) {
         control.sendMessage(uid, evt.type, [true]);
@@ -4214,11 +4424,6 @@ define('mailapi/main-frame-setup',
       window.addEventListener('offline', function(evt) {
         control.sendMessage(uid, evt.type, [false]);
       });
-      if (navigator.mozSetMessageHandler) {
-        navigator.mozSetMessageHandler('alarm', function(msg) {
-          control.sendMessage(uid, 'alarm', [msg]);
-        });
-      }
 
       $router.unregister(control);
     },

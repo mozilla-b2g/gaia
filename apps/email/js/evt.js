@@ -27,12 +27,12 @@ define(function() {
 
   Emitter.prototype = {
     on: function(id, fn) {
-      var l = this._events[id],
+      var listeners = this._events[id],
           pending = this._pendingEvents[id];
-      if (!l) {
-        l = this._events[id] = [];
+      if (!listeners) {
+        listeners = this._events[id] = [];
       }
-      l.push(fn);
+      listeners.push(fn);
 
       if (pending) {
         pending.forEach(function(args) {
@@ -44,10 +44,19 @@ define(function() {
     },
 
     once: function(id, fn) {
-      var self = this;
+      var self = this,
+          fired = false;
       function one() {
-        self.removeListener(id, one);
+        if (fired)
+          return;
+        fired = true;
         fn.apply(null, arguments);
+        // Remove at a further turn so that the event
+        // forEach in emit does not get modified during
+        // this turn.
+        setTimeout(function() {
+          self.removeListener(id, one);
+        });
       }
       return this.on(id, one);
     },
@@ -85,13 +94,13 @@ define(function() {
 
     removeListener: function(id, fn) {
       var i,
-          l = this._events[id];
-      if (l) {
-        i = l.indexOf(fn);
+          listeners = this._events[id];
+      if (listeners) {
+        i = listeners.indexOf(fn);
         if (i !== -1) {
-          l.splice(i, 1);
+          listeners.splice(i, 1);
         }
-        if (l.length === 0)
+        if (listeners.length === 0)
           delete this._events[id];
       }
     },
@@ -103,8 +112,8 @@ define(function() {
      * @param  {String} id event ID.
      */
     emitWhenListener: function(id) {
-      var l = this._events[id];
-      if (l) {
+      var listeners = this._events[id];
+      if (listeners) {
         this.emit.apply(this, arguments);
       } else {
         if (!this._pendingEvents[id])
@@ -115,12 +124,16 @@ define(function() {
 
     emit: function(id) {
       var args = slice.call(arguments, 1),
-          l = this._events[id];
-      if (l) {
-        l.forEach(function(fn) {
+          listeners = this._events[id];
+      if (listeners) {
+        listeners.forEach(function(fn) {
           try {
             fn.apply(null, args);
           } catch (e) {
+            // Throw at later turn so that other listeners
+            // can complete. While this messes with the
+            // stack for the error, continued operation is
+            // valued more in this tradeoff.
             setTimeout(function() {
               throw e;
             });

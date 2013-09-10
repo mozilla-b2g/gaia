@@ -1020,9 +1020,11 @@ var Browser = {
   // default actions attached
   generateSystemMenuItem: function browser_generateSystemMenuItem(item) {
     var self = this;
-    switch (item.nodeName) {
+    var nodeName = item.nodeName ? item.nodeName.toUpperCase() : '';
+    switch (nodeName) {
       case 'A':
         return {
+          id: 'open-in-new-tab',
           label: _('open-in-new-tab'),
           callback: function() {
             self.openInNewTab(item.data.uri);
@@ -1037,7 +1039,7 @@ var Browser = {
           'AUDIO': 'audio'
         };
         var type = typeMap[item.nodeName];
-        if (item.nodeName === 'VIDEO' && !item.data.hasVideo) {
+        if (nodeName === 'VIDEO' && !item.data.hasVideo) {
           type = 'audio';
         }
 
@@ -1093,11 +1095,13 @@ var Browser = {
     }
 
     if (Object.keys(menuItems).length === 0) {
+      self.contextMenuHasCalled = false;
       return;
     }
 
     menuItems.forEach(function(menuitem) {
       var li = document.createElement('li');
+      li.id = menuitem.id;
       var button = this.createButton(menuitem.label, menuitem.icon);
 
       button.addEventListener('click', function() {

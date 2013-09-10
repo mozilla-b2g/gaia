@@ -65,21 +65,25 @@
  *      conjunction with the layout data from setLayoutParams().
  *      The coordinates aren't passed for the Backspace key, however.
  *
- *    select(word):
+ *    select(word, data):
  *      Called when the user selects a displayed candidate or word suggestion.
  *
  *    setLayoutParams(params):
- *
  *      Gives the IM information about the onscreen coordinates of
  *      each key. Used with latin IM only.  Can be used with click
  *      coordinates to improve predictions, but it may not currently
  *      be used.
  *
+ *    getMoreCandidates(indicator, maxCount, callback):
+ *      (optional) Called when the render needs more candidates to show on the
+ *      candidate panel.
+ *
  * The init method of each IM is passed an object that it uses to
  * communicate with the keyboard. That interface object defines the following
  * properties and methods:
  *
- *    path: a url that the IM can use to load dictionaries or other resources
+ *    path:
+ *      a url that the IM can use to load dictionaries or other resources
  *
  *    sendCandidates:
  *      A method that makes the keyboard display candidates or suggestions
@@ -103,13 +107,18 @@
  *      layouts on the keyboard. Used by the latin IM.
  *
  *    setUpperCase(upperCase, upperCaseLocked): allows the IM to switch between
- *    uppercase and lowercase layout on the keyboard. Used by the latin IM.
- *      upperCase: to enable the upper case or not.
- *      upperCaseLocked: to change the caps lock state.
+ *      uppercase and lowercase layout on the keyboard. Used by the latin IM.
+ *      - upperCase: to enable the upper case or not.
+ *      - upperCaseLocked: to change the caps lock state.
  *
  *    resetUpperCase(): allows the IM to reset the upperCase to lowerCase
- *    without knowing the internal states like caps lock and current layout
- *    page while keeping setUpperCase simple as it is.
+ *      without knowing the internal states like caps lock and current layout
+ *      page while keeping setUpperCase simple as it is.
+ *
+ *    getNumberOfCandidatesPerRow(): allow the IM to know how many candidates
+ *      the Render need in one row so that IM can reduce search time and run the
+ *      remaining process when "getMoreCandidates" is called.
+ *
  */
 
 'use strict';
@@ -174,6 +183,7 @@ var menuLockedArea = null;
 var layoutMenuLockedArea = null;
 var isKeyboardRendered = false;
 var currentCandidates = [];
+var candidatePanelScrollTimer = null;
 const CANDIDATE_PANEL_SWITCH_TIMEOUT = 100;
 
 // Show accent char menu (if there is one) after ACCENT_CHAR_MENU_TIMEOUT
@@ -1132,7 +1142,9 @@ function isNormalKey(key) {
 function onTouchStart(evt) {
   // Prevent a mouse event from firing (this doesn't currently work
   // because of bug 819102)
-  evt.preventDefault();
+
+  if (!IMERender.isFullCandidataPanelShown())
+    evt.preventDefault();
 
   // Let the world know that we're using touch events.
   touchEventsPresent = true;
@@ -1167,7 +1179,8 @@ function onTouchStart(evt) {
 
 function onTouchMove(evt) {
   // Prevent a mouse event from firing
-  evt.preventDefault();
+  if (!IMERender.isFullCandidataPanelShown())
+    evt.preventDefault();
 
   handleTouches(evt, function handleTouchMove(touch, touchId) {
     // Avoid calling document.elementFromPoint and movePress if
@@ -1190,7 +1203,9 @@ function onTouchMove(evt) {
 
 function onTouchEnd(evt) {
   // Prevent a mouse event from firing
-  evt.preventDefault();
+  if (!IMERender.isFullCandidataPanelShown())
+    evt.preventDefault();
+
   touchCount = evt.touches.length;
 
   handleTouches(evt, function handleTouchEnd(touch, touchId) {
@@ -1203,12 +1218,16 @@ function onTouchEnd(evt) {
       var vy = dy / dt;
 
       var keyboardHeight = IMERender.ime.scrollHeight;
+      var hasCandidateScrolled = (IMERender.isFullCandidataPanelShown() &&
+                                  (Math.abs(dx) > 3 || Math.abs(dy) > 3));
 
       // hide the keyboard if:
       // 1. swipe down
       // 2. the distance is longer than half of the keyboard
+      // 3. not in candidate panel
       if ((dy > keyboardHeight / 2 && dy > dx) &&
-          vy > SWIPE_VELOCICTY_THRESHOLD) {
+          vy > SWIPE_VELOCICTY_THRESHOLD &&
+          !hasCandidateScrolled) {
 
         // de-activate the highlighted effect
         if (touchedKeys[touchId] && touchedKeys[touchId].target)
@@ -1235,7 +1254,7 @@ function onTouchEnd(evt) {
     target.removeEventListener('touchcancel', onTouchEnd);
 
     // Send the updated target to endPress.
-    endPress(touchedKeys[touchId].target, touch, touchId);
+    endPress(touchedKeys[touchId].target, touch, touchId, hasCandidateScrolled);
     delete touchedKeys[touchId];
   });
 }
@@ -1394,7 +1413,7 @@ function onMouseUp(evt) {
 }
 
 // The user is releasing a key so the key has been pressed. The meat is here.
-function endPress(target, coords, touchId) {
+function endPress(target, coords, touchId, hasCandidateScrolled) {
   clearTimeout(deleteTimeout);
   clearInterval(deleteInterval);
   clearTimeout(menuTimeout);
@@ -1409,15 +1428,18 @@ function endPress(target, coords, touchId) {
   // IME candidate selected
   var dataset = target.dataset;
   if (dataset.selection) {
+    if (!hasCandidateScrolled) {
+      IMERender.toggleCandidatePanel(false);
 
-    if (inputMethod.select) {
-      // We use dataset.data instead of target.textContent because the
-      // text actually displayed to the user might have an ellipsis in it
-      // to make it fit.
-      inputMethod.select(dataset.data);
+      if (inputMethod.select) {
+        // We use dataset.data instead of target.textContent because the
+        // text actually displayed to the user might have an ellipsis in it
+        // to make it fit.
+        inputMethod.select(target.textContent, dataset.data);
+      }
     }
 
-    IMERender.highlightKey(target);
+    IMERender.unHighlightKey(target);
     return;
   }
 
@@ -1473,12 +1495,56 @@ function endPress(target, coords, touchId) {
 
     // Expand / shrink the candidate panel
   case TOGGLE_CANDIDATE_PANEL:
+    var candidatePanel = document.getElementById('keyboard-candidate-panel');
+
     if (IMERender.ime.classList.contains('candidate-panel')) {
-      IMERender.ime.classList.remove('candidate-panel');
-      IMERender.ime.classList.add('full-candidate-panel');
+      var doToggleCandidatePanel = function doToggleCandidatePanel() {
+        if (candidatePanel.dataset.truncated) {
+          if (candidatePanelScrollTimer) {
+            clearTimeout(candidatePanelScrollTimer);
+            candidatePanelScrollTimer = null;
+          }
+          candidatePanel.addEventListener('scroll', candidatePanelOnScroll);
+        }
+
+        IMERender.toggleCandidatePanel(true);
+      };
+
+      if (candidatePanel.dataset.rowCount < 2) {
+        var firstPageRows = 11;
+        var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
+        var candidateIndicator =
+          parseInt(candidatePanel.dataset.candidateIndicator);
+
+        if (inputMethod.getMoreCandidates) {
+          inputMethod.getMoreCandidates(
+            candidateIndicator,
+            firstPageRows * numberOfCandidatesPerRow + 1,
+            function getMoreCandidatesCallbackOnToggle(list) {
+              IMERender.showMoreCandidates(firstPageRows, list);
+              doToggleCandidatePanel();
+            }
+          );
+        } else {
+          var list = currentCandidates.slice(candidateIndicator,
+            candidateIndicator + firstPageRows * numberOfCandidatesPerRow + 1);
+
+          IMERender.showMoreCandidates(firstPageRows, list);
+          doToggleCandidatePanel();
+        }
+      } else {
+        doToggleCandidatePanel();
+      }
     } else {
-      IMERender.ime.classList.add('candidate-panel');
-      IMERender.ime.classList.remove('full-candidate-panel');
+      if (inputMethod.getMoreCandidates) {
+        candidatePanel.removeEventListener('scroll', candidatePanelOnScroll);
+        if (candidatePanelScrollTimer) {
+          clearTimeout(candidatePanelScrollTimer);
+          candidatePanelScrollTimer = null;
+        }
+      }
+
+      IMERender.toggleCandidatePanel(false);
     }
     break;
 
@@ -1521,6 +1587,38 @@ function endPress(target, coords, touchId) {
       inputMethod.click(keyCode);
     }
     break;
+  }
+}
+
+function candidatePanelOnScroll() {
+  if (candidatePanelScrollTimer) {
+    clearTimeout(candidatePanelScrollTimer);
+    candidatePanelScrollTimer = null;
+  }
+
+  if (this.scrollTop != 0 &&
+      this.scrollHeight - this.clientHeight - this.scrollTop < 5) {
+
+    candidatePanelScrollTimer = setTimeout(function() {
+      var pageRows = 12;
+      var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
+      var candidatePanel = document.getElementById('keyboard-candidate-panel');
+      var candidateIndicator =
+        parseInt(candidatePanel.dataset.candidateIndicator);
+
+      if (inputMethod.getMoreCandidates) {
+        inputMethod.getMoreCandidates(
+          candidateIndicator,
+          pageRows * numberOfCandidatesPerRow + 1,
+          IMERender.showMoreCandidates.bind(IMERender, pageRows)
+        );
+      } else {
+        var list = currentCandidates.slice(candidateIndicator,
+          candidateIndicator + pageRows * numberOfCandidatesPerRow + 1);
+
+        IMERender.showMoreCandidates(pageRows, list);
+      }
+    }, 200);
   }
 }
 
@@ -1735,7 +1833,9 @@ function loadIMEngine(name, callback) {
     setLayoutPage: setLayoutPage,
     setUpperCase: setUpperCase,
     resetUpperCase: resetUpperCase,
-    replaceSurroundingText: replaceSurroundingText
+    replaceSurroundingText: replaceSurroundingText,
+    getNumberOfCandidatesPerRow:
+      IMERender.getNumberOfCandidatesPerRow.bind(IMERender)
   };
 
   script.addEventListener('load', function IMEngineLoaded() {

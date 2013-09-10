@@ -3,20 +3,20 @@ var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
 
 marionette('send email via IMAP', function() {
-  var client = marionette.client({
-    settings: {
-      // disable keyboard ftu because it blocks our display
-      'keyboard.ftu.enabled': false
-    }
-  });
+  var app,
+      client = marionette.client({
+        settings: {
+          // disable keyboard ftu because it blocks our display
+          'keyboard.ftu.enabled': false
+        }
+      });
 
-  var app;
   setup(function() {
     app = new Email(client);
     app.launch();
   });
 
-  var server = serverHelper.use({}, this);
+  var server = serverHelper.use(null, this);
 
   test('should send a email', function() {
     const ONE_NEW_EMAIL_NOTIFICATION = '1 New Email';
@@ -30,15 +30,15 @@ marionette('send email via IMAP', function() {
     app.typeBody('I still have a dream.');
     app.tapSend();
 
+    app.tapRefreshButton();
     app.waitForNewEmail();
     // get the text of the notification bar
-    app.notificationBar.
-      text(function(error, text) {
-        assert.equal(
-          text,
-          ONE_NEW_EMAIL_NOTIFICATION,
-          text + ' should equal ' + ONE_NEW_EMAIL_NOTIFICATION
-        );
-      });
+    var notificationText = app.notificationBar.text();
+    assert.equal(
+      notificationText,
+      ONE_NEW_EMAIL_NOTIFICATION,
+      notificationText + ' should equal ' + ONE_NEW_EMAIL_NOTIFICATION
+    );
   });
 });
+

@@ -831,9 +831,9 @@
      * @param {String} url location to load script from.
      * @param {String} callback callback when script loading is complete.
      */
-    require: function(url, callback) {
+    require: function(url, callback, options) {
       this._queue.push(
-        this._require.bind(this, url, callback)
+        this._require.bind(this, url, callback, options)
       );
 
       if (this._queue.length === 1) {
@@ -848,11 +848,12 @@
      *
      * @private
      */
-    _require: function require(url, callback) {
+    _require: function require(url, callback, options) {
       var prefix = this.prefix,
           suffix = '',
           self = this,
           element,
+          key,
           document = this.targetWindow.document;
 
       if (url in this._cached) {
@@ -868,13 +869,19 @@
 
       this._cached[url] = true;
 
-      var args = arguments;
-
       url = prefix + url + suffix;
       element = document.createElement('script');
       element.src = url;
       element.async = false;
       element.type = this.type;
+
+      if (options) {
+        for (key in options) {
+          if (options.hasOwnProperty(key)) {
+            element.setAttribute(key, options[key]);
+          }
+        }
+      };
 
       function oncomplete() {
         if (callback) {
@@ -2271,6 +2278,80 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   }
 
 }());
+(function() {
+
+  var isNode = typeof(window) === 'undefined';
+
+  if (!isNode) {
+    if (typeof(TestAgent.Common) === 'undefined') {
+      TestAgent.Common = {};
+    }
+  }
+
+  function Blanket() {
+
+  }
+
+  Blanket.prototype = {
+
+    enhance: function enhance(server) {
+      this.server = server;
+      server.on('coverage data', this._onCoverageData.bind(this));
+
+      if (typeof(window) !== 'undefined') {
+        window.addEventListener('message', function(event) {
+          var data = event.data;
+          if (/coverage info/.test(data)) {
+            server.send('coverage data', data);
+          }
+        });
+      }
+    },
+
+    _onCoverageData: function _onCoverageData(data) {
+      var data = JSON.parse(data);
+      data.shift();
+      this._printCoverageResult(data.shift());
+    },
+
+    _printCoverageResult: function _printCoverageResult(coverResults) {
+      var key,
+          titleColor = '\033[1;36m',
+          fileNameColor = '\033[0;37m',
+          stmtColor = '\033[0;33m',
+          percentageColor = '\033[0;36m',
+          originColor = '\033[0m';
+
+      // Print title
+      console.info('    ' + titleColor + '-- Blanket.js Test Coverage Result --' + originColor + '\n');
+      console.info('    ' + fileNameColor + 'File Name' + originColor +
+        ' - ' + stmtColor + 'Covered/Total Smts' + originColor +
+        ' - ' + percentageColor + 'Coverage (\%)\n' + originColor);
+
+      // Print coverage result for each file
+      coverResults.forEach(function(dataItem) {
+        var filename = dataItem.filename,
+            formatPrefix = (filename === "Global Total" ? "\n    " : "      "),
+            seperator = ' - ';
+
+        filename = (filename === "Global Total" ? filename : filename.substr(0, filename.indexOf('?')));
+        outputFormat = formatPrefix;
+        outputFormat += fileNameColor + filename + originColor + seperator;
+        outputFormat += stmtColor + dataItem.stmts + originColor  + seperator;
+        outputFormat += percentageColor + dataItem.percentage + originColor;
+
+        console.info(outputFormat);
+      });
+    }
+  }
+
+  if (isNode) {
+    module.exports = Blanket;
+  } else {
+    TestAgent.Common.BlanketCoverEvents = Blanket;
+  }
+
+}());
 (function(window) {
   'use strict';
 
@@ -2301,7 +2382,11 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
     });
 
     this.on('run tests', function(data) {
-      self.runTests(data.tests || []);
+      self.runTests(data.tests || [], false);
+    });
+
+    this.on('run tests with coverage', function(data) {
+      self.runTests(data.tests || [], true);
     });
   };
 
@@ -2390,7 +2475,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    *
    * @param {Array} tests list of tests to execute.
    */
-  proto.runTests = function runTests(tests) {
+  proto.runTests = function runTests(tests, runCoverage) {
     var self = this,
         done = this._emitTestComplete.bind(this);
 
@@ -2400,6 +2485,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
     this.createSandbox(function createSandbox() {
       self.testRunner(self, self._processTests(tests), done);
+      if (runCoverage) {
+        self.coverageRunner(self);
+      }
     });
   };
 
@@ -2708,7 +2796,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      * associated tests if a current domain
      * is set.
      */
-    _loadNextDomain: function() {
+    _loadNextDomain: function(runCoverage) {
       var iframe;
       //if we have a current domain
       //remove it it should be finished now.
@@ -2728,6 +2816,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       } else {
         this.currentEnv = null;
       }
+
+      this.runCoverage = runCoverage;
     },
 
     /**
@@ -2743,7 +2833,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
         group = this.testGroups[env];
 
         this.send(iframe, 'set env', group.env);
-        this.send(iframe, 'run tests', { tests: group.tests });
+
+        if (!this.runCoverage) {
+          this.send(iframe, 'run tests', { tests: group.tests });
+        } else {
+          this.send(iframe, 'run tests with coverage', { tests: group.tests });
+        }
       }
     },
 
@@ -2780,13 +2875,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
      *
      * @param {Array} tests list of tests to run.
      */
-    runTests: function(tests) {
+    runTests: function(tests, runCoverage) {
       var envs;
       this._createTestGroups(tests);
       envs = Object.keys(this.testGroups);
       this.worker.emit('set test envs', envs);
       this.worker.send('set test envs', envs);
-      this._loadNextDomain();
+      this._loadNextDomain(runCoverage);
     }
 
   };
@@ -2949,6 +3044,98 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   };
 
   window.TestAgent.BrowserWorker.MochaDriver = MochaDriver;
+
+}(this));
+(function(window) {
+  'use strict';
+
+  function BlanketDriver(options) {
+    var key;
+
+    if (typeof(options) === 'undefined') {
+      options = {};
+    }
+
+    for (key in options) {
+      if (options.hasOwnProperty(key)) {
+        this[key] = options[key];
+      }
+    }
+  }
+
+  BlanketDriver.prototype = {
+    /**
+     * Location of the blanket runtime.
+     */
+    blanketUrl: './vendor/blanket/blanket.js',
+
+    /**
+     * Location of config for blanket.
+     */
+    configUrl: '/test/unit/blanket_config.json',
+
+    /**
+     * Default config when config file not found.
+     */
+    _defaultConfig: {
+      'data-cover-only': 'js/'
+    },
+
+    enhance: function enhance(worker) {
+      var self = this;
+      this.worker = worker;
+      worker.coverageRunner = this._coverageRunner.bind(this);
+      this.load(function(data) {
+        self.blanketConfig = data;
+      });
+    },
+
+    _coverageRunner: function _coverageRunner(worker) {
+      var box = worker.sandbox.getWindow();
+      box.require(this.blanketUrl, null, this.blanketConfig);
+    },
+
+    /**
+     * Parse XHR response
+     *
+     * @param {Object} xhr xhr object.
+     */
+    _parseResponse: function _parseResponse(xhr) {
+      var response;
+
+      if (xhr.responseText) {
+        response = JSON.parse(xhr.responseText);
+        //only return files for now...
+        return response;
+      }
+
+      return this._defaultConfig;
+    },
+
+    /**
+     * Loads list of files from url
+     */
+    load: function load(callback) {
+      var xhr = new XMLHttpRequest(),
+          self = this,
+          response;
+
+      xhr.open('GET', this.configUrl, true);
+      xhr.onload = function onload() {
+        if (xhr.status === 200 || xhr.status === 0) {
+          response = self._parseResponse(xhr);
+        } else {
+          response = self._defaultConfig;
+        }
+
+        callback.call(this, response);
+      };
+
+      xhr.send(null);
+    }
+  };
+
+  window.TestAgent.BrowserWorker.BlanketDriver = BlanketDriver;
 
 }(this));
 (function(window) {

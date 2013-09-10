@@ -1,5 +1,6 @@
 <!-- Per-account settings menu; largely read-only for now -->
-<section class="card-settings-account card skin-organic" role="region">
+<section class="card-settings-account card-settings-account-common card skin-organic"
+         role="region">
   <header class="tng-account-header">
     <a href="#" class="tng-back-btn back-btn header-left-btn">
       <span class="icon icon-back"></span>
@@ -7,9 +8,32 @@
     <h1 class="tng-account-header-label header-label">AccounT NamE</h1>
   </header>
   <section class="scrollregion-below-header skin-organic" role="region">
+    <header class="collapsed"></header>
+    <header class="tng-main-accounts-label">
+      <h2 data-l10n-id="settings-sub-header-account">
+        AccounT
+      </h2>
+    </header>
+    <li class="list-text-with-sub">
+      <span data-l10n-id="settings-account-name" class="list-text">
+        YouR NamE</span>
+      <span class="tng-account-name list-sub-text">YouR NamE</span>
+    </li>
+    <li class="list-text-with-sub">
+      <span data-l10n-id="settings-account-display-notifications"
+            class="list-text aside start">
+        DisplaY NotificationS FoR NeW MessageS</span>
+      <em class="aside end">
+        <label class="pack-switch">
+          <input class="tng-notify-mail" type="checkbox">
+          <span></span>
+        </label>
+      </em>
+    </li>
     <li>
-      <span data-l10n-id="settings-default-account" class="list-text">
-        DefaulT AccounT</span>
+      <span data-l10n-id="settings-default-account"
+            class="list-text aside start">
+        SeT AS DefaulT EmaiL</span>
       <em class="aside end">
         <label class="pack-checkbox tng-default-label">
           <input class="tng-default-input" type="checkbox">
@@ -17,15 +41,35 @@
         </label>
       </em>
     </li>
-    <li>
-      <span data-l10n-id="settings-account-type" class="list-text">
-        AccounT TypE</span>
-      <div class="aside end">
-        <span class="tng-account-type list-value">AccounT TypE</span>
-      </div>
+
+    <header class="tng-main-accounts-label">
+      <h2 data-l10n-id="settings-sub-header-data">
+        DatA
+      </h2>
+    </header>
+    <li class="syncinterval-setting select-item">
+      <label data-l10n-id="settings-account-check-mail" class="list-text">
+        ChecK FoR NeW MessageS</label>
+      <span class="button icon icon-dialog">
+        <select class="tng-account-check-interval mail-select">
+          <option value="0" data-l10n-id="settings-check-every-manual">
+            ManuallY</option>
+          <option value="300000" data-l10n-id="settings-check-every-5min">
+            5 MinuteS</option>
+          <option value="600000" data-l10n-id="settings-check-every-10min">
+            10 MinuteS</option>
+          <option value="900000" data-l10n-id="settings-check-every-15min">
+            15 MinuteS</option>
+          <option value="1800000" data-l10n-id="settings-check-every-30min">
+            30 MinuteS</option>
+          <option value="3600000" data-l10n-id="settings-check-every-60min">
+            60 MinuteS</option>
+        </select>
+      </span>
     </li>
-    <li class="synchronize-setting">
-      <label data-l10n-id="settings-account-synchronize" class="list-text">SynchronizE</label>
+    <li class="synchronize-setting select-item">
+      <label data-l10n-id="settings-account-synchronize-window"
+             class="list-text">DayS TO SynC</label>
       <span class="button icon icon-dialog">
         <select class="mail-select tng-account-synchronize">
           <option value="auto" data-l10n-id="settings-synchronize-auto">
@@ -45,10 +89,22 @@
         </select>
       </span>
     </li>
+
+    <header class="tng-main-accounts-label">
+      <h2 data-l10n-id="settings-sub-header-server">
+        ServeR SettingS
+      </h2>
+    </header>
     <li>
-      <a href="#" data-l10n-id="settings-account-credentials"
-        class="tng-account-credentials list-text">CredentialS</a>
-      <em class="aside end"></em>
+      <a href="#" data-l10n-id="settings-account-userpass"
+        class="tng-account-credentials list-text">UsernamE AnD PassworD</a>
+    </li>
+    <li>
+      <span data-l10n-id="settings-account-type" class="list-text aside start">
+        AccounT TypE</span>
+      <div class="aside end">
+        <span class="tng-account-type list-value">AccounT TypE</span>
+      </div>
     </li>
     <div class="tng-account-server-container"></div>
     <li class="align-center">

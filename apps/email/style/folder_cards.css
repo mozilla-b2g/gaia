@@ -30,8 +30,12 @@
   font-weight: bold;
   padding-left: 2rem;
 }
-.fld-account-unread {
-  display: none;
+
+.fld-account-lastsync {
+  color: #c7c7c7;
+  font-size: 150%;
+  font-weight: normal;
+  padding: 0 1rem;
 }
 
 .card-folder-picker,

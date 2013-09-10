@@ -99,10 +99,12 @@ function processFirstQueuedItem() {
     return;
   }
 
-  // If there is no work queued, up return right away
+  // If there is no work queued, update dialog in case there are no playable
+  // videos; then return right away
   if (metadataQueue.length === 0) {
     processingQueue = false;
     hideThrobber();
+    updateDialog();
     return;
   }
 
