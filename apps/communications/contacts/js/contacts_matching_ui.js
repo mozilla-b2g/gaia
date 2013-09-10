@@ -34,17 +34,15 @@ if (!contacts.MatchingUI) {
 
     function load(type, contact, results, cb) {
       document.body.dataset.mode = type;
+      var params = { name: getCompleteName(getDisplayName(contact)) };
+
       if (type === 'matching') {
         // "Suggested duplicate contacts for xxx"
-        duplicateMessage.textContent = _('suggestedDuplicateContacts', {
-          name: contact.name ? contact.name[0] : ''
-        });
+        duplicateMessage.textContent = _('suggestedDuplicateContacts', params);
       } else {
         title.textContent = _('duplicatesFoundTitle');
         // "xxx duplicates information in the following contacts"
-        duplicateMessage.textContent = _('duplicatesFoundMessage', {
-          name: contact.name ? contact.name[0] : ''
-        });
+        duplicateMessage.textContent = _('duplicatesFoundMessage', params);
       }
 
       // Rendering the duplicate contacts list
@@ -95,6 +93,7 @@ if (!contacts.MatchingUI) {
       populate(contact, out,
                     Object.getOwnPropertyNames(Object.getPrototypeOf(contact)));
 
+      out.displayName = getCompleteName(getDisplayName(contact));
       out.mainReason = selectMainReason(reasons);
       if (Array.isArray(out.photo) && out.photo[0]) {
         out.thumb = window.URL.createObjectURL(out.photo[0]);
@@ -102,6 +101,48 @@ if (!contacts.MatchingUI) {
 
       return out;
     }
+
+    function getCompleteName(contact) {
+      var givenName = Array.isArray(contact.givenName) ?
+                      contact.givenName[0] : '';
+
+      var familyName = Array.isArray(contact.familyName) ?
+                      contact.familyName[0] : '';
+
+      var completeName = givenName && familyName ?
+                         givenName + ' ' + familyName :
+                         givenName || familyName;
+
+      return completeName;
+    }
+
+    // Fills the contact data to display if no givenName and familyName
+    function getDisplayName(contact) {
+      if (hasName(contact))
+        return { givenName: contact.givenName, familyName: contact.familyName };
+
+      var givenName = [];
+      if (Array.isArray(contact.name) && contact.name.length > 0) {
+        givenName.push(contact.name[0]);
+      } else if (contact.org && contact.org.length > 0) {
+        givenName.push(contact.org[0]);
+      } else if (contact.tel && contact.tel.length > 0) {
+        givenName.push(contact.tel[0].value);
+      } else if (contact.email && contact.email.length > 0) {
+        givenName.push(contact.email[0].value);
+      } else {
+        givenName.push(_('noName'));
+      }
+
+      return { givenName: givenName, modified: true };
+    };
+
+    function hasName(contact) {
+      return (Array.isArray(contact.givenName) && contact.givenName[0] &&
+                contact.givenName[0].trim()) ||
+              (Array.isArray(contact.familyName) && contact.familyName[0] &&
+                contact.familyName[0].trim());
+    };
 
     function selectMainReason(reasons) {
       var reason, precedence = ['tel', 'email', 'name'];
