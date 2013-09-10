@@ -302,8 +302,24 @@ var WindowManager = (function() {
 
     if (classList.contains('inlineActivity')) {
       if (classList.contains('active')) {
-        if (openFrame)
+        if (openFrame) {
           openFrame.firstChild.focus();
+          var app = runningApps[displayedApp];
+          // Set page visibility of focused app to false
+          // once inline activity frame's transition is ended.
+          // XXX: We have trouble to make all inline activity
+          // openers being sent to background now,
+          // because of OOM killer may kill them accidently.
+          // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
+          // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
+          // So we only set browser app(in-process)'s page visibility
+          // to false now to resolve 914412.
+          if (app && app.iframe &&
+              'contentWindow' in app.iframe &&
+              app.iframe.contentWindow != null) {
+            app.setVisible(false);
+          }
+        }
 
         setOpenFrame(null);
       } else {
