@@ -104,7 +104,7 @@ utils.importFromVcard = function(file, callback) {
         processTextFromFile(text);
       }
     };
-    ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
+    Contacts.confirmDialog(null, _('memoryCardContacts-error'), cancel, retry);
     utils.overlay.hide();
   };
 };
