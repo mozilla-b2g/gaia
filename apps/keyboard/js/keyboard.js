@@ -647,6 +647,10 @@ function modifyLayout(keyboardName) {
   var layout;
   if (altLayoutName) {
     layout = Keyboards[keyboardName][altLayoutName] || Keyboards[altLayoutName];
+    // Bug 914459 - Use keyboard's basicLayoutKey if it is defined.
+    if (Keyboards[keyboardName]['basicLayoutKey']) {
+      layout['basicLayoutKey'] = Keyboards[keyboardName]['basicLayoutKey'];
+    }
   }
   else {
     layout = Keyboards[keyboardName];
