@@ -17,6 +17,18 @@ var UITest = {
     delete this.panelTitle;
     return this.panelTitle = document.getElementById('test-panel-title');
   },
+  handleNotificationMessage: function(message) {
+    if (!message.clicked) {
+      return;
+    }
+
+    // handle notifications when uitest is closed
+    navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
+      var app = evt.target.result;
+
+      app.launch();
+    };
+  },
   init: function ut_init() {
     this.testList.addEventListener('click', this);
     this.iframe.addEventListener('load', this);
@@ -25,6 +37,10 @@ var UITest = {
     window.addEventListener('keyup', this);
     window.addEventListener('hashchange', this);
     this.backBtn.addEventListener('click', this);
+    var self = this;
+    navigator.mozSetMessageHandler('notification', function(msg) {
+      this.handleNotificationMessage(msg);
+    }).bind(this);
 
     var name = this.getNameFromHash();
     if (name)
@@ -81,7 +97,7 @@ var UITest = {
     window.setTimeout(function openTestPage() {
       self.iframe.src = './tests/' + name + '.html';
     }, 200);
-},
+  },
   closeTest: function ut_closeTest() {
     var isOpened = document.body.classList.contains('test');
     if (!isOpened)
