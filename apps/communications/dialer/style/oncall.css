@@ -650,55 +650,6 @@
     display:none; /* TODO */
   }
 
-  /* Handling the status bar mode */
-  @media screen and (max-height: 4.5em ) {
-    body {
-      background-color: #82af00;
-      background-image: url('images/green-noise-bg.png');
-      background-repeat: repeat-x;
-      background-size: auto 4rem;
-    }
-
-    #call-screen {
-      background: transparent;
-
-      border-radius: 0;
-      border-bottom: 0.1rem #4c6700 solid;
-    }
-
-    #main-container {
-      display: none;
-    }
-
-    #calls > section.held {
-      display: none;
-    }
-
-    #calls > section,
-    #calls.big-duration > section {
-      width: 100%;
-      height: 100%;
-      background-color: transparent;
-    }
-
-   #calls > section .numberWrapper,
-   #calls.big-duration > section .numberWrapper {
-      height: 100%;
-      background-color: transparent;
-    }
-
-    #calls > section .numberWrapper .number,
-    #calls.big-duration > section .numberWrapper .number {
-      width: 100%;
-      height: calc(100% - 1rem);
-      padding: 0.5rem 0;
-
-      color: white;
-      font-size: 3.3rem;
-      line-height: 100%;
-    }
-  }
-
   #locked-contact-photo {
     position: absolute;
     top: 21rem;
