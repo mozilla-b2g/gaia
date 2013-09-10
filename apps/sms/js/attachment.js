@@ -167,22 +167,29 @@
         container.classList.add(previewClass);
 
         if (this.isDraft) { // <iframe>
+          // The attachment's iFrame requires access to the parent document's
+          // context so that URIs for Blobs created in the parent may resolve as
+          // expected.
+          container.setAttribute('sandbox', 'allow-same-origin');
+
           var tmplSrc = Template('attachment-draft-tmpl').interpolate({
             previewClass: previewClass,
             baseURL: location.protocol + '//' + location.host + '/',
             attachmentHTML: this.getAttachmentSrc(thumbnail, tmplID)
           }, { safe: ['attachmentHTML'] });
 
-          // The attachment's iFrame requires access to the parent document's
-          // context so that URIs for Blobs created in the parent may resolve as
-          // expected.
-          container.setAttribute('sandbox', 'allow-same-origin');
+          // append the source when it's appended to the dom and loaded
+          container.addEventListener('load', function onload() {
+            this.removeEventListener('load', onload);
+            this.contentDocument.documentElement.innerHTML = tmplSrc;
+          });
 
           // Attach click listeners and fire the callback when rendering is
           // complete: we can't bind `readyCallback' to the `load' event
           // listener because it would break our unit tests.
           container.addEventListener('load', iframeLoad);
-          container.src = 'data:text/html,' + tmplSrc;
+
+          container.src = 'about:blank';
         } else { // <div>
           container.innerHTML = this.getAttachmentSrc(thumbnail, tmplID);
         }
