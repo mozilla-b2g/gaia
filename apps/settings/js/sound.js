@@ -7,13 +7,21 @@
   var lists = {
     'ringtones': {
       settingName: 'dialer.ringtone',
-      element: document.getElementById('ringtones-list')
+      element: document.getElementById('ringtones-list'),
+      enabled: true
     },
     'notifications': {
       settingName: 'notification.ringtone',
-      element: document.getElementById('notifications-list')
+      element: document.getElementById('notifications-list'),
+      enabled: true
     }
   };
+
+  if (!navigator.mozTelephony) {
+    lists.ringtones.enabled = false;
+    document.getElementById('ringtones-header').hidden = true;
+    document.getElementById('ringtones-list').hidden = true;
+  }
 
   // Root path containing the sounds
   var root = '/shared/resources/media/';
@@ -134,7 +142,8 @@
   function generateSoundsLists() {
     for (var key in lists) {
       var list = lists[key];
-
+      if (list.enabled === false)
+        continue;
       // There is a closure in order to keep the right target for list/key
       // when the callback ends.
       (function(list, key) {
@@ -212,6 +221,8 @@
   var button = document.getElementById('call-tone-selection');
   button.onclick = function() {
     for (var key in lists) {
+      if (lists[key].enabled === false)
+        continue;
       activateCurrentElementFor(lists[key]);
     }
     Settings.currentPanel = '#sound-selection';
