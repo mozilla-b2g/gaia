@@ -500,7 +500,16 @@ var PlayerView = {
   },
 
   updateSeekBar: function pv_updateSeekBar() {
-    if (this.isPlaying) {
+    // Don't update the seekbar when the user is seeking.
+    if (this.isSeeking)
+      return;
+
+    // If ModeManager is undefined, then the music app was launched by the open
+    // activity; otherwise, only seek the audio when the mode is PLAYER because
+    // updating the UI will slow down the other pages, such as the scrolling in
+    // ListView.
+    if (typeof ModeManager === 'undefined' ||
+      ModeManager.currentMode === MODE_PLAYER) {
       this.seekAudio();
     }
   },
@@ -653,8 +662,7 @@ var PlayerView = {
         break;
       case 'durationchange':
       case 'timeupdate':
-        if (!this.isSeeking)
-          this.updateSeekBar();
+        this.updateSeekBar();
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.
