@@ -74,6 +74,12 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     var visibleCheckBox = document.querySelector('#device-visible input');
     var bluetoothRename = document.getElementById('bluetooth-rename');
     var renameButton = document.getElementById('rename-device');
+    var updateNameDialog = document.getElementById('update-device-name');
+    var updateNameInput = document.getElementById('update-device-name-input');
+    var updateNameCancelButton =
+        document.getElementById('update-device-name-cancel');
+    var updateNameConfirmButton =
+        document.getElementById('update-device-name-confirm');
 
     var visibleTimeout = null;
     var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
@@ -89,27 +95,30 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       if (myName === '') {
         myName = visibleName.textContent = defaultAdapter.name;
       }
+      updateNameInput.value = myName;
+      updateNameDialog.hidden = false;
+    };
 
-      var nameEntered = window.prompt(_('change-phone-name'), myName);
+    updateNameCancelButton.onclick = function updateNameCancelClicked(evt) {
+      updateNameDialog.hidden = true;
+    };
 
-      // If users click cancel button, we will get null here.
-      if (nameEntered === null) {
-        return;
-      }
-
+    updateNameConfirmButton.onclick = function updateNameConfirmClicked(evt) {
+      var nameEntered = updateNameInput.value;
       nameEntered = nameEntered.replace(/^\s+|\s+$/g, '');
 
       if (nameEntered.length > MAX_DEVICE_NAME_LENGTH) {
         var wantToRetry = window.confirm(_('bluetooth-name-maxlength-alert',
               { length: MAX_DEVICE_NAME_LENGTH }));
 
-        if (wantToRetry) {
-          renameBtnClicked();
+        if (!wantToRetry) {
+          updateNameDialog.hidden = true;
         }
         return;
       }
 
       if (nameEntered === myName || !bluetooth.enabled || !defaultAdapter) {
+        updateNameDialog.hidden = true;
         return;
       }
 
@@ -128,6 +137,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           updateDeviceName(productModel);
         };
       }
+
+      updateNameDialog.hidden = true;
     };
 
     function updateDeviceName(nameEntered) {
