@@ -105,6 +105,7 @@ contacts.Settings = (function() {
     window.addEventListener('message', function updateList(e) {
       if (e.data.type === 'import_updated') {
         updateTimestamps();
+        checkExport();
       }
     });
 
@@ -562,6 +563,7 @@ contacts.Settings = (function() {
           window.importUtils.setTimestamp('sim', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
+            checkExport();
           });
           if (!cancelled) {
             Contacts.showStatus(_('simContacts-imported3', {
@@ -658,6 +660,7 @@ contacts.Settings = (function() {
           window.importUtils.setTimestamp('sd', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
+            checkExport();
             resetWait(wakeLock);
             if (!cancelled) {
               Contacts.showStatus(_('memoryCardContacts-imported3', {
@@ -738,6 +741,26 @@ contacts.Settings = (function() {
     updateOptionStatus(importLiveOption, !navigator.onLine, true);
   };
 
+  var checkExport = function checkExport() {
+    var exportButton = exportContacts.firstElementChild;
+    var req = navigator.mozContacts.getCount();
+    req.onsuccess = function() {
+      if (req.result === 0) {
+        exportButton.setAttribute('disabled', 'disabled');
+      }
+      else {
+         exportButton.removeAttribute('disabled');
+      }
+    };
+
+    req.onerror = function() {
+      window.console.warn('Error while trying to know the contact number',
+                          req.error.name);
+      // In case of error is safer to leave enabled
+      exportButton.removeAttribute('disabled');
+    };
+  };
+
   function saveStatus(data) {
     window.asyncStorage.setItem(PENDING_LOGOUT_KEY, data);
   }
@@ -810,6 +833,7 @@ contacts.Settings = (function() {
     checkSIMCard();
     enableStorageOptions(utils.sdcard.checkStorageCard());
     updateTimestamps();
+    checkExport();
   };
 
   return {
