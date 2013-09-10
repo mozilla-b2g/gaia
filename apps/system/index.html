@@ -46,6 +46,7 @@
     <!-- Include shared resources
     <link rel="resource" type="application/json" href="shared/resources/apn.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/initlogo_large.png"/>
     -->
 
     <link rel="resource" type="image/png" href="shared/resources/branding/Browser.png"/>
@@ -318,6 +319,12 @@
       #poweroff-splash > img.hide,
       #poweroff-splash > video.hide {
         opacity: 0;
+      }
+
+      @media (min-width: 1200px) and (orientation: landscape) {
+        #os-logo {
+          background: #000 url('shared/resources/branding/initlogo_large.png') no-repeat center / cover;
+        }
       }
     </style>
 
