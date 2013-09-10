@@ -60,8 +60,8 @@ var PermissionManager = (function() {
             detail.description;
       // The app hasn't permission description. This shouldn't happen
       // because permission's description is mandatory in manifests
-      } else{ //Avoid of show "undefined" when description is not present
-     	  str = _(permissionID + '-appRequest', { 'app': detail.appName });
+      } else { //Avoid of show "undefined" when description is not present
+        str = _(permissionID + '-appRequest', { 'app': detail.appName });
       }
     } else { // Web content
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
