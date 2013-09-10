@@ -89,7 +89,7 @@ suite('calls handler', function() {
 
       test('should update the CallScreen\'s duration style', function() {
         MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mBigDuration, true);
+        assert.equal(MockCallScreen.mSingleLine, true);
       });
 
       test('should unmute', function() {
@@ -163,7 +163,7 @@ suite('calls handler', function() {
 
       test('should update the CallScreen\'s duration style', function() {
         MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mBigDuration, false);
+        assert.equal(MockCallScreen.mSingleLine, false);
       });
     });
 
@@ -288,7 +288,7 @@ suite('calls handler', function() {
 
       test('should update the CallScreen\'s duration style', function() {
         MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mBigDuration, true);
+        assert.equal(MockCallScreen.mSingleLine, true);
       });
     });
 
@@ -321,7 +321,7 @@ suite('calls handler', function() {
 
       test('should update the CallScreen\'s duration style', function() {
         MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mBigDuration, true);
+        assert.equal(MockCallScreen.mSingleLine, true);
       });
     });
 

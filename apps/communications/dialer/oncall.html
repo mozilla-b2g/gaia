@@ -5,6 +5,7 @@
     <meta http-equiv="pragma" content="no-cache">
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/oncall_status_bar.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
 
     <!-- Localization -->
@@ -50,7 +51,7 @@
             <span role="button" id="switch-calls-button">
             </span>
           </div>
-          <div class="numberWrapper">
+          <div class="numberWrapper direction-status-bar">
             <div class="number font-light"></div>
           </div>
           <div class="fake-number font-light"></div>
@@ -59,21 +60,17 @@
           </div>
           <div class="duration">
             <span class="font-light"></span>
-            <div class="direction">
-              <div></div>
-            </div>
+            <div class="direction"></div>
           </div>
         </section>
         <section id="group-call" hidden>
           <div class="numberWrapper">
-            <div id="group-call-label" class="number font-light"></div>
+            <div id="group-call-label" class="number font-light direction"></div>
           </div>
           <div id="group-call-summary" class="additionalContactInfo"></div>
           <div class="duration">
             <span class="font-light"></span>
-            <div class="direction">
-              <div></div>
-            </div>
+            <div class="direction"></div>
           </div>
         </section>
       </article>

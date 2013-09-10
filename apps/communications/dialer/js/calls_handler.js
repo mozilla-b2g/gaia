@@ -127,7 +127,7 @@ var CallsHandler = (function callsHandler() {
       var openLines = telephony.calls.length +
         (telephony.conferenceGroup.calls.length ? 1 : 0);
 
-      CallScreen.bigDuration = (openLines == 1);
+      CallScreen.singleLine = (openLines == 1);
 
       if (!displayed && !closing) {
         toggleScreen();
@@ -341,6 +341,22 @@ var CallsHandler = (function callsHandler() {
     closing = false;
     window.close();
   }
+
+  var _previousMaxFontSize;
+  function _changeMaxFontSize(evt) {
+    // Status bar
+    if (window.innerHeight <= 40) {
+      _previousMaxFontSize = KeypadManager.maxFontSize;
+      KeypadManager.maxFontSize = 26;
+    } else {
+      KeypadManager.maxFontSize = _previousMaxFontSize;
+    }
+
+    handledCalls.forEach(function(hc) {
+      hc.formatPhoneNumber();
+    });
+  }
+  window.addEventListener('resize', _changeMaxFontSize);
 
   /* Handle commands send to the callscreen via postmessage */
   function handleCommand(evt) {
