@@ -6,7 +6,8 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/permission_manager.js');
 
 function sendChromeEvent(evt_type, evt_permission) {
-  var detail = {'type': evt_type, 'permission': evt_permission};
+  var detail = {'type': evt_type, 'permission': evt_permission,
+                'origin': 'test', 'isApp': false };
   var evt = new CustomEvent('mozChromeEvent', { detail: detail });
 
   window.dispatchEvent(evt);
@@ -30,6 +31,8 @@ suite('system/permission manager', function() {
       assert.equal(PermissionManager.pending, '');
       assert.equal(PermissionManager.nextRequestID, 0);
       assert.equal(PermissionManager.currentRequestId, undefined);
+      assert.equal(PermissionManager.currentOrigin, undefined);
+      assert.equal(PermissionManager.currentPermission, undefined);
     });
   });
 
@@ -145,4 +148,64 @@ suite('system/permission manager', function() {
     });
   });
 
+  suite('bug 907075 dismiss same permissions request from same origin',
+   function() {
+    var spyPrompt;
+    var spyReq;
+    var spyNext;
+    var stubResponse;
+
+    setup(function() {
+      PermissionManager.overlay = document.createElement('div');
+      spyPrompt = this.sinon.spy(PermissionManager, 'handlePermissionPrompt');
+
+      PermissionManager.remember = document.createElement('div');
+      spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
+
+      PermissionManager.yes = document.createElement('div');
+      PermissionManager.no = document.createElement('div');
+      PermissionManager.moreInfoLink = document.createElement('div');
+      PermissionManager.moreInfo = document.createElement('div');
+      PermissionManager.message = document.createElement('div');
+      PermissionManager.moreInfoBox = document.createElement('div');
+
+      spyNext = this.sinon.spy(PermissionManager, 'showNextPendingRequest');
+
+      stubResponse = this.sinon.stub(PermissionManager,
+        'dispatchResponse');
+      sendChromeEvent('permission-prompt', 'audio-capture');
+      sendChromeEvent('permission-prompt', 'audio-capture');
+    });
+
+    teardown(function() {
+      stubResponse.restore();
+      spyNext.restore();
+      spyReq.restore();
+      spyPrompt.restore();
+      PermissionManager.overlay = null;
+      PermissionManager.pending = [];
+    });
+
+    test('prompt called twice', function() {
+      assert.equal(PermissionManager.currentOrigin, 'test');
+      assert.equal(PermissionManager.currentPermission, 'audio-capture');
+
+      assert.isTrue(spyPrompt.calledTwice);
+      assert.isTrue(spyReq.called);
+      assert.equal(PermissionManager.pending.length, 2);
+    });
+
+    test('handle pending', function() {
+      PermissionManager.remember.checked = true;
+      PermissionManager.clickHandler({target: PermissionManager.yes});
+      assert.equal(PermissionManager.pending.length, 1);
+    });
+
+    test('dismiss same permissions request from same origin', function() {
+      PermissionManager.remember.checked = true;
+      PermissionManager.clickHandler({target: PermissionManager.yes});
+      assert.isTrue(spyNext.called);
+      assert.isTrue(stubResponse.called);
+    });
+  });
 });
