@@ -156,6 +156,10 @@ ul[data-state="ready"] li[data-state="ready"] {
   display: block;
 }
 
+ul[data-state="ready"] li > a {
+  padding-right: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
+}
+
 /**
  * Wi-Fi authentication fields:
  *   - hide password field on open networks
