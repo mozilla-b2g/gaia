@@ -26,12 +26,10 @@ var SimFdnLock = {
   },
 
   init: function spl_init() {
+
     if (!IccHelper.enabled) {
       return;
     }
-
-    FDN_AuthorizedNumbers.init();
-    this.renderAuthorizedNumbers();
 
     var callback = this.updateFdnStatus.bind(this);
     IccHelper.addEventListener('cardstatechange', callback);
@@ -51,11 +49,17 @@ var SimFdnLock = {
       pinDialog.show('change_pin2');
     };
 
-    this.resetPin2Button.onclick = function spl_resetPin2() {
-      pinDialog.show('unlock_puk2');
-    };
+//    this.resetPin2Button.onclick = function spl_resetPin2() {
+//      pinDialog.show('unlock_puk2');
+//    };
 
     this.updateFdnStatus();
+
+    window.addEventListener('panelready', function(e) {
+      if (e.detail.current === '#call-fdn-authorized-numbers') {
+        this.renderAuthorizedNumbers();
+      }
+    }.bind(this));
   },
 
   renderAuthorizedNumbers: function() {

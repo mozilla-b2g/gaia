@@ -3,7 +3,6 @@
 var FDN_AuthorizedNumbers = {
 
   icc: null,
-  contacts: [],
 
   init: function() {
     this.icc = navigator.mozIccManager ||
@@ -24,9 +23,10 @@ var FDN_AuthorizedNumbers = {
 
     request.onsuccess = function onsuccess() {
       var result = request.result;
+      var contacts = [];
 
       for (var i = 0, l = result.length; i < l; i++) {
-        this.contacts.push(
+        contacts.push(
           {
             name: result[i].name || '',
             number: result[i].tel[0].value || ''
@@ -35,9 +35,9 @@ var FDN_AuthorizedNumbers = {
       }
 
       if (typeof cb === 'function') {
-        cb(this.contacts);
+        cb(contacts);
       }
-    };.bind(this);
+    };
 
     request.onerror = function error() {
       if (typeof er === 'function') {
@@ -46,5 +46,6 @@ var FDN_AuthorizedNumbers = {
     };
   }
 
-
 };
+
+navigator.mozL10n.ready(FDN_AuthorizedNumbers.init.bind(FDN_AuthorizedNumbers));
