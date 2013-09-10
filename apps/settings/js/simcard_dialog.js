@@ -276,50 +276,56 @@ function SimPinDialog(dialog) {
    */
 
   function initUI(action) {
+    showMessage();
     dialogDone.disabled = true;
 
     var lockType = 'pin'; // used to query the number of retries left
     switch (action) {
+      // unlock
       case 'unlock_pin':
-        showMessage();
         setInputMode('pin');
         _localize(dialogTitle, 'pinTitle');
         break;
-
       case 'unlock_puk':
         lockType = 'puk';
         setInputMode('puk');
         showMessage('simCardLockedMsg', 'enterPukMsg');
         _localize(dialogTitle, 'pukTitle');
         break;
-
       case 'unlock_puk2':
         lockType = 'puk2';
         setInputMode('puk');
-        showMessage('simCardLockedMsg', 'enterPukMsg');
-        _localize(dialogTitle, 'pukTitle');
+        showMessage('simCardLockedMsg', 'enterPuk2Msg');
+        _localize(dialogTitle, 'puk2Title');
         break;
 
+      // PIN lock
       case 'enable_lock':
       case 'disable_lock':
         setInputMode('pin');
         _localize(dialogTitle, 'pinTitle');
         break;
-
-      case 'enable_fdn':
-      case 'disable_fdn':
-        lockType = 'pin2';
-        setInputMode('pin');
-        _localize(dialogTitle, 'fdnTitle');
-        break;
-
-      case 'change_pin2':
-        lockType = 'pin2';
       case 'change_pin':
         setInputMode('new');
         _localize(dialogTitle, 'newpinTitle');
         break;
 
+      // FDN lock (PIN2)
+      case 'enable_fdn':
+        lockType = 'pin2';
+        setInputMode('pin');
+        _localize(dialogTitle, 'fdnEnable');
+      case 'disable_fdn':
+        lockType = 'pin2';
+        setInputMode('pin');
+        _localize(dialogTitle, 'fdnDisable');
+        break;
+      case 'change_pin2':
+        lockType = 'pin2';
+        setInputMode('new');
+        _localize(dialogTitle, 'fdnReset');
+
+      // unsupported
       default:
         console.error('unsupported "' + action + '" action');
         return '';
@@ -328,7 +334,6 @@ function SimPinDialog(dialog) {
     // display the number of remaining retries if necessary
     // XXX this only works with the emulator (and some commercial RIL stacks...)
     // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
-    // => DO NOT RELY ON THIS!!!
     IccHelper.getCardLockRetryCount(lockType, showRetryCount);
     return action;
   }
