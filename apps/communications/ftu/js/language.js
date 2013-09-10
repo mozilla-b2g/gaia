@@ -22,30 +22,30 @@ var LanguageManager = {
   changeDefaultKb: function changeDefaultKb(event) {
     if (this._kbLayoutList) {
       var lock = this.settings.createLock();
+      var kbSettings = KeyboardHelper.keyboardSettings;
+      var protocol =
+          (window.location.protocol === 'http:') ? 'http://' : 'app://';
+      var kbOrigin = protocol + 'keyboard.gaiamobile.org';
+
       // Disable all other keyboard layouts to switch to the new one
-      if (this._languages) {
-        for (var lang in this._languages)
-          if (lang != event.settingValue) {
-            var oldKB = this._kbLayoutList.layout[lang];
-            var settingOldKB = {};
-            settingOldKB['keyboard.layouts.' + oldKB] = false;
-            lock.set(settingOldKB);
-          }
+      for (var i = kbSettings.length - 1; i >= 0; i--) {
+        var kb = kbSettings[i];
+        if (kb.layoutId !== 'number' && kb.enabled)
+          KeyboardHelper.setLayoutEnabled(kbOrigin, kb.layoutId, false);
       }
 
-      var newKB = this._kbLayoutList.layout[event.settingValue];
-      var settingNewKB = {};
-      settingNewKB['keyboard.layouts.' + newKB] = true;
+      var newKbLayouts = this._kbLayoutList.layout[event.settingValue];
+      for (var i = newKbLayouts.length - 1; i >= 0; i--)
+        KeyboardHelper.setLayoutEnabled(kbOrigin, newKbLayouts[i], true);
 
-      lock.set(settingNewKB);
       lock.set({'keyboard.current': event.settingValue});
-      console.log('Keyboard layout changed to ' + event.settingValue);
 
       this._currentLanguage = event.settingValue;
       // If the currently selected language has a non-latin keyboard,
       // activate the English keyboard as well
       if (this._kbLayoutList.nonLatin.indexOf(event.settingValue) !== -1)
-        lock.set({'keyboard.layouts.english': true});
+        KeyboardHelper.setLayoutEnabled(kbOrigin, 'en', true);
+
     }
   },
 
