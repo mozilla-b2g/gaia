@@ -305,10 +305,9 @@ contacts.Settings = (function() {
    * Disables/Enables the actions over the sdcard import functionality
    * @param {Boolean} cardState Whether storage import should be enabled or not.
    */
-  var enableStorageImport = function enableStorageImport(cardState) {
+  var enableStorageOptions = function enableStorageOptions(cardState) {
     updateOptionStatus(importSDOption, !cardState, true);
-    // TODO: uncomment this once we have the SD export ready
-    //updateOptionStatus(exportSDOption, !cardState, true);
+    updateOptionStatus(exportSDOption, !cardState, true);
   };
 
   // Callback that will modify the ui depending if we imported or not
@@ -810,7 +809,7 @@ contacts.Settings = (function() {
     getData();
     checkOnline();
     checkSIMCard();
-    enableStorageImport(utils.sdcard.checkStorageCard());
+    enableStorageOptions(utils.sdcard.checkStorageCard());
     updateTimestamps();
   };
 
