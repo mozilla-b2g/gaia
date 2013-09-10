@@ -169,6 +169,13 @@ suite('telephony helper', function() {
                                               'numberIsBusyMessage'));
     });
 
+    test('should handle FDNBlockedError', function() {
+      subject.call('123');
+      mockCall.onerror(createCallError('FDNBlockedError'));
+      assert.isTrue(spyConfirmShow.calledWith('fdnIsEnabledTitle',
+                                              'fdnIsEnabledMessage'));
+    });
+
     test('should play the busy tone', function() {
       var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
       subject.call('123');
