@@ -160,7 +160,7 @@ var Widget = (function() {
 
   // On balance update fail
   function onErrors(errors, old, key, settings) {
-    if (!errors['BALANCE_TIMEOUT']) {
+    if (!errors || !errors['BALANCE_TIMEOUT']) {
       return;
     }
     debug('Balance timeout!');
