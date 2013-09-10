@@ -31,7 +31,8 @@ var CallScreen = {
   incomingIgnore: document.getElementById('incoming-ignore'),
   lockedContactPhoto: document.getElementById('locked-contact-photo'),
 
-  set bigDuration(enabled) {
+  set singleLine(enabled) {
+    this.calls.classList.toggle('single-line', enabled);
     this.calls.classList.toggle('big-duration', enabled);
   },
 
@@ -88,6 +89,7 @@ var CallScreen = {
       return;
     }
 
+    /* We need CSS transitions for the status bar state and the regular state */
     screen.addEventListener('transitionend', function trWait() {
       screen.removeEventListener('transitionend', trWait);
       if (typeof(callback) == 'function') {
@@ -137,11 +139,13 @@ var CallScreen = {
 
   toggleMute: function cs_toggleMute() {
     this.muteButton.classList.toggle('active-state');
+    this.calls.classList.toggle('muted');
     CallsHandler.toggleMute();
   },
 
   unmute: function cs_unmute() {
     this.muteButton.classList.remove('active-state');
+    this.calls.classList.remove('muted');
     CallsHandler.unmute();
   },
 
