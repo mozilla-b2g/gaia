@@ -1397,9 +1397,6 @@ contacts.List = (function() {
 
       selectActionButton = document.getElementById('select-action');
       selectActionButton.disabled = true;
-      selectActionButton.addEventListener('click', function onSelected(evt) {
-        selectAction(action);
-      });
       selectAll = document.getElementById('select-all');
       selectAll.addEventListener('click', handleSelection);
       deselectAll = document.getElementById('deselect-all');
@@ -1418,6 +1415,10 @@ contacts.List = (function() {
 
     selectActionButton.classList.remove('hide');
     selectActionButton.textContent = title;
+    // Clear any previous click action and setup the current one
+    selectActionButton.removeEventListener('click', selectAction);
+    selectActionButton.addEventListener('click',
+      selectAction.bind(null, action));
 
     // Show the select all/ deselecta ll butons
     selectForm.classList.remove('hide');
