@@ -83,7 +83,9 @@
 
   function _showWidget() {
     _ensureWidget();
-    widgetFrame.setVisible(true);
+    if (widgetFrame) {
+      widgetFrame.setVisible(true);
+    }
   }
 
   function _hideWidget() {
