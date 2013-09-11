@@ -80,6 +80,14 @@ var WapPushManager = {
        return;
     }
 
+    if ((message.contentType != 'text/vnd.wap.si') &&
+        (message.contentType != 'text/vnd.wap.sl')) {
+      console.log('Unsupported or invalid content type "' +
+                  message.contentType + '" for WAP Push message\n');
+      this.close();
+      return;
+    }
+
     asyncStorage.setItem(timestamp.toString(), message, function() {
       navigator.mozApps.getSelf().onsuccess = function(event) {
         var _ = navigator.mozL10n.get;
