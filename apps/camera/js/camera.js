@@ -174,6 +174,7 @@ var Camera = {
 
   _videoProfile: {},
 
+  preferredRecordingSizes: null,
   _shutterKey: 'camera.shutter.enabled',
   _shutterSound: null,
   _shutterSoundEnabled: true,
@@ -351,6 +352,8 @@ var Camera = {
       navigator.mozSettings.addObserver(this._shutterKey, (function(e) {
         this._shutterSoundEnabled = e.settingValue;
       }).bind(this));
+
+      this.getPreferredSizes();
     }
 
     this._storageState = this.STORAGE_INIT;
@@ -860,9 +863,15 @@ var Camera = {
         camera.capabilities.focusModes.indexOf('auto') !== -1;
       this._pictureSize =
         this.pickPictureSize(camera.capabilities.pictureSizes);
-      this._videoProfile =
-        this.pickVideoProfile(camera.capabilities.recorderProfiles);
-
+      this.getPreferredSizes((function() {
+        this._videoProfile =
+          this.pickVideoProfile(camera.capabilities.recorderProfiles);
+          if (this._captureMode === this.VIDEO) {
+            this._videoProfile.rotation = this._phoneOrientation;
+            this._cameraObj.getPreviewStreamVideoMode(
+              this._videoProfile, gotPreviewScreen.bind(this));
+          }
+      }).bind(this));
       this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
 
@@ -875,10 +884,6 @@ var Camera = {
       if (this._captureMode === this.CAMERA) {
         camera.getPreviewStream(this._previewConfig,
                                 gotPreviewScreen.bind(this));
-      } else {
-        this._videoProfile.rotation = this._phoneOrientation;
-        this._cameraObj.getPreviewStreamVideoMode(this._videoProfile,
-                                                  gotPreviewScreen.bind(this));
       }
     }
 
@@ -1355,11 +1360,23 @@ var Camera = {
   },
 
   pickVideoProfile: function camera_pickVideoProfile(profiles) {
-    var profileName;
+    var profileName, matchedProfileName;
+
+    if (this.preferredRecordingSizes) {
+      for (var i = 0; i < this.preferredRecordingSizes.length; i++) {
+        if (this.preferredRecordingSizes[i] in profiles) {
+          matchedProfileName = this.preferredRecordingSizes[i];
+          break;
+        }
+      }
+    }
+
     // Attempt to find low resolution profile if accessed via pick activity
     if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes &&
         'qcif' in profiles) {
       profileName = 'qcif';
+    } else if (matchedProfileName) {
+      profileName = matchedProfileName;
     // Default to cif profile
     } else if ('cif' in profiles) {
       profileName = 'cif';
@@ -1411,6 +1428,22 @@ var Camera = {
       if (callback)
         callback.call(Camera);
     });
+  },
+
+  getPreferredSizes: function camera_getPreferredSized(callback) {
+    var key = 'camera.recording.preferredSizes';
+    if (this.preferredRecordingSizes && callback) {
+      callback();
+      return;
+    }
+
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = (function onsuccess() {
+      this.preferredRecordingSizes = req.result[key] || [];
+      if (callback) {
+        callback();
+      }
+    }.bind(this));
   }
 };
 
