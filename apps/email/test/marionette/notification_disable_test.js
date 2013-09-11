@@ -2,13 +2,13 @@
 /*global marionette, setup, test */
 
 var Email = require('./lib/email');
+var EmailData = require('./lib/email_data');
 var EmailSync = require('./lib/email_sync');
-var assert = require('assert');
 var Notification = require('./lib/notification');
 var serverHelper = require('./lib/server_helper');
 
-marionette('email notifications, foreground', function() {
-  var app, sync, notification,
+marionette('email notifications, disable', function() {
+  var app, sync,
       client = marionette.client({
         settings: {
           // disable keyboard ftu because it blocks our display
@@ -38,7 +38,6 @@ marionette('email notifications, foreground', function() {
   }
 
   function configureAndSend(messageCount) {
-
     // Set up testy1, send email to testy1, since smtp fakserver
     // is paired with the imap fakserver for that account. So,
     // no cross sending of email across fakeserver instances.
@@ -46,18 +45,10 @@ marionette('email notifications, foreground', function() {
 
     for (var i = 0; i < messageCount; i++)
       sendEmail(server1);
-
-    // Now set up second account, to confirm system notifications
-    // are only triggered in certain situations.
-    app.tapFolderListButton();
-    app.tapSettingsButton();
-    app.tapAddAccountButton();
-    app.manualSetupImapEmail(server2);
   }
 
   setup(function() {
     app = new Email(client);
-    notification = new Notification(client);
     sync = new EmailSync(client);
 
     client.contentScript.inject(__dirname +
@@ -66,51 +57,36 @@ marionette('email notifications, foreground', function() {
     app.launch();
   });
 
-  test('should have 1 message notification in the different account',
+  test('disable notification, but still sync',
   function() {
     configureAndSend(1);
 
-    sync.triggerSync();
-
-    // Go back to system app
-    client.switchToFrame();
-
-    // Make sure notification container is visible
-    assert(notification
-           .getFirstIconUrl().indexOf('type=message_reader') !== -1);
-  });
-
-  test('should have bulk message notification in the different account',
-  function() {
-    configureAndSend(2);
-
-    sync.triggerSync();
-
-    // Go back to system app
-    client.switchToFrame();
-
-    // Make sure notification container is visible
-    assert(notification
-           .getFirstIconUrl().indexOf('type=message_list') !== -1);
-  });
-
-  test('should not get a notification for same account', function() {
-    configureAndSend(1);
-
-    // Switch back to testy1 account in the UI
+    // Open the prefs and turn off getting notifications.
     app.tapFolderListButton();
-    app.tapAccountListButton();
-    // switch to the testy1 account
-    app.switchAccount(1);
-    // hide the folder list page
+    app.tapSettingsButton();
+    app.tapSettingsAccountIndex(0);
+    app.tapNotifyEmailCheckbox();
+    app.tapAccountSettingsBackButton();
+    app.tapSettingsDoneButton();
     app.tapFolderListCloseButton();
 
-    // Now sync
+    // Wait for the account to report the pref change.
+    var emailData = new EmailData(client);
+    emailData.waitForCurrentAccountUpdate('notifyOnNew', false);
+
+    // Now set up second account, to confirm system notifications
+    // are only triggered in certain situations.
+    app.tapFolderListButton();
+    app.tapSettingsButton();
+    app.tapAddAccountButton();
+    app.manualSetupImapEmail(server2);
+
     sync.triggerSync();
 
-    // Go back to system app
+    // Go back to system app, make sure no notification shows up
     client.switchToFrame();
 
+    var notification = new Notification(client);
     notification.assertNoNotification();
   });
 });
