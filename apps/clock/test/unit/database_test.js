@@ -39,7 +39,10 @@ suite('Database Test', function() {
         done();
       }).bind(this);
       req.onerror = function(ev) {
-        done(new Error(JSON.stringify(ev)));
+        done(new Error('error ' + JSON.stringify(ev)));
+      };
+      req.onblocked = function(ev) {
+        done(new Error('blocked ' + JSON.stringify(ev)));
       };
     });
 

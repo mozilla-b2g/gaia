@@ -212,6 +212,9 @@
       var req = indexedDB.open(databaseName, Math.pow(2, 53) - 1);
       var getEffective = (function(transaction, callback) {
         var db = transaction.db;
+        db.onversonchange = function(ev) {
+          db.close();
+        };
         var ev = transaction.objectStore(this.effectiveVersionName);
         var req = ev.get(0);
         req.onsuccess = function(ev) {
@@ -409,6 +412,9 @@
             }
           });
         }).bind(this);
+        req.onblocked = function(event) {
+          callback && callback(new Error('blocked'));
+        };
       }).bind(this);
       var loaderOpener = function(upgrading, version, effective) {
         if (upgrading) {
