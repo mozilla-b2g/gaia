@@ -67,7 +67,6 @@ suite('WiFi > ', function() {
   var stubWifiManager;
   var stubRequestWakeLock;
   var stubAddEventListener;
-  var stubPower;
 
   var fakeClock;
 
@@ -101,6 +100,9 @@ suite('WiFi > ', function() {
     navigator.battery = realBattery;
 
     realMozPower = navigator.mozPower;
+    Object.defineProperty(navigator, 'mozPower', {
+      writable: true
+    });
     navigator.mozPower = MockMozPower;
 
     requireApp('system/js/wifi.js', done);

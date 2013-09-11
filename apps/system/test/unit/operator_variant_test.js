@@ -1,7 +1,6 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('system/shared/js/operator_variant_helper.js');
@@ -11,7 +10,7 @@ var mocksForOperatorVariant = new MocksHelper([
 ]).init();
 
 suite('operator variant', function() {
-  const TEST_NETWORK_MCC = 1;
+  const TEST_NETWORK_MCC = 111;
 
   const EXPECTED_DATA_MNC = 1;
   const EXPECTED_DATA_ICC_INFO = {
@@ -53,9 +52,6 @@ suite('operator variant', function() {
   suiteSetup(function() {
     MockIccHelper.mProps.cardState = 'ready';
 
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
 
@@ -71,13 +67,12 @@ suite('operator variant', function() {
   });
 
   setup(function() {
-    MockNavigatorMozMobileConnection.iccInfo = NULL_ICC_INFO;
-    MockNavigatorMozMobileConnection.triggerEventListeners('iccinfochange', {});
+    MockIccHelper.mProps.iccInfo = NULL_ICC_INFO;
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
   });
 
   teardown(function() {
-    MockNavigatorMozMobileConnection.iccInfo = NULL_ICC_INFO;
-    MockNavigatorMozMobileConnection.triggerEventListeners('iccinfochange', {});
+    MockIccHelper.mProps.iccInfo = NULL_ICC_INFO;
   });
 
   function setObservers(keyValues, observer, remove) {
@@ -125,8 +120,8 @@ suite('operator variant', function() {
 
     setObservers(DATA_KEYS_VALUES, observer);
 
-    MockNavigatorMozMobileConnection.iccInfo = EXPECTED_DATA_ICC_INFO;
-    MockNavigatorMozMobileConnection.triggerEventListeners('iccinfochange', {});
+    MockIccHelper.mProps.iccInfo = EXPECTED_DATA_ICC_INFO;
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
   });
 
   test('operator variant mms apn', function(done) {
@@ -156,8 +151,6 @@ suite('operator variant', function() {
 
     setObservers(MMS_KEYS_VALUES, observer);
 
-    MockNavigatorMozMobileConnection.iccInfo = EXPECTED_MMS_ICC_INFO;
-    MockNavigatorMozMobileConnection.triggerEventListeners('iccinfochange', {});
+    MockIccHelper.mProps.iccInfo = EXPECTED_MMS_ICC_INFO;
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
   });
-
-});
