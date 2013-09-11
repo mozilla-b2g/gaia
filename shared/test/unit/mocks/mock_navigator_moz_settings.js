@@ -9,8 +9,17 @@
       removedObservers = {};
 
   function mns_mLockSet(obj) {
+    // Set values.
     for (var key in obj) {
       settings[key] = obj[key];
+    }
+
+    // Trigger observers to mimic real mozSettings implementation.
+    for (var key in obj) {
+      mns_mTriggerObservers(
+        key,
+        { settingName: key, settingValue: obj[key] }
+      );
     }
   }
 
@@ -41,6 +50,11 @@
   function mns_removeObserver(name, cb) {
     removedObservers[name] = removedObservers[name] || [];
     removedObservers[name].push(cb);
+
+    var index = observers[name].indexOf(cb);
+    if (index > -1) {
+      observers[name].splice(index, 1);
+    }
   }
 
   function mns_createLock() {
