@@ -11,6 +11,11 @@ var SimFdnLock = {
   resetPin2Button: document.querySelector('#fdn-resetPIN2 button'),
   contactsContainer: document.getElementById('fdn-contactsContainer'),
 
+  // nodes needed to add number to authorized list
+  addNumberSubmit: document.getElementById('fdn-addNumber-submit'),
+  addNumberName: document.getElementById('fdn-addNumber-name'),
+  addNumberNumber: document.getElementById('fdn-addNumber-number'),
+
   updateFdnStatus: function spl_updateSimStatus() {
     var self = this;
     var req = IccHelper.getCardLock('fdn');
@@ -54,8 +59,12 @@ var SimFdnLock = {
       }
     }.bind(this));
 
+    this.addNumberSubmit.addEventListener(
+      'click',
+      this.addNumberToAuthorizedList.bind(this)
+    );
   },
-  
+
   renderAuthorizedNumbers: function() {
      this.contactsContainer.innerHTML = '';
 
@@ -82,6 +91,27 @@ var SimFdnLock = {
      li.appendChild(nameContainer);
 
      return li;
+   },
+
+   addNumberToAuthorizedList: function() {
+     FDN_AuthorizedNumbers.addNumber(
+       this.addNumberError,
+       this.addNumberSuccess.bind(this),
+       this.addNumberName.value,
+       this.addNumberNumber.value
+     );
+   },
+
+   addNumberError: function(e) {
+     throw new Error(
+       'Something goes wrong with adding number to the authorized list',
+       e
+      );
+   },
+
+   addNumberSuccess: function() {
+     this.addNumberName.value = '';
+     this.addNumberNumber.value = '';
    }
 };
 
