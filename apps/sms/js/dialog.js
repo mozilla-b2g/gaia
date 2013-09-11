@@ -3,8 +3,8 @@
 
 /*
  Generic confirm screen. Only 'cancel/default' is mandatory.  For having l10n
- you should define the key value and you have to set l10n to 'true'. Options
- should follow the following structure:
+ you should define the key value and you have to set l10n to 'true' or an object
+ that contains parameters. Options should follow the following structure:
 
  {
   title: {
@@ -48,7 +48,7 @@ function createLocalizedElement(tagName, param) {
 
   // otherwise if l10n is not false, we use the l10n localize method
   } else if (param.l10n !== false) {
-    navigator.mozL10n.localize(element, param.value);
+    navigator.mozL10n.localize(element, param.value, param.l10n);
 
   // otherwise - stuff text in here...
   } else {
