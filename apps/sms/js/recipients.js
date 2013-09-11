@@ -990,25 +990,21 @@
       var dialog = new Dialog(
         {
           title: {
-            value: recipient.name || recipient.number,
-            l10n: false
+            value: recipient.name || recipient.number
           },
           body: {
-            value: dialogBody,
-            l10n: false
+            value: dialogBody
           },
           options: {
             cancel: {
               text: {
-                value: 'cancel',
-                l10n: true
+                l10nId: 'cancel'
               },
               method: handler
             },
             confirm: {
               text: {
-                value: 'remove',
-                l10n: true
+                l10nId: 'remove'
               },
               method: function() {
                 response.isConfirmed = true;

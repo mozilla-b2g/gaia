@@ -1675,18 +1675,16 @@ var ThreadUI = global.ThreadUI = {
 
     var dialog = new Dialog({
       title: {
-        value: messageTitle,
-        l10n: true
+        l10nId: messageTitle
       },
       body: {
-        value: messageBody,
-        l10n: messageBodyParams
+        l10nId: messageBody,
+        l10nArgs: messageBodyParams
       },
       options: {
         cancel: {
           text: {
-            value: buttonLabel,
-            l10n: true
+            l10nId: buttonLabel
           }
         }
       }

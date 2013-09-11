@@ -1073,63 +1073,63 @@ suite('thread_ui.js >', function() {
         test('show general error for no signal error', function() {
           ThreadUI.showSendMessageError('NoSignalError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for not found error', function() {
           ThreadUI.showSendMessageError('NotFoundError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for unknown error', function() {
           ThreadUI.showSendMessageError('UnknownError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for internal error', function() {
           ThreadUI.showSendMessageError('InternalError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for invalid address error', function() {
           ThreadUI.showSendMessageError('InvalidAddressError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show no SIM card', function() {
           ThreadUI.showSendMessageError('NoSimCardError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendNoSimCardTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendNoSimCardBody');
         });
 
         test('show air plane mode', function() {
           ThreadUI.showSendMessageError('RadioDisabledError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendAirplaneModeTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendAirplaneModeBody');
         });
 
@@ -1138,9 +1138,9 @@ suite('thread_ui.js >', function() {
               'FdnCheckError',
               ['123', '456', '789']
           );
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'fdnBlockedTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'fdnBlockedBody');
         });
       });

@@ -10,9 +10,8 @@ function MockDialog(params) {
       params.options[option].method();
     };
 
-    // Setup the initial |false| value, this
-    // prevents assert.isFalse from failing
-    // on |undefined| trigger properties
+    // Setup the initial |false| value, this prevents assert.isFalse from
+    // failing on |undefined| trigger properties
     MockDialog.triggers[option].called = false;
   });
 }

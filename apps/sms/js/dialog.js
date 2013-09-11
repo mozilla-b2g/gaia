@@ -2,33 +2,34 @@
 'use strict';
 
 /*
- Generic confirm screen. Only 'cancel/default' is mandatory.  For having l10n
- you should define the key value and you have to set l10n to 'true' or an object
- that contains parameters. Options should follow the following structure:
+ Generic confirm screen. Only 'cancel/default' is mandatory.
+
+ Text field are localized when their `l10nId' parameter is set -- in which case,
+ the optional `l10nArgs' parameter is applied. Without `l10nId', the `value'
+ parameter will be used: it can be either an HTML node or plain text.
+
+ Options should follow the following structure:
 
  {
   title: {
-    value: 'foo Title',
-    l10n: false
+    value: 'foo Title'
   },
   body: {
-    value: 'foo Body',
-    l10n: false
+    l10nId: 'showMessageCount',
+    l10nArgs: { n: count }
   },
   options: {
-    // Cancel is a mandatory option. You need to define at least the text
+    // Cancel is a mandatory option. You need to define at least the text.
     cancel: {
       text: {
-        value: 'cancel',
-        l10n: true
+        l10nId: 'cancel'
       }
     },
     // Confirm is an optional one. As in cancel, you could add as well a method
-    // with params
+    // with params.
     confirm: {
       text: {
-        value: 'remove',
-        l10n: true
+        l10nId: 'remove'
       },
       method: function(params) {
         fooFunction(params);
@@ -42,13 +43,13 @@
 function createLocalizedElement(tagName, param) {
   var element = document.createElement(tagName);
 
-  // if we passed in a HTML Fragment, it is already localized
-  if (param.value.nodeType) {
-    element.appendChild(param.value);
+  // if we passed an l10nId, use the l10n `localize' method
+  if (param.l10nId) {
+    navigator.mozL10n.localize(element, param.l10nId, param.l10nArgs);
 
-  // otherwise if l10n is not false, we use the l10n localize method
-  } else if (param.l10n !== false) {
-    navigator.mozL10n.localize(element, param.value, param.l10n);
+  // if we passed in a HTML Fragment, it is already localized
+  } else if (param.value.nodeType) {
+    element.appendChild(param.value);
 
   // otherwise - stuff text in here...
   } else {
