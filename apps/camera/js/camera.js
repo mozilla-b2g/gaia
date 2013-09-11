@@ -174,7 +174,8 @@ var Camera = {
 
   _videoProfile: {},
 
-  preferredRecordingSizes: null,
+  _preferredRecordingSizes: null,
+  _preferredImageResolution: null,
   _shutterKey: 'camera.shutter.enabled',
   _shutterSound: null,
   _shutterSoundEnabled: true,
@@ -353,7 +354,8 @@ var Camera = {
         this._shutterSoundEnabled = e.settingValue;
       }).bind(this));
 
-      this.getPreferredSizes();
+      this.getPreferredRecordingSizes();
+      this.getPreferredResolution();
     }
 
     this._storageState = this.STORAGE_INIT;
@@ -861,9 +863,12 @@ var Camera = {
       this._cameraObj = camera;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
-      this._pictureSize =
-        this.pickPictureSize(camera.capabilities.pictureSizes);
-      this.getPreferredSizes((function() {
+      this.getPreferredResolution((function() {
+        this._pictureSize =
+          this.pickPictureSize(camera.capabilities.pictureSizes);
+        this.setPreviewSize(camera);
+      }).bind(this));
+      this.getPreferredRecordingSizes((function() {
         this._videoProfile =
           this.pickVideoProfile(camera.capabilities.recorderProfiles);
           if (this._captureMode === this.VIDEO) {
@@ -872,7 +877,6 @@ var Camera = {
               this._videoProfile, gotPreviewScreen.bind(this));
           }
       }).bind(this));
-      this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
 
       camera.onShutter = (function() {
@@ -1320,7 +1324,7 @@ var Camera = {
       targetSize = {'width': this._pendingPick.source.data.width,
                     'height': this._pendingPick.source.data.height};
     }
-    var maxRes = this.MAX_IMAGE_RES;
+    var maxRes = this._preferredImageResolution || this.MAX_IMAGE_RES;
     var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;
@@ -1362,10 +1366,10 @@ var Camera = {
   pickVideoProfile: function camera_pickVideoProfile(profiles) {
     var profileName, matchedProfileName;
 
-    if (this.preferredRecordingSizes) {
-      for (var i = 0; i < this.preferredRecordingSizes.length; i++) {
-        if (this.preferredRecordingSizes[i] in profiles) {
-          matchedProfileName = this.preferredRecordingSizes[i];
+    if (this._preferredRecordingSizes) {
+      for (var i = 0; i < this._preferredRecordingSizes.length; i++) {
+        if (this._preferredRecordingSizes[i] in profiles) {
+          matchedProfileName = this._preferredRecordingSizes[i];
           break;
         }
       }
@@ -1430,16 +1434,44 @@ var Camera = {
     });
   },
 
-  getPreferredSizes: function camera_getPreferredSized(callback) {
+  getPreferredRecordingSizes: function camera_getPreferredSized(callback) {
     var key = 'camera.recording.preferredSizes';
-    if (this.preferredRecordingSizes && callback) {
-      callback();
+    if (this._preferredRecordingSizes) {
+      if (callback) {
+        callback();
+      }
       return;
     }
 
     var req = navigator.mozSettings.createLock().get(key);
     req.onsuccess = (function onsuccess() {
-      this.preferredRecordingSizes = req.result[key] || [];
+      this._preferredRecordingSizes = req.result[key] || [];
+      if (callback) {
+        callback();
+      }
+    }.bind(this));
+  },
+
+  getPreferredResolution: function camera_getPreferredResolution(callback) {
+    var key = 'camera.image.preferredResolution';
+    if (this._preferredImageResolution !== null) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
+    var req = navigator.mozSettings.createLock().get(key);
+    req.onsuccess = (function onsuccess() {
+      // the customized value will be a string in 'width * height' format
+      // e.g. '1024 * 768'
+      if (!req.result[key] || req.result[key].length === 0) {
+        this._preferredImageResolution = 0;
+      } else {
+        var valueStrings = req.result[key].split(/\s\*\s/);
+        this._preferredImageResolution =
+          parseInt(valueStrings[0]) * parseInt(valueStrings[1]);
+      }
       if (callback) {
         callback();
       }

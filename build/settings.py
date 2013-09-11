@@ -24,6 +24,7 @@ settings = {
  "audio.volume.cemaxvol": 11,
  "bluetooth.enabled": False,
  "camera.shutter.enabled": True,
+ "camera.image.preferredResolution": "",
  "camera.recording.preferredSizes": [],
  "clear.remote-windows.data": False,
  "debug.grid.enabled": False,
