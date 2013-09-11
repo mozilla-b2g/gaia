@@ -36,10 +36,10 @@ var LazyLoader = (function() {
 
     _html: function(domNode, callback) {
 
-      // The next few lines are for loading web components in DEBUG mode
+      // The next few lines are for loading html imports in DEBUG mode
       if (domNode.getAttribute('is')) {
-        this.load(['/shared/js/web_components.js'], function() {
-          WebComponents.populate(callback);
+        this.load(['/shared/js/html_imports.js'], function() {
+          HtmlImports.populate(callback);
         }.bind(this));
         return;
       }
