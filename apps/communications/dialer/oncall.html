@@ -7,6 +7,8 @@
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall_status_bar.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/status.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/status.css">
 
     <!-- Localization -->
     <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
@@ -77,6 +79,7 @@
       <article id="group-call-details">
       </article>
       <article id="main-container">
+
         <div id="actions-container">
           <div id="swiper-wrapper">
             <div id="swiper-area"></div>
@@ -94,6 +97,9 @@
               </div>
             </div>
           </div>
+          <section id="statusMsg" role="status">
+            <p></p>
+          </section>
           <footer id="call-options">
             <section id="co-advanced">
               <div class="grid-wrapper grid">

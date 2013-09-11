@@ -39,6 +39,9 @@ var MockCallScreen = {
   hideIncoming: function() {
     this.mHideIncomingCalled = true;
   },
+  showStatusMessage: function(text) {
+    this.mShowStatusMessageCalled = true;
+  },
 
   set singleLine(value) {
     this.mSingleLine = value;
@@ -70,6 +73,7 @@ var MockCallScreen = {
     this.mLastRenderMode = null;
     this.mShowIncomingCalled = false;
     this.mHideIncomingCalled = false;
+    this.mShowStatusMessageCalled = false;
     this.calls = document.createElement('div');
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
