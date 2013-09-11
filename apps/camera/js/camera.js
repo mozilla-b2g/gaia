@@ -1029,7 +1029,7 @@ var Camera = {
       this.stopRecording();
       this.sizeLimitAlertActive = true;
       var alertText = this._pendingPick ? 'activity-size-limit-reached' :
-        'size-limit-reached';
+        'storage-size-limit-reached';
       alert(navigator.mozL10n.get(alertText));
       this.sizeLimitAlertActive = false;
     }
