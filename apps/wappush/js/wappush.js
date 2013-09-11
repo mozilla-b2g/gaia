@@ -75,7 +75,7 @@ var WapPushManager = {
    *
    * @return {Boolean} true if the message should be displayed, false otherwise
    */
-  shouldDisplayMessage : function wpm_shouldDisplayMessage(message) {
+  shouldDisplayMessage: function wpm_shouldDisplayMessage(message) {
     if (!this._wapPushEnabled || !WhiteList.has(message.sender)) {
        /* WAP push functionality is either completely disabled or the message
         * comes from a non white-listed MSISDN, ignore it. */
