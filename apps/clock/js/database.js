@@ -151,7 +151,7 @@
       Utils.data.sortedRemove(added, this[listName],
         Utils.data.keyedCompare('version'));
       Utils.data.sortedInsert(added, this[listName],
-        Utils.data.keyedCompare('version', true));
+        Utils.data.keyedCompare('version'), true);
     };
   };
 
