@@ -323,7 +323,7 @@ Utils.data = {
                (typeof b === 'string' || b instanceof String)) {
       return (a < b) ? -1 : ((a > b) ? 1 : 0);
     } else if (Array.isArray(a) && Array.isArray(b)) {
-      var commonLength = (a.length > b.length) ? b.length : a.length;
+      var commonLength = Math.min(a.length, b.length);
       for (var i = 0; i < commonLength; i++) {
         var compareResult = Utils.data.defaultCompare(a[i], b[i]);
         if (compareResult !== 0) {
