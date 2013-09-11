@@ -4,7 +4,6 @@ mocha.globals(['SettingsListener', 'ScreenManager',
   'Wifi', 'addEventListener']);
 
 requireApp('system/test/unit/mock_wifi_manager.js');
-requireApp('system/test/unit/mock_navigator_moz_power.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 var MockMozSettings = {
@@ -67,7 +66,6 @@ suite('WiFi > ', function() {
   var stubWifiManager;
   var stubRequestWakeLock;
   var stubAddEventListener;
-  var stubPower;
 
   var fakeClock;
 
@@ -75,7 +73,6 @@ suite('WiFi > ', function() {
   var realScreenManager;
   var realMozSetMessageHandler;
   var realBattery;
-  var realMozPower;
 
   setup(function(done) {
     stubMozSettings = this.sinon.stub(navigator,
@@ -84,7 +81,6 @@ suite('WiFi > ', function() {
       'mozWifiManager', MockWifiManager);
     stubRequestWakeLock = this.sinon.stub(navigator,
       'requestWakeLock', MockRequestWakeLock);
-
     fakeClock = this.sinon.useFakeTimers();
 
     realScreenManager = window.ScreenManager;
@@ -100,9 +96,6 @@ suite('WiFi > ', function() {
     });
     navigator.battery = realBattery;
 
-    realMozPower = navigator.mozPower;
-    navigator.mozPower = MockMozPower;
-
     requireApp('system/js/wifi.js', done);
   });
 
@@ -115,7 +108,6 @@ suite('WiFi > ', function() {
     window.SettingsListener = realSettingsListener;
     window.ScreenManager = realScreenManager;
     navigator.mozSetMessageHandler = realMozSetMessageHandler;
-    navigator.mozPower = realMozPower;
   });
 
   suite('Init', function() {

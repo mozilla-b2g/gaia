@@ -114,6 +114,9 @@ OperatorVariantHelper.prototype = {
 
   /**
    * Get the saved ICC Settings (MCC/MNC).
+   *
+   * @param {Boolean} verifyAgainstSIM Verify saved values against live value
+   *                                   reported by SIM card. Defaults to true.
    */
   getICCSettings: function() {
     var transaction = this.settings.createLock();

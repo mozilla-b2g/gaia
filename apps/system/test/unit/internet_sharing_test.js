@@ -65,6 +65,10 @@ suite('internet sharing > ', function() {
     var cset = {};
     cset[key] = value;
     MockNavigatorSettings.createLock().set(cset);
+    MockNavigatorSettings.mTriggerObservers(key, {
+      'settingName': key,
+      'settingValue': value
+    });
   }
   // suite 1 from no sim card to sim card inserted, and re-inserted again.
   suite('from null sim to sim 1 >>', function() {
@@ -154,7 +158,7 @@ suite('internet sharing > ', function() {
       changeSettings(KEY_USB_TETHERING, true);
       var testSet = [
         {'key': PREFIX_ASYNC_STORAGE_USB + TEST_ICCID1, 'result': true},
-        {'key': PREFIX_ASYNC_STORAGE_WIFI + TEST_ICCID1, 'result': false},
+        {'key': PREFIX_ASYNC_STORAGE_WIFI + TEST_ICCID1, 'result': null},
         {'key': PREFIX_ASYNC_STORAGE_USB + TEST_ICCID2, 'result': null},
         {'key': PREFIX_ASYNC_STORAGE_WIFI + TEST_ICCID2, 'result': null}];
       assertAynscStorageEquals(testSet);
@@ -163,7 +167,7 @@ suite('internet sharing > ', function() {
     test('sim1 removed', function() {
       changeCardState('absent', null);
       IccHelper.mProps['cardState'] = 'absent';
-      IccHelper.mProps['iccInfo'] = {};
+      IccHelper.mProps['iccInfo'] = null;
       IccHelper.mTriggerEventListeners('cardstatechange', {});
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
