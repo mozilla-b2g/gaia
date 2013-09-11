@@ -179,6 +179,7 @@ section li.password {
 }
 
 section li.password > label {
+  position: absolute;
   top: 8.3rem;
   left: 0;
   right: 1.5rem;
@@ -186,12 +187,12 @@ section li.password > label {
   z-index: 1;
 }
 
-section li.password > label > span {
+section li.password > label > span:after {
   left: 1.1rem;
   right: auto;
 }
 
-section li.password > span {
+section li.password > label > span {
   position: absolute;
   top: 8.3rem;
   left: 4.5rem;
