@@ -12,13 +12,22 @@ var REPEAT_OFF = 0;
 var REPEAT_LIST = 1;
 var REPEAT_SONG = 2;
 
+// AVRCP spec defined the statuses in capitalized and to be simple,
+// our player just use them instead of defining new constant strings.
+var PLAYSTATUS_STOPPED = 'STOPPED';
+var PLAYSTATUS_PLAYING = 'PLAYING';
+var PLAYSTATUS_PAUSED = 'PAUSED';
+var PLAYSTATUS_FWD_SEEK = 'FWD_SEEK';
+var PLAYSTATUS_REV_SEEK = 'REV_SEEK';
+var PLAYSTATUS_ERROR = 'ERROR';
+
 // We get headphoneschange event when the headphones is plugged or unplugged
 // A related Bug 809106 in Bugzilla
 var acm = navigator.mozAudioChannelManager;
 
 if (acm) {
   acm.addEventListener('headphoneschange', function onheadphoneschange() {
-    if (!acm.headphones && PlayerView.isPlaying) {
+    if (!acm.headphones && PlayerView.playStatus === PLAYSTATUS_PLAYING) {
       PlayerView.pause();
     }
   });
@@ -44,12 +53,12 @@ var PlayerView = {
     return this._audio = document.getElementById('player-audio');
   },
 
-  get isPlaying() {
-    return this._isPlaying;
+  get playStatus() {
+    return this._playStatus;
   },
 
-  set isPlaying(val) {
-    this._isPlaying = val;
+  set playStatus(val) {
+    this._playStatus = val;
   },
 
   get dataSource() {
@@ -100,24 +109,31 @@ var PlayerView = {
     this.previousControl = document.getElementById('player-controls-previous');
     this.nextControl = document.getElementById('player-controls-next');
 
-    this.isPlaying = false;
-    this.isSeeking = false;
+    this.isTouching = false;
+    this.playStatus = PLAYSTATUS_STOPPED;
+    this.pausedPosition = null;
     this.dataSource = [];
     this.playingBlob = null;
     this.currentIndex = 0;
     this.backgroundIndex = 0;
     this.setSeekBar(0, 0, 0); // Set 0 to default seek position
+    this.intervalID = null;
+    this.isContextmenu = false;
 
     this.view.addEventListener('click', this);
+    this.view.addEventListener('contextmenu', this);
 
     // Seeking audio too frequently causes the Desktop build hangs
     // A related Bug 739094 in Bugzilla
     this.seekRegion.addEventListener('touchstart', this);
     this.seekRegion.addEventListener('touchmove', this);
     this.seekRegion.addEventListener('touchend', this);
+    this.previousControl.addEventListener('touchend', this);
+    this.nextControl.addEventListener('touchend', this);
 
     this.audio.addEventListener('play', this);
     this.audio.addEventListener('pause', this);
+    this.audio.addEventListener('playing', this);
     this.audio.addEventListener('durationchange', this);
     this.audio.addEventListener('timeupdate', this);
     this.audio.addEventListener('ended', this);
@@ -129,7 +145,7 @@ var PlayerView = {
 
   clean: function pv_clean() {
     // Cancel a pending enumeration before start a new one
-    if (playerHandle)
+    if (typeof playerHandle !== 'undefined' && playerHandle)
       musicdb.cancelEnumeration(playerHandle);
 
     this.dataSource = [];
@@ -347,9 +363,54 @@ var PlayerView = {
     }
   },
 
-  play: function pv_play(targetIndex, backgroundIndex) {
-    this.isPlaying = true;
+  updateRemoteMetadata: function pv_updateRemoteMetadata() {
+    // If MusicComms does not exist or data source is empty, we don't have to
+    // update the metadata.
+    if (typeof MusicComms === 'undefined' || this.dataSource.length === 0)
+      return;
+    // Update the playing information to AVRCP devices
+    var metadata = this.dataSource[this.currentIndex].metadata;
 
+    // AVRCP expects the duration in ms, note that it's converted from s to ms.
+    var notifyMetadata = {
+      title: metadata.title || unknownTitle,
+      artist: metadata.artist || unknownArtist,
+      album: metadata.album || unknownAlbum,
+      duration: this.audio.duration * 1000,
+      mediaNumber: this.currentIndex + 1,
+      totalMediaCount: this.dataSource.length
+    };
+
+    // Notify the remote device that metadata is changed.
+    MusicComms.notifyMetadataChanged(notifyMetadata);
+  },
+
+  updateRemotePlayStatus: function pv_updateRemotePlayStatus() {
+    // If MusicComms does not exist then no need to update the play status.
+    if (typeof MusicComms === 'undefined')
+      return;
+
+    var position = this.pausedPosition ?
+      this.pausedPosition : this.audio.currentTime;
+
+    var info = {
+      playStatus: this.playStatus,
+      duration: this.audio.duration * 1000,
+      position: position * 1000
+    };
+
+    // Before we resume the player, we need to keep the paused position
+    // because once the connected A2DP device receives different positions
+    // on AFTER paused and BEFORE playing, it will break the play/pause states
+    // that the A2DP device kept.
+    this.pausedPosition = (this.playStatus === PLAYSTATUS_PLAYING) ?
+      null : this.audio.currentTime;
+
+    // Notify the remote device that status is changed.
+    MusicComms.notifyStatusChanged(info);
+  },
+
+  play: function pv_play(targetIndex, backgroundIndex) {
     this.showInfo();
 
     if (arguments.length > 0) {
@@ -395,7 +456,6 @@ var PlayerView = {
   },
 
   pause: function pv_pause() {
-    this.isPlaying = false;
     this.audio.pause();
   },
 
@@ -403,6 +463,22 @@ var PlayerView = {
     this.pause();
     this.audio.removeAttribute('src');
     this.audio.load();
+
+    this.clean();
+    // Player in open activity does not have ModeManager.
+    if (typeof ModeManager !== 'undefined') {
+      ModeManager.playerTitle = null;
+      // To leave player mode and set the correct title to the TitleBar
+      // we have to decide which mode we should back to when the player stops
+      if (ModeManager.currentMode === MODE_PLAYER) {
+        ModeManager.pop();
+      } else {
+        ModeManager.updateTitle();
+      }
+    }
+
+    this.playStatus = PLAYSTATUS_STOPPED;
+    this.updateRemotePlayStatus();
   },
 
   next: function pv_next(isAutomatic) {
@@ -412,6 +488,7 @@ var PlayerView = {
       this.pause();
       return;
     }
+
     // We only repeat a song automatically. (when the song is ended)
     // If users click skip forward, player will go on to next one
     if (this.repeatOption === REPEAT_SONG && isAutomatic) {
@@ -436,16 +513,6 @@ var PlayerView = {
       } else {
         // When reaches the end, stop and back to the previous mode
         this.stop();
-        this.clean();
-        ModeManager.playerTitle = null;
-
-        // To leave player mode and set the correct title to the TitleBar
-        // we have to decide which mode we should back to when the player stops
-        if (ModeManager.currentMode === MODE_PLAYER) {
-          ModeManager.pop();
-        } else {
-          ModeManager.updateTitle();
-        }
         return;
       }
     } else {
@@ -499,8 +566,30 @@ var PlayerView = {
     this.play(realIndex);
   },
 
+  startFastSeeking: function pv_startFastSeeking(direction) {
+    // direction can be 1 or -1, 1 means forward and -1 means rewind.
+    this.isTouching = true;
+    var offset = direction * 2;
+
+    this.playStatus = direction ? PLAYSTATUS_FWD_SEEK : PLAYSTATUS_REV_SEEK;
+    this.updateRemotePlayStatus();
+
+    this.intervalID = window.setInterval(function() {
+      this.seekAudio(this.audio.currentTime + offset);
+    }.bind(this), 15);
+  },
+
+  stopFastSeeking: function pv_stopFastSeeking() {
+    this.isTouching = false;
+    if (this.intervalID)
+      window.clearInterval(this.intervalID);
+
+    // After we cancel the fast seeking, an 'playing' will be fired,
+    // so that we don't have to update the remote play status here.
+  },
+
   updateSeekBar: function pv_updateSeekBar() {
-    if (this.isPlaying) {
+    if (this.playStatus === PLAYSTATUS_PLAYING) {
       this.seekAudio();
     }
   },
@@ -552,28 +641,13 @@ var PlayerView = {
           case 'player-cover':
           case 'player-cover-image':
             this.showInfo();
-
             break;
-
-          case 'player-controls-previous':
-            this.previous();
-
-            break;
-
           case 'player-controls-play':
-            if (this.isPlaying) {
+            if (this.playStatus === PLAYSTATUS_PLAYING)
               this.pause();
-            } else {
+            else
               this.play();
-            }
-
             break;
-
-          case 'player-controls-next':
-            this.next();
-
-            break;
-
           case 'player-album-repeat':
             this.showInfo();
 
@@ -585,9 +659,7 @@ var PlayerView = {
             });
 
             this.setRepeat(newValue);
-
             break;
-
           case 'player-album-shuffle':
             this.showInfo();
 
@@ -599,7 +671,6 @@ var PlayerView = {
             });
 
             this.setShuffle(newValue, this.currentIndex);
-
             break;
         }
 
@@ -623,14 +694,21 @@ var PlayerView = {
         break;
       case 'pause':
         this.playControl.classList.add('is-pause');
+        this.playStatus = PLAYSTATUS_PAUSED;
+        this.updateRemotePlayStatus();
+        break;
+      case 'playing':
+        // The playing event fires when the audio is ready to start.
+        this.playStatus = PLAYSTATUS_PLAYING;
+        this.updateRemotePlayStatus();
         break;
       case 'touchstart':
       case 'touchmove':
         if (evt.type === 'touchstart') {
-          this.isSeeking = true;
+          this.isTouching = true;
           this.seekIndicator.classList.add('highlight');
         }
-        if (this.isSeeking && this.audio.duration > 0) {
+        if (this.isTouching && this.audio.duration > 0) {
           // target is the seek bar
           var touch = evt.touches[0];
           var x = (touch.clientX - target.offsetLeft) / target.offsetWidth;
@@ -644,17 +722,43 @@ var PlayerView = {
         }
         break;
       case 'touchend':
-        this.seekIndicator.classList.remove('highlight');
-        if (this.audio.duration > 0 && this.isSeeking) {
-          this.seekAudio(this.seekTime);
-          this.seekTime = 0;
+        // If isContextmenu is true then the event is trigger by the long press
+        // of the previous or next buttons, so stop the fast seeking.
+        // Otherwise, check the target id then do the corresponding actions.
+        if (this.isContextmenu) {
+          this.isContextmenu = false;
+          this.stopFastSeeking();
+        } else if (target.id === 'player-seek-bar') {
+          this.seekIndicator.classList.remove('highlight');
+          if (this.audio.duration > 0 && this.isTouching) {
+            this.seekAudio(this.seekTime);
+            this.seekTime = 0;
+          }
+          this.isTouching = false;
+        } else if (target.id === 'player-controls-previous') {
+          this.previous();
+        } else if (target.id === 'player-controls-next') {
+          this.next();
         }
-        this.isSeeking = false;
+        break;
+      case 'contextmenu':
+        this.isContextmenu = true;
+
+        if (target.id === 'player-controls-next')
+          this.startFastSeeking(1);
+        if (target.id === 'player-controls-previous')
+          this.startFastSeeking(-1);
         break;
       case 'durationchange':
       case 'timeupdate':
-        if (!this.isSeeking)
+        if (!this.isTouching)
           this.updateSeekBar();
+
+        // Update the metadata when the new track is really loaded
+        // when it just started to play, or the duration will be 0 then it will
+        // break the duration that the connected A2DP has.
+        if (evt.type === 'durationchange' || this.audio.currentTime === 0)
+          this.updateRemoteMetadata();
 
         // Since we don't always get reliable 'ended' events, see if
         // we've reached the end this way.
