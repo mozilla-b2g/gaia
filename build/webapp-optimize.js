@@ -258,7 +258,7 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
  * @param {HTMLDocument} doc DOM document of the file.
  * @param {Object} webapp details of current web app.
  */
-function optimize_embedWebComponents(doc, app, htmlFile) {
+function optimize_embedHtmlImports(doc, app, htmlFile) {
   let imports = doc.querySelectorAll('link[rel="import"]');
   if (!imports.length) {
     return;
@@ -473,7 +473,7 @@ function optimize_compile(webapp, file, callback) {
       // save localized / optimized document
       let newFile = new FileUtils.File(file.path + '.' +
         config.GAIA_DEFAULT_LOCALE);
-      optimize_embedWebComponents(win.document, webapp, newFile);
+      optimize_embedHtmlImports(win.document, webapp, newFile);
       optimize_embedL10nResources(win.document, subDict);
       optimize_concatL10nResources(win.document, webapp, fullDict);
       optimize_aggregateJsResources(win.document, webapp, newFile);

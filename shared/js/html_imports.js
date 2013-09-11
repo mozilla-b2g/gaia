@@ -2,7 +2,7 @@
  * This file is included when we encounter lazy loaded nodes
  * in DEBUG mode.
  */
-var WebComponents = {
+var HtmlImports = {
   /**
    * Populates all custom component nodes
    * Populates nodes with comments, which are then
