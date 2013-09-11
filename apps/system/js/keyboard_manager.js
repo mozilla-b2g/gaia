@@ -275,17 +275,11 @@ var KeyboardManager = {
   },
 
   handleKeyboardRequest: function km_handleKeyboardRequest(evt) {
-    var url = evt.detail.url;
-    this._debug('handleKeyboardRequest: ' + url);
-    // everything is hack here! will be removed after having real platform API
-    if (url.lastIndexOf('keyboard-test') < 0)
-      return;
-    evt.stopPropagation();
-
-
-    var urlparser = document.createElement('a');
-    urlparser.href = url;
-    var keyword = urlparser.hash.split('=')[1];
+    var keyword = evt.detail.height;
+    console.log('handleKeyboardRequest: resizeto pizza' + keyword);
+    if (keyword <= 0)
+       return;
+     evt.stopPropagation();
 
     // should be a number that represents the keyboard height
     this.keyboardHeight = parseInt(keyword);
@@ -319,7 +313,7 @@ var KeyboardManager = {
 
   handleEvent: function km_handleEvent(evt) {
     switch (evt.type) {
-      case 'mozbrowseropenwindow':
+      case 'mozbrowserresize':
         this.handleKeyboardRequest(evt);
         break;
       case 'activitywillclose':
@@ -409,7 +403,7 @@ var KeyboardManager = {
     this.showingLayout.frame.hidden = false;
     this.showingLayout.frame.setVisible(true);
     this.showingLayout.frame.addEventListener(
-        'mozbrowseropenwindow', this, true);
+         'mozbrowserresize', this, true);
   },
 
   showKeyboard: function km_showKeyboard() {
@@ -436,7 +430,7 @@ var KeyboardManager = {
     this.showingLayout.frame.hidden = true;
     this.showingLayout.frame.setVisible(false);
     this.showingLayout.frame.removeEventListener(
-        'mozbrowseropenwindow', this, true);
+        'mozbrowserresize', this, true);
     this.showingLayout.reset();
   },
 
