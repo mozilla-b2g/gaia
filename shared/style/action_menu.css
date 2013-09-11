@@ -45,10 +45,18 @@ form[role="dialog"][data-type="object"] > header:first-child {
   line-height: 1em;
   color: #fff;
   border-bottom: 0.1rem solid #616262;
+  box-shadow: 0 .1rem 1.5rem #616262;
   background: url(action_menu/images/ui/alpha.png) repeat 0 0;
   padding: 2rem 3rem 0 3rem;
   height: 5rem;
-  -moz-box-sizing: border-box;
+  -moz-box-sizing: padding-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: absolute;
+  z-index: 10;
+  left: 0;
+  top: 0;
 }
 
 form[role="dialog"][data-type="action"] > header:after,
@@ -85,13 +93,16 @@ form[role="dialog"][data-type="action"] > menu,
 form[role="dialog"][data-type="object"] > menu {
   margin: 0;
   padding: 0;
+  max-height: calc(100% - 12rem);
+  padding-top: 1rem;
+  overflow: auto;
   width: auto;
   border: none;
   background: none;
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 6rem;
 }
 
 form[role="dialog"][data-type="action"] > menu > button,
@@ -115,16 +126,20 @@ form[role="dialog"][data-type="object"] > menu > button {
   background: #5f5f5f padding-box;
   border-radius: 0.2rem;
   border: none;
+  position: relative;
+  bottom: 0;
 }
 
 form[role="dialog"][data-type="action"] > menu > button:last-child,
 form[role="dialog"][data-type="object"] > menu > button:last-child {
+  position: fixed;
+  bottom: 0;
+  left: 0;
   text-shadow: 0.1rem 0.1rem 0 rgba(255,255,255,0.3);
   color: #333;
   font-weight: 500;
   background: #fafafa url(buttons/images/ui/default.png) repeat-x left bottom / auto 100%;
   border: solid 0.1rem #a6a6a6;
-  margin: 2.5rem 1.5rem 1.5rem 1.5rem;
   text-align: center;
   font-size: 1.6rem;
 }
