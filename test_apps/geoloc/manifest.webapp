@@ -8,17 +8,86 @@
     "url": "https://github.com/lissyx/gaia-geoloc"
   },
   "permissions": {
-    "geolocation":{},
-    "device-storage:sdcard":{ "access": "readonly" }
+    "geolocation": {
+      "description": "Needed to navigate you."
+    },
+    "device-storage:sdcard": {
+      "description": "Needed to read the maps.",
+      "access": "readonly"
+    }
   },
   "locales": {
     "en-US": {
       "name": "Geoloc",
-      "description": "Geolocation Tracker"
+      "description": "Geolocation Tracker",
+      "permissions": {
+        "geolocation": {
+          "description": "Needed to navigate you."
+        },
+        "device-storage:sdcard": {
+          "description": "Needed to read the maps."
+        }
+      }
     },
     "fr": {
       "name": "Geoloc",
-      "description": "Enregistrement de géolocalisation"
+      "description": "Enregistrement de géolocalisation",
+      "permissions": {
+        "geolocation": {
+          "description": "Nécessaires pour vous guider."
+        },
+        "device-storage:sdcard": {
+          "description": "Nécessaires pour la lecture des cartes."
+        }
+      }
+    },
+    "es": {
+      "name": "Geoloc",
+      "description": "Geolocalizador",
+      "permissions": {
+        "geolocation": {
+          "description": "Necesario para guiarlo."
+        },
+        "device-storage:sdcard": {
+          "description": "Necesario para leer los mapas."
+        }
+      }
+    },
+    "gl": {
+      "name": "Geoloc",
+      "description": "Xeolocalizador",
+      "permissions": {
+        "geolocation": {
+          "description": "Preciso para guialo."
+        },
+        "device-storage:sdcard": {
+          "description": "Preciso para ler os mapas."
+        }
+      }
+    },
+    "pt": {
+      "name": "Geoloc",
+      "description": "Geolocalizador",
+      "permissions": {
+        "geolocation": {
+          "description": "Necessário para guiar a você."
+        },
+        "device-storage:sdcard": {
+          "description": "Necessário para a leitura dos mapas."
+        }
+      }
+    },
+    "de": {
+      "name": "Geoloc",
+      "description": "Geolocator",
+      "permissions": {
+        "geolocation": {
+          "description": "Benötigt, um navigieren Sie."
+        },
+        "device-storage:sdcard": {
+          "description": "Benötigt, um die Karten zu lesen."
+        }
+      }
     }
   },
   "icons": {
