@@ -9,7 +9,7 @@ var TelephonyHelper = (function() {
       return;
     }
     var conn = window.navigator.mozMobileConnection;
-    if (!conn || !conn.voice || !conn.voice.network) {
+    if (!conn || !conn.voice) {
       // No voice connection, the call won't make it
       displayMessage('NoNetwork');
       return;
