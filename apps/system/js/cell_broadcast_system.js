@@ -43,7 +43,7 @@ var CellBroadcastSystem = {
       return;
     }
 
-    var title = navigator.mozL10n.get('cb-channel', {channel: msg.messageId});
+    var title = navigator.mozL10n.get('system-alert');
     var showDialog = function() {
       ModalDialog.showWithPseudoEvent({
         title: title,
