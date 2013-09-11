@@ -119,7 +119,6 @@ suite('Time functions', function() {
       this.sixAm = 1373954400000;
       // Set clock so calls to new Date() and Date.now() will not vary
       // across test locales
-      this.clock = sinon.useFakeTimers(this.sixAm);
       this.dat = new Date(this.sixAm + 15120000);
       this.allNeg = {
         hours: -4,
@@ -142,8 +141,8 @@ suite('Time functions', function() {
       };
     });
 
-    suiteTeardown(function() {
-      this.clock.restore();
+    setup(function() {
+      this.clock = this.sinon.useFakeTimers(this.sixAm);
     });
 
     suite('toMS', function() {

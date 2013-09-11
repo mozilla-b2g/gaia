@@ -1,5 +1,5 @@
 MockLazyLoader = {
   load: function(list, callback) {
-    callback.call(list, list);
+    setTimeout(callback.bind(list, list), 0);
   }
 };
