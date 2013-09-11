@@ -14,18 +14,15 @@ suite('Dialog', function() {
     navigator.mozL10n = MockL10n;
     params = {
       title: {
-        value: 'Foo Title',
-        l10n: false
+        value: 'Foo Title'
       },
       body: {
-        value: 'Foo body',
-        l10n: false
+        value: 'Foo Body'
       },
       options: {
         cancel: {
           text: {
-            value: 'Foo Cancel',
-            l10n: false
+            value: 'Foo Cancel'
           }
         }
       }
@@ -98,8 +95,7 @@ suite('Dialog', function() {
     // We add the confirm
     params.options.confirm = {
       text: {
-        value: 'Foo Cancel',
-        l10n: false
+        value: 'Foo Cancel'
       }
     };
     // Now we create the new element
@@ -120,18 +116,20 @@ suite('Dialog', function() {
   });
 
   test('Checking the localization.', function() {
-    params.title.l10n = true;
-    params.body.l10n = true;
+    params.title = {
+      l10nId: 'l10n Title'
+    },
+    params.body = {
+      l10nId: 'l10n Body'
+    },
     params.options.cancel = {
       text: {
-        value: 'keyCancel',
-        l10n: true
+        l10nId: 'l10n keyCancel'
       }
     };
     params.options.confirm = {
       text: {
-        value: 'keyConfirm',
-        l10n: true
+        l10nId: 'l10n keyConfirm'
       }
     };
     var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
@@ -150,40 +148,40 @@ suite('Dialog', function() {
     var formOptions = dialogForm.getElementsByTagName('button');
     assert.equal(formOptions.length, 2);
     // We check localization
-    assert.ok(l10nSpy.calledWith(titleDOM, params.title.value),
+    assert.ok(l10nSpy.calledWith(titleDOM, params.title.l10nId),
       'Title DOM localized with proper string');
-    assert.ok(l10nSpy.calledWith(bodyDOM, params.body.value),
+    assert.ok(l10nSpy.calledWith(bodyDOM, params.body.l10nId),
       'Body DOM localized with proper string');
     assert.ok(l10nSpy.calledWith(formOptions[0],
-      params.options.confirm.text.value),
+      params.options.confirm.text.l10nId),
       'Confirm DOM localized with proper string');
     assert.ok(l10nSpy.calledWith(formOptions[1],
-      params.options.cancel.text.value),
+      params.options.cancel.text.l10nId),
       'Cancel DOM localized with proper string');
   });
 
   test('Checking parametrized body localization.', function() {
-    params.title.l10n = true;
-
+    params.title = {
+      l10nId: 'l10n Title'
+    },
     params.body = {
-      value: '',
-      l10n: {
+      l10nId: 'l10n Body',
+      l10nArgs: {
         n: 3,
         numbers: ['123', '456', '789']
       }
     };
     params.options.cancel = {
       text: {
-        value: 'keyCancel',
-        l10n: true
+        l10nId: 'l10n keyCancel'
       }
     };
     params.options.confirm = {
       text: {
-        value: 'keyConfirm',
-        l10n: true
+        l10nId: 'l10n keyConfirm'
       }
     };
+
     var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
     // Now we create the new element
     var dialog = new Dialog(params);
@@ -197,7 +195,7 @@ suite('Dialog', function() {
     // We check how many buttons we have (mandatory + confirm one)
     var bodyDOM = dialogForm.querySelector('small');
     // We check localization
-    assert.ok(l10nSpy.calledWith(bodyDOM, params.body.value),
+    assert.ok(l10nSpy.calledWith(bodyDOM, params.body.l10nId),
       'Body DOM localized with proper string');
   });
 
