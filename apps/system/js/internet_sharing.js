@@ -77,7 +77,7 @@ var InternetSharing = (function() {
       if (!IccHelper.iccInfo || !IccHelper.iccInfo.iccid) {
         IccHelper.oniccinfochange = function handler() {
           // wait for iccid is filled.
-          if (IccHelper.iccInfo.iccid) {
+          if (IccHelper.iccInfo && IccHelper.iccInfo.iccid) {
             IccHelper.oniccinfochange = null;
             doRestore('usb', IccHelper.iccInfo.iccid);
             doRestore('wifi', IccHelper.iccInfo.iccid);
