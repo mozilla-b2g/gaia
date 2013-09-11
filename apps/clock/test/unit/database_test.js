@@ -23,7 +23,7 @@ suite('Database Test', function() {
   suite('Database creation', function() {
 
     this.slow(500);
-    this.timeout(1000);
+    this.timeout(5000);
 
     var db = null;
 
