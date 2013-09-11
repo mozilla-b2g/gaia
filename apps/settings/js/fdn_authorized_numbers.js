@@ -44,6 +44,25 @@ var FDN_AuthorizedNumbers = {
         er(request.error);
       }
     };
+  },
+
+  addNumber: function(er, cb, name, number) {
+    var contact = {
+      name: [name],
+      tel: [
+        {
+          value: number
+        }
+      ]
+    };
+
+    var request = this.icc.updateContact('fdn', contact);
+    request.onsuccess = function onsuccess() {
+      cb(contact);
+    };
+    request.onerror = function onerror(e) {
+      er(e);
+    };
   }
 
 };
