@@ -100,10 +100,9 @@
     <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
     <script defer src="js/attention_screen.js"></script>
 
-    <!-- Action Menu -->
-    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
-    <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
-    <script defer src="js/action_menu.js"></script>
+    <!-- List Menu -->
+    <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
+    <script defer src="js/list_menu.js"></script>
 
     <!-- Context Menu -->
     <script defer src="js/context_menu.js"></script>
@@ -962,6 +961,11 @@
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
+      </div>
+
+      <div id="listmenu" data-z-index-level="list-menu" role="dialog" class="generic-dialog">
+        <menu class="actions">
+        </menu>
       </div>
 
       <!-- keyboard -->

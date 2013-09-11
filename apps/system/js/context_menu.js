@@ -17,7 +17,7 @@ var ContextMenu = {
       detail.contextMenuItemSelected(action);
     };
 
-    ActionMenu.open(detail.contextmenu.items, '', onsuccess);
+    ListMenu.request(detail.contextmenu.items, '', onsuccess);
     evt.preventDefault();
   }
 };
