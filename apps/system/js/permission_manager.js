@@ -92,7 +92,19 @@ var PermissionManager = {
     var _ = navigator.mozL10n.get;
 
     if (detail.isApp) { // App
-      str = _(permissionID + '-appRequest', { 'app': detail.appName });
+      // The app is webapp and has permission description
+      if ((detail.isWebApp) && (detail.description != undefined)) {
+        str = _(permissionID + '-webAppRequest', { 'app': detail.appName }) +
+            detail.description;
+      // The app is certified or priviledged and has permission description
+      } else if (detail.description != undefined) {
+        str = _(permissionID + '-appRequest', { 'app': detail.appName }) +
+            detail.description;
+      // The app hasn't permission description. This shouldn't happen
+      // because permission's description is mandatory in manifests
+      } else { //Avoid of show "undefined" when description is not present
+        str = _(permissionID + '-appRequest', { 'app': detail.appName });
+      }
     } else { // Web content
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
     }
