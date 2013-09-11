@@ -11,7 +11,7 @@ var mocksForOperatorVariant = new MocksHelper([
 ]).init();
 
 suite('operator variant', function() {
-  const TEST_NETWORK_MCC = 1;
+  const TEST_NETWORK_MCC = 111;
 
   const EXPECTED_DATA_MNC = 1;
   const EXPECTED_DATA_ICC_INFO = {
