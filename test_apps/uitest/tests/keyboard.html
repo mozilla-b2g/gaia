@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Keyboard test</title>
+    <script defer src="../js/keyboard.js"></script>
     <style>
       body, textarea, input, [contenteditable] {
         font-size: 1.5em;
@@ -32,10 +33,16 @@
       <li>Input type=datetime-local: <input type="datetime-local"/></li>
 
       <li>Textarea: <textarea></textarea></li>
-      <li>Contenteditable: 
+      <li>Contenteditable:
         <p contenteditable="true">Edit me, <b>please</b>!<br />Second line
           <span class="hidden">Hidden text</span>
         </p>
+      </li>
+      <li>iFrame with designmode on:
+        <iframe id="iframe-designmode"></iframe>
+      </li>
+      <li>iFrame with body contenteditable:
+        <iframe id="iframe-contenteditable"></iframe>
       </li>
     </ul>
   </body>

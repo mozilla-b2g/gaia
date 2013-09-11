@@ -1,6 +1,6 @@
 /*global mocha requireApp suite test assert setup suiteTeardown */
 
-mocha.setup('tdd');
+mocha.setup({ ui: 'tdd', ignoreLeaks: true });
 window.assert = chai.assert;
 
 navigator.mozSettings.createLock().set({
@@ -14,6 +14,20 @@ suite('Input Method', function() {
   this.timeout(10000);
 
   var container = document.getElementById('workspace');
+
+  /**
+   * Listens once to an inputcontextchange and then discards the event
+   * @param {Boolean} needIc Specify whether NULL for the inputcontext is OK
+   * @param {Function} callback Callback with 1 arg that holds inputcontext
+   */
+  function onIcc(needIc, callback) {
+    navigator.mozInputMethod.oninputcontextchange = function onicc() {
+      if (!navigator.mozInputMethod.inputcontext && needIc) {
+        return;
+      }
+      callback(navigator.mozInputMethod.inputcontext);
+    };
+  }
 
   setup(function(next) {
     navigator.mozInputMethod.oninputcontextchange = function() {
@@ -72,6 +86,29 @@ suite('Input Method', function() {
       document.querySelector('#test3').focus();
     });
 
+    test('Event fires on designMode=on focus', function(next) {
+      onIcc(true, function(ic) {
+        assert.equal(ic.inputType, 'textarea');
+        next();
+      });
+      container.innerHTML = '<iframe id="test"></iframe>';
+      var iframe = container.querySelector('iframe');
+      iframe.contentDocument.designMode = 'on';
+      iframe.focus();
+    });
+
+    test('Event fires on iframe body contenteditable focus', function(next) {
+      // <body contenteditable>contentEditable</body>
+      onIcc(true, function(ic) {
+        assert.equal(ic.inputType, 'textarea');
+        next();
+      });
+      container.innerHTML = '<iframe id="test"></iframe>';
+      var iframe = container.querySelector('iframe');
+      iframe.contentDocument.body.setAttribute('contenteditable', true);
+      iframe.focus();
+    });
+
     test('No event on type="range"', function(next) {
       var fired = false;
       navigator.mozInputMethod.oninputcontextchange = function() {
@@ -110,11 +147,13 @@ suite('Input Method', function() {
       var el = document.querySelector('#test');
       el.focus();
 
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        assert.equal(navigator.mozInputMethod.inputcontext, null);
-        next();
-      };
-      el.blur();
+      setTimeout(function() {
+        onIcc(false, function(ic) {
+          assert.equal(ic, null);
+          next();
+        });
+        el.blur();
+      }, 100);
     });
 
     test('Event fires on textarea blur', function(next) {
@@ -122,11 +161,13 @@ suite('Input Method', function() {
       var el = document.querySelector('#test2');
       el.focus();
 
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        assert.equal(navigator.mozInputMethod.inputcontext, null);
-        next();
-      };
-      el.blur();
+      setTimeout(function() {
+        onIcc(false, function(ic) {
+          assert.equal(ic, null);
+          next();
+        });
+        el.blur();
+      }, 100);
     });
 
     test('Event fires on contenteditable blur', function(next) {
@@ -134,11 +175,13 @@ suite('Input Method', function() {
       var el = document.querySelector('#test3');
       el.focus();
 
-      navigator.mozInputMethod.oninputcontextchange = function() {
-        assert.equal(navigator.mozInputMethod.inputcontext, null);
-        next();
-      };
-      el.blur();
+      setTimeout(function() {
+        onIcc(false, function(ic) {
+          assert.equal(ic, null);
+          next();
+        });
+        el.blur();
+      }, 100);
     });
   });
 
@@ -248,5 +291,4 @@ suite('Input Method', function() {
   });
 });
 
-mocha.checkLeaks();
 mocha.run();
