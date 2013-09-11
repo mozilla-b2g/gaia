@@ -1,4 +1,4 @@
-var Email = require('./email');
+var Email = require('./lib/email');
 var assert = require('assert');
 var serverHelper = require('./lib/server_helper');
 
