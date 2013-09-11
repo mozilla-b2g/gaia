@@ -9,7 +9,7 @@ var MobileOperator = {
     var iccInfo = IccHelper.iccInfo;
     var operator = network.shortName || network.longName;
 
-    if (iccInfo.isDisplaySpnRequired && iccInfo.spn &&
+    if (iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn &&
         !mobileConnection.voice.roaming) {
       if (iccInfo.isDisplayNetworkNameRequired && operator !== iccInfo.spn) {
         operator = operator + ' ' + iccInfo.spn;
