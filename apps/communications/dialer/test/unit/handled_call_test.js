@@ -131,11 +131,6 @@ suite('dialer/handled_call', function() {
         assert.equal(subject.durationChildNode, durationChildNode);
         assert.isTrue(durationChildNode.classList.contains('font-light'));
       });
-
-      test('should have a direction node', function() {
-        var directionNode = subject.node.querySelector('.duration .direction');
-        assert.equal(subject.directionNode, directionNode);
-      });
     });
 
     test('duration outgoing', function() {
@@ -149,10 +144,6 @@ suite('dialer/handled_call', function() {
 
       assert.ok(subject.durationChildNode);
       assert.equal(subject.durationChildNode.textContent, 'incoming');
-    });
-
-    test('direction', function() {
-      assert.ok(subject.directionNode);
     });
 
     test('number', function() {
@@ -170,7 +161,7 @@ suite('dialer/handled_call', function() {
 
       assert.isTrue(MockCallScreen.mEnableKeypadCalled);
       assert.isFalse(subject.node.hidden);
-      assert.isTrue(subject.directionNode.classList.contains('ongoing-out'));
+      assert.isTrue(subject.node.classList.contains('ongoing'));
     });
   });
 
@@ -297,12 +288,30 @@ suite('dialer/handled_call', function() {
 
   suite('call direction', function() {
     test('before connexion', function() {
-      assert.isTrue(subject.directionNode.classList.contains('outgoing'));
+      assert.isTrue(subject.node.classList.contains('outgoing'));
     });
 
     test('after connexion', function() {
       mockCall._connect();
-      assert.isTrue(subject.directionNode.classList.contains('ongoing-out'));
+      assert.isTrue(subject.node.classList.contains('ongoing'));
+      assert.isTrue(subject.node.classList.contains('outgoing'));
+    });
+
+    suite('incoming call', function() {
+      setup(function() {
+        mockCall = new MockCall('888', 'incoming');
+        subject = new HandledCall(mockCall);
+      });
+
+      test('before connexion', function() {
+        assert.isTrue(subject.node.classList.contains('incoming'));
+      });
+
+      test('after connexion', function() {
+        mockCall._connect();
+        assert.isTrue(subject.node.classList.contains('ongoing'));
+        assert.isTrue(subject.node.classList.contains('incoming'));
+      });
     });
   });
 

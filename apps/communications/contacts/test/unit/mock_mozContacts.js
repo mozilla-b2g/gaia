@@ -3,6 +3,21 @@
 var MockMozContacts = {
   limit: 20,
   find: function dummy() {},
+  total: 0,
+  set number(n) {
+    this.total = n;
+  },
+  getCount: function() {
+    function Req(number) {
+      var self = this;
+      Object.defineProperty(self, 'onsuccess', { set: function(cb) {
+        self.result = number;
+        cb();
+      }
+      });
+    }
+    return new Req(MockMozContacts.total);
+  },
   getAll: function getAll() {
     return {
       set onsuccess(callback) {

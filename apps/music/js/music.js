@@ -165,14 +165,10 @@ function init() {
     // problems if we are playing a playlist and some songs are on one
     // storage area and some in another. Yanking out an sdcard is
     // uncommon enough that it should be fine to always stop playing.
-    if (typeof PlayerView !== 'undefined') {
+    if (typeof PlayerView !== 'undefined')
       PlayerView.stop();
-      PlayerView.clean();
-    }
 
     ModeManager.start(MODE_TILES);
-    ModeManager.playerTitle = null;
-    ModeManager.updateTitle();
     TilesView.hideSearch();
   };
 
@@ -190,6 +186,10 @@ function init() {
 
     // Concurrently, start scanning for new music
     musicdb.scan();
+
+    // We have to wait for the MediaDB ready then we may able to play songs
+    // after we received media commands from the remote controls.
+    MusicComms.init();
   };
 
   var filesDeletedWhileScanning = 0;
@@ -664,8 +664,6 @@ var TitleBar = {
 
     function cleanupPick() {
       PlayerView.stop();
-      PlayerView.clean();
-      ModeManager.playerTitle = null;
     }
 
     switch (evt.type) {

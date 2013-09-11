@@ -28,6 +28,8 @@ var WapMessageScreen = {
     this.message = document.getElementById('message');
 
     // Event handlers
+    window.addEventListener('resize', this.onresize);
+
     this.closeButton.addEventListener('click', this.onclose);
 
     // Populate the message
@@ -40,6 +42,18 @@ var WapMessageScreen = {
    */
   onclose: function wps_onclose() {
     window.close();
+  },
+
+  /**
+   * Close the attention screen instead of resizing it into a status-bar
+   */
+  onresize: function wps_onresize(evt) {
+    /* XXX: This is a hack to close the attention screen when the user taps the
+     * home button. If we don't do this the attention screen will be shrunk
+     * into the statusbar but will still be open. */
+    if (window.innerHeight < 200) {
+      window.close();
+    }
   },
 
   /**

@@ -23,6 +23,13 @@ if (!window.Rest) {
 
 window.self = null;
 
+
+var realMozContacts;
+
+if (!this.realMozContacts) {
+  realMozContacts = null;
+}
+
 var mocksHelperForContactSettings = new MocksHelper([
   'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper'
 ]);
@@ -73,6 +80,37 @@ suite('Contacts settings', function() {
   suiteTeardown(function() {
     window._ = real_;
     mocksHelper.suiteTeardown();
+  });
+
+  suite('Export options', function() {
+    suiteSetup(function() {
+      utils.sdcard.checkStorageCard = function() { return true; };
+      contacts.Settings.init();
+      mocksHelper.suiteSetup();
+      realMozContacts = navigator.mozContacts;
+      navigator.mozContacts = MockMozContacts;
+    });
+
+    test('If there are no contacts, export option is disabled', function() {
+      navigator.mozContacts.number = 0;
+      contacts.Settings.refresh();
+      var exportContacts = document.
+                            getElementById('exportContacts').firstElementChild;
+      assert.equal(exportContacts.getAttribute('disabled'), 'disabled');
+    });
+
+    test('If there are contacts, export option is enabled', function() {
+      navigator.mozContacts.number = 100;
+      contacts.Settings.refresh();
+      var exportContacts = document.
+                            getElementById('exportContacts').firstElementChild;
+      assert.isNull(exportContacts.getAttribute('disabled'));
+    });
+
+    suiteTeardown(function() {
+      mocksHelper.suiteTeardown();
+      navigator.mozContacts = realMozContacts;
+    });
   });
 
   suite('SD Card import', function() {

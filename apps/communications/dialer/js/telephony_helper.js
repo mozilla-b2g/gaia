@@ -9,12 +9,23 @@ var TelephonyHelper = (function() {
       return;
     }
     var conn = window.navigator.mozMobileConnection;
-    if (!conn || !conn.voice || !conn.voice.network) {
+    if (!conn || !conn.voice) {
       // No voice connection, the call won't make it
       displayMessage('NoNetwork');
       return;
     }
     startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
+  };
+
+  function notifyBusyLine() {
+    // ANSI call waiting tone for a 3 seconds window.
+    var sequence = [[480, 620, 500],
+                    [0, 0, 500],
+                    [480, 620, 500],
+                    [0, 0, 500],
+                    [480, 620, 500],
+                    [0, 0, 500]];
+    TonePlayer.playSequence(sequence);
   };
 
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
@@ -62,6 +73,7 @@ var TelephonyHelper = (function() {
           } else if (errorName === 'RadioNotAvailable') {
             displayMessage('FlightMode');
           } else if (errorName === 'BusyError') {
+            notifyBusyLine();
             displayMessage('NumberIsBusy');
           } else if (errorName === 'FDNBlockedError') {
             displayMessage('FixedDialingNumbers');

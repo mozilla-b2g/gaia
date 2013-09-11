@@ -6,6 +6,8 @@
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
+    <link rel="stylesheet" type="text/css" href="style/tabs.css">
+    <link rel="stylesheet" type="text/css" href="style/views.css">
 
     <!-- Shared styles -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -27,58 +29,73 @@
 
     <!-- Specific code -->
     <script defer src="shared/js/lazy_loader.js"></script>
+    <script defer src="js/startup.js"></script>
+    <!-- Lazy Loaded Scripts - Include here for build process
     <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/template.js"></script>
+    <script defer src="js/emitter.js"></script>
+    <script defer src="js/view.js"></script>
+    <script defer src="js/panel.js"></script>
     <script defer src="js/constants.js"></script>
     <script defer src="js/utils.js"></script>
     <script defer src="js/alarm.js"></script>
     <script defer src="js/active_alarm.js"></script>
     <script defer src="js/alarmsdb.js"></script>
-    <script defer src="js/clock.js"></script>
+    <script defer src="js/banner.js"></script>
     <script defer src="js/clock_view.js"></script>
     <script defer src="js/alarm_list.js"></script>
     <script defer src="js/alarm_manager.js"></script>
+    <script defer src="js/tabs.js"></script>
+    <script defer src="js/app.js"></script>
+    -->
   </head>
 
   <body>
     <div id="views">
-      <div id="alarm-view" class="active view">
-        <div id="clock-view">
-          <div id="analog-clock">
-            <div id="analog-clock-container">
-              <svg id="analog-clock-svg"
-                   xmlns="http://www.w3.org/2000/svg"
-                   version="1.1" viewBox="0 0 270 270">
-                <circle id="minutehandCentralPoint" cx="135" cy="135" r="9"/>
-                <rect id="hourhand" x="131" y="135" width="8" height="92"/>
-                <rect id="minutehand" x="131" y="135" width="8" height="113"/>
-                <!-- This is the second hand path, Thanks illustrator! -->
-                <path id="secondhand"
-                  d="M142.103,135c0-3.562-3.103-6.495-6.103-6.936V0h-2v128.095c-3,0.53-5.897,3.415-5.897,6.905
-                  s2.897,6.375,5.897,6.905V161h2v-19.064C139,141.495,142.103,138.562,142.103,135z"/>
-              </svg>
-            </div>
-          </div>
-          <div id="digital-clock">
-            <div id="digital-clock-container">
-              <div id="digital-clock-display">
-                <span id="clock-time"></span>
-                <span id="clock-hour24-state"></span>
+      <div id="main-panel-wrapper">
+        <div id="alarm-panel" class="active panel">
+          <div id="clock-view">
+            <div id="analog-clock">
+              <div id="analog-clock-container">
+                <svg id="analog-clock-svg"
+                     xmlns="http://www.w3.org/2000/svg"
+                     version="1.1" viewBox="0 0 270 270">
+                  <circle id="minutehandCentralPoint" cx="135" cy="135" r="9"/>
+                  <rect id="hourhand" x="131" y="135" width="8" height="92"/>
+                  <rect id="minutehand" x="131" y="135" width="8" height="113"/>
+                  <!-- This is the second hand path, Thanks illustrator! -->
+                  <path id="secondhand"
+                    d="M142.103,135c0-3.562-3.103-6.495-6.103-6.936V0h-2v128.095c-3,0.53-5.897,3.415-5.897,6.905
+                    s2.897,6.375,5.897,6.905V161h2v-19.064C139,141.495,142.103,138.562,142.103,135z"/>
+                </svg>
               </div>
             </div>
+            <div id="digital-clock">
+              <div id="digital-clock-container">
+                <div id="digital-clock-display">
+                  <span id="clock-time"></span>
+                  <span id="clock-hour24-state"></span>
+                </div>
+              </div>
+            </div>
+            <div id="clock-day-date"></div>
+            <!--  create new alarm icon -->
+            <button id="alarm-new"></button>
+            <!-- list of exisiting alarms, to be populated -->
+            <ul id="alarms"></ul>
           </div>
-          <div id="clock-day-date"></div>
-          <!--  create new alarm icon -->
-          <button id="alarm-new"></button>
-          <!-- list of exisiting alarms, to be populated -->
-          <ul id="alarms"></ul>
+          <section id="banner-countdown" role="status">
+            <!-- this will be replaced dynamically -->
+          </section>
         </div>
-        <section id="banner-countdown" role="status">
-          <!-- this will be replaced dynamically -->
-        </section>
+        <div id="timer-panel" class="panel hidden">
+          <h2>Timer View Placeholder</h2>
+        </div>
+        <div id="stopwatch-panel" class="panel hidden">
+          <h2>Stopwatch View Placeholder</h2>
+        </div>
       </div>
-
-      <form id="alarm" role="dialog" class="view hidden" data-type="edit"><!--
+      <form id="alarm-edit-panel" role="dialog" class="panel hidden" data-type="edit">
         <header>
           <button id="alarm-close"><span class="icon icon-close"></span></button>
           <menu type="toolbar">
@@ -145,8 +162,14 @@
         <menu id="delete-menu">
           <button id="alarm-delete" class="danger full" data-l10n-id="delete">Delete</button>
         </menu>
-      --></form>
+      </form>
     </div>
+
+    <ul role="tablist" class="bottom" data-items="3" id="clock-tabs">
+      <li id="alarm-tab" role="tab" aria-selected="true"><a href="#alarm-panel" data-l10n-id="alarm">Alarm</a></li>
+      <li id="timer-tab" role="tab"><a href="#timer-panel" data-l10n-id="timer">Timer</a></li>
+      <li id="stopwatch-tab" role="tab"><a href="#stopwatch-panel" data-l10n-id="stopwatch">Stopwatch</a></li>
+    </ul>
 
     <div id="alarm-list-item-tmpl" class="hide">
       <!--
@@ -154,13 +177,18 @@
         <input class="input-enable" data-id="${id}" type="checkbox" ${checked}>
         <span></span>
       </label>
-      <a href="#alarm" class="alarm-item${withRepeat}" data-id="${id}">
+      <a href="#alarm-edit-panel" class="alarm-item${withRepeat}" data-id="${id}">
         <span class="time">
           ${time} <span class="period">${meridian}</span>
         </span>
         <span class="label">${label}</span>
         <span class="repeat">${repeat}</span>
       </a>
+      -->
+    </div>
+    <div id="banner-tmpl" class="hide">
+      <!--
+        <p>${notice}</p>
       -->
     </div>
 

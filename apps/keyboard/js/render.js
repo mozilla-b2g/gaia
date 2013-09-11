@@ -550,7 +550,7 @@ const IMERender = (function() {
       key.dataset.compositeKey.length : 1;
 
     // Build a key for each alternative
-    altChars.forEach(function(alt) {
+    altChars.forEach(function(alt, index) {
       var dataset = alt.length == 1 ?
         [{'key': 'keycode', 'value': alt.charCodeAt(0)}] :
         [{'key': 'compositekey', 'value': alt}];
@@ -559,9 +559,12 @@ const IMERender = (function() {
       // it is an alternative for, but adjust for the relative number of
       // characters in the original and the alternative
       var width = 0.75 * key.offsetWidth / keycharwidth * alt.length;
-      // If there is only one alternative, then display it at least as
-      // wide as the original key.
-      if (altChars.length === 1)
+      // If there is only one alternative, or we are showing the first
+      // alternative character, then display it at least as wide as the
+      // original key.
+      if (altChars.length === 1 ||
+          (left && index === 0) ||
+          (!left && index === altChars.length - 1))
         width = Math.max(width, key.offsetWidth);
 
       content.appendChild(buildKey(alt, '', width + 'px', dataset));

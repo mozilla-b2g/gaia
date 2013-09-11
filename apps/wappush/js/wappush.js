@@ -65,6 +65,35 @@ var WapPushManager = {
   },
 
   /**
+   * Establish if we must show this message or not; the message is shown only
+   * if the following conditions are met:
+   * - WAP Push functionality is enabled
+   * - The message is either a SI or SL message
+   * - The sender's MSISDN is whitelisted or whitelisting is disabled
+   *
+   * @param {Object} message The message to be checked
+   *
+   * @return {Boolean} true if the message should be displayed, false otherwise
+   */
+  shouldDisplayMessage : function wpm_shouldDisplayMessage(message) {
+    if (!this._wapPushEnabled || !WhiteList.has(message.sender)) {
+       /* WAP push functionality is either completely disabled or the message
+        * comes from a non white-listed MSISDN, ignore it. */
+       return false;
+    }
+
+    if ((message.contentType != 'text/vnd.wap.si') &&
+        (message.contentType != 'text/vnd.wap.sl')) {
+      // Only accept SI and SL messages
+      console.log('Unsupported or invalid content type "' +
+                  message.contentType + '" for WAP Push message\n');
+      return false;
+    }
+
+    return true;
+  },
+
+  /**
    * Handler for the wappush-received system messages, stores the message into
    * the internal database and posts a notification which can be used to
    * display the message.
@@ -75,9 +104,9 @@ var WapPushManager = {
     var self = this;
     var timestamp = Date.now();
 
-    if (!this._wapPushEnabled) {
-       window.close();
-       return;
+    if (!this.shouldDisplayMessage(message)) {
+      this.close();
+      return;
     }
 
     asyncStorage.setItem(timestamp.toString(), message, function() {
@@ -95,7 +124,7 @@ var WapPushManager = {
             self.displayWapPushMessage(timestamp);
           });
 
-        window.close();
+        self.close();
       };
     });
   },
@@ -119,6 +148,8 @@ var WapPushManager = {
    * @param {Number} timestamp The message timestamp
    */
   displayWapPushMessage: function wpm_displayWapPushMessage(timestamp) {
+    var self = this;
+
     asyncStorage.getItem(timestamp, function(message) {
       var protocol = window.location.protocol;
       var host = window.location.host;
@@ -132,18 +163,30 @@ var WapPushManager = {
 
       var messageScreen = window.open(uri, 'wappush_attention', 'attention');
 
-      messageScreen.onload = function() {
+      messageScreen.onload = function(evt) {
         messageScreen.WapMessageScreen.init();
         asyncStorage.removeItem(timestamp);
       };
-      messageScreen.onunload = function() {
+
+      messageScreen.onunload = function(evt) {
         // Close the parent window to hide the application from the cards view
-        window.close();
+        if (evt.target.location != 'about:blank') {
+          self.close();
+          return;
+        }
       };
     },
     function(error) {
       console.log('Could not retrieve the message:' + error + '\n');
     });
+  },
+
+  /**
+   * Closes the application, lets the event loop run once to ensure clean
+   * termination of pending events.
+   */
+  close: function wpm_close() {
+    window.setTimeout(window.close);
   }
 };
 

@@ -54,6 +54,11 @@
     document.getElementById('icc-stk-app-back').onclick = stkResGoBack;
     document.getElementById('icc-stk-help-exit').onclick = updateMenu;
 
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden && Settings.currentPanel == '#icc') {
+        stkResTerminate();
+      }
+    }, false);
     window.onbeforeunload = function() {
       responseSTKCommand({
         resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
@@ -77,10 +82,11 @@
   }
 
   function stkResTerminate() {
+    Settings.currentPanel = '#root';
     iccLastCommandProcessed = true;
     responseSTKCommand({
       resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
-    });
+    }, true);
   }
 
   function stkResGoBack() {

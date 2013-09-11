@@ -860,10 +860,9 @@ function renderKeyboard(keyboardName) {
     var candidatePanelHeight = (candidatePanel) ?
                                candidatePanel.scrollHeight : 0;
 
-    var url = document.location.href + '#keyboard-test=' +
-              (IMERender.ime.scrollHeight - candidatePanelHeight);
-    window.open(url);
-
+    var imeHeight = IMERender.ime.scrollHeight - candidatePanelHeight;
+    var imeWidth = IMERender.getWidth();
+    window.resizeTo(imeWidth, imeHeight);
     redrawTimeout = window.setTimeout(drawKeyboard,
                                       CANDIDATE_PANEL_SWITCH_TIMEOUT);
   } else {
@@ -927,9 +926,9 @@ function setLayoutPage(newpage) {
 // Inform about a change in the displayed application via mutation observer
 // http://hacks.mozilla.org/2012/05/dom-mutationobserver-reacting-to-dom-changes-without-killing-browser-performance/
 function updateTargetWindowHeight(hide) {
-  var url = document.location.href +
-            '#keyboard-test=' + IMERender.ime.scrollHeight;
-  window.open(url);
+  var imeHeight = IMERender.ime.scrollHeight;
+  var imeWidth = IMERender.getWidth();
+  window.resizeTo(imeWidth, imeHeight);
 }
 
 // Sends a delete code to remove last character

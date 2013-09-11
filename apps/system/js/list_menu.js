@@ -142,6 +142,9 @@ var ListMenu = {
   handleEvent: function lm_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
+        if (!this.visible)
+          return;
+
         if (!evt.detail.screenEnabled) {
           this.hide();
           this.oncancel();

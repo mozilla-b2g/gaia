@@ -7,9 +7,7 @@ var SimFdnLock = {
   dialog: document.getElementById('call-pin2-dialog'),
   simFdnDesc: document.querySelector('#fdn-enabled small'),
   simFdnCheckBox: document.querySelector('#fdn-enabled input'),
-  changePin2Item: document.getElementById('fdn-changePIN2'),
-  changePin2Button: document.querySelector('#fdn-changePIN2 button'),
-  resetPin2Item: document.getElementById('fdn-changePIN2'),
+  resetPin2Item: document.getElementById('fdn-resetPIN2'),
   resetPin2Button: document.querySelector('#fdn-resetPIN2 button'),
   contactsContainer: document.getElementById('fdn-contactsContainer'),
 
@@ -21,12 +19,11 @@ var SimFdnLock = {
       localize(self.simFdnDesc, enabled ? 'enabled' : 'disabled');
       self.simFdnCheckBox.disabled = false;
       self.simFdnCheckBox.checked = enabled;
-      self.changePin2Item.hidden = !enabled;
+      self.resetPin2Item.hidden = !enabled;
     };
   },
 
   init: function spl_init() {
-
     if (!IccHelper.enabled) {
       return;
     }
@@ -36,22 +33,18 @@ var SimFdnLock = {
 
     var pinDialog = new SimPinDialog(this.dialog);
 
+    this.simFdnCheckBox.disabled = true;
     this.simFdnCheckBox.onchange = function spl_togglePin2() {
-      console.log('cardState = ' + IccHelper.cardState);
       var action = this.checked ? 'enable_fdn' : 'disable_fdn';
-      if (IccHelper.cardState === 'puk2Required') { // XXX not implemented yet
+      if (IccHelper.cardState === 'puk2Required') {
         action = 'unlock_puk2';
       }
       pinDialog.show(action, callback, callback);
     };
 
-    this.changePin2Button.onclick = function spl_changePin2() {
+    this.resetPin2Button.onclick = function spl_resetPin2() {
       pinDialog.show('change_pin2');
     };
-
-//    this.resetPin2Button.onclick = function spl_resetPin2() {
-//      pinDialog.show('unlock_puk2');
-//    };
 
     this.updateFdnStatus();
 
@@ -60,35 +53,36 @@ var SimFdnLock = {
         this.renderAuthorizedNumbers();
       }
     }.bind(this));
-  },
 
+  },
+  
   renderAuthorizedNumbers: function() {
-    this.contactsContainer.innerHTML = '';
+     this.contactsContainer.innerHTML = '';
 
-    FDN_AuthorizedNumbers.getContacts(null, function(contacts) {
-      var contact;
-      for (var i = 0, l = contacts.length; i < l; i++) {
-        contact = this.renderFDNContact(
-          contacts[i].name,
-          contacts[i].number
-        );
-        this.contactsContainer.appendChild(contact);
-      }
-    }.bind(this));
-  },
+     FDN_AuthorizedNumbers.getContacts(null, function(contacts) {
+       var contact;
+       for (var i = 0, l = contacts.length; i < l; i++) {
+         contact = this.renderFDNContact(
+           contacts[i].name,
+           contacts[i].number
+         );
+         this.contactsContainer.appendChild(contact);
+       }
+     }.bind(this));
+   },
 
-  renderFDNContact: function(name, number) {
-    var li = document.createElement('li');
-    var nameContainer = document.createElement('span');
-    var numberContainer = document.createElement('small');
+   renderFDNContact: function(name, number) {
+     var li = document.createElement('li');
+     var nameContainer = document.createElement('span');
+     var numberContainer = document.createElement('small');
 
-    nameContainer.textContent = name;
-    numberContainer.textContent = number;
-    li.appendChild(numberContainer);
-    li.appendChild(nameContainer);
+     nameContainer.textContent = name;
+     numberContainer.textContent = number;
+     li.appendChild(numberContainer);
+     li.appendChild(nameContainer);
 
-    return li;
-  }
+     return li;
+   }
 };
 
 navigator.mozL10n.ready(SimFdnLock.init.bind(SimFdnLock));

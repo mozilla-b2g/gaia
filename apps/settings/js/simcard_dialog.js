@@ -43,10 +43,6 @@ function SimPinDialog(dialog) {
     pukArea.hidden = (mode !== 'puk');
     newPinArea.hidden = confirmPinArea.hidden = (mode === 'pin');
   }
-  var pinInput = numberPasswordInput(pinArea);
-  var pukInput = numberPasswordInput(pukArea);
-  var newPinInput = numberPasswordInput(newPinArea);
-  var confirmPinInput = numberPasswordInput(confirmPinArea);
   function numberPasswordInput(area) {
     var input = area.querySelector('input');
     input.addEventListener('input', function(evt) {
@@ -56,6 +52,10 @@ function SimPinDialog(dialog) {
     });
     return input;
   }
+  var pinInput = numberPasswordInput(pinArea);
+  var pukInput = numberPasswordInput(pukArea);
+  var newPinInput = numberPasswordInput(newPinArea);
+  var confirmPinInput = numberPasswordInput(confirmPinArea);
 
   // error messages
   var errorMsg = dialog.querySelector('.sim-errorMsg');
@@ -324,6 +324,7 @@ function SimPinDialog(dialog) {
         lockType = 'pin2';
         setInputMode('new');
         _localize(dialogTitle, 'fdnReset');
+        break;
 
       // unsupported
       default:
@@ -370,4 +371,3 @@ function SimPinDialog(dialog) {
     show: show
   };
 }
-

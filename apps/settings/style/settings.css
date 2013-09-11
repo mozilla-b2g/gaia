@@ -112,6 +112,11 @@ section[role="region"] > div {
   font-size: 1.7rem;
 }
 
+.description small {
+  font-size: 1.7rem;
+  color: #505859;
+}
+
 .link-text, .tel-text a {
   font-size: 1.4rem;
   color: #336699;
@@ -154,6 +159,10 @@ ul[data-state="on"]    li[data-state="on"],
 ul[data-state="off"]   li[data-state="off"],
 ul[data-state="ready"] li[data-state="ready"] {
   display: block;
+}
+
+ul[data-state="ready"] li > a {
+  padding-right: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
 }
 
 /**

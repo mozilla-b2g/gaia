@@ -7,21 +7,6 @@ html, body {
   font-size: 10px;
 }
 
-#views {
-  background-color: #101111;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.view {
-  width: 100%;
-  height: 100%;
-}
-
-
 #clock-view {
   width: 100%;
   height: -moz-calc(100% - 0.13rem);
@@ -169,16 +154,15 @@ html, body {
 #banner-countdown {
   z-index: -1;
   opacity: 0;
-  bottom: -2rem;
   -moz-transition: all 600ms ease;
 }
 #banner-countdown.visible {
   z-index: 1;
   opacity: 1;
-  bottom: 0;
   -moz-transition: all 600ms ease;
 }
-#banner-countdown > p > strong {
+
+#banner-countdown strong {
   white-space: nowrap;
 }
 

@@ -32,22 +32,21 @@ var AlarmList = {
       return;
 
     if (link === this.newAlarmButton) {
-
       this.alarmEditView();
+      evt.preventDefault();
     } else if (link.classList.contains('input-enable')) {
       this.toggleAlarmEnableState(link.checked,
         this.getAlarmFromList(parseInt(link.dataset.id, 10)));
     } else if (link.classList.contains('alarm-item')) {
-
       this.alarmEditView(this.getAlarmFromList(
         parseInt(link.dataset.id, 10)));
+      evt.preventDefault();
     }
   },
 
   alarmEditView: function(alarm) {
     LazyLoader.load(
       [
-        document.getElementById('alarm'),
         'js/alarm_edit.js',
         'shared/style/input_areas.css',
         'shared/style/buttons.css',
@@ -62,6 +61,7 @@ var AlarmList = {
     this.template = new Template('alarm-list-item-tmpl');
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
+    this.banner = new Banner('banner-countdown', 'banner-tmpl');
     this.refresh();
     AlarmManager.regUpdateAlarmEnableState(this.refreshItem.bind(this));
   },
@@ -211,7 +211,7 @@ var AlarmList = {
       // setEnabled saves to database
       alarm.setEnabled(!alarm.enabled, function al_putAlarm(err, alarm) {
         if (alarm.enabled) {
-          AlarmManager.renderBannerBar(alarm.getNextAlarmFireTime());
+          this.banner.show(alarm.getNextAlarmFireTime());
         }
         this.refreshItem(alarm);
         AlarmManager.updateAlarmStatusBar();

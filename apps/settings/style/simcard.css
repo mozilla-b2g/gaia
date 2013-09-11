@@ -1,44 +1,21 @@
-#call-pin2-dialog .container,
-#simpin-dialog .container {
+.pin-dialog {
+  -moz-box-sizing: padding-box;
   padding: 0 2rem;
   font-size: 1.4em;
 }
 
-#call-pin2-dialog .container > div,
-#simpin-dialog .container > div {
-  padding-top: 1rem;
+.pin-dialog > div {
+  margin-top: 1rem;
 }
 
-#call-pin2-dialog .error,
-#simpin-dialog .error {
+.pin-dialog .error {
   font-size: 1.2rem;
 }
 
-#call-pin2-dialog .error .sim-messageHeader,
-#simpin-dialog .error .sim-messageHeader {
+.pin-dialog .error .sim-messageHeader {
   color: red;
 }
 
-#call-pin2-dialog .sim-code-area,
-#simpin-dialog .sim-code-area {
+.pin-dialog .sim-code-area {
   font-size: 1.4rem;
 }
-
-#call-pin2-dialog .input-wrapper,
-#simpin-dialog .input-wrapper {
-  position: relative;
-}
-
-#call-pin2-dialog .input-wrapper input,
-#simpin-dialog .input-wrapper input {
-  font-size: 2.1rem;
-  display: block;
-  width: 100%;
-}
-
-#call-pin2-dialog .input-wrapper input[type="number"],
-#simpin-dialog .input-wrapper input[type="number"] {
-  padding: 0;
-  height: 4rem;
-}
-

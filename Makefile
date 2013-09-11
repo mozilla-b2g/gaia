@@ -399,7 +399,7 @@ webapp-optimize: install-xulrunner-sdk
 	@$(call run-js-command, webapp-optimize)
 
 # Remove temporary l10n files
-optimize-clean: install-xulrunner-sdk
+optimize-clean: webapp-zip install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
 
 # Get additional extensions
@@ -425,7 +425,7 @@ ifdef LOCAL_APPS_PATH
 endif
 
 # Create webapps
-offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
+offline: webapp-manifests optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty

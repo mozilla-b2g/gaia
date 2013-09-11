@@ -162,6 +162,43 @@ suite('Dialog', function() {
       'Cancel DOM localized with proper string');
   });
 
+  test('Checking parametrized body localization.', function() {
+    params.title.l10n = true;
 
+    params.body = {
+      value: '',
+      l10n: {
+        n: 3,
+        numbers: ['123', '456', '789']
+      }
+    };
+    params.options.cancel = {
+      text: {
+        value: 'keyCancel',
+        l10n: true
+      }
+    };
+    params.options.confirm = {
+      text: {
+        value: 'keyConfirm',
+        l10n: true
+      }
+    };
+    var l10nSpy = this.sinon.spy(navigator.mozL10n, 'localize');
+    // Now we create the new element
+    var dialog = new Dialog(params);
+    // We append the element to the DOM
+    dialog.show();
+    // We retrieve the last created form
+    var currentlyDefinedForms = document.getElementsByTagName('form');
+    var currentlyDefinedFormsLength = currentlyDefinedForms.length;
+    // We check the type
+    var dialogForm = currentlyDefinedForms[currentlyDefinedFormsLength - 1];
+    // We check how many buttons we have (mandatory + confirm one)
+    var bodyDOM = dialogForm.querySelector('small');
+    // We check localization
+    assert.ok(l10nSpy.calledWith(bodyDOM, params.body.value),
+      'Body DOM localized with proper string');
+  });
 
 });

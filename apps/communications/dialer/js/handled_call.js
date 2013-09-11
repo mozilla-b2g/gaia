@@ -36,7 +36,6 @@ function HandledCall(aCall) {
 
   this.durationNode = this.node.querySelector('.duration');
   this.durationChildNode = this.node.querySelector('.duration span');
-  this.directionNode = this.node.querySelector('.duration .direction');
   this.numberNode = this.node.querySelector('.numberWrapper .number');
   this.additionalInfoNode = this.node.querySelector('.additionalContactInfo');
 
@@ -247,14 +246,16 @@ HandledCall.prototype.restorePhoneNumber =
 };
 
 HandledCall.prototype.updateDirection = function hc_updateDirection() {
-  var className;
+  var classList = this.node.classList;
   if (this._initialState == 'incoming') {
-    className = (this.call.state == 'connected') ? 'ongoing-in' : 'incoming';
+    classList.add('incoming');
   } else {
-    className = (this.call.state == 'connected') ? 'ongoing-out' : 'outgoing';
+    classList.add('outgoing');
   }
 
-  this.directionNode.classList.add(className);
+  if (this.call.state == 'connected') {
+    classList.add('ongoing');
+  }
 };
 
 HandledCall.prototype.remove = function hc_remove() {

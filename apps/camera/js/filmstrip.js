@@ -107,7 +107,8 @@ var Filmstrip = (function() {
     var item = items[index];
 
     if (item.isImage) {
-      frame.displayImage(item.blob, item.width, item.height, item.preview);
+      frame.displayImage(item.blob, item.width, item.height, item.preview,
+                         item.rotation, item.mirrored);
     }
     else if (item.isVideo) {
       frame.displayVideo(item.blob, item.poster,
@@ -258,14 +259,21 @@ var Filmstrip = (function() {
 
   function addImage(filename, blob) {
     parseJPEGMetadata(blob, function getPreviewBlob(metadata) {
+      if (!metadata.rotation)
+        metadata.rotation = 0;
+      if (!metadata.mirrored)
+        metadata.mirrored = false;
+
       if (metadata.preview) {
         var previewBlob = blob.slice(metadata.preview.start,
                                      metadata.preview.end,
                                      'image/jpeg');
-
-        offscreenImage.src = URL.createObjectURL(previewBlob);
-        offscreenImage.onload = function() {
-          createThumbnailFromImage(offscreenImage, function(thumbnail) {
+        createThumbnail(
+          previewBlob,
+          false,
+          metadata.rotation,
+          metadata.mirrored,
+          function(thumbnail) {
             addItem({
               isImage: true,
               filename: filename,
@@ -273,31 +281,30 @@ var Filmstrip = (function() {
               blob: blob,
               width: metadata.width,
               height: metadata.height,
-              preview: metadata.preview
+              preview: metadata.preview,
+              rotation: metadata.rotation,
+              mirrored: metadata.mirrored
             });
-          });
-          URL.revokeObjectURL(offscreenImage.src);
-          offscreenImage.onload = null;
-          offscreenImage.src = null;
-        };
+          }
+        );
       }
     }, function logerr(msg) { console.warn(msg); });
   }
 
   function addVideo(filename, blob, poster, width, height, rotation) {
-    createThumbnailFromPoster(poster, width, height, rotation,
-                              function(thumbnail) {
-                                addItem({
-                                  isVideo: true,
-                                  filename: filename,
-                                  thumbnail: thumbnail,
-                                  poster: poster,
-                                  blob: blob,
-                                  width: width,
-                                  height: height,
-                                  rotation: rotation
-                                });
-                              });
+    createThumbnail(poster, true, rotation, false,
+                    function(thumbnail) {
+                      addItem({
+                        isVideo: true,
+                        filename: filename,
+                        thumbnail: thumbnail,
+                        poster: poster,
+                        blob: blob,
+                        width: width,
+                        height: height,
+                        rotation: rotation
+                      });
+                    });
   }
 
   // Add a thumbnail to the filmstrip.
@@ -382,52 +389,19 @@ var Filmstrip = (function() {
   // Create a thumbnail size canvas, copy the <img> or <video> into it
   // cropping the edges as needed to make it fit, and then extract the
   // thumbnail image as a blob and pass it to the callback.
-  function createThumbnailFromImage(img, callback) {
-    // Create a thumbnail image
-    var canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    canvas.width = THUMBNAIL_WIDTH;
-    canvas.height = THUMBNAIL_HEIGHT;
-    var imgwidth = img.width;
-    var imgheight = img.height;
-    var scalex = canvas.width / imgwidth;
-    var scaley = canvas.height / imgheight;
-
-    // Take the larger of the two scales: we crop the image to the thumbnail
-    var scale = Math.max(scalex, scaley);
-
-    // Calculate the region of the image that will be copied to the
-    // canvas to create the thumbnail
-    var w = Math.round(THUMBNAIL_WIDTH / scale);
-    var h = Math.round(THUMBNAIL_HEIGHT / scale);
-    var x = Math.round((imgwidth - w) / 2);
-    var y = Math.round((imgheight - h) / 2);
-
-    // Draw that region of the image into the canvas, scaling it down
-    context.drawImage(img, x, y, w, h,
-                      0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-
-    canvas.toBlob(callback, 'image/jpeg');
-  }
-
-  // Create a thumbnail size canvas, copy the <img> or <video> into it
-  // cropping the edges as needed to make it fit, and then extract the
-  // thumbnail image as a blob and pass it to the callback.
-  function createThumbnailFromPoster(poster, width, height, rotation, callback)
+  function createThumbnail(imageBlob, video, rotation, mirrored, callback) 
   {
-    // Load the poster image into an offscreen image
-    offscreenImage.src = URL.createObjectURL(poster);
-    // And when it loads, create a thumbnail from it
+    offscreenImage.src = URL.createObjectURL(imageBlob);
     offscreenImage.onload = function() {
-
-      // Now create a thumbnail
-      var thumbnailcanvas = document.createElement('canvas');
-      var thumbnailcontext = thumbnailcanvas.getContext('2d');
-      thumbnailcanvas.width = THUMBNAIL_WIDTH;
-      thumbnailcanvas.height = THUMBNAIL_HEIGHT;
-
-      var scalex = THUMBNAIL_WIDTH / width;
-      var scaley = THUMBNAIL_HEIGHT / height;
+      // Create a thumbnail image
+      var canvas = document.createElement('canvas');
+      var context = canvas.getContext('2d');
+      canvas.width = THUMBNAIL_WIDTH;
+      canvas.height = THUMBNAIL_HEIGHT;
+      var imgWidth = offscreenImage.width;
+      var imgHeight = offscreenImage.height;
+      var scalex = canvas.width / imgWidth;
+      var scaley = canvas.height / imgHeight;
 
       // Take the larger of the two scales: we crop the image to the thumbnail
       var scale = Math.max(scalex, scaley);
@@ -436,73 +410,86 @@ var Filmstrip = (function() {
       // canvas to create the thumbnail
       var w = Math.round(THUMBNAIL_WIDTH / scale);
       var h = Math.round(THUMBNAIL_HEIGHT / scale);
-      var x = Math.round((width - w) / 2);
-      var y = Math.round((height - h) / 2);
+      var x = Math.round((imgWidth - w) / 2);
+      var y = Math.round((imgHeight - h) / 2);
 
-      // If a rotation is specified, rotate the canvas context
+      var centerX = Math.floor(THUMBNAIL_WIDTH / 2);
+      var centerY = Math.floor(THUMBNAIL_HEIGHT / 2);
+
+      // If a orientation is specified, rotate/mirroring the canvas context.
+      if (rotation || mirrored) {
+        context.save();
+        // All transformation are applied to the center of the thumbnail.
+        context.translate(centerX, centerY);
+      }
+
+      if (mirrored) {
+        context.scale(-1, 1);
+      }
       if (rotation) {
-        thumbnailcontext.save();
         switch (rotation) {
         case 90:
-          thumbnailcontext.translate(THUMBNAIL_WIDTH, 0);
-          thumbnailcontext.rotate(Math.PI / 2);
+          context.rotate(Math.PI / 2);
           break;
         case 180:
-          thumbnailcontext.translate(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
-          thumbnailcontext.rotate(Math.PI);
+          context.rotate(Math.PI);
           break;
         case 270:
-          thumbnailcontext.translate(0, THUMBNAIL_HEIGHT);
-          thumbnailcontext.rotate(-Math.PI / 2);
+          context.rotate(-Math.PI / 2);
           break;
         }
       }
 
-      // Draw that region of the poster into the thumbnail, scaling it down
-      thumbnailcontext.drawImage(offscreenImage, x, y, w, h,
-                                 0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+      if (rotation || mirrored) {
+        context.translate(-centerX, -centerY);
+      }
+
+      // Draw that region of the image into the canvas, scaling it down
+      context.drawImage(offscreenImage, x, y, w, h,
+                        0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
+
+      // Restore the default rotation so the play arrow comes out correctly
+      if (rotation || mirrored) {
+        context.restore();
+      }
 
       // We're done with the offscreen image now
       URL.revokeObjectURL(offscreenImage.src);
       offscreenImage.onload = null;
-      offscreenImage.src = null;
+      offscreenImage.src = '';
 
-      // Restore the default rotation so the play arrow comes out correctly
-      if (rotation) {
-        thumbnailcontext.restore();
+      if (video) {
+        // Superimpose a translucent play button over
+        // the thumbnail to distinguish it from a still photo
+        // thumbnail. First draw a transparent gray circle.
+        context.fillStyle = 'rgba(0, 0, 0, .3)';
+        context.beginPath();
+        context.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
+                             THUMBNAIL_HEIGHT / 3, 0, 2 * Math.PI, false);
+        context.fill();
+
+        // Now outline the circle in white
+        context.strokeStyle = 'rgba(255,255,255,.6)';
+        context.lineWidth = 2;
+        context.stroke();
+
+        // And add a white play arrow.
+        context.beginPath();
+        context.fillStyle = 'rgba(255,255,255,.6)';
+        // The height of an equilateral triangle is sqrt(3)/2 times the side
+        var side = THUMBNAIL_HEIGHT / 3;
+        var triangle_height = side * Math.sqrt(3) / 2;
+        context.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
+                                THUMBNAIL_HEIGHT / 2);
+        context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                                THUMBNAIL_HEIGHT / 2 - side / 2);
+        context.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
+                                THUMBNAIL_HEIGHT / 2 + side / 2);
+        context.closePath();
+        context.fill();
       }
 
-      // Superimpose a translucent play button over
-      // the thumbnail to distinguish it from a still photo
-      // thumbnail. First draw a transparent gray circle.
-      thumbnailcontext.fillStyle = 'rgba(0, 0, 0, .3)';
-      thumbnailcontext.beginPath();
-      thumbnailcontext.arc(THUMBNAIL_WIDTH / 2, THUMBNAIL_HEIGHT / 2,
-                           THUMBNAIL_HEIGHT / 3, 0, 2 * Math.PI, false);
-      thumbnailcontext.fill();
-
-      // Now outline the circle in white
-      thumbnailcontext.strokeStyle = 'rgba(255,255,255,.6)';
-      thumbnailcontext.lineWidth = 2;
-      thumbnailcontext.stroke();
-
-      // And add a white play arrow.
-      thumbnailcontext.beginPath();
-      thumbnailcontext.fillStyle = 'rgba(255,255,255,.6)';
-      // The height of an equilateral triangle is sqrt(3)/2 times the side
-      var side = THUMBNAIL_HEIGHT / 3;
-      var triangle_height = side * Math.sqrt(3) / 2;
-      thumbnailcontext.moveTo(THUMBNAIL_WIDTH / 2 + triangle_height * 2 / 3,
-                              THUMBNAIL_HEIGHT / 2);
-      thumbnailcontext.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                              THUMBNAIL_HEIGHT / 2 - side / 2);
-      thumbnailcontext.lineTo(THUMBNAIL_WIDTH / 2 - triangle_height / 3,
-                              THUMBNAIL_HEIGHT / 2 + side / 2);
-      thumbnailcontext.closePath();
-      thumbnailcontext.fill();
-
-      // Get the thumbnail image as a blob and pass it to the callback
-      thumbnailcanvas.toBlob(callback, 'image/jpeg');
+      canvas.toBlob(callback, 'image/jpeg');
     };
   }
 

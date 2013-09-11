@@ -41,8 +41,7 @@ button {
   background: none;
   border: none;
   outline: none;
-  font-size: 1.1rem;
-  line-height: 1.3rem;
+  font: 1.1rem/1.3rem;
   color: #666;
   cursor: pointer;
 }
@@ -54,8 +53,7 @@ button::-moz-focus-inner {
 
 
 input[type="text"], textarea {
-  font-size: 1.3rem;
-  line-height: 4rem;
+  font: 1.3rem/4rem;
   -moz-box-sizing: border-box;
   width: 100%;
 }

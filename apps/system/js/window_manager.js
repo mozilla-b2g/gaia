@@ -302,8 +302,24 @@ var WindowManager = (function() {
 
     if (classList.contains('inlineActivity')) {
       if (classList.contains('active')) {
-        if (openFrame)
+        if (openFrame) {
           openFrame.firstChild.focus();
+          var app = runningApps[displayedApp];
+          // Set page visibility of focused app to false
+          // once inline activity frame's transition is ended.
+          // XXX: We have trouble to make all inline activity
+          // openers being sent to background now,
+          // because of OOM killer may kill them accidently.
+          // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
+          // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
+          // So we only set browser app(in-process)'s page visibility
+          // to false now to resolve 914412.
+          if (app && app.iframe &&
+              'contentWindow' in app.iframe &&
+              app.iframe.contentWindow != null) {
+            app.setVisible(false);
+          }
+        }
 
         setOpenFrame(null);
       } else {
@@ -470,6 +486,9 @@ var WindowManager = (function() {
     // set the size of the opening app
     app.resize();
 
+    // Make window visible to screenreader
+    app.frame.removeAttribute('aria-hidden');
+
     if (origin === homescreen) {
       // Call the openCallback only once. We have to use tmp var as
       // openCallback can be a method calling the callback
@@ -561,6 +580,9 @@ var WindowManager = (function() {
     setCloseFrame(app.frame);
     closeCallback = callback || noop;
     ready = ready || noop;
+
+    // Make window invisible to screenreader
+    app.frame.setAttribute('aria-hidden', 'true');
 
     var onSwitchWindow = isSwitchWindow();
 
@@ -863,6 +885,8 @@ var WindowManager = (function() {
              (currentApp == homescreen && newApp)) {
       var zoomInPreCallback = function() {
         homescreenFrame.classList.add('zoom-in');
+        // Hide homescreen from screenreader
+        homescreenFrame.setAttribute('aria-hidden', 'true');
       };
       var zoomInCallback = function() {
         homescreenFrame.classList.remove('zoom-in');
@@ -1002,6 +1026,7 @@ var WindowManager = (function() {
     var frame = document.createElement('div');
     frame.appendChild(iframe);
     frame.className = 'appWindow';
+    frame.setAttribute('role', 'region');
 
     // TODO: Remove this line later.
     // We won't need to store origin or url in iframe element anymore.

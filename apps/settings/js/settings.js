@@ -193,6 +193,14 @@ var Settings = {
       return;
     }
 
+    // hide telephony related entries if not supportted
+    if (!navigator.mozTelephony) {
+      var elements = ['call-settings', 'data-connectivity',
+                      'simSecurity-settings'];
+      elements.forEach(function(el) {
+        document.getElementById(el).hidden = true;
+      });
+    }
     // register web activity handler
     navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
@@ -856,7 +864,6 @@ window.addEventListener('load', function loadSettings() {
       'js/storage.js',
       'shared/js/mobile_operator.js',
       'shared/js/wifi_helper.js',
-      'shared/js/icc_helper.js',
       'js/connectivity.js',
       'js/security_privacy.js',
       'js/icc_menu.js',

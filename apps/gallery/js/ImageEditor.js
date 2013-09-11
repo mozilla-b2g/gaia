@@ -137,7 +137,7 @@ function editOptionsHandler() {
  */
 var exposureSlider = (function() {
   var slider = document.getElementById('exposure-slider');
-  var bar = document.getElementById('sliderbar');
+  var bar = document.getElementById('sliderline');
   var thumb = document.getElementById('sliderthumb');
 
   // prepare gesture detector for slider
@@ -151,13 +151,19 @@ var exposureSlider = (function() {
     sliderStartExposure = currentExposure;
     e.preventDefault();
   });
+  thumb.addEventListener('touchstart', function(e) {
+    thumb.classList.add('active');
+  });
+  thumb.addEventListener('touchend', function(e) {
+    thumb.classList.remove('active');
+  });
 
   var currentExposure; // will be set by the initial setExposure call
   var sliderStartExposure = 0;
 
   function sliderDrag(e) {
     var delta = e.detail.absolute.dx;
-    var exposureDelta = delta / (parseInt(bar.clientWidth, 10) * .8) * 6;
+    var exposureDelta = delta / parseInt(bar.clientWidth, 10) * 6;
     setExposure(sliderStartExposure + exposureDelta);
     e.preventDefault();
   }
@@ -184,17 +190,18 @@ var exposureSlider = (function() {
   }
 
   function forceSetExposure(exposure) {
-    var barWidth = parseInt(bar.clientWidth, 10);
+    // Remove left/right 4 pixels of margin
+    var barWidth = parseInt(bar.clientWidth, 10) - 4 * 2;
     var thumbWidth = parseInt(thumb.clientWidth, 10);
+    var offset = bar.offsetLeft + 4;
 
     // Remember the new exposure value
     currentExposure = exposure;
+    // Convert exposure value to a unit coefficient position of thumb center
+    var unitCoef = (exposure + 3) / 6;
 
-    // Convert exposure value to % position of thumb center
-    var percent = 10 + (exposure + 3) * 80 / 6;
-
-    // Convert percent to pixel position of thumb center
-    var pixel = barWidth * percent / 100;
+    // Convert unitCoef to pixel position of thumb center
+    var pixel = offset + barWidth * unitCoef;
 
     // Compute pixel position of left edge of thumb
     pixel -= thumbWidth / 2;
