@@ -16,8 +16,8 @@
       'start', 'pause', 'resume',
       'lap', 'reset', 'time',
       'lap-list', 'laps'
-    ].forEach(function(id) {
-      this.nodes[id] = document.getElementById('stopwatch-' + id);
+    ].forEach(function(sel) {
+      this.nodes[sel] = element.getElementsByClassName('stopwatch-' + sel)[0];
     }, this);
 
     // Bind click events

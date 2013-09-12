@@ -2,7 +2,7 @@
   text-align: center;
 }
 
-#stopwatch-time {
+.stopwatch-time {
   letter-spacing: -0.5rem;
   font-weight: 300;
   font-size: 10.5rem;
@@ -23,7 +23,7 @@
   width: 45%;
 }
 
-#stopwatch-laps {
+.stopwatch-laps {
   width: 90%;
   height: calc(100% - 23rem);
   position: absolute;
@@ -34,7 +34,7 @@
   background-image: none;
 }
 
-#stopwatch-laps li.lap-cell {
+.stopwatch-laps li.lap-cell {
   border-top: 1px solid rgba(115, 125, 128, 0.2);
   position: relative;
   height: 4.5rem;
