@@ -77,6 +77,21 @@ suite('Database Test', function() {
       assert.equal(db.downgraders[0].fn(), 33);
     });
 
+    test('Database singletons', function() {
+      // This test leaks!
+      var leakyName = 'leaky-singleton-' + Date.now();
+      var singleton = Database.singleton({
+        name: leakyName,
+        version: 99,
+        schemas: []
+      });
+      for (var i = 0; i < 100; i++) {
+        assert.equal(singleton, Database.singleton({
+          name: leakyName
+        }));
+      }
+    });
+
     test('Get this.name\'s version, nonexistent', function(done) {
       db.getLatestVersion(function(err, version, effective) {
         assert.ok(!err);

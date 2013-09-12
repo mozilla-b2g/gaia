@@ -129,14 +129,13 @@
 
   var databaseSingletons = new Map();
 
-  Database.constructSingleton = function(options) {
-    if (!databaseSingletons.has(options.name)) {
-      databaseSingletons.put(options.name, new Database(options));
+  Database.singleton = function(options) {
+    var db = databaseSingletons.get(options.name);
+    if (!db) {
+      db = new Database(options);
+      databaseSingletons.set(options.name, db);
     }
-  };
-
-  Database.getSingleton = function(name) {
-    return databaseSingletons.get(name);
+    return db;
   };
 
   // ===========================================================
