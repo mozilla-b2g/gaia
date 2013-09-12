@@ -1,7 +1,6 @@
 'use strict';
 
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('system/shared/js/operator_variant_helper.js');
@@ -17,7 +16,6 @@ suite('operator variant helper', function() {
   const NULL_ICC_INFO = { mcc: 0, mnc: 0 };
   const PERSIST_KEY = 'operator_variant_helper_test.customize';
 
-  var realMozMobileConnection;
   var realMozSettings;
 
   var helper;
@@ -26,24 +24,20 @@ suite('operator variant helper', function() {
   suiteSetup(function() {
     MockIccHelper.mProps.cardState = 'ready';
 
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-
     realMozSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
-    navigator.mozMobileConnection = realMozMobileConnection;
     navigator.mozSettings = realMozSettings;
   });
 
   setup(function() {
-    MockNavigatorMozMobileConnection.iccInfo = EXPECTED_ICC_INFO;
+    MockIccHelper.mProps.iccInfo = EXPECTED_ICC_INFO;
   });
 
   teardown(function() {
-    MockNavigatorMozMobileConnection.iccInfo = NULL_ICC_INFO;
+    MockIccHelper.mProps.iccInfo = NULL_ICC_INFO;
     helper.revert();
     helper = null;
   });
@@ -93,7 +87,7 @@ suite('operator variant helper', function() {
     );
 
     helper.listen();
-    MockNavigatorMozMobileConnection.triggerEventListeners('iccinfochange', {});
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
   });
 
   test('listen for iccinfochange only fires once', function() {

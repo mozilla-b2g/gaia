@@ -1,4 +1,16 @@
 {
+"111": {
+  "01": [
+    {"carrier":"Test Network","apn":"internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]}
+  ],
+  "02": [
+    {"carrier":"Test Network with MMS","apn":"mms.internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms"]}
+  ],
+  "03": [
+    {"carrier":"Test Network with Operator Variant","apn":"internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]},
+    {"voicemail":"999999","cellBroadcastSearchList":"0,1,2,3","type":["operatorvariant"]}
+  ]
+},
 "202": {
   "10": [
     {"carrier":"Wind Internet","apn":"gint.b-online.gr","type":["default","supl"]},
