@@ -25,6 +25,14 @@ var UtilityTray = {
     window.addEventListener('home', this);
     window.addEventListener('attentionscreenshow', this);
 
+    // Firing when the keyboard and the IME switcher shows/hides.
+    window.addEventListener('keyboardimeswitchershow', this);
+    window.addEventListener('keyboardimeswitcherhide', this);
+
+    // Firing when user selected a new keyboard or canceled it.
+    window.addEventListener('keyboardchanged', this);
+    window.addEventListener('keyboardchangecanceled', this);
+
     this.overlay.addEventListener('transitionend', this);
   },
 
@@ -33,10 +41,25 @@ var UtilityTray = {
       case 'attentionscreenshow':
       case 'home':
       case 'emergencyalert':
+      case 'keyboardchanged':
+      case 'keyboardchangecanceled':
         if (this.shown) {
           this.hide();
         }
         break;
+
+      // When IME switcher shows, prevent the keyboard's focus getting changed.
+      case 'keyboardimeswitchershow':
+        this.overlay.addEventListener('mousedown', this._pdIMESwitcherShow);
+        this.statusbar.addEventListener('mousedown', this._pdIMESwitcherShow);
+        break;
+
+      case 'keyboardimeswitcherhide':
+        this.overlay.removeEventListener('mousedown', this._pdIMESwitcherShow);
+        this.statusbar.removeEventListener('mousedown',
+                                           this._pdIMESwitcherShow);
+        break;
+
 
       case 'screenchange':
         if (this.shown && !evt.detail.screenEnabled)
@@ -143,6 +166,10 @@ var UtilityTray = {
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
     }
+  },
+
+  _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {
+      evt.preventDefault();
   }
 };
 

@@ -56,7 +56,10 @@
 }
 
 #screen > [data-z-index-level="keyboards"] {
-  z-index: 65536;
+  
+  /* It should lower than UtilityTray's, to let the tray overlay it
+     in some situation like selecting a new keyboard. */
+  z-index: 4094;
 }
 
 /* Level 2: Notification toaster */
@@ -121,6 +124,10 @@
 /* Keep keyboard under lockscreen when locked */
 #screen.locked > [data-z-index-level="keyboards"] {
   z-index: 2044;
+}
+
+#screen.locked.attention > [data-z-index-level="keyboards"] {
+  z-index: 65536;
 }
 
 /* Level 7: Dialog Module */

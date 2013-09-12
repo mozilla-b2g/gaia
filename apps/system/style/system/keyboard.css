@@ -36,3 +36,44 @@
   height: 100%;
   border: 0;
 }
+
+/* notification */
+#keyboard-show-ime-list > .fake-notification {
+  background-repeat: no-repeat;
+  background-position: 1.5rem center;
+  background-size: 3rem;
+  -moz-box-sizing: border-box;
+  padding: 1rem 1rem 1rem 5rem;
+
+  /* wait for activate */
+  display: none;
+}
+
+#keyboard-show-ime-list > .fake-notification > .message {
+  line-height: 2.5rem;
+  font-weight: 700;
+  font-size: 1.6rem;
+  white-space: nowrap;
+}
+
+#keyboard-show-ime-list > .fake-notification > .tip {
+  color: grey;
+  font-size: 11pt;
+}
+
+#keyboard-show-ime-list > .fake-notification.activated{
+  display: block;
+}
+
+/* copied from settings page */
+#keyboard-show-ime-list > .fake-notification::before {
+  position: absolute;
+  top: calc((6.2rem - 3.2rem) / 2); 
+  left: calc((5.5rem - 2.8rem) / 2); 
+  width: 3rem;
+  height: 3rem;
+
+  content: '';
+
+  background: url(../icons/Keyboard.png) top left no-repeat;
+}
