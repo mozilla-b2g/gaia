@@ -92,7 +92,9 @@ var PermissionManager = {
     var _ = navigator.mozL10n.get;
 
     if (detail.isApp) { // App
-      str = _(permissionID + '-appRequest', { 'app': detail.appName });
+      var app = Applications.getByManifestURL(detail.manifestURL);
+      str = _(permissionID + '-appRequest',
+        { 'app': new ManifestHelper(app.manifest).name });
     } else { // Web content
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
     }
