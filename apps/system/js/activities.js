@@ -37,7 +37,7 @@ var Activities = {
         dispatchEvent(new CustomEvent('activitymenuwillopen'));
 
         var activityName = navigator.mozL10n.get('activity-' + detail.name);
-        ListMenu.request(this._listItems(choices), activityName,
+        ActionMenu.open(this._listItems(choices), activityName,
                          this.choose.bind(this), this.cancel.bind(this));
       }).bind(this));
     }
