@@ -2368,6 +2368,7 @@ function NOP() {
  */
 var DummyLogProtoBase = {
   _kids: undefined,
+  logLevel: 'dummy',
   toString: function() {
     return '[DummyLog]';
   },
@@ -2381,7 +2382,7 @@ var DummyLogProtoBase = {
 
 /**
  * Full logger prototype; instances accumulate log details but are intended by
- *  policy to not long anything considered user-private.  This differs from
+ *  policy to not log anything considered user-private.  This differs from
  *  `TestLogProtoBase` which, in the name of debugging and system understanding
  *  can capture private data but which should accordingly be test data.
  */
@@ -2394,6 +2395,7 @@ var LogProtoBase = {
    *  a need is shown or doing monkeypatching; at least for the time-being.
    */
   _named: null,
+  logLevel: 'safe',
   toJSON: function() {
     var jo = {
       loggerIdent: this.__defName,
@@ -2450,6 +2452,7 @@ var LogProtoBase = {
  *  decorator.
  */
 var TestLogProtoBase = Object.create(LogProtoBase);
+TestLogProtoBase.logLevel = 'dangerous';
 TestLogProtoBase.__unexpectedEntry = function(iEntry, unexpEntry) {
   var entry = ['!unexpected', unexpEntry];
   this._entries[iEntry] = entry;
@@ -12073,10 +12076,10 @@ MailBridge.prototype = {
   _cmd_clearAccountProblems: function mb__cmd_clearAccountProblems(msg) {
     var account = this.universe.getAccountForAccountId(msg.accountId),
         self = this;
-
     account.checkAccount(function(err) {
       // If we succeeded or the problem was not an authentication, assume
-      // everything went fine and clear the problems.
+      // everything went fine and clear the problems.  This includes the case
+      // we're offline.
       if (!err || (
           err !== 'bad-user-or-pass' &&
           err !== 'needs-app-pass' &&
@@ -12089,8 +12092,12 @@ MailBridge.prototype = {
         // This is only being sent over this, the same bridge the clear request
         // came from rather than sent via the mailuniverse.  No point having the
         // notifications stack up on inactive UIs.
-        self.notifyBadLogin(account);
+        self.notifyBadLogin(account, err);
       }
+      self.__sendMessage({
+        type: 'clearAccountProblems',
+        handle: msg.handle,
+      });
     });
   },
 
@@ -12146,6 +12153,7 @@ MailBridge.prototype = {
           break;
       }
     }
+
     this.universe.saveAccountDef(accountDef, null);
   },
 
