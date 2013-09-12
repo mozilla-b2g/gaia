@@ -19,3 +19,15 @@
 .pin-dialog .sim-code-area {
   font-size: 1.4rem;
 }
+
+/*
+  Add contact action menu
+ */
+
+#add-contact-action-menu {
+  display: none;
+}
+
+#add-contact-action-menu.visible {
+  display: inline;
+}
