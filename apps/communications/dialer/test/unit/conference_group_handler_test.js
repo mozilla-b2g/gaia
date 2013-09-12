@@ -4,7 +4,6 @@ requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 

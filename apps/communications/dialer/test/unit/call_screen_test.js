@@ -26,6 +26,8 @@ suite('call screen', function() {
   var groupCalls;
   var muteButton;
   var speakerButton;
+  var statusMessage,
+      statusMessageText;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -63,6 +65,12 @@ suite('call screen', function() {
     speakerButton = document.createElement('button');
     speakerButton.id = 'speaker';
     screen.appendChild(speakerButton);
+
+    statusMessage = document.createElement('div');
+    statusMessage.id = 'statusMsg';
+    statusMessageText = document.createElement('p');
+    statusMessage.appendChild(statusMessageText);
+    screen.appendChild(statusMessage);
 
     // Replace the existing elements
     // Since we can't make the CallScreen look for them again
@@ -291,6 +299,52 @@ suite('call screen', function() {
       CallScreen.placeNewCall();
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.equal(resizeSpy.firstCall.args[1], 40);
+    });
+  });
+
+  suite('showStatusMessage', function() {
+    var statusMessage,
+        bannerClass,
+        addEventListenerSpy,
+        removeEventListenerSpy;
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+      statusMessage = CallScreen.statusMessage;
+      bannerClass = statusMessage.classList;
+      addEventListenerSpy = this.sinon.spy(statusMessage, 'addEventListener');
+      removeEventListenerSpy =
+        this.sinon.spy(statusMessage, 'removeEventListener');
+
+      CallScreen.showStatusMessage('message');
+    });
+
+    test('should show the banner', function() {
+      assert.include(bannerClass, 'visible');
+    });
+    test('should show the text', function() {
+      assert.equal(statusMessage.querySelector('p').textContent,
+                   'message');
+    });
+
+    suite('once the transition ends', function() {
+      setup(function() {
+        addEventListenerSpy.yield();
+      });
+      test('should remove the listener', function() {
+        assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
+      });
+
+      suite('after STATUS_TIME', function() {
+        setup(function(done) {
+          this.sinon.clock.tick(2000);
+          done();
+        });
+        test('should hide the banner', function() {
+          assert.isFalse(bannerClass.contains('visible'));
+        });
+      });
+
     });
   });
 });

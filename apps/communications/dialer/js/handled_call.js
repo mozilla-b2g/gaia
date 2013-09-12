@@ -3,15 +3,17 @@
 function HandledCall(aCall) {
   this._ticker = null;
   this.photo = null;
-
+  this._leftGroup = false;
   this.call = aCall;
 
   aCall.addEventListener('statechange', this);
 
   aCall.ongroupchange = (function onGroupChange() {
     if (this.call.group) {
+      this._leftGroup = false;
       CallScreen.moveToGroup(this.node);
     } else {
+      this._leftGroup = true;
       CallScreen.insertCall(this.node);
     }
   }).bind(this);
@@ -287,6 +289,15 @@ HandledCall.prototype.connected = function hc_connected() {
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
   var entry = this.recentsEntry;
+  var self = this;
+  if (this._leftGroup) {
+    LazyL10n.get(function localized(_) {
+      CallScreen.showStatusMessage(_('caller-left-call',
+        {caller: self._cachedInfo}));
+    });
+    self._leftGroup = false;
+  }
+
   if (entry) {
     if (entry.contactInfo) {
       if (typeof entry.contactInfo.contact === 'string') {

@@ -686,7 +686,7 @@ var CallsHandler = (function callsHandler() {
   /**
    * Plays the ANSI call waiting tone for a 10 seconds window
    *
-   * @param {Object} call The call object to which the wait tone is referred to
+   * @param {Object} call The call object to which the wait tone is referred to.
    */
   function playWaitingTone(call) {
     // ANSI call waiting tone for a 10 sec window
@@ -728,7 +728,7 @@ var CallsHandler = (function callsHandler() {
   /**
    * Detects if we're in CDMA call waiting mode
    *
-   * @return {Boolean} Returns true if we're in CDMA call waiting mode
+   * @return {Boolean} Returns true if we're in CDMA call waiting mode.
    */
   function cdmaCallWaiting() {
     return ((telephony.calls.length == 1) &&
