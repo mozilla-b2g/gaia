@@ -109,16 +109,16 @@ var ActivityHandler = {
       return;
     }
 
-    // For "new" message activities, proceed directly to
-    // new message composition view.
-    if (!message.threadId && message.number) {
-      ActivityHandler.toView(message);
-      return;
-    }
-
     var request = navigator.mozMobileMessage.getMessage(message.id);
-
     request.onsuccess = function onsuccess() {
+      if (!Compose.isEmpty()) {
+        if (window.confirm(navigator.mozL10n.get('discard-new-message'))) {
+          ThreadUI.cleanFields(true);
+        } else {
+          return;
+        }
+      }
+
       ActivityHandler.toView(message);
     };
 
