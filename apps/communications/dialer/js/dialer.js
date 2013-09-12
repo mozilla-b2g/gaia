@@ -515,7 +515,7 @@ window.addEventListener('load', function startup(evt) {
       LazyLoader.load(['/contacts/js/fb/fb_data.js',
                        '/contacts/js/fb/fb_contact_utils.js',
                        '/shared/style/confirm.css',
-                       '/contacts/js/confirm_dialog.js',
+                       '/contacts/js/utilities/confirm.js',
                        '/dialer/js/newsletter_manager.js',
                        '/shared/style/edit_mode.css',
                        '/shared/style/headers.css']);

@@ -81,7 +81,7 @@ if (typeof window.importer === 'undefined') {
 
     function showOfflineDialog(yesCb, noCb) {
       var recommend = serviceConnector.name === 'facebook';
-      ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
+      Contacts.confirmDialog(_('connectionLost'), _('connectionLostMsg'),
         {
           title: _('noOption'),
           isRecommend: !recommend,

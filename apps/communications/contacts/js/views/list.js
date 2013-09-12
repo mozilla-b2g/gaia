@@ -776,7 +776,7 @@ contacts.List = (function() {
       }
     };
 
-    ConfirmDialog.show(null, msg, noObject);
+    Contacts.confirmDialog(null, msg, noObject);
   };
 
   function addToFavoriteList(favorite) {
