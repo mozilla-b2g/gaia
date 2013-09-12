@@ -6,7 +6,7 @@
   }
   DateTimeFormat.prototype = {
     localeFormat: function mockLocaleFormat(time, strFormat) {
-      return '' + time;
+      return time.getTime() + ',' + strFormat;
     }
   };
 

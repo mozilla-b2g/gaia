@@ -532,7 +532,8 @@ function fileCreated(fileinfo) {
   }
   else {
     // Otherwise we have to search for the right insertion spot
-    insertPosition = binarysearch(files, fileinfo, compareFilesByDate);
+    insertPosition = MediaUtils.binarySearch(files, fileinfo,
+                                             compareFilesByDate);
   }
 
   // Insert the image info into the array
@@ -563,33 +564,6 @@ function fileCreated(fileinfo) {
   if (currentView === fullscreenView) {
     showFile(currentFileIndex);
   }
-}
-
-// Assuming that array is sorted according to comparator, return the
-// array index at which element should be inserted to maintain sort order
-function binarysearch(array, element, comparator, from, to) {
-  if (comparator === undefined)
-    comparator = function(a, b) {
-      if (a < b)
-        return -1;
-      if (a > b)
-        return 1;
-      return 0;
-    };
-
-  if (from === undefined)
-    return binarysearch(array, element, comparator, 0, array.length);
-
-  if (from === to)
-    return from;
-
-  var mid = Math.floor((from + to) / 2);
-
-  var result = comparator(element, array[mid]);
-  if (result < 0)
-    return binarysearch(array, element, comparator, from, mid);
-  else
-    return binarysearch(array, element, comparator, mid + 1, to);
 }
 
 // Make the thumbnail for image n visible
