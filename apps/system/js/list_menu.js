@@ -24,6 +24,10 @@ var ListMenu = {
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
+
+    // Firing when the keyboard and the IME switcher shows/hides.
+    window.addEventListener('keyboardimeswitchershow', this);
+    window.addEventListener('keyboardimeswitcherhide', this);
   },
 
   // Pass an array of list items and handler for clicking on the items
@@ -151,6 +155,15 @@ var ListMenu = {
         }
         break;
 
+      // When IME switcher shows, prevent the keyboard's focus getting changed.
+      case 'keyboardimeswitchershow':
+        this.element.addEventListener('mousedown', this._pdIMESwitcherShow);
+        break;
+
+      case 'keyboardimeswitcherhide':
+        this.element.removeEventListener('mousedown', this._pdIMESwitcherShow);
+        break;
+
       case 'click':
         if (!this.visible)
           return;
@@ -179,6 +192,10 @@ var ListMenu = {
         this.oncancel();
         break;
     }
+  },
+
+  _pdIMESwitcherShow: function lm_pdIMESwitcherShow(evt) {
+    evt.preventDefault();
   }
 };
 
