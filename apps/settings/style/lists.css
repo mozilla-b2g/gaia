@@ -41,15 +41,15 @@ ul li > span {
 }
 
 ul li.active,
-ul li:not(.disabled) > small + a:active,
-ul li:not(.disabled) > a[href]:active,
-ul li:not(.disabled) > small + a:focus,
-ul li:not(.disabled) > a[href]:focus {
+ul li:not([aria-disabled="true"]) > small + a:active,
+ul li:not([aria-disabled="true"]) > a[href]:active,
+ul li:not([aria-disabled="true"]) > small + a:focus,
+ul li:not([aria-disabled="true"]) > a[href]:focus {
   background-color: #b2f2ff;
   color: #222;
 }
 
-ul li.disabled > a {
+ul li[aria-disabled="true"] > a {
   color: #797e80;
   opacity: 0.6;
   pointer-events: none;
