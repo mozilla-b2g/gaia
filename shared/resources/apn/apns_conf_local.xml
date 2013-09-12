@@ -3,6 +3,45 @@
 <!-- use empty string to specify no proxy or port -->
 <!-- This version must agree with that in apps/common/res/apns.xml -->
 <apns version="7">
+  <apn carrier="Test Network"
+      mcc="111"
+      mnc="01"
+      apn="internet"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      authtype="0"
+      type="default,supl"
+  />
+  
+  <apn carrier="Test Network with MMS"
+      mcc="111"
+      mnc="02"
+      apn="mms.internet"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      mmsc="http://127.0.0.1"
+      mmsproxy="127.0.0.1"
+      mmsport="8080"
+      authtype="0"
+      type="default,supl,mms"
+  />
+
+  <apn carrier="Test Network with Operator Variant Settings"
+      mcc="111"
+      mnc="03"
+      apn="mms.internet"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      authtype="0"
+      type="default,supl"
+  />
+
   <apn carrier="SpeakOut"
       mcc="302"
       mnc="720"

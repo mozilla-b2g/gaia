@@ -6,6 +6,12 @@
  */
 -->
 <variant version="1">
+   <operator carrier="Test Network with Operator Variant Settings"
+       mcc="111"
+       mnc="03"
+       cellBroadcastSearchList="0,1,2,3"
+       voicemail="999999"
+   />
    <operator
        name="Internet movil"
        mcc="214"
