@@ -197,7 +197,7 @@ function execute() {
    'lockscreen.unlock-sound.enabled': false,
    'mail.sent-sound.enabled': true,
    'message.sent-sound.enabled': true,
-   'nfc.powerlevel': 1,
+   'nfc.powerlevel': 0,
    'operatorvariant.mcc': '0',
    'operatorvariant.mnc': '0',
    'phone.ring.keypad': true,

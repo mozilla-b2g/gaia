@@ -498,6 +498,9 @@ $(document).bind('ready', function() {
   $('#button_nfc_uri_id').click(function(event) {
     nfcWriter.postUriFormtoNdef('#nfc_uri_form_id');
   });
+  $('#button_nfc_uri_tel_id').click(function(event) {
+    nfcWriter.postUriFormtoNdef('#nfc_uri_tel_form_id');
+  });
   $('#button_nfc_push_p2p_uri_id').click(function(event) {
     nfcUI.p2p = true;
     nfcWriter.postUriFormtoNdef('#nfc_uri_form_id');

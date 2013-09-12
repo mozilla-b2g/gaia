@@ -182,7 +182,7 @@
   function launchDialer(record) {
     var number = record.payload.substring(1);
     var a = new MozActivity({
-      name: 'nfc-ndef-discovered',
+      name: 'dial',
       data: {
         type: 'webtelephony/number',
         number: number,
@@ -318,7 +318,7 @@
     // Force Tech Priority:
     var pri = ['P2P', 'NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
     for (var ti = 0; ti < pri.length; ti++) {
-      debug('Going through NFC Technologies: ' + i);
+      debug('Going through NFC Technologies: ' + ti);
       var i = techs.indexOf(pri[ti]);
       if (i != -1) {
         if (techs[i] == 'P2P') {
@@ -326,6 +326,7 @@
           // current user context to accept a message via registered app
           // callback/message. If so, fire P2P NDEF to app.
           // If not, drop message.
+          handled = handleNdefDiscovered();
         } else if (techs[i] == 'NDEF') {
           handled = handleNdefDiscovered();
         } else if (techs[i] == 'NDEF_FORMATTABLE') {
@@ -444,7 +445,7 @@
       var number = record.payload.substring(1);
       debug('XXXXXXXXXXXXXXX Handle Ndef URI type, TEL XXXXXXXXXXXXXXXX');
       activityText = {
-        name: 'nfc-ndef-discovered',
+        name: 'dial',
         data: {
           type: 'webtelephony/number',
           number: number,
