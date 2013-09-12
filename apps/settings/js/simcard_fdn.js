@@ -15,6 +15,15 @@ var SimFdnLock = {
   addNumberSubmit: document.getElementById('fdn-addNumber-submit'),
   addNumberName: document.getElementById('fdn-addNumber-name'),
   addNumberNumber: document.getElementById('fdn-addNumber-number'),
+  addNumberActionMenu: document.getElementById('add-contact-action-menu'),
+  addNumberActionMenuCancel:
+    document.getElementById('add-contact-action-menu-cancel'),
+  addNumberActionMenuEdit:
+    document.getElementById('add-contact-action-menu-edit'),
+  addNumberActionMenuDelete:
+    document.getElementById('add-contact-action-menu-delete'),
+
+  editedNumber: null,
 
   updateFdnStatus: function spl_updateSimStatus() {
     var self = this;
@@ -63,6 +72,15 @@ var SimFdnLock = {
       'click',
       this.addNumberToAuthorizedList.bind(this)
     );
+
+    this.addNumberActionMenuCancel.addEventListener(
+      'click',
+      this.hideContactsMenu.bind(this)
+    );
+    this.addNumberActionMenuDelete.addEventListener(
+      'click',
+      this.removeNumber.bind(this)
+    );
   },
 
   renderAuthorizedNumbers: function() {
@@ -72,6 +90,7 @@ var SimFdnLock = {
        var contact;
        for (var i = 0, l = contacts.length; i < l; i++) {
          contact = this.renderFDNContact(
+           contacts[i].id,
            contacts[i].name,
            contacts[i].number
          );
@@ -80,7 +99,7 @@ var SimFdnLock = {
      }.bind(this));
    },
 
-   renderFDNContact: function(name, number) {
+   renderFDNContact: function(id, name, number) {
      var li = document.createElement('li');
      var nameContainer = document.createElement('span');
      var numberContainer = document.createElement('small');
@@ -89,7 +108,9 @@ var SimFdnLock = {
      numberContainer.textContent = number;
      li.appendChild(numberContainer);
      li.appendChild(nameContainer);
+     li.dataset.id = id;
 
+     li.addEventListener('click', this.showContactsMenu.bind(this));
      return li;
    },
 
@@ -112,6 +133,32 @@ var SimFdnLock = {
    addNumberSuccess: function() {
      this.addNumberName.value = '';
      this.addNumberNumber.value = '';
+   },
+
+   showContactsMenu: function(e) {
+     var id = e.target.dataset.id;
+     if (!id) {
+       id = e.target.parentNode.dataset.id;
+     }
+
+     this.editedNumber = id;
+     this.addNumberActionMenu.classList.add('visible');
+   },
+
+   hideContactsMenu: function() {
+     this.addNumberActionMenu.classList.remove('visible');
+   },
+
+   removeNumber: function() {
+     var cb = function() {
+        this.hideContactsMenu();
+        this.renderAuthorizedNumbers();
+      };.bind(this);
+
+     FDN_AuthorizedNumbers.removeNumber(
+       cb, cb,
+       this.editedNumber
+     );
    }
 };
 

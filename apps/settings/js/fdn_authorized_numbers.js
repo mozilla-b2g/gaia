@@ -3,6 +3,7 @@
 var FDN_AuthorizedNumbers = {
 
   icc: null,
+  mozContacts: null,
 
   init: function() {
     this.icc = navigator.mozIccManager ||
@@ -22,12 +23,13 @@ var FDN_AuthorizedNumbers = {
     }
 
     request.onsuccess = function onsuccess() {
-      var result = request.result;
+      var result = this.mozContacts = request.result;
       var contacts = [];
 
       for (var i = 0, l = result.length; i < l; i++) {
         contacts.push(
           {
+            id: i,
             name: result[i].name || '',
             number: result[i].tel[0].value || ''
           }
@@ -37,7 +39,7 @@ var FDN_AuthorizedNumbers = {
       if (typeof cb === 'function') {
         cb(contacts);
       }
-    };
+    };.bind(this);
 
     request.onerror = function error() {
       if (typeof er === 'function') {
@@ -63,6 +65,23 @@ var FDN_AuthorizedNumbers = {
     request.onerror = function onerror(e) {
       er(e);
     };
+  },
+
+  updateNumber: function(er, cb, id, name, number) {
+    this.mozContacts[id].name[0] = name;
+    this.mozContacts[id].tel.value = number;
+
+    var request = this.icc.updateContact('fdn', this.mozContacts[id], 0071);
+    request.onsuccess = function onsuccess() {
+      cb(this.mozContacts[id]);
+    };.bind(this);
+    request.onerror = function onerror(e) {
+      er(e);
+    };
+  },
+
+  removeNumber: function(er, cb, id) {
+    this.updateNumber(er, cb, id, '', '');
   }
 
 };
