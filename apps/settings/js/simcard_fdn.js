@@ -9,6 +9,21 @@ var SimFdnLock = {
   simFdnCheckBox: document.querySelector('#fdn-enabled input'),
   resetPin2Item: document.getElementById('fdn-resetPIN2'),
   resetPin2Button: document.querySelector('#fdn-resetPIN2 button'),
+  contactsContainer: document.getElementById('fdn-contactsContainer'),
+
+  // nodes needed to add number to authorized list
+  addNumberSubmit: document.getElementById('fdn-addNumber-submit'),
+  addNumberName: document.getElementById('fdn-addNumber-name'),
+  addNumberNumber: document.getElementById('fdn-addNumber-number'),
+  addNumberActionMenu: document.getElementById('add-contact-action-menu'),
+  addNumberActionMenuCancel:
+    document.getElementById('add-contact-action-menu-cancel'),
+  addNumberActionMenuEdit:
+    document.getElementById('add-contact-action-menu-edit'),
+  addNumberActionMenuDelete:
+    document.getElementById('add-contact-action-menu-delete'),
+
+  editedNumber: null,
 
   updateFdnStatus: function spl_updateSimStatus() {
     var self = this;
@@ -46,6 +61,34 @@ var SimFdnLock = {
     };
 
     this.updateFdnStatus();
+  },
+
+  renderAuthorizedNumbers: function() {
+    this.contactsContainer.innerHTML = '';
+
+    FDN_AuthorizedNumbers.getContacts(null, function(contacts) {
+      var contact;
+      for (var i = 0, l = contacts.length; i < l; i++) {
+        contact = this.renderFDNContact(
+          contacts[i].name,
+          contacts[i].number
+        );
+        this.contactsContainer.appendChild(contact);
+      }
+    }.bind(this));
+  },
+
+  renderFDNContact: function(name, number) {
+    var li = document.createElement('li');
+    var nameContainer = document.createElement('span');
+    var numberContainer = document.createElement('small');
+
+    nameContainer.textContent = name;
+    numberContainer.textContent = number;
+    li.appendChild(numberContainer);
+    li.appendChild(nameContainer);
+
+    return li;
   }
 };
 
