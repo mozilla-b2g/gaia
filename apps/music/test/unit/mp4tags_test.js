@@ -10,12 +10,12 @@ suite('m4a tags', function() {
   });
 
   test('m4a tags', function(done) {
-    parseMetadata('/test-data/aac-tags.m4a',
-                  function(metadata) {
-                    assert.equal(metadata.artist, 'The Tragically Hip');
-                    assert.equal(metadata.album, 'Trouble At The Henhouse');
-                    assert.equal(metadata.title, 'Giftshop');
-                    assert.equal(metadata.tracknum, 1);
-                  }, done);
+    parseMetadata('/test-data/aac-tags.m4a').then(function(metadata) {
+      assert.equal(metadata.artist, 'The Tragically Hip');
+      assert.equal(metadata.album, 'Trouble At The Henhouse');
+      assert.equal(metadata.title, 'Giftshop');
+      assert.equal(metadata.tracknum, 1);
+      done();
+    });
   });
 });

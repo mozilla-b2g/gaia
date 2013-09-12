@@ -59,6 +59,12 @@ var BlobView = (function() {
     };
   };
 
+  BlobView.getFromArrayBuffer = function(buffer, offset, length, littleEndian) {
+    var blob = new Blob([buffer]);
+    return new BlobView(blob, offset, length, buffer, offset, length,
+                        littleEndian);
+  };
+
   BlobView.prototype = {
     constructor: BlobView,
 
@@ -435,5 +441,5 @@ var BlobView = (function() {
   // instead of using the factory function, so we return a dummy object
   // instead of the real constructor. If someone really needs to get at the
   // real constructor, the contructor property of the prototype refers to it.
-  return { get: BlobView.get };
+  return { get: BlobView.get, getFromArrayBuffer: BlobView.getFromArrayBuffer };
 }());
