@@ -10,16 +10,12 @@
       <ul id="time-auto" data-state="auto" hidden>
         <li>
           <label class="pack-switch">
-            <input type="checkbox" name="time.nitz.automatic-update.enabled" class="uninit"/>
+            <input type="checkbox" name="time.clock.automatic-update.enabled" class="uninit"/>
             <span></span>
           </label>
           <a data-l10n-id="setTimeAutomatically">Set Automatically</a>
         </li>
       </ul>
-
-      <header>
-        <h2 data-l10n-id="setTimeManually">Set Manually</h2>
-      </header>
       <ul id="time-manual">
         <li>
           <label>
@@ -38,6 +34,11 @@
       <header>
         <h2 data-l10n-id="timezoneMessage">Time zone</h2>
       </header>
+      <ul id="timezone-raw" hidden>
+        <li>
+          <a data-l10n-id="timezoneMessage">Time zone <span id="timezone-value"></span> </a>
+        </li>
+      </ul> 
       <ul id="timezone">
         <li>
           <p data-l10n-id="tz-region">Region</p>
