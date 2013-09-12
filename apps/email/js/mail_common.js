@@ -10,8 +10,7 @@ var Cards, Toaster,
     toasterNode = require('tmpl!./cards/toaster.html'),
     ValueSelector = require('value_selector');
 
-// Does not return a module value, just need it to make globals
-require('input_areas');
+var hookupInputAreaResetButtons = require('input_areas');
 
 function addClass(domNode, name) {
   if (domNode) {
