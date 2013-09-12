@@ -85,6 +85,7 @@
         //
         // - restart the interval
         //
+        this.update();
         this.interval = window.setInterval(this.update.bind(this), 50);
       } else {
         // Stopwatch is not started and elapsedTime is 0
