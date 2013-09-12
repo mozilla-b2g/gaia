@@ -8,6 +8,7 @@
 
 var MediaUtils = {
    _: navigator.mozL10n.get,
+
   //Format Date
   formatDate: function(timestamp) {
      if (!timestamp || timestamp === undefined || isNaN(timestamp)) {
@@ -16,6 +17,7 @@ var MediaUtils = {
     var dtf = new navigator.mozL10n.DateTimeFormat();
     return dtf.localeFormat(new Date(timestamp), '%m-%d-%Y');
   },
+
   // Format Size
   formatSize: function(size) {
     if (!size || size === undefined || isNaN(size)) {
@@ -32,6 +34,7 @@ var MediaUtils = {
 
     return sizeDecimal + ' ' + this._('byteUnit-' + units[i]);
   },
+
   //Format Duration
   formatDuration: function(duration) {
     function padLeft(num, length) {
@@ -51,6 +54,7 @@ var MediaUtils = {
     minutes = Math.floor(minutes % 60);
     return hours + ':' + padLeft(minutes, 2) + ':' + padLeft(seconds, 2);
   },
+
   // Each media app has a static info overlay view, hidden by default.
   // populateMediaInfo takes a data object and fills in the field of
   // info overlay view. Format of data object is
@@ -71,5 +75,29 @@ var MediaUtils = {
           element.textContent = data[id];
       }
     }
+  },
+
+  // Assuming that array is sorted according to comparator, return the
+  // array index at which element should be inserted to maintain sort order
+  binarySearch: function(array, element, comparator, from, to) {
+    if (comparator === undefined)
+      comparator = function(a, b) {
+        return a - b;
+      };
+
+    if (from === undefined)
+      return MediaUtils.binarySearch(array, element, comparator, 0,
+                                     array.length);
+
+    if (from === to)
+      return from;
+
+    var mid = Math.floor((from + to) / 2);
+
+    var result = comparator(element, array[mid]);
+    if (result < 0)
+      return MediaUtils.binarySearch(array, element, comparator, from, mid);
+    else
+      return MediaUtils.binarySearch(array, element, comparator, mid + 1, to);
   }
 };
