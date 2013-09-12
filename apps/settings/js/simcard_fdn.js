@@ -24,6 +24,7 @@ var SimFdnLock = {
     document.getElementById('add-contact-action-menu-delete'),
 
   editedNumber: null,
+  pinDialog: null,
 
   updateFdnStatus: function spl_updateSimStatus() {
     var self = this;
@@ -45,20 +46,20 @@ var SimFdnLock = {
     var callback = this.updateFdnStatus.bind(this);
     IccHelper.addEventListener('cardstatechange', callback);
 
-    var pinDialog = new SimPinDialog(this.dialog);
+    this.pinDialog = new SimPinDialog(this.dialog);
 
     this.simFdnCheckBox.disabled = true;
-    this.simFdnCheckBox.onchange = function spl_togglePin2() {
+    this.simFdnCheckBox.onchange = (function spl_togglePin2() {
       var action = this.checked ? 'enable_fdn' : 'disable_fdn';
       if (IccHelper.cardState === 'puk2Required') {
         action = 'unlock_puk2';
       }
-      pinDialog.show(action, callback, callback);
-    };
+      this.pinDialog.show(action, callback, callback);
+    }.bind(this));
 
-    this.resetPin2Button.onclick = function spl_resetPin2() {
-      pinDialog.show('change_pin2');
-    };
+    this.resetPin2Button.onclick = (function spl_resetPin2() {
+      this.pinDialog.show('change_pin2');
+    }.bind(this));
 
     this.updateFdnStatus();
 
@@ -70,7 +71,7 @@ var SimFdnLock = {
 
     this.addNumberSubmit.addEventListener(
       'click',
-      this.addNumberToAuthorizedList.bind(this)
+      this.addNumberPinDialog.bind(this)
     );
 
     this.addNumberActionMenuCancel.addEventListener(
@@ -99,6 +100,13 @@ var SimFdnLock = {
      }.bind(this));
    },
 
+   addNumberPinDialog: function() {
+     this.pinDialog.show(
+       'add_fdn_number',
+       this.addNumberToAuthorizedList.bind(this)
+     );
+   },
+
    renderFDNContact: function(id, name, number) {
      var li = document.createElement('li');
      var nameContainer = document.createElement('span');
@@ -114,14 +122,16 @@ var SimFdnLock = {
      return li;
    },
 
-   addNumberToAuthorizedList: function() {
+   addNumberToAuthorizedList: function(pinCode) {
      FDN_AuthorizedNumbers.addNumber(
        this.addNumberError,
        this.addNumberSuccess.bind(this),
        this.addNumberName.value,
-       this.addNumberNumber.value
+       this.addNumberNumber.value,
+       pinCode
      );
    },
+
 
    addNumberError: function(e) {
      throw new Error(
