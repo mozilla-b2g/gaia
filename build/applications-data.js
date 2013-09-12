@@ -332,13 +332,6 @@ function execute() {
   utils.writeContent(init,
     utils.getDistributionFileContent('wapuaprof.json', content));
 
-  // WAP Push
-  init = utils.getFile(config.GAIA_DIR, 'apps', 'wappush', 'js', 'whitelist.json');
-  content = [];
-
-  utils.writeContent(init,
-    utils.getDistributionFileContent('wappush-whitelist', content));
-
   // Calendar Config
   init = utils.getFile(config.GAIA_DIR, 'apps', 'calendar', 'js', 'presets.js');
   content = {
