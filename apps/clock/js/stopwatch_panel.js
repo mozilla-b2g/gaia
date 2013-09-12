@@ -37,35 +37,10 @@
       e.addEventListener('click', this);
     }, this);
 
-    View.instance(element).on('visibilitychange', function(isVisible) {
-      var swp = priv.get(this);
-
-      if (isVisible) {
-        if (swp.stopwatch.isStarted()) {
-          // Stopwatch is started
-          //
-          // - restart the interval
-          //
-          this.interval = window.setInterval(this.update.bind(this), 50);
-        } else {
-          // Stopwatch is not started and elapsedTime is 0
-          //
-          // - reset the UI
-          //
-          if (swp.stopwatch.getElapsedTime().getTime() == 0) {
-            this.reset();
-          }
-        }
-      } else {
-        if (swp.stopwatch.isStarted()) {
-          // Stopwatch is started
-          //
-          // - clear the interval
-          //
-          window.clearInterval(this.interval);
-        }
-      }
-    }.bind(this));
+    View.instance(element).on(
+      'visibilitychange',
+      this.onVisibilityChange.bind(this)
+    );
 
     priv.set(this, {
       stopwatch: new Stopwatch()
@@ -98,6 +73,36 @@
     arguments[0].classList.remove('hide');
     for (var i = 1; i < arguments.length; i++) {
       arguments[i].classList.add('hide');
+    }
+  };
+
+  StopwatchPanel.prototype.onVisibilityChange = function(isVisible) {
+    var swp = priv.get(this);
+
+    if (isVisible) {
+      if (swp.stopwatch.isStarted()) {
+        // Stopwatch is started
+        //
+        // - restart the interval
+        //
+        this.interval = window.setInterval(this.update.bind(this), 50);
+      } else {
+        // Stopwatch is not started and elapsedTime is 0
+        //
+        // - reset the UI
+        //
+        if (swp.stopwatch.getElapsedTime().getTime() == 0) {
+          this.reset();
+        }
+      }
+    } else {
+      if (swp.stopwatch.isStarted()) {
+        // Stopwatch is started
+        //
+        // - clear the interval
+        //
+        window.clearInterval(this.interval);
+      }
     }
   };
 
