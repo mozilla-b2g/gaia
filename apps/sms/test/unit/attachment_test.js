@@ -92,6 +92,10 @@ suite('attachment_test.js', function() {
     AttachmentMenu.init('attachment-options-menu');
   });
 
+  teardown(function() {
+    document.body.textContent = '';
+  });
+
   test('Name property defaults to a string value', function() {
     var attachment = new Attachment(new Blob());
     assert.typeOf(attachment.name, 'string');
@@ -183,6 +187,35 @@ suite('attachment_test.js', function() {
       done();
     });
   });
+
+  suite('render draft image attachments', function() {
+    function testDraftImage(testName, attachmentName) {
+      test(testName + ' attachment', function(done) {
+        var attachment = new Attachment(testImageBlob, {
+          name: attachmentName,
+          isDraft: true
+        });
+
+        var el = attachment.render(function() {
+          assert.equal(el.tagName, 'IFRAME');
+          el.addEventListener('load', function onload() {
+            done(function() {
+              var doc = el.contentDocument;
+              var attachmentNode = doc.querySelector('.attachment');
+              assert.ok(attachmentNode);
+              assert.isNull(attachmentNode.querySelector('div.corrupted'));
+              assert.ok(attachmentNode.querySelector('.thumbnail'));
+            });
+          });
+
+          document.body.appendChild(el);
+        });
+      });
+    }
+
+    testDraftImage('normal', 'Image attachment');
+  });
+
 
   suite('view attachment with open activity', function() {
     setup(function() {
