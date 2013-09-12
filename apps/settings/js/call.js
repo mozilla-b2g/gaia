@@ -102,14 +102,14 @@ var Calls = (function(window, document, undefined) {
     elementIds.forEach(function(id) {
       var element = document.getElementById(id);
       if (enable) {
-        element.classList.remove('disabled');
+        element.removeAttribute('aria-disabled');
         // If unconditional call forwarding is on we keep disabled the other
         // panels.
         if (isUnconditionalCFOn && id !== 'li-cfu-desc') {
-          element.classList.add('disabled');
+          element.setAttribute('aria-disabled', true);
         }
       } else {
-        document.getElementById(id).classList.add('disabled');
+        document.getElementById(id).setAttribute('aria-disabled', true);
       }
     });
   };
@@ -439,9 +439,9 @@ var Calls = (function(window, document, undefined) {
   function enableTabOnCallerIdItem(enable) {
     var element = document.getElementById('menuItem-callerId');
     if (enable) {
-      element.classList.remove('disabled');
+      element.removeAttribute('aria-disabled');
     } else {
-      element.classList.add('disabled');
+      element.setAttribute('aria-disabled', true);
     }
   }
 
@@ -544,7 +544,7 @@ var Calls = (function(window, document, undefined) {
       input.checked = !value;
       if (!init) {
         input.disabled = false;
-        wrapper.classList.remove('disabled');
+        wrapper.removeAttribute('aria-disabled');
         init = true;
       }
     };
@@ -577,10 +577,10 @@ var Calls = (function(window, document, undefined) {
 
     input.disabled = !enable;
     if (enable) {
-      menuItem.classList.remove('disabled');
+      menuItem.removeAttribute('aria-disabled');
       alertLabel.addEventListener('click', callWaitingItemListener);
     } else {
-      menuItem.classList.add('disabled');
+      menuItem.setAttribute('aria-disabled', true);
       alertLabel.removeEventListener('click', callWaitingItemListener);
     }
   }
