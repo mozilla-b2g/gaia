@@ -325,7 +325,7 @@ Email.prototype = {
   },
 
   _tapSelector: function(selector) {
-    //this.client.helper.waitForElement(selector);
+    this.client.helper.waitForElement(selector);
     this.client.findElement(selector).tap();
   },
 
