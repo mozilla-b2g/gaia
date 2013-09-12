@@ -451,32 +451,38 @@ var Calls = (function(window, document, undefined) {
     enableTapOnCallForwardingItems(false);
 
     var req = mobileConnection.getCallingLineIdRestriction();
-    req.onsuccess = req.onerror = function() {
+    req.onsuccess = req.onerror = function(event) {
       var input = document.getElementById('ril-callerId');
 
       var value = 'CLIR_DEFAULT';
-      switch (req.result['m']) {
-        case 1: // Permanently provisioned
-        case 3: // Temporary presentation disallowed
-        case 4: // Temporary presentation allowed
-          switch (req.result['n']) {
-            case 1: // CLIR invoked
-              value = 'CLIR_INVOCATION';
-              break;
-            case 2: // CLIR suppressed
-              value = 'CLIR_SUPPRESSION';
-              break;
-            case 0: // Network default
-            default:
-              value = 'CLIR_DEFAULT';
-              break;
-          }
-          break;
-        case 0: // Not Provisioned
-        case 2: // Unknown (network error, etc)
-        default:
-          value = 'CLIR_DEFAULT';
-          break;
+
+      // In some legitimates error cases (FdnCheckFailure), the req.result is
+      // undefined. This is fine, we want this, and in this case we will just
+      // display an error message for all the matching requests.
+      if (req.result) {
+        switch (req.result['m']) {
+          case 1: // Permanently provisioned
+          case 3: // Temporary presentation disallowed
+          case 4: // Temporary presentation allowed
+            switch (req.result['n']) {
+              case 1: // CLIR invoked
+                value = 'CLIR_INVOCATION';
+                break;
+              case 2: // CLIR suppressed
+                value = 'CLIR_SUPPRESSION';
+                break;
+              case 0: // Network default
+              default:
+                value = 'CLIR_DEFAULT';
+                break;
+            }
+            break;
+          case 0: // Not Provisioned
+          case 2: // Unknown (network error, etc)
+          default:
+            value = 'CLIR_DEFAULT';
+            break;
+        }
       }
 
       input.value = value;
@@ -762,6 +768,29 @@ var Calls = (function(window, document, undefined) {
     });
   }
 
+  function updateFdnStatus() {
+    if (!IccHelper.enabled) {
+      return;
+    }
+
+    var req = IccHelper.getCardLock('fdn');
+    req.onsuccess = function spl_checkSuccess() {
+      var enabled = req.result.enabled;
+
+      var simFdnDesc = document.querySelector('#fdnSettings-desc');
+      localize(simFdnDesc, enabled ? 'enabled' : 'disabled');
+
+      var fdnSettingsBlocked = document.querySelector('#fdnSettingsBlocked');
+      fdnSettingsBlocked.hidden = !enabled;
+
+      var callForwardingOptions = document.querySelectorAll(
+        '#li-cfu-desc, #li-cfmb-desc, #li-cfnrep-desc, #li-cfnrea-desc');
+      for (var i = 0, l = callForwardingOptions.length; i < l; i++) {
+        callForwardingOptions[i].hidden = enabled;
+      }
+    };
+  }
+
   // Call subpanel navigation control.
   window.addEventListener('panelready', function(e) {
     // If navigation is from #root to #call panels then update UI always.
@@ -773,6 +802,7 @@ var Calls = (function(window, document, undefined) {
 
     if (!updatingInProgress) {
       updateVoiceMailItemState();
+      updateFdnStatus();
       updateCallerIdItemState(
         function panelready_updateCallerIdItemState() {
           updateCallWaitingItemState(
