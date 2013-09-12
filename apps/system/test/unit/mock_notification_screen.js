@@ -12,8 +12,12 @@ var MockNotificationScreen = {
   mockPopulate: function mockPopulate() {
     this.mockMethods.forEach(function(methodName) {
       // we could probably put this method outside if we had a closure
-      this[methodName] = function mns_method() {
+      this[methodName] = function mns_method(param) {
         this.methodCalled(methodName);
+
+        if (methodName == 'addNotification' && this.mCallback) {
+          this.mCallback(param);
+        }
 
         if (methodName == 'addNotification' ||
             methodName == 'removeNotification') {
