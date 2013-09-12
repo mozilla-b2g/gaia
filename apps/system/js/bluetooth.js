@@ -6,14 +6,28 @@
 var Bluetooth = {
   get Profiles() {
     return {
-      HFPHSP: 'hfpHsp', // Hands-Free Profile / Headset Profile
-      OPP: 'opp',       // Object Push Profile
-      SCO: 'sco'        // Synchronous Connection-Oriented
+      HFP: 'hfp',   // Hands-Free Profile
+      OPP: 'opp',   // Object Push Profile
+      A2DP: 'a2dp', // A2DP status
+      SCO: 'sco'    // Synchronous Connection-Oriented
     };
   },
 
   _setProfileConnected: function bt_setProfileConnected(profile, connected) {
-    this['_' + profile + 'Connected'] = connected;
+    var value = this['_' + profile + 'Connected'];
+    if (value != connected) {
+      this['_' + profile + 'Connected'] = connected;
+
+      // Raise an event for the profile connection changes.
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('bluetoothprofileconnectionchange',
+        /* canBubble */ true, /* cancelable */ false,
+        {
+          name: profile,
+          connected: connected
+        });
+      window.dispatchEvent(evt);
+    }
   },
 
   getCurrentProfiles: function bt_getCurrentProfiles() {
@@ -74,7 +88,7 @@ var Bluetooth = {
       settings.addObserver('telephony.speaker.enabled',
         function bt_onSpeakerEnabledChange(event) {
           if (self.defaultAdapter &&
-              self.isProfileConnected(self.Profiles.HFPHSP) &&
+              self.isProfileConnected(self.Profiles.HFP) &&
               telephony.active) {
             if (event.settingValue) {
               self.defaultAdapter.disconnectSco();
@@ -162,7 +176,12 @@ var Bluetooth = {
     // In headset connected case:
     var self = this;
     adapter.onhfpstatuschanged = function bt_hfpStatusChanged(evt) {
-      self._setProfileConnected(self.Profiles.HFPHSP, evt.status);
+      self._setProfileConnected(self.Profiles.HFP, evt.status);
+      self.updateConnected();
+    };
+
+    adapter.ona2dpstatuschanged = function bt_a2dpStatusChanged(evt) {
+      self._setProfileConnected(self.Profiles.A2DP, evt.status);
       self.updateConnected();
     };
 
@@ -178,7 +197,8 @@ var Bluetooth = {
       return;
 
     var wasConnected = this.connected;
-    this.connected = this.isProfileConnected(this.Profiles.HFPHSP) ||
+    this.connected = this.isProfileConnected(this.Profiles.HFP) ||
+                     this.isProfileConnected(this.Profiles.A2DP) ||
                      this.isProfileConnected(this.Profiles.OPP);
 
     if (wasConnected !== this.connected) {
