@@ -11,6 +11,10 @@ var MockWindowManager = {
     this.mDisplayedApp = app;
   },
 
+  getCurrentDisplayedApp: function mwm_getCurrentDisplayedApp() {
+    return this.mDisplayedApp;
+  },
+
   getOrientationForApp: function(origin) {
     var app = this.mRunningApps[origin];
 
