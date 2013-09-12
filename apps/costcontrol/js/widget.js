@@ -20,10 +20,14 @@ var Widget = (function() {
       return;
     }
     var cardState = checkCardState();
-    var iccid = IccHelper.iccInfo.iccid;
+    var iccid = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
+
+    if (!IccHelper.iccInfo) {
+      debug('ICC info not ready yet.');
+      IccHelper.oniccinfochange = onReady;
 
     // SIM not ready
-    if (cardState !== 'ready') {
+    } else if (cardState !== 'ready') {
       debug('SIM not ready:', IccHelper.cardState);
       IccHelper.oncardstatechange = onReady;
 
@@ -70,6 +74,9 @@ var Widget = (function() {
                     'data. Aborting start up.');
       showSimError('no-sim2');
     }
+
+    // loads the message handler
+    document.getElementById('message-handler').src = 'message_handler.html';
 
     Common.checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
