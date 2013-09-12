@@ -31,6 +31,20 @@ var CallScreen = {
   incomingIgnore: document.getElementById('incoming-ignore'),
   lockedContactPhoto: document.getElementById('locked-contact-photo'),
 
+  statusMessage: document.getElementById('statusMsg'),
+  showStatusMessage: function cs_showStatusMesssage(text) {
+    var STATUS_TIME = 2000;
+    var self = this;
+    self.statusMessage.querySelector('p').textContent = text;
+    self.statusMessage.classList.add('visible');
+    self.statusMessage.addEventListener('transitionend', function tend() {
+      self.statusMessage.removeEventListener('transitionend', tend);
+      setTimeout(function hide() {
+        self.statusMessage.classList.remove('visible');
+      }, STATUS_TIME);
+    });
+  },
+
   set singleLine(enabled) {
     this.calls.classList.toggle('single-line', enabled);
     this.calls.classList.toggle('big-duration', enabled);
