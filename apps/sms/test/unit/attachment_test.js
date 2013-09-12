@@ -205,6 +205,10 @@ suite('attachment_test.js', function() {
               assert.ok(attachmentNode);
               assert.isNull(attachmentNode.querySelector('div.corrupted'));
               assert.ok(attachmentNode.querySelector('.thumbnail'));
+              var fileNameNode = doc.querySelector('.file-name');
+              assert.ok(fileNameNode);
+              assert.isNull(fileNameNode.firstElementChild);
+              assert.equal(fileNameNode.textContent, attachment.name);
             });
           });
 
@@ -214,6 +218,14 @@ suite('attachment_test.js', function() {
     }
 
     testDraftImage('normal', 'Image attachment');
+    testDraftImage(
+      'malicious script',
+      '%3Cscript%3Ealert(%22I%20am%20dangerous%22)%3C%2Fscript%3E'
+    );
+    testDraftImage(
+      'malicious image',
+      '%3Cimg%20src%3D%22http%3A%2F%2Fmalicious.server.ru%2Fpingback%22%3E'
+    );
   });
 
 
