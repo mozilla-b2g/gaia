@@ -1,60 +1,65 @@
 'use strict';
 
-requireApp('communications/ftu/test/unit/mock_icc_helper.js');
-requireApp('communications/ftu/test/unit/mock_settings.js');
-requireApp('system/test/unit/mock_settings_listener.js');
+requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('communications/ftu/js/data_mobile.js');
-
-var mocksHelperForNavigation = new MocksHelper(['IccHelper']);
-mocksHelperForNavigation.init();
 
 suite('mobile data >', function() {
   var realSettings,
-      settingKey = 'ril.data.enabled';
+      settingToggleKey = 'ril.data.enabled',
+      settingApnKey = 'ril.data.apnSettings';
   var mocksHelper = mocksHelperForNavigation;
 
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
+    navigator.mozSettings = window.MockNavigatorSettings;
 
-    mocksHelper.suiteSetup();
     DataMobile.init();
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realSettings;
     realSettings = null;
-
-    mocksHelper.suiteTeardown();
   });
 
-  test('load APN values from file', function(done) {
-    var settingList = ['ril.data.apn',
-                       'ril.data.user',
-                       'ril.data.passwd',
-                       'ril.data.httpProxyHost',
-                       'ril.data.httpProxyPort'];
-    // real values taken from /shared/resources/apn.json, careful if changed
-    IccHelper.setProperty('iccInfo', {mcc: '214', mnc: '07'});
-    for (var settingName in settingList) {
-      MockNavigatorSettings.mSettings[settingList[settingName]] = null;
-    }
+  suite('Load APN values from database', function() {
+    var result;
 
-    DataMobile.getAPN(function() {
-      for (var settingName in settingList) {
-        assert.isNotNull(
-                    MockNavigatorSettings.mSettings[settingList[settingName]]);
-      }
-      done();
+    setup(function(done) {
+      window.MockNavigatorSettings.mSettings[settingApnKey] = '[[]]';
+      DataMobile.getAPN(function(response) {
+        result = response;
+        done();
+      });
+    });
+
+    test('Values are loaded', function() {
+      assert.isNotNull(result);
+    });
+
+    test('Observer is added before', function() {
+      assert.isNotNull(window.MockNavigatorSettings.mObservers);
+    });
+
+    test('Observer is removed after', function() {
+      assert.isNotNull(window.MockNavigatorSettings.mRemovedObservers);
     });
   });
 
-  test('toggle status of mobile data', function(done) {
-    // real values taken from /shared/resources/apn.json, careful if changed
-    IccHelper.setProperty('iccInfo', {mcc: '214', mnc: '07'});
-    DataMobile.toggle(false, function() {
-      assert.isFalse(MockNavigatorSettings.mSettings[settingKey]);
-      done();
+  suite('Toggle status of mobile data', function() {
+    test('toggle status of mobile data', function(done) {
+      DataMobile.toggle(true, function() {
+        assert.isTrue(window.MockNavigatorSettings.mSettings[settingToggleKey]);
+        done();
+      });
+    });
+
+    test('toggle status of mobile data', function(done) {
+      DataMobile.toggle(false, function() {
+        assert.isFalse(
+          window.MockNavigatorSettings.mSettings[settingToggleKey]
+        );
+        done();
+      });
     });
   });
 
