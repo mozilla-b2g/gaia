@@ -1,0 +1,21 @@
+/* Extending action menu with icon capability & transition*/
+
+form[role="dialog"][data-type="action"] > menu > button.icon,
+form[role="dialog"][data-type="object"] > menu > button.icon {
+  background-repeat: no-repeat;
+  padding-left: 4rem;
+  background-size: 3rem;
+  background-position: 0.5rem center;
+}
+
+
+form[role="dialog"][data-type="action"],
+form[role="dialog"][data-type="object"] {
+	transform: translateY(100%);
+	transition: transform ease-in-out .3s;
+}
+
+form[role="dialog"][data-type="action"].visible,
+form[role="dialog"][data-type="object"].visible {
+	transform: translateY(0);
+}
