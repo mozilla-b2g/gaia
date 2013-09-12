@@ -149,6 +149,19 @@ var KeyboardManager = {
       var initType = self.showingLayout.type;
       var initIndex = self.showingLayout.index;
       self.launchLayoutFrame(self.keyboardLayouts[initType][initIndex]);
+
+      // Let chrome know about how many keyboards we have
+      var layouts = {};
+      Object.keys(self.keyboardLayouts).forEach(function(k) {
+        layouts[k] = self.keyboardLayouts[k].length;
+      });
+
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentEvent', true, true, {
+        type: 'inputmethod-update-layouts',
+        layouts: layouts
+      });
+      window.dispatchEvent(event);
     }
     KeyboardHelper.getInstalledKeyboards(resetLayoutList);
   },
