@@ -8,6 +8,7 @@ var appSelf = require('app_self'),
     queryString = require('query_string'),
     appMessages = evt.mix({}),
     pending = {},
+    lastNotifyId = 0,
     // htmlCacheRestorePendingMessage defined in html_cache_restore,
     // see comment for it.
     cachedList = (window.htmlCacheRestorePendingMessage &&
@@ -23,6 +24,29 @@ appMessages.hasPending = function(type) {
   return pending.hasOwnProperty(type) || (navigator.mozHasPendingMessage &&
                                           navigator.mozHasPendingMessage(type));
 };
+
+function onNotification(msg) {
+
+  console.log('email got notification: ' + JSON.stringify(msg, null, '  '));
+
+  // icon url parsing is a cray cray way to pass day day
+  var data = queryString.toObject((msg.imageURL || '').split('#')[1]);
+
+  // Do not handle duplicate notifications. May be a bug in the
+  // notifications system.
+  if (data.notifyId && data.notifyId === lastNotifyId)
+    return;
+  lastNotifyId = data.notifyId;
+
+  console.log('dispatching notification');
+
+  if (document.hidden) {
+    appSelf.latest('self', function(app) {
+        app.launch();
+    });
+  }
+  appMessages.emitWhenListener('notification', data);
+}
 
 if ('mozSetMessageHandler' in navigator) {
   navigator.mozSetMessageHandler('activity', function onActivity(message) {
@@ -49,22 +73,13 @@ if ('mozSetMessageHandler' in navigator) {
                                  activityName, composeData, message);
   });
 
-  navigator.mozSetMessageHandler('notification', function(msg) {
-    if (!msg.clicked)
-      return;
-
-    appSelf.latest('self', function(app) {
-      if (document.hidden)
-        app.launch();
-    });
-
-    console.log('email got notification click: ' + msg);
-    console.log(JSON.stringify(msg, null, '  '));
-
-    // icon url parsing is a cray cray way to pass day day
-    var data = queryString.toObject((msg.imageURL || '').split('#')[1]);
-    appMessages.emitWhenListener('notification', data);
-  });
+  // Notifications can come from outside the app via the system,
+  // by calling the mozSetMessageHandler listener. That happens
+  // if the app is closed. If the app is open, then the app has
+  // to listen for the onclick on the notification, and a
+  // synthetic "event" is triggered via evt.
+  navigator.mozSetMessageHandler('notification', onNotification);
+  evt.on('notification', onNotification);
 
   // Do not listen for navigator.mozSetMessageHandler('alarm') type, that is
   // only done in the back end's cronsync for now.
