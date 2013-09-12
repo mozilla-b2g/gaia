@@ -146,16 +146,20 @@ var KeyboardHelper = {
       var apps = event.target.result;
       var keyboardApps = [];
       apps.forEach(function eachApp(app) {
-        // keyboard apps will request keyboard API permission
-        if (!(app.manifest.permissions && 'keyboard' === app.manifest.role))
+        // keyboard apps will set role as 'keyboard'
+        // https://wiki.mozilla.org/WebAPI/KeboardIME#Proposed_Manifest_of_a_3rd-Party_IME
+        if ('keyboard' !== app.manifest.role) {
           return;
+        }
         //XXX remove this hard code check if one day system app no longer
         //    use mozKeyboard API
-        if (app.origin === 'app://system.gaiamobile.org')
+        if (app.origin === 'app://system.gaiamobile.org') {
           return;
+        }
         // all keyboard apps should define its layout(s) in entry_points section
-        if (!app.manifest.entry_points)
+        if (!app.manifest.entry_points) {
           return;
+        }
         keyboardApps.push(app);
       });
 
