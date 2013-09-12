@@ -15,7 +15,7 @@
     [
       'start', 'pause', 'resume',
       'lap', 'reset', 'time',
-      'lap-list', 'laps', 'panel'
+      'lap-list', 'laps'
     ].forEach(function(id) {
       this.nodes[id] = document.getElementById('stopwatch-' + id);
     }, this);
@@ -24,20 +24,20 @@
     [
       'start', 'pause', 'resume', 'lap', 'reset'
     ].forEach(function(action) {
-      var element = this.nodes[action];
+      var e = this.nodes[action];
 
-      if (priv.has(element)) {
-        priv.delete(element);
+      if (priv.has(e)) {
+        priv.delete(e);
       }
 
-      priv.set(element, {
+      priv.set(e, {
         action: action == 'resume' ? 'start' : action
       });
 
-      element.addEventListener('click', this);
+      e.addEventListener('click', this);
     }, this);
 
-    View.instance(this.nodes.panel).on('visibilitychange', function(isVisible) {
+    View.instance(element).on('visibilitychange', function(isVisible) {
       var swp = priv.get(this);
 
       if (isVisible) {
