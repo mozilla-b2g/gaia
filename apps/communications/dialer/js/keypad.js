@@ -11,18 +11,24 @@ var gTonesFrequencies = {
 };
 
 var keypadSoundIsEnabled = false;
-function observeKeypadSound() {
+var dtmfShortTone = false;
+
+function observePreferences() {
   SettingsListener.observe('phone.ring.keypad', false, function(value) {
     keypadSoundIsEnabled = !!value;
+  });
+
+  SettingsListener.observe('phone.dtmf.type', false, function(value) {
+    dtmfShortTone = (value == 'short');
   });
 }
 
 if (window.SettingsListener) {
-  observeKeypadSound();
+  observePreferences();
 } else {
   window.addEventListener('load', function onLoad() {
     window.removeEventListener('load', onLoad);
-    LazyLoader.load('/shared/js/settings_listener.js', observeKeypadSound);
+    LazyLoader.load('/shared/js/settings_listener.js', observePreferences);
   });
 }
 
@@ -30,6 +36,7 @@ var KeypadManager = {
 
   _MAX_FONT_SIZE_DIAL_PAD: 18,
   _MAX_FONT_SIZE_ON_CALL: 16,
+  _DTMF_SHORT_TONE_LENGTH: 120,
 
   _phoneNumber: '',
   _onCall: false,
@@ -279,6 +286,14 @@ var KeypadManager = {
   _keyPressStart: null,
   _dtmfToneTimer: null,
 
+  _dtmfToneLength: function kh_dtmfToneLength(length) {
+    if (dtmfShortTone) {
+      return this._DTMF_SHORT_TONE_LENGTH;
+    } else {
+      return length;
+    }
+  },
+
   keyHandler: function kh_keyHandler(event) {
 
     var key = event.target.dataset.value;
@@ -397,7 +412,7 @@ var KeypadManager = {
 
             this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
               telephony.stopTone();
-            }, toneLength, this);
+            }, this._dtmfToneLength(toneLength), this);
           }
         }
 
@@ -408,7 +423,7 @@ var KeypadManager = {
         if (this._onCall) {
           window.setTimeout(function ch_stopTone() {
             telephony.stopTone();
-          }, delay);
+          }, this._dtmfToneLength(delay));
         }
 
         // If it was a long press our work is already done
@@ -444,7 +459,7 @@ var KeypadManager = {
     setTimeout(function nextTick() {
       telephony.stopTone();
       TonePlayer.stop();
-    });
+    }, this._dtmfToneLength(0));
   },
 
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
