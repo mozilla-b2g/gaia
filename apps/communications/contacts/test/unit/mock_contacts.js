@@ -50,6 +50,12 @@ var MockContacts = {
   },
   checkCancelableActivity: function() {},
   cancel: function() {},
+  confirmDialog: function() {
+    ConfirmDialog.show.apply(ConfirmDialog, arguments);
+  },
+  utility: function(view, callback) {
+    callback();
+  },
   view: function(view, callback) {
     callback();
   }

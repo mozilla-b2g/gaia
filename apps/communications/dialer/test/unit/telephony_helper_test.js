@@ -1,6 +1,7 @@
 'use strict';
 
 requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
+requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 
@@ -12,6 +13,7 @@ requireApp('communications/dialer/test/unit/mock_tone_player.js');
 requireApp('communications/dialer/js/telephony_helper.js');
 
 var mocksHelperForTelephonyHelper = new MocksHelper([
+  'Contacts',
   'ConfirmDialog',
   'LazyL10n',
   'LazyLoader',

@@ -446,7 +446,7 @@ contacts.Settings = (function() {
             }
           };
 
-          ConfirmDialog.show(null, msg, noObject, yesObject);
+          Contacts.confirmDialog(null, msg, noObject, yesObject);
         }
       });
     }
@@ -599,7 +599,7 @@ contacts.Settings = (function() {
           window.setTimeout(onSimImport, 0);
         }
       };
-      ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
+      Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);
       Contacts.hideOverlay();
     };
 
@@ -700,7 +700,8 @@ contacts.Settings = (function() {
           sdImportLink.click();
         }
       };
-      ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
+      Contacts.confirmDialog(null, _('memoryCardContacts-error'), cancel,
+        retry);
       Contacts.hideOverlay();
     }
   };

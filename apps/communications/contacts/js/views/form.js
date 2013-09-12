@@ -258,7 +258,7 @@ contacts.Form = (function() {
         }
       };
 
-      ConfirmDialog.show(null, msg, noObject, yesObject);
+      Contacts.confirmDialog(null, msg, noObject, yesObject);
     };
   };
 
