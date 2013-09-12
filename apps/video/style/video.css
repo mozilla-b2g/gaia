@@ -46,6 +46,7 @@ ul {
   overflow-y: auto;
   background: linear-gradient(to bottom, #222 0%,#000 100%);
 }
+
 li .inner {
   height: 12rem;
 }
@@ -78,7 +79,7 @@ li .details {
   width: calc(100% - 22rem);
   height: 9.3rem;
   top: 0;
-  right: 0.1rem;
+  right: 0;
   overflow: hidden;
 }
 li .details[data-visible] {
@@ -480,7 +481,7 @@ header .icon:after {
   overflow: hidden;
   left: 0;
   right: 0;
-  bottom: 4.5rem;
+  bottom: 4rem;
   height: 4.5rem;
   margin: 0;
   padding: 0;
@@ -545,7 +546,7 @@ header .icon:after {
   height: 100%;
   line-height: 4.6rem;
   text-align: center;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
 }
 
 #duration-text {
@@ -555,8 +556,8 @@ header .icon:after {
 #slider-wrapper {
   position: absolute;
   top: 0;
-  left: 7rem;
-  right: 7rem;
+  left: 6.3rem;
+  right: 6.3rem;
   height: 100%;
 }
 
