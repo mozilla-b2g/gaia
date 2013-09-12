@@ -3,7 +3,7 @@
 // Run a test with DEBUG=true in front to get console listing of
 // helper method calls:
 // DEBUG=true ./bin/gaia-marionette whatever_test.js
-var debug = true; //process.env.DEBUG;
+var debug = process.env.DEBUG;
 
 module.exports = function(logPrefix, obj) {
 
