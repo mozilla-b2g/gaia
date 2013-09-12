@@ -197,6 +197,8 @@ let FormAssistant = {
     addMessageListener("Forms:GetText", this);
     addMessageListener("Forms:Input:SendKey", this);
     addMessageListener("Forms:GetContext", this);
+    addMessageListener("Forms:SetComposition", this);
+    addMessageListener("Forms:EndComposition", this);
   },
 
   ignoredInputTypes: new Set([
@@ -212,6 +214,7 @@ let FormAssistant = {
   scrollIntoViewTimeout: null,
   _focusedElement: null,
   _focusCounter: 0, // up one for every time we focus a new element
+  _observer: null,
   _documentEncoder: null,
   _editor: null,
   _editing: false,
@@ -230,12 +233,19 @@ let FormAssistant = {
   },
 
   setFocusedElement: function fa_setFocusedElement(element) {
+    let self = this;
+
     if (element === this.focusedElement)
       return;
 
     if (this.focusedElement) {
       this.focusedElement.removeEventListener('mousedown', this);
       this.focusedElement.removeEventListener('mouseup', this);
+      this.focusedElement.removeEventListener('compositionend', this);
+      if (this._observer) {
+        this._observer.disconnect();
+        this._observer = null;
+      }
       if (!element) {
         this.focusedElement.blur();
       }
@@ -256,6 +266,7 @@ let FormAssistant = {
     if (element) {
       element.addEventListener('mousedown', this);
       element.addEventListener('mouseup', this);
+      element.addEventListener('compositionend', this);
       if (isContentEditable(element)) {
         this._documentEncoder = getDocumentEncoder(element);
       }
@@ -265,6 +276,24 @@ let FormAssistant = {
         // element.
         this._editor.addEditorObserver(this);
       }
+
+      // If our focusedElement is removed from DOM we want to handle it properly
+      let MutationObserver = element.ownerDocument.defaultView.MutationObserver;
+      this._observer = new MutationObserver(function(mutations) {
+        var del = [].some.call(mutations, function(m) {
+          return [].some.call(m.removedNodes, function(n) {
+            return n === element;
+          });
+        });
+        if (del && element === self.focusedElement) {
+          // item was deleted, fake a blur so all state gets set correctly
+          self.handleEvent({ target: element, type: "blur" });
+        }
+      });
+
+      this._observer.observe(element.parentNode, {
+        childList: true
+      });
     }
 
     this.focusedElement = element;
@@ -301,7 +330,17 @@ let FormAssistant = {
           break;
         }
 
-        if (target instanceof HTMLDocument || target == content) {
+        // Focusing on Window, Document or iFrame should focus body
+        if (target instanceof HTMLHtmlElement) {
+          target = target.document.body;
+        } else if (target instanceof HTMLDocument) {
+          target = target.body;
+        } else if (target instanceof HTMLIFrameElement) {
+          target = target.contentDocument ? target.contentDocument.body
+                                          : null;
+        }
+
+        if (!target) {
           break;
         }
 
@@ -335,12 +374,20 @@ let FormAssistant = {
         break;
 
       case 'mousedown':
+         if (!this.focusedElement) {
+          break;
+        }
+
         // We only listen for this event on the currently focused element.
         // When the mouse goes down, note the cursor/selection position
         this.updateSelection();
         break;
 
       case 'mouseup':
+        if (!this.focusedElement) {
+          break;
+        }
+
         // We only listen for this event on the currently focused element.
         // When the mouse goes up, see if the cursor has moved (or the
         // selection changed) since the mouse went down. If it has, we
@@ -382,6 +429,12 @@ let FormAssistant = {
         break;
 
       case "keydown":
+        if (!this.focusedElement) {
+          break;
+        }
+
+        CompositionManager.endComposition('');
+
         // Don't monitor the text change resulting from key event.
         this._ignoreEditActionOnce = true;
 
@@ -393,7 +446,21 @@ let FormAssistant = {
         break;
 
       case "keyup":
+        if (!this.focusedElement) {
+          break;
+        }
+
+        CompositionManager.endComposition('');
+
         this._ignoreEditActionOnce = false;
+        break;
+
+      case "compositionend":
+        if (!this.focusedElement) {
+          break;
+        }
+
+        CompositionManager.onCompositionEnd();
         break;
     }
   },
@@ -430,6 +497,8 @@ let FormAssistant = {
     this._editing = true;
     switch (msg.name) {
       case "Forms:Input:Value": {
+        CompositionManager.endComposition('');
+
         target.value = json.value;
 
         let event = target.ownerDocument.createEvent('HTMLEvents');
@@ -439,6 +508,8 @@ let FormAssistant = {
       }
 
       case "Forms:Input:SendKey":
+        CompositionManager.endComposition('');
+
         ["keydown", "keypress", "keyup"].forEach(function(type) {
           domWindowUtils.sendKeyEvent(type, json.keyCode, json.charCode,
             json.modifiers);
@@ -483,6 +554,8 @@ let FormAssistant = {
       }
 
       case "Forms:SetSelectionRange":  {
+        CompositionManager.endComposition('');
+
         let start = json.selectionStart;
         let end =  json.selectionEnd;
         setSelectionRange(target, start, end);
@@ -498,6 +571,8 @@ let FormAssistant = {
       }
 
       case "Forms:ReplaceSurroundingText": {
+        CompositionManager.endComposition('');
+
         let text = json.text;
         let beforeLength = json.beforeLength;
         let afterLength = json.afterLength;
@@ -516,11 +591,8 @@ let FormAssistant = {
       }
 
       case "Forms:GetText": {
-        let isPlainTextField = target instanceof HTMLInputElement ||
-                               target instanceof HTMLTextAreaElement;
-        let value = isPlainTextField ?
-          target.value :
-          getContentEditableText(target);
+        let value = isContentEditable(target) ? getContentEditableText(target)
+                                              : target.value;
 
         if (json.offset && json.length) {
           value = value.substr(json.offset, json.length);
@@ -539,6 +611,23 @@ let FormAssistant = {
       case "Forms:GetContext": {
         let obj = getJSON(target, this._focusCounter);
         sendAsyncMessage("Forms:GetContext:Result:OK", obj);
+        break;
+      }
+
+      case "Forms:SetComposition": {
+        CompositionManager.setComposition(target, json.text, json.cursor,
+                                          json.clauses);
+        sendAsyncMessage("Forms:SetComposition:Result:OK", {
+          requestId: json.requestId,
+        });
+        break;
+      }
+
+      case "Forms:EndComposition": {
+        CompositionManager.endComposition(json.text);
+        sendAsyncMessage("Forms:EndComposition:Result:OK", {
+          requestId: json.requestId,
+        });
         break;
       }
     }
@@ -587,24 +676,11 @@ let FormAssistant = {
 
   getTopLevelEditable: function fa_getTopLevelEditable(element) {
     function retrieveTopLevelEditable(element) {
-      // Retrieve the top element that is editable
-      if (element instanceof HTMLHtmlElement)
-        element = element.ownerDocument.body;
-      else if (element instanceof HTMLDocument)
-        element = element.body;
-
       while (element && !isContentEditable(element))
         element = element.parentNode;
 
-      // Return the container frame if we are into a nested editable frame
-      if (element &&
-          element instanceof HTMLBodyElement &&
-          element.ownerDocument.defaultView != content.document.defaultView)
-        return element.ownerDocument.defaultView.frameElement;
-    }
-
-    if (element instanceof HTMLIFrameElement)
       return element;
+    }
 
     return retrieveTopLevelEditable(element) || element;
   },
@@ -625,12 +701,8 @@ let FormAssistant = {
     let element = this.focusedElement;
     let range =  getSelectionRange(element);
 
-    let isPlainTextField = element instanceof HTMLInputElement ||
-                           element instanceof HTMLTextAreaElement;
-
-    let text = isPlainTextField ?
-      element.value :
-      getContentEditableText(element);
+    let text = isContentEditable(element) ? getContentEditableText(element)
+                                          : element.value;
 
     let textAround = getTextAroundCursor(text, range);
 
@@ -655,6 +727,9 @@ let FormAssistant = {
 
   // Notify when the selection range changes
   updateSelection: function fa_updateSelection() {
+    if (!this.focusedElement) {
+      return;
+    }
     let selectionInfo = this.getSelectionInfo();
     if (selectionInfo.changed) {
       sendAsyncMessage("Forms:SelectionChange", this.getSelectionInfo());
@@ -672,15 +747,16 @@ function isContentEditable(element) {
   if (element.isContentEditable || element.designMode == "on")
     return true;
 
-  // If a body element is editable and the body is the child of an
-  // iframe we can assume this is an advanced HTML editor
-  if (element instanceof HTMLIFrameElement &&
-      element.contentDocument &&
-      (element.contentDocument.body.isContentEditable ||
-       element.contentDocument.designMode == "on"))
-    return true;
-
   return element.ownerDocument && element.ownerDocument.designMode == "on";
+}
+
+function isPlainTextField(element) {
+  if (!element) {
+    return false;
+  }
+
+  return element instanceof HTMLInputElement ||
+         element instanceof HTMLTextAreaElement;
 }
 
 function getJSON(element, focusCounter) {
@@ -816,6 +892,8 @@ function getDocumentEncoder(element) {
                 .createInstance(Ci.nsIDocumentEncoder);
   let flags = Ci.nsIDocumentEncoder.SkipInvisibleContent |
               Ci.nsIDocumentEncoder.OutputRaw |
+              // Bug 902847. Don't trim trailing spaces of a line.
+              Ci.nsIDocumentEncoder.OutputDontRemoveLineEndingSpaces |
               Ci.nsIDocumentEncoder.OutputLFLineBreak |
               Ci.nsIDocumentEncoder.OutputNonTextContentAsPlaceholder;
   encoder.init(element.ownerDocument, "text/plain", flags);
@@ -824,6 +902,10 @@ function getDocumentEncoder(element) {
 
 // Get the visible content text of a content editable element
 function getContentEditableText(element) {
+  if (!element || !isContentEditable(element)) {
+    return null;
+  }
+
   let doc = element.ownerDocument;
   let range = doc.createRange();
   range.selectNodeContents(element);
@@ -835,8 +917,7 @@ function getContentEditableText(element) {
 function getSelectionRange(element) {
   let start = 0;
   let end = 0;
-  if (element instanceof HTMLInputElement ||
-      element instanceof HTMLTextAreaElement) {
+  if (isPlainTextField(element)) {
     // Get the selection range of <input> and <textarea> elements
     start = element.selectionStart;
     end = element.selectionEnd;
@@ -844,8 +925,12 @@ function getSelectionRange(element) {
     // Get the selection range of contenteditable elements
     let win = element.ownerDocument.defaultView;
     let sel = win.getSelection();
-    start = getContentEditableSelectionStart(element, sel);
-    end = start + getContentEditableSelectionLength(element, sel);
+    if (sel) {
+      start = getContentEditableSelectionStart(element, sel);
+      end = start + getContentEditableSelectionLength(element, sel);
+    } else {
+      dump("Failed to get window.getSelection()\n");
+    }
    }
    return [start, end];
  }
@@ -867,18 +952,17 @@ function getContentEditableSelectionLength(element, selection) {
 }
 
 function setSelectionRange(element, start, end) {
-  let isPlainTextField = element instanceof HTMLInputElement ||
-                        element instanceof HTMLTextAreaElement;
+  let isTextField = isPlainTextField(element);
 
   // Check the parameters
 
-  if (!isPlainTextField && !isContentEditable(element)) {
+  if (!isTextField && !isContentEditable(element)) {
     // Skip HTMLOptionElement and HTMLSelectElement elements, as they don't
     // support the operation of setSelectionRange
     return;
   }
 
-  let text = isPlainTextField ? element.value : getContentEditableText(element);
+  let text = isTextField ? element.value : getContentEditableText(element);
   let length = text.length;
   if (start < 0) {
     start = 0;
@@ -890,7 +974,7 @@ function setSelectionRange(element, start, end) {
     start = end;
   }
 
-  if (isPlainTextField) {
+  if (isTextField) {
     // Set the selection range of <input> and <textarea> elements
     element.setSelectionRange(start, end, "forward");
   } else {
@@ -924,8 +1008,7 @@ function setSelectionRange(element, start, end) {
 function getPlaintextEditor(element) {
   let editor = null;
   // Get nsIEditor
-  if (element instanceof HTMLInputElement ||
-      element instanceof HTMLTextAreaElement) {
+  if (isPlainTextField(element)) {
     // Get from the <input> and <textarea> elements
     editor = element.QueryInterface(Ci.nsIDOMNSEditableElement).editor;
   } else if (isContentEditable(element)) {
@@ -974,7 +1057,106 @@ function replaceSurroundingText(element, text, selectionStart, beforeLength,
   }
 
   if (text) {
+    // We don't use CR but LF
+    // see https://bugzilla.mozilla.org/show_bug.cgi?id=902847
+    text = text.replace(/\r/g, '\n');
     // Insert the text to be replaced with.
     editor.insertText(text);
   }
 }
+
+let CompositionManager =  {
+  _isStarted: false,
+  _text: '',
+  _clauseAttrMap: {
+    'raw-input': domWindowUtils.COMPOSITION_ATTR_RAWINPUT,
+    'selected-raw-text': domWindowUtils.COMPOSITION_ATTR_SELECTEDRAWTEXT,
+    'converted-text': domWindowUtils.COMPOSITION_ATTR_CONVERTEDTEXT,
+    'selected-converted-text': domWindowUtils.COMPOSITION_ATTR_SELECTEDCONVERTEDTEXT
+  },
+
+  setComposition: function cm_setComposition(element, text, cursor, clauses) {
+    // Check parameters.
+    if (!element) {
+      return;
+    }
+    let len = text.length;
+    if (cursor < 0) {
+      cursor = 0;
+    } else if (cursor > len) {
+      cursor = len;
+    }
+    let clauseLens = [len, 0, 0];
+    let clauseAttrs = [domWindowUtils.COMPOSITION_ATTR_RAWINPUT,
+                       domWindowUtils.COMPOSITION_ATTR_RAWINPUT,
+                       domWindowUtils.COMPOSITION_ATTR_RAWINPUT];
+    if (clauses) {
+      let remainingLength = len;
+      // Currently we don't support 4 or more clauses composition string.
+      let clauseNum = Math.min(3, clauses.length);
+      for (let i = 0; i < clauseNum; i++) {
+        if (clauses[i]) {
+          let clauseLength = clauses[i].length || 0;
+          // Make sure the total clauses length is not bigger than that of the
+          // composition string.
+          if (clauseLength > remainingLength) {
+            clauseLength = remainingLength;
+          }
+          remainingLength -= clauseLength;
+          clauseLens[i] = clauseLength;
+          clauseAttrs[i] = this._clauseAttrMap[clauses[i].selectionType] ||
+                           domWindowUtils.COMPOSITION_ATTR_RAWINPUT;
+        }
+      }
+      // If the total clauses length is less than that of the composition
+      // string, extend the last clause to the end of the composition string.
+      if (remainingLength > 0) {
+        clauseLens[2] += remainingLength;
+      }
+    }
+
+    // Start composition if need to.
+    if (!this._isStarted) {
+      this._isStarted = true;
+      domWindowUtils.sendCompositionEvent('compositionstart', '', '');
+      this._text = '';
+    }
+
+    // Update the composing text.
+    if (this._text !== text) {
+      this._text = text;
+      domWindowUtils.sendCompositionEvent('compositionupdate', text, '');
+    }
+    domWindowUtils.sendTextEvent(text,
+                                 clauseLens[0], clauseAttrs[0],
+                                 clauseLens[1], clauseAttrs[1],
+                                 clauseLens[2], clauseAttrs[2],
+                                 cursor, 0);
+  },
+
+  endComposition: function cm_endComposition(text) {
+    if (!this._isStarted) {
+      return;
+    }
+    // Update the composing text.
+    if (this._text !== text) {
+      domWindowUtils.sendCompositionEvent('compositionupdate', text, '');
+    }
+    // Set the cursor position to |text.length| so that the text will be
+    // committed before the cursor position.
+    domWindowUtils.sendTextEvent(text, 0, 0, 0, 0, 0, 0, text.length, 0);
+    domWindowUtils.sendCompositionEvent('compositionend', text, '');
+    this._text = '';
+    this._isStarted = false;
+  },
+
+  // Composition ends due to external actions.
+  onCompositionEnd: function cm_onCompositionEnd() {
+    if (!this._isStarted) {
+      return;
+    }
+
+    this._text = '';
+    this._isStarted = false;
+  }
+};

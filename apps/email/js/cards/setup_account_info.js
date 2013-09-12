@@ -3,9 +3,10 @@ define(function(require) {
 
 var templateNode = require('tmpl!./setup_account_info.html'),
     common = require('mail_common'),
-    model = require('model'),
     SETUP_ERROR_L10N_ID_MAP = require('./setup_l10n_map'),
+    evt = require('evt'),
     mozL10n = require('l10n!'),
+    model = require('model'),
     Cards = common.Cards,
     FormNavigation = common.FormNavigation;
 
@@ -51,16 +52,13 @@ function SetupAccountInfoCard(domNode, mode, args) {
 
 SetupAccountInfoCard.prototype = {
   onBack: function(event) {
-    // If we are the only card, we need to remove ourselves and tell the app
-    // to do initial card pushing.  This would happen if the app was started
-    // without any accounts.
-    if (Cards._cardStack.length === 1) {
-      Cards.removeAllCards();
-      model.init();
-    }
-    // Otherwise we were triggered from the settings UI and we can just pop
-    // our way back to that UI.
-    else {
+    if (!model.foldersSlice) {
+      // No account has been formally initialized, but one
+      // likely exists given that this back button should
+      // only be available for cases that have accounts.
+      // Likely just need the app to reset to load model.
+      evt.emit('resetApp');
+    } else {
       Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
     }
   },

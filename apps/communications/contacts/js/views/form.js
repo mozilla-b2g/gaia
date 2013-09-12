@@ -209,8 +209,12 @@ contacts.Form = (function() {
     formTitle.setAttribute('data-l10n-id', 'editContact');
     formTitle.textContent = _('editContact');
     currentContactId.value = contact.id;
-    givenName.value = contact.givenName || '';
-    familyName.value = contact.familyName || '';
+    givenName.value = (Array.isArray(contact.givenName) &&
+                      contact.givenName.length > 0) ?
+                      contact.givenName[0] : '';
+    familyName.value = (Array.isArray(contact.familyName) &&
+                       contact.familyName.length > 0) ?
+                       contact.familyName[0] : '';
     company.value = contact.org && contact.org.length > 0 ? contact.org[0] : '';
 
     if (nonEditableValues[company.value]) {
@@ -540,13 +544,16 @@ contacts.Form = (function() {
               // UI ready, passing duplicate contacts
               var duplicateContacts = {};
               Object.keys(results).forEach(function(id) {
-                duplicateContacts[id] = id;
+                duplicateContacts[id] = {
+                  matchingContactId: id,
+                  matchings: results[id].matchings
+                };
               });
 
               window.postMessage({
                 type: 'show_duplicate_contacts',
                 data: {
-                  name: Array.isArray(contact.name) ? contact.name[0] : '',
+                  name: getCompleteName(getDisplayName(contact)),
                   duplicateContacts: duplicateContacts
                 }
               }, fb.CONTACTS_APP_ORIGIN);
@@ -603,6 +610,49 @@ contacts.Form = (function() {
       }
     };
   };
+
+  function getCompleteName(contact) {
+    var givenName = Array.isArray(contact.givenName) ?
+                    contact.givenName[0] : '';
+
+    var familyName = Array.isArray(contact.familyName) ?
+                    contact.familyName[0] : '';
+
+    var completeName = givenName && familyName ?
+                       givenName + ' ' + familyName :
+                       givenName || familyName;
+
+    return completeName;
+  }
+
+  // Fills the contact data to display if no givenName and familyName
+  function getDisplayName(contact) {
+    if (hasName(contact))
+      return { givenName: contact.givenName, familyName: contact.familyName };
+
+    var givenName = [];
+    if (Array.isArray(contact.name) && contact.name.length > 0) {
+      givenName.push(contact.name[0]);
+    } else if (contact.org && contact.org.length > 0) {
+      givenName.push(contact.org[0]);
+    } else if (contact.tel && contact.tel.length > 0) {
+      givenName.push(contact.tel[0].value);
+    } else if (contact.email && contact.email.length > 0) {
+      givenName.push(contact.email[0].value);
+    } else {
+      givenName.push(_('noName'));
+    }
+
+    return { givenName: givenName, modified: true };
+  };
+
+  function hasName(contact) {
+    return (Array.isArray(contact.givenName) && contact.givenName[0] &&
+              contact.givenName[0].trim()) ||
+            (Array.isArray(contact.familyName) && contact.familyName[0] &&
+              contact.familyName[0].trim());
+  };
+
 
   var doMerge = function doMerge(contact, list, cb) {
     var callbacks = {
@@ -666,13 +716,17 @@ contacts.Form = (function() {
   };
 
   var createName = function createName(myContact) {
-    if (myContact.givenName || myContact.familyName) {
-      var name = (myContact.givenName && myContact.familyName) ?
-          myContact.givenName + ' ' + myContact.familyName :
-          myContact.givenName || myContact.familyName;
+    var givenName = Array.isArray(myContact.givenName) ?
+                    myContact.givenName[0] : '';
 
-      myContact.name = [name];
-    }
+    var familyName = Array.isArray(myContact.familyName) ?
+                     myContact.familyName[0] : '';
+
+    var completeName = givenName && familyName ?
+                       givenName + ' ' + familyName :
+                       givenName || familyName;
+
+    myContact.name = completeName ? [completeName] : [];
   };
 
   var setPropagatedFlag = function setPropagatedFlag(field, value, contact) {

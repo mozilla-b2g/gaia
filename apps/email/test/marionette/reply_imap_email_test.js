@@ -21,7 +21,7 @@ marionette('reply to an e-mail', function() {
   var BODY_TEXT = 'I still have a dream.';
 
   var app;
-  var server = serverHelper.use({}, this);
+  var server = serverHelper.use(null, this);
   setup(function() {
     app = new Email(client);
     app.launch();
@@ -36,6 +36,7 @@ marionette('reply to an e-mail', function() {
     app.typeBody(BODY_TEXT);
     app.tapSend();
 
+    app.tapRefreshButton();
     app.waitForNewEmail();
     app.tapEmailAtIndex(0);
   });
@@ -48,7 +49,7 @@ marionette('reply to an e-mail', function() {
     assert(body.indexOf('wrote') != -1,
       format('body should contain "wrote", was "%s"', body));
 
-    app.abortCompose();
+    app.abortCompose('message_reader');
   });
 
   test('should be able to "reply all" to an email', function() {
@@ -59,7 +60,7 @@ marionette('reply to an e-mail', function() {
     assert(body.indexOf('wrote') != -1,
            format('body should contain "wrote", was "%s"', body));
 
-    app.abortCompose();
+    app.abortCompose('message_reader');
   });
 
   test('should be able to forward an email', function() {
@@ -70,6 +71,7 @@ marionette('reply to an e-mail', function() {
     assert(body.indexOf('Original message') != -1,
            format('body should contain "Original message", was "%s"', body));
 
-    app.abortCompose();
+    app.abortCompose('message_reader');
   });
 });
+

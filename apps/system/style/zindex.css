@@ -56,7 +56,10 @@
 }
 
 #screen > [data-z-index-level="keyboards"] {
-  z-index: 65536;
+  
+  /* It should lower than UtilityTray's, to let the tray overlay it
+     in some situation like selecting a new keyboard. */
+  z-index: 4094;
 }
 
 /* Level 2: Notification toaster */
@@ -123,12 +126,17 @@
   z-index: 2044;
 }
 
+#screen.locked.attention > [data-z-index-level="keyboards"] {
+  z-index: 65536;
+}
+
 /* Level 7: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
 #screen > [data-z-index-level="value-selector"],
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="updates-viaDataConnection-dialog"],
+#screen > [data-z-index-level="emergency-callback-dialog"],
 #screen > [data-z-index-level="app"] > .appWindow.inlineActivity {
   z-index: 1024;
 }

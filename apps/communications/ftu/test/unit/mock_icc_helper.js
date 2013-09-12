@@ -13,6 +13,8 @@ var MockIccHelper = {
 
   addEventListener: function icch_addEventListener(event, handler) {},
 
+  removeEventListener: function icch_removeEventListener(event, handler) {},
+
   getCardLockRetryCount: function(lockType, onresult) {
     onresult(this.mProps['retryCount']);
   },

@@ -1,6 +1,16 @@
 // Stub of Browser object.
 var Browser = {
+  _doNotCustomize: true,
+
   getConfigurationData: function browser_getDefaultData(variant, callback) {
+
+    // For all other tests in the suite, we do _not_ want any customizations.
+    // We use this handy boolean to skip this step.
+    if (this._doNotCustomize) {
+      callback({});
+      return;
+    }
+
     var mccCode = NumberHelper.zfill(variant.mcc, 3);
     var mncCode = NumberHelper.zfill(variant.mnc, 3);
 
@@ -79,12 +89,20 @@ suite('BrowserDB', function() {
   var realMozSettings = null;
   this.timeout(5000);
 
+  suiteSetup(function() {
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozSettings = realMozSettings;
+  });
+
   suite('BrowserDB.operatorVariantCustomization', function() {
-
     setup(function(done) {
-      realMozSettings = navigator.mozSettings;
-      navigator.mozSettings = MockNavigatorSettings;
-
+      // For these series of tests, we *do* want customizations to run.
+      Browser._doNotCustomize = false;
+      // And we want to manually initialize the DB.
       BrowserDB.init(function() {
         var itemsToAdd = 3;
         BrowserDB.populate(0, function() {
@@ -96,7 +114,7 @@ suite('BrowserDB', function() {
     });
 
     teardown(function(done) {
-      navigator.mozSettings = realMozSettings;
+      Browser._doNotCustomize = true;
       clearBrowserStores(done);
     });
 
@@ -104,11 +122,20 @@ suite('BrowserDB', function() {
       BrowserDB.db.getAllBookmarks(function(bookmarks) {
         assert.equal(bookmarks.length, 2);
 
-        assert.equal(bookmarks[0].uri, 'http://customize.test.mozilla.org/2');
-        assert.equal(bookmarks[0].title, 'customize test 2');
+        // We can't yet guarantee order of bookmarks (bug 895807)
+        if (bookmarks[0].uri == 'http://customize.test.mozilla.org/2') {
+          assert.equal(bookmarks[0].uri, 'http://customize.test.mozilla.org/2');
+          assert.equal(bookmarks[0].title, 'customize test 2');
 
-        assert.equal(bookmarks[1].uri, 'http://customize.test.mozilla.org/1');
-        assert.equal(bookmarks[1].title, 'customize test 1');
+          assert.equal(bookmarks[1].uri, 'http://customize.test.mozilla.org/1');
+          assert.equal(bookmarks[1].title, 'customize test 1');
+        } else {
+          assert.equal(bookmarks[1].uri, 'http://customize.test.mozilla.org/2');
+          assert.equal(bookmarks[1].title, 'customize test 2');
+
+          assert.equal(bookmarks[0].uri, 'http://customize.test.mozilla.org/1');
+          assert.equal(bookmarks[0].title, 'customize test 1');
+        }
 
         done();
       });
@@ -330,7 +357,7 @@ suite('BrowserDB', function() {
       BrowserDB.addBookmark('http://mozilla.org/test1', 'Mozilla', function() {
         BrowserDB.addBookmark('http://mozilla.org/test2', 'Mozilla',
             function() {
-          BrowserDB.db.getAllBookmarks(function(uris) {
+          BrowserDB.db.getAllBookmarkUris(function(uris) {
             done(function() {
               assert.equal(uris.length, 2);
             });

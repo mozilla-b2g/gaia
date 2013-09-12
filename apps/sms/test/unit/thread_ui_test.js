@@ -20,6 +20,7 @@ requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_moz_sms_filter.js');
 requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -44,6 +45,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'LinkActionHandler',
   'LinkHelper',
   'MozActivity',
+  'MozSmsFilter',
   'ActivityPicker',
   'OptionMenu',
   'Dialog',
@@ -1073,64 +1075,75 @@ suite('thread_ui.js >', function() {
         test('show general error for no signal error', function() {
           ThreadUI.showSendMessageError('NoSignalError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for not found error', function() {
           ThreadUI.showSendMessageError('NotFoundError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for unknown error', function() {
           ThreadUI.showSendMessageError('UnknownError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for internal error', function() {
           ThreadUI.showSendMessageError('InternalError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show general error for invalid address error', function() {
           ThreadUI.showSendMessageError('InvalidAddressError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendGeneralErrorTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendGeneralErrorBody');
         });
 
         test('show no SIM card', function() {
           ThreadUI.showSendMessageError('NoSimCardError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendNoSimCardTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendNoSimCardBody');
         });
 
         test('show air plane mode', function() {
           ThreadUI.showSendMessageError('RadioDisabledError');
           assert.isTrue(MockDialog.instances[0].show.called);
-          assert.equal(MockDialog.calls[0].title.value,
+          assert.equal(MockDialog.calls[0].title.l10nId,
                       'sendAirplaneModeTitle');
-          assert.equal(MockDialog.calls[0].body.value,
+          assert.equal(MockDialog.calls[0].body.l10nId,
                       'sendAirplaneModeBody');
+        });
+
+        test('show FDN blockage error', function() {
+          ThreadUI.showSendMessageError(
+              'FdnCheckError',
+              ['123', '456', '789']
+          );
+          assert.equal(MockDialog.calls[0].title.l10nId,
+                      'fdnBlockedTitle');
+          assert.equal(MockDialog.calls[0].body.l10nId,
+                      'fdnBlockedBody');
         });
       });
     });
@@ -1462,6 +1475,21 @@ suite('thread_ui.js >', function() {
       MockSMIL.parse.yields([{ text: payload }]);
       ThreadUI.buildMessageDOM(buildMMS(payload));
       assert.ok(Template.escape.calledWith(payload));
+    });
+  });
+
+  suite('renderMessages()', function() {
+    setup(function() {
+      // todo: use the MessageManager mock instead
+      this.sinon.stub(MessageManager, 'getMessages');
+      this.sinon.stub(MessageManager, 'markThreadRead');
+      ThreadUI.renderMessages(1);
+    });
+
+    test('we mark messages as read', function() {
+      MessageManager.getMessages.yieldTo('done');
+      this.sinon.clock.tick();
+      assert.ok(MessageManager.markThreadRead.calledWith(1));
     });
   });
 

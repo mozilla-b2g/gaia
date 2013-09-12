@@ -1,0 +1,74 @@
+/* ----------------------------------
+* Tabs
+* ---------------------------------- */
+
+#clock-tabs {
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+  height: 4em;
+  bottom: 0;
+}
+
+#clock-tabs > [role="tab"] {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  float: left;
+  width: calc(100% / 3);
+}
+
+#clock-tabs > [role="tab"] > a {
+  font-size: 1.3rem;
+  text-decoration: none;
+  line-height: 4rem;
+  text-align: center;
+  color: #FFF;
+  float: left;
+  width: 100%;
+  background: #000 no-repeat center top;
+  position: relative;
+  transition-property: background-color, color;
+  transition-duration: 0.1s;
+  color: #fff;
+}
+
+#clock-tabs > [role="tab"] > a.icon {
+  font-size: 0;
+}
+
+#clock-tabs > [role="tab"] > a.icon:after {
+  content: '';
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  background: none no-repeat center top / 3rem auto;
+  left: 0;
+  z-index: 1;
+}
+
+
+/* Selected state */
+
+#clock-tabs > [role="tab"][aria-selected="true"] > a,
+#clock-tabs > [role="tab"] > a:active {
+  background-color: #008aaa;
+}
+
+#clock-tabs > [role="tab"][aria-selected="true"] > a.icon:after {
+  background-position: center -4rem;
+}
+
+/* Disabled state */
+#clock-tabs > [role="tab"][aria-disabled="true"] > a {
+  color: #4d4d4d;
+}
+
+#clock-tabs > [role="tab"][aria-disabled="true"] > a:active {
+  background-color: #000;
+}
+
+#clock-tabs > [role="tab"][aria-disabled="true"] > a.icon:after {
+  background-position: center -8rem;
+}

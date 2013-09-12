@@ -5908,13 +5908,6 @@ FolderStorage.prototype = {
   },
 
   /**
-   * Function that we call with header whenever addMessageHeader gets called.
-   * @type {Function}
-   * @private
-   */
-  _onAddingHeader: null,
-
-  /**
    * Reset all active slices.
    */
   resetAndRefreshActiveSlices: function() {
@@ -7526,10 +7519,12 @@ FolderStorage.prototype = {
        * 2. and this hasn't already been seen.
        * @param {HeaderInfo} header The header being added.
        */
-      this._onAddingHeader = function(header) {
+      slice._onAddingHeader = function(header, currentSlice) {
         if (SINCE(header.date, prevTS) &&
             (!header.flags || header.flags.indexOf('\\Seen') === -1)) {
           newEmailCount += 1;
+          if (slice.onNewHeader)
+            slice.onNewHeader(header);
         }
       }.bind(this);
 
@@ -7563,7 +7558,7 @@ FolderStorage.prototype = {
 
     var doneCallback = function refreshDoneCallback(err, bisectInfo,
                                                     numMessages) {
-      this._onAddingHeader = null;
+      slice._onAddingHeader = null;
 
       var reportSyncStatusAs = 'synced';
       switch (err) {
@@ -8539,9 +8534,9 @@ FolderStorage.prototype = {
           slice.desiredHeaders++;
         }
 
-        if (this._onAddingHeader !== null) {
-          this._onAddingHeader(header);
-        }
+        if (slice._onAddingHeader)
+          slice._onAddingHeader(header);
+
         slice.onHeaderAdded(header, false, true);
       }
     }
@@ -10885,6 +10880,73 @@ exports.getFolderByPath = function(folderPath) {
  return null;
 };
 
+
+
+/**
+ * Save the state of this account to the database.  This entails updating all
+ * of our highly-volatile state (folderInfos which contains counters, accuracy
+ * structures, and our block info structures) as well as any dirty blocks.
+ *
+ * This should be entirely coherent because the structured clone should occur
+ * synchronously during this call, but it's important to keep in mind that if
+ * that ever ends up not being the case that we need to cause mutating
+ * operations to defer until after that snapshot has occurred.
+ */
+exports.saveAccountState = function(reuseTrans, callback, reason) {
+  if (!this._alive) {
+    this._LOG.accountDeleted('saveAccountState');
+    return null;
+  }
+
+  // Indicate save is active, in case something, like
+  // signaling the end of a sync, needs to run after
+  // a save, via runAfterSaves.
+  this._saveAccountStateActive = true;
+  if (!this._deferredSaveAccountCalls) {
+    this._deferredSaveAccountCalls = [];
+  }
+
+  if (callback)
+    this.runAfterSaves(callback);
+
+  var perFolderStuff = [], self = this;
+  for (var iFolder = 0; iFolder < this.folders.length; iFolder++) {
+    var folderPub = this.folders[iFolder],
+        folderStorage = this._folderStorages[folderPub.id],
+        folderStuff = folderStorage.generatePersistenceInfo();
+    if (folderStuff)
+      perFolderStuff.push(folderStuff);
+  }
+  this._LOG.saveAccountState(reason);
+  var trans = this._db.saveAccountFolderStates(
+    this.id, this._folderInfos, perFolderStuff,
+    this._deadFolderIds,
+    function stateSaved() {
+      this._saveAccountStateActive = false;
+
+      // NB: we used to log when the save completed, but it ended up being
+      // annoying to the unit tests since we don't block our actions on
+      // the completion of the save at this time.
+
+      var callbacks = this._deferredSaveAccountCalls;
+      this._deferredSaveAccountCalls = [];
+      callbacks.forEach(function(callback) {
+        callback();
+      });
+    }.bind(this),
+    reuseTrans);
+  this._deadFolderIds = null;
+  return trans;
+};
+
+exports.runAfterSaves = function(callback) {
+  if (this._saveAccountStateActive || this._saveAccountIsImminent) {
+    this._deferredSaveAccountCalls.push(callback);
+  } else {
+    callback();
+  }
+};
+
 }); // end define
 ;
 define('events',['require','exports','module'],function (require, exports, module) {
@@ -11698,6 +11760,104 @@ exports.set = function set(strings) {
 
 });
 
+/*global define */
+define('mailapi/slice_bridge_proxy',
+  [
+    'exports'
+  ],
+  function(
+    exports
+  ) {
+
+function SliceBridgeProxy(bridge, ns, handle) {
+  this._bridge = bridge;
+  this._ns = ns;
+  this._handle = handle;
+  this.__listener = null;
+
+  this.status = 'synced';
+  this.progress = 0.0;
+  this.atTop = false;
+  this.atBottom = false;
+  /**
+   * Can we potentially grow the slice in the negative direction if explicitly
+   * desired by the user or UI desires to be up-to-date?  For example,
+   * triggering an IMAP sync.
+   *
+   * This is only really meaningful when `atTop` is true; if we are not at the
+   * top then this value will be false.
+   *
+   * For messages, the implication is that we are not synchronized through 'now'
+   * if this value is true (and atTop is true).
+   */
+  this.userCanGrowUpwards = false;
+  this.userCanGrowDownwards = false;
+}
+
+exports.SliceBridgeProxy = SliceBridgeProxy;
+
+SliceBridgeProxy.prototype = {
+  /**
+   * Issue a splice to add and remove items.
+   * @param {number} newEmailCount Number of new emails synced during this
+   *     slice request.
+   */
+  sendSplice: function sbp_sendSplice(index, howMany, addItems, requested,
+                                      moreExpected, newEmailCount) {
+    this._bridge.__sendMessage({
+      type: 'sliceSplice',
+      handle: this._handle,
+      index: index,
+      howMany: howMany,
+      addItems: addItems,
+      requested: requested,
+      moreExpected: moreExpected,
+      status: this.status,
+      progress: this.progress,
+      atTop: this.atTop,
+      atBottom: this.atBottom,
+      userCanGrowUpwards: this.userCanGrowUpwards,
+      userCanGrowDownwards: this.userCanGrowDownwards,
+      newEmailCount: newEmailCount,
+    });
+  },
+
+  /**
+   * Issue an update for existing items.
+   */
+  sendUpdate: function sbp_sendUpdate(indexUpdatesRun) {
+    this._bridge.__sendMessage({
+      type: 'sliceUpdate',
+      handle: this._handle,
+      updates: indexUpdatesRun,
+    });
+  },
+
+  /**
+   * @param {number} newEmailCount Number of new emails synced during this
+   *     slice request.
+   */
+  sendStatus: function sbp_sendStatus(status, requested, moreExpected,
+                                      progress, newEmailCount) {
+    this.status = status;
+    if (progress != null)
+      this.progress = progress;
+    this.sendSplice(0, 0, [], requested, moreExpected, newEmailCount);
+  },
+
+  sendSyncProgress: function(progress) {
+    this.progress = progress;
+    this.sendSplice(0, 0, [], true, true);
+  },
+
+  die: function sbp_die() {
+    if (this.__listener)
+      this.__listener.die();
+  },
+};
+
+});
+
 /**
  *
  **/
@@ -11708,6 +11868,7 @@ define('mailapi/mailbridge',
     './util',
     './mailchew-strings',
     './date',
+    './slice_bridge_proxy',
     'require',
     'module',
     'exports'
@@ -11717,12 +11878,14 @@ define('mailapi/mailbridge',
     $imaputil,
     $mailchewStrings,
     $date,
+    $sliceBridgeProxy,
     require,
     $module,
     exports
   ) {
 var bsearchForInsert = $imaputil.bsearchForInsert,
-    bsearchMaybeExists = $imaputil.bsearchMaybeExists;
+    bsearchMaybeExists = $imaputil.bsearchMaybeExists,
+    SliceBridgeProxy = $sliceBridgeProxy.SliceBridgeProxy;
 
 function toBridgeWireOn(x) {
   return x.toBridgeWire();
@@ -11782,7 +11945,7 @@ function checkIfAddressListContainsAddress(list, addrPair) {
       return true;
   }
   return false;
-};
+}
 
 /**
  * There is exactly one `MailBridge` instance for each `MailAPI` instance.
@@ -11885,6 +12048,10 @@ MailBridge.prototype = {
     }
   },
 
+  _cmd_setInteractive: function mb__cmd_setInteractive(msg) {
+    this.universe.setInteractive();
+  },
+
   _cmd_localizedStrings: function mb__cmd_localizedStrings(msg) {
     $mailchewStrings.set(msg.strings);
   },
@@ -11960,6 +12127,14 @@ MailBridge.prototype = {
 
         case 'syncRange':
           accountDef.syncRange = val;
+          break;
+
+        case 'syncInterval':
+          accountDef.syncInterval = val;
+          break;
+
+        case 'notifyOnNew':
+          accountDef.notifyOnNew = val;
           break;
 
         case 'setAsDefault':
@@ -12827,91 +13002,21 @@ MailBridge.prototype = {
     }.bind(this));
   },
 
+  notifyCronSyncStart: function mb_notifyCronSyncStart(accountIds) {
+    this.__sendMessage({
+      type: 'cronSyncStart',
+      accountIds: accountIds
+    });
+  },
+
+  notifyCronSyncStop: function mb_notifyCronSyncStop(accountsResults) {
+    this.__sendMessage({
+      type: 'cronSyncStop',
+      accountsResults: accountsResults
+    });
+  }
+
   //////////////////////////////////////////////////////////////////////////////
-};
-
-function SliceBridgeProxy(bridge, ns, handle) {
-  this._bridge = bridge;
-  this._ns = ns;
-  this._handle = handle;
-  this.__listener = null;
-
-  this.status = 'synced';
-  this.progress = 0.0;
-  this.atTop = false;
-  this.atBottom = false;
-  /**
-   * Can we potentially grow the slice in the negative direction if explicitly
-   * desired by the user or UI desires to be up-to-date?  For example,
-   * triggering an IMAP sync.
-   *
-   * This is only really meaningful when `atTop` is true; if we are not at the
-   * top then this value will be false.
-   *
-   * For messages, the implication is that we are not synchronized through 'now'
-   * if this value is true (and atTop is true).
-   */
-  this.userCanGrowUpwards = false;
-  this.userCanGrowDownwards = false;
-}
-SliceBridgeProxy.prototype = {
-  /**
-   * Issue a splice to add and remove items.
-   * @param {number} newEmailCount Number of new emails synced during this
-   *     slice request.
-   */
-  sendSplice: function sbp_sendSplice(index, howMany, addItems, requested,
-                                      moreExpected, newEmailCount) {
-    this._bridge.__sendMessage({
-      type: 'sliceSplice',
-      handle: this._handle,
-      index: index,
-      howMany: howMany,
-      addItems: addItems,
-      requested: requested,
-      moreExpected: moreExpected,
-      status: this.status,
-      progress: this.progress,
-      atTop: this.atTop,
-      atBottom: this.atBottom,
-      userCanGrowUpwards: this.userCanGrowUpwards,
-      userCanGrowDownwards: this.userCanGrowDownwards,
-      newEmailCount: newEmailCount,
-    });
-  },
-
-  /**
-   * Issue an update for existing items.
-   */
-  sendUpdate: function sbp_sendUpdate(indexUpdatesRun) {
-    this._bridge.__sendMessage({
-      type: 'sliceUpdate',
-      handle: this._handle,
-      updates: indexUpdatesRun,
-    });
-  },
-
-  /**
-   * @param {number} newEmailCount Number of new emails synced during this
-   *     slice request.
-   */
-  sendStatus: function sbp_sendStatus(status, requested, moreExpected,
-                                      progress, newEmailCount) {
-    this.status = status;
-    if (progress != null)
-      this.progress = progress;
-    this.sendSplice(0, 0, [], requested, moreExpected, newEmailCount);
-  },
-
-  sendSyncProgress: function(progress) {
-    this.progress = progress;
-    this.sendSplice(0, 0, [], true, true);
-  },
-
-  die: function sbp_die() {
-    if (this.__listener)
-      this.__listener.die();
-  },
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
@@ -13187,6 +13292,7 @@ MailDB.prototype = {
 
 }); // end define
 ;
+/*global define, console, setTimeout */
 /**
  * Drives periodic synchronization, covering the scheduling, deciding what
  * folders to sync, and generating notifications to relay to the UI.  More
@@ -13204,23 +13310,27 @@ MailDB.prototype = {
  * All synchronization occurs in parallel because we want the interval that we
  * force the device's radio into higher power modes to be as short as possible.
  *
- * IMPORTANT ARCHITECTURAL NOTE:  This logic is part of the back-end, not the
- * front-end.  We want to serve up the notifications, but we want the front-end
- * to be the one that services them when the user clicks on them.
+ * This logic is part of the back-end, not the front-end.  We want to notify
+ * the front-end of new messages, but we want the front-end to be the one that
+ * displays and services them to the user.
  **/
 
 define('mailapi/cronsync',
   [
     'rdcommon/log',
-    './allback',
     './worker-router',
+    './slice_bridge_proxy',
+    './mailslice',
+    'prim',
     'module',
     'exports'
   ],
   function(
     $log,
-    $allback,
     $router,
+    $sliceBridgeProxy,
+    $mailslice,
+    $prim,
     $module,
     exports
   ) {
@@ -13244,198 +13354,126 @@ var MAX_SYNC_DURATION_MS = 3 * 60 * 1000;
 var MAX_MESSAGES_TO_REPORT_PER_ACCOUNT = 5;
 
 /**
- * Implements the interface of `MailSlice` as presented to `FolderStorage`, but
- * it is only interested in accumulating a list of new messages that have not
- * already been read.
- *
- * FUTURE WORK: Listen for changes that make a message that was previously
- * believed to be new no longer new, such as having been marked read by
- * another client.  We don't care about that right now because we lack the
- * ability to revoke notifications via the mozNotifications API.
+ * How much body snippet to save. Chose a value to match the front end
  */
-function CronSlice(storage, desiredNew, callback) {
-  this._storage = storage;
-  this._callback = callback;
-
-  this.startTS = null;
-  this.startUID = null;
-  this.endTS = null;
-  this.endUID = null;
-  this.waitingOnData = false;
-  this._accumulating = false;
-
-  // Maintain the list of all headers for the IMAP sync logic's benefit for now.
-  // However, we don't bother sorting it; we just care about the length.
-  this.headers = [];
-  this._desiredNew = desiredNew;
-  this._newHeaders = [];
-  // XXX for now, assume that the 10 most recent headers will cover us.  Being
-  // less than (or the same as) the initial fill sync of 15 is advantageous in
-  // that it avoids us triggering a deepening sync on IMAP.
-  this.desiredHeaders = 10;
-  this.ignoreHeaders = false;
-}
-CronSlice.prototype = {
-  set ignoreHeaders(ignored) {
-    // ActiveSync likes to turn on ignoreHeaders mode because it only cares
-    // about the newest messages and it may be told about messages in a stupid
-    // order.  But old 'new' messages are still 'new' to us and we have punted
-    // on analysis, so we are fine with the potential lossage.  Also, the
-    // batch information loses the newness bit we care about...
-    //
-    // And that's why we ignore the manipulation and always return false in
-    // the getter.
-  },
-  get ignoreHeaders() {
-    return false;
-  },
-
-  // (copied verbatim for consistency)
-  sendEmptyCompletion: function() {
-    this.setStatus('synced', true, false);
-  },
-
-  setStatus: function(status, requested, moreExpected, flushAccumulated) {
-    if (requested && !moreExpected && this._callback) {
-console.log('sync done!');
-      this._callback(this._newHeaders);
-      this._callback = null;
-      this.die();
-    }
-  },
-
-  batchAppendHeaders: function(headers, insertAt, moreComing) {
-    this.headers = this.headers.concat(headers);
-    // Do nothing, batch-appended headers are always coming from the database
-    // and so are not 'new' from our perspective.
-  },
-
-  onHeaderAdded: function(header, syncDriven, messageIsNew) {
-    this.headers.push(header);
-    // we don't care if it's not new or was read (on another client)
-    if (!messageIsNew || header.flags.indexOf('\\Seen') !== -1)
-      return;
-
-    // We don't care if we already know about enough new messages.
-    // (We could also try and decide which messages are most important, but
-    // since this behaviour is not really based on any UX-provided guidance, it
-    // would be silly to do that without said guidance.)
-    if (this._newHeaders.length >= this._desiredNew)
-      return;
-    this._newHeaders.push(header);
-  },
-
-  onHeaderModified: function(header) {
-    // Do nothing, modified headers are obviously already known to us.
-  },
-
-  onHeaderRemoved: function(header) {
-    this.headers.pop();
-    // Do nothing, this would be silly.
-  },
-
-  die: function() {
-    this._storage.dyingSlice(this);
-  },
-};
-
-function generateNotificationForMessage(header, onClick, onClose) {
-console.log('generating notification for:', header.suid, header.subject);
-  var notif = header.suid;
-
-  sendMessage(
-    'showNotification',
-    [header.author.name || header.author.address, header.subject],
-    function(click) {
-      click ? onClick(header, notif) : onClose(header, notif);
-    });
-  return notif;
-}
-
+var MAX_SNIPPET_BYTES = 4 * 1024;
 
 function debug(str) {
-  dump("CronSyncer: " + str + "\n");
+  console.log("cronsync: " + str + "\n");
 }
 
-var sendMessage = $router.registerCallbackType('cronsyncer');
+var SliceBridgeProxy = $sliceBridgeProxy.SliceBridgeProxy;
+
+function makeSlice(storage, callback, parentLog) {
+  var proxy = new SliceBridgeProxy({
+        __sendMessage: function() {}
+      }, 'cron'),
+      slice = new $mailslice.MailSlice(proxy, storage, parentLog),
+      oldStatus = proxy.sendStatus,
+      newHeaders = [];
+
+  slice.onNewHeader = function(header) {
+    console.log('onNewHeader: ' + header);
+    newHeaders.push(header);
+  };
+
+  proxy.sendStatus = function(status, requested, moreExpected,
+                              progress, newEmailCount) {
+    oldStatus.apply(this, arguments);
+    if (requested && !moreExpected && callback) {
+      callback(newHeaders);
+      slice.die();
+    }
+  };
+
+  return slice;
+}
 
 /**
- * Creates the synchronizer.  It is does not do anything until the first call
- * to setSyncInterval.
+ * Creates the cronsync instance. Does not do any actions on creation.
+ * It waits for a router message or a universe call to start the work.
  */
-function CronSyncer(universe, _logParent) {
+function CronSync(universe, _logParent) {
   this._universe = universe;
-  this._syncIntervalMS = 0;
+  this._universeDeferred = $prim();
+  this._isUniverseReady = false;
 
-  this._LOG = LOGFAB.CronSyncer(this, null, _logParent);
-
-  /**
-   * @dictof[
-   *   @key[accountId String]
-   *   @value[@dict[
-   *     @key[clickHandler Function]
-   *     @key[closeHandler Function]
-   *     @key[notes Array]
-   *   ]]
-   * ]{
-   *   Terminology-wise, 'notes' is less awkward than 'notifs'...
-   * }
-   */
-  this._outstandingNotesPerAccount = {};
-
-  this._initialized = false;
+  this._LOG = LOGFAB.CronSync(this, null, _logParent);
 
   this._activeSlices = [];
-}
-exports.CronSyncer = CronSyncer;
-CronSyncer.prototype = {
-  /**
-   * Remove any/all scheduled alarms.
-   */
-  _clearAlarms: function() {
-    sendMessage('clearAlarms');
-  },
 
-  _scheduleNextSync: function() {
-    if (!this._syncIntervalMS)
-      return;
-    //debug("scheduling sync for " + (this._syncIntervalMS / 1000) +
-    //      " seconds in the future.");
+  this._completedEnsureSync = true;
+  this._syncAccountsDone = true;
 
-    sendMessage('addAlarm', [new Date(Date.now() + this._syncIntervalMS)]);
-  },
+  this._synced = [];
 
-  setSyncIntervalMS: function(syncIntervalMS) {
-    console.log('setSyncIntervalMS:', syncIntervalMS);
-    var pendingAlarm = false;
-    if (!this._initialized) {
-      this._initialized = true;
-      pendingAlarm = navigator.hasPendingAlarm;
-
-      window.addEventListener('message', (function(evt) {
-        switch(evt.data.type) {
-          case 'alarm':
-            dump("CronSyncer - receive an alarm via a message handler\n");
-            this.onAlarm(evt.data.args);
-            break;
-        }
-      }).bind(this));
+  this.sendCronSync = $router.registerSimple('cronsync', function(data) {
+    var args = data.args;
+    switch (data.cmd) {
+      case 'alarm':
+        debug('received an alarm via a message handler');
+        this.onAlarm.apply(this, args);
+        break;
+      case 'syncEnsured':
+        debug('received an syncEnsured via a message handler');
+        this.onSyncEnsured.apply(this, args);
+        break;
     }
+  }.bind(this));
+  this.sendCronSync('hello');
+}
 
-    // leave zero intact, otherwise round up to the minimum.
-    if (syncIntervalMS && syncIntervalMS < MINIMUM_SYNC_INTERVAL_MS)
-      syncIntervalMS = MINIMUM_SYNC_INTERVAL_MS;
+exports.CronSync = CronSync;
+CronSync.prototype = {
+  _killSlices: function() {
+    this._activeSlices.forEach(function(slice) {
+      slice.die();
+    });
+  },
 
-    this._syncIntervalMS = syncIntervalMS;
+  onUniverseReady: function() {
+    this._universeDeferred.resolve();
 
-    // If we have a pending alarm, then our app was loaded to service the
-    // alarm, so we should just let the alarm fire which will also take
-    // care of rescheduling everything.
-    if (pendingAlarm)
+    this.ensureSync();
+  },
+
+  whenUniverse: function(fn) {
+    this._universeDeferred.promise.then(fn);
+  },
+
+  /**
+   * Makes sure there is a sync timer set up for all accounts.
+   */
+  ensureSync: function() {
+    // Only execute ensureSync if it is not already in progress.
+    // Otherwise, due to async timing of mozAlarm setting, could
+    // end up with two alarms for the same ID.
+    if (!this._completedEnsureSync)
       return;
 
-    this._clearAlarms();
-    this._scheduleNextSync();
+    this._completedEnsureSync = false;
+
+    debug('ensureSync called');
+
+    this.whenUniverse(function() {
+      var accounts = this._universe.accounts,
+          syncData = {};
+
+      accounts.forEach(function(account) {
+        // Store data by interval, use a more obvious string
+        // key instead of just stringifying a number, which
+        // could be confused with an array construct.
+        var interval = account.accountDef.syncInterval,
+            intervalKey = 'interval' + interval;
+
+        if (!syncData.hasOwnProperty(intervalKey)) {
+          syncData[intervalKey] = [];
+        }
+        syncData[intervalKey].push(account.id);
+      });
+
+      this.sendCronSync('ensureSync', [syncData]);
+    }.bind(this));
   },
 
   /**
@@ -13455,9 +13493,25 @@ CronSyncer.prototype = {
   syncAccount: function(account, doneCallback) {
     // - Skip syncing if we are offline or the account is disabled
     if (!this._universe.online || !account.enabled) {
-      doneCallback(null);
+      debug('syncAcount early exit: online: ' +
+            this._universe.online + ', enabled: ' + account.enabled);
+      doneCallback();
       return;
     }
+
+    var done = function(result) {
+      // Wait for any in-process job operations to complete, so
+      // that the app is not killed in the middle of a sync.
+      this._universe.waitForAccountOps(account, function() {
+        // Also wait for any account save to finish. Most
+        // likely failure will be new message headers not
+        // getting saved if the callback is not fired
+        // until after account saves.
+        account.runAfterSaves(function() {
+          doneCallback(result);
+        });
+      });
+    }.bind(this);
 
     var inboxFolder = account.getFirstFolderWithType('inbox');
     var storage = account.getFolderStorageForFolderId(inboxFolder.id);
@@ -13465,89 +13519,175 @@ CronSyncer.prototype = {
     // XXX check when the folder was most recently synchronized and skip this
     // sync if it is sufficiently recent.
 
-    // - Figure out how many additional notifications we can generate
-    var outstandingInfo;
-    if (this._outstandingNotesPerAccount.hasOwnProperty(account.id)) {
-      outstandingInfo = this._outstandingNotesPerAccount[account.id];
-    }
-    else {
-      outstandingInfo = this._outstandingNotesPerAccount[account.id] = {
-        clickHandler: function(header, note, event) {
-          var idx = outstandingInfo.notes.indexOf(note);
-          if (idx === -1)
-            console.warn('bad note index!');
-          outstandingInfo.notes.splice(idx);
-          // trigger the display of the app!
-          sendMessage('showApp', [header]);
-        },
-        closeHandler: function(header, note, event) {
-          var idx = outstandingInfo.notes.indexOf(note);
-          if (idx === -1)
-            console.warn('bad note index!');
-          outstandingInfo.notes.splice(idx);
-        },
-        notes: [],
-      };
-    }
-
-    var desiredNew = MAX_MESSAGES_TO_REPORT_PER_ACCOUNT -
-                       outstandingInfo.notes.length;
-
     // - Initiate a sync of the folder covering the desired time range.
     this._LOG.syncAccount_begin(account.id);
-    var slice = new CronSlice(storage, desiredNew, function(newHeaders) {
+
+    var slice = makeSlice(storage, function(newHeaders) {
       this._LOG.syncAccount_end(account.id);
-      doneCallback(null);
       this._activeSlices.splice(this._activeSlices.indexOf(slice), 1);
-      for (var i = 0; i < newHeaders.length; i++) {
-        var header = newHeaders[i];
-        outstandingInfo.notes.push(
-          generateNotificationForMessage(header,
-                                         outstandingInfo.clickHandler,
-                                         outstandingInfo.closeHandler));
+
+      // Reduce headers to the minimum number and data set needed for
+      // notifications.
+      var notifyHeaders = [];
+      newHeaders.some(function(header, i) {
+        notifyHeaders.push({
+          from: header.author.name || header.author.address,
+          subject: header.subject,
+          accountId: account.id,
+          messageSuid: header.suid
+        });
+
+        if (i === MAX_MESSAGES_TO_REPORT_PER_ACCOUNT - 1)
+          return true;
+      });
+
+      if (newHeaders.length) {
+        debug('Asking for snippets for ' + notifyHeaders.length + ' headers');
+        if (this._universe.online){
+          this._universe.downloadBodies(
+            newHeaders.slice(0, MAX_MESSAGES_TO_REPORT_PER_ACCOUNT), {
+              maximumBytesToFetch: MAX_SNIPPET_BYTES
+            }, function() {
+              debug('Notifying for ' + newHeaders.length + ' headers');
+              done([newHeaders.length, notifyHeaders]);
+          }.bind(this));
+        } else {
+          debug('UNIVERSE OFFLINE. Notifying for ' + newHeaders.length +
+                ' headers');
+          done([newHeaders.length, notifyHeaders]);
+        }
+      } else {
+        done();
       }
-    }.bind(this));
+    }.bind(this), this._LOG);
+
     this._activeSlices.push(slice);
-    storage.sliceOpenMostRecent(slice);
+    // Pass true to force contacting the server.
+    storage.sliceOpenMostRecent(slice, true);
   },
 
-  onAlarm: function() {
-    this._LOG.alarmFired();
-    // It would probably be better if we only added the new alarm after we
-    // complete our sync, but we could have a problem if our sync progress
-    // triggered our death, so we don't do that.
-    this._scheduleNextSync();
+  onAlarm: function(accountIds) {
+    this.whenUniverse(function() {
+      this._LOG.alarmFired();
 
-    // Kill off any slices that still exist from the last sync.
-    for (var iSlice = 0; iSlice < this._activeSlices.length; iSlice++) {
-      this._activeSlices[iSlice].die();
-    }
+      if (!accountIds)
+        return;
 
-    var doneOrGaveUp = function doneOrGaveUp(results) {
-      // XXX add any life-cycle stuff here, like amending the schedule for the
-      // next firing based on how long it took us.  Or if we need to compute
-      // smarter sync notifications across all accounts, do it here.
-    }.bind(this);
+      var accounts = this._universe.accounts,
+          targetAccounts = [],
+          ids = [];
 
-    var accounts = this._universe.accounts, accountIds = [], account, i;
-    for (i = 0; i < accounts.length; i++) {
-      account = accounts[i];
-      accountIds.push(account.id);
+      this._universe.__notifyStartedCronSync(accountIds);
+
+      // Make sure the acount IDs are still valid. This is to protect agains
+      // an account deletion that did not clean up any alarms correctly.
+      accountIds.forEach(function(id) {
+        accounts.some(function(account) {
+          if (account.id === id) {
+            targetAccounts.push(account);
+            ids.push(id);
+            return true;
+          }
+        });
+      });
+
+      // Flip switch to say account syncing is in progress.
+      this._syncAccountsDone = false;
+
+      // Make sure next alarm is set up. In the case of a cold start
+      // background sync, this is a bit redundant in that the startup
+      // of the mailuniverse would trigger this work. However, if the
+      // app is already running, need to be sure next alarm is set up,
+      // so ensure the next sync is set up here. Do it here instead of
+      // after a sync in case an error in sync would prevent the next
+      // sync from getting scheduled.
+      this.ensureSync();
+
+      var syncMax = targetAccounts.length,
+          syncCount = 0,
+          accountsResults = {
+            accountIds: accountIds
+          };
+
+      var done = function() {
+        syncCount += 1;
+        if (syncCount < syncMax)
+          return;
+
+        // Kill off any slices that still exist from the last sync.
+        this._killSlices();
+
+        // Wrap up the sync
+        this._syncAccountsDone = true;
+        this._onSyncDone = function() {
+          if (this._synced.length) {
+            accountsResults.updates = this._synced;
+            this._synced = [];
+          }
+
+          this._universe.__notifyStoppedCronSync(accountsResults);
+        }.bind(this);
+
+        this._checkSyncDone();
+      }.bind(this);
+
+      // Nothing new to sync, probably old accounts. Just return and indicate
+      // that syncing is done.
+      if (!ids.length) {
+        return done();
+      }
+
+      targetAccounts.forEach(function(account) {
+        this.syncAccount(account, function (result) {
+          if (result) {
+            this._synced.push({
+              id: account.id,
+              address: account.identities[0].address,
+              count: result[0],
+              latestMessageInfos: result[1]
+            });
+          }
+          done();
+        }.bind(this));
+      }.bind(this));
+    }.bind(this));
+  },
+
+  /**
+   * Checks for "sync all done", which means the ensureSync call completed, and
+   * new alarms for next sync are set, and the account syncs have finished. If
+   * those two things are true, then notify the universe that the sync is done.
+   */
+  _checkSyncDone: function() {
+    if (!this._completedEnsureSync || !this._syncAccountsDone)
+      return;
+
+    if (this._onSyncDone) {
+      this._onSyncDone();
+      this._onSyncDone = null;
     }
-    var callbacks = $allback.allbackMaker(accountIds, doneOrGaveUp);
-    for (i = 0; i < accounts.length; i++) {
-      account = accounts[i];
-      this.syncAccount(account, callbacks[account.id]);
-    }
+  },
+
+  /**
+   * Called from cronsync-main once ensureSync as set
+   * any alarms needed. Need to wait for it before
+   * signaling sync is done because otherwise the app
+   * could get closed down before the alarm additions
+   * succeed.
+   */
+  onSyncEnsured: function() {
+    this._completedEnsureSync = true;
+    this._checkSyncDone();
   },
 
   shutdown: function() {
-    // no actual shutdown is required; we want our alarm to stick around.
+    $router.unregister('cronsync');
+    this._killSlices();
   }
 };
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
-  CronSyncer: {
+  CronSync: {
     type: $log.DAEMON,
     events: {
       alarmFired: {},
@@ -14195,6 +14335,7 @@ exports.tryToManuallyCreateAccount = tryToManuallyCreateAccount;
 /**
  *
  **/
+/*global define, console, window, Blob */
 
 define('mailapi/mailuniverse',
   [
@@ -14238,6 +14379,23 @@ var MAX_MUTATIONS_FOR_UNDO = 10;
  * we keep?
  */
 var MAX_LOG_BACKLOG = 30;
+
+/**
+ * Creates a method to add to MailUniverse that calls a method
+ * on all bridges.
+ * @param  {String} bridgeMethod name of bridge method to call
+ * @return {Function} function to attach to MailUniverse. Assumes
+ * "this" is the MailUniverse instance, and that up to three args
+ * are passed to the method.
+ */
+function makeBridgeFn(bridgeMethod) {
+  return function(a1, a2, a3) {
+    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
+      var bridge = this._bridges[iBridge];
+      bridge[bridgeMethod](a1, a2, a3);
+    }
+  };
+}
 
 /**
  * The MailUniverse is the keeper of the database, the root logging instance,
@@ -14526,6 +14684,13 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
   // listener.
   this._onConnectionChange(online);
 
+  // Track the mode of the universe. Values are:
+  // 'cron': started up in background to do tasks like sync.
+  // 'interactive': at some point during its life, it was used to
+  // provide functionality to a user interface. Once it goes
+  // 'interactive', it cannot switch back to 'cron'.
+  this._mode = 'cron';
+
   /**
    * A setTimeout handle for when we next dump deferred operations back onto
    * their operation queues.
@@ -14539,7 +14704,7 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
 
   this._LOG = null;
   this._db = new $maildb.MailDB(testOptions);
-  this._cronSyncer = new $cronsync.CronSyncer(this);
+  this._cronSync = new $cronsync.CronSync(this);
   var self = this;
   this._db.getConfig(function(configObj, accountInfos, lazyCarryover) {
     function setupLogging(config) {
@@ -14601,8 +14766,7 @@ function MailUniverse(callAfterBigBang, online, testOptions) {
         id: 'config',
         nextAccountNum: 0,
         nextIdentityNum: 0,
-        debugLogging: lazyCarryover ? lazyCarryover.config.debugLogging : false,
-        syncCheckIntervalEnum: $syncbase.DEFAULT_CHECK_INTERVAL_ENUM,
+        debugLogging: lazyCarryover ? lazyCarryover.config.debugLogging : false
       };
       setupLogging();
       self._LOG = LOGFAB.MailUniverse(self, null, null);
@@ -14699,8 +14863,7 @@ MailUniverse.prototype = {
    * Perform initial initialization based on our configuration.
    */
   _initFromConfig: function() {
-    this._cronSyncer.setSyncIntervalMS(
-      $syncbase.CHECK_INTERVALS_ENUMS_TO_MS[this.config.syncCheckIntervalEnum]);
+    this._cronSync.onUniverseReady();
   },
 
   /**
@@ -14709,8 +14872,7 @@ MailUniverse.prototype = {
   exposeConfigForClient: function() {
     // eventually, iterate over a whitelist, but for now, it's easy...
     return {
-      debugLogging: this.config.debugLogging,
-      syncCheckIntervalEnum: this.config.syncCheckIntervalEnum,
+      debugLogging: this.config.debugLogging
     };
   },
 
@@ -14718,12 +14880,6 @@ MailUniverse.prototype = {
     for (var key in changes) {
       var val = changes[key];
       switch (key) {
-        case 'syncCheckIntervalEnum':
-          if (!$syncbase.CHECK_INTERVALS_ENUMS_TO_MS.hasOwnProperty(val))
-            continue;
-          this._cronSyncer.setSyncIntervalMS(
-            $syncbase.CHECK_INTERVALS_ENUMS_TO_MS[val]);
-          break;
         case 'debugLogging':
           break;
         default:
@@ -14741,6 +14897,10 @@ MailUniverse.prototype = {
       var bridge = this._bridges[iBridge];
       bridge.notifyConfig(config);
     }
+  },
+
+  setInteractive: function() {
+    this._mode = 'interactive';
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -14926,6 +15086,10 @@ MailUniverse.prototype = {
     this._db.saveAccountDef(this.config, accountDef, folderInfo);
     var account = this.getAccountForAccountId(accountDef.id);
 
+    // Make sure syncs are still accurate, since syncInterval
+    // could have changed.
+    this._cronSync.ensureSync();
+
     // If account exists, notify of modification. However on first
     // save, the account does not exist yet.
     if (account)
@@ -15038,61 +15202,39 @@ MailUniverse.prototype = {
     this._resumeOpProcessingForAccount(account);
   },
 
-  __notifyBadLogin: function(account, problem) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyBadLogin(account, problem);
-    }
-  },
+  // expects (account, problem)
+  __notifyBadLogin: makeBridgeFn('notifyBadLogin'),
 
-  __notifyAddedAccount: function(account) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyAccountAdded(account);
-    }
-  },
+  // expects (account)
+  __notifyAddedAccount: makeBridgeFn('notifyAccountAdded'),
 
-  __notifyModifiedAccount: function(account) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyAccountModified(account);
-    }
-  },
+  // expects (account)
+  __notifyModifiedAccount: makeBridgeFn('notifyAccountModified'),
 
-  __notifyRemovedAccount: function(accountId) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyAccountRemoved(accountId);
-    }
-  },
+  // expects (accountId)
+  __notifyRemovedAccount: makeBridgeFn('notifyAccountRemoved'),
 
-  __notifyAddedFolder: function(account, folderMeta) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyFolderAdded(account, folderMeta);
-    }
-  },
+  // expects (account, folderMeta)
+  __notifyAddedFolder: makeBridgeFn('notifyFolderAdded'),
 
-  __notifyModifiedFolder: function(account, folderMeta) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyFolderModified(account, folderMeta);
-    }
-  },
+  // expects (account, folderMeta)
+  __notifyModifiedFolder: makeBridgeFn('notifyFolderModified'),
 
-  __notifyRemovedFolder: function(account, folderMeta) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyFolderRemoved(account, folderMeta);
-    }
-  },
+  // expects (account, folderMeta)
+  __notifyRemovedFolder: makeBridgeFn('notifyFolderRemoved'),
 
-  __notifyModifiedBody: function(suid, detail, body) {
-    for (var iBridge = 0; iBridge < this._bridges.length; iBridge++) {
-      var bridge = this._bridges[iBridge];
-      bridge.notifyBodyModified(suid, detail, body);
-    }
-  },
+  // expects (suid, detail, body)
+  __notifyModifiedBody: makeBridgeFn('notifyBodyModified'),
+
+
+  //////////////////////////////////////////////////////////////////////////////
+  // cronsync Stuff
+
+  // expects (accountIds)
+  __notifyStartedCronSync: makeBridgeFn('notifyCronSyncStart'),
+
+  // expects (accountsResults)
+  __notifyStoppedCronSync: makeBridgeFn('notifyCronSyncStop'),
 
   //////////////////////////////////////////////////////////////////////////////
   // Lifetime Stuff
@@ -15133,7 +15275,7 @@ MailUniverse.prototype = {
       account.shutdown(callback ? accountShutdownCompleted : null);
     }
 
-    this._cronSyncer.shutdown();
+    this._cronSync.shutdown();
     this._db.close();
     if (this._LOG)
       this._LOG.__die();
@@ -15245,6 +15387,18 @@ MailUniverse.prototype = {
    */
   _queueDeferredOps: function() {
     this._deferredOpTimeout = null;
+
+    // If not in 'interactive' mode, then this is just a short
+    // 'cron' existence that needs to shut down soon. Wait one
+    // more cycle in case the app switches over to 'interactive'
+    // in the meantime.
+    if (this._mode !== 'interactive') {
+      console.log('delaying deferred op since mode is ' + this._mode);
+      this._deferredOpTimeout = window.setTimeout(
+        this._boundQueueDeferredOps, $syncbase.DEFERRED_OP_DELAY_MS);
+      return;
+    }
+
     for (var iAccount = 0; iAccount < this.accounts.length; iAccount++) {
       var account = this.accounts[iAccount],
           queues = this._opsByAccount[account.id];
@@ -15526,6 +15680,13 @@ MailUniverse.prototype = {
     if (consumeOp)
       serverQueue.shift();
 
+    // Some completeOp callbacks want to wait for account
+    // save but they are triggered before save is attempted,
+    // for the account to properly trigger runAfterSaves
+    // callbacks, so set a flag indicating save state here.
+    if (accountSaveSuggested)
+      account._saveAccountIsImminent = true;
+
     if (completeOp) {
       if (this._opCallbacks.hasOwnProperty(op.longtermId)) {
         var callback = this._opCallbacks[op.longtermId];
@@ -15541,8 +15702,10 @@ MailUniverse.prototype = {
 
       // This is a suggestion; in the event of high-throughput on operations,
       // we probably don't want to save the account every tick, etc.
-      if (accountSaveSuggested)
+      if (accountSaveSuggested) {
+        account._saveAccountIsImminent = false;
         account.saveAccountState(null, null, 'serverOp');
+      }
     }
 
     if (localQueue.length) {
@@ -15632,7 +15795,7 @@ MailUniverse.prototype = {
   waitForAccountOps: function(account, callback) {
     var queues = this._opsByAccount[account.id];
     if (queues.local.length === 0 &&
-        queues.server.length === 0)
+       (queues.server.length === 0 || !this.online || !account.enabled))
       callback();
     else
       this._opCompletionListenersByAccount[account.id] = callback;
@@ -16083,8 +16246,6 @@ var sendControl = $router.registerSimple('control', function(data) {
   var args = data.args;
   switch (data.cmd) {
     case 'hello':
-      navigator.hasPendingAlarm = args[1];
-
       universe = new $mailuniverse.MailUniverse(onUniverse, args[0]);
       break;
 

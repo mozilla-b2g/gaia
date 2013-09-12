@@ -82,6 +82,19 @@ var KeyboardManager = {
 
   init: function km_init() {
     var self = this;
+
+    this.notifIMEContainer =
+            document.getElementById('keyboard-show-ime-list');
+
+    this.fakenoti = this.notifIMEContainer.querySelector('.fake-notification');
+    this.fakenotiMessage = this.fakenoti.querySelector('.message');
+    this.fakenotiTip = this.fakenoti.querySelector('.tip');
+
+    this.fakenoti.addEventListener('mousedown', function km_fakenotiAct(evt) {
+        evt.preventDefault();
+        self.showAll();
+    });
+
     this.keyboardFrameContainer.classList.add('hide');
 
     // get enabled keyboard from mozSettings, parse their manifest
@@ -201,6 +214,7 @@ var KeyboardManager = {
       if (type === 'blur') {
         self._debug('get blur event');
         self.hideKeyboard();
+        self.hideIMESwitcher();
       } else {
         self._debug('get focus event');
         // by the order in Settings app, we should display
@@ -209,6 +223,10 @@ var KeyboardManager = {
           group = 'text';
         self.setKeyboardToShow(group, self.keyboardLayouts[group].activit);
         self.showKeyboard();
+
+        // We also want to show the permanent notification
+        // in the UtilityTray.
+        self.showIMESwitcher();
       }
     }, FOCUS_CHANGE_DELAY);
   },
@@ -274,21 +292,12 @@ var KeyboardManager = {
     return keyboard;
   },
 
-  handleKeyboardRequest: function km_handleKeyboardRequest(evt) {
-    var url = evt.detail.url;
-    this._debug('handleKeyboardRequest: ' + url);
-    // everything is hack here! will be removed after having real platform API
-    if (url.lastIndexOf('keyboard-test') < 0)
-      return;
-    evt.stopPropagation();
-
-
-    var urlparser = document.createElement('a');
-    urlparser.href = url;
-    var keyword = urlparser.hash.split('=')[1];
-
-    // should be a number that represents the keyboard height
-    this.keyboardHeight = parseInt(keyword);
+  resizeKeyboard: function km_resizeKeyboard(evt) {
+    this.keyboardHeight = parseInt(evt.detail.height);
+    this._debug('resizeKeyboard: ' + this.keyboardHeight);
+    if (this.keyboardHeight <= 0)
+       return;
+     evt.stopPropagation();
 
     var self = this;
     var updateHeight = function km_updateHeight() {
@@ -319,8 +328,8 @@ var KeyboardManager = {
 
   handleEvent: function km_handleEvent(evt) {
     switch (evt.type) {
-      case 'mozbrowseropenwindow':
-        this.handleKeyboardRequest(evt);
+      case 'mozbrowserresize':
+        this.resizeKeyboard(evt);
         break;
       case 'activitywillclose':
       case 'appwillclose':
@@ -409,7 +418,7 @@ var KeyboardManager = {
     this.showingLayout.frame.hidden = false;
     this.showingLayout.frame.setVisible(true);
     this.showingLayout.frame.addEventListener(
-        'mozbrowseropenwindow', this, true);
+         'mozbrowserresize', this, true);
   },
 
   showKeyboard: function km_showKeyboard() {
@@ -429,6 +438,30 @@ var KeyboardManager = {
         onTransitionEnd);
   },
 
+  /**
+   * A half-permanent notification should display after the keyboard got
+   * activated, and only hides after the keyboard got deactivated.
+   *
+   * @this
+   */
+  showIMESwitcher: function km_showIMESwitcher() {
+    var _ = navigator.mozL10n.get;
+
+    window.dispatchEvent(new CustomEvent('keyboardimeswitchershow'));
+
+    // Need to make the message in spec: "FirefoxOS - English"...
+    var showed = this.showingLayout;
+    var current = this.keyboardLayouts[showed.type][showed.index];
+
+    this.fakenotiMessage.textContent = current.appName + ':' + current.name;
+    this.fakenotiTip.textContent = _('ime-switching-tip');
+
+    // Instead of create DOM element dynamically, we can just turn the message
+    // on/off and add message as we need. This save the time to create and
+    // append element.
+    this.fakenoti.classList.add('activated');
+  },
+
   resetShowingKeyboard: function km_resetShowingKeyboard() {
     if (!this.showingLayout.frame) {
       return;
@@ -436,8 +469,13 @@ var KeyboardManager = {
     this.showingLayout.frame.hidden = true;
     this.showingLayout.frame.setVisible(false);
     this.showingLayout.frame.removeEventListener(
-        'mozbrowseropenwindow', this, true);
+        'mozbrowserresize', this, true);
     this.showingLayout.reset();
+  },
+
+  hideIMESwitcher: function km_hideIMESwitcher() {
+    this.fakenoti.classList.remove('activated');
+    window.dispatchEvent(new CustomEvent('keyboardimeswitcherhide'));
   },
 
   hideKeyboard: function km_hideKeyboard() {
@@ -489,7 +527,29 @@ var KeyboardManager = {
         self.keyboardLayouts[showed.type].activit = selectedIndex;
         self.setKeyboardToShow(showed.type, selectedIndex);
         self.showKeyboard();
-      }, null);
+
+        // Hide the tray to show the app directly after
+        // user selected a new keyboard.
+        window.dispatchEvent(new CustomEvent('keyboardchanged'));
+
+        // Refresh the switcher, or the labled type and layout name
+        // won't change.
+        self.showIMESwitcher();
+      }, function() {
+        var showed = self.showingLayout;
+        if (!self.keyboardLayouts[showed.type])
+          showed.type = 'text';
+
+        // Mimic the success callback to show the current keyboard
+        // when user canceled it.
+        var activit = self.keyboardLayouts[showed.type].activit;
+        self.setKeyboardToShow(showed.type, activit);
+        self.showKeyboard();
+
+        // Hide the tray to show the app directly after
+        // user canceled.
+        window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
+      });
     }, FOCUS_CHANGE_DELAY);
   }
 };

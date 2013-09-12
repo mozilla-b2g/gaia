@@ -11,52 +11,37 @@
       <h1></h1>
     </header>
 
-    <div>
-      <div class="container">
-        <div id="errorMsg" class="error" hidden>
-          <div id="messageHeader">The PIN was incorrect.</div>
-          <span id="messageBody">3 tries left.</span>
-        </div>
+    <div class="pin-dialog">
+      <div class="sim-errorMsg error" hidden>
+        <div class="sim-messageHeader"></div>
+        <span class="sim-messageBody"></span>
+      </div>
+      <div class="sim-triesLeft" data-l10-id="inputCodeRetriesLeft"></div>
 
-        <div id="triesLeft" data-l10-id="inputCodeRetriesLeft">
-          3 tries left
-        </div>
+      <div class="sim-code-area sim-pinArea">
+        <div data-l10n-id="simPin">SIM PIN</div>
+        <input type="password" x-inputmode="digit" size="8" maxlength="8" />
+      </div>
 
-        <div id="pinArea" class="sim-code-area">
-          <div data-l10n-id="simPin">SIM PIN</div>
-          <div class="input-wrapper">
-            <input type="password" x-inputmode="digit" name="simpin" size="8" maxlength="8" />
-          </div>
-        </div>
+      <div class="sim-code-area sim-pukArea">
+        <div data-l10n-id="pukCode">PUK Code</div>
+        <input type="password" x-inputmode="digit" size="8" maxlength="8" />
+      </div>
 
-        <div id="pukArea" class="sim-code-area">
-          <div data-l10n-id="pukCode">PUK Code</div>
-          <div class="input-wrapper">
-            <input type="password" x-inputmode="digit" name="simpuk" size="8" maxlength="8" />
-          </div>
+      <div class="sim-code-area sim-newPinArea">
+        <div data-l10n-id="newSimPinMsg">
+          Create PIN (must contain 4 to 8 digits)
         </div>
+        <input type="password" x-inputmode="digit" size="8" maxlength="8" />
+      </div>
 
-        <div id="newPinArea" class="sim-code-area">
-          <div data-l10n-id="newSimPinMsg">
-            Create PIN (must contain 4 to 8 digits)
-          </div>
-          <div class="input-wrapper">
-            <input type="password" x-inputmode="digit" name="newSimpin" size="8" maxlength="8" />
-          </div>
+      <div class="sim-code-area sim-confirmPinArea">
+        <div data-l10n-id="confirmNewSimPinMsg">
+          Confirm New PIN
         </div>
-
-        <div id="confirmPinArea" class="sim-code-area">
-          <div data-l10n-id="confirmNewSimPinMsg">
-            Confirm New PIN
-          </div>
-          <div class="input-wrapper">
-            <input type="password" x-inputmode="digit" name="confirmNewSimpin" size="8" maxlength="8" />
-          </div>
-        </div>
+        <input type="password" x-inputmode="digit" size="8" maxlength="8" />
       </div>
     </div>
-
-    <script src="js/simcard_dialog.js"></script>
 
   </template>
 </element>

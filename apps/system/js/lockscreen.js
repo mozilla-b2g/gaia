@@ -75,6 +75,11 @@ var LockScreen = {
   kPassCodeErrorTimeout: 500,
 
   /*
+  * Counter after incorrect attempt
+  */
+  kPassCodeErrorCounter: 0,
+
+  /*
   * Airplane mode
   */
   airplaneMode: false,
@@ -181,18 +186,6 @@ var LockScreen = {
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
-    });
-
-    SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      self.mute.hidden = (value != 0);
-    });
-
-    SettingsListener.observe('vibration.enabled', true, function(value) {
-      if (value) {
-        self.mute.classList.add('vibration');
-      } else {
-        self.mute.classList.remove('vibration');
-      }
     });
 
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
@@ -990,6 +983,8 @@ var LockScreen = {
       var self = this;
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
+      this.kPassCodeErrorTimeout = 500;
+      this.kPassCodeErrorCounter = 0;
 
       var transitionend = function() {
         self.passcodeCode.removeEventListener('transitionend', transitionend);
@@ -998,6 +993,11 @@ var LockScreen = {
       this.passcodeCode.addEventListener('transitionend', transitionend);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
+      this.kPassCodeErrorCounter++;
+      //double delay if >5 failed attempts
+      if (this.kPassCodeErrorCounter > 5) {
+        this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
+      }
       if ('vibrate' in navigator)
         navigator.vibrate([50, 50, 50]);
 
@@ -1020,7 +1020,7 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['connstate', 'mute', 'clock-numbers', 'clock-meridiem',
+    var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
         'area-handle', 'passcode-code', 'alt-camera', 'alt-camera-button',
         'passcode-pad', 'camera', 'accessibility-camera',

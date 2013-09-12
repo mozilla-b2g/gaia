@@ -138,13 +138,15 @@ suite('SMS App Unit-Test', function() {
           filter = options.filter, // mozMessageFilter
           invert = options.invert, // invert selection
           end = options.end,   // CB when all messages retrieved
-          endArgs = options.endArgs; //Args for end
+          endArgs = options.endArgs, //Args for end
+          done = options.done;
 
         var messagesMockup = new MockThreadMessages();
         for (var i = 0, l = messagesMockup.length; i < l; i++) {
           each(messagesMockup[i]);
         }
-        end(endArgs);
+        end && end(endArgs);
+        done && done();
       });
 
     // We mockup the method for retrieving the info
@@ -378,7 +380,7 @@ suite('SMS App Unit-Test', function() {
     var _tci;
     // Setup for getting all messages rendered before every test
     setup(function(done) {
-      ThreadUI.renderMessages({}, done);
+      ThreadUI.renderMessages(1, done);
       _tci = ThreadUI.checkInputs;
     });
 
@@ -402,7 +404,7 @@ suite('SMS App Unit-Test', function() {
     suite('Thread-messages Edit mode (bubbles view)', function() {
       // Setup for getting all messages rendered before every test
       setup(function(done) {
-        ThreadUI.renderMessages({}, function() {
+        ThreadUI.renderMessages(1, function() {
           done();
         });
       });

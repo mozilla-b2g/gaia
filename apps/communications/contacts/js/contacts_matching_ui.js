@@ -15,7 +15,7 @@ if (!contacts.MatchingUI) {
     // Hash contains identifiers of checked contacts
     var checkedContacts = {};
 
-    var mergeButton, merge2Button, contactsList, duplicateMessage, title;
+    var mergeButton, contactsList, duplicateMessage, title;
 
     function init() {
       mergeButton = document.getElementById('merge-action');
@@ -23,32 +23,26 @@ if (!contacts.MatchingUI) {
         return;
       }
 
-      merge2Button = document.getElementById('merge-action-2');
       duplicateMessage = document.querySelector('#duplicate-msg > p');
       contactsList = document.querySelector('#contacts-list-container > ol');
       title = document.getElementById('title');
 
       document.getElementById('merge-close').addEventListener('click', onClose);
-      document.getElementById('merge-ignore').
-                                             addEventListener('click', onClose);
       contactsList.addEventListener('click', onClick);
       mergeButton.addEventListener('click', onMerge);
-      merge2Button.addEventListener('click', onMerge);
     }
 
     function load(type, contact, results, cb) {
       document.body.dataset.mode = type;
+      var params = { name: getCompleteName(getDisplayName(contact)) };
+
       if (type === 'matching') {
         // "Suggested duplicate contacts for xxx"
-        duplicateMessage.textContent = _('suggestedDuplicateContacts', {
-          name: contact.name ? contact.name[0] : ''
-        });
+        duplicateMessage.textContent = _('suggestedDuplicateContacts', params);
       } else {
         title.textContent = _('duplicatesFoundTitle');
         // "xxx duplicates information in the following contacts"
-        duplicateMessage.textContent = _('duplicatesFoundMessage', {
-          name: contact.name ? contact.name[0] : ''
-        });
+        duplicateMessage.textContent = _('duplicatesFoundMessage', params);
       }
 
       // Rendering the duplicate contacts list
@@ -65,16 +59,16 @@ if (!contacts.MatchingUI) {
         contactsKeys.forEach(function(id) {
           // New contact appended
           checkedContacts[id] = id;
-          var contact = cookContact(contacts[id].matchingContact);
+          var contact = cookContact(contacts[id]);
           var item = utils.templates.append(contactsList, contact);
           if (contact.email1 === '') {
             var emailField = item.querySelector('p:last-child');
-            emailField.parentNode.removeChild(emailField);
+            emailField && emailField.parentNode.removeChild(emailField);
           }
         });
 
         checked = contactsKeys.length;
-        checkMerging();
+        checkMergeButton();
 
         // The template is deleted from the list
         contactsList.removeChild(contactsList.firstElementChild);
@@ -89,23 +83,75 @@ if (!contacts.MatchingUI) {
      *
      * @param(Object) Contact object provided by Gecko
      */
-    function cookContact(contact) {
+    function cookContact(matching) {
+      var contact = matching.matchingContact;
+      var reasons = matching.matchings || {};
+
       var out = {};
 
       populate(contact, out, Object.getOwnPropertyNames(contact));
       populate(contact, out,
                     Object.getOwnPropertyNames(Object.getPrototypeOf(contact)));
 
-      out.email1 = '';
-      if (Array.isArray(out.email) && out.email[0]) {
-        out.email1 = out.email[0].value || '';
-      }
-
+      out.displayName = getCompleteName(getDisplayName(contact));
+      out.mainReason = selectMainReason(reasons);
       if (Array.isArray(out.photo) && out.photo[0]) {
-        out.photo1 = window.URL.createObjectURL(out.photo[0]);
+        out.thumb = window.URL.createObjectURL(out.photo[0]);
       }
 
       return out;
+    }
+
+    function getCompleteName(contact) {
+      var givenName = Array.isArray(contact.givenName) ?
+                      contact.givenName[0] : '';
+
+      var familyName = Array.isArray(contact.familyName) ?
+                      contact.familyName[0] : '';
+
+      var completeName = givenName && familyName ?
+                         givenName + ' ' + familyName :
+                         givenName || familyName;
+
+      return completeName;
+    }
+
+    // Fills the contact data to display if no givenName and familyName
+    function getDisplayName(contact) {
+      if (hasName(contact))
+        return { givenName: contact.givenName, familyName: contact.familyName };
+
+      var givenName = [];
+      if (Array.isArray(contact.name) && contact.name.length > 0) {
+        givenName.push(contact.name[0]);
+      } else if (contact.org && contact.org.length > 0) {
+        givenName.push(contact.org[0]);
+      } else if (contact.tel && contact.tel.length > 0) {
+        givenName.push(contact.tel[0].value);
+      } else if (contact.email && contact.email.length > 0) {
+        givenName.push(contact.email[0].value);
+      } else {
+        givenName.push(_('noName'));
+      }
+
+      return { givenName: givenName, modified: true };
+    };
+
+    function hasName(contact) {
+      return (Array.isArray(contact.givenName) && contact.givenName[0] &&
+                contact.givenName[0].trim()) ||
+              (Array.isArray(contact.familyName) && contact.familyName[0] &&
+                contact.familyName[0].trim());
+    };
+
+    function selectMainReason(reasons) {
+      var reason, precedence = ['tel', 'email', 'name'];
+      for (var i = 0, l = precedence.length; i < l; i++) {
+        reason = precedence[i];
+        if (reasons[reason]) {
+          return reasons[reason][0].matchedValue;
+        }
+      }
     }
 
     function populate(source, target, propertyNames) {
@@ -134,13 +180,14 @@ if (!contacts.MatchingUI) {
         var uuid = target.dataset.uuid;
         var checkbox = target.querySelector('input[type="checkbox"]');
         setChecked(target, checkbox, !checkbox.checked, uuid);
-        checkMerging();
+        checkMergeButton();
       }
     }
 
-    function checkMerging() {
-      mergeButton.disabled = merge2Button.disabled =
-                                                   checked === 0 ? true : false;
+    function checkMergeButton() {
+      navigator.mozL10n.localize(mergeButton, 'mergeActionButtonLabel',
+                                                                { n: checked });
+      mergeButton.disabled = (checked === 0);
     }
 
     function setChecked(item, element, value, uuid) {
@@ -149,11 +196,11 @@ if (!contacts.MatchingUI) {
         if (value) {
           ++checked;
           checkedContacts[uuid] = uuid;
-          item.dataset.disabled = false;
+          item.setAttribute('aria-disabled', false);
         } else {
           --checked;
           delete checkedContacts[uuid];
-          item.dataset.disabled = true;
+          item.setAttribute('aria-disabled', true);
         }
       }
       element.checked = value;

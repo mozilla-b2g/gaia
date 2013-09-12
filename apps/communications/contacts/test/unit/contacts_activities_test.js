@@ -176,7 +176,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, _('no_phones'));
+      assert.equal(ConfirmDialog.text, _('no_contact_phones'));
     });
 
      test('webcontacts/tel, 1 result', function() {
@@ -216,7 +216,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, _('no_phones'));
+      assert.equal(ConfirmDialog.text, _('no_contact_phones'));
     });
 
     test('webcontacts/contact, 1 result', function() {
@@ -243,7 +243,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isTrue(ConfirmDialog.showing);
       assert.isNull(ConfirmDialog.title);
-      assert.equal(ConfirmDialog.text, _('no_email'));
+      assert.equal(ConfirmDialog.text, _('no_contact_email'));
     });
 
     test('webcontacts/email, 1 result', function() {

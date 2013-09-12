@@ -47,6 +47,16 @@
             <button id="call-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
           </p>
         </li>
+        <li id="touch-tone-selector" hidden>
+          <a data-l10n-id="touch-tones">Audible touch tones</a>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select name="phone.dtmf.type">
+              <option value="short" data-l10n-id="touch-tone-short">Short</option>
+              <option value="long" data-l10n-id="touch-tone-long">Long</option>
+            </select>
+          </p>
+        </li>
       </ul>
 
       <header>
@@ -66,6 +76,13 @@
             <span></span>
           </label>
           <a data-l10n-id="camera-shutter">Camera Shutter</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="camera.recordingsound.enabled" checked />
+            <span></span>
+          </label>
+          <a data-l10n-id="camera-recordingsound">Camera Recording Sound</a>
         </li>
         <li>
           <label class="pack-checkbox">

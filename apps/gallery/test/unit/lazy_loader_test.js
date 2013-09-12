@@ -4,7 +4,7 @@
  * Bug #841422 has been filed to move these tests
  */
 require('/shared/js/lazy_loader.js');
-require('/shared/js/web_components.js');
+require('/shared/js/html_imports.js');
 
 mocha.setup({globals: ['jsCount', 'totalResult']});
 

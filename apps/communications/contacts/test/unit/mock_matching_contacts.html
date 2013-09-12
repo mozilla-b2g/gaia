@@ -4,12 +4,7 @@
     <a href="#" id="merge-close">
       <span class="icon icon-close" data-l10n-id="close">close</span>
     </a>
-    <menu type="toolbar">
-      <button id="merge-action" data-l10n-id="merge" disabled>
-        Merge
-      </button>
-    </menu>
-    <h1 data-l10n-id="mergeDuplicateTitle">Merge duplicates</h1>
+    <h1 id="title" data-l10n-id="mergeDuplicateTitle">Merge duplicates</h1>
   </header>
 
   <section id="main">
@@ -21,23 +16,20 @@
       <ol>
         <li data-template data-uuid="#id#" class="block-item">
           <label class="pack-checkbox">
-            <input type="checkbox" name="#id#" checked></input>
+            <input type="checkbox" checked></input>
             <span></span>
           </label>
           <aside class="pack-end">
-            <img data-src="#photo1#"></img>
+            <img data-src="#thumb#"></img>
           </aside>
-          <p><strong>#givenName#</strong> #familyName#</p>
-          <p>#email1#</p>
+          <p>#givenName# #familyName#</p>
+          <p class="match-main-reason">#mainReason#</p>
         </li>
       </ol>
     </section> <!-- contacts-list-container -->
     <form id="footer" role="dialog" data-type="confirm">
-      <menu id="select-all-wrapper">
-        <button id="merge-ignore" data-l10n-id="close">
-          Ignore
-        </button>
-        <button id="merge-action-2" class="danger" data-l10n-id="merge">
+      <menu>
+        <button id="merge-action" data-l10n-id="merge" class="danger full">
           Merge
         </button>
       </menu>

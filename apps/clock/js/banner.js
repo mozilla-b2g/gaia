@@ -1,73 +1,95 @@
-var BannerView = {
-
-  _remainHours: 0,
-  _remainMinutes: 0,
-
-  get bannerCountdown() {
-    delete this.bannerCountdown;
-    return this.bannerCountdown = document.getElementById('banner-countdown');
-  },
-
-  init: function BV_init() {
-    this.bannerCountdown.addEventListener('click', this);
-  },
-
-  handleEvent: function al_handleEvent(evt) {
-    this.hideBannerStatus();
-  },
-
-  calRemainTime: function BV_calRemainTime(targetTime) {
-    var now = new Date();
-    var remainTime = targetTime.getTime() - now.getTime();
-    this._remainHours = Math.floor(remainTime / (60 * 60 * 1000)); // per hour
-    this._remainMinutes = Math.floor((remainTime / (60 * 1000)) -
-                          (this._remainHours * 60)); // per minute
-  },
-
-  setStatus: function BV_setStatus(nextAlarmFireTime) {
-    this.calRemainTime(nextAlarmFireTime);
-
-    var innerHTML = '';
-    if (this._remainHours === 0) {
-      innerHTML = _('countdown-lessThanAnHour', {
-        minutes: _('nMinutes', { n: this._remainMinutes })
-      });
-    } else if (this._remainHours < 24) {
-      innerHTML = _('countdown-moreThanAnHour', {
-        hours: _('nHours', { n: this._remainHours }),
-        minutes: _('nRemainMinutes', { n: this._remainMinutes })
-      });
+(function(exports) {
+  'use strict';
+  function Banner(node, tmplId) {
+    // Accept a reference to an element or the element id
+    if (typeof node === 'string') {
+      this.notice = document.getElementById(node);
     } else {
-      var remainDays = Math.floor(this._remainHours / 24);
-      var remainHours = this._remainHours - (remainDays * 24);
-      innerHTML = _('countdown-moreThanADay', {
-        days: _('nRemainDays', { n: remainDays }),
-        hours: _('nRemainHours', { n: remainHours })
-      });
+      this.notice = node;
     }
-    this.bannerCountdown.innerHTML = '<p>' + innerHTML + '</p>';
-
-    this.showBannerStatus();
-    var self = this;
-    window.setTimeout(function cv_hideBannerTimeout() {
-      self.setBannerStatus(false);
-    }, 4000);
-  },
-
-  setBannerStatus: function BV_setBannerStatus(visible) {
-    if (visible) {
-      this.bannerCountdown.classList.add('visible');
-    } else {
-      this.bannerCountdown.classList.remove('visible');
-    }
-  },
-
-  showBannerStatus: function BV_showBannerStatus() {
-    this.setBannerStatus(true);
-  },
-
-  hideBannerStatus: function BV_hideBannerStatus() {
-    this.setBannerStatus(false);
+    // Accept an optional reference to template element id
+    this.tmpl = new Template(tmplId);
+    // Store a reference to timeout to debounce banner
+    this.timeout = null;
+    return this;
   }
-};
-BannerView.init();
+
+  Banner.prototype = {
+
+    constructor: Banner,
+
+    render: function bn_render(alarmTime) {
+      var timeLeft, displayTime, tl, countdownType, localTimes, unitObj;
+
+      timeLeft = +alarmTime - Date.now();
+      // generate human readable numbers to pass to localization function
+      tl = Utils.dateMath.fromMS(timeLeft, {
+        unitsPartial: ['days', 'hours', 'minutes']
+      });
+
+      // Match properties to localizations string types
+      // e.g. minutes maps to nMinutes if there are no hours but
+      // nRemainMinutes if hours > 0
+      if (tl.days) {
+        //countdown-moreThanADay localized only for en-US while 913466 is open
+        countdownType = 'countdown-moreThanADay';
+        localTimes = [
+          ['days', 'nRemainDays', tl.days],
+          ['hours', 'nRemainHours', tl.hours]
+        ];
+      } else if (tl.hours > 0) {
+        countdownType = 'countdown-moreThanAnHour';
+        localTimes = [
+          ['hours', 'nHours', tl.hours],
+          ['minutes', 'nRemainMinutes', tl.minutes]
+        ];
+      } else {
+        countdownType = 'countdown-lessThanAnHour';
+        localTimes = [
+          ['minutes', 'nMinutes', tl.minutes]
+        ];
+      }
+
+      // Create an object to pass to mozL10n.get
+      // e.g. {minutes: navigator.mozL10n.get('nMinutes', {n: 3})}
+      unitObj = localTimes.reduce(function(lcl, time) {
+        lcl[time[0]] = navigator.mozL10n.get(time[1], {n: time[2]});
+        return lcl;
+      }, {});
+
+      // mozL10n.get interpolates the units in unitObj inside the
+      // localization string for countdownType
+      return navigator.mozL10n.get(countdownType, unitObj);
+    },
+
+    show: function bn_show(alarmTime) {
+      // Render the Banner notice
+      this.notice.innerHTML = this.tmpl.interpolate(
+        {notice: this.render(alarmTime)},
+        // Localization strings contain <strong> tags
+        {safe: ['notice']}
+      );
+      // 'visible' class controls the animation
+      this.notice.classList.add('visible');
+      // use this object rather than a function to retain context
+      this.notice.addEventListener('click', this);
+      // Debounce timer in case alarms are added more quickly than 4 seconds
+      if (this.timeout) {
+        clearTimeout(this.timeout);
+      }
+      // After 4 seconds, remove the banner
+      this.timeout = setTimeout(this.hide.bind(this), 4000);
+    },
+
+    hide: function bn_hide() {
+      this.notice.classList.remove('visible');
+      this.notice.removeEventListener('click', this);
+    },
+
+    handleEvent: function bn_handleEvent() {
+      this.hide();
+    }
+  };
+
+  exports.Banner = Banner;
+}(this));

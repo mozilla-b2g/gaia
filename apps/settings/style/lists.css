@@ -154,9 +154,15 @@ ul li > label.pack-checkbox ~ a,
 ul li > label.pack-radio ~ a {
   padding-right: 6.1rem;
 }
+ul li > label.pack-radio ~ p {
+  padding-right: 3rem;
+}
 
 ul li > label.pack-switch ~ a {
    padding-right: 9rem;
+}
+ul li > label.pack-radio ~ a {
+  padding-right: 5.9rem;
 }
 
 ul li > label.pack-checkbox:active ~ a,

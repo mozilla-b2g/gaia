@@ -1065,53 +1065,51 @@ var ThreadUI = global.ThreadUI = {
   },
 
   // Method for rendering the list of messages using infinite scroll
-  renderMessages: function thui_renderMessages(filter, callback) {
-    // We initialize all params before rendering
-    this.initializeRendering();
-    // We call getMessages with callbacks
-    var self = this;
-    var onMessagesRendered = function messagesRendered() {
-      if (self.messageIndex < self.CHUNK_SIZE) {
-        self.showFirstChunk();
+  renderMessages: function thui_renderMessages(threadId, callback) {
+    var onMessagesRendered = (function messagesRendered() {
+      if (this.messageIndex < this.CHUNK_SIZE) {
+        this.showFirstChunk();
       }
-      // Update STATUS of messages if needed
-      filter.read = false;
+
       if (callback) {
         callback();
       }
-      setTimeout(function updatingStatus() {
-        var messagesUnreadIDs = [];
-        var changeStatusOptions = {
-          each: function addUnreadMessage(message) {
-            messagesUnreadIDs.push(message.id);
-            return true;
-          },
-          filter: filter,
-          invert: true,
-          end: function handleUnread() {
-            MessageManager.markMessagesRead(messagesUnreadIDs, true);
-          }
-        };
-        MessageManager.getMessages(changeStatusOptions);
-      });
-    };
+    }).bind(this);
+
+    function onMessagesDone() {
+      setTimeout(
+        MessageManager.markThreadRead.bind(MessageManager, filter.threadId)
+      );
+    }
+
+    var onRenderMessage = (function renderMessage(message) {
+      if (this._stopRenderingNextStep) {
+        // stop the iteration
+        return false;
+      }
+      this.appendMessage(message,/*hidden*/ true);
+      this.messageIndex++;
+      if (this.messageIndex === this.CHUNK_SIZE) {
+        this.showFirstChunk();
+      }
+      return true;
+    }).bind(this);
+
+    // We initialize all params before rendering
+    this.initializeRendering();
+
+    var filter = new MozSmsFilter();
+    filter.threadId = threadId;
+
+    // We call getMessages with callbacks
     var renderingOptions = {
-      each: function renderMessage(message) {
-        if (self._stopRenderingNextStep) {
-          // stop the iteration
-          return false;
-        }
-        self.appendMessage(message,/*hidden*/ true);
-        self.messageIndex++;
-        if (self.messageIndex === self.CHUNK_SIZE) {
-          self.showFirstChunk();
-        }
-        return true;
-      },
+      each: onRenderMessage,
       filter: filter,
       invert: false,
-      end: onMessagesRendered
+      end: onMessagesRendered,
+      done: onMessagesDone
     };
+
     MessageManager.getMessages(renderingOptions);
     // force the next scroll to bottom
     this.isScrolledManually = false;
@@ -1550,9 +1548,23 @@ var ThreadUI = global.ThreadUI = {
     if (messageType === 'sms') {
       MessageManager.sendSMS(recipients, content[0], null, null,
         function onComplete(requestResult) {
-          if (requestResult.error.length > 0) {
-            var errorName = requestResult.error[0].name;
-            this.showSendMessageError(errorName);
+          if (requestResult.hasError) {
+            var errors = {};
+            requestResult.return.forEach(function(result) {
+              if (result.success) {
+                return;
+              }
+
+              if (errors[result.code.name] === undefined) {
+                errors[result.code.name] = [result.recipient];
+              } else {
+                errors[result.code.name].push(result.recipient);
+              }
+            });
+
+            for (var key in errors) {
+              this.showSendMessageError(key, errors[key]);
+            }
           }
         }.bind(this)
       );
@@ -1621,9 +1633,10 @@ var ThreadUI = global.ThreadUI = {
     messageDOM.classList.add('delivered');
   },
 
-  showSendMessageError: function mm_sendMessageOnError(errorName) {
+  showSendMessageError: function mm_sendMessageOnError(errorName, recipients) {
     var messageTitle = '';
     var messageBody = '';
+    var messageBodyParams = {};
     var buttonLabel = '';
 
     switch (errorName) {
@@ -1638,6 +1651,15 @@ var ThreadUI = global.ThreadUI = {
         messageBody = 'sendAirplaneModeBody';
         buttonLabel = 'sendAirplaneModeBtnOk';
         break;
+      case 'FdnCheckError':
+        messageTitle = 'fdnBlockedTitle';
+        messageBody = 'fdnBlockedBody';
+        messageBodyParams = {
+          n: recipients.length,
+          numbers: recipients.join('<br />')
+        };
+        buttonLabel = 'fdnBlockedBtnOk';
+        break;
       case 'NoSignalError':
       case 'NotFoundError':
       case 'UnknownError':
@@ -1651,18 +1673,16 @@ var ThreadUI = global.ThreadUI = {
 
     var dialog = new Dialog({
       title: {
-        value: messageTitle,
-        l10n: true
+        l10nId: messageTitle
       },
       body: {
-        value: messageBody,
-        l10n: true
+        l10nId: messageBody,
+        l10nArgs: messageBodyParams
       },
       options: {
         cancel: {
           text: {
-            value: buttonLabel,
-            l10n: true
+            l10nId: buttonLabel
           }
         }
       }

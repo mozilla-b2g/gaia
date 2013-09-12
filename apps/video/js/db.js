@@ -107,67 +107,14 @@ function addVideo(videodata) {
     return;
   }
 
-  var insertPosition;
-
-  if (videos.length === 0 || videodata.date > videos[0].date) {
-    // This video is the first or is newer than the first one.
-    // This is the most common case for new videos.
-    insertPosition = 0;
-  }
-  else if (videodata.date < videos[videos.length - 1].date) {
-    // This video is older than the last one.
-    // This is the most common case when we enumerate the database.
-    insertPosition = videos.length;
-  }
-  else {
-    // Otherwise we have to search for the right insertion spot
-    insertPosition = binarysearch(videos, videodata, compareVideosByDate);
-  }
-
-  // Insert the video info into the array
-  videos.splice(insertPosition, 0, videodata);
-
-  // Create the document element for this video and insert it at the right spot
-  var thumbnail = createThumbnailItem(insertPosition);
-  var thumbnails = dom.thumbnails.children;
-  dom.thumbnails.insertBefore(thumbnail, thumbnails[insertPosition]);
-
-  // increment the index of each of the thumbnails after the new one
-  for (var i = insertPosition; i < thumbnails.length; i++) {
-    thumbnails[i].dataset.index = i;
-  }
+  // Create the thumbnail view for this video and insert it at the right spot
+  var view = thumbnailList.addItem(videodata);
+  // thumbnailClickHandler is defined in video.js
+  view.addTapListener(thumbnailClickHandler);
 
   // If we just added the first video we need to hide the "no video" overlay
-  if (videos.length === 1)
+  if (thumbnailList.count === 1) {
     updateDialog();
-
-  // This comparison function is used for sorting arrays and doing binary
-  // search on the resulting sorted arrays.
-  function compareVideosByDate(a, b) {
-    return b.date - a.date;
-  }
-
-  // Assuming that array is sorted according to comparator, return the
-  // array index at which element should be inserted to maintain sort order
-  function binarysearch(array, element, comparator, from, to) {
-    if (comparator === undefined)
-      comparator = function(a, b) {
-        return a - b;
-      };
-
-    if (from === undefined)
-      return binarysearch(array, element, comparator, 0, array.length);
-
-    if (from === to)
-      return from;
-
-    var mid = Math.floor((from + to) / 2);
-
-    var result = comparator(element, array[mid]);
-    if (result < 0)
-      return binarysearch(array, element, comparator, from, mid);
-    else
-      return binarysearch(array, element, comparator, mid + 1, to);
   }
 }
 
@@ -178,32 +125,12 @@ function videoCreated(videoinfo) {
 }
 
 function videoDeleted(filename) {
-  // Find the deleted video in our videos array
-  for (var n = 0; n < videos.length; n++) {
-    if (videos[n].name === filename)
-      break;
-  }
-
-  if (n >= videos.length)  // It was a video we didn't know about
-    return;
-
-  // Remove the video from the array
-  videos.splice(n, 1)[0];
-
   // And remove its thumbnail from the document
-  var thumbnails = dom.thumbnails.children;
-  dom.thumbnails.removeChild(thumbnails[n]);
-
-  // Change the index associated with all the thumbnails after the deleted one
-  // This keeps the data-index attribute of each thumbnail element in sync
-  // with the files[] array.
-  for (var i = n; i < thumbnails.length; i++) {
-    thumbnails[i].dataset.index = i;
-  }
+  thumbnailList.removeItem(filename);
 
   // If we just deleted the last video we need to display the "no video" overlay
   // and go back to thumbnail list view in case we were in thumbnail select view
-  if (videos.length === 0) {
+  if (thumbnailList.count === 0) {
     updateDialog();
     hideSelectView();
   }

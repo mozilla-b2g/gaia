@@ -1,15 +1,16 @@
-/*
+/*jshint browser: true */
+/*global performance, console */
 var _xstart = performance.timing.fetchStart -
               performance.timing.navigationStart;
 function plog(msg) {
   console.log(msg + ' ' + (performance.now() - _xstart));
 }
-*/
+
 
 // Use a global to work around issue with
 // navigator.mozHasPendingMessage only returning
 // true to the first call made to it.
-window.htmlCacheRestoreDetectedActivity = false;
+window.htmlCacheRestorePendingMessage = [];
 
 (function() {
   /**
@@ -77,11 +78,18 @@ window.htmlCacheRestoreDetectedActivity = false;
     document.head.appendChild(scriptNode);
   }
 
-  if (navigator.mozHasPendingMessage &&
-      navigator.mozHasPendingMessage('activity')) {
-    // TODO: mozHasPendingMessage can only be called once?
-    // Need to set up variable to delay normal code logic later
-    window.htmlCacheRestoreDetectedActivity = true;
+  // TODO: mozHasPendingMessage can only be called once?
+  // Need to set up variable to delay normal code logic later
+  if (navigator.mozHasPendingMessage) {
+    if (navigator.mozHasPendingMessage('activity'))
+      window.htmlCacheRestorePendingMessage.push('activity');
+    if (navigator.mozHasPendingMessage('alarm'))
+      window.htmlCacheRestorePendingMessage.push('alarm');
+    if (navigator.mozHasPendingMessage('notification'))
+      window.htmlCacheRestorePendingMessage.push('notification');
+  }
+
+  if (window.htmlCacheRestorePendingMessage.length) {
     startApp();
   } else {
     cardsNode.innerHTML = retrieve();

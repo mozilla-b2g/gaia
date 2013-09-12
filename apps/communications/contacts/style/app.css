@@ -180,12 +180,12 @@ menu, nav, section, video, audio, canvas, progress, meter, time {
 /* view */
 
 .view {
-  position: fixed;
+  position: absolute;
   overflow: hidden;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
+  width: 100%;
+  height: 100%;
   transform: translate(0, 0);
 }
 

@@ -1,0 +1,1 @@
+VariantManager.init();

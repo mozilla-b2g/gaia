@@ -205,6 +205,7 @@ var QuickSettings = {
       // unlock wifi toggle
       case 'wifi-enabled':
         delete this.wifi.dataset.initializing;
+        this.wifi.dataset.enabled = 'true';
         if (this.toggleAutoConfigWifi) {
           // Check whether it found a wifi to connect after a timeout.
           this.wifiStatusTimer = setTimeout(this.autoConfigWifi.bind(this),
@@ -213,6 +214,7 @@ var QuickSettings = {
         break;
       case 'wifi-disabled':
         delete this.wifi.dataset.initializing;
+        delete this.wifi.dataset.enabled;
         if (this.toggleAutoConfigWifi) {
           clearTimeout(this.wifiStatusTimer);
           this.wifiStatusTimer = null;

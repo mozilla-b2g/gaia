@@ -15,6 +15,8 @@
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
 #                                                                             #
+# COVERAGE    : Add blanket testing coverage report to use for test output.   #
+#                                                                             #
 # GAIA_APP_CONFIG : The app.list file representing applications to include in #
 #                   Gaia                                                      #
 #                                                                             #
@@ -397,7 +399,7 @@ webapp-optimize: install-xulrunner-sdk
 	@$(call run-js-command, webapp-optimize)
 
 # Remove temporary l10n files
-optimize-clean: install-xulrunner-sdk
+optimize-clean: webapp-zip install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
 
 # Get additional extensions
@@ -423,7 +425,7 @@ ifdef LOCAL_APPS_PATH
 endif
 
 # Create webapps
-offline: webapp-manifests webapp-optimize webapp-zip optimize-clean
+offline: webapp-manifests optimize-clean
 
 # Create an empty reference workload
 .PHONY: reference-workload-empty
@@ -689,6 +691,11 @@ test-agent-bootstrap-apps:
 	done
 	@echo "Finished: bootstrapping test proxies/sandboxes";
 
+# For test coverage report
+COVERAGE?=0
+ifeq ($(COVERAGE), 1)
+TEST_ARGS=--coverage
+endif
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)
@@ -698,10 +705,10 @@ endif
 test-agent-test:
 ifneq ($(strip $(APP)),)
 	@echo 'Running tests for $(APP)';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER) $(APP_TEST_LIST)
 else
 	@echo 'Running all tests';
-	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
+	@$(TEST_AGENT_DIR)/node_modules/test-agent/bin/js-test-agent test $(TEST_ARGS) --server ws://localhost:$(TEST_AGENT_PORT) --reporter $(REPORTER)
 endif
 
 .PHONY: test-agent-server
@@ -878,7 +885,7 @@ endif
 
 # clean out build products
 clean:
-	rm -rf profile profile-debug $(PROFILE_FOLDER)
+	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER)
 
 # clean out build products
 really-clean: clean

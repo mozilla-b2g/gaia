@@ -12,6 +12,7 @@
     "device-storage:music":{ "access": "readwrite" },
     "settings":{ "access": "readonly" },
     "deprecated-hwvideo":{},
+    "bluetooth":{},
     "audio-channel-content":{}
   },
   "activities": {
@@ -55,5 +56,8 @@
     "60": "/style/icons/60/Music.png",
     "120": "/style/icons/Music.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "portrait-primary",
+  "messages": [
+     { "media-button": "/index.html#mix" }
+  ]
 }

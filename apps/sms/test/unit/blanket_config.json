@@ -1,0 +1,4 @@
+{
+  "data-cover-only": "js/",
+  "data-cover-never": "['http://sms.gaiamobile.org:8080/js/desktop_contacts_mock.js','http://sms.gaiamobile.org:8080/js/recipients.js']"
+}

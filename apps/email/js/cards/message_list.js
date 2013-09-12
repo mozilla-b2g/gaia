@@ -203,9 +203,11 @@ function MessageListCard(domNode, mode, args) {
 
   this.usingCachedNode = !!args.cachedNode;
 
-  // Use the told entry point to set up folders, as it is the same work
-  // needed if this card is created before data is available.
-  this.told(args);
+  this._boundFolderChanged = this._folderChanged.bind(this);
+  model.latest('folder', this._boundFolderChanged);
+
+  this._boundOnNewMail = this.onNewMail.bind(this);
+  model.on('newInboxMessages', this._boundOnNewMail);
 }
 MessageListCard.prototype = {
   /**
@@ -365,26 +367,11 @@ MessageListCard.prototype = {
     if (Cards.hasCard(query)) {
       Cards.moveToCard(query);
     } else {
-      var folderPickerInit = this.folderPickerInit;
-
-      if (!folderPickerInit) {
-        // Could be a click before we have data. If so, just
-        // ignore it.
-        return;
-      }
-
       // Add navigation, but before the message list.
       Cards.pushCard(
         'folder_picker', 'navigation', 'none',
         {
-          acctsSlice: folderPickerInit.acctsSlice,
-          curAccount: folderPickerInit.account,
-          foldersSlice: folderPickerInit.foldersSlice,
-          curFolder: this.curFolder,
           onPushed: function() {
-            // No longer need init info
-            this.folderPickerInit = null;
-
             setTimeout(function() {
             // Do showCard here instead of using an 'animate'
             // for the pushCard call, since the styling of
@@ -393,10 +380,10 @@ MessageListCard.prototype = {
             // gradient is not loaded during the transition.
             // The setTimeout also gives the header image a
             // chance to finish loading. Without it, there is
-            // still a white flash. Going lower than 25, not
+            // still a white flash. Going lower than 50, not
             // specifying a value, still resulted in white flash.
             Cards.moveToCard(query);
-          }, 25);
+          }, 50);
           }.bind(this)
         },
         // Place to left of message list
@@ -421,7 +408,9 @@ MessageListCard.prototype = {
       this.messagesSlice = null;
       this.messagesContainer.innerHTML = '';
     }
+
     this.curFolder = folder;
+
     switch (folder.type) {
       case 'drafts':
       case 'localdrafts':
@@ -451,6 +440,7 @@ MessageListCard.prototype = {
     // We are creating a new slice, so any pending snippet requests are moot.
     this._snippetRequestPending = false;
     this.messagesSlice = model.api.viewFolderMessages(folder);
+
     this.messagesSlice.onsplice = this.onMessagesSplice.bind(this);
     this.messagesSlice.onchange = this.onMessagesChange.bind(this);
     this.messagesSlice.onstatus = this.onStatusChange.bind(this);
@@ -604,7 +594,24 @@ MessageListCard.prototype = {
       this.showEmptyLayout();
     }
 
-    if (newEmailCount && newEmailCount !== NaN && newEmailCount !== 0) {
+    this.onNewMail(newEmailCount);
+
+    // Consider requesting more data or discarding data based on scrolling that
+    // has happened since we issued the request.  (While requests were pending,
+    // onScroll ignored scroll events.)
+    this._onScroll(null);
+  },
+
+  onNewMail: function(newEmailCount) {
+    var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');
+
+    if (inboxFolder.id === this.curFolder.id &&
+        newEmailCount && newEmailCount !== NaN && newEmailCount !== 0) {
+      if (!Cards.isVisible(this)) {
+        this._whenVisible = this.onNewMail.bind(this, newEmailCount);
+        return;
+      }
+
       // Decorate or update the little notification bar that tells the user
       // how many new emails they've received after a sync.
       if (this._topbar && this._topbar.getElement() !== null) {
@@ -620,13 +627,7 @@ MessageListCard.prototype = {
         this._topbar.render();
       }
     }
-
-    // Consider requesting more data or discarding data based on scrolling that
-    // has happened since we issued the request.  (While requests were pending,
-    // onScroll ignored scroll events.)
-    this._onScroll(null);
   },
-
 
   onScroll: function(evt) {
     if (this._pendingScrollEvent) {
@@ -1131,6 +1132,18 @@ MessageListCard.prototype = {
       starNode.classList.remove('msg-header-star-starred');
   },
 
+  /**
+   * Called by Cards when the instance of this card type is the
+   * visible card.
+   */
+  onCardVisible: function() {
+    if (this._whenVisible) {
+      var fn = this._whenVisible;
+      this._whenVisible = null;
+      fn();
+    }
+  },
+
   onClickMessage: function(messageNode, event) {
     var header = messageNode.message;
     if (this.editMode) {
@@ -1253,43 +1266,21 @@ MessageListCard.prototype = {
     }.bind(this));
   },
 
-  /**
-   * The folder picker is telling us to change the folder we are showing.
-   * Also called when setting up data connections after initial card creation.
-   */
-  told: function(args) {
-    var folder;
+  _folderChanged: function(folder) {
+    // Folder could have changed because account changed. Make sure
+    // the cacheableFolderId is still set correctly.
+    var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');
+    this.cacheableFolderId = model.account === model.acctsSlice.defaultAccount ?
+                                               inboxFolder.id : null;
 
-    if (args.folderPickerInit) {
-      // Received folder_picker init info, and so derive the folder from
-      // that information. This info is set during app startup. In the
-      // startup case, the inbox is always the start point, with other
-      // folder choices triggered by user action. For instance, by selecting
-      // a folder in the folder_picker.
-      var foldersSlice = args.folderPickerInit.foldersSlice,
-          acctsSlice = args.folderPickerInit.acctsSlice,
-          account = args.folderPickerInit.account;
+    this.folder = folder;
 
-      folder = foldersSlice.getFirstFolderWithType('inbox');
-
-      this.folderPickerInit = args.folderPickerInit;
-
-      this.cacheableFolderId = account === acctsSlice.defaultAccount ?
-                                                               folder.id : null;
-    } else {
-      // Folder is passed directly to the card. For example, once
-      // folder_picker exists and folder is selected from it.
-      folder = args.folder;
-    }
-
-    if (folder) {
-      if (this.mode == 'nonsearch') {
-        if (this.showFolder(folder)) {
-          this._hideSearchBoxByScrolling();
-        }
-      } else {
-        this.showSearch(folder, args.phrase || '', args.filter || 'all');
+    if (this.mode == 'nonsearch') {
+      if (this.showFolder(folder)) {
+        this._hideSearchBoxByScrolling();
       }
+    } else {
+      this.showSearch(folder, '', 'all');
     }
   },
 
@@ -1298,6 +1289,8 @@ MessageListCard.prototype = {
       this.messagesSlice.die();
       this.messagesSlice = null;
     }
+    model.removeListener('folder', this._boundFolderChanged);
+    model.removeListener('newInboxMessages', this._boundOnNewMail);
   }
 };
 Cards.defineCard({

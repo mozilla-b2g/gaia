@@ -219,6 +219,23 @@ suite('evt', function() {
       evt.mix(data);
     });
 
+
+    test('double latestOnce listeners', function() {
+      var count = 0;
+
+      function onLatest(token) {
+        count += 1;
+
+        assert.equal(token, 'one');
+      }
+
+      data.latestOnce('token', onLatest);
+      data.latestOnce('token', onLatest);
+
+      data.setToken('one');
+      assert.equal(count, 2);
+    });
+
     test('delayed value', function() {
       var count = 0;
 

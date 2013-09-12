@@ -9,7 +9,7 @@ var TelephonyHelper = (function() {
       return;
     }
     var conn = window.navigator.mozMobileConnection;
-    if (!conn || !conn.voice || !conn.voice.network) {
+    if (!conn || !conn.voice) {
       // No voice connection, the call won't make it
       displayMessage('NoNetwork');
       return;
@@ -17,9 +17,24 @@ var TelephonyHelper = (function() {
     startDial(sanitizedNumber, oncall, onconnected, ondisconnected, onerror);
   };
 
+  function notifyBusyLine() {
+    // ANSI call waiting tone for a 3 seconds window.
+    var sequence = [[480, 620, 500],
+                    [0, 0, 500],
+                    [480, 620, 500],
+                    [0, 0, 500],
+                    [480, 620, 500],
+                    [0, 0, 500]];
+    TonePlayer.playSequence(sequence);
+  };
+
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
     var telephony = navigator.mozTelephony;
-    if (telephony) {
+    if (!telephony) {
+      return;
+    }
+
+    LazyLoader.load('/shared/js/icc_helper.js', function() {
       var conn = window.navigator.mozMobileConnection;
       var cardState = IccHelper.cardState;
       var emergencyOnly = conn.voice.emergencyCallsOnly;
@@ -58,7 +73,10 @@ var TelephonyHelper = (function() {
           } else if (errorName === 'RadioNotAvailable') {
             displayMessage('FlightMode');
           } else if (errorName === 'BusyError') {
+            notifyBusyLine();
             displayMessage('NumberIsBusy');
+          } else if (errorName === 'FDNBlockedError') {
+            displayMessage('FixedDialingNumbers');
           } else {
             // If the call failed for some other reason we should still
             // display something to the user. See bug 846403.
@@ -68,7 +86,7 @@ var TelephonyHelper = (function() {
       } else {
         displayMessage('UnableToCall');
       }
-    }
+    });
   }
 
   var isValid = function t_isValid(sanitizedNumber) {
@@ -103,6 +121,10 @@ var TelephonyHelper = (function() {
       case 'NumberIsBusy':
         dialogTitle = 'numberIsBusyTitle';
         dialogBody = 'numberIsBusyMessage';
+        break;
+      case 'FixedDialingNumbers':
+        dialogTitle = 'fdnIsEnabledTitle';
+        dialogBody = 'fdnIsEnabledMessage';
         break;
       default:
         console.error('Invalid message argument'); // Should never happen

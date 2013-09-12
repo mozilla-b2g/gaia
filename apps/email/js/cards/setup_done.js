@@ -4,6 +4,7 @@ define(function(require) {
 var templateNode = require('tmpl!./setup_done.html'),
     common = require('mail_common'),
     model = require('model'),
+    evt = require('evt'),
     Cards = common.Cards;
 
 
@@ -18,20 +19,11 @@ function SetupDoneCard(domNode, mode, args) {
 }
 SetupDoneCard.prototype = {
   onAddAnother: function() {
-    // Nuke all cards
-    Cards.removeAllCards();
-    // Show the first setup card again.
-    Cards.pushCard(
-      'setup_account_info', 'default', 'immediate',
-      {
-        allowBack: true
-      });
+    evt.emit('addAccount');
   },
   onShowMail: function() {
     // Nuke this card
-    Cards.removeAllCards();
-    // Trigger the startup logic again; this should show the inbox this time.
-    model.init(true);
+    evt.emit('showLatestAccount');
   },
 
   die: function() {

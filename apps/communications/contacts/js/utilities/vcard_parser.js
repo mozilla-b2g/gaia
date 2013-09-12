@@ -46,11 +46,35 @@ VCFReader.prototype.process = function(cb) {
 
   function importContacts(from) {
     for (var i = from; i < from + VCFReader.CHUNK_SIZE && i < total; i++) {
-      VCFReader.save(rawContacts[i], onParsed);
+      var matchCbs = {
+        onmatch: function(matches) {
+          var callbacks = {
+            success: function() {
+              onParsed(null, this);
+            }.bind(this),
+            error: function(e) {
+              onParsed(e, this);
+            }
+          };
+          contacts.adaptAndMerge(this, matches, callbacks);
+        }.bind(rawContacts[i]),
+
+        onmismatch: function() {
+          VCFReader.save(this, onParsed);
+        }.bind(rawContacts[i])
+      };
+
+      contacts.Matcher.match(rawContacts[i], 'passive', matchCbs);
     }
   }
 
-  importContacts(this.processedContacts);
+  LazyLoader.load(['/contacts/js/contacts_matcher.js',
+                   '/contacts/js/contacts_merger.js',
+                   '/contacts/js/merger_adapter.js'
+                   ],
+    function() {
+      importContacts(this.processedContacts);
+  }.bind(this));
 
   function onParsed(err, ct) {
     self.onimported && self.onimported();

@@ -771,27 +771,16 @@ var Carrier = {
        */
 
       // get network type
-      loadJSON('/resources/network.json', function loadNetwork(network) {
+      getSupportedNetworkCategories(function(result) {
         var content =
           document.getElementById('carrier-operatorSettings-content');
-        var supportGSM = false;
-        var supportCDMA = false;
-
-        if (network.types) {
-          var typesStr = network.types.join();
-
-          supportGSM = (typesStr.indexOf('gsm') >= 0);
-          supportCDMA = (typesStr.indexOf('cdma') >= 0);
-
-          initNetworkTypeSelector(network.types);
-        }
 
         // init different selectors based on the network type.
-        if (supportGSM) {
+        if (result.gsm) {
           initOperatorSelector();
           content.classList.add('gsm');
         }
-        if (supportCDMA) {
+        if (result.cdma) {
           initRoamingPreferenceSelector();
           content.classList.add('cdma');
         }

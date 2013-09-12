@@ -60,11 +60,11 @@ function Clock() {
 
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
-  ELEMENTS: ['notification', 'time',
+  ELEMENTS: ['notification', 'emergency-cb-notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
     'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
-    'recording', 'sms', 'geolocation', 'usb', 'label', 'system-downloads',
-    'call-forwarding', 'playing'],
+    'bluetooth-headphones', 'recording', 'sms', 'geolocation', 'usb', 'label',
+    'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 60 * 1000,
@@ -178,8 +178,12 @@ var StatusBar = {
     // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
 
-    // Listen to 'bluetoothconnectionchange' from bluetooth.js
+    // 'bluetoothconnectionchange' fires when the overall bluetooth connection
+    //  changes.
+    // 'bluetoothprofileconnectionchange' fires when a bluetooth connection of
+    //  a specific profile changes.
     window.addEventListener('bluetoothconnectionchange', this);
+    window.addEventListener('bluetoothprofileconnectionchange', this);
 
     // Listen to 'moztimechange'
     window.addEventListener('moztimechange', this);
@@ -250,6 +254,10 @@ var StatusBar = {
 
       case 'bluetoothconnectionchange':
         this.update.bluetooth.call(this);
+        break;
+
+      case 'bluetoothprofileconnectionchange':
+        this.update.bluetoothProfiles.call(this);
         break;
 
       case 'moztimechange':
@@ -581,6 +589,13 @@ var StatusBar = {
       icon.dataset.active = Bluetooth.connected;
     },
 
+    bluetoothProfiles: function sv_updateBluetoothProfiles() {
+      var bluetoothHeadphoneIcon = this.icons.bluetoothHeadphones;
+
+      bluetoothHeadphoneIcon.hidden =
+        !Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
+    },
+
     alarm: function sb_updateAlarm() {
       this.icons.alarm.hidden = !this.settingValues['alarm.enabled'];
     },
@@ -716,6 +731,17 @@ var StatusBar = {
 
   updateNotificationUnread: function sb_updateNotificationUnread(unread) {
     this.icons.notification.dataset.unread = unread;
+  },
+
+  updateEmergencyCbNotification:
+    function sb_updateEmergencyCbNotification(show) {
+    var icon = this.icons.emergencyCbNotification;
+    if (!show) {
+      icon.hidden = true;
+      return;
+    }
+
+    icon.hidden = false;
   },
 
   incSystemDownloads: function sb_incSystemDownloads() {
