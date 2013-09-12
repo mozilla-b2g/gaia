@@ -58,15 +58,15 @@
   };
 
   StopwatchPanel.prototype.showButtons = function() {
-    Array.prototype.map.call(arguments, function(a) {
+    Array.prototype.forEach.call(arguments, function(a) {
       this.nodes[a].classList.remove('hide');
-    }.bind(this));
+    }, this);
   };
 
   StopwatchPanel.prototype.hideButtons = function() {
-    Array.prototype.map.call(arguments, function(a) {
+    Array.prototype.forEach.call(arguments, function(a) {
       this.nodes[a].classList.add('hide');
-    }.bind(this));
+    }, this);
   };
 
   StopwatchPanel.prototype.onvisibilitychange = function(isVisible) {
@@ -76,6 +76,7 @@
       if (swp.stopwatch.isStarted()) {
         // Stopwatch is started
         //
+        // - update the display before becoming visible
         // - restart the interval
         //
         this.update();
