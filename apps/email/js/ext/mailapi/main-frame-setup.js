@@ -126,8 +126,8 @@ MailAccount.prototype = {
    * Tell the back-end to clear the list of problems with the account, re-enable
    * it, and try and connect.
    */
-  clearProblems: function() {
-    this._api._clearAccountProblems(this);
+  clearProblems: function(callback) {
+    this._api._clearAccountProblems(this, callback);
   },
 
   /**
@@ -2573,11 +2573,24 @@ MailAPI.prototype = {
     return true;
   },
 
-  _clearAccountProblems: function ma__clearAccountProblems(account) {
+  _clearAccountProblems: function ma__clearAccountProblems(account, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'clearAccountProblems',
+      callback: callback,
+    };
     this.__bridgeSend({
       type: 'clearAccountProblems',
       accountId: account.id,
+      handle: handle,
     });
+  },
+
+  _recv_clearAccountProblems: function ma__recv_clearAccountProblems(msg) {
+    var req = this._pendingRequests[msg.handle];
+    delete this._pendingRequests[msg.handle];
+    req.callback && req.callback();
+    return true;
   },
 
   _modifyAccount: function ma__modifyAccount(account, mods) {
