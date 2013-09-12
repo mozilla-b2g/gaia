@@ -51,8 +51,8 @@
   StopwatchPanel.prototype = Object.create(Panel.prototype);
 
   StopwatchPanel.prototype.reset = function() {
-    this.toggle(this.nodes.start, this.nodes.pause, this.nodes.resume);
-    this.toggle(this.nodes.reset, this.nodes.lap);
+    this.showButtons('start', 'reset');
+    this.hideButtons('pause', 'resume', 'lap');
     this.nodes.reset.setAttribute('disabled', 'true');
     this.update();
     // clear lap list
@@ -69,11 +69,16 @@
     this.nodes.time.textContent = time;
   };
 
-  StopwatchPanel.prototype.toggle = function() {
-    arguments[0].classList.remove('hide');
-    for (var i = 1; i < arguments.length; i++) {
-      arguments[i].classList.add('hide');
-    }
+  StopwatchPanel.prototype.showButtons = function() {
+    Array.prototype.map.apply(this, arguments, function(a) {
+      this.nodes[a].classList.remove('hide');
+    });
+  };
+
+  StopwatchPanel.prototype.hideButtons = function() {
+    Array.prototype.map.apply(this, arguments, function(a) {
+      this.nodes[a].classList.add('hide');
+    });
   };
 
   StopwatchPanel.prototype.onVisibilityChange = function(isVisible) {
@@ -133,20 +138,20 @@
       if (button.action === 'start') {
         this.interval = window.setInterval(this.update.bind(this), 50);
         this.nodes.reset.removeAttribute('disabled');
-        this.toggle(this.nodes.pause, this.nodes.start, this.nodes.resume);
-        this.toggle(this.nodes.lap, this.nodes.reset);
+        this.showButtons('pause', 'lap');
+        this.hideButtons('start', 'resume', 'reset');
       }
 
       if (button.action === 'pause') {
         window.clearInterval(this.interval);
-        this.toggle(this.nodes.resume, this.nodes.pause, this.nodes.start);
-        this.toggle(this.nodes.reset, this.nodes.lap);
+        this.showButtons('resume', 'reset');
+        this.hideButtons('pause', 'start', 'lap');
       }
 
       if (button.action === 'resume') {
         this.interval = window.setInterval(this.update.bind(this), 50);
-        this.toggle(this.nodes.pause, this.nodes.start, this.nodes.resume);
-        this.toggle(this.nodes.lap, this.nodes.reset);
+        this.showButtons('pause', 'lap');
+        this.hidebuttons('start', 'resume', 'reset');
       }
 
       if (button.action === 'lap') {
