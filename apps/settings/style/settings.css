@@ -476,7 +476,15 @@ ul li > label .range-icons.brightness {
  * Date & Time
  */
 
-#dateTime ul[data-state="auto"] ~ * {
+#timezone-raw a,
+#dateTime ul.disabled p,
+#dateTime ul.disabled a {
+  color: #797e80;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+#dateTime #timezone.disabled {
   display: none;
 }
 
