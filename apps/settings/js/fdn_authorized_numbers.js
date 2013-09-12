@@ -48,7 +48,7 @@ var FDN_AuthorizedNumbers = {
     };
   },
 
-  addNumber: function(er, cb, name, number) {
+  addNumber: function(er, cb, name, number, pinCode) {
     var contact = {
       name: [name],
       tel: [
@@ -58,7 +58,7 @@ var FDN_AuthorizedNumbers = {
       ]
     };
 
-    var request = this.icc.updateContact('fdn', contact, 1664);
+    var request = this.icc.updateContact('fdn', contact, pinCode);
     request.onsuccess = function onsuccess() {
       cb(contact);
     };
@@ -67,11 +67,12 @@ var FDN_AuthorizedNumbers = {
     };
   },
 
-  updateNumber: function(er, cb, id, name, number) {
+  updateNumber: function(er, cb, id, name, number, pinCode) {
+    console.log('------------ pyn', pinCode);
     this.mozContacts[id].name[0] = name;
     this.mozContacts[id].tel.value = number;
 
-    var request = this.icc.updateContact('fdn', this.mozContacts[id], 1664);
+    var request = this.icc.updateContact('fdn', this.mozContacts[id], pinCode);
     request.onsuccess = (function onsuccess() {
       cb(this.mozContacts[id]);
     }.bind(this));
@@ -80,8 +81,8 @@ var FDN_AuthorizedNumbers = {
     };
   },
 
-  removeNumber: function(er, cb, id) {
-    this.updateNumber(er, cb, id, '', '');
+  removeNumber: function(er, cb, id, pinCode) {
+    this.updateNumber(er, cb, id, '', '', pinCode);
   }
 
 };

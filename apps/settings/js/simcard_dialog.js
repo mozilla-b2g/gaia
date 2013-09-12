@@ -152,7 +152,7 @@ function SimPinDialog(dialog) {
     var req = IccHelper.unlockCardLock(options);
     req.onsuccess = function sp_unlockSuccess() {
       close();
-      _onsuccess();
+      _onsuccess(pinInput.value);
     };
   }
 
@@ -323,6 +323,12 @@ function SimPinDialog(dialog) {
       case 'change_pin2':
         lockType = 'pin2';
         setInputMode('new');
+        _localize(dialogTitle, 'fdnReset');
+        break;
+      case 'add_fdn_number':
+      case 'remove_fdn_number':
+        lockType = 'pin2';
+        setInputMode('pin');
         _localize(dialogTitle, 'fdnReset');
         break;
 
