@@ -214,6 +214,12 @@
     }
   }
 
+  // get network type
+  getSupportedNetworkCategories(function(result) {
+    var toneSelector = document.getElementById('touch-tone-selector');
+    toneSelector.hidden = !result.cdma;
+  });
+
   // main
   generateSoundsLists();
   assignButtonsActions();
