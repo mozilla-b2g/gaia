@@ -70,15 +70,15 @@
   };
 
   StopwatchPanel.prototype.showButtons = function() {
-    Array.prototype.map.apply(this, arguments, function(a) {
+    Array.prototype.map.call(arguments, function(a) {
       this.nodes[a].classList.remove('hide');
-    });
+    }.bind(this));
   };
 
   StopwatchPanel.prototype.hideButtons = function() {
-    Array.prototype.map.apply(this, arguments, function(a) {
+    Array.prototype.map.call(arguments, function(a) {
       this.nodes[a].classList.add('hide');
-    });
+    }.bind(this));
   };
 
   StopwatchPanel.prototype.onVisibilityChange = function(isVisible) {
