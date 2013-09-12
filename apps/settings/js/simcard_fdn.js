@@ -103,7 +103,10 @@ var SimFdnLock = {
    addNumberPinDialog: function() {
      this.pinDialog.show(
        'add_fdn_number',
-       this.addNumberToAuthorizedList.bind(this)
+       this.addNumberToAuthorizedList.bind(this),
+       function() {
+         console.log('----- NIEGITARA');
+       }
      );
    },
 
