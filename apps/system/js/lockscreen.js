@@ -137,6 +137,7 @@ var LockScreen = {
     /* Status changes */
     window.addEventListener('volumechange', this);
     window.addEventListener('screenchange', this);
+    window.addEventListener('attentionscreenshow', this);
     document.addEventListener('visibilitychange', this);
 
     /* Telephony changes */
@@ -423,6 +424,12 @@ var LockScreen = {
 
         evt.stopImmediatePropagation();
         evt.stopPropagation();
+        break;
+
+      case 'attentionscreenshow':
+        // Return to main panel once attention-screen shows.
+        if (this.locked)
+          this.switchPanel();
         break;
 
       case 'callschanged':
