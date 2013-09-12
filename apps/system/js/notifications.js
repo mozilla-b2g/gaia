@@ -80,6 +80,8 @@ var NotificationScreen = {
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
     window.addEventListener('foreground', this.handleAppopen.bind(this));
+    window.addEventListener('ftuopen', this);
+    window.addEventListener('ftudone', this);
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -123,6 +125,12 @@ var NotificationScreen = {
         if (!document.hidden) {
           this.updateTimestamps();
         }
+        break;
+      case 'ftuopen':
+        this.toaster.removeEventListener('tap', this);
+        break;
+      case 'ftudone':
+        this.toaster.addEventListener('tap', this);
         break;
     }
   },
