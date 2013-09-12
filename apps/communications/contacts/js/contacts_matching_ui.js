@@ -16,6 +16,8 @@ if (!contacts.MatchingUI) {
     var checkedContacts = {};
 
     var mergeButton, contactsList, duplicateMessage, title;
+    var matchingResults;
+    var matchingDetails, matchingDetailList, matchingImg, matchingTitle;
 
     function init() {
       mergeButton = document.getElementById('merge-action');
@@ -30,9 +32,20 @@ if (!contacts.MatchingUI) {
       document.getElementById('merge-close').addEventListener('click', onClose);
       contactsList.addEventListener('click', onClick);
       mergeButton.addEventListener('click', onMerge);
+
+      matchingDetails = document.querySelector('#matching-details');
+      matchingDetailList = matchingDetails.querySelector('#matching-list');
+      matchingImg = matchingDetails.querySelector('img');
+      matchingTitle = matchingDetails.querySelector('h1');
+
+      matchingDetails.querySelector('button').onclick = function() {
+        hideMatchingDetails();
+      };
     }
 
     function load(type, contact, results, cb) {
+      matchingResults = results;
+
       document.body.dataset.mode = type;
       var params = { name: getCompleteName(getDisplayName(contact)) };
 
@@ -173,15 +186,129 @@ if (!contacts.MatchingUI) {
       }, CONTACTS_APP_ORIGIN);
     }
 
+    // Obtains the action from the contacts list from the click coordinates
+    // The action can be: 'check' or 'detail'
+    // If it is 'check' the input check will be toggled
+    // If it is 'detail' the matching contact details overlay will be show
+    function getActionOverList(event) {
+      // 40% percent of the horizontal width will be consider 'check' area
+      var CHECKING_AREA_WIDTH = 0.4;
+
+      var out = 'detail';
+      if (event.clientX <= window.innerWidth * CHECKING_AREA_WIDTH) {
+        out = 'check';
+      }
+
+      return out;
+    }
+
     function onClick(e) {
       var target = e.target;
 
+      var uuid;
       if (target && target.dataset.uuid) {
-        var uuid = target.dataset.uuid;
+        uuid = target.dataset.uuid;
+      }
+
+      var targetAction = getActionOverList(e);
+      if (targetAction === 'check') {
         var checkbox = target.querySelector('input[type="checkbox"]');
         setChecked(target, checkbox, !checkbox.checked, uuid);
         checkMergeButton();
       }
+      else if (uuid) {
+        showMatchingDetails();
+        renderMatchingDetails(uuid);
+      }
+    }
+
+    function resetContentDetails() {
+      if (matchingImg.src) {
+        window.URL.revokeObjectURL(matchingImg.src);
+      }
+      matchingImg.src = '';
+      matchingImg.alt = '';
+      matchingTitle.textContent = '';
+      matchingDetailList.innerHTML = '';
+    }
+
+    function hideMatchingDetails() {
+      matchingDetails.classList.remove('fade-in');
+      matchingDetails.classList.add('fade-out');
+
+      matchingDetails.addEventListener('animationend', function cd_fadeOut(ev) {
+        matchingDetails.removeEventListener('animationend', cd_fadeOut);
+        matchingDetails.classList.add('no-opacity');
+        matchingDetails.classList.add('hide');
+
+        resetContentDetails();
+      });
+    }
+
+    function showMatchingDetails() {
+      matchingDetails.classList.remove('hide');
+      matchingDetails.classList.remove('fade-out');
+      matchingDetails.classList.add('fade-in');
+
+      matchingDetails.addEventListener('animationend', function cd_fadeIn(ev) {
+        matchingDetails.removeEventListener('animationend', cd_fadeIn);
+        matchingDetails.classList.remove('no-opacity');
+      });
+    }
+
+    function renderMatchingDetails(uuid) {
+      var fields = ['org', 'name', 'tel', 'email', 'adr', 'photo'];
+
+      var theContact = matchingResults[uuid].matchingContact;
+      var matchings = matchingResults[uuid].matchings;
+      fields.forEach(function(aField) {
+        if (!Array.isArray(theContact[aField]) || !theContact[aField][0]) {
+          return;
+        }
+
+        theContact[aField].forEach(function(fieldValue) {
+          if (!fieldValue) {
+            return;
+          }
+          var item = document.createElement('li');
+
+          if (matchings[aField]) {
+            matchings[aField].forEach(function(obj) {
+              var val = fieldValue.value || fieldValue;
+              if (obj.matchedValue === val) {
+                item.setAttribute('aria-selected', 'true');
+              }
+            });
+          }
+          switch (aField) {
+            case 'photo':
+              matchingImg.src = window.URL.createObjectURL(fieldValue);
+              matchingImg.alt = getDisplayName(theContact).givenName;
+            break;
+            case 'name':
+              matchingTitle.textContent = fieldValue;
+              item.textContent = fieldValue;
+            break;
+            case 'tel':
+              item.textContent = fieldValue.type + ', ' + fieldValue.value;
+            break;
+            case 'adr':
+              var adrFields = ['streetAddress', 'locality',
+                               'region', 'countryName'];
+              adrFields.forEach(function(addrField) {
+                if (fieldValue[addrField]) {
+                  var p = document.createElement('p');
+                  p.textContent = fieldValue[addrField];
+                  item.appendChild(p);
+                }
+              });
+            break;
+            default:
+               item.textContent = fieldValue.value || fieldValue || '';
+          }
+          matchingDetailList.appendChild(item);
+        });
+      });
     }
 
     function checkMergeButton() {
