@@ -77,6 +77,15 @@ suite('Database Test', function() {
       assert.equal(db.downgraders[0].fn(), 33);
     });
 
+    test('Get this.name\'s version, nonexistent', function(done) {
+      db.getLatestVersion(function(err, version, effective) {
+        assert.ok(!err);
+        assert.equal(version, 0);
+        assert.ok(!effective);
+        done();
+      });
+    });
+
     test('Get a version, nonexistent', function(done) {
       db.getLatestVersion(db.name, function(err, version, effective) {
         assert.ok(!err);
