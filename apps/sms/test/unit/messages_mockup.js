@@ -10,6 +10,7 @@ function MockThreadMessages() {
       delivery: 'sending',
       error: true,
       id: 47,
+      threadId: 1,
       timestamp: getMockupedDate(0)
     },
     {
@@ -18,6 +19,7 @@ function MockThreadMessages() {
       body: 'Nothing :)',
       delivery: 'sent',
       id: 46,
+      threadId: 1,
       timestamp: getMockupedDate(0)
     },
     {
@@ -25,6 +27,7 @@ function MockThreadMessages() {
       body: 'Recibido!',
       delivery: 'received',
       id: 40,
+      threadId: 1,
       timestamp: getMockupedDate(2)
     },
     {
@@ -33,6 +36,7 @@ function MockThreadMessages() {
       body: 'Nothing :)',
       delivery: 'error',
       id: 460,
+      threadId: 1,
       timestamp: getMockupedDate(6)
     },
     {
@@ -41,6 +45,7 @@ function MockThreadMessages() {
       body: 'Nothing at all :)',
       delivery: 'error',
       id: 461,
+      threadId: 1,
       timestamp: getMockupedDate(6)
     }];
 

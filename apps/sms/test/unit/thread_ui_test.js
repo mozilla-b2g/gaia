@@ -20,6 +20,7 @@ requireApp('sms/test/unit/mock_attachment_menu.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_moz_sms_filter.js');
 requireApp('sms/test/unit/mock_link_helper.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
@@ -44,6 +45,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'LinkActionHandler',
   'LinkHelper',
   'MozActivity',
+  'MozSmsFilter',
   'ActivityPicker',
   'OptionMenu',
   'Dialog',
@@ -1473,6 +1475,21 @@ suite('thread_ui.js >', function() {
       MockSMIL.parse.yields([{ text: payload }]);
       ThreadUI.buildMessageDOM(buildMMS(payload));
       assert.ok(Template.escape.calledWith(payload));
+    });
+  });
+
+  suite('renderMessages()', function() {
+    setup(function() {
+      // todo: use the MessageManager mock instead
+      this.sinon.stub(MessageManager, 'getMessages');
+      this.sinon.stub(MessageManager, 'markThreadRead');
+      ThreadUI.renderMessages(1);
+    });
+
+    test('we mark messages as read', function() {
+      MessageManager.getMessages.yieldTo('done');
+      this.sinon.clock.tick();
+      assert.ok(MessageManager.markThreadRead.calledWith(1));
     });
   });
 

@@ -1065,53 +1065,51 @@ var ThreadUI = global.ThreadUI = {
   },
 
   // Method for rendering the list of messages using infinite scroll
-  renderMessages: function thui_renderMessages(filter, callback) {
-    // We initialize all params before rendering
-    this.initializeRendering();
-    // We call getMessages with callbacks
-    var self = this;
-    var onMessagesRendered = function messagesRendered() {
-      if (self.messageIndex < self.CHUNK_SIZE) {
-        self.showFirstChunk();
+  renderMessages: function thui_renderMessages(threadId, callback) {
+    var onMessagesRendered = (function messagesRendered() {
+      if (this.messageIndex < this.CHUNK_SIZE) {
+        this.showFirstChunk();
       }
-      // Update STATUS of messages if needed
-      filter.read = false;
+
       if (callback) {
         callback();
       }
-      setTimeout(function updatingStatus() {
-        var messagesUnreadIDs = [];
-        var changeStatusOptions = {
-          each: function addUnreadMessage(message) {
-            messagesUnreadIDs.push(message.id);
-            return true;
-          },
-          filter: filter,
-          invert: true,
-          end: function handleUnread() {
-            MessageManager.markMessagesRead(messagesUnreadIDs, true);
-          }
-        };
-        MessageManager.getMessages(changeStatusOptions);
-      });
-    };
+    }).bind(this);
+
+    function onMessagesDone() {
+      setTimeout(
+        MessageManager.markThreadRead.bind(MessageManager, filter.threadId)
+      );
+    }
+
+    var onRenderMessage = (function renderMessage(message) {
+      if (this._stopRenderingNextStep) {
+        // stop the iteration
+        return false;
+      }
+      this.appendMessage(message,/*hidden*/ true);
+      this.messageIndex++;
+      if (this.messageIndex === this.CHUNK_SIZE) {
+        this.showFirstChunk();
+      }
+      return true;
+    }).bind(this);
+
+    // We initialize all params before rendering
+    this.initializeRendering();
+
+    var filter = new MozSmsFilter();
+    filter.threadId = threadId;
+
+    // We call getMessages with callbacks
     var renderingOptions = {
-      each: function renderMessage(message) {
-        if (self._stopRenderingNextStep) {
-          // stop the iteration
-          return false;
-        }
-        self.appendMessage(message,/*hidden*/ true);
-        self.messageIndex++;
-        if (self.messageIndex === self.CHUNK_SIZE) {
-          self.showFirstChunk();
-        }
-        return true;
-      },
+      each: onRenderMessage,
       filter: filter,
       invert: false,
-      end: onMessagesRendered
+      end: onMessagesRendered,
+      done: onMessagesDone
     };
+
     MessageManager.getMessages(renderingOptions);
     // force the next scroll to bottom
     this.isScrolledManually = false;

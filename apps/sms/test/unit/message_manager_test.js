@@ -8,6 +8,7 @@ requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_thread_list_ui.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
+requireApp('sms/test/unit/mock_moz_sms_filter.js');
 requireApp('sms/test/unit/mock_smil.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_compose.js');
@@ -26,7 +27,8 @@ var mocksHelperForMessageManager = new MocksHelper([
   'Recipients',
   'Compose',
   'Contacts',
-  'Utils'
+  'Utils',
+  'MozSmsFilter'
 ]);
 
 mocksHelperForMessageManager.init();
@@ -275,6 +277,105 @@ suite('message_manager.js >', function() {
     });
   });
 
+  suite('getMessages() >', function() {
+    var options;
+
+    setup(function() {
+      this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
+
+      var filter = new MozSmsFilter();
+      filter.threadId = 1;
+
+      options = {
+        filter: filter,
+        each: sinon.spy(function(message) {
+          return !message.stopHere;
+        }),
+        end: sinon.stub(),
+        done: sinon.stub()
+      };
+
+      MessageManager.getMessages(options);
+    });
+
+    test('rendering goes to the end', function() {
+      var messagesList = [
+        { id: 1 },
+        { id: 2 },
+        { id: 3 },
+        { id: 4 }
+      ];
+
+      MockNavigatormozMobileMessage.mTriggerMessagesRequest(messagesList);
+
+      assert.equal(options.each.callCount, 4);
+      assert.ok(options.done.called);
+      assert.ok(options.end.called);
+      assert.ok(options.done.calledAfter(options.end));
+    });
+
+    test('rendering is interrupted', function() {
+      var messagesList = [
+        { id: 1 },
+        { id: 2 },
+        { id: 3, stopHere: true },
+        { id: 4 }
+      ];
+
+      MockNavigatormozMobileMessage.mTriggerMessagesRequest(messagesList);
+
+      assert.equal(options.each.callCount, 3);
+      assert.ok(options.done.called);
+      assert.isFalse(options.end.called);
+    });
+  });
+
+  suite('markThreadRead()', function() {
+
+    setup(function() {
+      this.sinon.spy(MockNavigatormozMobileMessage, 'getMessages');
+      this.sinon.spy(MockNavigatormozMobileMessage, 'markMessageRead');
+
+      MessageManager.markThreadRead(1);
+    });
+
+    test('call mark read on the correct messages', function() {
+      assert.ok(
+        MockNavigatormozMobileMessage.getMessages.calledWithMatch({
+          threadId: 1,
+          read: false
+        })
+      );
+
+      var messagesList = [
+        { id: 1 },
+        { id: 2 },
+        { id: 3 },
+        { id: 4 }
+      ];
+
+      MockNavigatormozMobileMessage.mTriggerMessagesRequest(messagesList);
+
+      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
+      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
+      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
+      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
+
+      // doing one more to see if we're not called too many times
+      MockNavigatormozMobileMessage.mTriggerMarkReadSuccess();
+      assert.equal(MockNavigatormozMobileMessage.markMessageRead.callCount, 4);
+
+      messagesList.forEach(function(message) {
+        assert.ok(
+          MockNavigatormozMobileMessage.markMessageRead.calledWith(
+            message.id, true
+          )
+        );
+      });
+    });
+
+  });
+
   suite('onHashChange', function() {
     setup(function() {
       this.sinon.spy(document.activeElement, 'blur');
@@ -364,7 +465,7 @@ suite('message_manager.js >', function() {
           test('calls ThreadUI.renderMessages', function() {
             assert.ok(ThreadUI.renderMessages.called);
             assert.equal(
-              ThreadUI.renderMessages.args[0][0].threadId, this.threadId
+              ThreadUI.renderMessages.args[0][0], this.threadId
             );
           });
         });
@@ -419,7 +520,7 @@ suite('message_manager.js >', function() {
           test('calls ThreadUI.renderMessages', function() {
             assert.ok(ThreadUI.renderMessages.called);
             assert.equal(
-              ThreadUI.renderMessages.args[0][0].threadId, this.threadId
+              ThreadUI.renderMessages.args[0][0], this.threadId
             );
           });
         });
