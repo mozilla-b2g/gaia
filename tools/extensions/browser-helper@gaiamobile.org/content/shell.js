@@ -12,6 +12,7 @@ let Cu = Components.utils;
 let Cr = Components.results;
 
 Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/Keyboard.jsm');
 
 // Various helpers coming from /b2g/chrome/content/shell.js
 function getContentWindow() {
@@ -164,3 +165,24 @@ SettingsListener.observe('language.current', 'en-US', function(value) {
     });
   }
 });
+
+/**
+ * This code comes from b2g/chrome/content/shell.js
+ * For now just the keyboard stuff, should copy everything over at some point
+ */
+getContentWindow().addEventListener('mozContentEvent', function(evt) {
+  let detail = evt.detail;
+  dump('XXX FIXME : Got a mozContentEvent: ' + detail.type + "\n");
+
+  switch(detail.type) {
+    case 'inputmethod-update-layouts':
+      KeyboardHelper.handleEvent(detail);
+      break;
+  }
+});
+
+let KeyboardHelper = {
+  handleEvent: function keyboard_handleEvent(aMessage) {
+    Keyboard.setLayouts(aMessage.layouts);
+  }
+};

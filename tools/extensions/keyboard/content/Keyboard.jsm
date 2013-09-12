@@ -23,7 +23,8 @@ let Keyboard = {
     'SetValue', 'RemoveFocus', 'SetSelectedOption', 'SetSelectedOptions',
     'SetSelectionRange', 'ReplaceSurroundingText', 'ShowInputMethodPicker',
     'SwitchToNextInputMethod', 'HideInputMethod',
-    'GetText', 'SendKey', 'GetContext'
+    'GetText', 'SendKey', 'GetContext',
+    'SetComposition', 'EndComposition'
   ],
 
   get messageManager() {
@@ -35,6 +36,12 @@ let Keyboard = {
 
   set messageManager(mm) {
     this._messageManager = mm;
+  },
+
+  sendAsyncMessage: function(name, data) {
+    try {
+      this.messageManager.sendAsyncMessage(name, data);
+    } catch(e) { }
   },
 
   init: function keyboardInit() {
@@ -66,6 +73,8 @@ let Keyboard = {
       mm.addMessageListener('Forms:SendKey:Result:OK', this);
       mm.addMessageListener('Forms:SequenceError', this);
       mm.addMessageListener('Forms:GetContext:Result:OK', this);
+      mm.addMessageListener('Forms:SetComposition:Result:OK', this);
+      mm.addMessageListener('Forms:EndComposition:Result:OK', this);
 
       // When not running apps OOP, we need to load forms.js here since this
       // won't happen from dom/ipc/preload.js
@@ -116,6 +125,8 @@ let Keyboard = {
       case 'Forms:SendKey:Result:OK':
       case 'Forms:SequenceError':
       case 'Forms:GetContext:Result:OK':
+      case 'Forms:SetComposition:Result:OK':
+      case 'Forms:EndComposition:Result:OK':
         let name = msg.name.replace(/^Forms/, 'Keyboard');
         this.forwardEvent(name, msg);
         break;
@@ -153,6 +164,12 @@ let Keyboard = {
       case 'Keyboard:GetContext':
         this.getContext(msg);
         break;
+      case 'Keyboard:SetComposition':
+        this.setComposition(msg);
+        break;
+      case 'Keyboard:EndComposition':
+        this.endComposition(msg);
+        break;
     }
   },
 
@@ -175,28 +192,27 @@ let Keyboard = {
   },
 
   setSelectedOption: function keyboardSetSelectedOption(msg) {
-    this.messageManager.sendAsyncMessage('Forms:Select:Choice', msg.data);
+    this.sendAsyncMessage('Forms:Select:Choice', msg.data);
   },
 
   setSelectedOptions: function keyboardSetSelectedOptions(msg) {
-    this.messageManager.sendAsyncMessage('Forms:Select:Choice', msg.data);
+    this.sendAsyncMessage('Forms:Select:Choice', msg.data);
   },
 
   setSelectionRange: function keyboardSetSelectionRange(msg) {
-    this.messageManager.sendAsyncMessage('Forms:SetSelectionRange', msg.data);
+    this.sendAsyncMessage('Forms:SetSelectionRange', msg.data);
   },
 
   setValue: function keyboardSetValue(msg) {
-    this.messageManager.sendAsyncMessage('Forms:Input:Value', msg.data);
+    this.sendAsyncMessage('Forms:Input:Value', msg.data);
   },
 
   removeFocus: function keyboardRemoveFocus() {
-    this.messageManager.sendAsyncMessage('Forms:Select:Blur', {});
+    this.sendAsyncMessage('Forms:Select:Blur', {});
   },
 
   replaceSurroundingText: function keyboardReplaceSurroundingText(msg) {
-    this.messageManager.sendAsyncMessage('Forms:ReplaceSurroundingText',
-                                         msg.data);
+    this.sendAsyncMessage('Forms:ReplaceSurroundingText', msg.data);
   },
 
   showInputMethodPicker: function keyboardShowInputMethodPicker() {
@@ -214,15 +230,40 @@ let Keyboard = {
   },
 
   getText: function keyboardGetText(msg) {
-    this.messageManager.sendAsyncMessage('Forms:GetText', msg.data);
+    this.sendAsyncMessage('Forms:GetText', msg.data);
   },
 
   sendKey: function keyboardSendKey(msg) {
-    this.messageManager.sendAsyncMessage('Forms:Input:SendKey', msg.data);
+    this.sendAsyncMessage('Forms:Input:SendKey', msg.data);
   },
 
   getContext: function keyboardGetContext(msg) {
-    this.messageManager.sendAsyncMessage('Forms:GetContext', msg.data);
+    if (this._layouts) {
+      ppmm.broadcastAsyncMessage('Keyboard:LayoutsChange', this._layouts);
+    }
+
+    this.sendAsyncMessage('Forms:GetContext', msg.data);
+  },
+
+  setComposition: function keyboardSetComposition(msg) {
+    this.sendAsyncMessage('Forms:SetComposition', msg.data);
+  },
+
+  endComposition: function keyboardEndComposition(msg) {
+    this.sendAsyncMessage('Forms:EndComposition', msg.data);
+  },
+
+  /**
+   * Get the number of keyboard layouts active from keyboard_manager
+   */
+  _layouts: null,
+  setLayouts: function keyboardSetLayoutCount(layouts) {
+    // The input method plugins may not have loaded yet,
+    // cache the layouts so on init we can respond immediately instead
+    // of going back and forth between keyboard_manager
+    this._layouts = layouts;
+
+    ppmm.broadcastAsyncMessage('Keyboard:LayoutsChange', layouts);
   }
 };
 
