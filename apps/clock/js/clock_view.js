@@ -79,10 +79,10 @@ var ClockView = {
     return this.dayDate = document.getElementById('clock-day-date');
   },
 
-  get container() {
-    delete this.container;
-    return this.container =
-      document.getElementById('analog-clock-container');
+  get face() {
+    delete this.face;
+    return this.face =
+      document.getElementById('analog-clock-face');
   },
   isInitialized: false,
 
@@ -260,7 +260,7 @@ var ClockView = {
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
     var type = this.calAnalogClockType(AlarmList.getAlarmCount() + 1);
-    this.container.className = 'marks' + type;
+    this.face.className = 'marks' + type;
     document.getElementById('alarms').className = 'count' + type;
   },
 
