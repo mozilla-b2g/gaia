@@ -39,7 +39,7 @@
 
     View.instance(element).on(
       'visibilitychange',
-      this.onVisibilityChange.bind(this)
+      this.onvisibilitychange.bind(this)
     );
 
     priv.set(this, {
@@ -49,18 +49,6 @@
   }
 
   StopwatchPanel.prototype = Object.create(Panel.prototype);
-
-  StopwatchPanel.prototype.reset = function() {
-    this.showButtons('start', 'reset');
-    this.hideButtons('pause', 'resume', 'lap');
-    this.nodes.reset.setAttribute('disabled', 'true');
-    this.update();
-    // clear lap list
-    var node = this.nodes['laps'];
-    while (node.hasChildNodes()) {
-      node.removeChild(node.lastChild);
-    }
-  };
 
   StopwatchPanel.prototype.update = function() {
     var swp = priv.get(this);
@@ -81,7 +69,7 @@
     }.bind(this));
   };
 
-  StopwatchPanel.prototype.onVisibilityChange = function(isVisible) {
+  StopwatchPanel.prototype.onvisibilitychange = function(isVisible) {
     var swp = priv.get(this);
 
     if (isVisible) {
@@ -98,7 +86,7 @@
         // - reset the UI
         //
         if (swp.stopwatch.getElapsedTime().getTime() == 0) {
-          this.reset();
+          this.onreset();
         }
       }
     } else {
@@ -122,60 +110,60 @@
     var button = priv.get(event.target);
 
     if (swp.stopwatch && swp.stopwatch[button.action]) {
-
-      // button.action => swp.stopwatch[button.action]()
-      //
-      // ie.
-      //
-      // if start => swp.stopwatch.start()
-      // if pause => swp.stopwatch.pause()
-      // if resume => swp.stopwatch.resume()
-      // if lap => swp.stopwatch.lap()
-      // if reset => swp.stopwatch.reset()
-      //
+      // call action on stopwatch
       var val = swp.stopwatch[button.action]();
 
-      if (button.action === 'start') {
-        this.interval = window.setInterval(this.update.bind(this), 50);
-        this.nodes.reset.removeAttribute('disabled');
-        this.showButtons('pause', 'lap');
-        this.hideButtons('start', 'resume', 'reset');
-      }
+      // call panel handler
+      this['on' + button.action](val);
+    }
+  };
 
-      if (button.action === 'pause') {
-        window.clearInterval(this.interval);
-        this.showButtons('resume', 'reset');
-        this.hideButtons('pause', 'start', 'lap');
-      }
+  StopwatchPanel.prototype.onstart = function() {
+    this.interval = window.setInterval(this.update.bind(this), 50);
+    this.nodes.reset.removeAttribute('disabled');
+    this.showButtons('pause', 'lap');
+    this.hideButtons('start', 'resume', 'reset');
+  };
 
-      if (button.action === 'resume') {
-        this.interval = window.setInterval(this.update.bind(this), 50);
-        this.showButtons('pause', 'lap');
-        this.hidebuttons('start', 'resume', 'reset');
-      }
+  StopwatchPanel.prototype.onpause = function() {
+    window.clearInterval(this.interval);
+    this.showButtons('resume', 'reset');
+    this.hideButtons('pause', 'start', 'lap');
+  };
 
-      if (button.action === 'lap') {
-        var node = this.nodes['laps'];
-        var num = node.childNodes.length + 1 + '';
-        if (num > 99) {
-          return;
-        }
-        var time = this.hms(Math.floor(val.getTime() / 1000), 'mm:ss');
-        var li = document.createElement('li');
-        li.setAttribute('class', 'lap-cell');
-        var html = this.lapTemplate.interpolate({
-          num: num,
-          time: time
-        });
-        li.innerHTML = html;
-        node.insertBefore(li, node.firstChild);
-      }
+  StopwatchPanel.prototype.onresume = function() {
+    this.interval = window.setInterval(this.update.bind(this), 50);
+    this.showButtons('pause', 'lap');
+    this.hidebuttons('start', 'resume', 'reset');
+  };
 
-      if (button.action === 'reset') {
-        window.clearInterval(this.interval);
-        this.reset();
-      }
+  StopwatchPanel.prototype.onlap = function(val) {
+    var node = this.nodes['laps'];
+    var num = node.childNodes.length + 1 + '';
+    if (num > 99) {
+      return;
+    }
+    var time = this.hms(Math.floor(val.getTime() / 1000), 'mm:ss');
+    var li = document.createElement('li');
+    li.setAttribute('class', 'lap-cell');
+    var html = this.lapTemplate.interpolate({
+      num: num,
+      time: time
+    });
+    li.innerHTML = html;
+    node.insertBefore(li, node.firstChild);
+  };
 
+  StopwatchPanel.prototype.onreset = function() {
+    window.clearInterval(this.interval);
+    this.showButtons('start', 'reset');
+    this.hideButtons('pause', 'resume', 'lap');
+    this.nodes.reset.setAttribute('disabled', 'true');
+    this.update();
+    // clear lap list
+    var node = this.nodes.laps;
+    while (node.hasChildNodes()) {
+      node.removeChild(node.lastChild);
     }
   };
 
