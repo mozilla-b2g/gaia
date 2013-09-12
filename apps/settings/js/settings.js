@@ -888,9 +888,9 @@ window.addEventListener('load', function loadSettings() {
         }
 
         if (disable) {
-          item.setAttribute('aria-disabled', true);
+          item.classList.add('disabled');
         } else {
-          item.removeAttribute('aria-disabled');
+          item.classList.remove('disabled');
         }
       }
     }
