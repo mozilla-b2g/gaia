@@ -75,6 +75,11 @@ var LockScreen = {
   kPassCodeErrorTimeout: 500,
 
   /*
+  * Counter after incorrect attempt
+  */
+  kPassCodeErrorCounter: 0,
+
+  /*
   * Airplane mode
   */
   airplaneMode: false,
@@ -978,6 +983,8 @@ var LockScreen = {
       var self = this;
       this.overlay.dataset.passcodeStatus = 'success';
       this.passCodeError = 0;
+      this.kPassCodeErrorTimeout = 500;
+      this.kPassCodeErrorCounter = 0;
 
       var transitionend = function() {
         self.passcodeCode.removeEventListener('transitionend', transitionend);
@@ -986,6 +993,11 @@ var LockScreen = {
       this.passcodeCode.addEventListener('transitionend', transitionend);
     } else {
       this.overlay.dataset.passcodeStatus = 'error';
+      this.kPassCodeErrorCounter++;
+      //double delay if >5 failed attempts
+      if (this.kPassCodeErrorCounter > 5) {
+        this.kPassCodeErrorTimeout = 2 * this.kPassCodeErrorTimeout;
+      }
       if ('vibrate' in navigator)
         navigator.vibrate([50, 50, 50]);
 
