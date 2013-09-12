@@ -116,15 +116,15 @@ suite('ClockView', function() {
 
       rotate = this.second;
       assert.ok(rotate, 'Second hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(6,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(6deg)');
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(-180,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(0,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
     test('second-, minute-, and hour- hands are not updated twice in the ' +
@@ -135,15 +135,15 @@ suite('ClockView', function() {
 
       rotate = this.second;
       assert.ok(rotate, 'Second hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(6,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(6deg)');
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(-180,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(0,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
     test('second-, minute-, and hour- hands are updated each second',
@@ -154,15 +154,15 @@ suite('ClockView', function() {
 
       rotate = this.second;
       assert.ok(rotate, 'Second hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(12,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(12deg)');
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(-180,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(0,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
   });

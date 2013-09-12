@@ -37,25 +37,19 @@
           <div id="clock-view">
             <div id="analog-clock">
               <div id="analog-clock-container">
-                <svg id="analog-clock-svg"
-                     xmlns="http://www.w3.org/2000/svg"
-                     version="1.1" viewBox="0 0 270 270">
-                  <circle id="minutehandCentralPoint" cx="135" cy="135" r="9"/>
-                  <rect id="hourhand" x="131" y="135" width="8" height="92"/>
-                  <rect id="minutehand" x="131" y="135" width="8" height="113"/>
-                  <!-- This is the second hand path, Thanks illustrator! -->
-                  <path id="secondhand"
-                    d="M142.103,135c0-3.562-3.103-6.495-6.103-6.936V0h-2v128.095c-3,0.53-5.897,3.415-5.897,6.905
-                    s2.897,6.375,5.897,6.905V161h2v-19.064C139,141.495,142.103,138.562,142.103,135z"/>
-                </svg>
+                <div id="analog-clock-face">
+                  <div id="analog-clock-hands">
+                    <div class="analog-clock-hand" id="secondhand"></div>
+                    <div class="analog-clock-hand" id="minutehand"></div>
+                    <div class="analog-clock-hand" id="hourhand"></div>
+                  </div>
+                </div>
               </div>
             </div>
             <div id="digital-clock">
-              <div id="digital-clock-container">
-                <div id="digital-clock-display">
-                  <span id="clock-time"></span>
-                  <span id="clock-hour24-state"></span>
-                </div>
+              <div id="digital-clock-face">
+                <span id="clock-time"></span>
+                <span id="clock-hour24-state"></span>
               </div>
             </div>
             <div id="clock-day-date"></div>

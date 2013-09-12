@@ -180,18 +180,16 @@ var ClockView = {
     var hand = this.hands[id];
     // return correct angle for different hands
     function conv(timeFrag) {
-      var mult, offset;
+      var mult;
       // generate a conformable number to rotate about
       // 30 degrees per hour 6 per second and minute
       mult = id === 'hour' ? 30 : 6;
-      // note the minute and hour hands are reversed relative to the secondhand
-      offset = id === 'second' ? 0 : 180;
       // we generate the angle from the fractional sec/min/hour
-      return (timeFrag * mult) - offset;
+      return (timeFrag * mult);
     }
     // Use transform rotate on the rect itself vs on a child element
     // avoids unexpected behavior if either dur and fill are set to defaults
-    hand.setAttribute('transform', 'rotate(' + conv(angle) + ',135,135)');
+    hand.style.transform = 'rotate(' + conv(angle) + 'deg)';
   },
 
   handleEvent: function cv_handleEvent(event) {
