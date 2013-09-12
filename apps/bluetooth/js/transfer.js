@@ -268,7 +268,7 @@ window.addEventListener('localized', function showPanel() {
     var targetDevice = pairList.index[selectedIndex];
     // '0x1105' is a service id to distigush connection type.
     // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-    var transferRequest = defaultAdapter.connect(targetDevice.address, 0x1105);
+    var transferRequest = defaultAdapter.connect(targetDevice, 0x1105);
     transferRequest.onsuccess = function bt_connSuccess() {
       var blobs = activity.source.data.blobs;
       blobs.forEach(function(blob) {
