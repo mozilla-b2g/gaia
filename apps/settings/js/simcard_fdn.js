@@ -150,10 +150,10 @@ var SimFdnLock = {
    },
 
    removeNumber: function() {
-     var cb = function() {
+     var cb = (function() {
         this.hideContactsMenu();
         this.renderAuthorizedNumbers();
-      };.bind(this);
+      }.bind(this));
 
      FDN_AuthorizedNumbers.removeNumber(
        cb, cb,

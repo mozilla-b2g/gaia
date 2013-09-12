@@ -22,7 +22,7 @@ var FDN_AuthorizedNumbers = {
       throw new Error('Not able to obtain FDN function from platform');
     }
 
-    request.onsuccess = function onsuccess() {
+    request.onsuccess = (function onsuccess() {
       var result = this.mozContacts = request.result;
       var contacts = [];
 
@@ -39,7 +39,7 @@ var FDN_AuthorizedNumbers = {
       if (typeof cb === 'function') {
         cb(contacts);
       }
-    };.bind(this);
+    }.bind(this));
 
     request.onerror = function error() {
       if (typeof er === 'function') {
@@ -58,7 +58,7 @@ var FDN_AuthorizedNumbers = {
       ]
     };
 
-    var request = this.icc.updateContact('fdn', contact);
+    var request = this.icc.updateContact('fdn', contact, 1664);
     request.onsuccess = function onsuccess() {
       cb(contact);
     };
@@ -71,10 +71,10 @@ var FDN_AuthorizedNumbers = {
     this.mozContacts[id].name[0] = name;
     this.mozContacts[id].tel.value = number;
 
-    var request = this.icc.updateContact('fdn', this.mozContacts[id], 0071);
-    request.onsuccess = function onsuccess() {
+    var request = this.icc.updateContact('fdn', this.mozContacts[id], 1664);
+    request.onsuccess = (function onsuccess() {
       cb(this.mozContacts[id]);
-    };.bind(this);
+    }.bind(this));
     request.onerror = function onerror(e) {
       er(e);
     };
