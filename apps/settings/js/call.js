@@ -721,15 +721,8 @@ var Calls = (function(window, document, undefined) {
     }
 
     // get network type
-    loadJSON('/resources/network.json', function loadNetwork(network) {
-      var supportCDMA = false;
-
-      if (network.types) {
-        var typesStr = network.types.join();
-        supportCDMA = (typesStr.indexOf('cdma') >= 0);
-      }
-
-      if (!supportCDMA)
+    getSupportedNetworkCategories(function(result) {
+      if (!result.cdma)
         return;
 
       var privacyModeItem =

@@ -203,6 +203,7 @@ function execute() {
    'operatorvariant.mcc': '0',
    'operatorvariant.mnc': '0',
    'phone.ring.keypad': true,
+   'phone.dtmf.type': 'long',
    'powersave.enabled': false,
    'powersave.threshold': -1,
    'privacy.donottrackheader.value': '-1',
