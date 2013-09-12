@@ -30,6 +30,18 @@
       type="default,supl,mms"
   />
 
+  <apn carrier="Test Network with Operator Variant Settings"
+      mcc="111"
+      mnc="03"
+      apn="mms.internet"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      authtype="0"
+      type="default,supl"
+  />
+
   <apn carrier="SpeakOut"
       mcc="302"
       mnc="720"

@@ -24,6 +24,12 @@ suite('operator variant', function() {
     mnc: EXPECTED_MMS_MNC
   };
 
+  const EXPECTED_OV_MNC = 3;
+  const EXPECTED_OV_ICC_INFO = {
+    mcc: TEST_NETWORK_MCC,
+    mnc: EXPECTED_OV_MNC
+  };
+
   const NULL_ICC_INFO = { mcc: 0, mnc: 0 };
   const PERSIST_KEY = 'operator_variant_test.customize';
 
@@ -43,6 +49,12 @@ suite('operator variant', function() {
     { key: 'ril.mms.mmsc', value: 'http://127.0.0.1' },
     { key: 'ril.mms.mmsproxy', value: '127.0.0.1' },
     { key: 'ril.mms.mmsport', value: '8080' }
+  ];
+
+  const OV_KEYS_VALUES = [
+    { key: 'ril.data.carrier', value: 'Test Network with Operator Variant' },
+    { key: 'ril.iccInfo.mbdn', value: '999999' },
+    { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
   ];
 
   var realMozMobileConnection;
@@ -154,3 +166,35 @@ suite('operator variant', function() {
     MockIccHelper.mProps.iccInfo = EXPECTED_MMS_ICC_INFO;
     MockIccHelper.mTriggerEventListeners('iccinfochange', {});
   });
+
+  test('operator variant ov apn', function(done) {
+    var observer = {
+      bound: null,
+      expected: OV_KEYS_VALUES.length,
+      seen: 0,
+      func: function(event) {
+        OV_KEYS_VALUES.forEach(function(data) {
+
+          if (data.key == event.settingName) {
+            assert.equal(
+              event.settingValue,
+              data.value,
+              'Wrong OV setting value'
+            );
+            ++this.seen;
+          }
+        }, this);
+
+        if (this.seen == this.expected) {
+          setObservers(OV_KEYS_VALUES, this, true);
+          done();
+        }
+      }
+    };
+
+    setObservers(OV_KEYS_VALUES, observer);
+
+    MockIccHelper.mProps.iccInfo = EXPECTED_OV_ICC_INFO;
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+  });
+});
