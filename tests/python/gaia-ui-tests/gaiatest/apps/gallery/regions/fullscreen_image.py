@@ -78,8 +78,8 @@ class FullscreenImage(Base):
 
     def tap_share_button(self):
         self.marionette.find_element(*self._share_button_locator).tap()
-        from gaiatest.apps.system.regions.actions import Actions
-        return Actions(self.marionette)
+        from gaiatest.apps.system.regions.activities import Activities
+        return Activities(self.marionette)
 
     @property
     def photo_toolbar_width(self):
