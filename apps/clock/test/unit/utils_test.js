@@ -235,19 +235,19 @@ suite('Time functions', function() {
         assert.equal(Utils.data.defaultCompare(0, 0), 0);
         assert.equal(Utils.data.defaultCompare(0, 1), -1);
         assert.equal(Utils.data.defaultCompare(1, 0), 1);
-        var e;
+        var e1, e2;
         try {
           Utils.data.defaultCompare(1, {});
         } catch (err) {
-          e = err;
+          e1 = err;
         }
-        assert.ok(e);
+        assert.ok(e1);
         try {
           Utils.data.defaultCompare({}, 1);
         } catch (err) {
-          e = err;
+          e2 = err;
         }
-        assert.ok(e);
+        assert.ok(e2);
       });
       test('strings', function() {
         assert.equal(Utils.data.defaultCompare('abc', 'abc'), 0);
