@@ -535,7 +535,7 @@ suite('Database Test', function() {
         db.version = 3;
         db.connect(function(err, conn) {
           assert.ok(!err);
-          assert.ok(upgraderSpy.called);
+          sinon.assert.callCount(upgraderSpy, 1);
           assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
             .sort(),
             [db.effectiveVersionName, 'objA', 'objC'].sort());
@@ -634,7 +634,7 @@ suite('Database Test', function() {
           conn.close();
           db.version = 1;
           db.connect(function(err, conn) {
-            assert.ok(downgraderSpy.calledOnce);
+            sinon.assert.callCount(downgraderSpy, 1);
             assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
               .sort(),
               [db.effectiveVersionName, 'objA', 'objB'].sort());
