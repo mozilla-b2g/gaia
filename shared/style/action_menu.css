@@ -34,58 +34,209 @@ form[role="dialog"][data-type="object"]:before {
   margin-left: -0.1rem;
 }
 
-form[role="dialog"][data-type="action"] > header:first-child,
-form[role="dialog"][data-type="object"] > header:first-child {
-  -moz-box-sizing: padding-box;
-  width: 100%;
-  display: inline-block;
-  vertical-align: top;
-  white-space: normal;
+form[role="dialog"][data-type="action"] > header,
+form[role="dialog"][data-type="object"] > header {
+  -moz-box-sizing: border-box;
   font-size: 1.6rem;
-  line-height: 1em;
-  color: #fff;
-  border-bottom: 0.1rem solid #616262;
-  box-shadow: 0 .1rem 1.5rem #616262;
   background: url(action_menu/images/ui/alpha.png) repeat 0 0;
-  padding: 2rem 3rem 0 3rem;
-  height: 5rem;
-  -moz-box-sizing: padding-box;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   position: absolute;
-  z-index: 10;
-  left: 0;
   top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: 5rem;
+  color: #fff;
+  line-height: 4.9rem;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  font-weight: normal;
+  padding: 0 3rem;
 }
 
 form[role="dialog"][data-type="action"] > header:after,
 form[role="dialog"][data-type="object"] > header:after {
   content: '';
   position: absolute;
-  width: 100%;
   background: #222323;
   height: 0.1rem;
   left: 0;
-  top: 5rem;
+  right: 0;
+  bottom: 0;
+  border-top: 0.1rem solid #616262;
 }
 
-form[role="dialog"][data-type="action"] > section,
-form[role="dialog"][data-type="object"] > section {
-  width: 100%;
+form[role="dialog"][data-type="action"] > header h1,
+form[role="dialog"][data-type="object"] > header h1 {
+  font-size: 1.6rem;
+  line-height: 4.9rem;
+  text-align: left;
+  color: #fff;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  height: 100%;
+  font-weight: normal;
+}
+
+/* Generic set of actions in toolbar */
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] {
+  height: 100%;
+  float: right;
+  margin: 0 -3rem 0 1rem;
+  padding: 0;
+}
+
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a,
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button {
+  -moz-box-sizing: border-box;
+  position: relative;
+  float: left;
+  width: auto;
+  min-width: 5rem;
+  height: 4.9rem;
+  margin-bottom: 0;
+  padding: 0 1rem;
+  border-radius: 0;
+  line-height: 4.9rem;
+  background: none;
+  text-align: center;
+  text-shadow: none;
+  z-index: 5;
+}
+
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:last-child,
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button:last-child {
+  background: url(action_menu/images/ui/separator.png) no-repeat left center / auto 4.8rem;
+  margin-left: -0.1rem;
+  z-index: 1;
+}
+
+form[role="dialog"][data-type="action"] > header a,
+form[role="dialog"][data-type="action"] > header button {
+  border: none;
+  padding: 0;
+  overflow: hidden;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.1em;
+  color: #fff;
+  border-radius: 0;
+  text-decoration: none;
+}
+
+/* Pressed state */
+form[role="dialog"][data-type="action"] > header a::-moz-focus-inner,
+form[role="dialog"][data-type="action"] > header button::-moz-focus-inner,
+form[role="dialog"][data-type="action"] > header a:active,
+form[role="dialog"][data-type="action"] > header button:active,
+form[role="dialog"][data-type="action"] > header a:focus,
+form[role="dialog"][data-type="action"][data-type="action"] > header button:focus {
+  outline: none !important;
+  border: none !important;
+}
+
+form[role="dialog"][data-type="action"] > header a:active .icon:after,
+form[role="dialog"][data-type="action"] > header button:active .icon:after,
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:active,
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button:active  {
+  background: #008aaa !important;
+}
+
+/* Disabled state */
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a[aria-disabled="true"],
+form[role="dialog"][data-type="action"] > header menu[type="toolbar"] button[disabled]  {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Icon definitions */
+form[role="dialog"][data-type="action"] > header .icon {
+  position: relative;
+  float: none;
   display: inline-block;
   vertical-align: top;
-  white-space: normal;
-  font-size: 1.6rem;
-  line-height: 1em;
-  color: #fff !important;
-  padding: 2rem 2rem 0 2rem;
-  height: 5rem;
-  -moz-box-sizing: border-box;
+  width: 4rem;
+  height: 4.9rem;
+  margin: 0 -1rem;
+  background: transparent no-repeat center center / 3rem auto;
+  font-size: 0;
+  overflow: hidden;
 }
 
-form[role="dialog"][data-type="action"] > section a {
-  color: #fff !important;
+form[role="dialog"][data-type="action"] > header .icon.icon-close {
+  background-image: url(action_menu/images/icons/close.png);
+}
+
+form[role="dialog"][data-type="action"] > header .icon.icon-back {
+  background-image: url(action_menu/images/icons/back.png);
+}
+
+/* Navigation links (back, cancel, etc) */
+form[role="dialog"][data-type="action"] > header > button,
+form[role="dialog"][data-type="action"] > header > a {
+  float: left;
+  width: 5rem;
+  height: 4.9rem;
+  background: none;
+  overflow: visible;
+  margin: 0 -1rem 0 -3rem;
+  position: relative;
+}
+
+form[role="dialog"][data-type="action"] > header > button:after,
+form[role="dialog"][data-type="action"] > header > a:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top:0;
+  width: 3.2rem;
+  height: 4.9rem;
+  background: url(action_menu/images/ui/separator.png) no-repeat 3rem top / 0.1rem 4.8rem;
+}
+
+form[role="dialog"][data-type="action"] > header > button::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+form[role="dialog"][data-type="action"] > header > button .icon,
+form[role="dialog"][data-type="action"] > header > a .icon {
+  position: static;
+  display: block;
+  width: 3rem;
+  height: 4.9rem;
+  margin: 0;
+  overflow: visible;
+  font-size: 0;
+}
+
+form[role="dialog"][data-type="action"] > header > button .icon:after,
+form[role="dialog"][data-type="action"] > header > a .icon:after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 3rem;
+  height: 4.9rem;
+}
+
+/* Content */
+form[role="dialog"][data-type="action"] > section,
+form[role="dialog"][data-type="object"] > section {
+  color: #fff;
+  position: absolute;
+  top: 7rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 2rem;
+  font-size: 1.6rem;
+  overflow: scroll;
 }
 
 /* Specific component code */
@@ -93,8 +244,8 @@ form[role="dialog"][data-type="action"] > menu,
 form[role="dialog"][data-type="object"] > menu {
   margin: 0;
   padding: 0;
-  max-height: calc(100% - 12rem);
-  padding-top: 1rem;
+  max-height: calc(100% - 13.5rem); /*header(5rem) + footer(7rem) + padding(1.5rem)*/
+  padding-top: 1.5rem;
   overflow: auto;
   width: auto;
   border: none;
@@ -102,7 +253,7 @@ form[role="dialog"][data-type="object"] > menu {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 6rem;
+  bottom: 7rem;
 }
 
 form[role="dialog"][data-type="action"] > menu > button,
@@ -142,12 +293,13 @@ form[role="dialog"][data-type="object"] > menu > button:last-child {
   border: solid 0.1rem #a6a6a6;
   text-align: center;
   font-size: 1.6rem;
+  margin-bottom: 1.5rem;
 }
 
 form[role="dialog"][data-type="action"] > menu > button:last-child:before,
 form[role="dialog"][data-type="object"] > menu > button:last-child:before {
   content: '';
-  position: absolute;
+  position: fixed;
   width: 100%;
   background: url(action_menu/images/ui/pattern.png) repeat scroll left top #2D2D2D;
   height: 7rem;
@@ -155,6 +307,11 @@ form[role="dialog"][data-type="object"] > menu > button:last-child:before {
   bottom: 0;
   z-index: -1;
   border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
+}
+
+form[role="dialog"][data-type="action"] > menu > button:nth-last-child(2),
+form[role="dialog"][data-type="object"] > menu > button:nth-last-child(2) {
+  margin-bottom: 1.5rem;
 }
 
 /* Press state */
