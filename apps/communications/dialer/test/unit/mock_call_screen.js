@@ -42,6 +42,12 @@ var MockCallScreen = {
   showStatusMessage: function(text) {
     this.mShowStatusMessageCalled = true;
   },
+  showGroupDetails: function() {
+    this.mGroupDetailsShown = true;
+  },
+  hideGroupDetails: function() {
+    this.mGroupDetailsShown = false;
+  },
 
   set singleLine(value) {
     this.mSingleLine = value;
@@ -79,6 +85,7 @@ var MockCallScreen = {
     this.incomingContainer = document.createElement('div');
     this.incomingNumber = document.createElement('div');
     this.mSingleLine = null;
+    this.mGroupDetailsShown = false;
   }
 };
 

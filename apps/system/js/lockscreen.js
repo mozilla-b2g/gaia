@@ -60,6 +60,27 @@ var LockScreen = {
   _passCodeTimeoutCheck: false,
 
   /*
+  * If user is sliding.
+  */
+  _sliderPulling: false,
+
+  /*
+  * If user released the finger and the handler had already
+  * reached one of the ends.
+  */
+  _sliderReachEnd: false,
+
+  /*
+  * Detect if sliding crossed the middle line.
+  */
+  _slidingToward: '',
+
+  /*
+  * How long did the user slide.
+  */
+  _slideCount: 0,
+
+  /*
   * Current passcode entered by the user
   */
   passCodeEntered: '',
@@ -124,6 +145,28 @@ var LockScreen = {
    * Object used for handling the clock UI element, wraps all related timers
    */
   clock: new Clock(),
+
+  /**
+   * Some additional information about other global data entries bound on
+   * DOM elements:
+   *
+   * (We can't find a suitable place to put in these information, because
+   *  we even doesn't get the elements directly. See `getAllElements`.)
+   *
+   * // If user input the correct passcode or not.
+   * // Undefined by deleting it means there is no passcode had been inputted.
+   * //
+   * // 'success' | 'error' | undefined
+   * overlay.dataset.passcodeStatus
+   *
+   * // The current panel.
+   * // Undefined actually means the main panel.
+   * //
+   * // 'camera' | 'main' | 'passcode' | 'emergency-call' | undefined
+   * overlay.dataset.panel
+   *
+   * @this
+   */
 
   /* init */
   init: function ls_init() {
@@ -198,11 +241,8 @@ var LockScreen = {
       self.screenReader = value;
       if (value) {
         self.overlay.classList.add('triggered');
-        self.overlay.classList.remove('elastic');
-        self.setElasticEnabled(false);
       } else {
         self.overlay.classList.remove('triggered');
-        self.setElasticEnabled(true);
       }
     });
 
@@ -269,6 +309,16 @@ var LockScreen = {
     }
   },
 
+  lightIcons: function() {
+    this.rightIcon.classList.remove('dark');
+    this.leftIcon.classList.remove('dark');
+  },
+
+  darkIcon: function() {
+    this.rightIcon.classList.add('dark');
+    this.leftIcon.classList.add('dark');
+  },
+
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
       case 'screenchange':
@@ -313,10 +363,6 @@ var LockScreen = {
         this.lockIfEnabled(true);
         break;
 
-      case 'visibilitychange':
-        this.visibilityChanged();
-        break;
-
       case 'voicechange':
       case 'cardstatechange':
       case 'iccinfochange':
@@ -341,31 +387,19 @@ var LockScreen = {
           break;
         }
 
+        if (evt.target === this.area)
+          this.handleSlideBegin();
+
         var leftTarget = this.areaCamera;
         var rightTarget = this.areaUnlock;
-        var handle = this.areaHandle;
         var overlay = this.overlay;
         var target = evt.target;
-
-        // Reset timer when touch while overlay triggered
-        if (overlay.classList.contains('triggered')) {
-          clearTimeout(this.triggeredTimeoutId);
-          this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
-                                               this.TRIGGERED_TIMEOUT);
-          break;
-        }
-
-        overlay.classList.remove('elastic');
-        this.setElasticEnabled(false);
 
         this._touch = {
           touched: false,
           leftTarget: leftTarget,
           rightTarget: rightTarget,
-          overlayWidth: this.overlay.offsetWidth,
-          handleWidth: this.areaHandle.offsetWidth,
-          maxHandleOffset: rightTarget.offsetLeft - handle.offsetLeft -
-            (handle.offsetWidth - rightTarget.offsetWidth) / 2
+          overlayWidth: this.overlay.offsetWidth
         };
         window.addEventListener('touchend', this);
         window.addEventListener('touchmove', this);
@@ -381,18 +415,19 @@ var LockScreen = {
           evt.touches[0].pageX,
           evt.touches[0].pageY
         );
+        this.handleSlide();
         break;
 
       case 'touchend':
         window.removeEventListener('touchmove', this);
         window.removeEventListener('touchend', this);
 
+        this.handleSlideEnd();
+
         this.handleMove(
           evt.changedTouches[0].pageX,
           evt.changedTouches[0].pageY
         );
-
-        this.handleGesture();
         delete this._touch;
         this.overlay.classList.remove('touched');
 
@@ -437,6 +472,9 @@ var LockScreen = {
         } else {
           emergencyCallBtn.classList.remove('disabled');
         }
+        // Return to main panel once call state changes.
+        if (this.locked)
+          this.switchPanel();
         break;
     }
   },
@@ -445,8 +483,9 @@ var LockScreen = {
     var touch = this._touch;
 
     if (!touch.touched) {
-      // Do nothing if the user have not move the finger to the handle yet
-      if (document.elementFromPoint(pageX, pageY) !== this.areaHandle)
+
+      // Do nothing if the user have not move the finger to the slider yet.
+      if (!this._sliderPulling)
         return;
 
       touch.touched = true;
@@ -460,46 +499,151 @@ var LockScreen = {
     var dy = pageY - touch.initY;
     var ty = Math.max(- this.HANDLE_MAX, dy);
     var base = - ty / this.HANDLE_MAX;
-    // mapping position 20-100 to opacity 0.1-0.5
-    var opacity = base <= 0.2 ? 0.1 : base * 0.5;
     touch.ty = ty;
 
-    this.iconContainer.style.transform = 'translateY(' + ty + 'px)';
-    this.areaCamera.style.opacity =
-      this.areaUnlock.style.opacity = opacity;
+    touch.tx = pageX - touch.initX;
   },
 
-  handleGesture: function ls_handleGesture() {
-    var touch = this._touch;
-    if (touch.ty < -50) {
-      this.areaHandle.style.transform =
-        this.areaHandle.style.opacity =
-        this.iconContainer.style.transform =
-        this.iconContainer.style.opacity =
-        this.areaCamera.style.transform =
-        this.areaCamera.style.opacity =
-        this.areaUnlock.style.transform =
-        this.areaUnlock.style.opacity = '';
-      this.overlay.classList.add('triggered');
+  handleSlideBegin: function() {
+    this.lightIcons();
+    this.restoreSlider();
+  },
 
-      this.triggeredTimeoutId =
-        setTimeout(this.unloadPanel.bind(this), this.TRIGGERED_TIMEOUT);
-    } else if (touch.ty > -10) {
-      touch.touched = false;
-      this.unloadPanel();
-      this.playElastic();
+  handleSlide: function() {
 
-      var self = this;
-      var container = this.iconContainer;
-      container.addEventListener('animationend', function prompt() {
-        container.removeEventListener('animationend', prompt);
-        self.overlay.classList.remove('elastic');
-        self.setElasticEnabled(true);
-      });
-    } else {
-      this.unloadPanel();
-      this.setElasticEnabled(true);
+    if (!this._sliderPulling)
+      return;
+
+    var tx = this._touch.tx;
+    var dir = 'right';
+    if (0 > tx)
+      var dir = 'left';
+
+    // Drag from left to right or counter-direction.
+    if ('' !== this._slidingToward && dir !== this._slidingToward) {
+      this.restoreSlider();
     }
+    this._slidingToward = dir;
+
+    // Unsigned.
+    var utx = Math.abs(tx);
+
+    // XXX: To solve the odd glitches amoung these 3 elements.
+    // Make the center element scale more.
+    var glitchS = 0.3;
+
+    var trackLength = this.rightIcon.offsetLeft -
+                      this.leftIcon.offsetLeft +
+                      this.rightIcon.clientWidth;
+    var maxLength = Math.floor(trackLength / 2);
+
+    var boundaryLeft = this.leftIcon.offsetLeft;
+    var boundaryRight = this.rightIcon.offsetLeft + this.rightIcon.clientWidth;
+
+    var offset = utx;
+
+    // If the front-end slider reached the boundary.
+    // We plus and minus the icon width because maxLength should be fixed,
+    // and only the handler and the blue occurred area should be adjusted.
+    if (offset + this.sliderLeft.clientWidth > maxLength) {
+      this._sliderReachEnd = true;
+      offset = maxLength - this.sliderLeft.clientWidth;
+      this.handleIconClick('left' === dir ? this.leftIcon : this.rightIcon);
+    }
+
+    // Start to paint the slider.
+    this.sliderLeft.classList.add('pulling');
+    this.sliderRight.classList.add('pulling');
+
+    var subject = ('right' === dir) ? this.sliderRight : this.sliderLeft;
+    var cntsubject = ('right' === dir) ? this.sliderLeft : this.sliderRight;
+
+    // Need to set this to let transition event triggered while
+    // we bounce the handlers back.
+    // @see `restoreSlider`
+    cntsubject.style.transform = 'translateX(0px)';
+
+    // 'translateX' will move it according to the left border.
+    if ('right' === dir) {
+      subject.style.transform = 'translateX(' + offset + 'px)';
+    } else {
+      subject.style.transform = 'translateX(-' + offset + 'px)';
+    }
+
+    // Move center as long as half of the offset, then scale it.
+    var cMove = offset / 2;
+    var cScale = offset + glitchS;
+
+    if ('right' === dir) {
+      this.sliderCenter.style.transform = 'translateX(' + cMove + 'px)';
+    } else {
+      this.sliderCenter.style.transform = 'translateX(-' + cMove + 'px)';
+    }
+    this.sliderCenter.style.transform += 'scaleX(' + cScale + ')';
+
+    this._slideCount += utx;
+    if (this._slideCount > 15) {
+
+      // Add the effects to these icons.
+      this.sliderLeft.classList.add('touched');
+      this.sliderCenter.classList.add('touched');
+      this.sliderRight.classList.add('touched');
+    }
+  },
+
+  // Restore all slider elements.
+  //
+  // easing {Boolean} true|undefined to bounce back slowly.
+  restoreSlider: function(easing) {
+
+    // Mimic the `getAllElements` function...
+    [this.sliderLeft, this.sliderRight, this.sliderCenter]
+      .forEach(function ls_rSlider(h) {
+        if (easing) {
+
+          // To prevent magic numbers...
+          var bounceBackTime = '0.3s';
+
+          // Add transition to let it bounce back slowly.
+          h.style.transition = 'transform ' + bounceBackTime + ' ease 0s';
+
+          var tsEnd = function ls_tsEnd(evt) {
+
+            h.style.transition = 'none';
+
+            // Remove the effects to these icons.
+            h.classList.remove('touched');
+            h.removeEventListener('transitionend', tsEnd);
+          };
+          h.addEventListener('transitionend', tsEnd);
+
+        } else {
+          h.style.transition = '';
+
+          // Remove the effects on these icons.
+          h.classList.remove('touched');
+        }
+
+        // After setup, bounce it back.
+        h.style.transform = '';
+    });
+
+    this._sliderPulling = true;
+    this._sliderReachEnd = false;
+  },
+
+  handleSlideEnd: function() {
+    // Bounce back to the center immediately.
+    if (false === this._sliderReachEnd) {
+      this.restoreSlider(true);
+    } else {
+      // Restore it only after screen changed.
+      var appLaunchDelay = 400;
+      setTimeout(this.restoreSlider.bind(this, true), appLaunchDelay);
+    }
+    this.darkIcon();
+    this._slideCount = 0;
+    this._sliderPulling = false;
   },
 
   handleIconClick: function ls_handleIconClick(target) {
@@ -547,15 +691,15 @@ var LockScreen = {
 
   handlePassCodeInput: function ls_handlePassCodeInput(key) {
     switch (key) {
-      case 'e': // Emergency Call
+      case 'e': // 'E'mergency Call
         this.switchPanel('emergency-call');
         break;
 
-      case 'c':
+      case 'c': // 'C'ancel
         this.switchPanel();
         break;
 
-      case 'b':
+      case 'b': // 'B'ackspace for correction
         if (this.overlay.dataset.passcodeStatus)
           return;
 
@@ -647,7 +791,6 @@ var LockScreen = {
       nextPaint();
     }, 200);
 
-    this.setElasticEnabled(false);
     this.mainScreen.focus();
     this.dispatchEvent('will-unlock');
 
@@ -660,8 +803,6 @@ var LockScreen = {
     this.locked = true;
 
     this.switchPanel();
-
-    this.setElasticEnabled(ScreenManager.screenEnabled);
 
     this.overlay.focus();
     if (instant)
@@ -752,18 +893,9 @@ var LockScreen = {
       default:
         var self = this;
         var unload = function unload() {
-          self.areaHandle.style.transform =
-            self.areaUnlock.style.transform =
-            self.areaCamera.style.transform =
-            self.iconContainer.style.transform =
-            self.iconContainer.style.opacity =
-            self.areaHandle.style.opacity =
-            self.areaUnlock.style.opacity =
-            self.areaCamera.style.opacity = '';
           if (!self.screenReader)
             self.overlay.classList.remove('triggered');
           clearTimeout(self.triggeredTimeoutId);
-          self.setElasticEnabled(false);
         };
 
         if (toPanel !== 'camera') {
@@ -789,6 +921,14 @@ var LockScreen = {
       setTimeout(callback);
   },
 
+  /**
+   * Switch the panel to the target type.
+   * Will actually call the load and unload panel function.
+   *
+   * @param {PanelType} panel Could be 'camera', 'passcode', 'emergency-call' or
+   *                          undefined. Undefined means the main panel.
+   * @this
+   */
   switchPanel: function ls_switchPanel(panel) {
     if (this._switchingPanel) {
       return;
@@ -960,6 +1100,7 @@ var LockScreen = {
 
   updatePassCodeUI: function lockscreen_updatePassCodeUI() {
     var overlay = this.overlay;
+
     if (overlay.dataset.passcodeStatus)
       return;
     if (this.passCodeEntered) {
@@ -1018,11 +1159,20 @@ var LockScreen = {
     }
   },
 
+  /**
+   * To get all elements this component will use.
+   * Note we do a name mapping here: DOM variables named like 'passcodePad'
+   * are actually corresponding to the lowercases with hyphen one as
+   * 'passcode-pad', then be prefixed with 'lookscreen'.
+   *
+   * @this
+   */
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'passcode-code', 'alt-camera', 'alt-camera-button',
+        'area-handle', 'area-slider', 'passcode-code', 'alt-camera',
+        'alt-camera-button', 'slider-handler',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
 
@@ -1038,6 +1188,15 @@ var LockScreen = {
 
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
+
+    this.sliderLeft = this.sliderHandler.getElementsByTagName('div')[0];
+    this.sliderCenter = this.sliderHandler.getElementsByTagName('div')[1];
+    this.sliderRight = this.sliderHandler.getElementsByTagName('div')[2];
+
+    var slcLeft = '#lockscreen-icon-container .lockscreen-icon-left';
+    var slcRight = '#lockscreen-icon-container .lockscreen-icon-right';
+    this.leftIcon = document.querySelector(slcLeft);
+    this.rightIcon = document.querySelector(slcRight);
   },
 
   dispatchEvent: function ls_dispatchEvent(name, detail) {
@@ -1085,15 +1244,6 @@ var LockScreen = {
     }
   },
 
-  visibilityChanged: function ls_visibilityChanged() {
-    // Stop the timer when we go invisible and
-    // re-start it when we become visible.
-    if (document.hidden)
-      this.stopElasticTimer();
-    else if (this.elasticEnabled)
-      this.startElasticTimer();
-  },
-
   playElastic: function ls_playElastic() {
     if ((this._touch && this._touch.touched) || this.screenReader)
       return;
@@ -1101,10 +1251,8 @@ var LockScreen = {
     var overlay = this.overlay;
     var container = this.iconContainer;
 
-    overlay.classList.add('elastic');
     container.addEventListener('animationend', function animationend(e) {
       container.removeEventListener(e.type, animationend);
-      overlay.classList.remove('elastic');
     });
   },
 

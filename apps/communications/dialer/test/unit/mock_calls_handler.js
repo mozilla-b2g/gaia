@@ -16,6 +16,7 @@ var MockCallsHandler = {
   toggleSpeaker: function() {},
   turnSpeakerOn: function() {},
   turnSpeakerOff: function() {},
+  checkCalls: function() {},
 
   mTeardown: function() {
     this.mLastEntryAdded = null;
