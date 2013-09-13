@@ -1,0 +1,183 @@
+/**
+ * Reference these style sheet from Settings app 
+ */
+
+/**
+ * Table View
+ * line height = 6rem, border included
+ */
+
+ul {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+ul li {
+  -moz-box-sizing: border-box;
+  position: relative;
+  min-height: 6rem;
+  margin: 0 1.5rem;
+  border-bottom: 0.1rem solid #e6e6e3;
+  color: #000;
+}
+
+ul li.sound-setting {
+  min-height: 7.9rem;
+}
+
+ul li label:not([for]) {
+  background: none;
+}
+
+ul li > a,
+ul li > span {
+  display: block;
+  text-decoration: none;
+  outline: 0;
+  color: #000;
+  -moz-box-sizing: border-box;
+  height: 6rem;
+  font-size: 1.9rem;
+  line-height: 6rem;
+  padding: 0 1.5rem;
+}
+
+ul li.active,
+ul li:not(.disabled) > small + a:active,
+ul li:not(.disabled) > a[href]:active,
+ul li:not(.disabled) > small + a:focus,
+ul li:not(.disabled) > a[href]:focus {
+  background-color: #b2f2ff;
+  color: #222;
+}
+
+ul li.disabled > a {
+  color: #797e80;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+ul > li > progress {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
+}
+
+/* Customization style for overlapping .bluetooth-device:before */
+ul > li > progress.overlapping-icon {
+  position: absolute;
+  right: 3rem;
+  top: 50%;
+  margin-top: -1.5rem;
+}
+
+ul > li > progress.hidden {
+  display: none;
+}
+
+ul > li > progress + span {
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  padding: 0 0 0 1rem;
+  color: #505b5b;
+  font-size: 1.4rem;
+}
+
+/* description + value on the same line */
+ul li > a span {
+  position: absolute;
+  right: 1.5rem;
+  color: #505859;
+}
+
+/* text ellipsis */
+ul li > * {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* sublines */
+ul li > small {
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  top: 50%;
+  padding-top: 0.4rem;
+  font-size: 1.4rem;
+  color: #505859;
+  /* click/tap events should be caught by the <a> element below the <small> */
+  pointer-events: none;
+}
+
+ul li > label.pack-checkbox + small,
+ul li > label.pack-radio + small {
+  right: 6.1rem;
+}
+
+ul li > label.pack-switch + small {
+   right: 9rem;
+}
+
+/* required for empty elements like Bluetooth */
+ul li > small:not(:empty) + a,
+ul li > small:not(:empty) + span {
+  line-height: 4.4rem;
+  padding-bottom: 0.1rem; /* Bug 903438 */
+}
+
+
+/******************************************************************************
+ * Boolean inputs
+ */
+
+ul li button,
+ul li a[role="button"] {
+  position: relative;
+  top: 1.1rem;
+  left: 1.5rem;
+  width: calc(100% - 3rem);
+}
+
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li label {
+  text-transform: none;
+}
+
+ul li > label:not([for]),
+ul li > label.pack-checkbox,
+ul li > label.pack-radio,
+ul li > label.pack-switch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+ul li > label.pack-checkbox > span,
+ul li > label.pack-radio > span,
+ul li > label.pack-switch > input + span {
+  left: auto;
+  right: 0;
+}
+
+ul li > label.pack-checkbox ~ a,
+ul li > label.pack-radio ~ a {
+  padding-right: 6.1rem;
+}
+
+ul li > label.pack-switch ~ a {
+   padding-right: 9rem;
+}
+
+ul li > label.pack-checkbox:active ~ a,
+ul li > label.pack-radio:active ~ a,
+ul li > label.pack-switch:active ~ a {
+  background-color: #b2f2ff;
+  color: #222;
+}
