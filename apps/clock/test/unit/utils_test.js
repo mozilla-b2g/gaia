@@ -240,11 +240,13 @@ suite('Time functions', function() {
         } catch (err) {
           assert.ok(err);
         }
+        var e;
         try {
           Utils.data.defaultCompare({}, 1);
         } catch (err) {
-          assert.ok(err);
+          e = err;
         }
+        assert.ok(e);
       });
       test('strings', function() {
         assert.equal(Utils.data.defaultCompare('abc', 'abc'), 0);
@@ -252,21 +254,25 @@ suite('Time functions', function() {
         assert.equal(Utils.data.defaultCompare('abc', 'abb'), 1);
         assert.equal(Utils.data.defaultCompare('abc', 'abcd'), -1);
         assert.equal(Utils.data.defaultCompare('abc', 'ab'), 1);
+        var e;
         try {
           Utils.data.defaultCompare('abc', 1);
         } catch (err) {
-          assert.ok(err);
+          e = err;
         }
+        assert.ok(e);
       });
       test('arrays', function() {
         assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 3]), 0);
         assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 4]), -1);
         assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 2]), 1);
+        var e;
         try {
           Utils.data.defaultCompare('abc', 1);
         } catch (err) {
-          assert.ok(err);
+          e = err;
         }
+        assert.ok(e);
       });
     });
 
