@@ -1,18 +1,39 @@
 {
-    "this_phone_number": "",
-
-    "twilio": {
-        "account_sid": "",
-        "auth_token": "",
-        "phone_number": ""
+  "settings": {},
+  "carrier":{
+    "phone_number": "",
+    "country": "",
+    "network": ""
+  },
+  "imei": "",
+  "remote_phone_number": "",
+  "wifi": {
+    "ssid": ""
+  },
+  "email": {
+    "gmail": {
+      "name": "",
+      "email": "",
+      "password": ""
     },
-
-    "wifi": {
-        "ssid": ""
+    "IMAP": {
+      "name": "",
+      "email": "",
+      "password": "",
+      "imap_hostname": "",
+      "imap_name": "",
+      "imap_port": "",
+      "smtp_hostname": "",
+      "smtp_name": "",
+      "smtp_port": ""
     },
-
-    "marketplace": {
-        "username": "",
-        "password": ""
+    "ActiveSync":{
+      "name": "",
+      "email": "",
+      "password": "",
+      "active_sync_hostname": "",
+      "active_sync_username": ""
     }
+
+  }
 }
