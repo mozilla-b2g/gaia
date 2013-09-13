@@ -306,7 +306,10 @@ var NotificationScreen = {
     // the user see the notification toaster
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
-      ScreenManager.turnScreenOn();
+      // bug 915236: disable turning on the screen for email notifications
+      if (detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+        ScreenManager.turnScreenOn();
+      }
     }
 
     this.updateStatusBarIcon(true);
