@@ -79,11 +79,17 @@ var SimFdnLock = {
       }
     }).bind(this));
 
+    var checkContactInputs = function() {
+      self.fdnContactSubmit.disabled = !self.fdnContactNumber.value;
+    };
+    this.fdnContactNumber.oninput = checkContactInputs;
+
     this.fdnContactButton.onclick = function() { // add FDN contact
       localize(self.fdnContactTitle, 'fdnAction-add');
       self.fdnContactName.value = '';
       self.fdnContactNumber.value = '';
       self.fdnContactSubmit.onclick = self.addContact.bind(self);
+      checkContactInputs();
       Settings.currentPanel = '#call-fdnList-add';
     };
 
@@ -93,6 +99,7 @@ var SimFdnLock = {
       self.fdnContactNumber.value = self.currentContact.number;
       self.fdnContactSubmit.onclick = self.editContact.bind(self);
       self.hideActionMenu();
+      checkContactInputs();
       Settings.currentPanel = '#call-fdnList-add';
     };
 
@@ -212,7 +219,6 @@ var SimFdnLock = {
   wrongPinError: function(e) {
     throw new Error('Incorrect PIN2 code.', e);
   }
-
 };
 
 navigator.mozL10n.ready(SimFdnLock.init.bind(SimFdnLock));
