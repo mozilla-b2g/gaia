@@ -4,7 +4,7 @@
 <!-- This version must agree with that in apps/common/res/apns.xml -->
 <apns version="7">
   <apn carrier="Test Network"
-      mcc="111"
+      mcc="001"
       mnc="01"
       apn="internet"
       user="user"
@@ -16,7 +16,7 @@
   />
   
   <apn carrier="Test Network with MMS"
-      mcc="111"
+      mcc="001"
       mnc="02"
       apn="mms.internet"
       user="user"
@@ -31,7 +31,7 @@
   />
 
   <apn carrier="Test Network with Operator Variant Settings"
-      mcc="111"
+      mcc="001"
       mnc="03"
       apn="mms.internet"
       user="user"
