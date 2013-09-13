@@ -15,6 +15,9 @@ var MockLockScreen = {
     this.locked = false;
   },
 
+  mozLockOrientation: function mls_mozLockOrientation() {
+  },
+
   mTeardown: function mls_mTeardown() {
     this.init();
   }

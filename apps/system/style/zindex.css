@@ -73,7 +73,7 @@
 }
 
 /* Level 4: Activity menu, context menu and value selector */
-#screen > [data-z-index-level="list-menu"] {
+#screen > [data-z-index-level="action-menu"] {
   z-index: 8192;
 }
 
@@ -206,7 +206,7 @@
 /* We promote the following overlays on top of the fullscreen web content. */
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.inlineActivity,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="list-menu"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
 #screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen-camera"],
