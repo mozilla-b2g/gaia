@@ -27,14 +27,27 @@ suite('Stopwatch', function() {
     });
 
     test('from object', function() {
-      var obj = {
+      var input = {
         startTime: Date.now(),
         totalElapsed: oneHour,
         isStarted: true,
         laps: [{time: Date.now(), duration: oneHour}]
       };
-      this.sw = new Stopwatch(obj);
-      assert.deepEqual(obj, this.sw.toSerializable());
+      this.sw = new Stopwatch(input);
+      assert.deepEqual(input, this.sw.toSerializable());
+    });
+
+    test('deep copy', function() {
+      var input = {
+        startTime: Date.now(),
+        totalElapsed: oneHour,
+        isStarted: true,
+        laps: [{time: Date.now(), duration: oneHour}]
+      };
+      this.sw = new Stopwatch(input);
+      var serialized = this.sw.toSerializable();
+      serialized.laps.push({ time: 0, duration: oneHour });
+      assert.notEqual(serialized.laps, input.laps, 'laps should not be equal');
     });
 
   });

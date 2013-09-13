@@ -18,7 +18,7 @@
     obj.startTime = opts.startTime || defaults.startTime;
     obj.totalElapsed = opts.totalElapsed || defaults.totalElapsed;
     obj.isStarted = opts.isStarted || defaults.isStarted;
-    obj.laps = opts.laps || defaults.laps;
+    obj.laps = opts.laps ? opts.laps.slice() : defaults.laps.slice();
 
     priv.set(this, obj);
   };
@@ -133,11 +133,8 @@
       var obj = {};
       for (var i in sw) {
         if (sw.hasOwnProperty(i)) {
-          if (Object.prototype.toString.call(sw[i]).slice(8, -1) === 'Array') {
-            var copy = sw[i].map(function(item) {
-              return item;
-            });
-            obj[i] = copy;
+          if (Array.isArray(sw[i])) {
+            obj[i] = sw[i].slice();
           } else {
             obj[i] = sw[i];
           }
