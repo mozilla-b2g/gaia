@@ -87,7 +87,7 @@ window.addEventListener('localized', function() {
     // If the app that initiated this activity wants us to do allow the
     // user to save this blob as a file, and if device storage is available
     // and if there is enough free space, then display a save button.
-    if (activityData.allowSave && activityData.filename) {
+    if (activityData.allowSave && activityData.filename && checkFilename()) {
       getStorageIfAvailable('pictures', blob.size, function(ds) {
         storage = ds;
         $('menu').hidden = false;
@@ -156,6 +156,16 @@ window.addEventListener('localized', function() {
       else {
         displayError('imagetoobig');
       }
+    }
+  }
+
+  function checkFilename() {
+    var dotIdx = activityData.filename.lastIndexOf('.');
+    if (dotIdx > -1) {
+      var ext = activityData.filename.substr(dotIdx + 1);
+      return MimeMapper.guessTypeFromExtension(ext) === blob.type;
+    } else {
+      return false;
     }
   }
 
