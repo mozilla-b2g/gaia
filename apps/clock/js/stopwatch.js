@@ -18,7 +18,7 @@
     obj.startTime = opts.startTime || defaults.startTime;
     obj.totalElapsed = opts.totalElapsed || defaults.totalElapsed;
     obj.isStarted = opts.isStarted || defaults.isStarted;
-    obj.laps = opts.laps ? opts.laps.slice() : defaults.laps.slice();
+    obj.laps = opts.laps ? opts.laps.slice() : defaults.laps;
 
     priv.set(this, obj);
   };
