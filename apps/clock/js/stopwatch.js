@@ -133,11 +133,7 @@
       var obj = {};
       for (var i in sw) {
         if (sw.hasOwnProperty(i)) {
-          if (Array.isArray(sw[i])) {
-            obj[i] = sw[i].slice();
-          } else {
-            obj[i] = sw[i];
-          }
+          obj[i] = Array.isArray(sw[i]) ? sw[i].slice() : sw[i];
         }
       }
       return obj;
