@@ -17,10 +17,10 @@
   display: block;
   margin: auto;
   position: relative;
-  top: 1rem;
-  font-size: 1.4rem;
+  top: 1.5rem;
+  font-size: 1.6rem;
   line-height: 1em;
-  width: calc(100% - 5rem);
+  width: calc(100% - 3rem);
   height: calc(6rem - 2rem);
 }
 
