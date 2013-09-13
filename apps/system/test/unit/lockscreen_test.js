@@ -117,18 +117,22 @@ suite('system/LockScreen >', function() {
 
   test('Emergency call: should disable emergency-call button',
   function() {
+    var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
     navigator.mozTelephony.calls = {length: 1};
     var evt = {type: 'callschanged'};
     subject.handleEvent(evt);
     assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
+    stubSwitchPanel.restore();
   });
 
   test('Emergency call: should enable emergency-call button',
   function() {
+    var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
     navigator.mozTelephony.calls = {length: 0};
     var evt = {type: 'callschanged'};
     subject.handleEvent(evt);
     assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
+    stubSwitchPanel.restore();
   });
 
   // XXX: Test 'Screen off: by proximity sensor'.
