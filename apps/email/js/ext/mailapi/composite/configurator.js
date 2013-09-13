@@ -3966,7 +3966,8 @@ SmtpAccount.prototype = {
       conn = $simplesmtp(
         this.connInfo.port, this.connInfo.hostname,
         {
-          secureConnection: this.connInfo.crypto === true,
+          secureConnection: (this.connInfo.crypto == 'ssl' ||
+                             this.connInfo.crypto === true),
           ignoreTLS: this.connInfo.crypto === false,
           auth: {
             user: this.credentials.username,
@@ -4369,14 +4370,17 @@ exports.configurator = {
       imapConnInfo = {
         hostname: domainInfo.incoming.hostname,
         port: domainInfo.incoming.port,
-        crypto: domainInfo.incoming.socketType === 'SSL',
-
+        crypto: (typeof domainInfo.incoming.socketType === 'string' ?
+                 domainInfo.incoming.socketType.toLowerCase() :
+                 domainInfo.incoming.socketType),
         blacklistedCapabilities: null,
       };
       smtpConnInfo = {
         hostname: domainInfo.outgoing.hostname,
         port: domainInfo.outgoing.port,
-        crypto: domainInfo.outgoing.socketType === 'SSL',
+        crypto: (typeof domainInfo.incoming.socketType === 'string' ?
+                 domainInfo.incoming.socketType.toLowerCase() :
+                 domainInfo.incoming.socketType),
       };
     }
 
