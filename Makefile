@@ -410,11 +410,11 @@ else ifeq ($(DEBUG),1)
 	touch $(PROFILE_FOLDER)/installed-extensions.json
 endif
 
-profile_dir:
+profile-dir:
 	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
 
 # Copy preload contacts to profile
-contacts: profile_dir
+contacts: profile-dir
 ifdef CONTACTS_PATH
 	@echo "Copying preload contacts to profile"
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
@@ -540,7 +540,7 @@ PARTNER_PREF_FILES = \
   partner-prefs.js\
 
 # Generate profile/prefs.js
-preferences: profile_dir install-xulrunner-sdk
+preferences: profile-dir install-xulrunner-sdk
 	@$(call run-js-command, preferences)
 	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
@@ -556,7 +556,7 @@ preferences: profile_dir install-xulrunner-sdk
 
 
 # Generate $(PROFILE_FOLDER)/
-applications-data: profile_dir install-xulrunner-sdk
+applications-data: profile-dir install-xulrunner-sdk
 	@$(call run-js-command, applications-data)
 
 # Generate $(PROFILE_FOLDER)/extensions
@@ -856,7 +856,7 @@ purge:
 	$(ADB) remount
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
-$(PROFILE_FOLDER)/settings.json: profile_dir install-xulrunner-sdk
+$(PROFILE_FOLDER)/settings.json: profile-dir install-xulrunner-sdk
 	@$(call run-js-command, settings)
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
