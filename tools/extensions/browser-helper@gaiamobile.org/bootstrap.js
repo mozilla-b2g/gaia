@@ -191,6 +191,8 @@ function startup(data, reason) {
         mm.addMessageListener('Forms:SendKey:Result:OK', Keyboard);
         mm.addMessageListener('Forms:SequenceError', Keyboard);
         mm.addMessageListener('Forms:GetContext:Result:OK', Keyboard);
+        mm.addMessageListener('Forms:SetComposition:Result:OK', Keyboard);
+        mm.addMessageListener('Forms:EndComposition:Result:OK', Keyboard);
         mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
       } catch(e) {
         debug('Can\'t load Keyboard.jsm. Likely because the keyboard addon is not here.');
