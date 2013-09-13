@@ -82,6 +82,8 @@
     <link rel="import" href="/elements/call_cf_unconditional_settings.html">
     <link rel="import" href="/elements/call_voice_mail_settings.html">
     <link rel="import" href="/elements/call_pin2_dialog.html">
+    <link rel="import" href="/elements/call_fdn_list_add.html">
+    <link rel="import" href="/elements/call_fdn_list.html">
     <link rel="import" href="/elements/call_fdn_settings.html">
     <link rel="import" href="/elements/call.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
@@ -169,6 +171,23 @@
     <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
     <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
+    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Action Menu -->
+    <form id="call-fdnList-action" role="dialog" data-type="action">
+      <header>
+        <span id="fdnAction-name">John Doe</span><br />
+        <span id="fdnAction-number">+1 2345678</span>
+      </header>
+      <menu>
+        <button id="fdnAction-call" data-l10n-id="fdnAction-call"> Call </button>
+        <button id="fdnAction-edit" data-l10n-id="fdnAction-edit"> Edit contact </button>
+        <button id="fdnAction-delete" data-l10n-id="fdnAction-delete"> Delete contact </button>
+        <button id="fdnAction-cancel" data-l10n-id="cancel"> Cancel </button>
+      </menu>
+    </form>
+    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Add -->
+    <section is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
+    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
+    <section is="call-fdnList" role="region" id="call-fdnList"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: SIM PIN2 Input -->
     <section is="call-pin2-dialog" role="region" id="call-pin2-dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->

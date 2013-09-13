@@ -1,0 +1,28 @@
+<element name="call-fdnList-add" extends="section">
+  <template>
+
+    <header>
+      <a href="#call-fdnList">
+        <span data-l10n-id="back" class="icon icon-back">Back</span>
+      </a>
+      <menu type="toolbar">
+        <button id="fdnContact-submit"><span data-l10n-id="ok">Done</span></button>
+      </menu>
+      <h1 id="fdnContact-title"></h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <p data-l10n-id="fdnContact-name">Name</p>
+          <input x-inputmode="verbatim" type="text" id="fdnContact-name"/>
+        </li>
+        <li>
+          <p data-l10n-id="fdnContact-number">Number</p>
+          <input x-inputmode="verbatim" type="number" id="fdnContact-number"/>
+        </li>
+      </ul>
+    </div>
+
+  </template>
+</element>

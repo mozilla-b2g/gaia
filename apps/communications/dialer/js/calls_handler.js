@@ -613,9 +613,11 @@ var CallsHandler = (function callsHandler() {
   }
 
   function endConferenceCall() {
-    telephony.conferenceGroup.calls.forEach(function(call) {
+    var callsToEnd = telephony.conferenceGroup.calls;
+    for (var i = (callsToEnd.length - 1); i >= 0; i--) {
+      var call = callsToEnd[i];
       call.hangUp();
-    });
+    }
   }
 
   function end() {
