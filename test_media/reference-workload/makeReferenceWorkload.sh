@@ -74,7 +74,19 @@ echo "Populate Databases - $1 Workload"
 adb shell stop b2g
 APPS=${APPS:-${APP}}
 
-IDB_PRESENT=$(adb shell 'ls -l /data/local/indexedDB/chrome/' | grep '^d.*idb')
+IDB_BASE=
+for dir in /data/local/storage/persistent /data/local/indexedDB; do
+  if [ -n "$(adb shell "test -d $dir/chrome && echo found")" ]; then
+    IDB_BASE=$dir
+    break
+  fi
+done
+if [ -z "$IDB_BASE" ]; then
+  echo "Can't find indexedDB base dir" >&2
+  exit 1
+fi
+echo "IndexedDB base dir: $IDB_BASE"
+IDB_PRESENT=$(adb shell "ls -l $IDB_BASE/chrome/" | grep '^d.*idb')
 if [ -z "$IDB_PRESENT" ]; then
   echo "idb directory not present"
   IDB_PATH=""
@@ -106,7 +118,7 @@ for app in $APPS; do
         echo "Unable to determine communications application ID - skipping dialer history..."
         LINE=" Dialer History: skipped"
       else
-        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite /data/local/indexedDB/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite
+        adb push  $SCRIPT_DIR/dialerDb-$DIALER_COUNT.sqlite $IDB_BASE/$DIALER_DIR$IDB_PATH/2584670174dsitanleecreR.sqlite
         LINE=" Dialer History: $(printf "%4d" $DIALER_COUNT)"
       fi
       ;;
@@ -131,22 +143,22 @@ for app in $APPS; do
 
     communications/contacts)
       echo "Starting contacts"
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite /data/local/indexedDB/chrome$IDB_PATH/3406066227csotncta.sqlite
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/3406066227csotncta.sqlite
       ATTACHMENT_DIR=$SCRIPT_DIR/contactsDb-$CONTACT_COUNT
       tar -xvzf $SCRIPT_DIR/ContactPictures-$CONTACT_COUNT.tar.gz -C $SCRIPT_DIR
-      adb shell "rm /data/local/indexedDB/chrome$IDB_PATH/3406066227csotncta/*"
-      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ /data/local/indexedDB/chrome$IDB_PATH/3406066227csotncta/
+      adb shell "rm $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/*"
+      adb push  $SCRIPT_DIR/contactsDb-$CONTACT_COUNT/ $IDB_BASE/chrome$IDB_PATH/3406066227csotncta/
       rm -rf $ATTACHMENT_DIR/
       LINE=" Contacts:       $(printf "%4d" $CONTACT_COUNT)"
       ;;
 
     sms)
       echo "Starting sms"
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite /data/local/indexedDB/chrome$IDB_PATH/226660312ssm.sqlite
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT.sqlite $IDB_BASE/chrome$IDB_PATH/226660312ssm.sqlite
       ATTACHMENT_DIR=$SCRIPT_DIR/smsDb-$SMS_COUNT
       tar -xvzf $SCRIPT_DIR/Attachments-$SMS_COUNT.tar.gz -C $SCRIPT_DIR
-      adb shell "rm /data/local/indexedDB/chrome$IDB_PATH/226660312ssm/*"
-      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ /data/local/indexedDB/chrome$IDB_PATH/226660312ssm/
+      adb shell "rm $IDB_BASE/chrome$IDB_PATH/226660312ssm/*"
+      adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/
       rm -rf $ATTACHMENT_DIR/
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
       ;;
