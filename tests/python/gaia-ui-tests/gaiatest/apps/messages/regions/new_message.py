@@ -42,8 +42,8 @@ class NewMessage(Messages):
 
     def tap_attachment(self):
         self.marionette.find_element(*self._attach_button_locator).tap()
-        from gaiatest.apps.system.regions.actions import Actions
-        return Actions(self.marionette)
+        from gaiatest.apps.system.regions.activities import Activities
+        return Activities(self.marionette)
 
     def wait_for_recipients_displayed(self):
         self.wait_for_element_displayed(*self._receiver_input_locator)

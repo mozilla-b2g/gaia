@@ -6,7 +6,7 @@ from marionette.by import By
 from gaiatest.apps.base import Base
 
 
-class Actions(Base):
+class Activities(Base):
 
     _actions_menu_locator = (By.CSS_SELECTOR, '#listmenu .actions')
     _action_option_locator = (By.CSS_SELECTOR, '.actions li > a')
