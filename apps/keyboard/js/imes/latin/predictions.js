@@ -107,14 +107,9 @@
 //
 // TODO:
 //
-// Add profanity to the dictionary and then modify the logic here so we
-// never suggest profanity but never auto-correct it, either.
-//
 // Also have to figure out if something is going wrong with Polish.
 // When I type an unaccented character, I'm not confident that I'm
 // getting predictions that include accented versions of that character.
-//
-// Write tests!
 //
 'use strict';
 
@@ -129,6 +124,11 @@ var Predictions = function() {
   const insertionMultiplier = .3;
   const substitutionMultiplier = .2;          // for keys that are not nearby
   const deletionMultiplier = .1;
+  // profane words don't have a frequency themselves, so we bump their
+  // frequency to a value which will make it pop up (only do if matches input)
+  // 15 is a value that still allows very obvious corrections to be made
+  // see #803189 for more information.
+  const profaneInputMatchWeight = 15;
 
   // If we can't find enough exact word matches for the user's input
   // we have to expand some of the candidates we found into complete
@@ -373,6 +373,7 @@ var Predictions = function() {
         status.state = 'aborted';
         return true;
       }
+      return false;
     }
 
     function getWords() {
@@ -637,7 +638,17 @@ var Predictions = function() {
         if (remaining.length === 0) {
           // If a word ends here, add it to the queue of words
           if (node.ch === 0) {
-            addWord(output, weight);
+            // Only suggest profane (freq == 1) words if the input is
+            // already the same
+            if (node.freq === 1 &&
+                input.toUpperCase() === output.toUpperCase()) {
+              // Profane words have very low frequency themselves.
+              // To make sure they pop up we bump the frequency
+              addWord(output, profaneInputMatchWeight);
+            }
+            else if (node.freq !== 1) {
+              addWord(output, weight);
+            }
             continue;
           }
 
@@ -672,7 +683,6 @@ var Predictions = function() {
           }
           continue;
         }
-
 
         // If we get to here, we know that we're still processing the user's
         // input and that there is a character associated with this node.
@@ -841,6 +851,7 @@ var Predictions = function() {
       node.center = offset;
     else
       node.center = -1;
+
 /*
     log("readNode:" +
         " haschar:" + haschar +
