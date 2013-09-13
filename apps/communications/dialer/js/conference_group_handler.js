@@ -5,6 +5,13 @@ var ConferenceGroupHandler = (function() {
   var groupLabel = document.getElementById('group-call-label');
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
+  var mergeButton = groupLine.querySelector('.merge-button');
+  mergeButton.onclick = function(evt) {
+    if (evt) {
+      evt.stopPropagation();
+    }
+    CallsHandler.mergeConferenceGroupWithActiveCall();
+  };
 
   var telephony = window.navigator.mozTelephony;
   telephony.conferenceGroup.oncallschanged = onCallsChanged;
