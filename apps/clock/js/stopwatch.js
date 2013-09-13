@@ -133,7 +133,7 @@
       var obj = {};
       for (var i in sw) {
         if (sw.hasOwnProperty(i)) {
-          if(Object.prototype.toString.call(sw[i]).slice(8, -1) === 'Array') {
+          if (Object.prototype.toString.call(sw[i]).slice(8, -1) === 'Array') {
             var copy = sw[i].map(function(item) {
               return item;
             });
