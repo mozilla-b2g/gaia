@@ -37,6 +37,7 @@ suite('conference group handler', function() {
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = '<section id="group-call" hidden>' +
                             '<div class="numberWrapper">' +
+                              '<div id="group-show"></div>' +
                               '<div id="group-call-label"' +
                                 'class="number font-light"></div>' +
                             '</div>' +
@@ -50,8 +51,9 @@ suite('conference group handler', function() {
                               '</div>' +
                             '</div>' +
                           '</section>' +
-                          '<article id="group-call-details">' +
-                          '</article>';
+                          '<form id="group-call-details">' +
+                            '<header></header>' +
+                          '</form>';
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
@@ -151,6 +153,13 @@ suite('conference group handler', function() {
             assert.equal(fakeGroupLabel.textContent, 'group-call');
             assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
           });
+
+          test('should call CallsHandler.checkCalls if two more phones remains',
+          function() {
+            var checkCallsSpy = this.sinon.spy(MockCallsHandler, 'checkCalls');
+            flush();
+            assert.isTrue(checkCallsSpy.calledOnce);
+          });
         });
       });
 
@@ -166,6 +175,13 @@ suite('conference group handler', function() {
           assert.isFalse(fakeGroupLine.hidden);
           flush();
           assert.isTrue(fakeGroupLine.hidden);
+        });
+
+        test('should hide the overlay of group details', function() {
+          MockCallScreen.showGroupDetails();
+          assert.isTrue(MockCallScreen.mGroupDetailsShown);
+          flush();
+          assert.isFalse(MockCallScreen.mGroupDetailsShown);
         });
       });
     });
@@ -208,6 +224,15 @@ suite('conference group handler', function() {
       MockMozTelephony.mTriggerGroupStateChange();
 
       assert.isFalse(fakeGroupLine.classList.contains('held'));
+    });
+
+    test('should call CallsHandler.checkCalls when exiting conference call',
+    function() {
+      var checkCallsSpy = this.sinon.spy(MockCallsHandler, 'checkCalls');
+      MockMozTelephony.conferenceGroup.state = '';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isTrue(checkCallsSpy.calledOnce);
     });
   });
 });

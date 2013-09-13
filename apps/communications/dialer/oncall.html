@@ -8,7 +8,9 @@
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall_status_bar.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/status.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/overlay.css">
     <link rel="stylesheet" type="text/css" href="/shared/style/status.css">
+    <link rel="stylesheet" type="text/css" href="/shared/style/action_menu.css">
 
     <!-- Localization -->
     <script defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
@@ -53,6 +55,7 @@
             <span role="button" id="switch-calls-button">
             </span>
           </div>
+          <div class="hangup-button"></div>
           <div class="numberWrapper direction-status-bar">
             <div class="number font-light"></div>
           </div>
@@ -67,7 +70,8 @@
         </section>
         <section id="group-call" hidden>
           <div class="numberWrapper">
-            <div id="group-call-label" class="number font-light direction"></div>
+            <div id="group-show"></div>
+            <div id="group-call-label" class="number font-light"></div>
           </div>
           <div id="group-call-summary" class="additionalContactInfo"></div>
           <div class="duration">
@@ -76,8 +80,30 @@
           </div>
         </section>
       </article>
-      <article id="group-call-details">
-      </article>
+      <form id="group-call-details" role="dialog" data-type="action" class="overlay">
+        <header></header>
+        <section id="handled-call-template" hidden>
+          <div class="hangup-button"></div>
+          <div class="numberWrapper">
+            <div class="number font-light"></div>
+          </div>
+          <div class="fake-number font-light"></div>
+          <div class="additionalContactInfo"></div>
+          <div class="duration">
+            <span class="font-light"></span>
+            <div class="direction">
+              <div></div>
+            </div>
+          </div>
+        </section>
+        <menu>
+          <ul id="group-call-details-list">
+          </ul>
+          <button id="group-hide" data-l10n-id='hide'>
+            Hide
+          </button>
+        </menu>
+      </form>
       <article id="main-container">
 
         <div id="actions-container">

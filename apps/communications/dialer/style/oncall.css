@@ -646,8 +646,53 @@
   }
 
   /* Conference group support */
+  #group-call #group-show {
+    position: absolute;
+    padding: 0;
+    right : 0;
+    height: 7rem;
+    width: 8rem;
+    background: url('images/proceed.png') no-repeat center center / 3rem;
+  }
+
+  #group-call.held #group-show {
+    display: none;
+  }
+
+  #calls.big-duration #group-call #group-show {
+    height: 8rem;
+  }
+
+  #group-call #group-show:active {
+    background-color: #00ABCC;
+    transition: background-color 0.2s ease;
+  }
+
+  #group-call .hangup-button,
+  #group-call-details-list .fake-number,
+  #group-call-details-list .duration,
+  #group-call-details-list .switch-calls {
+    display: none;
+  }
+
+  #group-call-details-list .number {
+    font-size: 1.7rem !important;
+    line-height: 2.4rem;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: bold;
+  }
+
   #group-call-details {
-    display:none; /* TODO */
+    z-index: 750;
+  }
+
+  #group-call-details .hangup-button {
+    float: right;
+    width: 4.5rem;
+    height: 4.5rem;
+    background: url(images/ActionIcon_40x40_hangup.png) no-repeat center center / 4rem;
   }
 
   #locked-contact-photo {

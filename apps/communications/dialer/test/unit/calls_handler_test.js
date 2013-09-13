@@ -903,6 +903,24 @@ suite('calls handler', function() {
       });
     });
 
+    suite('> CallsHandler.checkCalls()', function() {
+      var firstConfCall;
+      var secondConfCall;
+      setup(function() {
+        firstConfCall = new MockCall('432423', 'incoming');
+        telephonyAddCall.call(this, firstConfCall, {trigger: true});
+        secondConfCall = new MockCall('432423555', 'incoming');
+        telephonyAddCall.call(this, secondConfCall, {trigger: true});
+      });
+
+      test('should check and set singleLine when exiting conference call mode',
+      function() {
+        MockMozTelephony.calls = [firstConfCall];
+        CallsHandler.checkCalls();
+        assert.isTrue(MockCallScreen.mSingleLine);
+      });
+    });
+
     suite('CallsHandler.activeCall', function() {
       var inactiveCall;
       var activeCall;
