@@ -29,6 +29,8 @@ class Email(Base):
         setup.type_password(password)
         setup.tap_next()
 
+        setup.tap_account_prefs_next()
+
         setup.wait_for_setup_complete()
 
         setup.tap_continue()
@@ -51,6 +53,9 @@ class Email(Base):
         setup.type_smtp_port(imap['smtp_port'])
 
         setup.tap_next()
+
+        setup.tap_account_prefs_next()
+
         setup.wait_for_setup_complete()
         setup.tap_continue()
         self.wait_for_header_area()
@@ -68,6 +73,9 @@ class Email(Base):
         setup.type_activesync_name(active_sync['active_sync_username'])
 
         setup.tap_next()
+
+        setup.tap_account_prefs_next()
+
         setup.wait_for_setup_complete()
         setup.tap_continue()
         self.wait_for_header_area()

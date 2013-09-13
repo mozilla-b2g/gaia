@@ -120,8 +120,8 @@ class ContactForm(Base):
 
     def tap_picture(self):
         self.marionette.find_element(*self._add_picture_link_locator).tap()
-        from gaiatest.apps.system.regions.actions import Actions
-        return Actions(self.marionette)
+        from gaiatest.apps.system.regions.activities import Activities
+        return Activities(self.marionette)
 
     def wait_for_image_to_load(self):
         self.wait_for_element_displayed(*self._picture_loaded_locator)

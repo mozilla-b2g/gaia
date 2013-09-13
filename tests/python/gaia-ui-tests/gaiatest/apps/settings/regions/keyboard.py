@@ -38,7 +38,7 @@ class KeyboardSelectKeyboard(Base):
 
 class KeyboardAddMoreKeyboards(Base):
 
-    _section_locator =(By.ID, 'keyboard-selection-addMore')
+    _section_locator = (By.ID, 'keyboard-selection-addMore')
     _select_language_locator = (
         By.XPATH,
         "//div[@id='keyboardAppContainer']//li[a[text()='%s']]"
@@ -60,3 +60,5 @@ class KeyboardAddMoreKeyboards(Base):
         # We still need this unfortunately
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [selected_language])
         selected_language.tap()
+        checkbox = selected_language.find_element(By.TAG_NAME, 'input')
+        self.wait_for_condition(lambda m: checkbox.get_attribute('checked'))

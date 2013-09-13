@@ -437,7 +437,7 @@ class GaiaTestCase(MarionetteTestCase):
             self.device.stop_b2g()
             if self.device.is_android_build:
                 # revert device to a clean state
-                self.device.manager.removeDir('/data/local/indexedDB')
+                self.device.manager.removeDir('/data/local/storage/persistent')
                 self.device.manager.removeDir('/data/b2g/mozilla')
             self.device.start_b2g()
 
@@ -479,6 +479,9 @@ class GaiaTestCase(MarionetteTestCase):
         # Change timezone back to PST
         self.data_layer.set_setting("time.timezone", "America/Los_Angeles")
         self.data_layer.set_setting("time.timezone.user-selected", "America/Los_Angeles")
+
+        # Set do not track pref back to the default
+        self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
