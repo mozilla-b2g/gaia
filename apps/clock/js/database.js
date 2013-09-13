@@ -20,16 +20,14 @@
     /**
      * SchemaVersion (constructor)
      *
-     * Parameter databaseName {string} - database name.
-     * Parameter version {number} - version integer n, where 0 < n < 2^53.
-     * Parameter options {Object}
-     *            an object containing:
-     *       initializer {function} - a function that initializes a new
-     *            schema version
-     *       upgrader {function} - a function that converts this schema
-     *            version to schema version n+1
-     *       downgrader {function} - a function that converts this schema
-     *            version to schema version n-1.
+     * @param {string} databaseName
+     * @param {number} version - integer n, where 0 < n < 2^53.
+     * @param {Object} options - an object containing:
+     *       initializer {function} - initializes a new schema version.
+     *       upgrader {function} - converts this schema version to schema
+     *                             version n+1.
+     *       downgrader {function} - converts this schema version to
+     *                               schema version n-1.
      *
      * References to SchemaVersion's are maintained automatically
      */
@@ -43,6 +41,16 @@
     addSchemaVersion(this);
     schemaVersions.set(this, true);
   }
+
+  SchemaVersion.noop = function(transaction, callback) {
+    // A noop upgrader/downgrader
+    callback(null);
+  };
+
+  SchemaVersion.error = function(transaction, callback) {
+    // An upgrader/downgrader that reports an error
+    callback(new Error('erroneous upgrader/downgrader'));
+  };
 
   SchemaVersion.getSchemaVersions = function(databaseName) {
     /**
@@ -64,7 +72,7 @@
     /**
      * getAllSchemaVersions
      *
-     * return all the SchemaVersion objects
+     * @return {Array<SchemaVersion>} all the SchemaVersion objects.
      */
     var ret = [];
     for (var i of schemaVersions) {
@@ -80,6 +88,37 @@
     } else {
       schemaVersionNamedRetrieval.delete(databaseName);
     }
+  };
+
+  SchemaVersion.completenessReport = function(databaseName) {
+    /**
+     * completenessReport
+     *
+     * @param {string} databaseName - database to check.
+     * @return {object} a report of the schema completeness,
+     *                  containing arrays of version numbers
+     *                  missing init, up, or downgraders.
+     */
+    var report = {
+      missingInitializers: [],
+      missingUpgraders: [],
+      missingDowngraders: []
+    };
+    var schemas = SchemaVersion.getSchemaVersions(databaseName);
+    for (var i = 0; i < schemas.length; i++) {
+      var first = i === 0;
+      var last = i === schemas.length - 1;
+      if (typeof schemas[i].initializer !== 'function') {
+        report.missingInitializers.push(schemas[i].version);
+      }
+      if (!last && typeof schemas[i].upgrader !== 'function') {
+        report.missingUpgraders.push(schemas[i].version);
+      }
+      if (!first && typeof schemas[i].downgraders !== 'function') {
+        report.missingDowngraders.push(schemas[i].version);
+      }
+    }
+    return report;
   };
 
   // ===========================================================
@@ -108,11 +147,10 @@
     /**
      * Database (constructor)
      *
-     * Parameter options {Object}
-     *            an object containing:
-     *       name {string} -- database name
-     *       version {number} -- version integer n, where 0 < n < 2^53
-     *       schemas {list<string>} -- a list of strings containing
+     * @param {object} options - containing:
+     *       name {string} - database name.
+     *       version {number} - integer n, where 0 < n < 2^53.
+     *       schemas {list<string>} - a list of strings containing
      *            URLs (typically a db/schema_{version}.js naming scheme)
      *            that define the database Schemas. These will be lazy
      *            loaded when the effective version !== the source version.
@@ -141,7 +179,7 @@
   // ===========================================================
   // Database Object Private Methods
 
-  var addHelper = function(listName) {
+  var createAdder = function(listName) {
     return function(version, fn) {
       var added = {
         version: version,
@@ -154,7 +192,7 @@
     };
   };
 
-  var removeHelper = function(listName) {
+  var createRemover = function(listName) {
     return function(version) {
       var removed = { version: version };
       Utils.data.sortedRemove(removed, this[listName],
@@ -166,41 +204,60 @@
   // Database Object Prototype
 
   Database.prototype = {
-    addInitializer: addHelper('initializers'),
-    removeInitializer: removeHelper('initializers'),
-    addUpgrader: addHelper('upgraders'),
-    removeUpgrader: removeHelper('upgraders'),
-    addDowngrader: addHelper('downgraders'),
-    removeDowngrader: removeHelper('downgraders'),
+    addInitializer: createAdder('initializers'),
+    removeInitializer: createRemover('initializers'),
+    addUpgrader: createAdder('upgraders'),
+    removeUpgrader: createRemover('upgraders'),
+    addDowngrader: createAdder('downgraders'),
+    removeDowngrader: createRemover('downgraders'),
 
     get effectiveVersionName() {
       return '__effectiveVersion__';
     },
 
-    setLatestVersion: function(version, transaction, callback) {
-      var db = transaction.db;
-      if (Array.prototype.indexOf.call(db.objectStoreNames,
-        this.effectiveVersionName) !== -1) {
-        db.deleteObjectStore(this.effectiveVersionName);
+    setLatestVersion: function(databaseName, version, callback) {
+      /**
+       * setLatestVersion @private
+       *
+       * @param {string} [databaseName] - name of database.
+       * @param {number} version - effective version number to set.
+       * @param {function} callback - call with result:
+       *                              (err, versionNumber, effectiveNumber).
+       */
+      if (arguments.length === 2 &&
+          typeof arguments[0] === 'number' &&
+          typeof arguments[1] === 'function') {
+        // if no databaseName was passed, use `this`
+        databaseName = this.name;
+        version = arguments[0];
+        callback = arguments[1];
       }
-      var ev = db.createObjectStore(this.effectiveVersionName);
-      var req = ev.put({ number: version }, 0);
-      req.onsuccess = function(ev) {
-        callback && callback(null);
-      };
-      req.onerror = function(ev) {
-        callback && callback(req.error);
-      };
+      this.requestMutatorTransaction(function(err, transaction) {
+        var db = transaction.db;
+        if (Array.prototype.indexOf.call(db.objectStoreNames,
+          this.effectiveVersionName) !== -1) {
+          db.deleteObjectStore(this.effectiveVersionName);
+        }
+        var ev = db.createObjectStore(this.effectiveVersionName);
+        var req = ev.put({ number: version }, 0);
+        req.onsuccess = function(ev) {
+          transaction.db.close();
+          callback && callback(null);
+        };
+        req.onerror = function(ev) {
+          transaction.db.close();
+          callback && callback(req.error);
+        };
+      }.bind(this));
     },
 
     getLatestVersion: function(databaseName, callback) {
       /**
-       * getLatestVersion
+       * getLatestVersion @private
        *
-       * Parameter databaseName {string} -- database name to query
-       *        (optional).
-       * Parameter callback {function} -- callback to call with
-       *            (err, versionNumber, effectiveNumber).
+       * @param {string} [databaseName] - name of database.
+       * @param {function} callback - call with result:
+       *                              (err, versionNumber, effectiveNumber).
        */
       if (arguments.length === 1 && typeof arguments[0] === 'function') {
         // if no databaseName was passed, use `this`
@@ -208,63 +265,64 @@
         callback = arguments[0];
       }
       var ignoreError = false;
+
+      // Force an `onupgradeneeded` event so that we can query for the
+      //effective version number. The request will be aborted in order
+      // to prevent the request's side effects on the database.
       var req = indexedDB.open(databaseName, Math.pow(2, 53) - 1);
-      var getEffective = (function(transaction, callback) {
+      var getEffective = (function(openEvent, transaction, callback) {
+        var upgrade = transaction.mode === 'versionchange';
         var db = transaction.db;
         db.onversonchange = function(ev) {
           db.close();
         };
-        var ev = transaction.objectStore(this.effectiveVersionName);
-        var req = ev.get(0);
-        req.onsuccess = function(ev) {
-          callback && callback(null, req.result['number']);
-        };
-        req.onerror = function(ev) {
-          callback && callback(req.error);
-        };
-      }).bind(this);
-      req.onupgradeneeded = function(ev) {
-        // req.result.version < 2^53 - 1
-        if (ev.oldVersion === 0) {
+        var calloutAndCleanup = function(err, effective) {
           try {
-            req.result.close();
-            callback && callback(null, ev.oldVersion, 0);
+            callback && callback(err,
+              upgrade ? openEvent.oldVersion : Math.pow(2, 53) - 1,
+              err !== null ? 0 : effective);
           } finally {
+            db.close();
             ignoreError = true;
-            ev.target.transaction.abort();
+            transaction.abort();
           }
-          return;
+        };
+        if ((!upgrade || openEvent.oldVersion > 0) &&
+            Array.prototype.indexOf.call(db.objectStoreNames,
+                                         this.effectiveVersionName) !== -1) {
+          var ev = transaction.objectStore(this.effectiveVersionName);
+          var req = ev.get(0);
+          req.onsuccess = req.onerror = function(ev) {
+            calloutAndCleanup(req.error,
+              req.error === null ? req.result.number : 0);
+          };
+        } else {
+          calloutAndCleanup(null, 0);
         }
-        getEffective(ev.target.transaction, function(err, effective) {
-          try {
-            if (!err) {
-              callback && callback(null, ev.oldVersion, effective);
-            } else {
-              callback && callback(null, ev.oldVersion, null);
-            }
-          } finally {
-            req.result.close();
-            ignoreError = true;
-            ev.target.transaction.abort();
-          }
-        });
+      }).bind(this);
+
+      // This function is invoked ~(1 - 10^-14) percent of the time, whenever
+      // req.result.version < 2^53 - 1. The transaction will be aborted before
+      // onsuccess is called, to prevent any changes from occurring.
+      req.onupgradeneeded = function(ev) {
+        getEffective(ev, ev.target.transaction, callback);
       };
+
+      // Edge case: invoked when the IndexDB version number is maxed out.
+      // This function is invoked ~(10^-14) percent of the time, whenever
+      // req.result.version === 2^53 - 1. The transaction will be aborted.
       req.onsuccess = (function(ev) {
-        // req.result.version === 2^53 - 1
         var trans = req.result.transaction(
           this.effectiveVersionName, 'readonly');
-        getEffective(trans, function(err, effective) {
-          try {
-            callback && callback(null, req.result.version, effective);
-          } finally {
-            req.result.close();
-            ignoreError = true;
-            trans.abort();
-          }
-        });
+        getEffective(ev, trans, callback);
       }).bind(this);
+
       req.onerror = req.onblocked = function(ev) {
         ev.preventDefault();
+        // Every aborted transaction triggers an `onerror` event. Because we
+        // are intentionally aborting the "open" transaction in order to avoid
+        // side effects, we can safely ignore this event in  the successful
+        // case.
         if (!ignoreError) {
           callback && callback(
             new Error('Error retrieving indexedDB version #'));
@@ -277,10 +335,10 @@
 
     loadSchemas: function(callback) {
       /**
-       * loadSchemas
+       * loadSchemas @private
        *
-       * Parameter callback {function} - called after all
-       *            schemas are loaded.
+       * @param {function} callback - called after all
+       *                              schemas are loaded.
        *
        * Lazily loads schemas and then calls the callback.
        * SchemaVersions that were defined with a different
@@ -295,44 +353,69 @@
       }.bind(this));
     },
 
-    initialize: function(transaction, newVersion, callback) {
+    initialize: function(newVersion, callback) {
       /**
-       * initialize
+       * initialize @private
        *
-       * Parameter transaction {IDBTransaction} - versionchanged
-       *        transaction.
-       * Parameter newVersion {number} - integer effective version.
-       * Parameter callback {function} - function to be called after
-       *            the database is initialized.
+       * @param {number} newVersion - integer effective version.
+       * @param {function} callback - function to be called after
+       *                              the database is initialized.
        */
-      var db = transaction.db;
-      var objectStores = db.objectStoreNames;
-      for (var i = 0; i < objectStores.length; i++) {
-        db.deleteObjectStore(objectStores[i]);
-      }
-      var init = Utils.data.binarySearch({ 'version': newVersion },
-        this.initializers,
-        Utils.data.keyedCompare('version'));
-      if (init.match) {
-        var setVersion = (function() {
-          this.setLatestVersion(newVersion, transaction, callback);
-        }).bind(this);
-        this.initializers[init.index].fn(transaction, setVersion);
-      } else {
-        callback(new Error('no initializer for ' + newVersion));
-      }
+      this.requestMutatorTransaction(function(err, transaction) {
+        var db = transaction.db;
+        var objectStores = db.objectStoreNames;
+        for (var i = 0; i < objectStores.length; i++) {
+          db.deleteObjectStore(objectStores[i]);
+        }
+        var init = Utils.data.binarySearch({ 'version': newVersion },
+          this.initializers,
+          Utils.data.keyedCompare('version'));
+        if (init.match) {
+          var setVersion = (function(err) {
+            db.close();
+            this.setLatestVersion(this.name, newVersion, callback);
+          }).bind(this);
+          this.initializers[init.index].fn(transaction, setVersion);
+        } else {
+          callback && callback(new Error('no initializer for ' + newVersion));
+        }
+      }.bind(this));
     },
 
-    upgrade: function(transaction, oldVersion, newVersion, callback) {
+    requestMutatorTransaction: function(callback) {
       /**
-       * upgrade
+       * requestMutatorTransaction @private
        *
-       * Parameter transaction {IDBTransaction} - versionchanged
-       *        transaction.
-       * Parameter oldVersion {number} - integer old effective version.
-       * Parameter newVersion {number} - integer effective version.
-       * Parameter callback {function} - function to be called after
-       *            the database is initialized.
+       * @param {function} callback - function to be called with the
+       *                              versionchange transaction.
+       */
+      this.getLatestVersion(this.name, function(err, version, effective) {
+        var req = indexedDB.open(this.name, version + 1);
+        req.onupgradeneeded = function(ev) {
+          req.result.onversionchange = function(ev) {
+            req.result.close();
+          };
+          callback && callback(null, ev.target.transaction, req);
+        };
+        req.onerror = function(ev) {
+          callback && callback(req.error);
+        };
+      }.bind(this));
+    },
+
+    upgrade: function(oldVersion, newVersion, callback) {
+      /**
+       * upgrade @private
+       *
+       * @param {IDBTransaction} transaction - versionchanged transaction.
+       * @param {number} oldVersion - integer old effective version.
+       * @param {number} newVersion - integer effective version.
+       * @param {function} callback - function to be called after
+       *                              the database is upgraded.
+       *
+       * Attempt to upgrade the database. If the upgrade fails, or if
+       * there is no upgrade path defined, we default to destroying the
+       * existing database and initializing a new one of this.version.
        */
       var mutators, direction;
       if (newVersion === oldVersion) {
@@ -348,7 +431,7 @@
         Utils.data.keyedCompare('version'));
       var plan = [], last = null;
       if (first.match) {
-        var applicableMutator = function(m, dir, version) {
+        var isApplicableMutator = function(m, dir, version) {
           // don't upgrade past the target
           if (dir === 1) {
             return m.version < version;
@@ -358,10 +441,13 @@
         };
         for (var i = first.index;
              i >= 0 && i < mutators.length &&
-               applicableMutator(mutators[i], direction, newVersion);
+               isApplicableMutator(mutators[i], direction, newVersion);
              i += direction) {
+          // If our version numbers have a gap larger than 1, we
+          // cannot fluidly upgrade or downgrade. Truncate the
+          // plan and continue (forcing an initialize).
           if (last && Math.abs(last - mutators[i].version) > 1) {
-            plan.splice(0, plan.length);
+            plan.length = 0;
             break;
           }
           plan.push(mutators[i]);
@@ -369,29 +455,65 @@
         }
       }
       if (plan.length === 0) {
-        this.initialize(transaction, newVersion, callback);
-        return;
-      }
-      var gen = Utils.async.generator(function(err) {
-        this.setLatestVersion(newVersion, transaction, function(err) {
+        this.initialize(newVersion, function(err) {
           callback && callback(err);
         });
-      }.bind(this));
-      var done = gen();
-      try {
-        for (var i = 0; i < plan.length; i++) {
-          plan[i].fn.call(transaction, transaction, gen());
-        }
-        done();
-      } catch (err) {
-        console.log('Upgrade error:', err.message, err.fileName,
-          err.lineNumber);
-        this.initialize(transaction, newVersion, callback);
+        return;
       }
+      var finalizer = (function(err) {
+        if (!err) {
+          this.setLatestVersion(this.name, newVersion, function(err) {
+            callback && callback(err);
+          });
+        } else {
+          console.log('Upgrade error:', err.message, err.fileName,
+            err.lineNumber);
+          // We can't do anything useful here, so start from scratch,
+          // destroying user data
+          this.initialize(newVersion, function(err) {
+            callback && callback(err);
+          });
+        }
+      }).bind(this);
+      var last = finalizer;
+      for (var i = plan.length - 1; i >= 0; i--) {
+        last = (function(converter, version, cb) {
+          // de-duplicate the callbacks
+          var dedup = Utils.async.namedParallel(['converter'], cb);
+          return (function(passedErr) {
+            if (passedErr) {
+              cb(passedErr);
+              return;
+            }
+            this.requestMutatorTransaction(function(err, transaction) {
+              try {
+                converter.call(transaction, transaction, dedup.converter);
+              } catch (err) {
+                dedup.converter(err);
+              } finally {
+                transaction.db.close();
+              }
+            });
+          }).bind(this);
+        }.bind(this))(plan[i].fn, plan[i].version, last);
+      }
+      last(null);
     },
 
-    query: function(callback) {
+    connect: function(callback) {
+      /**
+       * connect
+       *
+       * @param {function} callback - function to be called after
+       *                              the database connection is
+       *                              created. Called with (err,
+       *                              database).
+       *
+       * This is the primary API for the database object. Most
+       * other methods on Database are not relevant in typical usage.
+       */
       var opener = (function(actualVersion, effectiveVersion) {
+        var mutating = false;
         var req = indexedDB.open(this.name, actualVersion);
         req.onsuccess = function(event) {
           req.result.onversionchange = function(event) {
@@ -399,36 +521,43 @@
           };
           callback && callback(null, req.result);
         };
-        req.onerror = function(event) {
+        req.onerror = (function(event) {
           event.preventDefault();
-          callback && callback(req.error);
-        };
-        req.onupgradeneeded = (function(event) {
-          this.upgrade(event.target.transaction, effectiveVersion,
-            this.version, function(err) {
-            if (err) {
-              event.target.transaction.abort();
-            }
-          });
+          if (mutating) {
+            this.upgrade(effectiveVersion, this.version, function(err) {
+              if (err) {
+                callback && callback(req.error);
+                return;
+              }
+              this.connect(callback);
+            }.bind(this));
+          } else {
+            callback && callback(req.error);
+          }
         }).bind(this);
+        req.onupgradeneeded = function(event) {
+          mutating = true;
+          req.result.close();
+          event.target.transaction.abort();
+        };
         req.onblocked = function(event) {
           callback && callback(new Error('blocked'));
         };
       }).bind(this);
-      var loaderOpener = function(upgrading, version, effective) {
-        if (upgrading) {
+      var loaderOpener = function(mutating, version, effective) {
+        if (mutating) {
           this.loadSchemas(opener.bind(this, version, effective));
         } else {
           opener.call(this, version, effective);
         }
       };
       this.getLatestVersion(this.name, function(err, version, effective) {
-        var upgrading = false;
+        var mutating = false;
         if (version === 0 || effective !== this.version) {
           version++;
-          upgrading = true;
+          mutating = true;
         }
-        loaderOpener.call(this, upgrading, version, effective);
+        loaderOpener.call(this, mutating, version, effective);
       }.bind(this));
     }
   };

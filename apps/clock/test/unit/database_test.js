@@ -22,7 +22,7 @@ suite('Database Test', function() {
 
   suite('Database creation', function() {
 
-    this.slow(500);
+    this.slow(750);
     this.timeout(5000);
 
     var db = null;
@@ -111,7 +111,7 @@ suite('Database Test', function() {
     });
 
     test('Get a connection fails with no schemas', function(done) {
-      db.query(function(err, conn) {
+      db.connect(function(err, conn) {
         assert.ok(err);
         assert.ok(!conn);
         done();
@@ -267,7 +267,7 @@ suite('Database Test', function() {
             objB.createIndex('bi', 'b', {
               unique: true, multiEntry: false
             });
-            var objC = trans.objectStore('objC', IDBTransaction.READ);
+            var objC = trans.objectStore('objC');
             var curreqC = objC.openCursor(undefined, 'next');
             curreqC.onsuccess = function(ev) {
               var cursor = curreqC.result;
@@ -331,7 +331,7 @@ suite('Database Test', function() {
 
     var populateV1DB = function(callback) {
       var v1db = new Database({ name: 'testDB', version: 1 });
-      v1db.query(function(err, conn) {
+      v1db.connect(function(err, conn) {
         var trans = conn.transaction(['objA', 'objB'], 'readwrite');
         var objA = trans.objectStore('objA');
         objA.put({ id: 1, a: 2, str: 'two' });
@@ -348,7 +348,7 @@ suite('Database Test', function() {
 
     var populateV2DB = function(callback) {
       var v2db = new Database({ name: 'testDB', version: 2 });
-      v2db.query(function(err, conn) {
+      v2db.connect(function(err, conn) {
         var trans = conn.transaction(['objA', 'objC'], 'readwrite');
         var objA = trans.objectStore('objA');
         objA.put({ id: 1, a: 3, str: 'three' });
@@ -366,7 +366,7 @@ suite('Database Test', function() {
 
     test('Get a connection succeeds with a schemas', function(done) {
       createSchema();
-      db.query(function(err, conn) {
+      db.connect(function(err, conn) {
         assert.ok(!err);
         assert.ok(conn);
         conn.close();
@@ -374,9 +374,19 @@ suite('Database Test', function() {
       });
     });
 
+    test('Check Schema Consistency', function() {
+      createSchema();
+      var report = SchemaVersion.completenessReport('testDB');
+      assert.deepEqual(report, {
+        missingInitializers: [],
+        missingUpgraders: [],
+        missingDowngraders: [2]
+      });
+    });
+
     test('Get a connection non-existent initializes correctly', function(done) {
       createSchema();
-      db.query(function(err, conn) {
+      db.connect(function(err, conn) {
         assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
           .sort(),
           [db.effectiveVersionName, 'objA', 'objB'].sort());
@@ -389,13 +399,12 @@ suite('Database Test', function() {
       var getVersion = function() {
         db.getLatestVersion(db.name, function(err, version, effective) {
           assert.ok(!err);
-          assert.equal(version, 1);
-          assert.equal(version, 1);
+          assert.equal(effective, 1, 'effective');
           done();
         });
       };
       createSchema();
-      db.query(function(err, conn) {
+      db.connect(function(err, conn) {
         conn.close();
         getVersion();
       });
@@ -441,6 +450,28 @@ suite('Database Test', function() {
       done();
     };
 
+    test('getLatestVersion at mod 2^53 - 1', function(done) {
+      createSchema();
+      var timeout = function() {
+        db.getLatestVersion('testDB', function(err, version, effective) {
+          assert.ok(!err);
+          assert.equal(version, Math.pow(2, 53) - 1);
+          assert.equal(effective, 1);
+          done();
+        });
+      };
+      populateV1DB(function() {
+        var req = indexedDB.open('testDB', Math.pow(2, 53) - 1);
+        req.onsuccess = function(ev) {
+          req.result.close();
+          setTimeout(timeout, 0);
+        };
+        req.onerror = function(ev) {
+          done(req.error);
+        };
+      });
+    });
+
     var matchValues = function(a, b) {
       if (Utils.data.defaultCompare(
         Object.keys(a).sort(),
@@ -458,7 +489,7 @@ suite('Database Test', function() {
       return true;
     };
 
-    test('Upgrade the database', function(done) {
+    test('Upgrade the database 1 -> 2', function(done) {
       createSchema();
       var versionCheck = function(err) {
         if (err) {
@@ -466,15 +497,13 @@ suite('Database Test', function() {
         }
         db.getLatestVersion(db.name, function(err, version, effective) {
           assert.ok(!err);
-          assert.equal(version, 2);
-          assert.equal(version, 2);
+          assert.equal(effective, 2);
           done();
         });
       };
       populateV1DB(function() {
         db.version = 2;
-        db.query(function(err, conn) {
-          assert.equal(conn.version, 2);
+        db.connect(function(err, conn) {
           assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
             .sort(),
             [db.effectiveVersionName, 'objA', 'objC'].sort());
@@ -502,7 +531,7 @@ suite('Database Test', function() {
       });
     });
 
-    test('Downgrade the database', function(done) {
+    test('Upgrade the database 1 -> 3', function(done) {
       createSchema();
       var versionCheck = function(err) {
         if (err) {
@@ -510,14 +539,59 @@ suite('Database Test', function() {
         }
         db.getLatestVersion(db.name, function(err, version, effective) {
           assert.ok(!err);
-          assert.equal(version, 2);
+          assert.equal(effective, 3);
+          done();
+        });
+      };
+      db.addUpgrader(2, SchemaVersion.noop);
+      new SchemaVersion('testDB', 3, {
+        initializer: SchemaVersion.noop
+      }).register(db);
+      populateV1DB(function() {
+        db.version = 3;
+        db.connect(function(err, conn) {
+          assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
+            .sort(),
+            [db.effectiveVersionName, 'objA', 'objC'].sort());
+          var extract = extractValues(conn, function(err, value) {
+            assert.ok(!err);
+            assert.deepEqual(value[db.effectiveVersionName].get(0), {
+              number: 3
+            });
+            assert.deepEqual(value['objA'].get(1), {
+              id: 1, a: 3, str: 'two'
+            });
+            assert.deepEqual(value['objA'].get(2), {
+              id: 2, a: 5, str: 'four'
+            });
+            assert.deepEqual(value['objA'].get(3), {
+              id: 3, a: 7, str: 'six'
+            });
+            assert.deepEqual(value['objC'].get(1), { c: 42 });
+            assert.deepEqual(value['objC'].get(2), { c: 96 });
+            assert.deepEqual(value['objC'].get(3), { c: 112 });
+            conn.close();
+            versionCheck(err);
+          });
+        });
+      });
+    });
+
+    test('Downgrade the database 2 -> 1', function(done) {
+      createSchema();
+      var versionCheck = function(err) {
+        if (err) {
+          done(err);
+        }
+        db.getLatestVersion(db.name, function(err, version, effective) {
+          assert.ok(!err);
           assert.equal(effective, 1);
           done();
         });
       };
       populateV2DB(function() {
         db.version = 1;
-        db.query(function(err, conn) {
+        db.connect(function(err, conn) {
           assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
             .sort(),
             [db.effectiveVersionName, 'objA', 'objB'].sort());
@@ -540,6 +614,64 @@ suite('Database Test', function() {
             assert.deepEqual(value['objB'].get(3), { b: 112 });
             conn.close();
             versionCheck(err);
+          });
+        });
+      });
+    });
+
+    test('Downgrade the database 3 -> 1', function(done) {
+      createSchema();
+      var versionCheck = function(err) {
+        if (err) {
+          done(err);
+        }
+        db.getLatestVersion(db.name, function(err, version, effective) {
+          assert.ok(!err);
+          assert.equal(effective, 1);
+          done();
+        });
+      };
+      populateV2DB(function() {
+        var schemas = SchemaVersion.getSchemaVersions('testDB');
+        var s2 = schemas[
+          Utils.data.binarySearch({ version: 2 }, schemas,
+            Utils.data.keyedCompare('version')).index
+          ];
+        db.addUpgrader(2, SchemaVersion.noop);
+        new SchemaVersion('testDB', 3, {
+          initializer: s2.initializer,
+          downgrader: function(a, b) {
+            SchemaVersion.noop(a, b);
+          }
+        }).register(db);
+        db.version = 3;
+        db.connect(function(err, conn) {
+          conn.close();
+          db.version = 1;
+          db.connect(function(err, conn) {
+            assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
+              .sort(),
+              [db.effectiveVersionName, 'objA', 'objB'].sort());
+            var extract = extractValues(conn, function(err, value) {
+              assert.ok(!err);
+              assert.deepEqual(value[db.effectiveVersionName].get(0), {
+                number: 1
+              });
+              assert.deepEqual(value['objA'].get(1), {
+                id: 1, a: 2, str: 'three'
+              });
+              assert.deepEqual(value['objA'].get(2), {
+                id: 2, a: 4, str: 'five'
+              });
+              assert.deepEqual(value['objA'].get(3), {
+                id: 3, a: 6, str: 'seven'
+              });
+              assert.deepEqual(value['objB'].get(1), { b: 42 });
+              assert.deepEqual(value['objB'].get(2), { b: 96 });
+              assert.deepEqual(value['objB'].get(3), { b: 112 });
+              conn.close();
+              versionCheck(err);
+            });
           });
         });
       });
