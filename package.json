@@ -8,7 +8,7 @@
     "debug": "*",
     "marionette-profile-builder": "0.0.2",
     "marionette-apps": "0.3.0",
-    "marionette-client": "~0.15.0",
+    "marionette-client": "0.15.1",
     "marionette-helper": "0.0.7",
     "marionette-content-script": "0.0.0",
     "marionette-js-runner": "~0.1.0",
