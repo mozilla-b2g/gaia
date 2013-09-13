@@ -45,7 +45,9 @@ var Selector = {
   folderListButton: '.msg-list-header .msg-folder-list-btn',
   settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
   addAccountButton: '.tng-accounts-container .tng-account-add',
-  accountListButton: '.fld-folders-header .fld-accounts-btn'
+  accountListButton: '.fld-folders-header .fld-accounts-btn',
+  settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
+  syncIntervalSelect: '.tng-account-check-interval '
 };
 
 Email.prototype = {
@@ -122,6 +124,12 @@ Email.prototype = {
       findElement(Selector.settingsButton).
       tap();
     this._waitForTransitionEnd('settings_main');
+  },
+
+  tapSettingsAccountIndex: function(index) {
+    var elements = this.client.findElements(Selector.settingsMainAccountItems);
+    elements[index].tap();
+    this._waitForTransitionEnd('settings_account');
   },
 
   tapAddAccountButton: function() {
@@ -204,6 +212,11 @@ Email.prototype = {
     client.helper.waitForElement('body');
   },
 
+  close: function() {
+    var client = this.client;
+    client.apps.close(Email.EMAIL_ORIGIN);
+  },
+
   tapEmailAtIndex: function(index) {
     var client = this.client;
     var element = client.findElements(Selector.messageHeaderItem)[index];
@@ -235,6 +248,33 @@ Email.prototype = {
     }
     client.findElement(whichButton).tap();
     this._waitForTransitionEnd('compose');
+  },
+
+  setSyncIntervalSelectValue: function(value) {
+    return this._setSelectValue(Selector.syncIntervalSelect, value);
+  },
+
+  // TODO: switch to https://github.com/mozilla-b2g/marionette-plugin-forms
+  // once this bug is fixed:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=915324
+  _setSelectValue: function(selector, value) {
+    var client = this.client;
+    client.waitFor(function() {
+      return client.executeScript(function(selector, value) {
+        var doc = window.wrappedJSObject.document,
+            selectNode = doc.querySelector(selector);
+
+        selectNode.value = value;
+
+        // Synthesize an event since changing the value on its own does
+        // not trigger change listeners.
+        var event = document.createEvent('Event');
+        event.initEvent('change', true, true);
+        selectNode.dispatchEvent(event);
+
+        return true;
+      }, [selector, value]);
+    });
   },
 
   _waitForTransitionEnd: function(cardId) {
@@ -285,6 +325,7 @@ Email.prototype = {
   },
 
   _tapSelector: function(selector) {
+    this.client.helper.waitForElement(selector);
     this.client.findElement(selector).tap();
   },
 
@@ -371,22 +412,5 @@ Email.prototype = {
   }
 };
 
-/*
-// Optionally log all calls done to prototype methods. Uncomment this
-// section to get traces when trying to debug where flow gets stuck.
-Object.keys(Email.prototype).forEach(function(key) {
-  var desc = Object.getOwnPropertyDescriptor(Email.prototype, key);
-  if (!desc.get && !desc.set && typeof Email.prototype[key] === 'function') {
-    var oldMethod = Email.prototype[key];
-    Email.prototype[key] = function() {
+require('./debug')('email', Email.prototype);
 
-      var args = Array.prototype.slice.call(arguments, 0).map(function(arg) {
-        return String(arg);
-      }).join(', ');
-
-      console.log('Email.' + key + '(' + args + ')');
-      return oldMethod.apply(this, arguments);
-    };
-  }
-});
-*/

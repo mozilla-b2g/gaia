@@ -31,37 +31,6 @@ function section_echo {
 }
 
 echo
-section_echo 'Preparing test environment'
-
-echo 'Downloading and installing closure linter'
-sudo easy_install $GJSLINT_PACKAGE_URL &> /dev/null
-
-echo 'Downloading Firefox'
-npm install -g mozilla-download &> /dev/null
-mozilla-download --product firefox $PWD/firefox
-
-echo 'Downloading & installing node dependencies'
-make common-install &> /dev/null
-
-# Make gaia for test-agent environment
-echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
-DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make &> /dev/null
-
-echo "Starting test-agent-server and waiting for server to start on port ${TEST_AGENT_PORT}"
-make test-agent-server &> /dev/null &
-waiting_port $TEST_AGENT_PORT
-
-echo 'Starting Firefox'
-firefox/firefox -profile `pwd`/profile-debug "$TESTAGENT_URL" &> /dev/null &
-waiting_port 8080
-sleep 5
-
-echo
-section_echo 'make lint'
-make lint
-LINT_RESULT_STATUS=$?
-echo
-
 section_echo 'Integration Tests (make test-integration)'
 # download b2g-desktop (here to avoid spam).
 make b2g &> /dev/null
@@ -70,11 +39,6 @@ PROFILE_FOLDER=profile-test make &> /dev/null
 # make test-integration will also download b2g but its alot of spam
 make test-integration
 INTEGRATION_TEST_RESULT_STATUS=$?
-echo
-
-section_echo 'make test-agent-test'
-make test-agent-test REPORTER=Min
-TEST_RESULT_STATUS=$?
 echo
 
 [ $LINT_RESULT_STATUS -ne 0 ] &&\
