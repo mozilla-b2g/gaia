@@ -4,6 +4,9 @@
 'use strict';
 
 (function OperatorVariant() {
+  // Reserved Test Network MCC. This is how we know we're running tests vs
+  // running in the real world.
+  const TEST_NETWORK_MCC = "001";
 
   // Cache the values we've seen.
   var iccSettings = { mcc: -1, mnc: -1 };
@@ -37,6 +40,14 @@
   operatorVariantHelper.listen();
 
   function applySettings(mcc, mnc) {
+
+    // Only apply once per device boot-up, except when in tests. All tests
+    // use the reserved Test Network MCC value of '1'. See this handy table
+    // for more information: http://en.wikipedia.org/wiki/Mobile_country_code
+    if (mcc != TEST_NETWORK_MCC) {
+      operatorVariantHelper.listen(false);
+    }
+
     // same SIM card => do nothing
     if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc)) {
       var apnSettingsKey = 'ril.data.apnSettings';

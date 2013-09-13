@@ -10,7 +10,7 @@ var mocksForOperatorVariant = new MocksHelper([
 ]).init();
 
 suite('operator variant', function() {
-  const TEST_NETWORK_MCC = 111;
+  const TEST_NETWORK_MCC = "001";
 
   const EXPECTED_DATA_MNC = 1;
   const EXPECTED_DATA_ICC_INFO = {
@@ -28,6 +28,20 @@ suite('operator variant', function() {
   const EXPECTED_OV_ICC_INFO = {
     mcc: TEST_NETWORK_MCC,
     mnc: EXPECTED_OV_MNC
+  };
+
+  const T_MOBILE_US_MCC = 310;
+  const T_MOBILE_160_US_MNC = 160;
+  const T_MOBILE_200_US_MNC = 200;
+
+  const T_MOBILE_160_US_ICC_INFO = {
+    mcc: T_MOBILE_US_MCC,
+    mnc: T_MOBILE_160_US_MNC
+  };
+
+  const T_MOBILE_200_US_ICC_INFO = {
+    mcc: T_MOBILE_US_MCC,
+    mnc: T_MOBILE_200_US_MNC
   };
 
   const NULL_ICC_INFO = { mcc: 0, mnc: 0 };
@@ -196,6 +210,39 @@ suite('operator variant', function() {
     setObservers(OV_KEYS_VALUES, observer);
 
     MockIccHelper.mProps.iccInfo = EXPECTED_OV_ICC_INFO;
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+  });
+
+  test('operator variant apply once per boot', function() {
+    var observer = {
+      bound: null,
+      hasApplied: false,
+      func: function(event) {
+        if (event.settingName == 'ril.data.carrier') {
+          assert.false(
+            this.hasApplied,
+            'Settings should *not* be applied twice!'
+          );
+
+          assert.match(
+            event.settingValue,
+            /^T-Mobile US/,
+            'Expected network name to contain "T-Mobile US"'
+          );
+
+          this.hasApplied = true;
+        }
+      }
+    };
+
+    observer.bound = observer.func.bind(observer);
+    MockNavigatorSettings.addObserver('ril.data.carrier', observer.bound);
+
+    // Testing apply once per boot requires *real* mcc/mnc information.
+    MockIccHelper.mProps.iccInfo = T_MOBILE_160_US_ICC_INFO;
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+
+    MockIccHelper.mProps.iccInfo = T_MOBILE_200_US_ICC_INFO;
     MockIccHelper.mTriggerEventListeners('iccinfochange', {});
   });
 });
