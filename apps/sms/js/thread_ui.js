@@ -1539,6 +1539,10 @@ var ThreadUI = global.ThreadUI = {
       recipients = Threads.active.participants;
     }
 
+    DraftHelper.init();
+    DraftHelper.getDraft(recipients, null);
+    DraftHelper.saveDraft(recipients, content);
+    //window.alert(this.recipients);
     // Clean composer fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
 
