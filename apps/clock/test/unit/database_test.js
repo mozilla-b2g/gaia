@@ -526,7 +526,8 @@ suite('Database Test', function() {
           done();
         });
       };
-      db.addUpgrader(2, SchemaVersion.noop);
+      var upgraderSpy = sinon.spy(SchemaVersion.noop);
+      db.addUpgrader(2, upgraderSpy);
       new SchemaVersion('testDB', 3, {
         initializer: SchemaVersion.noop
       }).register(db);
@@ -534,6 +535,7 @@ suite('Database Test', function() {
         db.version = 3;
         db.connect(function(err, conn) {
           assert.ok(!err);
+          assert.ok(upgraderSpy.called);
           assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
             .sort(),
             [db.effectiveVersionName, 'objA', 'objC'].sort());
@@ -622,17 +624,17 @@ suite('Database Test', function() {
             Utils.data.keyedCompare('version')).index
           ];
         db.addUpgrader(2, SchemaVersion.noop);
+        var downgraderSpy = sinon.spy(SchemaVersion.noop);
         new SchemaVersion('testDB', 3, {
           initializer: s2.initializer,
-          downgrader: function(a, b) {
-            SchemaVersion.noop(a, b);
-          }
+          downgrader: downgraderSpy
         }).register(db);
         db.version = 3;
         db.connect(function(err, conn) {
           conn.close();
           db.version = 1;
           db.connect(function(err, conn) {
+            assert.ok(downgraderSpy.calledOnce);
             assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
               .sort(),
               [db.effectiveVersionName, 'objA', 'objB'].sort());
