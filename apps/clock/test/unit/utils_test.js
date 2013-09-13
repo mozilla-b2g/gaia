@@ -235,12 +235,13 @@ suite('Time functions', function() {
         assert.equal(Utils.data.defaultCompare(0, 0), 0);
         assert.equal(Utils.data.defaultCompare(0, 1), -1);
         assert.equal(Utils.data.defaultCompare(1, 0), 1);
+        var e;
         try {
           Utils.data.defaultCompare(1, {});
         } catch (err) {
-          assert.ok(err);
+          e = err;
         }
-        var e;
+        assert.ok(e);
         try {
           Utils.data.defaultCompare({}, 1);
         } catch (err) {
