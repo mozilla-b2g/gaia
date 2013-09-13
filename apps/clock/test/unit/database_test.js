@@ -550,6 +550,7 @@ suite('Database Test', function() {
       populateV1DB(function() {
         db.version = 3;
         db.connect(function(err, conn) {
+          assert.ok(!err);
           assert.deepEqual(Array.prototype.slice.call(conn.objectStoreNames)
             .sort(),
             [db.effectiveVersionName, 'objA', 'objC'].sort());

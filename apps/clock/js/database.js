@@ -512,8 +512,7 @@
        * This is the primary API for the database object. Most
        * other methods on Database are not relevant in typical usage.
        */
-      var opener = (function(actualVersion, effectiveVersion) {
-        var mutating = false;
+      var opener = (function(actualVersion) {
         var req = indexedDB.open(this.name, actualVersion);
         req.onsuccess = function(event) {
           req.result.onversionchange = function(event) {
@@ -523,41 +522,33 @@
         };
         req.onerror = (function(event) {
           event.preventDefault();
-          if (mutating) {
-            this.upgrade(effectiveVersion, this.version, function(err) {
-              if (err) {
-                callback && callback(req.error);
-                return;
-              }
-              this.connect(callback);
-            }.bind(this));
-          } else {
-            callback && callback(req.error);
-          }
+          callback && callback(req.error);
         }).bind(this);
-        req.onupgradeneeded = function(event) {
-          mutating = true;
-          req.result.close();
-          event.target.transaction.abort();
-        };
         req.onblocked = function(event) {
           callback && callback(new Error('blocked'));
         };
       }).bind(this);
-      var loaderOpener = function(mutating, version, effective) {
-        if (mutating) {
-          this.loadSchemas(opener.bind(this, version, effective));
-        } else {
-          opener.call(this, version, effective);
-        }
-      };
       this.getLatestVersion(this.name, function(err, version, effective) {
-        var mutating = false;
         if (version === 0 || effective !== this.version) {
-          version++;
-          mutating = true;
+          this.loadSchemas(function() {
+            // We have lazy loaded schema files, now upgrade the database
+            this.upgrade(effective, this.version, function(err) {
+              if (err) {
+                callback && callback(err);
+                return;
+              }
+              // The upgrade function has changed our version number,
+              // get the latest
+              this.getLatestVersion(this.name,
+                function(err, version, effective) {
+                opener.call(this, version);
+              }.bind(this));
+            }.bind(this));
+          }.bind(this));
+        } else {
+          // No upgrade necessary, just open a connection
+          opener.call(this, version);
         }
-        loaderOpener.call(this, mutating, version, effective);
       }.bind(this));
     }
   };
