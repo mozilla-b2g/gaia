@@ -236,16 +236,6 @@ var LockScreen = {
       self.updateConnState();
     });
 
-    SettingsListener.observe('accessibility.screenreader', false,
-                             function(value) {
-      self.screenReader = value;
-      if (value) {
-        self.overlay.classList.add('triggered');
-      } else {
-        self.overlay.classList.remove('triggered');
-      }
-    });
-
     var wallpaperURL = new SettingsURL();
 
     SettingsListener.observe('wallpaper.image',
@@ -893,8 +883,7 @@ var LockScreen = {
       default:
         var self = this;
         var unload = function unload() {
-          if (!self.screenReader)
-            self.overlay.classList.remove('triggered');
+          self.overlay.classList.remove('triggered');
           clearTimeout(self.triggeredTimeoutId);
         };
 
@@ -1245,7 +1234,7 @@ var LockScreen = {
   },
 
   playElastic: function ls_playElastic() {
-    if ((this._touch && this._touch.touched) || this.screenReader)
+    if (this._touch && this._touch.touched)
       return;
 
     var overlay = this.overlay;
