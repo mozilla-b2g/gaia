@@ -164,7 +164,7 @@ suite('Database Test', function() {
             objC.createIndex('ci', 'c', {
               unique: true, multiEntry: false
             });
-            var objB = trans.objectStore('objB', IDBTransaction.READ);
+            var objB = trans.objectStore('objB');
             var curreqB = objB.openCursor(undefined, 'next');
             curreqB.onsuccess = function(ev) {
               var cursor = curreqB.result;
@@ -194,7 +194,7 @@ suite('Database Test', function() {
               finalizer.bUp(curreqB.error);
             };
 
-            var objA = trans.objectStore('objA', IDBTransaction.READ_WRITE);
+            var objA = trans.objectStore('objA');
             var curreqA = objA.openCursor(undefined, 'next');
             curreqA.onsuccess = function(ev) {
               var cursor = curreqA.result;
@@ -471,23 +471,6 @@ suite('Database Test', function() {
         };
       });
     });
-
-    var matchValues = function(a, b) {
-      if (Utils.data.defaultCompare(
-        Object.keys(a).sort(),
-        Object.keys(b).sort()) !== 0) {
-        return false;
-      }
-      for (var i in a) {
-        var ai = a[i], bi = b[i];
-        for (var k of ai) {
-          if (!bi.has(k[0]) || indexedDB.cmp(k[1], bi.get(k[0]))) {
-            return false;
-          }
-        }
-      }
-      return true;
-    };
 
     test('Upgrade the database 1 -> 2', function(done) {
       createSchema();
