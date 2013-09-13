@@ -330,6 +330,7 @@ function SimPinDialog(dialog) {
         lockType = 'pin2';
         setInputMode('pin');
         _localize(dialogTitle, 'fdnEnable');
+        break;
       case 'disable_fdn':
         lockType = 'pin2';
         setInputMode('pin');
