@@ -19,6 +19,7 @@
     <link href="/shared/style/switches.css" rel="stylesheet">
     <link href="/shared/style_unstable/lists.css" rel="stylesheet">
     <link href="/shared/style/confirm.css" rel="stylesheet">
+    <link href="/contacts/style/animations.css" rel="stylesheet">
 
     <link rel="stylesheet" href="style/root.css">
     <link rel="stylesheet" href="style/matching_contacts.css">
@@ -62,7 +63,33 @@
           </menu>
         </form>
       </section> <!-- main -->
-
     </section> <!-- role="region" -->
+
+    <!--
+      <ul id="matching-list">
+          <li>Telefónica</li>
+          <li aria-selected>mobile, +34 674 439 849</li>
+          <li>mobile, +34 104 438 88</li>
+          <li>luzie@gmail.com</li>
+          <li>luzie@hotmail.com</li>
+          <li>
+            <p>123 streetname is very long we try to make it go double line ok?</p>
+            <p>Town</p>
+            <p>ZIP code</p>
+            <p>Country</p>
+          </li>
+        </ul>
+    -->
+    <form id="matching-details" class="hide" role="dialog" data-type="confirm">
+      <img src="">
+      <h1></h1>
+      <section class="matched-info">
+        <ul id="matching-list">
+        </ul>
+      </section>
+      <menu>
+        <button type="button" class="full" data-l10n-id="ok">Ok</button>
+      </menu>
+    </form>
   </body>
 </html>
