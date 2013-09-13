@@ -5,7 +5,7 @@ requireApp('system/shared/test/unit/mocks/mock_moz_contact.js');
 var DefaultContacts = {
   saveContacts: function(contacts) {
     for (var i = 0; i < contacts.length; ++i) {
-      var contact = new mozContact();
+      var contact = new MockmozContact();
       contact.init(contacts[i]);
       navigator.mozContacts.save(contact);
     }
