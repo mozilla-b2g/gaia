@@ -266,7 +266,7 @@
       var ignoreError = false;
 
       // Force an `onupgradeneeded` event so that we can query for the
-      //effective version number. The request will be aborted in order
+      // effective version number. The request will be aborted in order
       // to prevent the request's side effects on the database.
       var req = indexedDB.open(databaseName, Math.pow(2, 53) - 1);
       var getEffective = (function(openEvent, transaction, callback) {
