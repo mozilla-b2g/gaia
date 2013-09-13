@@ -4,7 +4,6 @@ requireApp('clock/js/utils.js');
 suite('Stopwatch', function() {
 
   var oneHour = 1 * 60 * 60 * 1000;
-  var d;
 
   suiteSetup(function() {
     this.sw = new Stopwatch();
@@ -195,17 +194,19 @@ suite('Stopwatch', function() {
   suite('toSerializable', function() {
 
     test('default', function() {
-      var obj1 = {
+      var expected = {
         startTime: 0,
         totalElapsed: 0,
         isStarted: false,
         laps: []
       };
-      var obj2 = this.sw.toSerializable();
-      assert.deepEqual(obj1, obj2);
+      var actual = this.sw.toSerializable();
+      assert.deepEqual(expected, actual);
     });
 
     suite('started', function() {
+
+      var d;
 
       setup(function() {
         d = Date.now();
@@ -213,67 +214,74 @@ suite('Stopwatch', function() {
         this.clock.tick(oneHour);
       });
 
+      test('deep copy', function() {
+        this.sw.pause();
+        var serialized = this.sw.toSerializable();
+        serialized.laps.push({ duration: 23, time: 0 });
+        assert.deepEqual(this.sw.getLapDurations(), []);
+      });
+
       test('elapse 1hr', function() {
-        var obj1 = {
+        var expected = {
           startTime: d,
           totalElapsed: 0,
           isStarted: true,
           laps: []
         };
-        var obj2 = this.sw.toSerializable();
-        assert.deepEqual(obj1, obj2);
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
       });
 
       test('elapse 1hr and pause', function() {
         this.sw.pause();
-        var obj1 = {
+        var expected = {
           startTime: d,
           totalElapsed: oneHour,
           isStarted: false,
           laps: []
         };
-        var obj2 = this.sw.toSerializable();
-        assert.deepEqual(obj1, obj2);
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
       });
 
       test('elapse 1hr and lap', function() {
         this.sw.lap();
-        var obj1 = {
+        var expected = {
           startTime: d,
           totalElapsed: 0,
           isStarted: true,
           laps: [{time: Date.now(), duration: oneHour}]
         };
-        var obj2 = this.sw.toSerializable();
-        assert.deepEqual(obj1, obj2);
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
       });
 
       test('pause and reset', function() {
         this.sw.pause();
         this.clock.tick(oneHour);
         this.sw.reset();
-        var obj1 = {
+        var expected = {
           startTime: 0,
           totalElapsed: 0,
           isStarted: false,
           laps: []
         };
-        var obj2 = this.sw.toSerializable();
-        assert.deepEqual(obj1, obj2);
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
       });
 
       test('pause and resume', function() {
         this.sw.pause();
         this.clock.tick(oneHour);
         this.sw.start();
-        var obj1 = {
+        var expected = {
           startTime: Date.now(),
           totalElapsed: oneHour,
           isStarted: true,
           laps: []
         };
-        var obj2 = this.sw.toSerializable();
-        assert.deepEqual(obj1, obj2);
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
       });
 
     });
