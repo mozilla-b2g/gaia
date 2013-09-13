@@ -1,5 +1,7 @@
 'use strict';
 
+requireApp('system/shared/test/unit/mocks/mock_moz_contact.js');
+
 var DefaultContacts = {
   saveContacts: function(contacts) {
     for (var i = 0; i < contacts.length; ++i) {
