@@ -161,28 +161,11 @@ function execute() {
    'icc.inputTextTimeout': 40000,
    'icc.goBackTimeout': 1000,
    'icc.selectTimeout': 150000,
-   'keyboard.layouts.english': true,
-   'keyboard.layouts.dvorak': false,
-   'keyboard.layouts.czech': false,
-   'keyboard.layouts.french': false,
-   'keyboard.layouts.german': false,
-   'keyboard.layouts.hungarian': false,
-   'keyboard.layouts.norwegian': false,
-   'keyboard.layouts.slovak': false,
-   'keyboard.layouts.turkish': false,
-   'keyboard.layouts.romanian': false,
-   'keyboard.layouts.russian': false,
-   'keyboard.layouts.arabic': false,
-   'keyboard.layouts.hebrew': false,
-   'keyboard.layouts.zhuyin': false,
-   'keyboard.layouts.pinyin': false,
-   'keyboard.layouts.greek': false,
-   'keyboard.layouts.japanese': false,
-   'keyboard.layouts.polish': false,
-   'keyboard.layouts.portuguese': false,
-   'keyboard.layouts.serbian': false,
-   'keyboard.layouts.spanish': false,
-   'keyboard.layouts.catalan': false,
+   'keyboard.enabled-layouts': [{
+      'layoutId': 'number',
+      'appOrigin': 'app://keyboard.gaiamobile.org',
+      'enabled': true
+    }],
    'keyboard.vibration': false,
    'keyboard.clicksound': false,
    'keyboard.autocorrect': true,
@@ -307,17 +290,42 @@ function execute() {
   let keyboard_layouts_res = utils.getJSON(file);
   let keyboard_layouts = keyboard_layouts_res['layout'];
   let keyboard_nonLatins = keyboard_layouts_res['nonLatin'];
-  let default_layout;
-  if (config.GAIA_DEFAULT_LOCALE in keyboard_layouts) {
-    default_layout = keyboard_layouts[config.GAIA_DEFAULT_LOCALE];
-    if (!(config.GAIA_DEFAULT_LOCALE in keyboard_nonLatins)) {
-      settings['keyboard.layouts.english'] = false;
-    }
-    settings['keyboard.layouts.' + default_layout] = true;
+  let default_layout = {
+    'layoutId': 'en',
+    'appOrigin': 'app://keyboard.gaiamobile.org',
+    'enabled': true
+  };
+  let kbLayoutSettings = settings['keyboard.enabled-layouts'];
+  // Built-in keyboard hash keys (without 'en' which is the default layout)
+  let builtInKeyboards = [
+    'en-Dvorak', 'es', 'pt-BR', 'pl',
+    'cz', 'fr', 'de', 'nb', 'sk',
+    'tr-Q', 'tr-F', 'ru', 'sr-Cyrl', 'sr-Latn',
+    'ar', 'he', 'el',
+    'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
+    'numberLayout'
+  ];
+  let langKbLayouts = keyboard_layouts[config.GAIA_DEFAULT_LOCALE];
+  // Setup the keyboard mozSetting for each of the built-in keyboards
+  for (var i = builtInKeyboards.length - 1; i >= 0; i--) {
+    kbLayoutSettings.push({
+      'layoutId': builtInKeyboards[i],
+      'appOrigin': 'app://keyboard.gaiamobile.org',
+      'enabled': langKbLayouts ?
+                    (langKbLayouts.indexOf(builtInKeyboards[i]) !== -1) : false
+    });
   }
+  // Check if the default locale has a non-latin keyboard layout so that a
+  // latin keyboard layout (English) is enabled as well
+  default_layout.enabled =
+      (keyboard_nonLatins.indexOf(config.GAIA_DEFAULT_LOCALE) !== -1);
+  kbLayoutSettings.push(default_layout);
+  // If DEFAULT_LOCALE doesn't have a keyboard, set default one
+  if (!langKbLayouts) {
+    kbLayoutSettings.push(default_layout);
+  }
+
   settings['devtools.debugger.remote-enabled'] = config.REMOTE_DEBUGGER == true;
-
-
 
   // Run all asynchronous code before overwriting and writing settings file
   let done = false;
