@@ -1141,7 +1141,7 @@ var GridManager = (function() {
    * calls the method 'download'. That's applied
    * to an icon, that has associated an app already.
    */
-  function showRestartDownloadDialog(icon) {
+  function doShowRestartDownloadDialog(icon) {
     var app = icon.app;
     var _ = navigator.mozL10n.get;
     var confirm = {
@@ -1173,6 +1173,14 @@ var GridManager = (function() {
       cancel,
       confirm);
     return;
+  }
+
+  function showRestartDownloadDialog(icon) {
+    LazyLoader.load(['shared/style/buttons.css', 'shared/style/headers.css',
+                     'shared/style/confirm.css', 'style/request.css',
+                     'js/request.js'], function() {
+      doShowRestartDownloadDialog(icon);
+    });
   }
 
   function bestMatchingIcon(app, manifest) {
