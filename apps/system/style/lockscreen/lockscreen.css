@@ -218,27 +218,144 @@
 }
 
 .lockscreen-icon-area {
-  width: calc(50%);
   height: 10rem;
   position: absolute;
   border-style: none;
-  opacity: 0.1;
   transition: opacity 0.5s ease;
 }
 
-.lockscreen-icon-area:active {
+.lockscreen-icothis.n-area:active {
   background: none;
 }
 
 .lockscreen-icon {
   margin-top: 2rem;
-  border-radius: 3rem;
   width: 6rem;
   height: 6rem;
+
+  pointer-events: none;
+}
+
+.lockscreen-icon-area.dark .lockscreen-icon{
+  opacity: 0.85;
+}
+
+/* Some icons in new design still need border */
+.lockscreen-icon-border {
+  border-radius: 3rem;
+}
+
+#lockscreen-area-slider {
+  text-align: center;
+  width: calc(100%);
+}
+
+#lockscreen-slider-handler {
+  position: relative;
+  top: -8.3rem;
+}
+
+@media (orientation:landscape) {
+  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+    width: 35rem;
+  }
+}
+
+@media (orientation:portrait) {
+  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+    width: 22rem;
+  }
+}
+
+@media (min-width:768px) and (orientation:landscape) {
+  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+    width: 115rem;
+  }
+}
+
+@media (min-width:768px) and (orientation:portrait) {
+  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+    width: 67rem;
+  }
+}
+
+#lockscreen-area-slider #lockscreen-slider-track .lockscreen-icon {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+#lockscreen-area-slider .lockscreen-icon {
   background-color: rgba(0, 0, 0, 0.3);
   -moz-box-sizing: border-box;
   border: 0.2rem solid rgba(255, 255, 255, 0.8);
-  pointer-events: none;
+  /* Will become wider while user pull it */
+  transition: width 0.2s ease, background-color 0.5s linear, border-color 0.5s linear;
+}
+
+#lockscreen-area-slider .lockscreen-slider-left.lockscreen-icon {
+  /* half-circle toward left */
+  border-radius: 6rem 0 0 6rem;
+  border-right: none;
+  display: inline-block;
+
+  /* to move it while sliding */
+  position: relative;
+  height: 6rem;
+  width: 3rem;
+}
+
+.lockscreen-slider-left.lockscreen-icon > span {
+  /* float to prevent its parent got wrong place */
+  float: left;
+  font-size: 32pt;
+  margin-left: 0.5rem;
+}
+
+.lockscreen-slider-left.touched > span {
+  display: none;
+}
+
+.lockscreen-slider-right.touched> span {
+  display: none;
+}
+
+#lockscreen-area-slider .lockscreen-slider-center.lockscreen-icon {
+  display: inline-block;
+  border-left: none;
+  border-right: none;
+  border-radius: 0rem;
+  
+  /* workaround for splitting circle */
+  margin-left: -0.3rem;
+  margin-right: -0.3rem;
+
+  /* to move and scale it while sliding */
+  position: relative;
+  width: 1px; /* for the default circle */
+}
+
+#lockscreen-area-slider .touched {
+  border-color: #00aacc;
+  background-color:  #00aacc;
+}
+
+#lockscreen-area-slider .lockscreen-slider-right.lockscreen-icon {
+  border-left: none;
+
+  /* half-circle toward right */
+  border-radius: 0 6rem 6rem 0;
+  display: inline-block;
+  height: 6rem;
+
+  /* to move it while sliding */
+  position: relative;
+  width: 3rem;
+}
+
+.lockscreen-slider-right.lockscreen-icon > span {
+  /* float to prevent its parent got wrong place */
+  float: right;
+  font-size: 32pt;
+  margin-right: 0.5rem;
 }
 
 #lockscreen-alt-camera.lockscreen-icon:active,
@@ -256,11 +373,11 @@
 }
 
 .lockscreen-icon-right {
-  right: 0;
+  right: 20px;
 }
 
 .lockscreen-icon-left {
-  left: 0;
+  left: 20px;
 }
 
 button::-moz-focus-inner {
@@ -273,21 +390,16 @@ button::-moz-focus-inner {
   animation: none;
 }
 
-.lockscreen-icon-right > .lockscreen-icon {
-  margin-right: 4rem;
-  margin-left: auto;
-}
-
-.lockscreen-icon-left > .lockscreen-icon {
-  margin-left: 4rem;
-  margin-right: auto;
-}
-
 #lockscreen-area-unlock > div {
   background-image: url('./images/icon-unlock.png');
   background-position: center;
   background-repeat: no-repeat;
   background-size: 3rem;
+}
+
+#lockscreen-area-unlock {
+  /* Otherwise it will be overlayed by the track. */
+  z-index: 1;
 }
 
 #lockscreen-alt-camera,
@@ -298,7 +410,17 @@ button::-moz-focus-inner {
   background-size: 2.4rem;
 }
 
+#lockscreen-area-camera {
+  /* Otherwise it will be overlayed by the track. */
+  z-index: 1;
+}
+
 #lockscreen-alt-camera {
+  border-radius: 3rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  -moz-box-sizing: border-box;
+  border: 0.2rem solid rgba(255, 255, 255, 0.8);
+
   float: right;
   pointer-events: auto;
   opacity: 0.1;
@@ -307,6 +429,14 @@ button::-moz-focus-inner {
 
 [data-panel="emergency-call"] #lockscreen-panel-passcode {
   transform: translateX(-100%);
+}
+
+#lockscreen-panel-passcode {
+  z-index: 2;
+}
+
+#lockscreen-panel-emergency-call {
+  z-index: 2;
 }
 
 #lockscreen-passcode-code {
@@ -528,15 +658,12 @@ button::-moz-focus-inner {
 
 #lockscreen-icon-container {
   position: absolute;
+  bottom: 0rem;
   width: 100%;
-  bottom: -8rem;
   height: 10rem;
   pointer-events: none;
   border-top: 0.1rem solid #989898;
   background-image: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(0,0,0,0.2) 20%);
-  transition:
-    transform 0.5s ease,
-    opacity 0.5s ease;
 }
 
 .touched #lockscreen-icon-container {

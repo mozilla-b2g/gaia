@@ -955,18 +955,43 @@
             </div>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
-              <div id="lockscreen-area-handle"></div>
               <div id="lockscreen-area-camera"
-                   class="lockscreen-icon-area lockscreen-icon-left" role="button"
+                   class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
                    data-l10n-id="camera-a11y-button" aria-label="Camera">
                 <div class="lockscreen-icon">
                 </div>
               </div>
               <div id="lockscreen-area-unlock"
-                   class="lockscreen-icon-area lockscreen-icon-right" role="button"
+                   class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
                    data-l10n-id="unlock-a11y-button" aria-label="Unlock">
                 <div class="lockscreen-icon">
                 </div>
+              </div>
+              <div id="lockscreen-area-slider"
+                   class="lockscreen-icon-area lockscreen-icon-center" role="button"
+                   data-l10n-id="unlock-a11y-button" aria-label="Slider">
+
+                <!-- Order matters. If track after handler, it will overlay on the handler -->
+                <div id="lockscreen-slider-track">
+                  <div class="lockscreen-icon lockscreen-slider-left">
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-center">
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-right">
+                  </div>
+                </div>
+
+                <div id="lockscreen-slider-handler">
+                  <div class="lockscreen-icon lockscreen-slider-left" data-role="handler-left">
+                    <span>‹</span>
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-center" data-role="handler-center">
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-right" data-role="handler-right">
+                    <span>›</span>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
