@@ -1,0 +1,6 @@
+{
+  "default_contacts": [
+    {"givenName": ["Foo"]}
+    {"givenName": ["Bar"]}
+  ]
+}
