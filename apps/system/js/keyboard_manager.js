@@ -532,9 +532,8 @@ var KeyboardManager = {
       });
       self.hideKeyboard();
       //XXX the menu is not scrollable now, and it will take focus away
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=859708
       // https://bugzilla.mozilla.org/show_bug.cgi?id=859713
-      ListMenu.request(items, 'Layout selection', function(selectedIndex) {
+      ActionMenu.open(items, 'Layout selection', function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
         self.keyboardLayouts[showed.type].activit = selectedIndex;
