@@ -11,6 +11,7 @@ var CallScreen = {
 
   calls: document.getElementById('calls'),
   groupCalls: document.getElementById('group-call-details'),
+  groupCallsList: document.getElementById('group-call-details-list'),
 
   mainContainer: document.getElementById('main-container'),
   callToolbar: document.getElementById('co-advanced'),
@@ -23,6 +24,9 @@ var CallScreen = {
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
   holdButton: document.getElementById('callbar-hold'),
+
+  showGroupButton: document.getElementById('group-show'),
+  hideGroupButton: document.getElementById('group-hide'),
 
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
@@ -67,6 +71,12 @@ var CallScreen = {
                                     CallsHandler.end);
     this.holdButton.addEventListener('mouseup', CallsHandler.toggleCalls);
 
+    this.showGroupButton.addEventListener('click',
+                                    CallScreen.showGroupDetails.bind(this));
+
+    this.hideGroupButton.addEventListener('click',
+                                    CallScreen.hideGroupDetails.bind(this));
+
     this.incomingAnswer.addEventListener('click',
                               CallsHandler.holdAndAnswer);
     this.incomingEnd.addEventListener('click',
@@ -74,8 +84,7 @@ var CallScreen = {
     this.incomingIgnore.addEventListener('click',
                                     CallsHandler.ignore);
 
-    this.calls.addEventListener('click',
-                                CallsHandler.toggleCalls);
+    this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
     var callScreenHasLayout = !!this.screen.dataset.layout;
     if ((window.location.hash === '#locked') && !callScreenHasLayout) {
@@ -117,7 +126,7 @@ var CallScreen = {
   },
 
   moveToGroup: function cs_moveToGroup(node) {
-    this.groupCalls.appendChild(node);
+    this.groupCallsList.appendChild(node);
   },
 
   resizeHandler: function cs_resizeHandler() {
@@ -237,5 +246,19 @@ var CallScreen = {
 
   disableKeypad: function cs_disableKeypad() {
     this.keypadButton.setAttribute('disabled', 'disabled');
+  },
+
+  showGroupDetails: function cs_showGroupDetails(evt) {
+    if (evt) {
+      evt.stopPropagation();
+    }
+    this.groupCalls.classList.add('display');
+  },
+
+  hideGroupDetails: function cs_hideGroupDetails(evt) {
+    if (evt) {
+      evt.preventDefault();
+    }
+    this.groupCalls.classList.remove('display');
   }
 };
