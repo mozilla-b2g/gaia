@@ -221,8 +221,7 @@
        *
        * @param {string} [databaseName] - name of database.
        * @param {number} version - effective version number to set.
-       * @param {function} callback - call with result:
-       *                              (err, versionNumber, effectiveNumber).
+       * @param {function} callback - call with (err).
        */
       if (arguments.length === 2 &&
           typeof arguments[0] === 'number' &&
