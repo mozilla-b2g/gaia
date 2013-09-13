@@ -6,7 +6,7 @@
 (function OperatorVariant() {
   // Reserved Test Network MCC. This is how we know we're running tests vs
   // running in the real world.
-  const TEST_NETWORK_MCC = 1;
+  const TEST_NETWORK_MCC = "001";
 
   // Cache the values we've seen.
   var iccSettings = { mcc: -1, mnc: -1 };
