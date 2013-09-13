@@ -78,18 +78,21 @@
                    data-maybe-required />
             <button type="reset"></button>
           </p>
+          <li class="sup-socket-select-container">
+            <span class="button icon icon-dialog">
+              <select class="mail-select sup-manual-imap-socket sup-socket-select">
+                <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
+                  SsL</option>
+                <option value="STARTTLS" data-l10n-id="setup-manual-socket-starttls">
+                  StarttlS</option>
+              </select>
+            </span>
+          </li>
           <p>
             <input class="sup-manual-imap-port" type="text"
                    data-l10n-id="setup-manual-port" value="993"
                    data-maybe-required />
             <button type="reset"></button>
-          </p>
-          <p class="collapsed">
-            <span data-l10n-id="setup-manual-socket">SockeT TypE</span>
-            <select class="mail-select sup-manual-imap-socket">
-              <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
-                SsL</option>
-            </select>
           </p>
         </div>
 
@@ -111,18 +114,21 @@
                    data-maybe-required />
             <button type="reset"></button>
           </p>
+          <li class="sup-socket-select-container">
+            <span class="button icon icon-dialog">
+              <select class="mail-select sup-manual-smtp-socket sup-socket-select">
+                <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
+                  SsL</option>
+                <option value="STARTTLS" data-l10n-id="setup-manual-socket-starttls">
+                  StarttlS</option>
+              </select>
+            </span>
+          </li>
           <p>
             <input class="sup-manual-smtp-port" type="text"
                    data-l10n-id="setup-manual-port" value="465"
                    data-maybe-required />
             <button type="reset"></button>
-          </p>
-          <p class="collapsed">
-            <span data-l10n-id="setup-manual-socket">SockeT TypE</span>
-            <select class="mail-select sup-manual-smtp-socket">
-              <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
-                SsL</option>
-            </select>
           </p>
         </div>
       </section>
