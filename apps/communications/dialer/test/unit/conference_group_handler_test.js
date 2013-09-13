@@ -29,6 +29,7 @@ suite('conference group handler', function() {
   var fakeGroupLine;
   var fakeGroupLabel;
   var fakeGroupDetails;
+  var fakeMergeButton;
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
@@ -50,6 +51,7 @@ suite('conference group handler', function() {
                                 '<div></div>' +
                               '</div>' +
                             '</div>' +
+                            '<button class="merge-button"></button>' +
                           '</section>' +
                           '<form id="group-call-details">' +
                             '<header></header>' +
@@ -58,6 +60,7 @@ suite('conference group handler', function() {
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
     fakeGroupDetails = document.getElementById('group-call-details');
+    fakeMergeButton = document.querySelector('.merge-button');
 
     requireApp('communications/dialer/js/conference_group_handler.js', done);
   });
@@ -233,6 +236,16 @@ suite('conference group handler', function() {
       MockMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(checkCallsSpy.calledOnce);
+    });
+  });
+
+  suite('mergeButton', function() {
+    test('should call CallsHandler.mergeConferenceGroupWithActiveCall()',
+      function() {
+      var mergeSpy = this.sinon.spy(MockCallsHandler,
+                                    'mergeConferenceGroupWithActiveCall');
+      fakeMergeButton.onclick();
+      assert.isTrue(mergeSpy.called);
     });
   });
 });

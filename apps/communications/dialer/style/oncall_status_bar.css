@@ -16,7 +16,8 @@
   #main-container,
   #incoming-container,
   #views,
-  .additionalContactInfo {
+  .additionalContactInfo,
+  .merge-button {
     display: none;
   }
 

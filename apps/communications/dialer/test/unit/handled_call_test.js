@@ -56,6 +56,7 @@ suite('dialer/handled_call', function() {
                               '<div class="direction">' +
                                 '<div></div>' +
                               '</div>' +
+                            '<button class="merge-button"></button>' +
                             '</div>' +
                           '</section>';
     document.body.appendChild(templates);
@@ -130,6 +131,11 @@ suite('dialer/handled_call', function() {
         var durationChildNode = subject.node.querySelector('.duration span');
         assert.equal(subject.durationChildNode, durationChildNode);
         assert.isTrue(durationChildNode.classList.contains('font-light'));
+      });
+
+      test('should have a merge button', function() {
+        var mergeButton = subject.node.querySelector('.merge-button');
+        assert.equal(subject.mergeButton, mergeButton);
       });
     });
 
@@ -741,6 +747,17 @@ suite('dialer/handled_call', function() {
       var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
       subject.hangupButton.onclick();
       assert.isTrue(hangUpSpy.calledOnce);
+    });
+  });
+
+  suite('merge button', function() {
+    var addEventListenerSpy;
+
+    test('should listen for click', function() {
+      var mergeActiveCallWithSpy = this.sinon.spy(CallsHandler,
+                                                  'mergeActiveCallWith');
+      subject.mergeButton.onclick();
+      assert.isTrue(mergeActiveCallWithSpy.calledWith(subject.call));
     });
   });
 });
