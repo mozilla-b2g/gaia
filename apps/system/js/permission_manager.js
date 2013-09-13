@@ -55,7 +55,7 @@ var PermissionManager = {
               });
 
               if ('video-capture' in detail.options &&
-                'audio-capture' in detail.options) {
+                  'audio-capture' in detail.options) {
                 self.overlay.dataset.type = 'media-capture';
                 self.currentPermission = 'media-capture';
               }
@@ -65,14 +65,14 @@ var PermissionManager = {
           }
 
           self.currentOrigin = detail.origin;
-          self.handlePermissionPrompt(detail).bind(self);
+          self.handlePermissionPrompt(detail);
           break;
         case 'cancel-permission-prompt':
-          self.discardPermissionRequest().bind(self);
+          self.discardPermissionRequest();
           break;
         case 'fullscreenoriginchange':
           delete self.overlay.dataset.type;
-          self.handleFullscreenOriginChange(detail).bind(self);
+          self.handleFullscreenOriginChange(detail);
           break;
       }
     });
@@ -112,7 +112,7 @@ var PermissionManager = {
                                             /* yesCallback */ null,
                                             /* noCallback */ function() {
                                               document.mozCancelFullScreen();
-                                            }).bind(this);
+                                            });
     }
   },
 
@@ -158,7 +158,8 @@ var PermissionManager = {
         this.currentPermission === 'media-capture') {
       response['choice'] = this.currentChoices;
     }
-    var event = new CustomEvent('mozContentEvent', response);
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, response);
     window.dispatchEvent(event);
   },
 
@@ -255,7 +256,7 @@ var PermissionManager = {
       return id;
     }
     this.showPermissionPrompt(id, msg, moreInfoText,
-      yescallback, nocallback).bind(this);
+      yescallback, nocallback);
 
     return id;
   },
