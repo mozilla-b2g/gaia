@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['PermissionManager']);
+mocha.globals(['PermissionManager', 'dispatchEvent']);
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/permission_manager.js');
@@ -9,7 +9,16 @@ function sendChromeEvent(evt_type, evt_permission) {
   var detail = {'type': evt_type, 'permission': evt_permission,
                 'origin': 'test', 'isApp': false };
   var evt = new CustomEvent('mozChromeEvent', { detail: detail });
+  window.dispatchEvent(evt);
+}
 
+function sendMediaEvent(evt_type, evt_permission, evt_permissions, options) {
+  var detail = {'type': evt_type, 'permission': evt_permission,
+                'permissions': evt_permissions,
+                'origin': 'test', 'isApp': false,
+                'options': options
+               };
+  var evt = new CustomEvent('mozChromeEvent', { detail: detail });
   window.dispatchEvent(evt);
 }
 
@@ -148,12 +157,35 @@ suite('system/permission manager', function() {
     });
   });
 
+  suite('dispatchResponse', function() {
+    var stubDispatchEvent;
+    setup(function() {
+      stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    });
+
+    teardown(function() {
+      stubDispatchEvent.restore();
+    });
+
+    test('permission-allow', function() {
+      PermissionManager.dispatchResponse(123, 'permission-allow', true);
+      assert.equal(PermissionManager.responseStatus, 'permission-allow');
+      assert.isTrue(stubDispatchEvent.called);
+    });
+
+    test('permission-deny', function() {
+      PermissionManager.dispatchResponse(123, 'permission-deny', true);
+      assert.equal(PermissionManager.responseStatus, 'permission-deny');
+      assert.isTrue(stubDispatchEvent.called);
+    });
+  });
+
   suite('bug 907075 dismiss same permissions request from same origin',
    function() {
     var spyPrompt;
     var spyReq;
     var spyNext;
-    var stubResponse;
+    var spyResponse;
 
     setup(function() {
       PermissionManager.overlay = document.createElement('div');
@@ -171,14 +203,16 @@ suite('system/permission manager', function() {
 
       spyNext = this.sinon.spy(PermissionManager, 'showNextPendingRequest');
 
-      stubResponse = this.sinon.stub(PermissionManager,
+      spyResponse = this.sinon.spy(PermissionManager,
         'dispatchResponse');
-      sendChromeEvent('permission-prompt', 'audio-capture');
-      sendChromeEvent('permission-prompt', 'audio-capture');
+      sendMediaEvent('permission-prompt', 'audio-capture',
+        ['audio-capture'], {'audio-capture': ['']});
+      sendMediaEvent('permission-prompt', 'audio-capture',
+        ['audio-capture'], {'audio-capture': ['']});
     });
 
     teardown(function() {
-      stubResponse.restore();
+      spyResponse.restore();
       spyNext.restore();
       spyReq.restore();
       spyPrompt.restore();
@@ -205,7 +239,108 @@ suite('system/permission manager', function() {
       PermissionManager.remember.checked = true;
       PermissionManager.clickHandler({target: PermissionManager.yes});
       assert.isTrue(spyNext.called);
-      assert.isTrue(stubResponse.called);
+      assert.isTrue(spyResponse.called);
+    });
+  });
+
+  // test getUserMedia related permissions
+  suite('audio capture permission', function() {
+    var spyReq;
+    setup(function() {
+      PermissionManager.overlay = document.createElement('div');
+      PermissionManager.remember = document.createElement('div');
+      spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
+
+      sendMediaEvent('permission-prompt', 'audio-capture', ['audio-capture'],
+        {'audio-capture': ['']});
+    });
+
+    teardown(function() {
+      spyReq.restore();
+      PermissionManager.remember = null;
+    });
+
+    test('permission-prompt', function() {
+      assert.equal(PermissionManager.currentPermission, 'audio-capture');
+    });
+
+    test('permission id matched', function() {
+      assert.isTrue(spyReq.calledWithMatch('test', 'audio-capture',
+        sinon.match.string, 'perm-audio-capture-more-info'));
+    });
+
+    test('default choice', function() {
+      assert.equal(PermissionManager.currentChoices['video-capture'],
+        undefined);
+      assert.equal(PermissionManager.currentChoices['audio-capture'],
+        '');
+    });
+
+  });
+
+  suite('video capture permission', function() {
+    var spyReq;
+    setup(function() {
+      PermissionManager.overlay = document.createElement('div');
+      PermissionManager.remember = document.createElement('div');
+      spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
+
+      sendMediaEvent('permission-prompt', 'video-capture', ['video-capture'],
+        {'video-capture': ['front', 'back']});
+    });
+
+    teardown(function() {
+      spyReq.restore();
+      PermissionManager.remember = null;
+    });
+
+    test('permission-prompt', function() {
+      assert.equal(PermissionManager.currentPermission, 'video-capture');
+    });
+
+    test('permission id matched', function() {
+      assert.isTrue(spyReq.calledWithMatch('test', 'video-capture',
+        sinon.match.string, 'perm-video-capture-more-info'));
+    });
+
+    test('default choice', function() {
+      assert.equal(PermissionManager.currentChoices['video-capture'],
+        'front');
+    });
+  });
+
+  suite('media capture permission', function() {
+    var spyReq;
+    setup(function() {
+      PermissionManager.overlay = document.createElement('div');
+      PermissionManager.remember = document.createElement('div');
+      spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
+
+      sendMediaEvent('permission-prompt', 'audio-capture',
+        ['audio-capture', 'video-capture'],
+        {
+          'video-capture': ['front', 'back'],
+          'audio-capture': ['']
+        });
+    });
+
+    teardown(function() {
+      spyReq.restore();
+      PermissionManager.remember = null;
+    });
+
+    test('permission-prompt', function() {
+      assert.equal(PermissionManager.currentPermission, 'media-capture');
+    });
+
+    test('permission id matched', function() {
+      assert.isTrue(spyReq.calledWithMatch('test', 'media-capture',
+        sinon.match.string, 'perm-media-capture-more-info'));
+    });
+
+    test('default choice', function() {
+      assert.equal(PermissionManager.currentChoices['video-capture'], 'front');
+      assert.equal(PermissionManager.currentChoices['audio-capture'], '');
     });
   });
 });
