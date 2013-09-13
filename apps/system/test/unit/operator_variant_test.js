@@ -52,7 +52,8 @@ suite('operator variant', function() {
   ];
 
   const OV_KEYS_VALUES = [
-    { key: 'ril.data.carrier', value: 'Test Network with Operator Variant' },
+    { key: 'ril.data.carrier',
+      value: 'Test Network with Operator Variant Settings' },
     { key: 'ril.iccInfo.mbdn', value: '999999' },
     { key: 'ril.cellbroadcast.searchlist', value: '0,1,2,3' }
   ];
