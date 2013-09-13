@@ -356,7 +356,7 @@
     line-height: 7rem;
     background-color: #01c5ed;
 
-    transition: opacity 0.3s linear;
+    transition: background-color 0.3s linear;
     opacity: 1;
   }
 
@@ -487,12 +487,11 @@
   }
 
   #calls > section.held {
-    background-color: #1c1818;
+    background-color: rgba(28, 24, 24, 0.7);
     background-image: url('images/DialerIcon_35x35_paused.png');
     background-size: 1.6rem;
-    background-position: center right 1.5rem;
+    background-position: center left 1.5rem;
     background-repeat: no-repeat;
-    opacity: 0.7;
   }
 
   #calls.big-duration > section.held {
@@ -540,7 +539,7 @@
     padding: 0;
   }
 
-  #calls.big-duration .direction:before {
+  #calls.big-duration .handled-call .direction:before {
     content: "";
     display: block;
     width: 3.5rem;
@@ -550,15 +549,15 @@
     background-size: 2.4rem;
   }
 
-  #calls.big-duration .incoming .direction:before {
+  #calls.big-duration .handled-call .incoming .direction:before {
     background-image: url('images/incoming_icon.png');
   }
 
-  #calls.big-duration .outgoing .direction:before {
+  #calls.big-duration .handled-call .outgoing .direction:before {
     background-image: url('images/outgoing_icon.png');
   }
 
-  #calls.big-duration .held .direction:before {
+  #calls.big-duration .handled-call .held .direction:before {
     background-image: url('images/hold_icon.png');
   }
 
@@ -769,5 +768,22 @@
 
   #call-screen[data-layout="incoming-locked"] #calls {
     top: 14rem;
+  }
+
+  .merge-button {
+    display: none;
+  }
+
+  #calls:not(.single-line) .handled-call.held .merge-button,
+  #calls:not(.single-line) #group-call.held .merge-button {
+    display: block;
+    position: absolute;
+    width: 7rem;
+    height: 7rem;
+    top: 0;
+    right: 0;
+    background: url(images/icon_mergecall.png) no-repeat center;
+    border: none;
+    font-size: 0;
   }
 }

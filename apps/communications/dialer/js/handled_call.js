@@ -44,6 +44,13 @@ function HandledCall(aCall) {
   this.hangupButton.onclick = (function() {
     this.call.hangUp();
   }.bind(this));
+  this.mergeButton = this.node.querySelector('.merge-button');
+  this.mergeButton.onclick = (function(evt) {
+    if (evt) {
+      evt.stopPropagation();
+    }
+    CallsHandler.mergeActiveCallWith(this.call);
+  }).bind(this);
 
   this.updateCallNumber();
 
