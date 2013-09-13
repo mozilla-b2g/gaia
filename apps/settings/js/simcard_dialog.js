@@ -244,6 +244,11 @@ function SimPinDialog(dialog) {
       case 'change_pin2':
         changePin('pin2');
         break;
+      case 'add_fdn_number':
+      case 'remove_fdn_number':
+        _onsuccess(pinInput.value);
+        close();
+        break;
     }
 
     return false;
@@ -325,6 +330,12 @@ function SimPinDialog(dialog) {
         setInputMode('new');
         _localize(dialogTitle, 'fdnReset');
         break;
+      case 'add_fdn_number':
+      case 'remove_fdn_number':
+        lockType = 'pin2';
+        setInputMode('pin');
+        _localize(dialogTitle, 'fdnReset');
+        break;
 
       // unsupported
       default:
@@ -371,4 +382,3 @@ function SimPinDialog(dialog) {
     show: show
   };
 }
-
