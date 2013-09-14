@@ -49,6 +49,7 @@ class Camera(Base):
         self.wait_for_filmstrip_not_visible()
 
     def tap_capture(self):
+        self.wait_for_element_displayed(*self._capture_button_locator)
         self.marionette.find_element(*self._capture_button_locator).tap()
 
     def tap_select_button(self):

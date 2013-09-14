@@ -12,8 +12,8 @@ class MessageThread(Base):
     _all_messages_locator = (By.CSS_SELECTOR, '#messages-container li.message')
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
 
-    def wait_for_received_messages(self):
-        self.wait_for_element_displayed(*self._received_message_content_locator, timeout=180)
+    def wait_for_received_messages(self, timeout=180):
+        self.wait_for_element_displayed(*self._received_message_content_locator, timeout=timeout)
 
     @property
     def received_messages(self):
