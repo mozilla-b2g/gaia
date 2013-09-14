@@ -254,6 +254,7 @@ var MessageManager = {
           // in the thread.
           if (!ThreadUI.inThread) {
             ThreadUI.inThread = true;
+            ThreadUI.renderDraft(threadId);
             ThreadUI.renderMessages(threadId);
           }
         };

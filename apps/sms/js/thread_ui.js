@@ -601,6 +601,7 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
       if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
+        DraftHelper.saveDraft(Threads.currentId, Compose.getText());
         this.cleanFields(true);
         window.location.hash = '#thread-list';
       }
@@ -1062,6 +1063,15 @@ var ThreadUI = global.ThreadUI = {
       }
     });
     return container;
+  },
+
+  //Method to retrieve the draft if it has been saved
+  renderDraft: function thui_renderDraft(threadId) {
+    DraftHelper.getDraft(threadId, function oncomplete(draft) {
+      Compose.append(draft.message);
+    });
+
+    DraftHelper.deleteDraft(threadId);
   },
 
   // Method for rendering the list of messages using infinite scroll
