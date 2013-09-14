@@ -21,10 +21,8 @@ class PhoneLock(Base):
     def create_passcode(self, passcode):
 
         # switch to keyboard, input passcode
-        keyboard = Keyboard(self.marionette)
-        keyboard.switch_to_keyboard()
         for times in range(2):
-            keyboard.send("".join(passcode))
+            self.keyboard.send("".join(passcode))
 
         # switch to settings frame
         self.marionette.switch_to_frame()

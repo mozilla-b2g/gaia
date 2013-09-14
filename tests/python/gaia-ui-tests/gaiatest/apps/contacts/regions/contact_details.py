@@ -47,7 +47,8 @@ class ContactDetails(Base):
 
     def tap_send_sms(self):
         self.marionette.find_element(*self._send_sms_button_locator).tap()
-        # TODO: return SMS app when implemented
+        from gaiatest.apps.messages.regions.new_message import NewMessage
+        return NewMessage(self.marionette)
 
     def tap_edit(self):
         self.wait_for_element_displayed(*self._edit_contact_button_locator)

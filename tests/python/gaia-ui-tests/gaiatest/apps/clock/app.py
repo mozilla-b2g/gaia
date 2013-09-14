@@ -58,13 +58,7 @@ class Clock(Base):
 
     def tap_analog_display(self):
         self.wait_for_element_displayed(*self._analog_clock_display_locator)
-
-        analog_clock = self.marionette.find_element(*self._analog_clock_display_locator)
-        # Tapping on clock hand fails; find a coordinate outside the range of the clock hands
-        x_tap = int(analog_clock.size['width'] * 0.1)
-        y_tap = int(analog_clock.size['height'] * 0.1)
-        analog_clock.tap(x=x_tap, y=y_tap)
-
+        self.marionette.find_element(*self._analog_clock_display_locator).tap()
         self.wait_for_element_displayed(*self._digital_clock_display_locator)
 
     def tap_digital_display(self):

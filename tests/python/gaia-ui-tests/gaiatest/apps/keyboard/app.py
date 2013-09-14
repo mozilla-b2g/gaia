@@ -4,8 +4,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from gaiatest.apps.base import Base
+from marionette.errors import NoSuchElementException
+from marionette.errors import ElementNotVisibleException
 from marionette.marionette import Actions
+
+from gaiatest.apps.base import Base
 
 
 class Keyboard(Base):
@@ -90,6 +93,7 @@ class Keyboard(Base):
         else:
             if not input_type == 'number' and layout_page == 'Default':
                 self._tap(self._numeric_sign_key)
+                self.wait_for_condition(lambda m: m.find_element(*self._key_locator(self._alpha_key)).is_displayed())
             if not self.is_element_present(*self._key_locator(val)):
                 self._tap(self._alt_key)
 
@@ -110,9 +114,10 @@ class Keyboard(Base):
         try:
             key = self.marionette.find_element(*self._key_locator(val))
             self.wait_for_condition(lambda m: key.is_displayed)
-            key.tap()
-        except:
-            raise Exception('Key %s not found on the keyboard' % val)
+            Actions(self.marionette).press(key).wait(0.1).release().perform()
+        except (NoSuchElementException, ElementNotVisibleException):
+            self.marionette.log('Key %s not found on the keyboard' % val)
+            raise
 
     # This is for selecting special characters after long pressing
     # "selection" is the nth special element you want to select (n>=1)
@@ -147,6 +152,7 @@ class Keyboard(Base):
 
     # this would go through fastest way to tap/click through a string
     def send(self, string):
+        frame = self.marionette.get_active_frame()
         self.switch_to_keyboard()
         for val in string:
             if ord(val) > 127:
@@ -168,6 +174,7 @@ class Keyboard(Base):
                 self._tap(val)
 
         self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(frame)
 
     # Switch keyboard language
     # Mapping of language code => {
@@ -189,6 +196,7 @@ class Keyboard(Base):
     # "sr-Latn":"srpski",
     # "tr":"Türkçe"}
     def switch_keyboard_language(self, lang_code):
+        frame = self.marionette.get_active_frame()
         keyboard_language_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-keyboard='%s']" % lang_code)
 
         self.switch_to_keyboard()
@@ -198,6 +206,10 @@ class Keyboard(Base):
         target_kb_layout = self.marionette.find_element(*keyboard_language_locator)
         action.move(target_kb_layout).release().perform()
         self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(frame)
+
+    def tap_keyboard_language_key(self):
+        self.marionette.find_element(*self._language_key_locator).tap()
 
     # switch to keyboard with numbers and special characters
     def switch_to_number_keyboard(self):
@@ -241,3 +253,17 @@ class Keyboard(Base):
             self._tap(self._numeric_sign_key)
         self._tap(self._alt_key)
         self.marionette.switch_to_frame()
+
+    def dismiss(self):
+        frame = self.marionette.get_active_frame()
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
+        self.wait_for_condition(lambda m: not m.find_element(*self._keyboard_frame_locator).is_displayed())
+        self.marionette.switch_to_frame(frame)
+
+    def is_displayed(self):
+        frame = self.marionette.get_active_frame()
+        self.marionette.switch_to_frame()
+        is_visible = self.marionette.find_element(*self._keyboard_frame_locator).location['y'] == 0
+        self.marionette.switch_to_frame(frame)
+        return is_visible
