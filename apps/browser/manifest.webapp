@@ -15,6 +15,7 @@
     "storage": {},
     "desktop-notification" : {},
     "audio-capture": {},
+    "video-capture": {},
     "device-storage:pictures" : { "access": "readwrite" },
     "device-storage:videos" : { "access": "readwrite" },
     "device-storage:music" : { "access": "readwrite" }
