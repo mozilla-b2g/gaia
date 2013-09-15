@@ -117,3 +117,4 @@ make test-integration
 
 - You get can get lots of debug information when running tests like
 this: `DEBUG=* ./bin/gaia-marionette name/of/test.js`
+
