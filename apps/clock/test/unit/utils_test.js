@@ -30,50 +30,6 @@ suite('Time functions', function() {
 
   });
 
-  suite('#formatTime', function() {
-    var is12hStub, formatTime;
-
-    setup(function() {
-      formatTime = Utils.formatTime;
-      is12hStub = sinon.stub(Utils, 'is12hFormat');
-    });
-
-    teardown(function() {
-      is12hStub.restore();
-    });
-
-    test('12:00am, with 12 hour clock settings', function() {
-      is12hStub.returns(true);
-      assert.equal(formatTime(0, 0), '12:00AM');
-    });
-
-    test('12:30pm, with 12 hour clock settings', function() {
-      is12hStub.returns(true);
-      assert.equal(formatTime(12, 30), '12:30PM');
-    });
-
-    test('11:30pm, with 12 hour clock settings', function() {
-      is12hStub.returns(true);
-      assert.equal(formatTime(23, 30), '11:30PM');
-    });
-
-    test('12:30am, with 24 hour clock settings', function() {
-      is12hStub.returns(false);
-      assert.equal(formatTime(0, 30), '00:30');
-    });
-
-    test('12:30pm, with 24 hour clock settings', function() {
-      is12hStub.returns(false);
-      assert.equal(formatTime(12, 30), '12:30');
-    });
-
-    test('11:30pm, with 24 hour clock settings', function() {
-      is12hStub.returns(false);
-      assert.equal(formatTime(23, 30), '23:30');
-    });
-
-  });
-
   suite('#parseTime', function() {
 
     var parseTime;
@@ -568,6 +524,101 @@ suite('Time functions', function() {
       assert.ok(here);
     });
 
+  });
+
+  suite('format', function() {
+    suite('time(hh, mm) ', function() {
+      var is12hStub, formatTime;
+
+      setup(function() {
+        formatTime = Utils.format.time;
+        is12hStub = sinon.stub(Utils, 'is12hFormat');
+      });
+
+      teardown(function() {
+        is12hStub.restore();
+      });
+
+      test('12:00am, with 12 hour clock settings', function() {
+        is12hStub.returns(true);
+        assert.equal(formatTime(0, 0), '12:00AM');
+      });
+
+      test('12:30pm, with 12 hour clock settings', function() {
+        is12hStub.returns(true);
+        assert.equal(formatTime(12, 30), '12:30PM');
+      });
+
+      test('11:30pm, with 12 hour clock settings', function() {
+        is12hStub.returns(true);
+        assert.equal(formatTime(23, 30), '11:30PM');
+      });
+
+      test('12:30am, with 24 hour clock settings', function() {
+        is12hStub.returns(false);
+        assert.equal(formatTime(0, 30), '00:30');
+      });
+
+      test('12:30pm, with 24 hour clock settings', function() {
+        is12hStub.returns(false);
+        assert.equal(formatTime(12, 30), '12:30');
+      });
+
+      test('11:30pm, with 24 hour clock settings', function() {
+        is12hStub.returns(false);
+        assert.equal(formatTime(23, 30), '23:30');
+      });
+
+    });
+
+    suite('hms()', function() {
+      var hms;
+
+      suiteSetup(function() {
+        hms = Utils.format.hms;
+      });
+
+      suite('hms(seconds) ', function() {
+        var fixtures = [
+          { args: [0], expect: '00:00:00' },
+          { args: [1], expect: '00:00:01' },
+          { args: [59], expect: '00:00:59' },
+          { args: [60], expect: '00:01:00' },
+          { args: [3600], expect: '01:00:00' }
+        ];
+
+        fixtures.forEach(function(fixture) {
+          var { args, expect } = fixture;
+          var title = args.map(String).join(', ') + ' => ' + expect + ' ';
+
+          test(title, function() {
+            assert.equal(hms.apply(null, args), expect);
+          });
+        });
+      });
+
+      suite('hms(seconds, format) ', function() {
+        var fixtures = [
+          { args: [0, 'ss'], expect: '00' },
+          { args: [1, 'ss'], expect: '01' },
+          { args: [60, 'ss'], expect: '00' },
+          { args: [0, 'mm:ss'], expect: '00:00' },
+          { args: [59, 'mm:ss'], expect: '00:59' },
+          { args: [60, 'mm:ss'], expect: '01:00' },
+          { args: [3600, 'mm:ss'], expect: '00:00' },
+          { args: [3600, 'hh:mm:ss'], expect: '01:00:00' }
+        ];
+
+        fixtures.forEach(function(fixture) {
+          var { args, expect } = fixture;
+          var title = args.map(String).join(', ') + ' => ' + expect + ' ';
+
+          test(title, function() {
+            assert.equal(hms.apply(null, args), expect);
+          });
+        });
+      });
+    });
   });
 
   suite('async', function() {

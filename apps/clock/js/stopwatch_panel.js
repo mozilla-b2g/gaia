@@ -17,7 +17,7 @@
       'lap', 'reset', 'time',
       'lap-list', 'laps'
     ].forEach(function(sel) {
-      this.nodes[sel] = element.getElementsByClassName('stopwatch-' + sel)[0];
+      this.nodes[sel] = this.element.querySelector('.stopwatch-' + sel);
     }, this);
 
     // Bind click events
@@ -53,7 +53,7 @@
   StopwatchPanel.prototype.update = function() {
     var swp = priv.get(this);
     var e = swp.stopwatch.getElapsedTime();
-    var time = this.hms(Math.floor(e.getTime() / 1000), 'mm:ss');
+    var time = Utils.format.hms(Math.floor(e.getTime() / 1000), 'mm:ss');
     this.nodes.time.textContent = time;
   };
 
@@ -144,7 +144,7 @@
     if (num > 99) {
       return;
     }
-    var time = this.hms(Math.floor(val.getTime() / 1000), 'mm:ss');
+    var time = Utils.format.hms(Math.floor(val.getTime() / 1000), 'mm:ss');
     var li = document.createElement('li');
     li.setAttribute('class', 'lap-cell');
     var html = this.lapTemplate.interpolate({
@@ -166,34 +166,6 @@
     while (node.hasChildNodes()) {
       node.removeChild(node.lastChild);
     }
-  };
-
-  StopwatchPanel.prototype.hms = function(sec, format) {
-    var hour = 0;
-    var min = 0;
-
-    if (sec >= 3600) {
-      hour = Math.floor(sec / 3600);
-      sec -= hour * 3600;
-    }
-
-    if (sec >= 60) {
-      min = Math.floor(sec / 60);
-      sec -= min * 60;
-    }
-
-    hour = (hour < 10) ? '0' + hour : hour;
-    min = (min < 10) ? '0' + min : min;
-    sec = (sec < 10) ? '0' + sec : sec;
-
-    if (typeof format !== 'undefined') {
-      format = format.replace('hh', hour);
-      format = format.replace('mm', min);
-      format = format.replace('ss', sec);
-
-      return format;
-    }
-    return hour + ':' + min + ':' + sec;
   };
 
   exports.StopwatchPanel = StopwatchPanel;

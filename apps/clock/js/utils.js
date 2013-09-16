@@ -164,24 +164,6 @@ Utils.getSelectedValue = function(selectElement) {
   return selectElement.options[selectElement.selectedIndex].value;
 };
 
-Utils.formatTime = function(hour, minute) {
-  var period = '';
-  if (Utils.is12hFormat()) {
-    period = hour < 12 ? 'AM' : 'PM';
-    hour = hour % 12;
-    hour = (hour == 0) ? 12 : hour;
-  }
-
-  if (hour == 0) {
-    hour = '00';
-  }
-
-  if (minute < 10) {
-    minute = '0' + minute;
-  }
-
-  return hour + ':' + minute + period;
-};
 
 Utils.parseTime = function(time) {
   var parsed = time.split(':');
@@ -231,6 +213,54 @@ Utils.safeCpuLock = function(timeoutMs, fn) {
   } catch (err) {
     unlockFn();
     throw err;
+  }
+};
+
+Utils.format = {
+  time: function(hour, minute) {
+    var period = '';
+    if (Utils.is12hFormat()) {
+      period = hour < 12 ? 'AM' : 'PM';
+      hour = hour % 12;
+      hour = (hour == 0) ? 12 : hour;
+    }
+
+    if (hour == 0) {
+      hour = '00';
+    }
+
+    if (minute < 10) {
+      minute = '0' + minute;
+    }
+
+    return hour + ':' + minute + period;
+  },
+  hms: function(sec, format) {
+    var hour = 0;
+    var min = 0;
+
+    if (sec >= 3600) {
+      hour = Math.floor(sec / 3600);
+      sec -= hour * 3600;
+    }
+
+    if (sec >= 60) {
+      min = Math.floor(sec / 60);
+      sec -= min * 60;
+    }
+
+    hour = (hour < 10) ? '0' + hour : hour;
+    min = (min < 10) ? '0' + min : min;
+    sec = (sec < 10) ? '0' + sec : sec;
+
+    if (typeof format !== 'undefined') {
+      format = format.replace('hh', hour);
+      format = format.replace('mm', min);
+      format = format.replace('ss', sec);
+
+      return format;
+    }
+    return hour + ':' + min + ':' + sec;
   }
 };
 
