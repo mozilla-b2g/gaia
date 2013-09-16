@@ -68,7 +68,7 @@ var dragging = false;
 var touchStartID = null;
 var isPausedWhileDragging;
 var sliderRect;
-var thumbnailList;
+var thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
 
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
@@ -77,7 +77,6 @@ function init() {
   // configure the template id for template group and view.
   ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
   ThumbnailItem.Template = new Template('thumbnail-template');
-  thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
 
   initDB();
 
