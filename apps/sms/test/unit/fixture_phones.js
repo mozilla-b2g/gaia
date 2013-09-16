@@ -1,3 +1,5 @@
+/*exported FixturePhones */
+
 'use strict';
 // Derived from
 // /dom/phonenumberutils/tests/test_phonenumber.xul

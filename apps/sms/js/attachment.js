@@ -17,6 +17,7 @@
  * can be defined in that.
  */
 
+/*global Utils, Template, MimeMapper, MozActivity */
 
 (function(exports) {
   'use strict';

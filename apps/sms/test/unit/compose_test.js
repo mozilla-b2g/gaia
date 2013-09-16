@@ -1,6 +1,11 @@
 /*
   Compose Tests
 */
+
+/*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
+         Compose, Attachment, MockMozActivity, Settings, Utils,
+         AttachmentMenu */
+
 'use strict';
 
 mocha.globals(['0', '6']);
@@ -17,7 +22,7 @@ requireApp('sms/test/unit/mock_settings.js');
 requireApp('sms/test/unit/mock_utils.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 
-var mocksHelper = new MocksHelper([
+var mocksHelperForCompose = new MocksHelper([
   'AttachmentMenu',
   'Settings',
   'Recipients',
@@ -27,7 +32,7 @@ var mocksHelper = new MocksHelper([
 ]).init();
 
 suite('compose_test.js', function() {
-  mocksHelper.attachTestHelpers();
+  mocksHelperForCompose.attachTestHelpers();
   var realMozL10n;
   var oversizedImageBlob,
       smallImageBlob;
@@ -108,7 +113,6 @@ suite('compose_test.js', function() {
       });
       test('Placeholder removed on input of attachment', function() {
         Compose.append(mockAttachment());
-        var txt = Compose.getContent();
         var contains = message.classList.contains('placeholder');
         // clearing to remove the iframe so that mocha doesn't
         // get alarmed at window[0] pointing to the iframe
@@ -421,7 +425,7 @@ suite('compose_test.js', function() {
               'the size was recalculated after resizing');
             done();
           }
-        };
+        }
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment());
         // we store this so we can make sure it gets resized
@@ -448,7 +452,7 @@ suite('compose_test.js', function() {
               done();
             }
           }
-        };
+        }
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         Compose.append('append more image');
@@ -656,7 +660,7 @@ suite('compose_test.js', function() {
           assert.isTrue(AttachmentMenu.open.called, 'Menu should popup');
           done();
         }
-      };
+      }
       Compose.on('input', onInput);
       Compose.append(imageAttachment);
       imageAttachment.mNextRender.click();

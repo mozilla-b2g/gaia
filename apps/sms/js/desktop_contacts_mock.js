@@ -26,7 +26,7 @@
       aArray = [aArray];
     }
     return aArray.map(stringOrBust).filter(function(el) {
-      return el != undefined;
+      return el !== undefined;
     });
   }
 
@@ -174,7 +174,7 @@
         if (typeof value !== 'string') {
           value = value.value;
         }
-        if (found[term] = value.toLowerCase()[method](term)) {
+        if ((found[term] = value.toLowerCase()[method](term))) {
           return true;
         }
       }
@@ -408,4 +408,4 @@
 
 
 
-}(this));
+}(window));

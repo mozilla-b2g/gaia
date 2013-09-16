@@ -1,3 +1,5 @@
+/*global LinkHelper, FixturePhones */
+
 /*
   Link Helper Tests
 */

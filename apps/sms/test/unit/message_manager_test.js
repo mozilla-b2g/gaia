@@ -1,3 +1,7 @@
+/*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
+         MockL10n, Contacts, MockContact, loadBodyHTML, MozSmsFilter,
+         ThreadListUI, MockThreads, MockMessages, Threads */
+
 'use strict';
 
 requireApp('sms/js/utils.js');

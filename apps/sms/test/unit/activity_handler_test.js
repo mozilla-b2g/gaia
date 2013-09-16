@@ -1,3 +1,10 @@
+/*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
+         MessageManager, Attachment, ThreadUI */
+/*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
+         MockNavigatorWakeLock, MockNotificationHelper, MockOptionMenu,
+         Mockalert, MockMessages, MockNavigatorSettings, MockL10n,
+         MockNavigatormozMobileMessage */
+
 'use strict';
 
 mocha.globals(['alert', 'confirm', 'Notify']);
@@ -89,6 +96,7 @@ suite('ActivityHandler', function() {
 
   suite('init', function() {
     test('the message handlers are bound', function() {
+      /*jshint sub: true */
       var handlers = MockNavigatormozSetMessageHandler.mMessageHandlers;
       assert.ok(handlers['activity']);
       assert.ok(handlers['sms-received']);
@@ -372,6 +380,17 @@ suite('ActivityHandler', function() {
 
       // Call the activity. As we are in 'new' there is no hashchange.
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+    });
+
+    test('new message with no body, with empty msg', function() {
+      // No message in the input field.
+      Compose.mEmpty = true;
+      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
+        assert.ok(false, 'confirmation dialog should not show');
+      });
+
+      // Call the activity. As we are in 'new' there is no hashchange.
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
     });
 
     test('new message with user input msg, discard it', function() {

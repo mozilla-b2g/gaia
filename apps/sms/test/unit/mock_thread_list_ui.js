@@ -1,3 +1,5 @@
+/*exported MockThreadListUI */
+
 'use strict';
 
 var MockThreadListUI = {

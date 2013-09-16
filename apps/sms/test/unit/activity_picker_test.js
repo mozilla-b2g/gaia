@@ -1,3 +1,5 @@
+/*global MocksHelper, MockL10n, ActivityPicker, MozActivity */
+
 'use strict';
 
 requireApp('sms/js/activity_picker.js');
@@ -13,7 +15,7 @@ var mocksHelperAP = new MocksHelper([
 ]).init();
 
 suite('ActivityPicker', function() {
-  var realMozL10n, events, onsuccess, onerror;
+  var realMozL10n, onsuccess, onerror;
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;

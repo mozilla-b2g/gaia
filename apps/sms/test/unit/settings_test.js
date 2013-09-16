@@ -1,6 +1,9 @@
 /*
   Settings Tests
 */
+
+/*global Settings, MockNavigatorSettings */
+
 'use strict';
 
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');

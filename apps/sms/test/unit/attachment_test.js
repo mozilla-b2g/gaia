@@ -1,3 +1,6 @@
+/*global MocksHelper, MockL10n, loadBodyHTML, Attachment, AttachmentMenu,
+         MimeMapper, MockMozActivity */
+
 'use strict';
 
 requireApp('sms/js/attachment.js');
@@ -32,7 +35,7 @@ suite('attachment_test.js', function() {
     var thumbnail = el.querySelector('div.thumbnail');
     assert.ok(thumbnail);
     assert.include(thumbnail.style.backgroundImage, 'data:image');
-  };
+  }
 
   function assertThumbnailPlaceholder(el, type) {
     assert.ok(el.classList.contains('nopreview'));
@@ -41,7 +44,7 @@ suite('attachment_test.js', function() {
     var placeholder = el.querySelector('div.thumbnail-placeholder');
     assert.ok(placeholder);
     assert.ok(placeholder.classList.contains(type + '-placeholder'));
-  };
+  }
 
   suiteSetup(function(done) {
     // this sometimes takes longer because we fetch 4 assets via XHR

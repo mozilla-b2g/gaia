@@ -1,3 +1,5 @@
+/*exported MockLinkHelper */
+
 'use strict';
 
 var MockLinkHelper = {

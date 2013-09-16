@@ -1,6 +1,7 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*global Utils, WBMP, TextEncoder */
 
 (function() {
 'use strict';
@@ -119,7 +120,7 @@ function SMIL_generateUniqueLocation(data, location) {
   return result;
 }
 
-var SMIL = window.SMIL = {
+window.SMIL = {
 
   // SMIL.parse - takes a message from the DOM API's and converts to a
   // simple array format:
@@ -208,7 +209,7 @@ var SMIL = window.SMIL = {
       };
       activeReaders++;
       reader.readAsArrayBuffer(slide.blob);
-    };
+    }
 
     // handle mms messages without smil
     // aggregate all text attachments into last slide

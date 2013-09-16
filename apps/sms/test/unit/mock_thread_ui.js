@@ -1,3 +1,6 @@
+/*global Recipients, Template */
+/*exported MockThreadUI */
+
 'use strict';
 
 var MockThreadUI = {

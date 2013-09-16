@@ -1,3 +1,6 @@
+/*global Utils */
+/*exported MockAttachment */
+
 'use strict';
 
 function MockAttachment(blob, options) {

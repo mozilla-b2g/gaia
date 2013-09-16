@@ -1,5 +1,8 @@
 'use strict';
 
+/* global Utils */
+/* exported MockUtils */
+
 var MockUtils = {
   // we need that this function does real work, so it's copied from the real
   // Utils.js

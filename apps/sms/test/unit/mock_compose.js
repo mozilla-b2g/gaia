@@ -1,3 +1,5 @@
+/*exported MockCompose */
+
 'use strict';
 
 var MockCompose = {

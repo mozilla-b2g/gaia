@@ -1,3 +1,5 @@
+/*global ActivityPicker, ThreadUI */
+
 (function(exports) {
   'use strict';
   /*
@@ -42,7 +44,6 @@
 
       var dataset = event.target.dataset;
       var action = dataset.action;
-      var number;
 
       if (!action) {
         return;

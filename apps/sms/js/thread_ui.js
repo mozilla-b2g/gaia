@@ -1,5 +1,12 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
+         URL, SMIL, Dialog, MessageManager, MozSmsFilter, LinkHelper,
+         ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
+         Attachment, WaitingScreen, MozActivity, LinkActionHandler */
+/*exported ThreadUI */
+
 (function(global) {
 'use strict';
 
@@ -289,8 +296,9 @@ var ThreadUI = global.ThreadUI = {
   },
 
   initSentAudio: function thui_initSentAudio() {
-    if (this.sentAudio)
+    if (this.sentAudio) {
       return;
+    }
 
     this.sentAudioKey = 'message.sent-sound.enabled';
     this.sentAudio = new Audio('/sounds/sent.ogg');
@@ -415,7 +423,7 @@ var ThreadUI = global.ThreadUI = {
           break;
         }
       }
-    } while (node = node.previousSibling);
+    } while ((node = node.previousSibling));
   },
 
   onMessageTypeChange: function thui_onMessageType(event) {
@@ -760,8 +768,6 @@ var ThreadUI = global.ThreadUI = {
   // will return true if we can send the message, false if we can't send the
   // message
   updateCounter: function thui_updateCount() {
-    var message;
-
     if (Compose.type === 'mms') {
       return this.updateCounterForMms();
     } else {
@@ -928,7 +934,6 @@ var ThreadUI = global.ThreadUI = {
     header.dataset.time = messageTimestamp;
 
     // Add text
-    var content, timeOnly = false;
     if (isLastMessagesBlock) {
       var lastContainer = this.container.lastElementChild;
       if (lastContainer) {
@@ -1116,7 +1121,6 @@ var ThreadUI = global.ThreadUI = {
     var scrollViewToBottom = ThreadUI.scrollViewToBottom.bind(ThreadUI);
 
     dataArray.forEach(function(messageData) {
-      var mediaElement, textElement;
 
       if (messageData.blob) {
         var attachment = new Attachment(messageData.blob, {
@@ -1128,7 +1132,7 @@ var ThreadUI = global.ThreadUI = {
       }
 
       if (messageData.text) {
-        textElement = document.createElement('span');
+        var textElement = document.createElement('span');
 
         // escape text for html and look for clickable numbers, etc.
         var text = Template.escape(messageData.text);
@@ -1423,7 +1427,6 @@ var ThreadUI = global.ThreadUI = {
       var deleteMessages = function() {
         MessageManager.getThreads(ThreadListUI.renderThreads,
         function afterRender() {
-          var completeDeletionDone = false;
           // Then sending/received messages
           for (var i = 0; i < length; i++) {
             ThreadUI.removeMessageDOM(inputs[i].parentNode.parentNode);
@@ -1481,7 +1484,6 @@ var ThreadUI = global.ThreadUI = {
 
   handleMessageClick: function thui_handleMessageClick(evt) {
     var currentNode = evt.target;
-    var inBubble = false;
     var elems = {};
 
     // Walk up the DOM, inspecting all the elements
@@ -1745,6 +1747,7 @@ var ThreadUI = global.ThreadUI = {
       case 'UnknownError':
       case 'InternalError':
       case 'InvalidAddressError':
+        /* falls through */
       default:
         messageTitle = 'sendGeneralErrorTitle';
         messageBody = 'sendGeneralErrorBody';
@@ -1922,6 +1925,7 @@ var ThreadUI = global.ThreadUI = {
 
       var data = Utils.getDisplayObject(details.title, current);
 
+      /*jshint loopfunc: true */
       ['name', 'number'].forEach(function(key) {
         var escapedData = Template.escape(data[key]);
         if (isSuggestion) {
@@ -2128,7 +2132,6 @@ var ThreadUI = global.ThreadUI = {
       }
 
       this.prompt({
-        name: name,
         number: number,
         isContact: isContact,
         inMessage: inMessage,
@@ -2187,7 +2190,6 @@ var ThreadUI = global.ThreadUI = {
     var thread = Threads.get(Threads.lastId || Threads.currentId);
     var number = opt.number || '';
     var email = opt.email || '';
-    var name = opt.name || number || email;
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
     var header = '';

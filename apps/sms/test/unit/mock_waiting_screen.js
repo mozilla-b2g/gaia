@@ -1,3 +1,5 @@
+/*exported MockWaitingScreen */
+
 'use strict';
 
 var MockWaitingScreen = {

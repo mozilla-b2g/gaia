@@ -1,3 +1,5 @@
+/*global GestureDetector, Dialog */
+
 (function(exports) {
   'use strict';
   // For Recipients it makes sense to refer to the
@@ -11,9 +13,6 @@
   var data = new WeakMap();
   var events = new WeakMap();
   var relation = new WeakMap();
-
-  var rtrigger = /[a-zA-Z0-9\+\(\*]/;
-
 
   function Recipient(opts) {
     opts = opts || {};
@@ -650,7 +649,7 @@
     var keyCode = event.keyCode;
     var editable = 'false';
     var lastElement = view.inner.lastElementChild;
-    var typed, recipient, length, last, list, previous;
+    var typed, recipient, length, previous;
 
     // All keyboard events will need some information
     // about the input that the user typed.
