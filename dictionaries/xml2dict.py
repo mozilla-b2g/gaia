@@ -394,11 +394,7 @@ def emitNode(output, node):
     cbit = 0x80 if charcode != 0 else 0
     sbit = 0x40 if charcode > 255 else 0
     nbit = 0x20 if node.next else 0
-
-    if node.frequency == 0:
-      freq = 0 #zero means profanity
-    else:
-      freq = 1 + int(node.frequency * 31) # values > 0 map the range 1 to 31
+    freq = int(node.frequency * 32)
 
     firstbyte = cbit | sbit | nbit | (freq & 0x1F)
     output.write(struct.pack("B", firstbyte))
@@ -479,10 +475,13 @@ def char_data(text):
         lastWord += text
 
 def end_element(name):
-    if name != 'w' or lastName != 'w':
-        return
-
     global tstRoot, _WordCounter, lastWord, maxWordLength
+    # For now we exclude profanity from the dictionary file.
+    # It adds < 20kb to the size of the dictionary file, but I need to
+    # add special logic to the prediction engine to ensure that we never
+    # suggest profanity before we include it in the dictionary.
+    if name != 'w' or lastName != 'w' or lastFreq < 1:
+        return
 
     lastWord = lastWord.strip()
 
