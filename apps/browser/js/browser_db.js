@@ -35,30 +35,32 @@ var BrowserDB = {
           }, this);
         }
 
-        // Populate search engines & settings if upgrading from below version 6
-        if (upgradeFrom < 6 && data.searchEngines && data.settings) {
+        // Populate search engines & settings if upgrading from below version 7
+        if (upgradeFrom < 7 && data.searchEngines && data.settings) {
           var defaultSearchEngine = data.settings.defaultSearchEngine;
           if (defaultSearchEngine) {
             this.updateSetting(defaultSearchEngine,
               'defaultSearchEngine');
           }
 
-          data.searchEngines.forEach(function(searchEngine) {
-            if (!searchEngine.uri || !searchEngine.title ||
-              !searchEngine.iconUri)
-              return;
-            this.addSearchEngine(searchEngine.uri, searchEngine.title,
-              searchEngine.iconUri, callback);
-            if (searchEngine.uri == defaultSearchEngine) {
-              Browser.setSearchProvider(searchEngine.uri, searchEngine.title,
+          this.db.clearSearchEngines((function browserDB_addSearchEngines() {
+            data.searchEngines.forEach(function(searchEngine) {
+              if (!searchEngine.uri || !searchEngine.title ||
+                !searchEngine.iconUri)
+                return;
+              this.addSearchEngine(searchEngine, callback);
+              if (searchEngine.uri == defaultSearchEngine) {
+                Browser.searchEngine = searchEngine;
+              }
+              this.setAndLoadIconForPage(searchEngine.uri,
                 searchEngine.iconUri);
-            }
-            this.setAndLoadIconForPage(searchEngine.uri, searchEngine.iconUri);
-          }, this);
+            }, this);
+          }).bind(this));
+
         }
 
-      }).bind(BrowserDB));
-    }).bind(Browser));
+      }).bind(this));
+    }).bind(this));
   },
 
   addPlace: function browserDB_addPlace(uri, callback) {
@@ -237,18 +239,10 @@ var BrowserDB = {
     }).bind(this));
   },
 
-  addSearchEngine: function browserDB_addSearchEngine(uri, title, iconUri,
-    callback) {
-    if (!uri || !title)
+  addSearchEngine: function browserDB_addSearchEngine(data, callback) {
+    if (!data.uri || !data.title)
       return;
-
-    var search_engine = {
-      uri: uri,
-      title: title,
-      iconUri: iconUri
-    };
-
-    this.db.saveSearchEngine(search_engine, callback);
+    this.db.saveSearchEngine(data, callback);
   },
 
   getSearchEngine: function browserDB_getSearchEngine(uri, callback) {
@@ -272,7 +266,7 @@ BrowserDB.db = {
   upgradeFrom: -1,
 
   open: function db_open(callback) {
-    const DB_VERSION = 6;
+    const DB_VERSION = 7;
     const DB_NAME = 'browser';
     var request = idb.open(DB_NAME, DB_VERSION);
 
@@ -907,10 +901,10 @@ BrowserDB.db = {
 
   },
 
-  saveSearchEngine: function db_saveSearchEngine(search_engine, callback) {
+  saveSearchEngine: function db_saveSearchEngine(data, callback) {
     var transaction = this._db.transaction(['search_engines'], 'readwrite');
     var objectStore = transaction.objectStore('search_engines');
-    var request = objectStore.put(search_engine);
+    var request = objectStore.put(data);
 
     transaction.oncomplete = function onComplete(e) {
       if (callback)
