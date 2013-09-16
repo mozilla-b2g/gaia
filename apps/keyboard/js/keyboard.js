@@ -709,7 +709,8 @@ function modifyLayout(keyboardName) {
     }
 
     // switch languages button
-    if (!layout['hidesSwitchKey']) {
+    var supportsSwitching = navigator.mozInputMethod.mgmt.supportsSwitching();
+    if (!layout['hidesSwitchKey'] && supportsSwitching) {
       space.ratio -= 1.5;
       row.splice(c, 0, {
         value: '&#x1f310;',
