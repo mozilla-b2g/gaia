@@ -1,6 +1,7 @@
 'use strict';
 
-requireApp('homescreen/test/unit/mock_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 requireApp('homescreen/test/unit/mock_moz_activity.js');
 
 requireApp('homescreen/js/wallpaper.js');
@@ -19,9 +20,12 @@ mocksHelperForWallpaper.init();
 suite('wallpaper.js >', function() {
 
   var mocksHelper = mocksHelperForWallpaper, icongrid;
+  var realMozSettings;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
     icongrid = document.createElement('div');
     icongrid.id = 'icongrid';
@@ -31,7 +35,7 @@ suite('wallpaper.js >', function() {
   suiteTeardown(function() {
     document.body.removeChild(icongrid);
 
-    navigator.mozSettings.suiteTeardown();
+    navigator.mozSettings = realMozSettings;
 
     mocksHelper.suiteTeardown();
     delete window.ForwardLock;
@@ -43,8 +47,8 @@ suite('wallpaper.js >', function() {
   });
 
   teardown(function() {
+    window.MockNavigatorSettings.mSettings['wallpaper.image'] = null;
     mocksHelper.teardown();
-    navigator.mozSettings.teardown();
   });
 
   function dispatchLongPress() {
@@ -96,8 +100,7 @@ suite('wallpaper.js >', function() {
     startMozActivity('onsuccess', fakeblob);
 
     // We set the wallpaper.image property to "banana"
-    assert.equal(Object.keys(navigator.mozSettings.result).length, 1);
-    assert.deepEqual(navigator.mozSettings.result['wallpaper.image'],
+    assert.deepEqual(window.MockNavigatorSettings.mSettings['wallpaper.image'],
                      fakeblob);
   });
 
@@ -106,7 +109,7 @@ suite('wallpaper.js >', function() {
     startMozActivity('onsuccess');
 
     // No blob then wallpaper.image property is not defined
-    assert.isNull(navigator.mozSettings.result);
+    assert.isNull(window.MockNavigatorSettings.mSettings['wallpaper.image']);
   });
 
   test('Pick activity has been cancelled ', function() {
@@ -114,6 +117,6 @@ suite('wallpaper.js >', function() {
     startMozActivity('onerror');
 
     // Then  wallpaper.image property is not defined
-    assert.isNull(navigator.mozSettings.result);
+    assert.isNull(window.MockNavigatorSettings.mSettings['wallpaper.image']);
   });
 });
