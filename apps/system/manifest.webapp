@@ -37,7 +37,8 @@
     "audio-channel-notification":{},
     "audio-channel-content":{},
     "cellbroadcast":{},
-    "keyboard":{}
+    "keyboard":{},
+    "inputmethod-manage":{}
   },
   "locales": {
     "ar": {
