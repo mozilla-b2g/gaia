@@ -16,7 +16,7 @@ var EverythingME = {
     // pre-evme-load pseudo searchbar
     var activationIcon = document.createElement('div');
     activationIcon.id = 'evme-activation-icon';
-    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default" /></div>';
+    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2" /></div>';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
