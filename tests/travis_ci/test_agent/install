@@ -1,0 +1,10 @@
+#! /bin/bash -ve
+echo 'Downloading Firefox'
+npm install -g mozilla-download
+mozilla-download --product firefox $PWD/firefox
+
+echo 'Downloading & installing node dependencies'
+make common-install
+
+echo 'Downloading xulrunner-sdk and making profile for testing (more than 5 minutes)'
+DEBUG=1 DESKTOP=0 WGET_OPTS=-nv make
