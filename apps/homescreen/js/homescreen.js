@@ -59,15 +59,33 @@ var Homescreen = (function() {
         // start to pan while home is loading
         GridManager.goToPage(landingPage);
       }
-      DragDropManager.init();
-      Wallpaper.init();
+
+      document.body.addEventListener('contextmenu', onContextMenu);
     });
+  }
+
+  function onContextMenu(evt) {
+    var target = evt.target;
+
+    if ('isIcon' in target.dataset) {
+      // Grid or Dock manager will resolve the current event
+      var manager = target.parentNode === DockManager.page.olist ? DockManager :
+                                                                   GridManager;
+      manager.contextmenu(evt);
+    } else if (!Homescreen.isInEditMode()) {
+      // No long press over an icon neither edit mode
+      LazyLoader.load('js/wallpaper.js', function callWallpaper() {
+        Wallpaper.contextmenu();
+      });
+    }
   }
 
   function exitFromEditMode() {
     Homescreen.setMode('normal');
-    ConfirmDialog.hide();
     GridManager.exitFromEditMode();
+    if (typeof ConfirmDialog !== 'undefined') {
+      ConfirmDialog.hide();
+    }
   }
 
   document.addEventListener('visibilitychange', function mozVisChange() {
@@ -86,12 +104,14 @@ var Homescreen = (function() {
   window.addEventListener('message', function hs_onMessage(event) {
     if (event.origin === origin) {
       var message = event.data;
-      switch (message.type) {
-        case Message.Type.ADD_BOOKMARK:
-          var app = new Bookmark(message.data);
-          GridManager.install(app);
-          break;
-      }
+      LazyLoader.load('js/message.js', function loaded() {
+        switch (message.type) {
+          case Message.Type.ADD_BOOKMARK:
+            var app = new Bookmark(message.data);
+            GridManager.install(app);
+            break;
+        }
+      });
     }
   });
 

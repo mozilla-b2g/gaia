@@ -100,6 +100,10 @@ li:active {
   display: none;
 }
 
+body[data-mode = 'normal'] ol > li span.options {
+  display: none;
+}
+
 body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > img,
 body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
   filter: url('app_offline_filter.svg#grayscale');

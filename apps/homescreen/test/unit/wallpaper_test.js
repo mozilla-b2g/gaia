@@ -23,8 +23,6 @@ suite('wallpaper.js >', function() {
     icongrid = document.createElement('div');
     icongrid.id = 'icongrid';
     document.body.appendChild(icongrid);
-
-    Wallpaper.init();
   });
 
   suiteTeardown(function() {
@@ -46,7 +44,7 @@ suite('wallpaper.js >', function() {
   });
 
   function dispatchLongPress() {
-    icongrid.dispatchEvent(new CustomEvent('contextmenu'));
+    Wallpaper.contextmenu();
   }
 
   function createImageBlob() {
