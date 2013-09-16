@@ -21,6 +21,17 @@
 #                   Gaia                                                      #
 #                                                                             #
 ###############################################################################
+#                                                                             #
+# Lint your code                                                              #
+#                                                                             #
+# use "make hint" and "make lint" to lint using respectively jshint and       #
+# gjslint.                                                                    #
+#                                                                             #
+# APP=<app name> will hint/lint only this app.                                #
+# LINTED_FILES=<list of files> will (h/l)int only these space-separated files #
+# JSHINTRC=<path> will use this config file when running jshint               #
+#                                                                             #
+###############################################################################
 -include local.mk
 
 # .b2g.mk recorded the make flags from Android.mk
@@ -325,7 +336,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk .git/hooks/pre-commit $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 endif
@@ -585,6 +596,12 @@ endif
 endif
 
 
+# this lists the programs we need in the Makefile and that are installed by npm
+
+NPM_INSTALLED_PROGRAMS = node_modules/.bin/mozilla-download node_modules/.bin/jshint
+$(NPM_INSTALLED_PROGRAMS): package.json
+	npm install --registry $(NPM_REGISTRY)
+	touch $(NPM_INSTALLED_PROGRAMS)
 
 ###############################################################################
 # Tests                                                                       #
@@ -603,10 +620,7 @@ ifndef APPS
 	endif
 endif
 
-node_modules:
-	npm install --registry $(NPM_REGISTRY)
-
-b2g: node_modules
+b2g: node_modules/.bin/mozilla-download
 	./node_modules/.bin/mozilla-download --verbose --product b2g $@
 
 .PHONY: test-integration
@@ -759,11 +773,32 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
+.PHONY: lint hint
+
 # Lint apps
+ifndef LINTED_FILES
+ifdef APP
+  JSHINTED_PATH = apps/$(APP)
+  GJSLINTED_PATH = -r apps/$(APP)
+else
+  JSHINTED_PATH = apps shared
+  GJSLINTED_PATH = -r apps -r shared
+endif
+endif
+
+lint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
+lint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
 lint:
 	# --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
-	gjslint --disable 210,217,220,225 -r apps -r shared -e '$(shell cat ./build/lint-excluded-dirs.list)' -x '$(shell cat ./build/lint-excluded-files.list)'
+	gjslint --disable 210,217,220,225 $(GJSLINTED_PATH) -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(LINTED_FILES)
+
+ifdef JSHINTRC
+	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
+endif
+
+hint: node_modules/.bin/jshint
+	./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
@@ -915,12 +950,9 @@ endif
 clean:
 	rm -rf profile profile-debug profile-test $(PROFILE_FOLDER)
 
-# clean out build products
+# clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-sdk .xulrunner-url
+	rm -rf xulrunner-sdk .xulrunner-url node_modules
 
-.PHONY: install-git-hook
-install-git-hook:
-ifeq ($(BUILD_APP_NAME),*)
+.git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit || true
-endif
