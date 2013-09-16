@@ -97,7 +97,7 @@ marionette('email notifications, foreground', function() {
 
     var img = notificationContainer.findElement('img');
     assert(img.getAttribute('src').indexOf('type=message_reader') !== -1);
-    console.log('------ THIS A HACK WE NEED TO USE SYSTEM APPS HELPER ---');
+    // ------ THIS A HACK WE NEED TO USE SYSTEM APPS HELPER ---
   });
 
   test('should have bulk message notification in the different account',
@@ -115,7 +115,7 @@ marionette('email notifications, foreground', function() {
 
     var img = notificationContainer.findElement('img');
     assert(img.getAttribute('src').indexOf('type=message_list') !== -1);
-    console.log('------ THIS A HACK WE NEED TO USE SYSTEM APPS HELPER ---');
+    // ------ THIS A HACK WE NEED TO USE SYSTEM APPS HELPER ---');
   });
 
   test('should not get a notification for same account', function() {
