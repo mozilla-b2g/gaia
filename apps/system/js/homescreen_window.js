@@ -206,13 +206,13 @@
   HomescreenWindow.prototype._enter_opened = function(prev, evt) {
     this.resetTransition();
     this.element.classList.add('active');
-    this.publish('opened');
+    this.publish('open');
   };
 
   HomescreenWindow.prototype._enter_closed = function(prev, evt) {
     this.setVisible(false);
     this.resetTransition();
-    this.publish('closed');
+    this.publish('close');
   };
 
   HomescreenWindow.prototype.open = function(callback) {
@@ -234,44 +234,6 @@
     }
     this.element.classList.remove('zoom-in');
     this.element.classList.remove('zoom-out');
-  };
-
-  /**
-   * Acquire one-time callback of certain type of state
-   */
-  HomescreenWindow.prototype.one = function(type, state, callback) {
-    var self = this;
-    var observer = new MutationObserver(function() {
-      if (self.element.getAttribute('data-' + type + 'State') === state) {
-        observer.disconnect();
-        callback();
-      }
-    });
-
-    // configuration of the observer:
-    // we only care dataset change here.
-    var config = { characterData: true, attributes: true };
-
-    // pass in the target node, as well as the observer options
-    observer.observe(this.element, config);
-  };
-
-  HomescreenWindow.prototype._processTransitionEvent = function(evt, callback) {
-    var currentState = this._transitionState;
-    var evtIndex = TransitionEvents.indexOf(evt);
-    var state = TransitionStateTable[currentState][evtIndex];
-    if (!state) {
-      return;
-    }
-
-    if (callback) {
-      var s = evt == 'open' ? 'opened' : 'closed';
-      this.one('transition', s, callback);
-    }
-    this._changeTransitionState(state);
-    this.debug('transition state changed from ' +
-      currentState, ' to ', state, ' by ', evt);
-    this._callbackTransitonStateChange(currentState, state, evt);
   };
 
   HomescreenWindow.prototype._changeTransitionState =

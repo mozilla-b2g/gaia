@@ -40,6 +40,7 @@
             case 'webapps-launch':
               // TODO: Look up current opened window list,
               // and then create a new instance here.
+
               this.publish('launchapp', config);
               break;
 
@@ -57,6 +58,7 @@
               }
               config.changeURL = !detail.onlyShowApp;
               config.stayBackground = !detail.showApp;
+              console.log(config);
               // TODO: Create activity window instance
               // or background app window instance for system message here.
               this.publish('launchapp', config);
