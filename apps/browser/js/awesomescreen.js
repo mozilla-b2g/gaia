@@ -319,12 +319,13 @@ var Awesomescreen = {
     }
 
     // If less than two results, show default search option.
-    if (results.length < 2 && filter && Browser.defaultSearchProviderUri) {
+    if (results.length < 2 && filter && Browser.searchEngine.uri) {
+      var uri = Browser.searchEngine.uri.replace('{searchTerms}',
+        filter);
       var data = {
-        title: Browser.defaultSearchProviderTitle,
-        uri: Browser.defaultSearchProviderUri +
-          '?q=' + filter,
-        iconUri: Browser.defaultSearchProviderIconUri,
+        title: Browser.searchEngine.title,
+        uri: uri,
+        iconUri: Browser.searchEngine.iconUri,
         description: _('search-for') + ' "' + filter + '"'
       };
       var item = this.createListItem(data, null, 'search');
