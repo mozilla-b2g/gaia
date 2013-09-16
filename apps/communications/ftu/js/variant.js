@@ -45,10 +45,7 @@ var VariantManager = {
     xhr.send();
   },
 
-  CUSTOMIZERS: [
-    '/ftu/js/customizers/wallpaper_customizer.js',
-    '/ftu/js/customizers/default_contacts.js'
-  ],
+  CUSTOMIZERS: ['/ftu/js/customizers/wallpaper_customizer.js'],
 
   iccHandler: function vm_iccHandler() {
     this.mcc_mnc = this.getMccMnc();
