@@ -9,6 +9,7 @@ var Configurator = (function() {
 
   // Keeps the list of single variant apps, indexed by manifestURL
   var singleVariantApps = {};
+  var simPresentOnFirstBoot = true;
 
   var dummyProvider = {
     init: function() {
@@ -71,6 +72,7 @@ var Configurator = (function() {
   }
 
   function loadSingleVariantConf() {
+    loadSettingSIMPresent();
     if (!IccHelper || !IccHelper.enabled) {
       console.error('IccHelper isn\'t enabled. SingleVariant configuration' +
                     ' can\'t be loaded');
@@ -129,6 +131,25 @@ var Configurator = (function() {
     }
   }
 
+  function loadSettingSIMPresent() {
+    var settings = navigator.mozSettings;
+    if (!settings) {
+      console.log('Settings is not available');
+      return;
+    }
+    var req = settings.createLock().get('ftu.simPresentOnFirstBoot');
+
+    req.onsuccess = function osv_success(e) {
+      simPresentOnFirstBoot =
+          req.result['ftu.simPresentOnFirstBoot'] === undefined ||
+          req.result['ftu.simPresentOnFirstBoot'];
+    };
+
+    req.onerror = function osv_error(e) {
+      console.error('Error retrieving ftu.simPresentOnFirstBoot. ' + e);
+    };
+  }
+
   function startHomescreenByDefault() {
     var searchPage = document.querySelector('div[role="search-page"]');
 
@@ -153,6 +174,12 @@ var Configurator = (function() {
       return singleVariantApps;
     },
 
-    load: load
+    load: load,
+
+    get isSimPresentOnFirstBoot() {
+      return simPresentOnFirstBoot;
+    },
+
+    loadSettingSIMPresent: loadSettingSIMPresent
   };
 }());

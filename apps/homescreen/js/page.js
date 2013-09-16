@@ -684,11 +684,10 @@ TemplateIcon.prototype = {
  */
 function Page(container, icons, numberOfIcons) {
   this.container = this.movableContainer = container;
-  this.numberOfIcons = numberOfIcons;
   if (icons)
     this.render(icons);
   this.iconsWhileDragging = [];
-  this.maxIcons = GridManager.pageHelper.maxIconsPerPage;
+  this.maxIcons = numberOfIcons || GridManager.pageHelper.maxIconsPerPage;
 }
 
 Page.prototype = {
@@ -991,12 +990,12 @@ Page.prototype = {
    * Returns the last visible icon of the page
    */
   getLastVisibleIcon: function pg_getLastVisibleIcon() {
-    if (this.getNumIcons() <= this.numberOfIcons) {
+    if (this.getNumIcons() <= this.maxIcons) {
       return this.getLastIcon();
     } else {
-      var node = this.olist.children[this.numberOfIcons - 1];
+      var node = this.olist.children[this.maxIcons - 1];
       if (this.iconsWhileDragging.length > 0)
-        node = this.iconsWhileDragging[this.numberOfIcons - 1];
+        node = this.iconsWhileDragging[this.maxIcons - 1];
 
       if (!node) {
         return null;
@@ -1023,7 +1022,7 @@ Page.prototype = {
    * Move the apps in position higher than 'pos' one position ahead if they have
    * a desiredPosition lower than their actual position
    */
-  _moveAhead: function(pos) {
+  _moveAhead: function pg_moveAhead(pos) {
     // When a new sv app is installed, the previously sv apps installed in
     // higher positions will have been moved.
     // This function restores their previous position if needed
@@ -1039,15 +1038,23 @@ Page.prototype = {
   },
 
   /*
+   * Return true if the Page has free space, return false otherwise
+   */
+  hasEmptySlot: function pg_hasEmptySlot() {
+    return this.getNumIcons() < this.maxIcons;
+  },
+
+  /*
    * Insert an icon in the page
    */
-  _insertIcon: function insertIcon(icon) {
+  _insertIcon: function pg_insertIcon(icon) {
     var iconList = this.olist.children;
     var container = icon.container;
 
     // Inserts the icon in the closest possible space to its desired position,
     // keeping the order of all existing icons with desired position
-    if (icon.descriptor && icon.descriptor.desiredPos !== undefined) {
+    if (icon.descriptor && icon.descriptor.desiredPos !== undefined &&
+        Configurator.isSimPresentOnFirstBoot) {
       var desiredPos = icon.descriptor.desiredPos;
       var manifest = icon.descriptor.manifestURL;
       // Add to the installed SV apps array
@@ -1086,7 +1093,7 @@ Page.prototype = {
    * @param {Object} icon the icon to be added.
    */
   appendIconVisible: function pg_appendIconVisible(icon) {
-    if (this.getNumIcons() >= this.numberOfIcons) {
+    if (this.getNumIcons() >= this.maxIcons) {
       this.insertBeforeLastIcon(icon);
     } else {
       this.appendIcon(icon);
