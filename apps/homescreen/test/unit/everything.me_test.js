@@ -1,5 +1,7 @@
 'use strict';
 
+require('/shared/js/lazy_loader.js');
+
 requireApp('homescreen/test/unit/mock_everything.me.html.js');
 requireApp('homescreen/test/unit/mock_asyncStorage.js');
 requireApp('homescreen/test/unit/mock_l10n.js');
