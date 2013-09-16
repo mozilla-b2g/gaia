@@ -267,8 +267,8 @@ var KeyboardManager = {
     }
     if (!layoutFrame)
       layoutFrame = this.loadKeyboardLayout(layout);
-    // TODO make sure setVisible function is ready
-    layoutFrame.setVisible(false);
+    // TODO make sure setLayoutFrameActive function is ready
+    this.setLayoutFrameActive(layoutFrame, false);
     layoutFrame.hidden = true;
     layoutFrame.dataset.frameName = layout.id;
     layoutFrame.dataset.frameOrigin = layout.origin;
@@ -429,7 +429,7 @@ var KeyboardManager = {
     var layout = this.keyboardLayouts[group][index];
     this.showingLayout.frame = this.launchLayoutFrame(layout);
     this.showingLayout.frame.hidden = false;
-    this.showingLayout.frame.setVisible(true);
+    this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
   },
@@ -480,7 +480,7 @@ var KeyboardManager = {
       return;
     }
     this.showingLayout.frame.hidden = true;
-    this.showingLayout.frame.setVisible(false);
+    this.setLayoutFrameActive(this.showingLayout.frame, false);
     this.showingLayout.frame.removeEventListener(
         'mozbrowserresize', this, true);
     this.showingLayout.reset();
@@ -563,6 +563,13 @@ var KeyboardManager = {
         window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
       });
     }, FOCUS_CHANGE_DELAY);
+  },
+
+  setLayoutFrameActive: function km_setLayoutFrameActive(frame, active) {
+    frame.setVisible(active);
+    if (frame.setInputMethodActive) {
+      frame.setInputMethodActive(active);
+    }
   }
 };
 
