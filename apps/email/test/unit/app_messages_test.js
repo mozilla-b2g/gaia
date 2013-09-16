@@ -6,6 +6,11 @@ mocha.globals(['htmlCacheRestoreDetectedActivity']);
 suite('appMessages', function() {
   var subject;
 
+  if (!('mozSetMessageHandler' in navigator)) {
+    // navigator.mozSetMessageHandler is not turned on so we should bail.
+    return;
+  }
+
   suiteSetup(function(done) {
     var spy = sinon.spy(navigator, 'mozSetMessageHandler');
     testConfig({ done: done }, ['app_messages'], function(appMessages) {
