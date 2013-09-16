@@ -375,7 +375,7 @@ suite('system/ScreenManager', function() {
       ScreenManager.screenEnabled = true;
       assert.isTrue(ScreenManager.turnScreenOff(true, 'powerkey'));
       this.sinon.clock.tick(20);
-      assert.isTrue(stubRemoveListener.calledTwice);
+      assert.equal(stubRemoveListener.callCount, 4);
       assert.isTrue(stubSetIdle.calledWith(0));
       assert.isFalse(ScreenManager.screenEnabled);
       assert.isTrue(stubScnClassListAdd.calledWith('screenoff'));
