@@ -1,3 +1,5 @@
+/*global Utils */
+
 (function() {
 'use strict';
 /*
@@ -36,8 +38,9 @@ var KNOWN_TLDS = [
   'ws', 'ye', 'yt', 'yu', 'za', 'zm', 'zw'
 ];
 
-var ipv4RegExp = new RegExp(
-  '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$');
+var ipv4part = '(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)';
+var ipv4RegExp = new RegExp('^(?:' + ipv4part + '\\.){3}' + ipv4part + '$');
+
 // ensure that each part of the domain is long enough
 function checkDomain(domain) {
   // Check for a specific IPv4 address
@@ -182,7 +185,7 @@ function searchForLinks(type, string) {
   var match, linkSpec;
 
   // while we match stuff...
-  while (match = regexp.exec(string)) {
+  while ((match = regexp.exec(string))) {
 
     // if the match isn't at the begining of the string, check for a safe
     // character before the match

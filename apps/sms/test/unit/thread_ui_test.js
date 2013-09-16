@@ -1,3 +1,9 @@
+/*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
+         MockNavigatormozMobileMessage, Compose, MockDialog, Template, MockSMIL,
+         Utils, MessageManager, LinkActionHandler, LinkHelper, Attachment,
+         MockContact, MockOptionMenu, MockActivityPicker, Threads, Settings,
+         MockMessages, MockUtils, MockContacts */
+
 'use strict';
 
 mocha.setup({ globals: ['alert'] });
@@ -61,7 +67,6 @@ suite('thread_ui.js >', function() {
   var container;
   var sendButton;
   var composeForm;
-  var recipient;
 
   var realMozL10n;
   var realMozMobileMessage;
@@ -354,7 +359,7 @@ suite('thread_ui.js >', function() {
             assert.isFalse(sendButton.disabled);
             done();
           }
-        };
+        }
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         assert.isTrue(sendButton.disabled);
@@ -379,6 +384,7 @@ suite('thread_ui.js >', function() {
     });
 
     function updateCounter(segmentInfo) {
+      /*jshint validthis: true */
       // display the banner to check that it is correctly hidden
       banner.classList.remove('hide');
 
@@ -3073,36 +3079,37 @@ suite('thread_ui.js >', function() {
         return false;
       };
 
-      MessageManager = {
+      var MockMessageManager = {
         activity: {
           recipients: []
         }
       };
 
       ['sendMMS', 'sendSMS'].forEach(function(prop) {
-        MessageManager[prop] = function() {
-          MessageManager[prop].called = true;
-          MessageManager[prop].calledWith = [].slice.call(arguments);
+        MockMessageManager[prop] = function() {
+          MockMessageManager[prop].called = true;
+          MockMessageManager[prop].calledWith = [].slice.call(arguments);
         };
 
-        MessageManager[prop].mSetup = function() {
-          MessageManager[prop].called = false;
-          MessageManager[prop].calledWith = null;
+        MockMessageManager[prop].mSetup = function() {
+          MockMessageManager[prop].called = false;
+          MockMessageManager[prop].calledWith = null;
         };
 
-        MessageManager[prop].mTeardown = function() {
-          delete MessageManager[prop].called;
-          delete MessageManager[prop].calledWith;
+        MockMessageManager[prop].mTeardown = function() {
+          delete MockMessageManager[prop].called;
+          delete MockMessageManager[prop].calledWith;
         };
       });
 
-      MessageManager = MessageManager;
+      window.MessageManager = MockMessageManager;
     });
 
     suiteTeardown(function() {
       ThreadUI.enableSend = realEnableSend;
       Compose.isEmpty = realComposeisEmpty;
-      MessageManager = realMessageManager;
+      window.MessageManager = realMessageManager;
+      realMessageManager = null;
     });
 
     setup(function() {
@@ -3336,7 +3343,7 @@ suite('thread_ui.js >', function() {
         };
         ThreadUI.appendMessage(message);
       }
-    };
+    }
 
     setup(function() {
       container.style.overflow = 'scroll';

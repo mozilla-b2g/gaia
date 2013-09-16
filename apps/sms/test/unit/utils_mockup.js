@@ -1,3 +1,5 @@
+/*exported getMockupedDate */
+
 'use strict';
 
 function getMockupedDate(diffDays) {

@@ -1,3 +1,6 @@
+/*global mocha, MocksHelper, loadBodyHTML, MockL10n, ThreadListUI, FixedHeader,
+         MessageManager, WaitingScreen, Threads, Template, MockMessages */
+
 'use strict';
 
 // remove this when https://github.com/visionmedia/mocha/issues/819 is merged in

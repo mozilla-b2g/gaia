@@ -1,3 +1,6 @@
+/*global MocksHelper, MockL10n, LinkActionHandler, ActivityPicker, ThreadUI,
+         Contacts */
+
 'use strict';
 
 requireApp('sms/js/link_action_handler.js');

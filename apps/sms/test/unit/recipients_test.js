@@ -1,3 +1,5 @@
+/*global loadBodyHTML, Recipients, MocksHelper, CustomEvent, KeyEvent,
+         MockDialog, Template, MockL10n */
 'use strict';
 
 requireApp('system/test/unit/mock_gesture_detector.js');
@@ -38,7 +40,6 @@ suite('Recipients', function() {
   function isValid(candidate, value) {
     return (candidate.name === value || candidate.number === value);
   }
-
 
   setup(function() {
     loadBodyHTML('/index.html');
@@ -152,8 +153,6 @@ suite('Recipients', function() {
     });
 
     test('recipients.remove(nonexistant) ', function() {
-      var recipient;
-
       recipients.add(fixture);
       recipients.remove(null);
       assert.equal(recipients.length, 1);
@@ -162,8 +161,6 @@ suite('Recipients', function() {
     });
 
     test('recipients.remove(index) ', function() {
-      var recipient;
-
       recipients.add(fixture);
       assert.equal(recipients.length, 1);
 
@@ -261,16 +258,6 @@ suite('Recipients', function() {
 
   suite('Recipients.View', function() {
 
-    function getStyles(elem, prop) {
-      var styles = window.getComputedStyle(elem, null);
-
-      return typeof prop !== 'undefined' ?
-        styles[prop] : styles;
-    }
-
-    var view = {
-      inner: null
-    };
     var is = {
       corresponding: function(recipient, avatar, value) {
         return is.recipient(recipient, value) &&
@@ -746,8 +733,6 @@ suite('Recipients', function() {
         });
 
         test('singleline + refocus (with recipients) ', function() {
-          var startedAt = Date.now();
-
           // Clear the spy intel
           target.focus.reset();
 
@@ -777,8 +762,6 @@ suite('Recipients', function() {
         });
 
         test('singleline + refocus (no recipients) ', function() {
-          var startedAt = Date.now();
-
           // Clear the spy intel
           target.focus.reset();
 

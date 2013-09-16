@@ -1,3 +1,5 @@
+/*exported MockSMIL */
+
 'use strict';
 
 var MockSMIL = {

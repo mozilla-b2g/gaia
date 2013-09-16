@@ -1,6 +1,9 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*global Settings, Utils, Attachment, AttachmentMenu, MozActivity */
+/*exported Compose */
+
 'use strict';
 
 /**
@@ -79,7 +82,7 @@ var Compose = (function() {
       compose.type = 'sms';
     }
 
-    trigger.call(this, 'input', new CustomEvent('input'));
+    trigger.call(compose, 'input', new CustomEvent('input'));
   }
 
   function composeKeyEvents(e) {
@@ -99,7 +102,7 @@ var Compose = (function() {
 
     if (fns && fns.length) {
       for (var i = 0; i < fns.length; i++) {
-        fns[i].apply(this, args);
+        fns[i].apply(compose, args);
       }
     }
   }
@@ -249,7 +252,6 @@ var Compose = (function() {
       var content = [];
       var lastContent = 0;
       var node;
-      var i;
 
       for (node = dom.message.firstChild; node; node = node.nextSibling) {
         // hunt for an attachment in the WeakMap and append it
@@ -541,16 +543,17 @@ var Compose = (function() {
 
   Object.defineProperty(compose, 'size', {
     get: function composeGetSize() {
-      if (state.size !== null) {
-        return state.size;
+      if (state.size === null) {
+        state.size = this.getContent().reduce(function(sum, content) {
+          if (typeof content === 'string') {
+            return sum + content.length;
+          } else {
+            return sum + content.size;
+          }
+        }, 0);
       }
-      return state.size = this.getContent().reduce(function(sum, content) {
-        if (typeof content === 'string') {
-          return sum + content.length;
-        } else {
-          return sum + content.size;
-        }
-      }, 0);
+
+      return state.size;
     }
   });
 

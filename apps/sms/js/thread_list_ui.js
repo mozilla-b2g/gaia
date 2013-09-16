@@ -1,6 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*global Template, Utils, Threads, Contacts, URL, FixedHeader, Threads,
+         WaitingScreen, MozSmsFilter, MessageManager */
+/*exported ThreadListUI */
+
 'use strict';
 
 var ThreadListUI = {
@@ -211,10 +215,10 @@ var ThreadListUI = {
 
   delete: function thlui_delete() {
     var question = navigator.mozL10n.get('deleteThreads-confirmation2');
-    var messageIds = [];
     var threadIds, threadId, filter, count;
 
     function checkDone(threadId) {
+      /* jshint validthis: true */
       Threads.delete(threadId);
       // Cleanup the DOM
       this.removeThread(threadId);
@@ -223,6 +227,11 @@ var ThreadListUI = {
         this.cancelEdit();
         WaitingScreen.hide();
       }
+    }
+
+    function deleteMessage(message) {
+      MessageManager.deleteMessage(message.id);
+      return true;
     }
 
     if (confirm(question)) {
@@ -237,7 +246,7 @@ var ThreadListUI = {
       // Remove and coerce the threadId back to a number
       // MozSmsFilter and all other platform APIs
       // expect this value to be a number.
-      while (threadId = +threadIds.pop()) {
+      while ((threadId = +threadIds.pop())) {
 
         // Filter and request all messages with this threadId
         filter = new MozSmsFilter();
@@ -246,10 +255,7 @@ var ThreadListUI = {
         MessageManager.getMessages({
           filter: filter,
           invert: true,
-          each: function each(message) {
-            MessageManager.deleteMessage(message.id);
-            return true;
-          },
+          each: deleteMessage,
           end: checkDone.bind(this, threadId)
         });
       }

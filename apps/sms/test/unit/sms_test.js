@@ -1,3 +1,7 @@
+/*global MocksHelper, MockL10n, MockGestureDetector,
+         loadBodyHTML, ThreadUI, MessageManager, MockNavigatormozMobileMessage,
+         ThreadListUI, Contacts, MockContact, MockThreadList,
+         MockThreadMessages, getMockupedDate, Utils */
 /*
   ThreadListUI Tests
 */
@@ -40,15 +44,17 @@ suite('SMS App Unit-Test', function() {
   MocksHelperForSmsUnitTest.attachTestHelpers();
 
   function stub(additionalCode, ret) {
-    if (additionalCode && typeof additionalCode !== 'function')
+    if (additionalCode && typeof additionalCode !== 'function') {
       ret = additionalCode;
+    }
 
     var nfn = function() {
       nfn.callCount++;
       nfn.calledWith = [].slice.call(arguments);
 
-      if (typeof additionalCode === 'function')
+      if (typeof additionalCode === 'function') {
         additionalCode.apply(this, arguments);
+      }
 
       return ret;
     };
@@ -59,20 +65,17 @@ suite('SMS App Unit-Test', function() {
   var nativeMozL10n = navigator.mozL10n;
   var realMozMobileMessage;
   var boundOnHashChange;
-  var getContactDetails;
-  var nativeMozMobileMessage = navigator.mozMobileMessage;
-  var nativeSettings = navigator.mozSettings;
   var realGestureDetector;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
-    realGestureDetector = GestureDetector;
-    GestureDetector = MockGestureDetector;
+    realGestureDetector = window.GestureDetector;
+    window.GestureDetector = MockGestureDetector;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = nativeMozL10n;
-    GestureDetector = realGestureDetector;
+    window.GestureDetector = realGestureDetector;
   });
 
   // Define some useful functions for the following tests
@@ -135,8 +138,8 @@ suite('SMS App Unit-Test', function() {
       function(options, callback) {
 
         var each = options.each, // CB which manage every message
-          filter = options.filter, // mozMessageFilter
-          invert = options.invert, // invert selection
+          // filter = options.filter, // unused mozMessageFilter
+          // invert = options.invert, // unused invert selection
           end = options.end,   // CB when all messages retrieved
           endArgs = options.endArgs, //Args for end
           done = options.done;
@@ -264,11 +267,13 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select all/Deselect All buttons', function() {
+        var i;
+
         ThreadListUI.startEdit();
         // Retrieve all inputs
         var inputs = ThreadListUI.container.getElementsByTagName('input');
         // Activate all inputs
-        for (var i = inputs.length - 1; i >= 0; i--) {
+        for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
         }
 
@@ -281,7 +286,7 @@ suite('SMS App Unit-Test', function() {
         assert.isTrue(checkAllButton.disabled);
         assert.isFalse(uncheckAllButton.disabled);
         // Deactivate all inputs
-        for (var i = inputs.length - 1; i >= 0; i--) {
+        for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
         }
         ThreadListUI.checkInputs();
@@ -414,9 +419,10 @@ suite('SMS App Unit-Test', function() {
       });
 
       test('Select/Deselect all', function() {
+        var i;
         var inputs = ThreadUI.container.getElementsByTagName('input');
         // Activate all inputs
-        for (var i = inputs.length - 1; i >= 0; i--) {
+        for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = true;
           ThreadUI.chooseMessage(inputs[i]);
         }
@@ -431,7 +437,7 @@ suite('SMS App Unit-Test', function() {
         assert.isFalse(uncheckAllButton.disabled);
 
         // Deactivate all inputs
-        for (var i = inputs.length - 1; i >= 0; i--) {
+        for (i = inputs.length - 1; i >= 0; i--) {
           inputs[i].checked = false;
           ThreadUI.chooseMessage(inputs[i]);
         }

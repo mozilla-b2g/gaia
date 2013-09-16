@@ -499,8 +499,10 @@
     message.id = messagesDb.id++;
   });
 
+  var i, sender, receivers;
+
   // Procedurally generate a large amount of messages for a single thread
-  for (var i = 0; i < 150; i++) {
+  for (i = 0; i < 150; i++) {
     messagesDb.messages.push({
       threadId: 5,
       sender: '14886783487',
@@ -515,9 +517,10 @@
 
   var first = 60000 * 50; // 1 minute * 50 Minutes
 
-  for (var i = 0; i < 50; i++) {
-    var sender = ['999', '888', '777'][Math.floor(Math.random() * 3)];
-    var receivers = ['999', '888', '777'].filter(function(val) {
+  /* jshint loopfunc: true */
+  for (i = 0; i < 50; i++) {
+    sender = ['999', '888', '777'][Math.floor(Math.random() * 3)];
+    receivers = ['999', '888', '777'].filter(function(val) {
       return val !== sender;
     });
     messagesDb.messages.push({
@@ -541,9 +544,9 @@
 
   first = 60000 * 40; // 1 minute * 50 Minutes
 
-  for (var i = 0; i < 40; i++) {
-    var sender = participants[Math.floor(Math.random() * 9)];
-    var receivers = participants.filter(function(val) {
+  for (i = 0; i < 40; i++) {
+    sender = participants[Math.floor(Math.random() * 9)];
+    receivers = participants.filter(function(val) {
       return val !== sender;
     });
     messagesDb.messages.push({
@@ -1218,4 +1221,4 @@
     };
   };
 
-}(this));
+}(window));

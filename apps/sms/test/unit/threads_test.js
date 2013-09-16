@@ -1,3 +1,5 @@
+/*global Threads */
+
 'use strict';
 
 requireApp('sms/js/threads.js');

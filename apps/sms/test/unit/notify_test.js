@@ -1,3 +1,6 @@
+/*global MockNavigatorSettings, MockAudio, MockVibrate, SettingsURL, Notify,
+         MocksHelper, mocha */
+
 'use strict';
 
 mocha.globals(['Notify']);
@@ -24,7 +27,7 @@ suite('check the ringtone and vibrate function', function() {
     realVibrate = navigator.vibrate;
 
     // Reassign with mocks
-    Audio = MockAudio;
+    window.Audio = MockAudio;
     navigator.mozSettings = MockNavigatorSettings;
     navigator.vibrate = MockVibrate;
 
@@ -33,7 +36,7 @@ suite('check the ringtone and vibrate function', function() {
 
   suiteTeardown(function() {
     // Restore all the original objects
-    Audio = realAudio;
+    window.Audio = realAudio;
     navigator.mozSettings = realMozSettings;
     navigator.vibrate = realVibrate;
   });

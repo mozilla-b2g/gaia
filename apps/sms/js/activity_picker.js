@@ -1,3 +1,5 @@
+/*global MozActivity */
+
 (function(exports) {
 'use strict';
 

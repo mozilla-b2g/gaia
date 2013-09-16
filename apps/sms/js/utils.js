@@ -1,5 +1,8 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/*global FixedHeader */
+
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
@@ -15,13 +18,12 @@
         delete Utils.date.format;
         // Late initialization allows us to safely mock the mozL10n object
         // without creating race conditions or hard script dependencies
-        return Utils.date.format = new navigator.mozL10n.DateTimeFormat();
+        return (Utils.date.format = new navigator.mozL10n.DateTimeFormat());
       }
     },
     updateTimeHeaders: function ut_updateTimeHeaders() {
       var headers = document.querySelectorAll('header[data-time-update]'),
-          length = headers.length,
-          i, ts, header, headerDate, formattedHour, newHeader;
+          length = headers.length, i;
 
       for (i = 0; i < length; i++) {
         Utils.updateTimeHeader(headers[i]);
@@ -155,7 +157,7 @@
         // Add photo
         if (include.photoURL) {
           if (contact.photo && contact.photo[0]) {
-            details.photoURL = URL.createObjectURL(contact.photo[0]);
+            details.photoURL = window.URL.createObjectURL(contact.photo[0]);
           }
         }
 
@@ -201,8 +203,9 @@
         //    just display phone number.
         for (var i = 0, l = contacts.length; i < l; i++) {
           updateDetails(contacts[i]);
-          if (details.name)
+          if (details.name) {
             break;
+          }
         }
         details.title = details.name || details.org;
       }
@@ -345,10 +348,10 @@
       }
 
       var img = document.createElement('img');
-      var url = URL.createObjectURL(blob);
+      var url = window.URL.createObjectURL(blob);
       img.src = url;
       img.onload = function onBlobLoaded() {
-        URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(url);
         var imageWidth = img.width;
         var imageHeight = img.height;
         var targetWidth = imageWidth / ratio;

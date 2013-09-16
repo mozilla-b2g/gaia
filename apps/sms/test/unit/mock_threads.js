@@ -1,3 +1,5 @@
+/*exported MockThreads */
+
 'use strict';
 
 var MockThreads = {

@@ -1,3 +1,5 @@
+/*exported MockURL */
+
 'use strict';
 
 var MockURL = {

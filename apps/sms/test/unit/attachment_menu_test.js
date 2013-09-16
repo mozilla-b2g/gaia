@@ -1,3 +1,5 @@
+/*global MocksHelper, MockL10n, loadBodyHTML, AttachmentMenu, Attachment */
+
 'use strict';
 
 requireApp('sms/js/attachment_menu.js');

@@ -1,6 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter, Compose,
+         Utils, LinkActionHandler, Contacts */
+/*exported MessageManager */
+
 'use strict';
 
 var MessageManager = {
@@ -212,6 +216,7 @@ var MessageManager = {
     ThreadUI.cancelEdit();
     ThreadListUI.cancelEdit();
 
+    var self = this;
     switch (window.location.hash) {
       case '#new':
         ThreadUI.inThread = false;
@@ -219,7 +224,6 @@ var MessageManager = {
         break;
       case '#thread-list':
         ThreadUI.inThread = false;
-        var self = this;
         //Keep the  visible button the :last-child
         var editButton = document.getElementById('messages-edit-icon');
         editButton.parentNode.appendChild(editButton);
@@ -230,7 +234,6 @@ var MessageManager = {
         } else {
           // Clear it before sliding.
           ThreadUI.container.textContent = '';
-          var self = this;
           MessageManager.slide('right', function() {
             if (self.activity && self.activity.threadId) {
               window.location.hash = '#thread=' + self.activity.threadId;

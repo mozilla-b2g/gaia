@@ -1,3 +1,6 @@
+/*global MocksHelper, MockL10n, Utils, MockContact, FixturePhones,
+         MockFixedHeader, MockContacts */
+
 'use strict';
 
 requireApp('sms/test/unit/mock_fixed_header.js');
@@ -187,7 +190,6 @@ suite('Utils', function() {
     test('timeout on minute boundary', function() {
       // "Fri Jul 12 2013 16:01:54 GMT-0400 (EDT)"
       var start = 1373659314572;
-      var callTimes = [];
 
       this.sinon.clock.tick(start);
       Utils.startTimeHeaderScheduler();
@@ -237,8 +239,6 @@ suite('Utils', function() {
     });
 
     test('(number, null)', function() {
-      var contact = new MockContact();
-
       var details = Utils.getContactDetails('346578888888', null);
       assert.deepEqual(details, {
         title: ''
@@ -260,7 +260,6 @@ suite('Utils', function() {
 
     test('(number, contact (blank information))', function() {
       var contact = new MockContact();
-      var name = contact.name[0];
 
       // Remove the name value
       contact.name[0] = '';
@@ -382,7 +381,6 @@ suite('Utils', function() {
           { givenName: [''], familyName: [''] },
           { givenName: ['Jane'], familyName: ['Doozer'] }
         ]);
-        var name = contacts[0].name[0];
         contacts[0].name[0] = '';
 
         var details = Utils.getContactDetails('346578888888', contacts);
@@ -397,7 +395,6 @@ suite('Utils', function() {
 
       test('number is empty, apply organization name if exist', function() {
         var contact = new MockContact();
-        var name = contact.name[0];
 
         // Remove the name value and add org name
         contact.name[0] = '';
@@ -669,6 +666,7 @@ suite('Utils', function() {
       var assetsNeeded = 0;
 
       function loadBlob(filename) {
+        /*jshint validthis: true */
         assetsNeeded++;
 
         var req = new XMLHttpRequest();
@@ -789,7 +787,6 @@ suite('Utils', function() {
   });
 
   suite('Utils.typeFromMimeType', function() {
-    var testIndex;
     var tests = {
       'text/plain': 'text',
       'image/jpeg': 'img',
@@ -824,7 +821,6 @@ suite('Utils', function() {
   });
 
   suite('Utils.params', function() {
-    var testIndex;
     var tests = {
       '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
     };
@@ -1002,7 +998,6 @@ suite('getDisplayObject', function() {
 
   test('Tel object with NO carrier title and NO type', function() {
     var myTitle = 'My title';
-    var type = 'Mobile';
     var value = 111111;
     var data = Utils.getDisplayObject(myTitle, {
       'value': value
@@ -1016,7 +1011,6 @@ suite('getDisplayObject', function() {
   });
 
   test('Tel object with carrier title and type and NO title', function() {
-    var myTitle = 'My title';
     var type = 'Mobile';
     var carrier = 'Carrier';
     var value = 111111;
