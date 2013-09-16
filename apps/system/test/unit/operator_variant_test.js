@@ -18,6 +18,12 @@ suite('operator variant', function() {
     mnc: EXPECTED_DATA_MNC
   };
 
+  const EXPECTED_SUPL_MNC = 4;
+  const EXPECTED_SUPL_ICC_INFO = {
+    mcc: TEST_NETWORK_MCC,
+    mnc: EXPECTED_SUPL_MNC
+  };
+
   const EXPECTED_MMS_MNC = 2;
   const EXPECTED_MMS_ICC_INFO = {
     mcc: TEST_NETWORK_MCC,
@@ -55,6 +61,16 @@ suite('operator variant', function() {
     { key: 'ril.data.httpProxyHost', value: '127.0.0.1' },
     { key: 'ril.data.httpProxyPort', value: '8080' },
     { key: 'ril.data.authtype', value: 'none' }
+  ];
+
+  const SUPL_KEYS_VALUES = [
+    { key: 'ril.supl.carrier', value: 'Test Network with SUPL' },
+    { key: 'ril.supl.apn', value: 'supl.internet' },
+    { key: 'ril.supl.user', value: 'user' },
+    { key: 'ril.supl.passwd', value: 'password' },
+    { key: 'ril.supl.httpProxyHost', value: '127.0.0.1' },
+    { key: 'ril.supl.httpProxyPort', value: '8080' },
+    { key: 'ril.supl.authtype', value: 'none' }
   ];
 
   const MMS_KEYS_VALUES = [
@@ -148,6 +164,37 @@ suite('operator variant', function() {
     setObservers(DATA_KEYS_VALUES, observer);
 
     MockIccHelper.mProps.iccInfo = EXPECTED_DATA_ICC_INFO;
+    MockIccHelper.mTriggerEventListeners('iccinfochange', {});
+  });
+
+  test('operator variant agps / supl apn', function(done) {
+    var observer = {
+      bound: null,
+      expected: SUPL_KEYS_VALUES.length,
+      seen: 0,
+      func: function(event) {
+        SUPL_KEYS_VALUES.forEach(function(data) {
+
+          if (data.key == event.settingName) {
+            assert.equal(
+              event.settingValue,
+              data.value,
+              'Wrong AGPS/SUPL setting value'
+            );
+            ++this.seen;
+          }
+        }, this);
+
+        if (this.seen == this.expected) {
+          setObservers(SUPL_KEYS_VALUES, this, true);
+          done();
+        }
+      }
+    };
+
+    setObservers(SUPL_KEYS_VALUES, observer);
+
+    MockIccHelper.mProps.iccInfo = EXPECTED_SUPL_ICC_INFO;
     MockIccHelper.mTriggerEventListeners('iccinfochange', {});
   });
 

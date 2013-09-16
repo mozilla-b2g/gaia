@@ -3,6 +3,8 @@
 <!-- use empty string to specify no proxy or port -->
 <!-- This version must agree with that in apps/common/res/apns.xml -->
 <apns version="7">
+
+  <!-- Test Networks -->
   <apn carrier="Test Network"
       mcc="001"
       mnc="01"
@@ -41,6 +43,19 @@
       authtype="0"
       type="default,supl"
   />
+
+    <apn carrier="Test Network with SUPL"
+      mcc="001"
+      mnc="04"
+      apn="supl.internet"
+      user="user"
+      password="password"
+      proxy="127.0.0.1"
+      port="8080"
+      authtype="0"
+      type="default,supl"
+  />
+  <!-- /Test Networks -->
 
   <apn carrier="SpeakOut"
       mcc="302"
