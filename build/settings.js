@@ -112,6 +112,7 @@ function execute() {
    'accessibility.invert': false,
    'accessibility.screenreader': false,
    'alarm.enabled': false,
+   'app.launch_path.blacklist': [],
    'app.reportCrashes': 'ask',
    'app.update.interval': 86400,
    'audio.volume.alarm': 15,

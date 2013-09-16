@@ -2,6 +2,8 @@
 
 mocha.globals(['mozRequestAnimationFrame']);
 
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 requireApp('homescreen/test/unit/mock_page.js');
 requireApp('homescreen/test/unit/mock_icon.js');
 requireApp('homescreen/test/unit/mock_dock_manager.js');
@@ -41,6 +43,7 @@ suite('grid.js >', function() {
 
   var wrapperNode, containerNode;
   var realMozApps;
+  var realMozSettings;
 
   var mocksHelper = mocksHelperForGrid;
 
@@ -50,11 +53,14 @@ suite('grid.js >', function() {
     window.navigator.mozApps = {
       mgmt: MockAppsMgmt
     };
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
   });
 
   suiteTeardown(function() {
     window.navigator.mozApps = realMozApps;
+    navigator.mozSettings = realMozSettings;
 
     mocksHelper.suiteTeardown();
   });
