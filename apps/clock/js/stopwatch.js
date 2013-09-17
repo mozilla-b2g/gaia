@@ -11,6 +11,18 @@
     this.laps = [];
   }
 
+  /**
+   * Stopwatch
+   *
+   * Create new or revive existing stopwatch objects.
+   *
+   * @param {Object} opts Optional stopwatch object to create or revive
+   *                      a new or existing stopwatch object.
+   *                 - startTime, number time in ms.
+   *                 - totalElapsed, number time in ms.
+   *                 - isStarted, started state boolean.
+   *                 - laps, array of lap objects (lap = {time:, duration:}).
+   */
   function Stopwatch(opts = {}) {
     var defaults = new Defaults();
     var obj = {};

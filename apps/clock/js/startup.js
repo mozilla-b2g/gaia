@@ -45,6 +45,7 @@ var loadQueue = [
     'js/alarm_list.js',
     'js/banner.js',
     'js/timer.js',
+    'js/timer_panel.js',
     'js/alarm_manager.js'
   ],
   [

@@ -11,7 +11,7 @@ var App = {
     'alarm-panel': Panel,
     'alarm-edit-panel': Panel,
     'timer-panel': Timer.Panel,
-    'stopwatch-panel': StopwatchPanel
+    'stopwatch-panel': Stopwatch.Panel
   },
 
   /**

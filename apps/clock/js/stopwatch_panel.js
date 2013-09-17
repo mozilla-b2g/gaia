@@ -4,9 +4,17 @@
 
   var priv = new WeakMap();
 
-  function StopwatchPanel(element) {
-
+  /**
+   * Stopwatch.Panel
+   *
+   * Construct a UI panel for the Stopwatch panel.
+   *
+   * @return {Stopwatch.Panel} Stopwatch.Panel object.
+   *
+   */
+  Stopwatch.Panel = function(element) {
     Panel.apply(this, arguments);
+
     this.nodes = {};
     this.lapTemplate = new Template('lap-list-item-tmpl');
     this.interval = null;
@@ -46,30 +54,30 @@
       stopwatch: new Stopwatch()
     });
 
-  }
+  };
 
-  StopwatchPanel.prototype = Object.create(Panel.prototype);
+  Stopwatch.Panel.prototype = Object.create(Panel.prototype);
 
-  StopwatchPanel.prototype.update = function() {
+  Stopwatch.Panel.prototype.update = function() {
     var swp = priv.get(this);
     var e = swp.stopwatch.getElapsedTime();
     var time = Utils.format.hms(Math.floor(e.getTime() / 1000), 'mm:ss');
     this.nodes.time.textContent = time;
   };
 
-  StopwatchPanel.prototype.showButtons = function() {
+  Stopwatch.Panel.prototype.showButtons = function() {
     Array.prototype.forEach.call(arguments, function(a) {
       this.nodes[a].classList.remove('hide');
     }, this);
   };
 
-  StopwatchPanel.prototype.hideButtons = function() {
+  Stopwatch.Panel.prototype.hideButtons = function() {
     Array.prototype.forEach.call(arguments, function(a) {
       this.nodes[a].classList.add('hide');
     }, this);
   };
 
-  StopwatchPanel.prototype.onvisibilitychange = function(isVisible) {
+  Stopwatch.Panel.prototype.onvisibilitychange = function(isVisible) {
     var swp = priv.get(this);
 
     if (isVisible) {
@@ -101,7 +109,7 @@
     }
   };
 
-  StopwatchPanel.prototype.handleEvent = function(event) {
+  Stopwatch.Panel.prototype.handleEvent = function(event) {
     if (event.type == 'animationend') {
       Panel.prototype.handleEvent.apply(this, arguments);
       return;
@@ -119,26 +127,26 @@
     }
   };
 
-  StopwatchPanel.prototype.onstart = function() {
+  Stopwatch.Panel.prototype.onstart = function() {
     this.interval = window.setInterval(this.update.bind(this), 50);
     this.nodes.reset.removeAttribute('disabled');
     this.showButtons('pause', 'lap');
     this.hideButtons('start', 'resume', 'reset');
   };
 
-  StopwatchPanel.prototype.onpause = function() {
+  Stopwatch.Panel.prototype.onpause = function() {
     window.clearInterval(this.interval);
     this.showButtons('resume', 'reset');
     this.hideButtons('pause', 'start', 'lap');
   };
 
-  StopwatchPanel.prototype.onresume = function() {
+  Stopwatch.Panel.prototype.onresume = function() {
     this.interval = window.setInterval(this.update.bind(this), 50);
     this.showButtons('pause', 'lap');
     this.hidebuttons('start', 'resume', 'reset');
   };
 
-  StopwatchPanel.prototype.onlap = function(val) {
+  Stopwatch.Panel.prototype.onlap = function(val) {
     var node = this.nodes['laps'];
     var num = node.childNodes.length + 1 + '';
     if (num > 99) {
@@ -155,7 +163,7 @@
     node.insertBefore(li, node.firstChild);
   };
 
-  StopwatchPanel.prototype.onreset = function() {
+  Stopwatch.Panel.prototype.onreset = function() {
     window.clearInterval(this.interval);
     this.showButtons('start', 'reset');
     this.hideButtons('pause', 'resume', 'lap');
@@ -167,7 +175,5 @@
       node.removeChild(node.lastChild);
     }
   };
-
-  exports.StopwatchPanel = StopwatchPanel;
 
 }(this));
