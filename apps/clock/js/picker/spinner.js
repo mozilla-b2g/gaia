@@ -1,7 +1,8 @@
 (function(exports) {
   'use strict';
 
-  var SPEED_THRESHOLD = 0.1;
+  var SPEED_THRESHOLD = 0.3;
+  var INERTIA_MULTIPLIER = 5;
 
   function calculateSpeed(previous, current) {
     var motion = previous.y - current.y;
@@ -129,6 +130,15 @@
     this['on' + event.type](event);
   };
 
+  Spinner.prototype.stopInteraction = function() {
+    this.element.classList.add('animation-on');
+
+    clearInterval(this.timeout);
+
+    this.select(this.index);
+    this.speed = 0;
+  };
+
   /**
    * ontouchstart - prevent default action (stops scrolling)
    */
@@ -158,9 +168,8 @@
     this.speed = calculateSpeed(this.previous, this.current);
 
     diff = this.current.y - this.previous.y;
-    moving = Math.abs(this.speed) > SPEED_THRESHOLD ? diff : diff / 4;
 
-    this.top = this.top + moving;
+    this.top = this.top + diff;
 
     if (this.top > 0) {
       this.top = 0;
@@ -171,25 +180,25 @@
 
     clearInterval(this.timeout);
 
-    this.timeout = setTimeout(this.onswipe.bind(this), 200);
+    this.timeout = setTimeout(this.stopInteraction.bind(this), 200);
 
     this.previous.y = this.current.y;
     this.previous.time = this.current.time;
   };
 
   Spinner.prototype.onswipe = function(event) {
+
     event.stopPropagation();
-    this.element.classList.add('animation-on');
 
-    clearInterval(this.timeout);
+    // Add momentum if speed is higher than a given threshold.
+    var direction = this.speed > 0 ? 1 : -1;
+    var speed = this.speed / direction;
+    if (speed > SPEED_THRESHOLD) {
+      this.index += Math.min(speed, 1) * INERTIA_MULTIPLIER * direction;
+    }
 
-    var index = this.index;
+    this.stopInteraction();
 
-    // TODO: File ticket to calculate new index
-    //        based on last pan event's speed.
-
-    this.select(index);
-    this.speed = 0;
   };
 
   exports.Spinner = Spinner;
