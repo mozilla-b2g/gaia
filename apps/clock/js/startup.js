@@ -45,11 +45,12 @@ var loadQueue = [
     'js/alarm_list.js',
     'js/banner.js',
     'js/timer.js',
+    'js/stopwatch.js',
     'js/alarm_manager.js'
   ],
   [
-    'js/stopwatch.js',
-    'js/stopwatch_panel.js'
+    'js/stopwatch_panel.js',
+    'js/timer_panel.js'
   ],
   [
     'js/app.js'
