@@ -5,6 +5,8 @@ requireElements('calendar/elements/modify_event.html');
 requireElements('calendar/elements/show_event.html');
 
 suiteGroup('Views.ModifyEvent', function() {
+  /** disabled because of intermittent failures see bug 917537 */
+  return;
 
   var subject;
   var controller;
