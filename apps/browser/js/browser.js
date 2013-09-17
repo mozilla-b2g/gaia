@@ -418,8 +418,10 @@ var Browser = {
         break;
 
       case 'mozbrowsericonchange':
-        if (evt.detail && evt.detail != tab.iconUrl) {
-          tab.iconUrl = evt.detail;
+        if (evt.detail.href && evt.detail.href != tab.iconUrl) {
+          tab.iconUrl = evt.detail.href;
+          // TODO: Pick up the best icon
+          // based on evt.detail.sizes and device size.
           BrowserDB.setAndLoadIconForPage(tab.url, tab.iconUrl);
         }
         break;
