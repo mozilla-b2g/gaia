@@ -1,0 +1,79 @@
+footer {
+  height: 7rem;
+}
+.thumbnail:nth-child(3n) {
+  margin-right: 0.4rem;
+}
+#fullscreen-toolbar {
+  height: 7rem;
+}
+#fullscreen-view.toolbarhidden #fullscreen-toolbar {
+  transform: translate(0, 7rem);
+}
+#fullscreen-back-button {
+  width: 25%;
+}
+#pick-top{
+  height: calc(100% - 10rem);
+}
+#edit-options {
+  height: 10rem;
+  bottom: 7rem;
+}
+#sliderthumb {
+  width: 6rem;
+  top: -2rem;
+  height: 8rem;
+  left: calc(100% - 3rem);
+  padding-top: 3rem;
+  font-size: 1.8rem;
+}
+#exposure-slider {
+  height: 10rem;
+  font-size: 1.8rem;
+}
+#edit-preview-area {
+  height: calc(100% - 10rem - 7rem - 5rem);
+}
+#sliderbar {
+  height: 4rem;
+}
+#sliderlabels {
+  height: 6rem;
+}
+.sliderlabel {
+  height: 1rem;
+}
+.sliderlabel:after {
+  top: 1rem;
+}
+#edit-toolbar > .button {
+  font-size: 1.8rem;
+  line-height: 7rem;
+}
+@media (orientation: landscape) {
+  .thumbnail {
+    width: calc((100% - 2rem) / 6);
+    padding-bottom: calc((100% - 20rem) / 6);
+    margin-right: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  /* override layout of tiny size in landscape */
+  .thumbnail:nth-child(4n) {
+    margin-right: 0.4rem;
+  }
+  .thumbnail:nth-child(6n) {
+    margin-right: 0;
+  }
+}
+@media (orientation: portrait) {
+  .thumbnail {
+    width: calc((100% - 1.2rem) / 4);
+    padding-bottom: calc((100% - 1.2rem) / 4);
+    margin-right: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .thumbnail:nth-child(4n) {
+    margin-right: 0;
+  }
+}
