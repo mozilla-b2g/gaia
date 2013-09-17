@@ -2,20 +2,19 @@
 
 var dom = {};
 
-var ids = ['thumbnail-list-view', 'thumbnails-bottom',
-           'thumbnails', 'thumbnails-video-button', 'thumbnails-select-button',
-           'thumbnail-select-view',
-           'thumbnails-delete-button', 'thumbnails-share-button',
-           'thumbnails-cancel-button', 'thumbnails-number-selected',
-           'fullscreen-view',
+var ids = ['thumbnail-list-view', 'thumbnails-bottom', 'thumbnails',
+           'thumbnails-video-button', 'thumbnails-select-button',
+           'thumbnail-select-view', 'thumbnails-delete-button',
+           'thumbnails-share-button', 'thumbnails-cancel-button',
+           'thumbnails-number-selected', 'fullscreen-view',
            'thumbnails-single-delete-button', 'thumbnails-single-share-button',
            'thumbnails-single-info-button', 'info-view', 'info-close-button',
            'player', 'overlay', 'overlay-title', 'overlay-text',
-           'overlay-menu', 'storage-setting-button',
-           'videoControls', 'videoBar', 'videoActionBar',
-           'close', 'play', 'playHead', 'timeSlider', 'elapsedTime',
-           'video-title', 'duration-text', 'elapsed-text', 'bufferedTime',
-           'slider-wrapper', 'throbber', 'delete-video-button',
+           'overlay-menu-group', 'overlay-close-button',
+           'storage-setting-button', 'videoControls', 'videoBar',
+           'videoActionBar', 'close', 'play', 'playHead', 'timeSlider',
+           'elapsedTime', 'video-title', 'duration-text', 'elapsed-text',
+           'bufferedTime', 'slider-wrapper', 'throbber', 'delete-video-button',
            'picker-header', 'picker-close', 'picker-title', 'picker-done'];
 
 ids.forEach(function createElementRef(name) {
@@ -115,6 +114,8 @@ function init() {
       }
     });
   });
+
+  dom.overlayCloseButton.addEventListener('click', cancelPick);
 }
 
 function showInfoView() {
@@ -231,6 +232,13 @@ function updateSelection(videodata) {
     dom.thumbnailsDeleteButton.classList.remove('disabled');
     dom.thumbnailsShareButton.classList.remove('disabled');
   }
+}
+
+function cancelPick() {
+  if (pendingPick) {
+    pendingPick.postError('pick cancelled');
+  }
+  pendingPick = null;
 }
 
 function launchCameraApp() {
@@ -404,25 +412,38 @@ function setPosterImage(dom, poster) {
 
 function showOverlay(id) {
   currentOverlay = id;
+  var name = id; //for L10n
+
+  // hide all overlay elements first
+  dom.storageSettingButton.classList.add('hidden');
+  dom.overlayCloseButton.classList.add('hidden');
 
   if (id === null) {
     dom.overlay.classList.add('hidden');
     return;
+  } else if (id === 'nocard') {
+    dom.overlayMenuGroup.classList.remove('hidden');
+    dom.storageSettingButton.classList.remove('hidden');
+    name = 'nocard2';
+
+    if (pendingPick) {
+      // make storage setting and close button fit next to eachother
+      dom.overlayMenuGroup.classList.remove('hidden');
+      dom.overlayCloseButton.classList.remove('full', 'hidden');
+      dom.storageSettingButton.classList.remove('full');
+    } else {
+      dom.storageSettingButton.classList.add('full');
+    }
+  } else {
+    if (pendingPick) {
+      dom.overlayCloseButton.classList.add('full');
+      dom.overlayMenuGroup.classList.remove('hidden');
+      dom.overlayCloseButton.classList.remove('hidden');
+    }
   }
 
-  if (id === 'nocard') {
-    dom.overlayMenu.classList.remove('hidden');
-  } else {
-    dom.overlayMenu.classList.add('hidden');
-  }
-
-  if (id === 'nocard') {
-    dom.overlayTitle.textContent = navigator.mozL10n.get('nocard2-title');
-    dom.overlayText.textContent = navigator.mozL10n.get('nocard2-text');
-  } else {
-    dom.overlayTitle.textContent = navigator.mozL10n.get(id + '-title');
-    dom.overlayText.textContent = navigator.mozL10n.get(id + '-text');
-  }
+  dom.overlayTitle.textContent = navigator.mozL10n.get(name + '-title');
+  dom.overlayText.textContent = navigator.mozL10n.get(name + '-text');
   dom.overlay.classList.remove('hidden');
 }
 
@@ -969,9 +990,7 @@ function showPickView() {
   dom.thumbnailsBottom.classList.add('hidden');
   dom.videoActionBar.parentNode.removeChild(dom.videoActionBar);
 
-  dom.pickerClose.addEventListener('click', function() {
-    pendingPick.postError('pick cancelled');
-  });
+  dom.pickerClose.addEventListener('click', cancelPick);
 }
 
 function cleanupPick() {
