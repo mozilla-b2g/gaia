@@ -15,3 +15,4 @@ env:
   - CI_ACTION=gjslint
   - CI_ACTION=test_agent
   - CI_ACTION=marionette_js
+  - CI_ACTION=gaia_ui_tests
