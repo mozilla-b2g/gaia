@@ -33,7 +33,8 @@ var Homescreen = (function() {
       // in the range 0.0 to 1.0, both included, representing the screen width
       swipeThreshold: swipeSection.threshold,
       swipeFriction: swipeSection.friction,
-      swipeTransitionDuration: swipeSection.transition_duration
+      swipeTransitionDuration: swipeSection.transition_duration,
+      prediction: Configurator.getSection('prediction')
     };
 
     GridManager.init(options, function gm_init() {
@@ -61,6 +62,9 @@ var Homescreen = (function() {
       }
 
       document.body.addEventListener('contextmenu', onContextMenu);
+      // Releasing memory because Configurator is not needed anymore
+      Configurator.destroy();
+      options = swipeSection = null;
     });
   }
 
