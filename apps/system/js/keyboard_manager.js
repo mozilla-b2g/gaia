@@ -189,7 +189,7 @@ var KeyboardManager = {
 
           if (!self.keyboardLayouts[type])
             self.keyboardLayouts[type] = [];
-            self.keyboardLayouts[type].activit = 0;
+            self.keyboardLayouts[type].activeLayout = 0;
 
           self.keyboardLayouts[type].push({
             'id': key,
@@ -234,7 +234,7 @@ var KeyboardManager = {
         // if target group (input type) does not exist, use text for default
         if (!self.keyboardLayouts[group])
           group = 'text';
-        self.setKeyboardToShow(group, self.keyboardLayouts[group].activit);
+        self.setKeyboardToShow(group, self.keyboardLayouts[group].activeLayout);
         self.showKeyboard();
 
         // We also want to show the permanent notification
@@ -509,7 +509,7 @@ var KeyboardManager = {
       var index = (showed.index + 1) % length;
       if (!self.keyboardLayouts[showed.type])
         showed.type = 'text';
-      self.keyboardLayouts[showed.type].activit = index;
+      self.keyboardLayouts[showed.type].activeLayout = index;
       self.resetShowingKeyboard();
       self.setKeyboardToShow(showed.type, index);
     }, FOCUS_CHANGE_DELAY);
@@ -520,15 +520,21 @@ var KeyboardManager = {
 
     var self = this;
     var showed = this.showingLayout;
+    var activeLayout = this.keyboardLayouts[showed.type].activeLayout;
 
     this.switchChangeTimeout = setTimeout(function keyboardLayoutList() {
       var items = [];
       self.keyboardLayouts[showed.type].forEach(function(layout, index) {
         var label = layout.appName + ' ' + layout.name;
-        items.push({
+        var item = {
           label: label,
           value: index
-        });
+        };
+        if (index === activeLayout) {
+          item.iconClass = 'tail-icon';
+          item.icon = 'style/icons/checkmark.png';
+        }
+        items.push(item);
       });
       self.hideKeyboard();
       //XXX the menu is not scrollable now, and it will take focus away
@@ -536,7 +542,7 @@ var KeyboardManager = {
       ActionMenu.open(items, 'Layout selection', function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
-        self.keyboardLayouts[showed.type].activit = selectedIndex;
+        self.keyboardLayouts[showed.type].activeLayout = selectedIndex;
         self.setKeyboardToShow(showed.type, selectedIndex);
         self.showKeyboard();
 
@@ -554,8 +560,8 @@ var KeyboardManager = {
 
         // Mimic the success callback to show the current keyboard
         // when user canceled it.
-        var activit = self.keyboardLayouts[showed.type].activit;
-        self.setKeyboardToShow(showed.type, activit);
+        var activeLayout = self.keyboardLayouts[showed.type].activeLayout;
+        self.setKeyboardToShow(showed.type, activeLayout);
         self.showKeyboard();
 
         // Hide the tray to show the app directly after
