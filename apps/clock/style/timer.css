@@ -27,6 +27,7 @@
 #timer-dialog {
   position: absolute;
   width: 100%;
+  overflow-y: auto;
 }
 
 #timer-active {

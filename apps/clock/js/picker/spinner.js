@@ -57,7 +57,6 @@
 
     this.timeout = null;
 
-    var handler = this.handleEvent.bind(this);
     var length = this.values.length;
     var html = '';
     var speed = 0;
@@ -72,8 +71,9 @@
 
     this.element.innerHTML = html;
 
-    this.element.addEventListener('pan', handler, false);
-    this.element.addEventListener('swipe', handler, false);
+    this.element.addEventListener('touchstart', this, false);
+    this.element.addEventListener('pan', this, false);
+    this.element.addEventListener('swipe', this, false);
 
     Object.defineProperties(this, {
       value: {
@@ -127,6 +127,13 @@
 
   Spinner.prototype.handleEvent = function(event) {
     this['on' + event.type](event);
+  };
+
+  /**
+   * ontouchstart - prevent default action (stops scrolling)
+   */
+  Spinner.prototype.ontouchstart = function(event) {
+    event.preventDefault();
   };
 
   Spinner.prototype.onpan = function(event) {
