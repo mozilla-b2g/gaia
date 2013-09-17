@@ -29,6 +29,21 @@ section {
 }
 
 /*
+ * increase specificity to overwrite confirm.css rules for dialog buttons
+ */
+form[role="dialog"][data-type="confirm"] button.hidden {
+  display: none;
+}
+
+button#overlay-close-button.full {
+  margin-left: 0;
+}
+
+button#storage-setting-button.full {
+  margin-left: 0;
+}
+
+/*
  * while videoControls is hidden,
  * it should be stay on screen for mousedown event
  */
@@ -275,12 +290,12 @@ span.line-break {
   color: #ebebeb;
 }
 
-#overlay-menu {
+#overlay-menu-group {
   z-index: 100;
 }
 
 /* For overriding the style from BB */
-#overlay-menu.hidden {
+#overlay-menu-group.hidden {
   display: none;
 }
 
