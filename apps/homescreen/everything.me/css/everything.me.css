@@ -1,4 +1,4 @@
-#evmeContainer {
+#evmeContainer, #evmeOverlay {
   display: none;
 }
 
@@ -28,7 +28,7 @@
   }
 
 
-.evme-loaded #evmeContainer {
+.evme-loaded #evmeContainer, .evme-loaded #evmeOverlay {
   display: block;
 }
 .evme-loaded #evme-activation-icon {
