@@ -112,6 +112,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
     }
   }
   else {
+    this.preview = null;
     this._displayImage(blob);
   }
 };

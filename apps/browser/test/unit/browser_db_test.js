@@ -546,8 +546,12 @@ suite('BrowserDB', function() {
     });
 
     test('addSearchEngine', function(done) {
-      BrowserDB.addSearchEngine('http://google.com/', 'Google', DATA_URI,
-        function() {
+      var data = {
+        uri: 'http://google.com/',
+        title: 'Google',
+        iconUri: DATA_URI
+      };
+      BrowserDB.addSearchEngine(data, function() {
         BrowserDB.getSearchEngine('http://google.com/',
           function(search_engine) {
           done(function() {

@@ -120,6 +120,8 @@ var Configurator = (function() {
                  loadSVConfFileSuccess.bind(undefined, mcc_mnc),
                  loadSVConfFileError);
         IccHelper.removeEventListener('iccinfochange', iccHandler);
+        // No needed anymore
+        IccHelper = iccHandler = null;
         return true;
       }
       return false;

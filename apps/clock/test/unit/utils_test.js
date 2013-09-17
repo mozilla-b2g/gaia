@@ -30,50 +30,6 @@ suite('Time functions', function() {
 
   });
 
-  suite('#formatTime', function() {
-    var is12hStub, formatTime;
-
-    setup(function() {
-      formatTime = Utils.formatTime;
-      is12hStub = sinon.stub(Utils, 'is12hFormat');
-    });
-
-    teardown(function() {
-      is12hStub.restore();
-    });
-
-    test('12:00am, with 12 hour clock settings', function() {
-      is12hStub.returns(true);
-      assert.equal(formatTime(0, 0), '12:00AM');
-    });
-
-    test('12:30pm, with 12 hour clock settings', function() {
-      is12hStub.returns(true);
-      assert.equal(formatTime(12, 30), '12:30PM');
-    });
-
-    test('11:30pm, with 12 hour clock settings', function() {
-      is12hStub.returns(true);
-      assert.equal(formatTime(23, 30), '11:30PM');
-    });
-
-    test('12:30am, with 24 hour clock settings', function() {
-      is12hStub.returns(false);
-      assert.equal(formatTime(0, 30), '00:30');
-    });
-
-    test('12:30pm, with 24 hour clock settings', function() {
-      is12hStub.returns(false);
-      assert.equal(formatTime(12, 30), '12:30');
-    });
-
-    test('11:30pm, with 24 hour clock settings', function() {
-      is12hStub.returns(false);
-      assert.equal(formatTime(23, 30), '23:30');
-    });
-
-  });
-
   suite('#parseTime', function() {
 
     var parseTime;
@@ -119,7 +75,6 @@ suite('Time functions', function() {
       this.sixAm = 1373954400000;
       // Set clock so calls to new Date() and Date.now() will not vary
       // across test locales
-      this.clock = sinon.useFakeTimers(this.sixAm);
       this.dat = new Date(this.sixAm + 15120000);
       this.allNeg = {
         hours: -4,
@@ -142,8 +97,8 @@ suite('Time functions', function() {
       };
     });
 
-    suiteTeardown(function() {
-      this.clock.restore();
+    setup(function() {
+      this.clock = this.sinon.useFakeTimers(this.sixAm);
     });
 
     suite('toMS', function() {
@@ -229,6 +184,214 @@ suite('Time functions', function() {
     });
   });
 
+  suite('data tests', function() {
+    suite('compare tests', function() {
+      test('numbers', function() {
+        assert.equal(Utils.data.defaultCompare(42, 42), 0);
+        assert.equal(Utils.data.defaultCompare(0, 0), 0);
+        assert.equal(Utils.data.defaultCompare(0, 1), -1);
+        assert.equal(Utils.data.defaultCompare(1, 0), 1);
+        var e1, e2;
+        try {
+          Utils.data.defaultCompare(1, {});
+        } catch (err) {
+          e1 = err;
+        }
+        assert.ok(e1);
+        try {
+          Utils.data.defaultCompare({}, 1);
+        } catch (err) {
+          e2 = err;
+        }
+        assert.ok(e2);
+      });
+      test('strings', function() {
+        assert.equal(Utils.data.defaultCompare('abc', 'abc'), 0);
+        assert.equal(Utils.data.defaultCompare('abc', 'abd'), -1);
+        assert.equal(Utils.data.defaultCompare('abc', 'abb'), 1);
+        assert.equal(Utils.data.defaultCompare('abc', 'abcd'), -1);
+        assert.equal(Utils.data.defaultCompare('abc', 'ab'), 1);
+        var e;
+        try {
+          Utils.data.defaultCompare('abc', 1);
+        } catch (err) {
+          e = err;
+        }
+        assert.ok(e);
+      });
+      test('arrays', function() {
+        assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 3]), 0);
+        assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 4]), -1);
+        assert.equal(Utils.data.defaultCompare([1, 2, 3], [1, 2, 2]), 1);
+        var e;
+        try {
+          Utils.data.defaultCompare('abc', 1);
+        } catch (err) {
+          e = err;
+        }
+        assert.ok(e);
+      });
+    });
+
+    suite('binarySearch', function() {
+
+      var genMatchTest = function(arr, search, idx) {
+        test('length ' + arr.length + ', match for ' + JSON.stringify(search),
+          function() {
+          var res = Utils.data.binarySearch({ value: search }, arr,
+            Utils.data.keyedCompare('value'));
+          assert.deepEqual(res, {
+            match: true,
+            index: idx,
+            value: arr[idx]
+          });
+        });
+      };
+
+      var genNoMatchTest = function(arr, search, idx) {
+        test('length ' + arr.length + ', no match for ' +
+          JSON.stringify(search),
+          function() {
+          var res = Utils.data.binarySearch({ value: search }, arr,
+            Utils.data.keyedCompare('value'));
+          assert.deepEqual(res, {
+            match: false,
+            index: idx
+          });
+        });
+      };
+
+      var array14 = [
+        {value: 1}, {value: 11}, {value: 25},
+        {value: 28}, {value: 30}, {value: 36},
+        {value: 48}, {value: 54}, {value: 54},
+        {value: 59}, {value: 61}, {value: 82},
+        {value: 82}, {value: 85}
+      ];
+
+      var array15 = [
+        {value: 1}, {value: 11}, {value: 25},
+        {value: 28}, {value: 30}, {value: 36},
+        {value: 48}, {value: 54}, {value: 54},
+        {value: 59}, {value: 61}, {value: 82},
+        {value: 82}, {value: 85}, {value: 98}
+      ];
+
+      test('zero length', function() {
+        var res = Utils.data.binarySearch(34, []);
+        assert.deepEqual(res, { match: false, index: 0 });
+      });
+
+      test('length one, no match', function() {
+        var res = Utils.data.binarySearch(34, [5]);
+        assert.deepEqual(res, { match: false, index: 1 });
+      });
+
+      test('length one, match', function() {
+        var res = Utils.data.binarySearch(34, [34]);
+        assert.deepEqual(res, {
+          match: true,
+          index: 0,
+          value: 34
+        });
+      });
+
+      genMatchTest(array14, 1, 0);
+      genMatchTest(array14, 85, 13);
+      genNoMatchTest(array14, -1, 0);
+      genNoMatchTest(array14, 52, 7);
+      genNoMatchTest(array14, 101, 14);
+
+      genMatchTest(array15, 1, 0);
+      genMatchTest(array15, 98, 14);
+      genNoMatchTest(array15, -1, 0);
+      genNoMatchTest(array15, 52, 7);
+      genNoMatchTest(array15, 101, 15);
+    });
+
+    suite('sortedInsert', function() {
+      var array = [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 91];
+      test('zero length insert', function() {
+        var x = [];
+        var res = Utils.data.sortedInsert(3, x);
+        assert.deepEqual(x, [3]);
+        assert.equal(res, 0);
+      });
+      test('beginning insert', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedInsert(-10, x);
+        assert.equal(x[0], -10);
+        assert.equal(x.length, array.length + 1);
+        assert.equal(res, 0);
+      });
+      test('middle insert', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedInsert(43, x);
+        assert.equal(x[6], 43);
+        assert.equal(x.length, array.length + 1);
+        assert.equal(res, 6);
+      });
+      test('end insert', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedInsert(99, x);
+        assert.equal(x[x.length - 1], 99);
+        assert.equal(x.length, array.length + 1);
+        assert.equal(res, array.length);
+      });
+    });
+
+    suite('sortedRemove', function() {
+      var array = [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 91];
+      test('zero length remove', function() {
+        var x = [];
+        var res = Utils.data.sortedRemove(3, x);
+        assert.equal(res, false);
+      });
+      test('length one remove', function() {
+        var x = [3];
+        var res = Utils.data.sortedRemove(3, x);
+        assert.deepEqual(x, []);
+        assert.equal(res, true);
+      });
+      test('beginning remove', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedRemove(1, x);
+        assert.deepEqual(x, [8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 91]);
+        assert.equal(res, true);
+      });
+      test('middle remove', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedRemove(58, x);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 64, 74, 82, 91]);
+        assert.equal(res, true);
+      });
+      test('end remove', function() {
+        var x = array.slice();
+        var res = Utils.data.sortedRemove(91, x);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+      test('beginning multi remove', function() {
+        var x = [3, 3, 3, 3, 3, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82];
+        var res = Utils.data.sortedRemove(3, x, undefined, true);
+        assert.deepEqual(x, [8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+      test('middle multi remove', function() {
+        var x = [1, 8, 9, 19, 21, 21, 21, 21, 38, 42, 44, 56, 58, 64, 74, 82];
+        var res = Utils.data.sortedRemove(21, x, undefined, true);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+      test('end multi remove', function() {
+        var x = [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82, 99, 99, 99];
+        var res = Utils.data.sortedRemove(99, x, undefined, true);
+        assert.deepEqual(x, [1, 8, 9, 19, 38, 42, 44, 56, 58, 64, 74, 82]);
+        assert.equal(res, true);
+      });
+
+    });
+  });
 
   suite('extend tests', function() {
 
@@ -361,6 +524,101 @@ suite('Time functions', function() {
       assert.ok(here);
     });
 
+  });
+
+  suite('format', function() {
+    suite('time(hh, mm) ', function() {
+      var is12hStub, formatTime;
+
+      setup(function() {
+        formatTime = Utils.format.time;
+        is12hStub = sinon.stub(Utils, 'is12hFormat');
+      });
+
+      teardown(function() {
+        is12hStub.restore();
+      });
+
+      test('12:00am, with 12 hour clock settings', function() {
+        is12hStub.returns(true);
+        assert.equal(formatTime(0, 0), '12:00AM');
+      });
+
+      test('12:30pm, with 12 hour clock settings', function() {
+        is12hStub.returns(true);
+        assert.equal(formatTime(12, 30), '12:30PM');
+      });
+
+      test('11:30pm, with 12 hour clock settings', function() {
+        is12hStub.returns(true);
+        assert.equal(formatTime(23, 30), '11:30PM');
+      });
+
+      test('12:30am, with 24 hour clock settings', function() {
+        is12hStub.returns(false);
+        assert.equal(formatTime(0, 30), '00:30');
+      });
+
+      test('12:30pm, with 24 hour clock settings', function() {
+        is12hStub.returns(false);
+        assert.equal(formatTime(12, 30), '12:30');
+      });
+
+      test('11:30pm, with 24 hour clock settings', function() {
+        is12hStub.returns(false);
+        assert.equal(formatTime(23, 30), '23:30');
+      });
+
+    });
+
+    suite('hms()', function() {
+      var hms;
+
+      suiteSetup(function() {
+        hms = Utils.format.hms;
+      });
+
+      suite('hms(seconds) ', function() {
+        var fixtures = [
+          { args: [0], expect: '00:00:00' },
+          { args: [1], expect: '00:00:01' },
+          { args: [59], expect: '00:00:59' },
+          { args: [60], expect: '00:01:00' },
+          { args: [3600], expect: '01:00:00' }
+        ];
+
+        fixtures.forEach(function(fixture) {
+          var { args, expect } = fixture;
+          var title = args.map(String).join(', ') + ' => ' + expect + ' ';
+
+          test(title, function() {
+            assert.equal(hms.apply(null, args), expect);
+          });
+        });
+      });
+
+      suite('hms(seconds, format) ', function() {
+        var fixtures = [
+          { args: [0, 'ss'], expect: '00' },
+          { args: [1, 'ss'], expect: '01' },
+          { args: [60, 'ss'], expect: '00' },
+          { args: [0, 'mm:ss'], expect: '00:00' },
+          { args: [59, 'mm:ss'], expect: '00:59' },
+          { args: [60, 'mm:ss'], expect: '01:00' },
+          { args: [3600, 'mm:ss'], expect: '00:00' },
+          { args: [3600, 'hh:mm:ss'], expect: '01:00:00' }
+        ];
+
+        fixtures.forEach(function(fixture) {
+          var { args, expect } = fixture;
+          var title = args.map(String).join(', ') + ' => ' + expect + ' ';
+
+          test(title, function() {
+            assert.equal(hms.apply(null, args), expect);
+          });
+        });
+      });
+    });
   });
 
   suite('async', function() {

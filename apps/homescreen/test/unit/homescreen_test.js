@@ -2,6 +2,7 @@
 
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_request.html.js');
+requireApp('homescreen/test/unit/mock_lazy_loader.js');
 requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
 requireApp('homescreen/test/unit/mock_pagination_bar.js');
@@ -14,7 +15,8 @@ requireApp('homescreen/js/homescreen.js');
 var mocksHelperForHome = new MocksHelper([
   'PaginationBar',
   'GridManager',
-  'ManifestHelper'
+  'ManifestHelper',
+  'LazyLoader'
 ]);
 mocksHelperForHome.init();
 

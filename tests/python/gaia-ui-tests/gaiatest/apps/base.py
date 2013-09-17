@@ -137,7 +137,7 @@ class Base(object):
         close_button.tap()
 
         # now back to app
-        self.launch()
+        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
 
     @property
     def keyboard(self):

@@ -5,41 +5,55 @@
 var steps = {
   1: {
     onlyForward: true,
+    onlyBackward: false,
     hash: '#languages',
     requireSIM: false
   },
   2: {
     onlyForward: false,
-    hash: '#data_3g',
+    onlyBackward: true,
+    hash: '#SIM_mandatory',
     requireSIM: true
   },
   3: {
     onlyForward: false,
-    hash: '#wifi',
-    requireSIM: false
+    onlyBackward: false,
+    hash: '#data_3g',
+    requireSIM: true
   },
   4: {
     onlyForward: false,
-    hash: '#date_and_time',
+    onlyBackward: false,
+    hash: '#wifi',
     requireSIM: false
   },
   5: {
     onlyForward: false,
-    hash: '#geolocation',
+    onlyBackward: false,
+    hash: '#date_and_time',
     requireSIM: false
   },
   6: {
     onlyForward: false,
-    hash: '#import_contacts',
+    onlyBackward: false,
+    hash: '#geolocation',
     requireSIM: false
   },
   7: {
     onlyForward: false,
-    hash: '#welcome_browser',
+    onlyBackward: false,
+    hash: '#import_contacts',
     requireSIM: false
   },
   8: {
     onlyForward: false,
+    onlyBackward: false,
+    hash: '#welcome_browser',
+    requireSIM: false
+  },
+  9: {
+    onlyForward: false,
+    onlyBackward: false,
     hash: '#browser_privacy',
     requireSIM: false
   }
@@ -61,6 +75,15 @@ var Navigation = {
     window.addEventListener('hashchange', this);
     UIManager.activationScreen.addEventListener('click',
         this.handleExternalLinksClick.bind(this));
+    this.simMandatory = false;
+
+    var req = navigator.mozSettings.createLock().get('ftu.sim.mandatory');
+    var self = this;
+    req.onsuccess = function onSuccess() {
+      if (req.result['ftu.sim.mandatory']) {
+        self.simMandatory = req.result['ftu.sim.mandatory'];
+      }
+    };
   },
 
   back: function n_back(event) {
@@ -191,6 +214,20 @@ var Navigation = {
       case '#browser_privacy':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
         break;
+      case '#SIM_mandatory':
+        UIManager.mainTitle.innerHTML = _('SIM_mandatory');
+        // If SIM card is mandatory, we hide the button skip
+        if (this.simMandatory) {
+          UIManager.unlockSimButton.classList.add('send-only');
+          UIManager.skipPinButton.classList.add('send-only');
+        }else {
+          UIManager.unlockSimButton.classList.remove('send-only');
+          UIManager.skipPinButton.classList.remove('send-only');
+        }
+        DataMobile.
+          getStatus(UIManager.updateDataConnectionStatus.bind(UIManager));
+
+        break;
       case '#about-your-rights':
       case '#about-your-privacy':
       case '#sharing-performance-data':
@@ -204,7 +241,7 @@ var Navigation = {
     UIManager.progressBar.className = className;
 
     // Managing options button
-    if (this.currentStep != 3) { //wifi
+    if (this.currentStep != 4) { //wifi
       UIManager.activationScreen.classList.add('no-options');
     }
 
@@ -242,8 +279,13 @@ var Navigation = {
     } else {
       UIManager.navBar.classList.remove('forward-only');
     }
-    // Substitute button content on last step
     var nextButton = document.getElementById('forward');
+    if (steps[this.currentStep].onlyBackward) {
+      nextButton.setAttribute('disabled', 'disabled');
+    } else {
+      nextButton.removeAttribute('disabled');
+    }
+    // Substitute button content on last step
     if (this.currentStep === numSteps) {
       nextButton.firstChild.textContent = _('done');
     } else {
@@ -251,15 +293,30 @@ var Navigation = {
     }
     // Change hash to the right location
     window.location.hash = futureLocation.hash;
+
     // SIM card management
     if (futureLocation.requireSIM) {
       SimManager.handleCardState(function check_cardState(response) {
         self.skipped = false;
         if (!response) {
+          if (!self.simMandatory) {
+            self.skipStep();
+          }
+        } else if (futureLocation.hash === '#SIM_mandatory') {
           self.skipStep();
         }
       });
+      self.checkCurrentStep();
     }
+  },
+  // If we unlock the sim and current step is SIM_mandatory,
+  // we have to skip the current step
+  checkCurrentStep: function n_checkCurrentStep() {
+     if (steps[this.currentStep].hash === '#SIM_mandatory') {
+        if (!this.simMandatory || (this.simMandatory && SimManager._unlocked)) {
+          this.skipStep();
+        }
+      }
   }
 };
 

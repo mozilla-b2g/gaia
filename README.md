@@ -100,7 +100,6 @@ make test-integration
   - [mocha: which is wrapped by marionette-js-runner](http://visionmedia.github.io/mocha/)
   - [marionette-js-runner: for the test framework](https://github.com/mozilla-b2g/marionette-js-runner)
   - [marionette-client: for anything to do with client.X](http://lightsofapollo.github.io/marionette_js_client/api-docs/classes/Marionette.Client.html)
- 
 
 #### Gotchas
 
@@ -117,3 +116,13 @@ make test-integration
 
 - You get can get lots of debug information when running tests like
 this: `DEBUG=* ./bin/gaia-marionette name/of/test.js`
+
+### UI Tests
+
+#### Functional
+
+See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaia-ui-tests/README.md)
+
+#### Endurance
+
+See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
