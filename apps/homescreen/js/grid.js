@@ -23,6 +23,8 @@ var GridManager = (function() {
   var windowWidth = window.innerWidth;
   var swipeThreshold, swipeFriction, tapThreshold;
 
+  var singleVariantApps;
+
   var dragging = false;
 
   var defaultAppIcon, defaultBookmarkIcon;
@@ -71,11 +73,7 @@ var GridManager = (function() {
 
   var panningResolver;
 
-  function createPanningResolver() {
-    // Get our configuration data from build/applications-data.js
-    var configuration = Configurator.getSection('prediction') ||
-      { enabled: false };
-
+  function createPanningResolver(configuration) {
     // This algorithm is based on the change between events, so we need to
     // remember some things from the previous invocation
     var lookahead, lastPrediction, x0, t0, x1, t1 = 0, dx, velocity;
@@ -888,11 +886,11 @@ var GridManager = (function() {
   /*
    * Initialize the UI.
    */
-  function initUI(selector) {
+  function initUI(options) {
     overlay = document.querySelector('#landing-overlay');
     overlayStyle = overlay.style;
 
-    container = document.querySelector(selector);
+    container = document.querySelector(options.gridSelector);
     container.addEventListener('wheel', handleEvent);
     ensurePanning();
 
@@ -916,7 +914,7 @@ var GridManager = (function() {
       pages.push(page);
     }
 
-    panningResolver = createPanningResolver();
+    panningResolver = createPanningResolver(options.prediction);
   }
 
   /*
@@ -1044,7 +1042,6 @@ var GridManager = (function() {
    * if the manifesURL doesn't correspond with a SV app
    */
   function getSingleVariantApp(manifestURL) {
-    var singleVariantApps = Configurator.getSingleVariantApps();
     if (manifestURL in singleVariantApps) {
       var app = singleVariantApps[manifestURL];
       if (app.screen !== undefined && app.location !== undefined) {
@@ -1243,7 +1240,10 @@ var GridManager = (function() {
 
   var defaults = {
     gridSelector: '.apps',
-    dockSelector: '.dockWrapper'
+    dockSelector: '.dockWrapper',
+    prediction: {
+      enabled: false
+    }
   };
 
   function doInit(options, callback) {
@@ -1254,13 +1254,14 @@ var GridManager = (function() {
     appsByOrigin = Object.create(null);
     bookmarksByOrigin = Object.create(null);
 
-    initUI(options.gridSelector);
+    initUI(options);
 
     tapThreshold = options.tapThreshold;
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
     overlayTransition = 'opacity ' + kPageTransitionDuration + 'ms ease';
+    singleVariantApps = Configurator.getSingleVariantApps();
 
     IconRetriever.init();
 

@@ -152,6 +152,10 @@ var Configurator = (function() {
       return conf[section];
     },
 
+    destroy: function() {
+      conf = singleVariantApps = null;
+    },
+
     getSingleVariantApps: function() {
       return singleVariantApps;
     },
