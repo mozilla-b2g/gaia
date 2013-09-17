@@ -34,6 +34,9 @@ var CallScreen = {
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
   lockedContactPhoto: document.getElementById('locked-contact-photo'),
+  lockedClockNumbers: document.getElementById('lockscreen-clock-numbers'),
+  lockedClockMeridiem: document.getElementById('lockscreen-clock-meridiem'),
+  lockedDate: document.getElementById('lockscreen-date'),
 
   statusMessage: document.getElementById('statusMsg'),
   showStatusMessage: function cs_showStatusMesssage(text) {
@@ -90,11 +93,13 @@ var CallScreen = {
     if ((window.location.hash === '#locked') && !callScreenHasLayout) {
       CallScreen.render('incoming-locked');
     }
+    CallScreen.showClock(new Date());
+
     if (navigator.mozSettings) {
       var req = navigator.mozSettings.createLock().get('wallpaper.image');
       req.onsuccess = function cs_wi_onsuccess() {
         CallScreen.setCallerContactImage(
-          req.result['wallpaper.image'], {force: false, mask: true});
+          req.result['wallpaper.image'], {force: false});
       };
     }
 
@@ -152,11 +157,6 @@ var CallScreen = {
 
     if (!target.style.backgroundImage || (opt && opt.force)) {
       target.style.backgroundImage = 'url(' + photoURL + ')';
-      if (opt && opt.mask) {
-        target.classList.add('masked');
-      } else {
-        target.classList.remove('masked');
-      }
     }
   },
 
@@ -211,6 +211,19 @@ var CallScreen = {
     if (layout_type !== 'connected') {
       this.keypadButton.setAttribute('disabled', 'disabled');
     }
+  },
+
+  showClock: function cs_showClock(now) {
+    LazyL10n.get(function localized(_) {
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var timeFormat = _('shortTimeFormat');
+      var dateFormat = _('longDateFormat');
+      var time = f.localeFormat(now, timeFormat);
+      this.lockedClockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
+      this.lockedClockMeridiem.textContent =
+        (time.match(/AM|PM/i) || []).join('');
+      this.lockedDate.textContent = f.localeFormat(now, dateFormat);
+    }.bind(this));
   },
 
   showIncoming: function cs_showIncoming() {

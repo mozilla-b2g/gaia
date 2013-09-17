@@ -12,35 +12,40 @@ var Swiper = {
   TRIGGERED_TIMEOUT: 5000,
 
   /*
-  * Max value for handle swiper up
+  * slider distance for showing fade-in effect.
   */
-  HANDLE_MAX: 70,
+  FADEIN_DISTANCE: 35,
+
+  /*
+  * If user is sliding.
+  */
+  _sliderPulling: false,
+
+  /*
+  * If user released the finger and the handler had already
+  * reached one of the ends.
+  */
+  _sliderReachEnd: false,
+
+  /*
+  * Detect if sliding crossed the middle line.
+  */
+  _slidingToward: '',
 
   /* init */
   init: function ls_init() {
     this.getAllElements();
 
     this.area.addEventListener('touchstart', this);
-    this.areaHangup.addEventListener('click', this);
-    this.areaPickup.addEventListener('click', this);
     this.overlay.addEventListener('transitionend', this);
-
-    this.setElasticEnabled(true);
   },
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
       case 'touchstart':
         var overlay = this.overlay;
-
-        if (overlay.classList.contains('triggered')) {
-          clearTimeout(this.triggeredTimeoutId);
-          this.triggeredTimeoutId = setTimeout(this.unloadPanel.bind(this),
-                                               this.TRIGGERED_TIMEOUT);
-          break;
-        }
-
-        this.setElasticEnabled(false);
+        if (evt.target === this.area)
+          this.handleSlideBegin();
 
         this._touch = {};
         window.addEventListener('touchend', this);
@@ -56,39 +61,195 @@ var Swiper = {
 
       case 'touchmove':
         this.handleMove(evt.touches[0].pageX, evt.touches[0].pageY);
+        this.handleSlide();
         break;
 
       case 'touchend':
         window.removeEventListener('touchmove', this);
         window.removeEventListener('touchend', this);
-        this.handleGesture();
+        this.handleSlideEnd();
+        this.handleMove(evt.touches[0].pageX, evt.touches[0].pageY);
         delete this._touch;
         this.overlay.classList.remove('touched');
 
         break;
-      case 'click':
-        clearTimeout(this.triggeredTimeoutId);
-        switch (evt.target) {
-          case this.areaHangup:
-            CallsHandler.end();
-            break;
-
-          case this.areaPickup:
-            CallsHandler.answer();
-            break;
-        }
-        break;
     }
+  },
+
+  handleSlideBegin: function ls_handleSlideBegin() {
+    this.restoreSlider();
+  },
+
+  handleSlide: function ls_handleSlide() {
+
+    if (!this._sliderPulling)
+      return;
+
+    var tx = this._touch.tx;
+    var dir = 'right';
+    if (0 > tx)
+      var dir = 'left';
+
+    // Drag from left to right or counter-direction.
+    if ('' !== this._slidingToward && dir !== this._slidingToward) {
+      this.restoreSlider();
+    }
+    this._slidingToward = dir;
+
+    // Unsigned.
+    var utx = Math.abs(tx);
+
+    // XXX: the overlay area between center and the left & right.
+    // When the movement offset is even (86px for ex),
+    // the glitch will be the left, and when it's odd,
+    // the glitch will be the right.
+    var glitchC = 0;
+
+    // Thanks the color effect on the slider, we can overlay icons
+    // without any obvious glitches.
+    var glitchS = 5;
+
+
+    // XXX: lots of try and errors
+    if ('right' === dir) {
+      glitchC = (0 === utx % 2) ? -1 : 0;
+    } else {
+      glitchC = (0 === utx % 2) ? 0 : 0;
+    }
+
+    var leftIcon = this.areaHangup;
+    var rightIcon = this.areaPickup;
+    var areaW = this.areaWidth;
+    var iconW = this.iconWidth;
+    var sliderEdgeW = this.sliderEdgeWidth;
+    var trackLength = rightIcon.offsetLeft - leftIcon.offsetLeft + areaW;
+    var maxLength = Math.floor(trackLength / 2);
+    var offset = utx;
+
+    // If the front-end slider reached the boundary.
+    // We plus and minus the icon width because maxLength should be fixed,
+    // and only the handler and the blue occured area should be adjusted.
+    if (offset + this.sliderEdgeWidth > maxLength - areaW) {
+      var target = 'left' === dir ? leftIcon : rightIcon;
+      this._sliderReachEnd = true;
+      offset = maxLength - areaW + iconW - sliderEdgeW;
+      target.classList.add('triggered');
+
+    } else {
+      leftIcon.classList.remove('triggered');
+      rightIcon.classList.remove('triggered');
+      this._sliderReachEnd = false;
+    }
+
+    // Start to paint the slider.
+    this.sliderLeft.classList.add('pulling');
+    this.sliderRight.classList.add('pulling');
+
+    var subject = ('right' === dir) ? this.sliderRight : this.sliderLeft;
+    var cntsubject = ('right' === dir) ? this.sliderLeft : this.sliderRight;
+    var counterDir = ('right' === dir) ? 'left' : 'right';
+
+    // 'translateX' will move it according to the left border.
+    if ('right' === dir) {
+      subject.style.transform = 'translateX(' + offset + 'px)';
+    } else {
+      subject.style.transform = 'translateX(-' + offset + 'px)';
+    }
+    this.sliderHandler.classList.remove(counterDir);
+    this.sliderHandler.classList.add(dir);
+
+    // Need to set this to let transition event triggered while
+    // we bounce the handlers back.
+    // @see `restoreSlider`
+    cntsubject.style.transform = 'translateX(0px)';
+
+    // Move center as long as half of the offset, then scale it.
+    var cMove = Math.floor(offset / 2 + glitchC);
+    var cScale = offset + glitchS;
+
+    if ('right' === dir) {
+      this.sliderCenter.style.transform = 'translateX(' + cMove + 'px)';
+    } else {
+      this.sliderCenter.style.transform = 'translateX(-' + cMove + 'px)';
+    }
+    this.sliderCenter.style.transform += 'scaleX(' + cScale + ')';
+
+    // Add slider opacity effect.
+    this.sliderHandler.style.opacity = cScale / this.FADEIN_DISTANCE;
+
+    // Add the effects to slider handler.
+    this.sliderHandler.classList.add('touched');
+  },
+
+  // Restore all slider elements.
+  //
+  // easing {Boolean} true|undefined to bounce back slowly.
+  restoreSlider: function ls_restoreSlider(easing) {
+    // To prevent magic numbers...
+    var sh = this.sliderHandler;
+    var sliderParts = [this.sliderLeft, this.sliderRight, this.sliderCenter];
+    var numbers = sliderParts.length;
+    var exit = 0;
+    // Mimic the `getAllElements` function...
+    sliderParts.forEach(function ls_rSlider(h) {
+        if (easing) {
+
+          // Add transition to let it bounce back slowly.
+          h.classList.add('bounce');
+          var tsEnd = function ls_tsEnd(evt) {
+            h.style.transition = '';
+
+            // Remove the effects to these icons.
+            h.classList.remove('bounce');
+            h.removeEventListener('transitionend', tsEnd);
+            if (++exit < numbers) {
+              return;
+            }
+            sh.style.opacity = 1;
+            sh.classList.remove('touched');
+          };
+          h.addEventListener('transitionend', tsEnd);
+
+        } else {
+          // Reset slider elements status
+          h.style.transition = '';
+
+          // Reset slider color & opacity
+          sh.style.opacity = 1;
+          sh.classList.remove('touched');
+
+        }
+
+        // After setup, bounce it back.
+        h.style.transform = '';
+    });
+
+    this._sliderPulling = true;
+    this._sliderReachEnd = false;
+  },
+
+  handleSlideEnd: function ls_handleSlideEnd() {
+
+    // Bounce back to the center immediately.
+    if (false === this._sliderReachEnd) {
+      this.restoreSlider(true);
+    } else {
+      var leftIcon = this.areaHangup;
+      var rightIcon = this.areaPickup;
+      var tx = this._touch.tx;
+      var target = (tx > 0) ? rightIcon : leftIcon;
+      this.handleIconTriggered(target);
+      // Restore it only after screen changed.
+      var appLaunchDelay = 400;
+      setTimeout(this.restoreSlider.bind(this, true), appLaunchDelay);
+    }
+    this._sliderPulling = false;
   },
 
   handleMove: function ls_handleMove(pageX, pageY) {
     var touch = this._touch;
 
     if (!touch.touched) {
-      // Do nothing if the user have not move the finger to the handle yet
-      if (document.elementFromPoint(pageX, pageY) !== this.areaHandle)
-        return;
-
       touch.touched = true;
       touch.initX = pageX;
       touch.initY = pageY;
@@ -97,42 +258,23 @@ var Swiper = {
       overlay.classList.add('touched');
     }
 
-    var dy = pageY - touch.initY;
-    var ty = Math.max(- this.HANDLE_MAX, dy);
-    var base = - ty / this.HANDLE_MAX;
-    // mapping position 20-100 to opacity 0.1-0.5
-    var opacity = base <= 0.2 ? 0.1 : base * 0.5;
-    touch.ty = ty;
-    this.iconContainer.style.transform = 'translateY(' + ty + 'px)';
-    this.iconPickup.style.opacity =
-      this.iconHangup.style.opacity = opacity;
+    touch.tx = pageX - touch.initX;
+    touch.ty = pageY - touch.initY;
   },
 
-  handleGesture: function ls_handleGesture() {
-    var touch = this._touch;
-
-    if (touch.ty < -50) {
-      this.areaHandle.style.transform =
-        this.areaHandle.style.opacity =
-        this.iconHangup.style.opacity =
-        this.iconPickup.style.opacity =
-        this.iconContainer.style.transform =
-        this.iconContainer.style.opacity = '';
-      this.overlay.classList.add('triggered');
-
-      this.triggeredTimeoutId =
-        setTimeout(this.unloadPanel.bind(this), this.TRIGGERED_TIMEOUT);
-    } else {
-      this.unloadPanel();
-      this.setElasticEnabled(true);
+  handleIconTriggered: function sw_handleIconTriggered(target) {
+    if (target === this.areaHangup) {
+      CallsHandler.end();
+    } else if (target === this.areaPickup) {
+      CallsHandler.answer();
     }
   },
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
     var elements = ['area', 'area-pickup', 'area-hangup', 'area-handle',
-        'icon-container', 'hangup-mask', 'pickup-mask',
-        'accessibility-hangup', 'accessibility-pickup'];
+        'icon-container', 'hangup-mask', 'pickup-mask', 'area-slider',
+        'slider-handler', 'accessibility-hangup', 'accessibility-pickup'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -146,30 +288,18 @@ var Swiper = {
 
     this.overlay = document.getElementById('main-container');
     this.mainScreen = document.getElementById('call-screen');
+    this.areaPickup = document.querySelector('#swiper-area-pickup');
+    this.areaHangup = document.querySelector('#swiper-area-hangup');
+    this.areaWidth = this.areaPickup.clientWidth;
     this.iconPickup = document.querySelector('#swiper-area-pickup > div');
     this.iconHangup = document.querySelector('#swiper-area-hangup > div');
-  },
-  setElasticEnabled: function ls_setElasticEnabled(value) {
-    if (value)
-      this.overlay.classList.add('elastic');
-    else
-      this.overlay.classList.remove('elastic');
-  },
+    this.iconWidth = this.iconPickup.clientWidth;
 
-  unloadPanel: function ls_unloadPanel() {
-    this.areaHandle.style.transform =
-      this.iconPickup.style.transform =
-      this.iconHangup.style.transform =
-      this.iconContainer.style.transform =
-      this.iconContainer.style.opacity =
-      this.iconPickup.style.opacity =
-      this.iconHangup.style.opacity = '';
-    this.overlay.classList.remove('triggered');
-    this.iconPickup.classList.remove('triggered');
-    this.iconHangup.classList.remove('triggered');
-
-    clearTimeout(this.triggeredTimeoutId);
-    this.setElasticEnabled(true);
+    this.sliderLeft = this.sliderHandler.querySelector('.swiper-slider-left');
+    this.sliderCenter =
+      this.sliderHandler.querySelector('.swiper-slider-center');
+    this.sliderRight = this.sliderHandler.querySelector('.swiper-slider-right');
+    this.sliderEdgeWidth = this.sliderLeft.clientWidth;
   }
 };
 

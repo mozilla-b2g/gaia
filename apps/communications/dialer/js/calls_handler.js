@@ -325,9 +325,6 @@ var CallsHandler = (function callsHandler() {
 
     postToMainWindow('closing');
 
-    if (Swiper) {
-      Swiper.setElasticEnabled(false);
-    }
 
     // If the screen is not displayed yet we close the window directly
     if (animate && !animating && displayed) {
