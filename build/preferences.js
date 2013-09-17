@@ -157,6 +157,8 @@ function execute() {
     // force enable content actor
     prefs.push(['devtools.debugger.enable-content-actors', true]);
     prefs.push(['devtools.debugger.prompt-connection', false]);
+    prefs.push(['devtools.debugger.forbid-certified-apps', false]);
+    prefs.push(['b2g.adb.timeout', 0]);
   }
 
   function writePrefs() {
