@@ -114,11 +114,18 @@ body.hidden *[data-l10n-id] {
   opacity: 0 !important;
 }
 
-/* Stratched contact view */
-#views[data-lockon] .icon {
-  display: none;
+/* For showing/hiding navbar */
+article[role="tab"] > .icon {
+  opacity: 1;
+  z-index: 20;
+  transition: 1.5s opacity 0.5s ease;
 }
 
-#views[data-lockon=contacts] #iframe-contacts-container {
+#views[data-lockon] > article[role="tab"] > .icon {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#views[data-lockon] [role="tabpanel"] {
   height: 100%;
 }

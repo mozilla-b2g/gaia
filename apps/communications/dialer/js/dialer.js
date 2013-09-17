@@ -251,9 +251,9 @@ var CallHandler = (function callHandler() {
     } else if (data.type && data.type === 'contactsiframe') {
       handleContactsIframeRequest(data.message);
     } else if (data.type && data.type === 'lock-navbar') {
-      NavbarManager.lock(data.from);
+      NavbarManager.lock(data.on);
     } else if (data.type && data.type === 'unlock-navbar') {
-      NavbarManager.unlock(data.from);
+      NavbarManager.unlock();
     }
   }
   window.addEventListener('message', handleMessage);
@@ -446,8 +446,8 @@ var NavbarManager = {
   update: function nm_update() {
 
     var views = document.getElementById('views');
-    if (views.dataset.lockon == 'contacts') {
-      window.location.hash = '#contacts-view';
+    if (views.dataset.lockon) {
+      window.location.hash = '#' + views.dataset.lockon;
     }
 
     var recent = document.getElementById('option-recents');
@@ -508,7 +508,7 @@ var NavbarManager = {
     views.dataset.lockon = from;
   },
 
-  unlock: function(from) {
+  unlock: function() {
     var views = document.getElementById('views');
     delete views.dataset.lockon;
   }

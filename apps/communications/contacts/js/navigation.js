@@ -45,6 +45,8 @@ function navigationStack(currentView) {
     }
   };
 
+  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+      document.location.host;
   var screenshotViewId = 'view-screenshot';
   var _currentView = currentView;
   this.stack = [];
@@ -66,9 +68,9 @@ function navigationStack(currentView) {
       return;
 
     var parent = window.parent;
-    if (nextView == 'view-contact-details') {
+    if (nextView == 'view-contact-form') {
       parent.postMessage(
-        {type: 'lock-navbar', from: 'contacts'}, COMMS_APP_ORIGIN);
+        {type: 'lock-navbar', on: 'contacts-view'}, COMMS_APP_ORIGIN);
     }
     // Remove items that match nextView from the stack to prevent duplicates.
     this.stack = this.stack.filter(function(item) {
@@ -130,9 +132,9 @@ function navigationStack(currentView) {
     var forwardsClasses = this.transitions[transition].forwards;
     var backwardsClasses = this.transitions[transition].backwards;
 
-    if (nextView.view == 'view-contacts-list') {
+    if (currentView.view == 'view-contact-form') {
       parent.postMessage(
-        {type: 'unlock-navbar', from: 'contacts'}, COMMS_APP_ORIGIN);
+        {type: 'unlock-navbar'}, COMMS_APP_ORIGIN);
     }
 
     // Add backwards class to current view.
