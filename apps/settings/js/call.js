@@ -727,7 +727,7 @@ var Calls = (function(window, document, undefined) {
     }
 
     // get network type
-    getSupportedNetworkCategories(function(result) {
+    getSupportedNetworkInfo(function(result) {
       if (!result.cdma)
         return;
 

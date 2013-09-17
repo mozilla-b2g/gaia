@@ -398,42 +398,53 @@ var getBluetooth = function() {
  * The function returns an object of the supporting state of category of network
  * types. The categories are 'gsm' and 'cdma'.
  */
-var getSupportedNetworkCategories = function(callback) {
-  if (!callback)
-    return;
+var getSupportedNetworkInfo = (function() {
+  var _result = null;
 
-  // get network type
-  loadJSON('/resources/network.json', function loadNetwork(network) {
-    var result = {
-      gsm: false,
-      cdma: false
-    };
+  return function(callback) {
+    if (!callback)
+      return;
 
-    /*
-     * Possible values of the item in network.types are:
-     * "wcdma/gsm", "gsm", "wcdma", "wcdma/gsm-auto",
-     * "cdma/evdo", "cdma", "evdo", "wcdma/gsm/cdma/evdo"
-     */
-    if (network.types) {
-      var types = network.types;
-      for (var i = 0; i < types.length; i++) {
-        var type = types[i];
-        type.split('/').forEach(function(subType) {
-          result.gsm = result.gsm || (subType === 'gsm') ||
-                       (subType === 'gsm-auto') || (subType === 'wcdma');
-          result.cdma = result.cdma || (subType === 'cdma') ||
-                        (subType === 'evdo');
-        });
-
-        if (result.gsm && result.cdma) {
-          break;
-        }
-      }
+    // early return if the result is available
+    if (_result) {
+      callback(_result);
+      return;
     }
 
-    callback(result);
-  });
-};
+    // get network type
+    loadJSON('/resources/network.json', function loadNetwork(network) {
+      _result = {
+        gsm: false,
+        cdma: false,
+        networkTypes: null
+      };
+
+      /*
+       * Possible values of the item in network.types are:
+       * "wcdma/gsm", "gsm", "wcdma", "wcdma/gsm-auto",
+       * "cdma/evdo", "cdma", "evdo", "wcdma/gsm/cdma/evdo"
+       */
+      if (network.types) {
+        var types = _result.networkTypes = network.types;
+        for (var i = 0; i < types.length; i++) {
+          var type = types[i];
+          type.split('/').forEach(function(subType) {
+            _result.gsm = _result.gsm || (subType === 'gsm') ||
+                         (subType === 'gsm-auto') || (subType === 'wcdma');
+            _result.cdma = _result.cdma || (subType === 'cdma') ||
+                          (subType === 'evdo');
+          });
+
+          if (_result.gsm && _result.cdma) {
+            break;
+          }
+        }
+      }
+
+      callback(_result);
+    });
+  };
+})();
 
 function isIP(address) {
   return /^\d+\.\d+\.\d+\.\d+$/.test(address);
