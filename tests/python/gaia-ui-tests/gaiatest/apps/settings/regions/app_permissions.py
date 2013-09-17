@@ -27,7 +27,7 @@ class AppPermissions(Base):
 class AppPermissionsDetails(Base):
 
     _section_locator = (By.ID, 'appPermissions-details')
-    _permissions_locator = (By.CSS_SELECTOR, 'p[data-l10n-id="perm-geolocation"]')
+    _permissions_locator = (By.CSS_SELECTOR, '[data-l10n-id="perm-geolocation"]')
 
     @property
     def is_geolocation_listed(self):
