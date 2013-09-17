@@ -256,19 +256,6 @@ const IMERender = (function() {
       IMERender.ime.classList.remove('full-candidate-panel');
       IMERender.ime.classList.add('candidate-panel');
     }
-
-    resizeCandidatePanelToggleButton();
-  };
-
-  var resizeCandidatePanelToggleButton = function() {
-    var candidatePanelToggleButton =
-      document.getElementById('keyboard-candidate-panel-toggle-button');
-
-    if (candidatePanelToggleButton) {
-      candidatePanelToggleButton.style.width =
-        (IMERender.isFullCandidataPanelShown() ?
-         candidateUnitWidth - 8 : candidateUnitWidth) + 'px';
-    }
   };
 
   var isFullCandidataPanelShown = function() {
@@ -387,6 +374,7 @@ const IMERender = (function() {
         });
       } else {
         candidatePanelToggleButton.style.display = 'none';
+        toggleCandidatePanel(false);
         docFragment = candidatesFragmentCode(1, candidates, true);
       }
 
@@ -717,7 +705,14 @@ const IMERender = (function() {
         }
       );
 
-      resizeCandidatePanelToggleButton();
+      var candidatePanelToggleButton =
+        document.getElementById('keyboard-candidate-panel-toggle-button');
+
+      if (candidatePanelToggleButton) {
+        candidatePanelToggleButton.style.width = candidateUnitWidth + 'px';
+        candidatePanelToggleButton.style.left =
+          (candidateUnitWidth * (numberOfCandidatesPerRow - 1)) + 'px';
+      }
     }
   };
 
@@ -755,10 +750,6 @@ const IMERender = (function() {
     if (inputMethodName) {
       toggleButton.classList.add(inputMethodName);
     }
-
-    var toggleButtonImage = document.createElement('span');
-    toggleButtonImage.id = 'keyboard-candidate-panel-toggle-button-image';
-    toggleButton.appendChild(toggleButtonImage);
 
     toggleButton.style.width =
       Math.floor(document.getElementById('keyboard').clientWidth /
