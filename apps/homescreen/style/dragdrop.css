@@ -56,10 +56,6 @@ body[data-dragging] ol > li > div > img {
   -moz-animation-name: none;
 }
 
-body[data-mode = 'normal'] ol > li span.options {
-  display: none;
-}
-
 body[data-dragging] ol > li span.options {
   pointer-events: none;
 }

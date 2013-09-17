@@ -377,25 +377,6 @@ var GridManager = (function() {
         removeActive();
         break;
 
-      case 'contextmenu':
-        if (isPanning) {
-          evt.stopImmediatePropagation();
-          return;
-        }
-
-        if (currentPage > landingPage && 'isIcon' in evt.target.dataset) {
-          evt.stopImmediatePropagation();
-          removePanHandler();
-          Homescreen.setMode('edit');
-          removeActive();
-          DragDropManager.start(evt, {
-            'x': startEvent.pageX,
-            'y': startEvent.pageY
-          });
-        }
-
-        break;
-
       case 'wheel':
         if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
           // XXX: Scroll one page at a time
@@ -408,6 +389,25 @@ var GridManager = (function() {
           evt.preventDefault();
         }
         break;
+    }
+  }
+
+  function contextmenu(evt) {
+    if (isPanning) {
+      return;
+    }
+
+    if (currentPage > landingPage) {
+      removePanHandler();
+      Homescreen.setMode('edit');
+      removeActive();
+      LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
+        DragDropManager.init();
+        DragDropManager.start(evt, {
+          'x': startEvent.pageX,
+          'y': startEvent.pageY
+        });
+      });
     }
   }
 
@@ -896,7 +896,6 @@ var GridManager = (function() {
     overlayStyle = overlay.style;
 
     container = document.querySelector(selector);
-    container.addEventListener('contextmenu', handleEvent);
     container.addEventListener('wheel', handleEvent);
     ensurePanning();
 
@@ -1456,6 +1455,8 @@ var GridManager = (function() {
 
     exitFromEditMode: exitFromEditMode,
 
-    ensurePanning: ensurePanning
+    ensurePanning: ensurePanning,
+
+    contextmenu: contextmenu
   };
 })();
