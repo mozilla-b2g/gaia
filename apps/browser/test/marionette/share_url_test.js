@@ -59,14 +59,9 @@ marionette('share url from browser', function() {
       });
     });
 
-    test('should prompt the user to create an email acct', function(done) {
+    test('should prompt the user to create an email acct', function() {
       client.switchToFrame();
-      client.waitFor(function() {
-        var msg = client
-          .findElement('#modal-dialog-confirm-message')
-          .text();
-        return msg.indexOf('not set up to send or receive email') !== -1;
-      }, done);
+      client.helper.waitForAlert('not set up to send or receive email');
     });
   });
 
