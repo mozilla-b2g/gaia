@@ -161,6 +161,12 @@
       "description": "Pinyin",
       "types": ["url", "text"]
     },
+    "th": {
+      "launch_path": "/index.html#th",
+      "name": "Thai",
+      "description": "Thai layout",
+      "types": ["url", "text"]
+    },
     "number": {
       "launch_path": "/index.html#numberLayout",
       "name": "Number",
