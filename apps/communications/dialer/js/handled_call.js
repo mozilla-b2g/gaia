@@ -82,7 +82,7 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
       this.node.classList.remove('held');
       if (this.photo) {
         CallScreen.setCallerContactImage(this.photo,
-                                         {force: true, mask: false});
+                                         {force: true});
       }
       CallScreen.syncSpeakerEnabled();
       break;
@@ -189,7 +189,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       if (contact.photo && contact.photo.length > 0) {
         self.photo = contact.photo[0];
         CallScreen.setCallerContactImage(self.photo,
-                                         {force: true, mask: false});
+                                         {force: true});
         if (typeof self.photo === 'string') {
           contactCopy.photo = self.photo;
         } else {
