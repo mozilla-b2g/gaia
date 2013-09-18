@@ -45,8 +45,8 @@
     this.space = 0;
 
     this.lower = 0;
-    this.upper = setup.values.length;
-    this.range = setup.values.length + 1;
+    this.upper = setup.values.length - 1;
+    this.range = setup.values.length;
     this.unit = 0;
     this.direction = 0;
 
