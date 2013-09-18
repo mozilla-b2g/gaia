@@ -52,6 +52,7 @@ var ThreadUI = global.ThreadUI = {
   // Set to |true| when in edit mode
   inEditMode: false,
   inThread: false,
+  isNewMessageNoticeShown: false,
   _updateTimeout: null,
   init: function thui_init() {
     var templateIds = [
@@ -75,7 +76,8 @@ var ThreadUI = global.ThreadUI = {
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
       'edit-icon', 'edit-mode', 'edit-form', 'tel-form',
-      'max-length-notice', 'convert-notice', 'resize-notice'
+      'max-length-notice', 'convert-notice', 'resize-notice',
+      'new-message-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -162,6 +164,13 @@ var ThreadUI = global.ThreadUI = {
       'click', this.onParticipantClick.bind(this)
     );
 
+    this.newMessageNotice.addEventListener(
+      'click', (function noticeClick(event) {
+        event.preventDefault();
+        this.hideNewMessageNotice();
+        this.forceScrollViewToBottom();
+      }).bind(this)
+    );
 
     // Assimilations
     // -------------------------------------------------
@@ -430,6 +439,15 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  onMessageReceived: function thui_onMessageReceived(message) {
+    this.appendMessage(message);
+    this.scrollViewToBottom();
+    Utils.updateTimeHeaders();
+    if (this.isScrolledManually) {
+      this.showNewMessageNotice(message);
+    }
+  },
+
   // Message composer type changed:
   messageComposerTypeHandler: function thui_messageComposerTypeHandler() {
     this.updateCounter();
@@ -534,6 +552,12 @@ var ThreadUI = global.ThreadUI = {
 
     this.isScrolledManually = ((scrollTop + clientHeight) < scrollHeight);
 
+    //Check if the banner has been showed and close it when the scroll
+    //reach the bottom
+    if (!this.isScrolledManually && this.isNewMessageNoticeShown) {
+      this.hideNewMessageNotice();
+    }
+
     // kEdge will be the limit (in pixels) for showing the next chunk
     var kEdge = 30;
     if (scrollTop < kEdge) {
@@ -553,6 +577,35 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  forceScrollViewToBottom: function thui_forceScrollViewToBottom() {
+    this.isScrolledManually = false;
+    this.scrollViewToBottom();
+  },
+
+  showNewMessageNotice: function thui_showNewMessageNotice(message) {
+
+
+    Contacts.findByPhoneNumber(message.sender, (function gotContact(contact) {
+      var sender = message.sender;
+      if (contact && contact.length && contact[0].name) {
+        sender = contact[0].name[0];
+      }
+
+      var newMessageTextNode = document.
+                               getElementById('new-message-notice-text');
+      navigator.mozL10n.localize(newMessageTextNode,
+                                'new-message-notice-text',
+                                {contact: sender});
+      this.isNewMessageNoticeShown = true;
+      this.newMessageNotice.classList.remove('hide');
+    }).bind(this));
+  },
+
+  hideNewMessageNotice: function thui_hideNewMessageNotice() {
+    this.isNewMessageNoticeShown = false;
+    //Hide the new message's banner
+    this.newMessageNotice.classList.add('hide');
+  },
   // Limit the maximum height of the Compose input field such that it never
   // grows larger than the space available.
   setInputMaxHeight: function thui_setInputMaxHeight() {
