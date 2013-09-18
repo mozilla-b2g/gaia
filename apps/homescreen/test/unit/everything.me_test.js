@@ -1,7 +1,6 @@
 'use strict';
 
 require('/shared/js/lazy_loader.js');
-require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 requireApp('homescreen/test/unit/mock_everything.me.html.js');
 requireApp('homescreen/test/unit/mock_asyncStorage.js');
@@ -14,14 +13,11 @@ if (!this.asyncStorage) {
 
 suite('everything.me.js >', function() {
   var wrapperNode,
-      realAsyncStorage,
-      realMozSettings;
+      realAsyncStorage;
 
   suiteSetup(function() {
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
-    realMozSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
 
     wrapperNode = document.createElement('section');
     wrapperNode.innerHTML = MockEverythingMeHtml;
@@ -32,7 +28,6 @@ suite('everything.me.js >', function() {
 
   suiteTeardown(function() {
     window.asyncStorage = realAsyncStorage;
-    navigator.mozSettings = realMozSettings;
 
     document.body.removeChild(wrapperNode);
   });
