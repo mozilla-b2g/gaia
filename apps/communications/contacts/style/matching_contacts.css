@@ -72,10 +72,6 @@ li[aria-disabled="true"] p.match-main-reason {
   background: #e8e8e8;
 }
 
-#footer button {
-  pointer-events: auto;
-}
-
 /*
   Confirmation message with detailed information
   This is a mixed customization between confirm.css and value_selector.css from shared
