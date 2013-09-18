@@ -18,6 +18,9 @@ var GridManager = (function() {
   // previously already
   var svPreviouslyInstalledApps = [];
 
+  // XXX bug 911696 filter out launch_path
+  var launchPathBlacklist = [];
+
   var container;
 
   var windowWidth = window.innerWidth;
@@ -1013,7 +1016,16 @@ var GridManager = (function() {
       if (!entryPoints[entryPoint].icons)
         continue;
 
-      createOrUpdateIconForApp(app, entryPoint);
+      if (launchPathBlacklist.length === 0) {
+        createOrUpdateIconForApp(app, entryPoint);
+        return;
+      }
+
+      launchPathBlacklist.forEach(function filter(launchPath) {
+        if (entryPoints[entryPoint].launch_path !== launchPath) {
+          createOrUpdateIconForApp(app, entryPoint);
+        }
+      });
     }
   }
 
@@ -1311,7 +1323,18 @@ var GridManager = (function() {
         }
       }
 
-      doInit(options, callback);
+      // XXX bug 911696 get entrypoints blacklist from settings
+      // then doInit
+      if ('mozSettings' in navigator) {
+        var key = 'app.launch_path.blacklist';
+        var req = navigator.mozSettings.createLock().get(key);
+        req.onsuccess = function onsuccess() {
+          launchPathBlacklist = req.result[key] || [];
+          doInit(options, callback);
+        };
+      } else {
+        doInit(options, callback);
+      }
     },
 
     onDragStart: function gm_onDragSart() {
