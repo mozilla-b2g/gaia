@@ -54,7 +54,7 @@ createUriNdefRecord: function(uri, abbreviate) {
   var id = null;
   var payload = urlPayload;
 
-  var record = new NdefRecord(
+  var record = new MozNdefRecord(
     tnf,
     type,
     id,
@@ -85,7 +85,7 @@ createEmailNdefRecord: function(mail) {
             'body' + mail.body;
   payload = String.fromCharCode(prefix) + uri;
 
-  var main = new NdefRecord(
+  var main = new MozNdefRecord(
     tnf,
     type,
     id,

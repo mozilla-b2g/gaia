@@ -20,7 +20,7 @@ createSmsNdefRecord: function(sms) {
   var payload = String.fromCharCode(prefix) + 'sms:' + sms.phoneNumber +
                 '?body=' + sms.message;
 
-  var record = new NdefRecord(
+  var record = new MozNdefRecord(
     tnf,
     type,
     id,
