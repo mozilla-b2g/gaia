@@ -1494,6 +1494,7 @@ contacts.List = (function() {
   var exitSelectMode = function exitSelectMode(canceling) {
     inSelectMode = false;
     selectAllChecked = false;
+    currentlySelected = 0;
     selectNavigationController.back();
 
     // Hide and show buttons
@@ -1507,6 +1508,7 @@ contacts.List = (function() {
       button.classList.remove('hide');
     });
 
+    selectActionButton.disabled = true;
     selectActionButton.classList.add('hide');
 
     // Clean the checks
