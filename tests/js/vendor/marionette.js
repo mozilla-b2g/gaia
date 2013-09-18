@@ -693,7 +693,7 @@
       this.socket.write(this.stringify(data), 'utf8');
     } else {
       //moztcp socket
-      this.socket.send(this.stringify(data));
+      this.socket.rawSocket.send(this.stringify(data));
     }
   };
 
@@ -2032,6 +2032,7 @@
     });
 
     var socket = Object.create(rawSocket);
+    socket.rawSocket = rawSocket;
 
     eventMethods.forEach(function(method) {
       socket[method] = events[method].bind(events);

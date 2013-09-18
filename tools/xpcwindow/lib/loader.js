@@ -1,11 +1,15 @@
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
 
 const mozIJSSubScriptLoader = Cc[
   '@mozilla.org/moz/jssubscript-loader;1'
 ].getService(
   Components.interfaces.mozIJSSubScriptLoader
 );
+
+Cu.import('resource://gre/modules/Services.jsm');
+Services.prefs.setBoolPref('dom.mozTCPSocket.enabled', true);
 
 var args = _ARGV.split(' ');
 
