@@ -1484,6 +1484,10 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   if (keyCode != KeyEvent.DOM_VK_SPACE)
     isContinousSpacePressed = false;
 
+  var keyStyle = getComputedStyle(target);
+  if (keyStyle.display == 'none' || keyStyle.visibility == 'hidden')
+    return;
+
   // Handle normal key
   switch (keyCode) {
 
@@ -1531,7 +1535,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
         IMERender.toggleCandidatePanel(true);
       };
 
-      if (candidatePanel.dataset.rowCount < 2) {
+      if (candidatePanel.dataset.rowCount == 1) {
         var firstPageRows = 11;
         var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
         var candidateIndicator =
@@ -1542,8 +1546,10 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
             candidateIndicator,
             firstPageRows * numberOfCandidatesPerRow + 1,
             function getMoreCandidatesCallbackOnToggle(list) {
-              IMERender.showMoreCandidates(firstPageRows, list);
-              doToggleCandidatePanel();
+              if (candidatePanel.dataset.rowCount == 1) {
+                IMERender.showMoreCandidates(firstPageRows, list);
+                doToggleCandidatePanel();
+              }
             }
           );
         } else {
