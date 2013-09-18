@@ -512,7 +512,9 @@ define run-js-command
 	echo "run-js-command $1";
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
 		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
-		-f build/xpcshell-commonjs.js -e "require('$(strip $1)').execute()"
+		-f build/xpcshell-commonjs.js \
+		-e "try{ require('$(strip $1)').execute(); } \
+				catch(e) {dump('Exception: ' + e + '\n' + e.stack + '\n');}"
 endef
 
 # Optional files that may be provided to extend the set of default
