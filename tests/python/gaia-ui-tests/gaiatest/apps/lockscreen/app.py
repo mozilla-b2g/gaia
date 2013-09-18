@@ -41,7 +41,9 @@ class LockScreen(Base):
             handle_destination *= -1
 
         # Flick lockscreen handle to the destination
-        Actions(self.marionette).flick(lockscreen_handle, lockscreen_handle_x_centre, lockscreen_handle_y_centre, handle_destination, 0).perform()
+        Actions(self.marionette).flick(
+            lockscreen_handle, lockscreen_handle_x_centre, lockscreen_handle_y_centre, handle_destination, 0
+        ).perform()
 
     def wait_for_lockscreen_not_visible(self):
         self.wait_for_condition(lambda m: not self.marionette.find_element(*self._lockscreen_locator).location['x'] == 0, message="Lockscreen still visible after unlock")

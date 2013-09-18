@@ -20,5 +20,5 @@ class TestLockScreen(GaiaTestCase):
         homescreen = self.lock_screen.unlock()
         self.lock_screen.wait_for_lockscreen_not_visible()
 
-        homescreen.launch()
-        self.assertTrue(homescreen.is_landing_element_visible, "Landing element not displayed after unlocking")
+        homescreen.switch_to_homescreen_frame()
+        homescreen.wait_for_landing_page_visible()

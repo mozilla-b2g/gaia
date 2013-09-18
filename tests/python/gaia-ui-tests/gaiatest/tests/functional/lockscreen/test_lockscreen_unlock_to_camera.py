@@ -26,5 +26,5 @@ class TestLockScreen(GaiaTestCase):
         self.lock_screen.wait_for_lockscreen_not_visible()
 
         # Wait fot the capture button displayed. no need to take a photo.
-        camera.launch()
+        camera.switch_to_camera_frame()
         camera.wait_for_camera_ready()
