@@ -36,7 +36,9 @@ contacts.List = (function() {
       groupList = null,
       searchList = null,
       currentlySelected = 0,
-      selectNavigationController = null;
+      selectNavigationController = null,
+      boundSelectAction4Select = null,
+      boundSelectAction4Close = null;
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -1416,9 +1418,9 @@ contacts.List = (function() {
     selectActionButton.classList.remove('hide');
     selectActionButton.textContent = title;
     // Clear any previous click action and setup the current one
-    selectActionButton.removeEventListener('click', selectAction);
-    selectActionButton.addEventListener('click',
-      selectAction.bind(null, action));
+    selectActionButton.removeEventListener('click', boundSelectAction4Select);
+    boundSelectAction4Select = selectAction.bind(null, action);
+    selectActionButton.addEventListener('click', boundSelectAction4Select);
 
     // Show the select all/ deselecta ll butons
     selectForm.classList.remove('hide');
@@ -1450,7 +1452,10 @@ contacts.List = (function() {
     // Setup cancel select mode
     var close = document.getElementById('cancel_activity');
     close.removeEventListener('click', Contacts.cancel);
-    close.addEventListener('click', selectAction.bind(null, null));
+    if (!boundSelectAction4Close) {
+      boundSelectAction4Close = selectAction.bind(null, null);
+    }
+    close.addEventListener('click', boundSelectAction4Close);
     close.classList.remove('hide');
 
     clearClickHandlers();
@@ -1524,7 +1529,7 @@ contacts.List = (function() {
 
     // Restore close button
     var close = document.getElementById('cancel_activity');
-    close.removeEventListener('click', selectAction);
+    close.removeEventListener('click', boundSelectAction4Close);
     close.addEventListener('click', Contacts.cancel);
     close.classList.add('hide');
   };
