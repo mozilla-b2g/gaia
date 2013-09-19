@@ -3,102 +3,75 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from marionette.errors import NoSuchElementException
 
 from gaiatest import GaiaTestCase
+from gaiatest.apps.system.regions.cards_view import CardsView
 
 
 class TestCardsView(GaiaTestCase):
 
     _app_under_test = "Clock"
-
-    # Home/Cards view locators
-    _cards_view_locator = (By.ID, 'cards-view')
-    # Check that the origin contains the current app name, origin is in the format:
-    # app://clock.gaiamobile.org
-    _app_card_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]' % _app_under_test.lower())
-    _close_button_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"] .close-card' % _app_under_test.lower())
     _clock_frame_locator = (By.CSS_SELECTOR, "iframe[mozapp^='app://clock'][mozapp$='manifest.webapp']")
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.cards_view = CardsView(self.marionette)
 
-        # launch the Clock app as a basic, reliable
+        # Launch the Clock app as a basic, reliable
         # app to test against in Cards View
         self.app = self.apps.launch(self._app_under_test)
 
     def test_cards_view(self):
         # https://moztrap.mozilla.org/manage/case/1909/
-        # switch to top level frame before dispatching the event
+        # Switch to top level frame before dispatching the event
         self.marionette.switch_to_frame()
 
-        card_view_element = self.marionette.find_element(*self._cards_view_locator)
-        self.assertFalse(card_view_element.is_displayed(),
-                         "Card view not expected to be visible")
+        # Check that cards view is not displayed
+        self.assertFalse(self.cards_view.is_cards_view_displayed, "Cards view not expected to be visible")
 
-        self._hold_home_button()
-        self.wait_for_element_displayed(*self._cards_view_locator)
+        # Pull up the cards view
+        self.cards_view.open_cards_view()
 
-        self.assertTrue(card_view_element.is_displayed(),
-                        "Card view expected to be visible")
+        self.assertTrue(self.cards_view.is_app_displayed(self._app_under_test),
+            "%s app expected to be visible in cards view" % self._app_under_test)
 
-        app_card = self.marionette.find_element(*self._app_card_locator)
-        self.assertTrue(app_card.is_displayed())
-
-        self._touch_home_button()
-        self.wait_for_element_not_displayed(*self._cards_view_locator)
-
-        self.assertFalse(card_view_element.is_displayed(),
-                         "Card view not expected to be visible")
+        self.cards_view.exit_cards_view()
 
     def test_that_app_can_be_launched_from_cards_view(self):
         # https://github.com/mozilla/gaia-ui-tests/issues/98
-
-        # go to the home screen
+        # Switch to top level frame before dispatching the event
         self.marionette.switch_to_frame()
-        self._touch_home_button()
 
-        # find the cards frame htmlelement
+        # Find the cards frame html element
         clock_frame = self.marionette.find_element(*self._clock_frame_locator)
 
-        # pull up the cards view
-        self._hold_home_button()
-        self.wait_for_element_displayed(*self._cards_view_locator)
+        # Pull up the cards view
+        self.cards_view.open_cards_view()
 
-        self.assertFalse(clock_frame.is_displayed(), "Clock frame expected to be not displayed but was")
+        self.assertFalse(clock_frame.is_displayed(), "Clock frame not expected to be displayed")
 
-        # launch the app from the cards view
-        self.marionette.find_element(*self._app_card_locator).tap()
+        # Launch the app from the cards view
+        self.cards_view.tap_app(self._app_under_test)
 
-        self.wait_for_element_not_displayed(*self._app_card_locator)
-
-        self.assertTrue(clock_frame.is_displayed(), "Clock frame was expected to be displayed but was not")
+        self.cards_view.wait_for_cards_view_not_displayed()
+        self.assertTrue(clock_frame.is_displayed(), "Clock frame expected to be displayed")
 
     def test_kill_app_from_cards_view(self):
         # https://moztrap.mozilla.org/manage/case/1917/
-        # go to the home screen
+        # Switch to top level frame before dispatching the event
         self.marionette.switch_to_frame()
-        self._touch_home_button()
 
-        # pull up the cards view
-        self._hold_home_button()
-        self.wait_for_element_displayed(*self._cards_view_locator)
+        # Pull up the cards view
+        self.cards_view.open_cards_view()
 
-        # Find the close icon for the current app
-        self.marionette.find_element(*self._close_button_locator).tap()
+        # Close the current app from cards view
+        self.cards_view.close_app(self._app_under_test)
 
         self.marionette.switch_to_frame()
 
-        # pull up the cards view again
-        self._hold_home_button()
-        self.wait_for_element_displayed(*self._cards_view_locator)
+        # Pull up the cards view again
+        self.cards_view.open_cards_view()
 
-        # If we successfully killed the app, we should no longer find the app
-        # card inside cards view.
-        self.assertRaises(NoSuchElementException, self.marionette.find_element, *self._app_card_locator)
-
-    def _hold_home_button(self):
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
-
-    def _touch_home_button(self):
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+        # If successfully killed, the app should no longer appear in the cards view.
+        self.assertFalse(self.cards_view.is_app_present(self._app_under_test),
+            "Killed app not expected to appear in cards view")
