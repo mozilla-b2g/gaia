@@ -1,6 +1,8 @@
-define(function() {
+define(function(require) {
 
   'use strict';
+
+  var Utils = require('utils');
 
   function Banner(node, tmplId) {
     // Accept a reference to an element or the element id

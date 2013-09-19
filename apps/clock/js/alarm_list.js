@@ -5,6 +5,7 @@ var Banner = require('banner');
 var AlarmsDB = require('alarmsdb');
 var AlarmManager = require('alarm_manager');
 var Utils = require('utils');
+var Template = require('template');
 var _ = navigator.mozL10n.get;
 
 var AlarmList = {
@@ -50,10 +51,8 @@ var AlarmList = {
   },
 
   alarmEditView: function(alarm) {
-    LazyLoader.load(
-      ['js/alarm_edit.js'],
-      function() {
-        AlarmEdit.load(alarm);
+    require(['alarm_edit'], function(AlarmEdit) {
+      AlarmEdit.load(alarm);
     });
   },
 
@@ -122,7 +121,10 @@ var AlarmList = {
 
       if (this.count !== count) {
         this.count = count;
+        // TODO: Address this circular dependency
+        require(['clock_view'], function(ClockView) {
         ClockView.resizeAnalogClock();
+        });
       }
     }
     return li;

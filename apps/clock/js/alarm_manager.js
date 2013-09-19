@@ -56,6 +56,7 @@ define(function(require) {
  */
 
 var Utils = require('utils');
+var AlarmsDB = require('alarmsdb');
 
 var AlarmManager = {
 

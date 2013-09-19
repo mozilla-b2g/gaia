@@ -1,4 +1,22 @@
-requireApp('clock/js/alameda.js');
+requireApp('clock/js/alameda.js', function() {
+  requirejs.config({
+    paths: {
+      template: '/shared/js/template',
+      'async-storage': '../../shared/js/async_storage'
+    },
+    shim: {
+      'template': {
+        exports: 'Template'
+      },
+      'gesture-detector': {
+        exports: 'GestureDetector'
+      },
+      'async-storage': {
+        exports: 'asyncStorage'
+      }
+    }
+  });
+});
 
 var testRequire = function(modules, options, callback) {
   var mocks = options && options.mocks;

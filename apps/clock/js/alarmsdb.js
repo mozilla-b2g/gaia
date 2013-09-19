@@ -2,6 +2,7 @@ define(function(require) {
 'use strict';
 
 var Utils = require('utils');
+var Alarm = require('alarm');
 
 var BaseIndexDB = function(objectStoreOptions) {
   this.query = function ad_query(dbName, storeName, func, callback, data) {

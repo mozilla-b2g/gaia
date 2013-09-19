@@ -1,8 +1,12 @@
 define(function(require) {
-'use strict';
 
+var Alarm = require('alarm');
 var AlarmList = require('alarm_list');
 var AlarmManager = require('alarm_manager');
+var ClockView = require('clock_view');
+var Utils = require('utils');
+var constants = require('constants');
+var _ = navigator.mozL10n.get;
 
 var AlarmEdit = {
 
@@ -244,7 +248,7 @@ var AlarmEdit = {
     var daysOfWeek = this.alarm.repeat;
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
-      options[i].selected = daysOfWeek[DAYS[i]] === true;
+      options[i].selected = daysOfWeek[constants.DAYS[i]] === true;
     }
     this.refreshRepeatMenu(null);
   },
@@ -254,7 +258,7 @@ var AlarmEdit = {
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
       if (options[i].selected) {
-        daysOfWeek[DAYS[i]] = true;
+        daysOfWeek[constants.DAYS[i]] = true;
       }
     }
     return daysOfWeek;

@@ -2,8 +2,8 @@ define(function(require, exports, module) {
 
   'use strict';
 
-  var AlarmsDB = require('alarmsdb');
   var Utils = require('utils');
+  var constants = require('constants');
 
   // define WeakMaps for protected properties
   var protectedProperties = (function() {
@@ -107,7 +107,7 @@ define(function(require, exports, module) {
 
     set repeat(x) {
       var rep = {};
-      for (var y of DAYS) {
+      for (var y of constants.DAYS) {
         if (x[y] === true) {
           rep[y] = true;
         }
@@ -139,8 +139,8 @@ define(function(require, exports, module) {
       var _ = navigator.mozL10n.get;
       // Build a bitset
       var value = 0;
-      for (var i = 0; i < DAYS.length; i++) {
-        var dayName = DAYS[i];
+      for (var i = 0; i < constants.DAYS.length; i++) {
+        var dayName = constants.DAYS[i];
         if (this.repeat[dayName] === true) {
           value |= (1 << i);
         }
@@ -154,8 +154,8 @@ define(function(require, exports, module) {
         summary = _('weekends');
       } else if (value !== 0) { // any day was true
         var weekdays = [];
-        for (var i = 0; i < DAYS.length; i++) {
-          var dayName = DAYS[i];
+        for (var i = 0; i < constants.DAYS.length; i++) {
+          var dayName = constants.DAYS[i];
           if (this.repeat[dayName]) {
             // Note: here, Monday is the first day of the week
             // whereas in JS Date(), it's Sunday -- hence the (+1) here.
@@ -181,7 +181,7 @@ define(function(require, exports, module) {
 
     isDateInRepeat: function alarm_isDateInRepeat(date) {
       // return true if repeat contains date
-      var day = DAYS[(date.getDay() + 6) % 7];
+      var day = constants.DAYS[(date.getDay() + 6) % 7];
       return !!this.repeat[day];
     },
 
@@ -248,9 +248,12 @@ define(function(require, exports, module) {
 
     delete: function alarm_delete(callback) {
       this.cancel();
+      // TODO: Address this circular dependency
+      require(['alarmsdb'], function(AlarmsDB) {
       AlarmsDB.deleteAlarm(this.id,
         function alarm_innerDelete(err, alarm) {
         callback(err, this);
+      }.bind(this));
       }.bind(this));
     },
 
@@ -270,9 +273,12 @@ define(function(require, exports, module) {
     },
 
     save: function alarm_save(callback) {
+      // TODO: Address this circular dependency
+      require(['alarmsdb'], function(AlarmsDB) {
       AlarmsDB.putAlarm(this, function(err, alarm) {
         idMap.set(this, alarm.id);
         callback && callback(err, this);
+      }.bind(this));
       }.bind(this));
     },
 
