@@ -1,22 +1,6 @@
 .card-message-list {
 }
 
-/* Show full menu icon when message list is "after" folder list card, but then
-  shrink the menu icon when the message list is the center card. */
-.card-message-list.after section[role="region"] > header > a.msg-folder-list-btn {
-  background-position: 5rem center;
-}
-.card-message-list.after section[role="region"] > header > a .icon.icon-menu {
-  padding-left: 3rem;
-  background-position: center center;
-}
-.card-message-list.after section[role="region"] > header > a .icon.icon-menu:after {
-  width: 5rem;
-}
-.card-message-list.after section[role="region"] > header > h1.msg-list-header-folder-label {
-  padding-left: 2rem;
-}
-
 .msg-listedit-header {
 }
 .msg-list-scrollouter {
