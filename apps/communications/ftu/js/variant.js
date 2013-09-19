@@ -1,6 +1,8 @@
 'use strict';
 
 var VariantManager = {
+  // This file is created during the BUILD process
+  customizationFile: '/resources/customization.json',
   init: function vm_init() {
 
     if (!IccHelper.enabled) {
@@ -20,7 +22,7 @@ var VariantManager = {
 
   getVariantSettings: function settings_getVariantSettings(onsuccess, onerror) {
     var self = this;
-    var filePath = '/ftu/js/variants/' + self.mcc_mnc + '.json';
+    var filePath = this.customizationFile;
     this.readJSONFile(filePath, function(data) {
       self._variantCustomization = data;
       if (onsuccess) onsuccess(data);
@@ -29,9 +31,8 @@ var VariantManager = {
 
   readJSONFile: function settings_readJSONFile(file, onsuccess, onerror) {
     var URI = file;
-
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', URI, true); // async
+    xhr.open('GET', URI, true);
     xhr.overrideMimeType('application/json');
     xhr.responseType = 'json';
     xhr.onload = function() {
@@ -42,7 +43,13 @@ var VariantManager = {
         if (onerror) onerror();
       }
     };
-    xhr.send();
+    try {
+      xhr.send();
+    } catch (e) {
+      console.error('Failed to fetch file: ' + file);
+      onerror && onerror();
+    }
+
   },
 
   CUSTOMIZERS: ['/ftu/js/customizers/wallpaper_customizer.js'],
@@ -61,20 +68,27 @@ var VariantManager = {
   },
 
   // Loads the variant file and start customization event dispatchign.
-  loadVariantAndCustomize: function() {
+  loadVariantAndCustomize: function vm_loadVariantAndCustomize() {
     this.getVariantSettings(this.dispatchCustomizationEvents.bind(this));
   },
 
   //  For each variant setting dispatch a customization event
   dispatchCustomizationEvents: function vm_dispatchEvents(variantCustomization)
   {
-    for (var setting in variantCustomization) {
-      if (variantCustomization.hasOwnProperty(setting)) {
+    var customizationParams = variantCustomization[this.mcc_mnc];
+    if (!customizationParams) {
+      console.log('There is no variant customization available for ' +
+        this.mcc_mnc);
+      return;
+    }
+    var self = this;
+    for (var setting in customizationParams) {
+      if (customizationParams.hasOwnProperty(setting)) {
 
         var customizationEvent = new CustomEvent('customization', {
           detail: {
             setting: setting,
-            value: variantCustomization[setting]
+            value: customizationParams[setting]
           }
         });
 
