@@ -1,6 +1,6 @@
-(function(exports) {
+define(function(require) {
   'use strict';
-
+  var Spinner = require('picker/spinner');
   /**
    * Picker
    *
@@ -72,6 +72,5 @@
     }, this);
   };
 
-
-  exports.Picker = Picker;
-}(this));
+  return Picker;
+});

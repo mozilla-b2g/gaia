@@ -1,7 +1,7 @@
-// outer IIFE
-(function(exports) {
+define(function(require) {
 'use strict';
 
+var Emitter = require('emitter');
 /**
  * Abstraction for handling the Tabs links at the bottom of the UI.
  * @param {HTMLElement} element The containing element for the Tabs UI.
@@ -41,7 +41,6 @@ Tabs.prototype.handleEvent = function tabsHandleEvent(event) {
   });
 };
 
-exports.Tabs = Tabs;
+return Tabs;
 
-// end outer IIFE
-}(this));
+});

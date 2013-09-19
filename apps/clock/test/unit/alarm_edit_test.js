@@ -1,47 +1,48 @@
-requireApp('clock/js/constants.js');
-requireApp('clock/js/utils.js');
-requireApp('clock/js/alarm.js');
-requireApp('clock/js/alarmsdb.js');
-requireApp('clock/js/alarm_manager.js');
-requireApp('clock/js/alarm_edit.js');
-requireApp('clock/js/alarm_list.js');
-requireApp('clock/js/active_alarm.js');
-
-requireApp('clock/test/unit/mocks/mock_alarmsDB.js');
-requireApp('clock/test/unit/mocks/mock_alarm_list.js');
-requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
-requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
-requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
-requireApp('clock/test/unit/mocks/mock_mozAlarm.js');
-
 suite('AlarmEditView', function() {
-  var _AlarmsDB;
-  var al, am, nml;
-  var id = 1;
+  var nativeMozAlarms = navigator.mozAlarms;
+  var Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList, AlarmManager;
 
-  suiteSetup(function() {
-    sinon.stub(ActiveAlarm, 'handler');
-    navigator.mozAlarms = new MockMozAlarms(
-      ActiveAlarm.handler);
-    _AlarmsDB = window.AlarmsDB;
-    al = AlarmList;
-    am = AlarmManager;
-    nml = navigator.mozL10n;
+  suiteSetup(function(done) {
+    testRequire([
+        'alarm',
+        'active_alarm',
+        'alarm_edit',
+        'mocks/mock_alarmsdb',
+        'mocks/mock_alarm_list',
+        'mocks/mock_alarm_manager',
+        'mocks/mock_moz_alarm',
+        'mocks/mock_navigator_mozl10n'
+      ], {
+        mocks: ['alarmsdb', 'alarm_list', 'alarm_manager']
+      }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
+        mockAlarmManager, mockMozAlarms) {
+        Alarm = alarm;
+        ActiveAlarm = activeAlarm;
+        AlarmEdit = alarmEdit;
 
-    AlarmList = MockAlarmList;
-    AlarmManager = MockAlarmManager;
-    AlarmsDB = new MockAlarmsDB();
-    navigator.mozL10n = MockL10n;
+        AlarmsDB = mockAlarmsDB;
+        AlarmList = mockAlarmList;
+        AlarmManager = mockAlarmManager;
+
+        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
+          ActiveAlarm.handler
+        );
+
+        AlarmList.init();
+        AlarmEdit.init();
+        done();
+      }
+    );
 
     loadBodyHTML('/index.html');
   });
 
+  setup(function() {
+    this.sinon.stub(ActiveAlarm, 'handler');
+  });
+
   suiteTeardown(function() {
-    AlarmList = al;
-    AlarmManager = am;
-    AlarmsDB = _AlarmsDB;
-    navigator.mozL10n = nml;
-    ActiveAlarm.handler.restore();
+    navigator.mozAlarms = nativeMozAlarms;
   });
 
   suite('Alarm persistence', function() {
@@ -104,10 +105,13 @@ suite('AlarmEditView', function() {
         }
       });
       AlarmEdit.element.dataset.id = null;
+
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
       AlarmEdit.save(function(err, alarm) {
         assert.ok(!err);
-        assert.ok(alarm.id);
-        assert.equal(alarm.id, 43);
         // Refreshed AlarmList
         assert.ok(AlarmList.refreshItem.calledOnce);
         assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
@@ -134,10 +138,12 @@ suite('AlarmEditView', function() {
       });
       AlarmEdit.element.dataset.id = AlarmEdit.alarm.id;
 
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
       AlarmEdit.save(function(err, alarm) {
         assert.ok(!err);
-        assert.ok(alarm.id);
-        assert.equal(alarm.id, curid);
         // Refreshed AlarmList
         assert.ok(AlarmList.refreshItem.calledOnce);
         assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
@@ -153,9 +159,13 @@ suite('AlarmEditView', function() {
     test('should delete an alarm', function(done) {
       var called = false;
       this.sinon.stub(AlarmList, 'refresh');
+
+      this.sinon.stub(AlarmEdit.alarm, 'delete', function(callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
       AlarmEdit.delete(function(err, alarm) {
         assert.ok(!err, 'delete reported error');
-        assert.ok(!AlarmsDB.alarms.has(alarm.id));
         assert.ok(AlarmList.refresh.calledOnce);
         assert.ok(AlarmManager.updateAlarmStatusBar.calledOnce);
         called = true;
@@ -183,14 +193,13 @@ suite('AlarmEditView', function() {
       });
       AlarmEdit.element.dataset.id = null;
 
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
       AlarmEdit.save(function(err, alarm) {
-        assert.equal(alarm.id, curid);
         assert.ok(AlarmList.refreshItem.calledOnce);
-        AlarmsDB.getAlarm(alarm.id, function(err, alarm) {
-          assert.equal(alarm.vibrate, 0);
-          assert.notEqual(alarm.sound, 0);
-          done();
-        });
+        done();
       });
       this.sinon.clock.tick(10);
     });
@@ -200,24 +209,23 @@ suite('AlarmEditView', function() {
       this.sinon.stub(AlarmList, 'refreshItem');
       // mock the view to turn sound on and vibrate off
       AlarmEdit.getVibrateSelect.returns('0');
-      AlarmEdit.alarm.save(function(err, alarm) {
+
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
+      AlarmEdit.getVibrateSelect.returns('1');
+      AlarmEdit.getSoundSelect.returns('0');
+      AlarmEdit.save(function(err, alarm) {
         assert.ok(alarm.id);
-
-        AlarmEdit.getVibrateSelect.returns('1');
-        AlarmEdit.getSoundSelect.returns('0');
-        AlarmEdit.alarm = alarm;
-        AlarmEdit.element.dataset.id = alarm.id;
-
-        AlarmEdit.save(function(err, alarm) {
-          assert.ok(alarm.id);
-          assert.ok(AlarmList.refreshItem.calledOnce);
-          AlarmsDB.getAlarm(alarm.id, function(err, alarm) {
-            assert.equal(alarm.vibrate, 1);
-            assert.equal(alarm.sound, 0);
-            done();
-          });
+        assert.ok(AlarmList.refreshItem.calledOnce);
+        AlarmsDB.getAlarm(alarm.id, function(err, alarm) {
+          assert.equal(alarm.vibrate, 1);
+          assert.equal(alarm.sound, 0);
+          done();
         });
       });
+
       this.sinon.clock.tick(10);
     });
 

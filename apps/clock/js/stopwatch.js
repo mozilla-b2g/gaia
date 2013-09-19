@@ -1,4 +1,4 @@
-(function(exports) {
+define(function() {
 
   'use strict';
 
@@ -156,6 +156,5 @@
 
   };
 
-  exports.Stopwatch = Stopwatch;
-
-})(this);
+  return Stopwatch;
+});
