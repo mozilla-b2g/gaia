@@ -216,14 +216,18 @@ contacts.Merger = (function() {
       sourceEmails.forEach(function(aEmail) {
         var type = Array.isArray(aEmail.type) ? aEmail.type : [aEmail.type];
         aEmail.type[0] = aEmail.type[0] || DEFAULT_EMAIL_TYPE;
-        if (!hash[aEmail.value]) {
-          out.push(aEmail);
-          hash[aEmail.value] = true;
+        var value = aEmail.value;
+        if (value && value.trim()) {
+          value = value.toLowerCase();
+          if (!hash[value]) {
+            aEmail.value = value;
+            out.push(aEmail);
+            hash[value] = true;
+          }
         }
       });
     }
   }
-
 
   function populateNoDuplicates(source, hash, out) {
     if (Array.isArray(source)) {
