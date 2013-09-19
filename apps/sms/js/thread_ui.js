@@ -488,13 +488,24 @@ var ThreadUI = global.ThreadUI = {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'webcontacts/contact'
+        type: 'webcontacts/tel'
       }
     });
 
     activity.onsuccess = (function() {
-      Utils.getContactDisplayInfo(Contacts.findByPhoneNumber.bind(Contacts),
-        activity.result.number,
+      // As we have the whole contact from the activity, there is no
+      // need for adding a second request to Contacts API.
+      var dummyResolver = function dummyResolver(phoneNumber, cb) {
+        cb(activity.result);
+      };
+
+      if (activity.result && !activity.result.tel[0].value) {
+        // TODO Add an error alert to the user
+        return;
+      }
+
+      Utils.getContactDisplayInfo(dummyResolver,
+        activity.result.tel[0].value,
         (function onData(data) {
         data.source = 'contacts';
         this.recipients.add(data);
