@@ -1,7 +1,7 @@
-
 var assert = require('assert'),
     NotificationTest = require('./lib/notification').NotificationTest,
     NotificationList = require('./lib/notification').NotificationList,
+    Marionette = require('marionette-client'),
     util = require('util');
 
 marionette('notification tests', function() {
@@ -81,7 +81,6 @@ marionette('notification tests', function() {
     var notify =
           new NotificationTest(client,
                                '123', 'test title', 'test body');
-
     client.switchToFrame();
     var screenOn = screenStatusIsOn();
     assert.equal(screenOn, false, 'Screen should be off');
