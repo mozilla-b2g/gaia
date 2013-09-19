@@ -194,7 +194,7 @@ input.msg-search-text-tease {
   display: block;
 }
 .msg-header-attachments-yes {
-  background: url("images/icons/message-list-attachment.png") no-repeat center / 2 rem;
+  background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   position: absolute;
   right: -2rem;
   width: 2rem;
