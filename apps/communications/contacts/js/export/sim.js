@@ -32,7 +32,7 @@ var ContactsSIMExport = function ContactsSIMExport() {
     if (!icc) {
       finishCallback({
         'reason': 'No SIM'
-      }, contacts.length, 0, 'No SIM detected');
+      }, 0, 'No SIM detected');
       return;
     }
     // Cover the whole process under a try/catch to
@@ -44,13 +44,13 @@ var ContactsSIMExport = function ContactsSIMExport() {
     } catch (e) {
       finishCallback({
         'reason': e.name
-      }, contacts.length, exported.length, e.message);
+      }, exported.length, e.message);
     }
   };
 
   var _doExport = function _doExport(step, finishCallback) {
     if (step == contacts.length) {
-      finishCallback(null, contacts.length, exported.length, null);
+      finishCallback(null, exported.length, null);
       return;
     }
 
