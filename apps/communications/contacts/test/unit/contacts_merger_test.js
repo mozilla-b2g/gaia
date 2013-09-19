@@ -301,6 +301,26 @@ suite('Contacts Merging Tests', function() {
     }});
   });
 
+  test('Merge emails. Leaving as they are. Capital Letters', function(done) {
+    toMergeContact.matchingContact = {
+      email: [{
+        type: ['work'],
+        value: 'JJ@jj.com'
+      }]
+    };
+
+    var masterContact = new MasterContact();
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.lengthOf(result.email, 1);
+
+        assertFieldValues(result.email, [masterContact.email[0].value]);
+
+        done();
+    }});
+  });
+
   test('Merge comments', function(done) {
     toMergeContact.matchingContact = {
       tel: [{

@@ -11,8 +11,18 @@ contacts.Matcher = (function() {
   var FB_CATEGORY = 'facebook';
   var FB_LINKED = 'fb_linked';
 
-  function sanitizeTel(tel) {
-    return tel.replace(telRegExp, '');
+  function sanitize(field, value) {
+    var out = value;
+
+    if (value) {
+      if (field === 'tel') {
+        out = value.replace(telRegExp, '');
+      }
+      else {
+        out = value.trim().toLowerCase();
+      }
+    }
+    return out;
   }
 
   // Multiple matcher Object. It tries to find a set of Contacts that match at
@@ -51,7 +61,8 @@ contacts.Matcher = (function() {
             return;
           }
 
-          var values = aMatching[options.filterBy[0]];
+          var field = options.filterBy[0];
+          var values = aMatching[field];
           var matchedValue;
 
           values.forEach(function(aValue) {
@@ -59,10 +70,9 @@ contacts.Matcher = (function() {
             var sanitizedValue = value;
             var sanitizedTarget = target;
 
-            if (options.filterBy[0] === 'tel') {
-              sanitizedValue = sanitizeTel(value);
-              sanitizedTarget = sanitizeTel(target);
-            }
+            sanitizedValue = sanitize(value, field);
+            sanitizedTarget = sanitize(target, field);
+
             if (sanitizedValue === sanitizedTarget ||
                 sanitizedValue.indexOf(sanitizedTarget) !== -1 ||
                 sanitizedTarget.indexOf(sanitizedValue) !== -1) {
@@ -172,7 +182,7 @@ contacts.Matcher = (function() {
   }
 
   function matchByEmail(aContact, callbacks, options) {
-    matchBy(aContact, 'email', 'equals', callbacks, options);
+    matchBy(aContact, 'email', 'startsWith', callbacks, options);
   }
 
   // Performs a matching for an incoming contact 'aContact' and the mode
