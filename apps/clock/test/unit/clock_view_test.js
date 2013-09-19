@@ -1,30 +1,26 @@
-requireApp('clock/js/alarm_list.js');
-requireApp('clock/js/clock_view.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/test/unit/mocks/mock_alarm_list.js');
-requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
-
 suite('ClockView', function() {
-  var al;
+  var ClockView;
+  var asyncStorage;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
+    // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
+    // system's time zone
+    this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
 
     // Load before clock_view to ensure elements are initialized properly.
     loadBodyHTML('/index.html');
 
-    al = AlarmList;
-    AlarmList = MockAlarmList;
-
-    ClockView.init();
-
-    // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
-    // system's time zone
-    this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
-  });
-
-  suiteTeardown(function() {
-    AlarmList = al;
+    testRequire(['clock_view', 'mocks/mock_asyncstorage'], {
+        mocks: {
+          'alarm_list': 'mocks/mock_alarm_list',
+          'async-storage': 'mocks/mock_asyncstorage'
+        }
+      }, function(clockView, mockAsyncStorage) {
+        ClockView = clockView;
+        asyncStorage = mockAsyncStorage;
+        ClockView.init();
+        done();
+      });
   });
 
   test('ClockView.isInitialized ', function() {
@@ -175,17 +171,6 @@ suite('ClockView', function() {
   });
 
   suite('show', function() {
-    var as;
-
-    suiteSetup(function() {
-      as = asyncStorage;
-      asyncStorage = MockAsyncStorage;
-    });
-
-    suiteTeardown(function() {
-      asyncStorage = as;
-    });
-
     setup(function() {
       ClockView.mode = 'analog';
       window.location.hash = 'alarm-view';

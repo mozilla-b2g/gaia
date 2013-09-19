@@ -1,3 +1,9 @@
+define(function(require) {
+'use strict';
+
+var AlarmList = require('alarm_list');
+var AlarmManager = require('alarm_manager');
+
 var AlarmEdit = {
 
   alarm: null,
@@ -383,3 +389,6 @@ var AlarmEdit = {
   }
 
 };
+
+return AlarmEdit;
+});

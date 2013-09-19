@@ -1,4 +1,4 @@
-(function(exports) {
+define(function() {
   'use strict';
 
   function MockAlarmsDB() {
@@ -66,6 +66,5 @@
 
   };
 
-  exports.MockAlarmsDB = MockAlarmsDB;
-
-})(this);
+  return new MockAlarmsDB;
+});

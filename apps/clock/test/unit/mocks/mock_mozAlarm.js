@@ -1,4 +1,4 @@
-(function(exports) {
+define(function(require, exports, module) {
   'use strict';
 
   var mozAlarmsId = 0;
@@ -100,8 +100,5 @@
   exports.MockOSAlarm = MockOSAlarm;
   exports.MockMozAlarmRequest = MockMozAlarmRequest;
   exports.MockMozAlarms = MockMozAlarms;
-  if (typeof define === 'function') {
-    define(function() { return MockMozAlarms; });
-  }
 
-}(this));
+});

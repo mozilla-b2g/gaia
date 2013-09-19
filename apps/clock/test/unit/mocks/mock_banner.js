@@ -1,4 +1,4 @@
-(function(exports) {
+define(function() {
   function MockBanner() {
   }
 
@@ -6,6 +6,5 @@
     show: function() {}
   };
 
-  exports.MockBanner = MockBanner;
-
-}(this));
+  return MockBanner;
+});

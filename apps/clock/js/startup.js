@@ -46,8 +46,10 @@ LazyLoader.load([
   ], function() {
      var needsMocks = !navigator.mozAlarms;
      if (needsMocks) {
-       require(['../test/unit/mocks/mock_mozAlarm.js'], function(MockMozAlarms) {
-         navigator.mozAlarms = new MockMozAlarms(function() {});
+       require([
+           '../test/unit/mocks/mock_mozAlarm.js'
+         ], function(MockMozAlarms) {
+         navigator.mozAlarms = new MockMozAlarms.MockMozAlarms(function() {});
          navigator.mozL10n.ready(initialize);
        });
      } else {

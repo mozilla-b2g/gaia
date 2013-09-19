@@ -1,3 +1,4 @@
+/*
 requireApp('clock/js/constants.js');
 requireApp('clock/js/utils.js');
 requireApp('clock/js/alarm.js');
@@ -13,13 +14,19 @@ requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
 requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
 requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
 requireApp('clock/test/unit/mocks/mock_mozAlarm.js');
-
+*/
 suite('AlarmEditView', function() {
+/*
   var _AlarmsDB;
   var al, am, nml;
   var id = 1;
+*/
+  var nativeMozAlarms = navigator.mozAlarms;
+  var nativeL10n = navigator.mozL10n;
+  var Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList, AlarmManager;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
+    /*
     sinon.stub(ActiveAlarm, 'handler');
     navigator.mozAlarms = new MockMozAlarms(
       ActiveAlarm.handler);
@@ -34,14 +41,58 @@ suite('AlarmEditView', function() {
     navigator.mozL10n = MockL10n;
 
     loadBodyHTML('/index.html');
+    */
+    testRequire([
+        'alarm',
+        'active_alarm',
+        'alarm_edit',
+        'mocks/mock_alarmsDB',
+        'mocks/mock_alarm_list',
+        'mocks/mock_alarm_manager'
+      ], {
+        alarmsdb: 'mocks/mock_alarmsDB',
+        alarm_list: 'mocks/mock_alarm_list',
+        alarm_manager: 'mocks/mock_alarm_manager'
+      }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
+        mockAlarmManager) {
+        Alarm = alarm;
+        ActiveAlarm = activeAlarm;
+        AlarmEdit = alarmEdit;
+        sinon.stub(ActiveAlarm, 'handler');
+
+        AlarmsDB = mockAlarmsDB;
+        AlarmList = mockAlarmList;
+        AlarmManager = mockAlarmManager;
+
+        requirejs([
+          'mocks/mock_mozAlarm',
+          'mocks/mock_navigator_mozl10n'
+        ], function(mockMozAlarms, mockL10n) {
+          navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
+            ActiveAlarm.handler
+          );
+
+          navigator.mozL10n = mockL10n;
+
+          AlarmEdit.init();
+          done();
+        });
+      }
+    );
+
+    loadBodyHTML('/index.html');
   });
 
   suiteTeardown(function() {
+    /*
     AlarmList = al;
     AlarmManager = am;
     AlarmsDB = _AlarmsDB;
     navigator.mozL10n = nml;
     ActiveAlarm.handler.restore();
+    */
+    navigator.mozAlarms = nativeMozAlarms;
+    navigator.mozL10n = nativeL10n;
   });
 
   suite('Alarm persistence', function() {
@@ -132,7 +183,7 @@ suite('AlarmEditView', function() {
           monday: true, wednesday: true, friday: true
         }
       });
-      AlarmEdit.element.dataset.id = AlarmEdit.alarm.id;
+      //AlarmEdit.element.dataset.id = AlarmEdit.alarm.id;
 
       AlarmEdit.save(function(err, alarm) {
         assert.ok(!err);

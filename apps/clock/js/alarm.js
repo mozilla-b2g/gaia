@@ -1,6 +1,9 @@
-(function(exports) {
+define(function(require, exports, module) {
 
   'use strict';
+
+  var AlarmsDB = require('alarmsdb');
+  var Utils = require('utils');
 
   // define WeakMaps for protected properties
   var protectedProperties = (function() {
@@ -361,6 +364,6 @@
   // ---------------------------------------------------------
   // Export
 
-  exports.Alarm = Alarm;
+  module.exports = Alarm;
 
-})(this);
+});

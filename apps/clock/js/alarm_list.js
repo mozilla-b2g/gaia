@@ -4,6 +4,7 @@ define(function(require) {
 var Banner = require('banner');
 var AlarmsDB = require('alarmsdb');
 var AlarmManager = require('alarm_manager');
+var Utils = require('utils');
 var _ = navigator.mozL10n.get;
 
 var AlarmList = {
