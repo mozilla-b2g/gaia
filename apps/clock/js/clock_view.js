@@ -1,6 +1,9 @@
-(function(exports) {
+define(function(require) {
 'use strict';
 
+var asyncStorage = require('async-storage');
+var AlarmList = require('alarm_list');
+var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var viewMode = null;
 
@@ -305,6 +308,5 @@ var ClockView = {
   }
 };
 
-exports.ClockView = ClockView;
-
-}(this));
+return ClockView;
+});

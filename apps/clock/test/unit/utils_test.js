@@ -1,9 +1,22 @@
 requireApp('clock/js/constants.js');
-requireApp('clock/js/utils.js');
 
 requireApp('clock/test/unit/mocks/mock_requestWakeLock.js');
 
 suite('Time functions', function() {
+  var Utils;
+
+  suiteSetup(function(done) {
+    testRequire(['utils'],/* {
+      mocks: [
+        {
+          path: 'mocks/mock_util',
+          name: 'Utils'
+        }
+      ],*/ function(utils) {
+        Utils = utils;
+        done();
+    });
+  });
 
   suite('#changeSelectByValue', function() {
 

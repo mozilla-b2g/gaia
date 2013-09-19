@@ -1,7 +1,11 @@
-// outer IIFE
-(function(exports) {
+define(function(require) {
 'use strict';
 
+var Tabs = require('tabs');
+var View = require('view');
+var Panel = require('panel');
+var TimerPanel = require('timer_panel');
+var StopwatchPanel = require('stopwatch_panel');
 var rAF = mozRequestAnimationFrame || requestAnimationFrame;
 /**
  * Global Application event handling and paging
@@ -10,8 +14,8 @@ var App = {
   panelClass: {
     'alarm-panel': Panel,
     'alarm-edit-panel': Panel,
-    'timer-panel': Timer.Panel,
-    'stopwatch-panel': Stopwatch.Panel
+    'timer-panel': TimerPanel,
+    'stopwatch-panel': StopwatchPanel
   },
 
   /**
@@ -112,6 +116,6 @@ var App = {
   }
 };
 
-exports.App = App;
+return App;
 
-}(this));
+});

@@ -1,7 +1,10 @@
-(function(exports) {
+define(function(require) {
   'use strict';
 
+  var Template = require('template');
+  var GestureDetector = require('gesture-detector');
   var SPEED_THRESHOLD = 0.1;
+  var INERTIA_MULTIPLIER = 5;
 
   function calculateSpeed(previous, current) {
     var motion = previous.y - current.y;
@@ -192,5 +195,5 @@
     this.speed = 0;
   };
 
-  exports.Spinner = Spinner;
-}(this));
+  return Spinner;
+});

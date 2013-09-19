@@ -1,5 +1,7 @@
-(function(exports) {
+define(function() {
+
   'use strict';
+
   function Banner(node, tmplId) {
     // Accept a reference to an element or the element id
     if (typeof node === 'string') {
@@ -91,5 +93,5 @@
     }
   };
 
-  exports.Banner = Banner;
-}(this));
+  return Banner;
+});

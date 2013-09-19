@@ -1,5 +1,4 @@
-// outer IIFE
-(function(exports) {
+define(function() {
 'use strict';
 
 // private storage for event handlers using WeakMap
@@ -134,8 +133,5 @@ Emitter.prototype.emit = function(type, data) {
 
 var methods = Object.keys(Emitter.prototype);
 
-// export our Emitter
-exports.Emitter = Emitter;
-
-// end outer IIFE
-}(this));
+return Emitter;
+});

@@ -100,5 +100,8 @@
   exports.MockOSAlarm = MockOSAlarm;
   exports.MockMozAlarmRequest = MockMozAlarmRequest;
   exports.MockMozAlarms = MockMozAlarms;
+  if (typeof define === 'function') {
+    define(function() { return MockMozAlarms; });
+  }
 
 }(this));

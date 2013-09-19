@@ -1,4 +1,7 @@
+define(function(require) {
 'use strict';
+
+var Utils = require('utils');
 
 var BaseIndexDB = function(objectStoreOptions) {
   this.query = function ad_query(dbName, storeName, func, callback, data) {
@@ -139,3 +142,6 @@ var AlarmsDB = {
 };
 
 Utils.extend(AlarmsDB, new BaseIndexDB({keyPath: 'id', autoIncrement: true}));
+
+return AlarmsDB;
+});

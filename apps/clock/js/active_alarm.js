@@ -1,3 +1,8 @@
+define(function(require) {
+'use strict';
+
+var AlarmManager = require('alarm_manager');
+
 var ActiveAlarm = {
 /*
  * We maintain an alarm's life cycle immediately when the alarm goes off.
@@ -99,3 +104,6 @@ var ActiveAlarm = {
   }
 
 };
+
+return ActiveAlarm;
+});

@@ -1,4 +1,4 @@
-(function(exports) {
+define(function() {
 'use strict';
 
 var Utils = {};
@@ -452,6 +452,6 @@ Utils.data = {
 
 };
 
-exports.Utils = Utils;
+return Utils;
 
-}(this));
+});

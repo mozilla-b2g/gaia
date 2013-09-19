@@ -19,7 +19,19 @@ requireApp('clock/test/unit/mocks/mock_mozAlarm.js');
 suite('AlarmList', function() {
   var am, bn, nml, nma, fixture, dom;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
+    console.log("1", typeof AlarmManager);
+    testRequire(['alarm_list'], {
+        mocks: [
+          { name: 'alarm_manager', path: 'mocks/mock_alarm_manager' }
+        ]
+      },
+      function(alarmList) {
+        console.log("2", typeof AlarmManager);
+        AlarmList = alarmList;
+        done();
+      }
+    );
     am = AlarmManager;
     bn = Banner;
     nml = navigator.mozL10n;

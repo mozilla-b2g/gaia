@@ -1,5 +1,9 @@
+define(function(require) {
 'use strict';
 
+var Banner = require('banner');
+var AlarmsDB = require('alarmsdb');
+var AlarmManager = require('alarm_manager');
 var _ = navigator.mozL10n.get;
 
 var AlarmList = {
@@ -218,5 +222,7 @@ var AlarmList = {
       AlarmManager.updateAlarmStatusBar();
     }
   }
-
 };
+
+return AlarmList;
+});
