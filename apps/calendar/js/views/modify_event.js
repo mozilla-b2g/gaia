@@ -48,6 +48,40 @@ Calendar.ns('Views').ModifyEvent = (function() {
       allday.addEventListener('change', this._toggleAllDay);
 
       this.alarmList.addEventListener('change', this._changeAlarm.bind(this));
+
+      // I just cannot find the way how to get currently stored data in
+      // the model (in the MVC meaning of the word, i.e., what was
+      // lastly stored).
+      // FIXME: We need to store somewhere current difference ... it is
+      // not what is stored in the model, that's just the initialization
+      // value of this variable, but it needs to be updated with every
+      // change of the form (even before Submit of whole change form).
+      this.storedStartTime = new Date('???');
+      this.storedEndTime = new Date('???');
+
+      // unit is milisecond
+      this.differenceStartEndTime = this.storedEndTime - this.storedStartTime;
+
+      this.getEl('startTime').addEventListener('change',
+        this._correctEndTime.bind(this));
+    },
+
+    /**
+     * Fired whenever value of the startTime changes
+     */
+    _correctEndTime: function(e) {
+      var curForm = this.formData();
+
+      // Shift the endTime parallel to the startTime
+      var distance = curForm.startTime - this.storedStartTime;
+      curForm.endTime += distance;
+
+      // MC endDate should never be smaller than startDate. In case it
+      // is, just move it forwards.
+      if (curForm.endTime < curForm.startTime) {
+        curForm.endTime = curForm.startTime;
+      }
+
     },
 
     /**
