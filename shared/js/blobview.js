@@ -119,6 +119,39 @@ var BlobView = (function() {
                                   le !== undefined ? le : this.littleEndian);
     },
 
+    // These "set" methods are just copies of the DataView methods, except
+    // that they honor the default endianness
+    setUint8: function(offset, value) {
+      return this.view.setUint8(offset, value);
+    },
+    setInt8: function(offset, value) {
+      return this.view.setInt8(offset, value);
+    },
+    setUint16: function(offset, value, le) {
+      return this.view.setUint16(offset, value,
+                                 le !== undefined ? le : this.littleEndian);
+    },
+    setInt16: function(offset, value, le) {
+      return this.view.setInt16(offset, value,
+                                le !== undefined ? le : this.littleEndian);
+    },
+    setUint32: function(offset, value, le) {
+      return this.view.setUint32(offset, value,
+                                 le !== undefined ? le : this.littleEndian);
+    },
+    setInt32: function(offset, value, le) {
+      return this.view.setInt32(offset, value,
+                                le !== undefined ? le : this.littleEndian);
+    },
+    setFloat32: function(offset, value, le) {
+      return this.view.setFloat32(offset, value,
+                                  le !== undefined ? le : this.littleEndian);
+    },
+    setFloat64: function(offset, value, le) {
+      return this.view.setFloat64(offset, value,
+                                  le !== undefined ? le : this.littleEndian);
+    },
+
     // These "read" methods read from the current position in the view and
     // update that position accordingly
     readByte: function() {
