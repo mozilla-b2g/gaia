@@ -8,6 +8,10 @@ var reference_MNC_MCC = '214-007';
 var sample_reference_params, customizationFullPath;
 
 suite('variant >', function() {
+<<<<<<< HEAD
+=======
+
+>>>>>>> Bug 917740 - Update file format of customization files based on MCC/MNC
   suiteSetup(function(done) {
     customizationFullPath = resourcesDir + customizationFilePath;
     var xhr = new XMLHttpRequest();
@@ -30,12 +34,21 @@ suite('variant >', function() {
         customizationFullPath);
     }
   });
+<<<<<<< HEAD
 
   suite(' customization.json >', function() {
     setup(function() {
       VariantManager.mcc_mnc = reference_MNC_MCC;
     });
     
+=======
+
+  suite(' customization.json >', function() {
+    setup(function() {
+      VariantManager.mcc_mnc = reference_MNC_MCC;
+    });
+
+>>>>>>> Bug 917740 - Update file format of customization files based on MCC/MNC
     teardown(function() {
       VariantManager.mcc_mnc = null;
     });

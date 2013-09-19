@@ -68,7 +68,7 @@ var VariantManager = {
     }
   },
 
-// Loads the variant file and start customization event dispatchign.
+  // Loads the variant file and start customization event dispatching.
   loadVariantAndCustomize: function vm_loadVariantAndCustomize() {
     this.getVariantSettings(this.dispatchCustomizationEvents.bind(this));
   },
