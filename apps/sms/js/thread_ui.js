@@ -6,7 +6,7 @@
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
          ActivityHandler, TimeHeaders, ContactRenderer, Draft, Drafts,
-         Thread, MultiSimActionButton, LazyLoader, Promise */
+         Thread, MultiSimActionButton, LazyLoader, Navigation, Promise */
 /*exported ThreadUI */
 
 (function(global) {
@@ -63,11 +63,18 @@ var ThreadUI = global.ThreadUI = {
   // activity after this delay after moving to the thread list.
   LEAVE_ACTIVITY_DELAY: 3000,
 
+  // these layouts are used to distinguish between "new message" and "thread"
+  // TODO use a panel-based CSS
+  LAYOUT: {
+    DEFAULT: '',
+    COMPOSER: 'composer',
+    THREAD: 'thread'
+  },
+
   draft: null,
   recipients: null,
   // Set to |true| when in edit mode
   inEditMode: false,
-  inThread: false,
   isNewMessageNoticeShown: false,
   shouldChangePanelNextEvent: false,
   showErrorInFailedEvent: '',
@@ -103,6 +110,8 @@ var ThreadUI = global.ThreadUI = {
     }, this);
 
     this.mainWrapper = document.getElementById('main-wrapper');
+    this.threadMessages = document.getElementById('thread-messages');
+    this.composerContainer = document.getElementById('composer-container');
 
     // Allow for stubbing in environments that do not implement the
     // `navigator.mozMobileMessage` API
@@ -110,8 +119,11 @@ var ThreadUI = global.ThreadUI = {
       window.DesktopMockNavigatormozMobileMessage;
 
     window.addEventListener('resize', this.resizeHandler.bind(this));
+
+    // binding so that we can remove this listener later
+    this.onVisibilityChange = this.onVisibilityChange.bind(this);
     document.addEventListener('visibilitychange',
-                              this.onVisibilityChange.bind(this));
+                              this.onVisibilityChange);
 
     // In case of input, we have to resize the input following UX Specs.
     Compose.on('input', this.messageComposerInputHandler.bind(this));
@@ -291,7 +303,7 @@ var ThreadUI = global.ThreadUI = {
     this.initRecipients();
 
     // Initialized here, but used in ThreadUI.cleanFields
-    this.previousHash = null;
+    this.previousPanel = null;
 
     this.multiSimActionButton = null;
 
@@ -302,43 +314,18 @@ var ThreadUI = global.ThreadUI = {
     this.showErrorInFailedEvent = '';
   },
 
-  onVisibilityChange: function mm_onVisibilityChange(e) {
+  onVisibilityChange: function thui_onVisibilityChange(e) {
     // If we leave the app and are in a thread or compose window
     // save a message draft if necessary
     if (document.hidden) {
-      var hash = window.location.hash;
-
       // Auto-save draft if the user has entered anything
       // in the composer.
-      if ((hash === '#new' || hash.startsWith('#thread=')) &&
+      if ((Navigation.isCurrentPanel('composer') ||
+           Navigation.isCurrentPanel('thread')) &&
           (!Compose.isEmpty() || ThreadUI.recipients.length)) {
         ThreadUI.saveDraft({preserve: true, autoSave: true});
         Drafts.store();
       }
-    }
-  },
-
-  /*
-   * This function will be called before we slide to the thread or composer
-   * panel. This way it can change things in the panel before the panel is
-   * visible.
-   */
-  onBeforeEnter: function thui_onBeforeEnter() {
-    Recipients.View.isFocusable = true;
-    if (!this.multiSimActionButton) {
-      // handles the various actions on the send button and encapsulates the
-      // DSDS specific behavior
-      this.multiSimActionButton =
-        new MultiSimActionButton(
-          this.sendButton,
-          this.simSelectedCallback.bind(this),
-          Settings.SERVICE_ID_KEYS.smsServiceId
-      );
-
-      var simPickerElt = document.getElementById('sim-picker');
-      LazyLoader.load([simPickerElt], function() {
-        navigator.mozL10n.translate(simPickerElt);
-      });
     }
   },
 
@@ -544,8 +531,242 @@ var ThreadUI = global.ThreadUI = {
       clearTimeout(this.timeouts.subjectLengthNotice);
   },
 
+  /*
+   * This function will be called before we slide to the thread or composer
+   * panel. This way it can change things in the panel before the panel is
+   * visible.
+   */
+  beforeEnter: function thui_beforeEnter(args) {
+    Recipients.View.isFocusable = true;
+    if (!this.multiSimActionButton) {
+      // handles the various actions on the send button and encapsulates the
+      // DSDS specific behavior
+      this.multiSimActionButton =
+        new MultiSimActionButton(
+          this.sendButton,
+          this.simSelectedCallback.bind(this),
+          Settings.SERVICE_ID_KEYS.smsServiceId
+      );
+
+      var simPickerElt = document.getElementById('sim-picker');
+      LazyLoader.load([simPickerElt], function() {
+        navigator.mozL10n.translate(simPickerElt);
+      });
+    }
+
+    var next = args.meta.next.panel;
+    switch (next) {
+      case 'composer':
+        return this.beforeEnterComposer(args);
+      case 'thread':
+        return this.beforeEnterThread(args);
+      default:
+        console.error(
+          'preEnter was called with an unexpected panel name:',
+          next
+        );
+        return Promise.reject();
+    }
+  },
+
+  beforeEnterThread: function thui_beforeEnterThread(args) {
+    // TODO should we implement hooks to Navigation so that Threads could
+    // get an event whenever the panel changes?
+    Threads.currentId = args.id;
+    this.composerContainer.dataset.composerLayout = this.LAYOUT.THREAD;
+
+    return this.updateHeaderData();
+  },
+
+  afterEnter: function thui_afterEnter(args) {
+    var next = args.meta.next.panel;
+    switch (next) {
+      case 'composer':
+        return this.afterEnterComposer(args);
+      case 'thread':
+        return this.afterEnterThread(args);
+      default:
+        console.error(
+          'afterEnter was called with an unexpected panel name:',
+          next
+        );
+        return Promise.reject();
+    }
+  },
+
+  afterEnterComposer: function thui_afterEnterComposer(args) {
+    // TODO Bug 1010223: should move to beforeEnter
+    this.handleActivity(args.activity);
+    this.handleForward(args.forward);
+    this.handleDraft(+args.draftId);
+    this.recipients.focus();
+
+    // not strictly necessary but better for consistency
+    return Promise.resolve();
+  },
+
+  afterEnterThread: function thui_afterEnterThread(args) {
+    var threadId = +args.id;
+
+    var prevPanel = args.meta.prev && args.meta.prev.panel;
+
+    if (prevPanel !== 'group-view' && prevPanel !== 'report-view') {
+      this.renderMessages(threadId);
+
+      // Populate draft if there is one
+      // TODO merge with handleDraft ? Bug 1010216
+      var thread = Threads.get(threadId);
+      if (thread.hasDrafts) {
+        this.draft = thread.drafts.latest;
+        Compose.fromDraft(this.draft);
+        this.draft.isEdited = false;
+      } else {
+        this.draft = null;
+      }
+    }
+
+    ThreadListUI.mark(threadId, 'read');
+    return Utils.closeNotificationsForThread(threadId);
+  },
+
+  beforeLeave: function thui_beforeLeave(args) {
+    // This should be in afterLeave, but the edit mode interface does not seem
+    // to slide correctly. Bug 1009541
+    this.cancelEdit();
+
+    // TODO move most of back() here: Bug 1010223
+  },
+
+  afterLeave: function thui_afterLeave(args) {
+    if (Navigation.isCurrentPanel('thread-list')) {
+      this.composerContainer.dataset.composerLayout = this.LAYOUT.DEFAULT;
+      this.container.textContent = '';
+      this.cleanFields(true);
+      this.recipients.length = 0;
+      Threads.currentId = null;
+    }
+    if (!Navigation.isCurrentPanel('composer')) {
+      this.threadMessages.classList.remove('new');
+    }
+  },
+
+  handleForward: function thui_handleForward(forward) {
+    // TODO use a promise here
+    if (!forward) {
+      return;
+    }
+
+    var request = MessageManager.getMessage(+forward.messageId);
+
+    request.onsuccess = (function() {
+      Compose.fromMessage(request.result);
+
+      ThreadUI.recipients.focus();
+    }).bind(this);
+
+    request.onerror = function() {
+      console.error('Error while forwarding:', this.error.name);
+    };
+  },
+
+  handleActivity: function thui_handleActivity(activity) {
+    // TODO use a promise here
+    if (!activity) {
+      return;
+    }
+    /**
+     * Choose the appropriate contact resolver:
+     *  - if we have a phone number and no contact, rely on findByPhoneNumber
+     *    to get a contact matching the number;
+     *  - if we have a contact object and no phone number, just use a dummy
+     *    source that returns the contact.
+     */
+    var findByPhoneNumber = Contacts.findByPhoneNumber.bind(Contacts);
+    var number = activity.number;
+    if (activity.contact && !number) {
+      findByPhoneNumber = function dummySource(contact, cb) {
+        cb(activity.contact);
+      };
+      number = activity.contact.number || activity.contact.tel[0].value;
+    }
+
+    // Add recipients and fill+focus the Compose area.
+    if (activity.contact && number) {
+      Utils.getContactDisplayInfo(
+        findByPhoneNumber, number, function onData(data) {
+          data.source = 'contacts';
+          ThreadUI.recipients.add(data);
+          Compose.fromMessage(activity);
+        }
+      );
+    } else {
+      if (number) {
+        // If the activity delivered the number of an unknown recipient,
+        // create a recipient directly.
+        this.recipients.add({
+          number: number,
+          source: 'manual'
+        });
+      }
+      Compose.fromMessage(activity);
+    }
+  },
+
+  // recalling draft for composer only
+  // Bug 1010216 might use it for thread drafts too
+  handleDraft: function thui_handleDraft(threadId) {
+    // TODO Bug 1010216: remove this.draft
+    var draft = this.draft ||
+      Drafts.get(threadId || Threads.currentId);
+
+    // Draft recipients are added as the composer launches
+    if (draft) {
+      // Recipients will exist for draft messages in threads
+      // Otherwise find them from draft recipient numbers
+      draft.recipients.forEach(function(number) {
+        Contacts.findByPhoneNumber(number, function(records) {
+          if (records.length) {
+            this.recipients.add(
+              Utils.basicContact(number, records[0])
+            );
+          } else {
+            this.recipients.add({
+              number: number
+            });
+          }
+        }.bind(this));
+      }, this);
+
+      // Render draft contents into the composer input area.
+      Compose.fromDraft(draft);
+
+      // Discard this draft object and update the backing store
+      Drafts.delete(draft).store();
+    }
+
+    if (this.draft) {
+      this.draft.isEdited = false;
+    }
+  },
+
+  beforeEnterComposer: function thui_beforeEnterComposer(args) {
+    // TODO add the activity/forward/draft stuff here
+    // instead of in afterEnter: Bug 1010223
+
+    Threads.currentId = null;
+    this.cleanFields(true);
+    this.initRecipients();
+    this.updateComposerHeader();
+    this.container.textContent = '';
+    this.threadMessages.classList.add('new');
+    this.composerContainer.dataset.composerLayout = this.LAYOUT.COMPOSER;
+
+    // not strictly necessary but being consistent
+    return Promise.resolve();
+  },
+
   assimilateRecipients: function thui_assimilateRecipients() {
-    var isNew = window.location.hash === '#new';
+    var isNew = Navigation.isCurrentPanel('composer');
     var node = this.recipientsList.lastChild;
     var typed;
 
@@ -631,12 +852,12 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onMessageSending: function thui_onMessageReceived(message) {
-    if (message.threadId === Threads.currentId) {
+    if (Navigation.isCurrentPanel('thread', { id: message.threadId })) {
       this.onMessage(message);
       this.forceScrollViewToBottom();
     } else {
       if (this.shouldChangePanelNextEvent) {
-        window.location.hash = '#thread=' + message.threadId;
+        Navigation.toPanel('thread', { id: message.threadId });
         this.shouldChangePanelNextEvent = false;
       }
     }
@@ -825,9 +1046,9 @@ var ThreadUI = global.ThreadUI = {
   },
 
   back: function thui_back() {
-    if (window.location.hash === '#group-view' ||
-        window.location.hash.startsWith('#report-view')) {
-      window.location.hash = '#thread=' + Threads.lastId;
+    if (Navigation.isCurrentPanel('group-view') ||
+        Navigation.isCurrentPanel('report-view')) {
+      Navigation.toPanel('thread', { id: Threads.currentId });
       this.updateHeaderData();
 
       return Promise.resolve();
@@ -835,7 +1056,7 @@ var ThreadUI = global.ThreadUI = {
 
     return this._onNavigatingBack().then(function() {
       this.cleanFields(true);
-      window.location.hash = '#thread-list';
+      Navigation.toPanel('thread-list');
     }.bind(this)).catch(function(e) {
       e && console.error('Unexpected error while navigating back: ', e);
 
@@ -965,7 +1186,7 @@ var ThreadUI = global.ThreadUI = {
 
     // should disable if we have no recipients in the "new thread" view
     disableSendMessage = disableSendMessage ||
-      (window.location.hash == '#new' && !hasRecipients);
+      (Navigation.isCurrentPanel('composer') && !hasRecipients);
 
     this.sendButton.disabled = disableSendMessage;
   },
@@ -1112,7 +1333,7 @@ var ThreadUI = global.ThreadUI = {
 
   updateCarrier: function thui_updateCarrier(thread, contacts, details) {
     var carrierTag = document.getElementById('contact-carrier');
-    var threadMessages = document.getElementById('thread-messages');
+    var threadMessages = this.threadMessages;
     var number = thread.participants[0];
     var isCarrierTagShown = false;
     var carrierText;
@@ -1148,22 +1369,13 @@ var ThreadUI = global.ThreadUI = {
   },
 
   // Method for updating the header with the info retrieved from Contacts API
-  updateHeaderData: function thui_updateHeaderData(callback) {
+  updateHeaderData: function thui_updateHeaderData() {
     var thread, number, others;
 
-    if (Threads.currentId) {
-      thread = Threads.active;
-    }
+    thread = Threads.active;
 
     if (!thread) {
-      if (typeof callback === 'function') {
-        callback();
-      }
-      return;
-    }
-
-    if (window.location.hash === '#group-view') {
-      return;
+      return Promise.resolve();
     }
 
     number = thread.participants[0];
@@ -1173,40 +1385,38 @@ var ThreadUI = global.ThreadUI = {
     // completely. So in the case of Desktop testing we are going to execute
     // the callback directly in order to make it work!
     // https://bugzilla.mozilla.org/show_bug.cgi?id=836733
-    if (!this._mozMobileMessage && callback) {
+    if (!this._mozMobileMessage) {
       navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
         name: number,
         n: others
       });
-      setTimeout(callback);
-      return;
+      return Promise.resolve();
     }
 
     // Add data to contact activity interaction
     this.headerText.dataset.number = number;
 
-    // For the basic display, we only need the first contact's information --
-    // e.g. for 3 contacts, the app displays:
-    //
-    //    Jane Doe (+2)
-    //
-    Contacts.findByPhoneNumber(number, function gotContact(contacts) {
-      var details = Utils.getContactDetails(number, contacts);
-      // Bug 867948: contacts null is a legitimate case, and
-      // getContactDetails is okay with that.
-      var contactName = details.title || number;
-      this.headerText.dataset.isContact = !!details.isContact;
-      this.headerText.dataset.title = contactName;
-      navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
-          name: contactName,
-          n: others
-      });
+    return new Promise(function(resolve, reject) {
+      Contacts.findByPhoneNumber(number, function gotContact(contacts) {
+        // For the basic display, we only need the first contact's information
+        // e.g. for 3 contacts, the app displays:
+        //
+        //    Jane Doe (+2)
+        //
+        var details = Utils.getContactDetails(number, contacts);
+        // Bug 867948: contacts null is a legitimate case, and
+        // getContactDetails is okay with that.
+        var contactName = details.title || number;
+        this.headerText.dataset.isContact = !!details.isContact;
+        this.headerText.dataset.title = contactName;
+        navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
+            name: contactName,
+            n: others
+        });
 
-      this.updateCarrier(thread, contacts, details);
-
-      if (typeof callback === 'function') {
-        callback();
-      }
+        this.updateCarrier(thread, contacts, details);
+        resolve();
+      }.bind(this));
     }.bind(this));
   },
 
@@ -1597,8 +1807,8 @@ var ThreadUI = global.ThreadUI = {
       }
     });
 
-    // If we are on a thread, we can call to EditMessage
-    if (window.location.hash !== '#new') {
+    // If we are on a thread, we can call to DeleteMessages
+    if (Navigation.isCurrentPanel('thread')) {
       params.items.push({
         l10nId: 'deleteMessages-label',
         method: this.startEdit.bind(this)
@@ -1632,7 +1842,7 @@ var ThreadUI = global.ThreadUI = {
     // - Delete message/s from the DOM
     // - Update the thread in thread-list without re-rendering
     // the entire list
-    // - Change hash if needed
+    // - move to thread list if needed
 
     if (!Array.isArray(list)) {
       list = [list];
@@ -1652,7 +1862,7 @@ var ThreadUI = global.ThreadUI = {
       // Remove the thread from DOM and go back to the thread-list
       ThreadListUI.removeThread(Threads.currentId);
       callback();
-      window.location.hash = '#thread-list';
+      Navigation.toPanel('thread-list');
     } else {
       // Retrieve latest message in the UI
       var lastMessage = ThreadUI.container.lastElementChild.querySelector(
@@ -1821,7 +2031,7 @@ var ThreadUI = global.ThreadUI = {
         }
 
         // If we're in composer, let's focus on message editor on click.
-        if (window.location.hash === '#new') {
+        if (Navigation.isCurrentPanel('composer')) {
           Compose.focus();
           return;
         }
@@ -1854,10 +2064,11 @@ var ThreadUI = global.ThreadUI = {
           params.items.push({
             l10nId: 'forward',
             method: function forwardMessage(messageId) {
-              MessageManager.forward = {
-                messageId: messageId
-              };
-              window.location.hash = '#new';
+              Navigation.toPanel('composer', {
+                forward: {
+                  messageId: messageId
+                }
+              });
             },
             params: [messageId]
           });
@@ -1868,7 +2079,9 @@ var ThreadUI = global.ThreadUI = {
             l10nId: 'view-message-report',
             method: function showMessageReport(messageId) {
               // Fetch the message by id and display report
-              window.location.href = '#report-view=' + messageId;
+              Navigation.toPanel('report-view', {
+                id: messageId
+              });
             },
             params: [messageId]
           },
@@ -1923,15 +2136,11 @@ var ThreadUI = global.ThreadUI = {
       // reset the counter
       this.sendButton.dataset.counter = '';
       this.sendButton.classList.remove('has-counter');
-
-      if (window.location.hash === '#new') {
-        this.initRecipients();
-        this.updateComposerHeader();
-      }
     }).bind(this);
 
-    if (this.previousHash === window.location.hash ||
-        this.previousHash === '#new') {
+    // TODO understand this : bug 1009568
+    if (Navigation.isCurrentPanel(this.previousPanel) ||
+        (this.previousPanel && this.previousPanel.panel === 'composer')) {
       if (forceClean) {
         clean();
       }
@@ -1939,7 +2148,7 @@ var ThreadUI = global.ThreadUI = {
       clean();
     }
     this.enableSend();
-    this.previousHash = window.location.hash;
+    this.previousPanel = Navigation.getCurrentPanel();
   },
 
   onSendClick: function thui_onSendClick() {
@@ -1978,11 +2187,14 @@ var ThreadUI = global.ThreadUI = {
         serviceId = opts.serviceId === undefined ? null : opts.serviceId,
         recipients;
 
-    var inComposer = window.location.hash === '#new';
+    var inComposer = Navigation.isCurrentPanel('composer');
 
     // Depending where we are, we get different nums
     if (inComposer) {
       if (!this.recipients.length) {
+        console.error('The user tried to send the message but no recipients ' +
+            'are entered. This should not happen because we should disable ' +
+            'the send button in that case');
         return;
       }
       recipients = this.recipients.numbers;
@@ -2036,7 +2248,7 @@ var ThreadUI = global.ThreadUI = {
 
       if (recipients.length > 1) {
         this.shouldChangePanelNextEvent = false;
-        window.location.hash = '#thread-list';
+        Navigation.toPanel('thread-list');
         if (ActivityHandler.isInActivity()) {
           setTimeout(this.close.bind(this), this.LEAVE_ACTIVITY_DELAY);
         }
@@ -2456,16 +2668,18 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onHeaderActivation: function thui_onHeaderActivation() {
+    // Do nothing while in participants list view.
+    if (!Navigation.isCurrentPanel('thread')) {
+      return;
+    }
+
     var participants = Threads.active && Threads.active.participants;
 
     // >1 Participants will enter "group view"
     if (participants && participants.length > 1) {
-      window.location.href = '#group-view';
-      return;
-    }
-
-    // Do nothing while in participants list view.
-    if (!Threads.active && Threads.lastId) {
+      Navigation.toPanel('group-view', {
+        id: Threads.currentId
+      });
       return;
     }
 
@@ -2519,11 +2733,13 @@ var ThreadUI = global.ThreadUI = {
   },
 
   prompt: function thui_prompt(opt) {
-    function complete() {
-      window.location.href = '#thread=' + Threads.lastId;
-    }
+    var complete = (function complete() {
+      if (!Navigation.isCurrentPanel('thread')) {
+        Navigation.toPanel('thread', { id: Threads.currentId });
+      }
+    }).bind(this);
 
-    var thread = Threads.get(Threads.lastId || Threads.currentId);
+    var thread = Threads.get(Threads.currentId);
     var number = opt.number || '';
     var email = opt.email || '';
     var isContact = opt.isContact || false;
@@ -2564,7 +2780,6 @@ var ThreadUI = global.ThreadUI = {
         params: [number]
       });
 
-
       // Multi-participant activations or in-message numbers
       // will include a "Send Message" option in the menu
       if ((thread && thread.participants.length > 1) || inMessage) {
@@ -2574,8 +2789,8 @@ var ThreadUI = global.ThreadUI = {
             ActivityPicker.sendMessage(param);
           },
           params: [number],
-          // As activity picker changes location.hash to '#new' we don't want
-          // to call 'complete' that updates location.hash at the same time
+          // As activity picker changes the panel we don't want
+          // to call 'complete' that changes the panel as well
           incomplete: true
         });
       }
@@ -2642,7 +2857,7 @@ var ThreadUI = global.ThreadUI = {
   onCreateContact: function thui_onCreateContact() {
     ThreadListUI.updateContactsInfo();
     // Update Header if needed
-    if (window.location.hash.substr(0, 8) === '#thread=') {
+    if (Navigation.isCurrentPanel('thread')) {
       ThreadUI.updateHeaderData();
     }
   },

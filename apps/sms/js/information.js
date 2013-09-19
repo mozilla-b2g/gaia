@@ -1,5 +1,5 @@
 /*global Utils, Template, Threads, ThreadUI, MessageManager, ContactRenderer,
-         Contacts, Settings*/
+         Contacts, Settings, Navigation */
 /*exported Information */
 
 (function(exports) {
@@ -159,8 +159,7 @@ var VIEWS = {
   group: {
     name: 'participants',
     render: function renderGroup() {
-      var lastId = Threads.lastId;
-      var participants = lastId && Threads.get(lastId).participants;
+      var participants = Threads.get(this.id).participants;
       this.renderContactList(participants);
       navigator.mozL10n.localize(ThreadUI.headerText, 'participant', {
         n: participants.length
@@ -170,10 +169,22 @@ var VIEWS = {
   },
   report: {
     name: 'report',
+
+    onDeliverySuccess: function report_onDeliverySuccess(message) {
+      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
+        this.refresh();
+      }
+    },
+
+    onReadSuccess: function report_onReadSuccess(message) {
+      if (Navigation.isCurrentPanel('report-view', { id: message.id })) {
+        this.refresh();
+      }
+    },
+
     render: function renderReport() {
       var localize = navigator.mozL10n.localize;
-      var messageId = +window.location.hash.split('=')[1];
-      var request = MessageManager.getMessage(messageId);
+      var request = MessageManager.getMessage(this.id);
 
       request.onsuccess = (function() {
         var message = request.result;
@@ -235,12 +246,12 @@ var VIEWS = {
 };
 
 var Information = function(type) {
-  var view = VIEWS[type];
-  var prefix = 'information-' + view.name;
+  Utils.extend(this, VIEWS[type]);
+
+  var prefix = 'information-' + this.name;
   this.container = document.getElementById(prefix);
-  this.render = view.render;
   this.parent = document.getElementById('thread-messages');
-  view.elements.forEach(function(name) {
+  this.elements.forEach(function(name) {
     this[Utils.camelCase(name)] = this.container.querySelector('.' + name);
   }, this);
 
@@ -263,6 +274,16 @@ var Information = function(type) {
 
 Information.prototype = {
   constructor: Information,
+
+  afterEnter: function(args) {
+    this.id = args.id;
+    this.show();
+  },
+
+  beforeLeave: function() {
+    this.reset();
+    this.id = null;
+  },
 
   show: function() {
     // Hide the Messages edit icon, view container and composer form

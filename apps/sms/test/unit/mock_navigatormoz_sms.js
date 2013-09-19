@@ -28,6 +28,10 @@ var MockNavigatormozMobileMessage = {
     return this._mMarkReadRequest;
   },
 
+  /**
+   * mTriggerMarkReadSuccess returns true if there was a read request to act
+   * upon, false otherwise
+   */
   mTriggerMarkReadSuccess: function() {
     var evt = { target: { result: null } };
 
@@ -35,7 +39,27 @@ var MockNavigatormozMobileMessage = {
       var current = this._mMarkReadRequest;
       this._mMarkReadRequest = null;
       current.onsuccess.call(evt.target, evt);
+      return true;
     }
+
+    return false;
+  },
+
+  /**
+   * mTriggerMarkReadError returns true if there was a read request to act
+   * upon, false otherwise
+   */
+  mTriggerMarkReadError: function(errorName) {
+    var evt = { target: { error: { name: errorName || null } } };
+    if (this._mMarkReadRequest && this._mMarkReadRequest.onerror) {
+      var current = this._mMarkReadRequest;
+      this._mMarkReadRequest = null;
+      current.onerror.call(evt.target, evt);
+
+      return true;
+    }
+
+    return false;
   },
 
   getMessages: function(filter, invert) {

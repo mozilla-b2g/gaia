@@ -3,7 +3,14 @@
 function MockRecipients(setup) {
   this.setup = setup;
   this.recipientsList = document.getElementById(setup.inner);
-  this.length = 0;
+  Object.defineProperty(this, 'length', {
+    get: function() {
+      return this.numbers.length;
+    },
+    set: function(val) {
+      this.numbers.length = val;
+    }
+  });
   this.events = {
     add: [],
     remove: []
@@ -16,7 +23,6 @@ MockRecipients.prototype.add = function(contact) {
   var span = document.createElement('span');
   span.textContent = contact.number;
   this.recipientsList.appendChild(span);
-  this.length++;
   this.numbers.push(contact.number);
   this.emit('add', this.length, contact);
   return this;
@@ -26,7 +32,6 @@ MockRecipients.prototype.remove = function(phone) {
   var index = this.numbers.indexOf(phone);
   if (index != -1) {
     this.numbers.splice(this.numbers.indexOf(phone), 1);
-    this.length--;
     this.emit('remove', this.length);
   }
   return this;

@@ -1305,3 +1305,43 @@ test('getClosestSampleSize', function() {
   assert.equal(Utils.getClosestSampleSize(9), 8);
 });
 
+test('extend()', function() {
+  var source = {
+    prop1: 'prop1-source',
+    prop2: 'prop2-source'
+  };
+
+  var target = {
+    prop2: 'prop2-target',
+    prop3: 'prop3-target'
+  };
+
+  var prototype = {
+    prop4: 'prop4-proto'
+  };
+
+  target.prototype = Object.create(prototype);
+
+  Utils.extend(target, source);
+
+  assert.equal(
+    target.prop1, source.prop1,
+    'copies over properties'
+  );
+
+  assert.equal(
+    target.prop2, source.prop2,
+    'overrides properties'
+  );
+
+  assert.equal(
+    target.prop3, 'prop3-target',
+    'does not change properties that is not in target'
+  );
+
+  assert.isUndefined(
+    target.prop4,
+    'does not copy over properties from prototype'
+  );
+});
+

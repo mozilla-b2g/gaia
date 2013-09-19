@@ -1,4 +1,4 @@
-/*global GestureDetector, Dialog */
+/*global GestureDetector, Dialog, Navigation */
 
 (function(exports) {
   'use strict';
@@ -559,7 +559,7 @@
       }
     });
 
-    if (view.state.visible === 'singleline') {
+    if (view.state.visible === 'singleline' && nodes.length) {
       inner.querySelector(':last-child').scrollIntoView(false);
     }
 
@@ -664,7 +664,8 @@
       var last = view.inner.lastElementChild;
       var previous;
 
-      if (location.hash === '#new' && state.visible === 'singleline') {
+      if (Navigation.isCurrentPanel('composer') &&
+          state.visible === 'singleline') {
         while (last !== null && last.isPlaceholder) {
           previous = last.previousElementSibling;
           if (!last.textContent) {
