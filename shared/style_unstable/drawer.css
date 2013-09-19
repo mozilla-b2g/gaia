@@ -7,47 +7,25 @@ section[role="region"] {
   width: 100%;
   transition: all 0.25s ease;
   position: relative;
-  left: -2rem;
   z-index: 100;
-  padding-left: 2rem;
 }
 
 section[role="region"]:target {
   transform: translateX(80%);
 }
 
-/* Overwrite headers.css to increase menu icon */
-section[role="region"] > header:first-child {
-  margin-left: -1.6rem;
-}
-
-section[role="region"] > header:first-child > a {
-  width: 6rem;
-}
-
-section[role="region"] > header:first-child > a .icon.icon-menu {
-  background-position: center center;
-  width: 4rem;
-}
-
-section[role="region"] > header:first-child > a .icon:after {
-  width: 4rem;
-}
-
-section[role="region"] > header:first-child > a {
-  background-position: 4rem center;
-}
-
-section[role="region"] > header:first-child h1 {
-  margin-left: 5rem;
-}
-
 /* Hide anchor to change target */
+section[role="region"] > header:first-child > a:first-of-type {
+  display: none;
+}
+section[role="region"]:target > header:first-child > a:first-of-type {
+  display: block;
+}
 section[role="region"] > header:first-child > a:last-of-type {
-  visibility: visible;
+  display: block;
 }
 section[role="region"]:target > header:first-child > a:last-of-type {
-  visibility: hidden;
+  display: none;
 }
 
 
