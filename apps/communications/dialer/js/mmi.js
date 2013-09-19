@@ -6,7 +6,7 @@ var MmiManager = {
                     document.location.host,
   _: null,
   _conn: null,
-  ready: false,
+  _ready: false,
   _operator: null,
   // In some cases, the RIL doesn't provide the expected order of events
   // while sending an MMI that triggers an interactive USSD request (specially
@@ -16,31 +16,42 @@ var MmiManager = {
   // session.
   _pendingRequest: null,
 
-  init: function mm_init() {
-    this._conn = window.navigator.mozMobileConnection;
-
-    if (this._conn.voice) {
-      this._operator = MobileOperator.userFacingInfo(this._conn).operator;
+  init: function mm_init(callback) {
+    if (this._ready) {
+      if (callback && callback instanceof Function) {
+        callback();
+      }
+      return;
     }
 
-    if (this._conn) {
-      // We cancel any active session if one exists to avoid sending any new
-      // USSD message within an invalid session.
-      this._conn.cancelMMI();
-      this._conn.addEventListener('ussdreceived', this);
-      window.addEventListener('message', this);
-    }
+    var self = this;
+    var lazyFiles = ['/shared/js/icc_helper.js',
+                     '/shared/js/mobile_operator.js'];
+    LazyLoader.load(lazyFiles, function resourcesLoaded() {
+      self._conn = window.navigator.mozMobileConnection;
 
-    this.ready = true;
+      if (self._conn.voice) {
+        self._operator = MobileOperator.userFacingInfo(self._conn).operator;
+      }
+
+      if (self._conn) {
+        // We cancel any active session if one exists to avoid sending any new
+        // USSD message within an invalid session.
+        self._conn.cancelMMI();
+        self._conn.addEventListener('ussdreceived', self);
+        window.addEventListener('message', self);
+      }
+
+      LazyL10n.get(function localized(_) {
+        self._ = _;
+        self._ready = true;
+        callback();
+      });
+    });
   },
 
   send: function mm_send(message) {
-    if (!this.ready) {
-      this.init();
-    }
-
-    LazyL10n.get((function localized(_) {
-      this._ = _;
+    this.init((function onInitDone() {
       if (this._conn) {
         var request = this._pendingRequest = this._conn.sendMMI(message);
         request.onsuccess = this.notifySuccess.bind(this);
@@ -238,12 +249,7 @@ var MmiManager = {
   },
 
   openUI: function mm_openUI() {
-    if (!this.ready) {
-      this.init();
-    }
-
-    LazyL10n.get((function localized(_) {
-      this._ = _;
+    this.init((function onInitDone(_) {
       window.postMessage({type: 'mmi-loading'}, this.COMMS_APP_ORIGIN);
     }).bind(this));
   },
