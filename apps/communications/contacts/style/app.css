@@ -493,6 +493,11 @@ li button.icon-add:before {
   background-size: auto;
 }
 
+li button.icon-find-and-merge:before {
+  background-image: url(/contacts/style/images/findandmerge.png);
+  background-size: auto;
+}
+
 
 /* arrows */
 span[role="button"].icon-arrow {
