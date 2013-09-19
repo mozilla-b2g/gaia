@@ -19,6 +19,9 @@ if (!contacts.MatchingUI) {
     var matchingResults;
     var matchingDetails, matchingDetailList, matchingImg, matchingTitle;
 
+    // Field order when showing matching details main reason
+    var fieldOrder = ['tel', 'email', 'name'];
+
     function init() {
       mergeButton = document.getElementById('merge-action');
       if (!mergeButton) {
@@ -159,14 +162,20 @@ if (!contacts.MatchingUI) {
                 contact.familyName[0].trim());
     };
 
-    function selectMainReason(reasons) {
-      var reason, precedence = ['tel', 'email', 'name'];
-      for (var i = 0, l = precedence.length; i < l; i++) {
-        reason = precedence[i];
-        if (reasons[reason]) {
-          return reasons[reason][0].matchedValue;
+    function selectMainReason(matchings) {
+      var out = '';
+
+      for (var j = 0; j < fieldOrder.length; j++) {
+        var aField = fieldOrder[j];
+        var theMatchings = matchings[aField];
+        if (Array.isArray(theMatchings) && theMatchings[0]) {
+          out = theMatchings[0].matchedValue;
+          if (out) {
+            break;
+          }
         }
       }
+      return out;
     }
 
     function populate(source, target, propertyNames) {
