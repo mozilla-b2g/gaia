@@ -22,7 +22,8 @@ var ScreenLayout = {
     tiny: '(max-width: 767px)',
     small: '(min-width: 768px) and (max-width: 991px)',
     medium: '(min-width: 992px) and (max-width: 1200px)',
-    large: '(min-width: 1201px)'
+    large: '(min-width: 1201px)',
+    hardwareHomeButton: '(-moz-physical-home-button)'
   },
 
   init: function sl_init() {

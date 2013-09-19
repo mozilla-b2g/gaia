@@ -55,6 +55,14 @@ body {
   }
 }
 
+#bottom-panel {
+  position: absolute;
+  display: none;
+  bottom: 0;
+  width: 100%;
+  height: 1rem;
+}
+
 .poweroff-ring {
   display: block;
   position: absolute;
