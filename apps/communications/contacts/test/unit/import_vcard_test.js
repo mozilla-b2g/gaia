@@ -142,7 +142,7 @@ suite('Import from vcard', function() {
 
   test('Import multiple contacts', function(done) {
     utils.importFromVcard(vcardMultiple, function(id) {
-      assert.isUndefined(id, 'returns no id as ther are multiple contacts');
+      assert.equal(id, contact1.id, 'returns id of the first contact imported');
       assert.equal(window.utils.overlay.total, 2);
       done();
     });

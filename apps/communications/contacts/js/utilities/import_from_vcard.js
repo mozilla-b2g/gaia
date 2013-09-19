@@ -40,16 +40,15 @@ utils.importFromVcard = function(file, callback) {
   }
   catch (ex) {
     console.error('Error reading the file ' + ex.message);
+    callback();
   }
 
   function processTextFromFile(textFromFile) {
     if (cancelled)
       return;
-
     importer = new VCFReader(textFromFile);
     if (!textFromFile || !importer)
       return;// No contacts were found.
-
     importer.onread = import_read;
     importer.onimported = imported_contact;
     importer.onerror = import_error;
@@ -62,13 +61,7 @@ utils.importFromVcard = function(file, callback) {
           {n: importedContacts})
         );
       }
-      // When we import more than one contact, is easier to access them
-      // from the contact list, instead of showing the first one imported
-      if (importedContacts != 1) {
-        callback();
-      } else {
-        callback(result[0].id);
-      }
+      callback(result[0].id);
     });
   };
 

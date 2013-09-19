@@ -78,12 +78,12 @@ var ContactsSDExport = function ContactsSDExport() {
   var saveToSdcard = function saveToSdcard(storage, name, blob, callback) {
     var request = storage.addNamed(blob, name);
     request.onsuccess = function onSuccess() {
-      callback(null, contacts.length, contacts.length, null);
+      callback(null, contacts.length, null);
     };
     request.onerror = function onError(e) {
       callback({
         'reason': e
-      }, contacts.length, 0, e.message);
+      }, 0, e.message);
     };
   };
 
@@ -98,7 +98,7 @@ var ContactsSDExport = function ContactsSDExport() {
         if (error) {
           finishCallback({
             'reason': error
-          }, contacts.length, 0, e.message);
+          }, 0, e.message);
           return;
         }
 

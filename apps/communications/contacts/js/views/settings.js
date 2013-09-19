@@ -235,7 +235,17 @@ contacts.Settings = (function() {
         );
         break;
       case 'bluetooth':
-        // TODO Add export to bluetooth functionality
+        LazyLoader.load(
+          [
+            '/shared/js/device_storage/get_storage_if_available.js',
+            '/shared/js/device_storage/get_unused_filename.js',
+            '/shared/js/contact2vcard.js',
+            '/contacts/js/export/bt.js'
+          ],
+          function() {
+            doExport(new ContactsBTExport());
+          }
+        );
         break;
     }
   };
