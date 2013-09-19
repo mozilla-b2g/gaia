@@ -6,8 +6,14 @@ import urlparse
 import filecmp
 import shutil
 
-LOCAL_APPS_FOLDER = 'svoperapps'
-CONF_OUTPUT_FILENAME = 'singlevariantconf.json'
+OUTPUT_FOLDER = 'temp'
+
+APPS_FOLDER = 'apps'
+APPS_DATA_FOLDER = 'data'
+APPS_CONF_FOLDER = 'conf'
+APPS_CONF_FILENAME = 'singlevariantconf.json'
+
+PROFILE_APPS_FOLDER = 'svoperapps'
 
 def getOrigin(url):
     origin = urlparse.urlsplit(url)
@@ -38,7 +44,7 @@ def check_cached_app(path):
     return False
 
 def copy_app(app_path, profile_path, app_id):
-    dst = os.path.join(profile_path, LOCAL_APPS_FOLDER, app_id)
+    dst = os.path.join(profile_path, PROFILE_APPS_FOLDER, app_id)
     if not os.path.exists(dst):
         os.makedirs(dst)
     for filename in os.walk(app_path).next()[2]:
@@ -133,9 +139,7 @@ def fetch_manifest(app_id, manifest_url, origin, profile_path, app_path, is_app_
 def fetch_apps(data, profile_path, distribution_path):
     apps = data['apps']
 
-    distribution_path = os.path.join(distribution_path, 'single_variant')
-    if not os.path.exists(distribution_path):
-        os.makedirs(distribution_path)
+    distribution_path = os.path.join(distribution_path, OUTPUT_FOLDER, APPS_FOLDER, APPS_DATA_FOLDER)
 
     cached_apps = os.walk(distribution_path).next()[1]
 
@@ -159,7 +163,7 @@ def fetch_apps(data, profile_path, distribution_path):
         deleteFolder(os.path.join(distribution_path, app))
         os.rmdir(os.path.join(distribution_path, app))
 
-def fetch_conf(data, profile_path, apps_path):
+def fetch_conf(data, profile_path, distribution_path):
     print 'Generating metadata'
 
     """ Get apps to check faster if operator's apps are valid and get access to manifests """
@@ -172,27 +176,28 @@ def fetch_conf(data, profile_path, apps_path):
         """ Build an array with the apps for one operator and check if id is valid"""
         row = []
         row_homescreen = []
-        for app in operator['apps']:
-            app_id = app['id']
-            if not apps.has_key(app_id):
-                raise Exception("Invalid application id \'" + app_id + "\'")
+        if operator.has_key('apps'):
+            for app in operator['apps']:
+                app_id = app['id']
+                if not apps.has_key(app_id):
+                    raise Exception("Invalid application id \'" + app_id + "\'")
 
-            row.append(app_id)
+                row.append(app_id)
 
-            app['manifest'] = apps[app_id]
-            if app.has_key('id'):
-                del app['id']
-            row_homescreen.append(app)
+                app['manifest'] = apps[app_id]
+                if app.has_key('id'):
+                    del app['id']
+                row_homescreen.append(app)
 
-        """ For each mcc-mnc create an object with its apps array and add it to output """
-        for mcc in operator['mcc-mnc']:
-            output[mcc] = row
-            output_homescreen[mcc] = row_homescreen
+            """ For each mcc-mnc create an object with its apps array and add it to output """
+            for mcc in operator['mcc-mnc']:
+                output[mcc] = row
+                output_homescreen[mcc] = row_homescreen
 
-    with open(os.path.join(profile_path, LOCAL_APPS_FOLDER, CONF_OUTPUT_FILENAME), 'w') as temp_file:
+    with open(os.path.join(profile_path, PROFILE_APPS_FOLDER, APPS_CONF_FILENAME), 'w') as temp_file:
         temp_file.write(json.dumps(output))
 
-    with open(os.path.join(apps_path, 'homescreen', 'js', CONF_OUTPUT_FILENAME), 'w') as temp_file:
+    with open(os.path.join(distribution_path, OUTPUT_FOLDER, APPS_FOLDER, APPS_CONF_FOLDER, APPS_CONF_FILENAME), 'w') as temp_file:
         temp_file.write(json.dumps(output_homescreen))
 
 def main():
@@ -200,7 +205,6 @@ def main():
     parser = optparse.OptionParser(description="Prepare local applications")
     parser.add_option('-l', '--local-apps-path', help="Path to the JSON defining the local apps")
     parser.add_option('-p', '--profile-path', help="Path to the profile folder")
-    parser.add_option('-g', '--apps-path', help="Path to the gaia applications folder")
     parser.add_option('-d', '--distribution-path', help="Path to the gaia distribution folder")
     (options, args) = parser.parse_args()
 
@@ -210,14 +214,23 @@ def main():
     if not options.profile_path:
         parser.error('profile-path not given')
 
-    if not options.apps_path:
-        parser.error('apps-path not given')
-
     if not options.distribution_path:
         parser.error('distribution-path not given')
 
+    """ Create and clear temporal output folders """
+    output_folder = os.path.join(options.distribution_path, OUTPUT_FOLDER)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    if not os.path.exists(os.path.join(output_folder, APPS_FOLDER, APPS_DATA_FOLDER)):
+        os.makedirs(os.path.join(output_folder, APPS_FOLDER, APPS_DATA_FOLDER))
+
+    if not os.path.exists(os.path.join(output_folder, APPS_FOLDER, APPS_CONF_FOLDER)):
+        os.makedirs(os.path.join(output_folder, APPS_FOLDER, APPS_CONF_FOLDER))
+    deleteFolder(os.path.join(output_folder, APPS_FOLDER, APPS_CONF_FOLDER))
+
     """ Clear profile folder """
-    deleteFolder(os.path.join(options.profile_path, LOCAL_APPS_FOLDER))
+    deleteFolder(os.path.join(options.profile_path, PROFILE_APPS_FOLDER))
 
     """ Open JSON containning the apps and get saved apps to process and fetch each application """
     with open(options.local_apps_path, 'r') as json_file:
@@ -227,7 +240,7 @@ def main():
     fetch_apps(data, options.profile_path, options.distribution_path)
 
     """ Generate internal JSON based on mnc/mcc """
-    fetch_conf(data, options.profile_path, options.apps_path)
+    fetch_conf(data, options.profile_path, options.distribution_path)
 
 if __name__ == "__main__":
   main()
