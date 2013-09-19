@@ -379,13 +379,6 @@ var NotificationScreen = {
   },
 
   removeNotification: function ns_removeNotification(notificationId) {
-    var event = document.createEvent('CustomEvent');
-    event.initCustomEvent('mozContentEvent', true, true, {
-      type: 'desktop-notification-close',
-      id: notificationId
-    });
-    window.dispatchEvent(event);
-
     var notifSelector = '[data-notification-id="' + notificationId + '"]';
     var notificationNode = this.container.querySelector(notifSelector);
     var lockScreenNotificationNode =
@@ -398,6 +391,13 @@ var NotificationScreen = {
       lockScreenNotificationNode.parentNode
         .removeChild(lockScreenNotificationNode);
     this.updateStatusBarIcon();
+
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, {
+      type: 'desktop-notification-close',
+      id: notificationId
+    });
+    window.dispatchEvent(event);
   },
 
   clearAll: function ns_clearAll() {
