@@ -225,6 +225,40 @@ suite('Contacts Merging Tests', function() {
     }});
   });
 
+
+  test('Merge tel numbers with extra characters and without', function(done) {
+    toMergeContacts[0] = {
+      matchingContact: {
+        tel: [{
+          type: ['work'],
+          value: '(67)-67. 67 67-()'
+        }]
+      },
+      matchings: {
+        'tel': [
+          {
+            target: '67676767',
+            matchedValue: '(67)-67. 67 67-()'
+          }
+        ]
+      }
+    };
+
+    var masterContact = new MasterContact();
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.lengthOf(result.tel, 1);
+        assertFieldValues(result.tel, [masterContact.tel[0].value]);
+
+        // Restoring
+        toMergeContacts[0] = toMergeContact;
+
+        done();
+    }});
+  });
+
+
   test('Merge emails. Adding a new one', function(done) {
     toMergeContact.matchingContact = {
       email: [{
