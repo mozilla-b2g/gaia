@@ -148,7 +148,7 @@ form[role="dialog"][data-type="edit"] > menu {
   background: url("../style/images/unread.png") no-repeat left center / 1rem;
 }
 
-[data-type="list"] .draft a * {
+[data-type="list"] .threadlist-item a * {
   pointer-events: none;
 }
 
@@ -224,7 +224,7 @@ form[role="dialog"][data-type="edit"] > menu {
   width: 100%;
   height: 100%;
 
-  transition: transform .4s ease;
+  transition: transform 0.4s ease;
 }
 
 #main-wrapper[data-position='left'] .panel {

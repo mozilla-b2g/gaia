@@ -172,6 +172,14 @@
       return details;
     },
 
+    extend: function ut_extend(target, source) {
+      for (var key in source) {
+        if (source.hasOwnProperty(key)) {
+          target[key] = source[key];
+        }
+      }
+    },
+
     getCarrierTag: function ut_getCarrierTag(input, tels, details) {
       /**
         1. If a phone number has carrier associated with it

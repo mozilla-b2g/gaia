@@ -25,7 +25,7 @@
     },
     translate: function translate(element) {},
     localize: function localize(element, id, args) {
-      element.innerText = MockL10n.get(id, args);
+      element.textContent = MockL10n.get(id, args);
     },
     DateTimeFormat: DateTimeFormat
   };
