@@ -7,6 +7,10 @@ contacts.Merger = (function() {
   var DEFAULT_TEL_TYPE = 'another';
   var DEFAULT_EMAIL_TYPE = 'personal';
 
+  // Regular expression for filtering out additional punctuation / blank chars
+  // on a telephone number "(" ")" "." "-"
+  var telRegExp = /\s+|-|\(|\)|\./g;
+
   // Performs the merge passing the master contact and matching contacts
   // The master contact will be the one that will contain all the merged info
   // The matchingContacts are the contacts which information will merged with
@@ -43,6 +47,10 @@ contacts.Merger = (function() {
     }, 0);
   }
 
+  function sanitizeTel(tel) {
+    return tel.replace(telRegExp, '');
+  }
+
   function mergeAll(masterContact, matchingContacts, callbacks) {
     var emailsHash;
     var orgsHash;
@@ -66,7 +74,7 @@ contacts.Merger = (function() {
           aTel.type = (Array.isArray(aTel.type) ? aTel.type : [aTel.type]);
           aTel.type[0] = aTel.type[0] || DEFAULT_TEL_TYPE;
           mergedContact.tel.push(aTel);
-          telsHash[aTel.value] = true;
+          telsHash[sanitizeTel(aTel.value)] = true;
         }
       });
     }
@@ -132,7 +140,8 @@ contacts.Merger = (function() {
             }
           }
 
-          if (!telsHash[aTel.value] && !telsHash[target]) {
+          if (!telsHash[sanitizeTel(aTel.value)] &&
+              !telsHash[sanitizeTel(target)]) {
             theValue = target.length > matchedValue.length ?
                               target : matchedValue;
             mergedContact.tel.push({
@@ -141,8 +150,8 @@ contacts.Merger = (function() {
               carrier: aTel.carrier,
               pref: aTel.pref
             });
-            telsHash[target] = true;
-            telsHash[matchedValue] = true;
+            telsHash[sanitizeTel(target)] = true;
+            telsHash[sanitizeTel(matchedValue)] = true;
           }
         });
       }

@@ -4,9 +4,16 @@ var contacts = window.contacts || {};
 
 contacts.Matcher = (function() {
   var blankRegExp = /\s+/g;
+  // Regular expression for filtering out additional punctuation / blank chars
+  // on a telephone number "(" ")" "." "-"
+  var telRegExp = /\s+|-|\(|\)|\./g;
 
   var FB_CATEGORY = 'facebook';
   var FB_LINKED = 'fb_linked';
+
+  function sanitizeTel(tel) {
+    return tel.replace(telRegExp, '');
+  }
 
   // Multiple matcher Object. It tries to find a set of Contacts that match at
   // least one of the targets passed as parameters
@@ -49,9 +56,16 @@ contacts.Matcher = (function() {
 
           values.forEach(function(aValue) {
             var value = aValue.value;
+            var sanitizedValue = value;
+            var sanitizedTarget = target;
 
-            if (value === target || value.indexOf(target) !== -1 ||
-               target.indexOf(value) !== -1) {
+            if (options.filterBy[0] === 'tel') {
+              sanitizedValue = sanitizeTel(value);
+              sanitizedTarget = sanitizeTel(target);
+            }
+            if (sanitizedValue === sanitizedTarget ||
+                sanitizedValue.indexOf(sanitizedTarget) !== -1 ||
+                sanitizedTarget.indexOf(sanitizedValue) !== -1) {
               matchedValue = value;
             }
 
