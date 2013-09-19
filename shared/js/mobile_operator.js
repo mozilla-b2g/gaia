@@ -7,9 +7,9 @@ var MobileOperator = {
   userFacingInfo: function mo_userFacingInfo(mobileConnection) {
     var network = mobileConnection.voice.network;
     var iccInfo = IccHelper.iccInfo;
-    var operator = network.shortName || network.longName;
+    var operator = network ? (network.shortName || network.longName) : null;
 
-    if (iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn &&
+    if (operator && iccInfo && iccInfo.isDisplaySpnRequired && iccInfo.spn &&
         !mobileConnection.voice.roaming) {
       if (iccInfo.isDisplayNetworkNameRequired && operator !== iccInfo.spn) {
         operator = operator + ' ' + iccInfo.spn;
@@ -40,8 +40,10 @@ var MobileOperator = {
 
   isBrazil: function mo_isBrazil(mobileConnection) {
     var cell = mobileConnection.voice.cell;
-    return mobileConnection.voice.network.mcc === this.BRAZIL_MCC &&
-           cell && cell.gsmLocationAreaCode;
+    var net = mobileConnection.voice.network;
+    return net ?
+           (net.mcc === this.BRAZIL_MCC && cell && cell.gsmLocationAreaCode) :
+           null;
   }
 };
 
