@@ -1,8 +1,13 @@
-requireApp('clock/js/emitter.js');
-requireApp('clock/js/view.js');
-requireApp('clock/js/panel.js');
-
 suite('Panel', function() {
+  var Panel;
+
+  suiteSetup(function(done) {
+    testRequire(['panel'], function(panel) {
+      Panel = panel;
+      done();
+    });
+  });
+
   setup(function() {
     this.element = document.createElement('div');
     this.panel = new Panel(this.element);

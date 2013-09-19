@@ -1,6 +1,8 @@
-(function(exports) {
+define(function(require) {
 'use strict';
 
+var Emitter = require('emitter');
+var asyncStorage = require('shared/js/async_storage');
 var timer = null;
 
 /**
@@ -167,6 +169,5 @@ Object.defineProperties(Timer, {
   REACTIVATING: { value: 4 }
 });
 
-exports.Timer = Timer;
-
-}(this));
+return Timer;
+});

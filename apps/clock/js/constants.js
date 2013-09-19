@@ -1,4 +1,4 @@
-(function(exports) {
+define(function(require, exports) {
 
   'use strict';
 
@@ -22,4 +22,4 @@
     return DAYS[x];
   });
 
-})(this);
+});
