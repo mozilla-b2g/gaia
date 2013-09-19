@@ -499,8 +499,11 @@ var ThreadUI = global.ThreadUI = {
         cb(activity.result);
       };
 
-      if (activity.result && !activity.result.tel[0].value) {
-        // TODO Add an error alert to the user
+      if (!activity.result ||
+          !activity.result.tel ||
+          !activity.result.tel.length ||
+          !activity.result.tel[0].value) {
+        console.error('The pick activity result is invalid.');
         return;
       }
 
