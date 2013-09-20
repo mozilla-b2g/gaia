@@ -410,6 +410,30 @@ var PlayerView = {
     MusicComms.notifyStatusChanged(info);
   },
 
+  /*
+   * Get a blob for the specified song, decrypting it if necessary,
+   * and pass it to the specified callback
+   */
+  getFile: function pv_getFile(songData, callback) {
+    if (!songData.metadata.locked) {
+      musicdb.getFile(songData.name, callback);
+      return;
+    }
+
+    // If here, then this is a locked music file, so we have
+    // to decrypt it before playing it.
+    musicdb.getFile(songData.name, function(locked) {
+      ForwardLock.getKey(function(secret) {
+        ForwardLock.unlockBlob(secret, locked, function(unlocked) {
+          callback(unlocked);
+        }, null, function(msg) {
+          console.error(msg);
+          callback(null);
+        });
+      });
+    });
+  },
+
   play: function pv_play(targetIndex, backgroundIndex) {
     this.showInfo();
 
@@ -427,7 +451,7 @@ var PlayerView = {
       songData.metadata.played++;
       musicdb.updateMetadata(songData.name, songData.metadata);
 
-      musicdb.getFile(songData.name, function(file) {
+      this.getFile(songData, function(file) {
         this.setAudioSrc(file);
         // When we need to preview an audio like in picker mode,
         // we will not autoplay the picked song unless the user taps to play

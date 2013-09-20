@@ -2,14 +2,17 @@
 
 requireApp('homescreen/test/unit/mock_moz_settings.js');
 requireApp('homescreen/test/unit/mock_moz_activity.js');
-requireApp('homescreen/test/unit/mock_file_reader.js');
 
 requireApp('homescreen/js/wallpaper.js');
 
 var mocksHelperForWallpaper = new MocksHelper([
-  'MozActivity',
-  'FileReader'
+  'MozActivity'
 ]);
+
+// A simple mock for shared/js/omadrm/fl.js so we don't have to
+// create a more complicated settings mock than what we already have here.
+// If I put this in suiteSetup, I get a test error for a leaking global.
+window.ForwardLock = { getKey: function(f) { f(null); } };
 
 mocksHelperForWallpaper.init();
 
@@ -33,6 +36,7 @@ suite('wallpaper.js >', function() {
     navigator.mozSettings.suiteTeardown();
 
     mocksHelper.suiteTeardown();
+    delete window.ForwardLock;
   });
 
   setup(function() {
@@ -49,13 +53,11 @@ suite('wallpaper.js >', function() {
     icongrid.dispatchEvent(new CustomEvent('contextmenu'));
   }
 
-  function createImageBlob() {
-    var data = ['some stuff'];
-    var properties = {
-      type: 'image/png'
+  function FakeBlob(data) {
+    return {
+      type: 'image/png',
+      data: data
     };
-
-    return new Blob(data, properties);
   }
 
   function startMozActivity(methodName, blob) {
@@ -66,18 +68,6 @@ suite('wallpaper.js >', function() {
     };
 
     instance[methodName]();
-  }
-
-  function getFileReader() {
-    // There is only one instance
-    assert.equal(MockFileReader.instances.length, 1);
-
-    var fileReader = MockFileReader.instances[0];
-
-    // readAsDataURL method was called
-    assert.isTrue(fileReader.readAsDataURLInvoked);
-
-    return fileReader;
   }
 
   test('The MozActivity was initialized correctly ', function() {
@@ -91,7 +81,10 @@ suite('wallpaper.js >', function() {
     // Activity data
     var activity = activities[0];
     assert.equal(activity.name, 'pick');
-    assert.equal(activity.data.type, 'image/jpeg');
+    assert.ok(activity.data.type === 'wallpaper' ||
+              (Array.isArray(activity.data.type) &&
+               activity.data.type.indexOf('wallpaper') >= 0),
+              'activity type is or includes "wallpaper"');
 
     // Activity callbacks
     assert.isFunction(instances[0].onsuccess);
@@ -99,38 +92,22 @@ suite('wallpaper.js >', function() {
   });
 
   test('Pick activity returns a blob ', function() {
-    // This is the blob returned by the activity
-    startMozActivity('onsuccess', createImageBlob());
+    var fakeblob = FakeBlob('banana');
 
-    var fileReader = getFileReader();
-    fileReader.result = 'banana';
-    // The blob was read successfully
-    fileReader.onload();
+    // This is the blob returned by the activity
+    startMozActivity('onsuccess', fakeblob);
 
     // We set the wallpaper.image property to "banana"
     assert.equal(Object.keys(navigator.mozSettings.result).length, 1);
-    assert.equal(navigator.mozSettings.result['wallpaper.image'],
-                 fileReader.result);
-  });
-
-  test('Pick activity returns a wrong blob ', function() {
-    // This is the blob returned by the activity
-    startMozActivity('onsuccess', createImageBlob());
-
-    var fileReader = getFileReader();
-    // Problems reading the blob received
-    fileReader.onerror();
-
-    // wallpaper.image property is not defined
-    assert.isNull(navigator.mozSettings.result);
+    assert.deepEqual(navigator.mozSettings.result['wallpaper.image'],
+                     fakeblob);
   });
 
   test('Pick activity returns nothing (no blob) ', function() {
     // MozActivity doesn't return a blob
     startMozActivity('onsuccess');
 
-    // No blob then no FileReader and wallpaper.image property is not defined
-    assert.equal(MockFileReader.instances.length, 0);
+    // No blob then wallpaper.image property is not defined
     assert.isNull(navigator.mozSettings.result);
   });
 
@@ -138,9 +115,7 @@ suite('wallpaper.js >', function() {
     // User cancels
     startMozActivity('onerror');
 
-    // Then no FileReader and wallpaper.image property is not defined
-    assert.equal(MockFileReader.instances.length, 0);
+    // Then  wallpaper.image property is not defined
     assert.isNull(navigator.mozSettings.result);
   });
-
 });

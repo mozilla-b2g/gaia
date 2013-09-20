@@ -1,0 +1,32 @@
+{
+  "name": "System Ringtones",
+  "description": "Gaia Ringtone Picker",
+  "type": "certified",
+  "role": "system",
+  "orientation": "portrait-primary",
+  "developer": {
+    "name": "The Gaia Team",
+    "url": "https://github.com/mozilla-b2g/gaia"
+  },
+  "permissions": {
+    "settings":{ "access": "readonly" },
+    "device-storage:music":{ "access": "readwrite" }
+  },
+  "activities": {
+    "pick": {
+      "filters": {
+        "type": ["ringtone", "alerttone"]
+       },
+      "disposition": "inline",
+      "returnValue": true,
+      "href": "/pick.html"
+    }
+  },
+  "locales": {
+    "en-US": {
+      "name": "System Ringtones",
+      "description": "Gaia Ringtone Picker"
+    }
+  },
+  "default_locale": "en-US"
+}

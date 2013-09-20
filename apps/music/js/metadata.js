@@ -132,6 +132,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     try {
       var magic = header.getASCIIText(0, 12);
 
+      if (magic.substring(0, 9) === 'LOCKED 1 ') {
+        handleLockedFile(blob);
+        return;
+      }
+
       if (magic.substring(0, 3) === 'ID3') {
         // parse ID3v2 tags in an MP3 file
         parseID3v2Metadata(header);
@@ -813,6 +818,30 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     // we know there is just going to be one file at a time.
     getThumbnailURL(fileinfo, function(url) {
       metadataCallback(metadata);
+    });
+  }
+
+  function handleLockedFile(locked) {
+    ForwardLock.getKey(function(secret) {
+      ForwardLock.unlockBlob(secret, locked, callback, errorCallback);
+
+      function callback(unlocked, unlockedMetadata) {
+        // Now that we have the unlocked content of the locked file,
+        // convert it back to a blob and recurse to parse the metadata.
+        // When we're done, add metadata to indicate that this is locked
+        // content (so it isn't shared) and to specify the vendor that
+        // locked it.
+        parseAudioMetadata(unlocked,
+                           function(metadata) {
+                             metadata.locked = true;
+                             if (unlockedMetadata.vendor)
+                               metadata.vendor = unlockedMetadata.vendor;
+                             if (!metadata[TITLE])
+                               metadata[TITLE] = unlockedMetadata.name;
+                             metadataCallback(metadata);
+                           },
+                           errorCallback);
+      }
     });
   }
 }

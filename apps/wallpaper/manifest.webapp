@@ -14,9 +14,7 @@
   "activities": {
     "pick": {
       "filters": {
-        "type": ["image/*", "image/jpeg"],
-        "width": 320,
-        "height": 480
+        "type": "wallpaper"
        },
       "disposition": "inline",
       "returnValue": true,

@@ -432,6 +432,10 @@ function showCurrentView(callback) {
       listHandle =
         musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
                           function(song) {
+                            // Don't allow the user to pick locked music
+                            if (song.metadata.locked)
+                              return;
+
                             ListView.update(TabBar.option, song);
                             // Push the song to knownSongs then
                             // we can display a correct overlay
@@ -1459,7 +1463,9 @@ var SubListView = {
         var targetIndex = parseInt(target.dataset.index);
         var songData = this.dataSource[targetIndex];
 
-        shareFile(songData.name);
+        // Don't share files if they are locked
+        if (!songData.metadata.locked)
+          shareFile(songData.name);
         break;
 
       default:

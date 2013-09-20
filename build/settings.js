@@ -74,7 +74,6 @@ function setRingtone(callback) {
   let ringtone = utils.getAbsoluteOrRelativePath(ringtone_name);
   readFileAsDataURL(ringtone, 'audio/ogg', function(dataURL) {
     settings['dialer.ringtone'] = dataURL;
-    settings['dialer.ringtone.name'] = 'ringer_classic_courier.opus';
     callback();
   });
 }
@@ -86,7 +85,6 @@ function setNotification(callback) {
   let notification = utils.getAbsoluteOrRelativePath(notification_name);
   readFileAsDataURL(notification, 'audio/ogg', function(dataURL) {
     settings['notification.ringtone'] = dataURL;
-    settings['notification.ringtone.name'] = 'notifier_bell.opus';
     callback();
   });
 }
