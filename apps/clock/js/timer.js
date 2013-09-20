@@ -1,7 +1,6 @@
 (function(exports) {
 'use strict';
 
-var priv = new WeakMap();
 var timer = null;
 
 /**
