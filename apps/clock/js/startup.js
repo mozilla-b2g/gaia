@@ -10,6 +10,9 @@ requirejs.config({
     template: {
       exports: 'Template'
     },
+    emitter: {
+      exports: 'Emitter'
+    },
     'gesture-detector': {
       exports: 'GestureDetector'
     },
