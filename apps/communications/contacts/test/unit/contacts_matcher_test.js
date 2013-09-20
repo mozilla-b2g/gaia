@@ -23,8 +23,12 @@ suite('Test Contacts Matcher', function() {
     assert.equal(Object.keys(results).length, 1);
     assert.equal(Object.keys(results)[0], '1B');
     var matchingContact = results['1B'].matchingContact;
-    assert.equal(matchingContact.email[0].value, 'jj@jj.com');
-    assert.equal(matchingContact.tel[0].value, '676767671');
+    if (Array.isArray(matchingContact.email) && matchingContact.email[0]) {
+      assert.equal(matchingContact.email[0].value, 'jj@jj.com');
+    }
+    if (Array.isArray(matchingContact.tel) && matchingContact.tel[0]) {
+      assert.equal(matchingContact.tel[0].value, '676767671');
+    }
 
     if (matchingFields) {
       matchingFields.forEach(function(matchingField) {
@@ -198,7 +202,7 @@ suite('Test Contacts Matcher', function() {
         testMismatch(myObj, 'passive', done);
     });
 
-    test('first name is null only in existing contact. Then mismatch',
+    test('First name is null only in existing contact. Then mismatch',
       function(done) {
         var myObj = Object.create(contact);
         myObj.id = 'wvy';
@@ -242,6 +246,47 @@ suite('Test Contacts Matcher', function() {
           contact.familyName = saveFN;
           done();
         });
+    });
+
+    test('Match by name and phone number when existing contact is FB Linked',
+      function(done) {
+        var linkedContact = {
+          id: '1B',
+          category: ['facebook', 'fb_linked', '678910'],
+          givenName: ['Jose'],
+          familyName: ['Mota'],
+          name: ['Jose Mota'],
+          tel: [
+            {
+              type: ['mobile'],
+              value: '676767671'
+            }
+          ]
+        };
+
+        var incomingContact = {
+          id: 'kjh987',
+          category: ['gmail'],
+          givenName: linkedContact.givenName,
+          familyName: linkedContact.familyName,
+          name: linkedContact.name,
+          tel: [
+            {
+              type: ['mobile'],
+              value: '676767671'
+            },
+            {
+              type: ['personal'],
+              value: '983456789'
+            }
+          ]
+        };
+
+        MockFindMatcher.setData(linkedContact);
+        testMatch(incomingContact, 'passive', null, function() {
+          MockFindMatcher.setData(contact);
+          done();
+      });
     });
 
     test('Incoming SIM Contact matches with a normal contact', function(done) {
