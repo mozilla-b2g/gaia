@@ -9,6 +9,9 @@ from gaiatest.mocks.persona_test_user import PersonaTestUser
 
 AUDIENCE = "app://uitest.gaiamobile.org"
 VERIFIER_URL = "https://login.persona.org/verify"
+TESTUSER_BROWSERID = "login.persona.org"
+TESTUSER_VERIFIER = "login.persona.org"
+
 
 class TestPersonaStandard(GaiaTestCase):
 
@@ -28,7 +31,8 @@ class TestPersonaStandard(GaiaTestCase):
 
         # Generate unverified PersonaTestUser account
         self.user = PersonaTestUser().create_user(
-            verified=True, env={"browserid": "login.persona.org", "verifier": "www.123done.org"}
+            verified=True, env={"browserid": TESTUSER_BROWSERID,
+                                "verifier": TESTUSER_VERIFIER}
         )
 
     def test_persona_standard_sign_in(self):
