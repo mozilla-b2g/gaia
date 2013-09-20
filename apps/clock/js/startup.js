@@ -18,11 +18,10 @@ requirejs.config({
     }
   }
 });
-console.log("startup outside!");
+
 define('startup', function(require) {
 'use strict';
 
-console.log("startup inside!");
 var App = require('app');
 var ClockView = require('clock_view');
 var AlarmList = require('alarm_list');
@@ -39,7 +38,6 @@ function initialize() {
   ClockView.init();
   AlarmList.init();
   ActiveAlarm.init();
-  console.log("Script tags:", document.querySelectorAll("script").length);
 }
 
 LazyLoader.load([

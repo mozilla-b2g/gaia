@@ -14,10 +14,7 @@
 */
   modules: [
     {
-      name: 'startup',
-      include: [
-        'alameda'
-      ]
+      name: 'startup'
     }
   ],
 
