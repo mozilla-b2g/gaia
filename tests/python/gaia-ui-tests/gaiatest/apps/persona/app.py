@@ -8,8 +8,6 @@ import requests
 from marionette.by import By
 from gaiatest.apps.base import Base
 
-VERIFIER_URL = "https://login.persona.org/verify"
-
 
 class Persona(Base):
 
@@ -34,10 +32,9 @@ class Persona(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.marionette.switch_to_frame()
-        self.wait_for_element_present(*self._persona_frame_locator)
 
     def login(self, email, password):
+        self.wait_for_persona_frame()
         self.switch_to_persona_frame()
 
         # This is a hack until we are able to run test with a clean profile
@@ -68,6 +65,11 @@ class Persona(Base):
         self.marionette.switch_to_frame(self.frame)
 
         self.wait_for_element_not_present(*self._body_loading_locator)
+
+    def switch_to_app(self, parent_frame, child_frame):
+        self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(parent_frame)
+        self.marionette.switch_to_frame(self.marionette.find_element(*child_frame))
 
     def type_email(self, value):
         email_field = self.marionette.find_element(*self._email_input_locator)
@@ -113,6 +115,10 @@ class Persona(Base):
         self.wait_for_element_displayed(*self._form_section_locator)
         return self.marionette.find_element(*self._form_section_locator).get_attribute('id')
 
+    def wait_for_persona_frame(self):
+        self.marionette.switch_to_frame()
+        self.wait_for_element_present(*self._persona_frame_locator)
+
     def wait_for_sign_in_button(self):
         self.wait_for_element_displayed(*self._sign_in_button_locator)
 
@@ -122,8 +128,13 @@ class Persona(Base):
     def wait_for_password_input(self):
         self.wait_for_element_displayed(*self._password_input_locator)
 
-    # Persona app utils
-    def verifyAssertion(self, assertion, AUDIENCE, **params):
+    def wait_for_and_tap(self, element):
+        # print self.marionette.page_source.encode('utf-8')
+        self.wait_for_element_displayed(*element, timeout=120)
+        self.marionette.find_element(*element).tap()
+
+    # Persona verify assertion utils
+    def verifyAssertion(self, assertion, AUDIENCE, VERIFIER_URL, **params):
         data = {'assertion': assertion, 'audience': AUDIENCE}
         data.update(params)
 
@@ -157,4 +168,3 @@ class Persona(Base):
         return {"header": self.decode(header),
                 "claim": self.decode(claim),
                 "payload": self.decode(payload)}
-
