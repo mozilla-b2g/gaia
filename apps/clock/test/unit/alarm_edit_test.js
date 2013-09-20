@@ -48,7 +48,9 @@ suite('AlarmEditView', function() {
         'alarm_edit',
         'mocks/mock_alarmsDB',
         'mocks/mock_alarm_list',
-        'mocks/mock_alarm_manager'
+        'mocks/mock_alarm_manager',
+        'mocks/mock_mozAlarm',
+        'mocks/mock_navigator_mozl10n'
       ], {
         mocks: {
           alarmsdb: 'mocks/mock_alarmsDB',
@@ -56,7 +58,7 @@ suite('AlarmEditView', function() {
           alarm_manager: 'mocks/mock_alarm_manager'
         }
       }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
-        mockAlarmManager) {
+        mockAlarmManager, mockMozAlarms, mockL10n) {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
         AlarmEdit = alarmEdit;
@@ -65,20 +67,15 @@ suite('AlarmEditView', function() {
         AlarmList = mockAlarmList;
         AlarmManager = mockAlarmManager;
 
-        requirejs([
-          'mocks/mock_mozAlarm',
-          'mocks/mock_navigator_mozl10n'
-        ], function(mockMozAlarms, mockL10n) {
-          navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
-            ActiveAlarm.handler
-          );
+        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
+          ActiveAlarm.handler
+        );
 
-          navigator.mozL10n = mockL10n;
+        navigator.mozL10n = mockL10n;
 
-          AlarmList.init();
-          AlarmEdit.init();
-          done();
-        });
+        AlarmList.init();
+        AlarmEdit.init();
+        done();
       }
     );
 
