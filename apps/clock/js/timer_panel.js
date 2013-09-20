@@ -1,4 +1,4 @@
-(function(exports) {
+(function(Timer, Panel) {
 'use strict';
 
 var priv = new WeakMap();
@@ -241,4 +241,4 @@ Timer.Panel.prototype.onclick = function(event) {
   }
 };
 
-}(this));
+}(Timer, Panel));

@@ -1,4 +1,4 @@
-(function(stopwatch, panel) {
+(function(Stopwatch, Panel) {
 
   'use strict';
 
@@ -13,7 +13,7 @@
    *
    */
   Stopwatch.Panel = function(element) {
-    panel.apply(this, arguments);
+    Panel.apply(this, arguments);
 
     this.nodes = {};
     this.lapTemplate = new Template('lap-list-item-tmpl');
@@ -51,12 +51,12 @@
     );
 
     priv.set(this, {
-      stopwatch: new stopwatch()
+      stopwatch: new Stopwatch()
     });
 
   };
 
-  Stopwatch.Panel.prototype = Object.create(panel.prototype);
+  Stopwatch.Panel.prototype = Object.create(Panel.prototype);
 
   Stopwatch.Panel.prototype.update = function() {
     var swp = priv.get(this);
@@ -111,7 +111,7 @@
 
   Stopwatch.Panel.prototype.handleEvent = function(event) {
     if (event.type == 'animationend') {
-      panel.prototype.handleEvent.apply(this, arguments);
+      Panel.prototype.handleEvent.apply(this, arguments);
       return;
     }
 
