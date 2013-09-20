@@ -9,7 +9,8 @@ requireApp('clock/js/alameda.js');
     paths: {
       template: '/shared/js/template',
       mocks: '../test/unit/mocks',
-      'async-storage': '../../shared/js/async_storage'
+      'async-storage': '../../shared/js/async_storage',
+      'gesture-detector': '../../shared/js/gesture_detector'
     },
     shim: {
       database: {
