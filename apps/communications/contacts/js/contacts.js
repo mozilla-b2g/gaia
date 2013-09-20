@@ -356,11 +356,23 @@ var Contacts = (function() {
   };
 
   var callOrPick = function callOrPick(number) {
-    if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.postPickSuccess({ number: number });
-    } else {
-      TelephonyHelper.call(number);
-    }
+    LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
+      if (ActivityHandler.currentlyHandling) {
+        ActivityHandler.postPickSuccess({ number: number });
+      } else if (MmiManager.isMMI(number)) {
+        // For security reasons we cannot directly call MmiManager.send(). We
+        // need to show the MMI number in the dialer instead.
+        new MozActivity({
+          name: 'dial',
+          data: {
+            type: 'webtelephony/number',
+            number: number
+          }
+        });
+      } else {
+        TelephonyHelper.call(number);
+      }
+    });
   };
 
   var handleBack = function handleBack() {
