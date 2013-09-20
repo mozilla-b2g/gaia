@@ -214,6 +214,9 @@ def fetch_conf(data, profile_path, apps_path, distribution_path):
         if operator.has_key('default_contacts'):
             row['default_contacts'] = check_resource(distribution_path, operator['default_contacts'])
 
+        if operator.has_key('support_contacts'):
+            row['support_contacts'] = check_resource(distribution_path, operator['support_contacts'])
+
         """ For each mcc-mnc create an object with its resources and add it to output """
         for mcc in operator['mcc-mnc']:
             if row:
