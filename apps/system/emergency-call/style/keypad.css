@@ -74,24 +74,25 @@
   width: 100%;
   display: table;
   table-layout: fixed;
+  border-top: 0.1rem solid #6F6F6F;
 }
 
 .keypad-cell {
-  display: table-cell;
-  border-right: 0.1rem solid #6F6F6F;
-  border-top: 0.1rem solid #6F6F6F;;
-}
-
-.keypad-cell:last-child {
-  border-right: 0;
+  display: table-row;
 }
 
 .keypad-key {
+  display: table-cell;
   border: 0;
+  border-right: 0.1rem solid #6F6F6F;
   border-bottom: 0.1rem solid #6F6F6F;
   height: 7rem;
   vertical-align: middle;
   position: relative;
+}
+
+.keypad-key:last-child {
+  border-right: 0;
 }
 
 .keypad-key:active {
