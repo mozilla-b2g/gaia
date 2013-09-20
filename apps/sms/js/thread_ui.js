@@ -493,13 +493,11 @@ var ThreadUI = global.ThreadUI = {
   updateComposerHeader: function thui_updateComposerHeader() {
     var recipientCount = this.recipients.length;
     if (recipientCount > 0) {
-      this.contactPickButton.classList.add('disabled');
       this.headerText.textContent =
         navigator.mozL10n.get('recipient', {
           n: recipientCount
       });
     } else {
-      this.contactPickButton.classList.remove('disabled');
       this.headerText.textContent = navigator.mozL10n.get('newMessage');
     }
     // Check if we need to enable send button.
