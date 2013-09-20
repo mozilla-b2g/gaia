@@ -3180,7 +3180,7 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('recipient handling yields correct header', function() {
+  suite('recipient handling >', function() {
     var localize;
     setup(function() {
       location.hash = '#new';
@@ -3191,33 +3191,61 @@ suite('thread_ui.js >', function() {
       location.hash = '';
     });
 
-    test('no recipients', function() {
-      ThreadUI.updateComposerHeader();
-      assert.deepEqual(localize.args[0], [
-        ThreadUI.headerText, 'newMessage'
-      ]);
+    function testPickButtonEnabled() {
+      test('pick button is enabled', function() {
+        var pickButton = ThreadUI.contactPickButton;
+        assert.isFalse(pickButton.classList.contains('disabled'));
+      });
+    }
+
+    suite('no recipients', function() {
+      setup(function() {
+        ThreadUI.updateComposerHeader();
+      });
+
+      test('header is correct', function() {
+        assert.deepEqual(localize.args[0], [
+          ThreadUI.headerText, 'newMessage'
+        ]);
+      });
+
+      testPickButtonEnabled();
     });
 
-    test('add one recipient', function() {
-      ThreadUI.recipients.add({
-        number: '999'
+    suite('add one recipient', function() {
+      setup(function() {
+        ThreadUI.recipients.add({
+          number: '999'
+        });
       });
-      assert.deepEqual(localize.args[0], [
-        ThreadUI.headerText, 'recipient', {n: 1}
-      ]);
+
+      test('header is correct', function() {
+        assert.deepEqual(localize.args[0], [
+          ThreadUI.headerText, 'recipient', {n: 1}
+        ]);
+      });
+
+      testPickButtonEnabled();
     });
 
-    test('add two recipients', function() {
-      ThreadUI.recipients.add({
-        number: '999'
+    suite('add two recipients', function() {
+      setup(function() {
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+        ThreadUI.recipients.add({
+          number: '888'
+        });
       });
-      ThreadUI.recipients.add({
-        number: '888'
+
+      test('header is correct', function() {
+        assert.ok(localize.calledTwice);
+        assert.deepEqual(localize.args[1], [
+          ThreadUI.headerText, 'recipient', {n: 2}
+        ]);
       });
-      assert.ok(localize.calledTwice);
-      assert.deepEqual(localize.args[1], [
-        ThreadUI.headerText, 'recipient', {n: 2}
-      ]);
+
+      testPickButtonEnabled();
     });
   });
 
