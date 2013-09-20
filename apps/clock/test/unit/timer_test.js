@@ -28,6 +28,7 @@ suite('Timer', function() {
     duration = 5000;
     startAt = now;
     endAt = now + duration;
+    this.clock = this.sinon.useFakeTimers(startAt);
   });
 
   test('shape:prototype ', function() {
@@ -165,7 +166,6 @@ suite('Timer', function() {
   });
 
   test('tick ', function(done) {
-    this.timeout(5000);
     var isCalled = false;
     var timer = new Timer({
       startAt: startAt,
@@ -183,14 +183,13 @@ suite('Timer', function() {
     });
 
     timer.start();
+    this.clock.tick(duration);
   });
 
   test('tick to end ', function(done) {
-    this.timeout(3000);
-    now = Date.now();
     var timer = new Timer({
-      startAt: now,
-      endAt: now + 1000
+      startAt: startAt,
+      endAt: endAt
     });
 
     this.sinon.spy(timer, 'cancel');
@@ -204,6 +203,10 @@ suite('Timer', function() {
     });
 
     timer.start();
+    this.clock.tick(duration);
+
+    assert.isFalse(timer.cancel.called);
+    this.clock.tick(1000);
   });
 
   test('pause ', function() {
@@ -233,19 +236,71 @@ suite('Timer', function() {
     assert.isTrue(asyncStorage.removeItem.called);
   });
 
-  test('notify ', function() {
-    var timer = new Timer({
-      startAt: startAt,
-      endAt: endAt
+  suite('notify ', function() {
+    setup(function() {
+      var sandbox = this.sinon;
+      this.sinon.spy(navigator, 'vibrate');
+      this.sinon.stub(window, 'Audio', function() {
+        this.play = sandbox.spy();
+        return this;
+      });
     });
 
-    this.sinon.spy(navigator, 'vibrate');
+    suite('vibrate and sound off', function() {
+      setup(function() {
+        this.timer = new Timer({
+          startAt: startAt,
+          endAt: endAt
+        });
+        this.timer.notify();
+      });
+      test('does not call vibrate', function() {
+        assert.isFalse(navigator.vibrate.called);
+      });
+      test('does not call Audio', function() {
+        assert.isFalse(Audio.called);
+      });
+    });
 
-    timer.notify();
-
-    assert.isTrue(navigator.vibrate.called);
-
-    // TODO: Add sound playback notification tests
+    suite('vibrate on', function() {
+      setup(function() {
+        this.timer = new Timer({
+          startAt: startAt,
+          endAt: endAt,
+          vibrate: true
+        });
+        this.timer.notify();
+      });
+      test('calls vibrate', function() {
+        assert.isTrue(navigator.vibrate.called);
+      });
+    });
+    suite('sound on', function() {
+      setup(function() {
+        this.timer = new Timer({
+          startAt: startAt,
+          endAt: endAt,
+          sound: 'test'
+        });
+        this.timer.notify();
+        this.audio = Audio.returnValues[0];
+      });
+      test('creates Audio', function() {
+        assert.ok(this.audio instanceof Audio);
+      });
+      test('sets loop to false', function() {
+        assert.isFalse(this.audio.loop);
+      });
+      test('sets mozAudioChannelType to alarm', function() {
+        assert.equal(this.audio.mozAudioChannelType, 'alarm');
+      });
+      test('sets sound', function() {
+        assert.equal(this.audio.src, 'shared/resources/media/alarms/test');
+      });
+      test('calls play', function() {
+        assert.isTrue(this.audio.play.called);
+      });
+    });
   });
 
 });

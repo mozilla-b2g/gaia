@@ -30,6 +30,7 @@ function Timer(opts = {}) {
   this.lapsed = opts.lapsed || 0;
   this.state = opts.state || Timer.INITIALIZED;
   this.sound = opts.sound || null;
+  this.vibrate = opts.vibrate;
 
   // Existing timers need to be "reactivated"
   // to avoid the duplicate operation guard
@@ -136,9 +137,19 @@ Timer.prototype.cancel = function timerCancel() {
  * @return {Timer} Timer instance.
  */
 Timer.prototype.notify = function timerNotify() {
-  // TODO: Add sound playback notification
-  //
-  if (navigator.vibrate) {
+  if (this.sound) {
+    var ringtonePlayer = new Audio();
+    ringtonePlayer.mozAudioChannelType = 'alarm';
+    ringtonePlayer.loop = false;
+
+    var selectedAlarmSound = 'shared/resources/media/alarms/' +
+                             this.sound;
+    ringtonePlayer.src = selectedAlarmSound;
+    ringtonePlayer.play();
+  }
+
+
+  if (this.vibrate && navigator.vibrate) {
     navigator.vibrate([200, 200, 200, 200, 200]);
   }
 

@@ -56,7 +56,7 @@ Timer.Panel = function(element) {
   // Gather elements
   [
     'create', 'cancel', 'dialog',
-    'pause', 'start', 'sound', 'time'
+    'pause', 'start', 'sound', 'time', 'vibrate'
   ].forEach(function(id) {
     this.nodes[id] = this.element.querySelector('#timer-' + id);
   }, this);
@@ -224,7 +224,8 @@ Timer.Panel.prototype.onclick = function(event) {
       // selected duration time.
       panel.timer = new Timer({
         sound: nodes.sound.value,
-        duration: duration(panel.picker.value)
+        duration: duration(panel.picker.value),
+        vibrate: nodes.vibrate.checked
       });
 
       // Bind the tick and end events to the
