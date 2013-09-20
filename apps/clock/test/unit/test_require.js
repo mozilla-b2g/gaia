@@ -12,6 +12,10 @@ requireApp('clock/js/alameda.js');
       'async-storage': '../../shared/js/async_storage'
     },
     shim: {
+      database: {
+        exports: ['SchemaVersion', 'Database'],
+        deps: ['utils']
+      },
       'template': {
         exports: 'Template'
       },
