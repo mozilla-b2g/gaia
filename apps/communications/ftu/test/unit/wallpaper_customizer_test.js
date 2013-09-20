@@ -3,41 +3,64 @@
 requireApp('communications/ftu/js/customizers/wallpaper_customizer.js');
 requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 
+var resourcesDir = '/ftu/test/unit';
+var wallpaperPath = '/resources/wallpaper.jpg';
+var fullPath;
+
 suite('wallpaper customizer >', function() {
-  var realSettings;
 
   suiteSetup(function() {
-    realSettings = navigator.mozSettings;
-    navigator.mozSettings = MockNavigatorSettings;
+    fullPath = resourcesDir + wallpaperPath;
   });
 
   suiteTeardown(function() {
-    navigator.mozSettings = realSettings;
-    realSettings = null;
+    fullPath = null;
   });
 
-  test('setWallpaper OK', function() {
-    var settingName = 'wallpaper';
-    var settingNameKey = 'wallpaper.image';
-    var settingValue = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABchangeWallpaper';
-    // Ini wallpaper value
-    MockNavigatorSettings.mSettings[settingNameKey] = '';
-
-    wallpaperCustomizer.setWallpaper(settingValue);
-
-    assert.equal(MockNavigatorSettings.mSettings[settingNameKey], settingValue);
-  });
- test('setWallpaper not blob OK', function() {
-    var settingNameKey = 'wallpaper.image';
-
-    // Ini wallpaper value
-    MockNavigatorSettings.mSettings[settingNameKey] = 'oldValue';
-
-    wallpaperCustomizer.setWallpaper(null);
-    assert.equal(MockNavigatorSettings.mSettings[settingNameKey], 'oldValue');
-
-    wallpaperCustomizer.setWallpaper();
-    assert.equal(MockNavigatorSettings.mSettings[settingNameKey], 'oldValue');
+  test(' retrieve file ok ', function(done) {
+    WallpaperCustomizer.retrieveWallpaper(fullPath, function() {
+      done();
+    });
   });
 
+  test(' retrieve file fail ', function(done) {
+    var onsuccess = function() {};
+    WallpaperCustomizer.retrieveWallpaper('wrongPath.png', onsuccess,
+     function() {
+      done();
+    });
+  });
+
+  test(' blobToBase64 success', function(done) {
+    WallpaperCustomizer.retrieveWallpaper(fullPath, function(blob) {
+      WallpaperCustomizer.blobToBase64(blob, function() {
+        done();
+      });
+    });
+  });
+
+  suite(' setWallpaperSetting > ', function() {
+    var createLockSpy;
+    var realSettings;
+    suiteSetup(function() {
+      realSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+      createLockSpy = sinon.spy(MockNavigatorSettings, 'createLock');
+    });
+
+    suiteTeardown(function() {
+      navigator.mozSettings = realSettings;
+      realSettings = null;
+      createLockSpy.restore();
+    });
+
+    teardown(function() {
+      createLockSpy.reset();
+    });
+
+    test(' requested', function() {
+      WallpaperCustomizer.setWallpaperSetting('ABCDE');
+      assert.isTrue(createLockSpy.calledOnce);
+    });
+  });
 });
