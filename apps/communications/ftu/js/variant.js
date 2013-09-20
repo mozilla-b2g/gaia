@@ -30,9 +30,8 @@ var VariantManager = {
   },
 
   readJSONFile: function settings_readJSONFile(file, onsuccess, onerror) {
-    var URI = file;
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', URI, true);
+    xhr.open('GET', file, true);
     xhr.overrideMimeType('application/json');
     xhr.responseType = 'json';
     xhr.onload = function() {
@@ -125,3 +124,5 @@ var VariantManager = {
     return ncode;
   }
 };
+
+VariantManager.init();

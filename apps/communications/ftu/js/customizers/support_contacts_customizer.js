@@ -1,12 +1,29 @@
 'use strict';
 
-var supportContactsCustomizer = {
+var SupportContactsCustomizer = {
   init: function sc_init() {
     var self = this;
     window.addEventListener('customization', function updateSC(event) {
-      if (event.detail.setting === 'supportcontacts') {
+      if (event.detail.setting === 'support_contacts') {
         window.removeEventListener('customization', updateSC);
-        self.setSupportContacts(event.detail.value);
+        // Retrieve contacts from the URI provide by 'customization.json'
+        var URI = event.detail.value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', URI, true);
+        xhr.overrideMimeType('application/json');
+        xhr.responseType = 'json';
+        xhr.onload = function() {
+          if (xhr.status === 200) {
+            self.setSupportContacts(xhr.response);
+          } else {
+            console.error('Failed to fetch file: ' + URI, xhr.statusText);
+          }
+        };
+        try {
+          xhr.send();
+        } catch (e) {
+          console.error('Failed to fetch file: ' + URI);
+        }
       }
     });
   },
@@ -25,4 +42,4 @@ var supportContactsCustomizer = {
   }
 };
 
-supportContactsCustomizer.init();
+SupportContactsCustomizer.init();
