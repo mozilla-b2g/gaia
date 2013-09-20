@@ -13,7 +13,7 @@ class VideoPlayer(Base):
     _progress_bar_locator = (By.ID, 'progress')
 
     # Video list/summary view
-    _video_items_locator = (By.CSS_SELECTOR, 'ul#thumbnails li[data-name]')
+    _video_items_locator = (By.CSS_SELECTOR, '#thumbnails > li')
     _video_name_locator = (By.CSS_SELECTOR, 'div.details')
 
     _empty_video_title_locator = (By.ID, 'overlay-title')
