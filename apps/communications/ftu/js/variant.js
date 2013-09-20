@@ -83,7 +83,6 @@ var VariantManager = {
         this.mcc_mnc);
       return;
     }
-    var self = this;
     for (var setting in customizationParams) {
       if (customizationParams.hasOwnProperty(setting)) {
 

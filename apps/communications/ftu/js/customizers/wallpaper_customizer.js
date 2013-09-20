@@ -36,26 +36,10 @@ var WallpaperCustomizer = {
     });
   },
 
-  blobToBase64: function wc_blobToBase64(blob, onsuccess, onerror) {
-    var reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onload = function() {
-      onsuccess && onsuccess(reader.result);
-    };
-
-    reader.onerror = function(e) {
-      onerror && onerror();
-    };
-  },
-
   setWallpaper: function wc_setWallpaper(url) {
     this.retrieveWallpaper(url, function(blob) {
-      this.blobToBase64(blob, function(base64Image) {
-        this.setWallpaperSetting(base64Image).bind(this);
-      }, function onerrorParsing() {
-        console.log('Error parsing BLOB');
-      }).bind(this);
-    }, function onerrorRetrieving() {
+      this.setWallpaperSetting(base64Image).bind(this);
+      }, function onerrorRetrieving() {
       console.log('Error retrieving the file ' + url);
     }).bind(this);
   }

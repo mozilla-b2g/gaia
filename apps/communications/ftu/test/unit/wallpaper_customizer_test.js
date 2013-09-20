@@ -31,14 +31,6 @@ suite('wallpaper customizer >', function() {
     });
   });
 
-  test(' blobToBase64 success', function(done) {
-    WallpaperCustomizer.retrieveWallpaper(fullPath, function(blob) {
-      WallpaperCustomizer.blobToBase64(blob, function() {
-        done();
-      });
-    });
-  });
-
   suite(' setWallpaperSetting > ', function() {
     var createLockSpy;
     var realSettings;
