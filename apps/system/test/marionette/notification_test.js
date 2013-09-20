@@ -1,6 +1,6 @@
 
 var assert = require('assert'),
-    NotificationTest = require('./notification'),
+    NotificationTest = require('./lib/notification'),
     util = require('util');
 
 marionette('notification tests', function() {
