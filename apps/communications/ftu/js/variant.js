@@ -45,15 +45,13 @@ var VariantManager = {
     xhr.send();
   },
 
-  CUSTOMIZERS: [
-    '/ftu/js/customizers/wallpaper_customizer.js',
-    '/ftu/js/customizers/support_contact_customizer.js'
-  ],
+  CUSTOMIZERS: ['/ftu/js/customizers/wallpaper_customizer.js'],
 
   iccHandler: function vm_iccHandler() {
     this.mcc_mnc = this.getMccMnc();
     if (this.mcc_mnc) {
       IccHelper.removeEventListener('iccinfochange', this.boundIccHandler);
+
       // Load the variant customizers and the variant JSON file.
       LazyLoader.load(
         this.CUSTOMIZERS,
@@ -62,7 +60,7 @@ var VariantManager = {
     }
   },
 
-  // Loads the variant file and start customization event dispatching.
+  // Loads the variant file and start customization event dispatchign.
   loadVariantAndCustomize: function() {
     this.getVariantSettings(this.dispatchCustomizationEvents.bind(this));
   },
