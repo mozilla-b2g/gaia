@@ -658,16 +658,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/status.js',
       '/contacts/js/utilities/overlay.js',
       '/contacts/js/utilities/dom.js',
-      '/contacts/js/search.js',
-      '/shared/style_unstable/progress_activity.css',
-      '/shared/style/status.css',
-      '/shared/style/switches.css',
-      '/shared/style/confirm.css',
-      '/contacts/style/fixed_header.css',
-      '/contacts/style/animations.css',
-      '/facebook/style/curtain_frame.css',
-      '/contacts/style/status.css',
-      '/contacts/style/fb_extensions.css'
+      '/contacts/js/search.js'
     ];
 
     LazyLoader.load(lazyLoadFiles, function() {
