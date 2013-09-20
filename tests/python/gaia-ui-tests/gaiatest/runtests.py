@@ -174,6 +174,11 @@ class GaiaTestRunner(MarionetteTestRunner):
         self.test_handlers.extend([GaiaTestCase])
 
     def run_tests(self, tests):
+        # add tests source dir and previous dir to python path
+        tests_dir = os.path.abspath(tests[0])
+        sys.path.append(tests_dir)
+        sys.path.append(os.path.split(tests_dir)[0])
+
         MarionetteTestRunner.run_tests(self, tests)
 
         if self.html_output:
