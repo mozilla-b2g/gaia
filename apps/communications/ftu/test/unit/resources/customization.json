@@ -1,0 +1,38 @@
+{
+    "214-01": {
+<<<<<<< HEAD
+        "support_contacts": "/ftu/test/unit/resources/support_contacts.json",
+=======
+>>>>>>> Bug 917740 - Update file format of customization files based on MCC/MNC
+        "wallpaper": "/resources/wallpaper.jpg",
+        "default_contacts": "/resources/contacts.json",
+        "ringtone": "/resources/ringtone.ogg"
+    },
+    "214-007": {
+<<<<<<< HEAD
+        "support_contacts": "/ftu/test/unit/resources/support_contacts.json",
+=======
+>>>>>>> Bug 917740 - Update file format of customization files based on MCC/MNC
+        "wallpaper": "/resources/wallpaper.jpg",
+        "default_contacts": "/resources/contacts.json",
+        "ringtone": "/resources/ringtone.ogg"
+    },
+    "214-02": {
+<<<<<<< HEAD
+        "support_contacts": "/ftu/test/unit/resources/support_contacts.json",
+=======
+>>>>>>> Bug 917740 - Update file format of customization files based on MCC/MNC
+        "wallpaper": "/resources/wallpaper.jpg",
+        "default_contacts": "/resources/contacts.json",
+        "ringtone": "/resources/ringtone.ogg"
+    },
+    "214-07": {
+<<<<<<< HEAD
+        "support_contacts": "/ftu/test/unit/resources/support_contacts.json",
+=======
+>>>>>>> Bug 917740 - Update file format of customization files based on MCC/MNC
+        "wallpaper": "/resources/wallpaper.jpg",
+        "default_contacts": "/resources/contacts.json",
+        "ringtone": "/resources/ringtone.ogg"
+    }
+}

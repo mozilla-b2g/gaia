@@ -237,9 +237,14 @@ function execute() {
       customizeFiles(zip, 'wallpapers', 'resources/320x480/');
     }
 
-    if (webapp.sourceDirectoryName === 'communications' && utils.Gaia.distributionDir &&
-      utils.getFile(utils.Gaia.distributionDir, 'variants').exists()) {
-      customizeFiles(zip, 'variants', 'ftu/js/variants/');
+    if (webapp.sourceDirectoryName === 'communications' && utils.Gaia.distributionDir) {
+      let customization = utils.getFile(utils.Gaia.distributionDir, 'variant.json.out');
+      if (customization.exists()) {
+        addToZip(zip,'resources/customization.json', customization);
+        if (utils.getFile(utils.Gaia.distributionDir, 'resources').exists()) {
+          customizeFiles(zip, 'resources', 'resources/');
+        }
+      }
     }
 
     // Put shared files, but copy only files actually used by the webapp.

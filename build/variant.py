@@ -8,6 +8,7 @@ import shutil
 
 LOCAL_APPS_FOLDER = 'svoperapps'
 CONF_OUTPUT_FILENAME = 'singlevariantconf.json'
+RESOURCES_OUTPUT_FILENAME = 'variant.json.out'
 
 def getOrigin(url):
     origin = urlparse.urlsplit(url)
@@ -159,7 +160,18 @@ def fetch_apps(data, profile_path, distribution_path):
         deleteFolder(os.path.join(distribution_path, app))
         os.rmdir(os.path.join(distribution_path, app))
 
-def fetch_conf(data, profile_path, apps_path):
+def check_resource(distribution_path, resource):
+    path = os.path.join(distribution_path, resource)
+    if not os.path.exists(path):
+        raise Exception('File not found: ' + path)
+
+    if not resource.startswith('resources'):
+        shutil.copyfile(path, os.path.join(distribution_path, 'resources'))
+        resource = os.path.join('resources', os.path.basename(resource))
+
+    return os.sep + resource
+
+def fetch_conf(data, profile_path, apps_path, distribution_path):
     print 'Generating metadata'
 
     """ Get apps to check faster if operator's apps are valid and get access to manifests """
@@ -168,32 +180,56 @@ def fetch_conf(data, profile_path, apps_path):
     """ Iterate through operators  """
     output = {}
     output_homescreen = {}
+    output_resources = {}
     for operator in data['operators']:
         """ Build an array with the apps for one operator and check if id is valid"""
         row = []
         row_homescreen = []
-        for app in operator['apps']:
-            app_id = app['id']
-            if not apps.has_key(app_id):
-                raise Exception("Invalid application id \'" + app_id + "\'")
+        if operator.has_key('apps'):
+            for app in operator['apps']:
+                app_id = app['id']
+                if not apps.has_key(app_id):
+                    raise Exception("Invalid application id \'" + app_id + "\'")
 
-            row.append(app_id)
+                row.append(app_id)
 
-            app['manifest'] = apps[app_id]
-            if app.has_key('id'):
-                del app['id']
-            row_homescreen.append(app)
+                app['manifest'] = apps[app_id]
+                if app.has_key('id'):
+                    del app['id']
+                row_homescreen.append(app)
 
-        """ For each mcc-mnc create an object with its apps array and add it to output """
+            """ For each mcc-mnc create an object with its apps array and add it to output """
+            for mcc in operator['mcc-mnc']:
+                output[mcc] = row
+                output_homescreen[mcc] = row_homescreen
+
+        row = {}
+
+        if operator.has_key('ringtone'):
+            row['ringtone'] = check_resource(distribution_path, operator['ringtone'])
+
+        if operator.has_key('wallpaper'):
+            row['wallpaper'] = check_resource(distribution_path, operator['wallpaper'])
+
+        if operator.has_key('default_contacts'):
+            row['default_contacts'] = check_resource(distribution_path, operator['default_contacts'])
+
+        if operator.has_key('support_contacts'):
+            row['support_contacts'] = check_resource(distribution_path, operator['support_contacts'])
+
+        """ For each mcc-mnc create an object with its resources and add it to output """
         for mcc in operator['mcc-mnc']:
-            output[mcc] = row
-            output_homescreen[mcc] = row_homescreen
+            if row:
+                output_resources[mcc] = row
 
     with open(os.path.join(profile_path, LOCAL_APPS_FOLDER, CONF_OUTPUT_FILENAME), 'w') as temp_file:
         temp_file.write(json.dumps(output))
 
     with open(os.path.join(apps_path, 'homescreen', 'js', CONF_OUTPUT_FILENAME), 'w') as temp_file:
         temp_file.write(json.dumps(output_homescreen))
+
+    with open(os.path.join(distribution_path, RESOURCES_OUTPUT_FILENAME), 'w') as temp_file:
+        temp_file.write(json.dumps(output_resources))
 
 def main():
     """ Arguments & options management """
@@ -219,6 +255,9 @@ def main():
     """ Clear profile folder """
     deleteFolder(os.path.join(options.profile_path, LOCAL_APPS_FOLDER))
 
+    """ Clear customization file """
+    deleteFolder(os.path.join(options.distribution_path, RESOURCES_OUTPUT_FILENAME))
+
     """ Open JSON containning the apps and get saved apps to process and fetch each application """
     with open(options.local_apps_path, 'r') as json_file:
         data = json.load(json_file)
@@ -227,7 +266,7 @@ def main():
     fetch_apps(data, options.profile_path, options.distribution_path)
 
     """ Generate internal JSON based on mnc/mcc """
-    fetch_conf(data, options.profile_path, options.apps_path)
+    fetch_conf(data, options.profile_path, options.apps_path, options.distribution_path)
 
 if __name__ == "__main__":
   main()

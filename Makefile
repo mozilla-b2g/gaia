@@ -189,7 +189,7 @@ ifdef GAIA_DISTRIBUTION_DIR
 	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
 	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
 	DISTRIBUTION_APP_CONFIG := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps.list
-	DISTRIBUTION_LOCAL_APPS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)local-apps.json
+	DISTRIBUTION_VARIANT := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)variant.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -199,8 +199,8 @@ ifdef GAIA_DISTRIBUTION_DIR
 	ifneq ($(wildcard $(DISTRIBUTION_APP_CONFIG)),)
 		GAIA_APP_CONFIG := $(DISTRIBUTION_APP_CONFIG)
 	endif
-	ifneq ($(wildcard $(DISTRIBUTION_LOCAL_APPS)),)
-		LOCAL_APPS_PATH := $(DISTRIBUTION_LOCAL_APPS)
+	ifneq ($(wildcard $(DISTRIBUTION_VARIANT)),)
+		VARIANT_PATH := $(DISTRIBUTION_VARIANT)
 	endif
 endif
 
@@ -389,7 +389,7 @@ webapp-zip: webapp-optimize install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
-ifdef LOCAL_APPS_PATH
+ifdef VARIANT_PATH
 	@rm $(CURDIR)/apps/homescreen/js/singlevariantconf.json
 endif
 endif
@@ -423,8 +423,8 @@ else
 endif
 
 local-apps:
-ifdef LOCAL_APPS_PATH
-	python build/local-apps.py usage --local-apps-path=$(LOCAL_APPS_PATH) --profile-path=$(PROFILE_FOLDER) --apps-path=$(CURDIR)/apps --distribution-path=$(GAIA_DISTRIBUTION_DIR)
+ifdef VARIANT_PATH
+	python build/variant.py usage --local-apps-path=$(VARIANT_PATH) --profile-path=$(PROFILE_FOLDER) --apps-path=$(CURDIR)/apps --distribution-path=$(GAIA_DISTRIBUTION_DIR)
 endif
 
 # Create webapps
@@ -806,7 +806,7 @@ else
 	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
 endif
 
-ifdef LOCAL_APPS_PATH
+ifdef VARIANT_PATH
 	$(ADB) shell 'rm -r $(MSYS_FIX)/data/local/svoperapps'
 	$(ADB) push $(PROFILE_FOLDER)/svoperapps $(MSYS_FIX)/data/local/svoperapps
 endif
