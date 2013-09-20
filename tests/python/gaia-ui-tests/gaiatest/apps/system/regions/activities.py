@@ -11,8 +11,8 @@ class Activities(Base):
     _actions_menu_locator = (By.CSS_SELECTOR, 'form[data-type="action"]')
     _action_option_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button')
 
-    _gallery_button_locator = (By.XPATH, '//a[text()="Gallery"]')
-    _camera_button_locator = (By.XPATH, '//a[text()="Camera"]')
+    _gallery_button_locator = (By.XPATH, '//*[text()="Gallery"]')
+    _camera_button_locator = (By.XPATH, '//*[text()="Camera"]')
     _cancel_button_locator = (By.CSS_SELECTOR, 'form[data-type="action"] button[data-action="cancel"]')
 
     def __init__(self, marionette):
