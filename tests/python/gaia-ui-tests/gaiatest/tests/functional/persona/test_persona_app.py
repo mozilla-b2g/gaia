@@ -1,16 +1,17 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import os
 
 from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.persona.app import Persona
 from gaiatest.mocks.persona_test_user import PersonaTestUser
 
-AUDIENCE = "app://uitest.gaiamobile.org"
-VERIFIER_URL = "https://login.persona.org/verify"
-TESTUSER_BROWSERID = "login.persona.org"
-TESTUSER_VERIFIER = "login.persona.org"
+AUDIENCE = os.environ.get("AUDIENCE", "app://uitest.gaiamobile.org")
+VERIFIER_URL = os.environ.get("VERIFIER_URL", "https://login.persona.org/verify")
+TESTUSER_BROWSERID = os.environ.get("TESTUSER_BROWSERID", "login.persona.org")
+TESTUSER_VERIFIER = os.environ.get("TESTUSER_VERIFIER", "login.persona.org")
 
 
 class TestPersonaStandard(GaiaTestCase):
