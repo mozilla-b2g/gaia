@@ -25,6 +25,7 @@ case $1 in
     CONTACT_COUNT=0
     SMS_COUNT=0
     DIALER_COUNT=0
+    CAL_COUNT=0
   ;;
 
   light)
@@ -34,6 +35,7 @@ case $1 in
     CONTACT_COUNT=200
     SMS_COUNT=200
     DIALER_COUNT=50
+    CAL_COUNT=900
   ;;
 
   medium)
@@ -43,6 +45,7 @@ case $1 in
     CONTACT_COUNT=500
     SMS_COUNT=500
     DIALER_COUNT=100
+    CAL_COUNT=1300
   ;;
 
   heavy)
@@ -52,6 +55,7 @@ case $1 in
     CONTACT_COUNT=1000
     SMS_COUNT=1000
     DIALER_COUNT=200
+    CAL_COUNT=2400
   ;;
 
   x-heavy)
@@ -61,6 +65,7 @@ case $1 in
     CONTACT_COUNT=2000
     SMS_COUNT=2000
     DIALER_COUNT=500
+    CAL_COUNT=3200
   ;;
 
   *)
@@ -96,7 +101,7 @@ else
 fi
 
 if [ -z "$APPS" ]; then
-  APPS="gallery music video communications/contacts sms communications/dialer"
+  APPS="gallery music video communications/contacts sms communications/dialer calendar"
 fi
 
 SUMMARY="Summary:\n"
@@ -161,6 +166,29 @@ for app in $APPS; do
       adb push  $SCRIPT_DIR/smsDb-$SMS_COUNT/ $IDB_BASE/chrome$IDB_PATH/226660312ssm/
       rm -rf $ATTACHMENT_DIR/
       LINE=" Sms Messages:   $(printf "%4d" $SMS_COUNT)"
+      ;;
+
+    calendar)
+	  echo "Starting calendar"
+      if [ -z "$IDB_PRESENT" ]; then
+        echo "Can't push calendar to b2g18 phone..."
+        LINE=" Calendar: skipped"
+      else
+        adb pull /data/local/webapps/webapps.json $SCRIPT_DIR/webapps.json
+        CAL_INFO=$(python $SCRIPT_DIR/readJSON.py $SCRIPT_DIR/webapps.json "calendar.*/localId")
+        IFS='/' read -a CAL_PARTS <<< "$CAL_INFO"
+        CAL_DOMAIN=${CAL_PARTS[0]}
+        CAL_ID=${CAL_PARTS[1]}
+        CAL_DIR="$CAL_ID+f+app+++$CAL_DOMAIN"
+        rm -f $SCRIPT_DIR/webapps.json
+        if [ -z "$CAL_ID" ]; then
+          echo "Unable to determine calendar application ID - skipping calendar..."
+          LINE=" Calendar: skipped"
+        else
+          adb push  $SCRIPT_DIR/calendarDb-$CAL_COUNT.sqlite $IDB_BASE/$CAL_DIR$IDB_PATH/125582036br2agd-nceal.sqlite
+          LINE=" Calendar:   $(printf "%4d" $CAL_COUNT)"
+        fi
+      fi
       ;;
 
     *)
