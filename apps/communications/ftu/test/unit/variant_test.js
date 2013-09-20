@@ -16,7 +16,6 @@ suite('variant >', function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
     mocksHelper.suiteSetup();
-    VariantManager._variantCustomization = null;
   });
 
   suiteTeardown(function() {
@@ -25,7 +24,17 @@ suite('variant >', function() {
     mocksHelper.suiteTeardown();
   });
 
-   test('getVariantSettings no json', function() {
+  setup(function() {
+    VariantManager.mcc_mnc = null;
+    VariantManager._variantCustomization = null;
+  });
+
+  teardown(function() {
+    VariantManager.mcc_mnc = null;
+    VariantManager._variantCustomization = null;
+  });
+
+  test('getVariantSettings no json', function() {
     VariantManager.mcc_mnc = '220-033';
     VariantManager.getVariantSettings();
     assert.isNull(VariantManager._variantCustomization);
