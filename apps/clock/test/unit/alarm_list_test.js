@@ -3,29 +3,28 @@ suite('AlarmList', function() {
   var AlarmList, Alarm;
 
   suiteSetup(function(done) {
-    testRequire(['alarm_list'], {
+    testRequire([
+        'alarm_list',
+        'alarm',
+        'mocks/mock_mozAlarm',
+        'mocks/mock_navigator_mozl10n'
+      ], {
         mocks: {
           'alarm_manager': 'mocks/mock_alarm_manager',
           alarmsdb: 'mocks/mock_alarmsDB',
           banner: 'mocks/mock_banner'
         }
       },
-      function(alarmList, alarm) {
+      function(alarmList, alarm, mockMozAlarms, mockL10n) {
         AlarmList = alarmList;
-        requirejs([
-          'alarm',
-          'mocks/mock_mozAlarm',
-          'mocks/mock_navigator_mozl10n'
-        ], function(alarm, mockMozAlarms, mockL10n) {
-          loadBodyHTML('/index.html');
-          AlarmList.init();
-          Alarm = alarm;
-          nma = navigator.mozAlarms;
-          nml = navigator.mozL10n;
-          navigator.mozAlarms = mockMozAlarms;
-          navigator.mozL10n = mockL10n;
-          done();
-        });
+        loadBodyHTML('/index.html');
+        AlarmList.init();
+        Alarm = alarm;
+        nma = navigator.mozAlarms;
+        nml = navigator.mozL10n;
+        navigator.mozAlarms = mockMozAlarms;
+        navigator.mozL10n = mockL10n;
+        done();
       }
     );
   });

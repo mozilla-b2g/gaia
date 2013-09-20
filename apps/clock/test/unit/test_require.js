@@ -3,7 +3,7 @@ requireApp('clock/js/alameda.js');
 (function(exports) {
   'use strict';
 
-  var contextIdCount = 0;
+  var ctxIdCount = 0;
   var baseConfig = {
     baseUrl: '/js',
     paths: {
@@ -24,10 +24,29 @@ requireApp('clock/js/alameda.js');
     }
   };
 
+  /**
+   * Function for loading production modules for test.
+   *
+   * @param {string[]} modules - List of modules to load.
+   * @param {Object} [options] - Optional configuration for the require
+   *                             operation. Accepts a `mocks` object that
+   *                             defines a mapping of module name to mock path.
+   * @param {Function} callback - Function to be invoked when all modules have
+   *                              been defined. As in traditional AMD, the
+   *                              requested modules will be parameterized in
+   *                              this function.
+   *
+   * Works like typical `require` function, but accepts an optional second
+   * argument for defining mock modules.
+   *
+   * Each invocation uses a distinct Require.js context, meaning that modules
+   * will be re-loaded for distinct calls. This context is returned in the
+   * event that test authors need to do additional loading.
+   */
   exports.testRequire = function(modules, options, callback) {
     var mocks = options && options.mocks;
     var map = {};
-    var req;
+    var ctx;
 
     if (arguments.length === 2) {
       callback = options;
@@ -40,12 +59,15 @@ requireApp('clock/js/alameda.js');
       });
     }
 
-    requirejs.config(baseConfig);
-    requirejs.config({
+    ctx = requirejs.config({
+      context: 'test-' + ctxIdCount++,
       map: map
     });
+    ctx.config(baseConfig);
 
-    requirejs(modules, callback);
+    ctx(modules, callback);
+
+    return ctx;
   };
 
 }(this));
