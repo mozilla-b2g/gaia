@@ -1,5 +1,3 @@
-requireApp('clock/js/constants.js');
-
 requireApp('clock/test/unit/mocks/mock_requestWakeLock.js');
 
 suite('Time functions', function() {

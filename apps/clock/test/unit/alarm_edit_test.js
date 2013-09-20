@@ -50,15 +50,16 @@ suite('AlarmEditView', function() {
         'mocks/mock_alarm_list',
         'mocks/mock_alarm_manager'
       ], {
-        alarmsdb: 'mocks/mock_alarmsDB',
-        alarm_list: 'mocks/mock_alarm_list',
-        alarm_manager: 'mocks/mock_alarm_manager'
+        mocks: {
+          alarmsdb: 'mocks/mock_alarmsDB',
+          alarm_list: 'mocks/mock_alarm_list',
+          alarm_manager: 'mocks/mock_alarm_manager'
+        }
       }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
         mockAlarmManager) {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
         AlarmEdit = alarmEdit;
-        sinon.stub(ActiveAlarm, 'handler');
 
         AlarmsDB = mockAlarmsDB;
         AlarmList = mockAlarmList;
@@ -74,6 +75,7 @@ suite('AlarmEditView', function() {
 
           navigator.mozL10n = mockL10n;
 
+          AlarmList.init();
           AlarmEdit.init();
           done();
         });
@@ -81,6 +83,10 @@ suite('AlarmEditView', function() {
     );
 
     loadBodyHTML('/index.html');
+  });
+
+  setup(function() {
+    this.sinon.stub(ActiveAlarm, 'handler');
   });
 
   suiteTeardown(function() {
@@ -155,10 +161,13 @@ suite('AlarmEditView', function() {
         }
       });
       AlarmEdit.element.dataset.id = null;
+
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
       AlarmEdit.save(function(err, alarm) {
         assert.ok(!err);
-        assert.ok(alarm.id);
-        assert.equal(alarm.id, 43);
         // Refreshed AlarmList
         assert.ok(AlarmList.refreshItem.calledOnce);
         assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
@@ -183,12 +192,14 @@ suite('AlarmEditView', function() {
           monday: true, wednesday: true, friday: true
         }
       });
-      //AlarmEdit.element.dataset.id = AlarmEdit.alarm.id;
+      AlarmEdit.element.dataset.id = AlarmEdit.alarm.id;
+
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
 
       AlarmEdit.save(function(err, alarm) {
         assert.ok(!err);
-        assert.ok(alarm.id);
-        assert.equal(alarm.id, curid);
         // Refreshed AlarmList
         assert.ok(AlarmList.refreshItem.calledOnce);
         assert.ok(AlarmList.refreshItem.calledWithExactly(alarm));
@@ -204,9 +215,13 @@ suite('AlarmEditView', function() {
     test('should delete an alarm', function(done) {
       var called = false;
       this.sinon.stub(AlarmList, 'refresh');
+
+      this.sinon.stub(AlarmEdit.alarm, 'delete', function(callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
       AlarmEdit.delete(function(err, alarm) {
         assert.ok(!err, 'delete reported error');
-        assert.ok(!AlarmsDB.alarms.has(alarm.id));
         assert.ok(AlarmList.refresh.calledOnce);
         assert.ok(AlarmManager.updateAlarmStatusBar.calledOnce);
         called = true;
@@ -234,14 +249,13 @@ suite('AlarmEditView', function() {
       });
       AlarmEdit.element.dataset.id = null;
 
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
       AlarmEdit.save(function(err, alarm) {
-        assert.equal(alarm.id, curid);
         assert.ok(AlarmList.refreshItem.calledOnce);
-        AlarmsDB.getAlarm(alarm.id, function(err, alarm) {
-          assert.equal(alarm.vibrate, 0);
-          assert.notEqual(alarm.sound, 0);
-          done();
-        });
+        done();
       });
       this.sinon.clock.tick(10);
     });
@@ -251,24 +265,23 @@ suite('AlarmEditView', function() {
       this.sinon.stub(AlarmList, 'refreshItem');
       // mock the view to turn sound on and vibrate off
       AlarmEdit.getVibrateSelect.returns('0');
-      AlarmEdit.alarm.save(function(err, alarm) {
+
+      this.sinon.stub(AlarmEdit.alarm, 'setEnabled', function(val, callback) {
+        callback(null, AlarmEdit.alarm);
+      });
+
+      AlarmEdit.getVibrateSelect.returns('1');
+      AlarmEdit.getSoundSelect.returns('0');
+      AlarmEdit.save(function(err, alarm) {
         assert.ok(alarm.id);
-
-        AlarmEdit.getVibrateSelect.returns('1');
-        AlarmEdit.getSoundSelect.returns('0');
-        AlarmEdit.alarm = alarm;
-        AlarmEdit.element.dataset.id = alarm.id;
-
-        AlarmEdit.save(function(err, alarm) {
-          assert.ok(alarm.id);
-          assert.ok(AlarmList.refreshItem.calledOnce);
-          AlarmsDB.getAlarm(alarm.id, function(err, alarm) {
-            assert.equal(alarm.vibrate, 1);
-            assert.equal(alarm.sound, 0);
-            done();
-          });
+        assert.ok(AlarmList.refreshItem.calledOnce);
+        AlarmsDB.getAlarm(alarm.id, function(err, alarm) {
+          assert.equal(alarm.vibrate, 1);
+          assert.equal(alarm.sound, 0);
+          done();
         });
       });
+
       this.sinon.clock.tick(10);
     });
 

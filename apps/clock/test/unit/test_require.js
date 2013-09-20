@@ -1,7 +1,14 @@
-requireApp('clock/js/alameda.js', function() {
-  requirejs.config({
+requireApp('clock/js/alameda.js');
+
+(function(exports) {
+  'use strict';
+
+  var contextIdCount = 0;
+  var baseConfig = {
+    baseUrl: '/js',
     paths: {
       template: '/shared/js/template',
+      mocks: '../test/unit/mocks',
       'async-storage': '../../shared/js/async_storage'
     },
     shim: {
@@ -15,31 +22,30 @@ requireApp('clock/js/alameda.js', function() {
         exports: 'asyncStorage'
       }
     }
-  });
-});
+  };
 
-var testRequire = function(modules, options, callback) {
-  var mocks = options && options.mocks;
-  var map = {};
+  exports.testRequire = function(modules, options, callback) {
+    var mocks = options && options.mocks;
+    var map = {};
+    var req;
 
-  if (arguments.length === 2) {
-    callback = options;
-    options = null;
-  }
-
-  if (mocks) {
-    modules.forEach(function(module) {
-      map[module] = mocks;
-    });
-  }
-
-  requirejs.config({
-    baseUrl: '/js',
-    map: map,
-    paths: {
-      mocks: '../test/unit/mocks'
+    if (arguments.length === 2) {
+      callback = options;
+      options = null;
     }
-  });
 
-  requirejs(modules, callback);
-};
+    if (mocks) {
+      modules.forEach(function(module) {
+        map[module] = mocks;
+      });
+    }
+
+    requirejs.config(baseConfig);
+    requirejs.config({
+      map: map
+    });
+
+    requirejs(modules, callback);
+  };
+
+}(this));

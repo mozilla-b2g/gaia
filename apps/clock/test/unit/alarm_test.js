@@ -1,19 +1,3 @@
-/*requireApp('clock/js/constants.js');
-requireApp('clock/js/utils.js');
-requireApp('clock/js/alarm.js');
-requireApp('clock/js/alarmsdb.js');
-requireApp('clock/js/alarm_manager.js');
-requireApp('clock/js/alarm_edit.js');
-requireApp('clock/js/alarm_list.js');
-requireApp('clock/js/active_alarm.js');
-
-requireApp('clock/test/unit/mocks/mock_alarmsDB.js');
-requireApp('clock/test/unit/mocks/mock_alarm_list.js');
-requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
-requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
-requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
-requireApp('clock/test/unit/mocks/mock_mozAlarm.js');*/
-
 suite('Alarm Test', function() {
 
   var Alarm, ActiveAlarm;
@@ -29,7 +13,8 @@ suite('Alarm Test', function() {
           'mocks/mock_navigator_mozl10n'
         ], function(mockMozAlarms, mockL10n) {
           navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
-            ActiveAlarm.handler);
+            ActiveAlarm.handler
+          );
 
           navigator.mozL10n = mockL10n;
           done();

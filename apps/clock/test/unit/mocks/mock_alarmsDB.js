@@ -1,5 +1,8 @@
-define(function() {
+define(function(require) {
   'use strict';
+
+  var Alarm = require('alarm');
+  var Utils = require('utils');
 
   function MockAlarmsDB() {
     this.init();
