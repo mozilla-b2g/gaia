@@ -8,9 +8,11 @@ var HomeGesture = {
   // minimum moving distance to home in pixel of screen height
   MINUMUM_DISTANCE: 50,
   init: function hg_init() {
-    this.homeBar = document.getElementById('bottom-panel');
+    var isTablet =
+      !ScreenLayout.getCurrentLayout('tiny');
     this.hasHardwareHomeButton =
       ScreenLayout.getCurrentLayout('hardwareHomeButton');
+    this.homeBar = document.getElementById('bottom-panel');
 
     window.addEventListener('software-button-enabled', this);
     window.addEventListener('software-button-disabled', this);
@@ -19,9 +21,9 @@ var HomeGesture = {
     // This 'click' listener can prevent other element which
     // have click listener steal 'touchstart'.
     this.homeBar.addEventListener('click', this, true);
-    // enable gesture for no hardware home
-    // button device as default
-    if (!this.hasHardwareHomeButton) {
+    // enable gesture for tablet without hardware home button
+    // as default
+    if (!this.hasHardwareHomeButton && isTablet) {
       SettingsListener.getSettingsLock().set({
         'homegesture.enabled': true});
     }
@@ -86,8 +88,8 @@ var HomeGesture = {
         this.homeBar.style.display = 'block';
         break;
       case 'software-button-disabled':
-        // at least one of swtbtn or gesture is enabled when no
-        // hardware home button
+        // at least one of software home button or gesture is enabled
+        // when no hardware home button
         if (!this.hasHardwareHomeButton && !this.enable) {
           SettingsListener.getSettingsLock().set({
             'homegesture.enabled': true});

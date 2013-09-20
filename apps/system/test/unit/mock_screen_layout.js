@@ -9,7 +9,7 @@ var MockScreenLayout = {
   },
 
   getCurrentLayout: function msl_getCurrentLayout(type) {
-    return this.setting[name];
+    return this.setting[type];
   },
 
   mTeardown: function msl_mTeardown() {
