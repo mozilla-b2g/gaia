@@ -1,0 +1,46 @@
+{
+  appDir: '..',
+  baseUrl: 'js',
+  dir: '../../../build_stage/clock',
+  mainConfigFile: '../js/startup.js',
+  paths: {
+    prim: 'empty:'
+  },
+/*
+  wrap: {
+    start: 'plog("@@@ START OF BUILD LAYER");',
+    end: 'plog("@@@ END OF BUILD LAYER");'
+  },
+*/
+  modules: [
+    {
+      name: 'startup',
+      include: [
+        'alameda'
+      ]
+    }
+  ],
+
+  // Set to 'uglify2' to get uglify to run using the
+  // uglify2 settings below.
+  optimize: 'none',
+
+  // Just strip comments, no code compression or mangling.
+  // Only active if optimize: 'uglify2'
+  uglify2: {
+    // Comment out the output section to get rid of line
+    // returns and tabs spacing.
+    output: {
+      beautify: true
+    },
+    compress: false,
+    mangle: false
+  },
+
+  fileExclusionRegExp: /^\.|^test$|^build$/,
+
+  // Keeping build dir since Makefile cleans it up and
+  // preps build dir with the shared directory
+  keepBuildDir: true,
+  removeCombined: true
+}
