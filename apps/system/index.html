@@ -209,6 +209,10 @@
     <script defer src="js/update_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
 
+    <!-- Media Playback -->
+    <script defer src="js/media_playback.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
+
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/core.css">
@@ -424,6 +428,19 @@
             <div class="message">
             </div>
             <div class="available-space">
+            </div>
+          </div>
+          <!-- Media playback notification -->
+          <div id="media-playback-container" class="fake-notification" hidden>
+            <div id="media-playback-nowplaying">
+              <div class="icon">
+              </div>
+              <div class="albumart">
+              </div>
+              <div class="title">
+              </div>
+              <div class="artist">
+              </div>
             </div>
           </div>
           <!-- App Install Manager -->

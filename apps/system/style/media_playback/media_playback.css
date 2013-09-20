@@ -1,0 +1,44 @@
+#media-playback-nowplaying {
+  height: 4rem;
+  margin: 1rem 1.5rem 0rem 1rem;
+}
+
+#media-playback-nowplaying > .icon {
+  position: relative;
+  float: left;
+  width: 3rem;
+  height: 3rem;
+  margin: 0.5rem 0;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+#media-playback-nowplaying > .albumart {
+  float: right;
+  width: 4rem;
+  height: 4rem;
+  background-size: 4rem;
+}
+
+#media-playback-nowplaying > .title,
+#media-playback-nowplaying > .artist {
+  margin-left: 4rem;
+  margin-right: 5rem;
+  line-height: 1.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#media-playback-nowplaying > .title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #ffffff;
+}
+
+#media-playback-nowplaying > .artist {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #bfbfbf;
+}
