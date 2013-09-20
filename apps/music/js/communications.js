@@ -96,6 +96,11 @@ var MusicComms = {
       this.mrc.addCommandListener(command, this.commands[command].bind(this));
 
     this.mrc.start();
+
+    this.mrc.notifyAppInfo({
+      origin: window.location.origin,
+      icon: window.location.origin + '/style/icons/Music.png'
+    });
   },
 
   _getPlayerReady: function(callback) {

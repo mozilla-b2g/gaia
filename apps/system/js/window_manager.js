@@ -1322,6 +1322,11 @@ var WindowManager = (function() {
     kill(e.detail.origin);
   });
 
+  // Watch for event to bring a currently-open app to the foreground.
+  window.addEventListener('displayapp', function(e) {
+    setDisplayedApp(e.detail.origin);
+  });
+
   function getIconForSplash(manifest) {
     var icons = 'icons' in manifest ? manifest['icons'] : null;
     if (!icons) {
