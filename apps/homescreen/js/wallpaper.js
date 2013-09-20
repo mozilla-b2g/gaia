@@ -3,36 +3,48 @@
 const Wallpaper = (function() {
 
   function onHomescreenContextmenu() {
-    var a = new MozActivity({
-      name: 'pick',
-      data: {
-        type: 'image/jpeg',
-        width: 320,
-        height: 480
-      }
+
+    // Ask for the locked content key first, because if it does not exist
+    // we know there is no locked content on the phone and we don't have
+    // to show the Locked Content app in the activity request.
+    ForwardLock.getKey(function(secret) {
+      var a = new MozActivity({
+        name: 'pick',
+        data: {
+          type: ['wallpaper', 'image/*'],
+          includeLocked: (secret !== null),
+          width: 320,
+          height: 480
+        }
+      });
+
+      a.onsuccess = function onWallpaperSuccess() {
+        var blob = a.result.blob;
+
+        if (!blob)
+          return;
+
+        // If this is a locked image from the locked content app, unlock it
+        if (blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
+          ForwardLock.unlockBlob(secret, blob, function(unlocked) {
+            setWallpaper(unlocked);
+          });
+        }
+        else {
+          setWallpaper(blob);
+        }
+
+        function setWallpaper(blob) {
+          navigator.mozSettings.createLock().set({
+            'wallpaper.image': blob
+          });
+        }
+      };
+
+      a.onerror = function onWallpaperError() {
+        console.warn('pick failed!');
+      };
     });
-
-    a.onsuccess = function onWallpaperSuccess() {
-      if (!a.result.blob)
-        return;
-
-      var reader = new FileReader();
-      reader.readAsDataURL(a.result.blob);
-      reader.onload = function() {
-        navigator.mozSettings.createLock().set({
-          'wallpaper.image': reader.result
-        });
-        reader.onload = reader.onerror = null;
-      };
-      reader.onerror = function(e) {
-        console.error('Error reading the blob returned by the activity', e);
-        reader.onload = reader.onerror = null;
-      };
-    };
-
-    a.onerror = function onWallpaperError() {
-      console.warn('pick failed!');
-    };
   }
 
   return {

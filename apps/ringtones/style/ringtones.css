@@ -1,0 +1,124 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  background-color: white;
+  overflow: hidden;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+ul li {
+  -moz-box-sizing: border-box;
+  position: relative;
+  min-height: 6rem;
+  margin: 0 1.5rem;
+  border-bottom: 0.1rem solid #e6e6e3;
+  color: #000;
+}
+
+ul li label:not([for]) {
+  background: none;
+}
+
+ul li > a,
+ul li > span {
+  display: block;
+  text-decoration: none;
+  outline: 0;
+  color: #000;
+  -moz-box-sizing: border-box;
+  height: 6rem;
+  font-size: 1.9rem;
+  line-height: 6rem;
+  padding: 0 1.5rem;
+}
+
+ul li.disabled > a {
+  color: #797e80;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* text ellipsis */
+ul li > * {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/******************************************************************************
+ * Boolean inputs
+ */
+
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
+ul li label {
+  text-transform: none;
+}
+
+ul li > label:not([for]),
+ul li > label.pack-radio {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+ul li > label.pack-radio > span {
+  left: auto;
+  right: 0;
+}
+
+ul li > label.pack-radio ~ a {
+  padding-right: 6.1rem;
+}
+
+ul li > label.pack-radio:active ~ a {
+  background-color: #b2f2ff;
+  color: #222;
+}
+
+/* Setting panels: full-size <section role="region"> blocks */
+section[role="region"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: url(images/document_bg.png);
+  overflow: auto;
+}
+
+/**
+ * Headers should not scroll with the rest of the page
+ */
+section[role="region"] > header {
+  position: absolute;
+}
+
+#sounds {
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: auto;
+  width: 100%;
+  height: calc(100% - 5rem);
+  font-size: 1.9rem;
+}
+
+.sound-name {
+  padding-top: 1.8rem;
+  padding-left: 1rem;
+}

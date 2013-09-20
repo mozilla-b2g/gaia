@@ -41,10 +41,16 @@
         <h2 data-l10n-id="tones">Tones</h2>
       </header>
       <ul>
-        <li>
+        <li id="ringer" hidden>
           <p data-l10n-id="ringer">Ringer</p>
           <p class="fake-select">
-            <button id="call-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
+            <button id="ring-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
+          </p>
+        </li>
+        <li id="alerts">
+          <p data-l10n-id="alerts">Alerts</p>
+          <p class="fake-select">
+            <button id="alert-tone-selection" class="icon icon-view" data-l10n-id="change"></button>
           </p>
         </li>
         <li id="touch-tone-selector" hidden>
@@ -108,6 +114,7 @@
       </ul>
     </div>
 
+    <script src="shared/js/omadrm/fl.js"></script>
     <script src="js/sound.js"></script>
 
   </template>
