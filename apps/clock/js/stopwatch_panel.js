@@ -1,4 +1,4 @@
-(function(exports) {
+(function(stopwatch, panel) {
 
   'use strict';
 
@@ -13,7 +13,7 @@
    *
    */
   Stopwatch.Panel = function(element) {
-    Panel.apply(this, arguments);
+    panel.apply(this, arguments);
 
     this.nodes = {};
     this.lapTemplate = new Template('lap-list-item-tmpl');
@@ -51,12 +51,12 @@
     );
 
     priv.set(this, {
-      stopwatch: new Stopwatch()
+      stopwatch: new stopwatch()
     });
 
   };
 
-  Stopwatch.Panel.prototype = Object.create(Panel.prototype);
+  Stopwatch.Panel.prototype = Object.create(panel.prototype);
 
   Stopwatch.Panel.prototype.update = function() {
     var swp = priv.get(this);
@@ -88,7 +88,7 @@
         // - restart the interval
         //
         this.update();
-        this.interval = window.setInterval(this.update.bind(this), 50);
+        this.interval = setInterval(this.update.bind(this), 50);
       } else {
         // Stopwatch is not started and elapsedTime is 0
         //
@@ -104,14 +104,14 @@
         //
         // - clear the interval
         //
-        window.clearInterval(this.interval);
+        clearInterval(this.interval);
       }
     }
   };
 
   Stopwatch.Panel.prototype.handleEvent = function(event) {
     if (event.type == 'animationend') {
-      Panel.prototype.handleEvent.apply(this, arguments);
+      panel.prototype.handleEvent.apply(this, arguments);
       return;
     }
 
@@ -128,20 +128,20 @@
   };
 
   Stopwatch.Panel.prototype.onstart = function() {
-    this.interval = window.setInterval(this.update.bind(this), 50);
+    this.interval = setInterval(this.update.bind(this), 50);
     this.nodes.reset.removeAttribute('disabled');
     this.showButtons('pause', 'lap');
     this.hideButtons('start', 'resume', 'reset');
   };
 
   Stopwatch.Panel.prototype.onpause = function() {
-    window.clearInterval(this.interval);
+    clearInterval(this.interval);
     this.showButtons('resume', 'reset');
     this.hideButtons('pause', 'start', 'lap');
   };
 
   Stopwatch.Panel.prototype.onresume = function() {
-    this.interval = window.setInterval(this.update.bind(this), 50);
+    this.interval = setInterval(this.update.bind(this), 50);
     this.showButtons('pause', 'lap');
     this.hidebuttons('start', 'resume', 'reset');
   };
@@ -164,7 +164,7 @@
   };
 
   Stopwatch.Panel.prototype.onreset = function() {
-    window.clearInterval(this.interval);
+    clearInterval(this.interval);
     this.showButtons('start', 'reset');
     this.hideButtons('pause', 'resume', 'lap');
     this.nodes.reset.setAttribute('disabled', 'true');
@@ -176,4 +176,4 @@
     }
   };
 
-}(this));
+}(Stopwatch, Panel));
