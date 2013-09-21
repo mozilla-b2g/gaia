@@ -2,6 +2,7 @@ var Calendar = require('./calendar'),
     assert = require('assert');
 
 
+// test is disabled see: Bug 919066
 marionette('creating an event', function() {
   var client = marionette.client();
 
@@ -25,7 +26,7 @@ marionette('creating an event', function() {
     });
   });
 
-  test('should make an event visible in the month day view', function() {
+  test.skip('should make an event visible in the month day view', function() {
     // Get the day's events at the bottom of the month view.
     var els = app.monthViewDayEvents;
 
@@ -33,7 +34,7 @@ marionette('creating an event', function() {
     assert.strictEqual(els.length, 1);
   });
 
-  test('should display the created event in read-only view', function() {
+  test.skip('should display the created event in read-only view', function() {
     // Get the day's events at the bottom of the month view.
     var els = app.monthViewDayEvents;
 
