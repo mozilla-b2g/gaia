@@ -17,14 +17,6 @@ NdefWrite: function(message) {
   navigator.mozNfc.sendToNfcd(message);
 },
 
-validateNdefTagRecords: function(ndefRecords) {
-  if (ndefRecords instanceof Array) {
-    return navigator.mozNfc.validateNdefTag(ndefRecords);
-  } else {
-    return false;
-  }
-},
-
 /**
  * Returns a request object. To observe the result, define and
  * attach callbacks taking an event to the request's onsuccess
@@ -178,12 +170,6 @@ postTextFormtoNdef: function(elementRef) {
   var records = new Array();
   var record = this.textFormToNdefRecord(elementRef);
   records.push(record);
-  // Check:
-  if (nfcWriter.validateNdefTagRecords(records) == false) {
-    var message = 'NdefRecord is invalid';
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-    return;
-  }
   nfcUI.postPendingMessage(records);
 },
 
@@ -191,12 +177,6 @@ postSmartPosterUriFormtoNdef: function(elementRef) {
   var records = new Array();
   var record = this.smartPosterUriFormToNdefRecord(elementRef);
   records.push(record);
-  // Check:
-  if (nfcWriter.validateNdefTagRecords(records) == false) {
-    var message = 'NdefRecord is invalid';
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-    return;
-  }
   nfcUI.postPendingMessage(records);
 },
 
@@ -204,12 +184,6 @@ postUriFormtoNdef: function(elementRef) {
   var records = new Array();
   var record = this.urlFormToNdefRecord(elementRef, true);
   records.push(record);
-  // Check:
-  if (nfcWriter.validateNdefTagRecords(records) == false) {
-    var message = 'NdefRecord is invalid';
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-    return;
-  }
   nfcUI.postPendingMessage(records);
 },
 
@@ -217,12 +191,6 @@ postSmartPosterEmailFormtoNdef: function(elementRef) {
   var records = new Array();
   var record = this.smartPosterEmailFormToNdefRecord(elementRef);
   records.push(record);
-  // Check:
-  if (nfcWriter.validateNdefTagRecords(records) == false) {
-    var message = 'NdefRecord is invalid';
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-    return;
-  }
   nfcUI.postPendingMessage(records);
 },
 
@@ -230,12 +198,6 @@ postEmailFormtoNdef: function(elementRef) {
   var records = new Array();
   var record = this.emailFormToNdefRecord(elementRef);
   records.push(record);
-  // Check:
-  if (nfcWriter.validateNdefTagRecords(records) == false) {
-    var message = 'NdefRecord is invalid';
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-    return;
-  }
   nfcUI.postPendingMessage(records);
 },
 
@@ -243,12 +205,6 @@ postSmsFormtoNdef: function(elementRef) {
   var records = new Array();
   var record = this.smsFormToNdefRecord(elementRef);
   records.push(record);
-  // Check:
-  if (nfcWriter.validateNdefTagRecords(records) == false) {
-    var message = 'NdefRecord is invalid';
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-    return;
-  }
   nfcUI.postPendingMessage(records);
 },
 
@@ -257,11 +213,6 @@ postContactFormToNdef: function(elementRef) {
   var record = this.contactFormToNdefRecord(elementRef);
   var records = new Array();
   records.push(record);
-  if (nfcWriter.validateNdefTagRecords(records) == false) {
-    var message = 'NdefRecord is invalid';
-    nfcUI.appendTextAndScroll($('#area'), message + '\n');
-    return;
-  }
   nfcUI.postPendingMessage(records);
 },
 
