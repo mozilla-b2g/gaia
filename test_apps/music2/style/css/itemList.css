@@ -7,6 +7,10 @@
   background: rgba(0, 0, 0, .5);
 }
 
+.topFloat {
+  z-index: 2000;
+}
+
 .uiItem {
   position: relative;
   width: 100%;

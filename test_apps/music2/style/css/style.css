@@ -34,6 +34,10 @@ body {
   -moz-transition: all .1s ease-in-out 0s;
 }
 
+.noTransition {
+  -moz-transition-property: none;
+}
+
 .buttonDown {
   background-color: #008aaa !important;
   -moz-transition-duration: 0s;
