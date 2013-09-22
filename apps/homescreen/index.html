@@ -28,8 +28,10 @@
     <!-- Lazy load for Ev.me -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"> -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/status.css"> -->
+    <!-- <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"> -->
 
     <!-- Specific code -->
+    <script type="text/javascript" defer src="js/grid_components.js"></script>
     <script type="text/javascript" defer src="js/bookmark.js"></script>
     <script type="text/javascript" defer src="js/state.js"></script>
     <script type="text/javascript" defer src="js/icon_retriever.js"></script>
@@ -47,7 +49,7 @@
 
   <body data-mode="normal">
     <div id="search-overlay"></div>
-    <div id="landing-overlay"></div>
+    <div id="bg-overlay"></div>
     <!-- This markup is just to detect text overflow with app names
          because of pages are hidden after rendering -->
     <div id="fake-icon">
@@ -73,49 +75,105 @@
       <div class="paginationScroller" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" aria-controls="icongrid"></div>
     </header>
 
-    <div id="icongrid" class="apps" role="main">
-      <div id="landing-page" data-current-page="true">
-        <div id="evme-activation-icon"></div>
-
-          <div id="evmeContainer">
-            <div id="search" class="active">
-              <div id="search-header">
-                  <form action="/#!/search" id="search-rapper">
-                      <fieldset>
-                          <div id="search-q-bg">
-                              <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" x-inputmode="verbatim" />
-                              <span id="default-text" data-l10n-id="evme-searchbar-default2"></span>
-                          </div>
-                          <div id="helper-tip"><b></b></div>
-                      </fieldset>
-                  </form>
-                  <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
-              </div>
-              <div id="header">
-                  <div id="helper-header">
-                      <h1 id="search-title"></h1>
-                      <div id="helper-rapper">
-                          <div id="helper">
-                              <ul></ul>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-              <div id="evmeApps" class="evme-apps">
-                  <ul id="evmeAppsList"></ul>
-              </div>
-            </div>
-
-            <div id="shortcuts">
-                <div id="shortcuts-list">
-                    <ul id="shortcuts-items"></ul>
-                </div>
-                <div id="shortcuts-loading"></div>
-            </div>
-            <section id="evmeBanner" role="status" class="noreset"></section>
+    <div id="evmeOverlay" class="evmeScope">
+      <div class="collection">
+        <div class="header">
+          <div class="header-content">
+            <h2 class="title"></h2>
+            <b class="close"></b>
           </div>
+        </div>
+        <div class="content">
+          <div class="evme-apps" data-opacity-on-swipe="true">
+            <div>
+              <div>
+                <ul class="static"></ul>
+                <hr>
+                <ul class="cloud"></ul>
+              </div>
+              <section role="notification" class="connection-message">
+                <div>
+                  <span>No Connection</span>
+                </div>
+              </section>
+              <section role="notification" class="loading-more">
+                <div>
+                  <progress></progress>
+                  <span data-l10n-id="evme-appsmore-loading">Loading…</span>
+                </div>
+              </section>
+          </div>
+        </div>
+        <div class="image">
+          <div class="image-overlay"></div>
+        </div>
+
+        <form class="cloud-app-actions" role="dialog" data-type="action">
+          <menu>
+            <button data-action="pin">Add to top of collection</button>
+            <button data-action="save">Save to Homescreen</button>
+            <button data-l10n-id="cancel">Cancel</button>
+          </menu>
+        </form>
       </div>
     </div>
+  </div> <!-- /evmeOverlay -->
+
+  <div id="evmeContainer" class="evmeScope empty-query">
+    <div id="search" class="active">
+      <div id="search-header" data-opacity-on-swipe="true">
+        <form action="/#!/search" id="search-rapper">
+          <fieldset>
+            <div id="search-q-bg">
+              <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" x-inputmode="verbatim" />
+              <span id="default-text" data-l10n-id="evme-searchbar-default2"></span>
+            </div>
+            <div id="helper-tip"><b></b></div>
+          </fieldset>
+        </form>
+        <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
+      </div>
+      <div id="header" data-opacity-on-swipe="true">
+        <div id="helper-header">
+          <h1 id="search-title"></h1>
+          <div id="helper-rapper">
+            <div id="helper">
+              <ul></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div id="evmeApps" class="evme-apps" data-opacity-on-swipe="true">
+        <div>
+          <div>
+            <ul class="contacts"></ul>
+            <ul class="installed"></ul>
+            <ul class="marketapps"></ul>
+            <ul class="marketsearch"></ul>
+            <ul class="static"></ul>
+            <hr>
+            <ul class="cloud"></ul>
+          </div>
+
+          <section role="notification" class="connection-message">
+            <div>
+              <span>No Connection</span>
+            </div>
+          </section>
+          <section role="notification" class="loading-more">
+            <div>
+              <progress></progress>
+              <span data-l10n-id="evme-appsmore-loading">Loading…</span>
+            </div>
+          </section>
+        </div>
+      </div>
+      </div>
+    </div> <!-- /evmeContainer -->
+
+    <div id="icongrid" class="apps" role="main"></div>
+
+    <section id="homescreenStatus" role="status" class="noreset"></section>
 
     <footer id="footer">
       <div class="dockWrapper"></div>
