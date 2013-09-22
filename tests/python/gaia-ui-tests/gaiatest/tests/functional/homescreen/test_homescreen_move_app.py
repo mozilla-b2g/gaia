@@ -27,6 +27,7 @@ class TestMoveApp(GaiaTestCase):
         """
 
         # go to app page
+        time.sleep(7)
         self._go_to_next_page()
         first_app_before_move = self.marionette.find_element(*self._visible_apps_locator).text
 

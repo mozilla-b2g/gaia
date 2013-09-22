@@ -1,9 +1,13 @@
+'use strict';
+
 Evme.Searchbar = new function Evme_Searchbar() {
     var NAME = "Searchbar", self = this,
         el = null, elForm = null, elClear = null, elDefaultText = null,
         value = "", isFocused = false,
         timeoutSearchOnBackspace = null, timeoutPause = null, timeoutIdle = null,
         intervalPolling = null,
+
+	pending,
         
         SEARCHBAR_POLLING_INTERVAL = 300,
         TIMEOUT_BEFORE_SEARCHING_ON_BACKSPACE = 500,
