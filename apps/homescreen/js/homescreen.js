@@ -11,7 +11,7 @@ var Homescreen = (function() {
     GridManager.localize();
   });
 
-  var initialized = false, landingPage;
+  var initialized = false;
   onConnectionChange(navigator.onLine);
 
   function initialize(lPage, onInit) {
@@ -22,7 +22,6 @@ var Homescreen = (function() {
     PaginationBar.init('.paginationScroller');
 
     initialized = true;
-    landingPage = lPage;
 
     var swipeSection = Configurator.getSection('swipe');
     var options = {
@@ -48,7 +47,7 @@ var Homescreen = (function() {
         } else if (Homescreen.isInEditMode()) {
           exitFromEditMode();
         } else {
-          GridManager.goToPage(landingPage);
+          GridManager.goToLandingPage();
         }
         GridManager.ensurePanning();
       });
@@ -57,7 +56,7 @@ var Homescreen = (function() {
       if (document.location.hash === '#root') {
         // Switch to the first page only if the user has not already
         // start to pan while home is loading
-        GridManager.goToPage(landingPage);
+        GridManager.goToLandingPage();
       }
 
       document.body.addEventListener('contextmenu', onContextMenu);
