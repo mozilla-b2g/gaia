@@ -42,12 +42,9 @@ class TestLaunchApp(GaiaTestCase):
     def test_launch_app(self):
         # We iterate through the homescreen pages until we find the app icon visible
         # It can be on different screens depending on what is packaged with the build
-        while True:
+        while self._homescreen_has_more_pages():
+            self._go_to_next_page()
             if self.is_element_present(*self._visible_icon_locator):
-                break
-            if self._homescreen_has_more_pages():
-                self._go_to_next_page()
-            else:
                 break
 
         # click icon and wait for h1 element displayed

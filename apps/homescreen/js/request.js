@@ -60,8 +60,7 @@ var ConfirmDialog = (function() {
       var confirm = {
         callback: function onAccept() {
           ConfirmDialog.hide();
-          if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-              app.type === GridItemsFactory.TYPE.BOOKMARK) {
+          if (app.isBookmark) {
             app.uninstall();
           } else {
             navigator.mozApps.mgmt.uninstall(app);
@@ -74,8 +73,7 @@ var ConfirmDialog = (function() {
       // a bookmark shortcut instead of an app.
       var manifest = app.manifest || app.updateManifest;
 
-      if (app.type === GridItemsFactory.TYPE.COLLECTION ||
-          app.type === GridItemsFactory.TYPE.BOOKMARK) {
+      if (app.isBookmark) {
         title = _('remove-title-2', { name: manifest.name });
         body = _('remove-body', { name: manifest.name });
         confirm.title = _('remove');

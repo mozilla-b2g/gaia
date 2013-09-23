@@ -14,7 +14,7 @@ var Homescreen = (function() {
   var initialized = false, landingPage;
   onConnectionChange(navigator.onLine);
 
-  function initialize(lPage, onInit) {
+  function initialize(lPage) {
     if (initialized) {
       return;
     }
@@ -61,10 +61,6 @@ var Homescreen = (function() {
       }
 
       document.body.addEventListener('contextmenu', onContextMenu);
-
-      if (typeof onInit === 'function') {
-        onInit();
-      }
     });
   }
 
@@ -158,8 +154,8 @@ var Homescreen = (function() {
     },
 
     didEvmePreventHomeButton: function() {
-      return EvmeFacade && EvmeFacade.onHomeButtonPress &&
-              EvmeFacade.onHomeButtonPress();
+      var evme = ('EvmeFacade' in window) && window.EvmeFacade;
+      return evme.onHomeButtonPress && evme.onHomeButtonPress();
     },
 
     init: initialize,
