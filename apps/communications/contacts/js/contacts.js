@@ -249,7 +249,7 @@ var Contacts = (function() {
           return;
         }
         contactsDetails.render(currentContact, TAG_OPTIONS);
-        if (contacts.Search.isInSearchMode()) {
+        if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
         } else {
           navigation.go('view-contact-details', 'go-deeper');
@@ -572,8 +572,10 @@ var Contacts = (function() {
   };
 
   var enterSearchMode = function enterSearchMode(evt) {
-    contacts.List.initSearch(function onInit() {
-      contacts.Search.enterSearchMode(evt);
+    Contacts.view('Search', function viewLoaded() {
+      contacts.List.initSearch(function onInit() {
+        contacts.Search.enterSearchMode(evt);
+      });
     });
   };
 
@@ -657,8 +659,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/status.js',
       '/contacts/js/utilities/overlay.js',
-      '/contacts/js/utilities/dom.js',
-      '/contacts/js/search.js'
+      '/contacts/js/utilities/dom.js'
     ];
 
     LazyLoader.load(lazyLoadFiles, function() {
