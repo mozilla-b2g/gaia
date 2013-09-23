@@ -556,8 +556,13 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       // bind paired callback
       aItem.onclick = function() {
+        // block the pairing request if there is already one.
+        if (pairingAddress)
+          return;
+
         var small = aItem.querySelector('small');
         l10n.localize(small, 'device-status-pairing');
+        this.setAttribute('aria-disabled', true);
         stopDiscovery();
 
         var req = defaultAdapter.pair(device);
@@ -618,8 +623,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         userCanceledPairing = false;
         // rollback device status
         if (openList.index[workingAddress]) {
-          var small =
-            openList.index[workingAddress].item.querySelector('small');
+          var item = openList.index[workingAddress].item;
+          var small = item.querySelector('small');
+          item.removeAttribute('aria-disabled');
           l10n.localize(small, 'device-status-tap-connect');
         }
       }
