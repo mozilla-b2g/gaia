@@ -32,13 +32,6 @@ contacts.Search = (function() {
       searchEnabled = false,
       source = null;
 
-  var onLoad = function onLoad() {
-    searchView = document.getElementById('search-view');
-    searchList = document.getElementById('search-list');
-  };
-
-  onLoad();
-
   // The _source argument should be an adapter object that provides access
   // to the contact nodes in the app.  This is done by defining the following
   // functions on the adapter object:
@@ -51,6 +44,10 @@ contacts.Search = (function() {
   //    getSearchText(node)   Get the search text from the given node
   //    click(event)          Click event handler to use
   var init = function load(_source, defaultEnabled) {
+
+    searchView = document.getElementById('search-view');
+    searchList = document.getElementById('search-list');
+
     if (!_source)
       throw new Error('Search requires a contact source!');
 
@@ -511,8 +508,6 @@ contacts.Search = (function() {
     'exitSearchMode': exitSearchMode,
     'isInSearchMode': isInSearchMode,
     'enableSearch': enableSearch,
-    // The purpose of this method is only for unit tests
-    'load': onLoad,
     'selectRow': selectRow
   };
 })();

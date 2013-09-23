@@ -184,13 +184,15 @@ contacts.Settings = (function() {
 
   function exportContactsHandler() {
       // Hide elements for import and transition
-      LazyLoader.load(['/contacts/js/export/contacts_exporter.js'],
-        function() {
+      LazyLoader.load(['/contacts/js/export/contacts_exporter.js'], loadSearch);
+
+      function loadSearch() {
+        Contacts.view('search', function() {
           importSettingsPanel.classList.add('export');
           updateImportTitle('exportContactsTitle');
           navigationHandler.go('import-settings', 'right-left');
-        }
-      );
+        });
+      }
   };
 
   function importOptionsHandler(e) {
