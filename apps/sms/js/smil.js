@@ -5,7 +5,8 @@
 (function() {
 'use strict';
 
-var runsafefilename = /[^a-zA-Z0-9.]/g;
+// characters not allowed in smil filenames
+var unsafeFilenamePattern = /[^a-zA-Z0-9_#.()?&%-]/g;
 
 // This encoder is aimed for encoding the string by 'utf-8'.
 var encoder = new TextEncoder('UTF-8');
@@ -65,9 +66,9 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   if (slide.blob) {
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
+      name = slide.name.substr(slide.name.lastIndexOf('/') + 1);
       // just to be safe, remove any non-standard characters from the filename
-      name = Template.escape(slide.name);
-      name = name.substr(name.lastIndexOf('/') + 1);
+      name = name.replace(unsafeFilenamePattern, '#');
       name = SMIL_generateUniqueLocation(data, name);
       media = '<' + blobType + ' src="' + name + '" region="Image"/>';
       data.attachments.push({
