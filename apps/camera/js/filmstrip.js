@@ -99,7 +99,6 @@ var Filmstrip = (function() {
   };
 
   function previewItem(index) {
-    Camera.releaseScreenWakeLock();
     // Don't redisplay the item if it is already displayed
     if (currentItemIndex === index)
       return;
@@ -117,6 +116,7 @@ var Filmstrip = (function() {
     }
 
     preview.classList.remove('offscreen');
+    Camera.releaseScreenWakeLock();
     currentItemIndex = index;
 
     // Highlight the border of the thumbnail we're previewing
@@ -134,10 +134,10 @@ var Filmstrip = (function() {
   }
 
   function hidePreview() {
-    Camera.requestScreenWakeLock();
     Camera.viewfinder.play();        // Restart the viewfinder
     show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
     preview.classList.add('offscreen');
+    Camera.requestScreenWakeLock();
     frame.clear();
     if (items.length > 0)
       items[currentItemIndex].element.classList.remove('previewed');
