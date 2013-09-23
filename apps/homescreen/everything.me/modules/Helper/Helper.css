@@ -4,7 +4,7 @@
     top: 3.9rem;
     right: 0;
 }
-.empty-query:not(.keyboard-visible) #helper-header {
+body:not(.evme-keyboard-visible) .empty-query #helper-header {
     display: none;
 }
 
@@ -12,8 +12,8 @@
     position: absolute;
     top: 0;
     left: 0.6rem;
-    right: 0.6rem;
-    color: #fff;
+    right: 3.6rem;
+    color: #b4dae7;
     z-index: 50;
     height: 3.8rem;
     line-height: 3.8rem;
@@ -28,6 +28,7 @@
     text-overflow: ellipsis;
 }
     #search-title b {
+	color: #fff;
         font-weight: inherit;
     }
 #search-title.close {
@@ -36,11 +37,10 @@
     #search-title .query {
         position: relative;
         margin-left: 0.5rem;
-        color: #b4dae7;
+
         text-transform: lowercase;
     }
         #search-title .type {
-            color: #b4dae7;
             font-style: normal;
             font-weight: normal;
             margin-left: 0.5rem;

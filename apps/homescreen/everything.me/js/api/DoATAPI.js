@@ -1,8 +1,10 @@
+'use strict';
+
 Evme.DoATAPI = new function Evme_DoATAPI() {
     var NAME = "DoATAPI", self = this,
         requestRetry = null,
         cached = [],
-        
+
         apiKey = '',
         deviceId = '',
         NUMBER_OF_RETRIES = 3,                          // number of retries before returning error
@@ -39,8 +41,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         requestsToCache = {
             "Search.apps": true,
             "Search.bgimage": true,
-            "Shortcuts.get": 60*24*2,
-            "Search.trending": true
+	    "Shortcuts.get": 2 * 24 * 60,
+	    "Shortcuts.suggestions": 2 * 24 * 60
         },
         requestsThatDontNeedConnection = {
             "Search.suggestions": true,
@@ -48,9 +50,16 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         },
         paramsToCleanFromCacheKey = ["cachedIcons", "idx", "feature", "sid", "credentials"],
         doesntNeedSession = {
-            "Session.init": true,
-            "Search.trending": true
+	    "Session.init": true
         },
+
+	// parameters for getting native app suggestions
+	paramsForNativeSuggestions = {
+	    'nativeSuggestions': true,
+	    'nativeIconFormat': 64, // same as GridManager.PREFERRED_ICON_SIZE
+	    'nativeIconAsUrl': true,
+	    '_opt': 'app.type'
+	},
         
         /*
          * config of params to pass from requests to reports
@@ -66,13 +75,16 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         "INVALID_PARAMS": -14,
         "TIMEOUT": -19
     };
-    
+
     this.init = function init(options){
         apiKey = options.apiKey;
         appVersion = options.appVersion || "";
         authCookieName = options.authCookieName;
         manualCampaignStats = options.manualCampaignStats;
 
+	// temporarily generate a device id, so that requests going out before we
+	// took it from the cache won't fail
+	deviceId = generateDeviceId();
         getDeviceId(function deviceIdGot(value) {
             deviceId = value;
         });
@@ -99,7 +111,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     
     this.search = function search(options, callback, noSession) {
         !options && (options = {});
-        
+
         var params = {
             "query": options.query,
             "experienceId": options.experienceId || '',
@@ -113,8 +125,21 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "limit": options.limit || 16,
             "idx": options.index || '',
             "iconFormat": options.iconFormat || 10,
-            "prevQuery": (options.first === 0)? options.prevQuery || "" : ""
+	    "prevQuery": (options.first === 0) ? options.prevQuery || "" : "",
+	    "_opt": 'app.type'
         };
+
+	if (params.first) {
+	  Evme.EventHandler.trigger(NAME, "loadmore", params);
+	}
+
+	if (params.exact) {
+	  for (var key in paramsForNativeSuggestions) {
+	    if (params[key] === undefined) {
+	      params[key] = paramsForNativeSuggestions[key];
+	    }
+	  }
+	}
         
         return request({
             "methodNamespace": "Search",
@@ -122,38 +147,29 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "params": params,
             "callback": callback,
             "noSession": noSession
-        }, options._NOCACHE);
+	}, options._NOCACHE || false);
     };
     
-    this.User = new function User() {
-        this.apps = function apps(options, callback) {
-            !options && (options = {});
-            
-            var params = {
-                "cachedIcons": options.cachedIcons,
-                "first": options.first,
-                "limit": options.limit,
-                "iconFormat": options.iconFormat
-            };
-            
-            return request({
-                "methodNamespace": "User",
-                "methodName": "apps",
-                "params": params,
-                "callback": callback
-            });
-        };
-        
-        this.clearApps = function clearApps(callback) {
-            return request({
-                "methodNamespace": "User",
-                "methodName": "clearApps",
-                "params": {},
-                "callback": callback
-            });
-        };
+    // icons in cache, to be reported to server
+    this.CachedIcons = new function CachedIcons() {
+      var self = this,
+	  newIcons = [];
+
+      this.add = function add(icon) {
+	newIcons.push(icon);
+      };
+
+      this.clear = function clear() {
+	newIcons = [];
+      };
+
+      this.yank = function yank() {
+	var result = Evme.Utils.convertIconsToAPIFormat(newIcons);
+	self.clear();
+	return result;
+      };
     };
-    
+
     this.suggestions = function suggestions(options, callback) {
         !options && (options = {});
     
@@ -166,7 +182,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "methodName": "suggestions",
             "params": params,
             "callback": callback
-        }, options._NOCACHE);
+	}, options._NOCACHE || false);
     };
     
     this.icons = function icons(options, callback) {
@@ -182,7 +198,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "methodName": "icons",
             "params": params,
             "callback": callback
-        }, options._NOCACHE);
+	}, options._NOCACHE || false);
     };
     
     this.bgimage = function bgimage(options, callback) {
@@ -205,7 +221,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "methodName": "bgimage",
             "params": params,
             "callback": callback
-        }, options._NOCACHE);
+	}, options._NOCACHE || false);
     };
     
     this.getDisambiguations = function getDisambiguations(options, callback) {
@@ -220,10 +236,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "methodName": "disambiguate",
             "params": params,
             "callback": callback
-        }, options._NOCACHE);
+	}, options._NOCACHE || false);
     };
     
-    this.shortcutsGet = function shortcutsGet(options, callback) {
+    this.Shortcuts = new function Shortcuts() {
+      this.get = function get(options, callback) {
         !options && (options = {});
 
         var params = {
@@ -231,289 +248,28 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         };
 
         return request({
-            "methodNamespace": "Shortcuts",
-            "methodName": "get",
-            "params": params,
-            "callback": callback
-        }, options._NOCACHE);
-    };
-    
-    this.Shortcuts = new function Shortcuts() {
-        var self = this,
-            STORAGE_KEY_SHORTCUTS = "localShortcuts",
-            STORAGE_KEY_ICONS = "localShortcutsIcons",
-            queriesToAppIds = {},
-            didClear = false;
-        
-        this.get = function get(options, callback) {
-            Evme.Storage.get(STORAGE_KEY_SHORTCUTS, function storageShortcuts(shortcuts) {
-                Evme.Storage.get(STORAGE_KEY_ICONS, function storageIcons(icons) {
-                    if (!didClear && (!shortcuts || shortcuts.length === 0)) {
-                        Evme.Utils.log('No shortcuts, use default ones');
+	  "methodNamespace": "Shortcuts",
+	  "methodName": "get",
+	  "params": params,
+	  "callback": callback
+	}, options._NOCACHE || false);
+      };
 
-                        shortcuts = Evme.__config['_' + STORAGE_KEY_SHORTCUTS];
-                        icons = Evme.__config['_' + STORAGE_KEY_ICONS];
-
-                        // save the default shortcuts, so if won't keep taking the default ones
-                        self.set({
-                          "shortcuts": shortcuts,
-                          "icons": icons
-                        });
-                    }
-
-                    didClear = false;
-
-                    saveAppIds(shortcuts);
-
-                    callback && callback(createResponse(shortcuts, icons));
-                });
-            });
-        };
-        
-        this.clear = function clear(callback) {
-            queriesToAppIds = {};
-            didClear = true;
-
-            Evme.Storage.remove(STORAGE_KEY_SHORTCUTS, function onShortcutsRemoved() {
-              Evme.Storage.remove(STORAGE_KEY_ICONS, function onIconsRemoved() {
-                callback && callback();
-              });
-            });
-        };
-        
-        this.set = function set(options, callback) {
-            !options && (options = {});
-            
-            var shortcuts = options.shortcuts || [],
-                icons = options.icons || {};
-  
-            for (var i=0,shortcut; shortcut=shortcuts[i++];) {
-                if (typeof shortcut === "string") {
-                    shortcut = {
-                        "query": shortcut
-                    };
-                }
-                
-                shortcut.appIds = getAppIds(shortcut);
-                
-                shortcuts[i-1] = shortcut;
-            }
-
-            Evme.Utils.log('Saving ' + shortcuts.length + ' shortcuts');
-
-            Evme.Storage.set(STORAGE_KEY_SHORTCUTS, shortcuts, function onShortcutsSet() {
-              Evme.Storage.set(STORAGE_KEY_ICONS, icons, function onIconsSet() {
-                callback && callback();
-              });
-            });
-        };
-        
-        this.add = function add(options, callback) {
-            var shortcuts = options.shortcuts || [],
-                icons = options.icons || {};
-
-            if (!Array.isArray(shortcuts)) {
-              shortcuts = [shortcuts];
-            }
-
-            self.get(null, function onGetSuccess(data) {
-                var currentShortcuts = data.response.shortcuts || [],
-                    currentIcons = data.response.icons || {};
-                
-                Evme.Utils.log('Got ' + currentShortcuts.length + ' current shortcut, adding ' + shortcuts.length + ' new ones');
-                
-                for (var i=0,shortcut; shortcut=shortcuts[i++];) {
-                    if (contains(currentShortcuts, shortcut) === false) {
-                        currentShortcuts.push(shortcut);
-                    }
-                }
-                
-                for (var appId in icons) {
-                    currentIcons[appId] = icons[appId];
-                }
-                
-                self.set({
-                    "shortcuts": currentShortcuts,
-                    "icons": currentIcons
-                }, callback);
-            });
-            
-        }
-        
-        // this method gets icons or shortcuts and updates the single items in the DB
-        // options.icons should be a map of appId : icon
-        // options.shortcuts should be a map of experienceId/query : appIds
-        this.update = function update(options, callback) {
-          var icons = options.icons || {},
-              shortcuts = options.shortcuts || {};
-          
-          self.get(null, function onGetSuccess(data) {
-              var currentShortcuts = data.response.shortcuts || [],
-                  currentIcons = data.response.icons || {};
-              
-              for (var appId in icons) {
-                currentIcons[appId] = icons[appId];
-              }
-              
-              for (var i=0,shortcut,newShortcutData; i<currentShortcuts.length; i++) {
-                shortcut = currentShortcuts[i];
-                newShortcutData = shortcuts[shortcut.query] || shortcuts[shortcut.experienceId];
-                
-                if (newShortcutData) {
-                  currentShortcuts[i].appIds = newShortcutData;
-                  saveAppIds(currentShortcuts[i]);
-                }
-              }
-              
-              self.set({
-                  "shortcuts": currentShortcuts,
-                  "icons": currentIcons
-              }, callback);
-          });
-        };
-        
-        this.remove = function remove(shortcutToRemove) {
-            self.get({}, function onGetSuccess(data){
-                var shortcuts = data.response.shortcuts || [],
-                    icons = data.response.icons || {},
-                    allAppIds = {},
-                    shortcutIndex = contains(shortcuts, shortcutToRemove);
-                    
-                if (shortcutIndex === false) {
-                    Evme.Utils.log('Warning: didn\'t find shortcut to remove');
-                    return;
-                }
-                
-                Evme.Utils.log('Found shortcut at: ' + shortcutIndex);
-                
-                for (var i=0,shortcut; shortcut=shortcuts[i++];) {
-                    var needToRemoveIcons = false;
-                    
-                    if (i-1 === shortcutIndex) {
-                        Evme.Utils.log('Found shortcut to remove at ' + (i-1));
-                        shortcuts.splice(i-1, 1);
-                        needToRemoveIcons = true;
-                    }
-                    
-                    for (var j=0,app,appId; app=shortcut.appIds[j++];) {
-                        appId = app.id || app;
-                        
-                        if (!allAppIds[appId]) {
-                            allAppIds[appId] = {
-                                "num": 0,
-                                "needToRemove": needToRemoveIcons
-                            };
-                        }
-                        allAppIds[appId].num++;
-                    }   
-                }
-                
-                // after the shortcut itself was removed,
-                // we check if its icons are associated with other shortcuts
-                for (var appId in allAppIds) {
-                    if (allAppIds[appId].needToRemove && allAppIds[appId].num < 2) {
-                        delete icons[appId];
-                    }
-                }
-                
-                Evme.Utils.log('Left with ' + shortcuts.length + ' shortcuts');
-                
-                self.set({
-                    "shortcuts": shortcuts,
-                    "icons": icons
-                });
-            });
-        };
-        
-        this.suggest = function suggest(options, callback) {
-            !options && (options = {});
-            
-            var params = {
-                "existing": JSON.stringify(options.existing || [])
-            };
-            
-            return request({
-                "methodNamespace": "Shortcuts",
-                "methodName": "suggestions",
-                "params": params,
-                "callback": function onRequestSuccess(data) {
-                    saveAppIds(data.response.shortcuts);
-                    callback && callback(data);
-                }
-            }, options._NOCACHE);
-        };
-        
-        // check if a list of shortcuts contain the given shortcut
-        // not a simple indexOf since a shortcut is either a query or an experienceId
-        function contains(shortcuts, shortcut) {
-            if (!shortcuts) {
-              return false;
-            }
-
-            for (var i=0,shortcutToCheck; shortcutToCheck=shortcuts[i++];) {
-                var experienceId1 = shortcutToCheck.experienceId,
-                    experienceId2 = shortcut.experienceId,
-                    query1 = shortcutToCheck.query,
-                    query2 = shortcut.query;
-                    
-                if ((experienceId1 && experienceId2 && experienceId1 === experienceId2) ||
-                    (query1 && query2 && query1 === query2)) {
-                    return i-1;
-                }
-            }
-            
-            return false;
-        }
-        
-        function saveAppIds(shortcuts) {
-            if (!shortcuts) {
-              return;
-            }
-            
-            if (!Array.isArray(shortcuts)) {
-              shortcuts = [shortcuts];
-            }
-            
-            for (var i=0,shortcut,value; shortcut=shortcuts[i++];) {
-                value = (shortcut.experienceId || shortcut.query).toString().toLowerCase();
-                queriesToAppIds[value] = shortcut.appIds;
-            }
-        }
-        
-        function getAppIds(shortcut) {
-            var value = (shortcut.experienceId || shortcut.query).toString().toLowerCase();
-            return shortcut.appIds || queriesToAppIds[value]  || [];
-        }
-        
-        function createResponse(shortcuts, icons) {
-            return {
-                "response": {
-                    "shortcuts": Evme.Utils.cloneObject(shortcuts),
-                    "icons": icons
-                }
-            };
-        }
-    };
-    
-    this.trending = function trending(options, callback) {
+      this.suggest = function suggest(options, callback) {
         !options && (options = {});
-        
+
         var params = {
-            "first": options.first,
-            "limit": options.limit,
-            "returnImage": options.returnImage,
-            "iconFormat": options.iconFormat,
-            "quality": options.quality,
-            "queries": options.queries
+	  "existing": JSON.stringify(options.existing || [])
         };
-        
+
         return request({
-            "methodNamespace": "Search",
-            "methodName": "trending",
-            "params": params,
-            "callback": callback
-        }, options._NOCACHE);
-    }
+	  "methodNamespace": "Shortcuts",
+	  "methodName": "suggestions",
+	  "params": params,
+	  "callback": callback
+	});
+      };
+    };
     
     this.Logger = new function Logger(){
         var self = this,
@@ -543,8 +299,37 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "methodName": "report",
             "params": options,
             "callback": callback
-        }, options._NOCACHE);
+	}, options._NOCACHE || false);
     };
+
+    this.appNativeInfo = function appNativeInfo(options, callback) {
+	// string together ids like so:
+	// apiurl/?guids=["guid1","guid2","guid3", ...]
+
+	var guids = (options.guids || []).map(cleanGuid);
+
+	for (var i=0; i<guids.length; i++) {
+	  if (!guids[i]) {
+	    guids.splice(i, 1);
+	    i--;
+	  }
+	}
+
+	var params = {
+	    "guids": JSON.stringify(guids)
+	};
+
+	return request({
+	    "methodNamespace": "App",
+	    "methodName": "nativeInfo",
+	    "params": params,
+	    "callback": callback
+	}, options._NOCACHE || false);
+    };
+
+    function cleanGuid(str) {
+	return str && str.split("?")[0];
+    }
     
     function addGlobals(options) {
         var globals = options["globals"] || {};
@@ -599,22 +384,6 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         }
     }
     
-    this.searchLocations = function searchLocations(options, callback) {
-        !options && (options = {});
-        
-        var params = {
-            "query": options.query,
-            "latlon": undefined
-        };
-        
-        return request({
-            "methodNamespace": "Location",
-            "methodName": "search",
-            "params": params,
-            "callback": callback
-        }, options._NOCACHE);
-    };
-    
     this.setLocation = function setLocation(lat, lon) {
         userLat = lat;
         userLon = lon;
@@ -643,7 +412,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         !options && (options = {});
         
         var params = {
-            "id": self.Session.get().id,
+	    "id": (self.Session.get() || {}).id,
             "deviceId": deviceId,
             "cachedIcons": options.cachedIcons,
             "stats": {
@@ -710,6 +479,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         });
     }
     
+    // the "requestsQueue" will empty after the session has been init'ed
+    function addRequestToSessionQueue(requestOptions) {
+      requestsQueue[JSON.stringify(requestOptions)] = requestOptions;
+    }
+
     this.getSessionId = function getSessionId() {
         return self.Session.get().id;
     };
@@ -728,25 +502,30 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             "CACHE_ERROR": "cache error"
         };
         
-        this.init = function init(callback) {
+       this.init = function init(callback) {
             Evme.Storage.get(_key, function storageGot(sessionFromCache) {
                 var createCause;
 
-                if (sessionFromCache) {
-                    if (!self.expired(sessionFromCache)) {
-                        _session = sessionFromCache;
-                    } else {
-                        createCause = self.INIT_CAUSE.EXPIRED;
-                    }
-                } else {
-                    createCause = self.INIT_CAUSE.NOT_IN_CACHE;
-                }
+		try {
+		  if (sessionFromCache) {
+		      if (!self.expired(sessionFromCache)) {
+			  _session = sessionFromCache;
+		      } else {
+			  createCause = self.INIT_CAUSE.EXPIRED;
+		      }
+		  } else {
+		      createCause = self.INIT_CAUSE.NOT_IN_CACHE;
+		  }
 
-                if (!_session) {
-                    self.create(null, null, createCause);
-                }
+		  if (!_session) {
+		      self.create(null, null, createCause);
+		  }
 
-                callback && callback();
+		  callback && callback();
+		} catch(ex) {
+		  console.error('evme Session init error: ' + ex.message);
+		  callback && callback();
+                }
             });
         };
         
@@ -774,6 +553,9 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         };
         
         this.get = function get() {
+	    if (!_session) {
+		self.create(null, null, self.INIT_CAUSE.NOT_IN_CACHE);
+	    }
             return _session;
         };
         
@@ -873,7 +655,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             shouldInit = Evme.DoATAPI.Session.shouldInit();
         
         if (requestsToPerformOnOnline.length != 0 && shouldInit.should && !doesntNeedSession[methodNamespace+"." + methodName] && !manualCredentials && !dontRetryIfNoSession) {
-            requestsQueue[JSON.stringify(options)] = options;
+	    addRequestToSessionQueue(options);
             reInitSession(shouldInit.cause);
             return false;
         }
@@ -886,7 +668,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         
         if (useCache) {
             cacheKey = getCacheKey(methodNamespace, methodName, params);
-            
+
             if (!ignoreCache) {
                 Evme.Storage.get(cacheKey, function storageGot(responseFromCache) {
                     if (responseFromCache) {
@@ -912,6 +694,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             params["apiKey"] = apiKey;
             params["v"] = appVersion;
             params["native"] = true;
+	    params["platform.os"] = "firefox-os";
+
+	    // report server about new cached icons
+	    if (methodNamespace === "Search" && methodName === "apps") {
+		params["cachedIcons"] = self.CachedIcons.yank();
+	    }
 
             if (manualCredentials) {
                 params["credentials"] = manualCredentials;
@@ -922,7 +710,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 }
             }
             if (!noSession) {
-                params["sid"] = self.Session.get().id;
+		params["sid"] = (self.Session.get() || {}).id || '';
             }
             if (!params.stats) {
                 params.stats = {};
@@ -1075,11 +863,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         return queryString['did'] || 'fxos-' + Evme.Utils.uuid();
     }
 
-    function cbRequest(methodNamespace, method, params, retryNumber) {
+    function cbRequest(methodNamespace, method, params, retryNumber, completeURL) {
         Evme.EventHandler.trigger(NAME, "request", {
             "method": methodNamespace + "/" + method,
             "params": params,
-            "retryNumber": retryNumber
+	    "retryNumber": retryNumber,
+	    "url": completeURL
         });
     }
     
@@ -1114,7 +903,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         });
     }
     
-    function cbError(methodNamespace, method, url, params, retryNumber, data, callback, retryCallback) {
+    function cbError(methodNamespace, method, url, params, retryNumber, data, callback, originalOptions) {
         Evme.EventHandler.trigger(NAME, "error", {
             "method": methodNamespace + "/" + method,
             "params": params,
@@ -1127,11 +916,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         // if it's an authentication error
         // return false so the request won't automatically retry
         // and do a sessionInit, and retry at the end of it
-        if ((data && data.errorCode == Evme.DoATAPI.ERROR_CODES.AUTH && !manualCredentials) || (methodNamespace == "Session" && method == "init")) {
-            self.initSession({
-                "cause": Evme.DoATAPI.Session.INIT_CAUSE.AUTH_ERROR,
-                "source": "DoATAPI.cbError"
-            }, retryCallback);
+	if ((data && data.errorCode == Evme.DoATAPI.ERROR_CODES.AUTH && !manualCredentials) ||
+	    (methodNamespace == "Session" && method == "init")) {
+	    Evme.Utils.log('Got authentication error from API, add request to queue and re-init the session');
+	    addRequestToSessionQueue(originalOptions);
+	    reInitSession(Evme.DoATAPI.Session.INIT_CAUSE.AUTH_ERROR);
             return false;
         }
         
@@ -1145,6 +934,7 @@ Evme.Request = function Evme_Request() {
         methodNamespace = "",
         methodName = "",
         params = {},
+	originalOptions = {},
         
         callback = null,
         
@@ -1174,6 +964,7 @@ Evme.Request = function Evme_Request() {
         methodNamespace = options.methodNamespace;
         methodName = options.methodName;
         params = options.params;
+	originalOptions = options.originalOptions;
         callback = options.callback;
         maxRequestTime = options.requestTimeout;
         retries = options.retries;
@@ -1197,8 +988,6 @@ Evme.Request = function Evme_Request() {
         
         requestSentTime = (new Date()).getTime();
         
-        cbRequest(methodNamespace, methodName, params, retryNumber);
-        
         // stats params to add to all API calls
         (!params["stats"]) && (params["stats"] = {});
         params.stats.retryNum = retryNumber;
@@ -1207,6 +996,9 @@ Evme.Request = function Evme_Request() {
         params.stats = JSON.stringify(params.stats);
         
         httpRequest = Evme.api[methodNamespace][methodName](params, apiCallback);
+
+	cbRequest(methodNamespace, methodName, params, retryNumber, httpRequest.url);
+	httpRequest = httpRequest.request;
         
         requestTimeout = window.setTimeout(requestTimeoutCallback, maxRequestTime);
         
@@ -1240,7 +1032,7 @@ Evme.Request = function Evme_Request() {
         clearTimeouts();
         
         if (isError && retryNumber < retries) {
-            var bDontRetry = cbError(methodNamespace, methodName, url, params, retryNumber, data, callback, retry);
+	    var bDontRetry = cbError(methodNamespace, methodName, url, params, retryNumber, data, callback, originalOptions);
             
             if (bDontRetry && cbShouldRetry(data)) {
                 retry();
@@ -1276,19 +1068,26 @@ Evme.Request = function Evme_Request() {
             "processingTime": maxRequestTime
         };
         
-        cbError(methodNamespace, methodName, "", params, retryNumber, data, callback);
-        
+	cbError(methodNamespace, methodName, "", params, retryNumber, data, callback, originalOptions);
+
         if (retryNumber >= 0) {
             retry();
         }
         
     }
     
-    function retry(){
+    function retry(data, url){
+	var isSessionInit = data && data.response && data.response.credentials;
+
         window.clearTimeout(requestRetry);
         
         var retryTimeout = Math.round(Math.random()*(timeoutBetweenRetries.to - timeoutBetweenRetries.from)) + timeoutBetweenRetries.from;
-        
+
+	// if retrying a session init error - don't wait once it's ready
+	if (isSessionInit) {
+	  retryTimeout = 0;
+	}
+
         requestRetry = window.setTimeout(function retryTimeout(){
             retryNumber++;
             self.request();

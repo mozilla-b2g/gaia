@@ -3,10 +3,24 @@
     z-index: 50;
     min-height: 8rem;
 }
-#evmeContainer:not(.empty-query) #header,
-#evmeContainer.keyboard-visible #header {
-    background: rgba(0, 0, 0, .3);
+#evmeContainer #header:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(70, 70, 70, .5) 0%, rgba(0, 0, 0, .5) 20%);
+  box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, .1);
+  transition: opacity 100ms linear;
 }
+.evme-keyboard-visible #evmeContainer #header:before,
+#evmeContainer:not(.empty-query) #header:before {
+    opacity: 1;
+}
+
 #evmeContainer #search-header {
     position: absolute;
     top: 0;
@@ -15,6 +29,8 @@
     height: 3.1rem;
     z-index: 51;
     padding-top: 0.9rem;
+    transform-origin: 0 0;
+    transition: transform 350ms ease-out;
 }
     #evmeContainer #search-rapper {
         position: absolute;
@@ -25,19 +41,20 @@
         vertical-align: middle;
         height: 2.8rem;
         line-height: 3rem;
+	transition: transform 100ms ease-out;
     }
-    #evmeContainer.empty-query:not(.keyboard-visible) #search-rapper {
+    body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-rapper {
         transform: translate3d(0, 2.3rem, 0);
         height: 3.6rem;
         line-height: 3.6rem;
         left: 0.5rem;
         right: 0.5rem;
     }
-    #evmeContainer.empty-query:not(.keyboard-visible) #search-q {
+    body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-q {
         height: 3.6rem;
         line-height: 3.6rem;
     }
-    #evmeContainer.empty-query:not(.keyboard-visible) #search-q-bg {
+    body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-q-bg {
         background-position: 98% 1.1rem;
     }
     
@@ -118,33 +135,6 @@
     #evmeContainer.empty-query #default-text {
         display: block;
     }
-    
-#evmeContainer #homepage-search-text {
-    position: absolute;
-    top: 8.8rem;
-    left: 1.6rem;
-    cursor: pointer;
-    text-indent: 0.6rem;
-    z-index: 305;
-    font-size: 1.3rem;
-    color: #444;
-    pointer-events: none;
-    display: none;
-    -moz-transition: all .2s linear;
-    transition: all .2s linear;
-}
-#evmeContainer #homepage-search-text:before {
-    content: "";
-    position: absolute;
-    top: -2rem;
-    left: -2rem;
-    right: -2rem;
-    bottom: -2rem;
-}
-
-#evmeContainer.screen-homepage #homepage-search-text {
-    display: block;
-}
 
 #evmeContainer.loading-app #search-header  {
     -moz-transition: all .2s linear;

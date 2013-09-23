@@ -51,9 +51,12 @@ class TestDeleteApp(GaiaTestCase):
         self.marionette.switch_to_frame(self.homescreen.frame)
 
         # switch pages until the app is found
-        while self._homescreen_has_more_pages():
-            self._go_to_next_page()
+        while True:
             if self.is_element_present(*self._visible_icon_locator):
+                break
+            if self._homescreen_has_more_pages():
+                self._go_to_next_page()
+            else:
                 break
 
         # check that the app is available

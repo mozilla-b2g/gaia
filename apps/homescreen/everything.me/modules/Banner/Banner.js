@@ -18,7 +18,7 @@ Evme.Banner = new function Evme_Banner() {
         latency = latency || 4000;
         timerId = window.setTimeout(self.hide, latency);
         
-        el.innerHTML = '<p class="noreset" ' + Evme.Utils.l10nAttr(NAME, property, args) + '></p>';
+	el.innerHTML = '<p class="noreset">' + Evme.Utils.l10n(NAME, property, args) + '</p>';
         el.classList.add('visible');
         
         Evme.EventHandler.trigger(NAME, 'show');

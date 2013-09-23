@@ -1,40 +1,31 @@
+'use strict';
+
 var EverythingME = {
-
-  displayed: false,
-
   init: function EverythingME_init() {
     var footer = document.querySelector('#footer');
     if (footer) {
       footer.style.MozTransition = '-moz-transform .3s ease';
     }
 
-    var self = this,
-        page = document.getElementById('landing-page'),
-        activationIcon = document.getElementById('evme-activation-icon');
+    var page = document.getElementById('evmeContainer'),
+        gridPage = document.querySelector('#icongrid > div:first-child');
 
-    activationIcon.innerHTML = '<input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default" />';
-    navigator.mozL10n.ready(function loadSearchbarValue() {
-      var input = activationIcon.querySelector('input'),
-          defaultText = navigator.mozL10n.get('evme-searchbar-default2') || '';
+    // TODO
+    // We need to re-think how to lazy-load E.me
+    // it is required for interacting with Collections:
+    // create initial collections, open collections, create collections etc.
+    EverythingME.activate();
 
-      input.setAttribute('placeholder', defaultText);
-    });
-
-    activationIcon.addEventListener('click', onClick);
-    activationIcon.addEventListener('contextmenu', onContextMenu);
-
-    page.addEventListener('gridpageshowend', function onPageShow() {
+    gridPage.addEventListener('gridpageshowend', function onPageShow() {
       EvmeFacade.onShow();
     });
-    page.addEventListener('gridpagehideend', function onPageHide() {
+    gridPage.addEventListener('gridpagehideend', function onPageHide() {
       EvmeFacade.onHide();
     });
 
-    function onClick(e) {
-      this.removeEventListener('click', onClick);
-      this.removeEventListener('contextmenu', onContextMenu);
-      self.activate();
-    }
+    // add evme into the first grid page
+    gridPage.classList.add('evmePage');
+    gridPage.appendChild(page.parentNode.removeChild(page));
 
     function onContextMenu(e) {
       e.stopPropagation();
@@ -46,92 +37,75 @@ var EverythingME = {
   activate: function EverythingME_activate(e) {
     document.body.classList.add('evme-loading');
 
-    this.load(function onEvmeLoaded() {
-      var page = document.getElementById('evmeContainer'),
-          landingPage = document.getElementById('landing-page'),
-          activationIcon = document.getElementById('evme-activation-icon'),
-          input = activationIcon.querySelector('input'),
-          existingQuery = input && input.value;
-
-      landingPage.appendChild(page.parentNode.removeChild(page));
-      EvmeFacade.onShow();
-
-      // set the query the user entered before loaded
-      input = document.getElementById('search-q');
-      if (input) {
-        if (existingQuery) {
-          EvmeFacade.searchFromOutside(existingQuery);
-        }
-
-        EvmeFacade.Searchbar && EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
-        input.setSelectionRange(existingQuery.length, existingQuery.length);
-      }
-
-      document.body.classList.remove('evme-loading');
-
-      activationIcon.parentNode.removeChild(activationIcon);
-    });
+    this.load();
   },
 
-  load: function EverythingME_load(success) {
-
+  load: function EverythingME_load() {
     var CB = !('ontouchstart' in window),
-        js_files = ['js/etmmanager.js',
-                    'js/Core.js',
-                    'config/config.js',
-                    'config/shortcuts.js',
-                    'js/developer/utils.1.3.js',
-                    'js/helpers/Utils.js',
-                    'js/Brain.js',
-                    'modules/Apps/Apps.js',
-                    'modules/BackgroundImage/BackgroundImage.js',
-                    'modules/Banner/Banner.js',
-                    'modules/Location/Location.js',
-                    'modules/Shortcuts/Shortcuts.js',
-                    'modules/ShortcutsCustomize/ShortcutsCustomize.js',
-                    'modules/Searchbar/Searchbar.js',
-                    'modules/SearchHistory/SearchHistory.js',
-                    'modules/Helper/Helper.js',
-                    'modules/ConnectionMessage/ConnectionMessage.js',
-                    'modules/SmartFolder/SmartFolder.js',
-                    'modules/Tasker/Tasker.js',
-                    'modules/Features/Features.js',
-                    'js/helpers/Storage.js',
-                    'js/plugins/Scroll.js',
-                    'js/external/uuid.js',
-                    'js/api/apiv2.js',
-                    'js/api/DoATAPI.js',
-                    'js/helpers/EventHandler.js',
-                    'js/helpers/Idle.js',
-                    'shared/js/settings_listener.js',
-                    'js/plugins/Analytics.js',
-                    'js/plugins/APIStatsEvents.js'];
-    var css_files = ['shared/style/confirm.css',
-                     'shared/style_unstable/progress_activity.css',
-                     'shared/style/status.css',
-                     'css/common.css',
-                     'modules/Apps/Apps.css',
-                     'modules/BackgroundImage/BackgroundImage.css',
-                     'modules/Banner/Banner.css',
-                     'modules/Shortcuts/Shortcuts.css',
-                     'modules/ShortcutsCustomize/ShortcutsCustomize.css',
-                     'modules/Searchbar/Searchbar.css',
-                     'modules/Helper/Helper.css',
-                     'modules/ConnectionMessage/ConnectionMessage.css',
-                     'modules/SmartFolder/SmartFolder.css'];
+        js_files = [
+          'js/Core.js',
+          'js/etmmanager.js',
+
+          'config/config.js',
+          'config/shortcuts.js',
+          'js/developer/utils.1.3.js',
+          'js/helpers/Utils.js',
+          'js/helpers/Storage.js',
+          'js/helpers/IconManager.js',
+          'js/plugins/Scroll.js',
+          'js/external/uuid.js',
+          'js/api/apiv2.js',
+          'js/api/DoATAPI.js',
+          'js/helpers/EventHandler.js',
+          'js/helpers/Idle.js',
+          'js/developer/utils.1.3.js',
+          'shared/js/settings_listener.js',
+          'js/plugins/Analytics.js',
+          'js/plugins/APIStatsEvents.js',
+          'js/Brain.js',
+          'modules/BackgroundImage/BackgroundImage.js',
+          'modules/Banner/Banner.js',
+          'modules/ConnectionMessage/ConnectionMessage.js',
+          'modules/Features/Features.js',
+          'modules/Helper/Helper.js',
+          'modules/Location/Location.js',
+          'modules/Results/Result.js',
+          'modules/Results/providers/CloudApps.js',
+          'modules/Results/providers/InstalledApps.js',
+          'modules/Results/providers/MarketApps.js',
+          'modules/Results/providers/MarketSearch.js',
+          'modules/Results/providers/StaticApps.js',
+          'modules/Results/ResultManager.js',
+          'modules/Searchbar/Searchbar.js',
+          'modules/SearchHistory/SearchHistory.js',
+          'modules/CollectionsSuggest/CollectionsSuggest.js',
+          'modules/Collection/Collection.js'
+        ],
+        css_files = [
+          'shared/style/confirm.css',
+          'shared/style_unstable/progress_activity.css',
+          'shared/style/status.css',
+          'shared/style/action_menu.css',
+          'css/common.css',
+          'modules/BackgroundImage/BackgroundImage.css',
+          'modules/Banner/Banner.css',
+          'modules/ConnectionMessage/ConnectionMessage.css',
+          'modules/Helper/Helper.css',
+          'modules/Results/Results.css',
+          'modules/Searchbar/Searchbar.css',
+          'modules/CollectionsSuggest/CollectionsSuggest.css',
+          'modules/Collection/Collection.css'
+        ];
+
     var head = document.head;
 
     var scriptLoadCount = 0;
     var cssLoadCount = 0;
 
-    var progressLabel = document.querySelector('#loading-overlay span');
-    var progressElement = document.querySelector('#loading-overlay progress');
-    var total = js_files.length + css_files.length, counter = 0;
-
     function onScriptLoad(event) {
       event.target.removeEventListener('load', onScriptLoad);
       if (++scriptLoadCount == js_files.length) {
-        EverythingME.start(success);
+        EverythingME.start();
       } else {
         loadScript(js_files[scriptLoadCount]);
       }
@@ -153,7 +127,9 @@ var EverythingME = {
       link.href = (file.indexOf('shared/') !== -1 ? '' : 'everything.me/') +
                    file + (CB ? '?' + Date.now() : '');
       link.addEventListener('load', onCSSLoad);
-      setTimeout(function appendCSS() { head.appendChild(link); }, 0);
+      window.setTimeout(function load() {
+        head.appendChild(link);
+      }, 0);
     }
 
     function loadScript(file) {
@@ -163,27 +139,33 @@ var EverythingME = {
                    file + (CB ? '?' + Date.now() : '');
       script.defer = true;
       script.addEventListener('load', onScriptLoad);
-      setTimeout(function appendScript() { head.appendChild(script) }, 0);
+      window.setTimeout(function load() {
+        head.appendChild(script);
+      }, 0);
     }
 
-    loadCSS(css_files[cssLoadCount]);
+    loadCSS(css_files[0]);
   },
 
-  initEvme: function EverythingME_initEvme(success) {
-    Evme.init();
-    EvmeFacade = Evme;
-    success();
-  },
-
-  start: function EverythingME_start(success) {
+  start: function EverythingME_start() {
     if (document.readyState === 'complete') {
-      EverythingME.initEvme(success);
+      EverythingME.initEvme();
     } else {
       window.addEventListener('load', function onload() {
         window.removeEventListener('load', onload);
-        EverythingME.initEvme(success);
+          EverythingME.initEvme();
       });
     }
+  },
+
+  initEvme: function EverythingME_initEvme() {
+    Evme.init(EverythingME.onEvmeLoaded);
+    EvmeFacade = Evme;
+  },
+
+  onEvmeLoaded: function onEvmeLoaded() {
+    EvmeFacade.onShow();
+    document.body.classList.remove('evme-loading');
   },
 
   destroy: function EverythingME_destroy() {
@@ -196,7 +178,7 @@ var EverythingME = {
   },
 
   // copy relevant user data from 1.0.1 to 1.1 versions
-  migrateStorage: function EverythingME_migrateStorage(onComplete) {
+  migrateStorage: function EverythingME_migrateStorage(onComplete, force) {
     var migrationStorageKey = 'migrated_1.0.1_to_1.1';
 
     if (!onComplete) {
@@ -205,7 +187,7 @@ var EverythingME = {
 
     asyncStorage.getItem(migrationStorageKey, function evmeMigration(value) {
       // this means we already migrated, so everything's a-ok
-      if (value === true) {
+      if (value === true && !force) {
         onComplete();
         return;
       }
