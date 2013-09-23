@@ -671,8 +671,13 @@ var ThreadUI = global.ThreadUI = {
 
     // Use backend api for precise sms segmentation information.
     var smsInfoRequest = this._mozMobileMessage.getSegmentInfoForText(value);
-    smsInfoRequest.onsuccess = (function onSmsInfo(e) {
-      var smsInfo = e.target.result;
+    smsInfoRequest.onsuccess = (function onSmsInfo(event) {
+      if (Compose.type !== 'sms') {
+        // bailout if the type changed since the request started
+        return;
+      }
+
+      var smsInfo = event.target.result;
       var segments = smsInfo.segments;
       var availableChars = smsInfo.charsAvailableInLastSegment;
 
