@@ -450,6 +450,42 @@ suite('SMIL', function() {
       }), filenames, 'List of filenames matches <img> tags');
 
     });
+
+    test('Message with non-ascii filenames', function() {
+      var smilTest = [{
+        name: 'kitten♥-450.jpg',
+        blob: testImageBlob
+      }, {
+        // 5 replaced chars
+        name: '새끼고양이.jpg',
+        blob: testImageBlob
+      }, {
+        // 5 replaced chars
+        name: 'ἀρετή.jpg',
+        blob: testImageBlob
+      }, {
+        // testing non-replaced chars
+        name: 'abzABZ019_#.()?&%-.jpg',
+        blob: testImageBlob
+      }, {
+        // quotes MUST be replaced - filename content is used in xml
+        name: '"\'.jpg',
+        blob: testImageBlob
+      }];
+      var output = SMIL.generate(smilTest);
+      assert.equal(output.attachments.length, 5);
+      assert.equal(output.attachments[0].location, 'kitten#-450.jpg');
+
+      // output from the next two also tests a clash after replace
+      assert.equal(output.attachments[1].location, '#####.jpg');
+      assert.equal(output.attachments[2].location, '#####_2.jpg');
+
+      // this one has nothing to replace:
+      assert.equal(output.attachments[3].location, smilTest[3].name);
+
+      // quotes must be replaced
+      assert.equal(output.attachments[4].location, '##.jpg');
+    });
   });
 
 });
