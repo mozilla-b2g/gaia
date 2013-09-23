@@ -1,11 +1,11 @@
 'use strict';
 
-var wallpaperCustomizer = {
+var WallpaperCustomizer = {
   init: function wc_init() {
     var self = this;
     window.addEventListener('customization', function updateWallpaper(event) {
-      window.removeEventListener('customization', updateWallpaper);
       if (event.detail.setting === 'wallpaper') {
+        window.removeEventListener('customization', updateWallpaper);
         self.setWallpaper(event.detail.value);
       }
     });
@@ -20,4 +20,4 @@ var wallpaperCustomizer = {
   }
 
 };
-wallpaperCustomizer.init();
+WallpaperCustomizer.init();
