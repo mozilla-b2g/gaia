@@ -148,6 +148,33 @@ suite('Contacts Merging Tests', function() {
     }});
   });
 
+  test('When matching by name merge existing SIM Contact', function(done) {
+    var simContact = new MasterContact();
+    simContact.category = simContact.category || [];
+    simContact.category.push('sim');
+    simContact.givenName[0] = 'Alfred Müller';
+    simContact.name = [];
+    simContact.name[0] = simContact.givenName[0];
+    simContact.familyName = null;
+
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred'],
+      familyName: ['Müller'],
+      name: ['Alfred Müller']
+    };
+
+    contacts.Merger.merge(simContact, toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.givenName[0], 'Alfred');
+        assert.equal(result.familyName[0], 'Müller');
+        assert.equal(result.name[0], 'Alfred Müller');
+        assert.isTrue(result.category.indexOf('sim') === -1);
+
+        done();
+      }
+    });
+  });
+
   test('Merge telephone numbers. Adding a new one', function(done) {
     toMergeContact.matchingContact = {
       tel: [{
