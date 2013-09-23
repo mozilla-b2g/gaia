@@ -513,8 +513,8 @@ contacts.Matcher = (function() {
     }
     else if (isFbLinked(contact)) {
       var linkedTo = getLinkedTo(contact);
-      var targetUid = linkParams.linkedTo;
-      var linkedMatched = linkParams.linkedMatched;
+      var targetUid = linkParams.linkedTo || '';
+      var linkedMatched = linkParams.linkedMatched || {};
 
       if (targetUid === linkedTo) {
         out = true;
