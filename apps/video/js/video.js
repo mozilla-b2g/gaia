@@ -68,23 +68,112 @@ var dragging = false;
 var touchStartID = null;
 var isPausedWhileDragging;
 var sliderRect;
-var thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
+var thumbnailList;
+
+var pendingPick;
+// This app uses deprecated-hwvideo permission to access video decoding hardware
+// But Camera and Gallery also need to use that hardware, and those three apps
+// may only have one video playing at a time among them. So we need to be
+// careful to relinquish the hardware when we are not visible.
+var restoreTime;
 
 // Videos recorded by our own camera have filenames of this form
 var FROMCAMERA = /DCIM\/\d{3}MZLLA\/VID_\d{4}\.3gp$/;
 
+// Pause on visibility change
+document.addEventListener('visibilitychange', function visibilityChange() {
+  if (document.hidden) {
+    stopParsingMetadata();
+    if (playing)
+      pause();
+
+    if (playerShowing)
+      releaseVideo();
+  }
+  else {
+    startParsingMetadata();
+    if (playerShowing) {
+      showVideoControls(true);
+      restoreVideo();
+    }
+  }
+});
+
+window.addEventListener('localized', function initLocale() {
+  document.documentElement.lang = navigator.mozL10n.language.code;
+  document.documentElement.dir = navigator.mozL10n.language.direction;
+});
+
+navigator.mozL10n.ready(function initVideo() {
+  // This function should be called once. According to the implementation of
+  // mozL10n.ready, it may become the event handler of localized. So, we need to
+  // prevent database re-initialize.
+  // XXX: once bug 882592 is fixed, we should remove it and just call init.
+  if (!videodb)
+    init();
+});
+
 function init() {
+  thumbnailList = new ThumbnailList(ThumbnailDateGroup, dom.thumbnails);
   // configure the template id for template group and view.
   ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
   ThumbnailItem.Template = new Template('thumbnail-template');
 
   initDB();
 
-  // binding options button
+  // if video is not start with activity mode, we need to wire all event
+  // handlers.
+  if (!navigator.mozHasPendingMessage('activity')) {
+    // options button only needed by normal mode. if we are under pick activity,
+    // there is only pick view enabled that is enabled at showPickView();
+    initOptionsButtons();
+  }
+
+  initPlayerControls();
+
+  // Rescale when window size changes. This should get called when
+  // orientation changes
+  window.addEventListener('resize', handleResize);
+
+  // We get headphoneschange event when the headphones is plugged or unplugged
+  var acm = navigator.mozAudioChannelManager;
+  if (acm) {
+    acm.addEventListener('headphoneschange', function onheadphoneschange() {
+      if (!acm.headphones && playing) {
+        setVideoPlaying(false);
+      }
+    });
+  }
+
+  // Click to open the media storage panel when the default storage is
+  // unavailable.
+  dom.storageSettingButton.addEventListener('click', launchSettingsApp);
+
+  navigator.mozSetMessageHandler('activity', handleActivityEvents);
+}
+
+function initPlayerControls() {
+  // handles buttons, slider dragging, and show/hide video controls
+  dom.videoControls.addEventListener('touchstart', handlePlayerTouchStart);
+  // handles slider dragging
+  dom.videoControls.addEventListener('touchmove', handlePlayerTouchMove);
+  dom.videoControls.addEventListener('touchend', handlePlayerTouchEnd);
+
+  dom.player.addEventListener('timeupdate', timeUpdated);
+  dom.player.addEventListener('ended', playerEnded);
+}
+
+function initOptionsButtons() {
+  // button to switch to camera
   dom.thumbnailsVideoButton.addEventListener('click', launchCameraApp);
+  // buttons for entering/exiting selection mode
   dom.thumbnailsSelectButton.addEventListener('click', showSelectView);
+  dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
+  // action buttons for selection mode
   dom.thumbnailsDeleteButton.addEventListener('click', deleteSelectedItems);
   dom.thumbnailsShareButton.addEventListener('click', shareSelectedItems);
+
+  // buttons for player view.
   dom.thumbnailsSingleDeleteButton.addEventListener('click', function() {
     // If we're deleting the file shown in the player we've got to
     // return to the thumbnail list. We pass false to hidePlayer() to tell it
@@ -92,29 +181,31 @@ function init() {
     if (deleteSingleFile(currentVideo.name))
       hidePlayer(false);
   });
-
   dom.thumbnailsSingleShareButton.addEventListener('click', function() {
     videodb.getFile(currentVideo.name, function(blob) {
       share([blob]);
     });
   });
-
+  // info buttons
   dom.thumbnailsSingleInfoButton.addEventListener('click', showInfoView);
   dom.infoCloseButton.addEventListener('click', hideInfoView);
+}
 
-  dom.thumbnailsCancelButton.addEventListener('click', hideSelectView);
+function handleResize(e) {
+  if (dom.player.readyState !== HAVE_NOTHING) {
+    setPlayerSize();
+  }
+  forceRepaintTitles();
+}
 
-  // Click to open the media storage panel when the default storage is
-  // unavailable.
-  dom.storageSettingButton.addEventListener('click', function() {
-    var activity = new MozActivity({
-      name: 'configure',
-      data: {
-        target: 'device',
-        section: 'mediaStorage'
-      }
-    });
-  });
+function handleActivityEvents(a) {
+  var activityName = a.source.name;
+
+  if (activityName === 'pick') {
+    pendingPick = a;
+
+    showPickView();
+  }
 }
 
 function showInfoView() {
@@ -231,6 +322,16 @@ function updateSelection(videodata) {
     dom.thumbnailsDeleteButton.classList.remove('disabled');
     dom.thumbnailsShareButton.classList.remove('disabled');
   }
+}
+
+function launchSettingsApp() {
+  var activity = new MozActivity({
+    name: 'configure',
+    data: {
+      target: 'device',
+      section: 'mediaStorage'
+    }
+  });
 }
 
 function launchCameraApp() {
@@ -857,32 +958,6 @@ function toCamelCase(str) {
   });
 }
 
- // Pause on visibility change
-document.addEventListener('visibilitychange', function visibilityChange() {
-  if (document.hidden) {
-    stopParsingMetadata();
-    if (playing)
-      pause();
-
-    if (playerShowing)
-      releaseVideo();
-  }
-  else {
-    startParsingMetadata();
-    if (playerShowing) {
-      showVideoControls(true);
-      restoreVideo();
-    }
-  }
-});
-
-// This app uses deprecated-hwvideo permission to access video decoding hardware
-// But Camera and Gallery also need to use that hardware, and those three apps
-// may only have one video playing at a time among them. So we need to be
-// careful to relinquish the hardware when we are not visible.
-
-var restoreTime;
-
 // Call this when the app is hidden
 function releaseVideo() {
   // readyState = 0: no metadata loaded, we don't need to save the currentTime
@@ -905,12 +980,6 @@ function restoreVideo() {
   });
 }
 
-// handles buttons, slider dragging, and show/hide video controls
-dom.videoControls.addEventListener('touchstart', handlePlayerTouchStart);
-// handles slider dragging
-dom.videoControls.addEventListener('touchmove', handlePlayerTouchMove);
-dom.videoControls.addEventListener('touchend', handlePlayerTouchEnd);
-
 // Force repainting of titles for enable overflow event
 function forceRepaintTitles() {
   var texts = document.querySelectorAll('.details');
@@ -921,47 +990,9 @@ function forceRepaintTitles() {
   }
 }
 
-// Rescale when window size changes. This should get called when
-// orientation changes
-window.addEventListener('resize', function() {
-  if (dom.player.readyState !== HAVE_NOTHING) {
-    setPlayerSize();
-  }
-  forceRepaintTitles();
-});
-
-dom.player.addEventListener('timeupdate', timeUpdated);
-dom.player.addEventListener('ended', playerEnded);
-
-// Set the 'lang' and 'dir' attributes to <html> when the page is translated
-window.addEventListener('localized', function showBody() {
-  document.documentElement.lang = navigator.mozL10n.language.code;
-  document.documentElement.dir = navigator.mozL10n.language.direction;
-  // <body> children are hidden until the UI is translated
-  document.body.classList.remove('hidden');
-
-  // If this is the first time we've been called, initialize the database.
-  // Don't reinitialize it if the user switches languages while we're running
-  if (!videodb)
-    init();
-});
-
-// We get headphoneschange event when the headphones is plugged or unplugged
-var acm = navigator.mozAudioChannelManager;
-if (acm) {
-  acm.addEventListener('headphoneschange', function onheadphoneschange() {
-    if (!acm.headphones && playing) {
-      setVideoPlaying(false);
-    }
-  });
-}
-
 //
 // Pick activity
 //
-
-var pendingPick;
-
 function showPickView() {
   thumbnailList.setPickMode(true);
   dom.pickerHeader.classList.remove('hidden');
@@ -979,16 +1010,6 @@ function cleanupPick() {
   currentVideoBlob = null;
   hidePlayer(false);
 }
-
-navigator.mozSetMessageHandler('activity', function activityHandler(a) {
-  var activityName = a.source.name;
-
-  if (activityName === 'pick') {
-    pendingPick = a;
-
-    showPickView();
-  }
-});
 
 function showThrobber() {
   dom.throbber.classList.remove('hidden');
