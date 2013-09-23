@@ -1,0 +1,194 @@
+.evmeScope .evme-apps {
+    position: absolute;
+    top: 8.1rem;
+    left: 0;
+    right: -2rem;
+    bottom: 0;
+    z-index: 50;
+}
+.evmeScope.loading-app .evme-apps {
+    pointer-events: none;
+}
+
+.evmeScope.empty-query #evmeApps {
+    display: none;
+}
+
+.evmeScope .evme-apps > div {
+    -moz-box-orient: vertical;
+    -moz-box-sizing: border-box;
+    display: -moz-box;
+    width: 100%;
+    min-height: 100%;
+    padding-right: 1rem;
+}
+.evmeScope .evme-apps .loading-apps {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 2rem;
+    text-align: center;
+    height: 10rem;
+    line-height: 10rem;
+    margin-top: -5.1rem;
+    display: none;
+    pointer-events: none;
+}
+.evmeScope .show-loading-apps .loading-apps {
+    display: block;
+}
+
+.evmeScope .evme-apps ul li {
+    clear: both;
+    width: 25%;
+    height: 9.4rem;
+    padding-top: 1rem;
+    text-align: center;
+    cursor: pointer;
+    margin-right: -0.4rem; /* inline-block spacing fix */
+    display: inline-block;
+    vertical-align: top;
+    transition: transform .2s linear;
+    position: relative; /* for span.remove positioning */
+}
+
+.evmeScope .evme-apps ul.marketapps li{
+    height: 9.3rem;
+}
+
+.evmeScope .evme-apps:not(.has-installed) .has-installed-visible {
+    display: none;
+}
+    .evmeScope .evme-apps ul li img {
+	transition: transform .2s linear;
+    }
+.evmeScope .evme-apps ul #button-more {
+    position: absolute;
+    top: auto;
+    bottom: 1.5rem;
+    left: 0;
+    height: auto;
+    color: #b4dae7;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-shadow: 0 0.1rem 0.1rem #000;
+    cursor: pointer;
+    z-index: 100;
+    opacity: 0;
+}
+.evmeScope .evme-apps ul #button-more.visible {
+    opacity: 1;
+}
+
+.evmeScope .evme-apps ul li:nth-child(4n+1) {
+    clear: both;
+}
+.evmeScope .evme-apps ul {
+  padding: 0;
+  margin: 0;
+  display: inline;
+}
+.evmeScope .evme-apps ul.cloud {
+  min-height: 0.1rem; /* meant for when there's no content */
+}
+.evmeScope .evme-apps ul li.new:not(.installed) img {
+    transform: scale(0);
+}
+.evmeScope .evme-apps ul li > span.remove {
+  position: absolute;
+  top: .5rem;
+  left: .8rem;
+  width: calc(100% - .5rem);
+  height: 2.6rem;
+  z-index: 2;
+  background: url(/resources/images/delete.png) no-repeat left top;
+  display: none;
+}
+
+/* Notifications */
+
+.evmeScope .evme-apps section[role="notification"] {
+    position: relative;
+    -moz-box-flex: 1;
+    display: none;
+    visibility: hidden;
+    min-height: 6rem;
+}
+.evmeScope .evme-apps.has-more section[role="notification"] {
+    margin-top: 1rem;
+    box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .4), 0 -0.2rem 0 0 rgba(0, 0, 0, .4);
+}
+.evmeScope .evme-apps section[role="notification"] > div {
+    position: absolute;
+    left: 0;
+    right: 2rem;
+    top: 50%;
+    color: #fff;
+    font-size: 1.6rem;
+    text-align: center;
+}
+.evmeScope .evme-apps section[role="notification"].loading-more > div {
+    height: 3rem;
+    margin-top: -1.5rem;
+}
+.evmeScope .evme-apps section[role="notification"].connection-message > div {
+    height: 3rem;
+    margin-top: -2rem;
+}
+
+.evmeScope:not(.connection-error) .evme-apps.has-more section[role="notification"].loading-more,
+.evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
+    display: block;
+}
+
+.evmeScope .evme-apps section[role="notification"].show,
+.evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
+    display: block;
+    visibility: visible;
+}
+
+.evmeScope .evme-apps section[role="notification"].loading-more progress{
+    margin-right: 0.8rem;
+}
+.evmeScope .evme-apps:not(.has-more) section[role="notification"].loading-more span {
+    display: none;
+}
+
+/* Loading an app */
+.evmeScope.loading-app .evme-apps ul li,
+.evmeScope.loading-app .evme-apps ul #button-more.visible,
+.evmeScope.loading-app .evme-apps.has-installed ul:before {
+    opacity: 0;
+}
+.evmeScope.loading-app .evme-apps ul li.inplace {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 1;
+    overflow: visible;
+    margin-top: 0 !important;
+    transition: transform .2s linear;
+}
+.evmeScope.loading-app .evme-apps ul li.inplace .doat-loading {
+    position: absolute;
+    top: -0.8rem;
+    left: 50%;
+    margin-left: -3rem;
+}
+
+.evmeScope.loading-app .evme-apps > div {
+    min-height: 100%;
+}
+.evmeScope .evme-apps hr{
+    height: 0.2rem;
+    border: 0;
+    background-color: rgba(255,255,255,.3);
+    margin: 1.2rem 2rem 0 1rem;
+    display: none;
+}
+.evmeScope #search hr{
+    margin-right: 3rem;
+}
+.evmeScope ul:not(:empty) ~ hr{
+    display: block;
+}

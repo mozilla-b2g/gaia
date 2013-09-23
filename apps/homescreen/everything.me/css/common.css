@@ -1,42 +1,38 @@
-#evmeContainer {
-    position: fixed;
-    overflow: hidden;
+.evmeScope {
+    position: absolute;
     margin: 0;
     padding: 0;
     top: 0;
-    bottom: 0;
     left: 0;
     width: 100%;
-    z-index: 100;
-    background: transparent;
-    background-size: 100% 100%;
     font-weight: normal;
     font-size: 1.2rem;
     text-align: left;
+    height: calc((100% - 7.5rem)/4); /* height of footer */
 }
 
-#evmeContainer div, #evmeContainer p:not(.noreset), #evmeContainer span,
-#evmeContainer h1, #evmeContainer h2, #evmeContainer h3, #evmeContainer h4,
-#evmeContainer a, #evmeContainer em, #evmeContainer img, #evmeContainer b,
-#evmeContainer ol, #evmeContainer ul, #evmeContainer li,
-#evmeContainer fieldset, #evmeContainer form, #evmeContainer label, #evmeContainer legend,
-#evmeContainer input, #evmeContainer textarea,
-#evmeContainer table, #evmeContainer tr, #evmeContainer th, #evmeContainer td,
-#evmeContainer canvas {
+.evmeScope div, .evmeScope p:not(.noreset), .evmeScope span,
+.evmeScope h1, .evmeScope h2, .evmeScope h3, .evmeScope h4,
+.evmeScope a, .evmeScope em, .evmeScope img, .evmeScope b,
+.evmeScope ol, .evmeScope ul, .evmeScope li,
+.evmeScope fieldset, .evmeScope form, .evmeScope label, .evmeScope legend,
+.evmeScope input, .evmeScope textarea,
+.evmeScope table, .evmeScope tr, .evmeScope th, .evmeScope td,
+.evmeScope canvas {
     margin: 0;
     padding: 0;
     border: 0;
 }
 
-#evmeContainer a {
+.evmeScope a {
     text-decoration: none;
     color: inherit;
 }
-#evmeContainer ul {
+.evmeScope ul {
     list-style-type: none;
 }
 
-#evmeContainer .textinput {
+.evmeScope .textinput {
     border: none;
     background: #fff;
     width: 100%;
@@ -48,7 +44,7 @@
     border-radius: 0.6rem;
     box-shadow: 0 0 0 0.1rem rgba(0, 0, 0, .4), 0 0.2rem 0 0 rgba(255, 255, 255, .2), 0 0.1rem 0.2rem 0 rgba(0, 0, 0, .4) inset;
 }
-#evmeContainer .screen {
+.evmeScope .screen {
     position: absolute;
     top: 0;
     left: 0;
@@ -58,7 +54,7 @@
     z-index: 500;
 }
 
-#evmeContainer .arrow-next {
+.evmeScope .arrow-next {
     font-weight: 600;
     font-size: 1.5rem;
     text-shadow: 0 0.1rem 0 rgba(255, 255, 255, .7);
@@ -71,7 +67,7 @@
     background: -moz-linear-gradient(center top, #d1e8f0 0, #89c4d8 100%);
     box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, .4) inset;
 }
-    #evmeContainer .arrow-next:before {
+    .evmeScope .arrow-next:before {
         content: "";
         position: absolute;
         top: 50%;
@@ -86,7 +82,7 @@
         box-shadow: 0.1rem 0 0 0 #ffffff, 0 0.1rem 0 0 #ffffff inset;
     }
 
-#evmeContainer .bbutton {
+.evmeScope .bbutton {
     display: inline-block;
     color: #617075;
     text-shadow: 0 0.1rem 0 rgba(255, 255, 255, .5);
@@ -104,14 +100,14 @@
     cursor: pointer;
     -moz-user-select: none;
 }
-#evmeContainer .bbutton.active {
+.evmeScope .bbutton.active {
     color: #fff;
     border-color: #6fadc2;
     text-shadow: 0 -0.1rem 0 rgba(0, 0, 0, .5);
     background: -moz-linear-gradient(center top, #07a7db 0, #038cb8 50%, #0384ad 50%, #017297 100%);
 }
 
-#evmeContainer .pbutton {
+.evmeScope .pbutton {
     display: inline-block;
     cursor: pointer;
     padding: 0.6rem 1.2rem;
@@ -133,16 +129,23 @@
 
 #bgimage-overlay .content .close,
 .app-icon:after,
-#shortcuts .handle b:before,
-#shortcuts .done b:before,
-#shortcuts .add:before,
-#shortcuts-panel ul .shortcut .remove,
 .shortcut .remove,
 .fbbutton .button-real .icon:before,
-#shortcuts-customize:before,
-#shortcuts-favorites li.on:before,
 #close-category
 {
     background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;
+}
+.evmeScope select {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    border: 0;
+    z-index: 800;
+}
+.evmeScope .evme-progress-dialog {
+    text-align: center;
 }
