@@ -43,10 +43,15 @@ Evme.Analytics = new function Evme_Analytics() {
         if (options.enabled){
             // we send data according to the settings flag (Submit performance data)
             SettingsListener.observe('debug.performance_data.shared', false, onSettingChange);
-
+        
             getCurrentAppsRowsCols = options.getCurrentAppsRowsCols;
             getCurrentSearchQuery = options.getCurrentSearchQuery;
             getCurrentSearchSource = options.getCurrentSearchSource;
+            options.Brain.App.appRedirectBridge = function appRedirectBridge(appUrl, data){
+                setTimeout(function onTimeout(){
+                    Brain.App.appRedirectExecute(appUrl, data);
+                }, 1500);
+            };
             
             // Idle
             idle = new Evme.Idle();
@@ -322,10 +327,8 @@ Evme.Analytics = new function Evme_Analytics() {
         
         // not used anymore, remove on next pull-request
         this.isNewSearchQuery = function isNewSearchQuery(newQuery){
-	    var lastSearchQuery = Evme.Storage.get(STORAGE_QUERY);
-
-	    newQuery = newQuery.toLowerCase();
-
+            var lastSearchQuery = Evme.Storage.get(STORAGE_QUERY),
+                newQuery = newQuery.toLowerCase();
             if (newQuery !== lastSearchQuery){
                 Evme.Storage.set(STORAGE_QUERY, newQuery);
                 return true;
@@ -339,7 +342,7 @@ Evme.Analytics = new function Evme_Analytics() {
     this.DoATAPI = new function DoATAPI(){
         var LOGGER_WARN_SLOW_API_RESPONSE_TIME = 2000,
             LOGGER_WARN_SLOW_API_RESPONSE_TEXT = "Slow API response",
-	    blacklistMethods = ["logger/", "stats/", "search/bgimage"];
+            blacklistMethods = ["logger/", "stats/", "search/trending", "search/bgimage"];
         
         this.success = function success(data){
             // Supress report for blacklist methods
@@ -376,25 +379,6 @@ Evme.Analytics = new function Evme_Analytics() {
                 "data": data
             });
         };
-
-	this.loadmore = function loadmore(data) {
-	    queue({
-		"class": "DoATAPI",
-		"event": "loadmore"
-	    });
-
-	    if (Evme.Utils.isKeyboardVisible){
-		queue({
-		    "class": "Results",
-		    "event": "search",
-		    "data": {
-			"query": data.query,
-			"page": "",
-			"feature": "more"
-		    }
-		});
-	    }
-	};
     };
     
     this.Analytics = new function Analytics(){
@@ -418,6 +402,10 @@ Evme.Analytics = new function Evme_Analytics() {
         var ROWS = 1, COLS = 0, redirectData;
            
         this.redirectedToApp = function redirectedToApp(data) {
+            var total = getCurrentAppsRowsCols(),
+                colIndex = data.index%(total[COLS]),
+                rowIndex = Math.floor(data.index/(total[COLS]));
+            
             var queueData = {
                 "url": data.appUrl,
                 "more": data.isMore ? 1 : 0,
@@ -722,13 +710,36 @@ Evme.Analytics = new function Evme_Analytics() {
         };
     };
     
-    this.Result = new function Result() {
+    this.App = new function App() {
         this.addToHomeScreen = function addToHomeScreen(data) {
             queue({
-		"class": "Result",
+                "class": "App",
                 "event": "addToHomeScreen",
                 "data": data
             });
+        };
+    };
+    
+    this.AppsMore = new function AppsMore() {        
+        this.show = function show(data) {
+            queue({
+                "class": "AppsMore",
+                "event": "show",
+                "data": data
+            });
+            
+            if (Evme.Utils.isKeyboardVisible){
+                data.query = Evme.Utils.getCurrentSearchQuery();
+                queue({
+                    "class": "Results",
+                    "event": "search",
+                    "data": {
+                        "query": data.query,
+                        "page": "",
+                        "feature": "more"
+                    }
+                });
+            }
         };
     };
     
@@ -770,10 +781,10 @@ Evme.Analytics = new function Evme_Analytics() {
         };
     };
     
-    this.CollectionsSuggest = new function CollectionsSuggest() {
+    this.ShortcutsCustomize = new function ShortcutsCustomize() {
         this.show = function show(data) {
             queue({
-		"class": "CollectionsSuggest",
+                "class": "ShortcutsCustomize",
                 "event": "show",
                 "data": data
             });
@@ -781,7 +792,7 @@ Evme.Analytics = new function Evme_Analytics() {
         
         this.done = function done(data) {
             queue({
-		"class": "CollectionsSuggest",
+                "class": "ShortcutsCustomize",
                 "event": "done",
                 "data": data
             });
