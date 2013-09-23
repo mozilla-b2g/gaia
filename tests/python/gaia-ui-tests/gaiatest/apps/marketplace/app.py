@@ -59,6 +59,9 @@ class Marketplace(Base):
     def wait_for_notification_message_displayed(self):
         self.wait_for_element_displayed(*self._notification_locator)
 
+    def wait_for_notification_message_not_displayed(self):
+        self.wait_for_element_not_displayed(*self._notification_locator)
+
     @property
     def notification_message(self):
         return self.marionette.find_element(*self._notification_locator).text
@@ -70,6 +73,7 @@ class Marketplace(Base):
         return [Result(self.marionette, app) for app in self.marionette.find_elements(*self._gallery_apps_locator)]
 
     def search(self, term):
+        self.wait_for_element_displayed(*self._search_locator)
         search_box = self.marionette.find_element(*self._search_locator)
 
         # search for the app
@@ -126,7 +130,7 @@ class Marketplace(Base):
         feedback = self.marionette.find_element(*self._feedback_textarea_locator)
         feedback.clear()
         feedback.send_keys(feedback_text)
-        self.dismiss_keyboard()
+        self.keyboard.dismiss()
 
     def submit_feedback(self):
         self.wait_for_element_displayed(*self._feedback_submit_button_locator)

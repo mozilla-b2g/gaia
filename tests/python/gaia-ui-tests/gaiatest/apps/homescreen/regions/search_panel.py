@@ -12,12 +12,13 @@ from gaiatest.apps.base import PageRegion
 
 class SearchPanel(Base):
 
-    _search_box_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
+    _search_box_locator = (By.CSS_SELECTOR, '#search-q')
     _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#evmeAppsList li.cloud[data-name]')
     _search_results_installed_app_locator = (By.CSS_SELECTOR, '#evmeAppsList li.installed[data-name]')
     _category_item_locator = (By.CSS_SELECTOR, '#shortcuts-items li[data-query]')
     _loading_apps_locator = (By.CSS_SELECTOR, 'div.loading-apps')
     _app_icon_locator = (By.CSS_SELECTOR, 'li.cloud[data-name]')
+    _tip_locator = (By.ID, 'tip_app-explain')
 
     def type_into_search_box(self, search_term):
         search_box = self.marionette.find_element(*self._search_box_locator)
@@ -37,6 +38,9 @@ class SearchPanel(Base):
 
     def wait_for_installed_apps_displayed(self):
         self.wait_for_element_displayed(*self._search_results_installed_app_locator)
+
+    def wait_for_tip_to_clear(self):
+        self.wait_for_element_not_displayed(*self._tip_locator)
 
     @property
     def results(self):
@@ -126,5 +130,8 @@ class SearchPanel(Base):
             return self.root_element.get_attribute('data-name')
 
         def tap(self):
+            expected_name = self.name
             self.root_element.tap()
+            self.wait_for_condition(
+                lambda m: self.apps.displayed_app.name.lower() == expected_name.lower())
             self.marionette.switch_to_frame(self.apps.displayed_app.frame)

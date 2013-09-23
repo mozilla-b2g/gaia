@@ -50,8 +50,9 @@ class Browser(Base):
     def go_to_url(self, url):
         self.wait_for_element_displayed(*self._awesome_bar_locator)
         awesome_bar = self.marionette.find_element(*self._awesome_bar_locator)
-        awesome_bar.clear()
-        awesome_bar.send_keys(url)
+        awesome_bar.tap()
+        self.wait_for_condition(lambda m: self.keyboard.is_displayed())
+        self.keyboard.send(url)
 
         self.tap_go_button()
 
@@ -117,6 +118,7 @@ class Browser(Base):
         element = self.marionette.find_element(*self._bookmark_title_input_locator)
         element.clear()
         element.send_keys(value)
+        self.keyboard.dismiss()
 
     def wait_for_throbber_not_visible(self):
         # TODO see if we can reduce this timeout in the future. >10 seconds is poor UX

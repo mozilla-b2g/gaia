@@ -135,7 +135,9 @@ var LockScreen = {
     document.addEventListener('visibilitychange', this);
 
     /* Telephony changes */
-    navigator.mozTelephony.addEventListener('callschanged', this);
+    if (navigator.mozTelephony) {
+      navigator.mozTelephony.addEventListener('callschanged', this);
+    }
 
     /* Gesture */
     this.area.addEventListener('mousedown', this);
@@ -170,18 +172,6 @@ var LockScreen = {
 
     SettingsListener.observe('lockscreen.enabled', true, function(value) {
       self.setEnabled(value);
-    });
-
-    SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      self.mute.hidden = (value != 0);
-    });
-
-    SettingsListener.observe('vibration.enabled', true, function(value) {
-      if (value) {
-        self.mute.classList.add('vibration');
-      } else {
-        self.mute.classList.remove('vibration');
-      }
     });
 
     SettingsListener.observe('ril.radio.disabled', false, function(value) {
@@ -968,7 +958,7 @@ var LockScreen = {
 
   getAllElements: function ls_getAllElements() {
     // ID of elements to create references
-    var elements = ['connstate', 'mute', 'clock-numbers', 'clock-meridiem',
+    var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
         'area-handle', 'passcode-code', 'alt-camera', 'alt-camera-button',
         'passcode-pad', 'camera', 'accessibility-camera',

@@ -76,13 +76,13 @@ class ManualSetupEmail(Base):
         el = self.marionette.find_element(*self._email_locator)
         el.clear()
         el.send_keys(value)
-        self.dismiss_keyboard()
+        self.keyboard.dismiss()
 
     def type_password(self, value):
         el = self.marionette.find_element(*self._password_locator)
         el.clear()
         el.send_keys(value)
-        self.dismiss_keyboard()
+        self.keyboard.dismiss()
 
     def select_account_type(self, value):
         account_type = self.marionette.find_element(*self._account_type_locator)

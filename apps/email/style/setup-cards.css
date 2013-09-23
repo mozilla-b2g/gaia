@@ -284,8 +284,8 @@ section.card-settings-account li span.button select {
   font-weight: bold;
 }
 
-
-.sup-manual-account-type {
+.sup-manual-account-type,
+.sup-socket-select {
   font-size: 1.7rem;
   font-weight: bold;
   background: none;
@@ -294,10 +294,15 @@ section.card-settings-account li span.button select {
   padding: 0.7rem 0 0.7rem 1.5rem;
 }
 
-li.sup-manual-account-type-container {
+li.sup-manual-account-type-container,
+li.sup-socket-select-container {
   overflow: hidden;
   min-height: 100%;
   border-bottom: none;
+}
+
+li.sup-socket-select-container {
+  margin-top: 1rem;
 }
 
 li.sup-manual-account-type-container .button {

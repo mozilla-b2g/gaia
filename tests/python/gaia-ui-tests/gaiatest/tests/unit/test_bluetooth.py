@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 
+
 class TestBluetooth(GaiaTestCase):
 
     def test_bt_enabled_and_disabled(self):

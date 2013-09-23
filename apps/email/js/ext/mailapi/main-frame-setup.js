@@ -3592,9 +3592,11 @@ define('mailapi/worker-support/configparser-main',[],function() {
           config.outgoing[child.tagName] = child.textContent;
         }
 
+        var ALLOWED_SOCKET_TYPES = ['SSL', 'STARTTLS'];
+
         // We do not support unencrypted connections outside of unit tests.
-        if (config.incoming.socketType !== 'SSL' ||
-            config.outgoing.socketType !== 'SSL') {
+        if (ALLOWED_SOCKET_TYPES.indexOf(config.incoming.socketType) === -1 ||
+            ALLOWED_SOCKET_TYPES.indexOf(config.outgoing.socketType) === -1) {
           config = null;
           status = 'unsafe';
         }
@@ -4429,6 +4431,10 @@ define('mailapi/worker-support/net-main',[],function() {
     delete socks[uid];
   }
 
+  function upgradeToSecure(uid) {
+    socks[uid].upgradeToSecure();
+  }
+
   function write(uid, data, offset, length) {
     // XXX why are we doing this? ask Vivien or try to remove...
     socks[uid].send(data, offset, length);
@@ -4448,6 +4454,9 @@ define('mailapi/worker-support/net-main',[],function() {
           break;
         case 'write':
           write(uid, args[0], args[1], args[2]);
+          break;
+        case 'upgradeToSecure':
+          upgradeToSecure(uid);
           break;
       }
     }

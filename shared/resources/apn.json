@@ -1010,7 +1010,7 @@
   ],
   "030": [
     {"carrier":"Movistar INTERNET","apn":"internet.movistar.mx","user":"movistar","password":"movistar","authtype":"1","type":["default","supl","dun"]},
-    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"type":["operatorvariant"]},
+    {"voicemail":"*86","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":512000,"type":["operatorvariant"]},
     {"carrier":"Movistar MMS","apn":"mms.movistar.mx","user":"movistar","password":"movistar","mmsc":"http://mms.movistar.mx","mmsproxy":"10.2.20.1","mmsport":"80","authtype":"1","type":["mms"]}
   ],
   "050": [

@@ -194,19 +194,6 @@
   display: none;
 }
 
-#lockscreen-mute {
-  float: right;
-  width: 4rem;
-  height: 4rem;
-  margin-top: 3.5rem;
-
-  background: transparent url('./images/mute.png') no-repeat center center / 5rem;
-}
-
-#lockscreen-mute.vibration {
-  background: transparent url('./images/vibration.png') no-repeat center center / 10rem;
-}
-
 .lockscreen-clock {
   margin: -0.8rem 0 -1rem -0.4rem;
   font-weight: 300;

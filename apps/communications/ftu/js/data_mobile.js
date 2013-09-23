@@ -53,7 +53,15 @@ var DataMobile = {
         var mnc = navigator.mozMobileConnection.iccInfo.mnc;
         var apnList = xhr.response;
         var apns = apnList[mcc] ? (apnList[mcc][mnc] || []) : [];
-        var selectedAPN = apns[0];
+        var selectedAPN = {};
+        for (var i = 0; i < apns.length; i++) {
+          if (apns[i] &&
+              apns[i].type &&
+              (apns[i].type.indexOf('default') != -1)) {
+            selectedAPN = apns[i];
+            break;
+          }
+        }
         // Set data in 'Settings'
         var lock = self.settings.createLock();
         lock.set({ 'ril.data.apn': selectedAPN.apn || '' });

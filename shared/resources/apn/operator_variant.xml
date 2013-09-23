@@ -93,6 +93,7 @@
        mnc="030"
        enableStrict7BitEncodingForSms="true"
        voicemail="*86"
+       operatorSizeLimitation="512000"
    />
    <operator
        name="Iusacell Internet"

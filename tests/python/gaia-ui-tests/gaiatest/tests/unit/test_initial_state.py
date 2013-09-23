@@ -35,7 +35,7 @@ class TestInitialState(GaiaTestCase):
         # move away from home screen
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
-        self.marionette.execute_script('window.wrappedJSObject.GridManager.goToPage(2);')
+        self.marionette.execute_script('window.wrappedJSObject.GridManager.goToPage(1);')
         self.marionette.switch_to_frame()
 
         # lock screen
@@ -66,5 +66,5 @@ class TestInitialState(GaiaTestCase):
         self.marionette.switch_to_frame(
             self.marionette.find_element(*self.homescreen_frame_locator))
         self.assertEqual(self.marionette.execute_script(
-            'return window.wrappedJSObject.GridManager.pageHelper.getCurrentPageNumber();'), 1)
+            'return window.wrappedJSObject.GridManager.pageHelper.getCurrentPageNumber();'), 0)
         self.marionette.switch_to_frame()

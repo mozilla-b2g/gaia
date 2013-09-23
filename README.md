@@ -95,3 +95,13 @@ The testvars file is a JSON file that maps app names to objects
 holding key/values as required by that app's integration tests.  See
 that app's integration test code and/or README for which key/values
 are required.
+
+### UI Tests
+
+#### Functional
+
+See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaia-ui-tests/README.md)
+
+#### Endurance
+
+See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)

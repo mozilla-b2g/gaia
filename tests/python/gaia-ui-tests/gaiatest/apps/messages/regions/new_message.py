@@ -4,9 +4,10 @@
 
 from marionette.by import By
 from gaiatest.apps.base import Base
+from gaiatest.apps.messages.app import Messages
 
 
-class NewMessage(Base):
+class NewMessage(Messages):
 
     _receiver_input_locator = (By.CSS_SELECTOR, '#messages-recipients-list span.recipient')
     _message_field_locator = (By.ID, 'messages-input')
@@ -17,6 +18,7 @@ class NewMessage(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
+        self.switch_to_messages_frame()
         section = self.marionette.find_element(*self._thread_messages_locator)
         self.wait_for_condition(lambda m: section.location['x'] == 0)
 
@@ -32,13 +34,24 @@ class NewMessage(Base):
         message_field.tap()
         message_field.send_keys(value)
 
-    def tap_send(self):
+    def tap_send(self, timeout=120):
         self.marionette.find_element(*self._send_message_button_locator).tap()
-        self.wait_for_element_not_present(*self._message_sending_locator, timeout=120)
+        self.wait_for_element_not_present(*self._message_sending_locator, timeout=timeout)
         from gaiatest.apps.messages.regions.message_thread import MessageThread
         return MessageThread(self.marionette)
 
     def tap_attachment(self):
         self.marionette.find_element(*self._attach_button_locator).tap()
-        from gaiatest.apps.messages.regions.select_attachment import SelectAttachment
-        return SelectAttachment(self.marionette)
+        from gaiatest.apps.system.regions.activities import Activities
+        return Activities(self.marionette)
+
+    def wait_for_recipients_displayed(self):
+        self.wait_for_element_displayed(*self._receiver_input_locator)
+
+    @property
+    def first_recipient_name(self):
+        return self.marionette.find_element(*self._receiver_input_locator).text
+
+    @property
+    def first_recipient_number_attribute(self):
+        return self.marionette.find_element(*self._receiver_input_locator).get_attribute('data-number')

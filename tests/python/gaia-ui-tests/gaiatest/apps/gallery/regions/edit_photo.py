@@ -30,7 +30,7 @@ class EditPhoto(Base):
     @property
     def effects(self):
         return [self.Effect(marionette=self.marionette, element=effect)
-                       for effect in self.marionette.find_elements(*self._effect_options_locator)]
+                for effect in self.marionette.find_elements(*self._effect_options_locator)]
 
     class Effect(PageRegion):
 

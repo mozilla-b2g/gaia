@@ -10,7 +10,7 @@ class Display(Base):
 
     _wallpaper_preview_locator = (By.ID, 'wallpaper-preview')
     _wallpaper_pick_locator = (By.ID, 'wallpaper')
-    _wallpaper_button_locator = (By.CSS_SELECTOR, "a[data-value='0']")
+    _wallpaper_button_locator = (By.XPATH, "//*[text()='Wallpaper']")
     _wallpaper_title_locator = (By.CSS_SELECTOR, "h1[data-l10n-id='select-wallpaper']")
     _stock_wallpapers_locator = (By.CSS_SELECTOR, "div[class='wallpaper']")
     _wallpaper_frame_locator = (By.CSS_SELECTOR, "iframe[src^='app://wallpaper'][src$='pick.html']")

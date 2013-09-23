@@ -30,6 +30,10 @@
     return window.parent.location.pathname === '/index.html';
   }
 
+  function inWidgetMode() {
+    return window.parent.location.pathname === '/widget.html';
+  }
+
   // Close if in standalone mode
   var closing;
   function closeIfProceeds() {
@@ -319,7 +323,7 @@
   CostControl.getInstance(function _onCostControl(ccontrol) {
     costcontrol = ccontrol;
 
-    if (inStandAloneMode() || inApplicationMode()) {
+    if (inStandAloneMode() || inWidgetMode()) {
       debug('Installing handlers');
 
       // When receiving an SMS, recognize and parse
@@ -327,13 +331,15 @@
         clearTimeout(closing);
         ConfigManager.requestAll(function _onInfo(configuration, settings) {
 
-          var isBalanceResponse = configuration.balance &&
-                                  configuration.balance.senders
-                                    .indexOf(sms.sender) > -1;
+          var isBalanceResponse =
+            configuration.balance &&
+            Array.isArray(configuration.balance.senders) &&
+            configuration.balance.senders.indexOf(sms.sender) > -1;
 
-          var isTopupResponse = configuration.topup &&
-                                configuration.topup.senders
-                                  .indexOf(sms.sender) > -1;
+          var isTopupResponse =
+            configuration.topup &&
+            Array.isArray(configuration.topup.senders) &&
+            configuration.topup.senders.indexOf(sms.sender) > -1;
 
           // Non expected SMS
           if (!isBalanceResponse && !isTopupResponse) {
