@@ -292,7 +292,7 @@ function execute() {
    'wap.push.enabled': false
   };
 
-  //We want the console to be disabled for device builds using the user variant.
+  // We want the console to be disabled for device builds using the user variant.
   if (config.TARGET_BUILD_VARIANT != 'user')
     settings['debug.console.enabled'] = true;
 
@@ -319,7 +319,15 @@ function execute() {
     }
     settings['keyboard.layouts.' + default_layout] = true;
   }
+
   settings['devtools.debugger.remote-enabled'] = config.REMOTE_DEBUGGER == true;
+
+  if (config.DEVICE_DEBUG) {
+    settings['devtools.debugger.remote-enabled'] = true;
+    settings['screen.timeout'] = 0;
+    settings['lockscreen.enabled'] = false;
+    settings['lockscreen.locked'] = false;
+  }
 
 
 
