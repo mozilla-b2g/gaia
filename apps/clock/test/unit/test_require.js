@@ -1,4 +1,4 @@
-require('clock/js/alameda.js', function() {
+requireApp('clock/js/alameda.js', function() {
   'use strict';
 
   var ctxIdCount = 0;
