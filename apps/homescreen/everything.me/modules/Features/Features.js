@@ -31,7 +31,6 @@ Evme.Features = new function Evme_Features() {
     };
     
     this.set = function set(featureName, featureValue) {
-      Evme.Utils.log('Features: ' + (featureValue? 'enable' : 'disable') + ' ' + featureName);
       verifyFeature(featureName);
       
       var oldValue = currentFeatures[featureName].value;
