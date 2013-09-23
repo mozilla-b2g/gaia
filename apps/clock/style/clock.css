@@ -92,55 +92,66 @@ html, body {
 
 #analog-clock-hands {
   position: absolute;
-  margin: 0.5rem auto;
   z-index: 2;
 }
 
 /*270x270*/
 #analog-clock-face.marks1 {
-  background-size: 27rem;
+  background-size: 27rem 28rem;
   width: 27rem;
-  height: 27rem;
+  height: 28rem;
 }
 #analog-clock-face.marks1 svg {
   width: 27rem;
   height: 27rem;
 }
+#analog-clock-face.marks1 #analog-clock-hands{
+  margin-top: 1rem;
+}
 
 /*248x248*/
 #analog-clock-face.marks2 {
-  background-size: 24.8rem;
+  background-size: 24.8rem 25.8rem;
   width: 24.8rem;
-  height: 24.8rem;
+  height: 25.8rem;
   margin-top: 6.9rem;
 }
 #analog-clock-face.marks2 svg {
   width: 24.8rem;
   height: 24.8rem;
 }
+#analog-clock-face.marks2 #analog-clock-hands{
+  margin-top: 0.92rem;
+}
 
 /*198x198*/
 #analog-clock-face.marks3 {
-  background-size: 19.8rem;
+  background-size: 19.8rem 20.8rem;
   width: 19.8rem;
-  height: 19.8rem;
+  height: 20.8rem;
   margin-top: 6.2rem;
 }
 #analog-clock-face.marks3 svg {
   width: 19.8rem;
   height: 19.8rem;
 }
+#analog-clock-face.marks3 #analog-clock-hands{
+  margin-top: 0.89rem;
+}
 
 /*148x148*/
 #analog-clock-face.marks4 {
-  background-size: 14.8rem;
+  background-size: 14.8rem 15.8rem;
   width: 14.8rem;
-  height: 14.8rem;
+  height: 15.8rem;
   margin-top: 5.8rem;
 }
 #analog-clock-face.marks4 svg {
   width: 14.8rem;
   height: 14.8rem;
+}
+#analog-clock-face.marks4 #analog-clock-hands{
+  margin-top: 0.78rem;
 }
 
 /* These CSS styles all apply to the SVG clock elements */
