@@ -511,7 +511,9 @@ contacts.List = (function() {
     if (i < rowsPerPage)
       notifyAboveTheFold();
 
-    contacts.Search.appendNodes(nodes);
+    Contacts.view('Search', function viewLoaded() {
+      contacts.Search.appendNodes(nodes);
+    });
   }
 
   // Time until we show the first contacts "above the fold" is a very
