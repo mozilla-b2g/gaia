@@ -40,7 +40,7 @@ form[role="dialog"][data-type="value-selector"] h1 {
 /* Specific component code */
 form[role="dialog"][data-type="value-selector"] [role="listbox"] {
   position: relative;
-  padding: 0 1.5rem;
+  padding: 0;
   margin: 0 -1.5rem;
   max-height: calc(100% - 5rem);
   overflow: auto;
@@ -61,11 +61,10 @@ form[role="dialog"][data-type="value-selector"] .scrollable:before {
 
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
   margin: 0;
-  padding: 0;
+  padding: 0 1.5rem;
   height: auto;
   list-style: none;
   position: relative;
-  border-bottom: 0.1rem solid #666;
   font-weight: lighter;
   font-size: 2.2rem;
   line-height: 3.9rem;
@@ -73,11 +72,20 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
   transition: background-color 0.2s ease;
 }
 
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:first-child label {
+  border-top-color: transparent;
+}
+
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li label {
-  border-bottom: 0.1rem solid #000;
   outline: none;
   display: block;
   color: #fff;
+  border-top: 0.1rem solid #666;
+  border-bottom: 0.1rem solid #000;
+}
+
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:last-child label {
+  border-bottom-color: transparent;
 }
 
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
@@ -88,10 +96,21 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li label span {
 }
 
 /* Pressed status */
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active,
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active {
+  background-color: #00ABCC;
+}
+
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label {
+  border-color: transparent;
+}
+
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active + li label {
+  border-top-color: #000;
+}
+
 form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label span {
-  background: #00ABCC;
-  color: #fff!important;
+  color: #fff !important;
+  background-image: none;
 }
 
 /* Checked status */
