@@ -34,6 +34,8 @@ suite('everything.me.js >', function() {
 
   suite('Everything.me starts initialization correctly >', function() {
     test('Ev.me page is loading >', function() {
+      assert.isFalse(document.body.classList.contains('evme-loading'));
+      EverythingME.activate();
       assert.isTrue(document.body.classList.contains('evme-loading'));
     });
   });

@@ -12,7 +12,7 @@ var EvmeManager = (function EvmeManager() {
       currentURL = null;
 
   function addGridItem(params, extra) {
-    var item = GridItemsFactory.create({
+    GridItemsFactory.create({
       "id": params.id || Evme.Utils.uuid(),
       "bookmarkURL": params.originUrl,
       "name": params.title,
@@ -22,10 +22,10 @@ var EvmeManager = (function EvmeManager() {
       "type": !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
               GridItemsFactory.TYPE.BOOKMARK,
       "isEmpty": !!params.isEmpty
+    }, function doAddGridItem(item) {
+      GridManager.install(item, params.gridPosition, extra);
+      GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
     });
-
-    GridManager.install(item, params.gridPosition, extra);
-    GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
   }
 
   function removeGridItem(params) {
@@ -136,7 +136,7 @@ var EvmeManager = (function EvmeManager() {
   /**
    * Generate a uuid for E.me to reference the app
    */
-   function generateAppId(manifestURL, entryPoint){
+  function generateAppId(manifestURL, entryPoint) {
     if (entryPoint)
       return Evme.Utils.insertParam(manifestURL, EME_ENTRY_POINT_KEY, entryPoint);
 

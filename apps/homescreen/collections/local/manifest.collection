@@ -1,0 +1,23 @@
+{
+  "name": "Local",
+  "role": "collection",
+  "provider_id": "296",
+  "locales": {
+    "en-US": {
+      "name": "Local"
+    },
+    "fr": {
+      "name": "Local"
+    },
+    "ar": {
+      "name": "محلِّي"
+    },
+    "zh-TW": {
+      "name": "本地"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/local/icon.png"
+  }
+}

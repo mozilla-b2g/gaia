@@ -1,0 +1,23 @@
+{
+  "name": "Sports",
+  "role": "collection",
+  "provider_id": "260",
+  "locales": {
+    "en-US": {
+      "name": "Sports"
+    },
+    "fr": {
+      "name": "Sport"
+    },
+    "ar": {
+      "name": "رياضة"
+    },
+    "zh-TW": {
+      "name": "運動"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/sports/icon.png"
+  }
+}

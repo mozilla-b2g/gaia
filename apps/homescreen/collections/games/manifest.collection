@@ -1,0 +1,23 @@
+{
+  "name": "Games",
+  "role": "collection",
+  "provider_id": "207",
+  "locales": {
+    "en-US": {
+      "name": "Games"
+    },
+    "fr": {
+      "name": "Jeux"
+    },
+    "ar": {
+      "name": "ألعاب"
+    },
+    "zh-TW": {
+      "name": "遊戲"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/games/icon.png"
+  }
+}

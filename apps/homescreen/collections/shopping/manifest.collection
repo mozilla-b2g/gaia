@@ -1,0 +1,23 @@
+{
+  "name": "Shopping",
+  "role": "collection",
+  "provider_id": "238",
+  "locales": {
+    "en-US": {
+      "name": "Shopping"
+    },
+    "fr": {
+      "name": "Achats"
+    },
+    "ar": {
+      "name": "تسوق"
+    },
+    "zh-TW": {
+      "name": "購物"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/shopping/icon.png"
+  }
+}

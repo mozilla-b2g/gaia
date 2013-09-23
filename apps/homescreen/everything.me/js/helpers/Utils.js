@@ -23,14 +23,19 @@ Evme.Utils = new function Evme_Utils() {
 	INSTALLED_CLOUDS_APPS_ICONS_PADDING = 2,
 
         OSMessages = this.OSMessages = {
-	  "APP_INSTALL": "add-bookmark",
-	  "OPEN_URL": "open-url",
-	  "SHOW_MENU": "show-menu",
-	  "HIDE_MENU": "hide-menu",
-	  "MENU_HEIGHT": "menu-height",
-	  "EVME_OPEN": "evme-open",
-	  "GET_ICON_SIZE": "get-icon-size"
-        };
+          "APP_INSTALL": "add-bookmark",
+          "OPEN_URL": "open-url",
+          "SHOW_MENU": "show-menu",
+          "HIDE_MENU": "hide-menu",
+          "MENU_HEIGHT": "menu-height",
+          "EVME_OPEN": "evme-open",
+          "GET_ICON_SIZE": "get-icon-size"
+        },
+
+        host = document.location.host,
+        domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2'),
+        protocol = document.location.protocol,
+        homescreenOrigin = protocol + '//homescreen.' + domain;
 
     this.PIXEL_RATIO_NAMES = {
       NORMAL: 'normal',

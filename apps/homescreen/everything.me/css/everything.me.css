@@ -1,8 +1,72 @@
 .evmeScope {
-    visibility: hidden;
+    display: none;
 }
 .evme-ready .evmeScope {
-    visibility: visible;
+    display: block;
+}
+.evme-loading #evmeOverlay {
+  display: block;
+}
+#evme-activation-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  vertical-align: middle;
+}
+  #evme-activation-icon > div {
+    position: absolute;
+    top: 0;
+    left: 1.1rem;
+    right: 1.1rem;
+    z-index: 10;
+    transform: translateY(3.2rem);
+    transition: transform 350ms ease-out;
+  }
+  #evme-activation-icon:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8rem;
+    opacity: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(70, 70, 70, .5) 0%, rgba(0, 0, 0, .5) 20%);
+    box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, .1);
+    transition: opacity 100ms linear;
+  }
+  #evme-activation-icon input {
+    position: relative;
+    width: 100%;
+    height: 3.6rem;
+    line-height: 3.6rem;
+    padding: 0.2rem 1.8rem 0.4rem 0.8rem;
+    border-radius: 0.2rem;
+    box-shadow: 0.1rem 0.1rem 0 0 #ccc inset, 0 0 0 0.1rem rgba(0, 0, 0, .3);
+    font-size: 1.5rem;
+    vertical-align: middle;
+    border: none;
+    display: inline;
+    z-index: 5;
+    -moz-box-sizing: border-box;
+    background: #ffffff url('/everything.me/images/search-icon.png') 98% 50% no-repeat;
+    background-size: 1.6rem 1.6rem;
+  }
+.evme-loading-from-input #evme-activation-icon > div {
+  transform: translateY(0.9rem);
+  left: 0.6rem;
+  right: 0.6rem;
+}
+.evme-loading-from-input #evme-activation-icon:before {
+  opacity: 1;
+}
+.evme-loading-from-input #evme-activation-icon input {
+  height: 2.8rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.2rem;
 }
 
 .evme-has-query .evmeScope {

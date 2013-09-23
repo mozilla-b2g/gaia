@@ -1,9 +1,10 @@
 'use strict';
 
-var Bookmark = function Bookmark(params) {
+var Bookmark = function Bookmark(params, cb) {
   GridItem.call(this, params);
 
   this.type = GridItemsFactory.TYPE.BOOKMARK;
+  cb && cb(this);
 };
 
 Bookmark.prototype = {

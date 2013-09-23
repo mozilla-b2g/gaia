@@ -1,0 +1,23 @@
+{
+  "name": "Music",
+  "role": "collection",
+  "provider_id": "142",
+  "locales": {
+    "en-US": {
+      "name": "Music"
+    },
+    "fr": {
+      "name": "Musique"
+    },
+    "ar": {
+      "name": "موسيقى"
+    },
+    "zh-TW": {
+      "name": "音樂"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/music/icon.png"
+  }
+}

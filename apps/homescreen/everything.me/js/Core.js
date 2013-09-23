@@ -24,8 +24,7 @@ window.Evme = new function Evme_Core() {
       "appVersion": data.appVersion,
       "authCookieName": data.authCookieName,
       "callback": function initCallback() {
-        initObjects(data);
-        callback && callback();
+        setupObjects(data, callback);
       }
     });
   };
@@ -76,9 +75,57 @@ window.Evme = new function Evme_Core() {
     Evme.Brain.Searcher.searchExactFromOutside(query);
   };
 
+  // one time setup to execute on device first launch
+  function setupObjects(data, callback) {
+    var setupCollectionStorageKey = 'collection-storage-setup';
+
+    Evme.Storage.get(setupCollectionStorageKey, function next(didSetup){
+      if (didSetup) {
+        initObjects(data);
+        callback();
+      } else {
+        setupCollectionStorage(function deferInit(){
+          Evme.Storage.set(setupCollectionStorageKey, true);
+          initObjects(data);
+          callback();
+        });
+      }
+    });
+  }
+
+  function setupCollectionStorage(done) {
+    var collections = EvmeManager.getCollections(),
+        total = collections.length;
+
+    if (total === 0) {
+      done();
+      return;
+    }
+
+    for (var i = 0; i < total; i++) {
+      var collection = collections[i],
+          experienceId = collection.providerId;
+
+      // TODO: populate apps from manifest file
+      var apps = [];
+
+      var collectionSettings = new Evme.CollectionSettings({
+        "id": collection.id,
+        "experienceId": experienceId,
+        "apps": apps
+      });
+
+      Evme.CollectionStorage.add(collectionSettings, function onSaved() {
+        if (--total === 0) {
+          done();
+        }
+      });
+    }
+  }
+
   function initObjects(data) {
     var appsEl = Evme.$("#evmeApps"),
-        collectionEl = document.querySelector(".collection .evme-apps");
+        collectionEl = document.querySelector("#collection .evme-apps");
 
     Evme.Features.init({
       "featureStateByConnection": data.featureStateByConnection

@@ -13,13 +13,13 @@ from gaiatest.apps.base import PageRegion
 class SearchPanel(Base):
 
 
+    _body = (By.CSS_SELECTOR, 'body')
     _evme_container_locator = (By.ID, 'evmeContainer')
-    _search_box_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
-    _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#evmeAppsList li.cloud[data-name]')
-    _search_results_installed_app_locator = (By.CSS_SELECTOR, '#evmeAppsList li.installed[data-name]')
+    _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.cloud li[data-name]')
+    _search_results_installed_app_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.installed li[data-name]')
     _category_item_locator = (By.CSS_SELECTOR, '#shortcuts-items li[data-query]')
     _loading_apps_locator = (By.CSS_SELECTOR, 'div.loading-apps')
-    _app_icon_locator = (By.CSS_SELECTOR, 'li.cloud[data-name]')
+    _app_icon_locator = (By.CSS_SELECTOR, 'ul.cloud li[data-name]')
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
@@ -27,7 +27,7 @@ class SearchPanel(Base):
 
     def wait_for_keyboard_visible(self):
         self.wait_for_condition(
-                lambda m: 'keyboard-visible' in self.marionette.find_element(*self._evme_container_locator).get_attribute('class'))
+                lambda m: 'evme-keyboard-visible' in self.marionette.find_element(*self._body).get_attribute('class'))
 
     def wait_for_everything_me_results_to_load(self):
         self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
