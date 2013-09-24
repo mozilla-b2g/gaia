@@ -1,23 +1,19 @@
-requireApp('clock/js/emitter.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
-requireApp('clock/js/timer.js');
-requireApp('clock/js/timer_panel.js');
-
 suite('Timer', function() {
-  var as, al, now, startAt, endAt, duration;
+  var Timer, asyncStroage;
+  var al, now, startAt, endAt, duration;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     loadBodyHTML('/index.html');
 
-    as = asyncStorage;
-
-    asyncStorage = MockAsyncStorage;
-  });
-
-  suiteTeardown(function() {
-    asyncStorage = as;
+    testRequire(['timer', 'mocks/mock_asyncstorage'], {
+      mocks: {
+        'async-storage': 'mocks/mock_asyncstorage'
+      }
+    }, function(timer, mockAsyncStorage) {
+      Timer = timer;
+      asyncStorage = mockAsyncStorage;
+      done();
+    });
   });
 
   setup(function() {
