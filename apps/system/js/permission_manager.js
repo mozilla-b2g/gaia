@@ -20,6 +20,7 @@ var PermissionManager = {
   // Remember the choice checkbox
   remember: document.getElementById('permission-remember-checkbox'),
   rememberSection: document.getElementById('permission-remember-section'),
+  devices: document.getElementById('permission-devices'),
 
   currentOrigin: undefined,
   currentPermission: undefined,
@@ -45,17 +46,28 @@ var PermissionManager = {
       this.discardPermissionRequest.bind(this));
   },
 
+  // Reset current values
+  clean: function pm_clean() {
+    this.currentPermission = undefined;
+    this.currentPermissions = undefined;
+    this.isVideo = false;
+    this.isAudio = false;
+    this.currentChoices = {};
+    this.devices.innerHTML = '';
+  },
+
   handleEvent: function pm_chromeEventHandler(evt) {
     var detail = evt.detail;
     switch (detail.type) {
       case 'permission-prompt':
+        this.clean();
         this.currentOrigin = detail.origin;
 
         if (detail.permissions) {
-          this.isVideo = false;
-          this.isAudio = false;
           if ('video-capture' in detail.permissions) {
             this.isVideo = true;
+
+            LazyLoader.load('shared/js/template.js');
           }
           if ('audio-capture' in detail.permissions) {
             this.isAudio = true;
@@ -67,7 +79,7 @@ var PermissionManager = {
           }
         }
 
-        // set default permission
+        // Set default permission
         if (this.isVideo && this.isAudio) {
           this.currentPermission = 'media-capture';
         } else {
@@ -79,17 +91,19 @@ var PermissionManager = {
         }
         this.overlay.dataset.type = this.currentPermission;
 
-        // not show remember my choice option in gUM
+        // Not show remember my choice option in gUM
         if (this.isAudio || this.isVideo) {
           this.rememberSection.style.display = 'none';
-          this.remember.checked = false;
 
-          //set default option
+          // Set default options
           this.currentPermissions = detail.permissions;
           for (var permission in detail.permissions) {
             if (detail.permissions.hasOwnProperty(permission)) {
-              this.currentChoices[permission] =
-                detail.permissions[permission][0];
+              // gecko might not support audio/video option
+              if (detail.permissions[permission].length > 0) {
+                this.currentChoices[permission] =
+                  detail.permissions[permission][0];
+              }
             }
           }
         } else {
@@ -108,6 +122,28 @@ var PermissionManager = {
     }
   },
 
+  // Handle media options
+  optionClickhandler: function pm_optionClickhandler(evt) {
+    var link = evt.target;
+    if (!link)
+      return;
+    if (link.classList.contains('input-enable')) {
+      if (link.checked) {
+        this.currentChoices['video-capture'] = link.id;
+      }
+      var currentChoiceId;
+      var items = this.devices.querySelectorAll('input[type="checkbox"]');
+      // Uncheck unselected option, allow 1 selection at same time
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].id !== link.id) {
+          items[i].checked = false;
+          items[i].disabled = false; // Not allow to uncheck last option
+        } else {
+          link.disabled = true;
+        }
+      }
+    }
+  },
 
   fullscreenRequest: undefined,
 
@@ -134,7 +170,11 @@ var PermissionManager = {
   },
 
   handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
-    this.remember.checked = detail.remember ? true : false;
+    if (this.isAudio || this.isVideo) {
+      this.remember.checked = false;
+    } else {
+      this.remember.checked = detail.remember ? true : false;
+    }
     var str = '';
     var permissionID = 'perm-' + this.currentPermission.replace(':', '-');
     var _ = navigator.mozL10n.get;
@@ -194,6 +234,8 @@ var PermissionManager = {
 
   hidePermissionPrompt: function pm_hidePermissionPrompt() {
     this.overlay.classList.remove('visible');
+    this.devices.removeEventListener('click', this);
+    this.devices.classList.remove('visible');
     this.currentRequestId = undefined;
     // Cleanup the event handlers.
     this.yes.removeEventListener('click',
@@ -210,9 +252,7 @@ var PermissionManager = {
 
   // Show the next request, if we have one.
   showNextPendingRequest: function pm_showNextPendingRequest() {
-    if (this.pending.length == 0) {
-      //clean current choices
-      this.currentChoices = undefined;
+    if (this.pending.length === 0) {
       return;
     }
     var request = this.pending.shift();
@@ -226,7 +266,6 @@ var PermissionManager = {
         return;
       }
     }
-    this.currentChoices = undefined;
     this.showPermissionPrompt(request.id,
                          request.message,
                          request.moreInfoText,
@@ -278,6 +317,34 @@ var PermissionManager = {
     return id;
   },
 
+  // Form the media source selection list
+  listDeviceOptions: function pm_listDeviceOptions() {
+    var _ = navigator.mozL10n.get;
+    var self = this;
+    var template = new Template('device-list-item-tmpl');
+    var checked;
+    this.currentPermissions['video-capture'].forEach(function(option) {
+      // Match currentChoices
+      checked = (self.currentChoices['video-capture'] === option) ?
+          'checked=true disabled=true' : '';
+      if (checked) {
+        self.currentChoices['video-capture'] = option;
+      }
+
+      var item_li = document.createElement('li');
+      item_li.className = 'device-cell';
+      item_li.innerHTML = template.interpolate({
+                            id: option,
+                            checked: checked,
+                            label: _('device-' + option)
+                          });
+      self.devices.appendChild(item_li);
+    });
+    this.devices.addEventListener('click',
+      this.optionClickhandler.bind(this));
+    this.devices.classList.add('visible');
+  },
+
   showPermissionPrompt: function pm_showPermissionPrompt(id, msg, moreInfoText,
                                       yescallback, nocallback) {
     // Put the message in the dialog.
@@ -292,6 +359,12 @@ var PermissionManager = {
       this.moreInfoBox.textContent = moreInfoText;
     }
     this.currentRequestId = id;
+
+    // Hide the list if there's only 1 option
+    if (this.isVideo && this.currentPermissions['video-capture'].length > 1) {
+      this.listDeviceOptions();
+    }
+
     // Make the screen visible
     this.overlay.classList.add('visible');
 
@@ -300,7 +373,6 @@ var PermissionManager = {
          this.currentPermission === 'geolocation';
 
     var _ = navigator.mozL10n.get;
-
     this.yes.textContent =
       isSharedPermission ? _('share-' + this.currentPermission) : _('allow');
     this.yes.addEventListener('click', this.clickHandler.bind(this));
