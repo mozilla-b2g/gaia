@@ -50,9 +50,7 @@
       this.onvisibilitychange.bind(this)
     );
 
-    priv.set(this, {
-      stopwatch: new Stopwatch()
-    });
+    this.setStopwatch(new Stopwatch());
 
   };
 
@@ -67,45 +65,56 @@
 
   Stopwatch.Panel.prototype.showButtons = function() {
     Array.prototype.forEach.call(arguments, function(a) {
-      this.nodes[a].classList.remove('hide');
+      this.nodes[a].classList.remove('hidden');
     }, this);
   };
 
   Stopwatch.Panel.prototype.hideButtons = function() {
     Array.prototype.forEach.call(arguments, function(a) {
-      this.nodes[a].classList.add('hide');
+      this.nodes[a].classList.add('hidden');
     }, this);
   };
 
-  Stopwatch.Panel.prototype.onvisibilitychange = function(isVisible) {
-    var swp = priv.get(this);
+  Stopwatch.Panel.prototype.setState = function(state) {
+    switch (state) {
+      case Stopwatch.RUNNING:
+        this.onstart();
+        break;
 
+      case Stopwatch.PAUSED:
+        this.onpause();
+        break;
+
+      case Stopwatch.RESET:
+        this.onreset();
+        break;
+    }
+    this.update();
+  };
+
+  Stopwatch.Panel.prototype.setStopwatch = function(stopwatch) {
+    priv.set(this, {
+      stopwatch: stopwatch
+    });
+
+    this.setState(stopwatch.getState());
+
+    //Clear any existing lap indicators and make new ones
+    var lapsUl = this.nodes.laps;
+    lapsUl.textContent = '';
+    var laps = stopwatch.getLapDurations();
+    for (var i = 0; i < laps.length; i++) {
+      this.onlap(new Date(laps[i]));
+    }
+  };
+
+  Stopwatch.Panel.prototype.onvisibilitychange = function(isVisible) {
+    var stopwatch = priv.get(this).stopwatch;
     if (isVisible) {
-      if (swp.stopwatch.isStarted()) {
-        // Stopwatch is started
-        //
-        // - update the display before becoming visible
-        // - restart the interval
-        //
-        this.update();
-        this.interval = setInterval(this.update.bind(this), 50);
-      } else {
-        // Stopwatch is not started and elapsedTime is 0
-        //
-        // - reset the UI
-        //
-        if (swp.stopwatch.getElapsedTime().getTime() == 0) {
-          this.onreset();
-        }
-      }
+      this.setState(stopwatch.getState());
     } else {
-      if (swp.stopwatch.isStarted()) {
-        // Stopwatch is started
-        //
-        // - clear the interval
-        //
-        clearInterval(this.interval);
-      }
+      // Clear the interval that updates the time display
+      clearInterval(this.interval);
     }
   };
 
@@ -129,26 +138,24 @@
 
   Stopwatch.Panel.prototype.onstart = function() {
     this.interval = setInterval(this.update.bind(this), 50);
-    this.nodes.reset.removeAttribute('disabled');
     this.showButtons('pause', 'lap');
     this.hideButtons('start', 'resume', 'reset');
   };
 
   Stopwatch.Panel.prototype.onpause = function() {
     clearInterval(this.interval);
+    this.nodes.reset.removeAttribute('disabled');
     this.showButtons('resume', 'reset');
     this.hideButtons('pause', 'start', 'lap');
   };
 
   Stopwatch.Panel.prototype.onresume = function() {
-    this.interval = setInterval(this.update.bind(this), 50);
-    this.showButtons('pause', 'lap');
-    this.hidebuttons('start', 'resume', 'reset');
+    this.onstart();
   };
 
   Stopwatch.Panel.prototype.onlap = function(val) {
-    var node = this.nodes['laps'];
-    var num = node.childNodes.length + 1 + '';
+    var node = this.nodes.laps;
+    var num = node.childNodes.length + 1;
     if (num > 99) {
       return;
     }
@@ -156,7 +163,7 @@
     var li = document.createElement('li');
     li.setAttribute('class', 'lap-cell');
     var html = this.lapTemplate.interpolate({
-      num: num,
+      num: String(num),
       time: time
     });
     li.innerHTML = html;
@@ -168,12 +175,9 @@
     this.showButtons('start', 'reset');
     this.hideButtons('pause', 'resume', 'lap');
     this.nodes.reset.setAttribute('disabled', 'true');
-    this.update();
     // clear lap list
-    var node = this.nodes.laps;
-    while (node.hasChildNodes()) {
-      node.removeChild(node.lastChild);
-    }
+    this.nodes.laps.textContent = '';
+    this.update();
   };
 
 }(Stopwatch, Panel));
