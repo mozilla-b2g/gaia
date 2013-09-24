@@ -1,54 +1,155 @@
 {
   "layout"  : {
-    "ar"        : "arabic",
-    "as"        : "english",
-    "bn-BD"     : "english",
-    "ca"        : "english",
-    "cs"        : "english",
-    "cy"        : "english",
-    "cz"        : "czech",
-    "de"        : "german",
-    "el"        : "greek",
-    "en-US"     : "english",
-    "eo"        : "english",
-    "es"        : "spanish",
-    "et"        : "english",
-    "eu"        : "english",
-    "ff"        : "english",
-    "fr"        : "french",
-    "fy-NL"     : "english",
-    "ga-IE"     : "english",
-    "gd"        : "english",
-    "gl"        : "english",
-    "he"        : "hebrew",
-    "hi-IN"     : "english",
-    "ht"        : "english",
-    "hu"        : "hungarian",
-    "id"        : "english",
-    "it"        : "english",
-    "ja"        : "japanese",
-    "ko"        : "english",
-    "lij"       : "english",
-    "ml"        : "english",
-    "nb"        : "norwegian",
-    "nl"        : "english",
-    "or"        : "english",
-    "pa"        : "english",
-    "pl"        : "polish",
-    "pt-BR"     : "portuguese",
-    "ro"        : "romanian",
-    "ru"        : "russian",
-    "sk"        : "slovak",
-    "sl"        : "english",
-    "sq"        : "english",
-    "sr-Cyrl"   : "serbian",
-    "sr-Latn"   : "serbian",
-    "sv-SE"     : "english",
-    "te"        : "english",
-    "tr"        : "turkish",
-    "ur"        : "english",
-    "zh-CN"     : "zhuyin",
-    "zh-TW"     : "zhuyin"
+    "ar": [
+        {"layoutId": "ar", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "as": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "bn-BD": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ca": [
+        {"layoutId": "ca", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "cs": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "cy": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "cz": [
+        {"layoutId": "cz", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "de": [
+        {"layoutId": "de", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "el": [
+        {"layoutId": "el", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "en-US": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "eo": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "es": [
+        {"layoutId": "es", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "et": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "eu": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ff": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "fr": [
+        {"layoutId": "fr", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "fy-NL": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ga-IE": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "gd": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "gl": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "he": [
+        {"layoutId": "he", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "hi-IN": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ht": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "hu": [
+        {"layoutId": "hu", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "id": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "it": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "jp": [
+        {"layoutId": "jp-kanji", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ko": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "lij": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ml": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "nb": [
+        {"layoutId": "nb", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "nl": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "or": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "pa": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "pl": [
+        {"layoutId": "pl", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "pt-BR": [
+        {"layoutId": "pt-BR", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ro": [
+        {"layoutId": "ro", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ru": [
+        {"layoutId": "ru", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "sk": [
+        {"layoutId": "sk", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "sl": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "sq": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "sr-Cyrl": [
+        {"layoutId": "sr-Cyrl", "appOrigin": "keyboard.gaiamobile.org"},
+        {"layoutId": "sr-Latn", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "sr-Latn": [
+        {"layoutId": "sr-Latn", "appOrigin": "keyboard.gaiamobile.org"},
+        {"layoutId": "sr-Cyrl", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "sv-SE": [
+        {"layoutId": "sv", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "te": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "tr": [
+        {"layoutId": "tr-Q", "appOrigin": "keyboard.gaiamobile.org"},
+        {"layoutId": "tr-F", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "ur": [
+        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "zh-CN": [
+        {"layoutId": "zh-Hans-Pinyin", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "zh-TW": [
+        {"layoutId": "zh-Hant-Zhuyin", "appOrigin": "keyboard.gaiamobile.org"}
+    ]
   },
   "nonLatin" : ["ar", "el", "he", "hi-IN", "ja", "ko", "ru", "te", "zh-CN", "zh-TW"]
 }
