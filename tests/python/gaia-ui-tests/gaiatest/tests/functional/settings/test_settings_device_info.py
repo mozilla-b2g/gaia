@@ -16,7 +16,6 @@ class TestSettingsDeviceInfo(GaiaTestCase):
         # verify fields on the main page
         for item in ('phone_number', 'model', 'software'):
             self.assertTrue(len(getattr(device_info, item)) > 0)
-        self.assertEqual(device_info.phone_number, self.testvars['carrier']['phone_number'])
 
         # open more info panel and check that fields are populated
         more_info = device_info.tap_more_info()
