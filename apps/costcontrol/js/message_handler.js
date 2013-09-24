@@ -482,6 +482,7 @@
         function _onCall(tcall) {
           clearTimeout(closing);
           if (tcall.direction !== 'outgoing') {
+            closeIfProceeds();
             return;
           }
           debug('Outgoing call finished!');
