@@ -17,14 +17,16 @@ var icc = {
     var self = this;
 
     // Waiting enough time to finish SIM initialization (have a valid ICCID)
-    setTimeout(function stk_init() {
+    IccHelper.addEventListener('iccinfochange', function stk_init() {
+      DUMP('Cambio ICC: ', self.getICCID());
       self.clearMenuCache(function() {
+        DUMP('Hola');
         window.navigator.mozSetMessageHandler('icc-stkcommand',
           function callHandleSTKCommand(message) {
             self.handleSTKCommand(message);
           });
       });
-    }, 10000);
+    });
 
     var self = this;
     // Update displayTextTimeout with settings parameter
