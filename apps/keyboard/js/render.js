@@ -778,6 +778,15 @@ const IMERender = (function() {
       contentNode.dataset[data.key] = data.value;
     });
 
+    if (contentNode.dataset.keycode != KeyboardEvent.DOM_VK_RETURN &&
+        contentNode.dataset.keycode != KeyboardEvent.DOM_VK_BACK_SPACE) {
+      // The 'key' role tells an assistive technology that these buttons
+      // are used for composing text or numbers, and should be easier to
+      // activate than usual buttons. We keep return and backspace as
+      // buttons so that their activation is not performed by mistake.
+      contentNode.setAttribute('role', 'key');
+    }
+
     var vWrapperNode = document.createElement('span');
     vWrapperNode.className = 'visual-wrapper';
 
