@@ -35,7 +35,7 @@
         countdownType = 'countdown-moreThanADay';
         localTimes = [
           ['days', 'nRemainDays', tl.days],
-          ['hours', 'nRemainHours', tl.hours]
+          ['hours', 'nAndRemainHours', tl.hours]
         ];
       } else if (tl.hours > 0) {
         countdownType = 'countdown-moreThanAnHour';
