@@ -7,6 +7,8 @@ requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 requireApp('communications/ftu/test/unit/mock_data_mobile.js');
 requireApp('communications/ftu/test/unit/mock_sim_manager.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
+requireApp('communications/ftu/test/unit/mock_tutorial.js');
+requireApp('communications/ftu/test/unit/mock_icc_helper.js');
 requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_utils.js');
 requireApp('communications/ftu/js/navigation.js');
@@ -17,7 +19,9 @@ var _;
 var mocksHelperForNavigation = new MocksHelper([
   'UIManager',
   'SimManager',
-  'DataMobile'
+  'DataMobile',
+  'IccHelper',
+  'Tutorial'
 ]);
 mocksHelperForNavigation.init();
 
@@ -101,6 +105,7 @@ suite('navigation >', function() {
       get: navigatorOnLine,
       set: setNavigatorOnLine
     });
+    MockIccHelper.setProperty('cardState', 'ready');
 
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
@@ -150,7 +155,7 @@ suite('navigation >', function() {
     Navigation.previousStep = numSteps;
     window.location.hash = steps[Navigation.currentStep].hash;
     // The second step isn't mandatory.
-    for (var i = Navigation.currentStep; i > 3; i--) {
+    for (var i = Navigation.currentStep; i > 2; i--) {
       Navigation.back();
       assert.equal(Navigation.previousStep, i);
       assert.equal(Navigation.currentStep, i - 1);
@@ -158,18 +163,59 @@ suite('navigation >', function() {
     }
   });
 
+  test('navigate loop with SIMMandatory', function() {
+    Navigation.simMandatory = true;
+    MockIccHelper.setProperty('cardState', 'absent');
+    Navigation.currentStep = 1;
+    Navigation.previousStep = 1;
+    Navigation.forward();
+
+    assert.equal(Navigation.previousStep, 1);
+    assert.equal(Navigation.currentStep, 2);
+    assert.equal(window.location.hash, '#SIM_mandatory');
+
+    Navigation.back();
+    Navigation.forward();
+
+    assert.equal(Navigation.previousStep, 1);
+    assert.equal(Navigation.currentStep, 2);
+    assert.equal(window.location.hash, '#SIM_mandatory');
+
+  });
+
+
+  test('navigate SIMMandatory with SIM', function() {
+    Navigation.simMandatory = true;
+    MockIccHelper.setProperty('cardState', 'ready');
+    Navigation.currentStep = 1;
+    Navigation.previousStep = 1;
+    Navigation.forward();
+
+    assert.equal(Navigation.previousStep, 1);
+    assert.equal(Navigation.currentStep, 2);
+    assert.equal(window.location.hash, steps[Navigation.currentStep].hash);
+    // Back to initial step.
+    Navigation.back();
+  });
+
   test('last step launches tutorial', function() {
     Navigation.currentStep = numSteps;
     window.location.hash = steps[Navigation.currentStep].hash;
+    UIManager.activationScreen.classList.add('show');
+
     Navigation.forward();
+
     assert.include(UIManager.finishScreen.classList, 'show');
     assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+
+    Navigation.currentStep = numSteps;
   });
 
   suite('external-url-loader >', function() {
     var link;
 
     setup(function() {
+
       this.sinon.stub(window, 'open');
       this.sinon.spy(UIManager, 'displayOfflineDialog');
 
@@ -197,38 +243,5 @@ suite('navigation >', function() {
 
       assert.ok(UIManager.displayOfflineDialog.calledWith(href, title));
     });
-
-    test('navigate SIMMandatory without SIM', function() {
-      Navigation.simMandatory = true;
-      Navigation.currentStep = 1;
-      Navigation.previousStep = 1;
-      Navigation.forward();
-
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
-      assert.equal(window.location.hash, steps[2].hash);
-
-      Navigation.back();
-      Navigation.forward();
-
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 2);
-      assert.equal(window.location.hash, steps[2].hash);
-
-    });
-
-    test('navigate SIMMandatory without SIM', function() {
-      Navigation.simMandatory = false;
-      Navigation.currentStep = 1;
-      Navigation.previousStep = 1;
-      Navigation.forward();
-
-      assert.equal(Navigation.previousStep, 1);
-      assert.equal(Navigation.currentStep, 3);
-      assert.equal(window.location.hash, steps[3].hash);
-      // Back to initial step.
-      Navigation.back();
-    });
-
   });
 });
