@@ -78,7 +78,8 @@ var Homescreen = (function() {
       manager.contextmenu(evt);
     } else if (!Homescreen.isInEditMode()) {
       // No long press over an icon neither edit mode
-      LazyLoader.load('js/wallpaper.js', function callWallpaper() {
+      LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
+                      function callWallpaper() {
         Wallpaper.contextmenu();
       });
     }
