@@ -110,7 +110,10 @@ var CardsView = (function() {
     runningApps = WindowManager.getRunningApps();
 
     // Switch to homescreen
-    WindowManager.launch(null);
+    var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('closeapptocardview',
+                          true, false, null);
+    window.dispatchEvent(evt);
     cardsViewShown = true;
 
     // If user is not able to sort apps manualy,
@@ -291,7 +294,8 @@ var CardsView = (function() {
 
         // If we have a cached screenshot, use that first
         // We then 'res-in' the correctly sized version
-        var cachedLayer = WindowManager.screenshots[origin];
+        var appWindow = WindowManager.getRunningApps()[origin];
+        var cachedLayer = appWindow.getScreenshot();
         if (cachedLayer) {
           screenshotView.style.backgroundImage = 'url(' + cachedLayer + ')';
         }
@@ -300,7 +304,7 @@ var CardsView = (function() {
         // (instead of -moz-element backgrounds)
         // Only take a new screenshot if is the active app
         if (!cachedLayer || (
-          typeof frameForScreenshot.getScreenshot === 'function' &&
+          typeof appWindow.getScreenshot === 'function' &&
           origin === displayedApp)) {
           // rect is the final size (considering CSS transform) of the card.
           var rect = card.getBoundingClientRect();
@@ -323,7 +327,7 @@ var CardsView = (function() {
 
                   // Override the cached image
                   URL.revokeObjectURL(cachedLayer);
-                  WindowManager.screenshots[origin] = objectURL;
+                  appWindow.setScreenshot(objectURL);
                 }, 200);
               }
             };
@@ -339,7 +343,12 @@ var CardsView = (function() {
       cardsList.removeChild(element);
       closeApp(element, true);
     } else if ('origin' in e.target.dataset) {
-      WindowManager.launch(e.target.dataset.origin);
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent('launchappfromcardview',
+                          true, false, {
+                            origin: e.target.dataset.origin
+                          });
+      window.dispatchEvent(evt);
     }
   }
 

@@ -37,13 +37,9 @@
 //    getRunningApps(): get the app references of the running apps.
 //
 // TODO
-// The "origin" does not actually refer to app's origin but rather a identifier
-// of the app reference that one gets from |getDisplayedApp()| or
-// iterates |getRunningApps|. The string is make up of the specified
-// launching entry point, origin, or the website url launched by wrapper.
-// It would be ideal if the variable get correctly named and it's rule is being
-// properly documented.
-// See https://bugzilla.mozilla.org/show_bug.cgi?id=796629
+// Remove all origin reference.
+// Use manifestURL + pageURL to identify an app frame.
+// See https://bugzilla.mozilla.org/show_bug.cgi?id=913323
 //
 
 var WindowManager = (function() {
@@ -57,20 +53,12 @@ var WindowManager = (function() {
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
 
-  var screenshots = {};
-
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
   var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
   var wrapperFooter = document.querySelector('#wrapper-footer');
   var kTransitionTimeout = 1000;
-
-  // Set this to true to debugging the transitions and state change
-  var slowTransition = false;
-  if (slowTransition) {
-    windows.classList.add('slow-transition');
-  }
 
   // Requested orientation by the current running application
   var _currentSetOrientationOrigin;
@@ -185,106 +173,9 @@ var WindowManager = (function() {
     }
   }
 
-  var openFrame = null;
-  var closeFrame = null;
-  var openCallback = null;
-  var closeCallback = null;
-  var transitionOpenCallback = null;
-  var transitionCloseCallback = null;
-
-  // Use setOpenFrame() to reset the CSS classes set
-  // to the current openFrame (before overwriting the reference)
-  function setOpenFrame(frame) {
-    if (openFrame) {
-      removeFrameClasses(openFrame);
-    }
-
-    openFrame = frame;
-  }
-
-  // Use setCloseFrame() to reset the CSS classes set
-  // to the current closeFrame (before overwriting the reference)
-  function setCloseFrame(frame) {
-    if (closeFrame) {
-      windowClosed(closeFrame);
-      removeFrameClasses(closeFrame);
-    }
-
-    closeFrame = frame;
-  }
-
-  var classNames = ['opening', 'closing'];
-
-  // Remove these visible className from frame so we will not ended
-  // up having a frozen frame in the middle of the transition
-  function removeFrameClasses(frame) {
-    var classList = frame.classList;
-
-    classNames.forEach(function removeClass(className) {
-      classList.remove(className);
-    });
-  }
-
   window.addEventListener('ftuskip', function skipFTU() {
     InitLogoHandler.animate();
     setDisplayedApp(HomescreenLauncher.origin);
-  });
-
-  // Open and close app animations
-  windows.addEventListener('animationend', function frameAnimationend(evt) {
-    var animationName = evt.animationName;
-    var frame = evt.target;
-
-    if (animationName.indexOf('openApp') !== -1) {
-      windowScaled(frame);
-
-      var onWindowReady = function() {
-        windowOpened(frame);
-
-        setTimeout(openCallback);
-        openCallback = null;
-        setOpenFrame(null);
-      };
-
-      // If this is a cold launch let's wait for the app to load first
-      var iframe = openFrame.firstChild;
-      if ('unloaded' in iframe.dataset) {
-        if ('wrapper' in frame.dataset)
-          wrapperFooter.classList.add('visible');
-
-        iframe.addEventListener('mozbrowserloadend', function onloaded(e) {
-          iframe.removeEventListener('mozbrowserloadend', onloaded);
-          onWindowReady();
-        });
-      } else {
-        onWindowReady();
-      }
-    } else if (animationName.indexOf('closeApp') !== -1) {
-      windowClosed(frame);
-
-      setTimeout(closeCallback);
-      closeCallback = null;
-
-      setCloseFrame(null);
-    } else if (animationName === 'invokingApp') {
-      windowClosed(frame);
-      setTimeout(closeCallback);
-      closeCallback = null;
-
-      if (openFrame && openFrame.classList.contains('fullscreen-app')) {
-        screenElement.classList.add('fullscreen-app');
-      }
-    } else if (animationName === 'invokedApp') {
-      windowScaled(frame);
-      windowOpened(frame);
-
-      setTimeout(openCallback);
-      openCallback = null;
-
-      setCloseFrame(null);
-      setOpenFrame(null);
-      screenElement.classList.remove('switch-app');
-     }
   });
 
   windows.addEventListener('transitionend', function frameTransitionend(evt) {
@@ -323,6 +214,11 @@ var WindowManager = (function() {
     }
   });
 
+  window.addEventListener('homescreenopen', function onAppOpen(e) {
+    console.log('home screen is opened!');
+    displayedApp = HomescreenLauncher.origin;
+  });
+
   // Executes when the opening transition scale the app
   // to full size.
   function windowScaled(frame) {
@@ -338,108 +234,6 @@ var WindowManager = (function() {
     app.setOrientation();
   }
 
-  // Execute when the application is actually loaded
-  function windowOpened(frame) {
-    var iframe = frame.firstChild;
-
-    if (displayedApp == iframe.dataset.frameOrigin) {
-      frame.classList.add('active');
-
-      if ('wrapper' in frame.dataset) {
-        wrapperFooter.classList.add('visible');
-      }
-
-      // Take the focus away from the currently displayed app
-      var app = runningApps[displayedApp];
-      if (app && app.iframe)
-        app.iframe.blur();
-
-      if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
-        // Set homescreen visibility to false
-        HomescreenLauncher.getHomescreen().setVisible(false);
-      }
-
-      // Give the focus to the frame
-      iframe.focus();
-
-      waitForNextPaint(frame, function makeWindowActive() {
-        frame.classList.add('render');
-      });
-    }
-
-    // Dispatch an 'appopen' event.
-    var manifestURL = runningApps[displayedApp].manifestURL;
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appopen', true, false, runningApps[displayedApp]);
-    iframe.dispatchEvent(evt);
-  }
-
-  // Executes when app closing transition finishes.
-  function windowClosed(frame) {
-    var iframe = frame.firstChild;
-    var origin = iframe.dataset.frameOrigin;
-
-    frame.classList.remove('active');
-    runningApps[origin].addClearRotateTransition();
-
-    // set the closed frame visibility to false
-
-    // XXX: After bug 822325 is fixed in gecko,
-    // we don't need to check trusted ui state here anymore.
-    // We do this because we don't want the trustedUI opener
-    // is killed in background due to OOM.
-    if ('setVisible' in iframe && !TrustedUIManager.hasTrustedUI(origin)) {
-      // When we setVisible(false) the app frame, it throws out its
-      // layer tree, which results in it not being renderable by the
-      // compositor.  If that happens before we repaint our tree
-      // without the white app background, then we can see a flicker
-      // of white due to the race condition.
-      //
-      // What we /really/ want to do here is install an AfterPaint
-      // listener for the system app frame and then setVisible(false)
-      // the app from the next notification.  But AfterPaint isn't
-      // available to content, so we use a hack here.
-      //
-      // (The mozbrowser nextpaint event would equivalently fix this,
-      // but the system app can't get a reference to its outer frame
-      // element so that doesn't work either.)
-      //
-      // The "real" fix for this defect is tracked in bug 842102.
-      var request = iframe.getScreenshot(frame.clientWidth,
-                                         frame.clientHeight);
-      request.onsuccess = function(e) {
-        if (e.target.result) {
-          screenshots[origin] = URL.createObjectURL(e.target.result);
-        }
-
-        iframe.setVisible(false);
-      };
-
-      request.onerror = function() {
-        iframe.setVisible(false);
-      };
-    }
-
-    // Inform keyboardmanager that we've finished the transition
-    dispatchEvent(new CustomEvent('appclose'));
-  }
-
-  windows.addEventListener('mozbrowserloadend', function loadend(evt) {
-    var iframe = evt.target;
-    delete iframe.dataset.unloaded;
-    var backgroundColor = evt.detail.backgroundColor;
-    /* When rotating the screen, the child may take some time to reflow.
-     * If the child takes longer than layers.orientation.sync.timeout
-     * to respond, gecko will go ahead and draw anyways. This code
-     * uses a simple heuristic to guess the least distracting color
-     * we should draw in the blank space. */
-
-    /* Only allow opaque colors */
-    if (backgroundColor.indexOf('rgb(') != -1) {
-      iframe.style.backgroundColor = backgroundColor;
-    }
-  });
-
   // setFrameBackground() will attach the manifest icon as a background
   function setFrameBackground(frame, callback) {
     var splash = frame.firstChild.splash;
@@ -451,217 +245,15 @@ var WindowManager = (function() {
     // Do nothing
   }
 
-  // Perform an "open" animation for the app's iframe
-  function openWindow(origin, callback, preCallback) {
-    var app = runningApps[origin];
-    setOpenFrame(app.frame);
-
-    openCallback = callback || noop;
-    preCallback = preCallback || noop;
-
-    // set the size of the opening app
-    app.resize();
-
-    // Make window visible to screenreader
-    app.frame.removeAttribute('aria-hidden');
-
-    if (origin === HomescreenLauncher.origin) {
-      // Call the openCallback only once. We have to use tmp var as
-      // openCallback can be a method calling the callback
-      // (like the `removeFrame` callback in `kill()` ).
-      var tmpCallback = openCallback;
-      openCallback = null;
-
-      HomescreenLauncher.getHomescreen().open(tmpCallback);
-
-      setOpenFrame(null);
-      displayedApp = origin;
-
-      return;
-    }
-
-    if (app.isFullScreen())
-      screenElement.classList.add('fullscreen-app');
-
-    app.setRotateTransition(app.manifest.orientation);
-
-    transitionOpenCallback = function startOpeningTransition() {
-      // We have been canceled by another transition.
-      if (!openFrame || transitionOpenCallback != startOpeningTransition)
-        return;
-
-      // Make sure we're not called twice.
-      transitionOpenCallback = null;
-      preCallback();
-      openFrame.classList.add('opening');
-      HomescreenLauncher.getHomescreen().close();
-    };
-
-    if ('unloaded' in openFrame.firstChild.dataset) {
-      setFrameBackground(openFrame, transitionOpenCallback);
-    } else {
-      app._waitForNextPaint(transitionOpenCallback);
-    }
-
-    // Set the frame to be visible.
-    if (!AttentionScreen.isFullyVisible()) {
-      app.setVisible(true);
-    } else {
-      // If attention screen is fully visible now,
-      // don't give the open frame visible.
-      // This is the case that homescreen is restarted behind attention screen
-
-      // XXX: After bug 822325 is fixed in gecko,
-      // we don't need to check trusted ui state here anymore.
-      // We do this because we don't want the trustedUI opener
-      // is killed in background due to OOM.
-      if (!TrustedUIManager.hasTrustedUI(
-          openFrame.firstChild.dataset.frameOrigin))
-        app.setVisible(false);
-    }
-  }
-
-  function waitForNextPaint(frame, callback) {
-    function onNextPaint() {
-      clearTimeout(timeout);
-      callback();
-    }
-
-    var iframe = frame.firstChild;
-
-    // Register a timeout in case we don't receive
-    // nextpaint in an acceptable time frame.
-    var timeout = setTimeout(function() {
-      if ('removeNextPaintListener' in iframe)
-        iframe.removeNextPaintListener(onNextPaint);
-      callback();
-    }, kTransitionTimeout);
-
-    if ('addNextPaintListener' in iframe)
-      iframe.addNextPaintListener(onNextPaint);
-  }
-
-  function closeAnimation() {
-    closeFrame.classList.remove('active');
-    closeFrame.classList.add('closing');
-  }
-
-  // Perform a "close" animation for the app's iframe
-  function closeWindow(origin, callback, ready) {
-    var app = runningApps[origin];
-    setCloseFrame(app.frame);
-    closeCallback = callback || noop;
-    ready = ready || noop;
-
-    // Make window invisible to screenreader
-    app.frame.setAttribute('aria-hidden', 'true');
-
-    var onSwitchWindow = isSwitchWindow();
-
-    if (!onSwitchWindow) {
-      // invoke openWindow to show homescreen here
-      // XXX: This doesn't really do the opening. Clean it.
-      displayedApp = HomescreenLauncher.origin;
-      HomescreenLauncher.getHomescreen().setVisible(true);
-      app.setRotateTransition();
-    }
-
-    // Send a synthentic 'appwillclose' event.
-    // The keyboard uses this and the appclose event to know when to close
-    // See https://github.com/andreasgal/gaia/issues/832
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
-    closeFrame.dispatchEvent(evt);
-
-    transitionCloseCallback = function startClosingTransition() {
-      // Remove the wrapper and reset the homescreen to a normal state
-      if (wrapperFooter.classList.contains('visible')) {
-        wrapperHeader.classList.remove('visible');
-        wrapperFooter.classList.remove('visible');
-      }
-
-      // We have been canceled by another transition.
-      if (!closeFrame || transitionCloseCallback != startClosingTransition) {
-        setTimeout(closeCallback);
-        closeCallback = null;
-        return;
-      }
-
-      // Make sure we're not called twice.
-      transitionCloseCallback = null;
-
-      ready();
-
-      // Start the transition
-      if (!onSwitchWindow) {
-        closeAnimation();
-        HomescreenLauncher.getHomescreen().open();
-      }
-    };
-
-    onSwitchWindow ? transitionCloseCallback() :
-                     HomescreenLauncher.getHomescreen().
-                     _waitForNextPaint(transitionCloseCallback);
-  }
-
-  function isSwitchWindow() {
-    return screenElement.classList.contains('switch-app');
-  }
-
-  // Perform a "switching" animation for the closing frame and the opening frame
-  function switchWindow(origin, callback) {
-    // This will trigger different transition to both openWindow()
-    // and closeWindow() transition.
-    screenElement.classList.add('switch-app');
-
-    // Ask closeWindow() to start closing the displayedApp
-    closeWindow(displayedApp, callback, function ready() {
-      // Ask openWindow() to show a card on the left waiting to be opened
-      openWindow(origin, noop, closeAnimation);
-    });
-  }
-
-  // This is an event listener which listens to an iframe's 'mozbrowserloadend'
-  // and 'appopen' events.  We don't declare it inside another function so as
-  // to ensure that it doesn't accidentally keep anything alive.
-  function appLoadedHandler(e)
-  {
-    if (e.type != 'appopen' && e.type != 'mozbrowserloadend') {
-      return;
-    }
-
-    var iframe = e.target;
-    if (iframe.dataset.enableAppLoaded != e.type) {
-      return;
-    }
-
-    iframe.dataset.enableAppLoaded = undefined;
-
-    // * type == 'w' indicates a warm start (the app was already running; we
-    //   just transitioned to it)
-    // * type == 'c' indicates a cold start (the app process wasn't already
-    //   running)
-
-    var doc = e.target.ownerDocument;
-    var evt = doc.createEvent('CustomEvent');
-    evt.initCustomEvent('apploadtime', true, false, {
-      time: parseInt(Date.now() - iframe.dataset.start),
-      type: (e.type == 'appopen') ? 'w' : 'c'
-    });
-    iframe.dispatchEvent(evt);
-  }
-
   // Switch to a different app
   function setDisplayedApp(origin, callback) {
     var currentApp = displayedApp, newApp = origin ||
       HomescreenLauncher.origin;
 
+      console.log(newApp, displayedApp);
+
     if (newApp === HomescreenLauncher.origin)
       HomescreenLauncher.getHomescreen();
-
-    // Cancel transitions waiting to be started.
-    transitionOpenCallback = null;
-    transitionCloseCallback = null;
 
     // Discard any existing activity
     stopInlineActivity(true);
@@ -670,70 +262,9 @@ var WindowManager = (function() {
     if (document.mozFullScreen)
       document.mozCancelFullScreen();
 
-    // Before starting a new transition, let's make sure current transitions
-    // are stopped and the state classes are cleaned up.
-    // visibility status should also be reset.
-    if (openFrame && 'setVisible' in openFrame.firstChild) {
-      // XXX: After bug 822325 is fixed in gecko,
-      // we don't need to check trusted ui state here anymore.
-      // We do this because we don't want the trustedUI opener
-      // is killed in background due to OOM.
-      if (!TrustedUIManager.hasTrustedUI(
-            openFrame.firstChild.dataset.frameOrigin))
-        openFrame.firstChild.setVisible(false);
-    }
+    // Protect TrustedUI opener
 
-    if (closeFrame && 'setVisible' in closeFrame.firstChild) {
-      // XXX: After bug 822325 is fixed in gecko,
-      // we don't need to check trusted ui state here anymore.
-      // We do this because we don't want the trustedUI opener
-      // is killed in background due to OOM.
-      if (!TrustedUIManager.hasTrustedUI(
-            closeFrame.firstChild.dataset.frameOrigin)) {
-        closeFrame.firstChild.setVisible(false);
-      }
-    }
-
-    setOpenFrame(null);
-    setCloseFrame(null);
-    screenElement.classList.remove('switch-app');
     screenElement.classList.remove('fullscreen-app');
-
-    // Dispatch an appwillopen event only when we open an app
-    if (newApp != currentApp && newApp != HomescreenLauncher.origin) {
-      var app = runningApps[newApp];
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('appwillopen', true, true, app);
-
-      // Allows listeners to cancel app opening and so stay on homescreen
-      if (!app.iframe.dispatchEvent(evt)) {
-        if (callback) {
-          callback();
-        }
-        return;
-      }
-
-      var iframe = app.iframe;
-
-      // Set iframe.dataset.enableAppLoaded so that the iframe's
-      // mozbrowserloadend or appopen event listener (appLoadedHandler) can
-      // run.
-      //
-      // |unpainted in iframe.dataset| means that the app is cold booting.  If
-      // it is, we listen for Browser API's loadend event, which is fired when
-      // the iframe's document load finishes.
-      //
-      // If the app is not cold booting (its process is alive), we listen to
-      // the appopen event, which is fired when the transition to the app
-      // window completes.
-
-      if ('unloaded' in iframe.dataset) {
-        iframe.dataset.enableAppLoaded = 'mozbrowserloadend';
-      } else {
-        iframe.dataset.start = Date.now();
-        iframe.dataset.enableAppLoaded = 'appopen';
-      }
-    }
 
     // Case 1: the app is already displayed
     if (currentApp && currentApp == newApp) {
@@ -741,50 +272,86 @@ var WindowManager = (function() {
         // relaunch homescreen
         HomescreenLauncher.getHomescreen().open(callback);
       } else {
-        if (runningApps[newApp].isFullScreen()) {
-          screenElement.classList.add('fullscreen-app');
-        }
-
-        // Just run the callback right away if it is not homescreen
-        if (callback) {
-          callback();
-        }
+        runningApps[newApp].open(callback);
       }
     }
     // Case 2: null --> app
     else if (FtuLauncher.isFtuRunning() &&
              newApp !== HomescreenLauncher.origin) {
-      openWindow(newApp, function windowOpened() {
+      runningApps[newApp].open('enlarging', function windowOpened() {
         InitLogoHandler.animate(callback);
       });
     }
     // Case 3: null->homescreen
     else if ((!currentApp && newApp == HomescreenLauncher.origin)) {
-      openWindow(newApp, callback);
+      runningApps[newApp].open('enlarging', callback);
     }
     // Case 4: homescreen->app
     else if ((!currentApp && newApp == HomescreenLauncher.origin) ||
              (currentApp == HomescreenLauncher.origin && newApp)) {
-      openWindow(newApp, callback);
+      HomescreenLauncher.getHomescreen().close();
+      runningApps[newApp].open('enlarging', callback);
     }
     // Case 5: app->homescreen
     else if (currentApp && currentApp != HomescreenLauncher.origin &&
              newApp == HomescreenLauncher.origin) {
-      closeWindow(currentApp, callback);
+      HomescreenLauncher.getHomescreen().open();
+      runningApps[displayedApp].close('reducing', callback);
     }
     // Case 6: app-to-app transition
     else {
-      switchWindow(newApp, callback);
+      console.log('switching!');
+      runningApps[newApp].open('invoked');
+      runningApps[displayedApp].close('invoking');
     }
-
-    // Record the time when app was launched,
-    // need this to display apps in proper order on CardsView.
-    if (newApp)
-      runningApps[newApp].launchTime = Date.now();
-
-    // If the app has a attention screen open, displaying it
-    AttentionScreen.showForOrigin(newApp);
   }
+
+  window.addEventListener('launchappfromcardview', function onLaunching(e) {
+    var app = runningApps[e.detail.origin];
+    if (!app)
+      return;
+
+    app.open('fromcardview');
+    HomescreenLauncher.getHomescreen().close();
+  });
+
+  window.addEventListener('launchappfromcardview', function onLaunching(e) {
+    var app = runningApps[e.detail.origin];
+    if (!app)
+      return;
+
+    app.open('from-card-view');
+    HomescreenLauncher.getHomescreen().close('immediate');
+  });
+
+  window.addEventListener('closeapptocardview', function onLaunching(e) {
+    var app = runningApps[displayedApp];
+    if (!app || displayedApp === null ||
+        displayedApp == HomescreenLauncher.origin)
+      return;
+
+    app.close('to-card-view');
+    HomescreenLauncher.getHomescreen().open('immediate');
+  });
+
+  window.addEventListener('appopen', function(e) {
+    var app = e.detail;
+    // XXX: Move this into appWindow and deprecate fixed wrapper header/footer.
+    // See https://bugzilla.mozilla.org/show_bug.cgi?id=916803.
+    if ('wrapper' in app.element.dataset) {
+      wrapperFooter.classList.add('visible');
+    }
+    // XXX: clean this in trustedUI refactoring.
+    if (!TrustedUIManager.isVisible() && !FtuLauncher.isFtuRunning()) {
+      // Set homescreen visibility to false
+      HomescreenLauncher.getHomescreen().setVisible(false);
+    }
+    displayedApp = e.detail.origin;
+  });
+
+  window.addEventListener('appclose', function(app) {
+    runningApps[displayedApp].addClearRotateTransition();
+  });
 
   function setOrientationForInlineActivity(frame) {
     if ('orientation' in frame.dataset) {
@@ -931,11 +498,6 @@ var WindowManager = (function() {
     // done once the app is launched; we're only interested in timing the app
     // itself.
 
-    iframe.addEventListener('mozbrowserloadend', appLoadedHandler,
-                            /* capturing */ true);
-    iframe.addEventListener('appopen', appLoadedHandler,
-                            /* capturing */ true);
-
     // Add the iframe to the document
     windows.appendChild(frame);
 
@@ -950,10 +512,6 @@ var WindowManager = (function() {
       launchTime: 0
     });
     runningApps[origin] = app;
-
-    if (app.isFullScreen()) {
-      frame.classList.add('fullscreen-app');
-    }
 
     numRunningApps++;
 
@@ -1045,28 +603,12 @@ var WindowManager = (function() {
     });
   }
 
-  function removeFrame(origin) {
-    var app = runningApps[origin];
-    var frame = app.frame;
-
-    if (frame) {
-      windows.removeChild(frame);
+  window.addEventListener('appterminated', function(e) {
+    if (e.detail.origin in runningApps) {
+      delete runningApps[e.detail.origin];
+      numRunningApps--;
     }
-
-    if (openFrame == frame) {
-      setOpenFrame(null);
-      setTimeout(openCallback);
-      openCallback = null;
-    }
-    if (closeFrame == frame) {
-      setCloseFrame(null);
-      setTimeout(closeCallback);
-      closeCallback = null;
-    }
-
-    delete runningApps[origin];
-    numRunningApps--;
-  }
+  });
 
   function removeInlineFrame(frame) {
     // If frame is transitioning we should remove the reference
@@ -1290,22 +832,10 @@ var WindowManager = (function() {
       return;
 
     switch (e.target.dataset.frameType) {
-      case 'window':
-        kill(e.target.dataset.frameOrigin);
-        break;
-
       case 'inline-activity':
         stopInlineActivity(true);
         break;
     }
-  });
-
-  // Deal with locationchange
-  window.addEventListener('mozbrowserlocationchange', function(e) {
-    if (!'frameType' in e.target.dataset)
-      return;
-
-    e.target.dataset.url = e.detail;
   });
 
   // Deal with application uninstall event
@@ -1459,31 +989,11 @@ var WindowManager = (function() {
     }
   }
 
-  function setVisibilityForCurrentApp(visible) {
-    var app = runningApps[displayedApp];
-    if (!app)
-      return;
-    if ('setVisible' in app.iframe)
-      app.iframe.setVisible(visible);
-
-    // Restore/give away focus on visiblity change
-    // so that the app can take back its focus
-    if (visible)
-      app.iframe.focus();
-    else
-      app.iframe.blur();
-  }
-
   function handleAppCrash(origin, manifestURL) {
-    if (origin && manifestURL) {
-      // When inline activity frame crashes,
-      // query the localized name from manifest
-      var app = Applications.getByManifestURL(manifestURL);
-      CrashReporter.setAppName(getAppName(origin, app.manifest));
-    } else {
-      var app = runningApps[displayedApp];
-      CrashReporter.setAppName(app.name);
-    }
+    // When inline activity frame crashes,
+    // query the localized name from manifest
+    var app = Applications.getByManifestURL(manifestURL);
+    CrashReporter.setAppName(getAppName(origin, app.manifest));
   }
 
   function getAppName(origin, manifest) {
@@ -1510,25 +1020,6 @@ var WindowManager = (function() {
       handleAppCrash(origin, manifestURL);
       return;
     }
-
-    if (e.target.dataset.frameType !== 'window')
-      return;
-
-    /*
-      detail.type = error (Server Not Found case)
-      is handled in Modal Dialog
-    */
-    if (e.detail.type !== 'fatal')
-      return;
-
-    // If the crashing app is currently displayed, we will present
-    // the user with a banner notification.
-    if (displayedApp == origin)
-      handleAppCrash();
-
-    // Actually remove the frame, and trigger the closing transition
-    // if the app is currently displaying
-    kill(origin);
   });
 
   window.addEventListener('launchwrapper', function(evt) {
@@ -1590,48 +1081,7 @@ var WindowManager = (function() {
     }
 
     var app = runningApps[origin];
-    // As we can't immediatly remove runningApps entry,
-    // we flag it as being killed in order to avoid trying to remove it twice.
-    // (Check required because of bug 814583)
-    if (app.killed) {
-      return;
-    }
-    app.killed = true;
-
-    // Remove callee <-> caller reference before we remove the window.
-    if ('activityCaller' in runningApps[origin] &&
-        runningApps[origin].activityCaller) {
-      delete runningApps[origin].activityCaller.activityCallee;
-      delete runningApps[origin].activityCaller;
-    }
-
-    if ('activityCallee' in runningApps[origin] &&
-        runningApps[origin].activityCallee) {
-      delete runningApps[origin].activityCallee.activityCaller;
-      delete runningApps[origin].activityCallee;
-    }
-
-    // If the app is the currently displayed app, switch to the homescreen
-    if (origin === displayedApp) {
-      if (origin !== HomescreenLauncher.origin) {
-        setDisplayedApp(HomescreenLauncher.origin, function() {
-          removeFrame(origin);
-        });
-      }
-    } else {
-      removeFrame(origin);
-    }
-
-    // Send a synthentic 'appterminated' event.
-    // Let other system app module know an app is
-    // being killed, removed or crashed.
-    var evt = document.createEvent('CustomEvent');
-    var manifestURL = app.manifestURL;
-    evt.initCustomEvent('appterminated', true, false, {
-      origin: origin,
-      manifestURL: manifestURL
-    });
-    window.dispatchEvent(evt);
+    app.kill();
   }
 
   // Reload the frame of the running app
@@ -1672,13 +1122,13 @@ var WindowManager = (function() {
 
     // If we are currently transitioning, the user would like to cancel
     // it instead of toggling homescreen panels.
-    var inTransition = !!(openFrame || closeFrame);
+    // var inTransition = !!(openFrame || closeFrame);
 
     if (document.mozFullScreen) {
       document.mozCancelFullScreen();
     }
 
-    if (displayedApp !== HomescreenLauncher.origin || inTransition) {
+    if (displayedApp !== HomescreenLauncher.origin) {
       // Make sure this happens before activity frame is removed.
       // Because we will be asked by a 'activity-done' event from gecko
       // to relaunch to activity caller, and this is the only way to
@@ -1714,7 +1164,6 @@ var WindowManager = (function() {
         return;
 
       return app.manifest.orientation;
-    },
-    screenshots: screenshots
+    }
   };
 }());

@@ -15,7 +15,7 @@ var SimLock = {
     this.onClose = this.onClose.bind(this);
 
     // Watch for apps that need a mobile connection
-    window.addEventListener('appwillopen', this);
+    window.addEventListener('appopen', this);
 
     // Display the dialog only after lockscreen is unlocked
     // To prevent keyboard being displayed behind it.
@@ -54,7 +54,7 @@ var SimLock = {
 
         this.showIfLocked();
         break;
-      case 'appwillopen':
+      case 'appopen':
         // If an app needs 'telephony' or 'sms' permissions (i.e. mobile
         // connection) and the SIM card is locked, the SIM PIN unlock screen
         // should be launched
@@ -90,12 +90,6 @@ var SimLock = {
           return;
         }
         this._lastOrigin = origin;
-
-        // If SIM is locked, cancel app opening in order to display
-        // it after the SIM PIN dialog is shown
-        if (this.showIfLocked())
-          evt.preventDefault();
-
         break;
     }
   },
