@@ -8,6 +8,12 @@ form[role="dialog"][data-type="object"] > menu > button.icon {
   background-position: 0.5rem center;
 }
 
+form[role="dialog"][data-type="action"] > menu > button.tail-icon,
+form[role="dialog"][data-type="object"] > menu > button.tail-icon {
+  background-repeat: no-repeat;
+  background-size: 3rem;
+  background-position: right 0.5rem top 0.5rem;
+}
 
 form[role="dialog"][data-type="action"],
 form[role="dialog"][data-type="object"] {
