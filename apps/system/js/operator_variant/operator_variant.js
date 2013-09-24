@@ -31,7 +31,7 @@
    * Check the APN settings on startup and when the SIM card is changed.
    */
   var operatorVariantHelper =
-    new OperatorVariantHelper(applySettings,
+    new OperatorVariantHelper(applySettings.bind(this),
                               'operatorvariant.customization',
                               true);
 
@@ -51,7 +51,7 @@
     // same SIM card => do nothing
     if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc)) {
       var apnSettingsKey = 'ril.data.apnSettings';
-      var apnRequest = settings.createLock().get(apnSettingsKey);
+      var apnRequest = navigator.mozSettings.createLock().get(apnSettingsKey);
       apnRequest.onsuccess = function() {
         // no apnSettings, build it.
         if (!apnRequest.result[apnSettingsKey]) {
@@ -237,7 +237,7 @@
   // This will happen when a device use upgrade service to upgrade it.
   function checkWAPUserAgentProfileEmpty() {
     var wapUAProfKey = 'wap.UAProf.url';
-    var wapRequest = settings.createLock().get(wapUAProfKey);
+    var wapRequest = navigator.mozSettings.createLock().get(wapUAProfKey);
     wapRequest.onsuccess = function() {
       // no wap ua profile url, try to build it.
       if (!wapRequest.result[wapUAProfKey]) {
