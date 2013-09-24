@@ -25,6 +25,7 @@ requirejs.config({
 define('startup', function(require) {
 'use strict';
 
+require('css');
 var App = require('app');
 var ClockView = require('clock_view');
 var AlarmList = require('alarm_list');
@@ -43,11 +44,11 @@ function initialize() {
   ActiveAlarm.init();
 }
 
-LazyLoader.load([
-  'shared/style/switches.css',
-  'shared/style/input_areas.css',
-  'shared/style/buttons.css',
-  'shared/style/edit_mode.css'
+require([
+  'css!shared/style/switches',
+  'css!shared/style/input_areas',
+  'css!shared/style/buttons',
+  'css!shared/style/edit_mode'
   ], function() {
      var needsMocks = !navigator.mozAlarms;
      if (needsMocks) {
