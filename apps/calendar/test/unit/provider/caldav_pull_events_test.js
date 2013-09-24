@@ -42,20 +42,6 @@ suiteGroup('Provider.CaldavPullEvents', function() {
     );
   }
 
-  /**
-   * Gets group from remote id of event and returns the
-   * relevant ical component of the event group.
-   *
-   * @param {Object} event, event whose id from remote is equal
-   *  to the eventGroup id we are looking for.
-   *
-   * @param {String} ical, ical component of the eventGroup to return.
-   */
-  function getEventId(event, ical) {
-    var eventGroup = subject.groups[subject.eventIdFromRemote(event, true)];
-    return eventGroup[ical];
-  }
-
   suiteSetup(function(done) {
     this.timeout(10000);
     ical = new ServiceSupport.Fixtures('ical');
@@ -354,16 +340,46 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       });
     });
 
+    test('account deletion during sync aborts processing', function(done) {
+      // Stream a couple of events before account removal
+      stream.emit('event', events[0]);
+      stream.emit('event', events[1]);
+
+      function afterRemove() {
+        // Stream a couple of events after account removal
+        stream.emit('event', events[2]);
+        stream.emit('event', events[3]);
+
+        // Attempt to commit the events
+        subject.commit(function() {
+          setTimeout(afterCommit, 0);
+        });
+      }
+
+      function afterCommit() {
+        // After account removal and commit, no events should have been saved.
+        assert.equal(eventPersistCt, 0);
+        done();
+      }
+
+      // Kick off the removal and subsequent steps...
+      accountStore.remove(account._id, function() {
+        setTimeout(afterRemove, 0);
+      });
+    });
+
     test('abort during #commit also aborts transaction', function(done) {
       // Stream some events...
       for (var i = 0; i < events.length; i++) {
         stream.emit('event', events[i]);
-        stream.emit('eventComplete', {eventId: events[i].id});
       }
-      var groupsArray = Object.keys(subject.groups);
-      var lastEventGroupKey = groupsArray[groupsArray.length - 1];
+
+      subject.commit(function() {
+        // No-op
+      });
+
       // Detection of transaction abort is a test success.
-      subject.groups[lastEventGroupKey].trans.onabort = function() {
+      subject._trans.onabort = function() {
         // Restore the exception handler.
         done();
       };
@@ -378,247 +394,131 @@ suiteGroup('Provider.CaldavPullEvents', function() {
     var removed = [];
     var eventStore;
     var componentStore;
-    var busyTimeStore;
-    var streamedAndCommitted;
-    var notStreamedOrCommitted;
-    var streamedButNotCommitted;
-
-    /**
-     * Streams event group components
-     *
-     * @param {Object} event, ical event to be streamed.
-     * @param {Object} busytime, ical busytime to be streamed.
-     * @param {Object} component, ical component to be streamed.
-     */
-    function streamEventGroup(event, busytime, component) {
-      subject.stream.emit('event', event);
-      subject.stream.emit('occurrence', busytime);
-      subject.stream.emit('component', component);
-    }
+    var newEvent;
+    var newBusytime;
+    var alarm;
+    var addedComponent;
 
     setup(function() {
       removed.length = 0;
       eventStore = app.store('Event');
       componentStore = app.store('IcalComponent');
-      busyTimeStore = app.store('Busytime');
 
       eventStore.remove = function(id) {
         removed.push(id);
       };
 
-      /**
-       * Creates an event, busytime and ical component,
-       * with their ids/eventIds corresponding to the id argument.
-       *
-       * @param {Object} id, the id that the ical data being
-       *  formed, must correspond to.
-       *
-       * @return {Array} array containg a formatted event, event,
-       *  busytime and component all with ids/eventIds corresponding to id.
-       */
-      function createEventAndDependents(id) {
-        var tempevent = serviceEvent('singleEvent');
-        tempevent.id = id;
-        var finalevent = tempevent;
-        var formatevent = subject.formatEvent(tempevent);
+      newEvent = serviceEvent('singleEvent');
+      newEvent = subject.formatEvent(newEvent);
 
-        var tempbusy = Factory('busytime', {
-          eventId: id,
-          calendarId: formatevent.calendarId
-        });
+      addedComponent = {
+        eventId: newEvent._id,
+        ical: 'foo'
+      };
 
-        var tempcomponent = {
-          data: formatevent.remote.icalComponent,
-          eventId: tempbusy.eventId
-        };
-        return {
-          formattedEvent: formatevent,
-          event: finalevent,
-          busytime: tempbusy,
-          component: tempcomponent,
-          id: id
-        };
-      }
+      subject.icalQueue.push(addedComponent);
 
-      // create and allocate first eventGroup which is streamed
-      // and committed.
-      streamedAndCommitted = createEventAndDependents('foo');
+      subject.eventQueue.push(newEvent);
+      subject.removeList = ['1'];
 
-      // create and allocate second eventGroup which is neither
-      // streamed nor committed.
-      notStreamedOrCommitted = createEventAndDependents('bar');
+      newBusytime = Factory('busytime', {
+        eventId: newEvent._id,
+        calendarId: newEvent.calendarId
+      });
 
-      // create and allocate third eventGroup.
-      streamedButNotCommitted = createEventAndDependents('foobar');
+      subject.busytimeQueue.push(newBusytime);
 
-      subject = createSubject();
-      // stream first eventGroup.
-      streamEventGroup(streamedAndCommitted.event,
-        streamedAndCommitted.busytime, streamedAndCommitted.component);
-      // signal to commit first eventGroup.
-      subject.stream.emit('eventComplete', {eventId: streamedAndCommitted.id});
-      // steam third eventGroup but don't commit it.
-      streamEventGroup(streamedButNotCommitted.event,
-        streamedButNotCommitted.busytime, streamedButNotCommitted.component);
+      alarm = Factory('alarm', {
+        startDate: new Date(),
+        eventId: newEvent._id,
+        busytimeId: newBusytime._id
+      });
+
+      subject.alarmQueue.push(alarm);
     });
 
-    /**
-     * Checks records of event, ical components and busytimes in the database,
-     * against the expected presence.
-     *
-     * @param {Object} busyTimeId, _id of busytime for which to check
-     *  the database.
-     *
-     * @param {Object} eventAndComponentId, _id of the event and ical component
-     *  for which to check the database.
-     *
-     * @param {Boolean} expect, boolean that signifies if we expect to find
-     *  given ical data in the database or not.
-     *
-     * @param {Object} busytime, busyTime object to check the database for.
-     * @param {Object} component, component object to check the database for.
-     * @param {Object} event, ical event object to check the database for.
-     * @param {Function} done, fired after all relevant databse sotres have been
-     *  checked and their results verified.
-     */
-    function checkRecords(busyTimeId, eventAndComponentId, expect,
-                          busytime, component, event, done) {
-      var trans = db.transaction('busytimes');
-      var store = trans.objectStore('busytimes');
-
-      trans.addEventListener('complete', function() {
-        if (done) {
-          done();
-        }
+    function commit(fn) {
+      setup(function(done) {
+        subject.commit(function() {
+          setTimeout(function() {
+            done();
+          }, 0);
+        });
       });
-      if (expect) {
-
-        store.get(busyTimeId).onsuccess = function(e) {
-          var result = e.target.result;
-          // assert that record exists.
-          assert.ok(result);
-
-          // assert that result has the properties we expect.
-          assert.hasProperties(result, {
-            start: busytime.start,
-            end: busytime.end,
-            eventId: busytime.eventId,
-            calendarId: busytime.calendarId
-          });
-        };
-        componentStore.get(eventAndComponentId, function(err, record) {
-          assert.ok(record, 'has records');
-          assert.deepEqual(record, component);
-        });
-        eventStore.findByIds([eventAndComponentId], function(err, list) {
-          assert.length(Object.keys(list), 1, 'saved events');
-          assert.ok(list[eventAndComponentId], 'saved event id');
-        });
-      } else {
-        store.get(busyTimeId).onsuccess = function(e) {
-          var result = e.target.result;
-          // assert that the record doesn't exist.
-          assert.ok(!result);
-        };
-        componentStore.get(eventAndComponentId, function(err, record) {
-          assert.ok(!record);
-        });
-        eventStore.findByIds([eventAndComponentId], function(err, list) {
-          assert.length(Object.keys(list), 0);
-          assert.ok(!list[eventAndComponentId]);
-        });
-      }
     }
 
-    suite('checkForCommit', function() {
+    suite('busytime/alarm', function() {
+      commit();
 
-      test('verify that first set is committed', function(done) {
-        // we streamed and committed first eventGroup, so it should
-        // be in the database.
-        checkRecords(
-          streamedAndCommitted.busytime._id,
-          streamedAndCommitted.formattedEvent._id,
-          true,
-          streamedAndCommitted.busytime,
-          streamedAndCommitted.component,
-          streamedAndCommitted.event,
-          done
-        );
+      test('alarm', function(done) {
+        var trans = db.transaction('alarms');
+        var store = trans.objectStore('alarms');
+        var index = store.index('busytimeId');
+
+        index.get(alarm.busytimeId).onsuccess = function(e) {
+          done(function() {
+            var data = e.target.result;
+            assert.ok(data, 'has alarm');
+            assert.hasProperties(data, alarm, 'alarm matches');
+          });
+        };
       });
-      test('verify that second set is not committed', function(done) {
-        // we didn't stream nor commit second eventGroup, so it should
-        // not be in the database.
-        checkRecords(
-          notStreamedOrCommitted.busytime._id,
-          notStreamedOrCommitted.formattedEvent._id,
-          false,
-          notStreamedOrCommitted.busytime,
-          notStreamedOrCommitted.component,
-          notStreamedOrCommitted.event, done
-        );
+
+      test('busytimes', function(done) {
+        var id = newBusytime._id;
+        var trans = db.transaction('busytimes');
+        var store = trans.objectStore('busytimes');
+
+        store.get(id).onsuccess = function(e) {
+          done(function() {
+            var result = e.target.result;
+            assert.ok(result);
+
+            assert.hasProperties(result, {
+              start: newBusytime.start,
+              end: newBusytime.end,
+              eventId: newBusytime.eventId,
+              calendarId: newBusytime.calendarId
+            });
+          });
+        };
       });
-      test('verify that third set is not committed', function(done) {
-        // we streamed but did not commit the third eventGroup, so it should
-        // not be in the database but it should have be present in
-        // subject.groups.
-        assert.ok(
-          subject.groups[streamedButNotCommitted.formattedEvent._id],
-          'check if eventGroup exists'
-        );
-        checkRecords(
-          streamedButNotCommitted.busytime._id,
-          streamedButNotCommitted.formattedEvent._id,
-          false,
-          streamedButNotCommitted.busytime,
-          streamedButNotCommitted.component,
-          streamedButNotCommitted.event,
-          done
-        );
+
+    });
+
+    suite('without remove list', function() {
+      setup(function() {
+        subject.removeList = null;
+      });
+
+      test('result', function(done) {
+        subject.commit(done);
       });
     });
 
-    suite('end of stream commit', function() {
+    suite('event/component', function() {
+      commit();
 
-      test('commit pending records', function(done) {
-
-        function onComplete() {
-          // we never gave the commit signal for the third eventGroup,
-          // so it'll still not be in the database.
-          checkRecords(
-            streamedButNotCommitted.busytime._id,
-            streamedButNotCommitted.formattedEvent._id,
-            false,
-            streamedButNotCommitted.busytime,
-            streamedButNotCommitted.component,
-            streamedButNotCommitted.event
-          );
-          // we gave the signal to commit the second eventGroup so it will
-          // be in the database.
-          checkRecords(
-            notStreamedOrCommitted.busytime._id,
-            notStreamedOrCommitted.formattedEvent._id,
-            true,
-            notStreamedOrCommitted.busytime,
-            notStreamedOrCommitted.component,
-            notStreamedOrCommitted.event,
-            done
-          );
-        };
-        subject.on('complete', onComplete);
-        // stream second eventGroup
-        streamEventGroup(
-          notStreamedOrCommitted.event,
-          notStreamedOrCommitted.busytime,
-          notStreamedOrCommitted.component
-        );
-        // signal second eventGroup to be committed.
-        subject.stream.emit('eventComplete',
-          {
-            eventId: notStreamedOrCommitted.id
+      test('component', function(done) {
+        componentStore.get(newEvent._id, function(err, record) {
+          if (err) {
+            done(err);
+            return;
           }
-        );
-        // signal end of stream.
-        subject.stream.emit('end', {});
+          done(function() {
+            assert.ok(record, 'has records');
+            assert.deepEqual(record, addedComponent);
+          });
+        });
+      });
+
+      test('event', function(done) {
+        eventStore.findByIds([newEvent._id], function(err, list) {
+          done(function() {
+            assert.length(Object.keys(list), 1, 'saved events');
+            assert.ok(list[newEvent._id], 'saved event id');
+          });
+        });
       });
     });
   });
@@ -665,23 +565,24 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       var alarms = expected.alarms;
       delete expected.alarms;
       assert.ok(alarms, 'has alarms');
-      stream.emit('event', event);
+
       stream.emit('occurrence', times[0]);
-      assert.length(getEventId(event, 'occurrences'), 1);
+      assert.length(subject.busytimeQueue, 1);
 
       // ids are unique each time
-      expected._id = getEventId(event, 'occurrences')[0]._id;
-
+      expected._id = subject.busytimeQueue[0]._id;
       assert.ok(expected._id, 'has id');
 
-      assert.hasProperties(getEventId(event, 'occurrences')[0],
+      assert.hasProperties(
+        subject.busytimeQueue[0],
         expected,
         'queued'
       );
 
+      assert.ok(!subject.busytimeQueue[0].alarms, 'removes alarms');
+
       assert.deepEqual(
-        getEventId(event, 'alarms').length,
-        alarms.length,
+        subject.alarmQueue.length, alarms.length,
         'moves moves to alarm queue'
       );
 
@@ -696,16 +597,11 @@ suiteGroup('Provider.CaldavPullEvents', function() {
   });
 
   suite('#handleComponentSync', function() {
-
     test('incomplete recurrence', function() {
-
-      var newEvent = serviceEvent('singleEvent');
-      newEvent = subject.formatEvent(newEvent);
-
       var data = {
-        data: newEvent.remote.icalComponent,
+        eventId: 'foo',
         lastRecurrenceId: { year: 2012 },
-        eventId: serviceEvent('singleEvent').id
+        ical: 'ical'
       };
 
       var expected = {};
@@ -719,32 +615,26 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
       expected.calendarId = calendar._id;
 
-      subject.stream.emit('event', serviceEvent('singleEvent'));
-      subject.stream.emit('component', data);
-      assert.length(subject.groups[data.eventId].components, 2);
+      stream.emit('component', data);
+      assert.length(subject.icalQueue, 1);
 
       assert.deepEqual(
-        subject.groups[data.eventId].components[1],
+        subject.icalQueue[0],
         expected
       );
     });
 
     test('complete recurrence', function() {
-      var newEvent = serviceEvent('singleEvent');
-      newEvent = subject.formatEvent(newEvent);
-
       var data = {
-        data: newEvent.remote.icalComponent,
         lastRecurrenceId: false,
-        eventId: serviceEvent('singleEvent').id
+        ical: 'ical'
       };
 
-      subject.stream.emit('event', serviceEvent('singleEvent'));
       stream.emit('component', data);
-      assert.length(subject.groups[data.eventId].components, 2);
+      assert.length(subject.icalQueue, 1);
 
       assert.ok(
-        !('lastRecurrenceId' in subject.groups[data.eventId].components[1]),
+        !('lastRecurrenceId' in subject.icalQueue[0]),
         'has not lastRecurrenceId'
       );
     });
@@ -769,10 +659,11 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       var event = serviceEvent('recurringEvent');
       stream.emit('event', event);
 
-      assert.length(getEventId(event, 'components'), 1);
+      assert.length(subject.eventQueue, 3);
+      assert.length(subject.icalQueue, 1);
 
       assert.hasProperties(
-        subject.groups[control._id].components[0],
+        subject.icalQueue[0],
         {
           eventId: control._id,
           data: control.remote.icalComponent
@@ -780,6 +671,16 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       );
 
       var order = [control].concat(exceptions);
+
+      // ensure event and all its exceptions are queued
+      // and in the correct order (event first exceptions after)
+      order.forEach(function(item, idx) {
+        assert.hasProperties(subject.eventQueue[idx].remote, {
+          id: item.remote.id,
+          eventId: item.remote.eventId,
+          recurrenceId: item.remote.recurrenceId
+        });
+      });
     });
 
     test('new event', function() {
@@ -800,9 +701,9 @@ suiteGroup('Provider.CaldavPullEvents', function() {
 
       stream.emit('event', newEvent);
 
-      assert.equal(
-        getEventId(newEvent, 'events')[0].id,
-        newEvent._id
+      assert.length(
+        subject.eventQueue,
+        1
       );
     });
 
@@ -822,7 +723,7 @@ suiteGroup('Provider.CaldavPullEvents', function() {
       );
 
       assert.deepEqual(
-        [getEventId(event, 'events')[0]],
+        subject.eventQueue,
         [subject.formatEvent(event)]
       );
     });
