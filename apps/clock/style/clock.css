@@ -112,7 +112,7 @@ html, body {
    https://developer.mozilla.org/en-US/docs/Web/CSS/padding */
 #analog-clock-face {
   position: relative;
-  padding-top: 4%; /* to account for the tall clock face tick mark */
+  padding-top: 3.9%; /* to account for the tall clock face tick mark */
   width: 100%;
   height: 100%;
   background-image: url('images/analog_clock_face.svg');
