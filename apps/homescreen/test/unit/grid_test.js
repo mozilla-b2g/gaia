@@ -231,13 +231,13 @@ suite('grid.js >', function() {
       sendTouchEvent('touchstart', icon, point);
       sendMouseEvent('mousedown', icon, point);
 
-      assert.isTrue(icon.classList.contains('active'));
-
       this.sinon.clock.tick();
+      assert.isTrue(icon.classList.contains('active'));
 
       sendTouchEvent('touchend', containerNode, point);
       sendMouseEvent('mouseup', containerNode, point);
 
+      this.sinon.clock.tick();
       // Icon lost the focus
       assert.isFalse(icon.classList.contains('active'));
     });
@@ -259,20 +259,21 @@ suite('grid.js >', function() {
       rect = icon2.getBoundingClientRect();
       var point2 = { x: rect.left + 1, y: rect.top + 1 };
 
+      this.sinon.clock.tick();
       assert.isTrue(icon1.classList.contains('active'));
 
       // Tap on second icon
       sendTouchEvent('touchstart', icon2, point2);
       sendMouseEvent('mousedown', icon2, point2);
 
+      this.sinon.clock.tick();
       assert.isFalse(icon1.classList.contains('active'));
       assert.isTrue(icon2.classList.contains('active'));
-
-      this.sinon.clock.tick();
 
       sendTouchEvent('touchend', containerNode, point2);
       sendMouseEvent('mouseup', containerNode, point2);
 
+      this.sinon.clock.tick();
       // No one is active
       assert.isFalse(icon1.classList.contains('active'));
       assert.isFalse(icon2.classList.contains('active'));
