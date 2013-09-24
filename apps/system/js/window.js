@@ -17,11 +17,6 @@
     }
     this._fullScreen = 'fullscreen' in manifest ? manifest.fullscreen : false;
 
-    // We keep the appError object here for the purpose that
-    // we may need to export the error state of AppWindow instance
-    // to the other module in the future.
-    this.appError = new AppError(this);
-
     this.render();
 
     return this;
