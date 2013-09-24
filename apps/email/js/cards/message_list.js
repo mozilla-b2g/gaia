@@ -5,6 +5,7 @@ define(function(require) {
 var templateNode = require('tmpl!./message_list.html'),
     msgHeaderItemNode = require('tmpl!./msg/header_item.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
+    largeMsgConfirmMsgNode = require('tmpl!./msg/large_message_confirm.html'),
     common = require('mail_common'),
     model = require('model'),
     htmlCache = require('html_cache'),
@@ -1124,7 +1125,7 @@ MessageListCard.prototype = {
       unreadNode.classList.add('msg-header-unread-section-unread');
       dateNode.classList.add('msg-header-date-unread');
     }
-    // star
+    // starmail
     var starNode = msgNode.getElementsByClassName('msg-header-star')[0];
     if (message.isStarred)
       starNode.classList.add('msg-header-star-starred');
@@ -1169,20 +1170,49 @@ MessageListCard.prototype = {
       return;
     }
 
-    Cards.pushCard(
-      'message_reader', 'default', 'animate',
-      {
-        // The header here may be undefined here, since the click
-        // could be on a cached HTML node before the back end has
-        // started up. It is OK if header is not available as the
-        // message_reader knows how to wait for the back end to
-        // start up to get the header value later.
-        header: header,
-        // Use the property on the HTML, since the click could be
-        // from a cached HTML node and the real data object may not
-        // be available yet.
-        messageSuid: messageNode.dataset.id
+    function pushMessageCard() {
+      Cards.pushCard(
+        'message_reader', 'default', 'animate',
+        {
+          // The header here may be undefined here, since the click
+          // could be on a cached HTML node before the back end has
+          // started up. It is OK if header is not available as the
+          // message_reader knows how to wait for the back end to
+          // start up to get the header value later.
+          header: header,
+          // Use the property on the HTML, since the click could be
+          // from a cached HTML node and the real data object may not
+          // be available yet.
+          messageSuid: messageNode.dataset.id
+        });
+    }
+
+    // If the message is really big, warn them before they open it.
+    // Ideally we'd only warn if you're on a cell connection
+    // (metered), but as of now `navigator.connection.metered` isn't
+    // implemented.
+
+    // This number is somewhat arbitrary, based on a guess that most
+    // plain-text/HTML messages will be smaller than this. If this
+    // value is too small, users get warned unnecessarily. Too large
+    // and they download a lot of data without knowing. Since we
+    // currently assume that all network connections are metered,
+    // they'll always see this if they get a large message...
+    var LARGE_MESSAGE_SIZE = 1 * 1024 * 1024;
+
+    // watch out, header might be undefined here (that's okay, see above)
+    if (header && header.bytesToDownloadForBodyDisplay > LARGE_MESSAGE_SIZE) {
+      this.showLargeMessageWarning(
+        header.bytesToDownloadForBodyDisplay, function(result) {
+        if (result) {
+          pushMessageCard();
+        } else {
+          // abort
+        }
       });
+    } else {
+      pushMessageCard();
+    }
   },
 
   onHoldMessage: function(messageNode, event) {
@@ -1252,6 +1282,26 @@ MessageListCard.prototype = {
       { // Cancel
         id: 'msg-delete-cancel',
         handler: null
+      }
+    );
+  },
+
+  /**
+   * Show a warning that the given message is large.
+   * Callback is called with cb(true|false) to continue.
+   */
+  showLargeMessageWarning: function(size, cb) {
+    var dialog = largeMsgConfirmMsgNode.cloneNode(true);
+    // TODO: If UX designers want the size included in the warning
+    // message, add it here.
+    ConfirmDialog.show(dialog,
+      { // Confirm
+        id: 'msg-large-message-ok',
+        handler: function() { cb(true); }
+      },
+      { // Cancel
+        id: 'msg-large-message-cancel',
+        handler: function() { cb(false); }
       }
     );
   },

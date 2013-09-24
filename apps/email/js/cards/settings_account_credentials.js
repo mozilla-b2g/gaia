@@ -7,7 +7,8 @@ var templateNode = require('tmpl!./settings_account_credentials.html'),
     Cards = common.Cards;
 
 /**
- * Per-account credentials settings, it can be activesync or imap+smtp
+ * Per-account credentials settings, it can be activesync, imap+smtp,
+ * or pop3+smtp
  */
 function SettingsAccountCredentialsCard(domNode, mode, args) {
   this.domNode = domNode;
