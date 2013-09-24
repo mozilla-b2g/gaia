@@ -267,6 +267,20 @@ suite('Timer', function() {
     assert.isTrue(asyncStorage.removeItem.called);
   });
 
+  test('plus ', function() {
+    var timer = new Timer({
+      startAt: startAt,
+      endAt: endAt
+    });
+    var originalDuration = timer.duration;
+    var originalEndAt = timer.endAt;
+
+    timer.plus(60);
+
+    assert.equal(timer.duration, originalDuration + (60 * 1000));
+    assert.equal(timer.endAt, originalEndAt + (60 * 1000));
+  });
+
   suite('notify ', function() {
     setup(function() {
       var sandbox = this.sinon;

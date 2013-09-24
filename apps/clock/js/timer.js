@@ -163,6 +163,23 @@ Timer.prototype.notify = function timerNotify() {
 };
 
 /**
+ * plus Increase the duration and extend the endAt time
+ *
+ * @param {Number} seconds The time in seconds to add.
+ *
+ * @return {Timer} Timer instance.
+ */
+Timer.prototype.plus = function timerPlus(seconds) {
+  // Convert to ms
+  var ms = seconds * 1000;
+
+  this.duration += ms;
+  this.endAt += ms;
+
+  return this;
+};
+
+/**
  * Static "const" Timer states.
  */
 Object.defineProperties(Timer, {

@@ -56,15 +56,15 @@ Timer.Panel = function(element) {
 
   // Gather elements
   [
-    'create', 'cancel', 'dialog',
-    'pause', 'start', 'sound', 'time', 'vibrate', 'menu'
+    'create', 'cancel', 'dialog', 'menu', 'pause', 'plus',
+    'start', 'sound', 'time', 'vibrate'
   ].forEach(function(id) {
     this.nodes[id] = this.element.querySelector('#timer-' + id);
   }, this);
 
   // Bind click events
   [
-    'create', 'cancel', 'pause', 'start', 'menu'
+    'create', 'cancel', 'menu', 'pause', 'plus', 'start'
   ].forEach(function(action) {
     var element = this.nodes[action];
 
@@ -144,8 +144,6 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
           }
           this.dialog({ isVisible: false });
         }
-
-
       }
     }
   }
@@ -247,20 +245,29 @@ Timer.Panel.prototype.pauseAlarm = function() {
  */
 Timer.Panel.prototype.onclick = function(event) {
   var meta = priv.get(event.target);
+  var value = event.target.dataset.value;
   var panel = meta.panel;
   var nodes = panel.nodes;
   var time;
 
   if (panel.timer && panel.timer[meta.action]) {
-    // meta.action => panel.timer[meta.action]()
-    //
-    // ie.
-    //
-    // if start => panel.timer.start()
-    // if pause => panel.timer.pause()
-    // if cancel => panel.timer.cancel()
-    //
-    panel.timer[meta.action]();
+    if (typeof value !== 'undefined') {
+      // meta.action === 'plus' => panel.timer.plus(+value);
+
+      panel.timer[meta.action](+value);
+
+      return;
+    } else {
+      // meta.action => panel.timer[meta.action]()
+      //
+      // ie.
+      //
+      // if start => panel.timer.start()
+      // if pause => panel.timer.pause()
+      // if cancel => panel.timer.cancel()
+      //
+      panel.timer[meta.action]();
+    }
 
     if (meta.action === 'cancel' || meta.action === 'new') {
       // Reset shared timer object

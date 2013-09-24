@@ -52,24 +52,38 @@ define(function(require) {
         values: values
       });
     }, this);
-
-    Object.defineProperties(this, {
-      value: {
-        get: function() {
-          var values = this.pickers.map(function(picker) {
-            return this.spinners[picker].value;
-          }, this);
-
-          return values.join(':');
-        }
-      }
-    });
   }
 
-  Picker.prototype.reset = function() {
-    this.pickers.forEach(function(picker) {
-      this.spinners[picker].reset();
-    }, this);
+  Picker.prototype = {
+    get value() {
+      // Protect against uninitialized [[Get]] access
+      if (typeof this.pickers === 'undefined') {
+        return null;
+      }
+
+      return this.pickers.map(function(picker) {
+        return this.spinners[picker].value;
+      }, this).join(':');
+    },
+
+    set value(value) {
+      // Protect against uninitialized [[Set]] access
+      if (typeof this.pickers === 'undefined') {
+        return null;
+      }
+
+      value.split(':').forEach(function(value, i) {
+        this.spinners[this.pickers[i]].value = value;
+      }, this);
+
+      return this.value;
+    },
+
+    reset: function() {
+      this.pickers.forEach(function(picker) {
+        this.spinners[picker].reset();
+      }, this);
+    }
   };
 
   return Picker;
