@@ -1,47 +1,9 @@
-/*
-requireApp('clock/js/constants.js');
-requireApp('clock/js/utils.js');
-requireApp('clock/js/alarm.js');
-requireApp('clock/js/alarmsdb.js');
-requireApp('clock/js/alarm_manager.js');
-requireApp('clock/js/alarm_edit.js');
-requireApp('clock/js/alarm_list.js');
-requireApp('clock/js/active_alarm.js');
-
-requireApp('clock/test/unit/mocks/mock_alarmsDB.js');
-requireApp('clock/test/unit/mocks/mock_alarm_list.js');
-requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
-requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
-requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
-requireApp('clock/test/unit/mocks/mock_mozAlarm.js');
-*/
 suite('AlarmEditView', function() {
-/*
-  var _AlarmsDB;
-  var al, am, nml;
-  var id = 1;
-*/
   var nativeMozAlarms = navigator.mozAlarms;
   var nativeL10n = navigator.mozL10n;
   var Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList, AlarmManager;
 
   suiteSetup(function(done) {
-    /*
-    sinon.stub(ActiveAlarm, 'handler');
-    navigator.mozAlarms = new MockMozAlarms(
-      ActiveAlarm.handler);
-    _AlarmsDB = window.AlarmsDB;
-    al = AlarmList;
-    am = AlarmManager;
-    nml = navigator.mozL10n;
-
-    AlarmList = MockAlarmList;
-    AlarmManager = MockAlarmManager;
-    AlarmsDB = new MockAlarmsDB();
-    navigator.mozL10n = MockL10n;
-
-    loadBodyHTML('/index.html');
-    */
     testRequire([
         'alarm',
         'active_alarm',
@@ -87,13 +49,6 @@ suite('AlarmEditView', function() {
   });
 
   suiteTeardown(function() {
-    /*
-    AlarmList = al;
-    AlarmManager = am;
-    AlarmsDB = _AlarmsDB;
-    navigator.mozL10n = nml;
-    ActiveAlarm.handler.restore();
-    */
     navigator.mozAlarms = nativeMozAlarms;
     navigator.mozL10n = nativeL10n;
   });
