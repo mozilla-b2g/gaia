@@ -1,16 +1,10 @@
-requireApp('clock/js/banner.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
-
 suite('Banner', function() {
-  var nml;
-  suiteSetup(function() {
+  var nml, Banner;
+
+  suiteSetup(function(done) {
     // store timezone offset for fake timers
     var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
     nml = navigator.mozL10n;
-
-    navigator.mozL10n = MockL10n;
 
     // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
     // system's time zone
@@ -23,7 +17,16 @@ suite('Banner', function() {
 
     // Instantiate the Banner once with an element
     this.noteElem = document.createElement('div');
-    this.banner = new Banner(this.noteElem);
+
+    testRequire(['banner', 'mocks/mock_navigator_mozl10n'],
+      function(banner, mockL10n) {
+      Banner = banner;
+      navigator.mozL10n = MockL10n;
+
+      this.banner = new Banner(this.noteElem);
+
+      done();
+    }.bind(this));
   });
 
   setup(function() {
