@@ -58,7 +58,7 @@ var ActionMenu = {
       action.textContent = item.label;
 
       if (item.icon) {
-        action.classList.add('icon');
+        action.classList.add(item.iconClass || 'icon');
         action.style.backgroundImage = 'url(' + item.icon + ')';
       }
       this.menu.appendChild(action);
