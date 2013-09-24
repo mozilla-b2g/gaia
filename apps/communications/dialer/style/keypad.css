@@ -81,29 +81,30 @@ article:not(:target) #keypad-delete {
 }
 
 .keypad-cell {
-  display: table-cell;
+  display: table-row;
 }
 
-.keypad-cell:first-child .keypad-key {
+.keypad-key:first-child {
   border-left: 0;
 }
 
-.keypad-cell:last-child .keypad-key {
+.keypad-key:last-child {
   border-right: 0;
 }
 
 .keypad-key {
+  display: table-cell;
   border: solid 0.1rem rgba(255, 255, 255, 0.2);
   border-right-color: rgba(0, 0, 0, 0.4);
   border-bottom-color: rgba(0, 0, 0, 0.4);
-  padding:0.2rem 0 0 1.5rem;
+  padding: 1.3rem 0 0 1.5rem;
   -moz-box-sizing: border-box;
   height: 6rem;
   vertical-align: middle;
   color: white;
   font-weight: 400;
   font-size: 5rem;
-  line-height: 5.5rem;
+  line-height: 1rem;
 }
 
 .keypad-key em {
@@ -135,7 +136,7 @@ article:not(:target) #keypad-delete {
 }
 
 .keypad-key-centered {
-  padding: 1.9rem 0 0 0;
+  padding: 0.9rem 0 0 0;
   text-align: center;
 }
 
