@@ -146,7 +146,7 @@ var TrustedUIManager = {
     }
 
     // XXX: Use event to notify instead of direct function call.
-    HomescreenLauncher.toggle(true);
+    HomescreenLauncher.getHomescreen().toggle(true);
     var frame = app.frame;
     frame.classList.add('back');
     frame.classList.remove('restored');
@@ -164,7 +164,7 @@ var TrustedUIManager = {
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
     if (!WindowManager.getCurrentDisplayedApp().isHomescreen) {
-      HomescreenLauncher.toggle(false);
+      HomescreenLauncher.getHomescreen().toggle(false);
     }
     if (WindowManager.getDisplayedApp() == origin) {
       frame.classList.add('restored');
