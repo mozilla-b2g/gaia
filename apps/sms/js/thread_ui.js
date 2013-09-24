@@ -601,7 +601,7 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
       if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
-        DraftHelper.saveDraft(Threads.currentId, Compose.getText());
+        DraftHelper.saveDraft(Threads.currentId, Compose.getContent());
         this.cleanFields(true);
         window.location.hash = '#thread-list';
       }
@@ -1068,9 +1068,24 @@ var ThreadUI = global.ThreadUI = {
   //Method to retrieve the draft if it has been saved
   renderDraft: function thui_renderDraft(threadId) {
     DraftHelper.getDraft(threadId, function oncomplete(draft) {
-      Compose.append(draft.message);
+      var draftContent = draft.message;
+      alert(draftContent.length);
+      for (var i = 0; i < draftContent.length; i++) {
+        //alert(draft.message[i]);
+        //if(draft.message[i] instanceof Attachment)
+        if (draft.message[i].blob) {
+          Compose.append(
+            new Attachment(
+              draft.message[i].blob, {
+              name: draft.message[i].name,
+              isDraft: true
+            })
+          );
+        } else {
+          Compose.append(draft.message[i]);
+        }
+      }
     });
-
     DraftHelper.deleteDraft(threadId);
   },
 
