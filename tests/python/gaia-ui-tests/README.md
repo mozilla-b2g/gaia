@@ -6,6 +6,14 @@ Gaiatest is a Python package based on
 designed specifically for writing tests against
 [Gaia](https://github.com/mozilla-b2g/gaia).
 
+Prerequisites
+=============
+
+You will need a
+[Marionette enabled Firefox build](https://developer.mozilla.org/en-US/docs/Marionette/Builds)
+that you can
+[successfully connect to](https://developer.mozilla.org/en-US/docs/Marionette/Connecting_to_B2G).
+
 Installation
 ============
 
@@ -16,10 +24,27 @@ Installation is simple:
     python setup.py develop
 
 Risks
-====
+=====
 
 Please visit [this page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests.
- 
+
+Command line interface
+======================
+
+A helpful command line tool is provided for interacting with Gaia. For full
+usage details run `gcli --help` and for help on a specific command use `gcli
+<command> --help`.
+
+For example, to unlock the device, set brightness to 100%, connect to an
+unsecured network, and launch the Settings app:
+
+```bash
+$ gcli unlock
+$ gcli setsetting screen.brightness 1
+$ gcli connectwifi MozillaGuest
+$ gcli launchapp Settings
+```
+
 Running Tests
 =============
 
