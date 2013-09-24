@@ -33,10 +33,7 @@ setup(name='gaiatest',
           'resources/report/style.css']},
       include_package_data=True,
       zip_safe=False,
-      entry_points="""
-      # -*- Entry points: -*-
-      [console_scripts]
-      gaiatest = gaiatest.runtests:main
-      """,
-      install_requires=deps,
-      )
+      entry_points={'console_scripts': [
+          'gaiatest = gaiatest.runtests:main',
+          'gcli = gaiatest.gcli:cli']},
+      install_requires=deps)
