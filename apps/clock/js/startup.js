@@ -3,7 +3,7 @@ requirejs.config({
   paths: {
     template: '../shared/js/template',
     'gesture-detector': '../shared/js/gesture_detector',
-    'async-storage': '../shared/js/async_storage',
+    async_storage: '../shared/js/async_storage',
     shared: '../shared'
   },
   shim: {
@@ -16,7 +16,7 @@ requirejs.config({
     'gesture-detector': {
       exports: 'GestureDetector'
     },
-    'async-storage': {
+    async_storage: {
       exports: 'asyncStorage'
     }
   }

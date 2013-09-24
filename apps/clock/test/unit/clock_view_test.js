@@ -13,7 +13,7 @@ suite('ClockView', function() {
     testRequire(['clock_view', 'mocks/mock_asyncstorage'], {
         mocks: {
           'alarm_list': 'mocks/mock_alarm_list',
-          'async-storage': 'mocks/mock_asyncstorage'
+          async_storage: 'mocks/mock_asyncstorage'
         }
       }, function(clockView, mockAsyncStorage) {
         ClockView = clockView;

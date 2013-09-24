@@ -7,7 +7,7 @@ suite('Timer', function() {
 
     testRequire(['timer', 'mocks/mock_asyncstorage'], {
       mocks: {
-        'async-storage': 'mocks/mock_asyncstorage'
+        async_storage: 'mocks/mock_asyncstorage'
       }
     }, function(timer, mockAsyncStorage) {
       Timer = timer;
