@@ -3,13 +3,10 @@
 
 (function(window) {
   'use strict';
-  var DEBUG = false;
   window.AppWindow = function AppWindow(configuration) {
     for (var key in configuration) {
       this[key] = configuration[key];
     }
-
-    this.config = configuration;
 
     // Check if it's a fullscreen app.
     var manifest = this.manifest;
@@ -32,24 +29,14 @@
 
 
   /**
-   * Represent the current screenshoting state,
+   * Represent the current visibility state,
    * i.e. what is currently visible. Possible value:
    * 'frame': the actual app iframe
    * 'screenshot': the screenshot overlay,
    *               serve as a placeholder for visible but not active apps.
    * 'none': nothing is currently visible.
    */
-  AppWindow.prototype._screenshotOverlayState = 'frame',
-
-  /**
-   * Represent the current pagee visibility state,
-   * i.e. what is currently visible. Possible value:
-   * 'foreground': setVisible(true)
-   * 'background': setVisible(false)
-   *
-   * Default value is foreground.
-   */
-  AppWindow.prototype._visibilityState = 'foreground',
+  AppWindow.prototype._visibilityState = 'frame',
 
   /**
    * The current orientation of this app window corresponding to screen
@@ -90,33 +77,28 @@
 
   AppWindow.prototype.setVisible =
     function aw_setVisible(visible, screenshotIfInvisible) {
-      this.debug('set visibility -> ', visible);
       if (visible) {
-        this.frame.removeAttribute('aria-hidden');
-        this._screenshotOverlayState = 'frame';
+        this._visibilityState = 'frame';
         this._showFrame();
       } else {
-        this.frame.setAttribute('aria-hidden', 'true');
         if (screenshotIfInvisible) {
-          this._screenshotOverlayState = 'screenshot';
+          this._visibilityState = 'screenshot';
           this._showScreenshotOverlay();
         } else {
-          this._screenshotOverlayState = 'none';
+          this._visibilityState = 'none';
           this._hideFrame();
           this._hideScreenshotOverlay();
         }
       }
-
-      this.debug('screenshot state -> ', this._screenshotOverlayState);
     };
 
   /**
-   * _showFrame will check |this._screenshotOverlayState|
+   * _showFrame will check |this._visibilityState|
    * and then turn on the frame visibility.
    * So this shouldn't be invoked by others directly.
    */
   AppWindow.prototype._showFrame = function aw__showFrame() {
-    if (this._screenshotOverlayState != 'frame')
+    if (this._visibilityState != 'frame')
       return;
 
     // Require a next paint event
@@ -126,19 +108,17 @@
     }
 
     this.iframe.classList.remove('hidden');
-    if ('setVisible' in this.iframe)
-      this.iframe.setVisible(true);
+    this.iframe.setVisible(true);
   };
 
   /**
-   * _hideFrame will check |this._screenshotOverlayState|
+   * _hideFrame will check |this._visibilityState|
    * and then turn off the frame visibility.
    * So this shouldn't be invoked by others directly.
    */
   AppWindow.prototype._hideFrame = function aw__hideFrame() {
-    if (this._screenshotOverlayState !== 'frame') {
-      if ('setVisible' in this.iframe)
-        this.iframe.setVisible(false);
+    if (this._visibilityState !== 'frame') {
+      this.iframe.setVisible(false);
       this.iframe.classList.add('hidden');
     }
   };
@@ -164,11 +144,6 @@
     screenshotOverlay.classList.add('screenshot-overlay');
     this.frame.appendChild(screenshotOverlay);
     this.screenshotOverlay = screenshotOverlay;
-    this.iframe.addEventListener('mozbrowservisibilitychange',
-      function visibilitychange(e) {
-        var type = e.detail.visible ? 'foreground' : 'background';
-        this.publish(type);
-      }.bind(this));
   };
 
   /**
@@ -184,11 +159,8 @@
   AppWindow.prototype.NEXTPAINT_TIMEOUT = 1000;
 
   AppWindow.prototype.debug = function aw_debug(msg) {
-    if (DEBUG) {
-      console.log('[appWindow][' + this.origin + ']' +
-        '[' + new Date().getTime() / 1000 + ']' +
-        Array.slice(arguments).concat());
-    }
+    console.log('[appWindow][' + this.origin + ']' +
+                '[' + new Date().getTime() / 1000 + ']' + msg);
   };
 
   /**
@@ -205,12 +177,9 @@
       if (!callback)
         return;
 
-      var self = this;
-
       var nextPaintTimer;
       var iframe = this.iframe;
       var onNextPaint = function aw_onNextPaint() {
-        self.debug(' nextpainted.');
         iframe.removeNextPaintListener(onNextPaint);
         clearTimeout(nextPaintTimer);
 
@@ -218,17 +187,12 @@
       };
 
       nextPaintTimer = setTimeout(function ifNextPaintIsTooLate() {
-        self.debug(' nextpaint is timeouted.');
         iframe.removeNextPaintListener(onNextPaint);
 
         callback();
       }, this.NEXTPAINT_TIMEOUT);
 
       iframe.addNextPaintListener(onNextPaint);
-      // XXX: Open window quickly.
-      // We have a ~1sec delay here, still don't know why.
-      if (!this.isHomescreen)
-        onNextPaint();
     };
 
   /**
@@ -246,7 +210,7 @@
       this.getScreenshot(function onGettingScreenshot(screenshot) {
         // If the callback is too late,
         // and we're brought to foreground by somebody.
-        if (this._screenshotOverlayState == 'frame')
+        if (this._visibilityState == 'frame')
           return;
 
         if (!screenshot) {
@@ -280,7 +244,7 @@
    */
   AppWindow.prototype._hideScreenshotOverlay =
     function aw__hideScreenshotOverlay() {
-      if (this._screenshotOverlayState != 'screenshot' &&
+      if (this._visibilityState != 'screenshot' &&
           this.screenshotOverlay.classList.contains('visible'))
         this.screenshotOverlay.classList.remove('visible');
     };
@@ -339,15 +303,8 @@
   AppWindow.prototype.publish = function(event, detail) {
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent(this.eventPrefix + event,
-                        true, false, detail || this);
-
-    this.debug('publish: ' + event);
-
-    if (this.frame) {
-      this.frame.dispatchEvent(evt);
-    } else {
-      window.dispatchEvent(evt);
-    }
+                        true, false, detail || this.config);
+    this.frame.dispatchEvent(evt);
   };
 
   /**
@@ -493,38 +450,5 @@
 
     this.publish('resize', {changeActivityFrame: changeActivityFrame});
   };
-
-  AppWindow.prototype.setOrientation =
-    function aw_setOrientation(globalOrientation) {
-      var manifest = this.manifest || this.config.manifest;
-
-      var orientation = manifest.orientation || globalOrientation;
-      if (orientation) {
-        var rv = false;
-        if ('lockOrientation' in screen) {
-          rv = screen.lockOrientation(orientation);
-        } else if ('mozLockOrientation' in screen) {
-          rv = screen.mozLockOrientation(orientation);
-        }
-        if (rv === false) {
-          console.warn('screen.mozLockOrientation() returned false for',
-                       this.origin, 'orientation', orientation);
-          // Prevent breaking app size on desktop since we've resized landscape
-          // apps for transition.
-          if (this.frame.dataset.orientation == 'landscape-primary' ||
-              this.frame.dataset.orientation == 'landscape-secondary' ||
-              this.currentOrientation == 'landscape-primary' ||
-              this.currentOrientation == 'landscape-secondary') {
-            this.resize();
-          }
-        }
-      } else {  // If no orientation was requested, then let it rotate
-        if ('unlockOrientation' in screen) {
-          screen.unlockOrientation();
-        } else if ('mozUnlockOrientation' in screen) {
-          screen.mozUnlockOrientation();
-        }
-      }
-    };
 
 }(this));
