@@ -1,3 +1,5 @@
+define(function() {
+
 function MockPicker(setup) {
   this.node = {};
   this.spinners = {};
@@ -34,3 +36,6 @@ MockPicker.prototype.reset = function() {
     this.spinners[picker].reset();
   }, this);
 };
+
+return MockPicker;
+});
