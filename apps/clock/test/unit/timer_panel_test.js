@@ -11,6 +11,8 @@ requireApp('clock/js/timer_panel.js');
 
 suite('Timer.Panel', function() {
   var p;
+  var clock;
+  var isHidden, isVisible;
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
@@ -19,10 +21,29 @@ suite('Timer.Panel', function() {
 
     Picker = MockPicker;
 
+    isHidden = function(element) {
+      var klasses = element.className.split(/\s+/);
+      return klasses.some(function(e) {
+        return e === 'hide' || e === 'hidden';
+      });
+    };
+
+    isVisible = function(element) {
+      return !isHidden(element);
+    };
+
   });
 
   suiteTeardown(function() {
     Picker = p;
+  });
+
+  beforeEach(function() {
+    clock = sinon.useFakeTimers();
+  });
+
+  afterEach(function() {
+    clock.restore();
   });
 
   test('shape:prototype ', function() {
@@ -81,6 +102,78 @@ suite('Timer.Panel', function() {
 
     assert.isTrue(start.classList.contains('hide'));
     assert.isFalse(pause.classList.contains('hide'));
+  });
+
+  test('Set timer state (paused)', function() {
+    var now = Date.now();
+    var oneHour = 60 * 60 * 1000;
+    var timer = new Timer({
+      'startAt': now,
+      'endAt': now + oneHour,
+      'pauseAt': now,
+      'duration': oneHour,
+      'lapsed': 0,
+      'state': 2, //paused
+      'sound': '0'
+    });
+
+    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    panel.timer = timer;
+    panel.onvisibilitychange(true);
+
+    assert.isTrue(isHidden(panel.nodes.dialog));
+    assert.isTrue(isHidden(panel.nodes.pause));
+
+    assert.isTrue(isVisible(panel.nodes.time));
+    assert.isTrue(isVisible(panel.nodes.start));
+    assert.isTrue(isVisible(panel.nodes.cancel));
+
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
+    clock.tick(5000);
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
+
+  });
+
+  test('Set timer state (started)', function() {
+    var now = Date.now();
+    var oneHour = 60 * 60 * 1000;
+    var timer = new Timer({
+      'startAt': now,
+      'endAt': now + oneHour,
+      'pauseAt': 0,
+      'duration': oneHour,
+      'lapsed': 0,
+      'state': 1, //started
+      'sound': '0'
+    });
+
+    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    panel.timer = timer;
+    panel.onvisibilitychange(true);
+
+    assert.isTrue(isHidden(panel.nodes.dialog));
+    assert.isTrue(isHidden(panel.nodes.start));
+
+    assert.isTrue(isVisible(panel.nodes.time));
+    assert.isTrue(isVisible(panel.nodes.pause));
+    assert.isTrue(isVisible(panel.nodes.cancel));
+
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
+    clock.tick(5000);
+    assert.equal(panel.nodes.time.textContent, '00:59:55');
+  });
+
+  test('Set timer state (blank timer)', function() {
+    var timer = new Timer();
+    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    panel.timer = timer;
+    panel.onvisibilitychange(true);
+
+    assert.isTrue(isVisible(panel.nodes.dialog));
+
+    assert.equal(panel.nodes.time.textContent, '00:00:00');
+    clock.tick(5000);
+    assert.equal(panel.nodes.time.textContent, '00:00:00');
   });
 
   suite('Timer.Panel, Events', function() {

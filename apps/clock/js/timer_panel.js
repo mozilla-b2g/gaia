@@ -90,6 +90,7 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
   var nodes = this.nodes;
   var dialog = View.instance(this.nodes.dialog);
   var timer = this.timer;
+  var isPaused = false;
 
   if (isVisible) {
     // No active timer, or timer has expired...
@@ -102,7 +103,8 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
         timer.cancel();
       }
       this.dialog();
-    } else {
+    }
+    else {
 
       if (timer.state !== Timer.STARTED) {
         // Active timer exists...
@@ -110,11 +112,35 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
         timer.on('end', this.dialog.bind(this));
 
         if (timer.state === Timer.REACTIVATING) {
+          // Reviving to started state,
+          // show the pause button, hide the start button
           this.toggle(nodes.pause, nodes.start);
-          timer.start();
         } else {
+          // Reviving to paused state,
+          // show the start button, hide the pause button
           this.toggle(nodes.start, nodes.pause);
+
+          isPaused = true;
         }
+
+        if (timer.state === Timer.INITIALIZED) {
+          this.dialog();
+          this.update();
+        } else {
+          // Calling start will "revive" and update
+          // both a paused and not-paused timers.
+          //  - Updates the endAt and resets the pauseAt
+          //  - Sync the object.
+          timer.start();
+
+          if (isPaused) {
+            // Immediately re-pause the timer.
+            timer.pause();
+          }
+          this.dialog({ isVisible: false });
+        }
+
+
       }
     }
   }
