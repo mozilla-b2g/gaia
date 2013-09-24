@@ -15,7 +15,7 @@ suite('shared/MobileOperator', function() {
         network: {
           shortName: 'Fake short',
           longName: 'Fake long',
-          mnc: '6'
+          mnc: '06'
         },
         cell: { gsmLocationAreaCode: 71 }
       }
@@ -105,6 +105,15 @@ suite('shared/MobileOperator', function() {
       assert.equal(infos.operator, 'Fake short');
       assert.equal(infos.carrier, 'VIVO');
       assert.equal(infos.region, '');
+    });
+    test('Check the carrier and region with roaming connection', function() {
+      MockMobileConnection.voice.network.mcc = BRAZIL_MCC;
+      MockMobileConnection.voice.network.mnc = '02';
+      MockMobileConnection.voice.roaming = true;
+      var infos = MobileOperator.userFacingInfo(MockMobileConnection);
+      assert.equal(infos.operator, 'Fake short');
+      assert.equal(infos.carrier, 'TIM');
+      assert.equal(infos.region, 'BA 71');
     });
   });
 });
