@@ -8,7 +8,7 @@ var DockManager = (function() {
   var MAX_NUM_ICONS = 7;
   var maxNumAppInViewPort = 4, maxOffsetLeft;
 
-  var windowWidth = window.innerWidth;
+  var windowWidth;
   var duration = 300;
 
   var initialOffsetLeft, initialOffsetRight, numApps, cellWidth;
@@ -218,6 +218,7 @@ var DockManager = (function() {
      *               The dock page object.
      */
     init: function dm_init(containerEl, page, pTapThreshold) {
+      windowWidth = window.innerWidth;
       tapThreshold = pTapThreshold;
       container = containerEl;
       container.addEventListener(touchstart, handleEvent);
