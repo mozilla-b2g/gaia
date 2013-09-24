@@ -84,64 +84,56 @@ html, body {
   display: block;
 }
 
+#analog-clock-container.marks1 {
+  width: 27rem;
+  height: 27rem;
+  margin: 8.8rem auto 0;
+}
+
+#analog-clock-container.marks2 {
+  width: 24.8rem;
+  height: 24.8rem;
+  margin: 7.8rem auto 0;
+}
+
+#analog-clock-container.marks3 {
+  width: 19.8rem;
+  height: 19.8rem;
+  margin: 7.8rem auto 0;
+}
+
+#analog-clock-container.marks4 {
+  width: 14.8rem;
+  height: 14.8rem;
+  margin: 5.8rem auto 0;
+}
+
+/* The padding-top used here is based on the width of the analog-clock-container
+   https://developer.mozilla.org/en-US/docs/Web/CSS/padding */
 #analog-clock-face {
-  background-image: url('images/analog_clock_face.svg'); /*237x246 px*/
+  position: relative;
+  padding-top: 2.6%; /* to account for the tall clock face tick mark */
+  width: 100%;
+  height: 100%;
+  background-image: url('images/analog_clock_face.svg');
   background-repeat: no-repeat;
   background-size: 100%;
-  margin: 8.8rem auto 0;
 }
 
 #analog-clock-hands {
   position: absolute;
   z-index: 2;
-  margin-top: 3.25%;
+  width: 100%;
+  height: 100%;
 }
 
-/* Analog clock face sizes based on 237x246 px svg */
-#analog-clock-face.marks1 {
-  width: 27rem;
-  height: 28.02rem;
-}
-#analog-clock-face.marks1 svg {
-  width: 27rem;
-  height: 27rem;
+#analog-clock-hands-svg {
+  width: 100%;
+  height: 100%;
+  stroke-linecap: butt;
+  fill: transparent;
 }
 
-#analog-clock-face.marks2 {
-  width: 25rem;
-  height: 25.944rem;
-  margin-top: 6.9rem;
-}
-#analog-clock-face.marks2 svg {
-  width: 25rem;
-  height: 25rem;
-}
-
-#analog-clock-face.marks3 {
-  width: 20rem;
-  height: 20.755rem;
-  margin-top: 6.2rem;
-}
-#analog-clock-face.marks3 svg {
-  width: 20rem;
-  height: 20rem;
-}
-
-#analog-clock-face.marks4 {
-  width: 15rem;
-  height: 15.566rem;
-  margin-top: 5.8rem;
-}
-#analog-clock-face.marks4 svg {
-  width: 15rem;
-  height: 15rem;
-}
-
-/* These CSS styles all apply to the SVG clock elements */
-#analog-clock-svg { /* styles for everything in the clock */
-  stroke-linecap: butt; /* with butt ends */
-  fill: transparent; /* on a transparent background */
-}
 #hourhand, #minutehand, #minutehandCentralPoint {
   fill: #CFE2E6;
   stroke-width: 0rem;
