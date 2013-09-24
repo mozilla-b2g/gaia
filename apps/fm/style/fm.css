@@ -212,26 +212,33 @@ div#fav-list-container {
   width: 100%;
 }
 
+div#fav-list-container > div:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 2rem;
+  right: 2rem;
+  width: calc(100% - 4rem);
+  height: .1rem;
+  background-color: #3D4045;
+}
+
 div#fav-list-container > div {
+  position: relative;
   font-size: 2.3rem;
   font-weight: 300;
   height: 4.4rem;
-  margin: 0 2rem;
   padding-bottom: 0.2rem;
   clear: both;
-  border-top: .1rem solid #3D4045;
 }
 
 div#fav-list-container > div:active {
-  background-color: #00ABCD;
+  background-color: rgba(52,140,158, .6);
 }
 
-div#fav-list-container > div:first-child {
-  border-top: none;
-}
-
-div#fav-list-container > div:last-child {
-  border-top: .1rem solid #3D4045;
+div#fav-list-container > div:active:before,
+div#fav-list-container > div:active + div:before {
+  background-color: transparent;
 }
 
 div#fav-list-container div.fav-list-remove-button {
