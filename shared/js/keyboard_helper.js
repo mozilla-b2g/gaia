@@ -148,7 +148,7 @@ var KeyboardHelper = {
       apps.forEach(function eachApp(app) {
         // keyboard apps will set role as 'keyboard'
         // https://wiki.mozilla.org/WebAPI/KeboardIME#Proposed_Manifest_of_a_3rd-Party_IME
-        if ('keyboard' !== app.manifest.role) {
+        if (!app.manifest || 'keyboard' !== app.manifest.role) {
           return;
         }
         //XXX remove this hard code check if one day system app no longer
