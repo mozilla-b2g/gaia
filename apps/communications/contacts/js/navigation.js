@@ -66,12 +66,12 @@ function navigationStack(currentView) {
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
-
     var parent = window.parent;
     if (nextView == 'view-contact-form') {
       parent.postMessage(
-        {type: 'lock-navbar', on: 'contacts-view'}, COMMS_APP_ORIGIN);
+        {type: 'hide-navbar'}, COMMS_APP_ORIGIN);
     }
+
     // Remove items that match nextView from the stack to prevent duplicates.
     this.stack = this.stack.filter(function(item) {
       return item.view != nextView;
@@ -134,7 +134,7 @@ function navigationStack(currentView) {
 
     if (currentView.view == 'view-contact-form') {
       parent.postMessage(
-        {type: 'unlock-navbar'}, COMMS_APP_ORIGIN);
+        {type: 'show-navbar'}, COMMS_APP_ORIGIN);
     }
 
     // Add backwards class to current view.

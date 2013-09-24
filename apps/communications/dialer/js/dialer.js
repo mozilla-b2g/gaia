@@ -250,10 +250,10 @@ var CallHandler = (function callHandler() {
       });
     } else if (data.type && data.type === 'contactsiframe') {
       handleContactsIframeRequest(data.message);
-    } else if (data.type && data.type === 'lock-navbar') {
-      NavbarManager.lock(data.on);
-    } else if (data.type && data.type === 'unlock-navbar') {
-      NavbarManager.unlock();
+    } else if (data.type && data.type === 'hide-navbar') {
+      NavbarManager.hide();
+    } else if (data.type && data.type === 'show-navbar') {
+      NavbarManager.show();
     }
   }
   window.addEventListener('message', handleMessage);
@@ -444,12 +444,6 @@ var NavbarManager = {
   },
 
   update: function nm_update() {
-
-    var views = document.getElementById('views');
-    if (views.dataset.lockon) {
-      window.location.hash = '#' + views.dataset.lockon;
-    }
-
     var recent = document.getElementById('option-recents');
     var contacts = document.getElementById('option-contacts');
     var keypad = document.getElementById('option-keypad');
@@ -503,19 +497,19 @@ var NavbarManager = {
     }
   },
 
-  lock: function(from) {
+  hide: function() {
     var views = document.getElementById('views');
-    views.dataset.lockon = from;
+    views.classList.add('hide-toolbar');
   },
 
-  unlock: function() {
+  show: function() {
     var views = document.getElementById('views');
-    delete views.dataset.lockon;
+    views.classList.remove('hide-toolbar');
   }
 };
 
-window.addEventListener('load', function startup(evt) {
-  window.removeEventListener('load', startup);
+var dialerStartup = function startup(evt) {
+  window.removeEventListener('load', dialerStartup);
 
   KeypadManager.init();
   NavbarManager.init();
@@ -542,7 +536,8 @@ window.addEventListener('load', function startup(evt) {
       lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
-});
+};
+window.addEventListener('load', dialerStartup);
 
 // Listening to the keyboard being shown
 // Waiting for issue 787444 being fixed

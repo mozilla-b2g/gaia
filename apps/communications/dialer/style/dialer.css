@@ -116,16 +116,21 @@ body.hidden *[data-l10n-id] {
 
 /* For showing/hiding navbar */
 article[role="tab"] > .icon {
-  opacity: 1;
+  transform: translateY(0%);
   z-index: 20;
-  transition: 1.5s opacity 0.5s ease;
+  transition: 0.5s transform 0.5s;
 }
 
-#views[data-lockon] > article[role="tab"] > .icon {
-  opacity: 0;
+#views.hide-toolbar > article[role="tab"] > .icon {
+  transform: translateY(100%);
   pointer-events: none;
 }
 
-#views[data-lockon] [role="tabpanel"] {
+#views [role="tabpanel"] {
+  transition: 1s height step-end;
+}
+
+#views.hide-toolbar [role="tabpanel"] {
   height: 100%;
+  transition: none;
 }
