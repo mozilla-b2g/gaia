@@ -253,29 +253,36 @@ contacts.Settings = (function() {
   };
 
   function doExport(strategy) {
-    // Launch the selection mode in the list, and then invoke
-    // the export with the selected strategy.
-    contacts.List.selectFromList(_('exportContactsTitle'),
-      function onSelectedContacts(promise) {
-        // Resolve the promise, meanwhile show an overlay to
-        // warn the user of the ongoin operation, dismiss it
-        // once we have the result
+    contacts.List.initSelectFromList(function() {
+      // Launch the selection mode in the list, and then invoke
+      // the export with the selected strategy.
+      var cursor = contacts.List.selectFromList({
+        title: _('exportContactsTitle'),
+        navigation: navigationHandler,
+        transition: 'popup'
+      });
+
+      // TODO: pass load:true to auto-load contacts
+      // TODO: pass cursor to exporter
+
+      cursor.on('dismissed', function cursorDismissed() {
         utils.overlay.show(_('preparing-contacts'), null, 'spinner');
-        promise.onsuccess = function onSuccess(ids) {
-          var exporter = new ContactsExporter(strategy);
-          exporter.init(ids, function onExporterReady() {
-            // Leave the contact exporter to deal with the overlay
-            exporter.start();
-          });
-        };
-        promise.onerror = function onError() {
-          utils.overlay.hide();
-        };
-      },
-      null,
-      navigationHandler,
-      'popup'
-    );
+      });
+
+      var idList = [];
+      cursor.on('data', function cursorData(id) {
+        idList.push(id);
+        cursor.next();
+      });
+
+      cursor.on('end', function cursorEnd() {
+        var exporter = new ContactsExporter(strategy);
+        exporter.init(idList, function onExporterReady() {
+          // Leave the contact exporter to deal with the overlay
+          exporter.start();
+        });
+      });
+    });
   };
 
   // Options checking & updating
