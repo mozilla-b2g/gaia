@@ -311,6 +311,10 @@ contacts.Settings = (function() {
   // Disables/Enables the actions over the sim import functionality
   var enableSIMOptions = function enableSIMOptions(cardState) {
     var disabled = (cardState !== 'ready');
+    // When SIM in illegal state, the import function should be enable.
+    if (cardState === 'illegal') {
+      disable = false;
+    }
     updateOptionStatus(importSimOption, disabled, true);
     updateOptionStatus(exportSimOption, disabled, true);
   };
