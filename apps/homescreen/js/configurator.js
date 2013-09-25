@@ -108,8 +108,6 @@ var Configurator = (function() {
 
     function loadSVConfFileError(e) {
       singleVariantApps = {};
-      console.error('Failed parsing singleVariant configuration file [' +
-                    SINGLE_VARIANT_CONF_FILE + ']: ' + e);
     }
 
     var iccHandler = function(evt) {
