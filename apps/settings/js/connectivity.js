@@ -117,7 +117,14 @@ var Connectivity = (function(window, document, undefined) {
     if (!_macAddress && settings) {
       var req = settings.createLock().get('deviceinfo.mac');
       req.onsuccess = function macAddr_onsuccess() {
-        _macAddress = req.result['deviceinfo.mac'];
+        // If the value stored in settings is not valid, get the one supplied
+        // by the wifiManager and update the 'deviceinfo.mac' setting
+        if (!req.result['deviceinfo.mac']) {
+          _macAddress = wifiManager.macAddress;
+          settings.createLock().set({ 'deviceinfo.mac': _macAddress });
+        } else {
+          _macAddress = req.result['deviceinfo.mac'];
+        }
       };
       req.onerror = function macAddr_onerror() {
         // Check if the MAC address is set by the wifiManager and is valid
