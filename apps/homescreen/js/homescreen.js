@@ -72,6 +72,9 @@ var Homescreen = (function() {
       var manager = target.parentNode === DockManager.page.olist ? DockManager :
                                                                    GridManager;
       manager.contextmenu(evt);
+      if (Homescreen.isInEditMode()) {
+        document.body.addEventListener('click', onClickHandler);
+      }
     } else if (!Homescreen.isInEditMode()) {
       // No long press over an icon neither edit mode
       LazyLoader.load('js/wallpaper.js', function callWallpaper() {
@@ -79,8 +82,16 @@ var Homescreen = (function() {
       });
     }
   }
+  // dismiss edit mode by tapping in an area of the view where there is no icon
+  function onClickHandler(evt) {
+    if (!('isIcon' in evt.target.dataset)) {
+      exitFromEditMode();
+    }
+  }
 
   function exitFromEditMode() {
+    document.body.removeEventListener('click', onClickHandler);
+
     Homescreen.setMode('normal');
     GridManager.exitFromEditMode();
     if (typeof ConfirmDialog !== 'undefined') {
