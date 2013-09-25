@@ -42,7 +42,7 @@ var Contacts = (function() {
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
     var params = hasParams.length > 1 ?
-      extractParams(hasParams[1]) : -1;
+      utils.extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
@@ -136,19 +136,6 @@ var Contacts = (function() {
       console.error('Extras malformed');
       return null;
     }
-  };
-
-  var extractParams = function extractParams(url) {
-    if (!url) {
-      return -1;
-    }
-    var ret = {};
-    var params = url.split('&');
-    for (var i = 0; i < params.length; i++) {
-      var currentParam = params[i].split('=');
-      ret[currentParam[0]] = currentParam[1];
-    }
-    return ret;
   };
 
   var initContainers = function initContainers() {
@@ -389,24 +376,6 @@ var Contacts = (function() {
     }
   };
 
-  var handleDetailsBack = function handleDetailsBack() {
-    if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.postCancel();
-      navigation.home();
-    } else {
-      var hasParams = window.location.hash.split('?');
-      var params = hasParams.length > 1 ?
-        extractParams(hasParams[1]) : -1;
-
-      navigation.back();
-      // post message to parent page included Contacts app.
-      if (params['back_to_previous_tab'] === '1') {
-        var message = { 'type': 'contactsiframe', 'message': 'back' };
-        window.parent.postMessage(message, COMMS_APP_ORIGIN);
-      }
-    }
-  };
-
   var handleSelectTagDone = function handleSelectTagDone() {
     var prevValue = contactTag.textContent;
     ContactsTag.clickDone(function() {
@@ -455,10 +424,6 @@ var Contacts = (function() {
 
   var showAddContact = function showAddContact() {
     showForm();
-  };
-
-  var showEditContact = function showEditContact() {
-    showForm(true);
   };
 
   var loadFacebook = function loadFacebook(callback) {
@@ -579,10 +544,6 @@ var Contacts = (function() {
     });
   };
 
-  var exitSearchMode = function exitSearchMode(evt) {
-    contacts.Search.exitSearchMode(evt);
-  };
-
   var ignoreReturnKey = function ignoreReturnKey(evt) {
     if (evt.keyCode == 13) { // VK_Return
       evt.target.blur();
@@ -594,10 +555,8 @@ var Contacts = (function() {
     // Definition of elements and handlers
     utils.listeners.add({
       '#cancel_activity': handleCancel, // Activity (any) cancellation
-      '#cancel-edit': handleCancel, // Cancel edition
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
-      '#cancel-search': exitSearchMode, // Search related
       '#search-start': [
         {
           event: 'click',
@@ -610,8 +569,6 @@ var Contacts = (function() {
           handler: ignoreReturnKey
         }
       ],
-      '#details-back': handleDetailsBack, // Details
-      '#edit-contact-button': showEditContact,
       'button[type="reset"]': stopPropagation,
       '#settings-done': handleSelectTagDone,
       '#settings-cancel': handleBack,
