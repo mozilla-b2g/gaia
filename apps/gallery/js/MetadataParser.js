@@ -19,8 +19,6 @@ var metadataParser = (function() {
   // Don't try to decode image files of unknown type if bigger than this
   var MAX_UNKNOWN_IMAGE_FILE_SIZE = .5 * 1024 * 1024; // half a megabyte
 
-  // Don't try to open images with more pixels than this
-  var MAX_IMAGE_PIXEL_SIZE = 5 * 1024 * 1024; // 5 megapixels
 
   // An <img> element for loading images
   var offscreenImage = new Image();
@@ -179,7 +177,11 @@ var metadataParser = (function() {
     function gotImageSize(metadata) {
       // If the image is too big, reject it now so we don't have
       // memory trouble later.
-      if (metadata.width * metadata.height > MAX_IMAGE_PIXEL_SIZE) {
+      // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution we can handle.
+      // It's from config.js which is generated in build time, 5 megapixels by
+      // default (see build/application-data.js). It should be synced with
+      // Camera app and update carefully.
+      if (metadata.width * metadata.height > CONFIG_MAX_IMAGE_PIXEL_SIZE) {
         metadataError('Ignoring high-resolution image ' + file.name);
         return;
       }
