@@ -199,10 +199,10 @@ contacts.Settings = (function() {
     var source = e.target.parentNode.dataset.source;
     switch (source) {
       case 'sim':
-        window.setTimeout(onSimImport, 0);
+        window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
         break;
       case 'sd':
-        window.setTimeout(onSdImport, 0);
+        window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         break;
       case 'gmail':
         Contacts.extServices.importGmail();
@@ -260,17 +260,19 @@ contacts.Settings = (function() {
         // Resolve the promise, meanwhile show an overlay to
         // warn the user of the ongoin operation, dismiss it
         // once we have the result
-        utils.overlay.show(_('preparing-contacts'), null, 'spinner');
-        promise.onsuccess = function onSuccess(ids) {
-          var exporter = new ContactsExporter(strategy);
-          exporter.init(ids, function onExporterReady() {
-            // Leave the contact exporter to deal with the overlay
-            exporter.start();
-          });
-        };
-        promise.onerror = function onError() {
-          utils.overlay.hide();
-        };
+        requireOverlay(function _loaded() {
+          utils.overlay.show(_('preparing-contacts'), null, 'spinner');
+          promise.onsuccess = function onSuccess(ids) {
+            var exporter = new ContactsExporter(strategy);
+            exporter.init(ids, function onExporterReady() {
+              // Leave the contact exporter to deal with the overlay
+              exporter.start();
+            });
+          };
+          promise.onerror = function onError() {
+            utils.overlay.hide();
+          };
+        });
       },
       null,
       navigationHandler,
@@ -380,6 +382,13 @@ contacts.Settings = (function() {
     };
   };
 
+  /**
+   * Loads the overlay class before showing
+   */
+  function requireOverlay(callback) {
+    Contacts.utility('Overlay', callback);
+  }
+
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
     // If the total is not available then an empty string is showed
     var theTotal = total || '';
@@ -446,7 +455,7 @@ contacts.Settings = (function() {
             isDanger: true,
             callback: function() {
               ConfirmDialog.hide();
-              doFbUnlink();
+              requireOverlay(doFbUnlink);
             }
           };
 
@@ -608,7 +617,7 @@ contacts.Settings = (function() {
         callback: function() {
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
-          window.setTimeout(onSimImport, 0);
+          window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
         }
       };
       Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);

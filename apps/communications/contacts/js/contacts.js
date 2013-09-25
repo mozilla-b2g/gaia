@@ -552,7 +552,9 @@ var Contacts = (function() {
   };
 
   var hideOverlay = function c_hideOverlay() {
-    utils.overlay.hide();
+    Contacts.utility('Overlay', function _loaded() {
+      utils.overlay.hide();
+    });
   };
 
   var showStatus = function c_showStatus(message) {

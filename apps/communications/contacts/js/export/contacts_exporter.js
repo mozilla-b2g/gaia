@@ -120,17 +120,19 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   var displayProgress = function displayProgress() {
     var progressClass = determinativeProgress ? 'progressBar' : 'spinner';
 
-    progress = utils.overlay.show(
-      strategy.getExportTitle(),
-      progressClass,
-      null
-    );
+    Contacts.utility('Overlay', function _loaded() {
+      progress = utils.overlay.show(
+        strategy.getExportTitle(),
+        progressClass,
+        null
+      );
 
-    // Allow the strategy to setup the progress bar
-    if (determinativeProgress) {
-      progress.setTotal(contacts.length);
-      strategy.setProgressStep(progress.update);
-    }
+      // Allow the strategy to setup the progress bar
+      if (determinativeProgress) {
+        progress.setTotal(contacts.length);
+        strategy.setProgressStep(progress.update);
+      }
+    });
   };
 
   return {
