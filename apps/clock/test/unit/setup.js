@@ -1,13 +1,4 @@
 require('/shared/test/unit/load_body_html_helper.js');
 requireApp('clock/test/unit/test_require.js');
 
-mocha.setup({ globals: ['Template', 'asyncStorage'] });
-
-requireApp('email/test/unit/mock_l10n.js', function() {
-
-  var nativeMozL10n;
-
-  nativeMozL10n = navigator.mozL10n;
-  navigator.mozL10n = MockL10n;
-
-});
+mocha.setup({ globals: ['Template', 'asyncStorage', 'MockL10n'] });

@@ -6,7 +6,8 @@ var AlarmsDB = require('alarmsdb');
 var AlarmManager = require('alarm_manager');
 var Utils = require('utils');
 var Template = require('shared/js/template');
-var _ = navigator.mozL10n.get;
+var mozL10n = require('l10n');
+var _ = mozL10n.get;
 
 var AlarmList = {
 

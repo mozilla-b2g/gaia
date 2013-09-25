@@ -4,6 +4,7 @@ define(function(require, exports, module) {
 
   var Utils = require('utils');
   var constants = require('constants');
+  var mozL10n = require('l10n');
 
   // define WeakMaps for protected properties
   var protectedProperties = (function() {
@@ -136,7 +137,7 @@ define(function(require, exports, module) {
     // Time Handling
 
     summarizeDaysOfWeek: function alarm_summarizeRepeat() {
-      var _ = navigator.mozL10n.get;
+      var _ = mozL10n.get;
       // Build a bitset
       var value = 0;
       for (var i = 0; i < constants.DAYS.length; i++) {

@@ -15,8 +15,13 @@ requirejs.config({
     },
     'shared/js/async_storage': {
       exports: 'asyncStorage'
-    }
+    },
+    'shared/js/l10n_date': ['shared/js/l10n']
   }
+});
+
+define('l10n', ['shared/js/l10n'], function() {
+  return navigator.mozL10n;
 });
 
 define('startup', function(require) {
@@ -27,6 +32,7 @@ var App = require('app');
 var ClockView = require('clock_view');
 var AlarmList = require('alarm_list');
 var ActiveAlarm = require('active_alarm');
+var mozL10n = require('l10n');
 
 // eventually after some refactoring, this should be replaced with
 // App.init.bind(App)
@@ -53,10 +59,10 @@ require([
            '../test/unit/mocks/mock_moz_alarm.js'
          ], function(MockMozAlarms) {
          navigator.mozAlarms = new MockMozAlarms.MockMozAlarms(function() {});
-         navigator.mozL10n.ready(initialize);
+         mozL10n.ready(initialize);
        });
      } else {
-       navigator.mozL10n.ready(initialize);
+       mozL10n.ready(initialize);
      }
   }
 );

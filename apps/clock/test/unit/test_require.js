@@ -8,6 +8,11 @@ requireApp('clock/js/alameda.js', function() {
       shared: '../shared',
       mocks: '../test/unit/mocks'
     },
+    map: {
+      '*': {
+        'l10n': 'mocks/mock_shared/js/l10n'
+      }
+    },
     shim: {
       database: {
         exports: ['SchemaVersion', 'Database'],
@@ -24,7 +29,11 @@ requireApp('clock/js/alameda.js', function() {
       },
       'shared/js/async_storage': {
         exports: 'asyncStorage'
-      }
+      },
+      'mocks/mock_shared/js/l10n': {
+        exports: 'MockL10n'
+      },
+      'shared/js/l10n_date': ['shared/js/l10n']
     }
   };
 

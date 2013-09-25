@@ -1,30 +1,23 @@
 suite('Alarm Test', function() {
 
   var Alarm, ActiveAlarm;
-  var nativeMozL10n = navigator.mozL10n;
   var nativeMozAlarms = navigator.mozAlarms;
 
   suiteSetup(function(done) {
-    testRequire(['alarm', 'active_alarm'], function(alarm, activeAlarm) {
+    testRequire(['alarm', 'active_alarm', 'mocks/mock_moz_alarm'],
+      function(alarm, activeAlarm, mockMozAlarms) {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
-        requirejs([
-          'mocks/mock_moz_alarm',
-          'mocks/mock_navigator_mozl10n'
-        ], function(mockMozAlarms, mockL10n) {
-          navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
-            ActiveAlarm.handler
-          );
+        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
+          ActiveAlarm.handler
+        );
 
-          navigator.mozL10n = mockL10n;
-          done();
-        });
+        done();
       }
     );
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
     navigator.mozAlarms = nativeMozAlarms;
   });
 

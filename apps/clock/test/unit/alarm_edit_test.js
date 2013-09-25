@@ -1,6 +1,5 @@
 suite('AlarmEditView', function() {
   var nativeMozAlarms = navigator.mozAlarms;
-  var nativeL10n = navigator.mozL10n;
   var Alarm, AlarmEdit, ActiveAlarm, AlarmsDB, AlarmList, AlarmManager;
 
   suiteSetup(function(done) {
@@ -16,7 +15,7 @@ suite('AlarmEditView', function() {
       ], {
         mocks: ['alarmsdb', 'alarm_list', 'alarm_manager']
       }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
-        mockAlarmManager, mockMozAlarms, mockL10n) {
+        mockAlarmManager, mockMozAlarms) {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
         AlarmEdit = alarmEdit;
@@ -28,8 +27,6 @@ suite('AlarmEditView', function() {
         navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
           ActiveAlarm.handler
         );
-
-        navigator.mozL10n = mockL10n;
 
         AlarmList.init();
         AlarmEdit.init();
@@ -46,7 +43,6 @@ suite('AlarmEditView', function() {
 
   suiteTeardown(function() {
     navigator.mozAlarms = nativeMozAlarms;
-    navigator.mozL10n = nativeL10n;
   });
 
   suite('Alarm persistence', function() {

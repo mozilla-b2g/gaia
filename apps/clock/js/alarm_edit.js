@@ -6,7 +6,8 @@ var AlarmManager = require('alarm_manager');
 var ClockView = require('clock_view');
 var Utils = require('utils');
 var constants = require('constants');
-var _ = navigator.mozL10n.get;
+var mozL10n = require('l10n');
+var _ = mozL10n.get;
 
 var AlarmEdit = {
 
@@ -107,7 +108,7 @@ var AlarmEdit = {
   },
 
   init: function aev_init() {
-    navigator.mozL10n.translate(this.element);
+    mozL10n.translate(this.element);
     this.backButton.addEventListener('click', this);
     this.doneButton.addEventListener('click', this);
     this.timeMenu.addEventListener('click', this);
