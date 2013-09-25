@@ -400,9 +400,6 @@ function setNfcPowerLevel(level) {
   });
   request.onsuccess = function() {
     debug('Power level set successfully.');
-
-    // Test onlY:
-    navigator.mozNfc.doSomething();
   };
   request.onerror = function() {
     debug('Power level set failure');

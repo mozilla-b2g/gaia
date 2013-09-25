@@ -39,7 +39,7 @@
     "cellbroadcast":{},
     "keyboard":{},
     "nfc":{ "access": "readonly" },
-    "nfc-manager":{ "access": "readonly" }
+    "nfc-manager":{}
   },
   "locales": {
     "ar": {
