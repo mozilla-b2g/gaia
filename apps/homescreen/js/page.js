@@ -115,7 +115,7 @@ Icon.prototype = {
       }
     }
 
-    var localizedName = descriptor.localizedName || descriptor.name;
+    var localizedName = this.getName();
     container.setAttribute('role', 'button');
     container.setAttribute('aria-label', localizedName);
 
@@ -449,11 +449,31 @@ Icon.prototype = {
   },
 
   /*
+   * Sets a non-translationable name
+   *
+   * @param{string} non-translationable name
+   */
+  setName: function icon_setName(name) {
+    this.label.textContent = this.descriptor.customName = name;
+    this.applyOverflowTextMask();
+    GridManager.markDirtyState();
+  },
+
+  /*
+   * Returns the name icon
+   */
+  getName: function icon_getName() {
+    var desc = this.descriptor;
+    return desc.customName || desc.localizedName || desc.name;
+  },
+
+  /*
    * Translates the label of the icon
    */
   translate: function icon_translate() {
     var descriptor = this.descriptor;
-    if (descriptor.type === GridItemsFactory.TYPE.BOOKMARK)
+    if (descriptor.type === GridItemsFactory.TYPE.BOOKMARK ||
+        descriptor.customName)
       return;
 
     var app = this.app;
