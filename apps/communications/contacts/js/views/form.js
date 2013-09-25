@@ -798,7 +798,10 @@ contacts.Form = (function() {
       var currentEmail = emails[i];
       var arrayIndex = currentEmail.dataset.index;
       var emailField = dom.getElementById('email_' + arrayIndex);
-      var emailValue = emailField.value;
+      // XXX: The .trim() should not be necessary as the input type is email
+      // Please remove once bug 920474 [1] is fixed.
+      // [1] https://bugzilla.mozilla.org/show_bug.cgi?id=920474
+      var emailValue = emailField.value.trim();
       var selector = 'email_type_' + arrayIndex;
       var typeField = dom.getElementById(selector).dataset.value || '';
       if (!emailValue)
