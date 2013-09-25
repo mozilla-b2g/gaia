@@ -45,6 +45,18 @@ void function() {
       elClose.addEventListener('click', self.hide);
       elAppsContainer.dataset.scrollOffset = 0;
 
+      el.addEventListener('animationend', function onAnimationEnd(e) {
+        if (e.animationName === 'collection-hide') {
+          el.style.display = 'none';
+        }
+      });
+
+      el.addEventListener('animationstart', function onAnimationStart(e) {
+        if (e.animationName === 'collection-show') {
+          el.style.display = 'block';
+        }
+      });
+
       Evme.EventHandler.trigger(NAME, 'init');
     };
 
