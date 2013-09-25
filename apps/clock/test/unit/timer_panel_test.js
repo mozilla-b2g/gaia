@@ -1,3 +1,5 @@
+mocha.setup({ globals: ['Emitter'] });
+
 suite('Timer.Panel', function() {
   var View;
   var Timer = {};

@@ -1,3 +1,5 @@
+mocha.setup({ globals: ['Emitter'] });
+
 suite('Tabs', function() {
   var Tabs;
 

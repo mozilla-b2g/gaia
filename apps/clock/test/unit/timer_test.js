@@ -1,3 +1,5 @@
+mocha.setup({ globals: ['Emitter'] });
+
 suite('Timer', function() {
   var Timer, asyncStroage;
   var al, now, startAt, endAt, duration;

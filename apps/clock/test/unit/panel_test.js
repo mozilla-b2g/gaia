@@ -1,3 +1,5 @@
+mocha.setup({ globals: ['Emitter'] });
+
 suite('Panel', function() {
   var Panel;
 

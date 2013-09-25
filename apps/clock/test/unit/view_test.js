@@ -1,3 +1,5 @@
+mocha.setup({ globals: ['Emitter'] });
+
 suite('View', function() {
   var Emitter, View;
 
