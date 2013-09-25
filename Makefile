@@ -83,6 +83,8 @@ BUILD_APP_NAME=$(APP)
 endif
 
 REPORTER?=Spec
+MOCHA_REPORTER?=dot
+NPM_REGISTRY?=http://registry.npmjs.org
 
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
@@ -594,7 +596,7 @@ ifndef APPS
 endif
 
 node_modules:
-	npm install
+	npm install --registry $(NPM_REGISTRY)
 
 b2g: node_modules
 	./node_modules/.bin/mozilla-download --verbose --product b2g $@
@@ -603,7 +605,8 @@ b2g: node_modules
 test-integration:
 	# override existing profile-test folder.
 	PROFILE_FOLDER=profile-test make
-	./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js")
+	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
+		--reporter $(MOCHA_REPORTER)
 
 .PHONY: test-perf
 test-perf:
