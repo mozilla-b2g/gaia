@@ -35,6 +35,7 @@ requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_smil.js');
 requireApp('sms/test/unit/mock_custom_dialog.js');
 requireApp('sms/test/unit/mock_url.js');
+requireApp('sms/test/unit/mock_compose.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -491,6 +492,33 @@ suite('thread_ui.js >', function() {
       });
     });
 
+    suite('type changed after the first segment info request >', function() {
+      setup(function() {
+        Compose.type = 'sms';
+
+        ThreadUI.updateCounter();
+        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
+        // change type to MMS
+        Compose.type = 'mms';
+
+        // no characters were entered in the first call
+        var segmentInfo = {
+          segments: 0,
+          charsAvailableInLastSegment: 0
+        };
+        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+      });
+
+      teardown(function() {
+        Compose.type = 'sms';
+      });
+
+      test('should not change the segment info', function() {
+        assert.ok(sendButton.classList.contains('has-counter'));
+      });
+    });
+
     suite('no characters entered >', function() {
       setup(function() {
         var segmentInfo = {
@@ -868,6 +896,8 @@ suite('thread_ui.js >', function() {
       Compose.clear();
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       segmentInfo.segments = 0;
+      // we have 2 requests, so we trigger twice
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -916,6 +946,8 @@ suite('thread_ui.js >', function() {
       Compose.clear();
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       segmentInfo.segments = 0;
+      // we have 2 requests, so we trigger twice
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
       assert.isFalse(convertBanner.classList.contains('hide'),
