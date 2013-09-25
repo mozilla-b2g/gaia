@@ -8,7 +8,7 @@ requireApp('clock/js/alameda.js', function() {
       template: '/shared/js/template',
       mocks: '../test/unit/mocks',
       async_storage: '../../shared/js/async_storage',
-      'gesture-detector': '../../shared/js/gesture_detector'
+      gesture_detector: '../../shared/js/gesture_detector'
     },
     shim: {
       database: {
@@ -21,7 +21,7 @@ requireApp('clock/js/alameda.js', function() {
       'template': {
         exports: 'Template'
       },
-      'gesture-detector': {
+      gesture_detector: {
         exports: 'GestureDetector'
       },
       async_storage: {

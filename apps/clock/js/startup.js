@@ -2,7 +2,7 @@ requirejs.config({
   baseUrl: 'js',
   paths: {
     template: '../shared/js/template',
-    'gesture-detector': '../shared/js/gesture_detector',
+    gesture_detector: '../shared/js/gesture_detector',
     async_storage: '../shared/js/async_storage',
     shared: '../shared'
   },
@@ -13,7 +13,7 @@ requirejs.config({
     emitter: {
       exports: 'Emitter'
     },
-    'gesture-detector': {
+    gesture_detector: {
       exports: 'GestureDetector'
     },
     async_storage: {

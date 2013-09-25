@@ -2,7 +2,7 @@ define(function(require) {
   'use strict';
 
   var Template = require('template');
-  var GestureDetector = require('gesture-detector');
+  var GestureDetector = require('gesture_detector');
   var SPEED_THRESHOLD = 0.1;
   var INERTIA_MULTIPLIER = 5;
 
