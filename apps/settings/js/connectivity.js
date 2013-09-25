@@ -78,7 +78,8 @@ var Connectivity = (function(window, document, undefined) {
       'corporateLocked' : 'simLockedPhone',
       'unknown' : 'unknownSimCardState',
       'absent' : 'noSimCard',
-      'null' : 'simCardNotReady'
+      'null' : 'simCardNotReady',
+      'ready': ''
     };
 
     updateCarrier();
