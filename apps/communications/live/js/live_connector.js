@@ -96,6 +96,7 @@ if (!window.LiveConnector) {
           tel: [],
           email: [],
           adr: [],
+          org: [],
           photo: liveContact.photo,
           category: [LIVE_CATEGORY],
           url: [{
@@ -148,6 +149,15 @@ if (!window.LiveConnector) {
             out.adr.push(fillAddress(itemsTypeMap[addrType], addrValue));
           }
         });
+
+        var liveWork = liveContact.work;
+        if (Array.isArray(liveWork)) {
+          liveWork.forEach(function(workData) {
+            if (workData.employer && workData.employer.name) {
+             out.org.push(liveWork.employer.name);
+            }
+          });
+        }
 
         return out;
       },
