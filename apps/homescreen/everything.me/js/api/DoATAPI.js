@@ -694,12 +694,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             params["apiKey"] = apiKey;
             params["v"] = appVersion;
             params["native"] = true;
-	    params["platform.os"] = "firefox-os";
+            params["platform.os"] = "firefox-os";
 
-	    // report server about new cached icons
-	    if (methodNamespace === "Search" && methodName === "apps") {
-		params["cachedIcons"] = self.CachedIcons.yank();
-	    }
+            // report server about new cached icons
+            if (methodNamespace === "Search" && methodName === "apps") {
+                params["cachedIcons"] = self.CachedIcons.yank();
+            }
 
             if (manualCredentials) {
                 params["credentials"] = manualCredentials;
@@ -710,13 +710,13 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 }
             }
             if (!noSession) {
-		params["sid"] = (self.Session.get() || {}).id || '';
+                params["sid"] = (self.Session.get() || {}).id || '';
             }
             if (!params.stats) {
                 params.stats = {};
             }
             /* ---------------- */
-           
+
             var _request = new Evme.Request();
             _request.init({
                 "methodNamespace": methodNamespace,

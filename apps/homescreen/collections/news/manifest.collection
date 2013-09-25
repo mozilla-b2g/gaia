@@ -1,0 +1,23 @@
+{
+  "name": "News",
+  "role": "collection",
+  "provider_id": "245",
+  "locales": {
+    "en-US": {
+      "name": "News"
+    },
+    "fr": {
+      "name": "Actualités"
+    },
+    "ar": {
+      "name": "أخبار"
+    },
+    "zh-TW": {
+      "name": "新聞"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/news/icon.png"
+  }
+}

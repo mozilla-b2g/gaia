@@ -1,4 +1,22 @@
-.evmeScope .collection {
+/* styles for open collection before eme is loaded */
+body:not(.evme-ready) #collection hr,
+body:not(.evme-ready) #collection .connection-message,
+body:not(.evme-ready) #collection .loading-more div span,
+body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
+  display: none;
+}
+body:not(.evme-ready) #collection .evme-apps {
+  width: 100%;
+}
+body.evme-loading #collection progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -1.45rem;
+  margin-left: -1.45rem;
+}
+
+.evmeScope #collection {
     position: fixed;
     top: 0;
     left: 0;
@@ -12,22 +30,22 @@
     animation-fill-mode: forwards;
 }
 
-.evmeScope .collection.visible {
+.evmeScope #collection.visible {
     pointer-events: inherit;
     display: block;
     animation-name: collection-show;
     animation-fill-mode: forwards;
 }
 
-    .evmeScope .collection.animate .title,
-    .evmeScope .collection.animate .close,
-    .evmeScope .collection.animate .evme-apps
+    .evmeScope #collection.animate .title,
+    .evmeScope #collection.animate .close,
+    .evmeScope #collection.animate .evme-apps
     {
 	transition: opacity .4s ease;
     }
-    .evmeScope .collection .content {
+    .evmeScope #collection .content {
     }
-    .evmeScope .collection .header {
+    .evmeScope #collection .header {
       position: relative;
       z-index: 50;
       height: 5.4rem;
@@ -36,167 +54,169 @@
       border-bottom: 0.1rem solid #fff;
       overflow: hidden;
     }
-     .evmeScope .collection .header:before {
-	content: "";
-	position: absolute;
-	left: 4rem;
-	top: 5rem;
-	width: 0;
-	height: 0;
-	border: 0.5rem solid #fff;
-	transform: rotate(45deg);
+
+     .evmeScope #collection .header:before {
+        content: "";
+        position: absolute;
+        left: 4rem;
+        top: 5rem;
+        width: 0;
+        height: 0;
+        border: 0.5rem solid #fff;
+        transform: rotate(45deg);
       }
-      .evmeScope .collection .header .header-content {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 5.4rem;
-	/*
-	 * TODO: whdoesn't work, probably performace issue
-	transform: translateY(100%);
-	transition: all 100ms linear 350ms;
-	*/
+      .evmeScope #collection .header .header-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5.4rem;
+        /*
+         * TODO: whdoesn't work, probably performace issue
+        transform: translateY(100%);
+        transition: all 100ms linear 350ms;
+        */
       }
-      /*.evme-collection-visible .evmeScope .collection .header .header-content {
-	transform: translateY(0%);
+      /*.evme-collection-visible .evmeScope #collection .header .header-content {
+        transform: translateY(0%);
       }*/
-    .evmeScope .collection .title {
-	position: relative;
-	z-index: 50;
-	height: 100%;
-	padding: 0 1rem 0 3.2rem;
-	font-size: 1.7rem;
-	font-weight: normal;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	-moz-box-sizing: border-box;
+    .evmeScope #collection .title {
+        position: relative;
+        z-index: 50;
+        height: 100%;
+        padding: 0 1rem 0 3.2rem;
+        font-size: 1.7rem;
+        font-weight: normal;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        -moz-box-sizing: border-box;
     }
-	 .evmeScope .collection .title span {
-	  color: #b4dae7;
-	  text-transform: capitalize;
+  	 .evmeScope #collection .title span {
+          color: #b4dae7;
+          text-transform: capitalize;
       }
 
-    .evmeScope .collection .image {
-	position: absolute;
-	top: 5.5rem;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 10;
-	background-color: #000;
-	background-position: 50% 0;
-	background-size: cover;
+    .evmeScope #collection .image {
+        position: absolute;
+        top: 5.5rem;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 10;
+        background-color: #000;
+        background-position: 50% 0;
+        background-size: cover;
     }
-	 .evmeScope .collection .image .image-overlay {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	bottom: 0;
-	z-index: 20;
-	background: rgba(0, 0, 0, .55);
+	 .evmeScope #collection .image .image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        background: rgba(0, 0, 0, .55);
     }
-    .evmeScope .collection .header .close {
-	background: rgba(0, 0, 0, .1) url('/everything.me/images/imageclose.png') no-repeat 50% 50%/1.7rem;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 2.5rem;
-	height: 5.4rem;
-	cursor: pointer;
-	z-index: 100;
+    .evmeScope #collection .header .close {
+        background: rgba(0, 0, 0, .1) url('/everything.me/images/imageclose.png') no-repeat 50% 50%/1.7rem;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 2.5rem;
+        height: 5.4rem;
+        cursor: pointer;
+        z-index: 100;
     }
-	   .evmeScope .collection .header .close:after {
-	  content: "";
-	  position: absolute;
-	  top: 0.4rem;
-	  bottom: 0.4rem;
-	  right: -0.1rem;
-	  width: 0.1rem;
-	  background: rgba(0, 0, 0, .3);
-	  border-right: 0.1rem solid rgba(255, 255, 255, .3);
+	   .evmeScope #collection .header .close:after {
+          content: "";
+          position: absolute;
+          top: 0.4rem;
+          bottom: 0.4rem;
+          right: -0.1rem;
+          width: 0.1rem;
+          background: rgba(0, 0, 0, .3);
+          border-right: 0.1rem solid rgba(255, 255, 255, .3);
       }
-    .evmeScope .collection .evme-apps {
-	position: absolute;
-	top: 5.5rem;
-	left: 0.5rem;
-	bottom: 0;
-	z-index: 50;
-	width: auto;
-	height: auto;
+    .evmeScope #collection .evme-apps {
+        position: absolute;
+        top: 5.5rem;
+        left: 0.5rem;
+        bottom: 0;
+        z-index: 50;
+        width: auto;
+        height: auto;
     }
-	.evmeScope .collection .evme-apps .loading-apps {
-	    right: 2.5rem;
-	}
-	.evmeScope .collection .evme-apps li {
-	    width: 25%;
-	}
-	.evmeScope .collection .evme-apps li.installed-separator {
-	    width: 100%;
-	}
-	.evmeScope .collection .evme-apps ul.static li img {
-	    transform: scale(1);
-	}
-	.evmeScope .collection[data-mode='edit'] .evme-apps ul.static li img {
-	  -moz-animation-name: shake;
-	  -moz-animation-duration: .8s;
-	  -moz-transform-origin: 50% 50%;
-	  -moz-animation-iteration-count: infinite;
-	  -moz-animation-timing-function: ease-out;
-	}
-	.evmeScope .collection[data-mode='edit'] .evme-apps ul.static li span.remove {
-	  display: block;
-	}
+	.evmeScope #collection .evme-apps .loading-apps {
+            right: 2.5rem;
+        }
+	.evmeScope #collection .evme-apps li {
+            width: 25%;
+        }
+	.evmeScope #collection .evme-apps li.installed-separator {
+            width: 100%;
+        }
+        .evmeScope #collection .evme-apps ul.static li img {
+            transform: scale(1);
+        }
+        .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li img {
+          -moz-animation-name: shake;
+          -moz-animation-duration: .8s;
+          -moz-transform-origin: 50% 50%;
+          -moz-animation-iteration-count: infinite;
+          -moz-animation-timing-function: ease-out;
+        }
+        .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li span.remove {
+          display: block;
+        }
 
 
-    .evmeScope .collection #bgimage-overlay {
-	top: 0;
-	bottom: 0;
-	z-index: 120;
-	pointer-events: none;
-	overflow: hidden;
+    .evmeScope #collection #bgimage-overlay {
+        top: 0;
+        bottom: 0;
+        z-index: 120;
+        pointer-events: none;
+        overflow: hidden;
     }
 
-.evmeScope .collection.full-image {
+.evmeScope #collection.full-image {
 
 }
-    .evmeScope .collection.full-image .evme-apps,
-    .evmeScope .collection.full-image .header .close,
-    .evmeScope .collection.full-image .image-overlay {
-	pointer-events: none;
+    .evmeScope #collection.full-image .evme-apps,
+    .evmeScope #collection.full-image .header .close,
+    .evmeScope #collection.full-image .image-overlay {
+        pointer-events: none;
     }
-    .evmeScope .collection.full-image #bgimage-overlay {
-	opacity: 1;
-	pointer-events: inherit;
+    .evmeScope #collection.full-image #bgimage-overlay {
+        opacity: 1;
+        pointer-events: inherit;
     }
 
-.evmeScope.loading-app .collection .header .title,
-.evmeScope.loading-app .collection .header .close,
-.evmeScope.loading-app .collection .evme-apps li,
+.evmeScope.loading-app #collection .header .title,
+.evmeScope.loading-app #collection .header .close,
+.evmeScope.loading-app #collection .evme-apps li,
 .evmeScope.loading-app.empty-query:not(.keyboard-visible) #shortcuts
 {
     opacity: 0;
     pointer-events: none;
 }
-.evmeScope.loading-app .collection .evme-apps {
+.evmeScope.loading-app #collection .evme-apps {
     pointer-events: none;
 }
-.evmeScope.loading-app .collection .evme-apps li#loading-app {
+.evmeScope.loading-app #collection .evme-apps li#loading-app {
     opacity: 1;
 }
 
-.apps.evme-collection-visible div[data-current-page] ol {
+.evme-collection-visible div[data-current-page] ol {
     opacity: 0;
 }
-.apps.evme-collection-visible div[data-current-page] .evmeScope #search-header {
+.evme-collection-visible div[data-current-page] .evmeScope #search-header,
+.evme-collection-visible #evme-activation-icon > div {
     transform: translateY(-7rem);
 }
-.evmeScope .collection form {
+.evmeScope #collection form {
     display: none;
 }
-.evmeScope .collection form.show {
+.evmeScope #collection form.show {
     display: block;
 }
 

@@ -1,0 +1,23 @@
+{
+  "name": "Funny",
+  "role": "collection",
+  "provider_id": "277",
+  "locales": {
+    "en-US": {
+      "name": "Funny"
+    },
+    "fr": {
+      "name": "Humour"
+    },
+    "ar" : {
+      "name": "مَرَح"
+    },
+    "zh-TW" : {
+      "name": "歡樂"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/funny/icon.png"
+  }
+}

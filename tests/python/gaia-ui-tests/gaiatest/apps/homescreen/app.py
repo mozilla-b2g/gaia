@@ -12,7 +12,7 @@ class Homescreen(Base):
 
     _homescreen_iframe_locator = (By.CSS_SELECTOR, 'div.homescreen iframe')
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"]')
-    _search_bar_icon_locator = (By.ID, 'evme-activation-icon')
+    _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
     _landing_page_locator = (By.ID, 'landing-page')
 
     def launch(self):
