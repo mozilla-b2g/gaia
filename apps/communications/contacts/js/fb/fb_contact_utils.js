@@ -10,7 +10,7 @@ fb.FRIEND_URI = 'fb_friend';
 fb.DEFAULT_PHONE_TYPE = 'other';
 fb.DEFAULT_EMAIL_TYPE = 'other';
 
-fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
+fb.CONTACTS_APP_ORIGIN = location.origin;
 
 fb.isPropagated = function fcu_isPropagated(field, devContact) {
   return (devContact.category && devContact.category.

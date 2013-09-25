@@ -6,6 +6,7 @@ if (typeof window.oauthFrame === 'undefined') {
     var targetService;
     var oauthFrame = window.oauthFrame = {};
     var oauthParams = oauthflow.params;
+    var CONTACTS_APP_ORIGIN = location.origin;
 
     function notifyParent(message, origin) {
       parent.postMessage({
@@ -17,7 +18,7 @@ if (typeof window.oauthFrame === 'undefined') {
     function cancelCb() {
       Curtain.hide(notifyParent.bind(null, {
         type: 'abort'
-      }, oauthParams[targetService].appOrigin));
+      }, CONTACTS_APP_ORIGIN));
     }
 
     oauthFrame.start = function(from, service) {
@@ -32,12 +33,11 @@ if (typeof window.oauthFrame === 'undefined') {
         parent.postMessage({
           type: 'authenticated',
           data: access_token
-        }, oauthParams[service].appOrigin);
+        }, CONTACTS_APP_ORIGIN);
       }, from, service);
     };
 
     window.addEventListener('message', function messageHandler(e) {
-      var CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
       if (e.origin !== CONTACTS_APP_ORIGIN) {
         return;
       }
