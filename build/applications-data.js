@@ -322,3 +322,14 @@ if (OFFICIAL === '1') {
 
 writeContent(init, 'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
   getDistributionFileContent('communications_services', content) + ';');
+
+// Camera and Gallery image maximum resolution config
+let defaultValue = {
+  'maxImagePixelSize': 5000000
+};
+customize = JSON.parse(getDistributionFileContent('camera', defaultValue));
+content = 'var CONFIG_MAX_IMAGE_PIXEL_SIZE = ' + customize.maxImagePixelSize + ';';
+let file = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'camera', 'js', 'config.js');
+writeContent(file, content);
+file = getFile(GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'gallery', 'js', 'config.js');
+writeContent(file, content);
