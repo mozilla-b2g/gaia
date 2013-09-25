@@ -5,7 +5,11 @@
 
 window.addEventListener('load', function startup() {
   function safelyLaunchFTU() {
-    WindowManager.retrieveHomescreen(FtuLauncher.retrieve.bind(FtuLauncher));
+    window.addEventListener('homescreen-ready', function onHomescreenReady() {
+      window.removeEventListener('homescreen-ready', onHomescreenReady);
+      FtuLauncher.retrieve();
+    });
+    HomescreenLauncher.init();
   }
 
   if (Applications.ready) {
@@ -34,6 +38,16 @@ window.addEventListener('load', function startup() {
   // if the phone goes to sleep before any user interaction.
   // Apparently it works because no other window has the focus at this point.
   window.focus();
+
+  // With all important event handlers in place, we can now notify
+  // Gecko that we're ready for certain system services to send us
+  // messages (e.g. the radio).
+  // Note that shell.js starts listen for the mozContentEvent event at
+  // mozbrowserloadstart, which sometimes does not happen till window.onload.
+  var evt = new CustomEvent('mozContentEvent',
+      { bubbles: true, cancelable: false,
+        detail: { type: 'system-message-listener-ready' } });
+  window.dispatchEvent(evt);
 });
 
 /* === Shortcuts === */
@@ -70,6 +84,32 @@ SettingsListener.observe(
   }
 );
 
+// Use a setting in order to be "called" by settings app
+navigator.mozSettings.addObserver(
+  'clear.remote-windows.data',
+  function clearRemoteWindowsData(setting) {
+    var shouldClear = setting.settingValue;
+    if (!shouldClear)
+      return;
+
+    // Delete all storage and cookies from our content processes
+    var request = navigator.mozApps.getSelf();
+    request.onsuccess = function() {
+      request.result.clearBrowserData();
+    };
+
+    // Reset the setting value to false
+    var lock = navigator.mozSettings.createLock();
+    lock.set({'clear.remote-windows.data': false});
+  });
+
+// Cancel dragstart event to workaround
+// https://bugzilla.mozilla.org/show_bug.cgi?id=783076
+// which stops OOP home screen pannable with left mouse button on
+// B2G/Desktop.
+windows.addEventListener('dragstart', function(evt) {
+  evt.preventDefault();
+}, true);
 
 /* === XXX Bug 900512 === */
 // On some devices touching the hardware home button triggers

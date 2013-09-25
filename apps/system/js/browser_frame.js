@@ -39,6 +39,11 @@ var BrowserFrame = (function invocation() {
     // platform.
     browser.setAttribute('mozbrowser', 'true');
 
+    // Give a name to the frame for differentiating between main frame and
+    // inline frame. With the name we can get frames of the same app using the
+    // window.open method.
+    browser.name = 'main';
+
     if (config.oop)
       browser.setAttribute('remote', 'true');
 
@@ -68,8 +73,8 @@ var BrowserFrame = (function invocation() {
     // XXX: Those urls needs to be built dynamically.
     if (config.url.startsWith(window.location.protocol +
                               '//communications.gaiamobile.org' +
-                              window.location.port ?
-                              '' : (':' + window.location.port) +
+                              (window.location.port ?
+                              '' : (':' + window.location.port)) +
                               '/dialer') ||
         config.url.startsWith(window.location.protocol +
                               '//clock.gaiamobile.org')) {
