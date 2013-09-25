@@ -15,6 +15,10 @@
   visibility: hidden;
 }
 
+#utility-tray.moving {
+  pointer-events: none;
+}
+
 #utility-tray-grippy {
   pointer-events: none;
   position: absolute;
