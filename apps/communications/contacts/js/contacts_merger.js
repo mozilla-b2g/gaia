@@ -51,6 +51,11 @@ contacts.Merger = (function() {
     return tel.replace(telRegExp, '');
   }
 
+  function isSimContact(contact) {
+    return Array.isArray(contact.category) &&
+                                        contact.category.indexOf('sim') !== -1;
+  }
+
   function mergeAll(masterContact, matchingContacts, callbacks) {
     var emailsHash;
     var orgsHash;
@@ -93,12 +98,20 @@ contacts.Merger = (function() {
     mergedContact.url = masterContact.url || [];
     mergedContact.note = masterContact.note || [];
 
+    // If the master Contact is a SIM Contact and there is matching by name
+    // Then the given name and the familyName will be taken from that Contact
+    var simOverwritten = false;
+    var simContact = isSimContact(masterContact);
     matchingContacts.forEach(function(aResult) {
       var theMatchingContact = aResult.matchingContact;
 
       var givenName = theMatchingContact.givenName;
       if (Array.isArray(givenName)) {
         if (mergedContact.givenName.indexOf(givenName[0]) === -1) {
+          if (simContact && !simOverwritten) {
+            mergedContact.givenName[0] = givenName[0];
+            simOverwritten = true;
+          }
           mergedContact.givenName.push(givenName[0]);
         }
       }
@@ -180,6 +193,12 @@ contacts.Merger = (function() {
     fields.forEach(function(aField) {
       masterContact[aField] = mergedContact[aField];
     });
+
+    // Removing 'sim' Category as it is not needed anymore
+    if (simContact && simOverwritten) {
+      var categoryIndex = masterContact.category.indexOf('sim');
+      masterContact.category.splice(categoryIndex, 1);
+    }
 
     // Updating the master contact
     var req = navigator.mozContacts.save(masterContact);
