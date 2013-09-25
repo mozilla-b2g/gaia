@@ -104,9 +104,6 @@ Calendar.ns('Worker').Manager = (function(global) {
       if (type == 'stream') {
         pending.stream.respond(data);
       } else { // 'end'
-        if (pending.stream) {
-          pending.stream.emit('end', data);
-        }
         pending.callback.apply(null, data);
         delete worker.pending[pending.id];
         // Bail out if there are other pending requests.

@@ -847,8 +847,6 @@ suiteGroup('Provider.Caldav', function() {
           oncomplete
         );
 
-        pull.stream.emit('end', {});
-
         function oncomplete() {
           var expected = [
             account.toJSON(),
@@ -902,8 +900,7 @@ suiteGroup('Provider.Caldav', function() {
         cached: cached
       };
 
-      var pull = subject._syncEvents(account, calendar, cached, oncomplete);
-      pull.stream.emit('end', {});
+      subject._syncEvents(account, calendar, cached, oncomplete);
 
       function oncomplete() {
         var expected = [
