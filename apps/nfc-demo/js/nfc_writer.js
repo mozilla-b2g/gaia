@@ -12,11 +12,6 @@
  */
 var nfcWriter = {
 
-NdefWrite: function(message) {
-  console.log('Writing raw message to Nfc: ' + message);
-  navigator.mozNfc.sendToNfcd(message);
-},
-
 /**
  * Returns a request object. To observe the result, define and
  * attach callbacks taking an event to the request's onsuccess
@@ -26,16 +21,9 @@ writeRecordArrayTag: function(ndefRecords, p2p) {
   if (ndefRecords == null) {
     return null;
   }
-  if (!p2p) {
-    var domreq = navigator.mozNfc.ndefWrite(ndefRecords);
-    console.log('Returned from writeNdefTag call');
-    return domreq;
-  } else {
-    var domreq = navigator.mozNfc.ndefPush(ndefRecords);
-    console.log('Returned from ndefPush call');
-    nfcUI.p2p = false;
-    return domreq;
-  }
+  var domreq = navigator.mozNfc.writeNDEF(ndefRecords);
+  console.log('Returned from writeNdefTag call');
+  return domreq;
 },
 
 /**
@@ -223,10 +211,10 @@ postEmptyTag: function() {
   nfcUI.postPendingMessage(records);
 },
 
-ndefMakeReadOnly: function() {
+makeReadOnlyNDEF: function() {
   if (nfcUI.getConnectedState()) {
     nfcUI.appendTextAndScroll($('#area'), 'Making Tag read only.\n');
-    return window.navigator.mozNfc.ndefMakeReadOnly();
+    return window.navigator.mozNfc.makeReadOnlyNDEF();
   } else {
     return null;
   }

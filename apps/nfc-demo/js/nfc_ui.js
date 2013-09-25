@@ -63,8 +63,8 @@ writePendingMessage: function() {
   }
 },
 
-ndefMakeReadOnly: function() {
-  req = nfcWriter.ndefMakeReadOnly();
+makeReadOnlyNDEF: function() {
+  req = nfcWriter.makeReadOnlyNDEF();
   if (!req) {
     nfcUI.appendTextAndScroll($(nfcUI.messageArea),
       'MakeReadOnly No Tag Present.\n');

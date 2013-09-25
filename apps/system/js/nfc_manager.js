@@ -272,9 +272,7 @@
     var conn = nfc.connect(6);
     conn.onsuccess = function() {
       debug('DBG: Success');
-
-      var req = nfc.ndefRead();
-      debug('System read 1:');
+      var req = nfc.readNDEF();
       req.onsuccess = function() {
         debug('System read 2: ' + JSON.stringify(req.result));
         var action = handleNdefMessages(req.result.records);

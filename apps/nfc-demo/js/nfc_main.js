@@ -232,13 +232,13 @@ function launchBrowser(URL) {
 function handleNdefDiscovered() {
   // Process:
   var handled = false;
-  var detailreq = navigator.mozNfc.ndefDetails();
+  var detailreq = navigator.mozNfc.detailsNDEF();
   debug('NDEF Details Request submitted.');
   detailreq.onsuccess = function() {
     // NDEF Message with array of NDEFRecords
     debug('Details NDEF success');
     debug('detailreq.result: ' + JSON.stringify(detailreq.result));
-    var readreq = navigator.mozNfc.ndefRead();
+    var readreq = navigator.mozNfc.readNDEF();
     readreq.onsuccess = function() {
       debug('Read success.');
       debug('readreq: ' + JSON.stringify(readreq.result.records));
@@ -400,6 +400,9 @@ function setNfcPowerLevel(level) {
   });
   request.onsuccess = function() {
     debug('Power level set successfully.');
+
+    // Test onlY:
+    navigator.mozNfc.doSomething();
   };
   request.onerror = function() {
     debug('Power level set failure');
@@ -482,7 +485,7 @@ $(document).bind('ready', function() {
   navigator.mozSetMessageHandler('activity', NfcActivityHandler);
 
   $('#make_read_only_button').click(function(event) {
-    nfcUI.ndefMakeReadOnly();
+    nfcUI.makeReadOnlyNDEF();
   });
 
   // Attach event handlers to each ui action button:
