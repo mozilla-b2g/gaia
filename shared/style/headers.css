@@ -224,7 +224,7 @@ section[role="region"] > header:first-child > a {
   background: none;
   float: left;
   overflow: visible;
-  margin-right: -4rem;
+  margin: 0 -4rem 0 0;
 }
 
 section[role="region"] > header:first-child > button:after,
