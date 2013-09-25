@@ -5,7 +5,7 @@
   'use strict';
 
   // Show the touch tone selector if and only if we're on a CDMA network
-  getSupportedNetworkCategories(function(result) {
+  getSupportedNetworkInfo(function(result) {
     var toneSelector = document.getElementById('touch-tone-selector');
     toneSelector.hidden = !result.cdma;
   });
