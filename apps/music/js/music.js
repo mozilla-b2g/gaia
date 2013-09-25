@@ -1004,16 +1004,17 @@ function createListElement(option, data, index, highlight) {
     case 'artist':
     case 'album':
     case 'title':
-      var parent = document.createElement('div');
-      parent.className = 'list-image-parent';
-      parent.classList.add('default-album-' + index % 10);
-      var img = document.createElement('img');
-      img.className = 'list-image';
+      // Use background image instead of creating img elements can reduce
+      // the amount of total elements in the DOM tree, it can save memory
+      // and gecko can render the elements faster as well.
+      var setBackground = function(url) {
+        if (url)
+          li.style.backgroundImage = 'url(' + url + ')';
+        else
+          li.classList.add('default-album-' + index % 10);
+      };
 
-      if (data.metadata.picture) {
-        parent.appendChild(img);
-        displayAlbumArt(img, data);
-      }
+      getThumbnailURL(data, setBackground);
 
       if (option === 'artist') {
         var artistSpan = document.createElement('span');
@@ -1054,8 +1055,6 @@ function createListElement(option, data, index, highlight) {
         li.appendChild(albumOrTitleSpan);
         li.appendChild(artistSpan);
       }
-
-      li.appendChild(parent);
 
       a.dataset.keyRange = data.metadata[option];
       a.dataset.option = option;

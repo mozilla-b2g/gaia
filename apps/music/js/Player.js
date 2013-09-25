@@ -649,7 +649,17 @@ var PlayerView = {
   },
 
   updateSeekBar: function pv_updateSeekBar() {
-    if (this.playStatus === PLAYSTATUS_PLAYING) {
+    // Don't update the seekbar when the user is seeking.
+    if (this.isTouching)
+      return;
+
+    // If ModeManager is undefined, then the music app is launched by the open
+    // activity. Otherwise, only seek the audio when the mode is PLAYER because
+    // updating the UI will slow down the other pages, such as the scrolling in
+    // ListView.
+    if (typeof ModeManager === 'undefined' ||
+      ModeManager.currentMode === MODE_PLAYER &&
+      this.playStatus === PLAYSTATUS_PLAYING) {
       this.seekAudio();
     }
   },
@@ -857,8 +867,7 @@ var PlayerView = {
         break;
       case 'durationchange':
       case 'timeupdate':
-        if (!this.isTouching)
-          this.updateSeekBar();
+        this.updateSeekBar();
 
         // Update the metadata when the new track is really loaded
         // when it just started to play, or the duration will be 0 then it will
