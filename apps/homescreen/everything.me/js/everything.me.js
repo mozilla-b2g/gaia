@@ -130,7 +130,6 @@ var EverythingME = {
           'js/helpers/Storage.js',
           'js/helpers/IconManager.js',
           'js/plugins/Scroll.js',
-          'js/external/uuid.js',
           'js/api/apiv2.js',
           'js/api/DoATAPI.js',
           'js/helpers/EventHandler.js',
