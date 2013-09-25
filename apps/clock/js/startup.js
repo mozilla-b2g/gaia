@@ -53,7 +53,7 @@ require([
      var needsMocks = !navigator.mozAlarms;
      if (needsMocks) {
        require([
-           '../test/unit/mocks/mock_mozAlarm.js'
+           '../test/unit/mocks/mock_moz_alarm.js'
          ], function(MockMozAlarms) {
          navigator.mozAlarms = new MockMozAlarms.MockMozAlarms(function() {});
          navigator.mozL10n.ready(initialize);

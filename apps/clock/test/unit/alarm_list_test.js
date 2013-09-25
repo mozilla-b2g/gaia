@@ -6,14 +6,10 @@ suite('AlarmList', function() {
     testRequire([
         'alarm_list',
         'alarm',
-        'mocks/mock_mozAlarm',
+        'mocks/mock_moz_alarm',
         'mocks/mock_navigator_mozl10n'
       ], {
-        mocks: {
-          'alarm_manager': 'mocks/mock_alarm_manager',
-          alarmsdb: 'mocks/mock_alarmsDB',
-          banner: 'mocks/mock_banner'
-        }
+        mocks: ['alarm_manager', 'alarmsdb', 'banner']
       },
       function(alarmList, alarm, mockMozAlarms, mockL10n) {
         AlarmList = alarmList;

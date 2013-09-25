@@ -8,17 +8,13 @@ suite('AlarmEditView', function() {
         'alarm',
         'active_alarm',
         'alarm_edit',
-        'mocks/mock_alarmsDB',
+        'mocks/mock_alarmsdb',
         'mocks/mock_alarm_list',
         'mocks/mock_alarm_manager',
-        'mocks/mock_mozAlarm',
+        'mocks/mock_moz_alarm',
         'mocks/mock_navigator_mozl10n'
       ], {
-        mocks: {
-          alarmsdb: 'mocks/mock_alarmsDB',
-          alarm_list: 'mocks/mock_alarm_list',
-          alarm_manager: 'mocks/mock_alarm_manager'
-        }
+        mocks: ['alarmsdb', 'alarm_list', 'alarm_manager']
       }, function(alarm, activeAlarm, alarmEdit, mockAlarmsDB, mockAlarmList,
         mockAlarmManager, mockMozAlarms, mockL10n) {
         Alarm = alarm;

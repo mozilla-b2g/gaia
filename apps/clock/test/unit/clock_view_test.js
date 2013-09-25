@@ -10,11 +10,8 @@ suite('ClockView', function() {
     // Load before clock_view to ensure elements are initialized properly.
     loadBodyHTML('/index.html');
 
-    testRequire(['clock_view', 'mocks/mock_asyncstorage'], {
-        mocks: {
-          'alarm_list': 'mocks/mock_alarm_list',
-          async_storage: 'mocks/mock_asyncstorage'
-        }
+    testRequire(['clock_view', 'mocks/mock_async_storage'], {
+        mocks: ['alarm_list', 'async_storage']
       }, function(clockView, mockAsyncStorage) {
         ClockView = clockView;
         asyncStorage = mockAsyncStorage;

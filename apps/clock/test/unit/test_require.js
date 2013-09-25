@@ -35,8 +35,9 @@ requireApp('clock/js/alameda.js', function() {
    *
    * @param {string[]} modules - List of modules to load.
    * @param {Object} [options] - Optional configuration for the require
-   *                             operation. Accepts a `mocks` object that
-   *                             defines a mapping of module name to mock path.
+   *                             operation. Accepts a `mocks` array of module
+   *                             names to replace with their corresponding mock
+   *                             in the `test/unit/mocks/` directory.
    * @param {Function} callback - Function to be invoked when all modules have
    *                              been defined. As in traditional AMD, the
    *                              requested modules will be parameterized in
@@ -50,26 +51,35 @@ requireApp('clock/js/alameda.js', function() {
    * event that test authors need to do additional loading.
    */
   this.testRequire = function(modules, options, callback) {
-    var mocks = options && options.mocks;
-    var map = {};
-    var ctx;
+    var toMock = options && options.mocks;
+    var ctx, map;
 
     if (arguments.length === 2) {
       callback = options;
       options = null;
     }
 
-    if (mocks) {
-      modules.forEach(function(module) {
-        map[module] = mocks;
-      });
-    }
-
     ctx = requirejs.config({
-      context: 'test-' + ctxIdCount++,
-      map: map
+      context: 'test-' + ctxIdCount++
     });
     ctx.config(baseConfig);
+
+    if (toMock) {
+      map = {
+        '*': {}
+      };
+      toMock.forEach(function(id) {
+        var mockId = 'mocks/mock_' + id;
+
+        map['*'][id] = mockId;
+        map[mockId] = {};
+        map[mockId][id] = id;
+      });
+
+      ctx.config({
+        map: map
+      });
+    }
 
     ctx(modules, callback);
 

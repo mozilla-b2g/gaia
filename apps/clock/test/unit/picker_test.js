@@ -6,10 +6,8 @@ suite('Picker', function() {
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
 
-    testRequire(['picker/picker', 'mocks/mock_spinner'], {
-        mocks: {
-          'picker/spinner': 'mocks/mock_spinner'
-        }
+    testRequire(['picker/picker', 'mocks/mock_picker/spinner'], {
+        mocks: ['picker/spinner']
       }, function(picker, mockSpinner) {
         Picker = picker;
         Spinner = mockSpinner;

@@ -1,4 +1,4 @@
-requireApp('clock/test/unit/mocks/mock_requestWakeLock.js');
+requireApp('clock/test/unit/mocks/mock_request_wake_lock.js');
 
 suite('Time functions', function() {
   var Utils;

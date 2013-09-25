@@ -8,9 +8,7 @@ suite('Timer.Panel', function() {
     loadBodyHTML('/index.html');
 
     testRequire(['timer_panel', 'view'], {
-      mocks: {
-        'picker/picker': 'mocks/mock_picker'
-      }
+      mocks: ['picker/picker']
     }, function(TimerPanel, view) {
       Timer.Panel = TimerPanel;
       View = view;

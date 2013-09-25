@@ -9,7 +9,7 @@ suite('Alarm Test', function() {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
         requirejs([
-          'mocks/mock_mozAlarm',
+          'mocks/mock_moz_alarm',
           'mocks/mock_navigator_mozl10n'
         ], function(mockMozAlarms, mockL10n) {
           navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
