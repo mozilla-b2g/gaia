@@ -1,6 +1,8 @@
 'use strict';
 
 var EverythingME = {
+  pendingEvent: undefined,
+
   init: function EverythingME_init() {
     var footer = document.querySelector('#footer');
     if (footer) {
@@ -8,13 +10,86 @@ var EverythingME = {
     }
 
     var page = document.getElementById('evmeContainer'),
-        gridPage = document.querySelector('#icongrid > div:first-child');
+        gridPage = document.querySelector('#icongrid > div:first-child'),
+        appsEl = document.getElementById('icongrid');
 
-    // TODO
-    // We need to re-think how to lazy-load E.me
-    // it is required for interacting with Collections:
-    // create initial collections, open collections, create collections etc.
-    EverythingME.activate();
+    gridPage.classList.add('evmePage');
+
+
+    // pre-evme-load pseudo searchbar
+    var activationIcon = document.createElement('div');
+    activationIcon.id = 'evme-activation-icon';
+    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default" /></div>';
+
+    // insert into first page
+    gridPage.insertBefore(activationIcon, gridPage.firstChild);
+
+    // Append appropriate placeholder translation to pseudo searchbar
+    navigator.mozL10n.ready(function loadSearchbarValue() {
+      var input = activationIcon.querySelector('input'),
+          defaultText = navigator.mozL10n.get('evme-searchbar-default2') || '';
+
+      input.setAttribute('placeholder', defaultText);
+    });
+
+    // add event listeners that trigger evme load
+    activationIcon.addEventListener('contextmenu', onContextMenu);
+    activationIcon.addEventListener('click', triggerActivateFromInput);
+    window.addEventListener('collectionlaunch', triggerActivate);
+    window.addEventListener('EvmeDropApp', triggerActivate);
+
+    // specifically for pseudo searchbar
+    function triggerActivateFromInput(e) {
+      // gives the searchbar evme styling
+      document.body.classList.add('evme-loading-from-input');
+      triggerActivate(e);
+    }
+
+    function triggerActivate(e) {
+      // save original invoking event for post-emve-load replay
+      EverythingME.pendingEvent = e;
+
+      // remove pre-evme-load listeners
+      activationIcon.removeEventListener('click', triggerActivateFromInput);
+      activationIcon.removeEventListener('contextmenu', onContextMenu);
+      window.removeEventListener('collectionlaunch', triggerActivate);
+      window.removeEventListener('EvmeDropApp', triggerActivate);
+
+      // load styles required for Collection styling
+      LazyLoader.load([
+        'shared/style_unstable/progress_activity.css',
+        'everything.me/modules/Collection/Collection.css'],
+        function assetsLoaded() {
+          // open the collection immediately
+          if (e.type === 'collectionlaunch') {
+            onCollectionOpened(activationIcon);
+          }
+
+          // Activate evme load
+          // But wait a tick, so there's no flash of unstyled progress indicator
+          window.setTimeout(EverythingME.activate, 0);
+        }
+      );
+    }
+
+    // show Collection loading
+    function onCollectionOpened(activationIcon) {
+      // add classes for Collection styling
+      appsEl.classList.add('evme-collection-visible');
+      var elCollection = document.getElementById('collection');
+      elCollection.classList.add('visible');
+      var elLoader = elCollection.querySelector(".loading-more");
+      elLoader.classList.add('show');
+
+      // add temporary Collection close listeners
+      var closeButton  = elCollection.querySelector('.close');
+      closeButton.addEventListener('click', EverythingME.onCollectionClosed);
+      window.addEventListener("hashchange", EverythingME.onCollectionClosed);
+    }
+
+    function onContextMenu(e) {
+      e.stopPropagation();
+    }
 
     gridPage.addEventListener('gridpageshowend', function onPageShow() {
       EvmeFacade.onShow();
@@ -23,31 +98,33 @@ var EverythingME = {
       EvmeFacade.onHide();
     });
 
-    // add evme into the first grid page
-    gridPage.classList.add('evmePage');
-    gridPage.appendChild(page.parentNode.removeChild(page));
-
-    function onContextMenu(e) {
-      e.stopPropagation();
-    }
-
     EverythingME.migrateStorage();
   },
 
-  activate: function EverythingME_activate(e) {
-    document.body.classList.add('evme-loading');
+  // remove pre-evme-load changes
+  onCollectionClosed: function onCollectionClosed(activationIcon) {
+    var appsEl = document.getElementById('icongrid');
+    appsEl.classList.remove('evme-collection-visible');
 
-    this.load();
+    var elCollection = document.getElementById('collection');
+    elCollection.classList.remove('visible');
+
+    EverythingME.pendingEvent = undefined;
   },
 
-  load: function EverythingME_load() {
+  activate: function EverythingME_activate() {
+    document.body.classList.add('evme-loading');
+
+    EverythingME.load();
+  },
+
+  load: function EverythingME_load(callback) {
     var CB = !('ontouchstart' in window),
         js_files = [
           'js/Core.js',
           'js/etmmanager.js',
 
           'config/config.js',
-          'config/shortcuts.js',
           'js/developer/utils.1.3.js',
           'js/helpers/Utils.js',
           'js/helpers/Storage.js',
@@ -58,7 +135,6 @@ var EverythingME = {
           'js/api/DoATAPI.js',
           'js/helpers/EventHandler.js',
           'js/helpers/Idle.js',
-          'js/developer/utils.1.3.js',
           'shared/js/settings_listener.js',
           'js/plugins/Analytics.js',
           'js/plugins/APIStatsEvents.js',
@@ -83,7 +159,6 @@ var EverythingME = {
         ],
         css_files = [
           'shared/style/confirm.css',
-          'shared/style_unstable/progress_activity.css',
           'shared/style/status.css',
           'shared/style/action_menu.css',
           'css/common.css',
@@ -93,8 +168,7 @@ var EverythingME = {
           'modules/Helper/Helper.css',
           'modules/Results/Results.css',
           'modules/Searchbar/Searchbar.css',
-          'modules/CollectionsSuggest/CollectionsSuggest.css',
-          'modules/Collection/Collection.css'
+          'modules/CollectionsSuggest/CollectionsSuggest.css'
         ];
 
     var head = document.head;
@@ -164,8 +238,43 @@ var EverythingME = {
   },
 
   onEvmeLoaded: function onEvmeLoaded() {
+    var page = document.getElementById('evmeContainer'),
+        gridPage = document.querySelector('#icongrid > div:first-child'),
+        activationIcon = document.getElementById('evme-activation-icon'),
+        activationIconInput = activationIcon.querySelector('input'),
+        existingQuery = activationIconInput && activationIconInput.value,
+        evmeInput = document.getElementById('search-q'),
+        closeButton = document.querySelector('#collection .close');
+
+    // add evme into the first grid page
+    gridPage.appendChild(page.parentNode.removeChild(page));
+
     EvmeFacade.onShow();
+
+    var e = EverythingME.pendingEvent;
+
+    if (e && evmeInput && e.target === activationIconInput) {
+      // set the query the user entered before loaded
+      if (existingQuery) {
+        EvmeFacade.searchFromOutside(existingQuery);
+      }
+
+      EvmeFacade.Searchbar && EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
+      evmeInput.setSelectionRange(existingQuery.length, existingQuery.length);
+    }
+
+    closeButton.removeEventListener('click', EverythingME.onCollectionClosed);
+
+    window.removeEventListener("hashchange", EverythingME.onCollectionClosed);
+
     document.body.classList.remove('evme-loading');
+    document.body.classList.remove('evme-loading-from-input');
+
+    activationIcon.parentNode.removeChild(activationIcon);
+
+    if (e && e.target) {
+      e.target.dispatchEvent(e);
+    };
   },
 
   destroy: function EverythingME_destroy() {

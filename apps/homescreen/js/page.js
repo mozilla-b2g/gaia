@@ -453,8 +453,7 @@ Icon.prototype = {
    */
   translate: function icon_translate() {
     var descriptor = this.descriptor;
-    if (descriptor.type === GridItemsFactory.TYPE.COLLECTION ||
-      descriptor.type === GridItemsFactory.TYPE.BOOKMARK)
+    if (descriptor.type === GridItemsFactory.TYPE.BOOKMARK)
       return;
 
     var app = this.app;

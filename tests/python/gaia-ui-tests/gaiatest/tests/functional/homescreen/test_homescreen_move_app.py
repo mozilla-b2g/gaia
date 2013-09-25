@@ -27,7 +27,6 @@ class TestMoveApp(GaiaTestCase):
         """
 
         # go to app page
-        time.sleep(7)
         self._go_to_next_page()
         first_app_before_move = self.marionette.find_element(*self._visible_apps_locator).text
 
@@ -37,9 +36,9 @@ class TestMoveApp(GaiaTestCase):
         self.assertTrue(self.is_element_present(*self._edit_mode_locator))
         time.sleep(1)
 
-        # move first app on the position 10
+        # move first app on the position 12
         app = self.marionette.find_element(*self._visible_apps_locator)
-        destination = self.marionette.find_elements(*self._visible_apps_locator)[9]
+        destination = self.marionette.find_elements(*self._visible_apps_locator)[12]
 
         Actions(self.marionette).\
             press(app).\
@@ -59,7 +58,7 @@ class TestMoveApp(GaiaTestCase):
         # check the app order and that the app on 10'th app is the right one
         first_app_after_move = self.marionette.find_element(*self._visible_apps_locator).text
         self.assertNotEqual(first_app_before_move, first_app_after_move)
-        self.assertEqual(first_app_before_move, self.marionette.find_elements(*self._visible_apps_locator)[9].text)
+        self.assertEqual(first_app_before_move, self.marionette.find_elements(*self._visible_apps_locator)[12].text)
 
     def _touch_home_button(self):
         self.marionette.switch_to_frame()

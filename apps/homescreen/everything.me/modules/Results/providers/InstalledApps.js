@@ -96,7 +96,9 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   var NAME = "InstalledAppsService",
       self = this,
       appIndex = {}, APP_INDEX_STORAGE_KEY = NAME + "-app-index",
-      queryIndex = {}, QUERY_INDEX_STORAGE_KEY = NAME + "-query-index";
+      queryIndex = {}, QUERY_INDEX_STORAGE_KEY = NAME + "-query-index",
+      appIndexPendingSubscribers = [],
+      appIndexComplete = false;
 
   this.init = function init() {
     // create indexes
@@ -187,8 +189,12 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   };
 
 
-  this.getAppById = function getAppById(appId) {
-    return (appId in appIndex) && appIndex[appId];
+  this.getAppById = function getAppById(appId, cb) {
+    if (appIndexComplete) {
+      cb(appIndex[appId]);
+    } else {
+      appIndexPendingSubscribers.push([appId, cb])
+    }
   };
 
   this.getApps = function() {
@@ -213,13 +219,26 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     // empty current index and create a new one
     appIndex = {};
 
-    var gridApps = EvmeManager.getGridApps();
+    appIndexComplete = false;
+
+    var gridApps = EvmeManager.getGridApps(),
+        gridAppsCount = gridApps.length;
 
     for (var i = 0, gridApp; gridApp = gridApps[i++];) {
       var appInfo = EvmeManager.getAppInfo(gridApp, function onAppInfo(appInfo){
         appIndex[appInfo.id] = appInfo;
+        if (--gridAppsCount === 0) {
+          onAppIndexComplete();
+        }
       });
     }
+  }
+
+  function onAppIndexComplete() {
+    appIndexComplete = true;
+    appIndexPendingSubscribers.forEach(function execute(args) {
+      self.getAppById.apply(self, args);
+    });
   }
 
   function loadQueryIndex() {
