@@ -2635,7 +2635,10 @@ suite('thread_ui.js >', function() {
 
           // Ensures that the OptionMenu was given
           // the phone number to diplay
-          assert.equal(call.section, '999');
+          assert.equal(call.header, '999');
+
+          // Only known Contact details should appear in the "section"
+          assert.equal(call.section, '');
 
           assert.equal(items.length, 4);
 
@@ -2671,8 +2674,11 @@ suite('thread_ui.js >', function() {
           var items = call.items;
 
           // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.section, 'a@b.com');
+          // the email address to diplay
+          assert.equal(call.header, 'a@b.com');
+
+          // Only known Contact details should appear in the "section"
+          assert.equal(call.section, '');
 
           assert.equal(items.length, 4);
 
@@ -2708,7 +2714,7 @@ suite('thread_ui.js >', function() {
 
           // Ensures that the OptionMenu was given
           // the phone number to diplay
-          assert.equal(call.section, '999');
+          assert.equal(call.header, '999');
 
           assert.equal(items.length, 3);
 
@@ -2742,7 +2748,7 @@ suite('thread_ui.js >', function() {
 
           // Ensures that the OptionMenu was given
           // the phone number to diplay
-          assert.equal(call.section, '999');
+          assert.equal(call.header, '999');
 
           assert.equal(items.length, 5);
 
