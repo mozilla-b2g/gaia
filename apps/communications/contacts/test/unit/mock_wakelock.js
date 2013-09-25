@@ -4,7 +4,7 @@ var MyLocks = {};
 
 var MockWakeLock = function(type) {
   if (MyLocks[type] == true) {
-    throw Exception('Already locked');
+    throw new Error('Already locked');
   }
 
   MyLocks[type] = true;
