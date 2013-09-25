@@ -152,6 +152,10 @@ function execute(options) {
   let search_page_enabled = (customize.search_page) ?
                             customize.search_page.enabled : true;
 
+  // It defines the threshold in milliseconds to move a collection while
+  // dragging
+  let move_collection_threshold = (customize.move_collection_threshold) ?
+				 customize.move_collection_threshold : 1500;
   // It defines the threshold in pixels to consider a gesture like a tap event
   let tap_threshold = (customize.tap_threshold) ? customize.tap_threshold : 10;
   // It defines the threshold to consider a gesture like a swipe. Number
@@ -179,6 +183,8 @@ function execute(options) {
     },
 
     tap_threshold: tap_threshold,
+
+    move_collection_threshold: move_collection_threshold,
 
     swipe: {
       threshold: swipe_threshold,

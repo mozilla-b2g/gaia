@@ -1,5 +1,5 @@
 Evme.Storage = new function Evme_Storage() {
-    var self = this
+    var self = this,
         KEY_PREFIX = 'evme-';
         
     this.set = function set(key, val, ttl, callback) {

@@ -19,6 +19,12 @@ var DragDropManager = (function() {
   var ENSURE_DRAG_END_DELAY = 1000;
 
   /*
+   * When an icon is over a collection and this threshold is reached, the
+   * collection is re-arranged like apps or bookmarks
+   */
+  var MOVE_COLLECTION_THRESHOLD = 1500;
+
+  /*
    * Drop feature is disabled (in the borders of the icongrid)
    */
   var isDisabledDrop = false;
@@ -40,8 +46,14 @@ var DragDropManager = (function() {
    */
   var disabledCheckingLimitsTimeout = null;
 
+  /*
+   * Timeout of the over collection function
+   */
+  var overCollectionTimeout = null;
+
   var draggableIcon, previousOverlapIcon, overlapingTimeout, overlapElem,
-      originElem, draggableElemStyle;
+      originElem, draggableElemStyle, draggableElemClassList,
+      draggableIconIsCollection;
 
   var pageHelper;
 
@@ -184,8 +196,10 @@ var DragDropManager = (function() {
   function onStart(elem) {
     overlapElem = elem;
     draggableIcon = GridManager.getIcon(elem.dataset);
+    draggableIconIsCollection = overlapElem.dataset.isCollection === 'true';
     draggableIcon.onDragStart(sx, sy);
     draggableElemStyle = draggableIcon.draggableElem.style;
+    draggableElemClassList = draggableIcon.draggableElem.classList;
     if (overlapingDock) {
       draggableIcon.addClassToDragElement('overDock');
     } else if (DockManager.isFull()) {
@@ -205,10 +219,11 @@ var DragDropManager = (function() {
     transitioning = false;
     var page = getPage();
     var ensureCallbackID = null;
+
     DragLeaveEventManager.send(page, function(done) {
       if (ensureCallbackID !== null) {
         window.clearTimeout(ensureCallbackID);
-        draggableIcon.onDragStop(callback);
+        sendDragStopToDraggableIcon(callback);
       }
       done();
     }, true);
@@ -216,12 +231,87 @@ var DragDropManager = (function() {
     // We ensure that there is not an icon lost on the grid
     ensureCallbackID = window.setTimeout(function() {
       ensureCallbackID = null;
-      draggableIcon.onDragStop(callback);
+      sendDragStopToDraggableIcon(callback);
     }, ENSURE_DRAG_END_DELAY);
+  }
+
+  /*
+   *  This method implements the draggable icon behavior after releasing the
+   *  finger. If user releases an icon over a collection, this will be copied
+   *  into collection. Otherwise the icon goes to the new position.
+   *
+   * @param{Function} Callback will be performed when draggable icon animation
+   *                  finishes
+   */
+  function sendDragStopToDraggableIcon(callback) {
+    if (draggableIconIsCollection ||
+          overlapElem.dataset.isCollection !== 'true') {
+      // If we are dragging an app or bookmark or we aren't over a collection
+      // The icon will be placed in the new position
+      draggableIcon.onDragStop(callback);
+      return;
+    }
+
+    // App should be copied
+    var overlapRect = overlapElem.getBoundingClientRect(),
+        centerX = overlapRect.left + overlapRect.width / 2,
+        centerY = overlapRect.top + overlapRect.height / 2;
+
+    var container = draggableIcon.container;
+
+    // The app zooms out to the center of the collection
+    draggableIcon.onDragStop(function insertInCollection() {
+      container.classList.add('hidden');
+      // Calculating original position (page index and position)
+      var dataset = draggableIcon.draggableElem.dataset;
+      var page = DockManager.page;
+      if (dataset.pageType === 'page') {
+        page = GridManager.pageHelper.getPage(parseInt(dataset.pageIndex, 10));
+        if (page === GridManager.pageHelper.getCurrent()) {
+          draggableIcon.remove();
+        }
+      }
+
+      // We have to reload the icon in order to avoid errors on re-validations
+      // because of the object url was revoked
+      draggableIcon.loadRenderedIcon(function loaded(url) {
+        // The icon reappears without animation
+        page.appendIconAt(draggableIcon, parseInt(dataset.iconIndex, 10));
+        // Removing hover class for current collection
+        removeHoverClass();
+        previousElement = undefined;
+        dataset = container.dataset;
+        sendEvmeDropApp(dataset.origin, dataset.entryPoint);
+        window.URL.revokeObjectURL(url);
+        container.classList.remove('hidden');
+        callback();
+      });
+    }, centerX - sx, centerY - sy, 0);
+  }
+
+  /*
+   * Dispatch an event when a dragged icon is dropped on a collection
+   *
+   * {String} The origin of the icon
+   * {String} The entry point of the icon
+   */
+  function sendEvmeDropApp(origin, entryPoint) {
+    window.dispatchEvent(new CustomEvent('EvmeDropApp', {
+      'detail': {
+        'app': {
+          'id': origin,
+          'entryPoint': entryPoint
+        },
+        'collection': {
+          'id': overlapElem.dataset.collectionId
+        }
+      }
+    }));
   }
 
   function drop(page) {
     overlapElem = document.elementFromPoint(cx, cy);
+    addHoverClass(overlapElem);
     doDrop(page);
   }
 
@@ -230,10 +320,18 @@ var DragDropManager = (function() {
       return;
     }
 
+    if (!draggableIconIsCollection && overlapElem.dataset.isCollection) {
+      // If we are dragging an app/bookmark over a collection
+      overCollection(draggableIcon,
+        GridManager.getIcon(overlapElem.dataset), page);
+      return;
+    }
+
+    clearOverCollectionTimeout();
+
     var classList = overlapElem.classList;
     if (classList.contains('icon')) {
-      var overlapIcon = GridManager.getIcon(overlapElem.dataset);
-      page.drop(draggableIcon, overlapIcon);
+      page.drop(draggableIcon, GridManager.getIcon(overlapElem.dataset));
     } else if (classList.contains('dockWrapper')) {
       var firstIcon = page.getFirstIcon();
       if (cx < firstIcon.getLeft()) {
@@ -250,9 +348,75 @@ var DragDropManager = (function() {
     previousOverlapIcon = undefined;
   }
 
+  /*
+   * This method is executed when an app/bookmark is over a collection. It sets
+   * a method that when a specific threshold is reached, the collection will be
+   * re-arranged like apps/bookmarks do. If the user releases the icon before
+   * the threshold, the app/bookmark will be copied into the collection by a
+   * method called stop.
+   *
+   * @param{Object} App/bookmark icon
+   *
+   * @param{Object} Collection icon
+   *
+   * @param{Object} Page container of the collection icon
+   */
+  function overCollection(icon, collection, page) {
+    if (overCollectionTimeout !== null) {
+      return;
+    }
+
+    overCollectionTimeout = setTimeout(function() {
+      page.drop(icon, collection);
+      removeHoverClass();
+      previousElement = overlapElem = icon.container;
+      overCollectionTimeout = null;
+    }, MOVE_COLLECTION_THRESHOLD);
+
+    if (cx < icon.getLeft() || cy < icon.getTop()) {
+      // Rearranging and filling empty slot when the icon has a index bigger
+      // than collection in the icons list
+      page.drop(icon, page.getLastVisibleIcon());
+    }
+  }
+
+  /*
+   * It clears the timoeout method that is waiting to move the collection
+   */
+  function clearOverCollectionTimeout() {
+    if (overCollectionTimeout === null) {
+      return;
+    }
+
+    clearTimeout(overCollectionTimeout);
+    overCollectionTimeout = null;
+  }
+
   function move() {
     draggableElemStyle.MozTransform =
-                          'translate(' + (cx - sx) + 'px,' + (cy - sy) + 'px)';
+      'translate(' + (cx - sx) + 'px,' + (cy - sy) + 'px)';
+  }
+
+  var previousElement;
+
+  function addHoverClass(elem) {
+    if (previousElement === elem) {
+      return;
+    }
+
+    if (!draggableIconIsCollection && elem && elem.dataset.isCollection) {
+      elem.classList.add('hover');
+      clearOverCollectionTimeout();
+    }
+
+    removeHoverClass();
+    previousElement = elem;
+  }
+
+  function removeHoverClass() {
+    if (previousElement) {
+      previousElement.classList.remove('hover');
+    }
   }
 
   /*
@@ -283,6 +447,7 @@ var DragDropManager = (function() {
     if (overlapElem.classList.contains('page')) {
       // We are on the grid but not icon
       newOverlapElem = document.elementFromPoint(x, y);
+      addHoverClass(newOverlapElem);
     } else {
       // Avoid calling document.elementFromPoint if we are over the same icon
       var rectObject = overlapElem.getBoundingClientRect();
@@ -290,6 +455,7 @@ var DragDropManager = (function() {
           x < rectObject.left || x > rectObject.right ||
           y < rectObject.top || y > rectObject.bottom) {
         newOverlapElem = document.elementFromPoint(x, y);
+        addHoverClass(newOverlapElem);
       }
     }
 
@@ -341,6 +507,7 @@ var DragDropManager = (function() {
     if (overlapingTimeout !== null) {
       clearTimeout(overlapingTimeout);
     }
+    clearOverCollectionTimeout();
     window.removeEventListener(touchmove, onMove);
     window.removeEventListener(touchend, onEnd);
     stop(function dg_stop() {
@@ -428,6 +595,9 @@ var DragDropManager = (function() {
         return;
       }
 
+      MOVE_COLLECTION_THRESHOLD =
+        Configurator.getSection('move_collection_threshold') ||
+        MOVE_COLLECTION_THRESHOLD;
       dirCtrl = GridManager.dirCtrl;
       limitY = window.innerHeight -
                document.querySelector('#footer').offsetHeight;
