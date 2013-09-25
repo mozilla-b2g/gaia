@@ -669,7 +669,10 @@ var TitleBar = {
           case 'title-done':
             pendingPick.postResult({
               type: PlayerView.playingBlob.type,
-              blob: PlayerView.playingBlob
+              blob: PlayerView.playingBlob,
+              name:
+                PlayerView.dataSource[PlayerView.currentIndex].metadata.title ||
+                ''
             });
 
             cleanupPick();

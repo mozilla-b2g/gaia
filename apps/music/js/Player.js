@@ -195,14 +195,13 @@ var PlayerView = {
     this.album.textContent = metadata.album || unknownAlbum;
     this.album.dataset.l10nId = metadata.album ? '' : unknownAlbumL10nId;
 
-    // if it is a locked music file, hide the share button
-    // and use the full width for cover info
-    if (metadata.locked) {
+    // If it is a locked music file, or if we are handling a Pick activity
+    // then we should not give the user the option of sharing the file.
+    if (metadata.locked || pendingPick) {
       this.shareButton.classList.add('hidden');
       this.artist.classList.add('hidden-cover-share');
       this.album.classList.add('hidden-cover-share');
-    }
-    else {
+    } else {
       this.shareButton.classList.remove('hidden');
       this.artist.classList.remove('hidden-cover-share');
       this.album.classList.remove('hidden-cover-share');
@@ -717,7 +716,14 @@ var PlayerView = {
           number: 1,
           blobs: [file],
           filenames: [name],
-          filepaths: [filename]
+          filepaths: [filename],
+          // We only pass some metadata attributes so we don't share personal
+          // details like # of times played and ratings
+          metadata: [{
+            title: songData.metadata.title,
+            artist: songData.metadata.artist,
+            album: songData.metadata.album
+          }]
         }
       });
 
