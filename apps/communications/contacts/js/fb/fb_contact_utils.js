@@ -10,7 +10,7 @@ fb.PROPAGATED_PREFIX = 'fb_propagated_';
 fb.PROFILE_PHOTO_URI = 'fb_profile_photo';
 fb.FRIEND_URI = 'fb_friend';
 
-fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
+fb.CONTACTS_APP_ORIGIN = location.origin;
 
 // Some convenience functions follow
 
