@@ -1469,7 +1469,7 @@ contacts.List = (function() {
 
       // TODO: Find a better way to handle selection to both
       // the search list and the contacts one
-      if (contacts.Search && contacts.Search.isInSearchMode) {
+      if (contacts.Search && contacts.Search.isInSearchMode()) {
         contacts.Search.selectRow(id);
       }
 
