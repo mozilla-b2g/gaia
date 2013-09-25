@@ -82,16 +82,13 @@ requirejs.tools.useLib(function(require) {
     file.saveFile(indexPath, file.readFile(indexPath)
                              .replace(/data-loader="[^"]+"/, ''));
 
-    var digests = [],
-        jsExtRegExp = /\.js$/,
+    var jsExtRegExp = /\.js$/,
         backendRegExp = /[\\\/]js[\\\/]ext[\\\/]/;
 
     // Find all the HTML and JS files.
     var files = file.getFilteredFileList(buildDir + 'js', /\.js$|\.html$/);
     files.forEach(function(fileName) {
       var contents = file.readFile(fileName);
-
-      digests.push(getDigest(contents));
 
       // If JS, scan for shared resources.
       if (jsExtRegExp.test(fileName) && !backendRegExp.test(fileName)) {
@@ -135,19 +132,5 @@ requirejs.tools.useLib(function(require) {
     // Save the shared resources file.
     file.saveFile(buildDir + 'gaia_shared.json',
                   JSON.stringify(shared, null, '  '));
-
-    // Update the cache value based on digest values of all files.
-    var finalDigest = getDigest(digests.join(',')),
-        cacheRegExp = /var\s*CACHE_VERSION\s*=\s*'[^']+'/;
-
-    [
-      buildDir + 'js/startup.js'
-    ].forEach(function(fileName) {
-      var contents = file.readFile(fileName);
-      contents = contents.replace(cacheRegExp,
-                                 'var CACHE_VERSION = \'' + finalDigest + '\'');
-      file.saveFile(fileName, contents);
-    });
-
   });
 });
