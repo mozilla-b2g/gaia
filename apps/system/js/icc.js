@@ -381,10 +381,10 @@ var icc = {
       // Workaround. See bug #818270. Followup: #895314
       setTimeout(function workaround_bug818270() {
         self.icc_input_box.maxLength = options.maxLength;
+        self.icc_input_box.value = options.defaultText || '';
       });
       this.icc_input_box.placeholder = message;
       this.icc_input_box.type = options.isAlphabet ? 'text' : 'tel';
-      this.icc_input_box.value = options.defaultText || '';
       if (options.hideInput) {
         this.icc_input_box.type = 'password';
       }
