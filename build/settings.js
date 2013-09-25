@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('./utils');
-var config = require('./config').config;
+var config;
 const { Cc, Ci, Cr, Cu, CC} = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 let settings;
@@ -45,20 +45,22 @@ function setWallpaper(callback) {
 
   let wallpaper = utils.getAbsoluteOrRelativePath(
     config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default' +
-    devpixels + '.jpg');
+    devpixels + '.jpg', config.GAIA_DIR);
 
   if (!wallpaper.exists()) {
     wallpaper = utils.getAbsoluteOrRelativePath(
-      config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default.jpg');
+      config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default.jpg',
+      config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
     wallpaper = utils.getAbsoluteOrRelativePath(
-      'build/wallpaper' + devpixels + '.jpg');
+      'build/wallpaper' + devpixels + '.jpg', config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.getAbsoluteOrRelativePath('build/wallpaper.jpg');
+    wallpaper = utils.getAbsoluteOrRelativePath('build/wallpaper.jpg',
+      config.GAIA_DIR);
   }
 
   readFileAsDataURL(wallpaper, 'image/jpeg', function(dataURL) {
@@ -71,7 +73,8 @@ function setRingtone(callback) {
   // Grab ringer_classic_courier.opus and convert it into a base64 string
   let ringtone_name = 'shared/resources/media/ringtones/' +
     'ringer_classic_courier.opus';
-  let ringtone = utils.getAbsoluteOrRelativePath(ringtone_name);
+  let ringtone = utils.getAbsoluteOrRelativePath(ringtone_name,
+    config.GAIA_DIR);
   readFileAsDataURL(ringtone, 'audio/ogg', function(dataURL) {
     settings['dialer.ringtone'] = dataURL;
     callback();
@@ -82,7 +85,8 @@ function setNotification(callback) {
   // Grab notifier_bell.opus and convert it into a base64 string
   let notification_name = 'shared/resources/media/notifications/' +
     'notifier_bell.opus';
-  let notification = utils.getAbsoluteOrRelativePath(notification_name);
+  let notification = utils.getAbsoluteOrRelativePath(notification_name,
+    config.GAIA_DIR);
   readFileAsDataURL(notification, 'audio/ogg', function(dataURL) {
     settings['notification.ringtone'] = dataURL;
     callback();
@@ -91,7 +95,8 @@ function setNotification(callback) {
 
 function overrideSettings() {
   // See if any override file exists and eventually override settings
-  let override = utils.getAbsoluteOrRelativePath(config.SETTINGS_PATH);
+  let override = utils.getAbsoluteOrRelativePath(config.SETTINGS_PATH,
+    config.GAIA_DIR);
   if (override.exists()) {
     let content = utils.getJSON(override);
     for (let key in content) {
@@ -107,7 +112,8 @@ function writeSettings() {
   utils.writeContent(settingsFile, content + '\n');
 }
 
-function execute() {
+function execute(options) {
+  config = options;
   settings = {
    'accessibility.invert': false,
    'accessibility.screenreader': false,
@@ -280,15 +286,17 @@ function execute() {
     settings['debug.console.enabled'] = true;
 
   // Set the homescreen URL
-  settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen');
+  settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen',
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
 
   // Set the ftu manifest URL
   if (config.NOFTU === '0') {
-    settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications');
+    settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications',
+      config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
-  let file = utils.Gaia.sharedFolder.clone();
+  let file = utils.getGaia(config).sharedFolder.clone();
   file.append('resources');
   file.append('keyboard_layouts.json');
   let keyboard_layouts_res = utils.getJSON(file);

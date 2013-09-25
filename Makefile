@@ -289,38 +289,37 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 
 define BUILD_CONFIG
-exports.config = {
-	"GAIA_DIR" : "$(CURDIR)",
-	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)",
-	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)",
-	"GAIA_SCHEME" : "$(SCHEME)",
-	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)",
-	"DEBUG" : $(DEBUG),
-	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS),
-	"DESKTOP" : $(DESKTOP),
-	"DEVICE_DEBUG" : $(DEVICE_DEBUG),
-	"HOMESCREEN" : "$(HOMESCREEN)",
-	"GAIA_PORT" : "$(GAIA_PORT)",
-	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)",
-	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))",
-	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)",
-	"PRODUCTION" : "$(PRODUCTION)",
-	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)",
-	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)",
-	"DOGFOOD" : "$(DOGFOOD)",
-	"OFFICIAL" : "$(MOZILLA_OFFICIAL)",
-	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)",
-	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)",
-	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)",
-	"GAIA_ENGINE" : "xpcshell",
-	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)",
-	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)",
-	"NOFTU" : "$(NOFTU)",
-	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)",
-	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)",
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)"
+{ \
+	"GAIA_DIR" : "$(CURDIR)", \
+	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)", \
+	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+	"GAIA_SCHEME" : "$(SCHEME)", \
+	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
+	"DEBUG" : $(DEBUG), \
+	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
+	"DESKTOP" : $(DESKTOP), \
+	"DEVICE_DEBUG" : $(DEVICE_DEBUG), \
+	"HOMESCREEN" : "$(HOMESCREEN)", \
+	"GAIA_PORT" : "$(GAIA_PORT)", \
+	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
+	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
+	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
+	"PRODUCTION" : "$(PRODUCTION)", \
+	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
+	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
+	"DOGFOOD" : "$(DOGFOOD)", \
+	"OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
+	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
+	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
+	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
+	"GAIA_ENGINE" : "xpcshell", \
+	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
+	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
+	"NOFTU" : "$(NOFTU)", \
+	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
+	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
+	"SETTINGS_PATH" : "$(SETTINGS_PATH)" \
 }
-
 endef
 export BUILD_CONFIG
 
@@ -496,12 +495,8 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
-.PHONY: build-config-js
-build-config-js:
-	echo "$$BUILD_CONFIG" > $(CURDIR)$(SEP)build$(SEP)config.js
-
 .PHONY: install-xulrunner-sdk
-install-xulrunner-sdk: build-config-js
+install-xulrunner-sdk:
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
 	rm -rf xulrunner-sdk
@@ -520,7 +515,7 @@ define run-js-command
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
 		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
 		-f build/xpcshell-commonjs.js \
-		-e "try{ require('$(strip $1)').execute(); } \
+		-e "try{ require('$(strip $1)').execute($$BUILD_CONFIG); } \
 				catch(e) {dump('Exception: ' + e + '\n' + e.stack + '\n');}"
 endef
 
