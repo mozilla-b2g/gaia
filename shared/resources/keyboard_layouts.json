@@ -1,154 +1,154 @@
 {
   "layout"  : {
     "ar": [
-        {"layoutId": "ar", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "ar", "appName": "keyboard"}
     ],
     "as": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "bn-BD": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "ca": [
-        {"layoutId": "ca", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "ca", "appName": "keyboard"}
     ],
     "cs": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "cy": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "cz": [
-        {"layoutId": "cz", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "cz", "appName": "keyboard"}
     ],
     "de": [
-        {"layoutId": "de", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "de", "appName": "keyboard"}
     ],
     "el": [
-        {"layoutId": "el", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "el", "appName": "keyboard"}
     ],
     "en-US": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "eo": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "es": [
-        {"layoutId": "es", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "es", "appName": "keyboard"}
     ],
     "et": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "eu": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "ff": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "fr": [
-        {"layoutId": "fr", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "fr", "appName": "keyboard"}
     ],
     "fy-NL": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "ga-IE": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "gd": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "gl": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "he": [
-        {"layoutId": "he", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "he", "appName": "keyboard"}
     ],
     "hi-IN": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "ht": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "hu": [
-        {"layoutId": "hu", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "hu", "appName": "keyboard"}
     ],
     "id": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "it": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "jp": [
-        {"layoutId": "jp-kanji", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "jp-kanji", "appName": "keyboard"}
     ],
     "ko": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "lij": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "ml": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "nb": [
-        {"layoutId": "nb", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "nb", "appName": "keyboard"}
     ],
     "nl": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "or": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "pa": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "pl": [
-        {"layoutId": "pl", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "pl", "appName": "keyboard"}
     ],
     "pt-BR": [
-        {"layoutId": "pt-BR", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "pt-BR", "appName": "keyboard"}
     ],
     "ro": [
-        {"layoutId": "ro", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "ro", "appName": "keyboard"}
     ],
     "ru": [
-        {"layoutId": "ru", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "ru", "appName": "keyboard"}
     ],
     "sk": [
-        {"layoutId": "sk", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "sk", "appName": "keyboard"}
     ],
     "sl": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "sq": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "sr-Cyrl": [
-        {"layoutId": "sr-Cyrl", "appOrigin": "keyboard.gaiamobile.org"},
-        {"layoutId": "sr-Latn", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "sr-Cyrl", "appName": "keyboard"},
+        {"layoutId": "sr-Latn", "appName": "keyboard"}
     ],
     "sr-Latn": [
-        {"layoutId": "sr-Latn", "appOrigin": "keyboard.gaiamobile.org"},
-        {"layoutId": "sr-Cyrl", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "sr-Latn", "appName": "keyboard"},
+        {"layoutId": "sr-Cyrl", "appName": "keyboard"}
     ],
     "sv-SE": [
-        {"layoutId": "sv", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "sv", "appName": "keyboard"}
     ],
     "te": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "tr": [
-        {"layoutId": "tr-Q", "appOrigin": "keyboard.gaiamobile.org"},
-        {"layoutId": "tr-F", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "tr-Q", "appName": "keyboard"},
+        {"layoutId": "tr-F", "appName": "keyboard"}
     ],
     "ur": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "en", "appName": "keyboard"}
     ],
     "zh-CN": [
-        {"layoutId": "zh-Hans-Pinyin", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "zh-Hans-Pinyin", "appName": "keyboard"}
     ],
     "zh-TW": [
-        {"layoutId": "zh-Hant-Zhuyin", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "zh-Hant-Zhuyin", "appName": "keyboard"}
     ]
   },
   "nonLatin" : ["ar", "el", "he", "hi-IN", "ja", "ko", "ru", "te", "zh-CN", "zh-TW"]
