@@ -7,8 +7,8 @@ suite('Timer', function() {
   suiteSetup(function(done) {
     loadBodyHTML('/index.html');
 
-    testRequire(['timer', 'mocks/mock_async_storage'], {
-      mocks: ['async_storage']
+    testRequire(['timer', 'mocks/mock_shared/js/async_storage'], {
+      mocks: ['shared/js/async_storage']
     }, function(timer, mockAsyncStorage) {
       Timer = timer;
       asyncStorage = mockAsyncStorage;

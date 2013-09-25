@@ -5,10 +5,8 @@ requireApp('clock/js/alameda.js', function() {
   var baseConfig = {
     baseUrl: '/js',
     paths: {
-      template: '/shared/js/template',
-      mocks: '../test/unit/mocks',
-      async_storage: '../../shared/js/async_storage',
-      gesture_detector: '../../shared/js/gesture_detector'
+      shared: '../shared',
+      mocks: '../test/unit/mocks'
     },
     shim: {
       database: {
@@ -18,13 +16,13 @@ requireApp('clock/js/alameda.js', function() {
       emitter: {
         exports: 'Emitter'
       },
-      'template': {
+      'shared/js/template': {
         exports: 'Template'
       },
-      gesture_detector: {
+      'shared/js/gesture_detector': {
         exports: 'GestureDetector'
       },
-      async_storage: {
+      'shared/js/async_storage': {
         exports: 'asyncStorage'
       }
     }

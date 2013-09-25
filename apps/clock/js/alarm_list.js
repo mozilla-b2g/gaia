@@ -5,7 +5,7 @@ var Banner = require('banner');
 var AlarmsDB = require('alarmsdb');
 var AlarmManager = require('alarm_manager');
 var Utils = require('utils');
-var Template = require('template');
+var Template = require('shared/js/template');
 var _ = navigator.mozL10n.get;
 
 var AlarmList = {

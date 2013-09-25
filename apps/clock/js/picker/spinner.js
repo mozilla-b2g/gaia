@@ -1,8 +1,8 @@
 define(function(require) {
   'use strict';
 
-  var Template = require('template');
-  var GestureDetector = require('gesture_detector');
+  var Template = require('shared/js/template');
+  var GestureDetector = require('shared/js/gesture_detector');
   var SPEED_THRESHOLD = 0.1;
   var INERTIA_MULTIPLIER = 5;
 

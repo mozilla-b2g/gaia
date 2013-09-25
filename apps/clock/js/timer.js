@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
 
 var Emitter = require('emitter');
-var asyncStorage = require('async_storage');
+var asyncStorage = require('shared/js/async_storage');
 var timer = null;
 
 /**

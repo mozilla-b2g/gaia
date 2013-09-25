@@ -1,7 +1,7 @@
 define(function(require) {
 'use strict';
 
-var asyncStorage = require('async_storage');
+var asyncStorage = require('shared/js/async_storage');
 var AlarmList = require('alarm_list');
 var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';

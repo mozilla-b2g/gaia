@@ -3,7 +3,7 @@ define(function(require) {
 
 var Panel = require('panel');
 var Picker = require('picker/picker');
-var asyncStorage = require('async_storage');
+var asyncStorage = require('shared/js/async_storage');
 var View = require('view');
 var Utils = require('utils');
 var Timer = require('timer');
