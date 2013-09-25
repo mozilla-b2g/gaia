@@ -388,6 +388,22 @@ var Compose = (function() {
       return this;
     },
 
+    fillDraftContent: function(draft) {
+      for (var i = 0; i < draft.content.length; i++) {
+        if (draft.content[i].blob) {
+          this.append(
+            new Attachment(
+              draft.content[i].blob, {
+              name: draft.content[i].name,
+              isDraft: true
+            })
+          );
+        } else {
+          this.append(draft.content[i]);
+        }
+      }
+    },
+
     clear: function() {
       dom.message.innerHTML = '<br>';
       state.resizing = state.full = false;

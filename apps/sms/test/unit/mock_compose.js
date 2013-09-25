@@ -7,6 +7,7 @@ var MockCompose = {
   isEmpty: function() {
     return this.mEmpty;
   },
+  fillDraftContent: function() {},
   mEmpty: true,
   mSetup: function() {
     this.mEmpty = true;

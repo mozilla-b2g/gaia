@@ -600,11 +600,9 @@ var ThreadUI = global.ThreadUI = {
         window.location.hash = '#thread-list';
         return;
       }
-      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
-        DraftHelper.saveDraft(Threads.currentId, Compose.getContent());
-        this.cleanFields(true);
-        window.location.hash = '#thread-list';
-      }
+      this.saveDraft();
+      this.cleanFields(true);
+      window.location.hash = '#thread-list';
     }).bind(this);
 
     // We're waiting for the keyboard to disappear before animating back
@@ -1067,26 +1065,12 @@ var ThreadUI = global.ThreadUI = {
 
   //Method to retrieve the draft if it has been saved
   renderDraft: function thui_renderDraft(threadId) {
-    DraftHelper.getDraft(threadId, function oncomplete(draft) {
-      var draftContent = draft.message;
-      alert(draftContent.length);
-      for (var i = 0; i < draftContent.length; i++) {
-        //alert(draft.message[i]);
-        //if(draft.message[i] instanceof Attachment)
-        if (draft.message[i].blob) {
-          Compose.append(
-            new Attachment(
-              draft.message[i].blob, {
-              name: draft.message[i].name,
-              isDraft: true
-            })
-          );
-        } else {
-          Compose.append(draft.message[i]);
-        }
+    Draft.load(threadId, function oncomplete(draft) {
+      if (draft) {
+        Compose.fillDraftContent(draft);
       }
+      draft.delete();
     });
-    DraftHelper.deleteDraft(threadId);
   },
 
   // Method for rendering the list of messages using infinite scroll
@@ -1535,6 +1519,14 @@ var ThreadUI = global.ThreadUI = {
     this.previousHash = window.location.hash;
   },
 
+  saveDraft: function thui_saveDraft() {
+    if (Threads.currentId) {
+      console.log('Debug 1');
+      var draft = new Draft(Threads.currentId, Compose.getContent());
+      draft.save();
+    }
+  },
+
   onSendClick: function thui_onSendClick() {
     // don't send an empty message
     if (Compose.isEmpty()) {
@@ -1564,10 +1556,6 @@ var ThreadUI = global.ThreadUI = {
       recipients = Threads.active.participants;
     }
 
-    DraftHelper.init();
-    DraftHelper.getDraft(recipients, null);
-    DraftHelper.saveDraft(recipients, content);
-    //window.alert(this.recipients);
     // Clean composer fields (this lock any repeated click in 'send' button)
     this.cleanFields(true);
 
