@@ -35,7 +35,7 @@ $(BUILD_DIR)/js/startup.js: manifest.webapp index.html $(AUTOCONFIG_SOURCES) $(J
 	@rm -rf $(BUILD_DIR)
 	@mkdir -p $(BUILD_DIR)
 	cp -rp ../../shared $(BUILD_DIR)/shared
-	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.js
+	$(XULRUNNERSDK) $(XPCSHELLSDK) ../../build/r.js -o build/require_config.jslike
 	@rm -rf $(BUILD_DIR)/build
 	@rm $(BUILD_DIR)/gaia_build.json
 	@rm $(BUILD_DIR)/build.txt
