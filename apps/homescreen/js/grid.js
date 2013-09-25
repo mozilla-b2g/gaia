@@ -198,7 +198,8 @@ var GridManager = (function() {
 
         var refresh;
 
-        if (currentPage === 0) {
+        if (currentPage === 0 ||
+            (Homescreen.isInEditMode() && currentPage === nextLandingPage)) {
           var next = pages[currentPage + 1].container.style;
           refresh = function(e) {
             if (deltaX <= 0) {
@@ -371,7 +372,8 @@ var GridManager = (function() {
       if (forward && currentPage < pages.length - 1) {
         page = page + 1;
       } else if (!forward && page > 0) {
-        page = page - 1;
+        if (!(page === nextLandingPage && Homescreen.isInEditMode()))
+          page = page - 1;
       }
     } else if (!isPanning && evt) {
       releaseEvents();
