@@ -66,6 +66,10 @@ contacts.Search = (function() {
       return;
     }
 
+    utils.listeners.add({
+      '#cancel-search': exitSearchMode
+    });
+
     initialized = true;
     searchBox = document.getElementById('search-contact');
     var resetButton = searchBox.nextElementSibling;
