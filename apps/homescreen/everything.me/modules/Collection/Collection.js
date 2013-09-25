@@ -136,10 +136,10 @@ void function() {
 
     // add installed app to open collection via settings menu
     // or to some other collection by dropping an app into it
-    this.addInstalledApp = function addInstalledApp(installedApp, collectionId) {
+    this.addInstalledApp = function addInstalledApp(installedAppInfo, collectionId) {
       Evme.CollectionStorage.get(collectionId, function onGotSettings(collectionSettings) {
         self.update(collectionSettings, {
-          "apps": collectionSettings.apps.concat(installedApp)
+          "apps": collectionSettings.apps.concat(installedAppInfo)
         });
       });
     };
@@ -165,9 +165,10 @@ void function() {
     };
 
     this.onQueryIndexUpdated = function onQueryIndexUpdated() {
-      // TODO
-      Evme.CollectionSettings.updateAll();
-      // move update homescreen here
+      var gridCollections = EvmeManager.getCollections();
+      gridCollections.forEach(function populate(gridCollection) {
+        Evme.CollectionStorage.get(gridCollection.id, populateCollection);
+      });
     };
 
     this.show = function show(e) {
@@ -408,17 +409,6 @@ void function() {
     Evme.CollectionStorage.update(settings, data, cb);
   };
 
-  Evme.CollectionSettings.updateAll = function updateAll() {
-    // TODO
-    // see if this method required any changes
-    // get collection by EvmeManager.getCollections?
-    var ids = Evme.CollectionStorage.getAllIds();
-
-    for (var i = 0, id; id = ids[i++];) {
-      Evme.CollectionStorage.get(id, populateCollection);
-    }
-  };
-
   // save collection settings in storage and run callback async.
   function saveSettings(settings, cb) {
     Evme.CollectionStorage.add(settings, function onStored() {
@@ -469,39 +459,28 @@ void function() {
 
   /**
    * CollectionStorage
-   * Persists settings to local storage
+   * Persists collection settings to local storage
    *
-   * TODO encapsulate - don't expose as Evme.CollectionStorage
    */
   Evme.CollectionStorage = new function Evme_CollectionStorage() {
     var NAME = 'CollectionStorage',
         IDS_STORAGE_KEY = 'evmeCollection',
         PREFIX = 'collectionsettings_',
-        self = this,
-        ids = null,
-        ID_LOCK_RETRY_TIME = 100,
-        locked = false;  // locks the ids list
+        self = this;
 
     this.init = function init() {
-      Evme.Storage.get(IDS_STORAGE_KEY, function onGet(storedIds) {
-        ids = storedIds || [];
-      });
-
       window.addEventListener('collectionUninstalled', onCollectionUninstalled);
     };
 
     this.remove = function remove(collectionId) {
-      removeId(collectionId);
+      Evme.Storage.remove(PREFIX + collectionId);
     };
 
-    this.add = function add(settings, cb) {
+    this.add = function add(settings, cb=Evme.Utils.NOOP) {
       if (!settings.id) return;
 
       Evme.Storage.set(PREFIX + settings.id, settings, function onSet() {
-        addId(settings.id);
-        if (cb instanceof Function) {
-          cb(settings);
-        }
+        cb(settings);
       });
     };
 
@@ -512,82 +491,18 @@ void function() {
       self.add(settings, cb);
     };
 
-    this.get = function get(settingsId, cb) {
+    this.get = function get(settingsId, cb=Evme.Utils.NOOP) {
       Evme.Storage.get(PREFIX + settingsId, function onGet(storedSettings) {
-        if (cb && storedSettings !== null) {
+        if (storedSettings !== null) {
           var settings = new Evme.CollectionSettings(storedSettings);
-          if (cb instanceof Function) {
-            cb(settings);
-          }
+          cb(settings);
         }
       });
     };
 
-    this.getAllIds = function getAllIds() {
-      return ids;
-    };
-
-    this.getAllCollections = function getAllCollections(callback) {
-      var ids = self.getAllIds(),
-      collections = [];
-
-      for (var i = 0, id; id = ids[i++];) {
-        self.get(id, onGotCollectionSettings);
-      }
-
-      function onGotCollectionSettings(settings) {
-        collections.push(settings);
-        if (collections.length === ids.length) {
-          callback(collections);
-        }
-      }
-    };
-
     function onCollectionUninstalled(e) {
-      removeId(e.detail.collection.id);
-    }
-
-    function addId(id) {
-      if (ids && ids.indexOf(id) > -1) return;
-
-      if (ids === null || locked) {
-        setTimeout(function retry() {addId(id); }, ID_LOCK_RETRY_TIME);
-        return;
-      }
-
-      try {
-        lock();
-        ids.push(id);
-        Evme.Storage.set(IDS_STORAGE_KEY, ids, unlock);
-      } catch (ex) {
-        unlock();
-      }
-    }
-
-    function removeId(id) {
-      if (ids === null || locked) {
-        setTimeout(function retry() {removeId(id); }, ID_LOCK_RETRY_TIME);
-        return;
-      }
-
-      try {
-        lock();
-        ids = ids.filter(function neqId(storedId) {return storedId !== id });
-        Evme.CollectionStorage.set(IDS_STORAGE_KEY, ids, function onRemoved() {
-          unlock();
-          Evme.Storage.remove(PREFIX + collectionId);
-        });
-      } catch (ex) {
-        unlock();
-      }
-    }
-
-    function lock() {
-      locked = true;
-    }
-
-    function unlock() {
-      locked = false;
+      var collectionId = e.detail.collection.id;
+      self.remove(collectionId);
     }
   };
 

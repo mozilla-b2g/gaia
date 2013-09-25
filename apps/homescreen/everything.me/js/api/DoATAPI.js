@@ -722,6 +722,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                 "methodNamespace": methodNamespace,
                 "methodName": methodName,
                 "params": params,
+                "originalOptions": options,
                 "callback": callback,
                 "requestTimeout": MAX_REQUEST_TIME,
                 "retries": NUMBER_OF_RETRIES,

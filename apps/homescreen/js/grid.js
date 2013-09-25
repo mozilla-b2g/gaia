@@ -820,7 +820,7 @@ var GridManager = (function() {
       // app.manifest is null until the downloadsuccess/downloadapplied event
       var manifest = app.manifest || app.updateManifest;
 
-      if (app.type === GridItemsFactory.TYPE.COLLECTION ||
+      if (!manifest || app.type === GridItemsFactory.TYPE.COLLECTION ||
           (suppressHiddenRoles && HIDDEN_ROLES.indexOf(manifest.role) !== -1)) {
         continue;
       }
@@ -837,8 +837,20 @@ var GridManager = (function() {
     return apps;
   }
 
-  function getApp(origin) {
-    var app = appsByOrigin[origin];
+  function getApp(value, prop) {
+    var app;
+
+    if (!prop) {
+       app = appsByOrigin[value];
+    } else {
+      for (var origin in appsByOrigin) {
+        if (appsByOrigin[origin][prop] === value) {
+          app = appsByOrigin[origin];
+          break;
+        }
+      }
+    }
+
     if (app) {
       return new Icon(buildDescriptor(app), app);
     }

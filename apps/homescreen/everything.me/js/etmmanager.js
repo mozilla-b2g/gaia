@@ -89,13 +89,15 @@ var EvmeManager = (function EvmeManager() {
    * Returns E.me formatted information about an object
    * returned by GridManager.getApps.
    */
-  function getAppInfo(gridApp, cb) {
-    cb = cb || Evme.Utils.NOOP;
+  function getAppInfo(gridApp) {
+
+    if (typeof gridApp === 'string') {
+      gridApp = getAppById(gridApp);
+    }
 
     var nativeApp = gridApp.app,  // XPCWrappedNative
         descriptor = gridApp.descriptor,
         id,
-        icon,
         appInfo;
 
     // TODO document
@@ -111,26 +113,27 @@ var EvmeManager = (function EvmeManager() {
       return;
     }
 
-    icon = GridManager.getIcon(descriptor);
-
     appInfo = {
-      "id": id,
-      "name": descriptor.name,
-      "appUrl": nativeApp.origin,
-      "icon": Icon.prototype.DEFAULT_ICON_URL
+        "id": id,
+        "name": descriptor.name,
+        "appUrl": nativeApp.origin,
+        "icon": Icon.prototype.DEFAULT_ICON_URL
     };
 
-    if (!icon) {
-      cb(appInfo);
-    } else {
-      retrieveIcon({
-        icon: icon,
-        done: function(blob) {
-          if (blob) appInfo['icon'] = blob;
-          cb(appInfo);
-        }
-      });
+    var iconObject = GridManager.getIcon({
+      'manifestURL': id
+    });
+    if (iconObject &&
+      'descriptor' in iconObject &&
+      'renderedIcon' in iconObject.descriptor) {
+      appInfo.icon = iconObject.descriptor.renderedIcon;
     }
+
+    return appInfo;
+  }
+
+  function getAppById(appId) {
+    return GridManager.getApp(appId, 'manifestURL');
   }
 
   /**
@@ -238,6 +241,7 @@ var EvmeManager = (function EvmeManager() {
     getGridApps: getGridApps,
     getCollections: getCollections,
     getAppInfo: getAppInfo,
+    getAppById: getAppById,
 
     openUrl: openUrl,
     openCloudApp: openCloudApp,

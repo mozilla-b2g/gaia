@@ -94,15 +94,12 @@ App index - list of apps installed on device, including apps and bookmarks but *
 */
 Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   var NAME = "InstalledAppsService",
-      self = this,
-      appIndex = {}, APP_INDEX_STORAGE_KEY = NAME + "-app-index",
-      queryIndex = {}, QUERY_INDEX_STORAGE_KEY = NAME + "-query-index",
-      appIndexPendingSubscribers = [],
-      appIndexComplete = false;
+    self = this,
+    slugIndex = {},
+    queryIndex = {}, QUERY_INDEX_STORAGE_KEY = NAME + "-query-index";
 
   this.init = function init() {
-    // create indexes
-    createAppIndex();
+    // load stored index or create one
     loadQueryIndex();
 
     // listeners
@@ -113,7 +110,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   this.requestAppsInfo = function requestAppsInfo() {
     var gridApps = EvmeManager.getGridApps(),
         guids = gridApps.map(function getId(gridApp){
-          return gridApp.manifestURL || gridApp.bookmarkURL;
+          return gridApp.app.manifestURL || gridApp.app.bookmarkURL;
         });
 
     Evme.EventHandler.trigger(NAME, "requestAppsInfo", guids);
@@ -121,23 +118,25 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
 
   this.requestAppsInfoCb = function requestAppsInfoCb(appsInfoFromAPI) {
     queryIndex = {};
+    slugIndex = {};
 
     for (var k in appsInfoFromAPI) {
-      var appInfo = appsInfoFromAPI[k];
+      var appAPIInfo = appsInfoFromAPI[k],
+          appId = appAPIInfo.guid;
 
-      // verify that the app info relates to an existing one in the appIndex
-      var idInAppIndex = appInfo.guid;
-      if (!(idInAppIndex in appIndex)) {
-        continue;
+      // make sure the app does actually exist
+      if (!EvmeManager.getAppById(appId)) {
+         continue;
       }
 
-      // Store the marketplace api slug, in order to compare and dedup Marketplace app suggestions later on
-      appIndex[idInAppIndex].slug = appInfo.nativeId;
+      // Store the marketplace api slug, in order to compare and
+      // dedup Marketplace app suggestions later on
+      // slugIndex[appId] = appAPIInfo.nativeId;
 
       // queries is comprised of tags and experiences
-      var tags = appInfo.tags || [],
-      experiences = appInfo.experiences || [],
-      queries = Evme.Utils.unique(tags.concat(experiences));
+      var tags = appAPIInfo.tags || [],
+          experiences = appAPIInfo.experiences || [],
+          queries = Evme.Utils.unique(tags.concat(experiences));
 
       // populate queryIndex
       for (var i = 0, query; query = queries[i++];) {
@@ -145,7 +144,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
         if (!(query in queryIndex)) {
           queryIndex[query] = [];
         }
-        queryIndex[query].push(idInAppIndex);
+        queryIndex[query].push(appId);
       }
     }
 
@@ -159,27 +158,30 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     }
 
     var matchingApps = [],
-    query = normalizeQuery(data.query);
+        query = normalizeQuery(data.query),
+        gridApps = EvmeManager.getGridApps();
 
-    // search appIndex
+    // search installed app names
     // search query within first letters of app name words
     var regex = new RegExp('\\b' + query, 'i');
-    for (var appId in appIndex) {
+    for (var i = 0, gridApp; gridApp = gridApps[i++];) {
       // if there's a match, add to matchingApps
-      var app = appIndex[appId];
-      if ("name" in app && regex.test(app.name)) {
-        matchingApps.push(app);
+      var appInfo = EvmeManager.getAppInfo(gridApp);
+      if (appInfo && regex.test(normalizeQuery(appInfo.name))) {
+        matchingApps.push(appInfo);
       }
+      appInfo = null;
     }
 
     // search query
     // search for only exact query match
     if (query in queryIndex) {
       for (var i = 0, appId; appId = queryIndex[query][i++];) {
-        if (appId in appIndex) {
-          var app = appIndex[appId];
-          matchingApps.push(app);
+        var appInfo = EvmeManager.getAppInfo(appId);
+        if (appInfo) {
+          matchingApps.push(appInfo);
         }
+        appInfo = null;
       }
     }
 
@@ -188,57 +190,8 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     return matchingApps;
   };
 
-
-  this.getAppById = function getAppById(appId, cb) {
-    if (appIndexComplete) {
-      cb(appIndex[appId]);
-    } else {
-      appIndexPendingSubscribers.push([appId, cb])
-    }
-  };
-
-  this.getApps = function() {
-    return appIndex;
-  };
-
-  this.getSlugs = function getAPIIds() {
-    var ids = [];
-    for (var id in appIndex) {
-      var app = appIndex[id];
-      app.slug && ids.push(app.slug);
-    }
-    return ids;
-  };
-
   function onAppInstallChanged() {
-    createAppIndex();
     self.requestAppsInfo();
-  }
-
-  function createAppIndex() {
-    // empty current index and create a new one
-    appIndex = {};
-
-    appIndexComplete = false;
-
-    var gridApps = EvmeManager.getGridApps(),
-        gridAppsCount = gridApps.length;
-
-    for (var i = 0, gridApp; gridApp = gridApps[i++];) {
-      var appInfo = EvmeManager.getAppInfo(gridApp, function onAppInfo(appInfo){
-        appIndex[appInfo.id] = appInfo;
-        if (--gridAppsCount === 0) {
-          onAppIndexComplete();
-        }
-      });
-    }
-  }
-
-  function onAppIndexComplete() {
-    appIndexComplete = true;
-    appIndexPendingSubscribers.forEach(function execute(args) {
-      self.getAppById.apply(self, args);
-    });
   }
 
   function loadQueryIndex() {
