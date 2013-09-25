@@ -1073,16 +1073,21 @@ var Camera = {
   },
 
   stopPreview: function camera_stopPreview() {
-    this.releaseScreenWakeLock();
-    if (this._recording) {
-      this.stopRecording();
+    try {
+      this.releaseScreenWakeLock();
+      if (this._recording) {
+        this.stopRecording();
+      }
+      this.hideFocusRing();
+      this.disableButtons();
+      this.viewfinder.pause();
+      this._previewActive = false;
+      this.viewfinder.mozSrcObject = null;
+    } catch (ex) {
+      console.error('error while stopping preview', ex.message);
+    } finally {
+      this.release();
     }
-    this.hideFocusRing();
-    this.disableButtons();
-    this.viewfinder.pause();
-    this._previewActive = false;
-    this.viewfinder.mozSrcObject = null;
-    this.release();
   },
 
   resumePreview: function camera_resumePreview() {
