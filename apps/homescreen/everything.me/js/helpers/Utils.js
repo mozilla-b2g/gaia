@@ -6,21 +6,24 @@ Evme.Utils = new function Evme_Utils() {
         newUser = false, isTouch = false,
         parsedQuery = parseQuery(),
         elContainer = null,
-	headEl = document.querySelector('html>head'),
-	filterSelectorTemplate = '.evme-apps ul:not({0}) li[{1}="{2}"]',
+        headEl = document.querySelector('html>head'),
+        filterSelectorTemplate = '.evme-apps ul:not({0}) li[{1}="{2}"]',
 
-	CONTAINER_ID = "evmeContainer", // main E.me container
-	SCOPE_CLASS = "evmeScope",      // elements with E.me content
+        // used to generate a uuid (using createObjectURL)
+        uuidBlob = new Blob(),
+
+        CONTAINER_ID = "evmeContainer", // main E.me container
+        SCOPE_CLASS = "evmeScope",      // elements with E.me content
 
         COOKIE_NAME_CREDENTIALS = "credentials",
 
-	CLASS_WHEN_KEYBOARD_IS_VISIBLE = 'evme-keyboard-visible',
+        CLASS_WHEN_KEYBOARD_IS_VISIBLE = 'evme-keyboard-visible',
 
-	// all the installed apps (installed, clouds, marketplace) should be the same size
-	// however when creating icons in the same size there's still a noticable difference
-	// this is because the OS' native icons have a transparent padding around them
-	// so to make our icons look the same we add this padding artificially
-	INSTALLED_CLOUDS_APPS_ICONS_PADDING = 2,
+        // all the installed apps (installed, clouds, marketplace) should be the same size
+        // however when creating icons in the same size there's still a noticable difference
+        // this is because the OS' native icons have a transparent padding around them
+        // so to make our icons look the same we add this padding artificially
+        INSTALLED_CLOUDS_APPS_ICONS_PADDING = 2,
 
         OSMessages = this.OSMessages = {
           "APP_INSTALL": "add-bookmark",
@@ -135,7 +138,12 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.uuid = function generateUUID() {
-        return Evme.uuid();
+      var url = window.URL.createObjectURL(uuidBlob),
+          id = url.replace('blob:', '');
+
+      window.URL.revokeObjectURL(url);
+
+      return id;
     };
 
     this.sendToOS = function sendToOS(type, data) {
