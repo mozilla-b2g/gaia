@@ -2,6 +2,9 @@
   "name": "Tv",
   "role": "collection",
   "provider_id": "213",
+  "apps": [
+    ["apps", "video"]
+  ],
   "locales": {
     "en-US": {
       "name": "TV"

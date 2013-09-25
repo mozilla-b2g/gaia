@@ -40,6 +40,10 @@ var GridItem = function GridItem(params) {
     };
   }
 
+  if (params.apps) {
+    this.manifest.apps = params.apps;
+  }
+
   this.useAsyncPanZoom = 'useAsyncPanZoom' in params && params.useAsyncPanZoom;
 };
 
@@ -121,10 +125,15 @@ Collection.prototype = {
   },
 
   setManifest: function sc_setManifest(manifest) {
-    // Icons provided by caller are preferential
+    // Icons and local apps provided by caller are preferential
     if (this.manifest.icons) {
       manifest.icons = this.manifest.icons;
     }
+
+    if (this.manifest.apps) {
+      manifest.apps = this.manifest.apps;
+    }
+
     this.manifest = manifest;
   }
 };
