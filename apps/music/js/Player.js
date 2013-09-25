@@ -157,6 +157,12 @@ var PlayerView = {
     this.sourceType = type;
   },
 
+  // We only use the DBInfo for playing all songs.
+  setDBInfo: function pv_setDBInfo(info) {
+    this.DBInfo = info;
+    this.dataSource.length = info.count;
+  },
+
   // This function is for the animation on the album art (cover).
   // The info (album, artist) will initially show up when a song being played,
   // if users does not tap the album art (cover) again,
@@ -447,6 +453,30 @@ var PlayerView = {
     MusicComms.notifyStatusChanged(info);
   },
 
+  // The song data might return from the existed dataSource
+  // or we will retrieve it directly from the MediaDB.
+  getSongData: function pv_getSongData(index, callback) {
+    var info = this.DBInfo;
+    var songData = this.dataSource[index];
+
+    if (songData) {
+      callback(songData);
+    } else {
+      // Cancel the ongoing enumeration so that it will not
+      // slow down the next enumeration if we start a new one.
+      ListView.cancelEnumeration();
+
+      var handle =
+        musicdb.advancedEnumerate(
+          info.key, info.range, info.direction, index, function(record) {
+            musicdb.cancelEnumeration(handle);
+            this.dataSource[index] = record;
+            callback(record);
+          }.bind(this)
+        );
+    }
+  },
+
   /*
    * Get a blob for the specified song, decrypting it if necessary,
    * and pass it to the specified callback
@@ -475,26 +505,26 @@ var PlayerView = {
     this.showInfo();
 
     if (arguments.length > 0) {
-      var songData = this.dataSource[targetIndex];
+      this.getSongData(targetIndex, function(songData) {
+        this.currentIndex = targetIndex;
+        this.backgroundIndex = backgroundIndex;
+        this.setInfo(songData);
 
-      this.currentIndex = targetIndex;
-      this.backgroundIndex = backgroundIndex;
-      this.setInfo(songData);
+        // set ratings of the current song
+        this.setRatings(songData.metadata.rated);
 
-      // set ratings of the current song
-      this.setRatings(songData.metadata.rated);
+        // update the metadata of the current song
+        songData.metadata.played++;
+        musicdb.updateMetadata(songData.name, songData.metadata);
 
-      // update the metadata of the current song
-      songData.metadata.played++;
-      musicdb.updateMetadata(songData.name, songData.metadata);
-
-      this.getFile(songData, function(file) {
-        this.setAudioSrc(file);
-        // When we need to preview an audio like in picker mode,
-        // we will not autoplay the picked song unless the user taps to play
-        // And we just call pause right after play.
-        if (this.sourceType === TYPE_SINGLE)
-          this.pause();
+        this.getFile(songData, function(file) {
+          this.setAudioSrc(file);
+          // When we need to preview an audio like in picker mode,
+          // we will not autoplay the picked song unless the user taps to play
+          // And we just call pause right after play.
+          if (this.sourceType === TYPE_SINGLE)
+            this.pause();
+        }.bind(this));
       }.bind(this));
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // When we have to play a blob, we need to parse the metadata
@@ -649,7 +679,17 @@ var PlayerView = {
   },
 
   updateSeekBar: function pv_updateSeekBar() {
-    if (this.playStatus === PLAYSTATUS_PLAYING) {
+    // Don't update the seekbar when the user is seeking.
+    if (this.isTouching)
+      return;
+
+    // If ModeManager is undefined, then the music app is launched by the open
+    // activity. Otherwise, only seek the audio when the mode is PLAYER because
+    // updating the UI will slow down the other pages, such as the scrolling in
+    // ListView.
+    if (typeof ModeManager === 'undefined' ||
+      ModeManager.currentMode === MODE_PLAYER &&
+      this.playStatus === PLAYSTATUS_PLAYING) {
       this.seekAudio();
     }
   },
@@ -857,8 +897,7 @@ var PlayerView = {
         break;
       case 'durationchange':
       case 'timeupdate':
-        if (!this.isTouching)
-          this.updateSeekBar();
+        this.updateSeekBar();
 
         // Update the metadata when the new track is really loaded
         // when it just started to play, or the duration will be 0 then it will
