@@ -18,24 +18,34 @@ var LazyLoader = (function() {
   LazyLoader.prototype = {
 
     _js: function(file, callback) {
-      var script = document.createElement('script');
-      script.src = file;
-      // until bug 916255 lands async is the default so
-      // we must disable it so scripts load in the order they where
-      // required.
-      script.async = false;
-      script.addEventListener('load', callback);
-      document.head.appendChild(script);
-      this._isLoading[file] = script;
+      // When the lazy loader is used into the onload handler this
+      // usually means the page is ready to display, this is where
+      // we wait in the window manager to remove the cover and show
+      // the app itself. setTimeout here ensure that the load event
+      // is fired before we load those additional scripts that are
+      // not needed for displaying quickly the app.
+      setTimeout(function(self) {
+        var script = document.createElement('script');
+        script.src = file;
+        // until bug 916255 lands async is the default so
+        // we must disable it so scripts load in the order they where
+        // required.
+        script.async = false;
+        script.addEventListener('load', callback);
+        document.head.appendChild(script);
+        self._isLoading[file] = script;
+      }, 0, this);
     },
 
     _css: function(file, callback) {
-      var style = document.createElement('link');
-      style.type = 'text/css';
-      style.rel = 'stylesheet';
-      style.href = file;
-      document.head.appendChild(style);
-      callback();
+      setTimeout(function() {
+        var style = document.createElement('link');
+        style.type = 'text/css';
+        style.rel = 'stylesheet';
+        style.href = file;
+        document.head.appendChild(style);
+        callback();
+      });
     },
 
     _html: function(domNode, callback) {
