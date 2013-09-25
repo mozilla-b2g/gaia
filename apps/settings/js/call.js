@@ -132,6 +132,7 @@ var Calls = (function(window, document, undefined) {
       'corporateLocked' : _('simLockedPhone'),
       'serviceProviderLocked' : _('simLockedPhone'),
       'unknown' : _('unknownSimCardState'),
+      'illegal' : _('simCardIllegal'),
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
     };
