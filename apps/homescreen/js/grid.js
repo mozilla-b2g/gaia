@@ -27,7 +27,6 @@ var GridManager = (function() {
 
   var kPageTransitionDuration;
 
-  var numberOfSpecialPages = 0, landingPage, prevLandingPage, nextLandingPage;
   var pages = [];
   var currentPage = 0;
 
@@ -345,18 +344,16 @@ var GridManager = (function() {
       return;
     }
 
-    if (currentPage > landingPage) {
-      removePanHandler();
-      Homescreen.setMode('edit');
-      removeActive();
-      LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
-        DragDropManager.init();
-        DragDropManager.start(evt, {
-          'x': startEvent.pageX,
-          'y': startEvent.pageY
-        });
+    removePanHandler();
+    Homescreen.setMode('edit');
+    removeActive();
+    LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
+      DragDropManager.init();
+      DragDropManager.start(evt, {
+        'x': startEvent.pageX,
+        'y': startEvent.pageY
       });
-    }
+    });
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -527,6 +524,11 @@ var GridManager = (function() {
     });
   }
 
+  function goToLandingPage() {
+    document.body.dataset.transitioning = 'true';
+    goToPage(0);
+  }
+
   function goToNextPage(callback) {
     document.body.dataset.transitioning = 'true';
     goToPage(currentPage + 1, callback);
@@ -583,8 +585,8 @@ var GridManager = (function() {
   }
 
   function getFirstPageWithEmptySpace(pageOffset) {
-    pageOffset = pageOffset || 0;
-    for (var i = numberOfSpecialPages + pageOffset, page; page = pages[i++];) {
+    pageOffset = pageOffset !== null && pageOffset ? pageOffset : 0;
+    for (var i = pageOffset, page; page = pages[i++];) {
       if (page.getNumIcons() < page.numberOfIcons) {
         return i - 1;
       }
@@ -597,7 +599,7 @@ var GridManager = (function() {
 
     pages.forEach(function checkIsEmpty(page, index) {
       // ignore the landing page
-      if (index < numberOfSpecialPages + EVME_PAGE_STATE_INDEX) {
+      if (index === 0) {
         return;
       }
 
@@ -624,7 +626,7 @@ var GridManager = (function() {
    * pages with a number of apps greater that the maximum
    */
   function ensurePagesOverflow(callback) {
-    ensurePageOverflow(numberOfSpecialPages, callback);
+    ensurePageOverflow(0, callback);
   }
 
   function ensurePageOverflow(index, callback) {
@@ -698,7 +700,7 @@ var GridManager = (function() {
      * Saves all pages state on the database
      */
     saveAll: function() {
-      var state = pages.slice(numberOfSpecialPages);
+      var state = pages.slice(0);
       state.unshift(DockManager.page);
       for (var i = 0; i < state.length; i++) {
         var page = state[i];
@@ -869,10 +871,6 @@ var GridManager = (function() {
     // not backed by the app database. Note that this creates an
     // offset between these indexes here and the ones in the DB.
     // See also pageHelper.saveAll().
-    numberOfSpecialPages = container.children.length;
-    landingPage = numberOfSpecialPages - 1;
-    prevLandingPage = landingPage - 1;
-    nextLandingPage = landingPage + 1;
     for (var i = 0; i < container.children.length; i++) {
       var pageElement = container.children[i];
       var page = new Page(pageElement, null);
@@ -1432,15 +1430,13 @@ var GridManager = (function() {
 
     goToNextPage: goToNextPage,
 
+    goToLandingPage: goToLandingPage,
+
     localize: localize,
 
     dirCtrl: dirCtrl,
 
     pageHelper: pageHelper,
-
-    get landingPage() {
-      return landingPage;
-    },
 
     getBlobByDefault: function(app) {
       if (app && app.iconable) {

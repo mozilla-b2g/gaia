@@ -109,20 +109,16 @@ var DockManager = (function() {
       return;
     }
 
-    if (GridManager.pageHelper.getCurrentPageNumber() >
-        GridManager.landingPage) {
+    Homescreen.setMode('edit');
+    removeActive();
 
-      Homescreen.setMode('edit');
-      removeActive();
-
-      LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
-        DragDropManager.init();
-        DragDropManager.start(evt, {
-          'x': startEvent.pageX,
-          'y': startEvent.pageY
-        });
+    LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
+      DragDropManager.init();
+      DragDropManager.start(evt, {
+        'x': startEvent.pageX,
+        'y': startEvent.pageY
       });
-    }
+    });
   }
 
   function goNextSet() {
