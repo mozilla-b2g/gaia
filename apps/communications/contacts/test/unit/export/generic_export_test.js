@@ -1,3 +1,4 @@
+requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
@@ -17,6 +18,10 @@ if (!window.status) {
 } else {
   realStatus = window.status;
 }
+
+var mocksHelperForExporter = new MocksHelper([
+  'Contacts'
+]).init();
 
 suite('Contacts Exporter', function() {
 
@@ -85,6 +90,7 @@ suite('Contacts Exporter', function() {
       show: function(msg) {}
     };
 
+    mocksHelperForExporter.suiteSetup();
   });
 
   suiteTeardown(function() {
@@ -92,6 +98,7 @@ suite('Contacts Exporter', function() {
     doExportSpy.restore();
     hasDeterminativeProgressSpy.restore();
     setProgressStepSpy.restore();
+    mocksHelperForExporter.suiteTeardown();
   });
 
   setup(function() {
