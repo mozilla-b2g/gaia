@@ -32,6 +32,14 @@ var Swiper = {
   */
   _slidingToward: '',
 
+  _getMaxOffset: function ls_getMaxOffset() {
+    var leftIcon = this.areaHangup;
+    var rightIcon = this.areaPickup;
+    var areaW = this.areaWidth;
+    var trackLength = rightIcon.offsetLeft - leftIcon.offsetLeft + areaW;
+    var maxLength = Math.floor(trackLength / 2);
+    return maxLength - areaW + this.iconWidth - this.sliderEdgeWidth;
+  },
   /* init */
   init: function ls_init() {
     this.getAllElements();
@@ -67,8 +75,10 @@ var Swiper = {
       case 'touchend':
         window.removeEventListener('touchmove', this);
         window.removeEventListener('touchend', this);
+        if (evt.touches.length > 0) {
+          this.handleMove(evt.touches[0].pageX, evt.touches[0].pageY);
+        }
         this.handleSlideEnd();
-        this.handleMove(evt.touches[0].pageX, evt.touches[0].pageY);
         delete this._touch;
         this.overlay.classList.remove('touched');
 
@@ -119,20 +129,16 @@ var Swiper = {
 
     var leftIcon = this.areaHangup;
     var rightIcon = this.areaPickup;
-    var areaW = this.areaWidth;
-    var iconW = this.iconWidth;
-    var sliderEdgeW = this.sliderEdgeWidth;
-    var trackLength = rightIcon.offsetLeft - leftIcon.offsetLeft + areaW;
-    var maxLength = Math.floor(trackLength / 2);
     var offset = utx;
+    var maxOffset = this._getMaxOffset();
 
     // If the front-end slider reached the boundary.
     // We plus and minus the icon width because maxLength should be fixed,
     // and only the handler and the blue occured area should be adjusted.
-    if (offset + this.sliderEdgeWidth > maxLength - areaW) {
+    if (offset + (this.iconWidth / 2) > maxOffset) {
       var target = 'left' === dir ? leftIcon : rightIcon;
       this._sliderReachEnd = true;
-      offset = maxLength - areaW + iconW - sliderEdgeW;
+      offset = Math.min(maxOffset, offset);
       target.classList.add('triggered');
 
     } else {
