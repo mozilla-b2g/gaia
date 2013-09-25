@@ -11,7 +11,7 @@ ContactsIntegration.prototype = {
   __proto__: AppIntegration.prototype,
 
   appName: 'Contacts',
-  manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
+  manifestURL: location.origin + '/manifest.webapp',
   entryPoint: 'contacts',
 
   /** selector tables */
