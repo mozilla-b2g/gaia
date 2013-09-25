@@ -140,7 +140,6 @@ var SleepMenu = {
         if (!action) {
           return;
         }
-        this.hide();
         this.handler(action);
         break;
 
@@ -155,6 +154,7 @@ var SleepMenu = {
   handler: function sm_handler(action) {
     switch (action) {
       case 'airplane':
+        this.hide();
         // Airplane mode should turn off
         //
         // Radio ('ril.radio.disabled'`)
@@ -181,12 +181,14 @@ var SleepMenu = {
       // * Turn off silent mode will cause:
       //   send a custom event 'unmute' to sound manager
       case 'silent':
+        this.hide();
         window.dispatchEvent(new Event('mute'));
         this.isSilentModeEnabled = true;
 
         break;
 
       case 'silentOff':
+        this.hide();
         window.dispatchEvent(new Event('unmute'));
         this.isSilentModeEnabled = false;
 
