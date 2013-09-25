@@ -167,7 +167,8 @@ function execute(options) {
    'icc.selectTimeout': 150000,
    'keyboard.enabled-layouts': [{
       'layoutId': 'number',
-      'appOrigin': 'app://keyboard.gaiamobile.org',
+      'appOrigin': utils.gaiaOriginURL('keyboard', config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
       'enabled': true
     }],
    'keyboard.vibration': false,
@@ -318,7 +319,8 @@ function execute(options) {
   });
   let default_layout = {
     'layoutId': 'en',
-    'appOrigin': 'app://keyboard.gaiamobile.org',
+    'appOrigin': utils.gaiaOriginURL('keyboard', config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
     'enabled': true
   };
   // Setup the keyboard mozSetting for each of the built-in keyboards
@@ -326,7 +328,8 @@ function execute(options) {
     if (kbLocaleLayouts.indexOf(builtInKeyboards[i]) === -1)
       kbLayoutSettings.push({
         'layoutId': builtInKeyboards[i],
-        'appOrigin': 'app://keyboard.gaiamobile.org',
+        'appOrigin': utils.gaiaOriginURL('keyboard', config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
         'enabled': false
       });
   }
@@ -335,7 +338,8 @@ function execute(options) {
     for (var i = 0, len = kbLayoutList.length; i < len; i++)
       kbLayoutSettings.push({
         'layoutId': kbLayoutList[i].layoutId,
-        'appOrigin': 'app://' + kbLayoutList[i].appOrigin,
+        'appOrigin': utils.gaiaOriginURL( kbLayoutList[i].appName, config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
         'enabled': true
       });
     // Check if the default locale has a non-latin keyboard layout so that a
