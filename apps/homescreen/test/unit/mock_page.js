@@ -2,8 +2,9 @@
 
 requireApp('homescreen/test/unit/mock_icon.js');
 
-function MockPage(container, icons) {
+function MockPage(container, icons, numberOfIcons) {
   this.container = container;
+  this.numberOfIcons = numberOfIcons || 16;
   if (icons) {
     this.icons = icons;
   } else {
