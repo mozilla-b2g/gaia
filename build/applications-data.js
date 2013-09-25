@@ -446,6 +446,17 @@ function execute(options) {
     'var oauthflow = this.oauthflow || {}; oauthflow.params = ' +
     utils.getDistributionFileContent('communications_services', content,
     distDir) + ';');
+
+  // Camera and Gallery image maximum resolution config
+  let defaultValue = {
+    'maxImagePixelSize': 5000000
+  };
+  customize = JSON.parse(utils.getDistributionFileContent('camera', defaultValue, distDir));
+  content = 'var CONFIG_MAX_IMAGE_PIXEL_SIZE = ' + customize.maxImagePixelSize + ';';
+  let file = utils.getFile(config.GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'camera', 'js', 'config.js');
+  utils.writeContent(file, content);
+  file = utils.getFile(config.GAIA_DIR, GAIA_CORE_APP_SRCDIR, 'gallery', 'js', 'config.js');
+  utils.writeContent(file, content);
 }
 
 exports.execute = execute;
