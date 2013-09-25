@@ -2,6 +2,9 @@ define(function(require) {
 'use strict';
 
 var AlarmManager = require('alarm_manager');
+var AlarmList = require('alarm_list');
+var AlarmsDB = require('alarmsdb');
+var Utils = require('utils');
 
 var ActiveAlarm = {
 /*

@@ -1,29 +1,4 @@
-requirejs.config({
-  baseUrl: 'js',
-  paths: {
-    shared: '../shared'
-  },
-  shim: {
-    'shared/js/template': {
-      exports: 'Template'
-    },
-    emitter: {
-      exports: 'Emitter'
-    },
-    'shared/js/gesture_detector': {
-      exports: 'GestureDetector'
-    },
-    'shared/js/async_storage': {
-      exports: 'asyncStorage'
-    },
-    'shared/js/l10n_date': ['shared/js/l10n']
-  }
-});
-
-define('l10n', ['shared/js/l10n'], function() {
-  return navigator.mozL10n;
-});
-
+require.config({ baseUrl: 'js' });
 define('startup', function(require) {
 'use strict';
 
@@ -33,6 +8,7 @@ var ClockView = require('clock_view');
 var AlarmList = require('alarm_list');
 var ActiveAlarm = require('active_alarm');
 var mozL10n = require('l10n');
+var testReq = require;
 
 // eventually after some refactoring, this should be replaced with
 // App.init.bind(App)
@@ -55,7 +31,7 @@ require([
   ], function() {
      var needsMocks = !navigator.mozAlarms;
      if (needsMocks) {
-       require([
+       testReq([
            '../test/unit/mocks/mock_moz_alarm.js'
          ], function(MockMozAlarms) {
          navigator.mozAlarms = new MockMozAlarms.MockMozAlarms(function() {});
@@ -69,4 +45,6 @@ require([
 
 });
 
-requirejs(['startup']);
+require(['require_config'], function() {
+  requirejs(['startup']);
+});
