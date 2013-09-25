@@ -15,8 +15,9 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_DATA)/local
 include $(BUILD_PREBUILT)
 
 # We will keep this flag in .b2g.mk so |./flash.sh gaia| follows
-# will correctly pick up the flags.
-GAIA_MAKE_FLAGS :=
+# will correctly pick up the flags.  Deferred expansion lets other |Android.mk|
+# files have a chance to append more.
+GAIA_MAKE_FLAGS ?=
 
 GAIA_PROFILE_INSTALL_PARENT := $(TARGET_OUT_DATA)/local
 GAIA_APP_INSTALL_PARENT := $(GAIA_PROFILE_INSTALL_PARENT)
