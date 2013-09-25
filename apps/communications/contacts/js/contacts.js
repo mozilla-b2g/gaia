@@ -753,9 +753,9 @@ var Contacts = (function() {
   }
 
   /**
-* Specifies dependencies for resources
-* E.g., mapping Facebook as a dependency of views
-*/
+   * Specifies dependencies for resources
+   * E.g., mapping Facebook as a dependency of views
+   */
   var dependencies = {
     views: {
       Settings: loadFacebook,
@@ -765,6 +765,19 @@ var Contacts = (function() {
     utilities: {}
   };
 
+  // Mapping of view names to element IDs
+  // TODO: Having a more standardized way of specifying this would be nice.
+  // Then we could get rid of this mapping entirely
+  // E.g., #details-view, #list-view, #form-view
+  var elementMapping = {
+    details: 'view-contact-details',
+    form: 'view-contact-form',
+    settings: 'settings-wrapper',
+    search: 'search-view',
+    overlay: 'loading-overlay',
+    confirm: 'confirmation-message'
+  };
+
   function load(type, file, callback) {
     /**
      * Performs the actual lazy loading
@@ -772,10 +785,15 @@ var Contacts = (function() {
      */
     function doLoad() {
       var name = file.toLowerCase();
+      var node = document.getElementById(elementMapping[name]);
 
       LazyLoader.load([
+        node,
         'js/' + type + '/' + name + '.js'
         ], function() {
+          if (node) {
+            navigator.mozL10n.translate(node);
+          }
           if (callback) {
             callback();
           }

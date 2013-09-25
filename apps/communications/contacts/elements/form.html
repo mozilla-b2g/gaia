@@ -1,0 +1,164 @@
+<element name="view-contact-form" extends="section">
+  <template>
+    <header>
+      <button id='cancel-edit' class="negative"><span class="icon icon-close"data-l10n-id="exit">Exit</span></button>
+      <menu type="toolbar" id='contact-form-actions'>
+        <button id="save-button" role="menuitem" data-l10n-id="done">Done</button>
+      </menu>
+      <h1 id='contact-form-title' data-l10n-id="addContact">Add contact</h1>
+      <progress id="throbber" value="0" max="100" class="pack-activity hide"></progress>
+    </header>
+
+    <div id='add-phone-#i#' data-template class='phone-template' data-index="#i#">
+      <fieldset class="fillflow-row">
+        <legend class="action">
+          <span data-taglist="phone-type" name="tel" data-value="#type_value#" id="tel_type_#i#" data-field="type" data-l10n-id=#type_l10n_id#>#type#</span>
+        </legend>
+        <section>
+          <p class="setbox-item">
+            <input placeholder="Phone" data-field="value" data-l10n-id="tel" name="tel[#i#][value]" class="textfield" type="tel" value="#value#" id="number_#i#">
+            <button type="reset">Clear</button>
+          </p>
+          <p class="setbox-item">
+            <input placeholder="Carrier" data-field="carrier" data-l10n-id="carrier" name="tel[#i#][carrier]" class="textfield" type="text" x-inputmode="latin-prose" value="#carrier#" id="carrier_#i#">
+            <button type="reset">Clear</button>
+          </p>
+        </section>
+      </fieldset>
+    </div>
+
+    <div id='add-email-#i#' data-template class='email-template' data-index="#i#">
+      <fieldset class="fillflow-row">
+        <legend class="action">
+          <span data-taglist="email-type" name="email[#i#][type]" data-value="#type_value#" id="email_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
+        </legend>
+        <section>
+          <p class="setbox-item">
+            <input placeholder="Email" data-l10n-id="email" name="email[#i#][value]" class="textfield" type="email" value="#value#" id="email_#i#">
+            <button type="reset">Clear</button>
+          </p>
+        </section>
+      </fieldset>
+    </div>
+
+    <div id='add-address-#i#' data-template class='address-template' data-index="#i#">
+      <fieldset class="fillflow-row">
+        <legend class="action">
+          <span data-taglist="address-type" name="adr[#i#][type]" data-value="#type_value#" id="address_type_#i#" data-field="type" data-l10n-id="#type_l10n_id#">#type#</span>
+        </legend>
+        <section>
+          <p class="setbox-item">
+            <input placeholder="Street" data-field="streetAddress" data-l10n-id="streetAddress" name="adr[#i#][streetAddress]" class="textfield" type="text" x-inputmode="latin-prose" value="#streetAddress#" id="streetAddress_#i#">
+            <button type="reset">Clear</button>
+          </p>
+          <p class="setbox-item">
+            <input placeholder="Zip Code" data-field="postalCode" data-l10n-id="postalCode" name="adr[#i#][postalCode]" class="textfield" type="text" value="#postalCode#" id="postalCode_#i#">
+            <button type="reset">Clear</button>
+          </p>
+          <p class="setbox-item">
+            <input placeholder="City" data-field="locality" data-l10n-id="locality" name="adr[#i#][locality]" class="textfield" type="text" x-inputmode="latin-prose" value="#locality#" id="locality_#i#">
+            <button type="reset">Clear</button>
+          </p>
+          <p class="setbox-item">
+            <input placeholder="Country" data-field="countryName" data-l10n-id="countryName" name="adr[#i#][countryName]" class="textfield" type="text" x-inputmode="latin-prose" value="#countryName#" id="countryName_#i#">
+            <button type="reset">Clear</button>
+          </p>
+        </section>
+      </fieldset>
+    </div>
+
+    <div id='add-note-#i#' data-template class='note-template' data-index="#i#">
+      <dl class="setbox fillflow-row">
+        <dd class="setbox-body">
+          <p class="setbox-item">
+           <input placeholder="Comment" data-l10n-id="comment" name="comment[#i#]" class="textfield" type="text" x-inputmode="latin-prose" value="#note#" id="note_#i#">
+           <button type="reset">Clear</button>
+          </p>
+        </dd>
+      </dl>
+    </div>
+
+
+    <article class="view-body">
+      <div class="view-body-inner">
+        <form id="contact-form" action="#" class="fill-flow">
+          <input name="id" id="contact-form-id" type="hidden" value="">
+          <section class="item first">
+            <a id="thumbnail-action" href="#" class="item-media fillflow-media">
+              <p>
+                <span role="button" class="icon-addimage"></span>
+                <em data-l10n-id="addPhoto"> Add photo</em>
+              </p>
+              <p class="edit-photo">
+                <em data-l10n-id="edit">Edit</em>
+              </p>
+              <img id="thumbnail-photo" alt="" style="background-image: url(#photo#); background-color: transparent;">
+            </a>
+            <div class="item-body-exp">
+              <p class="fillflow-row">
+                <input placeholder="Name" data-l10n-id="givenName" name="givenName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="givenName">
+                <button type="reset">Clear</button>
+              </p>
+              <p class="fillflow-row">
+                <input placeholder="Last name" data-l10n-id="familyName" name="familyName" class="textfield" type="text" x-inputmode="latin-prose" value="" id="familyName">
+                <button type="reset">Clear</button>
+              </p>
+            </div>
+            <p class="fillflow-row">
+              <input placeholder="Company Name" data-l10n-id="org" name="org" class="textfield" type="text" x-inputmode="latin-prose" value="" id="org">
+              <button type="reset">Clear</button>
+            </p>
+          </section>
+
+          <ul>
+            <li>
+              <section>
+                <div id="contacts-form-phones"></div>
+              </section>
+              <button data-field-type="tel" id='add-new-phone' data-l10n-id="addPhone" class="fillflow-row action action-add icon icon-add">
+                Add phone number
+              </button>
+            </li>
+
+            <li>
+              <section>
+                <div id="contacts-form-emails"></div>
+              </section>
+
+              <button data-field-type="email" id='add-new-email' data-l10n-id="addEmail" class="fillflow-row action action-add icon icon-add">
+                Add email address
+              </button>
+            </li>
+
+            <li>
+              <section>
+                <div id="contacts-form-addresses"></div>
+              </section>
+
+              <button data-field-type="adr" id='add-new-address' data-l10n-id="addAddress" class="fillflow-row action action-add icon icon-add">
+                Add new address
+              </button>
+            </li>
+
+            <li>
+              <section>
+                <div id="contacts-form-notes"></div>
+              </section>
+
+              <button data-field-type="note" id='add-new-note' data-l10n-id="addComment" class="fillflow-row action action-add icon icon-add">
+                Add comment
+              </button>
+            </li>
+          </ul>
+        </form>
+
+        <footer class="tail-actions hide">
+          <button id='delete-contact' class="fillflow-row action action-delete danger">
+            <b data-l10n-id="deleteContact">Delete contact</b>
+          </button>
+        </footer>
+      </div>
+    </article>
+  </template>
+</element>
+

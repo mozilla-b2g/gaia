@@ -1,5 +1,5 @@
 require('/shared/js/lazy_loader.js');
-require('/shared/test/unit/load_body_html_helper.js');
+requireElements('communications/contacts/elements/settings.html');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
@@ -56,8 +56,9 @@ suite('Contacts settings', function() {
     return nfn;
   }
 
+  suiteTemplate('settings');
+
   suiteSetup(function() {
-    loadBodyHTML('/contacts/index.html');
     mocksHelper.suiteSetup();
     real_ = window._;
     if (!window.utils) {
@@ -83,7 +84,7 @@ suite('Contacts settings', function() {
   });
 
   suite('Export options', function() {
-    suiteSetup(function() {
+    setup(function() {
       utils.sdcard.checkStorageCard = function() { return true; };
       contacts.Settings.init();
       mocksHelper.suiteSetup();
@@ -153,10 +154,13 @@ suite('Contacts settings', function() {
   });
 
   suite('Timestamp Import', function() {
+
+    suiteTemplate('settings');
+
     var gmailTime = Date.now();
     var liveTime = Date.now() - 24 * 60 * 60 * 1000;
 
-    suiteSetup(function() {
+    setup(function() {
       contacts.Settings.init();
 
       MockasyncStorage.setItem('gmail_last_import_timestamp', gmailTime);
@@ -191,7 +195,7 @@ suite('Contacts settings', function() {
 
     });
 
-    suiteTeardown(function() {
+    teardown(function() {
       MockasyncStorage.clear();
     });
   });
