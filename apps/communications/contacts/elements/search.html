@@ -1,0 +1,26 @@
+<element name="search-view" extends="section">
+  <template>
+    <form id="searchview-container" class="search" role="search">
+      <button id="cancel-search" data-l10n-id="cancel" type="submit">Cancel</button>
+      <p>
+        <label for="search-contact">
+          <input type="search" name="search" class="textfield" x-inputmode="verbatim"
+                 id="search-contact" placeholder="Search" data-l10n-id="search-contact">
+          <button type="reset">Clear</button>
+        </label>
+      </p>
+    </form>
+
+    <section id="groups-list-search">
+      <ol id="search-list" data-type="list">
+      </ol>
+    </section>
+
+    <section id="search-process">
+      <p id="no-result" class="hide" data-l10n-id="noResults">No contacts found</p>
+      <p id="search-progress" class="hidden" role="status">
+        <progress  class="small"></progress>
+      </p>
+    </section>
+  </template>
+</element>

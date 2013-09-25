@@ -1,0 +1,124 @@
+<element name="settings" extends="article">
+  <template>
+    <section data-theme="organic" id="view-settings" role="region" class="skin-organic view view-bottom">
+      <header>
+        <menu type="toolbar" id="settings-form-actions">
+          <button id="settings-close" role="menuitem" data-l10n-id="done">Done</button>
+        </menu>
+        <h1 data-l10n-id="settings">Settings</h1>
+      </header>
+
+      <article class="view-body" id="settings-article">
+        <section role="region" class="view-body-inner">
+          <ul data-type="list">
+            <li id="settingsOrder">
+             <aside class="pack-end">
+                <label class="pack-switch">
+                  <input type="checkbox" name="order.lastname" />
+                  <span></span>
+                </label>
+              </aside>
+              <p data-l10n-id="contactsOrderBy">Order by last name</p>
+            </li>
+          </ul>
+          <header>
+            <h2 data-l10n-id="transferContactsTitle">Transfer Contacts</h2>
+          </header>
+          <ul data-type="list" id="sources">
+            <li id="importContacts" data-source="sim">
+              <button class="icon icon-import" data-l10n-id="importContactsTitle">
+                Import Contacts
+              </button>
+            </li>
+            <li id="exportContacts" data-source="sd">
+              <button class="icon icon-export" data-l10n-id="exportContactsTitle">
+                Export Contacts
+              </button>
+            </li>
+          </ul>
+          <header id="fb-header">
+            <h2 data-l10n-id="facebook">Facebook</h2>
+          </header>
+          <ul id="settingsFb" data-type="list" data-state="logged-out">
+            <li class="fb-item">
+              <aside class="pack-end">
+                <label class="pack-switch">
+                  <input type="checkbox" name="fb.imported">
+                  <span id="span-check-fb"></span>
+                </label>
+              </aside>
+              <p data-l10n-id="facebookSwitchMsg">Sync friends</p>
+              <p id="fb-totals"></p>
+            </li>
+            <li id="fb-update-option">
+              <button data-l10n-id="fbUpdateFriends" id="import-fb" class="icon">
+                Update imported friends
+              </button>
+              <p id="renew-pwd-msg" data-l10n-id="renewPwdMsg" class="fb-error"></p>
+              <p id="no-connection" data-l10n-id="noConnection11"></p>
+            </li>
+          </ul>
+        </section>
+      </article>
+    </section>
+    <section data-theme="organic" id="import-settings" role="region" class="skin-organic view view-right">
+      <header id="import-settings-header">
+        <button id="import-settings-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+        <h1 id='import-settings-title'></h1>
+      </header>
+      <article class="view-body">
+        <section role="region" class="view-body-inner">
+          <ul data-type="list" id="import-options">
+            <li id="import-sim-option" data-source="sim">
+              <button class="icon icon-sim" data-l10n-id="importSim2">
+                SIM card
+                <p><span></span><time></time></p>
+              </button>
+              <p class="error-message" data-l10n-id="noSimMsg"></p>
+            </li>
+            <li id="import-sd-option" data-source="sd">
+              <button class="icon icon-sd" data-l10n-id="importMemoryCard">
+                Memory card
+                <p><span></span><time></time></p>
+              </button>
+              <p class="error-message" data-l10n-id="noMemoryCardMsg"></p>
+            </li>
+            <li id="import-gmail-option" class="importService" data-source="gmail">
+              <button class="icon icon-gmail" data-l10n-id="importGmail">
+                Gmail
+                <p><span></span><time></time></p>
+              </button>
+            </li>
+            <li id="import-live-option" class="importService" data-source="live">
+              <button class="icon icon-live" data-l10n-id="importOutlook">
+                Outlook
+                <p><span></span><time></time></p>
+              </button>
+              <p class="error-message" data-l10n-id="genericNoConnection"></p>
+            </li>
+          </ul>
+          <ul data-type="list" id="export-options">
+            <li id="export-sim-option" data-source="sim">
+              <button class="icon icon-sim" data-l10n-id="simCard">
+                SIM card
+              </button>
+              <p class="error-message" data-l10n-id="noSimMsgExport"></p>
+            </li>
+            <li id="export-sd-option" data-source="sd">
+              <button class="icon icon-sd" data-l10n-id="memoryCard">
+                Memory card
+              </button>
+              <p class="error-message" data-l10n-id="noMemoryCardMsgExport"></p>
+            </li>
+            <li id="export-bluetooth-option" data-source="bluetooth">
+              <button class="icon icon-bluetooth" data-l10n-id="bluetooth">
+                Bluetooth
+              </button>
+            </li>
+          </ul>
+        </section>
+      </article>
+    </section>
+  </template>
+</element>
+
