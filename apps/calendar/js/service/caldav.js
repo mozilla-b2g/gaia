@@ -536,7 +536,7 @@ Calendar.ns('Service').Caldav = (function() {
       var pending = components.length;
 
       function next() {
-        if ((--pending) <= 0) {
+        if (!(--pending)) {
           callback();
         }
       }
@@ -568,10 +568,6 @@ Calendar.ns('Service').Caldav = (function() {
             lastRecurrenceId: lastRecurId,
             ical: ical,
             iterator: iter
-          });
-
-          stream.emit('eventComplete', {
-            eventId: uid
           });
 
           next();
@@ -752,10 +748,6 @@ Calendar.ns('Service').Caldav = (function() {
               iterator: iter
             });
           }
-
-          stream.emit('eventComplete', {
-            eventId: result.id
-          });
 
           callback(null);
         });
