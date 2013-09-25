@@ -27,20 +27,14 @@ var MediaPlayback = {
         case 'status':
           self.updatePlaybackStatus(message.data);
           break;
+        case 'unload':
+          self.container.hidden = true;
+          break;
         }
       };
     });
 
     this.nowPlaying.addEventListener('click', this.openMediaApp.bind(this));
-
-    // Listen for when the music app is terminated. We know which app to look
-    // for because we got it from the "appinfo" message. Then we hide the Now
-    // Playing container. XXX: This is a gigantic hack. If you're thinking about
-    // doing something similar, step away from your keyboard immediately.
-    window.addEventListener('appterminated', function(event) {
-      if (event.detail.origin === this.origin)
-        this.container.hidden = true;
-    }.bind(this));
   },
 
   updateAppInfo: function mp_updateAppInfo(info) {
