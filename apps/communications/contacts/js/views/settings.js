@@ -310,7 +310,7 @@ contacts.Settings = (function() {
 
   // Disables/Enables the actions over the sim import functionality
   var enableSIMOptions = function enableSIMOptions(cardState) {
-    var disabled = (cardState !== 'ready');
+    var disabled = (cardState !== 'ready' && cardState !== 'illegal');
     updateOptionStatus(importSimOption, disabled, true);
     updateOptionStatus(exportSimOption, disabled, true);
   };
