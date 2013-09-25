@@ -3,14 +3,14 @@
 define({
   load: function(id, require, onload, config) {
     if (config.isBuild) {
-        return onload();
+      return onload();
     }
 
-    var style = document.createElement('link');
-    style.type = 'text/css';
-    style.rel = 'stylesheet';
-    style.href = require.toUrl(id + '.css');
-    style.addEventListener('load', onload, false);
-    document.head.appendChild(style);
+    var link = document.createElement('link');
+    link.type = 'text/css';
+    link.rel = 'stylesheet';
+    link.href = require.toUrl(id + '.css');
+    link.addEventListener('load', onload, false);
+    document.head.appendChild(link);
   }
 });
