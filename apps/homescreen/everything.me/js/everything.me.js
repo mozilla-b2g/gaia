@@ -12,7 +12,7 @@ var EverythingME = {
         page = document.getElementById('landing-page'),
         activationIcon = document.getElementById('evme-activation-icon');
 
-    activationIcon.innerHTML = '<input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default" />';
+    activationIcon.innerHTML = '<input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2" />';
     navigator.mozL10n.ready(function loadSearchbarValue() {
       var input = activationIcon.querySelector('input'),
           defaultText = navigator.mozL10n.get('evme-searchbar-default2') || '';
