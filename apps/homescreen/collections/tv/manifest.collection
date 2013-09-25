@@ -1,0 +1,23 @@
+{
+  "name": "Tv",
+  "role": "collection",
+  "provider_id": "213",
+  "locales": {
+    "en-US": {
+      "name": "TV"
+    },
+    "fr": {
+      "name": "TV"
+    },
+    "ar": {
+      "name": "تلفزيون"
+    },
+    "zh-TW": {
+      "name": "電視"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/tv/icon.png"
+  }
+}

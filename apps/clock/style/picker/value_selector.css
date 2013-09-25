@@ -1,0 +1,32 @@
+#value-selector {
+  width: 100%;
+  top: 0rem;
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  display: block;
+}
+
+#value-selector[hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#screen.active-statusbar #value-selector {
+  height: calc(100% - 4rem);
+  top: 4rem;
+}
+
+#screen:-moz-full-screen-ancestor #value-seletcor,
+#screen.fullscreen-app #value-selector {
+  height: 100%;
+  top: 0;
+}
+
+#value-selector-container li > label {
+  pointer-events: none;
+}
+
+.value-picker > *[data-disabled="true"] {
+  visibility: hidden;
+}

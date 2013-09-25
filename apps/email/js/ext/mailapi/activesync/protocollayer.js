@@ -2199,6 +2199,52 @@
   if (typeof exports === 'object')
     module.exports = factory();
   else if (typeof define === 'function' && define.amd)
+    define('activesync/codepages/ComposeMail',[], factory);
+  else
+    root.ASCPComposeMail = factory();
+}(this, function() {
+  'use strict';
+
+  return {
+    Tags: {
+      SendMail:        0x1505,
+      SmartForward:    0x1506,
+      SmartReply:      0x1507,
+      SaveInSentItems: 0x1508,
+      ReplaceMime:     0x1509,
+      /* Missing tag value 0x150A */
+      Source:          0x150B,
+      FolderId:        0x150C,
+      ItemId:          0x150D,
+      LongId:          0x150E,
+      InstanceId:      0x150F,
+      Mime:            0x1510,
+      ClientId:        0x1511,
+      Status:          0x1512,
+      AccountId:       0x1513,
+    }
+  };
+}));
+
+/* Copyright 2012 Mozilla Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+(function (root, factory) {
+  if (typeof exports === 'object')
+    module.exports = factory();
+  else if (typeof define === 'function' && define.amd)
     define('activesync/codepages/Email2',[], factory);
   else
     root.ASCPEmail2 = factory();
@@ -2639,6 +2685,38 @@
     this.versions = [];
     this.supportedCommands = [];
     this.currentVersion = null;
+
+    /**
+     * Debug support function that is called every time an XHR call completes.
+     * This is intended to be used for logging.
+     *
+     * The arguments to the function are:
+     *
+     * - type: 'options' if caused by a call to getOptions.  'post' if caused by
+     *   a call to postCommand/postData.
+     *
+     * - special: 'timeout' if a timeout error occurred, 'redirect' if the
+     *   status code was 451 and the call is being reissued, 'error' if some
+     *   type of error occurred, or 'ok' on success.  Check xhr.status for the
+     *   specific http status code.
+     *
+     * - xhr: The XMLHttpRequest used.  Use this to check the statusCode,
+     *   statusText, or response headers.
+     *
+     * - params: The object dictionary of parameters encoded into the URL.
+     *   Always present if type is 'post', not present for 'options'.
+     *
+     * - extraHeaders: Optional dictionary of extra request headers that were
+     *   provided.  These will not include the always-present request headers of
+     *   MS-ASProtocolVersion and Content-Type.
+     *
+     * - sent data: If type is 'post', the ArrayBuffer provided to xhr.send().
+     *
+     * - response: In the case of a successful 'post', the WBXML Reader instance
+     *   that will be passed to the callback for the method.  If you use the
+     *   reader, you are responsible for calling rewind() on it.
+     */
+    this.onmessage = null;
   }
   exports.Connection = Connection;
   Connection.prototype = {
@@ -2786,6 +2864,8 @@
         if (xhr.status < 200 || xhr.status >= 300) {
           console.error('ActiveSync options request failed with response ' +
                         xhr.status);
+          if (conn.onmessage)
+            conn.onmessage('options', 'error', xhr, null, null, null, null);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
@@ -2799,12 +2879,16 @@
                        .split(/\s*,\s*/)
         };
 
+        if (conn.onmessage)
+          conn.onmessage('options', 'ok', xhr, null, null, null, result);
         aCallback(null, result);
       };
 
       xhr.ontimeout = xhr.onerror = function() {
         var error = new Error('Error getting OPTIONS URL');
         console.error(error);
+        if (conn.onmessage)
+          conn.onmessage('options', 'timeout', xhr, null, null, null, null);
         aCallback(error);
       };
 
@@ -2960,6 +3044,9 @@
         // <http://msdn.microsoft.com/en-us/library/gg651019.aspx>
         if (xhr.status === 451) {
           conn.baseUrl = xhr.getResponseHeader('X-MS-Location');
+          if (conn.onmessage)
+            conn.onmessage(aCommand, 'redirect', xhr, params, aExtraHeaders,
+                           aData, null);
           conn.postData.apply(conn, parentArgs);
           return;
         }
@@ -2967,6 +3054,9 @@
         if (xhr.status < 200 || xhr.status >= 300) {
           console.error('ActiveSync command ' + aCommand + ' failed with ' +
                         'response ' + xhr.status);
+          if (conn.onmessage)
+            conn.onmessage(aCommand, 'error', xhr, params, aExtraHeaders,
+                           aData, null);
           aCallback(new HttpError(xhr.statusText, xhr.status));
           return;
         }
@@ -2974,12 +3064,18 @@
         var response = null;
         if (xhr.response.byteLength > 0)
           response = new WBXML.Reader(new Uint8Array(xhr.response), ASCP);
+        if (conn.onmessage)
+          conn.onmessage(aCommand, 'ok', xhr, params, aExtraHeaders,
+                         aData, response);
         aCallback(null, response);
       };
 
       xhr.ontimeout = xhr.onerror = function() {
         var error = new Error('Error getting command URL');
         console.error(error);
+        if (conn.onmessage)
+          conn.onmessage(aCommand, 'timeout', xhr, params, aExtraHeaders,
+                         aData, null);
         aCallback(error);
       };
 

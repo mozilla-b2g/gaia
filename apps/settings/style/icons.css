@@ -24,7 +24,7 @@
   background-size: 15rem;
 }
 
-li:active:not(.disabled) .menu-item::before,
+li:active:not([aria-disabled="true"]) .menu-item::before,
 .menu-item:focus::before {
   background-image: url(images/icons_sprite_active.gif);
 }

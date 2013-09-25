@@ -83,6 +83,12 @@
       "description": "Norwegian Bokmal layout",
       "types": ["url", "text"]
     },
+    "sv": {
+      "launch_path": "/index.html#sv",
+      "name": "Swedish",
+      "description": "Swedish layout",
+      "types": ["url", "text"]
+    },
     "sk": {
       "launch_path": "/index.html#sk",
       "name": "Slovak",

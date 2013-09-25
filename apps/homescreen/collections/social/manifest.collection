@@ -1,0 +1,23 @@
+{
+  "name": "Social",
+  "role": "collection",
+  "provider_id": "289",
+  "locales": {
+    "en-US": {
+      "name": "Social"
+    },
+    "fr": {
+      "name": "Social"
+    },
+    "ar": {
+      "name": "اجتماعي"
+    },
+    "zh-TW": {
+      "name": "社交"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "60": "/collections/social/icon.png"
+  }
+}

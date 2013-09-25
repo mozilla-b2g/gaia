@@ -36,14 +36,14 @@
           </label>
           <a data-l10n-id="callWaiting">Call Waiting</a>
         </li>
-        <li id="menuItem-cellBroadcast" class="disabled">
+        <li id="menuItem-cellBroadcast" aria-disabled="true">
           <label class="pack-switch checkbox-label">
             <input type="checkbox" data-ignore disabled />
             <span></span>
           </label>
           <a data-l10n-id="callBroadcastService">Cell broadcast service</a>
         </li>
-        <li id="menuItem-callerId" class="disabled">
+        <li id="menuItem-callerId" aria-disabled="true">
           <a data-l10n-id="callerId">Caller ID</a>
           <p class="fake-select">
             <button class="icon icon-dialog">empty</button>
@@ -55,6 +55,7 @@
           </p>
         </li>
         <li>
+          <small id="fdnSettings-desc"></small>
           <a data-href="#call-fdnSettings" data-l10n-id="fdn">Fixed dialing numbers</a>
         </li>
       </ul>
@@ -63,19 +64,26 @@
         <h2 data-l10n-id="callForwarding"> Call Forwarding </h2>
       </header>
       <ul>
-        <li id="li-cfu-desc" class="disabled">
+        <li id="fdnSettingsBlocked" class="description" hidden>
+          <p>
+            <span data-l10n-id="fdn-enabled-warning">
+              Call forwarding is disabled by FDN.
+            </span>
+          </p>
+        </li>
+        <li id="li-cfu-desc" aria-disabled="true">
           <small id="cfu-desc"></small>
           <a id="menuItem-callForwardingUnconditional" data-href="#call-cf-unconditionalSettings" data-l10n-id="callForwardingUnconditional">Always forward</a>
         </li>
-        <li id="li-cfmb-desc" class="disabled">
+        <li id="li-cfmb-desc" aria-disabled="true">
           <small id="cfmb-desc"></small>
           <a id="menuItem-callForwardingMobileBusy" data-href="#call-cf-mobileBusySettings" data-l10n-id="callForwardingMobileBusy">Forward when busy</a>
         </li>
-        <li id="li-cfnrep-desc" class="disabled">
+        <li id="li-cfnrep-desc" aria-disabled="true">
           <small id="cfnrep-desc"></small>
           <a id="menuItem-callForwardingNoReply" data-href="#call-cf-noReplySettings" data-l10n-id="callForwardingNoReply">Forward when unanswered</a>
         </li>
-        <li id="li-cfnrea-desc" class="disabled">
+        <li id="li-cfnrea-desc" aria-disabled="true">
           <small id="cfnrea-desc"></small>
           <a id="menuItem-callForwardingNotReachable" data-href="#call-cf-notReachableSettings" data-l10n-id="callForwardingNotReachable">Forward when unreachable</a>
         </li>

@@ -57,48 +57,30 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       this.app = Calendar.App;
     }
 
-    Calendar.Responder.call(this);
-
-    this.stream = stream;
-    stream.on('end', this);
-    stream.on('eventComplete', this);
     stream.on('event', this);
     stream.on('component', this);
     stream.on('occurrence', this);
     stream.on('missingEvents', this);
 
-    this.eventStore = this.app.store('Event');
-    this.icalComponentStore = this.app.store('IcalComponent');
-    this.calendarStore = this.app.store('Calendar');
-    this.busytimeStore = this.app.store('Busytime');
-    this.alarmStore = this.app.store('Alarm');
+    this.icalQueue = [];
+    this.eventQueue = [];
+    this.busytimeQueue = [];
+    this.alarmQueue = [];
 
     this._busytimeStore = this.app.store('Busytime');
-    this.groups = {};
 
     // Catch account events to watch for mid-sync removal
     this._accountStore = this.app.store('Account');
     this._accountStore.on('remove', this._onRemoveAccount.bind(this));
 
     this._aborted = false;
-
-    this.addEventListener('complete', function() {});
-  }
-
-  function EventGroup(id) {
-    this.id = id;
-    this.events = [];
-    this.components = [];
-    this.occurrences = [];
-    this.alarms = [];
+    this._trans = null;
   }
 
   PullEvents.prototype = {
 
-    __proto__: Calendar.Responder.prototype,
-
-    // object that stores eventGroups
-    groups: null,
+    eventQueue: null,
+    busytimeQueue: null,
 
     /**
      * Get db id for busytime.
@@ -218,21 +200,13 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
             if (alarmDate.valueOf() < now) {
               continue;
             }
-
-            if (!this.groups[alarm.eventId]) {
-              this.groups[alarm.eventId] = new EventGroup(alarm.eventId);
-            }
-            this.groups[alarm.eventId].alarms.push(alarm);
+            this.alarmQueue.push(alarm);
           }
         }
       }
 
       this.app.timeController.cacheBusytime(item);
-
-      if (!this.groups[item.eventId]) {
-        this.groups[item.eventId] = new EventGroup(item.eventId);
-      }
-      this.groups[item.eventId].occurrences.push(item);
+      this.busytimeQueue.push(item);
     },
 
     handleComponentSync: function(component) {
@@ -243,14 +217,10 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
         delete component.lastRecurrenceId;
       }
 
-      if (!this.groups[component.eventId]) {
-        this.groups[component.eventId] = new EventGroup(component.eventId);
-      }
-      this.groups[component.eventId].components.push(component);
+      this.icalQueue.push(component);
     },
 
     handleEventSync: function(event) {
-      var self = this;
       var exceptions = event.remote.exceptions;
       delete event.remote.exceptions;
 
@@ -265,10 +235,7 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       this.app.timeController.removeCachedEvent(event._id);
       this.app.timeController.cacheEvent(event);
 
-      if (!this.groups[event._id]) {
-        this.groups[event._id] = new EventGroup(event._id);
-      }
-      this.groups[event._id].events.push(event);
+      this.eventQueue.push(event);
 
       var component = event.remote.icalComponent;
       delete event.remote.icalComponent;
@@ -276,8 +243,7 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       // don't save components for exceptions.
       // the parent has the ical data.
       if (!event.remote.recurrenceId) {
-
-        this.groups[event._id].components.push({
+        this.icalQueue.push({
           data: component,
           eventId: event._id
         });
@@ -314,7 +280,10 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       }
       // Flag that the sync should be aborted.
       this._aborted = true;
-      this.abortTransactions();
+      if (this._trans) {
+        // Attempt to abort the in-progress commit transaction
+        this._trans.abort();
+      }
     },
 
     handleEvent: function(event) {
@@ -324,101 +293,83 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
       }
 
       var data = event.data;
-      var self = this;
-      if (event.type === 'missingEvents') {
-        this.removeList = data[0];
-      } else if (event.type === 'occurrence') {
-        var occur = this.formatBusytime(data[0]);
-        this.handleOccurrenceSync(occur);
-      } else if (event.type === 'component') {
-        this.handleComponentSync(data[0]);
-      } else if (event.type === 'event') {
-        var event = self.formatEvent(data[0]);
-        self.handleEventSync(event);
-      } else if (event.type === 'eventComplete') {
-        self._commitGroup(self.eventIdFromRemote(data[0]));
-      } else if (event.type === 'end') {
-        var groupsArray = Object.keys(self.groups);
-        if (groupsArray.length !== 0) {
-          var lastEventGroupKey = groupsArray[groupsArray.length - 1];
-          if (!self.groups[lastEventGroupKey].trans) {
-            self.groups[lastEventGroupKey].trans =
-              self.calendarStore.db.transaction(
-                ['calendars',
-                'events',
-                'busytimes',
-                'alarms',
-                'icalComponents'],
-                'readwrite'
-              );
-          }
-          self.groups[lastEventGroupKey].trans.addEventListener('complete',
-            self.emit.bind(self, 'complete')
-          );
-        } else {
-          self.emit('complete');
-        }
+
+      switch (event.type) {
+        case 'missingEvents':
+          this.removeList = data[0];
+          break;
+        case 'occurrence':
+          var occur = this.formatBusytime(data[0]);
+          this.handleOccurrenceSync(occur);
+          break;
+        case 'component':
+          this.handleComponentSync(data[0]);
+          break;
+        case 'event':
+          var event = this.formatEvent(data[0]);
+          this.handleEventSync(event);
+          break;
       }
     },
 
     /**
-     *  Aborts remaining transactions.
-     */
-    abortTransactions: function() {
-      var self = this;
-      for (var eventId in self.groups) {
-        var eventGroup = self.groups[eventId];
-        eventGroup.trans.abort();
-      }
-    },
-
-    /**
-     * Commit eventGroups remaining in the event Group Collection
-     * to the database.
+     * Commit all pending records.
      *
-     * @param {Object} eventGroup, eventGroup that needs to
-     * be committed to the database.
      *
-     * @return {Object} trans, transaction to store to this.calendar.
+     * @param {IDBTransaction} [trans] optional transaction.
+     * @param {Function} callback fired when transaction completes.
      */
-    _commitGroup: function(id) {
+    commit: function(trans, callback) {
+      var eventStore = this.app.store('Event');
+      var icalComponentStore = this.app.store('IcalComponent');
+      var calendarStore = this.app.store('Calendar');
+      var busytimeStore = this.app.store('Busytime');
+      var alarmStore = this.app.store('Alarm');
 
-      if (this._aborted) {
-        return this.abortTransactions();
-      }
-
-      if (!this.groups[id].trans) {
-        this.groups[id].trans = this.calendarStore.db.transaction(
+      if (typeof(trans) === 'function') {
+        callback = trans;
+        trans = calendarStore.db.transaction(
           ['calendars', 'events', 'busytimes', 'alarms', 'icalComponents'],
           'readwrite'
         );
       }
 
+      if (this._aborted) {
+        // Commit nothing, if sync was aborted.
+        return callback && callback(null);
+      }
+
+      var calendar = this.calendar;
+      var account = this.account;
+
+      // Stash a reference to the transaction, in case we still need to abort.
+      this._trans = trans;
+
       var self = this;
 
-      self.groups[id].events.forEach(function(event) {
+      this.eventQueue.forEach(function(event) {
         debug('add event', event);
-        self.eventStore.persist(event, self.groups[id].trans);
+        eventStore.persist(event, trans);
       });
 
-      self.groups[id].components.forEach(function(ical) {
+      this.icalQueue.forEach(function(ical) {
         debug('add component', ical);
-        self.icalComponentStore.persist(ical, self.groups[id].trans);
+        icalComponentStore.persist(ical, trans);
       });
 
-      self.groups[id].occurrences.forEach(function(busy) {
+      this.busytimeQueue.forEach(function(busy) {
         debug('add busytime', busy);
-        self.busytimeStore.persist(busy, self.groups[id].trans);
+        busytimeStore.persist(busy, trans);
       });
 
-      self.groups[id].alarms.forEach(function(alarm) {
+      this.alarmQueue.forEach(function(alarm) {
         debug('add alarm', alarm);
-        self.alarmStore.persist(alarm, self.groups[id].trans);
+        alarmStore.persist(alarm, trans);
       });
 
       if (this.removeList) {
-        this.removeList.forEach(function(removeId) {
-          self.eventStore.remove(removeId, self.groups[id].trans);
+        this.removeList.forEach(function(id) {
+          eventStore.remove(id, trans);
         });
       }
 
@@ -427,20 +378,25 @@ Calendar.ns('Provider').CaldavPullEvents = (function() {
           console.error('Error persisting sync results', e);
         }
 
-        // if we have an event preventDefault so we don't trigger
-        // window.onerror.
+        // if we have an event preventDefault so we don't trigger window.onerror
         if (e && e.preventDefault) {
           e.preventDefault();
         }
+
+        self._trans = null;
+        callback && callback(e);
       }
 
-      self.groups[id].trans.addEventListener('error', handleError);
-      self.groups[id].trans.addEventListener('abort', handleError);
-      self.groups[id].trans.addEventListener('complete', function() {
-        delete self.groups[id];
+      trans.addEventListener('error', handleError);
+      trans.addEventListener('abort', handleError);
+
+
+      trans.addEventListener('complete', function() {
+        self._trans = null;
+        callback && callback(null);
       });
 
-      return self.groups[id].trans;
+      return trans;
     }
 
   };

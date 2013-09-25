@@ -11,6 +11,7 @@ var CallScreen = {
 
   calls: document.getElementById('calls'),
   groupCalls: document.getElementById('group-call-details'),
+  groupCallsList: document.getElementById('group-call-details-list'),
 
   mainContainer: document.getElementById('main-container'),
   callToolbar: document.getElementById('co-advanced'),
@@ -24,12 +25,32 @@ var CallScreen = {
   rejectButton: document.getElementById('callbar-hang-up'),
   holdButton: document.getElementById('callbar-hold'),
 
+  showGroupButton: document.getElementById('group-show'),
+  hideGroupButton: document.getElementById('group-hide'),
+
   incomingContainer: document.getElementById('incoming-container'),
   incomingNumber: document.getElementById('incoming-number'),
   incomingAnswer: document.getElementById('incoming-answer'),
   incomingEnd: document.getElementById('incoming-end'),
   incomingIgnore: document.getElementById('incoming-ignore'),
   lockedContactPhoto: document.getElementById('locked-contact-photo'),
+  lockedClockNumbers: document.getElementById('lockscreen-clock-numbers'),
+  lockedClockMeridiem: document.getElementById('lockscreen-clock-meridiem'),
+  lockedDate: document.getElementById('lockscreen-date'),
+
+  statusMessage: document.getElementById('statusMsg'),
+  showStatusMessage: function cs_showStatusMesssage(text) {
+    var STATUS_TIME = 2000;
+    var self = this;
+    self.statusMessage.querySelector('p').textContent = text;
+    self.statusMessage.classList.add('visible');
+    self.statusMessage.addEventListener('transitionend', function tend() {
+      self.statusMessage.removeEventListener('transitionend', tend);
+      setTimeout(function hide() {
+        self.statusMessage.classList.remove('visible');
+      }, STATUS_TIME);
+    });
+  },
 
   set singleLine(enabled) {
     this.calls.classList.toggle('single-line', enabled);
@@ -53,6 +74,12 @@ var CallScreen = {
                                     CallsHandler.end);
     this.holdButton.addEventListener('mouseup', CallsHandler.toggleCalls);
 
+    this.showGroupButton.addEventListener('click',
+                                    CallScreen.showGroupDetails.bind(this));
+
+    this.hideGroupButton.addEventListener('click',
+                                    CallScreen.hideGroupDetails.bind(this));
+
     this.incomingAnswer.addEventListener('click',
                               CallsHandler.holdAndAnswer);
     this.incomingEnd.addEventListener('click',
@@ -60,18 +87,19 @@ var CallScreen = {
     this.incomingIgnore.addEventListener('click',
                                     CallsHandler.ignore);
 
-    this.calls.addEventListener('click',
-                                CallsHandler.toggleCalls);
+    this.calls.addEventListener('click', CallsHandler.toggleCalls.bind(this));
 
     var callScreenHasLayout = !!this.screen.dataset.layout;
     if ((window.location.hash === '#locked') && !callScreenHasLayout) {
       CallScreen.render('incoming-locked');
     }
+    CallScreen.showClock(new Date());
+
     if (navigator.mozSettings) {
       var req = navigator.mozSettings.createLock().get('wallpaper.image');
       req.onsuccess = function cs_wi_onsuccess() {
         CallScreen.setCallerContactImage(
-          req.result['wallpaper.image'], {force: false, mask: true});
+          req.result['wallpaper.image'], {force: false});
       };
     }
 
@@ -103,7 +131,7 @@ var CallScreen = {
   },
 
   moveToGroup: function cs_moveToGroup(node) {
-    this.groupCalls.appendChild(node);
+    this.groupCallsList.appendChild(node);
   },
 
   resizeHandler: function cs_resizeHandler() {
@@ -129,11 +157,6 @@ var CallScreen = {
 
     if (!target.style.backgroundImage || (opt && opt.force)) {
       target.style.backgroundImage = 'url(' + photoURL + ')';
-      if (opt && opt.mask) {
-        target.classList.add('masked');
-      } else {
-        target.classList.remove('masked');
-      }
     }
   },
 
@@ -190,6 +213,19 @@ var CallScreen = {
     }
   },
 
+  showClock: function cs_showClock(now) {
+    LazyL10n.get(function localized(_) {
+      var f = new navigator.mozL10n.DateTimeFormat();
+      var timeFormat = _('shortTimeFormat');
+      var dateFormat = _('longDateFormat');
+      var time = f.localeFormat(now, timeFormat);
+      this.lockedClockNumbers.textContent = time.match(/([012]?\d).[0-5]\d/g);
+      this.lockedClockMeridiem.textContent =
+        (time.match(/AM|PM/i) || []).join('');
+      this.lockedDate.textContent = f.localeFormat(now, dateFormat);
+    }.bind(this));
+  },
+
   showIncoming: function cs_showIncoming() {
     this.body.classList.remove('showKeypad');
 
@@ -223,5 +259,19 @@ var CallScreen = {
 
   disableKeypad: function cs_disableKeypad() {
     this.keypadButton.setAttribute('disabled', 'disabled');
+  },
+
+  showGroupDetails: function cs_showGroupDetails(evt) {
+    if (evt) {
+      evt.stopPropagation();
+    }
+    this.groupCalls.classList.add('display');
+  },
+
+  hideGroupDetails: function cs_hideGroupDetails(evt) {
+    if (evt) {
+      evt.preventDefault();
+    }
+    this.groupCalls.classList.remove('display');
   }
 };

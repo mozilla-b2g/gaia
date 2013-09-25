@@ -21,7 +21,11 @@
     <script defer src="shared/js/settings_url.js"></script>
     <script defer src="shared/js/advanced_timer.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
-    <!-- <script defer src="shared/js/keyboard_helper.js"></script> -->
+    <script defer src="shared/js/screen_layout.js"></script>
+    <!-- 
+    <script defer src="shared/js/keyboard_helper.js"></script>
+    <script defer src="shared/js/template.js"></script>
+    -->
 
     <!-- Wrapper -->
     <link rel="stylesheet" type="text/css" href="style/wrapper/wrapper.css">
@@ -68,7 +72,7 @@
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
-
+    <script defer src="js/home_gesture.js"></script>
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
     <script defer src="js/gridview.js"></script>
@@ -100,9 +104,10 @@
     <link rel="stylesheet" type="text/css" href="style/attention_screen.css">
     <script defer src="js/attention_screen.js"></script>
 
-    <!-- List Menu -->
-    <link rel="stylesheet" type="text/css" href="style/list_menu/list_menu.css">
-    <script defer src="js/list_menu.js"></script>
+    <!-- Action Menu -->
+    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
+    <link rel="stylesheet" type="text/css" href="style/action_menu/action_menu_extended.css">
+    <script defer src="js/action_menu.js"></script>
 
     <!-- Context Menu -->
     <script defer src="js/context_menu.js"></script>
@@ -143,6 +148,9 @@
 
     <!-- Authentication Dialog-->
     <script defer src="js/authentication_dialog.js"></script>
+
+    <!-- Carrier info notifier, shared by CDMA and Cell Broadcast -->
+    <script defer src="js/carrier_info_notifier.js"></script>
 
     <!-- Cell Broadcast System -->
     <script defer src="js/cell_broadcast_system.js"></script>
@@ -205,6 +213,10 @@
     <script defer src="js/update_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
 
+    <!-- Media Playback -->
+    <script defer src="js/media_playback.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
+
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
     <link rel="stylesheet" type="text/css" href="style/themes/default/core.css">
@@ -223,6 +235,7 @@
     <script defer src="js/identity.js"></script>
 
     <!-- Operator Variant Mechanism -->
+    <script defer src="shared/js/operator_variant_helper.js"></script>
     <script defer src="js/operator_variant/operator_variant.js"></script>
 
     <!-- Crash Reporter -->
@@ -248,6 +261,8 @@
     <script defer src="js/error.js"></script>
     <script defer src="js/window.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
+    <script defer src="js/homescreen_window.js"></script>
+    <script defer src="js/homescreen_launcher.js"></script>
     <script defer src="js/window_manager.js"></script>
     <script defer src="js/app_window_factory.js"></script>
 
@@ -419,6 +434,19 @@
             <div class="message">
             </div>
             <div class="available-space">
+            </div>
+          </div>
+          <!-- Media playback notification -->
+          <div id="media-playback-container" class="fake-notification" hidden>
+            <div id="media-playback-nowplaying">
+              <div class="icon">
+              </div>
+              <div class="albumart">
+              </div>
+              <div class="title">
+              </div>
+              <div class="artist">
+              </div>
             </div>
           </div>
           <!-- App Install Manager -->
@@ -773,8 +801,8 @@
               </label>
             </div>
             <menu data-items="2">
-              <button id="permission-no" data-l10n-id="deny">Don't allow</button>
-              <button id="permission-yes" class="affirmative" data-l10n-id="allow">Allow</button>
+              <button id="permission-no" data-l10n-id="dontshare">Don't Share</button>
+              <button id="permission-yes" class="affirmative" data-l10n-id="share">Share</button>
             </menu>
           </div>
         </div>
@@ -890,6 +918,45 @@
         </menu>
       </form>
 
+      <form id="setup-installed-app-dialog" class='setup-installed-app-dialog'
+            data-type="confirm" role="dialog"
+            data-z-index-level="setup-installed-app-dialog">
+        <section>
+          <h1 id="setup-app-name"></h1>
+          <p id="setup-app-description"></p>
+          <menu>
+            <button id="setup-cancel-button" type="button" data-l10n-id="later">Later</button>
+            <button id="setup-confirm-button" class="recommend" type="button" data-l10n-id="setup">Setup</button>
+          </menu>
+        </section>
+      </form>
+
+      <form id="ime-layout-dialog" class="ime-layout-dialog"
+            data-type="confirm" role="dialog"
+            data-z-index-level="ime-layout-dialog">
+        <section>
+          <h1 data-l10n-id="ime-addkeyboards">Add keyboards</h1>
+          <!-- template for selecting IME layout after 3rd-party keyboard installed -->
+          <div id="ime-list-template" hidden>
+            <!--
+            <li>
+              <a>${displayName}</a>
+              <label class="pack-checkbox ime">
+                <input type="checkbox" name="keyboards" value="${imeName}">
+                <span></span>
+              </label>
+            </li>
+            -->
+          </div>
+          <ul id="ime-list">
+          </ul>
+          <menu>
+            <button id="ime-cancel-button" type="button" data-l10n-id="cancel">Cancel</button>
+            <button id="ime-confirm-button" class="recommend" type="button" data-l10n-id="confirm">Confirm</button>
+          </menu>
+        </section>
+      </form>
+
       <div id="lockscreen-camera" data-z-index-level="lockscreen-camera"></div>
 
       <div id="lockscreen" class="uninit" data-panel="main" data-z-index-level="lockscreen">
@@ -911,18 +978,43 @@
             </div>
             <div id="lockscreen-area"></div>
             <div id="lockscreen-icon-container">
-              <div id="lockscreen-area-handle"></div>
               <div id="lockscreen-area-camera"
-                   class="lockscreen-icon-area lockscreen-icon-left" role="button"
+                   class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
                    data-l10n-id="camera-a11y-button" aria-label="Camera">
                 <div class="lockscreen-icon">
                 </div>
               </div>
               <div id="lockscreen-area-unlock"
-                   class="lockscreen-icon-area lockscreen-icon-right" role="button"
+                   class="lockscreen-icon-area lockscreen-icon-right dark" role="button"
                    data-l10n-id="unlock-a11y-button" aria-label="Unlock">
                 <div class="lockscreen-icon">
                 </div>
+              </div>
+              <div id="lockscreen-area-slider"
+                   class="lockscreen-icon-area lockscreen-icon-center" role="button"
+                   data-l10n-id="unlock-a11y-button" aria-label="Slider">
+
+                <!-- Order matters. If track after handler, it will overlay on the handler -->
+                <div id="lockscreen-slider-track">
+                  <div class="lockscreen-icon lockscreen-slider-left">
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-center">
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-right">
+                  </div>
+                </div>
+
+                <div id="lockscreen-slider-handler">
+                  <div class="lockscreen-icon lockscreen-slider-left" data-role="handler-left">
+                    <span>‹</span>
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-center" data-role="handler-center">
+                  </div>
+                  <div class="lockscreen-icon lockscreen-slider-right" data-role="handler-right">
+                    <span>›</span>
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>
@@ -974,11 +1066,6 @@
         <img id="toaster-icon" />
         <div id="toaster-title"></div>
         <div id="toaster-detail"></div>
-      </div>
-
-      <div id="listmenu" data-z-index-level="list-menu" role="dialog" class="generic-dialog">
-        <menu class="actions">
-        </menu>
       </div>
 
       <!-- keyboard -->
@@ -1089,6 +1176,7 @@
         </div>
       </div>
 
+      <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
       <div id="software-buttons" data-z-index-level="software-buttons">
         <button id="software-home-button"></button>
       </div>

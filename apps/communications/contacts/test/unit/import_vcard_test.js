@@ -5,6 +5,7 @@ requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_file_reader.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+requireApp('communications/contacts/test/unit/mock_contacts.js');
 
 if (!this._)
   this._ = null;
@@ -13,6 +14,7 @@ if (!this.utils)
   this.utils = null;
 
 var mocksHelperForImportVcard = new MocksHelper([
+  'Contacts',
   'VCFReader',
   'ConfirmDialog',
   'FileReader'
@@ -140,7 +142,7 @@ suite('Import from vcard', function() {
 
   test('Import multiple contacts', function(done) {
     utils.importFromVcard(vcardMultiple, function(id) {
-      assert.isUndefined(id, 'returns no id as ther are multiple contacts');
+      assert.equal(id, contact1.id, 'returns id of the first contact imported');
       assert.equal(window.utils.overlay.total, 2);
       done();
     });

@@ -18,6 +18,7 @@ define({
         }
       }
     };
+    xhr.responseType = 'text';
     xhr.send(null);
   }
 });

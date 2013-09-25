@@ -93,6 +93,9 @@
       browser_config.url = url;
       browser_config.origin = origin;
       browser_config.windowName = name;
+      if (!browser_config.title)
+        browser_config.title = url;
+
       this.publish('launchwrapper', browser_config);
     },
 
@@ -108,7 +111,7 @@
 
     generateBrowserConfig: function wf_generateBrowserConfig(features) {
       var config = {};
-      config.title = features.name || url;
+      config.title = features.name;
       config.icon = features.icon || '';
 
       if ('originName' in features) {

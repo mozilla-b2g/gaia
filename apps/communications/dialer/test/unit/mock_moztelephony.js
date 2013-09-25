@@ -8,6 +8,7 @@ var MockMozTelephony = {
   conferenceGroup: {
     state: null,
     calls: [],
+    add: function() {},
     hold: function() {},
     resume: function() {}
   },

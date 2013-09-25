@@ -17,8 +17,17 @@ function initialize() {
 // separated into stages, stuff in stage 2 requires stuff in stage 1, etc...
 var loadQueue = [
   [
+    'shared/style/switches.css',
+    'shared/style/input_areas.css',
+    'shared/style/buttons.css',
+    'shared/style/edit_mode.css'
+  ],
+  [
+    'shared/js/gesture_detector.js',
     'shared/js/async_storage.js',
     'shared/js/template.js',
+    'js/picker/spinner.js',
+    'js/picker/picker.js',
     'js/constants.js',
     'js/emitter.js',
     'js/utils.js'
@@ -35,7 +44,13 @@ var loadQueue = [
     'js/clock_view.js',
     'js/alarm_list.js',
     'js/banner.js',
+    'js/timer.js',
+    'js/stopwatch.js',
     'js/alarm_manager.js'
+  ],
+  [
+    'js/stopwatch_panel.js',
+    'js/timer_panel.js'
   ],
   [
     'js/app.js'

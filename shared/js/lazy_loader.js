@@ -20,6 +20,10 @@ var LazyLoader = (function() {
     _js: function(file, callback) {
       var script = document.createElement('script');
       script.src = file;
+      // until bug 916255 lands async is the default so
+      // we must disable it so scripts load in the order they where
+      // required.
+      script.async = false;
       script.addEventListener('load', callback);
       document.head.appendChild(script);
       this._isLoading[file] = script;
@@ -80,7 +84,7 @@ var LazyLoader = (function() {
         } else {
           var method, idx;
           if (typeof file === 'string') {
-            method = file.match(/\.(.*?)$/)[1];
+            method = file.match(/.([^\.]+)$/)[1];
             idx = file;
           } else {
             method = 'html';

@@ -25,7 +25,7 @@ var mocksForCardsView = new MocksHelper([
 suite('cards view >', function() {
   var subject;
 
-  var screenNode;
+  var screenNode, realMozLockOrientation;
   var cardsView;
 
   mocksForCardsView.attachTestHelpers();
@@ -39,12 +39,14 @@ suite('cards view >', function() {
 
     screenNode.appendChild(cardsView);
     document.body.appendChild(screenNode);
-
+    realMozLockOrientation = screen.mozLockOrientation;
+    screen.mozLockOrientation = MockLockScreen.mozLockOrientation;
     requireApp('system/js/cards_view.js', done);
   });
 
   suiteTeardown(function() {
     screenNode.parentNode.removeChild(screenNode);
+    screen.mozLockOrientation = realMozLockOrientation;
   });
 
   teardown(function() {

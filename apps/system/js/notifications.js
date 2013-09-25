@@ -79,7 +79,9 @@ var NotificationScreen = {
     window.addEventListener('utilitytrayshow', this);
     window.addEventListener('unlock', this.clearLockScreen.bind(this));
     window.addEventListener('visibilitychange', this);
-    window.addEventListener('foreground', this.handleAppopen.bind(this));
+    window.addEventListener('appforeground', this.handleAppopen.bind(this));
+    window.addEventListener('ftuopen', this);
+    window.addEventListener('ftudone', this);
 
     this._sound = 'style/notifications/ringtones/notifier_exclamation.ogg';
 
@@ -123,6 +125,12 @@ var NotificationScreen = {
         if (!document.hidden) {
           this.updateTimestamps();
         }
+        break;
+      case 'ftuopen':
+        this.toaster.removeEventListener('tap', this);
+        break;
+      case 'ftudone':
+        this.toaster.addEventListener('tap', this);
         break;
     }
   },
@@ -306,7 +314,10 @@ var NotificationScreen = {
     // the user see the notification toaster
     if (typeof(ScreenManager) !== 'undefined' &&
       !ScreenManager.screenEnabled) {
-      ScreenManager.turnScreenOn();
+      // bug 915236: disable turning on the screen for email notifications
+      if (detail.manifestURL.indexOf('email.gaiamobile.org') === -1) {
+        ScreenManager.turnScreenOn();
+      }
     }
 
     this.updateStatusBarIcon(true);

@@ -13,6 +13,7 @@ const HomeState = (function() {
   function loadInitialState(iterator, success, error) {
     var grid = Configurator.getSection('grid') || [];
 
+    // add the actual grid pages from the configurator
     for (var i = 0; i < grid.length; i++) {
       grid[i] = {
         index: i,

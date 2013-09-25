@@ -68,7 +68,7 @@ suite('ClockView', function() {
   suite('updateDigitalClock', function() {
 
     setup(function() {
-      this.clock = sinon.useFakeTimers(this.sixAm + 1000);
+      this.clock = this.sinon.useFakeTimers(this.sixAm + 1000);
     });
 
     teardown(function() {
@@ -111,7 +111,7 @@ suite('ClockView', function() {
     });
 
     setup(function() {
-      this.clock = sinon.useFakeTimers(this.sixAm + 1200);
+      this.clock = this.sinon.useFakeTimers(this.sixAm + 1200);
     });
 
 

@@ -88,15 +88,17 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // Callback invoked when the exporting process finished.
 
   // @param: {Object} error Not null in case an error happened
-  // @param: {Integer} exported Number of contacts successfuly imported
+  // @param: {Integer} exported Number of contacts successfuly exported
   // @param: {String} message Any extra message from the exporting mechanism
   //
-  var doHandleResult = function doHandleResult(error,
-    exported, message) {
+  var doHandleResult = function doHandleResult(error, exported, message) {
     if (hasProgress) {
       utils.overlay.hide();
     }
-
+    // TODO: show error if any
+    if (error) {
+      console.error('An error occurred during the export: ' + error.reason);
+    }
     // TODO: Better mechanism to show result
     var msg = exported + ' out of ' + contacts.length + ' exported';
     utils.status.show(msg);
@@ -118,17 +120,19 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   var displayProgress = function displayProgress() {
     var progressClass = determinativeProgress ? 'progressBar' : 'spinner';
 
-    progress = utils.overlay.show(
-      strategy.getExportTitle(),
-      progressClass,
-      null
-    );
+    Contacts.utility('Overlay', function _loaded() {
+      progress = utils.overlay.show(
+        strategy.getExportTitle(),
+        progressClass,
+        null
+      );
 
-    // Allow the strategy to setup the progress bar
-    if (determinativeProgress) {
-      progress.setTotal(contacts.length);
-      strategy.setProgressStep(progress.update);
-    }
+      // Allow the strategy to setup the progress bar
+      if (determinativeProgress) {
+        progress.setTotal(contacts.length);
+        strategy.setProgressStep(progress.update);
+      }
+    });
   };
 
   return {

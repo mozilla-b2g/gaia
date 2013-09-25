@@ -7,6 +7,10 @@ contacts.Merger = (function() {
   var DEFAULT_TEL_TYPE = 'another';
   var DEFAULT_EMAIL_TYPE = 'personal';
 
+  // Regular expression for filtering out additional punctuation / blank chars
+  // on a telephone number "(" ")" "." "-"
+  var telRegExp = /\s+|-|\(|\)|\./g;
+
   // Performs the merge passing the master contact and matching contacts
   // The master contact will be the one that will contain all the merged info
   // The matchingContacts are the contacts which information will merged with
@@ -43,6 +47,15 @@ contacts.Merger = (function() {
     }, 0);
   }
 
+  function sanitizeTel(tel) {
+    return tel.replace(telRegExp, '');
+  }
+
+  function isSimContact(contact) {
+    return Array.isArray(contact.category) &&
+                                        contact.category.indexOf('sim') !== -1;
+  }
+
   function mergeAll(masterContact, matchingContacts, callbacks) {
     var emailsHash;
     var orgsHash;
@@ -66,7 +79,7 @@ contacts.Merger = (function() {
           aTel.type = (Array.isArray(aTel.type) ? aTel.type : [aTel.type]);
           aTel.type[0] = aTel.type[0] || DEFAULT_TEL_TYPE;
           mergedContact.tel.push(aTel);
-          telsHash[aTel.value] = true;
+          telsHash[sanitizeTel(aTel.value)] = true;
         }
       });
     }
@@ -85,12 +98,20 @@ contacts.Merger = (function() {
     mergedContact.url = masterContact.url || [];
     mergedContact.note = masterContact.note || [];
 
+    // If the master Contact is a SIM Contact and there is matching by name
+    // Then the given name and the familyName will be taken from that Contact
+    var simOverwritten = false;
+    var simContact = isSimContact(masterContact);
     matchingContacts.forEach(function(aResult) {
       var theMatchingContact = aResult.matchingContact;
 
       var givenName = theMatchingContact.givenName;
       if (Array.isArray(givenName)) {
         if (mergedContact.givenName.indexOf(givenName[0]) === -1) {
+          if (simContact && !simOverwritten) {
+            mergedContact.givenName[0] = givenName[0];
+            simOverwritten = true;
+          }
           mergedContact.givenName.push(givenName[0]);
         }
       }
@@ -132,7 +153,8 @@ contacts.Merger = (function() {
             }
           }
 
-          if (!telsHash[aTel.value] && !telsHash[target]) {
+          if (!telsHash[sanitizeTel(aTel.value)] &&
+              !telsHash[sanitizeTel(target)]) {
             theValue = target.length > matchedValue.length ?
                               target : matchedValue;
             mergedContact.tel.push({
@@ -141,8 +163,8 @@ contacts.Merger = (function() {
               carrier: aTel.carrier,
               pref: aTel.pref
             });
-            telsHash[target] = true;
-            telsHash[matchedValue] = true;
+            telsHash[sanitizeTel(target)] = true;
+            telsHash[sanitizeTel(matchedValue)] = true;
           }
         });
       }
@@ -171,6 +193,12 @@ contacts.Merger = (function() {
     fields.forEach(function(aField) {
       masterContact[aField] = mergedContact[aField];
     });
+
+    // Removing 'sim' Category as it is not needed anymore
+    if (simContact && simOverwritten) {
+      var categoryIndex = masterContact.category.indexOf('sim');
+      masterContact.category.splice(categoryIndex, 1);
+    }
 
     // Updating the master contact
     var req = navigator.mozContacts.save(masterContact);
@@ -207,14 +235,18 @@ contacts.Merger = (function() {
       sourceEmails.forEach(function(aEmail) {
         var type = Array.isArray(aEmail.type) ? aEmail.type : [aEmail.type];
         aEmail.type[0] = aEmail.type[0] || DEFAULT_EMAIL_TYPE;
-        if (!hash[aEmail.value]) {
-          out.push(aEmail);
-          hash[aEmail.value] = true;
+        var value = aEmail.value;
+        if (value && value.trim()) {
+          value = value.toLowerCase();
+          if (!hash[value]) {
+            aEmail.value = value;
+            out.push(aEmail);
+            hash[value] = true;
+          }
         }
       });
     }
   }
-
 
   function populateNoDuplicates(source, hash, out) {
     if (Array.isArray(source)) {

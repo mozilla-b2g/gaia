@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = require('./utils');
-var config = require('./config').config;
+var config;
 const { Cc, Ci, Cr, Cu, CC} = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 let settings;
@@ -45,20 +45,22 @@ function setWallpaper(callback) {
 
   let wallpaper = utils.getAbsoluteOrRelativePath(
     config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default' +
-    devpixels + '.jpg');
+    devpixels + '.jpg', config.GAIA_DIR);
 
   if (!wallpaper.exists()) {
     wallpaper = utils.getAbsoluteOrRelativePath(
-      config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default.jpg');
+      config.GAIA_DISTRIBUTION_DIR + '/wallpapers/default.jpg',
+      config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
     wallpaper = utils.getAbsoluteOrRelativePath(
-      'build/wallpaper' + devpixels + '.jpg');
+      'build/wallpaper' + devpixels + '.jpg', config.GAIA_DIR);
   }
 
   if (!wallpaper.exists()) {
-    wallpaper = utils.getAbsoluteOrRelativePath('build/wallpaper.jpg');
+    wallpaper = utils.getAbsoluteOrRelativePath('build/wallpaper.jpg',
+      config.GAIA_DIR);
   }
 
   readFileAsDataURL(wallpaper, 'image/jpeg', function(dataURL) {
@@ -71,10 +73,10 @@ function setRingtone(callback) {
   // Grab ringer_classic_courier.opus and convert it into a base64 string
   let ringtone_name = 'shared/resources/media/ringtones/' +
     'ringer_classic_courier.opus';
-  let ringtone = utils.getAbsoluteOrRelativePath(ringtone_name);
+  let ringtone = utils.getAbsoluteOrRelativePath(ringtone_name,
+    config.GAIA_DIR);
   readFileAsDataURL(ringtone, 'audio/ogg', function(dataURL) {
     settings['dialer.ringtone'] = dataURL;
-    settings['dialer.ringtone.name'] = 'ringer_classic_courier.opus';
     callback();
   });
 }
@@ -83,17 +85,18 @@ function setNotification(callback) {
   // Grab notifier_bell.opus and convert it into a base64 string
   let notification_name = 'shared/resources/media/notifications/' +
     'notifier_bell.opus';
-  let notification = utils.getAbsoluteOrRelativePath(notification_name);
+  let notification = utils.getAbsoluteOrRelativePath(notification_name,
+    config.GAIA_DIR);
   readFileAsDataURL(notification, 'audio/ogg', function(dataURL) {
     settings['notification.ringtone'] = dataURL;
-    settings['notification.ringtone.name'] = 'notifier_bell.opus';
     callback();
   });
 }
 
 function overrideSettings() {
   // See if any override file exists and eventually override settings
-  let override = utils.getAbsoluteOrRelativePath(config.SETTINGS_PATH);
+  let override = utils.getAbsoluteOrRelativePath(config.SETTINGS_PATH,
+    config.GAIA_DIR);
   if (override.exists()) {
     let content = utils.getJSON(override);
     for (let key in content) {
@@ -109,11 +112,13 @@ function writeSettings() {
   utils.writeContent(settingsFile, content + '\n');
 }
 
-function execute() {
+function execute(options) {
+  config = options;
   settings = {
    'accessibility.invert': false,
    'accessibility.screenreader': false,
    'alarm.enabled': false,
+   'app.launch_path.blacklist': [],
    'app.reportCrashes': 'ask',
    'app.update.interval': 86400,
    'audio.volume.alarm': 15,
@@ -161,28 +166,12 @@ function execute() {
    'icc.inputTextTimeout': 40000,
    'icc.goBackTimeout': 1000,
    'icc.selectTimeout': 150000,
-   'keyboard.layouts.english': true,
-   'keyboard.layouts.dvorak': false,
-   'keyboard.layouts.czech': false,
-   'keyboard.layouts.french': false,
-   'keyboard.layouts.german': false,
-   'keyboard.layouts.hungarian': false,
-   'keyboard.layouts.norwegian': false,
-   'keyboard.layouts.slovak': false,
-   'keyboard.layouts.turkish': false,
-   'keyboard.layouts.romanian': false,
-   'keyboard.layouts.russian': false,
-   'keyboard.layouts.arabic': false,
-   'keyboard.layouts.hebrew': false,
-   'keyboard.layouts.zhuyin': false,
-   'keyboard.layouts.pinyin': false,
-   'keyboard.layouts.greek': false,
-   'keyboard.layouts.japanese': false,
-   'keyboard.layouts.polish': false,
-   'keyboard.layouts.portuguese': false,
-   'keyboard.layouts.serbian': false,
-   'keyboard.layouts.spanish': false,
-   'keyboard.layouts.catalan': false,
+   'keyboard.enabled-layouts': [{
+      'layoutId': 'number',
+      'appOrigin': utils.gaiaOriginURL('keyboard', config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
+      'enabled': true
+    }],
    'keyboard.vibration': false,
    'keyboard.clicksound': false,
    'keyboard.autocorrect': true,
@@ -256,6 +245,12 @@ function execute() {
    'screen.brightness': 1,
    'screen.timeout': 60,
    'software-button.enabled': false,
+   'support.onlinesupport.title': '',
+   'support.onlinesupport.href': '',
+   'support.callsupport1.title': '',
+   'support.callsupport1.href': '',
+   'support.callsupport2.title': '',
+   'support.callsupport2.href': '',
    'telephony.speaker.enabled': false,
    'tethering.usb.enabled': false,
    'tethering.usb.ip': '192.168.0.1',
@@ -289,36 +284,84 @@ function execute() {
    'wap.push.enabled': false
   };
 
-  //We want the console to be disabled for device builds using the user variant.
+  // We want the console to be disabled for device builds using the user variant.
   if (config.TARGET_BUILD_VARIANT != 'user')
     settings['debug.console.enabled'] = true;
 
   // Set the homescreen URL
-  settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen');
+  settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen',
+    config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
 
   // Set the ftu manifest URL
   if (config.NOFTU === '0') {
-    settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications');
+    settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications',
+      config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
-  let file = utils.Gaia.sharedFolder.clone();
+  let file = utils.getGaia(config).sharedFolder.clone();
   file.append('resources');
   file.append('keyboard_layouts.json');
   let keyboard_layouts_res = utils.getJSON(file);
   let keyboard_layouts = keyboard_layouts_res['layout'];
   let keyboard_nonLatins = keyboard_layouts_res['nonLatin'];
-  let default_layout;
-  if (config.GAIA_DEFAULT_LOCALE in keyboard_layouts) {
-    default_layout = keyboard_layouts[config.GAIA_DEFAULT_LOCALE];
-    if (!(config.GAIA_DEFAULT_LOCALE in keyboard_nonLatins)) {
-      settings['keyboard.layouts.english'] = false;
-    }
-    settings['keyboard.layouts.' + default_layout] = true;
+  let kbLayoutSettings = settings['keyboard.enabled-layouts'];
+  // Built-in keyboard hash keys (without 'en' which is the default layout and
+  // 'numberLayout' which is enabled by default)
+  let builtInKeyboards = [
+    'en-Dvorak', 'es', 'pt-BR', 'pl',
+    'ca', 'cz', 'fr', 'de', 'nb', 'sk', 'sv',
+    'tr-Q', 'tr-F', 'ro', 'ru', 'sr-Cyrl', 'sr-Latn',
+    'ar', 'he', 'hu', 'el',
+    'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji'
+  ];
+  let kbLayoutList = keyboard_layouts[config.GAIA_DEFAULT_LOCALE];
+  let kbLocaleLayouts = kbLayoutList.map(function(kb){
+    return kb['layoutId'];
+  });
+  let default_layout = {
+    'layoutId': 'en',
+    'appOrigin': utils.gaiaOriginURL('keyboard', config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
+    'enabled': true
+  };
+  // Setup the keyboard mozSetting for each of the built-in keyboards
+  for (var i = 0, len = builtInKeyboards.length; i < len; i++) {
+    if (kbLocaleLayouts.indexOf(builtInKeyboards[i]) === -1)
+      kbLayoutSettings.push({
+        'layoutId': builtInKeyboards[i],
+        'appOrigin': utils.gaiaOriginURL('keyboard', config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
+        'enabled': false
+      });
   }
+  // Enable DEFAULT_LOCALE keyboard layout
+  if (kbLayoutList) {
+    for (var i = 0, len = kbLayoutList.length; i < len; i++)
+      kbLayoutSettings.push({
+        'layoutId': kbLayoutList[i].layoutId,
+        'appOrigin': utils.gaiaOriginURL( kbLayoutList[i].appName, config.GAIA_SCHEME,
+                      config.GAIA_DOMAIN, config.GAIA_PORT),
+        'enabled': true
+      });
+    // Check if the default locale has a non-latin keyboard layout so that a
+    // latin keyboard layout (English) is enabled as well
+    default_layout.enabled =
+        (keyboard_nonLatins.indexOf(config.GAIA_DEFAULT_LOCALE) !== -1);
+    kbLayoutSettings.push(default_layout);
+  } else {
+    // If DEFAULT_LOCALE doesn't have a keyboard, set the default one
+    kbLayoutSettings.push(default_layout);
+  }
+
   settings['devtools.debugger.remote-enabled'] = config.REMOTE_DEBUGGER == true;
 
-
+  if (config.DEVICE_DEBUG) {
+    settings['devtools.debugger.remote-enabled'] = true;
+    settings['screen.timeout'] = 0;
+    settings['lockscreen.enabled'] = false;
+    settings['lockscreen.locked'] = false;
+  }
 
   // Run all asynchronous code before overwriting and writing settings file
   let done = false;

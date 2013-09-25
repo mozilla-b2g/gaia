@@ -63,7 +63,8 @@
     sourceFile.append(file);
 
     var targetFolder = Services.dirsvc.get('ProfD', Ci.nsILocalFile);
-    targetFolder.append('indexedDB');
+    targetFolder.append('storage');
+    targetFolder.append('persistent');
     targetFolder.append('chrome');
     targetFolder.append('idb');
 

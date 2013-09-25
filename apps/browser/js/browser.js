@@ -28,11 +28,9 @@ var Browser = {
   previousScreen: null,
   currentScreen: 'page-screen',
 
-  // These variables are set from browser settings,
+  // This data is set from browser settings,
   // populated from init.json on first run
-  defaultSearchProviderUri: '',
-  defaultSearchProviderTitle: '',
-  defaultSearchProviderIconUri: '',
+  searchEngine: {},
 
   DEVICE_RATIO: window.devicePixelRatio,
   ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
@@ -84,8 +82,7 @@ var Browser = {
         BrowserDB.getSearchEngine(uri, (function(searchEngine) {
           if (!searchEngine)
             return;
-          this.setSearchProvider(searchEngine.uri, searchEngine.title,
-            searchEngine.iconUri);
+          this.searchEngine = searchEngine;
         }).bind(this));
       }).bind(this));
     }).bind(this));
@@ -290,19 +287,6 @@ var Browser = {
     xhr.send();
   },
 
-  /**
-   * Sets the default search provider used by awesomebar.
-   *
-   * @param {String} uri URI of search engine.
-   * @param {String} title Title of search engine.
-   * @param {String} iconUri URI of icon, usually data URI.
-   */
-  setSearchProvider: function browser_setSearchProvider(uri, title, iconUri) {
-    this.defaultSearchProviderUri = uri;
-    this.defaultSearchProviderTitle = title;
-    this.defaultSearchProviderIconUri = iconUri;
-  },
-
   // Clicking the page preview on the left gutter of the tab page opens
   // that page
   handlePageScreenClicked: function browser_handlePageScreenClicked(e) {
@@ -434,8 +418,10 @@ var Browser = {
         break;
 
       case 'mozbrowsericonchange':
-        if (evt.detail && evt.detail != tab.iconUrl) {
-          tab.iconUrl = evt.detail;
+        if (evt.detail.href && evt.detail.href != tab.iconUrl) {
+          tab.iconUrl = evt.detail.href;
+          // TODO: Pick up the best icon
+          // based on evt.detail.sizes and device size.
           BrowserDB.setAndLoadIconForPage(tab.url, tab.iconUrl);
         }
         break;
@@ -659,10 +645,10 @@ var Browser = {
   getUrlFromInput: function browser_getUrlFromInput(input) {
     var hasScheme = !!(rscheme.exec(input) || [])[0];
 
-    // No protocol, could be a search term
-    if (UrlHelper.isNotURL(input) && this.defaultSearchProviderUri) {
-      return this.defaultSearchProviderUri +
-        '?q=' + input;
+    // Not a valid URL, could be a search term
+    if (UrlHelper.isNotURL(input) && this.searchEngine.uri) {
+      var uri = this.searchEngine.uri.replace('{searchTerms}', input);
+      return uri;
     }
 
     // No scheme, prepend basic protocol and return

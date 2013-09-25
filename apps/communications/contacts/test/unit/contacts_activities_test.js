@@ -1,10 +1,10 @@
 'use strict';
 
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('communications/contacts/js/activities.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
-requireApp('communications/contacts/test/unit/mock_lazy_loader.js');
 requireApp('communications/contacts/test/unit/mock_value_selector.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 
@@ -204,9 +204,13 @@ suite('Test Activities', function() {
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select, so we need
       // to compare to a contact with only the first phone
-      contact.tel = [contact.tel[0]];
-      for (var prop in contact)
-        assert.deepEqual(result[prop], contact[prop]);
+
+      // As is filtered, we only retrieve one phone number
+      assert.equal(result.tel.length, 1);
+
+      // As the mock of value selector is giving us the first option
+      // we ensure that this option is the one filtered as well.
+      assert.equal(newContact.tel[0].value, result.tel[0].value);
     });
 
     test('webcontacts/contact, 0 results', function() {
@@ -224,7 +228,7 @@ suite('Test Activities', function() {
       ActivityHandler._currentActivity = activity;
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
-      assert.equal(result.number.value, contact.tel[0].value);
+      assert.equal(result.number, contact.tel[0].value);
     });
 
     test('webcontacts/contact, many results', function() {
@@ -233,7 +237,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
-      assert.equal(result.number.value, contact.tel[0].value);
+      assert.equal(result.number, contact.tel[0].value);
     });
 
     test('webcontacts/email, 0 results', function() {
@@ -251,7 +255,7 @@ suite('Test Activities', function() {
       ActivityHandler._currentActivity = activity;
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
-      assert.equal(result.email.value, contact.email[0].value);
+      assert.equal(result.email, contact.email[0].value);
     });
 
     test('webcontacts/email, many results', function() {
@@ -260,7 +264,7 @@ suite('Test Activities', function() {
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
       // Mock returns always the first option from the select
-      assert.equal(result.email.value, contact.email[0].value);
+      assert.equal(result.email, contact.email[0].value);
     });
   });
 });

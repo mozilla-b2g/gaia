@@ -42,7 +42,7 @@ var Contacts = (function() {
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
     var params = hasParams.length > 1 ?
-      extractParams(hasParams[1]) : -1;
+      utils.extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
@@ -136,19 +136,6 @@ var Contacts = (function() {
       console.error('Extras malformed');
       return null;
     }
-  };
-
-  var extractParams = function extractParams(url) {
-    if (!url) {
-      return -1;
-    }
-    var ret = {};
-    var params = url.split('&');
-    for (var i = 0; i < params.length; i++) {
-      var currentParam = params[i].split('=');
-      ret[currentParam[0]] = currentParam[1];
-    }
-    return ret;
   };
 
   var initContainers = function initContainers() {
@@ -249,7 +236,7 @@ var Contacts = (function() {
           return;
         }
         contactsDetails.render(currentContact, TAG_OPTIONS);
-        if (contacts.Search.isInSearchMode()) {
+        if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
         } else {
           navigation.go('view-contact-details', 'go-deeper');
@@ -356,11 +343,23 @@ var Contacts = (function() {
   };
 
   var callOrPick = function callOrPick(number) {
-    if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.postPickSuccess({ number: number });
-    } else {
-      TelephonyHelper.call(number);
-    }
+    LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
+      if (ActivityHandler.currentlyHandling) {
+        ActivityHandler.postPickSuccess({ number: number });
+      } else if (MmiManager.isMMI(number)) {
+        // For security reasons we cannot directly call MmiManager.send(). We
+        // need to show the MMI number in the dialer instead.
+        new MozActivity({
+          name: 'dial',
+          data: {
+            type: 'webtelephony/number',
+            number: number
+          }
+        });
+      } else {
+        TelephonyHelper.call(number);
+      }
+    });
   };
 
   var handleBack = function handleBack() {
@@ -374,24 +373,6 @@ var Contacts = (function() {
       navigation.home();
     } else {
       handleBack();
-    }
-  };
-
-  var handleDetailsBack = function handleDetailsBack() {
-    if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.postCancel();
-      navigation.home();
-    } else {
-      var hasParams = window.location.hash.split('?');
-      var params = hasParams.length > 1 ?
-        extractParams(hasParams[1]) : -1;
-
-      navigation.back();
-      // post message to parent page included Contacts app.
-      if (params['back_to_previous_tab'] === '1') {
-        var message = { 'type': 'contactsiframe', 'message': 'back' };
-        window.parent.postMessage(message, COMMS_APP_ORIGIN);
-      }
     }
   };
 
@@ -443,10 +424,6 @@ var Contacts = (function() {
 
   var showAddContact = function showAddContact() {
     showForm();
-  };
-
-  var showEditContact = function showEditContact() {
-    showForm(true);
   };
 
   var loadFacebook = function loadFacebook(callback) {
@@ -540,7 +517,9 @@ var Contacts = (function() {
   };
 
   var hideOverlay = function c_hideOverlay() {
-    utils.overlay.hide();
+    Contacts.utility('Overlay', function _loaded() {
+      utils.overlay.hide();
+    });
   };
 
   var showStatus = function c_showStatus(message) {
@@ -560,13 +539,11 @@ var Contacts = (function() {
   };
 
   var enterSearchMode = function enterSearchMode(evt) {
-    contacts.List.initSearch(function onInit() {
-      contacts.Search.enterSearchMode(evt);
+    Contacts.view('Search', function viewLoaded() {
+      contacts.List.initSearch(function onInit() {
+        contacts.Search.enterSearchMode(evt);
+      });
     });
-  };
-
-  var exitSearchMode = function exitSearchMode(evt) {
-    contacts.Search.exitSearchMode(evt);
   };
 
   var ignoreReturnKey = function ignoreReturnKey(evt) {
@@ -580,10 +557,8 @@ var Contacts = (function() {
     // Definition of elements and handlers
     utils.listeners.add({
       '#cancel_activity': handleCancel, // Activity (any) cancellation
-      '#cancel-edit': handleCancel, // Cancel edition
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
-      '#cancel-search': exitSearchMode, // Search related
       '#search-start': [
         {
           event: 'click',
@@ -596,8 +571,6 @@ var Contacts = (function() {
           handler: ignoreReturnKey
         }
       ],
-      '#details-back': handleDetailsBack, // Details
-      '#edit-contact-button': showEditContact,
       'button[type="reset"]': stopPropagation,
       '#settings-done': handleSelectTagDone,
       '#settings-cancel': handleBack,
@@ -634,7 +607,6 @@ var Contacts = (function() {
     var lazyLoadFiles = [
       '/contacts/js/utilities/templates.js',
       '/contacts/js/contacts_shortcuts.js',
-      '/contacts/js/confirm_dialog.js',
       '/contacts/js/contacts_tag.js',
       '/contacts/js/import_utils.js',
       '/contacts/js/utilities/normalizer.js',
@@ -646,17 +618,7 @@ var Contacts = (function() {
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/status.js',
       '/contacts/js/utilities/overlay.js',
-      '/contacts/js/utilities/dom.js',
-      '/contacts/js/search.js',
-      '/shared/style_unstable/progress_activity.css',
-      '/shared/style/status.css',
-      '/shared/style/switches.css',
-      '/shared/style/confirm.css',
-      '/contacts/style/fixed_header.css',
-      '/contacts/style/animations.css',
-      '/facebook/style/curtain_frame.css',
-      '/contacts/style/status.css',
-      '/contacts/style/fb_extensions.css'
+      '/contacts/js/utilities/dom.js'
     ];
 
     LazyLoader.load(lazyLoadFiles, function() {
@@ -783,6 +745,13 @@ var Contacts = (function() {
 
   window.addEventListener('localized', initContacts); // addEventListener
 
+  function loadConfirmDialog() {
+    var args = Array.slice(arguments);
+    Contacts.utility('Confirm', function viewLoaded() {
+      ConfirmDialog.show.apply(ConfirmDialog, args);
+    });
+  }
+
   /**
    * Specifies dependencies for resources
    * E.g., mapping Facebook as a dependency of views
@@ -792,8 +761,51 @@ var Contacts = (function() {
       Settings: loadFacebook,
       Details: loadFacebook,
       Form: loadFacebook
-    }
+    },
+    utilities: {}
   };
+
+  // Mapping of view names to element IDs
+  // TODO: Having a more standardized way of specifying this would be nice.
+  // Then we could get rid of this mapping entirely
+  // E.g., #details-view, #list-view, #form-view
+  var elementMapping = {
+    details: 'view-contact-details',
+    form: 'view-contact-form',
+    settings: 'settings-wrapper',
+    search: 'search-view',
+    overlay: 'loading-overlay',
+    confirm: 'confirmation-message'
+  };
+
+  function load(type, file, callback) {
+    /**
+     * Performs the actual lazy loading
+     * Called once all dependencies are met
+     */
+    function doLoad() {
+      var name = file.toLowerCase();
+      var node = document.getElementById(elementMapping[name]);
+
+      LazyLoader.load([
+        node,
+        'js/' + type + '/' + name + '.js'
+        ], function() {
+          if (node) {
+            navigator.mozL10n.translate(node);
+          }
+          if (callback) {
+            callback();
+          }
+        });
+    }
+
+    if (dependencies[type][file]) {
+      return dependencies[type][file](doLoad);
+    }
+
+    doLoad();
+  }
 
   /**
    * Loads a view from the views/ folder
@@ -801,20 +813,16 @@ var Contacts = (function() {
    * @param {Function} callback.
    */
   function loadView(view, callback) {
+    load('views', view, callback);
+  }
 
-    /**
-     * Performs the actual lazy loading
-     * Called once all dependencies are met
-     */
-    function doLoad() {
-      LazyLoader.load(['js/views/' + view.toLowerCase() + '.js'], callback);
-    }
-
-    if (dependencies.views[view]) {
-      return dependencies.views[view](doLoad);
-    }
-
-    doLoad();
+  /**
+   * Loads a utility from the utilities/ folder
+   * @param {String} utility name.
+   * @param {Function} callback.
+   */
+  function loadUtility(utility, callback) {
+    load('utilities', utility, callback);
   }
 
   return {
@@ -841,8 +849,10 @@ var Contacts = (function() {
     'onLineChanged': onLineChanged,
     'showStatus': showStatus,
     'loadFacebook': loadFacebook,
+    'confirmDialog': loadConfirmDialog,
     'close': close,
     'view': loadView,
+    'utility': loadUtility,
     get asyncScriptsLoaded() {
       return asyncScriptsLoaded;
     }

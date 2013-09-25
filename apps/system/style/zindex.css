@@ -44,6 +44,10 @@
   z-index: 65536;
 }
 
+#screen > [data-z-index-level="gesture-panel"] {
+  z-index: 65536;
+}
+
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.active,
@@ -73,7 +77,7 @@
 }
 
 /* Level 4: Activity menu, context menu and value selector */
-#screen > [data-z-index-level="list-menu"] {
+#screen > [data-z-index-level="action-menu"] {
   z-index: 8192;
 }
 
@@ -133,6 +137,7 @@
 /* Level 7: Dialog Module */
 #screen > [data-z-index-level="dialog-overlay"],
 #screen > [data-z-index-level="value-selector"],
+#screen > [data-z-index-level="ime-layout-dialog"],
 #screen > [data-z-index-level="app-install-dialog"],
 #screen > [data-z-index-level="updates-download-dialog"],
 #screen > [data-z-index-level="updates-viaDataConnection-dialog"],
@@ -205,7 +210,7 @@
 /* We promote the following overlays on top of the fullscreen web content. */
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app"] > .appWindow.inlineActivity,
 #screen:-moz-full-screen-ancestor > [data-z-index-level="sleep-menu"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="list-menu"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="action-menu"],
 #screen.locked:-moz-full-screen-ancestor > [data-z-index-level="statusbar"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="lockscreen-camera"],
@@ -221,6 +226,8 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="attention-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"] {
   z-index: 2147483647;
 }

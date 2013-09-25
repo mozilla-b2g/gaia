@@ -26,8 +26,7 @@ var Configurator = (function() {
     if (searchPage) {
       var provider = window[searchPage.provider] || dummyProvider;
       if (searchPage.enabled) {
-        provider.init();
-        Homescreen.init(searchPage.separate_page ? 1 : 0);
+        Homescreen.init(0, provider.init.bind(provider));
       } else {
         startHomescreenByDefault();
         setTimeout(provider.destroy, 0);
@@ -109,8 +108,6 @@ var Configurator = (function() {
 
     function loadSVConfFileError(e) {
       singleVariantApps = {};
-      console.error('Failed parsing singleVariant configuration file [' +
-                    SINGLE_VARIANT_CONF_FILE + ']: ' + e);
     }
 
     var iccHandler = function(evt) {
@@ -120,6 +117,8 @@ var Configurator = (function() {
                  loadSVConfFileSuccess.bind(undefined, mcc_mnc),
                  loadSVConfFileError);
         IccHelper.removeEventListener('iccinfochange', iccHandler);
+        // No needed anymore
+        IccHelper = iccHandler = null;
         return true;
       }
       return false;

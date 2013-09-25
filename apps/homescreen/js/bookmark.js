@@ -1,106 +1,20 @@
 'use strict';
 
-var Bookmark = function Bookmark(params) {
-  this.removable = true;
+var Bookmark = function Bookmark(params, cb) {
+  GridItem.call(this, params);
 
-  if ('iconable' in params) {
-    this.iconable = params.iconable;
-  } else {
-    this.iconable = true;
-  }
-
-  this.isBookmark = true;
-  this.url = this.bookmarkURL = this.origin = params.bookmarkURL;
-
-  this.manifest = {
-    name: params.name,
-    icons: {
-      60: params.icon
-    },
-    default_locale: 'en-US'
-  };
-
-  this.useAsyncPanZoom = 'useAsyncPanZoom' in params && params.useAsyncPanZoom;
+  this.type = GridItemsFactory.TYPE.BOOKMARK;
+  cb && cb(this);
 };
 
 Bookmark.prototype = {
+  __proto__: GridItem.prototype,
+
   launch: function bookmark_launch() {
-    var features = {
-      name: this.manifest.name,
-      icon: this.manifest.icons['60'],
-      remote: true,
-      useAsyncPanZoom: this.useAsyncPanZoom
-    };
+    var features = this.getFeatures();
 
     window.open(this.url, '_blank', Object.keys(features).map(function(key) {
       return encodeURIComponent(key) + '=' + encodeURIComponent(features[key]);
     }).join(','));
-  },
-
-  uninstall: function bookmark_uninstall() {
-    GridManager.uninstall(this);
-  }
-};
-
-var BookmarkEditor = {
-  init: function bookmarkEditor_show(options) {
-    this.data = options.data;
-    this.onsaved = options.onsaved;
-    this.oncancelled = options.oncancelled;
-    this.origin = document.location.protocol + '//homescreen.' +
-          document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
-    if (document.readyState === 'complete' ||
-        document.readyState === 'interactive') {
-      this._init();
-    } else {
-      var self = this;
-      document.addEventListener('DOMContentLoaded', function loaded() {
-        document.removeEventListener('DOMContentLoaded', loaded);
-        self._init();
-      });
-    }
-  },
-
-  _init: function bookmarkEditor_init() {
-    document.getElementById('bookmark-form').onsubmit = function() {
-      return false;
-    };
-    this.bookmarkEntrySheet = document.getElementById('bookmark-entry-sheet');
-    this.bookmarkTitle = document.getElementById('bookmark-title');
-    this.bookmarkUrl = document.getElementById('bookmark-url');
-    this.cancelButton = document.getElementById('button-bookmark-cancel');
-    this.addButton = document.getElementById('button-bookmark-add');
-
-    this.cancelButton.addEventListener('click', this.close.bind(this));
-    this.saveListener = this.save.bind(this);
-    this.addButton.addEventListener('click', this.saveListener);
-    this.addButton.removeAttribute('disabled');
-
-    this.bookmarkTitle.value = this.data.name || '';
-    this.bookmarkUrl.value = this.data.url || '';
-  },
-
-  close: function bookmarkEditor_close() {
-    this.oncancelled();
-  },
-
-  save: function bookmarkEditor_save(evt) {
-    this.addButton.removeEventListener('click', this.saveListener);
-
-    // Only allow http(s): urls to be bookmarked.
-    if (/^https?:/.test(this.bookmarkUrl.value) == false)
-      return;
-
-    this.data.name = this.bookmarkTitle.value;
-    this.data.bookmarkURL = this.bookmarkUrl.value;
-
-    var homeScreenWindow = window.open('', 'main');
-    if (!homeScreenWindow)
-      this.close();
-    else {
-      homeScreenWindow.postMessage(
-        new Message(Message.Type.ADD_BOOKMARK, this.data), this.origin);
-      this.onsaved();
-    }
   }
 };

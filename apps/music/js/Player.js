@@ -176,7 +176,9 @@ var PlayerView = {
     );
   },
 
-  setInfo: function pv_setInfo(metadata) {
+  setInfo: function pv_setInfo(fileinfo) {
+    var metadata = fileinfo.metadata;
+
     if (typeof ModeManager !== 'undefined') {
       ModeManager.playerTitle = metadata.title;
       ModeManager.updateTitle();
@@ -191,6 +193,8 @@ var PlayerView = {
     this.artist.dataset.l10nId = metadata.artist ? '' : unknownArtistL10nId;
     this.album.textContent = metadata.album || unknownAlbum;
     this.album.dataset.l10nId = metadata.album ? '' : unknownAlbumL10nId;
+
+    this.setCoverImage(fileinfo, this.backgroundIndex);
   },
 
   setCoverBackground: function pv_setCoverBackground(index) {
@@ -368,21 +372,41 @@ var PlayerView = {
     // update the metadata.
     if (typeof MusicComms === 'undefined' || this.dataSource.length === 0)
       return;
+
     // Update the playing information to AVRCP devices
-    var metadata = this.dataSource[this.currentIndex].metadata;
+    var fileinfo = this.dataSource[this.currentIndex];
+    var metadata = fileinfo.metadata;
 
     // AVRCP expects the duration in ms, note that it's converted from s to ms.
     var notifyMetadata = {
       title: metadata.title || unknownTitle,
       artist: metadata.artist || unknownArtist,
       album: metadata.album || unknownAlbum,
+
       duration: this.audio.duration * 1000,
       mediaNumber: this.currentIndex + 1,
       totalMediaCount: this.dataSource.length
     };
 
-    // Notify the remote device that metadata is changed.
-    MusicComms.notifyMetadataChanged(notifyMetadata);
+    // Grab the album art if this is a new song; otherwise, don't bother, since
+    // listeners should already have the album art. Note: if no .picture
+    // attribute is in the metadata, then listeners should reuse the previous
+    // picture. If .picture is null, something went wrong and listeners should
+    // probably use a blank picture (or their own placeholder).
+    if (this.audio.currentTime === 0) {
+      getAlbumArtBlob(fileinfo, this.backgroundIndex, function(err, blob) {
+        if (!err) {
+          if (blob)
+            notifyMetadata.picture = blob;
+        } else {
+          notifyMetadata.picture = null;
+        }
+        MusicComms.notifyMetadataChanged(notifyMetadata);
+      });
+    }
+    else {
+      MusicComms.notifyMetadataChanged(notifyMetadata);
+    }
   },
 
   updateRemotePlayStatus: function pv_updateRemotePlayStatus() {
@@ -410,6 +434,30 @@ var PlayerView = {
     MusicComms.notifyStatusChanged(info);
   },
 
+  /*
+   * Get a blob for the specified song, decrypting it if necessary,
+   * and pass it to the specified callback
+   */
+  getFile: function pv_getFile(songData, callback) {
+    if (!songData.metadata.locked) {
+      musicdb.getFile(songData.name, callback);
+      return;
+    }
+
+    // If here, then this is a locked music file, so we have
+    // to decrypt it before playing it.
+    musicdb.getFile(songData.name, function(locked) {
+      ForwardLock.getKey(function(secret) {
+        ForwardLock.unlockBlob(secret, locked, function(unlocked) {
+          callback(unlocked);
+        }, null, function(msg) {
+          console.error(msg);
+          callback(null);
+        });
+      });
+    });
+  },
+
   play: function pv_play(targetIndex, backgroundIndex) {
     this.showInfo();
 
@@ -417,8 +465,8 @@ var PlayerView = {
       var songData = this.dataSource[targetIndex];
 
       this.currentIndex = targetIndex;
-      this.setInfo(songData.metadata);
-      this.setCoverImage(songData, backgroundIndex);
+      this.backgroundIndex = backgroundIndex;
+      this.setInfo(songData);
 
       // set ratings of the current song
       this.setRatings(songData.metadata.rated);
@@ -427,7 +475,7 @@ var PlayerView = {
       songData.metadata.played++;
       musicdb.updateMetadata(songData.name, songData.metadata);
 
-      musicdb.getFile(songData.name, function(file) {
+      this.getFile(songData, function(file) {
         this.setAudioSrc(file);
         // When we need to preview an audio like in picker mode,
         // we will not autoplay the picked song unless the user taps to play
@@ -438,14 +486,13 @@ var PlayerView = {
     } else if (this.sourceType === TYPE_BLOB && !this.audio.src) {
       // When we have to play a blob, we need to parse the metadata
       this.getMetadata(this.dataSource, function(metadata) {
-        this.setInfo(metadata);
-
         // Add the blob from the dataSource to the fileinfo
         // because we want use the cover image which embedded in that blob
         // so that we don't have to count on the musicdb
-        this.setCoverImage({metadata: metadata,
-                            name: this.dataSource.name,
-                            blob: this.dataSource});
+        this.backgroundIndex = null;
+        this.setInfo({metadata: metadata,
+                      name: this.dataSource.name,
+                      blob: this.dataSource});
 
         this.setAudioSrc(this.dataSource);
       }.bind(this));

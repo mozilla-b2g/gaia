@@ -92,11 +92,9 @@ var KeyboardHelper = {
 
           var defaultLayout = [];
 
-          var protocol = window.location.protocol;
-          var hackOrigin = 'app://keyboard.gaiamobile.org';
-          if (protocol === 'http:') {
-            hackOrigin = 'http://keyboard.gaiamobile.org:8080';
-          }
+          var protocol =
+              (window.location.protocol === 'http:') ? 'http://' : 'app://';
+          var hackOrigin = protocol + 'keyboard.gaiamobile.org';
 
           defaultLayout.push({
             layoutId: 'en',
@@ -123,7 +121,7 @@ var KeyboardHelper = {
           self.saveToSettings();
         });
       } else {
-        self.keyboardSettings = JSON.parse(value);
+        self.keyboardSettings = value;
       }
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('keyboardsrefresh', true, false, {});
@@ -134,7 +132,7 @@ var KeyboardHelper = {
   saveToSettings: function ke_saveToSettings() {
     var settings = window.navigator.mozSettings;
     var obj = {};
-    obj[SETTINGS_KEY] = JSON.stringify(this.keyboardSettings);
+    obj[SETTINGS_KEY] = this.keyboardSettings;
     settings.createLock().set(obj);
   },
 
@@ -146,16 +144,20 @@ var KeyboardHelper = {
       var apps = event.target.result;
       var keyboardApps = [];
       apps.forEach(function eachApp(app) {
-        // keyboard apps will request keyboard API permission
-        if (!(app.manifest.permissions && 'keyboard' === app.manifest.role))
+        // keyboard apps will set role as 'keyboard'
+        // https://wiki.mozilla.org/WebAPI/KeboardIME#Proposed_Manifest_of_a_3rd-Party_IME
+        if (!app.manifest || 'keyboard' !== app.manifest.role) {
           return;
+        }
         //XXX remove this hard code check if one day system app no longer
         //    use mozKeyboard API
-        if (app.origin === 'app://system.gaiamobile.org')
+        if (app.origin === 'app://system.gaiamobile.org') {
           return;
+        }
         // all keyboard apps should define its layout(s) in entry_points section
-        if (!app.manifest.entry_points)
+        if (!app.manifest.entry_points) {
           return;
+        }
         keyboardApps.push(app);
       });
 

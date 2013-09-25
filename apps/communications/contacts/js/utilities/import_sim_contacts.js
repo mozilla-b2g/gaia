@@ -140,8 +140,19 @@ function SimContactsImporter() {
     for (var i = from; i < from + CHUNK_SIZE && i < self.items.length; i++) {
       var item = self.items[i];
       item.givenName = item.name;
-      for (var j = 0; j < item.tel.length; j++) {
-        item.tel[j].type = 'mobile';
+
+      if (Array.isArray(item.tel)) {
+        var telItems = [];
+
+        for (var j = 0; j < item.tel.length; j++) {
+          var aTel = item.tel[j];
+          // Filtering out empty values
+          if (aTel.value && aTel.value.trim()) {
+            aTel.type = 'mobile';
+            telItems.push(aTel);
+          }
+        }
+        item.tel = telItems;
       }
 
       item.category = ['sim'];

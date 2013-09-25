@@ -49,6 +49,11 @@ var FtuLauncher = {
       case 'appopen':
         if (evt.detail.origin == this._ftuURL && this._isRunningFirstTime) {
           LockScreen.unlock(true);
+          // FTU starting, letting everyone know
+          var evt = document.createEvent('CustomEvent');
+          evt.initCustomEvent('ftuopen',
+          /* canBubble */ true, /* cancelable */ false, {});
+          window.dispatchEvent(evt);
         }
         break;
 

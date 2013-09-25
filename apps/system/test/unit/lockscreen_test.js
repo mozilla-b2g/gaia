@@ -7,10 +7,9 @@ requireApp('system/js/lockscreen.js');
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_mobile_connection.js');
-requireApp('system/test/unit/mock_mobile_operator.js');
+requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
-
 
 if (!this.MobileOperator) {
   this.MobileOperator = null;
@@ -117,18 +116,22 @@ suite('system/LockScreen >', function() {
 
   test('Emergency call: should disable emergency-call button',
   function() {
+    var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
     navigator.mozTelephony.calls = {length: 1};
     var evt = {type: 'callschanged'};
     subject.handleEvent(evt);
     assert.isTrue(domEmergencyCallBtn.classList.contains('disabled'));
+    stubSwitchPanel.restore();
   });
 
   test('Emergency call: should enable emergency-call button',
   function() {
+    var stubSwitchPanel = this.sinon.stub(subject, 'switchPanel');
     navigator.mozTelephony.calls = {length: 0};
     var evt = {type: 'callschanged'};
     subject.handleEvent(evt);
     assert.isFalse(domEmergencyCallBtn.classList.contains('disabled'));
+    stubSwitchPanel.restore();
   });
 
   // XXX: Test 'Screen off: by proximity sensor'.

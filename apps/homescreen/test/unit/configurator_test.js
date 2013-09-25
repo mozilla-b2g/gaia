@@ -40,6 +40,8 @@ suite('configurator.js >', function() {
     // We set up a wrong landing page index in order to check what its value
     // will be 0 or 1 depending on different situations dealt by this suite
     Homescreen.landingPage = -1;
+
+    IccHelper = MockIccHelper;
   });
 
   teardown(function() {

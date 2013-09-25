@@ -1,8 +1,14 @@
 Evme.Location = new function Evme_Location() {
     var NAME = 'Location', self = this,
         lastUpdateTime = 0,
+	timeoutRequest = null,
+
         requestTimeout = 'FROM CONFIG',
-        refreshInterval = 'FROM CONFIG';
+	refreshInterval = 'FROM CONFIG',
+
+	// since we update location right before apps are rendered
+	// we give it a timeout so it doesn't block the actual rendering
+	TIMEOUT_BEFORE_UPDATING_LOCATION = 2000;
     
     this.init = function init(options) {
         options || (options = {});
@@ -14,6 +20,8 @@ Evme.Location = new function Evme_Location() {
     };
     
     this.requestUserLocation = function requestUserLocation() {
+      window.clearTimeout(timeoutRequest);
+      timeoutRequest = window.setTimeout(function requestLocation() {
         var hadError = false;
         
         // this method prevents double error-reporting
@@ -35,6 +43,7 @@ Evme.Location = new function Evme_Location() {
             }
         }, reportError,
         { "timeout": requestTimeout });
+      }, TIMEOUT_BEFORE_UPDATING_LOCATION);
     };
     
     this.updateIfNeeded = function updateIfNeeded() {

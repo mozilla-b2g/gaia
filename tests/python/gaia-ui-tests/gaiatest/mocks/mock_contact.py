@@ -37,6 +37,3 @@ class MockContact(dict):
     # allow getting items as if they were attributes
     def __getattr__(self, attr):
         return self[attr]
-
-    def json(self):
-        return json.dumps(self)

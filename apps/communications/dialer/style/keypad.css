@@ -81,29 +81,30 @@ article:not(:target) #keypad-delete {
 }
 
 .keypad-cell {
-  display: table-cell;
+  display: table-row;
 }
 
-.keypad-cell:first-child .keypad-key {
+.keypad-key:first-child {
   border-left: 0;
 }
 
-.keypad-cell:last-child .keypad-key {
+.keypad-key:last-child {
   border-right: 0;
 }
 
 .keypad-key {
+  display: table-cell;
   border: solid 0.1rem rgba(255, 255, 255, 0.2);
   border-right-color: rgba(0, 0, 0, 0.4);
   border-bottom-color: rgba(0, 0, 0, 0.4);
-  padding:0.2rem 0 0 1.5rem;
+  padding: 1.3rem 0 0 1.5rem;
   -moz-box-sizing: border-box;
   height: 6rem;
   vertical-align: middle;
   color: white;
   font-weight: 400;
   font-size: 5rem;
-  line-height: 5.5rem;
+  line-height: 1rem;
 }
 
 .keypad-key em {
@@ -135,7 +136,7 @@ article:not(:target) #keypad-delete {
 }
 
 .keypad-key-centered {
-  padding: 1.9rem 0 0 0;
+  padding: 0.9rem 0 0 0;
   text-align: center;
 }
 
@@ -379,7 +380,6 @@ article:not(:target) #keypad-delete {
 }
 
 #suggestion-bar > .suggestion-item:active,
-#suggestion-overlay .suggestion-item:active,
 #suggestion-count:active {
   background-color: #00ABCC;
   transition: background-color 0.2s ease;
@@ -391,11 +391,7 @@ article:not(:target) #keypad-delete {
   line-height: 1.8rem;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.suggestion-item .tel-type {
-  font-weight: normal;
-  font-size: 1.5rem;
+  font-weight: bold;
 }
 
 .suggestion-item .tel-type:not(:empty):after {
@@ -407,6 +403,7 @@ article:not(:target) #keypad-delete {
   font-size: 1.5rem;
   overflow: hidden;
 }
+
 .suggestion-item .tel > span {
   color: #00CAF4;
   font-size: 1.5rem;
@@ -431,42 +428,4 @@ article:not(:target) #keypad-delete {
 
 .suggestion-item .avatar.hidden {
   opacity: 0;
-}
-
-#suggestion-overlay {
-  opacity: 1;
-  transform: translateY(-100%);
-  transition: transform 0.4s ease-in-out;
-}
-
-#suggestion-overlay > menu {
-  height: 100%;
-}
-
-#suggestion-overlay.display {
-  transform: translateY(0%);
-}
-
-#suggestion-overlay .suggestion-item {
-  height: 4.5rem;
-  padding: 1rem 0;
-  font-size: 1.7rem;
-  border-bottom: 0.1rem solid #000;
-}
-
-#suggestion-overlay .suggestion-item:after {
-  content: ' ';
-  width: 100%;
-  border-bottom: 0.1rem solid #666;
-  display: block;
-  position: relative;
-  bottom: -1.3rem;
-}
-
-#suggestion-list {
-  height: calc(100% - 13rem);
-  overflow: auto;
-  margin-top: 5rem;
-  padding: 0 2rem 0 2rem;
-  list-style: none outside none;
 }

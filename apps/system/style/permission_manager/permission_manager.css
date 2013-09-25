@@ -147,3 +147,15 @@
 #permission-screen[data-type*="device-storage"] #permission-message {
   background-image: url('images/PermissionsDialogIcons_DeviceStorage.png');
 }
+
+#permission-screen[data-type="video-capture"] #permission-message {
+  background-image: url('images/PermissionsDialogIcons_VideoRecorder.png');
+}
+
+#permission-screen[data-type="audio-capture"] #permission-message {
+  background-image: url('images/PermissionsDialogIcons_Microphone.png');
+}
+
+#permission-screen[data-type="media-capture"] #permission-message {
+  background-image: url('images/PermissionsDialogIcons_VideoRecorder.png');
+}

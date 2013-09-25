@@ -2,6 +2,8 @@
 
 mocha.globals(['mozRequestAnimationFrame']);
 
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 requireApp('homescreen/test/unit/mock_page.js');
 requireApp('homescreen/test/unit/mock_icon.js');
 requireApp('homescreen/test/unit/mock_dock_manager.js');
@@ -15,6 +17,7 @@ requireApp('homescreen/test/unit/mock_manifest_helper.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
 require('/shared/js/screen_layout.js');
+requireApp('homescreen/js/grid_components.js');
 requireApp('homescreen/js/grid.js');
 
 var mocksHelperForGrid = new MocksHelper([
@@ -41,6 +44,7 @@ suite('grid.js >', function() {
 
   var wrapperNode, containerNode;
   var realMozApps;
+  var realMozSettings;
 
   var mocksHelper = mocksHelperForGrid;
 
@@ -50,11 +54,14 @@ suite('grid.js >', function() {
     window.navigator.mozApps = {
       mgmt: MockAppsMgmt
     };
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
   });
 
   suiteTeardown(function() {
     window.navigator.mozApps = realMozApps;
+    navigator.mozSettings = realMozSettings;
 
     mocksHelper.suiteTeardown();
   });
@@ -350,14 +357,14 @@ suite('grid.js >', function() {
           var grd = MockHomeState.mLastSavedGrid;
 
           assert.ok(grd, 'Grid is not set');
-          assert.equal(grd.length, svApp.screen + 1,
+          assert.equal(grd.length, svApp.screen + 2,
                        'Grid does not have the right number of screens');
           assert.equal(grd[svApp.screen].index, svApp.screen,
                        'App was not installed on the correct screen');
           assert.ok(grd[svApp.screen].icons,
                     'The screen does not have a icons structure');
 
-          var icns = grd[svApp.screen].icons[0];
+          var icns = grd[svApp.screen + 1].icons[0];
           assert.ok(icns, 'The screen does not have any icons');
           assert.isTrue(icns.desiredPos !== undefined,
                         'The single variant app does not have a desiredPos');

@@ -7,7 +7,9 @@ define(function(require) {
       model = require('model'),
       mozL10n = require('l10n!'),
       notificationHelper = require('shared/js/notification_helper'),
-      fromObject = require('query_string').fromObject;
+      fromObject = require('query_string').fromObject,
+      notifyIdBase = Date.now(),
+      notifyCounter = 0;
 
   model.latestOnce('api', function(api) {
     var hasBeenVisible = !document.hidden,
@@ -42,27 +44,31 @@ define(function(require) {
     } else {
       sendNotification = function(notificationId, title, body, iconUrl) {
         console.log('Notification sent for ' + notificationId);
-        notificationHelper.send(title, body, iconUrl);
 
-        /*
-        // TODO: explore this pathway for notification revocation, by using
-        // the "tag" on the notification options. Does not work right now --
-        // notification is triggered, but clicking on it generates an error
-        // in system app.
         if (Notification.permission !== 'granted') {
           console.log('email: notification skipped, permission: ' +
                       Notification.permission);
           return;
         }
 
-        //TODO: consider setting dir and lang
+        //TODO: consider setting dir and lang?
         //https://developer.mozilla.org/en-US/docs/Web/API/notification
         var notification = new Notification(title, {
           body: body,
           icon: iconUrl,
           tag: notificationId
         });
-        */
+
+        // If the app is open, but in the background, when the notification
+        // comes in, then we do not get notifived via our mozSetMessageHandler
+        // that is set elsewhere. Instead need to listen to click event
+        // and synthesize an "event" ourselves.
+        notification.onclick = function() {
+          evt.emit('notification', {
+            imageURL: iconUrl,
+            tag: notificationId
+          });
+        };
       };
     }
 
@@ -122,12 +128,22 @@ define(function(require) {
               if (!model.getAccount(result.id).notifyOnNew)
                 return;
 
-              var dataString;
+              var dataString,
+                  // Construct an ID for the notification. Ideally this
+                  // should not be needed, but looks like there is
+                  // a bug in the system notification code that could
+                  // send a double fire to a mozSetMessageHandler.
+                  // Using datetime plus a counter, since using date
+                  // alone inside the forEach loop across accounts could
+                  // result in the same notifyId.
+                  notifyId = notifyIdBase + '-' + (notifyCounter += 1);
+
               if (navigator.mozNotification) {
                 if (result.count > 1) {
                   dataString = fromObject({
                     type: 'message_list',
-                    accountId: result.id
+                    accountId: result.id,
+                    notifyId: notifyId
                   });
 
                   sendNotification(
@@ -144,7 +160,8 @@ define(function(require) {
                       dataString = fromObject({
                         type: 'message_reader',
                         accountId: info.accountId,
-                        messageSuid: info.messageSuid
+                        messageSuid: info.messageSuid,
+                        notifyId: notifyId
                       });
 
                     sendNotification(

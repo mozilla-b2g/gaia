@@ -262,6 +262,12 @@ var ScreenManager = {
         this._cpuWakeLock = navigator.requestWakeLock('cpu');
         window.addEventListener('userproximity', this);
         break;
+      case 'will-unlock' :
+      case 'lockpanelchange' :
+        window.removeEventListener('will-unlock', this);
+        window.removeEventListener('lockpanelchange', this);
+        this._setIdleTimeout(this._idleTimeout, false);
+        break;
     }
   },
 
@@ -298,8 +304,11 @@ var ScreenManager = {
     var screenOff = function scm_screenOff() {
       self._setIdleTimeout(0);
 
-      window.removeEventListener('devicelight', self);
+      if (self._deviceLightEnabled)
+        window.removeEventListener('devicelight', self);
 
+      window.removeEventListener('will-unlock', self);
+      window.removeEventListener('lockpanelchange', self);
       self.screenEnabled = false;
       self._inTransition = false;
       self.screen.classList.add('screenoff');
@@ -391,15 +400,8 @@ var ScreenManager = {
     // it was never unlocked.
     } else if (LockScreen.locked) {
       this._setIdleTimeout(10, true);
-      var self = this;
-      var stopShortIdleTimeout = function scm_stopShortIdleTimeout() {
-        window.removeEventListener('will-unlock', stopShortIdleTimeout);
-        window.removeEventListener('lockpanelchange', stopShortIdleTimeout);
-        self._setIdleTimeout(self._idleTimeout, false);
-      };
-
-      window.addEventListener('will-unlock', stopShortIdleTimeout);
-      window.addEventListener('lockpanelchange', stopShortIdleTimeout);
+      window.addEventListener('will-unlock', this);
+      window.addEventListener('lockpanelchange', this);
     } else {
       this._setIdleTimeout(this._idleTimeout, false);
     }

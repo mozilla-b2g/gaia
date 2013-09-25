@@ -18,6 +18,79 @@ suite('Stopwatch', function() {
     this.sw.reset();
   });
 
+  suite('constructor', function() {
+
+    test('defaults', function() {
+      assert.isFalse(this.sw.isStarted());
+      assert.equal(this.sw.getElapsedTime().getTime(), 0);
+      assert.deepEqual(this.sw.getLapDurations(), []);
+    });
+
+    test('from object', function() {
+      var input = {
+        startTime: Date.now(),
+        totalElapsed: oneHour,
+        isStarted: true,
+        laps: [{time: Date.now(), duration: oneHour}]
+      };
+      this.sw = new Stopwatch(input);
+      assert.deepEqual(input, this.sw.toSerializable());
+    });
+
+    test('deep copy', function() {
+      var input = {
+        startTime: Date.now(),
+        totalElapsed: oneHour,
+        isStarted: true,
+        laps: [{time: Date.now(), duration: oneHour}]
+      };
+      this.sw = new Stopwatch(input);
+      var serialized = this.sw.toSerializable();
+      serialized.laps.push({ time: 0, duration: oneHour });
+      assert.notEqual(serialized.laps, input.laps, 'laps should not be equal');
+    });
+
+  });
+
+  suite('isStarted', function() {
+
+    test('before start', function() {
+      assert.isFalse(this.sw.isStarted());
+    });
+
+    test('start and elapse 1hr', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+      assert.isTrue(this.sw.isStarted());
+    });
+
+    test('elapse 1hr and pause', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+      this.sw.pause();
+      assert.isFalse(this.sw.isStarted());
+    });
+
+    test('pause and resume', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+      this.sw.pause();
+      this.clock.tick(oneHour);
+      this.sw.start();
+      assert.isTrue(this.sw.isStarted());
+    });
+
+    test('pause and reset', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+      this.sw.pause();
+      this.clock.tick(oneHour);
+      this.sw.reset();
+      assert.isFalse(this.sw.isStarted());
+    });
+
+  });
+
   suite('getElapsedTime', function() {
 
     test('before start', function() {
@@ -82,6 +155,19 @@ suite('Stopwatch', function() {
       assert.equal(l3.getTime(), oneHour);
     });
 
+    test('lap & pause & start & lap', function() {
+      this.sw.start();
+      this.clock.tick(oneHour);
+      var l1 = this.sw.lap();
+      this.sw.pause();
+      this.clock.tick(oneHour);
+      this.sw.start();
+      this.clock.tick(oneHour);
+      var l2 = this.sw.lap();
+      assert.equal(l1.getTime(), oneHour);
+      assert.equal(l2.getTime(), oneHour);
+    });
+
   });
 
   suite('getLapDurations', function() {
@@ -114,6 +200,103 @@ suite('Stopwatch', function() {
     test('elapse 1hr & reset', function() {
       this.sw.reset();
       assert.equal(this.sw.getElapsedTime().getTime(), 0);
+    });
+
+  });
+
+  suite('toSerializable', function() {
+
+    test('default', function() {
+      var expected = {
+        startTime: 0,
+        totalElapsed: 0,
+        isStarted: false,
+        laps: []
+      };
+      var actual = this.sw.toSerializable();
+      assert.deepEqual(expected, actual);
+    });
+
+    suite('started', function() {
+
+      var d;
+
+      setup(function() {
+        d = Date.now();
+        this.sw.start();
+        this.clock.tick(oneHour);
+      });
+
+      test('deep copy', function() {
+        this.sw.pause();
+        var serialized = this.sw.toSerializable();
+        serialized.laps.push({ duration: 23, time: 0 });
+        assert.deepEqual(this.sw.getLapDurations(), []);
+      });
+
+      test('elapse 1hr', function() {
+        var expected = {
+          startTime: d,
+          totalElapsed: 0,
+          isStarted: true,
+          laps: []
+        };
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
+      });
+
+      test('elapse 1hr and pause', function() {
+        this.sw.pause();
+        var expected = {
+          startTime: d,
+          totalElapsed: oneHour,
+          isStarted: false,
+          laps: []
+        };
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
+      });
+
+      test('elapse 1hr and lap', function() {
+        this.sw.lap();
+        var expected = {
+          startTime: d,
+          totalElapsed: 0,
+          isStarted: true,
+          laps: [{time: Date.now(), duration: oneHour}]
+        };
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
+      });
+
+      test('pause and reset', function() {
+        this.sw.pause();
+        this.clock.tick(oneHour);
+        this.sw.reset();
+        var expected = {
+          startTime: 0,
+          totalElapsed: 0,
+          isStarted: false,
+          laps: []
+        };
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
+      });
+
+      test('pause and resume', function() {
+        this.sw.pause();
+        this.clock.tick(oneHour);
+        this.sw.start();
+        var expected = {
+          startTime: Date.now(),
+          totalElapsed: oneHour,
+          isStarted: true,
+          laps: []
+        };
+        var actual = this.sw.toSerializable();
+        assert.deepEqual(expected, actual);
+      });
+
     });
 
   });

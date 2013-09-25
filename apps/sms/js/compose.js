@@ -71,8 +71,6 @@ var Compose = (function() {
       state.empty = true;
     }
 
-    trigger('input', new CustomEvent('input'));
-
     if (hasFrames && state.type === 'sms') {
       compose.type = 'mms';
     }
@@ -81,6 +79,7 @@ var Compose = (function() {
       compose.type = 'sms';
     }
 
+    trigger('input', new CustomEvent('input'));
   }
 
   function composeKeyEvents(e) {

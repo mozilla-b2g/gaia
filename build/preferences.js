@@ -1,14 +1,16 @@
 
 'use strict';
 
-var config = require('./config').config;
+var config;
 var utils = require('./utils');
 
 function debug(msg) {
   //dump('-*- preferences.js ' + msg + '\n');
 }
 
-function execute() {
+function execute(options) {
+  config = options
+  var gaia = utils.getGaia(config);
   const prefs = [];
 
   let homescreen = config.HOMESCREEN +
@@ -22,7 +24,7 @@ function execute() {
   let domains = [];
   domains.push(config.GAIA_DOMAIN);
 
-  utils.Gaia.webapps.forEach(function(webapp) {
+  gaia.webapps.forEach(function(webapp) {
     domains.push(webapp.domain);
   });
 
@@ -139,7 +141,7 @@ function execute() {
     prefs.push(['extensions.gaia.device_pixel_suffix', suffix]);
 
     let appPathList = [];
-    utils.Gaia.webapps.forEach(function(webapp) {
+    gaia.webapps.forEach(function(webapp) {
       appPathList.push(webapp.sourceAppDirectoryName + '/' +
                        webapp.sourceDirectoryName);
     });
@@ -157,6 +159,8 @@ function execute() {
     // force enable content actor
     prefs.push(['devtools.debugger.enable-content-actors', true]);
     prefs.push(['devtools.debugger.prompt-connection', false]);
+    prefs.push(['devtools.debugger.forbid-certified-apps', false]);
+    prefs.push(['b2g.adb.timeout', 0]);
   }
 
   function writePrefs() {
@@ -184,9 +188,9 @@ function execute() {
     });
   }
 
-  if (utils.Gaia.engine === 'xpcshell') {
+  if (gaia.engine === 'xpcshell') {
     writePrefs();
-  } else if (utils.Gaia.engine === 'b2g') {
+  } else if (gaia.engine === 'b2g') {
     setPrefs();
   }
 }

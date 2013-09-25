@@ -23,6 +23,9 @@ var PermissionManager = {
 
   currentOrigin: undefined,
   currentPermission: undefined,
+  currentPermissions: undefined,
+  currentOptions: {}, //origin options
+  currentChoices: {}, //select choices
   init: function pm_init() {
     var self = this;
 
@@ -33,15 +36,43 @@ var PermissionManager = {
         case 'permission-prompt':
           self.overlay.dataset.type = detail.permission;
           self.currentPermission = detail.permission;
+
+          if (detail.options) {
+            if ('video-capture' in detail.options ||
+                'audio-capture' in detail.options) {
+              // set default choice
+              self.currentOptions = detail.options;
+              self.currentChoices[detail.permission] =
+                detail.options[detail.permission][0];
+            }
+            // handle getUserMedia multiple permissions request
+            if (detail.permissions && detail.permissions.length > 1) {
+              self.currentPermissions = detail.permissions;
+
+              detail.permissions.forEach(function(permission) {
+                // set default choices
+                self.currentChoices[permission] = detail.options[permission][0];
+              });
+
+              if ('video-capture' in detail.options &&
+                  'audio-capture' in detail.options) {
+                self.overlay.dataset.type = 'media-capture';
+                self.currentPermission = 'media-capture';
+              }
+            } else {
+              self.currentPermissions = undefined;
+            }
+          }
+
           self.currentOrigin = detail.origin;
-          self.handlePermissionPrompt(detail).bind(self);
+          self.handlePermissionPrompt(detail);
           break;
         case 'cancel-permission-prompt':
-          self.discardPermissionRequest().bind(self);
+          self.discardPermissionRequest();
           break;
         case 'fullscreenoriginchange':
           delete self.overlay.dataset.type;
-          self.handleFullscreenOriginChange(detail).bind(self);
+          self.handleFullscreenOriginChange(detail);
           break;
       }
     });
@@ -81,25 +112,27 @@ var PermissionManager = {
                                             /* yesCallback */ null,
                                             /* noCallback */ function() {
                                               document.mozCancelFullScreen();
-                                            }).bind(this);
+                                            });
     }
   },
 
   handlePermissionPrompt: function pm_handlePermissionPrompt(detail) {
     this.remember.checked = detail.remember ? true : false;
     var str = '';
-    var permissionID = 'perm-' + detail.permission.replace(':', '-');
+    var permissionID = 'perm-' + this.currentPermission.replace(':', '-');
     var _ = navigator.mozL10n.get;
 
     if (detail.isApp) { // App
-      str = _(permissionID + '-appRequest', { 'app': detail.appName });
+      var app = Applications.getByManifestURL(detail.manifestURL);
+      str = _(permissionID + '-appRequest',
+        { 'app': new ManifestHelper(app.manifest).name });
     } else { // Web content
       str = _(permissionID + '-webRequest', { 'site': detail.origin });
     }
 
     var moreInfoText = _(permissionID + '-more-info');
     var self = this;
-    this.requestPermission(detail.origin, detail.permission,
+    this.requestPermission(detail.origin, this.currentPermission,
       str, moreInfoText,
       function pm_permYesCB() {
         self.dispatchResponse(detail.id, 'permission-allow',
@@ -113,15 +146,22 @@ var PermissionManager = {
 
   responseStatus: undefined,
   dispatchResponse: function pm_dispatchResponse(id, type, remember) {
-    var event = document.createEvent('CustomEvent');
     remember = remember ? true : false;
     this.responseStatus = type;
 
-    event.initCustomEvent('mozContentEvent', true, true, {
+    var response = {
       id: id,
       type: type,
       remember: remember
-    });
+    };
+
+    if (this.currentPermission === 'video-capture' ||
+        this.currentPermission === 'audio-capture' ||
+        this.currentPermission === 'media-capture') {
+      response['choice'] = this.currentChoices;
+    }
+    var event = document.createEvent('CustomEvent');
+    event.initCustomEvent('mozContentEvent', true, true, response);
     window.dispatchEvent(event);
   },
 
@@ -155,8 +195,11 @@ var PermissionManager = {
 
   // Show the next request, if we have one.
   showNextPendingRequest: function pm_showNextPendingRequest() {
-    if (this.pending.length == 0)
+    if (this.pending.length == 0) {
+      //clean current choices
+      this.currentChoices = undefined;
       return;
+    }
     var request = this.pending.shift();
     // bug 907075 Dismiss continuous same permission request but
     // dispatch mozContentEvent as well if remember is checked
@@ -168,6 +211,7 @@ var PermissionManager = {
         return;
       }
     }
+    this.currentChoices = undefined;
     this.showPermissionPrompt(request.id,
                          request.message,
                          request.moreInfoText,
@@ -214,7 +258,7 @@ var PermissionManager = {
       return id;
     }
     this.showPermissionPrompt(id, msg, moreInfoText,
-      yescallback, nocallback).bind(this);
+      yescallback, nocallback);
 
     return id;
   },

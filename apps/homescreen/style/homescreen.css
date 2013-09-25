@@ -69,14 +69,13 @@ li:active {
   background-color: transparent !important;
 }
 
-#landing-overlay {
+#bg-overlay {
   width: 100%;
   height: 100%;
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #182026;
-  opacity: 0;
+  background-color: rgba(0,0,0,0.7);
 }
 
 /* === Repaint Helper === */
@@ -93,6 +92,15 @@ li:active {
 }
 #repaint-helper.displayed {
   opacity: 0.1;
+}
+
+/* Confirm dialog is hidden by default */
+#confirm-dialog {
+  display: none;
+}
+
+body[data-mode = 'normal'] ol > li span.options {
+  display: none;
 }
 
 body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > img,

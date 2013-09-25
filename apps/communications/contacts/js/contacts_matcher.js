@@ -4,9 +4,26 @@ var contacts = window.contacts || {};
 
 contacts.Matcher = (function() {
   var blankRegExp = /\s+/g;
+  // Regular expression for filtering out additional punctuation / blank chars
+  // on a telephone number "(" ")" "." "-"
+  var telRegExp = /\s+|-|\(|\)|\./g;
 
   var FB_CATEGORY = 'facebook';
   var FB_LINKED = 'fb_linked';
+
+  function sanitize(field, value) {
+    var out = value;
+
+    if (value) {
+      if (field === 'tel') {
+        out = value.replace(telRegExp, '');
+      }
+      else {
+        out = value.trim().toLowerCase();
+      }
+    }
+    return out;
+  }
 
   // Multiple matcher Object. It tries to find a set of Contacts that match at
   // least one of the targets passed as parameters
@@ -44,14 +61,21 @@ contacts.Matcher = (function() {
             return;
           }
 
-          var values = aMatching[options.filterBy[0]];
+          var field = options.filterBy[0];
+          var values = aMatching[field];
           var matchedValue;
 
           values.forEach(function(aValue) {
             var value = aValue.value;
+            var sanitizedValue = value;
+            var sanitizedTarget = target;
 
-            if (value === target || value.indexOf(target) !== -1 ||
-               target.indexOf(value) !== -1) {
+            sanitizedValue = sanitize(value, field);
+            sanitizedTarget = sanitize(target, field);
+
+            if (sanitizedValue === sanitizedTarget ||
+                sanitizedValue.indexOf(sanitizedTarget) !== -1 ||
+                sanitizedTarget.indexOf(sanitizedValue) !== -1) {
               matchedValue = value;
             }
 
@@ -158,7 +182,7 @@ contacts.Matcher = (function() {
   }
 
   function matchByEmail(aContact, callbacks, options) {
-    matchBy(aContact, 'email', 'equals', callbacks, options);
+    matchBy(aContact, 'email', 'startsWith', callbacks, options);
   }
 
   // Performs a matching for an incoming contact 'aContact' and the mode
@@ -489,8 +513,8 @@ contacts.Matcher = (function() {
     }
     else if (isFbLinked(contact)) {
       var linkedTo = getLinkedTo(contact);
-      var targetUid = linkParams.linkedTo;
-      var linkedMatched = linkParams.linkedMatched;
+      var targetUid = linkParams.linkedTo || '';
+      var linkedMatched = linkParams.linkedMatched || {};
 
       if (targetUid === linkedTo) {
         out = true;

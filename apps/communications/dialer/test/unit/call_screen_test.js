@@ -6,6 +6,7 @@ requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
+requireApp('communications/dialer/test/unit/mock_l10n.js');
 
 // The CallScreen binds stuff when evaluated so we load it
 // after the fake dom and we don't want it to show up as a leak.
@@ -14,18 +15,28 @@ if (!this.CallScreen) {
 }
 
 var mocksHelperForCallScreen = new MocksHelper([
-  'CallsHandler'
+  'CallsHandler',
+  'LazyL10n'
 ]).init();
 
 
 suite('call screen', function() {
   var realMozTelephony;
   var realMozApps;
+
   var screen;
   var calls;
   var groupCalls;
+  var groupCallsList;
   var muteButton;
   var speakerButton;
+  var statusMessage,
+      statusMessageText;
+  var lockedHeader,
+      lockedClock,
+      lockedClockNumbers,
+      lockedClockMeridiem,
+      lockedDate;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -35,6 +46,8 @@ suite('call screen', function() {
 
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
+
+    navigator.mozL10n = MockMozL10n;
   });
 
   suiteTeardown(function() {
@@ -52,9 +65,13 @@ suite('call screen', function() {
     calls.id = 'calls';
     screen.appendChild(calls);
 
-    groupCalls = document.createElement('article');
+    groupCalls = document.createElement('form');
     groupCalls.id = 'group-call-details';
     screen.appendChild(groupCalls);
+
+    groupCallsList = document.createElement('ul');
+    groupCallsList.id = 'group-call-details-list';
+    groupCalls.appendChild(groupCallsList);
 
     muteButton = document.createElement('button');
     muteButton.id = 'mute';
@@ -64,6 +81,23 @@ suite('call screen', function() {
     speakerButton.id = 'speaker';
     screen.appendChild(speakerButton);
 
+    statusMessage = document.createElement('div');
+    statusMessage.id = 'statusMsg';
+    statusMessageText = document.createElement('p');
+    statusMessage.appendChild(statusMessageText);
+    screen.appendChild(statusMessage);
+
+    lockedHeader = document.createElement('div');
+    lockedClock = document.createElement('div');
+    lockedHeader.appendChild(lockedClock);
+    lockedClockNumbers = document.createElement('span');
+    lockedClock.appendChild(lockedClockNumbers);
+    lockedClockMeridiem = document.createElement('span');
+    lockedClock.appendChild(lockedClockMeridiem);
+    lockedDate = document.createElement('div');
+    lockedHeader.appendChild(lockedDate);
+    screen.appendChild(lockedHeader);
+
     // Replace the existing elements
     // Since we can't make the CallScreen look for them again
     if (CallScreen != null) {
@@ -71,6 +105,11 @@ suite('call screen', function() {
       CallScreen.calls = calls;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
+      CallScreen.groupCalls = groupCalls;
+      CallScreen.groupCallsList = groupCallsList;
+      CallScreen.lockedClockNumbers = lockedClockNumbers;
+      CallScreen.lockedClockMeridiem = lockedClockMeridiem;
+      CallScreen.lockedDate = lockedDate;
     }
 
     requireApp('communications/dialer/js/call_screen.js', done);
@@ -116,7 +155,7 @@ suite('call screen', function() {
       test('should insert the node in the group calls article', function() {
         var fakeNode = document.createElement('section');
         CallScreen.moveToGroup(fakeNode);
-        assert.equal(fakeNode.parentNode, CallScreen.groupCalls);
+        assert.equal(fakeNode.parentNode, CallScreen.groupCallsList);
       });
     });
   });
@@ -293,4 +332,97 @@ suite('call screen', function() {
       assert.equal(resizeSpy.firstCall.args[1], 40);
     });
   });
+
+  suite('showStatusMessage', function() {
+    var statusMessage,
+        bannerClass,
+        addEventListenerSpy,
+        removeEventListenerSpy;
+
+    setup(function() {
+      this.sinon.useFakeTimers();
+      statusMessage = CallScreen.statusMessage;
+      bannerClass = statusMessage.classList;
+      addEventListenerSpy = this.sinon.spy(statusMessage, 'addEventListener');
+      removeEventListenerSpy =
+        this.sinon.spy(statusMessage, 'removeEventListener');
+
+      CallScreen.showStatusMessage('message');
+    });
+
+    test('should show the banner', function() {
+      assert.include(bannerClass, 'visible');
+    });
+    test('should show the text', function() {
+      assert.equal(statusMessage.querySelector('p').textContent,
+                   'message');
+    });
+
+    suite('once the transition ends', function() {
+      setup(function() {
+        addEventListenerSpy.yield();
+      });
+      test('should remove the listener', function() {
+        assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
+      });
+
+      suite('after STATUS_TIME', function() {
+        setup(function(done) {
+          this.sinon.clock.tick(2000);
+          done();
+        });
+        test('should hide the banner', function() {
+          assert.isFalse(bannerClass.contains('visible'));
+        });
+      });
+    });
+  });
+
+  suite('Toggling the group details screen', function() {
+    test('should show group details', function() {
+      CallScreen.showGroupDetails();
+      assert.isTrue(groupCalls.classList.contains('display'));
+    });
+
+    test('should hide group details', function() {
+      CallScreen.hideGroupDetails();
+      assert.isFalse(groupCalls.classList.contains('display'));
+    });
+  });
+
+  suite('showClock in screen locked status', function() {
+    var formatArgs = [],
+        currentDate,
+        fakeNumber = '12:02',
+        fakeMeridiem = 'PM',
+        fakeDate = 'Monday, September 16';
+
+    setup(function() {
+      this.sinon.stub(navigator.mozL10n, 'DateTimeFormat', function() {
+        this.localeFormat = function(date, format) {
+          formatArgs.push(arguments);
+          if (format === 'shortTimeFormat') {
+            return fakeNumber + ' ' + fakeMeridiem;
+          }
+          return fakeDate;
+        };
+      });
+    });
+
+    test('clock and date should display current clock/date info', function() {
+      currentDate = new Date();
+      CallScreen.showClock(currentDate);
+      var numbersStr = CallScreen.lockedClockNumbers.textContent;
+      var meridiemStr = CallScreen.lockedClockMeridiem.textContent;
+      var dateStr = CallScreen.lockedDate.textContent;
+      // The date parameter here should be equal to clock setup date.
+      assert.equal(formatArgs.length, 2);
+      assert.equal(formatArgs[0][0], currentDate);
+      assert.equal(formatArgs[1][0], currentDate);
+      assert.equal(numbersStr, fakeNumber);
+      assert.equal(meridiemStr, fakeMeridiem);
+      assert.equal(dateStr, fakeDate);
+    });
+  });
+
 });

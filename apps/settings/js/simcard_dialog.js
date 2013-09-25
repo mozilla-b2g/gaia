@@ -212,6 +212,13 @@ function SimPinDialog(dialog) {
 
   function verify() { // apply PIN|PUK
     switch (_action) {
+      // get PIN code
+      case 'get_pin':
+      case 'get_pin2':
+        _onsuccess(pinInput.value);
+        close();
+        break;
+
       // unlock SIM
       case 'unlock_pin':
         unlockPin();
@@ -281,7 +288,15 @@ function SimPinDialog(dialog) {
 
     var lockType = 'pin'; // used to query the number of retries left
     switch (action) {
-      // unlock
+      // get PIN code
+      case 'get_pin2':
+        lockType = 'pin2';
+      case 'get_pin':
+        setInputMode('pin');
+        _localize(dialogTitle, lockType + 'Title');
+        break;
+
+      // unlock SIM
       case 'unlock_pin':
         setInputMode('pin');
         _localize(dialogTitle, 'pinTitle');

@@ -10,8 +10,8 @@ var App = {
   panelClass: {
     'alarm-panel': Panel,
     'alarm-edit-panel': Panel,
-    'timer-panel': Panel,
-    'stopwatch-panel': Panel
+    'timer-panel': Timer.Panel,
+    'stopwatch-panel': Stopwatch.Panel
   },
 
   /**

@@ -77,7 +77,7 @@
   <script defer type="text/javascript" src="/ftu/js/variant_init.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
   <!-- Confirm dialogs BB library -->
-  <script defer type="text/javascript" src="/contacts/js/confirm_dialog.js"></script>
+  <script defer type="text/javascript" src="/contacts/js/utilities/confirm.js"></script>
 </head>
 <body>
   <section id="splash-screen" role="region" class="show">
@@ -146,6 +146,7 @@
     </header>
     <ol id="progress-bar" class="step-state">
       <li>languages</li>
+      <li>SIM_mandatory</li>
       <li>3g</li>
       <li>wifi</li>
       <li>configure network</li>
@@ -449,7 +450,11 @@
           </a>
         </p>
       </section>
-
+      <section role="region" id="SIM_mandatory">
+        <p data-l10n-id="SIM_mandatory_warm">
+          Please, insert a SIM card to continue.
+        </p>
+      </section>
       <section role="region" id="browser_privacy">
         <p data-l10n-id="mozillaCommunity2">
           When you use Browser OS, you become

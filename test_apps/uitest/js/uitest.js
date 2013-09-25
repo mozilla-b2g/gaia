@@ -37,10 +37,9 @@ var UITest = {
     window.addEventListener('keyup', this);
     window.addEventListener('hashchange', this);
     this.backBtn.addEventListener('click', this);
-    var self = this;
     navigator.mozSetMessageHandler('notification', function(msg) {
       this.handleNotificationMessage(msg);
-    }).bind(this);
+    }.bind(this));
 
     var name = this.getNameFromHash();
     if (name)

@@ -36,14 +36,6 @@
 function OperatorVariantHelper(listener, persistKey, checkNow) {
   var errMsg = null;
 
-  // OperatorVariantHelper requires mozMobileConnection to be present.
-  var mobileConnection = window.navigator.mozMobileConnection;
-  if (!mobileConnection) {
-    errMsg = 'Expected mozMobileConnection to be present.';
-    console.error(errMsg);
-    throw new Error(errMsg);
-  }
-
   // The IccHelper should be enabled as well.
   if (IccHelper === undefined || !IccHelper.enabled) {
     errMsg = 'Expected IccHelper to be enabled.';
@@ -108,15 +100,8 @@ OperatorVariantHelper.prototype = {
     return window.navigator.mozSettings;
   },
 
-  get mobileConnection() {
-    return window.navigator.mozMobileConnection;
-  },
-
   /**
    * Get the saved ICC Settings (MCC/MNC).
-   *
-   * @param {Boolean} verifyAgainstSIM Verify saved values against live value
-   *                                   reported by SIM card. Defaults to true.
    */
   getICCSettings: function() {
     var transaction = this.settings.createLock();
@@ -139,7 +124,7 @@ OperatorVariantHelper.prototype = {
    * to enable customization.
    */
   checkICCInfo: function() {
-    if (!this.mobileConnection.iccInfo || IccHelper.cardState !== 'ready')
+    if (!IccHelper.iccInfo || IccHelper.cardState !== 'ready')
       return;
 
     // ensure that the iccSettings have been retrieved
@@ -147,8 +132,8 @@ OperatorVariantHelper.prototype = {
       return;
 
     // XXX sometimes we get 0/0 for mcc/mnc, even when cardState === 'ready'...
-    var mcc = this.mobileConnection.iccInfo.mcc || '0';
-    var mnc = this.mobileConnection.iccInfo.mnc || '0';
+    var mcc = IccHelper.iccInfo.mcc || '0';
+    var mnc = IccHelper.iccInfo.mnc || '0';
     if (mcc === '0')
       return;
 
@@ -254,7 +239,7 @@ OperatorVariantHelper.prototype = {
       this._addedListener = this.customize.bind(this);
 
       // Add the actual bound listener.
-      this.mobileConnection.addEventListener(
+      IccHelper.addEventListener(
         'iccinfochange',
         this._addedListener
       );
@@ -264,7 +249,7 @@ OperatorVariantHelper.prototype = {
 
     if (this._addedListener) {
       // Otherwise, unregister.
-      this.mobileConnection.removeEventListener(
+      IccHelper.removeEventListener(
         'iccinfochange',
         this._addedListener
       );

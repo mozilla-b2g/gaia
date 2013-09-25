@@ -1117,7 +1117,14 @@
 
   // localize an element as soon as mozL10n is ready
   function localizeElement(element, id, args) {
-    if (!element || !id) {
+    if (!element) {
+      return;
+    }
+
+    if (!id) {
+      element.removeAttribute('data-l10n-id');
+      element.removeAttribute('data-l10n-args');
+      setTextContent(element, '');
       return;
     }
 

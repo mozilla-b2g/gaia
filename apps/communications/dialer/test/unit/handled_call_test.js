@@ -6,7 +6,6 @@ requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_keypad.js');
 requireApp('communications/dialer/test/unit/mock_utils.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
-
 requireApp('communications/dialer/test/unit/mock_call.js');
 
 requireApp('communications/dialer/js/handled_call.js');
@@ -47,6 +46,7 @@ suite('dialer/handled_call', function() {
     templates = document.createElement('div');
     templates.innerHTML = '<section id="handled-call-template" hidden>' +
                             '<div class="numberWrapper">' +
+                              '<div class="hangup-button"></div>' +
                               '<div class="number font-light"></div>' +
                             '</div>' +
                             '<div class="fake-number font-light"></div>' +
@@ -56,6 +56,7 @@ suite('dialer/handled_call', function() {
                               '<div class="direction">' +
                                 '<div></div>' +
                               '</div>' +
+                            '<button class="merge-button"></button>' +
                             '</div>' +
                           '</section>';
     document.body.appendChild(templates);
@@ -130,6 +131,11 @@ suite('dialer/handled_call', function() {
         var durationChildNode = subject.node.querySelector('.duration span');
         assert.equal(subject.durationChildNode, durationChildNode);
         assert.isTrue(durationChildNode.classList.contains('font-light'));
+      });
+
+      test('should have a merge button', function() {
+        var mergeButton = subject.node.querySelector('.merge-button');
+        assert.equal(subject.mergeButton, mergeButton);
       });
     });
 
@@ -220,35 +226,53 @@ suite('dialer/handled_call', function() {
       mockCall._connect();
       MockCallScreen.mute();
       MockCallScreen.turnSpeakerOn();
-      mockCall._disconnect();
     });
 
-    test('should save the recents entry', function() {
-      assert.equal(subject.recentsEntry, MockCallsHandler.mLastEntryAdded);
+    suite('from a regular call', function() {
+      setup(function() {
+        mockCall._disconnect();
+      });
+      test('should save the recents entry', function() {
+        assert.equal(subject.recentsEntry, MockCallsHandler.mLastEntryAdded);
+      });
+
+      test('should remove listener on the call', function() {
+        assert.isTrue(mockCall._listenerRemoved);
+      });
+
+      test('should keep the call', function() {
+        assert.ok(subject.call);
+      });
+
+      test('should nullify the photo', function() {
+        assert.isNull(subject.photo);
+      });
+
+      test('should clear the ticker', function() {
+        assert.equal(subject._ticker, null);
+      });
+
+      test('should remove the node from the dom', function() {
+        assert.isNull(node.parentNode);
+      });
+
+      test('should nullify the node', function() {
+        assert.isNull(subject.node);
+      });
+      test('it does not show the banner', function() {
+        assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
+      });
     });
 
-    test('should remove listener on the call', function() {
-      assert.isTrue(mockCall._listenerRemoved);
-    });
-
-    test('should keep the call', function() {
-      assert.ok(subject.call);
-    });
-
-    test('should nullify the photo', function() {
-      assert.isNull(subject.photo);
-    });
-
-    test('should clear the ticker', function() {
-      assert.equal(subject._ticker, null);
-    });
-
-    test('should remove the node from the dom', function() {
-      assert.isNull(node.parentNode);
-    });
-
-    test('should nullify the node', function() {
-      assert.isNull(subject.node);
+    suite('from a group', function() {
+      setup(function() {
+        mockCall.group = null;
+        mockCall.ongroupchange(mockCall);
+        mockCall._disconnect();
+      });
+      test('show the banner', function() {
+        assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
+      });
     });
   });
 
@@ -689,29 +713,51 @@ suite('dialer/handled_call', function() {
   });
 
   suite('ongroupchange', function() {
-    suite('when entering a group', function() {
-      test('should ask the CallScreen to move into the group details',
-      function() {
-        mockCall = new MockCall(String(phoneNumber), 'connected');
-        subject = new HandledCall(mockCall);
+    var moveToGroupSpy;
+    var insertCallSpy;
 
-        var moveToGroupSpy = this.sinon.spy(MockCallScreen, 'moveToGroup');
-        mockCall.group = this.sinon.stub();
-        mockCall.ongroupchange(mockCall);
-        assert.isTrue(moveToGroupSpy.calledWith(subject.node));
-      });
+    setup(function() {
+      mockCall = new MockCall(String(phoneNumber), 'connected');
+      subject = new HandledCall(mockCall);
+
+      moveToGroupSpy = this.sinon.spy(MockCallScreen, 'moveToGroup');
+      insertCallSpy = this.sinon.spy(MockCallScreen, 'insertCall');
     });
-    suite('when leaving a group', function() {
-      test('should ask the CallScreen to move back',
-      function() {
-        mockCall = new MockCall(String(phoneNumber), 'connected');
-        subject = new HandledCall(mockCall);
 
-        var insertCallSpy = this.sinon.spy(MockCallScreen, 'insertCall');
-        mockCall.group = null;
-        mockCall.ongroupchange(mockCall);
-        assert.isTrue(insertCallSpy.calledWith(subject.node));
-      });
+    test('When entering a group, it should ask ' +
+         'the CallScreen to move into the group details', function() {
+      mockCall.group = this.sinon.stub();
+      mockCall.ongroupchange(mockCall);
+      assert.isTrue(moveToGroupSpy.calledWith(subject.node));
+    });
+
+    test('when leaving a group, it should ask the CallScreen to move back',
+    function() {
+      mockCall.group = null;
+      mockCall.ongroupchange(mockCall);
+      assert.isTrue(insertCallSpy.calledWith(subject.node));
+    });
+  });
+
+  suite('Controls displayed when in a group', function() {
+    test('hangup button', function() {
+      mockCall = new MockCall(String(phoneNumber), 'connected');
+      subject = new HandledCall(mockCall);
+
+      var hangUpSpy = this.sinon.spy(mockCall, 'hangUp');
+      subject.hangupButton.onclick();
+      assert.isTrue(hangUpSpy.calledOnce);
+    });
+  });
+
+  suite('merge button', function() {
+    var addEventListenerSpy;
+
+    test('should listen for click', function() {
+      var mergeActiveCallWithSpy = this.sinon.spy(CallsHandler,
+                                                  'mergeActiveCallWith');
+      subject.mergeButton.onclick();
+      assert.isTrue(mergeActiveCallWithSpy.calledWith(subject.call));
     });
   });
 });

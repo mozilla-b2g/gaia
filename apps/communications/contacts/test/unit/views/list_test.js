@@ -2,7 +2,7 @@ require('/shared/js/lazy_loader.js');
 require('/shared/js/text_normalizer.js');
 require('/shared/js/tag_visibility_monitor.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
-requireApp('communications/contacts/js/search.js');
+requireApp('communications/contacts/js/views/search.js');
 requireApp('communications/contacts/js/views/list.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/templates.js');
@@ -381,7 +381,7 @@ suite('Render contacts list', function() {
     subject.setOrderByLastName(true);
     subject.init(list);
 
-    contacts.Search.load();
+    contacts.Search.init(list);
     subject.initSearch();
   });
 
@@ -1005,7 +1005,7 @@ suite('Render contacts list', function() {
       var contact = mockContacts[contactIndex];
 
       doLoad(subject, mockContacts, function() {
-        contacts.Search.load();
+        contacts.Search.init(mockContacts);
         contacts.List.initSearch(function onInit() {
           searchBox.value = contact.familyName[0];
           contacts.Search.enterSearchMode({preventDefault: function() {}});

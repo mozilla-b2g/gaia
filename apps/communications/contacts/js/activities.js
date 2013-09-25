@@ -122,7 +122,7 @@ var ActivityHandler = {
           title: _('ok'),
           callback: ConfirmDialog.hide
         };
-        ConfirmDialog.show(null, noDataStr, dismiss);
+        Contacts.confirmDialog(null, noDataStr, dismiss);
         break;
       case 1:
         // if one required type of data
@@ -179,7 +179,7 @@ var ActivityHandler = {
   filterPhoneNumberForActivity:
   function ah_filterPhoneNumberForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
-      return item.value == itemData.value;
+      return item.value == itemData;
     });
   },
 

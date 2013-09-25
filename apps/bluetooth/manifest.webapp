@@ -28,6 +28,7 @@
   },
   "permissions": {
     "bluetooth":{},
+    "desktop-notification":{},
     "settings":{ "access": "readwrite" }
   }
 }

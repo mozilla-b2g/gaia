@@ -103,52 +103,6 @@
   if (typeof exports === 'object')
     module.exports = factory();
   else if (typeof define === 'function' && define.amd)
-    define('activesync/codepages/ComposeMail',[], factory);
-  else
-    root.ASCPComposeMail = factory();
-}(this, function() {
-  'use strict';
-
-  return {
-    Tags: {
-      SendMail:        0x1505,
-      SmartForward:    0x1506,
-      SmartReply:      0x1507,
-      SaveInSentItems: 0x1508,
-      ReplaceMime:     0x1509,
-      /* Missing tag value 0x150A */
-      Source:          0x150B,
-      FolderId:        0x150C,
-      ItemId:          0x150D,
-      LongId:          0x150E,
-      InstanceId:      0x150F,
-      Mime:            0x1510,
-      ClientId:        0x1511,
-      Status:          0x1512,
-      AccountId:       0x1513,
-    }
-  };
-}));
-
-/* Copyright 2012 Mozilla Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-(function (root, factory) {
-  if (typeof exports === 'object')
-    module.exports = factory();
-  else if (typeof define === 'function' && define.amd)
     define('activesync/codepages/AirSync',[], factory);
   else
     root.ASCPAirSync = factory();
@@ -757,6 +711,7 @@ ActiveSyncFolderConn.prototype = {
     account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error(aError);
+        account._reportErrorIfNecessary(aError);
         callback('unknown');
         return;
       }
@@ -799,6 +754,8 @@ ActiveSyncFolderConn.prototype = {
     var ie = $ItemEstimate.Tags;
     var as = $AirSync.Tags;
 
+    var account = this._account;
+
     var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(ie.GetItemEstimate)
        .stag(ie.Collections)
@@ -827,9 +784,10 @@ ActiveSyncFolderConn.prototype = {
        .etag(ie.Collections)
      .etag(ie.GetItemEstimate);
 
-    this._account.conn.postCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error(aError);
+        account._reportErrorIfNecessary(aError);
         callback('unknown');
         return;
       }
@@ -1033,6 +991,7 @@ ActiveSyncFolderConn.prototype = {
 
       if (aError) {
         console.error('Error syncing folder:', aError);
+        folderConn._account._reportErrorIfNecessary(aError);
         callback('aborted');
         return;
       }
@@ -1495,6 +1454,7 @@ ActiveSyncFolderConn.prototype = {
       account.conn.postCommand(w, function(aError, aResponse) {
         if (aError) {
           console.error(aError);
+          account._reportErrorIfNecessary(aError);
           callback('unknown');
           return;
         }
@@ -1560,6 +1520,7 @@ ActiveSyncFolderConn.prototype = {
     account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error(aError);
+        account._reportErrorIfNecessary(aError);
         callback('unknown');
         return;
       }
@@ -1663,6 +1624,8 @@ ActiveSyncFolderConn.prototype = {
         return;
       }
       else if (error) {
+        // Sync is over!
+        folderConn._LOG.sync_end(null, null, null);
         doneCallback(error);
         return;
       }
@@ -1731,13 +1694,14 @@ ActiveSyncFolderConn.prototype = {
     var folderConn = this;
 
     var as = $AirSync.Tags;
+    var account = this._account;
 
     var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(as.Sync)
        .stag(as.Collections)
          .stag(as.Collection);
 
-    if (this._account.conn.currentVersion.lt('12.1'))
+    if (account.conn.currentVersion.lt('12.1'))
           w.tag(as.Class, 'Email');
 
           w.tag(as.SyncKey, this.syncKey)
@@ -1765,9 +1729,10 @@ ActiveSyncFolderConn.prototype = {
        .etag(as.Collections)
      .etag(as.Sync);
 
-    this._account.conn.postCommand(w, function(aError, aResponse) {
+    account.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
         console.error('postCommand error:', aError);
+        account._reportErrorIfNecessary(aError);
         callWhenDone('unknown');
         return;
       }
@@ -1831,6 +1796,7 @@ ActiveSyncFolderConn.prototype = {
     this._account.conn.postCommand(w, function(aError, aResult) {
       if (aError) {
         console.error('postCommand error:', aError);
+        folderConn._account._reportErrorIfNecessary(aError);
         callback('unknown');
         return;
       }
@@ -2586,8 +2552,9 @@ define('mailapi/activesync/account',
     '../accountmixins',
     '../mailslice',
     '../searchfilter',
+    // We potentially create the synthetic inbox while offline, so this can't be
+    // lazy-loaded.
     'activesync/codepages/FolderHierarchy',
-    'activesync/codepages/ComposeMail',
     './folder',
     './jobs',
     '../util',
@@ -2602,7 +2569,6 @@ define('mailapi/activesync/account',
     $mailslice,
     $searchfilter,
     $FolderHierarchy,
-    $ComposeMail,
     $asfolder,
     $asjobs,
     $util,
@@ -2613,27 +2579,26 @@ define('mailapi/activesync/account',
 'use strict';
 
 // Lazy loaded vars.
-var $wbxml;
+var $wbxml, $asproto, ASCP;
 
 var bsearchForInsert = $util.bsearchForInsert;
 
 var DEFAULT_TIMEOUT_MS = exports.DEFAULT_TIMEOUT_MS = 30 * 1000;
 
+/**
+ * Prototype-helper to wrap a method in a call to withConnection.  This exists
+ * largely for historical reasons.  All actual lazy-loading happens within
+ * withConnection.
+ */
 function lazyConnection(cbIndex, fn, failString) {
   return function lazyRun() {
     var args = Array.slice(arguments),
         errback = args[cbIndex],
         self = this;
 
-    require(['wbxml'], function (wbxml) {
-      if (!$wbxml) {
-        $wbxml = wbxml;
-      }
-
-      self.withConnection(errback, function () {
-        fn.apply(self, args);
-      }, failString);
-    });
+    this.withConnection(errback, function () {
+      fn.apply(self, args);
+    }, failString);
   };
 }
 
@@ -2643,14 +2608,17 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
   this.id = accountDef.id;
   this.accountDef = accountDef;
 
-  if (receiveProtoConn)
-    this.conn = receiveProtoConn;
-  else
-    this.conn = null;
-
   this._db = dbConn;
 
   this._LOG = LOGFAB.ActiveSyncAccount(this, _parentLog, this.id);
+
+  if (receiveProtoConn) {
+    this.conn = receiveProtoConn;
+    this._attachLoggerToConnection(this.conn);
+  }
+  else {
+    this.conn = null;
+  }
 
   this.enabled = true;
   this.problems = [];
@@ -2716,30 +2684,120 @@ ActiveSyncAccount.prototype = {
    * initialized yet.
    */
   withConnection: function (errback, callback, failString) {
-    if (!this.conn) {
-      require(['activesync/protocol'], function (activesync) {
-        var accountDef = this.accountDef;
-        this.conn = new activesync.Connection();
-        this.conn.open(accountDef.connInfo.server,
-                       accountDef.credentials.username,
-                       accountDef.credentials.password);
-        this.conn.timeout = DEFAULT_TIMEOUT_MS;
+    // lazy load our dependencies if they haven't already been fetched.  This
+    // occurs regardless of whether we have a connection already or not.  We
+    // do this because the connection may have been passed-in to us as a
+    // leftover of the account creation process.
+    if (!$wbxml) {
+      require(['wbxml', 'activesync/protocol', 'activesync/codepages'],
+              function (_wbxml, _asproto, _ASCP) {
+        $wbxml = _wbxml;
+        $asproto = _asproto;
+        ASCP = _ASCP;
 
         this.withConnection(errback, callback, failString);
       }.bind(this));
       return;
     }
 
+    if (!this.conn) {
+      var accountDef = this.accountDef;
+      this.conn = new $asproto.Connection();
+      this._attachLoggerToConnection(this.conn);
+      this.conn.open(accountDef.connInfo.server,
+                     accountDef.credentials.username,
+                     accountDef.credentials.password);
+      this.conn.timeout = DEFAULT_TIMEOUT_MS;
+    }
+
     if (!this.conn.connected) {
       this.conn.connect(function(error) {
         if (error) {
+          this._reportErrorIfNecessary(error);
           errback(failString || 'unknown');
           return;
         }
         callback();
-      });
+      }.bind(this));
     } else {
       callback();
+    }
+  },
+
+  /**
+   * Reports the error to the user if necessary.
+   */
+  _reportErrorIfNecessary: function(error) {
+    if (!error) {
+      return;
+    }
+
+    if (error instanceof $asproto.HttpError && error.status === 401) {
+      // prompt the user to try a different password
+      this.universe.__reportAccountProblem(this, 'bad-user-or-pass');
+    }
+  },
+
+
+  _attachLoggerToConnection: function(conn) {
+    // Use a somewhat unique-ish value for the id so that if we re-create the
+    // connection it's obvious it's different from the previous connection.
+    var logger = LOGFAB.ActiveSyncConnection(conn, this._LOG,
+                                             Date.now() % 1000);
+    if (logger.logLevel === 'safe') {
+      conn.onmessage = this._onmessage_safe.bind(this, logger);
+    }
+    else if (logger.logLevel === 'dangerous') {
+      conn.onmessage = this._onmessage_dangerous.bind(this, logger);
+    }
+  },
+
+  /**
+   * Basic onmessage ActiveSync protocol logging function.  This does not
+   * include user data and is intended for safe circular logging purposes.
+   */
+  _onmessage_safe: function onmessage(logger,
+      type, special, xhr, params, extraHeaders, sentData, response) {
+    if (type === 'options') {
+      logger.options(special, xhr.status, response);
+    }
+    else {
+      logger.command(type, special, xhr.status);
+    }
+  },
+
+  /**
+   * Dangerous onmessage ActiveSync protocol logging function.  This is
+   * intended to log user data for unit testing purposes or very specialized
+   * debugging only.
+   */
+  _onmessage_dangerous: function onmessage(logger,
+      type, special, xhr, params, extraHeaders, sentData, response) {
+    if (type === 'options') {
+      logger.options(special, xhr.status, response);
+    }
+    else {
+      var sentXML, receivedXML;
+      if (sentData) {
+        try {
+          var sentReader = new $wbxml.Reader(new Uint8Array(sentData), ASCP);
+          sentXML = sentReader.dump();
+        }
+        catch (ex) {
+          sentXML = 'parse problem';
+        }
+      }
+      if (response) {
+        try {
+          receivedXML = response.dump();
+          response.rewind();
+        }
+        catch (ex) {
+          receivedXML = 'parse problem';
+        }
+      }
+      logger.command(type, special, xhr.status, params, extraHeaders, sentXML,
+                     receivedXML);
     }
   },
 
@@ -2788,6 +2846,24 @@ ActiveSyncAccount.prototype = {
   },
 
   /**
+   * Check that the account is healthy in that we can login at all.
+   */
+  checkAccount: function(callback) {
+    // disconnect first so as to properly check credentials
+    if (this.conn != null) {
+      if (this.conn.connected) {
+        this.conn.disconnect();
+      }
+      this.conn = null;
+    }
+    this.withConnection(function(err) {
+      callback(err);
+    }, function() {
+      callback();
+    });
+  },
+
+  /**
    * We are being told that a synchronization pass completed, and that we may
    * want to consider persisting our state.
    */
@@ -2824,7 +2900,7 @@ ActiveSyncAccount.prototype = {
   syncFolderList: lazyConnection(0, function asa_syncFolderList(callback) {
     var account = this;
 
-    var fh = $FolderHierarchy.Tags;
+    var fh = ASCP.FolderHierarchy.Tags;
     var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderSync)
        .tag(fh.SyncKey, this.meta.syncKey)
@@ -2832,6 +2908,7 @@ ActiveSyncAccount.prototype = {
 
     this.conn.postCommand(w, function(aError, aResponse) {
       if (aError) {
+        account._reportErrorIfNecessary(aError);
         callback(aError);
         return;
       }
@@ -3154,9 +3231,9 @@ ActiveSyncAccount.prototype = {
     var parentFolderServerId = parentFolderId ?
       this._folderInfos[parentFolderId] : '0';
 
-    var fh = $FolderHierarchy.Tags;
-    var fhStatus = $FolderHierarchy.Enums.Status;
-    var folderType = $FolderHierarchy.Enums.Type.Mail;
+    var fh = ASCP.FolderHierarchy.Tags;
+    var fhStatus = ASCP.FolderHierarchy.Enums.Status;
+    var folderType = ASCP.FolderHierarchy.Enums.Type.Mail;
 
     var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderCreate)
@@ -3167,6 +3244,8 @@ ActiveSyncAccount.prototype = {
      .etag();
 
     this.conn.postCommand(w, function(aError, aResponse) {
+      account._reportErrorIfNecessary(aError);
+
       var e = new $wbxml.EventParser();
       var status, serverId;
 
@@ -3216,9 +3295,9 @@ ActiveSyncAccount.prototype = {
 
     var folderMeta = this._folderInfos[folderId].$meta;
 
-    var fh = $FolderHierarchy.Tags;
-    var fhStatus = $FolderHierarchy.Enums.Status;
-    var folderType = $FolderHierarchy.Enums.Type.Mail;
+    var fh = ASCP.FolderHierarchy.Tags;
+    var fhStatus = ASCP.FolderHierarchy.Enums.Status;
+    var folderType = ASCP.FolderHierarchy.Enums.Type.Mail;
 
     var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
     w.stag(fh.FolderDelete)
@@ -3227,6 +3306,8 @@ ActiveSyncAccount.prototype = {
      .etag();
 
     this.conn.postCommand(w, function(aError, aResponse) {
+      account._reportErrorIfNecessary(aError);
+
       var e = new $wbxml.EventParser();
       var status;
 
@@ -3267,7 +3348,7 @@ ActiveSyncAccount.prototype = {
       // ActiveSync 14.0 has a completely different API for sending email. Make
       // sure we format things the right way.
       if (this.conn.currentVersion.gte('14.0')) {
-        var cm = $ComposeMail.Tags;
+        var cm = ASCP.ComposeMail.Tags;
         var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
         w.stag(cm.SendMail)
            // The ClientId is defined to be for duplicate messages suppression
@@ -3282,6 +3363,7 @@ ActiveSyncAccount.prototype = {
 
         this.conn.postCommand(w, function(aError, aResponse) {
           if (aError) {
+            account._reportErrorIfNecessary(aError);
             console.error(aError);
             callback('unknown');
             return;
@@ -3307,6 +3389,7 @@ ActiveSyncAccount.prototype = {
                            encoder.encode(mimeBuffer).buffer,
                            function(aError, aResponse) {
           if (aError) {
+            account._reportErrorIfNecessary(aError);
             console.error(aError);
             callback('unknown');
             return;
@@ -3377,6 +3460,19 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     errors: {
       opError: { mode: false, type: false, ex: $log.EXCEPTION },
     }
+  },
+
+  ActiveSyncConnection: {
+    type: $log.CONNECTION,
+    events: {
+      options: { special: false, status: false, result: false },
+      command: { name: false, special: false, status: false },
+    },
+    TEST_ONLY_events: {
+      options: {},
+      command: { params: false, extraHeaders: false, sent: false,
+                 response: false },
+    },
   },
 });
 

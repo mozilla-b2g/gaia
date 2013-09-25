@@ -1,5 +1,5 @@
 var utils = require('./utils');
-var config = require('./config').config;
+var config;
 const { Cc, Ci, Cr, Cu, CC } = require('chrome');
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
@@ -14,21 +14,15 @@ function debug(str) {
  */
 
 var win = { navigator: {} };
-Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
-    '/shared/js/l10n.js?reload=' + new Date().getTime(), win);
-
-
 let scope = {};
-Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
-    '/build/jsmin.js?reload=' + new Date().getTime(), scope);
-const { JSMin } = scope;
+let JSMin;
 
 /**
  * Locale list -- by default, only the default one
  * (the default locale is always the last element in this array)
  */
 
-var l10nLocales = [config.GAIA_DEFAULT_LOCALE];
+var l10nLocales;
 function newDictionary() {
   let dictionary = {};
   l10nLocales.forEach(function(lang) {
@@ -214,9 +208,9 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
     if (!conf.content)
       return;
 
+    var gaia = utils.getGaia(config);
     // prefix the file we are about to write content to.
-    let scriptBaseName =
-      utils.Gaia.aggregatePrefix + conf.prefix + baseName + '.js';
+    let scriptBaseName = gaia.aggregatePrefix + conf.prefix + baseName + '.js';
 
     let target = rootDirectory.clone();
     target.append(scriptBaseName);
@@ -504,12 +498,20 @@ function optimize_compile(webapp, file, callback) {
 }
 
 
-function execute() {
+function execute(options) {
   /**
    * Pre-translate all HTML files for the default locale
    */
 
   debug('Begin');
+  config = options;
+
+  Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
+      '/shared/js/l10n.js?reload=' + new Date().getTime(), win);
+  Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
+      '/build/jsmin.js?reload=' + new Date().getTime(), scope);
+  JSMin = scope.JSMin;
+  l10nLocales = [config.GAIA_DEFAULT_LOCALE];
 
   if (config.GAIA_INLINE_LOCALES === '1' ||
       config.GAIA_CONCAT_LOCALES === '1') {
@@ -518,7 +520,8 @@ function execute() {
     // LOCALES_FILE is a relative path by default:
     // shared/resources/languages.json
     // -- but it can be an absolute path when doing a multilocale build.
-    let file = utils.getAbsoluteOrRelativePath(config.LOCALES_FILE); 
+    let file = utils.getAbsoluteOrRelativePath(config.LOCALES_FILE,
+      config.GAIA_DIR);
     let locales = JSON.parse(utils.getFileContent(file));
 
     // ensure the default locale comes last in `l10nLocales'.
@@ -530,7 +533,7 @@ function execute() {
     l10nLocales.push(config.GAIA_DEFAULT_LOCALE);
   }
 
-  utils.Gaia.webapps.forEach(function(webapp) {
+  utils.getGaia(config).webapps.forEach(function(webapp) {
     // if BUILD_APP_NAME isn't `*`, we only accept one webapp
     if (config.BUILD_APP_NAME != '*' &&
       webapp.sourceDirectoryName != config.BUILD_APP_NAME)

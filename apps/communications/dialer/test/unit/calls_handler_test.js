@@ -903,6 +903,24 @@ suite('calls handler', function() {
       });
     });
 
+    suite('> CallsHandler.checkCalls()', function() {
+      var firstConfCall;
+      var secondConfCall;
+      setup(function() {
+        firstConfCall = new MockCall('432423', 'incoming');
+        telephonyAddCall.call(this, firstConfCall, {trigger: true});
+        secondConfCall = new MockCall('432423555', 'incoming');
+        telephonyAddCall.call(this, secondConfCall, {trigger: true});
+      });
+
+      test('should check and set singleLine when exiting conference call mode',
+      function() {
+        MockMozTelephony.calls = [firstConfCall];
+        CallsHandler.checkCalls();
+        assert.isTrue(MockCallScreen.mSingleLine);
+      });
+    });
+
     suite('CallsHandler.activeCall', function() {
       var inactiveCall;
       var activeCall;
@@ -917,6 +935,88 @@ suite('calls handler', function() {
       test('should get active call', function() {
         var activeHandlerCall = CallsHandler.activecall;
           assert.equal(CallsHandler.activeCall.call, activeCall);
+      });
+    });
+
+    suite('CallsHandler.mergeActiveCallWith', function() {
+      suite('without a conference call ongoing', function() {
+        var inactiveCall;
+        var activeCall;
+        var addSpy;
+
+        setup(function() {
+          inactiveCall = new MockCall('543552', 'incoming');
+          activeCall = new MockCall('12334', 'connected');
+          telephonyAddCall.call(this, activeCall, {trigger: true});
+          telephonyAddCall.call(this, inactiveCall, {trigger: true});
+          MockMozTelephony.active = activeCall;
+          addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+        });
+
+        test('should call telephony.conferenceGroup.add()', function() {
+          CallsHandler.mergeActiveCallWith(inactiveCall);
+          assert.isTrue(addSpy.calledWith(activeCall, inactiveCall));
+        });
+      });
+
+      suite('with a conference call ongoing', function() {
+        var firstCall;
+        var extraCall;
+        var overflowCall;
+        var addSpy;
+
+        setup(function() {
+          firstCall = new MockCall('543552', 'incoming');
+          extraCall = new MockCall('12334', 'incoming');
+          overflowCall = new MockCall('424242', 'incoming');
+
+          telephonyAddCall.call(this, firstCall, {trigger: true});
+          telephonyAddCall.call(this, extraCall, {trigger: true});
+
+          telephonyAddCall.call(this, overflowCall);
+
+          MockMozTelephony.calls = [overflowCall];
+          MockMozTelephony.conferenceGroup.calls = [firstCall, extraCall];
+
+          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+
+          addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+        });
+
+        test('should call telephony.conferenceGroup.add()', function() {
+          CallsHandler.mergeActiveCallWith(overflowCall);
+          assert.isTrue(addSpy.calledWith(overflowCall));
+        });
+      });
+    });
+
+    suite('CallsHandler.mergeConferenceGroupWithActiveCall', function() {
+      var firstCall;
+      var extraCall;
+      var overflowCall;
+      var addSpy;
+
+      setup(function() {
+        firstCall = new MockCall('543552', 'incoming');
+        extraCall = new MockCall('12334', 'incoming');
+        overflowCall = new MockCall('424242', 'incoming');
+
+        telephonyAddCall.call(this, firstCall, {trigger: true});
+        telephonyAddCall.call(this, extraCall, {trigger: true});
+
+        telephonyAddCall.call(this, overflowCall);
+
+        MockMozTelephony.calls = [overflowCall];
+        MockMozTelephony.conferenceGroup.calls = [firstCall, extraCall];
+
+        MockMozTelephony.active = overflowCall;
+
+        addSpy = this.sinon.spy(MockMozTelephony.conferenceGroup, 'add');
+      });
+
+      test('should call telephony.conferenceGroup.add()', function() {
+        CallsHandler.mergeConferenceGroupWithActiveCall();
+        assert.isTrue(addSpy.calledWith(overflowCall));
       });
     });
   });

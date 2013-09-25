@@ -36,7 +36,9 @@ contacts.List = (function() {
       groupList = null,
       searchList = null,
       currentlySelected = 0,
-      selectNavigationController = null;
+      selectNavigationController = null,
+      boundSelectAction4Select = null,
+      boundSelectAction4Close = null;
 
   // Key on the async Storage
   var ORDER_KEY = 'order.lastname';
@@ -509,7 +511,9 @@ contacts.List = (function() {
     if (i < rowsPerPage)
       notifyAboveTheFold();
 
-    contacts.Search.appendNodes(nodes);
+    Contacts.view('Search', function viewLoaded() {
+      contacts.Search.appendNodes(nodes);
+    });
   }
 
   // Time until we show the first contacts "above the fold" is a very
@@ -776,7 +780,7 @@ contacts.List = (function() {
       }
     };
 
-    ConfirmDialog.show(null, msg, noObject);
+    Contacts.confirmDialog(null, msg, noObject);
   };
 
   function addToFavoriteList(favorite) {
@@ -1416,9 +1420,9 @@ contacts.List = (function() {
     selectActionButton.classList.remove('hide');
     selectActionButton.textContent = title;
     // Clear any previous click action and setup the current one
-    selectActionButton.removeEventListener('click', selectAction);
-    selectActionButton.addEventListener('click',
-      selectAction.bind(null, action));
+    selectActionButton.removeEventListener('click', boundSelectAction4Select);
+    boundSelectAction4Select = selectAction.bind(null, action);
+    selectActionButton.addEventListener('click', boundSelectAction4Select);
 
     // Show the select all/ deselecta ll butons
     selectForm.classList.remove('hide');
@@ -1450,7 +1454,10 @@ contacts.List = (function() {
     // Setup cancel select mode
     var close = document.getElementById('cancel_activity');
     close.removeEventListener('click', Contacts.cancel);
-    close.addEventListener('click', selectAction.bind(null, null));
+    if (!boundSelectAction4Close) {
+      boundSelectAction4Close = selectAction.bind(null, null);
+    }
+    close.addEventListener('click', boundSelectAction4Close);
     close.classList.remove('hide');
 
     clearClickHandlers();
@@ -1462,7 +1469,7 @@ contacts.List = (function() {
 
       // TODO: Find a better way to handle selection to both
       // the search list and the contacts one
-      if (contacts.Search && contacts.Search.isInSearchMode) {
+      if (contacts.Search && contacts.Search.isInSearchMode()) {
         contacts.Search.selectRow(id);
       }
 
@@ -1489,6 +1496,7 @@ contacts.List = (function() {
   var exitSelectMode = function exitSelectMode(canceling) {
     inSelectMode = false;
     selectAllChecked = false;
+    currentlySelected = 0;
     selectNavigationController.back();
 
     // Hide and show buttons
@@ -1502,6 +1510,7 @@ contacts.List = (function() {
       button.classList.remove('hide');
     });
 
+    selectActionButton.disabled = true;
     selectActionButton.classList.add('hide');
 
     // Clean the checks
@@ -1524,7 +1533,7 @@ contacts.List = (function() {
 
     // Restore close button
     var close = document.getElementById('cancel_activity');
-    close.removeEventListener('click', selectAction);
+    close.removeEventListener('click', boundSelectAction4Close);
     close.addEventListener('click', Contacts.cancel);
     close.classList.add('hide');
   };

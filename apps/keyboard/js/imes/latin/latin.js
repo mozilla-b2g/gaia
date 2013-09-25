@@ -931,4 +931,7 @@
     var c = inputText[i];
     return c === '.' || c === '?' || c === '!';
   }
+
+  if (!('LAYOUT_PAGE_DEFAULT' in window))
+    window.LAYOUT_PAGE_DEFAULT = null;
 }());

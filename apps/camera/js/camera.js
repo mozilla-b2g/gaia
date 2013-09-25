@@ -189,8 +189,6 @@ var Camera = {
   // Number of bytes left on disk to let us stop recording.
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
-  // Maximum image resolution for still photos taken with camera
-  MAX_IMAGE_RES: 1600 * 1200, // Just under 2 megapixels
   // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
   ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
 
@@ -1073,16 +1071,21 @@ var Camera = {
   },
 
   stopPreview: function camera_stopPreview() {
-    this.releaseScreenWakeLock();
-    if (this._recording) {
-      this.stopRecording();
+    try {
+      this.releaseScreenWakeLock();
+      if (this._recording) {
+        this.stopRecording();
+      }
+      this.hideFocusRing();
+      this.disableButtons();
+      this.viewfinder.pause();
+      this._previewActive = false;
+      this.viewfinder.mozSrcObject = null;
+    } catch (ex) {
+      console.error('error while stopping preview', ex.message);
+    } finally {
+      this.release();
     }
-    this.hideFocusRing();
-    this.disableButtons();
-    this.viewfinder.pause();
-    this._previewActive = false;
-    this.viewfinder.mozSrcObject = null;
-    this.release();
   },
 
   resumePreview: function camera_resumePreview() {
@@ -1410,7 +1413,12 @@ var Camera = {
       targetSize = {'width': this._pendingPick.source.data.width,
                     'height': this._pendingPick.source.data.height};
     }
-    var maxRes = this.MAX_IMAGE_RES;
+
+    // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution for still photos
+    // taken with camera. It's from config.js which is generated in build time,
+    // 5 megapixels by default (see build/application-data.js). It should be
+    // synced with Gallery app and update carefully.
+    var maxRes = CONFIG_MAX_IMAGE_PIXEL_SIZE;
     var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;

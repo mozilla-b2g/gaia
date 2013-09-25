@@ -83,6 +83,8 @@ BUILD_APP_NAME=$(APP)
 endif
 
 REPORTER?=Spec
+MOCHA_REPORTER?=dot
+NPM_REGISTRY?=http://registry.npmjs.org
 
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
@@ -287,38 +289,37 @@ TEST_DIRS ?= $(CURDIR)/tests
 
 
 define BUILD_CONFIG
-exports.config = {
-	"GAIA_DIR" : "$(CURDIR)",
-	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)",
-	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)",
-	"GAIA_SCHEME" : "$(SCHEME)",
-	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)",
-	"DEBUG" : $(DEBUG),
-	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS),
-	"DESKTOP" : $(DESKTOP),
-	"DEVICE_DEBUG" : $(DEVICE_DEBUG),
-	"HOMESCREEN" : "$(HOMESCREEN)",
-	"GAIA_PORT" : "$(GAIA_PORT)",
-	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)",
-	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))",
-	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)",
-	"PRODUCTION" : "$(PRODUCTION)",
-	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)",
-	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)",
-	"DOGFOOD" : "$(DOGFOOD)",
-	"OFFICIAL" : "$(MOZILLA_OFFICIAL)",
-	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)",
-	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)",
-	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)",
-	"GAIA_ENGINE" : "xpcshell",
-	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)",
-	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)",
-	"NOFTU" : "$(NOFTU)",
-	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)",
-	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)",
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)"
+{ \
+	"GAIA_DIR" : "$(CURDIR)", \
+	"PROFILE_DIR" : "$(CURDIR)$(SEP)$(PROFILE_FOLDER)", \
+	"PROFILE_FOLDER" : "$(PROFILE_FOLDER)", \
+	"GAIA_SCHEME" : "$(SCHEME)", \
+	"GAIA_DOMAIN" : "$(GAIA_DOMAIN)", \
+	"DEBUG" : $(DEBUG), \
+	"LOCAL_DOMAINS" : $(LOCAL_DOMAINS), \
+	"DESKTOP" : $(DESKTOP), \
+	"DEVICE_DEBUG" : $(DEVICE_DEBUG), \
+	"HOMESCREEN" : "$(HOMESCREEN)", \
+	"GAIA_PORT" : "$(GAIA_PORT)", \
+	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
+	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
+	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
+	"PRODUCTION" : "$(PRODUCTION)", \
+	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
+	"GAIA_DEV_PIXELS_PER_PX" : "$(GAIA_DEV_PIXELS_PER_PX)", \
+	"DOGFOOD" : "$(DOGFOOD)", \
+	"OFFICIAL" : "$(MOZILLA_OFFICIAL)", \
+	"GAIA_DEFAULT_LOCALE" : "$(GAIA_DEFAULT_LOCALE)", \
+	"GAIA_INLINE_LOCALES" : "$(GAIA_INLINE_LOCALES)", \
+	"GAIA_CONCAT_LOCALES" : "$(GAIA_CONCAT_LOCALES)", \
+	"GAIA_ENGINE" : "xpcshell", \
+	"GAIA_DISTRIBUTION_DIR" : "$(GAIA_DISTRIBUTION_DIR)", \
+	"GAIA_APPDIRS" : "$(GAIA_APPDIRS)", \
+	"NOFTU" : "$(NOFTU)", \
+	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
+	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
+	"SETTINGS_PATH" : "$(SETTINGS_PATH)" \
 }
-
 endef
 export BUILD_CONFIG
 
@@ -410,8 +411,11 @@ else ifeq ($(DEBUG),1)
 	touch $(PROFILE_FOLDER)/installed-extensions.json
 endif
 
+profile-dir:
+	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+
 # Copy preload contacts to profile
-contacts:
+contacts: profile-dir
 ifdef CONTACTS_PATH
 	@echo "Copying preload contacts to profile"
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
@@ -491,12 +495,8 @@ XULRUNNERSDK=./xulrunner-sdk/bin/run-mozilla.sh
 XPCSHELLSDK=./xulrunner-sdk/bin/xpcshell
 endif
 
-.PHONY: build-config-js
-build-config-js:
-	echo "$$BUILD_CONFIG" > $(CURDIR)$(SEP)build$(SEP)config.js
-
 .PHONY: install-xulrunner-sdk
-install-xulrunner-sdk: build-config-js
+install-xulrunner-sdk:
 ifndef USE_LOCAL_XULRUNNER_SDK
 ifneq ($(XULRUNNER_SDK_DOWNLOAD),$(shell cat .xulrunner-url 2> /dev/null))
 	rm -rf xulrunner-sdk
@@ -514,7 +514,9 @@ define run-js-command
 	echo "run-js-command $1";
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
 		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
-		-f build/xpcshell-commonjs.js -e "require('$(strip $1)').execute()"
+		-f build/xpcshell-commonjs.js \
+		-e "try{ require('$(strip $1)').execute($$BUILD_CONFIG); } \
+				catch(e) {dump('Exception: ' + e + '\n' + e.stack + '\n');}"
 endef
 
 # Optional files that may be provided to extend the set of default
@@ -537,8 +539,7 @@ PARTNER_PREF_FILES = \
   partner-prefs.js\
 
 # Generate profile/prefs.js
-preferences: install-xulrunner-sdk
-	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+preferences: profile-dir install-xulrunner-sdk
 	@$(call run-js-command, preferences)
 	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
@@ -554,8 +555,7 @@ preferences: install-xulrunner-sdk
 
 
 # Generate $(PROFILE_FOLDER)/
-applications-data: install-xulrunner-sdk
-	test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+applications-data: profile-dir install-xulrunner-sdk
 	@$(call run-js-command, applications-data)
 
 # Generate $(PROFILE_FOLDER)/extensions
@@ -591,7 +591,7 @@ ifndef APPS
 endif
 
 node_modules:
-	npm install
+	npm install --registry $(NPM_REGISTRY)
 
 b2g: node_modules
 	./node_modules/.bin/mozilla-download --verbose --product b2g $@
@@ -600,7 +600,8 @@ b2g: node_modules
 test-integration:
 	# override existing profile-test folder.
 	PROFILE_FOLDER=profile-test make
-	./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js")
+	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
+		--reporter $(MOCHA_REPORTER)
 
 .PHONY: test-perf
 test-perf:
@@ -855,8 +856,7 @@ purge:
 	$(ADB) remount
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
-$(PROFILE_FOLDER)/settings.json: install-xulrunner-sdk
-	@test -d $(PROFILE_FOLDER) || mkdir -p $(PROFILE_FOLDER)
+$(PROFILE_FOLDER)/settings.json: profile-dir install-xulrunner-sdk
 	@$(call run-js-command, settings)
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone

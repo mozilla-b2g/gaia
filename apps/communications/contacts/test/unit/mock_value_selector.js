@@ -16,7 +16,7 @@ function ValueSelector() {
     set onchange(callback) {
       // we always return the first value added
       if (callback)
-        callback(this.data.list[0]);
+        callback(this.data.list[0].value);
     }
   };
 

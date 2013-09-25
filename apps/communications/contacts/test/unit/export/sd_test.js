@@ -93,13 +93,12 @@ suite('Sd export', function() {
   test('Calling with 1 contact', function(done) {
     subject.setContactsToExport([c1]);
 
-    subject.doExport(function onFinish(error, total, exported, msg) {
+    subject.doExport(function onFinish(error, exported, msg) {
       assert.equal(false, subject.hasDeterminativeProgress());
       assert.equal(1, updateSpy.callCount);
       assert.equal('bar_foo.vcf', fileName);
       assert.isNull(error);
       assert.equal(1, exported);
-      assert.equal(1, total);
       done();
     });
   });
@@ -118,11 +117,10 @@ suite('Sd export', function() {
     '.vcf';
     subject.setContactsToExport(contacts);
 
-    subject.doExport(function onFinish(error, total, exported, msg) {
+    subject.doExport(function onFinish(error, exported, msg) {
       assert.equal(1, updateSpy.callCount);
       assert.isNull(error);
       assert.equal(contacts.length, exported);
-      assert.equal(contacts.length, total);
       assert.equal(name, fileName);
       done();
     });

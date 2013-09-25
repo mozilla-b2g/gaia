@@ -1,5 +1,5 @@
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('communications/contacts/test/unit/mock_contacts_match.js');
-requireApp('communications/contacts/test/unit/mock_lazy_loader.js');
 requireApp('communications/contacts/js/utilities/vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('system/shared/test/unit/mocks/mock_moz_contact.js');

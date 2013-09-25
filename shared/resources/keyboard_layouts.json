@@ -1,54 +1,155 @@
 {
   "layout"  : {
-    "ar"        : "arabic",
-    "as"        : "english",
-    "bn-BD"     : "english",
-    "ca"        : "english",
-    "cs"        : "english",
-    "cy"        : "english",
-    "cz"        : "czech",
-    "de"        : "german",
-    "el"        : "greek",
-    "en-US"     : "english",
-    "eo"        : "english",
-    "es"        : "spanish",
-    "et"        : "english",
-    "eu"        : "english",
-    "ff"        : "english",
-    "fr"        : "french",
-    "fy-NL"     : "english",
-    "ga-IE"     : "english",
-    "gd"        : "english",
-    "gl"        : "english",
-    "he"        : "hebrew",
-    "hi-IN"     : "english",
-    "ht"        : "english",
-    "hu"        : "hungarian",
-    "id"        : "english",
-    "it"        : "english",
-    "ja"        : "japanese",
-    "ko"        : "english",
-    "lij"       : "english",
-    "ml"        : "english",
-    "nb"        : "norwegian",
-    "nl"        : "english",
-    "or"        : "english",
-    "pa"        : "english",
-    "pl"        : "polish",
-    "pt-BR"     : "portuguese",
-    "ro"        : "romanian",
-    "ru"        : "russian",
-    "sk"        : "slovak",
-    "sl"        : "english",
-    "sq"        : "english",
-    "sr-Cyrl"   : "serbian",
-    "sr-Latn"   : "serbian",
-    "sv-SE"     : "english",
-    "te"        : "english",
-    "tr"        : "turkish",
-    "ur"        : "english",
-    "zh-CN"     : "zhuyin",
-    "zh-TW"     : "zhuyin"
+    "ar": [
+        {"layoutId": "ar", "appName": "keyboard"}
+    ],
+    "as": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "bn-BD": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "ca": [
+        {"layoutId": "ca", "appName": "keyboard"}
+    ],
+    "cs": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "cy": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "cz": [
+        {"layoutId": "cz", "appName": "keyboard"}
+    ],
+    "de": [
+        {"layoutId": "de", "appName": "keyboard"}
+    ],
+    "el": [
+        {"layoutId": "el", "appName": "keyboard"}
+    ],
+    "en-US": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "eo": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "es": [
+        {"layoutId": "es", "appName": "keyboard"}
+    ],
+    "et": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "eu": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "ff": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "fr": [
+        {"layoutId": "fr", "appName": "keyboard"}
+    ],
+    "fy-NL": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "ga-IE": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "gd": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "gl": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "he": [
+        {"layoutId": "he", "appName": "keyboard"}
+    ],
+    "hi-IN": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "ht": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "hu": [
+        {"layoutId": "hu", "appName": "keyboard"}
+    ],
+    "id": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "it": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "jp": [
+        {"layoutId": "jp-kanji", "appName": "keyboard"}
+    ],
+    "ko": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "lij": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "ml": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "nb": [
+        {"layoutId": "nb", "appName": "keyboard"}
+    ],
+    "nl": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "or": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "pa": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "pl": [
+        {"layoutId": "pl", "appName": "keyboard"}
+    ],
+    "pt-BR": [
+        {"layoutId": "pt-BR", "appName": "keyboard"}
+    ],
+    "ro": [
+        {"layoutId": "ro", "appName": "keyboard"}
+    ],
+    "ru": [
+        {"layoutId": "ru", "appName": "keyboard"}
+    ],
+    "sk": [
+        {"layoutId": "sk", "appName": "keyboard"}
+    ],
+    "sl": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "sq": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "sr-Cyrl": [
+        {"layoutId": "sr-Cyrl", "appName": "keyboard"},
+        {"layoutId": "sr-Latn", "appName": "keyboard"}
+    ],
+    "sr-Latn": [
+        {"layoutId": "sr-Latn", "appName": "keyboard"},
+        {"layoutId": "sr-Cyrl", "appName": "keyboard"}
+    ],
+    "sv-SE": [
+        {"layoutId": "sv", "appName": "keyboard"}
+    ],
+    "te": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "tr": [
+        {"layoutId": "tr-Q", "appName": "keyboard"},
+        {"layoutId": "tr-F", "appName": "keyboard"}
+    ],
+    "ur": [
+        {"layoutId": "en", "appName": "keyboard"}
+    ],
+    "zh-CN": [
+        {"layoutId": "zh-Hans-Pinyin", "appName": "keyboard"}
+    ],
+    "zh-TW": [
+        {"layoutId": "zh-Hant-Zhuyin", "appName": "keyboard"}
+    ]
   },
   "nonLatin" : ["ar", "el", "he", "hi-IN", "ja", "ko", "ru", "te", "zh-CN", "zh-TW"]
 }

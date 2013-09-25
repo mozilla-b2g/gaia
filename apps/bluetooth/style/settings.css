@@ -1,0 +1,83 @@
+/**
+ * Reference these style sheet from Settings app 
+ */
+
+/**
+ * Settings style & layout
+ * note: `lists.css' must be loaded before this stylesheet
+ */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  overflow: hidden;
+}
+
+
+/******************************************************************************
+ * Setting panels: full-size <section role="region"> blocks
+ */
+
+/* Setting panels: full-size <section role="region"> blocks */
+section[role="region"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: url(images/document_bg.png);
+  overflow: hidden;
+}
+
+/**
+ * Headers should not scroll with the rest of the page, except for #root.
+ */
+section[role="region"] > header {
+  position: absolute;
+}
+
+section[role="region"] > div {
+  position: absolute;
+  top: 5rem;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+  overflow-y: scroll;
+}
+
+
+/******************************************************************************
+ * Explanation texts
+ */
+
+.explanation {
+  padding: 0.5rem 1.5rem;
+  font-style: italic;
+  font-size: 1.4rem;
+  color: #505859;
+}
+
+.description {
+  padding: 1rem 1.5rem;
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+  -moz-hyphens: auto;
+}
+
+.description p {
+  padding: 0 0 1rem;
+  font-size: 1.7rem;
+  line-height: 2.3rem;
+  white-space: normal;
+}
+
+.description a {
+  font-size: 1.7rem;
+}

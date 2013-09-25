@@ -488,13 +488,27 @@ var ThreadUI = global.ThreadUI = {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'webcontacts/contact'
+        type: 'webcontacts/tel'
       }
     });
 
     activity.onsuccess = (function() {
-      Utils.getContactDisplayInfo(Contacts.findByPhoneNumber.bind(Contacts),
-        activity.result.number,
+      // As we have the whole contact from the activity, there is no
+      // need for adding a second request to Contacts API.
+      var dummyResolver = function dummyResolver(phoneNumber, cb) {
+        cb(activity.result);
+      };
+
+      if (!activity.result ||
+          !activity.result.tel ||
+          !activity.result.tel.length ||
+          !activity.result.tel[0].value) {
+        console.error('The pick activity result is invalid.');
+        return;
+      }
+
+      Utils.getContactDisplayInfo(dummyResolver,
+        activity.result.tel[0].value,
         (function onData(data) {
         data.source = 'contacts';
         this.recipients.add(data);
@@ -510,12 +524,10 @@ var ThreadUI = global.ThreadUI = {
   updateComposerHeader: function thui_updateComposerHeader() {
     var recipientCount = this.recipients.length;
     if (recipientCount > 0) {
-      this.contactPickButton.classList.add('disabled');
       navigator.mozL10n.localize(this.headerText, 'recipient', {
           n: recipientCount
       });
     } else {
-      this.contactPickButton.classList.remove('disabled');
       navigator.mozL10n.localize(this.headerText, 'newMessage');
     }
     // Check if we need to enable send button.
@@ -659,8 +671,13 @@ var ThreadUI = global.ThreadUI = {
 
     // Use backend api for precise sms segmentation information.
     var smsInfoRequest = this._mozMobileMessage.getSegmentInfoForText(value);
-    smsInfoRequest.onsuccess = (function onSmsInfo(e) {
-      var smsInfo = e.target.result;
+    smsInfoRequest.onsuccess = (function onSmsInfo(event) {
+      if (Compose.type !== 'sms') {
+        // bailout if the type changed since the request started
+        return;
+      }
+
+      var smsInfo = event.target.result;
       var segments = smsInfo.segments;
       var availableChars = smsInfo.charsAvailableInLastSegment;
 

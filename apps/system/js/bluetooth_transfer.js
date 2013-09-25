@@ -6,7 +6,6 @@
 'use strict';
 
 var BluetoothTransfer = {
-  bannerContainer: null,
   pairList: {
     index: []
   },
@@ -17,11 +16,6 @@ var BluetoothTransfer = {
     delete this.transferStatusList;
     return this.transferStatusList =
       document.getElementById('bluetooth-transfer-status-list');
-  },
-
-  get banner() {
-    delete this.banner;
-    return this.banner = document.getElementById('system-banner');
   },
 
   init: function bt_init() {
@@ -43,7 +37,6 @@ var BluetoothTransfer = {
     window.addEventListener('bluetooth-opp-transfer-complete',
       this.onTransferComplete.bind(this)
     );
-    this.bannerContainer = this.banner.firstElementChild;
   },
 
   getDeviceName: function bt_getDeviceName(address) {
@@ -325,18 +318,6 @@ var BluetoothTransfer = {
     this.transferStatusList.removeChild(finishedTask);
   },
 
-  showBanner: function bt_showBanner(isComplete) {
-    var _ = navigator.mozL10n.get;
-    var status = (isComplete) ? _('complete') : _('failed');
-    this.banner.addEventListener('animationend', function animationend() {
-      this.banner.removeEventListener('animationend', animationend);
-      this.banner.classList.remove('visible');
-    }.bind(this));
-    this.bannerContainer.textContent = _('bluetooth-file-transfer-result',
-      { status: status });
-    this.banner.classList.add('visible');
-  },
-
   onCancelTransferTask: function bt_onCancelTransferTask(evt) {
     var id = evt.target.dataset.id;
     // Show confirm dialog for user to cancel transferring task
@@ -384,13 +365,10 @@ var BluetoothTransfer = {
     var fileName =
       (transferInfo.fileName) ? transferInfo.fileName : _('unknown-file');
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
-    // Show banner and notification
+    // Show notification
     if (transferInfo.success == true) {
-       // Show completed message of transferred result on the banner
-      this.showBanner(true);
       if (transferInfo.received) {
         // Received file can be opened only
-        // TODO: Need to modify the icon after visual provide
         NotificationHelper.send(_('transferFinished-receivedSuccessful-title'),
                                 fileName,
                                 icon,
@@ -401,8 +379,6 @@ var BluetoothTransfer = {
                                 icon);
       }
     } else {
-      // Show failed message of transferred result on the banner
-      this.showBanner(false);
       if (transferInfo.received) {
         NotificationHelper.send(_('transferFinished-receivedFailed-title'),
                                 fileName,
@@ -455,12 +431,12 @@ var BluetoothTransfer = {
 
       switch (mappedType) {
         case 'text/x-vcard':
+        case 'text/vcard':
           activityOptions.name = 'import';
           break;
         default:
           activityOptions.name = 'open';
       }
-
       var a = new MozActivity(activityOptions);
 
       a.onerror = function(e) {

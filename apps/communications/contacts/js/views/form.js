@@ -164,6 +164,7 @@ contacts.Form = (function() {
 
     // Add listeners
     utils.listeners.add({
+      '#cancel-edit': Contacts.cancel, // Cancel edition
       '#save-button': saveContact,
       '#contact-form button[data-field-type]': newField
     });
@@ -258,7 +259,7 @@ contacts.Form = (function() {
         }
       };
 
-      ConfirmDialog.show(null, msg, noObject, yesObject);
+      Contacts.confirmDialog(null, msg, noObject, yesObject);
     };
   };
 

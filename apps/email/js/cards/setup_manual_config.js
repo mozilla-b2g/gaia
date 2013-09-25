@@ -80,6 +80,11 @@ function SetupManualConfig(domNode, mode, args) {
   this.requireFields('smtp', true);
   this.requireFields('activeSync', false);
 
+  this.formItems.imap.socket.addEventListener(
+    'change', this.onChangeImapSocket.bind(this));
+  this.formItems.smtp.socket.addEventListener(
+    'change', this.onChangeSmtpSocket.bind(this));
+
   new FormNavigation({
     formElem: this.formNode,
     onLast: this.onNext.bind(this)
@@ -153,6 +158,31 @@ SetupManualConfig.prototype = {
     this.requireFields('imap', isImapSmtp);
     this.requireFields('smtp', isImapSmtp);
     this.requireFields('activeSync', !isImapSmtp);
+  },
+
+  // If the user selects a different socket type, autofill the most likely port.
+  onChangeImapSocket: function(event) {
+    const SSL_VALUE = '993';
+    const STARTTLS_VALUE = '143';
+    var socketType = event.target.value;
+    var portField = this.formItems.imap.port;
+    if (socketType === 'SSL' && portField.value === STARTTLS_VALUE) {
+      portField.value = SSL_VALUE;
+    } else if (socketType == 'STARTTLS' && portField.value == SSL_VALUE) {
+      portField.value = STARTTLS_VALUE;
+    }
+  },
+
+  onChangeSmtpSocket: function(event) {
+    const SSL_VALUE = '465';
+    const STARTTLS_VALUE = '587';
+    var socketType = event.target.value;
+    var portField = this.formItems.smtp.port;
+    if (socketType === 'SSL' && portField.value === STARTTLS_VALUE) {
+      portField.value = SSL_VALUE;
+    } else if (socketType == 'STARTTLS' && portField.value == SSL_VALUE) {
+      portField.value = STARTTLS_VALUE;
+    }
   },
 
   requireFields: function(type, required) {

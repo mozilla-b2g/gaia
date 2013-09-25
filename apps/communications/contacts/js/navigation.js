@@ -76,6 +76,10 @@ function navigationStack(currentView) {
     // -moz-element and animate this 'screenshot" element.
     if (transition.indexOf('go-deeper') === 0) {
       current = document.getElementById(screenshotViewId);
+
+      // Load the screenshot dom content
+      LazyLoader.load([current]);
+
       currentClassList = current.classList;
       if (transition.indexOf('search') !== -1) {
         currentClassList.add('search');

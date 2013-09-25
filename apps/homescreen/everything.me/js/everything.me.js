@@ -1,18 +1,30 @@
-var EverythingME = {
+'use strict';
 
-  displayed: false,
+var EverythingME = {
+  pendingEvent: undefined,
 
   init: function EverythingME_init() {
     var footer = document.querySelector('#footer');
     if (footer) {
       footer.style.MozTransition = '-moz-transform .3s ease';
     }
-    
-    var self = this,
-        page = document.getElementById('landing-page'),
-        activationIcon = document.getElementById('evme-activation-icon');
 
-    activationIcon.innerHTML = '<input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default" />';
+    var page = document.getElementById('evmeContainer'),
+        gridPage = document.querySelector('#icongrid > div:first-child'),
+        appsEl = document.getElementById('icongrid');
+
+    gridPage.classList.add('evmePage');
+
+
+    // pre-evme-load pseudo searchbar
+    var activationIcon = document.createElement('div');
+    activationIcon.id = 'evme-activation-icon';
+    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default" /></div>';
+
+    // insert into first page
+    gridPage.insertBefore(activationIcon, gridPage.firstChild);
+
+    // Append appropriate placeholder translation to pseudo searchbar
     navigator.mozL10n.ready(function loadSearchbarValue() {
       var input = activationIcon.querySelector('input'),
           defaultText = navigator.mozL10n.get('evme-searchbar-default2') || '';
@@ -20,114 +32,153 @@ var EverythingME = {
       input.setAttribute('placeholder', defaultText);
     });
 
-    activationIcon.addEventListener('click', onClick);
+    // add event listeners that trigger evme load
     activationIcon.addEventListener('contextmenu', onContextMenu);
+    activationIcon.addEventListener('click', triggerActivateFromInput);
+    window.addEventListener('collectionlaunch', triggerActivate);
+    window.addEventListener('EvmeDropApp', triggerActivate);
 
-    page.addEventListener('gridpageshowend', function onPageShow() {
-      EvmeFacade.onShow();
-    });
-    page.addEventListener('gridpagehideend', function onPageHide() {
-      EvmeFacade.onHide();
-    });
+    // specifically for pseudo searchbar
+    function triggerActivateFromInput(e) {
+      // gives the searchbar evme styling
+      document.body.classList.add('evme-loading-from-input');
+      triggerActivate(e);
+    }
 
-    function onClick(e) {
-      this.removeEventListener('click', onClick);
-      this.removeEventListener('contextmenu', onContextMenu);
-      self.activate();
+    function triggerActivate(e) {
+      // save original invoking event for post-emve-load replay
+      EverythingME.pendingEvent = e;
+
+      // remove pre-evme-load listeners
+      activationIcon.removeEventListener('click', triggerActivateFromInput);
+      activationIcon.removeEventListener('contextmenu', onContextMenu);
+      window.removeEventListener('collectionlaunch', triggerActivate);
+      window.removeEventListener('EvmeDropApp', triggerActivate);
+
+      // load styles required for Collection styling
+      LazyLoader.load([
+        'shared/style_unstable/progress_activity.css',
+        'everything.me/modules/Collection/Collection.css'],
+        function assetsLoaded() {
+          // open the collection immediately
+          if (e.type === 'collectionlaunch') {
+            onCollectionOpened(activationIcon);
+          }
+
+          // Activate evme load
+          // But wait a tick, so there's no flash of unstyled progress indicator
+          window.setTimeout(EverythingME.activate, 0);
+        }
+      );
+    }
+
+    // show Collection loading
+    function onCollectionOpened(activationIcon) {
+      // add classes for Collection styling
+      appsEl.classList.add('evme-collection-visible');
+      var elCollection = document.getElementById('collection');
+      elCollection.classList.add('visible');
+      var elLoader = elCollection.querySelector(".loading-more");
+      elLoader.classList.add('show');
+
+      // add temporary Collection close listeners
+      var closeButton  = elCollection.querySelector('.close');
+      closeButton.addEventListener('click', EverythingME.onCollectionClosed);
+      window.addEventListener("hashchange", EverythingME.onCollectionClosed);
     }
 
     function onContextMenu(e) {
       e.stopPropagation();
     }
 
+    gridPage.addEventListener('gridpageshowend', function onPageShow() {
+      EvmeFacade.onShow();
+    });
+    gridPage.addEventListener('gridpagehideend', function onPageHide() {
+      EvmeFacade.onHide();
+    });
+
     EverythingME.migrateStorage();
   },
-  
-  activate: function EverythingME_activate(e) {
-    document.body.classList.add('evme-loading');
 
-    this.load(function onEvmeLoaded() {
-      var page = document.getElementById('evmeContainer'),
-          landingPage = document.getElementById('landing-page'),
-          activationIcon = document.getElementById('evme-activation-icon'),
-          input = activationIcon.querySelector('input'),
-          existingQuery = input && input.value;
-      
-      landingPage.appendChild(page.parentNode.removeChild(page));
-      EvmeFacade.onShow();
-      
-      // set the query the user entered before loaded
-      input = document.getElementById('search-q');
-      if (input) {
-        if (existingQuery) {
-          EvmeFacade.searchFromOutside(existingQuery);
-        }
+  // remove pre-evme-load changes
+  onCollectionClosed: function onCollectionClosed(activationIcon) {
+    var appsEl = document.getElementById('icongrid');
+    appsEl.classList.remove('evme-collection-visible');
 
-        EvmeFacade.Searchbar && EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
-        input.setSelectionRange(existingQuery.length, existingQuery.length);
-      }
+    var elCollection = document.getElementById('collection');
+    elCollection.classList.remove('visible');
 
-      document.body.classList.remove('evme-loading');
-      
-      activationIcon.parentNode.removeChild(activationIcon);
-    });
+    EverythingME.pendingEvent = undefined;
   },
 
-  load: function EverythingME_load(success) {
+  activate: function EverythingME_activate() {
+    document.body.classList.add('evme-loading');
 
+    EverythingME.load();
+  },
+
+  load: function EverythingME_load(callback) {
     var CB = !('ontouchstart' in window),
-        js_files = ['js/etmmanager.js',
-                    'js/Core.js',
-                    'config/config.js',
-                    'config/shortcuts.js',
-                    'js/developer/utils.1.3.js',
-                    'js/helpers/Utils.js',
-                    'js/Brain.js',
-                    'modules/Apps/Apps.js',
-                    'modules/BackgroundImage/BackgroundImage.js',
-                    'modules/Banner/Banner.js',
-                    'modules/Location/Location.js',
-                    'modules/Shortcuts/Shortcuts.js',
-                    'modules/ShortcutsCustomize/ShortcutsCustomize.js',
-                    'modules/Searchbar/Searchbar.js',
-                    'modules/SearchHistory/SearchHistory.js',
-                    'modules/Helper/Helper.js',
-                    'modules/ConnectionMessage/ConnectionMessage.js',
-                    'modules/SmartFolder/SmartFolder.js',
-                    'modules/Tasker/Tasker.js',
-                    'modules/Features/Features.js',
-                    'js/helpers/Storage.js',
-                    'js/plugins/Scroll.js',
-                    'js/external/uuid.js',
-                    'js/api/apiv2.js',
-                    'js/api/DoATAPI.js',
-                    'js/helpers/EventHandler.js',
-                    'js/helpers/Idle.js',
-                    'js/plugins/Analytics.js',
-                    'js/plugins/APIStatsEvents.js'];
-    var css_files = ['css/common.css',
-                     'modules/Apps/Apps.css',
-                     'modules/BackgroundImage/BackgroundImage.css',
-                     'modules/Banner/Banner.css',
-                     'modules/Shortcuts/Shortcuts.css',
-                     'modules/ShortcutsCustomize/ShortcutsCustomize.css',
-                     'modules/Searchbar/Searchbar.css',
-                     'modules/Helper/Helper.css',
-                     'modules/ConnectionMessage/ConnectionMessage.css',
-                     'modules/SmartFolder/SmartFolder.css'];
+        js_files = [
+          'js/Core.js',
+          'js/etmmanager.js',
+
+          'config/config.js',
+          'js/developer/utils.1.3.js',
+          'js/helpers/Utils.js',
+          'js/helpers/Storage.js',
+          'js/helpers/IconManager.js',
+          'js/plugins/Scroll.js',
+          'js/api/apiv2.js',
+          'js/api/DoATAPI.js',
+          'js/helpers/EventHandler.js',
+          'js/helpers/Idle.js',
+          'shared/js/settings_listener.js',
+          'js/plugins/Analytics.js',
+          'js/plugins/APIStatsEvents.js',
+          'js/Brain.js',
+          'modules/BackgroundImage/BackgroundImage.js',
+          'modules/Banner/Banner.js',
+          'modules/ConnectionMessage/ConnectionMessage.js',
+          'modules/Features/Features.js',
+          'modules/Helper/Helper.js',
+          'modules/Location/Location.js',
+          'modules/Results/Result.js',
+          'modules/Results/providers/CloudApps.js',
+          'modules/Results/providers/InstalledApps.js',
+          'modules/Results/providers/MarketApps.js',
+          'modules/Results/providers/MarketSearch.js',
+          'modules/Results/providers/StaticApps.js',
+          'modules/Results/ResultManager.js',
+          'modules/Searchbar/Searchbar.js',
+          'modules/SearchHistory/SearchHistory.js',
+          'modules/CollectionsSuggest/CollectionsSuggest.js',
+          'modules/Collection/Collection.js'
+        ],
+        css_files = [
+          'shared/style/confirm.css',
+          'shared/style/status.css',
+          'shared/style/action_menu.css',
+          'css/common.css',
+          'modules/BackgroundImage/BackgroundImage.css',
+          'modules/Banner/Banner.css',
+          'modules/ConnectionMessage/ConnectionMessage.css',
+          'modules/Helper/Helper.css',
+          'modules/Results/Results.css',
+          'modules/Searchbar/Searchbar.css',
+          'modules/CollectionsSuggest/CollectionsSuggest.css'
+        ];
+
     var head = document.head;
 
     var scriptLoadCount = 0;
     var cssLoadCount = 0;
 
-    var progressLabel = document.querySelector('#loading-overlay span');
-    var progressElement = document.querySelector('#loading-overlay progress');
-    var total = js_files.length + css_files.length, counter = 0;
-
     function onScriptLoad(event) {
       event.target.removeEventListener('load', onScriptLoad);
       if (++scriptLoadCount == js_files.length) {
-        EverythingME.start(success);
+        EverythingME.start();
       } else {
         loadScript(js_files[scriptLoadCount]);
       }
@@ -146,38 +197,83 @@ var EverythingME = {
       var link = document.createElement('link');
       link.type = 'text/css';
       link.rel = 'stylesheet';
-      link.href = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
+      link.href = (file.indexOf('shared/') !== -1 ? '' : 'everything.me/') +
+                   file + (CB ? '?' + Date.now() : '');
       link.addEventListener('load', onCSSLoad);
-      setTimeout(function appendCSS() { head.appendChild(link); }, 0);
+      window.setTimeout(function load() {
+        head.appendChild(link);
+      }, 0);
     }
 
     function loadScript(file) {
       var script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
+      script.src = (file.indexOf('shared/') !== -1 ? '' : 'everything.me/') +
+                   file + (CB ? '?' + Date.now() : '');
       script.defer = true;
       script.addEventListener('load', onScriptLoad);
-      setTimeout(function appendScript() { head.appendChild(script) }, 0);
+      window.setTimeout(function load() {
+        head.appendChild(script);
+      }, 0);
     }
 
-    loadCSS(css_files[cssLoadCount]);
+    loadCSS(css_files[0]);
   },
 
-  initEvme: function EverythingME_initEvme(success) {
-    Evme.init();
-    EvmeFacade = Evme;
-    success();
-  },
-
-  start: function EverythingME_start(success) {
+  start: function EverythingME_start() {
     if (document.readyState === 'complete') {
-      EverythingME.initEvme(success);
+      EverythingME.initEvme();
     } else {
       window.addEventListener('load', function onload() {
         window.removeEventListener('load', onload);
-        EverythingME.initEvme(success);
+          EverythingME.initEvme();
       });
     }
+  },
+
+  initEvme: function EverythingME_initEvme() {
+    Evme.init(EverythingME.onEvmeLoaded);
+    EvmeFacade = Evme;
+  },
+
+  onEvmeLoaded: function onEvmeLoaded() {
+    var page = document.getElementById('evmeContainer'),
+        gridPage = document.querySelector('#icongrid > div:first-child'),
+        activationIcon = document.getElementById('evme-activation-icon'),
+        activationIconInput = activationIcon.querySelector('input'),
+        existingQuery = activationIconInput && activationIconInput.value,
+        evmeInput = document.getElementById('search-q'),
+        closeButton = document.querySelector('#collection .close');
+
+    // add evme into the first grid page
+    gridPage.appendChild(page.parentNode.removeChild(page));
+
+    EvmeFacade.onShow();
+
+    var e = EverythingME.pendingEvent;
+
+    if (e && evmeInput && e.target === activationIconInput) {
+      // set the query the user entered before loaded
+      if (existingQuery) {
+        EvmeFacade.searchFromOutside(existingQuery);
+      }
+
+      EvmeFacade.Searchbar && EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
+      evmeInput.setSelectionRange(existingQuery.length, existingQuery.length);
+    }
+
+    closeButton.removeEventListener('click', EverythingME.onCollectionClosed);
+
+    window.removeEventListener("hashchange", EverythingME.onCollectionClosed);
+
+    document.body.classList.remove('evme-loading');
+    document.body.classList.remove('evme-loading-from-input');
+
+    activationIcon.parentNode.removeChild(activationIcon);
+
+    if (e && e.target) {
+      e.target.dispatchEvent(e);
+    };
   },
 
   destroy: function EverythingME_destroy() {
@@ -190,7 +286,7 @@ var EverythingME = {
   },
 
   // copy relevant user data from 1.0.1 to 1.1 versions
-  migrateStorage: function EverythingME_migrateStorage(onComplete) {
+  migrateStorage: function EverythingME_migrateStorage(onComplete, force) {
     var migrationStorageKey = 'migrated_1.0.1_to_1.1';
 
     if (!onComplete) {
@@ -199,7 +295,7 @@ var EverythingME = {
 
     asyncStorage.getItem(migrationStorageKey, function evmeMigration(value) {
       // this means we already migrated, so everything's a-ok
-      if (value === true) {
+      if (value === true && !force) {
         onComplete();
         return;
       }
@@ -223,7 +319,7 @@ var EverythingME = {
       for (var key in AUTOMATIC_KEYS) {
         EverythingME.copyStorageToDB(key, AUTOMATIC_KEYS[key], onDataMigrated);
       }
-      
+
       function onDataMigrated() {
         numberOfKeysDone++;
         if (numberOfKeysDone >= numberOfKeys) {
@@ -233,7 +329,7 @@ var EverythingME = {
       }
     });
   },
-  
+
   copyStorageToDB: function copyStorageToDB(oldKey, newKey, onComplete) {
     if (!onComplete) {
       onComplete = function() {};
@@ -277,7 +373,7 @@ var EverythingME = {
       onComplete(false);
       return false;
     }
-    
+
     function deleteOld() {
       window.localStorage[oldKey] = null;
       delete window.localStorage[oldKey];

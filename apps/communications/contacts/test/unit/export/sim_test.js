@@ -53,12 +53,11 @@ suite('Sim export', function() {
   test('Calling with 1 contact', function(done) {
     subject.setContactsToExport([c1]);
 
-    subject.doExport(function onFinish(error, total, exported, msg) {
+    subject.doExport(function onFinish(error, exported, msg) {
       assert.equal(false, subject.hasDeterminativeProgress());
       assert.ok(updateSpy.calledOnce);
       assert.isNull(error);
       assert.equal(1, exported);
-      assert.equal(1, total);
       done();
     });
   });
@@ -67,12 +66,11 @@ suite('Sim export', function() {
     var contacts = [c1, c2];
     subject.setContactsToExport(contacts);
 
-    subject.doExport(function onFinish(error, total, exported, msg) {
+    subject.doExport(function onFinish(error, exported, msg) {
       assert.ok(subject.hasDeterminativeProgress());
       assert.equal(contacts.length, updateSpy.callCount);
       assert.isNull(error);
       assert.equal(contacts.length, exported);
-      assert.equal(contacts.length, total);
       done();
     });
   });
@@ -93,7 +91,7 @@ suite('Sim export', function() {
       return doFaultyProgress();
     }());
 
-    subject.doExport(function onFinish(error, total, exported, msg) {
+    subject.doExport(function onFinish(error, exported, msg) {
       assert.ok(subject.hasDeterminativeProgress());
       assert.equal(contacts.length, updateSpy.callCount);
       // We do have an error this time
@@ -101,7 +99,6 @@ suite('Sim export', function() {
       // The progress fails, but the real process of exporting
       // continues
       assert.equal(contacts.length, exported);
-      assert.equal(contacts.length, total);
       done();
     });
   });
@@ -112,14 +109,13 @@ suite('Sim export', function() {
 
     navigator.mozIccManager.faulty = true;
 
-    subject.doExport(function onFinish(error, total, exported, msg) {
+    subject.doExport(function onFinish(error, exported, msg) {
       assert.ok(subject.hasDeterminativeProgress());
       assert.equal(contacts.length, updateSpy.callCount);
       // We do not have an error
       assert.isNull(error);
       // The number of exported contacts is not the total
       assert.equal(contacts.length / 2, exported);
-      assert.equal(contacts.length, total);
       done();
     });
   });

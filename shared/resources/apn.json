@@ -3175,5 +3175,20 @@
     {"voicemail":"6684","enableStrict7BitEncodingForSms":true,"operatorSizeLimitation":1048576,"type":["operatorvariant"]},
     {"carrier":"Movistar MMS","apn":"apnmms.movistar.com.uy","user":"mmsuy","password":"mmsuy","mmsproxy":"10.0.2.29","mmsport":"8080","mmsc":"http://mmsc.movistar.com.uy","authtype":"1","type":["mms"]}
   ]
+},
+"001": {
+  "01": [
+    {"carrier":"Test Network","apn":"internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]}
+  ],
+  "02": [
+    {"carrier":"Test Network with MMS","apn":"mms.internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms"]}
+  ],
+  "03": [
+    {"carrier":"Test Network with Operator Variant Settings","apn":"mms.internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]},
+    {"voicemail":"999999","cellBroadcastSearchList":"0,1,2,3","type":["operatorvariant"]}
+  ],
+  "04": [
+    {"carrier":"Test Network with SUPL","apn":"supl.internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]}
+  ]
 }
 }

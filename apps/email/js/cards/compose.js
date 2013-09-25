@@ -691,7 +691,7 @@ ComposeCard.prototype = {
       var activity = new MozActivity({
         name: 'pick',
         data: {
-          type: 'image/*', // any kind of image
+          type: ['image/*', 'video/*', 'audio/*'], // the media files
           nocrop: true
         }
       });

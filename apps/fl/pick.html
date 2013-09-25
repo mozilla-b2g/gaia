@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Locked Content</title>
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+    <link rel="stylesheet" href="style/pick.css" type="text/css" />
+
+    <link rel="resource" type="application/l10n" href="locales/pick.ini" />
+
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script defer src="shared/js/omadrm/fl.js"></script>
+
+    <script defer src="js/constants.js"></script>
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/db.js"></script>
+    <script defer src="js/pick.js"></script>
+  </head>
+  <body>
+    <section role="region" class="skin-dark">
+      <header>
+        <button id="back"><span class="icon icon-back"></span></button>
+        <menu type="toolbar">
+          <button id="done" data-l10n-id="done" type="submit">Done</button>
+        </menu>
+        <h1 id="title"></h1>
+      </header>
+    </section>
+    <ul id="ringtones" hidden>
+      <template id="ringtone-template">
+        <li>
+          <label class="pack-radio">
+            <input type="radio" name="ringtone" data-ignore/>
+            <span></span>
+          </label>
+          <a><!--ringtone name here--></a>
+        </li>
+      </template>
+    </ul>
+    <div id="wallpapers" hidden>
+      <template id="wallpaper-template">
+        <!-- Set style.backgroundImage when instantiating -->
+        <div class="wallpaper"></div>
+      </template>
+    </div>
+  </body>
+</html>

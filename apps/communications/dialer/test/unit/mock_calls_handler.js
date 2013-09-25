@@ -16,6 +16,9 @@ var MockCallsHandler = {
   toggleSpeaker: function() {},
   turnSpeakerOn: function() {},
   turnSpeakerOff: function() {},
+  checkCalls: function() {},
+  mergeActiveCallWith: function() {},
+  mergeConferenceGroupWithActiveCall: function() {},
 
   mTeardown: function() {
     this.mLastEntryAdded = null;

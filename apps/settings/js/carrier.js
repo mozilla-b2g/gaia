@@ -771,11 +771,15 @@ var Carrier = {
        */
 
       // get network type
-      getSupportedNetworkCategories(function(result) {
+      getSupportedNetworkInfo(function(result) {
         var content =
           document.getElementById('carrier-operatorSettings-content');
 
         // init different selectors based on the network type.
+        if (result.networkTypes) {
+          initNetworkTypeSelector(result.networkTypes);
+        }
+
         if (result.gsm) {
           initOperatorSelector();
           content.classList.add('gsm');

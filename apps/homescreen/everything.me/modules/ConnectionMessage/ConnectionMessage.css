@@ -1,8 +1,10 @@
-#evmeContainer .connection-message {
+.evmeScope [role="notification"].connection-message {
     width: 100%;
-    padding: 0 5rem;
+    padding: 1.2rem 5rem;
     color: #fff;
     font-size: 1.6rem;
     text-align: center;
+    line-height: 1.8rem;
+    font-weight: normal;
     -moz-box-sizing: border-box;
 }

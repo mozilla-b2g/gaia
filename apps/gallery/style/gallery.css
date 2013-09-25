@@ -703,33 +703,46 @@ a.filter-faded {
   border: 0.4rem solid black;
 }
 
-/* all buttons in the toolbar share these styles */
-#edit-toolbar > .button {
+#edit-toolbar {
+  height: 4rem;
   position: absolute;
-  width: 25%;
-  height: 100%;
-  font-size: 1.4rem;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-size: 0;
+  transition: transform 0.2s linear;
 }
 
-/* If the button is selected, it has a different background */
-#edit-toolbar > .button.selected {
-  background: #02252C;
+/* all buttons in the toolbar share these styles */
+#edit-toolbar > a {
+  display: inline-block;
+  width: 25%;
+  height: 100%;
+}
+
+#edit-toolbar a.selected.radio.button {
+  outline: solid #00aacc 0.2rem;
+  outline-offset: -0.2rem;
 }
 
 #edit-exposure-button {
   left: 0;
+  background-image: url('images/actionicon_gallery_edit_exposure_30x30.png');
 }
 
 #edit-crop-button {
   left: 25%;
+  background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
 }
 
 #edit-effect-button {
-  left: 50%
+  left: 50%;
+  background-image: url('images/actionicon_gallery_edit_effects_30x30.png');
 }
 
 #edit-border-button {
-  left: 75%
+  left: 75%;
+  background-image: url('images/actionicon_gallery_edit_borders_30x30.png');
 }
 
 /*

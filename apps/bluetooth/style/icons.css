@@ -1,0 +1,134 @@
+/**
+ * Reference these style sheet from Settings app 
+ */
+
+/******************************************************************************
+ * Bluetooth devices
+ */
+
+.bluetooth-device {
+  background-repeat: no-repeat;
+  background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
+  padding-right: 3rem;
+}
+
+.bluetooth-device:before {
+  content: "";
+  width: 3rem;
+  height: 3rem;
+  background: url(images/bluetooth_sprite.png) no-repeat 3rem 3rem / 39rem;
+  position: absolute;
+  right: 3rem;
+  top: 50%;
+  margin-top: -1.5rem;
+}
+
+.bluetooth-device.icon-hidden:before {
+  display: none;
+}
+
+/* device icons */
+.bluetooth-type-audio-card:before {
+  background-position: 0rem 0rem;
+}
+
+.bluetooth-type-audio-input-microphone:before {
+  background-position: -3rem 0rem;
+}
+
+.bluetooth-type-battery:before {
+  background-position: -6rem 0rem;
+}
+
+.bluetooth-type-camera-photo:before {
+  background-position: -9rem 0rem;
+}
+
+.bluetooth-type-camera-video:before {
+  background-position: -12rem 0rem;
+}
+
+.bluetooth-type-camera-web:before {
+  background-position: -15rem 0rem;
+}
+
+.bluetooth-type-computer:before {
+  background-position: -18rem 0rem;
+}
+
+.bluetooth-type-drive-harddisk:before {
+  background-position: -21rem 0rem;
+}
+
+.bluetooth-type-drive-optical:before {
+  background-position: -24rem 0rem;
+}
+
+.bluetooth-type-drive-removable-media:before {
+  background-position: -27rem 0rem;
+}
+
+.bluetooth-type-input-gaming:before {
+  background-position: -30rem 0rem;
+}
+
+.bluetooth-type-input-keyboard:before {
+  background-position: -33rem 0rem;
+}
+
+.bluetooth-type-input-mouse:before {
+  background-position: -36rem 0rem;
+}
+
+.bluetooth-type-input-tablet:before {
+  background-position: 0rem -3rem;
+}
+
+.bluetooth-type-media-flash:before {
+  background-position: -3rem -3rem;
+}
+
+.bluetooth-type-media-floppy:before {
+  background-position: -6rem -3rem;
+}
+
+.bluetooth-type-media-optical:before {
+  background-position: -9rem -3rem;
+}
+
+.bluetooth-type-media-tape:before {
+  background-position: -12rem -3rem;
+}
+
+.bluetooth-type-modem:before {
+  background-position: -15rem -3rem;
+}
+
+.bluetooth-type-multimedia-player:before {
+  background-position: -18rem -3rem;
+}
+
+.bluetooth-type-network-wired:before {
+  background-position: -21rem -3rem;
+}
+
+.bluetooth-type-network-wireless:before {
+  background-position: -24rem -3rem;
+}
+
+.bluetooth-type-pda:before,
+.bluetooth-type-phone:before {
+  background-position: -27rem -3rem;
+}
+
+.bluetooth-type-printer:before {
+  background-position: -30rem -30rem;
+}
+
+.bluetooth-type-scanner:before {
+  background-position: -33rem -30rem;
+}
+
+.bluetooth-type-video-display:before {
+  background-position: -36rem -30rem;
+}

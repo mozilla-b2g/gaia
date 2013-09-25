@@ -1,15 +1,43 @@
-#evmeContainer {
-  display: none;
+.evmeScope {
+    display: none;
 }
-
+.evme-ready .evmeScope {
+    display: block;
+}
+.evme-loading #evmeOverlay {
+  display: block;
+}
 #evme-activation-icon {
   position: absolute;
-  top: 3.2rem;
-  left: 1.1rem;
-  right: 1.1rem;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 200;
   vertical-align: middle;
 }
+  #evme-activation-icon > div {
+    position: absolute;
+    top: 0;
+    left: 1.1rem;
+    right: 1.1rem;
+    z-index: 10;
+    transform: translateY(3.2rem);
+    transition: transform 350ms ease-out;
+  }
+  #evme-activation-icon:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 8rem;
+    opacity: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(70, 70, 70, .5) 0%, rgba(0, 0, 0, .5) 20%);
+    box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, .1);
+    transition: opacity 100ms linear;
+  }
   #evme-activation-icon input {
     position: relative;
     width: 100%;
@@ -22,30 +50,66 @@
     vertical-align: middle;
     border: none;
     display: inline;
+    z-index: 5;
     -moz-box-sizing: border-box;
     background: #ffffff url('/everything.me/images/search-icon.png') 98% 50% no-repeat;
     background-size: 1.6rem 1.6rem;
   }
-
-
-.evme-loaded #evmeContainer {
-  display: block;
+.evme-loading-from-input #evme-activation-icon > div {
+  transform: translateY(0.9rem);
+  left: 0.6rem;
+  right: 0.6rem;
 }
-.evme-loaded #evme-activation-icon {
+.evme-loading-from-input #evme-activation-icon:before {
+  opacity: 1;
+}
+.evme-loading-from-input #evme-activation-icon input {
+  height: 2.8rem;
+  padding-top: 0.4rem;
+  padding-bottom: 0.2rem;
+}
+
+.evme-has-query .evmeScope {
+    height: 100%;
+}
+
+.evme-keyboard-visible .evmeScope,
+.evme-suggest-collections-loading .evmeScope {
+    height: 100%;
+}
+
+.evme-keyboard-visible .apps > div.evmePage ol,
+.evme-has-query .apps > div.evmePage ol {
+    opacity: 0;
+}
+.apps > div.evmePage {
+    height: 100%;
+    -moz-box-sizing: border-box;
+    padding-top: calc(25% + 1.3rem);
+}
+
+/* Maximum 12 icons for page */
+.evmePage ol > li:nth-child(13) {
   display: none;
 }
+@media all and (min-device-width: 480px) and (min-device-height: 960px ) {
+  .evmePage ol > li:nth-child(13) {
+    display: inline-block;
+  }
+  .evmePage ol > li:nth-child(17) {
+    display: none;
+  }
+}
 
-.evme-loading #footer,
 .evme-has-results #footer,
-.evme-display-shortcuts #footer {
+.evme-suggest-collections-loading #footer {
   display: none;
 }
 
-body:not(.evme-displayed) #footer {
-  display: block;
+#footer {
+    transition: transform 100ms ease;
 }
-
-body.evme-displayed #landing-page {
-  height: 100%;
+.evme-displayed.evme-keyboard-visible #footer,
+.evme-displayed.evme-has-query #footer{
+    transform: translateY(100%);
 }
-

@@ -231,7 +231,7 @@ var AlarmEdit = {
     if (!time) {
       time = this.alarm;
     }
-    this.timeMenu.textContent = Utils.formatTime(time.hour, time.minute);
+    this.timeMenu.textContent = Utils.format.time(time.hour, time.minute);
   },
 
   initRepeatSelect: function aev_initRepeatSelect() {

@@ -67,6 +67,9 @@ NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
 NetSocket.prototype.write = function(buffer) {
   this._sendMessage('write', [buffer.buffer, buffer.byteOffset, buffer.length]);
 };
+NetSocket.prototype.upgradeToSecure = function() {
+  this._sendMessage('upgradeToSecure', []);
+};
 NetSocket.prototype.end = function() {
   if (this.destroyed)
     return;
@@ -440,7 +443,8 @@ ImapConnection.prototype.connect = function(loginCb) {
 
   if (this._LOG) this._LOG.connect(this._options.host, this._options.port);
 
-  this._state.conn = (this._options.crypto ? tls : net).connect(
+  this._state.conn = ((this._options.crypto === 'ssl' ||
+                       this._options.crypto === true) ? tls : net).connect(
                        this._options.port, this._options.host);
   this._state.tmrConn = setTimeoutFunc(this._fnTmrConn.bind(this, loginCb),
                                        this._options.connTimeout);
@@ -452,21 +456,21 @@ ImapConnection.prototype.connect = function(loginCb) {
       self._state.tmrConn = null;
     }
     self._state.status = STATES.NOAUTH;
-    /*
-    We will need to add support for node-like starttls emulation on top of TCPSocket
-    once TCPSocket supports starttls (see also bug 784816).
 
     if (self._options.crypto === 'starttls') {
-      self._send('STARTTLS', function() {
-        starttls(self, function() {
-	  if (!self.authorized)
-	    throw new Error("starttls failed");
-	  fnInit();
-        });
+      self._send('STARTTLS', null, function(err) {
+        if (err) {
+          var securityErr = new Error('Server does not support STARTTLS');
+          securityErr.type = 'bad-security';
+          loginCb(securityErr);
+        } else {
+          self._state.conn.upgradeToSecure();
+	        fnInit();
+        }
       });
       return;
     }
-    */
+
     fnInit();
   });
 

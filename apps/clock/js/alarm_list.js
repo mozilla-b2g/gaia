@@ -46,12 +46,7 @@ var AlarmList = {
 
   alarmEditView: function(alarm) {
     LazyLoader.load(
-      [
-        'js/alarm_edit.js',
-        'shared/style/input_areas.css',
-        'shared/style/buttons.css',
-        'shared/style/edit_mode.css'
-      ],
+      ['js/alarm_edit.js'],
       function() {
         AlarmEdit.load(alarm);
     });

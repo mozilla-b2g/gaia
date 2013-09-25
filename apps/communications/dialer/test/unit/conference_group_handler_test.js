@@ -4,7 +4,6 @@ requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('communications/dialer/test/unit/mock_call.js');
 requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
-requireApp('communications/dialer/test/unit/mock_handled_call.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
 
@@ -30,6 +29,7 @@ suite('conference group handler', function() {
   var fakeGroupLine;
   var fakeGroupLabel;
   var fakeGroupDetails;
+  var fakeMergeButton;
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
@@ -38,6 +38,7 @@ suite('conference group handler', function() {
     fakeDOM = document.createElement('div');
     fakeDOM.innerHTML = '<section id="group-call" hidden>' +
                             '<div class="numberWrapper">' +
+                              '<div id="group-show"></div>' +
                               '<div id="group-call-label"' +
                                 'class="number font-light"></div>' +
                             '</div>' +
@@ -50,13 +51,16 @@ suite('conference group handler', function() {
                                 '<div></div>' +
                               '</div>' +
                             '</div>' +
+                            '<button class="merge-button"></button>' +
                           '</section>' +
-                          '<article id="group-call-details">' +
-                          '</article>';
+                          '<form id="group-call-details">' +
+                            '<header></header>' +
+                          '</form>';
     document.body.appendChild(fakeDOM);
     fakeGroupLine = document.getElementById('group-call');
     fakeGroupLabel = document.getElementById('group-call-label');
     fakeGroupDetails = document.getElementById('group-call-details');
+    fakeMergeButton = document.querySelector('.merge-button');
 
     requireApp('communications/dialer/js/conference_group_handler.js', done);
   });
@@ -152,6 +156,13 @@ suite('conference group handler', function() {
             assert.equal(fakeGroupLabel.textContent, 'group-call');
             assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 2});
           });
+
+          test('should call CallsHandler.checkCalls if two more phones remains',
+          function() {
+            var checkCallsSpy = this.sinon.spy(MockCallsHandler, 'checkCalls');
+            flush();
+            assert.isTrue(checkCallsSpy.calledOnce);
+          });
         });
       });
 
@@ -167,6 +178,13 @@ suite('conference group handler', function() {
           assert.isFalse(fakeGroupLine.hidden);
           flush();
           assert.isTrue(fakeGroupLine.hidden);
+        });
+
+        test('should hide the overlay of group details', function() {
+          MockCallScreen.showGroupDetails();
+          assert.isTrue(MockCallScreen.mGroupDetailsShown);
+          flush();
+          assert.isFalse(MockCallScreen.mGroupDetailsShown);
         });
       });
     });
@@ -209,6 +227,25 @@ suite('conference group handler', function() {
       MockMozTelephony.mTriggerGroupStateChange();
 
       assert.isFalse(fakeGroupLine.classList.contains('held'));
+    });
+
+    test('should call CallsHandler.checkCalls when exiting conference call',
+    function() {
+      var checkCallsSpy = this.sinon.spy(MockCallsHandler, 'checkCalls');
+      MockMozTelephony.conferenceGroup.state = '';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isTrue(checkCallsSpy.calledOnce);
+    });
+  });
+
+  suite('mergeButton', function() {
+    test('should call CallsHandler.mergeConferenceGroupWithActiveCall()',
+      function() {
+      var mergeSpy = this.sinon.spy(MockCallsHandler,
+                                    'mergeConferenceGroupWithActiveCall');
+      fakeMergeButton.onclick();
+      assert.isTrue(mergeSpy.called);
     });
   });
 });

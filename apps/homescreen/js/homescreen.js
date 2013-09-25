@@ -5,17 +5,16 @@ var Homescreen = (function() {
   var mode = 'normal';
   var origin = document.location.protocol + '//homescreen.' +
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
-  var _ = navigator.mozL10n.get;
   setLocale();
   navigator.mozL10n.ready(function localize() {
     setLocale();
     GridManager.localize();
   });
 
-  var initialized = false, landingPage;
+  var initialized = false;
   onConnectionChange(navigator.onLine);
 
-  function initialize(lPage) {
+  function initialize(lPage, onInit) {
     if (initialized) {
       return;
     }
@@ -23,7 +22,6 @@ var Homescreen = (function() {
     PaginationBar.init('.paginationScroller');
 
     initialized = true;
-    landingPage = lPage;
 
     var swipeSection = Configurator.getSection('swipe');
     var options = {
@@ -49,7 +47,7 @@ var Homescreen = (function() {
         } else if (Homescreen.isInEditMode()) {
           exitFromEditMode();
         } else {
-          GridManager.goToPage(landingPage);
+          GridManager.goToLandingPage();
         }
         GridManager.ensurePanning();
       });
@@ -58,17 +56,40 @@ var Homescreen = (function() {
       if (document.location.hash === '#root') {
         // Switch to the first page only if the user has not already
         // start to pan while home is loading
-        GridManager.goToPage(landingPage);
+        GridManager.goToLandingPage();
       }
-      DragDropManager.init();
-      Wallpaper.init();
+
+      document.body.addEventListener('contextmenu', onContextMenu);
+
+      if (typeof onInit === 'function') {
+        onInit();
+      }
     });
+  }
+
+  function onContextMenu(evt) {
+    var target = evt.target;
+
+    if ('isIcon' in target.dataset) {
+      // Grid or Dock manager will resolve the current event
+      var manager = target.parentNode === DockManager.page.olist ? DockManager :
+                                                                   GridManager;
+      manager.contextmenu(evt);
+    } else if (!Homescreen.isInEditMode()) {
+      // No long press over an icon neither edit mode
+      LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
+                      function callWallpaper() {
+        Wallpaper.contextmenu();
+      });
+    }
   }
 
   function exitFromEditMode() {
     Homescreen.setMode('normal');
-    ConfirmDialog.hide();
     GridManager.exitFromEditMode();
+    if (typeof ConfirmDialog !== 'undefined') {
+      ConfirmDialog.hide();
+    }
   }
 
   document.addEventListener('visibilitychange', function mozVisChange() {
@@ -87,12 +108,14 @@ var Homescreen = (function() {
   window.addEventListener('message', function hs_onMessage(event) {
     if (event.origin === origin) {
       var message = event.data;
-      switch (message.type) {
-        case Message.Type.ADD_BOOKMARK:
-          var app = new Bookmark(message.data);
-          GridManager.install(app);
-          break;
-      }
+      LazyLoader.load('js/message.js', function loaded() {
+        switch (message.type) {
+          case Message.Type.ADD_BOOKMARK:
+            var app = new Bookmark(message.data);
+            GridManager.install(app);
+            break;
+        }
+      });
     }
   });
 
@@ -123,40 +146,11 @@ var Homescreen = (function() {
      *                      The application object.
      */
     showAppDialog: function h_showAppDialog(app) {
-      var title, body;
-      var cancel = {
-        title: _('cancel'),
-        callback: ConfirmDialog.hide
-      };
-
-      var confirm = {
-        callback: function onAccept() {
-          ConfirmDialog.hide();
-          if (app.isBookmark) {
-            app.uninstall();
-          } else {
-            navigator.mozApps.mgmt.uninstall(app);
-          }
-        },
-        applyClass: 'danger'
-      };
-
-      // Show a different prompt if the user is trying to remove
-      // a bookmark shortcut instead of an app.
-      var manifest = app.manifest || app.updateManifest;
-      if (app.isBookmark) {
-        title = _('remove-title-2', { name: manifest.name });
-        body = _('remove-body', { name: manifest.name });
-        confirm.title = _('remove');
-      } else {
-        // Make sure to get the localized name
-        manifest = new ManifestHelper(manifest);
-        title = _('delete-title', { name: manifest.name });
-        body = _('delete-body', { name: manifest.name });
-        confirm.title = _('delete');
-      }
-
-      ConfirmDialog.show(title, body, cancel, confirm);
+      LazyLoader.load(['shared/style/buttons.css', 'shared/style/headers.css',
+                       'shared/style/confirm.css', 'style/request.css',
+                       'js/request.js'], function loaded() {
+        ConfirmDialog.showApp(app);
+      });
     },
 
     isInEditMode: function() {
@@ -164,8 +158,8 @@ var Homescreen = (function() {
     },
 
     didEvmePreventHomeButton: function() {
-      var evme = ('EvmeFacade' in window) && window.EvmeFacade;
-      return evme.onHomeButtonPress && evme.onHomeButtonPress();
+      return EvmeFacade && EvmeFacade.onHomeButtonPress &&
+              EvmeFacade.onHomeButtonPress();
     },
 
     init: initialize,

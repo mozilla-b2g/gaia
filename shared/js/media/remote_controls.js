@@ -121,6 +121,8 @@ MediaRemoteControls.prototype.removeCommandListener = function(name, listener) {
  * Start to listen to the system message and configure the bluetooth.
  */
 MediaRemoteControls.prototype.start = function() {
+  var self = this;
+
   // AVRCP commands use system message.
   navigator.mozSetMessageHandler(
     'media-button', this._commandHandler.bind(this)
@@ -129,49 +131,78 @@ MediaRemoteControls.prototype.start = function() {
   // The bluetooth adapter will be needed to send metadata and play status
   // when those information are changed.
   if (this.bluetooth) {
-    this.bluetooth.onadapteradded = initialDefaultAdapter.bind(this);
-    this.bluetooth.ondisabled = resetDefaultAdapter.bind(this);
+    this.bluetooth.onadapteradded = initialDefaultAdapter;
+    this.bluetooth.ondisabled = resetDefaultAdapter;
     // Get the default adapter at start because bluetooth might already enabled.
-    initialDefaultAdapter.call(this);
+    initialDefaultAdapter();
   } else {
     console.warn('No mozBluetooth');
   }
 
   function initialDefaultAdapter() {
-    var request = this.bluetooth.getDefaultAdapter();
-    request.onsuccess = configureAdapter.bind(this);
-    request.onerror = resetDefaultAdapter.bind(this);
+    var request = self.bluetooth.getDefaultAdapter();
+    request.onsuccess = configureAdapter;
+    request.onerror = resetDefaultAdapter;
   }
 
   function configureAdapter(event) {
-    this.defaultAdapter = event.target.result;
-    this.defaultAdapter.onrequestmediaplaystatus = playstatusHandler.bind(this);
-    this.defaultAdapter.ona2dpstatuschanged = a2dpConnectionHandler.bind(this);
+    self.defaultAdapter = event.target.result;
+    self.defaultAdapter.onrequestmediaplaystatus = playstatusHandler;
+    self.defaultAdapter.ona2dpstatuschanged = a2dpConnectionHandler;
   }
 
   function playstatusHandler() {
-    if (this._commandListeners['updateplaystatus'].length > 0)
-      this._commandHandler(REMOTE_CONTROLS.UPDATE_PLAYSTATUS);
+    if (self._commandListeners['updateplaystatus'].length > 0)
+      self._commandHandler(REMOTE_CONTROLS.UPDATE_PLAYSTATUS);
   }
 
   // A2DP is connected: update the status to the bluetooth device.
   // A2DP is disconnected: pause the player like the headphone is unplugged.
   function a2dpConnectionHandler(event) {
     var isConnected = event.status;
-    if (isConnected && this._commandListeners['updatemetadata'].length > 0)
-      this._commandHandler(REMOTE_CONTROLS.UPDATE_METADATA);
+    if (isConnected && self._commandListeners['updatemetadata'].length > 0)
+      self._commandHandler(REMOTE_CONTROLS.UPDATE_METADATA);
     else
-      this._commandHandler(AVRCP.PAUSE_PRESS);
+      self._commandHandler(AVRCP.PAUSE_PRESS);
   }
 
   function resetDefaultAdapter() {
-    this.defaultAdapter = null;
+    self.defaultAdapter = null;
     // Do we need to do anything else?
   }
 
-  // IAC commands would likely also use the system messages, please see:
-  // https://wiki.mozilla.org/WebAPI/Inter_App_Communication_Alt_proposal
-  // so we will listen to the IAC system message after it's landed.
+  this._queuedMessages = [];
+  // Set up Inter-App Communications
+  navigator.mozApps.getSelf().onsuccess = function() {
+    var app = this.result;
+    // If IAC doesn't exist, just bail out.
+    if (!app.connect) {
+      this._queuedMessages = null;
+      return;
+    }
+
+    app.connect('mediacomms').then(function(ports) {
+      self._ports = ports;
+      self._queuedMessages.forEach(function(message) {
+        self._ports.forEach(function(port) {
+          port.postMessage(message);
+        });
+      });
+      self._queuedMessages = null;
+    });
+  };
+};
+
+MediaRemoteControls.prototype._postMessage = function(name, value) {
+  var message = {type: name, data: value};
+  if (!this._ports) {
+    if (this._queuedMessages)
+      this._queuedMessages.push(message);
+  } else {
+    this._ports.forEach(function(port) {
+      port.postMessage(message);
+    });
+  }
 };
 
 /**
@@ -249,6 +280,11 @@ MediaRemoteControls.prototype._executeCommandListeners = function(event) {
   });
 };
 
+MediaRemoteControls.prototype.notifyAppInfo = function(info) {
+  // Send the app info via IAC.
+  this._postMessage('appinfo', info);
+};
+
 /**
  * Send the updated metadata to the remote requester/receiver.
  *
@@ -263,7 +299,9 @@ MediaRemoteControls.prototype.notifyMetadataChanged = function(metadata) {
       console.log('Sending Metadata error');
     };
   }
-  // If IAC exists, we will also notify the metadata to the requester.
+
+  // Now, send it via IAC.
+  this._postMessage('nowplaying', metadata);
 };
 
 /**
@@ -280,5 +318,7 @@ MediaRemoteControls.prototype.notifyStatusChanged = function(status) {
       console.log('Sending Playstatus error');
     };
   }
-  // If IAC exists, we will also notify the status to the requester.
+
+  // Now, send it via IAC.
+  this._postMessage('status', status);
 };

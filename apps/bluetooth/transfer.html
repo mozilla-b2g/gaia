@@ -9,73 +9,82 @@
     <script type="application/javascript" src="shared/js/l10n.js"></script>
     <!-- Common style -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"/>
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" src="shared/js/notification_helper.js"></script>
     <!-- Specific style -->
-
     <link rel="stylesheet" type="text/css" href="style/transfer.css" />
-    <link rel="stylesheet" type="text/css" href="style/bb/value_selector.css" />
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/core.css" />
-    <link rel="stylesheet" type="text/css" href="style/bb/menus-dialogues/prompt/style.css" />
-    <link rel="stylesheet" type="text/css" href="style/bb/buttons/style.css" />
-
+    <link rel="stylesheet" type="text/css" href="style/lists.css">
+    <link rel="stylesheet" type="text/css" href="style/icons.css">
+    <link rel="stylesheet" type="text/css" href="style/settings.css">
     <!-- Specific code -->
     <script type="text/javascript" defer src="js/transfer.js"></script>
+    <script type="text/javascript" defer src="js/deviceList.js"></script>
   </head>
 
-  <body role="application">
-    <section role="dialog" id="enable-bluetooth-view" hidden>
-      <div>
-        <h3 data-l10n-id="confirmation">Confirmation</h3>
-        <div class="content">
-          <img id="icon" src="style/images/settings_bluetooth.png"/>
+  <body role="application" class="skin-organic uninit">
+    <!-- Enable Bluetooth View -->
+    <form role="dialog" data-type="confirm" id="enable-bluetooth-view" hidden>
+      <section>
+        <h1 data-l10n-id="confirmation">Confirmation</h1>
+        <p>
+          <img id="icon" src="style/images/settings_bluetooth.png" alt="Bluetooth Icon"/>
           <strong data-l10n-id="bluetooth">Bluetooth</strong>
           <small data-l10n-id="bluetooth-status-description">Bluetooth is disabled</small>
-        </div>
+        </p>
         <p data-l10n-id="turn-bluetooth-on">Do you want to turn Bluetooth on?</p>
-      </div>
-      <menu data-items="2">
+      </section>
+      <menu>
         <button type="reset" id="enable-bluetooth-button-cancel" data-l10n-id="cancel">Cancel</button>
-        <button class="affirmative" type="submit" id="enable-bluetooth-button-turn-on" data-l10n-id="turn-on">Turn On</button>
+        <button type="submit" class="recommend" id="enable-bluetooth-button-turn-on" data-l10n-id="turn-on">Turn On</button>
       </menu>
-    </section>
-    <section role="dialog" id="alert-view" hidden>
-      <div>
-        <h3 data-l10n-id="error-transfer-title">Bluetooth file transfer failed</h3>
+    </form>
+    <!-- Bluetooth File Transfer Failed View -->
+    <form role="dialog" data-type="confirm" id="alert-view" hidden>
+      <section>
+        <h1 data-l10n-id="error-transfer-title">Bluetooth file transfer failed</h1>
         <p data-l10n-id="error-transfer-settings">
           Bluetooth file transfer failed. Check that the Bluetooth settings are correct.
         </p>
-      </div>
-      <menu data-items="1">
-        <button class="negative" id="alert-button-ok" data-l10n-id="ok">OK</button>
+      </section>
+      <menu>
+        <button class="full" id="alert-button-ok" data-l10n-id="ok">OK</button>
       </menu>
-    </section>
-    <section role="dialog" id="enable-bluetooth-settings-view" hidden>
+    </form>
+    <!-- Devices List View -->
+    <section role="region" id="devices-list-view" class="current" data-rendered="true" hidden>
+      <header>
+        <a href="#" id="cancel-activity"><span class="icon icon-close" data-l10n-id="exit">Exit</span></a>
+        <h1 data-l10n-id="bluetooth"> Bluetooth </h1>
+      </header>
       <div>
-        <h3 data-l10n-id="no-devices-paired-title">No Bluetooth devices paired.</h3>
-        <p data-l10n-id="no-devices-paired-settings">
-          Would you like to pair a device now?
-        </p>
+        <!-- Devices List View :: Paired Devices List -->
+        <header id="bluetooth-paired-title">
+          <h2 data-l10n-id="bluetooth-paired-devices">Paired Devices</h2>
+        </header>
+        <ul id="bluetooth-paired-devices" class="devices">
+        </ul>
+        <!-- Devices List View :: Found Devices List -->
+        <header id="bluetooth-found-title">
+          <h2 data-l10n-id="bluetooth-devices-in-area">Devices found</h2>
+        </header>
+        <ul id="bluetooth-devices" class="devices">
+        </ul>
+        <!-- Devices List View :: Search Button -->
+        <div id="bluetooth-searching" data-l10n-id="search-for-device" class="explanation">
+          Searching for devices…
+        </div>
+        <ul id="bluetooth-search">
+          <li>
+            <label>
+              <button id="search-device" data-l10n-id="search-device" disabled>Search for Devices</button>
+            </label>
+          </li>
+        </ul>
       </div>
-      <menu data-items="2">
-        <button id="enable-bluetooth-settings-button-cancel" data-l10n-id="cancel">Cancel</button>
-        <button class="negative" id="enable-bluetooth-settings-button-ok" data-l10n-id="pair-device">Pair device</button>
-      </menu>
     </section>
-    <!-- Overwrite Value Selector -->
-    <div id="value-selector" hidden>
-      <form id="select-option-popup" role="dialog">
-        <section id="value-selector-container">
-          <h1 data-l10n-id="select-bluetooth-device">Select Bluetooth Device</h1>
-          <ol role="listbox">
-            <!-- Create Paired Devices Dyanmically -->
-          </ol>
-        </section>
-        <menu id="select-options-buttons">
-          <button id="device-select-button-cancel" class="value-selector-cancel" data-type="cancel" data-l10n-id="cancel">Cancel</button>
-          <button id="device-select-button-ok" class="value-option-confirm affirmative" data-type="ok" data-l10n-id="ok">Ok</button>
-        </menu>
-      </form>
-    </div>
   </body>
 </html>

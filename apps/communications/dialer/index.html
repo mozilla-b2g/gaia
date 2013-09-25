@@ -18,6 +18,7 @@
     <link rel="stylesheet" type="text/css" href="/contacts/style/animations.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/dialer.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/keypad.css">
+    <link rel="stylesheet" type="text/css" href="/dialer/style/overlay.css">
     <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
 
     <!-- JS -->
@@ -47,7 +48,7 @@
     <script defer src="/shared/js/notification_helper.js"></script>
     <script defer src="/shared/js/simple_phone_matcher.js"></script>
     <script defer src="/shared/js/settings_listener.js"></script>
-    <script defer src="/contacts/js/confirm_dialog.js"></script>
+    <script defer src="/contacts/js/utilities/confirm.js"></script>
     <script defer src="/contacts/js/fb/fb_data.js"></script>
     <script defer src="/contacts/js/fb/fb_contact_utils.js"></script>
     <script defer src="/dialer/js/contacts.js"></script>
@@ -58,6 +59,10 @@
     <script defer src="/dialer/js/mmi_ui.js"></script>
     <script defer src="/dialer/js/newsletter_manager.js"></script>
     -->
+
+    <link rel="import" href="elements/edit-mode.html">
+    <link rel="import" href="elements/add-contact-action-menu.html">
+    <link rel="import" href="elements/confirmation-message.html">
   </head>
   <body role="application">
     <section id="views" role="tablist" data-items="3" class="bottom">
@@ -133,7 +138,7 @@
               </div>
             </div>
           </section>
-          <form id="suggestion-overlay" role="dialog" data-type="action" hidden>
+          <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" hidden>
             <header></header>
             <menu>
               <ul id="suggestion-list" role="listbox">
@@ -157,39 +162,41 @@
                 <div class="keypad-key" data-value="1" data-voicemail="true">
                   1<em class="keypad-subicon voicemail"></em>
                 </div>
-                <div class="keypad-key" data-value="4">
-                  4<em>GHI</em>
+                <div class="keypad-key" data-value="2">
+                  2<em>ABC</em>
                 </div>
-                <div class="keypad-key" data-value="7">
-                  7<em>PQRS</em>
-                </div>
-                <div class="keypad-key keypad-key-centered" data-value="*">
-                  <div class="asterisk"></div>
+                <div class="keypad-key" data-value="3">
+                  3<em>DEF</em>
                 </div>
               </div>
               <div class="keypad-cell">
-                <div class="keypad-key" data-value="2">
-                  2<em>ABC</em>
+                <div class="keypad-key" data-value="4">
+                  4<em>GHI</em>
                 </div>
                 <div class="keypad-key" data-value="5">
                   5<em>JKL</em>
                 </div>
-                <div class="keypad-key" data-value="8">
-                  8<em>TUV</em>
-                </div>
-                <div class="keypad-key" data-value="0">
-                  0<em class="font-size-plus">+</em>
-                </div>
-              </div>
-              <div class="keypad-cell">
-                <div class="keypad-key" data-value="3">
-                  3<em>DEF</em>
-                </div>
                 <div class="keypad-key" data-value="6">
                   6<em>MNO</em>
                 </div>
+              </div>
+              <div class="keypad-cell">
+                <div class="keypad-key" data-value="7">
+                  7<em>PQRS</em>
+                </div>
+                <div class="keypad-key" data-value="8">
+                  8<em>TUV</em>
+                </div>
                 <div class="keypad-key" data-value="9">
                   9<em>WXYZ</em>
+                </div>
+              </div>
+              <div class="keypad-cell">
+                <div class="keypad-key keypad-key-centered" data-value="*">
+                  <div class="asterisk"></div>
+                </div>
+                <div class="keypad-key" data-value="0">
+                  0<em class="font-size-plus">+</em>
                 </div>
                 <div class="keypad-key keypad-key-centered" data-type="dial" data-value="#">
                   <div class="sharp"></div>
@@ -210,52 +217,11 @@
       </article>
     </section>
 
-    <form id="edit-mode" role="dialog" data-type="edit" hidden>
-      <!--
-      <section>
-        <header id="edit-mode-header">
-          <button id="call-log-icon-close">
-            <span id="cancel-button" class="icon icon-close">close</span>
-          </button>
-          <menu type="toolbar">
-            <button id="delete-button" data-l10n-id="delete" class="disabled">Delete</button>
-          </menu>
-          <h1 id="header-edit-mode-text" data-l10n-id="edit">Edit</h1>
-        </header>
-      </section>
-      <menu>
-        <button id="deselect-all-threads" class="edit-button" disabled="disabled" data-l10n-id="deselectAll">Deselect All</button>
-        <button id="select-all-threads" class="edit-button" data-l10n-id="selectAll">Select All</button>
-      </menu>
-      -->
-    </form>
+    <form is="edit-mode" id="edit-mode" role="dialog" data-type="edit" hidden></form> 
 
-    <form id="add-contact-action-menu" role="dialog" data-type="action" hidden>
-      <!--
-      <header data-l10n-id="addNewNumber"> Add New Number </header>
-      <menu>
-        <button id="call-menuitem" data-l10n-id="call"> Call </button>
-        <button id="send-sms-menuitem" data-l10n-id="sendSms"> Send Message </button>
-        <button id="create-new-contact-menuitem" data-l10n-id="createNewContact"> Create New Contact </button>
-        <button id="add-to-existing-contact-menuitem" data-l10n-id="addToExistingContact"> Add to Existing Contact </button>
-        <button id="cancel-action-menu" data-l10n-id="cancel">  Cancel  </button>
-      </menu>
-      -->
-    </form>
+    <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-type="action" hidden></form>
 
-    <form id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm">
-      <!--
-      <section>
-        <h1>Confirmation title</h1>
-        <p>Confirmation message</p>
-      </section>
-      <menu>
-        <button>Action 1</button>
-        <button>Action 2</button>
-      </menu>
-      -->
-    </form>
-
+    <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
     <article id="mmi-screen" role="region" hidden>
       <section role="region">

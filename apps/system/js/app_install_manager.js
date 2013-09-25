@@ -20,18 +20,34 @@ var AppInstallManager = {
     this.authorUrl = document.getElementById('app-install-author-url');
     this.installButton = document.getElementById('app-install-install-button');
     this.cancelButton = document.getElementById('app-install-cancel-button');
+    this.imeLayoutDialog = document.getElementById('ime-layout-dialog');
+    this.imeListTemplate = document.getElementById('ime-list-template');
+    this.imeList = document.getElementById('ime-list');
+    this.imeCancelButton = document.getElementById('ime-cancel-button');
+    this.imeConfirmButton = document.getElementById('ime-confirm-button');
+    this.setupCancelButton =
+      document.getElementById('setup-cancel-button');
+    this.setupConfirmButton =
+      document.getElementById('setup-confirm-button');
+
     this.installCancelDialog =
       document.getElementById('app-install-cancel-dialog');
     this.downloadCancelDialog =
       document.getElementById('app-download-cancel-dialog');
+    this.setupInstalledAppDialog =
+      document.getElementById('setup-installed-app-dialog');
     this.confirmCancelButton =
       document.getElementById('app-install-confirm-cancel-button');
+    this.setupAppName = document.getElementById('setup-app-name');
+    this.setupAppDescription = document.getElementById('setup-app-description');
+
     this.resumeButton = document.getElementById('app-install-resume-button');
 
     this.notifContainer =
             document.getElementById('install-manager-notification-container');
     this.appInfos = {};
-
+    this.setupQueue = [];
+    this.isSetupInProgress = false;
     window.addEventListener('mozChromeEvent',
       (function ai_handleChromeEvent(e) {
       if (e.detail.type == 'webapps-ask-install') {
@@ -56,6 +72,13 @@ var AppInstallManager = {
     this.downloadCancelDialog.querySelector('.cancel').onclick =
       this.handleCancelDownloadCancel.bind(this);
 
+    this.setupCancelButton.onclick = this.handleSetupCancelAction.bind(this);
+    this.setupConfirmButton.onclick =
+                             this.handleSetupConfirmAction.bind(this);
+    this.imeCancelButton.onclick = this.hideIMEList.bind(this);
+    this.imeConfirmButton.onclick = this.handleImeConfirmAction.bind(this);
+    // lazy load template.js
+    LazyLoader.load('shared/js/template.js');
     // bind these handlers so that we can have only one instance and check
     // them later on
     ['handleDownloadSuccess',
@@ -86,7 +109,7 @@ var AppInstallManager = {
     var app = e.detail.application;
 
     if (app.installState === 'installed') {
-      this.showInstallSuccess(app);
+      this.handleInstallSuccess(app);
       return;
     }
 
@@ -162,17 +185,124 @@ var AppInstallManager = {
     app.onprogress = this.handleProgress;
   },
 
+  configurations: {
+    'keyboard': {
+      fnName: 'showIMEList'
+    }
+  },
+
+  handleInstallSuccess: function ai_handleInstallSuccess(app) {
+    var manifest = app.manifest || app.updateManifest;
+    var role = manifest.role;
+    if (this.configurations[role]) {
+      this.setupQueue.push(app);
+      this.checkSetupQueue();
+    } else {
+      this.showInstallSuccess(app);
+    }
+    // send event
+    var evt = new CustomEvent('applicationinstallsuccess',
+                           { detail: { application: app } });
+    window.dispatchEvent(evt);
+  },
+
   showInstallSuccess: function ai_showInstallSuccess(app) {
     var manifest = app.manifest || app.updateManifest;
-    var name = new ManifestHelper(manifest).name;
+    var appManifest = new ManifestHelper(manifest);
+    var name = appManifest.name;
     var _ = navigator.mozL10n.get;
     var msg = _('app-install-success', { appName: name });
     SystemBanner.show(msg);
   },
 
+  checkSetupQueue: function ai_checkSetupQueue() {
+    if (this.setupQueue.length && !(this.isSetupInProgress)) {
+      this.isSetupInProgress = true;
+      this.showSetupDialog();
+    }
+  },
+
+  completedSetupTask: function ai_completedSetupTask() {
+    // clean completed app
+    this.setupQueue.shift();
+    this.isSetupInProgress = false;
+    this.checkSetupQueue();
+  },
+
+  hideSetupDialog: function ai_hideSetupDialog() {
+    this.setupAppName.textContent = '';
+    this.setupAppDescription.textContent = '';
+    this.setupInstalledAppDialog.classList.remove('visible');
+  },
+
+  showSetupDialog: function ai_showSetupDialog() {
+    var app = this.setupQueue[0];
+    var manifest = app.manifest;
+    var appManifest = new ManifestHelper(manifest);
+    var appName = appManifest.name;
+    var appDescription = appManifest.description;
+    this.setupAppDescription.textContent = appDescription;
+    navigator.mozL10n.localize(this.setupAppName,
+                              'app-install-success', { appName: appName });
+    this.setupInstalledAppDialog.classList.add('visible');
+  },
+
+  handleSetupCancelAction: function ai_handleSetupCancelAction() {
+    this.hideSetupDialog();
+    this.completedSetupTask();
+  },
+
+  handleSetupConfirmAction: function ai_handleSetupConfirmAction() {
+    var fnName = this.configurations[this.setupQueue[0].manifest.role].fnName;
+    this[fnName].call(this);
+    this.hideSetupDialog();
+  },
+
+  showIMEList: function ai_showIMEList() {
+    var app = this.setupQueue[0];
+    var entryPoints = app.manifest.entry_points;
+    if (typeof entryPoints !== 'object') {
+      console.error('entry_points must be an object for ' +
+                                          'third-party keyboard layouts');
+      this.completedSetupTask();
+      return;
+    }
+
+    // build the list of keyboard layouts
+    var listHtml = '';
+    var imeListWrap = Template(this.imeListTemplate);
+    for (var name in entryPoints) {
+      var displayIMEName = new ManifestHelper(entryPoints[name]).name;
+      listHtml += imeListWrap.interpolate({
+        imeName: name,
+        displayName: displayIMEName
+      });
+    }
+    // keeping li template
+    this.imeList.innerHTML = listHtml;
+    this.imeLayoutDialog.classList.add('visible');
+  },
+
+  hideIMEList: function ai_hideIMEList() {
+    this.imeLayoutDialog.classList.remove('visible');
+    this.imeList.innerHTML = '';
+    this.completedSetupTask();
+  },
+
+  handleImeConfirmAction: function ai_handleImeConfirmAction() {
+    var origin = this.setupQueue[0].origin;
+    var keyboards = this.imeList.getElementsByTagName('input');
+    for (var i = 0, l = keyboards.length; i < l; i++) {
+      var keyboardIME = keyboards[i];
+      if (keyboardIME.checked)
+        KeyboardHelper.setLayoutEnabled(origin, keyboardIME.value, true);
+    }
+    this.hideIMEList();
+  },
+
   handleDownloadSuccess: function ai_handleDownloadSuccess(evt) {
     var app = evt.application;
-    this.showInstallSuccess(app);
+    this.handleInstallSuccess(app);
     this.onDownloadStop(app);
     this.onDownloadFinish(app);
   },

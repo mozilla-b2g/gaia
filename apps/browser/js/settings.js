@@ -43,7 +43,7 @@ var Settings = {
         var option = document.createElement('option');
         option.value = engine.uri;
         option.text = engine.title;
-        if (engine.uri == Browser.defaultSearchProviderUri) {
+        if (engine.uri == Browser.searchEngine.uri) {
           option.selected = true;
           this.searchEngineButton.textContent = engine.title;
         }
@@ -120,7 +120,7 @@ var Settings = {
     button.textContent = selection.textContent;
     BrowserDB.updateSetting(selection.value, 'defaultSearchEngine');
     BrowserDB.getSearchEngine(selection.value, function(engine) {
-       Browser.setSearchProvider(engine.uri, engine.title, engine.iconUri);
+       Browser.searchEngine = engine;
     });
   }
 

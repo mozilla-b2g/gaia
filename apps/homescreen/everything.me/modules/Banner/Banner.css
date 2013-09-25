@@ -1,14 +1,13 @@
-#evmeBanner {
-  z-index: -1;
-  opacity: 0;
-  -moz-transition: all 600ms ease;
-}
-.evme-has-results #evmeBanner.visible,
-.evme-display-shortcuts #evmeBanner.visible {
+#homescreenStatus {
   z-index: 10001;
-  opacity: 1;
-  -moz-transition: all 600ms ease;
+  transition: transform .3s ease;
+  transform: translateY(100%);
 }
-#evmeBanner > p > strong {
+
+#homescreenStatus.visible {
+  transform: translateY(0);
+}
+
+#homescreenStatus > p > strong {
   white-space: nowrap;
 }

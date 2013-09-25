@@ -322,10 +322,14 @@ function shareFile(filename) {
     // The filepaths can be removed after Bug 811615 is fixed
     var name = filename.substring(filename.lastIndexOf('/') + 1);
 
+    // And we just want the first component of the type "audio" or "video".
+    var type = file.type;
+    type = type.substring(0, type.indexOf('/')) + '/*';
+
     var a = new MozActivity({
       name: 'share',
       data: {
-        type: file.type,
+        type: type,
         number: 1,
         blobs: [file],
         filenames: [name],
@@ -428,6 +432,10 @@ function showCurrentView(callback) {
       listHandle =
         musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
                           function(song) {
+                            // Don't allow the user to pick locked music
+                            if (song.metadata.locked)
+                              return;
+
                             ListView.update(TabBar.option, song);
                             // Push the song to knownSongs then
                             // we can display a correct overlay
@@ -1455,7 +1463,9 @@ var SubListView = {
         var targetIndex = parseInt(target.dataset.index);
         var songData = this.dataSource[targetIndex];
 
-        shareFile(songData.name);
+        // Don't share files if they are locked
+        if (!songData.metadata.locked)
+          shareFile(songData.name);
         break;
 
       default:

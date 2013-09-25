@@ -126,8 +126,8 @@ MailAccount.prototype = {
    * Tell the back-end to clear the list of problems with the account, re-enable
    * it, and try and connect.
    */
-  clearProblems: function() {
-    this._api._clearAccountProblems(this);
+  clearProblems: function(callback) {
+    this._api._clearAccountProblems(this, callback);
   },
 
   /**
@@ -2573,11 +2573,24 @@ MailAPI.prototype = {
     return true;
   },
 
-  _clearAccountProblems: function ma__clearAccountProblems(account) {
+  _clearAccountProblems: function ma__clearAccountProblems(account, callback) {
+    var handle = this._nextHandle++;
+    this._pendingRequests[handle] = {
+      type: 'clearAccountProblems',
+      callback: callback,
+    };
     this.__bridgeSend({
       type: 'clearAccountProblems',
       accountId: account.id,
+      handle: handle,
     });
+  },
+
+  _recv_clearAccountProblems: function ma__recv_clearAccountProblems(msg) {
+    var req = this._pendingRequests[msg.handle];
+    delete this._pendingRequests[msg.handle];
+    req.callback && req.callback();
+    return true;
   },
 
   _modifyAccount: function ma__modifyAccount(account, mods) {
@@ -3335,9 +3348,11 @@ define('mailapi/worker-support/configparser-main',[],function() {
           config.outgoing[child.tagName] = child.textContent;
         }
 
+        var ALLOWED_SOCKET_TYPES = ['SSL', 'STARTTLS'];
+
         // We do not support unencrypted connections outside of unit tests.
-        if (config.incoming.socketType !== 'SSL' ||
-            config.outgoing.socketType !== 'SSL') {
+        if (ALLOWED_SOCKET_TYPES.indexOf(config.incoming.socketType) === -1 ||
+            ALLOWED_SOCKET_TYPES.indexOf(config.outgoing.socketType) === -1) {
           config = null;
           status = 'unsafe';
         }
@@ -4342,6 +4357,10 @@ define('mailapi/worker-support/net-main',[],function() {
     delete socks[uid];
   }
 
+  function upgradeToSecure(uid) {
+    socks[uid].upgradeToSecure();
+  }
+
   function write(uid, data, offset, length) {
     // XXX why are we doing this? ask Vivien or try to remove...
     socks[uid].send(data, offset, length);
@@ -4361,6 +4380,9 @@ define('mailapi/worker-support/net-main',[],function() {
           break;
         case 'write':
           write(uid, args[0], args[1], args[2]);
+          break;
+        case 'upgradeToSecure':
+          upgradeToSecure(uid);
           break;
       }
     }

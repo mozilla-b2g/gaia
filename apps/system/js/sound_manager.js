@@ -126,6 +126,18 @@
 
   var CACHE_CETIMES = 'CE_ACCTIME';
 
+  // Default volume control channel
+  // Possible values:
+  // * normal
+  // * content
+  // * notification
+  // * alarm
+  // * telephony
+  // * ringer
+  // * publicnotification
+  // * unknown
+  var defaultVolumeControlChannel = 'unknown';
+
   // This event is generated in shell.js in response to bluetooth headset.
   // Bluetooth headset always assign audio volume to a specific value when
   // pressing its volume-up/volume-down buttons.
@@ -139,6 +151,10 @@
     } else if (type == 'headphones-status-changed') {
       isHeadsetConnected = (e.detail.state != 'off');
       ceAccumulator();
+    } else if (type == 'default-volume-channel-changed') {
+      defaultVolumeControlChannel = e.detail.channel;
+      // Do not accumulate CE time here because this event
+      // doesn't mean the content is playing now.
     }
   });
 
@@ -435,8 +451,12 @@
       case 'ringer':
           return 'notification';
       default:
-        return homescreenVisible || LockScreen.locked ||
-          FtuLauncher.isFtuRunning() ? 'notification' : 'content';
+        if (defaultVolumeControlChannel !== 'unknown') {
+          return defaultVolumeControlChannel;
+        } else {
+          return homescreenVisible || LockScreen.locked ||
+            FtuLauncher.isFtuRunning() ? 'notification' : 'content';
+        }
     }
   }
 

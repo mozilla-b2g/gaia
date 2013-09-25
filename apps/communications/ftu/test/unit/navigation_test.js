@@ -3,6 +3,7 @@
 requireApp('communications/ftu/test/unit/mock_l10n.js');
 requireApp(
     'communications/ftu/test/unit/mock_navigator_moz_mobile_connection.js');
+requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 requireApp('communications/ftu/test/unit/mock_data_mobile.js');
 requireApp('communications/ftu/test/unit/mock_sim_manager.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
@@ -26,7 +27,8 @@ suite('navigation >', function() {
   var container, progressBar;
   var realOnLine,
       realL10n,
-      realMozMobileConnection;
+      realMozMobileConnection,
+      realSettings;
 
   function navigatorOnLine() {
     return isOnLine;
@@ -48,6 +50,14 @@ suite('navigation >', function() {
     '</header>' +
     '<ol id="progress-bar" class="step-state">' +
     '</ol>' +
+    '<section id="unlock-sim-screen"' +
+    ' role="region" class="skin-organic">' +
+    ' <nav role="navigation">' +
+    ' <button id="skip-pin-button" class="button-left" data-l10n-id="skip">' +
+    'Skip</button>' +
+    '<button id="unlock-sim-button" class="recommend" data-l10n-id="send">' +
+    'Send</button></nav>' +
+    '</section>' +
     '<section id="activation-screen"' +
     ' role="region" class="skin-organic no-options">' +
     ' <menu role="navigation" id="nav-bar" class="forward-only">' +
@@ -82,6 +92,9 @@ suite('navigation >', function() {
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
 
+    realSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
       configurable: true,
@@ -97,6 +110,8 @@ suite('navigation >', function() {
   });
 
   teardown(function() {
+    navigator.mozSettings = realSettings;
+    realSettings = null;
     mocksHelper.teardown();
     container.parentNode.removeChild(container);
 
@@ -120,6 +135,8 @@ suite('navigation >', function() {
   });
 
   test('navigates forward', function() {
+    // The second step isn't mandatory.
+    Navigation.forward();
     for (var i = Navigation.currentStep; i < numSteps; i++) {
       Navigation.forward();
       assert.equal(Navigation.previousStep, i);
@@ -132,7 +149,8 @@ suite('navigation >', function() {
     Navigation.currentStep = numSteps;
     Navigation.previousStep = numSteps;
     window.location.hash = steps[Navigation.currentStep].hash;
-    for (var i = Navigation.currentStep; i > 1; i--) {
+    // The second step isn't mandatory.
+    for (var i = Navigation.currentStep; i > 3; i--) {
       Navigation.back();
       assert.equal(Navigation.previousStep, i);
       assert.equal(Navigation.currentStep, i - 1);
@@ -179,5 +197,38 @@ suite('navigation >', function() {
 
       assert.ok(UIManager.displayOfflineDialog.calledWith(href, title));
     });
+
+    test('navigate SIMMandatory without SIM', function() {
+      Navigation.simMandatory = true;
+      Navigation.currentStep = 1;
+      Navigation.previousStep = 1;
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+      assert.equal(window.location.hash, steps[2].hash);
+
+      Navigation.back();
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+      assert.equal(window.location.hash, steps[2].hash);
+
+    });
+
+    test('navigate SIMMandatory without SIM', function() {
+      Navigation.simMandatory = false;
+      Navigation.currentStep = 1;
+      Navigation.previousStep = 1;
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 3);
+      assert.equal(window.location.hash, steps[3].hash);
+      // Back to initial step.
+      Navigation.back();
+    });
+
   });
 });

@@ -184,23 +184,25 @@ contacts.Settings = (function() {
 
   function exportContactsHandler() {
       // Hide elements for import and transition
-      LazyLoader.load(['/contacts/js/export/contacts_exporter.js'],
-        function() {
+      LazyLoader.load(['/contacts/js/export/contacts_exporter.js'], loadSearch);
+
+      function loadSearch() {
+        Contacts.view('search', function() {
           importSettingsPanel.classList.add('export');
           updateImportTitle('exportContactsTitle');
           navigationHandler.go('import-settings', 'right-left');
-        }
-      );
+        });
+      }
   };
 
   function importOptionsHandler(e) {
     var source = e.target.parentNode.dataset.source;
     switch (source) {
       case 'sim':
-        window.setTimeout(onSimImport, 0);
+        window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
         break;
       case 'sd':
-        window.setTimeout(onSdImport, 0);
+        window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         break;
       case 'gmail':
         Contacts.extServices.importGmail();
@@ -235,7 +237,17 @@ contacts.Settings = (function() {
         );
         break;
       case 'bluetooth':
-        // TODO Add export to bluetooth functionality
+        LazyLoader.load(
+          [
+            '/shared/js/device_storage/get_storage_if_available.js',
+            '/shared/js/device_storage/get_unused_filename.js',
+            '/shared/js/contact2vcard.js',
+            '/contacts/js/export/bt.js'
+          ],
+          function() {
+            doExport(new ContactsBTExport());
+          }
+        );
         break;
     }
   };
@@ -248,17 +260,19 @@ contacts.Settings = (function() {
         // Resolve the promise, meanwhile show an overlay to
         // warn the user of the ongoin operation, dismiss it
         // once we have the result
-        utils.overlay.show(_('preparing-contacts'), null, 'spinner');
-        promise.onsuccess = function onSuccess(ids) {
-          var exporter = new ContactsExporter(strategy);
-          exporter.init(ids, function onExporterReady() {
-            // Leave the contact exporter to deal with the overlay
-            exporter.start();
-          });
-        };
-        promise.onerror = function onError() {
-          utils.overlay.hide();
-        };
+        requireOverlay(function _loaded() {
+          utils.overlay.show(_('preparing-contacts'), null, 'spinner');
+          promise.onsuccess = function onSuccess(ids) {
+            var exporter = new ContactsExporter(strategy);
+            exporter.init(ids, function onExporterReady() {
+              // Leave the contact exporter to deal with the overlay
+              exporter.start();
+            });
+          };
+          promise.onerror = function onError() {
+            utils.overlay.hide();
+          };
+        });
       },
       null,
       navigationHandler,
@@ -296,7 +310,7 @@ contacts.Settings = (function() {
 
   // Disables/Enables the actions over the sim import functionality
   var enableSIMOptions = function enableSIMOptions(cardState) {
-    var disabled = (cardState !== 'ready');
+    var disabled = (cardState !== 'ready' && cardState !== 'illegal');
     updateOptionStatus(importSimOption, disabled, true);
     updateOptionStatus(exportSimOption, disabled, true);
   };
@@ -368,6 +382,13 @@ contacts.Settings = (function() {
     };
   };
 
+  /**
+   * Loads the overlay class before showing
+   */
+  function requireOverlay(callback) {
+    Contacts.utility('Overlay', callback);
+  }
+
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
     // If the total is not available then an empty string is showed
     var theTotal = total || '';
@@ -434,7 +455,7 @@ contacts.Settings = (function() {
             isDanger: true,
             callback: function() {
               ConfirmDialog.hide();
-              doFbUnlink();
+              requireOverlay(doFbUnlink);
             }
           };
 
@@ -446,7 +467,7 @@ contacts.Settings = (function() {
             }
           };
 
-          ConfirmDialog.show(null, msg, noObject, yesObject);
+          Contacts.confirmDialog(null, msg, noObject, yesObject);
         }
       });
     }
@@ -596,10 +617,10 @@ contacts.Settings = (function() {
         callback: function() {
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
-          window.setTimeout(onSimImport, 0);
+          window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
         }
       };
-      ConfirmDialog.show(null, _('simContacts-error'), cancel, retry);
+      Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);
       Contacts.hideOverlay();
     };
 
@@ -700,7 +721,8 @@ contacts.Settings = (function() {
           sdImportLink.click();
         }
       };
-      ConfirmDialog.show(null, _('memoryCardContacts-error'), cancel, retry);
+      Contacts.confirmDialog(null, _('memoryCardContacts-error'), cancel,
+        retry);
       Contacts.hideOverlay();
     }
   };

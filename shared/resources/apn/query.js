@@ -98,12 +98,23 @@ document.addEventListener('DOMContentLoaded', function onload() {
     return found.length ? found[0] : null;
   }
 
+  function padLeft(num, length) {
+    var r = String(num);
+    while (r.length < length) {
+      r = '0' + r;
+    }
+    return r;
+  }
+
   function mergeDBs() {
     var apn = {};
 
     for (var mcc = 1; mcc < 999; mcc++) {
       var country = {};
-      var result = queryAndroidDB(mcc);
+
+      var _mcc = padLeft(mcc, 3);
+
+      var result = queryAndroidDB(_mcc);
 
      if (result && result.length) {
         result.sort();
@@ -111,14 +122,14 @@ document.addEventListener('DOMContentLoaded', function onload() {
           var mnc = result[i].mnc;
 
           var operatorVariantSettings = {};
-          var voicemail = queryGnomeDB(mcc, mnc, 'voicemail');
+          var voicemail = queryGnomeDB(_mcc, mnc, 'voicemail');
           if (voicemail) {
             operatorVariantSettings.voicemail = voicemail;
             if (DEBUG) {
               console.log(operatorVariantSettings.voicemail + ': ' + voicemail);
             }
           }
-          var otherSettings = queryOperatorVariantDB(mcc, mnc);
+          var otherSettings = queryOperatorVariantDB(_mcc, mnc);
           if (otherSettings) {
             if (DEBUG) {
               console.log('Other operator settings: ' +
@@ -169,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
           if (country[mnc]) {
             if (DEBUG) { // warn about the duplicate (mcc, mnc) tuple
               if (country[mnc].length == 1) {
-                console.log('duplicate mcc/mnc: ' + mcc + '/' + mnc);
+                console.log('duplicate mcc/mnc: ' + _mcc + '/' + mnc);
                 console.log(' - ' + country[mnc][0].carrier);
               }
               console.log(' - ' + result[i].carrier);
@@ -184,7 +195,7 @@ document.addEventListener('DOMContentLoaded', function onload() {
             }
           }
         }
-        apn[mcc] = country;
+        apn[_mcc] = country;
       }
     }
 

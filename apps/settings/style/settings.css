@@ -38,22 +38,27 @@ section[role="region"] {
  */
 
 section[role="region"] {
+  visibility: hidden;
   transform: translateX(+100%);
-  transition: transform .4s ease;
+  transition: transform .4s ease, visibility .4s ease;
 }
 section[role="region"].peek {
+  visibility: visible;
   transition: transform 1ms linear;
   transform: translateX(+0.1%);
 }
 
 section[role="region"].previous {
+  visibility: hidden;
   transform: translateX(-100%);
 }
 section[role="region"].previous.peek {
+  visibility: visible;
   transform: translateX(-0.1%);
 }
 
 section[role="region"].current {
+  visibility: visible;
   transform: translateX(0);
 }
 section[role="region"].current.peek.forward {
@@ -194,9 +199,9 @@ section li.password {
 }
 
 section li.password > label {
-  top: 8.6rem;
-  left: 1.5rem;
-  width: calc(100% - 3rem);
+  top: 8.3rem;
+  left: 0;
+  right: 1.5rem;
   height: 3rem;
   z-index: 1;
 }
@@ -208,8 +213,8 @@ section li.password > label > span {
 
 section li.password > span {
   position: absolute;
-  top: 8.6rem;
-  left: 4.5rem;
+  top: 8.3rem;
+  left: 3rem;
   padding: 0;
   height: 3rem;
   color: #848484;
@@ -218,8 +223,8 @@ section li.password > span {
 }
 
 section li.password > p {
-  padding: 0 1.5rem;
-  line-height: 4.4rem;
+  padding: 0.5rem 1.5rem 0;
+  line-height: 3.3rem;
 }
 
 
@@ -327,7 +332,7 @@ section li.password > p {
   height: 2.7rem;
 }
 
-#call li.disabled .fake-select {
+#call li[aria-disabled="true"] .fake-select {
   opacity: 0.6;
   pointer-events: none;
 }

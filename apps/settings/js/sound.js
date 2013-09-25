@@ -1,237 +1,120 @@
 /* -*- Mode: js; js-indent-level: 2; indent-tabs-mode: nil -*- */
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
-(function InitializeSoundsPanel() {
+(function() {
   'use strict';
 
-  var lists = {
-    'ringtones': {
-      settingName: 'dialer.ringtone',
-      element: document.getElementById('ringtones-list'),
-      enabled: true
-    },
-    'notifications': {
-      settingName: 'notification.ringtone',
-      element: document.getElementById('notifications-list'),
-      enabled: true
-    }
-  };
-
-  if (!navigator.mozTelephony) {
-    lists.ringtones.enabled = false;
-    document.getElementById('ringtones-header').hidden = true;
-    document.getElementById('ringtones-list').hidden = true;
-  }
-
-  // Root path containing the sounds
-  var root = '/shared/resources/media/';
-
-  function debug(str) {
-    dump(' -*- SoundsPanel: ' + str + '\n');
-  }
-
-  function getSoundsFor(type, callback) {
-    debug('retrieving sounds for ' + type);
-
-    var url = root + type + '/list.json';
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.send(null);
-
-    xhr.onload = function successGetSoundsFor() {
-      debug('success: get list for ' + type + '(' + url + ')');
-
-      callback(xhr.response);
-    };
-
-    xhr.onerror = function errorGetSoundsFor() {
-      debug('error: get list for ' + type + '(' + url + ')');
-
-      // Something wrong happens, let's return an empty list.
-      callback({});
-    };
-  }
-
-  function getBase64For(type, name, callback) {
-    debug('retrieving base64 data url for ' + name);
-
-    var url = root + type + '/' + name;
-    var xhr = new XMLHttpRequest();
-    xhr.overrideMimeType('text/plain; charset=x-user-defined');
-    xhr.open('GET', url, true);
-    xhr.send(null);
-
-    xhr.onload = function successGetBase64For() {
-      debug('success: get base64 for ' + type + '(' + name + ')');
-
-      var binary = '';
-      for (var i = 0; i < xhr.responseText.length; i++) {
-        binary += String.fromCharCode(xhr.responseText.charCodeAt(i) & 0xff);
-      }
-      callback(window.btoa(binary));
-    };
-
-    xhr.onerror = function errorGetBase64For() {
-      debug('error: get base64 for ' + type + '(' + name + ')');
-
-      // Something wrong happens, likely because the file does not
-      // exists. For now there is no feedback but I guess one should
-      // be added one day.
-      callback('');
-    };
-  }
-
-  function generateList(sounds, type) {
-    debug('generating list for ' + type + '\n');
-
-    var list = '';
-
-    // Add 'None' option which should be at the top.
-    if (type == 'notifications') {
-      list +=
-        '<li>' +
-        '  <label class="pack-radio">' +
-        '    <input type="radio" name="notifications-option" data-ignore' +
-        ' value="none" data-label="none" />' +
-        '    <span></span>' +
-        '  </label>' +
-        '  <a data-l10n-id="none">None</a>' +
-        '</li>';
-    }
-    for (var sound in sounds) {
-      var text = navigator.mozL10n.get(sound.replace('.', '_')) || sound;
-      list +=
-        '<li>' +
-        '  <label class="pack-radio">' +
-        '    <input type="radio" name="' + type + '-option" data-ignore ' +
-        'value="' + sound + '" data-label="' + text + '" />' +
-        '    <span></span>' +
-        '  </label>' +
-        '  <a data-l10n-id="' + sound + '">' + text + '</a>' +
-        '</li>';
-    }
-    return list;
-  }
-
-  function activateCurrentElementFor(list) {
-    debug('activating current selected sound for ' + list.settingName);
-
-    var key = list.settingName + '.name';
-    var request = navigator.mozSettings.createLock().get(key);
-    request.onsuccess = function successGetCurrentSound() {
-      var settingValue = request.result[key];
-      debug('success get current sound: ' + key + ' = ' + settingValue);
-
-      var children = list.element.children;
-      for (var i = 0; i < children.length; i++) {
-        var input = children[i].querySelector('input');
-        var elementValue = input.value;
-        if (settingValue == elementValue) {
-          input.checked = true;
-          break;
-        }
-      }
-    };
-
-    request.onerror = function errorGetCurrentSound() {
-      debug('error get current sound: ' + key);
-    };
-  }
-
-  function generateSoundsLists() {
-    for (var key in lists) {
-      var list = lists[key];
-      if (list.enabled === false)
-        continue;
-      // There is a closure in order to keep the right target for list/key
-      // when the callback ends.
-      (function(list, key) {
-        getSoundsFor(key, function(sounds) {
-          list.element.innerHTML = generateList(sounds, key);
-          activateCurrentElementFor(list);
-
-          list.element.onclick = function onListClick(evt) {
-            if (evt.target.tagName == 'LABEL') {
-              if (evt.target.querySelector('input').value == 'none')
-                stopAudioPreview();
-              else
-                audioPreview(evt.target, key);
-            }
-          };
-        });
-      })(list, key);
-    }
-  }
-
-  function assignButtonsActions() {
-    var dialog = document.getElementById('sound-selection');
-
-    var submit = dialog.querySelector('[type=submit]');
-    submit.onclick = function onsubmit() {
-      stopAudioPreview();
-      var rule = 'input[type="radio"]:checked';
-
-      // Update the settings value for the selected sounds
-      for (var key in lists) {
-        var list = lists[key];
-        var selected = list.element.querySelector(rule);
-        if (!selected)
-          continue;
-
-        (function(key, settingName, value) {
-          function setSound(data) {
-            var setting = {};
-            setting[settingName] = data ? 'data:audio/ogg;base64,' + data : '';
-            navigator.mozSettings.createLock().set(setting);
-
-            var setting2 = {};
-            setting2[settingName + '.name'] = value;
-            navigator.mozSettings.createLock().set(setting2);
-          }
-          if (value == 'none')
-            setSound();
-          else
-            getBase64For(key, value, setSound);
-        })(key, list.settingName, selected.value);
-      }
-
-      Settings.currentPanel = '#sound';
-    };
-
-    var reset = dialog.querySelector('[type=reset]');
-    reset.onclick = function onreset() {
-      stopAudioPreview();
-      Settings.currentPanel = '#sound'; // hide dialog box
-    };
-  }
-
-  function stopAudioPreview() {
-    var audio = document.querySelector('#sound-selection audio');
-    if (!audio.paused) {
-      audio.pause();
-      audio.src = '';
-    }
-  }
-
-  // get network type
-  getSupportedNetworkCategories(function(result) {
+  // Show the touch tone selector if and only if we're on a CDMA network
+  getSupportedNetworkInfo(function(result) {
     var toneSelector = document.getElementById('touch-tone-selector');
     toneSelector.hidden = !result.cdma;
   });
 
-  // main
-  generateSoundsLists();
-  assignButtonsActions();
+  // Now initialize the ring tone and alert tone menus.
 
-  var button = document.getElementById('call-tone-selection');
-  button.onclick = function() {
-    for (var key in lists) {
-      if (lists[key].enabled === false)
-        continue;
-      activateCurrentElementFor(lists[key]);
+  // This array has one element for each selectable tone that appears in the
+  // "Tones" section of  ../elements/sound.html.
+  var tones = [
+    {
+      pickType: 'alerttone',
+      settingsKey: 'notification.ringtone',
+      button: document.getElementById('alert-tone-selection')
     }
-    Settings.currentPanel = '#sound-selection';
-  };
-})();
+  ];
 
+  // If we're a telephone, then show the section for ringtones, too.
+  if (navigator.mozTelephony) {
+    tones.push({
+      pickType: 'ringtone',
+      settingsKey: 'dialer.ringtone',
+      button: document.getElementById('ring-tone-selection')
+    });
+    document.getElementById('ringer').hidden = false;
+  }
+
+  // For each kind of tone, hook up the button that will allow the user
+  // to select a sound for that kind of tone.
+  tones.forEach(function(tone) {
+
+    // The button looks like a select element. By default it just reads
+    // "change". But we want it to display the name of the current tone.
+    // So we look up that name in the settings database.
+    var namekey = tone.settingsKey + '.name';
+    navigator.mozSettings.createLock().get(namekey).onsuccess = function(e) {
+      if (e.target.result[namekey]) {
+        tone.button.textContent = e.target.result[namekey];
+      } else {
+        tone.button.textContent = navigator.mozL10n.get('change');
+      }
+    };
+
+    // When the user clicks the button, we launch an activity that lets
+    // the user select new ringtone.
+    tone.button.onclick = function() {
+
+      // Before we can start the Pick activity, we need to know if there
+      // is locked content on the phone because we don't want the user to
+      // see "Purchased Media" as a choice if there isn't any purchased
+      // media on the phone. The ForwardLock secret key is not generated
+      // until it is needed, so we can use its existance to determine whether
+      // to show the Purchased Media app.
+      ForwardLock.getKey(function(secret) {
+        var activity = new MozActivity({
+          name: 'pick',
+          data: {
+            type: tone.pickType,
+            // If we have a secret then there is locked content on the phone
+            // so include it as a choice for the user
+            includeLocked: (secret !== null)
+          }
+        });
+
+        activity.onsuccess = function() {
+          var blob = activity.result.blob;  // The returned ringtone sound
+          var name = activity.result.name;  // The name of this ringtone
+
+          if (!blob) {
+            console.warn('pick activity empty result');
+            return;
+          }
+
+          // If we got a locked ringtone, we have to unlock it first
+          if (blob.type.split('/')[1] === ForwardLock.mimeSubtype) {
+            ForwardLock.unlockBlob(secret, blob, function(unlocked) {
+              setRingtone(unlocked, name);
+            });
+          } else {  // Otherwise we just set the ringtone directly.
+            setRingtone(blob, name);
+          }
+
+          // Save the sound in the settings db so that other apps can use it.
+          // Also save the sound name in the db so we can display it in the
+          // future.  And update the button text to the new name now.
+          function setRingtone(blob, name) {
+            // First update the button text
+            tone.button.textContent = name || navigator.mozL10n.get('change');
+
+            // Then update the settings database
+            var values = {};
+            values[tone.settingsKey] = blob;
+            values[namekey] = name || '';
+            var request = navigator.mozSettings.createLock().set(values);
+            /*
+             * This is a workaround for bug 914404.
+             * XXX When that bug is fixed, clean up like this:
+             *  remove the onsuccess handler below and the request variable
+             *  switch back to readonly permission for music in the manifest
+             */
+            request.onsuccess = function() {
+              if (activity.result.deleteMe) {
+                console.log('Bug 914404: deleting', activity.result.deleteMe);
+                var storage = navigator.getDeviceStorage('music');
+                storage.delete(activity.result.deleteMe);
+              }
+            };
+          }
+        };
+      });
+    };
+  });
+}());

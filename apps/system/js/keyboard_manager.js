@@ -105,7 +105,7 @@ var KeyboardManager = {
     // when an inline activity goes away.
     window.addEventListener('appwillclose', this);
     window.addEventListener('activitywillclose', this);
-    window.addEventListener('applicationinstall', this);
+    window.addEventListener('applicationinstallsuccess', this);
     window.addEventListener('applicationuninstall', this);
     window.addEventListener('keyboardsrefresh', this);
 
@@ -149,6 +149,19 @@ var KeyboardManager = {
       var initType = self.showingLayout.type;
       var initIndex = self.showingLayout.index;
       self.launchLayoutFrame(self.keyboardLayouts[initType][initIndex]);
+
+      // Let chrome know about how many keyboards we have
+      var layouts = {};
+      Object.keys(self.keyboardLayouts).forEach(function(k) {
+        layouts[k] = self.keyboardLayouts[k].length;
+      });
+
+      var event = document.createEvent('CustomEvent');
+      event.initCustomEvent('mozContentEvent', true, true, {
+        type: 'inputmethod-update-layouts',
+        layouts: layouts
+      });
+      window.dispatchEvent(event);
     }
     KeyboardHelper.getInstalledKeyboards(resetLayoutList);
   },
@@ -176,7 +189,7 @@ var KeyboardManager = {
 
           if (!self.keyboardLayouts[type])
             self.keyboardLayouts[type] = [];
-            self.keyboardLayouts[type].activit = 0;
+            self.keyboardLayouts[type].activeLayout = 0;
 
           self.keyboardLayouts[type].push({
             'id': key,
@@ -221,7 +234,7 @@ var KeyboardManager = {
         // if target group (input type) does not exist, use text for default
         if (!self.keyboardLayouts[group])
           group = 'text';
-        self.setKeyboardToShow(group, self.keyboardLayouts[group].activit);
+        self.setKeyboardToShow(group, self.keyboardLayouts[group].activeLayout);
         self.showKeyboard();
 
         // We also want to show the permanent notification
@@ -254,8 +267,8 @@ var KeyboardManager = {
     }
     if (!layoutFrame)
       layoutFrame = this.loadKeyboardLayout(layout);
-    // TODO make sure setVisible function is ready
-    layoutFrame.setVisible(false);
+    // TODO make sure setLayoutFrameActive function is ready
+    this.setLayoutFrameActive(layoutFrame, false);
     layoutFrame.hidden = true;
     layoutFrame.dataset.frameName = layout.id;
     layoutFrame.dataset.frameOrigin = layout.origin;
@@ -340,7 +353,7 @@ var KeyboardManager = {
         var origin = evt.target.dataset.frameOrigin;
         this.removeKeyboard(origin);
         break;
-      case 'applicationinstall': //app installed
+      case 'applicationinstallsuccess': //app installed
         this.updateLayoutSettings();
         break;
       case 'applicationuninstall': //app uninstalled
@@ -416,7 +429,7 @@ var KeyboardManager = {
     var layout = this.keyboardLayouts[group][index];
     this.showingLayout.frame = this.launchLayoutFrame(layout);
     this.showingLayout.frame.hidden = false;
-    this.showingLayout.frame.setVisible(true);
+    this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
          'mozbrowserresize', this, true);
   },
@@ -467,7 +480,7 @@ var KeyboardManager = {
       return;
     }
     this.showingLayout.frame.hidden = true;
-    this.showingLayout.frame.setVisible(false);
+    this.setLayoutFrameActive(this.showingLayout.frame, false);
     this.showingLayout.frame.removeEventListener(
         'mozbrowserresize', this, true);
     this.showingLayout.reset();
@@ -496,7 +509,7 @@ var KeyboardManager = {
       var index = (showed.index + 1) % length;
       if (!self.keyboardLayouts[showed.type])
         showed.type = 'text';
-      self.keyboardLayouts[showed.type].activit = index;
+      self.keyboardLayouts[showed.type].activeLayout = index;
       self.resetShowingKeyboard();
       self.setKeyboardToShow(showed.type, index);
     }, FOCUS_CHANGE_DELAY);
@@ -507,24 +520,28 @@ var KeyboardManager = {
 
     var self = this;
     var showed = this.showingLayout;
+    var activeLayout = this.keyboardLayouts[showed.type].activeLayout;
 
     this.switchChangeTimeout = setTimeout(function keyboardLayoutList() {
       var items = [];
       self.keyboardLayouts[showed.type].forEach(function(layout, index) {
         var label = layout.appName + ' ' + layout.name;
-        items.push({
+        var item = {
           label: label,
           value: index
-        });
+        };
+        if (index === activeLayout) {
+          item.iconClass = 'tail-icon';
+          item.icon = 'style/icons/checkmark.png';
+        }
+        items.push(item);
       });
       self.hideKeyboard();
-      //XXX the menu is not scrollable now, and it will take focus away
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=859708
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=859713
-      ListMenu.request(items, 'Layout selection', function(selectedIndex) {
+
+      ActionMenu.open(items, 'Layout selection', function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
-        self.keyboardLayouts[showed.type].activit = selectedIndex;
+        self.keyboardLayouts[showed.type].activeLayout = selectedIndex;
         self.setKeyboardToShow(showed.type, selectedIndex);
         self.showKeyboard();
 
@@ -542,8 +559,8 @@ var KeyboardManager = {
 
         // Mimic the success callback to show the current keyboard
         // when user canceled it.
-        var activit = self.keyboardLayouts[showed.type].activit;
-        self.setKeyboardToShow(showed.type, activit);
+        var activeLayout = self.keyboardLayouts[showed.type].activeLayout;
+        self.setKeyboardToShow(showed.type, activeLayout);
         self.showKeyboard();
 
         // Hide the tray to show the app directly after
@@ -551,6 +568,13 @@ var KeyboardManager = {
         window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
       });
     }, FOCUS_CHANGE_DELAY);
+  },
+
+  setLayoutFrameActive: function km_setLayoutFrameActive(frame, active) {
+    frame.setVisible(active);
+    if (frame.setInputMethodActive) {
+      frame.setInputMethodActive(active);
+    }
   }
 };
 

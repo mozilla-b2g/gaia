@@ -1,5 +1,8 @@
 'use strict';
 
+require('/shared/js/lazy_loader.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
 requireApp('homescreen/test/unit/mock_everything.me.html.js');
 requireApp('homescreen/test/unit/mock_asyncStorage.js');
 requireApp('homescreen/test/unit/mock_l10n.js');
@@ -11,11 +14,14 @@ if (!this.asyncStorage) {
 
 suite('everything.me.js >', function() {
   var wrapperNode,
-      realAsyncStorage;
+      realAsyncStorage,
+      realMozSettings;
 
   suiteSetup(function() {
     realAsyncStorage = window.asyncStorage;
     window.asyncStorage = MockasyncStorage;
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
 
     wrapperNode = document.createElement('section');
     wrapperNode.innerHTML = MockEverythingMeHtml;
@@ -26,30 +32,16 @@ suite('everything.me.js >', function() {
 
   suiteTeardown(function() {
     window.asyncStorage = realAsyncStorage;
+    navigator.mozSettings = realMozSettings;
 
     document.body.removeChild(wrapperNode);
   });
 
-  suite('Everything.me is initialized correctly >', function() {
-
-    test('Ev.me page is not loaded >', function() {
-      assert.isFalse(EverythingME.displayed);
-    });
-  });
-
-  suite('Everything.me is displayed >', function() {
-
-    EverythingME.activate();
-
-    test('Ev.me page is loaded >', function() {
-      assert.isTrue(EverythingME.displayed);
-    });
-  });
-
-  suite('Everything.me is hidden >', function() {
-
-    test('Ev.me page is not loaded >', function() {
-      assert.isFalse(EverythingME.displayed);
+  suite('Everything.me starts initialization correctly >', function() {
+    test('Ev.me page is loading >', function() {
+      assert.isFalse(document.body.classList.contains('evme-loading'));
+      EverythingME.activate();
+      assert.isTrue(document.body.classList.contains('evme-loading'));
     });
   });
 
@@ -80,7 +72,7 @@ suite('everything.me.js >', function() {
 
         done();
       });
-    });
+    }, true); // force migration even if already done by EverythingME.init()
   });
 
   suite('Everything.me will be destroyed >', function() {
