@@ -30,11 +30,6 @@ body[data-transitioning] .apps > div {
   visibility: visible;
 }
 
-/* Here users can view the clock while grid is loading -> better experience */
-#landing-page {
-  display: block;
-}
-
 .apps ol {
   width: 100%;
   padding: 0;
@@ -42,6 +37,9 @@ body[data-transitioning] .apps > div {
   display: block;
   margin: 0 auto;
 	margin-top: .3rem;
+
+  /* collection is opened, homescreen apps are faded out */
+  transition: opacity 200ms linear;
 }
 
 .apps ol > li {
@@ -57,10 +55,24 @@ body[data-transitioning] .apps > div {
   display: none;
 }
 
+/* Maximum 12 icons for first page */
+.apps div:first-child ol > li:nth-child(13) {
+  display: none;
+}
+
 /* Adds 1 row of icons */
 @media (min-device-width: 320px) and (min-device-height: 640px) {
+  .apps ol:first-child > li:nth-child(13) {
+    display: inline-block;
+  }
+
   .apps ol > li:nth-child(17) {
     display: inline-block;
+  }
+
+	 /* Maximum 16 icons for first page */
+  .apps ol:first-child > li:nth-child(21) {
+    display: none;
   }
 
    /* Maximum 20 icons for page */

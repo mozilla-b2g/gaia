@@ -1,3 +1,5 @@
+'use strict';
+
 Evme.api = new function Evme_api() {
     var self = this,
         PROTOCOL = 'https',
@@ -31,6 +33,9 @@ Evme.api = new function Evme_api() {
         this.icons = function icons(options, callback) {
             return request("App/icons", options, callback);
         };
+	this.nativeInfo = function nativeInfo(options, callback) {
+	    return request("App/nativeInfo", options, callback);
+	};
     };
     
     this.Device = new function Device() {
@@ -73,9 +78,6 @@ Evme.api = new function Evme_api() {
         this.bgimage = function bgimage(options, callback) {
             return request("Search/bgimage", options, callback);
         };
-        this.trending = function trending(options, callback) {
-            return request("Search/trending", options, callback);
-        };
         this.disambiguate = function disambiguate(options, callback) {
             return request("Search/disambiguate", options, callback);
         };
@@ -99,15 +101,6 @@ Evme.api = new function Evme_api() {
         };
     };
     
-    this.User = new function User() {
-        this.apps = function apps(options, callback) {
-            return request("User/apps", options, callback);
-        };
-        this.clearApps = function clearApps(options, callback) {
-            return request("User/clearApps", options, callback);
-        };
-    };
-    
     this.Stats = new function Stats() {
         this.report = function report(options, callback) {
             return request("Stats/report", options, callback);
@@ -118,15 +111,20 @@ Evme.api = new function Evme_api() {
         !options && (options = {});
         
         var url = BASE_URL + method,
+	    finalUrl = url,
             params = "",
-            httpRequest = new XMLHttpRequest();
-        
+	    httpRequest = new XMLHttpRequest(),
+	    value;
+
         for (var k in options) {
-            if (typeof options[k] !== "undefined") {
-                params += k + "=" + encodeURIComponent(options[k]) + "&";
-            }
+	  value = options[k];
+	  if (value !== null && value !== undefined && value !== '') {
+	    params += k + "=" + encodeURIComponent(options[k]) + "&";
+	  }
         }
-        
+
+	finalUrl += '?' + params;
+
         httpRequest.open("POST", url, true);
         httpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
         httpRequest.onreadystatechange = function onReadyStateChange(e) {
@@ -138,14 +136,17 @@ Evme.api = new function Evme_api() {
                 } catch(ex){}
                 
                 if (response) {
-                    callback(response, url + "?" + params);
+		    callback(response, finalUrl);
                 }
             }
         };
         httpRequest.withCredentials = true;
         httpRequest.send(params);
         
-        return httpRequest;
+	return {
+	  "request": httpRequest,
+	  "url": finalUrl
+	};
     }
     
     self.init();

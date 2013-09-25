@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('homescreen/js/grid_components.js');
 requireApp('homescreen/js/bookmark.js');
 
 suite('bookmark.js >', function() {
@@ -19,7 +20,7 @@ suite('bookmark.js >', function() {
   });
 
   test('All bookmark objects should be defined as bookmarks >', function() {
-    assert.isTrue(bookmark.isBookmark);
+    assert.equal(bookmark.type, GridItemsFactory.TYPE.BOOKMARK);
   });
 
   test('All bookmark objects are removable >', function() {
