@@ -78,10 +78,12 @@
           <a href="#" id="cancel_activity" class="hide">
             <span class="icon icon-close" data-l10n-id="exit">Exit</span>
           </a>
-          <menu type="toolbar">
+          <menu id="standard-menu" type="toolbar">
             <button role="menuitem" id="add-contact-button"><span class="icon icon-add" data-l10n-id="add">add</span></button>
             <button role="menuitem" id="settings-button"><span class="icon icon-settings" data-l10n-id="settings">settings</span></button>
-            <button  id="select-action" class="hide"></button>
+          </menu>
+          <menu id="select-menu" type="toolbar" class="hide">
+            <button role="menuitem" id="select-action"></button>
           </menu>
           <h1 data-l10n-id="contacts">Contacts</h1>
         </header>

@@ -33,6 +33,8 @@ contacts.List = (function() {
       inSelectMode = false,
       selectForm = null,
       selectActionButton = null,
+      selectMenu = null,
+      standardMenu = null,
       groupList = null,
       searchList = null,
       currentlySelected = 0,
@@ -1384,6 +1386,11 @@ contacts.List = (function() {
     return promise;
   };
 
+  function toggleMenus() {
+    selectMenu.classList.toggle('hide');
+    standardMenu.classList.toggle('hide');
+  }
+
   /*
     Set the list in select mode, allowing you to configure an action to
     be executed when the user does the selection as well as a title to
@@ -1399,6 +1406,8 @@ contacts.List = (function() {
     if (selectForm === null) {
       selectForm = document.getElementById('selectable-form');
 
+      selectMenu = document.getElementById('select-menu');
+      standardMenu = document.getElementById('standard-menu');
       selectActionButton = document.getElementById('select-action');
       selectActionButton.disabled = true;
       selectAll = document.getElementById('select-all');
@@ -1409,15 +1418,8 @@ contacts.List = (function() {
 
     scrollable.classList.add('selecting');
 
-    // Menus
-    var menus = document.querySelectorAll(
-      '#view-contacts-list menu[type="toolbar"] button');
-    menus = Array.prototype.slice.call(menus, 0);
-    menus.forEach(function onMenu(button) {
-      button.classList.add('hide');
-    });
+    toggleMenus();
 
-    selectActionButton.classList.remove('hide');
     selectActionButton.textContent = title;
     // Clear any previous click action and setup the current one
     selectActionButton.removeEventListener('click', boundSelectAction4Select);
@@ -1511,7 +1513,8 @@ contacts.List = (function() {
     });
 
     selectActionButton.disabled = true;
-    selectActionButton.classList.add('hide');
+
+    toggleMenus();
 
     // Clean the checks
     setTimeout(function clearAllChecks() {

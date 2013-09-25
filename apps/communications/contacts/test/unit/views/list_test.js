@@ -242,10 +242,12 @@ suite('Render contacts list', function() {
     containerSection = document.createElement('section');
     containerSection.id = 'view-contacts-list';
     containerSection.innerHTML = '<a id="cancel_activity" class="hide"></a>';
-    containerSection.innerHTML += '<menu type="toolbar">' +
+    containerSection.innerHTML += '<menu id="standard-menu" type="toolbar">' +
       '<button id="add-contact-button"><span></span></button>' +
       '<button id="settings-button"><span></span></button>' +
       '<button id="select-action" class="hide"><span></span></button>' +
+      '</menu>' + '<menu id="select-menu" type="toolbar" class="hide">' +
+      '<button role="menuitem" id="select-action"></button>' +
       '</menu>';
     document.body.appendChild(containerSection);
 
@@ -1284,28 +1286,18 @@ suite('Render contacts list', function() {
 
   suite('Select mode', function() {
     var elements = {
-      'addButton': {
-        'id': 'add-contact-button',
+      'standardMenu': {
+        'id': 'standard-menu',
         'selectMode': 'hide',
         'normalMode': 'show'
       },
-      'settingsButton': {
-        'id': 'settings-button',
-        'selectMode': 'hide',
-        'normalMode': 'show'
+      'selectMenu': {
+        'id': 'select-menu',
+        'selectMode': 'show',
+        'normalMode': 'hide'
       },
       'closeButton': {
         'id': 'cancel_activity',
-        'selectMode': 'show',
-        'normalMode': 'hide'
-      },
-      'selectActionButton': {
-        'id': 'select-action',
-        'selectMode': 'show',
-        'normalMode': 'hide'
-      },
-      'selectionForm': {
-        'id': 'selectable-form',
         'selectMode': 'show',
         'normalMode': 'hide'
       },
@@ -1352,8 +1344,7 @@ suite('Render contacts list', function() {
         assert.isTrue(list.classList.contains('selecting'));
         assert.isTrue(searchList.classList.contains('selecting'));
 
-        var selectActionButton = document.getElementById(
-          elements['selectActionButton'].id);
+        var selectActionButton = document.getElementById('select-action');
         assert.equal(selectActionTitle, selectActionButton.textContent);
         assert.isTrue(selectActionButton.disabled);
 
@@ -1404,7 +1395,7 @@ suite('Render contacts list', function() {
       test('if no contact is selected, action button is disabled',
                                                                 function(done) {
         var selectActionButton =
-          document.getElementById(elements['selectActionButton'].id);
+          document.getElementById('select-action');
 
         var contactCheck = list.querySelector('input[type="checkbox"]');
         contactCheck.dataset.uuid = contactCheck.value;
@@ -1422,8 +1413,7 @@ suite('Render contacts list', function() {
 
       test('if some contact is selected, action button is enabled',
                                                                 function(done) {
-        var selectActionButton =
-          document.getElementById(elements['selectActionButton'].id);
+        var selectActionButton = document.getElementById('select-action');
 
         var contactCheck = list.querySelector('input[type="checkbox"]');
         contactCheck.dataset.uuid = contactCheck.value;
