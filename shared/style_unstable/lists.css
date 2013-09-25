@@ -36,7 +36,7 @@
   height: 6rem;
   -moz-box-sizing: border-box;
   transition: transform 0.3s ease, padding 0.3s ease;
-  border-bottom: solid 0.1rem #dbd9d9;
+  border-bottom: solid 0.1rem #e7e7e7;
   color: #000;
   margin: 0;
   display: block;
@@ -79,19 +79,10 @@
 }
 
 /* Disabled */
-[data-type="list"] li[aria-disabled="true"]:after {
-  content: "";
-  background-color: #e6e6e6;
-  opacity: 0.7;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-}
-
 [data-type="list"] li[aria-disabled="true"] {
   pointer-events: none;
+  opacity: 0.2;
+  border-color: #888;
 }
 
 /* Graphic content */
@@ -182,7 +173,7 @@
   z-index: 1;
   width: auto;
   height: auto;
-  border-top: solid 0.1rem #dbd9d9;
+  border-top: solid 0.1rem #e7e7e7;
 }
 
 [data-type="list"] li > .pack-checkbox input + span,
