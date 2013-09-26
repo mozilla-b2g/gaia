@@ -69,6 +69,20 @@ if (!utils.alphaScroll) {
       jumper.addEventListener(touchmove, scrollTo);
       jumper.addEventListener(touchend, scrollEnd);
 
+      // Determine if the content for this scrollbar is statically defined
+      // in the index.html.  If there are no templates, then do not attempt
+      // to render it.
+      if (typeof jumper === 'string') {
+        jumper = document.querySelector(jumper);
+      }
+      var template = jumper.querySelector('*[data-template]');
+      if (!template) {
+        alreadyRendered = true;
+        return;
+      }
+
+      // Otherwise render the content via templating.
+      var frag = document.createDocumentFragment();
       var alphabet = [];
       for (var i = 65; i <= 90; i++) {
         alphabet.push({ anchor: String.fromCharCode(i) });
@@ -76,7 +90,9 @@ if (!utils.alphaScroll) {
       alphabet.push({
         anchor: '#'
       });
-      utils.templates.append(jumper, alphabet);
+      utils.templates.append(jumper, alphabet, frag);
+      jumper.appendChild(frag);
+
       alreadyRendered = true;
     };
 
