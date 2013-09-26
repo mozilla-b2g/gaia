@@ -13,7 +13,7 @@ class TestLockScreen(GaiaTestCase):
 
     # Homescreen locators
     _homescreen_frame_locator = (By.CSS_SELECTOR, 'div.homescreen iframe')
-    _homescreen_landing_locator = (By.ID, 'landing-page')
+    _homescreen_landing_locator = (By.ID, 'icongrid')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
