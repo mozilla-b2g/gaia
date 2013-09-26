@@ -16,7 +16,7 @@ requireApp('communications/contacts/test/unit/mock_contacts_shortcuts.js');
 requireApp('communications/contacts/test/unit/mock_fixed_header.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
 requireApp('communications/contacts/test/unit/mock_extfb.js');
-requireApp('communications/contacts/test/unit/mock_activities.js');
+requireApp('communications/contacts/test/unit/mock_activity_handler.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp(
@@ -47,10 +47,6 @@ if (!this.mozL10n) {
   this.mozL10n = null;
 }
 
-if (!this.ActivityHandler) {
-  this.ActivityHandler = null;
-}
-
 if (!this.ImageLoader) {
   this.ImageLoader = null;
 }
@@ -68,6 +64,10 @@ if (!window.asyncScriptsLoaded) {
 }
 
 var URL = null;
+
+var mocksHelperForListTest = new MocksHelper([
+  'ActivityHandler'
+]).init();
 
 suite('Render contacts list', function() {
   var subject,
@@ -88,10 +88,8 @@ suite('Render contacts list', function() {
       utils,
       mockContacts,
       mozL10n,
-      mockActivities,
       mockImageLoader,
       mockURL,
-      realActivities,
       realURL,
       groupA,
       groupB,
@@ -385,8 +383,6 @@ suite('Render contacts list', function() {
     window.Contacts.extServices = MockExtFb;
     realFixedHeader = window.FixedHeader;
     window.FixedHeader = MockFixedHeader;
-    realActivities = window.ActivityHandler;
-    window.ActivityHandler = MockActivities;
     realImageLoader = window.ImageLoader;
     window.ImageLoader = MockImageLoader;
     realURL = window.URL || {};
@@ -409,6 +405,8 @@ suite('Render contacts list', function() {
 
     contacts.Search.init(list);
     subject.initSearch();
+
+    mocksHelperForListTest.suiteSetup();
   });
 
   suiteTeardown(function() {
@@ -416,8 +414,7 @@ suite('Render contacts list', function() {
     window.Contacts = realContacts;
     window.fb = realFb;
     window.mozL10n = realL10n;
-    window.ActivityHandler = realActivities;
-    window.ImageLoader = realActivities;
+    window.ImageLoader = realImageLoader;
     window.PerformanceTestingHelper = realPerformanceTestingHelper;
     window.asyncStorage = realAsyncStorage;
     navigator.mozContacts = realMozContacts;
@@ -947,12 +944,12 @@ suite('Render contacts list', function() {
     });
 
     test('checking no contacts when coming from activity', function(done) {
-      MockActivities.currentlyHandling = true;
+      MockActivityHandler.currentlyHandling = true;
       doLoad(subject, [], function() {
         assert.isTrue(noContacts.classList.contains('hide'));
         assertNoGroup(groupFav, containerFav);
         assertTotal(0, 0);
-        MockActivities.currentlyHandling = false;
+        MockActivityHandler.currentlyHandling = false;
         done();
       });
     });
