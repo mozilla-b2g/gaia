@@ -8,14 +8,6 @@
 var requirejsAsLib = true;
 load('../../build/r.js');
 
-var converter =
-      Components.classes['@mozilla.org/intl/scriptableunicodeconverter'].
-      createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-converter.charset = 'UTF-8';
-
-var secClass = Components.classes['@mozilla.org/security/hash;1'];
-var nsICryptoHash = Components.interfaces.nsICryptoHash;
-
 var shared = {
   js: [],
   style: [],
@@ -53,26 +45,6 @@ function stripCssComments(contents) {
   }
 
   return result;
-}
-
-// Adapted from:
-// https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsICryptoHash#Computing_the_Hash_of_a_String
-// return the two-digit hexadecimal code for a byte
-function toHexString(charCode) {
-  return ('0' + charCode.toString(16)).slice(-2);
-}
-function getDigest(contents) {
-  var i,
-      result = {};
-
-  // data is an array of bytes
-  var data = converter.convertToByteArray(contents, result);
-  var ch = secClass.createInstance(nsICryptoHash);
-  ch.init(ch.SHA1);
-  ch.update(data, data.length);
-  var hash = ch.finish(false);
-  // convert the binary hash data to a hex string.
-  return [toHexString(hash.charCodeAt(i)) for (i in hash)].join('');
 }
 
 requirejs.tools.useLib(function(require) {
