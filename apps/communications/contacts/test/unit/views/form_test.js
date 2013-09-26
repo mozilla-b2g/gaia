@@ -319,15 +319,13 @@ suite('Render contact form', function() {
     });
 
     test('given name is empty', function() {
-      LazyLoader.load(['/contacts/js/service_extensions.js'], function() {
-        var deviceContact = new MockContactAllFields();
-        deviceContact.givenName = null;
-        deviceContact.name = null;
+      var deviceContact = new MockContactAllFields();
+      deviceContact.givenName = null;
+      deviceContact.name = null;
 
-        subject.render(deviceContact);
-        subject.saveContact();
-        assert.equal(deviceContact.name[0], deviceContact.familyName);
-      });
+      subject.render(deviceContact);
+      subject.saveContact();
+      assert.equal(deviceContact.name[0], deviceContact.familyName);
     });
 
     test('family name is empty', function() {
