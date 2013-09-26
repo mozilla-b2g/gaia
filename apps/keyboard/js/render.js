@@ -195,11 +195,12 @@ const IMERender = (function() {
   };
 
   var showIME = function hm_showIME() {
+    this.ime.style.visibility = 'visible';
     delete this.ime.dataset.hidden;
-    this.ime.classList.remove('hide');
   };
 
   var hideIME = function km_hideIME() {
+    this.ime.style.visibility = 'hidden';
     this.ime.dataset.hidden = 'true';
   };
 
