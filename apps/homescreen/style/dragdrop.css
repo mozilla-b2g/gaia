@@ -72,8 +72,6 @@ body[data-mode = 'edit'] ol > li.hidden {
   opacity: 0;
 }
 
-/* This rules implement the circle behind collections during dragging */
-
 body[data-mode = 'edit'] ol > li[data-is-collection = 'true'] > div > img {
   transform: scale(1);
   transition: transform .3s;
@@ -81,22 +79,6 @@ body[data-mode = 'edit'] ol > li[data-is-collection = 'true'] > div > img {
 
 body[data-dragging] ol > li[data-is-collection = 'true'] > div > img {
   transform: scale(0.8);
-}
-
-body[data-mode = 'edit'] ol > li[data-is-collection = 'true'] > div::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 8rem;
-  height: 8rem;
-  background: white;
-  border-radius: 50%;
-  margin: -0.5rem 0 0 -4rem;
-  opacity: 0.2;
-
-  transform: scale(0.8);
-  transition: transform .3s;
 }
 
 body[data-dragging] ol > li[data-is-collection = 'true'].hover > div::before {
