@@ -575,6 +575,9 @@ var CallsHandler = (function callsHandler() {
     if (handledCalls.length !== 1) {
       return;
     }
+    if (telephony.calls[0].state === 'incoming') {
+      return;
+    }
 
     if (telephony.active) {
       telephony.active.hold();
