@@ -207,7 +207,7 @@ var StatusBar = {
       case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
-        this.toggleTimeLabel(false);
+        this.toggleTimeLabel(!LockScreen.locked);
         break;
       case 'attentionscreenshow':
       case 'unlock':
