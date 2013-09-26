@@ -845,6 +845,9 @@ contacts.Form = (function() {
       var arrayIndex = currentEmail.dataset.index;
       var emailField = dom.getElementById('email_' + arrayIndex);
       var emailValue = emailField.value;
+      if (emailValue) {
+        emailValue = emailValue.trim();
+      }
       var selector = 'email_type_' + arrayIndex;
       var typeField = dom.getElementById(selector).dataset.value || '';
       if (!emailValue)
@@ -968,7 +971,7 @@ contacts.Form = (function() {
   var emptyForm = function emptyForm() {
     var textFields = textFieldsCache.get();
     for (var i = textFields.length - 1; i >= 0; i--) {
-      if (textFields[i].value)
+      if (textFields[i].value && textFields[i].value.trim())
         return false;
     }
     return true;
