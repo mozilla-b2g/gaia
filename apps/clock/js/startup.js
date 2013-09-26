@@ -2,7 +2,6 @@ require.config({ baseUrl: 'js' });
 define('startup', function(require) {
 'use strict';
 
-require('css');
 var App = require('app');
 var ClockView = require('clock_view');
 var AlarmList = require('alarm_list');
@@ -23,25 +22,17 @@ function initialize() {
   ActiveAlarm.init();
 }
 
-require([
-  'css!shared/style/switches',
-  'css!shared/style/input_areas',
-  'css!shared/style/buttons',
-  'css!shared/style/edit_mode'
-  ], function() {
-     var needsMocks = !navigator.mozAlarms;
-     if (needsMocks) {
-       testReq([
-           '../test/unit/mocks/mock_moz_alarm.js'
-         ], function(MockMozAlarms) {
-         navigator.mozAlarms = new MockMozAlarms.MockMozAlarms(function() {});
-         mozL10n.ready(initialize);
-       });
-     } else {
-       mozL10n.ready(initialize);
-     }
-  }
-);
+var needsMocks = !navigator.mozAlarms;
+if (needsMocks) {
+  testReq([
+      '../test/unit/mocks/mock_moz_alarm.js'
+    ], function(MockMozAlarms) {
+    navigator.mozAlarms = new MockMozAlarms.MockMozAlarms(function() {});
+    mozL10n.ready(initialize);
+  });
+} else {
+  mozL10n.ready(initialize);
+}
 
 });
 
