@@ -15,10 +15,16 @@ var FakeMusic = {
   _mode: 'stopped',
   _queue: null,
   _queueIndex: null,
+  _activity: null,
 
   init: function() {
     window.addEventListener('click', this);
     document.querySelector('body').classList.add('loaded');
+
+    navigator.mozSetMessageHandler('activity', function(activityRequest) {
+      document.getElementById('pick').hidden = false;
+      this._activity = activityRequest;
+    }.bind(this));
   },
 
   startQueue: function(queue) {
@@ -66,6 +72,12 @@ var FakeMusic = {
     return this._mode === 'playing';
   },
 
+  pick: function() {
+    if (!this._activity)
+      return;
+    this._activity.postResult('Yay');
+  },
+
   handleEvent: function(event) {
     switch (event.target.id) {
       case 'play-pause':
@@ -79,6 +91,9 @@ var FakeMusic = {
         break;
       case 'next':
         this.next();
+        break;
+      case 'pick':
+        this.pick();
         break;
       case 'album-one':
         this.startQueue(albumOne);

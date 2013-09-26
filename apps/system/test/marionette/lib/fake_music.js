@@ -14,7 +14,9 @@ FakeMusic.Selector = Object.freeze({
   pauseElement: '#pause',
   stopElement: '#stop',
   previousTrackElement: '#previous',
-  nextTrackElement: '#next'
+  nextTrackElement: '#next',
+
+  pickMenu: 'form[data-z-index-level="action-menu"]'
 });
 
 FakeMusic.prototype = {
@@ -44,6 +46,12 @@ FakeMusic.prototype = {
     return this.client.findElement(FakeMusic.Selector.nextTrackElement);
   },
 
+  get pickMenu() {
+    // Switch to the system app first.
+    this.client.switchToFrame();
+    return this.client.helper.waitForElement(FakeMusic.Selector.pickMenu);
+  },
+
   launchInBackground: function() {
     this.client.apps.launch(this.origin);
     this.client.apps.switchToApp(this.origin);
@@ -54,8 +62,31 @@ FakeMusic.prototype = {
     this.client.switchToFrame();
   },
 
+  launchAsActivity: function() {
+    this.client.executeScript(function() {
+      var activity = new MozActivity({
+        name: 'pick',
+        data: { type: 'audio/mpeg' }
+      });
+    });
+
+    var list = this.pickMenu.findElements('button');
+    for (var i = 0; i < list.length; i++) {
+      var link = list[i];
+      if (link.text() === 'Fake Music') {
+        this.client.helper.wait(1000); // XXX: fix this!
+        link.click();
+        break;
+      }
+    }
+  },
+
   close: function() {
     this.client.apps.close(this.origin);
+  },
+
+  pick: function() {
+    this.client.findElement('#pick').click();
   },
 
   runInApp: function(callback) {
