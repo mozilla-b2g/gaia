@@ -10,6 +10,7 @@ apps/communications/contacts/oauth2/js/parameters.js
 apps/calendar/js/presets.js
 apps/email/js/alameda.js
 apps/email/js/tmpl_builder.js
+apps/clock/js/alamdea.js
 shared/js/opensearch.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 shared/js/setImmediate.js
