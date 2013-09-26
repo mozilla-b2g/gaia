@@ -2,6 +2,7 @@ define(function(require) {
 'use strict';
 
 var mozL10n = require('l10n');
+require('shared/js/l10n_date');
 
 var Utils = {};
 // Maintain references to millisecond multipliers

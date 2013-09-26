@@ -5,7 +5,7 @@ define('onring', function(require) {
 
 var Utils = require('utils');
 var mozL10n = require('l10n');
-var _ = navigator.mozL10n.get;
+var _ = mozL10n.get;
 
 var RingView = {
 
@@ -67,7 +67,7 @@ var RingView = {
       }.bind(this), 0);
     }
 
-    navigator.mozL10n.ready(function rv_waitLocalized() {
+    mozL10n.ready(function rv_waitLocalized() {
       this.setAlarmTime();
       this.setAlarmLabel();
     }.bind(this));
