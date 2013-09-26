@@ -819,9 +819,16 @@ suite('calls handler', function() {
           assert.isTrue(holdSpy.notCalled);
         });
 
+        test('should _not_ change the CallScreen render mode', function() {
+          var renderSpy = this.sinon.spy(MockCallScreen, 'render');
+          CallsHandler.toggleCalls();
+          assert.isTrue(renderSpy.notCalled);
+        });
+
         suite('when the call is holded', function() {
           setup(function() {
             MockMozTelephony.active = null;
+            mockCall.state = 'held';
           });
 
           test('should resume the call', function() {
