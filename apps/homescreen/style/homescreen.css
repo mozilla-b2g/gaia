@@ -99,6 +99,23 @@ li:active {
   display: none;
 }
 
+.apps ol > li[data-is-collection = 'true'] > div::before,
+#footer ol > li[data-is-collection = 'true'] > div::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: -1;
+  width: 8rem;
+  height: 8rem;
+  background: white;
+  border-radius: 50%;
+  margin: -0.1rem 0 0 -4rem;
+  opacity: 0.2;
+  transform: scale(0.8);
+  transition: transform .3s;
+}
+
 body[data-mode = 'normal'] ol > li span.options {
   display: none;
 }
