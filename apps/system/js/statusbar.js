@@ -195,6 +195,21 @@ var StatusBar = {
     window.addEventListener('unlock', this);
     window.addEventListener('lockpanelchange', this);
 
+    /* XXX: On low DPI displays the image is deliberately made wider than 16
+     * pixels to work around a driver issue on certain devices but still needs
+     * to be displayed as if it were only 16 pixels wide hence the adjustments
+     * below. See bug 884188 for more details. */
+    if (this.icons.networkActivity.width <= 17) {
+      this.icons.networkActivity.style.width = '1.7rem';
+      this.icons.networkActivity.style.height = '1.7rem';
+      this.icons.networkActivity.style.position = 'relative';
+      this.icons.networkActivity.style.right = '-0.1rem';
+      this.icons.systemDownloads.style.width = '1.7rem';
+      this.icons.systemDownloads.style.height = '1.7rem';
+      this.icons.systemDownloads.style.position = 'relative';
+      this.icons.systemDownloads.style.right = '-0.1rem';
+    }
+
     this.systemDownloadsCount = 0;
     this.setActive(true);
   },
