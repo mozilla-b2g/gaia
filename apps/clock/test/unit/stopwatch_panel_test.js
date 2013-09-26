@@ -64,15 +64,7 @@ suite('Stopwatch.Panel', function() {
   });
 
   setup(function() {
-    clock = sinon.useFakeTimers();
-  });
-
-  teardown(function() {
-    clock.restore();
-  });
-
-  suiteTeardown(function() {
-
+    clock = this.sinon.useFakeTimers();
   });
 
   test('Default', function() {

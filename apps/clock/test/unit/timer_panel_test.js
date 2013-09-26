@@ -32,12 +32,8 @@ suite('Timer.Panel', function() {
   });
 
   setup(function() {
-    clock = sinon.useFakeTimers();
-  });
-
-  teardown(function() {
-    clock.restore();
-  });
+    clock = this.sinon.useFakeTimers();
+  });  
 
   test('shape:prototype ', function() {
     assert.ok(Timer.Panel);
