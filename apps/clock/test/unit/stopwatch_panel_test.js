@@ -9,7 +9,7 @@ requireApp('clock/js/stopwatch_panel.js');
 suite('Stopwatch.Panel', function() {
 
   var defaultSw, sevenMinSw, fourSecPausedSw, withLapsSw, runningSw;
-  var isHidden, isVisible;
+  var isHidden;
   var panel;
   var clock;
 
@@ -55,12 +55,7 @@ suite('Stopwatch.Panel', function() {
     };
 
     isHidden = function(element) {
-      var klasses = element.className.split(/\s+/);
-      return klasses.some(function(e) { return e === 'hide'; });
-    };
-
-    isVisible = function(element) {
-      return !isHidden(element);
+      return element.className.contains('hidden');
     };
 
     loadBodyHTML('/index.html');
@@ -68,11 +63,11 @@ suite('Stopwatch.Panel', function() {
     panel = new Stopwatch.Panel(document.getElementById('stopwatch-panel'));
   });
 
-  beforeEach(function() {
+  setup(function() {
     clock = sinon.useFakeTimers();
   });
 
-  afterEach(function() {
+  teardown(function() {
     clock.restore();
   });
 
@@ -82,8 +77,8 @@ suite('Stopwatch.Panel', function() {
 
   test('Default', function() {
     assert.equal(panel.nodes.time.textContent, '00:00');
-    assert.isTrue(isVisible(panel.nodes.start));
-    assert.isTrue(isVisible(panel.nodes.reset));
+    assert.isFalse(isHidden(panel.nodes.start));
+    assert.isFalse(isHidden(panel.nodes.reset));
 
     assert.isTrue(isHidden(panel.nodes.pause));
     assert.isTrue(isHidden(panel.nodes.lap));
@@ -94,8 +89,8 @@ suite('Stopwatch.Panel', function() {
     panel.setStopwatch(sevenMinSw());
 
     assert.equal(panel.nodes.time.textContent, '07:00');
-    assert.isTrue(isVisible(panel.nodes.pause));
-    assert.isTrue(isVisible(panel.nodes.lap));
+    assert.isFalse(isHidden(panel.nodes.pause));
+    assert.isFalse(isHidden(panel.nodes.lap));
 
     assert.isTrue(isHidden(panel.nodes.start));
     assert.isTrue(isHidden(panel.nodes.reset));
@@ -117,8 +112,8 @@ suite('Stopwatch.Panel', function() {
     panel.setStopwatch(fourSecPausedSw());
 
     assert.equal(panel.nodes.time.textContent, '00:04');
-    assert.isTrue(isVisible(panel.nodes.resume));
-    assert.isTrue(isVisible(panel.nodes.reset));
+    assert.isFalse(isHidden(panel.nodes.resume));
+    assert.isFalse(isHidden(panel.nodes.reset));
 
     assert.isTrue(isHidden(panel.nodes.pause));
     assert.isTrue(isHidden(panel.nodes.start));

@@ -103,8 +103,7 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
         timer.cancel();
       }
       this.dialog();
-    }
-    else {
+    } else {
 
       if (timer.state !== Timer.STARTED) {
         // Active timer exists...
@@ -190,8 +189,8 @@ Timer.Panel.prototype.update = function(remaining = 0) {
  * @return {Object} Timer.Panel.
  */
 Timer.Panel.prototype.toggle = function(show, hide) {
-  show.classList.remove('hide');
-  hide.classList.add('hide');
+  show.classList.remove('hidden');
+  hide.classList.add('hidden');
   return this;
 };
 
