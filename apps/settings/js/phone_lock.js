@@ -221,7 +221,7 @@ var PhoneLock = {
       case this.createPasscodeButton:
       case this.changePasscodeButton:
         evt.stopPropagation();
-        if (this.passcodePanel.dataset.passcodeStatus !== 'success') {
+        if (!this.checkPasscode()) {
           this.showErrorMessage();
           this.passcodeInput.focus();
           return;
