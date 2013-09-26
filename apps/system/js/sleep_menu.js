@@ -109,6 +109,7 @@ var SleepMenu = {
       var item_li = document.createElement('li');
       item_li.dataset.value = item.value;
       item_li.textContent = item.label;
+      item_li.setAttribute('role', 'menuitem');
       this.elements.container.appendChild(item_li);
     }, this);
   },
