@@ -26,6 +26,7 @@ window.addEventListener('load', function onload_launcher_init() {
   var BUTTONBAR_INITIAL_OPEN_TIMEOUT = 1500;
 
   var footer = document.querySelector('#wrapper-footer');
+  var close_button = document.getElementById('close-button');
   window.addEventListener('appopen', function onAppOpen(e) {
     if ('wrapper' in currentAppFrame().dataset) {
       window.addEventListener('mozbrowserlocationchange', onLocationChange);
@@ -34,11 +35,35 @@ window.addEventListener('load', function onload_launcher_init() {
     }
   });
 
+  // always show footer while home gesture is enabled
+  var homegesture_enabled = false;
+  SettingsListener.observe('homegesture.enabled', false, function(value) {
+    homegesture_enabled = value;
+
+    if (homegesture_enabled) {
+      if (close_button.style.visibility !== 'hidden') {
+        close_button.style.visibility = 'hidden';
+      }
+      if (footer.classList.contains('closed')) {
+        footer.classList.remove('closed');
+      }
+    } else {
+      if (close_button.style.visibility !== 'visible') {
+        close_button.style.visibility = 'visible';
+      }
+      if (!footer.classList.contains('closed')) {
+        footer.classList.add('closed');
+      }
+    }
+  });
+
   window.addEventListener('appwillclose', function onAppClose(e) {
     if ('wrapper' in currentAppFrame().dataset) {
       window.removeEventListener('mozbrowserlocationchange', onLocationChange);
       clearTimeout(buttonBarTimeout);
-      footer.classList.add('closed');
+      if (!homegesture_enabled) {
+        footer.classList.add('closed');
+      }
       isButtonBarDisplayed = false;
     }
   });
@@ -64,7 +89,9 @@ window.addEventListener('load', function onload_launcher_init() {
   var isButtonBarDisplayed = false;
   function toggleButtonBar(time) {
     clearTimeout(buttonBarTimeout);
-    footer.classList.toggle('closed');
+    if (!homegesture_enabled) {
+      footer.classList.toggle('closed');
+    }
     isButtonBarDisplayed = !isButtonBarDisplayed;
     if (isButtonBarDisplayed) {
       buttonBarTimeout = setTimeout(toggleButtonBar, time || BUTTONBAR_TIMEOUT);
@@ -79,7 +106,7 @@ window.addEventListener('load', function onload_launcher_init() {
   document.getElementById('handler').
     addEventListener('mousedown', function open() { toggleButtonBar() });
 
-  document.getElementById('close-button').
+  close_button.
     addEventListener('mousedown', function close() { toggleButtonBar() });
 
   var reload = document.getElementById('reload-button');
