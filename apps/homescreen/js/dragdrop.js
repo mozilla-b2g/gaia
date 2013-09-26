@@ -366,6 +366,10 @@ var DragDropManager = (function() {
     }
 
     overCollectionTimeout = setTimeout(function() {
+      if (overlapElem !== collection.container) {
+        overCollectionTimeout = null;
+        return;
+      }
       page.drop(icon, collection);
       removeHoverClass();
       previousElement = overlapElem = icon.container;
