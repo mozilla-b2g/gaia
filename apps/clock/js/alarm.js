@@ -1,7 +1,8 @@
-define(function(require, exports, module) {
+define(function(require) {
 
   'use strict';
 
+  var AlarmsDB = require('alarmsdb');
   var Utils = require('utils');
   var constants = require('constants');
   var mozL10n = require('l10n');
@@ -249,12 +250,9 @@ define(function(require, exports, module) {
 
     delete: function alarm_delete(callback) {
       this.cancel();
-      // TODO: Address this circular dependency
-      require(['alarmsdb'], function(AlarmsDB) {
       AlarmsDB.deleteAlarm(this.id,
         function alarm_innerDelete(err, alarm) {
         callback(err, this);
-      }.bind(this));
       }.bind(this));
     },
 
@@ -274,12 +272,9 @@ define(function(require, exports, module) {
     },
 
     save: function alarm_save(callback) {
-      // TODO: Address this circular dependency
-      require(['alarmsdb'], function(AlarmsDB) {
       AlarmsDB.putAlarm(this, function(err, alarm) {
         idMap.set(this, alarm.id);
         callback && callback(err, this);
-      }.bind(this));
       }.bind(this));
     },
 
@@ -371,6 +366,5 @@ define(function(require, exports, module) {
   // ---------------------------------------------------------
   // Export
 
-  module.exports = Alarm;
-
+  return Alarm;
 });
