@@ -91,7 +91,15 @@ var LazyLoader = (function() {
             idx = file.id;
           }
 
-          this['_' + method](file, perFileCallback.bind(null, idx));
+          // When the lazy loader is used into the onload handler this
+          // usually means the page is ready to display, this is where
+          // we wait in the window manager to remove the cover and show
+          // the app itself. setTimeout here ensure that the load event
+          // is fired before we load those additional scripts that are
+          // not needed for displaying quickly the app.
+          setTimeout(function nextTick(file) {
+            self['_' + method](file, perFileCallback.bind(null, idx));
+          }, 0, file);
         }
       }
     }
