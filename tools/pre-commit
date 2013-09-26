@@ -2,13 +2,13 @@
 
 LINTED_DIRECTORIES="apps shared"
 
-excluded_dirs_list="./build/lint-excluded-dirs.list"
-if [ ! -f $excluded_dirs_list ];
+excluded_list=".jshintignore"
+if [ ! -f $excluded_list ];
 then
   exit 0
 fi
 
-hash gjslint &> /dev/null
+hash gjslint > /dev/null 2>&1
 if [ $? -eq 1 ];
 then
   echo >&2 "You should install gjslint to lint your patch"
@@ -16,13 +16,11 @@ then
   exit 0
 fi
 
-excluded_dirs=`cat $excluded_dirs_list|tr "," " "`
-for dir in $excluded_dirs; do
-  grep_exclude="$grep_exclude -e $dir"
-done
+# LINTED_FILES needs to be space-separated
+diff_with_exclude=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$' | tr '[:space:]' ' '`
+if [ -z "$diff_with_exclude" ] ; then
+  exit 0
+fi
 
-diff_with_exclude=`git diff --staged --name-only --diff-filter=ACMRT -- ${LINTED_DIRECTORIES} | grep -v $grep_exclude`
+LINTED_FILES="$diff_with_exclude" make -s lint
 
-# --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
-# http://code.google.com/p/closure-linter/issues/detail?id=64
-gjslint --disable 210,217,220,225 -x "`cat ./build/lint-excluded-files.list`" $diff_with_exclude
