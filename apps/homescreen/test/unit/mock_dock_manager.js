@@ -23,5 +23,10 @@ var MockDockManager = {
   },
   isFull: function() {
     return false;
+  },
+  page: {
+    getIconIndex: function() {
+      return 1;
+    }
   }
 };
