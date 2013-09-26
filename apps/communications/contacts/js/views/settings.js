@@ -255,7 +255,7 @@ contacts.Settings = (function() {
   function doExport(strategy) {
     // Launch the selection mode in the list, and then invoke
     // the export with the selected strategy.
-    contacts.List.selectFromList(_('exportContactsTitle'),
+    contacts.List.selectFromList(_('exportContactsAction'),
       function onSelectedContacts(promise) {
         // Resolve the promise, meanwhile show an overlay to
         // warn the user of the ongoin operation, dismiss it
