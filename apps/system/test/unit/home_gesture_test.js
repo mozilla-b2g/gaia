@@ -49,7 +49,19 @@ suite('enable/disable homegesture', function() {
     window.ScreenLayout.mTeardown();
   });
 
-  test('initial gesture without hardware homebtn', function() {
+  test('initial gesture without hardware homebtn on phone', function() {
+    ScreenLayout.setDefault({
+      tiny: true
+    });
+    HomeGesture.init();
+    assert.equal(
+      MockNavigatorSettings.mSettings['homegesture.enabled'], undefined);
+  });
+
+  test('initial gesture without hardware homebtn on tablet', function() {
+    ScreenLayout.setDefault({
+      tiny: false
+    });
     HomeGesture.init();
     assert.equal(
       MockNavigatorSettings.mSettings['homegesture.enabled'], true);

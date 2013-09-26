@@ -260,6 +260,7 @@ function execute(options) {
    'screen.brightness': 1,
    'screen.timeout': 60,
    'software-button.enabled': false,
+   'homegesture.enabled': false,
    'support.onlinesupport.title': '',
    'support.onlinesupport.href': '',
    'support.callsupport1.title': '',
