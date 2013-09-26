@@ -326,7 +326,10 @@ export BUILD_CONFIG
 # Generate profile/
 
 $(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+ifeq ($(BUILD_APP_NAME),*)
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
+endif
+
 
 LANG=POSIX # Avoiding sort order differences between OSes
 
@@ -371,10 +374,12 @@ endif
 app-makefiles:
 	@for d in ${GAIA_APPDIRS}; \
 	do \
-		for mfile in `find $$d -mindepth 1 -maxdepth 1 -name "Makefile"` ;\
-		do \
-			make -C `dirname $$mfile`; \
-		done; \
+		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
+			for mfile in `find $$d -mindepth 1 -maxdepth 1 -name "Makefile"` ;\
+			do \
+				make -C `dirname $$mfile`; \
+			done; \
+		fi; \
 	done;
 
 # Generate $(PROFILE_FOLDER)/webapps/
@@ -416,11 +421,13 @@ profile-dir:
 
 # Copy preload contacts to profile
 contacts: profile-dir
+ifeq ($(BUILD_APP_NAME),*)
 ifdef CONTACTS_PATH
 	@echo "Copying preload contacts to profile"
 	@cp $(CONTACTS_PATH) $(PROFILE_FOLDER)
 else
 	@rm -f $(PROFILE_FOLDER)/contacts.json
+endif
 endif
 
 local-apps:
@@ -540,6 +547,7 @@ PARTNER_PREF_FILES = \
 
 # Generate profile/prefs.js
 preferences: profile-dir install-xulrunner-sdk
+ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command, preferences)
 	@$(foreach prefs_file,$(addprefix build/,$(EXTENDED_PREF_FILES)),\
 	  if [ -f $(prefs_file) ]; then \
@@ -552,15 +560,19 @@ preferences: profile-dir install-xulrunner-sdk
 	    cat $(prefs_file) >> $(PROFILE_FOLDER)/user.js; \
 	  fi; \
 	)
+endif
 
 
 # Generate $(PROFILE_FOLDER)/
 applications-data: profile-dir install-xulrunner-sdk
+ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command, applications-data)
+endif
 
 # Generate $(PROFILE_FOLDER)/extensions
 EXT_DIR=$(PROFILE_FOLDER)/extensions
 extensions:
+ifeq ($(BUILD_APP_NAME),*)
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
 ifeq ($(DESKTOP),1)
@@ -570,6 +582,7 @@ else ifeq ($(DEBUG),1)
 	cp -r tools/extensions/httpd $(EXT_DIR)/
 endif
 	@echo "Finished: Generating extensions"
+endif
 
 
 
@@ -657,6 +670,7 @@ update-common: common-install
 # Create the json config file
 # for use with the test agent GUI
 test-agent-config: test-agent-bootstrap-apps
+ifeq ($(BUILD_APP_NAME),*)
 	@rm -f $(TEST_AGENT_CONFIG)
 	@touch $(TEST_AGENT_CONFIG)
 	@rm -f /tmp/test-agent-config;
@@ -675,9 +689,11 @@ test-agent-config: test-agent-bootstrap-apps
 	@echo '  ]}' >> $(TEST_AGENT_CONFIG);
 	@echo "Finished: test ui config file: $(TEST_AGENT_CONFIG)"
 	@rm -f /tmp/test-agent-config
+endif
 
 .PHONY: test-agent-bootstrap-apps
 test-agent-bootstrap-apps:
+ifeq ($(BUILD_APP_NAME),*)
 	@for d in ${GAIA_APPDIRS} ;\
 	do \
 		if [[ "$(SYS)" != *MINGW32_* ]]; then \
@@ -691,6 +707,7 @@ test-agent-bootstrap-apps:
 		cp -f $(TEST_COMMON)$(SEP)test$(SEP)boilerplate$(SEP)_sandbox.html $$d$(SEP)test$(SEP)unit$(SEP)_sandbox.html; \
 	done
 	@echo "Finished: bootstrapping test proxies/sandboxes";
+endif
 
 # For test coverage report
 COVERAGE?=0
@@ -751,10 +768,10 @@ lint:
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
 	@echo 'Stopping b2g'
-	$(ADB) shell stop b2g
-	$(ADB) shell rm -r $(MSYS_FIX)/data/local/indexedDB/*
+	@$(ADB) shell stop b2g
+	@$(ADB) shell rm -r $(MSYS_FIX)/data/local/indexedDB/*
 	@echo 'Starting b2g'
-	$(ADB) shell start b2g
+	@$(ADB) shell start b2g
 
 # Take a screenshot of the device and put it in screenshot.png
 screenshot:
@@ -782,16 +799,17 @@ TARGET_FOLDER = webapps/$(BUILD_APP_NAME).$(GAIA_DOMAIN)
 APP_NAME = $(shell cat *apps/${BUILD_APP_NAME}/manifest.webapp | grep name | head -1 | cut -d '"' -f 4 | cut -b 1-15)
 APP_PID = $(shell adb shell b2g-ps | grep '^${APP_NAME}' | sed 's/^${APP_NAME}\s*//' | awk '{ print $$2 }')
 install-gaia: $(PROFILE_FOLDER)
-	$(ADB) start-server
-	@echo 'Stopping b2g'
+	@$(ADB) start-server
 ifeq ($(BUILD_APP_NAME),*)
-	$(ADB) shell stop b2g
+	@echo 'Stopping b2g'
+	@$(ADB) shell stop b2g
 else ifeq ($(BUILD_APP_NAME), system)
-	$(ADB) shell stop b2g
+	@echo 'Stopping b2g'
+	@$(ADB) shell stop b2g
 else ifneq (${APP_PID},)
-	$(ADB) shell kill ${APP_PID}
+	@$(ADB) shell kill ${APP_PID}
 endif
-	$(ADB) shell rm -r $(MSYS_FIX)/cache/*
+	@$(ADB) shell rm -r $(MSYS_FIX)/cache/* > /dev/null
 
 ifeq ($(ADB_REMOUNT),1)
 	$(ADB) remount
@@ -800,17 +818,23 @@ endif
 ifeq ($(BUILD_APP_NAME),*)
 	python build/install-gaia.py "$(ADB)" "$(MSYS_FIX)$(GAIA_INSTALL_PARENT)" "$(PROFILE_FOLDER)"
 else
-	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
-	$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
+	@echo "Pushing manifest.webapp application.zip for ${BUILD_APP_NAME}..."
+	@$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/manifest.webapp $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/manifest.webapp
+	@$(ADB) push $(PROFILE_FOLDER)/$(TARGET_FOLDER)/application.zip $(MSYS_FIX)$(GAIA_INSTALL_PARENT)/$(TARGET_FOLDER)/application.zip
 endif
 
 ifdef LOCAL_APPS_PATH
 	$(ADB) shell 'rm -r $(MSYS_FIX)/data/local/svoperapps'
 	$(ADB) push $(PROFILE_FOLDER)/svoperapps $(MSYS_FIX)/data/local/svoperapps
 endif
+ifeq ($(BUILD_APP_NAME),*)
 	@echo "Installed gaia into $(PROFILE_FOLDER)/."
 	@echo 'Starting b2g'
-	$(ADB) shell start b2g
+	@$(ADB) shell start b2g
+else ifeq ($(BUILD_APP_NAME), system)
+	@echo 'Starting b2g'
+	@$(ADB) shell start b2g
+endif
 
 # Copy demo media to the sdcard.
 # If we've got old style directories on the phone, rename them first.
@@ -857,7 +881,9 @@ purge:
 	$(ADB) shell rm -r $(MSYS_FIX)/system/b2g/webapps
 
 $(PROFILE_FOLDER)/settings.json: profile-dir install-xulrunner-sdk
+ifeq ($(BUILD_APP_NAME),*)
 	@$(call run-js-command, settings)
+endif
 
 # push $(PROFILE_FOLDER)/settings.json and $(PROFILE_FOLDER)/contacts.json (if CONTACTS_PATH defined) to the phone
 install-default-data: $(PROFILE_FOLDER)/settings.json contacts
@@ -873,6 +899,7 @@ endif
 
 # create default data, gonk-misc will copy this folder during B2G build time
 create-default-data: preferences $(PROFILE_FOLDER)/settings.json contacts
+ifeq ($(BUILD_APP_NAME),*)
 	# create a clean folder to store data for B2G, this folder will copy to b2g output folder.
 	rm -rf $(PROFILE_FOLDER)/defaults
 	mkdir -p $(PROFILE_FOLDER)/defaults/pref
@@ -881,6 +908,7 @@ create-default-data: preferences $(PROFILE_FOLDER)/settings.json contacts
 	cp $(PROFILE_FOLDER)/settings.json $(PROFILE_FOLDER)/defaults/settings.json
 ifdef CONTACTS_PATH
 	cp $(PROFILE_FOLDER)/contacts.json $(PROFILE_FOLDER)/defaults/contacts.json
+endif
 endif
 
 # clean out build products
@@ -893,4 +921,6 @@ really-clean: clean
 
 .PHONY: install-git-hook
 install-git-hook:
+ifeq ($(BUILD_APP_NAME),*)
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit || true
+endif

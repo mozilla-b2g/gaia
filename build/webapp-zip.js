@@ -30,7 +30,7 @@ function addEntryFileWithTime(zip, pathInZip, file, time) {
   fis.init(file, -1, -1, 0);
 
   zip.addEntryStream(
-    pathInZip, time, Ci.nsIZipWriter.COMPRESSION_DEFAULT, fis, false);
+    pathInZip, time, Ci.nsIZipWriter.COMPRESSION_BEST, fis, false);
   fis.close();
 }
 
