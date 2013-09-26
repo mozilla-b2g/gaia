@@ -245,18 +245,16 @@ suite('contacts/navigation', function() {
 
   test('should send hide-navbar to dialer when entering view-contact-form',
   function() {
-    var postMessageSpy = sinon.spy(window.parent, 'postMessage');
+    var postMessageSpy = this.sinon.spy(window.parent, 'postMessage');
     navigation.go('view-contact-form', 'go-deeper');
     assert.isTrue(postMessageSpy.withArgs({type: 'hide-navbar'}).calledOnce);
-    window.parent.postMessage.restore();
   });
 
   test('should send show-navbar to dialer when leaving view-contact-form',
   function() {
-    var postMessageSpy = sinon.spy(window.parent, 'postMessage');
     navigation.go('view-contact-form', 'go-deeper');
+    var postMessageSpy = this.sinon.spy(window.parent, 'postMessage');
     navigation.back();
     assert.isTrue(postMessageSpy.withArgs({type: 'show-navbar'}).calledOnce);
-    window.parent.postMessage.restore();
   });
 });

@@ -228,6 +228,7 @@ var CallHandler = (function callHandler() {
   //   - when the call screen is ready to receive messages
   //   - when we need to send a missed call notification
   //   - when we need to add an entry to the recents database
+  //   - when we need to hide or show navbar
   function handleMessage(evt) {
     if (evt.origin !== COMMS_APP_ORIGIN) {
       return;
@@ -239,20 +240,22 @@ var CallHandler = (function callHandler() {
       handleCallScreenClosing();
     } else if (data === 'ready') {
       handleCallScreenReady();
-    } else if (data.type && data.type === 'notification') {
+    } else if (!data.type) {
+      return;
+    } else if (data.type === 'notification') {
       // We're being asked to send a missed call notification
       NavbarManager.ensureResources(function() {
         handleNotificationRequest(data.number);
       });
-    } else if (data.type && data.type === 'recent') {
+    } else if (data.type === 'recent') {
       NavbarManager.ensureResources(function() {
         handleRecentAddRequest(data.entry);
       });
-    } else if (data.type && data.type === 'contactsiframe') {
+    } else if (data.type === 'contactsiframe') {
       handleContactsIframeRequest(data.message);
-    } else if (data.type && data.type === 'hide-navbar') {
+    } else if (data.type === 'hide-navbar') {
       NavbarManager.hide();
-    } else if (data.type && data.type === 'show-navbar') {
+    } else if (data.type === 'show-navbar') {
       NavbarManager.show();
     }
   }

@@ -30,6 +30,10 @@ suite('navigation bar', function() {
     NavbarManager.init();
   });
 
+  teardown(function() {
+    document.body.removeChild(domViews);
+  });
+
   suite('> show / hide', function() {
     test('NavbarManager.hide() should hide navbar', function() {
       NavbarManager.hide();
@@ -38,14 +42,9 @@ suite('navigation bar', function() {
     });
 
     test('NavbarManager.show() should show navbar', function() {
-      NavbarManager.hide();
       NavbarManager.show();
 
       assert.isFalse(domViews.classList.contains('hide-toolbar'));
     });
-  });
-
-  teardown(function() {
-    document.body.removeChild(domViews);
   });
 });
