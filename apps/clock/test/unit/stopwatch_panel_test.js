@@ -132,6 +132,8 @@ suite('Stopwatch.Panel', function() {
     var lapName = laps[0].children[0].textContent.trim();
     var lapTime = laps[0].children[1].textContent.trim();
 
+    // TODO: Localize this value
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=921115
     assert.equal(lapName, 'Lap 1');
     assert.equal(lapTime, '30:00');
 

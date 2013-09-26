@@ -102,7 +102,7 @@ suite('Timer.Panel', function() {
       pauseAt: now,
       duration: oneHour,
       lapsed: 0,
-      state: 2, //paused
+      state: Timer.PAUSED,
       sound: '0'
     });
 
@@ -132,7 +132,7 @@ suite('Timer.Panel', function() {
       pauseAt: 0,
       duration: oneHour,
       lapsed: 0,
-      state: 1, //started
+      state: Timer.STARTED,
       sound: '0'
     });
 
