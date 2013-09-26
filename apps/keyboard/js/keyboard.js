@@ -209,13 +209,37 @@ var redrawTimeout = 0;
 // This object has one property for each keyboard layout setting.
 // If the user turns on that setting in the settings app, the value of
 // the property specifies the keyboard layouts that are enabled.
-// TODO: Update according to FTE/Settings requirements or remove completely
-const keyboardGroups = {};
+const keyboardGroups = {
+  'english': ['en'],
+  'dvorak': ['en-Dvorak'],
+  'spanish' : ['es'],
+  'portuguese' : ['pt_BR'],
+  'polish' : ['pl'],
+  'catalan' : ['ca'],
+  'czech': ['cz'],
+  'french': ['fr'],
+  'german': ['de'],
+  'hungarian': ['hu'],
+  'norwegian': ['nb'],
+  'swedish': ['sv'],
+  'slovak': ['sk'],
+  'turkish': ['tr-Q', 'tr-F'],
+  'romanian': ['ro'],
+  'russian': ['ru'],
+  'serbian': ['sr-Latn', 'sr-Cyrl'],
+  'hebrew': ['he'],
+  'zhuyin': ['zh-Hant-Zhuyin'],
+  'pinyin': ['zh-Hans-Pinyin'],
+  'arabic': ['ar'],
+  'greek': ['el'],
+  'japanese': ['jp-kanji']
+};
 
 // Define language code aliases to correctly match the relevant keyboard,
 // i.e. language -> relevant keyboard name
 const keyboardAlias = {
-  'en-US': 'en'
+  'en-US': 'en',
+  'pt-BR': 'pt_BR'
 };
 
 // This is the default keyboard if none is selected in settings
@@ -225,9 +249,9 @@ const defaultKeyboardNames = ['en'];
 
 const keyboardHashKey = [
   'en', 'en-Dvorak', 'es', 'pt-BR', 'pl',
-  'ca', 'cz', 'fr', 'de', 'nb', 'sk', 'sv',
-  'tr-Q', 'tr-F', 'ro', 'ru', 'sr-Cyrl', 'sr-Latn',
-  'ar', 'he', 'hu', 'el',
+  'cz', 'fr', 'de', 'nb', 'sk',
+  'tr', 'ru', 'sr-Cyrl', 'ar', 'he',
+  'el',
   'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
   'numberLayout'
 ];
@@ -333,10 +357,10 @@ function getKeyboardSettings() {
       if (keyboardHashKey.indexOf(hashKey) !== -1) {
         keyboardName = hashKey;
       } else {
-        keyboardName = defaultKeyboardNames[0];
+        keyboardName = defaultKeyboardName;
       }
     } else {
-      keyboardName = currentKeyboardName;
+      keyboardName = defaultKeyboardName;
     }
 
     // And create an array of all enabled keyboard layouts from the set
@@ -1667,7 +1691,7 @@ function showKeyboard(state) {
   // If no keyboard has been selected yet, choose the first enabled one.
   // This will also set the inputMethod
   if (!keyboardName) {
-    setKeyboardName(defaultKeyboardNames[0], showKeyboard.bind(this, state));
+    setKeyboardName(defaultKeyboardName, showKeyboard.bind(this, state));
     return;
   }
 

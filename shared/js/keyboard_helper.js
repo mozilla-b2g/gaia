@@ -92,9 +92,11 @@ var KeyboardHelper = {
 
           var defaultLayout = [];
 
-          var protocol =
-              (window.location.protocol === 'http:') ? 'http://' : 'app://';
-          var hackOrigin = protocol + 'keyboard.gaiamobile.org';
+          var protocol = window.location.protocol;
+          var hackOrigin = 'app://keyboard.gaiamobile.org';
+          if (protocol === 'http:') {
+            hackOrigin = 'http://keyboard.gaiamobile.org:8080';
+          }
 
           defaultLayout.push({
             layoutId: 'en',
@@ -121,7 +123,7 @@ var KeyboardHelper = {
           self.saveToSettings();
         });
       } else {
-        self.keyboardSettings = value;
+        self.keyboardSettings = JSON.parse(value);
       }
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('keyboardsrefresh', true, false, {});
@@ -132,7 +134,7 @@ var KeyboardHelper = {
   saveToSettings: function ke_saveToSettings() {
     var settings = window.navigator.mozSettings;
     var obj = {};
-    obj[SETTINGS_KEY] = this.keyboardSettings;
+    obj[SETTINGS_KEY] = JSON.stringify(this.keyboardSettings);
     settings.createLock().set(obj);
   },
 
