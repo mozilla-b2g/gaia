@@ -87,14 +87,10 @@
 
         // dropping app on collection
         if (options.app && options.collection) {
-            var appId = options.app.id,
-                collectionId = options.collection.id;
-
-            Evme.InstalledAppsService.getAppById(appId, function getAppByOrigin(installedApp) {
-                if (installedApp) {
-                    Evme.Collection.addInstalledApp(installedApp, collectionId);
-                }
-            });
+            var appInfo = EvmeManager.getAppInfo(options.app.id);
+            if (appInfo) {
+                Evme.Collection.addInstalledApp(appInfo, options.collection.id);
+            }
         }
     }
 
@@ -1149,10 +1145,10 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
                 Evme.CollectionsSuggest.Loading.show();
 
-                Evme.CollectionStorage.getAllCollections(function onCollections(collections) {
+                Evme.CollectionStorage.getCollections(function onCollections(collections) {
                     var existingCollectionsQueries = [];
                     for (var i = 0, collection; collection = collections[i++];) {
-                        existingCollectionsQueries.push(collection.query);
+                        existingCollectionsQueries.push(collection.manifest.name);
                     }
 
                     // load suggested shortcuts from API

@@ -103,15 +103,15 @@ window.Evme = new function Evme_Core() {
     }
 
     for (var i = 0; i < total; i++) {
-      var collection = collections[i],
-          experienceId = collection.providerId;
+      var collection = collections[i];
 
       // TODO: populate apps from manifest file
       var apps = [];
 
       var collectionSettings = new Evme.CollectionSettings({
         "id": collection.id,
-        "experienceId": experienceId,
+        "experienceId": collection.providerId,
+        "name": collection.manifest.name,
         "apps": apps
       });
 
