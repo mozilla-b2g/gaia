@@ -1,0 +1,14 @@
+{
+  "onlinesupport": {
+    "title": "Mozilla Support",
+    "href": "http://test.mozilla.org/support"
+  },
+  "callsupport1": {
+    "title": "Call Support (Primary)",
+    "href": "tel:14155550001"
+  },
+  "callsupport2": {
+    "title": "Call Support (Secondary)",
+    "href": "tel:14155550002"
+  }
+}
