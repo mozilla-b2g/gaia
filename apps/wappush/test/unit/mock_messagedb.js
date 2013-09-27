@@ -10,8 +10,10 @@ var MockMessageDB = (function() {
   function mdb_put(message, success, error) {
     // Overwrite the timestamp so that it is predictable
     message.timestamp = timestamp++;
-    messages.push(message);
-    success();
+
+    if (success && (typeof success === 'function')) {
+      success('new');
+    }
   }
 
   function mdb_retrieve(timestamp, success, error) {
@@ -19,23 +21,36 @@ var MockMessageDB = (function() {
 
     for (i = 0; i < messages.length; i++) {
       if (messages[i].timestamp === timestamp) {
-        success(messages[i]);
+        if (success && (typeof success === 'function')) {
+          success(messages[i]);
+        }
+
         return;
       }
     }
 
-    error();
+    if (success && (typeof success === 'function')) {
+      success(null);
+    }
   }
 
   function mdb_clear(success, error) {
     timestamp = 0;
     messages = [];
-    success();
+
+    if (success && (typeof success === 'function')) {
+      success();
+    }
+  }
+
+  function mdb_mTeardown() {
+    mdb_clear();
   }
 
   return {
     put: mdb_put,
     retrieve: mdb_retrieve,
-    clear: mdb_clear
+    clear: mdb_clear,
+    mTeardown: mdb_mTeardown
   };
 })();

@@ -39,6 +39,14 @@
         obj.href = this.href;
       }
 
+      if (this.id) {
+        obj.id = this.id;
+      }
+
+      if (this.created) {
+        obj.created = this.created;
+      }
+
       if (this.text) {
         obj.text = this.text;
       }
@@ -68,6 +76,8 @@
    * - sender: the sender of this message, a MSISDN
    * - timestamp: a timestamp taken when parsing the object
    * - href: optional for SI messages, required for SL, a URL to be displayed
+   * - id: optional for SI messages, a pseudo-unique ID for the message
+   * - created: optional for SI messages, creation time of this message
    * - text: optional, text to be displayed
    *
    * @param {Object} message A WAP Push message as delivered by the system.
@@ -97,6 +107,22 @@
       }
 
       obj.text = indicationNode.textContent;
+
+      // 'si-id' attribute, optional, string
+      if (indicationNode.hasAttribute('si-id')) {
+        obj.id = indicationNode.getAttribute('si-id');
+      } else if (obj.href) {
+        /* WAP-167 5.2.1: If the 'si-id' attribute is not specified, its value
+         * is considered to be the same as the value of the 'href' attribute */
+        obj.id = obj.href;
+      }
+
+      // 'created' attribute, optional, date in ISO 8601 format
+      if (indicationNode.hasAttribute('created')) {
+        var date = new Date(indicationNode.getAttribute('created'));
+
+        obj.created = date.getTime();
+      }
     } else if (message.contentType === 'text/vnd.wap.sl') {
       // SL message
       var slNode = doc.querySelector('sl');
