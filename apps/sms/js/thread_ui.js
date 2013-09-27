@@ -1499,11 +1499,14 @@ var ThreadUI = global.ThreadUI = {
 
   cleanFields: function thui_cleanFields(forceClean) {
     var clean = (function clean() {
-      Compose.clear();
+      // Compose.clear might cause a conversion from mms -> sms
+      // Therefore we're reseting the message type here because
+      // in messageComposerTypeHandler we're using this value to know
+      // if the message type changed, and to display the convertNotice
+      // accordingly
+      this.composeForm.dataset.messageType = 'sms';
 
-      // Compose.clear might cause a conversion from mms -> sms, we need
-      // to ensure the message is hidden after we clear fields.
-      this.convertNotice.classList.add('hide');
+      Compose.clear();
 
       // reset the counter
       this.sendButton.dataset.counter = '';
