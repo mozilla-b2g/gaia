@@ -35,6 +35,8 @@
     // into appWindow.
     this.frame = this.element;
     this.iframe = this.browser.element;
+    this.iframe.dataset.frameType = 'window';
+    this.iframe.dataset.frameOrigin = 'homescreen';
 
     this.element.appendChild(this.browser.element);
 
