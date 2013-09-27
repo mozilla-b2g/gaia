@@ -26,7 +26,7 @@ function checkDomain(domain) {
 // defines things that can match right before to be a "safe" link
 var safeStart = /[\s,:;\(>]/;
 
-const MINIMUM_DIGITS_IN_PHONE_NUMBER = 6;
+const MINIMUM_DIGITS_IN_PHONE_NUMBER = 5;
 
 /**
  * For each category of links:
@@ -53,6 +53,10 @@ var LINK_TYPES = {
       var onlyDigits = Utils.removeNonDialables(phone);
 
       if (onlyDigits.length < MINIMUM_DIGITS_IN_PHONE_NUMBER) {
+        return false;
+      }
+      if (onlyDigits.length === MINIMUM_DIGITS_IN_PHONE_NUMBER &&
+        phone.length !== onlyDigits.length) {
         return false;
       }
       return link;
