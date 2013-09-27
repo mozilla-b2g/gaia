@@ -47,6 +47,10 @@
         obj.created = this.created;
       }
 
+      if (this.expires) {
+        obj.expires = this.expires;
+      }
+
       if (this.text) {
         obj.text = this.text;
       }
@@ -65,6 +69,13 @@
      */
     save: function pm_save(success, error) {
       MessageDB.put(this.toJSON(), success, error);
+    },
+
+    /**
+     * Returns true if the message has already expired
+     */
+    isExpired: function pm_isExpired() {
+      return (this.expires && (this.expires < Date.now()));
     }
   };
 
@@ -78,6 +89,7 @@
    * - href: optional for SI messages, required for SL, a URL to be displayed
    * - id: optional for SI messages, a pseudo-unique ID for the message
    * - created: optional for SI messages, creation time of this message
+   * - expires: optional for SI messages, expiration time of this message
    * - text: optional, text to be displayed
    *
    * @param {Object} message A WAP Push message as delivered by the system.
@@ -122,6 +134,13 @@
         var date = new Date(indicationNode.getAttribute('created'));
 
         obj.created = date.getTime();
+      }
+
+      // 'si-expires' attribute, optional, date in ISO 8601 format
+      if (indicationNode.hasAttribute('si-expires')) {
+        var expiresDate = new Date(indicationNode.getAttribute('si-expires'));
+
+        obj.expires = expiresDate.getTime();
       }
     } else if (message.contentType === 'text/vnd.wap.sl') {
       // SL message
