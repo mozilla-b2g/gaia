@@ -70,40 +70,81 @@ var MessageDB = (function() {
   }
 
   /**
-   * Adds a messages to the message database. Once the transaction is completed
-   * invokes the success callback. If an error occurs the error callback will
-   * be invoked with the corresponding error as its sole parameter.
+   * Adds a messages to the message database according to the out-of-order
+   * delivery rules specified in WAP-167 6.2. Once the transaction is completed
+   * invokes the success callback with a boolean parameter set to true if the
+   * message is new and the user needs to be notified or false if a message
+   * with the same ID has been seen already and thus no notification needs to be
+   * sent. If an error occurs the error callback will be invoked with the
+   * corresponding error as its sole parameter.
    *
    * @param {Object} message A parsed WAP Push message to be processed.
    * @param {Function} success A callback invoked when the transaction completes
-   *        successfully.
+   *        successfully. A parameter is passed to this callback to indicate
+   *        the resulting status of the message. 'new' if the message is new and
+   *        'updated' if the message was an update to an existing message and
+   *        'discarded' if the message was expired.
    * @param {Function} error A callback invoked if an operation fails.
    */
   function mdb_put(message, success, error) {
     mdb_open(function mdb_putCallback(db) {
+      var status = 'new';
       var transaction = db.transaction(MESSAGE_STORE_NAME, 'readwrite');
 
       transaction.oncomplete = function mdb_putComplete(event) {
-        success();
+        success(status);
       };
       transaction.onerror = function mdb_putError(event) {
         error(event.target.errorCode);
       };
 
       var store = transaction.objectStore(MESSAGE_STORE_NAME);
-      store.put(message);
+
+      if (message.id) {
+        /* Check if the message is new, updates an existing one or is just
+         * outdated and needs to be discarded. */
+        var index = store.index(ID_INDEX);
+        var req = index.get(message.id);
+
+        req.onsuccess = function mdb_gotExistingMessage(event) {
+          if (event.target.result) {
+            var storedMessage = event.target.result;
+
+            /* If this is a new version of an existing message, expire the
+             * previous message and flag this message as updated. Older versions
+             * are discarded right away with no further action required. */
+            if (storedMessage.created && message.created &&
+                (storedMessage.created < message.created)) {
+              status = 'updated';
+              store.delete(storedMessage.timestamp);
+              store.put(message);
+            } else {
+              status = 'discarded';
+            }
+          } else {
+            /* No existing message has a matching ID, notify the user */
+            store.put(message);
+          }
+        };
+      } else {
+        /* The message doesn't have an ID, unconditionally store it and notify
+         * the user. */
+        store.put(message);
+      }
     }, error);
   }
 
   /**
    * Retrieves a message and passes it to the success callback as its sole
    * parameter. Once retrieved the message is atomically removed from the
-   * database.
+   * database. If the message was not present in the database then the success
+   * callback is invoked with a null message.
    *
    * @param {Number} timestamp The timestamp identifiying the message to be
    *        retrieved.
    * @param {Function} success A callback invoked after the message has been
-   *        retrieved with the message as its sole parameter.
+   *        retrieved with the message as its sole parameter or null if the
+   *        message could not be found.
    * @param {Function} error A callback invoked if retrieving the message fails,
    *        an error code describing the cause of the failure is passed to it.
    */
@@ -127,7 +168,10 @@ var MessageDB = (function() {
           var message = event.target.result;
 
           state.message = message;
-          store.delete(message.timestamp);
+
+          if (message) {
+            store.delete(message.timestamp);
+          }
         }
       };
     }, error);
