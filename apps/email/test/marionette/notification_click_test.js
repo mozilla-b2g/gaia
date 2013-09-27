@@ -60,9 +60,7 @@ marionette('email notifications, click', function() {
     evt = new EmailEvt(client);
     notification = new Notification(client);
     sync = new EmailSync(client);
-
-    client.contentScript.inject(__dirname +
-      '/lib/mocks/mock_navigator_moz_set_message_handler.js');
+    sync.setup();
 
     app.launch();
   });
