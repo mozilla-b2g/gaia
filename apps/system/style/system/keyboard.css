@@ -25,6 +25,8 @@
 #keyboards.hide {
   opacity: 0;
   transform: translateY(100%);
+  /* ease-in for disappearing */
+  transition: opacity 0.4s ease-in, transform 0.4s ease-in;
 }
 
 #keyboards iframe {
@@ -79,4 +81,8 @@
   content: '';
 
   background: url(../icons/Keyboard.png) top left no-repeat;
+}
+
+.notransition {
+  transition: none !important;
 }
