@@ -16,8 +16,8 @@ function SetupProgressCard(domNode, mode, args) {
   this.domNode = domNode;
   this.callingCard = args.callingCard;
 
-  var backButton = domNode.getElementsByClassName('sup-back-btn')[0];
-  backButton.addEventListener('click', this.onBack.bind(this), false);
+  var cancelButton = domNode.getElementsByClassName('sup-back-btn')[0];
+  cancelButton.addEventListener('click', this.onBack.bind(this), false);
 
   var self = this;
   this.creationInProcess = true;
@@ -43,7 +43,8 @@ SetupProgressCard.prototype = {
     // XXX implement cancellation
   },
 
-  onBack: function() {
+  onBack: function(e) {
+    e.preventDefault();
     this.cancelCreation();
     Cards.removeCardAndSuccessors(this.domNode, 'animate', 1);
   },
