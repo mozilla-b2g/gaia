@@ -19,6 +19,8 @@ var MockCallsHandler = {
   checkCalls: function() {},
   mergeActiveCallWith: function() {},
   mergeConferenceGroupWithActiveCall: function() {},
+  end: function() {},
+  answer: function() {},
 
   mTeardown: function() {
     this.mLastEntryAdded = null;

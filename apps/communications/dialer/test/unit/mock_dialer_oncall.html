@@ -1,0 +1,49 @@
+<!-- This oncall fake DOM tree is only for swiper unit test -->
+      <article id="main-container">
+
+        <div id="actions-container">
+          <div id="swiper-wrapper">
+            <div id="swiper-area"></div>
+            <div id="swiper-icon-container">
+              <div id="swiper-area-hangup" class="swiper-icon-area swiper-icon-left">
+                <div class="swiper-icon">
+                  <div id="swiper-accessibility-hangup" role="button" class="swiper-icon-a11y-button" data-l10n-id="hangup-a11y-button" aria-label="Hangup"></div>
+                </div>
+              </div>
+              <div id="swiper-area-pickup" class="swiper-icon-area swiper-icon-right">
+                <div class="swiper-icon">
+                    <div id="swiper-accessibility-pickup" role="button" class="swiper-icon-a11y-button" data-l10n-id="pickup-a11y-button" aria-label="Pickup"></div>
+                </div>
+              </div>
+
+              <!-- swpier-area-slider -->
+              <div id="swiper-area-slider"
+                   class="swiper-icon-area swiper-icon-center" role="button"
+                   data-l10n-id="unlock-a11y-button" aria-label="Slider">
+
+                <!-- Order matters. If track after handler, it will overlay on the handler -->
+                <div id="swiper-slider-track">
+                  <div class="swiper-icon swiper-slider-left">
+                  </div>
+                  <div class="swiper-icon swiper-slider-center">
+                  </div>
+                  <div class="swiper-icon swiper-slider-right">
+                  </div>
+                </div>
+
+                <div id="swiper-slider-handler">
+                  <div class="swiper-icon swiper-slider-left" data-role="handler-left">
+                    <span>‹</span>
+                  </div>
+                  <div class="swiper-icon swiper-slider-center" data-role="handler-center">
+                  </div>
+                  <div class="swiper-icon swiper-slider-right" data-role="handler-right">
+                    <span>›</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>

@@ -764,6 +764,7 @@
 
   #call-screen[data-layout="incoming-locked"] #calls.big-duration .numberWrapper .number {
     color: #01c5ed;
+    font-weight: normal;
   }
 
   #lockscreen-header {
