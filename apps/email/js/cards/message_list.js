@@ -1267,6 +1267,14 @@ MessageListCard.prototype = {
   },
 
   _folderChanged: function(folder) {
+    // It is possible that the notification of latest folder is fired
+    // but in the meantime the foldersSlice could be cleared due to
+    // a change in the current account, before this listener is called.
+    // So skip this work if no foldersSlice, this method will be called
+    // again soon.
+    if (!model.foldersSlice)
+      return;
+
     // Folder could have changed because account changed. Make sure
     // the cacheableFolderId is still set correctly.
     var inboxFolder = model.foldersSlice.getFirstFolderWithType('inbox');

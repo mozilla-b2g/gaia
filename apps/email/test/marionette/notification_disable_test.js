@@ -50,9 +50,7 @@ marionette('email notifications, disable', function() {
   setup(function() {
     app = new Email(client);
     sync = new EmailSync(client);
-
-    client.contentScript.inject(__dirname +
-      '/lib/mocks/mock_navigator_moz_set_message_handler.js');
+    sync.setup();
 
     app.launch();
   });

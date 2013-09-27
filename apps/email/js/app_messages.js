@@ -17,8 +17,6 @@ define(function(require) {
     pending[type] = true;
   });
 
-  var lastNotifyId = 0;
-
   var appMessages = evt.mix({
     /**
      * Whether or not we have pending messages.
@@ -66,16 +64,15 @@ define(function(require) {
     },
 
     onNotification: function(msg) {
+      // Skip notification events that are not from a notification
+      // "click". The system app will also notify this method of
+      // any close events for notificaitons, which are not at all
+      // interesting, at least for the purposes here.
+      if (!msg.clicked)
+        return;
+
       // icon url parsing is a cray cray way to pass day day
       var data = queryString.toObject((msg.imageURL || '').split('#')[1]);
-
-      // Do not handle duplicate notifications. May be a bug in the
-      // notifications system.
-      if (data.notifyId && data.notifyId === lastNotifyId) {
-        return;
-      }
-
-      lastNotifyId = data.notifyId;
 
       if (document.hidden) {
         appSelf.latest('self', function(app) {
