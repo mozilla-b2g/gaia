@@ -2,6 +2,11 @@
   "name": "Music",
   "role": "collection",
   "provider_id": "142",
+  "apps": [
+    ["apps", "fm"],
+    ["apps", "music"],
+    ["apps", "video"]
+  ],
   "locales": {
     "en-US": {
       "name": "Music"

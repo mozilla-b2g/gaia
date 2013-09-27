@@ -85,6 +85,20 @@ var EvmeManager = (function EvmeManager() {
     }
   }
 
+  function getAppByManifestURL(cb, manifestURL, entryPoint) {
+    var icon = GridManager.getIcon({
+      manifestURL: manifestURL,
+      entry_point: entryPoint
+    });
+
+    if (icon) {
+      getAppInfo(icon, cb);
+    } else {
+      console.error("E.me error: app " + origin + " does not exist");
+      cb();
+    }
+  }
+
   /**
    * Returns E.me formatted information about an object
    * returned by GridManager.getApps.
@@ -108,6 +122,7 @@ var EvmeManager = (function EvmeManager() {
 
     if (!id) {
       console.warn('E.me: no id found for ' + descriptor.name + '. Will not show up in results');
+      cb();
       return;
     }
 
@@ -234,6 +249,7 @@ var EvmeManager = (function EvmeManager() {
       return GridManager.getApp(origin);
     },
 
+    getAppByManifestURL: getAppByManifestURL,
     getAppByOrigin: getAppByOrigin,
     getGridApps: getGridApps,
     getCollections: getCollections,

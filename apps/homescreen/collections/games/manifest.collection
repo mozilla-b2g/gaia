@@ -2,6 +2,9 @@
   "name": "Games",
   "role": "collection",
   "provider_id": "207",
+  "apps": [
+    ["external-apps", "marketplace.firefox.com"]
+  ],
   "locales": {
     "en-US": {
       "name": "Games"
