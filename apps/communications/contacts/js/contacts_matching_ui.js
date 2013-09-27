@@ -17,10 +17,7 @@ if (!contacts.MatchingUI) {
 
     var mergeButton, contactsList, duplicateMessage, title;
     var matchingResults;
-    var matchingDetails, matchingDetailList, matchingImg, matchingTitle;
-
-    // Field order when showing matching details main reason
-    var fieldOrder = ['tel', 'email', 'name'];
+    var matchingDetails, matchingDetailList, matchingName, matchingImg;
 
     function init() {
       mergeButton = document.getElementById('merge-action');
@@ -38,10 +35,11 @@ if (!contacts.MatchingUI) {
 
       matchingDetails = document.querySelector('#matching-details');
       matchingDetailList = matchingDetails.querySelector('#matching-list');
+      matchingName = matchingDetails.querySelector('strong');
       matchingImg = matchingDetails.querySelector('img');
-      matchingTitle = matchingDetails.querySelector('h1');
 
-      matchingDetails.querySelector('button').onclick = function() {
+      matchingDetails.querySelector('button').onclick = function(event) {
+        event.preventDefault();
         hideMatchingDetails();
       };
     }
@@ -162,20 +160,14 @@ if (!contacts.MatchingUI) {
                 contact.familyName[0].trim());
     };
 
-    function selectMainReason(matchings) {
-      var out = '';
-
-      for (var j = 0; j < fieldOrder.length; j++) {
-        var aField = fieldOrder[j];
-        var theMatchings = matchings[aField];
-        if (Array.isArray(theMatchings) && theMatchings[0]) {
-          out = theMatchings[0].matchedValue;
-          if (out) {
-            break;
-          }
+    function selectMainReason(reasons) {
+      var reason, precedence = ['tel', 'email', 'name'];
+      for (var i = 0, l = precedence.length; i < l; i++) {
+        reason = precedence[i];
+        if (reasons[reason]) {
+          return reasons[reason][0].matchedValue;
         }
       }
-      return out;
     }
 
     function populate(source, target, propertyNames) {
@@ -237,9 +229,9 @@ if (!contacts.MatchingUI) {
       if (matchingImg.src) {
         window.URL.revokeObjectURL(matchingImg.src);
       }
+      matchingName.innerHTML = '&nbsp;';
       matchingImg.src = '';
       matchingImg.alt = '';
-      matchingTitle.textContent = '';
       matchingDetailList.innerHTML = '';
     }
 
@@ -290,7 +282,14 @@ if (!contacts.MatchingUI) {
             matchings[aField].forEach(function(obj) {
               var val = fieldValue.value || fieldValue;
               if (obj.matchedValue === val) {
-                item.setAttribute('aria-selected', 'true');
+                switch (aField) {
+                  case 'name':
+                    matchingName.setAttribute('aria-selected', 'true');
+                    break;
+                  default:
+                    item.setAttribute('aria-selected', 'true');
+                    break;
+                }
               }
             });
           }
@@ -300,10 +299,7 @@ if (!contacts.MatchingUI) {
               matchingImg.alt = getDisplayName(theContact);
             break;
             case 'name':
-              matchingTitle.textContent = fieldValue;
-              if (hasName(theContact)) {
-                item.textContent = fieldValue;
-              }
+              matchingName.textContent = fieldValue;
             break;
             case 'tel':
               item.textContent = fieldValue.type + ', ' + fieldValue.value;
@@ -313,14 +309,19 @@ if (!contacts.MatchingUI) {
                                'region', 'countryName'];
               adrFields.forEach(function(addrField) {
                 if (fieldValue[addrField]) {
-                  var p = document.createElement('p');
-                  p.textContent = fieldValue[addrField];
-                  item.appendChild(p);
+                  var span = document.createElement('span');
+                  span.textContent = fieldValue[addrField];
+                  item.appendChild(span);
                 }
               });
             break;
             default:
                item.textContent = fieldValue.value || fieldValue || '';
+          }
+          if (theContact.photo) {
+            matchingImg.classList.remove('hide');
+          } else {
+            matchingImg.classList.add('hide');
           }
           matchingDetailList.appendChild(item);
         });
