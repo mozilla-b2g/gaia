@@ -124,6 +124,15 @@ var KeyboardManager = {
           break;
       }
     });
+
+    // XXX: Bug 906096, need to remove this when the IME WebAPI is ready
+    //      on Firefox Nightly
+    if (navigator.mozKeyboard) {
+      navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+        evt.detail.inputType = evt.detail.type;
+        self.inputFocusChange(evt);
+      };
+    }
   },
 
   getHeight: function kn_getHeight() {

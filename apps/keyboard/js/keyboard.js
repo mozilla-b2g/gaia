@@ -7,7 +7,7 @@
  * This is the main module of the Gaia keyboard app. It does these things:
  *
  * - Hides and shows the keyboard in response to focuschange events from
- *   navigator.mozInputMethod.inputcontext
+ *   navigator.mozKeyboard
  *
  * - Loads the input method (from imes/) module required by a keyboard
  *
@@ -21,7 +21,7 @@
  *   mouse events over the keyboard and passes them to the input method.
  *
  * - When the input method sends value back to the keyboard, it turns
- *   them into synthetic key events using the inputmethod API.
+ *   them into synthetic key events using the navigator.mozKeyboard API.
  *
  * This module includes code that was formerly in the controller.js and
  * feedback.js modules. Other modules handle other parts of the keyboard:
@@ -93,8 +93,8 @@
  *
  *    sendKey(keycode):
  *      Generate output. Typically the keyboard will just pass this
- *      keycode to inputcontext.sendKey(). The IM could call
- *      inputcontext.sendKey() directly, but doing it this way allows
+ *      keycode to mozKeyboard.sendKey(). The IM could call
+ *      mozKeyboard.sendKey() directly, but doing it this way allows
  *      us to chain IMs, I think.
  *
  *    sendString:
@@ -1238,7 +1238,7 @@ function onTouchEnd(evt) {
         clearInterval(deleteInterval);
         clearTimeout(menuTimeout);
 
-        navigator.mozInputMethod.mgmt.hide();
+        window.navigator.mozKeyboard.removeFocus();
         return;
       }
     }
