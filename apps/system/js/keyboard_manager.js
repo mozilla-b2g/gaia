@@ -389,8 +389,7 @@ var KeyboardManager = {
     };
 
     // If the keyboard is hidden, or when transitioning is not finished
-    if (this.keyboardFrameContainer.classList.contains('hide') ||
-        this.keyboardFrameContainer.dataset.transitionIn === 'true') {
+    if (this.keyboardFrameContainer.dataset.transitionIn === 'true') {
       this.showKeyboard(updateHeight);
     } else {
       updateHeight();
@@ -412,7 +411,7 @@ var KeyboardManager = {
         break;
       case 'activitywillclose':
       case 'appwillclose':
-        this.hideKeyboard();
+        this.hideKeyboardImmediately();
         break;
       //XXX the following case hasn't been tested.
       case 'mozbrowsererror': // OOM
@@ -474,8 +473,11 @@ var KeyboardManager = {
       return;
     }
 
-    this.keyboardFrameContainer.classList.remove('hide');
-    this.keyboardFrameContainer.dataset.transitionIn = 'true';
+    if (this.keyboardFrameContainer.classList.contains('hide')) {
+      delete this.keyboardFrameContainer.dataset.transitionOut;
+      this.keyboardFrameContainer.classList.remove('hide');
+      this.keyboardFrameContainer.dataset.transitionIn = 'true';
+    }
 
     // XXX Keyboard transition may be affected by window.open event,
     // and thus the keyboard looks like jump into screen.
@@ -491,8 +493,12 @@ var KeyboardManager = {
           onTransitionEnd);
 
       delete self.keyboardFrameContainer.dataset.transitionIn;
-      self._debug('keyboard display transitionend');
+      self._debug('showKeyboard display transitionend');
 
+      // keyboard is now hidden?
+      if (self.keyboardFrameContainer.classList.contains('hide')) {
+        return;
+      }
       if (callback) {
         callback();
       }
@@ -546,10 +552,45 @@ var KeyboardManager = {
   },
 
   hideKeyboard: function km_hideKeyboard() {
-    this.resetShowingKeyboard();
+    var self = this;
+    var onTransitionEnd = function(evt) {
+      if (evt.propertyName !== 'transform') {
+        return;
+      }
+      self.keyboardFrameContainer.removeEventListener('transitionend',
+        onTransitionEnd);
+
+      self._debug('hideKeyboard display transitionend');
+
+      // prevent destroying the keyboard when we're not hidden anymore
+      if (!self.keyboardFrameContainer.classList.contains('hide')) {
+        return;
+      }
+
+      self.resetShowingKeyboard();
+    };
+    this.keyboardFrameContainer.addEventListener('transitionend',
+      onTransitionEnd);
+
     this.keyboardHeight = 0;
     window.dispatchEvent(new CustomEvent('keyboardhide'));
     this.keyboardFrameContainer.classList.add('hide');
+  },
+
+  hideKeyboardImmediately: function km_hideImmediately() {
+    this.keyboardHeight = 0;
+    window.dispatchEvent(new CustomEvent('keyboardhide'));
+
+    var keyboard = this.keyboardFrameContainer;
+    keyboard.classList.add('notransition');
+    keyboard.classList.add('hide');
+    // Trigger reflow, because the class changes will be grouped
+    // and the notransition has no effect
+    keyboard.offsetHeight;
+
+    // after reflow it's safe to remove the class again
+    keyboard.classList.remove('notransition');
+    this.resetShowingKeyboard();
   },
 
   switchToNext: function km_switchToNext() {

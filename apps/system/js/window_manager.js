@@ -557,6 +557,13 @@ var WindowManager = (function() {
     var onSwitchWindow = isSwitchWindow();
 
     var homescreenFrame;
+    // Send a synthentic 'appwillclose' event.
+    // The keyboard uses this and the appclose event to know when to close
+    // See https://github.com/andreasgal/gaia/issues/832
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
+    closeFrame.dispatchEvent(evt);
+
 
     if (!onSwitchWindow) {
       // Animate the window close.  Ensure the homescreen is in the
@@ -579,13 +586,6 @@ var WindowManager = (function() {
       // since the orientation had changed.
       runningApps[homescreen].resize();
     }
-
-    // Send a synthentic 'appwillclose' event.
-    // The keyboard uses this and the appclose event to know when to close
-    // See https://github.com/andreasgal/gaia/issues/832
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
-    closeFrame.dispatchEvent(evt);
 
     transitionCloseCallback = function startClosingTransition() {
       // Remove the wrapper and reset the homescreen to a normal state
