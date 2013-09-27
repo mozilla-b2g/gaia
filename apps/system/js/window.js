@@ -251,7 +251,6 @@
           return;
         }
 
-        this._screenshotURL = URL.createObjectURL(screenshot);
         this.screenshotOverlay.style.backgroundImage =
           'url(' + this._screenshotURL + ')';
         this.screenshotOverlay.classList.add('visible');
@@ -265,7 +264,6 @@
         if (WindowManager.screenshots[this.origin]) {
           URL.revokeObjectURL(WindowManager.screenshots[this.origin]);
         }
-        WindowManager.screenshots[this.origin] = this._screenshotURL;
       }.bind(this));
     };
 
@@ -278,6 +276,17 @@
       if (this._screenshotOverlayState != 'screenshot' &&
           this.screenshotOverlay.classList.contains('visible'))
         this.screenshotOverlay.classList.remove('visible');
+    };
+
+  // Get cached screenshot URL if there is one.
+  AppWindow.prototype.getCachedScreenshot = function aw_getCachedScreenshot() {
+    return this._screenshotURL;
+  };
+
+  // Save and update screenshot URL.
+  AppWindow.prototype.saveCachedScreenshot =
+    function aw_saveScreenshot(screenshot) {
+      this._screenshotURL = screenshot;
     };
 
   /**
@@ -303,11 +312,14 @@
       return;
     }
 
+    var self = this;
+
     var req = this.iframe.getScreenshot(
       this.iframe.offsetWidth, this.iframe.offsetHeight);
 
     req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
+      self._screenshotURL = URL.createObjectURL(result);
       callback(result);
     };
 
