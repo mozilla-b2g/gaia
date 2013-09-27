@@ -46,6 +46,7 @@ var MockContacts = {
     importGmail: function() {}
   },
   navigation: {
+    go: function() {},
     home: function() {}
   },
   checkCancelableActivity: function() {},
