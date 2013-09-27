@@ -13,7 +13,11 @@ version = {}
 execfile(os.path.join('gaiatest', 'version.py'), version)
 
 # dependencies
+<<<<<<< HEAD
 deps = ['marionette_client>=0.6.1', 'mozdevice', 'py==1.4.14', 'moztest>=0.3']
+=======
+deps = ['marionette_client>=0.5.36', 'mozdevice', 'py==1.4.14', 'requests']
+>>>>>>> a5ce31d... Bug 919615 - Add navigator.mozId automated test, r=zac
 
 setup(name='gaiatest',
       version=version['__version__'],
