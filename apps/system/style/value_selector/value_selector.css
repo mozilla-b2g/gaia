@@ -27,7 +27,3 @@
 #value-selector-container li > label {
   pointer-events: none;
 }
-
-.value-picker > *[data-disabled="true"] {
-  visibility: hidden;
-}

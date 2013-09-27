@@ -133,6 +133,12 @@
   z-index: 1;
 }
 
+[role="dialog"][data-type="time-selector"] .value-picker-hours > *[data-disabled="true"],
+[role="dialog"][data-type="time-selector"] .value-picker-minutes > *[data-disabled="true"],
+[role="dialog"][data-type="time-selector"] .value-picker-hour24-state > *[data-disabled="true"] {
+  visibility: hidden;
+}
+
 [role="dialog"][data-type="time-selector"] .value-indicator {
   position: absolute;
   width: 100%;

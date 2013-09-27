@@ -148,6 +148,12 @@
   z-index: 1;
 }
 
+[role="dialog"][data-type="date-selector"] .value-picker-date > *[data-disabled="true"],
+[role="dialog"][data-type="date-selector"] .value-picker-month > *[data-disabled="true"],
+[role="dialog"][data-type="date-selector"] .value-picker-year > *[data-disabled="true"] {
+  visibility: hidden;
+}
+
 [role="dialog"][data-type="date-selector"] .value-indicator {
   position: absolute;
   width: 100%;
