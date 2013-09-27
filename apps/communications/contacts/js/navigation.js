@@ -118,6 +118,8 @@ function navigationStack(currentView) {
   };
 
   this.back = function back(callback) {
+    var self = this;
+
     if (this.stack.length < 2) {
       if (typeof callback === 'function') {
         setTimeout(callback, 0);
@@ -159,7 +161,8 @@ function navigationStack(currentView) {
     // -moz-element and animate this 'screenshot" element.
     if (transition.indexOf('go-deeper') === 0) {
       next = document.getElementById(screenshotViewId);
-      next.style.zIndex = nextView.zIndex;
+    } else {
+      next = document.getElementById(nextView.view);
     }
     nextClassList = next.classList;
 
