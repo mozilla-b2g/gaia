@@ -102,13 +102,13 @@ var KeyboardContext = (function() {
 
       allKeyboards.forEach(function(keyboardAppInstance) {
         // get all layouts in a keyboard app
-        var keyboardManifest = keyboardAppInstance.manifest;
+        var keyboardManifest = new ManifestHelper(keyboardAppInstance.manifest);
         var entryPoints = keyboardManifest.entry_points;
         var layouts = [];
 
         _layoutDict[keyboardAppInstance.origin] = {};
         for (var key in entryPoints) {
-          var layoutInstance = entryPoints[key];
+          var layoutInstance = new ManifestHelper(entryPoints[key]);
           if (!entryPoints[key].types) {
             console.warn('the keyboard app did not declare type.');
             continue;
@@ -139,6 +139,23 @@ var KeyboardContext = (function() {
        *      have finer events in the future.
        */
       _refreshEnabledLayouts();
+    });
+    window.addEventListener('localized', function() {
+      // refresh keyboard and layout in _keyboards
+      _keyboards.forEach(function(keyboard) {
+        var keyboardAppInstance = keyboard.app;
+        var keyboardManifest = new ManifestHelper(keyboardAppInstance.manifest);
+        var entryPoints = keyboardManifest.entry_points;
+        keyboard.name = keyboardManifest.name;
+        keyboard.description = keyboardManifest.description;
+        keyboard.layouts.forEach(function(layout) {
+          var key = layout.id;
+          var layoutInstance = new ManifestHelper(entryPoints[key]);
+          layout.appName = keyboardManifest.name;
+          layout.name = layoutInstance.name;
+          layout.description = layoutInstance.description;
+        });
+      });
     });
 
     _refreshInstalledKeyboards(function() {
@@ -256,8 +273,12 @@ var EnabledLayoutsPanel = (function() {
       span = document.createElement('span');
       container.appendChild(span);
     }
-
-    span.textContent = layout.appName + ': ' + layout.name;
+    var refreshName = function() {
+      span.textContent = layout.appName + ': ' + layout.name;
+    };
+    refreshName();
+    layout.observe('appName', refreshName);
+    layout.observe('name', refreshName);
     return container;
   };
 
@@ -315,7 +336,11 @@ var InstalledLayoutsPanel = (function() {
       layout.enabled = this.checked;
     };
 
-    layoutName.textContent = layout.name;
+    var refreshName = function() {
+      layoutName.textContent = layout.name;
+    };
+    refreshName();
+    layout.observe('name', refreshName);
     checkbox.checked = layout.enabled;
 
     return container;

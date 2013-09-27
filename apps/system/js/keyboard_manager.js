@@ -124,6 +124,9 @@ var KeyboardManager = {
           break;
       }
     });
+    window.addEventListener('localized', function(evt) {
+      self.updateLayouts(evt);
+    });
 
     // XXX: Bug 906096, need to remove this when the IME WebAPI is ready
     //      on Firefox Nightly
@@ -170,8 +173,10 @@ var KeyboardManager = {
     var self = this;
     apps.forEach(function(app) {
       var entryPoints = app.manifest.entry_points;
+      var manifest = new ManifestHelper(app.manifest);
       for (var key in entryPoints) {
-        if (!entryPoints[key].types) {
+        var entryPoint = new ManifestHelper(entryPoints[key]);
+        if (!entryPoint.types) {
           console.warn('the keyboard app did not declare type.');
           continue;
         }
@@ -182,7 +187,7 @@ var KeyboardManager = {
           continue;
         }
 
-        var supportTypes = entryPoints[key].types;
+        var supportTypes = entryPoint.types;
         supportTypes.forEach(function(type) {
           if (!type || !(type in BASE_TYPE))
             return;
@@ -193,10 +198,10 @@ var KeyboardManager = {
 
           self.keyboardLayouts[type].push({
             'id': key,
-            'name': entryPoints[key].name,
-            'appName': app.manifest.name,
+            'name': entryPoint.name,
+            'appName': manifest.name,
             'origin': app.origin,
-            'path': entryPoints[key].launch_path,
+            'path': entryPoint.launch_path,
             'index': self.keyboardLayouts[type].length
           });
         });
