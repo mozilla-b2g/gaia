@@ -13,6 +13,7 @@ var AppManager = {
     UIManager.init();
     Navigation.init();
     DataMobile.init();
+    VariantManager.init();
     var kSplashTimeout = 700;
     // Retrieve mobile connection if available
     var conn = window.navigator.mozMobileConnection;
