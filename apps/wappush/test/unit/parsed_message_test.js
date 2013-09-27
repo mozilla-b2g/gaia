@@ -38,7 +38,6 @@ suite('ParsedMessage', function() {
 
       si_id: {
         sender: '+31641600986',
-        timestamp: timestamp,
         contentType: 'text/vnd.wap.si',
         content: '<si>' +
                  '<indication si-id="gaia-test@mozilla.org"' +
@@ -50,12 +49,23 @@ suite('ParsedMessage', function() {
 
       created: {
         sender: '+31641600986',
-        timestamp: timestamp,
         contentType: 'text/vnd.wap.si',
         content: '<si>' +
                  '<indication si-id="gaia-test@mozilla.org"' +
                  '            href="http://www.mozilla.org"' +
                  '            created="2013-09-03T10:35:33Z">' +
+                 'check this out' +
+                 '</indication>' +
+                 '</si>'
+      },
+
+      expires: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication si-id="gaia-test@mozilla.org"' +
+                 '            href="http://www.mozilla.org"' +
+                 '            si-expires="2013-09-03T10:35:33Z">' +
                  'check this out' +
                  '</indication>' +
                  '</si>'
@@ -113,6 +123,13 @@ suite('ParsedMessage', function() {
       var message = ParsedMessage.from(messages.created, timestamp);
 
       assert.equal(message.created, Date.parse('2013-09-03T10:35:33Z'));
+    });
+
+    test('SI message with explicit expiration date', function() {
+      var message = ParsedMessage.from(messages.expires, timestamp);
+
+      assert.equal(message.expires, Date.parse('2013-09-03T10:35:33Z'));
+      assert.isTrue(message.isExpired());
     });
 
     test('SL', function() {
