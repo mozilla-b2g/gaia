@@ -1148,6 +1148,25 @@ var ListView = {
       this.view.scrollTop = this.searchBox.offsetHeight;
   },
 
+  createHeader: function lv_createHeader(option, result) {
+    // This function basically create the section header of the list elements.
+    // When we hit the different first letter, this function will use it to
+    // create a new header then keep it, until to hit another different one,
+    // it will create the next header with the new first letter.
+    var firstLetter = result.metadata[option].charAt(0);
+    var headerLi;
+
+    if (this.lastFirstLetter != firstLetter) {
+      this.lastFirstLetter = firstLetter;
+
+      headerLi = document.createElement('li');
+      headerLi.className = 'list-header';
+      headerLi.textContent = this.lastFirstLetter || '?';
+    }
+
+    return headerLi;
+  },
+
   update: function lv_update(option, result) {
     if (result === null) {
       showCorrectOverlay();
@@ -1157,22 +1176,43 @@ var ListView = {
     this.dataSource.push(result);
 
     if (option !== 'playlist') {
-      var firstLetter = result.metadata[option].charAt(0);
-
-      if (this.lastFirstLetter != firstLetter) {
-        this.lastFirstLetter = firstLetter;
-
-        var headerLi = document.createElement('li');
-        headerLi.className = 'list-header';
-        headerLi.textContent = this.lastFirstLetter || '?';
-
-        this.anchor.appendChild(headerLi);
+      var header = this.createHeader(option, result);
+      if (header) {
+        this.anchor.appendChild(header);
       }
     }
 
     this.anchor.appendChild(createListElement(option, result, this.index));
 
     this.index++;
+  },
+
+  batchUpdate: function lv_batchUpdate(option, range, firstPaint) {
+    // See where is the last index we have for the existing children, and start
+    // to create the rest elements from it, note that here we use fragment to
+    // update all the new elements at once, this is for reducing the amount of
+    // appending child to the DOM tree.
+    var start = this.index;
+    var end = start + range;
+    var fragment = document.createDocumentFragment();
+
+    if (end > this.dataSource.length)
+      end = this.dataSource.length;
+
+    for (var i = start; i < end; i++) {
+      var data = this.dataSource[i];
+      if (data) {
+        var header = this.createHeader(option, data);
+
+        if (header)
+          fragment.appendChild(header);
+
+        fragment.appendChild(createListElement(option, data, this.index));
+        this.index++;
+      }
+    }
+
+    this.anchor.appendChild(fragment);
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -1236,7 +1276,15 @@ var ListView = {
                 PlayerView.setSourceType(TYPE_MIX);
 
                 PlayerView.dataSource = this.dataSource;
-                PlayerView.play(targetIndex);
+                if (PlayerView.shuffleOption) {
+                  // Shuffled list does not exist yet in all songs.
+                  // Here we need to create a new shuffled list
+                  // and start from the song which the user clicked.
+                  PlayerView.shuffleList(targetIndex);
+                  PlayerView.play(PlayerView.shuffledList[0]);
+                } else {
+                  PlayerView.play(targetIndex);
+                }
             }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
@@ -1691,11 +1739,21 @@ var TabBar = {
             ModeManager.start(MODE_LIST);
             ListView.clean();
 
-            listHandle =
-              musicdb.enumerate('metadata.' + this.option, null,
-                                'nextunique',
-                                ListView.update.bind(ListView, this.option));
+            var batchsize = 35;
+            var option = this.option;
+            var direction = (option === 'title') ? 'next' : 'nextunique';
 
+            listHandle =
+              musicdb.enumerate('metadata.' + option, null, direction,
+                function(record) {
+                  ListView.dataSource.push(record);
+                  // When we got the first batchsize of the records,
+                  // or the total count is less than the batchsize,
+                  // display it so that users are able to see the first paint
+                  // very quickly.
+                  if (ListView.dataSource.length === batchsize || !record)
+                    ListView.batchUpdate(option, batchsize, true);
+                });
             break;
         }
 
