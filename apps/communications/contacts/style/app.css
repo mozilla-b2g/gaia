@@ -315,15 +315,11 @@ form p + p {
   height: calc(100% - 5rem);
 }
 
-#view-screenshot.contact-list > header:first-child:after {
-  background-image: none;
-}
-
 #view-screenshot.contact-list > #view-screenshot-body {
   position: relative;
-  height: calc(100% - 5rem);
+  height: 100%;
+  width: 100%;
   background: -moz-element(#view-contacts-list);
-  background-position: 0 -5rem;
 }
 
 .view-body-inner {
