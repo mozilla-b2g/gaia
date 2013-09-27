@@ -376,6 +376,25 @@
   .lockscreen-icon-left {
     left: 24.5rem;
   }
+
+  #lockscreen-header {
+    text-shadow: 0 0 0.5rem #111111;
+    padding-left: 6rem;
+    font-weight: lighter;
+  }
+
+  #lockscreen-clock-numbers {
+    font-size: 8.8rem;
+  }
+
+  #lockscreen-clock-meridiem {
+    font-size: 4.2rem;
+  }
+
+  #lockscreen-date {
+    padding-top: 0.5rem;
+    font-size: 2.4rem;
+  }
 }
 
 @media (min-width:768px) and (orientation: landscape) {
