@@ -1,5 +1,7 @@
-MockAlarmManager = {
-  toggleAlarm: function() {},
-  updateAlarmStatusBar: function() {},
-  regUpdateAlarmEnableState: function() {}
-};
+define(function() {
+  return {
+    toggleAlarm: function() {},
+    updateAlarmStatusBar: function() {},
+    regUpdateAlarmEnableState: function() {}
+  };
+});

@@ -1,28 +1,19 @@
-mocha.setup({globals: ['Picker']});
-
-requireApp('clock/js/emitter.js');
-requireApp('clock/js/view.js');
-requireApp('clock/js/panel.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/test/unit/mocks/mock_picker.js');
-requireApp('clock/js/timer.js');
-requireApp('clock/js/timer_panel.js');
+mocha.setup({ globals: ['Emitter'] });
 
 suite('Timer.Panel', function() {
-  var p;
+  var View;
+  var Timer = {};
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     loadBodyHTML('/index.html');
 
-    p = typeof Picker !== 'undefined' ? Picker : undefined;
-
-    Picker = MockPicker;
-
-  });
-
-  suiteTeardown(function() {
-    Picker = p;
+    testRequire(['timer_panel', 'view'], {
+      mocks: ['picker/picker']
+    }, function(TimerPanel, view) {
+      Timer.Panel = TimerPanel;
+      View = view;
+      done();
+    });
   });
 
   test('shape:prototype ', function() {

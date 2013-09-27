@@ -1,7 +1,11 @@
-(function(Stopwatch, Panel) {
+define(function(require) {
 
   'use strict';
 
+  var Panel = require('panel');
+  var View = require('view');
+  var Stopwatch = require('stopwatch');
+  var Utils = require('utils');
   var priv = new WeakMap();
 
   /**
@@ -176,4 +180,5 @@
     }
   };
 
-}(Stopwatch, Panel));
+  return Stopwatch.Panel;
+});

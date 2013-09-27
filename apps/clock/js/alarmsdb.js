@@ -1,4 +1,7 @@
+define(function(require, exports) {
 'use strict';
+
+var Utils = require('utils');
 
 var BaseIndexDB = function(objectStoreOptions) {
   this.query = function ad_query(dbName, storeName, func, callback, data) {
@@ -107,35 +110,36 @@ var BaseIndexDB = function(objectStoreOptions) {
   };
 };
 
-var AlarmsDB = {
-  DBNAME: 'alarms',
-  STORENAME: 'alarms',
+// Use the `exports` notation to allow for cyclic dependency resolution between
+// this module and the `alarm` module.
+exports.DBNAME = 'alarms';
+exports.STORENAME = 'alarms';
 
-  // Database methods
-  getAlarmList: function ad_getAlarmList(callback) {
-    function getAlarmList_mapper(err, list) {
-      callback(err, (list || []).map(function(x) {
-        return new Alarm(x);
-      }));
-    }
-    this.query(this.DBNAME, this.STORENAME, this.load, getAlarmList_mapper);
-  },
-
-  putAlarm: function ad_putAlarm(alarm, callback) {
-    this.query(this.DBNAME, this.STORENAME, this.put, callback,
-      alarm.toSerializable());
-  },
-
-  getAlarm: function ad_getAlarm(key, callback) {
-    this.query(this.DBNAME, this.STORENAME, this.get,
-      function(err, result) {
-        callback(err, new Alarm(result));
-      }, key);
-  },
-
-  deleteAlarm: function ad_deleteAlarm(key, callback) {
-    this.query(this.DBNAME, this.STORENAME, this.delete, callback, key);
+// Database methods
+exports.getAlarmList = function ad_getAlarmList(callback) {
+  function getAlarmList_mapper(err, list) {
+    callback(err, (list || []).map(function(x) {
+      return new (require('alarm'))(x);
+    }));
   }
+  this.query(this.DBNAME, this.STORENAME, this.load, getAlarmList_mapper);
 };
 
-Utils.extend(AlarmsDB, new BaseIndexDB({keyPath: 'id', autoIncrement: true}));
+exports.putAlarm = function ad_putAlarm(alarm, callback) {
+  this.query(this.DBNAME, this.STORENAME, this.put, callback,
+    alarm.toSerializable());
+};
+
+exports.getAlarm = function ad_getAlarm(key, callback) {
+  this.query(this.DBNAME, this.STORENAME, this.get,
+    function(err, result) {
+      callback(err, new (require('alarm'))(result));
+    }, key);
+};
+
+exports.deleteAlarm = function ad_deleteAlarm(key, callback) {
+  this.query(this.DBNAME, this.STORENAME, this.delete, callback, key);
+};
+
+Utils.extend(exports, new BaseIndexDB({keyPath: 'id', autoIncrement: true}));
+});

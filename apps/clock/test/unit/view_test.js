@@ -1,7 +1,16 @@
-requireApp('clock/js/emitter.js');
-requireApp('clock/js/view.js');
+mocha.setup({ globals: ['Emitter'] });
 
 suite('View', function() {
+  var Emitter, View;
+
+  suiteSetup(function(done) {
+    testRequire(['emitter', 'view'], function(emitter, view) {
+      Emitter = emitter;
+      View = view;
+      done();
+    });
+  });
+
   setup(function() {
     this.element = document.createElement('div');
   });

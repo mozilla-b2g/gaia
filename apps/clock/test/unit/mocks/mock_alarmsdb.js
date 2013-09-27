@@ -1,5 +1,8 @@
-(function(exports) {
+define(function(require) {
   'use strict';
+
+  var Alarm = require('alarm');
+  var Utils = require('utils');
 
   function MockAlarmsDB() {
     this.init();
@@ -66,6 +69,5 @@
 
   };
 
-  exports.MockAlarmsDB = MockAlarmsDB;
-
-})(this);
+  return new MockAlarmsDB;
+});
