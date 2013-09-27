@@ -4,6 +4,8 @@ requireApp('homescreen/test/unit/mock_home_state.js');
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
+requireApp('homescreen/test/unit/mock_grid_components.js');
+requireApp('homescreen/test/unit/mock_dock_manager.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
 
 require('/shared/js/screen_layout.js');
@@ -16,6 +18,8 @@ var mocksHelperForPage = new MocksHelper([
   'HomeState',
   'XMLHttpRequest',
   'IconRetriever',
+  'GridItemsFactory',
+  'DockManager',
   'GridManager'
 ]);
 
