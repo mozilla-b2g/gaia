@@ -355,7 +355,19 @@
           debug('Trying to recognize balance SMS');
           var description = new RegExp(configuration.balance.regexp);
           var balanceData = sms.body.match(description);
+
+          if (!balanceData) {
+            debug('Trying to recognize zero balance SMS');
+            // Some carriers use another response messages format
+            // for zero balance
+            var zeroDescription = configuration.balance.zero_regexp ?
+                          new RegExp(configuration.balance.zero_regexp) : null;
+            if (zeroDescription && zeroDescription.test(sms.body)) {
+              balanceData = ['0.00', '0', '0'];
+            }
+          }
           isBalance = !!balanceData;
+
           if (!isBalance || balanceData.length < 2) {
             console.warn('Impossible to parse balance message.');
 
