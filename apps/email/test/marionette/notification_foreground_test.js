@@ -59,9 +59,7 @@ marionette('email notifications, foreground', function() {
     app = new Email(client);
     notification = new Notification(client);
     sync = new EmailSync(client);
-
-    client.contentScript.inject(__dirname +
-      '/lib/mocks/mock_navigator_moz_set_message_handler.js');
+    sync.setup();
 
     app.launch();
   });

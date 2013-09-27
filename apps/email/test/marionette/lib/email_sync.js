@@ -9,15 +9,12 @@ EmailSync.prototype = {
   /**
    * Call this in the setup() for the test.
    */
-/*
+
   setup: function() {
-    //WHAT? this does not work here. Must do it in
-    //the actual test. Bananas, since a readFileSync
-    //of the path for the mock works.
-    //this.client.contentScript.inject(__dirname +
-    //  '/mocks/mock_navigator_mozalarms.js');
+    this.client.contentScript.inject(__dirname +
+      '/mocks/mock_navigator_moz_set_message_handler.js');
   },
-*/
+
   /**
    * Does the work to trigger a sync using helpers in
    * mock_navigator_mozalarms.js. Assumes the mock
