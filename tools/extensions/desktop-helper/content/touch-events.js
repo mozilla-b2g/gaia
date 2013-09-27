@@ -10,6 +10,23 @@ let Cr = Components.results;
 
 Cu.import('resource://gre/modules/Services.jsm');
 
+/**
+ * Returns the content window for an event.
+ * Events should be dispatched to the topmost iframe for an app.
+ * For nested iframes, we bubble to the topmost iframe.
+ */
+function getContent(target) {
+  let content = target.ownerDocument.defaultView;
+  while (true) {
+    if (content.parent && content.parent.location !== content.location) {
+      content = content.parent;
+    } else {
+      break;
+    }
+  }
+
+  return content;
+}
 
 // =================== Touch ====================
 // Simulate touch events on desktop
@@ -50,14 +67,14 @@ var TouchEventHandler = (function touchEventHandler() {
       // The system window use an hybrid system even on the device which is
       // a mix of mouse/touch events. So let's not cancel *all* mouse events
       // if it is the current target.
-      let content = evt.target.ownerDocument.defaultView;
+      let content = getContent(evt.target);
+
       let isSystemWindow = content.location.toString().indexOf("system.gaiamobile.org") != -1;
 
       let eventTarget = this.target;
       let type = '';
       switch (evt.type) {
         case 'mousedown':
-          debug('mousedown:');
           this.target = evt.target;
 
           contextMenuTimeout =
@@ -92,7 +109,6 @@ var TouchEventHandler = (function touchEventHandler() {
         case 'mouseup':
           if (!eventTarget)
             return;
-          debug('mouseup: ' + evt.detail);
           this.target = null;
 
           content.clearTimeout(contextMenuTimeout);
@@ -100,7 +116,6 @@ var TouchEventHandler = (function touchEventHandler() {
           break;
 
         case 'click':
-          debug('click');
           // Mouse events has been cancelled so dispatch a sequence
           // of events to where touchend has been fired
           evt.preventDefault();
@@ -117,7 +132,6 @@ var TouchEventHandler = (function touchEventHandler() {
             ignoreEvents = false;
          }, 0, this);
 
-          debug('click: fire');
           return;
       }
 
@@ -126,19 +140,13 @@ var TouchEventHandler = (function touchEventHandler() {
         this.sendTouchEvent(evt, target, type);
       }
 
-      if (type && type != 'touchmove') {
-        debug(' cancelled (fire ' + type + ')');
-      }
-
       if (!isSystemWindow) {
         evt.preventDefault();
         evt.stopImmediatePropagation();
       }
     },
     fireMouseEvent: function teh_fireMouseEvent(type, evt)  {
-      debug(type + ': fire');
-
-      let content = evt.target.ownerDocument.defaultView;
+      let content = getContent(evt.target);
       var utils = content.QueryInterface(Ci.nsIInterfaceRequestor)
                          .getInterface(Ci.nsIDOMWindowUtils);
       utils.sendMouseEvent(type, evt.clientX, evt.clientY, 0, 1, 0, true);
@@ -150,10 +158,8 @@ var TouchEventHandler = (function touchEventHandler() {
                          0, x, y, x, y, false, false, false, false,
                          0, null);
 
-      let content = target.ownerDocument.defaultView;
+      let content = getContent(target);
       let timeout = content.setTimeout((function contextMenu() {
-        debug('fire context-menu');
-
         target.dispatchEvent(evt);
         this.cancelClick = true;
       }).bind(this), delay);
