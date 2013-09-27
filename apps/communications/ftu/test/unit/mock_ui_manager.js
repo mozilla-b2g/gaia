@@ -58,7 +58,7 @@ var MockUIManager = {
     this.activationScreen = this.progressBar = this.navBar = null;
   },
 
-  sendNewsletter: function() { return true;},
+  sendNewsletter: function(callback) {return callback(true);},
   updateDataConnectionStatus: function(status) {return DataMobile.getStatus()},
   displayOfflineDialog: function() {}
 };

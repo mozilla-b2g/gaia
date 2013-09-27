@@ -171,32 +171,29 @@ a {
 }
 
 .step-3.step-state:before {
-  transform: translateX(100%);
-}
-
-.step-4.step-state:before {
   transform: translateX(200%);
 }
 
-.step-5.step-state:before {
+.step-4.step-state:before {
   transform: translateX(300%);
 }
 
-.step-6.step-state:before {
+.step-5.step-state:before {
   transform: translateX(400%);
 }
 
-.step-7.step-state:before {
+.step-6.step-state:before {
   transform: translateX(500%);
 }
 
-.step-8.step-state:before {
+.step-7.step-state:before {
   transform: translateX(600%);
 }
 
-.step-9.step-state:before {
+.step-8.step-state:before {
   transform: translateX(700%);
 }
+
 /*
   Header conditional button
 */
