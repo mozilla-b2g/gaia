@@ -6,7 +6,6 @@ var AlarmList = require('alarm_list');
 var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var mozL10n = require('l10n');
-require('shared/js/l10n_date');
 var viewMode = null;
 
 // Retrieve stored view mode data as early as possible.
