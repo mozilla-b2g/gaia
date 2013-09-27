@@ -221,7 +221,8 @@ const keyboardGroups = {
   'pinyin': ['zh-Hans-Pinyin'],
   'arabic': ['ar'],
   'greek': ['el'],
-  'japanese': ['jp-kanji']
+  'japanese': ['jp-kanji'],
+  'italian': ['it']
 };
 
 // Define language code aliases to correctly match the relevant keyboard,
