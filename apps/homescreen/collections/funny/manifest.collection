@@ -2,6 +2,9 @@
   "name": "Funny",
   "role": "collection",
   "provider_id": "277",
+  "apps": [
+    ["apps", "video"]
+  ],
   "locales": {
     "en-US": {
       "name": "Funny"

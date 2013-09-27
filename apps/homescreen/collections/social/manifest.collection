@@ -2,6 +2,12 @@
   "name": "Social",
   "role": "collection",
   "provider_id": "289",
+  "apps": [
+    ["apps", "communications", "dialer"],
+    ["apps", "sms"],
+    ["apps", "communications", "contacts"],
+    ["apps", "email"]
+  ],
   "locales": {
     "en-US": {
       "name": "Social"

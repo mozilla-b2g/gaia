@@ -95,32 +95,55 @@ window.Evme = new function Evme_Core() {
 
   function setupCollectionStorage(done) {
     var collections = EvmeManager.getCollections(),
-        total = collections.length;
+        totalCollections = collections.length;
 
-    if (total === 0) {
+    if (totalCollections === 0) {
       done();
       return;
     }
 
-    for (var i = 0; i < total; i++) {
-      var collection = collections[i],
-          experienceId = collection.providerId;
-
-      // TODO: populate apps from manifest file
-      var apps = [];
-
-      var collectionSettings = new Evme.CollectionSettings({
-        "id": collection.id,
-        "experienceId": experienceId,
-        "apps": apps
-      });
-
-      Evme.CollectionStorage.add(collectionSettings, function onSaved() {
-        if (--total === 0) {
-          done();
-        }
-      });
+    var onDone = function onDone() {
+      if (--totalCollections === 0) {
+        done();
+      }
     }
+
+    var iterateApps = function iterateApps(apps, collection) {
+      var infoApps = [],
+          total = apps.length;
+
+      apps.forEach(function iteratee(descriptor) {
+        // descriptor -> ['manifestURL', 'entry_point']
+        EvmeManager.getAppByManifestURL(function getting(app) {
+          if (app)
+            infoApps.push(app);
+
+          if (--total === 0)
+            saveCollectionSettings(collection, infoApps, onDone);
+        }, descriptor[0], descriptor[1]);
+      });
+    };
+
+    // Populating apps from manifest file
+    collections.forEach(function (collection) {
+      var apps = collection.manifest.apps;
+      if (!apps || apps.length === 0) {
+        // There aren't pre-installed apps for this collection
+        saveCollectionSettings(collection, [], onDone);
+      } else {
+        iterateApps(apps, collection);
+      }
+    });
+  }
+
+  function saveCollectionSettings(collection, apps, done) {
+    var collectionSettings = new Evme.CollectionSettings({
+      "id": collection.id,
+      "experienceId": collection.providerId,
+      "apps": apps
+    });
+
+    Evme.CollectionStorage.add(collectionSettings, done);
   }
 
   function initObjects(data) {
