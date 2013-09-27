@@ -16,6 +16,7 @@ $('edit-exposure-button').onclick = setEditTool.bind(null, 'exposure');
 $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
 $('edit-border-button').onclick = setEditTool.bind(null, 'border');
+$('edit-enhance-button').onclick = setEditTool.bind(null, 'enhance');
 $('edit-crop-none').onclick = undoCropHandler;
 $('edit-cancel-button').onclick = function() { exitEditMode(false); };
 $('edit-save-button').onclick = saveEditedImage;
@@ -26,7 +27,6 @@ editOptionButtons.forEach(function(b) { b.onclick = editOptionsHandler; });
 function editPhotoIfCardNotFull(n) {
   var fileinfo = files[n];
   var imagesize = fileinfo.size;
-
   photodb.freeSpace(function(freespace) {
     // the edited image might take up more space on the disk, but
     // not all that much more
@@ -54,7 +54,9 @@ function editPhoto(n) {
     },
     gamma: 1,
     borderWidth: 0,
-    borderColor: [0, 0, 0, 0]
+    borderColor: [0, 0, 0, 0],
+    matrix: ImageProcessor.IDENTITY_MATRIX,
+    rgbMinMaxValues: ImageProcessor.default_enhancement
   };
 
   // Start looking up the image file
@@ -231,7 +233,8 @@ $('exposure-slider').onchange = function() {
   var factor = -1;  // XXX: adjust this factor to get something reasonable.
   var gamma = Math.pow(2, stops * factor);
   editSettings.gamma = gamma;
-  imageEditor.edit();
+  if (imageEditor)
+    imageEditor.edit();
 };
 
 function setEditTool(tool) {
@@ -269,6 +272,11 @@ function setEditTool(tool) {
     case 'border':
       $('edit-border-button').classList.add('selected');
       $('edit-border-options').classList.remove('hidden');
+      break;
+    case 'enhance':
+      $('edit-enhance-button').classList.add('selected');
+      $('edit-enhance-options').classList.remove('hidden');
+      imageEditor.autoEnhancement();
       break;
     }
   });
@@ -374,34 +382,6 @@ function saveEditedImage() {
   });
 }
 
-
-function createThumbnailFromSource(fullSizeImage, sourceRectangle,
-                                    containerWidth, containerHeight, callback) {
-  // Create a thumbnail image
-  var canvas = document.createElement('canvas');
-  var context = canvas.getContext('2d');
-
-  // infer the thumbnailHeight such that the aspect ratio stays the same
-  var scalex = containerWidth / sourceRectangle.w;
-  var scaley = containerHeight / sourceRectangle.h;
-  var scale = Math.min(Math.min(scalex, scaley), 1);
-
-  var thumbnailWidth = Math.floor(sourceRectangle.w * scale);
-  var thumbnailHeight = Math.floor(sourceRectangle.h * scale);
-
-  canvas.width = thumbnailWidth;
-  canvas.height = thumbnailHeight;
-  // Draw that region of the image into the canvas, scaling it down
-  context.drawImage(fullSizeImage, sourceRectangle.x, sourceRectangle.y,
-                    sourceRectangle.w, sourceRectangle.h,
-                    0, 0, thumbnailWidth, thumbnailHeight);
-
-  canvas.toBlob(callback, 'image/jpeg');
-  return scale;
-}
-
-
-
 /*
  * ImageEditor.js: simple image editing and previews in a <canvas> element.
  *
@@ -483,21 +463,47 @@ function ImageEditor(imageURL, container, edits, ready) {
 
 ImageEditor.prototype.generateNewPreview = function(callback) {
   var self = this;
-  this.scale = createThumbnailFromSource(this.original,
-    this.source, this.previewCanvas.width, this.previewCanvas.height,
-    function(thumbnail) {
-      self.preview.src = URL.createObjectURL(thumbnail);
-      self.preview.onload = function() {
-        callback();
-      };
-    }
-  );
-};
 
+  // Create a preview image
+  var canvas = document.createElement('canvas');
+  var context = canvas.getContext('2d');
+
+  // infer the previewHeight such that the aspect ratio stays the same
+  var scalex = this.previewCanvas.width / this.source.width;
+  var scaley = this.previewCanvas.height / this.source.height;
+  this.scale = Math.min(Math.min(scalex, scaley), 1);
+
+  var previewWidth = Math.floor(this.source.width * this.scale);
+  var previewHeight = Math.floor(this.source.height * this.scale);
+
+  canvas.width = previewWidth;
+  canvas.height = previewHeight;
+
+  // Draw that region of the image into the canvas, scaling it down
+  context.drawImage(this.original, this.source.x, this.source.y,
+                    this.source.width, this.source.height,
+                    0, 0, previewWidth, previewHeight);
+
+  // Feed the thumbnail's pixel data as input to the image enhancement worker.
+  if (imageEditor) {
+    var imageData = context.getImageData(0, 0, previewWidth, previewHeight);
+    imageEditor.prepareAutoEnhancement(imageData.data);
+  }
+
+  canvas.toBlob(thumbnailReady, 'image/jpeg');
+
+  function thumbnailReady(thumbnail) {
+    self.preview.src = URL.createObjectURL(thumbnail);
+    self.preview.onload = function() {
+      callback();
+    };
+  };
+};
 ImageEditor.prototype.resetPreview = function() {
   if (this.preview.src) {
     URL.revokeObjectURL(this.preview.src);
     this.preview.removeAttribute('src');
+    $('edit-enhance-button').classList.add('disabled');
   }
 };
 
@@ -545,14 +551,16 @@ ImageEditor.prototype.destroy = function() {
   this.gestureDetector = null;
 };
 
-// Preview the image with the specified edits applyed. If edits is omitted,
+// Preview the image with the specified edits applied. If edit is omitted,
 // displays the original image. Clients should call this function when the
 // desired edits change or when the size of the container changes (on
 // orientation change events, for example)
 ImageEditor.prototype.edit = function(callback) {
   if (!this.preview.src) {
     var self = this;
-    this.generateNewPreview(function() {self.finishEdit(callback);});
+    this.generateNewPreview(function() {
+      self.finishEdit(callback);
+    });
   } else {
     this.finishEdit(callback);
   }
@@ -565,13 +573,13 @@ ImageEditor.prototype.finishEdit = function(callback) {
 
   this.dest.x = xOffset;
   this.dest.y = yOffset;
-  this.dest.w = this.preview.width;
-  this.dest.h = this.preview.height;
+  this.dest.width = this.preview.width;
+  this.dest.height = this.preview.height;
 
   this.processor.draw(this.preview,
                       0, 0, this.preview.width, this.preview.height,
-                      this.dest.x, this.dest.y, this.dest.w, this.dest.h,
-                      this.edits);
+                      this.dest.x, this.dest.y, this.dest.width,
+                      this.dest.height, this.edits);
   if (callback) {
     callback();
   }
@@ -583,15 +591,16 @@ ImageEditor.prototype.finishEdit = function(callback) {
 ImageEditor.prototype.getFullSizeBlob = function(type, callback) {
   // Create an offscreen canvas of the same size
   var canvas = document.createElement('canvas');
-  canvas.width = this.source.w; // "full size" is cropped image size
-  canvas.height = this.source.h;
+  canvas.width = this.source.width; // "full size" is cropped image size
+  canvas.height = this.source.height;
 
   // Create an ImageProcessor object and use it to draw the edited
   // image to the full-size offscreen canvas
   var processor = new ImageProcessor(canvas);
   processor.draw(this.original,
-                 this.source.x, this.source.y, this.source.w, this.source.h,
-                 0, 0, this.source.w, this.source.h,
+                 this.source.x, this.source.y, this.source.width,
+                 this.source.height,
+                 0, 0, this.source.width, this.source.height,
                  this.edits);
 
   // Now get the canvas contents as a file and pass to the callback
@@ -614,8 +623,8 @@ ImageEditor.prototype.isCropOverlayShown = function() {
 ImageEditor.prototype.hasBeenCropped = function() {
   return (this.cropRegion.left !== 0 ||
           this.cropRegion.top !== 0 ||
-          this.cropRegion.right !== this.dest.w ||
-          this.cropRegion.bottom !== this.dest.h);
+          this.cropRegion.right !== this.dest.width ||
+          this.cropRegion.bottom !== this.dest.height);
 };
 
 // Display cropping controls
@@ -649,8 +658,8 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
     var region = this.cropRegion;
     region.left = 0;
     region.top = 0;
-    region.right = this.dest.w;
-    region.bottom = this.dest.h;
+    region.right = this.dest.width;
+    region.bottom = this.dest.height;
   }
 
   this.drawCropControls();
@@ -679,8 +688,8 @@ ImageEditor.prototype.hideCropOverlay = function hideCropOverlay() {
 ImageEditor.prototype.resetCropRegion = function resetCropRegion() {
   this.source.x = 0;
   this.source.y = 0;
-  this.source.w = this.original.width;
-  this.source.h = this.original.height;
+  this.source.width = this.original.width;
+  this.source.height = this.original.height;
 
 };
 
@@ -703,7 +712,7 @@ ImageEditor.prototype.drawCropControls = function(handle) {
 
   // Overlay the preview canvas with translucent gray
   context.fillStyle = 'rgba(0, 0, 0, .5)';
-  context.fillRect(dest.x, dest.y, dest.w, dest.h);
+  context.fillRect(dest.x, dest.y, dest.width, dest.height);
 
   // Clear a rectangle so interior of the crop region shows through
   context.clearRect(left, top, width, height);
@@ -930,7 +939,7 @@ ImageEditor.prototype.cropStart = function(ev) {
       // Now if the new region is out of bounds then bail out without
       // changing the region at all and ignore this move event
       if (newtop < 0 || newleft < 0 ||
-          newright > dest.w || newbottom > dest.h)
+          newright > dest.width || newbottom > dest.height)
         return;
 
       // Don't let the crop region become smaller than 100x100. If it does
@@ -965,11 +974,11 @@ ImageEditor.prototype.cropStart = function(ev) {
 
     function pan(dx, dy) {
       if (dx > 0)
-        dx = Math.min(dx, dest.w - right);
+        dx = Math.min(dx, dest.width - right);
       if (dx < 0)
         dx = Math.max(dx, -left);
       if (dy > 0)
-        dy = Math.min(dy, dest.h - bottom);
+        dy = Math.min(dy, dest.height - bottom);
       if (dy < 0)
         dy = Math.max(dy, -top);
 
@@ -1006,18 +1015,18 @@ ImageEditor.prototype.cropImage = function(callback) {
   var dest = this.dest;
 
   // Convert the preview crop region to fractions
-  var left = region.left / dest.w;
-  var right = region.right / dest.w;
-  var top = region.top / dest.h;
-  var bottom = region.bottom / dest.h;
+  var left = region.left / dest.width;
+  var right = region.right / dest.width;
+  var top = region.top / dest.height;
+  var bottom = region.bottom / dest.height;
 
   // Now convert those fractions to pixels in the original image
   // Note that the original image may have already been cropped, so we
   // multiply by the size of the crop region, not the full size
-  left = Math.floor(left * this.source.w);
-  right = Math.ceil(right * this.source.w);
-  top = Math.floor(top * this.source.h);
-  bottom = Math.floor(bottom * this.source.h);
+  left = Math.floor(left * this.source.width);
+  right = Math.ceil(right * this.source.width);
+  top = Math.floor(top * this.source.height);
+  bottom = Math.floor(bottom * this.source.height);
 
   // XXX: tweak these to make sure we still have the right aspect ratio
   // after rounding to pixels
@@ -1026,8 +1035,8 @@ ImageEditor.prototype.cropImage = function(callback) {
   // And update the real crop region
   this.source.x += left;
   this.source.y += top;
-  this.source.w = right - left;
-  this.source.h = bottom - top;
+  this.source.width = right - left;
+  this.source.height = bottom - top;
 
   this.resetPreview();
   // Adjust the image
@@ -1065,11 +1074,11 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
 
   if (ratioWidth && ratioHeight) {
     // Constrained cropping, centered on image
-    var centerX = dest.w / 2;
-    var centerY = dest.h / 2;
+    var centerX = dest.width / 2;
+    var centerY = dest.height / 2;
 
-    var scaleX = dest.w / ratioWidth;
-    var scaleY = dest.h / ratioHeight;
+    var scaleX = dest.width / ratioWidth;
+    var scaleY = dest.height / ratioHeight;
     var scale = Math.min(scaleX, scaleY);
 
     var width = Math.floor(scale * ratioWidth);
@@ -1084,8 +1093,8 @@ ImageEditor.prototype.setCropAspectRatio = function(ratioWidth, ratioHeight) {
     // Freeform cropping
     region.left = 0;
     region.top = 0;
-    region.right = dest.w;
-    region.bottom = dest.h;
+    region.right = dest.width;
+    region.bottom = dest.height;
   }
   this.drawCropControls();
 };
@@ -1106,18 +1115,18 @@ ImageEditor.prototype.getCroppedRegionBlob = function(type,
   var dest = this.dest;
 
   // Convert the preview crop region to fractions
-  var left = region.left / dest.w;
-  var right = region.right / dest.w;
-  var top = region.top / dest.h;
-  var bottom = region.bottom / dest.h;
+  var left = region.left / dest.width;
+  var right = region.right / dest.width;
+  var top = region.top / dest.height;
+  var bottom = region.bottom / dest.height;
 
   // Now convert those fractions to pixels in the original image
   // Note that the original image may have already been cropped, so we
   // multiply by the size of the crop region, not the full size
-  left = Math.floor(left * this.source.w);
-  right = Math.ceil(right * this.source.w);
-  top = Math.floor(top * this.source.h);
-  bottom = Math.floor(bottom * this.source.h);
+  left = Math.floor(left * this.source.width);
+  right = Math.ceil(right * this.source.width);
+  top = Math.floor(top * this.source.height);
+  bottom = Math.floor(bottom * this.source.height);
 
   // If no destination size was specified, use the source size
   if (!width || !height) {
@@ -1137,6 +1146,40 @@ ImageEditor.prototype.getCroppedRegionBlob = function(type,
                     0, 0, width, height);
 
   canvas.toBlob(callback, type);
+};
+
+// Toggle the auto enhancement on/off.
+ImageEditor.prototype.autoEnhancement = function() {
+  var statusLabel = $('edit-enhance-status');
+  var enhanceButton = $('edit-enhance-button');
+
+  if (this.edits.rgbMinMaxValues == ImageProcessor.default_enhancement) {
+    if (this.autoEnhanceValues) {
+      statusLabel.textContent = navigator.mozL10n.get('enhance-on');
+      enhanceButton.classList.add('on');
+      this.edits.rgbMinMaxValues = this.autoEnhanceValues;
+    }
+  } else {
+    this.edits.rgbMinMaxValues = ImageProcessor.default_enhancement;
+    statusLabel.textContent = navigator.mozL10n.get('enhance-off');
+    enhanceButton.classList.remove('on');
+  }
+  //Apply the effect or restore the preview without it.
+  this.edit();
+};
+
+ImageEditor.prototype.prepareAutoEnhancement = function(pixel) {
+
+  // Calculate the color histogram in the background and store the computed
+  // values so they can be used as input for the shader.
+  var self = this;
+  var worker = new Worker('js/auto_enhancement_worker.js');
+  worker.addEventListener('message', function(message) {
+      self.autoEnhanceValues = message.data;
+      $('edit-enhance-button').classList.remove('disabled');
+  });
+
+  worker.postMessage(pixel);
 };
 
 //
@@ -1207,6 +1250,8 @@ function ImageProcessor(canvas) {
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
   this.borderWidthAddress = gl.getUniformLocation(program, 'border_width');
   this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
+  this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
+                                                      'rgb_min_max_values');
 
 }
 
@@ -1255,6 +1300,11 @@ ImageProcessor.prototype.draw = function(image,
 
   gl.uniform4fv(this.borderColorAddress, options.borderColor || [0, 0, 0, 0]);
 
+  // set rgb max/min values for auto Enhancing
+  gl.uniformMatrix3fv(this.rgbMinMaxValuesAddress, false,
+                      options.rgbMinMaxValues ||
+                      ImageProcessor.default_enhancement);
+
   // Define the source rectangle
   makeRectangle(this.sourceRectangle, sx, sy, sw, sh);
   gl.enableVertexAttribArray(this.srcPixelAddress);
@@ -1301,6 +1351,7 @@ ImageProcessor.fragmentShader =
   'uniform vec2 dest_origin;\n' +  // upper-left corner of destination rectangle
   'uniform vec4 gamma;\n' +
   'uniform mat4 matrix;\n' +
+  'uniform mat3 rgb_min_max_values;\n' +
   'varying vec2 src_position;\n' + // from the vertex shader
   'void main() {\n' +
   // Use border color if we're over the border
@@ -1311,10 +1362,15 @@ ImageProcessor.fragmentShader =
   '    gl_FragColor = border_color;\n' +
   '    return;\n' +
   '  }\n' +
-  // Otherwise take the image clor, apply gamma correction and
+  // Otherwise take the image color, apply color and gamma correction and
   // the color manipulation matrix.
-  '  vec4 color = texture2D(image, src_position);\n' +
-  '  gl_FragColor = pow(color, gamma) * matrix;\n' +
+  '  vec4 original_color = texture2D(image, src_position);\n' +
+  '  vec3 minValues = rgb_min_max_values[0];\n' +
+  '  vec3 maxValues = rgb_min_max_values[1];\n' +
+  '  vec3 clamped_color = clamp(original_color.xyz, minValues, maxValues);\n' +
+  '  vec4 corrected_color = vec4((clamped_color.xyz - minValues) /' +
+  '  (maxValues - minValues), original_color.a);\n' +
+  '  gl_FragColor = pow(corrected_color, gamma) * matrix;\n' +
   '}';
 
 ImageProcessor.IDENTITY_MATRIX = [
@@ -1352,4 +1408,10 @@ ImageProcessor.faded_matrix = [
   .2, .7, .2, .05,
   .1, 0, .8, 0,
   0, 0, 0, 1
+];
+
+ImageProcessor.default_enhancement = [
+  0, 0, 0,
+  1, 1, 1,
+  0, 0, 0
 ];
