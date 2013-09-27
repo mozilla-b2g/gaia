@@ -497,6 +497,7 @@ var LockScreen = {
   handleSlideBegin: function() {
     this.lightIcons();
     this.restoreSlider();
+    this._sliderPulling = true;
   },
 
   handleSlide: function() {
@@ -512,6 +513,7 @@ var LockScreen = {
     // Drag from left to right or counter-direction.
     if ('' !== this._slidingToward && dir !== this._slidingToward) {
       this.restoreSlider();
+      this._sliderPulling = true;
     }
     this._slidingToward = dir;
 
@@ -579,6 +581,8 @@ var LockScreen = {
       this.sliderCenter.classList.add('touched');
       this.sliderRight.classList.add('touched');
     }
+    this.darkIcon();
+    this._slideCount = 0;
   },
 
   // Restore all slider elements.
@@ -618,7 +622,7 @@ var LockScreen = {
         h.style.transform = '';
     });
 
-    this._sliderPulling = true;
+    this._sliderPulling = false;
     this._sliderReachEnd = false;
   },
 
