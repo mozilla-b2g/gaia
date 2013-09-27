@@ -382,10 +382,6 @@ footer {
   box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
 }
 
-.icon.icon-done {
-  background-image: url('images/iconaction_done_30x30.png') !important;
-}
-
 #thumbnails-camera-button {
   position: absolute;
   width: 50%;
