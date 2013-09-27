@@ -14,7 +14,7 @@ form[role="dialog"][data-type="confirm"] {
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 1.5rem 0 7rem;
+  padding-bottom: 7rem;
   font-size: 0;
   /* Using font-size: 0; we avoid the unwanted visual space (about 3px)
   created by white-spaces and break lines in the code betewen inline-block elements */
@@ -206,3 +206,44 @@ form[role="dialog"][data-type="confirm"] dl > dd {
   overflow: hidden;
 }
 
+form[role="dialog"][data-type="confirm"] figure {
+  margin: 1.5rem;
+  display: flex;
+  align-items: center;
+  flex: column wrap;
+}
+
+form[role="dialog"][data-type="confirm"] figure img {
+  padding-right: 1.5rem;
+  flex-shrink: 0;
+}
+
+form[role="dialog"][data-type="confirm"] figure figcaption {
+  font-size: 2.1rem;
+  font-weight: 300;
+}
+
+form[role="dialog"][data-type="confirm"] ul {
+  margin: 0;
+  padding: 2rem 1.5rem;
+  border-top: 0.1rem solid #686868;
+  list-style: none;
+  font-size: 1.6rem;
+  font-weight: normal;
+}
+
+form[role="dialog"][data-type="confirm"] ul li {
+  word-wrap: break-word;
+  line-height: 2rem;
+  padding-bottom: 1.5rem;
+}
+
+form[role="dialog"][data-type="confirm"] ul li:last-child {
+  padding-bottom: 0;
+}
+
+form[role="dialog"][data-type="confirm"] ul li ul {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
