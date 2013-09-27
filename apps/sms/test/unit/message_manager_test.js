@@ -407,6 +407,7 @@ suite('message_manager.js >', function() {
     suite('> Switch to #new', function() {
       setup(function() {
         this.activity = MessageManager.activity = { test: true };
+        ThreadUI.inThread = true; // to test this is reset correctly
         window.location.hash = '#new';
         MessageManager.onHashChange();
       });
@@ -423,7 +424,6 @@ suite('message_manager.js >', function() {
           MessageManager.threadMessages.classList.add('new');
           MessageManager.slide.reset();
           ThreadUI.updateHeaderData.reset();
-          ThreadUI.inThread = false;
 
           this.threadId = MockThreads.currentId = 100;
           window.location.hash = '#thread=' + this.threadId;
