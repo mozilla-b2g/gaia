@@ -44,8 +44,15 @@ var Selector = {
   replyMenuAll: '.msg-reply-menu-reply-all',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
   settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
+  settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
   addAccountButton: '.tng-accounts-container .tng-account-add',
-  accountListButton: '.fld-folders-header .fld-accounts-btn'
+  accountListButton: '.fld-folders-header .fld-accounts-btn',
+  settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
+  syncIntervalSelect: '.tng-account-check-interval ',
+  // Checkboxes are weird: hidden to marionette, but the associated span
+  // is clickable and does the job.
+  notifyEmailCheckbox: '.tng-notify-mail-label > span',
+  accountSettingsBackButton: '.card-settings-account .tng-back-btn'
 };
 
 Email.prototype = {
@@ -85,7 +92,7 @@ Email.prototype = {
     this.client.
       findElement(Selector.showMailButton).
       tap();
-    this._waitForTransitionEnd('message_list');
+    this.waitForMessageList();
   },
 
   tapFolderListButton: function() {
@@ -97,7 +104,7 @@ Email.prototype = {
   tapFolderListCloseButton: function() {
     this._tapSelector(Selector.folderListButton);
     this._waitForElementNoTransition(Selector.settingsButton);
-    this._waitForTransitionEnd('message_list');
+    this.waitForMessageList();
   },
 
   tapAccountListButton: function() {
@@ -124,11 +131,35 @@ Email.prototype = {
     this._waitForTransitionEnd('settings_main');
   },
 
+  tapSettingsDoneButton: function() {
+    this.client.
+      findElement(Selector.settingsDoneButton).
+      tap();
+    this._waitForTransitionEnd('folder_picker');
+  },
+
+  tapSettingsAccountIndex: function(index) {
+    var elements = this.client.findElements(Selector.settingsMainAccountItems);
+    elements[index].tap();
+    this._waitForTransitionEnd('settings_account');
+  },
+
   tapAddAccountButton: function() {
     this.client.
       findElement(Selector.addAccountButton).
       tap();
     this._waitForTransitionEnd('setup_account_info');
+  },
+
+  tapNotifyEmailCheckbox: function() {
+    this._tapSelector(Selector.notifyEmailCheckbox);
+  },
+
+  tapAccountSettingsBackButton: function() {
+    this.client.
+      findElement(Selector.accountSettingsBackButton).
+      tap();
+    this._waitForTransitionEnd('settings_main');
   },
 
   tapCompose: function() {
@@ -183,13 +214,21 @@ Email.prototype = {
       tap();
     // wait for being in the email list page
     this._waitForElementNoTransition(Selector.refreshButton);
-    this._waitForTransitionEnd('message_list');
+    this.waitForMessageList();
   },
 
   tapRefreshButton: function() {
     this.client.
       findElement(Selector.refreshButton).
       tap();
+  },
+
+  waitForMessageList: function() {
+    this._waitForTransitionEnd('message_list');
+  },
+
+  waitForMessageReader: function() {
+    this._waitForTransitionEnd('message_reader');
   },
 
   waitForNewEmail: function() {
@@ -204,11 +243,16 @@ Email.prototype = {
     client.helper.waitForElement('body');
   },
 
+  close: function() {
+    var client = this.client;
+    client.apps.close(Email.EMAIL_ORIGIN);
+  },
+
   tapEmailAtIndex: function(index) {
     var client = this.client;
     var element = client.findElements(Selector.messageHeaderItem)[index];
     element.tap();
-    this._waitForTransitionEnd('message_reader');
+    this.waitForMessageReader();
   },
 
   /**
@@ -237,6 +281,33 @@ Email.prototype = {
     this._waitForTransitionEnd('compose');
   },
 
+  setSyncIntervalSelectValue: function(value) {
+    return this._setSelectValue(Selector.syncIntervalSelect, value);
+  },
+
+  // TODO: switch to https://github.com/mozilla-b2g/marionette-plugin-forms
+  // once this bug is fixed:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=915324
+  _setSelectValue: function(selector, value) {
+    var client = this.client;
+    client.waitFor(function() {
+      return client.executeScript(function(selector, value) {
+        var doc = window.wrappedJSObject.document,
+            selectNode = doc.querySelector(selector);
+
+        selectNode.value = value;
+
+        // Synthesize an event since changing the value on its own does
+        // not trigger change listeners.
+        var event = document.createEvent('Event');
+        event.initEvent('change', true, true);
+        selectNode.dispatchEvent(event);
+
+        return true;
+      }, [selector, value]);
+    });
+  },
+
   _waitForTransitionEnd: function(cardId) {
     var client = this.client;
     client.waitFor(function() {
@@ -244,7 +315,7 @@ Email.prototype = {
         var Cards = window.wrappedJSObject.require('mail_common').Cards,
             card = Cards._cardStack[Cards.activeCardIndex],
             cardNode = card && card.domNode;
-        return cardNode && cardNode.classList.contains('center') &&
+        return !!cardNode && cardNode.classList.contains('center') &&
                cardNode.dataset.type === cardId &&
                !Cards._eatingEventsUntilNextCard;
       }, [cardId]);
@@ -285,6 +356,7 @@ Email.prototype = {
   },
 
   _tapSelector: function(selector) {
+    this.client.helper.waitForElement(selector);
     this.client.findElement(selector).tap();
   },
 
@@ -371,22 +443,5 @@ Email.prototype = {
   }
 };
 
-/*
-// Optionally log all calls done to prototype methods. Uncomment this
-// section to get traces when trying to debug where flow gets stuck.
-Object.keys(Email.prototype).forEach(function(key) {
-  var desc = Object.getOwnPropertyDescriptor(Email.prototype, key);
-  if (!desc.get && !desc.set && typeof Email.prototype[key] === 'function') {
-    var oldMethod = Email.prototype[key];
-    Email.prototype[key] = function() {
+require('./debug')('email', Email.prototype);
 
-      var args = Array.prototype.slice.call(arguments, 0).map(function(arg) {
-        return String(arg);
-      }).join(', ');
-
-      console.log('Email.' + key + '(' + args + ')');
-      return oldMethod.apply(this, arguments);
-    };
-  }
-});
-*/

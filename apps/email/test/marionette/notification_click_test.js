@@ -2,13 +2,13 @@
 /*global marionette, setup, test */
 
 var Email = require('./lib/email');
+var EmailEvt = require('./lib/email_evt');
 var EmailSync = require('./lib/email_sync');
-var assert = require('assert');
 var Notification = require('./lib/notification');
 var serverHelper = require('./lib/server_helper');
 
-marionette('email notifications, foreground', function() {
-  var app, sync, notification,
+marionette('email notifications, click', function() {
+  var app, sync, notification, evt,
       client = marionette.client({
         settings: {
           // disable keyboard ftu because it blocks our display
@@ -57,6 +57,7 @@ marionette('email notifications, foreground', function() {
 
   setup(function() {
     app = new Email(client);
+    evt = new EmailEvt(client);
     notification = new Notification(client);
     sync = new EmailSync(client);
 
@@ -66,7 +67,7 @@ marionette('email notifications, foreground', function() {
     app.launch();
   });
 
-  test('should have 1 message notification in the different account',
+  test('show message_reader for 1 message notification',
   function() {
     configureAndSend(1);
 
@@ -74,13 +75,17 @@ marionette('email notifications, foreground', function() {
 
     // Go back to system app
     client.switchToFrame();
+    var url = notification.getFirstIconUrl();
 
-    // Make sure notification container is visible
-    assert(notification
-           .getFirstIconUrl().indexOf('type=message_reader') !== -1);
+    // Then back to email, and fake a notification event
+    client.apps.switchToApp(Email.EMAIL_ORIGIN);
+    evt.emitNotificationWithUrl(url);
+
+    // Since a single message notification, should go to message_reader.
+    app.waitForMessageReader();
   });
 
-  test('should have bulk message notification in the different account',
+  test('show message_list for multiple message notification',
   function() {
     configureAndSend(2);
 
@@ -88,29 +93,13 @@ marionette('email notifications, foreground', function() {
 
     // Go back to system app
     client.switchToFrame();
+    var url = notification.getFirstIconUrl();
 
-    // Make sure notification container is visible
-    assert(notification
-           .getFirstIconUrl().indexOf('type=message_list') !== -1);
-  });
+    // Then back to email, and fake a notification event
+    client.apps.switchToApp(Email.EMAIL_ORIGIN);
+    evt.emitNotificationWithUrl(url);
 
-  test('should not get a notification for same account', function() {
-    configureAndSend(1);
-
-    // Switch back to testy1 account in the UI
-    app.tapFolderListButton();
-    app.tapAccountListButton();
-    // switch to the testy1 account
-    app.switchAccount(1);
-    // hide the folder list page
-    app.tapFolderListCloseButton();
-
-    // Now sync
-    sync.triggerSync();
-
-    // Go back to system app
-    client.switchToFrame();
-
-    notification.assertNoNotification();
+    // Since a single message notification, should go to message_reader.
+    app.waitForMessageList();
   });
 });
