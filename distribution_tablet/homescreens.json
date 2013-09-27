@@ -1,10 +1,11 @@
 {"homescreens": [
   [
-    ["apps", "calendar"],
-    ["apps", "email"],
     ["apps", "browser"],
+    ["apps", "email"],
     ["apps", "gallery"],
-    ["apps", "music"]
+    ["apps", "music"],
+    ["apps", "communications", "contacts"],
+    ["apps", "calendar"]
   ]
 ],
  "swipe": {
