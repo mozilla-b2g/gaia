@@ -16,3 +16,7 @@ env:
   - CI_ACTION=test_agent
   - CI_ACTION=marionette_js
   - CI_ACTION=gaia_ui_tests
+notifications:
+  irc:
+    channels:
+      - "irc.mozilla.org#gaia"
