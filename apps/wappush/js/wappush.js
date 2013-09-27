@@ -130,7 +130,6 @@ var WapPushManager = {
    * @param {Object} wapMessage The WAP Push message as provided by the system.
    */
   onWapPushReceived: function wpm_onWapPushReceived(wapMessage) {
-    var self = this;
     var message = ParsedMessage.from(wapMessage, Date.now());
 
     if (!this.shouldDisplayMessage(message)) {
@@ -139,10 +138,14 @@ var WapPushManager = {
     }
 
     message.save(
-      function wpm_saveSuccess() {
+      (function wpm_saveSuccess(status) {
+        if ((status !== 'new') && (status !== 'updated')) {
+          return;
+        }
+
         var req = navigator.mozApps.getSelf();
 
-        req.onsuccess = function wpm_gotApp(event) {
+        req.onsuccess = (function wpm_gotApp(event) {
           var _ = navigator.mozL10n.get;
           var app = event.target.result;
           /* We store the message timestamp as a parameter to be able to
@@ -154,21 +157,21 @@ var WapPushManager = {
           text += message.href ? message.href : '';
 
           NotificationHelper.send(message.sender, text, iconURL,
-            function wpm_notificationOnClick() {
+            (function wpm_notificationOnClick() {
               app.launch();
-              self.displayWapPushMessage(message.timestamp);
-            });
+              this.displayWapPushMessage(message.timestamp);
+            }).bind(this));
 
-          self.close(/* background */ true);
-        };
-        req.onerror = function wpm_getAppError() {
-          self.close(/* background */ true);
-        };
-      },
-      function wpm_saveError(error) {
+          this.close(/* background */ true);
+        }).bind(this);
+        req.onerror = (function wpm_getAppError() {
+          this.close(/* background */ true);
+        }).bind(this);
+      }).bind(this),
+      (function wpm_saveError(error) {
         console.log('Could not add a message to the database: ' + error + '\n');
-        self.close(/* background */ true);
-      }
+        this.close(/* background */ true);
+      }).bind(this)
     );
   },
 
@@ -200,12 +203,24 @@ var WapPushManager = {
     var self = this;
     var message = ParsedMessage.load(timestamp,
       function wpm_loadSuccess(message) {
+        var _ = navigator.mozL10n.get;
+
         // Populate the message
-        self._title.textContent = message.sender;
-        self._text.textContent = message.text;
-        self._link.textContent = message.href;
-        self._link.href = message.href;
-        self._link.dataset.url = message.href;
+        if (message) {
+          self._title.textContent = message.sender;
+          self._text.textContent = message.text;
+          self._link.textContent = message.href;
+          self._link.href = message.href;
+          self._link.dataset.url = message.href;
+        } else {
+          /* If we couldn't retrieve the message then it means that the message
+           * has been expired before it was displayed. */
+          self._title.textContent = _('wap-push-message');
+          self._text.textContent = _('this-message-has-expired');
+          self._link.textContent = '';
+          self._link.href = '';
+          self._link.dataset.url = '';
+        }
       },
       function wpm_loadError(error) {
         console.log('Could not retrieve the message:' + error + '\n');
