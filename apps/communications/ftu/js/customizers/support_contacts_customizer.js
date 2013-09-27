@@ -1,17 +1,8 @@
 'use strict';
 
-var supportContactsCustomizer = {
-  init: function sc_init() {
-    var self = this;
-    window.addEventListener('customization', function updateSC(event) {
-      if (event.detail.setting === 'supportcontacts') {
-        window.removeEventListener('customization', updateSC);
-        self.setSupportContacts(event.detail.value);
-      }
-    });
-  },
-
-  setSupportContacts: function sc_setContacts(contacts) {
+var SupportContactsCustomizer = (function() {
+  Customizer.call(this, 'support_contacts', 'json');
+  this.set = function(contacts) {
     if (contacts) {
       navigator.mozSettings.createLock().set({
         'support.onlinesupport.title': contacts.onlinesupport.title,
@@ -22,7 +13,8 @@ var supportContactsCustomizer = {
         'support.callsupport2.href': contacts.callsupport2.href
       });
     }
-  }
-};
+  };
+});
 
+var supportContactsCustomizer = new SupportContactsCustomizer();
 supportContactsCustomizer.init();
