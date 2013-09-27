@@ -17,6 +17,7 @@ EmailEvt.prototype = {
       var evt = window.wrappedJSObject.require('evt');
 
       evt.emit('notification', {
+        clicked: true,
         imageURL: url
       });
 
