@@ -44,7 +44,6 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 /* Contact detail main section */
 
 .view-contact-profile .view-body {
-  position: relative;
   overflow-x: hidden;
   overflow-y: auto;
   background-color: #f5f5f5;

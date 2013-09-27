@@ -52,10 +52,6 @@ form.search button[type="submit"] {
   z-index: 1;
 }
 
-#view-screenshot.search > header {
-  display: none;
-}
-
 #view-screenshot.search > #view-screenshot-body {
   width: 100%;
   height: 100%;

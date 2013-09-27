@@ -16,11 +16,7 @@
   100% { opacity: 0; }
 }
 
-.app-go-deeper-out header:first-child h1 {
-  animation: header-current-to-left 0.4s forwards;
-}
-
-.app-go-deeper-out > article {
+.app-go-deeper-out {
   animation: current-to-left 0.4s forwards;
 }
 
@@ -28,24 +24,12 @@
   animation: right-to-current 0.4s forwards;
 }
 
-.app-go-deeper-in header:first-child {
-  animation: show 0.4s forwards;
-}
-
-.app-go-deeper-back-in header:first-child h1 {
-  animation: header-left-to-current 0.4s forwards;
-}
-
-.app-go-deeper-back-in > article {
+.app-go-deeper-back-in {
   animation: left-to-current 0.4s forwards;
 }
 
 .app-go-deeper-back-out {
   animation: current-to-right 0.4s forwards;
-}
-
-.app-go-deeper-back-out header:first-child {
-  animation: hide 0.4s forwards;
 }
 
 @keyframes show {
