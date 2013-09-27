@@ -29,10 +29,20 @@ var utils = this.utils || {};
       });
     }
 
-    this.update = function() {
-      progressElement.setAttribute('value', (++counter * 100) / total);
-      showMessage();
-    };
+    /**
+     * Updates progress bar and message. It takes an optional `value` parameter
+     * to overwrite the internal counter with this value.
+     * @param {Number} value Overrides internal counter.
+     */
+    this.update = function(value) {
+      if (value && value <= total && value >= counter) {
+        counter = value;
+        progressElement.setAttribute('value', (counter * 100) / total);
+      } else {
+        progressElement.setAttribute('value', (++counter * 100) / total);
+      }
+       showMessage();
+     };
 
     this.setTotal = function(ptotal) {
       total = ptotal;
