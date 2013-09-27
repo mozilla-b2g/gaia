@@ -2,7 +2,7 @@ var __email__ = '../../../email/test/marionette/';
 
 
 var Browser = require('./lib/browser'),
-    Email = require(__email__ + 'email'),
+    Email = require(__email__ + 'lib/email'),
     Server = require('./lib/server'),
     assert = require('assert'),
     serverHelper = require(__email__ + 'lib/server_helper');
