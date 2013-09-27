@@ -8,11 +8,10 @@ XPCSHELL=`which xpcshell`
 
 if [ ! -x "$XPCSHELL" ]
 then
-  PATH=$XULRUNNER_DIRECTORY/bin/:$PATH;
+  PATH=$GAIA_DIR/xulrunner-sdk/bin/:$PATH;
   if [ -n "${VERBOSE}" ]
   then
-    echo "xpcshell is not found in the PATH"
-    echo "Using $XULRUNNER_DIRECTORY/bin/xpcshell."
+    echo "xpcshell is not found adding xulrunner-sdk using $GAIA_DIR/xulrunner-sdk/bin/xpcshell."
   fi
 fi
 
