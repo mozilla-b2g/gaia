@@ -968,6 +968,26 @@ suite('thread_ui.js >', function() {
         'conversion banner is hidden at 3 seconds');
 
     });
+
+    test('we dont display the banner when cleaning fields', function() {
+
+      // let's move to MMS type
+      Compose.type = 'mms';
+
+      // and ignore this banner which should be there
+      this.sinon.clock.tick(ThreadUI.CONVERTED_MESSAGE_DURATION);
+
+      this.sinon.spy(Compose, 'clear');
+
+      ThreadUI.cleanFields();
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess({
+        segments: 0,
+        charsAvailableInLastSegment: 0
+      });
+
+      assert.isTrue(Compose.clear.called);
+      assert.isTrue(convertBanner.classList.contains('hide'));
+    });
   });
 
   suite('Recipient Assimiliation', function() {
