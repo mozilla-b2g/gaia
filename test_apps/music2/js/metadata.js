@@ -471,7 +471,15 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
       var num_comments = page.readUnsignedInt(true);
       for (var i = 0; i < num_comments; i++) {
+        if (page.remaining() < 4) {
+          // TODO: handle metadata that uses multiple pages
+          break;
+        }
         var comment_length = page.readUnsignedInt(true);
+        if (comment_length > page.remaining()) {
+          // TODO: handle metadata that uses multiple pages
+          break;
+        }
         var comment = page.readUTF8Text(comment_length);
         var equal = comment.indexOf('=');
         if (equal !== -1) {
