@@ -110,12 +110,10 @@
 
   Stopwatch.Panel.prototype.onvisibilitychange = function(isVisible) {
     var stopwatch = priv.get(this).stopwatch;
-
-    if (isVisible) {
-      //Stopwatch is being shown
+    if (isVisible) {      
       this.setState(stopwatch.getState());
     } else {
-      // Stopwatch is being hidden. Clear the interval
+      // Clear the interval that updates the time display
       clearInterval(this.interval);
     }
   };
@@ -178,8 +176,8 @@
     this.hideButtons('pause', 'resume', 'lap');
     this.nodes.reset.setAttribute('disabled', 'true');
     // clear lap list
-    var node = this.nodes.laps;
     this.nodes.laps.textContent = '';
+    this.update();
   };
 
 }(Stopwatch, Panel));

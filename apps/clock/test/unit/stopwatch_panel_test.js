@@ -142,7 +142,7 @@ suite('Stopwatch.Panel', function() {
   test('Add laps', function() {
 
     function getLapInfo() {
-      var laps = panel.nodes['laps'].querySelectorAll('li');
+      var laps = panel.nodes.laps.querySelectorAll('li');
       laps = Array.prototype.slice.call(laps);
       return laps.map(function(e) {
         return {
@@ -175,11 +175,35 @@ suite('Stopwatch.Panel', function() {
     laps = getLapInfo();
     assert.equal(laps.length, 2);
 
-    assert.equal(laps[0].lapName, 'Lap 2');
-    assert.equal(laps[0].lapTime, '00:09');
+    assert.deepEqual(laps, [
+      { lapName: 'Lap 2', lapTime: '00:09' },
+      { lapName: 'Lap 1', lapTime: '00:03' }
+    ]);
 
-    assert.equal(laps[1].lapName, 'Lap 1');
-    assert.equal(laps[1].lapTime, '00:03');
+  });
+
+  test('Reset stopwatch', function() {
+    var laps;
+
+    panel.setStopwatch(runningSw());
+    assert.equal(panel.nodes.time.textContent, '00:00');
+
+    //Advance and click the lap button (twice)
+    clock.tick(3000);
+    panel.nodes.lap.click();
+    clock.tick(9000);
+    panel.nodes.lap.click();
+
+    laps = panel.nodes['laps'].querySelectorAll('li');
+    assert.equal(laps.length, 2);
+
+    //Reset
+    panel.nodes.pause.click();
+    panel.nodes.reset.click();
+    laps = panel.nodes['laps'].querySelectorAll('li');
+    assert.equal(laps.length, 0);
+    assert.equal(panel.nodes.time.textContent, '00:00');
+    
 
   });
 
