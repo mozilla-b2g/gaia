@@ -76,7 +76,7 @@ marionette('Alarm Panel', function() {
       );
     });
 
-    test.only('Creation', function() {
+    test('Creation', function() {
       var alarms;
       var time = new Date();
 
@@ -108,18 +108,18 @@ marionette('Alarm Panel', function() {
       clock.waitForBanner();
     });
 
-    test.skip('Closing form', function() {
-      assert.ok(this.elems.alarmFormCloseBtn.displayed(),
+    test('Closing form', function() {
+      assert.ok(clock.els.alarmFormCloseBtn.displayed(),
         '"Close" button is displayed');
 
-      // Close alarm form
-      this.elems.alarmFormCloseBtn.click();
-      assert.ok(this.elems.alarmFormBtn.displayed(),
-        '"New Alarm" button is displayed');
+      clock.els.alarmFormCloseBtn.tap();
+
       client.waitFor(function() {
-        return !this.elems.alarmForm.displayed();
-      }.bind(this));
-      assert.ok(!this.elems.alarmForm.displayed(),
+        return !clock.els.alarmForm.displayed();
+      });
+      assert.ok(clock.els.alarmFormBtn.displayed(),
+        '"New Alarm" button is displayed');
+      assert.ok(!clock.els.alarmForm.displayed(),
         'Alarm form is not displayed');
     });
 
