@@ -139,6 +139,7 @@
       // trigger the sync the syncStart/complete events
       // will hide/show the button.
       this.app.syncController.all();
+      this._hideSettings();
     },
 
     _update: function(id, model) {
