@@ -532,7 +532,7 @@ var LockScreen = {
 
     // XXX: To solve the odd glitches amoung these 3 elements.
     // Make the center element scale more.
-    var glitchS = 0.3;
+    var glitchS = 1.8;
 
     var trackLength = this.rightIcon.offsetLeft -
                       this.leftIcon.offsetLeft +
