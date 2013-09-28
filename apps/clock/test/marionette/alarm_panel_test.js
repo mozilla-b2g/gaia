@@ -35,10 +35,27 @@ marionette('Alarm Panel', function() {
     }, [element, value]);
   }
 
+  // Return state of provided client as a string (for debugging purposes)
+  function getState(client) {
+    return client.executeScript(function() {
+      var target = document.querySelector(':target');
+      var win = this.wrappedJSObject;
+      if (target) {
+        target = target.outerHTML.split(/[\r\n]/)[0].replace(/>.*/, '>');
+      }
+      return '    ' + [
+        'location: ' + window.location.toString(),
+        'target: ' + target
+      ].join('\n    ');
+    });
+  }
+
   setup(function() {
     clock = new Clock(client);
 
     clock.launch();
+    console.log('SETUP');
+    console.log(getState(client));
   });
 
   test('Clock interaction', function() {
@@ -86,6 +103,7 @@ marionette('Alarm Panel', function() {
       clock.els.alarmNameInput.sendKeys(['coffee break']);
       setValue(clock.els.timeInput, time);
 
+      console.log(getState(client));
       clock.submitAlarm();
 
       alarms = clock.els.alarmListItemS;
