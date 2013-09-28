@@ -1,5 +1,5 @@
 marionette('Alarm Panel', function() {
-  var assert = require('assert');
+  var assert = require('./lib/assert');
   var Clock = require('./lib/clock');
   var client = marionette.client();
   var clock;
@@ -108,9 +108,8 @@ marionette('Alarm Panel', function() {
       alarms = clock.els.alarmListItemS;
 
       assert.equal(alarms.length, 1);
-      assert.ok(
-        Clock.hasTime(alarms[0].text(), twentyFromNow),
-        'Alarm time is rendered'
+      assert.hasTime(
+        alarms[0].text(), twentyFromNow, 'Alarm time is rendered'
       );
       assert.ok(
         alarms[0].text().indexOf('coffee break'),
@@ -134,16 +133,18 @@ marionette('Alarm Panel', function() {
       alarms = clock.els.alarmListItemS;
 
       assert.equal(alarms.length, 2);
-      assert.ok(
-        Clock.hasTime(alarms[0].text(), thirtyFromNow),
+      assert.hasTime(
+        alarms[0].text(),
+        thirtyFromNow,
         'Newest alarm title is rendered first'
       );
       assert.ok(
         alarms[0].text().indexOf('quitting time'),
         'Newest alarm title is rendered first'
       );
-      assert.ok(
-        Clock.hasTime(alarms[1].text(), twentyFromNow),
+      assert.hasTime(
+        alarms[1].text(),
+        twentyFromNow,
         'Previously-created alarm time is rendered second'
       );
       assert.ok(
@@ -192,11 +193,9 @@ marionette('Alarm Panel', function() {
           'coffee break',
           'Alarm name input field is pre-populated with current value'
         );
-        assert.ok(
-          Clock.hasTime(
-            clock.els.timeInput.getAttribute('value'),
-            twentyFromNow
-          ),
+        assert.hasTime(
+          clock.els.timeInput.getAttribute('value'),
+          twentyFromNow,
           'Alarm time input field is pre-populated with current value'
         );
 
@@ -211,8 +210,9 @@ marionette('Alarm Panel', function() {
           alarmItem.text().indexOf('coffee break delayed') > -1,
           'Alarm description is updated'
         );
-        assert.ok(
-          Clock.hasTime(alarmItem.text(), thirtyFromNow),
+        assert.hasTime(
+          alarmItem.text(),
+          thirtyFromNow,
           'Alarm time is updated'
         );
         assert.ok(
