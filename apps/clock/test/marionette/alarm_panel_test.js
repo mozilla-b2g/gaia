@@ -221,7 +221,20 @@ marionette('Alarm Panel', function() {
         );
       });
 
-      test('toggling', function() {});
+      test('toggling', function() {
+        clock.els.alarmEnablerS[0].tap();
+
+        assert.ok(
+          !clock.els.countdownBanner.displayed(),
+          'Countdown banner is not displayed after disabling an alarm'
+        );
+
+        clock.els.alarmEnablerS[0].tap();
+
+        client.waitFor(function() {
+          return clock.els.countdownBanner.displayed();
+        });
+      });
     });
 
     suite('Alarm deletion', function() {});

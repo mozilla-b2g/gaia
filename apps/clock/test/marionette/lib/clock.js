@@ -53,6 +53,7 @@ Clock.selectors = {
   timeInput: '#time-select',
   alarmList: '#alarms',
   alarmListItemS: '.alarm-cell',
+  alarmEnablerS: '.alarm-cell .alarmEnable',
   countdownBanner: '#banner-countdown'
 };
 
