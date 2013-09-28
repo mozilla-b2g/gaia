@@ -83,14 +83,10 @@ marionette('Alarm Panel', function() {
       'digital clock is not displayed after tap');
   });
 
-  suite('Alarm creation', function() {
+  suite('Alarm interaction', function() {
 
     setup(function() {
-      clock.navigate('alarmForm');
-      assert.ok(
-        clock.els.alarmNameInput.displayed(),
-        'Alarm name input is displayed'
-      );
+      clock.openAlarmForm();
     });
 
     test('Creation', function() {
@@ -128,7 +124,7 @@ marionette('Alarm Panel', function() {
       this.timeout(Clock.bannerTimeout);
       clock.waitForBanner();
 
-      clock.navigate('alarmForm');
+      clock.openAlarmForm();
 
       time.setHours(4);
       time.setMinutes(53);
@@ -172,9 +168,73 @@ marionette('Alarm Panel', function() {
       assert.ok(clock.els.panels.alarm.displayed(),
         'Alarm panel is displayed');
     });
-  });
 
-  suite('Alarm manipulation', function() {});
-  suite('Alarm deletion', function() {});
+    suite('Alarm manipulation', function() {
+      var alarmItem;
+
+      setup(function() {
+        var alarms;
+        var time = new Date();
+
+        time.setHours(3);
+        time.setMinutes(42);
+
+        clock.els.alarmNameInput.sendKeys(['coffee break']);
+        setValue(clock.els.timeInput, time);
+
+        clock.submitAlarm();
+
+        // Ensure the banner is hidden before the test continues because it
+        // obscures the alarm list
+        this.timeout(Clock.bannerTimeout);
+        clock.waitForBanner();
+
+        alarmItem = clock.els.alarmListItemS[0];
+      });
+
+      test('updating', function() {
+        var time = new Date();
+        time.setHours(2);
+        time.setMinutes(31);
+
+        clock.openAlarmForm(alarmItem);
+
+        assert.equal(
+          clock.els.alarmNameInput.getAttribute('value'),
+          'coffee break',
+          'Alarm name input field is pre-populated with current value'
+        );
+        assert.equal(
+          clock.els.timeInput.getAttribute('value'),
+          '03:42',
+          'Alarm time input field is pre-populated with current value'
+        );
+
+        clock.els.alarmNameInput.sendKeys([' delayed']);
+        setValue(clock.els.timeInput, time);
+
+        clock.submitAlarm();
+
+        alarmItem = clock.els.alarmListItemS[0];
+
+        assert.ok(
+          alarmItem.text().indexOf('coffee break delayed') > -1,
+          'Alarm description is updated'
+        );
+        assert.ok(
+          alarmItem.text().indexOf('2:31') > -1,
+          'Alarm time is updated'
+        );
+        assert.ok(
+          clock.els.countdownBanner.displayed(),
+          'Countdown banner is displayed'
+        );
+      });
+
+      test('toggling', function() {});
+    });
+
+    suite('Alarm deletion', function() {});
+  });
 
 });

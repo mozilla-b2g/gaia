@@ -79,6 +79,15 @@ Clock.prototype.submitAlarm = function() {
   this._waitForSlideEnd(this.els.alarmForm);
 };
 
+// Open the alarm form for the given alarm item. If unspecified, open the
+// "Create Alarm" form.
+Clock.prototype.openAlarmForm = function(alarmItem) {
+  var openButton = alarmItem || this.els.alarmFormBtn;
+
+  openButton.tap();
+  this._waitForSlideEnd(this.els.alarmForm);
+};
+
 // Ensure that the 'Countdown banner' element is eventually hidden.
 Clock.prototype.waitForBanner = function() {
    this.client.waitFor(function() {
