@@ -103,9 +103,12 @@ marionette('Alarm Panel', function() {
       clock.els.alarmNameInput.sendKeys(['coffee break']);
       setValue(clock.els.timeInput, time);
 
+      console.log('About to submit alarm');
       console.log(getState(client));
       clock.submitAlarm();
 
+      console.log('Alarm submitted');
+      console.log(getState(client));
       alarms = clock.els.alarmListItemS;
 
       assert.equal(alarms.length, 1);
