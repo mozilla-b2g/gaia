@@ -24,7 +24,7 @@ assert.hasTime = function(str, date, usrMsg) {
     hours12 = hours - 12;
     meridian = 'P';
   } else {
-    hours12 = hours;
+    hours12 = hours === 0 ? 12 : hours;
     meridian = 'A';
   }
 
