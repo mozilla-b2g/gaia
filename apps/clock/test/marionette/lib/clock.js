@@ -23,6 +23,46 @@ Clock.ORIGIN = 'app://clock.gaiamobile.org';
 // Amount of time to wait for Alarm creation banner to be hidden
 Clock.bannerTimeout = 5 * 1000;
 
+// Create a Date object whose value is the supplied number of milliseconds from
+// the current system time.
+Clock.fromNow = function(ms) {
+  ms = ms || 0;
+  return new Date(Date.now() + ms);
+};
+
+// Determine if the provided string contains a representation of the provided
+// time in some form.
+Clock.hasTime = function(str, date) {
+  var hours = date.getHours();
+  var minutes = date.getMinutes();
+  var meridian, timeRe, hours12;
+
+  if (hours > 12) {
+    hours12 = hours - 12;
+    meridian = 'P';
+  } else {
+    hours12 = hours;
+    meridian = 'A';
+  }
+
+  hours = (hours < 10 ? '0?' : '') + hours;
+  hours12 = (hours12 < 10 ? '0?' : '') + hours12;
+  minutes = (minutes < 10 ? '0' : '') + minutes;
+  meridian = meridian + '\\.?M\\.?';
+
+  var timeRe = new RegExp([
+    '\\b(',
+      hours12, '\\s*:\\s*', minutes, '\\s*', meridian,
+      '|',
+      hours, '\\s*:\\s*', minutes, '\\s*',
+    ')\\b'
+    ].join(''),
+    'i'
+  );
+
+  return timeRe.test(str);
+};
+
 // Heads up! Magic here: key names that end with a capital S will be used to
 // select element collections and will therefor return an array.
 Clock.selectors = {

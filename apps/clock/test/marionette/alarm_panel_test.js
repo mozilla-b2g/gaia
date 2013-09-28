@@ -84,20 +84,20 @@ marionette('Alarm Panel', function() {
   });
 
   suite('Alarm interaction', function() {
+    var twentyFromNow, thirtyFromNow;
 
     setup(function() {
+      twentyFromNow = Clock.fromNow(1000 * 60 * 20);
+      thirtyFromNow = Clock.fromNow(1000 * 60 * 30);
+
       clock.openAlarmForm();
     });
 
     test('Creation', function() {
       var alarms;
-      var time = new Date();
-
-      time.setHours(3);
-      time.setMinutes(42);
 
       clock.els.alarmNameInput.sendKeys(['coffee break']);
-      setValue(clock.els.timeInput, time);
+      setValue(clock.els.timeInput, twentyFromNow);
 
       console.log('About to submit alarm');
       console.log(getState(client));
@@ -109,7 +109,7 @@ marionette('Alarm Panel', function() {
 
       assert.equal(alarms.length, 1);
       assert.ok(
-        alarms[0].text().indexOf('3:42') > -1,
+        Clock.hasTime(alarms[0].text(), twentyFromNow),
         'Alarm time is rendered'
       );
       assert.ok(
@@ -126,11 +126,8 @@ marionette('Alarm Panel', function() {
 
       clock.openAlarmForm();
 
-      time.setHours(4);
-      time.setMinutes(53);
-
       clock.els.alarmNameInput.sendKeys(['quitting time']);
-      setValue(clock.els.timeInput, time);
+      setValue(clock.els.timeInput, thirtyFromNow);
 
       clock.submitAlarm();
 
@@ -138,7 +135,7 @@ marionette('Alarm Panel', function() {
 
       assert.equal(alarms.length, 2);
       assert.ok(
-        alarms[0].text().indexOf('4:53') > -1,
+        Clock.hasTime(alarms[0].text(), thirtyFromNow),
         'Newest alarm title is rendered first'
       );
       assert.ok(
@@ -146,7 +143,7 @@ marionette('Alarm Panel', function() {
         'Newest alarm title is rendered first'
       );
       assert.ok(
-        alarms[1].text().indexOf('3:42') > -1,
+        Clock.hasTime(alarms[1].text(), twentyFromNow),
         'Previously-created alarm time is rendered second'
       );
       assert.ok(
@@ -174,13 +171,8 @@ marionette('Alarm Panel', function() {
 
       setup(function() {
         var alarms;
-        var time = new Date();
-
-        time.setHours(3);
-        time.setMinutes(42);
-
         clock.els.alarmNameInput.sendKeys(['coffee break']);
-        setValue(clock.els.timeInput, time);
+        setValue(clock.els.timeInput, twentyFromNow);
 
         clock.submitAlarm();
 
@@ -193,10 +185,6 @@ marionette('Alarm Panel', function() {
       });
 
       test('updating', function() {
-        var time = new Date();
-        time.setHours(2);
-        time.setMinutes(31);
-
         clock.openAlarmForm(alarmItem);
 
         assert.equal(
@@ -204,14 +192,16 @@ marionette('Alarm Panel', function() {
           'coffee break',
           'Alarm name input field is pre-populated with current value'
         );
-        assert.equal(
-          clock.els.timeInput.getAttribute('value'),
-          '03:42',
+        assert.ok(
+          Clock.hasTime(
+            clock.els.timeInput.getAttribute('value'),
+            twentyFromNow
+          ),
           'Alarm time input field is pre-populated with current value'
         );
 
         clock.els.alarmNameInput.sendKeys([' delayed']);
-        setValue(clock.els.timeInput, time);
+        setValue(clock.els.timeInput, thirtyFromNow);
 
         clock.submitAlarm();
 
@@ -222,7 +212,7 @@ marionette('Alarm Panel', function() {
           'Alarm description is updated'
         );
         assert.ok(
-          alarmItem.text().indexOf('2:31') > -1,
+          Clock.hasTime(alarmItem.text(), thirtyFromNow),
           'Alarm time is updated'
         );
         assert.ok(
