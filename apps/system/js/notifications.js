@@ -89,6 +89,15 @@ var NotificationScreen = {
 
     this.ringtoneURL = new SettingsURL();
 
+    // set up the media playback widget, but only if |MediaPlaybackWidget| is
+    // defined (we don't define it in tests)
+    if (typeof MediaPlaybackWidget !== 'undefined') {
+      this.mediaPlaybackWidget = new MediaPlaybackWidget(
+        document.getElementById('media-playback-container'),
+        {nowPlayingAction: 'openapp'}
+      );
+    }
+
     var self = this;
     SettingsListener.observe('notification.ringtone', '', function(value) {
       self._sound = self.ringtoneURL.set(value);

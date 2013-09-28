@@ -56,7 +56,7 @@ suite('IACHandler > ', function() {
       fakePort.postMessage({
         data: message
       });
-      assert.deepEqual(spyDispatchEvent.lastCall.args[0].detail.data, message);
+      assert.deepEqual(spyDispatchEvent.lastCall.args[0].detail, message);
     });
   });
 
@@ -85,7 +85,7 @@ suite('IACHandler > ', function() {
         data: message
       });
 
-      assert.deepEqual(spyDispatchEvent.lastCall.args[0].detail.data, message);
+      assert.deepEqual(spyDispatchEvent.lastCall.args[0].detail, message);
     });
   });
 

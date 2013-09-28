@@ -29,14 +29,12 @@ var IACHandler = {
 
           /*
            * You can get the message by accessing
-           * `event.detail.data`
+           * `event.detail`
            *
-           * It will stores the whole message you passed from postMessage
+           * It will store the whole message you passed from postMessage
            */
           iacEvt.initCustomEvent(evtName,
-            /* canBubble: */ true, /* cancelable */ false, {
-            data: message
-          });
+            /* canBubble: */ true, /* cancelable */ false, message);
 
           window.dispatchEvent(iacEvt);
         };
