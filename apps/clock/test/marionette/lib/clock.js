@@ -2,9 +2,8 @@ var utils = require('./utils');
 
 function Clock(client) {
   this.client = client;
-  this.els = {};
 
-  utils.deepMap(this.els, Clock.selectors, function(key, value) {
+  this.els = utils.deepMap(Clock.selectors, function(key, value) {
     var getOne = function() {
       return client.findElement(value);
     };
