@@ -127,23 +127,51 @@ marionette('Alarm Panel', function() {
 
       this.timeout(Clock.bannerTimeout);
       clock.waitForBanner();
+
+      clock.navigate('alarmForm');
+
+      time.setHours(4);
+      time.setMinutes(53);
+
+      clock.els.alarmNameInput.sendKeys(['quitting time']);
+      setValue(clock.els.timeInput, time);
+
+      clock.submitAlarm();
+
+      alarms = clock.els.alarmListItemS;
+
+      assert.equal(alarms.length, 2);
+      assert.ok(
+        alarms[0].text().indexOf('4:53') > -1,
+        'Newest alarm title is rendered first'
+      );
+      assert.ok(
+        alarms[0].text().indexOf('quitting time'),
+        'Newest alarm title is rendered first'
+      );
+      assert.ok(
+        alarms[1].text().indexOf('3:42') > -1,
+        'Previously-created alarm time is rendered second'
+      );
+      assert.ok(
+        alarms[1].text().indexOf('coffee break'),
+        'Previously-created alarm title is rendered second'
+      );
+      assert.ok(
+        clock.els.countdownBanner.displayed(),
+        'Countdown banner is displayed'
+      );
     });
 
     test('Closing form', function() {
-      assert.ok(clock.els.alarmFormCloseBtn.displayed(),
-        '"Close" button is displayed');
-
       clock.els.alarmFormCloseBtn.tap();
 
       client.waitFor(function() {
         return !clock.els.alarmForm.displayed();
       });
-      assert.ok(clock.els.alarmFormBtn.displayed(),
-        '"New Alarm" button is displayed');
-      assert.ok(!clock.els.alarmForm.displayed(),
-        'Alarm form is not displayed');
+      assert.ok(clock.els.panels.alarm.displayed(),
+        'Alarm panel is displayed');
     });
-
   });
 
   suite('Alarm manipulation', function() {});
