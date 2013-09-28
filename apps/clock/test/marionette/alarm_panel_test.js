@@ -177,7 +177,7 @@ marionette('Alarm Panel', function() {
 
         clock.submitAlarm();
 
-        // Ensure the banner is hidden before the test continues because it
+        // Ensure the banner is hidden before the tests continue because it
         // obscures the alarm list
         this.timeout(Clock.bannerTimeout);
         clock.waitForBanner();
@@ -235,9 +235,20 @@ marionette('Alarm Panel', function() {
           return clock.els.countdownBanner.displayed();
         });
       });
-    });
 
-    suite('Alarm deletion', function() {});
+      test('deletion', function() {
+        clock.openAlarmForm(alarmItem);
+        clock.els.alarmDeleteBtn.tap();
+        client.waitFor(function() {
+          return !clock.els.alarmForm.displayed();
+        });
+        assert.equal(
+          clock.els.alarmListItemS.length,
+          0,
+          'deleted alarm is removed from the alarm list'
+        );
+      });
+    });
   });
 
 });

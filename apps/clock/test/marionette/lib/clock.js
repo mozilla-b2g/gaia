@@ -49,6 +49,7 @@ Clock.selectors = {
   alarmForm: '#alarm-edit-panel',
   alarmFormCloseBtn: '#alarm-close',
   alarmDoneBtn: '#alarm-done',
+  alarmDeleteBtn: '#alarm-delete',
   alarmNameInput: '#edit-alarm [name="alarm.label"]',
   timeInput: '#time-select',
   alarmList: '#alarms',
