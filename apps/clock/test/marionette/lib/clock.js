@@ -1,9 +1,12 @@
+var selectors = require('./selectors');
 var utils = require('./utils');
 
 function Clock(client) {
   this.client = client;
 
-  this.els = utils.deepMap(Clock.selectors, function(key, value) {
+  // Heads up! Magic here: key names that end with a capital S will be used to
+  // select element collections and will therefor return an array.
+  this.els = utils.deepMap(selectors, function(key, value) {
     var getOne = function() {
       return client.findElement(value);
     };
@@ -25,34 +28,6 @@ Clock.ORIGIN = 'app://clock.gaiamobile.org';
 Clock.fromNow = function(ms) {
   ms = ms || 0;
   return new Date(Date.now() + ms);
-};
-
-// Heads up! Magic here: key names that end with a capital S will be used to
-// select element collections and will therefor return an array.
-Clock.selectors = {
-  tabs: {
-    alarm: '#alarm-tab a',
-    timer: '#timer-tab a',
-    stopwatch: '#stopwatch-tab a'
-  },
-  panels: {
-    alarm: '#alarm-panel',
-    timer: '#timer-panel',
-    stopwatch: '#stopwatch-panel'
-  },
-  analogClock: '#analog-clock',
-  digitalClock: '#digital-clock',
-  alarmFormBtn: '#alarm-new',
-  alarmForm: '#alarm-edit-panel',
-  alarmFormCloseBtn: '#alarm-close',
-  alarmDoneBtn: '#alarm-done',
-  alarmDeleteBtn: '#alarm-delete',
-  alarmNameInput: '#edit-alarm [name="alarm.label"]',
-  timeInput: '#time-select',
-  alarmList: '#alarms',
-  alarmListItemS: '.alarm-cell',
-  alarmEnablerS: '.alarm-cell .alarmEnable',
-  countdownBanner: '#banner-countdown'
 };
 
 Clock.prototype.launch = function() {

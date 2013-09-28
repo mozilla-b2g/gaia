@@ -1,0 +1,25 @@
+{
+  "tabs": {
+    "alarm": "#alarm-tab a",
+    "timer": "#timer-tab a",
+    "stopwatch": "#stopwatch-tab a"
+  },
+  "panels": {
+    "alarm": "#alarm-panel",
+    "timer": "#timer-panel",
+    "stopwatch": "#stopwatch-panel"
+  },
+  "analogClock": "#analog-clock",
+  "digitalClock": "#digital-clock",
+  "alarmFormBtn": "#alarm-new",
+  "alarmForm": "#alarm-edit-panel",
+  "alarmFormCloseBtn": "#alarm-close",
+  "alarmDoneBtn": "#alarm-done",
+  "alarmDeleteBtn": "#alarm-delete",
+  "alarmNameInput": "#edit-alarm [name='alarm.label']",
+  "timeInput": "#time-select",
+  "alarmList": "#alarms",
+  "alarmListItemS": ".alarm-cell",
+  "alarmEnablerS": ".alarm-cell .alarmEnable",
+  "countdownBanner": "#banner-countdown"
+}
