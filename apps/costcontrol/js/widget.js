@@ -189,18 +189,22 @@ var Widget = (function() {
 
   // Reuse fte panel to display errors
   function showSimError(status) {
-    var fte = document.getElementById('fte-view');
-    var leftPanel = document.getElementById('left-panel');
-    var rightPanel = document.getElementById('right-panel');
+    // Wait to l10n resources are ready
+    navigator.mozL10n.ready(function showErrorStatus() {
+      var fte = document.getElementById('fte-view');
+      var leftPanel = document.getElementById('left-panel');
+      var rightPanel = document.getElementById('right-panel');
 
-    fte.setAttribute('aria-hidden', false);
-    leftPanel.setAttribute('aria-hidden', true);
-    rightPanel.setAttribute('aria-hidden', true);
+      fte.setAttribute('aria-hidden', false);
+      leftPanel.setAttribute('aria-hidden', true);
+      rightPanel.setAttribute('aria-hidden', true);
 
-    var className = 'widget-' + status;
-    document.getElementById('fte-icon').classList.add(className);
-    Common.localize(fte.querySelector('p:first-child'), className + '-heading');
-    Common.localize(fte.querySelector('p:last-child'), className + '-meta');
+      var className = 'widget-' + status;
+      document.getElementById('fte-icon').classList.add(className);
+      Common.localize(fte.querySelector('p:first-child'), className +
+        '-heading');
+      Common.localize(fte.querySelector('p:last-child'), className + '-meta');
+    });
   }
 
   function setupFte(provider, mode) {
