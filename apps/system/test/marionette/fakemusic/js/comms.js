@@ -27,6 +27,10 @@ var FakeMusicComms = {
         self._queuedMessages = null;
       });
     };
+
+    window.addEventListener('unload', function() {
+      self._sendMessage('unload');
+    });
   },
 
   _sendMessage: function(name, value) {

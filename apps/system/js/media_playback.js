@@ -27,6 +27,9 @@ var MediaPlayback = {
         case 'status':
           self.updatePlaybackStatus(message.data);
           break;
+        /*case 'unload':
+          self.container.hidden = true;
+          break;*/
         }
       };
     });

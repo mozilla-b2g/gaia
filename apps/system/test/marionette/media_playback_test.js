@@ -23,7 +23,8 @@ marionette('media playback tests', function() {
   setup(function() {
     playback = new MediaPlaybackTest(client);
     music = new FakeMusic(client, 'app://' + FAKE_MUSIC_ORIGIN);
-    music.launchInBackground();
+    //music.launchInBackground();
+    music.launchAsActivity();
   });
 
   test('show now playing info', function() {
@@ -72,7 +73,9 @@ marionette('media playback tests', function() {
       playback.waitForContainerShown(true);
     });
 
-    music.close();
+    music.runInApp(function() {
+      music.pick();
+    });
 
     playback.openUtilityTray(function() {
       playback.waitForContainerShown(false);

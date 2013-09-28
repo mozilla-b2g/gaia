@@ -191,6 +191,13 @@ MediaRemoteControls.prototype.start = function() {
       self._queuedMessages = null;
     });
   };
+
+  // Notify IAC subscribers when this page is closed so that they know that
+  // playback has stopped. We may want to let the app itself control this, but
+  // that's not necessary at the moment.
+  window.addEventListener('unload', function() {
+    self._postMessage('unload');
+  });
 };
 
 MediaRemoteControls.prototype._postMessage = function(name, value) {
