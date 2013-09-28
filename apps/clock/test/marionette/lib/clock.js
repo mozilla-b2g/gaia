@@ -23,6 +23,8 @@ Clock.ORIGIN = 'app://clock.gaiamobile.org';
 // Amount of time to wait for Alarm creation banner to be hidden
 Clock.bannerTimeout = 5 * 1000;
 
+// Heads up! Magic here: key names that end with a capital S will be used to
+// select element collections and will therefor return an array.
 Clock.selectors = {
   tabs: {
     alarm: '#alarm-tab a',
