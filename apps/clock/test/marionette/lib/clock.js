@@ -20,9 +20,6 @@ module.exports = Clock;
 
 Clock.ORIGIN = 'app://clock.gaiamobile.org';
 
-// Amount of time to wait for Alarm creation banner to be hidden
-Clock.bannerTimeout = 5 * 1000;
-
 // Create a Date object whose value is the supplied number of milliseconds from
 // the current system time.
 Clock.fromNow = function(ms) {
@@ -62,10 +59,10 @@ Clock.prototype.launch = function() {
   this.client.apps.launch(Clock.ORIGIN);
   this.client.apps.switchToApp(Clock.ORIGIN);
 
-  this.client.waitFor(this.ready.bind(this));
+  this.client.waitFor(this._ready.bind(this));
 };
 
-Clock.prototype.ready = function() {
+Clock.prototype._ready = function() {
   return this.els.analogClock.displayed() || this.els.digitalClock.display();
 };
 
@@ -81,29 +78,6 @@ Clock.prototype.navigate = function(panelName) {
 
   button.tap();
   this._waitForSlideEnd(panel);
-};
-
-Clock.prototype.submitAlarm = function() {
-  this.els.alarmDoneBtn.tap();
-  this._waitForSlideEnd(this.els.alarmForm);
-};
-
-// Open the alarm form for the given alarm item. If unspecified, open the
-// "Create Alarm" form.
-Clock.prototype.openAlarmForm = function(alarmItem) {
-  var openButton = alarmItem || this.els.alarmFormBtn;
-
-  openButton.tap();
-  this._waitForSlideEnd(this.els.alarmForm);
-};
-
-// Ensure that the 'Countdown banner' element is eventually hidden.
-Clock.prototype.waitForBanner = function() {
-   this.client.waitFor(function() {
-     return !this.els.countdownBanner.displayed();
-   }.bind(this), {
-     timeout: Clock.bannerTimeout
-   });
 };
 
 Clock.prototype._waitForSlideEnd = function(element) {
