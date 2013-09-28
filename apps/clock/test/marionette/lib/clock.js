@@ -91,6 +91,12 @@ Clock.prototype.waitForBanner = function() {
 Clock.prototype._waitForSlideEnd = function(element) {
   this.client.waitFor(function() {
     return element.scriptWith(function(element) {
+      return !!element.className.match(/\bslide-(in|out)-(right|left)\b/);
+    });
+  });
+
+  this.client.waitFor(function() {
+    return element.scriptWith(function(element) {
       return !element.className.match(/\bslide-(in|out)-(right|left)\b/);
     });
   });
