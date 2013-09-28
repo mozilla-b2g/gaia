@@ -612,10 +612,9 @@ var ThreadUI = global.ThreadUI = {
         window.location.hash = '#thread-list';
         return;
       }
-      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
-        this.cleanFields(true);
-        window.location.hash = '#thread-list';
-      }
+      this.saveDraft();
+      this.cleanFields(true);
+      window.location.hash = '#thread-list';
     }).bind(this);
 
     // We're waiting for the keyboard to disappear before animating back
@@ -1081,6 +1080,16 @@ var ThreadUI = global.ThreadUI = {
     return container;
   },
 
+  //Method to retrieve the draft if it has been saved
+  renderDraft: function thui_renderDraft(threadId) {
+    Draft.load(threadId, function oncomplete(draft) {
+      if (draft) {
+        Compose.fillDraftContent(draft);
+      }
+      draft.delete();
+    });
+  },
+
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(threadId, callback) {
     var onMessagesRendered = (function messagesRendered() {
@@ -1528,6 +1537,14 @@ var ThreadUI = global.ThreadUI = {
     }
     this.enableSend();
     this.previousHash = window.location.hash;
+  },
+
+  saveDraft: function thui_saveDraft() {
+    if (Threads.currentId) {
+      console.log('Debug 1');
+      var draft = new Draft(Threads.currentId, Compose.getContent());
+      draft.save();
+    }
   },
 
   onSendClick: function thui_onSendClick() {

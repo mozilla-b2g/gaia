@@ -110,6 +110,11 @@ var MessageManager = {
     ThreadUI.updateHeaderData();
     Utils.updateTimeHeaders();
 
+    //if the visibility is to hidden, save the draft of ThreadUI
+    if (document.visibilityState == 'hidden') {
+       ThreadUI.saveDraft();
+    }
+
     // If we receive a message with screen off, the height is
     // set to 0 and future checks will fail. So we update if needed
     if (!ThreadListUI.fullHeight || ThreadListUI.fullHeight === 0) {
@@ -255,6 +260,7 @@ var MessageManager = {
           // in the thread.
           if (!ThreadUI.inThread) {
             ThreadUI.inThread = true;
+            ThreadUI.renderDraft(threadId);
             ThreadUI.renderMessages(threadId);
           }
         };
