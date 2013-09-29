@@ -207,16 +207,27 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
+    // NOTE: Only set textContent below if necessary to avoid repaints at
+    //       load time.  For more info see bug 725221.
+
     if (ActivityHandler.currentlyHandling) {
       cancelButton.classList.remove('hide');
       addButton.classList.add('hide');
       settingsButton.classList.add('hide');
-      appTitleElement.textContent = _('selectContact');
+
+      var text = _('selectContact');
+      if (appTitleElement.textContent !== text) {
+        appTitleElement.textContent = text;
+      }
     } else if (contactsList && !contactsList.isSelecting) {
       cancelButton.classList.add('hide');
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
-      appTitleElement.textContent = _('contacts');
+
+      var text = _('contacts');
+      if (appTitleElement.textContent !== text) {
+        appTitleElement.textContent = text;
+      }
     }
   };
 
