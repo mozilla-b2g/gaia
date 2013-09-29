@@ -294,9 +294,9 @@ class GaiaData(object):
     @property
     def media_files(self):
         result = []
-        result.extend(self.marionette.execute_async_script('return GaiaDataLayer.getAllPictures();'))
-        result.extend(self.marionette.execute_async_script('return GaiaDataLayer.getAllVideos();'))
-        result.extend(self.marionette.execute_async_script('return GaiaDataLayer.getAllMusic();'))
+        result.extend(self.music_files)
+        result.extend(self.picture_files)
+        result.extend(self.video_files)
         return result
 
     def delete_all_sms(self):
@@ -310,6 +310,18 @@ class GaiaData(object):
     def kill_active_call(self):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
+
+    def music_files(self):
+        return self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllMusic();')
+
+    def picture_files(self):
+        return self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllPictures();')
+
+    def video_files(self):
+        return self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllVideos();')
 
 
 class GaiaDevice(object):
