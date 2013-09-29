@@ -98,7 +98,13 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
       appIndex = {}, APP_INDEX_STORAGE_KEY = NAME + "-app-index",
       queryIndex = {}, QUERY_INDEX_STORAGE_KEY = NAME + "-query-index",
       appIndexPendingSubscribers = [],
-      appIndexComplete = false;
+      appIndexComplete = false,
+
+      // used to link api results (by guid) to installed apps (by manifestURL)
+      // during the creation on queryIndex
+      // maps https://mobile.twitter.com/cache/twitter.webapp
+      // -> https://mobile.twitter.com/cache/twitter.webapp?feature_profile=1f5eea7f83db.45.2
+      guidsToManifestURLs = null;
 
   this.init = function init() {
     // create indexes
@@ -111,11 +117,26 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   }
 
   this.requestAppsInfo = function requestAppsInfo() {
-    var gridApps = EvmeManager.getGridApps();
+    guidsToManifestURLs = {};
+
+    var gridApps = EvmeManager.getGridApps(),
+        guids = [];
     
-    var guids = gridApps.map(function getId(gridApp){
-          return gridApp.app.manifestURL || gridApp.app.bookmarkURL;
-        });
+    for (var i = 0, gridApp; gridApp = gridApps[i++]; ) {
+      var guid = gridApp.app.bookmarkURL;
+      
+      // use manifestURL
+      if (!guid) {
+        guid = manifestURLtoGuid(gridApp.app.manifestURL);
+        
+        // save a reference to the original manifestURL
+        if (guid !== gridApp.app.manifestURL) {
+          guidsToManifestURLs[guid] = gridApp.app.manifestURL;
+        }
+      }
+      
+      guids.push(guid);
+    }
 
     Evme.EventHandler.trigger(NAME, "requestAppsInfo", guids);
   };
@@ -124,20 +145,22 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     queryIndex = {};
 
     for (var k in appsInfoFromAPI) {
-      var appInfo = appsInfoFromAPI[k];
+      var apiInfo = appsInfoFromAPI[k];
 
       // verify that the app info relates to an existing one in the appIndex
-      var idInAppIndex = appInfo.guid;
+      // the guid might be a "cleaned" manifestURL
+      var idInAppIndex = guidsToManifestURLs[apiInfo.guid] || apiInfo.guid;
+
       if (!(idInAppIndex in appIndex)) {
         continue;
       }
 
       // Store the marketplace api slug, in order to compare and dedup Marketplace app suggestions later on
-      appIndex[idInAppIndex].slug = appInfo.nativeId;
+      appIndex[idInAppIndex].slug = apiInfo.nativeId;
 
       // queries is comprised of tags and experiences
-      var tags = appInfo.tags || [],
-      experiences = appInfo.experiences || [],
+      var tags = apiInfo.tags || [],
+      experiences = apiInfo.experiences || [],
       queries = Evme.Utils.unique(tags.concat(experiences));
 
       // populate queryIndex
@@ -150,6 +173,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
       }
     }
 
+    guidsToManifestURLs = null;
     Evme.Storage.set(QUERY_INDEX_STORAGE_KEY, queryIndex);
     Evme.EventHandler.trigger(NAME, "queryIndexUpdated");
   };
@@ -221,7 +245,6 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
 
   function onAppInstallChanged() {
     createAppIndex();
-    self.requestAppsInfo();
   }
 
   function createAppIndex() {
@@ -243,11 +266,17 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     }
   }
 
+  function manifestURLtoGuid(str) {
+    return str && str.split("?")[0];
+  }
+
   function onAppIndexComplete() {
     appIndexComplete = true;
+    self.requestAppsInfo();
     appIndexPendingSubscribers.forEach(function execute(args) {
       self.getAppById.apply(self, args);
     });
+    appIndexPendingSubscribers = [];
   }
 
   function loadQueryIndex() {
