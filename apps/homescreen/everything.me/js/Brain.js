@@ -862,6 +862,12 @@ this.InstalledAppsService = new function InstalledAppsService() {
         this.removed = function removed() {
             Evme.SearchResults.changeFadeOnScroll(false);
         };
+
+        this.setWallpaper = function setWallpaper(data) {
+          if (confirm(Evme.Utils.l10n('alert', 'save-wallpaper'))) {
+            Evme.Utils.sendToOS(Evme.Utils.OSMessages.SET_WALLPAPER, data.image);
+          }
+        };
     };
 
     // modules/Collection/
