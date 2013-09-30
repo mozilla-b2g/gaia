@@ -723,7 +723,7 @@ function showPlayer(video, autoPlay) {
   });
 }
 
-function hidePlayer(updateMetadata) {
+function hidePlayer(updateVideoMetadata) {
   if (!playerShowing)
     return;
 
@@ -754,7 +754,7 @@ function hidePlayer(updateMetadata) {
     startParsingMetadata();
   }
 
-  if (!('metadata' in currentVideo) || !updateMetadata || pendingPick) {
+  if (!('metadata' in currentVideo) || !updateVideoMetadata || pendingPick) {
     completeHidingPlayer();
     return;
   }
@@ -816,11 +816,7 @@ function playerEnded() {
 
   dom.player.currentTime = 0;
 
-  if (pendingPick) {
-    pause();
-  } else {
-    hidePlayer(true);
-  }
+  pause();
 }
 
 function play() {
