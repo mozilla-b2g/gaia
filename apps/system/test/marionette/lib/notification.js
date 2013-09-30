@@ -17,12 +17,12 @@ function NotificationTest(client, origin, tag, title, body) {
 module.exports = NotificationTest;
 
 NotificationTest.Selector = Object.freeze((function() {
-  var baseSelector = '#desktop-notifications-container > ' +
+  var desktopSelector = '#desktop-notifications-container > ' +
       '[data-notification-id="%s#tag:%s"]';
   return {
-    containerElement: baseSelector,
-    titleElement: baseSelector + ' > div',
-    bodyElement: baseSelector + ' > .detail'
+    containerElement: desktopSelector,
+    titleElement: desktopSelector + ' > div',
+    bodyElement: desktopSelector + ' > .detail'
   };
 })());
 
