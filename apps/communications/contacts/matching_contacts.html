@@ -27,7 +27,6 @@
 
   <body role="application">
     <section role="region">
-
       <header>
         <a href="#" id="merge-close">
           <span class="icon icon-close" data-l10n-id="close">close</span>
@@ -44,11 +43,11 @@
           <ol>
             <li data-template data-uuid="#id#" class="block-item">
               <label class="pack-checkbox">
-                <input type="checkbox" checked></input>
+                <input type="checkbox" checked>
                 <span></span>
               </label>
               <aside class="pack-end">
-                <img data-src="#thumb#"></img>
+                <img data-src="#thumb#">
               </aside>
               <p>#displayName#</p>
               <p class="match-main-reason">#mainReason#</p>
@@ -63,27 +62,14 @@
           </menu>
         </form>
       </section> <!-- main -->
-    </section> <!-- role="region" -->
+    </section> <!-- role="section" -->
 
-    <!--
-      <ul id="matching-list">
-          <li>Telefónica</li>
-          <li aria-selected>mobile, +34 674 439 849</li>
-          <li>mobile, +34 104 438 88</li>
-          <li>luzie@gmail.com</li>
-          <li>luzie@hotmail.com</li>
-          <li>
-            <p>123 streetname is very long we try to make it go double line ok?</p>
-            <p>Town</p>
-            <p>ZIP code</p>
-            <p>Country</p>
-          </li>
-        </ul>
-    -->
     <form id="matching-details" class="hide" role="dialog" data-type="confirm">
-      <img src="">
-      <h1></h1>
-      <section class="matched-info">
+      <section>
+        <figure id="matching-figure">
+          <img alt="" src="" class="hide">
+          <figcaption></figcaption>
+        </figure>
         <ul id="matching-list">
         </ul>
       </section>
