@@ -113,3 +113,24 @@ body.hidden *[data-l10n-id] {
 .no-opacity {
   opacity: 0 !important;
 }
+
+/* For showing/hiding navbar */
+article[role="tab"] > .icon {
+  transform: translateY(0%);
+  z-index: 20;
+  transition: 0.5s transform 0.5s;
+}
+
+#views.hide-toolbar > article[role="tab"] > .icon {
+  transform: translateY(100%);
+  pointer-events: none;
+}
+
+#views [role="tabpanel"] {
+  transition: 1s height step-end;
+}
+
+#views.hide-toolbar [role="tabpanel"] {
+  height: 100%;
+  transition: none;
+}
