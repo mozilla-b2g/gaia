@@ -37,6 +37,7 @@ contacts.Form = (function() {
 
   var REMOVED_CLASS = 'removed';
   var FB_CLASS = 'facebook';
+  var INVALID_CLASS = 'invalid';
 
   // Remove icon button id
   var IMG_DELETE_ID = 'img-delete-button';
@@ -54,10 +55,15 @@ contacts.Form = (function() {
       if (!this._textFields) {
         var form = dom.getElementById('contact-form');
         var fields = form.querySelectorAll('input.textfield');
+
         var removedFields =
           Array.slice(form.querySelectorAll('.removed input.textfield'));
+        var invalidFields =
+          Array.slice(form.querySelectorAll('.invalid input.textfield'));
+
         this._textFields = Array.filter(fields, function(field) {
-          return removedFields.indexOf(field) == -1;
+          return (removedFields.indexOf(field) === -1 &&
+                                          invalidFields.indexOf(field) === -1);
         });
       }
 
@@ -141,6 +147,11 @@ contacts.Form = (function() {
       if (tgt.tagName == 'BUTTON' && tgt.getAttribute('type') == 'reset') {
         event.preventDefault();
         var input = tgt.previousElementSibling;
+        if (input.getAttribute('name').startsWith('tel') &&
+            input.dataset.field === 'value') {
+          input.parentNode.nextElementSibling.classList.add(INVALID_CLASS);
+          textFieldsCache.clear();
+        }
         input.value = '';
         checkDisableButton();
       }
@@ -311,6 +322,30 @@ contacts.Form = (function() {
     return false;
   };
 
+  function checkCarrierTel(carrierInput, event) {
+    var telInput = event.target;
+    var value = telInput.value;
+
+    if (!value || !value.trim()) {
+      // If it was not previously filled then it will be disabled
+      if (!telInput.dataset['wasFilled']) {
+        carrierInput.setAttribute('disabled', 'disabled');
+      }
+      else {
+        // Otherwise marked as invalid in order not to submit it
+        carrierInput.parentNode.classList.add(INVALID_CLASS);
+        textFieldsCache.clear();
+      }
+    }
+    else {
+      // Marked as filled
+      telInput.dataset['wasFilled'] = true;
+      // Enabling and marking as valid
+      carrierInput.removeAttribute('disabled');
+      carrierInput.parentNode.classList.remove(INVALID_CLASS);
+    }
+  }
+
   var insertField = function insertField(type, object) {
     if (!type || !configs[type]) {
       console.error('Inserting field with unknown type');
@@ -352,6 +387,17 @@ contacts.Form = (function() {
     }
     currField['i'] = counters[type];
     var rendered = utils.templates.render(template, currField);
+    // Controlling that if no tel phone is present carrier field is disabled
+    if (type === 'tel') {
+      var carrierInput = rendered.querySelector('input[data-field="carrier"]');
+      var telInput = rendered.querySelector('input[data-field="value"]');
+
+      var cb = checkCarrierTel.bind(null, carrierInput);
+
+      telInput.addEventListener('input', cb, true);
+
+      checkCarrierTel(carrierInput, {target: telInput});
+    }
 
     if (infoFromFB) {
       var nodeClass = rendered.classList;
@@ -917,6 +963,7 @@ contacts.Form = (function() {
       saveButton.removeAttribute('disabled');
     }
   };
+
 
   var emptyForm = function emptyForm() {
     var textFields = textFieldsCache.get();
