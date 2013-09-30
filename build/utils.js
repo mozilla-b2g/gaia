@@ -19,10 +19,6 @@ function isSubjectToBranding(path) {
  */
 function ls(dir, recursive, exclude) {
   let results = [];
-  if (!dir.exists()) {
-    return results;
-  }
-
   let files = dir.directoryEntries;
   while (files.hasMoreElements()) {
     let file = files.getNext().QueryInterface(Ci.nsILocalFile);
