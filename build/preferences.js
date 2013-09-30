@@ -164,8 +164,7 @@ function execute(options) {
   }
 
   function writePrefs() {
-    let userJs = utils.getFile(config.GAIA_DIR,
-      config.PROFILE_FOLDER, 'user.js');
+    let userJs = utils.getFile(config.PROFILE_DIR, 'user.js');
     let content = prefs.map(function(entry) {
       return 'user_pref(\'' + entry[0] + '\', ' +
         JSON.stringify(entry[1]) + ');';
