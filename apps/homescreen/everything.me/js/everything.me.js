@@ -81,6 +81,10 @@ var EverythingME = {
       var elLoader = elCollection.querySelector(".loading-more");
       elLoader.classList.add('show');
 
+      // hide the pagination bar
+      // need timeout to make it match the normal collections animation timing
+      window.setTimeout(PaginationBar.hide, 100);
+
       // add temporary Collection close listeners
       var closeButton  = elCollection.querySelector('.close');
       closeButton.addEventListener('click', EverythingME.onCollectionClosed);

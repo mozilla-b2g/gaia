@@ -21,11 +21,16 @@ var PaginationBar = (function() {
 
     /*
      * Shows the pagination bar
-     *
-     * @param {String} container that holds the pagination bar
      */
     show: function pb_show() {
       style.visibility = 'visible';
+    },
+
+    /*
+     * Hides the pagination bar
+     */
+    hide: function pb_hide() {
+      style.visibility = 'hidden';
     },
 
     /*

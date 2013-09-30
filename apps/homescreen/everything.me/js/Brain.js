@@ -889,6 +889,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
         // a collection is shown
         this.show = function show(data) {
+            PaginationBar.hide();
             document.getElementById('icongrid').classList.add(CLASS_WHEN_COLLECTION_VISIBLE);
             window.setTimeout(loadAppsIntoCollection, 600);
             currentResultsManager = Evme.CollectionResults;
@@ -896,6 +897,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
         // hiding the collection
         this.hide = function hide() {
+            PaginationBar.show();
             document.getElementById('icongrid').classList.remove(CLASS_WHEN_COLLECTION_VISIBLE);
             Evme.Brain.Collection.cancelRequests();
             Evme.ConnectionMessage.hide();
