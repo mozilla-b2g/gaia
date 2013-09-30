@@ -27,6 +27,16 @@ suite('pagbar.js >', function() {
 
   suite('Pagination bar >', function() {
 
+    test('Showing', function() {
+      PaginationBar.show();
+      assert.equal(scroller.style.visibility, 'visible');
+    });
+
+    test('Hiding', function() {
+      PaginationBar.hide();
+      assert.equal(scroller.style.visibility, 'hidden');
+    });
+
     test('Current page index: 1, total pages: 5 >', function() {
       PaginationBar.update(1, 5);
       assert.equal(scroller.getAttribute('aria-valuenow'), '1');
