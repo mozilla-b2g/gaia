@@ -4,6 +4,7 @@ require('/shared/js/tag_visibility_monitor.js');
 require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 requireApp('communications/contacts/js/views/search.js');
 requireApp('communications/contacts/js/views/list.js');
+requireApp('communications/contacts/js/utilities/contact_fields.js');
 requireApp('communications/contacts/js/utilities/dom.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 requireApp('communications/contacts/js/utilities/templates.js');

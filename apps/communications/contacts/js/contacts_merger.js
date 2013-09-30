@@ -210,10 +210,7 @@ contacts.Merger = (function() {
 
     }); // matchingResults
 
-    mergedContact.name = [((mergedContact.givenName[0] ?
-                           mergedContact.givenName[0] : '') + ' ' +
-                          (mergedContact.familyName[0] ?
-                            mergedContact.familyName[0] : '')).trim()];
+    mergedContact.name = utils.contactFields.createNameField(mergedContact);
 
     var fields = ['familyName', 'givenName', 'name', 'org', 'email', 'tel',
                   'bday', 'adr', 'category', 'url', 'note', 'photo'];

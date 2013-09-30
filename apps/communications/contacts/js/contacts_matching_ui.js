@@ -52,7 +52,9 @@ if (!contacts.MatchingUI) {
       matchingResults = results;
 
       document.body.dataset.mode = type;
-      var params = { name: getDisplayName(contact) };
+      var params = {
+        name: utils.contactFields.getDisplayName(contact).displayName
+      };
 
       if (type === 'matching') {
         // "Suggested duplicate contacts for xxx"
@@ -111,7 +113,7 @@ if (!contacts.MatchingUI) {
       populate(contact, out,
                     Object.getOwnPropertyNames(Object.getPrototypeOf(contact)));
 
-      out.displayName = getDisplayName(contact);
+      out.displayName = utils.contactFields.getDisplayName(contact).displayName;
       out.mainReason = selectMainReason(reasons);
       if (Array.isArray(out.photo) && out.photo[0]) {
         out.thumb = window.URL.createObjectURL(out.photo[0]);
@@ -133,36 +135,6 @@ if (!contacts.MatchingUI) {
 
       return completeName;
     }
-
-    // Fills the contact data to display if no givenName and familyName
-    function getDisplayName(contact) {
-      if (hasName(contact)) {
-        return getCompleteName(contact);
-      }
-
-      var name = [];
-      if (Array.isArray(contact.name) && contact.name[0] &&
-          contact.name[0].trim()) {
-        name.push(contact.name[0]);
-      } else if (contact.org && contact.org[0] && contact.org[0].trim()) {
-        name.push(contact.org[0]);
-      } else if (contact.tel && contact.tel[0]) {
-        name.push(contact.tel[0].value);
-      } else if (contact.email && contact.email[0]) {
-        name.push(contact.email[0].value);
-      } else {
-        name.push(_('noName'));
-      }
-
-      return name[0];
-    };
-
-    function hasName(contact) {
-      return (Array.isArray(contact.givenName) && contact.givenName[0] &&
-                contact.givenName[0].trim()) ||
-              (Array.isArray(contact.familyName) && contact.familyName[0] &&
-                contact.familyName[0].trim());
-    };
 
     function selectMainReason(matchings) {
       var out = '';
@@ -324,8 +296,10 @@ if (!contacts.MatchingUI) {
 
       var theContact = matchingResults[uuid].matchingContact;
       var matchings = matchingResults[uuid].matchings;
-      if (!hasName(theContact)) {
-        theContact.name = [getDisplayName(theContact)];
+      if (!utils.contactFields.hasName(theContact)) {
+        var displayName = utils.contactFields.getDisplayName(theContact)
+                          .displayName;
+        theContact.name = [displayName];
       }
       fields.forEach(function(aField) {
         if (!Array.isArray(theContact[aField]) || !theContact[aField][0]) {
@@ -345,7 +319,7 @@ if (!contacts.MatchingUI) {
               }
             break;
             case 'photo':
-              matchingImg.alt = getDisplayName(theContact);
+              matchingImg.alt = utils.contactFields.getDisplayName(theContact);
             break;
             case 'tel':
             case 'email':

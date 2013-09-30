@@ -529,6 +529,21 @@ contacts.List = (function() {
     return ph;
   };
 
+  var getDisplayName = function getDisplayName(contact) {
+    var displayDetails = utils.contactFields.getDisplayName(contact);
+    var derivedFrom = displayDetails.derivedFrom;
+
+    var display = {};
+    if (derivedFrom[0] === 'givenName' && derivedFrom[1] === 'familyName') {
+      display.givenName = contact.givenName;
+      display.familyName = contact.familyName;
+    } else {
+      display.givenName = [displayDetails.displayName];
+      display.modified = true;
+    }
+    return display;
+  };
+
   var getStringValue = function getStringValue(contact, field) {
     if (contact[field] && contact[field][0])
       return String(contact[field][0]).trim();
@@ -1121,25 +1136,6 @@ contacts.List = (function() {
               contact.givenName[0].trim()) ||
             (Array.isArray(contact.familyName) && contact.familyName[0] &&
               contact.familyName[0].trim());
-  };
-
-  // Fills the contact data to display if no givenName and familyName
-  var getDisplayName = function getDisplayName(contact) {
-    if (hasName(contact))
-      return { givenName: contact.givenName, familyName: contact.familyName };
-
-    var givenName = [];
-    if (contact.org && contact.org.length > 0) {
-      givenName.push(contact.org[0]);
-    } else if (contact.tel && contact.tel.length > 0) {
-      givenName.push(contact.tel[0].value);
-    } else if (contact.email && contact.email.length > 0) {
-      givenName.push(contact.email[0].value);
-    } else {
-      givenName.push(_('noName'));
-    }
-
-    return { givenName: givenName, modified: true };
   };
 
   // Search the given array of DOM li nodes using a binary search.  Return
