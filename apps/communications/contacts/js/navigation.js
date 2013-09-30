@@ -49,6 +49,8 @@ function navigationStack(currentView) {
     }
   };
 
+  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+      document.location.host;
   var screenshotViewId = 'view-screenshot';
   var _currentView = currentView;
   this.stack = [];
@@ -68,6 +70,10 @@ function navigationStack(currentView) {
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
+    var parent = window.parent;
+    if (nextView == 'view-contact-form') {
+      parent.postMessage({type: 'hide-navbar'}, COMMS_APP_ORIGIN);
+    }
 
     // Remove items that match nextView from the stack to prevent duplicates.
     this.stack = this.stack.filter(function(item) {
@@ -136,6 +142,10 @@ function navigationStack(currentView) {
 
     var forwardsClasses = this.transitions[transition].forwards;
     var backwardsClasses = this.transitions[transition].backwards;
+
+    if (currentView.view == 'view-contact-form') {
+      parent.postMessage({type: 'show-navbar'}, COMMS_APP_ORIGIN);
+    }
 
     // Add backwards class to current view.
     if (backwardsClasses.current) {
