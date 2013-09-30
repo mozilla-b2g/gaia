@@ -6,6 +6,8 @@ var Homescreen = (function() {
   var origin = document.location.protocol + '//homescreen.' +
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
   setLocale();
+  var iconGrid = document.getElementById('icongrid');
+
   navigator.mozL10n.ready(function localize() {
     setLocale();
     GridManager.localize();
@@ -76,7 +78,7 @@ var Homescreen = (function() {
                                                                    GridManager;
       manager.contextmenu(evt);
       if (Homescreen.isInEditMode()) {
-        document.body.addEventListener('click', onClickHandler);
+        iconGrid.addEventListener('click', onClickHandler);
       }
     } else if (!Homescreen.isInEditMode()) {
       // No long press over an icon neither edit mode
@@ -94,8 +96,7 @@ var Homescreen = (function() {
   }
 
   function exitFromEditMode() {
-    document.body.removeEventListener('click', onClickHandler);
-
+    iconGrid.removeEventListener('click', onClickHandler);
     Homescreen.setMode('normal');
     GridManager.exitFromEditMode();
     if (typeof ConfirmDialog !== 'undefined') {
