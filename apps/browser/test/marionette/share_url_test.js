@@ -45,7 +45,11 @@ marionette('share url from browser', function() {
     browser.searchBar.sendKeys(url);
     browser.searchButton.click();
     browser.shareButton.click();
-    browser.clickShareEmail();
+    // Since share url via email is supported only,
+    // email share url activity will handle the request directly.
+    // Once there are other share url activity ready,
+    // we have to roll back for clicking "E-Mail" activity.
+    // browser.clickShareEmail();
   }
 
   suite('without an existing email account', function() {
