@@ -8,7 +8,8 @@ var MovistarPeruConfig = {
     destination: '600',
     text: 'S',
     senders: ['515'],
-    regexp: '([0-9,]+)\\.([0-9]{2})'
+    regexp: '([0-9,]+)\\.([0-9]{2})',
+    zero_regexp: '(Usted no tiene saldo en sus cuentas)'
   },
   default_low_limit_threshold: 1
 };
