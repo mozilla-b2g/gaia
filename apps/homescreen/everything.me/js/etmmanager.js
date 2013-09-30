@@ -248,6 +248,24 @@ var EvmeManager = (function EvmeManager() {
     });
   }
 
+  function setIconName(name, origin, entryPoint) {
+    var icon = GridManager.getIconByOrigin(origin, entryPoint);
+    if (icon) {
+      icon.setName(name);
+    }
+  }
+
+  function getIconName(origin, entryPoint) {
+    var out;
+
+    var icon = GridManager.getIconByOrigin(origin, entryPoint);
+    if (icon) {
+      out = icon.getName();
+    }
+
+    return out;
+  }
+
   return {
     addGridItem: addGridItem,
     removeGridItem: removeGridItem,
@@ -276,7 +294,10 @@ var EvmeManager = (function EvmeManager() {
 
     getIconSize: getIconSize,
 
-    setWallpaper: setWallpaper
+    setWallpaper: setWallpaper,
+
+    getIconName: getIconName,
+    setIconName: setIconName
   };
 }());
 

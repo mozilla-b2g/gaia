@@ -176,13 +176,8 @@ void function() {
         currentSettings = collectionSettings;
 
         var id = el.dataset.id = collectionSettings.id;
-        var icon = GridManager.getApp(id);
-        var title = collectionSettings.name || collectionSettings.query;
-        if (icon) {
-          title = icon.descriptor.name;
-        }
 
-        self.setTitle(title);
+        self.setTitle(EvmeManager.getIconName(id) || collectionSettings.query);
         collectionSettings.bg && self.setBackground(collectionSettings.bg);
 
         self.editMode = false;

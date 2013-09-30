@@ -796,6 +796,11 @@ var GridManager = (function() {
     return iconsForApp && iconsForApp[descriptor.entry_point || ''];
   }
 
+  function getIconByOrigin(origin, entryPoint) {
+    var app = appsByOrigin[origin];
+    return app ? getIcon(buildDescriptor(app, entryPoint)) : undefined;
+  }
+
   function getIconsForApp(app) {
     return appIcons[app.manifestURL];
   }
@@ -1451,6 +1456,8 @@ var GridManager = (function() {
     markDirtyState: markDirtyState,
 
     getIcon: getIcon,
+
+    getIconByOrigin: getIconByOrigin,
 
     getIconsForApp: getIconsForApp,
 
