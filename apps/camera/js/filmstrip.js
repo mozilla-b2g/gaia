@@ -165,34 +165,7 @@ var Filmstrip = (function() {
     }
 
     if (confirm(msg)) {
-      // Remove the item from the array of items
-      items.splice(currentItemIndex, 1);
-
-      // Remove the thumbnail image from the filmstrip
-      filmstrip.removeChild(item.element);
-      URL.revokeObjectURL(item.element.src);
-      item.element.src = '';
-
-      // Renumber the item elements
-      items.forEach(function(item, index) {
-        item.element.dataset.index = index;
-      });
-
-      // If there are no more items, go back to the camera
-      if (items.length === 0) {
-        hidePreview();
-      }
-      else {
-        // Otherwise, switch the frame to display the next item. But if
-        // we just deleted the last item, then we'll need to display the
-        // previous item.
-        var newindex = currentItemIndex;
-        if (newindex >= items.length)
-          newindex = items.length - 1;
-        currentItemIndex = null;
-        previewItem(newindex);
-      }
-
+      deleteItem(filename);
       // Actually delete the file
       storage.delete(filename).onerror = function(e) {
         console.warn('Failed to delete', filename,
@@ -336,11 +309,11 @@ var Filmstrip = (function() {
     });
   }
 
-  // Remove the filmstrip item with correspondent filename. If filename is
-  // a video poster image, remove the filmstrip item of its video file.
+  // Remove the filmstrip item with corresponding filename.
   function deleteItem(filename) {
+    var deleteIdx = -1;
+    var deletedItem = null;
     var deletedFileName;
-
     // Check whether filename is a video poster image or not. If filename
     // contains 'VID' and ends with '.jpg', consider it a video poster
     // image and get the video filename by changing '.jpg' to '.3gp'
@@ -351,26 +324,48 @@ var Filmstrip = (function() {
       deletedFileName = filename;
     }
 
-    // Remove the item in filmstrip
+    // find the item in items
     for (var n = 0; n < items.length; n++) {
       if (items[n].filename === deletedFileName) {
-        var item = items[n];
-
-        // Remove the item from the array of items
-        items.splice(n, 1);
-
-        // Remove the thumbnail image from the filmstrip
-        filmstrip.removeChild(item.element);
-        URL.revokeObjectURL(item.element.src);
-        item.element.src = '';
-
+        deletedItem = items[n];
+        deleteIdx = n;
         break;
       }
     }
 
+    // Exit when item not found
+    if (n === items.length) {
+      return;
+    }
+    // Remove the item from the array of items
+    items.splice(deleteIdx, 1);
+
+    // Remove the thumbnail image from the filmstrip
+    filmstrip.removeChild(deletedItem.element);
+    URL.revokeObjectURL(deletedItem.element.src);
+    deletedItem.element.src = '';
+
     // Renumber the item elements after the removed one
-    for (var i = n; i < items.length; i++) {
+    for (var i = deleteIdx; i < items.length; i++) {
       items[i].element.dataset.index = i;
+    }
+
+    // if preview is shown, we need to handle no items and delete current item
+    // case.
+    if (isPreviewShown()) {
+      // If there are no more items, go back to the camera
+      if (items.length === 0) {
+        hidePreview();
+      } else if (currentItemIndex === deleteIdx) {
+        // The delete item is current item, switch the frame to display the next
+        // item. But if we just deleted the last item, then we'll need to
+        // display the previous item.
+        var newindex = currentItemIndex;
+        if (newindex >= items.length)
+          newindex = items.length - 1;
+        currentItemIndex = null;
+        previewItem(newindex);
+      }
     }
   }
 
