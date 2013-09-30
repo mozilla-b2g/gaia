@@ -590,7 +590,7 @@ var GridManager = (function() {
   function getFirstPageWithEmptySpace(pageOffset) {
     pageOffset = pageOffset !== null && pageOffset ? pageOffset : 0;
     for (var i = pageOffset, page; page = pages[i++];) {
-      if (page.getNumIcons() < page.numberOfIcons) {
+      if (page.hasEmptySlot()) {
         return i - 1;
       }
     }
@@ -1130,11 +1130,17 @@ var GridManager = (function() {
       var index = gridPosition.page || 0;
       pages[index].appendIconAt(icon, gridPosition.index || 0);
     } else {
-      var index = getFirstPageWithEmptySpace(gridPageOffset);
+      var index;
       var svApp = getSingleVariantApp(app.manifestURL);
       if (svApp && !isPreviouslyInstalled(app.manifestURL)) {
         index = svApp.screen;
         icon.descriptor.desiredPos = svApp.location;
+        if (!Configurator.isSimPresentOnFirstBoot && index < pages.length &&
+            !pages[index].hasEmptySlot()) {
+          index = getFirstPageWithEmptySpace(index);
+        }
+      } else {
+        index = getFirstPageWithEmptySpace(gridPageOffset);
       }
 
       if (index < pages.length) {

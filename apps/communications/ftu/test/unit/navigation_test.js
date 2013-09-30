@@ -9,6 +9,7 @@ requireApp('communications/ftu/test/unit/mock_sim_manager.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
 requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_utils.js');
+requireApp('communications/ftu/test/unit/mock_operatorVariant.js');
 requireApp('communications/ftu/js/navigation.js');
 
 mocha.globals(['open']);
@@ -17,7 +18,8 @@ var _;
 var mocksHelperForNavigation = new MocksHelper([
   'UIManager',
   'SimManager',
-  'DataMobile'
+  'DataMobile',
+  'OperatorVariant'
 ]);
 mocksHelperForNavigation.init();
 
