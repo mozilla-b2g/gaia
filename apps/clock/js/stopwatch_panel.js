@@ -163,11 +163,15 @@
     var li = document.createElement('li');
     li.setAttribute('class', 'lap-cell');
     var html = this.lapTemplate.interpolate({
-      num: String(num),
       time: time
     });
     li.innerHTML = html;
     node.insertBefore(li, node.firstChild);
+    navigator.mozL10n.localize(
+      li.querySelector('.lap-name'),
+      'lap-number',
+      { n: num }
+    );
   };
 
   Stopwatch.Panel.prototype.onreset = function() {
