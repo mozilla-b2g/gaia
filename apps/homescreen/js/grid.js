@@ -892,10 +892,11 @@ var GridManager = (function() {
    * Initialize the mozApps event handlers and synchronize our grid
    * state with the applications known to the system.
    */
-  function initApps(apps) {
+  function initApps(callback) {
     var appMgr = navigator.mozApps.mgmt;
 
     if (!appMgr) {
+      setTimeout(callback);
       return;
     }
 
@@ -942,6 +943,8 @@ var GridManager = (function() {
       }
 
       ensurePagesOverflow(removeEmptyPages);
+
+      callback();
     };
   }
 
@@ -1303,14 +1306,12 @@ var GridManager = (function() {
 
       pageHelper.addPage(pageIcons, numberOfIcons);
     }, function onSuccess() {
-      initApps();
-      callback();
+      initApps(callback);
     }, function onError(error) {
       var dockContainer = document.querySelector(options.dockSelector);
       var dock = new Dock(dockContainer, []);
       DockManager.init(dockContainer, dock, tapThreshold);
-      initApps();
-      callback();
+      initApps(callback);
     }, function eachSVApp(svApp) {
       GridManager.svPreviouslyInstalledApps.push(svApp);
     });
