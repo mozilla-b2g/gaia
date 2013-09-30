@@ -517,7 +517,8 @@ contacts.Form = (function() {
       }
 
     } else {
-      contact = new mozContact(myContact);
+      contact = new mozContact();
+      contact.init(myContact);
     }
 
     updateCategoryForImported(contact);

@@ -120,6 +120,7 @@ fb.Contact = function(deviceContact, cid) {
   };
 
   function doSave(outReq) {
+    var contactObj = new mozContact();
     // Info to be saved on mozContacts
     var contactInfo = {};
 
@@ -132,7 +133,7 @@ fb.Contact = function(deviceContact, cid) {
 
     doSetFacebookUid(contactInfo, contactData.uid);
 
-    var contactObj = new mozContact(contactInfo);
+    contactObj.init(contactInfo);
 
     var fbReq = persistToFbCache(contactData);
 
@@ -681,7 +682,8 @@ fb.Contact = function(deviceContact, cid) {
               data.url = imported.url;
               doSetFacebookUid(data, uid);
 
-              var mcontact = new mozContact(data);
+              var mcontact = new mozContact();
+              mcontact.init(data);
 
               // The FB contact is restored
               var reqRestore = navigator.mozContacts.save(mcontact);
