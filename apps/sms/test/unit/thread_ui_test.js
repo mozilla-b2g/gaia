@@ -2090,27 +2090,35 @@ suite('thread_ui.js >', function() {
   // error on a thread with just that message, should leave
   // the thread with just one message.
   suite('Message error resent in thread with 1 message', function() {
+    var message, request;
     setup(function() {
-      ThreadUI.appendMessage({
+      message = {
         id: 23,
         type: 'sms',
         body: 'This is a error sms',
         delivery: 'error',
         timestamp: new Date()
-      });
-      sinon.stub(window, 'confirm');
+      };
+      ThreadUI.appendMessage(message);
+
+      this.sinon.stub(window, 'confirm');
+      // TODO use MockMessageManager instead
+      request = {};
+      this.sinon.stub(MessageManager, 'getMessage').returns(request);
+      this.sinon.stub(MessageManager, 'resendMessage');
       this.errorMsg = ThreadUI.container.querySelector('.error');
-    });
-    teardown(function() {
-      window.confirm.restore();
     });
 
     test('clicking on an error message bubble in a thread with 1 message ' +
-      'should try to resend and leave a thread with 1 message',
+      'should try to resend and remove the errored message',
       function() {
       window.confirm.returns(true);
       this.errorMsg.querySelector('.pack-end').click();
-      assert.equal(ThreadUI.container.querySelectorAll('li').length, 1);
+
+      request.result = message;
+      request.onsuccess && request.onsuccess.call(request);
+      assert.isNull(ThreadUI.container.querySelector('li'));
+      assert.ok(MessageManager.resendMessage.calledWith(message));
     });
   });
 
