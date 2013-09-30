@@ -311,14 +311,17 @@ class GaiaData(object):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
 
+    @property
     def music_files(self):
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllMusic();')
 
+    @property
     def picture_files(self):
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllPictures();')
 
+    @property
     def video_files(self):
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllVideos();')
