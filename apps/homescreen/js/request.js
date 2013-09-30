@@ -22,6 +22,7 @@ var ConfirmDialog = (function() {
   return {
     hide: function dialog_hide() {
       dialog.classList.remove('visible');
+      cancelButton.onclick = confirmButton.onclick = null;
     },
 
     show: function dialog_show(title, msg, cancel, confirm) {

@@ -94,12 +94,6 @@ li:active {
   opacity: 0.1;
 }
 
-/* Confirm dialog is hidden by default */
-#confirm-dialog {
-  display: none;
-}
-
-
 .apps ol > li[data-is-collection = "true"] > div > img,
 #footer ol > li[data-is-collection = "true"] > div > img {
   position: relative;

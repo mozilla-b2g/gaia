@@ -2,6 +2,11 @@ form[role="dialog"][data-type="confirm"] {
   z-index: 20001; /* just below the sleep menu */
 }
 
+/* Confirm dialog is hidden by default */
+#confirm-dialog {
+  display: none;
+}
+
 #confirm-dialog.visible {
   display: block;
 }

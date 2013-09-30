@@ -59,7 +59,7 @@ window.Evme = new function Evme_Core() {
 
     if (
     // hide suggested collections list if open
-    Evme.CollectionsSuggest.hide() ||
+    Evme.CollectionsSuggest && Evme.CollectionsSuggest.hide() ||
     // stop editing if active
     Evme.Collection.toggleEditMode(false) ||
     // close full screen background image if visible
@@ -312,7 +312,7 @@ window.Evme = new function Evme_Core() {
             "elList": document.getElementById('collections-select'),
             "elParent": Evme.Utils.getContainer()
           });
-          
+
           window.removeEventListener('suggestcollections', initSuggestCollections);
           window.addEventListener('suggestcollections', onSuggestCollections);
           window.dispatchEvent(e);

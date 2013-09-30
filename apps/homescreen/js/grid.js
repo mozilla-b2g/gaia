@@ -1211,9 +1211,12 @@ var GridManager = (function() {
   }
 
   function showRestartDownloadDialog(icon) {
-    LazyLoader.load(['shared/style/buttons.css', 'shared/style/headers.css',
-                     'shared/style/confirm.css', 'style/request.css',
-                     'js/request.js'], function() {
+    LazyLoader.load(['shared/style/buttons.css',
+                     'shared/style/headers.css',
+                     'shared/style/confirm.css',
+                     'style/request.css',
+                     document.getElementById('confirm-dialog'),
+                     'js/request.js'], function loaded() {
       doShowRestartDownloadDialog(icon);
     });
   }

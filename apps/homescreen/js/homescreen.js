@@ -174,8 +174,11 @@ var Homescreen = (function() {
      *                      The application object.
      */
     showAppDialog: function h_showAppDialog(app) {
-      LazyLoader.load(['shared/style/buttons.css', 'shared/style/headers.css',
-                       'shared/style/confirm.css', 'style/request.css',
+      LazyLoader.load(['shared/style/buttons.css',
+                       'shared/style/headers.css',
+                       'shared/style/confirm.css',
+                       'style/request.css',
+                       document.getElementById('confirm-dialog'),
                        'js/request.js'], function loaded() {
         ConfirmDialog.showApp(app);
       });
