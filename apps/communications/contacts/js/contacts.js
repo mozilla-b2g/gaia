@@ -36,6 +36,8 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
+  var tagDone, tagCancel, lazyLoadedTagsDom = false;
+
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
@@ -318,12 +320,20 @@ var Contacts = (function() {
     return true;
   };
 
-  var goToSelectTag = function goToSelectTag(event) {
-    contactTag = event.currentTarget.children[0];
+  function showSelectTag() {
     var tagsList = document.getElementById('tags-list');
     var customTag = document.getElementById('custom-tag');
     var selectedTagType = contactTag.dataset.taglist;
     var options = TAG_OPTIONS[selectedTagType];
+
+    if (!tagDone) {
+      tagDone = document.querySelector('#settings-done');
+      tagDone.addEventListener('click', handleSelectTagDone);
+    }
+    if (!tagCancel) {
+      tagCancel = document.querySelector('#settings-cancel');
+      tagCancel.addEventListener('click', handleBack);
+    }
 
     for (var i in options) {
       options[i].value = _(options[i].type);
@@ -334,6 +344,22 @@ var Contacts = (function() {
     navigation.go('view-select-tag', 'right-left');
     if (document.activeElement) {
       document.activeElement.blur();
+    }
+  }
+
+  var goToSelectTag = function goToSelectTag(event) {
+    contactTag = event.currentTarget.children[0];
+
+    var tagViewElement = document.getElementById('view-select-tag');
+    if (!lazyLoadedTagsDom) {
+       LazyLoader.load(tagViewElement, function() {
+        navigator.mozL10n.translate(tagViewElement);
+        showSelectTag();
+        lazyLoadedTagsDom = true;
+       });
+    }
+    else {
+      showSelectTag();
     }
   };
 
@@ -572,8 +598,6 @@ var Contacts = (function() {
         }
       ],
       'button[type="reset"]': stopPropagation,
-      '#settings-done': handleSelectTagDone,
-      '#settings-cancel': handleBack,
       // Bug 832861: Click event can't be synthesized correctly on customTag by
       // mouse_event_shim due to Gecko bug.  Use ontouchend here.
       '#custom-tag': [
