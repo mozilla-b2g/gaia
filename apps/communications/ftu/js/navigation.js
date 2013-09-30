@@ -267,6 +267,11 @@ var Navigation = {
 
   manageStep: function n_manageStep() {
     var self = this;
+    //SV - We need remember if phone startup with SIM
+    if (self.currentStep >= numSteps) {
+      OperatorVariant.setSIMOnFirstBootState();
+    }
+
     // Retrieve future location
     var futureLocation = steps[self.currentStep];
     // There is some locations which need a 'loading'

@@ -12,6 +12,7 @@
     for (var key in obj) {
       settings[key] = obj[key];
     }
+    return {};
   }
 
   function mns_mLockGet(key) {
