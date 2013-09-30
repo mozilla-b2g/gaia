@@ -62,13 +62,13 @@ var LockScreen = {
   /*
   * If user is sliding.
   */
-  _sliderPulling: false,
+  _slidePulling: false,
 
   /*
-  * If user released the finger and the handler had already
+  * If user had released the finger and the handle already
   * reached one of the ends.
   */
-  _sliderReachEnd: false,
+  _slideReachEnd: false,
 
   /*
   * Detect if sliding crossed the middle line.
@@ -474,8 +474,8 @@ var LockScreen = {
 
     if (!touch.touched) {
 
-      // Do nothing if the user have not move the finger to the slider yet.
-      if (!this._sliderPulling)
+      // Do nothing if the user have not move the finger to the slide yet.
+      if (!this._slidePulling)
         return;
 
       touch.touched = true;
@@ -497,12 +497,12 @@ var LockScreen = {
   handleSlideBegin: function() {
     this.lightIcons();
     this.restoreSlider();
-    this._sliderPulling = true;
+    this._slidePulling = true;
   },
 
   handleSlide: function() {
 
-    if (!this._sliderPulling)
+    if (!this._slidePulling)
       return;
 
     var tx = this._touch.tx;
@@ -513,7 +513,7 @@ var LockScreen = {
     // Drag from left to right or counter-direction.
     if ('' !== this._slidingToward && dir !== this._slidingToward) {
       this.restoreSlider();
-      this._sliderPulling = true;
+      this._slidePulling = true;
     }
     this._slidingToward = dir;
 
@@ -534,24 +534,25 @@ var LockScreen = {
 
     var offset = utx;
 
-    // If the front-end slider reached the boundary.
+    // If the front-end slide reached the boundary.
     // We plus and minus the icon width because maxLength should be fixed,
-    // and only the handler and the blue occurred area should be adjusted.
-    if (offset + this.sliderLeft.clientWidth > maxLength) {
-      this._sliderReachEnd = true;
-      offset = maxLength - this.sliderLeft.clientWidth;
-      this.handleIconClick('left' === dir ? this.leftIcon : this.rightIcon);
+    // and only the handle and the blue occurred area should be adjusted.
+    if (offset + this.slideLeft.clientWidth > maxLength) {
+      this._slideReachEnd = true;
+      offset = maxLength - this.slideLeft.clientWidth;
+    } else {
+      this._slideReachEnd = false;
     }
 
-    // Start to paint the slider.
-    this.sliderLeft.classList.add('pulling');
-    this.sliderRight.classList.add('pulling');
+    // Start to paint the slide.
+    this.slideLeft.classList.add('pulling');
+    this.slideRight.classList.add('pulling');
 
-    var subject = ('right' === dir) ? this.sliderRight : this.sliderLeft;
-    var cntsubject = ('right' === dir) ? this.sliderLeft : this.sliderRight;
+    var subject = ('right' === dir) ? this.slideRight : this.slideLeft;
+    var cntsubject = ('right' === dir) ? this.slideLeft : this.slideRight;
 
     // Need to set this to let transition event triggered while
-    // we bounce the handlers back.
+    // we bounce the handles back.
     // @see `restoreSlider`
     cntsubject.style.transform = 'translateX(0px)';
 
@@ -567,31 +568,31 @@ var LockScreen = {
     var cScale = offset + glitchS;
 
     if ('right' === dir) {
-      this.sliderCenter.style.transform = 'translateX(' + cMove + 'px)';
+      this.slideCenter.style.transform = 'translateX(' + cMove + 'px)';
     } else {
-      this.sliderCenter.style.transform = 'translateX(-' + cMove + 'px)';
+      this.slideCenter.style.transform = 'translateX(-' + cMove + 'px)';
     }
-    this.sliderCenter.style.transform += 'scaleX(' + cScale + ')';
+    this.slideCenter.style.transform += 'scaleX(' + cScale + ')';
 
     this._slideCount += utx;
     if (this._slideCount > 15) {
 
       // Add the effects to these icons.
-      this.sliderLeft.classList.add('touched');
-      this.sliderCenter.classList.add('touched');
-      this.sliderRight.classList.add('touched');
+      this.slideLeft.classList.add('touched');
+      this.slideCenter.classList.add('touched');
+      this.slideRight.classList.add('touched');
     }
     this.darkIcon();
     this._slideCount = 0;
   },
 
-  // Restore all slider elements.
+  // Restore all slide elements.
   //
   // easing {Boolean} true|undefined to bounce back slowly.
   restoreSlider: function(easing) {
 
     // Mimic the `getAllElements` function...
-    [this.sliderLeft, this.sliderRight, this.sliderCenter]
+    [this.slideLeft, this.slideRight, this.slideCenter]
       .forEach(function ls_rSlider(h) {
         if (easing) {
 
@@ -622,22 +623,24 @@ var LockScreen = {
         h.style.transform = '';
     });
 
-    this._sliderPulling = false;
-    this._sliderReachEnd = false;
+    this._slidePulling = false;
+    this._slideReachEnd = false;
   },
 
   handleSlideEnd: function() {
     // Bounce back to the center immediately.
-    if (false === this._sliderReachEnd) {
+    if (false === this._slideReachEnd) {
       this.restoreSlider(true);
     } else {
       // Restore it only after screen changed.
       var appLaunchDelay = 400;
       setTimeout(this.restoreSlider.bind(this, true), appLaunchDelay);
+      this.handleIconClick('left' === this._slidingToward ?
+        this.leftIcon : this.rightIcon);
     }
     this.darkIcon();
     this._slideCount = 0;
-    this._sliderPulling = false;
+    this._slidePulling = false;
   },
 
   handleIconClick: function ls_handleIconClick(target) {
@@ -1164,8 +1167,8 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'area-slider', 'passcode-code', 'alt-camera',
-        'alt-camera-button', 'slider-handler',
+        'area-handle', 'area-slide', 'passcode-code', 'alt-camera',
+        'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
 
@@ -1182,9 +1185,9 @@ var LockScreen = {
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
 
-    this.sliderLeft = this.sliderHandler.getElementsByTagName('div')[0];
-    this.sliderCenter = this.sliderHandler.getElementsByTagName('div')[1];
-    this.sliderRight = this.sliderHandler.getElementsByTagName('div')[2];
+    this.slideLeft = this.slideHandle.getElementsByTagName('div')[0];
+    this.slideCenter = this.slideHandle.getElementsByTagName('div')[1];
+    this.slideRight = this.slideHandle.getElementsByTagName('div')[2];
 
     var slcLeft = '#lockscreen-icon-container .lockscreen-icon-left';
     var slcRight = '#lockscreen-icon-container .lockscreen-icon-right';
