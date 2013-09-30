@@ -511,9 +511,12 @@ contacts.List = (function() {
     if (i < rowsPerPage)
       notifyAboveTheFold();
 
-    Contacts.view('Search', function viewLoaded() {
+    // If the search view has been activated by the user, then send newly
+    // loaded contacts over to populate any in-progress search.  Nothing
+    // to do if search is not actived.
+    if (contacts.Search && contacts.Search.appendNodes) {
       contacts.Search.appendNodes(nodes);
-    });
+    }
   }
 
   // Time until we show the first contacts "above the fold" is a very
