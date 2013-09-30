@@ -1,7 +1,6 @@
 define(function(require) {
   'use strict';
 
-  var Alarm = require('alarm');
   var Utils = require('utils');
 
   function MockAlarmsDB() {
@@ -27,12 +26,12 @@ define(function(require) {
 
     putAlarm: function(alarm, callback) {
       if (!alarm.id) {
-        alarm = new Alarm(Utils.extend(
+        alarm = new (require('alarm'))(Utils.extend(
           alarm.toSerializable(),
           { id: this.idCount++ }
         ));
       } else {
-        alarm = new Alarm(alarm.toSerializable());
+        alarm = new (require('alarm'))(alarm.toSerializable());
       }
       this.alarms.set(alarm.id, alarm);
       setTimeout(function() {
