@@ -202,6 +202,12 @@ var ModalDialog = {
       message = escapeHTML(message);
     }
 
+    // XXX: Bug 916658 - Remove unused l10n resources from b2g gecko
+    // If we have removed translations from Gecko, then we can remove this.
+    if (target && target.dataset.frameType === 'window') {
+      title = '';
+    }
+
     switch (type) {
       case 'alert':
         elements.alertMessage.innerHTML = message;
