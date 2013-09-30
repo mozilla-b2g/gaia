@@ -32,7 +32,8 @@ Evme.Utils = new function Evme_Utils() {
           "HIDE_MENU": "hide-menu",
           "MENU_HEIGHT": "menu-height",
           "EVME_OPEN": "evme-open",
-          "GET_ICON_SIZE": "get-icon-size"
+          "GET_ICON_SIZE": "get-icon-size",
+          "SET_WALLPAPER": "set-wallpaper"
         },
 
         host = document.location.host,
@@ -163,6 +164,8 @@ Evme.Utils = new function Evme_Utils() {
             case OSMessages.EVME_OPEN:
                 EvmeManager.isEvmeVisible(data.isVisible);
                 break;
+            case OSMessages.SET_WALLPAPER:
+              return EvmeManager.setWallpaper(data);
         }
     };
 
