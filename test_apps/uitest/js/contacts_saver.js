@@ -10,8 +10,13 @@ function ContactsSaver(data) {
   }
 
   function saveContact(cdata) {
-    var contact = new mozContact();
-    contact.init(cdata);
+    if (cdata.bday) {
+      cdata.bday = new Date(cdata.bday);
+    }
+    if (cdata.anniversary) {
+      cdata.anniversary = new Date(cdata.anniversary);
+    }
+    var contact = new mozContact(cdata);
     var req = navigator.mozContacts.save(contact);
     req.onsuccess = function(e) {
       if (typeof self.onsaved === 'function') {
