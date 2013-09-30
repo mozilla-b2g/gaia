@@ -21,5 +21,21 @@
   "alarmList": "#alarms",
   "alarmListItemS": ".alarm-cell",
   "alarmEnablerS": ".alarm-cell .alarmEnable",
-  "countdownBanner": "#banner-countdown"
+  "countdownBanner": "#banner-countdown",
+  "timer": {
+    "createBtn": "#timer-create",
+    "countdown": "#timer-time",
+    "pauseBtn": "#timer-pause",
+    "resumeBtn": "#timer-start",
+    "cancelBtn": "#timer-cancel",
+    "timeDisplay": "#timer-time-display",
+    "spinner": {
+      "hours": ".picker-hours-wrapper",
+      "hourS": ".picker-hours-wrapper .picker-unit",
+      "minutes": ".picker-minutes-wrapper",
+      "minuteS": ".picker-minutes-wrapper .picker-unit",
+      "seconds": ".picker-seconds-wrapper",
+      "secondS": ".picker-seconds-wrapper .picker-unit"
+    }
+  }
 }
