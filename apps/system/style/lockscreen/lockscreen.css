@@ -245,33 +245,33 @@
   border-radius: 3rem;
 }
 
-#lockscreen-area-slider {
+#lockscreen-area-slide {
   text-align: center;
   width: calc(100%);
 }
 
-#lockscreen-slider-handler {
+#lockscreen-slide-handle {
   position: relative;
   top: -8.3rem;
 }
 
 @media (orientation:landscape) {
-  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+  #lockscreen-area-slide #lockscreen-slide-track .lockscreen-slide-center {
     width: 35rem;
   }
 }
 
 @media (orientation:portrait) {
-  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+  #lockscreen-area-slide #lockscreen-slide-track .lockscreen-slide-center {
     width: 22rem;
   }
 }
 
-#lockscreen-area-slider #lockscreen-slider-track .lockscreen-icon {
+#lockscreen-area-slide #lockscreen-slide-track .lockscreen-icon {
   border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
-#lockscreen-area-slider .lockscreen-icon {
+#lockscreen-area-slide .lockscreen-icon {
   background-color: rgba(0, 0, 0, 0.3);
   -moz-box-sizing: border-box;
   border: 0.2rem solid rgba(255, 255, 255, 0.8);
@@ -279,7 +279,7 @@
   transition: width 0.2s ease, background-color 0.5s linear, border-color 0.5s linear;
 }
 
-#lockscreen-area-slider .lockscreen-slider-left.lockscreen-icon {
+#lockscreen-area-slide .lockscreen-slide-left.lockscreen-icon {
   /* half-circle toward left */
   border-radius: 6rem 0 0 6rem;
   border-right: none;
@@ -291,22 +291,22 @@
   width: 3rem;
 }
 
-.lockscreen-slider-left.lockscreen-icon > span {
+.lockscreen-slide-left.lockscreen-icon > span {
   /* float to prevent its parent got wrong place */
   float: left;
   font-size: 32pt;
   margin-left: 0.5rem;
 }
 
-.lockscreen-slider-left.touched > span {
+.lockscreen-slide-left.touched > span {
   display: none;
 }
 
-.lockscreen-slider-right.touched> span {
+.lockscreen-slide-right.touched> span {
   display: none;
 }
 
-#lockscreen-area-slider .lockscreen-slider-center.lockscreen-icon {
+#lockscreen-area-slide .lockscreen-slide-center.lockscreen-icon {
   display: inline-block;
   border-left: none;
   border-right: none;
@@ -321,12 +321,12 @@
   width: 1px; /* for the default circle */
 }
 
-#lockscreen-area-slider .touched {
+#lockscreen-area-slide .touched {
   border-color: #00aacc;
   background-color:  #00aacc;
 }
 
-#lockscreen-area-slider .lockscreen-slider-right.lockscreen-icon {
+#lockscreen-area-slide .lockscreen-slide-right.lockscreen-icon {
   border-left: none;
 
   /* half-circle toward right */
@@ -339,7 +339,7 @@
   width: 3rem;
 }
 
-.lockscreen-slider-right.lockscreen-icon > span {
+.lockscreen-slide-right.lockscreen-icon > span {
   /* float to prevent its parent got wrong place */
   float: right;
   font-size: 32pt;
