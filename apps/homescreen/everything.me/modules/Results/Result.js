@@ -192,7 +192,8 @@ Evme.Result = function Evme_Result() {
     e.stopPropagation();
   }
 
-  function cbRemoveClick() {
+  function cbRemoveClick(e) {
+    e.stopPropagation();
     Evme.EventHandler.trigger(NAME, "remove", {
       "id": self.cfg.id
     });
