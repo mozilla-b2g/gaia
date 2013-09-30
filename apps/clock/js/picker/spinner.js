@@ -1,14 +1,26 @@
 (function(exports) {
   'use strict';
 
-  var SPEED_THRESHOLD = 0.1;
+  // units covered per millisecond threshold to kick off inertia
+  var SPEED_THRESHOLD = 0.01;
+
+  // max units covered by inertia
+  var INERTIA_MAXIMUM = 15;
+
+  // not the same as animation duration, this accounts for "slowing down",
+  // measured in miliseconds
+  var INERTIA_DURATION = 300;
+
+  // number of milliseconds after last motion without leting go
+  // we will select whatever is being "hovered" and cancel momentum
+  var DRAGGING_TIMEOUT = 200;
 
   function calculateSpeed(previous, current) {
-    var motion = previous.y - current.y;
+    var motion = (previous.y - current.y) / this.unitHeight;
     var delta = current.time - previous.time;
     var speed = motion / delta;
 
-    return parseFloat(speed.toFixed(2));
+    return parseFloat(speed.toFixed(4)) || 0;
   }
 
   function Touch(touch = {}) {
@@ -37,44 +49,7 @@
    *
    */
   function Spinner(setup = {}) {
-    this.element = setup.element;
-    this.values = setup.values;
-    this.template = new Template('picker-unit-tmpl');
-
-    this.top = 0;
-    this.space = 0;
-
-    this.lower = 0;
-    this.upper = setup.values.length - 1;
-    this.range = setup.values.length;
-    this.unit = 0;
-    this.direction = 0;
-
-    this.index = 0;
-
-    this.previous = new Touch();
-    this.current = new Touch();
-
-    this.timeout = null;
-
-    var length = this.values.length;
-    var html = '';
-    var speed = 0;
-    var node;
-
-    for (var i = 0; i < length; i++) {
-      html += this.template.interpolate({
-        // Coerce the number value to a string
-        unit: this.values[i] + ''
-      });
-    }
-
-    this.element.innerHTML = html;
-
-    this.element.addEventListener('touchstart', this, false);
-    this.element.addEventListener('pan', this, false);
-    this.element.addEventListener('swipe', this, false);
-
+    // define some non writable properties
     Object.defineProperties(this, {
       value: {
         get: function() {
@@ -83,17 +58,55 @@
         set: function(value) {
           this.select(this.values.indexOf(value));
         }
+      },
+      container: {
+        value: setup.element.parentNode
+      },
+      element: {
+        value: setup.element
+      },
+      values: {
+        value: setup.values
+      },
+      length: {
+        value: setup.values.length
       }
     });
 
-    this.select(0);
+    this.template = new Template('picker-unit-tmpl');
 
-    new GestureDetector(this.element).startDetecting();
+    this.top = 0;
+    this.space = 0;
+    this.index = 0;
+
+    this.previous = new Touch();
+    this.current = new Touch();
+
+    this.timeout = null;
+
+    var html = '';
+
+    for (var i = 0; i < this.length; i++) {
+      html += this.template.interpolate({
+        // Coerce the number value to a string
+        unit: this.values[i] + ''
+      });
+    }
+
+    this.element.innerHTML = html;
+
+    this.container.addEventListener('touchstart', this, false);
+    this.container.addEventListener('pan', this, false);
+    this.container.addEventListener('swipe', this, false);
+
+    this.reset();
+
+    new GestureDetector(this.container).startDetecting();
   }
 
   Spinner.prototype.reset = function() {
-    this.unit = this.element.children[0].clientHeight;
-    this.space = this.unit * this.range;
+    this.unitHeight = this.element.children[0].clientHeight;
+    this.space = this.unitHeight * this.length;
     this.index = 0;
     this.top = 0;
     this.update();
@@ -107,19 +120,19 @@
 
     index = Math.round(index);
 
-    if (index < this.lower) {
-      index = this.lower;
+    if (index < 0) {
+      index = 0;
     }
 
-    if (index > this.upper) {
-      index = this.upper;
+    if (index > this.length - 1) {
+      index = this.length - 1;
     }
 
     if (index !== this.index) {
       this.index = index;
     }
 
-    this.top = -this.index * this.unit;
+    this.top = -this.index * this.unitHeight;
     this.update();
 
     return index;
@@ -127,6 +140,15 @@
 
   Spinner.prototype.handleEvent = function(event) {
     this['on' + event.type](event);
+  };
+
+  Spinner.prototype.stopInteraction = function() {
+    this.element.classList.add('animation-on');
+
+    clearTimeout(this.timeout);
+
+    this.select(this.index);
+    this.speed = 0;
   };
 
   /**
@@ -154,42 +176,46 @@
 
     this.current.y = position.clientY;
     this.current.time = position.timeStamp;
-
-    this.speed = calculateSpeed(this.previous, this.current);
+    this.speed = calculateSpeed.call(this, this.previous, this.current);
 
     diff = this.current.y - this.previous.y;
-    moving = Math.abs(this.speed) > SPEED_THRESHOLD ? diff : diff / 4;
 
-    this.top = this.top + moving;
+    this.top = this.top + diff;
 
     if (this.top > 0) {
       this.top = 0;
     }
+    if (this.top < -this.space) {
+      this.top = -this.space;
+    }
 
-    this.index = Math.round(Math.abs(this.top) / this.unit);
+    this.index = Math.round(Math.abs(this.top) / this.unitHeight);
     this.update();
 
-    clearInterval(this.timeout);
+    clearTimeout(this.timeout);
 
-    this.timeout = setTimeout(this.onswipe.bind(this), 200);
+    var stopInteraction = this.stopInteraction.bind(this);
+    this.timeout = setTimeout(stopInteraction, DRAGGING_TIMEOUT);
 
     this.previous.y = this.current.y;
     this.previous.time = this.current.time;
   };
 
   Spinner.prototype.onswipe = function(event) {
+
     event.stopPropagation();
-    this.element.classList.add('animation-on');
 
-    clearInterval(this.timeout);
+    // Add momentum if speed is higher than a given threshold.
+    var direction = this.speed > 0 ? 1 : -1;
+    var speed = this.speed / direction;
+    if (speed >= SPEED_THRESHOLD) {
+      this.index += Math.round(
+        Math.min(speed * INERTIA_DURATION, INERTIA_MAXIMUM) * direction
+      );
+    }
 
-    var index = this.index;
+    this.stopInteraction();
 
-    // TODO: File ticket to calculate new index
-    //        based on last pan event's speed.
-
-    this.select(index);
-    this.speed = 0;
   };
 
   exports.Spinner = Spinner;
