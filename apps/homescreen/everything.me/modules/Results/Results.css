@@ -141,7 +141,7 @@
     display: block;
 }
 
-.evmeScope .evme-apps section[role="notification"].show,
+.evmeScope:not(.connection-error) .evme-apps section[role="notification"].show,
 .evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
     display: block;
     visibility: visible;
