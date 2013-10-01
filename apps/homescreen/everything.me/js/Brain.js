@@ -640,15 +640,21 @@ this.InstalledAppsService = new function InstalledAppsService() {
         this.hold = function hold(data) {
             currentHoldData = data;
 
-            if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
-                if (Evme.Collection.isOpen()) {
+            // in collection
+            if (Evme.Collection.isOpen()) {
+                if (data.app.cfg.isStatic === true) {
+                    Evme.Collection.toggleEditMode(true);
+                } else if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
                     Evme.Collection.toggleEditMode(false);
                     openCloudAppMenu(data);
-                } else {
+                }
+            }
+                
+            // in search
+            else {
+                if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
                     saveToHomescreen(data, true);
                 }
-            } else if (data.app.type === Evme.RESULT_TYPE.INSTALLED && !Evme.Collection.editMode) {
-                Evme.Collection.toggleEditMode(true);
             }
         };
 
