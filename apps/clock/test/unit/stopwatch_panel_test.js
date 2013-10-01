@@ -203,7 +203,7 @@ suite('Stopwatch.Panel', function() {
     laps = panel.nodes['laps'].querySelectorAll('li');
     assert.equal(laps.length, 0);
     assert.equal(panel.nodes.time.textContent, '00:00');
-    
+
 
   });
 

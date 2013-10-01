@@ -110,7 +110,7 @@
 
   Stopwatch.Panel.prototype.onvisibilitychange = function(isVisible) {
     var stopwatch = priv.get(this).stopwatch;
-    if (isVisible) {      
+    if (isVisible) {
       this.setState(stopwatch.getState());
     } else {
       // Clear the interval that updates the time display

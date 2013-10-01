@@ -33,7 +33,7 @@ suite('Timer.Panel', function() {
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
-  });  
+  });
 
   test('shape:prototype ', function() {
     assert.ok(Timer.Panel);
@@ -84,13 +84,13 @@ suite('Timer.Panel', function() {
 
     panel.toggle(start, pause);
 
-    assert.isFalse(start.classList.contains('hidden'));
-    assert.isTrue(pause.classList.contains('hidden'));
+    assert.isFalse(isHidden(start));
+    assert.isTrue(isHidden(pause));
 
     panel.toggle(pause, start);
 
-    assert.isTrue(start.classList.contains('hidden'));
-    assert.isFalse(pause.classList.contains('hidden'));
+    assert.isTrue(isHidden(start));
+    assert.isFalse(isHidden(pause));
   });
 
   test('Set timer state (paused)', function() {
