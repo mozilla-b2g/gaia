@@ -1068,8 +1068,8 @@ var ThreadUI = global.ThreadUI = {
     Draft.load(threadId, function oncomplete(draft) {
       if (draft) {
         Compose.fillDraftContent(draft);
+        draft.delete();
       }
-      draft.delete();
     });
   },
 
@@ -1521,8 +1521,11 @@ var ThreadUI = global.ThreadUI = {
 
   saveDraft: function thui_saveDraft() {
     if (Threads.currentId) {
-      console.log('Debug 1');
-      var draft = new Draft(Threads.currentId, Compose.getContent());
+      var draft = new Draft(
+        {
+          key: Threads.currentId,
+          content: Compose.getContent()
+        });
       draft.save();
     }
   },

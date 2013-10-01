@@ -111,7 +111,7 @@ var MessageManager = {
     Utils.updateTimeHeaders();
 
     //if the visibility is to hidden, save the draft of ThreadUI
-    if (document.visibilityState == 'hidden') {
+    if (document.visibilityState === 'hidden') {
        ThreadUI.saveDraft();
     }
 

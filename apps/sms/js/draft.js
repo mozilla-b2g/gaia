@@ -4,17 +4,21 @@
  * @return {Draft} new draft object.
  */
 
+'use strict';
+
 (function(exports) {
 
-  function Draft(draftKey, content, recipient) {
-    this.key = draftKey;
-    this.content = content;
+  function Draft(draft) {
+    this.key = draft.key;
+    this.content = draft.content;
+    this.recipients = draft.recipients || null;
+    this.timestamp = new Date().getTime();
   }
 
   Draft.prototype = {
 
     save: function dr_save(onsuccess) {
-      asyncStorage.setItem(this.key, this.content, onsuccess);
+      asyncStorage.setItem(this.key, this, onsuccess);
     },
 
     delete: function dr_delete(callback) {
@@ -23,10 +27,10 @@
 
   };
 
-  Draft.load = function dr_load(draftKey, callback) {
-    asyncStorage.getItem(draftKey, function(value) {
+  Draft.load = function dr_load(key, callback) {
+    asyncStorage.getItem(key, function(value) {
       if (value) {
-        callback(new Draft(draftKey, value));
+        callback(value);
       } else {
         callback(null);
       }
