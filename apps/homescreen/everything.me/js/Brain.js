@@ -67,11 +67,6 @@
         window.addEventListener('collectionlaunch', Evme.Collection.show);
         window.addEventListener('collectiondropapp', onAppDrop);
 
-        // prevent homescreen contextmenu
-        elContainer.addEventListener('contextmenu', function onTouchStart(e) {
-            e.stopPropagation();
-        });
-
         _config = options;
 
         NUMBER_OF_APPS_TO_LOAD = _config.numberOfAppsToLoad || DEFAULT_NUMBER_OF_APPS_TO_LOAD;
@@ -1056,7 +1051,6 @@ this.InstalledAppsService = new function InstalledAppsService() {
         };
 
         this.hide = function hide() {
-            Evme.CollectionsSuggest.Loading.hide();
             isOpen = false;
         };
 
@@ -1188,42 +1182,46 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
                 Evme.CollectionsSuggest.Loading.show();
 
-                EvmeManager.getCollections(function onCollections(collections) {
-                    var existingCollectionsQueries = [];
-                    for (var i = 0, collection; collection = collections[i++];) {
-                        existingCollectionsQueries.push(collection.manifest.name);
+                var gridCollections = EvmeManager.getCollections();
+
+                var existingCollectionsQueries = [];
+                for (var i = 0, collection; collection = gridCollections[i++];) {
+                    var name = EvmeManager.getIconName(collection.origin);
+                    if (name) {
+                        existingCollectionsQueries.push(name);    
+                    }
+                }
+
+                // load suggested shortcuts from API
+                requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
+                    "existing": existingCollectionsQueries
+                }, function onSuccess(data) {
+                    var suggestedShortcuts = data.response.shortcuts || [],
+                    icons = data.response.icons || {};
+
+                    if (!isRequesting) {
+                        return;
                     }
 
-                    // load suggested shortcuts from API
-                    requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
-                        "existing": existingCollectionsQueries
-                    }, function onSuccess(data) {
-                        var suggestedShortcuts = data.response.shortcuts || [],
-                        icons = data.response.icons || {};
+                    isFirstShow = false;
+                    isRequesting = false;
 
-                        if (!isRequesting) {
-                            return;
-                        }
+                    if (suggestedShortcuts.length === 0) {
+                        window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'no-more-shortcuts'));
+                        Evme.CollectionsSuggest.Loading.hide();
+                    } else {
+                        Evme.CollectionsSuggest.load({
+                            "shortcuts": suggestedShortcuts,
+                            "icons": icons
+                        });
 
-                        isFirstShow = false;
-                        isRequesting = false;
-
-                        if (suggestedShortcuts.length === 0) {
-                            window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'no-more-shortcuts'));
-                            Evme.CollectionsSuggest.Loading.hide();
-                        } else {
-                            Evme.CollectionsSuggest.load({
-                                "shortcuts": suggestedShortcuts,
-                                "icons": icons
-                            });
-
-                            Evme.CollectionsSuggest.show();
-                            // setting timeout to give the select box enough time to show
-                            // otherwise there's visible flickering
-                            window.setTimeout(Evme.CollectionsSuggest.Loading.hide, 300);
-                        }
-                    });
+                        Evme.CollectionsSuggest.show();
+                        // setting timeout to give the select box enough time to show
+                        // otherwise there's visible flickering
+                        window.setTimeout(Evme.CollectionsSuggest.Loading.hide, 300);
+                    }
                 });
+                
             });
         };
 

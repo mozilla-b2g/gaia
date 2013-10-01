@@ -6,6 +6,7 @@ Evme.Utils = new function Evme_Utils() {
         newUser = false, isTouch = false,
         parsedQuery = parseQuery(),
         elContainer = null,
+        elOverlay = null,
         headEl = document.querySelector('html>head'),
         filterSelectorTemplate = '.evme-apps ul:not({0}) li[{1}="{2}"]',
 
@@ -13,6 +14,7 @@ Evme.Utils = new function Evme_Utils() {
         uuidBlob = new Blob(),
 
         CONTAINER_ID = "evmeContainer", // main E.me container
+        OVERLAY_ID = "evmeOverlay",     // E.me element visible on all grid pages
         SCOPE_CLASS = "evmeScope",      // elements with E.me content
 
         COOKIE_NAME_CREDENTIALS = "credentials",
@@ -77,7 +79,7 @@ Evme.Utils = new function Evme_Utils() {
         isTouch = window.hasOwnProperty("ontouchstart");
 
         elContainer = document.getElementById(CONTAINER_ID);
-
+        elOverlay = document.getElementById(OVERLAY_ID);
         OS_ICON_SIZE = self.sendToOS(self.OSMessages.GET_ICON_SIZE);
     };
 
@@ -236,6 +238,10 @@ Evme.Utils = new function Evme_Utils() {
 
     this.getContainer = function getContainer() {
         return elContainer;
+    };
+
+    this.getOverlay = function getOverlay() {
+      return elOverlay;
     };
 
     this.getOSIconSize = function getOSIconSize() {

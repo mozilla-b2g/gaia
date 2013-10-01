@@ -1,20 +1,21 @@
 'use strict';
 
 Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
-  var NAME = 'CollectionsSuggest', self = this,
-      elList = null, elParent = null, active = false,
+  var NAME = 'CollectionsSuggest',
+      CUSTOM_OPT_VALUE = 'customCollectionValue',
+      CUSTOM_OPT_ID = 'custom-collection',
+      self = this,
+      elList = null,
+      elParent = null,
+      active = false,
       savedIcons = null;
 
   this.init = function init(options) {
     elParent = options.elParent;
 
-    elList = Evme.$create('select', {
-      "multiple": "true",
-      "id": "shortcuts-select"
-    });
-    elList.addEventListener("blur", onHide);
-
-    elParent.appendChild(elList);
+    elList = options.elList;
+    elList.addEventListener('blur', onBlur);
+    elList.addEventListener('change', onChange);
 
     Evme.EventHandler.trigger(NAME, 'init');
   };
@@ -25,6 +26,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
     }
 
     active = true;
+    elList.classList.add('visible');
     elList.focus();
     Evme.EventHandler.trigger(NAME, 'show');
 
@@ -37,6 +39,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
     }
 
     active = false;
+    elList.classList.remove('visible');
     window.focus();
     elList.blur();
 
@@ -46,6 +49,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
   };
 
   this.newCustom = function newCustom() {
+    elList.blur();
     var customQuery = prompt(Evme.Utils.l10n(NAME, "prompt-create"));
 
     if (!customQuery) {
@@ -83,8 +87,17 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
   };
 
   this.add = function add(shortcuts) {
-    var html = '',
-        shortcutsAdded = {};
+    var shortcutsAdded = {};
+
+    elList.innerHTML = '';
+
+    // custom collection
+    var optCustom = document.createElement('option');
+    optCustom.text = Evme.Utils.l10n('shortcut', 'custom');
+    optCustom.value = CUSTOM_OPT_VALUE;
+    optCustom.id = CUSTOM_OPT_ID;
+
+    elList.appendChild(optCustom);
 
     for (var i=0,shortcut,query,queryKey,experienceId,name; shortcut=shortcuts[i++];) {
       query = shortcut.query;
@@ -104,16 +117,15 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
       name = name.replace(/</g, '&lt;');
 
       if (!shortcutsAdded[queryKey]) {
-        html += '<option ' +
-          'value="' + query.replace(/"/g, '&quot;') + '" ' +
-          'data-experience="' + experienceId + '"' +
-          '>' + Evme.html(name) + '</option>';
+        var opt = document.createElement('option');
+        opt.text = Evme.html(name);
+        opt.value = query.replace(/"/g, '&quot;');
+        opt.dataset.experience = experienceId;
 
-        shortcutsAdded[queryKey] = true;
+        elList.appendChild(opt);
+              shortcutsAdded[queryKey] = true;
       }
     }
-
-    elList.innerHTML = html;
   };
 
   this.Loading = new function Loading() {
@@ -139,7 +151,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
         elButton.addEventListener("click", onLoadingCancel)
       });
 
-      Evme.Utils.getContainer().appendChild(el);
+      Evme.Utils.getOverlay().appendChild(el);
 
       active = true;
 
@@ -156,10 +168,25 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
     };
   };
 
-  function onHide() {
+  function isCustomSelected() {
+    var optCustom = document.getElementById(CUSTOM_OPT_ID);
+    return (optCustom && optCustom.selected);
+  }
+
+  function onChange() {
+    if (isCustomSelected()) {
+      self.newCustom();
+    }
+  }
+
+  function onBlur() {
     active = false;
+    self.Loading.hide();
     Evme.EventHandler.trigger(NAME, 'hide');
-    done();
+
+    if (!isCustomSelected()) {
+      done();
+    }
   }
 
   function onLoadingCancel(e) {

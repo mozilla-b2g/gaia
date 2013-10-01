@@ -24,6 +24,10 @@
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/headers.css"> -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"> -->
 
+    <!-- Lazy load for ContextMenuDialog -->
+    <!-- <link rel="stylesheet" type="text/css" href="style/contextmenu.css"> -->
+    <!-- <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"> -->
+
     <!-- Lazy load for Ev.me -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"> -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/status.css"> -->
@@ -43,6 +47,8 @@
     <script type="text/javascript" defer src="js/configurator.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <link rel="import" href="/elements/contextmenu.html">
   </head>
 
   <body data-mode="normal">
@@ -69,11 +75,15 @@
       </form>
     </section>
 
+    <section is="contextmenu-dialog" id="contextmenu-dialog"></section>
+
     <header id="paginationBar">
       <div class="paginationScroller" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" aria-controls="icongrid"></div>
     </header>
 
+    <!-- visible on all pages -->
     <div id="evmeOverlay" class="evmeScope">
+      <select id="collections-select" multiple="true"></select>
       <div id="collection">
         <div class="header">
           <div class="header-content">

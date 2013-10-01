@@ -36,7 +36,7 @@ var EverythingME = {
     activationIcon.addEventListener('contextmenu', onContextMenu);
     activationIcon.addEventListener('click', triggerActivateFromInput);
     window.addEventListener('collectionlaunch', triggerActivate);
-    window.addEventListener('collectiondropapp', triggerActivate);
+    window.addEventListener('suggestcollections', triggerActivate);
 
     // specifically for pseudo searchbar
     function triggerActivateFromInput(e) {
@@ -54,6 +54,7 @@ var EverythingME = {
       activationIcon.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('collectionlaunch', triggerActivate);
       window.removeEventListener('collectiondropapp', triggerActivate);
+      window.removeEventListener('suggestcollections', triggerActivate);
 
       // load styles required for Collection styling
       LazyLoader.load([
@@ -158,7 +159,6 @@ var EverythingME = {
           'modules/Results/ResultManager.js',
           'modules/Searchbar/Searchbar.js',
           'modules/SearchHistory/SearchHistory.js',
-          'modules/CollectionsSuggest/CollectionsSuggest.js',
           'modules/Collection/Collection.js'
         ],
         css_files = [
@@ -171,8 +171,7 @@ var EverythingME = {
           'modules/ConnectionMessage/ConnectionMessage.css',
           'modules/Helper/Helper.css',
           'modules/Results/Results.css',
-          'modules/Searchbar/Searchbar.css',
-          'modules/CollectionsSuggest/CollectionsSuggest.css'
+          'modules/Searchbar/Searchbar.css'
         ];
 
     var head = document.head;
