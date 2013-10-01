@@ -114,7 +114,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     // listeners
     window.addEventListener('appInstalled', onAppInstallChanged);
     window.addEventListener('appUninstalled', onAppInstallChanged);
-  }
+  };
 
   this.requestAppsInfo = function requestAppsInfo() {
     guidsToManifestURLs = {};

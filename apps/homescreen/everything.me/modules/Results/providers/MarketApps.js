@@ -14,24 +14,24 @@ Evme.MarketResult = function Evme_MarketResult(slug) {
   this.slug = slug;
 
   // @override
-  this.initIcon = function initIcon(baseHeight, textOffset) {
+  this.initIcon = function initIcon(height) {
     var canvas = document.createElement('canvas'),
         context = canvas.getContext('2d');
 
     canvas.width = TEXT_WIDTH;
-    canvas.height = baseHeight + TEXT_MARGIN + (2 * TEXT_HEIGHT) - 1;
+    canvas.height = height + TEXT_MARGIN + (2 * TEXT_HEIGHT) - 1;
 
     Evme.Utils.writeTextToCanvas({
       "text": "Download",
       "context": context,
-      "offset": textOffset + TEXT_MARGIN,
+      "offset": height + TEXT_MARGIN,
       "fontSize": FONT_SIZE
     });
 
     Evme.Utils.writeTextToCanvas({
       "text": this.cfg.name,
       "context": context,
-      "offset": textOffset + TEXT_MARGIN + FONT_SIZE + 1 * Evme.Utils.devicePixelRatio
+      "offset": height + TEXT_MARGIN + FONT_SIZE + 1 * Evme.Utils.devicePixelRatio
     });
 
     return canvas;

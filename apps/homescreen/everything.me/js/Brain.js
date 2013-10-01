@@ -726,29 +726,22 @@ this.InstalledAppsService = new function InstalledAppsService() {
                 }
             }
 
-            // get icon data
-            var appIcon = Evme.Utils.formatImageData(data.app.getIcon());
-            // make it round
-            Evme.Utils.getRoundIcon({
-                "src": appIcon
-            }, function onIconReady(roundedAppIcon) {
-                // bookmark - add to homescreen
-                EvmeManager.addGridItem({
-                    'originUrl': data.app.getFavLink(),
-                    'name': data.data.name,
-                    'icon': roundedAppIcon,
-                    'useAsyncPanZoom': data.app.isExternal()
-                });
-                // display system banner
-                Evme.Banner.show('app-install-success', {
-                    'name': data.data.name
-                });
+            // bookmark - add to homescreen
+            Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_INSTALL, {
+                'originUrl': data.app.getFavLink(),
+                'title': data.data.name,
+                'icon': Evme.Utils.formatImageData(data.app.getIcon()),
+                'useAsyncPanZoom': data.app.isExternal()
+            });
+            // display system banner
+            Evme.Banner.show('app-install-success', {
+                'name': data.data.name
+            });
 
-                // analytics
-                Evme.EventHandler.trigger(NAME, "addToHomeScreen", {
-                    "id": data.data.id,
-                    "name": data.data.name
-                });
+            // analytics
+            Evme.EventHandler.trigger(NAME, "addToHomeScreen", {
+                "id": data.data.id,
+                "name": data.data.name
             });
         }
 

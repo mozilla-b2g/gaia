@@ -7,45 +7,52 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
 
   var SHADOW_OFFSET = 2 * Evme.Utils.devicePixelRatio,
       SHADOW_BLUR = 2 * Evme.Utils.devicePixelRatio,
-      SIZE = 52 * Evme.Utils.devicePixelRatio,
-      FULL_SIZE = SIZE + SHADOW_OFFSET + SHADOW_BLUR,
 
-      self = this,
-      roundedAppIcon;
+      self = this;
 
   // @override
   // manipulate the icon (clipping, shadow, resize)
   this.onAppIconLoad = function CloudResult_onAppIconLoad() {
-    var canvas = self.initIcon(FULL_SIZE, SIZE),
-        context = canvas.getContext('2d'),
+    // only round if the app is below the line
+    // apps above the line (pinned) are already round
+    if (self.cfg.staticType) {
+      renderIcon(this.src);
+    } else {
+      Evme.Utils.getRoundIcon({
+        "src": this.src
+      }, renderIcon);
+    }
 
-        elImageCanvas = document.createElement('canvas'),
-        imageContext = elImageCanvas.getContext('2d'),
-        fixedImage = new Image();
+    function renderIcon(roundedIcon) {
+      var fixedImage = new Image();
 
-    elImageCanvas.width = elImageCanvas.height = FULL_SIZE;
+      // save a reference to the clipped icon
+      self.setIconSrc(roundedIcon);
+      // override the original with the round icon,
+      // for later use throughout the app
+      self.cfg.icon = roundedIcon;
 
-    imageContext.beginPath();
-    imageContext.arc(FULL_SIZE / 2, FULL_SIZE / 2, SIZE / 2, 0, Math.PI * 2, false);
-    imageContext.closePath();
-    imageContext.clip();
-    imageContext.drawImage(this, (FULL_SIZE - SIZE) / 2, (FULL_SIZE - SIZE) / 2, SIZE, SIZE);
+      fixedImage.onload = function onImageLoad() {
+        var width = this.width,
+            height = this.height,
+            padding = Evme.Utils.OS_ICON_PADDING,
+            canvas = self.initIcon(height + padding),
+            context = canvas.getContext('2d');
 
-    // save a reference to the clipped icon
-    roundedAppIcon = elImageCanvas.toDataURL();
-    self.setIconSrc(roundedAppIcon);
+        // shadow
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = SHADOW_OFFSET;
+        context.shadowBlur = SHADOW_BLUR;
+        context.shadowColor = 'rgba(0, 0, 0, 0.6)';
+        context.drawImage(fixedImage,
+                          (canvas.width - width + padding) / 2, padding,
+                          width - padding, height - padding);
 
-    fixedImage.onload = function onImageLoad() {
-      // shadow
-      context.shadowOffsetX = 0;
-      context.shadowOffsetY = SHADOW_OFFSET;
-      context.shadowBlur = SHADOW_BLUR;
-      context.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      context.drawImage(fixedImage, (canvas.width - FULL_SIZE) / 2, 0);
-      self.finalizeIcon(canvas);
-    };
+        self.finalizeIcon(canvas);
+      };
 
-    fixedImage.src = elImageCanvas.toDataURL('image/png');
+      fixedImage.src = roundedIcon;
+    }
   };
 
   // @override
@@ -54,7 +61,7 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
       "url": self.cfg.appUrl,
       "originUrl": self.getFavLink(),
       "title": self.cfg.name,
-      "icon": roundedAppIcon,
+      "icon": self.cfg.icon,
       "urlTitle": query,
       "useAsyncPanZoom": self.cfg.isWeblink
     });

@@ -61,7 +61,7 @@ body.evme-loading #collection progress {
       z-index: 50;
       height: 5.4rem;
       line-height: 5.5rem;
-      text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, .6);
+      text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, .6);
       border-bottom: 0.1rem solid #fff;
       overflow: hidden;
     }

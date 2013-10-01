@@ -16,10 +16,9 @@ Evme.Result = function Evme_Result() {
 
       TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3,
       TEXT_WIDTH = 72 * Evme.Utils.devicePixelRatio,
-      TEXT_MARGIN = 6 * Evme.Utils.devicePixelRatio,
+      TEXT_MARGIN = 8 * Evme.Utils.devicePixelRatio,
 
       image = new Image();
-
 
   this.type = 'NOT_SET';
   this.cfg = {};
@@ -87,29 +86,28 @@ Evme.Result = function Evme_Result() {
   this.onAppIconLoad = function onAppIconLoad() {
     // use OS icon rendering
     var iconCanvas = Icon.prototype.createCanvas(image),
-        canvasSize = iconCanvas.width,
 
-    canvas = self.initIcon(canvasSize, canvasSize),
+    canvas = self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
     context = canvas.getContext('2d');
 
-    context.drawImage(iconCanvas, (TEXT_WIDTH - canvasSize) / 2, 0);
+    context.drawImage(iconCanvas, (TEXT_WIDTH - iconCanvas.width) / 2, 0);
     self.iconPostRendering(iconCanvas);
     self.finalizeIcon(canvas);
     self.setIconSrc(image.src);
   };
 
   // @default
-  this.initIcon = function initIcon(baseHeight, textOffset) {
+  this.initIcon = function initIcon(height) {
     var canvas = document.createElement('canvas'),
         context = canvas.getContext('2d');
 
     canvas.width = TEXT_WIDTH;
-    canvas.height = baseHeight + TEXT_MARGIN + TEXT_HEIGHT - 1;
+    canvas.height = height + TEXT_MARGIN + TEXT_HEIGHT - 1;
 
     Evme.Utils.writeTextToCanvas({
       "text": self.cfg.name,
       "context": context,
-      "offset": textOffset + TEXT_MARGIN
+      "offset": height + TEXT_MARGIN
     });
 
     return canvas;
@@ -197,4 +195,4 @@ Evme.Result = function Evme_Result() {
       "id": self.cfg.id
     });
   }
-}
+};
