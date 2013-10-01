@@ -427,9 +427,13 @@ contacts.Matcher = (function() {
         var results = reqFamilyName.result;
 
         var givenNames = [];
-        var targetGN = Normalizer.toAscii(
+        var targetGN = null;
+
+        if (!isEmptyStr(aContact.givenName)) {
+          targetGN = Normalizer.toAscii(
                             aContact.givenName[0].trim().toLowerCase()).
                             replace(blankRegExp, '');
+        }
 
         results.forEach(function(mContact) {
           if (mContact.id === aContact.id || isEmptyStr(mContact.givenName)) {
