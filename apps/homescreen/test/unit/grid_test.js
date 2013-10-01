@@ -4,6 +4,7 @@ mocha.globals(['mozRequestAnimationFrame']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
+requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_page.js');
 requireApp('homescreen/test/unit/mock_icon.js');
 requireApp('homescreen/test/unit/mock_dock_manager.js');

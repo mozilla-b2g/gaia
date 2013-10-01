@@ -8,20 +8,6 @@
     ["apps", "communications", "contacts"],
     ["apps", "email"]
   ],
-  "locales": {
-    "en-US": {
-      "name": "Social"
-    },
-    "fr": {
-      "name": "Social"
-    },
-    "ar": {
-      "name": "اجتماعي"
-    },
-    "zh-TW": {
-      "name": "社交"
-    }
-  },
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/social/icon.png"
