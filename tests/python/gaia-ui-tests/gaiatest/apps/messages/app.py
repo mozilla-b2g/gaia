@@ -28,3 +28,6 @@ class Messages(Base):
         self.wait_for_element_present(*self._messages_frame_locator)
         messages_frame = self.marionette.find_element(*self._messages_frame_locator)
         self.marionette.switch_to_frame(messages_frame)
+
+    def wait_for_message_list(self):
+        self.wait_for_element_displayed(*self._summary_header_locator)

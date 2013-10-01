@@ -5,15 +5,24 @@
 from marionette.by import By
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
-
+from gaiatest.apps.messages.app import Messages
 
 class MessageThread(Base):
 
     _all_messages_locator = (By.CSS_SELECTOR, '#messages-container li.message')
     _received_message_content_locator = (By.CSS_SELECTOR, "#messages-container li.message.received")
+    _back_header_link_locator = (By.ID, 'messages-back-button')
 
     def wait_for_received_messages(self, timeout=180):
         self.wait_for_element_displayed(*self._received_message_content_locator, timeout=timeout)
+
+    def tap_back_button(self):
+        # In a message thread, tap the back button to return to main message list
+        back_header_button = self.marionette.find_element(*self._back_header_link_locator)
+        back_header_button.tap()
+        messages = Messages(self.marionette)
+        messages.wait_for_message_list()
+        return messages
 
     @property
     def received_messages(self):
