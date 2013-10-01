@@ -306,7 +306,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 	// string together ids like so:
 	// apiurl/?guids=["guid1","guid2","guid3", ...]
 
-	var guids = (options.guids || []).map(cleanGuid);
+	var guids = options.guids || [];
 
 	for (var i=0; i<guids.length; i++) {
 	  if (!guids[i]) {
@@ -326,11 +326,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 	    "callback": callback
 	}, options._NOCACHE || false);
     };
-
-    function cleanGuid(str) {
-	return str && str.split("?")[0];
-    }
-    
+   
     function addGlobals(options) {
         var globals = options["globals"] || {};
         
