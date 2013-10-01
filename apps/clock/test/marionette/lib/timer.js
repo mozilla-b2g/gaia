@@ -64,6 +64,10 @@ Timer.prototype._setSpinnerValue = function(name, val) {
   var current = -Infinity;
   var centerEl, size, prev, center;
 
+  if (this._getSpinnerValue(name) === val) {
+    return;
+  }
+
   do {
     target = this._getCenterEl(name);
     size = target.size();
