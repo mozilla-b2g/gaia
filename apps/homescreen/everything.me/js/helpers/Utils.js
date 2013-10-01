@@ -19,11 +19,7 @@ Evme.Utils = new function Evme_Utils() {
 
         CLASS_WHEN_KEYBOARD_IS_VISIBLE = 'evme-keyboard-visible',
 
-        // all the installed apps (installed, clouds, marketplace) should be the same size
-        // however when creating icons in the same size there's still a noticable difference
-        // this is because the OS' native icons have a transparent padding around them
-        // so to make our icons look the same we add this padding artificially
-        INSTALLED_CLOUDS_APPS_ICONS_PADDING = 2,
+        OS_ICON_SIZE = 0,
 
         OSMessages = this.OSMessages = {
           "OPEN_URL": "open-url",
@@ -39,6 +35,10 @@ Evme.Utils = new function Evme_Utils() {
         domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2'),
         protocol = document.location.protocol,
         homescreenOrigin = protocol + '//homescreen.' + domain;
+        
+    // reduce this from our icons that should be the same as the OS
+    // since OS icons have some transparent padding to them
+    this.OS_ICON_PADDING = 2;
 
     this.PIXEL_RATIO_NAMES = {
       NORMAL: 'normal',
@@ -51,7 +51,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.REGEXP = {
-	URL: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+	 URL: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
     };
 
     this.devicePixelRatio =  window.innerWidth / 320;
@@ -62,7 +62,7 @@ Evme.Utils = new function Evme_Utils() {
 
     this.EMPTY_APPS_SIGNATURE = '';
 
-    this.APPS_FONT_SIZE = 12 * self.devicePixelRatio;
+    this.APPS_FONT_SIZE = 13 * self.devicePixelRatio;
 
     this.PIXEL_RATIO_NAME = (this.devicePixelRatio > 1) ? this.PIXEL_RATIO_NAMES.HIGH : this.PIXEL_RATIO_NAMES.NORMAL;
 
@@ -77,6 +77,8 @@ Evme.Utils = new function Evme_Utils() {
         isTouch = window.hasOwnProperty("ontouchstart");
 
         elContainer = document.getElementById(CONTAINER_ID);
+
+        OS_ICON_SIZE = self.sendToOS(self.OSMessages.GET_ICON_SIZE);
     };
 
     this.logger = function logger(level) {
@@ -174,6 +176,10 @@ Evme.Utils = new function Evme_Utils() {
         return elContainer;
     };
 
+    this.getOSIconSize = function getOSIconSize() {
+      return OS_ICON_SIZE;
+    };
+
     this.getScopeElements = function getScopeElements() {
 	return document.querySelectorAll("." + SCOPE_CLASS);
     };
@@ -225,9 +231,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.getRoundIcon = function getRoundIcon(options, callback) {
-        var size = self.sendToOS(self.OSMessages.GET_ICON_SIZE) - 2,
-	    padding = options.padding ? INSTALLED_CLOUDS_APPS_ICONS_PADDING : 0,
-	    actualIconSize = size - padding*2,
+        var size = options.size || OS_ICON_SIZE,
             img = new Image();
 
         img.onload = function() {
@@ -238,14 +242,14 @@ Evme.Utils = new function Evme_Utils() {
             canvas.height = size;
 
             ctx.beginPath();
-	    ctx.arc(size/2, size/2, actualIconSize/2, 2 * Math.PI, false);
+            ctx.arc(size/2, size/2, size/2, 2 * Math.PI, false);
             ctx.clip();
 
-	    ctx.drawImage(img, padding, padding, actualIconSize, actualIconSize);
+            ctx.drawImage(img, 0, 0, size, size);
 
             callback(canvas.toDataURL());
         };
-	img.src = self.formatImageData(options.src);
+        img.src = self.formatImageData(options.src);
     };
 
     /**
@@ -298,11 +302,13 @@ Evme.Utils = new function Evme_Utils() {
       context.textAlign = 'center';
       context.textBaseline = 'top';
       context.fillStyle = 'rgba(255,255,255,1)';
-      context.shadowOffsetX = 1;
-      context.shadowOffsetY = 1;
-      context.shadowBlur = 3;
-      context.shadowColor = 'rgba(0, 0, 0, 0.6)';
       context.font = '600 ' + FONT_SIZE + 'px sans-serif';
+
+      // text shadow
+      context.shadowOffsetX = 0;
+      context.shadowOffsetY = 1;
+      context.shadowBlur = 1;
+      context.shadowColor = 'rgba(0, 0, 0, 1)';
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words
