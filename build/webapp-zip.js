@@ -303,7 +303,7 @@ function execute(options) {
       if (conf.exists()) {
         let resources = getSingleVariantResources(conf);
 
-        addEntryStringWithTime(zip, 'resources/costumization.json', JSON.stringify(resources.conf), DEFAULT_TIME);
+        addEntryStringWithTime(zip, 'resources/customization.json', JSON.stringify(resources.conf), DEFAULT_TIME);
 
         resources.files.forEach(function(file) {
           let filename = 'resources/' + file.leafName;
