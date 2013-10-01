@@ -14,6 +14,8 @@ class Homescreen(Base):
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"]')
     _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
     _landing_page_locator = (By.ID, 'icongrid')
+    _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
+    _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
 
     def launch(self):
         Base.launch(self)
@@ -33,10 +35,10 @@ class Homescreen(Base):
         """Checks whether app is installed"""
         is_installed = False
         while self.homescreen_has_more_pages:
-            self.go_to_next_page()
             if self.is_element_displayed(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name):
                 is_installed = True
                 break
+            self.go_to_next_page()
 
         return is_installed
 
@@ -52,3 +54,15 @@ class Homescreen(Base):
 
     def wait_for_landing_page_visible(self):
         self.wait_for_element_displayed(*self._landing_page_locator)
+
+    @property
+    def collections_count(self):
+        return len(self.marionette.find_elements(*self._collections_locator))
+
+    def tap_collection(self, name):
+        el = self.marionette.find_element(self._collection_locator[0],
+                                          self._collection_locator[1] % name)
+        el.tap()
+
+        from gaiatest.apps.homescreen.regions.collections import Collection
+        return Collection(self.marionette)
