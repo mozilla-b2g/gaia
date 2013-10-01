@@ -510,16 +510,17 @@ class GaiaTestCase(MarionetteTestCase):
         # disable sound completely
         self.data_layer.set_volume(0)
 
-        # disable carrier data connection
-        if self.device.has_mobile_connection:
-            self.data_layer.disable_cell_data()
+        if self.restart:
+            # disable carrier data connection
+            if self.device.has_mobile_connection:
+                self.data_layer.disable_cell_data()
 
-        self.data_layer.disable_cell_roaming()
+            self.data_layer.disable_cell_roaming()
 
-        if self.device.has_wifi:
-            self.data_layer.enable_wifi()
-            self.data_layer.forget_all_networks()
-            self.data_layer.disable_wifi()
+            if self.device.has_wifi:
+                self.data_layer.enable_wifi()
+                self.data_layer.forget_all_networks()
+                self.data_layer.disable_wifi()
 
         # remove data
         self.data_layer.remove_all_contacts(self._script_timeout)
