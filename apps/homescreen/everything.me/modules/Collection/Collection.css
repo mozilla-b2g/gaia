@@ -272,3 +272,11 @@ body.evme-loading #collection progress {
     pointer-events: none;
   }
 }
+
+@-moz-keyframes shake {
+  0% { -moz-transform: scale(1); }
+  25% { -moz-transform: scale(1.05); }
+  50% { -moz-transform: scale(1); }
+  75% { -moz-transform: scale(0.95); }
+  100% { -moz-transform: scale(1); }
+}
