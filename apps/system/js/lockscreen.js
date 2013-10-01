@@ -304,7 +304,7 @@ var LockScreen = {
     this.leftIcon.classList.remove('dark');
   },
 
-  darkIcon: function() {
+  darkIcons: function() {
     this.rightIcon.classList.add('dark');
     this.leftIcon.classList.add('dark');
   },
@@ -585,11 +585,10 @@ var LockScreen = {
       this.slideCenter.classList.add('touched');
       this.slideRight.classList.add('touched');
     }
-    this.darkIcon();
     this._slideCount = 0;
   },
 
-  // Restore all slide elements.
+  // Restore all elements in the slide.
   //
   // easing {Boolean} true|undefined to bounce back slowly.
   restoreSlide: function(easing) {
@@ -642,7 +641,7 @@ var LockScreen = {
       this.handleIconClick('left' === this._slidingToward ?
         this.leftIcon : this.rightIcon);
     }
-    this.darkIcon();
+    this.darkIcons();
     this._slideCount = 0;
     this._sliding = false;
   },
