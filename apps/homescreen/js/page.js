@@ -104,7 +104,6 @@ Icon.prototype = {
     // Collection (as bookmarks)
     if (descriptor.type === GridItemsFactory.TYPE.COLLECTION) {
       dataset.isCollection = true;
-      dataset.isEmpty = descriptor.isEmpty;
       dataset.collectionId = descriptor.id;
       dataset.collectionName = descriptor.name;
     } else {
@@ -415,7 +414,6 @@ Icon.prototype = {
 
     // Update dataset properties
     this.container.dataset.offlineReady = this.isOfflineReady();
-    this.container.dataset.isEmpty = descriptor.isEmpty;
 
     if (descriptor.updateTime == oldDescriptor.updateTime &&
         descriptor.icon == oldDescriptor.icon) {
@@ -465,6 +463,16 @@ Icon.prototype = {
   getName: function icon_getName() {
     var desc = this.descriptor;
     return desc.customName || desc.localizedName || desc.name;
+  },
+
+  /*
+   * Sets the icon's image
+   *
+   * @param{string} the new icon
+   */
+  setImage: function icon_setImage(image) {
+    this.descriptor.icon = image;
+    this.fetchImageData();
   },
 
   /*

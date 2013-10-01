@@ -72,7 +72,6 @@ var Collection = function Collection(params, cb) {
 
   this.iconable = false;
   this.type = GridItemsFactory.TYPE.COLLECTION;
-  this.isEmpty = params.isEmpty; // only a collection can be empty
   this.hideFromGrid = !!params.hideFromGrid;
   this.providerId = params.provider_id || params.id;
 

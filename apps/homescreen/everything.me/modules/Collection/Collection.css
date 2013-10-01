@@ -37,11 +37,22 @@ body.evme-loading #collection progress {
     animation-name: collection-show;
 }
 
+.evmeScope #collection.renaming:before {
+  content: "";
+  position: absolute;
+  top: 5.5rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, .7);
+}
+
     .evmeScope #collection.animate .title,
     .evmeScope #collection.animate .close,
     .evmeScope #collection.animate .evme-apps
     {
-	transition: opacity .4s ease;
+	    transition: opacity .4s ease;
     }
     .evmeScope #collection .content {
     }
@@ -71,15 +82,7 @@ body.evme-loading #collection progress {
         left: 0;
         right: 0;
         height: 5.4rem;
-        /*
-         * TODO: whdoesn't work, probably performace issue
-        transform: translateY(100%);
-        transition: all 100ms linear 350ms;
-        */
       }
-      /*.evme-collection-visible .evmeScope #collection .header .header-content {
-        transform: translateY(0%);
-      }*/
     .evmeScope #collection .title {
         position: relative;
         z-index: 50;
@@ -87,14 +90,21 @@ body.evme-loading #collection progress {
         padding: 0 1rem 0 3.2rem;
         font-size: 1.7rem;
         font-weight: normal;
+        color: #b4dae7;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
         -moz-box-sizing: border-box;
     }
-  	 .evmeScope #collection .title span {
-          color: #b4dae7;
-          text-transform: capitalize;
+     .evmeScope #collection .title input {
+          position: relative;
+          left: -0.1rem;
+          color: inherit;
+          font: inherit;
+          height: 100%;
+          width: calc(100% - 5rem);
+          text-shadow: inherit;
+          background: transparent;
       }
 
     .evmeScope #collection .image {
@@ -136,6 +146,29 @@ body.evme-loading #collection progress {
           width: 0.1rem;
           background: rgba(0, 0, 0, .3);
           border-right: 0.1rem solid rgba(255, 255, 255, .3);
+      }
+    .evmeScope #collection.renaming .header .close {
+      pointer-events: none;
+    }
+    .evmeScope #collection .header .done {
+        background: transparent url('/everything.me/images/done_icon.png') no-repeat 50% 50%/3rem;
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 5rem;
+        height: 5.4rem;
+        cursor: pointer;
+        z-index: 100;
+    }
+     .evmeScope #collection .header .done:after {
+          content: "";
+          position: absolute;
+          top: 0.4rem;
+          bottom: 0.4rem;
+          left: -0.1rem;
+          width: 0.1rem;
+          background: rgba(0, 0, 0, .3);
+          border-left: 0.1rem solid rgba(255, 255, 255, .3);
       }
     .evmeScope #collection .evme-apps {
         position: absolute;
@@ -219,7 +252,6 @@ body.evme-loading #collection progress {
 .evmeScope #collection form.show {
     display: block;
 }
-
 
 
 @-moz-keyframes collection-show {
