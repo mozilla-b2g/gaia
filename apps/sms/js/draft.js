@@ -12,7 +12,7 @@
     this.key = draft.key;
     this.content = draft.content;
     this.recipients = draft.recipients || null;
-    this.timestamp = new Date().getTime();
+    this.timestamp = draft.timestamp || new Date().getTime();
   }
 
   Draft.prototype = {
@@ -30,7 +30,13 @@
   Draft.load = function dr_load(key, callback) {
     asyncStorage.getItem(key, function(value) {
       if (value) {
-        callback(value);
+        callback(new Draft(
+        {
+          key: value.key,
+          content: value.content,
+          recipients: value.recipients,
+          timestamp: value.timestamp
+        }));
       } else {
         callback(null);
       }

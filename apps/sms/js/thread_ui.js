@@ -1066,6 +1066,7 @@ var ThreadUI = global.ThreadUI = {
   //Method to retrieve the draft if it has been saved
   renderDraft: function thui_renderDraft(threadId) {
     Draft.load(threadId, function oncomplete(draft) {
+      alert(draft);
       if (draft) {
         Compose.fillDraftContent(draft);
         draft.delete();
