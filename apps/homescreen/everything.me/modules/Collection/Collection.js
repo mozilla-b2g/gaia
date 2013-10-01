@@ -583,7 +583,7 @@ void function() {
       EvmeManager.addGridItem({
         'id': settings.id,
         'originUrl': settings.id,
-        'name': settings.name,
+        'name': settings.query,
         'icon': canvas.toDataURL(),
         'isCollection': true,
         'gridPosition': gridPosition

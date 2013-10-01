@@ -578,7 +578,7 @@ Evme.Helper = new function Evme_Helper() {
 
         var found = collections.some(function isMatchingQuery(collection) {
             var name = EvmeManager.getIconName(collection.origin);
-            if (name.toLowerCase() === title.toLowerCase()) {
+            if (name && name.toLowerCase() === title.toLowerCase()) {
                 elSaveSearch.dataset.savedAsCollection = true;
                 elSaveSearch.dataset.collectionId = collection.id;
                 return true;
