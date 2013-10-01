@@ -492,12 +492,18 @@ Icon.prototype = {
     if (!manifest)
       return;
 
-    var iconsAndNameHolder = manifest;
-    var entryPoint = descriptor.entry_point;
-    if (entryPoint)
-      iconsAndNameHolder = manifest.entry_points[entryPoint];
+    var localizedName;
 
-    var localizedName = new ManifestHelper(iconsAndNameHolder).name;
+    if (descriptor.type === GridItemsFactory.TYPE.COLLECTION) {
+      localizedName = navigator.mozL10n.get(manifest.name);
+    } else {
+      var iconsAndNameHolder = manifest;
+      var entryPoint = descriptor.entry_point;
+      if (entryPoint)
+        iconsAndNameHolder = manifest.entry_points[entryPoint];
+
+      localizedName = new ManifestHelper(iconsAndNameHolder).name;
+    }
 
     this.label.textContent = localizedName;
     if (descriptor.localizedName != localizedName) {
