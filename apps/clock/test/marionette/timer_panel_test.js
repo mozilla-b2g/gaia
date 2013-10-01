@@ -9,16 +9,10 @@ marionette('Alarm Panel', function() {
     timer.launch();
   });
 
-  test('basic operation', function(done) {
-    var durationMs = 6 * 60 * 1000 * 1000 + 40 * 1000 * 1000 + 9 * 1000;
-    var pausedValue;
-    // This is a long-running test because it
-    // 1. involves programatically interacting with an imprecise input element
-    // 2. specifically requires the passage of time to assert correct timer
-    //    functionality
-    this.timeout(40 * 1000);
+  test('basic operation', function() {
+    var durationMs = 6 * 60 * 1000 * 1000 + 40 * 1000 * 1000 + 15 * 1000;
 
-    timer.setDuration(6, 40, 9);
+    timer.setDuration(6, 40, 15);
     timer.start();
 
     // This assertion is intentionally fuzzy to allow for time passage between
@@ -36,6 +30,17 @@ marionette('Alarm Panel', function() {
       [durationMs - 5000, durationMs],
       'maintains the correct time across panel naviations'
     );
+  });
+
+  test('pausing and restarting', function(done) {
+    var pausedValue;
+
+    // This is a long-running test because it specifically requires the passage
+    // of time to assert correct timer functionality
+    this.timeout(40 * 1000);
+
+    timer.setDuration(0, 20, 0);
+    timer.start();
 
     timer.els.timer.pauseBtn.tap();
     pausedValue = timer.els.timer.countdown.text();
@@ -66,7 +71,6 @@ marionette('Alarm Panel', function() {
         done();
       }, 1200);
     }, 1200);
-
   });
 
 });
