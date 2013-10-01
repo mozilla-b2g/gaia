@@ -1,6 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global CpScreenHelper, NotificationHelper, ParsedMessage, SiSlScreenHelper,
+          Utils, WhiteList */
+
+/* exported WapPushManager */
+
 'use strict';
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
@@ -122,9 +127,16 @@ var WapPushManager = {
       return;
     }
 
+    /* If a message has a 'signal-none' action but no 'si-id' and 'created'
+     * fields then it does nothing in the current implementation and we can
+     * drop it right away. */
+    if (message.action === 'signal-none' && (!message.id || !message.created)) {
+      return;
+    }
+
     message.save(
       (function wpm_saveSuccess(status) {
-        if ((status !== 'new') && (status !== 'updated')) {
+        if ((status === 'discarded') || (message.action === 'signal-none')) {
           return;
         }
 
@@ -188,8 +200,7 @@ var WapPushManager = {
    * @param {String} timestamp The message timestamp as a string.
    */
   displayWapPushMessage: function wpm_displayWapPushMessage(timestamp) {
-    var self = this;
-    var message = ParsedMessage.load(timestamp,
+    ParsedMessage.load(timestamp,
       function wpm_loadSuccess(message) {
         if (message) {
           switch (message.type) {
@@ -250,9 +261,3 @@ var WapPushManager = {
     this._onCloseCallback = callback;
   }
 };
-
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
-
-  WapPushManager.init();
-});
