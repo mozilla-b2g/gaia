@@ -712,9 +712,9 @@ this.InstalledAppsService = new function InstalledAppsService() {
                 "src": appIcon
             }, function onIconReady(roundedAppIcon) {
                 // bookmark - add to homescreen
-                Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_INSTALL, {
+                EvmeManager.addGridItem({
                     'originUrl': data.app.getFavLink(),
-                    'title': data.data.name,
+                    'name': data.data.name,
                     'icon': roundedAppIcon,
                     'useAsyncPanZoom': data.app.isExternal()
                 });
