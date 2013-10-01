@@ -68,8 +68,11 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   this.fullsizeWidth = width;
   this.fullsizeHeight = height;
   this.preview = preview;
-  this.rotation = rotation;
-  this.mirrored = mirrored;
+
+  // Note: There is a default value for orientation/mirrored since some
+  // images don't have EXIF data to retrieve this information.
+  this.rotation = rotation || 0;
+  this.mirrored = mirrored || false;
 
   // Keep track of what kind of content we have
   this.displayingImage = true;

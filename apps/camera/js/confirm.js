@@ -44,8 +44,8 @@ var ConfirmDialog = (function() {
       // Show the confirm pane
       confirm.hidden = false;
       frame.displayImage(blob, metadata.width, metadata.height,
-                         metadata.preview, metadata.rotation || 0,
-                         metadata.mirrored || false);
+                         metadata.preview, metadata.rotation,
+                         metadata.mirrored);
     });
   }
 
