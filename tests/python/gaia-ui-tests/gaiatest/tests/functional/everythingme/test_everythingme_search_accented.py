@@ -20,13 +20,13 @@ class TestEverythingMeSearchAccented(GaiaTestCase):
 
         test_string = u'Pétanque'
         homescreen = Homescreen(self.marionette)
-        homescreen.launch()
+        homescreen.switch_to_homescreen_frame()
 
         search_panel = homescreen.tap_search_bar()
         search_panel.wait_for_keyboard_visible()
         search_panel.type_into_search_box(test_string)
 
-        homescreen.switch_to_homescreen_frame()
+        search_panel.wait_for_type('Sports')
         search_panel.wait_for_everything_me_results_to_load()
 
         self.assertGreater(len(search_panel.results), 0)

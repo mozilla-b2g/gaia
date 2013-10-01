@@ -12,29 +12,31 @@ from gaiatest.apps.base import PageRegion
 
 class SearchPanel(Base):
 
-
     _body = (By.CSS_SELECTOR, 'body')
-    _evme_container_locator = (By.ID, 'evmeContainer')
+    _search_title_type_locator = (By.CSS_SELECTOR, '#search-title > .type')
+    _search_title_query_locator = (By.CSS_SELECTOR, '#search-title > .query')
     _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.cloud li[data-name]')
     _search_results_installed_app_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.installed li[data-name]')
-    _category_item_locator = (By.CSS_SELECTOR, '#shortcuts-items li[data-query]')
-    _loading_apps_locator = (By.CSS_SELECTOR, 'div.loading-apps')
     _app_icon_locator = (By.CSS_SELECTOR, 'ul.cloud li[data-name]')
 
     def type_into_search_box(self, search_term):
+        frame = self.marionette.get_active_frame()
         self.keyboard.send(search_term)
         self.keyboard.tap_enter()
+        self.marionette.switch_to_frame(frame)
+
+        self.wait_for_condition(lambda m: self.marionette.find_element(*self._search_title_query_locator).text.lower() ==
+                                search_term.lower())
 
     def wait_for_keyboard_visible(self):
         self.wait_for_condition(
-                lambda m: 'evme-keyboard-visible' in self.marionette.find_element(*self._body).get_attribute('class'))
+            lambda m: 'evme-keyboard-visible' in self.marionette.find_element(*self._body).get_attribute('class'))
 
     def wait_for_everything_me_results_to_load(self):
         self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
 
-    def wait_for_categories_to_load(self):
-        self.wait_for_element_not_displayed(*self._loading_apps_locator)
-        self.wait_for_element_displayed(*self._category_item_locator)
+    def wait_for_type(self, type):
+        self.wait_for_condition(lambda m: type.lower() in self.marionette.find_element(*self._search_title_type_locator).text.lower())
 
     def wait_for_app_icons_displayed(self):
         self.wait_for_element_displayed(*self._app_icon_locator)
@@ -47,44 +49,14 @@ class SearchPanel(Base):
         return [self.Result(marionette=self.marionette, element=result)
                 for result in self.marionette.find_elements(*self._search_results_from_everything_me_locator)]
 
-    def tap_category(self, category_name):
-        for category in self.categories:
-            if category.name.lower() == category_name.lower():
-                category.tap()
-                break
-        else:
-            raise Exception('Category with "%s" name is not present' % category_name)
-
-    @property
-    def categories_count(self):
-        return len(self.marionette.find_elements(*self._category_item_locator))
-
-    @property
-    def categories(self):
-        return [self.EverythingMeCategory(self.marionette, root_el) for root_el in
-                self.marionette.find_elements(*self._category_item_locator)]
-
     @property
     def installed_apps(self):
         return [self.InstalledApp(self.marionette, root_el) for root_el in
                 self.marionette.find_elements(*self._search_results_installed_app_locator)]
 
-    class EverythingMeCategory(PageRegion):
-
-        @property
-        def name(self):
-            return self.root_element.get_attribute('data-query')
-
-        def tap(self):
-            self.root_element.tap()
-
     class Result(PageRegion):
 
         _app_iframe_locator = (By.CSS_SELECTOR, 'iframe[data-origin-name="%s"]')
-
-        # Modal dialog locators
-        _modal_dialog_message_locator = (By.ID, 'modal-dialog-confirm-message')
-        _modal_dialog_ok_locator = (By.ID, 'modal-dialog-confirm-ok')
 
         @property
         def name(self):
@@ -103,21 +75,6 @@ class SearchPanel(Base):
 
             # wait for app to launch
             self.wait_for_condition(lambda m: m.title)
-
-        def tap_to_install(self):
-            Actions(self.marionette).long_press(self.root_element, 2).perform()
-
-            self.marionette.switch_to_frame()
-            self.wait_for_element_displayed(*self._modal_dialog_ok_locator)
-            modal_dialog_message = self.marionette.find_element(*self._modal_dialog_message_locator).text
-
-            app_name = modal_dialog_message[
-                modal_dialog_message.find('Add') + 3:
-                modal_dialog_message.find('to Home Screen?')
-            ].strip()  # TODO remove hack after Bug 845828 lands in V1-train
-            self.marionette.find_element(*self._modal_dialog_ok_locator).tap()
-
-            return app_name
 
     class InstalledApp(PageRegion):
 
