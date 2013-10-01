@@ -39,6 +39,15 @@ class GCli(object):
                     'name': 'name',
                     'help': 'Name of the setting to retrieve'}],
                 'help': 'Show the current value of a setting'},
+            'holdhome': {
+                'function': self.hold_home,
+                'help': 'Simulate holding the home button'},
+            'holdsleep': {
+                'function': self.hold_sleep,
+                'help': 'Simulate holding the sleep button'},
+            'home': {
+                'function': self.home,
+                'help': 'Simulate pressing the home button'},
             'killapps': {
                 'function': self.kill_all_apps,
                 'help': 'Kill all running apps'},
@@ -60,9 +69,25 @@ class GCli(object):
                     {'name': 'value',
                      'help': 'New value for setting'}],
                 'help': 'Change the value of a setting'},
+            'screenshot': {
+                'function': self.screenshot,
+                'help': 'Take a screenshot'},
+            'sleep': {
+                'function': self.sleep,
+                'help': 'Enter sleep mode'},
             'unlock': {
                 'function': self.unlock,
-                'help': 'Unlock screen'}}
+                'help': 'Unlock screen'},
+            'volume': {
+                'function': self.volume,
+                'args': [
+                    {'name': 'direction',
+                     'choices': ['down', 'up'],
+                     'help': 'Direction to change the volume'}],
+                'help': 'Change the volume'},
+            'wake': {
+                'function': self.wake,
+                'help': 'Wake from sleep mode'}}
 
         self.parser = argparse.ArgumentParser()
         self.add_options(self.parser)
@@ -95,7 +120,8 @@ class GCli(object):
                  '(default: %(default)s)')
 
     def add_commands(self, parser):
-        subparsers = parser.add_subparsers(title='Commands', metavar='<command>')
+        subparsers = parser.add_subparsers(
+            title='Commands', metavar='<command>')
         for (name, props) in sorted(self.commands.iteritems()):
             subparser = subparsers.add_parser(name, help=props['help'])
             if props.get('args'):
@@ -128,6 +154,18 @@ class GCli(object):
             args.name,
             self.data_layer.get_setting(args.name))
 
+    def home(self, args):
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new Event('home'));")
+
+    def hold_home(self, args):
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+
+    def hold_sleep(self, args):
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new Event('holdsleep'));")
+
     def kill_all_apps(self, args):
         self.apps.kill_all()
 
@@ -149,8 +187,25 @@ class GCli(object):
     def set_setting(self, args):
         self.data_layer.set_setting(args.name, args.value)
 
+    def screenshot(self, args):
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
+
+    def sleep(self, args):
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new Event('sleep'));")
+
     def unlock(self, args):
         self.lock_screen.unlock()
+
+    def volume(self, args):
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new Event('volume%s'));" %
+            args.direction)
+
+    def wake(self, args):
+        self.marionette.execute_script(
+            "window.wrappedJSObject.dispatchEvent(new Event('wake'));")
 
 
 def cli(args=sys.argv[1:]):
