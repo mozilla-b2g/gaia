@@ -27,6 +27,7 @@ var Configurator = (function() {
     if (searchPage) {
       var provider = window[searchPage.provider] || dummyProvider;
       if (searchPage.enabled) {
+        document.body.classList.add('searchPageEnabled');
         Homescreen.init(0, provider.init.bind(provider));
       } else {
         startHomescreenByDefault();
@@ -151,12 +152,6 @@ var Configurator = (function() {
   }
 
   function startHomescreenByDefault() {
-    var searchPage = document.querySelector('div[role="search-page"]');
-
-    if (searchPage) {
-      searchPage.parentNode.removeChild(searchPage);
-    }
-
     if (Homescreen) {
       Homescreen.init(0);
     }

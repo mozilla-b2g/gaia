@@ -43,8 +43,12 @@ var GridManager = (function() {
     right: 0
   };
 
+  var isSearchPageEnabled =
+    document.body.classList.contains('searchPageEnabled');
+
   var MAX_ICONS_PER_PAGE = 4 * 4;
-  var MAX_ICONS_PER_EVME_PAGE = 4 * 3;
+  var MAX_ICONS_PER_EVME_PAGE = isSearchPageEnabled ? 4 * 3 : 4 * 4;
+
   var EVME_PAGE_STATE_INDEX = 1;
   // Check if there is space for another row of icons
   // For WVGA, 800x480, we also want to show 4 x 5 grid on homescreen
@@ -58,6 +62,7 @@ var GridManager = (function() {
   // tablet+ devices are stricted to 5 x 3 grid
   if (ScreenLayout.getCurrentLayout() !== 'tiny') {
     MAX_ICONS_PER_PAGE = 5 * 3;
+    MAX_ICONS_PER_EVME_PAGE = isSearchPageEnabled ? 5 * 2 : MAX_ICONS_PER_PAGE;
   }
 
   var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
