@@ -21,22 +21,6 @@ class TestCardsView(GaiaTestCase):
         # app to test against in Cards View
         self.app = self.apps.launch(self._app_under_test)
 
-    def test_cards_view(self):
-        # https://moztrap.mozilla.org/manage/case/1909/
-        # Switch to top level frame before dispatching the event
-        self.marionette.switch_to_frame()
-
-        # Check that cards view is not displayed
-        self.assertFalse(self.cards_view.is_cards_view_displayed, "Cards view not expected to be visible")
-
-        # Pull up the cards view
-        self.cards_view.open_cards_view()
-
-        self.assertTrue(self.cards_view.is_app_displayed(self._app_under_test),
-            "%s app expected to be visible in cards view" % self._app_under_test)
-
-        self.cards_view.exit_cards_view()
-
     def test_that_app_can_be_launched_from_cards_view(self):
         # https://github.com/mozilla/gaia-ui-tests/issues/98
         # Switch to top level frame before dispatching the event
@@ -55,23 +39,3 @@ class TestCardsView(GaiaTestCase):
 
         self.cards_view.wait_for_cards_view_not_displayed()
         self.assertTrue(clock_frame.is_displayed(), "Clock frame expected to be displayed")
-
-    def test_kill_app_from_cards_view(self):
-        # https://moztrap.mozilla.org/manage/case/1917/
-        # Switch to top level frame before dispatching the event
-        self.marionette.switch_to_frame()
-
-        # Pull up the cards view
-        self.cards_view.open_cards_view()
-
-        # Close the current app from cards view
-        self.cards_view.close_app(self._app_under_test)
-
-        self.marionette.switch_to_frame()
-
-        # Pull up the cards view again
-        self.cards_view.open_cards_view()
-
-        # If successfully killed, the app should no longer appear in the cards view.
-        self.assertFalse(self.cards_view.is_app_present(self._app_under_test),
-            "Killed app not expected to appear in cards view")

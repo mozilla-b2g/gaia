@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
 from marionette.by import By
 from gaiatest.apps.base import Base
 
@@ -9,7 +10,7 @@ from gaiatest.apps.base import Base
 class CardsView(Base):
 
     # Home/Cards view locators
-    _cards_view_locator = (By.ID, 'cards-view')
+    _cards_view_locator = (By.CSS_SELECTOR, '#cards-view.active')
     # Check that the origin contains the current app name, origin is in the format:
     # app://clock.gaiamobile.org
     _apps_cards_locator = (By.CSS_SELECTOR, '#cards-view li[data-origin*="%s"]')
@@ -24,6 +25,7 @@ class CardsView(Base):
     def open_cards_view(self):
         # Hold the home button to open cards view
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        time.sleep(1)
         self.wait_for_cards_view()
 
     def exit_cards_view(self):
@@ -33,7 +35,7 @@ class CardsView(Base):
 
     @property
     def is_cards_view_displayed(self):
-        return self.marionette.find_element(*self._cards_view_locator).is_displayed()
+        return self.is_element_displayed(*self._cards_view_locator)
 
     def is_app_displayed(self, app):
         return self.marionette.find_element(*self._app_card_locator(app)).is_displayed()
