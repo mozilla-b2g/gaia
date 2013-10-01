@@ -60,10 +60,18 @@
 }
 
 #screen > [data-z-index-level="keyboards"] {
-  
+
   /* It should lower than UtilityTray's, to let the tray overlay it
      in some situation like selecting a new keyboard. */
   z-index: 4094;
+}
+
+/*
+ * Promote keyboards to attention screen level when
+ * there is an active attention screen not minimized in
+ * the status bar */
+#screen.attention:not(.active-statusbar) > [data-z-index-level="keyboards"] {
+  z-index: 16384;
 }
 
 /* Level 2: Notification toaster */
