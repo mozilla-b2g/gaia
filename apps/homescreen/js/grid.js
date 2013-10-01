@@ -619,7 +619,7 @@ var GridManager = (function() {
   }
 
   function pageOverflowed(page) {
-    return page.getNumIcons() > page.numberOfIcons;
+    return page.getNumIcons() > page.maxIcons;
   }
 
   /*
