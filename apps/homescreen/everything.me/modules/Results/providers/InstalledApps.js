@@ -111,9 +111,10 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   }
 
   this.requestAppsInfo = function requestAppsInfo() {
-    var gridApps = EvmeManager.getGridApps(),
-        guids = gridApps.map(function getId(gridApp){
-          return gridApp.manifestURL || gridApp.bookmarkURL;
+    var gridApps = EvmeManager.getGridApps();
+    
+    var guids = gridApps.map(function getId(gridApp){
+          return gridApp.app.manifestURL || gridApp.app.bookmarkURL;
         });
 
     Evme.EventHandler.trigger(NAME, "requestAppsInfo", guids);
@@ -154,12 +155,20 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   };
 
   this.getMatchingApps = function getMatchingApps(data) {
-    if (!data || !data.query) {
-      return [];
+    var matchingApps = [],
+        query;
+
+    if (data.query) {
+      query = data.query;
+    } else if (data.experienceId) {
+      query = Evme.Utils.shortcutIdToKey(data.experienceId);
     }
 
-    var matchingApps = [],
-    query = normalizeQuery(data.query);
+    if (!query) {
+      return matchingApps;
+    }
+    
+    query = normalizeQuery(query);
 
     // search appIndex
     // search query within first letters of app name words
