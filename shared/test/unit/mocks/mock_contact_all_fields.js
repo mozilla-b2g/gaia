@@ -16,7 +16,7 @@ function MockContactAllFields() {
         'streetAddress': 'Gotthardstrasse 22'
       }
     ],
-    'bday': new Date('December 17, 1995 13:24:00'),
+    'bday': new Date(0),
     'email': [
       {
         'type': ['personal'],
