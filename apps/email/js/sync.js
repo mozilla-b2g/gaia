@@ -142,7 +142,11 @@ define(function(require) {
                       n: result.count,
                       accountName: result.address
                     }),
-                    makeNotificationDesc(result.latestMessageInfos),
+                    makeNotificationDesc(result.latestMessageInfos.sort(
+                                           function(a, b) {
+                                             return b.date - a.date;
+                                           }
+                                        )),
                     iconUrl + '#' + dataString
                   );
                 } else {

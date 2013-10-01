@@ -13539,6 +13539,7 @@ CronSync.prototype = {
       var notifyHeaders = [];
       newHeaders.some(function(header, i) {
         notifyHeaders.push({
+          date: header.date,
           from: header.author.name || header.author.address,
           subject: header.subject,
           accountId: account.id,
