@@ -313,20 +313,24 @@ Icon.prototype = {
       return;
     }
 
-    var canvas = this.createCanvas(img);
+    var canvas = this.createCanvas(img, this.descriptor.type);
     canvas.toBlob(this.renderBlob.bind(this));
   },
 
-  createCanvas: function icon_createCanvas(img) {
+  createCanvas: function icon_createCanvas(img, type) {
     var canvas = document.createElement('canvas');
     canvas.width = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
     canvas.height = (MAX_ICON_SIZE + ICON_PADDING_IN_CANVAS) * SCALE_RATIO;
 
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-    ctx.shadowBlur = 2;
-    ctx.shadowOffsetY = 2;
+
+    // Collection icons are self contained and should NOT be manipulated
+    if (type !== GridItemsFactory.TYPE.COLLECTION) {
+      ctx.shadowColor = 'rgba(0,0,0,0.8)';
+      ctx.shadowBlur = 2;
+      ctx.shadowOffsetY = 2;
+    }
 
     // Deal with very small or very large icons
     img.width =

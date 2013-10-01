@@ -88,16 +88,17 @@ body[data-transitioning] .apps > div {
   left: .5rem;
   width: calc(100% - .5rem);
   height: 2.6rem;
-  z-index: 2;
+  z-index: 15; /* So the Delete button will be above the collections' circle */
   background: url(../resources/images/delete.png) no-repeat left top / 2.4rem;
 }
 
 /* Container -> icon + label */
 .apps ol > li > div {
+  position: relative;
   height: 100%;
   width: 100%;
-	margin-top: .5rem;
-	margin-bottom: .5rem;
+  margin-top: .5rem;
+  margin-bottom: .5rem;
   pointer-events: none; /* NO touchable area */
   font-size: 0; /* To remove the gap between the icon and the label, which is adjustable by .labelWrapper */
 }

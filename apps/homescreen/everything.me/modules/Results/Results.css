@@ -18,15 +18,15 @@
     -moz-box-orient: vertical;
     -moz-box-sizing: border-box;
     display: -moz-box;
-    width: 100%;
+    width: calc(100% - 2rem);
     min-height: 100%;
-    padding-right: 1rem;
+    padding-top: 2.4rem;
 }
 .evmeScope .evme-apps .loading-apps {
     position: absolute;
     top: 50%;
     left: 0;
-    right: 2rem;
+    right: 0;
     text-align: center;
     height: 10rem;
     line-height: 10rem;
@@ -39,21 +39,18 @@
 }
 
 .evmeScope .evme-apps ul li {
-    clear: both;
+    position: relative; /* for span.remove positioning */
+    display: inline-block;
     width: 25%;
-    height: 9.4rem;
-    padding-top: 1rem;
+    height: 11.5rem;
     text-align: center;
     cursor: pointer;
-    margin-right: -0.4rem; /* inline-block spacing fix */
-    display: inline-block;
     vertical-align: top;
-    transition: transform .2s linear;
-    position: relative; /* for span.remove positioning */
+    transition: transform 200ms linear;
 }
 
 .evmeScope .evme-apps ul.marketapps li {
-    height: 9.3rem;
+    height: 11rem;
 }
 
 .evmeScope .evme-apps ul li.save-to-homescreen {
@@ -63,9 +60,9 @@
 .evmeScope .evme-apps:not(.has-installed) .has-installed-visible {
     display: none;
 }
-    .evmeScope .evme-apps ul li img {
+.evmeScope .evme-apps ul li img {
 	transition: transform .2s linear;
-    }
+}
 .evmeScope .evme-apps ul #button-more {
     position: absolute;
     top: auto;
@@ -84,9 +81,6 @@
     opacity: 1;
 }
 
-.evmeScope .evme-apps ul li:nth-child(4n+1) {
-    clear: both;
-}
 .evmeScope .evme-apps ul {
   padding: 0;
   margin: 0;
@@ -100,8 +94,8 @@
 }
 .evmeScope .evme-apps ul li > span.remove {
   position: absolute;
-  top: .5rem;
-  left: .8rem;
+  top: 0;
+  left: 0.3rem;
   width: calc(100% - .5rem);
   height: 2.6rem;
   z-index: 2;
@@ -125,7 +119,7 @@
 .evmeScope .evme-apps section[role="notification"] > div {
     position: absolute;
     left: 0;
-    right: 2rem;
+    right: 0;
     top: 50%;
     color: #fff;
     font-size: 1.6rem;
@@ -183,16 +177,13 @@
 .evmeScope.loading-app .evme-apps > div {
     min-height: 100%;
 }
-.evmeScope .evme-apps hr{
-    height: 0.2rem;
+.evmeScope .evme-apps hr {
+    height: 0.1rem;
     border: 0;
     background-color: rgba(255,255,255,.3);
-    margin: 1.2rem 2rem 0 1rem;
+    margin: 0 0.7rem 1.2rem 0.7rem;
     display: none;
 }
-.evmeScope #search hr{
-    margin-right: 3rem;
-}
-.evmeScope ul:not(:empty) ~ hr{
+.evmeScope ul:not(:empty) ~ hr {
     display: block;
 }

@@ -82,8 +82,8 @@ body[data-dragging] ol > li[data-is-collection = 'true'] > div > img {
 }
 
 body[data-dragging] ol > li[data-is-collection = 'true'].hover > div::before {
-	transform: scale(1);
-	opacity: 0.4;
+	transform: scale(1.2);
+	opacity: 0.8;
 }
 
 /* This rules changes the axe icon for a plus symbol */
