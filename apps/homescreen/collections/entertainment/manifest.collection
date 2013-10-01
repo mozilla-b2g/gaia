@@ -2,14 +2,6 @@
   "name": "Entertainment",
   "role": "collection",
   "provider_id": "376",
-  "locales": {
-    "en-US": {
-      "name": "Entertainment"
-    },
-    "fr": {
-      "name": "Divertissement"
-    }
-  },
   "default_locale": "en-US",
   "icons": {
     "60": "/collections/entertainment/icon.png"

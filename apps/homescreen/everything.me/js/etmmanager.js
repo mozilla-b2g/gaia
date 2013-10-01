@@ -12,7 +12,7 @@ var EvmeManager = (function EvmeManager() {
       currentURL = null;
 
   function addGridItem(params, extra) {
-    GridItemsFactory.create({
+    var item = GridItemsFactory.create({
       "id": params.id || Evme.Utils.uuid(),
       "bookmarkURL": params.originUrl,
       "name": params.name,
@@ -21,10 +21,10 @@ var EvmeManager = (function EvmeManager() {
       "useAsyncPanZoom": params.useAsyncPanZoom,
       "type": !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
               GridItemsFactory.TYPE.BOOKMARK
-    }, function doAddGridItem(item) {
-      GridManager.install(item, params.gridPosition, extra);
-      GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
     });
+
+    GridManager.install(item, params.gridPosition, extra);
+    GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
   }
 
   function removeGridItem(params) {

@@ -35,6 +35,8 @@ var GridManager = (function() {
 
   var saveStateTimeout = null;
 
+  var _ = navigator.mozL10n.get;
+
   // Limits for changing pages during dragging
   var limits = {
     left: 0,
@@ -967,6 +969,9 @@ var GridManager = (function() {
           descriptor.type = GridItemsFactory.TYPE.COLLECTION;
         }
         app = GridItemsFactory.create(descriptor);
+        if (haveLocale && app.type === GridItemsFactory.TYPE.COLLECTION) {
+          descriptor.localizedName = _(app.manifest.name);
+        }
         bookmarksByOrigin[app.origin] = app;
       }
 
@@ -1096,9 +1101,12 @@ var GridManager = (function() {
       id: app.id
     };
 
-    if (haveLocale && app.type !== GridItemsFactory.TYPE.COLLECTION &&
-                      app.type !== GridItemsFactory.TYPE.BOOKMARK) {
-      descriptor.localizedName = iconsAndNameHolder.name;
+    if (haveLocale) {
+      if (app.type === GridItemsFactory.TYPE.COLLECTION) {
+        descriptor.localizedName = _(manifest.name);
+      } else if (app.type !== GridItemsFactory.TYPE.BOOKMARK) {
+        descriptor.localizedName = iconsAndNameHolder.name;
+      }
     }
 
     return descriptor;
@@ -1167,7 +1175,6 @@ var GridManager = (function() {
    */
   function doShowRestartDownloadDialog(icon) {
     var app = icon.app;
-    var _ = navigator.mozL10n.get;
     var confirm = {
       title: _('download'),
       callback: function onAccept() {
