@@ -371,6 +371,11 @@ if (!contacts.MatchingUI) {
       });
     }
 
+    function displayMatchingDetails(uuid) {
+      showMatchingDetails(uuid);
+      renderMatchingDetails(uuid);
+    }
+
     function checkMergeButton() {
       navigator.mozL10n.localize(mergeButton, 'mergeActionButtonLabel',
                                                                 { n: checked });
@@ -416,7 +421,13 @@ if (!contacts.MatchingUI) {
        * @param{Function} Success callback when the UI is ready
        *
        */
-      load: load
+      load: load,
+
+      /*
+       * Displays the details of a contact matching in an overlay.
+       * @param {String} Unique user id.
+       */
+      displayMatchingDetails: displayMatchingDetails
     };
 
   })();
