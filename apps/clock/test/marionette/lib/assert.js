@@ -49,3 +49,37 @@ assert.hasTime = function(str, date, usrMsg) {
 
   nodeAssert(timeRe.test(str), msg);
 };
+
+assert.hasDuration = function(str, ms, usrMsg) {
+  var match = str.match(/(?:([0-9]+):)?([0-9]+):([0-9]+)(?:[:.]([0-9]+))?/);
+  var time;
+
+  if (usrMsg) {
+    usrMsg += ': ';
+  } else {
+    usrMsg = '';
+  }
+
+  nodeAssert(
+    !!match,
+    usrMsg + 'expected "' + str + '" to contain a duration string'
+  );
+
+  time = (match[1] || 0) * 60 * 1000 * 1000 +
+    match[2] * 1000 * 1000 +
+    match[3] * 1000 +
+    (match[4] || 0);
+
+  if (Array.isArray(ms)) {
+    nodeAssert(
+      time >= ms[0] && time <= ms[1],
+      usrMsg + 'expected "' + str + '" to have a duration between ' + ms[0] +
+        'ms and ' + ms[1] + 'ms'
+    );
+  } else {
+    nodeAssert(
+      time === ms,
+      usrMsg + 'expected "' + str + '" to have duration of ' + ms + 'ms'
+    );
+  }
+};
