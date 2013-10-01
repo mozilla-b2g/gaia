@@ -360,6 +360,27 @@
             }
         };
 
+        // Save (bookmark) a search as a collection on home screen
+        this.saveSearch = function saveSearch(data) {
+            var extraIconsData = Evme.SearchResults.getCloudResultsIconData(),
+                query = Evme.Searchbar.getValue();
+            
+            Evme.Collection.create({
+                "query": query,
+                "extraIconsData": extraIconsData,
+                "callback": function onSave() {
+                    data.callback && data.callback();
+                    Evme.Banner.show('app-install-success', {
+                        'name': query
+                    });
+                }
+            });
+        };
+
+        this.unsaveSearch = function unsaveSearch(data) {
+            Evme.Collection.remove(data.collectionId, {"callback": data.callback});
+        };
+
         // slide items in
         this.animateDefault = function animateDefault() {
             Evme.Helper.animateLeft(function onAnimationComplete() {

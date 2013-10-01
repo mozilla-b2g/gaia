@@ -32,9 +32,18 @@ var EvmeManager = (function EvmeManager() {
     var origin = params.id;
 
     var gridItem = GridManager.getApp(origin);
-    Homescreen.showAppDialog(gridItem.app, {
-      "onConfirm": params.onConfirm || Evme.Utils.NOOP
-    });
+    Homescreen.showAppDialog(gridItem.app);
+
+    window.addEventListener('confirmdialog', confirmDialogHandler);
+
+    function confirmDialogHandler(evt) {
+      window.removeEventListener('confirmdialog', confirmDialogHandler);
+
+      if (evt.detail.app.id === gridItem.app.id &&
+          params.onConfirm && evt.detail.action === 'confirm') {
+         params.onConfirm();
+      }
+    }
   }
 
   function openUrl(url) {

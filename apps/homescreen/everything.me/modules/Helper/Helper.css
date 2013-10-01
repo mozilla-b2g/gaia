@@ -212,3 +212,19 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
         #helper ul li.link.strong {
             font-weight: 600 !important;
         }
+
+#save-search {
+    display: none;
+    position: absolute;
+    right: 0.45rem;
+    top: 0.3rem;
+    width: 3rem;
+    height: 3rem;
+    background: url('/everything.me/images/iconaction_bookmark_30x30.png') left top no-repeat;
+}
+#search-title.visible ~ #save-search {
+    display: block;
+}
+#save-search[data-saved-as-collection='true'] {
+    background-image: url('/everything.me/images/bookmarked.png');
+}

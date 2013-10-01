@@ -52,9 +52,20 @@ var ConfirmDialog = (function() {
     },
 
     showApp: function dialog_showApp(app) {
-      var title, body, cancel = {
+      var title, body;
+
+      var cancel = {
         title: _('cancel'),
-        callback: ConfirmDialog.hide
+        callback: function onCancel() {
+          ConfirmDialog.hide();
+          var evt = new CustomEvent('confirmdialog', {
+            'detail': {
+              'action': 'cancel',
+              'app': app
+            }
+          });
+          window.dispatchEvent(evt);
+        }
       };
 
       var confirm = {
@@ -66,6 +77,14 @@ var ConfirmDialog = (function() {
           } else {
             navigator.mozApps.mgmt.uninstall(app);
           }
+
+          var evt = new CustomEvent('confirmdialog', {
+            'detail': {
+              'action': 'confirm',
+              'app': app
+            }
+          });
+          window.dispatchEvent(evt);
         },
         applyClass: 'danger'
       };
