@@ -682,7 +682,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
         this.remove = function remove(data) {
             var id = data.id;
             if (id) {
-                Evme.Collection.removeResult(data);
+                Evme.Collection.removeApp(id);
             }
         };
 
