@@ -8,16 +8,11 @@ body[role="application"] section[role="region"] > header menu[type="toolbar"] bu
   background-image: url(headers/images/ui/separator.png);
 }
 
-body[role="application"] section[role="region"] > header > button,
-body[role="application"] section[role="region"] > header > a {
-  background-image: url(headers/images/ui/separator-large.png);
+body[role="application"] section[role="region"] > header > button:after,
+body[role="application"] section[role="region"] > header > a:after {
+  background-image: url(headers/images/ui/separator.png);
 }
 
-body[role="application"] section[role="region"] > header > button .icon:after,
-body[role="application"] section[role="region"] > header > a .icon:after {
-  background-image: url(headers/images/ui/negative.png);
-  background-color: #3B5998;
-}
 
 /* BB lists */
 .import-list header {
