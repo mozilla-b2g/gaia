@@ -61,24 +61,8 @@ window.addEventListener('localized', function() {
     // We'll enable it below in the open() function if needed.
     $('menu').hidden = true;
 
-    // Make a local copy of the blob before opening it to workaround bug 908432
-    copyBlob(activityData.blob, function(localCopy) {
-      blob = localCopy;
-      open(blob);
-    });
-  }
-
-  // Read the content of a (possibly file-backed, cross-process) blob into an
-  // array buffer, and then create a new in-memory, in process blob from
-  // that array buffer. This is part of the workaround for the crash in
-  // bug 908432.
-  function copyBlob(original, callback) {
-    var reader = new FileReader();
-    reader.readAsArrayBuffer(original);
-    reader.onload = function() {
-      var copy = new Blob([reader.result], { type: original.type });
-      callback(copy);
-    };
+    blob = activityData.blob;
+    open(blob);
   }
 
   // Display the specified blob, unless it is too big to display
@@ -111,7 +95,12 @@ window.addEventListener('localized', function() {
       // If there was no EXIF preview, or if the image is not very big,
       // display the full-size image.
       if (!metadata.preview || pixels < 512 * 1024) {
-        frame.displayImage(blob, metadata.width, metadata.height);
+        frame.displayImage(blob,
+                           metadata.width,
+                           metadata.height,
+                           null,
+                           metadata.rotation,
+                           metadata.mirrored);
       }
       else {
         // If we found an EXIF preview, and can determine its size, then
@@ -129,14 +118,18 @@ window.addEventListener('localized', function() {
                             metadata.preview.width = previewmetadata.width;
                             metadata.preview.height = previewmetadata.height;
                             frame.displayImage(blob,
-                                               metadata.width, metadata.height,
-                                               metadata.preview);
+                                               metadata.width,
+                                               metadata.height,
+                                               metadata.preview,
+                                               metadata.rotation,
+                                               metadata.mirrored);
                           },
                           function error() {
                             // If we couldn't parse the preview image,
                             // just display full-size.
                             frame.displayImage(blob,
-                                               metadata.width, metadata.height);
+                                               metadata.width,
+                                               metadata.height);
                           });
       }
     }
