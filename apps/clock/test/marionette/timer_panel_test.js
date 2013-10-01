@@ -10,6 +10,7 @@ marionette('Alarm Panel', function() {
   });
 
   test('basic operation', function(done) {
+    var durationMs = 6 * 60 * 1000 * 1000 + 40 * 1000 * 1000 + 9 * 1000;
     var pausedValue;
     // This is a long-running test because it
     // 1. involves programatically interacting with an imprecise input element
@@ -22,15 +23,17 @@ marionette('Alarm Panel', function() {
 
     // This assertion is intentionally fuzzy to allow for time passage between
     // alarm creation and the following "read" operation.
-    assert.ok(
-      /6:40[:\.]0[0-9]/.test(timer.els.timer.countdown.text()),
+    assert.hasDuration(
+      timer.els.timer.countdown.text(),
+      [durationMs - 5000, durationMs],
       'displays the correct time immediately after creation'
     );
 
     timer.navigate('alarm');
     timer.navigate('timer');
     assert.ok(
-      /6:40[:\.]0[0-9]/.test(timer.els.timer.countdown.text()),
+      timer.els.timer.countdown.text(),
+      [durationMs - 5000, durationMs],
       'maintains the correct time across panel naviations'
     );
 
