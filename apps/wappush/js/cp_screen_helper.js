@@ -1,6 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global ParsedProvisioningDoc, ProvisioningAuthentication,
+          StoreProvisioning, WapPushManager */
+
+/* exported CpScreenHelper */
+
 'use strict';
 
 var CpScreenHelper = (function() {
@@ -230,15 +235,17 @@ var CpScreenHelper = (function() {
     apns = parsedProvisioningDoc.getApns();
 
     var names = [];
-    for (var i = 0; i < apns.length; i++) {
-      names.push(apns[i]['carrier']);
+    var i;
+
+    for (i = 0; i < apns.length; i++) {
+      names.push(apns[i].carrier);
     }
 
     // If the document has been already authenticated and there are no errors,
     // show the settings we are about to store into the settings database.
     message = storeConfirmDialog.querySelector('.message');
     var msg = '';
-    for (var i = 0; i < names.length; i++) {
+    for (i = 0; i < names.length; i++) {
       msg += '\n' + names[i];
     }
     message.textContent = msg;

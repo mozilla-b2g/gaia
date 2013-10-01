@@ -1,5 +1,6 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 (function(exports) {
   'use strict';
 
@@ -8,7 +9,6 @@
     'PAP': '1',
     'CHAP': '2'
   };
-  var DEFAULT_TYPE = ['default'];
   var TYPE_MAPPING = {
     'w2': 'default',
     'w4': 'mms'
@@ -84,7 +84,6 @@
      * @return {element} A NAPDEF node.
      */
     getNapDefNode: function pd_getNapDefNode(toNapId) {
-      var napDefNodes = null;
       for (var i = 0; i < this._napDefNodes.length; i++) {
         var selector = 'parm[name="NAPID"][value="' + toNapId + '"]';
         var napDefNode = this._napDefNodes[i].querySelector(selector);
@@ -156,17 +155,17 @@
 
         var napIdNode = napDefNode.querySelector('parm[name="NAPID"]');
         if (napIdNode) {
-          obj['NAPID'] = napIdNode.getAttribute('value');
+          obj.NAPID = napIdNode.getAttribute('value');
         }
 
         var nameNode = napDefNode.querySelector('parm[name="NAME"]');
         if (nameNode) {
-          obj['carrier'] = nameNode.getAttribute('value');
+          obj.carrier = nameNode.getAttribute('value');
         }
 
         var apnNode = napDefNode.querySelector('parm[name="NAP-ADDRESS"]');
         if (apnNode) {
-          obj['apn'] = apnNode.getAttribute('value');
+          obj.apn = apnNode.getAttribute('value');
         }
 
         var napAuthInfoNode =
@@ -179,20 +178,20 @@
               authTypeNode.getAttribute('value')
             ];
             if (authType) {
-              obj['authtype'] = authType;
+              obj.authtype = authType;
             }
           }
 
           var authNameNode =
             napAuthInfoNode.querySelector('parm[name="AUTHNAME"]');
           if (authNameNode) {
-            obj['user'] = authNameNode.getAttribute('value');
+            obj.user = authNameNode.getAttribute('value');
           }
 
           var authSecretNode =
             napAuthInfoNode.querySelector('parm[name="AUTHSECRET"]');
           if (authSecretNode) {
-            obj['password'] = authSecretNode.getAttribute('value');
+            obj.password = authSecretNode.getAttribute('value');
           }
         }
         return obj;
@@ -278,10 +277,10 @@
                 napDefNode = this.getNapDefNode(proxy['TO-NAPID'][n]);
                 apn = parseNapDefNode(napDefNode);
                 // Add type property.
-                apn['type'] = type;
+                apn.type = type;
                 // Add mmsc property when MMS APN
                 if ((TYPE_MAPPING[appId] === 'mms') && addr) {
-                  apn['mmsc'] = addr;
+                  apn.mmsc = addr;
                 }
                 this._apns.push(apn);
               }
@@ -293,7 +292,7 @@
             napDefNode = this.getNapDefNode(proxy['TO-NAPID'][o]);
             apn = parseNapDefNode(napDefNode);
             // Add type property.
-            apn['type'] = type;
+            apn.type = type;
             this._apns.push(apn);
           }
         }
@@ -335,7 +334,7 @@
           var TO_NAPID = proxy['TO-NAPID'][j];
           for (var k = 0; k < this._apns.length; k++) {
             var apn = this._apns[k];
-            if (TO_NAPID === apn['NAPID']) {
+            if (TO_NAPID === apn.NAPID) {
               addProperties(proxy, apn);
               break;
             }
