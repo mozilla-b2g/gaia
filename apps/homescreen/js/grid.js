@@ -1093,8 +1093,7 @@ var GridManager = (function() {
       isHosted: isHosted(app),
       hasOfflineCache: hasOfflineCache(app),
       type: app.type,
-      id: app.id,
-      isEmpty: !!app.isEmpty
+      id: app.id
     };
 
     if (haveLocale && app.type !== GridItemsFactory.TYPE.COLLECTION &&

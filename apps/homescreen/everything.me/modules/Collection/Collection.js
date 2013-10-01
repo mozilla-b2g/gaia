@@ -22,12 +22,13 @@ void function() {
         isFullScreenVisible = false,
 
         title = '',
-
         CLASS_WHEN_IMAGE_FULLSCREEN = 'full-image',
         CLASS_WHEN_ANIMATING = 'animate',
+        CLASS_WHEN_EDITING_NAME = 'renaming',
         TRANSITION_DURATION = 400;
 
     this.editMode = false;
+    this.isRenaming = false;
 
     this.init = function init(options) {
       !options && (options = {});
@@ -42,7 +43,8 @@ void function() {
       elImage = Evme.$('.image', el)[0];
       elClose = Evme.$('.close', el)[0];
 
-      elClose.addEventListener('click', self.hide);
+      elTitle.addEventListener('click', self.Rename.start);
+      elClose.addEventListener('click', self.onCloseClick);
       elAppsContainer.dataset.scrollOffset = 0;
 
       el.addEventListener('animationend', function onAnimationEnd(e) {
@@ -60,6 +62,106 @@ void function() {
       Evme.EventHandler.trigger(NAME, 'init');
     };
 
+    this.Rename = {
+      start: function renameStart() {
+        if (self.isRenaming) {
+          return;
+        }
+
+        var currentTitle = elTitle.querySelector('.actual').textContent,
+            elInput, elDone;
+
+        el.classList.add(CLASS_WHEN_EDITING_NAME);
+
+        elTitle.innerHTML = '<input type="text" ' +
+                                    'autocorrect="off" ' +
+                                    'autocapitalize="off" ' +
+                                    'x-inputmode="verbatim" />' +
+                            '<b class="done"></b>';
+
+        elInput = elTitle.querySelector('input');
+        elDone = elTitle.querySelector('.done');
+
+        elInput.focus();
+        elInput.value = currentTitle;
+
+        elInput.addEventListener('blur', self.Rename.cancel);
+        elInput.addEventListener('keyup', self.Rename.onKeyUp);
+        elDone.addEventListener('touchstart', self.Rename.save);
+  
+        elTitle.removeEventListener('click', self.Rename.start);
+
+        self.isRenaming = true;
+      },
+
+      onKeyUp: function onRenameKeyUp(e) {
+        if (e.keyCode === 13) {
+          self.Rename.save();
+        }
+      },
+
+      save: function renameSave(e) {
+        e && e.preventDefault();
+        self.Rename.done(true);
+      },
+
+      cancel: function renameCancel() {
+        self.Rename.done(false);
+      },
+
+      done: function renameDone(shouldSave) {
+        if (!self.isRenaming) {
+          return;
+        }
+
+        var elInput = elTitle.querySelector('input'),
+            elDone =  elTitle.querySelector('.done'),
+            id = currentSettings.id,
+            oldName = EvmeManager.getIconName(id) || currentSettings.query,
+            newName = elInput.value,
+            nameChanged = newName && newName !== oldName;
+
+        elInput.removeEventListener('blur', self.Rename.cancel);
+        elInput.removeEventListener('keyup', self.Rename.onKeyUp);
+        elDone.removeEventListener('touchstart', self.Rename.save);
+
+        elInput.blur();
+
+        if (shouldSave && nameChanged) {
+          self.update(currentSettings, {
+            'experienceId': null,
+            'query': newName
+          }, function onUpdate(updatedSettings) {
+            self.setTitle(newName);
+
+            EvmeManager.setIconName(newName, id);
+
+            Evme.EventHandler.trigger(NAME, 'rename', {
+              'id': id,
+              'newName': newName
+            });
+          });
+        } else {
+          self.setTitle(oldName);
+        }
+
+        el.classList.remove(CLASS_WHEN_EDITING_NAME);
+
+        self.isRenaming = false;
+
+        // timeout(0) because this done function can be called from input blur
+        // if we add the event back immediately it still fires, thus keeping
+        // the user in the rename mode
+        window.setTimeout(function() {
+          elTitle.addEventListener('click', self.Rename.start);
+        }, 0);
+      },
+    };
+
+    this.onCloseClick = function onCloseClick() {
+      self.hide();
+    };
+
     this.create = function create(options) {
       var query = options.query,
           apps = options.apps,
@@ -69,7 +171,7 @@ void function() {
 
       if (query) {
         Evme.CollectionSettings.createByQuery(query, extra, function onCreate(collectionSettings) {
-          updateGrid(collectionSettings, gridPosition, {
+          addToGrid(collectionSettings, gridPosition, {
             "callback": function onAddedToHomescreen() {
               callback(collectionSettings);
             }
@@ -112,11 +214,6 @@ void function() {
 
         // update the homescreen icon when necessary
 
-        // collection rename
-        if ('name' in data) {
-          shouldUpdateIcon = true;
-        }
-
         // first 3 apps changed
         if (!shouldUpdateIcon && 'apps' in data) {
           shouldUpdateIcon = !Evme.Utils.arraysEqual(originalAppIds,
@@ -134,7 +231,7 @@ void function() {
         }
 
         if (shouldUpdateIcon) {
-          updateGrid(updatedSettings);
+          updateGridIconImage(updatedSettings);
         }
       });
     };
@@ -223,6 +320,10 @@ void function() {
         return false;
       }
 
+      if (self.isRenaming) {
+        self.Rename.cancel();
+      }
+
       // update homescreen icon with first three visible icons
       var extraIconsData = resultsManager.getCloudResultsIconData();
       self.update(currentSettings, {'extraIconsData': extraIconsData});
@@ -253,8 +354,10 @@ void function() {
     this.setTitle = function setTitle(newTitle) {
       title = newTitle;
 
-      elTitle.innerHTML = '<em></em>' + '<span>' + title + '</span>' + ' ' +
-        '<span ' + Evme.Utils.l10nAttr(NAME, 'title-suffix') + '/>';
+      elTitle.innerHTML =
+              '<em></em>' +
+              '<span class="actual">' + title + '</span>' + ' ' +
+              '<span ' + Evme.Utils.l10nAttr(NAME, 'title-suffix') + '/>';
     };
 
     this.setBackground = function setBackground(newBg) {
@@ -379,11 +482,10 @@ void function() {
    */
   Evme.CollectionSettings = function Evme_CollectionSettings(args) {
     this.id = args.id;
-    this.name = args.name || args.query;
     this.bg = args.bg || null;  // object containing backgound information (image, query, source, setByUser)
 
     // collection performs search by query or by experience
-    this.query = args.query || args.name;
+    this.query = args.query || '';
     this.experienceId = args.experienceId;
 
     this.apps = args.apps || [];
@@ -482,9 +584,30 @@ void function() {
 
   /**
    * Add a collection to the homescreen.
-   * If collection exists only update the icon.
    */
-  function updateGrid(settings, gridPosition, extra) {
+  function addToGrid(settings, gridPosition, extra) {
+    createCollectionIcon(settings, function onIconCreated(canvas) {
+      EvmeManager.addGridItem({
+        'id': settings.id,
+        'originUrl': settings.id,
+        'name': settings.name,
+        'icon': canvas.toDataURL(),
+        'isCollection': true,
+        'gridPosition': gridPosition
+      }, extra);
+    });
+  }
+
+  /**
+   * Update a collection's icon on the homescreen
+   */
+  function updateGridIconImage(settings) {
+    createCollectionIcon(settings, function iconCreated(iconCanvas) {
+      EvmeManager.setIconImage(iconCanvas.toDataURL(), settings.id);
+    });
+  }
+
+  function createCollectionIcon(settings, callback) {
     var icons = Evme.Utils.pluck(settings.apps, 'icon');
 
     if (icons.length < Evme.Config.numberOfAppInCollectionIcon) {
@@ -492,16 +615,8 @@ void function() {
       icons = icons.concat(extraIcons).slice(0, Evme.Config.numberOfAppInCollectionIcon);
     }
 
-    Evme.IconGroup.get(icons, function onIconCreated(canvas) {
-      EvmeManager.addGridItem({
-        'id': settings.id,
-        'originUrl': settings.id,
-        'title': settings.name,
-        'icon': canvas.toDataURL(),
-        'isCollection': true,
-        'isEmpty': !(icons.length),
-        'gridPosition': gridPosition
-      }, extra);
+    Evme.IconGroup.get(icons, function onIconCreated(iconCanvas) {
+      callback(iconCanvas);
     });
   }
 

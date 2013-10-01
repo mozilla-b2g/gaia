@@ -15,13 +15,12 @@ var EvmeManager = (function EvmeManager() {
     GridItemsFactory.create({
       "id": params.id || Evme.Utils.uuid(),
       "bookmarkURL": params.originUrl,
-      "name": params.title,
+      "name": params.name,
       "icon": params.icon,
       "iconable": false,
       "useAsyncPanZoom": params.useAsyncPanZoom,
       "type": !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
-              GridItemsFactory.TYPE.BOOKMARK,
-      "isEmpty": !!params.isEmpty
+              GridItemsFactory.TYPE.BOOKMARK
     }, function doAddGridItem(item) {
       GridManager.install(item, params.gridPosition, extra);
       GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
@@ -275,6 +274,13 @@ var EvmeManager = (function EvmeManager() {
     return out;
   }
 
+  function setIconImage(image, origin, entryPoint) {
+    var icon = GridManager.getIconByOrigin(origin, entryPoint);
+    if (icon) {
+      icon.setImage(image);
+    }
+  }
+
   return {
     addGridItem: addGridItem,
     removeGridItem: removeGridItem,
@@ -306,7 +312,8 @@ var EvmeManager = (function EvmeManager() {
     setWallpaper: setWallpaper,
 
     getIconName: getIconName,
-    setIconName: setIconName
+    setIconName: setIconName,
+    setIconImage: setIconImage
   };
 }());
 

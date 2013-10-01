@@ -26,7 +26,6 @@ Evme.Utils = new function Evme_Utils() {
         INSTALLED_CLOUDS_APPS_ICONS_PADDING = 2,
 
         OSMessages = this.OSMessages = {
-          "APP_INSTALL": "add-bookmark",
           "OPEN_URL": "open-url",
           "SHOW_MENU": "show-menu",
           "HIDE_MENU": "hide-menu",
@@ -149,8 +148,6 @@ Evme.Utils = new function Evme_Utils() {
 
     this.sendToOS = function sendToOS(type, data) {
         switch (type) {
-            case OSMessages.APP_INSTALL:
-		return EvmeManager.addGridItem(data);
             case OSMessages.OPEN_URL:
                 return EvmeManager.openUrl(data.url);
             case OSMessages.SHOW_MENU:
