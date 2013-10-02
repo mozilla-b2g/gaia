@@ -232,7 +232,7 @@ function launchBrowser(URL) {
 function handleNdefDiscovered() {
   // Process:
   var handled = false;
-  var detailreq = navigator.mozNfc.detailsNDEF();
+  var detailreq = navigator.mozNfc.getDetailsNDEF();
   debug('NDEF Details Request submitted.');
   detailreq.onsuccess = function() {
     // NDEF Message with array of NDEFRecords
@@ -408,7 +408,7 @@ function setNfcPowerLevel(level) {
 
 function setListenState(boolState) {
   if (boolState == true) {
-    setNfcPowerLevel(1);
+    setNfcPowerLevel(2);
     $('#buttontext').text('Stop Tag Discovery');
     isListening = true;
   } else {
