@@ -152,6 +152,12 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
         noIconAppIds.push(app.id);
       }
 
+      // used for result filtering
+      var el = result.getElement();
+      if (el) {
+        el.dataset.url = app.appUrl;
+      }
+
       lastRenderedResults[app.id] = result;
 
       docFrag.appendChild(el);

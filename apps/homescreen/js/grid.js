@@ -827,7 +827,7 @@ var GridManager = (function() {
       // app.manifest is null until the downloadsuccess/downloadapplied event
       var manifest = app.manifest || app.updateManifest;
 
-      if (app.type === GridItemsFactory.TYPE.COLLECTION ||
+      if (!manifest || app.type === GridItemsFactory.TYPE.COLLECTION ||
           (suppressHiddenRoles && HIDDEN_ROLES.indexOf(manifest.role) !== -1)) {
         continue;
       }
