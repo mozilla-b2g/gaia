@@ -556,6 +556,13 @@ var LockScreen = {
     // Shrink the boundaries.
     var slideBoundaryOffset = this.leftIcon.clientWidth;
 
+    // They're different because the center element of the circle
+    // occurs 1px width toward right.
+    var boundaryBorderRight = 5;
+    var boundaryBorderLeft = 4;
+    var boundaryBorder = 'left' === dir ? boundaryBorderLeft :
+      boundaryBorderRight;
+
     // Boundaries will shorter than the track length,
     // to make unlocking with one hand easier.
     var maxLength = natureBoundary -
@@ -563,7 +570,7 @@ var LockScreen = {
                     Math.floor(this.leftIcon.clientWidth / 2);
 
     var offset = utx;
-    var slideLength = offset + this.slideLeft.clientWidth;
+    var slideLength = offset + this.slideLeft.clientWidth + boundaryBorder;
 
     // Start to paint the slide.
     this.slideLeft.classList.add('pulling');
@@ -574,7 +581,7 @@ var LockScreen = {
     // and only the handle and the blue occurred area should be adjusted.
     if (slideLength > maxLength) {
       this._slideReachEnd = true;
-      offset = natureBoundary - this.slideLeft.clientWidth;
+      offset = natureBoundary - this.slideLeft.clientWidth - boundaryBorder;
       this._slideTo(offset, dir, true);
     } else {
       this._slideTo(offset, dir);
