@@ -755,6 +755,7 @@ var TilesView = {
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
+    this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
   },
 
@@ -873,17 +874,36 @@ var TilesView = {
   },
 
   handleEvent: function tv_handleEvent(evt) {
+    function tv_resetSearch(self) {
+      evt.preventDefault();
+      self.searchInput.value = '';
+      SearchView.clearSearch();
+    }
     var target = evt.target;
+    if (!target)
+      return;
+
     switch (evt.type) {
-      case 'click':
-        if (!target)
-          return;
+      case 'touchend':
+        // Check for tap on parent form element with event origin as clear buton
+        // This is workaround for a bug in input_areas BB. See Bug 920770
+        if (target.id === 'views-tiles-search') {
+          var id = evt.originalTarget.id;
+          if (id && id !== 'views-tiles-search-input' &&
+            id !== 'views-tiles-search-close') {
+            tv_resetSearch(this);
+            return;
+          }
+        }
 
         if (target.id === 'views-tiles-search-clear') {
-          SearchView.clearSearch();
+          tv_resetSearch(this);
           return;
         }
 
+        break;
+
+      case 'click':
         if (target.id === 'views-tiles-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
             ModeManager.pop();
@@ -1136,6 +1156,7 @@ var ListView = {
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
+    this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
   },
 
@@ -1187,18 +1208,36 @@ var ListView = {
   },
 
   handleEvent: function lv_handleEvent(evt) {
+    function lv_resetSearch(self) {
+      evt.preventDefault();
+      self.searchInput.value = '';
+      SearchView.clearSearch();
+    }
     var target = evt.target;
+    if (!target)
+      return;
 
     switch (evt.type) {
-      case 'click':
-        if (!target)
-          return;
+      case 'touchend':
+        // Check for tap on parent form element with event origin as clear buton
+        // This is workaround for a bug in input_areas BB. See Bug 920770
+        if (target.id === 'views-list-search') {
+          var id = evt.originalTarget.id;
+          if (id && id !== 'views-list-search-input' &&
+            id !== 'views-list-search-close') {
+            lv_resetSearch(this);
+            return;
+          }
+        }
 
         if (target.id === 'views-list-search-clear') {
-          SearchView.clearSearch();
+          lv_resetSearch(this);
           return;
         }
 
+        break;
+
+      case 'click':
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
             ModeManager.pop();
