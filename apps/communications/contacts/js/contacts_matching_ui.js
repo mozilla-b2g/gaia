@@ -309,7 +309,7 @@ if (!contacts.MatchingUI) {
     }
 
     function renderMatchingDetails(uuid) {
-      var fields = ['photo', 'name', 'org', 'tel', 'email', 'adr'];
+      var fields = ['name', 'photo', 'org', 'tel', 'email', 'adr'];
 
       var theContact = matchingResults[uuid].matchingContact;
       var matchings = matchingResults[uuid].matchings;
@@ -337,6 +337,7 @@ if (!contacts.MatchingUI) {
               matchingImg.alt = getDisplayName(theContact);
             break;
             case 'tel':
+            case 'email':
               var item = document.createElement('li');
               if (isMatch(matchings, aField, fieldValue)) {
                 item.classList.add('selected');
@@ -364,6 +365,7 @@ if (!contacts.MatchingUI) {
               var item = document.createElement('li');
               item.textContent = fieldValue.value || fieldValue || '';
               matchingDetailList.appendChild(item);
+            break;
           }
         });
       });
