@@ -10,7 +10,7 @@ var ContextMenu = {
 
   handleEvent: function cm_handleEvent(evt) {
     var detail = evt.detail;
-    if (detail.contextmenu.items.length == 0)
+    if (!detail.contextmenu || detail.contextmenu.items.length == 0)
       return;
 
     var onsuccess = function(action) {
