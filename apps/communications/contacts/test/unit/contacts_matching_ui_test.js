@@ -5,6 +5,8 @@ requireApp('communications/contacts/test/unit/mock_matching_contacts.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/contacts/js/utilities/templates.js');
+requireApp('communications/contacts/test/unit/' +
+           'contacts_matching_ui_test_data.js');
 
 requireApp('communications/contacts/js/contacts_matching_ui.js');
 
@@ -14,88 +16,13 @@ if (!this.ImageLoader) {
 
 suite('Matching duplicate contacts UI Test Suite', function() {
 
-  var wrapper = null, realImageLoader, realURL, list, realMatchingController,
-      mergeAction, realL10n;
+  var wrapper = null,
+    realImageLoader, realURL, list, matchingDetails, matchingName, matchingImg,
+    matchingDetailList, realMatchingController, mergeAction, realL10n;
 
   var masterContact = {
     givenName: ['Manolo'],
     familyName: ['García']
-  };
-
-  var dataImage = 'data:image/gif;base64,R0lGODlhyAAiALM...DfD0QAADs=';
-
-  var CORRECT_MATCHED_VALUE = '$correct$';
-
-  var dupContacts = {
-    '1a': {
-      matchingContact: {
-        id: '1a',
-        givenName: ['Manolo'],
-        familyName: ['García'],
-        photo: [dataImage],
-        email: [{
-          value: 'man@tid.es'
-        }]
-      },
-      matchings: {
-        'name': [{
-          target: 'Manolo',
-          matchedValue: CORRECT_MATCHED_VALUE
-        }]
-      }
-    },
-    '2b': {
-      matchingContact: {
-        id: '2b',
-        givenName: ['Manolo'],
-        familyName: ['García'],
-        photo: [dataImage],
-        email: [{
-          value: 'man@tid.es'
-        }, {
-          value: 'man@telefonica.es'
-        }]
-      },
-      matchings: {
-        'name': [{
-          target: 'Manolo',
-          matchedValue: 'Manolo Garcia'
-        }],
-        'email': [{
-          target: 'man@tid.es',
-          matchedValue: CORRECT_MATCHED_VALUE
-        }]
-      }
-    },
-    '3c': {
-      matchingContact: {
-        id: '3c',
-        givenName: ['Manolo'],
-        familyName: ['García'],
-        photo: [dataImage],
-        email: [{
-          value: 'man@tid.es'
-        }],
-        'tel': [{
-          value: '+346578888881',
-          type: 'Mobile'
-        }]
-      },
-      matchings: {
-        'name': [{
-          target: 'Manolo',
-          matchedValue: 'Manolo Garcia'
-        }],
-        'email': [{
-          target: 'man@tid.es',
-          matchedValue: 'man@tid.es'
-        }],
-        'tel': [{
-          target: '+346578888881',
-          matchedValue: CORRECT_MATCHED_VALUE
-        }]
-      }
-    }
   };
 
   function checkItem(item, contact) {
@@ -212,6 +139,146 @@ suite('Matching duplicate contacts UI Test Suite', function() {
         done();
       });
     });
+  });
+
+  suite('duplicate contact details', function() {
+    var observerConfig = {
+      attributes: true,
+      attributeFilter: ['class']
+    };
+
+    setup(function(done) {
+      document.body.removeChild(wrapper);
+      wrapper.innerHTML = MockMatchingContactsHtml;
+      document.body.appendChild(wrapper);
+      contacts.MatchingUI.init();
+      matchingDetails = wrapper.querySelector('#matching-details');
+      matchingName = matchingDetails.querySelector('figcaption');
+      matchingImg = matchingDetails.querySelector('img');
+      matchingDetailList = matchingDetails.querySelector('#matching-list');
+      // Add a photo to the matching contact with id 'user_id_1'.
+      matchingDetailsData['user_id_1'].matchingContact.photo[0] =
+        matchingImg.src;
+      contacts.MatchingUI.load('matching', masterContact, matchingDetailsData,
+        function() {
+          done();
+        });
+    });
+
+    test('should show the duplicate contact details overlay', function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        assert.isFalse(matchingDetails.classList.contains('hide'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+    });
+
+    test('should show the duplicate contact name and highlight it',
+         function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        assert.equal(matchingName.textContent, 'The Name The Surname');
+        assert.isTrue(matchingName.classList.contains('selected'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+    });
+
+    test('should show the duplicate contact name but not highlight it',
+         function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        assert.equal(matchingName.textContent, 'The Name Another Surname');
+        assert.isFalse(matchingName.classList.contains('selected'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_2');
+    });
+
+    test('should show the duplicate contact image', function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        assert.isFalse(matchingImg.classList.contains('hide'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+    });
+
+    test('should hide the duplicate contact image', function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        assert.isTrue(matchingImg.classList.contains('hide'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      // 'user_id_2' has no photo.
+      contacts.MatchingUI.displayMatchingDetails('user_id_2');
+    });
+
+    test('should show the phone number but not highlight it', function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        var listItems = matchingDetailList.querySelectorAll('li');
+        assert.equal(listItems[0].textContent, 'type_1, 111111111');
+        assert.isFalse(listItems[0].classList.contains('selected'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+    });
+
+    test('should show the phone number and highlight it', function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        var listItems = matchingDetailList.querySelectorAll('li');
+        assert.equal(listItems[1].textContent, 'type_2, 222222222');
+        assert.isTrue(listItems[1].classList.contains('selected'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+    });
+
+    test('should show the email but not highlight it', function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        var listItems = matchingDetailList.querySelectorAll('li');
+        assert.equal(listItems[2].textContent,
+                     'email_type_1, email_1@acme.com');
+        assert.isFalse(listItems[2].classList.contains('selected'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+    });
+
+    test('should show the email and highlight it', function(done) {
+      var checkAssertions = function() {
+        observer.disconnect();
+        var listItems = matchingDetailList.querySelectorAll('li');
+        assert.equal(listItems[3].textContent,
+                     'email_type_2, email_2@acme.com');
+        assert.isTrue(listItems[3].classList.contains('selected'));
+        done();
+      };
+      var observer = new MutationObserver(checkAssertions);
+      observer.observe(matchingDetails, observerConfig);
+      contacts.MatchingUI.displayMatchingDetails('user_id_1');
+    });
+
   });
 
 });
