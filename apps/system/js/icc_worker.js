@@ -47,7 +47,10 @@ var icc_worker = {
         resultCode: iccManager._icc.STK_RESULT_OK
       });
       if (confirmed && postMessage) {
-        iccManager.alert(postMessage);
+        // Transfering the second alpha id to dialer (Bug #873906)
+        window.navigator.mozSettings.createLock().set({
+          'icc.callmessage': options.callMessage
+        });
       }
     }
 
