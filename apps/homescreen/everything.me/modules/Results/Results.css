@@ -1,41 +1,9 @@
-.evmeScope .evme-apps {
-    position: absolute;
-    top: 8.1rem;
-    left: 0;
-    right: -2rem;
-    bottom: 0;
-    z-index: 50;
-}
 .evmeScope.loading-app .evme-apps {
     pointer-events: none;
 }
 
 .evmeScope.empty-query #evmeApps {
     display: none;
-}
-
-.evmeScope .evme-apps > div {
-    -moz-box-orient: vertical;
-    -moz-box-sizing: border-box;
-    display: -moz-box;
-    width: calc(100% - 2rem);
-    min-height: 100%;
-    padding-top: 2.4rem;
-}
-.evmeScope .evme-apps .loading-apps {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    text-align: center;
-    height: 10rem;
-    line-height: 10rem;
-    margin-top: -5.1rem;
-    display: none;
-    pointer-events: none;
-}
-.evmeScope .show-loading-apps .loading-apps {
-    display: block;
 }
 
 .evmeScope .evme-apps ul li {
@@ -101,55 +69,6 @@
   z-index: 2;
   background: url(/resources/images/delete.png) no-repeat left top;
   display: none;
-}
-
-/* Notifications */
-
-.evmeScope .evme-apps section[role="notification"] {
-    position: relative;
-    -moz-box-flex: 1;
-    display: none;
-    visibility: hidden;
-    min-height: 6rem;
-}
-.evmeScope .evme-apps.has-more section[role="notification"] {
-    margin-top: 1rem;
-    box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .4), 0 -0.2rem 0 0 rgba(0, 0, 0, .4);
-}
-.evmeScope .evme-apps section[role="notification"] > div {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    color: #fff;
-    font-size: 1.6rem;
-    text-align: center;
-}
-.evmeScope .evme-apps section[role="notification"].loading-more > div {
-    height: 3rem;
-    margin-top: -1.5rem;
-}
-.evmeScope .evme-apps section[role="notification"].connection-message > div {
-    height: 3rem;
-    margin-top: -2rem;
-}
-
-.evmeScope:not(.connection-error) .evme-apps.has-more section[role="notification"].loading-more,
-.evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
-    display: block;
-}
-
-.evmeScope:not(.connection-error) .evme-apps section[role="notification"].show,
-.evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
-    display: block;
-    visibility: visible;
-}
-
-.evmeScope .evme-apps section[role="notification"].loading-more progress{
-    margin-right: 0.8rem;
-}
-.evmeScope .evme-apps:not(.has-more) section[role="notification"].loading-more span {
-    display: none;
 }
 
 /* Loading an app */
