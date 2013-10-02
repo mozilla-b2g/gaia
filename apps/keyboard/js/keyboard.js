@@ -228,8 +228,7 @@ const keyboardGroups = {
 // Define language code aliases to correctly match the relevant keyboard,
 // i.e. language -> relevant keyboard name
 const keyboardAlias = {
-  'en-US': 'en',
-  'pt-BR': 'pt_BR'
+  'en-US': 'en'
 };
 
 // This is the default keyboard if none is selected in settings
@@ -253,6 +252,7 @@ const BASIC_LAYOUT = -1;
 const ALTERNATE_LAYOUT = -2;
 const SWITCH_KEYBOARD = -3;
 const TOGGLE_CANDIDATE_PANEL = -4;
+const NO_OP = -5;
 
 const specialCodes = [
   KeyEvent.DOM_VK_BACK_SPACE,
@@ -591,6 +591,9 @@ function modifyLayout(keyboardName) {
         altLayoutName = 'pinLayout';
       } else if (currentInputMode === 'numeric') {
         altLayoutName = 'numberLayout';
+      } else if (currentInputMode === '-moz-sms-7bit' &&
+                 keyboardName === 'el') {
+        altLayoutName = 'el-sms';
       }
       break;
   }
@@ -1600,7 +1603,6 @@ function showKeyboard(state) {
   currentInputMode = state.inputmode;
   currentInputType = mapInputType(state.type);
 
-
   resetKeyboard();
 
   if (inputMethod.activate) {
@@ -1609,7 +1611,6 @@ function showKeyboard(state) {
       correct: correctionsEnabled
     });
   }
-
 
   // render the keyboard after activation, which will determine the state
   // of uppercase/suggestion, etc.
@@ -1821,6 +1822,14 @@ function getSettings(settings, callback) {
 
 // To determine if the candidate panel for word suggestion is needed
 function needsCandidatePanel() {
+  // Disable the word suggestion for Greek SMS layout.
+  // This is because the suggestion result is still unicode and
+  // we would not convert the suggestion result GSM 7-bit.
+  if (currentInputMode === '-moz-sms-7bit' &&
+      keyboardName === 'el') {
+    return false;
+  }
+
   return !!((Keyboards[keyboardName].autoCorrectLanguage ||
            Keyboards[keyboardName].needsCandidatePanel) &&
           (!inputMethod.displaysCandidates ||
