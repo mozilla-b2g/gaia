@@ -50,32 +50,43 @@ ul, ol {
 
 /* ----------- Alarm List ---------- */
 #alarms {
-  width: 90%;
+  width: 100%;
   height: auto;
   max-height: calc(100% - 22rem);
   position: absolute;
   bottom: 0rem;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
   background-color: transparent;
   background-image: none;
 }
 
+ul#alarms li.alarm-cell:before {
+  content: "";
+  position: absolute;
+  width: calc(100% - 3rem);
+  height: .1rem;
+  background-color: rgba(115, 125, 128, 0.2);
+}
+
 ul#alarms li.alarm-cell { /* 6rem, including a 0.13rem border */
-  border-top: 1px solid rgba(115, 125, 128, 0.2);
+  padding: 0 1.5rem;
   position: relative;
   height: 6rem;
 }
 
 ul#alarms li.alarm-cell:active {
-  background-color: rgba(255, 255, 255, .07);
-  color: #222;
+  background-color: rgba(52,140,158, .6);
+}
+
+ul#alarms li.alarm-cell:active .period,
+ul#alarms li.alarm-cell:active .label,
+ul#alarms li.alarm-cell:active .repeat {
+  color: #cfe2e5;
 }
 
 #alarms .alarmEnable {
   position: absolute;
   top: 0;
-  right: 0;
+  right: 1.5rem;
   width: -moz-calc(8.13rem);
   height: 100%;
   z-index: 0;
@@ -100,12 +111,17 @@ ul#alarms li.alarm-cell:active {
 }
 
 #alarms a.alarm-item {
+  position: relative;
   padding: 0;
   height: 100%;
   display: block;
   text-decoration: none;
   font: lighter 1.4rem sans-serif;
   color: #737D80;
+}
+
+#alarms a.alarm-item:active {
+  background-color: transparent;
 }
 
 a.alarm-item > span {
@@ -119,7 +135,7 @@ a.alarm-item > .time {
   font-size: 2.8rem;
   font-family: 'Fira Sans', sans-serif;
   font-weight: lighter;
-  color: #CFE2E5;
+  color: #cfe2e5;
 }
 
 a.alarm-item .period {
