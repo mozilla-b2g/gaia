@@ -1,12 +1,13 @@
 const { Cc, Ci, Cr, Cu } = require('chrome');
 const { btoa } = Cu.import("resource://gre/modules/Services.jsm", {});
+const multilocale = require('./multilocale');
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
 Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
-Cu.import("resource://gre/modules/osfile.jsm")
+Cu.import('resource://gre/modules/osfile.jsm');
 
 function isSubjectToBranding(path) {
   return /shared[\/\\][a-zA-Z]+[\/\\]branding$/.test(path) ||
@@ -20,7 +21,7 @@ function isSubjectToBranding(path) {
  * @param  {boolean} recursive set to true in order to walk recursively.
  * @param  {RegExp}  exclude   optional filter to exclude file/directories.
  *
- * @return {Array}   list of nsIFile's.
+ * @returns {Array}   list of nsIFile's.
  */
 function ls(dir, recursive, exclude) {
   let results = [];
@@ -93,8 +94,12 @@ function getFile() {
     if (arguments.length > 1) {
       for (let i = 1; i < arguments.length; i++) {
         let dir = arguments[i];
-        dir.split('/').forEach(function(name) {
-          file.append(name);
+        dir.split(/[\\\/]/).forEach(function(name) {
+          if (name === '..') {
+            file = file.parent;
+          } else {
+            file.append(name);
+          }
         });
       }
     }
@@ -180,7 +185,8 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
       appdirs.forEach(function(app) {
         let appDir = getFile(app);
         if (!appDir.exists()) {
-          throw new Error(' -*- build/utils.js: file not found (' + app + ')\n');
+          throw new Error(' -*- build/utils.js: file not found (' +
+            app + ')\n');
         }
 
         let manifestFile = appDir.clone();
@@ -226,7 +232,7 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
           if (webapp.build.dir) {
             let buildDirectoryFile = webapp.sourceDirectoryFile.clone();
             webapp.build.dir.split('/').forEach(function(segment) {
-              if (segment == "..")
+              if (segment == '..')
                 buildDirectoryFile = buildDirectoryFile.parent;
               else
                 buildDirectoryFile.append(segment);
@@ -264,7 +270,7 @@ function registerProfileDirectory(profileDir) {
 }
 
 function getGaia(options) {
-  return {
+  var gaia = {
     engine: options.GAIA_ENGINE,
     sharedFolder: getFile(options.GAIA_DIR, 'shared'),
     webapps: makeWebappsObject(options.GAIA_APPDIRS.split(' '),
@@ -272,6 +278,28 @@ function getGaia(options) {
     aggregatePrefix: 'gaia_build_',
     distributionDir: options.GAIA_DISTRIBUTION_DIR
   };
+
+  if (options.LOCALE_BASEDIR) {
+    // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
+    var localeBasedir = getLocaleBasedir(options.LOCALE_BASEDIR);
+    gaia.l10nManager = new multilocale.L10nManager(
+      options.GAIA_DIR,
+      gaia.sharedFolder.path,
+      options.LOCALES_FILE,
+      localeBasedir);
+  }
+
+  return gaia;
+}
+
+// FIXME (Bug 952901): because TBPL use path style like C:/path1/path2 for
+// LOCALE_BASEDIR but we expect C:\path1\path2, so we need convert it if this
+// script is running on Windows.
+//
+// remove it if bug 952900 fixed.
+function getLocaleBasedir(original) {
+  return (getOsType().indexOf('WIN') !== -1) ?
+    original.replace('/', '\\', 'g') : original;
 }
 
 function gaiaOriginURL(name, scheme, domain, port) {
@@ -292,7 +320,7 @@ function getDistributionFileContent(name, defaultContent, distDir) {
   return JSON.stringify(defaultContent, null, '  ');
 }
 
-function getAbsoluteOrRelativePath(path, gaiaDir) {
+function resolve(path, gaiaDir) {
   // First check relative path to gaia folder
   let abs_path_chunks = [gaiaDir].concat(path.split(/\/|\\/));
   let file = getFile.apply(null, abs_path_chunks);
@@ -328,7 +356,7 @@ function deleteFile(path, recursive) {
  * @param  {boolean} recursive set to true in order to walk recursively.
  * @param  {RegExp}  exclude   optional filter to exclude file/directories.
  *
- * @return {Array}   list of string which contains all files' full path.
+ * @returns {Array}   list of string which contains all files' full path.
  * Note: this function is a wrapper function  for node.js
  */
 function listFiles(path, type, recursive, exclude) {
@@ -604,14 +632,14 @@ function normalizeString(appname) {
  * ex: adb = new Commander('adb');
  */
 function Commander(cmd) {
-  var command = 
+  var command =
     (getOsType().indexOf('WIN') !== -1 && cmd.indexOf('.exe') === -1) ?
     cmd + '.exe' : cmd;
   var _path;
   var _file = null;
 
   // paths can be string or array, we'll eventually store one workable
-  // path as _path. 
+  // path as _path.
   this.initPath = function (paths) {
     if (typeof paths === 'string') {
       _path = paths;
@@ -674,7 +702,7 @@ function getEnvPath() {
 // We parse list like ps aux and b2g-ps into object
 function psParser(out) {
   var titles =
-    ['APPLICATION', 'USER', 'PID', 'PPID', 
+    ['APPLICATION', 'USER', 'PID', 'PPID',
      'VSIZE', 'RSS', 'WCHAN', 'PC', 'NAME'];
   var rows = out.split('\n');
   if (rows.length < 2)
@@ -704,6 +732,10 @@ function psParser(out) {
   return result;
 }
 
+function getExtension(filename) {
+  return filename.substr(filename.lastIndexOf('.') + 1).toLowerCase();
+}
+
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -716,7 +748,7 @@ exports.makeWebappsObject = makeWebappsObject;
 exports.gaiaOriginURL = gaiaOriginURL;
 exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = getDistributionFileContent;
-exports.getAbsoluteOrRelativePath = getAbsoluteOrRelativePath;
+exports.resolve = resolve;
 exports.getGaia = getGaia;
 exports.getBuildConfig = getBuildConfig;
 exports.getAppsByList = getAppsByList;
@@ -727,6 +759,7 @@ exports.getTempFolder = getTempFolder;
 exports.normalizeString = normalizeString;
 exports.Commander = Commander;
 exports.getEnvPath = getEnvPath;
+exports.getLocaleBasedir = getLocaleBasedir;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
@@ -743,3 +776,4 @@ exports.readJSONFromPath = readJSONFromPath;
 exports.writeContentToFile = writeContentToFile;
 exports.processEvents = processEvents;
 exports.log = log;
+exports.getExtension = getExtension;

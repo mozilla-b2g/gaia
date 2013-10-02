@@ -148,6 +148,10 @@ function execute(options) {
     prefs.push(['extensions.gaia.locales_debug_path',
       config.GAIA_LOCALES_PATH]);
     prefs.push(['extensions.gaia.official', Boolean(config.OFFICIAL)]);
+    prefs.push(['extensions.gaia.locales_file', config.LOCALES_FILE]);
+    // Bug 952901: remove getLocaleBasedir() if bug 952900 fixed.
+    prefs.push(['extensions.gaia.locale_basedir',
+      utils.getLocaleBasedir(config.LOCALE_BASEDIR)]);
 
     let suffix = config.GAIA_DEV_PIXELS_PER_PX === '1' ?
                  '' : '@' + config.GAIA_DEV_PIXELS_PER_PX + 'x';
