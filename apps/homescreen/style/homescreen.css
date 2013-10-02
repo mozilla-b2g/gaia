@@ -136,7 +136,11 @@ body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
       height: .2rem;
   }
 }
-
+@media (min-width: 768px) {
+  #bg-overlay {
+    height: calc(100% - 16rem);
+  }
+}
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 40px
  * (for status bar/mini attention screen),

@@ -39,8 +39,9 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Calendar.png",
-    "120": "/style/icons/Calendar.png"
+    "60": "/style/icons/Calendar_60.png",
+    "90": "/style/icons/Calendar_90.png",
+    "120": "/style/icons/Calendar_120.png"
   },
   "orientation": "portrait-primary"
 }

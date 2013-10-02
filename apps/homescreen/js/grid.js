@@ -4,7 +4,11 @@ var GridManager = (function() {
   // Be aware that the current manifest icon description syntax does
   // not distinguish between 60@1.5x and 90@1x, so we would have to use
   // the latter as the former.
-  var PREFERRED_ICON_SIZE = 60 * (window.devicePixelRatio || 1);
+
+  // use 100px icons for tablet
+  var notTinyLayout = !ScreenLayout.getCurrentLayout('tiny');
+  var PREFERRED_ICON_SIZE =
+      (notTinyLayout ? 100 : 60) * (window.devicePixelRatio || 1);
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
@@ -54,7 +58,7 @@ var GridManager = (function() {
   }
 
   // tablet+ devices are stricted to 5 x 3 grid
-  if (ScreenLayout.getCurrentLayout() !== 'tiny') {
+  if (notTinyLayout) {
     MAX_ICONS_PER_PAGE = 5 * 3;
   }
 
