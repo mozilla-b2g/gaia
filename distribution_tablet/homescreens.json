@@ -6,5 +6,10 @@
     ["apps", "gallery"],
     ["apps", "music"]
   ]
-]
+],
+ "swipe": {
+    "threshold": 0.25,
+    "friction": 0.1,
+    "transition_duration": 300
+ }
 }
