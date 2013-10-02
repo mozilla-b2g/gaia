@@ -729,12 +729,13 @@ this.InstalledAppsService = new function InstalledAppsService() {
             }
 
             // bookmark - add to homescreen
-            Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_INSTALL, {
+            EvmeManager.addGridItem({
                 'originUrl': data.app.getFavLink(),
-                'title': data.data.name,
+                'name': data.data.name,
                 'icon': Evme.Utils.formatImageData(data.app.getIcon()),
                 'useAsyncPanZoom': data.app.isExternal()
             });
+
             // display system banner
             Evme.Banner.show('app-install-success', {
                 'name': data.data.name
