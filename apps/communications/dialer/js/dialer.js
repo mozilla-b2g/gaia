@@ -240,6 +240,8 @@ var CallHandler = (function callHandler() {
       handleCallScreenClosing();
     } else if (data === 'ready') {
       handleCallScreenReady();
+    } else if (data == 'request-contacts') {
+      window.location.hash = '#contacts-view';
     } else if (!data.type) {
       return;
     } else if (data.type === 'notification') {
@@ -272,7 +274,8 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    var connected, disconnected = function clearPhoneView() {
+    var connected, disconnected;
+    connected = disconnected = function clearPhoneView() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
     };
 
