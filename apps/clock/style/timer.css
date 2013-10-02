@@ -92,3 +92,8 @@ ul li > label.pack-switch > input + span {
   left: auto !important;
   right: 0 !important;
 }
+
+#timer-sound {
+  position: absolute;
+  opacity: 0;
+}
