@@ -456,8 +456,12 @@ var MessageManager = {
     });
   },
 
-  sendMMS: function mm_sendMMS(recipients, content, onsuccess, onerror) {
+  sendMMS:
+    function mm_sendMMS(mmsMessage, onsuccess, onerror) {
     var request;
+    var recipients = mmsMessage.recipients,
+        subject = mmsMessage.subject,
+        content = mmsMessage.content;
 
     if (!Array.isArray(recipients)) {
       recipients = [recipients];
@@ -466,8 +470,8 @@ var MessageManager = {
     var message = SMIL.generate(content);
 
     request = this._mozMobileMessage.sendMMS({
-      subject: '',
       receivers: recipients,
+      subject: subject,
       smil: message.smil,
       attachments: message.attachments
     });
