@@ -34,9 +34,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/Clock_60.png",
-    "90": "/style/icons/Clock_90.png",
-    "120": "/style/icons/Clock_120.png"
+    "60": "/style/icons/60/Clock.png",
+    "120": "/style/icons/Clock.png"
   },
   "orientation": "portrait-primary",
   "messages": [
