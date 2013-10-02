@@ -370,8 +370,8 @@ var GridManager = (function() {
 
     var velocity = panningResolver.getVelocity();
     var distanceToTravel = 0.5 * Math.abs(velocity) * velocity / swipeFriction;
-    // If the actual distance plus the coast distance is more than 40% the
-    // screen, transition to the next page
+    // If the actual distance plus the coast distance is more than
+    // swipeThreshold, transition to the next page
     if (Math.abs(deltaX + distanceToTravel) > swipeThreshold) {
       var forward = dirCtrl.goesForward(deltaX);
       if (forward && currentPage < pages.length - 1) {
@@ -1293,7 +1293,7 @@ var GridManager = (function() {
     initUI(options.gridSelector);
 
     tapThreshold = options.tapThreshold;
-    swipeThreshold = windowWidth * options.swipeThreshold;
+    swipeThreshold = options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
 

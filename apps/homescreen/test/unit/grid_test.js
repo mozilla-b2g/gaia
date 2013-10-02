@@ -41,7 +41,7 @@ mocksHelperForGrid.init();
 
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
-  var SWIPE_THRESHOLD = 0.5;
+  var SWIPE_THRESHOLD = 160;
   var SAVE_STATE_WAIT_TIMEOUT = 200;
 
   var wrapperNode, containerNode;
