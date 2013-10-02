@@ -83,22 +83,12 @@
     opacity: 0;
 }
 .apps > div.evmePage {
-    height: 100%;
     -moz-box-sizing: border-box;
     padding-top: calc(25% + 1.3rem);
 }
 
-/* Maximum 12 icons for page */
-.evmePage ol > li:nth-child(13) {
-  display: none;
-}
-@media all and (min-device-width: 480px) and (min-device-height: 960px ) {
-  .evmePage ol > li:nth-child(13) {
-    display: inline-block;
-  }
-  .evmePage ol > li:nth-child(17) {
-    display: none;
-  }
+.evme-displayed .apps > div.evmePage {
+  height: 100%;
 }
 
 .evme-has-results #footer,
@@ -112,4 +102,10 @@
 .evme-displayed.evme-keyboard-visible #footer,
 .evme-displayed.evme-has-query #footer{
     transform: translateY(100%);
+}
+
+.evme-loading-from-input #bg-overlay,
+.evme-displayed.evme-keyboard-visible #bg-overlay,
+.evme-displayed.evme-has-query #bg-overlay{
+  height: 100%;
 }
