@@ -4,7 +4,6 @@ var contacts = window.contacts || {};
 contacts.List = (function() {
   var _,
       groupsList,
-      favoriteGroup,
       loaded = false,
       cancel,
       contactsListView,
@@ -49,6 +48,25 @@ contacts.List = (function() {
   // config.json file (see bug 841693)
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
+
+  // Specify group short names or "letters" for those groups that have a name
+  // different from something like "A" or "B".
+  var GROUP_LETTERS = {
+    'favorites': '',
+    'und': '#'
+  };
+
+  // Define the order in which groups should appear in the list.  We allow
+  // arbitrary ordering here in anticipation of additional, non-roman scripts
+  // being added.
+  var GROUP_ORDER = {
+    'favorites': 0,
+    'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8,
+    'I': 9, 'J': 10, 'K': 11, 'L': 12, 'M': 13, 'N': 14, 'O': 15, 'P': 16,
+    'Q': 17, 'R': 18, 'S': 19, 'T': 20, 'U': 21, 'V': 22, 'W': 23, 'X': 24,
+    'Y': 25, 'Z': 26,
+    'und': 27
+  };
 
   var NOP_FUNCTION = function() {};
 
@@ -119,7 +137,7 @@ contacts.List = (function() {
     monitor.resumeMonitoringMutations(false);
   };
 
-  var init = function load(element) {
+  var init = function load(element, reset) {
     _ = navigator.mozL10n.get;
 
     cancel = document.getElementById('cancel-search'),
@@ -134,12 +152,15 @@ contacts.List = (function() {
     groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
 
-    initHeaders();
-    favoriteGroup = document.getElementById('group-favorites').parentNode;
     var selector = 'header:not(.hide)';
     FixedHeader.init('#groups-container', '#fixed-container', selector);
 
     initOrder();
+
+    // Test code calls init() directly, so we may have to reset.
+    if (reset) {
+      resetDom();
+    }
   };
 
   // Define a source adapter object to pass to contacts.Search.
@@ -295,6 +316,7 @@ contacts.List = (function() {
   };
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
+    // Create the DOM for the group list
     var letteredSection = document.createElement('section');
     letteredSection.id = 'section-group-' + group;
     var title = document.createElement('header');
@@ -311,10 +333,81 @@ contacts.List = (function() {
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
     letteredSection.appendChild(contactsContainer);
-    groupsList.appendChild(letteredSection);
 
+    // Save the list off for easy access, later
     headers[group] = contactsContainer;
+
+    // Now we must insert the new <section> into the DOM.  Since groups can
+    // be created at any time we must insert the section in the correct
+    // order.
+
+    // If there are no other groups yet, then its easy.  Just append.
+    if (groupsList.children.length === 0) {
+      groupsList.appendChild(letteredSection);
+      return;
+    }
+
+    // Determine the correct position for this group.
+    var order = GROUP_ORDER[group];
+
+    // If we cannot find a defined ordering for this group, then fall back
+    // on appending.
+    if (typeof order !== 'number') {
+      groupsList.appendChild(letteredSection);
+      return;
+    }
+
+    // Search for the correct insertion point using a simple O(n) iteration.
+    // Since the number of groups is constrained and relatively small this
+    // should be reasonable.
+    //
+    // As a minor optimization, begin iterating from the back of the list.
+    // This matches the most common case of appending a new group to the
+    // end which is what we need to do during first load.
+    for (var i = groupsList.children.length - 1; i >= 0; --i) {
+      var node = groupsList.children[i];
+      var cmpGroup = node.lastChild.dataset.group;
+      var cmpOrder = GROUP_ORDER[cmpGroup];
+      if (cmpOrder <= order) {
+        var next = node.nextSibling;
+        if (next) {
+          groupsList.insertBefore(letteredSection, next);
+        } else {
+          groupsList.appendChild(letteredSection);
+        }
+        break;
+      }
+    }
+
+    // If we did not already insert the section, then it must belong at the
+    // front of the groupsList.
+    if (i < 0) {
+      groupsList.insertBefore(letteredSection, groupsList.firstChild);
+    }
   };
+
+  // Retrieve the list for a given group.  Never directly access headers[].
+  function getGroupList(group) {
+    // If the group already exists, just return it.
+    var list = headers[group];
+    if (list) {
+      return list;
+    }
+
+    // Otherwise we need to create group list just-in-time.
+
+    // Determine the short name or "letter" for the group.
+    var letter = GROUP_LETTERS[group];
+    if (typeof letter !== 'string') {
+      letter = group;
+    }
+
+    renderGroupHeader(group, letter);
+    FixedHeader.refresh();
+
+    // Return the new list created by renderGroupHeader() above
+    return headers[group];
+  }
 
   var renderSelectCheck = function renderSelectCheck(row, contactId) {
     if (!inSelectMode || row.dataset.selectRendered) {
@@ -572,7 +665,7 @@ contacts.List = (function() {
   //Adds each contact to its group container
   function appendToList(contact, group, ph) {
     ph = ph || createPlaceholder(contact, group);
-    var list = headers[group];
+    var list = getGroupList(group);
 
     // If above the fold for list, render immediately
     if (list.children.length < rowsPerPage) {
@@ -793,7 +886,7 @@ contacts.List = (function() {
   };
 
   function addToFavoriteList(favorite) {
-    var container = headers['favorites'];
+    var container = getGroupList('favorites');
     container.appendChild(favorite);
     if (container.children.length === 1) {
       showGroupByList(container);
@@ -912,12 +1005,12 @@ contacts.List = (function() {
 
     if (updatePhoto(contact))
       renderPhoto(renderedNode, contact.id);
-    var list = headers[renderedNode.dataset.group];
+    var list = getGroupList(renderedNode.dataset.group);
     addToGroup(renderedNode, list);
 
     // If is favorite add as well to the favorite group
     if (isFavorite(contact)) {
-      list = headers['favorites'];
+      list = getGroupList('favorites');
       var cloned = renderedNode.cloneNode();
       cloned.dataset.group = 'favorites';
       addToGroup(cloned, list);
@@ -988,7 +1081,7 @@ contacts.List = (function() {
   };
 
   var hideGroup = function hideGroup(group) {
-    var groupTitle = headers[group].parentNode.children[0];
+    var groupTitle = getGroupList(group).parentNode.children[0];
     groupTitle.classList.add('hide');
     FixedHeader.refresh();
   };
@@ -1141,25 +1234,13 @@ contacts.List = (function() {
       return;
     }
     utils.dom.removeChildNodes(groupsList);
+    headers = {};
     loadedContacts = {};
     loaded = false;
 
-    initHeaders();
     FixedHeader.refresh();
     if (cb)
       cb();
-  };
-
-  // Initialize group headers at the beginning or after a dom reset
-  var initHeaders = function initHeaders() {
-    // Populating contacts by groups
-    headers = {};
-    renderGroupHeader('favorites', '');
-    for (var i = 65; i <= 90; i++) {
-      var letter = String.fromCharCode(i);
-      renderGroupHeader(letter, letter);
-    }
-    renderGroupHeader('und', '#');
   };
 
   var setOrderByLastName = function setOrderByLastName(value) {
