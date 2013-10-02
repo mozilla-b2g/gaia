@@ -69,7 +69,7 @@ ul#timer-edit li:first-child {
   border-color: #999;
 }
 
-#timer-edit button {
+#timer-create {
   text-align: center;
 }
 
@@ -96,4 +96,15 @@ ul li > label.pack-switch > input + span {
 #timer-sound {
   position: absolute;
   opacity: 0;
+}
+
+#timer-menu:before {
+  background: url("/shared/style/buttons/images/icons/dialog.png") no-repeat scroll 1.6rem -60px / 1rem 9rem transparent;
+}
+
+#timer-menu {
+  color: #FFF;
+  text-align: left;
+  background-color: #4D4D4D;
+  text-shadow: 0 0;
 }
