@@ -216,7 +216,16 @@ var EvmeManager = (function EvmeManager() {
     }
   }
 
+  var openCloudAppDisabled = false, OPEN_CLOUD_APP_DISABLED_DELAY = 600;
+
   function openCloudApp(params) {
+    if (openCloudAppDisabled) {
+      return;
+    }
+
+    openCloudAppDisabled = true;
+    setTimeout(enableOpenCloudApp, OPEN_CLOUD_APP_DISABLED_DELAY);
+
     var evmeApp = new EvmeApp({
       bookmarkURL: params.originUrl,
       name: params.title,
@@ -225,6 +234,10 @@ var EvmeManager = (function EvmeManager() {
 
     evmeApp.launch(params.url, params.urlTitle, params.useAsyncPanZoom);
     currentURL = params.url;
+  }
+
+  function enableOpenCloudApp() {
+    openCloudAppDisabled = false;
   }
 
   function openMarketplaceApp(data) {
