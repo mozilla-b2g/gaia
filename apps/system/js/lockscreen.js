@@ -393,6 +393,9 @@ var LockScreen = {
         } else {
           emergencyCallBtn.classList.remove('disabled');
         }
+        // Return to main panel once call state changes.
+        if (this.locked)
+          this.switchPanel();
         break;
     }
   },
