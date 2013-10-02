@@ -130,8 +130,13 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
+        var attributeList = [];
+        if (key.disabled) {
+          attributeList.push('disabled="true"');
+        }
+
         content += buildKey(keyChar, className, keyWidth + 'px',
-                            dataset, key.altNote);
+                            dataset, key.altNote, attributeList);
 
       }));
       content += '</div>';
@@ -569,18 +574,24 @@ const IMERender = (function() {
     return toggleButton;
   };
 
-  var buildKey = function buildKey(label, className, width, dataset, altNote) {
+  var buildKey = function buildKey(label, className, width, dataset, altNote, attributeList) {
 
     var altNoteHTML = '';
     if (altNote) {
       altNoteHTML = '<div class="alt-note">' + altNote + '</div>';
     }
 
-
     var content = '<button class="keyboard-key ' + className + '"';
     dataset.forEach(function(data) {
       content += ' data-' + data.key + '="' + data.value + '" ';
     });
+
+    if (attributeList) {
+      attributeList.forEach(function(attribute) {
+        content += ' ' + attribute;
+      });
+    }
+
     content += ' style="width: ' + width + '"';
     content += '><span class="visual-wrapper"><span>' +
                label + '</span>' + altNoteHTML + '</span></button>';
