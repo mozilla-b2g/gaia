@@ -635,7 +635,7 @@ contacts.Form = (function() {
               // The list of duplicate contacts has been loaded
               cancelButton.removeEventListener('click', cancelHandler);
               hideThrobber();
-              setTimeout(Contacts.cancel, 300);
+              window.setTimeout(Contacts.goBack, 300);
 
             break;
 
