@@ -16,6 +16,7 @@
 
 /* label wrapper */
 .draggable > div > span {
+  margin-top: 0.1rem;
   /* shift left edge of text to center */
   left: 50%;
 }
@@ -23,7 +24,7 @@
 /* text label */
 .draggable > div > span > span {
   font-size: 1.3rem;
-  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.6);
+  text-shadow: 0 0.1rem 0.2rem rgba(0,0,0,1);
   /* shift left edge of text half distance to left */
   margin-left: -106%;
 }
