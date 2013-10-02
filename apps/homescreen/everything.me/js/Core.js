@@ -112,15 +112,25 @@ window.Evme = new function Evme_Core() {
       var infoApps = [],
           total = apps.length;
 
-      apps.forEach(function iteratee(descriptor) {
-        // descriptor -> ['manifestURL', 'entry_point']
-        EvmeManager.getAppByManifestURL(function getting(app) {
+      apps.forEach(function iteratee(info) {
+        // info defines ['manifestURL', 'entry_point']
+        var descriptor = {};
+
+        if (info[0]) {
+          descriptor.manifestURL = info[0];
+        }
+
+        if (info[1]) {
+          descriptor.entry_point = info[1];
+        }
+
+        EvmeManager.getAppByDescriptor(function getting(app) {
           if (app)
             infoApps.push(app);
 
           if (--total === 0)
             saveCollectionSettings(collection, infoApps, onDone);
-        }, descriptor[0], descriptor[1]);
+        }, descriptor);
       });
     };
 
