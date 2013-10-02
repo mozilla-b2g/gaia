@@ -40,6 +40,13 @@ section[role="region"] > header:first-child form {
   display: none;
 }
 
+/* TODO: Move this into the shared building block
+ * if we use the icon in more places
+ */
+section[role="region"] > header:first-child .icon.icon-attachment {
+  background-image: url(images/icons/attachments.png);
+}
+
 /* Override Building Block [Imput areas] styles */
 form.bottom[role="search"] {
   z-index: 3;
@@ -563,13 +570,11 @@ form.bottom[role="search"].messages-compose-form {
 }
 
 /* Fix the compose buttons to the bottom of their container. */
-#messages-attach-button, #messages-send-button {
+#messages-send-button {
   position: relative;
   bottom: 0;
 }
-#messages-attach-button {
-  left: 0;
-}
+
 #messages-send-button {
   right: 0;
 }
@@ -601,12 +606,6 @@ form.bottom[role="search"].messages-compose-form {
   color: #ff6622;
   font-size: 1.5rem;
   padding-left: 1.0rem;
-}
-
-/* TODO: Move this into the shared building block */
-#messages-attach-button:before {
-  background-image: url(images/paperclip-button.png);
-  background-size: 3rem;
 }
 
 #messages-input {
