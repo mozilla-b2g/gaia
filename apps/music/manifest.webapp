@@ -53,8 +53,9 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Music.png",
-    "120": "/style/icons/Music.png"
+    "60": "/style/icons/Music_60.png",
+    "90": "/style/icons/Music_90.png",
+    "120": "/style/icons/Music_120.png"
   },
   "orientation": "portrait-primary",
   "messages": [

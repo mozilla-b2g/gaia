@@ -32,8 +32,9 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "128": "/style/icons/Fm.png",
-    "60": "/style/icons/60/Fm.png"
+    "128": "/style/icons/Fm_120.png",
+    "90": "/style/icons/Fm_90.png",
+    "60": "/style/icons/Fm_60.png"
   },
   "orientation": "portrait-primary"
 }
