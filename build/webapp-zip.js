@@ -1,4 +1,5 @@
 var utils = require('./utils');
+var multilocale = require('./multilocale');
 var config;
 const { Cc, Ci, Cr, Cu } = require('chrome');
 Cu.import('resource://gre/modules/FileUtils.jsm');
@@ -191,6 +192,56 @@ function customizeFiles(zip, src, dest) {
   });
 }
 
+function getExtension(filename) {
+  filename.substr(filename.lastIndexOf('.') + 1).toLowerCase();
+}
+
+function getLocaleProperties(basedir, locale, webapp, path) {
+  var appdir = webapp.sourceDirectoryFile.leafName;
+  var sourcedir = webapp.sourceDirectoryFile.parent.leafName;
+
+  return utils.getFile(basedir, locale, sourcedir, appdir, path);
+}
+
+function copyProperty(zip, locale, iniFile, webapp, path) {
+  var propFile = iniFile.parent.clone();
+  path.split('/').forEach(function(token) {
+    if (token === '..') {
+      propFile = propFile.parent;
+    } else {
+      propFile.append(token);
+    }
+  })
+  var pathInZip = propFile.path.substr(
+    webapp.buildDirectoryFile.path.length);
+  var localeProp = getLocaleProperties(config.LOCALE_BASEDIR, locale,
+    webapp, pathInZip.replace('.' + locale, '').replace('/locales', ''));
+
+  if (localeProp.exists()) {
+    if (zip.hasEntry(pathInZip)) {
+      zip.removeEntry(pathInZip, false);
+    }
+    addEntryFileWithTime(zip, pathInZip, localeProp, DEFAULT_TIME);
+  }
+}
+
+function localizeIni(zip, file, locales, webapp) {
+  var enIndex = locales.indexOf('en-US');
+  if (enIndex !== -1) {
+    locales.splice(enIndex, 1);
+  }
+  var origin = utils.getFileContent(file);
+  var imports = multilocale.addLocaleImports(locales, origin);
+  var pathInZip = file.path.substr(webapp.buildDirectoryFile.path.length);
+
+  if (zip.hasEntry(pathInZip)) {
+    zip.removeEntry(pathInZip);
+  }
+
+  addEntryStringWithTime(zip, pathInZip, imports, DEFAULT_TIME);
+  return imports;
+}
+
 function getResource(distDir, conf, key, resources, json) {
   if (conf[key]) {
     file = utils.getFile(distDir, conf[key]);
@@ -367,9 +418,7 @@ function execute(options) {
     let files = utils.ls(webapp.buildDirectoryFile, true);
     files.filter(function(file) {
         // Process only files that may require a shared file
-        let extension = file.leafName
-                            .substr(file.leafName.lastIndexOf('.') + 1)
-                            .toLowerCase();
+        let extension = getExtension(file.leafName);
         return file.isFile() && EXTENSIONS_WHITELIST.indexOf(extension) != -1;
       }).
       forEach(function(file) {
@@ -381,6 +430,53 @@ function execute(options) {
           sortResource(kind, path);
         }
       });
+
+    if (config.LOCALE_BASEDIR) {
+      var basedir, localesFile, locales;
+
+      basedir = utils.getFile(config.LOCALE_BASEDIR);
+      if (!basedir.exists()) {
+        throw new Error('LOCALE_BASEDIR doesn\'t exists: ' + config.LOCALE_BASEDIR);
+      }
+
+      localesFile = utils.getFile(config.LOCALES_FILE);
+      if (!localesFile.exists()) {
+        throw new Error('LOCALES_FILE doesn\'t exists: ' + localesFile.path);
+      }
+
+      locales = Object.keys(utils.getJSON(localesFile));
+      files.forEach(function(file) {
+        if (/locales\/.+\.ini$/.test(file.path)) {
+          var content = localizeIni(zip, file, locales, webapp);
+          var imports = multilocale.parseIni(content);
+          locales.forEach(function(locale) {
+            imports[locale].forEach(function(path) {
+              copyProperty(zip, locale, file, webapp, path);
+            });
+          });
+        }
+      });
+
+      var localesProps = [];
+      var localesForManifest = locales.filter(function(locale) {
+        var propsFile = getLocaleProperties(config.LOCALE_BASEDIR,
+          locale, webapp, 'manifest.properties');
+        if (!propsFile.exists()) {
+          debug('propsFile doesn\'t exists: ' + propsFile.path);
+          return false;
+        }
+        var content = utils.getFileContent(propsFile);
+        localesProps.push(multilocale.parseManifestProperties(content));
+        return true;
+      });
+
+      var manifest = multilocale.addLocaleManifest(localesForManifest, localesProps,
+        utils.getJSON(webapp.manifestFile));
+      if (zip.hasEntry('manifest.webapp')) {
+        zip.removeEntry('manifest.webapp', false);
+      }
+      addEntryStringWithTime(zip, 'manifest.webapp', JSON.stringify(manifest));
+    }
 
     // Look for gaia_shared.json in case app uses resources not specified in HTML
     let sharedDataFile = webapp.buildDirectoryFile.clone();
