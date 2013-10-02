@@ -23,10 +23,14 @@ Evme.InstalledAppsRenderer = function Evme_InstalledAppsRenderer() {
       DEFAULT_ICON = Evme.Utils.getDefaultAppIcon(),
       self = this,
       appsSignature = Evme.Utils.EMPTY_APPS_SIGNATURE,
-      containerEl;
+      containerEl,
+      containerSelector,
+      filterResults;
 
   this.init = function init(cfg) {
     containerEl = cfg.containerEl;
+    containerSelector = cfg.containerSelector;
+    filterResults = cfg.filterResults;
   };
 
   this.render = function render(data) {
@@ -51,6 +55,16 @@ Evme.InstalledAppsRenderer = function Evme_InstalledAppsRenderer() {
   this.clear = function clear() {
     containerEl.innerHTML = '';
     appsSignature = Evme.Utils.EMPTY_APPS_SIGNATURE;
+
+    // clear styles
+    if (filterResults) {
+      Evme.Utils.filterProviderResults({
+        "id": 'installed-cloudapps'
+      });
+      Evme.Utils.filterProviderResults({
+        "id": 'installed-equivs'
+      });
+    }
   };
 
   this.getResultCount = function getResultCount() {
@@ -58,7 +72,9 @@ Evme.InstalledAppsRenderer = function Evme_InstalledAppsRenderer() {
   };
 
   function renderDocFrag(apps) {
-    var docFrag = document.createDocumentFragment();
+    var docFrag = document.createDocumentFragment(),
+        appUrls = [],
+        equivs = [];
 
     for (var i = 0, app; app = apps[i++];) {
       var result = new Evme.InstalledAppResult(),
@@ -66,8 +82,35 @@ Evme.InstalledAppsRenderer = function Evme_InstalledAppsRenderer() {
 
       result.draw(app.icon || DEFAULT_ICON);
       docFrag.appendChild(el);
+
+      if (filterResults) {
+        if (app.appUrl) {
+          appUrls.push(app.appUrl);
+        }
+        if (app.equivCloudAppAPIIds) {
+          equivs = equivs.concat(app.equivCloudAppAPIIds);
+        }
+      }
     }
     containerEl.appendChild(docFrag);
+
+    if (filterResults) {
+      // add cloudapps dedup style
+      Evme.Utils.filterProviderResults({
+        "id": 'installed-cloudapps',
+        "attribute": 'data-url',
+        "containerSelector": containerSelector,
+        "items": appUrls
+      });
+      // add cloudapp equivalent dedup style
+      Evme.Utils.filterProviderResults({
+        "id": 'installed-equivs',
+        "attribute": 'id',
+        "value": 'app_{0}',
+        "containerSelector": containerSelector,
+        "items": equivs
+      });
+    }
   }
 };
 
@@ -97,6 +140,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
       self = this,
       appIndex = {}, APP_INDEX_STORAGE_KEY = NAME + "-app-index",
       queryIndex = {}, QUERY_INDEX_STORAGE_KEY = NAME + "-query-index",
+      SLUGS_STORAGE_KEY = "-slugs",
       appIndexPendingSubscribers = [],
       appIndexComplete = false,
 
@@ -121,20 +165,20 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
 
     var gridApps = EvmeManager.getGridApps(),
         guids = [];
-    
+
     for (var i = 0, gridApp; gridApp = gridApps[i++]; ) {
       var guid = gridApp.app.bookmarkURL;
-      
+
       // use manifestURL
       if (!guid) {
         guid = manifestURLtoGuid(gridApp.app.manifestURL);
-        
+
         // save a reference to the original manifestURL
         if (guid !== gridApp.app.manifestURL) {
           guidsToManifestURLs[guid] = gridApp.app.manifestURL;
         }
       }
-      
+
       guids.push(guid);
     }
 
@@ -142,6 +186,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   };
 
   this.requestAppsInfoCb = function requestAppsInfoCb(appsInfoFromAPI) {
+    var slugs = [];
     queryIndex = {};
 
     for (var k in appsInfoFromAPI) {
@@ -155,8 +200,13 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
         continue;
       }
 
+      if (apiInfo.equivWebapps && apiInfo.equivWebapps.length) {
+        appIndex[idInAppIndex].equivCloudAppAPIIds = apiInfo.equivWebapps;
+      }
+
       // Store the marketplace api slug, in order to compare and dedup Marketplace app suggestions later on
       appIndex[idInAppIndex].slug = apiInfo.nativeId;
+      slugs.push(apiInfo.nativeId);
 
       // queries is comprised of tags and experiences
       var tags = apiInfo.tags || [],
@@ -174,7 +224,12 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     }
 
     guidsToManifestURLs = null;
+
     Evme.Storage.set(QUERY_INDEX_STORAGE_KEY, queryIndex);
+    Evme.Storage.set(SLUGS_STORAGE_KEY, slugs);
+
+    onSlugsUpdated(slugs);
+
     Evme.EventHandler.trigger(NAME, "queryIndexUpdated");
   };
 
@@ -191,7 +246,7 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     if (!query) {
       return matchingApps;
     }
-    
+
     query = normalizeQuery(query);
 
     // search appIndex
@@ -270,6 +325,16 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     return str && str.split("?")[0];
   }
 
+  function onSlugsUpdated(slugs) {
+    Evme.Utils.filterProviderResults({
+      "id": 'slugs',
+      "attribute": 'data-slug',
+      "containerSelector": '.installed',
+      "items": slugs
+    });
+    slugs = null;
+  }
+
   function onAppIndexComplete() {
     appIndexComplete = true;
     self.requestAppsInfo();
@@ -277,12 +342,16 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
       self.getAppById.apply(self, args);
     });
     appIndexPendingSubscribers = [];
+    Evme.EventHandler.trigger(NAME, "appIndexUpdated");
   }
 
   function loadQueryIndex() {
     Evme.Storage.get(QUERY_INDEX_STORAGE_KEY, function queryIndexCb(queryIndexFromStorage) {
       if (queryIndexFromStorage) {
         queryIndex = queryIndexFromStorage;
+        Evme.Storage.get(SLUGS_STORAGE_KEY, function slugsCb(slugsFromStorage) {
+          onSlugsUpdated(slugsFromStorage);
+        });
       } else {
         self.requestAppsInfo();
       }

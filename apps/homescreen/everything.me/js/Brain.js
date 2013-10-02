@@ -629,6 +629,14 @@ this.InstalledAppsService = new function InstalledAppsService() {
     this.queryIndexUpdated = function queryIndexUpdated() {
         Evme.Collection.onQueryIndexUpdated();
     };
+
+    this.appIndexUpdated = function appIndexUpdated() {
+        if (currentResultsManager && currentResultsManager === Evme.SearchResults) {
+            Evme.SearchResults.onNewQuery({
+                "query": Evme.Searchbar.getValue()
+            });
+        }
+    }
 };
 
     // modules/Apps/
