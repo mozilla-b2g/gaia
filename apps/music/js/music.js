@@ -1086,6 +1086,9 @@ function createListElement(option, data, index, highlight) {
   return li;
 }
 
+// Assuming the ListView will prepare 2 pages for batch loading.
+// Each page contains 7 list elements.
+var LIST_BATCH_SIZE = 7 * 2;
 // View of List
 var ListView = {
   get view() {
@@ -1120,11 +1123,16 @@ var ListView = {
   init: function lv_init() {
     this.dataSource = [];
     this.index = 0;
+    this.firstLetters = [];
     this.lastFirstLetter = null;
+    this.moveTimer = null;
+    this.scrollTimer = null;
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
+    this.view.addEventListener('touchmove', this);
     this.view.addEventListener('touchend', this);
+    this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
   },
 
@@ -1135,8 +1143,10 @@ var ListView = {
 
     this.dataSource = [];
     this.index = 0;
+    this.firstLetters.length = 0;
     this.lastFirstLetter = null;
     this.anchor.innerHTML = '';
+    this.anchor.style.height = 0;
     this.view.scrollTop = 0;
     this.hideSearch();
   },
@@ -1187,6 +1197,20 @@ var ListView = {
     this.index++;
   },
 
+  judgeAndUpdate: function lv_judgeAndUpdate() {
+    if (!this.anchor.lastChild)
+      return;
+
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var scrolledHeight = this.view.scrollTop + this.view.offsetHeight;
+    var position = Math.round(scrolledHeight / itemHeight);
+    var last = this.anchor.children.length;
+    var range = position + this.firstLetters.length - last;
+
+    if (range > 0)
+      this.batchUpdate(TabBar.option, range + LIST_BATCH_SIZE);
+  },
+
   batchUpdate: function lv_batchUpdate(option, range, firstPaint) {
     // See where is the last index we have for the existing children, and start
     // to create the rest elements from it, note that here we use fragment to
@@ -1213,6 +1237,30 @@ var ListView = {
     }
 
     this.anchor.appendChild(fragment);
+  },
+
+  adjustHeight: function lv_adjustHeight(option) {
+    var previousFirstLetter;
+    for (var i = this.index; i < this.dataSource.length; i++) {
+      var metadata = this.dataSource[i].metadata;
+      var firstLetter = metadata[option].charAt(0);
+      if (previousFirstLetter !== firstLetter) {
+        this.firstLetters.push(firstLetter);
+        previousFirstLetter = firstLetter;
+      }
+    }
+
+    var headerHeight = this.anchor.firstChild.offsetHeight;
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var bottomHeight = parseInt(getComputedStyle(this.anchor.lastChild, null).
+      getPropertyValue('margin-bottom'));
+    var count = this.dataSource.length;
+
+    this.anchor.style.height = (
+      headerHeight * this.firstLetters.length +
+      itemHeight * count +
+      bottomHeight
+    ) + 'px';
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -1321,6 +1369,40 @@ var ListView = {
           SearchView.search(target.value);
         }
 
+        break;
+
+      case 'touchmove':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.moveTimer)
+          clearTimeout(this.moveTimer);
+
+        // If the move timer is not cancelled, it should be a suitable time
+        // to update the ui because we don't want to render elements while
+        // the list is scrolling.
+        this.moveTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.moveTimer = null;
+        }.bind(this), 50);
+        break;
+
+      case 'scroll':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.scrollTimer)
+          clearTimeout(this.scrollTimer);
+
+        // If the user try to scroll as possible as it can, after the scrolling
+        // stops, we can see where the position is and try to render the rest
+        // elements that should be displayed on the screen.
+        this.scrollTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.scrollTimer = null;
+        }.bind(this), 500);
         break;
 
       default:
@@ -1739,20 +1821,27 @@ var TabBar = {
             ModeManager.start(MODE_LIST);
             ListView.clean();
 
-            var batchsize = 35;
             var option = this.option;
             var direction = (option === 'title') ? 'next' : 'nextunique';
 
             listHandle =
               musicdb.enumerate('metadata.' + option, null, direction,
                 function(record) {
-                  ListView.dataSource.push(record);
-                  // When we got the first batchsize of the records,
-                  // or the total count is less than the batchsize,
+                  if (record)
+                    ListView.dataSource.push(record);
+                  // When we got the first batch size of the records,
+                  // or the total count is less than the batch size,
                   // display it so that users are able to see the first paint
                   // very quickly.
-                  if (ListView.dataSource.length === batchsize || !record)
-                    ListView.batchUpdate(option, batchsize, true);
+                  if (ListView.dataSource.length === LIST_BATCH_SIZE || !record)
+                  {
+                    ListView.batchUpdate(option, LIST_BATCH_SIZE, true);
+                    // If record is null then the enumeration is finished,
+                    // so ListView has all the records and is able to adjust
+                    // the height.
+                    if (record === null)
+                      ListView.adjustHeight(option);
+                  }
                 });
             break;
         }
