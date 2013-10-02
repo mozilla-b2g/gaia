@@ -512,6 +512,25 @@ suite('compose_test.js', function() {
         assert.equal(typeChange.called, 2);
       });
     });
+
+    suite('changing inputmode', function() {
+      test('initial inputmode is sms', function() {
+        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms-7bit');
+      });
+
+      test('changing type to mms', function() {
+        Compose.type = 'mms';
+
+        assert.isFalse(message.hasAttribute('x-inputmode'));
+      });
+
+      test('changing type to mms then sms', function() {
+        Compose.type = 'mms';
+        Compose.type = 'sms';
+
+        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms-7bit');
+      });
+    });
   });
 
   suite('Attachment pre-send menu', function() {
