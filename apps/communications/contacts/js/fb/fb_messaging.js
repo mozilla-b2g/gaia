@@ -86,7 +86,7 @@ if (typeof fb.msg === 'undefined') {
     UI.sendPrivateMsg = function(contactId) {
       getFbContactUid(contactId, function ui_sendMsg(uid) {
         if (uid) {
-           window.open('https://m.facebook.com/chat/messages.php?id=' + uid);
+           window.open('https://m.facebook.com/compose_message/?uid=' + uid);
         }
       });
     };
