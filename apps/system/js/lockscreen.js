@@ -619,7 +619,11 @@ var LockScreen = {
 
             h.style.transition = 'none';
 
-            // Remove the effects to these icons.
+            // Remove the effects to these icons, and only do it
+            // when it bounce back.
+            //
+            // This is because crossing the origin will restore it as well,
+            // but we don't need to reset the blue are at such scenario.
             h.classList.remove('touched');
             h.removeEventListener('transitionend', tsEnd);
           };
@@ -627,9 +631,6 @@ var LockScreen = {
 
         } else {
           h.style.transition = '';
-
-          // Remove the effects on these icons.
-          h.classList.remove('touched');
         }
 
         // After setup, bounce it back.
