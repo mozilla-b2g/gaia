@@ -1112,3 +1112,8 @@ form[role="search"] button {
 .search-highlight {
   background-color: rgb(0, 138, 170);
 }
+
+form p input + button[type="reset"] {
+  width: 4rem;
+  padding: 1rem;
+}
