@@ -32,7 +32,14 @@ suite('Test Contacts Matcher', function() {
 
     if (matchingFields) {
       matchingFields.forEach(function(matchingField) {
-        assert.isDefined(results['1B'].matchings[matchingField]);
+        if (typeof matchingField === 'string') {
+          assert.isDefined(results['1B'].matchings[matchingField]);
+        }
+        else if (matchingField && typeof matchingField === 'object') {
+          var matchArr = results['1B'].matchings[matchingField.field];
+          assert.isDefined(matchArr);
+          assert.lengthOf(matchArr, matchingField.times);
+        }
       });
     }
   }
@@ -367,14 +374,31 @@ suite('Test Contacts Matcher', function() {
     test('Matching by phone', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
-      myObj.email = [{
-        type: ['work'],
-        value: 'work@work.it'
-      }];
+
       myObj.givenName = [];
       myObj.familyName = null;
 
       testMatch(myObj, 'active', ['tel'], done);
+    });
+
+    test('Matching by multiple phones', function(done) {
+      var myObj = Object.create(contact);
+      myObj.id = '1A';
+      var savedTel = contact.tel;
+      contact.tel = [
+        savedTel[0],
+        {
+          type: ['home'],
+          value: '67890123'
+        }
+      ];
+      myObj.givenName = [];
+      myObj.familyName = null;
+
+      testMatch(myObj, 'active', [{field: 'tel', times: 2}], function() {
+        contact.tel = savedTel;
+        done();
+      });
     });
 
     test('Matching by email', function(done) {
@@ -388,6 +412,28 @@ suite('Test Contacts Matcher', function() {
       myObj.familyName = ['Petrov'];
 
       testMatch(myObj, 'active', ['email'], done);
+    });
+
+    test('Matching by multiple emails', function(done) {
+      var myObj = Object.create(contact);
+      myObj.id = '1A';
+
+      var savedEmail = contact.email;
+
+      contact.email = [
+        savedEmail[0],
+        {
+          type: ['work'],
+          value: 'k1zq@example.com'
+      }];
+
+      myObj.givenName = [];
+      myObj.familyName = null;
+
+      testMatch(myObj, 'active', [{field: 'email', times: 2}], function() {
+        contact.email = savedEmail;
+        done();
+      });
     });
 
     test('Matching by phone and email', function(done) {
