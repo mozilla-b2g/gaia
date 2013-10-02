@@ -42,9 +42,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "120": "/style/icons/cost-control_120.png",
-    "90": "/style/icons/cost-control_90.png",
-    "60": "/style/icons/cost-control_60.png"
+    "120": "/style/icons/cost-control.png",
+    "60": "/style/icons/60/cost-control.png"
   },
   "orientation": "portrait-primary",
   "messages": [
