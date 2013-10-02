@@ -60,7 +60,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Gallery.png",
-    "120": "/style/icons/Gallery.png"
+    "60": "/style/icons/Gallery_60.png",
+    "90": "/style/icons/Gallery_90.png",
+    "120": "/style/icons/Gallery_120.png"
   }
 }
