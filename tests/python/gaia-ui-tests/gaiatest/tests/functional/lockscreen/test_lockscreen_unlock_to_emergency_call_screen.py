@@ -27,8 +27,7 @@ class TestLockScreen(GaiaTestCase):
 
         https://github.com/mozilla/gaia-ui-tests/issues/762
         """
-        self.lock_screen.swipe_to_unlock()
-        self.lock_screen.tap_unlock_button()
+        self.lock_screen.unlock()
         emergency_screen = self.lock_screen.passcode_pad.tap_emergency_call()
 
         self.assertTrue(emergency_screen.is_emergency_dialer_keypad_displayed,
