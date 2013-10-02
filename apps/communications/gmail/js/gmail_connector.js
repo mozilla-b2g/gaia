@@ -267,7 +267,7 @@ var GmailConnector = (function GmailConnector() {
 
     var bday = googleContact.querySelector('birthday');
     if (bday) {
-      output.bday = new Date(bday.getAttribute('when'));
+      output.bday = new Date(Date.parse(bday.getAttribute('when')));
     }
 
     var content = googleContact.querySelector('content');
