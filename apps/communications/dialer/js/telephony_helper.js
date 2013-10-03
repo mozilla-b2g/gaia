@@ -1,6 +1,8 @@
 'use strict';
 
 var TelephonyHelper = (function() {
+  var confirmLoaded = false;
+
   var call = function t_call(number, oncall, onconnected,
                              ondisconnected, onerror) {
     var sanitizedNumber = number.replace(/(\s|-|\.|\(|\))/g, '');
@@ -94,6 +96,21 @@ var TelephonyHelper = (function() {
     return validExp.test(sanitizedNumber);
   };
 
+  var loadConfirm = function t_loadConfirm(cb) {
+    if (confirmLoaded) {
+      cb();
+      return;
+    }
+
+    var confMsg = document.getElementById('confirmation-message');
+
+    LazyLoader.load(['/contacts/js/utilities/confirm.js', confMsg], function() {
+      navigator.mozL10n.translate(confMsg);
+      confirmLoaded = true;
+      cb();
+    });
+  };
+
   var displayMessage = function t_displayMessage(message) {
     var showDialog = function fm_showDialog(_) {
       var dialogTitle, dialogBody;
@@ -131,16 +148,18 @@ var TelephonyHelper = (function() {
         return;
       }
 
-      ConfirmDialog.show(
-        _(dialogTitle),
-        _(dialogBody),
-        {
-          title: _('emergencyDialogBtnOk'), // Just 'ok' would be better.
-          callback: function() {
-            ConfirmDialog.hide();
+      loadConfirm(function() {
+        ConfirmDialog.show(
+          _(dialogTitle),
+          _(dialogBody),
+          {
+            title: _('emergencyDialogBtnOk'), // Just 'ok' would be better.
+            callback: function() {
+              ConfirmDialog.hide();
+            }
           }
-        }
-      );
+        );
+      });
     };
 
     if (window.hasOwnProperty('LazyL10n')) {
