@@ -188,6 +188,10 @@ suite('Contacts settings', function() {
       showMenuSpy.restore();
       showStatusSpy.restore();
       navigator.requestWakeLock = realWakeLock;
+
+      // Regardless of errors, we must release our wake lock here to be in a
+      // known good state for the next test.
+      MyLocks['cpu'] = false;
     });
   });
 
