@@ -219,23 +219,4 @@ suite('Stopwatch.Panel', function() {
 
   });
 
-  test('Lap locationlization', function() {
-    var laps, lapName1, lapName2;
-
-    panel.nodes.start.click();
-    panel.nodes.lap.click();
-    panel.nodes.lap.click();
-
-    assert.ok(localize.calledTwice);
-    laps = panel.nodes.laps.querySelectorAll('li');
-    lapName1 = laps[1].children[0];
-    lapName2 = laps[0].children[0];
-    assert.deepEqual(localize.args[0], [
-      lapName1, 'lap-number', {n: 1}
-    ]);
-    assert.deepEqual(localize.args[1], [
-      lapName2, 'lap-number', {n: 2}
-    ]);
-  });
-
 });
