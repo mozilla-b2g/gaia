@@ -121,4 +121,8 @@
     display: none;
   }
 
+  #calls > section .switch-calls {
+    display: none;
+  }
+
 }

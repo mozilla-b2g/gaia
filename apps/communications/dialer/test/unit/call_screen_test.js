@@ -38,6 +38,7 @@ suite('call screen', function() {
       lockedClockNumbers,
       lockedClockMeridiem,
       lockedDate;
+  var incomingContainer;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -103,6 +104,10 @@ suite('call screen', function() {
     lockedHeader.appendChild(lockedDate);
     screen.appendChild(lockedHeader);
 
+    incomingContainer = document.createElement('article');
+    incomingContainer.id = 'incoming-container';
+    screen.appendChild(incomingContainer);
+
     // Replace the existing elements
     // Since we can't make the CallScreen look for them again
     if (CallScreen != null) {
@@ -116,6 +121,7 @@ suite('call screen', function() {
       CallScreen.lockedClockNumbers = lockedClockNumbers;
       CallScreen.lockedClockMeridiem = lockedClockMeridiem;
       CallScreen.lockedDate = lockedDate;
+      CallScreen.incomingContainer = incomingContainer;
     }
 
     requireApp('communications/dialer/js/call_screen.js', done);
@@ -154,6 +160,16 @@ suite('call screen', function() {
         assert.isFalse(calls.classList.contains('switch'));
         assert.isFalse(callToolbar.classList.contains('no-add-call'));
       });
+
+      test('holdAndAnswerOnly should add the hold-and-answer-only class',
+        function() {
+          assert.isFalse(
+            incomingContainer.classList.contains('hold-and-answer-only'));
+          CallScreen.holdAndAnswerOnly = true;
+          assert.isTrue(
+            incomingContainer.classList.contains('hold-and-answer-only'));
+        }
+      );
     });
 
     suite('insertCall', function() {
