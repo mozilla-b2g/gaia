@@ -64,7 +64,7 @@ var EverythingME = {
         function assetsLoaded() {
           // open the collection immediately
           if (e.type === 'collectionlaunch') {
-            onCollectionOpened(activationIcon);
+            onCollectionOpened(activationIcon, e.detail.id);
           }
 
           // Activate evme load
@@ -75,11 +75,18 @@ var EverythingME = {
     }
 
     // show Collection loading
-    function onCollectionOpened(activationIcon) {
+    function onCollectionOpened(activationIcon, id) {
       // add classes for Collection styling
       appsEl.classList.add('evme-collection-visible');
       var elCollection = document.getElementById('collection');
       elCollection.classList.add('visible');
+      var collection = GridManager.getIconByOrigin(id);
+      elCollection.querySelector('.title').innerHTML =
+              '<em></em>' +
+              '<span class="actual">' + collection.getName() + '</span>' + ' ' +
+              '<span> ' +
+              navigator.mozL10n.get('evme-collection-title-suffix') +
+              '</span>';
       var elLoader = elCollection.querySelector(".loading-more");
       elLoader.classList.add('show');
 
