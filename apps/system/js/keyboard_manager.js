@@ -59,6 +59,7 @@ var KeyboardManager = {
   // 'keyboard.gaiamobile.org' : {
   //   'English': aIframe
   // }
+  inputTypeTable: {},
   runningLayouts: {},
   showingLayout: {
     frame: null,
@@ -136,6 +137,15 @@ var KeyboardManager = {
         self.inputFocusChange(evt);
       };
     }
+
+    // generate typeTable
+    this.inputTypeTable =
+    Object.keys(TYPE_GROUP_MAPPING).reduce(function(res, curr) {
+      var k = TYPE_GROUP_MAPPING[curr];
+      res[k] = res[k] || [];
+      res[k].push(curr);
+      return res;
+    }, {});
   },
 
   getHeight: function kn_getHeight() {
@@ -154,9 +164,14 @@ var KeyboardManager = {
       self.launchLayoutFrame(self.keyboardLayouts[initType][initIndex]);
 
       // Let chrome know about how many keyboards we have
+      // need to expose all input type from inputTypeTable
       var layouts = {};
       Object.keys(self.keyboardLayouts).forEach(function(k) {
-        layouts[k] = self.keyboardLayouts[k].length;
+        var typeTable = self.inputTypeTable[k];
+        for (var i in typeTable) {
+          var inputType = typeTable[i];
+          layouts[inputType] = self.keyboardLayouts[k].length;
+        }
       });
 
       var event = document.createEvent('CustomEvent');
