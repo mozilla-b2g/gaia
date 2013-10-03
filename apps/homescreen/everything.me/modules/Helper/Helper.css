@@ -221,6 +221,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     width: 3rem;
     height: 3rem;
     background: url('/everything.me/images/iconaction_bookmark_30x30.png') left top no-repeat;
+    background-size: 3rem 3rem;
 }
 #search-title.visible ~ #save-search {
     display: block;

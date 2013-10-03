@@ -70,18 +70,21 @@ Evme.IconGroup = new function Evme_IconGroup() {
     return el;
   };
 
+  function getCanvas() {
+    var elCanvas = document.createElement('canvas');
+
+    elCanvas.width = SIZE;
+    elCanvas.height = SIZE;
+
+    return elCanvas;
+  }
+
   /**
    * Draw icon for Collection with no apps.
    */
    function renderEmptyIcon(options){
-    var icon = Evme.Utils.getEmptyCollectionIcon(),
-        onReady = options.onReady,
-        elCanvas = document.createElement('canvas'),
-        context = elCanvas.getContext('2d'),
-        img = new Image();
-
-    elCanvas.width = SIZE;
-    elCanvas.height = SIZE;
+    var onReady = options.onReady,
+        elCanvas = getCanvas();
 
     onReady(elCanvas);
 
@@ -92,14 +95,11 @@ Evme.IconGroup = new function Evme_IconGroup() {
     var icons = options.icons,
         settings = options.settings,
         onReady = options.onReady,
-        elCanvas = document.createElement('canvas'),
+        elCanvas = getCanvas(),
         context = elCanvas.getContext('2d');
 
     // can't render more icons than we have settings for
     icons = icons.slice(0, settings.length);
-
-    elCanvas.width = SIZE;
-    elCanvas.height = SIZE;
 
     context.imagesToLoad = icons.length;
     context.imagesLoaded = [];

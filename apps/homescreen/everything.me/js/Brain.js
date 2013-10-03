@@ -986,8 +986,8 @@ this.InstalledAppsService = new function InstalledAppsService() {
                 "query": query,
                 "feature": SEARCH_SOURCES.SHORTCUT_COLLECTION,
                 "exact": true,
-                "width": screen.width,
-                "height": screen.height
+                "width": Evme.__config.bgImageSize[0],
+                "height": Evme.__config.bgImageSize[1]
             }, function onSuccess(data) {
                 Evme.Collection.setBackground({
                     "image": Evme.Utils.formatImageData(data.response.image),
@@ -1565,8 +1565,8 @@ this.InstalledAppsService = new function InstalledAppsService() {
                 "feature": source,
                 "exact": exact,
                 "prevQuery": lastQueryForImage,
-                "width": Evme.__config.bgImageSize[0] * Evme.Utils.devicePixelRatio,
-                "height": Evme.__config.bgImageSize[1] * Evme.Utils.devicePixelRatio
+                "width": Evme.__config.bgImageSize[0],
+                "height": Evme.__config.bgImageSize[1]
             }, getBackgroundImageComplete);
         };
 

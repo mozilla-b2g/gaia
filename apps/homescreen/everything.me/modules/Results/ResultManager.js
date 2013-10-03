@@ -56,7 +56,7 @@ Evme.ResultManager = function Evme_ResultsManager() {
         'fadeOnScroll': false
       };
 
-    MAX_SCROLL_FADE *= Evme.Utils.devicePixelRatio;
+    MAX_SCROLL_FADE *= window.devicePixelRatio;
 
     this.init = function init(options) {
       !options && (options = {});

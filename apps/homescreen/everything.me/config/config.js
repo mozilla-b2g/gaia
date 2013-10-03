@@ -14,7 +14,6 @@ Evme.Config = Evme.__config = {
     "numberOfAppInCollectionIcon": 3,
 
     "numberOfAppsToLoad": 16,
-    "bgImageSize": [320, 460],
     "searchbar": {
         "timeBeforeEventPause": 10000,
         "timeBeforeEventIdle": 10000
