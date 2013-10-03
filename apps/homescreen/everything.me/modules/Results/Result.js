@@ -3,9 +3,12 @@
 (function() {
   // defined out-of-object to not take up mem for each app created
   var SCALE_RATIO = window.devicePixelRatio || 1,
-      TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3,
+      LINE_SPACING = 1 * SCALE_RATIO,
+      TEXT_HEIGHT = (Evme.Utils.APPS_FONT_SIZE + LINE_SPACING) * 3,
       TEXT_WIDTH = 72 * SCALE_RATIO,
-      TEXT_MARGIN = 8 * SCALE_RATIO;
+      TEXT_MARGIN = 6 * SCALE_RATIO,
+      APP_NAME_HEIGHT = TEXT_MARGIN + TEXT_HEIGHT +
+                        Evme.Utils.APP_NAMES_SHADOW_OFFSET_Y;
 
   Evme.RESULT_TYPE = {
     CONTACT: 'contact',
@@ -93,9 +96,8 @@
     this.onAppIconLoad = function onAppIconLoad() {
       // use OS icon rendering
       var iconCanvas = Icon.prototype.createCanvas(image),
-
-      canvas = self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
-      context = canvas.getContext('2d');
+          canvas = self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
+          context = canvas.getContext('2d');
 
       context.drawImage(iconCanvas, (TEXT_WIDTH - iconCanvas.width) / 2, 0);
       self.iconPostRendering(iconCanvas);
@@ -109,7 +111,7 @@
           context = canvas.getContext('2d');
 
       canvas.width = TEXT_WIDTH;
-      canvas.height = height + TEXT_MARGIN + TEXT_HEIGHT - 1;
+      canvas.height = height + APP_NAME_HEIGHT;
 
       Evme.Utils.writeTextToCanvas({
         "text": self.cfg.name,
