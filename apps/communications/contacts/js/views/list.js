@@ -630,7 +630,6 @@ contacts.List = (function() {
     LazyLoader.load([vm_file], function() {
       var scrollMargin = ~~(viewHeight * 1.5);
       var scrollDelta = ~~(scrollMargin / 2);
-      var maxDepth = 4;
       monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
                                      scrollDelta, onscreen, offscreen);
     });
@@ -697,6 +696,11 @@ contacts.List = (function() {
   // by first time
   var onListRendered = function onListRendered() {
     FixedHeader.refresh();
+
+    // If there are zero contacts, then we still need to notify
+    // that the initial screen has been displayed.  This is a no-op
+    // if the notification has already happened.
+    notifyAboveTheFold();
 
     PerformanceTestingHelper.dispatch('startup-path-done');
     fb.init(function contacts_init() {
@@ -977,9 +981,9 @@ contacts.List = (function() {
         } else {
           if (chunk.length)
             successCb(chunk);
-          onListRendered();
           var showNoContacs = (num === 0);
           toggleNoContactsScreen(showNoContacs);
+          onListRendered();
           dispatchCustomEvent('listRendered');
           loading = false;
         }
