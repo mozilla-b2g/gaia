@@ -106,7 +106,7 @@
 }
 .apps > div.evmePage {
     -moz-box-sizing: border-box;
-    padding-top: calc(25% + 1.3rem);
+    padding-top: 9.6rem;
 }
 
 .evme-displayed .apps > div.evmePage {
