@@ -77,7 +77,7 @@ suite('Gmail Connector', function() {
       assert.isNotNull(result);
       assert.equal(result.uid,
         'http://www.google.com/m8/feeds/contacts/mepartoconmigo%40gmail.com/base/2fc27a388c2bd974');
-      assert.deepEqual(result.givenName, ['The Company']);
+      assert.deepEqual(result.givenName, '+1555111333444222');
       assert.equal(result.email1, 'juan@palomo.es');
     });
 
