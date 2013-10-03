@@ -615,6 +615,19 @@
     font-size: 0.9em;
   }
 
+  #incoming-container.hold-and-answer-only #incoming-answer {
+    width: 100%;
+  }
+
+  #incoming-container.hold-and-answer-only #incoming-answer > span[role="button"] {
+    margin-left: 1.0rem;
+    margin-right: 1.0rem;
+  }
+
+  #incoming-container.hold-and-answer-only #incoming-end {
+    display: none;
+  }
+
   #incoming-answer > span[role="button"] {
     background: url('images/btn_resume.png') repeat-x center / auto 100%;
     line-height: 4rem;

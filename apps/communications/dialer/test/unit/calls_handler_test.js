@@ -247,6 +247,11 @@ suite('calls handler', function() {
         assert.isTrue(playSpy.calledOnce);
       });
 
+      test('should display the hold-and-answer button only', function() {
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(MockCallScreen.mHoldAndAnswerOnly);
+      });
+
       test('should do the same after answering another call', function() {
         MockMozTelephony.mTriggerCallsChanged();
         var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');

@@ -54,6 +54,11 @@ var MockCallScreen = {
   },
   mSingleLine: null,
 
+  set holdAndAnswerOnly(enabled) {
+    this.mHoldAndAnswerOnly = enabled;
+  },
+  mHoldAndAnswerOnly: false,
+
   set cdmaCallWaiting(enabled) {
     this.mCdmaCallWaiting = enabled;
   },
