@@ -48,9 +48,6 @@ class FmRadio(Base):
         self.marionette.find_element(*self._favorite_button_locator).tap()
         self.wait_for_condition(lambda m: current_favorite_channel_count + 1 == len(self.favorite_channels))
 
-    def wait_for_favorite_list_not_displayed(self):
-        self.wait_for_element_not_displayed(*self._favorite_list_locator)
-
     @property
     def is_power_button_on(self):
         return self.marionette.find_element(*self._power_button_locator).get_attribute('data-enabled') == 'true'
@@ -73,3 +70,4 @@ class FmRadio(Base):
 
         def remove(self):
             self.root_element.find_element(*self._remove_locator).tap()
+            self.wait_for_element_not_present(*self._frequency_locator)
