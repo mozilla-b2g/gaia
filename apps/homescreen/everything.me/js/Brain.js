@@ -692,7 +692,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
         }
 
         function pinToCollection(data) {
-            var cloudResult = data.app;
+            var cloudResult = Evme.Utils.cloneObject(data.app);
             Evme.Collection.addCloudApp(cloudResult);
         }
 
