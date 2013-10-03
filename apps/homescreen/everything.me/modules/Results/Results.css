@@ -29,7 +29,11 @@
     display: none;
 }
 .evmeScope .evme-apps ul li img {
+  visibility: hidden;
 	transition: transform .2s linear;
+}
+.evmeScope .evme-apps ul li img[data-loaded="true"] {
+  visibility: visible;
 }
 .evmeScope .evme-apps ul #button-more {
     position: absolute;
