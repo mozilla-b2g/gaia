@@ -30,7 +30,7 @@
       });
 
       Evme.Utils.writeTextToCanvas({
-        "text": "More Apps",
+        "text": Evme.Utils.l10n('apps', 'market-more-apps'),
         "context": context,
         "offset":  height + TEXT_MARGIN + FONT_SIZE + window.devicePixelRatio
       });
