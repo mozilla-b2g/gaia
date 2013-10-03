@@ -65,7 +65,7 @@
 
         // init event listeners
         window.addEventListener('collectionlaunch', Evme.Collection.show);
-        window.addEventListener('EvmeDropApp', onAppDrop);
+        window.addEventListener('collectiondropapp', onAppDrop);
 
         // prevent homescreen contextmenu
         elContainer.addEventListener('contextmenu', function onTouchStart(e) {
@@ -86,16 +86,10 @@
     function onAppDrop(e) {
         var options = e.detail;
 
-        // dropping app on collection
-        if (options.app && options.collection) {
-            var appId = options.app.id,
-                collectionId = options.collection.id;
-
-            Evme.InstalledAppsService.getAppById(appId, function getAppByOrigin(installedApp) {
-                if (installedApp) {
-                    Evme.Collection.addInstalledApp(installedApp, collectionId);
-                }
-            });
+        if (options.descriptor && options.collection) {
+            EvmeManager.getAppByDescriptor(function addApp(appInfo){
+                Evme.Collection.addInstalledApp(appInfo, options.collection.id);
+            }, options.descriptor);
         }
     }
 
@@ -364,7 +358,7 @@
         this.saveSearch = function saveSearch(data) {
             var extraIconsData = Evme.SearchResults.getCloudResultsIconData(),
                 query = Evme.Searchbar.getValue();
-            
+
             Evme.Collection.create({
                 "query": query,
                 "extraIconsData": extraIconsData,
@@ -678,7 +672,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
                     openCloudAppMenu(data);
                 }
             }
-                
+
             // in search
             else {
                 if (data.app.type === Evme.RESULT_TYPE.CLOUD) {
