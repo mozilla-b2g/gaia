@@ -291,6 +291,37 @@ suite('ActivityHandler', function() {
       });
     });
 
+    suite('receive message when in thread with the same id', function() {
+      var newMessage;
+      var realMozSettings;
+
+      suiteSetup(function(done) {
+        realMozSettings = navigator.mozSettings;
+        navigator.mozSettings = MockNavigatorSettings;
+        requireApp('sms/js/notify.js', done);
+        requireApp('sms/js/threads.js', done);
+      });
+
+      suiteTeardown(function() {
+        navigator.mozSettings = realMozSettings;
+      });
+
+      setup(function() {
+        //mimic user clicking thread
+        Threads.currentId = 1;
+
+        this.sinon.stub(Notify, 'ringtone');
+
+        newMessage = MockMessages.sms();
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
+      });
+
+      test('play ringtone even if in correct thread', function() {
+        var spied = Notify.ringtone;
+        assert.ok(spied.called);
+      });
+    });
+
     suite('class-0 message', function() {
       setup(function() {
       var notification = {
