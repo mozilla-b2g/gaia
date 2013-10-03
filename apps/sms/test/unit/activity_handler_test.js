@@ -22,6 +22,8 @@ requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
+requireApp('sms/test/unit/mock_notify.js');
+requireApp('sms/test/unit/mock_settings.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
@@ -41,6 +43,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'Threads',
   'ThreadUI',
   'Utils',
+  'Notify',
   'alert'
 ]).init();
 
@@ -50,6 +53,8 @@ suite('ActivityHandler', function() {
   var realSetMessageHandler;
   var realWakeLock;
   var realMozApps;
+  var newMessage;
+  var realMozSettings;
 
   suiteSetup(function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
@@ -61,6 +66,9 @@ suite('ActivityHandler', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
+    realMozSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     // in case a previous state does not properly clean its stuff
     window.location.hash = '';
   });
@@ -69,6 +77,7 @@ suite('ActivityHandler', function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.requestWakeLock = realWakeLock;
     navigator.mozApps = realMozApps;
+    navigator.mozSettings = realMozSettings;
   });
 
   setup(function() {
@@ -288,6 +297,22 @@ suite('ActivityHandler', function() {
 
       test('launches the app', function() {
         assert.ok(MockNavigatormozApps.mAppWasLaunched);
+      });
+    });
+
+    suite('receive message when in thread with the same id', function() {
+      setup(function() {
+        //mimic user clicking thread
+        Threads.currentId = 1;
+
+        this.sinon.stub(MockNotify, 'ringtone');
+
+        newMessage = MockMessages.sms();
+        MockNavigatormozSetMessageHandler.mTrigger('sms-received', newMessage);
+      });
+
+      test('play ringtone even if in correct thread', function() {
+        assert.isTrue(MockNotify.ringtone.called);
       });
     });
 

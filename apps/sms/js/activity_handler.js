@@ -217,6 +217,7 @@ var ActivityHandler = {
     if (!message) {
       return;
     }
+
     this.isLocked = false;
     var threadId = message.threadId ? message.threadId : null;
     var body = message.body ? Template.escape(message.body) : '';
@@ -337,7 +338,8 @@ var ActivityHandler = {
       // The SMS app is already displayed
       if (!document.hidden) {
         if (threadId === Threads.currentId) {
-          navigator.vibrate([200, 200, 200]);
+          Notify.ringtone();
+          Notify.vibrate();
           releaseWakeLock();
           return;
         }
