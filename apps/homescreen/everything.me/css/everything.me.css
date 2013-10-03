@@ -1,6 +1,28 @@
 .evmeScope {
+    position: absolute;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    font-weight: normal;
+    font-size: 1.2rem;
+    text-align: left;
+    height: calc((100% - 7.5rem)/4); /* height of footer */
     display: none;
 }
+  .evmeScope div, .evmeScope p:not(.noreset), .evmeScope span,
+  .evmeScope h1, .evmeScope h2, .evmeScope h3, .evmeScope h4,
+  .evmeScope a, .evmeScope em, .evmeScope img, .evmeScope b,
+  .evmeScope ol, .evmeScope ul, .evmeScope li,
+  .evmeScope fieldset, .evmeScope form, .evmeScope label, .evmeScope legend,
+  .evmeScope input, .evmeScope textarea,
+  .evmeScope table, .evmeScope tr, .evmeScope th, .evmeScope td,
+  .evmeScope canvas {
+      margin: 0;
+      padding: 0;
+      border: 0;
+  }
 .evme-ready .evmeScope {
     display: block;
 }

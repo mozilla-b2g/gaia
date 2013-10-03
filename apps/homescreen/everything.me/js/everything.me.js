@@ -58,6 +58,7 @@ var EverythingME = {
       // load styles required for Collection styling
       LazyLoader.load([
         'shared/style_unstable/progress_activity.css',
+        'everything.me/css/common.css',
         'everything.me/modules/Collection/Collection.css'],
         function assetsLoaded() {
           // open the collection immediately
