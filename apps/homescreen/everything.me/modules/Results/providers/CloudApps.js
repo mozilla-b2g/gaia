@@ -5,8 +5,8 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
 
   this.type = Evme.RESULT_TYPE.CLOUD;
 
-  var SHADOW_OFFSET = 2 * Evme.Utils.devicePixelRatio,
-      SHADOW_BLUR = 2 * Evme.Utils.devicePixelRatio,
+  var SHADOW_OFFSET = 2 * window.devicePixelRatio,
+      SHADOW_BLUR = 2 * window.devicePixelRatio,
 
       self = this;
 

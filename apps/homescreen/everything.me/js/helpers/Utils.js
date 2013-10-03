@@ -54,17 +54,15 @@ Evme.Utils = new function Evme_Utils() {
 	 URL: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
     };
 
-    this.devicePixelRatio =  window.innerWidth / 320;
-
     this.isKeyboardVisible = false;
 
     this.EMPTY_IMAGE = "../../images/empty.gif";
 
     this.EMPTY_APPS_SIGNATURE = '';
 
-    this.APPS_FONT_SIZE = 13 * self.devicePixelRatio;
+    this.APPS_FONT_SIZE = 13 * (window.devicePixelRatio || 1);
 
-    this.PIXEL_RATIO_NAME = (this.devicePixelRatio > 1) ? this.PIXEL_RATIO_NAMES.HIGH : this.PIXEL_RATIO_NAMES.NORMAL;
+    this.PIXEL_RATIO_NAME = (window.devicePixelRatio > 1) ? this.PIXEL_RATIO_NAMES.HIGH : this.PIXEL_RATIO_NAMES.NORMAL;
 
     this.NOOP = function(){};
 
@@ -79,6 +77,7 @@ Evme.Utils = new function Evme_Utils() {
         elContainer = document.getElementById(CONTAINER_ID);
 
         OS_ICON_SIZE = self.sendToOS(self.OSMessages.GET_ICON_SIZE);
+        OS_ICON_SIZE *= window.devicePixelRatio;
     };
 
     this.logger = function logger(level) {
@@ -208,6 +207,10 @@ Evme.Utils = new function Evme_Utils() {
       window.URL.revokeObjectURL(url);
 
       return id;
+    };
+
+    this.rem = function(value) {
+      return value/10 + 'rem';
     };
 
     this.sendToOS = function sendToOS(type, data) {
@@ -352,8 +355,8 @@ Evme.Utils = new function Evme_Utils() {
           textToDraw = [],
 
           WIDTH = context.canvas.width,
-	  FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
-          LINE_HEIGHT = FONT_SIZE + 1 * self.devicePixelRatio;
+	        FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
+          LINE_HEIGHT = FONT_SIZE + window.devicePixelRatio;
 
       if (!context || !text) {
         return false;
@@ -364,7 +367,7 @@ Evme.Utils = new function Evme_Utils() {
       context.textAlign = 'center';
       context.textBaseline = 'top';
       context.fillStyle = 'rgba(255,255,255,1)';
-      context.font = '600 ' + FONT_SIZE + 'px sans-serif';
+      context.font = '500 ' + self.rem(FONT_SIZE) + ' sans-serif';
 
       // text shadow
       context.shadowOffsetX = 0;
@@ -374,7 +377,7 @@ Evme.Utils = new function Evme_Utils() {
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words
-        var size = context.measureText(word).width + 1,
+        var size = context.measureText(word + ' ').width,
             draw = false,
             pushed = false;
 

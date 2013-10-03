@@ -12,8 +12,22 @@ window.Evme = new function Evme_Core() {
 
     apiHost && Evme.api.setHost(apiHost);
 
+    // calculate the precise background image size loaded behind search results
+    // takes screen size and pixel density into account
+    data.bgImageSize = [
+        Math.floor(window.innerWidth * window.devicePixelRatio),
+        Math.floor(window.innerHeight * window.devicePixelRatio)
+    ];
+
+    // calculate number of apps to load on every search
+    // if the screen height permits it - add another row of apps
+    var numberOfAppsToLoad = data.numberOfAppsToLoad;
+    if (window.innerHeight/window.innerWidth > 1.66) {
+        numberOfAppsToLoad += data.apps.appsPerRow;
+    }
+
     Evme.Brain.init({
-      "numberOfAppsToLoad": data.numberOfAppsToLoad+(Evme.Utils.devicePixelRatio>1? data.apps.appsPerRow: 0),
+      "numberOfAppsToLoad": numberOfAppsToLoad,
       "searchSources": data.searchSources,
       "pageViewSources": data.pageViewSources,
       "displayInstalledApps": data.apps.displayInstalledApps
