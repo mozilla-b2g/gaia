@@ -641,13 +641,13 @@ contacts.Settings = (function() {
         }
       };
       Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);
-      resetWait(wakeLock);
+      Contacts.hideOverlay();
     };
 
     importer.start();
   };
 
-  var onSdImport = function onSdImport(cb) {
+  var onSdImport = function onSdImport() {
     var cancelled = false;
     var importer = null;
     var progress = Contacts.showOverlay(
@@ -670,7 +670,7 @@ contacts.Settings = (function() {
       'text/directory'
     ], ['vcf', 'vcard'], function(err, fileArray) {
       if (err)
-        return import_error(err, cb);
+        return import_error(err);
 
       if (cancelled)
         return;
@@ -678,19 +678,19 @@ contacts.Settings = (function() {
       if (fileArray.length)
         utils.sdcard.getTextFromFiles(fileArray, '', onFiles);
       else
-        import_error('No contacts were found.', cb);
+        import_error('No contacts were found.');
     });
 
     function onFiles(err, text) {
       if (err)
-        return import_error(err, cb);
+        return import_error(err);
 
       if (cancelled)
         return;
 
       importer = new VCFReader(text);
       if (!text || !importer)
-        return import_error('No contacts were found.', cb);
+        return import_error('No contacts were found.');
 
       importer.onread = import_read;
       importer.onimported = imported_contact;
@@ -707,9 +707,6 @@ contacts.Settings = (function() {
               Contacts.showStatus(_('memoryCardContacts-imported3', {
                 n: importedContacts
               }));
-              if (typeof cb === 'function') {
-                cb();
-              }
             }
           });
         }, DELAY_FEEDBACK);
@@ -727,7 +724,7 @@ contacts.Settings = (function() {
       progress.update();
     }
 
-    function import_error(e, cb) {
+    function import_error(e) {
       var cancel = {
         title: _('cancel'),
         callback: function() {
@@ -746,10 +743,7 @@ contacts.Settings = (function() {
       };
       Contacts.confirmDialog(null, _('memoryCardContacts-error'), cancel,
         retry);
-      resetWait(wakeLock);
-      if (typeof cb === 'function') {
-        cb();
-      }
+      Contacts.hideOverlay();
     }
   };
 
@@ -912,7 +906,6 @@ contacts.Settings = (function() {
     'onLineChanged': checkOnline,
     'cardStateChanged': checkSIMCard,
     'updateTimestamps': updateTimestamps,
-    'navigation': navigationHandler,
-    'importFromSDCard': onSdImport
+    'navigation': navigationHandler
   };
 })();
