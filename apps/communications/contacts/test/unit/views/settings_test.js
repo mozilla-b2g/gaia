@@ -9,6 +9,7 @@ requireApp('communications/contacts/test/unit/mock_icc_helper.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/test/unit/mock_wakelock.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/views/settings.js');
@@ -32,7 +33,8 @@ if (!this.realMozContacts) {
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
-  'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper'
+  'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper',
+  'WakeLock'
 ]);
 mocksHelperForContactSettings.init();
 
@@ -77,6 +79,7 @@ suite('Contacts settings', function() {
       showMenu: function() {}
     };
     window._ = stub('blah');
+
   });
 
   suiteTeardown(function() {
@@ -116,10 +119,19 @@ suite('Contacts settings', function() {
   });
 
   suite('SD Card import', function() {
+    var showMenuSpy;
+    var showStatusSpy;
+    var realWakeLock;
+
     setup(function() {
       contacts.Settings.init();
       checkForCard = utils.sdcard.checkStorageCard;
       mocksHelper.setup();
+
+      showMenuSpy = sinon.spy(window.utils.overlay, 'showMenu');
+      showStatusSpy = sinon.spy(Contacts, 'showStatus');
+      realWakeLock = navigator.requestWakeLock;
+      navigator.requestWakeLock = MockWakeLock;
     });
 
     test('show SD Card import if SD card is present', function() {
@@ -147,10 +159,35 @@ suite('Contacts settings', function() {
 
     });
 
+    test('SD Import went well', function(done) {
+      contacts.Settings.importFromSDCard(function onImported() {
+        sinon.assert.called(showMenuSpy);
+        sinon.assert.called(showStatusSpy);
+        assert.equal(false, MyLocks['cpu']);
+        done();
+      });
+    });
+
+    test('SD Import with error cause no files to import', function(done) {
+      // Simulate not finding any files
+      MockSdCard.failOnRetrieveFiles = true;
+      contacts.Settings.importFromSDCard(function onImported() {
+        sinon.assert.called(showMenuSpy);
+        sinon.assert.notCalled(showStatusSpy);
+        assert.equal(false, MyLocks['cpu']);
+        // Restore the mock
+        MockSdCard.failOnRetrieveFiles = false;
+        done();
+      });
+    });
+
     teardown(function() {
       utils.sdcard.checkStorageCard = checkForCard;
       mocksHelper.teardown();
       MockasyncStorage.clear();
+      showMenuSpy.restore();
+      showStatusSpy.restore();
+      navigator.requestWakeLock = realWakeLock;
     });
   });
 
@@ -210,6 +247,7 @@ suite('Contacts settings', function() {
       checkForCard = utils.sdcard.checkStorageCard;
       utils.sdcard.checkStorageCard = function() { return true; };
       navigator.mozSettings = MockNavigatorSettings;
+
     });
 
     suiteTeardown(function() {

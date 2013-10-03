@@ -11,8 +11,11 @@ var MockasyncStorage = {
     cb(this.keys[key]);
   },
 
-  setItem: function(key, value) {
+  setItem: function(key, value, cb) {
     this.keys[key] = value;
+    if (typeof cb === 'function') {
+      cb();
+    }
   },
 
   removeItem: function(key) {
