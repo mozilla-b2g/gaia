@@ -295,7 +295,9 @@ contacts.Details = (function() {
     var birthdayFormat = _('birthdayDateFormat') || '%e %B';
     var birthdayString = '';
     try {
-      birthdayString = f.localeFormat(contact.bday, birthdayFormat);
+      var offset = contact.bday.getTimezoneOffset() * 60 * 1000;
+      var normalizeBirthdayDate = new Date(contact.bday.getTime() + offset);
+      birthdayString = f.localeFormat(normalizeBirthdayDate, birthdayFormat);
     } catch (err) {
       console.error('Error parsing birthday');
       return;

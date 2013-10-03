@@ -46,7 +46,7 @@ suite('mozContact to vCard', function() {
         assert.ok(_contains('org:test org'));
         assert.ok(_contains('title:sr. software architect'));
         assert.ok(_contains('note:note 1'));
-        assert.ok(_contains('bday:1995-12-17'));
+        assert.ok(_contains('bday:1970-01-01'));
         assert.ok(_contains('photo:data:image/gif;base64,' + b64));
         assert.ok(_contains('email;type=personal:test@test.com'));
         assert.ok(_contains(
@@ -73,7 +73,7 @@ suite('mozContact to vCard', function() {
         assert.ok(_contains('org:test org'));
         assert.ok(_contains('title:sr. software architect'));
         assert.ok(_contains('note:note 1'));
-        assert.ok(_contains('bday:1995-12-17'));
+        assert.ok(_contains('bday:1970-01-01'));
         assert.ok(_contains('photo:data:image/gif;base64,' + b64));
         assert.ok(_contains('email;type=personal:test@test.com'));
         assert.ok(_contains(
