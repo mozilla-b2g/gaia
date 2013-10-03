@@ -106,12 +106,6 @@ Icon.prototype = {
       dataset.isCollection = true;
       dataset.collectionId = descriptor.id;
       dataset.collectionName = descriptor.name;
-    } else {
-      dataset.origin = descriptor.manifestURL ||
-        descriptor.bookmarkURL;
-      if (descriptor.entry_point) {
-        dataset.entryPoint = descriptor.entry_point;
-      }
     }
 
     var localizedName = this.getName();

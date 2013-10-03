@@ -36,7 +36,7 @@ var EverythingME = {
     activationIcon.addEventListener('contextmenu', onContextMenu);
     activationIcon.addEventListener('click', triggerActivateFromInput);
     window.addEventListener('collectionlaunch', triggerActivate);
-    window.addEventListener('EvmeDropApp', triggerActivate);
+    window.addEventListener('collectiondropapp', triggerActivate);
 
     // specifically for pseudo searchbar
     function triggerActivateFromInput(e) {
@@ -53,7 +53,7 @@ var EverythingME = {
       activationIcon.removeEventListener('click', triggerActivateFromInput);
       activationIcon.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('collectionlaunch', triggerActivate);
-      window.removeEventListener('EvmeDropApp', triggerActivate);
+      window.removeEventListener('collectiondropapp', triggerActivate);
 
       // load styles required for Collection styling
       LazyLoader.load([

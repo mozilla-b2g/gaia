@@ -93,11 +93,8 @@ var EvmeManager = (function EvmeManager() {
     }
   }
 
-  function getAppByManifestURL(cb, manifestURL, entryPoint) {
-    var icon = GridManager.getIcon({
-      manifestURL: manifestURL,
-      entry_point: entryPoint
-    });
+  function getAppByDescriptor(cb, descriptor) {
+    var icon = GridManager.getIcon(descriptor);
 
     if (icon) {
       getAppInfo(icon, cb);
@@ -302,7 +299,7 @@ var EvmeManager = (function EvmeManager() {
       return GridManager.getApp(origin);
     },
 
-    getAppByManifestURL: getAppByManifestURL,
+    getAppByDescriptor: getAppByDescriptor,
     getAppByOrigin: getAppByOrigin,
     getGridApps: getGridApps,
     getCollections: getCollections,
