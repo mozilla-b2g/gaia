@@ -109,10 +109,10 @@ if (!window.LiveConnector) {
         var bday = liveContact.birth_day;
         if (bmonth && bday) {
           var birthdate = out.bday = new Date();
-          birthdate.setUTCDate(bday);
-          birthdate.setUTCMonth(bmonth, bday);
+          birthdate.setDate(bday);
+          birthdate.setMonth(bmonth, bday);
           if (byear) {
-            birthdate.setUTCFullYear(byear);
+            birthdate.setYear(byear);
           }
         }
 

@@ -199,11 +199,11 @@ fb.getBirthDate = function getBirthDate(sbday) {
 
   var syear = sbday.substring(iyear + 1, sbday.length);
 
-  out.setUTCDate(parseInt(sday, 10));
-  out.setUTCMonth(parseInt(smonth, 10) - 1, parseInt(sday, 10));
+  out.setDate(parseInt(sday, 10));
+  out.setMonth(parseInt(smonth, 10) - 1, parseInt(sday, 10));
 
   if (syear && syear.length > 0) {
-    out.setUTCFullYear(parseInt(syear, 10));
+    out.setYear(parseInt(syear, 10));
   }
 
   return out;
