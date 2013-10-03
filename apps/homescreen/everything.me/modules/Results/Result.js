@@ -37,6 +37,10 @@
 
       this.elIcon = el.querySelector('img');
 
+      if ('isOfflineReady' in cfg) {
+        el.dataset.offlineReady = cfg.isOfflineReady;
+      }
+
       // remove button
       if (cfg.isRemovable) {
         var removeButton = document.createElement('span');
