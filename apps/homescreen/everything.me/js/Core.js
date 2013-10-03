@@ -77,14 +77,6 @@ window.Evme = new function Evme_Core() {
     return false;
   };
 
-  this.onCollectionSuggest = function onCollectionSuggest() {
-    Evme.Brain.CollectionsSuggest.showUI();
-  };
-
-  this.onCollectionCustom = function onCollectionCustom() {
-    Evme.CollectionSuggest.newCustom();
-  };
-
   this.searchFromOutside = function searchFromOutside(query) {
     Evme.Brain.Searcher.searchExactFromOutside(query);
   };
@@ -171,6 +163,10 @@ window.Evme = new function Evme_Core() {
   }
 
   function initObjects(data) {
+    // lazy components
+    window.addEventListener('suggestcollections', initSuggestCollections);
+
+    // active components
     var appsEl = Evme.$("#evmeApps"),
         collectionEl = document.querySelector("#collection .evme-apps");
 
@@ -183,10 +179,6 @@ window.Evme = new function Evme_Core() {
     Evme.Location.init({
       "refreshInterval": data.locationInterval,
       "requestTimeout": data.locationRequestTimeout
-    });
-
-    Evme.CollectionsSuggest.init({
-      "elParent": Evme.Utils.getContainer()
     });
 
     Evme.Searchbar.init({
@@ -310,4 +302,24 @@ window.Evme = new function Evme_Core() {
       "deviceId": Evme.DoATAPI.getDeviceId()
     });
   }
+
+  function initSuggestCollections(e) {
+      LazyLoader.load(
+        ['everything.me/modules/CollectionsSuggest/CollectionsSuggest.js',
+         'everything.me/modules/CollectionsSuggest/CollectionsSuggest.css'],
+        function onLoad() {
+          Evme.CollectionsSuggest.init({
+            "elList": document.getElementById('collections-select'),
+            "elParent": Evme.Utils.getContainer()
+          });
+          
+          window.removeEventListener('suggestcollections', initSuggestCollections);
+          window.addEventListener('suggestcollections', onSuggestCollections);
+          window.dispatchEvent(e);
+        }
+      );
+  }
+  function onSuggestCollections(e) {
+      Evme.Brain.CollectionsSuggest.showUI();
+  };
 };
