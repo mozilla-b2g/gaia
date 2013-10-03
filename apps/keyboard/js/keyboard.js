@@ -230,6 +230,7 @@ const keyboardGroups = {
   'french': ['fr'],
   'german': ['de'],
   'hungarian': ['hu'],
+  'korean': ['ko'],
   'norwegian': ['nb'],
   'swedish': ['sv'],
   'slovak': ['sk'],
@@ -261,7 +262,7 @@ const keyboardHashKey = [
   'cz', 'fr', 'de', 'nb', 'sk',
   'tr', 'ru', 'sr-Cyrl', 'ar', 'he',
   'el',
-  'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
+  'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji', 'ko',
   'numberLayout'
 ];
 
