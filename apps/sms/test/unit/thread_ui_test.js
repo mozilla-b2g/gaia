@@ -4036,4 +4036,55 @@ suite('thread_ui.js >', function() {
       });
     });
   });
+
+  suite('Open options menu', function() {
+    setup(function() {
+      window.location.hash = '';
+      MockOptionMenu.mSetup();
+    });
+
+    teardown(function() {
+      window.location.hash = '';
+      MockOptionMenu.mTeardown();
+    });
+
+    suite('opens from new message', function() {
+      var options;
+      setup(function() {
+        window.location.hash = '#new';
+      });
+      teardown(function() {
+        window.location.hash = '';
+      });
+      test('should show proper options', function() {
+        ThreadUI.showOptions();
+        options = MockOptionMenu.calls[0].items;
+        assert.equal(MockOptionMenu.calls.length, 1);
+        assert.equal(options.length, 2);
+        assert.equal(options[0].l10nId, 'settings');
+      });
+    });
+
+    suite('opens from existing message', function() {
+      var options;
+      setup(function() {
+        window.location.hash = '#thread=1';
+        ThreadUI.showOptions();
+        options = MockOptionMenu.calls[0].items;
+      });
+      teardown(function() {
+        window.location.hash = '';
+      });
+      test('should show options overlay', function() {
+        assert.equal(MockOptionMenu.calls.length, 1);
+      });
+      test('should show option for deleting messages', function() {
+        assert.equal(options[0].l10nId, 'deleteMessages-label');
+      });
+      test('should show settings options last', function() {
+        assert.equal(options[options.length - 2].l10nId, 'settings');
+      });
+    });
+
+  });
 });

@@ -169,7 +169,7 @@ var ThreadListUI = {
     } else {
       this.uncheckAllButton.disabled = true;
       this.deleteButton.classList.add('disabled');
-      navigator.mozL10n.localize(this.editMode, 'editMode');
+      navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
 

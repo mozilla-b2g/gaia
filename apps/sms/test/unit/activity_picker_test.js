@@ -359,5 +359,35 @@ suite('ActivityPicker', function() {
     });
   });
 
+  suite('openSettings', function() {
+    var params = {
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'carrier-mmsSettings'
+      }
+    };
+
+    test('openSettings() ', function() {
+      ActivityPicker.openSettings();
+
+      assert.deepEqual(MozActivity.calls[0], params);
+    });
+
+    test('openSettings(success) ', function() {
+      ActivityPicker.openSettings(onsuccess);
+
+      assert.equal(MozActivity.instances[0].onsuccess, onsuccess);
+      assert.deepEqual(MozActivity.calls[0], params);
+    });
+
+    test('openSettings(success, error) ', function() {
+      ActivityPicker.openSettings(onsuccess, onerror);
+
+      assert.equal(MozActivity.instances[0].onsuccess, onsuccess);
+      assert.equal(MozActivity.instances[0].onerror, onerror);
+      assert.deepEqual(MozActivity.calls[0], params);
+    });
+  });
 
 });
