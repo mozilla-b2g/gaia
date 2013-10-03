@@ -5,16 +5,6 @@ body:not(.evme-ready) #collection .loading-more div span,
 body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
   display: none;
 }
-body:not(.evme-ready) #collection .evme-apps {
-  width: 100%;
-}
-body.evme-loading #collection progress {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-top: -1.45rem;
-  margin-left: -1.45rem;
-}
 
 .evmeScope #collection {
     position: fixed;
@@ -52,7 +42,7 @@ body.evme-loading #collection progress {
     .evmeScope #collection.animate .close,
     .evmeScope #collection.animate .evme-apps
     {
-	    transition: opacity .4s ease;
+      transition: opacity .4s ease;
     }
     .evmeScope #collection .content {
     }
@@ -171,23 +161,14 @@ body.evme-loading #collection progress {
           border-left: 0.1rem solid rgba(255, 255, 255, .3);
       }
     .evmeScope #collection .evme-apps {
-        position: absolute;
         top: 5.5rem;
-        left: 0.5rem;
-        bottom: 0;
-        z-index: 50;
-        width: auto;
-        height: auto;
     }
-	.evmeScope #collection .evme-apps .loading-apps {
-            right: 2.5rem;
-        }
-	.evmeScope #collection .evme-apps li {
-            width: 25%;
-        }
-	.evmeScope #collection .evme-apps li.installed-separator {
-            width: 100%;
-        }
+      .evmeScope #collection .evme-apps li {
+        width: 25%;
+      }
+	    .evmeScope #collection .evme-apps li.installed-separator {
+        width: 100%;
+      }
         .evmeScope #collection .evme-apps ul.static li img {
             transform: scale(1);
         }
@@ -201,7 +182,6 @@ body.evme-loading #collection progress {
         .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li span.remove {
           display: block;
         }
-
 
     .evmeScope #collection #bgimage-overlay {
         top: 0;
