@@ -874,8 +874,12 @@ var GridManager = (function() {
       }
 
       if (expandApps && manifest.entry_points) {
-        for (var i in manifest.entry_points) {
-          apps.push(new Icon(buildDescriptor(app, i), app));
+        var entryPoints = manifest.entry_points;
+        for (var entryPoint in entryPoints) {
+          if (!entryPoints[entryPoint].icons) {
+            continue;
+          }
+          apps.push(new Icon(buildDescriptor(app, entryPoint), app));
         }
         continue;
       }

@@ -472,9 +472,14 @@ suite('grid.js >', function() {
         },
         {
           role: 'app',
-          entry_points: [
-            {}, {}
-          ]
+          entry_points: {
+            'dialer': {
+              'icons': {}
+            },
+            'contacts' : {
+              'icons': {}
+            }
+          }
         }
       ];
 
