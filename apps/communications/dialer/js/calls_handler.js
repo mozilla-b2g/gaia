@@ -297,6 +297,10 @@ var CallsHandler = (function callsHandler() {
       });
     });
 
+    if (cdmaCallWaiting()) {
+      CallScreen.holdAndAnswerOnly = true;
+    }
+
     CallScreen.showIncoming();
     playWaitingTone(call);
   }
