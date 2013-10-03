@@ -166,12 +166,12 @@
       time: time
     });
     li.innerHTML = html;
-    node.insertBefore(li, node.firstChild);
     navigator.mozL10n.localize(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: num }
     );
+    node.insertBefore(li, node.firstChild);
   };
 
   Stopwatch.Panel.prototype.onreset = function() {
