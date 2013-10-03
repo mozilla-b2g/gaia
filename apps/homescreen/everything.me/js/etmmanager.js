@@ -94,7 +94,7 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function getAppByDescriptor(cb, descriptor) {
-    var icon = GridManager.getIcon(descriptor);
+    var icon = getIconByDescriptor(descriptor);
 
     if (icon) {
       getAppInfo(icon, cb);
@@ -102,6 +102,10 @@ var EvmeManager = (function EvmeManager() {
       console.error("E.me error: app " + origin + " does not exist");
       cb();
     }
+  }
+
+  function getIconByDescriptor(descriptor) {
+    return GridManager.getIcon(descriptor);    
   }
 
   /**
@@ -140,6 +144,18 @@ var EvmeManager = (function EvmeManager() {
       "icon": Icon.prototype.DEFAULT_ICON_URL,
       "isOfflineReady": icon && 'isOfflineReady' in icon && icon.isOfflineReady()
     };
+
+    // appInfo is an extended descriptor
+    // when we will remove Eme's appIndex we can use plain descriptors
+    if ('bookmarkURL' in descriptor) {
+      appInfo.bookmarkURL = descriptor.bookmarkURL;
+    }
+    if ('manifestURL' in descriptor) {
+      appInfo.manifestURL = descriptor.manifestURL;
+    }
+    if ('entry_point' in descriptor) {
+      appInfo.entry_point = descriptor.entry_point;
+    }
 
     if (!icon) {
       cb(appInfo);
@@ -300,6 +316,7 @@ var EvmeManager = (function EvmeManager() {
       return GridManager.getApp(origin);
     },
 
+    getIconByDescriptor: getIconByDescriptor,
     getAppByDescriptor: getAppByDescriptor,
     getAppByOrigin: getAppByOrigin,
     getGridApps: getGridApps,
