@@ -625,6 +625,7 @@ contacts.Settings = (function() {
     };
 
     importer.onerror = function import_error() {
+      resetWait(wakeLock);
       var cancel = {
         title: _('cancel'),
         callback: function() {
@@ -725,6 +726,9 @@ contacts.Settings = (function() {
     }
 
     function import_error(e) {
+      // unlock cpu
+      resetWait(wakeLock);
+
       var cancel = {
         title: _('cancel'),
         callback: function() {
