@@ -238,6 +238,49 @@ suite('Timer.Panel', function() {
 
       assert.equal(menu.textContent, 'ac_normal_gem_echoes_opus');
     });
+
+    test('change: sound', function() {
+      var sound = panel.nodes.sound;
+      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      var mockAudio = {
+        pause: this.sinon.spy(),
+        play: this.sinon.spy()
+      };
+      this.sinon.stub(window, 'Audio').returns(mockAudio);
+
+      sound.dispatchEvent(
+        new CustomEvent('change')
+      );
+
+      assert.isTrue(mockAudio.play.called);
+      assert.isTrue(mockAudio.loop);
+      assert.equal(mockAudio.mozAudioChannelType, 'alarm');
+      var expected = 'shared/resources/media/alarms/ac_normal_gem_echoes.opus';
+      assert.equal(mockAudio.src, expected);
+    });
+
+    test('blur: pause playing alarm', function() {
+      var sound = panel.nodes.sound;
+      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      var mockAudio = {
+        pause: this.sinon.spy(),
+        play: this.sinon.spy()
+      };
+      this.sinon.stub(window, 'Audio').returns(mockAudio);
+
+      sound.dispatchEvent(
+        new CustomEvent('change')
+      );
+
+      assert.isTrue(mockAudio.play.called);
+      assert.isTrue(mockAudio.pause.calledOnce);
+
+      sound.dispatchEvent(
+        new CustomEvent('blur')
+      );
+
+      assert.isTrue(mockAudio.pause.calledTwice);
+    });
   });
 
 });

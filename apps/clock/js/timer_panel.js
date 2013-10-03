@@ -81,6 +81,8 @@ Timer.Panel = function(element) {
 
   var sound = this.nodes.sound;
   sound.addEventListener('blur', this.refreshSoundMenu.bind(this), false);
+  sound.addEventListener('blur', this.pauseAlarm.bind(this), false);
+  sound.addEventListener('change', this.previewAlarm.bind(this), false);
   this.refreshSoundMenu();
 
   View.instance(element).on(
@@ -209,6 +211,32 @@ Timer.Panel.prototype.refreshSoundMenu = function() {
   soundMenu.textContent = (sound === 0 || sound === '0') ?
     _('noSound') :
     _(sound.replace('.', '_'));
+};
+
+/**
+ * previewAlarm Plays the currently selected alarm value on a loop.
+ */
+Timer.Panel.prototype.previewAlarm = function() {
+  if (!this.ringtonePlayer) {
+    this.ringtonePlayer = new Audio();
+    this.ringtonePlayer.mozAudioChannelType = 'alarm';
+    this.ringtonePlayer.loop = true;
+  }
+  this.ringtonePlayer.pause();
+
+  var ringtoneName = Utils.getSelectedValue(this.nodes.sound);
+  var previewRingtone = 'shared/resources/media/alarms/' + ringtoneName;
+  this.ringtonePlayer.src = previewRingtone;
+  this.ringtonePlayer.play();
+};
+
+/**
+ * pauseAlarm stops the alarm if it is playing
+ */
+Timer.Panel.prototype.pauseAlarm = function() {
+  if (this.ringtonePlayer) {
+    this.ringtonePlayer.pause();
+  }
 };
 
 /**
