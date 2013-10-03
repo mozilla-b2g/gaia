@@ -25,5 +25,9 @@ window.navigator.mozL10n = {
   language: {
     code: 'en-US',
     direction: 'LTR'
+  },
+
+  translate: function() {
+
   }
 };
