@@ -82,10 +82,26 @@ var Homescreen = (function() {
       }
     } else if (!Homescreen.isInEditMode()) {
       // No long press over an icon neither edit mode
-      LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
+      evt.preventDefault();
+      var contextMenuEl = document.getElementById('contextmenu-dialog');
+
+      if (Configurator.getSection('search_page')) {
+        LazyLoader.load(['style/contextmenu.css',
+                         'shared/style/action_menu.css',
+                         contextMenuEl,
+                         'js/contextmenu.js'
+                         ], function callContextMenu() {
+                          navigator.mozL10n.translate(contextMenuEl);
+                          ContextMenuDialog.show();
+                        }
+        );
+      } else {
+        // only wallpaper
+        LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
                       function callWallpaper() {
-        Wallpaper.contextmenu();
-      });
+                        Wallpaper.contextmenu();
+                      });
+      }
     }
   }
   // dismiss edit mode by tapping in an area of the view where there is no icon
