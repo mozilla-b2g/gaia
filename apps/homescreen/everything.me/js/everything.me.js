@@ -9,10 +9,7 @@ var EverythingME = {
       footer.style.MozTransition = '-moz-transform .3s ease';
     }
 
-    var page = document.getElementById('evmeContainer'),
-        gridPage = document.querySelector('#icongrid > div:first-child'),
-        appsEl = document.getElementById('icongrid');
-
+    var gridPage = document.querySelector('#icongrid > div:first-child');
     gridPage.classList.add('evmePage');
 
 
@@ -58,6 +55,7 @@ var EverythingME = {
 
       // load styles required for Collection styling
       LazyLoader.load([
+        document.getElementById('search-page'),
         'shared/style_unstable/progress_activity.css',
         'everything.me/css/common.css',
         'everything.me/modules/Collection/Collection.css'],
@@ -77,6 +75,7 @@ var EverythingME = {
     // show Collection loading
     function onCollectionOpened(activationIcon, id) {
       // add classes for Collection styling
+      var appsEl = document.getElementById('icongrid');
       appsEl.classList.add('evme-collection-visible');
       var elCollection = document.getElementById('collection');
       elCollection.classList.add('visible');
@@ -126,9 +125,12 @@ var EverythingME = {
   },
 
   activate: function EverythingME_activate() {
-    document.body.classList.add('evme-loading');
-
-    EverythingME.load();
+    var searchPage = document.getElementById('search-page');
+    LazyLoader.load(searchPage, function loaded() {
+      document.body.classList.add('evme-loading');
+      navigator.mozL10n.translate(searchPage);
+      EverythingME.load();
+    });
   },
 
   load: function EverythingME_load(callback) {
