@@ -53,6 +53,17 @@ var EverythingME = {
       window.removeEventListener('collectiondropapp', triggerActivate);
       window.removeEventListener('suggestcollections', triggerActivate);
 
+      // show the full-screen loading until e.me is really loaded
+      if (e.type === 'suggestcollections') {
+        EverythingME.showLoading(loadCollectionAssets);
+      } else {
+        loadCollectionAssets();
+      }
+    }
+
+    function loadCollectionAssets() {
+      var e = EverythingME.pendingEvent;
+
       // load styles required for Collection styling
       LazyLoader.load([
         document.getElementById('search-page'),
@@ -61,7 +72,7 @@ var EverythingME = {
         'everything.me/modules/Collection/Collection.css'],
         function assetsLoaded() {
           // open the collection immediately
-          if (e.type === 'collectionlaunch') {
+          if (e && e.type === 'collectionlaunch') {
             onCollectionOpened(activationIcon, e.detail.id);
           }
 
@@ -286,7 +297,25 @@ var EverythingME = {
 
     if (e && e.target) {
       e.target.dispatchEvent(e);
-    };
+    }
+
+    if (e.type === 'suggestcollections') {
+      window.addEventListener('CollectionSuggestLoadingShow', loadingShow);
+      window.addEventListener('CollectionSuggestOffline', suggestOffline);
+    } else {
+      EverythingME.hideLoading();
+    }
+
+    function loadingShow() {
+      window.removeEventListener('CollectionSuggestLoadingShow', loadingShow);
+      window.removeEventListener('CollectionSuggestOffline', suggestOffline);
+      EverythingME.hideLoading();
+    }
+    function suggestOffline() {
+      window.removeEventListener('CollectionSuggestLoadingShow', loadingShow);
+      window.removeEventListener('CollectionSuggestOffline', suggestOffline);
+      EverythingME.hideLoading();
+    }
   },
 
   destroy: function EverythingME_destroy() {
@@ -393,6 +422,39 @@ var EverythingME = {
     }
 
     return true;
+  },
+
+  // show a full-screen loading indicator for lazy-loaded stuff
+  showLoading: function showLoading(callback) {
+    var elLoading = document.getElementById('loading-dialog');
+
+    LazyLoader.load([
+      'shared/style_unstable/progress_activity.css',
+      'shared/style/confirm.css',
+      elLoading],
+      function assetsLoaded() {
+        elLoading.querySelector('button').addEventListener('click', function onCancel(e) {
+          e.target.removeEventListener('click', onCancel);
+          EverythingME.hideLoading();
+          EverythingME.pendingEvent = null;
+        });
+
+        navigator.mozL10n.translate(elLoading);
+
+        window.setTimeout(function styleReady() {
+          elLoading.style.display = 'block';
+          callback && callback();
+        }, 0);
+      }
+    );
+  },
+
+  // hide the full-screen loading indicator
+  hideLoading: function hideLoading() {
+    var elLoading = document.getElementById('loading-dialog');
+    if (elLoading) {
+      elLoading.parentNode.removeChild(elLoading);
+    }
   }
 };
 
