@@ -158,6 +158,7 @@ Evme.Config = Evme.__config = {
         "320": "dating",
         "286": "electronics",
         "248": "email",
+        "376": "entertainment",
         "361": "environment",
         "282": "fashion",
         "277": "funny",
@@ -182,7 +183,7 @@ Evme.Config = Evme.__config = {
         "306": "travel",
         "213": "tv",
         "211": "video",
-	"249": "weather",
-	"357": "utilities"
+        "249": "weather",
+        "357": "utilities"
     }
 };
