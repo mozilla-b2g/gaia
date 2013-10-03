@@ -12,7 +12,6 @@ var Settings = {
     this.clearHistoryButton = document.getElementById('clear-history-button');
     this.clearPrivateDataButton =
       document.getElementById('clear-private-data-button');
-    this.aboutBrowserButton = document.getElementById('about-browser-button');
     this.searchEngineButton = document.getElementById('search-engine-button');
     this.searchEngineSelect = document.getElementById('search-engine-select');
 
@@ -22,8 +21,6 @@ var Settings = {
       this.handleClearHistoryClick.bind(this));
     this.clearPrivateDataButton.addEventListener('click',
        this.handleClearPrivateDataClick.bind(this));
-    this.aboutBrowserButton.addEventListener('click',
-      Browser.showAboutPage.bind(Browser));
     this.searchEngineSelect.addEventListener('change',
       this.handleSearchEngineChange.bind(this));
 

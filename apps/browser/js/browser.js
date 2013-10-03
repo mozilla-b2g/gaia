@@ -33,8 +33,6 @@ var Browser = {
   searchEngine: {},
 
   DEVICE_RATIO: window.devicePixelRatio,
-  ABOUT_PAGE_URL: document.location.protocol + '//' + document.location.host +
-    '/about.html',
   UPPER_SCROLL_THRESHOLD: 50, // hide address bar
   LOWER_SCROLL_THRESHOLD: 5, // show address bar
   MAX_TOP_SITES: 4, // max number of top sites to display
@@ -883,11 +881,7 @@ var Browser = {
   },
 
   setUrlBar: function browser_setUrlBar(data) {
-    if (this.currentTab.url == this.ABOUT_PAGE_URL) {
-      this.urlInput.value = '';
-    } else {
-      this.urlInput.value = data;
-    }
+    this.urlInput.value = data;
   },
 
   setUrlButtonMode: function browser_setUrlButtonMode(mode) {
@@ -1476,16 +1470,6 @@ var Browser = {
     }
 
     return li;
-  },
-
-  showAboutPage: function browser_showAboutPage() {
-    var tab = this.createTab(this.ABOUT_PAGE_URL);
-    this.hideCurrentTab();
-    this.selectTab(tab);
-    this.setTabVisibility(this.currentTab, true);
-    this.updateTabsCount();
-    Settings.hide();
-    this.showPageScreen();
   },
 
   showDangerDialog: function browser_showDangerDialog(title, btn, callback) {
