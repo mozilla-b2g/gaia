@@ -1459,7 +1459,7 @@ var GridManager = (function() {
       } else {
         window.dispatchEvent(new CustomEvent('appUninstalled', {
           'detail': {
-            'app': app
+            'descriptor': buildDescriptor(app)
           }
         }));
       }
