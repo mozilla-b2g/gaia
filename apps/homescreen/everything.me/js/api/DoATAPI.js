@@ -20,6 +20,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         manualCredentials = null,
         manualCampaignStats = null,
         requestingSession = false,
+        permanentStats = null,
         
         requestsQueue = {},
         requestsToPerformOnOnline = [],
@@ -93,18 +94,37 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             manualCredentials = value;
         });
 
-        // make sure our client info cookie is always updated according to phone ettings
-        if (navigator.mozSettings) {
-            navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
+        permanentStats = {
+            screenHeight: window.screen.height,
+            screenWidth: window.screen.width
+        };
+
+        var mozSettings = navigator.mozSettings;
+        if (mozSettings) {
+            // make sure our client info cookie is always updated according to phone settings
+            mozSettings.addObserver('language.current', function onLanguageChange(e) {
                 self.setClientInfoLocale(e.settingValue);
             });
-            navigator.mozSettings.addObserver('time.timezone', function onTimeZoneChange(e) {
+            mozSettings.addObserver('time.timezone', function onTimeZoneChange(e) {
                 self.setClientInfoTimeZone();
             });
-            navigator.mozSettings.addObserver('keyboard.current', function onKeyboardLayoutChange(e) {
+            mozSettings.addObserver('keyboard.current', function onKeyboardLayoutChange(e) {
                 self.setKeyboardLanguage(e.settingValue);
             });
+
+            // get device info
+            var req = mozSettings.createLock().get('*');
+            req.onsuccess = function onsuccess() {
+                var res = req.result;
+                permanentStats.osVersion = res['deviceinfo.os'] || '';
+                permanentStats.deviceType = res['deviceinfo.product_model'] || '';
+            };
         }
+
+        var Conn = Evme.Utils.Connection;
+        Conn.addEventListener(Conn.events.MOBILE_CONNECTION_CHANGE, function onConnChange(data) {
+            permanentStats.carrierName = data && data.operator || '';
+        });
 
         self.Session.init(options.callback);
     };
@@ -715,9 +735,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             if (!noSession) {
                 params["sid"] = (self.Session.get() || {}).id || '';
             }
-            if (!params.stats) {
-                params.stats = {};
-            }
+
+            params.stats = Evme.Utils.aug(params.stats, permanentStats);
             /* ---------------- */
 
             _request = new Evme.Request();
