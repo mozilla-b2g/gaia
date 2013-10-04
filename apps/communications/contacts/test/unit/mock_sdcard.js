@@ -22,7 +22,8 @@ var mock_sdcard_vcf = 'BEGIN:VCARD\n' +
 var MockSdCard = {
   NOT_INITIALIZED: 0,
   NOT_AVAILABLE: 1,
-  AVAILABLE: 2
+  AVAILABLE: 2,
+  failOnRetrieveFiles: false
 };
 
 MockSdCard.status = MockSdCard.AVAILABLE;
@@ -61,7 +62,7 @@ MockSdCard.checkStorageCard = function sd_checkStorageCard() {
 };
 
 MockSdCard.retrieveFiles = function retrieveFilesContent(mimes, exts, cb) {
-  cb(null, [
+  cb(MockSdCard.failOnRetrieveFiles, [
     {
       name: 'vcf1.vcf',
       type: 'text/vcard'
