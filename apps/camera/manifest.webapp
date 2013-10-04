@@ -54,7 +54,8 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Camera.png",
-    "120": "/style/icons/Camera.png"
+    "60": "/style/icons/Camera_60.png",
+    "90": "/style/icons/Camera_90.png",
+    "120": "/style/icons/Camera_120.png"
   }
 }
