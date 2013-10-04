@@ -59,5 +59,8 @@ var MockContacts = {
   },
   view: function(view, callback) {
     callback();
+  },
+  showOverlay: function() {
+
   }
 };
