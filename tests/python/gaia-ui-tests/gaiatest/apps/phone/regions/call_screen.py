@@ -13,7 +13,7 @@ class CallScreen(Phone):
     _calling_contact_locator = (By.CSS_SELECTOR, 'div.number')
     _calling_contact_information_locator = (By.CSS_SELECTOR, 'div.additionalContactInfo')
     # Quick fix locator until Bug 912490 is merged in.
-    _outgoing_call_locator = (By.XPATH, '//section[div/div[@class="direction outgoing"]]')
+    _outgoing_call_locator = (By.CSS_SELECTOR, 'section.handled-call')
     _hangup_bar_locator = (By.ID, 'callbar-hang-up-action')
 
     def __init__(self, marionette):

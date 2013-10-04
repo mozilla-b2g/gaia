@@ -9,6 +9,8 @@ from gaiatest.apps.phone.app import Phone
 
 class TestDialer(GaiaTestCase):
 
+    active_states = ('dialing', 'alerting', 'connecting', 'connected')
+
     def test_dialer_make_call(self):
         # https://moztrap.mozilla.org/manage/case/1298/
 
@@ -23,20 +25,22 @@ class TestDialer(GaiaTestCase):
         call_screen.wait_for_outgoing_call()
 
         # Wait for the state to get to at least 'dialing'
-        active_states = ('dialing', 'alerting', 'connecting', 'connected')
         call_screen.wait_for_condition(
-            lambda m: self.data_layer.active_telephony_state in active_states,
+            lambda m: self.data_layer.active_telephony_state in self.active_states,
             timeout=30)
 
         # Check the number displayed is the one we dialed
         self.assertEqual(test_phone_number, call_screen.outgoing_calling_contact)
 
-    def tearDown(self):
-        # Switch back to main frame before Marionette loses track bug #840931
-        self.marionette.switch_to_frame()
+        call_screen.hang_up()
 
-        # In case the assertion fails this will still kill the call
-        # An open call creates problems for future tests
-        self.data_layer.kill_active_call()
+    def tearDown(self):
+        if self.data_layer.active_telephony_state:
+            # Switch back to main frame before Marionette loses track bug #840931
+            self.marionette.switch_to_frame()
+
+            # In case the assertion fails this will still kill the call
+            # An open call creates problems for future tests
+            self.data_layer.kill_active_call()
 
         GaiaTestCase.tearDown(self)
