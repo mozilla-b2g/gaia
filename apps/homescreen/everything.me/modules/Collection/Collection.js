@@ -60,6 +60,8 @@ void function() {
       });
 
       Evme.EventHandler.trigger(NAME, 'init');
+
+      depopulateAllCollections();
     };
 
     this.Rename = {
@@ -283,6 +285,15 @@ void function() {
       var gridCollections = EvmeManager.getCollections();
       gridCollections.forEach(function populate(gridCollection) {
         Evme.CollectionStorage.get(gridCollection.id, populateCollection);
+      });
+    };
+
+    this.onAppUninstall = function onAppUninstall(descriptor) {
+      var gridCollections = EvmeManager.getCollections();
+      gridCollections.forEach(function iterate(gridCollection) {
+        Evme.CollectionStorage.get(gridCollection.id, function removeApp(settings) {
+          removeFromCollection(settings, descriptor);
+        });
       });
     };
 
@@ -558,21 +569,70 @@ void function() {
     });
   }
 
+  /**
+   * Add installed apps to a collection
+   */
   function populateCollection(settings) {
     var existingIds = Evme.Utils.pluck(settings.apps, 'id');
 
     var newApps = Evme.InstalledAppsService.getMatchingApps({
-      'experienceId': settings.experienceId
+      'query': settings.query,              // for user-created collections
+      'experienceId': settings.experienceId // for pre-installed collections
     });
 
     newApps = newApps.filter(function isNew(app) {
       return existingIds.indexOf(app.id) === -1;
     });
 
-    if (newApps.length){
+    if (newApps.length) {
       Evme.Collection.update(settings, {"apps": newApps.concat(settings.apps)});
     }
+  }
+
+  /**
+   * Remove missing apps from collection
+   * Apps may have been un-installed when E.me was not running
+   */
+  function depopulateCollection(settings) {
+    var apps = settings.apps.filter(function exists(appInfo) {
+      var descriptor = appInfo;
+      return EvmeManager.getIconByDescriptor(descriptor);
+    });
+    
+    if (apps.length < settings.apps.length) {
+      Evme.Collection.update(settings, {"apps": apps});
+    }
+  }
+
+  function depopulateAllCollections() {
+    var gridCollections = EvmeManager.getCollections();
+    gridCollections.forEach(function iterate(gridCollection) {
+      Evme.CollectionStorage.get(gridCollection.id, function depopulate(settings) {
+        depopulateCollection(settings);
+      });
+    });
   };
+
+  /**
+   * Remove installed app from a collection
+   */
+  function removeFromCollection(settings, descriptor) {
+    var apps = settings.apps.filter(function keep(app) {
+      // remove bookmarks
+      var remove = descriptor.bookmarkURL && 
+                    app.id === descriptor.bookmarkURL;
+
+      // remove all entry points of descriptor
+      remove = remove || (descriptor.manifestURL &&
+                app.id.indexOf(descriptor.manifestURL) === 0);
+
+      return !remove;
+    });
+
+    if (apps.length < settings.apps.length) {
+      Evme.Collection.update(settings, {"apps": apps});
+    }
+  }
 
   /**
    * Add a collection to the homescreen.
