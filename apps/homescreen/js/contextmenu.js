@@ -26,12 +26,9 @@ var ContextMenuDialog = (function() {
 
   function chooseWallpaper() {
     LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
-        function wallpaperLoaded() {
-          Wallpaper.contextmenu();
-
-          // prevent flickering until wallpaper dialog opens
-          window.setTimeout(hide, 50);
-        }
+      function wallpaperLoaded() {
+        hide(Wallpaper.contextmenu);
+      }
     );
   }
 
