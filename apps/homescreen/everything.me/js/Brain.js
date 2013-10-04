@@ -1057,10 +1057,12 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
         this.loadingShow = function loadingShow() {
             document.body.classList.add(CLASS_WHEN_LOADING_SHORTCUTS_SUGGESTIONS);
+            window.dispatchEvent(new CustomEvent('CollectionSuggestLoadingShow'));
         };
 
         this.loadingHide = function loadingHide() {
             document.body.classList.remove(CLASS_WHEN_LOADING_SHORTCUTS_SUGGESTIONS);
+            window.dispatchEvent(new CustomEvent('CollectionSuggestLoadingHide'));
         };
 
         this.hideIfOpen = function hideIfOpen() {
@@ -1174,6 +1176,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
             Evme.Utils.isOnline(function(isOnline) {
                 if (!isOnline) {
                     window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'offline-shortcuts-more'));
+                    window.dispatchEvent(new CustomEvent('CollectionSuggestOffline'));
                     window.setTimeout(function() {
                         isRequesting = false;
                     }, 200);

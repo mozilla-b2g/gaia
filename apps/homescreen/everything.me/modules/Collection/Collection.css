@@ -14,6 +14,7 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
     bottom: 0;
     z-index: 600;
     color: #fff;
+    display: none;
     -moz-box-sizing: border-box;
     pointer-events: none;
     animation: collection-hide 450ms ease-out 1;

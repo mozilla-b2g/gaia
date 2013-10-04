@@ -36,8 +36,9 @@ var ContextMenuDialog = (function() {
   }
 
   function addCollection() {
-    window.dispatchEvent(new CustomEvent('suggestcollections'));
-    hide();
+    hide(function() {
+      window.dispatchEvent(new CustomEvent('suggestcollections'));
+    });
   }
 
   function show() {
@@ -54,7 +55,7 @@ var ContextMenuDialog = (function() {
     }, 10);
   }
 
-  function hide() {
+  function hide(cb) {
     initialize();
 
     wallpaperButton.removeEventListener('click', chooseWallpaper);
@@ -64,6 +65,9 @@ var ContextMenuDialog = (function() {
     dialog.addEventListener('transitionend', function hidden() {
       dialog.removeEventListener('transitionend', hidden);
       dialog.style.display = 'none';
+      if (typeof cb === 'function') {
+        cb();
+      }
     });
 
     dialog.classList.remove('visible');
