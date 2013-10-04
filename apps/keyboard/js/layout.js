@@ -1312,6 +1312,41 @@ const Keyboards = {
       ]
     ]
   },
+  // This special layout is used when composing SMS messages in Greek, so that
+  // it would allow 160 characters in one message
+  'el-sms': {
+    label: 'Greek SMS',
+    menuLabel: 'Greek SMS',
+    imEngine: 'latin',
+    keys: [
+      [
+        { value: ';' }, { value: 'Ε', keyCode: 0x45 /* ASCII E */ } ,
+        { value: 'Ρ', keyCode: 0x50 /* ASCII P */ },
+        { value: 'Τ', keyCode: 0x54 /* ASCII T */ },
+        { value: 'Υ', keyCode: 0x59 /* ASCII Y */ },
+        { value: 'Θ' }, { value: 'Ι', keyCode: 0x49 /* ASCII I */},
+        { value: 'Ο', keyCode: 0x4F /* ASCII O */ }, { value: 'Π' }
+      ], [
+        { value: 'Α', keyCode: 0x41 /* ASCII A */ }, { value: 'Σ' },
+        { value: 'Δ' }, { value: 'Φ'},
+        { value: 'Γ' }, { value: 'Η', keyCode: 0x48 /* ASCII H */ },
+        { value: 'Ξ' }, { value: 'Κ', keyCode: 0x4B /* ASCII K */ },
+        { value: 'Λ' }, { value: "'"}
+      ], [
+        { value: '⇪', ratio: 1.5, keyCode: -5, // special key code for NO_OP
+          disabled: true},
+        { value: 'Ζ', keyCode: 0x5A /* ASCII Z */ },
+        { value: 'Χ', keyCode: 0x58 /* ASCII X */ }, { value: 'Ψ' },
+        { value: 'Ω' }, { value: 'Β', keyCode: 0x42 /* ASCII B */ },
+        { value: 'Ν', keyCode: 0x4E /* ASCII N */ },
+        { value: 'Μ', keyCode: 0x4D /* ASCII M */ },
+        { value: '⌫', ratio: 1.5, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+      ], [
+        { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
+      ]
+    ]
+  },
   pl: {
     label: 'Polish',
     imEngine: 'latin',

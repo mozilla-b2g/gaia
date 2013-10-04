@@ -71,7 +71,7 @@ var Compose = (function() {
       state.empty = true;
     }
 
-    trigger('input', new CustomEvent('input'));
+    trigger.call(this, 'input', new CustomEvent('input'));
 
     if (hasFrames && state.type === 'sms') {
       compose.type = 'mms';
@@ -217,6 +217,7 @@ var Compose = (function() {
         this.onAttachClick.bind(this));
 
       this.clear();
+      this.on('type', this.onTypeChange);
 
       return this;
     },
@@ -450,6 +451,14 @@ var Compose = (function() {
       }
     },
 
+    onTypeChange: function c_onTypeChange() {
+      if (this.type === 'sms') {
+        dom.message.setAttribute('x-inputmode', '-moz-sms-7bit');
+      } else {
+        dom.message.removeAttribute('x-inputmode');
+      }
+    },
+
     /** Initiates a 'pick' MozActivity allowing the user to create an
      * attachment
      * @return {Object} requestProxy A proxy for the underlying DOMRequest API.
@@ -522,7 +531,7 @@ var Compose = (function() {
         // store the old value in case of cancel
         var oldValue = state.type;
         state.type = value;
-        trigger('type', event);
+        trigger.call(this, 'type', event);
         if (event.defaultPrevented) {
           state.type = oldValue;
         } else {
