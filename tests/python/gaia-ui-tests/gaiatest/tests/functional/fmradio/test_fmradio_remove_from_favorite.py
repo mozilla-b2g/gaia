@@ -35,8 +35,6 @@ class TestFMRadioRemoveFromFavorite(GaiaTestCase):
 
         # remove the station from favorite list
         self.fm_radio.favorite_channels[0].remove()
-        # TODO: The remove method should wait for the favourite to be removed. bug 864296
-        self.fm_radio.wait_for_favorite_list_not_displayed()
 
         # verify the change of favorite after remove
         self.assertEqual(0, len(self.fm_radio.favorite_channels))
