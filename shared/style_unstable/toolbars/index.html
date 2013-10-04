@@ -21,6 +21,21 @@
      background: none;
     }
 
+    h2.pack-docs {
+      font-size: 1.8rem;
+      font-family: "MozTT", "Moz", Sans-serif;
+      font-weight: 300;
+      color: #666;
+      margin: -1px 0 0;
+      background-color: #f5f5f5;
+      padding: 0.4rem 0.4rem 0.4rem 3rem;
+      border: solid 1px #e8e8e8;
+    }
+
+    div[role="toolbar"] {
+      position: relative;
+      margin: 1rem 0 2rem 0;
+    }
     /* Base icons */
     [role="toolbar"] .pack-icon-mark {
       background-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAG11AABzoAAA85kAAImUAAB+3gAA7PgAADObAAAQ5ap9ykMAAAEISURBVHja7JaxSgNREEXPihAIRkHRci1TCOJ/iIWVlb32gn6JfyAkkCpFOkHQzlYbm5BUlqKFEALH5qFbJHGjm12Rd+F28+4tZu7MS1SqwBIVIRqXhuUfvqsDTaABPAHPcyuo33FVPVdP1ZraVt/9wli9Uhs5tD6ZpygNBgN1zenozmNcZI8PgOOqhusS2KvCeAW4Bo4y2nVgo4w4rQMtoA/cAnfAW1FxyoM0cB8Ylb1AWkCvqB73w/TuAofAzZS6B+DkNwskm+Oaujmh5kwdZTJ9r27N0k1y3OMUGABDYHtG3U7o5xDoAONF7OpJeAyMZzEa//0fyAtwAbwWaZzEf3U0/nfGHwMAR/JD8ZrKeskAAAAASUVORK5CYII=);
@@ -47,13 +62,42 @@
 </head>
 
 <body role="application">
+
+  <h2 class="pack-docs">1 icon (right aligned)</h2>
+  <div role="toolbar">
+    <ul>
+      <li><button class="pack-icon-share">Share</button></li>
+    </ul>
+  </div>
+
+  <h2 class="pack-docs">2 icons (one left, one right)</h2>
   <div role="toolbar">
     <ul>
       <li><button class="pack-icon-delete">Delete</button></li>
     </ul>
     <ul>
-      <li><button class="pack-icon-mark">Mark</button></li>
-      <li><button class="pack-icon-send">Send</button></li>
+      <li><button class="pack-icon-share">Share</button></li>
+    </ul>
+  </div>
+
+  <h2 class="pack-docs">3 icons (one left, two right)</h2>
+  <div role="toolbar">
+    <ul>
+      <li><button class="pack-icon-delete">Delete</button></li>
+    </ul>
+    <ul>
+      <li><button class="pack-icon-move">Move</button></li>
+      <li><button class="pack-icon-share">Share</button></li>
+    </ul>
+  </div>
+
+  <h2 class="pack-docs">4 icons (two left, two right)</h2>
+  <div role="toolbar">
+    <ul>
+      <li><button class="pack-icon-delete">Delete</button></li>
+      <li><button class="pack-icon-send">Delete</button></li>
+    </ul>
+    <ul>
       <li><button class="pack-icon-move">Move</button></li>
       <li><button class="pack-icon-share">Share</button></li>
     </ul>

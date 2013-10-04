@@ -9,7 +9,7 @@
   bottom: 0;
   left: 0;
   z-index: 100;
-  background: rgba(0,0,0, 0.85);
+  background: rgba(0,0,0,0.8);
 }
 
 [role="toolbar"] ul {
@@ -28,7 +28,7 @@
 }
 
 [role="toolbar"] button {
-  width: 5.5rem;
+  width: 8rem;
   height: 4rem;
   border: none;
   font-size: 0;
