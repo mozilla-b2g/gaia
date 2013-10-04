@@ -61,6 +61,10 @@ var CallScreen = {
     this.calls.dataset.cdmaCallWaiting = enabled;
   },
 
+  get inStatusBarMode() {
+    return window.innerHeight <= 40;
+  },
+
   init: function cs_init() {
     this.muteButton.addEventListener('click', this.toggleMute.bind(this));
     this.keypadButton.addEventListener('click', this.showKeypad.bind(this));
@@ -141,7 +145,7 @@ var CallScreen = {
       return;
     }
 
-    if (window.innerHeight <= 40) {
+    if (this.inStatusBarMode) {
       this._typedNumber = KeypadManager._phoneNumber;
       KeypadManager.restorePhoneNumber();
     } else {

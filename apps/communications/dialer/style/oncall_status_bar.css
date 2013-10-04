@@ -5,17 +5,33 @@
   }
 
   body {
+    margin: 0;
+  }
+
+  .handled-call,
+  #group-call {
     background-color: #82af00;
     background-image: url('images/green-noise-bg.png');
     background-repeat: repeat-x;
     background-size: auto 4rem;
     color: white;
     font-size: 1.8rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    height: 40px;
+  }
+
+  .handled-call.held,
+  #group-call.held {
+    background-color: #333;
+    background-image: none;
   }
 
   #main-container,
   #incoming-container,
   #views,
+  #lockscreen-header,
+  #group-call-details,
   .additionalContactInfo,
   .merge-button {
     display: none;
@@ -32,7 +48,8 @@
     transform: translateY(0);
   }
 
-  #calls .handled-call {
+  #calls .handled-call,
+  #calls #group-call:not([hidden]) {
     display: flex;
     align-items: center;
   }
@@ -40,24 +57,22 @@
   .numberWrapper {
     flex: 1;
     display: flex;
+    align-items: center;
   }
 
   .number {
-    align-items: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 2.6rem;
-    max-height: 2.6rem;
   }
 
   .direction-status-bar:before {
     content: "";
     display: block;
-    width: 2.6rem;
-    height: 2.6rem;
+    width: 1.6rem;
+    height: 1.6rem;
     background-repeat: no-repeat;
-    background-size: 2.6rem;
+    background-size: 1.6rem;
     margin-right: 1rem;
     flex-shrink: 0;
   }
@@ -86,7 +101,7 @@
     height: 1.8rem;
     background-repeat: no-repeat;
     background-size: contain;
-    margin-right: 0.5rem;
+    margin-right: 1rem;
     background-image: url('images/status_bar/muted_icon.png');
   }
 
