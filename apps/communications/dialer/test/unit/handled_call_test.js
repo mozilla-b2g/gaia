@@ -714,6 +714,14 @@ suite('dialer/handled_call', function() {
   });
 
   suite('phone number', function() {
+    test('formatPhoneNumber in status bar mode should reset the fontsize',
+    function() {
+      MockCallScreen.mInStatusBarMode = true;
+      subject.numberNode.style.fontSize = '36px';
+      subject.formatPhoneNumber();
+      assert.equal(subject.numberNode.style.fontSize, '');
+    });
+
     test('check replace number', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);

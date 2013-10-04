@@ -252,6 +252,12 @@ HandledCall.prototype.restoreAdditionalContactInfo =
 
 HandledCall.prototype.formatPhoneNumber =
   function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+    // In status bar mode, we want a fixed font-size
+    if (CallScreen.inStatusBarMode) {
+      this.numberNode.style.fontSize = '';
+      return;
+    }
+
     var fakeView = this.node.querySelector('.fake-number');
     var view = this.numberNode;
 

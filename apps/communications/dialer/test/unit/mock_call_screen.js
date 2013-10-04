@@ -64,6 +64,11 @@ var MockCallScreen = {
   },
   mCdmaCallWaiting: false,
 
+  get inStatusBarMode() {
+    return this.mInStatusBarMode;
+  },
+  mInStatusBarMode: false,
+
   // Fake dom
   calls: document.createElement('div'),
   screen: document.createElement('div'),

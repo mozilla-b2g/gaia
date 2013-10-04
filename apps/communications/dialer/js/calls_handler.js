@@ -343,16 +343,7 @@ var CallsHandler = (function callsHandler() {
     window.close();
   }
 
-  var _previousMaxFontSize;
   function _changeMaxFontSize(evt) {
-    // Status bar
-    if (window.innerHeight <= 40) {
-      _previousMaxFontSize = KeypadManager.maxFontSize;
-      KeypadManager.maxFontSize = 26;
-    } else {
-      KeypadManager.maxFontSize = _previousMaxFontSize;
-    }
-
     handledCalls.forEach(function(hc) {
       hc.formatPhoneNumber();
     });
