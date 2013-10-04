@@ -45,11 +45,12 @@ var ContextMenuDialog = (function() {
     collectionsButton.addEventListener('click', addCollection);
     cancelButton.addEventListener('click', hide);
 
-    dialog.style.display = 'block';
+    var classList = dialog.classList;
+    classList.add('visible');
     setTimeout(function animate() {
-      dialog.classList.add('visible');
+      classList.add('show');
       window.dispatchEvent(new CustomEvent('contextmenushowed'));
-    }, 10);
+    }, 50); // Give the opportunity to paint the UI component
   }
 
   function hide(cb) {
@@ -59,15 +60,16 @@ var ContextMenuDialog = (function() {
     collectionsButton.removeEventListener('click', addCollection);
     cancelButton.removeEventListener('click', hide);
 
+    var classList = dialog.classList;
     dialog.addEventListener('transitionend', function hidden() {
       dialog.removeEventListener('transitionend', hidden);
-      dialog.style.display = 'none';
+      classList.remove('visible');
       if (typeof cb === 'function') {
         cb();
       }
     });
 
-    dialog.classList.remove('visible');
+    classList.remove('show');
     window.dispatchEvent(new CustomEvent('contextmenuhidden'));
   }
 
