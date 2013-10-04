@@ -793,6 +793,14 @@ Evme.Utils = new function Evme_Utils() {
       }
     };
 
+    this.aug = function aug(){
+        var main = arguments[0] || {};
+        for (var i=1, arg; arg=arguments[i++];){
+            for (var k in arg){ main[k] = arg[k] }
+        }
+        return main;
+    };
+
     function uniqueFilter(elem, pos, self) {
 	// if first appearance of `elem` is `pos` then it is unique
 	return self.indexOf(elem) === pos;
@@ -854,6 +862,10 @@ Evme.Utils = new function Evme_Utils() {
                 }
             ];
 
+        this.events = {
+          MOBILE_CONNECTION_CHANGE: 'connChange'
+        };
+
         this.init = function init() {
             window.addEventListener("online", self.setOnline);
             window.addEventListener("offline", self.setOffline);
@@ -881,6 +893,19 @@ Evme.Utils = new function Evme_Utils() {
              return getCurrent();
         };
 
+        this.addEventListener = function addEventListener(type, callback) {
+
+          // mobile network connection change
+          if (type === self.events.MOBILE_CONNECTION_CHANGE) {
+            var conn = getMobileConnection();
+            conn && conn.addEventListener('datachange', function() {
+                // get data using convinience method in shared/js/mobile_operator.js
+                var data = conn.voice && conn.voice.network && MobileOperator.userFacingInfo(conn);
+                callback(data);
+            });
+          }
+        };
+
         function getCurrent(){
             return aug({}, consts, types[currentIndex]);
         }
@@ -891,6 +916,13 @@ Evme.Utils = new function Evme_Utils() {
                 for (var k in arguments[i]){ main[k] = arguments[i][k] }
             };
             return main;
+        }
+
+        function getMobileConnection() {
+          var navigator = window.navigator;
+          if (navigator.mozMobileConnection &&
+              navigator.mozMobileConnection.data)
+          return navigator.mozMobileConnection;
         }
 
         // init
