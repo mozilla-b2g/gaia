@@ -28,7 +28,8 @@
     "power":{},
     "idle":{},
     "telephony":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "nfc":{ "access": "readonly" }
   },
   "activities": {
     "configure": {
@@ -39,7 +40,8 @@
     }
   },
   "messages": ["bluetooth-pairing-request",
-               "bluetooth-cancel"],
+               "bluetooth-cancel",
+               "nfc-powerlevel-change"],
   "locales": {
     "ar": {
       "name": "الضبط",

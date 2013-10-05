@@ -394,6 +394,14 @@ var getBluetooth = function() {
   };
 };
 
+var getNfc = function() {
+  var navigator = window.navigator;
+  if ('mozNfc' in navigator) {
+    return navigator.mozNfc;
+  }
+  return null;
+};
+
 /**
  * The function returns an object of the supporting state of category of network
  * types. The categories are 'gsm' and 'cdma'.
