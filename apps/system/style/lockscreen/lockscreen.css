@@ -326,7 +326,7 @@
   border-left: none;
   border-right: none;
   border-radius: 0rem;
-  
+
   /* workaround for splitting circle */
   margin-left: -0.3rem;
   margin-right: -0.3rem;
@@ -399,20 +399,20 @@
 }
 
   .lockscreen-icon-right {
-    right: 2rem;
+    right: calc(50% - 14rem);
   }
 
   .lockscreen-icon-left {
-    left: 2rem;
+    left: calc(50% - 14rem);
   }
 
 @media (min-width:768px) {
   .lockscreen-icon-right {
-    right: 24.5rem;
+    right: calc(50% - 20.5rem);
   }
 
   .lockscreen-icon-left {
-    left: 24.5rem;
+    left: calc(50% - 20.5rem);
   }
 
   #lockscreen-header {
@@ -432,16 +432,6 @@
   #lockscreen-date {
     padding-top: 0.5rem;
     font-size: 2.4rem;
-  }
-}
-
-@media (min-width:768px) and (orientation: landscape) {
-  .lockscreen-icon-right {
-    right: 43rem;
-  }
-
-  .lockscreen-icon-left {
-    left: 43rem;
   }
 }
 
