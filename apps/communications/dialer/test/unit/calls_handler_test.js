@@ -928,7 +928,7 @@ suite('calls handler', function() {
       });
     });
 
-    suite('CallsHandler.activeCall', function() {
+    suite('> CallsHandler.activeCall', function() {
       var inactiveCall;
       var activeCall;
       setup(function() {
@@ -997,7 +997,7 @@ suite('calls handler', function() {
       });
     });
 
-    suite('CallsHandler.mergeConferenceGroupWithActiveCall', function() {
+    suite('> CallsHandler.mergeConferenceGroupWithActiveCall', function() {
       var firstCall;
       var extraCall;
       var overflowCall;
