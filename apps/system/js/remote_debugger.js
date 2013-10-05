@@ -15,6 +15,11 @@ var RemoteDebugger = (function() {
         return;
       }
 
+      // We want the user attention, so we need to turn the screen on
+      // if it's off.
+      if (!ScreenManager.screenEnabled)
+        ScreenManager.turnScreenOn();
+
       // Reusing the ModalDialog infrastructure.
       ModalDialog.showWithPseudoEvent({
         text: navigator.mozL10n.get('remoteDebuggerMessage'),
