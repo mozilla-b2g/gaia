@@ -201,6 +201,7 @@ var CallScreen = {
   placeNewCall: function cs_placeNewCall() {
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
+      CallsHandler.requestContactsTab();
       app.launch('dialer');
       window.resizeTo(100, 40);
     };

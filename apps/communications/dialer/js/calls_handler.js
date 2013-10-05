@@ -750,6 +750,10 @@ var CallsHandler = (function callsHandler() {
     telephony.conferenceGroup.add(telephony.active);
   }
 
+  function requestContactsTab() {
+    postToMainWindow('request-contacts');
+  }
+
   return {
     setup: setup,
 
@@ -770,6 +774,7 @@ var CallsHandler = (function callsHandler() {
     checkCalls: onCallsChanged,
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
+    requestContactsTab: requestContactsTab,
 
     get activeCall() {
       return activeCall();
