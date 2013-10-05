@@ -51,9 +51,9 @@ var MobileOperator = {
 var MobileInfo = {
   brazil: {
     carriers: {
-      '00': 'NEXTEL',
-      '02': 'TIM', '03': 'TIM', '04': 'TIM',
-      '05': 'CLARO', '06': 'VIVO', '07': 'CTBC', '08': 'TIM',
+      '0': 'NEXTEL',
+      '2': 'TIM', '3': 'TIM', '4': 'TIM',
+      '5': 'CLARO', '6': 'VIVO', '7': 'CTBC', '8': 'TIM',
       '10': 'VIVO', '11': 'VIVO', '15': 'SERCOMTEL',
       '16': 'OI', '23': 'VIVO', '24': 'OI', '31': 'OI',
       '32': 'CTBC', '33': 'CTBC', '34': 'CTBC', '37': 'AEIOU'
