@@ -115,22 +115,22 @@ suite('configurator.js >', function() {
 
     MockIccHelper.fireEvent('iccinfochange', '214', '007');
     sendResponseText('{"214-007": [{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan1",' +
+                     '"manifestURL": "https://aHost/aMan1",' +
                      '"location": 15},' +
                      '{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan2",' +
+                     '"manifestURL": "https://aHost/aMan2",' +
                      '"location": 6},' +
                      '{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan3",' +
+                     '"manifestURL": "https://aHost/aMan3",' +
                      '"location": 3}],' +
                      '"214-006": [{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan4",' +
+                     '"manifestURL": "https://aHost/aMan4",' +
                      '"location": 3}]}');
 
     var singleVariantApps = Configurator.getSingleVariantApps();
     assert.isDefined(singleVariantApps['https://aHost/aMan3']);
     assert.equal(singleVariantApps['https://aHost/aMan3'].screen, 2);
-    assert.equal(singleVariantApps['https://aHost/aMan3'].manifest,
+    assert.equal(singleVariantApps['https://aHost/aMan3'].manifestURL,
                  'https://aHost/aMan3');
     assert.equal(singleVariantApps['https://aHost/aMan3'].location, 3);
     assert.equal(singleVariantApps['https://aHost/aManNoExist'], undefined);

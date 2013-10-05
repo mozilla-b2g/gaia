@@ -184,7 +184,10 @@ def fetch_conf(data, profile_path, distribution_path):
 
                 row.append(app_id)
 
-                app['manifest'] = apps[app_id]
+                if not apps[app_id].has_key('manifestURL'):
+                    raise Exception("manifestURL not found for application \'" + app_id + "\'")
+
+                app['manifestURL'] = apps[app_id]['manifestURL']
                 if app.has_key('id'):
                     del app['id']
                 row_homescreen.append(app)
