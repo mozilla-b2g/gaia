@@ -63,7 +63,10 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'portrait-primary'
         },
-        currentOrientation: 'portrait-primary'
+        currentOrientation: 'portrait-primary',
+        getScreenshot: function(callback) {
+          callback();
+        }
       },
       'http://game.gaiamobile.org': {
         launchTime: 4,
@@ -73,7 +76,10 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape-primary'
         },
-        currentOrientation: 'landscape-primary'
+        currentOrientation: 'landscape-primary',
+        getScreenshot: function(callback) {
+          callback();
+        }
       },
       'http://game2.gaiamobile.org': {
         launchTime: 3,
@@ -83,7 +89,10 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape-secondary'
         },
-        currentOrientation: 'landscape-secondary'
+        currentOrientation: 'landscape-secondary',
+        getScreenshot: function(callback) {
+          callback();
+        }
       },
       'http://game3.gaiamobile.org': {
         launchTime: 2,
@@ -93,7 +102,10 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape'
         },
-        currentOrientation: 'landscape-primary'
+        currentOrientation: 'landscape-primary',
+        getScreenshot: function(callback) {
+          callback();
+        }
       },
       'http://game4.gaiamobile.org': {
         launchTime: 1,
@@ -103,7 +115,10 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'portrait-secondary'
         },
-        currentOrientation: 'portrait-secondary'
+        currentOrientation: 'portrait-secondary',
+        getScreenshot: function(callback) {
+          callback();
+        }
       }
     };
     MockWindowManager.mDisplayedApp = 'http://sms.gaiamobile.org';
