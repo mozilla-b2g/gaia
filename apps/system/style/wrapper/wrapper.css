@@ -43,6 +43,7 @@
 
 #wrapper-footer.closed #handler {
   background-image: url("images/open.png");
+  background-size: 5rem 1rem;
 }
 
 #wrapper-footer menu[type="buttonbar"] {
