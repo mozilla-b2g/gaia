@@ -56,7 +56,6 @@ Evme.IconGroup = new function Evme_IconGroup() {
     if (icons && icons.length){
       el = renderCanvas({
         "icons": icons,
-        "settings": Evme.Utils.getIconGroup(icons.length),
         "onReady": callback
       });
     }
@@ -93,22 +92,37 @@ Evme.IconGroup = new function Evme_IconGroup() {
 
   function renderCanvas(options) {
     var icons = options.icons,
-        settings = options.settings,
+        validIcons = [],
+        numberOfIcons = 0,
+        settings = null,
         onReady = options.onReady,
         elCanvas = getCanvas(),
         context = elCanvas.getContext('2d');
 
-    // can't render more icons than we have settings for
-    icons = icons.slice(0, settings.length);
+    // only include valid icons (not nulls or undefineds)
+    for (var i = 0; i < icons.length; i++) {
+      if (icons[i]) {
+        validIcons.push(icons[i]);
+      }
+    }
 
-    context.imagesToLoad = icons.length;
+    settings = Evme.Utils.getIconGroup(validIcons.length);
+
+    // can't render more icons than we have settings for
+    validIcons = validIcons.slice(0, settings.length);
+    numberOfIcons = validIcons.length;
+
+    context.imagesToLoad = numberOfIcons;
     context.imagesLoaded = [];
 
-    for (var i = 0; i < icons.length; i++) {
+    for (var i = 0; i < numberOfIcons; i++) {
       // render the icons from bottom to top
-      var icon = icons[icons.length - 1 - i];
+      var icon = validIcons[numberOfIcons - 1 - i];
 
-      loadIcon(icon, settings[(settings.length - icons.length) + i], context, i, onReady);
+      if (icon) {
+        var iconSettings = settings[(settings.length - numberOfIcons) + i];
+        loadIcon(icon, iconSettings, context, i, onReady);
+      }
     }
 
     return elCanvas;
@@ -180,12 +194,12 @@ Evme.IconGroup = new function Evme_IconGroup() {
         image = obj.image;
         settings = obj.settings;
 
-        var size = image.width,
-            shadowBounds = (settings.shadowOffsetX || 0);
-
         if (!image) {
           continue;
         }
+
+        var size = image.width,
+            shadowBounds = (settings.shadowOffsetX || 0);
 
         // shadow
         context.shadowOffsetX = settings.shadowOffsetX || 0;
