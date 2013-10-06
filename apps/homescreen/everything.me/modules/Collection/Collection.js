@@ -594,9 +594,14 @@ void function() {
    * Apps may have been un-installed when E.me was not running
    */
   function depopulateCollection(settings) {
-    var apps = settings.apps.filter(function exists(appInfo) {
-      var descriptor = appInfo;
-      return EvmeManager.getIconByDescriptor(descriptor);
+    var apps = settings.apps.filter(function exists(app) {     
+      // never remove cloud apps that were pinned to the collection
+      if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD) {
+        return true;
+      } else {
+        // remove if app does not exist on grid
+        return (EvmeManager.getIconByDescriptor(app) ? true : false);
+      }
     });
     
     if (apps.length < settings.apps.length) {
