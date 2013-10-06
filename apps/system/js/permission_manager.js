@@ -36,6 +36,14 @@ var PermissionManager = {
         case 'permission-prompt':
           self.overlay.dataset.type = detail.permission;
           self.currentPermission = detail.permission;
+          // not show remember my choice option in gUM
+          if ('video-capture' === detail.permission ||
+              'audio-capture' === detail.permission) {
+            self.rememberSection.style.display = 'none';
+            self.remember.checked = false;
+          } else {
+            self.rememberSection.style.display = 'block';
+          }
 
           if (detail.options) {
             if ('video-capture' in detail.options ||
@@ -281,10 +289,10 @@ var PermissionManager = {
     this.overlay.classList.add('visible');
 
     // Set event listeners for the yes and no buttons
-    var isSharedPermission = this.currentPermission == 'video-capture' ||
-      this.currentPermission == 'audio-capture' ||
-      this.currentPermission == 'media-capture' ||
-      this.currentPermission == 'geolocation';
+    var isSharedPermission = this.currentPermission === 'video-capture' ||
+      this.currentPermission === 'audio-capture' ||
+      this.currentPermission === 'media-capture' ||
+      this.currentPermission === 'geolocation';
 
     var _ = navigator.mozL10n.get;
 

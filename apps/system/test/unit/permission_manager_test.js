@@ -50,6 +50,7 @@ suite('system/permission manager', function() {
 
     setup(function() {
       PermissionManager.overlay = document.createElement('div');
+      PermissionManager.rememberSection = document.createElement('div');
       stubPrompt = this.sinon.stub(PermissionManager, 'handlePermissionPrompt');
 
       sendChromeEvent('permission-prompt', 'test');
@@ -58,6 +59,7 @@ suite('system/permission manager', function() {
     teardown(function() {
       stubPrompt.restore();
       PermissionManager.overlay = null;
+      PermissionManager.rememberSection = null;
     });
 
     test('permission-prompt', function() {
@@ -192,6 +194,7 @@ suite('system/permission manager', function() {
       spyPrompt = this.sinon.spy(PermissionManager, 'handlePermissionPrompt');
 
       PermissionManager.remember = document.createElement('div');
+      PermissionManager.rememberSection = document.createElement('div');
       spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
 
       PermissionManager.yes = document.createElement('div');
@@ -249,6 +252,7 @@ suite('system/permission manager', function() {
     setup(function() {
       PermissionManager.overlay = document.createElement('div');
       PermissionManager.remember = document.createElement('div');
+      PermissionManager.rememberSection = document.createElement('div');
       spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
 
       sendMediaEvent('permission-prompt', 'audio-capture', ['audio-capture'],
@@ -258,6 +262,7 @@ suite('system/permission manager', function() {
     teardown(function() {
       spyReq.restore();
       PermissionManager.remember = null;
+      PermissionManager.rememberSection = null;
     });
 
     test('permission-prompt', function() {
@@ -267,6 +272,10 @@ suite('system/permission manager', function() {
     test('permission id matched', function() {
       assert.isTrue(spyReq.calledWithMatch('test', 'audio-capture',
         sinon.match.string, 'perm-audio-capture-more-info'));
+    });
+
+    test('not show remember my choice option', function() {
+      assert.equal(PermissionManager.rememberSection.style.display, 'none');
     });
 
     test('default choice', function() {
@@ -283,6 +292,7 @@ suite('system/permission manager', function() {
     setup(function() {
       PermissionManager.overlay = document.createElement('div');
       PermissionManager.remember = document.createElement('div');
+      PermissionManager.rememberSection = document.createElement('div');
       spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
 
       sendMediaEvent('permission-prompt', 'video-capture', ['video-capture'],
@@ -292,6 +302,7 @@ suite('system/permission manager', function() {
     teardown(function() {
       spyReq.restore();
       PermissionManager.remember = null;
+      PermissionManager.rememberSection = null;
     });
 
     test('permission-prompt', function() {
@@ -301,6 +312,10 @@ suite('system/permission manager', function() {
     test('permission id matched', function() {
       assert.isTrue(spyReq.calledWithMatch('test', 'video-capture',
         sinon.match.string, 'perm-video-capture-more-info'));
+    });
+
+    test('not show remember my choice option', function() {
+      assert.equal(PermissionManager.rememberSection.style.display, 'none');
     });
 
     test('default choice', function() {
@@ -314,6 +329,7 @@ suite('system/permission manager', function() {
     setup(function() {
       PermissionManager.overlay = document.createElement('div');
       PermissionManager.remember = document.createElement('div');
+      PermissionManager.rememberSection = document.createElement('div');
       spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
 
       sendMediaEvent('permission-prompt', 'audio-capture',
@@ -327,6 +343,7 @@ suite('system/permission manager', function() {
     teardown(function() {
       spyReq.restore();
       PermissionManager.remember = null;
+      PermissionManager.rememberSection = null;
     });
 
     test('permission-prompt', function() {
@@ -336,6 +353,10 @@ suite('system/permission manager', function() {
     test('permission id matched', function() {
       assert.isTrue(spyReq.calledWithMatch('test', 'media-capture',
         sinon.match.string, 'perm-media-capture-more-info'));
+    });
+
+    test('not show remember my choice option', function() {
+      assert.equal(PermissionManager.rememberSection.style.display, 'none');
     });
 
     test('default choice', function() {
