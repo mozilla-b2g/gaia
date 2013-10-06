@@ -100,7 +100,7 @@ suite('shared/MobileOperator', function() {
       assert.equal(infos.carrier, '72442');
       assert.equal(infos.region, 'BA 71');
     });
-    test('Connection with unknown gsmLocationAreaCode', function() {
+    test.skip('Connection with unknown gsmLocationAreaCode', function() {
       MockMobileConnection.voice.network.mcc = BRAZIL_MCC;
       MockMobileConnection.voice.network.mnc = '6';
       MockMobileConnection.voice.cell.gsmLocationAreaCode = 2;
