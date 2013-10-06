@@ -652,7 +652,6 @@ var Contacts = (function() {
       '/contacts/js/utilities/vcard_parser.js',
       '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/overlay.js',
       '/contacts/js/utilities/dom.js'
     ];
 
