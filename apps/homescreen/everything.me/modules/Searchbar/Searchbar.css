@@ -40,7 +40,7 @@
         vertical-align: middle;
         height: 2.8rem;
         line-height: 3rem;
-	transition: transform 100ms ease-out;
+        transition: transform 100ms ease-out;
     }
     body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-rapper {
         transform: translate3d(0, 2.3rem, 0);
@@ -99,28 +99,19 @@
         
     #evmeContainer #button-clear {
         position: absolute;
-        top: 1.4rem;
-        right: 0.4rem;
+        top: 0rem;
+        right: -0.6rem;
         z-index: 30;
-        width: 2rem;
-        height: 2rem;
-        cursor: pointer;
+        width: 5rem;
+        height: 5rem;
         font-size: 0;
-        background: url(/everything.me/images/search-clear.png) no-repeat 0 0/1.7rem;
-        -moz-user-select: none;
+        background: transparent url(/everything.me/images/search-clear.png) no-repeat 2rem 1.4rem;
+        background-size: 1.7rem;
         display: none;
     }
     #evmeContainer .clear-visible #button-clear {
         display: block;
     }
-        #evmeContainer .clear-visible #button-clear:before {
-            content: "";
-            position: absolute;
-            top: -1.5rem;
-            right: -1.5rem;
-            left: -0.8rem;
-            bottom: -0.8rem;
-        }
     
     #evmeContainer #default-text {
         position: absolute;
