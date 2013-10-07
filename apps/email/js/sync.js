@@ -7,9 +7,7 @@ define(function(require) {
       model = require('model'),
       mozL10n = require('l10n!'),
       notificationHelper = require('shared/js/notification_helper'),
-      fromObject = require('query_string').fromObject,
-      notifyIdBase = Date.now(),
-      notifyCounter = 0;
+      fromObject = require('query_string').fromObject;
 
   model.latestOnce('api', function(api) {
     var hasBeenVisible = !document.hidden,
@@ -65,6 +63,7 @@ define(function(require) {
         // and synthesize an "event" ourselves.
         notification.onclick = function() {
           evt.emit('notification', {
+            clicked: true,
             imageURL: iconUrl,
             tag: notificationId
           });
@@ -128,22 +127,13 @@ define(function(require) {
               if (!model.getAccount(result.id).notifyOnNew)
                 return;
 
-              var dataString,
-                  // Construct an ID for the notification. Ideally this
-                  // should not be needed, but looks like there is
-                  // a bug in the system notification code that could
-                  // send a double fire to a mozSetMessageHandler.
-                  // Using datetime plus a counter, since using date
-                  // alone inside the forEach loop across accounts could
-                  // result in the same notifyId.
-                  notifyId = notifyIdBase + '-' + (notifyCounter += 1);
+              var dataString;
 
               if (navigator.mozNotification) {
                 if (result.count > 1) {
                   dataString = fromObject({
                     type: 'message_list',
-                    accountId: result.id,
-                    notifyId: notifyId
+                    accountId: result.id
                   });
 
                   sendNotification(
@@ -152,7 +142,11 @@ define(function(require) {
                       n: result.count,
                       accountName: result.address
                     }),
-                    makeNotificationDesc(result.latestMessageInfos),
+                    makeNotificationDesc(result.latestMessageInfos.sort(
+                                           function(a, b) {
+                                             return b.date - a.date;
+                                           }
+                                        )),
                     iconUrl + '#' + dataString
                   );
                 } else {
@@ -160,8 +154,7 @@ define(function(require) {
                       dataString = fromObject({
                         type: 'message_reader',
                         accountId: info.accountId,
-                        messageSuid: info.messageSuid,
-                        notifyId: notifyId
+                        messageSuid: info.messageSuid
                       });
 
                     sendNotification(

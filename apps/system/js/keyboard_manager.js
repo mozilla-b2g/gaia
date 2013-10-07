@@ -59,6 +59,7 @@ var KeyboardManager = {
   // 'keyboard.gaiamobile.org' : {
   //   'English': aIframe
   // }
+  inputTypeTable: {},
   runningLayouts: {},
   showingLayout: {
     frame: null,
@@ -124,6 +125,9 @@ var KeyboardManager = {
           break;
       }
     });
+    window.addEventListener('localized', function(evt) {
+      self.updateLayouts(evt);
+    });
 
     // XXX: Bug 906096, need to remove this when the IME WebAPI is ready
     //      on Firefox Nightly
@@ -133,6 +137,15 @@ var KeyboardManager = {
         self.inputFocusChange(evt);
       };
     }
+
+    // generate typeTable
+    this.inputTypeTable =
+    Object.keys(TYPE_GROUP_MAPPING).reduce(function(res, curr) {
+      var k = TYPE_GROUP_MAPPING[curr];
+      res[k] = res[k] || [];
+      res[k].push(curr);
+      return res;
+    }, {});
   },
 
   getHeight: function kn_getHeight() {
@@ -151,9 +164,14 @@ var KeyboardManager = {
       self.launchLayoutFrame(self.keyboardLayouts[initType][initIndex]);
 
       // Let chrome know about how many keyboards we have
+      // need to expose all input type from inputTypeTable
       var layouts = {};
       Object.keys(self.keyboardLayouts).forEach(function(k) {
-        layouts[k] = self.keyboardLayouts[k].length;
+        var typeTable = self.inputTypeTable[k];
+        for (var i in typeTable) {
+          var inputType = typeTable[i];
+          layouts[inputType] = self.keyboardLayouts[k].length;
+        }
       });
 
       var event = document.createEvent('CustomEvent');
@@ -170,8 +188,10 @@ var KeyboardManager = {
     var self = this;
     apps.forEach(function(app) {
       var entryPoints = app.manifest.entry_points;
+      var manifest = new ManifestHelper(app.manifest);
       for (var key in entryPoints) {
-        if (!entryPoints[key].types) {
+        var entryPoint = new ManifestHelper(entryPoints[key]);
+        if (!entryPoint.types) {
           console.warn('the keyboard app did not declare type.');
           continue;
         }
@@ -182,7 +202,7 @@ var KeyboardManager = {
           continue;
         }
 
-        var supportTypes = entryPoints[key].types;
+        var supportTypes = entryPoint.types;
         supportTypes.forEach(function(type) {
           if (!type || !(type in BASE_TYPE))
             return;
@@ -193,10 +213,10 @@ var KeyboardManager = {
 
           self.keyboardLayouts[type].push({
             'id': key,
-            'name': entryPoints[key].name,
-            'appName': app.manifest.name,
+            'name': entryPoint.name,
+            'appName': manifest.name,
             'origin': app.origin,
-            'path': entryPoints[key].launch_path,
+            'path': entryPoint.launch_path,
             'index': self.keyboardLayouts[type].length
           });
         });

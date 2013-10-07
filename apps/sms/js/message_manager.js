@@ -216,6 +216,7 @@ var MessageManager = {
 
     switch (window.location.hash) {
       case '#new':
+        ThreadUI.inThread = false;
         this.launchComposer(this.activity);
         break;
       case '#thread-list':

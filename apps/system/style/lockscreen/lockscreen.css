@@ -237,7 +237,7 @@
 }
 
 .lockscreen-icon-area.dark .lockscreen-icon{
-  opacity: 0.85;
+  opacity: 0.65;
 }
 
 /* Some icons in new design still need border */
@@ -245,33 +245,33 @@
   border-radius: 3rem;
 }
 
-#lockscreen-area-slider {
+#lockscreen-area-slide {
   text-align: center;
   width: calc(100%);
 }
 
-#lockscreen-slider-handler {
+#lockscreen-slide-handle {
   position: relative;
-  top: -8.3rem;
+  top: -8.1rem;
 }
 
 @media (orientation:landscape) {
-  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+  #lockscreen-area-slide #lockscreen-slide-track .lockscreen-slide-center {
     width: 35rem;
   }
 }
 
 @media (orientation:portrait) {
-  #lockscreen-area-slider #lockscreen-slider-track .lockscreen-slider-center {
+  #lockscreen-area-slide #lockscreen-slide-track .lockscreen-slide-center {
     width: 22rem;
   }
 }
 
-#lockscreen-area-slider #lockscreen-slider-track .lockscreen-icon {
+#lockscreen-area-slide #lockscreen-slide-track .lockscreen-icon {
   border-color: rgba(255, 255, 255, 0.4) !important;
 }
 
-#lockscreen-area-slider .lockscreen-icon {
+#lockscreen-area-slide .lockscreen-icon {
   background-color: rgba(0, 0, 0, 0.3);
   -moz-box-sizing: border-box;
   border: 0.2rem solid rgba(255, 255, 255, 0.8);
@@ -279,7 +279,7 @@
   transition: width 0.2s ease, background-color 0.5s linear, border-color 0.5s linear;
 }
 
-#lockscreen-area-slider .lockscreen-slider-left.lockscreen-icon {
+#lockscreen-slide-track .lockscreen-slide-left.lockscreen-icon {
   /* half-circle toward left */
   border-radius: 6rem 0 0 6rem;
   border-right: none;
@@ -291,22 +291,37 @@
   width: 3rem;
 }
 
-.lockscreen-slider-left.lockscreen-icon > span {
+#lockscreen-slide-handle .lockscreen-slide-left.lockscreen-icon {
+  /* half-circle toward left */
+  border-radius:5.6rem 0 0 5.6rem;
+  border-right: none;
+  display: inline-block;
+
+  /* to move it while sliding */
+  position: relative;
+  height: 5.6rem;
+  width: 2.8rem;
+}
+
+.lockscreen-slide-left.lockscreen-icon > span {
+  background: url(/style/lockscreen/images/larrow.png) no-repeat top left;
+
   /* float to prevent its parent got wrong place */
   float: left;
-  font-size: 32pt;
-  margin-left: 0.5rem;
+  font-size: 28pt;
+  margin-left: 1.1rem;
+  margin-top: 1.7rem;
 }
 
-.lockscreen-slider-left.touched > span {
+.lockscreen-slide-left.touched > span {
   display: none;
 }
 
-.lockscreen-slider-right.touched> span {
+.lockscreen-slide-right.touched> span {
   display: none;
 }
 
-#lockscreen-area-slider .lockscreen-slider-center.lockscreen-icon {
+#lockscreen-area-slide .lockscreen-slide-center.lockscreen-icon {
   display: inline-block;
   border-left: none;
   border-right: none;
@@ -321,12 +336,16 @@
   width: 1px; /* for the default circle */
 }
 
-#lockscreen-area-slider .touched {
+#lockscreen-slide-handle .lockscreen-slide-center.lockscreen-icon {
+  height: 5.6rem;
+}
+
+#lockscreen-area-slide .touched {
   border-color: #00aacc;
   background-color:  #00aacc;
 }
 
-#lockscreen-area-slider .lockscreen-slider-right.lockscreen-icon {
+#lockscreen-slide-track .lockscreen-slide-right.lockscreen-icon {
   border-left: none;
 
   /* half-circle toward right */
@@ -339,11 +358,30 @@
   width: 3rem;
 }
 
-.lockscreen-slider-right.lockscreen-icon > span {
+#lockscreen-slide-handle .lockscreen-slide-right.lockscreen-icon {
+  border-left: none;
+
+  /* half-circle toward right */
+  border-radius: 0 5.6rem 5.6rem 0;
+  display: inline-block;
+  height: 5.6rem;
+
+  /* to move it while sliding */
+  position: relative;
+  width: 2.8rem;
+}
+
+.lockscreen-slide-right.lockscreen-icon > span {
+  background: url(/style/lockscreen/images/larrow.png) no-repeat top left;
+
   /* float to prevent its parent got wrong place */
   float: right;
-  font-size: 32pt;
-  margin-right: 0.5rem;
+  font-size: 28pt;
+  margin-right: 1.1rem;
+  margin-top: 1.7rem;
+
+  /* flip it to toward right. */
+  transform: scaleX(-1);
 }
 
 #lockscreen-alt-camera.lockscreen-icon:active,
@@ -375,6 +413,25 @@
 
   .lockscreen-icon-left {
     left: 24.5rem;
+  }
+
+  #lockscreen-header {
+    text-shadow: 0 0 0.5rem #111111;
+    padding-left: 6rem;
+    font-weight: lighter;
+  }
+
+  #lockscreen-clock-numbers {
+    font-size: 8.8rem;
+  }
+
+  #lockscreen-clock-meridiem {
+    font-size: 4.2rem;
+  }
+
+  #lockscreen-date {
+    padding-top: 0.5rem;
+    font-size: 2.4rem;
   }
 }
 

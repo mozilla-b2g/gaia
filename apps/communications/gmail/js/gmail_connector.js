@@ -194,8 +194,6 @@ var GmailConnector = (function GmailConnector() {
 
     output.uid = contact.uid;
 
-    output.givenName = contact.givenName || contact.org || null;
-
     if (contact.familyName) {
       output.familyName = contact.familyName;
     }
@@ -203,6 +201,12 @@ var GmailConnector = (function GmailConnector() {
     if (contact.email && contact.email.length > 0) {
       output.email1 = contact.email[0].value;
     }
+    var tel;
+    if (contact.tel && contact.tel.length > 0) {
+      tel = contact.tel[0].value;
+    }
+    output.givenName = contact.givenName || tel ||
+                                            output.email1 || contact.org || '';
 
     var photoUrl = buildContactPhotoURL(contact, accessToken);
     if (photoUrl) {
@@ -267,7 +271,7 @@ var GmailConnector = (function GmailConnector() {
 
     var bday = googleContact.querySelector('birthday');
     if (bday) {
-      output.bday = new Date(bday.getAttribute('when'));
+      output.bday = new Date(Date.parse(bday.getAttribute('when')));
     }
 
     var content = googleContact.querySelector('content');

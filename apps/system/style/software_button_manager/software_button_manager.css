@@ -19,8 +19,21 @@
   width: 4rem;
   height: 4rem;
   margin: 0.5rem;
-  background: transparent url(/shared/resources/branding/Browser.png) no-repeat center center;
-  background-size: 4rem 4rem;
+  background: transparent url(/shared/resources/branding/Browser_60.png) no-repeat center center / 4rem;
+}
+
+@media (min-resolution: 1.5dppx) {
+  #software-home-button,
+  #fullscreen-software-home-button {
+    background: transparent url(/shared/resources/branding/Browser_90.png) no-repeat center center / 4rem;
+  }
+}
+
+@media (min-resolution: 2dppx) {
+  #software-home-button,
+  #fullscreen-software-home-button {
+    background: transparent url(/shared/resources/branding/Browser_120.png) no-repeat center center / 4rem;
+  }
 }
 
 #fullscreen-software-home-button {

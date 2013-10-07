@@ -12,29 +12,36 @@ var EvmeManager = (function EvmeManager() {
       currentURL = null;
 
   function addGridItem(params, extra) {
-    GridItemsFactory.create({
+    var item = GridItemsFactory.create({
       "id": params.id || Evme.Utils.uuid(),
       "bookmarkURL": params.originUrl,
-      "name": params.title,
+      "name": params.name,
       "icon": params.icon,
       "iconable": false,
       "useAsyncPanZoom": params.useAsyncPanZoom,
       "type": !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
-              GridItemsFactory.TYPE.BOOKMARK,
-      "isEmpty": !!params.isEmpty
-    }, function doAddGridItem(item) {
-      GridManager.install(item, params.gridPosition, extra);
-      GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
+              GridItemsFactory.TYPE.BOOKMARK
     });
+    GridManager.install(item, params.gridPageOffset, extra);
+    GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
   }
 
   function removeGridItem(params) {
     var origin = params.id;
 
     var gridItem = GridManager.getApp(origin);
-    Homescreen.showAppDialog(gridItem.app, {
-      "onConfirm": params.onConfirm || Evme.Utils.NOOP
-    });
+    Homescreen.showAppDialog(gridItem);
+
+    window.addEventListener('confirmdialog', confirmDialogHandler);
+
+    function confirmDialogHandler(evt) {
+      window.removeEventListener('confirmdialog', confirmDialogHandler);
+
+      if (evt.detail.app.id === gridItem.app.id &&
+          params.onConfirm && evt.detail.action === 'confirm') {
+         params.onConfirm();
+      }
+    }
   }
 
   function openUrl(url) {
@@ -85,6 +92,21 @@ var EvmeManager = (function EvmeManager() {
     }
   }
 
+  function getAppByDescriptor(cb, descriptor) {
+    var icon = getIconByDescriptor(descriptor);
+
+    if (icon) {
+      getAppInfo(icon, cb);
+    } else {
+      console.error("E.me error: app " + origin + " does not exist");
+      cb();
+    }
+  }
+
+  function getIconByDescriptor(descriptor) {
+    return GridManager.getIcon(descriptor);
+  }
+
   /**
    * Returns E.me formatted information about an object
    * returned by GridManager.getApps.
@@ -108,6 +130,7 @@ var EvmeManager = (function EvmeManager() {
 
     if (!id) {
       console.warn('E.me: no id found for ' + descriptor.name + '. Will not show up in results');
+      cb();
       return;
     }
 
@@ -117,8 +140,21 @@ var EvmeManager = (function EvmeManager() {
       "id": id,
       "name": descriptor.name,
       "appUrl": nativeApp.origin,
-      "icon": Icon.prototype.DEFAULT_ICON_URL
+      "icon": Icon.prototype.DEFAULT_ICON_URL,
+      "isOfflineReady": icon && 'isOfflineReady' in icon && icon.isOfflineReady()
     };
+
+    // appInfo is an extended descriptor
+    // when we will remove Eme's appIndex we can use plain descriptors
+    if ('bookmarkURL' in descriptor) {
+      appInfo.bookmarkURL = descriptor.bookmarkURL;
+    }
+    if ('manifestURL' in descriptor) {
+      appInfo.manifestURL = descriptor.manifestURL;
+    }
+    if ('entry_point' in descriptor) {
+      appInfo.entry_point = descriptor.entry_point;
+    }
 
     if (!icon) {
       cb(appInfo);
@@ -193,7 +229,16 @@ var EvmeManager = (function EvmeManager() {
     }
   }
 
+  var openCloudAppDisabled = false, OPEN_CLOUD_APP_DISABLED_DELAY = 600;
+
   function openCloudApp(params) {
+    if (openCloudAppDisabled) {
+      return;
+    }
+
+    openCloudAppDisabled = true;
+    setTimeout(enableOpenCloudApp, OPEN_CLOUD_APP_DISABLED_DELAY);
+
     var evmeApp = new EvmeApp({
       bookmarkURL: params.originUrl,
       name: params.title,
@@ -204,25 +249,57 @@ var EvmeManager = (function EvmeManager() {
     currentURL = params.url;
   }
 
-  function openMarketplaceApp(data) {
-    var activity = new MozActivity({
-      name: "marketplace-app",
-      data: {slug: data.slug}
-    });
+  function enableOpenCloudApp() {
+    openCloudAppDisabled = false;
+  }
 
-    activity.onerror = function(){
-      window.open('https://marketplace.firefox.com/app/'+data.slug, 'e.me');
-    }
+  function openMarketplaceApp(data) {
+    launchMarketplaceApp(data.slug);
   }
 
   function openMarketplaceSearch(data) {
-    var activity = new MozActivity({
-      name: "marketplace-search",
-      data: {query: data.query}
-    });
+    launchMarketplaceSearch(data.query);
+  }
 
-    activity.onerror = function(){
-      window.open('https://marketplace.firefox.com/search/?q='+data.query, 'e.me');
+  function launchMarketplaceApp(slug) {
+    var url = 'https://marketplace.firefox.com/app/';
+    window.open(url + encodeURIComponent(slug), 'e.memarket');
+  }
+
+  function launchMarketplaceSearch(query) {
+    var url = 'https://marketplace.firefox.com/search/?q=';
+    window.open(url + encodeURIComponent(query), 'e.memarket');
+  }
+
+  // sets an image as the device's wallpaper
+  function setWallpaper(image) {
+    navigator.mozSettings && navigator.mozSettings.createLock().set({
+      'wallpaper.image': image
+    });
+  }
+
+  function setIconName(name, origin, entryPoint) {
+    var icon = GridManager.getIconByOrigin(origin, entryPoint);
+    if (icon) {
+      icon.setName(name);
+    }
+  }
+
+  function getIconName(origin, entryPoint) {
+    var out;
+
+    var icon = GridManager.getIconByOrigin(origin, entryPoint);
+    if (icon) {
+      out = icon.getName();
+    }
+
+    return out;
+  }
+
+  function setIconImage(image, origin, entryPoint) {
+    var icon = GridManager.getIconByOrigin(origin, entryPoint);
+    if (icon) {
+      icon.setImage(image);
     }
   }
 
@@ -234,6 +311,8 @@ var EvmeManager = (function EvmeManager() {
       return GridManager.getApp(origin);
     },
 
+    getIconByDescriptor: getIconByDescriptor,
+    getAppByDescriptor: getAppByDescriptor,
     getAppByOrigin: getAppByOrigin,
     getGridApps: getGridApps,
     getCollections: getCollections,
@@ -251,7 +330,16 @@ var EvmeManager = (function EvmeManager() {
     menuHide: menuHide,
     getMenuHeight: getMenuHeight,
 
-    getIconSize: getIconSize
+    getIconSize: getIconSize,
+
+    setWallpaper: setWallpaper,
+
+    getIconName: getIconName,
+    setIconName: setIconName,
+    setIconImage: setIconImage,
+    get currentPageOffset() {
+      return GridManager.pageHelper.getCurrentPageNumber();
+    }
   };
 }());
 

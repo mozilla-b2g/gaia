@@ -14,7 +14,7 @@ class LockScreen(Base):
     _lockscreen_locator = (By.ID, 'lockscreen')
     _lockscreen_slider_locator = (By.ID, 'lockscreen-icon-container')
 
-    _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slider')
+    _lockscreen_handle_locator = (By.ID, 'lockscreen-slide-handle')
     _passcode_pad_locator = (By.ID, 'lockscreen-passcode-pad')
 
     def unlock(self):

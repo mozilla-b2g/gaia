@@ -5,17 +5,14 @@
  */
 Evme.Analytics = new function Evme_Analytics() {
     var self = this,
-	ga, idle, providers = [],
+	idle, providers = [],
 	immediateProviders = [],
 	queueArr = [],
 	maxQueueCount,
 	getCurrentAppsRowsCols, getCurrentSearchQuery, getCurrentSearchSource,
 
-	STORAGE_QUERY = "analyticsLastSearchQuery",
+	STORAGE_QUERY = "analyticsLastSearchQuery";
 
-        // Google Analytics load props
-        GAScriptLoadStatus, GAScriptLoadSubscribers = [];
-    
     // default values.
     // overridden by ../config/config.php
     var options = {
@@ -212,44 +209,7 @@ Evme.Analytics = new function Evme_Analytics() {
             });
         });
     }
-    
-    function loadGAScript(){
-        var src = options.googleAnalyticsFile || ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-        
-        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = false;
-            ga.src = src;
-            ga.onload = onGAScriptLoad;
-        var head = document.getElementsByTagName('head')[0]; head.appendChild(ga);
-    }
-    
-    function onGAScriptLoad(){
-        if (!options.googleAnalyticsAccount){ return false; }
-        
-        // create tracker
-        var tracker = window._gat._createTracker(options.googleAnalyticsAccount);
-        tracker._setDomainName("everything.me");
-        setGACustomVars(tracker);
-        
-        GAScriptLoadStatus = "loaded";
-        GAScriptLoadSubscribers.forEach(function itemIterator(cb){
-            cb(tracker, options.googleAnalyticsAccount);
-        });
-    }
-    
-    function setGACustomVars(tracker){
-        var n = Evme.Utils.getUrlParam("n"),
-            c = Evme.Utils.getUrlParam("c");
-            
-        if (n && c) {
-            tracker['_setCustomVar'](1, "CampaignTracking", n + ":" + c, 1);
-        }
-        
-        tracker['_setCustomVar'](2, "Native", "false", 1);
-        
-        var orientation = (Evme.Utils.getOrientation() || {"name": "N/A"}).name || "N/A";
-        tracker['_setCustomVar'](4, "Orientation", orientation, 1);
-    }
-    
+
     function getElapsedTime(start_ts){
         // calculate difference in ms e.g 2561 
         var d = new Date().getTime() - start_ts;
@@ -279,27 +239,7 @@ Evme.Analytics = new function Evme_Analytics() {
         this.getSessionId = function getSessionId(){
             return options.DoATAPI.getSessionId();
         };
-        
-        // Google Analytics script loader
-        this.onGAScriptLoad = function onGAScriptLoad(cb){
-            // if not loaded yet
-            if (GAScriptLoadStatus !== "loaded"){
-                // load it
-                if (GAScriptLoadStatus !== "loading"){
-                    loadGAScript();
-                    GAScriptLoadStatus = "loading"
-                }
-                
-                // add to queue 
-                GAScriptLoadSubscribers.push(cb);
-            }
-            // if already loaded
-            else{
-                // execute callback
-                cb(window._gat, options.googleAnalyticsAccount);
-            }
-        }
-        
+
         this.DoATAPI = new function DoATAPI(){
             this.report = function report(params){
                 options.DoATAPI.report(params);
@@ -396,24 +336,7 @@ Evme.Analytics = new function Evme_Analytics() {
 	    }
 	};
     };
-    
-    this.Analytics = new function Analytics(){
-        this.gaEvent = function gaEvent(data){
-            var GAEvents = getProviderByName("GAEvents");
-            
-            GAEvents && GAEvents.dispatch([{
-                "class": "event",
-                "event": "override",
-                "data": {
-                    "category": data.args[0],
-                    "action": data.args[1],
-                    "label": data.args[2],
-                    "value": data.args[3]
-                }
-            }]);
-        };
-    };
-   
+
     this.Core = new function Core(){
         var ROWS = 1, COLS = 0, redirectData;
            

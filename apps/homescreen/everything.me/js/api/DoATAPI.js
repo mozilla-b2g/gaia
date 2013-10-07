@@ -20,6 +20,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
         manualCredentials = null,
         manualCampaignStats = null,
         requestingSession = false,
+        permanentStats = null,
         
         requestsQueue = {},
         requestsToPerformOnOnline = [],
@@ -93,18 +94,37 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             manualCredentials = value;
         });
 
-        // make sure our client info cookie is always updated according to phone ettings
-        if (navigator.mozSettings) {
-            navigator.mozSettings.addObserver('language.current', function onLanguageChange(e) {
+        permanentStats = {
+            screenHeight: window.screen.height,
+            screenWidth: window.screen.width
+        };
+
+        var mozSettings = navigator.mozSettings;
+        if (mozSettings) {
+            // make sure our client info cookie is always updated according to phone settings
+            mozSettings.addObserver('language.current', function onLanguageChange(e) {
                 self.setClientInfoLocale(e.settingValue);
             });
-            navigator.mozSettings.addObserver('time.timezone', function onTimeZoneChange(e) {
+            mozSettings.addObserver('time.timezone', function onTimeZoneChange(e) {
                 self.setClientInfoTimeZone();
             });
-            navigator.mozSettings.addObserver('keyboard.current', function onKeyboardLayoutChange(e) {
+            mozSettings.addObserver('keyboard.current', function onKeyboardLayoutChange(e) {
                 self.setKeyboardLanguage(e.settingValue);
             });
+
+            // get device info
+            var req = mozSettings.createLock().get('*');
+            req.onsuccess = function onsuccess() {
+                var res = req.result;
+                permanentStats.osVersion = res['deviceinfo.os'] || '';
+                permanentStats.deviceType = res['deviceinfo.product_model'] || '';
+            };
         }
+
+        var Conn = Evme.Utils.Connection;
+        Conn.addEventListener(Conn.events.MOBILE_CONNECTION_CHANGE, function onConnChange(data) {
+            permanentStats.carrierName = data && data.operator || '';
+        });
 
         self.Session.init(options.callback);
     };
@@ -306,7 +326,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 	// string together ids like so:
 	// apiurl/?guids=["guid1","guid2","guid3", ...]
 
-	var guids = (options.guids || []).map(cleanGuid);
+	var guids = options.guids || [];
 
 	for (var i=0; i<guids.length; i++) {
 	  if (!guids[i]) {
@@ -326,11 +346,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 	    "callback": callback
 	}, options._NOCACHE || false);
     };
-
-    function cleanGuid(str) {
-	return str && str.split("?")[0];
-    }
-    
+   
     function addGlobals(options) {
         var globals = options["globals"] || {};
         
@@ -652,10 +668,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             useCache = requestsToCache[methodNamespace+"."+methodName],
             cacheKey = '',
             
-            shouldInit = Evme.DoATAPI.Session.shouldInit();
+            shouldInit = Evme.DoATAPI.Session.shouldInit(),
+
+            _request;
         
         if (requestsToPerformOnOnline.length != 0 && shouldInit.should && !doesntNeedSession[methodNamespace+"." + methodName] && !manualCredentials && !dontRetryIfNoSession) {
-	    addRequestToSessionQueue(options);
+            addRequestToSessionQueue(options);
             reInitSession(shouldInit.cause);
             return false;
         }
@@ -678,14 +696,19 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
                           responseFromCache && (responseFromCache._cache = true);
                           callback(responseFromCache);
                       }, 10);
-                      
-                      return true;
                     } else {
                       actualRequest();
                     }
                 });
                 
-                return true;
+                // since we're taking the response from the cache, we can't return a request now
+                // however, we don't know if there will be a value in the cache or not
+                // so we return an object that, if a request is created later on, could abort it
+                return {
+                  abort: function abort() {
+                    _request && _request.abort();
+                  }
+                };
             }
         }
         
@@ -712,16 +735,16 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
             if (!noSession) {
                 params["sid"] = (self.Session.get() || {}).id || '';
             }
-            if (!params.stats) {
-                params.stats = {};
-            }
+
+            params.stats = Evme.Utils.aug(params.stats, permanentStats);
             /* ---------------- */
 
-            var _request = new Evme.Request();
+            _request = new Evme.Request();
             _request.init({
                 "methodNamespace": methodNamespace,
                 "methodName": methodName,
                 "params": params,
+                "originalOptions": options,
                 "callback": callback,
                 "requestTimeout": MAX_REQUEST_TIME,
                 "retries": NUMBER_OF_RETRIES,
@@ -864,12 +887,12 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     }
 
     function cbRequest(methodNamespace, method, params, retryNumber, completeURL) {
-        Evme.EventHandler.trigger(NAME, "request", {
-            "method": methodNamespace + "/" + method,
-            "params": params,
-	    "retryNumber": retryNumber,
-	    "url": completeURL
-        });
+      Evme.EventHandler.trigger(NAME, "request", {
+        "method": methodNamespace + "/" + method,
+        "params": params,
+        "retryNumber": retryNumber,
+        "url": completeURL
+      });
     }
     
     function cbRequestAbort(methodNamespace, method, params, retryNumber) {
@@ -904,23 +927,23 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     }
     
     function cbError(methodNamespace, method, url, params, retryNumber, data, callback, originalOptions) {
-        Evme.EventHandler.trigger(NAME, "error", {
-            "method": methodNamespace + "/" + method,
-            "params": params,
-            "retryNumber": retryNumber,
-            "url": url,
-            "response": data,
-            "callback": callback
-        });
-        
-        // if it's an authentication error
-        // return false so the request won't automatically retry
-        // and do a sessionInit, and retry at the end of it
-	if ((data && data.errorCode == Evme.DoATAPI.ERROR_CODES.AUTH && !manualCredentials) ||
-	    (methodNamespace == "Session" && method == "init")) {
-	    Evme.Utils.log('Got authentication error from API, add request to queue and re-init the session');
-	    addRequestToSessionQueue(originalOptions);
-	    reInitSession(Evme.DoATAPI.Session.INIT_CAUSE.AUTH_ERROR);
+      Evme.EventHandler.trigger(NAME, "error", {
+        "method": methodNamespace + "/" + method,
+        "params": params,
+        "retryNumber": retryNumber,
+        "url": url,
+        "response": data,
+        "callback": callback
+      });
+
+      // if it's an authentication error
+      // return false so the request won't automatically retry
+      // and do a sessionInit, and retry at the end of it
+      if ((data && data.errorCode == Evme.DoATAPI.ERROR_CODES.AUTH && !manualCredentials) ||
+          (methodNamespace == "Session" && method == "init")) {
+          Evme.Utils.log('Got authentication error from API, add request to queue and re-init the session');
+          addRequestToSessionQueue(originalOptions);
+          reInitSession(Evme.DoATAPI.Session.INIT_CAUSE.AUTH_ERROR);
             return false;
         }
         
@@ -934,7 +957,7 @@ Evme.Request = function Evme_Request() {
         methodNamespace = "",
         methodName = "",
         params = {},
-	originalOptions = {},
+        originalOptions = {},
         
         callback = null,
         
@@ -964,7 +987,7 @@ Evme.Request = function Evme_Request() {
         methodNamespace = options.methodNamespace;
         methodName = options.methodName;
         params = options.params;
-	originalOptions = options.originalOptions;
+        originalOptions = options.originalOptions;
         callback = options.callback;
         maxRequestTime = options.requestTimeout;
         retries = options.retries;
@@ -997,8 +1020,8 @@ Evme.Request = function Evme_Request() {
         
         httpRequest = Evme.api[methodNamespace][methodName](params, apiCallback);
 
-	cbRequest(methodNamespace, methodName, params, retryNumber, httpRequest.url);
-	httpRequest = httpRequest.request;
+        cbRequest(methodNamespace, methodName, params, retryNumber, httpRequest.url);
+        httpRequest = httpRequest.request;
         
         requestTimeout = window.setTimeout(requestTimeoutCallback, maxRequestTime);
         
@@ -1032,7 +1055,7 @@ Evme.Request = function Evme_Request() {
         clearTimeouts();
         
         if (isError && retryNumber < retries) {
-	    var bDontRetry = cbError(methodNamespace, methodName, url, params, retryNumber, data, callback, originalOptions);
+            var bDontRetry = cbError(methodNamespace, methodName, url, params, retryNumber, data, callback, originalOptions);
             
             if (bDontRetry && cbShouldRetry(data)) {
                 retry();
@@ -1056,10 +1079,11 @@ Evme.Request = function Evme_Request() {
     }
     
     function requestTimeoutCallback() {
-        if (!httpRequest) {
+        if (aborted || !httpRequest) {
             return;
         }
         
+        httpRequest.onreadystatechange = null;
         httpRequest.abort();
         
         var data = {
@@ -1068,25 +1092,25 @@ Evme.Request = function Evme_Request() {
             "processingTime": maxRequestTime
         };
         
-	cbError(methodNamespace, methodName, "", params, retryNumber, data, callback, originalOptions);
+        cbError(methodNamespace, methodName, "", params, retryNumber, data, callback, originalOptions);
 
-        if (retryNumber >= 0) {
+        if (retryNumber < retries) {
             retry();
         }
         
     }
     
     function retry(data, url){
-	var isSessionInit = data && data.response && data.response.credentials;
+        var isSessionInit = data && data.response && data.response.credentials;
 
         window.clearTimeout(requestRetry);
         
         var retryTimeout = Math.round(Math.random()*(timeoutBetweenRetries.to - timeoutBetweenRetries.from)) + timeoutBetweenRetries.from;
 
-	// if retrying a session init error - don't wait once it's ready
-	if (isSessionInit) {
-	  retryTimeout = 0;
-	}
+      	// if retrying a session init error - don't wait once it's ready
+      	if (isSessionInit) {
+      	  retryTimeout = 0;
+      	}
 
         requestRetry = window.setTimeout(function retryTimeout(){
             retryNumber++;

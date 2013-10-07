@@ -4,7 +4,11 @@ var GridManager = (function() {
   // Be aware that the current manifest icon description syntax does
   // not distinguish between 60@1.5x and 90@1x, so we would have to use
   // the latter as the former.
-  var PREFERRED_ICON_SIZE = 60 * (window.devicePixelRatio || 1);
+
+  // use 100px icons for tablet
+  var notTinyLayout = !ScreenLayout.getCurrentLayout('tiny');
+  var PREFERRED_ICON_SIZE =
+      (notTinyLayout ? 100 : 60) * (window.devicePixelRatio || 1);
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
@@ -35,6 +39,8 @@ var GridManager = (function() {
 
   var saveStateTimeout = null;
 
+  var _ = navigator.mozL10n.get;
+
   // Limits for changing pages during dragging
   var limits = {
     left: 0,
@@ -54,7 +60,7 @@ var GridManager = (function() {
   }
 
   // tablet+ devices are stricted to 5 x 3 grid
-  if (ScreenLayout.getCurrentLayout() !== 'tiny') {
+  if (notTinyLayout) {
     MAX_ICONS_PER_PAGE = 5 * 3;
   }
 
@@ -590,7 +596,7 @@ var GridManager = (function() {
   function getFirstPageWithEmptySpace(pageOffset) {
     pageOffset = pageOffset !== null && pageOffset ? pageOffset : 0;
     for (var i = pageOffset, page; page = pages[i++];) {
-      if (page.getNumIcons() < page.numberOfIcons) {
+      if (page.hasEmptySlot()) {
         return i - 1;
       }
     }
@@ -619,7 +625,7 @@ var GridManager = (function() {
   }
 
   function pageOverflowed(page) {
-    return page.getNumIcons() > page.numberOfIcons;
+    return page.getNumIcons() > page.maxIcons;
   }
 
   /*
@@ -796,6 +802,11 @@ var GridManager = (function() {
     return iconsForApp && iconsForApp[descriptor.entry_point || ''];
   }
 
+  function getIconByOrigin(origin, entryPoint) {
+    var app = appsByOrigin[origin];
+    return app ? getIcon(buildDescriptor(app, entryPoint)) : undefined;
+  }
+
   function getIconsForApp(app) {
     return appIcons[app.manifestURL];
   }
@@ -820,14 +831,18 @@ var GridManager = (function() {
       // app.manifest is null until the downloadsuccess/downloadapplied event
       var manifest = app.manifest || app.updateManifest;
 
-      if (app.type === GridItemsFactory.TYPE.COLLECTION ||
+      if (!manifest || app.type === GridItemsFactory.TYPE.COLLECTION ||
           (suppressHiddenRoles && HIDDEN_ROLES.indexOf(manifest.role) !== -1)) {
         continue;
       }
 
       if (expandApps && manifest.entry_points) {
-        for (var i in manifest.entry_points) {
-          apps.push(new Icon(buildDescriptor(app, i), app));
+        var entryPoints = manifest.entry_points;
+        for (var entryPoint in entryPoints) {
+          if (!entryPoints[entryPoint].icons) {
+            continue;
+          }
+          apps.push(new Icon(buildDescriptor(app, entryPoint), app));
         }
         continue;
       }
@@ -887,10 +902,11 @@ var GridManager = (function() {
    * Initialize the mozApps event handlers and synchronize our grid
    * state with the applications known to the system.
    */
-  function initApps(apps) {
+  function initApps(callback) {
     var appMgr = navigator.mozApps.mgmt;
 
     if (!appMgr) {
+      setTimeout(callback);
       return;
     }
 
@@ -937,6 +953,8 @@ var GridManager = (function() {
       }
 
       ensurePagesOverflow(removeEmptyPages);
+
+      callback();
     };
   }
 
@@ -959,6 +977,9 @@ var GridManager = (function() {
           descriptor.type = GridItemsFactory.TYPE.COLLECTION;
         }
         app = GridItemsFactory.create(descriptor);
+        if (haveLocale && app.type === GridItemsFactory.TYPE.COLLECTION) {
+          descriptor.localizedName = _(app.manifest.name);
+        }
         bookmarksByOrigin[app.origin] = app;
       }
 
@@ -1085,13 +1106,15 @@ var GridManager = (function() {
       isHosted: isHosted(app),
       hasOfflineCache: hasOfflineCache(app),
       type: app.type,
-      id: app.id,
-      isEmpty: !!app.isEmpty
+      id: app.id
     };
 
-    if (haveLocale && app.type !== GridItemsFactory.TYPE.COLLECTION &&
-                      app.type !== GridItemsFactory.TYPE.BOOKMARK) {
-      descriptor.localizedName = iconsAndNameHolder.name;
+    if (haveLocale) {
+      if (app.type === GridItemsFactory.TYPE.COLLECTION) {
+        descriptor.localizedName = _(manifest.name);
+      } else if (app.type !== GridItemsFactory.TYPE.BOOKMARK) {
+        descriptor.localizedName = iconsAndNameHolder.name;
+      }
     }
 
     return descriptor;
@@ -1130,11 +1153,17 @@ var GridManager = (function() {
       var index = gridPosition.page || 0;
       pages[index].appendIconAt(icon, gridPosition.index || 0);
     } else {
-      var index = getFirstPageWithEmptySpace(gridPageOffset);
+      var index;
       var svApp = getSingleVariantApp(app.manifestURL);
       if (svApp && !isPreviouslyInstalled(app.manifestURL)) {
         index = svApp.screen;
         icon.descriptor.desiredPos = svApp.location;
+        if (!Configurator.isSimPresentOnFirstBoot && index < pages.length &&
+            !pages[index].hasEmptySlot()) {
+          index = getFirstPageWithEmptySpace(index);
+        }
+      } else {
+        index = getFirstPageWithEmptySpace(gridPageOffset);
       }
 
       if (index < pages.length) {
@@ -1154,7 +1183,6 @@ var GridManager = (function() {
    */
   function doShowRestartDownloadDialog(icon) {
     var app = icon.app;
-    var _ = navigator.mozL10n.get;
     var confirm = {
       title: _('download'),
       callback: function onAccept() {
@@ -1187,9 +1215,12 @@ var GridManager = (function() {
   }
 
   function showRestartDownloadDialog(icon) {
-    LazyLoader.load(['shared/style/buttons.css', 'shared/style/headers.css',
-                     'shared/style/confirm.css', 'style/request.css',
-                     'js/request.js'], function() {
+    LazyLoader.load(['shared/style/buttons.css',
+                     'shared/style/headers.css',
+                     'shared/style/confirm.css',
+                     'style/request.css',
+                     document.getElementById('confirm-dialog'),
+                     'js/request.js'], function loaded() {
       doShowRestartDownloadDialog(icon);
     });
   }
@@ -1292,14 +1323,12 @@ var GridManager = (function() {
 
       pageHelper.addPage(pageIcons, numberOfIcons);
     }, function onSuccess() {
-      initApps();
-      callback();
+      initApps(callback);
     }, function onError(error) {
       var dockContainer = document.querySelector(options.dockSelector);
       var dock = new Dock(dockContainer, []);
       DockManager.init(dockContainer, dock, tapThreshold);
-      initApps();
-      callback();
+      initApps(callback);
     }, function eachSVApp(svApp) {
       GridManager.svPreviouslyInstalledApps.push(svApp);
     });
@@ -1361,15 +1390,15 @@ var GridManager = (function() {
      *
      * @param {Application} app
      *                      The application (or bookmark) object
-     * @param {Object}      gridPosition
-     *                      Position to install the app: 'page' and 'index'
+     * @param {Object}      gridPageOffset
+     *                      Position to install the app: number (page index)
      * @param {Object}      extra
      *                      Optional parameters
      */
-    install: function gm_install(app, gridPosition, extra) {
+    install: function gm_install(app, gridPageOffset, extra) {
       extra = extra || {};
 
-      processApp(app, null, null, gridPosition);
+      processApp(app, null, gridPageOffset);
 
       if (app.type === GridItemsFactory.TYPE.COLLECTION) {
         window.dispatchEvent(new CustomEvent('collectionInstalled', {
@@ -1430,7 +1459,7 @@ var GridManager = (function() {
       } else {
         window.dispatchEvent(new CustomEvent('appUninstalled', {
           'detail': {
-            'app': app
+            'descriptor': buildDescriptor(app)
           }
         }));
       }
@@ -1445,6 +1474,8 @@ var GridManager = (function() {
     markDirtyState: markDirtyState,
 
     getIcon: getIcon,
+
+    getIconByOrigin: getIconByOrigin,
 
     getIconsForApp: getIconsForApp,
 

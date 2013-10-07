@@ -18,6 +18,9 @@
       this.browser_config =
         new BrowserConfigHelper(this.origin, this.manifestURL);
 
+      // Necessary for b2gperf now.
+      this.name = this.browser_config.name;
+
       this.manifest = this.browser_config.manifest;
       // XXX: Remove this hardcode
       this.browser_config.url = this.url;
@@ -35,6 +38,8 @@
     // into appWindow.
     this.frame = this.element;
     this.iframe = this.browser.element;
+    this.iframe.dataset.frameType = 'window';
+    this.iframe.dataset.frameOrigin = 'homescreen';
 
     this.element.appendChild(this.browser.element);
 

@@ -1,0 +1,21 @@
+#contextmenu-dialog {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 20001; /* rise above the dock */
+  transform: translateY(100%);
+  display: none;
+  transition: transform ease-in-out .3s;
+}
+
+#contextmenu-dialog.show {
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+#contextmenu-dialog.visible {
+  display: block;
+}

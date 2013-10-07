@@ -48,6 +48,14 @@ var MockGridManager = {
   },
   pageHelper: {
     getCurrent: function() {
+      if (!currentPage) {
+        var aux = {
+          getIconIndex: function() {
+            return 1;
+          }
+        };
+        return aux;
+      }
       return currentPage;
     },
     getCurrentPageNumber: function() {

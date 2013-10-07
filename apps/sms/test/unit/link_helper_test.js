@@ -253,13 +253,34 @@ suite('link_helper_test.js', function() {
       test('word after preceding number', function() {
         testPhoneMatch('600123123 1Test', '600123123');
       });
+      [
+        // Bug 900413 - detect 5 digit short codes
+        '24242',
+        '10086',
+        '+1234'
+      ].forEach(function(phone) {
+        test(phone, testPhoneOK.bind(null, phone));
+      });
     });
 
     suite('Failures', function() {
-      ['0.34', '1200', '5000', '0.122', '0921'].forEach(function(phone) {
-        test(phone, function() {
-          testPhoneNOK(phone);
-        });
+      [
+        '0.34',
+        '1200',
+        '5000',
+        '0.122',
+        '0921',
+        // Bug 900413 - 5 digit codes with separators not allowed
+        '1-10-13',
+        '12-3-13',
+        '1-800-A',
+        '1(234)5',
+        '1234..5',
+        '1 2 3 45',
+        '1\t23\t45',
+        '12+34'
+      ].forEach(function(phone) {
+         test(phone, testPhoneNOK.bind(null, phone));
       });
     });
 

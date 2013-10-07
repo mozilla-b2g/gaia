@@ -38,12 +38,11 @@
       continueCb();
     }
 
-    function contactSaveError(e) {
-      window.console.error('Error while importing contact: ',
-                           e.target.error.name);
+    function contactSaveError(err) {
+      window.console.error('Error while importing contact: ', err.name);
 
       if (typeof self.onerror === 'function') {
-        window.setTimeout(self.onerror.bind(null, e.target.error), 0);
+        window.setTimeout(self.onerror.bind(null, err), 0);
       }
       continueCb();
     }
@@ -121,7 +120,9 @@
           });
         }.bind(contactData),
         onmismatch: function() {
-          saveMozContact(this, successCb, errorCb);
+          saveMozContact(this, successCb, function onMismatchError(evt) {
+            errorCb(evt.target.error);
+          });
         }.bind(contactData)
       };
 

@@ -46,13 +46,6 @@ class DatazillaPerfPoster(object):
                 # the device, so we fall back to the sources file
                 pass
 
-            device_name = 'unknown'
-            build_prop = device_manager.pullFile('/system/build.prop')
-            device_prefix = 'ro.product.device='
-            for line in build_prop.split('\n'):
-                if line.startswith(device_prefix):
-                    device_name = line[len(device_prefix):] 
-
             try:
                 sources_xml = sources and xml.dom.minidom.parse(sources) or xml.dom.minidom.parseString(device_manager.catFile('system/sources.xml'))
                 for element in sources_xml.getElementsByTagName('project'):
@@ -76,7 +69,7 @@ class DatazillaPerfPoster(object):
             'oauth key': datazilla_config['oauth_key'],
             'oauth secret': datazilla_config['oauth_secret'],
             'machine name': mac_address or 'unknown',
-            'device name': device_name,
+            'device name': datazilla_config['device_name'],
             'os version': settings.get('deviceinfo.os'),
             'id': settings.get('deviceinfo.platform_build_id')}
 
@@ -145,6 +138,11 @@ class dzOptionParser(OptionParser):
                         dest='datazilla_branch',
                         metavar='str',
                         help='datazilla branch name')
+        self.add_option('--dz-device',
+                        action='store',
+                        dest='datazilla_device_name',
+                        metavar='str',
+                        help='datazilla device name')       
         self.add_option('--dz-key',
                         action='store',
                         dest='datazilla_key',
@@ -181,6 +179,7 @@ class dzOptionParser(OptionParser):
             'host': datazilla_url.hostname,
             'project': options.datazilla_project,
             'branch': options.datazilla_branch,
+            'device_name': options.datazilla_device_name,
             'oauth_key': options.datazilla_key,
             'oauth_secret': options.datazilla_secret}
         return datazilla_config

@@ -53,8 +53,9 @@
     <link rel="resource" type="image/png" href="shared/resources/branding/initlogo_large.png"/>
     -->
 
-    <link rel="resource" type="image/png" href="shared/resources/branding/Browser.png"/>
-
+    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_60.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_90.png"/>
+    <link rel="resource" type="image/png" href="shared/resources/branding/Browser_120.png"/>
     <!-- applications.js must not be deferred
          in order to catch webapps-registry-ready mozChromeEvent -->
     <script src="js/applications.js"></script>
@@ -524,7 +525,7 @@
                 <span id="messageBody">3 tries left.</span>
               </div>
               <!-- tries left -->
-              <div id="triesLeft" data-l10-id="inputCodeRetriesLeft">3 tries left</div>
+              <div id="triesLeft" data-l10n-id="inputCodeRetriesLeft">3 tries left</div>
 
               <!-- sim pin input field -->
               <div id="pinArea" hidden>
@@ -738,13 +739,13 @@
             <div class="picker-container">
               <div class="picker-bar-background"></div>
               <div class="value-picker-hours-wrapper">
-                <div class="value-picker-hours" class="animation-on"></div>
+                <div class="value-picker-hours animation-on"></div>
               </div>
               <div class="value-picker-minutes-wrapper">
-                <div class="value-picker-minutes" class="animation-on"></div>
+                <div class="value-picker-minutes animation-on"></div>
               </div>
               <div class="value-picker-hour24-wrapper">
-                <div class="value-picker-hour24-state" class="animation-on"></div>
+                <div class="value-picker-hour24-state animation-on"></div>
               </div>
               <div class="value-indicator">
                 <div class="value-indicator-colon">:</div>
@@ -770,10 +771,10 @@
                 <div class="value-picker-date animation-on"></div>
               </div>
               <div class="value-picker-month-wrapper">
-                <div class="value-picker-month" class="animation-on"></div>
+                <div class="value-picker-month animation-on"></div>
               </div>
               <div class="value-picker-year-wrapper">
-                <div class="value-picker-year" class="animation-on"></div>
+                <div class="value-picker-year animation-on"></div>
               </div>
               <div class="value-indicator"></div>
             </div>
@@ -990,28 +991,28 @@
                 <div class="lockscreen-icon">
                 </div>
               </div>
-              <div id="lockscreen-area-slider"
+              <div id="lockscreen-area-slide"
                    class="lockscreen-icon-area lockscreen-icon-center" role="button"
                    data-l10n-id="unlock-a11y-button" aria-label="Slider">
 
-                <!-- Order matters. If track after handler, it will overlay on the handler -->
-                <div id="lockscreen-slider-track">
-                  <div class="lockscreen-icon lockscreen-slider-left">
+                <!-- Order matters. If track after handle, it will overlay on the handle -->
+                <div id="lockscreen-slide-track">
+                  <div class="lockscreen-icon lockscreen-slide-left">
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-center">
+                  <div class="lockscreen-icon lockscreen-slide-center">
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-right">
+                  <div class="lockscreen-icon lockscreen-slide-right">
                   </div>
                 </div>
 
-                <div id="lockscreen-slider-handler">
-                  <div class="lockscreen-icon lockscreen-slider-left" data-role="handler-left">
-                    <span>‹</span>
+                <div id="lockscreen-slide-handle">
+                  <div class="lockscreen-icon lockscreen-slide-left" data-role="handle-left">
+                    <span>&nbsp;</span>
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-center" data-role="handler-center">
+                  <div class="lockscreen-icon lockscreen-slide-center" data-role="handle-center">
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-right" data-role="handler-right">
-                    <span>›</span>
+                  <div class="lockscreen-icon lockscreen-slide-right" data-role="handle-right">
+                    <span>&nbsp;</span>
                   </div>
                 </div>
 
@@ -1131,7 +1132,7 @@
       <div id="sleep-menu" data-z-index-level="sleep-menu">
         <div id="sleep-menu-container">
           <h3 data-l10n-id="deviceMenu">Device menu</h3>
-          <ul>
+          <ul role="menu">
           </ul>
         </div>
         <menu>

@@ -22,15 +22,16 @@ class TestEnduranceSettings(GaiaEnduranceTestCase):
                      {"menu_locator": ('id', 'menuItem-notifications'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockscreen-notifications"]')},
                      {"menu_locator": ('id', 'menuItem-dateAndTime'), "screen_locator": ('id', 'dateTime')},
                      {"menu_locator": ('id', 'menuItem-languageAndRegion'), "screen_locator": ('css selector', '#root > header > h1')},
+                     {"menu_locator": ('id', 'menuItem-homescreen'), "screen_locator": ('xpath', '//a[@data-l10n-id="homescreen"]')},
                      {"menu_locator": ('id', 'menuItem-keyboard'), "screen_locator": ('xpath', '//a[@data-l10n-id="vibration"]')},
                      {"menu_locator": ('id', 'menuItem-phoneLock'), "screen_locator": ('xpath', '//a[@data-l10n-id="lockScreen"]')},
                      {"menu_locator": ('id', 'menuItem-simSecurity'), "screen_locator": ('id', 'simpin-enabled')},
                      {"menu_locator": ('id', 'menuItem-appPermissions'), "screen_locator": ('xpath', '//a[@href="#appPermissions"]')},
                      {"menu_locator": ('id', 'menuItem-doNotTrack'), "screen_locator": ('css selector', '#doNotTrack label')},
+                     {"menu_locator": ('id', 'menuItem-applicationStorage'), "screen_locator": ('xpath', '//a[@data-l10n-id="appStorage"]')},
+                     {"menu_locator": ('id', 'menuItem-mediaStorage'), "screen_locator": ('id', 'mediaStorage')},
                      {"menu_locator": ('id', 'menuItem-deviceInfo'), "screen_locator": ('css selector', '#about-moreInfo button')},
                      {"menu_locator": ('id', 'menuItem-battery'), "screen_locator": ('id', 'model-name')},
-                     {"menu_locator": ('id', 'menuItem-deviceStorage'), "screen_locator": ('id', 'apps-total-space')},
-                     {"menu_locator": ('id', 'menuItem-mediaStorage'), "screen_locator": ('id', 'mediaStorage')},
                      {"menu_locator": ('id', 'menuItem-improveBrowserOS'), "screen_locator": ('id', 'improveBrowserOS')},
                      {"menu_locator": ('id', 'menuItem-help'), "screen_locator": ('id', 'help')}
                     ]

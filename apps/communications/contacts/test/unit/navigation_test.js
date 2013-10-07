@@ -5,8 +5,8 @@ suite('contacts/navigation', function() {
 
   var current, next, navigation, viewContactList, viewContactForm,
     viewSettings, viewContactDetails, viewScreenshot, viewSelectTag,
-    callbackCounter, callback, animationEndEvent, navigationAssert,
-    initialStateAssert, currentTransition;
+    viewSearch, callbackCounter, callback, animationEndEvent,
+    navigationAssert, initialStateAssert, currentTransition;
 
 
   suiteSetup(function() {
@@ -18,6 +18,7 @@ suite('contacts/navigation', function() {
     viewContactDetails = document.getElementById('view-contact-details');
     viewScreenshot = document.getElementById('view-screenshot');
     viewSelectTag = document.getElementById('view-select-tag');
+    viewSearch = document.getElementById('search-view');
     animationEndEvent = new CustomEvent('animationend');
     navigationAssert = function(view, transition, direction, viewType,
       result, test) {
@@ -45,6 +46,9 @@ suite('contacts/navigation', function() {
     callbackCounter = 0;
     callback = function(done) {
       switch (currentTransition) {
+        case 'none':
+          done();
+          break;
         case 'right-left':
           current = viewSelectTag;
           next = viewContactList;
@@ -104,6 +108,22 @@ suite('contacts/navigation', function() {
           break;
       }
     };
+  });
+
+  test('no forwards animation', function() {
+    currentTransition = 'none';
+    current = viewContactList;
+    next = viewSearch;
+    navigation.go('search-view', currentTransition);
+    assert.isTrue(next.style.zIndex > current.style.zIndex);
+  });
+
+  test('no backwards animation', function(done) {
+    currentTransition = 'none';
+    current = viewContactList;
+    next = viewSearch;
+    navigation.go('search-view', currentTransition);
+    navigation.back(callback.bind(null, done));
   });
 
   test('right-left forwards animation', function() {
@@ -241,5 +261,20 @@ suite('contacts/navigation', function() {
     next = viewContactForm;
     current.dispatchEvent(animationEndEvent);
     next.dispatchEvent(animationEndEvent);
+  });
+
+  test('should send hide-navbar to dialer when entering view-contact-form',
+  function() {
+    var postMessageSpy = this.sinon.spy(window.parent, 'postMessage');
+    navigation.go('view-contact-form', 'go-deeper');
+    assert.isTrue(postMessageSpy.withArgs({type: 'hide-navbar'}).calledOnce);
+  });
+
+  test('should send show-navbar to dialer when leaving view-contact-form',
+  function() {
+    navigation.go('view-contact-form', 'go-deeper');
+    var postMessageSpy = this.sinon.spy(window.parent, 'postMessage');
+    navigation.back();
+    assert.isTrue(postMessageSpy.withArgs({type: 'show-navbar'}).calledOnce);
   });
 });

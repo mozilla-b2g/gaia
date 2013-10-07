@@ -12,8 +12,22 @@ window.Evme = new function Evme_Core() {
 
     apiHost && Evme.api.setHost(apiHost);
 
+    // calculate the precise background image size loaded behind search results
+    // takes screen size and pixel density into account
+    data.bgImageSize = [
+        Math.floor(window.innerWidth * window.devicePixelRatio),
+        Math.floor(window.innerHeight * window.devicePixelRatio)
+    ];
+
+    // calculate number of apps to load on every search
+    // if the screen height permits it - add another row of apps
+    var numberOfAppsToLoad = data.numberOfAppsToLoad;
+    if (window.innerHeight/window.innerWidth > 1.66) {
+        numberOfAppsToLoad += data.apps.appsPerRow;
+    }
+
     Evme.Brain.init({
-      "numberOfAppsToLoad": data.numberOfAppsToLoad+(Evme.Utils.devicePixelRatio>1? data.apps.appsPerRow: 0),
+      "numberOfAppsToLoad": numberOfAppsToLoad,
       "searchSources": data.searchSources,
       "pageViewSources": data.pageViewSources,
       "displayInstalledApps": data.apps.displayInstalledApps
@@ -45,7 +59,7 @@ window.Evme = new function Evme_Core() {
 
     if (
     // hide suggested collections list if open
-    Evme.CollectionsSuggest.hide() ||
+    Evme.CollectionsSuggest && Evme.CollectionsSuggest.hide() ||
     // stop editing if active
     Evme.Collection.toggleEditMode(false) ||
     // close full screen background image if visible
@@ -61,14 +75,6 @@ window.Evme = new function Evme_Core() {
     }
 
     return false;
-  };
-
-  this.onCollectionSuggest = function onCollectionSuggest() {
-    Evme.Brain.CollectionsSuggest.showUI();
-  };
-
-  this.onCollectionCustom = function onCollectionCustom() {
-    Evme.CollectionSuggest.newCustom();
   };
 
   this.searchFromOutside = function searchFromOutside(query) {
@@ -95,35 +101,72 @@ window.Evme = new function Evme_Core() {
 
   function setupCollectionStorage(done) {
     var collections = EvmeManager.getCollections(),
-        total = collections.length;
+        totalCollections = collections.length;
 
-    if (total === 0) {
+    if (totalCollections === 0) {
       done();
       return;
     }
 
-    for (var i = 0; i < total; i++) {
-      var collection = collections[i],
-          experienceId = collection.providerId;
-
-      // TODO: populate apps from manifest file
-      var apps = [];
-
-      var collectionSettings = new Evme.CollectionSettings({
-        "id": collection.id,
-        "experienceId": experienceId,
-        "apps": apps
-      });
-
-      Evme.CollectionStorage.add(collectionSettings, function onSaved() {
-        if (--total === 0) {
-          done();
-        }
-      });
+    var onDone = function onDone() {
+      if (--totalCollections === 0) {
+        done();
+      }
     }
+
+    var iterateApps = function iterateApps(apps, collection) {
+      var infoApps = [],
+          total = apps.length;
+
+      apps.forEach(function iteratee(info) {
+        // info defines ['manifestURL', 'entry_point']
+        var descriptor = {};
+
+        if (info[0]) {
+          descriptor.manifestURL = info[0];
+        }
+
+        if (info[1]) {
+          descriptor.entry_point = info[1];
+        }
+
+        EvmeManager.getAppByDescriptor(function getting(app) {
+          if (app)
+            infoApps.push(app);
+
+          if (--total === 0)
+            saveCollectionSettings(collection, infoApps, onDone);
+        }, descriptor);
+      });
+    };
+
+    // Populating apps from manifest file
+    collections.forEach(function (collection) {
+      var apps = collection.manifest.apps;
+      if (!apps || apps.length === 0) {
+        // There aren't pre-installed apps for this collection
+        saveCollectionSettings(collection, [], onDone);
+      } else {
+        iterateApps(apps, collection);
+      }
+    });
+  }
+
+  function saveCollectionSettings(collection, apps, done) {
+    var collectionSettings = new Evme.CollectionSettings({
+      "id": collection.id,
+      "experienceId": collection.providerId,
+      "apps": apps
+    });
+
+    Evme.CollectionStorage.add(collectionSettings, done);
   }
 
   function initObjects(data) {
+    // lazy components
+    window.addEventListener('suggestcollections', initSuggestCollections);
+
+    // active components
     var appsEl = Evme.$("#evmeApps"),
         collectionEl = document.querySelector("#collection .evme-apps");
 
@@ -138,10 +181,6 @@ window.Evme = new function Evme_Core() {
       "requestTimeout": data.locationRequestTimeout
     });
 
-    Evme.CollectionsSuggest.init({
-      "elParent": Evme.Utils.getContainer()
-    });
-
     Evme.Searchbar.init({
       "el": Evme.$("#search-q"),
       "elForm": Evme.$("#search-rapper"),
@@ -154,11 +193,13 @@ window.Evme = new function Evme_Core() {
     Evme.Helper.init({
       "el": Evme.$("#helper"),
       "elTitle": Evme.$("#search-title"),
-      "elTip": Evme.$("#helper-tip")
+      "elTip": Evme.$("#helper-tip"),
+      "elSaveSearch": Evme.$("#save-search")
     });
 
     Evme.BackgroundImage.init({
-      "el": Evme.$("#search-overlay")
+      "el": Evme.$("#search-overlay"),
+      "elFullScreenParent": Evme.$("#evmeOverlay")
     });
 
     Evme.SearchResults = new Evme.ResultManager();
@@ -177,7 +218,9 @@ window.Evme = new function Evme_Core() {
         type: Evme.PROVIDER_TYPES.INSTALLED,
         config: {
           "renderer": Evme.InstalledAppsRenderer,
-          "containerEl": Evme.$(".installed", appsEl)[0]
+          "containerEl": Evme.$(".installed", appsEl)[0],
+          "containerSelector": ".installed",
+          "filterResults": true
         }
       }, {
         type: Evme.PROVIDER_TYPES.CLOUD,
@@ -210,7 +253,9 @@ window.Evme = new function Evme_Core() {
         type: Evme.PROVIDER_TYPES.STATIC,
         config: {
           "renderer": Evme.StaticAppsRenderer,
-          "containerEl": Evme.$(".static", collectionEl)[0]
+          "containerEl": Evme.$(".static", collectionEl)[0],
+          "containerSelector": ".static",
+          "filterResults": true
         }
       }, {
         type: Evme.PROVIDER_TYPES.CLOUD,
@@ -257,4 +302,24 @@ window.Evme = new function Evme_Core() {
       "deviceId": Evme.DoATAPI.getDeviceId()
     });
   }
+
+  function initSuggestCollections(e) {
+      LazyLoader.load(
+        ['everything.me/modules/CollectionsSuggest/CollectionsSuggest.js',
+         'everything.me/modules/CollectionsSuggest/CollectionsSuggest.css'],
+        function onLoad() {
+          Evme.CollectionsSuggest.init({
+            "elList": document.getElementById('collections-select'),
+            "elParent": Evme.Utils.getContainer()
+          });
+
+          window.removeEventListener('suggestcollections', initSuggestCollections);
+          window.addEventListener('suggestcollections', onSuggestCollections);
+          window.dispatchEvent(e);
+        }
+      );
+  }
+  function onSuggestCollections(e) {
+      Evme.Brain.CollectionsSuggest.showUI();
+  };
 };

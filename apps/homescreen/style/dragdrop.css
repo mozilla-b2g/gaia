@@ -16,6 +16,7 @@
 
 /* label wrapper */
 .draggable > div > span {
+  margin-top: 0.1rem;
   /* shift left edge of text to center */
   left: 50%;
 }
@@ -23,7 +24,7 @@
 /* text label */
 .draggable > div > span > span {
   font-size: 1.3rem;
-  text-shadow: 0.1rem 0.1rem 0.3rem rgba(0,0,0,0.6);
+  text-shadow: 0 0.1rem 0.2rem rgba(0,0,0,1);
   /* shift left edge of text half distance to left */
   margin-left: -106%;
 }
@@ -72,8 +73,6 @@ body[data-mode = 'edit'] ol > li.hidden {
   opacity: 0;
 }
 
-/* This rules implement the circle behind collections during dragging */
-
 body[data-mode = 'edit'] ol > li[data-is-collection = 'true'] > div > img {
   transform: scale(1);
   transition: transform .3s;
@@ -83,25 +82,9 @@ body[data-dragging] ol > li[data-is-collection = 'true'] > div > img {
   transform: scale(0.8);
 }
 
-body[data-mode = 'edit'] ol > li[data-is-collection = 'true'] > div::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 8rem;
-  height: 8rem;
-  background: white;
-  border-radius: 50%;
-  margin: -0.5rem 0 0 -4rem;
-  opacity: 0.2;
-
-  transform: scale(0.8);
-  transition: transform .3s;
-}
-
 body[data-dragging] ol > li[data-is-collection = 'true'].hover > div::before {
-	transform: scale(1);
-	opacity: 0.4;
+	transform: scale(1.2);
+	opacity: 0.8;
 }
 
 /* This rules changes the axe icon for a plus symbol */

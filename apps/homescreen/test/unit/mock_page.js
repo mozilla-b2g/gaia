@@ -4,7 +4,7 @@ requireApp('homescreen/test/unit/mock_icon.js');
 
 function MockPage(container, icons, numberOfIcons) {
   this.container = container;
-  this.numberOfIcons = numberOfIcons || 16;
+  this.maxIcons = numberOfIcons || 16;
   if (icons) {
     this.icons = icons;
   } else {
@@ -13,6 +13,8 @@ function MockPage(container, icons, numberOfIcons) {
 }
 
 MockPage.prototype = {
+  mMAX_ICON_NUMBER: 16,
+
   getNumIcons: function mp_getNumIcons() {
     return MockPage.mIcons.length;
   },
@@ -40,6 +42,10 @@ MockPage.prototype = {
   },
 
   tap: function mp_tap() {
+  },
+
+  hasEmptySlot: function mp_hasEmptySlot() {
+    return this.icons.length < this.mMAX_ICON_NUMBER;
   }
 };
 

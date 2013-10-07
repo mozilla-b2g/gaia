@@ -7,6 +7,7 @@ requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_l10n.js');
 
 var mocksHelperForRecipients = new MocksHelper([
   'Dialog',
@@ -20,13 +21,18 @@ suite('Recipients', function() {
   var recipients;
   var fixture;
   var mocksHelper = mocksHelperForRecipients;
+  var realL10n;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
   });
 
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
+    navigator.mozL10n = realL10n;
+    realL10n = null;
   });
 
   function isValid(candidate, value) {

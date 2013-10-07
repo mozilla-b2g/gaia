@@ -40,18 +40,12 @@ Evme.IconManager = new function Evme_IconManager() {
 };
 
 Evme.IconGroup = new function Evme_IconGroup() {
-  var ICON_HEIGHT,
-      TEXT_HEIGHT,
-      TEXT_MARGIN,
-      WIDTH,
-      HEIGHT;
+  var SIZE,
+      SCALE_RATIO;
 
   this.init = function init(options) {
-    ICON_HEIGHT = 42 * Evme.Utils.devicePixelRatio,
-    TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3,
-    TEXT_MARGIN = 9 * Evme.Utils.devicePixelRatio,
-    WIDTH = 72 * Evme.Utils.devicePixelRatio,
-    HEIGHT = ICON_HEIGHT + TEXT_MARGIN + TEXT_HEIGHT;
+    SCALE_RATIO = window.devicePixelRatio || 1;
+    SIZE = Evme.Utils.getOSIconSize() * SCALE_RATIO;
   };
 
   this.get = function get(icons, callback) {
@@ -62,7 +56,6 @@ Evme.IconGroup = new function Evme_IconGroup() {
     if (icons && icons.length){
       el = renderCanvas({
         "icons": icons,
-        "settings": Evme.Utils.getIconGroup(icons.length),
         "onReady": callback
       });
     }
@@ -76,50 +69,60 @@ Evme.IconGroup = new function Evme_IconGroup() {
     return el;
   };
 
+  function getCanvas() {
+    var elCanvas = document.createElement('canvas');
+
+    elCanvas.width = SIZE;
+    elCanvas.height = SIZE;
+
+    return elCanvas;
+  }
+
   /**
    * Draw icon for Collection with no apps.
    */
    function renderEmptyIcon(options){
-    var icon = Evme.Utils.getEmptyCollectionIcon(),
-        onReady = options.onReady,
-        elCanvas = document.createElement('canvas'),
-        context = elCanvas.getContext('2d'),
-        img = new Image();
+    var onReady = options.onReady,
+        elCanvas = getCanvas();
 
-    elCanvas.width = WIDTH;
-    elCanvas.height = WIDTH;
-
-    img.onload = function onload(){
-      // TODO: Ask @evyatron why does passing 60,60 renders too small?
-      context.drawImage(img, 0, 0, 72, 72);
-      onReady(elCanvas);
-    }
-
-    img.src = Evme.Utils.formatImageData(icon);
+    onReady(elCanvas);
 
     return elCanvas;
   }
 
   function renderCanvas(options) {
     var icons = options.icons,
-        settings = options.settings,
+        validIcons = [],
+        numberOfIcons = 0,
+        settings = null,
         onReady = options.onReady,
-        elCanvas = document.createElement('canvas'),
+        elCanvas = getCanvas(),
         context = elCanvas.getContext('2d');
 
-    // can't render more icons than we have settings for
-    icons = icons.slice(0, settings.length);
+    // only include valid icons (not nulls or undefineds)
+    for (var i = 0; i < icons.length; i++) {
+      if (icons[i]) {
+        validIcons.push(icons[i]);
+      }
+    }
 
-    elCanvas.width = WIDTH;
-    elCanvas.height = WIDTH;
-    context.imagesToLoad = icons.length;
+    settings = Evme.Utils.getIconGroup(validIcons.length);
+
+    // can't render more icons than we have settings for
+    validIcons = validIcons.slice(0, settings.length);
+    numberOfIcons = validIcons.length;
+
+    context.imagesToLoad = numberOfIcons;
     context.imagesLoaded = [];
 
-    for (var i = 0; i < icons.length; i++) {
+    for (var i = 0; i < numberOfIcons; i++) {
       // render the icons from bottom to top
-      var icon = icons[icons.length - 1 - i];
+      var icon = validIcons[numberOfIcons - 1 - i];
 
-      loadIcon(icon, settings[(settings.length - icons.length) + i], context, i, onReady);
+      if (icon) {
+        var iconSettings = settings[(settings.length - numberOfIcons) + i];
+        loadIcon(icon, iconSettings, context, i, onReady);
+      }
     }
 
     return elCanvas;
@@ -137,7 +140,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
       var elImageCanvas = document.createElement('canvas'),
           imageContext = elImageCanvas.getContext('2d'),
           fixedImage = new Image(),
-          size = settings.size * Evme.Utils.devicePixelRatio;
+          size = Math.round(settings.size * SIZE);
 
       elImageCanvas.width = elImageCanvas.height = size;
 
@@ -191,28 +194,64 @@ Evme.IconGroup = new function Evme_IconGroup() {
         image = obj.image;
         settings = obj.settings;
 
-        var size = settings.size * Evme.Utils.devicePixelRatio;
-
         if (!image) {
           continue;
         }
 
+        var size = image.width,
+            shadowBounds = (settings.shadowOffsetX || 0);
+
         // shadow
-        context.shadowOffsetX = settings.shadowOffset;
-        context.shadowOffsetY = settings.shadowOffset;
+        context.shadowOffsetX = settings.shadowOffsetX || 0;
+        context.shadowOffsetY = settings.shadowOffsetY || 0;
         context.shadowBlur = settings.shadowBlur;
         context.shadowColor = 'rgba(0, 0, 0, ' + settings.shadowOpacity + ')';
 
+        var x = parse(settings.x, size),
+            y = parse(settings.y, size);
+
         // rotation
-        context.save();
-        context.translate(settings.x * Evme.Utils.devicePixelRatio + size / 2, settings.y * Evme.Utils.devicePixelRatio + size / 2);
-        context.rotate((settings.rotate || 0) * Math.PI / 180);
-        // draw the icon already!
-        context.drawImage(image, -size / 2, -size / 2);
-        context.restore();
+        if (settings.rotate) {
+          context.save();
+          context.translate(x + size / 2, y + size / 2);
+          context.rotate((settings.rotate || 0) * Math.PI / 180);
+          context.drawImage(image, -size / 2, -size / 2);
+          context.restore();
+        } else {
+          context.drawImage(image, x, y);
+        }
       }
 
       onAllIconsReady && onAllIconsReady(context.canvas);
+    }
+
+    // parses a size from the config
+    // can be something like "center", "center+4" or just "4"
+    function parse(value, size) {
+      var newValue = value,
+          match = value.toString().match(/(center|left|right)(\+|\-)?(\d+)?/);
+
+      if (match) {
+        var pos = match[1],
+            op = match[2],
+            mod = (parseInt(match[3]) || 0) * SCALE_RATIO;
+
+        switch (pos) {
+          case 'center': newValue = (SIZE - size)/2; break;
+          case 'left': newValue = 0; break;
+          case 'right': newValue = SIZE - size - shadowBounds; break;
+        }
+
+        switch (op) {
+          case '+': newValue += mod; break;
+          case '-': newValue -= mod; break;
+        }
+      } else {
+        // if the value is a plain integer - need to adjust for pixel ratio
+        newValue *= SCALE_RATIO;
+      }
+
+      return parseInt(newValue) || 0;
     }
   }
 };

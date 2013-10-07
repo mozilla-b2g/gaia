@@ -71,55 +71,74 @@ body.evme-displayed #search-overlay:not(:empty){
     }
     #bgimage-overlay .content {
         position: absolute;
+        top: 0;
         left: 0;
         right: 0;
-        bottom: 0;
-        height: 4.2rem;
-        line-height: 4.2rem;
-        padding: 0 4rem 0 1rem;
+        height: 5.4rem;
+        padding: 0 6rem 0 3.2rem;
         z-index: 20;
-        cursor: pointer;
-        background: rgba(0, 0, 0, .8);
+        background: rgba(0, 0, 0, .4);
+     }
+     #bgimage-overlay.nosource .content {
+        line-height: 5.5rem;
      }
         #bgimage-overlay .content h2 {
             font-weight: 600;
             color: #b4dae7;
             font-size: 1.5rem;
-            height: 1.7rem;
-            margin-top: 0.5rem;
-            line-height: 100%;
+            margin: 1rem 0 0 0;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: none;
         }
         #bgimage-overlay.nosource .content h2 {
+            font-size: 1.7rem;
+            font-weight: 400;
             margin-top: 0;
-            height: 4.3rem;
-            line-height: 4.3rem;
         }
         #bgimage-overlay .content .source {
-            font-weight: 600;
             color: #fff;
             font-size: 1.3rem;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+            #bgimage-overlay .content .source b {
+                font-weight: inherit;
+            }
             #bgimage-overlay .content .source span {
                 text-decoration: underline;
             }
         #bgimage-overlay .content .close {
             background: url('../../images/imageclose.png') no-repeat 50% 50%/1.7rem;
             position: absolute;
-            top: 50%;
-            right: 0.5rem;
+            top: 0;
+            bottom: 0;
+            left: 0;
             z-index: 2;
-            width: 3.2rem;
-            height: 3.2rem;
-            margin-top: -1.6rem;
+            width: 2.5rem;
             cursor: pointer;
         }
+         #bgimage-overlay .content .close:after {
+              content: "";
+              position: absolute;
+              top: 0.4rem;
+              bottom: 0.4rem;
+              right: -0.1rem;
+              width: 0.1rem;
+              background: rgba(0, 0, 0, .3);
+              border-right: 0.1rem solid rgba(255, 255, 255, .3);
+          }
+        #bgimage-overlay .content .rightbutton {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            background: url('../../images/Wallpaper.png') 50% 50% / 2.7rem no-repeat,
+                        url('../../images/separator.png') 0% 50% / 0.1rem 3.7rem no-repeat;
+            width: 5rem;
+        }
+
 .fullscreen-bgimage #search-header {
     display: none;
 }

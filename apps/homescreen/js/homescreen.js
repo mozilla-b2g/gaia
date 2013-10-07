@@ -6,6 +6,8 @@ var Homescreen = (function() {
   var origin = document.location.protocol + '//homescreen.' +
     document.location.host.replace(/(^[\w\d]+.)?([\w\d]+.[a-z]+)/, '$2');
   setLocale();
+  var iconGrid = document.getElementById('icongrid');
+
   navigator.mozL10n.ready(function localize() {
     setLocale();
     GridManager.localize();
@@ -75,16 +77,42 @@ var Homescreen = (function() {
       var manager = target.parentNode === DockManager.page.olist ? DockManager :
                                                                    GridManager;
       manager.contextmenu(evt);
+      if (Homescreen.isInEditMode()) {
+        iconGrid.addEventListener('click', onClickHandler);
+      }
     } else if (!Homescreen.isInEditMode()) {
       // No long press over an icon neither edit mode
-      LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
+      evt.preventDefault();
+      var contextMenuEl = document.getElementById('contextmenu-dialog');
+
+      if (Configurator.getSection('search_page')) {
+        LazyLoader.load(['style/contextmenu.css',
+                         'shared/style/action_menu.css',
+                         contextMenuEl,
+                         'js/contextmenu.js'
+                         ], function callContextMenu() {
+                          navigator.mozL10n.translate(contextMenuEl);
+                          ContextMenuDialog.show();
+                        }
+        );
+      } else {
+        // only wallpaper
+        LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
                       function callWallpaper() {
-        Wallpaper.contextmenu();
-      });
+                        Wallpaper.contextmenu();
+                      });
+      }
+    }
+  }
+  // dismiss edit mode by tapping in an area of the view where there is no icon
+  function onClickHandler(evt) {
+    if (!('isIcon' in evt.target.dataset)) {
+      exitFromEditMode();
     }
   }
 
   function exitFromEditMode() {
+    iconGrid.removeEventListener('click', onClickHandler);
     Homescreen.setMode('normal');
     GridManager.exitFromEditMode();
     if (typeof ConfirmDialog !== 'undefined') {
@@ -142,14 +170,17 @@ var Homescreen = (function() {
     /*
      * Displays the contextual menu given an app.
      *
-     * @param {Application} app
-     *                      The application object.
+     * @param {Object} Icon object
+     *
      */
-    showAppDialog: function h_showAppDialog(app) {
-      LazyLoader.load(['shared/style/buttons.css', 'shared/style/headers.css',
-                       'shared/style/confirm.css', 'style/request.css',
+    showAppDialog: function h_showAppDialog(icon) {
+      LazyLoader.load(['shared/style/buttons.css',
+                       'shared/style/headers.css',
+                       'shared/style/confirm.css',
+                       'style/request.css',
+                       document.getElementById('confirm-dialog'),
                        'js/request.js'], function loaded() {
-        ConfirmDialog.showApp(app);
+        ConfirmDialog.showApp(icon);
       });
     },
 

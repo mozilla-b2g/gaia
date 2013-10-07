@@ -33,6 +33,8 @@ contacts.List = (function() {
       inSelectMode = false,
       selectForm = null,
       selectActionButton = null,
+      selectMenu = null,
+      standardMenu = null,
       groupList = null,
       searchList = null,
       currentlySelected = 0,
@@ -511,9 +513,12 @@ contacts.List = (function() {
     if (i < rowsPerPage)
       notifyAboveTheFold();
 
-    Contacts.view('Search', function viewLoaded() {
+    // If the search view has been activated by the user, then send newly
+    // loaded contacts over to populate any in-progress search.  Nothing
+    // to do if search is not actived.
+    if (contacts.Search && contacts.Search.appendNodes) {
       contacts.Search.appendNodes(nodes);
-    });
+    }
   }
 
   // Time until we show the first contacts "above the fold" is a very
@@ -534,7 +539,6 @@ contacts.List = (function() {
     LazyLoader.load([vm_file], function() {
       var scrollMargin = ~~(viewHeight * 1.5);
       var scrollDelta = ~~(scrollMargin / 2);
-      var maxDepth = 4;
       monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
                                      scrollDelta, onscreen, offscreen);
     });
@@ -601,6 +605,11 @@ contacts.List = (function() {
   // by first time
   var onListRendered = function onListRendered() {
     FixedHeader.refresh();
+
+    // If there are zero contacts, then we still need to notify
+    // that the initial screen has been displayed.  This is a no-op
+    // if the notification has already happened.
+    notifyAboveTheFold();
 
     PerformanceTestingHelper.dispatch('startup-path-done');
     fb.init(function contacts_init() {
@@ -881,9 +890,9 @@ contacts.List = (function() {
         } else {
           if (chunk.length)
             successCb(chunk);
-          onListRendered();
           var showNoContacs = (num === 0);
           toggleNoContactsScreen(showNoContacs);
+          onListRendered();
           dispatchCustomEvent('listRendered');
           loading = false;
         }
@@ -1384,6 +1393,11 @@ contacts.List = (function() {
     return promise;
   };
 
+  function toggleMenus() {
+    selectMenu.classList.toggle('hide');
+    standardMenu.classList.toggle('hide');
+  }
+
   /*
     Set the list in select mode, allowing you to configure an action to
     be executed when the user does the selection as well as a title to
@@ -1399,6 +1413,8 @@ contacts.List = (function() {
     if (selectForm === null) {
       selectForm = document.getElementById('selectable-form');
 
+      selectMenu = document.getElementById('select-menu');
+      standardMenu = document.getElementById('standard-menu');
       selectActionButton = document.getElementById('select-action');
       selectActionButton.disabled = true;
       selectAll = document.getElementById('select-all');
@@ -1409,15 +1425,8 @@ contacts.List = (function() {
 
     scrollable.classList.add('selecting');
 
-    // Menus
-    var menus = document.querySelectorAll(
-      '#view-contacts-list menu[type="toolbar"] button');
-    menus = Array.prototype.slice.call(menus, 0);
-    menus.forEach(function onMenu(button) {
-      button.classList.add('hide');
-    });
+    toggleMenus();
 
-    selectActionButton.classList.remove('hide');
     selectActionButton.textContent = title;
     // Clear any previous click action and setup the current one
     selectActionButton.removeEventListener('click', boundSelectAction4Select);
@@ -1511,7 +1520,8 @@ contacts.List = (function() {
     });
 
     selectActionButton.disabled = true;
-    selectActionButton.classList.add('hide');
+
+    toggleMenus();
 
     // Clean the checks
     setTimeout(function clearAllChecks() {

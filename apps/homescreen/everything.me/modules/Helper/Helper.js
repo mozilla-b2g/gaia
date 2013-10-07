@@ -8,6 +8,7 @@ Evme.Helper = new function Evme_Helper() {
 	elTitle = null,
 	elList = null,
 	elTip = null,
+    elSaveSearch = null,
 	_data = {},
 	defaultText = "",
 	scroll = null,
@@ -34,11 +35,13 @@ Evme.Helper = new function Evme_Helper() {
         el = options.el;
         elTitle = options.elTitle;
         elTip = options.elTip;
+        elSaveSearch = options.elSaveSearch;
         elWrapper = el.parentNode;
         elList = Evme.$("ul", el)[0];
 
         elList.addEventListener("click", elementClick, false);
         elTitle.addEventListener("click", titleClicked, false);
+        elSaveSearch.addEventListener("click", saveSearchClicked, false);
         
         self.reset();
 
@@ -103,7 +106,7 @@ Evme.Helper = new function Evme_Helper() {
     this.animateLeft = function animateLeft(callback) {
         el.classList.add("animate");
         window.setTimeout(function onTimeout(){
-            el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth + "px)";
+            el.style.cssText += '; transform: translateX(' + Evme.Utils.rem(-el.offsetWidth) + ')';
             window.setTimeout(function onTimeout(){
                 el.classList.remove("animate");
                 window.setTimeout(function onTimeout(){
@@ -115,7 +118,7 @@ Evme.Helper = new function Evme_Helper() {
     this.animateRight = function animateRight(callback) {
         el.classList.add("animate");
         window.setTimeout(function onTimeout(){
-            el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth + "px)";
+          el.style.cssText += '; transform: translateX(' + Evme.Utils.rem(el.offsetWidth) + ')';
             window.setTimeout(function onTimeout(){
                 el.classList.remove("animate");
                 window.setTimeout(function onTimeout(){
@@ -125,7 +128,7 @@ Evme.Helper = new function Evme_Helper() {
         }, 50);
     };
     this.animateFromRight = function animateFromRight() {
-        el.style.cssText += "; -moz-transform: translateX(" + el.offsetWidth + "px)";
+      el.style.cssText += '; transform: translateX(' + Evme.Utils.rem(el.offsetWidth) + ')';
         window.setTimeout(function onTimeout(){
             el.classList.add("animate");
             window.setTimeout(function onTimeout(){
@@ -137,7 +140,7 @@ Evme.Helper = new function Evme_Helper() {
         }, 20);
     };
     this.animateFromLeft = function animateFromLeft() {
-        el.style.cssText += "; -moz-transform: translateX(" + -el.offsetWidth + "px)";
+      el.style.cssText += '; transform: translateX(' + Evme.Utils.rem(-el.offsetWidth) + ')';
         window.setTimeout(function onTimeout(){
             el.classList.add("animate");
             window.setTimeout(function onTimeout(){
@@ -349,6 +352,8 @@ Evme.Helper = new function Evme_Helper() {
         } else {
             elTitle.classList.add("notype");
         }
+        
+        updateBookmarkState();
 
         return html;
     };
@@ -357,6 +362,7 @@ Evme.Helper = new function Evme_Helper() {
         if (titleVisible) return;
         
         elWrapper.classList.add("close");
+        elTitle.classList.add("visible");
         elTitle.classList.remove("close");
         self.hideTip();
         window.setTimeout(self.disableCloseAnimation, 50);
@@ -368,6 +374,7 @@ Evme.Helper = new function Evme_Helper() {
         if (!titleVisible) return;
         
         elWrapper.classList.remove("close");
+        elTitle.classList.remove("visible");
         elTitle.classList.add("close");
         window.setTimeout(self.disableCloseAnimation, 50);
         self.scrollToStart();
@@ -547,6 +554,40 @@ Evme.Helper = new function Evme_Helper() {
             
         if (val) {
             cbClick(elClicked, index, isVisibleItem(index), val, valToSend, source, type);
+        }
+    }
+
+    function saveSearchClicked(e) {
+        var savedAsCollection = elSaveSearch.dataset.savedAsCollection,
+            collectionId = elSaveSearch.dataset.collectionId,
+            data = {
+                "collectionId": collectionId,
+                "callback": updateBookmarkState
+            };
+        
+        if (savedAsCollection === "true") {
+            Evme.EventHandler.trigger(NAME, 'unsaveSearch', data);
+        } else {
+            Evme.EventHandler.trigger(NAME, 'saveSearch', data);
+        }
+    }
+    
+    // check if query already saved as collection
+    function updateBookmarkState() {
+        var collections = EvmeManager.getCollections();
+
+        var found = collections.some(function isMatchingQuery(collection) {
+            var name = EvmeManager.getIconName(collection.origin);
+            if (name && name.toLowerCase() === title.toLowerCase()) {
+                elSaveSearch.dataset.savedAsCollection = true;
+                elSaveSearch.dataset.collectionId = collection.id;
+                return true;
+            }
+        });
+
+        if (!found) {
+            elSaveSearch.dataset.savedAsCollection = false;
+            elSaveSearch.dataset.collectionId = '';
         }
     }
 

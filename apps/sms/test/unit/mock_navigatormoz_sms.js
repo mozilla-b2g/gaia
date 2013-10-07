@@ -6,6 +6,7 @@ var MockNavigatormozMobileMessage = {
   _mSegmentInfoRequests: [],
   _mMarkReadRequest: null,
   _mMessagesRequest: null,
+  _mMessageRequest: null,
 
   send: function(recipients, content) {
     this._mSmsRequest = [];
@@ -40,6 +41,11 @@ var MockNavigatormozMobileMessage = {
     return this._mMessagesRequest;
   },
 
+  getMessage: function(aMessageID) {
+    this._mMessageRequest = {};
+    return this._mMessageRequest;
+  },
+
   mTriggerMessagesRequest: function(messages) {
     var mock = this;
     if (this._mMessagesRequest && this._mMessagesRequest.onsuccess) {
@@ -63,6 +69,11 @@ var MockNavigatormozMobileMessage = {
     }
   },
 
+  mTriggerSuccessMessageRequest: function() {
+    if (this._mMessageRequest && this._mMessageRequest.onsuccess) {
+      this._mMessageRequest.onsuccess.call(this, null);
+    }
+  },
   getSegmentInfoForText: function() {
     var lastRequest = {};
     this._mSegmentInfoRequests.push(lastRequest);
@@ -169,5 +180,6 @@ var MockNavigatormozMobileMessage = {
     this._mMmsRequest = null;
     this._mMarkReadRequest = null;
     this._mMessagesRequest = null;
+    this._mMessageRequest = null;
   }
 };

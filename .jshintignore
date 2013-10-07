@@ -1,0 +1,17 @@
+apps/homescreen/everything.me/**
+apps/pdfjs/content/**
+apps/pdfjs/test/**
+apps/email/build/**
+apps/email/built/**
+apps/email/js/ext/**
+apps/calendar/js/ext/**
+build/r.js
+apps/communications/contacts/oauth2/js/parameters.js
+apps/calendar/js/presets.js
+apps/email/js/alameda.js
+apps/email/js/tmpl_builder.js
+shared/js/opensearch.js
+apps/keyboard/js/imes/jspinyin/libpinyin.js
+shared/js/setImmediate.js
+apps/gallery/test/unit/setImmediate_test.js
+

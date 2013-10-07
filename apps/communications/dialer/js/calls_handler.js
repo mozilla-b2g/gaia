@@ -339,16 +339,7 @@ var CallsHandler = (function callsHandler() {
     window.close();
   }
 
-  var _previousMaxFontSize;
   function _changeMaxFontSize(evt) {
-    // Status bar
-    if (window.innerHeight <= 40) {
-      _previousMaxFontSize = KeypadManager.maxFontSize;
-      KeypadManager.maxFontSize = 26;
-    } else {
-      KeypadManager.maxFontSize = _previousMaxFontSize;
-    }
-
     handledCalls.forEach(function(hc) {
       hc.formatPhoneNumber();
     });
@@ -575,6 +566,9 @@ var CallsHandler = (function callsHandler() {
     if (handledCalls.length !== 1) {
       return;
     }
+    if (telephony.calls[0].state === 'incoming') {
+      return;
+    }
 
     if (telephony.active) {
       telephony.active.hold();
@@ -747,6 +741,10 @@ var CallsHandler = (function callsHandler() {
     telephony.conferenceGroup.add(telephony.active);
   }
 
+  function requestContactsTab() {
+    postToMainWindow('request-contacts');
+  }
+
   return {
     setup: setup,
 
@@ -767,6 +765,7 @@ var CallsHandler = (function callsHandler() {
     checkCalls: onCallsChanged,
     mergeActiveCallWith: mergeActiveCallWith,
     mergeConferenceGroupWithActiveCall: mergeConferenceGroupWithActiveCall,
+    requestContactsTab: requestContactsTab,
 
     get activeCall() {
       return activeCall();

@@ -46,15 +46,10 @@ form.search button[type="submit"] {
   left: 0;
   pointer-events: none;
   opacity: 0;
-  z-index: 1;
 }
 
 #view-screenshot.search {
   z-index: 1;
-}
-
-#view-screenshot.search > header {
-  display: none;
 }
 
 #view-screenshot.search > #view-screenshot-body {

@@ -7,3 +7,4 @@ copy-camera-app:
 	@rm -rf ./camera
 	@cp -r ../camera ./camera
 	@rm ./camera/manifest.webapp
+	@rm -rf ./camera/test

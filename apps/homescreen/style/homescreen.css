@@ -71,11 +71,11 @@ li:active {
 
 #bg-overlay {
   width: 100%;
-  height: 100%;
+  height: calc(100% - 7.5rem);
   position: fixed;
   top: 0;
   left: 0;
-  background-color: rgba(0,0,0,0.7);
+  background-color: rgba(0,0,0,0.1);
 }
 
 /* === Repaint Helper === */
@@ -94,9 +94,28 @@ li:active {
   opacity: 0.1;
 }
 
-/* Confirm dialog is hidden by default */
-#confirm-dialog {
-  display: none;
+.apps ol > li[data-is-collection = "true"] > div > img,
+#footer ol > li[data-is-collection = "true"] > div > img {
+  position: relative;
+  z-index: 20;
+}
+.apps ol > li[data-is-collection = "true"] > div:before,
+#footer ol > li[data-is-collection = 'true'] > div::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 5.8rem;
+  height: 5.8rem;
+  margin: 0.3rem 0 0 -2.9rem;
+  background: rgba(0, 0, 0, .1);
+  border: 0.2rem solid rgba(255, 255, 255, .5);
+  border-radius: 50%;
+  z-index: 10;
+  -moz-box-sizing: border-box;
+  background-clip: content-box;
+  transform: scale(1);
+  transition: transform 150ms ease-in-out;
 }
 
 body[data-mode = 'normal'] ol > li span.options {
@@ -119,7 +138,11 @@ body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
       height: .2rem;
   }
 }
-
+@media (min-width: 768px) {
+  #bg-overlay {
+    height: calc(100% - 16rem);
+  }
+}
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 40px
  * (for status bar/mini attention screen),

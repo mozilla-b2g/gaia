@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_call_screen.js');
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
@@ -22,6 +23,8 @@ var mocksHelperForHandledCall = new MocksHelper([
 ]).init();
 
 suite('dialer/handled_call', function() {
+  var realNavigatorSettings;
+
   const VOICEMAIL_NUMBER = '123';
   var subject;
   var mockCall;
@@ -33,6 +36,9 @@ suite('dialer/handled_call', function() {
   mocksHelperForHandledCall.attachTestHelpers();
 
   suiteSetup(function() {
+    realNavigatorSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     phoneNumber = Math.floor(Math.random() * 10000);
 
     sinon.stub(Voicemail, 'check', function(number, callback) {
@@ -65,6 +71,7 @@ suite('dialer/handled_call', function() {
   suiteTeardown(function() {
     templates.parentNode.removeChild(templates);
     Voicemail.check.restore();
+    navigator.mozSettings = realNavigatorSettings;
   });
 
   setup(function() {
@@ -168,6 +175,62 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockCallScreen.mEnableKeypadCalled);
       assert.isFalse(subject.node.hidden);
       assert.isTrue(subject.node.classList.contains('ongoing'));
+    });
+
+    suite('stk call', function() {
+      var reqStub, settingsSetSpy;
+      var contactLookupSpy, tel, contact;
+      setup(function() {
+        reqStub = {
+          onsuccess: null,
+          result: {
+            'icc.callmessage': 'stk second alpha identifier'
+          }
+        };
+        settingsSetSpy = this.sinon.spy();
+        var newCreateLock = function() {
+          return {
+            get: function() {
+              return reqStub;
+            },
+            set: settingsSetSpy
+          };
+        };
+        this.sinon.stub(navigator.mozSettings, 'createLock', newCreateLock);
+        tel = {
+          value: '666666666',
+          carrier: 'carrier',
+          type: 'type'
+        };
+        contact = {
+          id: 666,
+          name: ['from contact lookup'],
+          tel: [tel]
+        };
+        contactLookupSpy = this.sinon.spy(MockContacts, 'findByNumber');
+        mockCall = new MockCall(String(phoneNumber), 'dialing');
+        subject = new HandledCall(mockCall);
+      });
+
+      test('should display the icc call message', function() {
+        contactLookupSpy.yield(contact, tel, false);
+        reqStub.onsuccess();
+        assert.equal(subject.numberNode.textContent,
+                     'stk second alpha identifier');
+      });
+
+      test('should clear the icc call message setting', function() {
+        reqStub.onsuccess();
+        assert.isTrue(settingsSetSpy.calledOnce);
+        assert.isTrue(settingsSetSpy.calledWith({'icc.callmessage': null}));
+      });
+
+      test('should not let the contact lookup override the number', function() {
+        reqStub.onsuccess();
+        contactLookupSpy.yield(contact, tel, false);
+        assert.equal(subject.numberNode.textContent,
+                     'stk second alpha identifier');
+      });
     });
   });
 
@@ -639,6 +702,14 @@ suite('dialer/handled_call', function() {
   });
 
   suite('phone number', function() {
+    test('formatPhoneNumber in status bar mode should reset the fontsize',
+    function() {
+      MockCallScreen.mInStatusBarMode = true;
+      subject.numberNode.style.fontSize = '36px';
+      subject.formatPhoneNumber();
+      assert.equal(subject.numberNode.style.fontSize, '');
+    });
+
     test('check replace number', function() {
       mockCall = new MockCall('888', 'incoming');
       subject = new HandledCall(mockCall);

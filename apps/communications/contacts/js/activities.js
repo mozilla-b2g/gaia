@@ -120,7 +120,9 @@ var ActivityHandler = {
         // If no required type of data
         var dismiss = {
           title: _('ok'),
-          callback: ConfirmDialog.hide
+          callback: function() {
+            ConfirmDialog.hide();
+          }
         };
         Contacts.confirmDialog(null, noDataStr, dismiss);
         break;

@@ -11,6 +11,8 @@ requireApp('clock/js/timer_panel.js');
 
 suite('Timer.Panel', function() {
   var p;
+  var clock;
+  var isHidden, isVisible;
 
   suiteSetup(function() {
     loadBodyHTML('/index.html');
@@ -19,10 +21,18 @@ suite('Timer.Panel', function() {
 
     Picker = MockPicker;
 
+    isHidden = function(element) {
+      return element.className.contains('hidden');
+    };
+
   });
 
   suiteTeardown(function() {
     Picker = p;
+  });
+
+  setup(function() {
+    clock = this.sinon.useFakeTimers();
   });
 
   test('shape:prototype ', function() {
@@ -74,13 +84,85 @@ suite('Timer.Panel', function() {
 
     panel.toggle(start, pause);
 
-    assert.isFalse(start.classList.contains('hide'));
-    assert.isTrue(pause.classList.contains('hide'));
+    assert.isFalse(isHidden(start));
+    assert.isTrue(isHidden(pause));
 
     panel.toggle(pause, start);
 
-    assert.isTrue(start.classList.contains('hide'));
-    assert.isFalse(pause.classList.contains('hide'));
+    assert.isTrue(isHidden(start));
+    assert.isFalse(isHidden(pause));
+  });
+
+  test('Set timer state (paused)', function() {
+    var now = Date.now();
+    var oneHour = 60 * 60 * 1000;
+    var timer = new Timer({
+      startAt: now,
+      endAt: now + oneHour,
+      pauseAt: now,
+      duration: oneHour,
+      lapsed: 0,
+      state: Timer.PAUSED,
+      sound: '0'
+    });
+
+    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    panel.timer = timer;
+    panel.onvisibilitychange(true);
+
+    assert.isTrue(isHidden(panel.nodes.dialog));
+    assert.isTrue(isHidden(panel.nodes.pause));
+
+    assert.isFalse(isHidden(panel.nodes.time));
+    assert.isFalse(isHidden(panel.nodes.start));
+    assert.isFalse(isHidden(panel.nodes.cancel));
+
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
+    clock.tick(5000);
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
+
+  });
+
+  test('Set timer state (started)', function() {
+    var now = Date.now();
+    var oneHour = 60 * 60 * 1000;
+    var timer = new Timer({
+      startAt: now,
+      endAt: now + oneHour,
+      pauseAt: 0,
+      duration: oneHour,
+      lapsed: 0,
+      state: Timer.STARTED,
+      sound: '0'
+    });
+
+    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    panel.timer = timer;
+    panel.onvisibilitychange(true);
+
+    assert.isTrue(isHidden(panel.nodes.dialog));
+    assert.isTrue(isHidden(panel.nodes.start));
+
+    assert.isFalse(isHidden(panel.nodes.time));
+    assert.isFalse(isHidden(panel.nodes.pause));
+    assert.isFalse(isHidden(panel.nodes.cancel));
+
+    assert.equal(panel.nodes.time.textContent, '01:00:00');
+    clock.tick(5000);
+    assert.equal(panel.nodes.time.textContent, '00:59:55');
+  });
+
+  test('Set timer state (blank timer)', function() {
+    var timer = new Timer();
+    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    panel.timer = timer;
+    panel.onvisibilitychange(true);
+
+    assert.isFalse(isHidden(panel.nodes.dialog));
+
+    assert.equal(panel.nodes.time.textContent, '00:00:00');
+    clock.tick(5000);
+    assert.equal(panel.nodes.time.textContent, '00:00:00');
   });
 
   suite('Timer.Panel, Events', function() {
@@ -98,6 +180,7 @@ suite('Timer.Panel', function() {
       this.sinon.spy(panel.timer, 'start');
       this.sinon.spy(panel.timer, 'pause');
       this.sinon.spy(panel.timer, 'cancel');
+      this.sinon.spy(panel.nodes.sound, 'focus');
     });
 
     test('click: start ', function() {
@@ -134,6 +217,27 @@ suite('Timer.Panel', function() {
       assert.isNull(panel.timer);
     });
 
+    test('click: menu ', function() {
+      var menu = panel.nodes.menu;
+      var sound = panel.nodes.sound;
+
+      menu.dispatchEvent(
+        new CustomEvent('click')
+      );
+      assert.ok(panel.onclick.called);
+      assert.ok(sound.focus.called);
+    });
+
+    test('blur: sound', function() {
+      var menu = panel.nodes.menu;
+      var sound = panel.nodes.sound;
+      Utils.changeSelectByValue(sound, 'ac_normal_gem_echoes.opus');
+      sound.dispatchEvent(
+        new CustomEvent('blur')
+      );
+
+      assert.equal(menu.textContent, 'ac_normal_gem_echoes_opus');
+    });
   });
 
 });

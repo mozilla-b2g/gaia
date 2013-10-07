@@ -42,8 +42,9 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Email.png",
-    "79": "/style/icons/Email.png"
+    "79": "/style/icons/Email_90.png",
+    "60": "/style/icons/Email_60.png",
+    "120": "/style/icons/Email_120.png"
   },
   "activities": {
     "new": {

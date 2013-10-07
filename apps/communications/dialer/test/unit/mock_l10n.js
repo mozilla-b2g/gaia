@@ -2,6 +2,9 @@ var MockMozL10n = {
   get: function get(key) {
     return key;
   },
+  translate: function(node) {
+
+  },
   DateTimeFormat: function() {
     this.localeFormat = function(date, format) {
       return date;
@@ -22,5 +25,8 @@ var MockLazyL10n = {
         return key;
       });
     }
+  },
+  translate: function(node) {
+
   }
 };

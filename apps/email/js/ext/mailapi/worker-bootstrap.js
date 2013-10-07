@@ -13539,6 +13539,7 @@ CronSync.prototype = {
       var notifyHeaders = [];
       newHeaders.some(function(header, i) {
         notifyHeaders.push({
+          date: header.date,
           from: header.author.name || header.author.address,
           subject: header.subject,
           accountId: account.id,
@@ -13891,6 +13892,9 @@ exports.recreateIdentities = recreateIdentities;
  *     `https://<domain>/autodiscover/autodiscover.xml` and
  *     `https://autodiscover.<domain>/autodiscover/autodiscover.xml`
  *     (TODO: perform a DNS SRV lookup on the server)
+ *     Note that we do not treat a failure of autodiscover as fatal; we keep
+ *     going, but will save off the error to report if we don't end up with a
+ *     successful account creation.
  *  6) Check the Mozilla ISPDB for an XML config file for the domain at
  *     `https://live.mozillamessaging.com/autoconfig/v1.1/<domain>`
  *  7) Perform an MX lookup on the domain, and, if we get a different domain,
@@ -14082,8 +14086,8 @@ Autoconfigurator.prototype = {
   },
 
   /**
-   * Attempt to get an XML config file from the domain associated with the
-   * user's email address. If that fails, attempt ActiveSync Autodiscovery.
+   * Attempt to get a Thunderbird autoconfig-style XML config file from the
+   * domain associated with the user's email address.
    *
    * @param userDetails an object containing `emailAddress` and `password`
    *        attributes
@@ -14106,15 +14110,7 @@ Autoconfigurator.prototype = {
 
       // See <http://tools.ietf.org/html/draft-nottingham-site-meta-04>.
       var url = 'http://' + domain + '/.well-known/autoconfig' + suffix;
-      self._getXmlConfig(url, function(error, config, errorDetails) {
-        if (self._isSuccessOrFatal(error)) {
-          callback(error, config, errorDetails);
-          return;
-        }
-
-        console.log('  Trying domain autodiscover');
-        self._getConfigFromAutodiscover(userDetails, callback);
-      });
+      self._getXmlConfig(url, callback);
     });
   },
 
@@ -14229,6 +14225,10 @@ Autoconfigurator.prototype = {
                   .replace('%REALNAME%', userDetails.displayName);
     }
 
+    // Saved autodiscover errors that we report in the event we come to the
+    // end of the process and we failed to create an account.
+    var autodiscoverError = null, autodiscoverErrorDetails = null;
+
     function onComplete(error, config, errorDetails) {
       console.log(error ? 'FAILURE' : 'SUCCESS');
 
@@ -14248,6 +14248,13 @@ Autoconfigurator.prototype = {
         }
       }
 
+      // If we had a saved autodiscover error, report that instead of whatever
+      // happened in the subsequent ISPDB stages.
+      if (error && autodiscoverError) {
+        error = autodiscoverError;
+        errorDetails = autodiscoverErrorDetails;
+      }
+
       callback(error, config, errorDetails);
     }
 
@@ -14265,7 +14272,7 @@ Autoconfigurator.prototype = {
         return;
       }
 
-      console.log('  Looking at domain');
+      console.log('  Looking at domain (Thunderbird autoconfig standard)');
       self._getConfigFromDomain(userDetails, domain, function(error, config,
                                                               errorDetails) {
         if (self._isSuccessOrFatal(error)) {
@@ -14273,15 +14280,45 @@ Autoconfigurator.prototype = {
           return;
         }
 
-        console.log('  Looking in the Mozilla ISPDB');
-        self._getConfigFromDB(domain, function(error, config, errorDetails) {
-          if (self._isSuccessOrFatal(error)) {
+        console.log('  Trying ActiveSync domain autodiscover');
+        self._getConfigFromAutodiscover(userDetails, function(error, config,
+                                                              errorDetails) {
+          // We treat ActiveSync autodiscover failures specially because of the
+          // odd situation documented on
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=921529 where
+          // t-mobile.de has ActiveSync and IMAP servers, but the ActiveSync
+          // server use costs extra and the autodiscover process was stopping us
+          // before we'd try IMAP.
+
+          // So, if there was no error, go directly to success.
+          if (!error) {
+            onComplete(error, config, errorDetails);
+            return;
+          }
+          // Otherwise, save off the error if it was 'not-authorized' and
+          // continue the autoconfig process.  We will clobber *whatever* error
+          // is reported with these errors if we fail to create the account.
+          // The rationale/discussion is at:
+          // https://bugzilla.mozilla.org/show_bug.cgi?id=921529#c3
+          if (error === 'not-authorized') {
+            autodiscoverError = error;
+            autodiscoverErrorDetails = errorDetails;
+          }
+          else if (self._isSuccessOrFatal(error)) {
             onComplete(error, config, errorDetails);
             return;
           }
 
-          console.log('  Looking up MX');
-          self._getConfigFromMX(domain, onComplete);
+          console.log('  Looking in the Mozilla ISPDB');
+          self._getConfigFromDB(domain, function(error, config, errorDetails) {
+            if (self._isSuccessOrFatal(error)) {
+              onComplete(error, config, errorDetails);
+              return;
+            }
+
+            console.log('  Looking up MX');
+            self._getConfigFromMX(domain, onComplete);
+          });
         });
       });
     });

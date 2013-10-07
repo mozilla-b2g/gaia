@@ -94,6 +94,12 @@ suite('Utils', function() {
   });
 
   suite('Utils.getHeaderDate', function() {
+    var spy;
+
+    setup(function() {
+      spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
+        'localeFormat');
+    });
 
     test('(today [String|Number|Date])', function() {
       var expect = 'today';
@@ -124,22 +130,25 @@ suite('Utils', function() {
     });
 
     test('between 2 and 5 days ago', function() {
-      var spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
-        'localeFormat');
       for (var days = 2; days <= 5; days++) {
         var date = Date.now() - 86400000 * days;
         Utils.getHeaderDate(date);
         assert.ok(spy.called);
         assert.equal(+spy.args[0][0], +date);
         assert.equal(spy.args[0][1], '%A');
-        spy.reset();
       }
     });
 
     test('more than 6 days ago', function() {
-      var spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
-        'localeFormat');
       var date = Date.now() - 86400000 * 6;
+      Utils.getHeaderDate(date);
+      assert.ok(spy.called);
+      assert.equal(+spy.args[0][0], +date);
+      assert.equal(spy.args[0][1], '%x');
+    });
+
+    test('future time case', function() {
+      var date = Date.now() + 86400000 * 3;
       Utils.getHeaderDate(date);
       assert.ok(spy.called);
       assert.equal(+spy.args[0][0], +date);

@@ -279,8 +279,7 @@ var DragDropManager = (function() {
         // Removing hover class for current collection
         removeHoverClass();
         previousElement = undefined;
-        dataset = container.dataset;
-        sendEvmeDropApp(dataset.origin, dataset.entryPoint);
+        sendCollectionDropApp(container.dataset);
         window.URL.revokeObjectURL(url);
         container.classList.remove('hidden');
         callback();
@@ -291,16 +290,23 @@ var DragDropManager = (function() {
   /*
    * Dispatch an event when a dragged icon is dropped on a collection
    *
-   * {String} The origin of the icon
-   * {String} The entry point of the icon
+   * {Object} descriptor's icon
    */
-  function sendEvmeDropApp(origin, entryPoint) {
-    window.dispatchEvent(new CustomEvent('EvmeDropApp', {
+  function sendCollectionDropApp(dataset) {
+    var descriptor = {};
+    if ('bookmarkURL' in dataset) {
+      descriptor.bookmarkURL = dataset.bookmarkURL;
+    }
+    if ('manifestURL' in dataset) {
+      descriptor.manifestURL = dataset.manifestURL;
+    }
+    if ('entry_point' in dataset) {
+      descriptor.entry_point = dataset.entry_point;
+    }
+
+    window.dispatchEvent(new CustomEvent('collectiondropapp', {
       'detail': {
-        'app': {
-          'id': origin,
-          'entryPoint': entryPoint
-        },
+        'descriptor': descriptor,
         'collection': {
           'id': overlapElem.dataset.collectionId
         }
@@ -366,6 +372,10 @@ var DragDropManager = (function() {
     }
 
     overCollectionTimeout = setTimeout(function() {
+      if (overlapElem !== collection.container) {
+        overCollectionTimeout = null;
+        return;
+      }
       page.drop(icon, collection);
       removeHoverClass();
       previousElement = overlapElem = icon.container;

@@ -14,7 +14,6 @@ Evme.Config = Evme.__config = {
     "numberOfAppInCollectionIcon": 3,
 
     "numberOfAppsToLoad": 16,
-    "bgImageSize": [320, 460],
     "searchbar": {
         "timeBeforeEventPause": 10000,
         "timeBeforeEventIdle": 10000
@@ -57,59 +56,60 @@ Evme.Config = Evme.__config = {
     "maxHistoryEntries": "10",
     "emptyCollectionIcon": "/everything.me/images/empty-collection.png",
     "iconsGroupSettings": {
-	"1": [{
-	    "x": 10,
-	    "y": 6,
-	    "size": 54,
-            "shadowOffset": 2,
-            "shadowBlur": 1,
-	    "shadowOpacity": 0.1
-	}],
-	"2": [{
-	    "x": 20,
-	    "y": 10,
-	    "size": 54,
-	    "darken": 0.25,
-	    "shadowOffset": 2,
-	    "shadowBlur": 2,
-	    "shadowOpacity": 0.1
-	},
-	{
-	    "x": 0,
-	    "y": 6,
-	    "size": 54,
-	    "shadowOffset": 4,
-	    "shadowOffsetX": 2,
-	    "shadowBlur": 4,
-            "shadowOpacity": 0.2
-	}],
-	"3": [{
-	    "x": 26,
-	    "y": 20,
-	    "size": 46,
-	    "darken": 0.4,
-	    "shadowOffset": 2,
-	    "shadowBlur": 1,
-	    "shadowOpacity": 0.1
-        },
-        {
-	    "x": 18,
-	    "y": 10,
-	    "size": 46,
-	    "darken": 0.25,
-            "shadowOffset": 2,
+        "1": [{
+            "x": 'center',
+            "y": 'center',
+            "size": 0.65,
+            "shadowOffsetX": 0,
+            "shadowOffsetY": 2,
             "shadowBlur": 2,
-	    "shadowOpacity": 0.1
+            "shadowOpacity": 0.8
+        }],
+        "2": [{
+            "x": 24,
+            "y": 'center',
+            "size": 0.5,
+            "shadowOffsetX": 0,
+            "shadowOffsetY": 2,
+            "shadowBlur": 2,
+            "shadowOpacity": 0.7
         },
         {
-	    "x": 0,
-	    "y": 6,
-	    "size": 54,
-            "shadowOffset": 4,
-            "shadowOffsetX": 2,
-            "shadowBlur": 4,
-	    "shadowOpacity": 0.2
-	}]
+            "x": 6,
+            "y": 'center',
+            "size": 0.6,
+            "shadowOffsetX": 0,
+            "shadowOffsetY": 2,
+            "shadowBlur": 2,
+            "shadowOpacity": 0.8
+        }],
+        "3": [{
+            "x": 'right',
+            "y": 'center',
+            "size": 0.45,
+            "shadowOffsetX": 1,
+            "shadowOffsetY": 1,
+            "shadowBlur": 2,
+            "shadowOpacity": 0.4
+        },
+        {
+            "x": 'center+4',
+            "y": 'center',
+            "size": 0.5,
+            "shadowOffsetX": 1,
+            "shadowOffsetY": 1,
+            "shadowBlur": 2,
+            "shadowOpacity": 0.7
+        },
+        {
+            "x": 'left',
+            "y": 'center',
+            "size": 0.6,
+            "shadowOffsetX": 1,
+            "shadowOffsetY": 1,
+            "shadowBlur": 2,
+            "shadowOpacity": 0.9
+        }]
     },
     "design": {
         "apps": {
@@ -157,6 +157,7 @@ Evme.Config = Evme.__config = {
         "320": "dating",
         "286": "electronics",
         "248": "email",
+        "376": "entertainment",
         "361": "environment",
         "282": "fashion",
         "277": "funny",
@@ -181,7 +182,7 @@ Evme.Config = Evme.__config = {
         "306": "travel",
         "213": "tv",
         "211": "video",
-	"249": "weather",
-	"357": "utilities"
+        "249": "weather",
+        "357": "utilities"
     }
 };

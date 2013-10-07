@@ -6,6 +6,7 @@ Evme.Utils = new function Evme_Utils() {
         newUser = false, isTouch = false,
         parsedQuery = parseQuery(),
         elContainer = null,
+        elOverlay = null,
         headEl = document.querySelector('html>head'),
         filterSelectorTemplate = '.evme-apps ul:not({0}) li[{1}="{2}"]',
 
@@ -13,32 +14,33 @@ Evme.Utils = new function Evme_Utils() {
         uuidBlob = new Blob(),
 
         CONTAINER_ID = "evmeContainer", // main E.me container
+        OVERLAY_ID = "evmeOverlay",     // E.me element visible on all grid pages
         SCOPE_CLASS = "evmeScope",      // elements with E.me content
 
         COOKIE_NAME_CREDENTIALS = "credentials",
 
         CLASS_WHEN_KEYBOARD_IS_VISIBLE = 'evme-keyboard-visible',
 
-        // all the installed apps (installed, clouds, marketplace) should be the same size
-        // however when creating icons in the same size there's still a noticable difference
-        // this is because the OS' native icons have a transparent padding around them
-        // so to make our icons look the same we add this padding artificially
-        INSTALLED_CLOUDS_APPS_ICONS_PADDING = 2,
+        OS_ICON_SIZE = 0,
 
         OSMessages = this.OSMessages = {
-          "APP_INSTALL": "add-bookmark",
           "OPEN_URL": "open-url",
           "SHOW_MENU": "show-menu",
           "HIDE_MENU": "hide-menu",
           "MENU_HEIGHT": "menu-height",
           "EVME_OPEN": "evme-open",
-          "GET_ICON_SIZE": "get-icon-size"
+          "GET_ICON_SIZE": "get-icon-size",
+          "SET_WALLPAPER": "set-wallpaper"
         },
 
         host = document.location.host,
         domain = host.replace(/(^[\w\d]+\.)?([\w\d]+\.[a-z]+)/, '$2'),
         protocol = document.location.protocol,
         homescreenOrigin = protocol + '//homescreen.' + domain;
+        
+    // reduce this from our icons that should be the same as the OS
+    // since OS icons have some transparent padding to them
+    this.OS_ICON_PADDING = 2;
 
     this.PIXEL_RATIO_NAMES = {
       NORMAL: 'normal',
@@ -51,10 +53,8 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.REGEXP = {
-	URL: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+	 URL: /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
     };
-
-    this.devicePixelRatio =  window.innerWidth / 320;
 
     this.isKeyboardVisible = false;
 
@@ -62,9 +62,13 @@ Evme.Utils = new function Evme_Utils() {
 
     this.EMPTY_APPS_SIGNATURE = '';
 
-    this.APPS_FONT_SIZE = 12 * self.devicePixelRatio;
+    this.APPS_FONT_SIZE = 13 * (window.devicePixelRatio || 1);
+    this.APP_NAMES_SHADOW_OFFSET_X = 1;
+    this.APP_NAMES_SHADOW_OFFSET_Y = 1;
+    this.APP_NAMES_SHADOW_BLUR = 1;
+    this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 1)';
 
-    this.PIXEL_RATIO_NAME = (this.devicePixelRatio > 1) ? this.PIXEL_RATIO_NAMES.HIGH : this.PIXEL_RATIO_NAMES.NORMAL;
+    this.PIXEL_RATIO_NAME = (window.devicePixelRatio > 1) ? this.PIXEL_RATIO_NAMES.HIGH : this.PIXEL_RATIO_NAMES.NORMAL;
 
     this.NOOP = function(){};
 
@@ -77,6 +81,9 @@ Evme.Utils = new function Evme_Utils() {
         isTouch = window.hasOwnProperty("ontouchstart");
 
         elContainer = document.getElementById(CONTAINER_ID);
+        elOverlay = document.getElementById(OVERLAY_ID);
+        OS_ICON_SIZE = self.sendToOS(self.OSMessages.GET_ICON_SIZE);
+        OS_ICON_SIZE *= window.devicePixelRatio;
     };
 
     this.logger = function logger(level) {
@@ -100,6 +107,68 @@ Evme.Utils = new function Evme_Utils() {
     this.log = this.logger("log");
     this.warn = this.logger("warn");
     this.error = this.logger("error");
+
+    /**
+     * Creates a <style> element which basically does result deduping
+     * by applying a css rule {display:none} to certain results
+     * This is to avoid complex JS deduping
+     * @param  {JSON object} cfg
+     *
+     * @example
+     * Cloud results should be hidden if already bookmarked
+     * Installed results call filterProviderResults with the following cfg:
+     * {
+     *  id: 'installed',
+     *  containerSelector: '.installed',
+     *  attribute: 'data-url',
+     *  items: [url1, url2]
+     * }
+     * filterProviderResults creates the following element in <head>
+     * <style>ul:not(.installed) li[data-url="url1"], ul:not(.installed) li[data-url="url2"] {
+     *  display: none
+     * }
+     * </style>
+     *
+     * More uses can be found in InstalledAppService for marketplace result deduping
+     */
+    this.filterProviderResults = function filterProviderResults(cfg) {
+        var id = cfg.id,
+            items = cfg.items,
+            styleEl = document.querySelector('style[id="'+id+'"]'),
+            html = '';
+
+        if (!styleEl) {
+            styleEl = Evme.$create('style', { "id": id });
+            headEl.appendChild(styleEl);
+        }
+
+        // if no items were supplied - simply removed current content
+        if (items && items.length) {
+            var selectors = [],
+                value = cfg.value,
+                attribute = cfg.attribute,
+                containerSelector = cfg.containerSelector,
+                renderTemplate = self.renderTemplate;
+
+            for (var i=0,item; item=items[i++];) {
+                if (value) {
+                  item = renderTemplate(value, item);
+                }
+                selectors.push(
+                    renderTemplate(filterSelectorTemplate, containerSelector, attribute, item)
+                );
+            }
+            html = selectors.join(',')+'{display:none}';
+        }
+        styleEl.innerHTML = html;
+    };
+
+    this.renderTemplate = function renderTemplate(template) {
+        for (var i=0,arg; arg=arguments[++i];) {
+            template = template.replace('{'+(i-1)+'}', arg);
+        }
+        return template;
+    };
 
     this.l10n = function l10n(module, key, args) {
         return navigator.mozL10n.get(Evme.Utils.l10nKey(module, key), args);
@@ -146,10 +215,12 @@ Evme.Utils = new function Evme_Utils() {
       return id;
     };
 
+    this.rem = function(value) {
+      return value/10 + 'rem';
+    };
+
     this.sendToOS = function sendToOS(type, data) {
         switch (type) {
-            case OSMessages.APP_INSTALL:
-		return EvmeManager.addGridItem(data);
             case OSMessages.OPEN_URL:
                 return EvmeManager.openUrl(data.url);
             case OSMessages.SHOW_MENU:
@@ -163,6 +234,8 @@ Evme.Utils = new function Evme_Utils() {
             case OSMessages.EVME_OPEN:
                 EvmeManager.isEvmeVisible(data.isVisible);
                 break;
+            case OSMessages.SET_WALLPAPER:
+              return EvmeManager.setWallpaper(data);
         }
     };
 
@@ -172,6 +245,14 @@ Evme.Utils = new function Evme_Utils() {
 
     this.getContainer = function getContainer() {
         return elContainer;
+    };
+
+    this.getOverlay = function getOverlay() {
+      return elOverlay;
+    };
+
+    this.getOSIconSize = function getOSIconSize() {
+      return OS_ICON_SIZE;
     };
 
     this.getScopeElements = function getScopeElements() {
@@ -225,9 +306,7 @@ Evme.Utils = new function Evme_Utils() {
     };
 
     this.getRoundIcon = function getRoundIcon(options, callback) {
-        var size = self.sendToOS(self.OSMessages.GET_ICON_SIZE) - 2,
-	    padding = options.padding ? INSTALLED_CLOUDS_APPS_ICONS_PADDING : 0,
-	    actualIconSize = size - padding*2,
+        var size = options.size || OS_ICON_SIZE,
             img = new Image();
 
         img.onload = function() {
@@ -238,14 +317,14 @@ Evme.Utils = new function Evme_Utils() {
             canvas.height = size;
 
             ctx.beginPath();
-	    ctx.arc(size/2, size/2, actualIconSize/2, 2 * Math.PI, false);
+            ctx.arc(size/2, size/2, size/2, 2 * Math.PI, false);
             ctx.clip();
 
-	    ctx.drawImage(img, padding, padding, actualIconSize, actualIconSize);
+            ctx.drawImage(img, 0, 0, size, size);
 
             callback(canvas.toDataURL());
         };
-	img.src = self.formatImageData(options.src);
+        img.src = self.formatImageData(options.src);
     };
 
     /**
@@ -286,8 +365,8 @@ Evme.Utils = new function Evme_Utils() {
           textToDraw = [],
 
           WIDTH = context.canvas.width,
-	  FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
-          LINE_HEIGHT = FONT_SIZE + 1 * self.devicePixelRatio;
+	        FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
+          LINE_HEIGHT = FONT_SIZE + window.devicePixelRatio;
 
       if (!context || !text) {
         return false;
@@ -298,15 +377,17 @@ Evme.Utils = new function Evme_Utils() {
       context.textAlign = 'center';
       context.textBaseline = 'top';
       context.fillStyle = 'rgba(255,255,255,1)';
-      context.shadowOffsetX = 1;
-      context.shadowOffsetY = 1;
-      context.shadowBlur = 3;
-      context.shadowColor = 'rgba(0, 0, 0, 0.6)';
-      context.font = '600 ' + FONT_SIZE + 'px sans-serif';
+      context.font = '500 ' + self.rem(FONT_SIZE) + ' sans-serif';
+
+      // text shadow
+      context.shadowOffsetX = self.APP_NAMES_SHADOW_OFFSET_X;
+      context.shadowOffsetY = self.APP_NAMES_SHADOW_OFFSET_Y;
+      context.shadowBlur = self.APP_NAMES_SHADOW_BLUR;
+      context.shadowColor = self.APP_NAMES_SHADOW_COLOR
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words
-        var size = context.measureText(word).width + 1,
+        var size = context.measureText(word + ' ').width,
             draw = false,
             pushed = false;
 
@@ -678,6 +759,29 @@ Evme.Utils = new function Evme_Utils() {
 	    return [];
 	}
     };
+  
+    /**
+     * compare arrays of literals. will NOT work for array of objects.
+     * @param  {Array} arr1
+     * @param  {Array} arr2
+     * @param  {Integer} limit  (optional) last index to compare
+     * @return {Boolean}        true if arrays are identical
+     */
+    this.arraysEqual = function arraysEqual(arr1, arr2, limit) {
+      var array1 = arr1.slice(0, limit || arr1.length);
+      var array2 = arr2.slice(0, limit || arr2.length);
+
+      if (array1.length !== array2.length)
+        return false;
+
+      for (var i = 0; i < array1.length; i++) {
+        if (array1[i] !== array2[i]) {
+          return false;
+        }
+      }
+
+      return true;
+    };
 
     // Creates a duplicate-value-free version of the `array`
     this.unique = function unique(array, property) {
@@ -691,6 +795,14 @@ Evme.Utils = new function Evme_Utils() {
       else {
 	return array.filter(uniqueFilter);
       }
+    };
+
+    this.aug = function aug(){
+        var main = arguments[0] || {};
+        for (var i=1, arg; arg=arguments[i++];){
+            for (var k in arg){ main[k] = arg[k] }
+        }
+        return main;
     };
 
     function uniqueFilter(elem, pos, self) {
@@ -754,6 +866,10 @@ Evme.Utils = new function Evme_Utils() {
                 }
             ];
 
+        this.events = {
+          MOBILE_CONNECTION_CHANGE: 'connChange'
+        };
+
         this.init = function init() {
             window.addEventListener("online", self.setOnline);
             window.addEventListener("offline", self.setOffline);
@@ -781,6 +897,19 @@ Evme.Utils = new function Evme_Utils() {
              return getCurrent();
         };
 
+        this.addEventListener = function addEventListener(type, callback) {
+
+          // mobile network connection change
+          if (type === self.events.MOBILE_CONNECTION_CHANGE) {
+            var conn = getMobileConnection();
+            conn && conn.addEventListener('datachange', function() {
+                // get data using convinience method in shared/js/mobile_operator.js
+                var data = conn.voice && conn.voice.network && MobileOperator.userFacingInfo(conn);
+                callback(data);
+            });
+          }
+        };
+
         function getCurrent(){
             return aug({}, consts, types[currentIndex]);
         }
@@ -791,6 +920,13 @@ Evme.Utils = new function Evme_Utils() {
                 for (var k in arguments[i]){ main[k] = arguments[i][k] }
             };
             return main;
+        }
+
+        function getMobileConnection() {
+          var navigator = window.navigator;
+          if (navigator.mozMobileConnection &&
+              navigator.mozMobileConnection.data)
+          return navigator.mozMobileConnection;
         }
 
         // init

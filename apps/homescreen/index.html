@@ -18,11 +18,16 @@
     <script defer type="text/javascript" src="shared/js/icc_helper.js"></script>
     <script type="text/javascript" defer src="shared/js/lazy_loader.js"></script>
     <!-- <script type="text/javascript" defer src="shared/js/omadrm/fl.js"></script> -->
+    <!-- <script type="text/javascript" defer src="shared/js/mobile_operator.js"></script> -->
 
     <!-- Lazy load for ConfirmDialog -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/buttons.css"> -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/headers.css"> -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style/confirm.css"> -->
+
+    <!-- Lazy load for ContextMenuDialog -->
+    <!-- <link rel="stylesheet" type="text/css" href="style/contextmenu.css"> -->
+    <!-- <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"> -->
 
     <!-- Lazy load for Ev.me -->
     <!-- <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"> -->
@@ -43,6 +48,11 @@
     <script type="text/javascript" defer src="js/configurator.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+    <link rel="import" href="/elements/contextmenu.html">
+    <link rel="import" href="/elements/confirm_dialog.html">
+    <link rel="import" href="/elements/search_page.html">
+    <link rel="import" href="/elements/loading_dialog.html">
   </head>
 
   <body data-mode="normal">
@@ -56,118 +66,17 @@
       </span>
     </div>
 
-    <section id="confirm-dialog">
-      <form role="dialog" data-type="confirm">
-        <section>
-          <h1 id="confirm-dialog-title"></h1>
-          <p id="confirm-dialog-message"></p>
-        </section>
-        <menu>
-          <button id="confirm-dialog-cancel-button"></button>
-          <button id="confirm-dialog-confirm-button" class="danger"></button>
-        </menu>
-      </form>
-    </section>
+    <section is="confirm-dialog" id="confirm-dialog"></section>
+
+    <section is="contextmenu-dialog" id="contextmenu-dialog"></section>
+
+    <section is="loading-dialog" id="loading-dialog"></section>
 
     <header id="paginationBar">
       <div class="paginationScroller" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" aria-controls="icongrid"></div>
     </header>
 
-    <div id="evmeOverlay" class="evmeScope">
-      <div id="collection">
-        <div class="header">
-          <div class="header-content">
-            <h2 class="title"></h2>
-            <b class="close"></b>
-          </div>
-        </div>
-        <div class="content">
-          <div class="evme-apps" data-opacity-on-swipe="true">
-            <div>
-              <div>
-                <ul class="static"></ul>
-                <hr>
-                <ul class="cloud"></ul>
-              </div>
-              <section role="notification" class="connection-message">
-                <div>
-                  <span>No Connection</span>
-                </div>
-              </section>
-              <section role="notification" class="loading-more">
-                <div>
-                  <progress></progress>
-                  <span data-l10n-id="evme-appsmore-loading">Loading…</span>
-                </div>
-              </section>
-          </div>
-        </div>
-        <div class="image">
-          <div class="image-overlay"></div>
-        </div>
-
-        <form class="cloud-app-actions" role="dialog" data-type="action">
-          <menu>
-            <button data-action="pin">Add to top of collection</button>
-            <button data-action="save">Save to Homescreen</button>
-            <button data-l10n-id="cancel">Cancel</button>
-          </menu>
-        </form>
-      </div>
-    </div>
-  </div> <!-- /evmeOverlay -->
-
-  <div id="evmeContainer" class="evmeScope empty-query">
-    <div id="search" class="active">
-      <div id="search-header" data-opacity-on-swipe="true">
-        <form action="/#!/search" id="search-rapper">
-          <fieldset>
-            <div id="search-q-bg">
-              <input type="text" id="search-q" name="search-q" maxlength="128" autocorrect="off" autocapitalize="off" x-inputmode="verbatim" />
-              <span id="default-text" data-l10n-id="evme-searchbar-default2"></span>
-            </div>
-            <div id="helper-tip"><b></b></div>
-          </fieldset>
-        </form>
-        <b id="button-clear" data-l10n-id="evme-searchbar-clear"></b>
-      </div>
-      <div id="header" data-opacity-on-swipe="true">
-        <div id="helper-header">
-          <h1 id="search-title"></h1>
-          <div id="helper-rapper">
-            <div id="helper">
-              <ul></ul>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="evmeApps" class="evme-apps" data-opacity-on-swipe="true">
-        <div>
-          <div>
-            <ul class="contacts"></ul>
-            <ul class="installed"></ul>
-            <ul class="marketapps"></ul>
-            <ul class="marketsearch"></ul>
-            <ul class="static"></ul>
-            <hr>
-            <ul class="cloud"></ul>
-          </div>
-
-          <section role="notification" class="connection-message">
-            <div>
-              <span>No Connection</span>
-            </div>
-          </section>
-          <section role="notification" class="loading-more">
-            <div>
-              <progress></progress>
-              <span data-l10n-id="evme-appsmore-loading">Loading…</span>
-            </div>
-          </section>
-        </div>
-      </div>
-      </div>
-    </div> <!-- /evmeContainer -->
+    <section is="search-page" id="search-page"></section>
 
     <div id="icongrid" class="apps" role="main"></div>
 

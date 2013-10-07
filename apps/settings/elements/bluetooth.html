@@ -56,6 +56,20 @@
       </ul>
     </div>
 
+    <form role="dialog" data-type="action" id="update-device-name" hidden>
+      <header>
+        <button id="update-device-name-cancel"><span class="icon icon-close" data-l10n-id="cancel">close</span></button>
+        <menu type="toolbar">
+          <button data-l10n-id="ok" id="update-device-name-confirm">done</button>
+        </menu>
+        <h1 data-l10n-id="change-phone-name">Change phone name</h1>
+      </header>
+      <section>
+        <input type="text" id="update-device-name-input" value=""/>
+        <p data-l10n-id="change-phone-name-desc">Change the name of your device as it appears in your computer</p>
+      </section>
+    </form>
+
     <form role="dialog" data-type="action" id="paired-device-option" hidden>
       <menu>
         <button data-l10n-id="device-option-connect" id="connect-option">Connect</button>

@@ -12,9 +12,11 @@
       return false;
     }
   };
-
+  // we use screen size to distinguish tablet and phone
+  var isMobile = ScreenLayout.getCurrentLayout('tiny');
   var hasHardwareHomeButton =
     ScreenLayout.getCurrentLayout('hardwareHomeButton');
+
   var SoftwareButtonManager = {
     _enable: false,
 
@@ -29,19 +31,18 @@
       this.fullscreenHomeButton =
         document.getElementById('fullscreen-software-home-button');
       this.screenElement = document.getElementById('screen');
-      if (this.height > 0 && isOnRealDevice()) {
-        // By result of media query.
-        this._enable = true;
-      } else {
-        this.element.classList.add('hidden');
-        this._enable = false;
 
-        SettingsListener.observe('software-button.enabled', false,
-          function onObserve(value) {
-            this._enable = value;
-            this.toggle();
-            this.dispatchResizeEvent(value);
-          }.bind(this));
+      SettingsListener.observe('software-button.enabled', false,
+        function onObserve(value) {
+          this._enable = value;
+          this.toggle();
+          this.dispatchResizeEvent(value);
+        }.bind(this));
+
+      if (isMobile && isOnRealDevice() && !hasHardwareHomeButton) {
+        // enable software home button for mobile without hardware home button
+        SettingsListener.getSettingsLock().set({
+          'software-button.enabled': true});
       }
 
       this.homeButton.addEventListener('mousedown', this);
@@ -92,8 +93,8 @@
           this.publish('home-button-release');
           break;
         case 'homegesture-disabled':
-          // at least one of swtbtn or gesture is enabled when no
-          // hardware home button
+          // at least one of software home button or gesture is enabled
+          // when no hardware home button
           if (!hasHardwareHomeButton && !this._enable) {
             var lock = navigator.mozSettings.createLock();
             lock.set({'software-button.enabled': true});

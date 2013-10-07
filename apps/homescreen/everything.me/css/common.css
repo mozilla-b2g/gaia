@@ -1,29 +1,3 @@
-.evmeScope {
-    position: absolute;
-    margin: 0;
-    padding: 0;
-    top: 0;
-    left: 0;
-    width: 100%;
-    font-weight: normal;
-    font-size: 1.2rem;
-    text-align: left;
-    height: calc((100% - 7.5rem)/4); /* height of footer */
-}
-
-.evmeScope div, .evmeScope p:not(.noreset), .evmeScope span,
-.evmeScope h1, .evmeScope h2, .evmeScope h3, .evmeScope h4,
-.evmeScope a, .evmeScope em, .evmeScope img, .evmeScope b,
-.evmeScope ol, .evmeScope ul, .evmeScope li,
-.evmeScope fieldset, .evmeScope form, .evmeScope label, .evmeScope legend,
-.evmeScope input, .evmeScope textarea,
-.evmeScope table, .evmeScope tr, .evmeScope th, .evmeScope td,
-.evmeScope canvas {
-    margin: 0;
-    padding: 0;
-    border: 0;
-}
-
 .evmeScope a {
     text-decoration: none;
     color: inherit;
@@ -32,106 +6,14 @@
     list-style-type: none;
 }
 
-.evmeScope .textinput {
-    border: none;
-    background: #fff;
-    width: 100%;
-    height: 2.9rem;
-    font-size: 1.6rem;
-    color: #000;
-    padding: 0 0.4rem;
-    margin: 0 -0.4rem;
-    border-radius: 0.6rem;
-    box-shadow: 0 0 0 0.1rem rgba(0, 0, 0, .4), 0 0.2rem 0 0 rgba(255, 255, 255, .2), 0 0.1rem 0.2rem 0 rgba(0, 0, 0, .4) inset;
-}
-.evmeScope .screen {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, .5);
-    z-index: 500;
-}
-
-.evmeScope .arrow-next {
-    font-weight: 600;
-    font-size: 1.5rem;
-    text-shadow: 0 0.1rem 0 rgba(255, 255, 255, .7);
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 1.3rem;
-    background: #a2d1e1;
-    cursor: pointer;
-    border: 0.1rem solid #8dc1d2;
-    background: -moz-linear-gradient(center top, #d1e8f0 0, #89c4d8 100%);
-    box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, .4) inset;
-}
-    .evmeScope .arrow-next:before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        margin: -0.4rem 0 0 -0.5rem;
-        width: 0.5rem;
-        height: 0.5rem;
-        border-top: 0.3rem solid #000;
-        border-right: 0.3rem solid #000;
-        transform: rotate(45deg);
-        z-index: 55;
-        box-shadow: 0.1rem 0 0 0 #ffffff, 0 0.1rem 0 0 #ffffff inset;
-    }
-
-.evmeScope .bbutton {
-    display: inline-block;
-    color: #617075;
-    text-shadow: 0 0.1rem 0 rgba(255, 255, 255, .5);
-    height: 1.9rem;
-    line-height: 1.9rem;
-    text-align: center;
-    padding: 0 0.5rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border: 0.1rem solid #82bccf;
-    background: #def;
-    background: -moz-linear-gradient(center top, #cfe7ef 0, #bfdee9 50%, #b3dae7 50%, #8fc7da 100%);
-    box-shadow: 0 0.1rem 0 0 rgba(255, 255, 255, .2) inset, 0 -0.1rem 0 0 rgba(0, 0, 0, .05) inset;
-    border-radius: 0.4rem;
-    cursor: pointer;
-    -moz-user-select: none;
-}
-.evmeScope .bbutton.active {
-    color: #fff;
-    border-color: #6fadc2;
-    text-shadow: 0 -0.1rem 0 rgba(0, 0, 0, .5);
-    background: -moz-linear-gradient(center top, #07a7db 0, #038cb8 50%, #0384ad 50%, #017297 100%);
-}
-
-.evmeScope .pbutton {
-    display: inline-block;
-    cursor: pointer;
-    padding: 0.6rem 1.2rem;
-    color: #fff;
-    text-shadow: 0 -0.1rem 0 rgba(0, 0, 0, .5);
-    border: 0.1rem solid #611d4b;
-    border-radius: 0.6rem;
-    background: #933e77;
-    background: -moz-linear-gradient(center top, #a8548d 0, #8d3972 100%);
-    box-shadow: 0 0.1rem 0.1rem 0 rgba(255, 255, 255, .3) inset;
-}
-
 /* When clicking on an app */
 .loading-app #header {
-    -moz-transition: all .2s linear;
     transition: all .2s linear;
     opacity: 0 !important;
 }
 
 #bgimage-overlay .content .close,
-.app-icon:after,
-.shortcut .remove,
-.fbbutton .button-real .icon:before,
-#close-category
+.app-icon:after
 {
     background-image: url('/everything.me/images/sprite.png');
     background-repeat: no-repeat;
@@ -146,6 +28,85 @@
     border: 0;
     z-index: 800;
 }
-.evmeScope .evme-progress-dialog {
+
+/* Results Containers */
+
+.evmeScope .evme-apps {
+    position: absolute;
+    top: 8.1rem; /* result's header height, overriden in collection.css */
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    font-size: 0;
+}
+  .evmeScope .evme-apps > div {
+      -moz-box-orient: vertical;
+      -moz-box-sizing: border-box;
+      display: -moz-box;
+      width: 100%;
+      min-height: 100%;
+      padding-top: 2.4rem;
+  }
+  .evmeScope .apps-wrapper {
+    padding: 0 1rem;
+  }
+  .evmeScope .evme-apps.has-more > div {
+    padding-bottom: 4.9rem;
+  }
+
+
+/* Notifications */
+
+.evmeScope .evme-apps section[role="notification"] {
+    position: relative;
+    -moz-box-flex: 1;
+    display: none;
+    visibility: hidden;
+}
+.evmeScope .evme-apps section[role="notification"] > div {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    color: #fff;
+    font-size: 1.6rem;
     text-align: center;
+    height: 2.9rem;
+}
+/* Prevent unnecessary cpu usage (bug 922341) */
+.evmeScope .evme-apps section[role="notification"] progress {
+    display: none;
+}
+
+.evmeScope:not(.connection-error) .evme-apps section[role="notification"].show progress {
+  display: inline-block;
+}
+.evmeScope .evme-apps.has-more section[role="notification"] > div {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    box-shadow: 0 -0.1rem 0 0 rgba(255, 255, 255, .4),
+                0 -0.2rem 0 0 rgba(0, 0, 0, .4);
+}
+.evmeScope .evme-apps:not(.has-more) section[role="notification"] > div {
+    margin-top: -1.45rem;
+}
+.evmeScope .evme-apps.has-more section[role="notification"].connection-message > div {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.evmeScope:not(.connection-error) .evme-apps.has-more section[role="notification"].loading-more,
+.evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
+    display: block;
+}
+
+.evmeScope:not(.connection-error) .evme-apps section[role="notification"].show,
+.evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
+    display: block;
+    visibility: visible;
+}
+
+.evmeScope .evme-apps:not(.has-more) section[role="notification"].loading-more span {
+    display: none;
 }

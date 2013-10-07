@@ -126,6 +126,7 @@ abbr, acronym {
 
 nav[data-type="scrollbar"] {
   z-index:100;
+  bottom: 4.2rem;
 }
 
 nav[data-type="scrollbar"] li {

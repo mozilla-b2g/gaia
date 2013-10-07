@@ -42,7 +42,7 @@ var CostControlApp = (function() {
   var costcontrol, initialized = false;
   function onReady(callback) {
     var cardState = checkCardState();
-    var iccid = IccHelper.iccInfo.iccid;
+    var iccid = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
 
     // SIM not ready
     if (cardState !== 'ready') {

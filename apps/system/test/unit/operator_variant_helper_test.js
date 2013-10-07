@@ -33,13 +33,36 @@ suite('operator variant helper', function() {
   });
 
   setup(function() {
+    MockIccHelper.mProps.enabled = true;
     MockIccHelper.mProps.iccInfo = EXPECTED_ICC_INFO;
   });
 
   teardown(function() {
     MockIccHelper.mProps.iccInfo = NULL_ICC_INFO;
-    helper.revert();
+    if (helper) {
+      helper.revert();
+    }
     helper = null;
+  });
+
+  test('icchelper disabled', function() {
+    MockIccHelper.mProps.enabled = false;
+
+    function createHelperShouldThrow() {
+      helper = new OperatorVariantHelper(
+        function(mcc, mnc) {
+          assert.false(true, 'Code should not be reached.');
+        },
+        'operator_variant_helper_test.customize',
+        true
+      );
+    }
+
+    assert.throw(
+      createHelperShouldThrow,
+      Error,
+      /Expected IccHelper to be enabled./
+    );
   });
 
   test('listen for iccinfochange (checkNow = true)', function(done) {

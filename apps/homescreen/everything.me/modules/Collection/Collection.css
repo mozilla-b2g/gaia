@@ -5,16 +5,6 @@ body:not(.evme-ready) #collection .loading-more div span,
 body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
   display: none;
 }
-body:not(.evme-ready) #collection .evme-apps {
-  width: 100%;
-}
-body.evme-loading #collection progress {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin-top: -1.45rem;
-  margin-left: -1.45rem;
-}
 
 .evmeScope #collection {
     position: fixed;
@@ -24,6 +14,7 @@ body.evme-loading #collection progress {
     bottom: 0;
     z-index: 600;
     color: #fff;
+    display: none;
     -moz-box-sizing: border-box;
     pointer-events: none;
     animation: collection-hide 450ms ease-out 1;
@@ -37,11 +28,22 @@ body.evme-loading #collection progress {
     animation-name: collection-show;
 }
 
+.evmeScope #collection.renaming:before {
+  content: "";
+  position: absolute;
+  top: 5.5rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, .7);
+}
+
     .evmeScope #collection.animate .title,
     .evmeScope #collection.animate .close,
     .evmeScope #collection.animate .evme-apps
     {
-	transition: opacity .4s ease;
+      transition: opacity .4s ease;
     }
     .evmeScope #collection .content {
     }
@@ -50,7 +52,7 @@ body.evme-loading #collection progress {
       z-index: 50;
       height: 5.4rem;
       line-height: 5.5rem;
-      text-shadow: 0 0.1rem 0.3rem rgba(0, 0, 0, .6);
+      text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, .6);
       border-bottom: 0.1rem solid #fff;
       overflow: hidden;
     }
@@ -71,15 +73,7 @@ body.evme-loading #collection progress {
         left: 0;
         right: 0;
         height: 5.4rem;
-        /*
-         * TODO: whdoesn't work, probably performace issue
-        transform: translateY(100%);
-        transition: all 100ms linear 350ms;
-        */
       }
-      /*.evme-collection-visible .evmeScope #collection .header .header-content {
-        transform: translateY(0%);
-      }*/
     .evmeScope #collection .title {
         position: relative;
         z-index: 50;
@@ -87,14 +81,21 @@ body.evme-loading #collection progress {
         padding: 0 1rem 0 3.2rem;
         font-size: 1.7rem;
         font-weight: normal;
+        color: #b4dae7;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
         -moz-box-sizing: border-box;
     }
-  	 .evmeScope #collection .title span {
-          color: #b4dae7;
-          text-transform: capitalize;
+     .evmeScope #collection .title input {
+          position: relative;
+          left: -0.1rem;
+          color: inherit;
+          font: inherit;
+          height: 100%;
+          width: calc(100% - 5rem);
+          text-shadow: inherit;
+          background: transparent;
       }
 
     .evmeScope #collection .image {
@@ -137,24 +138,38 @@ body.evme-loading #collection progress {
           background: rgba(0, 0, 0, .3);
           border-right: 0.1rem solid rgba(255, 255, 255, .3);
       }
-    .evmeScope #collection .evme-apps {
-        position: absolute;
-        top: 5.5rem;
-        left: 0.5rem;
-        bottom: 0;
-        z-index: 50;
-        width: auto;
-        height: auto;
+    .evmeScope #collection.renaming .header .close {
+      pointer-events: none;
     }
-	.evmeScope #collection .evme-apps .loading-apps {
-            right: 2.5rem;
-        }
-	.evmeScope #collection .evme-apps li {
-            width: 25%;
-        }
-	.evmeScope #collection .evme-apps li.installed-separator {
-            width: 100%;
-        }
+    .evmeScope #collection .header .done {
+        background: transparent url('/everything.me/images/done_icon.png') no-repeat 50% 50%/3rem;
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 5rem;
+        height: 5.4rem;
+        cursor: pointer;
+        z-index: 100;
+    }
+     .evmeScope #collection .header .done:after {
+          content: "";
+          position: absolute;
+          top: 0.4rem;
+          bottom: 0.4rem;
+          left: -0.1rem;
+          width: 0.1rem;
+          background: rgba(0, 0, 0, .3);
+          border-left: 0.1rem solid rgba(255, 255, 255, .3);
+      }
+    .evmeScope #collection .evme-apps {
+        top: 5.5rem;
+    }
+      .evmeScope #collection .evme-apps li {
+        width: 25%;
+      }
+	    .evmeScope #collection .evme-apps li.installed-separator {
+        width: 100%;
+      }
         .evmeScope #collection .evme-apps ul.static li img {
             transform: scale(1);
         }
@@ -168,7 +183,6 @@ body.evme-loading #collection progress {
         .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li span.remove {
           display: block;
         }
-
 
     .evmeScope #collection #bgimage-overlay {
         top: 0;
@@ -221,7 +235,6 @@ body.evme-loading #collection progress {
 }
 
 
-
 @-moz-keyframes collection-show {
   0% {
     transform: translateY(100%);
@@ -239,4 +252,12 @@ body.evme-loading #collection progress {
     transform: translateY(100%);
     pointer-events: none;
   }
+}
+
+@-moz-keyframes shake {
+  0% { -moz-transform: scale(1); }
+  25% { -moz-transform: scale(1.05); }
+  50% { -moz-transform: scale(1); }
+  75% { -moz-transform: scale(0.95); }
+  100% { -moz-transform: scale(1); }
 }

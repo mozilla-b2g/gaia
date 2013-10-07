@@ -53,8 +53,6 @@ var TrustedUIManager = {
     window.addEventListener('appterminated', this);
     window.addEventListener('keyboardhide', this);
     window.addEventListener('keyboardchange', this);
-    window.addEventListener('mozbrowserloadstart', this);
-    window.addEventListener('mozbrowserloadend', this);
     this.closeButton.addEventListener('click', this);
   },
 
@@ -210,13 +208,19 @@ var TrustedUIManager = {
 
   _pushNewDialog: function trui_PushNewDialog(name, frame, chromeEventId,
                                               onCancelCB) {
-    // add some data attributes to the frame
+    // Add some data attributes to the frame.
     var dataset = frame.dataset;
     dataset.frameType = 'popup';
     dataset.frameName = frame.name;
     dataset.frameOrigin = this._lastDisplayedApp;
 
-    // make a shiny new dialog object
+    // Add mozbrowser listeners.
+    frame.addEventListener('mozbrowserloadstart',
+                           this.handleBrowserEvent);
+    frame.addEventListener('mozbrowserloadend',
+                           this.handleBrowserEvent);
+
+    // Make a shiny new dialog object.
     var dialog = {
       name: name,
       frame: frame,
@@ -224,7 +228,7 @@ var TrustedUIManager = {
       onCancelCB: onCancelCB
     };
 
-    // push and show
+    // Push and show.
     this.currentStack.push(dialog);
     this.dialogTitle.textContent = dialog.name;
     this.container.appendChild(dialog.frame);
@@ -254,19 +258,24 @@ var TrustedUIManager = {
   },
 
   /**
-   * close the dialog identified by the chromeEventId
+   * Close the dialog identified by the chromeEventId.
    */
   _closeDialog: function trui_closeDialog(chromeEventId, origin) {
     var stack = origin ? this._dialogStacks[origin] :
                          this.currentStack;
-    if (stack.length === 0)
+    if (stack.length === 0) {
       return;
+    }
 
     var found = false;
     for (var i = 0; i < stack.length; i++) {
       if (stack[i].chromeEventId === chromeEventId) {
-        var dialog = stack.splice(i, 1)[0];
-        this.container.removeChild(dialog.frame);
+        var frame = stack.splice(i, 1)[0].frame;
+        frame.removeEventListener('mozbrowserloadstart',
+                                  this.handleBrowserEvent);
+        frame.removeEventListener('mozbrowserloadend',
+                                  this.handleBrowserEvent);
+        this.container.removeChild(frame);
         found = true;
         break;
       }
@@ -377,11 +386,16 @@ var TrustedUIManager = {
       case 'keyboardhide':
         this._setHeight(window.innerHeight - StatusBar.height);
         break;
+    }
+  },
+
+  handleBrowserEvent: function trui_handleBrowserEvent(evt) {
+    switch (evt.type) {
       case 'mozbrowserloadstart':
-        this.throbber.classList.add('loading');
+        TrustedUIManager.throbber.classList.add('loading');
         break;
       case 'mozbrowserloadend':
-        this.throbber.classList.remove('loading');
+        TrustedUIManager.throbber.classList.remove('loading');
         break;
     }
   }

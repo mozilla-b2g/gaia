@@ -20,10 +20,12 @@ requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_messages.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_threads.js');
+requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_action_menu.js');
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 
 requireApp('sms/js/activity_handler.js');
 
@@ -37,6 +39,7 @@ var mocksHelperForActivityHandler = new MocksHelper([
   'OptionMenu',
   'SettingsURL',
   'Threads',
+  'ThreadUI',
   'Utils',
   'alert'
 ]).init();
@@ -426,6 +429,58 @@ suite('ActivityHandler', function() {
         items[0].method();
       });
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+    });
+  });
+
+  suite('When compose is not empty', function() {
+
+    var message;
+    var text;
+    var realMozMobileMessage;
+
+    setup(function() {
+      text = 'test';
+      Compose.append(text);
+      message = MockMessages.sms();
+      realMozMobileMessage = navigator.mozMobileMessage;
+      navigator.mozMobileMessage = MockNavigatormozMobileMessage;
+      this.sinon.stub(window, 'confirm');
+    });
+
+    teardown(function() {
+      navigator.mozMobileMessage = realMozMobileMessage;
+    });
+
+    suite('confirm false', function() {
+
+      setup(function() {
+        this.sinon.stub(Compose, 'clear');
+        this.sinon.stub(ThreadUI, 'cleanFields');
+        window.confirm.returns(false);
+      });
+
+      test('the text shouldn\'t be cleaned', function() {
+        ActivityHandler.handleMessageNotification(message);
+        MockNavigatormozMobileMessage.mTriggerSuccessMessageRequest();
+        assert.isFalse(Compose.clear.called);
+        assert.isFalse(ThreadUI.cleanFields.called);
+        assert.isTrue(window.confirm.called);
+      });
+    });
+
+    suite('confirm true', function() {
+
+      setup(function() {
+        window.confirm.returns(true);
+        this.sinon.stub(ThreadUI, 'cleanFields');
+      });
+
+      test('the text should be cleaned', function() {
+        ActivityHandler.handleMessageNotification(message);
+        MockNavigatormozMobileMessage.mTriggerSuccessMessageRequest();
+        assert.isTrue(ThreadUI.cleanFields.called);
+        assert.isTrue(window.confirm.called);
+      });
     });
   });
 });

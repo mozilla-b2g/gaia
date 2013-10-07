@@ -39,8 +39,9 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/shared/resources/branding/Browser.png",
-    "120": "/shared/resources/branding/Browser.png"
+    "60": "/shared/resources/branding/Browser_60.png",
+    "90": "/shared/resources/branding/Browser_90.png",
+    "120": "/shared/resources/branding/Browser_120.png"
   },
   "activities": {
     "view": {

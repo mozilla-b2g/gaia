@@ -60,6 +60,18 @@ contacts.Matcher = (function() {
           if (matchingOptions.selfContactId === aMatching.id) {
             return;
           }
+          var matchings, matchingObj;
+          if (!finalMatchings[aMatching.id]) {
+            matchingObj = {
+              matchings: {},
+              matchingContact: aMatching
+            };
+            finalMatchings[aMatching.id] = matchingObj;
+            matchingObj.matchings[filterBy[0]] = [];
+          }
+          else {
+            matchingObj = finalMatchings[aMatching.id];
+          }
 
           var field = options.filterBy[0];
           var values = aMatching[field];
@@ -70,33 +82,24 @@ contacts.Matcher = (function() {
             var sanitizedValue = value;
             var sanitizedTarget = target;
 
-            sanitizedValue = sanitize(value, field);
-            sanitizedTarget = sanitize(target, field);
+            sanitizedValue = sanitize(field, value);
+            sanitizedTarget = sanitize(field, target);
 
+            var valueMatched = false;
             if (sanitizedValue === sanitizedTarget ||
                 sanitizedValue.indexOf(sanitizedTarget) !== -1 ||
                 sanitizedTarget.indexOf(sanitizedValue) !== -1) {
               matchedValue = value;
+              valueMatched = true;
             }
 
-            var matchings, matchingObj;
-            if (!finalMatchings[aMatching.id]) {
-              matchingObj = {
-                matchings: {},
-                matchingContact: aMatching
-              };
-              finalMatchings[aMatching.id] = matchingObj;
-              matchingObj.matchings[filterBy[0]] = [];
+            if (valueMatched) {
+              matchings = matchingObj.matchings[filterBy[0]];
+              matchings.push({
+                'target': target,
+                'matchedValue': matchedValue
+              });
             }
-            else {
-              matchingObj = finalMatchings[aMatching.id];
-            }
-
-            matchings = matchingObj.matchings[filterBy[0]];
-            matchings.push({
-              'target': target,
-              'matchedValue': matchedValue
-            });
           });
         });  // matchings.forEach
 
@@ -427,9 +430,13 @@ contacts.Matcher = (function() {
         var results = reqFamilyName.result;
 
         var givenNames = [];
-        var targetGN = Normalizer.toAscii(
+        var targetGN = null;
+
+        if (!isEmptyStr(aContact.givenName)) {
+          targetGN = Normalizer.toAscii(
                             aContact.givenName[0].trim().toLowerCase()).
                             replace(blankRegExp, '');
+        }
 
         results.forEach(function(mContact) {
           if (mContact.id === aContact.id || isEmptyStr(mContact.givenName)) {

@@ -100,7 +100,7 @@
       if (dayDiff < 0) {
         // future time
         return this.date.format.localeFormat(
-          this.date.shared, _('shortDateTimeFormat')
+          this.date.shared, '%x'
         );
       }
 

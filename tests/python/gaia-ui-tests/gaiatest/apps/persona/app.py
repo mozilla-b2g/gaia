@@ -43,6 +43,7 @@ class Persona(Base):
 
         self.wait_for_email_input()
         self.type_email(email)
+        self.wait_for_continue_button()
         self.tap_continue()
 
         # if we login with an unverified user we have to confirm the password
@@ -83,9 +84,7 @@ class Persona(Base):
         password_field.send_keys(value)
 
     def tap_continue(self):
-        continue_button = self.marionette.find_element(*self._continue_button_locator)
-        self.wait_for_element_displayed(*self._continue_button_locator)
-        continue_button.tap()
+        self.marionette.find_element(*self._continue_button_locator).tap()
         self.wait_for_element_not_displayed(*self._continue_button_locator)
 
     def tap_verify_user(self):
@@ -116,3 +115,6 @@ class Persona(Base):
 
     def wait_for_password_input(self):
         self.wait_for_element_displayed(*self._password_input_locator)
+
+    def wait_for_continue_button(self):
+        self.wait_for_element_displayed(*self._continue_button_locator)
