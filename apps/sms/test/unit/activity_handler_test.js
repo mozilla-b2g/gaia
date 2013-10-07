@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['alert', 'Notify']);
+mocha.globals(['alert', 'confirm', 'Notify']);
 
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -50,6 +50,7 @@ suite('ActivityHandler', function() {
   var realSetMessageHandler;
   var realWakeLock;
   var realMozApps;
+  var realMozL10n;
 
   suiteSetup(function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
@@ -61,6 +62,9 @@ suite('ActivityHandler', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     // in case a previous state does not properly clean its stuff
     window.location.hash = '';
   });
@@ -69,6 +73,7 @@ suite('ActivityHandler', function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.requestWakeLock = realWakeLock;
     navigator.mozApps = realMozApps;
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
@@ -317,8 +322,6 @@ suite('ActivityHandler', function() {
   });
 
   suite('"new" activity', function() {
-    var realMozL10n;
-
     // Mockup activity
     var newActivity = {
       source: {
@@ -346,12 +349,6 @@ suite('ActivityHandler', function() {
 
     suiteSetup(function() {
       window.location.hash = '#new';
-      realMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
-    });
-
-    suiteTeardown(function() {
-      navigator.mozL10n = realMozL10n;
     });
 
     test('Activity lock should be released properly', function() {

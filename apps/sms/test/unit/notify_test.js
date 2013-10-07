@@ -1,5 +1,7 @@
 'use strict';
 
+mocha.globals(['Notify']);
+
 requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('sms/test/unit/mock_audio.js');
