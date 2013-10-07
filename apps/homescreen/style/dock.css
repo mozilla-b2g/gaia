@@ -41,6 +41,10 @@
   margin-top: .5rem;
   pointer-events: none;
 }
+/* Collection "ring" alignment */
+#footer ol > li[data-is-collection = 'true'] > div::before {
+  margin-top: 0.8rem;
+}
 
 /* Option to delete apps */
 #footer li span.options {
