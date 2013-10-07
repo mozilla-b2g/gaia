@@ -57,7 +57,7 @@ class Camera(Base):
         self.wait_for_element_not_displayed(*self._video_timer_locator)
 
     def tap_capture(self):
-        self.wait_for_element_displayed(*self._capture_button_locator)
+        self.wait_for_camera_ready()
         self.marionette.find_element(*self._capture_button_locator).tap()
 
     def tap_select_button(self):
