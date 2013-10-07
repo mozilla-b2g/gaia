@@ -751,9 +751,14 @@ this.InstalledAppsService = new function InstalledAppsService() {
         // app clicked
         this.click = function click(data) {
             if (Evme.Collection.editMode) {
-                Evme.Collection.toggleEditMode(false);
-                return;
+                if (data.app.type === Evme.RESULT_TYPE.INSTALLED) {
+                  return;
+                } else {
+                  Evme.Collection.toggleEditMode(false);
+                }
             }
+
+            data.app.launch();
 
             if (!Searcher.isLoadingApps() || Evme.Utils.isKeyboardVisible) {
                 data.keyboardVisible = Evme.Utils.isKeyboardVisible ? 1 : 0;
