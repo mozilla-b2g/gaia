@@ -183,7 +183,6 @@
 
     function onClick(e) {
       e.stopPropagation();
-      self.launch();
 
       Evme.EventHandler.trigger(NAME, "click", {
         "app": self,
