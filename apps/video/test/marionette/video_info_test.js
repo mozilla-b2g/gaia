@@ -1,0 +1,35 @@
+var Video = require('./video.js'),
+    assert = require('assert'),
+    TestCommon = require('./test_common');
+
+marionette('Video info of played video# ', function() {
+
+  var app, client, actions;
+
+  client = marionette.client({
+    prefs: {
+      'device.storage.enabled': true,
+      'device.storage.testing': true,
+      'device.storage.prompt.testing': true
+    }
+  });
+
+  setup(function() {
+    TestCommon.prepareTestSuite('videos', client);
+    app = new Video(client);
+    app.launch();
+  });
+
+  test('should play video and go on video info', function() {
+    // You should be able to click on an video to go to player
+    // and click on info icon to view video info
+    app.thumbnail.click();
+    assert.ok(app.fullscreenView.displayed());
+    //click fullscreen to display video controls
+    app.fullscreenView.click();
+
+    app.thumbnailsSingleInfoButton.click();
+    client.helper.waitForElement(app.infoView);
+    assert.ok(app.infoView.displayed());
+  });
+});
