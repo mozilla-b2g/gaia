@@ -52,8 +52,8 @@ var ConfirmDialog = (function() {
       dialog.classList.add('visible');
     },
 
-    showApp: function dialog_showApp(app) {
-      var title, body;
+    showApp: function dialog_showApp(icon) {
+      var title, body, app = icon.app;
 
       var cancel = {
         title: _('cancel'),
@@ -92,18 +92,19 @@ var ConfirmDialog = (function() {
 
       // Show a different prompt if the user is trying to remove
       // a bookmark shortcut instead of an app.
-      var manifest = app.manifest || app.updateManifest;
+      var nameObj = {
+        name: icon.getName()
+      };
 
       if (app.type === GridItemsFactory.TYPE.COLLECTION ||
           app.type === GridItemsFactory.TYPE.BOOKMARK) {
-        title = _('remove-title-2', { name: manifest.name });
-        body = _('remove-body', { name: manifest.name });
+        title = _('remove-title-2', nameObj);
+        body = _('remove-body', nameObj);
         confirm.title = _('remove');
       } else {
         // Make sure to get the localized name
-        manifest = new ManifestHelper(manifest);
-        title = _('delete-title', { name: manifest.name });
-        body = _('delete-body', { name: manifest.name });
+        title = _('delete-title', nameObj);
+        body = _('delete-body', nameObj);
         confirm.title = _('delete');
       }
 

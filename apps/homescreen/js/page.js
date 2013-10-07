@@ -914,7 +914,7 @@ Page.prototype = {
       if (elem.classList.contains('options')) {
         var icon = GridManager.getIcon(elem.parentNode.dataset);
         if (icon.app)
-          Homescreen.showAppDialog(icon.app);
+          Homescreen.showAppDialog(icon);
       }
     } else if ('isIcon' in elem.dataset && this.olist &&
                !this.olist.getAttribute('disabled')) {
