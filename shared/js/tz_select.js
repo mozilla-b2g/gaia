@@ -36,7 +36,7 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     var mcc, mnc;
     var conn = navigator.mozMobileConnection;
     if (conn && IccHelper.enabled) {
-      if (conn.voice && conn.voice.network.connected) {
+      if (conn.voice && conn.voice.network && conn.voice.network.connected) {
         mcc = conn.voice.network.mcc;
         mnc = conn.voice.network.mnc;
       } else if (IccHelper.iccInfo) {
