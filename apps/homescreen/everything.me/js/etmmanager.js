@@ -22,8 +22,7 @@ var EvmeManager = (function EvmeManager() {
       "type": !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
               GridItemsFactory.TYPE.BOOKMARK
     });
-
-    GridManager.install(item, params.gridPosition, extra);
+    GridManager.install(item, params.gridPageOffset, extra);
     GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
   }
 
@@ -341,7 +340,10 @@ var EvmeManager = (function EvmeManager() {
 
     getIconName: getIconName,
     setIconName: setIconName,
-    setIconImage: setIconImage
+    setIconImage: setIconImage,
+    get currentPageOffset() {
+      return GridManager.pageHelper.getCurrentPageNumber();
+    }
   };
 }());
 
