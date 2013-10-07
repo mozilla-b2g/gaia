@@ -33,6 +33,7 @@ var EverythingME = {
     activationIcon.addEventListener('contextmenu', onContextMenu);
     activationIcon.addEventListener('click', triggerActivateFromInput);
     window.addEventListener('collectionlaunch', triggerActivate);
+    window.addEventListener('collectiondropapp', triggerActivate);
     window.addEventListener('suggestcollections', triggerActivate);
 
     // specifically for pseudo searchbar
