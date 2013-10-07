@@ -1390,15 +1390,15 @@ var GridManager = (function() {
      *
      * @param {Application} app
      *                      The application (or bookmark) object
-     * @param {Object}      gridPosition
-     *                      Position to install the app: 'page' and 'index'
+     * @param {Object}      gridPageOffset
+     *                      Position to install the app: number (page index)
      * @param {Object}      extra
      *                      Optional parameters
      */
-    install: function gm_install(app, gridPosition, extra) {
+    install: function gm_install(app, gridPageOffset, extra) {
       extra = extra || {};
 
-      processApp(app, null, null, gridPosition);
+      processApp(app, null, gridPageOffset);
 
       if (app.type === GridItemsFactory.TYPE.COLLECTION) {
         window.dispatchEvent(new CustomEvent('collectionInstalled', {
