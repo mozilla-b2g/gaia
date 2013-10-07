@@ -74,6 +74,14 @@
     text-align: center;
     height: 2.9rem;
 }
+/* Prevent unnecessary cpu usage (bug 922341) */
+.evmeScope .evme-apps section[role="notification"] progress {
+    display: none;
+}
+
+.evmeScope:not(.connection-error) .evme-apps section[role="notification"].show progress {
+  display: inline-block;
+}
 .evmeScope .evme-apps.has-more section[role="notification"] > div {
     margin-top: 1rem;
     padding-top: 0.5rem;
