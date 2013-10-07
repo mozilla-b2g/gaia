@@ -30,7 +30,7 @@ var EvmeManager = (function EvmeManager() {
     var origin = params.id;
 
     var gridItem = GridManager.getApp(origin);
-    Homescreen.showAppDialog(gridItem.app);
+    Homescreen.showAppDialog(gridItem);
 
     window.addEventListener('confirmdialog', confirmDialogHandler);
 
@@ -104,7 +104,7 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function getIconByDescriptor(descriptor) {
-    return GridManager.getIcon(descriptor);    
+    return GridManager.getIcon(descriptor);
   }
 
   /**

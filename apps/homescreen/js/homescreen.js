@@ -170,17 +170,17 @@ var Homescreen = (function() {
     /*
      * Displays the contextual menu given an app.
      *
-     * @param {Application} app
-     *                      The application object.
+     * @param {Object} Icon object
+     *
      */
-    showAppDialog: function h_showAppDialog(app) {
+    showAppDialog: function h_showAppDialog(icon) {
       LazyLoader.load(['shared/style/buttons.css',
                        'shared/style/headers.css',
                        'shared/style/confirm.css',
                        'style/request.css',
                        document.getElementById('confirm-dialog'),
                        'js/request.js'], function loaded() {
-        ConfirmDialog.showApp(app);
+        ConfirmDialog.showApp(icon);
       });
     },
 
