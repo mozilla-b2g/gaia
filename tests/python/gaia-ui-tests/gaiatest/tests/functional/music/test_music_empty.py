@@ -2,34 +2,27 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
 from gaiatest import GaiaTestCase
+from gaiatest.apps.music.app import Music
 
 
 class TestMusicEmpty(GaiaTestCase):
 
-    _empty_music_title_locator = (By.ID, 'overlay-title')
-    _empty_music_text_locator = (By.ID, 'overlay-text')
+    # Note: Text will need to be updated if/when Bug 834475 is fixed
+    expected_title = 'Add songs to get started'
+    expected_text = 'Load songs on to the memory card.'
 
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # launch the Music app
-        self.app = self.apps.launch('Music')
-
     def test_empty_music(self):
         # https://moztrap.mozilla.org/manage/case/3668/
         # Requires there to be no songs on SDCard which is the default
+        music_app = Music(self.marionette)
+        music_app.launch()
 
-        # Wait for the no music overlay to render
-        self.wait_for_element_displayed(*self._empty_music_title_locator)
-        self.wait_for_element_displayed(*self._empty_music_text_locator)
+        music_app.wait_for_empty_message_to_load()
 
-        # Verify title when no music
-        self.assertEqual(self.marionette.find_element(*self._empty_music_title_locator).text,
-                         "Add songs to get started")
-
-        # Verify text when no music
-        # Note: Text will need to be updated if/when Bug 834475 is fixed
-        self.assertEqual(self.marionette.find_element(*self._empty_music_text_locator).text,
-                         "Load songs on to the memory card.")
+        # Verify title & text when no music present
+        self.assertEqual(music_app.empty_music_title, self.expected_title)
+        self.assertEqual(music_app.empty_music_text, self.expected_text)
