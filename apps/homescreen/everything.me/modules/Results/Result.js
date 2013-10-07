@@ -212,6 +212,7 @@
 
     function cbRemoveClick(e) {
       e.stopPropagation();
+      self.remove();
       Evme.EventHandler.trigger(NAME, "remove", {
         "id": self.cfg.id
       });
