@@ -254,25 +254,21 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function openMarketplaceApp(data) {
-    var activity = new MozActivity({
-      name: "marketplace-app",
-      data: {slug: data.slug}
-    });
-
-    activity.onerror = function(){
-      window.open('https://marketplace.firefox.com/app/'+data.slug, 'e.me');
-    }
+    launchMarketplaceApp(data.slug);
   }
 
   function openMarketplaceSearch(data) {
-    var activity = new MozActivity({
-      name: "marketplace-search",
-      data: {query: data.query}
-    });
+    launchMarketplaceSearch(data.query);
+  }
 
-    activity.onerror = function(){
-      window.open('https://marketplace.firefox.com/search/?q='+data.query, 'e.me');
-    }
+  function launchMarketplaceApp(slug) {
+    var url = 'https://marketplace.firefox.com/app/';
+    window.open(url + encodeURIComponent(slug), 'e.memarket');
+  }
+
+  function launchMarketplaceSearch(query) {
+    var url = 'https://marketplace.firefox.com/search/?q=';
+    window.open(url + encodeURIComponent(query), 'e.memarket');
   }
 
   // sets an image as the device's wallpaper
