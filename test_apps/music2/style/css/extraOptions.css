@@ -1,0 +1,71 @@
+.extra-options-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.extra-options-drag,
+.extra-options-add,
+.extra-options-favorite,
+.extra-options-share,
+.extra-options-content {
+  border-style: solid;
+  border-color: rgba(255, 255, 255, .2);
+  background-color: rgba(200, 230, 255, .05);
+}
+
+.extra-options-content {
+  position: absolute;
+  width: 100%;
+  min-height: 2rem;
+  z-index: 2;
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+}
+
+.extra-options-drag,
+.extra-options-add,
+.extra-options-share,
+.extra-options-favorite {
+  position: absolute;
+  top: 100%;
+  width: 4rem;
+  height: 3rem;
+
+  border-top: 1px solid rgba(0, 0, 0, .5);
+  border-bottom-width: 1px;
+
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 75%;
+}
+
+.extra-options-favorite {
+  right: 1rem;
+  border-right-width: 1px;
+  background-image: url('../images/star_off.png');
+}
+
+.extra-options-favorite.favorited {
+  background-image: url('../images/star_on.png');
+}
+
+.extra-options-add {
+  right: 5rem;
+  background-image: url('../images/add.png');
+}
+
+.extra-options-share {
+  right: 9rem;
+  border-left-width: 1px;
+  background-image: url('../images/share.png');
+}
+
+.extra-options-drag {
+  left: 1rem;
+  border-right-width: 1px;
+  border-left-width: 1px;
+  background-image: url('../images/drag.png');
+}

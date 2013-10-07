@@ -5,11 +5,12 @@
   height: 5em;
   background: #111;
   -moz-box-sizing: border-box;
+  z-index: 10;
 }
 
 #seek {
   position: absolute;
-  height: 2em;
+  height: 2rem;
   top: 0;
   width: 100%;
   -moz-box-sizing: border-box;
@@ -23,6 +24,7 @@
   text-align: center;
   line-height: 1.5em;
   font-weight: bold;
+  border-top: 1px solid #111;
 }
 
 #currentMusicPage .controls .nav {
