@@ -167,13 +167,12 @@ void function() {
     this.create = function create(options) {
       var query = options.query,
           apps = options.apps,
-          gridPosition = options.gridPosition,
           callback = options.callback || Evme.Utils.NOOP,
           extra = {'extraIconsData': options.extraIconsData};
 
       if (query) {
         Evme.CollectionSettings.createByQuery(query, extra, function onCreate(collectionSettings) {
-          addToGrid(collectionSettings, gridPosition, {
+          addToGrid(collectionSettings, options.gridPageOffset, {
             "callback": function onAddedToHomescreen() {
               callback(collectionSettings);
             }
@@ -642,7 +641,7 @@ void function() {
   /**
    * Add a collection to the homescreen.
    */
-  function addToGrid(settings, gridPosition, extra) {
+  function addToGrid(settings, gridPageOffset, extra) {
     createCollectionIcon(settings, function onIconCreated(canvas) {
       EvmeManager.addGridItem({
         'id': settings.id,
@@ -650,7 +649,7 @@ void function() {
         'name': settings.query,
         'icon': canvas.toDataURL(),
         'isCollection': true,
-        'gridPosition': gridPosition
+        'gridPageOffset': gridPageOffset
       }, extra);
     });
   }

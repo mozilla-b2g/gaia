@@ -1108,7 +1108,8 @@ this.InstalledAppsService = new function InstalledAppsService() {
             var query = data.query;
             Evme.Collection.create({
                 "query": query,
-                "callback": updateShortcutIcons
+                "callback": updateShortcutIcons,
+                "gridPageOffset": EvmeManager.currentPageOffset
             });
 
             function updateShortcutIcons(collectionSettings) {
@@ -1164,7 +1165,8 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
                         Evme.Collection.create({
                             "extraIconsData": extraIconsData,
-                            "query": shortcut.query
+                            "query": shortcut.query,
+                            "gridPageOffset": EvmeManager.currentPageOffset
                         });
                     }
                 });
