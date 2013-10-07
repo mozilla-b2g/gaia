@@ -96,7 +96,6 @@
   padding-right: 1rem;
 }
 
-.evmeScope:not(.connection-error) .evme-apps.has-more section[role="notification"].loading-more,
 .evmeScope.connection-error .evme-apps section[role="notification"].connection-message {
     display: block;
 }
