@@ -348,7 +348,11 @@ Icon.prototype = {
   // The url that is passed as a parameter to the callback must be revoked
   loadRenderedIcon: function icon_loadRenderedIcon(callback) {
     var img = this.img;
-    img.src = window.URL.createObjectURL(this.descriptor.renderedIcon);
+    var blob = this.descriptor.renderedIcon;
+    if (!blob) {
+      blob = GridManager.getBlobByDefault(this.app);
+    }
+    img.src = window.URL.createObjectURL(blob);
     if (callback) {
       img.onload = img.onerror = function done() {
         callback(this.src);
