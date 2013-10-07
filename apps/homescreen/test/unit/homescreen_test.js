@@ -51,7 +51,10 @@ suite('homescreen.js >', function() {
   });
 
   test(' Homescreen displays a contextual menu for an app ', function() {
-    Homescreen.showAppDialog(new MockApp());
+    Homescreen.showAppDialog({
+      app: new MockApp(),
+      getName: function() {}
+    });
     assert.isTrue(dialog.classList.contains('visible'));
   });
 
