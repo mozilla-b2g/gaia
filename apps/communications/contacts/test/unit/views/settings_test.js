@@ -1,6 +1,7 @@
 require('/shared/js/lazy_loader.js');
 requireElements('communications/contacts/elements/settings.html');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
@@ -32,7 +33,8 @@ if (!this.realMozContacts) {
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
-  'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper'
+  'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper',
+  'LazyLoader'
 ]);
 mocksHelperForContactSettings.init();
 
