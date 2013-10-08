@@ -180,7 +180,7 @@ class GaiaData(object):
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
     def set_volume(self, value):
-        channels = ['master', 'content', 'notification', 'alarm', 'telephony', 'bt_sco']
+        channels = ['alarm', 'content', 'notification']
         for channel in channels:
             self.set_setting('audio.volume.%s' % channel, value)
 
