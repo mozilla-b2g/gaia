@@ -378,7 +378,8 @@ suite('Render contact form', function() {
   suite('Generate full contact name', function() {
     setup(function() {
       // Bypass the contacts matcher when saving contact
-      LazyLoader.load(['/contacts/js/contacts_matcher.js'], function() {
+      LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+                       '/contacts/js/contacts_matcher.js'], function() {
           contacts.Matcher.match = function() {};
       });
     });

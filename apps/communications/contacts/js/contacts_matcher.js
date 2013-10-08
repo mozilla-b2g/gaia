@@ -56,6 +56,9 @@ contacts.Matcher = (function() {
 
         var filterBy = options.filterBy;
 
+        var sanitizedTarget = SimplePhoneMatcher.sanitizedNumber(target);
+        var targetVariants = SimplePhoneMatcher.generateVariants(target);
+
         matchings.forEach(function(aMatching) {
           if (matchingOptions.selfContactId === aMatching.id) {
             return;
@@ -75,29 +78,26 @@ contacts.Matcher = (function() {
 
           var field = options.filterBy[0];
           var values = aMatching[field];
-          var matchedValue;
 
           values.forEach(function(aValue) {
             var value = aValue.value;
-            var sanitizedValue = value;
-            var sanitizedTarget = target;
-
-            sanitizedValue = sanitize(field, value);
-            sanitizedTarget = sanitize(field, target);
-
+            var sanitizedValue = SimplePhoneMatcher.sanitizedNumber(value);
             var valueMatched = false;
-            if (sanitizedValue === sanitizedTarget ||
-                sanitizedValue.indexOf(sanitizedTarget) !== -1 ||
-                sanitizedTarget.indexOf(sanitizedValue) !== -1) {
-              matchedValue = value;
-              valueMatched = true;
-            }
+
+            if (targetVariants.length > 1) {
+              if (targetVariants.indexOf(sanitizedValue) !== -1) {
+                valueMatched = true;
+              }
+            } else if (SimplePhoneMatcher.generateVariants(sanitizedValue).
+                       indexOf(sanitizedTarget) !== -1) {
+                valueMatched = true;
+              }
 
             if (valueMatched) {
               matchings = matchingObj.matchings[filterBy[0]];
               matchings.push({
                 'target': target,
-                'matchedValue': matchedValue
+                'matchedValue': value
               });
             }
           });
