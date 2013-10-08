@@ -74,7 +74,7 @@ var BrowserFrame = (function invocation() {
     if (config.url.startsWith(window.location.protocol +
                               '//communications.gaiamobile.org' +
                               (window.location.port ?
-                              '' : (':' + window.location.port)) +
+                                (':' + window.location.port) : '') +
                               '/dialer') ||
         config.url.startsWith(window.location.protocol +
                               '//clock.gaiamobile.org')) {

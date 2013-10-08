@@ -889,7 +889,6 @@ var WindowManager = (function() {
       iframe.setAttribute('expecting-system-message',
                           'expecting-system-message');
     }
-    maybeSetFrameIsCritical(iframe, origin);
 
     // Register appLoadedHandler as a capturing listener for the
     // 'mozbrowserloadend' and 'appopen' events on this iframe.  This event
