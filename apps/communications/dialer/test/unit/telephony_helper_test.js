@@ -25,6 +25,7 @@ suite('telephony helper', function() {
   var subject;
   var realMozTelephony;
   var realMozMobileConnection;
+  var realMozL10n;
   var spyConfirmShow;
   var mockTelephony;
 
@@ -38,11 +39,15 @@ suite('telephony helper', function() {
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockMozMobileConnection;
+
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
   });
 
   suiteTeardown(function() {
     navigator.mozTelephony = realMozTelephony;
     navigator.mozMobileConnection = realMozMobileConnection;
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
