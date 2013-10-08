@@ -29,6 +29,7 @@
     this.type = 'NOT_SET';
     this.cfg = {};
     this.elIcon = null;
+    this.elName = null;
 
     this.init = function init(cfg) {
       self.cfg = cfg;
@@ -36,9 +37,11 @@
       el = Evme.$create('li', {
         'id': 'app_' + cfg.id,
         'data-name': cfg.name
-      }, '<img />');
+      }, '<img class="icon" />' +
+         '<img class="name" />');
 
-      this.elIcon = el.querySelector('img');
+      this.elIcon = el.querySelector('.icon');
+      this.elName = el.querySelector('.name');
 
       if ('isOfflineReady' in cfg) {
         el.dataset.offlineReady = cfg.isOfflineReady;
@@ -60,11 +63,29 @@
       return el;
     };
 
+    this.drawAppName = function drawAppName() {
+      var canvas = document.createElement('canvas'),
+          context = canvas.getContext('2d');
+
+      canvas.width = TEXT_WIDTH;
+      canvas.height = APP_NAME_HEIGHT;
+
+      Evme.Utils.writeTextToCanvas({
+        "text": self.cfg.name,
+        "context": context,
+        "offset": TEXT_MARGIN
+      });
+
+      self.elName.src = canvas.toDataURL();
+    };
+
     this.draw = function draw(iconObj) {
       self.cfg.icon = iconObj;
 
       if (el) {
         el.setAttribute('data-name', self.cfg.name);
+
+        self.drawAppName();
 
         if (Evme.Utils.isBlob(iconObj)) {
           Evme.Utils.blobToDataURI(iconObj, function onDataReady(src) {
@@ -111,13 +132,7 @@
           context = canvas.getContext('2d');
 
       canvas.width = TEXT_WIDTH;
-      canvas.height = height + APP_NAME_HEIGHT;
-
-      Evme.Utils.writeTextToCanvas({
-        "text": self.cfg.name,
-        "context": context,
-        "offset": height + TEXT_MARGIN
-      });
+      canvas.height = height;
 
       return canvas;
     };
@@ -138,7 +153,8 @@
         // resize to "real" size to handle pixel ratios greater than 1
         icon.style.cssText += 'width: ' + Evme.Utils.rem(canvas.width/ratio) + ';' +
                               'height: ' + Evme.Utils.rem(canvas.height/ratio) + ';';
-        icon.dataset.loaded = true;
+
+        el.dataset.loaded = true;
       });
 
       icon.src = canvas.toDataURL();
