@@ -19,6 +19,7 @@
     <script  type="text/javascript" src="/shared/js/async_storage.js"></script>
     <script  type="text/javascript" src="/shared/js/text_normalizer.js"></script>
     <script  type="text/javascript" src="js/utilities/binary_search.js"></script>
+    <script  defer type="text/javascript" src="/shared/js/lazy_loader.js"></script>
     <script  defer type="text/javascript" src="oauth2/js/oauth20.js"></script>
     <script  defer type="text/javascript" src="js/fb/fb_data.js"></script>
     <script  defer type="text/javascript" src="js/fb/fb_contact_utils.js"></script>
@@ -49,6 +50,8 @@
     <link rel="stylesheet" href="style/import.css">
     <link rel="stylesheet" href="style/fb/facebook.css">
     <link rel="stylesheet" href="style/status.css">
+
+    <link rel="import" href="elements/status.html">
   </head>
 
   <body role="application">
@@ -89,9 +92,7 @@
 
     </section> <!-- role="region" -->
 
-    <section id="statusMsg" role="status">
-      <p></p>
-    </section>
+    <section is="status-message" id="statusMsg" role="status"></section>
 
   </body>
 </html>
