@@ -314,9 +314,6 @@ var Settings = {
         });
         setTimeout(this.updateLanguagePanel);
         break;
-      case 'keyboard':
-        //Settings.updateKeyboardPanel();
-        break;
       case 'battery':             // full battery status
         Battery.update();
         break;
@@ -713,24 +710,6 @@ var Settings = {
     }
   },
 
-  getSupportedKbLayouts: function settings_getSupportedKbLayouts(callback) {
-    if (!callback)
-      return;
-
-    if (this._kbLayoutList) {
-      callback(this._kbLayoutList);
-    } else {
-      var self = this;
-      var KEYBOARDS = '/shared/resources/keyboard_layouts.json';
-      loadJSON(KEYBOARDS, function loadKeyboardLayouts(data) {
-        if (data) {
-          self._kbLayoutList = data;
-          callback(self._kbLayoutList);
-        }
-      });
-    }
-  },
-
   updateDisplayPanel: function settings_updateDisplayPanel() {
     var panel = document.getElementById('display');
     var settings = Settings.mozSettings;
@@ -796,53 +775,6 @@ var Settings = {
     function callback() {
       self._panelStylesheetsLoaded = true;
     });
-  },
-
-  updateKeyboardPanel: function settings_updateKeyboardPanel() {
-    // var panel = document.getElementById('keyboard');
-    // Update the keyboard layouts list from the Keyboard panel
-    // if (panel) {
-    //   this.getSupportedKbLayouts(function updateKbList(keyboards) {
-    //     var kbLayoutsList = document.getElementById('keyboard-layouts');
-    //   // Get pointers to the top list entry and its labels which are used to
-    // // pin the language associated keyboard at the top of the keyboards list
-    //     var pinnedKb = document.getElementById('language-keyboard');
-    //     var pinnedKbLabel = pinnedKb.querySelector('a');
-    //     var pinnedKbSubLabel = pinnedKb.querySelector('small');
-    //     pinnedKbSubLabel.textContent = '';
-
-    //     // Get the current language and its associate keyboard layout
-    //     var currentLang = document.documentElement.lang;
-    //     var langKeyboard = keyboards.layout[currentLang];
-
-    //  var kbSelector = 'input[name="keyboard.layouts.' + langKeyboard + '"]';
-    //     var kbListQuery = kbLayoutsList.querySelector(kbSelector);
-
-    //     if (kbListQuery) {
-    //       // Remove the entry from the list since it will be pinned on top
-    //       // of the Keyboard Layouts list
-    //       var kbListEntry = kbListQuery.parentNode.parentNode;
-    //       kbListEntry.hidden = true;
-
-    //       var label = kbListEntry.querySelector('a');
-    //       var sub = kbListEntry.querySelector('small');
-    //       pinnedKbLabel.dataset.l10nId = label.dataset.l10nId;
-    //       pinnedKbLabel.textContent = label.textContent;
-    //       if (sub) {
-    //         pinnedKbSubLabel.dataset.l10nId = sub.dataset.l10nId;
-    //         pinnedKbSubLabel.textContent = sub.textContent;
-    //       }
-    //     } else {
-    //       // If the current language does not have an associated keyboard,
-    //       // fallback to the default keyboard: 'en'
-    //       // XXX update this if the list order in index.html changes
-    //       var englishEntry = kbLayoutsList.children[1];
-    //       englishEntry.hidden = true;
-    //       pinnedKbLabel.dataset.l10nId = 'english';
-    //       pinnedKbSubLabel.textContent = '';
-    //     }
-    //   });
-    // }
   }
 };
 
@@ -986,37 +918,6 @@ function initLocale() {
   });
 
   Settings.updateLanguagePanel();
-
-  // update the enabled keyboards list with the language associated keyboard
-  Settings.getSupportedKbLayouts(function updateEnabledKb(keyboards) {
-    var newKb = keyboards.layout[lang];
-    var settingNewKeyboard = {};
-    var settingNewKeyboardLayout = {};
-    settingNewKeyboard['keyboard.current'] = lang;
-    settingNewKeyboardLayout['keyboard.layouts.' + newKb] = true;
-
-    var settings = navigator.mozSettings;
-    try {
-      var lock = settings.createLock();
-      // Enable the language specific keyboard layout group
-      lock.set(settingNewKeyboardLayout);
-      // Activate the language associated keyboard, everything.me also uses
-      // this setting to improve searches
-      lock.set(settingNewKeyboard);
-    } catch (ex) {
-      console.warn('Exception in mozSettings.createLock():', ex);
-    }
-  });
-
-  // update the keyboard layouts list by resetting the top pinned element,
-  // since it displays the previous language setting
-  // var kbLayoutsList = document.getElementById('keyboard-layouts');
-  // if (kbLayoutsList) {
-  //   var prevKbLayout = kbLayoutsList.querySelector('li[hidden]');
-  //   prevKbLayout.hidden = false;
-
-  //   Settings.updateKeyboardPanel();
-  // }
 }
 
 // Do initialization work that doesn't depend on the DOM, as early as
