@@ -59,9 +59,15 @@ void function() {
         }
       });
 
-      Evme.EventHandler.trigger(NAME, 'init');
-
       depopulateAllCollections();
+
+      // bind event listeners
+      window.addEventListener('collectionlaunch', self.show);
+      window.addEventListener('collectiondropapp', onAppDrop);
+      window.addEventListener('appAddedToQueryIndex', onAppIndexed);
+      window.addEventListener('appUninstalled', onAppUninstall);
+
+      Evme.EventHandler.trigger(NAME, 'init');
     };
 
     this.Rename = {
@@ -252,12 +258,23 @@ void function() {
     };
 
     // add installed app to collection by dropping an app into it
-    this.addInstalledApp = function addInstalledApp(installedApp, collectionId) {
-      Evme.CollectionStorage.get(collectionId, function onGotSettings(collectionSettings) {
-        var apps = collectionSettings.apps.slice();
-        apps.splice(0, 0, installedApp);
-        self.update(collectionSettings, {"apps": apps});
-      });
+    this.addInstalledApp = function addInstalledApp(installedApp, collectionId, collectionSettings) {
+      // caller was kind enough to pass the settings
+      if (collectionSettings) {
+        prependApp(installedApp, collectionSettings);
+      }
+      // get the settings from storage
+      else {
+        Evme.CollectionStorage.get(collectionId, function onGotSettings(collectionSettings) {
+          prependApp(installedApp, collectionSettings);
+        });  
+      }
+
+      function prependApp(app, settings) {
+        var apps = settings.apps.slice();
+        apps.splice(0, 0, app);
+        self.update(settings, {"apps": apps});
+      }
     };
 
     // remove app from the open collection via settings menu
@@ -280,19 +297,17 @@ void function() {
       }
     };
 
+    // populate collections when query index is ready
+    // run only once as part of initial setup
     this.onQueryIndexUpdated = function onQueryIndexUpdated() {
-      var gridCollections = EvmeManager.getCollections();
-      gridCollections.forEach(function populate(gridCollection) {
-        Evme.CollectionStorage.get(gridCollection.id, populateCollection);
-      });
-    };
-
-    this.onAppUninstall = function onAppUninstall(descriptor) {
-      var gridCollections = EvmeManager.getCollections();
-      gridCollections.forEach(function iterate(gridCollection) {
-        Evme.CollectionStorage.get(gridCollection.id, function removeApp(settings) {
-          removeFromCollection(settings, descriptor);
-        });
+      var collectionsPopulatedKey = 'collections-initial-populate';
+      Evme.Storage.get(collectionsPopulatedKey, function populate(didPopulate) {
+        if (didPopulate) {
+          return;
+        }
+        
+        Evme.Storage.set(collectionsPopulatedKey, true);
+        populateAllCollections();
       });
     };
 
@@ -475,6 +490,63 @@ void function() {
         self.toggleEditMode(false);
       }
     }
+
+    function onAppDrop(e) {
+        var options = e.detail;
+
+        if (options.descriptor && options.collection) {
+            EvmeManager.getAppByDescriptor(function addApp(appInfo){
+                self.addInstalledApp(appInfo, options.collection.id);
+            }, options.descriptor);
+        }
+    }
+
+    // executed when a new installed app is added to query index
+    function onAppIndexed(e) {
+      EvmeManager.getAppByOrigin(e.detail.app.origin, function onAppInfo(appInfo) {
+        var queries = Evme.InstalledAppsService.getMatchingQueries(appInfo);
+        var gridCollections = EvmeManager.getCollections();
+
+        for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
+          nominateApp(gridCollection, appInfo, queries);
+        }
+      });
+    }
+
+    function onAppUninstall(e) {
+      var gridCollections = EvmeManager.getCollections();
+
+      for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
+        Evme.CollectionStorage.get(gridCollection.id, function removeApp(settings) {
+          removeFromCollection(settings, e.detail.descriptor);
+        });
+      }
+    }
+
+    /**
+     * Add an app to collection if the app matches the collection's
+     * name/query/experience
+     */
+    function nominateApp(gridCollection, appInfo, queries) {
+      var collectionName = EvmeManager.getIconName(gridCollection.id);
+
+      if (collectionName && 
+          queries.indexOf(collectionName.toLowerCase()) > -1) {
+        self.addInstalledApp(appInfo, gridCollection.id);
+      } else {
+        Evme.CollectionStorage.get(gridCollection.id, function onGet(settings) {
+          var collectionQuery = settings.query;
+          if (!collectionQuery && settings.experienceId) {
+            collectionQuery = Evme.Utils.shortcutIdToKey(settings.experienceId);
+          }
+
+          if (collectionQuery && 
+              queries.indexOf(collectionQuery.toLowerCase()) > -1) {
+            self.addInstalledApp(appInfo, gridCollection.id, settings);
+          }
+        });  
+      }
+    }
   };
 
 
@@ -589,6 +661,16 @@ void function() {
   }
 
   /**
+   * Add installed apps to collections with matching query
+   */
+  function populateAllCollections() {
+    var gridCollections = EvmeManager.getCollections();
+    for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
+      Evme.CollectionStorage.get(gridCollection.id, populateCollection);
+    }
+  }
+
+  /**
    * Remove missing apps from collection
    * Apps may have been un-installed when E.me was not running
    */
@@ -610,11 +692,11 @@ void function() {
 
   function depopulateAllCollections() {
     var gridCollections = EvmeManager.getCollections();
-    gridCollections.forEach(function iterate(gridCollection) {
+    for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
       Evme.CollectionStorage.get(gridCollection.id, function depopulate(settings) {
         depopulateCollection(settings);
       });
-    });
+    }
   };
 
   /**

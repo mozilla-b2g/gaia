@@ -63,11 +63,6 @@
 
         initL10nObserver();
 
-        // init event listeners
-        window.addEventListener('collectionlaunch', Evme.Collection.show);
-        window.addEventListener('collectiondropapp', onAppDrop);
-        window.addEventListener('appUninstalled', onAppUninstall);
-
         _config = options;
 
         NUMBER_OF_APPS_TO_LOAD = _config.numberOfAppsToLoad || DEFAULT_NUMBER_OF_APPS_TO_LOAD;
@@ -78,20 +73,6 @@
 
         DISPLAY_INSTALLED_APPS = _config.displayInstalledApps;
     };
-
-    function onAppDrop(e) {
-        var options = e.detail;
-
-        if (options.descriptor && options.collection) {
-            EvmeManager.getAppByDescriptor(function addApp(appInfo){
-                Evme.Collection.addInstalledApp(appInfo, options.collection.id);
-            }, options.descriptor);
-        }
-    }
-
-    function onAppUninstall(e) {
-        Evme.Collection.onAppUninstall(e.detail.descriptor);
-    }
 
     // l10n: create a mutation observer to know when a node was added
     // and check if it needs to be translated
