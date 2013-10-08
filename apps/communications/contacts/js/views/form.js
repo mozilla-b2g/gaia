@@ -729,6 +729,7 @@ contacts.Form = (function() {
 
   var doMatch = function doMatch(contact, callbacks) {
     LazyLoader.load(['/shared/js/text_normalizer.js',
+                     '/shared/js/simple_phone_matcher.js',
                      '/contacts/js/contacts_matcher.js'], function() {
       contacts.Matcher.match(contact, 'active', callbacks);
     });

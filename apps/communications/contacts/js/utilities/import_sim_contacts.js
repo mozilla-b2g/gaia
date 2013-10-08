@@ -62,6 +62,7 @@ function SimContactsImporter() {
     }
 
     LazyLoader.load([
+      '/shared/js/simple_phone_matcher.js',
       '/contacts/js/contacts_matcher.js',
       '/contacts/js/contacts_merger.js',
       '/contacts/js/merger_adapter.js'

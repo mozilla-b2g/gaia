@@ -1,4 +1,5 @@
 require('/shared/js/text_normalizer.js');
+require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_matcher.js');
 
@@ -16,6 +17,10 @@ if (!this.contact) {
 
 if (!this.contactFB) {
   this.contactFB = null;
+}
+
+if (!this.SimplePhoneMatcher) {
+  this.SimplePhoneMatcher = null;
 }
 
 suite('Test Contacts Matcher', function() {
@@ -380,6 +385,22 @@ suite('Test Contacts Matcher', function() {
 
       testMatch(myObj, 'active', ['tel'], done);
     });
+
+    test('Matching by phone internationalized number', function(done) {
+      var myObj = Object.create(contact);
+      myObj.id = '1A';
+
+      myObj.givenName = [];
+      myObj.familyName = null;
+      myObj.tel = [];
+      myObj.tel[0] = {
+        type: ['mobile'],
+        value: '+34' + contact.tel[0].value
+      };
+
+      testMatch(myObj, 'active', ['tel'], done);
+    });
+
 
     test('Matching by multiple phones', function(done) {
       var myObj = Object.create(contact);
