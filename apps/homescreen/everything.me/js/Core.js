@@ -19,6 +19,10 @@ window.Evme = new function Evme_Core() {
         Math.floor(window.innerHeight * window.devicePixelRatio)
     ];
 
+    // prevent context menu from opening when holding on evme pages
+    preventContextMenu(Evme.Utils.getContainer());
+    preventContextMenu(Evme.Utils.getOverlay());
+
     // calculate number of apps to load on every search
     // if the screen height permits it - add another row of apps
     var numberOfAppsToLoad = data.numberOfAppsToLoad;
@@ -80,6 +84,12 @@ window.Evme = new function Evme_Core() {
   this.searchFromOutside = function searchFromOutside(query) {
     Evme.Brain.Searcher.searchExactFromOutside(query);
   };
+
+  function preventContextMenu(el) {
+    el.addEventListener('contextmenu', function onContextMenu(e) {
+      e.stopPropagation();
+    });
+  }
 
   // one time setup to execute on device first launch
   function setupObjects(data, callback) {
