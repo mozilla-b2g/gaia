@@ -2,7 +2,6 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from marionette.by import By
 from gaiatest import GaiaTestCase
 from gaiatest.apps.lockscreen.app import LockScreen
 
@@ -10,10 +9,6 @@ from gaiatest.apps.lockscreen.app import LockScreen
 class TestLockScreen(GaiaTestCase):
 
     _input_passcode = '7931'
-
-    # Homescreen locators
-    _homescreen_frame_locator = (By.CSS_SELECTOR, 'div.homescreen iframe')
-    _homescreen_landing_locator = (By.ID, 'icongrid')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
