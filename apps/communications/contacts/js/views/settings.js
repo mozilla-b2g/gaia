@@ -205,7 +205,7 @@ contacts.Settings = (function() {
     var source = e.target.parentNode.dataset.source;
     switch (source) {
       case 'sim':
-        window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
+        window.setTimeout(requireSimImport.bind(this, onSimImport), 0);
         break;
       case 'sd':
         window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
@@ -407,6 +407,25 @@ contacts.Settings = (function() {
    */
   function requireOverlay(callback) {
     Contacts.utility('Overlay', callback);
+  }
+
+  /**
+   * Loads required libraries for sim import
+   */
+  function requireSimImport(callback) {
+
+    var libraries = ['Overlay', 'Import_sim_contacts'];
+    var pending = libraries.length;
+
+    libraries.forEach(function onPending(library) {
+      Contacts.utility(library, next);
+    });
+
+    function next() {
+      if (!(--pending)) {
+        callback();
+      }
+    }
   }
 
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
@@ -637,7 +656,7 @@ contacts.Settings = (function() {
         callback: function() {
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
-          window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
+          window.setTimeout(requireSimImport.bind(this, onSimImport), 0);
         }
       };
       Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);

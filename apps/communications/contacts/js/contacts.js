@@ -650,7 +650,6 @@ var Contacts = (function() {
       '/contacts/js/sms_integration.js',
       '/contacts/js/utilities/sdcard.js',
       '/contacts/js/utilities/vcard_parser.js',
-      '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/status.js',
       '/contacts/js/utilities/dom.js'
     ];
@@ -819,12 +818,14 @@ var Contacts = (function() {
      */
     function doLoad() {
       var name = file.toLowerCase();
-      var node = document.getElementById(elementMapping[name]);
+      var toLoad = ['js/' + type + '/' + name + '.js'];
 
-      LazyLoader.load([
-        node,
-        'js/' + type + '/' + name + '.js'
-        ], function() {
+      var node = document.getElementById(elementMapping[name]);
+      if (node) {
+        toLoad.unshift(node);
+      }
+
+      LazyLoader.load(toLoad, function() {
           if (node) {
             navigator.mozL10n.translate(node);
           }
