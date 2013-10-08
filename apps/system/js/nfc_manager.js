@@ -21,6 +21,13 @@
    */
 
   /**
+   * NFC powerlevels must match config PDUs.i
+   */
+  const NFC_POWER_LEVEL_DISABLED = 0;
+  const NFC_POWER_LEVEL_LOW = 1;
+  const NFC_POWER_LEVEL_ENABLED = 2;
+
+  /**
    * NDEF format
    */
   var nfc = {
@@ -124,6 +131,23 @@
   window.navigator.mozSetMessageHandler(
     'nfc-manager-tech-lost', handleTechLost);
 
+  function handlePowerLevel() {
+    var acceptEvents = acceptNfcEvents();
+    var powerLevel = NFC_POWER_LEVEL_LOW;
+    if (acceptEvents) {
+      powerLevel = NFC_POWER_LEVEL_ENABLED;
+    }
+    var request = navigator.mozSettings.createLock().set({
+      'nfc.powerlevel': powerLevel
+    });
+    request.onsuccess = function() {
+      debug('Power level set successfully.');
+    };
+    request.onerror = function() {
+      debug('Power level set failure');
+    };
+  }
+
   /**
    * Events:
    */
@@ -132,12 +156,15 @@
     switch (evt.type) {
       case 'screenchange':
         screenEnabled = evt.detail.screenEnabled;
+        handlePowerLevel();
         break;
       case 'lock':
         screenLocked = true;
+        handlePowerLevel();
         break;
       case 'unlock':
         screenLocked = false;
+        handlePowerLevel();
         break;
     }
   };
@@ -305,10 +332,10 @@
 
     if (!acceptNfcEvents()) {
       debug('Ignoring NFC technology tag message. Screen state is disabled.');
+      return;
     }
 
     // Check for tech types:
-    debug('NFC Events accepted');
     debug('command.content.tech: ' + command.content.tech);
     var handled = false;
     var techs = command.content.tech;

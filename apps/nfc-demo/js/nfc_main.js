@@ -390,29 +390,11 @@ function debug(message) {
   nfcUI.appendTextAndScroll($('#area'), '(' + dbgcnt + ') ' + message + '\n');
 }
 
-function setNfcPowerLevel(level) {
-  if (!navigator.mozSettings) {
-     debug('Settings or missing permissions.');
-     return;
-  }
-  var request = navigator.mozSettings.createLock().set({
-    'nfc.powerlevel': level
-  });
-  request.onsuccess = function() {
-    debug('Power level set successfully.');
-  };
-  request.onerror = function() {
-    debug('Power level set failure');
-  };
-}
-
 function setListenState(boolState) {
   if (boolState == true) {
-    setNfcPowerLevel(2);
     $('#buttontext').text('Stop Tag Discovery');
     isListening = true;
   } else {
-    setNfcPowerLevel(0);
     $('#buttontext').text('Start Tag Discovery');
     $('#taglist').css('display', 'none');
     $('#actionlist').css('display', 'none');
