@@ -2,6 +2,8 @@
 
 var MockLazyLoader = {
   load: function(fileArray, callback) {
-    callback();
+    if (callback) {
+      callback();
+    }
   }
 };
