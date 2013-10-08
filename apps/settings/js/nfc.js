@@ -13,19 +13,12 @@ navigator.mozL10n.ready(function nfcSettings() {
   var _ = navigator.mozL10n.get;
   var settings = Settings.mozSettings;
 
-  // NFC Power states
-  const NFC_POWER_LEVEL_DISABLED = 0;
-  const NFC_POWER_LEVEL_LOW = 1;
-  const NFC_POWER_LEVEL_ENABLED = 2;
-
-  var lastMozSettingValue = NFC_POWER_LEVEL_DISABLED;
-
   if (!settings) {
     return;
   }
 
   debug('Query Nfc CheckBox Setting.');
-  var gNfcCheckBox = document.querySelector('input[name="nfc.powerlevel"]');
+  var gNfcCheckBox = document.querySelector('input[name="nfc.enabled"]');
   debug('CheckBox setting: ' + gNfcCheckBox);
 
   function debug(str) {
@@ -34,20 +27,15 @@ navigator.mozL10n.ready(function nfcSettings() {
     }
   }
 
-  function handleNfcPowerMessage(message) {
-    debug('Re-enable NFC checkbox');
-    gNfcCheckBox.disabled = false;
-  }
-
   // activate main button
   gNfcCheckBox.onchange = function changeNfc() {
     debug('onChange setting: ' + gNfcCheckBox.checked);
-    var powerlevel = NFC_POWER_LEVEL_ENABLED;
+    var enabled = true;
     if (!this.checked) {
-      powerlevel = NFC_POWER_LEVEL_DISABLED;
+      enabled = false;
     }
 
-    var req = settings.createLock().set({'nfc.powerlevel': powerlevel});
+    var req = settings.createLock().set({'nfc.enabled': enabled});
     req.onerror = function() {
       debug('onChange failed to set settings...');
     };
@@ -58,35 +46,35 @@ navigator.mozL10n.ready(function nfcSettings() {
     };
   };
 
-  // Read NFC powerlevel setting, and update UI
+  // Read NFC enabled setting, and update UI
   function updateNfcSettingUI() {
-    var req = settings.createLock().get('nfc.powerlevel');
+    var req = settings.createLock().get('nfc.enabled');
     req.onsuccess = function nfc_getSettingsSuccess() {
-      lastMozSettingValue = req.result['nfc.powerlevel'];
+      var enabled = req.result['nfc.enabled'];
+      if (getNfc() == null) {
+        gNfcCheckBox.checked = false;
+        gNfcCheckBox.disabled = true;
+      } else if (enabled) {
+        gNfcCheckBox.checked = true;
+      } else {
+        gNfcCheckBox.checked = false;
+      }
     };
-    if (getNfc() == null) {
-      gNfcCheckBox.checked = false;
-      gNfcCheckBox.disabled = true;
-    } else if (lastMozSettingValue != NFC_POWER_LEVEL_DISABLED) {
-      gNfcCheckBox.checked = true;
-    } else {
-      gNfcCheckBox.checked = false;
-    }
   }
 
   // enable NFC if the related settings says so
-  // register an observer to monitor nfc.powerlevel hanges
-  settings.addObserver('nfc.powerlevel', function(event) {
-    if (lastMozSettingValue == event.settingValue) {
-      debug('Doing nothing, lastMozSettingValue: ' + lastMozSettingValue);
-      return;
-    }
-    lastMozSettingValue = event.settingValue;
+  // register an observer to monitor nfc.enabled changes
+  settings.addObserver('nfc.enabled', function(event) {
+    debug('NFC enabled change detected: ' + event.settingValue);
     updateNfcSettingUI();
   });
-  // Watch for settting apply update response
+
+  // Watch for powerlevel settting update response
   navigator.mozSetMessageHandler('nfc-powerlevel-change',
-                                 handleNfcPowerMessage);
+                                 function(message) {
+    debug('Re-activate NFC checkbox interaction');
+    gNfcCheckBox.disabled = false;
+  });
 
   updateNfcSettingUI();
 });

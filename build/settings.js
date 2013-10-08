@@ -205,6 +205,8 @@ function execute(options) {
    'lockscreen.unlock-sound.enabled': false,
    'mail.sent-sound.enabled': true,
    'message.sent-sound.enabled': true,
+   'nfc.enabled': false,
+   'nfc.suspended': false,
    'nfc.powerlevel': 0,
    'operatorvariant.mcc': '0',
    'operatorvariant.mnc': '0',

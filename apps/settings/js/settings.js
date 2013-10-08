@@ -867,6 +867,7 @@ window.addEventListener('load', function loadSettings() {
       'js/connectivity.js',
       'js/security_privacy.js',
       'js/icc_menu.js',
+      'js/nfc.js',
       'shared/js/settings_listener.js'
   ], handleRadioAndCardState);
 
