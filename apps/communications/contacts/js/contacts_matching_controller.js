@@ -60,6 +60,7 @@ if (!contacts.MatchingController) {
       };
 
       var matcherDependencies = ['/shared/js/text_normalizer.js',
+                                 '/shared/js/simple_phone_matcher.js',
                                  '/contacts/js/contacts_matcher.js'];
       LazyLoader.load(matcherDependencies, function loaded() {
         parent.contacts.List.getContactById(cid, function success(mContact) {
