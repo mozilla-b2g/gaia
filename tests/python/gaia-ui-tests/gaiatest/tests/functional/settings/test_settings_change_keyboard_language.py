@@ -20,7 +20,7 @@ class TestChangeKeyboardLanguage(GaiaTestCase):
         keyboard_settings = settings.open_keyboard_settings()
 
         # Tap on active keyboard link
-        select_keyboard = keyboard_settings.tap_active_keyboard()
+        select_keyboard = keyboard_settings.tap_selected_keyboards()
 
         # Tap 'add more keyboards' button
         add_more_keyboards = select_keyboard.tap_add_more_keyboards()
