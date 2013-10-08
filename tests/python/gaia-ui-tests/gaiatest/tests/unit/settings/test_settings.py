@@ -14,7 +14,7 @@ class TestSettings(GaiaTestCase):
         self.assertEquals(self.data_layer.get_setting(setting_name), 'my.value')
 
     def test_set_volume(self):
-        channels = ['master', 'content', 'notification', 'alarm', 'telephony', 'bt_sco']
+        channels = ['alarm', 'content', 'notification']
 
         for i in range(1, 11):
             value = i / 10.0
