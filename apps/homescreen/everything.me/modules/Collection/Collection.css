@@ -178,10 +178,10 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
 	    .evmeScope #collection .evme-apps li.installed-separator {
         width: 100%;
       }
-        .evmeScope #collection .evme-apps ul.static li img {
+        .evmeScope #collection .evme-apps ul.static li .icon {
             transform: scale(1);
         }
-        .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li img {
+        .evmeScope #collection[data-mode='edit'] .evme-apps ul.static li .icon {
           -moz-animation-name: shake;
           -moz-animation-duration: .8s;
           -moz-transform-origin: 50% 50%;
