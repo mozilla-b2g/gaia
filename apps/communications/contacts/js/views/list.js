@@ -1464,7 +1464,7 @@ contacts.List = (function() {
               notSelectedIds[id] = true;
             }
           }
-          var notSelectedCount = notSelecteIds.length;
+          var notSelectedCount = Object.keys(notSelectedIds).length;
           var request = navigator.mozContacts.find({});
           request.onsuccess = function onAllContacts() {
             request.result.forEach(function onContact(contact) {
