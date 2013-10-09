@@ -10,6 +10,11 @@
   "wifi": {
     "ssid": ""
   },
+    "plivo":{
+    "auth_id": "",
+    "auth_token": "",
+    "phone_number": ""
+  },
   "email": {
     "gmail": {
       "name": "",
