@@ -13,6 +13,7 @@ void function() {
         currentSettings = null,
 
         el = null,
+        elHeader = null,
         elTitle = null,
         elClose = null,
         elAppsContainer = null,
@@ -39,6 +40,7 @@ void function() {
 
       elAppsContainer = resultsManager.getElement();
 
+      elHeader = Evme.$('.header', el)[0];
       elTitle = Evme.$('.title', el)[0];
       elImage = Evme.$('.image', el)[0];
       elClose = Evme.$('.close', el)[0];
@@ -46,18 +48,6 @@ void function() {
       elTitle.addEventListener('click', self.Rename.start);
       elClose.addEventListener('click', self.onCloseClick);
       elAppsContainer.dataset.scrollOffset = 0;
-
-      el.addEventListener('animationend', function onAnimationEnd(e) {
-        if (e.animationName === 'collection-hide') {
-          el.style.display = 'none';
-        }
-      });
-
-      el.addEventListener('animationstart', function onAnimationStart(e) {
-        if (e.animationName === 'collection-show') {
-          el.style.display = 'block';
-        }
-      });
 
       depopulateAllCollections();
 
@@ -76,7 +66,7 @@ void function() {
           return;
         }
 
-        var currentTitle = elTitle.querySelector('.actual').textContent,
+        var currentTitle = elTitle.querySelector('span').textContent,
             elInput, elDone;
 
         el.classList.add(CLASS_WHEN_EDITING_NAME);
@@ -325,10 +315,7 @@ void function() {
 
         resultsManager.renderStaticApps(collectionSettings.apps);
 
-        window.mozRequestAnimationFrame(function() {
-          el.classList.add('visible');
-          Evme.EventHandler.trigger(NAME, 'show');
-        });
+        showUI();
       });
     };
 
@@ -356,13 +343,29 @@ void function() {
 
       self.toggleEditMode(false);
 
-      window.mozRequestAnimationFrame(function() {
-        el.classList.remove('visible');
-        Evme.EventHandler.trigger(NAME, 'hide');
-      });
+      hideUI();
 
       return true;
     };
+
+    function showUI() {
+      el.style.display = 'block';
+      window.setTimeout(function() {
+        el.classList.add('visible');
+        Evme.EventHandler.trigger(NAME, 'show');
+      }, 0);
+    }
+
+    function hideUI() {
+      elHeader.addEventListener('transitionend', function end(e) {
+        e.target.removeEventListener('transitionend', end);
+
+        el.style.display = 'none';
+        Evme.EventHandler.trigger(NAME, 'hide');
+      });
+
+      el.classList.remove('visible');
+    }
 
     this.isOpen = function isOpen() {
       return currentSettings !== null;
@@ -373,8 +376,7 @@ void function() {
 
       elTitle.innerHTML =
               '<em></em>' +
-              '<span class="actual">' + title + '</span>' + ' ' +
-              '<span ' + Evme.Utils.l10nAttr(NAME, 'title-suffix') + '/>';
+              '<span>' + title + '</span>';
     };
 
     this.setBackground = function setBackground(newBg) {
