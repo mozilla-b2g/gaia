@@ -1027,4 +1027,39 @@ suite('calls handler', function() {
       });
     });
   });
+
+  suite('> headphone support', function() {
+    var realACM;
+    var acmStub;
+
+    suiteSetup(function() {
+      acmStub = {
+        headphones: false,
+        addEventListener: function() {}
+      };
+
+      realACM = navigator.mozAudioChannelManager;
+      navigator.mozAudioChannelManager = acmStub;
+    });
+
+    suiteTeardown(function() {
+      navigator.mozAudioChannelManager = realACM;
+    });
+
+    suite('> pluging headphones in', function() {
+      var headphonesChange;
+
+      setup(function() {
+        acmStub.headphones = true;
+        headphonesChange = this.sinon.stub(acmStub, 'addEventListener');
+        CallsHandler.setup();
+      });
+
+      test('should turn the speakerOff', function() {
+        var turnOffSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
+        headphonesChange.yield();
+        assert.isTrue(turnOffSpy.calledOnce);
+      });
+    });
+  });
 });

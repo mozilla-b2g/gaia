@@ -64,6 +64,15 @@ var CallsHandler = (function callsHandler() {
       telephony.muted = false;
     }
 
+    var acm = navigator.mozAudioChannelManager;
+    if (acm) {
+      acm.addEventListener('headphoneschange', function onheadphoneschange() {
+        if (acm.headphones) {
+          CallScreen.turnSpeakerOff();
+        }
+      });
+    }
+
     postToMainWindow('ready');
   }
 
