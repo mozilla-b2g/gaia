@@ -1,4 +1,6 @@
 var MockIccHelper = {
+  mCardState: 'ready',
+
   addEventListener: function icch_addEventListener(event, handler) {},
 
   get enabled() {
@@ -6,6 +8,6 @@ var MockIccHelper = {
   },
 
   get cardState() {
-    return 'ready';
+    return this.mCardState;
   }
 };
