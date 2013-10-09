@@ -1,5 +1,7 @@
 {
   "ar"        : "عربي",
+  "bg"        : "български език",
+  "bn-BD"     : "বাংলা (বাংলাদেশ)",
   "ca"        : "Català",
   "cs"        : "Čeština",
   "de"        : "Deutsch",
@@ -9,6 +11,8 @@
   "fr"        : "Français",
   "hr"        : "Hrvatski",
   "hu"        : "Magyar",
+  "it"        : "Italiano",
+  "mk"        : "македонски јазик",
   "nl"        : "Nederlands",
   "pl"        : "Polski",
   "pt-BR"     : "Português (do Brasil)",
@@ -18,5 +22,6 @@
   "sr-Cyrl"   : "Српски",
   "sr-Latn"   : "Srpski",
   "tr"        : "Türkçe",
+  "zh-CN"     : "中文 (简体)",
   "zh-TW"     : "正體中文 (繁體)"
 }
