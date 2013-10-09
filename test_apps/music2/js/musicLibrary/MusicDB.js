@@ -23,7 +23,7 @@ var MusicDB = function(){
 
   this.ready = false;
 
-  //this.mediaDB.onunavailable = function(event) { console.log('unavailable'); };
+  this.mediaDB.onunavailable = this.router.route('noMusic');
   //this.mediaDB.oncardremoved = function(event){ console.log('removed'); };
 
   this.numberCreated = 0;

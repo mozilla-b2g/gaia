@@ -11,7 +11,8 @@ window.addEventListener('load', function launch(){
     'loading':      'setLoading',
     'doneLoading':  'setDoneLoading',
     'songRemoved':  'notifySongRemoved',
-    'soundFound':   'notifySongFound',
+    'songFound':   'notifySongFound',
+    'noMusic': 'displayNoMusic'
   });
 
   window.musicLibrary.router.when('musicChanged', [window.ui, 'musicChanged']);

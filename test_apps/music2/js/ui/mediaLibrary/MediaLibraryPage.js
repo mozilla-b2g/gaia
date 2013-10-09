@@ -1,6 +1,7 @@
 var MediaLibraryPage = function(){//pageBridge){
   Utils.loadDomIds(this, [
       'mediaLibraryPage',
+      'visiblePanel',
       'selectSourcePages'
   ]);
   this.dom.page = this.dom.mediaLibraryPage;
@@ -31,7 +32,8 @@ var MediaLibraryPage = function(){//pageBridge){
     'movePlaylistItemRelative',
     'switchPlayingToIndex',
     'setEdit',
-    'shareSong'
+    'shareSong',
+    'requestFullRefresh'
   ]);
 
 
@@ -51,6 +53,10 @@ MediaLibraryPage.prototype = {
 
     this.createDiscoverPanel(function(){
       this.dom.page.classList.remove('hidden');
+      if (this.panelManager.panels[0].albums.length === 0){
+        this.router.route('requestFullRefresh')();
+        this.dom.visiblePanel.classList.add('hidden');
+      }
     }.bind(this));
 
     this.notifications.alert('scanning sd card', 2000);
@@ -155,11 +161,20 @@ MediaLibraryPage.prototype = {
     this.notifications.alert('found: ' + song.metadata.title, 2000);
   },
   userWantRefresh: function(numberCreated, numberDeleted, refresh){
-      this.notifications.askForRefresh(numberCreated, numberDeleted, refresh);
+    this.notifications.askForRefresh(numberCreated, numberDeleted, refresh);
+  },
+  displayNoMusic: function(){
+    this.notifications.showText('no music found');
   },
   refresh: function(){
     var hideRefreshing = this.showRefreshing();
-    this.panelManager.refresh(hideRefreshing);
+    this.dom.visiblePanel.classList.add('hidden');
+    for (var i = 0; i < this.panelManager.panels.length-1; i++)
+      this.panelManager.popPanel();    
+    this.createDiscoverPanel(function(){
+      this.dom.visiblePanel.classList.remove('hidden');
+      hideRefreshing();
+    }.bind(this));
   },
   //============== helpers ===============
   showRefreshing: function(){
