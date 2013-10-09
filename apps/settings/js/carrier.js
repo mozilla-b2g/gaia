@@ -11,18 +11,17 @@ var Carrier = {
 
   // handle carrier settings
   carrierSettings: function cr_carrierSettings() {
-    var APN_FILE = '/shared/resources/apn.json';
+    const APN_FILE = '/shared/resources/apn.json';
+    const AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
+    const CP_APN_KEY = 'ril.data.cp.apns';
+
     var _ = window.navigator.mozL10n.get;
     var restartingDataConnection = false;
-    const AUTH_TYPES = ['none', 'pap', 'chap', 'papOrChap'];
-
-    /**
-     * gCompatibleAPN holds all compatible APNs matching the current iccInfo
-     * (mcc,mnc) for every usage filter
-     */
-
     var mobileConnection = getMobileConnection();
-    var gCompatibleAPN = null;
+
+    // allApnSettings is a list of all possible prefered APNs based on the SIM
+    // operator numeric (MCC MNC codes in the ICC card)
+    var allApnList = null;
 
     var mccMncCodes = { mcc: '-1', mnc: '-1' };
 
@@ -47,10 +46,13 @@ var Carrier = {
       };
     }
 
-    // query <apn> elements matching the mcc/mnc arguments
-    function queryAPN(callback, usage) {
-      if (!callback)
+    // query <apn> elements matching the mcc/mnc arguments, both the ones in the
+    // apn.json database and the one received through client provisioning
+    // messages
+    function queryApns(callback, usage) {
+      if (!callback) {
         return;
+      }
 
       var usageFilter = usage;
       if (!usage || usage == 'data') {
@@ -69,18 +71,48 @@ var Carrier = {
       };
 
       // early way out if the query has already been performed
-      if (gCompatibleAPN) {
-        callback(filter(gCompatibleAPN), usage);
+      if (allApnList) {
+        callback(filter(allApnList), usage);
         return;
       }
 
-      // load and query APN database, then trigger callback on results
+      // load and query both apn.json database and 'ril.data.cp.apns' setting,
+      // then trigger callback on results
       loadJSON(APN_FILE, function loadAPN(apn) {
         var mcc = mccMncCodes.mcc;
         var mnc = mccMncCodes.mnc;
-        // get a list of matching APNs
-        gCompatibleAPN = apn[mcc] ? (apn[mcc][mnc] || []) : [];
-        callback(filter(gCompatibleAPN), usage);
+
+        allApnList = apn[mcc] ? (apn[mcc][mnc] || []) : [];
+
+        var settings = Settings.mozSettings;
+        if (!settings) {
+          if (callback) {
+            callback(filter(allApnList), usage);
+          }
+          return;
+        }
+        var transaction = Settings.mozSettings.createLock();
+        var load = transaction.get(CP_APN_KEY);
+        load.onsuccess = function loadApnsSuccess() {
+          var preferedApnList = allApnList.concat([]);
+          var clientProvisioingApns = load.result[CP_APN_KEY];
+          if (clientProvisioingApns) {
+            preferedApnList = preferedApnList.concat(
+              clientProvisioingApns[mcc] ?
+                (clientProvisioingApns[mcc][mnc] || []) :
+                []
+            );
+          }
+
+          if (callback) {
+            callback(filter(preferedApnList), usage);
+          }
+        };
+        load.onerror = function loadApnsError() {
+          if (callback) {
+            callback(filter(allApnList), usage);
+          }
+        };
       });
     }
 
@@ -91,7 +123,7 @@ var Carrier = {
     }
 
     // update APN fields
-    function updateAPNList(apnItems, usage) {
+    function updateApnList(apnItems, usage) {
       var apnPanel = document.getElementById('carrier-' + usage + 'Settings');
       if (!apnPanel) // unsupported APN type
         return;
@@ -828,9 +860,9 @@ var Carrier = {
 
       // XXX this should be done later
       getMccMncCodes(function() {
-        queryAPN(updateAPNList, 'data');
-        queryAPN(updateAPNList, 'mms');
-        queryAPN(updateAPNList, 'supl');
+        queryApns(updateApnList, 'data');
+        queryApns(updateApnList, 'mms');
+        queryApns(updateApnList, 'supl');
       });
     });
   },
