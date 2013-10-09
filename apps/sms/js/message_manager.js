@@ -113,7 +113,6 @@ var MessageManager = {
     LinkActionHandler.reset();
     ThreadListUI.updateContactsInfo();
     ThreadUI.updateHeaderData();
-    Utils.updateTimeHeaders();
 
     // If we receive a message with screen off, the height is
     // set to 0 and future checks will fail. So we update if needed

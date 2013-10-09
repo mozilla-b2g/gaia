@@ -4,7 +4,7 @@
 'use strict';
 
 /*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
-         Settings, LazyLoader */
+         Settings, LazyLoader, TimeHeaders */
 
 var lazyLoadFiles = [
   'shared/js/async_storage.js',
@@ -28,6 +28,7 @@ var lazyLoadFiles = [
   'js/waiting_screen.js',
   'js/utils.js',
   'js/fixed_header.js',
+  'js/time_headers.js',
   'js/activity_picker.js',
   'js/wbmp.js',
   'js/smil.js',
@@ -85,6 +86,7 @@ window.addEventListener('localized', function localized() {
 
 window.addEventListener('load', function() {
   function initUIApp() {
+    TimeHeaders.init();
     ActivityHandler.init();
     // Init UI Managers
     ThreadUI.init();
