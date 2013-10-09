@@ -98,26 +98,20 @@ window.onload = function() {
   }
 
   function setWallpaper() {
-    // The settings database is text-only apparently, so we convert
-    // the blob to a data URL.
-    var reader = new FileReader();
-    reader.readAsDataURL(blob);
-    reader.onload = function() {
-      // Save the data url as the wallpaper setting
-      var request = navigator.mozSettings.createLock().set({
-        'wallpaper.image': reader.result
-      });
+    // Save the blob as the wallpaper setting
+    var request = navigator.mozSettings.createLock().set({
+      'wallpaper.image': blob
+    });
 
-      request.onsuccess = function() {
-        activity.postResult('shared');
-        endShare();
-      };
+    request.onsuccess = function() {
+      activity.postResult('shared');
+      endShare();
+    };
 
-      request.onerror = function() {
-        console.warn('error setting wallpaper.image:', request.error);
-        activity.postError('could not set wallpaper: ' + request.error);
-        endShare();
-      };
+    request.onerror = function() {
+      console.warn('error setting wallpaper.image:', request.error);
+      activity.postError('could not set wallpaper: ' + request.error);
+      endShare();
     };
   }
 
@@ -130,7 +124,7 @@ window.onload = function() {
     activity = null;
     window.URL.revokeObjectURL(url);
     window.URL.revokeObjectURL(previewImage.src);
-    setButton.removeEventListener('click', setWallpaper);
+    setButton.removeEventListener('click', scaleImage);
     cancelButton.removeEventListener('click', cancelShare);
   }
 };
