@@ -39,18 +39,13 @@ class TestEnduranceBackgroundApps(GaiaEnduranceTestCase):
     def background_apps(self):
         # Verify each app is running
         self.marionette.switch_to_frame()
-        running_apps = self.apps.runningApps()
-        currently_running_apps = ''.join(running_apps)
+        running_apps = [a.name.lower() for a in self.apps.running_apps]
 
         for expected_app in self.app_list:
-            if expected_app == "phone":
-                expected_app = "dialer"
-            elif expected_app == "messages":
-                expected_app = "sms"
-            self.assertTrue(expected_app in currently_running_apps, "%s app should be running!" %expected_app)
+            self.assertTrue(expected_app in running_apps, '%s app should be running!' % expected_app)
 
         # Also ensure homescreen still running
-        self.assertTrue("homescreen" in currently_running_apps, "homescreen app should be running!")
+        self.assertTrue("homescreen" in running_apps, "homescreen app should be running!")
 
         # Just leave apps running in background
         time.sleep(60)
