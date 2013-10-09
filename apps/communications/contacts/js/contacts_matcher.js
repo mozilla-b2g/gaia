@@ -4,26 +4,9 @@ var contacts = window.contacts || {};
 
 contacts.Matcher = (function() {
   var blankRegExp = /\s+/g;
-  // Regular expression for filtering out additional punctuation / blank chars
-  // on a telephone number "(" ")" "." "-"
-  var telRegExp = /\s+|-|\(|\)|\./g;
 
   var FB_CATEGORY = 'facebook';
   var FB_LINKED = 'fb_linked';
-
-  function sanitize(field, value) {
-    var out = value;
-
-    if (value) {
-      if (field === 'tel') {
-        out = value.replace(telRegExp, '');
-      }
-      else {
-        out = value.trim().toLowerCase();
-      }
-    }
-    return out;
-  }
 
   // Multiple matcher Object. It tries to find a set of Contacts that match at
   // least one of the targets passed as parameters

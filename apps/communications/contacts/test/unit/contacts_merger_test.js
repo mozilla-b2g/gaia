@@ -1,3 +1,4 @@
+require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_merger.js');
 
@@ -11,6 +12,10 @@ if (!this.toMergeContact) {
 
 if (!this.realmozContacts) {
   this.realmozContacts = null;
+}
+
+if (!this.SimplePhoneMatcher) {
+  this.SimplePhoneMatcher = null;
 }
 
 suite('Contacts Merging Tests', function() {
