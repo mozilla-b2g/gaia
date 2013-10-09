@@ -101,7 +101,7 @@
     },
     "import": {
       "filters": {
-        "type": ["text/x-vcard", "text/vcard", "application/vcard"]
+        "type": "text/vcard"
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",

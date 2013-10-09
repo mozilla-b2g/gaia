@@ -6,7 +6,7 @@ module.exports = parser;
 
 /**
  * Parses structured e-mail addresses from an address field
- * 
+ *
  * Example:
  *
  *    "Name <address@domain>"
@@ -73,7 +73,7 @@ function handleAddress(tokens){
     // Filter out <addresses>, (comments) and regular text
     for(i=0, len = tokens.length; i<len; i++){
         token = tokens[i];
-        
+
         if(token.type == "operator"){
             switch(token.value){
                 case "<":
@@ -103,7 +103,7 @@ function handleAddress(tokens){
     }
 
     if(data.group.length){
-        
+
         if(data.text.length){
             data.text = data.text.join(" ");
         }
@@ -137,7 +137,7 @@ function handleAddress(tokens){
                     if(data.address.length){
                         break;
                     }
-                }                
+                }
             }
         }
 
@@ -145,7 +145,7 @@ function handleAddress(tokens){
         if(!data.text.length && data.comment.length){
             data.text = data.comment;
             data.comment = [];
-        }  
+        }
 
         // Keep only the first address occurence, push others to regular text
         if(data.address.length > 1){
@@ -170,7 +170,7 @@ function handleAddress(tokens){
                 }else{
                     address.address = "";
                 }
-                
+
             }
 
             addresses.push(address);
@@ -390,7 +390,7 @@ module.exports.decodeQuotedPrintable = function(str, mimeWord, charset){
 
 /**
  * Encodes a string into Base64 format. Base64 is mime-word safe
- * 
+ *
  * @param {String} str String to be encoded into Base64
  * @param {String} [charset="UTF-8"] Destination charset
  * @return {String} Base64 encoded string
@@ -401,7 +401,7 @@ module.exports.encodeBase64 = function(str, charset){
 
 /**
  * Decodes a string from Base64 format
- * 
+ *
  * @param {String} str String to be decoded from Base64
  * @param {String} [charset="UTF-8"] Source charset
  * @return {String} Decoded string
@@ -427,7 +427,7 @@ module.exports.parseAddresses = function(addresses){
 
 /**
  * Parses header lines into an array of objects. Output: {'x-header': ['value']}
- * 
+ *
  * @param {String} headers Full header part to be parsed
  * @return {Object} Parsed headers
  */
@@ -440,7 +440,7 @@ module.exports.parseHeaders = function(headers){
  *     parseHeaderLine('text/plain; charset=utf-8')
  * will be parsed into
  *     {defaultValue: 'text/plain', charset: 'utf-8'}
- * 
+ *
  * @param {String} line Single header value without key part to be parsed
  * @return {Object} Parsed value
  */
@@ -476,7 +476,7 @@ module.exports.mimeFunctions = {
                       [0x40, 0x5E],
                       [0x60, 0x7E]],
             result = "";
-        
+
         for(var i=0, len = buffer.length; i<len; i++){
             if(checkRanges(buffer[i], ranges)){
                 result += String.fromCharCode(buffer[i]);
@@ -597,12 +597,12 @@ module.exports.mimeFunctions = {
         if(encoding == "B"){
             return this.decodeBase64(str, toCharset, fromCharset);
         }else if(encoding == "Q"){
-            return this.mimeDecode(str, toCharset, fromCharset);    
+            return this.mimeDecode(str, toCharset, fromCharset);
         }else{
             return str;
         }
 
-        
+
     },
 
     decodeMimeWords: function(str, toCharset){
@@ -716,7 +716,7 @@ module.exports.mimeFunctions = {
 
         while(str.length){
             curLine = str.substr(0, maxlen);
-            
+
             // move incomplete escaped char back to main
             if((match = curLine.match(/\=[0-9A-F]?$/i))){
                 curLine = curLine.substr(0, match.index);
@@ -755,7 +755,7 @@ function addSoftLinebreaks(str, encoding){
     var lineLengthMax = 76;
 
     encoding = (encoding || "base64").toString().toLowerCase().trim();
-    
+
     if(encoding == "qp"){
         return addQPSoftLinebreaks(str, lineLengthMax);
     }else{
@@ -769,9 +769,9 @@ function addBase64SoftLinebreaks(base64EncodedStr, lineLengthMax){
 }
 
 function addQPSoftLinebreaks(mimeEncodedStr, lineLengthMax){
-    var pos = 0, len = mimeEncodedStr.length, 
-        match, code, line, 
-        lineMargin = Math.floor(lineLengthMax/3), 
+    var pos = 0, len = mimeEncodedStr.length,
+        match, code, line,
+        lineMargin = Math.floor(lineLengthMax/3),
         result = "";
 
     // insert soft linebreaks where needed
@@ -821,10 +821,10 @@ function addQPSoftLinebreaks(mimeEncodedStr, lineLengthMax){
                         break;
                     }
                 }
-                
+
             }
         }
-        
+
         if(pos + line.length < len && line.substr(-1)!="\n"){
             if(line.length==76 && line.match(/\=[\da-f]{2}$/i)){
                 line = line.substr(0, line.length-3);
@@ -837,7 +837,7 @@ function addQPSoftLinebreaks(mimeEncodedStr, lineLengthMax){
         }else{
             pos += line.length;
         }
-        
+
         result += line;
     }
 
@@ -909,7 +909,7 @@ module.exports = {
     "asc": "text/plain",
     "diff": "text/plain",
     "pot": "text/plain",
-    "vcf": "text/x-vcard",
+    "vcf": "text/vcard",
     "mp4": "video/mp4",
     "mpeg": "video/mpeg",
     "mpg": "video/mpeg",
@@ -954,7 +954,7 @@ module.exports = {
     "text/css": "css",
     "text/html": "html",
     "text/plain": "txt",
-    "text/x-vcard": "vcf",
+    "text/vcard": "vcf",
     "video/mp4": "mp4",
     "video/mpeg": "mpeg",
     "video/ogg": "ogv",
