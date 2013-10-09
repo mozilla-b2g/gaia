@@ -120,8 +120,33 @@ suite('sim mgmt >', function() {
       suiteSetup(function() {
         IccHelper.setProperty('cardState', 'pinRequired');
       });
+
       suiteTeardown(function() {
         IccHelper.setProperty('cardState', null);
+      });
+
+      suite('Unlock button > ', function() {
+        setup(function() {
+          SimManager.handleCardState();
+        });
+        teardown(function() {
+          UIManager.pinInput.value = '';
+        });
+        test('should be disabled by default', function() {
+          assert.isTrue(UIManager.unlockSimButton.disabled);
+        });
+
+        test('shuld be disabled with short PIN', function() {
+          UIManager.pinInput.value = 123;
+          UIManager.pinInput.dispatchEvent(new CustomEvent('input'));
+          assert.isTrue(UIManager.unlockSimButton.disabled);
+        });
+
+        test('should be enabled with proper size PIN', function() {
+          UIManager.pinInput.value = 1234;
+          UIManager.pinInput.dispatchEvent(new CustomEvent('input'));
+          assert.isFalse(UIManager.unlockSimButton.disabled);
+        });
       });
 
       test('too short PIN', function() {
