@@ -46,18 +46,6 @@ contacts.Matcher = (function() {
           if (matchingOptions.selfContactId === aMatching.id) {
             return;
           }
-          var matchings, matchingObj;
-          if (!finalMatchings[aMatching.id]) {
-            matchingObj = {
-              matchings: {},
-              matchingContact: aMatching
-            };
-            finalMatchings[aMatching.id] = matchingObj;
-            matchingObj.matchings[filterBy[0]] = [];
-          }
-          else {
-            matchingObj = finalMatchings[aMatching.id];
-          }
 
           var field = options.filterBy[0];
           var values = aMatching[field];
@@ -77,11 +65,30 @@ contacts.Matcher = (function() {
               }
 
             if (valueMatched) {
+              var matchings, matchingObj;
+              if (!finalMatchings[aMatching.id]) {
+                matchingObj = {
+                  matchings: {},
+                  matchingContact: aMatching
+                };
+                finalMatchings[aMatching.id] = matchingObj;
+                matchingObj.matchings[filterBy[0]] = [];
+              }
+              else {
+                matchingObj = finalMatchings[aMatching.id];
+              }
               matchings = matchingObj.matchings[filterBy[0]];
-              matchings.push({
-                'target': target,
-                'matchedValue': value
+
+              // Avoinding to report multiple matchings due to variants
+              var sameValueMatchings = matchings.filter(function(matching) {
+                return (matching.matchedValue === value);
               });
+              if (sameValueMatchings.length === 0) {
+                matchings.push({
+                  'target': target,
+                  'matchedValue': value
+                });
+              }
             }
           });
         });  // matchings.forEach
@@ -139,7 +146,15 @@ contacts.Matcher = (function() {
 
     if (Array.isArray(aContact[field])) {
       aContact[field].forEach(function(aField) {
-        if (typeof aField.value === 'string') {
+        if (field === 'tel') {
+          // Bug 924378 Contacts API does not properly match phone numbers
+          // and their variants
+          var variants = SimplePhoneMatcher.generateVariants(aField.value);
+          variants.forEach(function(aVariant) {
+            values.push(aVariant);
+          });
+        }
+        else if (typeof aField.value === 'string') {
           values.push(aField.value.trim());
         }
       });
