@@ -64,8 +64,10 @@ SeekBar.prototype = {
     this.setTime(this.dom.seekRemaining, this.total);
 
     this.dom.seekBarProgress.min = 0;
-    this.dom.seekBarProgress.max = this.total;
-    this.dom.seekBarProgress.value = this.current;
+    if (isFinite(this.total))
+      this.dom.seekBarProgress.max = this.total;
+    if (isFinite(this.current))
+      this.dom.seekBarProgress.value = this.current;
 
     var progressPercent = 0;
     if (this.total !== 0)

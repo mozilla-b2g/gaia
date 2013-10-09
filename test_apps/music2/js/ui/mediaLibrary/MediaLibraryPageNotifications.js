@@ -28,6 +28,13 @@ MediaLibraryPageNotifications.prototype = {
   append: function(div){
     this.dom.panel.appendChild(div);
   },
+  showText: function(text){
+    this.empty();
+    var div = Utils.classDiv('text');
+    div.textContent = text;
+    this.append(div);
+    this.show();
+  },
   alert: function(text, time){
     this.empty();
     var div = Utils.classDiv('text');
@@ -51,7 +58,7 @@ MediaLibraryPageNotifications.prototype = {
         text += numberDeleted + ' songs removed,<br>';
     }
     text += 'refresh?';
-    question.textContent = text;
+    question.innerHTML = text;
     var yes = Utils.classDiv('yes');
     var no = Utils.classDiv('no');
 

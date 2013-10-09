@@ -23,9 +23,6 @@ MediaLibraryPanelManager.prototype = {
       this._showPanel(current);
     }
   },
-  refresh: function(done){
-    this.panels.forEach(function(panel){ panel.refresh(done); });
-  },
   updateMode: function(mode){
     this.panels.forEach(function(panel){ panel.updateMode(mode); });
   },
