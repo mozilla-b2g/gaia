@@ -412,6 +412,8 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     marionetteScriptFinished();
   }
 });""", script_timeout=60000)
+            # TODO: Remove this sleep when Bug 924912 is addressed
+            time.sleep(5)
 
     def stop_b2g(self):
         if self.marionette.instance:
