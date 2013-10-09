@@ -66,6 +66,28 @@ suite('telephony helper', function() {
     mockTelephony.verify();
   });
 
+  suite('should dialEmergency if the card state is unknown',
+    function() {
+      var initialState;
+
+      setup(function() {
+        initialState = MockIccHelper.mCardState;
+        MockIccHelper.mCardState = 'unknown';
+      });
+
+      teardown(function() {
+        MockIccHelper.mCardState = initialState;
+      });
+
+      test('and emergency call are allowed', function() {
+        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        var dialNumber = '112';
+        mockTelephony.expects('dialEmergency').withArgs('112');
+        subject.call(dialNumber);
+        mockTelephony.verify();
+      });
+  });
+
   test('should dialEmergency if the connection is emergency only',
   function() {
     MockMozMobileConnection.voice.emergencyCallsOnly = true;
