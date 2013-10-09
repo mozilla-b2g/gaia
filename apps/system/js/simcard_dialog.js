@@ -71,9 +71,7 @@ var SimPinDialog = {
     var cardState = IccHelper.cardState;
     var lockType = this.lockTypeMap[cardState];
     IccHelper.getCardLockRetryCount(lockType, (function(retryCount) {
-      if (!retryCount) {
-        this.triesLeftMsg.hidden = true;
-      } else {
+      if (retryCount) {
         var l10nArgs = { n: retryCount };
         this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
         this.triesLeftMsg.hidden = false;
