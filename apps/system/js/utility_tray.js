@@ -14,10 +14,17 @@ var UtilityTray = {
 
   screen: document.getElementById('screen'),
 
+  _moving: false,
+
+  get isMoving() {
+    return this._moving;
+  },
+
   init: function ut_init() {
     var touchEvents = ['touchstart', 'touchmove', 'touchend'];
     touchEvents.forEach(function bindEvents(name) {
-      window.addEventListener(name, this);
+      this.overlay.addEventListener(name, this);
+      this.statusbar.addEventListener(name, this);
     }, this);
 
     window.addEventListener('screenchange', this);
@@ -72,9 +79,6 @@ var UtilityTray = {
       case 'touchstart':
         if (LockScreen.locked)
           return;
-        if (evt.target !== this.overlay &&
-            evt.target !== this.statusbar)
-          return;
 
         this.active = true;
 
@@ -100,6 +104,8 @@ var UtilityTray = {
       case 'transitionend':
         if (!this.shown)
           this.screen.classList.remove('utility-tray');
+
+        this.setMoving(false);
         break;
     }
   },
@@ -149,6 +155,9 @@ var UtilityTray = {
     }
 
     if (!alreadyHidden) {
+      if (!instant)
+        this.setMoving(true);
+
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayhide', true, true, null);
       window.dispatchEvent(evt);
@@ -164,6 +173,7 @@ var UtilityTray = {
     this.screen.classList.add('utility-tray');
 
     if (!alreadyShown) {
+      this.setMoving(true);
       var evt = document.createEvent('CustomEvent');
       evt.initCustomEvent('utilitytrayshow', true, true, null);
       window.dispatchEvent(evt);
@@ -172,6 +182,27 @@ var UtilityTray = {
 
   _pdIMESwitcherShow: function ut_pdIMESwitcherShow(evt) {
       evt.preventDefault();
+  },
+
+  setMoving: function ut_setMoving(moving) {
+    this._moving = moving;
+    if (moving) {
+      // Start Auto Moving
+      this.overlay.classList.add('moving');
+    } else {
+      // Stop Audo Moving
+      this.overlay.classList.remove('moving');
+    }
+  },
+
+  publish: function ut_publish(evtName, detail) {
+    var evt = new CustomEvent(evtName, {
+      bubbles: true,
+      cancelable: true,
+      detail: detail
+    });
+
+    window.dispatchEvent(evt);
   }
 };
 

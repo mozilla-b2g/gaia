@@ -7,10 +7,12 @@ requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
 requireApp('system/test/unit/mock_activity.js');
+requireApp('system/test/unit/mock_utility_tray.js');
 
 requireApp('system/js/quick_settings.js');
 
-var mocksForQuickSettings = new MocksHelper(['SettingsListener']).init();
+var mocksForQuickSettings = new MocksHelper(
+  ['SettingsListener', 'UtilityTray']).init();
 
 suite('quick settings > ', function() {
   var realWifiManager;
@@ -20,6 +22,7 @@ suite('quick settings > ', function() {
   var realMozMobileConnection;
   var realActivity;
   var fakeQuickSettingsNode;
+  var realUtilityTray;
 
   mocksForQuickSettings.attachTestHelpers();
   suiteSetup(function() {
@@ -43,6 +46,7 @@ suite('quick settings > ', function() {
   suiteTeardown(function() {
     navigator.mozWifiManager = realWifiManager;
     window.SettingsListener = realSettingsListener;
+    window.UtilityTray = realUtilityTray;
     navigator.MozMobileConnection = realMozMobileConnection;
     navigator.mozL10n = realL10n;
     navigator.mozSettings = realSettings;

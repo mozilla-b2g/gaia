@@ -9,6 +9,7 @@ suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
   var fakeElement;
+  var stubSetMoving;
 
   setup(function(done) {
     fakeElement = document.createElement('div');
@@ -157,30 +158,58 @@ suite('system/UtilityTray', function() {
 
   suite('handleEvent: touchend', function() {
     setup(function() {
+      stubSetMoving = this.sinon.stub(UtilityTray, 'setMoving');
       fakeEvt = {
         type: 'touchend',
         changedTouches: [0]
       };
-      UtilityTray.active = true;
-      UtilityTray.handleEvent(fakeEvt);
+    });
+
+    teardown(function() {
+      stubSetMoving.restore();
     });
 
     test('Test UtilityTray.active, should be false', function() {
+      UtilityTray.active = true;
+      UtilityTray.handleEvent(fakeEvt);
       assert.equal(UtilityTray.active, false);
+    });
+
+    test('Test auto moving: shown -> closing', function() {
+      UtilityTray.active = true;
+      UtilityTray.shown = true;
+      UtilityTray.opening = false;
+      UtilityTray.handleEvent(fakeEvt);
+      assert.isTrue(stubSetMoving.calledWith(true));
+    });
+
+    test('Test auto moving: hidden -> opening', function() {
+      UtilityTray.active = true;
+      UtilityTray.shown = false;
+      UtilityTray.opening = true;
+      UtilityTray.handleEvent(fakeEvt);
+      assert.isTrue(stubSetMoving.calledWith(true));
     });
   });
 
 
   suite('handleEvent: transitionend', function() {
     setup(function() {
+      stubSetMoving = this.sinon.stub(UtilityTray, 'setMoving');
       fakeEvt = { type: 'transitionend' };
       UtilityTray.hide();
       UtilityTray.handleEvent(fakeEvt);
     });
 
+    teardown(function() {
+      stubSetMoving.restore();
+    });
+
     test('Test utilitytrayhide is correcly dispatched', function() {
       assert.equal(UtilityTray.screen.
         classList.contains('utility-tray'), false);
+
+      assert.isTrue(stubSetMoving.calledWith(false));
     });
   });
 

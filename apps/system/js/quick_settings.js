@@ -135,6 +135,8 @@ var QuickSettings = {
     evt.preventDefault();
     switch (evt.type) {
       case 'click':
+        if (UtilityTray.isMoving)
+          break;
         switch (evt.target) {
           case this.wifi:
             // do nothing if wifi isn't ready
