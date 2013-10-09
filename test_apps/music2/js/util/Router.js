@@ -66,13 +66,13 @@ Router.prototype = {
   _stringifyRoute: function(route, fnData){
     var logData = fnData.logData || {};
     var fn = fnData.fn || {};
-    var sourceModuleName = undefined;
+    var sourceModuleName = '?';
     if (this.module)
       sourceModuleName = this.module.name;
-    var sinkModuleName = undefined;
+    var sinkModuleName = '?';
     if (logData.module)
       sinkModuleName = logData.module.name;
-    return sourceModuleName + '[' + route + ']' + ' --> ' + sinkModuleName + '[' + (logData.name || fn.name) + ']';
+    return sourceModuleName + '[' + route + ']' + ' --> ' + sinkModuleName + '[' + (logData.name || fn.name || '?') + ']';
 
   }
 }

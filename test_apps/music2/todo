@@ -3,7 +3,6 @@
 
     intro screen
 
-    better db updating screen
     repeat?
     open activity
     pick activity
@@ -18,6 +17,7 @@
     load faster
 *    dynamic all songs list or remove all songs list
     add delete to playlists view
+    better ux for db updating screen
 
   ===================== maintainability =====================
 

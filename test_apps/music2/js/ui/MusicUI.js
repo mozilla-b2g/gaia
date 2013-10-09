@@ -13,6 +13,8 @@ var MusicUI = function(){
   this.currentMusicPage = new CurrentMusicPage();
   this.mediaLibraryPage = new MediaLibraryPage();
 
+  this.fullRefresh = false;
+
   this._watchImgsForErrors();
   this._setupEventViewEvents();
 
@@ -44,6 +46,8 @@ var MusicUI = function(){
     this.currentMusicPage.controls.nowPlaying.temporarilyShowText('added ' + title, 1000);
   }.bind(this));
 
+  this.mediaLibraryPage.router.when('requestFullRefresh', [this, '_setFullRefresh']);
+
   this.currentMusicPage.options.router.when('setEdit', [this, '_setEdit']);
 
   this.mediaLibraryPage.router.when('getPlaylists', function(){
@@ -74,6 +78,7 @@ var MusicUI = function(){
 MusicUI.prototype = {
   name: "MusicUI",
   //============== API ===============
+
   setPlaylist: function(playlist, playlistId){
     this.currentMusicPage.controls.nowPlaying.show();
     this.currentMusicPage.playlist.setPlaylist(playlist, this.mode);
@@ -106,13 +111,13 @@ MusicUI.prototype = {
     this.currentMusicPage.options.updateMode(mode);
   },
   musicChanged: function(numberCreated, numberDeleted){
-    if (window.localStorage.hasBeenLaunched){
+
+    if (!this.fullRefresh){
       this.mediaLibraryPage.userWantRefresh(numberCreated, numberDeleted, function wantRefresh(){
         this.mediaLibraryPage.refresh();
-      });
+      }.bind(this));
     }
     else {
-      window.localStorage.hasBeenLaunched = true;
       this.mediaLibraryPage.refresh();
     }
   },
@@ -215,6 +220,9 @@ MusicUI.prototype = {
 
   },
   //============== helpers ===============
+  _setFullRefresh: function(){
+    this.fullRefresh = true;
+  },
   _setEdit: function(isEdit){
     if (isEdit)
       this.updateMode('edit')

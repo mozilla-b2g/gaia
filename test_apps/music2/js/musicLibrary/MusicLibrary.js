@@ -17,17 +17,12 @@ var MusicLibrary = function(){
     }
   }.bind(this), 1000);
 
-  this.musicDB.router.when('musicDeleted', function(event){
-    this.router.route('songRemoved')(event.detail[0]);
-  }.bind(this));
-
-  this.musicDB.router.when('musicCreated', function(event){
-    this.router.route('songFound')(event.detail[0]);
-  }.bind(this));
-
+  this.musicDB.router.when('musicDeleted', [this, '_musicDeleted']);
+  this.musicDB.router.when('musicCreated', [this, '_musicCreated']);
+  
   Router.proxy([this.musicDB, 'isReady'], [this, 'doneLoading']);
-
   Router.proxy([this.musicDB, 'musicChanged'], [this, 'musicChanged']);
+  Router.proxy([this.musicDB, 'noMusic'], [this, 'noMusic']);
 }
 
 MusicLibrary.prototype = {
@@ -35,4 +30,10 @@ MusicLibrary.prototype = {
   unserializeSong: function(song){
     return new FileAudioSource(this.musicDB, song.data);
   },
+  _musicDeleted: function(event){
+    this.router.route('songRemoved')(event.detail[0]);
+  },
+  _musicCreated: function(event){
+    this.router.route('songFound')(event.detail[0]);
+  }
 }
