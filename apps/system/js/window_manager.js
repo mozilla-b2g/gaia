@@ -336,7 +336,6 @@ var WindowManager = (function() {
 
     var app = runningApps[displayedApp];
 
-    app.addClearRotateTransition();
     // Set orientation for the new app
     setOrientationForApp(displayedApp);
 
@@ -389,10 +388,6 @@ var WindowManager = (function() {
     var origin = iframe.dataset.frameOrigin;
 
     frame.classList.remove('active');
-    windows.classList.remove('active');
-
-    runningApps[origin].addClearRotateTransition();
-
     // set the closed frame visibility to false
 
     // XXX: After bug 822325 is fixed in gecko,
@@ -453,11 +448,13 @@ var WindowManager = (function() {
     openCallback = callback || noop;
     preCallback = preCallback || noop;
 
-    // set the size of the opening app
-    app.resize();
-
     // Make window visible to screenreader
     app.frame.removeAttribute('aria-hidden');
+
+    app.fadeIn();
+
+    if (app.resized)
+      app.resize();
 
     if (origin === homescreen) {
       // Call the openCallback only once. We have to use tmp var as
@@ -479,7 +476,10 @@ var WindowManager = (function() {
     if (app.isFullScreen())
       screenElement.classList.add('fullscreen-app');
 
-    app.setRotateTransition(app.manifest.orientation);
+    if (app.rotatingDegree !== 0) {
+      // Lock the orientation before transitioning.
+      app.setOrientation();
+    }
 
     transitionOpenCallback = function startOpeningTransition() {
       // We have been canceled by another transition.
@@ -567,13 +567,17 @@ var WindowManager = (function() {
       openWindow(homescreen, null);
 
       // set orientation for homescreen app
+      if (app.determineClosingRotationDegree() !== 0) {
+        app.fadeOut();
+      }
       setOrientationForApp(homescreen);
+      if (app.resized) {
+        app.resize();
+      }
 
       // Set the size of both homescreen app and the closing app
       // since the orientation had changed.
       runningApps[homescreen].resize();
-
-      app.setRotateTransition();
     }
 
     // Send a synthentic 'appwillclose' event.
@@ -821,6 +825,10 @@ var WindowManager = (function() {
       } else {
         iframe.dataset.start = Date.now();
         iframe.dataset.enableAppLoaded = 'appopen';
+      }
+
+      if (app.rotatingDegree === 90 || app.rotatingDegree === 270) {
+        runningApps[homescreen].fadeOut();
       }
     }
 
