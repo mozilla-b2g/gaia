@@ -2,7 +2,7 @@
 body:not(.evme-ready) #collection hr,
 body:not(.evme-ready) #collection .connection-message,
 body:not(.evme-ready) #collection .loading-more div span,
-body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
+body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
   display: none;
 }
 
@@ -12,20 +12,10 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: 600;
-    color: #fff;
     display: none;
-    -moz-box-sizing: border-box;
-    pointer-events: none;
-    animation: collection-hide 450ms ease-out 1;
-    animation-fill-mode: forwards;
-}
-
-.evmeScope #collection.visible {
+    overflow: hidden;
     z-index: 10001;
-    pointer-events: inherit;
-    display: block;
-    animation-name: collection-show;
+    color: #fff;
 }
 
 .evmeScope #collection.renaming:before {
@@ -45,70 +35,90 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
     {
       transition: opacity .4s ease;
     }
-    .evmeScope #collection .content {
-    }
+    .evmeScope #collection .content,
     .evmeScope #collection .header {
-      position: relative;
-      z-index: 50;
-      height: 5.4rem;
-      line-height: 5.5rem;
-      text-shadow: 0 0.2rem 0.4rem rgba(0, 0, 0, .6);
-      border-bottom: 0.1rem solid #fff;
-      overflow: hidden;
-      background: rgba(0,0,0,0.3);
+      transition: transform 380ms ease;
+    }
+    .evmeScope #collection .content {
+      position: absolute;
+      top: 5.4rem;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 60;
+      border-top: 0.1rem solid #fff;
+      /* +0.8rem to accomodate for the arrow that goes out of the content */
+      transform: translateY(calc(100% + 0.8rem));
+    }
+    .evmeScope #collection.visible .content {
+      transform: translateY(0%);
     }
 
-     .evmeScope #collection .header:before {
-        content: "";
-        position: absolute;
-        left: 4rem;
-        top: 5rem;
-        width: 0;
-        height: 0;
-        border: 0.5rem solid #fff;
-        transform: rotate(45deg);
-      }
-      .evmeScope #collection .header .header-content {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 5.4rem;
-      }
+    .evmeScope #collection .content:before {
+      content: "";
+      position: absolute;
+      left: 4rem;
+      top: -0.7rem;
+      width: 0;
+      height: 0;
+      border-left: 0.8rem solid transparent;
+      border-right: 0.8rem solid transparent;
+      border-bottom: 0.8rem solid #fff;
+    }
+
+    .evmeScope #collection .header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5.4rem;
+      line-height: 5.4rem;
+      z-index: 50;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: normal;
+      overflow: hidden;
+      background: rgba(0, 0, 0, .7);
+      transform: translateY(-100%);
+    }
+    .evmeScope #collection.visible .header {
+      transform: translateY(0%);
+    }
+
+    .evmeScope #collection .header .header-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 5.4rem;
+    }
+
     .evmeScope #collection .title {
         position: relative;
         z-index: 50;
         height: 100%;
         padding: 0 0 0 3.2rem;
         margin-right: 1rem;
-        font-size: 1.7rem;
-        font-weight: normal;
-        color: #ffffff;
+        font-weight: inherit;
         overflow: hidden;
         white-space: nowrap;
         mask: url('/style/app_name_mask.svg#fade_right_mask');
         text-overflow: '';
         -moz-box-sizing: border-box;
     }
-    .evmeScope #collection .title .actual,
-    .evmeScope #collection .title input {
-        font-weight: bold;
-        color: #b4dae7;
-    }
      .evmeScope #collection .title input {
           position: relative;
           left: -0.1rem;
           font: inherit;
-          font-weight: bold;
+          color: inherit;
           height: 100%;
           width: calc(100% - 5rem);
-          text-shadow: inherit;
           background: transparent;
       }
 
     .evmeScope #collection .image {
         position: absolute;
-        top: 5.5rem;
+        top: 0;
         left: 0;
         right: 0;
         bottom: 0;
@@ -169,9 +179,9 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
           background: rgba(0, 0, 0, .3);
           border-left: 0.1rem solid rgba(255, 255, 255, .3);
       }
-    .evmeScope #collection .evme-apps {
-        top: 5.5rem;
-    }
+      .evmeScope #collection .evme-apps {
+        top: 0;
+      }
       .evmeScope #collection .evme-apps li {
         width: 25%;
       }
@@ -228,13 +238,6 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps{
     opacity: 1;
 }
 
-.evme-collection-visible div[data-current-page] ol {
-    opacity: 0;
-}
-.evme-collection-visible div[data-current-page] .evmeScope #search-header,
-.evme-collection-visible #evme-activation-icon > div {
-    transform: translateY(-7rem);
-}
 .evmeScope #collection form {
     display: none;
 }
