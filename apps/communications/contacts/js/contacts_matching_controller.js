@@ -145,12 +145,13 @@ if (!contacts.MatchingController) {
     }
 
     function abort() {
-      Curtain.hide();
-
-      parent.postMessage({
-        type: 'abort',
-        data: ''
-      }, CONTACTS_APP_ORIGIN);
+      var notifyParent = function cmc_notifyParent() {
+        parent.postMessage({
+          type: 'abort',
+          data: ''
+        }, CONTACTS_APP_ORIGIN);
+      };
+      Curtain.hide(notifyParent);
     }
 
     function merge(checkedContacts) {
