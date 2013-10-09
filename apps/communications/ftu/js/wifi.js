@@ -21,6 +21,8 @@ var WifiManager = {
   scan: function wn_scan(callback) {
     utils.overlay.show(_('scanningNetworks'), 'spinner');
     var req = this.api.getNetworks();
+    if (!req)
+      callback();
     var self = this;
     req.onsuccess = function onScanSuccess() {
       self.networks = req.result;

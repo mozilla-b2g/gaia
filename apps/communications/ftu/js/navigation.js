@@ -48,12 +48,15 @@ var steps = {
 // Retrieve number of steps for navigation
 var numSteps = Object.keys(steps).length;
 
+var _;
+
 var Navigation = {
   currentStep: 1,
   previousStep: 1,
 
   init: function n_init() {
     _ = navigator.mozL10n.get;
+    var settings = navigator.mozSettings;
     var forward = document.getElementById('forward');
     var back = document.getElementById('back');
     forward.addEventListener('click', this.forward.bind(this));
@@ -63,12 +66,10 @@ var Navigation = {
         this.handleExternalLinksClick.bind(this));
     this.simMandatory = false;
 
-    var req = navigator.mozSettings.createLock().get('ftu.sim.mandatory');
+    var req = settings && settings.createLock().get('ftu.sim.mandatory') || {};
     var self = this;
     req.onsuccess = function onSuccess() {
-      if (req.result['ftu.sim.mandatory']) {
-        self.simMandatory = req.result['ftu.sim.mandatory'];
-      }
+      self.simMandatory = req.result['ftu.sim.mandatory'] || false;
     };
   },
 
