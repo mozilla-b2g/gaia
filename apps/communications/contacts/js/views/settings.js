@@ -611,25 +611,27 @@ contacts.Settings = (function() {
     importer.onread = function import_read(n) {
       contactsRead = true;
       totalContactsToImport = n;
-      progress.setClass('progressBar');
-      progress.setHeaderMsg(_('simContacts-importing'));
-      progress.setTotal(totalContactsToImport);
+      if (totalContactsToImport > 0) {
+        progress.setClass('progressBar');
+        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setTotal(totalContactsToImport);
+      }
     };
 
     importer.onfinish = function import_finish() {
       window.setTimeout(function onfinish_import() {
         resetWait(wakeLock);
-        if (importedContacts !== 0) {
+        if (importedContacts > 0) {
           window.importUtils.setTimestamp('sim', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkExport();
           });
-          if (!cancelled) {
-            Contacts.showStatus(_('simContacts-imported3', {
-              n: importedContacts
-            }));
-          }
+        }
+        if (!cancelled) {
+          Contacts.showStatus(_('simContacts-imported3', {
+            n: importedContacts
+          }));
         }
       }, DELAY_FEEDBACK);
 
