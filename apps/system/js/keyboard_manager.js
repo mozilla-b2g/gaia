@@ -125,18 +125,10 @@ var KeyboardManager = {
           break;
       }
     });
+
     window.addEventListener('localized', function(evt) {
       self.updateLayouts(evt);
     });
-
-    // XXX: Bug 906096, need to remove this when the IME WebAPI is ready
-    //      on Firefox Nightly
-    if (navigator.mozKeyboard) {
-      navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-        evt.detail.inputType = evt.detail.type;
-        self.inputFocusChange(evt);
-      };
-    }
 
     // generate typeTable
     this.inputTypeTable =
@@ -225,10 +217,6 @@ var KeyboardManager = {
   },
 
   inputFocusChange: function km_inputFocusChange(evt) {
-    // XXX Send the fake event to value selector
-
-    window.dispatchEvent(new CustomEvent('inputfocuschange', evt));
-
     var type = evt.detail.inputType;
 
     // Skip the <select> element and inputs with type of date/time,

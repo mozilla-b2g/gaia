@@ -23,56 +23,67 @@ var ValueSelector = {
   init: function vs_init() {
     var self = this;
 
-    window.addEventListener('inputfocuschange', function onfocuschange(evt) {
-      var typeToHandle = ['select-one', 'select-multiple', 'date',
-        'time', 'datetime', 'datetime-local', 'blur'];
+    // Bug 924893 - We have to use the mozKeyboard.onfocuschange
+    // instead of mozInputMethod.oninputcontextchange because the new event
+    // doesn't contain all the information we need.
+    if (navigator.mozKeyboard) {
+      navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
+        evt.detail.inputType = evt.detail.type;
 
-      var currentInputType = evt.detail.inputType;
-      // handle the <select> element and inputs with type of date/time
-      // in system app for now
-      if (typeToHandle.indexOf(currentInputType) == -1)
-        return;
+        var typeToHandle = ['select-one', 'select-multiple', 'date',
+          'time', 'datetime', 'datetime-local', 'blur'];
 
-      var currentValue = evt.detail.value;
-      self._currentDatetimeValue = currentValue;
-      self._currentInputType = currentInputType;
+        var currentInputType = evt.detail.inputType;
+        // handle the <select> element and inputs with type of date/time
+        // in system app for now
+        if (typeToHandle.indexOf(currentInputType) == -1)
+          return;
 
-      switch (currentInputType) {
-        case 'select-one':
-        case 'select-multiple':
-          self.debug('select triggered' + JSON.stringify(evt.detail));
-          self._currentPickerType = evt.detail.type;
-          self.showOptions(evt.detail);
-          break;
+        var currentValue = evt.detail.value;
+        self._currentDatetimeValue = currentValue;
+        self._currentInputType = currentInputType;
 
-        case 'date':
-          var min = evt.detail.min;
-          var max = evt.detail.max;
-          self.showDatePicker(currentValue, min, max);
-          break;
+        switch (currentInputType) {
+          case 'select-one':
+          case 'select-multiple':
+            self.debug('select triggered' + JSON.stringify(evt.detail));
+            self._currentPickerType = evt.detail.type;
+            self.showOptions(evt.detail);
+            break;
 
-        case 'time':
-          self.showTimePicker(currentValue);
-          break;
+          case 'date':
+            var min = evt.detail.min;
+            var max = evt.detail.max;
+            self.showDatePicker(currentValue, min, max);
+            break;
 
-        case 'datetime':
-        case 'datetime-local':
-          var min = evt.detail.min;
-          var max = evt.detail.max;
-          if (currentValue !== '') {
-            var date = new Date(currentValue);
-            var localDate = date.toLocaleFormat('%Y-%m-%d');
-            self.showDatePicker(localDate, min, max);
-          } else {
-            self.showDatePicker('', min, max);
-          }
-          break;
+          case 'time':
+            self.showTimePicker(currentValue);
+            break;
 
-        case 'blur':
-          self.hide();
-          break;
-      }
-    });
+          case 'datetime':
+          case 'datetime-local':
+            var min = evt.detail.min;
+            var max = evt.detail.max;
+            if (currentValue !== '') {
+              var date = new Date(currentValue);
+              var localDate = date.toLocaleFormat('%Y-%m-%d');
+              self.showDatePicker(localDate, min, max);
+            } else {
+              self.showDatePicker('', min, max);
+            }
+            break;
+
+          case 'blur':
+            self.hide();
+            break;
+        }
+      };
+    }
+    else {
+      console.error('Bug 924893 - mozKeyboard has been removed without ' +
+        'updating value_selector.js');
+    }
 
     this._element = document.getElementById('value-selector');
     this._element.addEventListener('mousedown', this);
