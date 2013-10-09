@@ -10,6 +10,13 @@ var GaiaApps = {
     return name.replace(/[- ]+/g, '').toLowerCase();
   },
 
+  getInstalledApps: function() {
+    let req = navigator.mozApps.mgmt.getAll();
+    req.onsuccess = function() {
+      marionetteScriptFinished(req.result);
+    }
+  },
+
   getRunningApps: function() {
     let runningApps = window.wrappedJSObject.WindowManager.getRunningApps();
     // Return a simplified version of the runningApps object which can be
