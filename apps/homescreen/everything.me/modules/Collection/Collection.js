@@ -518,24 +518,31 @@ void function() {
 
       for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
         Evme.CollectionStorage.get(gridCollection.id, function removeApp(settings) {
-          removeFromCollection(settings, e.detail.descriptor);
+          uninstallFromCollection(settings, e.detail.descriptor);
         });
       }
     }
 
     /**
-     * Add an app to collection if the app matches the collection's
-     * name/query/experience
+     * Add an app to collection if any of the queries associated with the app
+     * match the collection's name/query/experience
      */
     function nominateApp(gridCollection, appInfo, queries) {
       var collectionName = EvmeManager.getIconName(gridCollection.id);
 
+      // first match against the collection's name (easier)
       if (collectionName && 
           queries.indexOf(collectionName.toLowerCase()) > -1) {
         self.addInstalledApp(appInfo, gridCollection.id);
       } else {
+        // get the collection's settings from storage
         Evme.CollectionStorage.get(gridCollection.id, function onGet(settings) {
+          // for user-created collections
+          // match against the query
           var collectionQuery = settings.query;
+
+          // for pre-installed collections
+          // translate the experienceId to query
           if (!collectionQuery && settings.experienceId) {
             collectionQuery = Evme.Utils.shortcutIdToKey(settings.experienceId);
           }
@@ -700,10 +707,17 @@ void function() {
   };
 
   /**
-   * Remove installed app from a collection
+   * Remove instances of an un-installed app from a collection
+   * @param  {Evme.CollectionSettings} settings
+   * @param  {Object}                  descriptor of the un-installed app
    */
-  function removeFromCollection(settings, descriptor) {
+  function uninstallFromCollection(settings, descriptor) {
     var apps = settings.apps.filter(function keep(app) {
+      // skip pinned cloud apps since it can not be un-installed
+      if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD) {
+        return true;
+      }
+
       // remove bookmarks
       var remove = descriptor.bookmarkURL && 
                     app.id === descriptor.bookmarkURL;
