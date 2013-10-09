@@ -544,7 +544,6 @@ EXTENDED_PREF_FILES = \
   custom-prefs.js \
   gps-prefs.js \
   payment-prefs.js \
-  ua-override-prefs.js \
 
 ifeq ($(DOGFOOD),1)
 EXTENDED_PREF_FILES += dogfood-prefs.js
