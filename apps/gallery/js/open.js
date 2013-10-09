@@ -204,6 +204,10 @@ window.addEventListener('localized', function() {
     $('menu').hidden = true;
     // XXX work around bug 870619
     $('filename').textContent = $('filename').textContent;
+    var ext = MimeMapper.guessExtensionFromType(blob.type);
+    if (ext && activityData.filename.indexOf(ext) === -1) {
+      activityData.filename += '.' + ext;
+    }
 
     getUnusedFilename(storage, activityData.filename, function(filename) {
       var savereq = storage.addNamed(blob, filename);
