@@ -40,11 +40,6 @@ var EverythingME = {
     function triggerActivateFromInput(e) {
       // gives the searchbar evme styling
       document.body.classList.add('evme-loading-from-input');
-      document.body.classList.add('evme-keyboard-visible');
-
-      var activationInput = activationIcon.querySelector('input');
-      activationInput.addEventListener('blur', EverythingME.onActivationIconBlur);
-
       triggerActivate(e);
     }
 
@@ -77,47 +72,43 @@ var EverythingME = {
         'everything.me/css/common.css',
         'everything.me/modules/Collection/Collection.css'],
         function assetsLoaded() {
+          // open the collection immediately
+          if (e && e.type === 'collectionlaunch') {
+            onCollectionOpened(activationIcon, e.detail.id);
+          }
+
           // Activate evme load
           // But wait a tick, so there's no flash of unstyled progress indicator
-          window.setTimeout(function() {
-            // open the collection immediately
-            if (e && e.type === 'collectionlaunch') {
-              onCollectionOpened(e.detail.id);
-            }
-
-            EverythingME.activate();
-          }, 0);
+          window.setTimeout(EverythingME.activate, 0);
         }
       );
     }
 
     // show Collection loading
-    function onCollectionOpened(id) {
+    function onCollectionOpened(activationIcon, id) {
       // add classes for Collection styling
-      var appsEl = document.getElementById('icongrid'),
-          elCollection = document.getElementById('collection'),
-          collection = GridManager.getIconByOrigin(id),
-          elLoader = elCollection.querySelector(".loading-more");
-
+      var appsEl = document.getElementById('icongrid');
       appsEl.classList.add('evme-collection-visible');
-
+      var elCollection = document.getElementById('collection');
+      elCollection.classList.add('visible');
+      var collection = GridManager.getIconByOrigin(id);
       elCollection.querySelector('.title').innerHTML =
               '<em></em>' +
-              '<span>' + collection.getName() + '</span>';
-
+              '<span class="actual">' + collection.getName() + '</span>' + ' ' +
+              '<span> ' +
+              navigator.mozL10n.get('evme-collection-title-suffix') +
+              '</span>';
+      var elLoader = elCollection.querySelector(".loading-more");
       elLoader.classList.add('show');
 
-      PaginationBar.hide();
+      // hide the pagination bar
+      // need timeout to make it match the normal collections animation timing
+      window.setTimeout(PaginationBar.hide, 100);
 
       // add temporary Collection close listeners
       var closeButton  = elCollection.querySelector('.close');
       closeButton.addEventListener('click', EverythingME.onCollectionClosed);
       window.addEventListener("hashchange", EverythingME.onCollectionClosed);
-
-      elCollection.style.display = 'block';
-      window.setTimeout(function() {
-        elCollection.classList.add('visible');
-      }, 0);
     }
 
     function onContextMenu(e) {
@@ -134,31 +125,15 @@ var EverythingME = {
     EverythingME.migrateStorage();
   },
 
-  onActivationIconBlur: function onActivationIconBlur(e) {
-    EverythingME.pendingEvent = null;
-    e.target.removeEventListener('blur', onActivationIconBlur);
-    document.body.classList.remove('evme-keyboard-visible');
-    document.body.classList.remove('evme-loading-from-input');
-  },
-
   // remove pre-evme-load changes
-  onCollectionClosed: function onCollectionClosed() {
+  onCollectionClosed: function onCollectionClosed(activationIcon) {
     var appsEl = document.getElementById('icongrid');
     appsEl.classList.remove('evme-collection-visible');
 
-    var elCollection = document.getElementById('collection'),
-        elHeader = elCollection.querySelector('.header');
+    var elCollection = document.getElementById('collection');
+    elCollection.classList.remove('visible');
 
     EverythingME.pendingEvent = undefined;
-
-    elHeader.addEventListener('transitionend', function end(e) {
-      e.target.removeEventListener('transitionend', end);
-
-      elCollection.style.display = 'none';
-      PaginationBar.show();
-    });
-
-    elCollection.classList.remove('visible');
   },
 
   activate: function EverythingME_activate() {
@@ -297,8 +272,6 @@ var EverythingME = {
         evmeInput = document.getElementById('search-q'),
         closeButton = document.querySelector('#collection .close');
 
-    activationIconInput.removeEventListener('blur', EverythingME.onActivationIconBlur);
-
     // add evme into the first grid page
     gridPage.appendChild(page.parentNode.removeChild(page));
 
@@ -329,7 +302,7 @@ var EverythingME = {
       e.target.dispatchEvent(e);
     }
 
-    if (e && e.type === 'suggestcollections') {
+    if (e.type === 'suggestcollections') {
       window.addEventListener('CollectionSuggestLoadingShow', loadingShow);
       window.addEventListener('CollectionSuggestOffline', suggestOffline);
     } else {
