@@ -478,6 +478,37 @@ suite('Test Contacts Matcher', function() {
       testMatch(myObj, 'active', ['name'], done);
     });
 
+    test('SIM Contact. Name is totally empty and there is tel. No matches',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = '1A';
+        myObj.name = myObj.givenName = myObj.familyName = [];
+        myObj.category = ['sim'];
+        myObj.tel = [{
+          type: ['personal'],
+          value: '9999999'
+        }];
+        myObj.email = null;
+
+        testMismatch(myObj, 'active', done);
+    });
+
+    test('Regular Contact. Name is totally empty and there is tel. No matches',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = '1A';
+        myObj.name = myObj.givenName = myObj.familyName = [];
+        myObj.category = null;
+        myObj.tel = [{
+          type: ['personal'],
+          value: '9999999'
+        }];
+        myObj.email = null;
+
+        testMismatch(myObj, 'active', done);
+    });
+
+
     test('Matching by phone, email and name', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
