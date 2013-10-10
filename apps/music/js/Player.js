@@ -93,6 +93,7 @@ var PlayerView = {
     this.timeoutID;
     this.cover = document.getElementById('player-cover');
     this.coverImage = document.getElementById('player-cover-image');
+    this.shareButton = document.getElementById('player-cover-share');
 
     this.repeatButton = document.getElementById('player-album-repeat');
     this.shuffleButton = document.getElementById('player-album-shuffle');
@@ -193,6 +194,19 @@ var PlayerView = {
     this.artist.dataset.l10nId = metadata.artist ? '' : unknownArtistL10nId;
     this.album.textContent = metadata.album || unknownAlbum;
     this.album.dataset.l10nId = metadata.album ? '' : unknownAlbumL10nId;
+
+    // if it is a locked music file, hide the share button
+    // and use the full width for cover info
+    if (metadata.locked) {
+      this.shareButton.classList.add('hidden');
+      this.artist.classList.add('hidden-cover-share');
+      this.album.classList.add('hidden-cover-share');
+    }
+    else {
+      this.shareButton.classList.remove('hidden');
+      this.artist.classList.remove('hidden-cover-share');
+      this.album.classList.remove('hidden-cover-share');
+    }
 
     this.setCoverImage(fileinfo, this.backgroundIndex);
   },
@@ -678,6 +692,41 @@ var PlayerView = {
         (remainingTime > 0) ? '-' + formatTime(remainingTime) : '---:--';
   },
 
+  share: function pv_shareFile() {
+    // We try to fix Bug 814323 by using
+    // current workaround of bluetooth transfer
+    // so we will pass both filenames and filepaths
+    // The filepaths can be removed after Bug 811615 is fixed
+    var songData = this.dataSource[this.currentIndex];
+
+    if (songData.metadata.locked)
+      return;
+
+    musicdb.getFile(songData.name, function(file) {
+      var filename = songData.name,
+          name = filename.substring(filename.lastIndexOf('/') + 1),
+          type = file.type;
+
+      // And we just want the first component of the type "audio" or "video".
+      type = type.substring(0, type.indexOf('/')) + '/*';
+
+      var a = new MozActivity({
+        name: 'share',
+        data: {
+          type: type,
+          number: 1,
+          blobs: [file],
+          filenames: [name],
+          filepaths: [filename]
+        }
+      });
+
+      a.onerror = function(e) {
+        console.warn('share activity error:', a.error.name);
+      };
+    });
+  },
+
   handleEvent: function pv_handleEvent(evt) {
     var target = evt.target;
       if (!target)
@@ -718,6 +767,10 @@ var PlayerView = {
             });
 
             this.setShuffle(newValue, this.currentIndex);
+            break;
+          case 'player-cover-share':
+            this.share();
+
             break;
         }
 
