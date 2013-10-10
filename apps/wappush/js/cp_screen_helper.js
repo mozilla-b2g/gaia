@@ -247,6 +247,8 @@ var CpScreenHelper = (function() {
       storeConfirmDialog.hidden = true;
 
       processed = true;
+      // Store the APNs into the database.
+      StoreProvisioning.provision(apns);
 
       // Show finish confirm dialog.
       finishConfirmDialog.hidden = false;
