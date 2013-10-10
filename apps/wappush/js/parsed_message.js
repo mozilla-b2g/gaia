@@ -160,6 +160,7 @@
       if (!obj.provisioning.authInfo) {
         return null;
       }
+      obj.text = 'cp-message-received';
     } else {
       return null;
     }
