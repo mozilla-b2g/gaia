@@ -129,11 +129,16 @@ suite('ActionMenu', function() {
   });
 
   suite(' > handleEvent', function() {
+    var clickEvent;
     setup(function() {
       actionMenu = screen.querySelector('[data-type="action"]');
       ActionMenu.open(activitiesMockup, title);
       this.sinon.spy(ActionMenu, 'handleEvent');
       this.sinon.spy(ActionMenu, 'hide');
+      clickEvent = new Event('click', {
+        cancelable: true,
+        bubbles: true
+      });
     });
 
     teardown(function() {
@@ -141,15 +146,17 @@ suite('ActionMenu', function() {
     });
 
     test(' > click > action', function() {
-      actionMenu.querySelector('menu').firstChild.click();
+      actionMenu.querySelector('menu').firstChild.dispatchEvent(clickEvent);
       assert.isTrue(ActionMenu.handleEvent.called);
       assert.isTrue(ActionMenu.hide.called);
+      assert.isTrue(clickEvent.defaultPrevented);
     });
 
     test(' > click > cancel', function() {
-      actionMenu.querySelector('menu').lastChild.click();
+      actionMenu.querySelector('menu').lastChild.dispatchEvent(clickEvent);
       assert.isTrue(ActionMenu.handleEvent.called);
       assert.isTrue(ActionMenu.hide.called);
+      assert.isTrue(clickEvent.defaultPrevented);
     });
   });
 });
