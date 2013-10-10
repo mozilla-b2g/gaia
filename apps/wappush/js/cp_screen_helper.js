@@ -194,13 +194,23 @@ var CpScreenHelper = (function() {
         authFailureConfirmDialog.hidden = false;
         return;
       }
-      // Need to perform the authentication process.
-      isDocumentValid = true;
+
+      try {
+        // Need to perform the authentication process.
+        isDocumentValid =
+          ProvisioningAuthentication.isDocumentValid(pin.value,
+                                                     authInfo);
+      } catch (e) {
+        message = finishConfirmDialog.querySelector('strong');
+        message.textContent = _(e.message);
+        finishConfirmDialog.hidden = false;
+        return;
+      }
 
       authenticated = true;
       if (!isDocumentValid) {
+        // The document couldn't be authenticated, alert.
         authenticated = false;
-        // The document couldn't be authenticated due to an error, alert.
         authFailureConfirmDialog.hidden = false;
         return;
       }
