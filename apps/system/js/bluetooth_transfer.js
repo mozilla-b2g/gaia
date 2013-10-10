@@ -430,7 +430,6 @@ var BluetoothTransfer = {
       };
 
       switch (mappedType) {
-        case 'text/x-vcard':
         case 'text/vcard':
           activityOptions.name = 'import';
           break;
