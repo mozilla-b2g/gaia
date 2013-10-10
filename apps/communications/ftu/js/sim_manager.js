@@ -235,7 +235,6 @@ var SimManager = {
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    Navigation.checkCurrentStep();
     UIManager.activationScreen.classList.add('show');
   },
 

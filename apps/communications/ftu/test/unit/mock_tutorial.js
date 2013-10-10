@@ -1,5 +1,5 @@
 'use strict';
 
-var Tutorial = {
+var MockTutorial = {
   init: function() {}
 };
