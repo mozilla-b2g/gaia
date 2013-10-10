@@ -1342,6 +1342,10 @@ var ThreadUI = global.ThreadUI = {
       classNames.push('hidden');
     }
 
+    if (message.type && message.type === 'mms' && message.subject) {
+      classNames.push('has-subject');
+    }
+
     if (message.type && message.type === 'sms') {
       var escapedBody = Template.escape(message.body || '');
       bodyHTML = LinkHelper.searchAndLinkClickableData(escapedBody);
@@ -1361,7 +1365,8 @@ var ThreadUI = global.ThreadUI = {
 
     messageDOM.innerHTML = this.tmpl.message.interpolate({
       id: String(message.id),
-      bodyHTML: bodyHTML
+      bodyHTML: bodyHTML,
+      subject: String(message.subject)
     }, {
       safe: ['bodyHTML']
     });

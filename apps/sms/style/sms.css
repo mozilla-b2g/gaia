@@ -428,6 +428,50 @@ section.has-carrier .article-list header:first-child {
   width: auto;
 }
 
+.article-list[data-type="list"] .message .subject {
+  display: none;
+}
+
+.article-list[data-type="list"] .has-subject .bubble {
+  padding-top: 0rem;
+}
+
+.article-list[data-type="list"] .has-subject .subject {
+  display: block;
+  margin-bottom: 0.5rem;
+  padding-top: 0.9rem; /* 0.9 top + 1.4 line-height + 0.7 bottom = 3.0 */
+  padding-bottom: 0.7rem;
+
+  line-height: 1.4rem;
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #666;
+}
+
+.article-list[data-type="list"] .has-subject.outgoing .subject {
+  /* to extend the background color and bottom border */
+  width: 100%; 
+  margin-left: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 4rem;
+
+  background: #FAFAFA;
+  border-bottom: 1px solid #EFEEEE;
+  border-radius: 0.3rem 0 0 0;
+}
+
+.article-list[data-type="list"] .has-subject.incoming .subject {
+  /* to extend the background color and bottom border */
+  width: 100%;
+  margin-left: -4rem;
+  padding-left: 4rem;
+  padding-right: 1.5rem;
+
+  background: #F7C584;
+  border-bottom: 1px solid #EFBD7C;
+  border-radius: 0 0.3rem 0 0;
+}
+
 .article-list[data-type="list"] .message.outgoing .bubble {
   float: right;
 
