@@ -112,14 +112,17 @@ var WapPushManager = {
    * @return {Boolean} true if the message should be displayed, false otherwise.
    */
   shouldDisplayMessage: function wpm_shouldDisplayMessage(message) {
-    if (!this._wapPushEnabled || (message === null) ||
-        !WhiteList.has(message.sender) || message.isExpired()) {
-       /* WAP push functionality is either completely disabled, the message
-        * comes from a non white-listed MSISDN, or it has already been expired,
-        * ignore it. */
+    if (!this._wapPushEnabled || (message === null)) {
+       /* WAP push functionality is either completely disabled, ignore it. */
        return false;
     }
 
+    if ((message.type !== 'text/vnd.wap.connectivity-xml') &&
+        (!WhiteList.has(message.sender) || message.isExpired())) {
+      /* The message isn't a provisioning message and comes from a non
+       * white-listed MSISDN or it has already been expired, ignore it. */
+      return false;
+    }
     return true;
   },
 
@@ -206,19 +209,28 @@ var WapPushManager = {
       function wpm_loadSuccess(message) {
         var _ = navigator.mozL10n.get;
 
-        // Populate the message
-        if (message && !message.isExpired()) {
-          self._title.textContent = message.sender;
-          self._text.textContent = message.text;
-          self._link.textContent = message.href;
-          self._link.href = message.href;
-          self._link.dataset.url = message.href;
-        } else {
+        if (!message || (message && message.isExpired())) {
+          /* If we couldn't retrieve the message then it means that the
+           * message has been expired before it was displayed. */
           self._title.textContent = _('wap-push-message');
           self._text.textContent = _('this-message-has-expired');
           self._link.textContent = '';
           self._link.href = '';
           self._link.dataset.url = '';
+          return;
+        }
+
+        switch (message.type) {
+          case 'text/vnd.wap.si':
+          case 'text/vnd.wap.sl':
+            self._title.textContent = message.sender;
+            self._text.textContent = message.text;
+            self._link.textContent = message.href;
+            self._link.href = message.href;
+            self._link.dataset.url = message.href;
+            break;
+          case 'text/vnd.wap.connectivity-xml':
+            break;
         }
       },
       function wpm_loadError(error) {
