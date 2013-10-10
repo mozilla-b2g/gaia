@@ -80,6 +80,7 @@ var KeyboardManager = {
       console.log('[Keyboard Manager] ' + msg);
   },
   keyboardHeight: 0,
+  enabled: true,
 
   init: function km_init() {
     var self = this;
@@ -123,6 +124,9 @@ var KeyboardManager = {
         case 'inputmethod-contextchange':
           self.inputFocusChange(evt);
           break;
+        case 'inputmethod-toggle-softkeyboard':
+          self.toggleSoftKeyboard(evt.detail.enabled);
+          break;
       }
     });
 
@@ -138,6 +142,13 @@ var KeyboardManager = {
       res[k].push(curr);
       return res;
     }, {});
+  },
+
+  toggleSoftKeyboard: function kn_toggleSoftKeyboard(enabled) {
+    this.enabled = enabled;
+    if (!enabled) {
+      this.hideKeyboard();
+    }
   },
 
   getHeight: function kn_getHeight() {
@@ -222,6 +233,9 @@ var KeyboardManager = {
     // Skip the <select> element and inputs with type of date/time,
     // handled in system app for now
     if (!type || type in IGNORED_INPUT_TYPES)
+      return;
+
+    if (!this.enabled)
       return;
 
     var self = this;
