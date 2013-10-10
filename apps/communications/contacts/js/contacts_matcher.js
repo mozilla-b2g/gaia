@@ -378,7 +378,7 @@ contacts.Matcher = (function() {
 
     var finalResult = {};
 
-    var resultsByName = null;
+    var resultsByName = [];
     if (!isEmptyStr(aContact.name)) {
       var targetName = aContact.name[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
@@ -394,27 +394,22 @@ contacts.Matcher = (function() {
           return filterFacebook(aResult, options);
         });
         notifyFindNameReady();
-        if (isEmptyStr(aContact.familyName)) {
-          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
-        }
       };
 
       reqName.onerror = function(e) {
         window.console.warn('Error while trying to find by name: ',
                                 e.target.error.name);
-        resultsByName = [];
         notifyFindNameReady();
-        if (isEmptyStr(aContact.familyName)) {
-          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
-        }
       };
     }
     else {
-      resultsByName = [];
       notifyFindNameReady();
     }
 
-    if (!isEmptyStr(aContact.familyName)) {
+    if (isEmptyStr(aContact.familyName)) {
+      endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
+    }
+    else {
       var targetFamilyName = aContact.familyName[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
       // acts as 'equal' but does not match case.
