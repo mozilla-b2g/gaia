@@ -61,13 +61,26 @@ contacts.Search = (function() {
 
   var initialized = false;
 
+  var ignoreReturnKey = function ignoreReturnKey(evt) {
+    if (evt.keyCode == 13) { // VK_Return
+      evt.target.blur();
+      evt.preventDefault();
+    }
+  };
+
   var doInit = function doInit() {
     if (initialized) {
       return;
     }
 
     utils.listeners.add({
-      '#cancel-search': exitSearchMode
+      '#cancel-search': exitSearchMode,
+      '#search-contact': [
+        {
+          event: 'keypress',
+          handler: ignoreReturnKey
+        }
+      ]
     });
 
     initialized = true;
