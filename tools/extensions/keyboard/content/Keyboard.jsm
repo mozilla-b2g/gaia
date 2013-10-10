@@ -17,21 +17,22 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 XPCOMUtils.defineLazyServiceGetter(this, "ppmm",
   "@mozilla.org/parentprocessmessagemanager;1", "nsIMessageBroadcaster");
 
-let Keyboard = {
+this.Keyboard = {
   _messageManager: null,
   _messageNames: [
     'SetValue', 'RemoveFocus', 'SetSelectedOption', 'SetSelectedOptions',
     'SetSelectionRange', 'ReplaceSurroundingText', 'ShowInputMethodPicker',
     'SwitchToNextInputMethod', 'HideInputMethod',
     'GetText', 'SendKey', 'GetContext',
-    'SetComposition', 'EndComposition'
+    'SetComposition', 'EndComposition',
+    'ToggleEnabled'
   ],
 
   get messageManager() {
     if (this._messageManager && !Cu.isDeadWrapper(this._messageManager))
       return this._messageManager;
 
-    throw Error('no message manager set');
+    return null;
   },
 
   set messageManager(mm) {
@@ -92,6 +93,10 @@ let Keyboard = {
     // If we get a 'Keyboard:XXX' message, check that the sender has the
     // keyboard permission.
     if (msg.name.indexOf("Keyboard:") != -1) {
+      if (!this.messageManager) {
+        return;
+      }
+
       let mm;
       try {
         mm = msg.target.QueryInterface(Ci.nsIFrameLoaderOwner)
@@ -169,6 +174,9 @@ let Keyboard = {
         break;
       case 'Keyboard:EndComposition':
         this.endComposition(msg);
+        break;
+      case 'Keyboard:ToggleEnabled':
+        this.toggleKeyboardEnabled(msg);
         break;
     }
   },
@@ -264,7 +272,16 @@ let Keyboard = {
     this._layouts = layouts;
 
     ppmm.broadcastAsyncMessage('Keyboard:LayoutsChange', layouts);
+  },
+
+  toggleKeyboardEnabled: function keyboardToggleEnabled(msg) {
+    let browser = Services.wm.getMostRecentWindow("navigator:browser");
+
+    browser.shell.sendChromeEvent({
+      type: 'inputmethod-toggle-softkeyboard',
+      enabled: msg.data.enabled
+    });
   }
 };
 
-Keyboard.init();
+this.Keyboard.init();
