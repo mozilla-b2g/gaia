@@ -486,11 +486,13 @@ var Browser = {
   },
 
   handleScroll: function browser_handleScroll(evt) {
+    var oldScrollOffset = this.lastScrollOffset,
+        ADDRESS_BAR_TRIGGER_DISTANCE = -1 * evt.detail.height / 4; //Scroll up, at least by half of the screen
     this.lastScrollOffset = evt.detail.top;
-
-    if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD) {
+      
+    if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD || this.lastScrollOffset - oldScrollOffset < ADDRESS_BAR_TRIGGER_DISTANCE) {
       this.showAddressBar();
-    } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD) {
+    } else if (evt.detail.top > this.UPPER_SCROLL_THRESHOLD && this.lastScrollOffset - oldScrollOffset > 0) {
       this.hideAddressBar();
     }
   },
