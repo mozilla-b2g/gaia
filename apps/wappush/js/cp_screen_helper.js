@@ -66,6 +66,9 @@ var CpScreenHelper = (function() {
   /** WAP provisioning document */
   var provisioningDoc = null;
 
+  /** All APNs list */
+  var apns = null;
+
   function cpsh_init() {
     _ = navigator.mozL10n.get;
 
@@ -184,6 +187,7 @@ var CpScreenHelper = (function() {
    */
   function cpsh_onAccept() {
     var message = null;
+
     if (!authenticated) {
       if (!pin.value) {
         // Need a valid PIN code, show an alert.
@@ -212,7 +216,13 @@ var CpScreenHelper = (function() {
       return;
     }
 
+    var parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
+    apns = parsedProvisioningDoc.getApns();
+
     var names = [];
+    for (var i = 0; i < apns.length; i++) {
+      names.push(apns[i]['carrier']);
+    }
 
     // If the document has been already authenticated and there are no errors,
     // show the settings we are about to store into the settings database.
