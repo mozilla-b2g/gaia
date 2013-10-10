@@ -1,9 +1,15 @@
-requireApp('clock/js/constants.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/test/unit/mocks/mock_requestWakeLock.js');
+requireApp('clock/test/unit/mocks/mock_request_wake_lock.js');
 
 suite('Time functions', function() {
+  var Utils;
+
+  suiteSetup(function(done) {
+    testRequire(['utils'],
+      function(utils) {
+        Utils = utils;
+        done();
+    });
+  });
 
   suite('#changeSelectByValue', function() {
 

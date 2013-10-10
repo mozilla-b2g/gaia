@@ -1,7 +1,6 @@
-// outer IIFE
-(function(exports) {
+define(function(require) {
 'use strict';
-
+var View = require('view');
 var priv = new WeakMap();
 
 /**
@@ -92,7 +91,6 @@ Object.defineProperties(Panel.prototype, {
   }
 });
 
-exports.Panel = Panel;
+return Panel;
 
-// end outer IIFE
-}(this));
+});

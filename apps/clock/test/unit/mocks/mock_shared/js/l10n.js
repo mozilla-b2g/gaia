@@ -1,4 +1,4 @@
-define(function() {
+(function(exports) {
   'use strict';
 
   function DateTimeFormat() {
@@ -6,7 +6,7 @@ define(function() {
   }
   DateTimeFormat.prototype = {
     localeFormat: function mockLocaleFormat(time, strFormat) {
-      return '' + (+time) + strFormat;
+      return '' + time;
     }
   };
 
@@ -17,15 +17,11 @@ define(function() {
       }
       return key;
     },
-    ready: function ready(handler) {
-      setTimeout(handler);
-    },
-    translate: function translate(element) {},
-    localize: function localize(element, id, args) {
-      element.innerText = MockL10n.get(id, args);
-    },
+    translate: function() {},
+    localize: function() {},
     DateTimeFormat: DateTimeFormat
   };
 
-  return MockL10n;
-});
+  exports.MockL10n = MockL10n;
+
+}(this));

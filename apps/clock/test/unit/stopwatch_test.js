@@ -1,12 +1,14 @@
-requireApp('clock/js/stopwatch.js');
-requireApp('clock/js/utils.js');
-
 suite('Stopwatch', function() {
 
+  var Stopwatch;
   var oneHour = 1 * 60 * 60 * 1000;
 
-  suiteSetup(function() {
-    this.sw = new Stopwatch();
+  suiteSetup(function(done) {
+    testRequire(['stopwatch'], function(stopwatch) {
+      Stopwatch = stopwatch;
+      this.sw = new Stopwatch();
+      done();
+    }.bind(this));
   });
 
   setup(function() {

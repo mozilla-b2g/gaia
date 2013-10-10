@@ -1,35 +1,24 @@
-requireApp('clock/js/constants.js');
-requireApp('clock/js/utils.js');
-requireApp('clock/js/alarm.js');
-requireApp('clock/js/alarmsdb.js');
-requireApp('clock/js/alarm_manager.js');
-requireApp('clock/js/alarm_edit.js');
-requireApp('clock/js/alarm_list.js');
-requireApp('clock/js/active_alarm.js');
-
-requireApp('clock/test/unit/mocks/mock_alarmsDB.js');
-requireApp('clock/test/unit/mocks/mock_alarm_list.js');
-requireApp('clock/test/unit/mocks/mock_alarm_manager.js');
-requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
-requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
-requireApp('clock/test/unit/mocks/mock_mozAlarm.js');
-
 suite('Alarm Test', function() {
 
-  var nativeMozL10n = navigator.mozL10n;
-  var nativeAlarmsDB = window.AlarmsDB;
-  var nativeActiveAlarmHandler;
+  var Alarm, ActiveAlarm;
+  var nativeMozAlarms = navigator.mozAlarms;
 
-  suiteSetup(function() {
-    navigator.mozL10n = MockL10n;
-    window.AlarmsDB = new MockAlarmsDB();
-    navigator.mozAlarms = new MockMozAlarms(
-      ActiveAlarm.handler);
+  suiteSetup(function(done) {
+    testRequire(['alarm', 'active_alarm', 'mocks/mock_moz_alarm'],
+      function(alarm, activeAlarm, mockMozAlarms) {
+        Alarm = alarm;
+        ActiveAlarm = activeAlarm;
+        navigator.mozAlarms = new mockMozAlarms.MockMozAlarms(
+          ActiveAlarm.handler
+        );
+
+        done();
+      }
+    );
   });
 
   suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
-    window.AlarmsDB = nativeAlarmsDB;
+    navigator.mozAlarms = nativeMozAlarms;
   });
 
   setup(function() {
@@ -321,17 +310,7 @@ suite('Alarm Test', function() {
     });
 
     suite('Alarm scheduling', function() {
-      var navMozAlarms, setClock;
-
-      suiteSetup(function() {
-        navMozAlarms = navigator.mozAlarms;
-        navigator.mozAlarms = new MockMozAlarms(
-          ActiveAlarm.handler);
-      });
-
-      suiteTeardown(function() {
-        navigator.mozAlarms = navMozAlarms;
-      });
+      var setClock;
 
       setup(function() {
         setClock = clockSetter(this);

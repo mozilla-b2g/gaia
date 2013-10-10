@@ -1,20 +1,18 @@
-requireApp('clock/js/picker/spinner.js');
-requireApp('clock/js/picker/picker.js');
-requireApp('clock/test/unit/mocks/mock_spinner.js');
+mocha.setup({ globals: ['GestureDetector'] });
 
 suite('Picker', function() {
-  var s;
+  var Picker, Spinner;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     loadBodyHTML('/index.html');
 
-    s = Spinner;
-
-    Spinner = MockSpinner;
-  });
-
-  suiteTeardown(function() {
-    Spinner = s;
+    testRequire(['picker/picker', 'mocks/mock_picker/spinner'], {
+        mocks: ['picker/spinner']
+      }, function(picker, mockSpinner) {
+        Picker = picker;
+        Spinner = mockSpinner;
+        done();
+      });
   });
 
   test('shape:prototype ', function() {
@@ -75,7 +73,7 @@ suite('Picker', function() {
 
 
   test('isPadded = true', function() {
-    this.sinon.spy(window, 'Spinner');
+    Spinner.args.length = 0;
 
     var picker = new Picker({
       element: document.getElementById('time-picker'),
@@ -86,9 +84,9 @@ suite('Picker', function() {
         }
       }
     });
-    assert.isTrue(Spinner.called);
+    assert.equal(Spinner.args.length, 1);
 
-    var args = Spinner.getCall(0).args[0];
+    var args = Spinner.args[0][0];
 
     assert.include(args, 'element');
     assert.include(args, 'values');

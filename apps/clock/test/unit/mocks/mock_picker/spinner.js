@@ -1,3 +1,6 @@
+define(function() {
+'use strict';
+
 function MockSpinner(setup = {}) {
   this.element = setup.element;
   this.values = setup.values;
@@ -19,7 +22,11 @@ function MockSpinner(setup = {}) {
   this.previous = {x: 0, y: 0, time: 0};
   this.current = {x: 0, y: 0, time: 0};
   this.value = 0;
+
+  MockSpinner.args.push(arguments);
 }
+
+MockSpinner.args = [];
 
 MockSpinner.prototype.reset = function() {
   this.space = this.element.clientHeight;
@@ -49,3 +56,6 @@ MockSpinner.prototype.onholdstart = function(event) {
 
 MockSpinner.prototype.onswipe = function() {
 };
+
+return MockSpinner;
+});
