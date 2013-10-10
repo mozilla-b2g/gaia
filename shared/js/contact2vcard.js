@@ -5,6 +5,9 @@ var HEADER = 'BEGIN:VCARD\nVERSION:' + VCARD_VERSION + '\n';
 var FOOTER = 'END:VCARD\n';
 var ContactToVcard;
 var ContactToVcardBlob;
+var VCARD_MAP = {
+  'mobile' : 'cell'
+};
 
 function ISODateString(d) {
   function pad(n) {
@@ -39,8 +42,17 @@ function ISODateString(d) {
     var str = vcardField;
     return sourceField.map(function(field) {
       var types = [];
-      if (field.type && field.type.length) {
-        types = types.concat(field.type);
+      if (Array.isArray(field.type)) {
+        var fieldType = field.type.map(function(aType) {
+          var out = '';
+          if (aType) {
+            aType = aType.trim().toLowerCase();
+            out = VCARD_MAP[aType] || aType;
+          }
+          return out;
+        });
+
+        types = types.concat(fieldType);
       }
 
       if (field.pref && field.pref === true) {
