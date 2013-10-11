@@ -220,8 +220,9 @@ suite('system/ScreenManager', function() {
       test('if Bluetooth SCO connected', function() {
         stubBluetooth.Profiles = {};
         this.sinon.stub(stubBluetooth, 'isProfileConnected').returns(true);
+        ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'userproximity'});
-        assert.isFalse(stubTurnOn.called);
+        assert.isTrue(stubTurnOn.called);
         assert.isFalse(stubTurnOff.called);
       });
 
@@ -242,6 +243,14 @@ suite('system/ScreenManager', function() {
         ScreenManager.handleEvent({'type': 'userproximity', 'near': 'yes'});
         assert.isFalse(stubTurnOn.called);
         assert.isTrue(stubTurnOff.calledWith(true, 'proximity'));
+      });
+
+      test('if earphone is connected', function() {
+        stubBluetooth.Profiles = {};
+        stubStatusBar.headponesActive = true;
+        ScreenManager._screenOffBy = 'proximity';
+        ScreenManager.handleEvent({'type': 'userproximity'});
+        assert.isTrue(stubTurnOn.called);
       });
     });
 
