@@ -186,6 +186,9 @@ var SimPinDialog = {
   unlockCardLock: function spl_unlockCardLock(options) {
     var req = IccHelper.unlockCardLock(options);
     req.onsuccess = this.close.bind(this, 'success');
+    req.onerror = (function spl_unlockCardLockError() {
+      this.handleError(req.error);
+    }).bind(this);
   },
 
   enableLock: function spl_enableLock() {
@@ -328,9 +331,6 @@ var SimPinDialog = {
 
     if (!IccHelper.enabled)
       return;
-
-    IccHelper.addEventListener('icccardlockerror',
-      this.handleError.bind(this));
 
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogClose.onclick = this.skip.bind(this);

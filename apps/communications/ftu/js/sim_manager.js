@@ -15,8 +15,6 @@ var SimManager = {
 
     _ = navigator.mozL10n.get;
 
-    IccHelper.addEventListener('icccardlockerror',
-                               this.handleUnlockError.bind(this));
     IccHelper.addEventListener('cardstatechange',
                                this.handleCardState.bind(this));
 
@@ -282,6 +280,9 @@ var SimManager = {
     req.onsuccess = (function sm_unlockSuccess() {
       this._unlocked = true;
       this.hideScreen();
+    }).bind(this);
+    req.onerror = (function sm_unlockError() {
+      this.handleUnlockError(req.error);
     }).bind(this);
   },
 
