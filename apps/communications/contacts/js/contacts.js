@@ -36,7 +36,7 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var tagDone, tagCancel, lazyLoadedTagsDom = false;
+  var customTag, tagDone, tagCancel, lazyLoadedTagsDom = false;
 
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
@@ -333,10 +333,13 @@ var Contacts = (function() {
 
   function showSelectTag() {
     var tagsList = document.getElementById('tags-list');
-    var customTag = document.getElementById('custom-tag');
     var selectedTagType = contactTag.dataset.taglist;
     var options = TAG_OPTIONS[selectedTagType];
 
+    if (!customTag) {
+      customTag = document.querySelector('#custom-tag');
+      customTag.addEventListener('touchend', handleCustomTag);
+    }
     if (!tagDone) {
       tagDone = document.querySelector('#settings-done');
       tagDone.addEventListener('click', handleSelectTagDone);
@@ -363,7 +366,7 @@ var Contacts = (function() {
 
     var tagViewElement = document.getElementById('view-select-tag');
     if (!lazyLoadedTagsDom) {
-       LazyLoader.load(tagViewElement, function() {
+      LazyLoader.load(tagViewElement, function() {
         navigator.mozL10n.translate(tagViewElement);
         showSelectTag();
         lazyLoadedTagsDom = true;
@@ -595,15 +598,7 @@ var Contacts = (function() {
           handler: enterSearchMode
         }
       ],
-      'button[type="reset"]': stopPropagation,
-      // Bug 832861: Click event can't be synthesized correctly on customTag by
-      // mouse_event_shim due to Gecko bug.  Use ontouchend here.
-      '#custom-tag': [
-        {
-          event: 'touchend',
-          handler: handleCustomTag
-        }
-      ]
+      'button[type="reset"]': stopPropagation
     });
   };
 
