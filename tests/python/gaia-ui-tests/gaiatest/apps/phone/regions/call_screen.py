@@ -39,8 +39,6 @@ class CallScreen(Phone):
     def tap_hang_up(self):
         hang_up = self.marionette.find_element(*self._hangup_bar_locator)
         hang_up.tap()
-        # TODO Bug 877397 - [b2g] switch to frame failing after tap
-        time.sleep(0.5)
 
     def hang_up(self):
         self.tap_hang_up()
