@@ -419,7 +419,7 @@
       if (this._defaultOrientation) {
         return this._defaultOrientation;
       } else if (!orientation) {
-        this._defaultOrientation = 'portrait-primary';
+        this._defaultOrientation = 'default-orientation';
         return this._defaultOrientation;
       }
 
@@ -435,8 +435,13 @@
 
       // Make a guess to the orientation,
       // if there's no '-primary' or '-secondary' suffix.
-      if (!this._defaultOrientation)
-        this._defaultOrientation = orientation[0] + '-primary';
+      if (!this._defaultOrientation) {
+        if (this._defaultOrientation !== 'default') {
+          this._defaultOrientation = orientation[0] + '-primary';
+        } else {
+          this._defaultOrientation = ScreenManager.defaultOrientation;
+        }
+      }
 
       return this._defaultOrientation;
     };

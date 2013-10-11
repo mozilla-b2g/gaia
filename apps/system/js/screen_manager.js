@@ -98,11 +98,16 @@ var ScreenManager = {
    */
   _cpuWakeLock: null,
 
+  defaultOrientation: 'portrait-primary',
+
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
 
     this.screen = document.getElementById('screen');
+
+    // Update the value once booted.
+    this.defaultOrientation = screen.mozOrientation;
 
     var self = this;
     var power = navigator.mozPower;
