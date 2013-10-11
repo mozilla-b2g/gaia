@@ -83,7 +83,7 @@ function SimPinDialog(dialog) {
   }
 
   // card lock error messages
-  IccHelper.addEventListener('icccardlockerror', function(event) {
+  function handleCardLockError(event) {
     var type = event.lockType; // expected: 'pin', 'fdn', 'puk'
     if (!type) {
       skip();
@@ -114,8 +114,7 @@ function SimPinDialog(dialog) {
     } else if (type === 'puk') {
       pukInput.focus();
     }
-  });
-
+  }
 
   /**
    * SIM card helpers -- unlockCardLock
@@ -153,6 +152,9 @@ function SimPinDialog(dialog) {
     req.onsuccess = function sp_unlockSuccess() {
       close();
       _onsuccess();
+    };
+    req.onerror = function sp_unlockError() {
+      handleCardLockError(req.error);
     };
   }
 
@@ -202,6 +204,9 @@ function SimPinDialog(dialog) {
     req.onsuccess = function spl_enableSuccess() {
       close();
       _onsuccess();
+    };
+    req.onerror = function sp_unlockError() {
+      handleCardLockError(req.error);
     };
   }
 
