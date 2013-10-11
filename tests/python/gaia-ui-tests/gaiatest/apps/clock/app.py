@@ -101,7 +101,7 @@ class Clock(Base):
             self.root_element.find_element(*self._enable_button_locator).tap()
 
         def wait_for_alarm_to_uncheck(self):
-            self.wait_for_element_not_present(*self._alarm_checked_locator)
+            self.wait_for_condition(lambda m: m.find_element(*self._check_box_locator).get_attribute('checked') != "true")
 
         def wait_for_banner_not_displayed(self):
             self.wait_for_element_not_displayed(*self._alarm_checked_banner_locator)
