@@ -475,18 +475,22 @@ suite('ActivityHandler', function() {
     var message;
     var text;
     var realMozMobileMessage;
+    var realMozL10n;
 
     setup(function() {
       text = 'test';
       Compose.append(text);
       message = MockMessages.sms();
       realMozMobileMessage = navigator.mozMobileMessage;
+      realMozL10n = navigator.mozL10n;
       navigator.mozMobileMessage = MockNavigatormozMobileMessage;
+      navigator.mozL10n = MockL10n;
       this.sinon.stub(window, 'confirm');
     });
 
     teardown(function() {
       navigator.mozMobileMessage = realMozMobileMessage;
+      navigator.mozL10n = realMozL10n;
     });
 
     suite('confirm false', function() {
