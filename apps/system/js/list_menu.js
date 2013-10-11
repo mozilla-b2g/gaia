@@ -24,6 +24,7 @@ var ListMenu = {
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
     window.addEventListener('holdhome', this);
+    window.addEventListener('attentionscreenshow', this);
   },
 
   // Pass an array of list items and handler for clicking on the items
@@ -143,6 +144,13 @@ var ListMenu = {
     switch (evt.type) {
       case 'screenchange':
         if (!evt.detail.screenEnabled) {
+          this.hide();
+          this.oncancel();
+        }
+        break;
+
+      case 'attentionscreenshow':
+        if (this.visible) {
           this.hide();
           this.oncancel();
         }
