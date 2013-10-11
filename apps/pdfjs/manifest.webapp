@@ -1,6 +1,6 @@
 {
   "name": "PDF Viewer",
-  "description": "Portable Document Format(PDF) Viewer",
+  "description": "Portable Document Format (PDF) Viewer",
   "type": "certified",
   "role": "system",
   "developer": {
@@ -10,7 +10,7 @@
   "locales": {
     "en-US": {
       "name": "PDF Viewer",
-      "description": "Portable Document Format(PDF) Viewer"
+      "description": "Portable Document Format (PDF) Viewer"
     }
   },
   "default_locale": "en-US",
