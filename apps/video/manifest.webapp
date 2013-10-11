@@ -37,8 +37,9 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Video.png",
-    "120": "/style/icons/Video.png"
+    "60": "/style/icons/Video_60.png",
+    "90": "/style/icons/Video_90.png",
+    "120": "/style/icons/Video_120.png"
   },
   "activities": {
     "pick": {

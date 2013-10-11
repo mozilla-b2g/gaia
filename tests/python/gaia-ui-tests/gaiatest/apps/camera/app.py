@@ -98,6 +98,7 @@ class Camera(Base):
         self.wait_for_element_present(*self._camera_frame_locator)
         camera_frame = self.marionette.find_element(*self._camera_frame_locator)
         self.marionette.switch_to_frame(camera_frame)
+        self.wait_for_camera_ready()
 
     def switch_to_gallery(self):
         switch_to_gallery_button = self.marionette.find_element(*self._gallery_button_locator)

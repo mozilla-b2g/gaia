@@ -139,7 +139,12 @@ var SimManager = {
         UIManager.pinRetriesLeft.classList.remove('hidden');
       }
     });
-
+    // Button management
+    UIManager.unlockSimButton.disabled = true;
+    UIManager.pinInput.addEventListener('input', function sm_checkInput(event) {
+      UIManager.unlockSimButton.disabled = (event.target.value.length < 4);
+    });
+    // Screen management
     UIManager.activationScreen.classList.remove('show');
     UIManager.unlockSimScreen.classList.add('show');
     UIManager.pincodeScreen.classList.add('show');
@@ -230,7 +235,6 @@ var SimManager = {
     UIManager.pincodeScreen.classList.remove('show');
     UIManager.pukcodeScreen.classList.remove('show');
     UIManager.xckcodeScreen.classList.remove('show');
-    Navigation.checkCurrentStep();
     UIManager.activationScreen.classList.add('show');
   },
 

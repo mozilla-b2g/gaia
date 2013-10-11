@@ -6,6 +6,7 @@ Evme.Utils = new function Evme_Utils() {
         newUser = false, isTouch = false,
         parsedQuery = parseQuery(),
         elContainer = null,
+        elOverlay = null,
         headEl = document.querySelector('html>head'),
         filterSelectorTemplate = '.evme-apps ul:not({0}) li[{1}="{2}"]',
 
@@ -13,6 +14,7 @@ Evme.Utils = new function Evme_Utils() {
         uuidBlob = new Blob(),
 
         CONTAINER_ID = "evmeContainer", // main E.me container
+        OVERLAY_ID = "evmeOverlay",     // E.me element visible on all grid pages
         SCOPE_CLASS = "evmeScope",      // elements with E.me content
 
         COOKIE_NAME_CREDENTIALS = "credentials",
@@ -61,6 +63,10 @@ Evme.Utils = new function Evme_Utils() {
     this.EMPTY_APPS_SIGNATURE = '';
 
     this.APPS_FONT_SIZE = 13 * (window.devicePixelRatio || 1);
+    this.APP_NAMES_SHADOW_OFFSET_X = 1;
+    this.APP_NAMES_SHADOW_OFFSET_Y = 1;
+    this.APP_NAMES_SHADOW_BLUR = 1;
+    this.APP_NAMES_SHADOW_COLOR = 'rgba(0, 0, 0, 1)';
 
     this.PIXEL_RATIO_NAME = (window.devicePixelRatio > 1) ? this.PIXEL_RATIO_NAMES.HIGH : this.PIXEL_RATIO_NAMES.NORMAL;
 
@@ -75,7 +81,7 @@ Evme.Utils = new function Evme_Utils() {
         isTouch = window.hasOwnProperty("ontouchstart");
 
         elContainer = document.getElementById(CONTAINER_ID);
-
+        elOverlay = document.getElementById(OVERLAY_ID);
         OS_ICON_SIZE = self.sendToOS(self.OSMessages.GET_ICON_SIZE);
         OS_ICON_SIZE *= window.devicePixelRatio;
     };
@@ -241,6 +247,10 @@ Evme.Utils = new function Evme_Utils() {
         return elContainer;
     };
 
+    this.getOverlay = function getOverlay() {
+      return elOverlay;
+    };
+
     this.getOSIconSize = function getOSIconSize() {
       return OS_ICON_SIZE;
     };
@@ -370,10 +380,10 @@ Evme.Utils = new function Evme_Utils() {
       context.font = '500 ' + self.rem(FONT_SIZE) + ' sans-serif';
 
       // text shadow
-      context.shadowOffsetX = 0;
-      context.shadowOffsetY = 1;
-      context.shadowBlur = 1;
-      context.shadowColor = 'rgba(0, 0, 0, 1)';
+      context.shadowOffsetX = self.APP_NAMES_SHADOW_OFFSET_X;
+      context.shadowOffsetY = self.APP_NAMES_SHADOW_OFFSET_Y;
+      context.shadowBlur = self.APP_NAMES_SHADOW_BLUR;
+      context.shadowColor = self.APP_NAMES_SHADOW_COLOR
 
       for (var i=0,word; word=text[i++];) {
         // add 1 to the word with because of the space between words
@@ -787,6 +797,14 @@ Evme.Utils = new function Evme_Utils() {
       }
     };
 
+    this.aug = function aug(){
+        var main = arguments[0] || {};
+        for (var i=1, arg; arg=arguments[i++];){
+            for (var k in arg){ main[k] = arg[k] }
+        }
+        return main;
+    };
+
     function uniqueFilter(elem, pos, self) {
 	// if first appearance of `elem` is `pos` then it is unique
 	return self.indexOf(elem) === pos;
@@ -848,6 +866,10 @@ Evme.Utils = new function Evme_Utils() {
                 }
             ];
 
+        this.events = {
+          MOBILE_CONNECTION_CHANGE: 'connChange'
+        };
+
         this.init = function init() {
             window.addEventListener("online", self.setOnline);
             window.addEventListener("offline", self.setOffline);
@@ -875,6 +897,19 @@ Evme.Utils = new function Evme_Utils() {
              return getCurrent();
         };
 
+        this.addEventListener = function addEventListener(type, callback) {
+
+          // mobile network connection change
+          if (type === self.events.MOBILE_CONNECTION_CHANGE) {
+            var conn = getMobileConnection();
+            conn && conn.addEventListener('datachange', function() {
+                // get data using convinience method in shared/js/mobile_operator.js
+                var data = conn.voice && conn.voice.network && MobileOperator.userFacingInfo(conn);
+                callback(data);
+            });
+          }
+        };
+
         function getCurrent(){
             return aug({}, consts, types[currentIndex]);
         }
@@ -885,6 +920,13 @@ Evme.Utils = new function Evme_Utils() {
                 for (var k in arguments[i]){ main[k] = arguments[i][k] }
             };
             return main;
+        }
+
+        function getMobileConnection() {
+          var navigator = window.navigator;
+          if (navigator.mozMobileConnection &&
+              navigator.mozMobileConnection.data)
+          return navigator.mozMobileConnection;
         }
 
         // init

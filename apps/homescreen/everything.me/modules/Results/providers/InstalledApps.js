@@ -143,11 +143,14 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
       SLUGS_STORAGE_KEY = "-slugs",
       appIndexPendingSubscribers = [],
       appIndexComplete = false,
+      newInstalledApps = [],
 
       // used to link api results (by guid) to installed apps (by manifestURL)
-      // during the creation on queryIndex
-      // maps https://mobile.twitter.com/cache/twitter.webapp
+      // during the creation of queryIndex
+      // for example, maps:
+      // https://mobile.twitter.com/cache/twitter.webapp (as returned by API)
       // -> https://mobile.twitter.com/cache/twitter.webapp?feature_profile=1f5eea7f83db.45.2
+      //    (manifestURL of app installed on device)
       guidsToManifestURLs = null;
 
   this.init = function init() {
@@ -231,6 +234,15 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     onSlugsUpdated(slugs);
 
     Evme.EventHandler.trigger(NAME, "queryIndexUpdated");
+
+    newInstalledApps.forEach(function dispatch(app) {
+      window.dispatchEvent(new CustomEvent('appAddedToQueryIndex', {
+        'detail': {
+          'app': app
+        }
+      }));
+    });
+    newInstalledApps = [];
   };
 
   this.getMatchingApps = function getMatchingApps(data) {
@@ -277,6 +289,19 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
   };
 
 
+  this.getMatchingQueries = function getMatchingQueries(appInfo) {
+    var matchingQueries = [];
+    var appId = appInfo.bookmarkURL || appInfo.manifestURL;
+
+    for (var query in queryIndex) {
+      if (queryIndex[query].indexOf(appId) > -1) {
+        matchingQueries.push(query);
+      }
+    }
+
+    return matchingQueries;
+  };
+
   this.getAppById = function getAppById(appId, cb) {
     if (appIndexComplete) {
       cb(appIndex[appId]);
@@ -298,7 +323,11 @@ Evme.InstalledAppsService = new function Evme_InstalledAppsService() {
     return ids;
   };
 
-  function onAppInstallChanged() {
+  function onAppInstallChanged(e) {
+    if (e.type === 'appInstalled') {
+      newInstalledApps.push(e.detail.app);
+    }
+    
     createAppIndex();
   }
 

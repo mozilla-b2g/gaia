@@ -928,7 +928,7 @@ suite('calls handler', function() {
       });
     });
 
-    suite('CallsHandler.activeCall', function() {
+    suite('> CallsHandler.activeCall', function() {
       var inactiveCall;
       var activeCall;
       setup(function() {
@@ -997,7 +997,7 @@ suite('calls handler', function() {
       });
     });
 
-    suite('CallsHandler.mergeConferenceGroupWithActiveCall', function() {
+    suite('> CallsHandler.mergeConferenceGroupWithActiveCall', function() {
       var firstCall;
       var extraCall;
       var overflowCall;
@@ -1024,6 +1024,41 @@ suite('calls handler', function() {
       test('should call telephony.conferenceGroup.add()', function() {
         CallsHandler.mergeConferenceGroupWithActiveCall();
         assert.isTrue(addSpy.calledWith(overflowCall));
+      });
+    });
+  });
+
+  suite('> headphone support', function() {
+    var realACM;
+    var acmStub;
+
+    suiteSetup(function() {
+      acmStub = {
+        headphones: false,
+        addEventListener: function() {}
+      };
+
+      realACM = navigator.mozAudioChannelManager;
+      navigator.mozAudioChannelManager = acmStub;
+    });
+
+    suiteTeardown(function() {
+      navigator.mozAudioChannelManager = realACM;
+    });
+
+    suite('> pluging headphones in', function() {
+      var headphonesChange;
+
+      setup(function() {
+        acmStub.headphones = true;
+        headphonesChange = this.sinon.stub(acmStub, 'addEventListener');
+        CallsHandler.setup();
+      });
+
+      test('should turn the speakerOff', function() {
+        var turnOffSpy = this.sinon.spy(MockCallScreen, 'turnSpeakerOff');
+        headphonesChange.yield();
+        assert.isTrue(turnOffSpy.calledOnce);
       });
     });
   });

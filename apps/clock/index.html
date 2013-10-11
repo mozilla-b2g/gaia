@@ -2,7 +2,6 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
     <title>Clock</title>
     <link rel="stylesheet" type="text/css" href="style/clock.css">
     <link rel="stylesheet" type="text/css" href="style/alarm.css">
@@ -29,37 +28,6 @@
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-    <script defer src="/shared/js/l10n.js"></script>
-    <script defer src="/shared/js/l10n_date.js"></script>
-
-    <!-- Specific code -->
-    <script defer src="shared/js/lazy_loader.js"></script>
-    <script defer src="js/startup.js"></script>
-    <!-- Lazy Loaded Scripts - Include here for build process
-    <script defer src="shared/js/gesture_detector.js"></script>
-    <script defer src="shared/js/async_storage.js"></script>
-    <script defer src="shared/js/template.js"></script>
-    <script defer src="js/emitter.js"></script>
-    <script defer src="js/view.js"></script>
-    <script defer src="js/panel.js"></script>
-    <script defer src="js/constants.js"></script>
-    <script defer src="js/utils.js"></script>
-    <script defer src="js/alarm.js"></script>
-    <script defer src="js/active_alarm.js"></script>
-    <script defer src="js/alarmsdb.js"></script>
-    <script defer src="js/banner.js"></script>
-    <script defer src="js/clock_view.js"></script>
-    <script defer src="js/alarm_list.js"></script>
-    <script defer src="js/alarm_manager.js"></script>
-    <script defer src="js/stopwatch.js"></script>
-    <script defer src="js/stopwatch_panel.js"></script>
-    <script defer src="js/timer.js"></script>
-    <script defer src="js/tabs.js"></script>
-    <script defer src="js/app.js"></script>
-
-    <script defer src="js/picker/spinner.js"></script>
-    <script defer src="js/picker/picker.js"></script>
-    -->
   </head>
 
   <body>
@@ -166,6 +134,7 @@
                     <option value="ac_soft_into_the_void.opus" data-l10n-id="ac_soft_into_the_void_opus"></option>
                     <option value="ac_soft_smooth_strings.opus" data-l10n-id="ac_soft_smooth_strings_opus"></option>
                   </select>
+                  <button id="timer-menu" class="icon icon-dialog"></button>
                 </li>
                 <li>
                   <span data-l10n-id="vibrate">Vibrate:</span>
@@ -293,7 +262,6 @@
     <div id="lap-list-item-tmpl" class="hide">
       <!--
       <div class="lap-name">
-        Lap ${num}
       </div>
       <div class="lap-duration">
         ${time}
@@ -305,5 +273,7 @@
         <div class="picker-unit">${unit}</div>
       -->
     </div>
+
+    <script data-main="js/startup.js" src="js/alameda.js"></script>
   </body>
 </html>

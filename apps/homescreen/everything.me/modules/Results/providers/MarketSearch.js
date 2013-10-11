@@ -23,14 +23,14 @@
       canvas.height = height + TEXT_MARGIN + (2 * TEXT_HEIGHT) - 1;
 
       Evme.Utils.writeTextToCanvas({
-        "text": "Download",
+        "text": Evme.Utils.l10n('apps', 'market-download'),
         "context": context,
         "offset":  height + TEXT_MARGIN,
         "fontSize": FONT_SIZE
       });
 
       Evme.Utils.writeTextToCanvas({
-        "text": "More Apps",
+        "text": Evme.Utils.l10n('apps', 'market-more-apps'),
         "context": context,
         "offset":  height + TEXT_MARGIN + FONT_SIZE + window.devicePixelRatio
       });

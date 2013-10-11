@@ -663,23 +663,20 @@ nav[data-type="scrollbar"] p img {
   width: 4.8rem;
 }
 
-#groups-list.selecting label.pack-checkbox {
-  display: block !important;
-}
-
 #groups-container.selecting {
   height: -moz-calc(100% - 7rem);
 }
 
-#groups-list label.pack-checkbox {
+.contact-checkbox {
+  left: -1rem !important;
   display: none !important;
 }
 
-.selecting li label {
-  left: -1rem !important;
+.contact-checkbox-selecting {
+  display: block !important;
 }
 
-.selecting li p {
+.contact-text-selecting {
   padding-left: 2rem !important;
 }
 

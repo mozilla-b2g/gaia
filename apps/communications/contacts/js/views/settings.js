@@ -205,7 +205,7 @@ contacts.Settings = (function() {
     var source = e.target.parentNode.dataset.source;
     switch (source) {
       case 'sim':
-        window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
+        window.setTimeout(requireSimImport.bind(this, onSimImport), 0);
         break;
       case 'sd':
         window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
@@ -409,6 +409,25 @@ contacts.Settings = (function() {
     Contacts.utility('Overlay', callback);
   }
 
+  /**
+   * Loads required libraries for sim import
+   */
+  function requireSimImport(callback) {
+
+    var libraries = ['Overlay', 'Import_sim_contacts'];
+    var pending = libraries.length;
+
+    libraries.forEach(function onPending(library) {
+      Contacts.utility(library, next);
+    });
+
+    function next() {
+      if (!(--pending)) {
+        callback();
+      }
+    }
+  }
+
   var fbUpdateTotals = function fbUpdateTotals(imported, total) {
     // If the total is not available then an empty string is showed
     var theTotal = total || '';
@@ -592,25 +611,27 @@ contacts.Settings = (function() {
     importer.onread = function import_read(n) {
       contactsRead = true;
       totalContactsToImport = n;
-      progress.setClass('progressBar');
-      progress.setHeaderMsg(_('simContacts-importing'));
-      progress.setTotal(totalContactsToImport);
+      if (totalContactsToImport > 0) {
+        progress.setClass('progressBar');
+        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setTotal(totalContactsToImport);
+      }
     };
 
     importer.onfinish = function import_finish() {
       window.setTimeout(function onfinish_import() {
         resetWait(wakeLock);
-        if (importedContacts !== 0) {
+        if (importedContacts > 0) {
           window.importUtils.setTimestamp('sim', function() {
             // Once the timestamp is saved, update the list
             updateTimestamps();
             checkExport();
           });
-          if (!cancelled) {
-            Contacts.showStatus(_('simContacts-imported3', {
-              n: importedContacts
-            }));
-          }
+        }
+        if (!cancelled) {
+          Contacts.showStatus(_('simContacts-imported3', {
+            n: importedContacts
+          }));
         }
       }, DELAY_FEEDBACK);
 
@@ -637,7 +658,7 @@ contacts.Settings = (function() {
         callback: function() {
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
-          window.setTimeout(requireOverlay.bind(this, onSimImport), 0);
+          window.setTimeout(requireSimImport.bind(this, onSimImport), 0);
         }
       };
       Contacts.confirmDialog(null, _('simContacts-error'), cancel, retry);
@@ -665,7 +686,6 @@ contacts.Settings = (function() {
 
     utils.sdcard.retrieveFiles([
       'text/vcard',
-      'text/x-vcard',
       'text/directory;profile=vCard',
       'text/directory'
     ], ['vcf', 'vcard'], function(err, fileArray) {

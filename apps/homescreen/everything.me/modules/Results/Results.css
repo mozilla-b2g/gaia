@@ -32,7 +32,7 @@
   visibility: hidden;
 	transition: transform .2s linear;
 }
-.evmeScope .evme-apps ul li img[data-loaded="true"] {
+.evmeScope .evme-apps ul li[data-loaded="true"] img {
   visibility: visible;
 }
 .evmeScope .evme-apps ul #button-more {
@@ -61,7 +61,7 @@
 .evmeScope .evme-apps ul.cloud {
   min-height: 0.1rem; /* meant for when there's no content */
 }
-.evmeScope .evme-apps ul li.new:not(.installed) img {
+.evmeScope .evme-apps ul li.new:not(.installed) .icon {
     transform: scale(0);
 }
 .evmeScope .evme-apps ul li > span.remove {
@@ -73,6 +73,11 @@
   z-index: 2;
   background: url(/resources/images/delete.png) no-repeat left top;
   display: none;
+}
+
+body[data-online = 'offline'] .evmeScope .evme-apps ul li[data-offline-ready = 'false'] .icon {
+  filter: url('/style/app_offline_filter.svg#grayscale');
+  opacity: 0.3;
 }
 
 /* Loading an app */

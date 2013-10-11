@@ -325,6 +325,13 @@ suite('call screen', function() {
                    'dialer');
     });
 
+    test('requests the contacts tab in the dialer app', function() {
+      var requestSpy = this.sinon.spy(MockCallsHandler, 'requestContactsTab');
+      CallScreen.placeNewCall();
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      assert.isTrue(requestSpy.calledOnce);
+    });
+
     test('resizes the call screen in status bar mode', function() {
       var resizeSpy = this.sinon.spy(window, 'resizeTo');
       CallScreen.placeNewCall();

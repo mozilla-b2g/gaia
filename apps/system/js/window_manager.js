@@ -57,8 +57,6 @@ var WindowManager = (function() {
   var inlineActivityFrames = [];
   var activityCallerOrigin = '';
 
-  var screenshots = {};
-
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
@@ -389,35 +387,7 @@ var WindowManager = (function() {
     // We do this because we don't want the trustedUI opener
     // is killed in background due to OOM.
     if ('setVisible' in iframe && !TrustedUIManager.hasTrustedUI(origin)) {
-      // When we setVisible(false) the app frame, it throws out its
-      // layer tree, which results in it not being renderable by the
-      // compositor.  If that happens before we repaint our tree
-      // without the white app background, then we can see a flicker
-      // of white due to the race condition.
-      //
-      // What we /really/ want to do here is install an AfterPaint
-      // listener for the system app frame and then setVisible(false)
-      // the app from the next notification.  But AfterPaint isn't
-      // available to content, so we use a hack here.
-      //
-      // (The mozbrowser nextpaint event would equivalently fix this,
-      // but the system app can't get a reference to its outer frame
-      // element so that doesn't work either.)
-      //
-      // The "real" fix for this defect is tracked in bug 842102.
-      var request = iframe.getScreenshot(frame.clientWidth,
-                                         frame.clientHeight);
-      request.onsuccess = function(e) {
-        if (e.target.result) {
-          screenshots[origin] = URL.createObjectURL(e.target.result);
-        }
-
-        iframe.setVisible(false);
-      };
-
-      request.onerror = function() {
-        iframe.setVisible(false);
-      };
+      iframe.setVisible(false);
     }
 
     // Inform keyboardmanager that we've finished the transition
@@ -919,7 +889,6 @@ var WindowManager = (function() {
       iframe.setAttribute('expecting-system-message',
                           'expecting-system-message');
     }
-    maybeSetFrameIsCritical(iframe, origin);
 
     // Register appLoadedHandler as a capturing listener for the
     // 'mozbrowserloadend' and 'appopen' events on this iframe.  This event
@@ -1717,6 +1686,17 @@ var WindowManager = (function() {
 
       return app.manifest.orientation;
     },
-    screenshots: screenshots
+    getCachedScreenshotForApp: function(origin) {
+      var app = runningApps[origin];
+      if (!app)
+        return null;
+      return app.getCachedScreenshot();
+    },
+    saveScreenshotForApp: function(origin, screenshot) {
+      var app = runningApps[origin];
+      if (!app)
+        return;
+      app.saveScreenshot(screenshot);
+    }
   };
 }());

@@ -6,19 +6,22 @@ if (!this.SettingsListener) {
 }
 
 suite('dialer/utils', function() {
-  var realPhoneMatcher;
-
-  // Mock the mozL10n api for the Utils class
-  navigator.mozL10n = {
-    get: function get(key) {
-      return key;
-    }
-  };
+  var realL10n;
   var subject;
   var number = '555-555-555-555';
 
   suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = {
+      get: function get(key) {
+        return 'prefix-' + key;
+      }
+    };
     subject = Utils;
+  });
+
+  suiteTeardown(function() {
+    navigator.mozL10n = realL10n;
   });
 
   suite('Utility library', function() {
@@ -27,7 +30,8 @@ suite('dialer/utils', function() {
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
           contact, number);
-        assert.equal(MockContacts.mType + ', ' + number, additionalInfo);
+        assert.equal('prefix-' + MockContacts.mType + ', ' +
+                     number, additionalInfo);
         done();
       });
     });
@@ -37,7 +41,22 @@ suite('dialer/utils', function() {
       MockContacts.findByNumber(number, function(contact, matchingTel) {
         var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
           contact, number);
-        assert.equal(MockContacts.mType + ', ' +
+        assert.equal('prefix-' + MockContacts.mType + ', ' +
+          MockContacts.mCarrier, additionalInfo);
+        done();
+      });
+    });
+
+    test('should not translate custom types', function(done) {
+      this.sinon.stub(navigator.mozL10n, 'get')
+        .withArgs('totally custom').returns('');
+      MockContacts.mCarrier = 'carrier';
+      MockContacts.mType = 'totally custom';
+
+      MockContacts.findByNumber(number, function(contact, matchingTel) {
+        var additionalInfo = subject.getPhoneNumberAdditionalInfo(matchingTel,
+          contact, number);
+        assert.equal('totally custom, ' +
           MockContacts.mCarrier, additionalInfo);
         done();
       });

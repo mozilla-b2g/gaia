@@ -106,7 +106,7 @@
 }
 .apps > div.evmePage {
     -moz-box-sizing: border-box;
-    padding-top: calc(25% + 1.3rem);
+    padding-top: 9.6rem;
 }
 
 .evme-displayed .apps > div.evmePage {
@@ -130,4 +130,18 @@
 .evme-displayed.evme-keyboard-visible #bg-overlay,
 .evme-displayed.evme-has-query #bg-overlay{
   height: 100%;
+}
+
+#loading-dialog {
+  display: none;
+}
+#evme-fullscreen-loading {
+  z-index: 20001; /* needs to be above dock */
+}
+  #evme-fullscreen-loading p {
+    text-align: center;
+  }
+/* prevent 2 loadings showing together */
+.evme-suggest-collections-loading #evme-fullscreen-loading {
+  display: none;
 }

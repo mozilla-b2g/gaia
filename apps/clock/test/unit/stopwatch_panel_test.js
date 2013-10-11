@@ -1,19 +1,13 @@
-requireApp('clock/js/emitter.js');
-requireApp('clock/js/view.js');
-requireApp('clock/js/panel.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/js/stopwatch.js');
-requireApp('clock/js/stopwatch_panel.js');
-
 suite('Stopwatch.Panel', function() {
 
   var defaultSw, sevenMinSw, fourSecPausedSw, withLapsSw, runningSw;
   var isHidden;
   var panel;
   var clock;
+  var Stopwatch;
+  var MockL10n, localize;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     var sevenMin = 7 * 60 * 1000;
     var fourSec = 4 * 1000;
     var thirtyMins = 30 * 60 * 1000;
@@ -60,11 +54,24 @@ suite('Stopwatch.Panel', function() {
 
     loadBodyHTML('/index.html');
 
-    panel = new Stopwatch.Panel(document.getElementById('stopwatch-panel'));
+
+    testRequire([
+      'stopwatch', 'stopwatch_panel', 'mocks/mock_shared/js/l10n'
+      ], function(stopwatch, stopwatchPanel, mockL10n) {
+        Stopwatch = stopwatch;
+        Stopwatch.Panel = stopwatchPanel;
+        MockL10n = mockL10n;
+        panel = new Stopwatch.Panel(
+          document.getElementById('stopwatch-panel')
+        );
+        done();
+      }
+    );
   });
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
+    localize = this.sinon.spy(MockL10n, 'localize');
   });
 
   test('Default', function() {
@@ -129,12 +136,12 @@ suite('Stopwatch.Panel', function() {
     var laps = panel.nodes['laps'].querySelectorAll('li');
     assert.equal(laps.length, 1);
 
-    var lapName = laps[0].children[0].textContent.trim();
+    var lapName = laps[0].children[0];
     var lapTime = laps[0].children[1].textContent.trim();
 
-    // TODO: Localize this value
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=921115
-    assert.equal(lapName, 'Lap 1');
+    assert.deepEqual(localize.args[0], [
+      lapName, 'lap-number', {n: 1}
+    ]);
     assert.equal(lapTime, '30:00');
 
   });
@@ -146,7 +153,7 @@ suite('Stopwatch.Panel', function() {
       laps = Array.prototype.slice.call(laps);
       return laps.map(function(e) {
         return {
-          lapName: e.children[0].textContent.trim(),
+          lapName: e.children[0],
           lapTime: e.children[1].textContent.trim()
         };
       });
@@ -163,7 +170,9 @@ suite('Stopwatch.Panel', function() {
     var laps = getLapInfo();
     assert.equal(laps.length, 1);
 
-    assert.equal(laps[0].lapName, 'Lap 1');
+    assert.deepEqual(localize.args[0], [
+      laps[0].lapName, 'lap-number', {n: 1}
+    ]);
     assert.equal(laps[0].lapTime, '00:03');
 
     //Advance and add another lap
@@ -175,10 +184,10 @@ suite('Stopwatch.Panel', function() {
     laps = getLapInfo();
     assert.equal(laps.length, 2);
 
-    assert.deepEqual(laps, [
-      { lapName: 'Lap 2', lapTime: '00:09' },
-      { lapName: 'Lap 1', lapTime: '00:03' }
+    assert.deepEqual(localize.args[1], [
+      laps[0].lapName, 'lap-number', {n: 2}
     ]);
+    assert.equal(laps[0].lapTime, '00:09');
 
   });
 
@@ -203,7 +212,6 @@ suite('Stopwatch.Panel', function() {
     laps = panel.nodes['laps'].querySelectorAll('li');
     assert.equal(laps.length, 0);
     assert.equal(panel.nodes.time.textContent, '00:00');
-
 
   });
 

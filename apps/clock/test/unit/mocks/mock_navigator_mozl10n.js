@@ -1,4 +1,4 @@
-(function(exports) {
+define(function() {
   'use strict';
 
   function DateTimeFormat() {
@@ -27,6 +27,5 @@
     DateTimeFormat: DateTimeFormat
   };
 
-  exports.MockL10n = MockL10n;
-
-}(this));
+  return MockL10n;
+});

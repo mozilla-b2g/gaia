@@ -25,6 +25,7 @@ suite('telephony helper', function() {
   var subject;
   var realMozTelephony;
   var realMozMobileConnection;
+  var realMozL10n;
   var spyConfirmShow;
   var mockTelephony;
 
@@ -38,11 +39,15 @@ suite('telephony helper', function() {
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockMozMobileConnection;
+
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
   });
 
   suiteTeardown(function() {
     navigator.mozTelephony = realMozTelephony;
     navigator.mozMobileConnection = realMozMobileConnection;
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
@@ -64,6 +69,28 @@ suite('telephony helper', function() {
     mockTelephony.expects('dial').withArgs('0145345520');
     subject.call(dialNumber);
     mockTelephony.verify();
+  });
+
+  suite('should dialEmergency if the card state is unknown',
+    function() {
+      var initialState;
+
+      setup(function() {
+        initialState = MockIccHelper.mCardState;
+        MockIccHelper.mCardState = 'unknown';
+      });
+
+      teardown(function() {
+        MockIccHelper.mCardState = initialState;
+      });
+
+      test('and emergency call are allowed', function() {
+        MockMozMobileConnection.voice.emergencyCallsOnly = true;
+        var dialNumber = '112';
+        mockTelephony.expects('dialEmergency').withArgs('112');
+        subject.call(dialNumber);
+        mockTelephony.verify();
+      });
   });
 
   test('should dialEmergency if the connection is emergency only',

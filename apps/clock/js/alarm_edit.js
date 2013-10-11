@@ -1,3 +1,14 @@
+define(function(require) {
+
+var Alarm = require('alarm');
+var AlarmList = require('alarm_list');
+var AlarmManager = require('alarm_manager');
+var ClockView = require('clock_view');
+var Utils = require('utils');
+var constants = require('constants');
+var mozL10n = require('l10n');
+var _ = mozL10n.get;
+
 var AlarmEdit = {
 
   alarm: null,
@@ -97,7 +108,7 @@ var AlarmEdit = {
   },
 
   init: function aev_init() {
-    navigator.mozL10n.translate(this.element);
+    mozL10n.translate(this.element);
     this.backButton.addEventListener('click', this);
     this.doneButton.addEventListener('click', this);
     this.timeMenu.addEventListener('click', this);
@@ -238,7 +249,7 @@ var AlarmEdit = {
     var daysOfWeek = this.alarm.repeat;
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
-      options[i].selected = daysOfWeek[DAYS[i]] === true;
+      options[i].selected = daysOfWeek[constants.DAYS[i]] === true;
     }
     this.refreshRepeatMenu(null);
   },
@@ -248,7 +259,7 @@ var AlarmEdit = {
     var options = this.repeatSelect.options;
     for (var i = 0; i < options.length; i++) {
       if (options[i].selected) {
-        daysOfWeek[DAYS[i]] = true;
+        daysOfWeek[constants.DAYS[i]] = true;
       }
     }
     return daysOfWeek;
@@ -383,3 +394,6 @@ var AlarmEdit = {
   }
 
 };
+
+return AlarmEdit;
+});

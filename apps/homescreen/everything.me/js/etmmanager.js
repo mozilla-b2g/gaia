@@ -22,8 +22,7 @@ var EvmeManager = (function EvmeManager() {
       "type": !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
               GridItemsFactory.TYPE.BOOKMARK
     });
-
-    GridManager.install(item, params.gridPosition, extra);
+    GridManager.install(item, params.gridPageOffset, extra);
     GridManager.ensurePagesOverflow(Evme.Utils.NOOP);
   }
 
@@ -31,7 +30,7 @@ var EvmeManager = (function EvmeManager() {
     var origin = params.id;
 
     var gridItem = GridManager.getApp(origin);
-    Homescreen.showAppDialog(gridItem.app);
+    Homescreen.showAppDialog(gridItem);
 
     window.addEventListener('confirmdialog', confirmDialogHandler);
 
@@ -94,7 +93,7 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function getAppByDescriptor(cb, descriptor) {
-    var icon = GridManager.getIcon(descriptor);
+    var icon = getIconByDescriptor(descriptor);
 
     if (icon) {
       getAppInfo(icon, cb);
@@ -102,6 +101,10 @@ var EvmeManager = (function EvmeManager() {
       console.error("E.me error: app " + origin + " does not exist");
       cb();
     }
+  }
+
+  function getIconByDescriptor(descriptor) {
+    return GridManager.getIcon(descriptor);
   }
 
   /**
@@ -137,8 +140,21 @@ var EvmeManager = (function EvmeManager() {
       "id": id,
       "name": descriptor.name,
       "appUrl": nativeApp.origin,
-      "icon": Icon.prototype.DEFAULT_ICON_URL
+      "icon": Icon.prototype.DEFAULT_ICON_URL,
+      "isOfflineReady": icon && 'isOfflineReady' in icon && icon.isOfflineReady()
     };
+
+    // appInfo is an extended descriptor
+    // when we will remove Eme's appIndex we can use plain descriptors
+    if ('bookmarkURL' in descriptor) {
+      appInfo.bookmarkURL = descriptor.bookmarkURL;
+    }
+    if ('manifestURL' in descriptor) {
+      appInfo.manifestURL = descriptor.manifestURL;
+    }
+    if ('entry_point' in descriptor) {
+      appInfo.entry_point = descriptor.entry_point;
+    }
 
     if (!icon) {
       cb(appInfo);
@@ -238,25 +254,21 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function openMarketplaceApp(data) {
-    var activity = new MozActivity({
-      name: "marketplace-app",
-      data: {slug: data.slug}
-    });
-
-    activity.onerror = function(){
-      window.open('https://marketplace.firefox.com/app/'+data.slug, 'e.me');
-    }
+    launchMarketplaceApp(data.slug);
   }
 
   function openMarketplaceSearch(data) {
-    var activity = new MozActivity({
-      name: "marketplace-search",
-      data: {query: data.query}
-    });
+    launchMarketplaceSearch(data.query);
+  }
 
-    activity.onerror = function(){
-      window.open('https://marketplace.firefox.com/search/?q='+data.query, 'e.me');
-    }
+  function launchMarketplaceApp(slug) {
+    var url = 'https://marketplace.firefox.com/app/';
+    window.open(url + encodeURIComponent(slug), 'e.memarket');
+  }
+
+  function launchMarketplaceSearch(query) {
+    var url = 'https://marketplace.firefox.com/search/?q=';
+    window.open(url + encodeURIComponent(query), 'e.memarket');
   }
 
   // sets an image as the device's wallpaper
@@ -299,6 +311,7 @@ var EvmeManager = (function EvmeManager() {
       return GridManager.getApp(origin);
     },
 
+    getIconByDescriptor: getIconByDescriptor,
     getAppByDescriptor: getAppByDescriptor,
     getAppByOrigin: getAppByOrigin,
     getGridApps: getGridApps,
@@ -323,7 +336,10 @@ var EvmeManager = (function EvmeManager() {
 
     getIconName: getIconName,
     setIconName: setIconName,
-    setIconImage: setIconImage
+    setIconImage: setIconImage,
+    get currentPageOffset() {
+      return GridManager.pageHelper.getCurrentPageNumber();
+    }
   };
 }());
 

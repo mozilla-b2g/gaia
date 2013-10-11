@@ -15,15 +15,23 @@ var tutorialSteps = {
     key: 'tutorial-step3',
     image: 'css/images/tutorial/2.png'
   },
+  // evme step - adding a new l10n key to avoid re-id'ing
+  // due to bug 902487 not being solved yet (see previous step as well)
+  // should change each step to use the appropriate key
   3: {
     hash: '#step3',
-    key: 'tutorial-step4',
+    key: 'tutorial-step-evme',
     image: 'css/images/tutorial/3.png'
   },
   4: {
     hash: '#step4',
-    key: 'tutorial-step5',
+    key: 'tutorial-step4',
     image: 'css/images/tutorial/4.png'
+  },
+  5: {
+    hash: '#step5',
+    key: 'tutorial-step5',
+    image: 'css/images/tutorial/5.png'
   }
 };
 

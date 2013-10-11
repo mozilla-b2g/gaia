@@ -609,8 +609,8 @@
   // will affect the SMS mock's simulated network effects:
   // - SMSDebugDelay: A number defining the amount of time in milliseconds to
   //   delay asynchronous operations (default: 0)
-  // - SMSDebugFail: A boolean value controlling the outcome of asynchronous
-  //   operations (default: false)
+  // - MessagesDebugError: A string value controlling the error name returned
+  //   from asynchronus operatrions (default: null)
   var simulation = {};
 
   simulation.delay = function() {
@@ -622,11 +622,7 @@
   };
 
   simulation.failState = function() {
-    if (typeof window.SMSDebugFail === 'boolean') {
-      return window.SMSDebugFail;
-    } else {
-      return false;
-    }
+    return typeof window.MessagesDebugError === 'string';
   };
 
   MockNavigatormozMobileMessage.addEventListener =
@@ -699,12 +695,12 @@
       if (simulation.failState()) {
         sendInfo.message.delivery = 'error';
         request.error = {
-          name: 'mock send error'
+          name: window.MessagesDebugError
         };
         if (typeof request.onerror === 'function') {
           request.onerror({
             target: {
-              result: request
+              error: request.error
             }
           });
         }
@@ -823,12 +819,12 @@
       if (simulation.failState()) {
         sendInfo.message.delivery = 'error';
         request.error = {
-          name: 'mock send error'
+          name: window.MessagesDebugError
         };
         if (typeof request.onerror === 'function') {
           request.onerror({
             target: {
-              result: request
+              error: request.error
             }
           });
         }
@@ -904,12 +900,13 @@
     var returnThread = function() {
 
       if (simulation.failState()) {
-        request.error = {
-          name: 'mock getThreads error'
-        };
-
+        request.error = { name: window.MessagesDebugError };
         if (typeof request.onerror === 'function') {
-          request.onerror();
+          request.onerror({
+            target: {
+              error: request.error
+            }
+          });
         }
       } else {
         request.result = threads[idx];
@@ -941,11 +938,13 @@
 
     setTimeout(function() {
       if (simulation.failState()) {
-        request.error = {
-          name: 'mock getMessage error'
-        };
+        request.error = { name: window.MessagesDebugError };
         if (typeof request.onerror === 'function') {
-          request.onerror();
+          request.onerror({
+            target: {
+              error: request.error
+            }
+          });
         }
         return;
       }
@@ -1013,12 +1012,13 @@
     var returnMessage = function() {
 
       if (simulation.failState()) {
-        request.error = {
-          name: 'mock getMessages error'
-        };
-
+        request.error = { name: window.MessagesDebugError };
         if (typeof request.onerror === 'function') {
-          request.onerror();
+          request.onerror({
+            target: {
+              error: request.error
+            }
+          });
         }
       } else {
         request.result = msgs[idx];
@@ -1062,10 +1062,14 @@
     setTimeout(function() {
       if (simulation.failState()) {
         request.error = {
-          name: 'mock delete error'
+          name: window.MessagesDebugError
         };
         if (typeof request.onerror === 'function') {
-          request.onerror();
+          request.onerror({
+            target: {
+              error: request.error
+            }
+          });
         }
         return;
       }
@@ -1116,10 +1120,14 @@
     setTimeout(function() {
       if (simulation.failState()) {
         request.error = {
-          name: 'mock markMessageRead error'
+          name: window.MessagesDebugError
         };
         if (typeof request.onerror === 'function') {
-          request.onerror();
+          request.onerror({
+            target: {
+              error: request.error
+            }
+          });
         }
         return;
       }

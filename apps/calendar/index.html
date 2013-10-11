@@ -2,7 +2,6 @@
 <html class="ltr">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="pragma" content="no-cache">
   <title>Calendar</title>
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
@@ -17,75 +16,75 @@
   <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
   <!--- shared scripts -->
-  <script defer src="/shared/js/l10n.js" charset="utf-8"></script>
-  <script defer src="/shared/js/gesture_detector.js" charset="utf-8"></script>
-  <script defer src="/shared/js/lazy_loader.js" charset="utf-8"></script>
-  <script defer src="/shared/js/l10n_date.js" charset="utf-8"></script>
-  <script defer src="/shared/js/notification_helper.js" charset="utf-8"></script>
+  <script defer src="/shared/js/l10n.js"></script>
+  <script defer src="/shared/js/gesture_detector.js"></script>
+  <script defer src="/shared/js/lazy_loader.js"></script>
+  <script defer src="/shared/js/l10n_date.js"></script>
+  <script defer src="/shared/js/notification_helper.js"></script>
 
-  <script defer src="/js/ext/page.js" charset="utf-8"></script>
-  <script defer src="/js/ext/uuid.js" charset="utf-8"></script>
+  <script defer src="/js/ext/page.js"></script>
+  <script defer src="/js/ext/uuid.js"></script>
 
   <!-- lib root must load before anything else -->
-  <script defer src="/js/calendar.js" charset="utf-8"></script>
+  <script defer src="/js/calendar.js"></script>
 
   <!--- utils -->
-  <script defer src="/js/presets.js" charset="utf-8"></script>
-  <script defer src="/js/error.js" charset="utf-8"></script>
-  <script defer src="/js/calc.js" charset="utf-8"></script>
-  <script defer src="/js/template.js" charset="utf-8"></script>
-  <script defer src="/js/responder.js" charset="utf-8"></script>
-  <script defer src="/js/view.js" charset="utf-8"></script>
-  <script defer src="/js/router.js" charset="utf-8"></script>
-  <script defer src="/js/db.js" charset="utf-8"></script>
-  <script defer src="/js/timespan.js" charset="utf-8"></script>
-  <script defer src="/js/time_observer.js" charset="utf-8"></script>
-  <script defer src="/js/interval_tree.js" charset="utf-8"></script>
+  <script defer src="/js/presets.js"></script>
+  <script defer src="/js/error.js"></script>
+  <script defer src="/js/calc.js"></script>
+  <script defer src="/js/template.js"></script>
+  <script defer src="/js/responder.js"></script>
+  <script defer src="/js/view.js"></script>
+  <script defer src="/js/router.js"></script>
+  <script defer src="/js/db.js"></script>
+  <script defer src="/js/timespan.js"></script>
+  <script defer src="/js/time_observer.js"></script>
+  <script defer src="/js/interval_tree.js"></script>
 
   <!--- providers -->
-  <script defer src="/js/provider/abstract.js" charset="utf-8"></script>
-  <script defer src="/js/provider/local.js" charset="utf-8"></script>
-  <script defer src="/js/provider/caldav.js" charset="utf-8"></script>
-  <script defer src="/js/provider/caldav_pull_events.js" charset="utf-8"></script>
+  <script defer src="/js/provider/abstract.js"></script>
+  <script defer src="/js/provider/local.js"></script>
+  <script defer src="/js/provider/caldav.js"></script>
+  <script defer src="/js/provider/caldav_pull_events.js"></script>
 
   <!-- It's possible to lazy load these, but we include them here to reduce flickering -->
-  <script defer src="/js/views/calendar_colors.js" charset="utf-8"></script>
-  <script defer src="/js/views/time_header.js" charset="utf-8"></script>
-  <script defer src="/js/templates/month.js" charset="utf-8"></script>
-  <script defer src="/js/templates/day.js" charset="utf-8"></script>
-  <script defer src="/js/views/month_child.js" charset="utf-8"></script>
-  <script defer src="/js/utils/ordered_map.js" charset="utf-8"></script>
-  <script defer src="/js/utils/overlap.js" charset="utf-8"></script>
-  <script defer src="/js/views/time_parent.js" charset="utf-8"></script>
-  <script defer src="/js/views/day_based.js" charset="utf-8"></script>
-  <script defer src="/js/views/month.js" charset="utf-8"></script>
-  <script defer src="/js/views/day_child.js" charset="utf-8"></script>
-  <script defer src="/js/views/months_day.js" charset="utf-8"></script>
+  <script defer src="/js/views/calendar_colors.js"></script>
+  <script defer src="/js/views/time_header.js"></script>
+  <script defer src="/js/templates/month.js"></script>
+  <script defer src="/js/templates/day.js"></script>
+  <script defer src="/js/views/month_child.js"></script>
+  <script defer src="/js/utils/ordered_map.js"></script>
+  <script defer src="/js/utils/overlap.js"></script>
+  <script defer src="/js/views/time_parent.js"></script>
+  <script defer src="/js/views/day_based.js"></script>
+  <script defer src="/js/views/month.js"></script>
+  <script defer src="/js/views/day_child.js"></script>
+  <script defer src="/js/views/months_day.js"></script>
 
   <!--- store -->
-  <script defer src="/js/store/abstract.js" charset="utf-8"></script>
-  <script defer src="/js/store/busytime.js" charset="utf-8"></script>
-  <script defer src="/js/store/account.js" charset="utf-8"></script>
-  <script defer src="/js/store/calendar.js" charset="utf-8"></script>
-  <script defer src="/js/store/event.js" charset="utf-8"></script>
-  <script defer src="/js/store/setting.js" charset="utf-8"></script>
-  <script defer src="/js/store/alarm.js" charset="utf-8"></script>
-  <script defer src="/js/store/ical_component.js" charset="utf-8"></script>
-  <script defer src="/js/event_mutations.js" charset="utf-8"></script>
+  <script defer src="/js/store/abstract.js"></script>
+  <script defer src="/js/store/busytime.js"></script>
+  <script defer src="/js/store/account.js"></script>
+  <script defer src="/js/store/calendar.js"></script>
+  <script defer src="/js/store/event.js"></script>
+  <script defer src="/js/store/setting.js"></script>
+  <script defer src="/js/store/alarm.js"></script>
+  <script defer src="/js/store/ical_component.js"></script>
+  <script defer src="/js/event_mutations.js"></script>
 
   <!--- models -->
-  <script defer src="/js/models/account.js" charset="utf-8"></script>
-  <script defer src="/js/models/calendar.js" charset="utf-8"></script>
-  <script defer src="/js/models/event.js" charset="utf-8"></script>
+  <script defer src="/js/models/account.js"></script>
+  <script defer src="/js/models/calendar.js"></script>
+  <script defer src="/js/models/event.js"></script>
 
   <!-- workers / main / controller -->
-  <script defer src="/js/worker/manager.js" charset="utf-8"></script>
-  <script defer src="/js/controllers/service.js" charset="utf-8"></script>
-  <script defer src="/js/controllers/error.js" charset="utf-8"></script>
-  <script defer src="/js/controllers/time.js" charset="utf-8"></script>
-  <script defer src="/js/controllers/sync.js" charset="utf-8"></script>
-  <script defer src="/js/controllers/alarm.js" charset="utf-8"></script>
-  <script defer src="/js/app.js" charset="utf-8"></script>
+  <script defer src="/js/worker/manager.js"></script>
+  <script defer src="/js/controllers/service.js"></script>
+  <script defer src="/js/controllers/error.js"></script>
+  <script defer src="/js/controllers/time.js"></script>
+  <script defer src="/js/controllers/sync.js"></script>
+  <script defer src="/js/controllers/alarm.js"></script>
+  <script defer src="/js/app.js"></script>
 
   <link rel="import" href="/elements/errors.html">
   <link rel="import" href="/elements/lazy_styles.html">

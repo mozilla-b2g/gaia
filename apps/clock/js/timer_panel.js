@@ -1,5 +1,13 @@
-(function(Timer, Panel) {
+define(function(require) {
 'use strict';
+
+var Panel = require('panel');
+var Picker = require('picker/picker');
+var asyncStorage = require('shared/js/async_storage');
+var View = require('view');
+var Utils = require('utils');
+var Timer = require('timer');
+var _ = require('l10n').get;
 
 var priv = new WeakMap();
 
@@ -56,14 +64,14 @@ Timer.Panel = function(element) {
   // Gather elements
   [
     'create', 'cancel', 'dialog',
-    'pause', 'start', 'sound', 'time', 'vibrate'
+    'pause', 'start', 'sound', 'time', 'vibrate', 'menu'
   ].forEach(function(id) {
     this.nodes[id] = this.element.querySelector('#timer-' + id);
   }, this);
 
   // Bind click events
   [
-    'create', 'cancel', 'pause', 'start'
+    'create', 'cancel', 'pause', 'start', 'menu'
   ].forEach(function(action) {
     var element = this.nodes[action];
 
@@ -78,6 +86,10 @@ Timer.Panel = function(element) {
 
     element.addEventListener('click', this.onclick.bind(this), false);
   }, this);
+
+  var sound = this.nodes.sound;
+  sound.addEventListener('blur', this.refreshSoundMenu.bind(this), false);
+  this.refreshSoundMenu();
 
   View.instance(element).on(
     'visibilitychange', this.onvisibilitychange.bind(this)
@@ -195,6 +207,19 @@ Timer.Panel.prototype.toggle = function(show, hide) {
 };
 
 /**
+ * refreshSoundMenu Updates the text on the alarm chooser selection
+ * button.
+ */
+Timer.Panel.prototype.refreshSoundMenu = function() {
+  var sound = Utils.getSelectedValue(this.nodes.sound);
+  var soundMenu = this.nodes.menu;
+  // sound could either be string or int, so test for both
+  soundMenu.textContent = (sound === 0 || sound === '0') ?
+    _('noSound') :
+    _(sound.replace('.', '_'));
+};
+
+/**
  * handleEvent Handler for all panel bound UI events.
  *             (`this` context object is not Timer.Panel)
  *
@@ -237,6 +262,10 @@ Timer.Panel.prototype.onclick = function(event) {
     }
   } else {
 
+    if (meta.action === 'menu') {
+      nodes.sound.focus();
+    }
+
     if (meta.action === 'create') {
 
       time = duration(panel.picker.value);
@@ -267,4 +296,5 @@ Timer.Panel.prototype.onclick = function(event) {
   }
 };
 
-}(Timer, Panel));
+return Timer.Panel;
+});

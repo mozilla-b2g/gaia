@@ -180,7 +180,7 @@ class GaiaData(object):
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
     def set_volume(self, value):
-        channels = ['master', 'content', 'notification', 'alarm', 'telephony', 'bt_sco']
+        channels = ['alarm', 'content', 'notification']
         for channel in channels:
             self.set_setting('audio.volume.%s' % channel, value)
 
@@ -412,6 +412,8 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     marionetteScriptFinished();
   }
 });""", script_timeout=60000)
+            # TODO: Remove this sleep when Bug 924912 is addressed
+            time.sleep(5)
 
     def stop_b2g(self):
         if self.marionette.instance:

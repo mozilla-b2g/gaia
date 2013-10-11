@@ -10,15 +10,6 @@ html,body {
   color: white;
 }
 
-#wappush-test {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: white;
-  color: black;
-  z-index: 1;
-}
-
 #wappush-screen {
   position: absolute;
   width: 100%;

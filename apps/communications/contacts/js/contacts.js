@@ -36,7 +36,7 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var tagDone, tagCancel, lazyLoadedTagsDom = false;
+  var customTag, tagDone, tagCancel, lazyLoadedTagsDom = false;
 
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
@@ -333,10 +333,13 @@ var Contacts = (function() {
 
   function showSelectTag() {
     var tagsList = document.getElementById('tags-list');
-    var customTag = document.getElementById('custom-tag');
     var selectedTagType = contactTag.dataset.taglist;
     var options = TAG_OPTIONS[selectedTagType];
 
+    if (!customTag) {
+      customTag = document.querySelector('#custom-tag');
+      customTag.addEventListener('touchend', handleCustomTag);
+    }
     if (!tagDone) {
       tagDone = document.querySelector('#settings-done');
       tagDone.addEventListener('click', handleSelectTagDone);
@@ -363,7 +366,7 @@ var Contacts = (function() {
 
     var tagViewElement = document.getElementById('view-select-tag');
     if (!lazyLoadedTagsDom) {
-       LazyLoader.load(tagViewElement, function() {
+      LazyLoader.load(tagViewElement, function() {
         navigator.mozL10n.translate(tagViewElement);
         showSelectTag();
         lazyLoadedTagsDom = true;
@@ -583,13 +586,6 @@ var Contacts = (function() {
     });
   };
 
-  var ignoreReturnKey = function ignoreReturnKey(evt) {
-    if (evt.keyCode == 13) { // VK_Return
-      evt.target.blur();
-      evt.preventDefault();
-    }
-  };
-
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
@@ -602,21 +598,7 @@ var Contacts = (function() {
           handler: enterSearchMode
         }
       ],
-      '#search-contact': [
-        {
-          event: 'keypress',
-          handler: ignoreReturnKey
-        }
-      ],
-      'button[type="reset"]': stopPropagation,
-      // Bug 832861: Click event can't be synthesized correctly on customTag by
-      // mouse_event_shim due to Gecko bug.  Use ontouchend here.
-      '#custom-tag': [
-        {
-          event: 'touchend',
-          handler: handleCustomTag
-        }
-      ]
+      'button[type="reset"]': stopPropagation
     });
   };
 
@@ -650,9 +632,7 @@ var Contacts = (function() {
       '/contacts/js/sms_integration.js',
       '/contacts/js/utilities/sdcard.js',
       '/contacts/js/utilities/vcard_parser.js',
-      '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/overlay.js',
       '/contacts/js/utilities/dom.js'
     ];
 
@@ -820,12 +800,14 @@ var Contacts = (function() {
      */
     function doLoad() {
       var name = file.toLowerCase();
-      var node = document.getElementById(elementMapping[name]);
+      var toLoad = ['js/' + type + '/' + name + '.js'];
 
-      LazyLoader.load([
-        node,
-        'js/' + type + '/' + name + '.js'
-        ], function() {
+      var node = document.getElementById(elementMapping[name]);
+      if (node) {
+        toLoad.unshift(node);
+      }
+
+      LazyLoader.load(toLoad, function() {
           if (node) {
             navigator.mozL10n.translate(node);
           }

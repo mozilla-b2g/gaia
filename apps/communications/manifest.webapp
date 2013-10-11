@@ -12,8 +12,9 @@
       "launch_path": "/dialer/index.html#keyboard-view",
       "name": "Phone",
       "icons": {
-        "60": "/dialer/style/icons/60/Dialer.png",
-        "120": "/dialer/style/icons/Dialer.png"
+        "60": "/dialer/style/icons/Dialer_60.png",
+        "90": "/dialer/style/icons/Dialer_90.png",
+        "120": "/dialer/style/icons/Dialer_120.png"
       },
       "locales": {
         "ar": {
@@ -38,8 +39,9 @@
       "launch_path": "/contacts/index.html",
       "name": "Contacts",
       "icons": {
-        "60": "/contacts/style/icons/60/Contacts.png",
-        "120": "/contacts/style/icons/Contacts.png"
+        "60": "/contacts/style/icons/Contacts_60.png",
+        "90": "/contacts/style/icons/Contacts_90.png",
+        "120": "/contacts/style/icons/Contacts_120.png"
       },
       "locales": {
         "ar": {
@@ -99,7 +101,7 @@
     },
     "import": {
       "filters": {
-        "type": ["text/x-vcard", "text/vcard", "application/vcard"]
+        "type": "text/vcard"
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",

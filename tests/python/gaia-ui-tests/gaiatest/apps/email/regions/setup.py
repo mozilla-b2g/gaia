@@ -150,6 +150,7 @@ class ManualSetupEmail(Base):
         self.wait_for_element_displayed(*self._check_for_new_messages_locator)
 
     def tap_account_prefs_next(self):
+        self.wait_for_element_displayed(*self._account_prefs_next_locator)
         self.marionette.find_element(*self._account_prefs_next_locator).tap()
 
     def wait_for_setup_complete(self):

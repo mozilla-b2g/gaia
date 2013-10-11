@@ -276,8 +276,13 @@ var PowerSaveHandler = (function PowerSaveHandler() {
       return;
     }
 
-    SettingsListener.observe('powersave.threshold', 0,
+    SettingsListener.observe('powersave.threshold', -1,
       function getThreshold(value) {
+        // If 'turn on automatically' is set to 'never', don't change the
+        // power saving state
+        if (value == -1)
+          return;
+
         if (battery.level <= value && !_powerSaveEnabled) {
           setMozSettings({'powersave.enabled' : true});
           if (!_powerSaveEnabledLock) {

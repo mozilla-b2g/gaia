@@ -63,15 +63,6 @@
 
         initL10nObserver();
 
-        // init event listeners
-        window.addEventListener('collectionlaunch', Evme.Collection.show);
-        window.addEventListener('collectiondropapp', onAppDrop);
-
-        // prevent homescreen contextmenu
-        elContainer.addEventListener('contextmenu', function onTouchStart(e) {
-            e.stopPropagation();
-        });
-
         _config = options;
 
         NUMBER_OF_APPS_TO_LOAD = _config.numberOfAppsToLoad || DEFAULT_NUMBER_OF_APPS_TO_LOAD;
@@ -82,16 +73,6 @@
 
         DISPLAY_INSTALLED_APPS = _config.displayInstalledApps;
     };
-
-    function onAppDrop(e) {
-        var options = e.detail;
-
-        if (options.descriptor && options.collection) {
-            EvmeManager.getAppByDescriptor(function addApp(appInfo){
-                Evme.Collection.addInstalledApp(appInfo, options.collection.id);
-            }, options.descriptor);
-        }
-    }
 
     // l10n: create a mutation observer to know when a node was added
     // and check if it needs to be translated
@@ -697,7 +678,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
         }
 
         function pinToCollection(data) {
-            var cloudResult = data.app;
+            var cloudResult = Evme.Utils.cloneObject(data.app);
             Evme.Collection.addCloudApp(cloudResult);
         }
 
@@ -729,12 +710,13 @@ this.InstalledAppsService = new function InstalledAppsService() {
             }
 
             // bookmark - add to homescreen
-            Evme.Utils.sendToOS(Evme.Utils.OSMessages.APP_INSTALL, {
+            EvmeManager.addGridItem({
                 'originUrl': data.app.getFavLink(),
-                'title': data.data.name,
+                'name': data.data.name,
                 'icon': Evme.Utils.formatImageData(data.app.getIcon()),
                 'useAsyncPanZoom': data.app.isExternal()
             });
+
             // display system banner
             Evme.Banner.show('app-install-success', {
                 'name': data.data.name
@@ -750,9 +732,14 @@ this.InstalledAppsService = new function InstalledAppsService() {
         // app clicked
         this.click = function click(data) {
             if (Evme.Collection.editMode) {
-                Evme.Collection.toggleEditMode(false);
-                return;
+                if (data.app.type === Evme.RESULT_TYPE.INSTALLED) {
+                  return;
+                } else {
+                  Evme.Collection.toggleEditMode(false);
+                }
             }
+
+            data.app.launch();
 
             if (!Searcher.isLoadingApps() || Evme.Utils.isKeyboardVisible) {
                 data.keyboardVisible = Evme.Utils.isKeyboardVisible ? 1 : 0;
@@ -1056,16 +1043,17 @@ this.InstalledAppsService = new function InstalledAppsService() {
         };
 
         this.hide = function hide() {
-            Evme.CollectionsSuggest.Loading.hide();
             isOpen = false;
         };
 
         this.loadingShow = function loadingShow() {
             document.body.classList.add(CLASS_WHEN_LOADING_SHORTCUTS_SUGGESTIONS);
+            window.dispatchEvent(new CustomEvent('CollectionSuggestLoadingShow'));
         };
 
         this.loadingHide = function loadingHide() {
             document.body.classList.remove(CLASS_WHEN_LOADING_SHORTCUTS_SUGGESTIONS);
+            window.dispatchEvent(new CustomEvent('CollectionSuggestLoadingHide'));
         };
 
         this.hideIfOpen = function hideIfOpen() {
@@ -1106,7 +1094,8 @@ this.InstalledAppsService = new function InstalledAppsService() {
             var query = data.query;
             Evme.Collection.create({
                 "query": query,
-                "callback": updateShortcutIcons
+                "callback": updateShortcutIcons,
+                "gridPageOffset": EvmeManager.currentPageOffset
             });
 
             function updateShortcutIcons(collectionSettings) {
@@ -1162,7 +1151,8 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
                         Evme.Collection.create({
                             "extraIconsData": extraIconsData,
-                            "query": shortcut.query
+                            "query": shortcut.query,
+                            "gridPageOffset": EvmeManager.currentPageOffset
                         });
                     }
                 });
@@ -1179,6 +1169,7 @@ this.InstalledAppsService = new function InstalledAppsService() {
             Evme.Utils.isOnline(function(isOnline) {
                 if (!isOnline) {
                     window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'offline-shortcuts-more'));
+                    window.dispatchEvent(new CustomEvent('CollectionSuggestOffline'));
                     window.setTimeout(function() {
                         isRequesting = false;
                     }, 200);
@@ -1188,42 +1179,46 @@ this.InstalledAppsService = new function InstalledAppsService() {
 
                 Evme.CollectionsSuggest.Loading.show();
 
-                EvmeManager.getCollections(function onCollections(collections) {
-                    var existingCollectionsQueries = [];
-                    for (var i = 0, collection; collection = collections[i++];) {
-                        existingCollectionsQueries.push(collection.manifest.name);
+                var gridCollections = EvmeManager.getCollections();
+
+                var existingCollectionsQueries = [];
+                for (var i = 0, collection; collection = gridCollections[i++];) {
+                    var name = EvmeManager.getIconName(collection.origin);
+                    if (name) {
+                        existingCollectionsQueries.push(name);    
+                    }
+                }
+
+                // load suggested shortcuts from API
+                requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
+                    "existing": existingCollectionsQueries
+                }, function onSuccess(data) {
+                    var suggestedShortcuts = data.response.shortcuts || [],
+                    icons = data.response.icons || {};
+
+                    if (!isRequesting) {
+                        return;
                     }
 
-                    // load suggested shortcuts from API
-                    requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
-                        "existing": existingCollectionsQueries
-                    }, function onSuccess(data) {
-                        var suggestedShortcuts = data.response.shortcuts || [],
-                        icons = data.response.icons || {};
+                    isFirstShow = false;
+                    isRequesting = false;
 
-                        if (!isRequesting) {
-                            return;
-                        }
+                    if (suggestedShortcuts.length === 0) {
+                        window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'no-more-shortcuts'));
+                        Evme.CollectionsSuggest.Loading.hide();
+                    } else {
+                        Evme.CollectionsSuggest.load({
+                            "shortcuts": suggestedShortcuts,
+                            "icons": icons
+                        });
 
-                        isFirstShow = false;
-                        isRequesting = false;
-
-                        if (suggestedShortcuts.length === 0) {
-                            window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'no-more-shortcuts'));
-                            Evme.CollectionsSuggest.Loading.hide();
-                        } else {
-                            Evme.CollectionsSuggest.load({
-                                "shortcuts": suggestedShortcuts,
-                                "icons": icons
-                            });
-
-                            Evme.CollectionsSuggest.show();
-                            // setting timeout to give the select box enough time to show
-                            // otherwise there's visible flickering
-                            window.setTimeout(Evme.CollectionsSuggest.Loading.hide, 300);
-                        }
-                    });
+                        Evme.CollectionsSuggest.show();
+                        // setting timeout to give the select box enough time to show
+                        // otherwise there's visible flickering
+                        window.setTimeout(Evme.CollectionsSuggest.Loading.hide, 300);
+                    }
                 });
+                
             });
         };
 

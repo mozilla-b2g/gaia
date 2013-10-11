@@ -9,17 +9,14 @@ var EverythingME = {
       footer.style.MozTransition = '-moz-transform .3s ease';
     }
 
-    var page = document.getElementById('evmeContainer'),
-        gridPage = document.querySelector('#icongrid > div:first-child'),
-        appsEl = document.getElementById('icongrid');
-
+    var gridPage = document.querySelector('#icongrid > div:first-child');
     gridPage.classList.add('evmePage');
 
 
     // pre-evme-load pseudo searchbar
     var activationIcon = document.createElement('div');
     activationIcon.id = 'evme-activation-icon';
-    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default" /></div>';
+    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2" /></div>';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
@@ -37,6 +34,7 @@ var EverythingME = {
     activationIcon.addEventListener('click', triggerActivateFromInput);
     window.addEventListener('collectionlaunch', triggerActivate);
     window.addEventListener('collectiondropapp', triggerActivate);
+    window.addEventListener('suggestcollections', triggerActivate);
 
     // specifically for pseudo searchbar
     function triggerActivateFromInput(e) {
@@ -54,16 +52,29 @@ var EverythingME = {
       activationIcon.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('collectionlaunch', triggerActivate);
       window.removeEventListener('collectiondropapp', triggerActivate);
+      window.removeEventListener('suggestcollections', triggerActivate);
+
+      // show the full-screen loading until e.me is really loaded
+      if (e.type === 'suggestcollections') {
+        EverythingME.showLoading(loadCollectionAssets);
+      } else {
+        loadCollectionAssets();
+      }
+    }
+
+    function loadCollectionAssets() {
+      var e = EverythingME.pendingEvent;
 
       // load styles required for Collection styling
       LazyLoader.load([
+        document.getElementById('search-page'),
         'shared/style_unstable/progress_activity.css',
         'everything.me/css/common.css',
         'everything.me/modules/Collection/Collection.css'],
         function assetsLoaded() {
           // open the collection immediately
-          if (e.type === 'collectionlaunch') {
-            onCollectionOpened(activationIcon);
+          if (e && e.type === 'collectionlaunch') {
+            onCollectionOpened(activationIcon, e.detail.id);
           }
 
           // Activate evme load
@@ -74,11 +85,19 @@ var EverythingME = {
     }
 
     // show Collection loading
-    function onCollectionOpened(activationIcon) {
+    function onCollectionOpened(activationIcon, id) {
       // add classes for Collection styling
+      var appsEl = document.getElementById('icongrid');
       appsEl.classList.add('evme-collection-visible');
       var elCollection = document.getElementById('collection');
       elCollection.classList.add('visible');
+      var collection = GridManager.getIconByOrigin(id);
+      elCollection.querySelector('.title').innerHTML =
+              '<em></em>' +
+              '<span class="actual">' + collection.getName() + '</span>' + ' ' +
+              '<span> ' +
+              navigator.mozL10n.get('evme-collection-title-suffix') +
+              '</span>';
       var elLoader = elCollection.querySelector(".loading-more");
       elLoader.classList.add('show');
 
@@ -118,9 +137,12 @@ var EverythingME = {
   },
 
   activate: function EverythingME_activate() {
-    document.body.classList.add('evme-loading');
-
-    EverythingME.load();
+    var searchPage = document.getElementById('search-page');
+    LazyLoader.load(searchPage, function loaded() {
+      document.body.classList.add('evme-loading');
+      navigator.mozL10n.translate(searchPage);
+      EverythingME.load();
+    });
   },
 
   load: function EverythingME_load(callback) {
@@ -140,6 +162,8 @@ var EverythingME = {
           'js/helpers/EventHandler.js',
           'js/helpers/Idle.js',
           'shared/js/settings_listener.js',
+          'shared/js/icc_helper.js',
+          'shared/js/mobile_operator.js',
           'js/plugins/Analytics.js',
           'js/plugins/APIStatsEvents.js',
           'js/Brain.js',
@@ -158,7 +182,6 @@ var EverythingME = {
           'modules/Results/ResultManager.js',
           'modules/Searchbar/Searchbar.js',
           'modules/SearchHistory/SearchHistory.js',
-          'modules/CollectionsSuggest/CollectionsSuggest.js',
           'modules/Collection/Collection.js'
         ],
         css_files = [
@@ -171,8 +194,7 @@ var EverythingME = {
           'modules/ConnectionMessage/ConnectionMessage.css',
           'modules/Helper/Helper.css',
           'modules/Results/Results.css',
-          'modules/Searchbar/Searchbar.css',
-          'modules/CollectionsSuggest/CollectionsSuggest.css'
+          'modules/Searchbar/Searchbar.css'
         ];
 
     var head = document.head;
@@ -278,7 +300,25 @@ var EverythingME = {
 
     if (e && e.target) {
       e.target.dispatchEvent(e);
-    };
+    }
+
+    if (e.type === 'suggestcollections') {
+      window.addEventListener('CollectionSuggestLoadingShow', loadingShow);
+      window.addEventListener('CollectionSuggestOffline', suggestOffline);
+    } else {
+      EverythingME.hideLoading();
+    }
+
+    function loadingShow() {
+      window.removeEventListener('CollectionSuggestLoadingShow', loadingShow);
+      window.removeEventListener('CollectionSuggestOffline', suggestOffline);
+      EverythingME.hideLoading();
+    }
+    function suggestOffline() {
+      window.removeEventListener('CollectionSuggestLoadingShow', loadingShow);
+      window.removeEventListener('CollectionSuggestOffline', suggestOffline);
+      EverythingME.hideLoading();
+    }
   },
 
   destroy: function EverythingME_destroy() {
@@ -385,6 +425,39 @@ var EverythingME = {
     }
 
     return true;
+  },
+
+  // show a full-screen loading indicator for lazy-loaded stuff
+  showLoading: function showLoading(callback) {
+    var elLoading = document.getElementById('loading-dialog');
+
+    LazyLoader.load([
+      'shared/style_unstable/progress_activity.css',
+      'shared/style/confirm.css',
+      elLoading],
+      function assetsLoaded() {
+        elLoading.querySelector('button').addEventListener('click', function onCancel(e) {
+          e.target.removeEventListener('click', onCancel);
+          EverythingME.hideLoading();
+          EverythingME.pendingEvent = null;
+        });
+
+        navigator.mozL10n.translate(elLoading);
+
+        window.setTimeout(function styleReady() {
+          elLoading.style.display = 'block';
+          callback && callback();
+        }, 0);
+      }
+    );
+  },
+
+  // hide the full-screen loading indicator
+  hideLoading: function hideLoading() {
+    var elLoading = document.getElementById('loading-dialog');
+    if (elLoading) {
+      elLoading.parentNode.removeChild(elLoading);
+    }
   }
 };
 

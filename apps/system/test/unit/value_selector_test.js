@@ -3,7 +3,7 @@
 mocha.globals(['ValueSelector']);
 
 requireApp('system/js/value_selector/value_selector.js');
-requireApp('system/test/unit/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_l10n.js');
 
 suite('value selector/value selector', function() {

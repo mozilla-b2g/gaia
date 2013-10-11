@@ -1,8 +1,23 @@
 .menu-icon {
+  position: relative;
   background-image: url('../images/header/menu.png');
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 50% auto;
+  background-size: 2rem auto;
+}
+
+.menu-icon:after {
+  right: 100%;
+  background-image: url(../images/header/separator.png);
+  position: absolute;
+  content: "";
+  display: block;
+  top: 0;
+  height: 100%;
+  width: 0.5rem;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: auto 80%;
 }
 
 .menu-overlay {
@@ -22,6 +37,8 @@
   background: #222;
   box-shadow: 5px 5px 5px rgba(0, 0, 0, .5);
   border-top: 1px solid #111;
+  border-left: 1px solid rgba(255, 255, 255, .05);
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
 
 }
 
@@ -31,4 +48,5 @@
   line-height: 3rem;
   font-size: 1.25rem;
   text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
 }

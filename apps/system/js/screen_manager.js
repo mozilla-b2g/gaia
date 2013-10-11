@@ -205,10 +205,14 @@ var ScreenManager = {
         var telephony = window.navigator.mozTelephony;
         if (Bluetooth.isProfileConnected(Bluetooth.Profiles.SCO) ||
             telephony.speakerEnabled ||
-            StatusBar.headphonesActive)
+            StatusBar.headphonesActive) {
             // XXX: Remove this hack in Bug 868348
             // We shouldn't access headset status from statusbar.
+          if (this._screenOffBy == 'proximity') {
+            this.turnScreenOn();
+          }
           break;
+        }
 
         if (evt.near) {
           this.turnScreenOff(true, 'proximity');

@@ -19,6 +19,10 @@ window.Evme = new function Evme_Core() {
         Math.floor(window.innerHeight * window.devicePixelRatio)
     ];
 
+    // prevent context menu from opening when holding on evme pages
+    preventContextMenu(Evme.Utils.getContainer());
+    preventContextMenu(Evme.Utils.getOverlay());
+
     // calculate number of apps to load on every search
     // if the screen height permits it - add another row of apps
     var numberOfAppsToLoad = data.numberOfAppsToLoad;
@@ -59,7 +63,7 @@ window.Evme = new function Evme_Core() {
 
     if (
     // hide suggested collections list if open
-    Evme.CollectionsSuggest.hide() ||
+    Evme.CollectionsSuggest && Evme.CollectionsSuggest.hide() ||
     // stop editing if active
     Evme.Collection.toggleEditMode(false) ||
     // close full screen background image if visible
@@ -77,17 +81,15 @@ window.Evme = new function Evme_Core() {
     return false;
   };
 
-  this.onCollectionSuggest = function onCollectionSuggest() {
-    Evme.Brain.CollectionsSuggest.showUI();
-  };
-
-  this.onCollectionCustom = function onCollectionCustom() {
-    Evme.CollectionSuggest.newCustom();
-  };
-
   this.searchFromOutside = function searchFromOutside(query) {
     Evme.Brain.Searcher.searchExactFromOutside(query);
   };
+
+  function preventContextMenu(el) {
+    el.addEventListener('contextmenu', function onContextMenu(e) {
+      e.stopPropagation();
+    });
+  }
 
   // one time setup to execute on device first launch
   function setupObjects(data, callback) {
@@ -171,6 +173,10 @@ window.Evme = new function Evme_Core() {
   }
 
   function initObjects(data) {
+    // lazy components
+    window.addEventListener('suggestcollections', initSuggestCollections);
+
+    // active components
     var appsEl = Evme.$("#evmeApps"),
         collectionEl = document.querySelector("#collection .evme-apps");
 
@@ -183,10 +189,6 @@ window.Evme = new function Evme_Core() {
     Evme.Location.init({
       "refreshInterval": data.locationInterval,
       "requestTimeout": data.locationRequestTimeout
-    });
-
-    Evme.CollectionsSuggest.init({
-      "elParent": Evme.Utils.getContainer()
     });
 
     Evme.Searchbar.init({
@@ -310,4 +312,24 @@ window.Evme = new function Evme_Core() {
       "deviceId": Evme.DoATAPI.getDeviceId()
     });
   }
+
+  function initSuggestCollections(e) {
+      LazyLoader.load(
+        ['everything.me/modules/CollectionsSuggest/CollectionsSuggest.js',
+         'everything.me/modules/CollectionsSuggest/CollectionsSuggest.css'],
+        function onLoad() {
+          Evme.CollectionsSuggest.init({
+            "elList": document.getElementById('collections-select'),
+            "elParent": Evme.Utils.getContainer()
+          });
+
+          window.removeEventListener('suggestcollections', initSuggestCollections);
+          window.addEventListener('suggestcollections', onSuggestCollections);
+          window.dispatchEvent(e);
+        }
+      );
+  }
+  function onSuggestCollections(e) {
+      Evme.Brain.CollectionsSuggest.showUI();
+  };
 };

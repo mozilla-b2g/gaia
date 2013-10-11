@@ -1,7 +1,13 @@
-(function(Stopwatch, Panel) {
+define(function(require) {
 
   'use strict';
 
+  var Panel = require('panel');
+  var View = require('view');
+  var Stopwatch = require('stopwatch');
+  var Utils = require('utils');
+  var Template = require('shared/js/template');
+  var mozL10n = require('l10n');
   var priv = new WeakMap();
 
   /**
@@ -163,10 +169,14 @@
     var li = document.createElement('li');
     li.setAttribute('class', 'lap-cell');
     var html = this.lapTemplate.interpolate({
-      num: String(num),
       time: time
     });
     li.innerHTML = html;
+    mozL10n.localize(
+      li.querySelector('.lap-name'),
+      'lap-number',
+      { n: num }
+    );
     node.insertBefore(li, node.firstChild);
   };
 
@@ -180,4 +190,5 @@
     this.update();
   };
 
-}(Stopwatch, Panel));
+  return Stopwatch.Panel;
+});

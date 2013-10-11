@@ -35,8 +35,9 @@
   },
   "default_locale": "en-US",
   "icons": {
-    "60": "/style/icons/60/Sms.png",
-    "120": "/style/icons/Sms.png"
+    "60": "/style/icons/Sms_60.png",
+    "90": "/style/icons/Sms_90.png",
+    "120": "/style/icons/Sms_120.png"
   },
   "orientation": "portrait-primary",
   "activities": {

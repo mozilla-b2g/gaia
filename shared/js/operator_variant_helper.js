@@ -36,10 +36,25 @@
 function OperatorVariantHelper(listener, persistKey, checkNow) {
   var errMsg = null;
 
-  // The IccHelper should be enabled as well.
-  if (IccHelper === undefined || !IccHelper.enabled) {
-    errMsg = 'Expected IccHelper to be enabled.';
+  // The IccHelper should be available. If it's not, we will report a warning
+  // only. Under b2g desktop and fxos simulator it can be totally normal for the
+  // IccHelper to be absent.
+  if (IccHelper === undefined) {
+    // Warn the developer.
+    errMsg = 'Expected IccHelper to be present. This can be normal when using' +
+             'B2G Desktop or FxOS Simulator.';
+    console.warn(errMsg);
+    // Bail out!
+    return;
+  }
+
+  // ... and it should be enabled.
+  if (!IccHelper.enabled) {
+    // Indicate this may be an expected exception.
+    errMsg = 'Expected IccHelper to be enabled. This error is expected and ' +
+             'normal if you are running B2G Desktop or FxOS Simulator.';
     console.error(errMsg);
+    // Exceptional errors require exceptions. :P
     throw new Error(errMsg);
   }
 

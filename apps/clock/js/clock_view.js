@@ -1,7 +1,11 @@
-(function(exports) {
+define(function(require) {
 'use strict';
 
+var asyncStorage = require('shared/js/async_storage');
+var AlarmList = require('alarm_list');
+var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
+var mozL10n = require('l10n');
 var viewMode = null;
 
 // Retrieve stored view mode data as early as possible.
@@ -114,8 +118,8 @@ var ClockView = {
 
   updateDayDate: function cv_updateDayDate() {
     var d = new Date();
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var format = navigator.mozL10n.get('dateFormat');
+    var f = new mozL10n.DateTimeFormat();
+    var format = mozL10n.get('dateFormat');
     var formated = f.localeFormat(d, format);
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
                             d.getMinutes() * 60 * 1000 -
@@ -305,6 +309,5 @@ var ClockView = {
   }
 };
 
-exports.ClockView = ClockView;
-
-}(this));
+return ClockView;
+});
