@@ -422,7 +422,7 @@
   }
 
   #calls[data-cdma-call-waiting="true"] > section .numberWrapper .number {
-    font-size: 2.6rem;
+    font-size: 2.3rem;
     padding-top: 1.5rem;
     padding-bottom: 0.5rem;
   }
