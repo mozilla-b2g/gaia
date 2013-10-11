@@ -82,6 +82,7 @@ class Clock(Base):
         _tap_locator = (By.CSS_SELECTOR, '.alarm-item')
         _check_box_locator = (By.CSS_SELECTOR, '.alarmList .input-enable')
         _enable_button_locator = (By.CSS_SELECTOR, 'label.alarmList')
+        _alarm_checked_banner_locator = (By.CSS_SELECTOR, '#banner-countdown > p')
 
         @property
         def label(self):
@@ -97,6 +98,12 @@ class Clock(Base):
 
         def tap_checkbox(self):
             self.root_element.find_element(*self._enable_button_locator).tap()
+
+        def wait_for_alarm_to_uncheck(self):
+            self.wait_for_condition(lambda m: self.root_element.find_element(*self._check_box_locator).is_selected() == False)
+
+        def wait_for_banner_not_displayed(self):
+            self.wait_for_element_not_displayed(*self._alarm_checked_banner_locator)
 
         def tap(self):
             self.wait_for_element_displayed(*self._tap_locator)
