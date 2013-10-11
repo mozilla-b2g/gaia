@@ -51,8 +51,8 @@ suite('mozContact to vCard', function() {
         assert.ok(_contains('email;type=personal:test@test.com'));
         assert.ok(_contains(
           'email;type=personal;type=work,pref:test@work.com'));
-        assert.ok(_contains('tel;type=mobile,pref:+346578888888'));
-        assert.ok(_contains('tel;type=mobile,pref;type=home:+3120777777'));
+        assert.ok(_contains('tel;type=cell,pref:+346578888888'));
+        assert.ok(_contains('tel;type=cell,pref;type=home:+3120777777'));
         assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
                             'chemnitz;chemnitz;09034;germany'));
 
@@ -78,8 +78,8 @@ suite('mozContact to vCard', function() {
         assert.ok(_contains('email;type=personal:test@test.com'));
         assert.ok(_contains(
           'email;type=personal;type=work,pref:test@work.com'));
-        assert.ok(_contains('tel;type=mobile,pref:+346578888888'));
-        assert.ok(_contains('tel;type=mobile,pref;type=home:+3120777777'));
+        assert.ok(_contains('tel;type=cell,pref:+346578888888'));
+        assert.ok(_contains('tel;type=cell,pref;type=home:+3120777777'));
         assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
                             'chemnitz;chemnitz;09034;germany'));
 
