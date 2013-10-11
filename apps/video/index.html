@@ -9,6 +9,7 @@
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
     <link rel="stylesheet" type="text/css" href="shared/style/confirm.css" />
     <link rel="stylesheet" type="text/css" href="style/video.css" />
+    <link rel="stylesheet" type="text/css" href="style/info.css" />
 
     <script defer src="shared/js/l10n.js"></script>
     <script defer src="shared/js/l10n_date.js"></script>
@@ -90,19 +91,28 @@
       </div>
     </section>
 
-    <section id="info-view" class="hidden">
-      <ul>
-        <li><span data-l10n-id="name-label"></span><span id="info-name" class="value"></span></li>
-        <li><span data-l10n-id="length-label"></span><span id="info-length" class="value"></span></li>
-        <li><span data-l10n-id="size-label"></span><span id="info-size" class="value"></span></li>
-        <li><span data-l10n-id="video-type-label"></span><span id="info-type" class="value"></span></li>
-        <li><span data-l10n-id="date-taken-label"></span><span id="info-date" class="value"></span></li>
-        <li><span data-l10n-id="resolution-label"></span><span id="info-resolution" class="value"></span></li>
-      </ul>
-      <footer>
-        <button id="info-close-button" data-l10n-id="close-button"></button>
-      </footer>
-    </section>
+    <form id="info-view" role="dialog" data-type="confirm" class="hidden">
+      <section>
+        <dl>
+          <dt data-l10n-id="name-label"></dt>
+          <dd id="info-name" class="value"></dd>
+          <dt data-l10n-id="length-label"></dt>
+          <dd id="info-length" class="value"></dd>
+          <dt data-l10n-id="size-label"></dt>
+          <dd id="info-size" class="value"></dd>
+          <dt data-l10n-id="video-type-label"></dt>
+          <dd id="info-type" class="value"></dd>
+          <dt data-l10n-id="date-taken-label"></dt>
+          <dd id="info-date" class="value"></dd>
+          <dt data-l10n-id="resolution-label"></dt>
+          <dd id="info-resolution" class="value"></dd>
+        </dl>
+      </section>
+      <menu>
+        <button type="button" id="info-close-button"
+                data-l10n-id="close-button" class="full"></button>
+      </menu>
+    </form>
 
     <!-- This element gets positioned over different view elements -->
     <!-- It gets styled differently depending on what it is over -->
