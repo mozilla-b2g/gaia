@@ -38,6 +38,12 @@ $('fullscreen-edit-button').onclick = function() {
 // In fullscreen mode, the share button shares the current item
 $('fullscreen-share-button').onclick = shareSingleItem;
 
+// Click the information button will display information about the photo.
+$('fullscreen-info-button').onclick = showImageInformation;
+
+// Hide the information view again, when clicking on cancel
+$('info-close-button').onclick = hideInfoView;
+
 // Use the GestureDetector.js library to handle gestures.
 // This will generate tap, pan, swipe and transform events
 new GestureDetector(frames).startDetecting();
@@ -414,6 +420,7 @@ function nextFile(time) {
   // Update the frame for the new next item
   setupFrameContent(currentFileIndex + 1, nextFrame);
 
+
   // When the transition is done, cleanup
   currentFrame.container.addEventListener('transitionend', function done(e) {
     this.removeEventListener('transitionend', done);
@@ -478,4 +485,44 @@ function previousFile(time) {
     $('fullscreen-edit-button').classList.add('disabled');
   else
     $('fullscreen-edit-button').classList.remove('disabled');
+}
+
+function updateImageInformation(file) {
+
+  function getFileName(path) {
+    return path.split('/').pop();
+  };
+
+  function populateMediaInfo(file) {
+    var data = {
+      'info-name': getFileName(file.name),
+      'info-size': MediaUtils.formatSize(file.size),
+      'info-type': file.type,
+      'info-date': MediaUtils.formatDate(file.date),
+      'info-resolution': file.metadata.width + 'x' + file.metadata.height
+    };
+    //Populate info overlay view
+    MediaUtils.populateMediaInfo(data);
+  };
+
+  if (file.metadata.video) {
+    var req = videostorage.get(file.metadata.video);
+    req.onsuccess = function() {
+      file.size = req.result.size;
+      file.type = req.result.type || 'video/3gp';
+      populateMediaInfo(file);
+    };
+  } else {
+    populateMediaInfo(file);
+  }
+}
+
+function showImageInformation() {
+  //Show the video info view
+  updateImageInformation(files[currentFileIndex]);
+  $('info-view').classList.remove('hidden');
+}
+
+function hideInfoView() {
+  $('info-view').classList.add('hidden');
 }

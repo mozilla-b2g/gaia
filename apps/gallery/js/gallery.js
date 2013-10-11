@@ -133,7 +133,6 @@ function init() {
   $('crop-done-button').onclick = cropAndEndPick;
 
   // The camera buttons should launch the camera app
-  $('fullscreen-camera-button').onclick = launchCameraApp;
   $('thumbnails-camera-button').onclick = launchCameraApp;
   $('overlay-camera-button').onclick = launchCameraApp;
 

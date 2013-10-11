@@ -622,7 +622,7 @@ header .icon:after {
 
 #info-view {
   z-index: 100;
-  opacity: 0.95;
+  background-color: transparent;
 }
 
 #info-view ul{
@@ -631,6 +631,7 @@ header .icon:after {
   url(images/ui/gradient.png) no-repeat left top;
   background-size: auto auto, 100% 100%;
   height: calc(100% - 7rem);
+  opacity: 0.95;
 }
 
 #info-view footer {
@@ -662,6 +663,7 @@ header .icon:after {
   overflow: hidden;
   padding-bottom: 1.2rem;
   margin-left: 2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
 #info-view li:first-child {
