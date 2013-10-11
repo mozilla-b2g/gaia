@@ -129,15 +129,15 @@
     if (this._screenshotOverlayState != 'frame')
       return;
 
-    // Require a next paint event
-    // to remove the screenshot overlay if it exists.
-    if (this.screenshotOverlay.classList.contains('visible')) {
-      this._waitForNextPaint(this._hideScreenshotOverlay.bind(this));
-    }
-
     this.iframe.classList.remove('hidden');
     if ('setVisible' in this.iframe)
       this.iframe.setVisible(true);
+
+    // Getting a new screenshot to force compositing before
+    // removing the screenshot overlay if it exists.
+    if (this.screenshotOverlay.classList.contains('visible')) {
+      this.ensureFullRepaint(this._hideScreenshotOverlay.bind(this));
+    }
   };
 
   /**

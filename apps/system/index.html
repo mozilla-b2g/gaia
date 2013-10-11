@@ -274,6 +274,12 @@
     <script defer src="js/window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
 
+    <!-- Edge Gestures -->
+    <script defer src="js/stack_manager.js"></script>
+    <script defer src="js/sheets_transition.js"></script>
+    <script defer src="js/edge_swipe_detector.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/edges/edges.css">
+
     <!-- Entry Sheet -->
     <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
     <script defer src="js/entry_sheet.js"></script>
@@ -1216,6 +1222,8 @@
         </div>
       </div>
 
+      <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
+      <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
       <div id="software-buttons" data-z-index-level="software-buttons">
         <button id="software-home-button"></button>
