@@ -1,7 +1,9 @@
 #! /bin/bash -ve
 echo 'Downloading Firefox'
-npm install -g mozilla-download
-mozilla-download --product firefox $PWD/firefox
+./node_modules/.bin/mozilla-download --product firefox \
+                 --channel tinderbox \
+                 --branch mozilla-central \
+                 $PWD/firefox
 
 echo 'Downloading & installing node dependencies'
 make common-install

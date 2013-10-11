@@ -620,7 +620,11 @@ ifndef APPS
 endif
 
 b2g: node_modules/.bin/mozilla-download
-	./node_modules/.bin/mozilla-download --verbose --product b2g $@
+	./node_modules/.bin/mozilla-download  \
+		--verbose \
+		--product b2g \
+		--channel tinderbox \
+ 		--branch mozilla-central $@
 
 .PHONY: test-integration
 test-integration:
