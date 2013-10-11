@@ -81,26 +81,32 @@ if (typeof window.importer === 'undefined') {
 
     function showOfflineDialog(yesCb, noCb) {
       var recommend = serviceConnector.name === 'facebook';
-      Contacts.confirmDialog(_('connectionLost'), _('connectionLostMsg'),
-        {
-          title: _('noOption'),
-          isRecommend: !recommend,
-          callback: function() {
-            ConfirmDialog.hide();
-            noCb();
-          }
-        },
-        {
-          title: _('yesOption'),
-          // FB friends can later resync data
-          isRecommend: recommend,
-          callback: function() {
-            ConfirmDialog.hide();
-            yesCb();
-          }
-      }, {
-        zIndex: '10000'
-    });
+      var dialog = parent.document.getElementById('confirmation-message');
+      parent.LazyLoader.load(dialog, function() {
+        navigator.mozL10n.translate(dialog);
+        LazyLoader.load('/contacts/js/utilities/confirm.js', function() {
+          ConfirmDialog.show(_('connectionLost'), _('connectionLostMsg'),
+          {
+            title: _('noOption'),
+            isRecommend: !recommend,
+            callback: function() {
+              ConfirmDialog.hide();
+              noCb();
+            }
+          },
+          {
+            title: _('yesOption'),
+            // FB friends can later resync data
+            isRecommend: recommend,
+            callback: function() {
+              ConfirmDialog.hide();
+              yesCb();
+            }
+          }, {
+            zIndex: '10000'
+          });
+        });
+      });
     }
 
     function onLineChanged() {
