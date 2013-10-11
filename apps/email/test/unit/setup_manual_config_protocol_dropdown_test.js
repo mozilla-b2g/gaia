@@ -3,21 +3,30 @@
 
 requireApp('email/js/alameda.js');
 requireApp('email/test/config.js');
+requireApp('email/test/unit/mock_l10n.js');
+
 suite('IMAP protocol dropdown', function() {
   var el;
   var smc;
   var SetupManualConfig;
+  var mozL10n;
 
   suiteSetup(function(done) {
     testConfig({
         suiteTeardown: suiteTeardown,
         done: done,
-        defines: {}
+        defines: {
+          'l10n!': function() {
+            return MockL10n;
+          }
+        }
       },
-      ['cards/setup_manual_config', 'tmpl!cards/setup_manual_config.html'],
-               function(smc, tmpl) {
+      ['cards/setup_manual_config', 'tmpl!cards/setup_manual_config.html',
+       'l10n!'],
+      function(smc, tmpl, l) {
         SetupManualConfig = smc;
         el = tmpl;
+        mozL10n = l;
       }
     );
   });

@@ -17,6 +17,7 @@
       }
       return key;
     },
+    translate: function translate(element) {},
     DateTimeFormat: DateTimeFormat
   };
 
