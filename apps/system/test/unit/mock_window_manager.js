@@ -7,6 +7,10 @@ var MockWindowManager = {
     return this.mRunningApps;
   },
 
+  getCachedScreenshotForApp: function mwm_getCachedScreenshotForApp(origin) {
+    return this.mScreenshots[origin];
+  },
+
   setDisplayedApp: function mwm_setDisplayedApp(app) {
     this.mDisplayedApp = app;
   },
@@ -34,6 +38,7 @@ var MockWindowManager = {
   screenshots: {},
 
   mRunningApps: {},
+  mScreenshots: {},
   mDisplayedApp: '',
   mLastKilledOrigin: '',
   isFtuRunning: function mwm_isFtuRunning() {
@@ -43,6 +48,7 @@ var MockWindowManager = {
   mFtuRunning: false,
   mTeardown: function() {
     this.mRunningApps = {};
+    this.mScreenshots = {};
     this.mDisplayedApp = '';
     this.mLastKilledOrigin = '';
     this.mFtuRunning = false;
