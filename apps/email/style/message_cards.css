@@ -429,7 +429,10 @@ input.msg-search-text-tease {
 .msg-edit-btn {
   background-image: url("images/icons/edit-mode.png") !important;
   position: absolute;
-  left: calc((100% - 6rem)/2);
+  /* 
+    calc(100% - (button width[6rem] + padding[3rem]) + (half of the left+right margin for 3 elements)
+  */
+  left: calc(((100% - 9rem) / 2) + (((100% - 25rem) / 6) / 2));
 }
 
 .bottom-toolbar .msg-btn-active {
