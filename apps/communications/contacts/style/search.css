@@ -39,6 +39,10 @@ form.search button[type="submit"] {
   width: auto;
 }
 
+.search-highlight {
+  background-color: #008aaa;
+}
+
 /* Search view */
 #search-view {
   position: fixed;

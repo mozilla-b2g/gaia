@@ -28,6 +28,14 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
   background-size: 100% auto;
 }
 
+body.insearchmode #view-contacts-list{
+  transform: translateY(-5rem);
+}
+
+#view-contacts-list {
+  transition: transform 500ms ease;
+} 
+
 .view-contacts-list .block-list {
   padding-right: 1rem;
 }

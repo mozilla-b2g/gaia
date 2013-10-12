@@ -57,6 +57,15 @@ contacts.Search = (function() {
       searchList.addEventListener('click', source.click);
 
     searchEnabled = !!defaultEnabled;
+
+    document.querySelector('#view-contacts-list')
+    .addEventListener('transitionend', function(event) {
+      if (event.propertyName == 'transform') {
+        if (document.body.classList.contains('insearchmode')) {
+          searchView.classList.add('insearchmode');
+        }
+      }
+    }, false);
   };
 
   var initialized = false;
@@ -120,6 +129,7 @@ contacts.Search = (function() {
   var exitSearchMode = function exitSearchMode(evt) {
     evt.preventDefault();
     searchView.classList.remove('insearchmode');
+    document.body.classList.remove('insearchmode');
     Contacts.navigation.back();
 
     window.setTimeout(function exit_search() {
@@ -235,7 +245,6 @@ contacts.Search = (function() {
 
     if (!inSearchMode) {
       window.addEventListener('input', onInput);
-      searchView.classList.add('insearchmode');
       doInit();
       fillInitialSearchPage();
       inSearchMode = true;
@@ -243,6 +252,7 @@ contacts.Search = (function() {
       Contacts.navigation.go('search-view', 'none');
 
       setTimeout(function nextTick() {
+        document.body.classList.add('insearchmode');
         searchBox.focus();
       });
     }
@@ -320,7 +330,6 @@ contacts.Search = (function() {
                  pattern, state);
       }, 0);
       return;
-
     // If we expect to get more nodes, for example if the source is
     // still loading, then delay finalizing the end of the search
     } else if (source.expectMoreNodes()) {
@@ -355,6 +364,18 @@ contacts.Search = (function() {
 
     if (typeof state.searchDoneCb === 'function') {
       state.searchDoneCb();
+    }
+
+    if (c == contacts.length) {
+      var dedupedSearchables = dedupeSearchables(state);
+      //apply highlights to search result
+      for (var i = 0, contactNodes = searchList.childNodes,
+        length = contactNodes.length; i < length; i++) {
+        var contactNode = contactNodes[i];
+        var uuid = contactNode.dataset.uuid;
+
+        contactNode.innerHTML =
+          parseContactNode(dedupedSearchables[uuid].innerHTML, searchText);
     }
   }
 
@@ -515,6 +536,65 @@ contacts.Search = (function() {
   function hideProgressResults() {
     searchNoResult.classList.add('hide');
     searchProgress.classList.add('hidden');
+  }
+
+  function dedupeSearchables(state) {
+    var dedupedSearchables = {};
+    for (var i = 0, searchables = state.searchables,
+      length = searchables.length; i < length; i++) {
+      var searchable = searchables[i];
+      var key = searchable['node'].dataset.uuid;
+      if (!(key in dedupedSearchables)) {
+        dedupedSearchables[key] = searchable.node;
+      }
+    }
+    return dedupedSearchables;
+  }
+
+  function highlight(nodeString, searchText) {
+    var index = nodeString.toLocaleLowerCase().indexOf(searchText);
+    var ns = nodeString;
+    if (index > -1) {
+      ns = nodeString.substring(0, index) +
+        '<span class="search-highlight">' +
+        nodeString.substring(index, index + searchText.length) +
+        '</span>' +
+        nodeString.substring(index + searchText.length, nodeString.length);
+    }
+
+    return ns;
+  }
+
+  function parseContactNode(nodeString, searchText) {
+    var newNodeString = [];
+
+    function parse(nodeString) {
+      var index = 0;
+      var isNode = false;
+      if (nodeString.indexOf('<') === 0) {
+          // starts with element
+          index = nodeString.indexOf('>') + 1;
+          isNode = true;
+      } else if (nodeString.indexOf('<') !== -1) {
+          // starts with text
+          index = nodeString.indexOf('<');
+      } else {
+          // trailing text
+          index = nodeString.length;
+      }
+
+      var tempString = nodeString.substring(0, index);
+      var parsedString = isNode ?
+        tempString : highlight(tempString, searchText);
+      newNodeString.push(parsedString);
+
+      if (index !== nodeString.length) {
+          parse(nodeString.substring(index, nodeString.length));
+      }
+    }
+
+    parse(nodeString);
+    return newNodeString.join('');
   }
 
   return {
