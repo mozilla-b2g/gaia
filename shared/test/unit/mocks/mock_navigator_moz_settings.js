@@ -4,7 +4,8 @@
   var observers = {},
       // Set default message size with 300KB
       settings = {
-        'dom.mms.operatorSizeLimitation' : 300
+        'dom.mms.operatorSizeLimitation' : 300,
+        'homegesture.enabled': false
       },
       removedObservers = {};
 

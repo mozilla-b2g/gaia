@@ -11,6 +11,13 @@ var About = {
     this.loadGaiaCommit();
     this.loadLastUpdated();
     this.networkStatus();
+    // hide software home button whenever the device has no hardware home button
+    if (!ScreenLayout.getCurrentLayout('hardwareHomeButton')) {
+      document.getElementById('software-home-button').style.display = 'none';
+      // always set homegesture enabled on tablet, so hide the setting
+      if (!ScreenLayout.getCurrentLayout('tiny'))
+        document.getElementById('homegesture').style.display = 'none';
+    }
   },
 
   networkStatus: function about_networkStatus() {
@@ -103,7 +110,7 @@ var About = {
     var deviceInfoMsisdn = document.getElementById('deviceInfo-msisdn');
     var deviceInfoImei = document.getElementById('deviceInfo-imei');
     var info = IccHelper.iccInfo;
-    if (!navigator.mozTelephony) {
+    if (!navigator.mozTelephony || !info) {
       deviceInfoIccid.parentNode.hidden = true;
       deviceInfoMsisdn.parentNode.hidden = true;
       deviceInfoImei.parentNode.hidden = true;
