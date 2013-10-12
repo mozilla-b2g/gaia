@@ -279,10 +279,8 @@
     }
   }
 
-  function doClose() {
-    var nfc = window.navigator.mozNfc;
-
-    var conn = nfc.close();
+  function doClose(nfctag) {
+    var conn = nfctag.close();
     conn.onsuccess = function() {
       debug('NFC tech disconnected');
     };
@@ -291,15 +289,19 @@
     };
   }
 
-  function handleNdefDiscovered() {
+  function handleNdefDiscovered(session) {
     var connected = false;
     var handled = false;
-    var nfc = window.navigator.mozNfc;
+    var nfcdom = window.navigator.mozNfc;
 
-    var conn = nfc.connect(6);
+    // FIXME: This session must be a string token.
+    var token = 'dummy' + session;
+    var nfctag = nfcdom.getNFCTag(token);
+
+    var conn = nfctag.connect(6);
     conn.onsuccess = function() {
       debug('DBG: Success');
-      var req = nfc.readNDEF();
+      var req = nfctag.readNDEF();
       req.onsuccess = function() {
         debug('System read 2: ' + JSON.stringify(req.result));
         var action = handleNdefMessages(req.result.records);
@@ -311,11 +313,11 @@
           var a = new MozActivity(action[0]);
         }
         handled = true;
-        doClose();
+        doClose(nfctag);
       };
       req.onerror = function() {
         debug('Error reading NDEF record');
-        doClose();
+        doClose(nfctag);
       };
     };
 
@@ -323,8 +325,8 @@
   }
 
   // TODO:
-  function handleNdefFormattableDiscovered() {
-    return handleNdefDiscovered(command);
+  function handleNdefFormattableDiscovered(session) {
+    return handleNdefDiscovered(session);
   }
 
   function handleTechnologyDiscovered(command) {
@@ -351,11 +353,11 @@
           // current user context to accept a message via registered app
           // callback/message. If so, fire P2P NDEF to app.
           // If not, drop message.
-          handled = handleNdefDiscovered();
+          handled = handleNdefDiscovered(command.sessionId);
         } else if (techs[i] == 'NDEF') {
           handled = handleNdefDiscovered();
         } else if (techs[i] == 'NDEF_FORMATTABLE') {
-          handled = handleNdefFormattableDiscovered();
+          handled = handleNdefFormattableDiscovered(command.session);
         } else if (techs[i] == 'NFC_A') {
           debug('NFCA unsupported: ' + command.content);
         } else if (techs[i] == 'MIFARE_ULTRALIGHT') {

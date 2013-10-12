@@ -232,13 +232,15 @@ function launchBrowser(URL) {
 function handleNdefDiscovered() {
   // Process:
   var handled = false;
-  var detailreq = navigator.mozNfc.getDetailsNDEF();
+  var nfcTag = navigator.mozNfc.getNFCTag('dummy' + sessionToken);
+  // connect:
+  var detailreq = nfcTag.getDetailsNDEF();
   debug('NDEF Details Request submitted.');
   detailreq.onsuccess = function() {
     // NDEF Message with array of NDEFRecords
     debug('Details NDEF success');
     debug('detailreq.result: ' + JSON.stringify(detailreq.result));
-    var readreq = navigator.mozNfc.readNDEF();
+    var readreq = nfcTag.readNDEF();
     readreq.onsuccess = function() {
       debug('Read success.');
       debug('readreq: ' + JSON.stringify(readreq.result.records));
