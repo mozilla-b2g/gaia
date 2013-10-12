@@ -5,8 +5,27 @@
 
 var About = {
   init: function about_init() {
-    document.getElementById('check-update-now').onclick = this.checkForUpdates;
+    var updateButton = document.getElementById('check-update-now'),
+        updateStatus = document.getElementById('update-status');
+
+    updateButton.onclick = this.checkForUpdates;
     document.getElementById('ftuLauncher').onclick = this.launchFTU;
+
+    if (!gWifiManager.enabled) {
+      updateButton.disabled = true;
+      updateStatus.classList.remove('visible');
+    }
+
+    Connectivity.wifiStatusChange = function(event) {
+      if (gWifiManager.connection.status === 'connected') {
+        updateButton.disabled = false;
+        updateStatus.classList.add('visible');
+      } else {
+        updateButton.disabled = true;
+        updateStatus.classList.remove('visible');
+      }
+    };
+
     this.loadHardwareInfo();
     this.loadGaiaCommit();
     this.loadLastUpdated();
