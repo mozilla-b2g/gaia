@@ -248,6 +248,9 @@
   // Save and update screenshot URL.
   AppWindow.prototype.saveCachedScreenshot =
     function aw_saveScreenshot(screenshot) {
+      if (this._screenshotURL) {
+        URL.revokeObjectURL(this._screenshotURL);
+      }
       this._screenshotURL = screenshot;
     };
 
@@ -281,6 +284,9 @@
 
     req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
+      if (self._screenshotURL) {
+        URL.revokeObjectURL(self._screenshotURL);
+      }
       self._screenshotURL = URL.createObjectURL(result);
       callback(result);
     };

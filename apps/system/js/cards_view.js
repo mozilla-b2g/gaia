@@ -320,10 +320,7 @@ var CardsView = (function() {
                 // before we remove it. Otherwise the rendering is not smooth.
                 // See: https://bugzilla.mozilla.org/show_bug.cgi?id=844245
                 setTimeout(function() {
-
-                  // Override the cached image
-                  URL.revokeObjectURL(cachedLayer);
-                  WindowManager.screenshots[origin] = objectURL;
+                  app.saveCachedScreenshot(objectURL);
                 }, 200);
               }
             };
