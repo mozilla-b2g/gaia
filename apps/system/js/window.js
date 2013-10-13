@@ -257,13 +257,6 @@
 
         if (!this.iframe.classList.contains('hidden'))
           this._hideFrame();
-
-        // XXX: we ought not to change screenshots at Window Manager
-        // here. In the long run Window Manager should replace
-        // its screenshots variable with appWindow._screenshotURL.
-        if (WindowManager.screenshots[this.origin]) {
-          URL.revokeObjectURL(WindowManager.screenshots[this.origin]);
-        }
       }.bind(this));
     };
 
@@ -286,6 +279,9 @@
   // Save and update screenshot URL.
   AppWindow.prototype.saveCachedScreenshot =
     function aw_saveScreenshot(screenshot) {
+      if (this._screenshotURL) {
+        URL.revokeObjectURL(this._screenshotURL);
+      }
       this._screenshotURL = screenshot;
     };
 
@@ -319,6 +315,9 @@
 
     req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
+      if (self._screenshotURL) {
+        URL.revokeObjectURL(self._screenshotURL);
+      }
       self._screenshotURL = URL.createObjectURL(result);
       callback(result);
     };
