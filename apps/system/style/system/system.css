@@ -215,7 +215,8 @@ body {
   overflow: hidden;
 }
 
-#windows > .appWindow {
+#windows > .appWindow,
+#windows > .activityWindow {
   position: fixed;
   border: 0;
   margin: 0;
@@ -261,7 +262,7 @@ body {
   background-color: transparent;
 }
 
-#windows > .appWindow:not(.homescreen):not(.active):not(.opening):not(.closing):not(.inlineActivity) {
+#windows > .appWindow:not(.homescreen):not(.active):not(.opening):not(.closing) {
   opacity: 0;
 }
 
@@ -478,17 +479,6 @@ body {
   100% { transform: scale(0.8); }
 }
 
-#windows > .appWindow.inlineActivity,
-#windows > .appWindow.hideBottom {
-  transform: translateY(100%);
-  transition: transform 0.25s ease, visibility 0.25s ease;
-}
-
-#windows.slow-transition > .appWindow.inlineActivity,
-#windows.slow-transition > .appWindow.hideBottom {
-  transition: transform 5s ease, visibility 5s ease;
-}
-
 #windows > .appWindow.back {
   transition: transform 0.25s ease, visibility 0.25s ease;
   transform: scale(0.86);
@@ -497,10 +487,6 @@ body {
 #windows > .appWindow.restored {
   transform: none;
   transition: transform 0.25s ease;
-}
-
-#windows > .appWindow.inlineActivity.active {
-  transform: none;
 }
 
 #screen > #windows > .appWindow.fullscreen-app {

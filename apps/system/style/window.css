@@ -53,3 +53,27 @@
 .appWindow > iframe.hidden {
   visibility: hidden;
 }
+
+/* inline activity */
+
+
+/* animation */
+
+#windows > .activityWindow.opening.slideleft {
+  animation: slideLeft 0.3s forwards ease-out;
+}
+
+#windows > .activityWindow.closing.slideright {
+  animation: slideRight 0.3s forwards ease-out;
+}
+
+@keyframes slideLeft {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes slideRight {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+
+}
