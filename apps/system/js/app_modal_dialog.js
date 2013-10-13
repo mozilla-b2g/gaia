@@ -290,8 +290,6 @@
       this.processNextEvent();
     };
 
-  // When user clicks cancel button on confirm/prompt or
-  // when the user try to escape the dialog with the escape key
   AppModalDialog.prototype.cancelHandler =
     function amd_cancelHandler(clickEvt) {
       if (!this.events.length)
