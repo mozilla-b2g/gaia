@@ -10,6 +10,9 @@ UI_TESTS = "UI Tests"
 
 class UiTests(Base):
 
+    _ui_page_locator = (By.CSS_SELECTOR, 'a[href="#UI"]')
+    _api_page_locator = (By.CSS_SELECTOR, 'a[href="#API"]')
+    _hw_page_locator = (By.CSS_SELECTOR, 'a[href="#HW"]')
     _mozId_tests_button_locator = (By.LINK_TEXT, 'navigator.mozId')
     _app_identity_frame = (By.CSS_SELECTOR, 'iframe[src*="identity"]')
     _app_std_request_button_locator = (By.ID, 't-request')
@@ -19,7 +22,7 @@ class UiTests(Base):
     _app_login_event = (By.CSS_SELECTOR, 'li.login')
     _app_logout_event = (By.CSS_SELECTOR, 'li.logout')
     _app_login_assertion_text = (By.CSS_SELECTOR, 'li.login div.assertion')
-    _keyboard_locator = (By.CSS_SELECTOR, '#test-list > li:nth-child(2) > a')
+    _keyboard_locator = (By.LINK_TEXT, 'Keyboard')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -44,6 +47,18 @@ class UiTests(Base):
         # we're done getting assertions
         return self.marionette.find_elements(*self._app_login_assertion_text)[-1].text
 
+    def tap_ui_button(self):
+        self.wait_for_element_displayed(*self._ui_page_locator)
+        self.marionette.find_element(*self._ui_page_locator).tap()
+
+    def tap_api_button(self):
+        self.wait_for_element_displayed(*self._api_page_locator)
+        self.marionette.find_element(*self._api_page_locator).tap()
+
+    def tap_hw_button(self):
+        self.wait_for_element_displayed(*self._hw_page_locator)
+        self.marionette.find_element(*self._hw_page_locator).tap()
+
     def tap_standard_button(self):
         self.wait_for_element_displayed(*self._app_std_request_button_locator)
         self.marionette.find_element(*self._app_std_request_button_locator).tap()
@@ -66,7 +81,11 @@ class UiTests(Base):
         self.wait_for_element_displayed(*self._app_login_event)
 
     def tap_keyboard_option(self):
-        self.marionette.find_element(*self._keyboard_locator).tap()
+        self.wait_for_element_displayed(*self._keyboard_locator, timeout=120)
+        # Hack to make the keyboard button visible from underneath the toolbar
+        keyboard_button = self.marionette.find_element(*self._keyboard_locator)
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [keyboard_button])
+        keyboard_button.tap()
 
     def switch_to_keyboard_page_frame(self):
         keyboard_page_iframe = self.marionette.find_element(By.CSS_SELECTOR, "#test-iframe[src*='keyboard']")
@@ -77,7 +96,7 @@ class UiTests(Base):
 class KeyboardPage(Base):
 
     _keyboard_iframe_locator = (By.CSS_SELECTOR, "#test-iframe[src*='keyboard']")
-    _number_input_locator =(By.CSS_SELECTOR, 'li:nth-child(4) > input')
+    _number_input_locator =(By.CSS_SELECTOR, 'input[type="number"]')
 
     def tap_number_input(self):
         self.marionette.find_element(*self._number_input_locator).tap()

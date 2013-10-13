@@ -12,6 +12,7 @@ class TestNumberKeyboard(GaiaTestCase):
     def test_number_keyboard(self):
         self.ui_tests = UiTests(self.marionette)
         self.ui_tests.launch()
+        self.ui_tests.tap_ui_button()
         self.ui_tests.tap_keyboard_option()
         keyboard_page = self.ui_tests.switch_to_keyboard_page_frame()
         keyboard = keyboard_page.tap_number_input()

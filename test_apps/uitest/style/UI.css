@@ -1,0 +1,9 @@
+  body, textarea, input, [contenteditable] {
+    font-size: 1.5em;
+  }
+  input, textarea, iframe {
+    width: 100%;
+  }
+  .hidden {
+    display: none;
+  }
