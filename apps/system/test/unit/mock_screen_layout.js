@@ -8,17 +8,15 @@ var MockScreenLayout = {
     }
   },
 
-  defaultOrientation: 'portrait-primary',
-  fetchDefaultOrientation: function msl_fetchDefaultOrientation() {},
-  isOnRealDevice: function() {
+  isOnRealDevice: function msl_isOnRealDevice() {
     return this.setting['isonrealdevice'];
   },
+
   getCurrentLayout: function msl_getCurrentLayout(type) {
     return this.setting[type];
   },
 
   mTeardown: function msl_mTeardown() {
     this.setting = {};
-    this.defaultOrientation = 'portrait-primary';
   }
 };
