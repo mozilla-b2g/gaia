@@ -59,17 +59,14 @@ suite('Stopwatch.Panel', function() {
       return element.className.contains('hidden');
     };
 
-    loadBodyHTML('/index.html');
-
-
     testRequire([
-      'stopwatch', 'stopwatch_panel', 'mocks/mock_shared/js/l10n'
+      'stopwatch', 'panels/stopwatch/main', 'mocks/mock_shared/js/l10n'
       ], function(stopwatch, stopwatchPanel, mockL10n) {
         Stopwatch = stopwatch;
         Stopwatch.Panel = stopwatchPanel;
         MockL10n = mockL10n;
         panel = new Stopwatch.Panel(
-          document.getElementById('stopwatch-panel')
+          document.createElement('div')
         );
         done();
       }

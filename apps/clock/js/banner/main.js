@@ -1,11 +1,12 @@
 define(function(require) {
   'use strict';
 
-  var Template = require('shared/js/template');
+  var Template = require('template');
   var Utils = require('utils');
   var mozL10n = require('l10n');
+  var html = require('text!banner/banner.html');
 
-  function Banner(node, tmplId) {
+  function Banner(node) {
     // Accept a reference to an element or the element id
     if (typeof node === 'string') {
       this.notice = document.getElementById(node);
@@ -13,7 +14,7 @@ define(function(require) {
       this.notice = node;
     }
     // Accept an optional reference to template element id
-    this.tmpl = new Template(tmplId);
+    this.tmpl = new Template(html);
     // Store a reference to timeout to debounce banner
     this.timeout = null;
     return this;

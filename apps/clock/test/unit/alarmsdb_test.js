@@ -20,7 +20,6 @@ suite('AlarmsDB Test Suite', function() {
         done();
       }
     );
-    loadBodyHTML('/index.html');
   });
 
 

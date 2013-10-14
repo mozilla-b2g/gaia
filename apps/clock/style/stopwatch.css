@@ -1,4 +1,4 @@
-#stopwatch-panel {
+[data-panel-id="stopwatch"] {
   text-align: center;
 }
 

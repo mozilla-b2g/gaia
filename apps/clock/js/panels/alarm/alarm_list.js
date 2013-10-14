@@ -1,12 +1,15 @@
 define(function(require) {
 'use strict';
 
-var Banner = require('banner');
+var Banner = require('banner/main');
 var AlarmsDB = require('alarmsdb');
 var AlarmManager = require('alarm_manager');
 var Utils = require('utils');
-var Template = require('shared/js/template');
+var Template = require('template');
 var mozL10n = require('l10n');
+var App = require('app');
+var alarmHtml = require('text!panels/alarm/list_item.html');
+
 var _ = mozL10n.get;
 
 var AlarmList = {
@@ -56,16 +59,14 @@ var AlarmList = {
   },
 
   alarmEditView: function(alarm) {
-    require(['alarm_edit'], function(AlarmEdit) {
-      AlarmEdit.load(alarm);
-    });
+    App.navigate({ hash: '#alarm-edit-panel', data: alarm });
   },
 
   init: function al_init() {
-    this.template = new Template('alarm-list-item-tmpl');
+    this.template = new Template(alarmHtml);
     this.newAlarmButton.addEventListener('click', this);
     this.alarms.addEventListener('click', this);
-    this.banner = new Banner('banner-countdown', 'banner-tmpl');
+    this.banner = new Banner('banner-countdown');
 
     // Bind this.refresh so that the listener can be easily removed.
     this.refresh = this.refresh.bind(this);
@@ -134,7 +135,7 @@ var AlarmList = {
       if (this.count !== count) {
         this.count = count;
         // TODO: Address this circular dependency
-        require(['clock_view'], function(ClockView) {
+        require(['panels/alarm/clock_view'], function(ClockView) {
         ClockView.resizeAnalogClock();
         });
       }

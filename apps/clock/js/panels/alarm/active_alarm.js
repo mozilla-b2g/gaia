@@ -3,7 +3,7 @@ define(function(require) {
 
   var App = require('app');
   var AlarmManager = require('alarm_manager');
-  var AlarmList = require('alarm_list');
+  var AlarmList = require('panels/alarm/alarm_list');
   var AlarmsDB = require('alarmsdb');
   var Timer = require('timer');
   var Utils = require('utils');

@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
 
 var asyncStorage = require('shared/js/async_storage');
-var AlarmList = require('alarm_list');
+var AlarmList = require('panels/alarm/alarm_list');
 var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
 var mozL10n = require('l10n');
