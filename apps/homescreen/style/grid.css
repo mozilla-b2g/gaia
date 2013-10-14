@@ -122,7 +122,7 @@ body[data-transitioning] .apps > div {
 	text-overflow: '';
 }
 
-ol:not([disabled]) li.active > div > img {
+ol > li.active > div > img {
   filter: url('app_tapped_filter.svg#blur');
 }
 

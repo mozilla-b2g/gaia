@@ -205,6 +205,9 @@ function execute(options) {
 				 customize.move_collection_threshold : 1500;
   // It defines the threshold in pixels to consider a gesture like a tap event
   let tap_threshold = (customize.tap_threshold) ? customize.tap_threshold : 10;
+	// It defines the delay to show the blurring effect for clicked icons
+	let tap_effect_delay = (customize.tap_effect_delay) ?
+																							customize.tap_effect_delay : 140;
   // It defines the threshold to consider a gesture like a swipe. Number
   // in the range 0.0 to 1.0, both included, representing the screen width
   let swipe_threshold = 0.4;
@@ -230,6 +233,8 @@ function execute(options) {
     },
 
     tap_threshold: tap_threshold,
+
+		tap_effect_delay: tap_effect_delay,
 
     move_collection_threshold: move_collection_threshold,
 

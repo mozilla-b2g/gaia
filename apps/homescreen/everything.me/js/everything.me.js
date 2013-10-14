@@ -116,6 +116,10 @@ var EverythingME = {
 
       elCollection.style.display = 'block';
       window.setTimeout(function() {
+        elCollection.addEventListener('transitionend', function end() {
+          elCollection.removeEventListener('transitionend', end);
+          document.dispatchEvent(new CustomEvent('collectionopened'));
+        });
         elCollection.classList.add('visible');
       }, 0);
     }
