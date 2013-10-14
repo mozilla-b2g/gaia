@@ -58,7 +58,10 @@ MessageListTopbar.prototype = {
    * @param {Element} el The div we'll decorate.
    */
   decorate: function(el) {
-    el.addEventListener('click', this._onclick.bind(this));
+    // bind() creates a unique function object, so save a handle to
+    // it in order to remove the listener later.
+    this._clickHandler = this._onclick.bind(this);
+    el.addEventListener('click', this._clickHandler);
     this._el = el;
     this.updateNewEmailCount();
     return this._el;
@@ -83,7 +86,8 @@ MessageListTopbar.prototype = {
    */
   destroy: function() {
     if (this._el) {
-      this._el.removeEventListener('click', this._onclick.bind(this));
+      this._el.removeEventListener('click', this._clickHandler);
+      this._clickHandler = null;
       this._el.classList.add('collapsed');
       this._el.textContent = '';
       this._el = null;
