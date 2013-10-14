@@ -39,6 +39,11 @@ var BrowserFrame = (function invocation() {
     // platform.
     browser.setAttribute('mozbrowser', 'true');
 
+    // Mark the iframe as an application. This will be used by event fluffing
+    // heuristics, to avoid edge cases where the attention screen is prefered
+    // over user's applications, confere bug 921928.
+    browser.setAttribute('role', 'application');
+
     // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
     // window.open method.
