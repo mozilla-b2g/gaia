@@ -397,6 +397,14 @@
     background-repeat: no-repeat, repeat-x;
   }
 
+  #switch-calls-button:active {
+    background: url('images/ActionIcon_40x40_switchlines.png'),
+                url('images/btn_switchlines_press.png');
+    background-size: 4rem, auto 100%;
+    background-position: center, center;
+    background-repeat: no-repeat, repeat-x;
+  }
+
   #calls.big-duration > section .numberWrapper {
     background: #01c5ed;
     overflow: auto;
