@@ -10,6 +10,7 @@ require('/shared/js/media/media_utils.js');
 requireApp('/video/test/unit/mock_l10n.js');
 requireApp('/video/test/unit/mock_thumbnail_item.js');
 requireApp('/video/js/thumbnail_date_group.js');
+requireApp('/video/js/thumbnail_item.js');
 
 suite('Thumbnail Date Group Unit Tests', function() {
 
