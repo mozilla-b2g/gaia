@@ -1,0 +1,85 @@
+.appWindow > iframe {
+  z-index: 1;
+  visibility: visible;
+}
+
+form.appError[role="dialog"][data-type="confirm"] {
+  background-color: white;
+  top: 100%;
+  transition: top 0.5s;
+}
+
+form.visible.appError[role="dialog"][data-type="confirm"] {
+  top: 0;
+}
+
+.appError progress {
+  display: none;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+
+.appError[role="dialog"][data-type="confirm"] > section {
+  vertical-align: baseline;
+}
+
+.appError .actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 7rem;
+  padding: 0 1.5rem;
+}
+
+.appError .actions > button {
+  background: #5f5f5f;
+  color: white;
+  border-color: #4d4d4d;
+  text-shadow: 0.1rem 0.1rem 0px rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+
+.appError .actions button > span {
+  margin: 0.5rem 1.5rem 0 0;
+}
+
+.appError button > .icon-refresh {
+  background: url("images/refresh.png") no-repeat center center;
+}
+
+.appError button > .icon-wifi {
+  background: url("images/wifi.png") no-repeat center center;
+}
+
+.appError button > .icon-airplane {
+  background: url("images/airplane.png") no-repeat center center;
+}
+
+.appError button > .icon-data {
+  background: url("images/data.png") no-repeat center center;
+}
+
+.appWindow > .screenshot-overlay {
+  z-index: -1;
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #0186d1;
+  pointer-events: none;
+}
+
+.appWindow > .screenshot-overlay.visible {
+  z-index: 2;
+  display: block;
+}
+
+.appWindow > iframe.hidden {
+  visibility: hidden;
+}

@@ -170,6 +170,28 @@ ul[data-state="ready"] li > a {
   padding-right: 6.2rem; /* 3rem (initial padding) + 3.2rem (wifi icon width) */
 }
 
+/* TODO: FIXME */
+/* For wifi settings for an inline web activity (ie for system/error.js) */
+#wifi menu[type="toolbar"] {
+  display: none;
+}
+
+.overlay-mode #wifi menu[type="toolbar"] {
+  display: inline-block;
+}
+
+#wifi button[type="reset"] {
+  display: none
+}
+
+.overlay-mode #wifi button[type="reset"] {
+  display: inline-block;
+}
+
+.overlay-mode .go-back {
+  display: none;
+}
+
 /**
  * Wi-Fi authentication fields:
  *   - hide password field on open networks

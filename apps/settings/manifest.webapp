@@ -36,6 +36,13 @@
         "target": "device"
        },
       "disposition": "window"
+    },
+    "configure-overlay": {
+      "filters": {
+        "target": "device"
+      },
+      "returnValue": true,
+      "disposition": "inline"
     }
   },
   "messages": ["bluetooth-pairing-request",
