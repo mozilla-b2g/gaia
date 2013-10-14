@@ -663,12 +663,19 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       };
     }
 
-    function setDeviceDisconnect(device) {
+    function setDeviceDisconnect(device, callback) {
       if (!bluetooth.enabled || !defaultAdapter ||
-          device.address !== connectedAddress)
+          device.address !== connectedAddress) {
+        if (callback)
+          callback();
         return;
+      }
 
-      defaultAdapter.disconnect(device);
+      var req = defaultAdapter.disconnect(device);
+      req.onsuccess = req.onerror = function() {
+        if (callback)
+          callback();
+      };
     }
 
     function setDeviceConnect(device) {
@@ -680,41 +687,46 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         return;
       }
 
+      var doConnect = function() {
+        var connectSuccess = function bt_connectSuccess() {
+          if (connectingAddress) {
+            connectingAddress = null;
+          }
+        };
+
+        var connectError = function bt_connectError() {
+          // Connection state might be changed before DOM request response.
+          if (connectingAddress) {
+            // Clear the text of connecting status.
+            var small =
+              pairList.index[connectingAddress].item.querySelector('small');
+            small.textContent = '';
+            small.dataset.l10nId = '';
+            connectingAddress = null;
+            window.alert(_('error-connect-msg'));
+          }
+        };
+
+        var req = defaultAdapter.connect(device);
+        req.onsuccess = connectSuccess; // At least one profile is connected.
+        req.onerror = connectError; // No available profiles are connected.
+
+        connectingAddress = device.address;
+        if (!pairList.index[connectingAddress]) {
+          return;
+        }
+
+        var small =
+          pairList.index[connectingAddress].item.querySelector('small');
+        l10n.localize(small, 'device-status-connecting');
+      };
+
       // disconnect current connected device first
       if (connectedAddress && pairList.index[connectedAddress]) {
-        setDeviceDisconnect(pairList.index[connectedAddress].device);
+        setDeviceDisconnect(pairList.index[connectedAddress].device, doConnect);
+      } else {
+        doConnect();
       }
-
-      var connectSuccess = function bt_connectSuccess() {
-        if (connectingAddress) {
-          connectingAddress = null;
-        }
-      };
-
-      var connectError = function bt_connectError() {
-        // Connection state might be changed before DOM request response.
-        if (connectingAddress) {
-          // Clear the text of connecting status.
-          var small =
-            pairList.index[connectingAddress].item.querySelector('small');
-          small.textContent = '';
-          small.dataset.l10nId = '';
-          connectingAddress = null;
-          window.alert(_('error-connect-msg'));
-        }
-      };
-
-      var req = defaultAdapter.connect(device);
-      req.onsuccess = connectSuccess; // At least one profile is connected.
-      req.onerror = connectError; // No available profiles are connected.
-
-      connectingAddress = device.address;
-      if (!pairList.index[connectingAddress]) {
-        return;
-      }
-
-      var small = pairList.index[connectingAddress].item.querySelector('small');
-      l10n.localize(small, 'device-status-connecting');
     }
 
     function showDeviceConnected(deviceAddress, connected, profile) {
