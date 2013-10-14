@@ -1,9 +1,8 @@
 'use strict';
 var util = require('util');
 
-function NotificationTest(client, origin, tag, title, body) {
+function NotificationTest(client, tag, title, body) {
   this.client = client;
-  this.origin = origin;
   this.tag = tag;
   this.client.executeScript(function(notifyTag, notifyTitle, notifyBody) {
     if (window.wrappedJSObject.persistNotify === undefined) {
@@ -14,55 +13,89 @@ function NotificationTest(client, origin, tag, title, body) {
   }, [this.tag, title, body]);
 }
 
-module.exports = NotificationTest;
-
-NotificationTest.Selector = Object.freeze((function() {
-  var desktopSelector = '#desktop-notifications-container > ' +
-      '[data-notification-id="%s#tag:%s"]';
-  return {
-    containerElement: desktopSelector,
-    titleElement: desktopSelector + ' > div',
-    bodyElement: desktopSelector + ' > .detail'
-  };
-})());
-
 NotificationTest.prototype = {
   client: null,
-  origin: null,
   tag: null,
-  get containerElement() {
-    return this.client.findElement(
-      util.format(NotificationTest.Selector.containerElement,
-                  this.origin,
-                  this.tag));
-  },
-  get titleElement() {
-    return this.client.findElement(
-      util.format(NotificationTest.Selector.titleElement,
-                  this.origin,
-                  this.tag));
-  },
-  get bodyElement() {
-    return this.client.findElement(
-      util.format(NotificationTest.Selector.bodyElement,
-                  this.origin,
-                  this.tag));
-  },
-  get bodyText() {
-    return this.bodyElement.getAttribute('textContent');
-  },
-  get titleText() {
-    return this.titleElement.getAttribute('textContent');
-  },
-  replace: function(title, body) {
-    this.client.executeScript(function(notifyTag, notifyTitle, notifyBody) {
-      window.wrappedJSObject.persistNotify[notifyTag] =
-        new Notification(notifyTitle, { body: notifyBody, tag: notifyTag });
-    }, [this.tag, title, body]);
-  },
   close: function() {
     this.client.executeScript(function(notifyTag) {
       window.wrappedJSObject.persistNotify[notifyTag].close();
     }, [this.tag]);
   }
+};
+
+function NotificationList(client) {
+  this.client = client;
+  this.selectors = NotificationList.Selector;
+  this.notifications = null;
+}
+
+NotificationList.Selector = Object.freeze((function() {
+  var listSelector = '#desktop-notifications-container';
+  var itemsSelector = listSelector + ' > div';
+  var containerSelector = listSelector + ' > [data-notification-id="%s"]';
+
+  return {
+    items: itemsSelector,
+    titleElement: containerSelector + ' > div',
+    bodyElement: containerSelector + ' > .detail',
+    manifestAttribute: 'data-manifest-u-r-l'
+  };
+})());
+
+NotificationList.prototype = {
+
+  // fetch the list of open notifications from system tray
+  refresh: function() {
+    var elements = this.client.findElements(this.selectors.items);
+    this.notifications = elements.map(function(el) {
+      var notificationID = el.getAttribute('data-notification-id');
+      var titleElement = util.format(this.selectors.titleElement,
+                                     notificationID);
+      var bodyElement = util.format(this.selectors.bodyElement,
+                                    notificationID);
+      return {
+        title: el.client.findElement(titleElement).getAttribute('innerHTML'),
+        body: el.client.findElement(bodyElement).getAttribute('innerHTML'),
+        manifestURL: el.getAttribute(this.selectors.manifestAttribute)
+      };
+    }.bind(this));
+  },
+
+  // return a list of notifications for a certain app
+  getForApp: function(manifestURL) {
+    if (!this.notifications) {
+      return [];
+    }
+    return this.notifications.filter(function(notification) {
+      return notification.manifestURL === manifestURL;
+    });
+  },
+
+  // get a count of notifications with a certain title and body
+  getCount: function(title, body, manifestURL) {
+    var list;
+    if (manifestURL) {
+      list = this.getForApp(manifestURL);
+    } else {
+      list = this.notifications;
+    }
+    var count = 0;
+    for (var i = 0; i < list.length; i++) {
+      var notification = list[i];
+      if (notification.title === title && notification.body === body) {
+        ++count;
+      }
+    }
+    return count;
+  },
+
+  // make sure we have an item with given title and body
+  contains: function(title, body, manifestURL) {
+    return this.getCount(title, body, manifestURL) > 0;
+  }
+};
+
+module.exports = {
+  NotificationTest: NotificationTest,
+  NotificationList: NotificationList
 };
