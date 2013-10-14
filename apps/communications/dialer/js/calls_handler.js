@@ -44,6 +44,9 @@ var CallsHandler = (function callsHandler() {
     SimplePhoneMatcher.mcc = conn.voice.network.mcc;
   }
 
+  // [CDMA] Create BluetoothHelper to notify bluetooth of call operations
+  var helper = BluetoothHelper();
+
   var ringtonePlayer = new Audio();
   ringtonePlayer.mozAudioChannelType = 'ringer';
   ringtonePlayer.src = phoneSoundURL.get();
@@ -487,6 +490,7 @@ var CallsHandler = (function callsHandler() {
     if (telephony.active) {
       // connected, incoming
       telephony.active.hold(); // the incoming call is answered by gecko
+      helper.answerWaitingCall();
     } else if (handledCalls.length >= 2) {
       // held, incoming
       var lastCall = handledCalls[handledCalls.length - 1].call;
@@ -526,6 +530,7 @@ var CallsHandler = (function callsHandler() {
        * hold-and-answer scenario. */
       handledCalls[0].call.hold();
       stopWaitingTone();
+      helper.answerWaitingCall();
     } else {
       var callToEnd = telephony.active ||           // connected, incoming
         handledCalls[handledCalls.length - 2].call; // held, incoming
@@ -569,6 +574,7 @@ var CallsHandler = (function callsHandler() {
     }
 
     telephony.active.hold();
+    helper.toggleCalls();
   }
 
   function holdOrResumeSingleCall() {
@@ -604,6 +610,7 @@ var CallsHandler = (function callsHandler() {
      * step and hide the incoming call. */
     if (cdmaCallWaiting()) {
       stopWaitingTone();
+      helper.ignoreWaitingCall();
     } else {
       var ignoreIndex = handledCalls.length - 1;
       handledCalls[ignoreIndex].call.hangUp();
