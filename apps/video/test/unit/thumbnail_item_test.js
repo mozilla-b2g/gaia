@@ -3,6 +3,7 @@
  */
 'use strict';
 
+require('/shared/js/l10n.js');
 require('/shared/js/template.js');
 require('/shared/js/media/media_utils.js');
 requireApp('/video/test/unit/mock_l10n.js');
