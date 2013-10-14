@@ -953,7 +953,6 @@ function createListElement(option, data, index, highlight) {
   li.className = 'list-item';
 
   var a = document.createElement('a');
-  a.href = '#';
   a.dataset.index = index;
   a.dataset.option = option;
 
@@ -1086,9 +1085,9 @@ function createListElement(option, data, index, highlight) {
   return li;
 }
 
-// Assuming the ListView will prepare 2 pages for batch loading.
+// Assuming the ListView will prepare 5 pages for batch loading.
 // Each page contains 7 list elements.
-var LIST_BATCH_SIZE = 7 * 2;
+var LIST_BATCH_SIZE = 7 * 5;
 // View of List
 var ListView = {
   get view() {
@@ -1211,7 +1210,7 @@ var ListView = {
       this.batchUpdate(TabBar.option, range + LIST_BATCH_SIZE);
   },
 
-  batchUpdate: function lv_batchUpdate(option, range, firstPaint) {
+  batchUpdate: function lv_batchUpdate(option, range) {
     // See where is the last index we have for the existing children, and start
     // to create the rest elements from it, note that here we use fragment to
     // update all the new elements at once, this is for reducing the amount of
@@ -1239,22 +1238,28 @@ var ListView = {
     this.anchor.appendChild(fragment);
   },
 
-  adjustHeight: function lv_adjustHeight(option) {
-    var previousFirstLetter;
-    for (var i = this.index; i < this.dataSource.length; i++) {
-      var metadata = this.dataSource[i].metadata;
-      var firstLetter = metadata[option].charAt(0);
-      if (previousFirstLetter !== firstLetter) {
-        this.firstLetters.push(firstLetter);
-        previousFirstLetter = firstLetter;
+  adjustHeight: function lv_adjustHeight(option, count) {
+    if (!count) {
+      count = this.dataSource.length;
+      this.firstLetters.length = 0;
+      var previousFirstLetter;
+      for (var i = this.index; i < this.dataSource.length; i++) {
+        var metadata = this.dataSource[i].metadata;
+        var firstLetter = metadata[option].charAt(0);
+        if (previousFirstLetter !== firstLetter) {
+          this.firstLetters.push(firstLetter);
+          previousFirstLetter = firstLetter;
+        }
       }
+    } else {
+      // Assuming we have all the letters from A to Z.
+      this.firstLetters.length = 26;
     }
 
     var headerHeight = this.anchor.firstChild.offsetHeight;
     var itemHeight = this.anchor.lastChild.offsetHeight;
     var bottomHeight = parseInt(getComputedStyle(this.anchor.lastChild, null).
       getPropertyValue('margin-bottom'));
-    var count = this.dataSource.length;
 
     this.anchor.style.height = (
       headerHeight * this.firstLetters.length +
@@ -1824,25 +1829,28 @@ var TabBar = {
             var option = this.option;
             var direction = (option === 'title') ? 'next' : 'nextunique';
 
-            listHandle =
-              musicdb.enumerate('metadata.' + option, null, direction,
-                function(record) {
-                  if (record)
-                    ListView.dataSource.push(record);
-                  // When we got the first batch size of the records,
-                  // or the total count is less than the batch size,
-                  // display it so that users are able to see the first paint
-                  // very quickly.
-                  if (ListView.dataSource.length === LIST_BATCH_SIZE || !record)
-                  {
-                    ListView.batchUpdate(option, LIST_BATCH_SIZE, true);
-                    // If record is null then the enumeration is finished,
-                    // so ListView has all the records and is able to adjust
-                    // the height.
-                    if (record === null)
-                      ListView.adjustHeight(option);
-                  }
-                });
+            musicdb.count('metadata.album', null, function(count) {
+              listHandle =
+                musicdb.enumerate('metadata.' + option, null, direction,
+                  function(record) {
+                    if (record)
+                      ListView.dataSource.push(record);
+                    // When we got the first batch size of the records,
+                    // or the total count is less than the batch size,
+                    // display it so that users are able to see the first paint
+                    // very quickly.
+                    if (ListView.dataSource.length === LIST_BATCH_SIZE ||
+                        !record)
+                    {
+                      ListView.batchUpdate(option, LIST_BATCH_SIZE);
+                      // If record is null then the enumeration is finished,
+                      // so ListView has all the records and is able to adjust
+                      // the height.
+                      count = record ? count : null;
+                      ListView.adjustHeight(option, count);
+                    }
+                  });
+            });
             break;
         }
 
