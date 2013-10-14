@@ -608,6 +608,10 @@ EXTENDED_PREF_FILES = \
   gps-prefs.js \
   payment-prefs.js \
 
+ifeq ($(GAIA_APP_TARGET), engineering)
+EXTENDED_PREF_FILES += payment-dev-prefs.js
+endif
+
 ifeq ($(DOGFOOD),1)
 EXTENDED_PREF_FILES += dogfood-prefs.js
 endif
