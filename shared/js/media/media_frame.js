@@ -385,10 +385,14 @@ MediaFrame.prototype.resize = function resize() {
   // This is how the image would fit at the new screen size
   var newfit = this.fit;
 
-  // If no zooming has been done, then a resize is just a reset.
-  // The same is true if the new fit base scale is greater than the
+  // If no zooming has been done (or almost no zooming), then a resize is just
+  // a reset. The same is true if the new fit base scale is greater than the
   // old scale.
-  if (oldfit.scale === oldfit.baseScale || newfit.baseScale > oldfit.scale) {
+  // The scale is calculated with division, the value may not be accurate
+  // because of IEEE 754. We use abs difference to do the equality checking.
+  if (Math.abs(oldfit.scale - oldfit.baseScale) < 0.01 ||
+      newfit.baseScale > oldfit.scale) {
+
     this.reset();
     return;
   }
