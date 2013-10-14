@@ -8,12 +8,29 @@
   },
   findNestedDependencies: true,
 
+  // Build a separate module for each panel. Because the application
+  // consistently initializes with the `startup` module, this module and all
+  // its dependencies do not need to be included by the "secondary" panels
+  // ("Alarm Edit", "Timer", and "Stopwatch").
   modules: [
     {
-      name: 'startup'
+      name: 'startup',
+      include: ['panels/alarm/main']
     },
     {
       name: 'onring'
+    },
+    {
+      name: 'panels/alarm_edit/main',
+      exclude: ['startup']
+    },
+    {
+      name: 'panels/timer/main',
+      exclude: ['startup']
+    },
+    {
+      name: 'panels/stopwatch/main',
+      exclude: ['startup']
     }
   ],
 

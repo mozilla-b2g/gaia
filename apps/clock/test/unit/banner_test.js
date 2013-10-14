@@ -19,7 +19,7 @@ suite('Banner', function() {
     // Instantiate the Banner once with an element
     this.noteElem = document.createElement('div');
 
-    testRequire(['banner', 'mocks/mock_shared/js/l10n'],
+    testRequire(['banner/main', 'mocks/mock_shared/js/l10n'],
       function(banner, mockL10n) {
       Banner = banner;
       mozL10n = mockL10n;
