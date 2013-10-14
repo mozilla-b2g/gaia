@@ -6,8 +6,10 @@ define(function(require) {
   var View = require('view');
   var Stopwatch = require('stopwatch');
   var Utils = require('utils');
-  var Template = require('shared/js/template');
+  var Template = require('template');
   var mozL10n = require('l10n');
+  var html = require('text!panels/stopwatch/panel.html');
+  var lapHtml = require('text!panels/stopwatch/list_item.html');
   var priv = new WeakMap();
 
   /**
@@ -22,9 +24,10 @@ define(function(require) {
     Panel.apply(this, arguments);
 
     this.nodes = {};
-    this.lapTemplate = new Template('lap-list-item-tmpl');
+    this.lapTemplate = Template(lapHtml);
     this.interval = null;
 
+    this.element.innerHTML = html;
     // Gather elements
     [
       'start', 'pause', 'resume',

@@ -8,6 +8,7 @@ var View = require('view');
 var Utils = require('utils');
 var Timer = require('timer');
 var _ = require('l10n').get;
+var html = require('text!panels/timer/panel.html');
 
 var priv = new WeakMap();
 
@@ -35,6 +36,7 @@ function duration(value) {
 Timer.Panel = function(element) {
   Panel.apply(this, arguments);
 
+  element.innerHTML = html;
   this.timer = null;
   this.nodes = {};
 
