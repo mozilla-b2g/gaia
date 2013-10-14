@@ -3,13 +3,14 @@
 <head>
   <meta charset="utf-8">
   <title>Calendar</title>
+  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/toolbars.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/tabs.css">
   <link rel="stylesheet" type="text/css" href="/style/calendar.css">
   <link rel="stylesheet" type="text/css" href="/style/ui.css">
   <link rel="stylesheet" type="text/css" href="/style/day_views.css">
   <link rel="stylesheet" type="text/css" href="/style/building_blocks.css">
   <link rel="stylesheet" type="text/css" href="/style/first_time_use.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
-  <link rel="stylesheet" type="text/css" href="/shared/style_unstable/toolbars.css">
 
   <!-- localization -->
   <link rel="resource" type="application/l10n" href="/locales/locales.ini">
@@ -149,24 +150,13 @@
 
   <section id="week-view"></section>
 
-  <menu id="view-selector">
-    <li class="today">
-      <a data-l10n-id="show-today" href="#today">Today</a>
-    </li>
-    <li class="time-selection">
-      <menu>
-        <li class="month">
-          <a data-l10n-id="show-month-view" href="/month/">Month</a>
-        </li>
-        <li class="week">
-          <a data-l10n-id="show-week-view" href="/week/">Week</a>
-        </li>
-        <li class="day">
-          <a data-l10n-id="show-day-view" href="/day/">Day</a>
-        </li>
-      </menu>
-    </li>
-  </menu>
+  <ul id="view-selector" role="tablist" data-type="filter" class="bottom" data-items="4">
+    <li class="today" role="tab"><a id="today" data-l10n-id="show-today" href="#today">Today</a></li>
+    <li class="month" role="tab"><a data-l10n-id="show-month-view" href="/month/">Month</a></li>
+    <li class="week" role="tab"><a data-l10n-id="show-week-view" href="/week/">Week</a></li>
+    <li class="day" role="tab"><a data-l10n-id="show-day-view" href="/day/">Day</a></li>
+  </ul>
+
 </section>
 
 <section is="create-account" class="fullscreen-view skin-organic" id="create-account-view" role="region"></section>
