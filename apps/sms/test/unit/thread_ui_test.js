@@ -3320,4 +3320,77 @@ suite('thread_ui.js >', function() {
       assert.doesNotThrow(ThreadUI.initSentAudio);
     });
   });
+
+  suite('New Message banner', function() {
+    var notice;
+    var testMessage;
+
+    function addMessages() {
+      for (var i = 0; i < 15; i++) {
+        var message = {
+          id: i,
+          type: 'sms',
+          body: 'This is a test message',
+          delivery: 'received',
+          timestamp: new Date()
+        };
+        ThreadUI.appendMessage(message);
+      }
+    };
+
+    setup(function() {
+      container.style.overflow = 'scroll';
+      container.style.height = '50px';
+      notice = document.getElementById('messages-new-message-notice');
+      testMessage = {
+        id: 20,
+        type: 'sms',
+        body: 'New test message',
+        delivery: 'received',
+        timestamp: new Date()
+      };
+
+      addMessages();
+
+    });
+
+    suite('should be shown', function(done) {
+      test('when new message is recieved', function() {
+        container.addEventListener('scroll', function onscroll() {
+          ThreadUI.onMessageReceived(testMessage);
+          assert.isFalse(notice.classList.contains('hide'));
+          done();
+        });
+        //Put the scroll on top
+        container.scrollTop = 0;
+      });
+    });
+
+    suite('should be closed', function(done) {
+      test('when the notice is clicked', function() {
+        container.addEventListener('scroll', function onscroll() {
+          ThreadUI.onMessageReceived(testMessage);
+          notice.click();
+          assert.isFalse(ThreadUI.isScrolledManually);
+          assert.isTrue(notice.classList.contains('hide'));
+          done();
+        });
+        //Put the scroll on top
+        container.scrollTop = 0;
+
+      });
+
+      test('when the scroll reach the bottom', function(done) {
+        container.scrollTop = 0;
+        ThreadUI.onMessageReceived(testMessage);
+        container.addEventListener('scroll', function onscroll() {
+          container.removeEventListener('scroll', onscroll);
+          assert.isTrue(notice.classList.contains('hide'));
+          done();
+        });
+        container.scrollTop = container.scrollHeight;
+      });
+    });
+  });
+
 });

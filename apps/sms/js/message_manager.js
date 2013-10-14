@@ -52,7 +52,7 @@ var MessageManager = {
       window.location.hash = '#thread=' + threadId;
     } else if (threadId === Threads.currentId) {
       ThreadUI.appendMessage(message);
-      ThreadUI.scrollViewToBottom();
+      ThreadUI.forceScrollViewToBottom();
     }
     MessageManager.getThreads(ThreadListUI.renderThreads);
   },
@@ -96,9 +96,7 @@ var MessageManager = {
       this.markMessagesRead([message.id], function() {
         MessageManager.getThreads(ThreadListUI.renderThreads);
       });
-      ThreadUI.appendMessage(message);
-      ThreadUI.scrollViewToBottom();
-      Utils.updateTimeHeaders();
+      ThreadUI.onMessageReceived(message);
     } else {
       ThreadListUI.onMessageReceived(message);
     }
