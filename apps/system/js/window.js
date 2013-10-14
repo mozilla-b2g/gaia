@@ -22,6 +22,8 @@
 
     this.render();
 
+    this.publish('created');
+
     return this;
   };
 
