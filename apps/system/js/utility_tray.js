@@ -12,6 +12,8 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
+  grippy: document.getElementById('utility-tray-grippy'),
+
   screen: document.getElementById('screen'),
 
   init: function ut_init() {
@@ -77,7 +79,8 @@ var UtilityTray = {
         if (LockScreen.locked)
           return;
         if (evt.target !== this.overlay &&
-            evt.target !== this.statusbar)
+            evt.target !== this.statusbar &&
+            evt.target !== this.grippy)
           return;
 
         this.active = true;
