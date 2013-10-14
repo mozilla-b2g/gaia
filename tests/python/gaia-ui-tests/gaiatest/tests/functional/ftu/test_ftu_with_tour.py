@@ -10,19 +10,7 @@ from gaiatest import GaiaTestCase
 class TestFtu(GaiaTestCase):
 
     _next_button_locator = (By.ID, 'forward')
-
     _section_languages_locator = (By.ID, 'languages')
-    _section_cell_data_locator = (By.ID, 'data_3g')
-    _section_wifi_locator = (By.ID, 'wifi')
-    _found_wifi_networks_locator = (By.CSS_SELECTOR, 'ul#networks-list li')
-    _section_date_time_locator = (By.ID, 'date_and_time')
-    _section_geolocation_locator = (By.ID, 'geolocation')
-    _section_import_contacts_locator = (By.ID, 'import_contacts')
-    _section_ayr_locator = (By.ID, 'about-your-rights')
-    _section_welcome_browser_locator = (By.ID, 'welcome_browser')
-    _section_browser_privacy_locator = (By.ID, 'browser_privacy')
-    _section_finish_locator = (By.ID, 'finish-screen')
-
     _take_tour_button_locator = (By.ID, 'lets-go-button')
 
     # Section Tour
@@ -44,38 +32,19 @@ class TestFtu(GaiaTestCase):
         # launch the First Time User app
         self.app = self.apps.launch('FTU')
 
-        self.wait_for_condition(lambda m: self.data_layer.is_wifi_enabled)
-
     def test_ftu_with_tour(self):
 
         # Go through the FTU setup as quickly as possible to get to the Tour section
         self.wait_for_element_displayed(*self._section_languages_locator)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_cell_data_locator)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_wifi_locator)
-        # The scanning for networks messes with the timing of taps
-        self.wait_for_condition(lambda m: len(m.find_elements(*self._found_wifi_networks_locator)) > 0)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_date_time_locator)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_geolocation_locator)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_import_contacts_locator)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_welcome_browser_locator)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_browser_privacy_locator)
-        # Tap next
-        self.marionette.find_element(*self._next_button_locator).tap()
-        self.wait_for_element_displayed(*self._section_finish_locator)
+
+        count = 0
+        while not self.is_element_displayed(*self._take_tour_button_locator):
+            if self.is_element_displayed(*self._next_button_locator):
+                self.marionette.find_element(*self._next_button_locator).tap()
+            else:
+                count=count+1
+            if count > 5:
+                break
 
         # Take the tour
         self.marionette.find_element(*self._take_tour_button_locator).tap()
