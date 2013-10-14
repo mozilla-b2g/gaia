@@ -741,7 +741,6 @@ bubble above the key when you tap and hold. */
 
 @media (min-width:768px) and (orientation:landscape) {
   #confirm-dialog .tip-section {
-    background: url(images/ftu_keyboard_landscape@2x.png) no-repeat top left;
     width: 35rem;
     height: 23rem;
   }
@@ -749,7 +748,6 @@ bubble above the key when you tap and hold. */
 
 @media (min-width:768px) and (orientation:portrait) {
   #confirm-dialog .tip-section {
-    background: url(images/ftu_keyboard@2x.png) no-repeat top left;
     width: 23rem;
     height: 25rem;
   }
