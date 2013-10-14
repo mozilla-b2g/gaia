@@ -222,6 +222,37 @@ form[data-type="action"] img[src=""] {
   display: none;
 }
 
+.new-message-notice-text {
+  font-size: 1.8rem;
+}
+
+#new-message-notice-content {
+  margin: 1rem 2rem;
+  padding: 0;
+  
+  overflow: hidden;
+
+  white-space: nowrap;
+  line-height: 2rem;
+  font-size: 1.8rem;
+  text-align: left;
+}
+
+#new-message-notice-contact {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#new-message-notice-container-1 {
+  display: inline-block;
+}
+
+#new-message-notice-container-2 {
+  vertical-align: super;
+  float: right;
+}
 /*
   Styles for Edit mode in Thread List
 */
