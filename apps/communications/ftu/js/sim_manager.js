@@ -130,9 +130,7 @@ var SimManager = {
       return;
 
     IccHelper.getCardLockRetryCount('pin', function(retryCount) {
-      if (!retryCount) {
-        UIManager.pinRetriesLeft.classList.add('hidden');
-      } else {
+      if (retryCount) {
         var l10nArgs = {n: retryCount};
         UIManager.pinRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                  l10nArgs);
@@ -152,9 +150,7 @@ var SimManager = {
       return;
 
     IccHelper.getCardLockRetryCount('puk', function(retryCount) {
-      if (!retryCount) {
-        UIManager.pukRetriesLeft.classList.add('hidden');
-      } else {
+      if (retryCount) {
         var l10nArgs = {n: retryCount};
         UIManager.pukRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                  l10nArgs);
@@ -192,9 +188,7 @@ var SimManager = {
     }
 
     IccHelper.getCardLockRetryCount(lockType, function(retryCount) {
-      if (!retryCount) {
-        UIManager.xckRetriesLeft.classList.add('hidden');
-      } else {
+      if (retryCount) {
         var l10nArgs = {n: retryCount};
         UIManager.xckRetriesLeft.textContent = _('inputCodeRetriesLeft',
                                                  l10nArgs);
