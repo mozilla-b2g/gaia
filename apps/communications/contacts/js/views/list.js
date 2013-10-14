@@ -73,8 +73,9 @@ contacts.List = (function() {
     toRender.push(el);
 
     // Avoid rescheduling the timer if it has not run yet.
-    if (renderTimer)
+    if (renderTimer) {
       return;
+    }
 
     renderTimer = setTimeout(doRenderTimer);
   };
@@ -92,14 +93,16 @@ contacts.List = (function() {
   };
 
   var renderLoadedContact = function(el, id) {
-    if (el.dataset.rendered)
+    if (el.dataset.rendered) {
       return;
+    }
     id = id || el.dataset.uuid;
     renderSelectCheck(el, id);
     var group = el.dataset.group;
     var contact = loadedContacts[id] ? loadedContacts[id][group] : null;
-    if (!contact)
+    if (!contact) {
       return;
+    }
     renderContact(contact, el);
     clearLoadedContact(el, id, group);
   };
@@ -629,7 +632,9 @@ contacts.List = (function() {
     var vm_file = '/shared/js/tag_visibility_monitor.js';
     LazyLoader.load([vm_file], function() {
       var scrollMargin = ~~(viewHeight * 1.5);
-      var scrollDelta = ~~(scrollMargin / 2);
+      // NOTE: Making scrollDelta too large will cause janky scrolling
+      //       due to bursts of onscreen() calls from the monitor.
+      var scrollDelta = ~~(scrollMargin / 10);
       monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
                                      scrollDelta, onscreen, offscreen);
     });
