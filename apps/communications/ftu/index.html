@@ -90,7 +90,7 @@
     <article role="main">
       <section id="pincode-screen" role="region">
         <label id="pin-label" data-l10n-id="type_pin">Type your PIN code</label>
-        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
+        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <label id="pin-error" data-l10n-id="pinError" class="hidden error">The PIN was incorrect.</label>
@@ -99,7 +99,7 @@
 
       <section id="pukcode-screen" role="region">
         <label id="puk-label" data-l10n-id="simLocked">The SIM card is locked</label>
-        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
+        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
@@ -119,7 +119,7 @@
 
       <section id="xckcode-screen" role="region">
         <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
-        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft">Unknown tries left</label>
+        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
           <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
