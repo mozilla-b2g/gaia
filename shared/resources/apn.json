@@ -2472,6 +2472,11 @@
   "01": [
     {"carrier":"遠傳電信(Far EasTone) (MMS)","apn":"fetnet01","mmsc":"http://mms","mmsproxy":"210.241.199.199","mmsport":"9201","type":["mms"]},
     {"carrier":"遠傳電信(Far EasTone) (Internet)","apn":"internet","type":["default","supl"]}
+  ],
+  "05": [
+    {"carrier":"亞太電信(APBW) (Internet)","apn":"aptnet","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","passowrd":"aptwap","authtype":"2","type":["default"]},
+    {"carrier":"亞太電信(APBW) (WAP)","apn":"aptwap","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","passowrd":"aptwap","authtype":"2","type":["default"]},
+    {"carrier":"亞太電信(APBW) (MMS)","apn":"aptmms","mmsc":"http://mms.aptg.com.tw","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","passowrd":"aptwap","type":["mms"]}
   ]
 },
 "502": {

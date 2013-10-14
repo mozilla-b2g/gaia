@@ -276,4 +276,40 @@
       mnc="01"
       name="Virgin Mobile MMS"
   />
+
+  <apn carrier="亞太電信(APBW) (Internet)"
+      mcc="466"
+      mnc="05"
+      apn="aptnet"
+      mmsproxy="210.200.66.196"
+      mmsport="80"
+      user="aptwap@nsip.qma.com.tw"
+      passowrd="aptwap"
+      authtype="2"
+      type="default"
+  />
+
+  <apn carrier="亞太電信(APBW) (WAP)"
+      mcc="466"
+      mnc="05"
+      apn="aptwap"
+      mmsproxy="210.200.66.196"
+      mmsport="80"
+      user="aptwap@nsip.qma.com.tw"
+      passowrd="aptwap"
+      authtype="2"
+      type="default"
+  />
+
+  <apn carrier="亞太電信(APBW) (MMS)"
+      mcc="466"
+      mnc="05"
+      apn="aptmms"
+      mmsc="http://mms.aptg.com.tw"
+      mmsproxy="210.200.66.196"
+      mmsport="80"
+      user="aptwap@nsip.qma.com.tw"
+      passowrd="aptwap"
+      type="mms"
+  />
 </apns>
