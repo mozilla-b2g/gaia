@@ -4,13 +4,11 @@ suite('Timer.Panel', function() {
   var View, Timer, Utils;
 
   suiteSetup(function(done) {
-    loadBodyHTML('/index.html');
-
     isHidden = function(element) {
       return element.className.contains('hidden');
     };
 
-    testRequire(['timer', 'timer_panel', 'view', 'utils'], {
+    testRequire(['timer', 'panels/timer/main', 'view', 'utils'], {
       mocks: ['picker/picker']
     }, function(timer, timerPanel, view, utils) {
       Timer = timer;
@@ -34,13 +32,13 @@ suite('Timer.Panel', function() {
   });
 
   test('shape:instance ', function() {
-    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    var panel = new Timer.Panel(document.createElement('div'));
     assert.ok(panel.nodes);
     assert.isNull(panel.timer);
   });
 
   test('dialog ', function() {
-    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    var panel = new Timer.Panel(document.createElement('div'));
     var dialog = View.instance(panel.nodes.dialog);
 
     // Defaults to isVisible = true;
@@ -54,7 +52,7 @@ suite('Timer.Panel', function() {
   });
 
   test('update ', function() {
-    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    var panel = new Timer.Panel(document.createElement('div'));
 
     panel.update(10);
 
@@ -68,7 +66,7 @@ suite('Timer.Panel', function() {
   });
 
   test('toggle(show, hide) ', function() {
-    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    var panel = new Timer.Panel(document.createElement('div'));
     var start = panel.nodes.start;
     var pause = panel.nodes.pause;
 
@@ -96,7 +94,7 @@ suite('Timer.Panel', function() {
       sound: '0'
     });
 
-    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    var panel = new Timer.Panel(document.createElement('div'));
     panel.timer = timer;
     panel.onvisibilitychange(true);
 
@@ -126,7 +124,7 @@ suite('Timer.Panel', function() {
       sound: '0'
     });
 
-    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    var panel = new Timer.Panel(document.createElement('div'));
     panel.timer = timer;
     panel.onvisibilitychange(true);
 
@@ -144,7 +142,7 @@ suite('Timer.Panel', function() {
 
   test('Set timer state (blank timer)', function() {
     var timer = new Timer();
-    var panel = new Timer.Panel(document.getElementById('timer-panel'));
+    var panel = new Timer.Panel(document.createElement('div'));
     panel.timer = timer;
     panel.onvisibilitychange(true);
 
@@ -165,7 +163,7 @@ suite('Timer.Panel', function() {
         callback('{"duration":5000}');
       };
 
-      panel = new Timer.Panel(document.getElementById('timer-panel'));
+      panel = new Timer.Panel(document.createElement('div'));
 
       this.sinon.spy(panel.timer, 'start');
       this.sinon.spy(panel.timer, 'pause');

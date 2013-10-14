@@ -42,7 +42,7 @@ var RingView = {
   },
 
   init: function rv_init() {
-    var ActiveAlarm = window.opener.require('active_alarm');
+    var ActiveAlarm = window.opener.require('panels/alarm/active_alarm');
 
     document.addEventListener('visibilitychange', this);
 
@@ -216,7 +216,7 @@ var RingView = {
       switch (input.id) {
       case 'ring-button-snooze':
         this.stopAlarmNotification();
-        window.opener.require('active_alarm').snoozeHandler();
+        window.opener.require('panels/alarm/active_alarm').snoozeHandler();
         window.close();
         break;
       case 'ring-button-close':

@@ -4,19 +4,18 @@ define(function(require) {
 var Tabs = require('tabs');
 var View = require('view');
 var Panel = require('panel');
-var TimerPanel = require('timer_panel');
-var StopwatchPanel = require('stopwatch_panel');
 var mozL10n = require('l10n');
 var rAF = mozRequestAnimationFrame || requestAnimationFrame;
 /**
  * Global Application event handling and paging
  */
 var App = {
-  panelClass: {
-    'alarm-panel': Panel,
-    'alarm-edit-panel': Panel,
-    'timer-panel': TimerPanel,
-    'stopwatch-panel': StopwatchPanel
+  // A map of element IDs to the panel modules that they contain
+  panelModules: {
+    'alarm-panel': 'panels/alarm/main',
+    'alarm-edit-panel': 'panels/alarm_edit/main',
+    'timer-panel': 'panels/timer/main',
+    'stopwatch-panel': 'panels/stopwatch/main'
   },
 
   /**
@@ -37,12 +36,44 @@ var App = {
     this.visible = !document.hidden;
     this.panels = Array.prototype.map.call(
       document.querySelectorAll('.panel'),
-      function(element) {
-        return View.instance(element, App.panelClass[element.id] || Panel);
-      }
+      function(element, idx) {
+        var panel = {
+          el: element,
+          instance: null
+        };
+        setTimeout(this.loadPanel.bind(this), 0, panel);
+        return panel;
+      }.bind(this)
     );
     this.navigate({ hash: '#alarm-panel' });
     return this;
+  },
+
+  /**
+   * Load and instantiate the specified panel (when necessary).
+   *
+   * @param {element|Panel} panel - The panel's containing element or the
+   *                                instance of the panel itself.
+   * @param {Number} index - The panel's position in the application's `panel`
+   *                         array. This reflects the position of the panel
+   *                         tabs and informs the direction of panel transition
+   *                         animations.
+   * @param {Function} [callback] - A function that will be invoked with the
+   *                         instantiated panel once it is loaded.
+   */
+  loadPanel: function(panel, callback) {
+    var moduleName;
+
+    if (panel.instance) {
+      callback && setTimeout(callback, 0, panel);
+      return;
+    }
+
+    moduleName = this.panelModules[panel.el.id] || 'panel';
+    require([moduleName], function(PanelModule) {
+      panel.instance = View.instance(panel.el, PanelModule);
+      callback && callback(panel);
+    });
   },
 
   /**
@@ -65,22 +96,30 @@ var App = {
     var currentIndex = this.panels.indexOf(this.currentPanel);
 
     this.panels.forEach(function(panel, panelIndex) {
-      if ('#' + panel.id === data.hash) {
-        panel.active = true;
-        panel.visible = true;
-        if (currentIndex !== -1) {
-          var direction = currentIndex < panelIndex;
-          rAF(function startAnimation(oldPanel) {
-            panel.transition =
-              direction ? 'slide-in-right' : 'slide-in-left';
+      if ('#' + panel.el.id === data.hash) {
+        this.loadPanel(panel, function() {
+          var instance = panel.instance;
+          if ('data' in data) {
+            instance.navData = data.data;
+          }
+          instance.active = true;
+          instance.visible = true;
+          if (currentIndex !== -1) {
+            var direction = currentIndex < panelIndex;
+            rAF(function startAnimation(oldPanel) {
+              instance.transition =
+                direction ? 'slide-in-right' : 'slide-in-left';
 
-            oldPanel.transition =
-              direction ? 'slide-out-left' : 'slide-out-right';
-          }.bind(null, this.currentPanel));
-        }
-        this.currentPanel = panel;
+              oldPanel.instance.transition =
+                direction ? 'slide-out-left' : 'slide-out-right';
+            }.bind(null, this.currentPanel));
+          }
+          this.currentPanel = panel;
+        }.bind(this));
       } else {
-        panel.active = false;
+        if (panel.instance) {
+          panel.instance.active = false;
+        }
       }
     }, this);
     this.currentHash = data.hash;

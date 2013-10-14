@@ -4,7 +4,7 @@ suite('Alarm Test', function() {
   var nativeMozAlarms = navigator.mozAlarms;
 
   suiteSetup(function(done) {
-    testRequire(['alarm', 'active_alarm', 'mocks/mock_moz_alarm'],
+    testRequire(['alarm', 'panels/alarm/active_alarm', 'mocks/mock_moz_alarm'],
       function(alarm, activeAlarm, mockMozAlarms) {
         Alarm = alarm;
         ActiveAlarm = activeAlarm;
