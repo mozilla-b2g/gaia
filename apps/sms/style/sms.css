@@ -9,7 +9,7 @@ html, body {
 }
 
 
-/* 
+/*
   Override BB. Some CSS tweaks for having a better confirm readability
 */
 form[role="dialog"][data-type="confirm"] p {
@@ -229,7 +229,7 @@ form[data-type="action"] img[src=""] {
 #new-message-notice-content {
   margin: 1rem 2rem;
   padding: 0;
-  
+
   overflow: hidden;
 
   white-space: nowrap;
@@ -550,12 +550,10 @@ section.has-carrier .article-list header:first-child {
   Bottom bar for sending SMS
 */
 
-.messages-compose-form[role="search"] {
-  transition: transform .2s ease-in;
-  background: white;
-}
-
 form.bottom[role="search"].messages-compose-form {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
   position: absolute;
   left: 0;
   right: 0;
@@ -564,14 +562,15 @@ form.bottom[role="search"].messages-compose-form {
 
 /* Fix the compose buttons to the bottom of their container. */
 #messages-attach-button, #messages-send-button {
-  position: relative;
-  bottom: 0;
+  flex: 0 1 auto;
 }
+
 #messages-attach-button {
-  left: 0;
+  min-width: 3rem;
 }
+
 #messages-send-button {
-  right: 0;
+  order: 3;
 }
 
 #messages-send-button.active {
@@ -610,8 +609,11 @@ form.bottom[role="search"].messages-compose-form {
 }
 
 #messages-input {
+  flex: 0 1 auto;
+  order: 2;
+  width: 100%;
   padding: 0.1rem 0.5rem;
-  margin: 0.8rem 0.2rem;
+  margin: 0.7rem 0.2rem;
   line-height: 2rem;
   min-height: 2.3rem;
   -moz-box-sizing: border-box;
