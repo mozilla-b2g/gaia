@@ -67,7 +67,7 @@ var StatusBar = {
     'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
-  kActiveIndicatorTimeout: 60 * 1000,
+  kActiveIndicatorTimeout: 5 * 1000,
 
   /* Whether or not status bar is actively updating or not */
   active: true,
