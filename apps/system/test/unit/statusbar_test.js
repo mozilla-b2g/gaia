@@ -123,6 +123,7 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('lock', function() {
+      MockLockScreen.locked = true;
       var evt = new CustomEvent('lock');
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
@@ -143,8 +144,8 @@ suite('system/Statusbar', function() {
     test('attentionsceen hide', function() {
       var evt = new CustomEvent('attentionscreenhide');
       StatusBar.handleEvent(evt);
-      assert.equal(StatusBar.clock.timeoutID, null);
-      assert.equal(StatusBar.icons.time.hidden, true);
+      assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('emergency call when locked', function() {
       var evt = new CustomEvent('lockpanelchange', {
