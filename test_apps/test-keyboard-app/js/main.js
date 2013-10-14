@@ -2,11 +2,14 @@ var inputContext = null;
 var keyboardElement;
 
 function init() {
+  keyboardElement = document.getElementById('keyboard');
+
   window.navigator.mozInputMethod.oninputcontextchange = function() {
     inputContext = navigator.mozInputMethod.inputcontext;
+    resizeWindow();
   };
 
-  keyboardElement = document.getElementById('keyboard');
+  window.addEventListener('resize', resizeWindow);
 
   keyboardElement.addEventListener('mousedown', function onMouseDown(evt) {
   // Prevent loosing focus to the currently focused app
@@ -40,6 +43,10 @@ function init() {
   switchElement.addEventListener('touchend', function longHandler() {
     clearTimeout(menuTimeout);
   });
+}
+
+function resizeWindow() {
+  window.resizeTo(window.innerWidth, keyboardElement.clientHeight);
 }
 
 function sendKey(keyCode) {
