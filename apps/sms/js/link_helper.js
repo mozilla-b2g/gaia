@@ -6,6 +6,36 @@
  anchor links for url, phone, email.
 */
 
+var KNOWN_TLDS = [
+  'aero', 'asia', 'biz', 'cat', 'com', 'coop', 'info',
+  'int', 'jobs', 'mobi', 'museum', 'name', 'net', 'org', 'post', 'pro',
+  'tel', 'travel', 'xxx', 'edu', 'gov', 'mil', 'nyc', 'ac',
+  'ad', 'ae', 'af', 'ag', 'ai', 'al', 'am', 'an', 'ao', 'aq', 'ar',
+  'as', 'at', 'au', 'aw', 'ax', 'az', 'ba', 'bb', 'bd', 'be', 'bf',
+  'bg', 'bh', 'bi', 'bj', 'bm', 'bn', 'bo', 'br', 'bs', 'bt', 'bv',
+  'no', 'bw', 'by', 'bz', 'ca', 'cc', 'cd', 'cf', 'cg', 'ch', 'ci',
+  'ck', 'cl', 'cm', 'cn', 'co', 'cr', 'cs', 'cu', 'cv', 'cx', 'cy',
+  'cz', 'dd', 'de', 'dj', 'dk', 'dm', 'do', 'dz', 'ec', 'ee', 'eg',
+  'eh', 'er', 'es', 'et', 'eu', 'fi', 'fj', 'fk', 'fm', 'fo', 'fr',
+  'ga', 'gb', 'gd', 'ge', 'gf', 'gg', 'gh', 'gi', 'gl', 'gm', 'gn',
+  'gp', 'gq', 'gr', 'gs', 'gt', 'gu', 'gw', 'gy', 'hk', 'hm', 'hn',
+  'hr', 'ht', 'hu', 'id', 'ie', 'il', 'im', 'in', 'io', 'iq', 'ir',
+  'is', 'it', 'je', 'jm', 'jo', 'jp', 'ke', 'kg', 'kh', 'ki', 'km',
+  'kn', 'kp', 'kr', 'kw', 'ky', 'kz', 'la', 'lb', 'lc', 'li', 'lk',
+  'lr', 'ls', 'lt', 'lu', 'lv', 'ly', 'ma', 'mc', 'md', 'me', 'mg',
+  'mh', 'mk', 'ml', 'mm', 'mn', 'mn', 'mo', 'mp', 'mq', 'mr', 'ms',
+  'mt', 'mu', 'mv', 'mw', 'mx', 'my', 'mz', 'na', 'nc', 'ne', 'nf',
+  'ng', 'ni', 'nl', 'no', 'np', 'nr', 'nu', 'nz', 'om', 'pa', 'pe',
+  'pf', 'pg', 'ph', 'pk', 'pl', 'pm', 'pn', 'pr', 'ps', 'pt', 'pw',
+  'py', 'qa', 're', 'ro', 'rs', 'ru', 'su', 'рф', 'rw', 'sa', 'sb',
+  'sc', 'sd', 'se', 'sg', 'sh', 'si', 'sj', 'no', 'sk', 'sl', 'sm',
+  'sn', 'so', 'sr', 'ss', 'st', 'su', 'sv', 'sx', 'sy', 'sz', 'tc',
+  'td', 'tf', 'tg', 'th', 'tj', 'tk', 'tl', 'tp', 'tm', 'tn', 'to',
+  'tp', 'tl', 'tr', 'tt', 'tv', 'tw', 'tz', 'ua', 'ug', 'uk', 'us',
+  'gov', 'uy', 'uz', 'va', 'vc', 've', 'vg', 'vi', 'vn', 'vu', 'wf',
+  'ws', 'ye', 'yt', 'yu', 'za', 'zm', 'zw'
+];
+
 var ipv4RegExp = new RegExp(
   '^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$');
 // ensure that each part of the domain is long enough
@@ -89,7 +119,23 @@ var LINK_TYPES = {
       ].join(''), 'mgi'),
     matchFilter: function urlMatchFilter(url, linkSpec) {
       var match = linkSpec.match;
+      var scheme, tld;
+
       if (!checkDomain(match[2] + match[3])) {
+        return false;
+      }
+
+      scheme = match[1];
+      tld = match[3] && match[3].slice(1);
+
+      // For Cases where:
+      //
+      //  1. There was no scheme (eg, "http", "https")
+      //  2. The matched tld is not a number
+      //  3. The matched tld is not a known tld
+      //
+      // ... Do not create a clickable link
+      if (!scheme && (!isFinite(tld) && KNOWN_TLDS.indexOf(tld) === -1)) {
         return false;
       }
 

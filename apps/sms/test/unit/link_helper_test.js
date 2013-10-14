@@ -172,6 +172,15 @@ suite('link_helper_test.js', function() {
       test('Bug 890342 2', function() {
         testURLNOK('21.72');
       });
+
+      test('Bug 923739', function() {
+        testURLNOK('foo.zz');
+        testURLNOK('foo.foo');
+        testURLNOK('foo.quux');
+
+        testURLOK('http://whatever.stuff');
+        testURLOK('https://whatever.stuff');
+      });
     });
   });
 
