@@ -289,16 +289,16 @@
     };
   }
 
-  function handleNdefDiscovered(session) {
+  function handleNdefDiscovered(tech, session) {
     var connected = false;
     var handled = false;
     var nfcdom = window.navigator.mozNfc;
 
     // FIXME: This session must be a string token.
-    var token = 'dummy' + session;
+    var token = session;
     var nfctag = nfcdom.getNFCTag(token);
 
-    var conn = nfctag.connect('NDEF');
+    var conn = nfctag.connect(tech);
     conn.onsuccess = function() {
       debug('DBG: Success');
       var req = nfctag.readNDEF();
@@ -310,6 +310,8 @@
           debug('Unimplemented. Handle Unknown type.');
         } else {
           debug('Action: ' + JSON.stringify(action[0]));
+          action[0].data.tech = tech;
+          action[0].data.sessionToken = token;
           var a = new MozActivity(action[0]);
         }
         handled = true;
@@ -325,8 +327,8 @@
   }
 
   // TODO:
-  function handleNdefFormattableDiscovered(session) {
-    return handleNdefDiscovered(session);
+  function handleNdefFormattableDiscovered(tech, session) {
+    return handleNdefDiscovered(tech, session);
   }
 
   function handleTechnologyDiscovered(command) {
@@ -353,11 +355,12 @@
           // current user context to accept a message via registered app
           // callback/message. If so, fire P2P NDEF to app.
           // If not, drop message.
-          handled = handleNdefDiscovered(command.sessionId);
+          handled = handleNdefDiscovered(techs[i], command.sessionId);
         } else if (techs[i] == 'NDEF') {
-          handled = handleNdefDiscovered();
+          handled = handleNdefDiscovered(techs[i], command.sessionId);
         } else if (techs[i] == 'NDEF_FORMATTABLE') {
-          handled = handleNdefFormattableDiscovered(command.session);
+          handled = handleNdefFormattableDiscovered(techs[i],
+                                                    command.sessionId);
         } else if (techs[i] == 'NFC_A') {
           debug('NFCA unsupported: ' + command.content);
         } else if (techs[i] == 'MIFARE_ULTRALIGHT') {

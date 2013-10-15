@@ -229,32 +229,46 @@ function launchBrowser(URL) {
       };
 }
 
-function handleNdefDiscovered() {
+function handleNdefDiscovered(sessionToken, techType) {
   // Process:
   var handled = false;
-  var nfcTag = navigator.mozNfc.getNFCTag('dummy' + sessionToken);
+  // Get a tag DOM object:
+  var nfcdom = window.navigator.mozNfc;
+  var nfcTag = nfcdom.getNFCTag(sessionToken);
+  nfcUI.setNFCTag(nfcTag);
   // connect:
-  var detailreq = nfcTag.getDetailsNDEF();
-  debug('NDEF Details Request submitted.');
-  detailreq.onsuccess = function() {
-    // NDEF Message with array of NDEFRecords
-    debug('Details NDEF success');
-    debug('detailreq.result: ' + JSON.stringify(detailreq.result));
-    var readreq = nfcTag.readNDEF();
-    readreq.onsuccess = function() {
-      debug('Read success.');
-      debug('readreq: ' + JSON.stringify(readreq.result.records));
-      // Update UI:
-      handleNdefDiscoveredMessages(readreq.result.records);
-      handled = true;
+  //var connreq = nfcTag.connect(techType);
+  //connreq.onsuccess = function() {
+  //  debug('Connect success!');
+    var detailreq = nfcTag.getDetailsNDEF();
+    debug('NDEF Details Request submitted.');
+    detailreq.onsuccess = function() {
+      // NDEF Message with array of NDEFRecords
+      debug('Details NDEF success');
+      debug('detailreq.result: ' + JSON.stringify(detailreq.result));
+      var readreq = nfcTag.readNDEF();
+      readreq.onsuccess = function() {
+        debug('Read success.');
+        debug('readreq: ' + JSON.stringify(readreq.result.records));
+        // Update UI:
+        handleNdefDiscoveredMessages(readreq.result.records);
+        handled = true;
+        var closeTagReq = nfcTag.close();
+        closeTagReq.onerror = function() {
+          debug('ERROR: unable to close tag.');
+        };
+      };
+      readreq.onerror = function() {
+        debug('ERROR: Failed to read NDEF on tag.');
+      };
     };
-    readreq.onerror = function() {
-      debug('ERROR: Failed to read NDEF on tag.');
+    detailreq.onerror = function() {
+      debug('ERROR: Failed to get NDEF details.');
     };
-  };
-  detailreq.onerror = function() {
-    debug('ERROR: Failed to get NDEF details.');
-  };
+  //};
+  //connreq.onerror = function() {
+  //  debug('ERROR: connection failure');
+  //};
   return handled;
 }
 
@@ -347,41 +361,11 @@ function handleNdefDiscoveredMessages(ndefmessage) {
   $('#actionlist').listview('refresh');
 }
 
-function handleAsTechType(techType) {
-  var handled = false;
-  debug('Tech is ' + techType);
-
-  if (techType == 'NDEF') {
-    handled = handleNdefDiscovered();
-  } else if (tech[i] == 'NFC_A') {
-    debug('NFCA unsupported: ' + nfcevent.content);
-  } else if (tech[i] == 'MIFARE_ULTRALIGHT') {
-    debug('MiFare unsupported: ' + nfcevent.message);
-  } else {
-    debug('Unknown or unsupported tag tech type');
-  }
-  return handled;
+function handleTechnologyDiscovered(sessionToken) {
+  debug('Unimplemented NFC Technology Handler');
 }
 
-function handleTechnologyDiscovered(nfcevent) {
-  debug('Called handleTechnologyDiscovered notification');
-  debug('EventContents: ' + JSON.stringify(nfcevent.message.content));
-  var techs = nfcevent.message.content.tech;
-  var handled = false;
-
-  // Force Tech Priority:
-  var prio = ['NDEF', 'NFC_A', 'MIFARE_ULTRALIGHT'];
-  for (var ti = 0; ti < prio.length; ti++) {
-    var i = techs.indexOf(prio[ti]);
-    if (i != -1) {
-      handled = handleAsTechType(prio[ti]);
-      break;
-    }
-  }
-  return handled;
-}
-
-function handleTagDiscoveredMessages(nfcevent) {
+function handleTagDiscoveredMessages(sessionToken, nfcevent) {
   debug('Unimplemented NFC Tag Handler');
 }
 
@@ -418,10 +402,12 @@ function NfcActivityHandler(activity) {
   case 'nfc-ndef-discovered':
     debug('XX Received Activity: nfc ndef message(s): ' +
           JSON.stringify(data.records));
+    debug('XX Received Activity: data: ' + JSON.stringify(data));
     nfcUI.setConnectedState(true);
     // If there is a pending tag write, apply that write now.
     nfcUI.writePendingMessage();
-    handleNdefDiscovered();
+    // Here, we do a full read, instead of just using data.records.
+    handleNdefDiscovered(data.sessionToken, data.tech);
     break;
   case 'nfc-tech-discovered':
     debug('XX Received Activity: nfc technology message(s): ' +
@@ -429,13 +415,13 @@ function NfcActivityHandler(activity) {
     nfcUI.setConnectedState(true);
     // If there is a pending tag write, apply that write now.
     nfcUI.writePendingMessage();
-    handleTechnologyDiscovered(data.records);
+    handleTechnologyDiscovered(data.sessionToken);
     break;
   case 'nfc-tag-discovered':
     debug('XX Received Activity: nfc tag message(s): ' +
           JSON.stringify(data.records));
     nfcUI.setConnectedState(true);
-    handleTagDiscoveredMessages(data.records);
+    handleTagDiscoveredMessages(data.sessionToken);
     break;
   case 'nfc-tech-lost':
     debug('XX Received Activity: nfc-tech-lost: ' +

@@ -17,12 +17,16 @@ var nfcWriter = {
  * attach callbacks taking an event to the request's onsuccess
  * and onerror.
  */
-writeRecordArrayTag: function(ndefRecords, p2p) {
+writeRecordArrayTag: function(ndefRecords) {
   if (ndefRecords == null) {
     return null;
   }
-  var domreq = navigator.mozNfc.writeNDEF(ndefRecords);
+  var nfcTag = nfcUI.getNFCTag();
+  if (nfcTag) {
+    var domreq = nfcTag.writeNDEF(ndefRecords);
+  }
   console.log('Returned from writeNdefTag call');
+  nfcUI.p2p = false;
   return domreq;
 },
 
@@ -214,7 +218,7 @@ postEmptyTag: function() {
 makeReadOnlyNDEF: function() {
   if (nfcUI.getConnectedState()) {
     nfcUI.appendTextAndScroll($('#area'), 'Making Tag read only.\n');
-    return window.navigator.mozNfc.makeReadOnlyNDEF();
+    return nfcUI.getNFCTag().makeReadOnlyNDEF();
   } else {
     return null;
   }

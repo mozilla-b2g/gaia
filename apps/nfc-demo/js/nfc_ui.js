@@ -13,6 +13,22 @@ pendingNdefMessage: null,
 messageArea: null,
 p2p: false,
 isConnected: false,
+_nfcTag: null,
+
+closeNFCTag: function() {
+  if (this._nfcTag) {
+    this._nfcTag.close();
+    this._nfcTag = null;
+  }
+},
+
+setNFCTag: function(nfcTag) {
+  this._nfcTag = nfcTag;
+},
+
+getNFCTag: function() {
+  return this._nfcTag;
+},
 
 setConnectedState: function(connectedState) {
   if (connectedState) {
@@ -41,6 +57,7 @@ postPendingMessage: function(msgRecord) {
     $('#nfc_tag_write_dialog').click();
     if (this.isConnected) {
       this.writePendingMessage();
+      this.closeNFCTag();
     }
   }
 },
@@ -113,6 +130,7 @@ commonRequestHandler: function(pending) {
         return;
       }
       nfcUI.appendTextAndScroll($(nfcUI.messageArea), message + '\n');
+      nfcUI.closeNFCTag();
     };
     pending.onerror = function(e) {
       debug('In commonRequestHandler onerror.');
@@ -126,6 +144,7 @@ commonRequestHandler: function(pending) {
         return;
       }
       nfcUI.appendTextAndScroll($(nfcUI.messageArea), message + '\n');
+      nfcUI.closeNFCTag();
     };
   }
 },
