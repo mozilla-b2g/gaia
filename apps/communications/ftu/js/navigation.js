@@ -5,55 +5,41 @@
 var steps = {
   1: {
     onlyForward: true,
-    onlyBackward: false,
     hash: '#languages',
     requireSIM: false
   },
   2: {
     onlyForward: false,
-    onlyBackward: true,
-    hash: '#SIM_mandatory',
+    hash: '#data_3g',
     requireSIM: true
   },
   3: {
     onlyForward: false,
-    onlyBackward: false,
-    hash: '#data_3g',
-    requireSIM: true
+    hash: '#wifi',
+    requireSIM: false
   },
   4: {
     onlyForward: false,
-    onlyBackward: false,
-    hash: '#wifi',
+    hash: '#date_and_time',
     requireSIM: false
   },
   5: {
     onlyForward: false,
-    onlyBackward: false,
-    hash: '#date_and_time',
+    hash: '#geolocation',
     requireSIM: false
   },
   6: {
     onlyForward: false,
-    onlyBackward: false,
-    hash: '#geolocation',
+    hash: '#import_contacts',
     requireSIM: false
   },
   7: {
     onlyForward: false,
-    onlyBackward: false,
-    hash: '#import_contacts',
+    hash: '#welcome_browser',
     requireSIM: false
   },
   8: {
     onlyForward: false,
-    onlyBackward: false,
-    hash: '#welcome_browser',
-    requireSIM: false
-  },
-  9: {
-    onlyForward: false,
-    onlyBackward: false,
     hash: '#browser_privacy',
     requireSIM: false
   }
@@ -216,17 +202,6 @@ var Navigation = {
         break;
       case '#SIM_mandatory':
         UIManager.mainTitle.innerHTML = _('SIM_mandatory');
-        // If SIM card is mandatory, we hide the button skip
-        if (this.simMandatory) {
-          UIManager.unlockSimButton.classList.add('send-only');
-          UIManager.skipPinButton.classList.add('send-only');
-        }else {
-          UIManager.unlockSimButton.classList.remove('send-only');
-          UIManager.skipPinButton.classList.remove('send-only');
-        }
-        DataMobile.
-          getStatus(UIManager.updateDataConnectionStatus.bind(UIManager));
-
         break;
       case '#about-your-rights':
       case '#about-your-privacy':
@@ -240,8 +215,18 @@ var Navigation = {
 
     UIManager.progressBar.className = className;
 
+    // If SIM card is mandatory, we hide the button skip
+    if (this.simMandatory) {
+      UIManager.unlockSimButton.classList.add('send-only');
+      UIManager.skipPinButton.classList.add('send-only');
+    }else {
+      UIManager.unlockSimButton.classList.remove('send-only');
+      UIManager.skipPinButton.classList.remove('send-only');
+    }
+
     // Managing options button
-    if (this.currentStep != 4) { //wifi
+    if (this.currentStep <= numSteps &&
+        steps[this.currentStep].hash !== '#wifi') {
       UIManager.activationScreen.classList.add('no-options');
     }
 
@@ -273,6 +258,16 @@ var Navigation = {
     if (futureLocation.hash === '#wifi') {
       utils.overlay.show(_('scanningNetworks'), 'spinner');
     }
+
+    // If SIMcard is mandatory and no SIM, go to message window
+    if (self.simMandatory && IccHelper.cardState === 'absent' &&
+      futureLocation.requireSIM) {
+      //Send to SIM Mandatory message
+      futureLocation.hash = '#SIM_mandatory';
+      futureLocation.requireSIM = false;
+      futureLocation.onlyBackward = true;
+    }
+
     // Navigation bar management
     if (steps[this.currentStep].onlyForward) {
       UIManager.navBar.classList.add('forward-only');
@@ -291,6 +286,7 @@ var Navigation = {
     } else {
       nextButton.firstChild.textContent = _('navbar-next');
     }
+
     // Change hash to the right location
     window.location.hash = futureLocation.hash;
 
@@ -299,24 +295,9 @@ var Navigation = {
       SimManager.handleCardState(function check_cardState(response) {
         self.skipped = false;
         if (!response) {
-          if (!self.simMandatory) {
-            self.skipStep();
-          }
-        } else if (futureLocation.hash === '#SIM_mandatory') {
           self.skipStep();
         }
       });
-      self.checkCurrentStep();
     }
-  },
-  // If we unlock the sim and current step is SIM_mandatory,
-  // we have to skip the current step
-  checkCurrentStep: function n_checkCurrentStep() {
-     if (steps[this.currentStep].hash === '#SIM_mandatory') {
-        if (!this.simMandatory || (this.simMandatory && SimManager._unlocked)) {
-          this.skipStep();
-        }
-      }
   }
 };
-
