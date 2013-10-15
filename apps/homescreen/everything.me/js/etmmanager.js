@@ -6,20 +6,20 @@ var EvmeManager = (function EvmeManager() {
    * The entry point is encapsulated as a query key
    * http://communications.gaiamobile.org:8080/manifest.webapp?eme-ep=dialer
    */
-  var EME_ENTRY_POINT_KEY = "eme-ep";
+  var EME_ENTRY_POINT_KEY = 'eme-ep';
 
   var currentWindow = null,
       currentURL = null;
 
   function addGridItem(params, extra) {
     var item = GridItemsFactory.create({
-      "id": params.id || Evme.Utils.uuid(),
-      "bookmarkURL": params.originUrl,
-      "name": params.name,
-      "icon": params.icon,
-      "iconable": false,
-      "useAsyncPanZoom": params.useAsyncPanZoom,
-      "type": !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
+      'id': params.id || Evme.Utils.uuid(),
+      'bookmarkURL': params.originUrl,
+      'name': params.name,
+      'icon': params.icon,
+      'iconable': false,
+      'useAsyncPanZoom': params.useAsyncPanZoom,
+      'type': !!params.isCollection ? GridItemsFactory.TYPE.COLLECTION :
               GridItemsFactory.TYPE.BOOKMARK
     });
     GridManager.install(item, params.gridPageOffset, extra);
@@ -46,27 +46,27 @@ var EvmeManager = (function EvmeManager() {
 
   function openUrl(url) {
     new MozActivity({
-      name: "view",
+      name: 'view',
       data: {
-        type: "url",
+        type: 'url',
         url: url
       }
     });
   }
 
   function menuShow() {
-    footerStyle.MozTransform = "translateY(0)";
+    footerStyle.MozTransform = 'translateY(0)';
   }
 
   function menuHide() {
-    footerStyle.MozTransform = "translateY(100%)";
+    footerStyle.MozTransform = 'translateY(100%)';
   }
 
-  var footerStyle = document.getElementById("footer").style;
-  footerStyle.MozTransition = "-moz-transform .3s ease";
+  var footerStyle = document.getElementById('footer').style;
+  footerStyle.MozTransition = '-moz-transform .3s ease';
 
   function getMenuHeight() {
-    return document.getElementById("footer").offsetHeight;
+    return document.getElementById('footer').offsetHeight;
   }
 
   /**
@@ -88,7 +88,7 @@ var EvmeManager = (function EvmeManager() {
     if (gridApp) {
       getAppInfo(gridApp, cb);
     } else {
-      console.error("E.me error: app " + origin + " does not exist");
+      console.error('E.me error: app ' + origin + ' does not exist');
     }
   }
 
@@ -98,7 +98,7 @@ var EvmeManager = (function EvmeManager() {
     if (icon) {
       getAppInfo(icon, cb);
     } else {
-      console.error("E.me error: app " + origin + " does not exist");
+      console.error('E.me error: app ' + origin + ' does not exist');
       cb();
     }
   }
@@ -129,7 +129,8 @@ var EvmeManager = (function EvmeManager() {
     }
 
     if (!id) {
-      console.warn('E.me: no id found for ' + descriptor.name + '. Will not show up in results');
+      console.warn('E.me: no id found for ' + descriptor.name +
+                                              '. Will not show up in results');
       cb();
       return;
     }
@@ -137,11 +138,12 @@ var EvmeManager = (function EvmeManager() {
     icon = GridManager.getIcon(descriptor);
 
     appInfo = {
-      "id": id,
-      "name": descriptor.name,
-      "appUrl": nativeApp.origin,
-      "icon": Icon.prototype.DEFAULT_ICON_URL,
-      "isOfflineReady": icon && 'isOfflineReady' in icon && icon.isOfflineReady()
+      'id': id,
+      'name': descriptor.name,
+      'appUrl': nativeApp.origin,
+      'icon': Icon.prototype.DEFAULT_ICON_URL,
+      'isOfflineReady': icon &&
+                          'isOfflineReady' in icon && icon.isOfflineReady()
     };
 
     // appInfo is an extended descriptor
@@ -162,7 +164,9 @@ var EvmeManager = (function EvmeManager() {
       retrieveIcon({
         icon: icon,
         done: function(blob) {
-          if (blob) appInfo['icon'] = blob;
+          if (blob) {
+            appInfo['icon'] = blob;
+          }
           cb(appInfo);
         }
       });
@@ -173,8 +177,10 @@ var EvmeManager = (function EvmeManager() {
    * Generate a uuid for E.me to reference the app
    */
   function generateAppId(manifestURL, entryPoint) {
-    if (entryPoint)
-      return Evme.Utils.insertParam(manifestURL, EME_ENTRY_POINT_KEY, entryPoint);
+    if (entryPoint) {
+      return Evme.Utils.insertParam(manifestURL,
+                                      EME_ENTRY_POINT_KEY, entryPoint);
+    }
 
     return manifestURL;
   }
@@ -199,10 +205,12 @@ var EvmeManager = (function EvmeManager() {
 
     xhr.onload = function onload(evt) {
       var status = xhr.status;
-      if (status !== 0 && status !== 200)
+      if (status !== 0 && status !== 200) {
         request.done();
-      else
+      }
+      else {
         request.done(xhr.response);
+      }
     };
 
     xhr.ontimeout = xhr.onerror = function onerror(evt) {
