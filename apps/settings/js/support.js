@@ -91,7 +91,7 @@ var Support = {
           .setAttribute('data-has-support-info', true);
 
         var numbers = document.getElementById('call-support-numbers');
-        if (callSupportInfo.length < 2) {
+        if (supportInfo.length < 2) {
           numbers.appendChild(self.createLinkNode(supportInfo[0]));
         }
         else {
@@ -147,6 +147,11 @@ var Support = {
         }
         else if (supportInfo) {
           // No customized values, use what's in the JSON file.
+          setCallSupportInfo(supportInfo.callsupport);
+        }
+      };
+      callSupportTitle1Req.onerror = function() {
+        if (supportInfo) {
           setCallSupportInfo(supportInfo.callsupport);
         }
       };
