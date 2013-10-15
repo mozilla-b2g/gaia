@@ -47,13 +47,13 @@ class Browser(Base):
         Base.launch(self)
         self.wait_for_condition(lambda m: m.execute_script("return window.wrappedJSObject.Browser.hasLoaded;"))
 
-    def go_to_url(self, url):
+    def go_to_url(self, url, timeout=30):
         self.wait_for_element_displayed(*self._awesome_bar_locator)
         awesome_bar = self.marionette.find_element(*self._awesome_bar_locator)
         awesome_bar.tap()
         self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(url)
-        self.tap_go_button()
+        self.tap_go_button(timeout=timeout)
 
     @property
     def url(self):
@@ -70,11 +70,11 @@ class Browser(Base):
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.app.frame)
 
-    def tap_go_button(self):
+    def tap_go_button(self, timeout=30):
         url_button = self.marionette.find_element(*self._url_button_locator)
         # TODO Tap one pixel above bottom edge to dodge the System update notification banner bug 876723
         url_button.tap(y=(url_button.size['height'] - 1))
-        self.wait_for_throbber_not_visible()
+        self.wait_for_throbber_not_visible(timeout=timeout)
         self.wait_for_element_displayed(*self._bookmark_button_locator)
 
     def tap_back_button(self):
@@ -119,9 +119,9 @@ class Browser(Base):
         element.send_keys(value)
         self.keyboard.dismiss()
 
-    def wait_for_throbber_not_visible(self):
+    def wait_for_throbber_not_visible(self, timeout=30):
         # TODO see if we can reduce this timeout in the future. >10 seconds is poor UX
-        self.wait_for_condition(lambda m: not self.is_throbber_visible, timeout=20)
+        self.wait_for_condition(lambda m: not self.is_throbber_visible, timeout=timeout)
 
     @property
     def is_throbber_visible(self):
