@@ -269,18 +269,18 @@
   }
 
   function resetToCEMaxVolume(callback) {
-    pendingRequestCount++;
+    pendingRequest.v();
     var req = SettingsListener.getSettingsLock().set({
       'audio.volume.content': CEWarningVol - 1
     });
 
     req.onsuccess = function onSuccess() {
-      pendingRequestCount--;
+      pendingRequest.p();
       showCEWarningDialog(callback);
     };
 
     req.onerror = function onError() {
-      pendingRequestCount--;
+      pendingRequest.p();
       showCEWarningDialog(callback);
     };
   }
@@ -333,7 +333,7 @@
     'content': 15,
     'bt_sco': 15
   };
-  var pendingRequestCount = 0;
+  var pendingRequest = new AsyncSemaphore();
   var setVibrationEnabledCount = 0;
 
   // We have three virtual states here:
@@ -355,49 +355,50 @@
       (function(channel) {
         var setting = 'audio.volume.' + channel;
         SettingsListener.observe(setting, 5, function onSettingsChange(volume) {
+          var settingsChange = function settings_change() {
+            var max = MAX_VOLUME[channel];
+            currentVolume[channel] =
+              parseInt(Math.max(0, Math.min(max, volume)), 10);
+
+            if (channel === 'content' && inited && volume > 0) {
+              leaveSilentMode('content',
+                              /* skip volume restore */ true);
+            } else if (channel === 'notification' && volume > 0) {
+              leaveSilentMode('notification',
+                              /* skip volume restore */ true);
+            } else if (channel === 'notification' && volume == 0) {
+              // Enter silent mode when notification volume is 0
+              // no matter who sets this value.
+              enterSilentMode('notification');
+            }
+
+            if (!inited && ++callbacksReceived === callsMade)
+              callback();
+          };
+
           // Initial loaded setting should always pass through (one per channel)
-          if (pendingRequestCount)
-            return;
-
-          var max = MAX_VOLUME[channel];
-          currentVolume[channel] =
-            parseInt(Math.max(0, Math.min(max, volume)), 10);
-
-          if (channel === 'content' && inited && volume > 0) {
-            leaveSilentMode('content',
-                            /* skip volume restore */ true);
-          } else if (channel === 'notification' && volume > 0) {
-            leaveSilentMode('notification',
-                            /* skip volume restore */ true);
-          } else if (channel === 'notification' && volume == 0) {
-            // Enter silent mode when notification volume is 0
-            // no matter who sets this value.
-            enterSilentMode('notification');
-          }
-
-          if (!inited && ++callbacksReceived === callsMade)
-            callback();
+          pendingRequest.wait(settingsChange, this);
         });
       })(channel);
     }
   })(fetchCachedVolume);
 
   SettingsListener.observe('vibration.enabled', true, function(vibration) {
-    var setBySelf = false;
+    var setBySelf = false,
+      toggleVibrationEnabled = function toggle_vibration_enabled() {
+        // XXX: If the value does not set by sound manager,
+        //      we assume it comes from
+        //      the settings app and consider it as user preference.
+        if (!setBySelf) {
+          vibrationUserPreference.enabled = vibration;
+        }
+        vibrationEnabled = vibration;
+      };
     if (setVibrationEnabledCount > 0) {
       setVibrationEnabledCount--;
       setBySelf = true;
     }
-
-    if (pendingRequestCount)
-      return;
-
-    // XXX: If the value does not set by sound manager, we assume it comes from
-    //      the settings app and consider it as user preference.
-    if (!setBySelf) {
-      vibrationUserPreference.enabled = vibration;
-    }
-    vibrationEnabled = vibration;
+    pendingRequest.wait(toggleVibrationEnabled, this);
   });
 
   // Fetch stored volume if it exists.
@@ -411,18 +412,18 @@
       return;
 
     inited = true;
-    pendingRequestCount += cachedChannels.length;
+    pendingRequest.v(cachedChannels.length);
     cachedChannels.forEach(
       function iterator(channel) {
         window.asyncStorage.getItem('content.volume',
           function onGettingCachedVolume(value) {
             if (!value) {
-              pendingRequestCount--;
+              pendingRequest.p();
               return;
             }
 
             cachedVolume[channel] = value;
-            pendingRequestCount--;
+            pendingRequest.p();
           });
       });
   }
@@ -523,14 +524,14 @@
     var isCachedAlready =
       (cachedVolume[channel] == currentVolume[channel]);
     cachedVolume[channel] = currentVolume[channel];
-    pendingRequestCount++;
+    pendingRequest.v();
+
     var settingObject = {};
     settingObject['audio.volume.' + channel] = 0;
     var req = SettingsListener.getSettingsLock().set(settingObject);
 
     req.onsuccess = function onSuccess() {
-      pendingRequestCount--;
-
+      pendingRequest.p();
       // Write to async storage only happens when
       // we haven't stored it before.
       // If the user presses the volume rockers repeatedly down and up,
@@ -541,7 +542,7 @@
     };
 
     req.onerror = function onError() {
-      pendingRequestCount--;
+      pendingRequest.p();
     };
   }
 
@@ -566,15 +567,15 @@
       settingObject['audio.volume.' + channel] =
         (cachedVolume[channel] > 0) ? cachedVolume[channel] : 1;
 
-      pendingRequestCount++;
+      pendingRequest.v();
       req = SettingsListener.getSettingsLock().set(settingObject);
 
       req.onsuccess = function onSuccess() {
-        pendingRequestCount--;
+        pendingRequest.p();
       };
 
       req.onerror = function onError() {
-        pendingRequestCount--;
+        pendingRequest.p();
       };
     }
 
@@ -656,7 +657,8 @@
     if (!window.navigator.mozSettings)
       return;
 
-    pendingRequestCount++;
+    pendingRequest.v();
+
     var req;
 
     notification.dataset.channel = channel;
@@ -667,11 +669,11 @@
     req = SettingsListener.getSettingsLock().set(settingObject);
 
     req.onsuccess = function onSuccess() {
-      pendingRequestCount--;
+      pendingRequest.p();
     };
 
     req.onerror = function onError() {
-      pendingRequestCount--;
+      pendingRequest.p();
     };
   }
 
