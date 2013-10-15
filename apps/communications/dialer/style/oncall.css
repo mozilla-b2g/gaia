@@ -376,7 +376,7 @@
 
   #calls[data-cdma-call-waiting="true"] > section .switch-calls {
     background: #01c5ed;
-    height: 7.5rem;
+    height: 8.0rem;
     width: auto;
     float: right;
     padding: 0rem;
@@ -431,8 +431,6 @@
 
   #calls[data-cdma-call-waiting="true"] > section .numberWrapper .number {
     font-size: 2.3rem;
-    padding-top: 1.5rem;
-    padding-bottom: 0.5rem;
   }
 
   #calls > section .fake-number {
@@ -447,17 +445,11 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 2rem 2rem 2rem;
+    padding: 0.3rem 2rem 2rem 2rem;
     background: #01c5ed;
     font-size: 1.5rem;
     line-height: 2rem;
     color: white;
-  }
-
-  #calls[data-cdma-call-waiting="true"] > section .additionalContactInfo {
-    height: 1.5rem;
-    padding: 0 2rem 1.5rem 2rem;
-    font-size: 1.4rem;
   }
 
   #calls.big-duration > section:not(.additionalInfo)
