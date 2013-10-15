@@ -24,10 +24,15 @@ var Support = {
     });
   },
 
-  createLinkNode: function support_createLinkNode(data) {
+  createLinkNode: function support_createLinkNode(data, type) {
     var link = document.createElement('a');
     link.setAttribute('href', data.href);
-    link.textContent = data.title;
+    link.classList.add('link-text');
+    if (type == 'tel') {
+      link.textContent = data.title + ' (' + data.href + ')';
+    } else {
+      link.textContent = data.title;
+    }
     return link;
   },
 
@@ -46,13 +51,8 @@ var Support = {
       // JSON file.
       function setOnlineSupportInfo(onlineSupportInfo) {
         enableSupportInfo();
-
         var text = document.getElementById('online-support-text');
-        text.textContent = onlineSupportInfo.title;
-
-        var link = document.getElementById('online-support-link');
-        link.target = 'blank';
-        link.href = onlineSupportInfo.href;
+        text.appendChild(self.createLinkNode(onlineSupportInfo));
       }
 
       var settings = Settings.mozSettings;
@@ -74,8 +74,7 @@ var Support = {
               onlineSupportHrefRequest['support.onlinesupport.href'];
             setOnlineSupportInfo(onlineSupportInfo);
           };
-        }
-        else if (supportInfo) {
+        } else if (supportInfo) {
           setOnlineSupportInfo(supportInfo.onlinesupport);
         }
       };
@@ -87,20 +86,10 @@ var Support = {
 
       // Local helper function to set the information once we've retrieved it.
       function setCallSupportInfo(supportInfo) {
-        document.getElementById('help')
-          .setAttribute('data-has-support-info', true);
-
+        enableSupportInfo();
         var numbers = document.getElementById('call-support-numbers');
-        if (supportInfo.length < 2) {
-          numbers.appendChild(self.createLinkNode(supportInfo[0]));
-        }
-        else {
-          var link1 = self.createLinkNode(supportInfo[0]);
-          var link2 = self.createLinkNode(supportInfo[1]);
-          numbers.innerHTML = navigator.mozL10n
-            .get('call-support-numbers', { 'link1': link1.outerHTML,
-                                           'link2': link2.outerHTML });
-        }
+        for (var id in supportInfo)
+          numbers.appendChild(self.createLinkNode(supportInfo[id], 'tel'));
       }
 
       // Check to see if we have a title for the first support number.
@@ -144,8 +133,7 @@ var Support = {
               }
             };
           };
-        }
-        else if (supportInfo) {
+        } else if (supportInfo) {
           // No customized values, use what's in the JSON file.
           setCallSupportInfo(supportInfo.callsupport);
         }
