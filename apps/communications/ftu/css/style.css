@@ -236,6 +236,7 @@ a {
   font-size: 1.5rem;
   width: auto;
   height: 2rem;
+  pointer-events: none;
 }
 
 #unlock-sim-screen .input-wrapper {
@@ -271,7 +272,6 @@ a {
     height: 4rem;
     resize: none;
     padding: 0 0.8rem;
-    pointer-events: none;
 }
 
 #skip-pin-button.send-only {
