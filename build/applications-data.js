@@ -222,6 +222,24 @@ function execute(options) {
       transition_duration = customize.swipe.transition_duration;
   }
 
+  // if we disabled search_page
+  if (!search_page_enabled) {
+    let hasCollection = customize.homescreens.some(function(applist) {
+      return applist.some(function(eachApp) {
+        if (/collections$/.test(eachApp[0])) {
+          return true;
+        }
+      });
+    });
+
+    // but we still have collections
+    // then it means we have to take off them in build time.
+    if (hasCollection) {
+      throw new Error(
+        'bad homescreens.json, please remove collections when disabling search_page');
+    }
+  }
+
   let content = {
     search_page: {
       provider: 'EverythingME',
