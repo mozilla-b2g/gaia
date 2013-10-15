@@ -1823,13 +1823,16 @@ var TabBar = {
           case 'tabs-artists':
           case 'tabs-albums':
           case 'tabs-songs':
-            ModeManager.start(MODE_LIST);
-            ListView.clean();
-
             var option = this.option;
             var direction = (option === 'title') ? 'next' : 'nextunique';
 
+            // Choose one of the indexes to get the count and it should be the
+            // correct count because failed records don't contain metadata, so
+            // here we just pick the album as index.
             musicdb.count('metadata.album', null, function(count) {
+              ModeManager.start(MODE_LIST);
+              ListView.clean();
+
               listHandle =
                 musicdb.enumerate('metadata.' + option, null, direction,
                   function(record) {
@@ -1848,6 +1851,27 @@ var TabBar = {
                       // the height.
                       count = record ? count : null;
                       ListView.adjustHeight(option, count);
+                    }
+
+                    // If PlayerView is enabled and the enumeration is not
+                    // finished yet, we can re-enable the next button when
+                    // we retrieve every batch size records, so that users
+                    // won't be blocked and cannot go to next songs if all
+                    // the records are not retrieved yet.
+                    // And after we retrieved all the records, we also need
+                    // to fix the data source because the shuffled list could
+                    // be created by uncompleted records due to the large
+                    // collection of the user songs.
+                    if (typeof PlayerView !== 'undefined' &&
+                        PlayerView.playStatus !== PLAYSTATUS_STOPPED)
+                    {
+                      if (ListView.dataSource.length % LIST_BATCH_SIZE === 0)
+                        PlayerView.nextControl.disabled = false;
+
+                      if (!record) {
+                        PlayerView.fixSource();
+                        PlayerView.nextControl.disabled = false;
+                      }
                     }
                   });
             });

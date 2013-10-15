@@ -298,6 +298,19 @@ var PlayerView = {
     }
   },
 
+  // shuffle the elements of array a in place
+  // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+  shuffle: function slv_shuffle(a) {
+    for (var i = a.length - 1; i >= 1; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      if (j < i) {
+        var tmp = a[j];
+        a[j] = a[i];
+        a[i] = tmp;
+      }
+    }
+  },
+
   shuffleList: function slv_shuffleList(index) {
     if (this.dataSource.length === 0)
       return;
@@ -316,23 +329,27 @@ var PlayerView = {
     if (arguments.length > 0) {
       var currentItem = this.shuffledList.splice(index, 1);
 
-      slv_shuffle(this.shuffledList);
+      this.shuffle(this.shuffledList);
       this.shuffledList = currentItem.concat(this.shuffledList);
     } else {
-      slv_shuffle(this.shuffledList);
+      this.shuffle(this.shuffledList);
     }
+  },
 
-    // shuffle the elements of array a in place
-    // http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
-    function slv_shuffle(a) {
-      for (var i = a.length - 1; i >= 1; i--) {
-        var j = Math.floor(Math.random() * (i + 1));
-        if (j < i) {
-          var tmp = a[j];
-          a[j] = a[i];
-          a[i] = tmp;
-        }
-      }
+  fixSource: function pv_fixSource() {
+    // We need to fix the data source when the shuffled list was not created
+    // with all the records from MediaDB.
+    if (this.shuffleOption &&
+        this.shuffledList.length < this.dataSource.length)
+    {
+      var start = this.shuffledList.length;
+      var restList = [];
+
+      for (var i = start; i < this.dataSource.length; i++)
+        restList.push(i);
+
+      this.shuffle(restList);
+      this.shuffledList = this.shuffledList.concat(restList);
     }
   },
 
@@ -585,6 +602,10 @@ var PlayerView = {
 
     var realIndex = (this.shuffleOption) ?
       this.shuffledList[this.shuffleIndex] : this.currentIndex;
+
+    // Disable the next button when the next song is not retrieved yet.
+    if (!this.dataSource[realIndex + 1])
+      this.nextControl.disabled = true;
 
     this.play(realIndex);
   },
