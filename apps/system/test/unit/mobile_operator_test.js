@@ -2,6 +2,7 @@
 
 'use strict';
 
+require('/shared/js/icc_helper.js');
 requireApp('system/shared/js/mobile_operator.js');
 
 suite('shared/MobileOperator', function() {
