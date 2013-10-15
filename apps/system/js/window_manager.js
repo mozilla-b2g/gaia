@@ -469,10 +469,11 @@ var WindowManager = (function() {
       HomescreenLauncher.getHomescreen().close();
     };
 
-    if ('unloaded' in openFrame.firstChild.dataset) {
+    var iframe = openFrame.firstChild;
+    if ('unloaded' in iframe.dataset) {
       setFrameBackground(openFrame, transitionOpenCallback);
     } else {
-      app._waitForNextPaint(transitionOpenCallback);
+      app.ensureFullRepaint(transitionOpenCallback);
     }
 
     // Set the frame to be visible.
