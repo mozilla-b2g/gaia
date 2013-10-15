@@ -538,29 +538,17 @@ bubble above the key when you tap and hold. */
 #keyboard-candidate-panel-toggle-button {
   display: none;
   z-index: 1;
-  background-color: #252220;
   position: absolute;
   right: 0rem;
-  top: 0.34rem;
+  top: 0.25rem;
   font-size: 0;
   height: 2.8rem;
-}
-
-#keyboard-candidate-panel-toggle-button-image {
-  display: block;
-  background: transparent url('images/icon_extend.png') center center no-repeat;
-  height: 100%;
-  pointer-events: none;
+  background: #252220 url('images/icon_extend.png') center center no-repeat;
+  background-size: 2.4rem;
 }
 
 #keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
-  display: block;
-  right: 8px;
-}
-
-#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button-image {
   background-image: url('images/icon_close.png');
-  margin-left: 8px;
 }
 
 #keyboard-candidate-panel .candidate-row {
@@ -596,6 +584,7 @@ bubble above the key when you tap and hold. */
   text-align: center;
   line-height: 2.8rem;
   background: transparent url('images/divider.png') right center no-repeat;
+  background-size: auto 10rem;
   border: none;
 }
 
