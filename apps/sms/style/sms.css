@@ -586,6 +586,7 @@ form.bottom[role="search"].messages-compose-form {
   -moz-box-sizing: border-box;
   /* Cursor hides itself otherwise: */
   overflow: auto;
+  white-space: pre-wrap;
   text-align: left;
   font-size: 1.8rem;
 }
