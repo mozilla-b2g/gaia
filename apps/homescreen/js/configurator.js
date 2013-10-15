@@ -102,8 +102,8 @@ var Configurator = (function() {
 
     function loadSVConfFileSuccess(mcc_mnc, loadedData) {
       loadedData[mcc_mnc].forEach(function(app) {
-        if (app.manifest) {
-          singleVariantApps[app.manifest] = app;
+        if (app.manifestURL) {
+           singleVariantApps[app.manifestURL] = app;
         }
       });
     }
