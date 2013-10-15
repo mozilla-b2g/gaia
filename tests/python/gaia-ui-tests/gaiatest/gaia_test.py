@@ -326,6 +326,13 @@ class GaiaData(object):
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllVideos();')
 
+    def sdcard_files(self, extension=''):
+        files = self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllSDCardFiles();')
+        if len(extension):
+            return [filename for filename in files if filename.endswith(extension)]
+        return files
+
 
 class GaiaDevice(object):
 
@@ -505,7 +512,6 @@ class GaiaTestCase(MarionetteTestCase):
             # Set do not track pref back to the default
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
-
             if self.data_layer.get_setting('ril.radio.disabled'):
                 # enable the device radio, disable Airplane mode
                 self.data_layer.set_setting('ril.radio.disabled', False)
@@ -532,7 +538,6 @@ class GaiaTestCase(MarionetteTestCase):
 
         # disable sound completely
         self.data_layer.set_volume(0)
-
 
     def install_marketplace(self):
         _yes_button_locator = (By.ID, 'app-install-install-button')
@@ -795,8 +800,8 @@ class GaiaEnduranceTestCase(GaiaTestCase):
         # Calculate the average b2g_rss
         total = 0
         for b2g_mem_value in b2g_rss_list:
-            total+=int(b2g_mem_value)
-        avg_rss = total/len(b2g_rss_list)
+            total += int(b2g_mem_value)
+        avg_rss = total / len(b2g_rss_list)
 
         # Create a summary text file
         summary_name = self.log_name.replace('.log', '_summary.log')

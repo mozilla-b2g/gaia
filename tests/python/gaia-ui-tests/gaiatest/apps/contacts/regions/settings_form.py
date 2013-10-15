@@ -40,6 +40,10 @@ class SettingsForm(Base):
         self.wait_for_element_displayed(*self._import_contacts_locator)
         self.marionette.find_element(*self._import_contacts_locator).tap()
 
+    def tap_export_contacts(self):
+        self.wait_for_element_displayed(*self._export_contacts_locator)
+        self.marionette.find_element(*self._export_contacts_locator).tap()
+
     def tap_import_from_sim(self):
         self.wait_for_element_displayed(*self._import_from_sim_button_locator)
         self.marionette.find_element(*self._import_from_sim_button_locator).tap()
