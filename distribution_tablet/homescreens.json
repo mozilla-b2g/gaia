@@ -11,5 +11,8 @@
     "threshold": 0.25,
     "friction": 0.1,
     "transition_duration": 300
+ },
+ "search_page": {
+   "enabled": false
  }
 }

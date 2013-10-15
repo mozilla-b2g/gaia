@@ -56,13 +56,13 @@ body[data-transitioning] .apps > div {
 }
 
 /* Maximum 12 icons for first page */
-.apps div:first-child ol > li:nth-child(13) {
+body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
   display: none;
 }
 
 /* Adds 1 row of icons */
 @media (min-device-width: 320px) and (min-device-height: 640px) {
-  .apps ol:first-child > li:nth-child(13) {
+  body.searchPageEnabled .apps ol:first-child > li:nth-child(13) {
     display: inline-block;
   }
 
@@ -71,12 +71,25 @@ body[data-transitioning] .apps > div {
   }
 
 	 /* Maximum 16 icons for first page */
-  .apps ol:first-child > li:nth-child(21) {
+  body.searchPageEnabled .apps ol:first-child > li:nth-child(17) {
     display: none;
   }
 
    /* Maximum 20 icons for page */
   .apps ol > li:nth-child(21) {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+
+  /* Maximum 15 icons for page */
+  .apps ol > li:nth-child(16) {
+    display: none;
+  }
+
+  /* Maximum 10 icons for first page when searchPageEnabled */
+  body.searchPageEnabled .apps div:first-child ol > li:nth-child(11) {
     display: none;
   }
 }
