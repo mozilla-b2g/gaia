@@ -44,6 +44,8 @@ var CallsHandler = (function callsHandler() {
     SimplePhoneMatcher.mcc = conn.voice.network.mcc;
   }
 
+  var btHelper = new BluetoothHelper();
+
   var ringtonePlayer = new Audio();
   ringtonePlayer.mozAudioChannelType = 'ringer';
   ringtonePlayer.src = phoneSoundURL.get();
@@ -72,6 +74,12 @@ var CallsHandler = (function callsHandler() {
         }
       });
     }
+
+    btHelper.onscostatuschanged = function onscostatuschanged(evt) {
+      if (evt.status) {
+        CallScreen.turnSpeakerOff();
+      }
+    };
 
     postToMainWindow('ready');
   }
