@@ -39,7 +39,7 @@ class TestCostControlDataAlertMobile(GaiaTestCase):
         # open browser to get some data downloaded
         browser = Browser(self.marionette)
         browser.launch()
-        browser.go_to_url('http://developer.mozilla.org/')
+        browser.go_to_url('http://developer.mozilla.org/', timeout=120)
         browser.switch_to_content()
         self.wait_for_element_present(*self._page_body_locator, timeout=120)
         browser.switch_to_chrome()
