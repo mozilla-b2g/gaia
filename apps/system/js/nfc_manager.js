@@ -298,7 +298,7 @@
     var token = 'dummy' + session;
     var nfctag = nfcdom.getNFCTag(token);
 
-    var conn = nfctag.connect(6);
+    var conn = nfctag.connect('NDEF');
     conn.onsuccess = function() {
       debug('DBG: Success');
       var req = nfctag.readNDEF();
