@@ -92,6 +92,14 @@ var SimManager = {
     switch (IccHelper.cardState) {
       case 'pinRequired':
         this.showPinScreen();
+        UIManager.pinInput.addEventListener('blur', function(evt) {
+          evt.preventDefault();
+          if (!(document.activeElement instanceof HTMLInputElement)) {
+            setTimeout(function() {
+              UIManager.pinInput.focus();
+            });
+          }
+        });
         break;
       case 'pukRequired':
         this.showPukScreen();
