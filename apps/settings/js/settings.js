@@ -844,9 +844,13 @@ window.addEventListener('load', function loadSettings() {
 
   Settings.init();
 
-  LazyLoader.load(['js/utils.js', 'js/mvvm/models.js', 'js/mvvm/views.js'],
-    startupLocale);
-  LazyLoader.load([
+  setTimeout(function nextTick() {
+    LazyLoader.load([
+      'js/utils.js',
+      'js/mvvm/models.js',
+      'js/mvvm/views.js'],
+      startupLocale);
+    LazyLoader.load([
       'shared/js/keyboard_helper.js',
       'js/airplane_mode.js',
       'js/battery.js',
@@ -859,7 +863,8 @@ window.addEventListener('load', function loadSettings() {
       'js/security_privacy.js',
       'js/icc_menu.js',
       'shared/js/settings_listener.js'
-  ], handleRadioAndCardState);
+    ], handleRadioAndCardState);
+  });
 
   function handleRadioAndCardState() {
     function disableSIMRelatedSubpanels(disable) {

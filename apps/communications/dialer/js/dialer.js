@@ -16,6 +16,7 @@ var CallHandler = (function callHandler() {
   window.addEventListener('load', function getSettingsListener() {
     window.removeEventListener('load', getSettingsListener);
 
+    setTimeout(function nextTick() {
       LazyLoader.load('/shared/js/settings_listener.js', function() {
         SettingsListener.observe('lockscreen.locked', null, function(value) {
           if (value) {
@@ -25,6 +26,7 @@ var CallHandler = (function callHandler() {
           }
         });
       });
+    });
   });
 
   /* === WebActivity === */
