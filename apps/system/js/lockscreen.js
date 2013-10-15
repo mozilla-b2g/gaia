@@ -317,6 +317,12 @@ var LockScreen = {
           break;
         }
 
+        // If the screen got blackout, should restore the slide.
+        this.restoreSlide();
+        this.slideLeft.classList.remove('touched');
+        this.slideCenter.classList.remove('touched');
+        this.slideRight.classList.remove('touched');
+
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
         // when it's being turned back on
