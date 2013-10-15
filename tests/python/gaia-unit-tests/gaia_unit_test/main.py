@@ -47,11 +47,12 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
     def on_envs_complete(self):
         exitCode = 0
+        if self.failures or not self.passes:
+            # Magic non-zero value to match the expectations of the mozharness
+            # script.
+            exitCode = 10
 
         for env in self.envs:
-            if (self.envs[env].failures > 0):
-                exitCode = 10
-
             if len(self.envs[env].output):
                 print '\ntest report: (' + env + ')'
                 print '\n'.join(self.envs[env].output)
