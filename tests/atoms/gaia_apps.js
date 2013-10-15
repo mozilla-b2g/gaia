@@ -32,7 +32,8 @@ var GaiaApps = {
     let origin;
 
     for (let property in runningApps) {
-      if (runningApps[property].name == name) {
+      if (runningApps[property].manifest &&
+          runningApps[property].manifest.name == name) {
         origin = property;
       }
     }
