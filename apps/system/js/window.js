@@ -189,6 +189,24 @@
   };
 
   /**
+   * Wait for a full repaint of the mozbrowser iframe.
+   */
+  AppWindow.prototype.ensureFullRepaint = function onFullRepaint(callback) {
+    if (!callback)
+      return;
+
+    var iframe = this.iframe;
+    if ('getScreenshot' in iframe) {
+      var request = iframe.getScreenshot(1, 1);
+      request.onsuccess = request.onerror = function onRepainted() {
+        setTimeout(callback);
+      };
+    } else {
+      setTimeout(callback);
+    }
+  };
+
+  /**
    * Wait for a next paint event from mozbrowser iframe,
    * The callback would be called in this.NEXTPAINT_TIMEOUT ms
    * if the next paint event doesn't happen.
