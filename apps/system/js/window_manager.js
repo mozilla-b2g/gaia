@@ -357,11 +357,14 @@ var WindowManager = (function() {
         HomescreenLauncher.getHomescreen().setVisible(false);
       }
 
-      // Give the focus to the frame
-      iframe.focus();
-
       waitForNextPaint(frame, function makeWindowActive() {
         frame.classList.add('render');
+
+        // Giving focus to a frame can create an expensive reflow, so let's
+        // delay it until the frame has rendered.
+        if (frame.classList.contains('active')) {
+          iframe.focus();
+        }
       });
     }
 
