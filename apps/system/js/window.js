@@ -128,9 +128,6 @@
   };
 
   AppWindow.prototype.kill = function aw_kill() {
-    if (this._screenshotURL) {
-      URL.revokeObjectURL(this._screenshotURL);
-    }
     // XXX: A workaround because a AppWindow instance shouldn't
     // reference Window Manager directly here.
     // In the future we should make every app maintain and execute the events
@@ -147,9 +144,12 @@
   };
 
   /**
-   * A temp variable to store current screenshot object URL.
+   * A temp variable to store current screenshot blob.
+   * We should store the blob and create objectURL
+   * once we need to display the image,
+   * and revoke right away after we finish rendering the image.
    */
-  AppWindow.prototype._screenshotURL = undefined;
+  AppWindow.prototype._screenshotBlob = undefined;
 
   /**
    * A static timeout to make sure
@@ -196,6 +196,28 @@
     };
 
   /**
+   * Request a screenshot ObjectURL temporarily.
+   * The image would be discarded after 200ms or the revoke callback
+   * is invoked.
+   */
+  AppWindow.prototype.requestScreenshotURL =
+    function aw__requestScreenshotURL() {
+      if (!this._screenshotBlob) {
+        return null;
+      }
+      var screenshotURL = URL.createObjectURL(this._screenshotBlob);
+
+      setTimeout(function onTimeout() {
+        if (screenshotURL) {
+          URL.revokeObjectURL(screenshotURL);
+          screenshotURL = null;
+        }
+      }, 200);
+
+      return screenshotURL;
+    };
+
+  /**
    * Currently this happens to active app window when:
    * Attentionscreen shows no matter it's fresh newly created
    * or slide down from active-statusbar mode.
@@ -207,21 +229,23 @@
         this._nextPaintTimer = null;
       }
 
-      this.getScreenshot(function onGettingScreenshot(screenshot) {
+      this.getScreenshot(function onGettingScreenshot(screenshotBlob) {
         // If the callback is too late,
         // and we're brought to foreground by somebody.
         if (this._visibilityState == 'frame')
           return;
 
-        if (!screenshot) {
+        if (!screenshotBlob) {
           // If no screenshot,
           // still hide the frame.
           this._hideFrame();
           return;
         }
 
+        var screenshotURL = this.requestScreenshotURL();
+
         this.screenshotOverlay.style.backgroundImage =
-          'url(' + this._screenshotURL + ')';
+          'url(' + screenshotURL + ')';
         this.screenshotOverlay.classList.add('visible');
 
         if (!this.iframe.classList.contains('hidden'))
@@ -240,18 +264,17 @@
         this.screenshotOverlay.classList.remove('visible');
     };
 
-  // Get cached screenshot URL if there is one.
-  AppWindow.prototype.getCachedScreenshot = function aw_getCachedScreenshot() {
-    return this._screenshotURL;
-  };
+  // Get cached screenshot Blob if there is one.
+  // Note: the caller should revoke the created ObjectURL once it's finishing.
+  AppWindow.prototype.getCachedScreenshotBlob =
+    function aw_getCachedScreenshotBlob() {
+      return this._screenshotBlob;
+    };
 
-  // Save and update screenshot URL.
-  AppWindow.prototype.saveCachedScreenshot =
-    function aw_saveScreenshot(screenshot) {
-      if (this._screenshotURL) {
-        URL.revokeObjectURL(this._screenshotURL);
-      }
-      this._screenshotURL = screenshot;
+  // Save and update screenshot Blob.
+  AppWindow.prototype.renewCachedScreenshotBlob =
+    function aw_renewScreenshot(screenshotBlob) {
+      this._screenshotBlob = screenshotBlob;
     };
 
   /**
@@ -284,10 +307,7 @@
 
     req.onsuccess = function gotScreenshotFromFrame(evt) {
       var result = evt.target.result;
-      if (self._screenshotURL) {
-        URL.revokeObjectURL(self._screenshotURL);
-      }
-      self._screenshotURL = URL.createObjectURL(result);
+      self._screenshotBlob = result;
       callback(result);
     };
 
