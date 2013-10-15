@@ -194,9 +194,9 @@ var LockScreen = {
 
     /* Gesture */
     this.area.addEventListener('touchstart', this);
-    this.areaCamera.addEventListener('touchstart', this);
+    this.areaCamera.addEventListener('click', this);
+    this.areaUnlock.addEventListener('click', this);
     this.altCamera.addEventListener('touchstart', this);
-    this.areaUnlock.addEventListener('touchstart', this);
     this.iconContainer.addEventListener('touchstart', this);
 
     /* Unlock & camera panel clean up */
@@ -360,6 +360,14 @@ var LockScreen = {
         break;
 
       case 'click':
+        if (evt.mozInputSource === 0 &&
+            (evt.target === this.areaUnlock ||
+             evt.target === this.areaCamera)) {
+          evt.preventDefault();
+          this.handleIconClick(evt.target);
+          break;
+        }
+
         if (!evt.target.dataset.key)
           break;
 
@@ -369,15 +377,15 @@ var LockScreen = {
         break;
 
       case 'touchstart':
-        if (evt.target === this.areaUnlock ||
-           evt.target === this.areaCamera ||
-           evt.target === this.altCamera) {
+        if (evt.target === this.altCamera) {
           evt.preventDefault();
           this.handleIconClick(evt.target);
           break;
         }
 
-        if (evt.target === this.area)
+        if (evt.target === this.area ||
+            evt.target === this.areaUnlock ||
+            evt.target === this.areaCamera)
           this.handleSlideBegin();
 
         var leftTarget = this.areaCamera;
