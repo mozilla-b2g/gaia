@@ -132,6 +132,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     LazyL10n.get(function localized(_) {
       node.textContent = _('switch-calls');
       self._cachedInfo = _('switch-calls');
+      self._cachedAdditionalInfo = '';
+      self.replaceAdditionalContactInfo('');
     });
     return;
   }
@@ -244,7 +246,7 @@ HandledCall.prototype.replaceAdditionalContactInfo =
 };
 
 HandledCall.prototype.restoreAdditionalContactInfo =
-  function hc_restoreAdditionalContactInfo(additionalContactInfo) {
+  function hc_restoreAdditionalContactInfo() {
     this.replaceAdditionalContactInfo(this._cachedAdditionalInfo);
 };
 

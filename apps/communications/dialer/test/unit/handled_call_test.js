@@ -621,9 +621,10 @@ suite('dialer/handled_call', function() {
   });
 
   test('should display switch-calls l10n key', function() {
-    mockCall = new MockCall('12345', 'connected');
-    mockCall.secondNumber = '67890';
+    mockCall = new MockCall('888', 'connected');
     subject = new HandledCall(mockCall);
+    mockCall.secondNumber = '999';
+    subject.updateCallNumber();
 
     assert.equal(subject.numberNode.textContent, 'switch-calls');
   });
@@ -653,6 +654,17 @@ suite('dialer/handled_call', function() {
     test('check without additional info', function() {
       mockCall = new MockCall('999', 'incoming');
       subject = new HandledCall(mockCall);
+      assert.equal('', subject.additionalInfoNode.textContent);
+    });
+
+    test('check switch-calls mode', function() {
+      mockCall = new MockCall('888', 'connected');
+      subject = new HandledCall(mockCall);
+      mockCall.secondNumber = '999';
+      subject.updateCallNumber();
+
+      assert.equal('', subject.additionalInfoNode.textContent);
+      subject.restoreAdditionalContactInfo();
       assert.equal('', subject.additionalInfoNode.textContent);
     });
 
