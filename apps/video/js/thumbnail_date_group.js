@@ -84,7 +84,9 @@ function ThumbnailDateGroup(item) {
 ThumbnailDateGroup.getGroupID = function(item) {
   // id is group_yyyy-mm. this id will be used as a key
   var dateObj = new Date(item.date);
-  return 'group_' + dateObj.getFullYear() + '-' + (dateObj.getMonth() + 1);
+  var month = dateObj.getMonth() + 1;
+  return 'group_' + dateObj.getFullYear() + '-' +
+         (month < 10 ? '0' + month : month);
 };
 
 ThumbnailDateGroup.compareGroupID = function(id1, id2) {
