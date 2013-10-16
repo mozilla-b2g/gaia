@@ -157,6 +157,7 @@ function execute(options) {
    'deviceinfo.update_channel': '',
    'device.storage.writable.name': 'sdcard',
    'dom.mozContacts.debugging.enabled': false,
+   'feedback.url': 'https://input.allizom.org/api/v1/feedback/',
    'gaia.system.checkForUpdates': false,
    'geolocation.enabled': true,
    'geolocation.suspended': false,
@@ -312,6 +313,10 @@ function execute(options) {
   if (config.NOFTU === '0') {
     settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications',
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+  }
+
+  if (config.PRODUCTION === '1') {
+    settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;
