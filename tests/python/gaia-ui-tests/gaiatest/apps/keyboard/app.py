@@ -103,6 +103,13 @@ class Keyboard(Base):
         keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
         self.marionette.switch_to_frame(keybframe, focus=False)
 
+    @property
+    def current_keyboard(self):
+        self.marionette.switch_to_frame()
+        keyboard = self.marionette.find_element(*self._keyboard_frame_locator).get_attribute('data-frame-name')
+        self.switch_to_keyboard()
+        return keyboard
+
     # this is to get the locator of desired key on keyboard
     def _key_locator(self, val):
         if len(val) == 1:
