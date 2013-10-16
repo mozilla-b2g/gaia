@@ -175,6 +175,15 @@ var StatusBar = {
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
+    // mozChromeEvent fired from Gecko is earlier been loaded,
+    // so we use mozAudioChannelManager to
+    // check the headphone plugged or not when booting up
+    var acm = navigator.mozAudioChannelManager;
+    if (acm) {
+      this.headphonesActive = acm.headphones;
+      this.update.headphones.call(this);
+    }
+
     // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
 
