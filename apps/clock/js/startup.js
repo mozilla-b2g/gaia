@@ -5,7 +5,6 @@ var App = require('app');
 var mozL10n = require('l10n');
 var testReq = require;
 var initialize = App.init.bind(App);
-require('text');
 
 var needsMocks = !navigator.mozAlarms;
 if (needsMocks) {
