@@ -283,30 +283,21 @@ body.recording #toggle-camera {
 #hud a {
   position: absolute;
   z-index: 50;
-  height: 7.5rem;
-  width: 7.5rem;
-  border: 0;
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-image: url(images/hud_button_underlay.png);
-  background-size: 4.5rem;
-}
-
-#hud a:after {
-  content: " ";
-  display: block;
-  position: relative;
-  z-index: 60;
-  height: 7.5rem;
-  width: 7.5rem;
-  background: transparent;
+  height: 4.5rem;
+  width: 4.5rem;
+  border-radius: 50%;
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 3rem;
+  background-color: rgba(0,0,0,.3);
+  /* extend touchable zone */
+  background-clip: padding-box;
+  border: 2.25rem solid transparent;
 }
 
 #hud a:active {
-  background-image: url(images/hud_button_underlay_focus.png);
+  background-color: #00b9df;
+  box-shadow: 0 0.1rem 0.2rem rgba(0,0,0,.25) inset;
 }
 
 #toggle-camera {
@@ -317,23 +308,23 @@ body.recording #toggle-camera {
   left: 2rem;
 }
 
-#toggle-camera[data-mode=back]:after {
+#toggle-camera[data-mode=back] {
   background-image: url(images/toggle_front.png);
 }
-#toggle-camera[data-mode=front]:after {
+#toggle-camera[data-mode=front] {
   background-image: url(images/toggle_back.png);
 }
 
-#toggle-flash[data-mode=on]:after {
+#toggle-flash[data-mode=on] {
   background-image: url(images/flash_on.png);
 }
-#toggle-flash[data-mode=off]:after {
+#toggle-flash[data-mode=off] {
   background-image: url(images/flash_off.png);
 }
-#toggle-flash[data-mode=auto]:after {
+#toggle-flash[data-mode=auto] {
   background-image: url(images/flash_auto.png);
 }
-#toggle-flash[data-mode=torch]:after {
+#toggle-flash[data-mode=torch] {
   background-image: url(images/flash_on.png);
 }
 
