@@ -4,7 +4,7 @@ suite('AlarmList', function() {
 
   suiteSetup(function(done) {
     // Account for potentially-slow file loading operations
-    this.timeout(60000);
+    this.timeout(5000);
 
     testRequire([
         'panels/alarm/main',

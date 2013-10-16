@@ -12,6 +12,7 @@ apps/email/js/alameda.js
 apps/email/js/tmpl_builder.js
 apps/clock/js/alameda.js
 apps/clock/js/text.js
+apps/clock/js/text_builder.js
 shared/js/opensearch.js
 apps/keyboard/js/imes/jspinyin/libpinyin.js
 shared/js/setImmediate.js
