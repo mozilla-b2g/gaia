@@ -261,7 +261,7 @@ function handleNdefType(sessionToken, techType) {
   var nfcTag = nfcdom.getNFCTag(sessionToken);
   nfcUI.setNFCTag(nfcTag);
   // connect:
-  var connreq = nfcTag.connect('NDEF_FORMATABLE'); // FIXME: Mismatched consts.
+  var connreq = nfcTag.connect(techType);
   connreq.onsuccess = function() {
     debug('Connect success!');
     var detailreq = nfcTag.getDetailsNDEF();

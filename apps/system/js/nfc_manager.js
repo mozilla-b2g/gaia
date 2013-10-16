@@ -294,11 +294,10 @@
     var handled = false;
     var nfcdom = window.navigator.mozNfc;
 
-    // FIXME: This session must be a string token.
     var token = session;
     var nfctag = nfcdom.getNFCTag(token);
 
-    var conn = nfctag.connect('NDEF_FORMATABLE'); // FIXME, mismatch in enums
+    var conn = nfctag.connect(tech);
     conn.onsuccess = function() {
       debug('DBG: Success');
       var req = nfctag.readNDEF();
