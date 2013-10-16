@@ -21,20 +21,19 @@ function MockPicker(setup) {
       reset: function() {}
     };
   }, this);
-
-  Object.defineProperties(this, {
-    value: {
-      get: function() {
-        return '0:00:00';
-      }
-    }
-  });
 }
 
-MockPicker.prototype.reset = function() {
-  this.pickers.forEach(function(picker) {
-    this.spinners[picker].reset();
-  }, this);
+MockPicker.prototype = {
+  reset: function() {
+    this.pickers.forEach(function(picker) {
+      this.spinners[picker].reset();
+    }, this);
+  },
+  // Mock non-zero value so create event doesn't return without
+  // instantiating a new Timer()
+  get value() {
+    return '1:00';
+  }
 };
 
 return MockPicker;

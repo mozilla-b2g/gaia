@@ -218,6 +218,15 @@ suite('Timer.Panel', function() {
       assert.ok(sound.focus.called);
     });
 
+    test('click: create ', function() {
+      panel.nodes.create.dispatchEvent(
+        new CustomEvent('click')
+      );
+      assert.ok(panel.onclick.called);
+      // Duration from picker value
+      assert.equal(panel.timer.duration, 3600000);
+    });
+
     test('blur: sound', function() {
       var menu = panel.nodes.menu;
       var sound = panel.nodes.sound;
