@@ -96,9 +96,14 @@ var ContactsSDExport = function ContactsSDExport() {
       getStorage(getFileName(), blob, function onStorage(error,
         storage, finalName) {
         if (error) {
+          var reason = error;
+          // numeric error means not enough space available
+          if (parseInt(error, 10) > 0) {
+            reason = 'noSpace';
+          }
           finishCallback({
-            'reason': error
-          }, 0, e.message);
+            'reason': reason
+          }, 0, error.message);
           return;
         }
 
@@ -113,7 +118,8 @@ var ContactsSDExport = function ContactsSDExport() {
     'hasDeterminativeProgress': hasDeterminativeProgress,
     'getExportTitle': getExportTitle,
     'doExport': doExport,
-    'setProgressStep': setProgressStep
+    'setProgressStep': setProgressStep,
+    get name() { return 'SD';} // handling error messages on contacts_exporter
   };
 
 };
