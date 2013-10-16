@@ -183,6 +183,8 @@ var Camera = {
   _pendingPick: null,
   _savedMedia: null,
 
+  _motionEventCount: 0,
+
   // The minimum available disk space to start recording a video.
   RECORD_SPACE_MIN: 1024 * 1024 * 2,
 
@@ -195,6 +197,8 @@ var Camera = {
   // Minimum video duration length for creating a video that contains at least
   // few samples, see bug 899864.
   MIN_RECORDING_TIME: 500,
+
+  MOTION_EVENT_INTERVAL: 500, // handles motion event per 500ms.
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
@@ -326,7 +330,7 @@ var Camera = {
       '#toggle-camera, #gallery-button span { -moz-transform: rotate(0deg); }';
     var insertId = this._styleSheet.cssRules.length - 1;
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
-    window.addEventListener('deviceorientation', this.orientChange.bind(this));
+    window.addEventListener('devicemotion', this.orientChange.bind(this));
 
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
@@ -841,12 +845,46 @@ var Camera = {
   orientChange: function camera_orientChange(e) {
     // Orientation is 0 starting at 'natural portrait' increasing
     // going clockwise
+
+    this._motionEventCount--;
+    if (this._motionEventCount > 0) {
+      // bypass this event.
+      return;
+    } else {
+      // calculate the upcoming event count.
+      this._motionEventCount += (this.MOTION_EVENT_INTERVAL / e.interval) >> 0;
+    }
+
+    var rawX = e.accelerationIncludingGravity.x;
+    var rawY = e.accelerationIncludingGravity.y;
+    var rawZ = e.accelerationIncludingGravity.z;
+
+    // We only want to measure gravity, so ignore events when there is
+    // significant acceleration in addition to gravity because this means the
+    // user is moving the phone.
+    if ((rawX * rawX + rawY * rawY + rawZ * rawZ) > 110) {
+      return;
+    }
+    // If the camera is close to horizontal (pointing up or down) then we can't
+    // tell what orientation the user intends, so we just return now without
+    // changing the orientation. The constant 9.2 is the force of gravity (9.8)
+    // times the cosine of 20 degrees. So if the phone is within 20 degrees of
+    // horizontal, we will never change the orientation.
+    if (rawZ > 9.2 || rawZ < -9.2) {
+      return;
+    }
+
+    // use pitch and roll to calculate the angle of beta and gamma.
+    var beta = Math.atan2(-rawY, Math.sqrt(rawX * rawX + rawZ * rawZ)) *
+               180 / Math.PI; // pitch
+    var gamma = Math.atan2(rawX, Math.sqrt(rawY * rawY + rawZ * rawZ)) *
+                180 / Math.PI; // roll
+
     var orientation =
-      (e.beta < -45 && e.beta > -135) ? 0 :
-      (e.beta > 45 && e.beta < 135) ? 180 :
-      (e.gamma < -45 && e.gamma > -135) ? 90 :
-      (e.gamma > 45 && e.gamma < 135) ? 270 :
-      this._phoneOrientation;
+      (beta < -45 && beta > -135) ? 0 :
+      (beta > 45 && beta < 135) ? 180 :
+      (gamma < -45 && gamma > -135) ? 90 :
+      (gamma > 45 && gamma < 135) ? 270 : this._phoneOrientation;
 
     if (orientation !== this._phoneOrientation) {
       var rule = this._styleSheet.cssRules[this._orientationRule];
