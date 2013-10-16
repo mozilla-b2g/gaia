@@ -214,6 +214,10 @@
     border-right: 0;
   }
 
+  #co-advanced.no-add-call #place-new-call-container {
+    display: none;
+  }
+
   .co-advanced-option .icon {
     display: inline-block;
     background-size: 4rem;
@@ -370,11 +374,12 @@
     background-color: transparent;
   }
 
-  #calls[data-cdma-call-waiting="false"] > section .switch-calls {
+  #calls > section .switch-calls {
     display: none;
   }
 
-  #calls[data-cdma-call-waiting="true"] > section .switch-calls {
+  #calls.switch > section .switch-calls {
+    display: block;
     background: #01c5ed;
     height: 8.0rem;
     width: auto;
@@ -429,7 +434,7 @@
     padding: 0;
   }
 
-  #calls[data-cdma-call-waiting="true"] > section .numberWrapper .number {
+  #calls.switch > section .numberWrapper .number {
     font-size: 2.3rem;
   }
 
@@ -457,11 +462,12 @@
     display: none;
   }
 
-  #calls[data-cdma-call-waiting="false"] > section .shadow {
+  #calls > section .shadow {
     display: none;
   }
 
-  #calls[data-cdma-call-waiting="true"] > section .shadow {
+  #calls.switch > section .shadow {
+    display: block;
     background: url('images/Shadow_SwitchBg.png');
     height: 0.9rem;
     width: 100%;

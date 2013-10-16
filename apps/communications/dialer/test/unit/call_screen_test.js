@@ -28,6 +28,7 @@ suite('call screen', function() {
   var calls;
   var groupCalls;
   var groupCallsList;
+  var callToolbar;
   var muteButton;
   var speakerButton;
   var statusMessage,
@@ -73,13 +74,17 @@ suite('call screen', function() {
     groupCallsList.id = 'group-call-details-list';
     groupCalls.appendChild(groupCallsList);
 
+    callToolbar = document.createElement('section');
+    callToolbar.id = 'co-advanced';
+    screen.appendChild(callToolbar);
+
     muteButton = document.createElement('button');
     muteButton.id = 'mute';
-    screen.appendChild(muteButton);
+    callToolbar.appendChild(muteButton);
 
     speakerButton = document.createElement('button');
     speakerButton.id = 'speaker';
-    screen.appendChild(speakerButton);
+    callToolbar.appendChild(speakerButton);
 
     statusMessage = document.createElement('div');
     statusMessage.id = 'statusMsg';
@@ -103,6 +108,7 @@ suite('call screen', function() {
     if (CallScreen != null) {
       CallScreen.screen = screen;
       CallScreen.calls = calls;
+      CallScreen.callToolbar = callToolbar;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
       CallScreen.groupCalls = groupCalls;
@@ -136,10 +142,17 @@ suite('call screen', function() {
         assert.isFalse(calls.classList.contains('big-duration'));
       });
 
-      test('cdmaCallWaiting should update the dataset', function() {
-        assert.isUndefined(calls.dataset.cdmaCallWaiting);
+      test('cdmaCallWaiting should toggle the appropriate classes', function() {
+        assert.isFalse(calls.classList.contains('switch'));
+        assert.isFalse(callToolbar.classList.contains('no-add-call'));
+
         CallScreen.cdmaCallWaiting = true;
-        assert.equal(calls.dataset.cdmaCallWaiting, 'true');
+        assert.isTrue(calls.classList.contains('switch'));
+        assert.isTrue(callToolbar.classList.contains('no-add-call'));
+
+        CallScreen.cdmaCallWaiting = false;
+        assert.isFalse(calls.classList.contains('switch'));
+        assert.isFalse(callToolbar.classList.contains('no-add-call'));
       });
     });
 
