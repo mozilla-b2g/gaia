@@ -9,7 +9,7 @@
  *   - onread: SIM card has been read properly;
  *   - onimport: A Contact has been imported
  *   - onfinish: contacts have been saved into navigator.mozContacts;
- *   - onerror: SIM card us empty or could not be read.
+ *   - onerror: SIM card is empty or could not be read.
  */
 
 function SimContactsImporter() {

@@ -1,7 +1,7 @@
 'use strict';
 
 var MockgetDeviceStorage = function() {
-  var storage = {
+  return {
     'get': function(filepath) {
       return {
         set onsuccess(cb) {
@@ -29,5 +29,4 @@ var MockgetDeviceStorage = function() {
       };
     }
   };
-  return storage;
 };
