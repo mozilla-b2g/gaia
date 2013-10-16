@@ -72,9 +72,7 @@ define(function(require) {
      * called after inited is true.
      */
     hasAccount: function() {
-      return !!(model.acctsSlice &&
-                model.acctsSlice.items &&
-                model.acctsSlice.items.length);
+      return (model.getAccountCount() > 0);
     },
 
     /**
@@ -95,6 +93,23 @@ define(function(require) {
       });
 
       return targetAccount;
+    },
+
+    /**
+     * Get the numbers of configured account.
+     * Should only be called after this.inited is true.
+     * @return {Number} numbers of account.
+     */
+    getAccountCount: function() {
+      var count = 0;
+
+      if (model.acctsSlice &&
+          model.acctsSlice.items &&
+          model.acctsSlice.items.length) {
+        count = model.acctsSlice.items.length;
+      }
+
+      return count;
     },
 
     /**
