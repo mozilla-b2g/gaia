@@ -291,7 +291,7 @@ function execute() {
    'wifi.disabled_by_wakelock': false,
    'wifi.notification': false,
    'wifi.connect_via_settings': false,
-   'wap.push.enabled': false
+   'wap.push.enabled': true
   };
 
   //We want the console to be disabled for device builds using the user variant.
