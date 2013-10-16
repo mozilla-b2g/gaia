@@ -20,7 +20,7 @@ var BlackList = (function() {
     xhr.send(null);
 
     xhr.onreadystatechange = function cc_loadConfiguration(evt) {
-      if (xhr.readyState != 4) {
+      if (xhr.readyState !== 4) {
         return;
       }
 

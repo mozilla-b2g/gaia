@@ -35,7 +35,7 @@ var WBMP = (function(document) {
     }
 
     // write a pixel
-    function write(data, bit) {
+    function write(data, w, bit) {
       var color = bit ? 255 : 0;
       data[w++] = color;
       data[w++] = color;
@@ -73,14 +73,14 @@ var WBMP = (function(document) {
         for (var x = 0; x < width; x += 8) {
           var bits = bytes[ptr++];
           var w = (y * width + x) * 4;
-          write(data, bits & 0x80);
-          write(data, bits & 0x40);
-          write(data, bits & 0x20);
-          write(data, bits & 0x10);
-          write(data, bits & 0x08);
-          write(data, bits & 0x04);
-          write(data, bits & 0x02);
-          write(data, bits & 0x01);
+          write(data, w, bits & 0x80);
+          write(data, w, bits & 0x40);
+          write(data, w, bits & 0x20);
+          write(data, w, bits & 0x10);
+          write(data, w, bits & 0x08);
+          write(data, w, bits & 0x04);
+          write(data, w, bits & 0x02);
+          write(data, w, bits & 0x01);
         }
       }
 
