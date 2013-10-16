@@ -3,6 +3,7 @@
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_homescreen.js');
 requireApp('homescreen/test/unit/mock_iccHelper.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 
 // Unit tests for configurator library
 requireApp('homescreen/js/configurator.js');
@@ -16,16 +17,23 @@ var mocksHelperForConfigurator = new MocksHelper([
 mocksHelperForConfigurator.init();
 
 suite('configurator.js >', function() {
+  const KEY_SIM_ON_1ST_RUN = 'ftu.simPresentOnFirstBoot';
+  var SAVE_STATE_WAIT_TIMEOUT = 200;
 
   var mocksHelper = mocksHelperForConfigurator;
   var containerNode;
+  var realSettings;
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
+    realSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
   });
 
   suiteTeardown(function() {
     mocksHelper.suiteTeardown();
+    navigator.mozSettings = realSettings;
+    realSettings = null;
   });
 
   setup(function() {
@@ -46,6 +54,7 @@ suite('configurator.js >', function() {
 
   teardown(function() {
     mocksHelper.teardown();
+    navigator.mozSettings.mTeardown();
     document.body.removeChild(containerNode);
   });
 
@@ -59,6 +68,13 @@ suite('configurator.js >', function() {
     assert.equal(Homescreen.landingPage, number);
     assert.equal(document.querySelectorAll('div[role="search-page"]').length,
                  number);
+  }
+
+  // helper to change single key-value of mozSettings
+  function changeSettings(key, value) {
+    var cset = {};
+    cset[key] = value;
+    navigator.mozSettings.createLock().set(cset);
   }
 
   /*
@@ -112,6 +128,7 @@ suite('configurator.js >', function() {
                      '"location": 3}]}');
 
     var singleVariantApps = Configurator.getSingleVariantApps();
+    assert.isDefined(singleVariantApps['https://aHost/aMan3']);
     assert.equal(singleVariantApps['https://aHost/aMan3'].screen, 2);
     assert.equal(singleVariantApps['https://aHost/aMan3'].manifest,
                  'https://aHost/aMan3');
@@ -131,6 +148,44 @@ suite('configurator.js >', function() {
     var singleVariantApps = Configurator.getSingleVariantApps();
     assert.equal(Object.keys(singleVariantApps).length, 0);
   });
+
+  /*
+   * Checks isSimPresentOnFirstBoot function
+   */
+
+  var testCases = [
+  {
+  'preValSet': undefined,
+  'expecValSet': true,
+  'title': KEY_SIM_ON_1ST_RUN +
+     'setting value is undefined - isSimPresentOnFirstBoot is true'
+  },
+  {
+  'preValSet': false,
+  'expecValSet': false,
+  'title': KEY_SIM_ON_1ST_RUN +
+     'setting value is false - isSimPresentOnFirstBoot is false'
+  },
+  {
+  'preValSet': true,
+  'expecValSet': true,
+  'title': KEY_SIM_ON_1ST_RUN +
+     'setting value is true - isSimPresentOnFirstBoot is true'
+  }
+  ];
+
+  testCases.forEach(function(testCase) {
+    test(testCase.title, function(done) {
+      changeSettings(KEY_SIM_ON_1ST_RUN, testCase.preValSet);
+      Configurator.loadSettingSIMPresent();
+      setTimeout(function() {
+        assert.equal(Configurator.isSimPresentOnFirstBoot,
+                     testCase.expecValSet);
+        done();
+      }, SAVE_STATE_WAIT_TIMEOUT);
+    });
+  });
+
   /*
    * It checks the conditions when there is NOT a search provider
    */

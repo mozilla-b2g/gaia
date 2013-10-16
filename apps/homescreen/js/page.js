@@ -329,6 +329,11 @@ Icon.prototype = {
   // The url that is passed as a parameter to the callback must be revoked
   loadRenderedIcon: function icon_loadRenderedIcon(callback) {
     var img = this.img;
+    if (!this.descriptor.renderedIcon) {
+      callback(this.src);
+      return;
+    }
+
     img.src = window.URL.createObjectURL(this.descriptor.renderedIcon);
     if (callback) {
       img.onload = img.onerror = function done() {
@@ -913,7 +918,7 @@ Page.prototype = {
    * Move the apps in position higher than 'pos' one position ahead if they have
    * a desiredPosition lower than their actual position
    */
-  _moveAhead: function(pos) {
+  _moveAhead: function pg_moveAhead(pos) {
     // When a new sv app is installed, the previously sv apps installed in
     // higher positions will have been moved.
     // This function restores their previous position if needed
@@ -929,15 +934,23 @@ Page.prototype = {
   },
 
   /*
+   * Return true if the Page has free space, return false otherwise
+   */
+  hasEmptySlot: function pg_hasEmptySlot() {
+    return this.getNumIcons() < this.maxIcons;
+  },
+
+  /*
    * Insert an icon in the page
    */
-  _insertIcon: function insertIcon(icon) {
+  _insertIcon: function pg_insertIcon(icon) {
     var iconList = this.olist.children;
     var container = icon.container;
 
     // Inserts the icon in the closest possible space to its desired position,
     // keeping the order of all existing icons with desired position
-    if (icon.descriptor && icon.descriptor.desiredPos !== undefined) {
+    if (icon.descriptor && icon.descriptor.desiredPos !== undefined &&
+        Configurator.isSimPresentOnFirstBoot) {
       var desiredPos = icon.descriptor.desiredPos;
       var manifest = icon.descriptor.manifestURL;
       // Add to the installed SV apps array

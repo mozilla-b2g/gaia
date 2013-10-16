@@ -11,6 +11,7 @@ requireApp('communications/ftu/test/unit/mock_tutorial.js');
 requireApp('communications/ftu/test/unit/mock_icc_helper.js');
 requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_utils.js');
+requireApp('communications/ftu/test/unit/mock_operatorVariant.js');
 requireApp('communications/ftu/js/navigation.js');
 
 mocha.globals(['open']);
@@ -21,7 +22,8 @@ var mocksHelperForNavigation = new MocksHelper([
   'SimManager',
   'DataMobile',
   'IccHelper',
-  'Tutorial'
+  'Tutorial',
+  'OperatorVariant'
 ]);
 mocksHelperForNavigation.init();
 
