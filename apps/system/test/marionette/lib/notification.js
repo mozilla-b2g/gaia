@@ -2,33 +2,42 @@
 var util = require('util'),
     Marionette = require('marionette-client');
 
-function NotificationTest(client, tag, title, body,
-                          dir, lang, delay_create) {
+function NotificationTest(client, details, delay_create) {
   this.client = client;
   this.actions = new Marionette.Actions(client);
-  this.tag = tag;
-  this.title = title;
-  this.body = body;
-  this.dir = dir;
-  this.lang = lang;
-  this.client.executeScript(function() {
-    if (window.wrappedJSObject.persistNotify === undefined) {
-      window.wrappedJSObject.persistNotify = [];
-    }
-  });
+  this.tag = details.tag;
+  this.title = details.title;
+  this.body = details.body;
+  this.dir = details.dir;
+  this.lang = details.lang;
   if (delay_create !== true) {
     this.create();
   }
-
 }
 
 NotificationTest.prototype = {
   client: null,
   tag: null,
   close: function() {
-    this.client.executeScript(function(notifyTag) {
-      window.wrappedJSObject.persistNotify[notifyTag].close();
-    }, [this.tag]);
+    var ret = undefined;
+    this.client.executeAsyncScript(function(notifyTag) {
+      var n = Notification.get({tag: notifyTag});
+      n.then(
+        function(nt) {
+          if (nt.length === 1) {
+            nt[0].close();
+            marionetteScriptFinished(true);
+            return;
+          }
+          marionetteScriptFinished(false);
+        },
+        function(nt) {
+          marionetteScriptFinished(false);
+        });
+    }, [this.tag], function(err, value) {
+      ret = value;
+    });
+    return ret;
   },
   dumpContainer: function() {
     this.client.executeScript(function() {
@@ -48,8 +57,7 @@ NotificationTest.prototype = {
         details.lang = notifyLang;
       }
 
-      window.wrappedJSObject.persistNotify[notifyTag] =
-        new Notification(notifyTitle, details);
+      new Notification(notifyTitle, details);
     }, [this.tag, this.title, this.body, this.dir, this.lang]);
   }
 };
@@ -85,6 +93,8 @@ NotificationList.prototype = {
       details.push({
         title: document.querySelector(query + ' > div').innerHTML,
         body: document.querySelector(query + ' > .detail').innerHTML,
+        lang: document.querySelector(query + ' > div').getAttribute('lang'),
+        dir: document.querySelector(query + ' > div').getAttribute('dir'),
         manifestURL: node.getAttribute('data-manifest-u-r-l')
       });
     }
@@ -124,52 +134,50 @@ NotificationList.prototype = {
     });
   },
 
-  // get a count of notifications with a certain title and body from the system
-  // tray.
-  getCount: function(title, body, manifestURL) {
+  // get a count of notifications with a certain title and body
+  getCount: function(useLockscreen, details) {
     var list;
-    if (manifestURL) {
-      list = this.getForApp(manifestURL);
+    if (useLockscreen) {
+      if (details.manifestURL) {
+        list = this.getForAppLockScreen(details.manifestURL);
+      } else {
+        list = this.lockScreenNotifications;
+      }
     } else {
-      list = this.notifications;
+      if (details.manifestURL) {
+        list = this.getForApp(details.manifestURL);
+      } else {
+        list = this.notifications;
+      }
     }
     var count = 0;
     for (var i = 0; i < list.length; i++) {
       var notification = list[i];
-      if (notification.title === title && notification.body === body) {
-        ++count;
+      if (details.title && notification.title !== details.title) {
+        continue;
       }
+      if (details.body && notification.body !== details.body) {
+        continue;
+      }
+      if (details.lang && notification.lang !== details.lang) {
+        continue;
+      }
+      if (details.bidi && notification.bidi !== details.bidi) {
+        continue;
+      }
+      ++count;
     }
     return count;
-  },
-
-  // get a count of notifications with a certain title and body from the
-  // lockscreen.
-  getCountLockScreen: function(title, body, manifestURL) {
-    var list;
-    if (manifestURL) {
-      list = this.getForAppLockScreen(manifestURL);
-    } else {
-      list = this.lockScreenNotifications;
-    }
-    var count = 0;
-    for (var i = 0; i < list.length; i++) {
-      var notification = list[i];
-      if (notification.title === title && notification.body === body) {
-        ++count;
-      }
-    }
-    return count;
-  },
-
-  // make sure we have an item with given title and body from the system tray.
-  contains: function(title, body, manifestURL) {
-    return this.getCount(title, body, manifestURL) > 0;
   },
 
   // make sure we have an item with given title and body from the lockscreen.
-  containsLockScreen: function(title, body, manifestURL) {
-    return this.getCountLockScreen(title, body, manifestURL);
+  containsLockScreen: function(details) {
+    return this.getCount(true, details) > 0;
+  },
+
+  // make sure we have an item with given title and body
+  contains: function(details) {
+    return this.getCount(false, details) > 0;
   }
 };
 

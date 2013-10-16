@@ -8,94 +8,75 @@ marionette('notification tests', function() {
   var client = marionette.client();
   var notificationList = new NotificationList(client);
 
-  test('system tray > fire notification', function() {
-    var tag = 'test tag';
-    var title = 'test title';
-    var body = 'test body';
-    var notify = new NotificationTest(client, tag, title, body);
+  test('fire notification', function() {
+    var details = {tag: 'test tag',
+                   title: 'test title',
+                   body: 'test body',
+                   dir: 'rtl',
+                   lang: 'en'};
+    var notify = new NotificationTest(client, details);
     notificationList.refresh();
-    assert.ok(notificationList.contains(title, body),
-              'notification list contains the new notification');
+    assert.ok(notificationList.contains(details),
+              'Utility notification notification contains all fields');
+    notificationList.refreshLockScreen();
+    assert.ok(notificationList.containsLockScreen(details),
+              'Lock screen notification contains all fields');
   });
 
-  test('system tray > replace notification', function() {
-    var tag = 'test tag, replace';
-    var oldTitle = 'test title, replace';
-    var oldBody = 'test body, replace';
-    var newTitle = 'new test title, replace';
-    var newBody = 'new test body, replace';
-    var notify = new NotificationTest(client, tag, oldTitle, oldBody);
-    notificationList.refresh();
-    assert.ok(notificationList.contains(oldTitle, oldBody),
-              'unreplaced notification should exist before replacement');
-    assert.ok(!notificationList.contains(newTitle, newBody),
-              'replaced notification should not exists before replacement');
+  test('system replace notification', function() {
+    var oldDetails = {tag: 'test tag, replace',
+                      title: 'test title, replace',
+                      body: 'test body, replace',
+                      dir: 'rtl',
+                      lang: 'en'};
+    var newDetails = {tag: 'test tag, replace',
+                      title: 'new test title, replace',
+                      body: 'new test body, replace',
+                      dir: 'ltr',
+                      lang: 'sr-Cyrl'};
 
-    var newNotify = new NotificationTest(client, tag, newTitle, newBody);
+    var notify = new NotificationTest(client, oldDetails);
     notificationList.refresh();
-    assert.ok(!notificationList.contains(oldTitle, oldBody),
-              'unreplaced notification should not exist after replacement');
-    assert.ok(notificationList.contains(newTitle, newBody),
-              'replaced notification should exists after replacement');
+    assert.ok(notificationList.contains(oldDetails),
+              'Utility unreplaced notification should exist');
+    assert.ok(!notificationList.contains(newDetails),
+              'Utility replaced notification should not exist');
+    notificationList.refreshLockScreen();
+    assert.ok(notificationList.containsLockScreen(oldDetails),
+              'Lock screen unreplaced notification should exist');
+    assert.ok(!notificationList.containsLockScreen(newDetails),
+              'Lock screen replaced notification should not exist');
+
+    var newNotify = new NotificationTest(client, newDetails);
+    notificationList.refresh();
+    assert.ok(!notificationList.contains(oldDetails),
+              'Utility unreplaced notification should not exist');
+    assert.ok(notificationList.contains(newDetails),
+              'Utility replaced notification should exist');
+    notificationList.refreshLockScreen();
+    assert.ok(!notificationList.containsLockScreen(oldDetails),
+              'Lock screen unreplaced notification should not exist');
+    assert.ok(notificationList.containsLockScreen(newDetails),
+              'Lock screen replaced notification should exists');
   });
 
-  test('system tray > close notification', function() {
-    var tag = 'test tag, close';
-    var title = 'test title, close';
-    var body = 'test body, close';
-    var notify = new NotificationTest(client, tag, title, body);
+  test('close notification', function() {
+    var details = {tag: 'test tag, close',
+                   title: 'test title, close',
+                   body: 'test body, close'};
+    var notify = new NotificationTest(client, details);
     notificationList.refresh();
-    assert.ok(notificationList.contains(title, body),
+    assert.ok(notificationList.contains(details),
               'notification should be in list before calling close');
-    notify.close();
+    notificationList.refreshLockScreen();
+    assert.ok(notificationList.containsLockScreen(details),
+              'notification should be in list before calling close');
+    assert.ok(notify.close(), 'notification closed correctly');
     notificationList.refresh();
-    assert.ok(!notificationList.contains(title, body),
-              'notification should be in list before calling close');
-  });
-
-  test('lockscreen > fire notification', function() {
-    var tag = 'test tag';
-    var title = 'test title';
-    var body = 'test body';
-    var notify = new NotificationTest(client, tag, title, body);
+    assert.ok(!notificationList.contains(details),
+              'notification should not be in list after calling close');
     notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(title, body),
-              'notification list contains the new notification');
-  });
-
-  test('lockscreen > replace notification', function() {
-    var tag = 'test tag, replace';
-    var oldTitle = 'test title, replace';
-    var oldBody = 'test body, replace';
-    var newTitle = 'new test title, replace';
-    var newBody = 'new test body, replace';
-
-    var notify = new NotificationTest(client, tag, oldTitle, oldBody);
-    notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(oldTitle, oldBody),
-              'unreplaced notification should exist before replacement');
-    assert.ok(!notificationList.containsLockScreen(newTitle, newBody),
-              'replaced notification should not exists before replacement');
-
-    var newNotify = new NotificationTest(client, tag, newTitle, newBody);
-    notificationList.refreshLockScreen();
-    assert.ok(!notificationList.containsLockScreen(oldTitle, oldBody),
-              'unreplaced notification should not exist after replacement');
-    assert.ok(notificationList.containsLockScreen(newTitle, newBody),
-              'replaced notification should exists after replacement');
-  });
-
-  test('lockscreen > close notification', function() {
-    var tag = 'test tag, close';
-    var title = 'test title, close';
-    var body = 'test body, close';
-    var notify = new NotificationTest(client, tag, title, body);
-    notificationList.refreshLockScreen();
-    assert.ok(notificationList.containsLockScreen(title, body),
-              'notification should be in list before calling close');
-    notify.close();
-    notificationList.refreshLockScreen();
-    assert.ok(!notificationList.containsLockScreen(title, body),
+    assert.ok(!notificationList.containsLockScreen(details),
               'notification should be in list before calling close');
   });
 
