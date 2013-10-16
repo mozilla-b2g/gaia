@@ -476,7 +476,7 @@ ul li > label .range-icons.brightness {
  * Date & Time
  */
 
-#timezone-raw a,
+#timezone-raw span,
 #dateTime ul.disabled p,
 #dateTime ul.disabled a {
   color: #797e80;
