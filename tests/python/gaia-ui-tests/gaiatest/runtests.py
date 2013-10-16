@@ -20,16 +20,40 @@ from marionette import MarionetteTestResult
 from marionette import MarionetteTestRunner
 from marionette import MarionetteTextTestRunner
 from marionette.runtests import cli
+from moztest.results import TestResult, relevant_line
 
 from gaiatest import __name__
 from gaiatest import GaiaTestCase
 from version import __version__
 
 
+class GaiaResult(TestResult):
+
+    def __init__(self, *args, **kwargs):
+        self.debug = kwargs.pop('debug', dict())
+        TestResult.__init__(self, *args, **kwargs)
+
 class GaiaTestResult(MarionetteTestResult):
 
+    resultClass = GaiaResult
+
+    def add_result(self, test, result_expected='PASS', debug=None,
+                   result_actual='PASS', output='', context=None):
+        def get_class(test):
+            return test.__class__.__module__ + '.' + test.__class__.__name__
+
+        t = self.resultClass(name=str(test).split()[0], test_class=get_class(test),
+                             time_start=0, result_expected=result_expected,
+                             context=context, debug=debug)
+        t.finish(result_actual, time_end=0, reason=relevant_line(output),
+                 output=output)
+        self.append(t)
+
     def addError(self, test, err):
-        self.errors.append((test, self._exc_info_to_string(err, test), self.gather_debug()))
+        self.add_result(test,
+                        output=self._exc_info_to_string(err, test),
+                        result_actual='ERROR',
+                        debug=self.gather_debug())
         if self.showAll:
             self.stream.writeln("ERROR")
         elif self.dots:
@@ -37,7 +61,10 @@ class GaiaTestResult(MarionetteTestResult):
             self.stream.flush()
 
     def addExpectedFailure(self, test, err):
-        self.expectedFailures.append((test, self._exc_info_to_string(err, test), self.gather_debug()))
+        self.add_result(test,
+                        output=self._exc_info_to_string(err, test),
+                        result_actual='KNOWN-FAIL',
+                        debug=self.gather_debug())
         if self.showAll:
             self.stream.writeln("expected failure")
         elif self.dots:
@@ -45,11 +72,23 @@ class GaiaTestResult(MarionetteTestResult):
             self.stream.flush()
 
     def addFailure(self, test, err):
-        self.failures.append((test, self._exc_info_to_string(err, test), self.gather_debug()))
+        self.add_result(test,
+                        output=self._exc_info_to_string(err, test),
+                        result_actual='UNEXPECTED-FAIL',
+                        debug=self.gather_debug())
         if self.showAll:
             self.stream.writeln("FAIL")
         elif self.dots:
             self.stream.write('F')
+            self.stream.flush()
+
+    def addUnexpectedSuccess(self, test):
+        self.add_result(test,
+                        result_actual='UNEXPECTED-PASS')
+        if self.showAll:
+            self.stream.writeln("unexpected success")
+        elif self.dots:
+            self.stream.write("u")
             self.stream.flush()
 
     def gather_debug(self):
@@ -198,10 +237,10 @@ class GaiaTestRunner(MarionetteTestRunner):
         test_time = self.elapsedtime.total_seconds()
         test_logs = []
 
-        def _extract_html(test, text='', result='passed', debug=None):
-            cls_name = test.__class__.__name__
-            tc_name = unicode(test).split()[0]
-            tc_time = hasattr(test, 'duration') and int(math.ceil(test.duration)) or 0
+        def _extract_html(test, class_name, duration=0, text='', result='passed', debug=None):
+            cls_name = class_name
+            tc_name = unicode(test)
+            tc_time = duration
             additional_html = []
             debug = debug or {}
             links_html = []
@@ -254,17 +293,17 @@ class GaiaTestRunner(MarionetteTestRunner):
 
         for results in results_list:
             for test in results.tests_passed:
-                _extract_html(test)
+                _extract_html(test.name, test.test_class)
             for result in results.skipped:
-                _extract_html(result[0], text=result[1], result='skipped')
+                _extract_html(result.name, result.test_class, text='\n'.join(result.output), result='skipped')
             for result in results.failures:
-                _extract_html(result[0], text=result[1], result='failure', debug=result[2])
+                _extract_html(result.name, result.test_class, text='\n'.join(result.output), result='failure', debug=result.debug)
             for result in results.expectedFailures:
-                _extract_html(result[0], text=result[1], result='expected failure', debug=result[2])
+                _extract_html(result.name, result.test_class, text='\n'.join(result.output), result='expected failure', debug=result.debug)
             for test in results.unexpectedSuccesses:
-                _extract_html(test, result='unexpected pass')
+                _extract_html(test.name, test.test_class, result='unexpected pass')
             for result in results.errors:
-                _extract_html(result[0], text=result[1], result='error', debug=result[2])
+                _extract_html(result.name, result.test_class, text='\n'.join(result.output), result='error', debug=result.debug)
 
         generated = datetime.datetime.now()
         doc = html.html(
