@@ -490,12 +490,87 @@ ul li > label .range-icons.brightness {
 /******************************************************************************
  * Improve Browser OS
  */
-
+#improveBrowserOS-chooseFeedback li,
+#improveBrowserOS-sendFeedback li {
+  border: none;
+}
+#improveBrowserOS-sendFeedback li:first-child {
+  min-height: 3rem;
+}
 #improveBrowserOS .link-text {
   white-space: nowrap;
 }
+#feedback-description {
+  display: block;
+  height: 10rem;
+  padding: 1rem 1rem 1.2rem;
+  resize: none;
+}
+#sendFeedback .pack-checkbox span {
+  left: 3rem;
+  right: auto;
+  top: 2rem;
+}
+.feedback-choose-face {
+  display: block;
+  background: url(images/feedback_faces.png);
+  width: 10rem;
+  height: 10rem;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-size: 20rem;
+}
+#feedback-mood {
+  text-align: center;
+}
+#feedback-mood li{
+  display: inline-block;
+}
+#feedback-happy {
+  float: left;
+}
+#feedback-sad {
+  float: right;
+}
+#feedback-happy .feedback-choose-face{
+  display: inline-block;
+  background-position: 0;
+}
+#feedback-sad .feedback-choose-face{
+  background-position: 100%;
+}
+.feedback-feel{
+  text-align: center;
+}
+.feedback-choose-item {
+  float: left;
+  width: 100%;
+}
+.feedback-choose-item .checkbox-span {
+  text-align: center;
+}
+p.checkbox-description {
+  margin-left: 3rem;
+}
+#feedback-email {
+  width: 100%;
+}
+#feedback-email.hidden {
+  display: none;
+}
+.email-enable .pack-checkbox > .checkbox-span {
+  left: 2.4rem;
+  right: auto;
+  top: 2rem;
 
-
+}
+#feedback-emailbar p {
+  padding-bottom: 0;
+}
+#feedback-send-btn {
+  text-align: center;
+  top: 2.1rem;
+}
 /******************************************************************************
  * OS License
  */
