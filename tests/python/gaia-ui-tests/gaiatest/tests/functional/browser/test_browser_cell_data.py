@@ -22,7 +22,7 @@ class TestBrowserCellData(GaiaTestCase):
         browser = Browser(self.marionette)
         browser.launch()
 
-        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
+        browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html', timeout=120)
 
         browser.switch_to_content()
 
