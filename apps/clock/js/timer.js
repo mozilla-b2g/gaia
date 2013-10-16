@@ -53,23 +53,27 @@ Timer.prototype.constructor = Timer;
 Timer.prototype.tick = function timerTick() {
   var date = new Date();
   var now = +date;
-  var sec = Math.floor(now / 1000);
-  var end = Math.floor(this.endAt / 1000);
+  var end = this.endAt;
+  var remaining = end - now;
 
   if (this.state === Timer.STARTED) {
-    if (sec <= end) {
+    if (remaining > 0) {
       this.lapsed = now - this.startAt;
-      this.emit('tick', end - sec);
+      // if there is 1ms remaining, we show 1 second.
+      // if there is 1000ms remaining, we still show 1 second
+      // if there is 1001ms - 2 seconds, etc.
+      this.emit('tick', Math.ceil(remaining / 1000));
 
       asyncStorage.setItem('active_timer', JSON.stringify(this));
-    }
 
-    if (sec === end + 1) {
+      // wait for the number of ms remaining until the next second ticks
+      setTimeout(this.tick.bind(this), (remaining % 1000) || 1000);
+    } else {
+      this.emit('tick', 0);
       this.notify().cancel();
     }
   }
 
-  setTimeout(this.tick.bind(this), 1000 - date.getMilliseconds());
 };
 /**
  * start Start a paused, initialized or reactivated Timer.

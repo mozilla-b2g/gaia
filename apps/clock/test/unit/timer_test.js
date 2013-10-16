@@ -19,6 +19,8 @@ suite('Timer', function() {
     this.sinon.spy(asyncStorage, 'removeItem');
 
     now = Date.now();
+    // ensure to start on a 000ms
+    now -= (now % 1000);
     duration = 5000;
     startAt = now;
     endAt = now + duration;
@@ -197,10 +199,11 @@ suite('Timer', function() {
     });
 
     timer.start();
-    this.clock.tick(duration);
+    this.clock.tick(duration - 1);
 
     assert.isFalse(timer.cancel.called);
-    this.clock.tick(1000);
+    this.clock.tick(1);
+    assert.isTrue(timer.cancel.called);
   });
 
   test('pause ', function() {
@@ -215,6 +218,40 @@ suite('Timer', function() {
     assert.ok(timer.pauseAt);
     assert.equal(timer.state, Timer.PAUSED);
     assert.isTrue(asyncStorage.setItem.called);
+  });
+
+  test('pause and resume (#927330)', function() {
+    var timer = new Timer({
+      startAt: startAt,
+      endAt: endAt
+    });
+    var tick = this.sinon.spy();
+    timer.on('tick', tick);
+    timer.start();
+
+    // sanity
+    assert.isTrue(tick.calledWith(5), '5 seconds remaining');
+    tick.reset();
+
+    this.clock.tick(999);
+    assert.isFalse(tick.called, 'didnt tick');
+
+    timer.pause();
+    assert.isFalse(tick.called, 'didnt tick');
+
+    this.clock.tick(500);
+    assert.isFalse(tick.called, 'didnt tick');
+
+    timer.start();
+    assert.isTrue(tick.calledWith(5), '5 seconds remaining');
+
+    tick.reset();
+    this.clock.tick(1000);
+    assert.isTrue(tick.calledWith(4), '4 seconds remaining');
+
+    tick.reset();
+    this.clock.tick(1);
+    assert.isTrue(tick.calledWith(3), '3 seconds remaining');
   });
 
   test('cancel ', function() {
