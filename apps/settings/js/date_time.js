@@ -121,6 +121,7 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
   function setTimeAutoEnabled(enabled) {
     _timeAutoEnabled = enabled;
     gTimeAutoSwitch.dataset.state = enabled ? 'auto' : 'manual';
+    gTimezone.hidden = !(_timezoneAutoAvailable && _timeAutoEnabled);
 
     var cset = {};
     cset[kTimezoneAutoEnabled] = enabled;
