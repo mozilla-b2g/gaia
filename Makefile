@@ -958,4 +958,4 @@ really-clean: clean
 	rm -rf xulrunner-sdk .xulrunner-url node_modules
 
 .git/hooks/pre-commit: tools/pre-commit
-	test -d .git && cp tools/pre-commit .git/hooks/pre-commit || true
+	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true
