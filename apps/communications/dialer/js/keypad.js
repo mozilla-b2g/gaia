@@ -283,14 +283,143 @@ var KeypadManager = {
   },
 
   _lastPressedKey: null,
-  _keyPressStart: null,
   _dtmfToneTimer: null,
 
-  _dtmfToneLength: function kh_dtmfToneLength(length) {
-    if (dtmfShortTone) {
-      return this._DTMF_SHORT_TONE_LENGTH;
+  _playDtmfTone: function kh_playDtmfTone(key) {
+    var telephony = navigator.mozTelephony;
+
+    if (this._onCall) {
+      clearTimeout(this._dtmfToneTimer);
+      telephony.stopTone(); // Stop previous tone before dispatching a new one
+      telephony.startTone(key);
+
+      if (dtmfShortTone) {
+        this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
+          telephony.stopTone();
+        }, this._DTMF_SHORT_TONE_LENGTH);
+      }
+    }
+  },
+
+  _stopDtmfTone: function kh_stopDtmfTone() {
+    var telephony = navigator.mozTelephony;
+
+    clearTimeout(this._dtmfToneTimer);
+    telephony.stopTone();
+  },
+
+  /**
+   * Function used to respond to touchmove events over the keypad. Reacts to
+   * the first key that has been pressed by playing the appropriate tone and
+   * sets up the necessary timers to react to long presses.
+   *
+   * @param {String} key The key that was hit by this touchstart event.
+   * @param {Boolean} [voicemail] If present and true indicates that the
+   *        pressed key corresponded with the button used for voicemail.
+   */
+  _touchStart: function kh_touchStart(key, voicemail) {
+    this._longPress = false;
+    this._lastPressedKey = key;
+
+    if (key != 'delete') {
+      if (keypadSoundIsEnabled) {
+        // We do not support long press if not on a call
+        TonePlayer.start(gTonesFrequencies[key], !this._onCall);
+      }
+
+      this._playDtmfTone(key);
+    }
+
+    // Manage long press
+    if ((key == '0' && !this._onCall) || key == 'delete') {
+      this._holdTimer = setTimeout(function(self) {
+        if (key == 'delete') {
+          self._phoneNumber = '';
+        } else {
+          var index = self._phoneNumber.length - 1;
+
+          //Remove last 0, this is a long press and we want to add the '+'
+          if (index >= 0 && self._phoneNumber[index] === '0') {
+            self._phoneNumber = self._phoneNumber.substr(0, index);
+          }
+
+          self._phoneNumber += '+';
+        }
+
+        self._longPress = true;
+        self._updatePhoneNumberView('begin', false);
+      }, 400, this);
+    }
+
+    // Voicemail long press (needs to be longer since it actually dials)
+    if (voicemail) {
+      this._holdTimer = setTimeout(function vm_call(self) {
+        self._longPress = true;
+        self._callVoicemail();
+      }, 1500, this);
+    }
+
+    if (key == 'delete') {
+      this._phoneNumber = this._phoneNumber.slice(0, -1);
+    } else if (this.phoneNumberViewContainer.classList.
+      contains('keypad-visible')) {
+
+      if (!this._isKeypadClicked) {
+        this._isKeypadClicked = true;
+        this._phoneNumber = key;
+        this.replaceAdditionalContactInfo('');
+      } else {
+        this._phoneNumber += key;
+      }
     } else {
-      return length;
+      this._phoneNumber += key;
+    }
+
+    this._updatePhoneNumberView('begin', false);
+  },
+
+  /**
+   * Function used to respond to touchmove events over the keypad. Stops playing
+   * the tone associated with the last pressed key and resets it if the target
+   * goes outside its area.
+   *
+   * @param {Object} touch Touch position object for this move.
+   */
+  _touchMove: function kh_touchMove(touch) {
+    var target = document.elementFromPoint(touch.pageX, touch.pageY);
+    var key = target.dataset ? target.dataset.value : null;
+
+    if (key !== this._lastPressedKey || key === 'delete') {
+      this._stopDtmfTone();
+      this._lastPressedKey = null;
+    }
+  },
+
+  /**
+   * Function used to respond to touchend events over the keypad. Stops playing
+   * tones and resets timers associated with the key press.
+   *
+   * @param {String} key The key over which the tap finished.
+   */
+  _touchEnd: function kh_touchEnd(key) {
+    if (key !== 'delete' && key === this._lastPressedKey) {
+      this._stopDtmfTone();
+      this._lastPressedKey = null;
+    }
+
+    if (keypadSoundIsEnabled) {
+      TonePlayer.stop();
+    }
+
+    // If it was a long press our work is already done
+    if (this._longPress) {
+      this._longPress = false;
+      this._holdTimer = null;
+      return;
+    }
+
+    if (this._holdTimer) {
+      clearTimeout(this._holdTimer);
     }
   },
 
@@ -319,122 +448,17 @@ var KeypadManager = {
       return;
     }
 
-    var telephony = navigator.mozTelephony;
-
     event.stopPropagation();
+
     switch (event.type) {
       case 'touchstart':
-        this._longPress = false;
-        this._keyPressStart = Date.now();
-        this._lastPressedKey = key;
-
-        if (key != 'delete') {
-          if (keypadSoundIsEnabled) {
-            // We do not support long press if not on a call
-            TonePlayer.start(gTonesFrequencies[key], !this._onCall);
-          }
-        }
-
-        // Manage long press
-        if ((key == '0' && !this._onCall) || key == 'delete') {
-          this._holdTimer = setTimeout(function(self) {
-            if (key == 'delete') {
-              self._phoneNumber = '';
-            } else {
-              var index = self._phoneNumber.length - 1;
-              //Remove last 0, this is a long press and we want to add the '+'
-              if (index >= 0 && self._phoneNumber[index] === '0') {
-                self._phoneNumber = self._phoneNumber.substr(0, index);
-              }
-              self._phoneNumber += '+';
-            }
-
-            self._longPress = true;
-            self._updatePhoneNumberView('begin', false);
-          }, 400, this);
-        }
-
-        // Voicemail long press (needs to be longer since it actually dials)
-        if (event.target.dataset.voicemail) {
-          this._holdTimer = setTimeout(function vm_call(self) {
-            self._longPress = true;
-            self._callVoicemail();
-          }, 1500, this);
-        }
-
-        if (key == 'delete') {
-          this._phoneNumber = this._phoneNumber.slice(0, -1);
-        } else if (this.phoneNumberViewContainer.classList.
-            contains('keypad-visible')) {
-          if (!this._isKeypadClicked) {
-            this._isKeypadClicked = true;
-            this._phoneNumber = key;
-            this.replaceAdditionalContactInfo('');
-          } else {
-            this._phoneNumber += key;
-          }
-        } else {
-          this._phoneNumber += key;
-        }
-        this._updatePhoneNumberView('begin', false);
+        this._touchStart(key, event.target.dataset.voicemail);
         break;
       case 'touchmove':
-        var target = document.elementFromPoint(
-          event.touches[0].pageX, event.touches[0].pageY);
-        key = target.dataset ? target.dataset.value : null;
-        if (key !== this._lastPressedKey || key === 'delete') {
-          this._keyPressStart = null;
-          this._lastPressedKey = null;
-        }
+        this._touchMove(event.touches[0]);
         break;
       case 'touchend':
-        // Stop playing the DTMF/tone after a small delay
-        // or right away if this is a long press
-
-        // Sending the DTMF tone if on a call on touchend or touchleave
-        // to prevent sending unwanted tones (BUG #829406);
-        if (key !== 'delete' && key === this._lastPressedKey) {
-          var keyPressStop = Date.now(),
-              toneLength = keyPressStop - this._keyPressStart;
-
-          if (keypadSoundIsEnabled) {
-            TonePlayer.stop();
-          }
-
-          this._keyPressStart = null;
-          this._lastPressedKey = null;
-
-          if (this._onCall) {
-            clearTimeout(this._dtmfToneTimer);
-            // Stop previous tone before dispatching a new one
-            telephony.stopTone();
-            telephony.startTone(key);
-
-            this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
-              telephony.stopTone();
-            }, this._dtmfToneLength(toneLength), this);
-          }
-        }
-
-        var delay = this._longPress ? 0 : 100;
-        if (keypadSoundIsEnabled) {
-          TonePlayer.stop();
-        }
-        if (this._onCall) {
-          window.setTimeout(function ch_stopTone() {
-            telephony.stopTone();
-          }, this._dtmfToneLength(delay));
-        }
-
-        // If it was a long press our work is already done
-        if (this._longPress) {
-          this._longPress = false;
-          this._holdTimer = null;
-          return;
-        }
-
-        if (this._holdTimer)
-          clearTimeout(this._holdTimer);
+        this._touchEnd(key);
         break;
     }
   },
@@ -451,15 +475,12 @@ var KeypadManager = {
   },
 
   press: function(value) {
-    var telephony = navigator.mozTelephony;
-
-    telephony.stopTone();
-    telephony.startTone(value);
+    this._playDtmfTone(value);
     TonePlayer.start(gTonesFrequencies[value], true);
-    setTimeout(function nextTick() {
-      telephony.stopTone();
+    setTimeout((function nextTick() {
       TonePlayer.stop();
-    }, this._dtmfToneLength(0));
+      this._stopDtmfTone();
+    }).bind(this));
   },
 
   _updatePhoneNumberView: function kh_updatePhoneNumberview(ellipsisSide,
