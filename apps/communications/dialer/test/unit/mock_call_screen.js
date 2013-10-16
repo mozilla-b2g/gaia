@@ -57,7 +57,7 @@ var MockCallScreen = {
   set cdmaCallWaiting(enabled) {
     this.mCdmaCallWaiting = enabled;
   },
-  mCdmaCallWaiting: null,
+  mCdmaCallWaiting: false,
 
   get inStatusBarMode() {
     return this.mInStatusBarMode;
