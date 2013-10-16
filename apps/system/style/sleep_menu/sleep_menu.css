@@ -1,69 +1,95 @@
 #sleep-menu {
-  background-attachment: scroll, scroll;
-  background-clip: border-box, border-box;
-  background-color: transparent;
-  background-image: url("../themes/default/images/images/ui/pattern.png"), url("../themes/default/images/ui/gradient.png");
-  background-origin: padding-box, padding-box;
-  background-position: left top, left top;
-  background-repeat: repeat, no-repeat;
-  background-size: auto auto, 100% 100%;
-  bottom: 0;
-  color: #FFFFFF;
-  left: 0;
-  overflow: hidden;
-  padding: 1.5rem 0 7rem;
-  position: absolute;
-  right: 0;
-  top: 0;
-  white-space: nowrap;
   display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 0 0 7rem;
+  color: #fff;
+  font-family: sans-serif;
+  background: url(/shared/style_unstable/value_selector/images/ui/pattern.png) repeat left top,
+              url(/shared/style_unstable/value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
+  overflow: hidden;
+  z-index: 100;
 }
 
 #sleep-menu-container {
   -moz-box-sizing: padding-box;
-  display: inline-block;
-  padding: 0 2.5rem 0 2rem;
-  vertical-align: middle;
-  white-space: normal;
-  word-wrap: break-word;
   width: 100%;
+  height: 100%;
+  padding: 0;
+}
+
+#sleep-menu-container:before {
+  content: "";
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  top: 4.8rem;
+  left: 0;
+  right: 0;
+  bottom: 6.9rem;
+  background: url(/shared/style_unstable/value_selector/images/ui/shadow.png) repeat-x left top,
+              url(/shared/style_unstable/value_selector/images/ui/shadow-invert.png) repeat-x left bottom;
 }
 
 #sleep-menu.visible {
   display: block;
 }
 
-#sleep-menu-container h3 {
-  border-bottom: 0.1rem solid #686868;
-  color: #FFFFFF;
-  font-size: 1.6rem;
-  font-weight: normal;
-  line-height: 1em;
-  margin: 0 0 1rem;
-  padding-bottom: 1rem;
+#sleep-menu-container h1 {
+  -moz-box-sizing: border-box;
+  height: 4.8rem;
+  margin: 0 -1.5rem;
+  padding: 0 3rem 1rem;
+  font-weight: 400;
+  font-size: 1.9rem;
+  line-height: 4.8rem;
+  color: #fff;
+  border-bottom: 0.1rem solid #616262;
+  background-color: rgba(0,0,0, .2);
 }
 
 #sleep-menu-container ul {
-  margin: -1rem -4rem 0;
-  max-height: 37rem;
-  overflow: auto;
-  padding: 0 4rem;
   position: relative;
+  padding: 0;
+  margin: 0;
+  max-height: calc(100% - 5rem);
+  overflow: auto;
+  border-top: solid 0.1rem #222323;
 }
 
 #sleep-menu-container li {
-  transition: background-color 0.2s ease 0s;
-  border-bottom: 0.1rem solid #666666;
-  color: #FFFFFF;
-  font-size: 2.2rem;
-  font-weight: lighter;
-  line-height: 3.3rem;
-  list-style: none outside none;
   margin: 0;
-  padding: 1.3rem 0;
+  padding: 1rem 3rem;
+  height: auto;
+  list-style: none;
   position: relative;
-  display: block;
-  text-decoration: none;
+  font-weight: lighter;
+  font-size: 2.2rem;
+  line-height: 3.9rem;
+  color: #fff;
+  transition: background-color 0.2s ease;
+}
+
+#sleep-menu-container li:before,
+#sleep-menu-container li:after {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 0.1rem;
+}
+
+#sleep-menu-container li:before {
+  top: 0;
+  background-color: #666;
+}
+
+#sleep-menu-container li:after {
+  bottom: 0;
+  background-color: #000;
 }
 
 #sleep-menu-container li:active {
@@ -71,18 +97,30 @@
   color: #fff!important;
 }
 
+#sleep-menu-container li:active:before,
+#sleep-menu-container li:first-child:before,
+#sleep-menu-container li:active:after,
+#sleep-menu-container li:last-child:after {
+  background-color: transparent;
+}
+
+#sleep-menu-container li:active + li:before {
+  background-color: #000;
+}
+
 #sleep-menu menu {
-  background: url("../themes/default/images/ui/pattern.png") repeat scroll left top #2D2D2D;
-  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
-  bottom: 0;
-  display: block;
-  left: 0;
-  margin: 0;
-  overflow: hidden;
-  padding: 1.5rem;
   position: absolute;
   right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  padding: 1.5rem;
+  display: block;
+  overflow: hidden;
   white-space: nowrap;
+  background-color: #2D2D2D;
+  background-image: url("../themes/default/images/ui/pattern.png");
+  border-top: 0.1rem solid rgba(255, 255, 255, 0.1);
 }
 
 #sleep-menu menu button::-moz-focus-inner {
@@ -92,16 +130,16 @@
 
 #sleep-menu menu button {
   -moz-box-sizing: border-box;
-  background: url("../themes/default/images/ui/default.png") repeat-x scroll left bottom #FAFAFA;
+  background: url("../themes/default/images/ui/default.png") repeat-x 0 100% #FAFAFA;
   border: 0.1rem solid #9F9F9F;
   border-radius: 0.3rem 0.3rem 0.3rem 0.3rem;
-  color: #333333;
+  color: #333;
   display: inline-block;
   font-size: 1.6rem;
   font-weight: 600;
   height: 3.8rem;
   line-height: 3.8rem;
-  margin: 0 0 1rem;
+  margin: 0;
   outline: medium none;
   overflow: hidden;
   padding: 0 1.5rem;
@@ -117,5 +155,5 @@
 #sleep-menu menu button:active {
   background: none repeat scroll 0 0 #008AAA;
   border-color: #008AAA;
-  color: #333333;
+  color: #333;
 }
