@@ -179,24 +179,19 @@ function startup(data, reason) {
       gDevToolsBrowser.selectToolCommand(browserWindow.gBrowser);
 
       // XXX This code should be loaded by the keyboard/ extension
-      try {
-        // Try to load a the keyboard if there is a keyboard addon.
-        Cu.import('resource://keyboard.js/Keyboard.jsm');
-        mm.addMessageListener('Forms:Input', Keyboard);
-        mm.addMessageListener('Forms:SelectionChange', Keyboard);
-        mm.addMessageListener('Forms:GetText:Result:OK', Keyboard);
-        mm.addMessageListener('Forms:GetText:Result:Error', Keyboard);
-        mm.addMessageListener('Forms:SetSelectionRange:Result:OK', Keyboard);
-        mm.addMessageListener('Forms:ReplaceSurroundingText:Result:OK', Keyboard);
-        mm.addMessageListener('Forms:SendKey:Result:OK', Keyboard);
-        mm.addMessageListener('Forms:SequenceError', Keyboard);
-        mm.addMessageListener('Forms:GetContext:Result:OK', Keyboard);
-        mm.addMessageListener('Forms:SetComposition:Result:OK', Keyboard);
-        mm.addMessageListener('Forms:EndComposition:Result:OK', Keyboard);
-        mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
-      } catch(e) {
-        debug('Can\'t load Keyboard.jsm. Likely because the keyboard addon is not here.');
-      }
+      Cu.import('resource://gre/modules/Keyboard.jsm')
+      mm.addMessageListener('Forms:Input', Keyboard);
+      mm.addMessageListener('Forms:SelectionChange', Keyboard);
+      mm.addMessageListener('Forms:GetText:Result:OK', Keyboard);
+      mm.addMessageListener('Forms:GetText:Result:Error', Keyboard);
+      mm.addMessageListener('Forms:SetSelectionRange:Result:OK', Keyboard);
+      mm.addMessageListener('Forms:ReplaceSurroundingText:Result:OK', Keyboard);
+      mm.addMessageListener('Forms:SendKey:Result:OK', Keyboard);
+      mm.addMessageListener('Forms:SequenceError', Keyboard);
+      mm.addMessageListener('Forms:GetContext:Result:OK', Keyboard);
+      mm.addMessageListener('Forms:SetComposition:Result:OK', Keyboard);
+      mm.addMessageListener('Forms:EndComposition:Result:OK', Keyboard);
+      mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
     }, 'sessionstore-windows-restored', false);
 
     try {
