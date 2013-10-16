@@ -25,50 +25,46 @@
 [data-type="picker"] .picker-container {
   -moz-box-sizing: border-box;
   position: relative;
-  width: calc(100% - 5rem);
+  width: calc(100% - 5.5rem);
   height: 22.5rem;
-  margin: 2.5rem;
+  margin: 1.8rem auto;
   padding-top: 8.8rem;
   border-left:  0.1rem solid #111;
   border-right: 0.1rem solid #111;
   overflow: hidden;
+  border: 1px solid black;
 }
 
-[data-type="picker"] .picker-container:before {
-  content: '';
+[data-type="picker"] .picker-labels {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  border-top: solid 0.7rem;
-  -moz-border-top-colors:
-    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
-    rgba(0, 0, 0, 0.05);
-  z-index: 10;
+  top: 0px;
+  width: 100%;
+  z-index: 2;
 }
 
-[data-type="picker"] .picker-container:after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  border-bottom: solid 0.7rem;
-  -moz-border-bottom-colors:
-    rgba(0, 0, 0, 0.5) rgba(0, 0, 0, 0.4) rgba(0, 0, 0, 0.3)
-    rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.1)
-    rgba(0, 0, 0, 0.05);
-  z-index: 10;
+[data-type="picker"] .picker-label {
+  background: #333;
+  height: 3rem;
+  font-size: 1.4rem;
+  line-height: 3rem;
+  text-align: center;
+  width: 50%;
+}
+
+[data-type="picker"] #hours {
+  float: left;
+}
+
+[data-type="picker"] #minutes {
+  float: right;
 }
 
 [data-type="picker"] .picker-bar-background {
   position: absolute;
   top: 0;
   right: 0;
-  width: calc(100% / 3);
+  width: calc(100% / 2);
   height: 100%;
-  background: url(/style/picker/images/ui/pattern-time.png);
 }
 
 #time-picker.picker-bar-background {
@@ -76,34 +72,29 @@
 }
 
 [data-type="picker"] .picker-hours-wrapper,
-[data-type="picker"] .picker-minutes-wrapper,
-[data-type="picker"] .picker-seconds-wrapper {
+[data-type="picker"] .picker-minutes-wrapper {
   -moz-box-sizing: border-box;
   position: absolute;
   top: 0;
   left: 0;
-  width: calc(100% / 3);
+  width: calc(100% / 2);
   height: 100%;
   padding-top: 8.3rem;
+}
+
+[data-type="picker"] .picker-hours-wrapper {
   border-right: solid 0.2rem;
   -moz-border-right-colors: #1d1d1d #4a4a4a;
 }
 
 [data-type="picker"] .picker-minutes-wrapper {
-  left: calc(100% / 3);
-}
-
-[data-type="picker"] .picker-seconds-wrapper {
-  left: auto;
-  right: 0;
-  border: none;
+  left: calc(100% / 2);
 }
 
 [data-type="picker"] .picker-hours-wrapper,
 [data-type="picker"] .picker-minutes-wrapper,
-[data-type="picker"] .picker-seconds-wrapper,
 [data-type="picker"] .picker-bar-background {
-  width: 33.3333%;
+  width: 50%;
 }
 
 /*[data-type="picker"] .picker-minutes-wrapper {
@@ -112,21 +103,9 @@
   border: none;
 }*/
 
-[data-type="picker"] .picker-seconds-wrapper {
-  left: auto;
-  right: 0;
-  border: none;
-}
 
-
-
-/*[data-type="picker"] .picker-seconds-wrapper {
-  display: none;
-}
-*/
 [data-type="picker"] .picker-hours,
-[data-type="picker"] .picker-minutes,
-[data-type="picker"] .picker-seconds {
+[data-type="picker"] .picker-minutes {
   -moz-user-select: none;
   position: relative;
   width: 100%;
@@ -146,7 +125,7 @@
 [data-type="picker"] .value-indicator-colon {
   float: left;
   position: relative;
-  width: calc(100% / 3);
+  width: calc(100% / 2);
   height: 100%;
   font: 2.2rem/4.4rem Sans-serif;
   text-align: right;
@@ -158,7 +137,7 @@
 [data-type="picker"] .value-indicator-period {
   float: left;
   position: relative;
-  width: calc(100% / 3);
+  width: calc(100% / 2);
   height: 100%;
   font: 2.2rem/4.4rem Sans-serif;
   text-align: right;
