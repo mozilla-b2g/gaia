@@ -268,8 +268,9 @@ var NotificationScreen = {
     time.textContent = this.prettyDate(timestamp);
     notificationNode.appendChild(time);
 
-    var dir = (detail.bidi === 'ltr' || detail.bidi === 'rtl') ?
-      detail.bidi : '';
+    var dir = (detail.bidi === 'ltr' ||
+               detail.bidi === 'rtl') ?
+          detail.bidi : 'auto';
 
     var title = document.createElement('div');
     title.textContent = detail.title;

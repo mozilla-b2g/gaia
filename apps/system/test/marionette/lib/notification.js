@@ -1,16 +1,25 @@
 'use strict';
-var util = require('util');
+var util = require('util'),
+    Marionette = require('marionette-client');
 
-function NotificationTest(client, tag, title, body) {
+function NotificationTest(client, tag, title, body,
+                          dir, lang, delay_create) {
   this.client = client;
+  this.actions = new Marionette.Actions(client);
   this.tag = tag;
-  this.client.executeScript(function(notifyTag, notifyTitle, notifyBody) {
+  this.title = title;
+  this.body = body;
+  this.dir = dir;
+  this.lang = lang;
+  this.client.executeScript(function() {
     if (window.wrappedJSObject.persistNotify === undefined) {
       window.wrappedJSObject.persistNotify = [];
     }
-    window.wrappedJSObject.persistNotify[notifyTag] =
-      new Notification(notifyTitle, { body: notifyBody, tag: notifyTag });
-  }, [this.tag, title, body]);
+  });
+  if (delay_create !== true) {
+    this.create();
+  }
+
 }
 
 NotificationTest.prototype = {
@@ -20,6 +29,28 @@ NotificationTest.prototype = {
     this.client.executeScript(function(notifyTag) {
       window.wrappedJSObject.persistNotify[notifyTag].close();
     }, [this.tag]);
+  },
+  dumpContainer: function() {
+    this.client.executeScript(function() {
+      dump(
+        document.getElementById('desktop-notifications-container').innerHTML);
+    });
+  },
+  create: function() {
+    this.client.executeScript(function(notifyTag, notifyTitle, notifyBody,
+                                       notifyDir, notifyLang) {
+      var details = { tag: notifyTag,
+                      body: notifyBody};
+      if (notifyDir) {
+        details.dir = notifyDir;
+      }
+      if (notifyLang) {
+        details.lang = notifyLang;
+      }
+
+      window.wrappedJSObject.persistNotify[notifyTag] =
+        new Notification(notifyTitle, details);
+    }, [this.tag, this.title, this.body, this.dir, this.lang]);
   }
 };
 
