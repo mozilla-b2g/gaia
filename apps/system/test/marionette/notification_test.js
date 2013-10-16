@@ -12,54 +12,31 @@ marionette('notification tests', function() {
     var tag = 'test tag';
     var title = 'test title';
     var body = 'test body';
-    var dir = 'rtl';
-    var lang = 'en';
-    var notify = new NotificationTest(client, tag, title, body, dir, lang);
+    var notify = new NotificationTest(client, tag, title, body);
     notificationList.refresh();
-    assert.ok(notificationList.contains({title: title,
-                                         body: body,
-                                         dir: dir,
-                                         lang: lang}),
-              'notification list contains notification with all fields');
+    assert.ok(notificationList.contains(title, body),
+              'notification list contains the new notification');
   });
 
   test('replace notification', function() {
     var tag = 'test tag, replace';
     var oldTitle = 'test title, replace';
     var oldBody = 'test body, replace';
-    var oldLang = 'en';
-    var oldDir = 'rtl';
     var newTitle = 'new test title, replace';
     var newBody = 'new test body, replace';
-    var newLang = 'sr-Cyrl';
-    var newDir = 'ltr';
-    var notify = new NotificationTest(client, tag, oldTitle,
-                                      oldBody, oldDir, oldLang);
+    var notify = new NotificationTest(client, tag, oldTitle, oldBody);
     notificationList.refresh();
-    assert.ok(notificationList.contains({title: oldTitle,
-                                         body: oldBody,
-                                         lang: oldLang,
-                                         dir: oldDir}),
+    assert.ok(notificationList.contains(oldTitle, oldBody),
               'unreplaced notification should exist before replacement');
-    assert.ok(!notificationList.contains({title: newTitle,
-                                          body: newBody,
-                                          lang: newLang,
-                                          dir: newDir}),
+    assert.ok(!notificationList.contains(newTitle, newBody),
               'replaced notification should not exists before replacement');
 
-    var newNotify = new NotificationTest(client, tag, newTitle,
-                                         newBody, newDir, newLang);
+    var newNotify = new NotificationTest(client, tag, newTitle, newBody);
     notificationList.refresh();
-    assert.ok(!notificationList.contains({title: oldTitle,
-                                         body: oldBody,
-                                         lang: oldLang,
-                                         dir: oldDir}),
+    assert.ok(!notificationList.contains(oldTitle, oldBody),
               'unreplaced notification should not exist after replacement');
-    assert.ok(notificationList.contains({title: newTitle,
-                                          body: newBody,
-                                          lang: newLang,
-                                          dir: newDir}),
-              'replaced notification should exist after replacement');
+    assert.ok(notificationList.contains(newTitle, newBody),
+              'replaced notification should exists after replacement');
   });
 
   test('close notification', function() {
@@ -70,10 +47,10 @@ marionette('notification tests', function() {
     notificationList.refresh();
     assert.ok(notificationList.contains(title, body),
               'notification should be in list before calling close');
-    assert.ok(notify.close(), 'notification closed correctly');
+    notify.close();
     notificationList.refresh();
     assert.ok(!notificationList.contains(title, body),
-              'notification should not be in list after calling close');
+              'notification should be in list before calling close');
   });
 
   // function to check if screen status is enabled/disabled
