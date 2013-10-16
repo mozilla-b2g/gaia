@@ -58,7 +58,8 @@ var CallScreen = {
   },
 
   set cdmaCallWaiting(enabled) {
-    this.calls.dataset.cdmaCallWaiting = enabled;
+    this.calls.classList.toggle('switch', enabled);
+    this.callToolbar.classList.toggle('no-add-call', enabled);
   },
 
   get inStatusBarMode() {
