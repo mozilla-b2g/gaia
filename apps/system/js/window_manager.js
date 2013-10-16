@@ -1309,7 +1309,16 @@ var WindowManager = (function() {
 
     sizes.sort(function(x, y) { return y - x; });
 
-    return icons[sizes[0]];
+    var index = 0;
+    var width = document.documentElement.clientWidth;
+    for (var i = 0; i < sizes.length; i++) {
+      if (sizes[i] < width) {
+        index = i;
+        break;
+      }
+    }
+
+    return icons[sizes[index]];
   }
 
   // TODO: Move into app window.
