@@ -345,8 +345,23 @@ var NotificationScreen = {
     if (typeof(LockScreen) !== 'undefined' &&
         LockScreen.locked && this.lockscreenPreview) {
       var lockScreenNode = notificationNode.cloneNode(true);
-      this.lockScreenContainer.insertBefore(lockScreenNode,
-                               this.lockScreenContainer.firstElementChild);
+
+      // First we try and find an existing notification with the same id.
+      // If we have one, we'll replace it. If not, we'll create a new node.
+      var oldLockScreenNode =
+        this.lockScreenContainer.querySelector(notifSelector);
+      if (oldLockScreenNode) {
+        this.lockScreenContainer.replaceChild(
+          lockScreenNode,
+          oldLockScreenNode
+        );
+      }
+      else {
+        this.lockScreenContainer.insertBefore(
+          lockScreenNode,
+          this.lockScreenContainer.firstElementChild
+        );
+      }
     }
 
     if (!this.silent) {
