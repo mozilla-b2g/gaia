@@ -86,7 +86,7 @@ void function() {
         elInput.addEventListener('blur', self.Rename.cancel);
         elInput.addEventListener('keyup', self.Rename.onKeyUp);
         elDone.addEventListener('touchstart', self.Rename.save);
-  
+
         elTitle.removeEventListener('click', self.Rename.start);
 
         self.isRenaming = true;
@@ -257,7 +257,7 @@ void function() {
       else {
         Evme.CollectionStorage.get(collectionId, function onGotSettings(collectionSettings) {
           prependApp(installedApp, collectionSettings);
-        });  
+        });
       }
 
       function prependApp(app, settings) {
@@ -295,7 +295,7 @@ void function() {
         if (didPopulate) {
           return;
         }
-        
+
         Evme.Storage.set(collectionsPopulatedKey, true);
         populateAllCollections();
       });
@@ -351,6 +351,10 @@ void function() {
     function showUI() {
       el.style.display = 'block';
       window.setTimeout(function() {
+        el.addEventListener('transitionend', function end(e) {
+          e.target.removeEventListener('transitionend', end);
+          document.dispatchEvent(new CustomEvent('collectionopened'));
+        });
         el.classList.add('visible');
         Evme.EventHandler.trigger(NAME, 'show');
       }, 0);
@@ -533,7 +537,7 @@ void function() {
       var collectionName = EvmeManager.getIconName(gridCollection.id);
 
       // first match against the collection's name (easier)
-      if (collectionName && 
+      if (collectionName &&
           queries.indexOf(collectionName.toLowerCase()) > -1) {
         self.addInstalledApp(appInfo, gridCollection.id);
       } else {
@@ -549,11 +553,11 @@ void function() {
             collectionQuery = Evme.Utils.shortcutIdToKey(settings.experienceId);
           }
 
-          if (collectionQuery && 
+          if (collectionQuery &&
               queries.indexOf(collectionQuery.toLowerCase()) > -1) {
             self.addInstalledApp(appInfo, gridCollection.id, settings);
           }
-        });  
+        });
       }
     }
   };
@@ -684,7 +688,7 @@ void function() {
    * Apps may have been un-installed when E.me was not running
    */
   function depopulateCollection(settings) {
-    var apps = settings.apps.filter(function exists(app) {     
+    var apps = settings.apps.filter(function exists(app) {
       // never remove cloud apps that were pinned to the collection
       if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD) {
         return true;
@@ -693,7 +697,7 @@ void function() {
         return (EvmeManager.getIconByDescriptor(app) ? true : false);
       }
     });
-    
+
     if (apps.length < settings.apps.length) {
       Evme.Collection.update(settings, {"apps": apps});
     }
@@ -721,7 +725,7 @@ void function() {
       }
 
       // remove bookmarks
-      var remove = descriptor.bookmarkURL && 
+      var remove = descriptor.bookmarkURL &&
                     app.id === descriptor.bookmarkURL;
 
       // remove all entry points of descriptor

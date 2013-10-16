@@ -18,6 +18,7 @@ requireApp('homescreen/test/unit/mock_manifest_helper.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
 require('/shared/js/screen_layout.js');
+requireApp('homescreen/js/icon_manager.js');
 requireApp('homescreen/js/grid_components.js');
 requireApp('homescreen/js/grid.js');
 
@@ -248,6 +249,7 @@ suite('grid.js >', function() {
       sendMouseEvent('mouseup', containerNode, point);
 
       // Icon lost the focus
+      IconManager.removeActive();
       assert.isFalse(icon.classList.contains('active'));
     });
 
@@ -284,6 +286,7 @@ suite('grid.js >', function() {
 
       // No one is active
       assert.isFalse(icon1.classList.contains('active'));
+      IconManager.removeActive();
       assert.isFalse(icon2.classList.contains('active'));
     });
 
