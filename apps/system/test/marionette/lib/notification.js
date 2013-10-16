@@ -11,24 +11,32 @@ function NotificationTest(client, tag, title, body,
   this.body = body;
   this.dir = dir;
   this.lang = lang;
-  this.client.executeScript(function() {
-    if (window.wrappedJSObject.persistNotify === undefined) {
-      window.wrappedJSObject.persistNotify = [];
-    }
-  });
   if (delay_create !== true) {
     this.create();
   }
-
 }
 
 NotificationTest.prototype = {
   client: null,
   tag: null,
   close: function() {
-    this.client.executeScript(function(notifyTag) {
-      window.wrappedJSObject.persistNotify[notifyTag].close();
-    }, [this.tag]);
+    var ret = undefined;
+    this.client.executeAsyncScript(function(notifyTag) {
+      var n = Notification.get({tag: notifyTag});
+      n.then(
+        function(nt) {
+          if (nt.length === 1) {
+            nt[0].close();
+            marionetteScriptFinished(true);
+          }
+        },
+        function(nt) {
+          marionetteScriptFinished(false);
+        });
+    }, [this.tag], function(err, value) {
+      ret = value;
+    });
+    return ret;
   },
   dumpContainer: function() {
     this.client.executeScript(function() {
@@ -48,8 +56,8 @@ NotificationTest.prototype = {
         details.lang = notifyLang;
       }
 
-      window.wrappedJSObject.persistNotify[notifyTag] =
-        new Notification(notifyTitle, details);
+      //window.wrappedJSObject.persistNotify[notifyTag] =
+      new Notification(notifyTitle, details);
     }, [this.tag, this.title, this.body, this.dir, this.lang]);
   }
 };
@@ -87,6 +95,8 @@ NotificationList.prototype = {
       return {
         title: el.client.findElement(titleElement).getAttribute('innerHTML'),
         body: el.client.findElement(bodyElement).getAttribute('innerHTML'),
+        lang: el.client.findElement(titleElement).getAttribute('lang'),
+        dir: el.client.findElement(titleElement).getAttribute('dir'),
         manifestURL: el.getAttribute(this.selectors.manifestAttribute)
       };
     }.bind(this));
@@ -103,19 +113,29 @@ NotificationList.prototype = {
   },
 
   // get a count of notifications with a certain title and body
-  getCount: function(title, body, manifestURL) {
+  getCount: function(details) {
     var list;
-    if (manifestURL) {
-      list = this.getForApp(manifestURL);
+    if (details.manifestURL) {
+      list = this.getForApp(details.manifestURL);
     } else {
       list = this.notifications;
     }
     var count = 0;
     for (var i = 0; i < list.length; i++) {
       var notification = list[i];
-      if (notification.title === title && notification.body === body) {
-        ++count;
+      if (details.title && notification.title !== details.title) {
+        continue;
       }
+      if (details.body && notification.body !== details.body) {
+        continue;
+      }
+      if (details.lang && notification.lang !== details.lang) {
+        continue;
+      }
+      if (details.bidi && notification.bidi !== details.bidi) {
+        continue;
+      }
+      ++count;
     }
     return count;
   },
