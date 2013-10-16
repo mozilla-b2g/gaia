@@ -21,13 +21,19 @@ writeRecordArrayTag: function(ndefRecords) {
   if (ndefRecords == null) {
     return null;
   }
-  var nfcTag = nfcUI.getNFCTag();
-  if (nfcTag) {
+  if (!nfcUI.p2p) {
+    var nfcTag = nfcUI.getNFCTag();
     var domreq = nfcTag.writeNDEF(ndefRecords);
+    console.log('Returned from NFCTag writeNDEF call');
+    return domreq;
+  } else {
+    var data = nfcUI.getActivityData();
+    var nfcPeer = window.navigator.mozNfc.getNFCPeer(data.sessionToken);
+    var domreq = nfcPeer.sendNDEF(ndefRecords);
+    console.log('Returned from NFCPeer sendNDEF call');
+    nfcUI.p2p = false;
+    return domreq;
   }
-  console.log('Returned from writeNdefTag call');
-  nfcUI.p2p = false;
-  return domreq;
 },
 
 /**

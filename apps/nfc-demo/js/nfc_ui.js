@@ -14,7 +14,9 @@ messageArea: null,
 p2p: false,
 isConnected: false,
 _nfcTag: null,
+_activityData: null,
 
+// NFCTag
 closeNFCTag: function() {
   if (this._nfcTag) {
     this._nfcTag.close();
@@ -28,6 +30,15 @@ setNFCTag: function(nfcTag) {
 
 getNFCTag: function() {
   return this._nfcTag;
+},
+
+// activity data UI global.
+setActivityData: function(activityData) {
+  this._activityData = activityData;
+},
+
+getActivityData: function() {
+  return this._activityData;
 },
 
 setConnectedState: function(connectedState) {

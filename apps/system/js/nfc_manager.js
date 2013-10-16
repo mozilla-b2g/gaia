@@ -298,7 +298,7 @@
     var token = session;
     var nfctag = nfcdom.getNFCTag(token);
 
-    var conn = nfctag.connect(tech);
+    var conn = nfctag.connect('NDEF_FORMATABLE'); // FIXME, mismatch in enums
     conn.onsuccess = function() {
       debug('DBG: Success');
       var req = nfctag.readNDEF();
