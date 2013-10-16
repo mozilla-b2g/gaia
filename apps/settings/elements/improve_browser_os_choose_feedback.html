@@ -1,0 +1,44 @@
+<element name="improveBrowserOS-chooseFeedback" extends="section">
+  <template>
+
+  	<header>
+      <a href="#improveBrowserOS"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="sendFeedbackTitle">Submit Your Feedback</h1>
+    </header>
+    <div>
+      <ul>
+        <li>
+          <p class="description">
+            <span data-l10n-id="feedback-description">
+              Your feedback will help us to improve Firefox OS.
+            </span>
+          </p>
+        </li>
+        <li>
+          <ul class="feedback-choose" id="feedback-mood">
+            <li id="feedback-happy">
+              <span class="feedback-choose-face"></span>
+              <span data-l10n-id="feedback-happy">
+                Happy
+              </span>
+            </li>
+            <li id="feedback-sad">
+              <span class="feedback-choose-face"></span>
+              <span data-l10n-id="feedback-sad">
+                Sad
+              </span>
+            </li>
+          </ul>
+        </li>
+        <li>
+          <span class="feedback-feel" data-l10n-id="feedback-mood-description">
+            How do you feel?
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/feedback.js"></script>
+
+  </template>
+</element>
