@@ -7,7 +7,15 @@ var MockExportStrategy = function() {
     'determinativeValue': true,
     'hasDeterminativeProgress': function() { return this.determinativeValue },
     'getExportTitle': function() { return 'export'; },
-    'doExport': function() {},
-    'setProgressStep': function(e) {}
+    'doExport': function(callback) {
+      if (this.error && callback) {
+        callback(this.error);
+      }
+    },
+    'setProgressStep': function(e) {},
+    'setError': function(error) {
+      this.error = error;
+    },
+    get name() { return 'MOCK'; }
   };
 }();

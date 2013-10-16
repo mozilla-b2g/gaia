@@ -31,7 +31,7 @@ var ContactsSIMExport = function ContactsSIMExport() {
     // but a second check is healthy
     if (!icc) {
       finishCallback({
-        'reason': 'No SIM'
+        'reason': 'unavailable'
       }, 0, 'No SIM detected');
       return;
     }
@@ -83,7 +83,8 @@ var ContactsSIMExport = function ContactsSIMExport() {
     'hasDeterminativeProgress': hasDeterminativeProgress,
     'getExportTitle': getExportTitle,
     'doExport': doExport,
-    'setProgressStep': setProgressStep
+    'setProgressStep': setProgressStep,
+    get name() { return 'SIM';} // handling error messages on contacts_exporter
   };
 
 };

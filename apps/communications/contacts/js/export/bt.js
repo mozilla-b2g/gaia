@@ -72,7 +72,7 @@ var ContactsBTExport = function ContactsBTExport() {
           callback(null, storage, name);
         });
       },
-      callback
+      callback //onerror
     );
   };
   var _saveToSdcard = function _saveToSdcard(storage, name, blob, callback) {
@@ -103,25 +103,34 @@ var ContactsBTExport = function ContactsBTExport() {
 
     var checkError = function checkError(error) {
       if (!error) {
-        return;
+        return false;
+      }
+      var reason = error;
+      // numeric error means not enough space available
+      if (parseInt(error, 10) > 0) {
+        reason = 'noSpace';
       }
       finishCallback({
-        'reason': error
+        'reason': reason
       }, 0, error.message);
+      return true;
     };
 
     ContactToVcardBlob(contacts, function onContacts(blob) {
       _getStorage(_getFileName(), blob,
       function onStorage(error, storage, filename) {
-        checkError(error);
+        if (checkError(error))
+          return;
 
         _saveToSdcard(storage, filename, blob,
         function onVcardSaved(error, filepath) {
-          checkError(error);
+          if (checkError(error))
+            return;
 
           _getFile(storage, filepath,
           function onFileRetrieved(error, file) {
-            checkError(error);
+            if (checkError(error))
+              return;
 
             var a = new MozActivity({
               name: 'share',
@@ -157,6 +166,7 @@ var ContactsBTExport = function ContactsBTExport() {
     'hasDeterminativeProgress': _hasDeterminativeProgress,
     'getExportTitle': _getExportTitle,
     'setProgressStep': _setProgressStep,
-    'doExport': _doExport
+    'doExport': _doExport,
+    get name() { return 'BT';} // handling error messages on contacts_exporter
   };
 };
