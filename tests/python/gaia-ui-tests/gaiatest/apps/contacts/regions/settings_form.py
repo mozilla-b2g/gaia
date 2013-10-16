@@ -13,8 +13,11 @@ class SettingsForm(Base):
     _order_by_last_name_locator = (By.CSS_SELECTOR, 'p[data-l10n-id="contactsOrderBy"]')
     _order_by_last_name_switch_locator = (By.CSS_SELECTOR, 'input[name="order.lastname"]')
     _import_from_sim_button_locator = (By.CSS_SELECTOR, 'button.icon-sim[data-l10n-id="importSim2"]')
+    _import_from_memory_card_locator = (By.CSS_SELECTOR, 'button.icon-sd[data-l10n-id="importMemoryCard"]')
     _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail[data-l10n-id="importGmail"]')
     _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live[data-l10n-id="importLive"]')
+    _back_from_import_locator = (By.ID, 'import-settings-back')
+    _import_contacts_locator = (By.CSS_SELECTOR, 'button.icon-import')
     _export_to_sd_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="memoryCard"]')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsTitle"]')
     _export_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="exportContactsTitle"]')
@@ -46,6 +49,15 @@ class SettingsForm(Base):
         self.wait_for_element_displayed(*self._import_from_sim_button_locator)
         self.marionette.find_element(*self._import_from_sim_button_locator).tap()
         self.wait_for_element_not_displayed(*self._loading_overlay_locator)
+        from gaiatest.apps.contacts.app import Contacts
+        return Contacts(self.marionette)
+
+    def tap_import_from_memory_card(self):
+        self.wait_for_element_displayed(*self._import_from_memory_card_locator)
+        self.marionette.find_element(*self._import_from_memory_card_locator).tap()
+        self.wait_for_element_not_displayed(*self._loading_overlay_locator)
+        self.marionette.find_element(*self._back_from_import_locator).tap()
+        self.tap_done()
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
