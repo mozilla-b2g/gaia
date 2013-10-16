@@ -232,7 +232,12 @@ var MediaStorage = {
 
     this.defaultMediaLocation = document.getElementById('defaultMediaLocation');
     this.defaultMediaLocation.addEventListener('click', this);
-    this.makeDefaultLocationMenu();
+    if (this._volumeList.length > 1) {
+      this.makeDefaultLocationMenu();
+      this.showAdvancedMenu(true);
+    } else {
+      this.showAdvancedMenu(false);
+    }
 
     window.addEventListener('localized', this);
 
@@ -341,6 +346,13 @@ var MediaStorage = {
     }
   },
 
+  showAdvancedMenu: function ms_showAdvancedMenu(show) {
+    var advancedUl = document.getElementById('media-storage-advanced-list');
+    var advancedMenu = document.getElementById('media-storage-advanced-header');
+    advancedUl.hidden = !show;
+    advancedMenu.hidden = !show;
+  },
+
   makeDefaultLocationMenu: function ms_makeDefaultLocationMenu() {
     var _ = navigator.mozL10n.get;
     var self = this;
@@ -367,14 +379,6 @@ var MediaStorage = {
       var button = selectionMenu.previousElementSibling;
       button.textContent = selectedOption.textContent;
       button.dataset.l10nId = selectedOption.dataset.l10nId;
-
-      // disable option menu if we have only one option
-      if (self._volumeList.length === 1) {
-        selectionMenu.disabled = true;
-        var obj = {};
-        obj[defaultMediaVolumeKey] = selectedOption.value;
-        Settings.mozSettings.createLock().set(obj);
-      }
     });
   },
   changeDefaultStorage: function ms_changeDefaultStorage() {

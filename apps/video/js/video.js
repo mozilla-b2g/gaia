@@ -512,12 +512,6 @@ function showOverlay(id) {
   }
 
   if (id === 'nocard') {
-    dom.overlayMenu.classList.remove('hidden');
-  } else {
-    dom.overlayMenu.classList.add('hidden');
-  }
-
-  if (id === 'nocard') {
     dom.overlayTitle.textContent = navigator.mozL10n.get('nocard2-title');
     dom.overlayText.textContent = navigator.mozL10n.get('nocard2-text');
   } else {

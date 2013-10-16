@@ -1128,12 +1128,6 @@ function showOverlay(id) {
       case 'nocard':
         title = navigator.mozL10n.get('nocard3-title');
         text = navigator.mozL10n.get('nocard3-text');
-        $('overlay-menu').classList.remove('hidden');
-        if (pendingPick) {
-          $('overlay-cancel-button').classList.remove('hidden');
-        } else {
-          $('storage-setting-button').classList.remove('hidden');
-        }
         break;
       case 'pluggedin':
         title = navigator.mozL10n.get('pluggedin2-title');
