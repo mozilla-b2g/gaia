@@ -395,6 +395,10 @@ var GaiaDataLayer = {
     this.getFiles('music');
   },
 
+  getAllSDCardFiles: function () {
+    this.getFiles('sdcard');
+  },
+
   getFiles: function (aType, aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     var files = [];

@@ -326,6 +326,13 @@ class GaiaData(object):
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllVideos();')
 
+    def sdcard_files(self, extension=''):
+        files = self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllSDCardFiles();')
+        if len(extension):
+            return [filename for filename in files if filename.endswith(extension)]
+        return files
+
 
 class GaiaDevice(object):
 

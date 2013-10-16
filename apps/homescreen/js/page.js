@@ -728,10 +728,6 @@ function Page(container, icons, numberOfIcons) {
 
 Page.prototype = {
 
-  // After launching an app we disable the page during <this time> in order to
-  // prevent multiple open-app animations
-  DISABLE_TAP_EVENT_DELAY: 600,
-
   FALLBACK_READY_EVENT_DELAY: 1000,
 
   /*
@@ -912,14 +908,17 @@ Page.prototype = {
    * Implements the tap behaviour
    *
    * @param{Object} DOM element
+   *
+   * @param{Function} callback
    */
-  tap: function pg_tap(elem) {
+  tap: function pg_tap(elem, callback) {
     if (Homescreen.isInEditMode()) {
       if (elem.classList.contains('options')) {
         var icon = GridManager.getIcon(elem.parentNode.dataset);
         if (icon.app)
           Homescreen.showAppDialog(icon);
       }
+      callback();
     } else if ('isIcon' in elem.dataset && this.olist &&
                !this.olist.getAttribute('disabled')) {
       var icon = GridManager.getIcon(elem.dataset);
@@ -927,31 +926,40 @@ Page.prototype = {
         return;
 
       if (icon.descriptor.entry_point) {
+        this.disableTap(callback);
         icon.app.launch(icon.descriptor.entry_point);
-        this.disableTap();
         return;
       }
 
       if (icon.cancelled) {
         GridManager.showRestartDownloadDialog(icon);
+        callback();
         return;
       }
+
+      this.disableTap(callback);
       icon.app.launch();
-      this.disableTap();
     }
   },
 
   /*
    * Disables the tap event for the page
    *
-   * @param{Integer} milliseconds
+   * @param{Function} callback
    */
-  disableTap: function pg_disableTap(icon, time) {
+  disableTap: function pg_disableTap(callback) {
     var olist = this.olist;
     olist.setAttribute('disabled', true);
-    setTimeout(function disableTapTimeout() {
+
+    var enableTap = function enableTap() {
+      document.removeEventListener('visibilitychange', enableTap);
+      document.removeEventListener('collectionopened', enableTap);
       olist.removeAttribute('disabled');
-    }, time || this.DISABLE_TAP_EVENT_DELAY);
+      callback();
+    };
+
+    document.addEventListener('visibilitychange', enableTap);
+    document.addEventListener('collectionopened', enableTap);
   },
 
   /*
