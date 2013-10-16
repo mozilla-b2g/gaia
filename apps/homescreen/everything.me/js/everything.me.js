@@ -103,7 +103,6 @@ var EverythingME = {
                     'js/api/DoATAPI.js',
                     'js/helpers/EventHandler.js',
                     'js/helpers/Idle.js',
-                    'shared/js/settings_listener.js',
                     'js/plugins/Analytics.js',
                     'js/plugins/APIStatsEvents.js'];
     var css_files = ['shared/style/confirm.css',

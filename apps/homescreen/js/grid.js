@@ -643,9 +643,11 @@ var GridManager = (function() {
     haveLocale = true;
   }
 
-  function getFirstPageWithEmptySpace() {
-    for (var i = numberOfSpecialPages; i < pages.length; i++) {
-      if (pages[i].getNumIcons() < MAX_ICONS_PER_PAGE) {
+  function getFirstPageWithEmptySpace(pageOffset) {
+    pageOffset = pageOffset !== null && pageOffset ? pageOffset :
+                                                     numberOfSpecialPages;
+    for (var i = pageOffset, page; page = pages[i]; i++) {
+      if (page.hasEmptySlot()) {
         return i;
       }
     }
@@ -1140,11 +1142,17 @@ var GridManager = (function() {
     var icon = new Icon(descriptor, app);
     rememberIcon(icon);
 
-    var index = getFirstPageWithEmptySpace();
+    var index;
     var svApp = getSingleVariantApp(app.manifestURL);
     if (svApp && !isPreviouslyInstalled(app.manifestURL)) {
       index = svApp.screen;
       icon.descriptor.desiredPos = svApp.location;
+      if (!Configurator.isSimPresentOnFirstBoot && index < pages.length &&
+          !pages[index].hasEmptySlot()) {
+        index = getFirstPageWithEmptySpace(index);
+      }
+    } else {
+      index = getFirstPageWithEmptySpace();
     }
 
     if (index < pages.length) {
