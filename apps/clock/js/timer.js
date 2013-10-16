@@ -33,6 +33,8 @@ function Timer(opts = {}) {
   this.state = opts.state || Timer.INITIALIZED;
   this.sound = opts.sound || null;
   this.vibrate = opts.vibrate;
+  this.last = Infinity;
+  this.timeout = null;
 
   // Existing timers need to be "reactivated"
   // to avoid the duplicate operation guard
@@ -55,13 +57,17 @@ Timer.prototype.tick = function timerTick() {
   var now = +date;
   var sec = Math.floor(now / 1000);
   var end = Math.floor(this.endAt / 1000);
+  var last = end - sec;
 
   if (this.state === Timer.STARTED) {
     if (sec <= end) {
-      this.lapsed = now - this.startAt;
-      this.emit('tick', end - sec);
+      if (this.last > last) {
+        this.last = last;
+        this.lapsed = now - this.startAt;
+        this.emit('tick', last);
 
-      asyncStorage.setItem('active_timer', JSON.stringify(this));
+        asyncStorage.setItem('active_timer', JSON.stringify(this));
+      }
     }
 
     if (sec === end + 1) {
@@ -69,7 +75,9 @@ Timer.prototype.tick = function timerTick() {
     }
   }
 
-  setTimeout(this.tick.bind(this), 1000 - date.getMilliseconds());
+  this.timeout = setTimeout(
+    this.tick.bind(this), 1000 - date.getMilliseconds()
+  );
 };
 /**
  * start Start a paused, initialized or reactivated Timer.
@@ -112,6 +120,8 @@ Timer.prototype.start = function timerStart() {
  */
 Timer.prototype.pause = function timerPause() {
   if (this.state !== Timer.PAUSED) {
+    clearTimeout(this.timeout);
+
     this.state = Timer.PAUSED;
     this.pauseAt = Date.now();
     asyncStorage.setItem('active_timer', JSON.stringify(this));
