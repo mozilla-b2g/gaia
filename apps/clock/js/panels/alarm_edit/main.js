@@ -14,22 +14,22 @@ var AlarmEdit = function() {
   Panel.apply(this, arguments);
   this.element.innerHTML = html;
   mozL10n.translate(this.element);
-  var handleEvent = this.handleEvent2.bind(this);
+  var handleDomEvent = this.handleDomEvent.bind(this);
   this.on('visibilitychange', this.handleVisibilityChange.bind(this));
-  this.backButton.addEventListener('click', handleEvent);
-  this.doneButton.addEventListener('click', handleEvent);
-  this.timeMenu.addEventListener('click', handleEvent);
-  this.timeSelect.addEventListener('blur', handleEvent);
-  this.repeatMenu.addEventListener('click', handleEvent);
-  this.repeatSelect.addEventListener('blur', handleEvent);
-  this.soundMenu.addEventListener('click', handleEvent);
-  this.soundSelect.addEventListener('change', handleEvent);
-  this.soundSelect.addEventListener('blur', handleEvent);
-  this.vibrateMenu.addEventListener('click', handleEvent);
-  this.vibrateSelect.addEventListener('blur', handleEvent);
-  this.snoozeMenu.addEventListener('click', handleEvent);
-  this.snoozeSelect.addEventListener('blur', handleEvent);
-  this.deleteButton.addEventListener('click', handleEvent);
+  this.backButton.addEventListener('click', handleDomEvent);
+  this.doneButton.addEventListener('click', handleDomEvent);
+  this.timeMenu.addEventListener('click', handleDomEvent);
+  this.timeSelect.addEventListener('blur', handleDomEvent);
+  this.repeatMenu.addEventListener('click', handleDomEvent);
+  this.repeatSelect.addEventListener('blur', handleDomEvent);
+  this.soundMenu.addEventListener('click', handleDomEvent);
+  this.soundSelect.addEventListener('change', handleDomEvent);
+  this.soundSelect.addEventListener('blur', handleDomEvent);
+  this.vibrateMenu.addEventListener('click', handleDomEvent);
+  this.vibrateSelect.addEventListener('blur', handleDomEvent);
+  this.snoozeMenu.addEventListener('click', handleDomEvent);
+  this.snoozeSelect.addEventListener('blur', handleDomEvent);
+  this.deleteButton.addEventListener('click', handleDomEvent);
 };
 
 AlarmEdit.prototype = Object.create(Panel.prototype);
@@ -78,7 +78,9 @@ Utils.extend(AlarmEdit.prototype, {
   },
   previewRingtonePlayer: null,
 
-  handleEvent2: function aev_handleEvent(evt) {
+  // The name `handleEvent` is already defined by the Panel class, so this
+  // method must be named uniquely to avoid overriding that functionality.
+  handleDomEvent: function aev_handleDomEvent(evt) {
     evt.preventDefault();
     var input = evt.target;
     if (!input)
