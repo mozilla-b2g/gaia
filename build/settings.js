@@ -282,6 +282,7 @@ function execute() {
    'time.timezone': null,
    'ums.enabled': false,
    'ums.mode': 0,
+   'ums.status': 0,
    'ums.volume.sdcard.enabled': true,
    'ums.volume.extsdcard.enabled': false,
    'vibration.enabled': true,
