@@ -1084,6 +1084,8 @@
         var nestedProp = k.substr(0, idx);
         if (gNestedProps.indexOf(nestedProp) > -1) {
           element[nestedProp][k.substr(idx + 1)] = data[k];
+        } else if (k === 'ariaLabel') {
+          element.setAttribute('aria-label', data[k]);
         } else {
           element[k] = data[k];
         }
