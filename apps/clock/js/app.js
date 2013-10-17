@@ -42,9 +42,6 @@ var App = {
           instance: null
         };
 
-        // Load all panels asynchronously
-        setTimeout(this.loadPanel.bind(this), 0, panel);
-
         return panel;
       }.bind(this)
     );
