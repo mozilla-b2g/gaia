@@ -52,14 +52,12 @@ var App = {
   /**
    * Load and instantiate the specified panel (when necessary).
    *
-   * @param {element|Panel} panel - The panel's containing element or the
-   *                                instance of the panel itself.
-   * @param {Number} index - The panel's position in the application's `panel`
-   *                         array. This reflects the position of the panel
-   *                         tabs and informs the direction of panel transition
-   *                         animations.
+   * @param {Object} panel - An object describing the panel. It must contain
+   *                         either an `el` attribute (defining the panel's
+   *                         containing element) or an `instance` attribute
+   *                         (defining the instantiated Panel itself).
    * @param {Function} [callback] - A function that will be invoked with the
-   *                         instantiated panel once it is loaded.
+   *                                instantiated panel once it is loaded.
    */
   loadPanel: function(panel, callback) {
     var moduleName;
