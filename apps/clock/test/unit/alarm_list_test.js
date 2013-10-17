@@ -1,4 +1,4 @@
-suite('AlarmList', function() {
+suite.skip('AlarmList', function() {
   var nml, nma, fixture, dom;
   var AlarmList, Alarm;
 
