@@ -31,12 +31,19 @@ var fs = require('fs'),
     setup(mediaType, mediaDir);
   },
 
+  mediaExists: function(path)
+  {
+    var exists = fs.existsSync(path);
+    console.log(exists ? 'TestCommon: media file is there' :
+    'TestCommon: no media file exist');
+    return exists;
+  },
+
   copyFileSynch: function(source, target) {
     try {
 
-      createDir('/tmp/device-storage-testing');
-      createDir('/tmp/device-storage-testing/videos');
-
+     // createDir('/tmp/device-storage-testing');
+    //  createDir('/tmp/device-storage-testing/videos');
       console.log('TestCommon: Synch copying from Source: ', source);
       console.log('TestCommon: Synch copying to Destination: ', target);
       var BUF_LENGTH = 64 * 1024;
@@ -52,6 +59,7 @@ var fs = require('fs'),
       }
       fs.closeSync(fdr);
       fs.closeSync(fdw);
+      console.log('TestCommon: File Copy Successful at target:', target);
     } catch (e) {
       console.log('TestCommon: Exception occured in synch copying file: ', e);
     }
@@ -79,7 +87,7 @@ function copyTestMedia(mediaType) {
   switch (mediaType) {
     case 'videos':
       //Check for media video file if it exists
-      if (!mediaExists(path.join(mediaDir, 'elephants-dream.webm')))
+      if (!TestCommon.mediaExists(path.join(mediaDir, 'elephants-dream.webm')))
         copyTestVideo();
       break;
     default:
@@ -97,15 +105,6 @@ function copyTestVideo() {
   TestCommon.copyFileSynch(sourceFile, destinationFile);
 }
 
-
-
- function mediaExists(path)
- {
-   var exists = fs.existsSync(path);
-   console.log(exists ? 'TestCommon: media file is there' :
-    'TestCommon: no media file exist');
-   return exists;
- }
 
 function getMediaDir(mediaType, client) {
   deviceStorageDir = getDeviceStorageDirectory(client);

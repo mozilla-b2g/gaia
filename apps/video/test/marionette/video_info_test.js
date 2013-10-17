@@ -15,11 +15,15 @@ marionette('Video info of played video# ', function() {
   });
 
   setup(function() {
-    console.log('Test: Copy Media File');
-    TestCommon.copyFileSynch(
-      '/home/travis/build/mozilla-b2g/gaia/test_media/Movies/elephants-dream.webm',
-      '/tmp/device-storage-testing/videos/elephants-dream.webm');
     TestCommon.prepareTestSuite('videos', client);
+    console.log('Video Test Setup');
+    if (TestCommon.
+      mediaExists('/tmp/device-storage-testing/videos/elephants-dream.webm')) {
+      console.log('Test: Media File Exist before opening App');
+    } else {
+      console.log('Test: Media File does not exist before opening App');
+    }
+
     app = new Video(client);
     app.launch();
   });
