@@ -20,7 +20,7 @@
   };
 
   Evme.Result = function Evme_Result() {
-    var NAME = "Result",
+    var NAME = 'Result',
         self = this,
         el = null,
 
@@ -57,8 +57,8 @@
         el.appendChild(removeButton);
       }
 
-      el.addEventListener("click", onClick);
-      el.addEventListener("contextmenu", onContextMenu);
+      el.addEventListener('click', onClick);
+      el.addEventListener('contextmenu', onContextMenu);
 
       return el;
     };
@@ -71,9 +71,9 @@
       canvas.height = APP_NAME_HEIGHT;
 
       Evme.Utils.writeTextToCanvas({
-        "text": self.cfg.name,
-        "context": context,
-        "offset": TEXT_MARGIN
+        'text': self.cfg.name,
+        'context': context,
+        'offset': TEXT_MARGIN
       });
 
       self.elName.src = canvas.toDataURL();
@@ -93,7 +93,7 @@
           });
 
         } else {
-          var src  = Evme.Utils.formatImageData(iconObj);
+          var src = Evme.Utils.formatImageData(iconObj);
           setImageSrc(src);
         }
       }
@@ -117,7 +117,8 @@
     this.onAppIconLoad = function onAppIconLoad() {
       // use OS icon rendering
       var iconCanvas = Icon.prototype.createCanvas(image),
-          canvas = self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
+          canvas =
+            self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
           context = canvas.getContext('2d');
 
       context.drawImage(iconCanvas, (TEXT_WIDTH - iconCanvas.width) / 2, 0);
@@ -151,8 +152,9 @@
         icon.removeEventListener('load', onIconLoad);
 
         // resize to "real" size to handle pixel ratios greater than 1
-        icon.style.cssText += 'width: ' + Evme.Utils.rem(canvas.width/ratio) + ';' +
-                              'height: ' + Evme.Utils.rem(canvas.height/ratio) + ';';
+        icon.style.cssText +=
+          'width: ' + Evme.Utils.rem(canvas.width / ratio) + ';' +
+          'height: ' + Evme.Utils.rem(canvas.height / ratio) + ';';
 
         el.dataset.loaded = true;
       });
@@ -162,7 +164,7 @@
 
     // @default
     this.launch = function launchResult() {
-      Evme.Utils.log("Result.launch [not implemented]");
+      Evme.Utils.log('Result.launch [not implemented]');
     };
 
     this.remove = function remove() {
@@ -186,7 +188,7 @@
     };
 
     this.getFavLink = function getFavLink() {
-      return self.cfg.favUrl != "@" && self.cfg.favUrl || self.cfg.appUrl;
+      return self.cfg.favUrl != '@' && self.cfg.favUrl || self.cfg.appUrl;
     };
 
     this.getIcon = function getIcon() {
@@ -200,12 +202,12 @@
     function onClick(e) {
       e.stopPropagation();
 
-      Evme.EventHandler.trigger(NAME, "click", {
-        "app": self,
-        "appId": self.cfg.id,
-        "el": el,
-        "data": self.cfg,
-        "e": e
+      Evme.EventHandler.trigger(NAME, 'click', {
+        'app': self,
+        'appId': self.cfg.id,
+        'el': el,
+        'data': self.cfg,
+        'e': e
       });
     }
 
@@ -213,11 +215,11 @@
       e.stopPropagation();
       e.preventDefault();
 
-      Evme.EventHandler.trigger(NAME, "hold", {
-        "app": self,
-        "appId": self.cfg.id,
-        "el": el,
-        "data": self.cfg
+      Evme.EventHandler.trigger(NAME, 'hold', {
+        'app': self,
+        'appId': self.cfg.id,
+        'el': el,
+        'data': self.cfg
       });
     }
 
@@ -229,8 +231,8 @@
     function cbRemoveClick(e) {
       e.stopPropagation();
       self.remove();
-      Evme.EventHandler.trigger(NAME, "remove", {
-        "id": self.cfg.id
+      Evme.EventHandler.trigger(NAME, 'remove', {
+        'id': self.cfg.id
       });
     }
   };

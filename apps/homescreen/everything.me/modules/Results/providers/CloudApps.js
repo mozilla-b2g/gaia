@@ -19,7 +19,7 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
       renderIcon(this.src);
     } else {
       Evme.Utils.getRoundIcon({
-        "src": this.src
+        'src': this.src
       }, renderIcon);
     }
 
@@ -58,12 +58,12 @@ Evme.CloudAppResult = function Evme_CloudAppsResult(query) {
   // @override
   this.launch = function launchCloudApp() {
     EvmeManager.openCloudApp({
-      "url": self.cfg.appUrl,
-      "originUrl": self.getFavLink(),
-      "title": self.cfg.name,
-      "icon": self.cfg.icon,
-      "urlTitle": query,
-      "useAsyncPanZoom": self.cfg.isWeblink
+      'url': self.cfg.appUrl,
+      'originUrl': self.getFavLink(),
+      'title': self.cfg.name,
+      'icon': self.cfg.icon,
+      'urlTitle': query,
+      'useAsyncPanZoom': self.cfg.isWeblink
     });
   };
 };
@@ -80,7 +80,8 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
     iconFormat = Evme.Utils.getIconsFormat(),
     defaultIconIndex = 0,
 
-    DEFAULT_ICON_URLS = Evme.Config.design.apps.defaultIconUrl[Evme.Utils.ICONS_FORMATS.Large];
+    DEFAULT_ICON_URLS =
+      Evme.Config.design.apps.defaultIconUrl[Evme.Utils.ICONS_FORMATS.Large];
 
 
     this.init = function init(cfg) {
@@ -88,7 +89,7 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
     };
 
     this.render = function render(apps, params) {
-      if (!apps.length) return;
+      if (!apps.length) { return; }
 
       var query = params.query,
       pageNum = params.pageNum,
@@ -97,7 +98,8 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
 
       // if same apps as last - do nothing
       if (lastSignature === newSignature) {
-        Evme.Utils.log("CloudAppsRenderer: nothing to render (signature match)");
+        Evme.Utils.log('CloudAppsRenderer: nothing to render' +
+                        ' (signature match)');
         return;
       }
       lastSignature = newSignature;
@@ -121,7 +123,7 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
     data = [{ id: id, icon: {} }, ... ]
     */
     this.updateIcons = function updateIcons(data) {
-      for (var i=0, entry; entry=data[i++];){
+      for (var i = 0, entry; entry = data[i++];) {
         var result = lastRenderedResults[entry.id];
         result && result.draw(entry.icon);
       }
@@ -131,7 +133,7 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
       return containerEl.childElementCount;
     };
 
-    function _render(apps, query, requestMissingIcons){
+    function _render(apps, query, requestMissingIcons) {
       var docFrag = document.createDocumentFragment(),
       noIconAppIds = [];  // ids of apps received without an icon
 
@@ -165,14 +167,15 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
 
     containerEl.appendChild(docFrag);
 
-    noIconAppIds.length && getCachedIconsAsync(noIconAppIds, requestMissingIcons);
+    noIconAppIds.length &&
+      getCachedIconsAsync(noIconAppIds, requestMissingIcons);
   }
 
   function getCachedIconsAsync(appIds, requestMissingIcons) {
     var idsMissing = [], // ids of apps which have no cached icon
     pendingRequests = appIds.length;
 
-    for (var i=0, appId; appId=appIds[i++];) {
+    for (var i = 0, appId; appId = appIds[i++];) {
       _getCachedIcon(appId);
     }
 
@@ -203,7 +206,7 @@ Evme.CloudAppsRenderer = function Evme_CloudAppsRenderer() {
     }
   }
 
-  function isWebLink(app){
+  function isWebLink(app) {
     // apps that are not indexed by E.me (web links)
     // or missing id for some reason
     return app.isWebLink || app.type === Evme.RESULT_TYPE.WEBLINK || !app.id;
