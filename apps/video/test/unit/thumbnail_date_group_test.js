@@ -31,18 +31,23 @@ suite('Thumbnail Date Group Unit Tests', function() {
   suite('#static functions', function() {
     test('#getGroupID', function() {
       assert.equal(ThumbnailDateGroup.getGroupID({date: 1375873140000}),
-                   'group_2013-8');
+                   'group_2013-08');
+      assert.equal(ThumbnailDateGroup.getGroupID({date: 1381967318275}),
+                   'group_2013-10');
     });
 
     test('#compareGroupID', function() {
-      assert.equal(ThumbnailDateGroup.compareGroupID('group_2013-8',
-                                                     'group_2013-8'),
+      assert.equal(ThumbnailDateGroup.compareGroupID('group_2013-08',
+                                                     'group_2013-08'),
                    0);
-      assert.equal(ThumbnailDateGroup.compareGroupID('group_2013-8',
-                                                     'group_2013-7'),
+      assert.equal(ThumbnailDateGroup.compareGroupID('group_2013-08',
+                                                     'group_2013-07'),
                    1);
-      assert.equal(ThumbnailDateGroup.compareGroupID('group_2013-8',
-                                                     'group_2013-9'),
+      assert.equal(ThumbnailDateGroup.compareGroupID('group_2013-08',
+                                                     'group_2013-09'),
+                   -1);
+      assert.equal(ThumbnailDateGroup.compareGroupID('group_2013-09',
+                                                     'group_2013-10'),
                    -1);
     });
   });
@@ -188,7 +193,7 @@ suite('Thumbnail Date Group Unit Tests', function() {
     });
 
     test('#groupID', function() {
-      assert.equal(dateGroup.groupID, 'group_2013-8');
+      assert.equal(dateGroup.groupID, 'group_2013-08');
     });
 
     test('#htmlNode', function() {
