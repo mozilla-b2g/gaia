@@ -26,7 +26,7 @@
 
     return this;
   };
-
+  window.AppWindow.ENABLE_SHRINKING = true;
 
   /**
    * Represent the current screenshoting state,
@@ -525,7 +525,6 @@
       }
     };
 
-
   AppWindow.prototype.fadeOut = function hw__fadeout() {
     this.frame.classList.add('fadeout');
     this.iframe.style.display = 'none';
@@ -536,4 +535,20 @@
     this.iframe.style.display = 'block';
   };
 
+  AppWindow.addMixin = function aw_addMixin(mixin) {
+    for (var prop in mixin) {
+      if (mixin.hasOwnProperty(prop)) {
+        // Put event handler function into an array,
+        // if the name of the propery is '_on'.
+        if (this.prototype.hasOwnProperty(prop) &&
+            typeof(mixin[prop]) == 'function' &&
+            prop.indexOf('_on') == 0) {
+          this.prototype[prop] = [this.prototype[prop]];
+          this.prototype[prop].push(mixin[prop]);
+        } else {
+          this.prototype[prop] = mixin[prop];
+        }
+       }
+    }
+   };
 }(this));
