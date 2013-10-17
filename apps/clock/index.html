@@ -33,11 +33,11 @@
   <body>
     <div id="views">
       <div id="main-panel-wrapper">
-        <div id="alarm-panel" class="active panel"></div>
-        <div id="timer-panel" class="panel hidden"></div>
-        <div id="stopwatch-panel" class="panel hidden"></div>
+        <div class="active panel" data-panel-id="alarm"></div>
+        <div class="panel hidden" data-panel-id="timer"></div>
+        <div class="panel hidden" data-panel-id="stopwatch"></div>
       </div>
-      <form id="alarm-edit-panel" role="dialog" class="panel hidden" data-type="edit">
+      <form role="dialog" class="panel hidden" data-panel-id="alarm_edit" data-type="edit">
       </form>
     </div>
 

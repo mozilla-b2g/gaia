@@ -10,14 +10,6 @@ var rAF = mozRequestAnimationFrame || requestAnimationFrame;
  * Global Application event handling and paging
  */
 var App = {
-  // A map of element IDs to the panel modules that they contain
-  panelModules: {
-    'alarm-panel': 'panels/alarm/main',
-    'alarm-edit-panel': 'panels/alarm_edit/main',
-    'timer-panel': 'panels/timer/main',
-    'stopwatch-panel': 'panels/stopwatch/main'
-  },
-
   /**
    * Load the Tabs and Panels, attach events and navigate to the default view.
    */
@@ -35,10 +27,11 @@ var App = {
 
     this.visible = !document.hidden;
     this.panels = Array.prototype.map.call(
-      document.querySelectorAll('.panel'),
-      function(element, idx) {
+      document.querySelectorAll('[data-panel-id]'),
+      function(element) {
         var panel = {
           el: element,
+          fragment: element.dataset.panelId.replace('_', '-') + '-panel',
           instance: null
         };
 
@@ -65,9 +58,9 @@ var App = {
       return;
     }
 
-    var moduleName = this.panelModules[panel.el.id] || 'panel';
+    var moduleId = 'panels/' + panel.el.dataset.panelId + '/main';
 
-    require([moduleName], function(PanelModule) {
+    require([moduleId], function(PanelModule) {
       panel.instance = View.instance(panel.el, PanelModule);
       callback && callback(panel);
     });
@@ -93,7 +86,7 @@ var App = {
     var currentIndex = this.panels.indexOf(this.currentPanel);
 
     this.panels.forEach(function(panel, panelIndex) {
-      if ('#' + panel.el.id === data.hash) {
+      if ('#' + panel.fragment === data.hash) {
         this.loadPanel(panel, function() {
           var instance = panel.instance;
           if (typeof data.data !== 'undefined') {
