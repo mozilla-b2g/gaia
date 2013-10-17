@@ -60,14 +60,13 @@ var App = {
    *                                instantiated panel once it is loaded.
    */
   loadPanel: function(panel, callback) {
-    var moduleName;
-
     if (panel.instance) {
       callback && setTimeout(callback, 0, panel);
       return;
     }
 
-    moduleName = this.panelModules[panel.el.id] || 'panel';
+    var moduleName = this.panelModules[panel.el.id] || 'panel';
+
     require([moduleName], function(PanelModule) {
       panel.instance = View.instance(panel.el, PanelModule);
       callback && callback(panel);
