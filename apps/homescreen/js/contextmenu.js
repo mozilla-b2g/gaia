@@ -4,6 +4,7 @@ var ContextMenuDialog = (function() {
   var initialized = false;
 
   var dialog, wallpaperButton, collectionsButton, cancelButton;
+  var isSearchPageEnabled = true;
 
   function initialize() {
     if (initialized) {
@@ -20,6 +21,9 @@ var ContextMenuDialog = (function() {
 
     cancelButton =
       document.getElementById('contextmenu-dialog-cancel-button');
+
+    isSearchPageEnabled =
+        document.body.classList.contains('searchPageEnabled');
 
     initialized = true;
   }
@@ -42,7 +46,12 @@ var ContextMenuDialog = (function() {
     initialize();
 
     wallpaperButton.addEventListener('click', chooseWallpaper);
-    collectionsButton.addEventListener('click', addCollection);
+
+    if (isSearchPageEnabled) {
+      collectionsButton.addEventListener('click', addCollection);
+    } else {
+      collectionsButton.style.display = 'none';
+    }
     cancelButton.addEventListener('click', hide);
 
     var classList = dialog.classList;
