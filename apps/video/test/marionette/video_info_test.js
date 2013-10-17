@@ -15,6 +15,10 @@ marionette('Video info of played video# ', function() {
   });
 
   setup(function() {
+    console.log('Test: Copy Media File');
+    TestCommon.copyFileSynch(
+      '/home/travis/build/mozilla-b2g/gaia/test_media/Movies/elephants-dream.webm',
+      '/tmp/device-storage-testing/videos/elephants-dream.webm');
     TestCommon.prepareTestSuite('videos', client);
     app = new Video(client);
     app.launch();

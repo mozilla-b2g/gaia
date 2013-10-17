@@ -33,7 +33,10 @@ var fs = require('fs'),
 
   copyFileSynch: function(source, target) {
     try {
-      //fs.mkdirSync('/tmp/device-storage-testing/videos');
+
+      createDir('/tmp/device-storage-testing');
+      createDir('/tmp/device-storage-testing/videos');
+
       console.log('TestCommon: Synch copying from Source: ', source);
       console.log('TestCommon: Synch copying to Destination: ', target);
       var BUF_LENGTH = 64 * 1024;
