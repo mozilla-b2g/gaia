@@ -22,18 +22,21 @@ writeRecordArrayTag: function(ndefRecords) {
     return null;
   }
   if (!nfcUI.p2p) {
-    var nfcTag = nfcUI.getNFCTag();
-    var domreq = nfcTag.writeNDEF(ndefRecords);
-    console.log('Returned from NFCTag writeNDEF call');
-    return domreq;
+    var nfcTag = nfcUI.nfcTag;
+    if (nfcTag) {
+      var domreq = nfcTag.writeNDEF(ndefRecords);
+      return domreq;
+    }
   } else {
     var data = nfcUI.getActivityData();
     var nfcPeer = window.navigator.mozNfc.getNFCPeer(data.sessionToken);
-    var domreq = nfcPeer.sendNDEF(ndefRecords);
-    console.log('Returned from NFCPeer sendNDEF call');
-    nfcUI.p2p = false;
-    return domreq;
+    if (nfcPeer) {
+      var domreq = nfcPeer.sendNDEF(ndefRecords);
+      nfcUI.p2p = false;
+      return domreq;
+    }
   }
+  return null;
 },
 
 /**
@@ -222,9 +225,9 @@ postEmptyTag: function() {
 },
 
 makeReadOnlyNDEF: function() {
-  if (nfcUI.getConnectedState()) {
+  if (nfcUI.getConnectedState() && nfcUI.nfctag) {
     nfcUI.appendTextAndScroll($('#area'), 'Making Tag read only.\n');
-    return nfcUI.getNFCTag().makeReadOnlyNDEF();
+    return nfcUI.nfctag.makeReadOnlyNDEF();
   } else {
     return null;
   }

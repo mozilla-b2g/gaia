@@ -13,32 +13,24 @@ pendingNdefMessage: null,
 messageArea: null,
 p2p: false,
 isConnected: false,
-_nfcTag: null,
-_activityData: null,
+nfcTag: null,
+activityData: null,
 
 // NFCTag
 closeNFCTag: function() {
-  if (this._nfcTag) {
-    this._nfcTag.close();
-    this._nfcTag = null;
+  if (this.nfcTag) {
+    this.nfcTag.close();
+    this.nfcTag = null;
   }
-},
-
-setNFCTag: function(nfcTag) {
-  this._nfcTag = nfcTag;
-},
-
-getNFCTag: function() {
-  return this._nfcTag;
 },
 
 // activity data UI global.
 setActivityData: function(activityData) {
-  this._activityData = activityData;
+  this.activityData = activityData;
 },
 
 getActivityData: function() {
-  return this._activityData;
+  return this.activityData;
 },
 
 setConnectedState: function(connectedState) {
@@ -68,7 +60,6 @@ postPendingMessage: function(msgRecord) {
     $('#nfc_tag_write_dialog').click();
     if (this.isConnected) {
       this.writePendingMessage();
-      this.closeNFCTag();
     }
   }
 },
@@ -85,7 +76,7 @@ writePendingMessage: function() {
   if (this.pendingNdefMessage != null) {
     debug('Write pending message');
     var pendingDomRequest = nfcWriter.writeRecordArrayTag(
-      this.pendingNdefMessage, this.p2p);
+      this.pendingNdefMessage);
     this.commonRequestHandler(pendingDomRequest);
     this.pendingNdefMessage = null;
   }

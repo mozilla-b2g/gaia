@@ -230,6 +230,10 @@ function launchBrowser(URL) {
 }
 
 function handleNdefDiscovered(activityData) {
+  var nfcdom = window.navigator.mozNfc;
+  var nfcTag = nfcdom.getNFCTag(activityData.sessionToken);
+  nfcUI.nfcTag = nfcTag;
+
   switch (activityData.tech) {
     case 'P2P':
       // Process existing message.
@@ -257,9 +261,7 @@ function handleNdefDiscovered(activityData) {
 function handleNdefType(sessionToken, techType) {
   var handled = false;
   // Get a tag DOM object:
-  var nfcdom = window.navigator.mozNfc;
-  var nfcTag = nfcdom.getNFCTag(sessionToken);
-  nfcUI.setNFCTag(nfcTag);
+  var nfcTag = nfcUI.nfcTag;
   // connect:
   var connreq = nfcTag.connect(techType);
   connreq.onsuccess = function() {
