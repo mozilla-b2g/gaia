@@ -409,6 +409,7 @@ suite('SMS App Unit-Test', function() {
     suite('Thread-messages Edit mode (bubbles view)', function() {
       // Setup for getting all messages rendered before every test
       setup(function(done) {
+        this.sinon.spy(ThreadUI, 'checkInputs');
         ThreadUI.renderMessages(1, function() {
           done();
         });
@@ -466,7 +467,7 @@ suite('SMS App Unit-Test', function() {
           }).length, 'All items should be checked');
 
         // now a new message comes in...
-        ThreadUI.appendMessage({
+        var incomingMessage = {
           sender: '197746797',
           body: 'Recibidas!',
           delivery: 'received',
@@ -474,7 +475,8 @@ suite('SMS App Unit-Test', function() {
           timestamp: new Date(),
           type: 'sms',
           channel: 'sms'
-        });
+        };
+        ThreadUI.appendMessage(incomingMessage);
 
         // new checkbox should have been added
         checkboxes =
@@ -490,36 +492,34 @@ suite('SMS App Unit-Test', function() {
           .hasAttribute('disabled'), 'Uncheck all enabled');
 
         // now delete the selected messages...
-        MessageManager.deleteMessages = stub(function(list, itCb) {
+        MessageManager.deleteMessage = stub(function(list, itCb) {
           setTimeout(itCb);
         });
 
         window.confirm = stub(true);
 
+        var getMessageReq = {};
+        this.sinon.stub(MessageManager, 'getMessage').returns(getMessageReq);
+        getMessageReq.result = incomingMessage;
+
         setTimeout(function() {
+          getMessageReq.onsuccess();
           assert.equal(window.confirm.callCount, 1);
-          assert.equal(MessageManager.deleteMessages.callCount, 1);
-          assert.equal(MessageManager.deleteMessages.calledWith[0].length, 5);
+          assert.equal(MessageManager.deleteMessage.callCount, 1);
+          assert.equal(MessageManager.deleteMessage.calledWith[0].length, 5);
           assert.equal(ThreadUI.container.querySelectorAll('li').length, 1,
             'correct number of Thread li');
           assert.equal(
             ThreadUI.container.querySelector('#message-9999 p').textContent,
             'Recibidas!');
-          assert.isTrue(MessageManager.getThreads.called);
-          MessageManager.getThreads.restore();
-
           done();
         }, 1500); // only the last one is slow. What is blocking?
 
-        window.history.back = stub();
-        MessageManager.getThreads.restore();
-        this.sinon.stub(MessageManager, 'getThreads').callsArg(1);
         ThreadUI.delete();
       });
 
-      test('checkInputs should fire in edit mode', function(done) {
+      test('checkInputs should fire in edit mode', function() {
         ThreadUI.startEdit();
-        ThreadUI.checkInputs = stub();
 
         // now a new message comes in...
         ThreadUI.appendMessage({
@@ -531,8 +531,7 @@ suite('SMS App Unit-Test', function() {
           channel: 'sms'
         });
 
-        assert.equal(ThreadUI.checkInputs.callCount, 1);
-        done();
+        assert.ok(ThreadUI.checkInputs.called);
       });
 
       test('checkInputs should not fire in normal mode', function(done) {

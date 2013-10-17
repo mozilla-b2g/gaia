@@ -1432,6 +1432,50 @@ var ThreadUI = global.ThreadUI = {
       this.editForm.querySelector('menu').offsetHeight + 'px';
   },
 
+  deleteUIMessages: function thui_deleteUIMessages(list, callback) {
+    // Strategy:
+    // - Delete message/s from the DOM
+    // - Update the thread in thread-list without re-rendering
+    // the entire list
+    // - Change hash if needed
+
+    if (!Array.isArray(list)) {
+      list = [list];
+    }
+    // Removing from DOM all messages to delete
+    for (var i = 0, l = list.length; i < l; i++) {
+      ThreadUI.removeMessageDOM(
+        document.getElementById('message-' + list[i])
+      );
+    }
+    callback = typeof callback === 'function' ? callback : function() {};
+    // Retrieve threadID
+    var threadId = Threads.currentId;
+    // Do we remove all messages of the Thread?
+    if (!ThreadUI.container.firstElementChild) {
+      // Remove the thread from DOM and go back to the thread-list
+      ThreadListUI.removeThread(threadId);
+      callback();
+      window.location.hash = '#thread-list';
+    } else {
+      // Retrieve latest message in the UI
+      var lastMessageId =
+        ThreadUI.container.querySelector('li:last-child').dataset.messageId;
+      var request = MessageManager.getMessage(+lastMessageId);
+      // We need to make Thread-list to show the same info
+      request.onsuccess = function() {
+        var message = request.result;
+        callback();
+        ThreadListUI.updateThread(message);
+      };
+
+      request.onerror = function() {
+        console.error('Error when updating the list of threads');
+        callback();
+      };
+    }
+  },
+
   delete: function thui_delete() {
     var question = navigator.mozL10n.get('deleteMessages-confirmation');
     if (window.confirm(question)) {
@@ -1442,27 +1486,15 @@ var ThreadUI = global.ThreadUI = {
       for (var i = 0; i < length; i++) {
         delNumList.push(+inputs[i].value);
       }
-
-      // Method for deleting all inputs selected
-      var deleteMessages = function() {
-        MessageManager.getThreads(ThreadListUI.renderThreads,
-        function afterRender() {
-          // Then sending/received messages
-          for (var i = 0; i < length; i++) {
-            ThreadUI.removeMessageDOM(inputs[i].parentNode.parentNode);
-          }
-
-          ThreadUI.cancelEdit();
-
-          if (!ThreadUI.container.firstElementChild) {
-            window.location.hash = '#thread-list';
-          }
-
-          WaitingScreen.hide();
-        });
-      };
-
-      MessageManager.deleteMessages(delNumList, deleteMessages);
+      // Complete deletion in DB and in UI
+      MessageManager.deleteMessage(delNumList,
+        function onDeletionDone() {
+          ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
+            ThreadUI.cancelEdit();
+            WaitingScreen.hide();
+          });
+        }
+      );
     }
   },
 
@@ -1552,6 +1584,25 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  /*
+   * Given an element of a message, this function will dive into
+   * the DOM for getting the bubble container of this message.
+   */
+
+  getMessageBubble: function thui_getMessageContainer(element) {
+    var node = element;
+    do {
+      if (node.dataset && node.dataset.messageId) {
+        return {
+          id: +node.dataset.messageId,
+          node: node
+        };
+      }
+    } while ((node = node.parentNode));
+
+    return null;
+  },
+
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
@@ -1571,7 +1622,46 @@ var ThreadUI = global.ThreadUI = {
         }
         break;
       case 'contextmenu':
-        LinkActionHandler.onContextMenu(evt);
+        var messageBubble = this.getMessageBubble(evt.target);
+
+        if (!messageBubble) {
+          return;
+        }
+
+        // Show options per single message.
+        // TODO Add the following functionality:
+        // + Details of a single message:
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=901453
+        // + Forward of a single message:
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=927784
+        var messageId = messageBubble.id;
+        var params = {
+          items:
+            [
+              {
+                l10nId: 'delete',
+                method: function deleteMessage(messageId) {
+                  // Complete deletion in DB and UI
+                  MessageManager.deleteMessage(messageId,
+                    function onDeletionDone() {
+                      ThreadUI.deleteUIMessages(messageId);
+                    }
+                  );
+                },
+                params: [messageId]
+              },
+              // TODO Add forward & details options
+              {
+                l10nId: 'cancel'
+              }
+            ],
+          type: 'action',
+          header: navigator.mozL10n.get('message-options')
+        };
+
+        var options = new OptionMenu(params);
+        options.show();
+
         break;
       case 'submit':
         evt.preventDefault();

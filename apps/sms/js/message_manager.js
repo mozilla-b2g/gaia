@@ -58,7 +58,10 @@ var MessageManager = {
       ThreadUI.appendMessage(message);
       ThreadUI.forceScrollViewToBottom();
     }
-    MessageManager.getThreads(ThreadListUI.renderThreads);
+
+    MessageManager.getThreads(function() {
+      ThreadListUI.updateThread(message);
+    });
   },
 
   onMessageFailed: function mm_onMessageFailed(e) {
@@ -98,7 +101,7 @@ var MessageManager = {
     if (threadId === Threads.currentId) {
       //Append message and mark as read
       this.markMessagesRead([message.id], function() {
-        MessageManager.getThreads(ThreadListUI.renderThreads);
+        ThreadListUI.updateThread(message);
       });
       ThreadUI.onMessageReceived(message);
     } else {
@@ -283,7 +286,8 @@ var MessageManager = {
     }
 
   },
-
+  // TODO: Optimize this method. Tracked:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=929919
   getThreads: function mm_getThreads(callback, extraArg) {
     var cursor = this._mozMobileMessage.getThreads(),
         threads = [];
@@ -403,7 +407,7 @@ var MessageManager = {
       };
 
       request.onerror = function onError(event) {
-        console.log('Error Sending: ' + JSON.stringify(event.target.error));
+        console.error('Error Sending: ' + JSON.stringify(event.target.error));
         onerror && onerror(event.target.error);
 
         requestResult.hasError = true;
