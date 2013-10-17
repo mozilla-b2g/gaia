@@ -33,27 +33,11 @@ var fs = require('fs'),
     }
   },
 
-  copyFileSynch: function(source, target) {
-    try {
-      fs.mkdirSync('/tmp/device-storage-testing/videos');
-      console.log('TestCommon: Synch copying from Source: ', source);
-      console.log('TestCommon: Synch copying to Destination: ', target);
-      var BUF_LENGTH = 64 * 1024;
-      var buff = new Buffer(BUF_LENGTH);
-      var fdr = fs.openSync(source, 'r');
-      var fdw = fs.openSync(target, 'w');
-      var bytesRead = 1;
-      var pos = 0;
-      while (bytesRead > 0) {
-        bytesRead = fs.readSync(fdr, buff, 0, BUF_LENGTH, pos);
-        fs.writeSync(fdw, buff, 0, bytesRead);
-        pos += bytesRead;
-      }
-      fs.closeSync(fdr);
-      fs.closeSync(fdw);
-    } catch (e) {
-      console.log('TestCommon: Exception occured in synch copying file: ', e);
-    }
+  mediaExistsSync: function(path) {
+    var exists = fs.existsSync(path);
+    console.log(exists ? 'MediaExistsSync: media file is there' :
+      'MediaExistsSync: no media file exist');
+    return exists;
   }
 };
 module.exports = TestCommon;
@@ -93,7 +77,7 @@ function deleteFile(file, callback) {
  */
 function copyTestMedia(mediaType, callback) {
   switch (mediaType) {
-    case 'videos':
+    case 'Movies':
       //Check for media video file if it exists
      mediaExists(path.join(mediaDir, 'elephants-dream.webm'), function(exists) {
        if (!exists) {
@@ -135,6 +119,7 @@ function copyFile(source, target, callback) {
       writeStream = fs.createWriteStream(target);
 
     readStream.pipe(writeStream);
+    console.log('TestCommon: File Copy Successful at target:', target);
     readStream.once('end', callback);
   } catch (e) {
     console.log('TestCommon: Exception occured while copying file: ', e);
@@ -167,7 +152,7 @@ function getMediaDir(mediaType, client, callback) {
 
       switch (mediaType) {
         case 'pictures':
-        case 'videos':
+        case 'Movies':
         case 'music':
           mediaDir = path.join(deviceStorageDir, mediaType);
           break;
