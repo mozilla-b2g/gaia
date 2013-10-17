@@ -1169,6 +1169,37 @@ var WindowManager = (function() {
     return icons[sizes[index]];
   }
 
+  // Make the current app's window moved backward and the phone
+  // gives a vibration.
+  function handleNFCPrepareSending(evt) {
+    navigator.vibrate(50);
+    var app = runningApps[displayedApp];
+
+    if ('undefined' !== typeof app.shrinkingStop) {
+      if ('true' !== app.frame.dataset.shrinkingState) {
+        app.shrinkingStart(app.frame);
+      } else {
+        app.shrinkingStop();
+      }
+    }
+  }
+
+  function handleNFCCancelScreenChange(evt) {
+    var app = runningApps[displayedApp];
+
+    // Some apps would not initialize the window.
+    if ('undefined' !== typeof app.shrinkingStop) {
+      console.dir(app.frame.dataset);
+      console.log('detect: ', app.frame.dataset.shrinkingState);
+      if ('true' === app.frame.dataset.shrinkingState)
+        app.shrinkingStop(true);
+    }
+  }
+
+  window.addEventListener('nfc-enable', handleNFCPrepareSending);
+  window.addEventListener('screenchange', handleNFCCancelScreenChange);
+  window.addEventListener('holdsleep', handleNFCCancelScreenChange);
+
   // TODO: Move into app window.
   window.addEventListener('launchapp', windowLauncher);
 
