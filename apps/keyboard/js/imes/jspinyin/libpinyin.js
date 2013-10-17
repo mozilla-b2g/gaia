@@ -19,6 +19,11 @@ var Module;
 if (!Module) Module = eval('(function() { try { return Module || {} } catch(e) { return {} } })()');
 
 (function(Module) {
+// We need to put this library in Web Workers so we can't acess the 'document'
+// object in this file. In fact, this library doesn't really need the 'document'
+// object for our purpose, so we create a dummy object for it.
+var document = { addEventListener: function() {} };
+
 // Sometimes an existing Module object exists with properties
 // meant to overwrite the default module functionality. Here
 // we collect those properties and reapply _after_ we configure

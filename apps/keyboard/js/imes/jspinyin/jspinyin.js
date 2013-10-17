@@ -143,12 +143,77 @@ IMEngineBase.prototype = {
   }
 };
 
+var emEngineWrapper = {
+  _worker: null,
+  _callback: null,
+  _initialized: false,
+
+  post: function(id, param, callback) {
+    if (!this._initialized && id != 'init')
+      throw 'Database not ready!';
+
+    if (!this._callback[id])
+      this._callback[id] = [];
+
+    this._callback[id].push(callback);
+    this._worker.postMessage({
+      id: id,
+      param: param
+    });
+
+    return true;
+  },
+
+  init: function(path, byteArray, callback) {
+    if (this._initialized)
+      callback(true);
+
+    var self = this;
+
+    this._callback = {};
+    this._worker = new Worker(path + '/worker.js');
+
+    this._worker.onmessage = function(e) {
+      var data = e.data;
+
+      switch (data.id) {
+      case 'message':
+        console.log('emEngineWrapper: ' + data.returnValue);
+        break;
+      default:
+        var msgCallback = self._callback[data.id].shift();
+        if (msgCallback)
+          msgCallback(data.returnValue);
+      }
+    };
+
+    this.post('init', {
+      userDict: byteArray
+    }, function(isOk) {
+      if (isOk) {
+        self._initialized = true;
+      } else {
+        self.uninit();
+      }
+      callback(isOk);
+    });
+  },
+
+  uninit: function() {
+    if (this._worker)
+      this._worker.terminate();
+    this._worker = null;
+    this._callback = null;
+    this._initialized = false;
+  },
+
+  isReady: function() {
+    return this._initialized;
+  }
+};
+
 var IMEngine = function engine_constructor() {
   IMEngineBase.call(this);
-
-  this._keypressQueue = [];
-  this._sendCandidatesTimer = null;
-  this._emEngineSearchTimer = null;
 };
 
 IMEngine.prototype = {
@@ -164,6 +229,8 @@ IMEngine.prototype = {
   // Set it to 0 when we don't need the candidates buffer anymore.
   _candidatesLength: 0,
 
+  _workerTimeout: 600000,
+
   /**
    * The last selected text used to generate prediction.
    * @type string.
@@ -172,37 +239,47 @@ IMEngine.prototype = {
 
   _pendingSymbols: '',
   _firstCandidate: '',
-  _keypressQueue: null,
+  _keypressQueue: [],
   _isWorking: false,
+
+  _isActive: false,
+  _uninitTimer: null,
 
   // Current keyboard
   _keyboard: 'zh-Hans-Pinyin',
 
   _sendPendingSymbols: function engine_sendPendingSymbols() {
     debug('SendPendingSymbol: ' + this._pendingSymbols);
-    var display = '';
+
     if (this._pendingSymbols) {
-      var fixedLen = this.emEngine.getFixedLen();
-      display = this._firstCandidate.substring(0, fixedLen);
+      var self = this;
 
-      var splStartLen = this.emEngine.getSplStart() + 1;
-      var splStart = [];
+      emEngineWrapper.post(
+        'im_get_pending_symbols_info',
+        {},
+        function(returnValue) {
+          var fixedLen = returnValue.fixedLen;
+          var splStart = returnValue.splStart;
+          var splStartLen = splStart.length;
+          var display = self._firstCandidate.substring(0, fixedLen);
 
-      for (var i = 0; i < splStartLen; i++) {
-        splStart.push(this.emEngine.getSplStartAt(i));
-      }
+          if (splStartLen > 1) {
+            for (var i = fixedLen; i < splStartLen - 1; i++) {
+              display += self._pendingSymbols.substring(splStart[i],
+                                                        splStart[i + 1]) + ' ';
+            }
+            display +=
+              self._pendingSymbols.substring(splStart[splStartLen - 1]);
+          } else {
+            display += self._pendingSymbols;
+          }
 
-      if (splStartLen > 1) {
-        for (var i = fixedLen; i < splStartLen - 1; i++) {
-          display += this._pendingSymbols.substring(splStart[i],
-                                                    splStart[i + 1]) + ' ';
+          self._glue.sendPendingSymbols(display);
         }
-        display += this._pendingSymbols.substring(splStart[splStartLen - 1]);
-      } else {
-        display += this._pendingSymbols;
-      }
+      );
+    } else {
+      this._glue.sendPendingSymbols('');
     }
-    this._glue.sendPendingSymbols(display);
   },
 
   /**
@@ -221,20 +298,18 @@ IMEngine.prototype = {
       list.push([cand, id]);
     }
 
-    if (this._sendCandidatesTimer) {
-      clearTimeout(this._sendCandidatesTimer);
-      this._sendCandidatesTimer = null;
-    }
-
-    this._sendCandidatesTimer = setTimeout(
-      this._glue.sendCandidates.bind(this, list),
-      0
-    );
+    this._glue.sendCandidates(list);
   },
 
   _start: function engine_start() {
-    if (!this.emEngine || this._isWorking)
+    if (this._isWorking)
       return;
+
+    if (!emEngineWrapper.isReady()) {
+      debug('emEngineWrapper is not ready!');
+      return;
+    }
+
     this._isWorking = true;
     debug('Start keyQueue loop.');
     this._next();
@@ -346,21 +421,16 @@ IMEngine.prototype = {
 
   _updateCandidatesAndSymbols: function engine_updateCandsAndSymbols(callback) {
     var self = this;
-
-    if (this._emEngineSearchTimer) {
-      clearTimeout(this._emEngineSearchTimer);
-      this._emEngineSearchTimer = null;
-    }
-
-    this._emEngineSearchTimer = setTimeout(function() {
-      self._updateCandidateList(callback);
+    this._updateCandidateList(function() {
       self._sendPendingSymbols();
-    }, 0);
+      callback();
+    });
   },
 
   _updateCandidateList: function engine_updateCandidateList(callback) {
     debug('Update Candidate List.');
 
+    var self = this;
     var numberOfCandidatesPerRow = this._glue.getNumberOfCandidatesPerRow ?
       this._glue.getNumberOfCandidatesPerRow() : Number.Infinity;
 
@@ -369,42 +439,43 @@ IMEngine.prototype = {
     if (!this._pendingSymbols) {
       // If there is no pending symbols, make prediction with the previous
       // select words.
-      var candidates = [];
       if (this._historyText) {
         debug('Buffer is empty; make suggestions based on select term.');
 
-        var historyText = this._historyText;
-        var num = this.emEngine.getPredicts(historyText, historyText.length);
+        emEngineWrapper.post('im_search_predicts', {
+          queryString: this._historyText,
+          limit: numberOfCandidatesPerRow + 1
+        }, function(returnValue) {
+          var num = returnValue.length;
+          var predicts = returnValue.results;
 
-        if (num > numberOfCandidatesPerRow + 1) {
-          this._candidatesLength = num;
-          num = numberOfCandidatesPerRow + 1;
-        }
+          if (num > numberOfCandidatesPerRow + 1)
+            self._candidatesLength = num;
 
-        for (var id = 0; id < num; id++) {
-          candidates.push(this.emEngine.getPredictAt(id));
-        }
+          self._sendCandidates(predicts);
+          callback();
+        });
+      } else {
+        this._sendCandidates([]);
+        callback();
       }
-      this._sendCandidates(candidates);
-      callback();
     } else {
       // Update the candidates list by the pending pinyin string.
       this._historyText = '';
 
-      var pendingSymbols = this._pendingSymbols;
-      var num = this.emEngine.search(pendingSymbols, pendingSymbols.length);
-      var candidates = [];
+      emEngineWrapper.post('im_search', {
+        queryString: this._pendingSymbols,
+        limit: numberOfCandidatesPerRow + 1
+      }, function(returnValue) {
+        var num = returnValue.length;
+        var candidates = returnValue.results;
 
-      if (num > numberOfCandidatesPerRow + 1) {
-        this._candidatesLength = num;
-        num = numberOfCandidatesPerRow + 1;
-      }
+        if (num > numberOfCandidatesPerRow + 1)
+          self._candidatesLength = num;
 
-      for (var id = 0; id < num; id++) {
-        candidates.push(this.emEngine.getCandidate(id));
-      }
-      this._sendCandidates(candidates);
-      callback();
+        self._sendCandidates(candidates);
+        callback();
+      });
     }
   },
 
@@ -421,97 +492,87 @@ IMEngine.prototype = {
     this._isWorking = false;
   },
 
+  _accessUserDict: function engine_loadUserDict(action, param, callback) {
+    var indexedDB = window.indexedDB;
+
+    if (!indexedDB) {
+      callback(null);
+      return;
+    }
+
+    // Access user_dict.data from IndexedDB
+    var dbVersion = 1;
+    var STORE_NAME = 'files';
+    var USER_DICT = 'user_dict';
+
+    var request = indexedDB.open('EmpinyinDatabase', dbVersion);
+
+    request.onerror = function opendb_onerror(event) {
+      log('Error occurs when openning database: ' + event.target.errorCode);
+      callback(null);
+    };
+
+    request.onsuccess = function opendb_onsuccess(event) {
+      var db = event.target.result;
+
+      if (action == 'load') {
+        var request = db.transaction([STORE_NAME], 'readonly')
+                        .objectStore(STORE_NAME).get(USER_DICT);
+
+        request.onsuccess = function readdb_oncomplete(event) {
+          db.close();
+          if (!event.target.result) {
+            callback(null);
+          } else {
+            callback(event.target.result.content);
+          }
+        };
+
+        request.onerror = function readdb_oncomplete(event) {
+          log('Failed to read file from DB: ' + event.target.result.name);
+          db.close();
+          callback(null);
+        };
+      } else if (action == 'save') {
+        var obj = {
+          name: USER_DICT,
+          content: param
+        };
+
+        var request = db.transaction([STORE_NAME], 'readwrite')
+                        .objectStore(STORE_NAME).put(obj);
+
+        request.onsuccess = function readdb_oncomplete(event) {
+          db.close();
+          callback(true);
+        };
+
+        request.onerror = function readdb_oncomplete(event) {
+          log('Failed to write file to DB: ' + event.target.result.name);
+          db.close();
+          callback(false);
+        };
+      }
+    };
+
+    request.onupgradeneeded = function opendb_onupgradeneeded(event) {
+      var db = event.target.result;
+
+      // Delete the old ObjectStore if present
+      if (db.objectStoreNames.length !== 0) {
+        db.deleteObjectStore(STORE_NAME);
+      }
+
+      db.createObjectStore(STORE_NAME, { keyPath: 'name' });
+    };
+  },
+
   /**
    * Override
    */
   init: function engine_init(glue) {
     IMEngineBase.prototype.init.call(this, glue);
     debug('init.');
-
-    var self = this;
-    var path = self._glue.path;
-
-    if (typeof Module !== 'undefined') {
-      debug('emEngine is already loaded!');
-      return;
-    }
-
-    var script1 = document.createElement('script');
-    script1.id = 'empinyin_files_js';
-    script1.src = path + '/empinyin_files.js';
-    script1.addEventListener('load', function() {
-      if (typeof Module == 'undefined') Module = {};
-
-      if (typeof Module['setStatus'] == 'undefined') {
-        Module['setStatus'] = function(status) {
-          debug(status);
-        };
-      }
-
-      if (typeof Module['canvas'] == 'undefined') {
-        Module['canvas'] = document.createElement('canvas');
-      }
-
-      Module['stdout'] = null;
-      Module['empinyin_files_path'] = path;
-
-      if (!Module['_main']) {
-        Module['_main'] = function() {
-          var openDecoder =
-            Module.cwrap('im_open_decoder', 'number', ['string', 'string']);
-
-          if (!openDecoder('data/dict.data', 'data/user_dict.data')) {
-            debug('Failed to open emEngine.');
-          }
-
-          if (!self.emEngine) {
-            self.emEngine = {
-              closeDecoder:
-                Module.cwrap('im_close_decoder', '', []),
-              search:
-                Module.cwrap('im_search', 'number', ['string', 'number']),
-              resetSearch:
-                Module.cwrap('im_reset_search', '', []),
-              getCandidate:
-                Module.cwrap('im_get_candidate_char', 'string', ['number']),
-              getPredicts:
-                Module.cwrap('im_get_predicts_utf8', 'number', [
-                  'string', 'number'
-                ]),
-              getPredictAt:
-                Module.cwrap('im_get_predict_at', 'string', ['number']),
-
-              choose:
-                Module.cwrap('im_choose', 'number', ['number']),
-              getSplStart:
-                Module.cwrap('im_get_spl_start', 'number', []),
-              getSplStartAt:
-                Module.cwrap('im_get_spl_start_at', 'number', ['number']),
-              getFixedLen:
-                Module.cwrap('im_get_fixed_len', 'number', []),
-              flushCache:
-                Module.cwrap('im_flush_cache', '', [])
-            };
-
-            debug('Succeeded in opening emEngine.');
-          }
-
-          self._start();
-        };
-      }
-
-      function appendScript(id, src) {
-        var script = document.createElement('script');
-        script.id = id;
-        script.src = src;
-        document.body.appendChild(script);
-      }
-
-      // JS to support user dictionary.
-      appendScript('user_dict_js', path + '/user_dict.js');
-      appendScript('libpinyin_js', path + '/libpinyin.js');
-    });
-    document.body.appendChild(script1);
   },
 
   /**
@@ -521,13 +582,8 @@ IMEngine.prototype = {
     IMEngineBase.prototype.uninit.call(this);
     debug('Uninit.');
 
-    this.emEngine.closeDecoder();
-    this.emEngine = undefined;
-    Module = undefined;
-
-    document.body.removeChild(document.getElementById('empinyin_files_js'));
-    document.body.removeChild(document.getElementById('libpinyin_js'));
-    document.body.removeChild(document.getElementById('user_dict_js'));
+    if (emEngineWrapper.isReady())
+      emEngineWrapper.uninit();
 
     this._resetKeypressQueue();
     this.empty();
@@ -566,6 +622,7 @@ IMEngine.prototype = {
         this._keypressQueue.push(keyCode);
         break;
     }
+
     this._start();
   },
 
@@ -580,32 +637,30 @@ IMEngine.prototype = {
    */
   select: function engine_select(text, data) {
     IMEngineBase.prototype.select.call(this, text, data);
-    if (!this.emEngine)
+
+    if (!emEngineWrapper.isReady())
       return;
-    if (this._pendingSymbols) {
-      var candId = parseInt(data);
-      var candsNum = this.emEngine.choose(candId);
-      var splStartLen = this.emEngine.getSplStart() + 1;
-      var fixed = this.emEngine.getFixedLen();
 
-      // Output the result if all valid pinyin string has been converted.
-      if (candsNum == 1 && fixed == splStartLen - 1) {
-        var convertedText = this.emEngine.getCandidate(0);
-        this.emEngine.resetSearch();
-
-        this._glue.sendString(convertedText);
-        this._pendingSymbols = '';
-        this._candidatesLength = 0;
-        this._historyText = convertedText;
+    var self = this;
+    var nextStep = function(text) {
+      if (text) {
+        self._glue.sendString(text);
+        self._historyText = text;
+        self._pendingSymbols = '';
+        self._candidatesLength = 0;
       }
+      self._keypressQueue.push(0);
+      self._start();
+    };
+
+    if (this._pendingSymbols) {
+      emEngineWrapper.post('im_choose', {
+        candId: parseInt(data)
+      }, nextStep);
     } else {
       // A predication candidate is selected.
-      this._glue.sendString(text);
-      this._historyText = text;
+      nextStep(text);
     }
-
-    this._keypressQueue.push(0);
-    this._start();
   },
 
   /**
@@ -625,17 +680,39 @@ IMEngine.prototype = {
    * Override
    */
   activate: function engine_activate(language, state, options) {
-    var inputType = state.type;
     IMEngineBase.prototype.activate.call(this, language, state, options);
+
+    if (this._uninitTimer) {
+      clearTimeout(this._uninitTimer);
+      this._uninitTimer = null;
+    }
+
+    var inputType = state.type;
     debug('Activate. Input type: ' + inputType);
-    if (this.emEngine)
-      this.emEngine.flushCache();
+
     var keyboard = 'zh-Hans-Pinyin';
     if (inputType == '' || inputType == 'text' || inputType == 'textarea') {
       keyboard = this._keyboard;
     }
 
     this._glue.alterKeyboard(keyboard);
+
+    if (!emEngineWrapper.isReady()) {
+      var self = this;
+      this._accessUserDict('load', null, function(byteArray) {
+        emEngineWrapper.init(self._glue.path, byteArray, function(isOk) {
+          if (isOk) {
+            self._start();
+          } else {
+            debug('emEngineWrapper initialize failed!!');
+          }
+        });
+      });
+    } else {
+      emEngineWrapper.post('im_flush_cache', {}, null);
+    }
+
+    this._isActive = true;
   },
 
   /**
@@ -645,23 +722,31 @@ IMEngine.prototype = {
     IMEngineBase.prototype.deactivate.call(this);
     debug('Deactivate.');
 
-    if (this.emEngine && Module['saveUserDictFileToDB']) {
-      this.emEngine.flushCache();
+    if (!this._isActive)
+      return;
 
-      var request = Module['saveUserDictFileToDB']('data/user_dict.data');
+    this._isActive = false;
 
-      if (!request) {
-        return;
+    this._resetKeypressQueue();
+    this.empty();
+
+    var self = this;
+    emEngineWrapper.post('im_get_user_dict_data', {}, function(byteArray) {
+      if (byteArray) {
+        self._accessUserDict('save', byteArray, function(isOk) {
+          if (isOk) {
+            debug('Saved user dictionary to DB.');
+          } else {
+            debug('Failed to save user dictionary to DB.');
+          }
+
+          if (!self._uninitTimer) {
+            self._uninitTimer =
+              setTimeout(self.uninit.bind(self), self._workerTimeout);
+          }
+        });
       }
-
-      request.onsuccess = function() {
-        debug('Saved user dictionary to DB.');
-      };
-
-      request.onerror = function() {
-        debug('Failed to save user dictionary to DB.');
-      };
-    }
+    });
   },
 
   getMoreCandidates: function engine_getMore(indicator, maxCount, callback) {
@@ -673,16 +758,19 @@ IMEngine.prototype = {
     var num = this._candidatesLength;
     maxCount = Math.min((maxCount || num) + indicator, num);
 
-    var list = [];
-    var getCandAt = this._pendingSymbols ?
-      this.emEngine.getCandidate : this.emEngine.getPredictAt;
+    var msgId = this._pendingSymbols ? 'im_get_candidates' : 'im_get_predicts';
 
-    for (var id = indicator; id < maxCount; id++) {
-      var cand = getCandAt(id);
-      list.push([cand, id]);
-    }
-
-    callback(list);
+    emEngineWrapper.post(msgId, {
+      start: indicator,
+      count: maxCount
+    }, function(results) {
+      var len = results.length;
+      var list = [];
+      for (var i = 0; i < len; i++) {
+        list.push([results[i], i + indicator]);
+      }
+      callback(list);
+    });
   }
 };
 
