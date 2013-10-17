@@ -1,10 +1,10 @@
 'use strict';
 
 Evme.IconManager = new function Evme_IconManager() {
-  var NAME = "IconManager",
+  var NAME = 'IconManager',
       self = this,
-      _prefix = "_icon",
-      CACHE_VERSION = "2.6";
+      _prefix = '_icon',
+      CACHE_VERSION = '2.6';
 
   this.add = function add(id, icon, iconsFormat) {
     if (!icon) {
@@ -21,7 +21,7 @@ Evme.IconManager = new function Evme_IconManager() {
     self.get(id, function fromCache(iconFromCache) {
       if (!iconFromCache || iconFromCache.format < iconsFormat) {
         Evme.Storage.set(_prefix + id, icon);
-        Evme.EventHandler.trigger(NAME, "iconAdded", icon);
+        Evme.EventHandler.trigger(NAME, 'iconAdded', icon);
       }
     });
 
@@ -37,7 +37,7 @@ Evme.IconManager = new function Evme_IconManager() {
   this.get = function get(id, callback) {
     Evme.Storage.get(_prefix + id, callback);
   };
-};
+}
 
 Evme.IconGroup = new function Evme_IconGroup() {
   var SIZE,
@@ -53,16 +53,16 @@ Evme.IconGroup = new function Evme_IconGroup() {
 
     callback = callback || Evme.Utils.NOOP;
 
-    if (icons && icons.length){
+    if (icons && icons.length) {
       el = renderCanvas({
-        "icons": icons,
-        "onReady": callback
+        'icons': icons,
+        'onReady': callback
       });
     }
 
     else {
       el = renderEmptyIcon({
-        "onReady": callback
+        'onReady': callback
       });
     }
 
@@ -81,7 +81,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
   /**
    * Draw icon for Collection with no apps.
    */
-   function renderEmptyIcon(options){
+   function renderEmptyIcon(options) {
     var onReady = options.onReady,
         elCanvas = getCanvas();
 
@@ -151,7 +151,8 @@ Evme.IconGroup = new function Evme_IconGroup() {
       if (settings.darken) {
         imageContext.fillStyle = 'rgba(0, 0, 0, ' + settings.darken + ')';
         imageContext.beginPath();
-        imageContext.arc(size / 2, size / 2, Math.ceil(size / 2), 0, Math.PI * 2, false);
+        imageContext.arc(size / 2, size / 2, Math.ceil(size / 2), 0,
+                                                          Math.PI * 2, false);
         imageContext.fill();
         imageContext.closePath();
       }
@@ -178,9 +179,9 @@ Evme.IconGroup = new function Evme_IconGroup() {
     // once the image is ready to be drawn, we add it to an array
     // so when all the images are loaded we can draw them in the right order
     context.imagesLoaded.push({
-      "image": image,
-      "settings": settings,
-      "index": index
+      'image': image,
+      'settings': settings,
+      'index': index
     });
 
     if (context.imagesLoaded.length === context.imagesToLoad) {
@@ -237,7 +238,7 @@ Evme.IconGroup = new function Evme_IconGroup() {
             mod = (parseInt(match[3]) || 0) * SCALE_RATIO;
 
         switch (pos) {
-          case 'center': newValue = (SIZE - size)/2; break;
+          case 'center': newValue = (SIZE - size) / 2; break;
           case 'left': newValue = 0; break;
           case 'right': newValue = SIZE - size - shadowBounds; break;
         }
@@ -254,4 +255,4 @@ Evme.IconGroup = new function Evme_IconGroup() {
       return parseInt(newValue) || 0;
     }
   }
-};
+}

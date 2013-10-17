@@ -16,7 +16,9 @@ var EverythingME = {
     // pre-evme-load pseudo searchbar
     var activationIcon = document.createElement('div');
     activationIcon.id = 'evme-activation-icon';
-    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2" /></div>';
+    activationIcon.innerHTML =
+      '<div><input type="text" x-inputmode="verbatim"' +
+      ' data-l10n-id="evme-searchbar-default2" /></div>';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
@@ -43,7 +45,8 @@ var EverythingME = {
       document.body.classList.add('evme-keyboard-visible');
 
       var activationInput = activationIcon.querySelector('input');
-      activationInput.addEventListener('blur', EverythingME.onActivationIconBlur);
+      activationInput.addEventListener('blur',
+                                        EverythingME.onActivationIconBlur);
 
       triggerActivate(e);
     }
@@ -97,7 +100,7 @@ var EverythingME = {
       var appsEl = document.getElementById('icongrid'),
           elCollection = document.getElementById('collection'),
           collection = GridManager.getIconByOrigin(id),
-          elLoader = elCollection.querySelector(".loading-more");
+          elLoader = elCollection.querySelector('.loading-more');
 
       appsEl.classList.add('evme-collection-visible');
 
@@ -110,9 +113,9 @@ var EverythingME = {
       PaginationBar.hide();
 
       // add temporary Collection close listeners
-      var closeButton  = elCollection.querySelector('.close');
+      var closeButton = elCollection.querySelector('.close');
       closeButton.addEventListener('click', EverythingME.onCollectionClosed);
-      window.addEventListener("hashchange", EverythingME.onCollectionClosed);
+      window.addEventListener('hashchange', EverythingME.onCollectionClosed);
 
       elCollection.style.display = 'block';
       window.setTimeout(function() {
@@ -301,7 +304,8 @@ var EverythingME = {
         evmeInput = document.getElementById('search-q'),
         closeButton = document.querySelector('#collection .close');
 
-    activationIconInput.removeEventListener('blur', EverythingME.onActivationIconBlur);
+    activationIconInput.removeEventListener('blur',
+                                            EverythingME.onActivationIconBlur);
 
     // add evme into the first grid page
     gridPage.appendChild(page.parentNode.removeChild(page));
@@ -316,13 +320,14 @@ var EverythingME = {
         EvmeFacade.searchFromOutside(existingQuery);
       }
 
-      EvmeFacade.Searchbar && EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
+      EvmeFacade.Searchbar &&
+        EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
       evmeInput.setSelectionRange(existingQuery.length, existingQuery.length);
     }
 
     closeButton.removeEventListener('click', EverythingME.onCollectionClosed);
 
-    window.removeEventListener("hashchange", EverythingME.onCollectionClosed);
+    window.removeEventListener('hashchange', EverythingME.onCollectionClosed);
 
     document.body.classList.remove('evme-loading');
     document.body.classList.remove('evme-loading-from-input');
@@ -383,7 +388,8 @@ var EverythingME = {
         return;
       }
 
-      // first mark as "migrated", so if we have an error we won't keep running this
+      // first mark as "migrated",
+      // so if we have an error we won't keep running this
       asyncStorage.setItem(migrationStorageKey, true);
 
       // start the migration
@@ -432,7 +438,8 @@ var EverythingME = {
       console.log('[EVME migration] [' + oldKey + '] got value: ' + oldValue);
       oldValue = JSON.parse(oldValue);
       if (!oldValue) {
-        console.log('[EVME migration] [' + oldKey + ']: invalid json: ' + window.localStorage[oldKey]);
+        console.log('[EVME migration] [' + oldKey + ']: invalid json: ' +
+                                                  window.localStorage[oldKey]);
         deleteOld();
         onComplete(false);
         return false;
@@ -444,15 +451,18 @@ var EverythingME = {
         'expires': oldValue._e
       };
 
-      console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saving: ' + JSON.stringify(newValue));
+      console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saving: ' +
+                                                     JSON.stringify(newValue));
       asyncStorage.setItem(newKey, newValue, function onsaved() {
-        console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saved, remove old data');
+        console.log('[EVME migration] [' + oldKey + ':' + newKey +
+                                                  ']: saved, remove old data');
         deleteOld();
         onComplete(true);
       });
-    } catch(ex) {
+    } catch (ex) {
       deleteOld();
-      console.warn('[EVME migration] [' + oldKey + ']: error: ' + oldValue + ' (' + ex.message + ')');
+      console.warn('[EVME migration] [' + oldKey + ']: error: ' + oldValue +
+                                                      ' (' + ex.message + ')');
       onComplete(false);
       return false;
     }
@@ -474,11 +484,12 @@ var EverythingME = {
       'shared/style/confirm.css',
       elLoading],
       function assetsLoaded() {
-        elLoading.querySelector('button').addEventListener('click', function onCancel(e) {
-          e.target.removeEventListener('click', onCancel);
-          EverythingME.hideLoading();
-          EverythingME.pendingEvent = null;
-        });
+        elLoading.querySelector('button').addEventListener('click',
+          function onCancel(e) {
+            e.target.removeEventListener('click', onCancel);
+            EverythingME.hideLoading();
+            EverythingME.pendingEvent = null;
+          });
 
         navigator.mozL10n.translate(elLoading);
 

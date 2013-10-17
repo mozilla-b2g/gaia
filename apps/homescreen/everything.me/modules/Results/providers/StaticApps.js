@@ -5,7 +5,7 @@ Evme.STATIC_APP_TYPE = {
 };
 
 Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
-  var NAME = "StaticAppsRenderer",
+  var NAME = 'StaticAppsRenderer',
       DEFAULT_ICON = Evme.Utils.getDefaultAppIcon(),
       self = this,
       containerEl,
@@ -22,7 +22,7 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
 
   this.render = function render(apps) {
     var diff = apps.length - renderedAppIds.length;
-   
+
     if (diff < 0) {
       // apps removed
       // no rendering needed - handled by Result.js@remove
@@ -31,13 +31,13 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
       apps.some(function isNew(app) {
         if (renderedAppIds.indexOf(app.id) < 0) {
           append(app);
-          return true;    
+          return true;
         }
       });
     } else {
       // render everything
       this.clear();
-      renderDocFrag(apps);  
+      renderDocFrag(apps);
     }
 
     renderedAppIds = apps.map(function getId(app) {
@@ -60,7 +60,7 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
   function append(app) {
     var el = renderApp(app);
     containerEl.appendChild(el);
-  };
+  }
 
   function renderApp(app) {
     app.isRemovable = true;
@@ -69,7 +69,7 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
     var result,
         el;
 
-    if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD){
+    if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD) {
       result = new Evme.CloudAppResult(app.collectionQuery);
     } else {
       result = new Evme.InstalledAppResult();
@@ -100,7 +100,7 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
     var appUrls = [],
         equivs = [];
 
-    for (var i=0, app; app = apps[i++]; ) {
+    for (var i = 0, app; app = apps[i++]; ) {
       if (app.staticType === Evme.STATIC_APP_TYPE.CLOUD) {
         app.appUrl && appUrls.push(app.appUrl);
       } else if (app.equivCloudAppAPIIds) {
@@ -110,18 +110,18 @@ Evme.StaticAppsRenderer = function Evme_StaticAppsRenderer() {
 
     // add cloudapps dedup style
     Evme.Utils.filterProviderResults({
-      "id": 'static-cloudapps',
-      "attribute": 'data-url',
-      "containerSelector": containerSelector,
-      "items": appUrls
+      'id': 'static-cloudapps',
+      'attribute': 'data-url',
+      'containerSelector': containerSelector,
+      'items': appUrls
     });
     // add cloudapp equivalent dedup style
     Evme.Utils.filterProviderResults({
-      "id": 'static-equivs',
-      "attribute": 'id',
-      "value": 'app_{0}',
-      "containerSelector": containerSelector,
-      "items": equivs
+      'id': 'static-equivs',
+      'attribute': 'id',
+      'value': 'app_{0}',
+      'containerSelector': containerSelector,
+      'items': equivs
     });
   }
 };
