@@ -568,12 +568,7 @@ var Settings = {
         value = input.checked; // boolean
         break;
       case 'range':
-        // Bug 906296:
-        //   We parseFloat() once to be able to round to 1 digit, then
-        //   we parseFloat() again to make sure to store a Number and
-        //   not a String, otherwise this will make Gecko unable to
-        //   apply new settings.
-        value = parseFloat(parseFloat(input.value).toFixed(1)); // float
+        value = parseFloat(input.value).toFixed(1); // float
         break;
       case 'select-one':
       case 'radio':
