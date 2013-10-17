@@ -70,7 +70,10 @@ suite('L10n', function() {
     document.head.appendChild(inline);
 
     navigator.mozL10n.language.code = lang;
-    navigator.mozL10n.ready(function() {
+    navigator.mozL10n.ready(function suiteSetup_ready() {
+      // Make sure to remove this event listener in case we re-translate
+      // below.  The xhr mock won't exist any more.
+      window.removeEventListener('localized', suiteSetup_ready);
       xhr.restore();
       done();
     });
