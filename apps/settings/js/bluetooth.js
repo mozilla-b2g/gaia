@@ -405,25 +405,17 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         showDeviceConnected(evt.address, evt.status, Profiles.A2DP);
       };
 
-      // get paired device and restore connection
-      // if there is no current connection and we have one device connected
-      // before.
+      // Get paired device
       getPairedDevice(function() {
-        getConnectedDeviceItems(function(connectedDeviceItems) {
-          // If there is already a connection, update the status directly.
-          // If no, restore the previous connection.
-          if (connectedDeviceItems.length > 0) {
-            connectedDeviceItems.forEach(function(item) {
-              var connectedDevice = item.device;
-              var connectedProfiles = item.connectedProfiles;
-              for (var profile in connectedProfiles) {
-                showDeviceConnected(connectedDevice.address, true, profile);
-              }
-            });
-          } else {
-            restoreConnection();
-          }
-        });
+        for (var address in pairList.index) {
+          var deviceItem = pairList.index[address];
+          if (Object.keys(deviceItem.connectedProfiles).length > 0)
+            return;
+        }
+
+        // If there is no current connection and we have one device connected
+        // before, restore it.
+        restoreConnection();
       });
       startDiscovery();
     }
@@ -457,9 +449,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         });
         for (var i = 0; i < length; i++) {
           (function(device) {
-            var stateL10nId = (device.address === connectedAddress) ?
-              'device-status-connected' : '';
-            var aItem = newListItem(device, stateL10nId);
+            var aItem = newListItem(device, '');
             aItem.onclick = function() {
               optionMenu.show(device);
             };
@@ -482,11 +472,25 @@ navigator.mozL10n.ready(function bluetoothSettings() {
             }
           })(paired[i]);
         }
-        pairList.show(true);
-        // the callback function now is for restoring the connected device
-        // when the bluetooth is turned on.
-        if (callback)
-          callback();
+
+        // update the connection status
+        getConnectedDeviceItems(function(connectedDeviceItems) {
+          if (connectedDeviceItems.length > 0) {
+            connectedDeviceItems.forEach(function(item) {
+              var connectedDevice = item.device;
+              var connectedProfiles = item.connectedProfiles;
+              for (var profile in connectedProfiles) {
+                showDeviceConnected(connectedDevice.address, true, profile);
+              }
+            });
+          }
+
+          pairList.show(true);
+          // the callback function now is for restoring the connected device
+          // when the bluetooth is turned on.
+          if (callback)
+            callback();
+        });
       };
     }
 
