@@ -12,10 +12,7 @@ branches:
     - v1.0.0
     - v1.0.1
 env:
-  - CI_ACTION=gjslint
-  - CI_ACTION=test_agent
   - CI_ACTION=marionette_js
-  - CI_ACTION=gaia_ui_tests
 notifications:
   irc:
     channels:
