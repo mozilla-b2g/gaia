@@ -53,7 +53,7 @@ var CostControl = (function() {
     }
 
     if ('mozNetworkStats' in window.navigator) {
-      statistics = window.navigator.mozNetworkStats;
+      statistics = NetworkstatsProxy;
     }
 
     debug('APIs loaded!');
