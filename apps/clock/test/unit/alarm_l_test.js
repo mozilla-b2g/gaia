@@ -19,8 +19,8 @@ suite('AlarmL', function() {
         document.body.appendChild(div);
         new AlarmPanel(div);
 
-        AlarmList = alarmList;
-        AlarmList.init();
+        //AlarmList = alarmList;
+        //AlarmList.init();
 
         done();
       }
