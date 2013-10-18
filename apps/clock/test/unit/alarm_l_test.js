@@ -1,4 +1,6 @@
 suite('AlarmL', function() {
+  var AlarmList;
+
   suiteSetup(function(done) {
     // Account for potentially-slow file loading operations
     this.timeout(10000);
@@ -13,6 +15,13 @@ suite('AlarmL', function() {
         mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
       },
       function(AlarmPanel, alarmList, alarm, mockMozAlarms, mockL10n) {
+        var div = document.createElement('div');
+        document.body.appendChild(div);
+        new AlarmPanel(div);
+
+        AlarmList = alarmList;
+        AlarmList.init();
+
         done();
       }
     );
