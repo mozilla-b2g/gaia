@@ -1,0 +1,15 @@
+The keyboard app uses large dictionary files for autocorrection. If we
+include all the dictionaries we have, our builds become too large. So
+the keyboard is configured at build time to include only the layouts
+and dictionaries we need for a particular build.
+
+Dictionaries live in gaia/keyboard/dictionaries and layouts are
+defined in gaia/keyboard/layouts. Files are copied into this app, but
+are not checked into github in this app.
+
+We also configure the manifest.webapp file at build time, so the
+manifest.template file here is what is checked in. manifest.webapp is
+dynamically generated from that template file and should not be
+checked in.
+
+See gaia/build/configure-keyboard.js and the keyboard target in gaia/Makefile
