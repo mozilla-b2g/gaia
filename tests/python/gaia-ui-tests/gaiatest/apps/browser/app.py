@@ -50,7 +50,8 @@ class Browser(Base):
     def go_to_url(self, url, timeout=30):
         self.wait_for_element_displayed(*self._awesome_bar_locator)
         awesome_bar = self.marionette.find_element(*self._awesome_bar_locator)
-        awesome_bar.tap()
+        # TODO Tap one pixel above bottom edge to dodge the System update notification banner bug 876723
+        awesome_bar.tap(y=(awesome_bar.size['height'] - 1))
         self.wait_for_condition(lambda m: self.keyboard.is_displayed())
         self.keyboard.send(url)
         self.tap_go_button(timeout=timeout)
