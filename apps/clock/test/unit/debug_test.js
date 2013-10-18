@@ -10,6 +10,7 @@ suite.only('DEBUG', function() {
         'mocks/mock_moz_alarm',
         'mocks/mock_navigator_mozl10n'
       ], {
+        mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
       },
       function(AlarmPanel, alarmList, alarm, mockMozAlarms, mockL10n) {
         done();
