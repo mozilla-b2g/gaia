@@ -817,8 +817,9 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
 }
 
 ul.contact-prompt {
-  position: relative;
-  z-index: 5;
+  position: absolute;
+  margin-top: 5rem;
+  z-index: 101;
   overflow-y: auto;
   overflow-x: hidden;
   max-height: calc(100% - 8rem);
