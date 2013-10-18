@@ -8,11 +8,12 @@ requireApp('communications/ftu/test/unit/mock_data_mobile.js');
 requireApp('communications/ftu/test/unit/mock_sim_manager.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
 requireApp('communications/ftu/test/unit/mock_tutorial.js');
-requireApp('communications/ftu/test/unit/mock_icc_helper.js');
 requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_utils.js');
 requireApp('communications/ftu/test/unit/mock_operatorVariant.js');
 requireApp('communications/ftu/js/navigation.js');
+
+requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
 
 mocha.globals(['open']);
 
