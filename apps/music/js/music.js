@@ -138,7 +138,7 @@ function init() {
     excludeFilter: excludeFilter,
     batchSize: 1,
     autoscan: false, // We call scan() explicitly after listing music we know
-    version: 2
+    version: 3
   });
 
   function metadataParserWrapper(file, onsuccess, onerror) {
