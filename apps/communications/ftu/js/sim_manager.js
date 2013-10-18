@@ -237,6 +237,11 @@ var SimManager = {
     }
   },
 
+  back: function sm_back() {
+    this.hideScreen();
+    Navigation.back();
+  },
+
   unlock: function sm_unlock() {
     this._unlocked = false;
 

@@ -63,6 +63,10 @@ suite('navigation >', function() {
     ' <nav role="navigation">' +
     ' <button id="skip-pin-button" class="button-left" data-l10n-id="skip">' +
     'Skip</button>' +
+    ' <button id="back-sim-button" class="button-left back hidden" ' +
+    '   data-l10n-id="back">' +
+    '     Back' +
+    '  </button>' +
     '<button id="unlock-sim-button" class="recommend" data-l10n-id="send">' +
     'Send</button></nav>' +
     '</section>' +
