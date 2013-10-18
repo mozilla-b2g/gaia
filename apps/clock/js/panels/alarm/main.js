@@ -12,8 +12,8 @@ function AlarmPanel() {
 
   this.element.innerHTML = html;
   ClockView.init();
-  AlarmList.init();
-  ActiveAlarm.init();
+  //AlarmList.init();
+  //ActiveAlarm.init();
 }
 
 AlarmPanel.prototype = Object.create(Panel.prototype);
