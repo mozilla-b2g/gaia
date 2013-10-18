@@ -603,3 +603,8 @@ body {
   visibility: hidden;
 }
 
+@media (min-width: 768px) {
+  #dialog-overlay {
+    background-color: rgba(0,0,0,0.6);
+  }
+}
