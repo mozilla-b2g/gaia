@@ -1,6 +1,3 @@
-/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
-/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
-
 /*
  * keyboard.js:
  *
@@ -506,30 +503,54 @@ function handleKeyboardSound() {
 function setKeyboardName(name, callback) {
   var keyboard;
 
-  if (name in Keyboards) {
-    keyboard = Keyboards[name];
-    keyboardName = name;
-  }
-  else {
-    var alias = keyboardAlias[name];
-    if (alias in Keyboards) {
-      keyboard = Keyboards[alias];
-      keyboardName = alias;
+  loadLayout(name, function(layout) {
+    if (layout.imEngine) {
+      loadIMEngine(name, function() {
+        setInputMethod(InputMethods[layout.imEngine]);
+      });
+    } else {
+      setInputMethod(defaultInputMethod);
+    }
+
+    function setInputMethod(im) {
+      if (im !== inputMethod && inputMethod && inputMethod.deactivate)
+        inputMethod.deactivate();
+      inputMethod = im;
+      callback();
+    }
+  });
+
+  function loadLayout(name, callback) {
+    if (name in Keyboards) {
+      setLayout(name);
     }
     else {
-      console.warn('Unknown keyboard name', name);
-      return;
+      var alias = keyboardAlias[name];
+      if (alias in Keyboards) {
+        setLayout(alias);
+      }
+      else {
+        // If we have not already loaded the layout, load it now
+        var layoutFile = 'js/layouts/' + name + '.js';
+        var script = document.createElement('script');
+        script.src = layoutFile;
+        script.onload = function() {
+          setLayout(name);
+        };
+        script.onerror = function() {
+          // If this happens, we have a misconfigured build and the
+          // keyboard manifest does not match the layouts in js/layouts/
+          console.error('Cannot load keyboard layout', layoutFile);
+        };
+        document.head.appendChild(script);
+      }
     }
-  }
 
-  if (keyboard.imEngine) {
-    loadIMEngine(name, function() {
-      inputMethod = InputMethods[keyboard.imEngine];
-      callback();
-    });
-  } else {
-    inputMethod = defaultInputMethod;
-    callback();
+    function setLayout(name) {
+      keyboardName = name;
+      keyboard = Keyboards[name];
+      callback(keyboard);
+    }
   }
 }
 
@@ -559,10 +580,6 @@ function handleNewKeyboards() {
   if (enabledKeyboardNames.length === 0)
     Array.prototype.push.apply(enabledKeyboardNames,
                                defaultKeyboardNames);
-
-  // Now load each of these keyboards and their input methods
-  for (var i = 0; i < enabledKeyboardNames.length; i++)
-    loadKeyboard(enabledKeyboardNames[i]);
 
   // If the keyboard has been disabled, reset keyboardName allowing it to be
   // properly set when showing the keyboard

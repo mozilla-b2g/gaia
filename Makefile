@@ -250,6 +250,9 @@ GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
 
+# This variable is for customizing the keyboard layouts in a build.
+GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl
+
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
@@ -285,7 +288,6 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
-
 define BUILD_CONFIG
 exports.config = {
 	"GAIA_DIR" : "$(CURDIR)",
@@ -301,6 +303,7 @@ exports.config = {
 	"GAIA_PORT" : "$(GAIA_PORT)",
 	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)",
 	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))",
+	"GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)",
 	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)",
 	"PRODUCTION" : "$(PRODUCTION)",
 	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)",
@@ -324,7 +327,7 @@ export BUILD_CONFIG
 
 # Generate profile/
 
-$(PROFILE_FOLDER): multilocale applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
+$(PROFILE_FOLDER): multilocale keyboard applications-data preferences local-apps app-makefiles test-agent-config offline contacts extensions install-xulrunner-sdk install-git-hook $(PROFILE_FOLDER)/settings.json create-default-data $(PROFILE_FOLDER)/installed-extensions.json
 	@echo "Profile Ready: please run [b2g|firefox] -profile $(CURDIR)$(SEP)$(PROFILE_FOLDER)"
 
 LANG=POSIX # Avoiding sort order differences between OSes
@@ -366,6 +369,15 @@ ifneq ($(DEBUG),1)
 	@echo "Done"
 endif
 endif
+
+.PHONY: keyboard
+keyboard: install-xulrunner-sdk
+	@# Delete dictionaries and layouts from the last time
+	@rm -f apps/keyboard/js/layouts/*.js
+	@rm -f apps/keyboard/js/imes/latin/dictionaries/*.dict
+	@# Now copy the current set of dictionaries and layouts
+	@# And also create a custom manifest.webapp file
+	@$(call run-js-command, configure-keyboard)
 
 app-makefiles:
 	@for d in ${GAIA_APPDIRS}; \
