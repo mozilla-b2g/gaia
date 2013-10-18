@@ -19,7 +19,6 @@
     "mocha-tbpl-reporter": "~0.0.4",
     "mozilla-download": "~0.3.0",
     "node-static": "0.6.9",
-    "travis-project-jobs": "0.0.1",
-    "marionette-plugin-forms": "~0.0.1"
+    "travis-project-jobs": "0.0.1"
   }
 }
