@@ -86,7 +86,7 @@
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" }
   },
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "activities": {
     "pick": {
       "filters": {

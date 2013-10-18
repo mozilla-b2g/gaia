@@ -3,7 +3,7 @@
   "description": "Gaia Ringtone Setter",
   "type": "certified",
   "role": "system",
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
