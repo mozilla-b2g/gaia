@@ -47,26 +47,37 @@ var GridManager = (function() {
     right: 0
   };
 
-  var isSearchPageEnabled =
-    document.body.classList.contains('searchPageEnabled');
+  var EVME_PAGE_STATE_INDEX = 1;
 
   var MAX_ICONS_PER_PAGE = 4 * 4;
-  var MAX_ICONS_PER_EVME_PAGE = isSearchPageEnabled ? 4 * 3 : 4 * 4;
 
-  var EVME_PAGE_STATE_INDEX = 1;
   // Check if there is space for another row of icons
   // For WVGA, 800x480, we also want to show 4 x 5 grid on homescreen
   // the homescreen size would be 770 x 480, and 770/480 ~= 1.6
   if (DEVICE_HEIGHT - BASE_HEIGHT > BASE_HEIGHT / 5 ||
       DEVICE_HEIGHT / windowWidth >= 1.6) {
     MAX_ICONS_PER_PAGE += 4;
-    MAX_ICONS_PER_EVME_PAGE += 4;
   }
 
   // tablet+ devices are stricted to 5 x 3 grid
   if (notTinyLayout) {
     MAX_ICONS_PER_PAGE = 5 * 3;
-    MAX_ICONS_PER_EVME_PAGE = isSearchPageEnabled ? 5 * 2 : MAX_ICONS_PER_PAGE;
+  }
+
+  // The same number of icons by default
+  var MAX_ICONS_PER_EVME_PAGE = MAX_ICONS_PER_PAGE;
+
+  function setMaxIconsToSearchPage() {
+    if (!document.body.classList.contains('searchPageEnabled')) {
+      return;
+    }
+
+    // One row is consumed by the search bar
+    MAX_ICONS_PER_EVME_PAGE -= 4;
+
+    if (notTinyLayout) {
+      MAX_ICONS_PER_EVME_PAGE -= 5;
+    }
   }
 
   var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
@@ -1297,6 +1308,8 @@ var GridManager = (function() {
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
+
+    setMaxIconsToSearchPage();
 
     IconRetriever.init();
 
