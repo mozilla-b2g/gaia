@@ -161,6 +161,13 @@ var ScreenManager = {
     }
   },
 
+  calcBrightness: function scm_calcBrightness(lux) {
+    var computedBrightness = Math.log(lux) /
+                             Math.LN10 * this.AUTO_BRIGHTNESS_CONSTANT;
+    return Math.max(ScreenManager.AUTO_BRIGHTNESS_MINIMUM,
+                                     Math.min(1.0, computedBrightness));
+  },
+
   //
   // Automatically adjust the screen brightness based on the ambient
   // light (in lux) measured by the device light sensor
@@ -171,17 +178,21 @@ var ScreenManager = {
     if (lux < 1)  // Can't take the log of 0 or negative numbers
       lux = 1;
 
-    var computedBrightness =
-      Math.log(lux) / Math.LN10 * this.AUTO_BRIGHTNESS_CONSTANT;
+    var clampedBrightness = this.calcBrightness(lux);
 
-    var clampedBrightness = Math.max(this.AUTO_BRIGHTNESS_MINIMUM,
-                                     Math.min(1.0, computedBrightness));
-
-    // If nothing changed, we're done.
-    if (clampedBrightness === currentBrightness)
-      return;
-
-    this.setScreenBrightness(clampedBrightness, false);
+    // delay certain time then compare the current brightness
+    // to avoid jitter
+    var self = this;
+    window.setTimeout(function deBounce() {
+      window.addEventListener('devicelight', function(event) {
+        var newClampedBrightness = self.calcBrightness(event.value);
+        // If nothing changed, we're done.
+        if ((clampedBrightness === currentBrightness) ||
+          (newClampedBrightness === currentBrightness))
+          return;
+        self.setScreenBrightness(clampedBrightness, false);
+      });
+    } ,2000);
   },
 
   handleEvent: function scm_handleEvent(evt) {
