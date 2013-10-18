@@ -343,7 +343,7 @@ suite('dialer/handled_call', function() {
 
       mockCall._connect();
       MockCallScreen.mute();
-      MockCallScreen.turnSpeakerOn();
+      MockCallScreen.switchToSpeaker();
     });
 
     suite('from a regular call', function() {

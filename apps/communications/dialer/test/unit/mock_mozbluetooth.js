@@ -4,6 +4,9 @@ var MockBTAdapter = {
   answerWaitingCall: function mba_answerWaitingCall() {},
   ignoreWaitingCall: function mba_ignoreWaitingCall() {},
   toggleCalls: function mba_toggleCalls() {},
+  getConnectedDevices: function mba_getConnectedDevices() {},
+  connectSco: function mba_connectSco() {},
+  disconnectSco: function mba_disconnectSco() {},
 
   onscostatuschanged: null
 };

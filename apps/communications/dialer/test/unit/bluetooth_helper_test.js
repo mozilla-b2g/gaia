@@ -58,6 +58,46 @@ suite('bluetooth helper', function() {
       assert.isTrue(toggleCallsSpy.calledOnce);
     });
 
+    test('should get connected devices by profile', function() {
+      var stubDOMReq = {result: ['profiles']};
+      this.sinon.stub(MockBTAdapter, 'getConnectedDevices').returns(stubDOMReq);
+
+      var cb = sinon.stub().throws('Passing wrong results to callback');
+      cb.withArgs(stubDOMReq.result);
+
+      subject.getConnectedDevicesByProfile('stubProfileId', cb);
+      stubDOMReq.onsuccess();
+      assert.isTrue(cb.calledOnce);
+    });
+
+    test('should connect to sco', function() {
+      var stubDOMReq = {};
+      this.sinon.stub(MockBTAdapter, 'connectSco').returns(stubDOMReq);
+
+      var cb = sinon.stub();
+
+      subject.connectSco(cb);
+      stubDOMReq.onsuccess();
+      assert.isTrue(cb.calledOnce);
+    });
+
+    test('should disconnect from sco', function() {
+      var stubDOMReq = {};
+      this.sinon.stub(MockBTAdapter, 'disconnectSco').returns(stubDOMReq);
+
+      var cb = sinon.stub();
+
+      subject.disconnectSco(cb);
+      stubDOMReq.onsuccess();
+      assert.isTrue(cb.calledOnce);
+    });
+
+    test('should set callback of onhfpstatuschanged', function() {
+      var stubFunc = this.sinon.stub();
+      subject.onhfpstatuschanged = stubFunc;
+      assert.equal(MockBTAdapter.onhfpstatuschanged, stubFunc);
+    });
+
     test('should set callback of onscostatuschanged', function() {
       var stubFunc = this.sinon.stub();
       subject.onscostatuschanged = stubFunc;

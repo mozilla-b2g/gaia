@@ -20,8 +20,14 @@ var CallScreen = {
 
   muteButton: document.getElementById('mute'),
   speakerButton: document.getElementById('speaker'),
+  BTButton: document.getElementById('bt'),
   keypadButton: document.getElementById('keypad-visibility'),
   placeNewCallButton: document.getElementById('place-new-call'),
+
+  BTMenu: document.getElementById('bluetooth-menu'),
+  BTMenuBTButton: document.getElementById('btmenu-btdevice'),
+  BTMenuReceiverButton: document.getElementById('btmenu-receiver'),
+  BTMenuSpeakerButton: document.getElementById('btmenu-speaker'),
 
   answerButton: document.getElementById('callbar-answer'),
   rejectButton: document.getElementById('callbar-hang-up'),
@@ -94,6 +100,8 @@ var CallScreen = {
                                              this.placeNewCall.bind(this));
     this.speakerButton.addEventListener('click',
                                     this.toggleSpeaker.bind(this));
+    this.BTButton.addEventListener('click',
+                                    this.toggleBTMenu.bind(this));
     this.answerButton.addEventListener('click',
                                     CallsHandler.answer);
     this.rejectButton.addEventListener('click',
@@ -105,6 +113,14 @@ var CallScreen = {
 
     this.hideGroupButton.addEventListener('click',
                                     CallScreen.hideGroupDetails.bind(this));
+
+    this.BTMenu.addEventListener('click', CallScreen.handleBTMenu.bind(this));
+    this.BTMenuBTButton.addEventListener('click',
+                                    CallScreen.switchToDefaultOut.bind(this));
+    this.BTMenuReceiverButton.addEventListener('click',
+                                    CallScreen.switchToReceiver.bind(this));
+    this.BTMenuSpeakerButton.addEventListener('click',
+                                    CallScreen.switchToSpeaker.bind(this));
 
     this.incomingAnswer.addEventListener('click',
                               CallsHandler.holdAndAnswer);
@@ -363,14 +379,45 @@ var CallScreen = {
     CallsHandler.toggleSpeaker();
   },
 
-  turnSpeakerOn: function cs_turnSpeakerOn() {
-    this.speakerButton.classList.add('active-state');
-    CallsHandler.turnSpeakerOn();
+  toggleBTMenu: function cs_toggleBTMenu() {
+    this.BTMenu.classList.toggle('display');
   },
 
-  turnSpeakerOff: function cs_turnSpeakerOff() {
+  handleBTMenu: function cs_handleBTMenu(evt) {
+    evt.preventDefault();
+    if (evt.target.tagName == 'BUTTON') {
+      this.toggleBTMenu();
+    }
+  },
+
+  switchToSpeaker: function cs_switchToReceiver() {
+    this.speakerButton.classList.add('active-state');
+    this.BTButton.classList.add('active-state');
+    CallsHandler.switchToSpeaker();
+  },
+
+  switchToReceiver: function cs_switchToReceiver() {
     this.speakerButton.classList.remove('active-state');
-    CallsHandler.turnSpeakerOff();
+    this.BTButton.classList.remove('active-state');
+    CallsHandler.switchToReceiver();
+  },
+
+  // when BT device available: switch to BT
+  // when BT device unavailable: switch to receiver
+  switchToDefaultOut: function cs_switchToDefaultOut() {
+    this.speakerButton.classList.remove('active-state');
+    this.BTButton.classList.add('active-state');
+    CallsHandler.switchToDefaultOut();
+  },
+
+  setBTReceiverIcon: function cs_setBTReceiverIcon(enabled) {
+    if (enabled) {
+      this.speakerButton.classList.add('hide');
+      this.BTButton.classList.remove('hide');
+    } else {
+      this.speakerButton.classList.remove('hide');
+      this.BTButton.classList.add('hide');
+    }
   },
 
   showKeypad: function cs_showKeypad() {
