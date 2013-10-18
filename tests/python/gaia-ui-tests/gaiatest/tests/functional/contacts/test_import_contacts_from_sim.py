@@ -23,6 +23,8 @@ class TestImportContactsFromSIM(GaiaTestCase):
         contacts_settings = contacts_app.tap_settings()
         contacts_settings.tap_import_contacts()
         contacts_settings.tap_import_from_sim()
+        contacts_settings.tap_back_from_import_contacts()
+        contacts_settings.tap_done()
 
         # all the contacts in the SIM should be imported
         self.assertEqual(len(contacts_app.contacts), len(self.data_layer.sim_contacts))

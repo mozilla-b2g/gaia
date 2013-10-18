@@ -48,8 +48,6 @@ class SettingsForm(Base):
         self.wait_for_element_displayed(*self._import_from_sim_button_locator)
         self.marionette.find_element(*self._import_from_sim_button_locator).tap()
         self.wait_for_element_not_displayed(*self._loading_overlay_locator)
-        from gaiatest.apps.contacts.app import Contacts
-        return Contacts(self.marionette)
 
     def tap_import_from_sdcard(self):
         self.wait_for_element_displayed(*self._import_from_sdcard_locator)
@@ -70,4 +68,3 @@ class SettingsForm(Base):
     def tap_back_from_import_contacts(self):
         self.wait_for_element_displayed(*self._back_from_import_contacts_locator)
         self.marionette.find_element(*self._back_from_import_contacts_locator).tap()
-
