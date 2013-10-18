@@ -18,7 +18,7 @@ marionette('Video info of played video# ', function() {
     TestCommon.prepareTestSuite('videos', client, function(err) {
       if (TestCommon.
         mediaExistsSync(
-          '/tmp/device-storage-testing/videos/test_video.mp4')) {
+          '/tmp/device-storage-testing/videos/test_video.ogv')) {
         console.log('Test:Media File Exist before opening App');
       } else {
         console.log('Test:Media File does not exist before opening App');

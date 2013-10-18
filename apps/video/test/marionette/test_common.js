@@ -79,7 +79,7 @@ function copyTestMedia(mediaType, callback) {
   switch (mediaType) {
     case 'videos':
       //Check for media video file if it exists
-     mediaExists(path.join(mediaDir, 'test_video.mp4'), function(exists) {
+     mediaExists(path.join(mediaDir, 'test_video.ogv'), function(exists) {
        if (!exists) {
         copyTestVideo(callback);
        }
@@ -98,8 +98,8 @@ function copyTestMedia(mediaType, callback) {
  */
 function copyTestVideo(callback) {
   var sourceFile =
-  path.resolve('test_media/Movies/test_video.mp4');
-  var destinationFile = path.join(mediaDir, 'test_video.mp4');
+  path.resolve('test_media/Movies/test_video.ogv');
+  var destinationFile = path.join(mediaDir, 'test_video.ogv');
   copyFile(sourceFile, destinationFile, callback);
 }
 
