@@ -1,5 +1,5 @@
 suite.only('AlarmList debug', function() {
-  var AlarmList;
+  var AlarmPanel, div;
 
   suiteSetup(function(done) {
     // Account for potentially-slow file loading operations
@@ -10,17 +10,17 @@ suite.only('AlarmList debug', function() {
       ], {
         mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
       },
-      function(AlarmPanel) {
-        var div = document.createElement('div');
+      function(alarmPanel) {
+        div = document.createElement('div');
+        AlarmPanel = alarmPanel;
         document.body.appendChild(div);
-        //new AlarmPanel(div);
         done();
       }
     );
   });
 
   test('ensure that the suiteSetup is invoked', function() {
-    navigator.mozSetMessageHandler('alarm', function() {});
+    new AlarmPanel(div);
 
     // Throwing errors is the only consistent way to print information to the
     // screen during a test run on TravisCI, so throw one here to ensure that
