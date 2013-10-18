@@ -25,7 +25,7 @@ var ActiveAlarm = {
   childwindow: null,
 
   init: function am_init() {
-    navigator.mozSetMessageHandler('alarm', this.handler.bind(this));
+    //navigator.mozSetMessageHandler('alarm', this.handler.bind(this));
     AlarmManager.updateAlarmStatusBar();
   },
 
