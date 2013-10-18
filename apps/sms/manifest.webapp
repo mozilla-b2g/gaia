@@ -39,7 +39,7 @@
     "90": "/style/icons/Sms_90.png",
     "120": "/style/icons/Sms_120.png"
   },
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "activities": {
     "new": {
       "filters": {
