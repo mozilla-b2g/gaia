@@ -1,4 +1,4 @@
-suite('AlarmL', function() {
+suite.only('AlarmList debug', function() {
   var AlarmList;
 
   suiteSetup(function(done) {
@@ -6,22 +6,14 @@ suite('AlarmL', function() {
     this.timeout(10000);
 
     testRequire([
-        'panels/alarm/main',
-        'panels/alarm/alarm_list',
-        'alarm',
-        'mocks/mock_moz_alarm',
-        'mocks/mock_navigator_mozl10n'
+        'panels/alarm/main'
       ], {
         mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
       },
-      function(AlarmPanel, alarmList, alarm, mockMozAlarms, mockL10n) {
+      function(AlarmPanel) {
         var div = document.createElement('div');
         document.body.appendChild(div);
         new AlarmPanel(div);
-
-        //AlarmList = alarmList;
-        //AlarmList.init();
-
         done();
       }
     );
