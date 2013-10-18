@@ -15,10 +15,10 @@ marionette('Video info of played video# ', function() {
   });
 
   setup(function(done) {
-    TestCommon.prepareTestSuite('Movies', client, function(err) {
+    TestCommon.prepareTestSuite('videos', client, function(err) {
       if (TestCommon.
         mediaExistsSync(
-          '/tmp/device-storage-testing/Movies/elephants-dream.webm')) {
+          '/tmp/device-storage-testing/videos/test_video.mp4')) {
         console.log('Test:Media File Exist before opening App');
       } else {
         console.log('Test:Media File does not exist before opening App');

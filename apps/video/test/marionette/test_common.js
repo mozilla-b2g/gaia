@@ -77,9 +77,9 @@ function deleteFile(file, callback) {
  */
 function copyTestMedia(mediaType, callback) {
   switch (mediaType) {
-    case 'Movies':
+    case 'videos':
       //Check for media video file if it exists
-     mediaExists(path.join(mediaDir, 'elephants-dream.webm'), function(exists) {
+     mediaExists(path.join(mediaDir, 'test_video.mp4'), function(exists) {
        if (!exists) {
         copyTestVideo(callback);
        }
@@ -98,8 +98,8 @@ function copyTestMedia(mediaType, callback) {
  */
 function copyTestVideo(callback) {
   var sourceFile =
-  path.resolve('test_media/Movies/elephants-dream.webm');
-  var destinationFile = path.join(mediaDir, 'elephants-dream.webm');
+  path.resolve('test_media/Movies/test_video.mp4');
+  var destinationFile = path.join(mediaDir, 'test_video.mp4');
   copyFile(sourceFile, destinationFile, callback);
 }
 
@@ -152,7 +152,7 @@ function getMediaDir(mediaType, client, callback) {
 
       switch (mediaType) {
         case 'pictures':
-        case 'Movies':
+        case 'videos':
         case 'music':
           mediaDir = path.join(deviceStorageDir, mediaType);
           break;
@@ -188,6 +188,7 @@ function createDir(path, callback) {
  * @param {callback} callback getMediaDir().
  */
 function getTmpDir(client, callback) {
+  try {
   var chrome = client.scope({context: 'chrome'});
 
   var tmpDir = chrome.executeScript(function() {
@@ -198,6 +199,7 @@ function getTmpDir(client, callback) {
       return f.path;
     });
   callback(null, tmpDir);
+ } catch (e) { console.log('GetTmpDir:Exception occured', e);}
 }
 
 /**
