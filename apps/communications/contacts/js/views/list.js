@@ -56,11 +56,6 @@ contacts.List = (function() {
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
 
-  var HEADER_LETTERS =
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +          // Roman
-    'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ' +            // Greek
-    'АБВГДЂЕЁЖЗИЙЈКЛЉМНЊОПРСТЋУФХЦЧЏШЩЭЮЯ'; // Cyrillic (Russian + Serbian)
-
   // Specify group short names or "letters" for those groups that have a name
   // different from something like "A" or "B".
   var GROUP_LETTERS = {
@@ -69,16 +64,19 @@ contacts.List = (function() {
   };
 
   // Define the order in which groups should appear in the list.  We allow
-  // arbitrary ordering here in anticipation of additional, non-roman scripts
-  // being added.
-  var GROUP_ORDER = (function getGroupOrder(letters) {
+  // arbitrary ordering here in anticipation of additional scripts being added.
+  var GROUP_ORDER = (function getGroupOrder() {
+    var letters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +          // Roman
+      'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ' +            // Greek
+      'АБВГДЂЕЁЖЗИЙЈКЛЉМНЊОПРСТЋУФХЦЧЏШЩЭЮЯ'; // Cyrillic (Russian + Serbian)
     var order = { 'favorites': 0 };
     for (var i = 0; i < letters.length; i++) {
       order[letters[i]] = i + 1;
     }
     order['und'] = i + 1;
     return order;
-  })(HEADER_LETTERS);
+  })();
 
   var NOP_FUNCTION = function() {};
 
@@ -1198,20 +1196,20 @@ contacts.List = (function() {
   var getFastGroupName = function getFastGroupName(contact) {
     var field = orderByLastName ? 'familyName' : 'givenName';
     var value = contact[field] ? contact[field][0] : null;
-
-    if (!value || !value.length)
+    if (!value || !value.length) {
       return null;
+    }
 
     var ret = value.charAt(0).toUpperCase();
-    if (HEADER_LETTERS.indexOf(ret) < 0)
+    if (!(ret in GROUP_ORDER)) {
       return null;
-
+    }
     return ret;
   };
 
   var getGroupNameByOrderString = function getGroupNameByOrderString(order) {
     var ret = order.charAt(0);  // order string is already forced to upper case
-    if (HEADER_LETTERS.indexOf(ret) < 0) {
+    if (!(ret in GROUP_ORDER)) {
       ret = 'und';
     }
     return ret;
