@@ -225,9 +225,9 @@ postEmptyTag: function() {
 },
 
 makeReadOnlyNDEF: function() {
-  if (nfcUI.getConnectedState() && nfcUI.nfctag) {
+  if (nfcUI.getConnectedState() && nfcUI.nfcTag) {
     nfcUI.appendTextAndScroll($('#area'), 'Making Tag read only.\n');
-    return nfcUI.nfctag.makeReadOnlyNDEF();
+    return nfcUI.nfcTag.makeReadOnlyNDEF();
   } else {
     return null;
   }
