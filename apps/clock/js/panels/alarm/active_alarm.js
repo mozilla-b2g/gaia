@@ -25,11 +25,12 @@ var ActiveAlarm = {
   childwindow: null,
 
   init: function am_init() {
-    //navigator.mozSetMessageHandler('alarm', this.handler.bind(this));
+    navigator.mozSetMessageHandler('alarm', this.handler.bind(this));
     AlarmManager.updateAlarmStatusBar();
   },
 
   handler: function aac_handler(message) {
+    return;
     // Set a watchdog to avoid locking the CPU wake lock too long,
     // because it'd exhaust the battery quickly which is very bad.
     // This could probably happen if the app failed to launch or
