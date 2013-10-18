@@ -1,4 +1,4 @@
-suite('ClockView', function() {
+suite.skip('ClockView', function() {
   var nativeMozAlarms = navigator.mozAlarms;
   var ClockView;
   var asyncStorage;

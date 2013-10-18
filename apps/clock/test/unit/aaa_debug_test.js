@@ -1,4 +1,4 @@
-suite.only('DEBUG', function() {
+suite('AAA DEBUG', function() {
   suiteSetup(function(done) {
     // Account for potentially-slow file loading operations
     this.timeout(10000);
