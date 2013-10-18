@@ -56,6 +56,11 @@ contacts.List = (function() {
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
 
+  var HEADER_LETTERS =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +          // Roman
+    'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ' +            // Greek
+    'АБВГДЂЕЁЖЗИЙЈКЛЉМНЊОПРСТЋУФХЦЧЏШЩЭЮЯ'; // Cyrillic (Russian + Serbian)
+
   // Specify group short names or "letters" for those groups that have a name
   // different from something like "A" or "B".
   var GROUP_LETTERS = {
@@ -66,14 +71,14 @@ contacts.List = (function() {
   // Define the order in which groups should appear in the list.  We allow
   // arbitrary ordering here in anticipation of additional, non-roman scripts
   // being added.
-  var GROUP_ORDER = {
-    'favorites': 0,
-    'A': 1, 'B': 2, 'C': 3, 'D': 4, 'E': 5, 'F': 6, 'G': 7, 'H': 8,
-    'I': 9, 'J': 10, 'K': 11, 'L': 12, 'M': 13, 'N': 14, 'O': 15, 'P': 16,
-    'Q': 17, 'R': 18, 'S': 19, 'T': 20, 'U': 21, 'V': 22, 'W': 23, 'X': 24,
-    'Y': 25, 'Z': 26,
-    'und': 27
-  };
+  var GROUP_ORDER = (function getGroupOrder(letters) {
+    var order = { 'favorites': 0 };
+    for (var i = 0; i < letters.length; i++) {
+      order[letters[i]] = i + 1;
+    }
+    order['und'] = i + 1;
+    return order;
+  })(HEADER_LETTERS);
 
   var NOP_FUNCTION = function() {};
 
@@ -875,7 +880,6 @@ contacts.List = (function() {
     }
   }
 
-
   var addOrgMarkup = function addOrgMarkup(link, content) {
     var span = document.createElement('span');
     span.className = 'org';
@@ -1189,21 +1193,17 @@ contacts.List = (function() {
   // Utility function to quickly guess the group name for the given contact.
   // Since full name normalization is expensive, we use a stripped down
   // algorithm here that catches the majority of cases; i.e. name exists and
-  // starts with A-Z.  If this is not the case, then return null and force
-  // the caller to use the more expensive approach.
+  // starts with a known letter.  If this is not the case, then return null
+  // and force the caller to use the more expensive approach.
   var getFastGroupName = function getFastGroupName(contact) {
-    var field = 'givenName';
-    if (orderByLastName)
-      field = 'familyName';
-
+    var field = orderByLastName ? 'familyName' : 'givenName';
     var value = contact[field] ? contact[field][0] : null;
 
     if (!value || !value.length)
       return null;
 
     var ret = value.charAt(0).toUpperCase();
-    var code = ret.charCodeAt(0);
-    if (code < 65 || code > 90)
+    if (HEADER_LETTERS.indexOf(ret) < 0)
       return null;
 
     return ret;
@@ -1211,8 +1211,7 @@ contacts.List = (function() {
 
   var getGroupNameByOrderString = function getGroupNameByOrderString(order) {
     var ret = order.charAt(0);  // order string is already forced to upper case
-    var code = ret.charCodeAt(0);
-    if (code < 65 || code > 90) {
+    if (HEADER_LETTERS.indexOf(ret) < 0) {
       ret = 'und';
     }
     return ret;
