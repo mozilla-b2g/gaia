@@ -11,7 +11,9 @@ requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
-    reals[prop] = originObject[prop];
+    try {
+      reals[prop] = originObject[prop];
+    } catch (e) {}
     originObject[prop] = stub;
   } else {
     Object.defineProperty(originObject, prop, {

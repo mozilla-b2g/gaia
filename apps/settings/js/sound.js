@@ -25,7 +25,11 @@
   ];
 
   // If we're a telephone, then show the section for ringtones, too.
-  if (navigator.mozTelephony) {
+  var telephony;
+  try {
+    telephony = navigator.mozTelephony;
+  } catch (e) {}
+  if (telephony) {
     tones.push({
       pickType: ['ringtone', 'audio/*'],
       settingsKey: 'dialer.ringtone',

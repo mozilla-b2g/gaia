@@ -48,7 +48,9 @@ suite('system/LockScreen >', function() {
     realMobileOperator = window.MobileOperator;
     window.MobileOperator = MockMobileOperator;
 
-    realMozTelephony = navigator.mozTelephony;
+    try {
+      realMozTelephony = navigator.mozTelephony;
+    } catch (e) {}
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
 
     realClock = window.Clock;

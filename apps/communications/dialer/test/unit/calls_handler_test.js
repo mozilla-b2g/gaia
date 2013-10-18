@@ -35,7 +35,9 @@ suite('calls handler', function() {
   mocksHelperForCallsHandler.attachTestHelpers();
 
   suiteSetup(function(done) {
-    realMozTelephony = navigator.mozTelephony;
+    try {
+      realMozTelephony = navigator.mozTelephony;
+    } catch (e) {}
     navigator.mozTelephony = MockMozTelephony;
 
     requireApp('communications/dialer/js/calls_handler.js', done);

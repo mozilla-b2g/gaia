@@ -28,7 +28,9 @@ suite('system/Statusbar', function() {
     navigator.mozL10n = MockL10n;
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
-    realMozTelephony = navigator.mozTelephony;
+    try {
+      realMozTelephony = navigator.mozTelephony;
+    } catch (e) {}
     navigator.mozTelephony = MockNavigatorMozTelephony;
   });
 

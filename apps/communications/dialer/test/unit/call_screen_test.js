@@ -41,7 +41,9 @@ suite('call screen', function() {
   mocksHelperForCallScreen.attachTestHelpers();
 
   suiteSetup(function() {
-    realMozTelephony = navigator.mozTelephony;
+    try {
+      realMozTelephony = navigator.mozTelephony;
+    } catch (e) {}
     navigator.mozTelephony = MockMozTelephony;
 
     realMozApps = navigator.mozApps;

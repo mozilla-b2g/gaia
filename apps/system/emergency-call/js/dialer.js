@@ -1,7 +1,11 @@
 'use strict';
 
 var CallHandler = {
-  _telephony: window.navigator.mozTelephony,
+  _telephony: (function() {
+    try {
+      return navigator.mozTelephony;
+    } catch (e) {}
+  })(),
 
   call: function ch_call(number) {
     var sanitizedNumber = number.replace(/-/g, '');

@@ -34,7 +34,9 @@ suite('telephony helper', function() {
   suiteSetup(function() {
     subject = TelephonyHelper;
 
-    realMozTelephony = navigator.mozTelephony;
+    try {
+      realMozTelephony = navigator.mozTelephony;
+    } catch (e) {}
     navigator.mozTelephony = MockMozTelephony;
 
     realMozMobileConnection = navigator.mozMobileConnection;

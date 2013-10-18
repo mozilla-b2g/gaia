@@ -185,7 +185,11 @@ var Settings = {
     }
 
     // hide telephony related entries if not supportted
-    if (!navigator.mozTelephony) {
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
+    if (!telephony) {
       var elements = ['call-settings', 'data-connectivity',
                       'simSecurity-settings'];
       elements.forEach(function(el) {

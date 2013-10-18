@@ -569,8 +569,12 @@ document.addEventListener('visibilitychange', function visibilitychanged() {
     // *immediately*.
     TonePlayer.trashAudio();
     // Just in case stop any dtmf tone
-    if (navigator.mozTelephony) {
-      navigator.mozTelephony.stopTone();
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
+    if (telephony) {
+      telephony.stopTone();
     }
   }
 });

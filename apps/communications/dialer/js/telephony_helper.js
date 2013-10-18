@@ -31,7 +31,10 @@ var TelephonyHelper = (function() {
   };
 
   function startDial(sanitizedNumber, oncall, connected, disconnected, error) {
-    var telephony = navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
     if (!telephony) {
       return;
     }
