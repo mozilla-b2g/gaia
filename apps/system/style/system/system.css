@@ -206,7 +206,7 @@ body {
 
 #windows {
   position: absolute;
-  left: 0rem;
+  left: 0;
   width: 100%;
   top: 0;
   height: 100%;
@@ -286,42 +286,19 @@ body {
 
 #windows > .appWindow.opening {
   pointer-events: auto;
+  animation: openApp 0.3s forwards ease;
 }
 
-#windows > .appWindow.opening.portrait-primary {
-  animation: openApp-portrait-primary 0.3s forwards ease;
-}
-
-#windows > .appWindow.opening.portrait-secondary {
-  animation: openApp-portrait-secondary 0.3s forwards ease;
-}
-
-#windows > .appWindow.opening.landscape-primary {
-  animation: openApp-landscape-primary 0.3s forwards ease;
-}
-
-#windows > .appWindow.opening.landscape-secondary {
-  animation: openApp-landscape-secondary 0.3s forwards ease;
+#windows > .appWindow.closing.perpendicular {
+  animation-duration: 0.1s;
 }
 
 #windows.slow-transition > .appWindow.opening {
   animation-duration: 3s;
 }
 
-#screen.cards-view > #windows > .appWindow.opening.portrait-primary {
-  animation: openAppFromCardView-portrait-primary 0.15s forwards ease;
-}
-
-#screen.cards-view > #windows > .appWindow.opening.portrait-secondary {
-  animation: openAppFromCardView-portrait-secondary 0.15s forwards ease;
-}
-
-#screen.cards-view > #windows > .appWindow.opening.landscape-primary {
-  animation: openAppFromCardView-landscape-primary 0.15s forwards ease;
-}
-
-#screen.cards-view > #windows > .appWindow.opening.landscape-secondary {
-  animation: openAppFromCardView-landscape-secondary 0.15s forwards ease;
+#screen.cards-view > #windows > .appWindow.opening {
+  animation: openAppFromCardView 0.15s forwards ease;
 }
 
 #screen.cards-view > #windows.slow-transition > .appWindow.opening {
@@ -329,24 +306,9 @@ body {
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
-@keyframes openApp-portrait-primary {
+@keyframes openApp {
   0%   { transform: scale(0.1); }
   100% { transform: scale(1.0); }
-}
-
-@keyframes openApp-portrait-secondary {
-  0%   { transform: scale(0.1) rotate(180deg); }
-  100% { transform: scale(1.0) rotate(180deg); }
-}
-
-@keyframes openApp-landscape-primary {
-  0%   { transform: scale(0.1) rotate(90deg);}
-  100% { transform: scale(1.0) rotate(90deg);}
-}
-
-@keyframes openApp-landscape-secondary {
-  0%   { transform: scale(0.1) rotate(270deg); }
-  100% { transform: scale(1.0) rotate(270deg); }
 }
 
 #windows > .appWindow.homescreen.zoom-in > iframe {
@@ -368,7 +330,7 @@ body {
   100% { transform: scale(1.8); }
 }
 
-@keyframes openAppFromCardView-portrait-primary {
+@keyframes openAppFromCardView {
   0%   { transform: scale(0.8); }
   100% { transform: scale(1.0); }
 }
@@ -377,21 +339,6 @@ body {
   /* The background color is black behind the switch app animation
    * (the homescreen is hidden) */
   background: #000;
-}
-
-@keyframes openAppFromCardView-portrait-secondary {
-  0%   { transform: scale(0.8) rotate(180deg); }
-  100% { transform: scale(1.0) rotate(180deg); }
-}
-
-@keyframes openAppFromCardView-landscape-primary {
-  0%   { transform: scale(0.8) rotate(90deg); }
-  100% { transform: scale(1.0) rotate(90deg); }
-}
-
-@keyframes openAppFromCardView-landscape-secondary {
-  0%   { transform: scale(0.8) rotate(270deg); }
-  100% { transform: scale(1.0) rotate(270deg); }
 }
 
 #screen.switch-app > #windows > .appWindow.opening,
@@ -453,59 +400,12 @@ body {
   pointer-events: none;
 }
 
-#windows > .appWindow.portrait-secondary {
-  transform: rotate(180deg);
-  margin-top: -2rem;
-  overflow: visible;
+#windows > .appWindow.closing {
+  animation: closeApp 0.3s forwards ease;
 }
 
-#windows > .appWindow.landscape-primary {
-  transform: rotate(90deg);
-  overflow: visible;
-}
-
-#windows > .appWindow.landscape-secondary {
-  transform: rotate(270deg);
-  margin-left: 2rem;
-  overflow: visible;
-}
-
-#windows > .appWindow.fullscreen-app.portrait-secondary,
-#windows > .appWindow.fullscreen-app.landscape-primary,
-#windows > .appWindow.fullscreen-app.landscape-secondary {
-  margin: 0;
-}
-
-/* placeholder for status bar of previous orientation */
-#windows > .appWindow.landscape-primary:not(.fullscreen-app):after,
-#windows > .appWindow.landscape-secondary:not(.fullscreen-app):after,
-#windows > .appWindow.portrait-secondary:not(.fullscreen-app):after {
-  display: block;
-  height: 2rem;
-  width: 100%;
-  left: 0;
-  top: -2rem;
-  position: absolute;
-  content: ' ';
-  font-size: 1.8rem;
-  background: #000000;
-}
-
-
-#windows > .appWindow.closing.portrait-primary {
-  animation: closeApp-portrait-primary 0.3s forwards ease;
-}
-
-#windows > .appWindow.closing.portrait-secondary {
-  animation: closeApp-portrait-secondary 0.3s forwards ease;
-}
-
-#windows > .appWindow.closing.landscape-primary {
-  animation: closeApp-landscape-primary 0.3s forwards ease;
-}
-
-#windows > .appWindow.closing.landscape-secondary {
-  animation: closeApp-landscape-secondary 0.3s forwards ease;
+#windows > .appWindow.closing.perpendicular {
+  animation-duration: 0.1s;
 }
 
 #windows.slow-transition > .appWindow.closing {
@@ -531,80 +431,51 @@ body {
   100% { transform: scale(1); }
 }
 
-#screen.cards-view > #windows > .appWindow.closing.portrait-primary {
-  animation: closeAppTowardsCardView-landscape-primary 0.15s forwards ease;
-}
-
-#screen.cards-view > #windows > .appWindow.closing.portrait-secondary {
-  animation: closeAppTowardsCardView-landscape-secondary 0.15s forwards ease;
-}
-
-#screen.cards-view > #windows > .appWindow.closing.landscape-primary {
-  animation: closeAppTowardsCardView-portrait-primary 0.15s forwards ease;
-}
-
-#screen.cards-view > #windows > .appWindow.closing.landscape-secondary {
-  animation: closeAppTowardsCardView-portrait-secondary 0.15s forwards ease;
+#screen.cards-view > #windows > .appWindow.closing {
+  animation: closeAppTowardsCardView 0.15s forwards ease;
 }
 
 #screen.cards-view > #windows.slow-transition > .appWindow.closing {
   animation: closeAppTowardsCardView 1.5s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing.portrait-primary {
-  animation: closeAppTowardsCardView-portrait-primary 0.15s forwards ease;
+#screen.cards-view > #windows > .appWindow.closing {
+  animation: closeAppTowardsCardView 0.15s forwards ease;
 }
 
-#screen.cards-view > #windows > .appWindow.closing.portrait-secondary {
-  animation: closeAppTowardsCardView-portrait-secondary 0.15s forwards ease;
+/* Prebuild width/height */
+#screen:not(.fullscreen-app):not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow:not(.fullscreen-app) {
+  top: 2rem;
+  height: calc(100% - 2rem);
+  width: 100%;
 }
 
-#screen.cards-view > #windows > .appWindow.closing.landscape-primary {
-  animation: closeAppTowardsCardView-landscape-primary 0.15s forwards ease;
+#screen.fullscreen-app:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+  height: 100%;
+  width: 100%;
 }
 
-#screen.cards-view > #windows > .appWindow.closing.landscape-secondary {
-  animation: closeAppTowardsCardView-landscape-secondary 0.15s forwards ease;
+#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow {
+  top: 4rem;
+  height: calc(100% - 4rem);
+  width: 100%;
 }
 
-@keyframes closeApp-landscape-primary {
-  0%   { transform: scale(1.0) rotate(90deg); opacity: 1; }
-  100% { transform: scale(0.1) rotate(90deg); opacity: 0; }
+#screen.active-statusbar.software-button-enabled > #windows > .appWindow {
+  top: 4rem;
+  bottom: 5rem;
+  height: calc(100% - 5rem - 4rem);
+  width: 100%;
 }
 
-@keyframes closeApp-landscape-secondary {
-  0%   { transform: scale(1.0) rotate(270deg); opacity: 1; }
-  100% { transform: scale(0.1) rotate(270deg); opacity: 0; }
-}
-
-@keyframes closeApp-portrait-primary {
+@keyframes closeApp {
   0%   { transform: scale(1.0); opacity: 1; }
   100% { transform: scale(0.1); opacity: 0; }
 }
 
-@keyframes closeApp-portrait-secondary {
-  0%   { transform: scale(1.0) rotate(180deg); opacity: 1; }
-  100% { transform: scale(0.1) rotate(180deg); opacity: 0; }
-}
-
-@keyframes closeAppTowardsCardView-landscape-primary {
-  0%   { transform: scale(1.0) rotate(90deg); }
-  100% { transform: scale(0.8) rotate(90deg); }
-}
-
-@keyframes closeAppTowardsCardView-landscape-secondary {
-  0%   { transform: scale(1.0) rotate(270deg); }
-  100% { transform: scale(0.8) rotate(270deg); }
-}
-
-@keyframes closeAppTowardsCardView-portrait-primary {
+@keyframes closeAppTowardsCardView {
   0%   { transform: scale(1.0); }
   100% { transform: scale(0.8); }
-}
-
-@keyframes closeAppTowardsCardView-portrait-secondary {
-  0%   { transform: scale(1.0) rotate(180deg); }
-  100% { transform: scale(0.8) rotate(180deg); }
 }
 
 #windows > .appWindow.inlineActivity,

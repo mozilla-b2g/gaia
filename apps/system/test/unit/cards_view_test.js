@@ -63,7 +63,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'portrait-primary'
         },
-        currentOrientation: 'portrait-primary',
+        rotatingDegree: 0,
         getScreenshot: function(callback) {
           callback();
         }
@@ -76,7 +76,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape-primary'
         },
-        currentOrientation: 'landscape-primary',
+        rotatingDegree: 90,
         getScreenshot: function(callback) {
           callback();
         }
@@ -89,7 +89,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape-secondary'
         },
-        currentOrientation: 'landscape-secondary',
+        rotatingDegree: 270,
         getScreenshot: function(callback) {
           callback();
         }
@@ -102,7 +102,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape'
         },
-        currentOrientation: 'landscape-primary',
+        rotatingDegree: 90,
         getScreenshot: function(callback) {
           callback();
         }
@@ -115,7 +115,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'portrait-secondary'
         },
-        currentOrientation: 'portrait-secondary',
+        rotatingDegree: 180,
         getScreenshot: function(callback) {
           callback();
         }
@@ -198,23 +198,23 @@ suite('cards view >', function() {
 
     test('cardsview defines a landscape-primary app', function() {
       assert.isTrue(testCardOrientation('http://game.gaiamobile.org',
-                                        'landscape-primary'));
+                                        'rotate-90'));
     });
     test('cardsview defines a landscape-secondary app', function() {
       assert.isTrue(testCardOrientation('http://game2.gaiamobile.org',
-                                        'landscape-secondary'));
+                                        'rotate-270'));
     });
     test('cardsview defines a landscape app in landscape-primary', function() {
       assert.isTrue(testCardOrientation('http://game3.gaiamobile.org',
-                                        'landscape-primary'));
+                                        'rotate-90'));
     });
     test('cardsview defines a portrait app in portrait-primary', function() {
       assert.isTrue(testCardOrientation('http://sms.gaiamobile.org',
-                                        'portrait-primary'));
+                                        'rotate-0'));
     });
     test('cardsview defines a portrait-secondary app', function() {
       assert.isTrue(testCardOrientation('http://game4.gaiamobile.org',
-                                        'portrait-secondary'));
+                                        'rotate-180'));
     });
 
   });
