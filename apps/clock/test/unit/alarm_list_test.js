@@ -1,10 +1,10 @@
-suite.skip('AlarmList', function() {
+suite('AlarmList', function() {
   var nml, nma, fixture, dom;
   var AlarmList, Alarm;
 
   suiteSetup(function(done) {
     // Account for potentially-slow file loading operations
-    this.timeout(60000);
+    this.timeout(5000);
 
     testRequire([
         'panels/alarm/main',
