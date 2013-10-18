@@ -51,7 +51,8 @@
     click: click,
     select: select,
     setLayoutParams: setLayoutParams,
-    setLanguage: setLanguage
+    setLanguage: setLanguage,
+    setAutoCorrection: setAutoCorrection
   };
 
   // This is the object that is passed to init().
@@ -277,6 +278,10 @@
 
     // And now that we've changed the language, ask for new suggestions
     updateSuggestions();
+  }
+
+  function setAutoCorrection(enabled) {
+    correcting = (enabled && inputMode !== 'verbatim');
   }
 
   function displaysCandidates() {
