@@ -11,9 +11,6 @@ suite.only('AlarmList debug', function() {
         mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
       },
       function(alarmPanel) {
-        div = document.createElement('div');
-        AlarmPanel = alarmPanel;
-
         // Throwing errors is the only consistent way to print information to
         // the screen during a test run on TravisCI, so throw one here to
         // ensure that the previous statement did indeed throw an error, even
