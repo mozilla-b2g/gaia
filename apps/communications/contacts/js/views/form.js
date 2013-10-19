@@ -563,8 +563,7 @@ contacts.Form = (function() {
       }
 
     } else {
-      contact = new mozContact();
-      contact.init(myContact);
+      contact = new mozContact(myContact);
     }
 
     updateCategoryForImported(contact);

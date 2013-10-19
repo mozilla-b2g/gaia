@@ -26,34 +26,34 @@ class TestContacts(GaiaTestCase):
         contacts_app.launch()
         contacts_app.wait_for_contacts()
 
-        contact_details = contacts_app.contact(self.contact['givenName']).tap()
+        contact_details = contacts_app.contact(self.contact['givenName'][0]).tap()
 
         edit_contact = contact_details.tap_edit()
 
         # Now we'll update the mock contact and then insert the new values into the UI
-        self.contact['givenName'] = 'gaia%s' % repr(time.time()).replace('.', '')[10:]
-        self.contact['familyName'] = "testedit"
-        self.contact['tel']['value'] = "02011111111"
+        self.contact['givenName'] = ['gaia%s' % repr(time.time()).replace('.', '')[10:]]
+        self.contact['familyName'] = ["testedit"]
+        self.contact['tel'][0]['value'] = "02011111111"
 
         # self.(*self._given_name_locator)
 
-        edit_contact.type_given_name(self.contact['givenName'])
-        edit_contact.type_family_name(self.contact['familyName'])
-        edit_contact.type_phone(self.contact['tel']['value'])
+        edit_contact.type_given_name(self.contact['givenName'][0])
+        edit_contact.type_family_name(self.contact['familyName'][0])
+        edit_contact.type_phone(self.contact['tel'][0]['value'])
 
         contact_details = edit_contact.tap_update()
 
         contact_details.tap_back()
 
         self.assertEqual(len(contacts_app.contacts), 1)
-        self.assertEqual(contacts_app.contacts[0].name, self.contact['givenName'])
+        self.assertEqual(contacts_app.contacts[0].name, self.contact['givenName'][0])
 
-        contact_details = contacts_app.contact(self.contact['givenName']).tap()
+        contact_details = contacts_app.contact(self.contact['givenName'][0]).tap()
 
         # Now assert that the values have updated
-        full_name = self.contact['givenName'] + " " + self.contact['familyName']
+        full_name = self.contact['givenName'][0] + " " + self.contact['familyName'][0]
 
         self.assertEqual(contact_details.full_name,
                          full_name)
         self.assertEqual(contact_details.phone_number,
-                         self.contact['tel']['value'])
+                         self.contact['tel'][0]['value'])

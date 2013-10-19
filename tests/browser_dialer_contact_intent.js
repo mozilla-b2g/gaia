@@ -1,10 +1,9 @@
 function generatorTest() {
   // creating a contact
-  var testContact = new mozContact();
-  testContact.init({
-    givenName: 'Andreas',
-    familyName: 'Gal',
-    name: 'Andreas Gal'
+  var testContact = new mozContact({
+    givenName: ['Andreas'],
+    familyName: ['Gal'],
+    name: ['Andreas Gal']
   });
   yield navigator.mozContacts.save(testContact).onsuccess = nextStep;
 

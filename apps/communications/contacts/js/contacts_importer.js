@@ -48,8 +48,7 @@
     }
 
     function saveMozContact(deviceContact, successCb, errorCb) {
-      var mzContact = new mozContact();
-      mzContact.init(deviceContact);
+      var mzContact = new mozContact(deviceContact);
 
       var req = navigator.mozContacts.save(deviceContact);
 
