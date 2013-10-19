@@ -352,6 +352,7 @@ body.picker-mode #title-player {
   width: 8rem;
   height: 8rem;
   overflow: hidden;
+  background-clip: content-box;
 }
 
 #views-sublist-header-image {
