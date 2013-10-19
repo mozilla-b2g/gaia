@@ -103,7 +103,11 @@ var About = {
     var deviceInfoMsisdn = document.getElementById('deviceInfo-msisdn');
     var deviceInfoImei = document.getElementById('deviceInfo-imei');
     var info = IccHelper.iccInfo;
-    if (!navigator.mozTelephony) {
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
+    if (!telephony) {
       deviceInfoIccid.parentNode.hidden = true;
       deviceInfoMsisdn.parentNode.hidden = true;
       deviceInfoImei.parentNode.hidden = true;

@@ -370,7 +370,10 @@ var KeypadManager = {
         }
 
         // Sending the DTMF tone if on a call
-        var telephony = navigator.mozTelephony;
+        var telephony;
+        try {
+          telephony = navigator.mozTelephony;
+        } catch (e) {}
         if (telephony && telephony.active &&
             telephony.active.state == 'connected') {
 

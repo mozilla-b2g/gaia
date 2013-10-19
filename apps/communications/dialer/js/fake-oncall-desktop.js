@@ -5,7 +5,11 @@ console.error('It just helps to fake a call.');
 
 (function() {
   // Don't execute on the phone
-  if (navigator.mozTelephony.conferenceGroup) {
+  var telephony;
+  try {
+    telephony = navigator.mozTelephony;
+  } catch (e) {}
+  if (telephony && telephony.conferenceGroup) {
     return;
   }
 

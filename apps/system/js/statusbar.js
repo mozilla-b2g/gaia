@@ -695,14 +695,20 @@ var StatusBar = {
   },
 
   hasActiveCall: function sb_hasActiveCall() {
-    var telephony = navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
 
     // will return true as soon as we begin dialing
     return !!(telephony && telephony.active);
   },
 
   addCallListener: function sb_addCallListener() {
-    var telephony = navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
     if (telephony && !this.listeningCallschanged) {
       this.listeningCallschanged = true;
       telephony.addEventListener('callschanged', this);
@@ -710,7 +716,10 @@ var StatusBar = {
   },
 
   removeCallListener: function sb_addCallListener() {
-    var telephony = navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
     if (telephony) {
       this.listeningCallschanged = false;
       telephony.removeEventListener('callschanged', this);

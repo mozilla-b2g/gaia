@@ -84,7 +84,10 @@ var Voicemail = {
     function vmNotification_onTap(event) {
       self.notification.removeEventListener('tap', vmNotification_onTap);
 
-      var telephony = window.navigator.mozTelephony;
+      var telephony;
+      try {
+        telephony = window.navigator.mozTelephony;
+      } catch (e) {}
       if (!telephony) {
         return;
       }

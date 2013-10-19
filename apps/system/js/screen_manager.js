@@ -155,7 +155,10 @@ var ScreenManager = {
       self.setScreenBrightness(value, false);
     });
 
-    var telephony = window.navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = window.navigator.mozTelephony;
+    } catch (e) {}
     if (telephony) {
       telephony.addEventListener('callschanged', this);
     }
@@ -365,7 +368,10 @@ var ScreenManager = {
 
     // If we are in a call and there is no cpuWakeLock,
     // we would have to get one here.
-    var telephony = window.navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = window.navigator.mozTelephony;
+    } catch (e) {}
     if (!this._cpuWakeLock && telephony && telephony.calls.length) {
       telephony.calls.some(function checkCallConnection(call) {
         if (call.state == 'connected') {

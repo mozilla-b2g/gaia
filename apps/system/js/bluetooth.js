@@ -64,7 +64,10 @@ var Bluetooth = {
     if (!window.navigator.mozBluetooth)
       return;
 
-    var telephony = window.navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = window.navigator.mozTelephony;
+    } catch (e) {}
     var bluetooth = window.navigator.mozBluetooth;
     var settings = window.navigator.mozSettings;
     var self = this;

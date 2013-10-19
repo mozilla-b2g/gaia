@@ -32,7 +32,9 @@ suite('conference group handler', function() {
   var fakeMergeButton;
 
   suiteSetup(function(done) {
-    realMozTelephony = navigator.mozTelephony;
+    try {
+      realMozTelephony = navigator.mozTelephony;
+    } catch (e) {}
     navigator.mozTelephony = MockMozTelephony;
 
     fakeDOM = document.createElement('div');

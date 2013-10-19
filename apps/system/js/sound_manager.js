@@ -306,7 +306,10 @@
     // XXX: This work should be removed
     // once we could get telephony channel change event
     // https://bugzilla.mozilla.org/show_bug.cgi?id=819858
-    var telephony = window.navigator.mozTelephony;
+    var telephony;
+    try {
+      telephony = window.navigator.mozTelephony;
+    } catch (e) {}
     if (!telephony)
       return false;
 

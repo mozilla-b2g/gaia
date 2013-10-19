@@ -188,8 +188,12 @@ var LockScreen = {
     document.addEventListener('visibilitychange', this);
 
     /* Telephony changes */
-    if (navigator.mozTelephony) {
-      navigator.mozTelephony.addEventListener('callschanged', this);
+    var telephony;
+    try {
+      telephony = navigator.mozTelephony;
+    } catch (e) {}
+    if (telephony) {
+      telephony.addEventListener('callschanged', this);
     }
 
     /* Gesture */
