@@ -6,7 +6,6 @@ suite.only('AlarmList debug', function() {
         // the screen during a test run on TravisCI, so throw one here to
         // ensure that the previous statement did indeed throw an error, even
         // if Mocha does not report it.
-        throw new Error('Method invocation did not raise an exception.');
         done();
       },
       3000
