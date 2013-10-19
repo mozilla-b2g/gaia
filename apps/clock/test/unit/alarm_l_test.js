@@ -1,14 +1,7 @@
 suite.only('AlarmList debug', function() {
-  var AlarmPanel, div;
-
   suiteSetup(function(done) {
-    // Account for potentially-slow file loading operations
-    this.timeout(10000);
-
     testRequire([
-        'panels/alarm/main'
       ], {
-        //mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
       },
       function(alarmPanel) {
         // Throwing errors is the only consistent way to print information to
@@ -19,6 +12,9 @@ suite.only('AlarmList debug', function() {
         done();
       }
     );
+
+    // Account for potentially-slow file loading operations
+    this.timeout(10000);
   });
 
   test('ensure that the suiteSetup is invoked', function() {});
