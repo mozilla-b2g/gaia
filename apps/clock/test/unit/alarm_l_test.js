@@ -14,18 +14,17 @@ suite.only('AlarmList debug', function() {
         div = document.createElement('div');
         AlarmPanel = alarmPanel;
         document.body.appendChild(div);
-        done();
+        new AlarmPanel(div);
+
+        // Throwing errors is the only consistent way to print information to the
+        // screen during a test run on TravisCI, so throw one here to ensure that
+        // the previous statement did indeed throw an error, even if Mocha does not
+        // report it.
+        throw new Error('Method invocation did not raise an exception.');
+            done();
       }
     );
   });
 
-  test('ensure that the suiteSetup is invoked', function() {
-    new AlarmPanel(div);
-
-    // Throwing errors is the only consistent way to print information to the
-    // screen during a test run on TravisCI, so throw one here to ensure that
-    // the previous statement did indeed throw an error, even if Mocha does not
-    // report it.
-    throw new Error('Method invocation did not raise an exception.');
-  });
+  test('ensure that the suiteSetup is invoked', function() {});
 });
