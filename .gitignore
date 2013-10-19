@@ -73,6 +73,3 @@ manifest.appcache
 apps/*, external-apps/* & GAIA_DISTRIBUTION_DIR
 
 /build/config.js
-/apps/keyboard/js/imes/latin/dictionaries/*.dict
-/apps/keyboard/js/layouts/*.js
-/apps/keyboard/js/manifest.webapp
