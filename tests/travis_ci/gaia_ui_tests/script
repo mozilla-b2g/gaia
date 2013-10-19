@@ -3,7 +3,7 @@ export GAIATEST_ACKNOWLEDGED_RISKS=true
 export GAIATEST_SKIP_WARNING=true
 
 root=tests/python/gaia-ui-tests/gaiatest
-b2g=`find b2g -name "b2g-bin" | tail -n 1`
+b2g=`find b2g -follow -name "b2g-bin" | tail -n 1`
 profile=profile
 gaiatest="python $root/cli.py"
 
