@@ -4,12 +4,14 @@ requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_sim_importer.js');
+requireApp('communications/contacts/test/unit/mock_wakelock.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/views/settings.js');
@@ -33,12 +35,13 @@ if (!this.realMozContacts) {
 
 var mocksHelperForContactSettings = new MocksHelper([
   'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper',
-  'SimContactsImporter'
+  'SimContactsImporter', 'WakeLock'
 ]);
 mocksHelperForContactSettings.init();
 
 suite('Contacts settings', function() {
   var checkForCard, real_;
+  var realDeviceStorage;
   var mocksHelper = mocksHelperForContactSettings;
 
   function stub(additionalCode, ret) {
@@ -63,6 +66,9 @@ suite('Contacts settings', function() {
 
     real_ = window._;
     realUtils = window.utils;
+    realDeviceStorage = navigator.getDeviceStorage;
+    navigator.getDeviceStorage = MockgetDeviceStorage;
+
 
     if (!window.utils) {
       window.utils = { sdcard: MockSdCard };
@@ -89,6 +95,7 @@ suite('Contacts settings', function() {
   suiteTeardown(function() {
     window._ = real_;
     window.utils = realUtils;
+    navigator.getDeviceStorage = realDeviceStorage;
     mocksHelper.suiteTeardown();
   });
 
@@ -145,10 +152,28 @@ suite('Contacts settings', function() {
   });
 
   suite('SD Card import', function() {
+    var showMenuSpy;
+    var showStatusSpy;
+    var realWakeLock;
+
+    suiteSetup(function() {
+      checkForCard = utils.sdcard.checkStorageCard;
+      if (navigator.requestWakeLock) {
+        realWakeLock = navigator.requestWakeLock;
+      }
+      navigator.requestWakeLock = MockWakeLock;
+    });
+
+    suiteTeardown(function() {
+      utils.sdcard.checkStorageCard = checkForCard;
+      navigator.requestWakeLock = realWakeLock;
+    });
+
     setup(function() {
       contacts.Settings.init();
-      checkForCard = utils.sdcard.checkStorageCard;
       mocksHelper.setup();
+      showMenuSpy = sinon.spy(window.utils.overlay, 'showMenu');
+      showStatusSpy = sinon.spy(Contacts, 'showStatus');
     });
 
     test('show SD Card import if SD card is present', function() {
@@ -160,6 +185,7 @@ suite('Contacts settings', function() {
 
       assert.equal(importSdOption
         .classList.contains('error'), false);
+      utils.sdcard.checkStorageCard = checkForCard;
 
     });
 
@@ -173,13 +199,37 @@ suite('Contacts settings', function() {
 
       assert.equal(importSdOption
         .classList.contains('error'), true);
+      utils.sdcard.checkStorageCard = checkForCard;
+    });
 
+    test('SD Import went well', function(done) {
+      contacts.Settings.importFromSDCard(function onImported() {
+        sinon.assert.called(showMenuSpy);
+        sinon.assert.called(showStatusSpy);
+        assert.equal(false, MyLocks['cpu']);
+        done();
+      });
+    });
+
+    test('SD Import with error cause no files to import', function(done) {
+      // Simulate not finding any files
+      MockSdCard.failOnRetrieveFiles = true;
+      contacts.Settings.importFromSDCard(function onImported() {
+        sinon.assert.called(showMenuSpy);
+        sinon.assert.notCalled(showStatusSpy);
+        assert.equal(false, MyLocks['cpu']);
+        // Restore the mock
+        MockSdCard.failOnRetrieveFiles = false;
+        done();
+      });
     });
 
     teardown(function() {
       utils.sdcard.checkStorageCard = checkForCard;
       mocksHelper.teardown();
       MockasyncStorage.clear();
+      showMenuSpy.restore();
+      showStatusSpy.restore();
     });
   });
 
@@ -188,8 +238,11 @@ suite('Contacts settings', function() {
     var liveTime = Date.now() - 24 * 60 * 60 * 1000;
 
     setup(function() {
+      // Restore previous tainted html
+      document.body.innerHTML = MockContactsIndexHtml;
       contacts.Settings.init();
 
+      MockasyncStorage.clear();
       MockasyncStorage.setItem('gmail_last_import_timestamp', gmailTime);
       MockasyncStorage.setItem('live_last_import_timestamp', liveTime);
 
