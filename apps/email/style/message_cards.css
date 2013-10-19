@@ -89,7 +89,7 @@ input.msg-search-text-tease {
   background-color: #53b8cc;
 }
 .msg-header-details-section {
-  -moz-box-sizing: border-box;
+  box-sizing: border-box;
   position: absolute;
   top: 0;
   left: 1.5rem;
@@ -377,7 +377,6 @@ input.msg-search-text-tease {
 
 .msg-reader-load-infobar {
   position: absolute;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
   color: white;
   font-size: 1.2rem;
@@ -538,15 +537,17 @@ input.msg-search-text-tease {
 }
 
 .msg-list-topbar {
-  background-color: #00aacc;
-  color: white;
-  font-size: 1.2rem;
-  left: 0;
-  line-height: 2.2rem;
-  padding: 0.4rem 3rem 0.4rem 3rem;
+  box-sizing: border-box;
   position: absolute;
   top: 5rem;
+  left: 0;
   width: 100%;
+  padding: 0.6rem 3rem;
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 2.4rem;
+  background-color: #00aacc;
   z-index: 10;
 }
 
