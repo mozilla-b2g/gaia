@@ -8,7 +8,7 @@ suite.only('AlarmList debug', function() {
     testRequire([
         'panels/alarm/main'
       ], {
-        mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
+        //mocks: ['alarm_manager', 'alarmsdb', 'banner/main']
       },
       function(alarmPanel) {
         // Throwing errors is the only consistent way to print information to
