@@ -17,6 +17,9 @@ suite.only('AlarmList debug', function() {
           'window.onerror changed? ' + (window.onerror !== window.onerrors[0])
         ].join('\n');
 
+        // Ensure that Mocha is still failing to catch asynchronous errors
+        throw new Error('This seems like it should make the test fail...');
+
         done();
       },
       3000
