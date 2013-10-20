@@ -15,5 +15,17 @@ suite.only('AlarmList debug', function() {
     this.timeout(10000);
   });
 
-  test('ensure that the suiteSetup is invoked', function() {});
+  test('ensure that the suiteSetup is invoked', function() {
+    var scriptMarkup = Array.prototype.map.call(
+      document.querySelectorAll('script'),
+      function(script) {
+        return (script.outerHTML.match(/(<[^>]*>)/) || [])[0];
+      }
+    );
+    var debug = 'Tag count: ' + scriptMarkup.length;
+    debug += '\n  ' + scriptMarkup.join('\n  ') + '\n';
+    debug += 'window.onerror: ' + (window.onerror || 'nada').toString();
+
+    throw new Error(debug);
+  });
 });
