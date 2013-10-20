@@ -772,7 +772,8 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           elImage = Evme.$('img', el)[0],
           context = canvas.getContext('2d'),
           icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon(),
-          image = new Image();
+          image = new Image(),
+          ratio = window.devicePixelRatio;
 
       canvas.width = TEXT_WIDTH;
       canvas.height = FULL_SIZE + TEXT_MARGIN + TEXT_HEIGHT - 1;
@@ -806,6 +807,10 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           context.shadowColor = 'rgba(0, 0, 0, 0.6)';
           context.drawImage(this, (TEXT_WIDTH-FULL_SIZE)/2, 0);
           
+          elImage.style.cssText +=
+            ';width: ' + canvas.width / ratio + 'px' +
+            ';height: ' + canvas.height / ratio + 'px';
+
           elImage.src = canvas.toDataURL('image/png');
 
           if (callback instanceof Function) {
