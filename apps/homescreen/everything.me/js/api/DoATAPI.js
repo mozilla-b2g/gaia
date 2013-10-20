@@ -244,8 +244,8 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
       'typeHint': options.typeHint || '',
       'feature': options.feature || '',
       'exact': !!options.exact,
-      'width': options.width || 320,
-      'height': options.height || 460,
+      'width': Math.round(options.width || 320),
+      'height': Math.round(options.height || 460),
       'idx': options.index || '',
       'prevQuery': options.prevQuery || ''
     };
