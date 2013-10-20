@@ -9,9 +9,13 @@ suite.only('AlarmList debug', function() {
             return (script.outerHTML.match(/(<[^>]*>)/) || [])[0];
           }
         );
-        debug = 'Tag count: ' + scriptMarkup.length;
-        debug += '\n  ' + scriptMarkup.join('\n  ') + '\n';
-        debug += 'window.onerror: ' + (window.onerror || 'nada').toString();
+        debug = [
+          'Tag count: ' + scriptMarkup.length,
+          scriptMarkup.join('\n  '),
+          'window.onerrors: ' + window.onerrors.length,
+          'window.onerror: ' + (window.onerror || 'nada').toString(),
+          'window.onerror changed? ' + (window.onerror !== window.onerrors[0])
+        ].join('\n');
 
         done();
       },
