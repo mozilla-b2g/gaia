@@ -19,8 +19,8 @@ Installation
 
 Installation is simple:
 
-    git clone git://github.com/mozilla/gaia-ui-tests.git
-    cd gaia-ui-tests
+    git clone https://github.com/mozilla-b2g/gaia.git
+    cd gaia/tests/python/gaia-ui-tests
     python setup.py develop
 
 Risks
