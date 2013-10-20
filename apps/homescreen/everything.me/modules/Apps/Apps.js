@@ -534,9 +534,6 @@ Evme.IconGroup = new function Evme_IconGroup() {
       elCanvas.width = WIDTH;
       elCanvas.height = HEIGHT;
 
-      elCanvas.style.width = Evme.Utils.rem(elCanvas.width / window.devicePixelRatio);
-      elCanvas.style.height = Evme.Utils.rem(elCanvas.height / window.devicePixelRatio);
-      
       context.imagesToLoad = icons.length;
       context.imagesLoaded = [];
 
@@ -776,13 +773,11 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           elImage = Evme.$('img', el)[0],
           context = canvas.getContext('2d'),
           icon = Evme.Utils.formatImageData(cfg.icon) || Evme.Apps.getDefaultIcon(),
-          image = new Image();
+          image = new Image(),
+          ratio = window.devicePixelRatio;
 
       canvas.width = TEXT_WIDTH;
       canvas.height = FULL_SIZE + TEXT_MARGIN + TEXT_HEIGHT - 1;
-
-      canvas.style.width = Evme.Utils.rem(canvas.width / window.devicePixelRatio);
-      canvas.style.height = Evme.Utils.rem(canvas.height / window.devicePixelRatio);
 
       Evme.Utils.writeTextToCanvas({
         "text": cfg.name,
@@ -813,6 +808,10 @@ Evme.App = function Evme_App(__cfg, __index, __isMore, parent) {
           context.shadowColor = 'rgba(0, 0, 0, 0.6)';
           context.drawImage(this, (TEXT_WIDTH-FULL_SIZE)/2, 0);
           
+          elImage.style.cssText +=
+            ';width: ' + Evme.Utils.rem(canvas.width / ratio) +
+            ';height: ' + Evme.Utils.rem(canvas.height / ratio);
+
           elImage.src = canvas.toDataURL('image/png');
 
           if (callback instanceof Function) {
