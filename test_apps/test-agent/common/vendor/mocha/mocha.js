@@ -4953,11 +4953,14 @@ process.removeListener = function(e){
  * Implements uncaughtException listener.
  */
 
+window.onerrors = window.onerrors || [];
+
 process.on = function(e, fn){
   if ('uncaughtException' == e) {
     window.onerror = function(err, url, line){
       fn(new Error(err + ' (' + url + ':' + line + ')'));
     };
+    window.onerrors.push(window.onerror);
   }
 };
 

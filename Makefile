@@ -772,6 +772,7 @@ COVERAGE?=0
 ifeq ($(COVERAGE), 1)
 TEST_ARGS=--coverage
 endif
+APP=clock
 # Temp make file method until we can switch
 # over everything in test
 ifneq ($(strip $(APP)),)

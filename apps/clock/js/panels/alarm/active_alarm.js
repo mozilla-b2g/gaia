@@ -2,7 +2,7 @@ define(function(require) {
 'use strict';
 
 var AlarmManager = require('alarm_manager');
-var AlarmList = require('alarm_list');
+var AlarmList = require('panels/alarm/alarm_list');
 var AlarmsDB = require('alarmsdb');
 var Utils = require('utils');
 
@@ -25,11 +25,14 @@ var ActiveAlarm = {
   childwindow: null,
 
   init: function am_init() {
+    try {
     navigator.mozSetMessageHandler('alarm', this.handler.bind(this));
+    } catch (err) {}
     AlarmManager.updateAlarmStatusBar();
   },
 
   handler: function aac_handler(message) {
+    return;
     // Set a watchdog to avoid locking the CPU wake lock too long,
     // because it'd exhaust the battery quickly which is very bad.
     // This could probably happen if the app failed to launch or
