@@ -55,7 +55,7 @@ suite('enable/disable homegesture', function() {
     });
     HomeGesture.init();
     assert.equal(
-      MockNavigatorSettings.mSettings['homegesture.enabled'], undefined);
+      MockNavigatorSettings.mSettings['homegesture.enabled'], false);
   });
 
   test('initial gesture without hardware homebtn on tablet', function() {
@@ -64,7 +64,7 @@ suite('enable/disable homegesture', function() {
     });
     HomeGesture.init();
     assert.equal(
-      MockNavigatorSettings.mSettings['homegesture.enabled'], true);
+      HomeGesture.homeBar.style.display, 'block');
   });
 
   test('enable software button when homegesture is enabled', function() {

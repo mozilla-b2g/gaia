@@ -19,7 +19,7 @@
 
   var SoftwareButtonManager = {
     _enable: false,
-
+    OverrideFlag: false,
     get height() {
       return this._cacheHeight ||
             (this._cacheHeight = this.element.getBoundingClientRect().height);
@@ -32,17 +32,29 @@
         document.getElementById('fullscreen-software-home-button');
       this.screenElement = document.getElementById('screen');
 
-      SettingsListener.observe('software-button.enabled', false,
-        function onObserve(value) {
-          this._enable = value;
-          this.toggle();
-          this.dispatchResizeEvent(value);
-        }.bind(this));
+      if (isMobile && isOnRealDevice()) {
+        if (!hasHardwareHomeButton) {
+          this.OverrideFlag = true;
+          var lock = navigator.mozSettings.createLock();
+          lock.set({'software-button.enabled': true});
+        }
 
-      if (isMobile && isOnRealDevice() && !hasHardwareHomeButton) {
-        // enable software home button for mobile without hardware home button
-        SettingsListener.getSettingsLock().set({
-          'software-button.enabled': true});
+        SettingsListener.observe('software-button.enabled', false,
+          function onObserve(value) {
+            // Default settings from build/settings.js will override the value
+            // of 'software-button.enabled', so we set a flag to avoid it
+            // in case.
+            if (this.OverrideFlag) {
+              this.OverrideFlag = false;
+              return;
+            }
+            this._enable = value;
+            this.toggle();
+            this.dispatchResizeEvent(value);
+          }.bind(this));
+      } else {
+        this._enable = false;
+        this.toggle();
       }
 
       this.homeButton.addEventListener('mousedown', this);
@@ -109,7 +121,6 @@
         case 'mozfullscreenchange':
           if (!this._enable)
             return;
-
           if (document.mozFullScreenElement) {
             this.fullscreenHomeButton.classList.add('visible');
           } else {
