@@ -229,7 +229,7 @@ var GmailConnector = (function GmailConnector() {
     // import process, not for the api
     output.uid = getUid(googleContact);
 
-    output.name = getValueForNode(googleContact, 'title');
+    output.name = [getValueForNode(googleContact, 'title')];
 
     // Store the photo url, not in the contact itself
     var photoUrl = googleContact.querySelector('link[type="image/*"]');
@@ -317,7 +317,7 @@ var GmailConnector = (function GmailConnector() {
         }
 
         emails.push({
-          'type': type,
+          'type': [type],
           'value': emailField.getAttribute('address')
         });
       }
@@ -366,7 +366,7 @@ var GmailConnector = (function GmailConnector() {
         }
 
         phones.push({
-          'type': type,
+          'type': [type],
           'value': field.textContent
         });
       }
