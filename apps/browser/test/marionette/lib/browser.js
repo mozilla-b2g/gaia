@@ -13,12 +13,12 @@ function Browser(client) {
 Browser.URL = 'app://browser.gaiamobile.org';
 
 Browser.Selectors = {
+  'mailtoLink': '#mailto-link',
   'searchBar': '#url-input',
   'searchButton': '#url-button',
   'shareButton': '#share-button',
   'shareMenu': 'form[data-z-index-level="action-menu"]',
   'mozbrowser': 'iframe[mozbrowser]'
-
 };
 /**
  * @private
@@ -30,6 +30,10 @@ function findElement(client, name) {
 }
 
 Browser.prototype = {
+  get mailtoLink() {
+    return findElement(this.client, 'mailtoLink');
+  },
+
   get searchBar() {
     return findElement(this.client, 'searchBar');
   },
@@ -75,6 +79,10 @@ Browser.prototype = {
   launch: function() {
     this.client.apps.launch(Browser.URL);
     this.client.apps.switchToApp(Browser.URL);
+  },
+
+  close: function() {
+    this.client.apps.close(Browser.URL);
   },
 
   /**

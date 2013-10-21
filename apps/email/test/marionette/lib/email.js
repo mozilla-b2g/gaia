@@ -28,6 +28,7 @@ var Selector = {
   showMailButton: '.card-setup-done .sup-show-mail-btn',
   manualConfigButton: '.scrollregion-below-header .sup-manual-config-btn',
   composeButton: '.msg-list-header .msg-compose-btn',
+  composeEmailContainer: '.card-compose .cmp-to-container',
   composeEmailInput: '.card-compose .cmp-addr-text',
   composeSubjectInput: '.card-compose .cmp-subject-text',
   composeBodyInput: '.card-compose .cmp-body-text',
@@ -58,6 +59,18 @@ var Selector = {
 Email.prototype = {
   get notificationBar() {
     return this.client.findElement(Selector.notificationBar);
+  },
+
+  getComposeBody: function() {
+    var input = this.client.findElement(Selector.composeBodyInput);
+    var value = input.getAttribute('value');
+    return value;
+  },
+
+  getComposeTo: function() {
+    var container = this.client.findElement(Selector.composeEmailContainer);
+    var text = container.text();
+    return text;
   },
 
   manualSetupImapEmail: function(server, finalActionName) {
