@@ -123,7 +123,7 @@ var SimManager = {
     }
   },
 
-  showPinScreen: function sm_showScreen() {
+  showPinScreen: function sm_showPinScreen() {
     if (this._unlocked)
       return;
 
