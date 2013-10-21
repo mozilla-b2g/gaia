@@ -195,6 +195,8 @@ var icc_worker = {
         options.timeInterval != undefined) {
       timeout = iccManager.calculateDurationInMS(options.timUnit,
         options.timeInterval);
+    } else {
+      timeout = iccManager._toneDefaultTimeout;
     }
     timeout && DUMP('Tone stop in (ms): ', timeout);
 
