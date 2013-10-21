@@ -269,6 +269,9 @@ contacts.Settings = (function() {
         requireOverlay(function _loaded() {
           utils.overlay.show(_('preparing-contacts'), null, 'spinner');
           promise.onsuccess = function onSuccess(ids) {
+            // Once we start the export process we can exit from select mode
+            // This will have to evolve once export errors can be captured
+            contacts.List.exitSelectMode();
             var exporter = new ContactsExporter(strategy);
             exporter.init(ids, function onExporterReady() {
               // Leave the contact exporter to deal with the overlay
@@ -276,6 +279,7 @@ contacts.Settings = (function() {
             });
           };
           promise.onerror = function onError() {
+            contacts.List.exitSelectMode();
             utils.overlay.hide();
           };
         });

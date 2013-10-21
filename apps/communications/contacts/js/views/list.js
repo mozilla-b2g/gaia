@@ -1445,7 +1445,6 @@ contacts.List = (function() {
           // If we have the values parameter we can directly
           // resolve this promise
           if (values) {
-            exitSelectMode();
             self._selected = values;
             self.resolved = true;
             if (self.successCb) {
@@ -1474,20 +1473,17 @@ contacts.List = (function() {
             });
 
             self.resolved = true;
-            exitSelectMode();
             if (self.successCb) {
               self.successCb(self._selected);
             }
           };
           request.onerror = function onError() {
-            exitSelectMode();
             self.reject();
           };
         }, 0);
       },
       reject: function reject() {
         this.canceled = true;
-        exitSelectMode();
 
         if (this.errorCb) {
           this.errorCb();
@@ -1690,12 +1686,6 @@ contacts.List = (function() {
     selectForm.classList.add('hide');
     deselectAll.disabled = true;
     selectAll.disabled = false;
-    var menus = document.querySelectorAll(
-      '#view-contacts-list menu[type="toolbar"] button');
-    menus = Array.prototype.slice.call(menus, 0);
-    menus.forEach(function onMenu(button) {
-      button.classList.remove('hide');
-    });
 
     selectActionButton.disabled = true;
 
@@ -1738,6 +1728,7 @@ contacts.List = (function() {
     'renderFbData': renderFbData,
     'getHighlightedName': getHighlightedName,
     'selectFromList': selectFromList,
+    'exitSelectMode': exitSelectMode,
     get chunkSize() {
       return CHUNK_SIZE;
     },

@@ -1484,19 +1484,7 @@ suite('Render contacts list', function() {
     });
 
     suite('Exit select mode', function() {
-      suiteSetup(function(done) {
-        mockContacts = new MockContactsList();
-        doLoad(subject, mockContacts, function() {
-          subject.selectFromList('', null, function() {
-            // Simulate the click to close
-            var close = document.querySelector('#cancel_activity');
-            close.click();
-            done();
-          }, MockNavigation, 'transition');
-        });
-      });
-
-      test('check visibility of components', function() {
+      function checkVisibilityExit() {
         // Buttons visibility
         for (var i in elements) {
           var element = elements[i];
@@ -1515,6 +1503,27 @@ suite('Render contacts list', function() {
         // We still have the check boxes, but they are hidden
         assert.isFalse(list.classList.contains('selecting'));
         assert.isFalse(searchList.classList.contains('selecting'));
+      }
+      setup(function(done) {
+        mockContacts = new MockContactsList();
+        doLoad(subject, mockContacts, function() {
+          subject.selectFromList('', null, function() {
+            // Simulate the click to close
+            done();
+          }, MockNavigation, 'transition');
+        });
+      });
+
+      test('Exit select mode by dismissing', function() {
+        var close = document.querySelector('#cancel_activity');
+        close.click();
+
+        checkVisibilityExit();
+      });
+
+      test('check visibility of components', function() {
+        contacts.List.exitSelectMode();
+        checkVisibilityExit();
       });
     });
 
