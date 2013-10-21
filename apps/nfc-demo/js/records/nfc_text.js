@@ -14,9 +14,18 @@ createTextNdefRecord_Utf8: function(text, lang) {
   var type = nfc.rtd_text;
   var id = null;
 
+  var payloadLen = 1 /*status*/ + lang.length + text.length;
+  var payload = new Uint8Array(payloadLen);
+  
   // Payload:
-  var prefix = 0x02;
-  var payload = String.fromCharCode(prefix) + lang + text;
+  var k = 0;
+  payload[k++] = 0x02;
+  for (var i = 0; i < lang.length; i++) {
+    payload[k++] = lang.charCodeAt(i);
+  }
+  for (var i = 0; i < text.length; i++) {
+    payload[k++] = text.charCodeAt(i);
+  }
 
   var record = new MozNdefRecord(
     tnf,

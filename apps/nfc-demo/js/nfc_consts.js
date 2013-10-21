@@ -9,6 +9,14 @@
 
 var nfc = {
 
+  fromUTF8: function(str) {
+    var buf = new Uint8Array(str.length);
+    for (var i = 0; i < str.length; i++) {
+      buf[i] = str.charCodeAt(i);
+    }
+    return buf;
+  },
+  
   flags_tnf: 0x07,
   flags_ss: 0x10,
   flags_il: 0x08,
@@ -22,15 +30,15 @@ var nfc = {
   tnf_unchanged: 0x06,
   tnf_reserved: 0x07,
 
-  rtd_text: 'T',
-  rtd_uri: 'U',
-  rtd_smart_poster: 'Sp',
-  rtd_alternative_carrier: 'ac',
-  rtd_handover_carrier: 'Hc',
-  rtd_handover_request: 'Hr',
-  rtd_handover_select: 'Hs',
+  rtd_text: this.fromUTF8('T'),
+  rtd_uri: this.fromUTF8('U'),
+  rtd_smart_poster: this.fromUTF8('Sp'),
+  rtd_alternative_carrier: this.fromUTF8('ac'),
+  rtd_handover_carrier: this.fromUTF8('Hc'),
+  rtd_handover_request: this.fromUTF8('Hr'),
+  rtd_handover_select: this.fromUTF8('Hs'),
 
-  smartposter_action: 'act',
+  smartposter_action: this.fromUTF8('act'),
 
   uris: new Array(),
 
