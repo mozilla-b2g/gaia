@@ -235,7 +235,7 @@ contacts.Merger = (function() {
   function populateEmails(sourceEmails, hash, out) {
     if (Array.isArray(sourceEmails)) {
       sourceEmails.forEach(function(aEmail) {
-        var type = Array.isArray(aEmail.type) ? aEmail.type : [aEmail.type];
+        aEmail.type = Array.isArray(aEmail.type) ? aEmail.type : [aEmail.type];
         aEmail.type[0] = aEmail.type[0] || DEFAULT_EMAIL_TYPE;
         var value = aEmail.value;
         if (value && value.trim()) {
