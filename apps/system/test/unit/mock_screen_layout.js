@@ -10,7 +10,9 @@ var MockScreenLayout = {
 
   defaultOrientation: 'portrait-primary',
   fetchDefaultOrientation: function msl_fetchDefaultOrientation() {},
-
+  isOnRealDevice: function() {
+    return this.setting['isonrealdevice'];
+  },
   getCurrentLayout: function msl_getCurrentLayout(type) {
     return this.setting[type];
   },
