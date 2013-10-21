@@ -31,11 +31,12 @@ class TestClockTurnOnOffAlarm(GaiaTestCase):
         origin_alarm_checked = alarm.is_alarm_active
 
         alarm.tap_checkbox()
-        alarm.wait_for_alarm_to_uncheck()
+        time.sleep(2)  # TODO: Remove the sleep and add a wait_for_checkbox_state_to_change (one day)
         self.assertTrue(origin_alarm_checked != alarm.is_alarm_active, 'user should be able to turn on the alarm.')
 
         origin_alarm_checked = alarm.is_alarm_active
 
         alarm.tap_checkbox()
-        alarm.wait_for_banner_not_displayed()
+        time.sleep(2)  # TODO: Remove the sleep and add a wait_for_checkbox_state_to_change (one day)
+
         self.assertTrue(origin_alarm_checked != alarm.is_alarm_active, 'user should be able to turn off the alarm.')
