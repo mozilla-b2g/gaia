@@ -21,11 +21,13 @@ from marionette import MarionetteTestRunner
 from marionette import MarionetteTextTestRunner
 from marionette.runtests import cli
 from moztest.results import TestResult, relevant_line
+from yoctopuce.yocto_api import *
+from yoctopuce.yocto_current import *
+from yoctopuce.yocto_datalogger import *
 
 from gaiatest import __name__
 from gaiatest import GaiaTestCase
 from version import __version__
-
 
 class GaiaResult(TestResult):
 
@@ -120,6 +122,11 @@ class GaiaTestOptions(MarionetteTestOptions):
                          dest='restart',
                          default=False,
                          help='restart target instance between tests')
+        group.add_option('--yocto',
+                         action='store_true',
+                         dest='yocto',
+                         default=False,
+                         help='collect voltage and amperage during test runs (requires special hardware)')
         group.add_option('--html-output',
                          action='store',
                          dest='html_output',
@@ -158,7 +165,39 @@ class GaiaTestOptions(MarionetteTestOptions):
             raise ValueError('checkpoint interval must be a positive integer')
         if options.checkpoint_interval and not options.iterations:
             raise ValueError('you must specify iterations when using checkpoint intervals')
+        if options.yocto:
+            # need to verify that the yocto ammeter is attached
+            errmsg = YRefParam()
+            if YAPI.RegisterHub("usb", errmsg) != YAPI.SUCCESS:
+                raise RuntimeError('could not register yocto usb connection: %s' % str(errmsg))
 
+            # rescan for yocto devices
+            if YAPI.UpdateDeviceList(errmsg) != YAPI.SUCCESS:
+                raise RuntimeError('could not detect yoctopuce modules: %s' % str(errmsg))
+
+            # check for ammeter
+            ammeter = YCurrent.FirstCurrent()
+            if ammeter is None:
+                raise RuntimeError('could not find ammeter device')
+            if ammeter.isOnline():
+                module = ammeter.get_module()
+                dc_ammeter = YCurrent.FindCurrent(module.get_serialNumber() + '.current1')
+                if (not module.isOnline()) or (dc_ammeter is None):
+                    raise RuntimeError('could not get ammeter device')
+            else:
+                raise RuntimeError('could not find yocto ammeter device')
+
+            # check for data logger
+            data_logger = YDataLogger.FirstDataLogger()
+            if data_logger is None :
+                raise RuntimeError('could not find data logger device')
+            if data_logger.isOnline():
+                module = data_logger.get_module()
+                data_logger = YDataLogger.FindDataLogger(module.get_serialNumber() + '.dataLogger')
+                if not module.isOnline() or data_logger is None:
+                    raise RuntimeError('could not get data logger device')
+            else:
+                raise RuntimeError('could not find yocto ammeter device')
 
 class GaiaTextTestRunner(MarionetteTextTestRunner):
 
