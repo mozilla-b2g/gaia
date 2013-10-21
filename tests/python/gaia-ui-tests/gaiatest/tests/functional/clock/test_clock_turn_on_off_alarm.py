@@ -4,6 +4,7 @@
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.clock.app import Clock
+import time
 
 
 class TestClockTurnOnOffAlarm(GaiaTestCase):
@@ -36,5 +37,5 @@ class TestClockTurnOnOffAlarm(GaiaTestCase):
         origin_alarm_checked = alarm.is_alarm_active
 
         alarm.tap_checkbox()
-        alarm.wait_for_alarm_to_check()
+        alarm.wait_for_banner_not_displayed()
         self.assertTrue(origin_alarm_checked != alarm.is_alarm_active, 'user should be able to turn off the alarm.')
