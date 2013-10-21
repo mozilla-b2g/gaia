@@ -953,7 +953,6 @@ function createListElement(option, data, index, highlight) {
   li.className = 'list-item';
 
   var a = document.createElement('a');
-  a.href = '#';
   a.dataset.index = index;
   a.dataset.option = option;
 
@@ -1004,16 +1003,17 @@ function createListElement(option, data, index, highlight) {
     case 'artist':
     case 'album':
     case 'title':
-      var parent = document.createElement('div');
-      parent.className = 'list-image-parent';
-      parent.classList.add('default-album-' + index % 10);
-      var img = document.createElement('img');
-      img.className = 'list-image';
+      // Use background image instead of creating img elements can reduce
+      // the amount of total elements in the DOM tree, it can save memory
+      // and gecko can render the elements faster as well.
+      var setBackground = function(url) {
+        if (url)
+          li.style.backgroundImage = 'url(' + url + ')';
+        else
+          li.classList.add('default-album-' + index % 10);
+      };
 
-      if (data.metadata.picture) {
-        parent.appendChild(img);
-        displayAlbumArt(img, data);
-      }
+      getThumbnailURL(data, setBackground);
 
       if (option === 'artist') {
         var artistSpan = document.createElement('span');
@@ -1055,8 +1055,6 @@ function createListElement(option, data, index, highlight) {
         li.appendChild(artistSpan);
       }
 
-      li.appendChild(parent);
-
       a.dataset.keyRange = data.metadata[option];
       a.dataset.option = option;
 
@@ -1087,6 +1085,9 @@ function createListElement(option, data, index, highlight) {
   return li;
 }
 
+// Assuming the ListView will prepare 5 pages for batch loading.
+// Each page contains 7 list elements.
+var LIST_BATCH_SIZE = 7 * 5;
 // View of List
 var ListView = {
   get view() {
@@ -1121,11 +1122,16 @@ var ListView = {
   init: function lv_init() {
     this.dataSource = [];
     this.index = 0;
+    this.firstLetters = [];
     this.lastFirstLetter = null;
+    this.moveTimer = null;
+    this.scrollTimer = null;
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
+    this.view.addEventListener('touchmove', this);
     this.view.addEventListener('touchend', this);
+    this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
   },
 
@@ -1136,8 +1142,10 @@ var ListView = {
 
     this.dataSource = [];
     this.index = 0;
+    this.firstLetters.length = 0;
     this.lastFirstLetter = null;
     this.anchor.innerHTML = '';
+    this.anchor.style.height = 0;
     this.view.scrollTop = 0;
     this.hideSearch();
   },
@@ -1149,6 +1157,25 @@ var ListView = {
       this.view.scrollTop = this.searchBox.offsetHeight;
   },
 
+  createHeader: function lv_createHeader(option, result) {
+    // This function basically create the section header of the list elements.
+    // When we hit the different first letter, this function will use it to
+    // create a new header then keep it, until to hit another different one,
+    // it will create the next header with the new first letter.
+    var firstLetter = result.metadata[option].charAt(0);
+    var headerLi;
+
+    if (this.lastFirstLetter != firstLetter) {
+      this.lastFirstLetter = firstLetter;
+
+      headerLi = document.createElement('li');
+      headerLi.className = 'list-header';
+      headerLi.textContent = this.lastFirstLetter || '?';
+    }
+
+    return headerLi;
+  },
+
   update: function lv_update(option, result) {
     if (result === null) {
       showCorrectOverlay();
@@ -1158,22 +1185,87 @@ var ListView = {
     this.dataSource.push(result);
 
     if (option !== 'playlist') {
-      var firstLetter = result.metadata[option].charAt(0);
-
-      if (this.lastFirstLetter != firstLetter) {
-        this.lastFirstLetter = firstLetter;
-
-        var headerLi = document.createElement('li');
-        headerLi.className = 'list-header';
-        headerLi.textContent = this.lastFirstLetter || '?';
-
-        this.anchor.appendChild(headerLi);
+      var header = this.createHeader(option, result);
+      if (header) {
+        this.anchor.appendChild(header);
       }
     }
 
     this.anchor.appendChild(createListElement(option, result, this.index));
 
     this.index++;
+  },
+
+  judgeAndUpdate: function lv_judgeAndUpdate() {
+    if (!this.anchor.lastChild)
+      return;
+
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var scrolledHeight = this.view.scrollTop + this.view.offsetHeight;
+    var position = Math.round(scrolledHeight / itemHeight);
+    var last = this.anchor.children.length;
+    var range = position + this.firstLetters.length - last;
+
+    if (range > 0)
+      this.batchUpdate(TabBar.option, range + LIST_BATCH_SIZE);
+  },
+
+  batchUpdate: function lv_batchUpdate(option, range) {
+    // See where is the last index we have for the existing children, and start
+    // to create the rest elements from it, note that here we use fragment to
+    // update all the new elements at once, this is for reducing the amount of
+    // appending child to the DOM tree.
+    var start = this.index;
+    var end = start + range;
+    var fragment = document.createDocumentFragment();
+
+    if (end > this.dataSource.length)
+      end = this.dataSource.length;
+
+    for (var i = start; i < end; i++) {
+      var data = this.dataSource[i];
+      if (data) {
+        var header = this.createHeader(option, data);
+
+        if (header)
+          fragment.appendChild(header);
+
+        fragment.appendChild(createListElement(option, data, this.index));
+        this.index++;
+      }
+    }
+
+    this.anchor.appendChild(fragment);
+  },
+
+  adjustHeight: function lv_adjustHeight(option, count) {
+    if (!count) {
+      count = this.dataSource.length;
+      this.firstLetters.length = 0;
+      var previousFirstLetter;
+      for (var i = this.index; i < this.dataSource.length; i++) {
+        var metadata = this.dataSource[i].metadata;
+        var firstLetter = metadata[option].charAt(0);
+        if (previousFirstLetter !== firstLetter) {
+          this.firstLetters.push(firstLetter);
+          previousFirstLetter = firstLetter;
+        }
+      }
+    } else {
+      // Assuming we have all the letters from A to Z.
+      this.firstLetters.length = 26;
+    }
+
+    var headerHeight = this.anchor.firstChild.offsetHeight;
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var bottomHeight = parseInt(getComputedStyle(this.anchor.lastChild, null).
+      getPropertyValue('margin-bottom'));
+
+    this.anchor.style.height = (
+      headerHeight * this.firstLetters.length +
+      itemHeight * count +
+      bottomHeight
+    ) + 'px';
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -1237,7 +1329,15 @@ var ListView = {
                 PlayerView.setSourceType(TYPE_MIX);
 
                 PlayerView.dataSource = this.dataSource;
-                PlayerView.play(targetIndex);
+                if (PlayerView.shuffleOption) {
+                  // Shuffled list does not exist yet in all songs.
+                  // Here we need to create a new shuffled list
+                  // and start from the song which the user clicked.
+                  PlayerView.shuffleList(targetIndex);
+                  PlayerView.play(PlayerView.shuffledList[0]);
+                } else {
+                  PlayerView.play(targetIndex);
+                }
             }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
@@ -1274,6 +1374,40 @@ var ListView = {
           SearchView.search(target.value);
         }
 
+        break;
+
+      case 'touchmove':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.moveTimer)
+          clearTimeout(this.moveTimer);
+
+        // If the move timer is not cancelled, it should be a suitable time
+        // to update the ui because we don't want to render elements while
+        // the list is scrolling.
+        this.moveTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.moveTimer = null;
+        }.bind(this), 50);
+        break;
+
+      case 'scroll':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.scrollTimer)
+          clearTimeout(this.scrollTimer);
+
+        // If the user try to scroll as possible as it can, after the scrolling
+        // stops, we can see where the position is and try to render the rest
+        // elements that should be displayed on the screen.
+        this.scrollTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.scrollTimer = null;
+        }.bind(this), 500);
         break;
 
       default:
@@ -1689,14 +1823,58 @@ var TabBar = {
           case 'tabs-artists':
           case 'tabs-albums':
           case 'tabs-songs':
-            ModeManager.start(MODE_LIST);
-            ListView.clean();
+            var option = this.option;
+            var direction = (option === 'title') ? 'next' : 'nextunique';
 
-            listHandle =
-              musicdb.enumerate('metadata.' + this.option, null,
-                                'nextunique',
-                                ListView.update.bind(ListView, this.option));
+            // Choose one of the indexes to get the count and it should be the
+            // correct count because failed records don't contain metadata, so
+            // here we just pick the album as index.
+            musicdb.count('metadata.album', null, function(count) {
+              ModeManager.start(MODE_LIST);
+              ListView.clean();
 
+              listHandle =
+                musicdb.enumerate('metadata.' + option, null, direction,
+                  function(record) {
+                    if (record)
+                      ListView.dataSource.push(record);
+                    // When we got the first batch size of the records,
+                    // or the total count is less than the batch size,
+                    // display it so that users are able to see the first paint
+                    // very quickly.
+                    if (ListView.dataSource.length === LIST_BATCH_SIZE ||
+                        !record)
+                    {
+                      ListView.batchUpdate(option, LIST_BATCH_SIZE);
+                      // If record is null then the enumeration is finished,
+                      // so ListView has all the records and is able to adjust
+                      // the height.
+                      count = record ? count : null;
+                      ListView.adjustHeight(option, count);
+                    }
+
+                    // If PlayerView is enabled and the enumeration is not
+                    // finished yet, we can re-enable the next button when
+                    // we retrieve every batch size records, so that users
+                    // won't be blocked and cannot go to next songs if all
+                    // the records are not retrieved yet.
+                    // And after we retrieved all the records, we also need
+                    // to fix the data source because the shuffled list could
+                    // be created by uncompleted records due to the large
+                    // collection of the user songs.
+                    if (typeof PlayerView !== 'undefined' &&
+                        PlayerView.playStatus !== PLAYSTATUS_STOPPED)
+                    {
+                      if (ListView.dataSource.length % LIST_BATCH_SIZE === 0)
+                        PlayerView.nextControl.disabled = false;
+
+                      if (!record) {
+                        PlayerView.fixSource();
+                        PlayerView.nextControl.disabled = false;
+                      }
+                    }
+                  });
+            });
             break;
         }
 
