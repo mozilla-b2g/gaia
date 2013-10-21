@@ -40,7 +40,7 @@ const TYPE_GROUP_MAPPING = {
 const FOCUS_CHANGE_DELAY = 20;
 
 var KeyboardManager = {
-  keyboardFrameContainer: document.getElementById('keyboards'),
+  keyboardFrameContainer: null,
 
   // The set of installed keyboard layouts grouped by type_group.
   // This is a map from type_group to an object arrays.
@@ -83,6 +83,8 @@ var KeyboardManager = {
 
   init: function km_init() {
     var self = this;
+
+    this.keyboardFrameContainer = document.getElementById('keyboards');
 
     this.notifIMEContainer =
             document.getElementById('keyboard-show-ime-list');
@@ -322,8 +324,7 @@ var KeyboardManager = {
 
     var self = this;
     var updateHeight = function km_updateHeight() {
-      self.keyboardFrameContainer.removeEventListener(
-        'transitionend', updateHeight);
+      self._debug('updateHeight: ' + self.keyboardHeight);
       if (self.keyboardFrameContainer.classList.contains('hide')) {
         // The keyboard has been closed already, let's not resize the
         // application and ends up with half apps.
@@ -338,10 +339,10 @@ var KeyboardManager = {
       window.dispatchEvent(new CustomEvent('keyboardchange', detail));
     };
 
-    if (this.keyboardFrameContainer.classList.contains('hide')) {
-      this.showKeyboard();
-      this.keyboardFrameContainer.addEventListener(
-        'transitionend', updateHeight);
+    // If the keyboard is hidden, or when transitioning is not finished
+    if (this.keyboardFrameContainer.classList.contains('hide') ||
+        this.keyboardFrameContainer.dataset.transitionIn === 'true') {
+      this.showKeyboard(updateHeight);
     } else {
       updateHeight();
     }
@@ -442,18 +443,29 @@ var KeyboardManager = {
          'mozbrowserresize', this, true);
   },
 
-  showKeyboard: function km_showKeyboard() {
+  showKeyboard: function km_showKeyboard(callback) {
     this.keyboardFrameContainer.classList.remove('hide');
+    this.keyboardFrameContainer.dataset.transitionIn = 'true';
 
     // XXX Keyboard transition may be affected by window.open event,
     // and thus the keyboard looks like jump into screen.
     // It may because window.open blocks main thread?
     // Monitor transitionend time here.
     var self = this;
-    var onTransitionEnd = function km_onTransitionEnd() {
+    var onTransitionEnd = function(evt) {
+      if (evt.propertyName !== 'transform') {
+        return;
+      }
+
       self.keyboardFrameContainer.removeEventListener('transitionend',
           onTransitionEnd);
+
+      delete self.keyboardFrameContainer.dataset.transitionIn;
       self._debug('keyboard display transitionend');
+
+      if (callback) {
+        callback();
+      }
     };
     this.keyboardFrameContainer.addEventListener('transitionend',
         onTransitionEnd);
