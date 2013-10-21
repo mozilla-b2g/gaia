@@ -58,6 +58,7 @@ function NotificationList(client) {
   this.client = client;
   this.selectors = NotificationList.Selector;
   this.notifications = null;
+  this.lockScreenNotifications = null;
 }
 
 NotificationList.Selector = Object.freeze((function() {
@@ -65,10 +66,18 @@ NotificationList.Selector = Object.freeze((function() {
   var itemsSelector = listSelector + ' > div';
   var containerSelector = listSelector + ' > [data-notification-id="%s"]';
 
+  var lockScreenSelector = '#notifications-lockscreen-container';
+  var lockScreenItemsSelector = lockScreenSelector + ' > div';
+  var lockScreenContainerSelector =
+    lockScreenSelector + ' > [data-notification-id="%s"]';
+
   return {
     items: itemsSelector,
     titleElement: containerSelector + ' > div',
     bodyElement: containerSelector + ' > .detail',
+    lockScreenItems: lockScreenItemsSelector,
+    lockScreenTitleElement: lockScreenContainerSelector + ' > div',
+    lockScreenBodyElement: lockScreenContainerSelector + ' > .detail',
     manifestAttribute: 'data-manifest-u-r-l'
   };
 })());
@@ -92,6 +101,24 @@ NotificationList.prototype = {
     }.bind(this));
   },
 
+  // fetch the list of open notifications from the lockscreen.
+  refreshLockScreen: function() {
+    var lockScreenElements =
+      this.client.findElements(this.selectors.lockScreenItems);
+    this.lockScreenNotifications = lockScreenElements.map(function(el) {
+      var notificationID = el.getAttribute('data-notification-id');
+      var titleElement = util.format(this.selectors.lockScreenTitleElement,
+                                     notificationID);
+      var bodyElement = util.format(this.selectors.lockScreenBodyElement,
+                                    notificationID);
+      return {
+        title: el.client.findElement(titleElement).getAttribute('innerHTML'),
+        body: el.client.findElement(bodyElement).getAttribute('innerHTML'),
+        manifestURL: el.getAttribute(this.selectors.manifestAttribute)
+      };
+    }.bind(this));
+  },
+
   // return a list of notifications for a certain app
   getForApp: function(manifestURL) {
     if (!this.notifications) {
@@ -102,7 +129,17 @@ NotificationList.prototype = {
     });
   },
 
-  // get a count of notifications with a certain title and body
+  getForAppLockScreen: function(manifestURL) {
+    if (!this.lockScreenNotifications) {
+      return [];
+    }
+    return this.lockScreenNotifications.filter(function(notification) {
+      return notification.manifestURL === manifestURL;
+    });
+  },
+
+  // get a count of notifications with a certain title and body from the system
+  // tray.
   getCount: function(title, body, manifestURL) {
     var list;
     if (manifestURL) {
@@ -120,9 +157,33 @@ NotificationList.prototype = {
     return count;
   },
 
-  // make sure we have an item with given title and body
+  // get a count of notifications with a certain title and body from the
+  // lockscreen.
+  getCountLockScreen: function(title, body, manifestURL) {
+    var list;
+    if (manifestURL) {
+      list = this.getForAppLockScreen(manifestURL);
+    } else {
+      list = this.lockScreenNotifications;
+    }
+    var count = 0;
+    for (var i = 0; i < list.length; i++) {
+      var notification = list[i];
+      if (notification.title === title && notification.body === body) {
+        ++count;
+      }
+    }
+    return count;
+  },
+
+  // make sure we have an item with given title and body from the system tray.
   contains: function(title, body, manifestURL) {
     return this.getCount(title, body, manifestURL) > 0;
+  },
+
+  // make sure we have an item with given title and body from the lockscreen.
+  containsLockScreen: function(title, body, manifestURL) {
+    return this.getCountLockScreen(title, body, manifestURL);
   }
 };
 
