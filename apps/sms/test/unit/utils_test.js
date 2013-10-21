@@ -8,6 +8,7 @@ requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigator_mozphonenumberservice.js');
+requireApp('sms/test/unit/mock_normalizer.js');
 requireApp('sms/js/utils.js');
 
 var mocksHelperForUtils = new MocksHelper([
@@ -172,6 +173,24 @@ suite('Utils', function() {
       test('(epoch [String|Number])', function() {
       });
     */
+  });
+
+  suite('Utils.MMSFilename', function() {
+    test('conversion is reversible', function() {
+      var name = Utils.MMSFilename;
+      var malicious, benign;
+      malicious = '%3Cscript%3Ealert(%22I%20am%20dangerous%22)%3C%2Fscript%3E';
+      benign = '♥';
+      // assert.equal(
+      //   name(name(malicious, {direction: 'encode'}), {direction: 'decode'}),
+      //   name(malicious, {direction: 'decode'})
+      // );
+      assert.equal(
+        name(name(benign, {direction: 'encode'}), {direction: 'decode'}),
+        name(benign, {direction: 'decode'})
+      );
+
+    });
   });
 
   suite('Utils.startTimeHeaderScheduler', function() {

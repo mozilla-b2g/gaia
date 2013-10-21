@@ -7,6 +7,7 @@
 
 requireApp('sms/js/utils.js');
 requireApp('sms/test/unit/mock_utils.js');
+requireApp('sms/test/unit/mock_normalizer.js');
 requireApp('sms/js/wbmp.js');
 requireApp('sms/js/smil.js');
 
@@ -458,35 +459,55 @@ suite('SMIL', function() {
         name: 'kitten♥-450.jpg',
         blob: testImageBlob
       }, {
-        // 5 replaced chars
-        name: '새끼고양이.jpg',
+        name: '새끼고.jpg',
         blob: testImageBlob
       }, {
-        // 5 replaced chars
-        name: 'ἀρετή.jpg',
+        // Identical names to check for collision
+        name: '새끼고.jpg',
         blob: testImageBlob
       }, {
         // testing non-replaced chars
-        name: 'abzABZ019_#.()?&%-.jpg',
+        name: 'abzABZ019_.jpg',
         blob: testImageBlob
       }, {
         // quotes MUST be replaced - filename content is used in xml
         name: '"\'.jpg',
         blob: testImageBlob
+      }, {
+        // Filenames which expand beyond 40 characters must be stripped
+        name: '새끼고양이.jpg',
+        blob: testImageBlob
       }];
       var output = SMIL.generate(smilTest);
-      assert.equal(output.attachments.length, 5);
-      assert.equal(output.attachments[0].location, 'kitten#-450.jpg');
+      assert.equal(output.attachments.length, 6);
 
+      // Non-ASCII characters should be percent encoded
+      assert.equal(output.attachments[0].location, 'kitten%E2%99%A5-450.jpg');
+
+      // decoded filenames should be represented with unicode as needed
+      assert.equal(
+        Utils.MMSFilename(
+          output.attachments[0].location,
+          {direction: 'decode'}
+        ),
+        'kitten♥-450.jpg'
+      );
       // output from the next two also tests a clash after replace
-      assert.equal(output.attachments[1].location, '#####.jpg');
-      assert.equal(output.attachments[2].location, '#####_2.jpg');
+      assert.equal(
+        output.attachments[1].location,
+        '%EC%83%88%EB%81%BC%EA%B3%A0.jpg'
+      );
+      assert.equal(
+        output.attachments[2].location,
+        '%EC%83%88%EB%81%BC%EA%B3%A0_2.jpg'
+      );
 
       // this one has nothing to replace:
       assert.equal(output.attachments[3].location, smilTest[3].name);
-
-      // quotes must be replaced
-      assert.equal(output.attachments[4].location, '##.jpg');
+      // Quotes are escaped by Template.escape
+      assert.equal(output.attachments[4].location, '%26quot%3B%26apos%3B.jpg');
+      // Strings too long to be percent encoded are stripped
+      assert.equal(output.attachments[5].location, '#####.jpg');
     });
   });
 

@@ -119,6 +119,36 @@
       return this.rootFontSize;
     },
 
+    MMSFilename: function ut_MMSFilename(name, opts) {
+      // Creating or receiving an MMS may result in a name
+      // as a path and we only want the basename
+      name = name.substr(name.lastIndexOf('/') + 1);
+
+      // Unsafe characters for SMIL filenames
+      var unsafe = /[^a-zA-Z0-9_#.()?&%-]/g;
+      var escaped;
+      opts = opts || {};
+      opts.direction = opts.direction || 'encode';
+      opts.strip = opts.strip || false;
+
+      if (opts.strip) {
+        // Filenames which cannot fit inside the limit may
+        // need to have non-ascii characters stripped out
+        // first attempt to normalize, then replace remainder wholesale
+        return name.replace(unsafe, Normalizer.toAscii).replace(unsafe, '#');
+      }
+
+      // Encoding and decoding are each 3 steps with the first two shared
+      // 1. Decode % encoded sequences to catch possible escape sequences
+      // 2. Escape html entities
+      // 3. For encoding, % encode the result. For decoding, decode the result
+      escaped = Template.escape(decodeURIComponent(name));
+
+      return opts.direction === 'encode' ?
+        encodeURIComponent(escaped) :
+        decodeURIComponent(escaped);
+    },
+
     // We will apply createObjectURL for details.photoURL if contact image exist
     // Please remember to revoke the photoURL after utilizing it.
     getContactDetails:

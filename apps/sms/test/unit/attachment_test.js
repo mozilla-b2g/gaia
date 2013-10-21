@@ -192,13 +192,15 @@ suite('attachment_test.js', function() {
   });
 
   suite('render draft image attachments', function() {
-    function testDraftImage(testName, attachmentName) {
+    function testDraftImage(testName, attachmentName, escaped) {
       test(testName + ' attachment', function(done) {
         var attachment = new Attachment(testImageBlob, {
           name: attachmentName,
           isDraft: true
         });
-
+        // Names with escaped sequences will be escaped properly
+        // but not always with the same exact sequence from the input
+        var name = escaped ? escaped : attachment.name;
         var el = attachment.render(function() {
           assert.equal(el.tagName, 'IFRAME');
           el.addEventListener('load', function onload() {
@@ -211,7 +213,7 @@ suite('attachment_test.js', function() {
               var fileNameNode = doc.querySelector('.file-name');
               assert.ok(fileNameNode);
               assert.isNull(fileNameNode.firstElementChild);
-              assert.equal(fileNameNode.textContent, attachment.name);
+              assert.equal(fileNameNode.textContent, name);
             });
           });
 
@@ -223,12 +225,15 @@ suite('attachment_test.js', function() {
     testDraftImage('normal', 'Image attachment');
     testDraftImage(
       'malicious script',
-      '%3Cscript%3Ealert(%22I%20am%20dangerous%22)%3C%2Fscript%3E'
+      '%3Cscript%3Ealert(%22I%20am%20dangerous%22)%3C%2Fscript%3E',
+      '&lt;script&gt;alert(&quot;I am dangerous&quot;)&lt;/script&gt;'
     );
     testDraftImage(
       'malicious image',
-      '%3Cimg%20src%3D%22http%3A%2F%2Fmalicious.server.ru%2Fpingback%22%3E'
+      '%3Cimg%20src%3D%22http%3A%2F%2Fmalicious.server.ru%2Fpingback%22%3E',
+      '&lt;img src=&quot;http://malicious.server.ru/pingback&quot;&gt;'
     );
+    testDraftImage('non-ASCII file name', 'kitten♥-450.jpg');
   });
 
 
