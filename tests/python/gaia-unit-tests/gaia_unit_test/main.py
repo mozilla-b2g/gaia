@@ -185,7 +185,8 @@ def cli():
         for root, dirs, files in os.walk(appsdir):
             for file in files:
                 # only include tests in a 'unit' directory
-                if os.path.basename(root) == 'unit':
+                roots = root.split(os.path.sep)
+                if 'unit' in roots:
                     full_path = os.path.relpath(os.path.join(root, file), appsdir)
                     if full_path.endswith('_test.js') and full_path not in disabled:
                         tests.append(full_path)
