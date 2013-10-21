@@ -751,8 +751,8 @@ var Carrier = {
 
       var NETWORK_CDMA_MAP = {
         'cdma/evdo': 'operator-networkType-auto',
-        'cdma': 'operator-networkType-2G',
-        'evdo': 'operator-networkType-3G'
+        'cdma': 'operator-networkType-CDMA',
+        'evdo': 'operator-networkType-EVDO'
       };
 
       var NETWORK_DUALSTACK_MAP = {
