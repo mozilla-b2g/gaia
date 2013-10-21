@@ -14,6 +14,7 @@ var lazyLoadFiles = [
   'shared/js/settings_url.js',
   'shared/js/template.js',
   'shared/js/mime_mapper.js',
+  'shared/js/text_normalizer.js',
   'js/dialog.js',
   'js/blacklist.js',
   'js/contacts.js',

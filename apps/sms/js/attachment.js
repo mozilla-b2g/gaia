@@ -121,11 +121,14 @@
       // interpolate the #attachment-[no]preview-tmpl template
       thumbnail = thumbnail || {};
       var sizeL10n = this.sizeForL10n;
+
+      var displayName = Utils.MMSFilename(this.name, {direction: 'decode'});
+
       return Template(tmplID).interpolate({
         type: this.type,
         errorClass: thumbnail.error ? 'corrupted' : '',
         imgData: thumbnail.data,
-        fileName: this.name.slice(this.name.lastIndexOf('/') + 1),
+        fileName: displayName,
         sizeL10nId: sizeL10n.l10nId,
         sizeL10nArgs: JSON.stringify(sizeL10n.l10nArgs)
       });
@@ -167,6 +170,9 @@
         var tmplID = 'attachment-' + previewClass + '-tmpl';
         container.classList.add(previewClass);
 
+        // Single call to getAttachmentSrc
+        var attachment = this.getAttachmentSrc(thumbnail, tmplID);
+
         if (this.isDraft) { // <iframe>
           // The attachment's iFrame requires access to the parent document's
           // context so that URIs for Blobs created in the parent may resolve as
@@ -176,7 +182,7 @@
           var tmplSrc = Template('attachment-draft-tmpl').interpolate({
             previewClass: previewClass,
             baseURL: location.protocol + '//' + location.host + '/',
-            attachmentHTML: this.getAttachmentSrc(thumbnail, tmplID)
+            attachmentHTML: attachment
           }, { safe: ['attachmentHTML'] });
 
           // append the source when it's appended to the dom and loaded
@@ -192,7 +198,7 @@
 
           container.src = 'about:blank';
         } else { // <div>
-          container.innerHTML = this.getAttachmentSrc(thumbnail, tmplID);
+          container.innerHTML = attachment;
         }
 
         if (readyCallback) {

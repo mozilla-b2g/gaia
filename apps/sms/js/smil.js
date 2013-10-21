@@ -6,9 +6,6 @@
 (function() {
 'use strict';
 
-// characters not allowed in smil filenames
-var unsafeFilenamePattern = /[^a-zA-Z0-9_#.()?&%-]/g;
-
 // This encoder is aimed for encoding the string by 'utf-8'.
 var encoder = new TextEncoder('UTF-8');
 
@@ -67,10 +64,31 @@ function SMIL_generateSlides(data, slide, slideIndex) {
   if (slide.blob) {
     blobType = Utils.typeFromMimeType(slide.blob.type);
     if (blobType) {
-      name = slide.name.substr(slide.name.lastIndexOf('/') + 1);
-      // just to be safe, remove any non-standard characters from the filename
-      name = name.replace(unsafeFilenamePattern, '#');
-      name = SMIL_generateUniqueLocation(data, name);
+      // Encode Filenames
+      // If the resultant name is > 40 characters, normalize
+      // modified latin characters and replace remainder, then recheck
+      let encoded = Utils.MMSFilename(
+        slide.name,
+        {direction: 'encode'}
+      );
+      name = SMIL_generateUniqueLocation(data, encoded);
+      if (name.length > 40) {
+        // Only strip filenames when necessary
+        let stripped = Utils.MMSFilename(
+          slide.name,
+          {direction: 'encode', strip: true}
+        );
+        name = SMIL_generateUniqueLocation(data, stripped);
+      }
+
+      // Unique location is what appears in the header and
+      // must be <= 40 characters
+      // Check should be made 'after' SMIL_generateUniqueLocation is called
+      // the last time
+      if (name.length > 40) {
+        console.error('file name too long');
+      }
+
       media = '<' + blobType + ' src="' + name + '" region="Image"/>';
       data.attachments.push({
         id: '<' + name + '>',
