@@ -503,6 +503,232 @@ suite('system/Statusbar', function() {
     });
   }),
 
+  suite('data connection', function() {
+    suite('data connection unavailable', function() {
+      teardown(function() {
+        StatusBar.settingValues = {};
+      });
+
+      test('radio disabled', function() {
+        StatusBar.settingValues['ril.radio.disabled'] = true;
+        StatusBar.update.data.call(StatusBar);
+        assert.isTrue(StatusBar.icons.data.hidden);
+      });
+
+      test('data disabled', function() {
+        StatusBar.settingValues['ril.data.enabled'] = false;
+        StatusBar.update.data.call(StatusBar);
+        assert.isTrue(StatusBar.icons.data.hidden);
+      });
+
+      test('data not connected', function() {
+        MockNavigatorMozMobileConnection.data = { connected: false };
+        StatusBar.update.data.call(StatusBar);
+        assert.isTrue(StatusBar.icons.data.hidden);
+      });
+
+      test('wifi icon is displayed', function() {
+        StatusBar.icons.wifi.hidden = false;
+        StatusBar.update.data.call(StatusBar);
+        assert.isTrue(StatusBar.icons.data.hidden);
+      });
+    });
+
+    suite('data connection available', function() {
+      setup(function() {
+        StatusBar.settingValues['ril.radio.disabled'] = false;
+        StatusBar.settingValues['ril.data.enabled'] = true;
+        StatusBar.icons.wifi.hidden = true;
+      });
+
+      teardown(function() {
+        StatusBar.settingValues = {};
+      });
+
+      test('type lte', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'lte'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, '4G');
+      });
+
+      // GSM
+      test('type hspa+', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'hspa+'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, 'H+');
+      });
+
+      test('type hsdpa', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'hsdpa'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, 'H');
+      });
+
+      test('type hsupa', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'hsupa'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, 'H');
+      });
+
+      test('type hspa', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'hspa'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, 'H');
+      });
+
+      test('type umts', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'umts'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, '3G');
+      });
+
+      test('type edge', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'edge'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, 'E');
+      });
+
+      test('type gprs', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'gprs'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, '2G');
+      });
+
+      // CDMA
+      test('type 1xrtt', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: '1xrtt'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, '1x');
+      });
+
+      test('type is95a', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'is95a'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, '1x');
+      });
+
+      test('type is95b', function() {
+        MockNavigatorMozMobileConnection.data = {
+          connected: true,
+          type: 'is95b'
+        };
+        StatusBar.update.data.call(StatusBar);
+        assert.equal(StatusBar.icons.data.textContent, '1x');
+      });
+
+      // CDMA related to calls
+      suite('ehrpd, evdo0, evdoa, evdob when there is a call', function() {
+        test('type ehrpd', function() {
+          MockNavigatorMozTelephony.calls = [{}];
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'ehrpd'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, '1x');
+        });
+
+        test('type evdo0', function() {
+          MockNavigatorMozTelephony.calls = [{}];
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'evdo0'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, '1x');
+        });
+
+        test('type evdoa', function() {
+          MockNavigatorMozTelephony.calls = [{}];
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'evdoa'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, '1x');
+        });
+
+        test('type evdob', function() {
+          MockNavigatorMozTelephony.calls = [{}];
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'evdob'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, '1x');
+        });
+      });
+
+      suite('ehrpd, evdo0, evdoa, evdob when there is no call', function() {
+        test('type ehrpd', function() {
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'ehrpd'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, '4G');
+        });
+
+        test('type evdo0', function() {
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'evdo0'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, 'Ev');
+        });
+
+        test('type evdoa', function() {
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'evdoa'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, 'Ev');
+        });
+
+        test('type evdob', function() {
+          MockNavigatorMozMobileConnection.data = {
+            connected: true,
+            type: 'evdob'
+          };
+          StatusBar.update.data.call(StatusBar);
+          assert.equal(StatusBar.icons.data.textContent, 'Ev');
+        });
+      });
+    });
+  }),
+
   suite('operator name', function() {
     setup(function() {
       MockNavigatorMozMobileConnection.voice = {
