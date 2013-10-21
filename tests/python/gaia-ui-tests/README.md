@@ -17,7 +17,15 @@ that you can
 Installation
 ============
 
-Installation is simple:
+If you only want to run the tests without developing anything:
+
+    pip install gaiatest
+
+or
+
+    easy_install gaiatest
+
+If you want to modify gaiatest, do this instead:
 
     git clone https://github.com/mozilla-b2g/gaia.git
     cd gaia/tests/python/gaia-ui-tests
