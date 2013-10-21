@@ -369,7 +369,7 @@ contacts.Form = (function() {
       var value = '';
 
       currField[currentElem] =
-      (typeof(defObj) === 'object') ? defObj.toString() : defObj;
+      (defObj && typeof(defObj) === 'object') ? defObj.toString() : defObj;
       value = currField[currentElem] || def;
       if (currentElem === 'type') {
         currField['type_value'] = value;
