@@ -1092,6 +1092,41 @@ suite('system/AppInstallManager >', function() {
 
     });
 
+    suite('packaged app without size >', function() {
+      setup(function() {
+        mockAppName = 'Fake packaged app';
+        mockApp = new MockApp({
+          manifest: null,
+          updateManifest: {
+            name: mockAppName,
+            developer: {
+              name: 'Fake dev',
+              url: 'http://fakesoftware.com'
+            }
+          },
+          installState: 'pending'
+        });
+
+        dispatchInstallEvent();
+      });
+
+      suite('on first progress >', function() {
+        setup(function() {
+          // resetting this mock because we want to test only the
+          // following call
+          MockNotificationScreen.mTeardown();
+          MockSystemBanner.mTeardown();
+          mockApp.mTriggerDownloadProgress(5);
+        });
+
+        test('should add a notification', function() {
+          var method = 'incExternalNotifications';
+          assert.equal(fakeNotif.childElementCount, 1);
+          assert.ok(MockNotificationScreen.wasMethodCalled[method]);
+        });
+      });
+    });
+
     suite('cancelling a download >', function() {
       setup(function() {
         mockApp = new MockApp({ installState: 'pending' });
