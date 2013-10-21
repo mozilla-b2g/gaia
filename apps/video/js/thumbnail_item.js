@@ -98,8 +98,7 @@ function ThumbnailItem(videoData) {
     // render title
     var duration = '';
     if (isFinite(_this.data.metadata.duration)) {
-      var d = Math.round(_this.data.metadata.duration);
-      duration = MediaUtils.formatDuration(d);
+      duration = MediaUtils.formatDuration(_this.data.metadata.duration);
     }
     // render size
     var sizeText = isFinite(_this.data.size) ?
