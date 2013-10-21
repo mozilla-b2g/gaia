@@ -149,7 +149,7 @@ function SimContactsImporter() {
           var aTel = item.tel[j];
           // Filtering out empty values
           if (aTel.value && aTel.value.trim()) {
-            aTel.type = 'mobile';
+            aTel.type = ['mobile'];
             telItems.push(aTel);
           }
         }
@@ -181,7 +181,8 @@ function SimContactsImporter() {
 
 
   function saveContact(item) {
-    var req = window.navigator.mozContacts.save(item);
+    var contact = new mozContact(item);
+    var req = window.navigator.mozContacts.save(contact);
       req.onsuccess = function saveSuccess() {
         continueCb();
       };
