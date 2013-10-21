@@ -270,11 +270,15 @@ fb.Contact = function(deviceContact, cid) {
     return outReq;
   };
 
+  function asArrayOfValues(value) {
+    return Array.isArray(value) ? value : [value];
+  }
+
   function copyNames(source, destination) {
-    destination.name = source.name;
-    destination.givenName = source.givenName;
-    destination.familyName = source.familyName;
-    destination.additionalName = source.additionalName;
+    destination.name = asArrayOfValues(source.name);
+    destination.givenName = asArrayOfValues(source.givenName);
+    destination.familyName = asArrayOfValues(source.familyName);
+    destination.additionalName = asArrayOfValues(source.additionalName);
   }
 
   /*
@@ -298,7 +302,7 @@ fb.Contact = function(deviceContact, cid) {
     var out = devContact;
 
     if (fbdata) {
-      out = Object.create(devContact);
+      out = Object.create(null);
       out.updated = devContact.updated;
       out.published = devContact.published;
 
