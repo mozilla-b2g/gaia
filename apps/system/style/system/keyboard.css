@@ -9,7 +9,7 @@
   height: 100%;
 
   transform: translateY(0);
-  transition: visibility 0.2s ease, transform 0.4s ease;
+  transition: opacity 0.2s ease, transform 0.4s ease;
 }
 
 @media not all and (-moz-physical-home-button) {
@@ -23,8 +23,7 @@
 }
 
 #keyboards.hide {
-  visibility: hidden;
-
+  opacity: 0;
   transform: translateY(100%);
 }
 
