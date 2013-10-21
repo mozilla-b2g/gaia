@@ -565,7 +565,7 @@ MailFolder.prototype = {
   },
   toJSON: function() {
     return {
-      type: 'MailFolder',
+      type: this.type,
       path: this.path
     };
   },
@@ -1264,7 +1264,9 @@ MailHeader.prototype = {
    * move may be performed instead.)
    */
   editAsDraft: function(callback) {
-    return this._slice._api.resumeMessageComposition(this, callback);
+    var composer = this._slice._api.resumeMessageComposition(this, callback);
+    composer.hasDraft = true;
+    return composer;
   },
 
   /**
@@ -1381,6 +1383,31 @@ MailBody.prototype = {
       type: 'MailBody',
       id: this.id
     };
+  },
+
+  __update: function(wireRep, detail) {
+    // Related parts and bodyReps have no state we need to maintain.  Just
+    // replace them with the new copies for simplicity.
+    this._relatedParts = wireRep.relatedParts;
+    this.bodyReps = wireRep.bodyReps;
+
+    // detaching an attachment is special since we need to splice the attachment
+    // out.
+    if (detail && detail.changeDetails &&
+        detail.changeDetails.detachedAttachments) {
+      var indices = detail.changeDetails.detachedAttachments;
+      for (var iSplice = 0; iSplice < indices.length; iSplice++) {
+        this.attachments.splice(indices[iSplice], 1);
+      }
+    }
+
+    // Attachment instances need to be updated rather than replaced.
+    if (wireRep.attachments) {
+      for (var i = 0; i < this.attachments.length; i++) {
+        var attachment = this.attachments[i];
+        attachment.__update(wireRep.attachments[i]);
+      }
+    }
   },
 
   /**
@@ -1550,8 +1577,24 @@ MailAttachment.prototype = {
     };
   },
 
+  __update: function(wireRep) {
+    this.mimetype = wireRep.type;
+    this.sizeEstimateInBytes = wireRep.sizeEstimate;
+    this._file = wireRep.file;
+  },
+
   get isDownloaded() {
     return !!this._file;
+  },
+
+  /**
+   * Is this attachment something we can download?  In almost all cases, the
+   * answer is yes, regardless of network state.  The exception is that sent
+   * POP3 messages do not retain their attachment Blobs and there is no way to
+   * download them after the fact.
+   */
+  get isDownloadable() {
+    return this.mimetype !== 'application/x-gelam-no-download';
   },
 
   download: function(callWhenDone, callOnProgress) {
@@ -1974,8 +2017,22 @@ function MessageComposition(api, handle) {
   this.body = null;
 
   this._references = null;
-  this._customHeaders = null;
+  /**
+   * @property attachments
+   * @type Object[]
+   *
+   * A list of attachments currently attached or currently being attached with
+   * the following attributes:
+   * - name: The filename
+   * - size: The size of the attachment payload in binary form.  This does not
+   *   include transport encoding costs.
+   *
+   * Manipulating this list has no effect on reality; the methods addAttachment
+   * and removeAttachment must be used.
+   */
   this.attachments = null;
+
+  this.hasDraft = false;
 }
 MessageComposition.prototype = {
   toString: function() {
@@ -1996,16 +2053,26 @@ MessageComposition.prototype = {
   },
 
   /**
-   * Add custom headers; don't use this for built-in headers.
-   */
-  addHeader: function(key, value) {
-    if (!this._customHeaders)
-      this._customHeaders = [];
-    this._customHeaders.push(key);
-    this._customHeaders.push(value);
-  },
-
-  /**
+   * Add an attachment to this composition.  This is an asynchronous process
+   * that incrementally converts the Blob we are provided into a line-wrapped
+   * base64-encoded message suitable for use in the rfc2822 message generation
+   * process.  We will perform the conversion in slices whose sizes are
+   * chosen to avoid causing a memory usage explosion that causes us to be
+   * reaped.  Once the conversion is completed we will forget the Blob reference
+   * provided to us.
+   *
+   * From the perspective of our drafts, an attachment is not fully attached
+   * until it has been completely encoded, sliced, and persisted to our
+   * IndexedDB database.  In the event of a crash during this time window,
+   * the attachment will effectively have not been attached.  Our logic will
+   * discard the partially-translated attachment when de-persisting the draft.
+   * We will, however, create an entry in the attachments array immediately;
+   * we also return it to you.  You should be able to safely call
+   * removeAttachment with it regardless of what has happened on the backend.
+   *
+   * The caller *MUST* forget all references to the Blob that is being attached
+   * after issuing this call.
+   *
    * @args[
    *   @param[attachmentDef @dict[
    *     @key[name String]
@@ -2013,14 +2080,37 @@ MessageComposition.prototype = {
    *   ]]
    * ]
    */
-  addAttachment: function(attachmentDef) {
-    this.attachments.push(attachmentDef);
+  addAttachment: function(attachmentDef, callback) {
+    // There needs to be a draft for us to attach things to.
+    if (!this.hasDraft)
+      this.saveDraft();
+    this._api._composeAttach(this._handle, attachmentDef, callback);
+
+    var placeholderAttachment = {
+      name: attachmentDef.name,
+      blob: {
+        size: attachmentDef.blob.size,
+        type: attachmentDef.blob.type
+      }
+    };
+    this.attachments.push(placeholderAttachment);
+    return placeholderAttachment;
   },
 
-  removeAttachment: function(attachmentDef) {
+  /**
+   * Remove an attachment previously requested to be added via `addAttachment`.
+   *
+   * @method removeAttachment
+   * @param attachmentDef Object
+   *   This must be one of the instances from our `attachments` list.  A
+   *   logically equivalent object is no good.
+   */
+  removeAttachment: function(attachmentDef, callback) {
     var idx = this.attachments.indexOf(attachmentDef);
-    if (idx !== -1)
+    if (idx !== -1) {
       this.attachments.splice(idx, 1);
+      this._api._composeDetach(this._handle, idx, callback);
+    }
   },
 
   /**
@@ -2035,7 +2125,6 @@ MessageComposition.prototype = {
       subject: this.subject,
       body: this.body,
       referencesStr: this._references,
-      customHeaders: this._customHeaders,
       attachments: this.attachments,
     };
   },
@@ -2081,6 +2170,7 @@ MessageComposition.prototype = {
    * Save the state of this composition.
    */
   saveDraft: function(callback) {
+    this.hasDraft = true;
     this._api._composeDone(this._handle, 'save', this._buildWireRep(),
                            callback);
   },
@@ -2607,7 +2697,6 @@ MailAPI.prototype = {
   },
 
   _getBodyForMessage: function(header, options, callback) {
-
     var downloadBodyReps = false, withBodyReps = false;
 
     if (options && options.downloadBodyReps) {
@@ -2673,38 +2762,17 @@ MailAPI.prototype = {
       return true;
     }
 
-    if (body.onchange) {
-      // there may be many kinds of updates we want to support but we only
-      // support updating the bodyReps reference currently.
-      if (msg.detail.changeDetails) {
-        for (var which in msg.detail.changeDetails) {
-          var indexes = msg.detail.changeDetails[which];
-          for (var i = 0; i < indexes.length; i++) {
-            var idx = indexes[i];
-            switch(which) {
-            case 'bodyReps':
-              body.bodyReps[idx] = msg.bodyInfo.bodyReps[idx];
-              break;
-            case 'attachments':
-              var bodyAtt = body.attachments[idx];
-              var wireAtt = msg.bodyInfo.attachments[idx];
-              bodyAtt.sizeEstimateInBytes = wireAtt.sizeEstimate;
-              bodyAtt._file = wireAtt.file;
-              break;
-            case 'relatedParts':
-              // not used currently
-              break;
-            case 'detachedAttachments':
-              // TODO: for streaming patch
-              break;
-            }
-          }
-        }
-      }
+    var wireRep = msg.bodyInfo;
+    // We update the body representation regardless of whether there is an
+    // onchange listener because the body may contain Blob handles that need to
+    // be updated so that in-memory blobs that have been superseded by on-disk
+    // Blobs can be garbage collected.
+    body.__update(wireRep, msg.detail);
 
+    if (body.onchange) {
       body.onchange(
         msg.detail,
-        msg.bodyInfo
+        body
       );
     }
 
@@ -2751,19 +2819,10 @@ MailAPI.prototype = {
     }
     delete this._pendingRequests[msg.handle];
 
-    // What will have changed are the attachment lists, so update them.
-    if (msg.bodyInfo) {
-      if (req.relParts)
-        req.body._relatedParts = msg.bodyInfo.relatedParts;
-      if (req.attachments) {
-        var wireAtts = msg.bodyInfo.attachments;
-        for (var i = 0; i < wireAtts.length; i++) {
-          var wireAtt = wireAtts[i], bodyAtt = req.body.attachments[i];
-          bodyAtt.sizeEstimateInBytes = wireAtt.sizeEstimate;
-          bodyAtt._file = wireAtt.file;
-        }
-      }
-    }
+    // We used to update the attachment representations here.  This is now
+    // handled by `bodyModified` notifications which are guaranteed to occur
+    // prior to this callback being invoked.
+
     if (req.callback)
       req.callback.call(null, req.body);
     return true;
@@ -3201,7 +3260,7 @@ MailAPI.prototype = {
    * It will return null on a parse failure.
    *
    * @param {String} email A email address.
-   * @return {Object} An object of the form { name, address }. 
+   * @return {Object} An object of the form { name, address }.
    */
   parseMailbox: function(email) {
     try {
@@ -3394,6 +3453,76 @@ MailAPI.prototype = {
       var callback = req.callback;
       req.callback = null;
       callback.call(null, req.composer);
+    }
+    return true;
+  },
+
+  _composeAttach: function(draftHandle, attachmentDef, callback) {
+    if (!draftHandle) {
+      return;
+    }
+    var draftReq = this._pendingRequests[draftHandle];
+    if (!draftReq) {
+      return;
+    }
+    var callbackHandle = this._nextHandle++;
+    this._pendingRequests[callbackHandle] = {
+      type: 'attachBlobToDraft',
+      callback: callback
+    };
+    this.__bridgeSend({
+      type: 'attachBlobToDraft',
+      handle: callbackHandle,
+      draftHandle: draftHandle,
+      attachmentDef: attachmentDef
+    });
+  },
+
+  _recv_attachedBlobToDraft: function(msg) {
+    var callbackReq = this._pendingRequests[msg.handle];
+    var draftReq = this._pendingRequests[msg.draftHandle];
+    if (!callbackReq) {
+      return true;
+    }
+    delete this._pendingRequests[msg.handle];
+
+    if (callbackReq.callback && draftReq && draftReq.composer) {
+      callbackReq.callback(msg.err, draftReq.composer);
+    }
+    return true;
+  },
+
+  _composeDetach: function(draftHandle, attachmentIndex, callback) {
+    if (!draftHandle) {
+      return;
+    }
+    var draftReq = this._pendingRequests[draftHandle];
+    if (!draftReq) {
+      return;
+    }
+    var callbackHandle = this._nextHandle++;
+    this._pendingRequests[callbackHandle] = {
+      type: 'detachAttachmentFromDraft',
+      callback: callback
+    };
+    this.__bridgeSend({
+      type: 'detachAttachmentFromDraft',
+      handle: callbackHandle,
+      draftHandle: draftHandle,
+      attachmentIndex: attachmentIndex
+    });
+  },
+
+  _recv_detachedAttachmentFromDraft: function(msg) {
+    var callbackReq = this._pendingRequests[msg.handle];
+    var draftReq = this._pendingRequests[msg.draftHandle];
+    if (!callbackReq) {
+      return true;
+    }
+    delete this._pendingRequests[msg.handle];
+
+    if (callbackReq.callback && draftReq && draftReq.composer) {
+      callbackReq.callback(msg.err, draftReq.composer);
     }
     return true;
   },
@@ -4654,96 +4783,309 @@ MailDB.prototype = {
 return self;
 });
 
-define('mailapi/worker-support/net-main',[],function() {
-  'use strict';
+define('mailapi/async_blob_fetcher',
+  [
+    'exports'
+  ],
+  function(
+    exports
+  ) {
 
-  function debug(str) {
-    //dump('NetSocket: ' + str + '\n');
-  }
-
-  // Maintain a list of active sockets
-  var socks = {};
-
-  function open(uid, host, port, options) {
-    var socket = navigator.mozTCPSocket;
-    var sock = socks[uid] = socket.open(host, port, options);
-
-    sock.onopen = function(evt) {
-      //debug('onopen ' + uid + ": " + evt.data.toString());
-      self.sendMessage(uid, 'onopen');
-    };
-
-    sock.onerror = function(evt) {
-      //debug('onerror ' + uid + ": " + new Uint8Array(evt.data));
-      var err = evt.data;
-      var wrappedErr;
-      if (err && typeof(err) === 'object') {
-        wrappedErr = {
-          name: err.name,
-          type: err.type,
-          message: err.message
-        };
-      }
-      else {
-        wrappedErr = err;
-      }
-      self.sendMessage(uid, 'onerror', wrappedErr);
-    };
-
-    sock.ondata = function(evt) {
-      var buf = evt.data;
-      self.sendMessage(uid, 'ondata', buf, [buf]);
-    };
-
-    sock.onclose = function(evt) {
-      //debug('onclose ' + uid + ": " + evt.data.toString());
-      self.sendMessage(uid, 'onclose');
-    };
-  }
-
-  function close(uid) {
-    var sock = socks[uid];
-    if (!sock)
+/**
+ * Asynchronously fetch the contents of a Blob, returning a Uint8Array.
+ * Exists because there is no FileReader in Gecko workers and this totally
+ * works.  In discussion, it sounds like :sicking wants to deprecate the
+ * FileReader API anyways.
+ *
+ * Our consumer in this case is our specialized base64 encode that wants a
+ * Uint8Array since that is more compactly represented than a binary string
+ * would be.
+ *
+ * @param blob {Blob}
+ * @param callback {Function(err, Uint8Array)}
+ */
+function asyncFetchBlobAsUint8Array(blob, callback) {
+  var blobUrl = URL.createObjectURL(blob);
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', blobUrl, true);
+  xhr.responseType = 'arraybuffer';
+  xhr.onload = function() {
+    // blobs currently result in a status of 0 since there is no server.
+    if (xhr.status !== 0 && (xhr.status < 200 || xhr.status >= 300)) {
+      callback(xhr.status);
       return;
-    sock.close();
-    sock.onopen = null;
-    sock.onerror = null;
-    sock.ondata = null;
-    sock.onclose = null;
-    delete socks[uid];
+    }
+    callback(null, new Uint8Array(xhr.response));
+  };
+  xhr.onerror = function() {
+    callback('error');
+  };
+  try {
+    xhr.send();
   }
-
-  function upgradeToSecure(uid) {
-    socks[uid].upgradeToSecure();
+  catch(ex) {
+    console.error('XHR send() failure on blob');
+    callback('error');
   }
+  URL.revokeObjectURL(blobUrl);
+}
 
-  function write(uid, data, offset, length) {
-    // XXX why are we doing this? ask Vivien or try to remove...
-    socks[uid].send(data, offset, length);
-  }
+return {
+  asyncFetchBlobAsUint8Array: asyncFetchBlobAsUint8Array
+};
 
-  var self = {
-    name: 'netsocket',
-    sendMessage: null,
-    process: function(uid, cmd, args) {
-      debug('process ' + cmd);
-      switch (cmd) {
-        case 'open':
-          open(uid, args[0], args[1], args[2]);
-          break;
-        case 'close':
-          close(uid);
-          break;
-        case 'write':
-          write(uid, args[0], args[1], args[2]);
-          break;
-        case 'upgradeToSecure':
-          upgradeToSecure(uid);
-          break;
-      }
+}); // end define
+;
+/**
+ * The main-thread counterpart to our node-net.js wrapper.
+ *
+ * Provides the smarts for streaming the content of blobs.  An alternate
+ * implementation would be to provide a decorating proxy to implement this
+ * since smart Blob transmission is on the W3C raw-socket hit-list (see
+ * http://www.w3.org/2012/sysapps/raw-sockets/), but we're already acting like
+ * node.js's net implementation on the other side of the equation and a totally
+ * realistic implementation is more work and complexity than our needs require.
+ *
+ * Important implementation notes that affect us:
+ *
+ * - mozTCPSocket generates ondrain notifications when the send buffer is
+ *   completely empty, not when when we go below the target buffer level.
+ *
+ * - bufferedAmount in the child process mozTCPSocket implementation only gets
+ *   updated when the parent process relays a messages to the child process.
+ *   When we are performing bulks sends, this means we will only see
+ *   bufferedAmount go down when we receive an 'ondrain' notification and the
+ *   buffer has hit zero.  As such, trying to do anything clever involving
+ *   bufferedAmount other than seeing if it's at zero is not going to do
+ *   anything useful.
+ *
+ * Leading to our strategy:
+ *
+ * - Always have a pre-fetched block of disk I/O to hand to the socket when we
+ *   get a drain event so that disk I/O does not stall our pipeline.
+ *   (Obviously, if the network is faster than our disk, there is very little
+ *   we can do.)
+ *
+ * - Pick a page-size so that in the case where the network is extremely fast
+ *   we are able to maintain good throughput even when our IPC overhead
+ *   dominates.  We just pick one page-size; we intentionally avoid any
+ *   excessively clever buffering regimes because those could back-fire and
+ *   such effort is better spent on enhancing TCPSocket.
+ */
+define('mailapi/worker-support/net-main',['require','mailapi/async_blob_fetcher'],function(require) {
+'use strict';
+
+var asyncFetchBlobAsUint8Array =
+      require('mailapi/async_blob_fetcher').asyncFetchBlobAsUint8Array;
+
+// Active sockets
+var sockInfoByUID = {};
+
+function open(uid, host, port, options) {
+  var socket = navigator.mozTCPSocket;
+  var sock = socket.open(host, port, options);
+
+  var sockInfo = sockInfoByUID[uid] = {
+    uid: uid,
+    sock: sock,
+    // Are we in the process of sending a blob?  The blob if so.
+    activeBlob: null,
+    // Current offset into the blob, if any
+    blobOffset: 0,
+    queuedData: null,
+    // Queued write() calls that are ordering dependent on the Blob being
+    // fully sent first.
+    backlog: [],
+  };
+
+  sock.onopen = function(evt) {
+    self.sendMessage(uid, 'onopen');
+  };
+
+  sock.onerror = function(evt) {
+    var err = evt.data;
+    var wrappedErr;
+    if (err && typeof(err) === 'object') {
+      wrappedErr = {
+        name: err.name,
+        type: err.type,
+        message: err.message
+      };
+    }
+    else {
+      wrappedErr = err;
+    }
+    self.sendMessage(uid, 'onerror', wrappedErr);
+  };
+
+  sock.ondata = function(evt) {
+    var buf = evt.data;
+    self.sendMessage(uid, 'ondata', buf, [buf]);
+  };
+
+  sock.ondrain = function(evt) {
+    // If we have an activeBlob and data already to send, then send it.
+    // If we have an activeBlob but no data, then fetchNextBlobChunk has
+    // an outstanding chunk fetch and it will issue the write directly.
+    if (sockInfo.activeBlob && sockInfo.queuedData) {
+      console.log('net-main(' + sockInfo.uid + '): Socket drained, sending.');
+      sock.send(sockInfo.queuedData.buffer, 0, sockInfo.queuedData.byteLength);
+      sockInfo.queuedData = null;
+      // fetch the next chunk or close out the blob; this method does both
+      fetchNextBlobChunk(sockInfo);
     }
   };
-  return self;
+
+  sock.onclose = function(evt) {
+    self.sendMessage(uid, 'onclose');
+  };
+}
+
+function beginBlobSend(sockInfo, blob) {
+  console.log('net-main(' + sockInfo.uid + '): Blob send of', blob.size,
+              'bytes');
+  sockInfo.activeBlob = blob;
+  sockInfo.blobOffset = 0;
+  sockInfo.queuedData = null;
+  fetchNextBlobChunk(sockInfo);
+}
+
+/**
+ * Fetch the next portion of the Blob we are currently sending.  Once the read
+ * completes we will either send the data immediately if the socket's buffer is
+ * empty or queue it up for sending once the buffer does drain.
+ *
+ * This logic is used both in the starting case and to help us reach a steady
+ * state where (ideally) we always have a pre-fetched buffer of data ready for
+ * when we hear the next drain event.
+ *
+ * We are also responsible for noticing that we're all done sending the Blob.
+ */
+function fetchNextBlobChunk(sockInfo) {
+  // We are all done if the next fetch would be beyond the end of the blob
+  if (sockInfo.blobOffset >= sockInfo.activeBlob.size) {
+    console.log('net-main(' + sockInfo.uid + '): Blob send completed.',
+                'backlog length:', sockInfo.backlog.length);
+    sockInfo.activeBlob = null;
+
+    // Drain as much of the backlog as possible.
+    var backlog = sockInfo.backlog;
+    while (backlog.length) {
+      var sendArgs = backlog.shift();
+      var data = sendArgs[0];
+      if (data instanceof Blob) {
+        beginBlobSend(sockInfo, data);
+        return;
+      }
+      sockInfo.sock.send(data, sendArgs[1], sendArgs[2]);
+    }
+    // (the backlog is now empty)
+    return;
+  }
+
+  var nextOffset =
+        Math.min(sockInfo.blobOffset + self.BLOB_BLOCK_READ_SIZE,
+                 sockInfo.activeBlob.size);
+  console.log('net-main(' + sockInfo.uid + '): Fetching bytes',
+              sockInfo.blobOffset, 'through', nextOffset, 'of',
+              sockInfo.activeBlob.size);
+  var blobSlice = sockInfo.activeBlob.slice(
+                    sockInfo.blobOffset,
+                    nextOffset);
+  sockInfo.blobOffset = nextOffset;
+
+  function gotChunk(err, binaryDataU8) {
+    console.log('net-main(' + sockInfo.uid + '): Retrieved chunk');
+    if (err) {
+      // I/O errors are fatal to the connection; our abstraction does not let us
+      // bubble the error.  The good news is that errors are highly unlikely.
+      sockInfo.sock.close();
+      return;
+    }
+
+    // If the socket has already drained its buffer, then just send the data
+    // right away and re-schedule ourselves.
+    if (sockInfo.sock.bufferedAmount === 0) {
+      console.log('net-main(' + sockInfo.uid + '): Sending chunk immediately.');
+      sockInfo.sock.send(binaryDataU8.buffer, 0, binaryDataU8.byteLength);
+      fetchNextBlobChunk(sockInfo);
+      return;
+    }
+
+    sockInfo.queuedData = binaryDataU8;
+  };
+  asyncFetchBlobAsUint8Array(blobSlice, gotChunk);
+}
+
+function close(uid) {
+  var sockInfo = sockInfoByUID[uid];
+  if (!sockInfo)
+    return;
+  var sock = sockInfo.sock;
+  sock.close();
+  sock.onopen = null;
+  sock.onerror = null;
+  sock.ondata = null;
+  sock.ondrain = null;
+  sock.onclose = null;
+  delete sockInfoByUID[uid];
+}
+
+function write(uid, data, offset, length) {
+  var sockInfo = sockInfoByUID[uid];
+
+  // If there is an activeBlob, then the write must be queued or we would end up
+  // mixing this write in with our Blob and that would be embarassing.
+  if (sockInfo.activeBlob) {
+    sockInfo.backlog.push([data, offset, length]);
+    return;
+  }
+
+  if (data instanceof Blob) {
+    beginBlobSend(sockInfo, data);
+  }
+  else {
+    sockInfo.sock.send(data, offset, length);
+  }
+}
+
+
+function upgradeToSecure(uid) {
+  var sockInfo = sockInfoByUID[uid];
+  if (!sockInfo)
+    return;
+  sockInfo.sock.upgradeToSecure();
+}
+
+
+var self = {
+  name: 'netsocket',
+  sendMessage: null,
+
+  /**
+   * What size bites (in bytes) should we take of the Blob for streaming
+   * purposes?  See the file header for the sizing rationale.
+   */
+  BLOB_BLOCK_READ_SIZE: 96 * 1024,
+
+  process: function(uid, cmd, args) {
+    switch (cmd) {
+      case 'open':
+        open(uid, args[0], args[1], args[2]);
+        break;
+      case 'close':
+        close(uid);
+        break;
+      case 'write':
+        write(uid, args[0], args[1], args[2]);
+        break;
+      case 'upgradeToSecure':
+        upgradeToSecure(uid);
+        break;
+    }
+  }
+};
+return self;
 });
 
 /**
