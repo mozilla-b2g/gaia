@@ -98,6 +98,12 @@
     "dialercomms": {
       "description": "Communication with dialer app for sleep message",
       "rules": {}
+    },
+    "fxa-mgmt": {
+      "description": "Firefox Accounts management API",
+      "rules": {
+        "minimumAccessLevel": "certified"
+      }
     }
   },
   "datastores-owned": {

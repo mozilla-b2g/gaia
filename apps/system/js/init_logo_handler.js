@@ -48,7 +48,9 @@ var InitLogoHandler = {
     } else {
       var self = this;
       document.addEventListener('DOMContentLoaded', function() {
-        self.carrierLogo.parentNode.removeChild(self.carrierLogo);
+        if (self.carrierLogo) {
+          self.carrierLogo.parentNode.removeChild(self.carrierLogo);
+        }
         self._setReady();
       });
     }
