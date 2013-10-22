@@ -82,7 +82,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
   };
 
   this.clear = function clear() {
-    self.hideClearButton();
+    self.updateClearButtonState();
     value = '';
     el.value = '';
   };
@@ -130,12 +130,14 @@ Evme.Searchbar = new function Evme_Searchbar() {
     return pending;
   };
 
-  this.hideClearButton = function hideClearButton() {
-    Evme.$('#search-header').classList.remove('clear-visible');
-  };
-
-  this.showClearButton = function showClearButton() {
-    Evme.$('#search-header').classList.add('clear-visible');
+  this.updateClearButtonState = function updateClearButtonState() {
+    if (self.getValue() === '') {
+      // hide clear button
+      Evme.$('#search-header').classList.remove('clear-visible');
+    } else {
+      // show clear button
+      Evme.$('#search-header').classList.add('clear-visible');
+    }
   };
 
   function clearButtonClick() {
@@ -164,12 +166,12 @@ Evme.Searchbar = new function Evme_Searchbar() {
     if (currentValue !== value) {
       value = currentValue;
 
+      self.updateClearButtonState();
       if (self.getValue() === '') {
         timeoutSearchOnBackspace &&
           window.clearTimeout(timeoutSearchOnBackspace);
         cbEmpty();
       } else {
-        self.showClearButton();
         if (e.keyCode === BACKSPACE_KEY_CODE) {
           timeoutSearchOnBackspace &&
             window.clearTimeout(timeoutSearchOnBackspace);
@@ -211,7 +213,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
   }
 
   function cbEmpty() {
-    self.hideClearButton();
+    self.updateClearButtonState();
     Evme.EventHandler.trigger(NAME, 'empty', {
       'sourceObjectName': NAME
     });
@@ -233,7 +235,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
       return;
     }
     isFocused = true;
-    self.showClearButton();
+    self.updateClearButtonState();
 
     Evme.Brain && Evme.Brain[NAME].onfocus({
       'e': e
@@ -245,7 +247,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
       return;
     }
 
-    self.hideClearButton();
+    self.updateClearButtonState();
     isFocused = false;
 
     Evme.Brain && Evme.Brain[NAME].onblur({
