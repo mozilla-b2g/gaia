@@ -526,8 +526,10 @@ var KeypadManager = {
      request.onsuccess = function() {
        var number = request.result['ril.iccInfo.mbdn'];
        var voicemail = navigator.mozVoicemail;
-       if (!number && voicemail && voicemail.number) {
-         number = voicemail.number;
+       if (!number && voicemail) {
+         // TODO: remove this backward compatibility check
+         // after bug-814634 is landed
+         number = voicemail.number || voicemail.getNumber();
        }
        if (number) {
          CallHandler.call(number);
