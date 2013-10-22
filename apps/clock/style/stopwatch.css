@@ -34,6 +34,7 @@
 
   background-color: transparent;
   background-image: none;
+  overflow-y: auto;
 }
 
 .stopwatch-laps li.lap-cell {
