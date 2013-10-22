@@ -102,15 +102,13 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:last-ch
   z-index: 1;
 }
 
-/* Press state */
-form[role="dialog"][data-type="edit"] header button::-moz-focus-inner,
-form[role="dialog"][data-type="edit"] header button:active,
-form[role="dialog"][data-type="edit"] header button:hover,
-form[role="dialog"][data-type="edit"] header button:focus {
-  outline: none !important;
-  border: none !important;
+form[role="dialog"][data-type="edit"] button::-moz-focus-inner {
+  outline: none;
+  border: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
 }
 
+/* Press state */
 form[role="dialog"][data-type="edit"] header button:active:after,
 form[role="dialog"][data-type="edit"] header button:hover:after,
 form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button:hover,
