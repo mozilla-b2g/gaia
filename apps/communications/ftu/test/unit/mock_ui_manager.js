@@ -17,6 +17,7 @@ var MockUIManager = {
     'pin-input',
     'fake-pin-input',
     'pin-error',
+    'back-sim-button',
     'skip-pin-button',
     'unlock-sim-button',
     // PUK Screen

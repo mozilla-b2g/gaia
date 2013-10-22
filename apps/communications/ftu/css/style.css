@@ -274,14 +274,6 @@ a {
     pointer-events: none;
 }
 
-#skip-pin-button.send-only {
-     display:none;
-}
-
-#unlock-sim-button.send-only  {
-  width: 100%;
-}
-
 #hidden-wifi-authentication input[type="password"] {
   pointer-events: auto;
 }
