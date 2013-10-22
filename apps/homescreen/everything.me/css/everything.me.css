@@ -3,30 +3,29 @@
 }
 
 #evme-activation-icon {
-  position: absolute;
-  top: 3.2rem;
-  left: 1.1rem;
-  right: 1.1rem;
+  background: rgba(0, 0, 0, 0.4);
+  height: 5rem;
+  width: 100%;
   z-index: 200;
-  vertical-align: middle;
 }
   #evme-activation-icon input {
-    position: relative;
+    height: 100%;
     width: 100%;
-    height: 3.6rem;
-    line-height: 3.6rem;
-    padding: 0.2rem 1.8rem 0.4rem 0.8rem;
-    border-radius: 0.2rem;
-    box-shadow: 0.1rem 0.1rem 0 0 #ccc inset, 0 0 0 0.1rem rgba(0, 0, 0, .3);
-    font-size: 1.5rem;
-    vertical-align: middle;
     border: none;
-    display: inline;
-    -moz-box-sizing: border-box;
-    background: #ffffff url('/everything.me/images/search-icon.png') 98% 50% no-repeat;
-    background-size: 1.6rem 1.6rem;
+    padding: 0;
+    background: url('/everything.me/images/search-icon.png') 97% 50% no-repeat transparent;
+    background-size: 3rem;
+    font-size: 1.9rem;
+    text-indent: 1.3rem;
+    color: #eee;
+    font-weight: 300;
   }
 
+  #evme-activation-icon input::-moz-placeholder {
+    color: #eee;
+    font-style: italic;
+    font-weight:  300;
+  }
 
 .evme-loaded #evmeContainer {
   display: block;
