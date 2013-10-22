@@ -218,11 +218,11 @@ var Navigation = {
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
-      UIManager.unlockSimButton.classList.add('send-only');
-      UIManager.skipPinButton.classList.add('send-only');
-    }else {
-      UIManager.unlockSimButton.classList.remove('send-only');
-      UIManager.skipPinButton.classList.remove('send-only');
+      UIManager.skipPinButton.classList.add('hidden');
+      UIManager.backSimButton.classList.remove('hidden');
+    } else {
+      UIManager.skipPinButton.classList.remove('hidden');
+      UIManager.backSimButton.classList.add('hidden');
     }
 
     // Managing options button

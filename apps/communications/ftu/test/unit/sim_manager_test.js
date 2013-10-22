@@ -20,7 +20,7 @@ suite('sim mgmt >', function() {
   var realL10n,
       realMozMobileConnection;
   var mocksHelper = mocksHelperForSimManager;
-  var conn, container;
+  var conn, container, navigationSpy;
 
   setup(function() {
     createDOM();
@@ -34,6 +34,9 @@ suite('sim mgmt >', function() {
     mocksHelper.setup();
     SimManager.init();
     conn = navigator.mozMobileConnection;
+
+    UIManager.activationScreen.classList.remove('show');
+    UIManager.unlockSimScreen.classList.add('show');
   });
 
   teardown(function() {
@@ -45,10 +48,12 @@ suite('sim mgmt >', function() {
 
     container.parentNode.removeChild(container);
     mocksHelper.teardown();
+    navigationSpy.reset();
   });
 
   suiteSetup(function() {
     mocksHelper.suiteSetup();
+    navigationSpy = sinon.spy(Navigation, 'back');
   });
 
   suiteTeardown(function() {
@@ -57,6 +62,13 @@ suite('sim mgmt >', function() {
 
   test('"Skip" hides the screen', function() {
     SimManager.skip();
+    assert.isTrue(UIManager.activationScreen.classList.contains('show'));
+    assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
+  });
+
+  test('"Back" hides the screen', function() {
+    SimManager.back();
+    assert.ok(navigationSpy.calledOnce);
     assert.isTrue(UIManager.activationScreen.classList.contains('show'));
     assert.isFalse(UIManager.unlockSimScreen.classList.contains('show'));
   });
@@ -309,6 +321,7 @@ suite('sim mgmt >', function() {
     ' </menu>' +
     ' <h1 id="main-title"></h1>' +
     '</header>' +
+    '<ol id="progress-bar" class="step-state"></ol>' +
     '<section id="activation-screen"></section>' +
     // Import from SIM
     '<button id="sim-import-button">' +
@@ -384,6 +397,10 @@ suite('sim mgmt >', function() {
     '   <button id="skip-pin-button" class="button-left">' +
     '     Skip' +
     '   </button>' +
+    '   <button id="back-sim-button" class="button-left back hidden" ' +
+    '   data-l10n-id="back">' +
+    '     Back' +
+    '  </button>' +
     '   <button id="unlock-sim-button" class="recommend">' +
     '     Send' +
     '   </button>' +
