@@ -6,7 +6,6 @@ html, body {
 ul, ol {
   margin: 0;
   padding: 0;
-  overflow: auto;
   list-style: none;
 }
 
@@ -50,13 +49,16 @@ ul, ol {
 
 /* ----------- Alarm List ---------- */
 #alarms {
+  position: absolute;
+  bottom: 0rem;
+
   width: 100%;
   height: auto;
   max-height: calc(100% - 22rem);
-  position: absolute;
-  bottom: 0rem;
+
   background-color: transparent;
   background-image: none;
+  overflow-y: auto;
 }
 
 ul#alarms li.alarm-cell:before {
