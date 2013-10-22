@@ -84,7 +84,6 @@ var ClockView = {
     return this.container =
       document.getElementById('analog-clock-container');
   },
-
   isInitialized: false,
 
   init: function cv_init() {
@@ -171,7 +170,6 @@ var ClockView = {
     this.setTransform('second', sec);
     this.setTransform('minute', min);
     this.setTransform('hour', hour);
-    console.log(hour);
     // update again in one second
     this.timeouts.analog = setTimeout(
       this.updateAnalogClock.bind(this), 1000 - now.getMilliseconds()
