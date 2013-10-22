@@ -13,15 +13,11 @@
     "120": "/style/icons/Uitest.png"
   },
   "permissions": {
-    "power":{},
     "backgroundservice":{},
     "attention":{},
     "contacts":{ "access": "readwrite" },
     "settings":{ "access": "readwrite" },
     "desktop-notification":{},
-    "device-storage:sdcard":{ "access": "readonly" },
-    "settings":{ "access": "readwrite" },
-    "audio-capture": {},
-    "bluetooth":{}
+    "device-storage:pictures":{ "access": "readwrite" }
   }
 }

@@ -17,10 +17,6 @@ body {
   overflow: hidden;
 }
 
-.invisible {
-  display: none;
-}
-
 .panel {
   position: absolute;
   display: block;
@@ -30,22 +26,22 @@ body {
   top: 0;
 }
 
-.test-panel {
+#test-panel {
   -moz-transform: translateX(100%);
 }
 
-.selection-panel{
+#tests {
   -moz-transform: translateX(0);
 }
 
-body.test .selection-panel{
+body.test #test-panel {
+  -moz-transform: translateX(0);
+}
+
+body.test #tests {
   -moz-transform: translateX(-100%);
 }
 
-body.test .test-panel {
-  -moz-transform: translateX(0);
-}
-	
 .toolbar {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -65,6 +61,21 @@ body.test .test-panel {
   height: 64px;
   border-bottom: solid 3px #9b9b9b;
 }
+
+.list {
+  position: absolute;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  -moz-user-select: none;
+
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+
 .toolbar-title {
   font-size: 26px;
   font-weight: bold;
@@ -78,24 +89,13 @@ body.test .test-panel {
   white-space: nowrap;
 }
 
-.list {
-  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-  margin: 0;
-  padding: 0;
-
-  position: absolute;
-  top: 64px;
-  bottom: 3rem;
-  left: 0;
-  right: 0;
-  overflow-y: auto;
-  -moz-user-select: none;
-
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
+#test-list {
+    background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
+    margin: 0;
+    padding: 0;
 }
 
-.list > li {
+#test-list > li {
   -moz-box-sizing: border-box;
   height: 56px;
   padding: 4px 16px;
@@ -107,7 +107,7 @@ body.test .test-panel {
   font-weight: 600;
 }
 
-.list > li > a {
+#test-list > li > a {
   display: block;
   outline: none;
   width: 100%; height: 100%;
@@ -115,7 +115,7 @@ body.test .test-panel {
   text-decoration: none;
 }
 
-.list > li:active {
+#test-list > li:active {
   background: hsla(35,100%,50%,.2);
 }
 

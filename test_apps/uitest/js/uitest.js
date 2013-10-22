@@ -1,19 +1,11 @@
 'use stricts';
 
 var UITest = {
-  get UItests() {
-    delete this.UItests;
-    return this.UItests = document.getElementById('UI-tests');
+  get testList() {
+    delete this.testList;
+    return this.testList = document.getElementById('test-list');
   },
-  get APItests() {
-    delete this.APItests;
-    return this.APItests = document.getElementById('API-tests');
-  },
-  get HWtests() {
-    delete this.HWtests;
-    return this.HWtests = document.getElementById('HW-tests');
-  },
- get iframe() {
+  get iframe() {
     delete this.iframe;
     return this.iframe = document.getElementById('test-iframe');
   },
@@ -38,6 +30,7 @@ var UITest = {
     };
   },
   init: function ut_init() {
+    this.testList.addEventListener('click', this);
     this.iframe.addEventListener('load', this);
     this.iframe.addEventListener('unload', this);
     document.body.addEventListener('transitionend', this);
@@ -53,6 +46,7 @@ var UITest = {
       this.openTest(name);
   },
   uninit: function ut_uninit() {
+    this.testList.removeEventListener('click', this);
     this.iframe.removeEventListener('load', this);
     this.iframe.removeEventListener('unload', this);
     document.body.removeEventListener('transitionend', this);
@@ -80,40 +74,13 @@ var UITest = {
         this.iframe.contentWindow.removeEventListener('keyup', this);
         break;
       case 'hashchange':
-        if (window.location.hash == '#UI')
-        {
-          this.UItests.classList.remove('invisible');
-          if (!this.HWtests.classList.contains('invisible'))
-            this.HWtests.classList.add('invisible');
-          if (!this.APItests.classList.contains('invisible'))
-            this.APItests.classList.add('invisible');
+        var name = this.getNameFromHash();
+        if (!name) {
+          this.closeTest();
+          return;
         }
-        else if (window.location.hash == '#API')
-        {
-          this.APItests.classList.remove('invisible');
-          if (!this.UItests.classList.contains('invisible'))
-            this.UItests.classList.add('invisible');
-          if (!this.HWtests.classList.contains('invisible'))
-            this.HWtests.classList.add('invisible');
-        }
-        else if (window.location.hash == '#HW')
-        {
-          this.HWtests.classList.remove('invisible');
-          if (!this.UItests.classList.contains('invisible'))
-            this.UItests.classList.add('invisible');
-          if (!this.APItests.classList.contains('invisible'))
-            this.APItests.classList.add('invisible');
-        }
-        else
-        {
-          var name = this.getNameFromHash();
-          if (!name) {
-            this.closeTest();
-            return;
-          }
-          this.panelTitle.textContent = name;
-          this.openTest(name);
-        }
+        this.panelTitle.textContent = name;
+        this.openTest(name);
         break;
       case 'transitionend':
         var name = this.getNameFromHash();
@@ -127,7 +94,7 @@ var UITest = {
 
     var self = this;
     window.setTimeout(function openTestPage() {
-      self.iframe.src = './tests_html/' + name + '.html';
+      self.iframe.src = './tests/' + name + '.html';
     }, 200);
   },
   closeTest: function ut_closeTest() {
@@ -139,4 +106,4 @@ var UITest = {
   }
 };
 
-window.addEventListener('load', UITest.init.bind(UITest));
+window.onload = UITest.init.bind(UITest);
