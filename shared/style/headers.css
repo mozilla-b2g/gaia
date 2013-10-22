@@ -138,14 +138,11 @@ section[role="region"] > header:first-child button {
 
 
 /* Pressed state */
-section[role="region"] > header:first-child a::-moz-focus-inner,
-section[role="region"] > header:first-child button::-moz-focus-inner,
-section[role="region"] > header:first-child a:active,
-section[role="region"] > header:first-child button:active,
-section[role="region"] > header:first-child a:focus,
-section[role="region"] > header:first-child button:focus {
-  outline: none !important;
-  border: none !important;
+section[role="region"] > header:first-child button::-moz-focus-inner {
+  outline: none;
+  border: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
+  padding: 0;
 }
 
 section[role="region"] > header:first-child > a:not([aria-disabled="true"]):active:after,
@@ -241,11 +238,6 @@ section[role="region"] > header:first-child > a:after {
   width: 3.2rem;
   height: 4.9rem;
   background: url(headers/images/ui/separator.png) no-repeat right center / 0.2rem 4.8rem;
-}
-
-section[role="region"] > header:first-child > button::-moz-focus-inner {
-  border: 0;
-  padding: 0;
 }
 
 section[role="region"] > header:first-child > button .icon,
