@@ -45,8 +45,7 @@ window.ContactsCleaner = function(contacts) {
   };
 
   this.performClean = function(contact, number, cbs) {
-    var theContact = new mozContact(contact);
-    var req = navigator.mozContacts.remove(theContact);
+    var req = navigator.mozContacts.remove(contact);
     req.number = number;
     req.onsuccess = cbs.success;
     req.onerror = function(e) {
