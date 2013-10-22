@@ -308,16 +308,19 @@ a {
   #SIM_mandatory
 */
 #SIM_mandatory {
-  padding: 1.5rem 3rem 0 3rem;
-  width: calc(100% - 6rem);
+  background: url(images/bg_nosim.png) no-repeat center center / 20rem;
+  padding: 7rem 2rem 0px;
+  overflow: hidden;
 }
 
 #SIM_mandatory p {
   margin: 0;
-  color: #000;
-  padding: 0 0 2rem 0;
-  font-size: 1.35rem;
-  line-height: 1.8rem;
+  color: #606060;
+  font-weight: lighter;
+  padding: 0 1rem 1rem;
+  font-size: 2.2rem;
+  line-height: 3rem;
+  border-bottom: 0.1rem solid rgba(96, 96, 96, 0.5);
 }
 
 /*
