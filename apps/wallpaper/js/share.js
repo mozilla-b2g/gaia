@@ -37,7 +37,9 @@ window.onload = function() {
 
       scale = Math.max(scalex, scaley);
 
-      previewImage.width = previewImage.width * scale;
+      // The width is unsigned long. When assigning to width, we need to round
+      // off the value to prevent the round down problem of height.
+      previewImage.width = Math.round(previewImage.width * scale);
 
       limitX = window.innerWidth - previewImage.width;
       limitY = window.innerHeight - previewImage.height;
@@ -76,14 +78,25 @@ window.onload = function() {
 
   function scaleImage() {
       var canvas = document.createElement('canvas');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      // To have an image which matches the device pixel, we need to multiply
+      // window.devicePixelRatio.
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
       var ctx = canvas.getContext('2d');
 
-      var w = Math.round(canvas.width / scale);
-      var h = Math.round(canvas.height / scale);
+      var w = Math.round(window.innerWidth / scale);
+      var h = Math.round(window.innerHeight / scale);
       var x = Math.round(-1 * posX / scale);
       var y = Math.round(-1 * posY / scale);
+
+      if (x < 0) {
+        x = 0;
+        console.error('The value of x shouldn\'t be negative.');
+      }
+      if (y < 0) {
+        y = 0;
+        console.error('The value of y shouldn\'t be negative.');
+      }
 
       ctx.drawImage(
         previewImage,
