@@ -1,5 +1,8 @@
 'use strict';
 
 var MockMozVoicemail = {
-  number: null
+  _number: null,
+  getNumber: function() {
+    return this._number;
+  }
 };
