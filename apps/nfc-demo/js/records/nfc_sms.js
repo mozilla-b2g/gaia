@@ -17,8 +17,9 @@ createSmsNdefRecord: function(sms) {
 
   // Payload:
   var prefix = 0x00; // No Prefix.
-  var payload = String.fromCharCode(prefix) + 'sms:' + sms.phoneNumber +
+  var payloadUtf8 = String.fromCharCode(prefix) + 'sms:' + sms.phoneNumber +
                 '?body=' + sms.message;
+  var payload = nfc.fromUTF8(payloadUtf8);
 
   var record = new MozNdefRecord(
     tnf,

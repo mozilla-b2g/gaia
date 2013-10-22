@@ -38,8 +38,9 @@ createEmailNdefRecord: function(aEmail, aTitle, aAction) {
   var actionRec = this.createActionRecord(aAction);
   var titleRec = this.createTitleRecord(aTitle);
 
-  payload = uriRec + actionRec + titleRec;
-
+  var payloadUtf8 = uriRec + actionRec + titleRec;
+  payload = nfc.fromUTF8(payloadUtf8);
+  
   var main = new MozNdefRecord(
     tnf,
     type,
