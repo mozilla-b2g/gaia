@@ -17,12 +17,9 @@ class TestSmsAddContact(GaiaTestCase):
         _text_message_content = "Automated Test %s" % str(time.time())
 
         # insert contact
-        self.contact = MockContact(
-            tel={
-                'type': 'Mobile',
-                'value': self.testvars['carrier']['phone_number']
-            }
-        )
+        self.contact = MockContact(tel=[{
+            'type': ['Mobile'],
+            'value': "%s" % self.testvars['carrier']['phone_number']}])
         self.data_layer.insert_contact(self.contact)
 
         self.messages = Messages(self.marionette)
@@ -31,10 +28,10 @@ class TestSmsAddContact(GaiaTestCase):
         new_message = self.messages.tap_create_new_message()
         contacts_app = new_message.tap_add_recipient()
         contacts_app.wait_for_contacts()
-        contacts_app.contact(self.contact['givenName']).tap(return_details=False)
+        contacts_app.contact(self.contact['givenName'][0]).tap(return_details=False)
         self.messages.switch_to_messages_frame()
 
-        self.assertIn(self.contact['givenName'], new_message.first_recipient_name)
+        self.assertIn(self.contact['givenName'][0], new_message.first_recipient_name)
 
         new_message.type_message(_text_message_content)
 
