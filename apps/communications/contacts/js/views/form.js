@@ -443,7 +443,8 @@ contacts.Form = (function() {
       request = fbContact.remove();
       request.onsuccess = deleteSuccess;
     } else {
-      var theContact = new mozContact(contact);
+      var theContact = (contact instanceof mozContact) ?
+                       contact : new mozContact(contact);
       request = navigator.mozContacts.remove(theContact);
       request.onsuccess = deleteSuccess;
     }

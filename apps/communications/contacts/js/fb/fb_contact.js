@@ -589,7 +589,9 @@ fb.Contact = function(deviceContact, cid) {
       mozContactsReq.onsuccess = function(e) {
         // The FB contact on mozContacts needs to be removed
         if (fbFriend.mozContact && !fb.isFbLinked(fbFriend.mozContact)) {
-          var theContact = new mozContact(fbFriend.mozContact);
+          var theContact = (fbFriend.mozContact instanceof mozContact) ?
+                           fbFriend.mozContact :
+                           new mozContact(fbFriend.mozContact);
           var deleteReq = navigator.mozContacts.remove(theContact);
 
           deleteReq.onsuccess = function(e) {

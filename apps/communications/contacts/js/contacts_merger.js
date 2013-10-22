@@ -210,7 +210,10 @@ contacts.Merger = (function() {
       matchingContacts.forEach(function(aMatchingContact) {
         // Only remove those contacts which are already in the DB
         if (aMatchingContact.matchingContact.id) {
-          var contact = new mozContact(aMatchingContact.matchingContact);
+          var contact = aMatchingContact.matchingContact;
+          if (!(contact instanceof mozContact)) {
+            contact = new mozContact(contact);
+          }
           navigator.mozContacts.remove(contact);
         }
       });
