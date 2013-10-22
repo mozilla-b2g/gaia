@@ -1165,3 +1165,52 @@ i.hack-first-child {
   background: #FFFFFF;
 }
 
+/**
+ * Firefox accounts
+ */
+
+.ff_account {
+  font-size: 1.5rem;
+}
+
+.ff_account--wrapper {
+  max-width: 280px;
+  padding: 2rem 0 0 0;
+  margin: 0 auto;
+}
+
+.ff_account--logo {
+  width: 314px;
+  height: 215px;
+  margin: 0 auto 1rem;
+  background: url('images/ff_account_logo.png') no-repeat;
+}
+
+.ff_account--logo__small {
+  width: 104px;
+  height: 70px;
+  background-size: 104px
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  margin-left: -57px;
+}
+
+.ff_account--label {
+  display: inline-block;
+  margin-bottom: .55rem;
+}
+
+.ff_account-enter-email--input {
+  margin-bottom: 0.25rem;
+}
+
+.ff_account--small {
+  font-size: 1.05rem;
+  line-height: 1.5rem;
+}
+
+.ff_account a {
+  color: #67A7D0;
+  text-decoration: none;
+}

@@ -20,25 +20,40 @@ var steps = {
   },
   4: {
     onlyForward: false,
-    hash: '#date_and_time',
+    hash: '#ff_account',
     requireSIM: false
   },
   5: {
     onlyForward: false,
-    hash: '#geolocation',
+    hash: '#ff_account_enter_email',
     requireSIM: false
   },
   6: {
     onlyForward: false,
-    hash: '#import_contacts',
+    hash: '#ff_account_enter_password',
     requireSIM: false
   },
   7: {
     onlyForward: false,
-    hash: '#welcome_browser',
+    hash: '#date_and_time',
     requireSIM: false
   },
   8: {
+    onlyForward: false,
+    hash: '#geolocation',
+    requireSIM: false
+  },
+  9: {
+    onlyForward: false,
+    hash: '#import_contacts',
+    requireSIM: false
+  },
+  10: {
+    onlyForward: false,
+    hash: '#welcome_browser',
+    requireSIM: false
+  },
+  11: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -172,6 +187,12 @@ var Navigation = {
         break;
       case '#geolocation':
         UIManager.mainTitle.innerHTML = _('geolocation');
+        break;
+      case '#ff_account':
+        UIManager.mainTitle.innerHTML = _('ff-account');
+        break;
+      case '#ff_account-enter-email':
+        UIManager.mainTitle.innerHTML = _('ff-account');
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');

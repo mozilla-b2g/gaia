@@ -149,6 +149,7 @@
       <li>SIM_mandatory</li>
       <li>3g</li>
       <li>wifi</li>
+      <li>firefox accounts</li>
       <li>configure network</li>
       <li>date and time</li>
       <li>geolocation</li>
@@ -189,6 +190,42 @@
               Join hidden network
           </button>
         </div>
+      </section>
+      <section role="region" id="ff_account" class="ff_account">
+        <div class="ff_account--logo"></div>
+        <div class="ff_account--wrapper">
+          <p id="ff_account--explanation" data-l10n-id="ff-account-explanation"></p>
+        </div>
+      </section>
+      <section role="region" id="ff_account_enter_email" class="ff_account">
+        <div class="ff_account--logo"></div>
+        <div class="ff_account--wrapper">
+          <form>
+            <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
+            <input type="email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account-enter-email--input"/>
+            <p class="ff_account--small">
+                By proceeding, you agree to our <a href="#" class="ff_account--small">Terms of Service</a> and <a href="#" class="ff_account--small">Privacy Policy</a>.
+            </p>
+          </form>
+        </div>
+      </section>
+      <section role="region" id="ff_account_enter_password" class="ff_account">
+        <div class="ff_account--wrapper">
+          <h2 data-l10n-id="ff-account-enter-password"></h2>
+          <h3 data-l10n-id="ff-account-hello"></h3>
+          <input type="password" placeholder="enter your password" />
+          <a href="#" data-l10n-id="ff-account-forgot-password"></a>
+          <p>
+            <label for="ff-account--hide-password" data-l10n-id="ff-account-hide-password">
+              <input type="checkbox" />
+            </label>
+          </p>
+          <p>
+            <div class="ff_account--logo ff_account--logo__small"></div>
+          </p>
+        </div>
+      </section>
+      <section role="region" id="ff_account_create_password" class="ff_account">
       </section>
       <section role="region" id="configure_network">
         <section id="configure_network_params">
