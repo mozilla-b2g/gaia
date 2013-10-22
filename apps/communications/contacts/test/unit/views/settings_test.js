@@ -15,6 +15,7 @@ requireApp('communications/contacts/test/unit/mock_wakelock.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/views/settings.js');
+requireApp('communications/contacts/js/utilities/cookie.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 
 if (!this._) this._ = null;

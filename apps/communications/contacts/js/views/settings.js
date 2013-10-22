@@ -64,7 +64,8 @@ contacts.Settings = (function() {
 
   // Get the different values that we will show in the app
   var getData = function getData() {
-    var order = document.cookie ? JSON.parse(document.cookie).order : false;
+    var config = utils.cookie.load();
+    var order = config ? config.order : false;
     orderByLastName = order;
     newOrderByLastName = null;
     updateOrderingUI();
@@ -580,7 +581,7 @@ contacts.Settings = (function() {
   // Listens for any change in the ordering preferences
   var onOrderingChange = function onOrderingChange(evt) {
     newOrderByLastName = !orderCheckBox.checked;
-    document.cookie = JSON.stringify({order: newOrderByLastName});
+    utils.cookie.update({order: newOrderByLastName});
     updateOrderingUI();
   };
 
