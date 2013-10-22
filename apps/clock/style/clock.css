@@ -41,9 +41,7 @@ html, body {
 
 #clock-day-date {
   position: absolute;
-  
   margin: 2.6rem 0 0 1.5rem;
-
   font-family: 'Fira Sans', sans-serif;
   font-weight: lighter;
   font-size: 2.1rem;
@@ -156,7 +154,7 @@ html, body {
   background-image: url('images/analog_clock_hour_hand.svg');
 }
 
-/* banner */
+/* banner*/
 #banner-countdown {
   z-index: -1;
   opacity: 0;
