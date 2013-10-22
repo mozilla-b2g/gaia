@@ -171,6 +171,7 @@ var ClockView = {
     this.setTransform('second', sec);
     this.setTransform('minute', min);
     this.setTransform('hour', hour);
+    console.log(hour);
     // update again in one second
     this.timeouts.analog = setTimeout(
       this.updateAnalogClock.bind(this), 1000 - now.getMilliseconds()
@@ -192,7 +193,7 @@ var ClockView = {
     }
     // Use transform rotate on the rect itself vs on a child element
     // avoids unexpected behavior if either dur and fill are set to defaults
-    hand.setAttribute('transform', 'rotate(' + conv(angle) + ',135,135)');
+    hand.style.transform = 'rotate(' + conv(angle - 90) + 'deg)';
   },
 
   handleEvent: function cv_handleEvent(event) {
