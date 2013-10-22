@@ -112,7 +112,6 @@ html, body {
    https://developer.mozilla.org/en-US/docs/Web/CSS/padding */
 #analog-clock-face {
   position: relative;
-  /*padding-top: 3.9%; /* to account for the tall clock face tick mark */
   width: 100%;
   height: 100%;
   background-image: url('images/analog_clock_face.svg');
@@ -128,34 +127,25 @@ html, body {
   margin-top: 1.5%; /* to correctly snap the hands to the face */
 }
 
-#secondhand {
+.analog-clock-hand {
   position: absolute;
   z-index: 2;
   width: 100%;
   height: 100%;
-  background-image: url('images/analog_clock_second_hand.svg');
   background-repeat: no-repeat;
   background-size: 100% 100%;
+}
+
+#secondhand {
+  background-image: url('images/analog_clock_second_hand.svg');
 }
 
 #minutehand {
-  position: absolute;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
   background-image: url('images/analog_clock_minute_hand.svg');
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
 }
 
 #hourhand {
-  position: absolute;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
   background-image: url('images/analog_clock_hour_hand.svg');
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
 }
 
 /* banner */
