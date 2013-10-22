@@ -487,7 +487,7 @@ var Browser = {
 
   handleScroll: function browser_handleScroll(evt) {
     var oldScrollOffset = this.lastScrollOffset,
-        ADDRESS_BAR_TRIGGER_DISTANCE = -1 * evt.detail.height / 4; //Scroll up, at least by half of the screen
+        ADDRESS_BAR_TRIGGER_DISTANCE = -1 * evt.detail.height / 4; //Scroll up, at least by this much
     this.lastScrollOffset = evt.detail.top;
       
     if (evt.detail.top < this.LOWER_SCROLL_THRESHOLD || this.lastScrollOffset - oldScrollOffset < ADDRESS_BAR_TRIGGER_DISTANCE) {
