@@ -441,8 +441,7 @@ var fb = window.fb || {};
               req = fbContact.remove();
             }
             else {
-              var theContact = new mozContact(contact);
-              var req = navigator.mozContacts.remove(theContact);
+              var req = navigator.mozContacts.remove(contact);
             }
           }
           req.number = number;
