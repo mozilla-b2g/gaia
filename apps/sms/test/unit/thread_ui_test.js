@@ -2577,6 +2577,7 @@ suite('thread_ui.js >', function() {
       var contact = new MockContact();
       var html;
       contact.photo = testImageBlob;
+      contact.photo[0] = testImageBlob;
 
       ThreadUI.renderContact({
         contact: contact,
@@ -2597,6 +2598,7 @@ suite('thread_ui.js >', function() {
       var contact = new MockContact();
       var html;
       contact.photo = testImageBlob;
+      contact.photo[0] = testImageBlob;
 
       ThreadUI.renderContact({
         contact: contact,
@@ -2633,6 +2635,8 @@ suite('thread_ui.js >', function() {
       suite('prompt', function() {
         test('Single known', function() {
 
+          var contact = new MockContact();
+
           Threads.set(1, {
             participants: ['999']
           });
@@ -2641,12 +2645,32 @@ suite('thread_ui.js >', function() {
 
           ThreadUI.prompt({
             number: '999',
+            contactId: contact.id,
             isContact: true
           });
 
-          assert.equal(MockOptionMenu.calls.length, 0);
-          assert.ok(MockActivityPicker.dial.called);
-          assert.equal(MockActivityPicker.dial.calledWith, '999');
+          assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the phone number to diplay
+          assert.equal(call.header, '999');
+
+          // Only known Contact details should appear in the "section"
+          assert.equal(call.section, '');
+
+          assert.equal(items.length, 3);
+
+          // The first item is a "call" option
+          assert.equal(items[0].l10nId, 'call');
+
+          // The second item is a "viewContact" option
+          assert.equal(items[1].l10nId, 'viewContact');
+
+          // The fourth and last item is a "cancel" option
+          assert.equal(items[2].l10nId, 'cancel');
         });
 
         test('Single unknown (phone)', function() {
@@ -2818,11 +2842,12 @@ suite('thread_ui.js >', function() {
 
           ThreadUI.onHeaderActivation();
 
-          // Does not initiate an OptionMenu
-          assert.equal(MockOptionMenu.calls.length, 0);
+          var calls = MockOptionMenu.calls;
 
-          // Does initiate a "call" activity
-          assert.equal(MockActivityPicker.dial.called, 1);
+          assert.equal(calls.length, 1);
+          assert.equal(calls[0].header, '+12125559999');
+          assert.equal(calls[0].items.length, 3);
+          assert.equal(typeof calls[0].complete, 'function');
         });
 
         test('Single unknown', function() {

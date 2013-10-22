@@ -843,7 +843,7 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   background: white;
 }
 
-ul.contact-prompt {
+.contact-prompt {
   position: relative;
   z-index: 5;
   overflow-y: auto;
@@ -862,19 +862,26 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
   padding-left: 2rem 2.5rem 0 2.5rem;
 }
 
-ul.contact-prompt .number{
+.contact-prompt .number{
   font-size: 1.5rem;
   margin-top: 0.5rem;
 }
 
-ul.contact-prompt .name{
+.contact-prompt .name{
   font-size: 2.3rem;
   line-height: 2.5rem;
 }
 
+.contact-prompt img {
+  float: right;
+  margin: 0.5rem 1.5rem 0.5rem 0;
+  width: 6rem;
+  height: 6rem;
+}
+
 body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
   text-align: left;
-  padding: 1.5rem 2rem;
+  padding: 0rem 2rem;
   font-size: 2.3rem;
   font-weight: lighter;
 }
