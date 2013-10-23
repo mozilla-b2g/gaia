@@ -4,7 +4,17 @@ Evme.IconManager = new function Evme_IconManager() {
   var NAME = 'IconManager',
       self = this,
       _prefix = '_icon',
+      timeoutUpdateStorage,
+      // this will save an object with all the cached icons' data
+      savedIconsKeys = {},
+      _iconsKey = 'savedIconsKeys',
       CACHE_VERSION = '2.6';
+
+  this.init = function init() {
+    Evme.Storage.get(_iconsKey, function fromCache(value) {
+      savedIconsKeys = value || {};
+    });
+  };
 
   this.add = function add(id, icon, iconsFormat) {
     if (!icon) {
@@ -19,8 +29,11 @@ Evme.IconManager = new function Evme_IconManager() {
     }
 
     self.get(id, function fromCache(iconFromCache) {
-      if (!iconFromCache || iconFromCache.format < iconsFormat) {
+      if (!iconFromCache ||
+            iconFromCache.format < iconsFormat ||
+            iconFromCache.revision < icon.revision) {
         Evme.Storage.set(_prefix + id, icon);
+        addToGlobalKey(icon);
         Evme.EventHandler.trigger(NAME, 'iconAdded', icon);
       }
     });
@@ -37,6 +50,25 @@ Evme.IconManager = new function Evme_IconManager() {
   this.get = function get(id, callback) {
     Evme.Storage.get(_prefix + id, callback);
   };
+
+  this.getKeys = function getKeys() {
+    return savedIconsKeys;
+  };
+
+  function addToGlobalKey(icon) {
+    window.clearTimeout(timeoutUpdateStorage);
+
+    savedIconsKeys[icon.id] = {
+      id: icon.id,
+      format: icon.format,
+      revision: icon.revision
+    };
+
+    // used to not "bomb" the storage with inserts
+    timeoutUpdateStorage = window.setTimeout(function updateStorage() {
+      Evme.Storage.set(_iconsKey, savedIconsKeys);
+    }, 100);
+  }
 }
 
 Evme.IconGroup = new function Evme_IconGroup() {
