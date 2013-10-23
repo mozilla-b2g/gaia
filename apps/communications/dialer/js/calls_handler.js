@@ -16,7 +16,6 @@ var CallsHandler = (function callsHandler() {
 
   var displayed = false;
   var closing = false;
-  var animating = false;
   var ringing = false;
 
   /* === Settings === */
@@ -308,11 +307,8 @@ var CallsHandler = (function callsHandler() {
   /* === Call Screen === */
   function toggleScreen() {
     displayed = !displayed;
-    animating = true;
 
     CallScreen.toggle(function transitionend() {
-      animating = false;
-
       // We did animate the call screen off the viewport
       // now closing the window.
       if (!displayed) {
@@ -338,9 +334,8 @@ var CallsHandler = (function callsHandler() {
 
     postToMainWindow('closing');
 
-
     // If the screen is not displayed yet we close the window directly
-    if (animate && !animating && displayed) {
+    if (animate && displayed) {
       toggleScreen();
     } else {
       closeWindow();

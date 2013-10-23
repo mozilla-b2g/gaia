@@ -139,15 +139,6 @@
     transform: translateY(0);
   }
 
-  #call-screen[data-layout="incoming-locked"] {
-    opacity: 0;
-    transition: opacity 1s ease;
-  }
-
-  #call-screen[data-layout="incoming-locked"].displayed {
-    opacity: 1;
-  }
-
   #call-screen:before {
     background: url("images/mask.png") no-repeat scroll 50% 50% / cover transparent;
   }

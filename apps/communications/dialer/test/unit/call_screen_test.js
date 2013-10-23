@@ -226,6 +226,30 @@ suite('call screen', function() {
         });
       });
     });
+
+    suite('when opening in incoming-locked mode', function() {
+      var addEventListenerSpy;
+      var spyCallback;
+
+      setup(function() {
+        CallScreen.screen.dataset.layout = 'incoming-locked';
+        addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+        spyCallback = this.sinon.spy();
+
+        CallScreen.toggle(spyCallback);
+      });
+
+      test('should not listen for transitionend', function() {
+        assert.isFalse(addEventListenerSpy.called);
+      });
+
+      test('should call the callback', function(done) {
+        setTimeout(function() {
+          assert.isTrue(spyCallback.called);
+          done();
+        });
+      });
+    });
   });
 
   suite('toggleMute', function() {
