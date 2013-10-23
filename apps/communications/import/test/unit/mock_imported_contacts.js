@@ -77,5 +77,41 @@ var MockImportedContacts = {
       ],
       'photo': ['test2.png']
     }
+    ,
+    {
+      'uid': '3cde',
+      'updated': new Date(),
+      'additionalName': [''],
+      'adr': [
+        {
+          'countryName': 'Spain',
+          'locality': 'Lugo',
+          'postalCode': '19034',
+          'streetAddress': 'Mallorca, 25'
+        }
+      ],
+      'bday': '1965-11-20',
+      'email': [
+        {
+          'type': 'Personal',
+          'value': 'test3@test3.com'
+        }
+      ],
+      'familyName': ['Lucca'],
+      'givenName': ['Ψoca'],
+      'jobTitle': [''],
+      'name': [
+        'Ψoca Lucca'
+      ],
+      'org': ['Testing'],
+      'tel': [
+        {
+          'value': '+34555666777',
+          'type': 'Mobile',
+          'carrier': 'TEF'
+        }
+      ],
+      'photo': ['test3.png']
+    }
   ]
 };
