@@ -13,6 +13,6 @@ class TestWiFi(GaiaTestCase):
         self.data_layer.connect_to_wifi()
         self.assertTrue(self.device.is_online)
         self.data_layer.forget_all_networks()
-        self.assertEqual(self.data_layer.known_networks, [{}])
+        self.assertEqual(len(self.data_layer.known_networks), 0)
         self.assertFalse(self.data_layer.is_wifi_connected())
         self.data_layer.disable_wifi()

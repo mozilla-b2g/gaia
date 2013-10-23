@@ -27,7 +27,7 @@ class LockScreen(object):
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('window.wrappedJSObject.LockScreen.locked')
+        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
 
     def lock(self):
         self.marionette.switch_to_frame()
@@ -312,7 +312,9 @@ class GaiaData(object):
 
     @property
     def known_networks(self):
-        return self.marionette.execute_async_script('return GaiaDataLayer.getKnownNetworks()')
+        known_networks = self.marionette.execute_async_script(
+            'return GaiaDataLayer.getKnownNetworks()')
+        return [n for n in known_networks if n]
 
     @property
     def active_telephony_state(self):
@@ -512,9 +514,7 @@ class GaiaTestCase(MarionetteTestCase):
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             self.device.stop_b2g()
             if self.device.is_android_build:
-                # revert device to a clean state
-                self.device.manager.removeDir('/data/local/storage/persistent')
-                self.device.manager.removeDir('/data/b2g/mozilla')
+                self.cleanup_data()
             self.device.start_b2g()
 
         # the emulator can be really slow!
@@ -526,16 +526,29 @@ class GaiaTestCase(MarionetteTestCase):
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
 
-        self.cleanUp()
+        if self.device.is_android_build:
+            self.cleanup_sdcard()
 
-    def cleanUp(self):
+        if self.restart:
+            self.cleanup_gaia(full_reset=False)
+        else:
+            self.cleanup_gaia(full_reset=True)
+
+    def cleanup_data(self):
+        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.manager.removeDir('/data/b2g/mozilla')
+
+    def cleanup_sdcard(self):
+        self.device.manager.shellCheckOutput(['rm', '-r', '/sdcard/*'])
+        self.device.manager.removeDir('/sdcard/.gallery')
+
+    def cleanup_gaia(self, full_reset=True):
         # remove media
         if self.device.is_android_build:
             for filename in self.data_layer.media_files:
-                # filename is a fully qualified path
                 self.device.manager.removeFile(filename)
 
-        # Switch off keyboard FTU screen
+        # switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
 
         # restore settings from testvars
@@ -544,24 +557,22 @@ class GaiaTestCase(MarionetteTestCase):
         # unlock
         self.lockscreen.unlock()
 
-        # If we are restarting all of these values are reset to default earlier in the setUp
-        if not self.restart:
-
-            # disable passcode before restore settings from testvars
+        if full_reset:
+            # disable passcode
             self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
             self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
 
-            # Change language back to English
+            # change language back to english
             self.data_layer.set_setting("language.current", "en-US")
 
-            # Switch off spanish keyboard before test
+            # switch off spanish keyboard
             self.data_layer.set_setting("keyboard.layouts.spanish", False)
 
-            # Set do not track pref back to the default
+            # reset do not track
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
             if self.data_layer.get_setting('ril.radio.disabled'):
-                # enable the device radio, disable Airplane mode
+                # enable the device radio, disable airplane mode
                 self.data_layer.set_setting('ril.radio.disabled', False)
 
             # Re-set edge gestures pref to False
