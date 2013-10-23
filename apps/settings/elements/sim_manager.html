@@ -1,0 +1,48 @@
+<element name="sim-manager" extends="section">
+  <template>
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="simManager">SIM cards manager</h1>
+    </header>
+
+    <div>
+      <ul>
+        <li>
+          <p data-l10n-id="sim-outgoing-call">Outgoing call</p>
+          <p data-l10n-id="sim-outgoing-call-desc" class="explanation">calls will be sent from</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="sim-outgoing-call-select">
+              <option value="sim1">SIM 1</option>
+              <option value="sim2">SIM 2</option>
+            </select>
+          </p>
+        </li>
+        <li>
+          <p data-l10n-id="sim-outgoing-messages">Outgoing messages</p>
+          <p data-l10n-id="sim-outgoing-messages-desc" class="explanation">SMS will be sent from</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="sim-outgoing-messages-select">
+              <option value="sim1">SIM 1</option>
+              <option value="sim2">SIM 2</option>
+            </select>
+          </p>
+        </li>
+        <li>
+          <p data-l10n-id="sim-outgoing-data">Data</p>
+          <p data-l10n-id="sim-outgoing-data-desc" class="explanation">Access Internet by</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select id="sim-outgoing-data-select">
+              <option value="sim1">SIM 1</option>
+              <option value="sim2">SIM 2</option>
+            </select>
+          </p>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/simcard_manager.js"></script>
+  </template>
+</element>
