@@ -158,6 +158,8 @@ function SimContactsImporter() {
 
       item.category = ['sim'];
 
+      var contact = new mozContact(item);
+
       var cbs = {
         onmatch: function(results) {
           var mergeCbs = {
@@ -169,10 +171,10 @@ function SimContactsImporter() {
           };
 
           contacts.adaptAndMerge(this, results, mergeCbs);
-        }.bind(item),
+        }.bind(contact),
         onmismatch: function() {
           saveContact(this);
-        }.bind(item)
+        }.bind(contact)
       };
 
       contacts.Matcher.match(item, 'passive', cbs);
@@ -180,8 +182,7 @@ function SimContactsImporter() {
   } // importSlice
 
 
-  function saveContact(item) {
-    var contact = new mozContact(item);
+  function saveContact(contact) {
     var req = window.navigator.mozContacts.save(contact);
       req.onsuccess = function saveSuccess() {
         continueCb();
