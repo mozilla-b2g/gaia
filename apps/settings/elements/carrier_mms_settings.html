@@ -30,14 +30,13 @@
         <li class="hint">
           <a data-l10n-id="auto-retrieve">Auto retrieve</a>
           <p class="explanation" data-l10n-id="auto-retrieve-details">automatically retieve messages</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
+          <span class="button icon icon-dialog">
             <select data-setting="ril.mms.retrieval_mode">
               <option value="manual" data-l10n-id="manual-retrieve">Off</option>
               <option value="automatic" data-l10n-id="auto-roaming-retrieve">On with roaming</option>
               <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve">On without roaming/option>
             </select>
-          </p>
+          </span>
         </li>
       </ul>
       <header>
@@ -90,8 +89,7 @@
         </li>
         <li>
           <p data-l10n-id="apn-authType">Authentication</p>
-          <p class="fake-select">
-            <button class="icon icon-dialog">empty</button>
+          <span class="button icon icon-dialog">
             <select id="ril-mms-authType" data-setting="ril.mms.authtype">
               <option value="notDefined" data-l10n-id="apn-authType-notDefined">Not defined</option>
               <option value="none" data-l10n-id="apn-authType-none">None</option>
@@ -99,7 +97,7 @@
               <option value="chap" data-l10n-id="apn-authType-chap">CHAP</option>
               <option value="papOrChap" data-l10n-id="apn-authType-papOrChap">PAP or CHAP</option>
             </select>
-          </p>
+          </span>
         </li>
       </ul>
     </div>
