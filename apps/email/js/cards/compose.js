@@ -628,10 +628,9 @@ ComposeCard.prototype = {
       function callback(error , badAddress, sentDate) {
         var activityHandler = function() {
           if (activity) {
-            // Define activity postResult return value here:
-            if (activity.source.name == 'share') {
-              activity.postResult('shared');
-            }
+            // Just mention the action completed, but do not give
+            // specifics, to maintain some privacy.
+            activity.postResult('complete');
             activity = null;
           }
         };
