@@ -148,7 +148,7 @@ var Settings = {
       if (!input)
         return;
 
-      switch (input.dataset.type || input.type) { // bug344618
+      switch (input.type) {
         case 'checkbox':
         case 'switch':
           if (input.checked == value)
@@ -159,9 +159,6 @@ var Settings = {
           if (input.value == value)
             return;
           input.value = value;
-          if (input.refresh) {
-            input.refresh(); // XXX to be removed when bug344618 lands
-          }
           break;
         case 'select':
           for (var i = 0; i < input.options.length; i++) {
@@ -277,11 +274,7 @@ var Settings = {
     // panel-specific initialization tasks
     switch (panel.id) {
       case 'display':             // <input type="range"> + brightness control
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
         this.updateDisplayPanel();
-        break;
-      case 'sound':               // <input type="range">
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
         break;
       case 'languages':           // fill language selector
         var langSel = document.querySelector('select[name="language.current"]');
@@ -430,9 +423,6 @@ var Settings = {
         var key = ranges[i].name;
         if (key && result[key] != undefined) {
           ranges[i].value = parseFloat(result[key]);
-          if (ranges[i].refresh) {
-            ranges[i].refresh(); // XXX to be removed when bug344618 lands
-          }
         }
       }
 
@@ -521,7 +511,7 @@ var Settings = {
 
   handleEvent: function settings_handleEvent(event) {
     var input = event.target;
-    var type = input.dataset.type || input.type; // bug344618
+    var type = input.type;
     var key = input.name;
 
     var settings = window.navigator.mozSettings;
