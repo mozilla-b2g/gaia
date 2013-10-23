@@ -84,6 +84,18 @@ var ActivityPicker = {
 
     tryActivity(params, onsuccess, onerror);
   },
+  viewContact:
+   function ap_viewContact(contactProps, onsuccess, onerror) {
+    var params = {
+      name: 'open',
+      data: {
+        type: 'webcontacts/contact',
+        params: contactProps
+      }
+    };
+
+    tryActivity(params, onsuccess, onerror);
+  },
   sendMessage: function ap_sendMessage(phone, onsuccess, onerror) {
     var params = {
       name: 'new',

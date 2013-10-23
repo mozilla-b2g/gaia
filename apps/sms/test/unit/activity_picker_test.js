@@ -336,5 +336,28 @@ suite('ActivityPicker', function() {
     });
   });
 
+  suite('viewContact', function() {
+
+    test('viewContact(props, success, error) ', function() {
+      ActivityPicker.viewContact({foo: ['bar']}, onsuccess, onerror);
+
+      assert.equal(
+        MozActivity.instances[0].onsuccess, onsuccess
+      );
+
+      assert.equal(
+        MozActivity.instances[0].onerror, onerror
+      );
+
+      assert.deepEqual(MozActivity.calls[0], {
+        name: 'open',
+        data: {
+          type: 'webcontacts/contact',
+          params: {foo: ['bar']}
+        }
+      });
+    });
+  });
+
 
 });

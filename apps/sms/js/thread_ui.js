@@ -2116,9 +2116,10 @@ var ThreadUI = global.ThreadUI = {
       var contact = isContact ? results[0] : {
         tel: [{ value: number }]
       };
-      var ul;
+      var ul, id;
 
       if (isContact) {
+        id = contact.id;
         ul = document.createElement('ul');
         ul.classList.add('contact-prompt');
 
@@ -2133,6 +2134,7 @@ var ThreadUI = global.ThreadUI = {
 
       this.prompt({
         number: number,
+        contactId: id,
         isContact: isContact,
         inMessage: inMessage,
         body: ul
@@ -2196,16 +2198,6 @@ var ThreadUI = global.ThreadUI = {
     var section = typeof opt.body !== 'undefined' ? opt.body : '';
     var items = [];
     var params, props;
-
-    // Multi-participant activation for for a single, known
-    // recipient contact, that is not triggered from a message,
-    // will initiate a call to that recipient contact.
-    if ((thread && thread.participants.length === 1) &&
-        isContact && !inMessage) {
-
-      ActivityPicker.dial(number);
-      return;
-    }
 
     // Create a params object.
     //  - complete: callback to be invoked when a
@@ -2287,6 +2279,22 @@ var ThreadUI = global.ThreadUI = {
           method: function oAdd(param) {
             ActivityPicker.addToExistingContact(
               param, ThreadUI.onCreateContact
+            );
+          },
+          params: props
+        }
+      );
+    }
+
+    if (opt.contactId) {
+
+        props = [{ id: opt.contactId }];
+
+        params.items.push({
+          l10nId: 'viewContact',
+          method: function oView(param) {
+            ActivityPicker.viewContact(
+              param
             );
           },
           params: props
