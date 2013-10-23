@@ -22,7 +22,7 @@ class MockContact(dict):
         self['name'] = [self['givenName'][0] + " " + self['familyName'][0]]
         self['email'] = [{
             'type': ['Personal'],
-            'value': '%s@restmail.net' % self['givenName']}]
+            'value': '%s@restmail.net' % self['givenName'][0]}]
         # TODO this will only support one phone number
         self['tel'] = [{
             'type': ['Mobile'],
