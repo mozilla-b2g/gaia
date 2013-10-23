@@ -26,7 +26,7 @@
     }, 5000);
   }
 
-  FFOS_RUNTIME.makeNavigatorShim('mozMobileConnection', {
+  FFOS_RUNTIME.makeNavigatorShim('mozMobileConnections', [{
     addEventListener: fakeEventListener,
     removeEventListener: function() {},
     getCallWaitingOption: FFOS_RUNTIME.domRequest(true),
@@ -39,6 +39,6 @@
     get voice() {
       return initialized ? fakeVoice : null;
     }
-  }, true);
+  }], true);
 
 }();
