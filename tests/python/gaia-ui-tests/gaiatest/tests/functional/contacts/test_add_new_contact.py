@@ -24,7 +24,7 @@ class TestContacts(GaiaTestCase):
         new_contact_form.type_family_name(self.contact['familyName'])
 
         new_contact_form.type_phone(self.contact['tel'][0]['value'])
-        new_contact_form.type_email(self.contact['email'])
+        new_contact_form.type_email(self.contact['email'][0]['value'])
         new_contact_form.type_street(self.contact['adr'][0]['streetAddress'])
         new_contact_form.type_zip_code(self.contact['adr'][0]['postalCode'])
         new_contact_form.type_city(self.contact['adr'][0]['locality'])
