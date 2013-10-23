@@ -24,6 +24,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
   var bluetooth = getBluetooth();
   var defaultAdapter = null;
 
+  var MAX_DEVICE_NAME_LENGTH = 20;
+
   if (!settings || !bluetooth) {
     return;
   }
@@ -78,8 +80,6 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     var visibleTimeout = null;
     var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
     var myName = '';
-
-    var MAX_DEVICE_NAME_LENGTH = 20;
 
     visibleCheckBox.onchange = function changeDiscoverable() {
       setDiscoverable(this.checked);
@@ -798,6 +798,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           pairingAddress = device.address;
           pairingMode = 'passive';
         }
+
         var passkey = evt.passkey || null;
         var method = evt.method;
         var protocol = window.location.protocol;

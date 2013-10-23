@@ -40,12 +40,18 @@ var PairView = {
     this.closeButton.addEventListener('click', this);
     window.addEventListener('resize', this);
 
-    this.nameLabel.textContent = this._device.name;
+    var truncatedDeviceName = getTruncated(this._device.name, {
+      node: this.nameLabel,
+      maxLine: 2,
+      ellipsisIndex: 3
+    });
+
+    this.nameLabel.textContent = truncatedDeviceName;
     this.pairView.hidden = false;
 
     var stringName = this._pairMode + '-pair-' + this._pairMethod;
     this.pairDescription.textContent =
-      _(stringName, {device: this._device.name});
+      _(stringName, {device: truncatedDeviceName});
 
     switch (this._pairMethod) {
       case 'confirmation':
