@@ -6,7 +6,6 @@
 var Hotspot = {
   init: function hotspot_init() {
     this.initHotspotPanel();
-    this.initWifiSettingDialog();
   },
 
   initHotspotPanel: function() {
@@ -55,56 +54,18 @@ var Hotspot = {
       this.openWifiSettingDialog.bind(this));
   },
 
-  initWifiSettingDialog: function() {
-    var settings = window.navigator.mozSettings;
-
-    var wifiSettingsSection = document.getElementById('hotspot-wifiSettings');
-    var securityTypeSelector =
-        wifiSettingsSection.querySelector('.security-selector');
-    var passwordItem = wifiSettingsSection.querySelector('.password');
-    var passwordInput = passwordItem.querySelector('input[name="password"]');
-    var submitBtn = wifiSettingsSection.querySelector('button[type="submit"]');
-
-    var showPassword =
-        passwordItem.querySelector('input[name="show_password"]');
-    showPassword.checked = false;
-    showPassword.onchange = function() {
-      passwordInput.type = this.checked ? 'text' : 'password';
-    };
-
-    function updatePasswordItemVisibility(securityType) {
-      passwordItem.hidden = (securityType === 'open');
-    }
-
-    function updateSubmitButtonState(securityType, pwdLength) {
-      submitBtn.disabled =
-        (pwdLength < 8 || pwdLength > 63) && (securityType !== 'open');
-    }
-
-    securityTypeSelector.addEventListener('change', function(event) {
-      updatePasswordItemVisibility(this.value);
-      updateSubmitButtonState(this.value, passwordInput.value.length);
-    });
-
-    passwordInput.addEventListener('input', function(event) {
-      updateSubmitButtonState(securityTypeSelector.value, this.value.length);
-    });
-  },
-
   openWifiSettingDialog: function() {
     var settings = window.navigator.mozSettings;
 
     var dialogID = 'hotspot-wifiSettings';
     var dialog = document.getElementById(dialogID);
-    var fields =
-        dialog.querySelectorAll('[data-setting]:not([data-ignore])');
-    var securityTypeSelector = dialog.querySelector('.security-selector');
-    var passwordItem = dialog.querySelector('.password');
-    var passwordInput = passwordItem.querySelector('input[name="password"]');
-    var showPassword =
-        passwordItem.querySelector('input[name="show_password"]');
 
     function updatePasswordItemVisibility(securityType) {
+      var passwordItem = dialog.querySelector('.password');
+      var passwordInput = passwordItem.querySelector('input[name="password"]');
+      var showPassword =
+          passwordItem.querySelector('input[name="show_password"]');
+
       passwordItem.hidden = (securityType == 'open');
       showPassword.checked = false;
       passwordInput.type = 'password';
@@ -113,6 +74,11 @@ var Hotspot = {
     // initialize all setting fields in the panel
     function reset() {
       if (settings) {
+
+        var fields =
+          dialog.querySelectorAll('[data-setting]:not([data-ignore])');
+        var securityTypeSelector = dialog.querySelector('.security-selector');
+
         var reqSecurityType =
           settings.createLock().get('tethering.wifi.security.type');
 
@@ -145,6 +111,9 @@ var Hotspot = {
     // validate all settings in the dialog box
     function submit() {
       if (settings) {
+        var fields =
+          dialog.querySelectorAll('[data-setting]:not([data-ignore])');
+        var securityTypeSelector = dialog.querySelector('.security-selector');
         var tethering_ssid_element = '[data-setting="tethering.wifi.ssid"]';
         var tethering_password = 'tethering.wifi.security.password';
         var tethering_ssid = dialog.querySelector(tethering_ssid_element);
@@ -175,8 +144,8 @@ var Hotspot = {
       }
     }
 
-    reset(); // preset all fields before opening the dialog
     openDialog(dialogID, submit);
+    reset(); // preset fields after loading the panel
   }
 };
 
