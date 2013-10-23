@@ -82,7 +82,18 @@ var UIManager = {
     'newsletter-input',
     'newsletter-success-screen',
     'offline-newsletter-error-dialog',
-    'invalid-email-error-dialog'
+    'invalid-email-error-dialog',
+    // Firefox Accounts
+    'ff-account-intro-screen',
+    'ff-account-enter-email-screen',
+    'ff-account-enter-password-screen',
+    'ff-account-create-password-screen',
+    'ff-account-no-network-screen',
+    'ff-account-email-submit-screen',
+    'ff-account-reset-password-screen',
+    'ff-account-tos-screen',
+    'ff-account-pp-screen',
+    'ff-account-success-screen'
   ],
 
   init: function ui_init() {

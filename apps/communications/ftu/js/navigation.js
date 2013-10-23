@@ -40,57 +40,42 @@ var steps = {
   },
   8: {
     onlyForward: false,
-    hash: '#ff-account-tos-screen',
-    requireSIM: false
-  },
-  9: {
-    onlyForward: false,
-    hash: '#ff-account-pp-screen',
-    requireSIM: false
-  },
-  10: {
-    onlyForward: false,
     hash: '#ff-account-email-submit-screen',
     requireSIM: false
   },
-  11: {
-    onlyForward: false,
-    hash: '#ff-account-reset-password-screen',
-    requireSIM: false
-  },
-  12: {
+  9: {
     // TODO - change this to true
     onlyForward: false,
     hash: '#ff-account-no-network-screen',
     requireSIM: false
   },
-  13: {
+  10: {
     // TODO - change this to true
     onlyForward: false,
     hash: '#ff-account-success-screen',
     requireSIM: false
   },
-  14: {
+  11: {
     onlyForward: false,
     hash: '#date_and_time',
     requireSIM: false
   },
-  15: {
+  12: {
     onlyForward: false,
     hash: '#geolocation',
     requireSIM: false
   },
-  16: {
+  13: {
     onlyForward: false,
     hash: '#import_contacts',
     requireSIM: false
   },
-  17: {
+  14: {
     onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  18: {
+  15: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -201,7 +186,9 @@ var Navigation = {
 
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
-    var className = this.getProgressBarClassName();
+    var progressBarClassName = this.getProgressBarClassName();
+
+    UIManager.navBar.classList.remove('back-only');
 
     switch (actualHash) {
       case '#languages':
@@ -225,11 +212,20 @@ var Navigation = {
       case '#geolocation':
         UIManager.mainTitle.innerHTML = _('geolocation');
         break;
-      case '#ff_account':
+      case '#ff-account-intro-screen':
+      case '#ff-account-enter-email-screen':
+      case '#ff-account-enter-password-screen':
+      case '#ff-account-create-password-screen':
+      case '#ff-account-no-network-screen':
+      case '#ff-account-email-submit-screen':
+      case '#ff-account-success-screen':
         UIManager.mainTitle.innerHTML = _('ff-account');
         break;
-      case '#ff_account-enter-email':
+      case '#ff-account-tos-screen':
+      case '#ff-account-pp-screen':
+        UIManager.navBar.classList.add('back-only');
         UIManager.mainTitle.innerHTML = _('ff-account');
+        progressBarClassName = 'hidden';
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
@@ -266,13 +262,12 @@ var Navigation = {
       case '#about-your-privacy':
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
-        // override the className here
-        className = 'hidden';
+        progressBarClassName = 'hidden';
         UIManager.navBar.classList.add('back-only');
         break;
     }
 
-    UIManager.progressBar.className = className;
+    UIManager.progressBar.className = progressBarClassName;
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
@@ -339,11 +334,13 @@ var Navigation = {
       UIManager.navBar.classList.remove('forward-only');
     }
     var nextButton = document.getElementById('forward');
+
     if (steps[this.currentStep].onlyBackward) {
       nextButton.setAttribute('disabled', 'disabled');
     } else {
       nextButton.removeAttribute('disabled');
     }
+
     // Substitute button content on last step
     if (this.currentStep === numSteps) {
       nextButton.firstChild.textContent = _('done');

@@ -191,12 +191,14 @@
           </button>
         </div>
       </section>
+
       <section role="region" id="ff-account-intro-screen" class="ff_account">
         <img class="ff_account--logo" alt="Firefox Accounts Logo" src="/ftu/css/images/ff_account_logo.png" />
         <section class="ff_account--wrapper">
           <p id="ff_account--explanation" data-l10n-id="ff-account-explanation"></p>
-        </div>
+        </section>
       </section>
+
       <section role="region" id="ff-account-enter-email-screen" class="ff_account">
         <img class="ff_account--logo" alt="Firefox Accounts Logo" src="/ftu/css/images/ff_account_logo.png" />
         <div class="ff_account--wrapper">
@@ -204,45 +206,53 @@
             <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
             <input type="email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account--input"/>
             <p class="ff_account--small">
-                By proceeding, you agree to our <a href="#ff_account_tos" class="ff_account--small">Terms of Service</a> and <a href="#ff_account_pp" class="ff_account--small">Privacy Policy</a>.
+                By proceeding, you agree to our <a href="#ff-account-tos-screen" class="ff_account--small">Terms of Service</a> and <a href="#ff-account-pp-screen" class="ff_account--small">Privacy Policy</a>.
             </p>
           </form>
         </div>
       </section>
+
       <section role="region" id="ff-account-enter-password-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-enter-password-header" class="ff_account--title"></h2>
           <h3 data-l10n-id="ff-account-hello"></h3>
           <input type="password" placeholder="enter your password" />
+
           <p>
-            <a href="#" data-l10n-id="ff-account-forgot-password"></a>
+            <a href="#ff-account-reset-password-screen" data-l10n-id="ff-account-forgot-password"></a>
           </p>
-          <label for="ff-account--show-password" class="pack-checkbox pack-checkbox__ff_account">
-            <input type="checkbox" />
+
+          <label class="pack-checkbox pack-checkbox__ff_account">
+            <input type="checkbox" data-ignore name="show-password" />
             <span></span>
-            <p data-l10n-id="ff-account-show-password" class="pack-checkbox__ff_account--label"></p>
+            <p class="pack-checkbox__ff_account--label" data-l10n-id="showPassword">Show Password</p>
           </label>
+
           <div>
             <div class="ff_account--logo ff_account--logo__small"></div>
           </div>
         </section>
       </section>
+
       <section role="region" id="ff-account-create-password-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-create-password-header" class="ff_account--title"></h2>
           <h3 data-l10n-id="ff-account-hello"></h3>
           <input type="password" placeholder="enter your password" class="ff_account--input"/>
           <div data-l10n-id="ff-account-create-password-password-length" class="ff_account--small"></div>
-          <label for="ff-account--show-password" class="pack-checkbox pack-checkbox__ff_account">
-            <input type="checkbox" />
+
+          <label class="pack-checkbox pack-checkbox__ff_account">
+            <input type="checkbox" data-ignore name="show-password" />
             <span></span>
-            <p data-l10n-id="ff-account-show-password" class="pack-checkbox__ff_account--label"></p>
+            <p class="pack-checkbox__ff_account--label" data-l10n-id="showPassword">Show Password</p>
           </label>
+
           <div>
             <div class="ff_account--logo ff_account--logo__small"></div>
           </div>
         </section>
       </section>
+
       <section role="region" id="ff-account-no-network-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-no-network-header" class="ff_account--title"></h2>
@@ -254,6 +264,7 @@
           </div>
         </section>
       </section>
+
       <section role="region" id="ff-account-email-submit-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-email-submit-header" class="ff_account--title"></h2>
@@ -266,6 +277,7 @@
           <div class="ff_account--logo ff_account--logo__small"></div>
         </div>
       </section>
+
       <section role="region" id="ff-account-reset-password-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-reset-password-header" class="ff_account--title"></h2>
@@ -278,6 +290,7 @@
           <div class="ff_account--logo ff_account--logo__small"></div>
         </div>
       </section>
+
       <section role="region" id="ff-account-tos-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-tos-header" class="ff_account--title"></h2>
@@ -285,6 +298,7 @@
           <p data-l10n-id="ff-account-tos2"></p>
         </section>
       </section>
+
       <section role="region" id="ff-account-pp-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-pp-header" class="ff_account--title"></h2>
@@ -292,6 +306,7 @@
           <p data-l10n-id="ff-account-pp2"></p>
         </section>
       </section>
+
       <section role="region" id="ff-account-success-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-success-header" class="ff_account--title"></h2>
@@ -303,6 +318,7 @@
           <div class="ff_account--logo ff_account--logo__small"></div>
         </div>
       </section>
+
       <section role="region" id="configure_network">
         <section id="configure_network_params">
           <form>
