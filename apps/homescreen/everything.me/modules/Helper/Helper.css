@@ -10,7 +10,7 @@
 
 #search-title {
     position: absolute;
-    top: 0;
+    top: -0.2rem;
     left: 1.3rem;
     right: 0.6rem;
     color: #fff;
@@ -102,11 +102,11 @@
 
 #helper {
     position: absolute;
-    top: 0;
+    top: -0.2rem;
     left: 0;
     right: 0;
     height: 130%;
-    margin-bottom: -23%; /* gets rid of the scrollbar */
+    margin-bottom: -30%; /* gets rid of the scrollbar */
     overflow: hidden;
 }
 #helper.empty {
@@ -116,10 +116,9 @@
 }
     #helper ul {
         position: absolute;
-        top: 0;
         left: 0;
         overflow: hidden;
-        background-size: 5rem;
+        background-size: 3rem;
         text-transform: lowercase;
         white-space: nowrap;
         -moz-box-sizing: border-box;
@@ -134,7 +133,7 @@
             position: relative;
             display: inline-block;
             height: 100%;
-            padding: 0.2rem 1rem 0.4rem;
+            padding: 0 1rem 0.4rem;
             cursor: pointer;
         }
         #helper ul li b {
@@ -143,7 +142,7 @@
         #helper ul li:after {
             content: "";
             position: absolute;
-            top: 1.3rem;
+            top: 1.1rem;
             left: -0.2rem;
             width: 0.4rem;
             height: 0.4rem;

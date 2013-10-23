@@ -13,18 +13,17 @@
     width: 100%;
     border: none;
     padding: 0;
-    background: url('/everything.me/images/search-icon.png') 97% 50% no-repeat transparent;
+    background: url('/everything.me/images/search-icon.png') 28.3rem 50% no-repeat transparent;
     background-size: 3rem;
-    font-size: 1.9rem;
-    text-indent: 1.3rem;
     color: #eee;
-    font-weight: 300;
+    font-size: 1.9rem;
+    text-indent: 1.1rem;
   }
-
   #evme-activation-icon input::-moz-placeholder {
     color: #eee;
+    opacity: 1.0;
     font-style: italic;
-    font-weight:  300;
+    font-weight: 300;
   }
 
 .evme-loaded #evmeContainer {

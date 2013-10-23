@@ -30,7 +30,7 @@ var GridManager = (function() {
 
   var defaultAppIcon, defaultBookmarkIcon;
 
-  var opacityOnAppGridPageMax = .7;
+  var opacityOnAppGridPageMax = 0;
   var kPageTransitionDuration, overlayTransition, overlay, overlayStyle;
   var landingPageOpacity = 0;
 
