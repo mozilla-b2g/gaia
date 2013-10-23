@@ -147,6 +147,12 @@ suite('ActivityHandler', function() {
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
     });
+
+    test('share shouldn\'t change the ThreadUI back button', function() {
+      this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      assert.isFalse(ThreadUI.enableActivityRequestMode.called);
+    });
   });
 
   suite('sms received', function() {
@@ -446,6 +452,18 @@ suite('ActivityHandler', function() {
       });
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
     });
+
+    test('new message should set the current activity', function() {
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+      assert.equal(ActivityHandler.currentActivity.new, newActivity);
+    });
+
+    test('new message should change the ThreadUI back button', function() {
+      this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+      assert.isTrue(ThreadUI.enableActivityRequestMode.called);
+    });
+
   });
 
   suite('When compose is not empty', function() {
