@@ -51,7 +51,8 @@
       "filters": {
         "type": "mail"
       },
-      "disposition": "window"
+      "disposition": "window",
+      "returnValue": true
     },
     "share": {
       "filters": {
@@ -63,7 +64,9 @@
     "view": {
       "filters": {
         "type": "url",
-        "url": { "required":true, "pattern":"mailto:.{1,16384}" }
+        "url": { "required":true, "pattern":"mailto:.{1,16384}" },
+        "disposition": "window",
+        "returnValue": true
       }
     }
   },
