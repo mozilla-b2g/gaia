@@ -20,54 +20,54 @@ var steps = {
   },
   4: {
     onlyForward: false,
-    hash: '#ff_account',
+    hash: '#ff-account-intro-screen',
     requireSIM: false
   },
   5: {
     onlyForward: false,
-    hash: '#ff_account_enter_email',
+    hash: '#ff-account-enter-email-screen',
     requireSIM: false
   },
   6: {
     onlyForward: false,
-    hash: '#ff_account_create_password',
+    hash: '#ff-account-create-password-screen',
     requireSIM: false
   },
   7: {
     onlyForward: false,
-    hash: '#ff_account_enter_password',
+    hash: '#ff-account-enter-password-screen',
     requireSIM: false
   },
   8: {
     onlyForward: false,
-    hash: '#ff_account_tos',
+    hash: '#ff-account-tos-screen',
     requireSIM: false
   },
   9: {
     onlyForward: false,
-    hash: '#ff_account_pp',
+    hash: '#ff-account-pp-screen',
     requireSIM: false
   },
   10: {
     onlyForward: false,
-    hash: '#ff_account_email_submit',
+    hash: '#ff-account-email-submit-screen',
     requireSIM: false
   },
   11: {
     onlyForward: false,
-    hash: '#ff_account_reset_password',
+    hash: '#ff-account-reset-password-screen',
     requireSIM: false
   },
   12: {
     // TODO - change this to true
     onlyForward: false,
-    hash: '#ff_account_no_network',
+    hash: '#ff-account-no-network-screen',
     requireSIM: false
   },
   13: {
     // TODO - change this to true
     onlyForward: false,
-    hash: '#ff_account_success',
+    hash: '#ff-account-success-screen',
     requireSIM: false
   },
   14: {
