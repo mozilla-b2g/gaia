@@ -45,11 +45,10 @@ var KeyboardContext = (function() {
   var _isReady = false;
   var _callbacks = [];
 
-  var Keyboard = function(name, description, launchPath, layouts, app) {
+  var Keyboard = function(name, description, layouts, app) {
     return {
       name: name,
       description: description,
-      launchPath: launchPath,
       layouts: layouts,
       app: app
     };
@@ -123,7 +122,6 @@ var KeyboardContext = (function() {
 
         _keyboards.push(Keyboard(keyboardManifest.name,
                                  keyboardManifest.description,
-                                 keyboardManifest.launch_path,
                                  layouts, keyboardAppInstance));
       });
 
@@ -229,7 +227,13 @@ var KeyboardPanel = (function() {
     }
 
     container.onclick = function() {
-      keyboard.app.launch();
+      // we launch a web activity here
+      new MozActivity({
+        name: 'keyboard-settings',
+        data: {
+          type: keyboard.name
+        }
+      });
     };
     span.textContent = keyboard.name;
     return container;

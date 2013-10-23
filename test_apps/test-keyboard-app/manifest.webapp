@@ -3,7 +3,6 @@
   "description": "for Gaia 3rd-party keyboard testing",
   "type": "certified",
   "role": "keyboard",
-  "launch_path": "/settings.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -34,5 +33,15 @@
       "description": "for Gaia 3rd-party keyboard testing"
     }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "activities": {
+    "keyboard-settings": {
+      "href": "./settings.html",
+      "disposition": "inline",
+      "filters": {
+        "type": "Gaia Test Keyboard"
+      },
+      "returnValue": true
+    }
+  }
 }

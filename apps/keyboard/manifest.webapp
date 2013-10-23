@@ -3,7 +3,6 @@
   "description": "Built-in Keyboard",
   "type": "certified",
   "role": "keyboard",
-  "launch_path": "/settings.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -178,5 +177,15 @@
       "description": "預設鍵盤"
     }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "activities": {
+    "keyboard-settings": {
+      "href": "./settings.html",
+      "disposition": "inline",
+      "filters": {
+        "type": "Built-in Keyboard"
+      },
+      "returnValue": true
+    }
+  }
 }
