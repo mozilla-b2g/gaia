@@ -1196,6 +1196,7 @@ i.hack-first-child {
 .ff_account--logo__small {
   width: 104px;
   height: 70px;
+  background: url('images/ff_account_logo.png') no-repeat;
   background-size: 104px;
   position: absolute;
   bottom: 20px;
@@ -1208,7 +1209,7 @@ i.hack-first-child {
   margin-bottom: .55rem;
 }
 
-input.ff_account-enter-email--input {
+input.ff_account--input {
   margin-bottom: 0.5rem;
 }
 
@@ -1228,10 +1229,10 @@ input.ff_account-enter-email--input {
 }
 
 .ff_account--image__envelope {
-  width: 54px;
-  height: 35px;
+  width: 48px;
+  height: 31px;
   background: url('images/ff_account_envelope.png') no-repeat;
-  background-size: 54px;
+  background-size: 48px;
 }
 
 label.pack-checkbox__ff_account {

@@ -30,46 +30,67 @@ var steps = {
   },
   6: {
     onlyForward: false,
-    hash: '#ff_account_enter_password',
+    hash: '#ff_account_create_password',
     requireSIM: false
   },
   7: {
     onlyForward: false,
-    hash: '#ff_account_email_submit',
+    hash: '#ff_account_enter_password',
     requireSIM: false
   },
   8: {
     onlyForward: false,
-    hash: '#ff_account_reset_password',
+    hash: '#ff_account_tos',
     requireSIM: false
   },
   9: {
+    onlyForward: false,
+    hash: '#ff_account_pp',
+    requireSIM: false
+  },
+  10: {
+    onlyForward: false,
+    hash: '#ff_account_email_submit',
+    requireSIM: false
+  },
+  11: {
+    onlyForward: false,
+    hash: '#ff_account_reset_password',
+    requireSIM: false
+  },
+  12: {
+    // TODO - change this to true
+    onlyForward: false,
+    hash: '#ff_account_no_network',
+    requireSIM: false
+  },
+  13: {
     // TODO - change this to true
     onlyForward: false,
     hash: '#ff_account_success',
     requireSIM: false
   },
-  10: {
+  14: {
     onlyForward: false,
     hash: '#date_and_time',
     requireSIM: false
   },
-  11: {
+  15: {
     onlyForward: false,
     hash: '#geolocation',
     requireSIM: false
   },
-  12: {
+  16: {
     onlyForward: false,
     hash: '#import_contacts',
     requireSIM: false
   },
-  13: {
+  17: {
     onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  14: {
+  18: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false

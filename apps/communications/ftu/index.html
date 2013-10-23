@@ -202,16 +202,16 @@
         <div class="ff_account--wrapper">
           <form>
             <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
-            <input type="email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account-enter-email--input"/>
+            <input type="email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account--input"/>
             <p class="ff_account--small">
-                By proceeding, you agree to our <a href="#" class="ff_account--small">Terms of Service</a> and <a href="#" class="ff_account--small">Privacy Policy</a>.
+                By proceeding, you agree to our <a href="#ff_account_tos" class="ff_account--small">Terms of Service</a> and <a href="#ff_account_pp" class="ff_account--small">Privacy Policy</a>.
             </p>
           </form>
         </div>
       </section>
       <section role="region" id="ff_account_enter_password" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
-          <h2 data-l10n-id="ff-account-enter-password" class="ff_account--title"></h2>
+          <h2 data-l10n-id="ff-account-enter-password-header" class="ff_account--title"></h2>
           <h3 data-l10n-id="ff-account-hello"></h3>
           <input type="password" placeholder="enter your password" />
           <p>
@@ -228,6 +228,31 @@
         </section>
       </section>
       <section role="region" id="ff_account_create_password" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-create-password-header" class="ff_account--title"></h2>
+          <h3 data-l10n-id="ff-account-hello"></h3>
+          <input type="password" placeholder="enter your password" class="ff_account--input"/>
+          <div data-l10n-id="ff-account-create-password-password-length" class="ff_account--small"></div>
+          <label for="ff-account--show-password" class="pack-checkbox pack-checkbox__ff_account">
+            <input type="checkbox" />
+            <span></span>
+            <p data-l10n-id="ff-account-show-password" class="pack-checkbox__ff_account--label"></p>
+          </label>
+          <div>
+            <div class="ff_account--logo ff_account--logo__small"></div>
+          </div>
+        </section>
+      </section>
+      <section role="region" id="ff_account_no_network" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-no-network-header" class="ff_account--title"></h2>
+          <p data-l10n-id="ff-account-no-network-cannot-continue"></p>
+          <p data-l10n-id="ff-account-no-network-finish-in-settings"></p>
+          <p data-l10n-id="ff-account-no-network-next"></p>
+          <div>
+            <div class="ff_account--logo ff_account--logo__small"></div>
+          </div>
+        </section>
       </section>
       <section role="region" id="ff_account_email_submit" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
@@ -252,6 +277,20 @@
         <div>
           <div class="ff_account--logo ff_account--logo__small"></div>
         </div>
+      </section>
+      <section role="region" id="ff_account_tos" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-tos-header" class="ff_account--title"></h2>
+          <p data-l10n-id="ff-account-tos1"></p>
+          <p data-l10n-id="ff-account-tos2"></p>
+        </section>
+      </section>
+      <section role="region" id="ff_account_pp" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-pp-header" class="ff_account--title"></h2>
+          <p data-l10n-id="ff-account-pp1"></p>
+          <p data-l10n-id="ff-account-pp2"></p>
+        </section>
       </section>
       <section role="region" id="ff_account_success" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
