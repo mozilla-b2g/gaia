@@ -8,6 +8,18 @@ function enumerateAll(storages, dir, options) {
   var storageIndex = 0;
   var ds_cursor = null;
 
+  dump('storages = ' + storages + '\n');
+  dump('Found ' + storages.length + ' storages\n');
+  for (var i = 0; i < storages.length; i++) {
+    var storage = storages[i];
+    if (storage) {
+      dump('storage[' + i + '].storageName = ' + storage.storageName +
+           ' default = ' + storage.default + '\n');
+    } else {
+      dump('storage[' + i + '] = null\n');
+    }
+  }
+
   var cursor = {
     continue: function cursor_continue() {
       ds_cursor.continue();

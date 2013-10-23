@@ -1,7 +1,14 @@
 #! /bin/bash -ve
+# Dummy change
 
-echo "Downloading b2g-desktop"
-make b2g
+set -x
+
+echo "marionette_js/install - pwd = $(pwd)"
+#echo "Downloading b2g-desktop"
+#make b2g
+
+wget http://people.mozilla.org/~dhylands/travis-ds-bug/b2g-27.0a1.en-US.linux-x86_64.tar.bz2
+tar xf b2g-27.0a1.en-US.linux-x86_64.tar.bz2
 
 echo "Building test profile"
 PROFILE_FOLDER=profile-test make
