@@ -76,6 +76,7 @@
   <script defer type="text/javascript" src="/ftu/js/variant.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
   <script defer type="text/javascript" src="/ftu/js/operatorVariant.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_enter_email.js"></script>
   <!-- Confirm dialogs BB library -->
   <script defer type="text/javascript" src="/contacts/js/utilities/confirm.js"></script>
 </head>
@@ -204,7 +205,7 @@
         <div class="ff_account--wrapper">
           <form>
             <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
-            <input type="email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account--input"/>
+            <input type="email" id="ff_account--enter-email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account--input"/>
             <p class="ff_account--small">
                 By proceeding, you agree to our <a href="#ff-account-tos-screen" class="ff_account--small">Terms of Service</a> and <a href="#ff-account-pp-screen" class="ff_account--small">Privacy Policy</a>.
             </p>
@@ -307,7 +308,7 @@
         </section>
       </section>
 
-      <section role="region" id="ff-account-success-screen" class="ff_account">
+      <section role="region" id="ff-account-success-screen" class="ff_account" data-navigation="forward-only">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-success-header" class="ff_account--title"></h2>
           <p data-l10n-id="ff-account-success-ready-to-go"></p>

@@ -125,6 +125,8 @@ var UIManager = {
     this.hiddenWifiSecurity.addEventListener('change', this);
     this.wifiJoinButton.disabled = true;
 
+    this.ffAccountEnterEmailScreen.addEventListener('click', this);
+
     this.hiddenWifiPassword.addEventListener('keyup', function() {
       this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
         this.hiddenWifiSecurity.value,

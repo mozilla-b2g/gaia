@@ -30,46 +30,36 @@ var steps = {
   },
   6: {
     onlyForward: false,
-    hash: '#ff-account-create-password-screen',
-    requireSIM: false
-  },
-  7: {
-    onlyForward: false,
-    hash: '#ff-account-enter-password-screen',
-    requireSIM: false
-  },
-  8: {
-    onlyForward: false,
     hash: '#ff-account-email-submit-screen',
     requireSIM: false
   },
-  9: {
+  7: {
     // TODO - change this to true
     onlyForward: false,
     hash: '#ff-account-success-screen',
     requireSIM: false
   },
-  10: {
+  8: {
     onlyForward: false,
     hash: '#date_and_time',
     requireSIM: false
   },
-  11: {
+  9: {
     onlyForward: false,
     hash: '#geolocation',
     requireSIM: false
   },
-  12: {
+  10: {
     onlyForward: false,
     hash: '#import_contacts',
     requireSIM: false
   },
-  13: {
+  11: {
     onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  14: {
+  12: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -142,7 +132,17 @@ var Navigation = {
       }
       self.manageStep();
     };
-    goToStepForward();
+
+    var actualHash = window.location.hash;
+    switch (actualHash) {
+      case '#ff-account-enter-email-screen':
+        FirefoxAccountEnterEmail.forward(goToStepForward);
+        break;
+      default:
+        goToStepForward();
+        break;
+    }
+
   },
 
   handleExternalLinksClick: function n_handleExternalLinksClick(e) {
@@ -189,6 +189,9 @@ var Navigation = {
     UIManager.navBar.classList.remove('forward-only');
     UIManager.navBar.classList.remove('back-only');
 
+    // the nav bar shows both forward/back buttons by default. Screen devs can
+    // add a data-navigation attribute with either "back-only" or
+    // "forward-only" to override behavior.
     var navigationClass = target && target.getAttribute('data-navigation');
     if (navigationClass) {
       UIManager.navBar.classList.add(navigationClass);
