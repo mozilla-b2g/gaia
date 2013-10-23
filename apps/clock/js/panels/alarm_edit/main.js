@@ -1,15 +1,72 @@
 define(function(require) {
-
 var Alarm = require('alarm');
-var AlarmList = require('alarm_list');
+var AlarmList = require('panels/alarm/alarm_list');
 var AlarmManager = require('alarm_manager');
-var ClockView = require('clock_view');
+var ClockView = require('panels/alarm/clock_view');
 var Utils = require('utils');
 var constants = require('constants');
 var mozL10n = require('l10n');
+var Panel = require('panel');
 var _ = mozL10n.get;
+var html = require('text!panels/alarm_edit/panel.html');
 
-var AlarmEdit = {
+var AlarmEdit = function() {
+  Panel.apply(this, arguments);
+  this.element.innerHTML = html;
+  mozL10n.translate(this.element);
+  var handleDomEvent = this.handleDomEvent.bind(this);
+  this.on('visibilitychange', this.handleVisibilityChange.bind(this));
+  this.backButton.addEventListener('click', handleDomEvent);
+  this.doneButton.addEventListener('click', handleDomEvent);
+  this.timeMenu.addEventListener('click', handleDomEvent);
+  this.timeSelect.addEventListener('blur', handleDomEvent);
+  this.repeatMenu.addEventListener('click', handleDomEvent);
+  this.repeatSelect.addEventListener('blur', handleDomEvent);
+  this.soundMenu.addEventListener('click', handleDomEvent);
+  this.soundSelect.addEventListener('change', handleDomEvent);
+  this.soundSelect.addEventListener('blur', handleDomEvent);
+  this.vibrateMenu.addEventListener('click', handleDomEvent);
+  this.vibrateSelect.addEventListener('blur', handleDomEvent);
+  this.snoozeMenu.addEventListener('click', handleDomEvent);
+  this.snoozeSelect.addEventListener('blur', handleDomEvent);
+  this.deleteButton.addEventListener('click', handleDomEvent);
+};
+
+AlarmEdit.prototype = Object.create(Panel.prototype);
+
+var selectors = {
+  scrollList: '#edit-alarm',
+  labelInput: 'input[name="alarm.label"]',
+  timeSelect: '#time-select',
+  timeMenu: '#time-menu',
+  alarmTitle: '#alarm-title',
+  repeatMenu: '#repeat-menu',
+  repeatSelect: '#repeat-select',
+  soundMenu: '#sound-menu',
+  soundSelect: '#sound-select',
+  vibrateMenu: '#vibrate-menu',
+  vibrateSelect: '#vibrate-select',
+  snoozeMenu: '#snooze-menu',
+  snoozeSelect: '#snooze-select',
+  deleteButton: '#alarm-delete',
+  backButton: '#alarm-close',
+  doneButton: '#alarm-done'
+};
+Object.keys(selectors).forEach(function(attr) {
+  var selector = selectors[attr];
+  Object.defineProperty(AlarmEdit.prototype, attr, {
+    get: function() {
+      var element = this.element.querySelector(selector);
+      Object.defineProperty(this, attr, {
+        value: element
+      });
+      return element;
+    },
+    configurable: true
+  });
+});
+
+Utils.extend(AlarmEdit.prototype, {
 
   alarm: null,
   alarmRef: null,
@@ -21,112 +78,9 @@ var AlarmEdit = {
   },
   previewRingtonePlayer: null,
 
-  get element() {
-    delete this.element;
-    return this.element = document.getElementById('alarm-edit-panel');
-  },
-
-  get scrollList() {
-    delete this.scrollList;
-    return this.scrollList = document.getElementById('edit-alarm');
-  },
-
-  get labelInput() {
-    delete this.labelInput;
-    return this.labelInput =
-      document.querySelector('input[name="alarm.label"]');
-  },
-
-  get timeSelect() {
-    delete this.timeSelect;
-    return this.timeSelect = document.getElementById('time-select');
-  },
-
-  get timeMenu() {
-    delete this.timeMenu;
-    return this.timeMenu = document.getElementById('time-menu');
-  },
-
-  get alarmTitle() {
-    delete this.alarmTitle;
-    return this.alarmTitle = document.getElementById('alarm-title');
-  },
-
-  get repeatMenu() {
-    delete this.repeatMenu;
-    return this.repeatMenu = document.getElementById('repeat-menu');
-  },
-
-  get repeatSelect() {
-    delete this.repeatSelect;
-    return this.repeatSelect = document.getElementById('repeat-select');
-  },
-
-  get soundMenu() {
-    delete this.soundMenu;
-    return this.soundMenu = document.getElementById('sound-menu');
-  },
-
-  get soundSelect() {
-    delete this.soundSelect;
-    return this.soundSelect = document.getElementById('sound-select');
-  },
-
-  get vibrateMenu() {
-    delete this.vibrateMenu;
-    return this.vibrateMenu = document.getElementById('vibrate-menu');
-  },
-
-  get vibrateSelect() {
-    delete this.vibrateSelect;
-    return this.vibrateSelect = document.getElementById('vibrate-select');
-  },
-
-  get snoozeMenu() {
-    delete this.snoozeMenu;
-    return this.snoozeMenu = document.getElementById('snooze-menu');
-  },
-
-  get snoozeSelect() {
-    delete this.snoozeSelect;
-    return this.snoozeSelect = document.getElementById('snooze-select');
-  },
-
-  get deleteButton() {
-    delete this.deleteButton;
-    return this.deleteButton = document.getElementById('alarm-delete');
-  },
-
-  get backButton() {
-    delete this.backElement;
-    return this.backElement = document.getElementById('alarm-close');
-  },
-
-  get doneButton() {
-    delete this.doneButton;
-    return this.doneButton = document.getElementById('alarm-done');
-  },
-
-  init: function aev_init() {
-    mozL10n.translate(this.element);
-    this.backButton.addEventListener('click', this);
-    this.doneButton.addEventListener('click', this);
-    this.timeMenu.addEventListener('click', this);
-    this.timeSelect.addEventListener('blur', this);
-    this.repeatMenu.addEventListener('click', this);
-    this.repeatSelect.addEventListener('blur', this);
-    this.soundMenu.addEventListener('click', this);
-    this.soundSelect.addEventListener('change', this);
-    this.soundSelect.addEventListener('blur', this);
-    this.vibrateMenu.addEventListener('click', this);
-    this.vibrateSelect.addEventListener('blur', this);
-    this.snoozeMenu.addEventListener('click', this);
-    this.snoozeSelect.addEventListener('blur', this);
-    this.deleteButton.addEventListener('click', this);
-    this.init = function() {};
-  },
-
-  handleEvent: function aev_handleEvent(evt) {
+  // The name `handleEvent` is already defined by the Panel class, so this
+  // method must be named uniquely to avoid overriding that functionality.
+  handleDomEvent: function aev_handleDomEvent(evt) {
     evt.preventDefault();
     var input = evt.target;
     if (!input)
@@ -194,8 +148,13 @@ var AlarmEdit = {
     setTimeout(function() { menu.focus(); }, 10);
   },
 
-  load: function aev_load(alarm) {
-    this.init();
+  handleVisibilityChange: function aev_show(isVisible) {
+    var alarm;
+    if (!isVisible) {
+      return;
+    }
+    // `navData` is set by the App module in `navigate`.
+    alarm = this.navData;
     // scroll to top of form list
     this.scrollList.scrollTop = 0;
 
@@ -393,7 +352,7 @@ var AlarmEdit = {
     });
   }
 
-};
+});
 
 return AlarmEdit;
 });

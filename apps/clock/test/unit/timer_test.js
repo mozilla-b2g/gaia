@@ -3,8 +3,6 @@ suite('Timer', function() {
   var al, now, startAt, endAt, duration;
 
   suiteSetup(function(done) {
-    loadBodyHTML('/index.html');
-
     testRequire(['timer', 'mocks/mock_shared/js/async_storage'], {
       mocks: ['shared/js/async_storage']
     }, function(timer, mockAsyncStorage) {

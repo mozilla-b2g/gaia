@@ -10,10 +10,23 @@
 
   modules: [
     {
-      name: 'startup'
+      name: 'startup',
+      include: ['panels/alarm/main']
     },
     {
       name: 'onring'
+    },
+    {
+      name: 'panels/alarm_edit/main',
+      exclude: ['startup']
+    },
+    {
+      name: 'panels/timer/main',
+      exclude: ['startup']
+    },
+    {
+      name: 'panels/stopwatch/main',
+      exclude: ['startup']
     }
   ],
 

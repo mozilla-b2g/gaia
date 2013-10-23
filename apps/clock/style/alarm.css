@@ -22,7 +22,7 @@ ul, ol {
   margin-right: 1.5rem;
 }
 
-#alarm-edit-panel {
+[data-panel-id="alarm_edit"] {
   background: #efefeb url(images/edit_background.png) no-repeat center center;
   background-size: 100% 100%;
 }

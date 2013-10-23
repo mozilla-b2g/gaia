@@ -1,0 +1,66 @@
+<header>
+  <button id="alarm-close"><span class="icon icon-close"></span></button>
+  <menu type="toolbar">
+    <button id="alarm-done" data-l10n-id="done"></button>
+  </menu>
+  <h1 id="alarm-title"></h1>
+</header>
+<ul id="edit-alarm" class="compact">
+  <li>
+    <input type="text" name="alarm.label" data-l10n-id="alarmName" placeholder="Alarm name" maxLength="50" />
+  </li>
+  <li>
+    <label data-l10n-id="time">Time</label>
+    <input id="time-select" type="time" />
+    <button id="time-menu" class="icon icon-dialog"></button>
+  </li>
+  <li>
+    <label data-l10n-id="repeat">Repeat</label>
+    <select id="repeat-select" multiple="true">
+      <option value="0" data-l10n-id="weekday-1-long">Monday</option>
+      <option value="1" data-l10n-id="weekday-2-long">Tuesday</option>
+      <option value="2" data-l10n-id="weekday-3-long">Wednesday</option>
+      <option value="3" data-l10n-id="weekday-4-long">Thursday</option>
+      <option value="4" data-l10n-id="weekday-5-long">Friday</option>
+      <option value="5" data-l10n-id="weekday-6-long">Saturday</option>
+      <option value="6" data-l10n-id="weekday-0-long">Sunday</option>
+    </select>
+    <button id="repeat-menu" class="icon icon-dialog" data-l10n-id="never">Never</button>
+  </li>
+  <li>
+    <label data-l10n-id="sound">Sound</label>
+    <select id="sound-select">
+      <option value="0" data-l10n-id="noSound">No Sound</option>
+      <option value="ac_classic_clock_alarm.opus" data-l10n-id="ac_classic_clock_alarm_opus"></option>
+      <option value="ac_classic_clock_alarm_prog.opus" data-l10n-id="ac_classic_clock_alarm_prog_opus"></option>
+      <option value="ac_classic_clock_radio.opus" data-l10n-id="ac_classic_clock_radio_opus"></option>
+      <option value="ac_normal_gem_echoes.opus" data-l10n-id="ac_normal_gem_echoes_opus"></option>
+      <option value="ac_normal_ringing_strings.opus" data-l10n-id="ac_normal_ringing_strings_opus"></option>
+      <option value="ac_soft_humming_waves.opus" data-l10n-id="ac_soft_humming_waves_opus"></option>
+      <option value="ac_soft_into_the_void.opus" data-l10n-id="ac_soft_into_the_void_opus"></option>
+      <option value="ac_soft_smooth_strings.opus" data-l10n-id="ac_soft_smooth_strings_opus"></option>
+    </select>
+    <button id="sound-menu" class="icon icon-dialog"></button>
+  </li>
+  <li>
+    <label data-l10n-id="vibrate">Vibrate</label>
+    <select id="vibrate-select">
+      <option value="1" data-l10n-id="vibrateOn">On</option>
+      <option value="0" data-l10n-id="vibrateOff">Off</option>
+    </select>
+    <button id="vibrate-menu" class="icon icon-dialog" data-l10n-id="vibrateOn">On</button>
+  </li>
+  <li>
+    <label class="view-alarm-lbl snooze-lbl" data-l10n-id="snooze">Snooze</label>
+    <select id="snooze-select">
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'  value="5">  5 minutes</option>
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": "10"}' value="10">10 minutes</option>
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": "15"}' value="15">15 minutes</option>
+      <option data-l10n-id="nMinutes" data-l10n-args='{"n": "20"}' value="20">20 minutes</option>
+    </select>
+    <button id="snooze-menu" class="icon icon-dialog" data-l10n-id="nMinutes" data-l10n-args='{"n": "5"}'>5 minutes</button>
+  </li>
+</ul>
+<menu id="delete-menu">
+  <button id="alarm-delete" class="danger full" data-l10n-id="delete">Delete</button>
+</menu>
