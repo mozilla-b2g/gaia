@@ -8,7 +8,7 @@ var GridManager = (function() {
   // use 100px icons for tablet
   var notTinyLayout = !ScreenLayout.getCurrentLayout('tiny');
   var PREFERRED_ICON_SIZE =
-      (notTinyLayout ? 100 : 60) * (window.devicePixelRatio || 1);
+      (notTinyLayout ? 90 : 60) * (window.devicePixelRatio || 1);
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
@@ -59,9 +59,9 @@ var GridManager = (function() {
     MAX_ICONS_PER_PAGE += 4;
   }
 
-  // tablet+ devices are stricted to 5 x 3 grid
+  // tablet+ devices are stricted to 6 x 3 grid
   if (notTinyLayout) {
-    MAX_ICONS_PER_PAGE = 5 * 3;
+    MAX_ICONS_PER_PAGE = 6 * 3;
   }
 
   // The same number of icons by default
@@ -76,7 +76,7 @@ var GridManager = (function() {
     MAX_ICONS_PER_EVME_PAGE -= 4;
 
     if (notTinyLayout) {
-      MAX_ICONS_PER_EVME_PAGE -= 5;
+      MAX_ICONS_PER_EVME_PAGE -= 6;
     }
   }
 

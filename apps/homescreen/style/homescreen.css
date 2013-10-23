@@ -140,7 +140,7 @@ body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
 }
 @media (min-width: 768px) {
   #bg-overlay {
-    height: calc(100% - 16rem);
+    height: calc(100% - 16.9rem);
   }
 }
 /* This is a dirty hack to hide the bottom toolbar while

@@ -395,8 +395,8 @@ Icon.prototype = {
 
   updateAppStatus: function icon_updateAppStatus(app) {
     // change default icon size for tablet+ device
-    if (ScreenLayout.getCurrentLayout() !== 'tiny') {
-      MAX_ICON_SIZE = 100;
+    if (!ScreenLayout.getCurrentLayout('tiny')) {
+      MAX_ICON_SIZE = 90;
     }
     if (app) {
       this.downloading = app.downloading;
