@@ -234,6 +234,32 @@ suite('dialer/handled_call', function() {
     });
   });
 
+  suite('while dialing', function() {
+    var updateKeypadSpy;
+
+    setup(function() {
+      updateKeypadSpy = this.sinon.spy(MockCallsHandler, 'updateKeypadEnabled');
+      mockCall.mChangeState('dialing');
+    });
+
+    test('should check if we can enable the keypad', function() {
+      assert.isTrue(updateKeypadSpy.calledOnce);
+    });
+  });
+
+  suite('while alerting', function() {
+    var updateKeypadSpy;
+
+    setup(function() {
+      updateKeypadSpy = this.sinon.spy(MockCallsHandler, 'updateKeypadEnabled');
+      mockCall.mChangeState('alerting');
+    });
+
+    test('should check if we can enable the keypad', function() {
+      assert.isTrue(updateKeypadSpy.calledOnce);
+    });
+  });
+
   suite('on connect', function() {
     setup(function() {
       mockCall._connect();
