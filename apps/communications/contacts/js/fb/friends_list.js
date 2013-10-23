@@ -8,12 +8,6 @@ var FriendListRenderer = (function() {
     lastName: ['familyName', 'givenName', 'email1']
   };
 
-  var HEADER_LETTERS = [
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ',          // Roman
-    'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ' ,           // Greek
-    'АБВГДЂЕЁЖЗИЙЈКЛЉМНЊОПРСТЋУФХЦЧЏШЩЭЮЯ' // Cyrillic (Russian + Serbian)
-  ].join('');
-
   // Options by default
   var defaults = {
     container: '#groups-list',
@@ -73,9 +67,10 @@ var FriendListRenderer = (function() {
     if (notRenderedParagraph) {
       notRenderedParagraph.parentNode.removeChild(notRenderedParagraph);
     }
-    // Start first element of HEADER_LETTERS (A)
-    var letterStart = 1;
-    doRenderGroupChunk(letterStart, HEADER_LETTERS[letterStart],
+
+    // Start letter (A)
+    var letterStart = 65;
+    doRenderGroupChunk(letterStart, String.fromCharCode(letterStart),
                        groupsList, groups);
   };
 
@@ -87,10 +82,10 @@ var FriendListRenderer = (function() {
       }
       fragment = null;
 
-      var headerLettersLength = HEADER_LETTERS.length;
-      if (index + 1 <= headerLettersLength) {
+      // 90 is the end letter (Z)
+      if (index + 1 <= 90) {
         window.setTimeout(function renderNextGroup() {
-          doRenderGroupChunk(index + 1, HEADER_LETTERS[index + 1],
+          doRenderGroupChunk(index + 1, String.fromCharCode(index + 1),
                         groupsList, groups);
         });
       }
@@ -208,7 +203,8 @@ var FriendListRenderer = (function() {
     ret = ret.replace(/[ÓÒ]/ig, 'O');
     ret = ret.replace(/[ÚÙ]/ig, 'U');
 
-    if (HEADER_LETTERS.indexOf(ret) < 0) {
+    var code = ret.charCodeAt(0);
+    if (code < 65 || code > 90) {
       ret = '#';
     }
     return ret;
