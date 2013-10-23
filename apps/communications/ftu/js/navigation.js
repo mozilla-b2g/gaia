@@ -46,36 +46,30 @@ var steps = {
   9: {
     // TODO - change this to true
     onlyForward: false,
-    hash: '#ff-account-no-network-screen',
-    requireSIM: false
-  },
-  10: {
-    // TODO - change this to true
-    onlyForward: false,
     hash: '#ff-account-success-screen',
     requireSIM: false
   },
-  11: {
+  10: {
     onlyForward: false,
     hash: '#date_and_time',
     requireSIM: false
   },
-  12: {
+  11: {
     onlyForward: false,
     hash: '#geolocation',
     requireSIM: false
   },
-  13: {
+  12: {
     onlyForward: false,
     hash: '#import_contacts',
     requireSIM: false
   },
-  14: {
+  13: {
     onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  15: {
+  14: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -172,9 +166,12 @@ var Navigation = {
     window.open(href);
   },
 
-  getProgressBarClassName: function n_getProgressBarClassName() {
+  getProgressBarClassName: function n_getProgressBarClassName(target) {
+    var className = target && target.getAttribute('data-progress-bar');
+    if (className) return className;
+
     // Manage step state (dynamically change)
-    var className = 'step-state step-';
+    className = 'step-state step-';
     if (this.skipped && this.currentStep > 2) {
       className += (this.currentStep - 1) + ' less-steps';
     } else {
@@ -186,9 +183,16 @@ var Navigation = {
 
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
-    var progressBarClassName = this.getProgressBarClassName();
+    var target = document.querySelector(actualHash);
+    var progressBarClassName = this.getProgressBarClassName(target);
 
+    UIManager.navBar.classList.remove('forward-only');
     UIManager.navBar.classList.remove('back-only');
+
+    var navigationClass = target && target.getAttribute('data-navigation');
+    if (navigationClass) {
+      UIManager.navBar.classList.add(navigationClass);
+    }
 
     switch (actualHash) {
       case '#languages':
@@ -212,20 +216,16 @@ var Navigation = {
       case '#geolocation':
         UIManager.mainTitle.innerHTML = _('geolocation');
         break;
+      case '#ff-account-no-network-screen':
       case '#ff-account-intro-screen':
       case '#ff-account-enter-email-screen':
       case '#ff-account-enter-password-screen':
       case '#ff-account-create-password-screen':
-      case '#ff-account-no-network-screen':
       case '#ff-account-email-submit-screen':
       case '#ff-account-success-screen':
-        UIManager.mainTitle.innerHTML = _('ff-account');
-        break;
       case '#ff-account-tos-screen':
       case '#ff-account-pp-screen':
-        UIManager.navBar.classList.add('back-only');
         UIManager.mainTitle.innerHTML = _('ff-account');
-        progressBarClassName = 'hidden';
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
