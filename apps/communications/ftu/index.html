@@ -77,6 +77,7 @@
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
   <script defer type="text/javascript" src="/ftu/js/operatorVariant.js"></script>
   <script defer type="text/javascript" src="/ftu/js/ff_account_enter_email.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_create_password.js"></script>
   <!-- Confirm dialogs BB library -->
   <script defer type="text/javascript" src="/contacts/js/utilities/confirm.js"></script>
 </head>
@@ -213,18 +214,19 @@
         </div>
       </section>
 
-      <section role="region" id="ff-account-enter-password-screen" class="ff_account">
+      <section role="region" id="ff-account-create-password-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
-          <h2 data-l10n-id="ff-account-enter-password-header" class="ff_account--title"></h2>
-          <h3 data-l10n-id="ff-account-hello"></h3>
-          <input type="password" placeholder="enter your password" />
+          <h2 data-l10n-id="ff-account-create-password-header" class="ff_account--title"></h2>
 
           <p>
-            <a href="#ff-account-reset-password-screen" data-l10n-id="ff-account-forgot-password"></a>
+            Hello, <strong id="ff_account--create_password--email"></strong>
           </p>
 
-          <label class="pack-checkbox pack-checkbox__ff_account">
-            <input type="checkbox" data-ignore name="show-password" />
+          <input type="password" id="ff_account--create_password" placeholder="enter your password" class="ff_account--input" pattern=".{8,}" />
+          <div data-l10n-id="ff-account-create-password-password-length" class="ff_account--small"></div>
+
+          <label class="pack-checkbox pack-checkbox__ff_account pack-checkbox__create_password--show_password">
+            <input id="ff_account--create_password--show_password" type="checkbox" data-ignore name="show-password" />
             <span></span>
             <p class="pack-checkbox__ff_account--label" data-l10n-id="showPassword">Show Password</p>
           </label>
@@ -235,12 +237,17 @@
         </section>
       </section>
 
-      <section role="region" id="ff-account-create-password-screen" class="ff_account">
+      <section role="region" id="ff-account-enter-password-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
-          <h2 data-l10n-id="ff-account-create-password-header" class="ff_account--title"></h2>
-          <h3 data-l10n-id="ff-account-hello"></h3>
-          <input type="password" placeholder="enter your password" class="ff_account--input"/>
-          <div data-l10n-id="ff-account-create-password-password-length" class="ff_account--small"></div>
+          <h2 data-l10n-id="ff-account-enter-password-header" class="ff_account--title"></h2>
+          <h3>
+            Hello, <span id="ff-account--enter-password--email"></span>
+          </h3>
+          <input type="password" placeholder="enter your password" class="ff_account--input" pattern=".{8,}" />
+
+          <p>
+            <a href="#ff-account-reset-password-screen" data-l10n-id="ff-account-forgot-password"></a>
+          </p>
 
           <label class="pack-checkbox pack-checkbox__ff_account">
             <input type="checkbox" data-ignore name="show-password" />

@@ -136,7 +136,10 @@ var Navigation = {
     var actualHash = window.location.hash;
     switch (actualHash) {
       case '#ff-account-enter-email-screen':
-        FirefoxAccountEnterEmail.forward(goToStepForward);
+        FirefoxAccountEnterEmail.forward();
+        break;
+      case '#ff-account-create-password-screen':
+        FirefoxAccountCreatePassword.forward();
         break;
       default:
         goToStepForward();
@@ -195,6 +198,17 @@ var Navigation = {
     var navigationClass = target && target.getAttribute('data-navigation');
     if (navigationClass) {
       UIManager.navBar.classList.add(navigationClass);
+    }
+
+    if (actualHash === "#ff-account-create-password-screen") {
+      FirefoxAccountCreatePassword.init({
+        email: FirefoxAccountEnterEmail.getEmail()
+      });
+    }
+    else if (actualHash === "#ff-account-email-submit-screen") {
+      FirefoxAccountCreatePassword.init({
+        email: FirefoxAccountEnterEmail.getEmail()
+      });
     }
 
     switch (actualHash) {

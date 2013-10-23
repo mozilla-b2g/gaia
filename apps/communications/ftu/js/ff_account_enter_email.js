@@ -1,3 +1,7 @@
+/**
+ * Module checks the validity of an email address, and if valid,
+ * determine which screen to go to next.
+ */
 FirefoxAccountEnterEmail = (function() {
   'use strict';
 
@@ -13,6 +17,10 @@ FirefoxAccountEnterEmail = (function() {
     return emailValue && emailEl.validity.valid;
   }
 
+  function showInvalidEmail() {
+    return $(INVALID_EMAIL_ERROR_SELECTOR).classList.add('visible');
+  }
+
   function getNextState(email, done) {
     if (email === 'newuser@newuser.com') return done('#ff-account-create-password-screen');
 
@@ -20,15 +28,10 @@ FirefoxAccountEnterEmail = (function() {
   }
 
   var Module = {
-    init: function em_init() {
-    },
-
     forward: function(gotoNextStepCallback) {
       var emailEl = $(FF_ACCOUNT_EMAIL_SELECTOR);
 
-      if ( ! isEmailValid(emailEl)) {
-        return $(INVALID_EMAIL_ERROR_SELECTOR).classList.add('visible');
-      }
+      if ( ! isEmailValid(emailEl)) return showInvalidEmail();
 
       var emailValue = emailEl.value;
       this.emailValue = emailValue;
@@ -36,6 +39,10 @@ FirefoxAccountEnterEmail = (function() {
       getNextState(emailValue, function(nextState) {
         document.location.hash = nextState;
       });
+    },
+
+    getEmail: function() {
+      return this.emailValue;
     }
   };
 
