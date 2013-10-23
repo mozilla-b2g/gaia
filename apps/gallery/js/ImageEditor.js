@@ -15,7 +15,7 @@ var editBgImageButtons =
 $('edit-exposure-button').onclick = setEditTool.bind(null, 'exposure');
 $('edit-crop-button').onclick = setEditTool.bind(null, 'crop');
 $('edit-effect-button').onclick = setEditTool.bind(null, 'effect');
-$('edit-border-button').onclick = setEditTool.bind(null, 'border');
+$('edit-rotation-button').onclick = setEditTool.bind(null, 'rotation');
 $('edit-enhance-button').onclick = setEditTool.bind(null, 'enhance');
 $('edit-crop-none').onclick = undoCropHandler;
 $('edit-cancel-button').onclick = function() { exitEditMode(false); };
@@ -46,6 +46,7 @@ function resizeHandler() {
 
 function editPhoto(n) {
   editedPhotoIndex = n;
+  var currentRotation = files[editedPhotoIndex].metadata.rotation || 0;
 
   // Start with no edits
   editSettings = {
@@ -53,11 +54,12 @@ function editPhoto(n) {
       x: 0, y: 0, w: files[n].metadata.width, h: files[n].metadata.height
     },
     gamma: 1,
-    borderWidth: 0,
-    borderColor: [0, 0, 0, 0],
     matrix: ImageProcessor.IDENTITY_MATRIX,
     rgbMinMaxValues: ImageProcessor.default_enhancement
   };
+
+  $('edit-preview-area').style.transform =
+    'rotate(' + currentRotation + 'deg)';
 
   // Start looking up the image file
   photodb.getFile(files[n].name, function(file) {
@@ -93,10 +95,9 @@ function editPhoto(n) {
   editOptionButtons.forEach(function(b) { b.classList.remove('selected'); });
   $('edit-crop-aspect-free').classList.add('selected');
   $('edit-effect-none').classList.add('selected');
-  $('edit-border-none').classList.add('selected');
 }
 
-// Crop, Effect and border buttons call this
+// Crop, Effect and rotation buttons call this
 function editOptionsHandler() {
   // First, unhighlight all buttons in this group and then
   // highlight the button that has just been chosen. These
@@ -114,20 +115,20 @@ function editOptionsHandler() {
     imageEditor.setCropAspectRatio(3, 2);
   else if (this === $('edit-crop-aspect-square'))
     imageEditor.setCropAspectRatio(1, 1);
-  else if (this.dataset.effect) {
+    else if (this.dataset.effect) {
     editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
   }
-  else {
-    if (this.dataset.borderWidth) {
-      editSettings.borderWidth = parseFloat(this.dataset.borderWidth);
-    }
-    if (this.dataset.borderColor === 'white') {
-      editSettings.borderColor = [1, 1, 1, 1];
-    }
-    else if (this.dataset.borderColor === 'black') {
-      editSettings.borderColor = [0, 0, 0, 1];
-    }
+  if (this === $('edit-rotation-0'))
+    rotateImage(0);
+  else if (this === $('edit-rotation-90'))
+    rotateImage(90);
+  else if (this === $('edit-rotation-180'))
+    rotateImage(180);
+  else if (this === $('edit-rotation-270'))
+    rotateImage(270);
+  else if (this.dataset.effect) {
+    editSettings.matrix = ImageProcessor[this.dataset.effect + '_matrix'];
     imageEditor.edit();
   }
 }
@@ -244,6 +245,8 @@ function setEditTool(tool) {
   var options = $('edit-options').querySelectorAll('div.edit-options-bar');
   Array.forEach(options, function(o) { o.classList.add('hidden'); });
 
+  $('edit-rotation-button').onclick = setEditTool.bind(null, 'rotation');
+
   // If we were in crop mode, perform the crop and then
   // exit crop mode. If the user tapped the Crop button then we'll go
   // right back into crop mode, but this means that the Crop button both
@@ -269,9 +272,14 @@ function setEditTool(tool) {
       $('edit-effect-button').classList.add('selected');
       $('edit-effect-options').classList.remove('hidden');
       break;
-    case 'border':
-      $('edit-border-button').classList.add('selected');
-      $('edit-border-options').classList.remove('hidden');
+    case 'rotation':
+      $('edit-rotation-button').classList.add('selected');
+      $('edit-rotation-options').classList.remove('hidden');
+      $('edit-rotation-button').onclick = rotateImage;
+      if (!editSettings.rotation && editSettings.rotation !== 0) {
+        editSettings.rotation = files[editedPhotoIndex].metadata.rotation;
+        $('edit-rotation-button').onclick();
+      }
       break;
     case 'enhance':
       $('edit-enhance-button').classList.add('selected');
@@ -280,6 +288,37 @@ function setEditTool(tool) {
       break;
     }
   });
+}
+
+function selectRotationButton(rotation) {
+  var buttons = $('edit-rotation-options').querySelectorAll('a.button');
+  Array.forEach(buttons, function(b) { b.classList.remove('selected'); });
+  switch (rotation) {
+    case 0:
+      $('edit-rotation-0').classList.add('selected');
+      break;
+    case 90:
+      $('edit-rotation-90').classList.add('selected');
+      break;
+    case 180:
+      $('edit-rotation-180').classList.add('selected');
+      break;
+    case 270:
+      $('edit-rotation-270').classList.add('selected');
+      break;
+  }
+}
+
+function rotateImage(degrees) {
+  editSettings.rotation = editSettings.rotation || 0;
+  if (typeof degrees === 'number') {
+    editSettings.rotation += degrees - editSettings.rotation % 360;
+  } else {
+    editSettings.rotation += 90;
+    selectRotationButton(editSettings.rotation % 360);
+  }
+  $('edit-preview-area').style.transform =
+    'rotate(' + editSettings.rotation + 'deg)';
 }
 
 function undoCropHandler() {
@@ -349,7 +388,9 @@ function saveEditedImage() {
   progressBar.value = 0;
   progressBar.max = 110; // Allow an extra 10% time for conversion to blob
 
-  imageEditor.getFullSizeBlob('image/jpeg', gotBlob, onProgress);
+  LazyLoader.load('js/metadata_scripts.js', function() {
+    imageEditor.getFullSizeBlob('image/jpeg', gotBlob, onProgress);
+  });
 
   function onProgress(p) {
     progressBar.value = Math.floor(p * 100);
@@ -358,6 +399,7 @@ function saveEditedImage() {
   function gotBlob(blob) {
     // Hide progressbar when saved.
     progressBar.classList.add('hidden');
+    var newOrientation;
     var original = files[editedPhotoIndex].name;
     var basename, extension, filename;
     var version = 1;
@@ -382,17 +424,26 @@ function saveEditedImage() {
       filename = basename + '.edit' + version + extension;
     }
 
-    // Now that we have a filename, save the file This will send a
-    // change event, which will cause us to rebuild our thumbnails.
-    // For now, the edited image will become the first thumbnail since
-    // it si the most recent one. Ideally, I'd like a more
-    // sophisticated sort order that put edited sets of photos next to
-    // each other.
-    photodb.addFile(filename, blob);
+    newOrientation = exifSpec.rotateImage(1, editSettings.rotation);
+    files[editedPhotoIndex].metadata.Orientation = newOrientation;
 
-    // We're done.
-    exitEditMode(true);
-    progressBar.value = 0;
+    JPEG.writeExifMetaData(blob, files[editedPhotoIndex].metadata,
+      function(error, blob) {
+        if (!error) {
+          // Now that we have a filename, save the file This will send a
+          // change event, which will cause us to rebuild our thumbnails.
+          // For now, the edited image will become the first thumbnail since
+          // it si the most recent one. Ideally, I'd like a more
+          // sophisticated sort order that put edited sets of photos next to
+          // each other.
+          photodb.addFile(filename, blob);
+
+          // We're done.
+          exitEditMode(true);
+          progressBar.value = 0;
+        }
+    });
+
   }
 }
 
@@ -408,8 +459,6 @@ function saveEditedImage() {
  *  gamma: a float specifying gamma correction
  *  matrix: a 4x4 matrix that represents a transformation of each rgba pixel.
  *    this can be used to convert to bw or sepia, for example.
- *  borderWidth: the size of the border as a fraction of the image width
- *  borderColor: a [r, g, b, a] array specifying border color
  *
  * In addition to previewing the image, this class also defines a
  * getFullSizeBlob() function that creates a full-size version of the
@@ -653,12 +702,6 @@ ImageEditor.prototype.finishEdit = function(callback) {
   this.dest.width = this.preview.width;
   this.dest.height = this.preview.height;
 
-  var borderWidth = Math.ceil(this.edits.borderWidth * this.dest.width);
-  this.edits.borderLeftWidth = borderWidth;
-  this.edits.borderRightWidth = borderWidth;
-  this.edits.borderTopWidth = borderWidth;
-  this.edits.borderBottomWidth = borderWidth;
-
   this.processor.draw(this.preview,
                       0, 0, this.preview.width, this.preview.height,
                       this.dest.x, this.dest.y, this.dest.width,
@@ -719,24 +762,12 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   var rectangles = makeTileList(this.source.width, this.source.height,
                                 tile.width, tile.height);
 
-  var borderWidth = Math.ceil(this.edits.borderWidth * this.source.width);
-
   processNextTile();
 
   // Process one tile of the original image, copy the processed tile
   // to the full-size canvas, and then return to the event queue.
   function processNextTile() {
     var rect = rectangles.shift();
-
-    // Set the borders for this tile
-    self.edits.borderTopWidth =
-      (rect.y === 0) ? borderWidth : 0;
-    self.edits.borderBottomWidth =
-      (rect.y + rect.h === self.source.height) ? borderWidth : 0;
-    self.edits.borderLeftWidth =
-      (rect.x === 0) ? borderWidth : 0;
-    self.edits.borderRightWidth =
-      (rect.x + rect.w === self.source.width) ? borderWidth : 0;
 
     // Get the input pixels for this tile
     var pixels = context.getImageData(rect.x, rect.y, rect.w, rect.h);
@@ -1444,15 +1475,6 @@ function ImageProcessor(canvas) {
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
   this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
                                                       'rgb_min_max_values');
-  this.borderLeftWidthAddress =
-    gl.getUniformLocation(program, 'border_left_width');
-  this.borderRightWidthAddress =
-    gl.getUniformLocation(program, 'border_right_width');
-  this.borderTopWidthAddress =
-    gl.getUniformLocation(program, 'border_top_width');
-  this.borderBottomWidthAddress =
-    gl.getUniformLocation(program, 'border_bottom_width');
-  this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
 }
 
 // Destroy all the stuff we allocated
@@ -1493,14 +1515,6 @@ ImageProcessor.prototype.draw = function(image,
   // Set the color transformation
   gl.uniformMatrix4fv(this.matrixAddress, false,
                       options.matrix || ImageProcessor.IDENTITY_MATRIX);
-
-  // Set border size and color
-  gl.uniform1f(this.borderLeftWidthAddress, options.borderLeftWidth || 0);
-  gl.uniform1f(this.borderRightWidthAddress, options.borderRightWidth || 0);
-  gl.uniform1f(this.borderTopWidthAddress, options.borderTopWidth || 0);
-  gl.uniform1f(this.borderBottomWidthAddress, options.borderBottomWidth || 0);
-
-  gl.uniform4fv(this.borderColorAddress, options.borderColor || [0, 0, 0, 0]);
 
   // set rgb max/min values for auto Enhancing
   gl.uniformMatrix3fv(this.rgbMinMaxValuesAddress, false,
@@ -1547,11 +1561,6 @@ ImageProcessor.vertexShader =
 ImageProcessor.fragmentShader =
   'precision mediump float;\n' +
   'uniform sampler2D image;\n' +
-  'uniform float border_left_width;\n' +
-  'uniform float border_right_width;\n' +
-  'uniform float border_top_width;\n' +
-  'uniform float border_bottom_width;\n' +
-  'uniform vec4 border_color;\n' +
   'uniform vec2 dest_size;\n' +    // size of the destination rectangle
   'uniform vec2 dest_origin;\n' +  // upper-left corner of destination rectangle
   'uniform vec4 gamma;\n' +
@@ -1559,14 +1568,6 @@ ImageProcessor.fragmentShader =
   'uniform mat3 rgb_min_max_values;\n' +
   'varying vec2 src_position;\n' + // from the vertex shader
   'void main() {\n' +
-  // Use border color if we're over the border
-  '  if (gl_FragCoord.x < dest_origin.x + border_left_width ||\n' +
-  '      gl_FragCoord.y < dest_origin.y + border_bottom_width ||\n' +
-  '      gl_FragCoord.x > dest_origin.x + dest_size.x-border_right_width ||\n' +
-  '      gl_FragCoord.y > dest_origin.y + dest_size.y - border_top_width) {\n' +
-  '    gl_FragColor = border_color;\n' +
-  '    return;\n' +
-  '  }\n' +
   // Otherwise take the image color, apply color and gamma correction and
   // the color manipulation matrix.
   '  vec4 original_color = texture2D(image, src_position);\n' +

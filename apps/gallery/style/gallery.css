@@ -401,13 +401,11 @@ a.button.disabled {
 
 footer {
   background: rgba(0, 0, 0, 0.75);
-  height: 4.5rem;
-  position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 1;
-  box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
+  height: 5rem;
 }
 
 .icon.icon-done {
@@ -535,7 +533,8 @@ footer {
   left: 0;
   right: 0;
   top: 5rem;
-  bottom: 9.5rem; /* 4.5rem for edit-toolbar, 5rem for edit-options */
+  bottom: 10rem;
+  transition: all 0.3s ease;
 }
 
 #edit-preview-canvas {
@@ -559,8 +558,7 @@ footer {
   left: 0;
   width: 100%;
   height: 5rem;
-  bottom: 4.5rem;
-  background: url(images/options-background.png);
+  bottom: 5rem;
 }
 
 /* The progress has higer selectivity css in progress.css to control display.
@@ -608,8 +606,7 @@ footer {
 }
 
 #edit-crop-options a.selected.radio.button {
-  outline: solid #00aacc 0.2rem;
-  outline-offset: -0.2rem;
+  background-color: #00aacc;
 }
 
 #edit-crop-none {
@@ -687,6 +684,7 @@ footer {
 #edit-effect-faded {
   left:80%
 }
+
 a.filter-bw {
   filter: url(../index.html#filter-bw);
 }
@@ -700,84 +698,112 @@ a.filter-faded {
   filter: url(../index.html#filter-faded);
 }
 
-/* All the border buttons share these styles */
-#edit-border-options a.radio.button {
+#edit-rotation-options a.radio.button {
   position: absolute;
-  width: calc(20% - 0.6rem);
-  height: calc(100% - 0.6rem);
-  top: 0.3rem;
+  width: 25%;
+  height: 5rem;
+  line-height: 5rem;
   padding: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   overflow: hidden;
+  border-right: 0.1rem solid #000;
+}
+#edit-rotation-options a.selected.radio.button {
+  background-color: #00aacc;
 }
 
-#edit-border-options a.selected.radio.button {
-  outline: solid #00aacc 0.3rem;
+#edit-rotation-0 {
+  left:0;
 }
-
-#edit-border-none {
-  left: calc(0% + 0.3rem);
-  border: 0;
+#edit-rotation-90 {
+  left:25%;
 }
-#edit-border-thin-white {
-  left: calc(20% + 0.3rem);
-  border: 0.2rem solid white;
+#edit-rotation-180 {
+  left:50%;
 }
-#edit-border-thick-white {
-  left: calc(40% + 0.3rem);
-  border: 0.4rem solid white;
-}
-#edit-border-thin-black {
-  left: calc(60% + 0.3rem);
-  border: 0.2rem solid black;
-}
-#edit-border-thick-black {
-  left: calc(80% + 0.3rem);
-  border: 0.4rem solid black;
+#edit-rotation-270 {
+  left:75%;
 }
 
 #edit-toolbar {
-  height: 4.5rem;
+  height: 5rem;
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  font-size: 0;
   transition: transform 0.2s linear;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  height: 5rem;
 }
 
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > a {
+  position: absolute;
   display: inline-block;
   width: 20%;
   height: 100%;
 }
 
+#edit-toolbar a.radio.button {
+  line-height: 5rem;
+}
+
+#edit-toolbar a.selected.radio.button {
+  border-bottom: solid 2px #00aacc;
+}
+
+#edit-toolbar a.radio.button .icon{
+  display: block;
+  width: 30px;
+  height: 30px;
+  background-position: 0 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -15px;
+  margin-left: -15px;
+}
+
+#edit-toolbar a.selected.radio.button.selected .icon{
+  background-position: 0 -30px;
+}
+
 #edit-exposure-button {
-  left: 0;
-  background-image: url('images/actionicon_gallery_edit_exposure_30x30.png');
+  left: 0%;
+}
+
+#edit-exposure-button .icon{
+  background: url('images/actionicon_gallery_edit_exposure_30x30.png') no-repeat;
 }
 
 #edit-crop-button {
   left: 20%;
-  background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
+}
+
+#edit-crop-button .icon{
+  background: url('images/actionicon_gallery_edit_crop_30x30.png') no-repeat;
 }
 
 #edit-effect-button {
   left: 40%;
-  background-image: url('images/actionicon_gallery_edit_effects_30x30.png');
 }
 
-#edit-border-button {
+#edit-effect-button .icon{
+  background: url('images/actionicon_gallery_edit_filters_30x30.png') no-repeat;
+}
+
+#edit-rotation-button {
   left: 60%;
-  background-image: url('images/actionicon_gallery_edit_borders_30x30.png');
+}
+
+#edit-rotation-button .icon{
+  background: url('images/actionicon_gallery_edit_rotation_30x30.png') no-repeat;
 }
 
 #edit-enhance-button {
   left: 80%;
-  background-image: url('images/actionicon_gallery_edit_enhance_30x30.png');
+}
+
+#edit-enhance-button .icon{
+  background: url('images/actionicon_gallery_edit_autoenhance_off_30x30.png') no-repeat;
 }
 
 #edit-effect-button.selected{
@@ -796,16 +822,8 @@ a.filter-faded {
   background-image: url('images/actionicon_gallery_edit_exposure_selected_30x30.png');
 }
 
-#edit-enhance-button.selected {
-  background-image: url('images/actionicon_gallery_edit_enhance_selected_30x30.png');
-}
-
-#edit-enhance-button.on {
-  background-image: url('images/actionicon_gallery_edit_enhance_on_30x30.png');
-}
-
-#edit-enhance-button.selected.on {
-  background-image: url('images/actionicon_gallery_edit_enhance_on_selected_30x30.png');
+#edit-enhance-button.on .icon{
+  background: url('images/actionicon_gallery_edit_autoenhance_on_30x30.png') no-repeat;
 }
 
 #edit-enhance-options {
@@ -848,7 +866,6 @@ a.filter-faded {
   height: 2.6rem;
   padding: 0;
   margin: 0;
-  background: url(images/slider-background.png);
 }
 
 #sliderline {
@@ -859,7 +876,7 @@ a.filter-faded {
   right: 3.5rem;
   margin: 0;
   border-radius: 3px;
-  background: url(images/slider-line.png) repeat-x;
+  background-color: grey;
   border: none;
 }
 
@@ -867,13 +884,16 @@ a.filter-faded {
   position: absolute;
   width: 3.6rem;
   height: 2.6rem;
-  left: calc(3.9rem - 1.8rem);
-  background: url(images/slider-scrubber.png) no-repeat center center;
-  font: 0/0 a;
+  border-radius: 20%;
+  line-height: 2.6rem;
+  text-align: center;
+  background-color: white;
+  color: #00aacc;
 }
 
-#sliderthumb.active {
-  background-image: url(images/slider-scrubber-active.png);
+#sliderthumb:active {
+  background-color: #00aacc;
+  color: white;
 }
 
 #sliderlabels {
@@ -886,11 +906,8 @@ a.filter-faded {
 
 .sliderlabel {
   position: absolute;
-  top: -0.2rem;
-  height: 0.8rem;
-  background: url(images/slider-marker.png) no-repeat top left;
+  top: -1rem;
   color: #8a9699;
-  font-size: 1.5rem;
 }
 
 .sliderlabel:after {
