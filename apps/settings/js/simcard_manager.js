@@ -21,6 +21,9 @@
       this.simManagerOutgoingMessagesSelect.addEventListener('change', this);
       this.simManagerOutgoingDataSelect.addEventListener('change', this);
 
+      this.simCardContainer.addEventListener('click',
+        this.handleDelegateEvents.bind(this));
+
       // init needed cardInfo
       this.initSimCardsInfo();
 
@@ -115,6 +118,95 @@
           }
           break;
       }
+    },
+    handleDelegateEvents: function(evt) {
+      var target = evt.target;
+
+      if (target.classList.contains('simcard-checkbox')) {
+        var cardIndex = parseInt(target.dataset.cardIndex, 10);
+        this.toggleSimCard(cardIndex, evt);
+      }
+    },
+    toggleSimCard: function(cardIndex, evt) {
+      var simcardsCount = this.getSimCardsCount();
+      var simcardInfo = this.getSimCardInfo(cardIndex);
+
+      // If we are in one-sim infrastructure
+      if (simcardsCount === 1) {
+
+        // and current card is enabled, it means we want to disable it
+        if (simcardInfo.enabled) {
+          evt.preventDefault();
+          // sorry, this is not allowed because we have only one card
+          window.alert(_('cant-disable-simcard-alert'));
+        }
+        // and current card is disabled, it means we want to enable it
+        else if (!simcardInfo.enabled) {
+          // I have no idea why this will happen, just throw errors
+          throw new Error(
+            'In one-sim infrastructure, but current simcard is disabled');
+        }
+      }
+      // Else if we are in DSDS infrastructure
+      else if (simcardsCount === 2) {
+
+        var anotherCardIndex = (cardIndex == 0) ? 1 : 0;
+        var anotherCardInfo = this.getSimCardInfo(anotherCardIndex);
+
+        // and current card is enabled, it means we want to disable it
+        if (simcardInfo.enabled) {
+
+          // but sadly, another card is disabled now, so we can't disable
+          // current card. In this way, we have to alert users.
+          if (!anotherCardInfo.enabled) {
+            evt.preventDefault();
+            window.alert(_('cant-disable-simcard-alert'));
+          }
+          // ok, because the other card is enabled, we can disable current
+          // card. We just have to confirm with users.
+          else {
+
+            // Because we start from 0, we have to change it to start from 1
+            var disableCardIndex = (cardIndex + 1) + '';
+            var enableCardIndex = (anotherCardIndex + 1) + '';
+
+            var wantToDisable =
+              window.confirm(_('disable-simcard-confirm', {
+                disableCardIndex: disableCardIndex,
+                enableCardIndex: enableCardIndex
+              }));
+
+            if (!wantToDisable) {
+              evt.preventDefault();
+            }
+            else {
+              this.disableSimCard(cardIndex);
+            }
+          }
+        }
+        // and current card is disabled, it means we want to enable it
+        else if (!simcardInfo.enabled) {
+          // TODO, add sth here
+          // ok, you can just enable it !
+          var wantToEnable =
+            window.confirm('Are you sure you want to enable this card ?');
+
+          if (!wantToEnable) {
+            evt.preventDefault();
+          }
+          else {
+            this.enableSimCard(cardIndex);
+          }
+        }
+      }
+    },
+    enableSimCard: function(cardIndex) {
+      this.updateSimCardInfo(cardIndex, { enabled: true });
+      this.updateSimCardUI(cardIndex);
+    },
+    disableSimCard: function(cardIndex) {
+      this.updateSimCardInfo(cardIndex, { enabled: false });
+      this.updateSimCardUI(cardIndex);
     },
     getSimCardsCount: function() {
       return this.simcards.length;

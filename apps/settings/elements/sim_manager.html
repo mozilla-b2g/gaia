@@ -37,6 +37,10 @@
     <div id="sim-card-tmpl" hidden>
       <!--
       <li class="sim-card sim-card-${sim-index} ${sim-enabled}">
+        <label class="pack-switch">
+          <input type="checkbox" class="uninit simcard-checkbox" data-card-index="${sim-index}" ${sim-checked}/>
+          <span></span>
+        </label>
         <div class="information-container">
           <div class="sim-card-icon"></div>
           <p class="sim-card-name">${sim-name}</p>

@@ -47,6 +47,16 @@
   clear: both;
   padding: 1.5rem 0;
 }
+.sim-card .pack-switch {
+  height: 60%;
+
+  /*
+   * Because of opacity in .information-container will make
+   * it become a stacking context to force pack-switch
+   * to be covered.
+   */
+  z-index: 2;
+}
 .sim-card.sim-card-0 .sim-card-icon {
   background-position: 0 0;
 }
