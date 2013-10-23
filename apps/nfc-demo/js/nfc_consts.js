@@ -30,19 +30,29 @@ var nfc = {
   tnf_unchanged: 0x06,
   tnf_reserved: 0x07,
 
-  rtd_text: this.fromUTF8('T'),
-  rtd_uri: this.fromUTF8('U'),
-  rtd_smart_poster: this.fromUTF8('Sp'),
-  rtd_alternative_carrier: this.fromUTF8('ac'),
-  rtd_handover_carrier: this.fromUTF8('Hc'),
-  rtd_handover_request: this.fromUTF8('Hr'),
-  rtd_handover_select: this.fromUTF8('Hs'),
+  rtd_text: 0,
+  rtd_uri: 0,
+  rtd_smart_poster: 0,
+  rtd_alternative_carrier: 0,
+  rtd_handover_carrier: 0,
+  rtd_handover_request: 0,
+  rtd_handover_select: 0,
 
-  smartposter_action: this.fromUTF8('act'),
+  smartposter_action: 0,
 
   uris: new Array(),
 
   init: function() {
+    this.rtd_text = nfc.fromUTF8('T');
+    this.rtd_uri = nfc.fromUTF8('U');
+    this.rtd_smart_poster = nfc.fromUTF8('Sp');
+    this.rtd_alternative_carrier = nfc.fromUTF8('ac');
+    this.rtd_handover_carrier = nfc.fromUTF8('Hc');
+    this.rtd_handover_request = nfc.fromUTF8('Hr');
+    this.rtd_handover_select = nfc.fromUTF8('Hs');
+
+    this.smartposter_action = nfc.fromUTF8('act');
+    
     this.uris[0x00] = '';
     this.uris[0x01] = 'http://www.';
     this.uris[0x02] = 'https://www.';
