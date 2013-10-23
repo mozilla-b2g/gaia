@@ -656,6 +656,17 @@ navigator.mozL10n.ready(function wifiSettings() {
       }
 
       // initialisation
+      var keys = WifiHelper.getSecurity(network);
+      var security = (keys && keys.length) ? keys.join(', ') : '';
+      var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
+      var updateBaseStationInfo = function update_base_station_info() {
+        dialog.querySelector('[data-ssid]').textContent = network.ssid;
+        dialog.querySelector('[data-signal]').textContent =
+            _('signalLevel' + sl);
+        dialog.querySelector('[data-security]').textContent =
+            security || _('securityNone');
+        dialog.dataset.security = security;
+      };
       switch (dialogID) {
         case 'wifi-status':
           // we're connected, let's display some connection info
@@ -669,18 +680,12 @@ navigator.mozL10n.ready(function wifiSettings() {
           };
           gWifiManager.connectionInfoUpdate = updateNetInfo;
           updateNetInfo();
+          updateBaseStationInfo();
+        break;
 
         case 'wifi-auth':
-          // network info -- #wifi-status and #wifi-auth
-          var keys = WifiHelper.getSecurity(network);
-          var security = (keys && keys.length) ? keys.join(', ') : '';
-          var sl = Math.min(Math.floor(network.relSignalStrength / 20), 4);
-          dialog.querySelector('[data-ssid]').textContent = network.ssid;
-          dialog.querySelector('[data-signal]').textContent =
-              _('signalLevel' + sl);
-          dialog.querySelector('[data-security]').textContent =
-              security || _('securityNone');
-          dialog.dataset.security = security;
+          // network info -- #wifi-auth
+          updateBaseStationInfo();
           changeDisplay(security);
           break;
 
@@ -700,31 +705,33 @@ navigator.mozL10n.ready(function wifiSettings() {
 
       // change element display
       function changeDisplay(security) {
-        if (security === 'WEP' || security === 'WPA-PSK') {
-          simPin.parentNode.style.display = 'none';
-          identity.parentNode.style.display = 'none';
-          password.parentNode.style.display = 'block';
-        } else if (security === 'WPA-EAP') {
-          if (eap) {
-            switch (eap.value) {
-              case 'SIM':
-              case 'AKA':
-              case 'AKA\'':
-                simPin.parentNode.style.display = 'block';
-                identity.parentNode.style.display = 'none';
-                password.parentNode.style.display = 'none';
-                break;
-              default:
-                simPin.parentNode.style.display = 'none';
-                identity.parentNode.style.display = 'block';
-                password.parentNode.style.display = 'block';
-                break;
+        if (dialogID !== 'wifi-status') {
+          if (security === 'WEP' || security === 'WPA-PSK') {
+            simPin.parentNode.style.display = 'none';
+            identity.parentNode.style.display = 'none';
+            password.parentNode.style.display = 'block';
+          } else if (security === 'WPA-EAP') {
+            if (eap) {
+              switch (eap.value) {
+                case 'SIM':
+                case 'AKA':
+                case 'AKA\'':
+                  simPin.parentNode.style.display = 'block';
+                  identity.parentNode.style.display = 'none';
+                  password.parentNode.style.display = 'none';
+                  break;
+                default:
+                  simPin.parentNode.style.display = 'none';
+                  identity.parentNode.style.display = 'block';
+                  password.parentNode.style.display = 'block';
+                  break;
+              }
             }
+          } else {
+            simPin.parentNode.style.display = 'none';
+            identity.parentNode.style.display = 'none';
+            password.parentNode.style.display = 'none';
           }
-        } else {
-          simPin.parentNode.style.display = 'none';
-          identity.parentNode.style.display = 'none';
-          password.parentNode.style.display = 'none';
         }
       }
 
