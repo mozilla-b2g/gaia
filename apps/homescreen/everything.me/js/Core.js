@@ -179,19 +179,37 @@ window.Evme = new function Evme_Core() {
     // lazy components
     window.addEventListener('suggestcollections', initSuggestCollections);
 
+    self.Banner = lazifyModule('Banner',
+      ['everything.me/modules/Banner/Banner.css',
+       'everything.me/modules/Banner/Banner.js'],
+      function initModule() {
+        Evme.Banner.init({
+          'el': Evme.$('#homescreenStatus')
+        });
+      });
+
+    self.ConnectionMessage = lazifyModule('ConnectionMessage',
+      ['everything.me/modules/ConnectionMessage/ConnectionMessage.css',
+       'everything.me/modules/ConnectionMessage/ConnectionMessage.js'],
+      function initModule() {
+        Evme.ConnectionMessage.init();
+      });
+
+    self.Location = lazifyModule('Location',
+      ['everything.me/modules/Location/Location.js'],
+      function initModule() {
+        Evme.Location.init({
+          'refreshInterval': data.locationInterval,
+          'requestTimeout': data.locationRequestTimeout
+        });
+      });
+
     // active components
     var appsEl = Evme.$('#evmeApps'),
         collectionEl = document.querySelector('#collection .evme-apps');
 
     Evme.Features.init({
       'featureStateByConnection': data.featureStateByConnection
-    });
-
-    Evme.ConnectionMessage.init();
-
-    Evme.Location.init({
-      'refreshInterval': data.locationInterval,
-      'requestTimeout': data.locationRequestTimeout
     });
 
     Evme.Searchbar.init({
@@ -291,10 +309,6 @@ window.Evme = new function Evme_Core() {
 
     Evme.IconGroup.init({});
 
-    Evme.Banner.init({
-      'el': Evme.$('#homescreenStatus')
-    });
-
     Evme.SearchHistory.init({
       'maxEntries': data.maxHistoryEntries
     });
@@ -337,4 +351,24 @@ window.Evme = new function Evme_Core() {
   function onSuggestCollections(e) {
       Evme.Brain.CollectionsSuggest.showUI();
   }
+
+  // create a 'lazy' version of a module using the Proxy API
+  // calling any method of the 'lazy module' will load and initialize
+  // the real module and then call the matching method
+  function lazifyModule(moduleName, resources, initModule) {
+    var handler = {
+      get: function get(target, name) {
+        return function wrapper() {
+          var args = Array.prototype.slice.call(arguments);
+          LazyLoader.load(resources, function onLoad() {
+            initModule();
+            var module = Evme[moduleName];
+            module[name].apply(module, args);
+          });
+        }
+      }
+    };
+
+    return new Proxy({}, handler);
+  };
 }
