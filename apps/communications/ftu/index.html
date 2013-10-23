@@ -192,13 +192,13 @@
         </div>
       </section>
       <section role="region" id="ff_account" class="ff_account">
-        <div class="ff_account--logo"></div>
-        <div class="ff_account--wrapper">
+        <img class="ff_account--logo" alt="Firefox Accounts Logo" src="/ftu/css/images/ff_account_logo.png" />
+        <section class="ff_account--wrapper">
           <p id="ff_account--explanation" data-l10n-id="ff-account-explanation"></p>
         </div>
       </section>
       <section role="region" id="ff_account_enter_email" class="ff_account">
-        <div class="ff_account--logo"></div>
+        <img class="ff_account--logo" alt="Firefox Accounts Logo" src="/ftu/css/images/ff_account_logo.png" />
         <div class="ff_account--wrapper">
           <form>
             <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
@@ -210,22 +210,59 @@
         </div>
       </section>
       <section role="region" id="ff_account_enter_password" class="ff_account">
-        <div class="ff_account--wrapper">
-          <h2 data-l10n-id="ff-account-enter-password"></h2>
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-enter-password" class="ff_account--title"></h2>
           <h3 data-l10n-id="ff-account-hello"></h3>
           <input type="password" placeholder="enter your password" />
-          <a href="#" data-l10n-id="ff-account-forgot-password"></a>
           <p>
-            <label for="ff-account--hide-password" data-l10n-id="ff-account-hide-password">
-              <input type="checkbox" />
-            </label>
+            <a href="#" data-l10n-id="ff-account-forgot-password"></a>
           </p>
-          <p>
+          <label for="ff-account--show-password" class="pack-checkbox pack-checkbox__ff_account">
+            <input type="checkbox" />
+            <span></span>
+            <p data-l10n-id="ff-account-show-password" class="pack-checkbox__ff_account--label"></p>
+          </label>
+          <div>
             <div class="ff_account--logo ff_account--logo__small"></div>
-          </p>
-        </div>
+          </div>
+        </section>
       </section>
       <section role="region" id="ff_account_create_password" class="ff_account">
+      </section>
+      <section role="region" id="ff_account_email_submit" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-email-submit-header" class="ff_account--title"></h2>
+          <div class="ff_account--image ff_account--image__envelope"></div>
+          <p data-l10n-id="ff-account-email-submit-address-sent-to"></p>
+          <p data-l10n-id="ff-account-email-submit-check-email"></p>
+          <p data-l10n-id="ff-account-success-access-via-settings"></p>
+        </section>
+        <div>
+          <div class="ff_account--logo ff_account--logo__small"></div>
+        </div>
+      </section>
+      <section role="region" id="ff_account_reset_password" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-reset-password-header" class="ff_account--title"></h2>
+          <div class="ff_account--image ff_account--image__envelope"></div>
+          <p data-l10n-id="ff-account-email-submit-address-sent-to"></p>
+          <p data-l10n-id="ff-account-email-submit-check-email"></p>
+          <p data-l10n-id="ff-account-success-access-via-settings"></p>
+        </section>
+        <div>
+          <div class="ff_account--logo ff_account--logo__small"></div>
+        </div>
+      </section>
+      <section role="region" id="ff_account_success" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-success-header" class="ff_account--title"></h2>
+          <p data-l10n-id="ff-account-success-ready-to-go"></p>
+          <p data-l10n-id="ff-account-success-use-services"></p>
+          <p data-l10n-id="ff-account-success-access-via-settings"></p>
+        </section>
+        <div>
+          <div class="ff_account--logo ff_account--logo__small"></div>
+        </div>
       </section>
       <section role="region" id="configure_network">
         <section id="configure_network_params">

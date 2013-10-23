@@ -35,25 +35,41 @@ var steps = {
   },
   7: {
     onlyForward: false,
-    hash: '#date_and_time',
+    hash: '#ff_account_email_submit',
     requireSIM: false
   },
   8: {
     onlyForward: false,
-    hash: '#geolocation',
+    hash: '#ff_account_reset_password',
     requireSIM: false
   },
   9: {
+    // TODO - change this to true
     onlyForward: false,
-    hash: '#import_contacts',
+    hash: '#ff_account_success',
     requireSIM: false
   },
   10: {
     onlyForward: false,
-    hash: '#welcome_browser',
+    hash: '#date_and_time',
     requireSIM: false
   },
   11: {
+    onlyForward: false,
+    hash: '#geolocation',
+    requireSIM: false
+  },
+  12: {
+    onlyForward: false,
+    hash: '#import_contacts',
+    requireSIM: false
+  },
+  13: {
+    onlyForward: false,
+    hash: '#welcome_browser',
+    requireSIM: false
+  },
+  14: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
