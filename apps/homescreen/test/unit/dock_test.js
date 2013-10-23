@@ -4,6 +4,7 @@ requireApp('homescreen/test/unit/mock_app.js');
 // import both MockPage and MockDock
 requireApp('homescreen/test/unit/mock_page.js');
 
+require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/dock.js');
 
 var mocksHelper = new MocksHelper([
