@@ -117,7 +117,7 @@
             success: successCb,
             error: errorCb
           });
-        }.bind(contactData),
+        }.bind(new mozContact(contactData)),
         onmismatch: function() {
           saveMozContact(this, successCb, function onMismatchError(evt) {
             errorCb(evt.target.error);
