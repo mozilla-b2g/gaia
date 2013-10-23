@@ -244,7 +244,7 @@ function handleNdefDiscovered(activityData) {
     case 'NDEF_FORMATTABLE':
       if (activityData.records === null) {
         // Process unread message.
-        return handleNdefType(activityData.sessionToken, activityData.techType);
+        return handleNdefType(activityData.sessionToken, activityData.tech);
       } else {
         return handleNdefDiscoveredMessages(activityData.records);
       }
