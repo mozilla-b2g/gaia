@@ -503,6 +503,12 @@ function handleKeyboardSound() {
   }
 }
 
+function deactivateInputMethod() {
+  if (inputMethod.deactivate) {
+    inputMethod.deactivate();
+  }
+}
+
 function setKeyboardName(name, callback) {
   var keyboard;
 
@@ -522,8 +528,7 @@ function setKeyboardName(name, callback) {
     }
   }
 
-  if (inputMethod.deactivate)
-    inputMethod.deactivate();
+  deactivateInputMethod();
 
   if (keyboard.imEngine) {
     loadIMEngine(name, function() {
@@ -1637,6 +1642,7 @@ function getKeyCoordinateY(y) {
 }
 
 function switchToNextIME() {
+  deactivateInputMethod();
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.next();
 }
@@ -1690,25 +1696,16 @@ function replaceSurroundingText(text, offset, length) {
 // This is called when we get an event from mozKeyboard.
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
-function showKeyboard(state) {
+function showKeyboard() {
   // If no keyboard has been selected yet, choose the first enabled one.
   // This will also set the inputMethod
   if (!keyboardName) {
-    setKeyboardName(defaultKeyboardName, showKeyboard.bind(this, state));
+    setKeyboardName(defaultKeyboardName, showKeyboard.bind(this));
     return;
   }
 
   inputContext = navigator.mozInputMethod.inputcontext;
   IMERender.showIME();
-
-  if (inputContext) {
-    currentInputMode = inputContext.inputMode;
-    currentInputType = mapInputType(inputContext.inputType);
-  } else {
-    console.error('Cannot get inputContext');
-    currentInputMode = '';
-    currentInputType = mapInputType('text');
-  }
 
   resetKeyboard();
 
@@ -1720,6 +1717,15 @@ function showKeyboard(state) {
     navigator.mozSettings.createLock().set({
       'keyboard.ftu.enabled': false
     });
+  }
+
+  if (inputContext) {
+    currentInputMode = inputContext.inputMode;
+    currentInputType = mapInputType(inputContext.inputType);
+  } else {
+    currentInputMode = '';
+    currentInputType = mapInputType('text');
+    return;
   }
 
   var state = {
@@ -1767,8 +1773,7 @@ function hideKeyboard() {
     return;
 
   IMERender.hideIME();
-  if (inputMethod.deactivate)
-    inputMethod.deactivate();
+  deactivateInputMethod();
 
   isKeyboardRendered = false;
 }
