@@ -178,7 +178,7 @@ var Feedback = {
       this.feedbackDone.hidden = false;
     } else {
       this.keepAllInputs();
-      this.feedbackAlertMsg.textContent = _('feedback-error-' + type);
+      this.feedbackAlertMsg.textContent = _('feedback-errormessage-' + type);
       this.feedbackAlert.hidden = false;
       this.sendButton.disabled = false;
     }
