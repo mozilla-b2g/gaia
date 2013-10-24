@@ -155,9 +155,9 @@
       <li>SIM_mandatory</li>
       <li>3g</li>
       <li>wifi</li>
-      <li>firefox accounts</li>
       <li>configure network</li>
       <li>date and time</li>
+      <li>firefox accounts</li>
       <li>geolocation</li>
       <li>browser privacy</li>
     </ol>
@@ -208,13 +208,11 @@
       <section role="region" id="ff-account-enter-email-screen" class="ff_account">
         <img class="ff_account--logo" alt="Firefox Accounts Logo" src="/ftu/css/images/ff_account_logo.png" />
         <div class="ff_account--wrapper">
-          <form>
-            <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
-            <input type="email" id="ff_account--enter-email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account--input"/>
-            <p class="ff_account--small">
-                By proceeding, you agree to our <a href="#ff-account-tos-screen" class="ff_account--small">Terms of Service</a> and <a href="#ff-account-pp-screen" class="ff_account--small">Privacy Policy</a>.
-            </p>
-          </form>
+          <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
+          <input type="email" id="ff_account--enter-email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account--input"/>
+          <p class="ff_account--small">
+              By proceeding, you agree to our <a href="#ff-account-tos-screen" class="ff_account--small">Terms of Service</a> and <a href="#ff-account-pp-screen" class="ff_account--small">Privacy Policy</a>.
+          </p>
         </div>
       </section>
 
@@ -286,7 +284,7 @@
           </h2>
           <div class="ff_account--image ff_account--image__envelope"></div>
           <p data-l10n-id="ff-account-signup-success-address-sent-to">
-            We’ve sent an email to: <span id="ff_account--signup_success--email"></span>.
+            We’ve sent an email to: <span id="ff_account--signup_success--email" class="ff_account--success-email"></span>.
           </p>
           <p data-l10n-id="ff-account-signup-success-check-email">
             Next time you check your email, click the verification link to confirm your Firefox account.
@@ -327,7 +325,7 @@
           </h2>
           <div class="ff_account--image ff_account--image__envelope"></div>
           <p data-l10n-id="ff-account-reset-password-address-sent-to">
-            We’ve sent an email to: <span id="ff_account--password_reset_success--email"></span>.
+            We’ve sent an email to: <span id="ff_account--password_reset_success--email" class="ff_account--success-email"></span>.
           </p>
           <p data-l10n-id="ff-account-reset-password-check-email">
             Next time you check your email, you'll be able to reset your Firefox Account password.

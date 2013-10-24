@@ -1200,6 +1200,13 @@ i.hack-first-child {
   margin-left: -57px;
 }
 
+@media screen and (max-height: 479px) {
+  .ff_account--logo__small {
+    display: none;
+  }
+}
+
+
 .ff_account--label {
   display: inline-block;
   margin-bottom: .55rem;
@@ -1229,6 +1236,11 @@ input.ff_account--input {
   height: 31px;
   background: url('images/ff_account_envelope.png') no-repeat;
   background-size: 48px;
+}
+
+.ff_account--success-email {
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 label.pack-checkbox__ff_account {

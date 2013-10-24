@@ -15,7 +15,7 @@ FirefoxAccountEnterEmail = (function() {
 
   function isEmailValid(emailEl) {
     // user can skip ff account creation with no error
-    // if they either enter no email
+    // if no email is entered.
     return ! emailEl.value || emailEl.validity.valid;
   }
 
@@ -36,6 +36,7 @@ FirefoxAccountEnterEmail = (function() {
     init: function() {
       // nothing to do here.
     },
+
     forward: function(gotoNextStepCallback) {
       var emailEl = $(FF_ACCOUNT_EMAIL_SELECTOR);
 
