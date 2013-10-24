@@ -1,3 +1,5 @@
+'use strict';
+
 var OrientationManager = {
   init: function om_init() {
     this.fetchDefaultOrientation();

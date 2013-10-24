@@ -8,7 +8,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
 
 requireApp('system/js/browser_config_helper.js');
 requireApp('system/js/browser_frame.js');
-requireApp('system/js/orientation_manager.js');
+requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
@@ -16,6 +16,7 @@ requireApp('system/test/unit/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
@@ -115,6 +116,7 @@ suite('system/ActivityWindowFactory', function() {
   };
 
   setup(function(done) {
+    switchProperty(window, 'OrientationManager', MockOrientationManager, reals);
     switchProperty(window, 'WindowManager', MockWindowManager, reals);
     switchProperty(window, 'Applications', MockApplications, reals);
     switchProperty(window, 'ManifestHelper', MockManifestHelper, reals);
@@ -127,6 +129,7 @@ suite('system/ActivityWindowFactory', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+
     requireApp('system/js/window.js');
     requireApp('system/js/activity_window.js');
     requireApp('system/js/activity_window_factory.js', done);
@@ -149,6 +152,7 @@ suite('system/ActivityWindowFactory', function() {
     restoreProperty(window, 'WindowManager', reals);
     restoreProperty(window, 'Applications', reals);
     restoreProperty(window, 'ManifestHelper', reals);
+    restoreProperty(window, 'OrientationManager', reals);
   });
 
   suite('handle events', function() {

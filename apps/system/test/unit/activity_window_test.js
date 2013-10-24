@@ -3,11 +3,12 @@
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
       'ActivityWindow', 'KeyboardManager', 'StatusBar',
-      'SoftwareButtonManager', 'AttentionScreen', 'AppWindow']);
+      'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
+      'OrientationManager']);
 
 requireApp('system/js/browser_config_helper.js');
 requireApp('system/js/browser_frame.js');
-requireApp('system/js/orientation_manager.js');
+requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
@@ -56,6 +57,7 @@ suite('system/ActivityWindow', function() {
 
   setup(function(done) {
     switchProperty(window, 'WindowManager', MockWindowManager, reals);
+    switchProperty(window, 'OrientationManager', MockOrientationManager, reals);
     switchProperty(window, 'Applications', MockApplications, reals);
     switchProperty(window, 'ManifestHelper', MockManifestHelper, reals);
     switchProperty(window, 'KeyboardManager', MockKeyboardManager, reals);
@@ -81,6 +83,7 @@ suite('system/ActivityWindow', function() {
     clock.restore();
     stubById.restore();
 
+    restoreProperty(window, 'OrientationManager', reals);
     restoreProperty(window, 'AttentionScreen', reals);
     restoreProperty(window, 'SoftwareButtonManager', reals);
     restoreProperty(window, 'StatusBar', reals);

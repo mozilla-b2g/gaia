@@ -64,31 +64,6 @@
       }
     };
 
-  ActivityWindow.prototype.resize = function acw_resize() {
-    // Current policy is to copy the caller's size.
-    // So we just overwrite resize method.
-    if (this.isActive()) {
-      if (document.mozFullScreen ||
-          document.getElementById('screen').classList.
-          contains('fullscreen-app')) {
-        this.element.style.height = window.innerHeight + 'px';
-        this.element.style.top = '0px';
-      } else if (this.activityCaller) {
-        var callerElement = this.activityCaller.element;
-        this.element.style.height = callerElement.style.height;
-        this.element.style.top = callerElement.offsetTop + 'px';
-      }
-
-      this.resized = true;
-    }
-
-    // If we have a callee, resize it.
-    if (this.activityCallee &&
-        this.activityCallee instanceof ActivityWindow) {
-      this.activityCallee.resize();
-    }
-  };
-
   ActivityWindow.prototype.view = function acw_view() {
     this.instanceID = _id;
     return '<div class="appWindow activityWindow inline-activity' +

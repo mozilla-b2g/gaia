@@ -3,7 +3,7 @@
 
 (function(window) {
   'use strict';
-  var DEBUG = false;
+  var DEBUG = true;
   window.AppWindow = function AppWindow(configuration) {
     for (var key in configuration) {
       this[key] = configuration[key];
@@ -486,28 +486,36 @@
   // @param {changeActivityFrame} to denote if needed to change inline
   //                              activity size
   AppWindow.prototype.resize = function aw_resize() {
-    var keyboardHeight = KeyboardManager.getHeight();
-    var cssWidth = window.innerWidth + 'px';
-    var cssHeight = window.innerHeight -
-                    StatusBar.height -
-                    SoftwareButtonManager.height -
-                    keyboardHeight;
-    if (!keyboardHeight && 'wrapper' in this.frame.dataset) {
-      cssHeight -= 10;
+    try {
+      throw new Error('acvt');
+    } catch (e) {
+      this.debug(e.stack);
     }
-    cssHeight += 'px';
+    if (this.isActive()) {
+      var keyboardHeight = KeyboardManager.getHeight();
+      var cssWidth = window.innerWidth + 'px';
+      var cssHeight = window.innerHeight -
+                      StatusBar.height -
+                      SoftwareButtonManager.height -
+                      keyboardHeight;
+      if (!keyboardHeight && 'wrapper' in this.frame.dataset) {
+        cssHeight -= 10;
+      }
+      cssHeight += 'px';
 
-    if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
-        this.isFullScreen()) {
-      cssHeight = window.innerHeight - keyboardHeight -
-                  SoftwareButtonManager.height + 'px';
+      if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
+          this.isFullScreen()) {
+        cssHeight = window.innerHeight - keyboardHeight -
+                    SoftwareButtonManager.height + 'px';
+      }
+
+      this.frame.style.width = cssWidth;
+      this.frame.style.height = cssHeight;
+
+      this.publish('resize');
+      this.debug('W:', cssWidth, 'H:', cssHeight);
+      this.resized = true;
     }
-
-    this.frame.style.width = cssWidth;
-    this.frame.style.height = cssHeight;
-
-    this.publish('resize');
-    this.resized = true;
 
     if (this.activityCallee &&
         this.activityCallee instanceof ActivityWindow) {

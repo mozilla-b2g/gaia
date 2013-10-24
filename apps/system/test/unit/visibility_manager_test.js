@@ -1,8 +1,8 @@
 'use strict';
 
-mocha.globals(['SettingsListener', 'VisibilityManager', 'LockScreen']);
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+mocha.globals(['VisibilityManager', 'LockScreen', 'WindowManager']);
 requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/test/unit/mock_window_manager.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
   if (!useDefineProperty) {
@@ -27,18 +27,19 @@ function restoreProperty(originObject, prop, reals, useDefineProperty) {
   }
 }
 
-suite('system/OrientationManager', function() {
+suite('system/VisibilityManager', function() {
   var reals = {};
 
   setup(function(done) {
-    switchProperty(window, 'SettingsListener', MockSettingsListener, reals);
-    switchProperty(window, 'LockScreen', MockSettingsListener, reals);
+    switchProperty(window, 'WindowManager', MockWindowManager, reals);
+    switchProperty(window, 'LockScreen', MockLockScreen, reals);
     requireApp('system/js/visibility_manager.js', done);
   });
 
   teardown(function() {
-    MockSettingsListener.mTeardown();
-    restoreProperty(window, 'SettingsListener', reals);
+    MockLockScreen.mTeardown();
+    MockWindowManager.mTeardown();
+    restoreProperty(window, 'WindowManager', reals);
     restoreProperty(window, 'LockScreen', reals);
   });
 
