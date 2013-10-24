@@ -28,6 +28,7 @@ suite('call screen', function() {
   var calls;
   var groupCalls;
   var groupCallsList;
+  var callToolbar;
   var muteButton;
   var speakerButton;
   var statusMessage,
@@ -37,6 +38,7 @@ suite('call screen', function() {
       lockedClockNumbers,
       lockedClockMeridiem,
       lockedDate;
+  var incomingContainer;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -73,13 +75,17 @@ suite('call screen', function() {
     groupCallsList.id = 'group-call-details-list';
     groupCalls.appendChild(groupCallsList);
 
+    callToolbar = document.createElement('section');
+    callToolbar.id = 'co-advanced';
+    screen.appendChild(callToolbar);
+
     muteButton = document.createElement('button');
     muteButton.id = 'mute';
-    screen.appendChild(muteButton);
+    callToolbar.appendChild(muteButton);
 
     speakerButton = document.createElement('button');
     speakerButton.id = 'speaker';
-    screen.appendChild(speakerButton);
+    callToolbar.appendChild(speakerButton);
 
     statusMessage = document.createElement('div');
     statusMessage.id = 'statusMsg';
@@ -98,11 +104,16 @@ suite('call screen', function() {
     lockedHeader.appendChild(lockedDate);
     screen.appendChild(lockedHeader);
 
+    incomingContainer = document.createElement('article');
+    incomingContainer.id = 'incoming-container';
+    screen.appendChild(incomingContainer);
+
     // Replace the existing elements
     // Since we can't make the CallScreen look for them again
     if (CallScreen != null) {
       CallScreen.screen = screen;
       CallScreen.calls = calls;
+      CallScreen.callToolbar = callToolbar;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
       CallScreen.groupCalls = groupCalls;
@@ -110,6 +121,7 @@ suite('call screen', function() {
       CallScreen.lockedClockNumbers = lockedClockNumbers;
       CallScreen.lockedClockMeridiem = lockedClockMeridiem;
       CallScreen.lockedDate = lockedDate;
+      CallScreen.incomingContainer = incomingContainer;
     }
 
     requireApp('communications/dialer/js/call_screen.js', done);
@@ -136,11 +148,28 @@ suite('call screen', function() {
         assert.isFalse(calls.classList.contains('big-duration'));
       });
 
-      test('cdmaCallWaiting should update the dataset', function() {
-        assert.isUndefined(calls.dataset.cdmaCallWaiting);
+      test('cdmaCallWaiting should toggle the appropriate classes', function() {
+        assert.isFalse(calls.classList.contains('switch'));
+        assert.isFalse(callToolbar.classList.contains('no-add-call'));
+
         CallScreen.cdmaCallWaiting = true;
-        assert.equal(calls.dataset.cdmaCallWaiting, 'true');
+        assert.isTrue(calls.classList.contains('switch'));
+        assert.isTrue(callToolbar.classList.contains('no-add-call'));
+
+        CallScreen.cdmaCallWaiting = false;
+        assert.isFalse(calls.classList.contains('switch'));
+        assert.isFalse(callToolbar.classList.contains('no-add-call'));
       });
+
+      test('holdAndAnswerOnly should add the hold-and-answer-only class',
+        function() {
+          assert.isFalse(
+            incomingContainer.classList.contains('hold-and-answer-only'));
+          CallScreen.holdAndAnswerOnly = true;
+          assert.isTrue(
+            incomingContainer.classList.contains('hold-and-answer-only'));
+        }
+      );
     });
 
     suite('insertCall', function() {
@@ -323,6 +352,13 @@ suite('call screen', function() {
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.equal(MockNavigatormozApps.mAppWasLaunchedWithEntryPoint,
                    'dialer');
+    });
+
+    test('requests the contacts tab in the dialer app', function() {
+      var requestSpy = this.sinon.spy(MockCallsHandler, 'requestContactsTab');
+      CallScreen.placeNewCall();
+      MockNavigatormozApps.mTriggerLastRequestSuccess();
+      assert.isTrue(requestSpy.calledOnce);
     });
 
     test('resizes the call screen in status bar mode', function() {

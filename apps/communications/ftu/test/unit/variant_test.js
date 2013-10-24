@@ -1,65 +1,79 @@
 'use strict';
 
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
 requireApp('communications/ftu/test/unit/mock_icc_helper.js');
 requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
-requireApp('communications/ftu/test/unit/mock_xml_http_request.js');
+requireApp('communications/ftu/js/resources.js');
 requireApp('communications/ftu/js/variant.js');
 
-var mocksHelperForVariant = new MocksHelper(['IccHelper', 'XMLHttpRequest']);
-mocksHelperForVariant.init();
 
-suite('variant >', function() {
-  var realSettings;
-  var mocksHelper = mocksHelperForVariant;
+var mocksHelperForVariant = new MocksHelper(['IccHelper', 'LazyLoader']);
+mocksHelperForVariant.init();
+mocksHelperForVariant.attachTestHelpers();
+suite(' Customizer > ', function() {
+  const TEST_NETWORK_MCC = 214;
+  const TEST_NETWORK_MNC = 7;
+  var baseDir = '/ftu/test/unit';
+  var customizationFullPath, realSettings;
+  var customizationList = {
+    '214-007': {
+        'support_contacts': '/ftu/test/unit/resources/support_contacts.json',
+        'wallpaper': '/resources/wallpaper.jpg',
+        'default_contacts': '/resources/contacts.json',
+        'ringtone': '/resources/ringtone.ogg'
+    }
+  };
 
   suiteSetup(function() {
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
-    mocksHelper.suiteSetup();
+    MockIccHelper.mProps['iccInfo'] = {
+      mcc: TEST_NETWORK_MCC,
+      mnc: TEST_NETWORK_MNC
+    };
+    customizationFullPath = baseDir + VariantManager.CUSTOMIZATION_FILE;
+    VariantManager.init();
   });
 
   suiteTeardown(function() {
     navigator.mozSettings = realSettings;
     realSettings = null;
-    mocksHelper.suiteTeardown();
+    MockIccHelper.mProps['iccInfo'] = null;
   });
 
-  setup(function() {
-    VariantManager.mcc_mnc = null;
-    VariantManager._variantCustomization = null;
+  test(' normalize ', function() {
+    assert.equal(VariantManager.normalizeCode('7'), '007');
+    assert.equal(VariantManager.normalizeCode('07'), '007');
+    assert.equal(VariantManager.normalizeCode('007'), '007');
   });
 
-  teardown(function() {
-    VariantManager.mcc_mnc = null;
-    VariantManager._variantCustomization = null;
+  test(' getMccMnc ', function() {
+    assert.equal(VariantManager.getMccMnc(), '214-007');
   });
 
-  test('getVariantSettings no json', function() {
-    VariantManager.mcc_mnc = '220-033';
-    VariantManager.getVariantSettings();
-    assert.isNull(VariantManager._variantCustomization);
-  });
-
-  test('loads variant customizations (no Data)', function(done) {
-    var data = {};
-    VariantManager.mcc_mnc = '214-007';
-    VariantManager.getVariantSettings(function() {
-      assert.isNotNull(VariantManager._variantCustomization);
-      assert.isUndefined(VariantManager._variantCustomization['wallpaper']);
-      done();
+  test(' dispatchCustomizationEvents ', function(done) {
+    var eventsDispatched = {};
+    var eventsToDispatch = customizationList['214-007'];
+    window.addEventListener('customization', function customizer(event) {
+      var setting = event.detail.setting;
+      var value = event.detail.value;
+      // Check that the value is the expected
+      assert.equal(value, eventsToDispatch[setting]);
+      // Check that we have only one event dispatched per setting
+      if (eventsDispatched[setting]) {
+        assert.ok(false, 'The settting ' + setting +
+          ' was dispatched several times.');
+        done();
+        return;
+      }
+      eventsDispatched[setting] = true;
+      // Check that the number of events dispatched is the expected
+      if (Object.keys(eventsToDispatch).length ==
+          Object.keys(eventsDispatched).length) {
+        window.removeEventListener('customization', customizer);
+        done();
+      }
     });
-    MockXMLHttpRequest.mSendOnLoad({ response: data });
-  });
-
-  test('loads variant customizations from file OK', function(done) {
-    var data = {'wallpaper' : 'data:image/jpeg;base64,/9j/4AAQSkZJ'};
-    VariantManager.mcc_mnc = '214-007';
-    VariantManager.getVariantSettings(function() {
-      assert.isNotNull(VariantManager._variantCustomization);
-      assert.equal(VariantManager._variantCustomization['wallpaper'],
-        'data:image/jpeg;base64,/9j/4AAQSkZJ');
-      done();
-    });
-    MockXMLHttpRequest.mSendOnLoad({ response: data });
+    VariantManager.dispatchCustomizationEvents(customizationList);
   });
 });

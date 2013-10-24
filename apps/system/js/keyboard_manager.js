@@ -40,7 +40,7 @@ const TYPE_GROUP_MAPPING = {
 const FOCUS_CHANGE_DELAY = 20;
 
 var KeyboardManager = {
-  keyboardFrameContainer: document.getElementById('keyboards'),
+  keyboardFrameContainer: null,
 
   // The set of installed keyboard layouts grouped by type_group.
   // This is a map from type_group to an object arrays.
@@ -59,6 +59,7 @@ var KeyboardManager = {
   // 'keyboard.gaiamobile.org' : {
   //   'English': aIframe
   // }
+  inputTypeTable: {},
   runningLayouts: {},
   showingLayout: {
     frame: null,
@@ -82,6 +83,8 @@ var KeyboardManager = {
 
   init: function km_init() {
     var self = this;
+
+    this.keyboardFrameContainer = document.getElementById('keyboards');
 
     this.notifIMEContainer =
             document.getElementById('keyboard-show-ime-list');
@@ -125,14 +128,18 @@ var KeyboardManager = {
       }
     });
 
-    // XXX: Bug 906096, need to remove this when the IME WebAPI is ready
-    //      on Firefox Nightly
-    if (navigator.mozKeyboard) {
-      navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-        evt.detail.inputType = evt.detail.type;
-        self.inputFocusChange(evt);
-      };
-    }
+    window.addEventListener('localized', function(evt) {
+      self.updateLayouts(evt);
+    });
+
+    // generate typeTable
+    this.inputTypeTable =
+    Object.keys(TYPE_GROUP_MAPPING).reduce(function(res, curr) {
+      var k = TYPE_GROUP_MAPPING[curr];
+      res[k] = res[k] || [];
+      res[k].push(curr);
+      return res;
+    }, {});
   },
 
   getHeight: function kn_getHeight() {
@@ -151,9 +158,14 @@ var KeyboardManager = {
       self.launchLayoutFrame(self.keyboardLayouts[initType][initIndex]);
 
       // Let chrome know about how many keyboards we have
+      // need to expose all input type from inputTypeTable
       var layouts = {};
       Object.keys(self.keyboardLayouts).forEach(function(k) {
-        layouts[k] = self.keyboardLayouts[k].length;
+        var typeTable = self.inputTypeTable[k];
+        for (var i in typeTable) {
+          var inputType = typeTable[i];
+          layouts[inputType] = self.keyboardLayouts[k].length;
+        }
       });
 
       var event = document.createEvent('CustomEvent');
@@ -170,8 +182,10 @@ var KeyboardManager = {
     var self = this;
     apps.forEach(function(app) {
       var entryPoints = app.manifest.entry_points;
+      var manifest = new ManifestHelper(app.manifest);
       for (var key in entryPoints) {
-        if (!entryPoints[key].types) {
+        var entryPoint = new ManifestHelper(entryPoints[key]);
+        if (!entryPoint.types) {
           console.warn('the keyboard app did not declare type.');
           continue;
         }
@@ -182,7 +196,7 @@ var KeyboardManager = {
           continue;
         }
 
-        var supportTypes = entryPoints[key].types;
+        var supportTypes = entryPoint.types;
         supportTypes.forEach(function(type) {
           if (!type || !(type in BASE_TYPE))
             return;
@@ -193,10 +207,10 @@ var KeyboardManager = {
 
           self.keyboardLayouts[type].push({
             'id': key,
-            'name': entryPoints[key].name,
-            'appName': app.manifest.name,
+            'name': entryPoint.name,
+            'appName': manifest.name,
             'origin': app.origin,
-            'path': entryPoints[key].launch_path,
+            'path': entryPoint.launch_path,
             'index': self.keyboardLayouts[type].length
           });
         });
@@ -205,10 +219,6 @@ var KeyboardManager = {
   },
 
   inputFocusChange: function km_inputFocusChange(evt) {
-    // XXX Send the fake event to value selector
-
-    window.dispatchEvent(new CustomEvent('inputfocuschange', evt));
-
     var type = evt.detail.inputType;
 
     // Skip the <select> element and inputs with type of date/time,
@@ -314,8 +324,7 @@ var KeyboardManager = {
 
     var self = this;
     var updateHeight = function km_updateHeight() {
-      self.keyboardFrameContainer.removeEventListener(
-        'transitionend', updateHeight);
+      self._debug('updateHeight: ' + self.keyboardHeight);
       if (self.keyboardFrameContainer.classList.contains('hide')) {
         // The keyboard has been closed already, let's not resize the
         // application and ends up with half apps.
@@ -330,10 +339,10 @@ var KeyboardManager = {
       window.dispatchEvent(new CustomEvent('keyboardchange', detail));
     };
 
-    if (this.keyboardFrameContainer.classList.contains('hide')) {
-      this.showKeyboard();
-      this.keyboardFrameContainer.addEventListener(
-        'transitionend', updateHeight);
+    // If the keyboard is hidden, or when transitioning is not finished
+    if (this.keyboardFrameContainer.classList.contains('hide') ||
+        this.keyboardFrameContainer.dataset.transitionIn === 'true') {
+      this.showKeyboard(updateHeight);
     } else {
       updateHeight();
     }
@@ -434,18 +443,29 @@ var KeyboardManager = {
          'mozbrowserresize', this, true);
   },
 
-  showKeyboard: function km_showKeyboard() {
+  showKeyboard: function km_showKeyboard(callback) {
     this.keyboardFrameContainer.classList.remove('hide');
+    this.keyboardFrameContainer.dataset.transitionIn = 'true';
 
     // XXX Keyboard transition may be affected by window.open event,
     // and thus the keyboard looks like jump into screen.
     // It may because window.open blocks main thread?
     // Monitor transitionend time here.
     var self = this;
-    var onTransitionEnd = function km_onTransitionEnd() {
+    var onTransitionEnd = function(evt) {
+      if (evt.propertyName !== 'transform') {
+        return;
+      }
+
       self.keyboardFrameContainer.removeEventListener('transitionend',
           onTransitionEnd);
+
+      delete self.keyboardFrameContainer.dataset.transitionIn;
       self._debug('keyboard display transitionend');
+
+      if (callback) {
+        callback();
+      }
     };
     this.keyboardFrameContainer.addEventListener('transitionend',
         onTransitionEnd);
@@ -537,8 +557,7 @@ var KeyboardManager = {
         items.push(item);
       });
       self.hideKeyboard();
-      //XXX the menu is not scrollable now, and it will take focus away
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=859713
+
       ActionMenu.open(items, 'Layout selection', function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';

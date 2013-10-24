@@ -1,12 +1,14 @@
-requireApp('clock/js/stopwatch.js');
-requireApp('clock/js/utils.js');
-
 suite('Stopwatch', function() {
 
+  var Stopwatch;
   var oneHour = 1 * 60 * 60 * 1000;
 
-  suiteSetup(function() {
-    this.sw = new Stopwatch();
+  suiteSetup(function(done) {
+    testRequire(['stopwatch'], function(stopwatch) {
+      Stopwatch = stopwatch;
+      this.sw = new Stopwatch();
+      done();
+    }.bind(this));
   });
 
   setup(function() {
@@ -21,7 +23,7 @@ suite('Stopwatch', function() {
   suite('constructor', function() {
 
     test('defaults', function() {
-      assert.isFalse(this.sw.isStarted());
+      assert.isTrue(this.sw.getState() === Stopwatch.RESET);
       assert.equal(this.sw.getElapsedTime().getTime(), 0);
       assert.deepEqual(this.sw.getLapDurations(), []);
     });
@@ -30,7 +32,7 @@ suite('Stopwatch', function() {
       var input = {
         startTime: Date.now(),
         totalElapsed: oneHour,
-        isStarted: true,
+        state: Stopwatch.RUNNING,
         laps: [{time: Date.now(), duration: oneHour}]
       };
       this.sw = new Stopwatch(input);
@@ -52,23 +54,25 @@ suite('Stopwatch', function() {
 
   });
 
-  suite('isStarted', function() {
+  suite('isRunning', function() {
 
     test('before start', function() {
-      assert.isFalse(this.sw.isStarted());
+      assert.isFalse(this.sw.getState() === Stopwatch.RUNNING);
+      assert.isFalse(this.sw.getState() === Stopwatch.PAUSED);
+      assert.isTrue(this.sw.getState() === Stopwatch.RESET);
     });
 
     test('start and elapse 1hr', function() {
       this.sw.start();
       this.clock.tick(oneHour);
-      assert.isTrue(this.sw.isStarted());
+      assert.isTrue(this.sw.getState() === Stopwatch.RUNNING);
     });
 
     test('elapse 1hr and pause', function() {
       this.sw.start();
       this.clock.tick(oneHour);
       this.sw.pause();
-      assert.isFalse(this.sw.isStarted());
+      assert.isTrue(this.sw.getState() === Stopwatch.PAUSED);
     });
 
     test('pause and resume', function() {
@@ -77,7 +81,7 @@ suite('Stopwatch', function() {
       this.sw.pause();
       this.clock.tick(oneHour);
       this.sw.start();
-      assert.isTrue(this.sw.isStarted());
+      assert.isTrue(this.sw.getState() === Stopwatch.RUNNING);
     });
 
     test('pause and reset', function() {
@@ -86,7 +90,7 @@ suite('Stopwatch', function() {
       this.sw.pause();
       this.clock.tick(oneHour);
       this.sw.reset();
-      assert.isFalse(this.sw.isStarted());
+      assert.isTrue(this.sw.getState() === Stopwatch.RESET);
     });
 
   });
@@ -210,7 +214,7 @@ suite('Stopwatch', function() {
       var expected = {
         startTime: 0,
         totalElapsed: 0,
-        isStarted: false,
+        state: Stopwatch.RESET,
         laps: []
       };
       var actual = this.sw.toSerializable();
@@ -238,7 +242,7 @@ suite('Stopwatch', function() {
         var expected = {
           startTime: d,
           totalElapsed: 0,
-          isStarted: true,
+          state: Stopwatch.RUNNING,
           laps: []
         };
         var actual = this.sw.toSerializable();
@@ -250,7 +254,7 @@ suite('Stopwatch', function() {
         var expected = {
           startTime: d,
           totalElapsed: oneHour,
-          isStarted: false,
+          state: Stopwatch.PAUSED,
           laps: []
         };
         var actual = this.sw.toSerializable();
@@ -262,7 +266,7 @@ suite('Stopwatch', function() {
         var expected = {
           startTime: d,
           totalElapsed: 0,
-          isStarted: true,
+          state: Stopwatch.RUNNING,
           laps: [{time: Date.now(), duration: oneHour}]
         };
         var actual = this.sw.toSerializable();
@@ -276,7 +280,7 @@ suite('Stopwatch', function() {
         var expected = {
           startTime: 0,
           totalElapsed: 0,
-          isStarted: false,
+          state: Stopwatch.RESET,
           laps: []
         };
         var actual = this.sw.toSerializable();
@@ -290,7 +294,7 @@ suite('Stopwatch', function() {
         var expected = {
           startTime: Date.now(),
           totalElapsed: oneHour,
-          isStarted: true,
+          state: Stopwatch.RUNNING,
           laps: []
         };
         var actual = this.sw.toSerializable();

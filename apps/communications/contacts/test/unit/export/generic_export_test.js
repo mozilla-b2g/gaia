@@ -1,10 +1,15 @@
+requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
 requireApp('communications/contacts/test/unit/mock_export_strategy.js');
 requireApp('communications/contacts/test/unit/mock_contacts_list.js');
+requireApp('communications/contacts/test/unit/mock_l10n.js');
+requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
+
 requireApp('communications/contacts/js/export/contacts_exporter.js');
 
 var realUtils = null;
 var realStatus = null;
+var real_ = null;
 
 if (!window.utils) {
   window.utils = null;
@@ -17,6 +22,19 @@ if (!window.status) {
 } else {
   realStatus = window.status;
 }
+
+if (!navigator.mozL10n) {
+  navigator.mozL10n = null;
+}
+
+if (!window._) {
+  window._ = null;
+}
+
+var mocksHelperForExporter = new MocksHelper([
+  'Contacts',
+  'ConfirmDialog'
+]).init();
 
 suite('Contacts Exporter', function() {
 
@@ -47,6 +65,12 @@ suite('Contacts Exporter', function() {
   };
 
   suiteSetup(function() {
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockMozL10n;
+
+    real_ = window._;
+    window._ = navigator.mozL10n.get;
+
     navigator.mozContacts = MockMozContacts;
     sinon.stub(navigator.mozContacts, 'find', function() {
       return {
@@ -79,19 +103,25 @@ suite('Contacts Exporter', function() {
           setTotal: function(l) {}
         };
       },
+      hide: function() {},
       showMenu: function() {}
     };
-    window.status = {
-      show: function(msg) {}
+    window.utils.status = {
+      show: function(msg) {},
+      hide: function() {}
     };
 
+    mocksHelperForExporter.suiteSetup();
   });
 
   suiteTeardown(function() {
+    window.navigator.mozL10n = realL10n;
+
     shouldShowProgressSpy.restore();
     doExportSpy.restore();
     hasDeterminativeProgressSpy.restore();
     setProgressStepSpy.restore();
+    mocksHelperForExporter.suiteTeardown();
   });
 
   setup(function() {
@@ -140,6 +170,26 @@ suite('Contacts Exporter', function() {
 
       done();
     });
-
   });
+
+  test('Error handling', function() {
+    var errorDialogSpy = sinon.spy(MockContacts, 'confirmDialog');
+    subject.init(ids, function onInitDone(contacts) {
+      var error = {
+        'reason': 'BIGerror'
+      };
+      var errorName = 'exportError-' +
+                      MockExportStrategy.name + '-' +
+                      error.reason;
+      MockExportStrategy.setError(error);
+      subject.start();
+
+      assert.ok(doExportSpy.calledOnce);
+      assert.ok(errorDialogSpy.calledOnce);
+      // errors are called with the structure
+      // {title, error, retry, cancel}
+      assert.equal(errorDialogSpy.args[0][1], errorName);
+    });
+  });
+
 });

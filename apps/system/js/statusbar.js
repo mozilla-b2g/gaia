@@ -67,7 +67,7 @@ var StatusBar = {
     'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
-  kActiveIndicatorTimeout: 60 * 1000,
+  kActiveIndicatorTimeout: 5 * 1000,
 
   /* Whether or not status bar is actively updating or not */
   active: true,
@@ -175,6 +175,15 @@ var StatusBar = {
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
+    // mozChromeEvent fired from Gecko is earlier been loaded,
+    // so we use mozAudioChannelManager to
+    // check the headphone plugged or not when booting up
+    var acm = navigator.mozAudioChannelManager;
+    if (acm) {
+      this.headphonesActive = acm.headphones;
+      this.update.headphones.call(this);
+    }
+
     // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
 
@@ -207,7 +216,7 @@ var StatusBar = {
       case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
-        this.toggleTimeLabel(false);
+        this.toggleTimeLabel(!LockScreen.locked);
         break;
       case 'attentionscreenshow':
       case 'unlock':

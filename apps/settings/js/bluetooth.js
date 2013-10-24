@@ -24,6 +24,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
   var bluetooth = getBluetooth();
   var defaultAdapter = null;
 
+  var MAX_DEVICE_NAME_LENGTH = 20;
+
   if (!settings || !bluetooth) {
     return;
   }
@@ -78,8 +80,6 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     var visibleTimeout = null;
     var visibleTimeoutTime = 120000;  // visibility will timeout after 2 minutes
     var myName = '';
-
-    var MAX_DEVICE_NAME_LENGTH = 20;
 
     visibleCheckBox.onchange = function changeDiscoverable() {
       setDiscoverable(this.checked);
@@ -405,28 +405,29 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         showDeviceConnected(evt.address, evt.status, Profiles.A2DP);
       };
 
-      // get paired device and restore connection
-      // if we have one device connected before.
-      getPairedDevice(restoreConnection);
+      // Get paired device
+      getPairedDevice(function() {
+        for (var address in pairList.index) {
+          var deviceItem = pairList.index[address];
+          if (Object.keys(deviceItem.connectedProfiles).length > 0)
+            return;
+        }
+
+        // If there is no current connection and we have one device connected
+        // before, restore it.
+        restoreConnection();
+      });
       startDiscovery();
     }
 
     function restoreConnection() {
+      // Reconnect the one kept in the async storage.
       window.asyncStorage.getItem('device.connected', function(value) {
         if (!value || !pairList.index[value])
           return;
+
         var device = pairList.index[value].device;
-        isDeviceConnected(device, function(connectedProfiles) {
-          var connected = (Object.keys(connectedProfiles).length > 0);
-          if (connected) {
-            // set device connected for each connected profile
-            for (var profile in connectedProfiles) {
-              showDeviceConnected(device.address, true, profile);
-            }
-          } else {
-            setDeviceConnect(device);
-          }
-        });
+        setDeviceConnect(device);
       });
     }
 
@@ -448,9 +449,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         });
         for (var i = 0; i < length; i++) {
           (function(device) {
-            var stateL10nId = (device.address === connectedAddress) ?
-              'device-status-connected' : '';
-            var aItem = newListItem(device, stateL10nId);
+            var aItem = newListItem(device, '');
             aItem.onclick = function() {
               optionMenu.show(device);
             };
@@ -473,65 +472,86 @@ navigator.mozL10n.ready(function bluetoothSettings() {
             }
           })(paired[i]);
         }
-        pairList.show(true);
-        // the callback function now is for restoring the connected device
-        // when the bluetooth is turned on.
-        if (callback)
-          callback();
+
+        // update the connection status
+        getConnectedDeviceItems(function(connectedDeviceItems) {
+          if (connectedDeviceItems.length > 0) {
+            connectedDeviceItems.forEach(function(item) {
+              var connectedDevice = item.device;
+              var connectedProfiles = item.connectedProfiles;
+              for (var profile in connectedProfiles) {
+                showDeviceConnected(connectedDevice.address, true, profile);
+              }
+            });
+          }
+
+          pairList.show(true);
+          // the callback function now is for restoring the connected device
+          // when the bluetooth is turned on.
+          if (callback)
+            callback();
+        });
       };
     }
 
-    // In the callback we returns an dictionary of connected profiles.
-    function isDeviceConnected(device, callback) {
+    // In the callback we returns an array of connected device items.
+    // Each device item contains "device" and "connectedProfiles".
+    function getConnectedDeviceItems(callback) {
       if (!callback)
         return;
 
-      var connectedProfiles = {};
-      if (defaultAdapter && device) {
-        var getConnectedDevices = function(profileID, gcdCallback) {
-          var req = defaultAdapter.getConnectedDevices(profileID);
-          req.onsuccess = function() {
-            if (gcdCallback) {
-              gcdCallback(req.result || []);
-            }
-          };
-          req.onerror = function() {
-            if (gcdCallback) {
-              gcdCallback(null);
-            }
-          };
-        };
-
-        var findDeviceByAddress = function(address, connectedDevices) {
-          if (!connectedDevices)
-            return false;
-
-          var found = false;
-          for (var i in connectedDevices) {
-            var connectedDevice = connectedDevices[i];
-            if (connectedDevice.address === address) {
-              found = true;
-              break;
-            }
-          }
-          return found;
-        };
-
-        // XXX: we should have better ways of doing this.
-        getConnectedDevices(Profiles.HFP, function(hfpResult) {
-          if (findDeviceByAddress(device.address, hfpResult)) {
-            connectedProfiles[Profiles.HFP] = true;
-          }
-          getConnectedDevices(Profiles.A2DP, function(a2dpResult) {
-            if (findDeviceByAddress(device.address, a2dpResult)) {
-              connectedProfiles[Profiles.A2DP] = true;
-            }
-            callback(connectedProfiles);
-          });
-        });
-      } else {
-        callback(connectedProfiles);
+      if (!defaultAdapter) {
+        callback([]);
+        return;
       }
+
+      var getConnectedDevicesByProfile = function(profileID, gcdCallback) {
+        if (!gcdCallback)
+          return;
+
+        var req = defaultAdapter.getConnectedDevices(profileID);
+        req.onsuccess = function() {
+          gcdCallback(req.result || []);
+        };
+        req.onerror = function() {
+          gcdCallback(null);
+        };
+      };
+
+      var connectedDeviceItemsMap = {}; // hash by device address
+      var updateDeviceItemsMap = function(profileID, connectedDevices) {
+        if (!connectedDevices)
+          return;
+
+        connectedDevices.forEach(function(connectedDevice) {
+          var info = connectedDeviceItemsMap[connectedDevice.address];
+          if (info) {
+            info.connectedProfiles[profileID] = true;
+          } else {
+            info = {
+              'device': connectedDevice,
+              'connectedProfiles': {}
+            };
+            info.connectedProfiles[profileID] = true;
+          }
+          connectedDeviceItemsMap[connectedDevice.address] = info;
+        });
+      };
+
+      // XXX: we should have better ways of doing this.
+      getConnectedDevicesByProfile(Profiles.HFP, function(hfpResult) {
+        updateDeviceItemsMap(Profiles.HFP, hfpResult);
+        getConnectedDevicesByProfile(Profiles.A2DP, function(a2dpResult) {
+          updateDeviceItemsMap(Profiles.A2DP, a2dpResult);
+
+          var connectedDeviceItems = [];
+          for (var i in connectedDeviceItemsMap) {
+            var item = connectedDeviceItemsMap[i];
+            connectedDeviceItems.push(item);
+          }
+          callback(connectedDeviceItems);
+        });
+      });
     }
 
     // callback function when an avaliable device found
@@ -556,8 +576,13 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
       // bind paired callback
       aItem.onclick = function() {
+        // block the pairing request if there is already one.
+        if (pairingAddress)
+          return;
+
         var small = aItem.querySelector('small');
         l10n.localize(small, 'device-status-pairing');
+        this.setAttribute('aria-disabled', true);
         stopDiscovery();
 
         var req = defaultAdapter.pair(device);
@@ -618,8 +643,9 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         userCanceledPairing = false;
         // rollback device status
         if (openList.index[workingAddress]) {
-          var small =
-            openList.index[workingAddress].item.querySelector('small');
+          var item = openList.index[workingAddress].item;
+          var small = item.querySelector('small');
+          item.removeAttribute('aria-disabled');
           l10n.localize(small, 'device-status-tap-connect');
         }
       }
@@ -641,12 +667,19 @@ navigator.mozL10n.ready(function bluetoothSettings() {
       };
     }
 
-    function setDeviceDisconnect(device) {
+    function setDeviceDisconnect(device, callback) {
       if (!bluetooth.enabled || !defaultAdapter ||
-          device.address !== connectedAddress)
+          device.address !== connectedAddress) {
+        if (callback)
+          callback();
         return;
+      }
 
-      defaultAdapter.disconnect(device);
+      var req = defaultAdapter.disconnect(device);
+      req.onsuccess = req.onerror = function() {
+        if (callback)
+          callback();
+      };
     }
 
     function setDeviceConnect(device) {
@@ -658,45 +691,53 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         return;
       }
 
+      var doConnect = function() {
+        var connectSuccess = function bt_connectSuccess() {
+          if (connectingAddress) {
+            connectingAddress = null;
+          }
+        };
+
+        var connectError = function bt_connectError() {
+          // Connection state might be changed before DOM request response.
+          if (connectingAddress) {
+            // Clear the text of connecting status.
+            var small =
+              pairList.index[connectingAddress].item.querySelector('small');
+            small.textContent = '';
+            small.dataset.l10nId = '';
+            connectingAddress = null;
+            window.alert(_('error-connect-msg'));
+          }
+        };
+
+        var req = defaultAdapter.connect(device);
+        req.onsuccess = connectSuccess; // At least one profile is connected.
+        req.onerror = connectError; // No available profiles are connected.
+
+        connectingAddress = device.address;
+        if (!pairList.index[connectingAddress]) {
+          return;
+        }
+
+        var small =
+          pairList.index[connectingAddress].item.querySelector('small');
+        l10n.localize(small, 'device-status-connecting');
+      };
+
       // disconnect current connected device first
       if (connectedAddress && pairList.index[connectedAddress]) {
-        setDeviceDisconnect(pairList.index[connectedAddress].device);
+        setDeviceDisconnect(pairList.index[connectedAddress].device, doConnect);
+      } else {
+        doConnect();
       }
-
-      var connectSuccess = function bt_connectSuccess() {
-        if (connectingAddress) {
-          connectingAddress = null;
-        }
-      };
-
-      var connectError = function bt_connectError() {
-        // Connection state might be changed before DOM request response.
-        if (connectingAddress) {
-          // Clear the text of connecting status.
-          var small =
-            pairList.index[connectingAddress].item.querySelector('small');
-          small.textContent = '';
-          small.dataset.l10nId = '';
-          connectingAddress = null;
-          window.alert(_('error-connect-msg'));
-        }
-      };
-
-      var req = defaultAdapter.connect(device);
-      req.onsuccess = connectSuccess; // At least one profile is connected.
-      req.onerror = connectError; // No available profiles are connected.
-
-      connectingAddress = device.address;
-      if (!pairList.index[connectingAddress]) {
-        return;
-      }
-
-      var small = pairList.index[connectingAddress].item.querySelector('small');
-      l10n.localize(small, 'device-status-connecting');
     }
 
     function showDeviceConnected(deviceAddress, connected, profile) {
       var deviceItem = pairList.index[deviceAddress];
+      if (!deviceItem)
+        return;
+
       deviceItem.connectedProfiles[profile] = connected;
 
       var existConnectedProfile = false;
@@ -720,10 +761,6 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           connectedAddress = null;
           window.asyncStorage.removeItem('device.connected');
         }
-      }
-
-      if (!pairList.index[deviceAddress]) {
-        return;
       }
 
       var l10nId = '';
@@ -761,6 +798,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           pairingAddress = device.address;
           pairingMode = 'passive';
         }
+
         var passkey = evt.passkey || null;
         var method = evt.method;
         var protocol = window.location.protocol;
@@ -909,4 +947,3 @@ navigator.mozL10n.ready(function bluetoothSettings() {
     dispatchEvent(new CustomEvent('bluetooth-disabled'));
   });
 });
-

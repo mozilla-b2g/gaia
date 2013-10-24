@@ -35,6 +35,19 @@ function addEntryFileWithTime(zip, pathInZip, file, time) {
 }
 
 /**
+ * Add a string to a zip file with the specified time
+ */
+function addEntryStringWithTime(zip, pathInZip, data, time) {
+  let sis = Cc['@mozilla.org/io/string-input-stream;1'].
+              createInstance(Ci.nsIStringInputStream);
+  sis.data = data;
+
+  zip.addEntryStream(
+    pathInZip, time, Ci.nsIZipWriter.COMPRESSION_DEFAULT, sis, false);
+  sis.close();
+}
+
+/**
  * Add a file or a directory, recursively, to a zip file
  *
  * @param {nsIZipWriter} zip       zip xpcom instance.
@@ -177,6 +190,43 @@ function customizeFiles(zip, src, dest) {
   });
 }
 
+function getResource(distDir, conf, key, resources, json) {
+  if (conf[key]) {
+    file = utils.getFile(distDir, conf[key]);
+    if (!file.exists()) {
+      throw new Error('Invalid single variant configuration: ' +
+                      file.path + ' not found');
+    }
+
+    resources.push(file);
+    json[key] = '/resources/' + file.leafName;
+  }
+}
+
+function getSingleVariantResources(conf) {
+  var distDir = utils.Gaia.distributionDir;
+  conf = utils.getJSON(conf);
+
+  let output = {};
+  let resources = [];
+  conf['operators'].forEach(function(operator) {
+    let object = {};
+
+    getResource(distDir, operator, 'ringtone', resources, object);
+    getResource(distDir, operator, 'wallpaper', resources, object);
+    getResource(distDir, operator, 'default_contacts', resources, object);
+    getResource(distDir, operator, 'support_contacts', resources, object);
+
+    operator['mcc-mnc'].forEach(function(mcc) {
+      if (Object.keys(object).length != 0) {
+        output[mcc] = object;
+      }
+    });
+  });
+
+  return {'conf': output, 'files': resources};
+}
+
 function execute() {
   let webappsTargetDir = Cc['@mozilla.org/file/local;1']
                            .createInstance(Ci.nsILocalFile);
@@ -237,9 +287,31 @@ function execute() {
       customizeFiles(zip, 'wallpapers', 'resources/320x480/');
     }
 
+    if (webapp.sourceDirectoryName === 'homescreen' && utils.Gaia.distributionDir) {
+      let customization = utils.getFile(utils.Gaia.distributionDir, 'temp', 'apps', 'conf', 'singlevariantconf.json');
+      if (customization.exists()) {
+        addToZip(zip,'js/singlevariantconf.json', customization);
+      }
+    }
+
     if (webapp.sourceDirectoryName === 'communications' && utils.Gaia.distributionDir &&
-      utils.getFile(utils.Gaia.distributionDir, 'variants').exists()) {
-      customizeFiles(zip, 'variants', 'ftu/js/variants/');
+      utils.getFile(utils.Gaia.distributionDir).exists()) {
+      let conf = utils.getFile(utils.Gaia.distributionDir, 'variant.json');
+      if (conf.exists()) {
+        let resources = getSingleVariantResources(conf);
+
+        addEntryStringWithTime(zip, 'resources/customization.json', JSON.stringify(resources.conf), DEFAULT_TIME);
+
+        resources.files.forEach(function(file) {
+          let filename = 'resources/' + file.leafName;
+          if (zip.hasEntry(filename)) {
+            zip.removeEntry(filename, false);
+          }
+          addEntryFileWithTime(zip, filename, file, DEFAULT_TIME);
+        });
+      } else {
+        dump(conf.path + ' not found. Single variant resources will not be added.\n');
+      }
     }
 
     // Put shared files, but copy only files actually used by the webapp.

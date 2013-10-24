@@ -424,6 +424,10 @@ var DragDropManager = (function() {
      * Initializes the drag & drop manager
      */
     init: function ddm_init() {
+      if (limitY) {
+        return;
+      }
+
       dirCtrl = GridManager.dirCtrl;
       limitY = window.innerHeight -
                document.querySelector('#footer').offsetHeight;

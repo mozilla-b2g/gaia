@@ -2,6 +2,10 @@ requireApp('clock/js/emitter.js', loaded);
 
 // since we need to generate tests using Emitter, we must wait for it to load
 function loaded() {
+  // Cache current value of Emitter global so other tests that load the module
+  // do not effect the local value.
+  var Emitter = window.Emitter;
+
   suite('Emitter', function() {
     // Create a Simple "sub-class"
     function Simple() {

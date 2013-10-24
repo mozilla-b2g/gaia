@@ -45,11 +45,13 @@
       this.app.frame.querySelector('.' + AppError.className + ' .message');
     this.element = this.app.frame.querySelector('.' + AppError.className);
     var self = this;
-    this.closeButton.onclick = function() {
+    this.closeButton.onclick = function(evt) {
+      evt.preventDefault();
       self.app.kill();
     };
 
-    this.reloadButton.onclick = function() {
+    this.reloadButton.onclick = function(evt) {
+      evt.preventDefault();
       self.hide();
       self.app.reload();
     };
@@ -85,12 +87,12 @@
   };
 
   AppError.prototype.view = function() {
-    return '<div id="' + this.id() + '" class="' +
-        AppError.className + ' visible" role="dialog">' +
-      '<div class="modal-dialog-message-container inner">' +
-        '<h3 data-l10n-id="error-title" class="title"></h3>' +
+    return '<form id="' + this.id() + '" class="' +
+        AppError.className + ' visible" role="dialog" data-type="confirm">' +
+      '<section>' +
+        '<h1 data-l10n-id="error-title" class="title"></h1>' +
         '<p>' +
-         '<span data-l10n-id="error-message" class="message"></span>' +
+          '<span data-l10n-id="error-message" class="message"></span>' +
         '</p>' +
       '</div>' +
       '<menu data-items="2">' +
@@ -99,6 +101,6 @@
         '<button class="reload" data-l10n-id="try-again">' +
           _('try-again') + '</button>' +
       '</menu>' +
-    '</div>';
+    '</form>';
   };
 }(this));

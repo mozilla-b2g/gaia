@@ -7,9 +7,7 @@ define(function(require) {
       model = require('model'),
       mozL10n = require('l10n!'),
       notificationHelper = require('shared/js/notification_helper'),
-      fromObject = require('query_string').fromObject,
-      notifyIdBase = Date.now(),
-      notifyCounter = 0;
+      fromObject = require('query_string').fromObject;
 
   model.latestOnce('api', function(api) {
     var hasBeenVisible = !document.hidden,
@@ -65,6 +63,7 @@ define(function(require) {
         // and synthesize an "event" ourselves.
         notification.onclick = function() {
           evt.emit('notification', {
+            clicked: true,
             imageURL: iconUrl,
             tag: notificationId
           });
@@ -88,7 +87,7 @@ define(function(require) {
         if (froms.indexOf(info.from) === -1)
           froms.push(info.from);
       });
-      return froms.join(', ');
+      return froms.join(mozL10n.get('senders-separation-sign'));
     }
 
     /*
@@ -129,45 +128,73 @@ define(function(require) {
                 return;
 
               var dataString,
-                  // Construct an ID for the notification. Ideally this
-                  // should not be needed, but looks like there is
-                  // a bug in the system notification code that could
-                  // send a double fire to a mozSetMessageHandler.
-                  // Using datetime plus a counter, since using date
-                  // alone inside the forEach loop across accounts could
-                  // result in the same notifyId.
-                  notifyId = notifyIdBase + '-' + (notifyCounter += 1);
+                  subject,
+                  body;
 
               if (navigator.mozNotification) {
                 if (result.count > 1) {
                   dataString = fromObject({
                     type: 'message_list',
-                    accountId: result.id,
-                    notifyId: notifyId
+                    accountId: result.id
                   });
+
+                  if (model.getAccountCount() === 1) {
+                    subject = mozL10n.get(
+                      'new-emails-notify-one-account',
+                      { n: result.count }
+                    );
+                  } else {
+                    subject = mozL10n.get(
+                      'new-emails-notify-multiple-accounts',
+                      {
+                        n: result.count,
+                        accountName: result.address
+                      }
+                    );
+                  }
 
                   sendNotification(
                     result.id,
-                    mozL10n.get('new-emails-notify', {
-                      n: result.count,
-                      accountName: result.address
-                    }),
-                    makeNotificationDesc(result.latestMessageInfos),
+                    subject,
+                    makeNotificationDesc(result.latestMessageInfos.sort(
+                                           function(a, b) {
+                                             return b.date - a.date;
+                                           }
+                                        )),
                     iconUrl + '#' + dataString
                   );
                 } else {
                   result.latestMessageInfos.forEach(function(info) {
-                      dataString = fromObject({
-                        type: 'message_reader',
-                        accountId: info.accountId,
-                        messageSuid: info.messageSuid,
-                        notifyId: notifyId
-                      });
+                    dataString = fromObject({
+                      type: 'message_reader',
+                      accountId: info.accountId,
+                      messageSuid: info.messageSuid
+                    });
+
+                    if (model.getAccountCount() === 1) {
+                      subject = info.subject;
+                      body = info.from;
+                    } else {
+                      subject = mozL10n.get(
+                        'new-emails-notify-multiple-accounts',
+                        {
+                          n: result.count,
+                          accountName: result.address
+                        }
+                      );
+                      body = mozL10n.get(
+                        'new-emails-notify-multiple-accounts-body',
+                        {
+                          from: info.from,
+                          subject: info.subject
+                        }
+                      );
+                    }
 
                     sendNotification(
                       result.id,
-                      info.subject,
-                      info.from,
+                      subject,
+                      body,
                       iconUrl + '#' + dataString
                     );
                   });

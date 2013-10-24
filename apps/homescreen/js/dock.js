@@ -101,27 +101,27 @@ var DockManager = (function() {
         removeActive();
 
         break;
+    }
+  }
 
-      case 'contextmenu':
-        if (isPanning) {
-          evt.stopImmediatePropagation();
-          return;
-        }
+  function contextmenu(evt) {
+    if (isPanning) {
+      return;
+    }
 
-        if (GridManager.pageHelper.getCurrentPageNumber() >
-            GridManager.landingPage) {
+    if (GridManager.pageHelper.getCurrentPageNumber() >
+        GridManager.landingPage) {
 
-          Homescreen.setMode('edit');
-          removeActive();
+      Homescreen.setMode('edit');
+      removeActive();
 
-          if ('isIcon' in evt.target.dataset) {
-            DragDropManager.start(evt, {
-              'x': startEvent.pageX,
-              'y': startEvent.pageY
-            });
-          }
-        }
-        break;
+      LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
+        DragDropManager.init();
+        DragDropManager.start(evt, {
+          'x': startEvent.pageX,
+          'y': startEvent.pageY
+        });
+      });
     }
   }
 
@@ -161,13 +161,11 @@ var DockManager = (function() {
   }
 
   function releaseEvents() {
-    container.removeEventListener('contextmenu', handleEvent);
     window.removeEventListener(touchmove, handleEvent);
     window.removeEventListener(touchend, handleEvent);
   }
 
   function attachEvents() {
-    container.addEventListener('contextmenu', handleEvent);
     window.addEventListener(touchmove, handleEvent);
     window.addEventListener(touchend, handleEvent);
   }
@@ -289,6 +287,8 @@ var DockManager = (function() {
 
     get maxOffsetLeft() {
       return maxOffsetLeft;
-    }
+    },
+
+    contextmenu: contextmenu
   };
 }());

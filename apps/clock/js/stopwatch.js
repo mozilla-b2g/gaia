@@ -1,4 +1,4 @@
-(function(exports) {
+define(function() {
 
   'use strict';
 
@@ -7,7 +7,7 @@
   function Defaults() {
     this.startTime = 0;
     this.totalElapsed = 0;
-    this.isStarted = false;
+    this.state = Stopwatch.RESET;
     this.laps = [];
   }
 
@@ -29,24 +29,28 @@
 
     obj.startTime = opts.startTime || defaults.startTime;
     obj.totalElapsed = opts.totalElapsed || defaults.totalElapsed;
-    obj.isStarted = opts.isStarted || defaults.isStarted;
+    obj.state = opts.state || defaults.state;
     obj.laps = opts.laps ? opts.laps.slice() : defaults.laps;
 
     priv.set(this, obj);
   };
 
+  Stopwatch.RUNNING = 'RUNNING';
+  Stopwatch.PAUSED = 'PAUSED';
+  Stopwatch.RESET = 'RESET';
+
   Stopwatch.prototype = {
 
     constructor: Stopwatch,
 
-    /**
-    * isStarted Returns the isStarted state
-    *
-    * @return {boolean} return isStarted state
-    */
-    isStarted: function sw_isStarted() {
+    getState: function() {
       var sw = priv.get(this);
-      return sw.isStarted;
+      return sw.state;
+    },
+
+    setState: function(state) {
+      var sw = priv.get(this);
+      sw.state = state;
     },
 
     /**
@@ -54,11 +58,11 @@
     */
     start: function sw_start() {
       var sw = priv.get(this);
-      if (sw.isStarted) {
+      if (sw.state === Stopwatch.RUNNING) {
         return;
       }
       sw.startTime = Date.now();
-      sw.isStarted = true;
+      this.setState(Stopwatch.RUNNING);
     },
 
     /**
@@ -69,11 +73,10 @@
     getElapsedTime: function sw_getElapsedTime() {
       var sw = priv.get(this);
       var elapsed = 0;
-      if (sw.isStarted) {
+      if (sw.state === Stopwatch.RUNNING) {
         elapsed = Date.now() - sw.startTime;
       }
       elapsed += sw.totalElapsed;
-
       return new Date(elapsed);
     },
 
@@ -82,12 +85,12 @@
     */
     pause: function sw_pause() {
       var sw = priv.get(this);
-      if (!sw.isStarted) {
+      if (sw.state === Stopwatch.PAUSED) {
         return;
       }
-      sw.isStarted = false;
       var elapsed = Date.now() - sw.startTime;
       sw.totalElapsed += elapsed;
+      this.setState(Stopwatch.PAUSED);
     },
 
     /**
@@ -97,7 +100,7 @@
     */
     lap: function sw_lap() {
       var sw = priv.get(this);
-      if (!sw.isStarted) {
+      if (sw.state !== Stopwatch.RUNNING) {
         return new Date(0);
       }
 
@@ -153,6 +156,5 @@
 
   };
 
-  exports.Stopwatch = Stopwatch;
-
-})(this);
+  return Stopwatch;
+});

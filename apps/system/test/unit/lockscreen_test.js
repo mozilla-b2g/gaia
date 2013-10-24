@@ -7,10 +7,9 @@ requireApp('system/js/lockscreen.js');
 
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_mobile_connection.js');
-requireApp('system/test/unit/mock_mobile_operator.js');
+requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
-
 
 if (!this.MobileOperator) {
   this.MobileOperator = null;

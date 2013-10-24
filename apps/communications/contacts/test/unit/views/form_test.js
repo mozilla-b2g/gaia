@@ -63,6 +63,18 @@ suite('Render contact form', function() {
     window.fb.setIsFbLinked(false);
   });
 
+  function assertSaveState(value) {
+    var element = document.body.querySelector('#save-button');
+    assert.equal(element.getAttribute('disabled'), value);
+  }
+
+  function assertCarrierState(ele, value) {
+    var carrierField = ele.querySelector('input[data-field="carrier"]');
+    var state = carrierField.getAttribute('disabled');
+    assert.isTrue(value === state);
+  }
+
+
   suite('Render add form', function() {
     test('without params', function() {
       subject.render();
@@ -75,6 +87,7 @@ suite('Render contact form', function() {
         assert.isTrue(cont.indexOf(element + '-1') == -1);
         assert.isTrue(footer.classList.contains('hide'));
       }
+      assertSaveState('disabled');
     });
 
     test('with tel params', function() {
@@ -95,6 +108,8 @@ suite('Render contact form', function() {
       assert.isFalse(valueEmail === params.tel);
       assert.equal(valueEmail, '');
       assert.isTrue(footer.classList.contains('hide'));
+
+      assertSaveState(null);
     });
 
     test('with email params', function() {
@@ -114,6 +129,8 @@ suite('Render contact form', function() {
       assert.isTrue(valueEmail === params.email);
       assert.equal(value, '');
       assert.isTrue(footer.classList.contains('hide'));
+
+      assertSaveState(null);
     });
 
     test('with email and tel params', function() {
@@ -134,11 +151,44 @@ suite('Render contact form', function() {
       var valueEmail = document.querySelector('#email_0').value;
       assert.isTrue(valueEmail === params.email);
       assert.isTrue(footer.classList.contains('hide'));
+
+      assertSaveState(null);
     });
+
+    test('Initially the carrier field must be in disabled state', function() {
+      subject.render();
+      var element = document.body.querySelector('#add-phone-0');
+      assertCarrierState(element, 'disabled');
+    });
+
+    test('If email is a blank string then done button must be disabled',
+      function() {
+        var params = {
+          email: '    '
+        };
+
+        subject.render(params);
+        assertSaveState('disabled');
+      }
+    );
+
+    test('If tel is filled and carrier empty done button must be enabled',
+      function() {
+        var params = {
+          tel: [{
+            carrier: '',
+            value: '123456'
+          }]
+        };
+
+        subject.render(params);
+        assertSaveState(null);
+      }
+    );
+
   });
 
   suite('Render edit form', function() {
-
     test('with no name', function() {
       mockContact.givenName.pop();
       subject.render(mockContact);
@@ -175,6 +225,21 @@ suite('Render contact form', function() {
       // Remove Field icon on photo is present
       var thumbnail = document.querySelector('#thumbnail-action');
       assert.isTrue(thumbnail.querySelector('.icon-delete') !== null);
+    });
+
+    test('if tel field has a value, carrier input must be in regular state',
+      function() {
+        subject.render(mockContact);
+        var element = document.body.querySelector('#add-phone-0');
+        assertCarrierState(element, null);
+    });
+
+    test('if tel field has no value, carrier input must be in disabled state',
+      function() {
+        mockContact.tel = [];
+        subject.render(mockContact);
+        var element = document.body.querySelector('#add-phone-0');
+        assertCarrierState(element, 'disabled');
     });
 
     test('FB Contact. e-mail, phone and photo from Facebook', function() {
@@ -313,7 +378,8 @@ suite('Render contact form', function() {
   suite('Generate full contact name', function() {
     setup(function() {
       // Bypass the contacts matcher when saving contact
-      LazyLoader.load(['/contacts/js/contacts_matcher.js'], function() {
+      LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+                       '/contacts/js/contacts_matcher.js'], function() {
           contacts.Matcher.match = function() {};
       });
     });

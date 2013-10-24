@@ -24,7 +24,7 @@ Evme.Utils = new function Evme_Utils() {
         };
     
     
-    this.devicePixelRatio =  window.innerWidth / 320;
+    this.devicePixelRatio = window.devicePixelRatio;
 
     this.isKeyboardVisible = false;
 

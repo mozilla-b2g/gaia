@@ -1,24 +1,31 @@
 'use strict';
 
 requireApp('communications/dialer/js/mmi.js');
-
 requireApp('communications/dialer/test/unit/mock_l10n.js');
-
 requireApp('communications/dialer/test/unit/mock_mmi_ui.js');
 requireApp('communications/dialer/test/unit/mock_mozMobileConnection.js');
+requireApp('communications/dialer/test/unit/mock_lazy_loader.js');
+
+require('/shared/test/unit/mocks/mock_mobile_operator.js');
 
 const TINY_TIMEOUT = 5;
 
 var mocksHelperForMMI = new MocksHelper([
-  'LazyL10n'
+  'LazyL10n',
+  'LazyLoader',
+  'MobileOperator'
 ]).init();
 
 suite('dialer/mmi', function() {
+  var realMobileConnection;
+
   mocksHelperForMMI.attachTestHelpers();
   var keys = {};
 
-  suiteSetup(function() {
-    MmiManager._conn = MockMozMobileConnection;
+  setup(function() {
+    realMobileConnection = window.navigator.mozMobileConnection;
+    window.navigator.mozMobileConnection = MockMozMobileConnection;
+
     MmiManager._ui = MockMmiUI;
     window.addEventListener('message',
                             MmiManager._ui.postMessage.bind(MmiManager._ui));
@@ -26,6 +33,8 @@ suite('dialer/mmi', function() {
   });
 
   teardown(function() {
+    window.navigator.mozMobileConnection = realMobileConnection;
+
     MmiManager._conn.mTeardown();
     MmiManager._ui.teardown();
   });

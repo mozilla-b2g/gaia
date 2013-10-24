@@ -21,7 +21,8 @@
     <script defer src="shared/js/settings_url.js"></script>
     <script defer src="shared/js/advanced_timer.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
-    <!-- 
+    <script defer src="shared/js/screen_layout.js"></script>
+    <!--
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
@@ -71,7 +72,7 @@
     <script defer src="js/hardware_buttons.js"></script>
     <script defer src="js/system_banner.js"></script>
     <script defer src="js/system_dialog.js"></script>
-
+    <script defer src="js/home_gesture.js"></script>
     <!-- Grid View -->
     <link rel="stylesheet" type="text/css" href="style/gridview/gridview.css">
     <script defer src="js/gridview.js"></script>
@@ -479,7 +480,7 @@
           <a href="#" id="quick-settings-full-app" data-enabled="false"></a>
         </div>
 
-        <div id="utility-tray-grippy">
+        <div id="utility-tray-grippy" role="button">
         </div>
       </div>
 
@@ -518,7 +519,7 @@
                 <span id="messageBody">3 tries left.</span>
               </div>
               <!-- tries left -->
-              <div id="triesLeft" data-l10-id="inputCodeRetriesLeft">3 tries left</div>
+              <div id="triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden>3 tries left</div>
 
               <!-- sim pin input field -->
               <div id="pinArea" hidden>
@@ -984,28 +985,28 @@
                 <div class="lockscreen-icon">
                 </div>
               </div>
-              <div id="lockscreen-area-slider"
+              <div id="lockscreen-area-slide"
                    class="lockscreen-icon-area lockscreen-icon-center" role="button"
                    data-l10n-id="unlock-a11y-button" aria-label="Slider">
 
-                <!-- Order matters. If track after handler, it will overlay on the handler -->
-                <div id="lockscreen-slider-track">
-                  <div class="lockscreen-icon lockscreen-slider-left">
+                <!-- Order matters. If track after handle, it will overlay on the handle -->
+                <div id="lockscreen-slide-track">
+                  <div class="lockscreen-icon lockscreen-slide-left">
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-center">
+                  <div class="lockscreen-icon lockscreen-slide-center">
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-right">
+                  <div class="lockscreen-icon lockscreen-slide-right">
                   </div>
                 </div>
 
-                <div id="lockscreen-slider-handler">
-                  <div class="lockscreen-icon lockscreen-slider-left" data-role="handler-left">
-                    <span>‹</span>
+                <div id="lockscreen-slide-handle">
+                  <div class="lockscreen-icon lockscreen-slide-left" data-role="handle-left">
+                    <span>&nbsp;</span>
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-center" data-role="handler-center">
+                  <div class="lockscreen-icon lockscreen-slide-center" data-role="handle-center">
                   </div>
-                  <div class="lockscreen-icon lockscreen-slider-right" data-role="handler-right">
-                    <span>›</span>
+                  <div class="lockscreen-icon lockscreen-slide-right" data-role="handle-right">
+                    <span>&nbsp;</span>
                   </div>
                 </div>
 
@@ -1170,6 +1171,7 @@
         </div>
       </div>
 
+      <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
       <div id="software-buttons" data-z-index-level="software-buttons">
         <button id="software-home-button"></button>
       </div>

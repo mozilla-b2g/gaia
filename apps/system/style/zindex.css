@@ -44,6 +44,10 @@
   z-index: 65536;
 }
 
+#screen > [data-z-index-level="gesture-panel"] {
+  z-index: 65536;
+}
+
 /* Promote the transitioning appWindow to this level as the entry and exiting
  * transition of the cards view. */
 #screen.cards-view > [data-z-index-level="app"] > .appWindow.active,
@@ -56,10 +60,18 @@
 }
 
 #screen > [data-z-index-level="keyboards"] {
-  
+
   /* It should lower than UtilityTray's, to let the tray overlay it
      in some situation like selecting a new keyboard. */
   z-index: 4094;
+}
+
+/*
+ * Promote keyboards to attention screen level when
+ * there is an active attention screen not minimized in
+ * the status bar */
+#screen.attention:not(.active-statusbar) > [data-z-index-level="keyboards"] {
+  z-index: 16384;
 }
 
 /* Level 2: Notification toaster */
@@ -223,6 +235,7 @@
 #screen:-moz-full-screen-ancestor > [data-z-index-level="permission-screen"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="app-install-dialog"],
 #screen:-moz-full-screen-ancestor > [data-z-index-level="ime-layout-dialog"],
-#screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"] {
+#screen:-moz-full-screen-ancestor > [data-z-index-level="fullscreen-software-home-button"],
+#screen:-moz-full-screen-ancestor > [data-z-index-level="gesture-panel"] {
   z-index: 2147483647;
 }

@@ -95,6 +95,15 @@ li:active {
   opacity: 0.1;
 }
 
+/* Confirm dialog is hidden by default */
+#confirm-dialog {
+  display: none;
+}
+
+body[data-mode = 'normal'] ol > li span.options {
+  display: none;
+}
+
 body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > img,
 body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
   filter: url('app_offline_filter.svg#grayscale');

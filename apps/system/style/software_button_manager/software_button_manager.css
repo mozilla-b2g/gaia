@@ -34,9 +34,3 @@
 #fullscreen-software-home-button.visible {
   display: block;
 }
-
-@media not all and (-moz-physical-home-button) {
-  #screen:not(.software-button-disabled) #software-buttons {
-    display: block;
-  }
-}

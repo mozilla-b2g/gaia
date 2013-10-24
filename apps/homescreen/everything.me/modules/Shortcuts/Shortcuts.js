@@ -306,7 +306,13 @@ Evme.Shortcut = function Evme_Shortcut() {
     this.setImage = function setImage(shortcutIcons) {
         if (elThumb && shortcutIcons && shortcutIcons.length > 0) {
             var elIconGroup = Evme.IconGroup.get(shortcutIcons, self.getName(), function onReady(elCanvas) {
-              var img = document.createElement('img');
+              var img = document.createElement('img'),
+                  ratio = window.devicePixelRatio;
+
+              img.style.cssText +=
+                ';width: ' + elCanvas.width / ratio + 'px' +
+                ';height: ' + elCanvas.height / ratio + 'px';
+
               img.src = elCanvas.toDataURL();
               
               elThumb.innerHTML = '';

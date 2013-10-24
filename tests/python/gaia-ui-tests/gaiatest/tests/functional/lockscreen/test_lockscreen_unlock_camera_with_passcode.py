@@ -26,10 +26,9 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         self.lock_screen.wait_for_lockscreen_handle_visible()
 
     def test_unlock_to_camera_with_passcode(self):
-        # https://github.com/mozilla/gaia-ui-tests/issues/479
-
-        self.lock_screen.swipe_to_unlock()
-        camera = self.lock_screen.tap_camera_button()
+        camera = self.lock_screen.unlock_to_camera()
+        self.lock_screen.wait_for_lockscreen_not_visible()
+        camera.switch_to_camera_frame()
 
         self.assertFalse(camera.is_gallery_button_visible)
 

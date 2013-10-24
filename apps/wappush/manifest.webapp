@@ -24,7 +24,6 @@
      { "wappush-received": "/index.html" }
   ],
   "permissions": {
-    "attention": {},
     "desktop-notification": {},
     "settings": { "access": "readonly" },
     "wappush": {}

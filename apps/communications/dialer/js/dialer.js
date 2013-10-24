@@ -228,6 +228,7 @@ var CallHandler = (function callHandler() {
   //   - when the call screen is ready to receive messages
   //   - when we need to send a missed call notification
   //   - when we need to add an entry to the recents database
+  //   - when we need to hide or show navbar
   function handleMessage(evt) {
     if (evt.origin !== COMMS_APP_ORIGIN) {
       return;
@@ -239,17 +240,25 @@ var CallHandler = (function callHandler() {
       handleCallScreenClosing();
     } else if (data === 'ready') {
       handleCallScreenReady();
-    } else if (data.type && data.type === 'notification') {
+    } else if (data == 'request-contacts') {
+      window.location.hash = '#contacts-view';
+    } else if (!data.type) {
+      return;
+    } else if (data.type === 'notification') {
       // We're being asked to send a missed call notification
       NavbarManager.ensureResources(function() {
         handleNotificationRequest(data.number);
       });
-    } else if (data.type && data.type === 'recent') {
+    } else if (data.type === 'recent') {
       NavbarManager.ensureResources(function() {
         handleRecentAddRequest(data.entry);
       });
-    } else if (data.type && data.type === 'contactsiframe') {
+    } else if (data.type === 'contactsiframe') {
       handleContactsIframeRequest(data.message);
+    } else if (data.type === 'hide-navbar') {
+      NavbarManager.hide();
+    } else if (data.type === 'show-navbar') {
+      NavbarManager.show();
     }
   }
   window.addEventListener('message', handleMessage);
@@ -265,7 +274,8 @@ var CallHandler = (function callHandler() {
       return;
     }
 
-    var connected, disconnected = function clearPhoneView() {
+    var connected, disconnected;
+    connected = disconnected = function clearPhoneView() {
       KeypadManager.updatePhoneNumber('', 'begin', true);
     };
 
@@ -491,11 +501,21 @@ var NavbarManager = {
         keypad.classList.add('toolbar-option-selected');
         break;
     }
+  },
+
+  hide: function() {
+    var views = document.getElementById('views');
+    views.classList.add('hide-toolbar');
+  },
+
+  show: function() {
+    var views = document.getElementById('views');
+    views.classList.remove('hide-toolbar');
   }
 };
 
-window.addEventListener('load', function startup(evt) {
-  window.removeEventListener('load', startup);
+var dialerStartup = function startup(evt) {
+  window.removeEventListener('load', dialerStartup);
 
   KeypadManager.init();
   NavbarManager.init();
@@ -522,7 +542,8 @@ window.addEventListener('load', function startup(evt) {
       lazyPanelsElements.forEach(navigator.mozL10n.translate);
     });
   });
-});
+};
+window.addEventListener('load', dialerStartup);
 
 // Listening to the keyboard being shown
 // Waiting for issue 787444 being fixed

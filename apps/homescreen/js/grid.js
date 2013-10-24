@@ -377,25 +377,6 @@ var GridManager = (function() {
         removeActive();
         break;
 
-      case 'contextmenu':
-        if (isPanning) {
-          evt.stopImmediatePropagation();
-          return;
-        }
-
-        if (currentPage > landingPage && 'isIcon' in evt.target.dataset) {
-          evt.stopImmediatePropagation();
-          removePanHandler();
-          Homescreen.setMode('edit');
-          removeActive();
-          DragDropManager.start(evt, {
-            'x': startEvent.pageX,
-            'y': startEvent.pageY
-          });
-        }
-
-        break;
-
       case 'wheel':
         if (evt.deltaMode === evt.DOM_DELTA_PAGE && evt.deltaX) {
           // XXX: Scroll one page at a time
@@ -408,6 +389,25 @@ var GridManager = (function() {
           evt.preventDefault();
         }
         break;
+    }
+  }
+
+  function contextmenu(evt) {
+    if (isPanning) {
+      return;
+    }
+
+    if (currentPage > landingPage) {
+      removePanHandler();
+      Homescreen.setMode('edit');
+      removeActive();
+      LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
+        DragDropManager.init();
+        DragDropManager.start(evt, {
+          'x': startEvent.pageX,
+          'y': startEvent.pageY
+        });
+      });
     }
   }
 
@@ -643,9 +643,11 @@ var GridManager = (function() {
     haveLocale = true;
   }
 
-  function getFirstPageWithEmptySpace() {
-    for (var i = numberOfSpecialPages; i < pages.length; i++) {
-      if (pages[i].getNumIcons() < MAX_ICONS_PER_PAGE) {
+  function getFirstPageWithEmptySpace(pageOffset) {
+    pageOffset = pageOffset !== null && pageOffset ? pageOffset :
+                                                     numberOfSpecialPages;
+    for (var i = pageOffset, page; page = pages[i]; i++) {
+      if (page.hasEmptySlot()) {
         return i;
       }
     }
@@ -872,8 +874,12 @@ var GridManager = (function() {
       }
 
       if (expandApps && manifest.entry_points) {
-        for (var i in manifest.entry_points) {
-          apps.push(new Icon(buildDescriptor(app, i), app));
+        var entryPoints = manifest.entry_points;
+        for (var entryPoint in entryPoints) {
+          if (!entryPoints[entryPoint].icons) {
+            continue;
+          }
+          apps.push(new Icon(buildDescriptor(app, entryPoint), app));
         }
         continue;
       }
@@ -896,7 +902,6 @@ var GridManager = (function() {
     overlayStyle = overlay.style;
 
     container = document.querySelector(selector);
-    container.addEventListener('contextmenu', handleEvent);
     container.addEventListener('wheel', handleEvent);
     ensurePanning();
 
@@ -1141,11 +1146,17 @@ var GridManager = (function() {
     var icon = new Icon(descriptor, app);
     rememberIcon(icon);
 
-    var index = getFirstPageWithEmptySpace();
+    var index;
     var svApp = getSingleVariantApp(app.manifestURL);
     if (svApp && !isPreviouslyInstalled(app.manifestURL)) {
       index = svApp.screen;
       icon.descriptor.desiredPos = svApp.location;
+      if (!Configurator.isSimPresentOnFirstBoot && index < pages.length &&
+          !pages[index].hasEmptySlot()) {
+        index = getFirstPageWithEmptySpace(index);
+      }
+    } else {
+      index = getFirstPageWithEmptySpace();
     }
 
     if (index < pages.length) {
@@ -1456,6 +1467,8 @@ var GridManager = (function() {
 
     exitFromEditMode: exitFromEditMode,
 
-    ensurePanning: ensurePanning
+    ensurePanning: ensurePanning,
+
+    contextmenu: contextmenu
   };
 })();

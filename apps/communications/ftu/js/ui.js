@@ -21,6 +21,7 @@ var UIManager = {
     'pin-label',
     'pin-retries-left',
     'pin-input',
+    'back-sim-button',
     'pin-error',
     'skip-pin-button',
     'unlock-sim-button',
@@ -102,6 +103,7 @@ var UIManager = {
     this.simImportButton.addEventListener('click', this);
     this.sdImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
+    this.backSimButton.addEventListener('click', this);
     this.unlockSimButton.addEventListener('click', this);
 
     this.dataConnectionSwitch.addEventListener('click', this);
@@ -264,6 +266,9 @@ var UIManager = {
       // SIM
       case 'skip-pin-button':
         SimManager.skip();
+        break;
+      case 'back-sim-button':
+        SimManager.back();
         break;
       case 'unlock-sim-button':
         Navigation.skipped = false;

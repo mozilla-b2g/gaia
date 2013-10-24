@@ -5,13 +5,42 @@ var MockFindMatcher = {
     if (options.filterBy.indexOf('tel') !== -1) {
       var value = options.filterValue;
 
-      if (this.data.tel && this.data.tel[0].value === value) {
+      var variantsValue = SimplePhoneMatcher.generateVariants(value);
+      var variantsContact1 = [];
+      var variantsContact2 = [];
+      var found = false;
+      if (this.data.tel && this.data.tel[0] && this.data.tel[0].value) {
+        var telValue = this.data.tel[0].value;
+        found = variantsValue.indexOf(
+                          SimplePhoneMatcher.sanitizedNumber(telValue)) !== -1;
+        if (!found) {
+          var variantsContact1 =
+            SimplePhoneMatcher.generateVariants(telValue);
+          found = variantsContact1.indexOf(
+                            SimplePhoneMatcher.sanitizedNumber(value)) !== -1;
+        }
+      }
+      if (!found && this.data.tel && this.data.tel[1] &&
+         this.data.tel[1].value) {
+        var tel2Value = this.data.tel[1].value;
+        found = variantsValue.indexOf(
+                          SimplePhoneMatcher.sanitizedNumber(tel2Value)) !== -1;
+        if (!found) {
+          var variantsContact2 =
+            SimplePhoneMatcher.generateVariants(tel2Value);
+          found = variantsContact1.indexOf(
+                            SimplePhoneMatcher.sanitizedNumber(value)) !== -1;
+        }
+      }
+
+      if (found) {
         this.result = [this.data];
       }
     }
     else if (options.filterBy.indexOf('email') !== -1) {
       var value = options.filterValue;
-      if (this.data.email && this.data.email[0].value === value) {
+      if (this.data.email && this.data.email[0].value === value ||
+          this.data.email[1] && this.data.email[1].value === value) {
         this.result = [this.data];
       }
     }

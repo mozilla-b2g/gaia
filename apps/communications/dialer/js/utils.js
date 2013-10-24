@@ -64,7 +64,7 @@ var Utils = {
    * information of the current call that is associated with *one and only one*
    * phone number.
    *
-   * The type of the phone number must be a localizable string.
+   * The type of the phone number will be localized if we have a matching key.
    */
   getPhoneNumberAdditionalInfo:
     function ut_getPhoneNumberAdditionalInfo(matchingTel) {
@@ -79,8 +79,12 @@ var Utils = {
     if (Array.isArray(type)) {
       type = type[0];
     }
+
     var _ = navigator.mozL10n.get;
+
     var result = type ? _(type) : _('mobile');
+    result = result ? result : type; // no translation found for this type
+
     if (carrier) {
       result += ', ' + carrier;
     } else {

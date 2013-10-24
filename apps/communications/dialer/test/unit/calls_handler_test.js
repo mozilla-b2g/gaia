@@ -247,6 +247,11 @@ suite('calls handler', function() {
         assert.isTrue(playSpy.calledOnce);
       });
 
+      test('should display the hold-and-answer button only', function() {
+        MockMozTelephony.mTriggerCallsChanged();
+        assert.isTrue(MockCallScreen.mHoldAndAnswerOnly);
+      });
+
       test('should do the same after answering another call', function() {
         MockMozTelephony.mTriggerCallsChanged();
         var showSpy = this.sinon.spy(MockCallScreen, 'showIncoming');
@@ -600,7 +605,7 @@ suite('calls handler', function() {
             assert.isTrue(hideSpy.calledOnce);
           });
 
-          test('should update the CallScreen\'s CDMA call waiting', function() {
+          test('should enable the CDMA call waiting UI', function() {
             CallsHandler.holdAndAnswer();
             assert.equal(MockCallScreen.mCdmaCallWaiting, true);
           });
@@ -705,7 +710,7 @@ suite('calls handler', function() {
             assert.isTrue(hideSpy.calledOnce);
           });
 
-          test('should update the CallScreen\'s CDMA call waiting', function() {
+          test('should enable the CDMA call waiting UI', function() {
             CallsHandler.holdAndAnswer();
             assert.equal(MockCallScreen.mCdmaCallWaiting, true);
           });
@@ -819,9 +824,16 @@ suite('calls handler', function() {
           assert.isTrue(holdSpy.notCalled);
         });
 
+        test('should _not_ change the CallScreen render mode', function() {
+          var renderSpy = this.sinon.spy(MockCallScreen, 'render');
+          CallsHandler.toggleCalls();
+          assert.isTrue(renderSpy.notCalled);
+        });
+
         suite('when the call is holded', function() {
           setup(function() {
             MockMozTelephony.active = null;
+            mockCall.state = 'held';
           });
 
           test('should resume the call', function() {
@@ -921,7 +933,7 @@ suite('calls handler', function() {
       });
     });
 
-    suite('CallsHandler.activeCall', function() {
+    suite('> CallsHandler.activeCall', function() {
       var inactiveCall;
       var activeCall;
       setup(function() {
@@ -990,7 +1002,7 @@ suite('calls handler', function() {
       });
     });
 
-    suite('CallsHandler.mergeConferenceGroupWithActiveCall', function() {
+    suite('> CallsHandler.mergeConferenceGroupWithActiveCall', function() {
       var firstCall;
       var extraCall;
       var overflowCall;

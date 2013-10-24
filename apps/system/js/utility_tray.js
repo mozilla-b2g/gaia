@@ -12,6 +12,8 @@ var UtilityTray = {
 
   statusbar: document.getElementById('statusbar'),
 
+  grippy: document.getElementById('utility-tray-grippy'),
+
   screen: document.getElementById('screen'),
 
   init: function ut_init() {
@@ -36,6 +38,10 @@ var UtilityTray = {
 
     this.overlay.addEventListener('transitionend', this);
   },
+
+  startY: undefined,
+  lastDelta: undefined,
+  screenHeight: undefined,
 
   handleEvent: function ut_handleEvent(evt) {
     switch (evt.type) {
@@ -73,7 +79,8 @@ var UtilityTray = {
         if (LockScreen.locked)
           return;
         if (evt.target !== this.overlay &&
-            evt.target !== this.statusbar)
+            evt.target !== this.statusbar &&
+            evt.target !== this.grippy)
           return;
 
         this.active = true;
@@ -105,6 +112,7 @@ var UtilityTray = {
   },
 
   onTouchStart: function ut_onTouchStart(touch) {
+    this.screenHeight = this.overlay.getBoundingClientRect().height;
     this.startY = touch.pageY;
 
     this.screen.classList.add('utility-tray');
@@ -112,16 +120,16 @@ var UtilityTray = {
   },
 
   onTouchMove: function ut_onTouchMove(touch) {
-    var screenHeight = this.overlay.getBoundingClientRect().height;
+    var screenHeight = this.screenHeight;
+
     var y = touch.pageY;
-    if (y > this.lastY)
-      this.opening = true;
-    else if (y < this.lastY)
-      this.opening = false;
-    this.lastY = y;
+
     var dy = -(this.startY - y);
-    if (this.shown)
+    this.lastDelta = dy;
+
+    if (this.shown) {
       dy += screenHeight;
+    }
     dy = Math.min(screenHeight, dy);
 
     var style = this.overlay.style;
@@ -130,7 +138,14 @@ var UtilityTray = {
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
-    this.opening ? this.show() : this.hide();
+    var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
+    var shouldOpen = significant ? !this.shown : this.shown;
+
+    shouldOpen ? this.show() : this.hide();
+
+    this.startY = undefined;
+    this.lastDelta = undefined;
+    this.screenHeight = undefined;
   },
 
   hide: function ut_hide(instant) {
@@ -139,8 +154,6 @@ var UtilityTray = {
     style.MozTransition = instant ? '' : '-moz-transform 0.2s linear';
     style.MozTransform = 'translateY(0)';
     this.shown = false;
-    this.lastY = undefined;
-    this.startY = undefined;
 
     // If the transition has not started yet there won't be any transitionend
     // event so let's not wait in order to remove the utility-tray class.

@@ -1,5 +1,7 @@
-(function(exports) {
+define(function(require) {
 'use strict';
+
+var mozL10n = require('l10n');
 
 var Utils = {};
 // Maintain references to millisecond multipliers
@@ -134,13 +136,13 @@ Utils.escapeHTML = function(str, escapeQuotes) {
 };
 
 Utils.is12hFormat = function() {
-  var localeTimeFormat = navigator.mozL10n.get('dateTimeFormat_%X');
+  var localeTimeFormat = mozL10n.get('dateTimeFormat_%X');
   var is12h = (localeTimeFormat.indexOf('%p') >= 0);
   return is12h;
 };
 
 Utils.getLocaleTime = function(d) {
-  var f = new navigator.mozL10n.DateTimeFormat();
+  var f = new mozL10n.DateTimeFormat();
   var is12h = Utils.is12hFormat();
   return {
     t: f.localeFormat(d, (is12h ? '%I:%M' : '%H:%M')).replace(/^0/, ''),
@@ -452,6 +454,6 @@ Utils.data = {
 
 };
 
-exports.Utils = Utils;
+return Utils;
 
-}(this));
+});

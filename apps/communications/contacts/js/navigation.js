@@ -7,6 +7,10 @@ function navigationStack(currentView) {
   //  classes which will be added to the 'current' and 'next' view when the
   //  transition goes backwards.
   this.transitions = {
+    'none': {
+      forwards: {},
+      backwards: {}
+    },
     'right-left': {
       forwards: {
         next: 'app-go-left-in'
@@ -45,11 +49,13 @@ function navigationStack(currentView) {
     }
   };
 
+  var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+      document.location.host;
   var screenshotViewId = 'view-screenshot';
   var _currentView = currentView;
   this.stack = [];
 
-  this.stack.push({view: _currentView, transition: 'popup'});
+  this.stack.push({view: _currentView, transition: 'popup', zIndex: 1});
 
   var waitForAnimation = function ng_waitForAnimation(view, callback) {
     if (!callback)
@@ -64,6 +70,10 @@ function navigationStack(currentView) {
   this.go = function go(nextView, transition) {
     if (_currentView === nextView)
       return;
+    var parent = window.parent;
+    if (nextView == 'view-contact-form') {
+      parent.postMessage({type: 'hide-navbar'}, COMMS_APP_ORIGIN);
+    }
 
     // Remove items that match nextView from the stack to prevent duplicates.
     this.stack = this.stack.filter(function(item) {
@@ -76,6 +86,11 @@ function navigationStack(currentView) {
     // -moz-element and animate this 'screenshot" element.
     if (transition.indexOf('go-deeper') === 0) {
       current = document.getElementById(screenshotViewId);
+
+      // Load the screenshot dom content
+      LazyLoader.load([current]);
+
+      current.style.zIndex = this.stack[this.stack.length - 1].zIndex;
       currentClassList = current.classList;
       if (transition.indexOf('search') !== -1) {
         currentClassList.add('search');
@@ -101,12 +116,16 @@ function navigationStack(currentView) {
       next.classList.add(forwardsClasses.next);
     }
 
-    this.stack.push({ view: nextView, transition: transition});
-    next.style.zIndex = this.stack.length;
+    var zIndex = this.stack[this.stack.length - 1].zIndex + 1;
+    this.stack.push({ view: nextView, transition: transition,
+                      zIndex: zIndex});
+    next.style.zIndex = zIndex;
     _currentView = nextView;
   };
 
   this.back = function back(callback) {
+    var self = this;
+
     if (this.stack.length < 2) {
       if (typeof callback === 'function') {
         setTimeout(callback, 0);
@@ -117,13 +136,16 @@ function navigationStack(currentView) {
     var currentView = this.stack.pop();
     var current = document.getElementById(currentView.view);
     var currentClassList = current.classList;
-    current.style.zIndex = this.stack.length;
 
     var nextView = this.stack[this.stack.length - 1];
     var transition = currentView.transition;
 
     var forwardsClasses = this.transitions[transition].forwards;
     var backwardsClasses = this.transitions[transition].backwards;
+
+    if (currentView.view == 'view-contact-form') {
+      parent.postMessage({type: 'show-navbar'}, COMMS_APP_ORIGIN);
+    }
 
     // Add backwards class to current view.
     if (backwardsClasses.current) {
@@ -135,17 +157,22 @@ function navigationStack(currentView) {
           // to restore the elements to their initial state.
           currentClassList.remove(forwardsClasses.next);
           currentClassList.remove(backwardsClasses.current);
+          current.style.zIndex = null;
         }
       );
+    } else {
+      current.style.zIndex = null;
     }
-    var next;
+    var next = document.getElementById(nextView.view);
     var nextClassList;
+
+    next.style.zIndex = nextView.zIndex;
     // Performance is very bad when there are too many contacts so we use
     // -moz-element and animate this 'screenshot" element.
     if (transition.indexOf('go-deeper') === 0) {
       next = document.getElementById(screenshotViewId);
     } else {
-      next = document.getElementById(_currentView);
+      next = document.getElementById(nextView.view);
     }
     nextClassList = next.classList;
 
@@ -167,7 +194,11 @@ function navigationStack(currentView) {
       });
     }
 
-    waitForAnimation(current, callback);
+    if (!backwardsClasses.current && !backwardsClasses.next && callback) {
+      setTimeout(callback, 0);
+    } else {
+      waitForAnimation(current, callback);
+    }
     _currentView = nextView.view;
   };
 

@@ -14,80 +14,109 @@ window.addEventListener('localized', function localized() {
  * to post notifications and display their contents
  */
 var WapPushManager = {
-   /** Settings key for enabling/disabling WAP Push messages */
-   _wapPushEnableKey: 'wap.push.enabled',
+  /** Settings key for enabling/disabling WAP Push messages */
+  _wapPushEnableKey: 'wap.push.enabled',
 
-   /** Enable/disable WAP Push notifications */
-   _wapPushEnabled: true,
+  /** Enable/disable WAP Push notifications */
+  _wapPushEnabled: true,
+
+  /** Close button node */
+  _closeButton: null,
+
+  /** Title of the message, usually holds the sender's number */
+  _title: null,
+
+  /** Message container */
+  _container: null,
+
+  /** Message text */
+  _text: null,
+
+  /** Message link */
+  _link: null,
 
   /**
    * Initialize the WAP Push manager, this only subscribes to the
    * wappush-received message handler at the moment
+   *
+   * @param {Function} [done] An optional callback invoked when initialization
+   *        has finished, useful for synchronizing unit-tests.
    */
-  init: function wpm_init() {
+  init: function wpm_init(done) {
     if ('mozSettings' in navigator) {
       // Read the global setting
       var req = navigator.mozSettings.createLock().get(this._wapPushEnableKey);
 
-      req.onsuccess = (function() {
+      req.onsuccess = (function wpm_settingsLockSuccess() {
         this._wapPushEnabled = req.result[this._wapPushEnableKey];
 
         // Start listening to WAP Push messages only after we read the pref
         window.navigator.mozSetMessageHandler('wappush-received',
           this.onWapPushReceived.bind(this));
+
+        if (typeof done === 'function') {
+          done();
+        }
       }).bind(this);
 
-      navigator.mozSettings.addObserver(this._wapPushEnableKey, (function(v) {
-        this._wapPushEnabled = v.settingValue;
-      }).bind(this));
+      navigator.mozSettings.addObserver(this._wapPushEnableKey,
+        (function wpm_settingsObserver(v) {
+          this._wapPushEnabled = v.settingValue;
+        }).bind(this));
     }
+
+    // Retrieve the various page elements
+    this._closeButton = document.getElementById('close');
+    this._title = document.getElementById('title');
+    this._container = document.getElementById('wappush-container');
+    this._text = this._container.querySelector('p');
+    this._link = this._container.querySelector('a');
+
+    // Event handlers
+    document.addEventListener(
+      'visibilitychange',
+      this.onVisibilityChange.bind(this)
+    );
+
+    this._closeButton.addEventListener('click', this.onClose.bind(this));
+    this._link.addEventListener(
+      'click',
+      LinkActionHandler.onClick.bind(LinkActionHandler)
+    );
 
     window.navigator.mozSetMessageHandler('notification',
       this.onNotification.bind(this));
   },
 
   /**
-   * Retrieves the parameters from an URL and forms an object with them
-   *
-   * @param {String} input A string holding the parameters attached to an URL
-   *
-   * @return {Object} An object built using the parameters
+   * Closes the application whenever it is hidden
    */
-  deserializeParameters: function wpm_deserializeParameters(input) {
-    var rparams = /([^?=&]+)(?:=([^&]*))?/g;
-    var parsed = {};
+  onVisibilityChange: function wpm_onVisibilityChange() {
+    this.close(/* background */ true);
+  },
 
-    input.replace(rparams, function($0, $1, $2) {
-      parsed[$1] = decodeURIComponent($2);
-    });
-
-    return parsed;
+  /**
+   * Closes the application
+   */
+  onClose: function wpm_onClose() {
+    this.close();
   },
 
   /**
    * Establish if we must show this message or not; the message is shown only
-   * if the following conditions are met:
-   * - WAP Push functionality is enabled
-   * - The message is either a SI or SL message
-   * - The sender's MSISDN is whitelisted or whitelisting is disabled
+   * if WAP Push functionality is enabled, the sender's MSISDN is whitelisted
+   * or whitelisting is disabled
    *
-   * @param {Object} message The message to be checked
+   * @param {Object} message A parsed WAP Push message.
    *
-   * @return {Boolean} true if the message should be displayed, false otherwise
+   * @return {Boolean} true if the message should be displayed, false otherwise.
    */
   shouldDisplayMessage: function wpm_shouldDisplayMessage(message) {
-    if (!this._wapPushEnabled || !WhiteList.has(message.sender)) {
+    if (!this._wapPushEnabled || (message === null) ||
+        !WhiteList.has(message.sender)) {
        /* WAP push functionality is either completely disabled or the message
         * comes from a non white-listed MSISDN, ignore it. */
        return false;
-    }
-
-    if ((message.contentType != 'text/vnd.wap.si') &&
-        (message.contentType != 'text/vnd.wap.sl')) {
-      // Only accept SI and SL messages
-      console.log('Unsupported or invalid content type "' +
-                  message.contentType + '" for WAP Push message\n');
-      return false;
     }
 
     return true;
@@ -98,96 +127,112 @@ var WapPushManager = {
    * the internal database and posts a notification which can be used to
    * display the message.
    *
-   * @param {Object} message The WAP Push message as provided by the system
+   * @param {Object} wapMessage The WAP Push message as provided by the system.
    */
-  onWapPushReceived: function wpm_onWapPushReceived(message) {
+  onWapPushReceived: function wpm_onWapPushReceived(wapMessage) {
     var self = this;
-    var timestamp = Date.now();
+    var message = ParsedMessage.from(wapMessage, Date.now());
 
     if (!this.shouldDisplayMessage(message)) {
-      this.close();
+      this.close(/* background */ true);
       return;
     }
 
-    asyncStorage.setItem(timestamp.toString(), message, function() {
-      navigator.mozApps.getSelf().onsuccess = function(event) {
-        var _ = navigator.mozL10n.get;
-        var app = event.target.result;
-        /* We store the message timestamp as a parameter to be able to
-         * retrieve the message from the notification code */
-        var iconURL = NotificationHelper.getIconURI(app) +
-                      '?timestamp=' + encodeURIComponent(timestamp);
+    message.save(
+      function wpm_saveSuccess() {
+        var req = navigator.mozApps.getSelf();
 
-        NotificationHelper.send(message.sender, message.content, iconURL,
-          function() {
-            app.launch();
-            self.displayWapPushMessage(timestamp);
-          });
+        req.onsuccess = function wpm_gotApp(event) {
+          var _ = navigator.mozL10n.get;
+          var app = event.target.result;
+          /* We store the message timestamp as a parameter to be able to
+           * retrieve the message from the notification code */
+          var iconURL = NotificationHelper.getIconURI(app) +
+                       '?timestamp=' + encodeURIComponent(message.timestamp);
+          var text = message.text ? (message.text + ' ') : '';
 
-        self.close();
-      };
-    });
+          text += message.href ? message.href : '';
+
+          NotificationHelper.send(message.sender, text, iconURL,
+            function wpm_notificationOnClick() {
+              app.launch();
+              self.displayWapPushMessage(message.timestamp);
+            });
+
+          self.close(/* background */ true);
+        };
+        req.onerror = function wpm_getAppError() {
+          self.close(/* background */ true);
+        };
+      },
+      function wpm_saveError(error) {
+        console.log('Could not add a message to the database: ' + error + '\n');
+        self.close(/* background */ true);
+      }
+    );
   },
 
   /**
-   * Displays an attention screen containing a WAP Push message
+   * Displays the contents of a WAP Push message
    *
-   * @param {String} sender The message sender
-   * @param {String} content
-   *        The contents of the message with HTML tags already escaped
+   * @param {Object} message The notification event.
    */
-  onNotification: function wpm_onNotification(event) {
-    var params = this.deserializeParameters(event.imageURL);
+  onNotification: function wpm_onNotification(message) {
+    if (!message.clicked) {
+      return;
+    }
 
-    this.displayWapPushMessage(params.timestamp);
+    navigator.mozApps.getSelf().onsuccess = (function wpm_gotApp(event) {
+      var params = Utils.deserializeParameters(message.imageURL);
+      var app = event.target.result;
+
+      app.launch();
+      this.displayWapPushMessage(params.timestamp);
+    }).bind(this);
   },
 
   /**
    * Retrieves a WAP Push message from the database and displays it
    *
-   * @param {Number} timestamp The message timestamp
+   * @param {String} timestamp The message timestamp as a string.
    */
   displayWapPushMessage: function wpm_displayWapPushMessage(timestamp) {
     var self = this;
-
-    asyncStorage.getItem(timestamp, function(message) {
-      var protocol = window.location.protocol;
-      var host = window.location.host;
-      var uri = protocol + '//' + host + '/message.html';
-
-      uri += '?';
-      uri += [
-               'sender=' + encodeURIComponent(message.sender),
-               'content=' + encodeURIComponent(message.content)
-             ].join('&');
-
-      var messageScreen = window.open(uri, 'wappush_attention', 'attention');
-
-      messageScreen.onload = function(evt) {
-        messageScreen.WapMessageScreen.init();
-        asyncStorage.removeItem(timestamp);
-      };
-
-      messageScreen.onunload = function(evt) {
-        // Close the parent window to hide the application from the cards view
-        if (evt.target.location != 'about:blank') {
-          self.close();
-          return;
-        }
-      };
-    },
-    function(error) {
-      console.log('Could not retrieve the message:' + error + '\n');
-    });
+    var message = ParsedMessage.load(timestamp,
+      function wpm_loadSuccess(message) {
+        // Populate the message
+        self._title.textContent = message.sender;
+        self._text.textContent = message.text;
+        self._link.textContent = message.href;
+        self._link.href = message.href;
+        self._link.dataset.url = message.href;
+      },
+      function wpm_loadError(error) {
+        console.log('Could not retrieve the message:' + error + '\n');
+      });
   },
 
   /**
    * Closes the application, lets the event loop run once to ensure clean
-   * termination of pending events.
+   * termination of pending events. If the background parameter is specified
+   * the the application will be closed only if it's running in the background.
+   *
+   * @param {Boolean} [background] When 'true' close the application only if
+   *        if it's running in the background.
    */
-  close: function wpm_close() {
-    window.setTimeout(window.close);
+  close: function wpm_close(background) {
+    if (background) {
+      if (document.hidden) {
+        window.setTimeout(window.close);
+      }
+    } else {
+      window.setTimeout(window.close);
+    }
   }
 };
 
-WapPushManager.init();
+window.addEventListener('load', function callSetup(evt) {
+  window.removeEventListener('load', callSetup);
+
+  WapPushManager.init();
+});

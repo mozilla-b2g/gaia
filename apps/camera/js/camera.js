@@ -189,8 +189,6 @@ var Camera = {
   // Number of bytes left on disk to let us stop recording.
   RECORD_SPACE_PADDING: 1024 * 1024 * 1,
 
-  // Maximum image resolution for still photos taken with camera
-  MAX_IMAGE_RES: 1600 * 1200, // Just under 2 megapixels
   // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
   ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
 
@@ -300,7 +298,8 @@ var Camera = {
         'js/panzoom.js',
         'js/filmstrip.js',
         'js/confirm.js',
-        'js/soundeffect.js'
+        'js/soundeffect.js',
+        'js/orientation.js'
       ];
       loader.load(files, function() {
         LazyL10n.get(function localized() {
@@ -328,11 +327,12 @@ var Camera = {
       '#toggle-camera, #gallery-button span { -moz-transform: rotate(0deg); }';
     var insertId = this._styleSheet.cssRules.length - 1;
     this._orientationRule = this._styleSheet.insertRule(css, insertId);
-    window.addEventListener('deviceorientation', this.orientChange.bind(this));
 
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
     this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
+    CameraOrientation.addEventListener('orientation',
+                                      this.handleOrientationChanged.bind(this));
 
     this.switchButton
       .addEventListener('click', this.toggleModePressed.bind(this));
@@ -356,6 +356,7 @@ var Camera = {
       this.galleryButton.setAttribute('disabled', 'disabled');
     }
 
+    CameraOrientation.start();
     SoundEffect.init();
 
     if ('mozSettings' in navigator) {
@@ -840,25 +841,12 @@ var Camera = {
     });
   },
 
-  orientChange: function camera_orientChange(e) {
-    // Orientation is 0 starting at 'natural portrait' increasing
-    // going clockwise
-    var orientation =
-      (e.beta < -45 && e.beta > -135) ? 0 :
-      (e.beta > 45 && e.beta < 135) ? 180 :
-      (e.gamma < -45 && e.gamma > -135) ? 90 :
-      (e.gamma > 45 && e.gamma < 135) ? 270 :
-      this._phoneOrientation;
+  handleOrientationChanged: function camera_orientationChanged(orientation) {
+    var rule = this._styleSheet.cssRules[this._orientationRule];
+    rule.style.MozTransform = 'rotate(' + (-orientation) + 'deg)';
+    this._phoneOrientation = orientation;
 
-    if (orientation !== this._phoneOrientation) {
-      var rule = this._styleSheet.cssRules[this._orientationRule];
-      // PLEASE DO SOMETHING KITTENS ARE DYING
-      // Setting MozRotate to 90 or 270 causes element to disappear
-      rule.style.MozTransform = 'rotate(' + -(orientation + 1) + 'deg)';
-      this._phoneOrientation = orientation;
-
-      Filmstrip.setOrientation(orientation);
-    }
+    Filmstrip.setOrientation(orientation);
   },
 
   setCaptureMode: function camera_setCaptureMode(mode) {
@@ -1073,16 +1061,21 @@ var Camera = {
   },
 
   stopPreview: function camera_stopPreview() {
-    this.releaseScreenWakeLock();
-    if (this._recording) {
-      this.stopRecording();
+    try {
+      this.releaseScreenWakeLock();
+      if (this._recording) {
+        this.stopRecording();
+      }
+      this.hideFocusRing();
+      this.disableButtons();
+      this.viewfinder.pause();
+      this._previewActive = false;
+      this.viewfinder.mozSrcObject = null;
+    } catch (ex) {
+      console.error('error while stopping preview', ex.message);
+    } finally {
+      this.release();
     }
-    this.hideFocusRing();
-    this.disableButtons();
-    this.viewfinder.pause();
-    this._previewActive = false;
-    this.viewfinder.mozSrcObject = null;
-    this.release();
   },
 
   resumePreview: function camera_resumePreview() {
@@ -1410,7 +1403,12 @@ var Camera = {
       targetSize = {'width': this._pendingPick.source.data.width,
                     'height': this._pendingPick.source.data.height};
     }
-    var maxRes = this.MAX_IMAGE_RES;
+
+    // CONFIG_MAX_IMAGE_PIXEL_SIZE is maximum image resolution for still photos
+    // taken with camera. It's from config.js which is generated in build time,
+    // 5 megapixels by default (see build/application-data.js). It should be
+    // synced with Gallery app and update carefully.
+    var maxRes = CONFIG_MAX_IMAGE_PIXEL_SIZE;
     var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;

@@ -60,8 +60,32 @@ contacts.Details = (function() {
     initPullEffect(cover);
 
     utils.listeners.add({
-      '#toggle-favorite': toggleFavorite
+      '#toggle-favorite': toggleFavorite,
+      '#details-back': handleDetailsBack,
+      '#edit-contact-button': showEditContact
     });
+  };
+
+  var handleDetailsBack = function handleDetailsBack() {
+    if (ActivityHandler.currentlyHandling) {
+      ActivityHandler.postCancel();
+      Contacts.navigation.home();
+    } else {
+      var hasParams = window.location.hash.split('?');
+      var params = hasParams.length > 1 ?
+        utils.extractParams(hasParams[1]) : -1;
+
+      Contacts.navigation.back();
+      // post message to parent page included Contacts app.
+      if (params['back_to_previous_tab'] === '1') {
+        var message = { 'type': 'contactsiframe', 'message': 'back' };
+        window.parent.postMessage(message, COMMS_APP_ORIGIN);
+      }
+    }
+  };
+
+  var showEditContact = function showEditContact() {
+    Contacts.showForm(true);
   };
 
   var setContact = function cd_setContact(currentContact) {
@@ -271,7 +295,9 @@ contacts.Details = (function() {
     var birthdayFormat = _('birthdayDateFormat') || '%e %B';
     var birthdayString = '';
     try {
-      birthdayString = f.localeFormat(contact.bday, birthdayFormat);
+      var offset = contact.bday.getTimezoneOffset() * 60 * 1000;
+      var normalizeBirthdayDate = new Date(contact.bday.getTime() + offset);
+      birthdayString = f.localeFormat(normalizeBirthdayDate, birthdayFormat);
     } catch (err) {
       console.error('Error parsing birthday');
       return;

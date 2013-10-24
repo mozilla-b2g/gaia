@@ -62,13 +62,13 @@ var LockScreen = {
   /*
   * If user is sliding.
   */
-  _sliderPulling: false,
+  _sliding: false,
 
   /*
-  * If user released the finger and the handler had already
+  * If user had released the finger and the handle already
   * reached one of the ends.
   */
-  _sliderReachEnd: false,
+  _slideReachEnd: false,
 
   /*
   * Detect if sliding crossed the middle line.
@@ -314,7 +314,7 @@ var LockScreen = {
     this.leftIcon.classList.remove('dark');
   },
 
-  darkIcon: function() {
+  darkIcons: function() {
     this.rightIcon.classList.add('dark');
     this.leftIcon.classList.add('dark');
   },
@@ -326,6 +326,12 @@ var LockScreen = {
         if (evt.detail.screenOffBy == 'proximity') {
           break;
         }
+
+        // If the screen got blackout, should restore the slide.
+        this.restoreSlide();
+        this.slideLeft.classList.remove('touched');
+        this.slideCenter.classList.remove('touched');
+        this.slideRight.classList.remove('touched');
 
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
@@ -484,8 +490,8 @@ var LockScreen = {
 
     if (!touch.touched) {
 
-      // Do nothing if the user have not move the finger to the slider yet.
-      if (!this._sliderPulling)
+      // Do nothing if the user have not move the finger to the slide yet.
+      if (!this._sliding)
         return;
 
       touch.touched = true;
@@ -506,13 +512,31 @@ var LockScreen = {
 
   handleSlideBegin: function() {
     this.lightIcons();
-    this.restoreSlider();
+    this.restoreSlide();
+    this._sliding = true;
+
+    // The '0.5' is the original width of the center of the circle.
+    this._slideOrigin = this.slideCenter.offsetLeft + 0.5;
   },
 
   handleSlide: function() {
 
-    if (!this._sliderPulling)
+    if (!this._sliding)
       return;
+
+    /**
+     * Return the distance between the end of the handle to the origin.
+     *
+     * @return {Pixel} the length of the handle dragged from the origin.
+     * @this
+     */
+    var slidingLength = function ls_hs_slidingLength(subject, dir) {
+      if ('right' === dir) {
+        return subject.offsetLeft + subject.clientWidth - this._slideOrigin;
+      } else {
+        return this._slideOrigin - subject.offsetLeft + subject.clientWidth;
+      }
+    };
 
     var tx = this._touch.tx;
     var dir = 'right';
@@ -521,84 +545,73 @@ var LockScreen = {
 
     // Drag from left to right or counter-direction.
     if ('' !== this._slidingToward && dir !== this._slidingToward) {
-      this.restoreSlider();
+      this.restoreSlide();
+      this._sliding = true;
     }
     this._slidingToward = dir;
 
     // Unsigned.
     var utx = Math.abs(tx);
 
-    // XXX: To solve the odd glitches amoung these 3 elements.
-    // Make the center element scale more.
-    var glitchS = 0.3;
-
     var trackLength = this.rightIcon.offsetLeft -
                       this.leftIcon.offsetLeft +
                       this.rightIcon.clientWidth;
-    var maxLength = Math.floor(trackLength / 2);
 
-    var boundaryLeft = this.leftIcon.offsetLeft;
-    var boundaryRight = this.rightIcon.offsetLeft + this.rightIcon.clientWidth;
+    var natureBoundary = Math.floor(trackLength / 2);
+
+    // Shrink the boundaries.
+    var slideBoundaryOffset = this.leftIcon.clientWidth;
+
+    // They're different because the center element of the circle
+    // occurs 1px width toward right.
+    var boundaryBorderRight = 5;
+    var boundaryBorderLeft = 4;
+    var boundaryBorder = 'left' === dir ? boundaryBorderLeft :
+      boundaryBorderRight;
+
+    // Boundaries will shorter than the track length,
+    // to make unlocking with one hand easier.
+    var maxLength = natureBoundary -
+                    slideBoundaryOffset +
+                    Math.floor(this.leftIcon.clientWidth / 2);
 
     var offset = utx;
+    var slideLength = offset + this.slideLeft.clientWidth + boundaryBorder;
 
-    // If the front-end slider reached the boundary.
+    // Start to paint the slide.
+    this.slideLeft.classList.add('pulling');
+    this.slideRight.classList.add('pulling');
+
+    // If the front-end slide reached the boundary.
     // We plus and minus the icon width because maxLength should be fixed,
-    // and only the handler and the blue occurred area should be adjusted.
-    if (offset + this.sliderLeft.clientWidth > maxLength) {
-      this._sliderReachEnd = true;
-      offset = maxLength - this.sliderLeft.clientWidth;
-      this.handleIconClick('left' === dir ? this.leftIcon : this.rightIcon);
-    }
-
-    // Start to paint the slider.
-    this.sliderLeft.classList.add('pulling');
-    this.sliderRight.classList.add('pulling');
-
-    var subject = ('right' === dir) ? this.sliderRight : this.sliderLeft;
-    var cntsubject = ('right' === dir) ? this.sliderLeft : this.sliderRight;
-
-    // Need to set this to let transition event triggered while
-    // we bounce the handlers back.
-    // @see `restoreSlider`
-    cntsubject.style.transform = 'translateX(0px)';
-
-    // 'translateX' will move it according to the left border.
-    if ('right' === dir) {
-      subject.style.transform = 'translateX(' + offset + 'px)';
+    // and only the handle and the blue occurred area should be adjusted.
+    if (slideLength > maxLength) {
+      this._slideReachEnd = true;
+      offset = natureBoundary - this.slideLeft.clientWidth - boundaryBorder;
+      this._slideTo(offset, dir, true);
     } else {
-      subject.style.transform = 'translateX(-' + offset + 'px)';
+      this._slideTo(offset, dir);
+      this._slideReachEnd = false;
     }
-
-    // Move center as long as half of the offset, then scale it.
-    var cMove = offset / 2;
-    var cScale = offset + glitchS;
-
-    if ('right' === dir) {
-      this.sliderCenter.style.transform = 'translateX(' + cMove + 'px)';
-    } else {
-      this.sliderCenter.style.transform = 'translateX(-' + cMove + 'px)';
-    }
-    this.sliderCenter.style.transform += 'scaleX(' + cScale + ')';
-
     this._slideCount += utx;
     if (this._slideCount > 15) {
 
       // Add the effects to these icons.
-      this.sliderLeft.classList.add('touched');
-      this.sliderCenter.classList.add('touched');
-      this.sliderRight.classList.add('touched');
+      this.slideLeft.classList.add('touched');
+      this.slideCenter.classList.add('touched');
+      this.slideRight.classList.add('touched');
     }
+    this._slideCount = 0;
   },
 
-  // Restore all slider elements.
+  // Restore all elements in the slide.
   //
   // easing {Boolean} true|undefined to bounce back slowly.
-  restoreSlider: function(easing) {
+  restoreSlide: function(easing) {
 
     // Mimic the `getAllElements` function...
-    [this.sliderLeft, this.sliderRight, this.sliderCenter]
-      .forEach(function ls_rSlider(h) {
+    [this.slideLeft, this.slideRight, this.slideCenter]
+      .forEach(function ls_rSlide(h) {
         if (easing) {
 
           // To prevent magic numbers...
@@ -611,7 +624,11 @@ var LockScreen = {
 
             h.style.transition = 'none';
 
-            // Remove the effects to these icons.
+            // Remove the effects to these icons, and only do it
+            // when it bounce back.
+            //
+            // This is because crossing the origin will restore it as well,
+            // but we don't need to reset the blue are at such scenario.
             h.classList.remove('touched');
             h.removeEventListener('transitionend', tsEnd);
           };
@@ -619,31 +636,30 @@ var LockScreen = {
 
         } else {
           h.style.transition = '';
-
-          // Remove the effects on these icons.
-          h.classList.remove('touched');
         }
 
         // After setup, bounce it back.
         h.style.transform = '';
     });
 
-    this._sliderPulling = true;
-    this._sliderReachEnd = false;
+    this._sliding = false;
+    this._slideReachEnd = false;
   },
 
   handleSlideEnd: function() {
     // Bounce back to the center immediately.
-    if (false === this._sliderReachEnd) {
-      this.restoreSlider(true);
+    if (false === this._slideReachEnd) {
+      this.restoreSlide(true);
     } else {
       // Restore it only after screen changed.
       var appLaunchDelay = 400;
-      setTimeout(this.restoreSlider.bind(this, true), appLaunchDelay);
+      setTimeout(this.restoreSlide.bind(this, true), appLaunchDelay);
+      this.handleIconClick('left' === this._slidingToward ?
+        this.leftIcon : this.rightIcon);
     }
-    this.darkIcon();
+    this.darkIcons();
     this._slideCount = 0;
-    this._sliderPulling = false;
+    this._sliding = false;
   },
 
   handleIconClick: function ls_handleIconClick(target) {
@@ -1171,8 +1187,8 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'area-slider', 'passcode-code', 'alt-camera',
-        'alt-camera-button', 'slider-handler',
+        'area-handle', 'area-slide', 'passcode-code', 'alt-camera',
+        'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
 
@@ -1189,9 +1205,9 @@ var LockScreen = {
     this.overlay = document.getElementById('lockscreen');
     this.mainScreen = document.getElementById('screen');
 
-    this.sliderLeft = this.sliderHandler.getElementsByTagName('div')[0];
-    this.sliderCenter = this.sliderHandler.getElementsByTagName('div')[1];
-    this.sliderRight = this.sliderHandler.getElementsByTagName('div')[2];
+    this.slideLeft = this.slideHandle.getElementsByTagName('div')[0];
+    this.slideCenter = this.slideHandle.getElementsByTagName('div')[1];
+    this.slideRight = this.slideHandle.getElementsByTagName('div')[2];
 
     var slcLeft = '#lockscreen-icon-container .lockscreen-icon-left';
     var slcRight = '#lockscreen-icon-container .lockscreen-icon-right';
@@ -1261,6 +1277,56 @@ var LockScreen = {
   setCellbroadcastLabel: function ls_setCellbroadcastLabel(label) {
     this.cellbroadcastLabel = label;
     this.updateConnState();
+  },
+
+  /**
+   * Pull the handle of the slide to the position corresponding
+   * to the offset.
+   *
+   * @param {Number} offset: pixels; how long the handle should move.
+   * @param {DOM Element} subject: the handle.
+   * @param {'right'|'left'} dir
+   * @param {Boolean} easing: if the pulling must go with animation.
+   * @this
+   */
+  _slideTo: function ls__slideTo(offset, dir, easing) {
+    var easingSec = 0.5;
+
+    // XXX: To solve the odd glitches among these 3 elements.
+    // Make the center element scale more.
+    var glitchS = 1.8;
+
+    var subject = ('right' === dir) ? this.slideRight : this.slideLeft;
+    var cntsubject = ('right' === dir) ? this.slideLeft : this.slideRight;
+
+    subject.style.transition = (!easing) ? '' :
+      'ease ' + easingSec + 's';
+    cntsubject.style.transition = (!easing) ? '' :
+      'ease ' + easingSec + 's';
+    this.slideCenter.style.transition = (!easing) ? '' :
+      'ease ' + easingSec + 's';
+
+    // Need to set this to let transition event triggered while
+    // we bounce the handles back.
+    // @see `restoreSlide`
+    cntsubject.style.transform = 'translateX(0px) ';
+
+    // 'translateX' will move it according to the left border.
+    if ('right' === dir) {
+      subject.style.transform = 'translateX(' + offset + 'px) ';
+    } else {
+      subject.style.transform = 'translateX(-' + offset + 'px) ';
+    }
+    // Move center as long as half of the offset, then scale it.
+    var cMove = offset / 2;
+    var cScale = offset + glitchS;
+
+    if ('right' === dir) {
+      this.slideCenter.style.transform = 'translateX(' + cMove + 'px) ';
+    } else {
+      this.slideCenter.style.transform = 'translateX(-' + cMove + 'px) ';
+    }
+    this.slideCenter.style.transform += 'scaleX(' + cScale + ') ';
   }
 };
 

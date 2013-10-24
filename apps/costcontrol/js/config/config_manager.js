@@ -45,7 +45,7 @@ var ConfigManager = (function() {
     'zeroBalanceNotified': false,
     'dataUsageNotified': false,
     'nextReset': null,
-    'plantype': 'prepaid',
+    'plantype': 'postpaid',
     'resetTime': 1,
     'trackingPeriod': 'monthly',
     'isMobileChartVisible': true,

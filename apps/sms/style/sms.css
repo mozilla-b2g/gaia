@@ -586,6 +586,7 @@ form.bottom[role="search"].messages-compose-form {
   -moz-box-sizing: border-box;
   /* Cursor hides itself otherwise: */
   overflow: auto;
+  white-space: pre-wrap;
   text-align: left;
   font-size: 1.8rem;
 }
@@ -717,11 +718,7 @@ section[role="region"].new #messages-to-field {
 }
 
 #messages-recipients-list-container {
-  position: absolute;
-  top: 0;
   z-index: -1;
-
-  padding: 0 4rem;
   -moz-box-sizing: border-box;
   border-bottom: 0.1rem solid #4d4d4d;
   width: 100%;
@@ -732,7 +729,7 @@ section[role="region"].new #messages-to-field {
 }
 
 #messages-recipients-list {
-  padding-top: 1.4rem;
+  padding: 1.4rem 0 0 0.5rem;
 }
 /*
 Used by Recipients.View to display multi or single line.

@@ -88,7 +88,9 @@ var contact1 = {
 
 suite('Import from vcard', function() {
   var realMozL10n,
-      real_;
+      real_,
+      realStatus,
+      realOverlay;
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
@@ -96,6 +98,9 @@ suite('Import from vcard', function() {
 
     real_ = window._;
     window._ = navigator.mozL10n.get;
+
+    realStatus = window.utils.status;
+    realOverlay = window.utils.overlay;
 
     window.utils.overlay = {
       total: 0,
@@ -127,8 +132,8 @@ suite('Import from vcard', function() {
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
     window._ = real_;
-    window.utils.status = null;
-    window.utils.overlay = null;
+    window.utils.status = realStatus;
+    window.utils.overlay = realOverlay;
     mocksHelperForImportVcard.suiteTeardown();
   });
 

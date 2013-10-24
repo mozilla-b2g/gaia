@@ -39,40 +39,57 @@ contacts.Matcher = (function() {
 
         var filterBy = options.filterBy;
 
+        var sanitizedTarget = SimplePhoneMatcher.sanitizedNumber(target);
+        var targetVariants = SimplePhoneMatcher.generateVariants(target);
+
         matchings.forEach(function(aMatching) {
           if (matchingOptions.selfContactId === aMatching.id) {
             return;
           }
 
-          var values = aMatching[options.filterBy[0]];
-          var matchedValue;
+          var field = options.filterBy[0];
+          var values = aMatching[field];
 
           values.forEach(function(aValue) {
             var value = aValue.value;
+            var sanitizedValue = SimplePhoneMatcher.sanitizedNumber(value);
+            var valueMatched = false;
 
-            if (value === target || value.indexOf(target) !== -1 ||
-               target.indexOf(value) !== -1) {
-              matchedValue = value;
-            }
+            if (targetVariants.length > 1) {
+              if (targetVariants.indexOf(sanitizedValue) !== -1) {
+                valueMatched = true;
+              }
+            } else if (SimplePhoneMatcher.generateVariants(sanitizedValue).
+                       indexOf(sanitizedTarget) !== -1) {
+                valueMatched = true;
+              }
 
-            var matchings, matchingObj;
-            if (!finalMatchings[aMatching.id]) {
-              matchingObj = {
-                matchings: {},
-                matchingContact: aMatching
-              };
-              finalMatchings[aMatching.id] = matchingObj;
-              matchingObj.matchings[filterBy[0]] = [];
-            }
-            else {
-              matchingObj = finalMatchings[aMatching.id];
-            }
+            if (valueMatched) {
+              var matchings, matchingObj;
+              if (!finalMatchings[aMatching.id]) {
+                matchingObj = {
+                  matchings: {},
+                  matchingContact: aMatching
+                };
+                finalMatchings[aMatching.id] = matchingObj;
+                matchingObj.matchings[filterBy[0]] = [];
+              }
+              else {
+                matchingObj = finalMatchings[aMatching.id];
+              }
+              matchings = matchingObj.matchings[filterBy[0]];
 
-            matchings = matchingObj.matchings[filterBy[0]];
-            matchings.push({
-              'target': target,
-              'matchedValue': matchedValue
-            });
+              // Avoinding to report multiple matchings due to variants
+              var sameValueMatchings = matchings.filter(function(matching) {
+                return (matching.matchedValue === value);
+              });
+              if (sameValueMatchings.length === 0) {
+                matchings.push({
+                  'target': target,
+                  'matchedValue': value
+                });
+              }
+            }
           });
         });  // matchings.forEach
 
@@ -129,7 +146,15 @@ contacts.Matcher = (function() {
 
     if (Array.isArray(aContact[field])) {
       aContact[field].forEach(function(aField) {
-        if (typeof aField.value === 'string') {
+        if (field === 'tel') {
+          // Bug 924378 Contacts API does not properly match phone numbers
+          // and their variants
+          var variants = SimplePhoneMatcher.generateVariants(aField.value);
+          variants.forEach(function(aVariant) {
+            values.push(aVariant);
+          });
+        }
+        else if (typeof aField.value === 'string') {
           values.push(aField.value.trim());
         }
       });
@@ -158,7 +183,7 @@ contacts.Matcher = (function() {
   }
 
   function matchByEmail(aContact, callbacks, options) {
-    matchBy(aContact, 'email', 'equals', callbacks, options);
+    matchBy(aContact, 'email', 'startsWith', callbacks, options);
   }
 
   // Performs a matching for an incoming contact 'aContact' and the mode
@@ -353,7 +378,7 @@ contacts.Matcher = (function() {
 
     var finalResult = {};
 
-    var resultsByName = null;
+    var resultsByName = [];
     if (!isEmptyStr(aContact.name)) {
       var targetName = aContact.name[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
@@ -369,27 +394,22 @@ contacts.Matcher = (function() {
           return filterFacebook(aResult, options);
         });
         notifyFindNameReady();
-        if (isEmptyStr(aContact.familyName)) {
-          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
-        }
       };
 
       reqName.onerror = function(e) {
         window.console.warn('Error while trying to find by name: ',
                                 e.target.error.name);
-        resultsByName = [];
         notifyFindNameReady();
-        if (isEmptyStr(aContact.familyName)) {
-          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
-        }
       };
     }
     else {
-      resultsByName = [];
       notifyFindNameReady();
     }
 
-    if (!isEmptyStr(aContact.familyName)) {
+    if (isEmptyStr(aContact.familyName)) {
+      endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
+    }
+    else {
       var targetFamilyName = aContact.familyName[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
       // acts as 'equal' but does not match case.
@@ -403,9 +423,13 @@ contacts.Matcher = (function() {
         var results = reqFamilyName.result;
 
         var givenNames = [];
-        var targetGN = Normalizer.toAscii(
+        var targetGN = null;
+
+        if (!isEmptyStr(aContact.givenName)) {
+          targetGN = Normalizer.toAscii(
                             aContact.givenName[0].trim().toLowerCase()).
                             replace(blankRegExp, '');
+        }
 
         results.forEach(function(mContact) {
           if (mContact.id === aContact.id || isEmptyStr(mContact.givenName)) {
@@ -489,8 +513,8 @@ contacts.Matcher = (function() {
     }
     else if (isFbLinked(contact)) {
       var linkedTo = getLinkedTo(contact);
-      var targetUid = linkParams.linkedTo;
-      var linkedMatched = linkParams.linkedMatched;
+      var targetUid = linkParams.linkedTo || '';
+      var linkedMatched = linkParams.linkedMatched || {};
 
       if (targetUid === linkedTo) {
         out = true;

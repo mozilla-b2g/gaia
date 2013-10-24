@@ -9,10 +9,6 @@
   z-index: 0;
 }
 
-.appWindow > .appError {
-  background-color: black;
-}
-
 .appError.visible {
   z-index: 1024;
   display: block;

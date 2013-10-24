@@ -13,7 +13,7 @@ version = {}
 execfile(os.path.join('gaiatest', 'version.py'), version)
 
 # dependencies
-deps = ['marionette_client>=0.5.36', 'mozdevice', 'py==1.4.14']
+deps = ['marionette_client>=0.6', 'mozdevice', 'py==1.4.14', 'moztest>=0.3']
 
 setup(name='gaiatest',
       version=version['__version__'],

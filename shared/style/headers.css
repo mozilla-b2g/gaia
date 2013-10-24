@@ -26,15 +26,15 @@ section[role="region"] > header:first-child:after {
 
 section[role="region"] > header:first-child h1 {
   font-size: 2.5rem;
-  line-height: 4.8rem;
+  line-height: 4.9rem;
   text-align: left;
   color: #fff;
   white-space: nowrap;
   text-overflow: ellipsis;
   display: block;
   overflow: hidden;
-  margin: 0 0 0 3rem;
-  padding-right: 1rem;
+  margin: 0;
+  padding: 0 1rem 0 3rem;
   height: 100%;
   font-weight: normal;
 }
@@ -51,7 +51,7 @@ section[role="region"] > header:first-child form {
   overflow: hidden;
   position: relative;
   padding: 1rem 1rem 0 0.5rem ;
-  margin-left: 2.5rem;
+  margin-left: 3.5rem;
 }
 
 section[role="region"] > header:first-child input[type="text"] {
@@ -100,11 +100,11 @@ section[role="region"] > header:first-child menu[type="toolbar"] button {
   float: left;
   width: auto;
   min-width: 5rem;
-  height: 5rem;
+  height: 4.9rem;
   margin-bottom: 0;
   padding: 0 1rem;
   border-radius: 0;
-  line-height: 5rem;
+  line-height: 4.9rem;
   background: none;
   text-align: center;
   text-shadow: none;
@@ -148,12 +148,11 @@ section[role="region"] > header:first-child button:focus {
   border: none !important;
 }
 
-section[role="region"] > header:first-child a:not([aria-disabled="true"]):active .icon:after,
-section[role="region"] > header:first-child button:not(:disabled):active .icon:after,
+section[role="region"] > header:first-child > a:not([aria-disabled="true"]):active:after,
+section[role="region"] > header:first-child > button:not(:disabled):active:after,
 section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
 section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
   background: #008aaa !important;
-  transition: background 0.2s ease;
 }
 
 /* Disabled state */
@@ -219,12 +218,25 @@ section[role="region"] > header:first-child .icon.icon-reply-all {
 /* Navigation links (back, cancel, etc) */
 section[role="region"] > header:first-child > button,
 section[role="region"] > header:first-child > a {
+  position: relative;
+  width: 5rem;
+  height: 4.9rem;
+  background: none;
+  float: left;
+  overflow: visible;
+  margin: 0 -4rem 0 0;
+}
+
+section[role="region"] > header:first-child > button:after,
+section[role="region"] > header:first-child > a:after {
+  content: "";
   position: absolute;
   left: 0;
-  width: 5rem;
-  height: 5rem;
-  background: url(headers/images/ui/separator-large.png) no-repeat 2rem top / 0.2rem 5rem;
-  overflow: hidden;
+  top: 0;
+  z-index: -1;
+  width: 3.2rem;
+  height: 4.9rem;
+  background: url(headers/images/ui/separator.png) no-repeat right center / 0.2rem 4.8rem;
 }
 
 section[role="region"] > header:first-child > button::-moz-focus-inner {
@@ -234,30 +246,9 @@ section[role="region"] > header:first-child > button::-moz-focus-inner {
 
 section[role="region"] > header:first-child > button .icon,
 section[role="region"] > header:first-child > a .icon {
-  position: static;
   display: block;
-  width: 2rem;
-  height: 4.9rem;
   margin: 0;
-  overflow: visible;
   font-size: 0;
-}
-
-section[role="region"] > header:first-child > button .icon:after,
-section[role="region"] > header:first-child > a .icon:after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 2rem;
-  height: 4.9rem;
-  background-color: #a03f25;
-}
-
-section[role="region"] > header > a .icon.icon-menu,
-section[role="region"] > header > button .icon.icon-menu {
-  background-position: -1.1rem center;
 }
 
 /* ----------------------------------
@@ -295,23 +286,15 @@ section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:las
 .skin-dark section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
 section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:last-child,
 .skin-dark section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url(headers/images/ui/dark/separator.png) no-repeat left center / auto 4.8rem;
+  background-image: url(headers/images/ui/dark/separator.png);
 }
 
 /* Navigation links (back, cancel, etc) */
-section[role="region"].skin-dark > header:first-child > a .icon:after,
-.skin-dark section[role="region"] > header:first-child > a .icon:after,
-section[role="region"].skin-dark > header:first-child > button .icon:after,
-.skin-dark section[role="region"] > header:first-child > button .icon:after {
-  background-image:  url(headers/images/ui/dark/negative.png);
-  background-color: transparent;
-}
-
-section[role="region"].skin-dark > header:first-child a,
-.skin-dark section[role="region"] > header:first-child a,
-section[role="region"].skin-dark > header:first-child button,
-.skin-dark section[role="region"] > header:first-child button {
-  background: url(headers/images/ui/dark/separator-large.png) no-repeat 2rem top / 0.2rem 4.8rem;
+section[role="region"].skin-dark > header:first-child a:after,
+.skin-dark section[role="region"] > header:first-child a:after,
+section[role="region"].skin-dark > header:first-child button:after,
+.skin-dark section[role="region"] > header:first-child button:after {
+  background-image: url(headers/images/ui/dark/separator.png);
 }
 
 section[role="region"].skin-dark header h2,
@@ -335,23 +318,15 @@ section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:
 .skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
 section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:last-child,
 .skin-organic section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url(headers/images/ui/organic/separator.png) no-repeat left center / auto 4.8rem;
+  background-image: url(headers/images/ui/organic/separator.png);
 }
 
 /* Navigation links (back, cancel, etc) */
-section[role="region"].skin-organic > header:first-child > a .icon:after,
-.skin-organic section[role="region"] > header:first-child > a .icon:after,
-section[role="region"].skin-organic > header:first-child > button .icon:after,
-.skin-organic section[role="region"] > header > button .icon:after {
-  background: #23292b url(headers/images/ui/noise-pattern.png);
-  background-size: auto;
-}
-
-section[role="region"].skin-organic > header:first-child a,
-.skin-organic section[role="region"] > header:first-child a,
-section[role="region"].skin-organic > header:first-child button,
-.skin-organic section[role="region"] > header:first-child button {
-  background: url(headers/images/ui/organic/separator-large.png) no-repeat 2rem top / 0.2rem 4.8rem;
+section[role="region"].skin-organic > header:first-child a:after,
+.skin-organic section[role="region"] > header:first-child a:after,
+section[role="region"].skin-organic > header:first-child button:after,
+.skin-organic section[role="region"] > header:first-child button:after {
+  background-image: url(headers/images/ui/organic/separator.png);
 }
 
 section[role="region"].skin-organic header h2,

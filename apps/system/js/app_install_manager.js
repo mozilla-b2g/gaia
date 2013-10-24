@@ -403,7 +403,7 @@ var AppInstallManager = {
     newNode.querySelector('.message').textContent = message;
 
     var progressNode = newNode.querySelector('progress');
-    if (app.updateManifest) {
+    if (app.updateManifest && app.updateManifest.size) {
       progressNode.max = app.updateManifest.size;
       appInfo.hasMax = true;
     }

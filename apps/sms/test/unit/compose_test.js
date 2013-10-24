@@ -160,6 +160,47 @@ suite('compose_test.js', function() {
       });
     });
 
+    suite('Sending events in correct order', function() {
+      var onInput, onType, typeWhenEvent;
+
+      function captureType() {
+        typeWhenEvent = Compose.type;
+      }
+
+      setup(function() {
+        onInput = sinon.stub();
+        onType = sinon.spy(captureType);
+        Compose.type = 'sms';
+        Compose.on('input', onInput);
+        Compose.on('type', onType);
+      });
+
+      teardown(function() {
+        Compose.clearListeners();
+        typeWhenEvent = null;
+      });
+
+      test('appending text', function() {
+        Compose.append('start');
+        assert.ok(onInput.called);
+        assert.isFalse(onType.called);
+      });
+
+      test('appending attachment', function() {
+        Compose.append(mockAttachment());
+        assert.ok(onInput.called);
+        assert.ok(onType.called);
+        assert.ok(onInput.calledAfter(onType));
+        assert.equal(typeWhenEvent, 'mms');
+      });
+
+      test('changing type', function() {
+        Compose.type = 'mms';
+        assert.isFalse(onInput.called);
+        assert.ok(onType.called);
+      });
+    });
+
     suite('Getting Message via getContent()', function() {
       setup(function() {
         Compose.clear();
@@ -469,6 +510,25 @@ suite('compose_test.js', function() {
         expectType = 'sms';
         Compose.clear();
         assert.equal(typeChange.called, 2);
+      });
+    });
+
+    suite('changing inputmode', function() {
+      test('initial inputmode is sms', function() {
+        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms-7bit');
+      });
+
+      test('changing type to mms', function() {
+        Compose.type = 'mms';
+
+        assert.isFalse(message.hasAttribute('x-inputmode'));
+      });
+
+      test('changing type to mms then sms', function() {
+        Compose.type = 'mms';
+        Compose.type = 'sms';
+
+        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms-7bit');
       });
     });
   });

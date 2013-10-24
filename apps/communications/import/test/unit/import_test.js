@@ -14,7 +14,7 @@ requireApp('communications/contacts/test/unit/mock_utils.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');
 requireApp('communications/import/test/unit/mock_connector.js');
 requireApp('communications/import/test/unit/mock_imported_contacts.js');
-requireApp('communications/contacts/js/search.js');
+requireApp('communications/contacts/js/views/search.js');
 requireApp('communications/contacts/js/importer_ui.js');
 
 var realSearch,

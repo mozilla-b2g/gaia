@@ -5,6 +5,7 @@ requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_xmlhttprequest.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
+requireApp('homescreen/test/unit/mock_configurator.js');
 
 require('/shared/js/screen_layout.js');
 
@@ -16,7 +17,8 @@ var mocksHelperForPage = new MocksHelper([
   'HomeState',
   'XMLHttpRequest',
   'IconRetriever',
-  'GridManager'
+  'GridManager',
+  'Configurator'
 ]);
 
 mocksHelperForPage.init();
@@ -487,39 +489,50 @@ suite('page.js >', function() {
         GridManager.init(page);
       });
 
-      testData.forEach(function(aTest) {
-        test('Icon has been added on the correct position ' +
-             aTest.name, function() {
-          initLength = page.olist && page.olist.children &&
-                       page.olist.children.length;
-          app = new MockApp({'manifestURL' : aTest.manifestURL,
-                             'name': aTest.name});
-          var descriptor = {
-             manifestURL: app.manifestURL,
-             name: app.name,
-             icon: 'data:image/png;base64,iVBORw0KGgoA',
-             desiredPos: aTest.desiredPos
-          };
-          var icon = new Icon(descriptor, app);
-          page.appendIcon(icon);
-          var addedIcon = page.olist.children[aTest.desiredPos !== undefined ?
-                                              aTest.desiredPos :
-                                              initLength];
-          assert.equal(page.olist.children.length, initLength + 1,
-                       'Icon has been added');
-          assert.equal(addedIcon.dataset.manifestURL, app.manifestURL,
-                       'Icon is not on the correct position');
-          assert.equal(addedIcon.dataset.desiredPos, aTest.desiredPos,
-                       'Icon desiredPos is not correctly set');
+      //Test 1st boot with SIM
+      let svTestList = [{descr: '1st boot WITH sim.', simPresent: true},
+                        {descr: '1st boot WITHOUT sim.', simPresent: false}];
+      for (var i = 0; i < svTestList.length; i++) {
+        testData.forEach((function(bootType, aTest) {
+          test(bootType.descr +
+               'Icon has been added on the correct position ' + aTest.name,
+               function() {
+            Configurator.mSimPresentOnFirstBoot = bootType.simPresent;
+            initLength = page.olist && page.olist.children &&
+                         page.olist.children.length;
+            app = new MockApp({'manifestURL' : aTest.manifestURL,
+                               'name': aTest.name});
+            var descriptor = {
+               manifestURL: app.manifestURL,
+               name: app.name,
+               icon: 'data:image/png;base64,iVBORw0KGgoA',
+               desiredPos: aTest.desiredPos
+            };
+            var icon = new Icon(descriptor, app);
+            page.appendIcon(icon);
+            var addedIcon =
+              page.olist.children[aTest.desiredPos !== undefined &&
+                                  bootType.simPresent ?
+                                  aTest.desiredPos :
+                                  initLength];
+            assert.equal(page.olist.children.length, initLength + 1,
+                         'Icon has been added');
+            assert.equal(addedIcon.dataset.manifestURL, app.manifestURL,
+                         'Icon is not on the correct position');
+            assert.equal(addedIcon.dataset.desiredPos, aTest.desiredPos,
+                         'Icon desiredPos is not correctly set');
 
-          for (var i = 0; i < initLength + 1; i++) {
-            if (icon.dataset && icon.dataset.desiredPos !== undefined) {
-              assert.equal(icon.dataset.desiredPos, i,
-                           'An icon is not on its correct position');
+            if (bootType.simPresent) {
+              for (var i = 0; i < initLength + 1; i++) {
+                if (icon.dataset && icon.dataset.desiredPos !== undefined) {
+                  assert.equal(icon.dataset.desiredPos, i,
+                               'An icon is not on its correct position');
+                }
+              }
             }
-          }
-        });
-      });
+          });
+        }).bind(undefined, svTestList[i]));
+      }
 
       suiteTeardown(function() {
         mocksHelperForPage.suiteTeardown();

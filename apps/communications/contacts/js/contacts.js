@@ -36,13 +36,15 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
+  var tagDone, tagCancel, lazyLoadedTagsDom = false;
+
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
     var cList = contacts.List;
     var params = hasParams.length > 1 ?
-      extractParams(hasParams[1]) : -1;
+      utils.extractParams(hasParams[1]) : -1;
 
     switch (sectionId) {
       case 'view-contact-details':
@@ -138,19 +140,6 @@ var Contacts = (function() {
     }
   };
 
-  var extractParams = function extractParams(url) {
-    if (!url) {
-      return -1;
-    }
-    var ret = {};
-    var params = url.split('&');
-    for (var i = 0; i < params.length; i++) {
-      var currentParam = params[i].split('=');
-      ret[currentParam[0]] = currentParam[1];
-    }
-    return ret;
-  };
-
   var initContainers = function initContainers() {
     settings = document.getElementById('view-settings');
     settingsButton = document.getElementById('settings-button');
@@ -218,16 +207,27 @@ var Contacts = (function() {
   };
 
   var checkCancelableActivity = function cancelableActivity() {
+    // NOTE: Only set textContent below if necessary to avoid repaints at
+    //       load time.  For more info see bug 725221.
+
     if (ActivityHandler.currentlyHandling) {
       cancelButton.classList.remove('hide');
       addButton.classList.add('hide');
       settingsButton.classList.add('hide');
-      appTitleElement.textContent = _('selectContact');
+
+      var text = _('selectContact');
+      if (appTitleElement.textContent !== text) {
+        appTitleElement.textContent = text;
+      }
     } else if (contactsList && !contactsList.isSelecting) {
       cancelButton.classList.add('hide');
       addButton.classList.remove('hide');
       settingsButton.classList.remove('hide');
-      appTitleElement.textContent = _('contacts');
+
+      var text = _('contacts');
+      if (appTitleElement.textContent !== text) {
+        appTitleElement.textContent = text;
+      }
     }
   };
 
@@ -249,7 +249,7 @@ var Contacts = (function() {
           return;
         }
         contactsDetails.render(currentContact, TAG_OPTIONS);
-        if (contacts.Search.isInSearchMode()) {
+        if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
         } else {
           navigation.go('view-contact-details', 'go-deeper');
@@ -331,12 +331,20 @@ var Contacts = (function() {
     return true;
   };
 
-  var goToSelectTag = function goToSelectTag(event) {
-    contactTag = event.currentTarget.children[0];
+  function showSelectTag() {
     var tagsList = document.getElementById('tags-list');
     var customTag = document.getElementById('custom-tag');
     var selectedTagType = contactTag.dataset.taglist;
     var options = TAG_OPTIONS[selectedTagType];
+
+    if (!tagDone) {
+      tagDone = document.querySelector('#settings-done');
+      tagDone.addEventListener('click', handleSelectTagDone);
+    }
+    if (!tagCancel) {
+      tagCancel = document.querySelector('#settings-cancel');
+      tagCancel.addEventListener('click', handleBack);
+    }
 
     for (var i in options) {
       options[i].value = _(options[i].type);
@@ -348,6 +356,22 @@ var Contacts = (function() {
     if (document.activeElement) {
       document.activeElement.blur();
     }
+  }
+
+  var goToSelectTag = function goToSelectTag(event) {
+    contactTag = event.currentTarget.children[0];
+
+    var tagViewElement = document.getElementById('view-select-tag');
+    if (!lazyLoadedTagsDom) {
+       LazyLoader.load(tagViewElement, function() {
+        navigator.mozL10n.translate(tagViewElement);
+        showSelectTag();
+        lazyLoadedTagsDom = true;
+       });
+    }
+    else {
+      showSelectTag();
+    }
   };
 
   var sendSms = function sendSms(number) {
@@ -356,11 +380,23 @@ var Contacts = (function() {
   };
 
   var callOrPick = function callOrPick(number) {
-    if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.postPickSuccess({ number: number });
-    } else {
-      TelephonyHelper.call(number);
-    }
+    LazyLoader.load('/dialer/js/mmi.js', function mmiLoaded() {
+      if (ActivityHandler.currentlyHandling) {
+        ActivityHandler.postPickSuccess({ number: number });
+      } else if (MmiManager.isMMI(number)) {
+        // For security reasons we cannot directly call MmiManager.send(). We
+        // need to show the MMI number in the dialer instead.
+        new MozActivity({
+          name: 'dial',
+          data: {
+            type: 'webtelephony/number',
+            number: number
+          }
+        });
+      } else {
+        TelephonyHelper.call(number);
+      }
+    });
   };
 
   var handleBack = function handleBack() {
@@ -374,24 +410,6 @@ var Contacts = (function() {
       navigation.home();
     } else {
       handleBack();
-    }
-  };
-
-  var handleDetailsBack = function handleDetailsBack() {
-    if (ActivityHandler.currentlyHandling) {
-      ActivityHandler.postCancel();
-      navigation.home();
-    } else {
-      var hasParams = window.location.hash.split('?');
-      var params = hasParams.length > 1 ?
-        extractParams(hasParams[1]) : -1;
-
-      navigation.back();
-      // post message to parent page included Contacts app.
-      if (params['back_to_previous_tab'] === '1') {
-        var message = { 'type': 'contactsiframe', 'message': 'back' };
-        window.parent.postMessage(message, COMMS_APP_ORIGIN);
-      }
     }
   };
 
@@ -443,10 +461,6 @@ var Contacts = (function() {
 
   var showAddContact = function showAddContact() {
     showForm();
-  };
-
-  var showEditContact = function showEditContact() {
-    showForm(true);
   };
 
   var loadFacebook = function loadFacebook(callback) {
@@ -540,7 +554,9 @@ var Contacts = (function() {
   };
 
   var hideOverlay = function c_hideOverlay() {
-    utils.overlay.hide();
+    Contacts.utility('Overlay', function _loaded() {
+      utils.overlay.hide();
+    });
   };
 
   var showStatus = function c_showStatus(message) {
@@ -560,13 +576,11 @@ var Contacts = (function() {
   };
 
   var enterSearchMode = function enterSearchMode(evt) {
-    contacts.List.initSearch(function onInit() {
-      contacts.Search.enterSearchMode(evt);
+    Contacts.view('Search', function viewLoaded() {
+      contacts.List.initSearch(function onInit() {
+        contacts.Search.enterSearchMode(evt);
+      });
     });
-  };
-
-  var exitSearchMode = function exitSearchMode(evt) {
-    contacts.Search.exitSearchMode(evt);
   };
 
   var ignoreReturnKey = function ignoreReturnKey(evt) {
@@ -580,10 +594,8 @@ var Contacts = (function() {
     // Definition of elements and handlers
     utils.listeners.add({
       '#cancel_activity': handleCancel, // Activity (any) cancellation
-      '#cancel-edit': handleCancel, // Cancel edition
       '#add-contact-button': showAddContact,
       '#settings-button': showSettings, // Settings related
-      '#cancel-search': exitSearchMode, // Search related
       '#search-start': [
         {
           event: 'click',
@@ -596,11 +608,7 @@ var Contacts = (function() {
           handler: ignoreReturnKey
         }
       ],
-      '#details-back': handleDetailsBack, // Details
-      '#edit-contact-button': showEditContact,
       'button[type="reset"]': stopPropagation,
-      '#settings-done': handleSelectTagDone,
-      '#settings-cancel': handleBack,
       // Bug 832861: Click event can't be synthesized correctly on customTag by
       // mouse_event_shim due to Gecko bug.  Use ontouchend here.
       '#custom-tag': [
@@ -642,11 +650,8 @@ var Contacts = (function() {
       '/contacts/js/sms_integration.js',
       '/contacts/js/utilities/sdcard.js',
       '/contacts/js/utilities/vcard_parser.js',
-      '/contacts/js/utilities/import_sim_contacts.js',
       '/contacts/js/utilities/status.js',
-      '/contacts/js/utilities/overlay.js',
-      '/contacts/js/utilities/dom.js',
-      '/contacts/js/search.js'
+      '/contacts/js/utilities/dom.js'
     ];
 
     LazyLoader.load(lazyLoadFiles, function() {
@@ -781,9 +786,9 @@ var Contacts = (function() {
   }
 
   /**
-* Specifies dependencies for resources
-* E.g., mapping Facebook as a dependency of views
-*/
+   * Specifies dependencies for resources
+   * E.g., mapping Facebook as a dependency of views
+   */
   var dependencies = {
     views: {
       Settings: loadFacebook,
@@ -793,6 +798,19 @@ var Contacts = (function() {
     utilities: {}
   };
 
+  // Mapping of view names to element IDs
+  // TODO: Having a more standardized way of specifying this would be nice.
+  // Then we could get rid of this mapping entirely
+  // E.g., #details-view, #list-view, #form-view
+  var elementMapping = {
+    details: 'view-contact-details',
+    form: 'view-contact-form',
+    settings: 'settings-wrapper',
+    search: 'search-view',
+    overlay: 'loading-overlay',
+    confirm: 'confirmation-message'
+  };
+
   function load(type, file, callback) {
     /**
      * Performs the actual lazy loading
@@ -800,10 +818,17 @@ var Contacts = (function() {
      */
     function doLoad() {
       var name = file.toLowerCase();
+      var toLoad = ['js/' + type + '/' + name + '.js'];
 
-      LazyLoader.load([
-        'js/' + type + '/' + name + '.js'
-        ], function() {
+      var node = document.getElementById(elementMapping[name]);
+      if (node) {
+        toLoad.unshift(node);
+      }
+
+      LazyLoader.load(toLoad, function() {
+          if (node) {
+            navigator.mozL10n.translate(node);
+          }
           if (callback) {
             callback();
           }

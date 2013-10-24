@@ -1,8 +1,11 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+define('onring', function(require) {
 'use strict';
 
-var _ = navigator.mozL10n.get;
+var Utils = require('utils');
+var mozL10n = require('l10n');
+var _ = mozL10n.get;
 
 var RingView = {
 
@@ -39,9 +42,12 @@ var RingView = {
   },
 
   init: function rv_init() {
+    var ActiveAlarm = window.opener.require('active_alarm');
+
     document.addEventListener('visibilitychange', this);
-    this.firedAlarm = window.opener.ActiveAlarm.firedAlarm;
-    this.message = window.opener.ActiveAlarm.message;
+
+    this.firedAlarm = ActiveAlarm.firedAlarm;
+    this.message = ActiveAlarm.message;
     if (!document.hidden) {
       this.startAlarmNotification();
     } else {
@@ -61,7 +67,7 @@ var RingView = {
       }.bind(this), 0);
     }
 
-    navigator.mozL10n.ready(function rv_waitLocalized() {
+    mozL10n.ready(function rv_waitLocalized() {
       this.setAlarmTime();
       this.setAlarmLabel();
     }.bind(this));
@@ -210,7 +216,7 @@ var RingView = {
       switch (input.id) {
       case 'ring-button-snooze':
         this.stopAlarmNotification();
-        window.opener.ActiveAlarm.snoozeHandler();
+        window.opener.require('active_alarm').snoozeHandler();
         window.close();
         break;
       case 'ring-button-close':
@@ -225,4 +231,8 @@ var RingView = {
 };
 
 RingView.init();
+});
 
+requirejs(['require_config'], function() {
+  requirejs(['onring']);
+});

@@ -315,15 +315,11 @@ form p + p {
   height: calc(100% - 5rem);
 }
 
-#view-screenshot.contact-list > header:first-child:after {
-  background-image: none;
-}
-
 #view-screenshot.contact-list > #view-screenshot-body {
   position: relative;
-  height: calc(100% - 5rem);
+  height: 100%;
+  width: 100%;
   background: -moz-element(#view-contacts-list);
-  background-position: 0 -5rem;
 }
 
 .view-body-inner {
@@ -490,6 +486,11 @@ li button.icon-fb-profile:before {
 
 li button.icon-add:before {
   background-image: url(/contacts/style/gphx/bitmap/default/buttons/plus_sign.png);
+  background-size: auto;
+}
+
+li button.icon-find-and-merge:before {
+  background-image: url(/contacts/style/images/findandmerge.png);
   background-size: auto;
 }
 
@@ -662,23 +663,20 @@ nav[data-type="scrollbar"] p img {
   width: 4.8rem;
 }
 
-#groups-list.selecting label.pack-checkbox {
-  display: block !important;
-}
-
 #groups-container.selecting {
   height: -moz-calc(100% - 7rem);
 }
 
-#groups-list label.pack-checkbox {
+.contact-checkbox {
+  left: -1rem !important;
   display: none !important;
 }
 
-.selecting li label {
-  left: -1rem !important;
+.contact-checkbox-selecting {
+  display: block !important;
 }
 
-.selecting li p {
+.contact-text-selecting {
   padding-left: 2rem !important;
 }
 

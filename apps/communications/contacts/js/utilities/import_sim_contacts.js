@@ -9,7 +9,7 @@
  *   - onread: SIM card has been read properly;
  *   - onimport: A Contact has been imported
  *   - onfinish: contacts have been saved into navigator.mozContacts;
- *   - onerror: SIM card us empty or could not be read.
+ *   - onerror: SIM card is empty or could not be read.
  */
 
 function SimContactsImporter() {
@@ -62,6 +62,7 @@ function SimContactsImporter() {
     }
 
     LazyLoader.load([
+      '/shared/js/simple_phone_matcher.js',
       '/contacts/js/contacts_matcher.js',
       '/contacts/js/contacts_merger.js',
       '/contacts/js/merger_adapter.js'
@@ -140,8 +141,19 @@ function SimContactsImporter() {
     for (var i = from; i < from + CHUNK_SIZE && i < self.items.length; i++) {
       var item = self.items[i];
       item.givenName = item.name;
-      for (var j = 0; j < item.tel.length; j++) {
-        item.tel[j].type = 'mobile';
+
+      if (Array.isArray(item.tel)) {
+        var telItems = [];
+
+        for (var j = 0; j < item.tel.length; j++) {
+          var aTel = item.tel[j];
+          // Filtering out empty values
+          if (aTel.value && aTel.value.trim()) {
+            aTel.type = 'mobile';
+            telItems.push(aTel);
+          }
+        }
+        item.tel = telItems;
       }
 
       item.category = ['sim'];

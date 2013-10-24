@@ -1,5 +1,13 @@
-(function(Timer, Panel) {
+define(function(require) {
 'use strict';
+
+var Panel = require('panel');
+var Picker = require('picker/picker');
+var asyncStorage = require('shared/js/async_storage');
+var View = require('view');
+var Utils = require('utils');
+var Timer = require('timer');
+var _ = require('l10n').get;
 
 var priv = new WeakMap();
 
@@ -56,14 +64,14 @@ Timer.Panel = function(element) {
   // Gather elements
   [
     'create', 'cancel', 'dialog',
-    'pause', 'start', 'sound', 'time', 'vibrate'
+    'pause', 'start', 'sound', 'time', 'vibrate', 'menu'
   ].forEach(function(id) {
     this.nodes[id] = this.element.querySelector('#timer-' + id);
   }, this);
 
   // Bind click events
   [
-    'create', 'cancel', 'pause', 'start'
+    'create', 'cancel', 'pause', 'start', 'menu'
   ].forEach(function(action) {
     var element = this.nodes[action];
 
@@ -79,6 +87,10 @@ Timer.Panel = function(element) {
     element.addEventListener('click', this.onclick.bind(this), false);
   }, this);
 
+  var sound = this.nodes.sound;
+  sound.addEventListener('blur', this.refreshSoundMenu.bind(this), false);
+  this.refreshSoundMenu();
+
   View.instance(element).on(
     'visibilitychange', this.onvisibilitychange.bind(this)
   );
@@ -90,6 +102,7 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
   var nodes = this.nodes;
   var dialog = View.instance(this.nodes.dialog);
   var timer = this.timer;
+  var isPaused = false;
 
   if (isVisible) {
     // No active timer, or timer has expired...
@@ -110,11 +123,35 @@ Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
         timer.on('end', this.dialog.bind(this));
 
         if (timer.state === Timer.REACTIVATING) {
+          // Reviving to started state,
+          // show the pause button, hide the start button
           this.toggle(nodes.pause, nodes.start);
-          timer.start();
         } else {
+          // Reviving to paused state,
+          // show the start button, hide the pause button
           this.toggle(nodes.start, nodes.pause);
+
+          isPaused = true;
         }
+
+        if (timer.state === Timer.INITIALIZED) {
+          this.dialog();
+          this.update();
+        } else {
+          // Calling start will "revive" and update
+          // both a paused and not-paused timers.
+          //  - Updates the endAt and resets the pauseAt
+          //  - Sync the object.
+          timer.start();
+
+          if (isPaused) {
+            // Immediately re-pause the timer.
+            timer.pause();
+          }
+          this.dialog({ isVisible: false });
+        }
+
+
       }
     }
   }
@@ -164,9 +201,22 @@ Timer.Panel.prototype.update = function(remaining = 0) {
  * @return {Object} Timer.Panel.
  */
 Timer.Panel.prototype.toggle = function(show, hide) {
-  show.classList.remove('hide');
-  hide.classList.add('hide');
+  show.classList.remove('hidden');
+  hide.classList.add('hidden');
   return this;
+};
+
+/**
+ * refreshSoundMenu Updates the text on the alarm chooser selection
+ * button.
+ */
+Timer.Panel.prototype.refreshSoundMenu = function() {
+  var sound = Utils.getSelectedValue(this.nodes.sound);
+  var soundMenu = this.nodes.menu;
+  // sound could either be string or int, so test for both
+  soundMenu.textContent = (sound === 0 || sound === '0') ?
+    _('noSound') :
+    _(sound.replace('.', '_'));
 };
 
 /**
@@ -212,6 +262,10 @@ Timer.Panel.prototype.onclick = function(event) {
     }
   } else {
 
+    if (meta.action === 'menu') {
+      nodes.sound.focus();
+    }
+
     if (meta.action === 'create') {
 
       time = duration(panel.picker.value);
@@ -242,4 +296,5 @@ Timer.Panel.prototype.onclick = function(event) {
   }
 };
 
-}(Timer, Panel));
+return Timer.Panel;
+});

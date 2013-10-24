@@ -310,40 +310,6 @@ function init() {
 }
 
 //
-// Web Activities
-//
-
-// Use Web Activities to share files
-function shareFile(filename) {
-  musicdb.getFile(filename, function(file) {
-    // We try to fix Bug 814323 by using
-    // current workaround of bluetooth transfer
-    // so we will pass both filenames and filepaths
-    // The filepaths can be removed after Bug 811615 is fixed
-    var name = filename.substring(filename.lastIndexOf('/') + 1);
-
-    // And we just want the first component of the type "audio" or "video".
-    var type = file.type;
-    type = type.substring(0, type.indexOf('/')) + '/*';
-
-    var a = new MozActivity({
-      name: 'share',
-      data: {
-        type: type,
-        number: 1,
-        blobs: [file],
-        filenames: [name],
-        filepaths: [filename]
-      }
-    });
-
-    a.onerror = function(e) {
-      console.warn('share activity error:', a.error.name);
-    };
-  });
-}
-
-//
 // Overlay messages
 //
 var currentOverlay;  // The id of the current overlay or null if none.
@@ -755,6 +721,7 @@ var TilesView = {
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
+    this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
   },
 
@@ -873,17 +840,36 @@ var TilesView = {
   },
 
   handleEvent: function tv_handleEvent(evt) {
+    function tv_resetSearch(self) {
+      evt.preventDefault();
+      self.searchInput.value = '';
+      SearchView.clearSearch();
+    }
     var target = evt.target;
+    if (!target)
+      return;
+
     switch (evt.type) {
-      case 'click':
-        if (!target)
-          return;
+      case 'touchend':
+        // Check for tap on parent form element with event origin as clear buton
+        // This is workaround for a bug in input_areas BB. See Bug 920770
+        if (target.id === 'views-tiles-search') {
+          var id = evt.originalTarget.id;
+          if (id && id !== 'views-tiles-search-input' &&
+            id !== 'views-tiles-search-close') {
+            tv_resetSearch(this);
+            return;
+          }
+        }
 
         if (target.id === 'views-tiles-search-clear') {
-          SearchView.clearSearch();
+          tv_resetSearch(this);
           return;
         }
 
+        break;
+
+      case 'click':
         if (target.id === 'views-tiles-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_TILES) {
             ModeManager.pop();
@@ -1136,6 +1122,7 @@ var ListView = {
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
+    this.view.addEventListener('touchend', this);
     this.searchInput.addEventListener('focus', this);
   },
 
@@ -1187,18 +1174,36 @@ var ListView = {
   },
 
   handleEvent: function lv_handleEvent(evt) {
+    function lv_resetSearch(self) {
+      evt.preventDefault();
+      self.searchInput.value = '';
+      SearchView.clearSearch();
+    }
     var target = evt.target;
+    if (!target)
+      return;
 
     switch (evt.type) {
-      case 'click':
-        if (!target)
-          return;
+      case 'touchend':
+        // Check for tap on parent form element with event origin as clear buton
+        // This is workaround for a bug in input_areas BB. See Bug 920770
+        if (target.id === 'views-list-search') {
+          var id = evt.originalTarget.id;
+          if (id && id !== 'views-list-search-input' &&
+            id !== 'views-list-search-close') {
+            lv_resetSearch(this);
+            return;
+          }
+        }
 
         if (target.id === 'views-list-search-clear') {
-          SearchView.clearSearch();
+          lv_resetSearch(this);
           return;
         }
 
+        break;
+
+      case 'click':
         if (target.id === 'views-list-search-close') {
           if (ModeManager.currentMode === MODE_SEARCH_FROM_LIST) {
             ModeManager.pop();
@@ -1309,10 +1314,8 @@ var SubListView = {
     this.dataSource = [];
     this.index = 0;
     this.backgroundIndex = 0;
-    this.isContextmenu = false;
 
     this.view.addEventListener('click', this);
-    this.view.addEventListener('contextmenu', this);
   },
 
   clean: function slv_clean() {
@@ -1410,11 +1413,6 @@ var SubListView = {
 
     switch (evt.type) {
       case 'click':
-        if (this.isContextmenu) {
-          this.isContextmenu = false;
-          return;
-        }
-
         if (target === this.shuffleButton) {
           ModeManager.push(MODE_PLAYER, function() {
             PlayerView.setSourceType(TYPE_LIST);
@@ -1455,17 +1453,6 @@ var SubListView = {
             }
           }.bind(this));
         }
-        break;
-
-      case 'contextmenu':
-        this.isContextmenu = true;
-
-        var targetIndex = parseInt(target.dataset.index);
-        var songData = this.dataSource[targetIndex];
-
-        // Don't share files if they are locked
-        if (!songData.metadata.locked)
-          shareFile(songData.name);
         break;
 
       default:

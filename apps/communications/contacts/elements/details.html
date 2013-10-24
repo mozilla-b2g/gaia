@@ -1,0 +1,109 @@
+<element name="view-contact-details" extends="section">
+  <template>
+    <header id='details-view-header'>
+      <button id="details-back" class="negative"><span class="icon icon-back" data-l10n-id="back">back</span></button>
+      <menu type="toolbar">
+        <button role="menuitem" id="edit-contact-button"><span class="icon icon-edit-contact" data-l10n-id="edit">edit</span></button>
+      </menu>
+      <h1 id='contact-name-title'></h1>
+      <sup id='favorite-star' class='hide'></sup>
+    </header>
+
+    <article id="contact-detail-wrapper" class="view-body">
+      <div id="cover-img"></div>
+        <section id="contact-detail" class="view-body-inner">
+          <li data-phone id='phone-details-template-#i#' data-template>
+            <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
+            <div class="item">
+              <div class="item-media pull-right">
+                <button id="send-sms-button-#i#" class="activity send-sms icon icon-message"></button>
+              </div>
+              <div class="item-body-exp">
+                <button class="activity icon icon-call" id="call-or-pick-#i#">
+                  <b>
+                    #value#
+                    <em>#carrier#</em>
+                  </b>
+                </button>
+              </div>
+            </div>
+          </li>
+
+          <li id="birthday-template-#i#" data-template>
+            <h2 data-l10n-id="birthday">Birthday</h2>
+            <p><strong>#bday#</strong></p>
+          </li>
+
+          <li data-mail id='email-details-template-#i#' data-template>
+            <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
+            <div class="item">
+              <div class="item-body-exp">
+                <button id="email-or-pick-#i#" class="activity icon icon-email">
+                  <b>#value#</b>
+                </button>
+              </div>
+            </div>
+          </li>
+
+          <li data-social class="social-actions" id="social-template-#i#" data-template>
+            <h2 data-l10n-id="social-network" id="social-label">Social Network</h2>
+              <div class="fillflow-twocols">
+                <button id="msg_button" data-l10n-id="msg-send" class="activity icon icon-message">
+                  Message
+                </button>
+                <button id="wall_button" data-l10n-id="wall-post" class="activity icon icon-email">
+                  Wall Post
+                </button>
+              </div>
+
+              <button id="profile_button" data-l10n-id="show-fb-profile" class="fillflow-row activity icon icon-fb-profile">
+                View Facebook profile
+              </button>
+
+              <button id="link_button" class="activity icon icon-link">
+                #action#
+              </button>
+          </li>
+
+          <li class="duplicate-actions" id="duplicate-contacts-template" data-template>
+            <h2 data-l10n-id="organise-contacts">Organize Contacts</h2>
+            <button id="find-merge-button" data-l10n-id="find-merge-contacts" class="activity icon icon-find-and-merge">
+              Find duplicate contacts
+            </button>
+          </li>
+
+          <li data-address id='address-details-template-#i#' data-template>
+            <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
+            <div class="item">
+              <div class="item-body-exp">
+                <a href="#" class="action action-block">
+                  <span role="button" class="icon-address" data-l10n-id="legendAddress">Address</span>
+                  <b>
+                  <span>#streetAddress#</span>
+                    #postalCode#
+                    #locality#
+                    #countryName#
+                  </b>
+                </a>
+              </div>
+            </div>
+          </li>
+
+          <p data-comment id='note-details-template-#i#' data-template class="comment-notes">#note#</p>
+          <div id='contact-detail-inner'>
+            <h1 id='org-title'></h1>
+            <ul id='details-list'>
+            </ul>
+            <ul>
+              <li>
+                <button id='toggle-favorite' class="fillflow-row icon icon-fav">
+                  Add as favorite
+                </button>
+              </li>
+            </ul>
+          </div>
+        </section>
+    </article>
+  </template>
+</element>
+

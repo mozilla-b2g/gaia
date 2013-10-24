@@ -13,6 +13,8 @@
     }
   };
 
+  var hasHardwareHomeButton =
+    ScreenLayout.getCurrentLayout('hardwareHomeButton');
   var SoftwareButtonManager = {
     _enable: false,
 
@@ -47,6 +49,8 @@
       this.fullscreenHomeButton.addEventListener('mousedown', this);
       this.fullscreenHomeButton.addEventListener('mouseup', this);
       window.addEventListener('mozfullscreenchange', this);
+      window.addEventListener('homegesture-enabled', this);
+      window.addEventListener('homegesture-disabled', this);
     },
 
     dispatchResizeEvent: function sbm_dispatchResizeEvent(evtName) {
@@ -86,6 +90,20 @@
           break;
         case 'mouseup':
           this.publish('home-button-release');
+          break;
+        case 'homegesture-disabled':
+          // at least one of swtbtn or gesture is enabled when no
+          // hardware home button
+          if (!hasHardwareHomeButton && !this._enable) {
+            var lock = navigator.mozSettings.createLock();
+            lock.set({'software-button.enabled': true});
+          }
+          break;
+        case 'homegesture-enabled':
+          if (this._enable) {
+            var lock = navigator.mozSettings.createLock();
+            lock.set({'software-button.enabled': false});
+          }
           break;
         case 'mozfullscreenchange':
           if (!this._enable)

@@ -48,9 +48,6 @@ const Wallpaper = (function() {
   }
 
   return {
-    init: function init() {
-      var overlay = document.getElementById('icongrid');
-      overlay.addEventListener('contextmenu', onHomescreenContextmenu);
-    }
+    contextmenu: onHomescreenContextmenu
   };
 })();

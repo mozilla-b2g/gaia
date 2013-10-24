@@ -1,3 +1,4 @@
+require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_merger.js');
 
@@ -11,6 +12,10 @@ if (!this.toMergeContact) {
 
 if (!this.realmozContacts) {
   this.realmozContacts = null;
+}
+
+if (!this.SimplePhoneMatcher) {
+  this.SimplePhoneMatcher = null;
 }
 
 suite('Contacts Merging Tests', function() {
@@ -148,6 +153,33 @@ suite('Contacts Merging Tests', function() {
     }});
   });
 
+  test('When matching by name merge existing SIM Contact', function(done) {
+    var simContact = new MasterContact();
+    simContact.category = simContact.category || [];
+    simContact.category.push('sim');
+    simContact.givenName[0] = 'Alfred Müller';
+    simContact.name = [];
+    simContact.name[0] = simContact.givenName[0];
+    simContact.familyName = null;
+
+    toMergeContact.matchingContact = {
+      givenName: ['Alfred'],
+      familyName: ['Müller'],
+      name: ['Alfred Müller']
+    };
+
+    contacts.Merger.merge(simContact, toMergeContacts, {
+      success: function(result) {
+        assert.equal(result.givenName[0], 'Alfred');
+        assert.equal(result.familyName[0], 'Müller');
+        assert.equal(result.name[0], 'Alfred Müller');
+        assert.isTrue(result.category.indexOf('sim') === -1);
+
+        done();
+      }
+    });
+  });
+
   test('Merge telephone numbers. Adding a new one', function(done) {
     toMergeContact.matchingContact = {
       tel: [{
@@ -225,6 +257,40 @@ suite('Contacts Merging Tests', function() {
     }});
   });
 
+
+  test('Merge tel numbers with extra characters and without', function(done) {
+    toMergeContacts[0] = {
+      matchingContact: {
+        tel: [{
+          type: ['work'],
+          value: '(67)-67. 67 67-()'
+        }]
+      },
+      matchings: {
+        'tel': [
+          {
+            target: '67676767',
+            matchedValue: '(67)-67. 67 67-()'
+          }
+        ]
+      }
+    };
+
+    var masterContact = new MasterContact();
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.lengthOf(result.tel, 1);
+        assertFieldValues(result.tel, [masterContact.tel[0].value]);
+
+        // Restoring
+        toMergeContacts[0] = toMergeContact;
+
+        done();
+    }});
+  });
+
+
   test('Merge emails. Adding a new one', function(done) {
     toMergeContact.matchingContact = {
       email: [{
@@ -252,6 +318,26 @@ suite('Contacts Merging Tests', function() {
       email: [{
         type: ['work'],
         value: 'jj@jj.com'
+      }]
+    };
+
+    var masterContact = new MasterContact();
+
+    contacts.Merger.merge(masterContact, toMergeContacts, {
+      success: function(result) {
+        assert.lengthOf(result.email, 1);
+
+        assertFieldValues(result.email, [masterContact.email[0].value]);
+
+        done();
+    }});
+  });
+
+  test('Merge emails. Leaving as they are. Capital Letters', function(done) {
+    toMergeContact.matchingContact = {
+      email: [{
+        type: ['work'],
+        value: 'JJ@jj.com'
       }]
     };
 

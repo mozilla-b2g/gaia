@@ -47,7 +47,25 @@ li[aria-disabled="true"] p.match-main-reason {
   color: #5b5b5b;
 }
 
+form[role="dialog"][data-type="edit"] #duplicate-msg > p {
+  color: #000;
+  overflow: visible;
+  white-space: normal;
+}
+
+form[role="dialog"][data-type="edit"] #main {
+  pointer-events: auto;
+}
+
 /* Suggested duplicate contacts for xxx */
+#matching-details .selected {
+  color: #00caf2;
+}
+
+#matching-details img {
+  height: 6rem;
+  width: 6rem;
+}
 
 #duplicate-msg {
   width: 100%;
@@ -72,64 +90,6 @@ li[aria-disabled="true"] p.match-main-reason {
   background: #e8e8e8;
 }
 
-#footer button {
+#footer button:not([disabled]) {
   pointer-events: auto;
-}
-
-/*
-  Confirmation message with detailed information
-  This is a mixed customization between confirm.css and value_selector.css from shared
- */
-#matching-details {
-  padding-top: 0;
-}
-
-#matching-details:before { /* Removes vertical-alignment */
-  display: none;
-}
-
-#matching-details h1 { /* Same header as shared/style_unstable/value_selectors.css */
-  font-weight: 400;
-  font-size: 1.9rem;
-  line-height: 4.8rem;
-  color: #fff;
-  border-bottom: 0.1rem solid #616262;
-  background: rgba(0 ,0, 0, .2);
-  margin: 0 -1.5rem;
-  padding: 0 3rem 1rem 4.5rem;
-  height: 4.8rem;
-  -moz-box-sizing: border-box;
-}
-
-#matching-details img {
-  float: right;
-  background: transparent no-repeat center / cover;
-  width: 4.8rem;
-  height: 4.8rem;
-  font-size: 0;
-}
-
-#matching-details .matched-info {
-  padding: 3rem 3rem 0;
-  -moz-box-sizing: border-box;
-  overflow-y: auto;
-  max-height: calc(100% - 4.8rem);
-}
-
-#matching-details .matched-info li {
-  font-size: 1.4rem;
-  line-height: 1.8rem;
-  color: #fff;
-  margin-bottom: 1.8rem;
-}
-
-#matching-details .matched-info li[aria-selected] {
-  color: #0EB0D0;
-}
-
-#matching-details .matched-info p {
-  border: none;
-  margin: 0;
-  padding: 0;
-  line-height: inherit;
 }

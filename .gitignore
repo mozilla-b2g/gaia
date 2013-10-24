@@ -7,6 +7,8 @@
 manifest.appcache
 
 /apps/calendar/js/presets.js
+/apps/camera/js/config.js
+/apps/gallery/js/config.js
 /apps/homescreen/js/init.json
 /apps/costcontrol/js/config.json
 /apps/sms/js/blacklist.json

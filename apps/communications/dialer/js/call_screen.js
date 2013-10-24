@@ -57,8 +57,28 @@ var CallScreen = {
     this.calls.classList.toggle('big-duration', enabled);
   },
 
+  /**
+   * When enabled hides the end-and-answer button in call waiting mode and
+   * displays only the hold-and-answer one.
+   *
+   * @param {Boolean} enabled Enables hold-and-answer-only operation.
+   */
+  set holdAndAnswerOnly(enabled) {
+    this.incomingContainer.classList.toggle('hold-and-answer-only', enabled);
+  },
+
+  /**
+   * When enabled displays the CDMA-specific call-waiting UI
+   *
+   * @param {Boolean} enabled Enables the CDMA call-waiting UI.
+   */
   set cdmaCallWaiting(enabled) {
-    this.calls.dataset.cdmaCallWaiting = enabled;
+    this.calls.classList.toggle('switch', enabled);
+    this.callToolbar.classList.toggle('no-add-call', enabled);
+  },
+
+  get inStatusBarMode() {
+    return window.innerHeight <= 40;
   },
 
   init: function cs_init() {
@@ -141,7 +161,7 @@ var CallScreen = {
       return;
     }
 
-    if (window.innerHeight <= 40) {
+    if (this.inStatusBarMode) {
       this._typedNumber = KeypadManager._phoneNumber;
       KeypadManager.restorePhoneNumber();
     } else {
@@ -201,6 +221,7 @@ var CallScreen = {
   placeNewCall: function cs_placeNewCall() {
     navigator.mozApps.getSelf().onsuccess = function(evt) {
       var app = evt.target.result;
+      CallsHandler.requestContactsTab();
       app.launch('dialer');
       window.resizeTo(100, 40);
     };

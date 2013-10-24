@@ -132,6 +132,8 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     LazyL10n.get(function localized(_) {
       node.textContent = _('switch-calls');
       self._cachedInfo = _('switch-calls');
+      self._cachedAdditionalInfo = '';
+      self.replaceAdditionalContactInfo('');
     });
     return;
   }
@@ -161,10 +163,29 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       });
     } else {
       Contacts.findByNumber(number, lookupContact);
+      checkICCMessage();
     }
   });
 
+  function checkICCMessage() {
+    var callMessageReq = navigator.mozSettings.createLock().
+      get('icc.callmessage');
+    callMessageReq.onsuccess = function onCallMessageSuccess() {
+      self._iccCallMessage = callMessageReq.result['icc.callmessage'];
+      if (self._iccCallMessage) {
+        self.replacePhoneNumber(self._iccCallMessage, 'end', true);
+        self._cachedInfo = self._iccCallMessage;
+        var clearReq = navigator.mozSettings.createLock().set({
+          'icc.callmessage': null
+        });
+      }
+    };
+  }
+
   function lookupContact(contact, matchingTel, contactsWithSameNumber) {
+    if (self._iccCallMessage) {
+      return;
+    }
     if (contact) {
       var primaryInfo = Utils.getPhoneNumberPrimaryInfo(matchingTel, contact);
       var contactCopy = {
@@ -225,12 +246,18 @@ HandledCall.prototype.replaceAdditionalContactInfo =
 };
 
 HandledCall.prototype.restoreAdditionalContactInfo =
-  function hc_restoreAdditionalContactInfo(additionalContactInfo) {
+  function hc_restoreAdditionalContactInfo() {
     this.replaceAdditionalContactInfo(this._cachedAdditionalInfo);
 };
 
 HandledCall.prototype.formatPhoneNumber =
   function hc_formatPhoneNumber(ellipsisSide, maxFontSize) {
+    // In status bar mode, we want a fixed font-size
+    if (CallScreen.inStatusBarMode) {
+      this.numberNode.style.fontSize = '';
+      return;
+    }
+
     var fakeView = this.node.querySelector('.fake-number');
     var view = this.numberNode;
 

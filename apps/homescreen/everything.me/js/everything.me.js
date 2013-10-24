@@ -7,7 +7,7 @@ var EverythingME = {
     if (footer) {
       footer.style.MozTransition = '-moz-transform .3s ease';
     }
-    
+
     var self = this,
         page = document.getElementById('landing-page'),
         activationIcon = document.getElementById('evme-activation-icon');
@@ -42,7 +42,7 @@ var EverythingME = {
 
     EverythingME.migrateStorage();
   },
-  
+
   activate: function EverythingME_activate(e) {
     document.body.classList.add('evme-loading');
 
@@ -52,10 +52,10 @@ var EverythingME = {
           activationIcon = document.getElementById('evme-activation-icon'),
           input = activationIcon.querySelector('input'),
           existingQuery = input && input.value;
-      
+
       landingPage.appendChild(page.parentNode.removeChild(page));
       EvmeFacade.onShow();
-      
+
       // set the query the user entered before loaded
       input = document.getElementById('search-q');
       if (input) {
@@ -68,7 +68,7 @@ var EverythingME = {
       }
 
       document.body.classList.remove('evme-loading');
-      
+
       activationIcon.parentNode.removeChild(activationIcon);
     });
   },
@@ -105,7 +105,10 @@ var EverythingME = {
                     'js/helpers/Idle.js',
                     'js/plugins/Analytics.js',
                     'js/plugins/APIStatsEvents.js'];
-    var css_files = ['css/common.css',
+    var css_files = ['shared/style/confirm.css',
+                     'shared/style_unstable/progress_activity.css',
+                     'shared/style/status.css',
+                     'css/common.css',
                      'modules/Apps/Apps.css',
                      'modules/BackgroundImage/BackgroundImage.css',
                      'modules/Banner/Banner.css',
@@ -146,7 +149,8 @@ var EverythingME = {
       var link = document.createElement('link');
       link.type = 'text/css';
       link.rel = 'stylesheet';
-      link.href = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
+      link.href = (file.indexOf('shared/') !== -1 ? '' : 'everything.me/') +
+                   file + (CB ? '?' + Date.now() : '');
       link.addEventListener('load', onCSSLoad);
       setTimeout(function appendCSS() { head.appendChild(link); }, 0);
     }
@@ -154,7 +158,8 @@ var EverythingME = {
     function loadScript(file) {
       var script = document.createElement('script');
       script.type = 'text/javascript';
-      script.src = 'everything.me/' + file + (CB ? '?' + Date.now() : '');
+      script.src = (file.indexOf('shared/') !== -1 ? '' : 'everything.me/') +
+                   file + (CB ? '?' + Date.now() : '');
       script.defer = true;
       script.addEventListener('load', onScriptLoad);
       setTimeout(function appendScript() { head.appendChild(script) }, 0);
@@ -223,7 +228,7 @@ var EverythingME = {
       for (var key in AUTOMATIC_KEYS) {
         EverythingME.copyStorageToDB(key, AUTOMATIC_KEYS[key], onDataMigrated);
       }
-      
+
       function onDataMigrated() {
         numberOfKeysDone++;
         if (numberOfKeysDone >= numberOfKeys) {
@@ -233,7 +238,7 @@ var EverythingME = {
       }
     });
   },
-  
+
   copyStorageToDB: function copyStorageToDB(oldKey, newKey, onComplete) {
     if (!onComplete) {
       onComplete = function() {};
@@ -277,7 +282,7 @@ var EverythingME = {
       onComplete(false);
       return false;
     }
-    
+
     function deleteOld() {
       window.localStorage[oldKey] = null;
       delete window.localStorage[oldKey];

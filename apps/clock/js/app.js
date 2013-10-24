@@ -1,7 +1,12 @@
-// outer IIFE
-(function(exports) {
+define(function(require) {
 'use strict';
 
+var Tabs = require('tabs');
+var View = require('view');
+var Panel = require('panel');
+var TimerPanel = require('timer_panel');
+var StopwatchPanel = require('stopwatch_panel');
+var mozL10n = require('l10n');
 var rAF = mozRequestAnimationFrame || requestAnimationFrame;
 /**
  * Global Application event handling and paging
@@ -10,8 +15,8 @@ var App = {
   panelClass: {
     'alarm-panel': Panel,
     'alarm-edit-panel': Panel,
-    'timer-panel': Timer.Panel,
-    'stopwatch-panel': Stopwatch.Panel
+    'timer-panel': TimerPanel,
+    'stopwatch-panel': StopwatchPanel
   },
 
   /**
@@ -96,8 +101,8 @@ var App = {
    * the language changes, and once on application startup.
    */
   onlocalized: function(event) {
-    document.documentElement.lang = navigator.mozL10n.language.code;
-    document.documentElement.dir = navigator.mozL10n.language.direction;
+    document.documentElement.lang = mozL10n.language.code;
+    document.documentElement.dir = mozL10n.language.direction;
   },
 
   /**
@@ -112,6 +117,6 @@ var App = {
   }
 };
 
-exports.App = App;
+return App;
 
-}(this));
+});

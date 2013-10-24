@@ -35,6 +35,7 @@ requireApp('sms/test/unit/mock_dialog.js');
 requireApp('sms/test/unit/mock_smil.js');
 requireApp('sms/test/unit/mock_custom_dialog.js');
 requireApp('sms/test/unit/mock_url.js');
+requireApp('sms/test/unit/mock_compose.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -491,6 +492,33 @@ suite('thread_ui.js >', function() {
       });
     });
 
+    suite('type changed after the first segment info request >', function() {
+      setup(function() {
+        Compose.type = 'sms';
+
+        ThreadUI.updateCounter();
+        this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
+
+        // change type to MMS
+        Compose.type = 'mms';
+
+        // no characters were entered in the first call
+        var segmentInfo = {
+          segments: 0,
+          charsAvailableInLastSegment: 0
+        };
+        MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
+      });
+
+      teardown(function() {
+        Compose.type = 'sms';
+      });
+
+      test('should not change the segment info', function() {
+        assert.ok(sendButton.classList.contains('has-counter'));
+      });
+    });
+
     suite('no characters entered >', function() {
       setup(function() {
         var segmentInfo = {
@@ -868,6 +896,8 @@ suite('thread_ui.js >', function() {
       Compose.clear();
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       segmentInfo.segments = 0;
+      // we have 2 requests, so we trigger twice
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -916,6 +946,8 @@ suite('thread_ui.js >', function() {
       Compose.clear();
       this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
       segmentInfo.segments = 0;
+      // we have 2 requests, so we trigger twice
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
       MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess(segmentInfo);
 
       assert.isFalse(convertBanner.classList.contains('hide'),
@@ -935,6 +967,26 @@ suite('thread_ui.js >', function() {
       assert.isTrue(convertBanner.classList.contains('hide'),
         'conversion banner is hidden at 3 seconds');
 
+    });
+
+    test('we dont display the banner when cleaning fields', function() {
+
+      // let's move to MMS type
+      Compose.type = 'mms';
+
+      // and ignore this banner which should be there
+      this.sinon.clock.tick(ThreadUI.CONVERTED_MESSAGE_DURATION);
+
+      this.sinon.spy(Compose, 'clear');
+
+      ThreadUI.cleanFields();
+      MockNavigatormozMobileMessage.mTriggerSegmentInfoSuccess({
+        segments: 0,
+        charsAvailableInLastSegment: 0
+      });
+
+      assert.isTrue(Compose.clear.called);
+      assert.isTrue(convertBanner.classList.contains('hide'));
     });
   });
 
@@ -2603,7 +2655,10 @@ suite('thread_ui.js >', function() {
 
           // Ensures that the OptionMenu was given
           // the phone number to diplay
-          assert.equal(call.section, '999');
+          assert.equal(call.header, '999');
+
+          // Only known Contact details should appear in the "section"
+          assert.equal(call.section, '');
 
           assert.equal(items.length, 4);
 
@@ -2639,8 +2694,11 @@ suite('thread_ui.js >', function() {
           var items = call.items;
 
           // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.section, 'a@b.com');
+          // the email address to diplay
+          assert.equal(call.header, 'a@b.com');
+
+          // Only known Contact details should appear in the "section"
+          assert.equal(call.section, '');
 
           assert.equal(items.length, 4);
 
@@ -2676,7 +2734,7 @@ suite('thread_ui.js >', function() {
 
           // Ensures that the OptionMenu was given
           // the phone number to diplay
-          assert.equal(call.section, '999');
+          assert.equal(call.header, '999');
 
           assert.equal(items.length, 3);
 
@@ -2710,7 +2768,7 @@ suite('thread_ui.js >', function() {
 
           // Ensures that the OptionMenu was given
           // the phone number to diplay
-          assert.equal(call.section, '999');
+          assert.equal(call.header, '999');
 
           assert.equal(items.length, 5);
 

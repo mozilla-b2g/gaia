@@ -1,5 +1,11 @@
-(function(exports) {
+define(function(require) {
+
   'use strict';
+
+  var Template = require('shared/js/template');
+  var Utils = require('utils');
+  var mozL10n = require('l10n');
+
   function Banner(node, tmplId) {
     // Accept a reference to an element or the element id
     if (typeof node === 'string') {
@@ -35,7 +41,7 @@
         countdownType = 'countdown-moreThanADay';
         localTimes = [
           ['days', 'nRemainDays', tl.days],
-          ['hours', 'nRemainHours', tl.hours]
+          ['hours', 'nAndRemainHours', tl.hours]
         ];
       } else if (tl.hours > 0) {
         countdownType = 'countdown-moreThanAnHour';
@@ -51,15 +57,15 @@
       }
 
       // Create an object to pass to mozL10n.get
-      // e.g. {minutes: navigator.mozL10n.get('nMinutes', {n: 3})}
+      // e.g. {minutes: mozL10n.get('nMinutes', {n: 3})}
       unitObj = localTimes.reduce(function(lcl, time) {
-        lcl[time[0]] = navigator.mozL10n.get(time[1], {n: time[2]});
+        lcl[time[0]] = mozL10n.get(time[1], {n: time[2]});
         return lcl;
       }, {});
 
       // mozL10n.get interpolates the units in unitObj inside the
       // localization string for countdownType
-      return navigator.mozL10n.get(countdownType, unitObj);
+      return mozL10n.get(countdownType, unitObj);
     },
 
     show: function bn_show(alarmTime) {
@@ -91,5 +97,5 @@
     }
   };
 
-  exports.Banner = Banner;
-}(this));
+  return Banner;
+});

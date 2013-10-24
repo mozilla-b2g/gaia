@@ -1,13 +1,12 @@
 'use strict';
 
-requireApp('system/test/unit/mock_settings_listener.js');
-requireApp('system/test/unit/mock_l10n.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
-requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
-requireApp('system/test/unit/mock_mobile_operator.js');
+requireApp('system/test/unit/mock_l10n.js');
+requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_lock_screen.js');
-
 requireApp('system/js/statusbar.js');
 requireApp('system/js/lockscreen.js');
 
@@ -21,9 +20,7 @@ var mocksForStatusBar = new MocksHelper([
 suite('system/Statusbar', function() {
   var fakeStatusBarNode;
 
-  var realSettingsListener, realMozL10n, realMozMobileConnection,
-      realMozTelephony, realMobileOperator,
-      fakeIcons = [];
+  var realMozL10n, realMozMobileConnection, realMozTelephony, fakeIcons = [];
 
   mocksForStatusBar.attachTestHelpers();
   suiteSetup(function() {
@@ -126,6 +123,7 @@ suite('system/Statusbar', function() {
       assert.equal(StatusBar.icons.time.hidden, true);
     });
     test('lock', function() {
+      MockLockScreen.locked = true;
       var evt = new CustomEvent('lock');
       StatusBar.handleEvent(evt);
       assert.equal(StatusBar.clock.timeoutID, null);
@@ -146,8 +144,8 @@ suite('system/Statusbar', function() {
     test('attentionsceen hide', function() {
       var evt = new CustomEvent('attentionscreenhide');
       StatusBar.handleEvent(evt);
-      assert.equal(StatusBar.clock.timeoutID, null);
-      assert.equal(StatusBar.icons.time.hidden, true);
+      assert.notEqual(StatusBar.clock.timeoutID, null);
+      assert.equal(StatusBar.icons.time.hidden, false);
     });
     test('emergency call when locked', function() {
       var evt = new CustomEvent('lockpanelchange', {

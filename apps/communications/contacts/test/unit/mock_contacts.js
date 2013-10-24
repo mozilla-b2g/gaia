@@ -46,6 +46,7 @@ var MockContacts = {
     importGmail: function() {}
   },
   navigation: {
+    go: function() {},
     home: function() {}
   },
   checkCancelableActivity: function() {},
@@ -58,5 +59,14 @@ var MockContacts = {
   },
   view: function(view, callback) {
     callback();
-  }
+  },
+  showOverlay: function(title, id) {
+    return {
+      'setClass': function(clazz) {},
+      'setHeaderMsg': function(msg) {},
+      'setTotal': function(total) {},
+      'update': function() {}
+    };
+  },
+  showStatus: function(status) {}
 };
