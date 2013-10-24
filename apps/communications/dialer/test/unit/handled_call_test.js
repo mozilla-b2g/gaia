@@ -619,14 +619,12 @@ suite('dialer/handled_call', function() {
       test('is voicemail call', function() {
         mockCall = new MockCall('123', 'dialing');
         subject = new HandledCall(mockCall);
-        mockCall._disconnect();
         assert.isTrue(subject.recentsEntry.voicemail);
       });
 
       test('is not voicemail call', function() {
         mockCall = new MockCall('111', 'dialing');
         subject = new HandledCall(mockCall);
-        mockCall._disconnect();
         assert.isFalse(subject.recentsEntry.voicemail);
       });
     });

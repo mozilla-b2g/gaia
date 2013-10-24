@@ -159,12 +159,14 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
     return;
   }
 
+  var self = this;
   Voicemail.check(number, function(isVoicemailNumber) {
     if (isVoicemailNumber) {
       LazyL10n.get(function localized(_) {
         node.textContent = _('voiceMail');
         self._cachedInfo = _('voiceMail');
       });
+      self.recentsEntry.voicemail = true;
     } else {
       Contacts.findByNumber(number, lookupContact);
       checkICCMessage();
@@ -330,7 +332,6 @@ HandledCall.prototype.connected = function hc_connected() {
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {
-  var entry = this.recentsEntry;
   var self = this;
   if (this._leftGroup) {
     LazyL10n.get(function localized(_) {
@@ -340,22 +341,18 @@ HandledCall.prototype.disconnected = function hc_disconnected() {
     self._leftGroup = false;
   }
 
-  if (entry) {
-    if (entry.contactInfo) {
-      if (typeof entry.contactInfo.contact === 'string') {
-        entry.contactInfo.contact = JSON.parse(entry.contactInfo.contact);
-      }
-      if (typeof entry.contactInfo.matchingTel === 'string') {
-        var tel = entry.contactInfo.matchingTel;
-        entry.contactInfo.matchingTel = JSON.parse(tel);
-      }
+  var entry = this.recentsEntry;
+  if (entry.contactInfo) {
+    if (typeof entry.contactInfo.contact === 'string') {
+      entry.contactInfo.contact = JSON.parse(entry.contactInfo.contact);
     }
-
-    Voicemail.check(entry.number, function(isVoicemailNumber) {
-      entry.voicemail = isVoicemailNumber;
-      CallsHandler.addRecentEntry(entry);
-    });
+    if (typeof entry.contactInfo.matchingTel === 'string') {
+      var tel = entry.contactInfo.matchingTel;
+      entry.contactInfo.matchingTel = JSON.parse(tel);
+    }
   }
+
+  CallsHandler.addRecentEntry(entry);
 
   this.remove();
 };
