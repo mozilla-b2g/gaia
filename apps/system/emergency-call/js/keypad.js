@@ -448,11 +448,8 @@ var KeypadManager = {
 
   _callVoicemail: function kh_callVoicemail() {
      var voicemail = navigator.mozVoicemail;
-     if (voicemail) {
-       // TODO: remove this backward compatibility check
-       // after bug-814634 is landed
-       var number = voicemail.number || voicemail.getNumber();
-       CallHandler.call(number);
+     if (voicemail && voicemail.number) {
+       CallHandler.call(voicemail.number);
      }
   }
 };

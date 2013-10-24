@@ -4,11 +4,8 @@ var Voicemail = {
   check: function vm_check(number, callback) {
     // check the voicemail number if the number is in the sim card
     var voicemail = navigator.mozVoicemail;
-    if (voicemail) {
-      // TODO: remove this backward compatibility check
-      // after bug-814634 is landed
-      var voicemailNumber = voicemail.number || voicemail.getNumber();
-      if (voicemailNumber == number) {
+    if (voicemail && voicemail.number) {
+      if (voicemail.number == number) {
         callback(true);
         return;
       }
