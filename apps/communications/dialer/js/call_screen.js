@@ -133,16 +133,20 @@ var CallScreen = {
     var screen = this.screen;
     screen.classList.toggle('displayed');
 
-    if (!callback) {
+    if (!callback || typeof(callback) !== 'function') {
+      return;
+    }
+
+    // We have no opening transition for incoming locked
+    if (this.screen.dataset.layout === 'incoming-locked') {
+      setTimeout(callback);
       return;
     }
 
     /* We need CSS transitions for the status bar state and the regular state */
     screen.addEventListener('transitionend', function trWait() {
       screen.removeEventListener('transitionend', trWait);
-      if (typeof(callback) == 'function') {
-        callback();
-      }
+      callback();
     });
   },
 
