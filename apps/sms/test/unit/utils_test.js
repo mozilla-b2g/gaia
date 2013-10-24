@@ -1,5 +1,5 @@
 /*global MocksHelper, MockL10n, Utils, MockContact, FixturePhones,
-         MockFixedHeader, MockContacts */
+         MockFixedHeader, MockContacts, MockMozPhoneNumberService */
 
 'use strict';
 
@@ -7,6 +7,7 @@ requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_navigator_mozphonenumberservice.js');
 requireApp('sms/js/utils.js');
 
 var mocksHelperForUtils = new MocksHelper([
@@ -15,6 +16,7 @@ var mocksHelperForUtils = new MocksHelper([
 
 suite('Utils', function() {
   var nativeMozL10n = navigator.mozL10n;
+  var nmpns = navigator.mozPhoneNumberService;
 
   mocksHelperForUtils.attachTestHelpers();
 
@@ -615,28 +617,49 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.compareDialables(a, b)', function() {
-    test('spaces', function() {
+  suite('Utils.probablyMatches(a, b)', function() {
+
+    test('mozPhoneNumberService is null', function() {
+      navigator.mozPhoneNumberService = null;
+
       assert.ok(
-        Utils.compareDialables('888 999 5555', '8889995555')
+        Utils.probablyMatches('888 999 5555', '8889995555')
       );
+
+      navigator.mozPhoneNumberService = nmpns;
     });
 
-    test('non-digit, common chars', function() {
+    test('spaces', function() {
       assert.ok(
-        Utils.compareDialables('(1A)2B 3C', '123')
+        Utils.probablyMatches('888 999 5555', '8889995555')
       );
     });
 
     suite('Varied Cases', function() {
       FixturePhones.forEach(function(fixture) {
-        suite(fixture.name, function() {
+        var title = fixture.title;
+
+        if (!fixture.isTestable) {
+          title += ' (this feature is not really being tested)';
+        }
+
+        suite(title, function() {
           var values = fixture.values;
+
+          if (!fixture.isTestable) {
+            suiteSetup(function() {
+              navigator.mozPhoneNumberService = MockMozPhoneNumberService;
+            });
+
+            suiteTeardown(function() {
+              navigator.mozPhoneNumberService = nmpns;
+            });
+          }
 
           values.forEach(function(value) {
             values.forEach(function(versus) {
-              test(value + ' likely same as ' + versus, function() {
-                assert.ok(Utils.compareDialables(value, versus));
+              test(value + ' probably matches ' + versus, function() {
+                assert.ok(Utils.probablyMatches(value, versus));
               });
             });
           });

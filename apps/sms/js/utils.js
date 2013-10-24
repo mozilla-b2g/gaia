@@ -248,7 +248,7 @@
       for (var i = 0; i < length; i++) {
         tel = tels[i];
 
-        if (tel.value && Utils.compareDialables(tel.value, input)) {
+        if (tel.value && Utils.probablyMatches(tel.value, input)) {
           found = tel;
         }
 
@@ -296,10 +296,18 @@
     //
     // ...It would appear that a maximally-minimal
     // 7 digit comparison is safe.
-    compareDialables: function ut_compareDialables(a, b) {
-      a = Utils.removeNonDialables(a).slice(-7);
-      b = Utils.removeNonDialables(b).slice(-7);
-      return a === b;
+    probablyMatches: function ut_probablyMatches(a, b) {
+      var service = navigator.mozPhoneNumberService;
+
+      if (service && service.normalize) {
+        a = service.normalize(a);
+        b = service.normalize(b);
+      } else {
+        a = Utils.removeNonDialables(a);
+        b = Utils.removeNonDialables(b);
+      }
+
+      return a === b || a.slice(-7) === b.slice(-7);
     },
 
     // Default image size limitation is set to 300KB for MMS user story.
