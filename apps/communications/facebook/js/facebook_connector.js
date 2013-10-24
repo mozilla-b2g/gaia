@@ -264,7 +264,7 @@ if (!window.FacebookConnector) {
 
       downloadContactPicture: function(contact, access_token, callbacks) {
         return fb.utils.getFriendPicture(contact.uid, callbacks.success,
-                                         access_token);
+                        access_token, importUtils.getPreferredPictureDetail());
       },
 
       oncontactsloaded: function(lfriends) {
