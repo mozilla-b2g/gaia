@@ -187,11 +187,11 @@ var ClockView = {
       // note the minute and hour hands are reversed relative to the secondhand
       offset = id === 'second' ? 0 : 180;
       // we generate the angle from the fractional sec/min/hour
-      return (timeFrag * mult) - offset;
+      return (timeFrag * mult) - offset - 90;
     }
     // Use transform rotate on the rect itself vs on a child element
     // avoids unexpected behavior if either dur and fill are set to defaults
-    hand.style.transform = 'rotate(' + conv(angle - 90) + 'deg)';
+    hand.style.transform = 'rotate(' + conv(angle) + 'deg)';
   },
 
   handleEvent: function cv_handleEvent(event) {
