@@ -289,6 +289,7 @@ var WindowManager = (function() {
       });
     }
 
+    console.log('WindowManager:', displayedApp, 'is opened');
     // Dispatch an 'appopen' event.
     var manifestURL = runningApps[displayedApp].manifestURL;
     var evt = document.createEvent('CustomEvent');
@@ -314,7 +315,7 @@ var WindowManager = (function() {
     }
 
     // Inform keyboardmanager that we've finished the transition
-    dispatchEvent(new CustomEvent('appclose'));
+    iframe.dispatchEvent(new CustomEvent('appclose'));
   }
 
   windows.addEventListener('mozbrowserloadend', function loadend(evt) {
@@ -866,6 +867,10 @@ var WindowManager = (function() {
       setDisplayedApp();
     });
 
+  window.addEventListener('appclosedbykilling', function onkilled(e) {
+    removeFrame(e.detail.origin);
+  });
+
   function removeFrame(origin) {
     var app = runningApps[origin];
     var frame = app.frame;
@@ -1023,21 +1028,6 @@ var WindowManager = (function() {
     }
   };
 
-  // If the application tried to close themselves by calling window.close()
-  // we will handle that here.
-  // XXX: this event is fired twice:
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=814583
-  window.addEventListener('mozbrowserclose', function(e) {
-    if (!'frameType' in e.target.dataset)
-      return;
-
-    switch (e.target.dataset.frameType) {
-      case 'window':
-        kill(e.target.dataset.frameOrigin);
-        break;
-    }
-  });
-
   // Deal with locationchange
   window.addEventListener('mozbrowserlocationchange', function(e) {
     if (!'frameType' in e.target.dataset)
@@ -1112,18 +1102,6 @@ var WindowManager = (function() {
     runningApps[displayedApp].setVisible(false, true);
   });
 
-  function handleAppCrash(origin, manifestURL) {
-    if (origin && manifestURL) {
-      // When inline activity frame crashes,
-      // query the localized name from manifest
-      var app = Applications.getByManifestURL(manifestURL);
-      CrashReporter.setAppName(getAppName(origin, app.manifest));
-    } else {
-      var app = runningApps[displayedApp];
-      CrashReporter.setAppName(app.name);
-    }
-  }
-
   function getAppName(origin, manifest) {
     if (!manifest)
       return '';
@@ -1134,34 +1112,6 @@ var WindowManager = (function() {
     }
     return new ManifestHelper(manifest).name;
   }
-
-  // Deal with crashed apps
-  window.addEventListener('mozbrowsererror', function(e) {
-    if (!'frameType' in e.target.dataset)
-      return;
-
-    var origin = e.target.dataset.frameOrigin;
-    var manifestURL = e.target.getAttribute('mozapp');
-
-    if (e.target.dataset.frameType !== 'window')
-      return;
-
-    /*
-      detail.type = error (Server Not Found case)
-      is handled in Modal Dialog
-    */
-    if (e.detail.type !== 'fatal')
-      return;
-
-    // If the crashing app is currently displayed, we will present
-    // the user with a banner notification.
-    if (displayedApp == origin)
-      handleAppCrash();
-
-    // Actually remove the frame, and trigger the closing transition
-    // if the app is currently displaying
-    kill(origin);
-  });
 
   window.addEventListener('launchwrapper', function(evt) {
     var config = evt.detail;
@@ -1222,48 +1172,7 @@ var WindowManager = (function() {
     }
 
     var app = runningApps[origin];
-    // As we can't immediatly remove runningApps entry,
-    // we flag it as being killed in order to avoid trying to remove it twice.
-    // (Check required because of bug 814583)
-    if (app.killed) {
-      return;
-    }
-    app.killed = true;
-
-    // Remove callee <-> caller reference before we remove the window.
-    if ('activityCaller' in runningApps[origin] &&
-        runningApps[origin].activityCaller) {
-      delete runningApps[origin].activityCaller.activityCallee;
-      delete runningApps[origin].activityCaller;
-    }
-
-    if ('activityCallee' in runningApps[origin] &&
-        runningApps[origin].activityCallee) {
-      delete runningApps[origin].activityCallee.activityCaller;
-      delete runningApps[origin].activityCallee;
-    }
-
-    // If the app is the currently displayed app, switch to the homescreen
-    if (origin === displayedApp) {
-      if (origin !== HomescreenLauncher.origin) {
-        setDisplayedApp(HomescreenLauncher.origin, function() {
-          removeFrame(origin);
-        });
-      }
-    } else {
-      removeFrame(origin);
-    }
-
-    // Send a synthentic 'appterminated' event.
-    // Let other system app module know an app is
-    // being killed, removed or crashed.
-    var evt = document.createEvent('CustomEvent');
-    var manifestURL = app.manifestURL;
-    evt.initCustomEvent('appterminated', true, false, {
-      origin: origin,
-      manifestURL: manifestURL
-    });
-    window.dispatchEvent(evt);
+    app.kill();
   }
 
   // Reload the frame of the running app

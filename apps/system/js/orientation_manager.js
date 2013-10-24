@@ -1,3 +1,5 @@
+'use strict';
+
 var OrientationManager = {
   init: function om_init() {
     this.fetchDefaultOrientation();
@@ -41,10 +43,12 @@ var OrientationManager = {
       // if we're running on desktop browser or simulator.
       this.defaultOrientation = window.innerWidth > window.innerHeight ?
         'landscape-primary' : 'portrait-primary';
+    } else {
+      this.defaultOrientation = screen.mozOrientation;
     }
   },
 
-  fetchCurrentOrientation: function sl_fetchDefaultOrientation() {
+  fetchCurrentOrientation: function sl_fetchCurrentOrientation() {
     if (!this.isOnRealDevice()) {
       // Fallback to use width/height to calculate default orientation
       // if we're running on desktop browser or simulator.

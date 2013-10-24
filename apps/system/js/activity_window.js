@@ -27,6 +27,10 @@
 
   ActivityWindow.prototype.eventPrefix = 'activity';
 
+  ActivityWindow.prototype.CLASS_NAME = 'ActivityWindow';
+
+  ActivityWindow.prototype._transitionState = 'closed';
+
   // Current policy is to copy the caller's orientation.
   // So we just overwrite resize method.
   ActivityWindow.prototype.setOrientation =
@@ -63,31 +67,6 @@
         this.activityCallee.setOrientation(noCapture);
       }
     };
-
-  ActivityWindow.prototype.resize = function acw_resize() {
-    // Current policy is to copy the caller's size.
-    // So we just overwrite resize method.
-    if (this.isActive()) {
-      if (document.mozFullScreen ||
-          document.getElementById('screen').classList.
-          contains('fullscreen-app')) {
-        this.element.style.height = window.innerHeight + 'px';
-        this.element.style.top = '0px';
-      } else if (this.activityCaller) {
-        var callerElement = this.activityCaller.element;
-        this.element.style.height = callerElement.style.height;
-        this.element.style.top = callerElement.offsetTop + 'px';
-      }
-
-      this.resized = true;
-    }
-
-    // If we have a callee, resize it.
-    if (this.activityCallee &&
-        this.activityCallee instanceof ActivityWindow) {
-      this.activityCallee.resize();
-    }
-  };
 
   ActivityWindow.prototype.view = function acw_view() {
     this.instanceID = _id;
@@ -137,6 +116,7 @@
         this.element.classList.remove('opening');
         this.element.classList.remove('slideleft');
         this.publish('open');
+        this._transitionState = 'opened';
         var app = this.activityCaller;
         // Set page visibility of focused app to false
         // once inline activity frame's transition is ended.
@@ -164,6 +144,7 @@
         this.element.classList.remove('slideright');
         this.element.classList.remove('active');
         this.publish('close');
+        this._transitionState = 'closed';
         this.setVisible(false);
         if (this.closeCallback)
           this.closeCallback();
@@ -171,6 +152,9 @@
     };
 
   ActivityWindow.prototype.kill = function acw_kill(evt) {
+    if (this._killed)
+      return;
+    this._killed = true;
     if (evt && 'stopPropagation' in evt) {
       evt.stopPropagation();
     }
@@ -187,7 +171,10 @@
           this.activityCallee.kill();
         }
         if (this.activityCaller instanceof AppWindow) {
-          WindowManager.setDisplayedApp(this.activityCaller.origin);
+          // If we're killed by event handler, display the caller.
+          if (evt) {
+            WindowManager.setDisplayedApp(this.activityCaller.origin);
+          }
         } else if (this.activityCaller instanceof ActivityWindow) {
           this.activityCaller.open();
         } else {
@@ -202,6 +189,7 @@
       }
       this.containerElement.removeChild(this.element);
     }
+    this.debug('killed by ', evt ? evt.type : 'direct function call.');
     this.activityCaller.unsetActivityCallee();
   };
 
@@ -226,7 +214,10 @@
 
     this._registerEvents();
     if (window.AppError) {
-      this.error = new AppError(this);
+      new AppError(this);
+    }
+    if (window.AppModalDialog) {
+      new AppModalDialog(this);
     }
     this.publish('rendered');
   };
@@ -241,11 +232,12 @@
 
   // XXX: Refactor this in TransitionStateController.
   ActivityWindow.prototype.open = function acw_open(openCallback) {
-    if (this.isActive())
+    if (this._transitionState == 'opened')
       return;
 
     this.openCallback = openCallback;
     this.publish('willopen');
+    this._transitionState = 'opening';
 
     if (this._visibilityState !== 'foreground') {
       this.setVisible(true);
@@ -257,23 +249,24 @@
 
   // XXX: Refactor this in TransitionStateController.
   ActivityWindow.prototype.close = function acw_close(closeCallback) {
-    if (!this.isActive())
+    if (this._transitionState == 'closed')
       return;
     this.closeCallback = closeCallback;
     this.publish('willclose');
+    this._transitionState = 'closing';
     this.restoreCaller();
     this.element.classList.add('slideright');
     this.element.classList.add('closing');
   };
 
   ActivityWindow.prototype.show = function acw_show() {
-    if (!this.element.isActive()) {
+    if (!this.isActive()) {
       this.element.classList.add('active');
     }
   };
 
   ActivityWindow.prototype.hide = function acw_hide() {
-    if (this.element.isActive()) {
+    if (this.isActive()) {
       this.element.classList.remove('active');
     }
   };

@@ -1,4 +1,23 @@
 var activityRequest;
+document.getElementById('go').onclick = function _go() {
+  var a = new MozActivity(
+    {
+      name: 'test',
+      data: {
+        type: 'inline'
+      }
+    }
+  );
+
+  a.onsuccess = function () {
+    document.getElementById('result').textContent = this.result.text;
+  };
+
+  a.onerror = function() {
+    document.getElementById('result').textContent = '(canceled)';
+  };
+};
+
 
 var webActivityHandler = function (request) {
   activityRequest = request;
@@ -17,12 +36,13 @@ window.onload = function () {
   // If the app is being loaded because a inline disposition web activity,
   // it will came with a pending system message.
   if (!navigator.mozHasPendingMessage('activity')) {
-    alert('This application is not intend to launch directly.');
+    console.warn('This application is not intend to launch directly.');
   } else {
     // Register for activity system message handling.
     // Do NOT register for message handling on the main app frame.
-    navigator.mozSetMessageHandler('activity', webActivityHandler);
+    
   }
+  navigator.mozSetMessageHandler('activity', webActivityHandler);
 };
 
 var go = function go() {
@@ -58,7 +78,8 @@ var cancel = function cancel() {
 };
 
 var promptButton = function promptButton() {
-  prompt('inline-activty prompt!');
+  var a = prompt('inline-activty prompt!');
+  document.getElementById('result').textContent = a;
 };
 
 // When the app is being closed or killed, we will cancel the pending

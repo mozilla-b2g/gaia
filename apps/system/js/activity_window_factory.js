@@ -16,7 +16,7 @@
       window.addEventListener('activitywillclose', this);
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
-      window.addEventListener('appwillshow', this);
+      window.addEventListener('appopen', this);
       window.addEventListener('home', this);
       window.addEventListener('holdhome', this);
       window.addEventListener('mozChromeEvent', this);
@@ -25,6 +25,15 @@
 
     handleEvent: function acwf_handleEvent(evt) {
       switch (evt.type) {
+        // XXX: Move into appWindow.
+        case 'appopen':
+          var app = evt.detail;
+          console.log('alive:', app.activityCallee);
+          if (app.activityCallee &&
+              app.activityCallee instanceof ActivityWindow) {
+            app.activityCallee.open();
+          }
+          break;
         case 'mozChromeEvent':
           // Fallback of 'mozbrowseractivitydone' event.
           if (evt.detail.type == 'activity-done') {
@@ -37,6 +46,7 @@
         case 'home':
         case 'holdhome':
           this._activities.forEach(function iterator(activity) {
+            // XXX: Change to close()
             activity.close();
           }, this);
           break;
@@ -57,25 +67,36 @@
 
         case 'launchapp':
           if (evt.detail.isActivity && evt.detail.inline) {
-            if (this._lastActivity) {
-              if (this._lastActivity.isActive()) {
-                // If we already has a callee, remove it.
-                var callee = this._lastActivity.activityCallee;
-                if (callee) {
-                  // XXX: We don't know the activity is the same request
-                  // or not here. The data passed may be different.
-                  // So we just kill all.
-                  // If we enable swipe navigation
-                  // then we could just use that to open the existed
-                  // activity.
-                  if (callee instanceof ActivityWindow) {
-                    callee.kill();
-                  }
+            if (this._lastActivity && this._lastActivity.isActive()) {
+              // If we already has a callee, remove it.
+              var callee = this._lastActivity.activityCallee;
+              if (callee) {
+                // XXX: We don't know the activity is the same request
+                // or not here. The data passed may be different.
+                // So we just kill all.
+                // If we enable swipe navigation
+                // then we could just use that to open the existed
+                // activity.
+                if (callee instanceof ActivityWindow) {
+                  callee.kill();
                 }
-                this._lastActivity = new ActivityWindow(evt.detail,
-                  this._lastActivity);
-                break;
               }
+              // XXX: See Bug 931339
+              // Only the first matched manifestURL + pageURL is sent with
+              // system message, so we need to kill the previous opened one
+              // if the second one "equals" the previous.
+              this._activities.forEach(function iterator(activity) {
+                if (activity.manifestURL == evt.detail.manifestURL &&
+                    activity.url == evt.detail.url &&
+                    !activity.isActive()) {
+                  // XXX: Only kill the background running activity.
+                  activity.kill();
+                  return false;
+                }
+              });
+              this._lastActivity = new ActivityWindow(evt.detail,
+                this._lastActivity);
+              break;
             }
             var app = WindowManager.getCurrentActiveAppWindow();
             var callee = app.activityCallee;
