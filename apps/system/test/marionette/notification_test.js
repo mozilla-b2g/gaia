@@ -63,7 +63,7 @@ marionette('notification tests', function() {
               'notification list contains the new notification');
   });
 
-  test('lockscreen > replace notification', function() {
+  test.skip('lockscreen > replace notification', function() {
     var tag = 'test tag, replace';
     var oldTitle = 'test title, replace';
     var oldBody = 'test body, replace';
