@@ -685,9 +685,11 @@ function modifyLayout(keyboardName) {
 
     // This gives the author the ability to change the basic layout
     // key contents
+    // 'layout' holds alternatelayout which doesn't include basicLayoutKey.
+    // Check and use 'basicLayoutKey' defined by each keyboard.
     var basicLayoutKey = 'ABC';
-    if (layout['basicLayoutKey']) {
-      basicLayoutKey = layout['basicLayoutKey'];
+    if (Keyboards[keyboardName]['basicLayoutKey']) {
+      basicLayoutKey = Keyboards[keyboardName]['basicLayoutKey'];
     }
 
     if (!layout['disableAlternateLayout']) {
