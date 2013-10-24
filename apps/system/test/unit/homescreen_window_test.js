@@ -3,11 +3,13 @@
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
       'HomescreenWindow', 'KeyboardManager', 'StatusBar',
-      'SoftwareButtonManager', 'AttentionScreen', 'ScreenLayout', 'AppWindow']);
+      'SoftwareButtonManager', 'AttentionScreen', 'OrientationManager',
+      'AppWindow']);
 
 requireApp('system/js/browser_config_helper.js');
 requireApp('system/js/browser_frame.js');
-requireApp('system/test/unit/mock_screen_layout.js');
+requireApp('system/js/orientation_manager.js');
+requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
@@ -45,12 +47,12 @@ suite('system/HomescreenWindow', function() {
   var clock, stubById;
 
   setup(function(done) {
+    switchProperty(window, 'OrientationManager', MockOrientationManager, reals);
     switchProperty(window, 'WindowManager', MockWindowManager, reals);
     switchProperty(window, 'Applications', MockApplications, reals);
     switchProperty(window, 'ManifestHelper', MockManifestHelper, reals);
     switchProperty(window, 'KeyboardManager', MockKeyboardManager, reals);
     switchProperty(window, 'StatusBar', MockStatusBar, reals);
-    switchProperty(window, 'ScreenLayout', MockScreenLayout, reals);
     switchProperty(window, 'SoftwareButtonManager',
         MockSoftwareButtonManager, reals);
     switchProperty(window, 'AttentionScreen', MockAttentionScreen, reals);
@@ -71,7 +73,6 @@ suite('system/HomescreenWindow', function() {
     clock.restore();
     stubById.restore();
 
-    restoreProperty(window, 'ScreenLayout', reals);
     restoreProperty(window, 'AttentionScreen', reals);
     restoreProperty(window, 'SoftwareButtonManager', reals);
     restoreProperty(window, 'StatusBar', reals);
@@ -79,6 +80,7 @@ suite('system/HomescreenWindow', function() {
     restoreProperty(window, 'WindowManager', reals);
     restoreProperty(window, 'Applications', reals);
     restoreProperty(window, 'ManifestHelper', reals);
+    restoreProperty(window, 'OrientationManager', reals);
   });
 
   suite('homescreen window instance.', function() {

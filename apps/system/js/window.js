@@ -3,7 +3,7 @@
 
 (function(window) {
   'use strict';
-  var DEBUG = false;
+  var DEBUG = true;
   window.AppWindow = function AppWindow(configuration) {
     for (var key in configuration) {
       this[key] = configuration[key];
@@ -143,6 +143,11 @@
     this.iframe.reload(true);
   };
 
+  AppWindow.prototype.isActive = function aw_isActive() {
+    return (this.element._visibilityState == 'foreground') ||
+            (this.element.classList.contains('active'));
+  };
+
   AppWindow.prototype.kill = function aw_kill() {
     // XXX: A workaround because a AppWindow instance shouldn't
     // reference Window Manager directly here.
@@ -155,6 +160,9 @@
   AppWindow.prototype.render = function aw_render() {
     var screenshotOverlay = document.createElement('div');
     screenshotOverlay.classList.add('screenshot-overlay');
+
+    this.element = this.iframe;
+
     this.frame.appendChild(screenshotOverlay);
     this.screenshotOverlay = screenshotOverlay;
 
@@ -398,14 +406,15 @@
     this.debug('publish: ' + event);
 
     if (this.frame) {
-      this.frame.dispatchEvent(evt);
+      // for testability.
+      window.dispatchEvent(evt);
     } else {
       window.dispatchEvent(evt);
     }
   };
 
   var isDefaultPortrait =
-    (ScreenLayout.defaultOrientation === 'portrait-primary');
+    (OrientationManager.defaultOrientation === 'portrait-primary');
 
   var OrientationRotationArray = [
     'portrait-primary', 'portrait-secondary', 'portrait',
@@ -422,7 +431,8 @@
 
       var appOrientation = this.manifest.orientation;
       var orientation = this.determineOrientation(appOrientation);
-      var table = OrientationRotationTable[ScreenLayout.defaultOrientation];
+      var table =
+        OrientationRotationTable[OrientationManager.defaultOrientation];
       var degree = table[OrientationRotationArray.indexOf(orientation)];
       this.rotatingDegree = degree;
       if (degree == 90 || degree == 270) {
@@ -437,8 +447,8 @@
         return 0;
 
       // XXX: Assume homescreen's orientation is just device default.
-      var homeOrientation = ScreenLayout.defaultOrientation;
-      var currentOrientation = ScreenLayout.fetchCurrentOrientation();
+      var homeOrientation = OrientationManager.defaultOrientation;
+      var currentOrientation = OrientationManager.fetchCurrentOrientation();
       var table = OrientationRotationTable[currentOrientation];
       var degree = table[OrientationRotationArray.indexOf(homeOrientation)];
       return degree;
@@ -475,36 +485,50 @@
   // orientation could have changed since it was last displayed
   // @param {changeActivityFrame} to denote if needed to change inline
   //                              activity size
-  AppWindow.prototype.resize = function aw_resize(changeActivityFrame) {
-    var keyboardHeight = KeyboardManager.getHeight();
-    var cssWidth = window.innerWidth + 'px';
-    var cssHeight = window.innerHeight -
-                    StatusBar.height -
-                    SoftwareButtonManager.height -
-                    keyboardHeight;
-    if (!keyboardHeight && 'wrapper' in this.frame.dataset) {
-      cssHeight -= 10;
+  AppWindow.prototype.resize = function aw_resize() {
+    try {
+      throw new Error('acvt');
+    } catch (e) {
+      this.debug(e.stack);
     }
-    cssHeight += 'px';
+    if (this.isActive()) {
+      var keyboardHeight = KeyboardManager.getHeight();
+      var cssWidth = window.innerWidth + 'px';
+      var cssHeight = window.innerHeight -
+                      StatusBar.height -
+                      SoftwareButtonManager.height -
+                      keyboardHeight;
+      if (!keyboardHeight && 'wrapper' in this.frame.dataset) {
+        cssHeight -= 10;
+      }
+      cssHeight += 'px';
 
-    if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
-        this.isFullScreen()) {
-      cssHeight = window.innerHeight - keyboardHeight -
-                  SoftwareButtonManager.height + 'px';
+      if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
+          this.isFullScreen()) {
+        cssHeight = window.innerHeight - keyboardHeight -
+                    SoftwareButtonManager.height + 'px';
+      }
+
+      this.frame.style.width = cssWidth;
+      this.frame.style.height = cssHeight;
+
+      this.publish('resize');
+      this.debug('W:', cssWidth, 'H:', cssHeight);
+      this.resized = true;
     }
 
-    this.frame.style.width = cssWidth;
-    this.frame.style.height = cssHeight;
-
-    this.publish('resize', {changeActivityFrame: changeActivityFrame});
-    this.resized = true;
+    if (this.activityCallee &&
+        this.activityCallee instanceof ActivityWindow) {
+      this.activityCallee.resize();
+    }
   };
 
   AppWindow.prototype.setOrientation =
-    function aw_setOrientation(globalOrientation) {
+    function aw_setOrientation(noCapture) {
       var manifest = this.manifest || this.config.manifest;
 
-      var orientation = manifest.orientation || globalOrientation;
+      var orientation = manifest.orientation ||
+                        OrientationManager.globalOrientation;
       if (orientation) {
         var rv = false;
         if ('lockOrientation' in screen) {
@@ -523,6 +547,11 @@
           screen.mozUnlockOrientation();
         }
       }
+
+      if (!noCapture && this.activityCallee &&
+          this.activityCallee instanceof ActivityWindow) {
+        this.activityCallee.setOrientation(noCapture);
+      }
     };
 
 
@@ -535,5 +564,15 @@
     this.frame.classList.remove('fadeout');
     this.iframe.style.display = 'block';
   };
+
+  AppWindow.prototype.setActivityCallee =
+    function aw_setActivityCallee(callee) {
+      this.activityCallee = callee;
+    };
+
+  AppWindow.prototype.unsetActivityCallee =
+    function aw_setActivityCallee() {
+      this.activityCallee = null;
+    };
 
 }(this));
