@@ -78,8 +78,10 @@
   <script defer type="text/javascript" src="/ftu/js/operatorVariant.js"></script>
   <script defer type="text/javascript" src="/ftu/js/ff_account_states.js"></script>
   <script defer type="text/javascript" src="/ftu/js/ff_account_enter_email.js"></script>
-  <script defer type="text/javascript" src="/ftu/js/ff_account_create_password.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_set_password.js"></script>
   <script defer type="text/javascript" src="/ftu/js/ff_account_enter_password.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_signup_success.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_password_reset_success.js"></script>
   <!-- Confirm dialogs BB library -->
   <script defer type="text/javascript" src="/contacts/js/utilities/confirm.js"></script>
 </head>
@@ -216,19 +218,19 @@
         </div>
       </section>
 
-      <section role="region" id="ff-account-create-password-screen" class="ff_account">
+      <section role="region" id="ff-account-set-password-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
-          <h2 data-l10n-id="ff-account-create-password-header" class="ff_account--title"></h2>
+          <h2 data-l10n-id="ff-account-set-password-header" class="ff_account--title"></h2>
 
           <p>
-            Hello, <strong id="ff_account--create_password--email"></strong>
+            Hello, <strong id="ff_account--set_password--email"></strong>
           </p>
 
-          <input type="password" id="ff_account--create_password" placeholder="enter your password" class="ff_account--input" pattern=".{8,}" />
-          <div data-l10n-id="ff-account-create-password-password-length" class="ff_account--small"></div>
+          <input type="password" id="ff_account--set_password" placeholder="enter your password" class="ff_account--input" pattern=".{8,}" />
+          <div data-l10n-id="ff-account-set-password-password-length" class="ff_account--small"></div>
 
-          <label class="pack-checkbox pack-checkbox__ff_account pack-checkbox__create_password--show_password">
-            <input id="ff_account--create_password--show_password" type="checkbox" data-ignore name="show-password" />
+          <label class="pack-checkbox pack-checkbox__ff_account pack-checkbox__set_password--show_password">
+            <input id="ff_account--set_password--show_password" type="checkbox" data-ignore name="show-password" />
             <span></span>
             <p class="pack-checkbox__ff_account--label" data-l10n-id="showPassword">Show Password</p>
           </label>
@@ -277,13 +279,41 @@
         </section>
       </section>
 
-      <section role="region" id="ff-account-email-submit-screen" class="ff_account">
+      <section role="region" id="ff-account-signup-success-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
-          <h2 data-l10n-id="ff-account-email-submit-header" class="ff_account--title"></h2>
+          <h2 data-l10n-id="ff-account-signup-success-header" class="ff_account--title">
+            Confirm your account
+          </h2>
           <div class="ff_account--image ff_account--image__envelope"></div>
-          <p data-l10n-id="ff-account-email-submit-address-sent-to"></p>
-          <p data-l10n-id="ff-account-email-submit-check-email"></p>
-          <p data-l10n-id="ff-account-success-access-via-settings"></p>
+          <p data-l10n-id="ff-account-signup-success-address-sent-to">
+            We’ve sent an email to: <span id="ff_account--signup_success--email"></span>.
+          </p>
+          <p data-l10n-id="ff-account-signup-success-check-email">
+            Next time you check your email, click the verification link to confirm your Firefox account.
+          </p>
+          <p data-l10n-id="ff-account-success-access-via-settings">
+            In the future, you can access and manage your account from your phone’s settings.
+          </p>
+        </section>
+        <div>
+          <div class="ff_account--logo ff_account--logo__small"></div>
+        </div>
+      </section>
+
+      <section role="region" id="ff-account-signin-success-screen" class="ff_account" data-navigation="forward-only">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-signin-success-header" class="ff_account--title">
+            Success!
+          </h2>
+          <p data-l10n-id="ff-account-signin-success-ready-to-go">
+            Your Firefox Account is ready to go!
+          </p>
+          <p data-l10n-id="ff-account-signin-success-use-services">
+            Now you can use <span id="ff_account--success-email"></span> to access services like Marketplace and Where’s My Fox.
+          </p>
+          <p data-l10n-id="ff-account-signin-success-access-via-settings">
+            In the future, you can access and manage your account from your phone’s settings.
+          </p>
         </section>
         <div>
           <div class="ff_account--logo ff_account--logo__small"></div>
@@ -292,16 +322,25 @@
 
       <section role="region" id="ff-account-reset-password-screen" class="ff_account">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
-          <h2 data-l10n-id="ff-account-reset-password-header" class="ff_account--title"></h2>
+          <h2 data-l10n-id="ff-account-reset-password-header" class="ff_account--title">
+            Reset Your Password
+          </h2>
           <div class="ff_account--image ff_account--image__envelope"></div>
-          <p data-l10n-id="ff-account-email-submit-address-sent-to"></p>
-          <p data-l10n-id="ff-account-email-submit-check-email"></p>
-          <p data-l10n-id="ff-account-success-access-via-settings"></p>
+          <p data-l10n-id="ff-account-reset-password-address-sent-to">
+            We’ve sent an email to: <span id="ff_account--password_reset_success--email"></span>.
+          </p>
+          <p data-l10n-id="ff-account-reset-password-check-email">
+            Next time you check your email, you'll be able to reset your Firefox Account password.
+          </p>
+          <p data-l10n-id="ff-account-success-access-via-settings">
+            In the future, you can access and manage your account from your phone’s settings.
+          </p>
         </section>
         <div>
           <div class="ff_account--logo ff_account--logo__small"></div>
         </div>
       </section>
+
 
       <section role="region" id="ff-account-tos-screen" class="ff_account" data-navigation="back-only" data-progress-bar="hidden">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
@@ -317,18 +356,6 @@
           <p data-l10n-id="ff-account-pp1"></p>
           <p data-l10n-id="ff-account-pp2"></p>
         </section>
-      </section>
-
-      <section role="region" id="ff-account-success-screen" class="ff_account" data-navigation="forward-only">
-        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
-          <h2 data-l10n-id="ff-account-success-header" class="ff_account--title"></h2>
-          <p data-l10n-id="ff-account-success-ready-to-go"></p>
-          <p data-l10n-id="ff-account-success-use-services"></p>
-          <p data-l10n-id="ff-account-success-access-via-settings"></p>
-        </section>
-        <div>
-          <div class="ff_account--logo ff_account--logo__small"></div>
-        </div>
       </section>
 
       <section role="region" id="configure_network">

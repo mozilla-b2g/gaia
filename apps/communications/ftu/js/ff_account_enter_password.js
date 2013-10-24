@@ -3,6 +3,8 @@
 FirefoxAccountEnterPassword = (function() {
   'use strict';
 
+  var states = FirefoxAccountsStates;
+
   var EMAIL_SELECTOR = '#ff_account--enter_password--email';
   var PASSWORD_SELECTOR = '#ff_account--enter_password';
   var SHOW_PASSWORD_SELECTOR = '.pack-checkbox__enter_password--show_password';
@@ -24,7 +26,7 @@ FirefoxAccountEnterPassword = (function() {
   }
 
   function getNextState(password, done) {
-    done('#ff-account-email-submit-screen');
+    done(states.SIGNIN_SUCCESS);
   }
 
   function togglePasswordVisibility() {
@@ -45,7 +47,7 @@ FirefoxAccountEnterPassword = (function() {
           'click', togglePasswordVisibility, false);
     },
 
-    forward: function() {
+    forward: function(gotoNextStepCallback) {
       var passwordEl = $(PASSWORD_SELECTOR);
 
       if ( ! isPasswordValid(passwordEl)) {
@@ -55,9 +57,7 @@ FirefoxAccountEnterPassword = (function() {
       var passwordValue = passwordEl.value;
       this.passwordValue = passwordValue;
 
-      getNextState(passwordValue, function(nextState) {
-        document.location.hash = nextState;
-      });
+      getNextState(passwordValue, gotoNextStepCallback);
     },
 
     getPassword: function() {

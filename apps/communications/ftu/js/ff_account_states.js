@@ -9,8 +9,11 @@
 window.FirefoxAccountsStates = {
   INTRO: '#ff-account-intro-screen',
   ENTER_EMAIL: '#ff-account-enter-email-screen',
-  CREATE_PASSWORD: '#ff-account-create-password-screen',
+  SET_PASSWORD: '#ff-account-set-password-screen',
   ENTER_PASSWORD: '#ff-account-enter-password-screen',
+  SIGNUP_SUCCESS: '#ff-account-signup-success-screen',
+  SIGNIN_SUCCESS: '#ff-account-signin-success-screen',
+  PASSWORD_RESET_SUCCESS: '#ff-account-reset-password-screen',
   DONE: null
 };
 

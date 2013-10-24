@@ -147,11 +147,19 @@ var Navigation = {
       case FirefoxAccountsStates.ENTER_EMAIL:
         FirefoxAccountEnterEmail.forward(goToStepForward);
         break;
-      case FirefoxAccountsStates.CREATE_PASSWORD:
-        FirefoxAccountCreatePassword.forward(goToStepForward);
+      case FirefoxAccountsStates.SET_PASSWORD:
+        FirefoxAccountSetPassword.forward(goToStepForward);
         break;
       case FirefoxAccountsStates.ENTER_PASSWORD:
         FirefoxAccountEnterPassword.forward(goToStepForward);
+        break;
+      /*
+      case FirefoxAccountsStates.SIGNIN_SUCCESS:
+        FirefoxAccountSignInSuccessScreen.forward(goToStepForward);
+        break;
+        */
+      case FirefoxAccountsStates.SIGNUP_SUCCESS:
+        FirefoxAccountSignUpSuccess.forward(goToStepForward);
         break;
       default:
         goToStepForward();
@@ -214,20 +222,32 @@ var Navigation = {
       UIManager.navBar.classList.add(navigationClass);
     }
 
-    if (actualHash === '#ff-account-create-password-screen') {
-      FirefoxAccountCreatePassword.init({
-        email: FirefoxAccountEnterEmail.getEmail()
-      });
-    }
-    else if (actualHash === '#ff-account-enter-password-screen') {
-      FirefoxAccountEnterPassword.init({
-        email: FirefoxAccountEnterEmail.getEmail()
-      });
-    }
-    else if (actualHash === '#ff-account-email-submit-screen') {
-      FirefoxAccountCreatePassword.init({
-        email: FirefoxAccountEnterEmail.getEmail()
-      });
+    switch (actualHash) {
+      case FirefoxAccountsStates.ENTER_EMAIL:
+        FirefoxAccountEnterEmail.init();
+        break;
+      case FirefoxAccountsStates.SET_PASSWORD:
+        FirefoxAccountSetPassword.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      case FirefoxAccountsStates.ENTER_PASSWORD:
+        FirefoxAccountEnterPassword.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      case FirefoxAccountsStates.SIGNUP_SUCCESS:
+        FirefoxAccountSignUpSuccess.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      case FirefoxAccountsStates.PASSWORD_RESET_SUCCESS:
+        FirefoxAccountPasswordResetSuccess.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      default:
+        // don't do a thing
     }
 
     switch (actualHash) {
@@ -255,10 +275,10 @@ var Navigation = {
       case '#ff-account-no-network-screen':
       case '#ff-account-intro-screen':
       case '#ff-account-enter-email-screen':
+      case '#ff-account-set-password-screen':
       case '#ff-account-enter-password-screen':
-      case '#ff-account-create-password-screen':
-      case '#ff-account-email-submit-screen':
-      case '#ff-account-success-screen':
+      case '#ff-account-signup-success-screen':
+      case '#ff-account-signin-success-screen':
       case '#ff-account-tos-screen':
       case '#ff-account-pp-screen':
         UIManager.mainTitle.innerHTML = _('ff-account');

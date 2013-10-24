@@ -1,15 +1,17 @@
 /**
- * Module checks the validity of an email address, and if valid,
- * determine which screen to go to next.
+ * Takes care of a new user's set password screen. If password is valid,
+ * attempt to stage the user.
  */
-FirefoxAccountCreatePassword = (function() {
+FirefoxAccountSetPassword = (function() {
   'use strict';
 
-  var EMAIL_SELECTOR = '#ff_account--create_password--email';
-  var PASSWORD_SELECTOR = '#ff_account--create_password';
-  var SHOW_PASSWORD_SELECTOR = '.pack-checkbox__create_password--show_password';
+  var states = FirefoxAccountsStates;
+
+  var EMAIL_SELECTOR = '#ff_account--set_password--email';
+  var PASSWORD_SELECTOR = '#ff_account--set_password';
+  var SHOW_PASSWORD_SELECTOR = '.pack-checkbox__set_password--show_password';
   var SHOW_PASSWORD_CHECKBOX_SELECTOR =
-          '#ff_account--create_password--show_password';
+          '#ff_account--set_password--show_password';
   var INVALID_PASSWORD_ERROR_SELECTOR = '#invalid-email-error-dialog';
 
   function $(selector) {
@@ -26,7 +28,7 @@ FirefoxAccountCreatePassword = (function() {
   }
 
   function getNextState(password, done) {
-    done('#ff-account-email-submit-screen');
+    done(states.SIGNUP_SUCCESS);
   }
 
   function togglePasswordVisibility() {
@@ -47,7 +49,7 @@ FirefoxAccountCreatePassword = (function() {
           'click', togglePasswordVisibility, false);
     },
 
-    forward: function() {
+    forward: function(gotoNextStepCallback) {
       var passwordEl = $(PASSWORD_SELECTOR);
 
       if ( ! isPasswordValid(passwordEl)) {
@@ -57,9 +59,7 @@ FirefoxAccountCreatePassword = (function() {
       var passwordValue = passwordEl.value;
       this.passwordValue = passwordValue;
 
-      getNextState(passwordValue, function(nextState) {
-        document.location.hash = nextState;
-      });
+      getNextState(passwordValue, gotoNextStepCallback);
     },
 
     getPassword: function() {
