@@ -63,7 +63,6 @@ contacts.Search = (function() {
 
   var ignoreReturnKey = function ignoreReturnKey(evt) {
     if (evt.keyCode == 13) { // VK_Return
-      evt.target.blur();
       evt.preventDefault();
     }
   };
