@@ -17,9 +17,10 @@ Browser.Selectors = {
   'searchButton': '#url-button',
   'shareButton': '#share-button',
   'shareMenu': 'form[data-z-index-level="action-menu"]',
-  'mozbrowser': 'iframe[mozbrowser]'
-
+  'mozbrowser': 'iframe[mozbrowser]',
+  'tabsBadge': '#tabs-badge'
 };
+
 /**
  * @private
  * @param {Marionette.Client} client for selector.
@@ -61,6 +62,10 @@ Browser.prototype = {
     }
   },
 
+  get tabsBadge() {
+    return findElement(this.client, 'tabsBadge');
+  },
+  
   /**
    * Finds iframe of current running tab.
    */
