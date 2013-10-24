@@ -198,6 +198,10 @@ var icc_worker = {
       iccManager.responseSTKCommand({
         resultCode: iccManager._icc.STK_RESULT_OK
       });
+      // Stop playing after timeout
+      setTimeout(function _iccTonePlayerStop() {
+        tonePlayer.pause();
+      }, timeout);
     }
 
     if (options.isVibrate) {
