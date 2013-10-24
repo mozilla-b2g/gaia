@@ -24,6 +24,14 @@ and talk to us on IRC:
 
 [The Gaia/Hacking page on MDN](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Gaia/Hacking) has all the information that you need to start working on Gaia, including building and running Gaia on a compatible device or desktop computer.
 
+## Shepherd (bot)
+
+Opt-into new features by adding +shepherd to your first commit.
+
+Features available:
+  - automatic github -> bugzilla linking
+
+
 ## Tests
 
 ### Unit Tests
