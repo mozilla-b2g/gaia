@@ -767,6 +767,8 @@ ifeq ($(BUILD_APP_NAME),*)
 	@echo "Finished: bootstrapping test proxies/sandboxes";
 endif
 
+# Only load clock tests in order to reproduce bug more efficiently
+APP=clock
 # For test coverage report
 COVERAGE?=0
 ifeq ($(COVERAGE), 1)
