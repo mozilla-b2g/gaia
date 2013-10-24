@@ -1,0 +1,47 @@
+<element name="datausage-tab" extends="section">
+  <template>
+
+    <div class="view-scroll">
+      <section class="content">
+        <section id="graphic-area" class="graph">
+          <canvas id="background-layer"></canvas>
+          <canvas id="wifi-layer" aria-hidden="true"></canvas>
+          <canvas id="mobile-layer" aria-hidden="true"></canvas>
+          <canvas id="axis-layer"></canvas>
+          <canvas id="today-layer"></canvas>
+          <canvas id="warning-layer"></canvas>
+          <canvas id="limits-layer"></canvas>
+          <img aria-hidden="true" alt="" src="./style/images/app/ui/datausage/pattern.png" id="graphic-pattern" />
+        </section>
+
+        <ul class="toggle-data" data-type="list">
+          <li id="mobileItem" aria-disabled="true">
+            <label class="pack-checkbox">
+              <input type="checkbox" id="mobileCheck">
+              <span>
+              </span>
+            </label>
+            <p>
+              <strong class="overview" id="mobileOverview"></strong>
+              <span data-l10n-id="mobile-usage">Mobile usage</span>
+            </p>
+          </li>
+          <li id="wifiItem" aria-disabled="true">
+            <label class="pack-checkbox">
+              <input type="checkbox" id="wifiCheck">
+              <span>
+              </span>
+            </label>
+            <p>
+              <strong class="overview" id="wifiOverview"></strong>
+              <span data-l10n-id="wifi-usage">Wi-Fi</span>
+            </p>
+          </li>
+        </ul>
+      </section>
+
+    </div>
+    <script type="text/javascript" defer src="js/views/datausage.js"></script>
+
+  </template>
+</element>

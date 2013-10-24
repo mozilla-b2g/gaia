@@ -50,6 +50,11 @@
     <script type="text/javascript" defer src="js/app.js"></script>
 
     <script type="text/javascript" defer src="js/application_init.js"></script>
+
+    <link rel="import" href="/elements/balance-tab.html">
+    <link rel="import" href="/elements/telephony-tab.html">
+    <link rel="import" href="/elements/topup-dialog.html">
+    <link rel="import" href="/elements/datausage-tab.html">
   </head>
   <body role="application">
 
@@ -85,200 +90,17 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
         </li>
       </ul>
 
-      <!-- BALANCE TAB -->
-      <section role="region" id="balance-tab" class="view" data-viewport="left" hidden>
-        <!--
-        <section class="content">
-
-          <div id="cost-control-topup-countdown" class="countdown" aria-hidden="true">
-            <p>
-              <span id="top-up-countdown">
-                00:00
-              </span>
-
-              <span data-l10n-id="top-up-in-progress2">
-                Your top-up is being processed.
-              </span>
-            </p>
-          </div>
-
-          <div id="cost-control-message-area" class="error-messages" aria-hidden="true">
-            <p id="error-message-placeholder">
-            </p>
-          </div>
-
-          <div id="cost-control-info-area" class="overview">
-            <ul class="buttons-list end">
-              <li>
-                <button class="icon icon-reload" id="balance-tab-update-button" data-l10n-id="update-button">
-                  Update
-                </button>
-              </li>
-            </ul>
-            <div class="info">
-              <div id="cost-control-icon" class="icons">
-                <span class="warning">
-                </span>
-                <progress>
-                </progress>
-              </div>
-              <p id="balance-tab-credit">
-              </p>
-              <p id="balance-tab-time">
-              </p>
-            </div>
-          </div>
-
-          <ul class="buttons-list">
-            <li>
-              <button class="icon icon-topup" id="balance-tab-topup-ussd-button" data-l10n-id="topup-ussd-button2" aria-hidden="true">
-                Open top-up menu
-              </button>
-            </li>
-            <li>
-              <button class="icon icon-topupcode" id="balance-tab-topup-button" data-l10n-id="topup-button2" aria-hidden="true">
-                Use top-up code
-              </button>
-            </li>
-          </ul>
-          <script type="text/javascript" defer src="js/views/TopUpLayoutView.js"></script>
-          <script type="text/javascript" defer src="js/views/BalanceView.js"></script>
-          <script type="text/javascript" defer src="js/views/balance.js"></script>
-        </section>
-        -->
-      </section>
+    <!-- BALANCE TAB -->
+    <section is="balance-tab" role="region" id="balance-tab" class="view" data-viewport="left" hidden></section>
 
     <!-- TELEPHONY TAB -->
-    <section role="region" id="telephony-tab" class="view" data-viewport="left" hidden>
-      <!--
-      <section>
-        <ul>
-          <li>
-            <p id="telephony-time">
-            </p>
-            <dl>
-              <dt data-l10n-id="call-made">
-                Call made
-              </dt>
-              <dd>
-                <span id="telephony-calltime">
-                  50
-                </span>
-              </dd>
-              <dt data-l10n-id="sms-sent">
-                SMS Sent
-              </dt>
-              <dd>
-                <span id="telephony-smscount">
-                  30
-                </span>
-              </dd>
-            </dl>
-          </li>
-          <li id="billing-cycle">
-            <time id="reset-date">26 Dec</time>
-            <p data-l10n-id="billing-cycle-ends">Billing cycle ends</p>
-            <span class="meta" data-l10n-id="tracking-will-reset">Tracking will reset on this date</span>
-          </li>
-        </ul>
-        <script type="text/javascript" defer src="js/views/telephony.js"></script>
-      </section>
-      -->
-    </section>
+    <section is="telephony-tab" role="region" id="telephony-tab" class="view" data-viewport="left" hidden></section>
 
     <!-- The top up input -->
-    <section role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden>
-      <!--
-      <header>
-        <menu type="toolbar">
-          <button id="topup-send-button" data-l10n-id="send">
-            Send
-          </button>
-        </menu>
-        <a class="close-dialog">
-          <span id="topup-close-button" class="icon icon-close">
-            close
-          </span>
-        </a>
-        <h1 data-l10n-id="top-up">
-          Top Up
-        </h1>
-      </header>
-      <section class="content">
-        <div class="info">
-          <h2 data-l10n-id="enter-top-up-code">
-            Enter the top up code
-          </h2>
-          <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation2">
-            Find it on the scratch card or directly in your receipt.
-          </p>
-          <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code2">
-            Make sure the code is correct and try again.
-          </p>
-          <p id="topup-error" aria-hidden="true" data-l10n-id="topup-error2">
-            There was a problem sending the code. Please, try again.
-          </p>
-          <section aria-hidden="true" class="loading" id="topup-in-progress">
-            <progress>
-            </progress>
-            <p data-l10n-id="wait-for-confirmation">
-              You'll receive a confirmation message
-            </p>
-          </section>
-        </div>
-      </section>
-      <form>
-        <input id="topup-code-input" type="number" />
-      </form>
-      -->
-    </section>
+    <section is="topup-dialog" role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
 
     <!-- DATA USAGE TAB -->
-    <section id="datausage-tab" role="region" class="view" data-viewport="right" hidden>
-      <!--
-      <div class="view-scroll">
-        <section class="content">
-          <section id="graphic-area" class="graph">
-            <canvas id="background-layer"></canvas>
-            <canvas id="wifi-layer" aria-hidden="true"></canvas>
-            <canvas id="mobile-layer" aria-hidden="true"></canvas>
-            <canvas id="axis-layer"></canvas>
-            <canvas id="today-layer"></canvas>
-            <canvas id="warning-layer"></canvas>
-            <canvas id="limits-layer"></canvas>
-            <img aria-hidden="true" alt="" src="./style/images/app/ui/datausage/pattern.png" id="graphic-pattern" />
-          </section>
-
-          <ul class="toggle-data" data-type="list">
-            <li id="mobileItem" aria-disabled="true">
-              <label class="pack-checkbox">
-                <input type="checkbox" id="mobileCheck">
-                <span>
-                </span>
-              </label>
-              <p>
-                <strong class="overview" id="mobileOverview"></strong>
-                <span data-l10n-id="mobile-usage">Mobile usage</span>
-              </p>
-            </li>
-            <li id="wifiItem" aria-disabled="true">
-              <label class="pack-checkbox">
-                <input type="checkbox" id="wifiCheck">
-                <span>
-                </span>
-              </label>
-              <p>
-                <strong class="overview" id="wifiOverview"></strong>
-                <span data-l10n-id="wifi-usage">Wi-Fi</span>
-              </p>
-            </li>
-          </ul>
-        </section>
-
-      </div>
-      <script type="text/javascript" defer src="js/views/datausage.js"></script>
-      -->
-    </section>
+    <section is="datausage-tab" id="datausage-tab" role="region" class="view" data-viewport="right" hidden></section
 
     <!-- Settings view -->
     <section id="settings-view" class="view" data-viewport="bottom">
