@@ -185,9 +185,12 @@ var ClockView = {
       // 30 degrees per hour 6 per second and minute
       mult = id === 'hour' ? 30 : 6;
       // note the minute and hour hands are reversed relative to the secondhand
-      offset = id === 'second' ? 0 : 180;
+      // they no longer are
+      //offset = id === 'second' ? 0 : 180;
+      //offset = 90;
+      offset = 0;
       // we generate the angle from the fractional sec/min/hour
-      return (timeFrag * mult) - offset - 90;
+      return (timeFrag * mult) - offset;
     }
     // Use transform rotate on the rect itself vs on a child element
     // avoids unexpected behavior if either dur and fill are set to defaults

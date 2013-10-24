@@ -120,11 +120,11 @@ suite('ClockView', function() {
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.style.transform, 'rotate(-180deg)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.style.transform, 'rotate(0deg)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
     test('second-, minute-, and hour- hands are not updated twice in the ' +
@@ -139,11 +139,11 @@ suite('ClockView', function() {
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.style.transform, 'rotate(-180deg)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.style.transform, 'rotate(0deg)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
     test('second-, minute-, and hour- hands are updated each second',
@@ -158,11 +158,11 @@ suite('ClockView', function() {
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.style.transform, 'rotate(-180deg)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.style.transform, 'rotate(0deg)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
   });
