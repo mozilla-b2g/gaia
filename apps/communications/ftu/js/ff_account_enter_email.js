@@ -5,6 +5,7 @@
 FirefoxAccountEnterEmail = (function() {
   'use strict';
 
+  var states = FirefoxAccountsStates;
   var FF_ACCOUNT_EMAIL_SELECTOR = '#ff_account--enter-email';
   var INVALID_EMAIL_ERROR_SELECTOR = '#invalid-email-error-dialog';
 
@@ -13,8 +14,9 @@ FirefoxAccountEnterEmail = (function() {
   }
 
   function isEmailValid(emailEl) {
-    var emailValue = emailEl.value;
-    return emailValue && emailEl.validity.valid;
+    // user can skip ff account creation with no error
+    // if they either enter no email
+    return ! emailEl.value || emailEl.validity.valid;
   }
 
   function showInvalidEmail() {
@@ -22,9 +24,12 @@ FirefoxAccountEnterEmail = (function() {
   }
 
   function getNextState(email, done) {
-    if (email === 'newuser@newuser.com') return done('#ff-account-create-password-screen');
+    // TODO - this should be "DONE" or something to indicate completion of the
+    // FF signup flow.
+    if ( ! email) return done(states.DONE);
+    if (email === 'newuser@newuser.com') return done(states.CREATE_PASSWORD);
 
-    done('#ff-account-enter-password-screen');
+    done(states.ENTER_PASSWORD);
   }
 
   var Module = {
@@ -36,9 +41,7 @@ FirefoxAccountEnterEmail = (function() {
       var emailValue = emailEl.value;
       this.emailValue = emailValue;
 
-      getNextState(emailValue, function(nextState) {
-        document.location.hash = nextState;
-      });
+      getNextState(emailValue, gotoNextStepCallback);
     },
 
     getEmail: function() {

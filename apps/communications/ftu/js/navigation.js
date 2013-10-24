@@ -20,10 +20,26 @@ var steps = {
   },
   4: {
     onlyForward: false,
-    hash: '#ff-account-intro-screen',
+    hash: '#date_and_time',
     requireSIM: false
   },
   5: {
+    onlyForward: false,
+    hash: '#geolocation',
+    requireSIM: false
+  },
+  6: {
+    onlyForward: false,
+    hash: '#import_contacts',
+    requireSIM: false
+  },
+  7: {
+    onlyForward: false,
+    hash: '#ff-account-intro-screen',
+    requireSIM: false
+  },
+  /*
+  8: {
     onlyForward: false,
     hash: '#ff-account-enter-email-screen',
     requireSIM: false
@@ -38,28 +54,13 @@ var steps = {
     onlyForward: false,
     hash: '#ff-account-success-screen',
     requireSIM: false
-  },
+  },*/
   8: {
-    onlyForward: false,
-    hash: '#date_and_time',
-    requireSIM: false
-  },
-  9: {
-    onlyForward: false,
-    hash: '#geolocation',
-    requireSIM: false
-  },
-  10: {
-    onlyForward: false,
-    hash: '#import_contacts',
-    requireSIM: false
-  },
-  11: {
     onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  12: {
+  9: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -114,7 +115,12 @@ var Navigation = {
 
   forward: function n_forward(event) {
     var self = this;
-    var goToStepForward = function() {
+    var goToStepForward = function(hash) {
+      if (hash) {
+        document.location.hash = hash;
+        return;
+      }
+
       self.previousStep = self.currentStep;
       self.currentStep++;
       if (self.currentStep > numSteps) {
@@ -135,11 +141,17 @@ var Navigation = {
 
     var actualHash = window.location.hash;
     switch (actualHash) {
-      case '#ff-account-enter-email-screen':
-        FirefoxAccountEnterEmail.forward();
+      case FirefoxAccountsStates.INTRO:
+        goToStepForward(FirefoxAccountsStates.ENTER_EMAIL);
         break;
-      case '#ff-account-create-password-screen':
-        FirefoxAccountCreatePassword.forward();
+      case FirefoxAccountsStates.ENTER_EMAIL:
+        FirefoxAccountEnterEmail.forward(goToStepForward);
+        break;
+      case FirefoxAccountsStates.CREATE_PASSWORD:
+        FirefoxAccountCreatePassword.forward(goToStepForward);
+        break;
+      case FirefoxAccountsStates.ENTER_PASSWORD:
+        FirefoxAccountEnterPassword.forward(goToStepForward);
         break;
       default:
         goToStepForward();
@@ -171,7 +183,9 @@ var Navigation = {
 
   getProgressBarClassName: function n_getProgressBarClassName(target) {
     var className = target && target.getAttribute('data-progress-bar');
-    if (className) return className;
+    if (className) {
+      return className;
+    }
 
     // Manage step state (dynamically change)
     className = 'step-state step-';
@@ -200,12 +214,17 @@ var Navigation = {
       UIManager.navBar.classList.add(navigationClass);
     }
 
-    if (actualHash === "#ff-account-create-password-screen") {
+    if (actualHash === '#ff-account-create-password-screen') {
       FirefoxAccountCreatePassword.init({
         email: FirefoxAccountEnterEmail.getEmail()
       });
     }
-    else if (actualHash === "#ff-account-email-submit-screen") {
+    else if (actualHash === '#ff-account-enter-password-screen') {
+      FirefoxAccountEnterPassword.init({
+        email: FirefoxAccountEnterEmail.getEmail()
+      });
+    }
+    else if (actualHash === '#ff-account-email-submit-screen') {
       FirefoxAccountCreatePassword.init({
         email: FirefoxAccountEnterEmail.getEmail()
       });
