@@ -257,6 +257,16 @@ function resetApp() {
   model.init();
 }
 
+function activityContinued() {
+  if (activityCallback) {
+    var activityCb = activityCallback;
+    activityCallback = null;
+    activityCb();
+    return true;
+  }
+  return false;
+}
+
 // An account was deleted. Burn it all to the ground and
 // rise like a phoenix. Prefer a UI event vs. a slice
 // listen to give flexibility about UI construction:
@@ -272,8 +282,13 @@ evt.on('showLatestAccount', function() {
 
   model.latestOnce('acctsSlice', function(acctsSlice) {
     var account = acctsSlice.items[acctsSlice.items.length - 1];
+
     model.changeAccount(account, function() {
-      pushStartCard('message_list');
+      pushStartCard('message_list', {
+        // If waiting to complete an activity, do so after pushing the
+        // message list card.
+        onPushed: activityContinued
+      });
     });
   });
 });
@@ -287,10 +302,8 @@ model.on('acctsSlice', function() {
         return;
 
       // If an activity was waiting for an account, trigger it now.
-      if (activityCallback) {
-        var activityCb = activityCallback;
-        activityCallback = null;
-        return activityCb();
+      if (activityContinued()) {
+        return;
       }
 
       showMessageList();
