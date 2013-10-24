@@ -1908,7 +1908,7 @@ var ThreadUI = global.ThreadUI = {
       // input value when not rendering a suggestion. If the tel
       // record value _doesn't_ match, then continue.
       //
-      if (!isSuggestion && !Utils.compareDialables(current.value, input)) {
+      if (!isSuggestion && !Utils.probablyMatches(current.value, input)) {
         continue;
       }
 

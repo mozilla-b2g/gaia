@@ -26,6 +26,6 @@ var MockUtils = {
   getResizedImgBlob: Utils.getResizedImgBlob,
   getCarrierTag: Utils.getCarrierTag,
   removeNonDialables: Utils.removeNonDialables,
-  compareDialables: Utils.compareDialables,
+  probablyMatches: Utils.probablyMatches,
   getDisplayObject: Utils.getDisplayObject
 };
