@@ -10,23 +10,33 @@ FirefoxAccountEnterPassword = (function() {
   var SHOW_PASSWORD_SELECTOR = '.pack-checkbox__enter_password--show_password';
   var SHOW_PASSWORD_CHECKBOX_SELECTOR =
           '#ff_account--enter_password--show_password';
-  var INVALID_PASSWORD_ERROR_SELECTOR = '#invalid-email-error-dialog';
+  var PASSWORD_INVALID_ERROR_SELECTOR =
+          '#ff-account-password-invalid-error-dialog';
+  var PASSWORD_MISMATCH_ERROR_SELECTOR =
+          '#ff-account-password-mismatch-error-dialog';
 
   function $(selector) {
     return document.querySelector(selector);
   }
 
+  // only checks whether the password passes input validation
   function isPasswordValid(passwordEl) {
     var passwordValue = passwordEl.value;
     return passwordValue && passwordEl.validity.valid;
   }
 
-  function showInvalidPassword() {
-    return $(INVALID_PASSWORD_ERROR_SELECTOR).classList.add('visible');
+  function showPasswordInvalid() {
+    return $(PASSWORD_INVALID_ERROR_SELECTOR).classList.add('visible');
   }
 
-  function getNextState(password, done) {
-    done(states.SIGNIN_SUCCESS);
+  function checkPasswordCorrect(password, done) {
+    // TODO - hook up to client lib to authenticate a user.
+    if (password === 'password') return done(true);
+    done(false);
+  }
+
+  function showPasswordMismatch() {
+    return $(PASSWORD_MISMATCH_ERROR_SELECTOR).classList.add('visible');
   }
 
   function togglePasswordVisibility() {
@@ -35,6 +45,7 @@ FirefoxAccountEnterPassword = (function() {
 
     $(PASSWORD_SELECTOR).setAttribute('type', passwordFieldType);
   }
+
 
   var Module = {
     init: function(options) {
@@ -51,13 +62,18 @@ FirefoxAccountEnterPassword = (function() {
       var passwordEl = $(PASSWORD_SELECTOR);
 
       if ( ! isPasswordValid(passwordEl)) {
-        return showInvalidPassword();
+        return showPasswordInvalid();
       }
 
       var passwordValue = passwordEl.value;
-      this.passwordValue = passwordValue;
+      checkPasswordCorrect(passwordValue, function(isPasswordCorrect) {
+        if ( ! isPasswordCorrect) {
+          return showPasswordMismatch();
+        }
 
-      getNextState(passwordValue, gotoNextStepCallback);
+        this.passwordValue = passwordValue;
+        gotoNextStepCallback(states.SIGNIN_SUCCESS);
+      }.bind(this));
     },
 
     getPassword: function() {

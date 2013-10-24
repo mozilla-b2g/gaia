@@ -802,7 +802,7 @@
     </section>
   </section>
 
-  <form role='dialog' data-type='confirm' id='offline-error-dialog'>
+  <form role='dialog' data-type='confirm' id='offline-error-dialog' class="error-dialog">
     <section>
       <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>
       <p><small data-l10n-id='offline-dialog-text'>Please go back and connect to
@@ -814,7 +814,7 @@
     </section>
   </form>
 
-  <form role='dialog' data-type='confirm' id='offline-newsletter-error-dialog'>
+  <form role='dialog' data-type='confirm' id='offline-newsletter-error-dialog' class="error-dialog">
     <section>
       <h1 data-l10n-id='offline-newsletter-dialog-title'>You must be connected to the Internet to subscribe to the newsletter.</h1>
       <p><small data-l10n-id='offline-newsletter-dialog-text'>Please go back and connect to
@@ -825,10 +825,30 @@
     </section>
   </form>
 
-  <form role='dialog' data-type='confirm' id='invalid-email-error-dialog'>
+  <form role='dialog' data-type='confirm' id='invalid-email-error-dialog' class="error-dialog">
     <section>
       <h1 data-l10n-id='invalid-email-dialog-title'>Your email is not valid</h1>
       <p><small data-l10n-id='invalid-email-dialog-text'>Please go back and correct your entry.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+
+  <form role='dialog' data-type='confirm' id='ff-account-password-invalid-error-dialog' class="error-dialog">
+    <section>
+      <h1 data-l10n-id='invalid-password-dialog-title'>Your password is not valid</h1>
+      <p><small data-l10n-id='invalid-password-dialog-text'>Please go back and correct your entry.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+
+  <form role='dialog' data-type='confirm' id='ff-account-password-mismatch-error-dialog' class="error-dialog">
+    <section>
+      <h1 data-l10n-id='ff-account-password-mismatch-dialog-title'>This email and password do not match.</h1>
+      <p><small data-l10n-id='invalid-password-dialog-text'>Please go back and correct your entry.</small></p>
       <menu>
         <button class='full' data-l10n-id='OK'>OK</button>
       </menu>

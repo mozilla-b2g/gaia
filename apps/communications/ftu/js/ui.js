@@ -93,7 +93,9 @@ var UIManager = {
     'ff-account-reset-password-screen',
     'ff-account-tos-screen',
     'ff-account-pp-screen',
-    'ff-account-success-screen'
+    'ff-account-success-screen',
+    'ff-account-password-invalid-error-dialog',
+    'ff-account-password-mismatch-error-dialog'
   ],
 
   init: function ui_init() {
@@ -196,6 +198,21 @@ var UIManager = {
       .addEventListener('click',
         function invalidEmailDialogClick() {
           this.invalidEmailErrorDialog.classList.remove('visible');
+        }.bind(this));
+
+    // TODO - maybe generalize this somehow?
+    this.ffAccountPasswordInvalidErrorDialog
+      .querySelector('button')
+      .addEventListener('click',
+        function ffAccountPasswordInvalidErrorDialogClick() {
+          this.ffAccountPasswordInvalidErrorDialog.classList.remove('visible');
+        }.bind(this));
+
+    this.ffAccountPasswordMismatchErrorDialog
+      .querySelector('button')
+      .addEventListener('click',
+        function ffAccountPasswordMismatchErrorDialogClick() {
+          this.ffAccountPasswordMismatchErrorDialog.classList.remove('visible');
         }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
