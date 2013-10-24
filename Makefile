@@ -462,7 +462,7 @@ endif
 
 local-apps:
 ifdef VARIANT_PATH
-	python build/variant.py usage --local-apps-path=$(VARIANT_PATH) --profile-path=$(PROFILE_FOLDER) --distribution-path=$(GAIA_DISTRIBUTION_DIR)
+	python build/variant.py usage --local-apps-path=$(VARIANT_PATH) --profile-path=$(PROFILE_FOLDER) --distribution-path=$(GAIA_DISTRIBUTION_DIR) --apps-path=$(CURDIR)$(SEP)apps
 endif
 
 # Create webapps

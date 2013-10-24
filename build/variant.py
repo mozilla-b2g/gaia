@@ -15,6 +15,8 @@ APPS_CONF_FILENAME = 'singlevariantconf.json'
 
 PROFILE_APPS_FOLDER = 'svoperapps'
 
+MAX_ICONS_PER_PAGE = 4 * 4
+
 def getOrigin(url):
     origin = urlparse.urlsplit(url)
     origin = urlparse.urlunparse((origin.scheme, origin.netloc, '', '', '', ''))
@@ -207,12 +209,69 @@ def fetch_conf(data, profile_path, distribution_path):
     with open(os.path.join(distribution_path, OUTPUT_FOLDER, APPS_FOLDER, APPS_CONF_FOLDER, APPS_CONF_FILENAME), 'w') as temp_file:
         temp_file.write(json.dumps(output_homescreen))
 
+def validate_homescreen(data, apps_path):
+    """ Read init.json from homescreen to know homescreen layout """
+    with open(os.path.join(apps_path, 'homescreen', 'js', 'init.json'), 'r') as json_file:
+        homescreen = (json.load(json_file))['grid']
+
+    conf = []
+    for operator in data['operators']:
+        grid = map(list, homescreen)
+        if operator.has_key('apps'):
+
+            """ Extract applications with no location """
+            apps_no_position = []
+            apps_position = []
+            def checkFields(x):
+                if not x.has_key("id"):
+                    raise Exception("Missing id in some app")
+                if not x.has_key('screen') and not x.has_key('location'):
+                    apps_no_position.append(x)
+                    return
+                if  x.has_key('screen') and x.has_key('location'):
+                    apps_position.append(x)
+                    return
+
+                raise Exception("Invalid app missing location or screen property")
+
+            map(checkFields, operator['apps'])
+
+            """ sort list of apps with position by screen and location and validate"""
+            s = sorted(apps_position, key=lambda app: app['location'])
+            sorted_apps = sorted(s, key=lambda app: app['screen'])
+
+            values = []
+            def validate(x):
+                screen = grid[x['screen']]
+                value = int('%d%d' % (x['screen'], x['location']))
+                if value in values:
+                    raise Exception("Two applications are in the same position")
+
+                if (x['location'] < 0):
+                    raise Exception("Invalid location parameter")
+
+                while (x['location'] > len(screen)):
+                    if (len(apps_no_position) == 0):
+                        raise Exception("Invalid position for app " + x['id'])
+                    screen.append(apps_no_position.pop())
+
+                screen.insert(x['location'], x)
+                values.append(value)
+
+            map(validate, sorted_apps)
+
+            """ Check if some screen has more apps than MAX_ICONS_PER_PAGE  """
+            overflow = [i for i in range(len(grid)) if len(grid[i]) > MAX_ICONS_PER_PAGE]
+            for i in overflow:
+                print 'More apps than %s in screen %s' %(16, i)
+
 def main():
     """ Arguments & options management """
     parser = optparse.OptionParser(description="Prepare local applications")
     parser.add_option('-l', '--local-apps-path', help="Path to the JSON defining the local apps")
     parser.add_option('-p', '--profile-path', help="Path to the profile folder")
     parser.add_option('-d', '--distribution-path', help="Path to the gaia distribution folder")
+    parser.add_option('-a', '--apps-path', help="Path to the gaia applications folder")
     (options, args) = parser.parse_args()
 
     if not options.local_apps_path:
@@ -223,6 +282,9 @@ def main():
 
     if not options.distribution_path:
         parser.error('distribution-path not given')
+
+    if not options.apps_path:
+        parser.error('apps-path not given')
 
     """ Create and clear temporal output folders """
     output_folder = os.path.join(options.distribution_path, OUTPUT_FOLDER)
@@ -242,6 +304,8 @@ def main():
     """ Open JSON containning the apps and get saved apps to process and fetch each application """
     with open(options.local_apps_path, 'r') as json_file:
         data = json.load(json_file)
+
+    validate_homescreen(data, options.apps_path)
 
     """ Prepare apps """
     fetch_apps(data, options.profile_path, options.distribution_path)
