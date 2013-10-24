@@ -1006,6 +1006,21 @@ var WindowManager = (function() {
       iframe.dispatchEvent(evt);
     }, true);
 
+    iframe.addEventListener('mozbrowseractivitydone',
+      function activityFinished(e) {
+        stopInlineActivity();
+        if (runningApps[displayedApp].activityCaller) {
+          // Display activity callee if there's one bind to current activity.
+          var caller = runningApps[displayedApp].activityCaller;
+          delete caller.activityCallee;
+          delete runningApps[displayedApp].activityCaller;
+          setDisplayedApp(caller.origin);
+        } else if (!inlineActivityFrames.length && !activityCallerOrigin) {
+          setDisplayedApp(activityCallerOrigin);
+          activityCallerOrigin = '';
+        }
+      }, true);
+
     // Add the iframe to the document
     windows.appendChild(frame);
 
@@ -1119,25 +1134,6 @@ var WindowManager = (function() {
         inlineActivityFrames[inlineActivityFrames.length - 1]);
     }
   }
-
-  // Watch activity completion here instead of activity.js
-  // Because we know when and who to re-launch when activity ends.
-  window.addEventListener('mozChromeEvent', function(e) {
-    if (e.detail.type == 'activity-done') {
-      stopInlineActivity();
-      if (runningApps[displayedApp].activityCaller) {
-        // Display activity callee if there's one bind to current activity.
-        var caller = runningApps[displayedApp].activityCaller;
-        delete caller.activityCallee;
-        delete runningApps[displayedApp].activityCaller;
-        setDisplayedApp(caller.origin);
-      } else if (!inlineActivityFrames.length && !activityCallerOrigin) {
-        // Remove the top most frame every time we get an 'activity-done' event.
-        setDisplayedApp(activityCallerOrigin);
-        activityCallerOrigin = '';
-      }
-    }
-  });
 
   // Watch chrome event that order to close an app
   window.addEventListener('killapp', function(e) {
