@@ -203,6 +203,9 @@
     if (window.AppError) {
       this.error = new AppError(this);
     }
+    if (window.AppModalDialog) {
+      this.modalDialog = new AppModalDialog(this);
+    }
     this.publish('rendered');
   };
 
