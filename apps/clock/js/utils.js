@@ -218,6 +218,18 @@ Utils.safeCpuLock = function(timeoutMs, fn) {
   }
 };
 
+Utils.repeatString = function rep(str, times) {
+  var built = [], cur = str;
+  for (var i = 0, j = 1; j <= times; i++) {
+    if ((times & j) > 0) {
+      built.push(cur);
+    }
+    cur = cur + cur;
+    j = j << 1;
+  }
+  return built.join('');
+};
+
 Utils.format = {
   time: function(hour, minute) {
     var period = '';
@@ -263,8 +275,23 @@ Utils.format = {
       return format;
     }
     return hour + ':' + min + ':' + sec;
+  },
+  durationMs: function(ms) {
+    var dm = Utils.dateMath.fromMS(ms, {
+      unitsPartial: ['minutes', 'seconds', 'milliseconds']
+    });
+    var puts = function(x, n) {
+      x = String(x);
+      return Utils.repeatString('0', Math.max(0, n - x.length)) + x;
+    };
+    return [
+      puts(dm.minutes, 2), ':',
+      puts(dm.seconds, 2), '.',
+      puts((dm.milliseconds / 10) | 0, 2)
+    ].join('');
   }
 };
+
 
 Utils.async = {
 
