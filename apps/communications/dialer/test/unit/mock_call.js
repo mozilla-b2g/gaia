@@ -35,22 +35,19 @@ function MockCall(aNumber, aState) {
 
 
   // Mocking the events
-  this._connect = (function() {
+  this.mChangeState = (function(state) {
     if (this._handler) {
-      this.state = 'connected';
+      this.state = state;
       if ('handleEvent' in this._handler) {
         this._handler.handleEvent({call: this});
       }
     }
   }).bind(this);
 
+  this._connect = this.mChangeState.bind(this, 'connected');
+
   this._disconnect = (function() {
-    if (this._handler) {
-      this.state = 'disconnected';
-      if ('handleEvent' in this._handler) {
-        this._handler.handleEvent({call: this});
-      }
-    }
+    this.mChangeState('disconnected');
 
     if (this._disconnectHandler) {
       this._disconnectHandler();
@@ -58,28 +55,12 @@ function MockCall(aNumber, aState) {
   }).bind(this);
 
   this._hold = (function() {
-    if (this._handler) {
-      this.state = 'holding';
-      if ('handleEvent' in this._handler) {
-        this._handler.handleEvent({call: this});
-      }
-      this.state = 'held';
-      if ('handleEvent' in this._handler) {
-        this._handler.handleEvent({call: this});
-      }
-    }
+    this.mChangeState('holding');
+    this.mChangeState('held');
   }).bind(this);
 
   this._resume = (function() {
-    if (this._handler) {
-      this.state = 'resuming';
-      if ('handleEvent' in this._handler) {
-        this._handler.handleEvent({call: this});
-      }
-      this.state = 'resumed';
-      if ('handleEvent' in this._handler) {
-        this._handler.handleEvent({call: this});
-      }
-    }
+    this.mChangeState('resuming');
+    this.mChangeState('resumed');
   }).bind(this);
 }

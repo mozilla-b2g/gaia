@@ -70,6 +70,10 @@ function HandledCall(aCall) {
 
 HandledCall.prototype.handleEvent = function hc_handle(evt) {
   switch (evt.call.state) {
+    case 'dialing':
+    case 'alerting':
+      CallsHandler.updateKeypadEnabled();
+      break;
     case 'connected':
       CallScreen.render('connected');
       this.connected();
