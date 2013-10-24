@@ -95,7 +95,8 @@ var UIManager = {
     'ff-account-pp-screen',
     'ff-account-success-screen',
     'ff-account-password-invalid-error-dialog',
-    'ff-account-password-mismatch-error-dialog'
+    'ff-account-password-mismatch-error-dialog',
+    'ff-account-password-not-set-error-dialog'
   ],
 
   init: function ui_init() {
@@ -186,34 +187,16 @@ var UIManager = {
       this.newsletterSuccessScreen.classList.add('visible');
     };
 
-    this.offlineNewsletterErrorDialog
-      .querySelector('button')
+    var dialogs = document.querySelectorAll('.error-dialog');
+    var numDialogs = dialogs.length;
+    for (var i = 0; i < numDialogs; ++i) {
+      var dialogEl = dialogs[i];
+      dialogEl.querySelector('button')
       .addEventListener('click',
-        function offlineDialogClick() {
-          this.offlineNewsletterErrorDialog.classList.remove('visible');
-        }.bind(this));
-
-    this.invalidEmailErrorDialog
-      .querySelector('button')
-      .addEventListener('click',
-        function invalidEmailDialogClick() {
-          this.invalidEmailErrorDialog.classList.remove('visible');
-        }.bind(this));
-
-    // TODO - maybe generalize this somehow?
-    this.ffAccountPasswordInvalidErrorDialog
-      .querySelector('button')
-      .addEventListener('click',
-        function ffAccountPasswordInvalidErrorDialogClick() {
-          this.ffAccountPasswordInvalidErrorDialog.classList.remove('visible');
-        }.bind(this));
-
-    this.ffAccountPasswordMismatchErrorDialog
-      .querySelector('button')
-      .addEventListener('click',
-        function ffAccountPasswordMismatchErrorDialogClick() {
-          this.ffAccountPasswordMismatchErrorDialog.classList.remove('visible');
-        }.bind(this));
+        function closeDialog() {
+          this.classList.remove('visible');
+        }.bind(dialogEl));
+    }
 
     this.skipTutorialButton.addEventListener('click', function() {
       WifiManager.finish();

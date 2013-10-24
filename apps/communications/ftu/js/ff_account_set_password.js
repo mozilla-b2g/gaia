@@ -12,7 +12,10 @@ FirefoxAccountSetPassword = (function() {
   var SHOW_PASSWORD_SELECTOR = '.pack-checkbox__set_password--show_password';
   var SHOW_PASSWORD_CHECKBOX_SELECTOR =
           '#ff_account--set_password--show_password';
-  var INVALID_PASSWORD_ERROR_SELECTOR = '#invalid-email-error-dialog';
+  var INVALID_PASSWORD_ERROR_SELECTOR =
+          '#ff-account-password-invalid-error-dialog';
+  var PASSWORD_NOT_SET_ERROR_SELECTOR =
+          '#ff-account-password-not-set-error-dialog';
 
   function $(selector) {
     return document.querySelector(selector);
@@ -27,8 +30,14 @@ FirefoxAccountSetPassword = (function() {
     return $(INVALID_PASSWORD_ERROR_SELECTOR).classList.add('visible');
   }
 
-  function getNextState(password, done) {
-    done(states.SIGNUP_SUCCESS);
+  function setPassword(email, password, done) {
+    // TODO - hook up to client lib to stage a user.
+    if (password === 'password') return done(true);
+    done(false);
+  }
+
+  function showPasswordNotSet() {
+    return $(PASSWORD_NOT_SET_ERROR_SELECTOR).classList.add('visible');
   }
 
   function togglePasswordVisibility() {
@@ -41,6 +50,8 @@ FirefoxAccountSetPassword = (function() {
   var Module = {
     init: function(options) {
       options = options || {};
+
+      this.email = options.email;
 
       $(EMAIL_SELECTOR).innerHTML = options.email;
 
@@ -57,9 +68,14 @@ FirefoxAccountSetPassword = (function() {
       }
 
       var passwordValue = passwordEl.value;
-      this.passwordValue = passwordValue;
+      setPassword(this.email, passwordValue, function(isPasswordSet) {
+        if ( ! isPasswordSet) {
+          return showPasswordNotSet();
+        }
 
-      getNextState(passwordValue, gotoNextStepCallback);
+        this.passwordValue = passwordValue;
+        gotoNextStepCallback(states.SIGNUP_SUCCESS);
+      }.bind(this));
     },
 
     getPassword: function() {

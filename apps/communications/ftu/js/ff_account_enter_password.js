@@ -29,7 +29,7 @@ FirefoxAccountEnterPassword = (function() {
     return $(PASSWORD_INVALID_ERROR_SELECTOR).classList.add('visible');
   }
 
-  function checkPasswordCorrect(password, done) {
+  function checkPasswordCorrect(email, password, done) {
     // TODO - hook up to client lib to authenticate a user.
     if (password === 'password') return done(true);
     done(false);
@@ -51,6 +51,8 @@ FirefoxAccountEnterPassword = (function() {
     init: function(options) {
       options = options || {};
 
+      this.email = options.email;
+
       $(EMAIL_SELECTOR).innerHTML = options.email;
 
       // TODO - put the binding in ui.js
@@ -66,7 +68,7 @@ FirefoxAccountEnterPassword = (function() {
       }
 
       var passwordValue = passwordEl.value;
-      checkPasswordCorrect(passwordValue, function(isPasswordCorrect) {
+      checkPasswordCorrect(this.email, passwordValue, function(isPasswordCorrect) {
         if ( ! isPasswordCorrect) {
           return showPasswordMismatch();
         }

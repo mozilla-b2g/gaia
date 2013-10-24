@@ -279,7 +279,7 @@
         </section>
       </section>
 
-      <section role="region" id="ff-account-signup-success-screen" class="ff_account">
+      <section role="region" id="ff-account-signup-success-screen" class="ff_account" data-navigation="forward-only">
         <section class="ff_account--wrapper ff_account--wrapper__top-margin">
           <h2 data-l10n-id="ff-account-signup-success-header" class="ff_account--title">
             Confirm your account
@@ -849,6 +849,16 @@
     <section>
       <h1 data-l10n-id='ff-account-password-mismatch-dialog-title'>This email and password do not match.</h1>
       <p><small data-l10n-id='invalid-password-dialog-text'>Please go back and correct your entry.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+
+  <form role='dialog' data-type='confirm' id='ff-account-password-not-set-error-dialog' class="error-dialog">
+    <section>
+      <h1 data-l10n-id='ff-account-password-not-set-dialog-title'>There was an error setting your password.</h1>
+      <p><small data-l10n-id='invalid-password-dialog-text'>Please go back and try again.</small></p>
       <menu>
         <button class='full' data-l10n-id='OK'>OK</button>
       </menu>
