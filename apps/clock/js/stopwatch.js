@@ -61,23 +61,25 @@ define(function() {
       if (sw.state === Stopwatch.RUNNING) {
         return;
       }
-      sw.startTime = Date.now();
+      var now = Date.now() - sw.totalElapsed;
+      sw.startTime = now;
       this.setState(Stopwatch.RUNNING);
     },
 
     /**
     * getElapsedTime Calculates the total elapsed duration since the
     *                stopwatch was started
-    * @return {Date} return total elapsed duration
+    * @return {Date} return total elapsed duration.
     */
     getElapsedTime: function sw_getElapsedTime() {
       var sw = priv.get(this);
       var elapsed = 0;
       if (sw.state === Stopwatch.RUNNING) {
         elapsed = Date.now() - sw.startTime;
+      } else {
+        elapsed = sw.totalElapsed;
       }
-      elapsed += sw.totalElapsed;
-      return new Date(elapsed);
+      return elapsed;
     },
 
     /**
@@ -88,20 +90,23 @@ define(function() {
       if (sw.state === Stopwatch.PAUSED) {
         return;
       }
-      var elapsed = Date.now() - sw.startTime;
-      sw.totalElapsed += elapsed;
+      sw.totalElapsed = Date.now() - sw.startTime;
       this.setState(Stopwatch.PAUSED);
     },
 
     /**
-    * lap Calculates a new lap duration since the last lap time
-    *     If the stopwatch isn't currently running, returns 0
-    * @return {Date} return the lap duration
+    * nextLap Calculates the duration of the next lap.
+    * @return {object} return an object containing:
+    *         duration - the duration of this lap in ms.
+    *         time - the start time of this lap in ms from epoch.
     */
-    lap: function sw_lap() {
+    nextLap: function sw_nextLap() {
       var sw = priv.get(this);
-      if (sw.state !== Stopwatch.RUNNING) {
-        return new Date(0);
+      var now;
+      if (sw.state === Stopwatch.RUNNING) {
+        now = Date.now();
+      } else {
+        now = sw.startTime + sw.totalElapsed;
       }
 
       var lastLapTime;
@@ -110,20 +115,34 @@ define(function() {
       if (sw.laps.length > 0) {
         lastLapTime = sw.laps[sw.laps.length - 1].time;
       } else {
-        lastLapTime = sw.startTime;
+        lastLapTime = 0;
       }
 
-      var lastTime = lastLapTime > sw.startTime ? lastLapTime : sw.startTime;
-      newLap.duration = Date.now() - lastTime;
-      newLap.time = Date.now();
-      sw.laps.push(newLap);
+      newLap.duration = now - (sw.startTime + lastLapTime);
+      newLap.time = now - sw.startTime;
 
-      return new Date(newLap.duration);
+      return newLap;
+    },
+
+    /**
+    * lap Calculates a new lap duration since the last lap time,
+    *     and mutates `priv[this].laps` to contain the new value.
+    *     If the stopwatch isn't currently running, returns 0.
+    * @return {number} return the lap duration in ms.
+    */
+    lap: function sw_lap() {
+      var sw = priv.get(this);
+      if (sw.state !== Stopwatch.RUNNING) {
+        return 0;
+      }
+      var nl = this.nextLap();
+      sw.laps.push(nl);
+      return nl.duration;
     },
 
     /**
     * getLapDurations Returns an array of lap durations, sorted by oldest first
-    * @return {Array} return an array of lap durations
+    * @return {Array} return an array of lap durations.
     */
     getLapDurations: function sw_getLapDurations() {
       var sw = priv.get(this);
@@ -141,7 +160,7 @@ define(function() {
 
     /**
     * toSerializable Returns a serializable object for persisting Stopwatch data
-    * @return {Object} A serializable object
+    * @return {Object} A serializable object.
     */
     toSerializable: function sw_toSerializable() {
       var sw = priv.get(this);

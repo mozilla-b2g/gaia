@@ -65,8 +65,9 @@ define(function(require) {
   Stopwatch.Panel.prototype.update = function() {
     var swp = priv.get(this);
     var e = swp.stopwatch.getElapsedTime();
-    var time = Utils.format.hms(Math.floor(e.getTime() / 1000), 'mm:ss');
+    var time = Utils.format.durationMs(e);
     this.nodes.time.textContent = time;
+    this.activeLap(false);
   };
 
   Stopwatch.Panel.prototype.showButtons = function() {
@@ -110,7 +111,7 @@ define(function(require) {
     lapsUl.textContent = '';
     var laps = stopwatch.getLapDurations();
     for (var i = 0; i < laps.length; i++) {
-      this.onlap(new Date(laps[i]));
+      this.onlap(laps[i]);
     }
   };
 
@@ -118,9 +119,6 @@ define(function(require) {
     var stopwatch = priv.get(this).stopwatch;
     if (isVisible) {
       this.setState(stopwatch.getState());
-    } else {
-      // Clear the interval that updates the time display
-      clearInterval(this.interval);
     }
   };
 
@@ -143,13 +141,18 @@ define(function(require) {
   };
 
   Stopwatch.Panel.prototype.onstart = function() {
-    this.interval = setInterval(this.update.bind(this), 50);
+    var tickfn = (function() {
+      this.update();
+      this.tick = requestAnimationFrame(tickfn);
+    }).bind(this);
+    tickfn();
     this.showButtons('pause', 'lap');
     this.hideButtons('start', 'resume', 'reset');
   };
 
   Stopwatch.Panel.prototype.onpause = function() {
-    clearInterval(this.interval);
+    cancelAnimationFrame(this.tick);
+    this.update();
     this.nodes.reset.removeAttribute('disabled');
     this.showButtons('resume', 'reset');
     this.hideButtons('pause', 'start', 'lap');
@@ -159,29 +162,62 @@ define(function(require) {
     this.onstart();
   };
 
-  Stopwatch.Panel.prototype.onlap = function(val) {
-    var node = this.nodes.laps;
-    var num = node.childNodes.length + 1;
-    if (num > 99) {
-      return;
+  function lapDom(num, time, li) {
+    if (typeof li === 'undefined') {
+      li = document.createElement('li');
+      li.setAttribute('class', 'lap-cell');
+      var html = this.lapTemplate.interpolate({
+        time: Utils.format.durationMs(time)
+      });
+      li.innerHTML = html;
+    } else {
+      li.querySelector('.lap-duration').textContent =
+        Utils.format.durationMs(time);
     }
-    var time = Utils.format.hms(Math.floor(val.getTime() / 1000), 'mm:ss');
-    var li = document.createElement('li');
-    li.setAttribute('class', 'lap-cell');
-    var html = this.lapTemplate.interpolate({
-      time: time
-    });
-    li.innerHTML = html;
     mozL10n.localize(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: num }
     );
-    node.insertBefore(li, node.firstChild);
+    return li;
+  }
+
+  Stopwatch.Panel.prototype.activeLap = function(force) {
+    var stopwatch = priv.get(this).stopwatch;
+    var num = stopwatch.getLapDurations().length + 1;
+    if (num === 1 && !force) {
+      return;
+    }
+    var node = this.nodes.laps;
+    var lapnodes = node.querySelectorAll('li.lap-cell');
+    var time = stopwatch.nextLap().duration;
+    if (lapnodes.length === 0) {
+      node.appendChild(lapDom.call(this, num, time));
+    } else {
+      lapDom.call(this, num, time, lapnodes[0]);
+    }
+  };
+
+  Stopwatch.Panel.prototype.onlap = function(val) {
+    var stopwatch = priv.get(this).stopwatch;
+    var node = this.nodes.laps;
+    var laps = stopwatch.getLapDurations();
+    var num = laps.length;
+    if (num > 1000) {
+      return;
+    }
+    this.activeLap(true);
+    var li = lapDom.call(this, num, val);
+    if (laps.length > 1) {
+      var lapnodes = node.querySelectorAll('li.lap-cell');
+      node.insertBefore(li, lapnodes[1]);
+    } else {
+      node.appendChild(li);
+    }
   };
 
   Stopwatch.Panel.prototype.onreset = function() {
-    clearInterval(this.interval);
+    cancelAnimationFrame(this.tick);
     this.showButtons('start', 'reset');
     this.hideButtons('pause', 'resume', 'lap');
     this.nodes.reset.setAttribute('disabled', 'true');
