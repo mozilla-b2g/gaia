@@ -1577,6 +1577,9 @@ contacts.List = (function() {
       selectedContacts[id] = !selectedContacts[id];
       updateRowSelection([id]);
       handleSelection(null);
+      if (contacts.Search && contacts.Search.isInSearchMode()) {
+        contacts.Search.selectRow(id, selectedContacts[id]);
+      }
     });
 
     if (callback) {
