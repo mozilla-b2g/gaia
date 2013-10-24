@@ -109,8 +109,6 @@ html, body {
   margin: 5.8rem auto 0;
 }
 
-/* The padding-top used here is based on the width of the analog-clock-container
-   https://developer.mozilla.org/en-US/docs/Web/CSS/padding */
 #analog-clock-face {
   position: relative;
 
