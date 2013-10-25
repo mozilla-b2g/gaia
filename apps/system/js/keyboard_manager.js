@@ -320,7 +320,7 @@ var KeyboardManager = {
     this._debug('resizeKeyboard: ' + this.keyboardHeight);
     if (this.keyboardHeight <= 0)
        return;
-     evt.stopPropagation();
+    evt.stopPropagation();
 
     var self = this;
     var updateHeight = function km_updateHeight() {
@@ -444,6 +444,15 @@ var KeyboardManager = {
   },
 
   showKeyboard: function km_showKeyboard(callback) {
+    // Are we already shown and not currently in a transition? Continue.
+    if (!this.keyboardFrameContainer.classList.contains('hide') &&
+        this.keyboardFrameContainer.dataset.transitionIn !== 'true') {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
     this.keyboardFrameContainer.classList.remove('hide');
     this.keyboardFrameContainer.dataset.transitionIn = 'true';
 
