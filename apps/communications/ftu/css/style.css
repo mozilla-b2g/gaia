@@ -966,16 +966,12 @@ i.hack-first-child {
 
 #newsletter-form.hidden,
 #newsletter-success-screen,
-#invalid-email-error-dialog,
-#offline-newsletter-error-dialog,
-#offline-error-dialog {
+.error-dialog {
   display: none;
 }
 
 #newsletter-success-screen.visible,
-#invalid-email-error-dialog.visible,
-#offline-newsletter-error-dialog.visible,
-#offline-error-dialog.visible {
+.error-dialog.visible {
   display: block;
 }
 
@@ -1155,5 +1151,104 @@ i.hack-first-child {
 #tutorial-screen .step-state:before {
   width: calc(100% / 4);
   background: #FFFFFF;
+}
+
+
+/**
+ * Firefox accounts
+ */
+
+.ff_account {
+  font-size: 1.4rem;
+}
+
+.ff_account--title {
+  font-size: 2.0rem;
+  margin-bottom: 1rem;
+}
+
+.ff_account--wrapper {
+  padding: 0px 3rem 1rem;
+}
+
+.ff_account--wrapper__top-margin {
+  margin-top: 2em;
+}
+
+.ff_account--logo {
+  max-width: 92%;
+  display: block;
+  margin: 2rem auto 0;
+}
+
+.ff_account--logo__small {
+  width: 104px;
+  height: 70px;
+  background: url('images/ff_account_logo.png') no-repeat;
+  background-size: 104px;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  margin-left: -57px;
+}
+
+@media screen and (max-height: 479px) {
+  .ff_account--logo__small {
+    display: none;
+  }
+}
+
+
+.ff_account--label {
+  display: inline-block;
+  margin-bottom: .55rem;
+}
+
+input.ff_account--input {
+  margin-bottom: 0.5rem;
+}
+
+.ff_account--small {
+  font-size: 1.05rem;
+  line-height: 1.5rem;
+}
+
+
+.ff_account--image {
+  margin: 0 .6rem 0 0;
+  float: left;
+}
+
+.ff_account--image + p {
+  margin-top: 0;
+}
+
+.ff_account--image__envelope {
+  width: 48px;
+  height: 31px;
+  background: url('images/ff_account_envelope.png') no-repeat;
+  background-size: 48px;
+}
+
+.ff_account--success-email {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+label.pack-checkbox__ff_account {
+  width: 100%;
+  height: auto;
+  margin: 0px 3rem 0px 0px
+}
+
+/* reset the styles from the original label.pack-checkbox input + span */
+label.pack-checkbox__ff_account input + span {
+  left: 0;
+  margin-left: 0;
+}
+
+.pack-checkbox__ff_account--label {
+  width: calc(100% - 3.5rem);
+  float: right;
 }
 

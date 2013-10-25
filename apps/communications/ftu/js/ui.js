@@ -83,7 +83,21 @@ var UIManager = {
     'newsletter-input',
     'newsletter-success-screen',
     'offline-newsletter-error-dialog',
-    'invalid-email-error-dialog'
+    'invalid-email-error-dialog',
+    // Firefox Accounts
+    'ff-account-intro-screen',
+    'ff-account-enter-email-screen',
+    'ff-account-enter-password-screen',
+    'ff-account-create-password-screen',
+    'ff-account-no-network-screen',
+    'ff-account-email-submit-screen',
+    'ff-account-reset-password-screen',
+    'ff-account-tos-screen',
+    'ff-account-pp-screen',
+    'ff-account-success-screen',
+    'ff-account-password-invalid-error-dialog',
+    'ff-account-password-mismatch-error-dialog',
+    'ff-account-password-not-set-error-dialog'
   ],
 
   init: function ui_init() {
@@ -116,6 +130,8 @@ var UIManager = {
     this.hiddenWifiSecurity.addEventListener('change', this);
     this.wifiJoinButton.disabled = true;
 
+    this.ffAccountEnterEmailScreen.addEventListener('click', this);
+
     this.hiddenWifiPassword.addEventListener('keyup', function() {
       this.wifiJoinButton.disabled = !WifiHelper.isValidInput(
         this.hiddenWifiSecurity.value,
@@ -140,16 +156,34 @@ var UIManager = {
     });
 
     // Input scroll workaround
-    var top = this.newsletterInput.offsetTop;
-    this.newsletterInput.addEventListener('focus', function() {
-      window.addEventListener('resize', function resize() {
-        window.removeEventListener('resize', resize);
-        // Need to wait till resize is done
-        setTimeout(function() {
-          document.getElementById('browser_privacy').scrollTop = top;
-        }, 30);
+    var inputEls = document.querySelectorAll("input.scroll-on-focus");
+    // NodeLists do not support .forEach by default,
+    // use Array.prototype's instead.
+    [].forEach.call(inputEls, function(inputEl) {
+      var top = inputEl.offsetTop;
+      inputEl.addEventListener('focus', function() {
+        window.addEventListener('resize', function resize() {
+          window.removeEventListener('resize', resize);
+          // Need to wait till resize is done
+          setTimeout(function() {
+            var region = findAncestorRegion(inputEl);
+            if (region) {
+              var newScrollTop = top + 100;
+              region.scrollTop = newScrollTop;
+            }
+          }, 30);
+        });
       });
     });
+
+    function findAncestorRegion(inputEl) {
+      if (inputEl.getAttribute('role') === "region") return inputEl;
+
+      var parent = inputEl.parentElement;
+      if ( ! parent) return null;
+
+      return findAncestorRegion(parent);
+    }
 
     // Browser privacy newsletter subscription
     var basketCallback = function(err, data) {
@@ -173,19 +207,16 @@ var UIManager = {
       this.newsletterSuccessScreen.classList.add('visible');
     };
 
-    this.offlineNewsletterErrorDialog
-      .querySelector('button')
+    var dialogs = document.querySelectorAll('.error-dialog');
+    var numDialogs = dialogs.length;
+    for (var i = 0; i < numDialogs; ++i) {
+      var dialogEl = dialogs[i];
+      dialogEl.querySelector('button')
       .addEventListener('click',
-        function offlineDialogClick() {
-          this.offlineNewsletterErrorDialog.classList.remove('visible');
-        }.bind(this));
-
-    this.invalidEmailErrorDialog
-      .querySelector('button')
-      .addEventListener('click',
-        function invalidEmailDialogClick() {
-          this.invalidEmailErrorDialog.classList.remove('visible');
-        }.bind(this));
+        function closeDialog() {
+          this.classList.remove('visible');
+        }.bind(dialogEl));
+    }
 
     this.skipTutorialButton.addEventListener('click', function() {
       WifiManager.finish();

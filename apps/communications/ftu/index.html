@@ -76,6 +76,12 @@
   <script defer type="text/javascript" src="/ftu/js/variant.js"></script>
   <script defer type="text/javascript" src="/contacts/js/utilities/import_sim_contacts.js"></script>
   <script defer type="text/javascript" src="/ftu/js/operatorVariant.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_states.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_enter_email.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_set_password.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_enter_password.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_signup_success.js"></script>
+  <script defer type="text/javascript" src="/ftu/js/ff_account_password_reset_success.js"></script>
   <!-- Confirm dialogs BB library -->
   <script defer type="text/javascript" src="/contacts/js/utilities/confirm.js"></script>
 </head>
@@ -154,6 +160,7 @@
       <li>wifi</li>
       <li>configure network</li>
       <li>date and time</li>
+      <li>firefox accounts</li>
       <li>geolocation</li>
       <li>browser privacy</li>
     </ol>
@@ -193,6 +200,165 @@
           </button>
         </div>
       </section>
+
+      <section role="region" id="ff-account-intro-screen" class="ff_account">
+        <img class="ff_account--logo" alt="Firefox Accounts Logo" src="/ftu/css/images/ff_account_logo.png" />
+        <section class="ff_account--wrapper">
+          <p id="ff_account--explanation" data-l10n-id="ff-account-explanation"></p>
+        </section>
+      </section>
+
+      <section role="region" id="ff-account-enter-email-screen" class="ff_account">
+        <img class="ff_account--logo" alt="Firefox Accounts Logo" src="/ftu/css/images/ff_account_logo.png" />
+        <div class="ff_account--wrapper">
+          <label for="ff_account--enter-email" data-l10n-id="ff-account-enter-your-email" class="ff_account--label"></label>
+          <input type="email" id="ff_account--enter-email" name="ff_account--enter-email" placeholder="enter your email" class="ff_account--input scroll-on-focus"/>
+          <p class="ff_account--small">
+              By proceeding, you agree to our <a href="#ff-account-tos-screen" class="ff_account--small">Terms of Service</a> and <a href="#ff-account-pp-screen" class="ff_account--small">Privacy Policy</a>.
+          </p>
+        </div>
+      </section>
+
+      <section role="region" id="ff-account-set-password-screen" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-set-password-header" class="ff_account--title"></h2>
+
+          <p>
+            Hello, <strong id="ff_account--set_password--email"></strong>
+          </p>
+
+          <input type="password" id="ff_account--set_password" placeholder="enter your password" class="ff_account--input" pattern=".{8,}" />
+          <div data-l10n-id="ff-account-set-password-password-length" class="ff_account--small"></div>
+
+          <label class="pack-checkbox pack-checkbox__ff_account pack-checkbox__set_password--show_password">
+            <input id="ff_account--set_password--show_password" type="checkbox" data-ignore name="show-password" />
+            <span></span>
+            <p class="pack-checkbox__ff_account--label" data-l10n-id="showPassword">Show Password</p>
+          </label>
+
+          <div>
+            <div class="ff_account--logo ff_account--logo__small"></div>
+          </div>
+        </section>
+      </section>
+
+      <section role="region" id="ff-account-enter-password-screen" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-enter-password-header" class="ff_account--title"></h2>
+
+          <p>
+            Hello, <strong id="ff_account--enter_password--email"></strong>
+          </p>
+
+          <input type="password" id="ff_account--enter_password" placeholder="enter your password" class="ff_account--input" pattern=".{8,}" />
+
+          <p>
+            <a href="#ff-account-reset-password-screen" data-l10n-id="ff-account-forgot-password"></a>
+          </p>
+
+          <label class="pack-checkbox pack-checkbox__ff_account pack-checkbox__enter_password--show_password">
+            <input id="ff_account--enter_password--show_password" type="checkbox" data-ignore name="show-password" />
+            <span></span>
+            <p class="pack-checkbox__ff_account--label" data-l10n-id="showPassword">Show Password</p>
+          </label>
+
+          <div>
+            <div class="ff_account--logo ff_account--logo__small"></div>
+          </div>
+        </section>
+      </section>
+
+      <section role="region" id="ff-account-no-network-screen" class="ff_account" data-navigation="forward-only">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-no-network-header" class="ff_account--title"></h2>
+          <p data-l10n-id="ff-account-no-network-cannot-continue"></p>
+          <p data-l10n-id="ff-account-no-network-finish-in-settings"></p>
+          <p data-l10n-id="ff-account-no-network-next"></p>
+          <div>
+            <div class="ff_account--logo ff_account--logo__small"></div>
+          </div>
+        </section>
+      </section>
+
+      <section role="region" id="ff-account-signup-success-screen" class="ff_account" data-navigation="forward-only">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-signup-success-header" class="ff_account--title">
+            Confirm your account
+          </h2>
+          <div class="ff_account--image ff_account--image__envelope"></div>
+          <p data-l10n-id="ff-account-signup-success-address-sent-to">
+            We’ve sent an email to: <span id="ff_account--signup_success--email" class="ff_account--success-email"></span>.
+          </p>
+          <p data-l10n-id="ff-account-signup-success-check-email">
+            Next time you check your email, click the verification link to confirm your Firefox account.
+          </p>
+          <p data-l10n-id="ff-account-success-access-via-settings">
+            In the future, you can access and manage your account from your phone’s settings.
+          </p>
+        </section>
+        <div>
+          <div class="ff_account--logo ff_account--logo__small"></div>
+        </div>
+      </section>
+
+      <section role="region" id="ff-account-signin-success-screen" class="ff_account" data-navigation="forward-only">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-signin-success-header" class="ff_account--title">
+            Success!
+          </h2>
+          <p data-l10n-id="ff-account-signin-success-ready-to-go">
+            Your Firefox Account is ready to go!
+          </p>
+          <p data-l10n-id="ff-account-signin-success-use-services">
+            Now you can use <span id="ff_account--success-email"></span> to access services like Marketplace and Where’s My Fox.
+          </p>
+          <p data-l10n-id="ff-account-signin-success-access-via-settings">
+            In the future, you can access and manage your account from your phone’s settings.
+          </p>
+        </section>
+        <div>
+          <div class="ff_account--logo ff_account--logo__small"></div>
+        </div>
+      </section>
+
+      <section role="region" id="ff-account-reset-password-screen" class="ff_account">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-reset-password-header" class="ff_account--title">
+            Reset Your Password
+          </h2>
+          <div class="ff_account--image ff_account--image__envelope"></div>
+          <p data-l10n-id="ff-account-reset-password-address-sent-to">
+            We’ve sent an email to: <span id="ff_account--password_reset_success--email" class="ff_account--success-email"></span>.
+          </p>
+          <p data-l10n-id="ff-account-reset-password-check-email">
+            Next time you check your email, you'll be able to reset your Firefox Account password.
+          </p>
+          <p data-l10n-id="ff-account-success-access-via-settings">
+            In the future, you can access and manage your account from your phone’s settings.
+          </p>
+        </section>
+        <div>
+          <div class="ff_account--logo ff_account--logo__small"></div>
+        </div>
+      </section>
+
+
+      <section role="region" id="ff-account-tos-screen" class="ff_account" data-navigation="back-only" data-progress-bar="hidden">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-tos-header" class="ff_account--title"></h2>
+          <p data-l10n-id="ff-account-tos1"></p>
+          <p data-l10n-id="ff-account-tos2"></p>
+        </section>
+      </section>
+
+      <section role="region" id="ff-account-pp-screen" class="ff_account" data-navigation="back-only" data-progress-bar="hidden">
+        <section class="ff_account--wrapper ff_account--wrapper__top-margin">
+          <h2 data-l10n-id="ff-account-pp-header" class="ff_account--title"></h2>
+          <p data-l10n-id="ff-account-pp1"></p>
+          <p data-l10n-id="ff-account-pp2"></p>
+        </section>
+      </section>
+
       <section role="region" id="configure_network">
         <section id="configure_network_params">
           <form>
@@ -469,7 +635,7 @@
           email address below.
         </p>
         <section id="newsletter-form">
-          <input type="email" data-l10n-id="emailAddress" placeholder="Email address" id="newsletter-input"></input>
+          <input type="email" data-l10n-id="emailAddress" placeholder="Email address" id="newsletter-input" class="scroll-on-focus"></input>
         </section>
         <section id="newsletter-success-screen">
           <p data-l10n-id="email-successfully-added">
@@ -637,7 +803,7 @@
     </section>
   </section>
 
-  <form role='dialog' data-type='confirm' id='offline-error-dialog'>
+  <form role='dialog' data-type='confirm' id='offline-error-dialog' class="error-dialog">
     <section>
       <h1 data-l10n-id='offline-dialog-title'>You must be connected to the Internet to view the page.</h1>
       <p><small data-l10n-id='offline-dialog-text'>Please go back and connect to
@@ -649,7 +815,7 @@
     </section>
   </form>
 
-  <form role='dialog' data-type='confirm' id='offline-newsletter-error-dialog'>
+  <form role='dialog' data-type='confirm' id='offline-newsletter-error-dialog' class="error-dialog">
     <section>
       <h1 data-l10n-id='offline-newsletter-dialog-title'>You must be connected to the Internet to subscribe to the newsletter.</h1>
       <p><small data-l10n-id='offline-newsletter-dialog-text'>Please go back and connect to
@@ -660,10 +826,40 @@
     </section>
   </form>
 
-  <form role='dialog' data-type='confirm' id='invalid-email-error-dialog'>
+  <form role='dialog' data-type='confirm' id='invalid-email-error-dialog' class="error-dialog">
     <section>
       <h1 data-l10n-id='invalid-email-dialog-title'>Your email is not valid</h1>
       <p><small data-l10n-id='invalid-email-dialog-text'>Please go back and correct your entry.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+
+  <form role='dialog' data-type='confirm' id='ff-account-password-invalid-error-dialog' class="error-dialog">
+    <section>
+      <h1 data-l10n-id='invalid-password-dialog-title'>Your password is not valid</h1>
+      <p><small data-l10n-id='invalid-password-dialog-text'>Please go back and correct your entry.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+
+  <form role='dialog' data-type='confirm' id='ff-account-password-mismatch-error-dialog' class="error-dialog">
+    <section>
+      <h1 data-l10n-id='ff-account-password-mismatch-dialog-title'>This email and password do not match.</h1>
+      <p><small data-l10n-id='invalid-password-dialog-text'>Please go back and correct your entry.</small></p>
+      <menu>
+        <button class='full' data-l10n-id='OK'>OK</button>
+      </menu>
+    </section>
+  </form>
+
+  <form role='dialog' data-type='confirm' id='ff-account-password-not-set-error-dialog' class="error-dialog">
+    <section>
+      <h1 data-l10n-id='ff-account-password-not-set-dialog-title'>There was an error setting your password.</h1>
+      <p><small data-l10n-id='invalid-password-dialog-text'>Please go back and try again.</small></p>
       <menu>
         <button class='full' data-l10n-id='OK'>OK</button>
       </menu>

@@ -35,10 +35,32 @@ var steps = {
   },
   7: {
     onlyForward: false,
+    hash: '#ff-account-intro-screen',
+    requireSIM: false
+  },
+  /*
+  8: {
+    onlyForward: false,
+    hash: '#ff-account-enter-email-screen',
+    requireSIM: false
+  },
+  6: {
+    onlyForward: false,
+    hash: '#ff-account-email-submit-screen',
+    requireSIM: false
+  },
+  7: {
+    // TODO - change this to true
+    onlyForward: false,
+    hash: '#ff-account-success-screen',
+    requireSIM: false
+  },*/
+  8: {
+    onlyForward: false,
     hash: '#welcome_browser',
     requireSIM: false
   },
-  8: {
+  9: {
     onlyForward: false,
     hash: '#browser_privacy',
     requireSIM: false
@@ -93,7 +115,12 @@ var Navigation = {
 
   forward: function n_forward(event) {
     var self = this;
-    var goToStepForward = function() {
+    var goToStepForward = function(hash) {
+      if (hash) {
+        document.location.hash = hash;
+        return;
+      }
+
       self.previousStep = self.currentStep;
       self.currentStep++;
       if (self.currentStep > numSteps) {
@@ -111,7 +138,34 @@ var Navigation = {
       }
       self.manageStep();
     };
-    goToStepForward();
+
+    var actualHash = window.location.hash;
+    switch (actualHash) {
+      case FirefoxAccountsStates.INTRO:
+        goToStepForward(FirefoxAccountsStates.ENTER_EMAIL);
+        break;
+      case FirefoxAccountsStates.ENTER_EMAIL:
+        FirefoxAccountEnterEmail.forward(goToStepForward);
+        break;
+      case FirefoxAccountsStates.SET_PASSWORD:
+        FirefoxAccountSetPassword.forward(goToStepForward);
+        break;
+      case FirefoxAccountsStates.ENTER_PASSWORD:
+        FirefoxAccountEnterPassword.forward(goToStepForward);
+        break;
+      /*
+      case FirefoxAccountsStates.SIGNIN_SUCCESS:
+        FirefoxAccountSignInSuccessScreen.forward(goToStepForward);
+        break;
+        */
+      case FirefoxAccountsStates.SIGNUP_SUCCESS:
+        FirefoxAccountSignUpSuccess.forward(goToStepForward);
+        break;
+      default:
+        goToStepForward();
+        break;
+    }
+
   },
 
   handleExternalLinksClick: function n_handleExternalLinksClick(e) {
@@ -135,9 +189,14 @@ var Navigation = {
     window.open(href);
   },
 
-  getProgressBarClassName: function n_getProgressBarClassName() {
+  getProgressBarClassName: function n_getProgressBarClassName(target) {
+    var className = target && target.getAttribute('data-progress-bar');
+    if (className) {
+      return className;
+    }
+
     // Manage step state (dynamically change)
-    var className = 'step-state step-';
+    className = 'step-state step-';
     if (this.skipped && this.currentStep > 2) {
       className += (this.currentStep - 1) + ' less-steps';
     } else {
@@ -149,7 +208,47 @@ var Navigation = {
 
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
-    var className = this.getProgressBarClassName();
+    var target = document.querySelector(actualHash);
+    var progressBarClassName = this.getProgressBarClassName(target);
+
+    UIManager.navBar.classList.remove('forward-only');
+    UIManager.navBar.classList.remove('back-only');
+
+    // the nav bar shows both forward/back buttons by default. Screen devs can
+    // add a data-navigation attribute with either "back-only" or
+    // "forward-only" to override behavior.
+    var navigationClass = target && target.getAttribute('data-navigation');
+    if (navigationClass) {
+      UIManager.navBar.classList.add(navigationClass);
+    }
+
+    switch (actualHash) {
+      case FirefoxAccountsStates.ENTER_EMAIL:
+        FirefoxAccountEnterEmail.init();
+        break;
+      case FirefoxAccountsStates.SET_PASSWORD:
+        FirefoxAccountSetPassword.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      case FirefoxAccountsStates.ENTER_PASSWORD:
+        FirefoxAccountEnterPassword.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      case FirefoxAccountsStates.SIGNUP_SUCCESS:
+        FirefoxAccountSignUpSuccess.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      case FirefoxAccountsStates.PASSWORD_RESET_SUCCESS:
+        FirefoxAccountPasswordResetSuccess.init({
+          email: FirefoxAccountEnterEmail.getEmail()
+        });
+        break;
+      default:
+        // don't do a thing
+    }
 
     switch (actualHash) {
       case '#languages':
@@ -172,6 +271,17 @@ var Navigation = {
         break;
       case '#geolocation':
         UIManager.mainTitle.innerHTML = _('geolocation');
+        break;
+      case '#ff-account-no-network-screen':
+      case '#ff-account-intro-screen':
+      case '#ff-account-enter-email-screen':
+      case '#ff-account-set-password-screen':
+      case '#ff-account-enter-password-screen':
+      case '#ff-account-signup-success-screen':
+      case '#ff-account-signin-success-screen':
+      case '#ff-account-tos-screen':
+      case '#ff-account-pp-screen':
+        UIManager.mainTitle.innerHTML = _('ff-account');
         break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
@@ -208,13 +318,12 @@ var Navigation = {
       case '#about-your-privacy':
       case '#sharing-performance-data':
         UIManager.mainTitle.innerHTML = _('aboutBrowser');
-        // override the className here
-        className = 'hidden';
+        progressBarClassName = 'hidden';
         UIManager.navBar.classList.add('back-only');
         break;
     }
 
-    UIManager.progressBar.className = className;
+    UIManager.progressBar.className = progressBarClassName;
 
     // If SIM card is mandatory, we hide the button skip
     if (this.simMandatory) {
@@ -281,11 +390,13 @@ var Navigation = {
       UIManager.navBar.classList.remove('forward-only');
     }
     var nextButton = document.getElementById('forward');
+
     if (steps[this.currentStep].onlyBackward) {
       nextButton.setAttribute('disabled', 'disabled');
     } else {
       nextButton.removeAttribute('disabled');
     }
+
     // Substitute button content on last step
     if (this.currentStep === numSteps) {
       nextButton.firstChild.textContent = _('done');
