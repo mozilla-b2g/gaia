@@ -3,7 +3,10 @@
 var kFontStep = 4;
 var minFontSize = 12;
 
-// Frequencies comming from http://en.wikipedia.org/wiki/Telephone_keypad
+const kMasterVolume = 0.5;
+const kShortPressDuration = 0.25;
+
+// Frequencies coming from http://en.wikipedia.org/wiki/Telephone_keypad
 var gTonesFrequencies = {
   '1': [697, 1209], '2': [697, 1336], '3': [697, 1477],
   '4': [770, 1209], '5': [770, 1336], '6': [770, 1477],
@@ -17,7 +20,8 @@ SettingsListener.observe('phone.ring.keypad', true, function(value) {
 });
 
 var TonePlayer = {
-  _sampleRate: 4000,
+  _audioContext: null,
+  _gainNode: null,
 
   init: function tp_init() {
     document.addEventListener('visibilitychange',
@@ -26,50 +30,42 @@ var TonePlayer = {
   },
 
   ensureAudio: function tp_ensureAudio() {
-   if (this._audio)
-     return;
+    if (this._audioContext)
+      return;
 
-   this._audio = new Audio();
-   this._audio.volume = 0.5;
-   this._audio.mozSetup(2, this._sampleRate);
-  },
-
-  generateFrames: function tp_generateFrames(soundData, freqRow, freqCol) {
-    var currentSoundSample = 0;
-    var kr = 2 * Math.PI * freqRow / this._sampleRate;
-    var kc = 2 * Math.PI * freqCol / this._sampleRate;
-    for (var i = 0; i < soundData.length; i += 2) {
-      var smoother = 0.5 + (Math.sin((i * Math.PI) / soundData.length)) / 2;
-
-      soundData[i] = Math.sin(kr * currentSoundSample) * smoother;
-      soundData[i + 1] = Math.sin(kc * currentSoundSample) * smoother;
-
-      currentSoundSample++;
-    }
+    this._audioContext = new AudioContext();
+    this._gainNode = this._audioContext.createGain();
+    this._gainNode.gain.value = kMasterVolume;
+    this._gainNode.connect(this._audioContext.destination);
   },
 
   play: function tp_play(frequencies) {
-    var soundDataSize = this._sampleRate / 4;
-    var soundData = new Float32Array(soundDataSize);
-    this.generateFrames(soundData, frequencies[0], frequencies[1]);
-    this._audio.mozWriteAudio(soundData);
+    var now = this._audioContext.currentTime;
+
+    for (var i = 0; i < frequencies.length; ++i) {
+      var oscNode = this._audioContext.createOscillator();
+      oscNode.type = 'sine';
+      oscNode.frequency.value = frequencies[i];
+      oscNode.start(now);
+      oscNode.stop(now + kShortPressDuration);
+      oscNode.connect(this._gainNode);
+    }
   },
 
-  // If the app loses focus, close the audio stream. This works around an
-  // issue in Gecko where the Audio Data API causes gfx performance problems,
-  // in particular when scrolling the homescreen.
-  // See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
+  // If the app loses focus, close the audio stream.
   visibilityChange: function tp_visibilityChange(e) {
     if (!document.hidden) {
       this.ensureAudio();
     } else {
       // Reset the audio stream. This ensures that the stream is shutdown
       // *immediately*.
-      this._audio.src = '';
-      delete this._audio;
+      if (this._gainNode) {
+        this._gainNode.disconnect();
+      }
+      this._gainNode = null;
+      this._audioContext = null;
     }
   }
-
 };
 
 var KeypadManager = {
