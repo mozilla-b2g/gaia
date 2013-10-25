@@ -5,6 +5,7 @@
 mocha.setup({ignoreLeaks: true});
 
 requireApp('system/test/unit/mock_gesture_detector.js');
+requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_window_manager.js');
@@ -14,6 +15,7 @@ requireApp('system/test/unit/mock_popup_manager.js');
 
 var mocksForCardsView = new MocksHelper([
   'GestureDetector',
+  'ScreenLayout',
   'TrustedUIManager',
   'UtilityTray',
   'WindowManager',
@@ -25,7 +27,7 @@ var mocksForCardsView = new MocksHelper([
 suite('cards view >', function() {
   var subject;
 
-  var screenNode, realMozLockOrientation;
+  var screenNode, realMozLockOrientation, realScreenLayout;
   var cardsView;
 
   mocksForCardsView.attachTestHelpers();
@@ -39,6 +41,8 @@ suite('cards view >', function() {
 
     screenNode.appendChild(cardsView);
     document.body.appendChild(screenNode);
+    realScreenLayout = window.ScreenLayout;
+    window.ScreenLayout = MockScreenLayout;
     realMozLockOrientation = screen.mozLockOrientation;
     screen.mozLockOrientation = MockLockScreen.mozLockOrientation;
     requireApp('system/js/cards_view.js', done);
@@ -46,6 +50,7 @@ suite('cards view >', function() {
 
   suiteTeardown(function() {
     screenNode.parentNode.removeChild(screenNode);
+    window.ScreenLayout = realScreenLayout;
     screen.mozLockOrientation = realMozLockOrientation;
   });
 
