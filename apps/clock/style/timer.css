@@ -3,16 +3,18 @@
   height: calc(100% - 4rem);
 }
 
-#timer-time {
-  letter-spacing: -0.5rem;
-  font-weight: lighter;
-  font-size: 11rem;
-  color: #CFE2E6;
-  pointer-events: none;
+@font-face {
+  font-family: SourceCodePro-Light;
+  src: url(fonts/SourceCodePro-Light.ttf);
 }
 
 #timer-time {
-  font-size: 7.5rem;
+  font-family: SourceCodePro-Light;
+  letter-spacing: -0.5rem;
+  font-weight: lighter;
+  font-size: 5.5rem;
+  color: #CFE2E6;
+  pointer-events: none;
   margin-top: 14rem;
 }
 
