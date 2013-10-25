@@ -137,24 +137,6 @@
               </div>
             </div>
           </section>
-          <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" hidden>
-            <header></header>
-            <menu>
-              <ul id="suggestion-list" role="listbox">
-              </ul>
-              <button id="suggestion-overlay-cancel" data-l10n-id='cancel'>Cancel</button>
-            </menu>
-          </form>
-          <!-- Template for cloning suggestion bar item. Will never be shown directly. -->
-          <ul hidden>
-            <li class="suggestion-item" id="suggestion-item-template" hidden>
-              <div class="name"></div>
-              <div>
-                <span class="tel-type"></span>
-                <span class="tel"><span class="matched"></span></span>
-              </div>
-            </li>
-          </ul>
           <article id="keyboard-container">
             <section id="keypad">
               <div class="keypad-cell">
@@ -216,11 +198,31 @@
       </article>
     </section>
 
-    <form is="edit-mode" id="edit-mode" role="dialog" data-type="edit" hidden></form> 
+    <form is="edit-mode" id="edit-mode" role="dialog" data-type="edit" hidden></form>
 
     <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-type="action" hidden></form>
 
     <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
+
+    <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" hidden>
+      <header></header>
+      <menu>
+        <ul id="suggestion-list" role="listbox">
+        </ul>
+        <button id="suggestion-overlay-cancel" data-l10n-id='cancel'>Cancel</button>
+      </menu>
+    </form>
+
+    <!-- Template for cloning suggestion bar item. Will never be shown directly. -->
+    <ul hidden>
+      <li class="suggestion-item" id="suggestion-item-template" hidden>
+        <div class="name"></div>
+        <div>
+          <span class="tel-type"></span>
+          <span class="tel"><span class="matched"></span></span>
+        </div>
+      </li>
+    </ul>
 
     <article id="mmi-screen" role="region" hidden>
       <section role="region">
