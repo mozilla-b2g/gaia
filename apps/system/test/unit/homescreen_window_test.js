@@ -11,7 +11,7 @@ requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
-requireApp('system/test/unit/mock_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');

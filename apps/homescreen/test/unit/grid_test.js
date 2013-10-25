@@ -3,6 +3,7 @@
 mocha.globals(['mozRequestAnimationFrame']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
 requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_page.js');
@@ -14,7 +15,6 @@ requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_apps_mgmt.js');
 requireApp('homescreen/test/unit/mock_configurator.js');
 requireApp('homescreen/test/unit/mock_hidden_apps.js');
-requireApp('homescreen/test/unit/mock_manifest_helper.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
 require('/shared/js/screen_layout.js');
