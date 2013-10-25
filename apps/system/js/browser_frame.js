@@ -17,6 +17,16 @@
 
 var BrowserFrame = (function invocation() {
   var nextId = 0;
+
+  // This force-enable APZ setting is temporary, so that we can turn it
+  // on and hammer out the bugs that result. Once APZ is enabled by default
+  // this setting can be removed.
+  var apzSetting = 'apz.force-enable';
+  var forceEnableApz = SettingsListener.getSettingsLock().get(apzSetting);
+  SettingsListener.observe(apzSetting, false, function(value) {
+    forceEnableApz = value;
+  });
+
   function BrowserFrame() { // This constructor function is a local variable.
     this.element = null;
     this._id = nextId++;
@@ -50,7 +60,7 @@ var BrowserFrame = (function invocation() {
     if (config.manifestURL)
       browser.setAttribute('mozapp', config.manifestURL);
 
-    if (config.useAsyncPanZoom) {
+    if (config.useAsyncPanZoom || forceEnableApz) {
       // XXX: Move this dataset assignment into app window object.
       browser.dataset.useAsyncPanZoom = true;
       browser.setAttribute('mozasyncpanzoom', 'true');

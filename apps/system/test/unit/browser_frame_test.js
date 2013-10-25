@@ -1,9 +1,20 @@
 'use strict';
 
 /* Unit test of browser_frame.js */
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
+requireApp('system/test/unit/mock_settingslistener_installer.js');
 requireApp('system/js/browser_frame.js');
 
+var mocksForBrowserFrame = new MocksHelper([
+  'SettingsListener'
+]).init();
+
 suite('browser class > ', function() {
+  mocksForBrowserFrame.attachTestHelpers();
+  suiteTeardown(function() {
+    MockSettingsListener_Uninstall();
+  });
+
   test('Simple browser frame instance creation..', function() {
     var browserFrame = new BrowserFrame({ url: 'unit-test.gaia' });
     assert.equal(browserFrame.element.getAttribute('mozbrowser'), 'true');
