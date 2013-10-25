@@ -219,8 +219,8 @@ Utils.safeCpuLock = function(timeoutMs, fn) {
 };
 
 Utils.repeatString = function rep(str, times) {
-  var built = [], cur = str, target = times;
-  for (var i = 0, j = 1; j <= target; i++) {
+  var built = [], cur = str;
+  for (var i = 0, j = 1; j <= times; i++) {
     if ((times & j) > 0) {
       built.push(cur);
     }
