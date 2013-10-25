@@ -122,7 +122,7 @@ section[role="region"] > div {
   color: #505859;
 }
 
-.link-text, .tel-text a {
+.link-text {
   font-size: 1.4rem;
   color: #336699;
   text-decoration: underline;
@@ -347,7 +347,7 @@ section li.password > p {
 #carrier-operatorSettings-content:not(.gsm) #availableOperatorsHeader,
 #carrier-operatorSettings-content:not(.gsm) #availableOperators {
   display: none;
-} 
+}
 
 #carrier-dc-warning h1 > span:before,
 #carrier-dr-warning h1 > span:before {
@@ -606,14 +606,18 @@ p.checkbox-description {
  * Help
  */
 
-#call-support-numbers {
-  position: absolute;
-  right: 2rem;
+#call-support-link, #online-support-link {
+  height: auto;
 }
 
-html[dir="rtl"] #call-support-numbers {
-  right: inherit;
-  left: 2rem;
+#call-support-numbers, #online-support-text {
+  display: block;
+  line-height: 3rem;
+  margin-bottom: 2rem;
+}
+
+#call-support-numbers a, #online-support-text a {
+  display: block;
 }
 
 #help[data-has-support-info] .no-support-info,
