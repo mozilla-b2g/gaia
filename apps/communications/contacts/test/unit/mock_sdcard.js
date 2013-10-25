@@ -2,6 +2,8 @@
 
 var MockSdCard = function MockSdCard() {
 
+  var observers = {};
+
   var mock_sdcard_vcf = 'BEGIN:VCARD\n' +
     'VERSION:2.1\n' +
     'N:Gump;Forrest\n' +
@@ -52,6 +54,24 @@ var MockSdCard = function MockSdCard() {
     });
   };
 
+  var subscribeToChanges = function subscribeToChanges(name, func, force) {
+    if (observers[name] !== undefined && !force) {
+      return false;
+    }
+
+    observers[name] = func;
+    return true;
+  };
+
+  var unsubscribeToChanges = function unsubscribeToChanges(name) {
+    if (observers[name]) {
+      delete observers[name];
+      return true;
+    } else {
+      return false;
+    }
+  };
+
   return {
     NOT_INITIALIZED: STATUSES.NOT_INITIALIZED,
     NOT_AVAILABLE: STATUSES.NOT_AVAILABLE,
@@ -64,6 +84,12 @@ var MockSdCard = function MockSdCard() {
     },
     set status(value) {
       status = value;
+      // Trigger the status change to any observer
+      Object.keys(observers).forEach(function onStatus(name) {
+        if (typeof(observers[name]) === 'function') {
+          observers[name].call(null, value);
+        }
+      });
     },
     get deviceStorage() {
       return deviceStorage;
@@ -82,7 +108,9 @@ var MockSdCard = function MockSdCard() {
     },
     'getTextFromFiles': function getTextFromFiles(fileArray, contents, cb) {
       cb(null, mock_sdcard_vcf);
-    }
+    },
+    'subscribeToChanges': subscribeToChanges,
+    'unsubscribeToChanges': unsubscribeToChanges
 
   };
 

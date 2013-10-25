@@ -56,6 +56,11 @@ contacts.Settings = (function() {
         enableStorageOptions(!evt.settingValue, 'sdUMSEnabled');
       });
     }
+
+    // Subscribe to events related to change state in the sd card
+    utils.sdcard.subscribeToChanges('check_sdcard', function(value) {
+      enableStorageOptions(utils.sdcard.checkStorageCard());
+    });
   };
 
   var hideSettings = function hideSettings() {
@@ -899,34 +904,13 @@ contacts.Settings = (function() {
     });
   };
 
-  var checkUMSEnabled = function checkUMSEnabled(cb) {
-    if (!navigator.mozSettings) {
-      return;
-    }
-
-    var req = navigator.mozSettings.createLock().get(umsSettingsKey);
-    req.onsuccess = function onUMSValue() {
-      enableStorageOptions(!req.result[umsSettingsKey], 'sdUMSEnabled');
-
-      if (typeof cb === 'function') {
-        cb();
-      }
-    };
-    req.onerror = function onUMSError() {
-      if (typeof cb === 'function') {
-        cb();
-      }
-    };
-  };
-
-  var refresh = function refresh(cb) {
+  var refresh = function refresh() {
     getData();
     checkOnline();
     checkSIMCard();
     enableStorageOptions(utils.sdcard.checkStorageCard());
     updateTimestamps();
     checkExport();
-    checkUMSEnabled(cb);
   };
 
   return {
