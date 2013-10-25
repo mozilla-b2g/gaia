@@ -248,17 +248,18 @@ var ClockView = {
   },
 
   calAnalogClockType: function cv_calAnalogClockType(count) {
-    if (count <= 1) {
-      count = 1;
-    } else if (count >= 4) {
-      count = 4;
+    var type = 'small';
+    if (count < 2) {
+      type = 'large';
+    } else if (count === 2) {
+      type = 'medium';
     }
-    return count;
+    return type;
   },
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
-    var type = this.calAnalogClockType(AlarmList.getAlarmCount() + 1);
-    this.container.className = 'marks' + type;
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    this.container.className = type;
     document.getElementById('alarms').className = 'count' + type;
   },
 
