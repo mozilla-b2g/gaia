@@ -23,67 +23,13 @@ var ValueSelector = {
   init: function vs_init() {
     var self = this;
 
-    // Bug 924893 - We have to use the mozKeyboard.onfocuschange
-    // instead of mozInputMethod.oninputcontextchange because the new event
-    // doesn't contain all the information we need.
-    if (navigator.mozKeyboard) {
-      navigator.mozKeyboard.onfocuschange = function onfocuschange(evt) {
-        evt.detail.inputType = evt.detail.type;
-
-        var typeToHandle = ['select-one', 'select-multiple', 'date',
-          'time', 'datetime', 'datetime-local', 'blur'];
-
-        var currentInputType = evt.detail.inputType;
-        // handle the <select> element and inputs with type of date/time
-        // in system app for now
-        if (typeToHandle.indexOf(currentInputType) == -1)
-          return;
-
-        var currentValue = evt.detail.value;
-        self._currentDatetimeValue = currentValue;
-        self._currentInputType = currentInputType;
-
-        switch (currentInputType) {
-          case 'select-one':
-          case 'select-multiple':
-            self.debug('select triggered' + JSON.stringify(evt.detail));
-            self._currentPickerType = evt.detail.type;
-            self.showOptions(evt.detail);
-            break;
-
-          case 'date':
-            var min = evt.detail.min;
-            var max = evt.detail.max;
-            self.showDatePicker(currentValue, min, max);
-            break;
-
-          case 'time':
-            self.showTimePicker(currentValue);
-            break;
-
-          case 'datetime':
-          case 'datetime-local':
-            var min = evt.detail.min;
-            var max = evt.detail.max;
-            if (currentValue !== '') {
-              var date = new Date(currentValue);
-              var localDate = date.toLocaleFormat('%Y-%m-%d');
-              self.showDatePicker(localDate, min, max);
-            } else {
-              self.showDatePicker('', min, max);
-            }
-            break;
-
-          case 'blur':
-            self.hide();
-            break;
-        }
-      };
-    }
-    else {
-      console.error('Bug 924893 - mozKeyboard has been removed without ' +
-        'updating value_selector.js');
-    }
+    window.addEventListener('mozChromeEvent', function(evt) {
+      switch (evt.detail.type) {
+        case 'inputmethod-contextchange':
+          self.inputFocusChange(evt.detail);
+          break;
+      }
+    });
 
     this._element = document.getElementById('value-selector');
     this._element.addEventListener('mousedown', this);
@@ -135,6 +81,62 @@ var ValueSelector = {
           this._datePicker.uninit();
           this._datePicker = null;
       }}).bind(this));
+  },
+
+  inputFocusChange: function vs_focusChange(detail) {
+    var self = this;
+
+    var typeToHandle = ['select-one', 'select-multiple', 'date',
+      'time', 'datetime', 'datetime-local', 'blur'];
+
+    var currentInputType = detail.inputType;
+    // handle the <select> element and inputs with type of date/time
+    // in system app for now
+    if (typeToHandle.indexOf(currentInputType) == -1)
+      return;
+
+    if (detail.choices)
+      detail.choices = JSON.parse(detail.choices);
+
+    var currentValue = detail.value;
+    self._currentDatetimeValue = currentValue;
+    self._currentInputType = currentInputType;
+
+    switch (currentInputType) {
+      case 'select-one':
+      case 'select-multiple':
+        self.debug('select triggered' + JSON.stringify(detail));
+        self._currentPickerType = currentInputType;
+        self.showOptions(detail);
+        break;
+
+      case 'date':
+        var min = detail.min;
+        var max = detail.max;
+        self.showDatePicker(currentValue, min, max);
+        break;
+
+      case 'time':
+        self.showTimePicker(currentValue);
+        break;
+
+      case 'datetime':
+      case 'datetime-local':
+        var min = detail.min;
+        var max = detail.max;
+        if (currentValue !== '') {
+          var date = new Date(currentValue);
+          var localDate = date.toLocaleFormat('%Y-%m-%d');
+          self.showDatePicker(localDate, min, max);
+        } else {
+          self.showDatePicker('', min, max);
+        }
+        break;
+
+      case 'blur':
+        self.hide();
+        break;
+    }
   },
 
   handleEvent: function vs_handleEvent(evt) {
