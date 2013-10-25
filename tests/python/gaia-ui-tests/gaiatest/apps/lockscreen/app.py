@@ -5,8 +5,11 @@
 from marionette.by import By
 from marionette.marionette import Actions
 from gaiatest.apps.base import Base
+
 from gaiatest.apps.homescreen.app import Homescreen
 from gaiatest.apps.camera.app import Camera
+
+from gaiatest.apps.base import PageRegion
 
 
 class LockScreen(Base):
@@ -16,6 +19,7 @@ class LockScreen(Base):
 
     _lockscreen_handle_locator = (By.ID, 'lockscreen-area-slide')
     _passcode_pad_locator = (By.ID, 'lockscreen-passcode-pad')
+    _notification_locator = (By.CSS_SELECTOR, '#notifications-lockscreen-container > div.notification')
 
     def unlock(self):
         self._slide_to_unlock('homescreen')
@@ -55,3 +59,25 @@ class LockScreen(Base):
         passcode_pad = self.marionette.find_element(*self._passcode_pad_locator)
         from gaiatest.apps.lockscreen.regions.passcode_pad import PasscodePad
         return PasscodePad(self.marionette, passcode_pad)
+
+    @property
+    def notifications(self):
+        return [Notification(self.marionette, element)
+                for element in self.marionette.find_elements(*self._notification_locator)]
+
+
+class Notification(PageRegion):
+    _body_locator = (By.CSS_SELECTOR, 'div:nth-child(3)')
+    _title_locator = (By.CSS_SELECTOR, 'div:nth-child(2)')
+
+    @property
+    def is_visible(self):
+        return self.root_element.is_displayed()
+
+    @property
+    def content(self):
+        return self.root_element.find_element(*self._body_locator).text
+
+    @property
+    def title(self):
+        return self.root_element.find_element(*self._title_locator).text
