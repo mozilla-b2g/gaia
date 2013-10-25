@@ -4,12 +4,8 @@
 'use strict';
 
 (function OperatorVariant() {
-  // Reserved Test Network MCC. This is how we know we're running tests vs
-  // running in the real world.
-  const TEST_NETWORK_MCC = '001';
-
-  // Cache the values we've seen.
-  var iccSettings = { mcc: -1, mnc: -1 };
+  // MCC and MNC values.
+  var iccSettings = { mcc: '000', mnc: '00' };
 
   /**
    * Utility function to pad a number with leading zeros and transform it
@@ -28,52 +24,42 @@
   }
 
   /**
-   * Check the APN settings on startup and when the SIM card is changed.
+   * Set some carrier settings on startup and when the SIM card is changed.
    */
   var operatorVariantHelper =
     new OperatorVariantHelper(applySettings.bind(this),
                               'operatorvariant.customization',
                               true);
 
-  // Listen for future changes in MCC/MNC values to support hot swapping
-  // of SIM cards.
+  // Listen for changes in MCC/MNC values.
   operatorVariantHelper.listen();
 
+  /**
+   * Apply the carrier settings relaying on the MCC and MNC values. This
+   * function must be called only once when the device boots with a new ICC
+   * card or when the device boots with the same ICC card and the
+   * customization has not been applied yet.
+   *
+   * @param {String} mcc Mobile Country Code in the ICC card.
+   * @param {String} mnc Mobile Network Code in the ICC card.
+   */
   function applySettings(mcc, mnc) {
-
-    // Only apply once per device boot-up, except when in tests. All tests
-    // use the reserved Test Network MCC value of '1'. See this handy table
-    // for more information: http://en.wikipedia.org/wiki/Mobile_country_code
-    if (mcc != TEST_NETWORK_MCC) {
-      operatorVariantHelper.listen(false);
-    }
-
-    // same SIM card => do nothing
-    if ((mcc == iccSettings.mcc) && (mnc == iccSettings.mnc)) {
-      var apnSettingsKey = 'ril.data.apnSettings';
-      var apnRequest = navigator.mozSettings.createLock().get(apnSettingsKey);
-      apnRequest.onsuccess = function() {
-        // no apnSettings, build it.
-        if (!apnRequest.result[apnSettingsKey]) {
-          retrieveOperatorVariantSettings(buildApnSettings);
-        }
-      };
-
-      // check and build user profile if it upgrades from v1.0.1.
-      checkWAPUserAgentProfileEmpty();
-      return;
-    }
-
-    // new SIM card => cache iccInfo, load and apply new APN settings
+    // Save MCC and MNC codes.
     iccSettings.mcc = mcc;
     iccSettings.mnc = mnc;
-    retrieveOperatorVariantSettings(applyOperatorVariantSettings);
 
-    // use mcc, mnc to load and apply WAP user agent profile url
+    retrieveOperatorVariantSettings(applyOperatorVariantSettings);
     retrieveWAPUserAgentProfileSettings(applyWAPUAProfileUrl);
+
+    operatorVariantHelper.applied();
   }
 
-  // Load and query APN database, then trigger callback on results.
+  /**
+   * Retrieve the settings and call the callback function.
+   *
+   * @param {function} callback Callback function to be called once the settings
+   *                            have been retrieved.
+   */
   function retrieveOperatorVariantSettings(callback) {
     // This json file should always be accessed from the root instead of the
     // current working base URL so that it can work in unit-tests as well
@@ -104,7 +90,11 @@
     xhr.send();
   }
 
-  // Store APN settings for the first carrier matching the mcc/mnc info.
+  /**
+   * Store the carrier settings.
+   *
+   * @param {Array} result Settings to be stored.
+   */
   function applyOperatorVariantSettings(result) {
     var apnPrefNames = {
       'default': {
@@ -190,17 +180,16 @@
     }
 
     buildApnSettings(result);
-
-    // store the current mcc/mnc info in the settings
-    transaction.set({
-      'operatorvariant.mcc': iccSettings.mcc,
-      'operatorvariant.mnc': iccSettings.mnc
-    });
   }
 
-  // build settings for apnSettings.
+  /**
+   * Build the data call settings for the new APN setting architecture.
+   *
+   * @param {Array} result The array of settings used for bulding the data call
+   *                       ones.
+   * @return {Array} The data call settings.
+   */
   function buildApnSettings(result) {
-    // for new apn settings
     var apnSettings = [];
     var apnTypeCandidates = ['default', 'supl', 'mms'];
     var checkedType = [];
@@ -233,21 +222,13 @@
     transaction.set({'ril.data.apnSettings': [apnSettings]});
   }
 
-  // check if the wap.UAProf.url is empty, if yes, rebuilt it.
-  // This will happen when a device use upgrade service to upgrade it.
-  function checkWAPUserAgentProfileEmpty() {
-    var wapUAProfKey = 'wap.UAProf.url';
-    var wapRequest = navigator.mozSettings.createLock().get(wapUAProfKey);
-    wapRequest.onsuccess = function() {
-      // no wap ua profile url, try to build it.
-      if (!wapRequest.result[wapUAProfKey]) {
-        retrieveWAPUserAgentProfileSettings(applyWAPUAProfileUrl);
-      }
-    };
-  }
-
-  // load from /resources/wapuaprof.json and find out the UA url for current
-  // mcc and mnc.
+  /**
+   * Retrieve the user agent profile setting from /resources/wapuaprof.json and
+   * find out the user agent URL for current mcc and mnc codes.
+   *
+   * @param {function} callback Callback function to be called once the settings
+   *                            have been retrieved.
+   */
   function retrieveWAPUserAgentProfileSettings(callback) {
     var WAP_UA_PROFILE_FILE = '/resources/wapuaprof.json';
     var DEFAULT_KEY = '000000';
@@ -272,7 +253,9 @@
     xhr.send();
   }
 
-  // apply the user agent profile to mozsettings.
+  /**
+   * Store the user agent profile setting into the setting database.
+   */
   function applyWAPUAProfileUrl(uaProfile) {
     var transaction = navigator.mozSettings.createLock();
     var urlValue = uaProfile ? uaProfile.url : undefined;
