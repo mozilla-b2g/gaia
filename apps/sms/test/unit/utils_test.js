@@ -1098,7 +1098,6 @@ suite('getContactDisplayInfo', function() {
         assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
         assert.ok(Utils.getDisplayObject.called);
         assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        MockContact.list.restore();
         done();
       }
     );
@@ -1121,7 +1120,6 @@ suite('getContactDisplayInfo', function() {
         assert.deepEqual(Utils.getContactDetails.args[0][0], tel);
         assert.ok(Utils.getDisplayObject.called);
         assert.deepEqual(Utils.getDisplayObject.args[0][1], tel);
-        MockContact.list.restore();
         done();
       }
     );
@@ -1138,7 +1136,6 @@ suite('getContactDisplayInfo', function() {
         assert.isFalse(Utils.getContactDetails.called);
         assert.isFalse(Utils.getDisplayObject.called);
         assert.equal(data, null);
-        MockContact.list.restore();
         done();
       }
     );
