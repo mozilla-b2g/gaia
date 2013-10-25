@@ -12,7 +12,7 @@
 }
 
 #modify-event-view form ol {
-  margin: 1rem 1rem 0 1rem;
+  margin: 1rem 1.5rem 0 1.5rem;
   overflow: hidden;
 }
 
@@ -21,17 +21,19 @@
 }
 
 #modify-event-view .button input {
-  width: 100%;
+  font-size: 1.6rem;
 }
 
 #modify-event-view form ol li {
-  margin: 0rem;
+  margin: 0 0 0.5rem;
 }
 
 #modify-event-view li.end-date,
 #modify-event-view li.start-date {
-  width: 60%;
+  -moz-box-sizing: border-box;
   float: left;
+  width: 60%;
+  padding-right: 0.5rem;
 }
 
 #modify-event-view li.end-time,
@@ -48,15 +50,16 @@
 #modify-event-view li.notes textarea {
   padding: 1rem;
   height: 100%;
+  font-size: 1.7rem;
   line-height: 1.3em;
   overflow-y: auto;
 }
 
 #modify-event-view li.allday,
 #modify-event-view h3 {
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   position: relative;
-  font-size: 1.4rem;
+  font-size: 1.9rem;
   line-height: 3rem;
   font-weight: normal;
 }
@@ -71,7 +74,7 @@
 
 #modify-event-view li.allday > label > span {
   left: auto;
-  right: 1rem;
+  right: 0;
 }
 
 #modify-event-view.allday .start-time,
@@ -92,12 +95,13 @@
   clear: both;
 }
 
-#modify-event-view .calendar-id select {
-  font-size: 1.4rem;
-}
-
 #modify-event-view .alarms .button {
   margin: 0.25rem 0;
+}
+
+#modify-event-view .calendar-id select,
+#modify-event-view .alarms select {
+  margin-left: -0.5rem;
 }
 
 #modify-event-view .delete-record {

@@ -8,21 +8,26 @@
  body[role="application"] input:not([type="radio"]),
  body[role="application"] input:not([type="checkbox"]),
  body[role="application"] input:not([type="hidden"]) {
+  -moz-box-sizing: border-box;
+  display: block;
+  overflow: hidden;
   width: 100%;
   height: 4rem;
-  display: block;
-  -moz-box-sizing: border-box;
-  padding: 0 0.5rem;
-  font: 1.4rem/4rem sans-serif;
-  border: solid 1px #d1d1d1;
+  resize: none;
+  padding: 0 1.2rem;
+  font-size: 1.8rem;
+  line-height: 4rem;
+  border: 0.1rem solid #ccc;
   border-radius: 0.3rem;
-  background: #fff url("building_blocks/input_areas/images/ui/shadow.png") repeat-x left top;
+  box-shadow: none; /* override the box-shadow from the system (performance issue) */
+  background: #fff url(input_areas/images/ui/shadow.png) repeat-x;
  }
 
  body[role="application"] input:not([type="radio"]):-moz-placeholder,
  body[role="application"] input:not([type="checkbox"]):-moz-placeholder,
  body[role="application"] input:not([type="hidden"]):-moz-placeholder {
-  color: #666;
+  color: #858585;
+  opacity: 1;
  }
 
  body[role="application"] label {
