@@ -481,8 +481,23 @@ reflows. Foreground/background colors should be safe.
   background-position: 50% 100% !important;
 }
 
-.msg-search-btn {
-  background-image: url("images/icons/search.png") !important;
+.bb-tablist .msg-last-sync {
+  text-align: center;
+  line-height: 4.5rem;
+  color: #5f5f5f;
+  flex: 2 2 0px;
+  font-size: 1.3rem;
+  font-style: italic;
+}
+
+.msg-last-sync.long .msg-last-synced-label,
+.msg-last-sync.long .msg-last-synced-value {
+  display: block;
+  line-height: 1.5rem;
+}
+
+.msg-last-sync.long .msg-last-synced-label {
+  margin-top: 0.7rem;
 }
 
 .msg-edit-btn {
