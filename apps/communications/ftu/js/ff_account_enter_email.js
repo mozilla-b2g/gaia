@@ -24,12 +24,15 @@ FirefoxAccountEnterEmail = (function() {
   }
 
   function getNextState(email, done) {
-    // TODO - this should be "DONE" or something to indicate completion of the
-    // FF signup flow.
-    if ( ! email) return done(states.DONE);
-    if (email === 'newuser@newuser.com') return done(states.SET_PASSWORD);
+    utils.overlay.show(_('ff-account-connecting-to-firefox'), 'spinner');
+    // TODO - hook this up to a backend somewhere.
+    setTimeout(function() {
+      utils.overlay.hide();
+      if ( ! email) return done(states.DONE);
+      if (email === 'newuser@newuser.com') return done(states.SET_PASSWORD);
 
-    done(states.ENTER_PASSWORD);
+      done(states.ENTER_PASSWORD);
+    }, 500);
   }
 
   var Module = {
