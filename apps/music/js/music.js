@@ -334,13 +334,6 @@ function showOverlay(id) {
     return;
   }
 
-  var menu = document.getElementById('overlay-menu');
-  if (id === 'nocard') {
-    menu.classList.remove('hidden');
-  } else {
-    menu.classList.add('hidden');
-  }
-
   var title, text;
   if (id === 'nocard') {
     title = navigator.mozL10n.get('nocard2-title');

@@ -1305,7 +1305,14 @@ var Camera = {
 
     switch (this._storageState) {
     case this.STORAGE_NOCARD:
-      this.showOverlay('nocard');
+      // if there is one or none storage, then user has nothing to
+      // choose from in media storage settings.
+      // In this case, do not show button to media settings storage
+      if (navigator.getDeviceStorages('pictures').length <= 1) {
+        this.showOverlay('nocard-nointmem');
+      } else {
+        this.showOverlay('nocard');
+      }
       break;
     case this.STORAGE_UNMOUNTED:
       this.showOverlay('pluggedin');
