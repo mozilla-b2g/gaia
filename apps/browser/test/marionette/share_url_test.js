@@ -1,6 +1,4 @@
 var __email__ = '../../../email/test/marionette/';
-
-
 var Browser = require('./lib/browser'),
     Email = require(__email__ + 'lib/email'),
     Server = require('./lib/server'),
@@ -14,7 +12,15 @@ var Browser = require('./lib/browser'),
  */
 var COOLPAGE = 'coolpage.html';
 
+/**
+ * A page with a mailto link.
+ * @type {string}
+ */
+var MAILTOPAGE = 'mailto.html';
+
 marionette('share url from browser', function() {
+  var browser, email, fileServer;
+
   var client = marionette.client({
     settings: { 'keyboard.ftu.enabled': false }
   });
@@ -27,11 +33,23 @@ marionette('share url from browser', function() {
    * Start the browser and wait for an initial page load.
    */
   function startBrowser() {
-    var browser = new Browser(client);
-    browser.launch();
+    var app = new Browser(client);
+    app.launch();
     client.helper.waitForElement('body.loaded');
     client.setSearchTimeout(10000);
-    return browser;
+    return app;
+  }
+
+  /**
+   * Navigate to some url.
+   * @param {Browser} browser thing to drive the browser.
+   * @param {Server} server a web server.
+   * @param {string} url some url to navigate to.
+   */
+  function goToUrl(browser, server, url) {
+    url = server.url(url);
+    browser.searchBar.sendKeys(url);
+    browser.searchButton.click();
   }
 
   /**
@@ -41,10 +59,10 @@ marionette('share url from browser', function() {
    * @param {string} url some url to navigate to.
    */
   function shareViaEmail(browser, server, url) {
-    url = server.url(url);
-    browser.searchBar.sendKeys(url);
-    browser.searchButton.click();
-    browser.shareButton.click();
+    goToUrl(browser, server, url);
+    client.helper
+      .waitForElement(browser.shareButton)
+      .click();
     // Since share url via email is supported only,
     // email share url activity will handle the request directly.
     // Once there are other share url activity ready,
@@ -52,50 +70,36 @@ marionette('share url from browser', function() {
     // browser.clickShareEmail();
   }
 
-  suite('without an existing email account', function() {
-    setup(function(done) {
-      Server.create(function(err, server) {
-        fileServer = server;
-
-        browser = startBrowser();
-        shareViaEmail(browser, fileServer, COOLPAGE);
-        done();
-      });
+  setup(function(done) {
+    Server.create(function(err, server) {
+      fileServer = server;
+      done();
     });
 
-    test('should prompt the user to create an email acct', function() {
-      client.switchToFrame();
-      client.helper.waitForAlert('not set up to send or receive email');
-    });
+    browser = startBrowser();
+    email = new Email(client);
   });
 
-  suite('with an existing email account', function() {
-    var browser, email, fileServer;
-    setup(function(done) {
-      // Bring up a fake file server to serve the coolpage.html.
-      Server.create(function(err, server) {
-        fileServer = server;
+  teardown(function() {
+    fileServer.stop();
+  });
 
-        // Setup an email account.
-        email = new Email(client);
-        email.launch();
-        email.manualSetupImapEmail(emailServer);
-        client.apps.close(Email.EMAIL_ORIGIN);
+  test('share button should put url in email body', function() {
+    shareViaEmail(browser, fileServer, COOLPAGE);
+    email.confirmWantAccount();
+    email.manualSetupImapEmail(emailServer, 'waitForCompose');
+    var body = email.getComposeBody();
+    assert.ok(body.indexOf(COOLPAGE) !== -1);
+  });
 
-        browser = startBrowser();
-        shareViaEmail(browser, fileServer, COOLPAGE);
-        done();
-      });
-    });
-
-    teardown(function() {
-      fileServer.stop();
-    });
-
-    test.skip('should put url in email body', function() {
-      // TODO(gaye): Currently b2g-desktop does not support starting an app,
-      //     closing it, and then sending it an activity. I do not know why.
-      //     Once this is fixed, we should turn this on.
-    });
+  test('mailto link should put email in "to" field', function() {
+    goToUrl(browser, fileServer, MAILTOPAGE);
+    var frame = browser.currentTabFrame();
+    client.switchToFrame(frame);
+    browser.mailtoLink.click();
+    email.confirmWantAccount();
+    email.manualSetupImapEmail(emailServer, 'waitForCompose');
+    var to = email.getComposeTo();
+    assert.strictEqual(to, 'gaye@mozilla.com');
   });
 });

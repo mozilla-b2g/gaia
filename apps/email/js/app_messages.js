@@ -47,7 +47,7 @@ define(function(require) {
       console.log('Received activity: ' + activityName);
 
       var data = {};
-      if (dataType === 'url') {
+      if (dataType === 'url' && activityName === 'share') {
         data.body = url;
       } else {
         var urlParts = url ? queryURI(url) : [];
