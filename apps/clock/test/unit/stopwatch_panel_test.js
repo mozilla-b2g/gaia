@@ -71,10 +71,6 @@ suite('Stopwatch.Panel', function() {
     );
   });
 
-  suiteTeardown(function() {
-
-  });
-
   setup(function() {
     clock = this.sinon.useFakeTimers();
     localize = this.sinon.spy(MockL10n, 'localize');
