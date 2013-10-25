@@ -154,16 +154,34 @@ var UIManager = {
     });
 
     // Input scroll workaround
-    var top = this.newsletterInput.offsetTop;
-    this.newsletterInput.addEventListener('focus', function() {
-      window.addEventListener('resize', function resize() {
-        window.removeEventListener('resize', resize);
-        // Need to wait till resize is done
-        setTimeout(function() {
-          document.getElementById('browser_privacy').scrollTop = top;
-        }, 30);
+    var inputEls = document.querySelectorAll("input.scroll-on-focus");
+    // NodeLists do not support .forEach by default,
+    // use Array.prototype's instead.
+    [].forEach.call(inputEls, function(inputEl) {
+      var top = inputEl.offsetTop;
+      inputEl.addEventListener('focus', function() {
+        window.addEventListener('resize', function resize() {
+          window.removeEventListener('resize', resize);
+          // Need to wait till resize is done
+          setTimeout(function() {
+            var region = findAncestorRegion(inputEl);
+            if (region) {
+              var newScrollTop = top + 100;
+              region.scrollTop = newScrollTop;
+            }
+          }, 30);
+        });
       });
     });
+
+    function findAncestorRegion(inputEl) {
+      if (inputEl.getAttribute('role') === "region") return inputEl;
+
+      var parent = inputEl.parentElement;
+      if ( ! parent) return null;
+
+      return findAncestorRegion(parent);
+    }
 
     // Browser privacy newsletter subscription
     var basketCallback = function(err, data) {
