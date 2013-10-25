@@ -46,92 +46,138 @@ suite('KeyboardManager', function() {
 
   setup(function(next) {
     setupHTML();
+    injectCss();
     KeyboardManager.init();
 
     // Give some time to stabilize
     setTimeout(next, 500);
   });
 
-  test('showKeyboard triggers transition', function(next) {
-    var triggered = false;
-    KeyboardManager.keyboardFrameContainer.addEventListener('transitionend',
-      function() {
-        triggered = true;
+  suite('Transitions', function() {
+    test('showKeyboard triggers transition', function(next) {
+      var triggered = false;
+      KeyboardManager.keyboardFrameContainer.addEventListener('transitionend',
+        function() {
+          triggered = true;
+        });
+
+      KeyboardManager.showKeyboard();
+
+      setTimeout(function() {
+        assert.equal(triggered, true);
+        next();
+      }, 100);
+    });
+
+    test('UpdateHeight waits until transition finished', function(next) {
+      var called = false;
+      window.addEventListener('keyboardchange', function() {
+        called = true;
       });
 
-    KeyboardManager.showKeyboard();
+      KeyboardManager.showKeyboard();
+      KeyboardManager.resizeKeyboard({
+        detail: { height: 200 },
+        stopPropagation: sinon.stub()
+      });
 
-    setTimeout(function() {
-      assert.equal(triggered, true);
-      next();
-    }, 100);
+      // animation takes 50 ms. so 20 ms. is safe
+      setTimeout(function() {
+        assert.equal(called, false, 'KeyboardChange triggered 20 ms');
+      }, 20);
+
+      setTimeout(function() {
+        assert.equal(called, true, 'KeyboardChange triggered 100 ms');
+        next();
+      }, 100);
+    });
+
+    test('ShowKeyboard waits for transform transition', function(next) {
+      injectCss('opacity 0.05s ease, transform 0.3s ease');
+
+      KeyboardManager.showKeyboard();
+
+      setTimeout(function() {
+        assert.equal(
+          'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
+          true,
+          'TransitionIn canceled due to opacity');
+      }, 100);
+
+      setTimeout(function() {
+        assert.equal(
+          'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
+          false,
+          'TransitionIn not canceled due to transform');
+        next();
+      }, 350);
+    });
+
+    test('UpdateHeight waits for transform transition', function(next) {
+      var called = false;
+      window.addEventListener('keyboardchange', function() {
+        called = true;
+      });
+
+      injectCss('opacity 0.05s ease, transform 0.3s ease');
+
+      KeyboardManager.showKeyboard();
+      KeyboardManager.resizeKeyboard({
+        detail: { height: 200 },
+        stopPropagation: sinon.stub()
+      });
+
+      setTimeout(function() {
+        assert.equal(called, false, 'KeyboardChange triggered by opacity');
+      }, 100);
+
+      setTimeout(function() {
+        assert.equal(called, true, 'KeyboardChange triggered by transform');
+        next();
+      }, 350);
+    });
+
+    test('Call showKeyboard against visible keyboard', function(next) {
+      KeyboardManager.showKeyboard();
+
+      setTimeout(function() {
+        var callback = sinon.stub();
+        KeyboardManager.showKeyboard(callback);
+
+        // should be called immediately
+        sinon.assert.callCount(callback, 1);
+
+        next();
+      }, 100);
+    });
   });
 
-  test('UpdateHeight waits until transition finished', function(next) {
-    var called = false;
-    window.addEventListener('keyboardchange', function() {
-      called = true;
+  suite('UpdateHeight', function() {
+    test('Second updateHeight evt triggers keyboardchange', function(next) {
+      var kcEvent = sinon.stub();
+      window.addEventListener('keyboardchange', kcEvent);
+
+      KeyboardManager.resizeKeyboard({
+        detail: { height: 100 },
+        stopPropagation: function() {}
+      });
+
+      setTimeout(function() {
+        sinon.assert.callCount(kcEvent, 1);
+        assert.equal(kcEvent.args[0][0].detail.height, 100);
+
+        KeyboardManager.resizeKeyboard({
+          detail: { height: 200 },
+          stopPropagation: function() {}
+        });
+
+        setTimeout(function() {
+          sinon.assert.callCount(kcEvent, 2);
+          assert.equal(kcEvent.args[1][0].detail.height, 200);
+
+          next();
+        }, 100);
+      }, 100);
     });
-
-    KeyboardManager.showKeyboard();
-    KeyboardManager.resizeKeyboard({
-      detail: { height: 200 },
-      stopPropagation: sinon.stub()
-    });
-
-    // animation takes 50 ms. so 20 ms. is safe
-    setTimeout(function() {
-      assert.equal(called, false, 'KeyboardChange triggered 20 ms');
-    }, 20);
-
-    setTimeout(function() {
-      assert.equal(called, true, 'KeyboardChange triggered 100 ms');
-      next();
-    }, 100);
-  });
-
-  test('ShowKeyboard waits for transform transition', function(next) {
-    injectCss('opacity 0.05s ease, transform 0.3s ease');
-
-    KeyboardManager.showKeyboard();
-
-    setTimeout(function() {
-      assert.equal(
-        'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
-        true,
-        'TransitionIn canceled due to opacity');
-    }, 100);
-
-    setTimeout(function() {
-      assert.equal(
-        'transitionIn' in KeyboardManager.keyboardFrameContainer.dataset,
-        false,
-        'TransitionIn not canceled due to transform');
-      next();
-    }, 350);
-  });
-
-  test('UpdateHeight waits for transform transition', function(next) {
-    var called = false;
-    window.addEventListener('keyboardchange', function() {
-      called = true;
-    });
-
-    injectCss('opacity 0.05s ease, transform 0.3s ease');
-
-    KeyboardManager.showKeyboard();
-    KeyboardManager.resizeKeyboard({
-      detail: { height: 200 },
-      stopPropagation: sinon.stub()
-    });
-
-    setTimeout(function() {
-      assert.equal(called, false, 'KeyboardChange triggered by opacity');
-    }, 100);
-
-    setTimeout(function() {
-      assert.equal(called, true, 'KeyboardChange triggered by transform');
-      next();
-    }, 350);
   });
 });
