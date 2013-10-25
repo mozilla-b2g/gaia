@@ -46,7 +46,7 @@ suite('thread_list_ui', function() {
       '<header></header>' +
       '<ul id="threadsContainer_' + someDate + '">' +
         '<li id="thread-1" data-time="' + someDate + '"></li>' +
-        '<li id="thread-2" data-time="' + someDate + '""></li>' +
+        '<li id="thread-2" data-time="' + someDate + '"></li>' +
       '</ul>';
 
     ThreadListUI.container.innerHTML = markup;
@@ -200,6 +200,88 @@ suite('thread_list_ui', function() {
       test('calls setEmpty(true)', function() {
         assert.ok(ThreadListUI.setEmpty.calledWith(true));
       });
+    });
+  });
+
+  suite('createThreadMockup', function() {
+    var message;
+
+    setup(function() {
+      // Create a message with read status 'true'
+      message = MockMessages.sms();
+    });
+
+    test(' > createThreadMockup with unread status in options', function() {
+      var options = { read: false };
+      var thread = ThreadListUI.createThreadMockup(message, options);
+
+      assert.equal(thread.unreadCount, 1);
+    });
+
+    test(' > createThreadMockup without options', function() {
+      var thread = ThreadListUI.createThreadMockup(message);
+      var options = { read: true };
+      assert.equal(thread.unreadCount, 0);
+    });
+
+    test(' > createThreadMockup with read status in options', function() {
+      var options = { read: true };
+      var thread = ThreadListUI.createThreadMockup(message, options);
+      assert.equal(thread.unreadCount, 0);
+    });
+
+
+  });
+
+  suite('updateThread', function() {
+    var message;
+    setup(function() {
+      var someDate = new Date(2013, 1, 1);
+      insertMockMarkup(someDate);
+      // A new message of a previous thread
+      var nextDate = new Date(2013, 1, 2);
+      message = MockMessages.sms({
+        threadId: 2,
+        timestamp: nextDate
+      });
+
+      this.sinon.spy(ThreadListUI, 'createThreadMockup');
+      this.sinon.spy(ThreadListUI, 'removeThread');
+      this.sinon.spy(ThreadListUI, 'appendThread');
+      this.sinon.spy(FixedHeader, 'refresh');
+
+      ThreadListUI.updateThread(message, true);
+    });
+
+    test(' > createThreadMockup is called', function() {
+      assert.ok(ThreadListUI.createThreadMockup.called);
+    });
+
+    test(' > removeThread is called', function() {
+      assert.ok(ThreadListUI.removeThread.called);
+      assert.ok(ThreadListUI.appendThread.called);
+    });
+
+    test(' > new message, new thread.', function() {
+      var newDate = new Date(2013, 1, 2);
+      var newMessage = MockMessages.sms({
+        threadId: 20,
+        timestamp: newDate
+      });
+      ThreadListUI.updateThread(newMessage, true);
+      // As this is a new message we dont have to remove threads
+      assert.ok(ThreadListUI.removeThread.calledOnce);
+      // But we have appended twice
+      assert.ok(ThreadListUI.appendThread.calledTwice);
+    });
+
+    test('refresh the fixed header', function() {
+      assert.ok(FixedHeader.refresh.called);
+    });
+
+
+    teardown(function() {
+      ThreadListUI.container.innerHTML = '';
     });
   });
 
@@ -395,6 +477,7 @@ suite('thread_list_ui', function() {
       var message;
 
       setup(function() {
+        this.sinon.spy(ThreadListUI, 'updateThread');
         var someDate = new Date(2013, 1, 1);
         insertMockMarkup(someDate);
 
@@ -406,22 +489,18 @@ suite('thread_list_ui', function() {
         ThreadListUI.onMessageReceived(message);
       });
 
-      test('new thread is appended', function() {
-        assert.ok(ThreadListUI.appendThread.called);
+      test('new thread is appended/updated', function() {
+        assert.ok(ThreadListUI.updateThread.called);
         // first call, first argument
-        var thread = ThreadListUI.appendThread.args[0][0];
-        assert.equal(thread.id, message.threadId);
-        assert.equal(thread.body, message.body);
+        var messageArg = ThreadListUI.updateThread.args[0][0];
+        assert.equal(messageArg.threadId, message.threadId);
+        assert.equal(messageArg.body, message.body);
       });
 
       test('old thread is removed', function() {
         assert.ok(ThreadListUI.removeThread.called);
         var threadId = ThreadListUI.removeThread.args[0][0];
         assert.equal(threadId, message.threadId);
-      });
-
-      test('refresh the fixed header', function() {
-        assert.ok(FixedHeader.refresh.called);
       });
     });
 
