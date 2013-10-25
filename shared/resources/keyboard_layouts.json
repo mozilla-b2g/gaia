@@ -1,54 +1,152 @@
 {
   "layout"  : {
-    "ar"        : "arabic",
-    "as"        : "english",
-    "bn-BD"     : "english",
-    "ca"        : "english",
-    "cs"        : "english",
-    "cy"        : "english",
-    "cz"        : "czech",
-    "de"        : "german",
-    "el"        : "greek",
-    "en-US"     : "english",
-    "eo"        : "english",
-    "es"        : "spanish",
-    "et"        : "english",
-    "eu"        : "english",
-    "ff"        : "english",
-    "fr"        : "french",
-    "fy-NL"     : "english",
-    "ga-IE"     : "english",
-    "gd"        : "english",
-    "gl"        : "english",
-    "he"        : "hebrew",
-    "hi-IN"     : "english",
-    "ht"        : "english",
-    "hu"        : "hungarian",
-    "id"        : "english",
-    "it"        : "english",
-    "ja"        : "japanese",
-    "ko"        : "english",
-    "lij"       : "english",
-    "ml"        : "english",
-    "nb"        : "norwegian",
-    "nl"        : "english",
-    "or"        : "english",
-    "pa"        : "english",
-    "pl"        : "polish",
-    "pt-BR"     : "portuguese",
-    "ro"        : "romanian",
-    "ru"        : "russian",
-    "sk"        : "slovak",
-    "sl"        : "english",
-    "sq"        : "english",
-    "sr-Cyrl"   : "serbian",
-    "sr-Latn"   : "serbian",
-    "sv-SE"     : "english",
-    "te"        : "english",
-    "tr"        : "turkish",
-    "ur"        : "english",
-    "zh-CN"     : "zhuyin",
-    "zh-TW"     : "zhuyin"
+    "ar": [
+        {"layoutId": "ar", "appPath": "apps/keyboard"}
+    ],
+    "as": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "bn-BD": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "ca": [
+        {"layoutId": "ca", "appPath": "apps/keyboard"}
+    ],
+    "cs": [
+        {"layoutId": "cz", "appPath": "apps/keyboard"}
+    ],
+    "cy": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "de": [
+        {"layoutId": "de", "appPath": "apps/keyboard"}
+    ],
+    "el": [
+        {"layoutId": "el", "appPath": "apps/keyboard"}
+    ],
+    "en-US": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "eo": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "es": [
+        {"layoutId": "es", "appPath": "apps/keyboard"}
+    ],
+    "et": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "eu": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "ff": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "fr": [
+        {"layoutId": "fr", "appPath": "apps/keyboard"}
+    ],
+    "fy-NL": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "ga-IE": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "gd": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "gl": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "he": [
+        {"layoutId": "he", "appPath": "apps/keyboard"}
+    ],
+    "hi-IN": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "ht": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "hu": [
+        {"layoutId": "hu", "appPath": "apps/keyboard"}
+    ],
+    "id": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "it": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "ja": [
+        {"layoutId": "jp-kanji", "appPath": "apps/keyboard"}
+    ],
+    "ko": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "lij": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "ml": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "nb": [
+        {"layoutId": "nb", "appPath": "apps/keyboard"}
+    ],
+    "nl": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "or": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "pa": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "pl": [
+        {"layoutId": "pl", "appPath": "apps/keyboard"}
+    ],
+    "pt-BR": [
+        {"layoutId": "pt-BR", "appPath": "apps/keyboard"}
+    ],
+    "ro": [
+        {"layoutId": "ro", "appPath": "apps/keyboard"}
+    ],
+    "ru": [
+        {"layoutId": "ru", "appPath": "apps/keyboard"}
+    ],
+    "sk": [
+        {"layoutId": "sk", "appPath": "apps/keyboard"}
+    ],
+    "sl": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "sq": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "sr-Cyrl": [
+        {"layoutId": "sr-Cyrl", "appPath": "apps/keyboard"},
+        {"layoutId": "sr-Latn", "appPath": "apps/keyboard"}
+    ],
+    "sr-Latn": [
+        {"layoutId": "sr-Latn", "appPath": "apps/keyboard"},
+        {"layoutId": "sr-Cyrl", "appPath": "apps/keyboard"}
+    ],
+    "sv-SE": [
+        {"layoutId": "sv", "appPath": "apps/keyboard"}
+    ],
+    "te": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "tr": [
+        {"layoutId": "tr-Q", "appPath": "apps/keyboard"},
+        {"layoutId": "tr-F", "appPath": "apps/keyboard"}
+    ],
+    "ur": [
+        {"layoutId": "en", "appPath": "apps/keyboard"}
+    ],
+    "zh-CN": [
+        {"layoutId": "zh-Hans-Pinyin", "appPath": "apps/keyboard"}
+    ],
+    "zh-TW": [
+        {"layoutId": "zh-Hant-Zhuyin", "appPath": "apps/keyboard"}
+    ]
   },
   "nonLatin" : ["ar", "el", "he", "hi-IN", "ja", "ko", "ru", "te", "zh-CN", "zh-TW"]
 }
