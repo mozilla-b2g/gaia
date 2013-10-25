@@ -274,11 +274,11 @@ IMEngine.prototype = {
             display += self._pendingSymbols;
           }
 
-          self._glue.sendPendingSymbols(display);
+          self._glue.setComposition(display.trim());
         }
       );
     } else {
-      this._glue.sendPendingSymbols('');
+      this._glue.endComposition();
     }
   },
 
@@ -364,13 +364,13 @@ IMEngine.prototype = {
     if (code === KeyEvent.DOM_VK_RETURN ||
         !this._isPinyinKey(code) ||
         this._pendingSymbols.length >= this._kBufferLenLimit) {
-      debug('Nono-bopomofo key is pressed or the input is too long.');
+      debug('Non-pinyin key is pressed or the input is too long.');
       var sendKey = true;
       if (this._firstCandidate) {
         if (this._pendingSymbols) {
           // candidate list exists; output the first candidate
           debug('Sending first candidate.');
-          this._glue.sendString(this._firstCandidate);
+          this._glue.endComposition(this._firstCandidate);
           // no return here
           if (code === KeyEvent.DOM_VK_RETURN) {
             sendKey = false;
@@ -644,9 +644,13 @@ IMEngine.prototype = {
     var self = this;
     var nextStep = function(text) {
       if (text) {
-        self._glue.sendString(text);
+        if (self._pendingSymbols) {
+          self._pendingSymbols = '';
+          self._glue.endComposition(text);
+        } else {
+          self._glue.sendString(text);
+        }
         self._historyText = text;
-        self._pendingSymbols = '';
         self._candidatesLength = 0;
       }
       self._keypressQueue.push(0);
