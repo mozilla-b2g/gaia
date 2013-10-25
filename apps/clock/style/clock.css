@@ -85,25 +85,19 @@ html, body {
   display: block;
 }
 
-#analog-clock-container.marks1 {
+#analog-clock-container.large {
   width: 27rem;
   height: 27rem;
   margin: 6.9rem auto 0;
 }
 
-#analog-clock-container.marks2 {
-  width: 24.8rem;
-  height: 24.8rem;
-  margin: 7.8rem auto 0;
+#analog-clock-container.medium {
+  width: 21.8rem;
+  height: 21.8rem;
+  margin: 6.8rem auto 0;
 }
 
-#analog-clock-container.marks3 {
-  width: 19.8rem;
-  height: 19.8rem;
-  margin: 7.8rem auto 0;
-}
-
-#analog-clock-container.marks4 {
+#analog-clock-container.small {
   width: 14.8rem;
   height: 14.8rem;
   margin: 5.8rem auto 0;

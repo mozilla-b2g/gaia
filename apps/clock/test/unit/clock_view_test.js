@@ -1,5 +1,6 @@
 suite('ClockView', function() {
   var ClockView;
+  var AlarmList;
   var asyncStorage;
 
   suiteSetup(function(done) {
@@ -10,12 +11,20 @@ suite('ClockView', function() {
     // Load before clock_view to ensure elements are initialized properly.
     loadBodyHTML('/index.html');
 
-    testRequire(['clock_view', 'mocks/mock_shared/js/async_storage'], {
+    testRequire([
+      'clock_view',
+      'mocks/mock_alarm_list',
+      'mocks/mock_shared/js/async_storage'
+      ], {
         mocks: ['alarm_list', 'shared/js/async_storage']
-      }, function(clockView, mockAsyncStorage) {
+      }, function(clockView, mockAlarmList, mockAsyncStorage) {
         ClockView = clockView;
+        AlarmList = mockAlarmList;
+
         asyncStorage = mockAsyncStorage;
+
         ClockView.init();
+        AlarmList.init();
         done();
       });
   });
@@ -332,5 +341,46 @@ suite('ClockView', function() {
 
       ClockView.digital.click();
     });
+  });
+
+  suite('resizeAnalogClock', function() {
+
+    suiteSetup(function() {
+      this.analogClockContainer = document.getElementById(
+        'analog-clock-container');
+    });
+
+    setup(function() {
+      this.getAlarmCountStub = this.sinon.stub(AlarmList, 'getAlarmCount');
+    });
+
+    test('large size when no alarms in alarms list', function() {
+      this.getAlarmCountStub.returns(0);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('large'));
+    });
+
+    test('large size when 1 alarm in alarms list', function() {
+      this.getAlarmCountStub.returns(1);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('large'));
+    });
+
+    test('medium size when 2 alarms in alarms list', function() {
+      this.getAlarmCountStub.returns(2);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('medium'));
+    });
+
+    test('small size when 3 or more alarms in alarms list', function() {
+      this.getAlarmCountStub.returns(3);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('small'));
+
+      this.getAlarmCountStub.returns(4);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('small'));
+    });
+
   });
 });
