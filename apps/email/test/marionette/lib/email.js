@@ -1,4 +1,5 @@
 /*jshint node: true, browser: true */
+'use strict';
 function Email(client) {
   this.client = client.scope({ searchTimeout: 20000 });
 }
@@ -51,10 +52,13 @@ var Selector = {
   replyMenuForward: '.msg-reply-menu-forward',
   replyMenuAll: '.msg-reply-menu-reply-all',
   folderListButton: '.msg-list-header .msg-folder-list-btn',
-  settingsButton: '.fld-nav-toolbar .fld-nav-settings-btn',
+  folderListCloseButton: '.card-folder-picker .fld-header-back',
+  folderListContents: '.card-folder-picker .fld-acct-scrollinner',
+  settingsButton: '.fld-nav-toolbar',
   settingsDoneButton: '.card-settings-main [data-l10n-id="settings-done"]',
   addAccountButton: '.tng-accounts-container .tng-account-add',
-  accountListButton: '.fld-folders-header .fld-accounts-btn',
+  accountListButton: '.fld-acct-header',
+  accountListContainer: '.fld-accountlist-container',
   settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
   syncIntervalSelect: '.tng-account-check-interval ',
   // Checkboxes are weird: hidden to marionette, but the associated label
@@ -185,11 +189,11 @@ Email.prototype = {
     this._tapSelector(Selector.folderListButton);
     this._waitForElementNoTransition(Selector.settingsButton);
     this._waitForTransitionEnd('folder_picker');
+    this.client.helper.waitForElement(Selector.folderListContents);
   },
 
   tapFolderListCloseButton: function() {
-    this._tapSelector(Selector.folderListButton);
-    this._waitForElementNoTransition(Selector.settingsButton);
+    this._tapSelector(Selector.folderListCloseButton);
     this.waitForMessageList();
   },
 
@@ -197,8 +201,9 @@ Email.prototype = {
     // XXX: Workaround util http://bugzil.la/912873 is fixed.
     // Wait for 500ms to let the element be clickable
     this.client.helper.wait(500);
-    this._waitForElementNoTransition(Selector.accountListButton).tap();
-    this._waitForTransitionEnd('account_picker');
+
+    this.client.helper.waitForElement(Selector.accountListButton).tap();
+    this.client.helper.waitForElement(Selector.accountListContainer);
   },
 
   tapLocalDraftsItem: function() {
@@ -210,7 +215,7 @@ Email.prototype = {
   },
 
   switchAccount: function(number) {
-    var accountSelector = '.acct-list-container ' +
+    var accountSelector = '.fld-accountlist-container ' +
                           'a:nth-child(' + number + ')';
     this.client.helper
       .waitForElement(accountSelector)
@@ -383,8 +388,9 @@ Email.prototype = {
     // we see one.  Then tap on it.
     this.client.waitFor(function() {
       var element = this.getEmailBySubject(subject);
-      if (!element)
+      if (!element) {
         return false;
+      }
 
       element.tap();
       this._waitForTransitionEnd(cardId);
@@ -427,6 +433,8 @@ Email.prototype = {
       whichButton = Selector.replyMenuForward;
       break;
     case 'reply':
+      whichButton = Selector.replyMenuReply;
+      break;
     default:
       whichButton = Selector.replyMenuReply;
       break;
@@ -549,7 +557,7 @@ Email.prototype = {
 
   _setupTypePassword: function(password) {
     this.client.helper
-      .waitForElement(setupPasswordInput)
+      .waitForElement(Selector.setupPasswordInput)
       .sendKeys(password);
   },
 
@@ -564,8 +572,9 @@ Email.prototype = {
 
   _tapNext: function(selector, cardId) {
     this._tapSelector(selector);
-    if (cardId)
+    if (cardId) {
       this._waitForTransitionEnd(cardId);
+    }
   },
 
   _manualSetupTypeName: function(name) {

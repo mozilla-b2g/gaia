@@ -499,7 +499,6 @@ apps/email/js/array.js
 apps/email/js/cards/account_picker.js
 apps/email/js/cards/account_prefs_mixins.js
 apps/email/js/cards/compose.js
-apps/email/js/cards/folder_picker.js
 apps/email/js/cards/message_list.js
 apps/email/js/cards/message_reader.js
 apps/email/js/cards/settings_account.js
@@ -575,7 +574,6 @@ apps/email/test/integration/email_integration.js
 apps/email/test/integration/launch_test.js
 apps/email/test/marionette/activity_create_email_account_complete_test.js
 apps/email/test/marionette/lib/debug.js
-apps/email/test/marionette/lib/email.js
 apps/email/test/marionette/lib/email_data.js
 apps/email/test/marionette/lib/email_evt.js
 apps/email/test/marionette/lib/email_sync.js

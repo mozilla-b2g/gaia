@@ -1,5 +1,6 @@
 /*jshint browser: true */
 /*global define, console */
+'use strict';
 define(function(require) {
 
 var templateNode = require('tmpl!./message_list.html'),
@@ -7,6 +8,8 @@ var templateNode = require('tmpl!./message_list.html'),
     deleteConfirmMsgNode = require('tmpl!./msg/delete_confirm.html'),
     largeMsgConfirmMsgNode = require('tmpl!./msg/large_message_confirm.html'),
     common = require('mail_common'),
+    date = require('date'),
+    evt = require('evt'),
     model = require('model'),
     headerCursor = require('header_cursor').cursor,
     htmlCache = require('html_cache'),
@@ -112,6 +115,7 @@ var MAX_MESSAGE_GROWTH_SIZE = 8;
 function MessageListCard(domNode, mode, args) {
   this.domNode = domNode;
   this.mode = mode;
+  this.headerMenuNode = this.domNode.querySelector('menu[type="toolbar"]');
   this.scrollNode = domNode.getElementsByClassName('msg-list-scrollouter')[0];
 
   if (mode === 'nonsearch')
@@ -152,9 +156,11 @@ function MessageListCard(domNode, mode, args) {
 
   // - toolbar: non-edit mode
   this.toolbar = {};
-  this.toolbar.searchBtn = domNode.getElementsByClassName('msg-search-btn')[0];
-  this.toolbar.searchBtn
-    .addEventListener('click', this.onSearchButton.bind(this), false);
+  this.toolbar.lastSyncedAtNode = domNode
+                            .getElementsByClassName('msg-last-synced-value')[0];
+  this.toolbar.lastSyncedLabel = domNode
+                            .getElementsByClassName('msg-last-synced-label')[0];
+  this.updateLastSynced();
   this.toolbar.editBtn = domNode.getElementsByClassName('msg-edit-btn')[0];
   this.toolbar.editBtn
     .addEventListener('click', this.setEditMode.bind(this, true), false);
@@ -214,13 +220,19 @@ function MessageListCard(domNode, mode, args) {
   // event listeners.
   this._folderChanged = this._folderChanged.bind(this);
   this.onNewMail = this.onNewMail.bind(this);
+  this.onFoldersSliceChange = this.onFoldersSliceChange.bind(this);
   this.messages_splice = this.messages_splice.bind(this);
   this.messages_change = this.messages_change.bind(this);
   this.messages_status = this.messages_status.bind(this);
   this.messages_complete = this.messages_complete.bind(this);
 
+  this.onFolderPickerClosing = this.onFolderPickerClosing.bind(this);
+  evt.on('folderPickerClosing', this.onFolderPickerClosing);
+
   model.latest('folder', this._folderChanged);
   model.on('newInboxMessages', this.onNewMail);
+
+  model.on('foldersSliceOnChange', this.onFoldersSliceChange);
 
   this.sliceEvents.forEach(function(type) {
     var name = 'messages_' + type;
@@ -412,36 +424,28 @@ MessageListCard.prototype = {
   },
 
   onShowFolders: function() {
-    var query = ['folder_picker', 'navigation'];
-    if (Cards.hasCard(query)) {
-      Cards.moveToCard(query);
-    } else {
-      // Add navigation, but before the message list.
-      Cards.pushCard(
-        'folder_picker', 'navigation', 'none',
-        {
-          onPushed: function() {
-            setTimeout(function() {
-            // Do showCard here instead of using an 'animate'
-            // for the pushCard call, since the styling of
-            // the folder_picker uses new images that need to
-            // load, and if 'animate' is used, the banner
-            // gradient is not loaded during the transition.
-            // The setTimeout also gives the header image a
-            // chance to finish loading. Without it, there is
-            // still a white flash. Going lower than 50, not
-            // specifying a value, still resulted in white flash.
-            Cards.moveToCard(query);
-          }, 50);
-          }.bind(this)
-        },
-        // Place to left of message list
-        'left');
-    }
+    Cards.pushCard('folder_picker', 'default', 'immediate', {
+      onPushed: function() {
+        this.headerMenuNode.classList.add('transparent');
+      }.bind(this)
+    });
   },
 
   onCompose: function() {
     Cards.pushCard('compose', 'default', 'animate');
+  },
+
+  updateLastSynced: function(value) {
+    var method = value ? 'remove' : 'add';
+    this.toolbar.lastSyncedLabel.classList[method]('collapsed');
+    date.setPrettyNodeDate(this.toolbar.lastSyncedAtNode, value);
+  },
+
+  onFoldersSliceChange: function(folder) {
+    // Just care about updating the last sync time
+    if (folder === this.curFolder) {
+      this.updateLastSynced(folder.lastSyncedAt);
+    }
   },
 
   /**
@@ -486,6 +490,8 @@ MessageListCard.prototype = {
       this.toolbar.moveBtn.classList.remove('collapsed');
     }
 
+    this.updateLastSynced(folder.lastSyncedAt);
+
     if (forceNewSlice) {
       // We are creating a new slice, so any pending snippet requests are moot.
       this._snippetRequestPending = false;
@@ -523,6 +529,7 @@ MessageListCard.prototype = {
       subject: filter === 'all' || filter === 'subject',
       body: filter === 'all' || filter === 'body'
     });
+
     return true;
   },
 
@@ -598,7 +605,6 @@ MessageListCard.prototype = {
       mozL10n.get('messages-folder-empty');
     this.messageEmptyContainer.classList.remove('collapsed');
     this.toolbar.editBtn.classList.add('disabled');
-    this.toolbar.searchBtn.classList.add('disabled');
     this._hideSearchBoxByScrolling();
   },
   /**
@@ -608,7 +614,6 @@ MessageListCard.prototype = {
   hideEmptyLayout: function() {
     this.messageEmptyContainer.classList.add('collapsed');
     this.toolbar.editBtn.classList.remove('disabled');
-    this.toolbar.searchBtn.classList.remove('disabled');
   },
 
 
@@ -664,13 +669,13 @@ MessageListCard.prototype = {
     }
   },
 
-  onScroll: function(evt) {
+  onScroll: function(event) {
     if (this._pendingScrollEvent) {
       return;
     }
 
     this._pendingScrollEvent = true;
-    this._scrollTimer = setTimeout(this._onScroll, SCROLL_DELAY, evt);
+    this._scrollTimer = setTimeout(this._onScroll, SCROLL_DELAY, event);
   },
 
   /**
@@ -874,6 +879,9 @@ MessageListCard.prototype = {
 
     var cacheNode = this.domNode.cloneNode(true);
 
+    // Make sure toolbar is visible, could be hidden by drawer
+    cacheNode.querySelector('menu[type="toolbar"]')
+             .classList.remove('transparent');
 
     // Hide search field as it will not operate and gets scrolled out
     // of view after real load.
@@ -898,6 +906,7 @@ MessageListCard.prototype = {
         childNode.parentNode.removeChild(childNode);
       }
     }
+
     htmlCache.saveFromNode(cacheNode);
   },
 
@@ -1201,6 +1210,14 @@ MessageListCard.prototype = {
   },
 
   /**
+   * Called when the folder picker is animating to close. Need to
+   * listen for it so this card can animate fading in the header menu.
+   */
+  onFolderPickerClosing: function() {
+    this.headerMenuNode.classList.remove('transparent');
+  },
+
+  /**
    * Called by Cards when the instance of this card type is the
    * visible card.
    */
@@ -1455,8 +1472,11 @@ MessageListCard.prototype = {
       headerCursor.removeListener(name, this[name]);
     }.bind(this));
 
+    evt.removeListener('folderPickerClosing', this.onFolderPickerClosing);
+
     model.removeListener('folder', this._folderChanged);
     model.removeListener('newInboxMessages', this.onNewMail);
+    model.removeListener('foldersSliceOnChange', this.onFoldersSliceChange);
     headerCursor.removeListener('currentMessage', this.onCurrentMessage);
   }
 };

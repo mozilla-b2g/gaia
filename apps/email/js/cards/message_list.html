@@ -6,7 +6,7 @@
       <a href="#" class="msg-folder-list-btn">
         <span class="icon icon-menu">menu</span>
       </a>
-      <menu type="toolbar">
+      <menu type="toolbar" class="anim-opacity">
         <a href="#" class="msg-compose-btn">
           <span class="icon icon-compose">compose</span>
         </a>
@@ -95,8 +95,10 @@
     <li role="tab" class="msg-nonsearch-only">
       <button class="icon msg-refresh-btn" data-state="synchronized"></button>
     </li>
-    <li role="tab" class="msg-nonsearch-only">
-      <button class="icon msg-search-btn"></button>
+    <li role="tab" class="msg-nonsearch-only msg-last-sync">
+      <span class="msg-last-synced-label"
+            data-l10n-id="account-last-synced-label"></span>
+      <span class="msg-last-synced-value"></span>
     </li>
     <li role="tab">
       <button class="icon msg-edit-btn"></button>
