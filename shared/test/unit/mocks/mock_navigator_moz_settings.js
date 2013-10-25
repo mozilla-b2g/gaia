@@ -5,7 +5,8 @@
       // Set default message size with 300KB
       settings = {
         'dom.mms.operatorSizeLimitation' : 300,
-        'homegesture.enabled': false
+        'homegesture.enabled': false,
+        'software-button.enabled': false
       },
       removedObservers = {};
 
