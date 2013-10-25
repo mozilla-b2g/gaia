@@ -10,6 +10,11 @@ var gTonesFrequencies = {
   '*': [941, 1209], '0': [941, 1336], '#': [941, 1477]
 };
 
+var AUDIO_MAP = {
+  '*': 'thanks.ogg',
+  '#': 'sit.ogg'
+};
+
 var keypadSoundIsEnabled = false;
 var dtmfShortTone = false;
 
@@ -173,6 +178,7 @@ var KeypadManager = {
     }
 
     TonePlayer.init(this._onCall ? 'telephony' : 'normal');
+    // VoiceClipPlayer.init();
 
     this.render();
     LazyLoader.load(['/shared/style/action_menu.css',
@@ -328,11 +334,19 @@ var KeypadManager = {
         this._keyPressStart = Date.now();
         this._lastPressedKey = key;
 
-        if (key != 'delete') {
-          if (keypadSoundIsEnabled) {
-            // We do not support long press if not on a call
-            TonePlayer.start(gTonesFrequencies[key], !this._onCall);
+      if (key != 'delete') {
+        if (keypadSoundIsEnabled) {
+          // We do not support long press if not on a call
+          // TonePlayer.start(gTonesFrequencies[key], !this._onCall);
+          // VoiceClipPlayer.start(key);
+          var audio = new Audio();
+          var intKey = parseInt(key);
+          if (!intKey) {
+            audio.src = 'style/audio/' + AUDIO_MAP[key];
+          } else {
+            audio.src = 'style/audio/' + key + '.ogg';
           }
+          audio.play();
         }
 
         // Manage long press
@@ -361,6 +375,7 @@ var KeypadManager = {
             self._callVoicemail();
           }, 1500, this);
         }
+      }
 
         if (key == 'delete') {
           this._phoneNumber = this._phoneNumber.slice(0, -1);
@@ -455,7 +470,8 @@ var KeypadManager = {
 
     telephony.stopTone();
     telephony.startTone(value);
-    TonePlayer.start(gTonesFrequencies[value], true);
+    // TonePlayer.start(gTonesFrequencies[value], true);
+    // VoiceClipPlayer.start(key);
     setTimeout(function nextTick() {
       telephony.stopTone();
       TonePlayer.stop();
