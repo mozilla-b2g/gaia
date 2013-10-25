@@ -259,14 +259,18 @@ var Settings = {
     }
     panel.dataset.rendered = true;
 
-    // load the panel and its sub-panels (dependencies)
-    // (load the main panel last because it contains the scripts)
-    var selector = 'section[id^="' + panel.id + '-"]';
-    var subPanels = document.querySelectorAll(selector);
-    for (var i = 0, il = subPanels.length; i < il; i++) {
-      this.loadPanel(subPanels[i]);
+    if (panel.dataset.requireSubPanels) {
+      // load the panel and its sub-panels (dependencies)
+      // (load the main panel last because it contains the scripts)
+      var selector = 'section[id^="' + panel.id + '-"]';
+      var subPanels = document.querySelectorAll(selector);
+      for (var i = 0, il = subPanels.length; i < il; i++) {
+        this.loadPanel(subPanels[i]);
+      }
+      this.loadPanel(panel, this.panelLoaded.bind(this, panel, subPanels));
+    } else {
+      this.loadPanel(panel, this.panelLoaded.bind(this, panel));
     }
-    this.loadPanel(panel, this.panelLoaded.bind(this, panel, subPanels));
   },
 
   panelLoaded: function(panel, subPanels) {
@@ -311,8 +315,10 @@ var Settings = {
     }
 
     // preset all inputs in the panel and subpanels.
-    for (var i = 0; i < subPanels.length; i++) {
-      this.presetPanel(subPanels[i]);
+    if (panel.dataset.requireSubPanels) {
+      for (var i = 0; i < subPanels.length; i++) {
+        this.presetPanel(subPanels[i]);
+      }
     }
     this.presetPanel(panel);
   },

@@ -144,6 +144,11 @@
       - the « section[id^="wifi-"] » selector.
       -
       - Long story short: BE VERY CAREFUL WHEN CHANGING A SECTION ID!
+      -
+      - Regarding data-require-sub-panels: This is a temporary declarative way
+      - to say that a panel requires the all subpanels which match the pattern
+      - 'section[id^="' + panel.id + '-"]' to be loaded before loading.
+      - This is to be removed soon in bug 922658.
       -->
 
     <!--
@@ -163,7 +168,7 @@
     <!-- Connectivity :: Wi-Fi :: Saved Networks -->
     <section is="wifi-manageNetworks" role="region" id="wifi-manageNetworks"></section>
     <!-- Connectivity :: Wi-Fi -->
-    <section is="wifi" role="region" id="wifi"></section>
+    <section is="wifi" role="region" id="wifi" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
     <section is="call-cf-notReachableSettings" role="region" id="call-cf-notReachableSettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding No Reply -->
@@ -188,7 +193,7 @@
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Add -->
     <section is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
-    <section is="call-fdnList" role="region" id="call-fdnList"></section>
+    <section is="call-fdnList" role="region" id="call-fdnList" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: SIM PIN2 Input -->
     <section is="call-pin2-dialog" role="region" id="call-pin2-dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->
@@ -196,7 +201,7 @@
     <!-- Connectivity :: Call :: Voice Mail -->
     <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings"></section>
     <!-- Connectivity :: Call -->
-    <section is="call" role="region" id="call"></section>
+    <section is="call" role="region" id="call" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
     <section is="carrier-operatorSettings" role="region" id="carrier-operatorSettings"></section>
     <!-- Connectivity :: Cellular & Data :: Data Settings -->
@@ -210,18 +215,18 @@
     <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
     <section is="carrier-dr-warning" role="region" id="carrier-dr-warning"></section>
     <!-- Connectivity :: Cellular & Data -->
-    <section is="carrier" role="region" id="carrier"></section>
+    <section is="carrier" role="region" id="carrier" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Bluetooth -->
     <section is="bluetooth" role="region" id="bluetooth"></section>
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
     <section is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings"></section>
     <!-- Connectivity :: Internet Sharing -->
-    <section is="hotspot" role="region" id="hotspot"></section>
+    <section is="hotspot" role="region" id="hotspot" data-require-sub-panels="true"></section>
 
     <!-- Personalization :: Sound :: Sound Selection -->
     <section is="sound-selection" role="region" id="sound-selection"></section>
     <!-- Personalization :: Sound -->
-    <section is="sound" role="region" id="sound"></section>
+    <section is="sound" role="region" id="sound" data-require-sub-panels="true"></section>
     <!-- Personalization :: Display -->
     <section is="display" role="region" id="display"></section>
     <!-- Personalization :: Notifications -->
@@ -233,27 +238,27 @@
     <!-- Personalization :: Homescreen :: details -->
     <section is="homescreen-details" role="region" id="homescreen-details"></section>
     <!-- Personalization :: Homescreen -->
-    <section is="homescreen" role="region" id="homescreen"></section>
+    <section is="homescreen" role="region" id="homescreen" data-require-sub-panels="true"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard :: Add More Keyboards -->
     <section is="keyboard-selection-addMore" role="region" id="keyboard-selection-addMore"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard -->
     <section is="keyboard-selection" role="region" id="keyboard-selection"></section>
     <!-- Personalization :: Keyboard -->
-    <section is="keyboard" role="region" id="keyboard"></section>
+    <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
     <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
 
     <!-- Security :: Phone Lock :: PIN Input -->
     <section is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
     <!-- Security :: Phone Lock -->
-    <section is="phoneLock" role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false"></section>
+    <section is="phoneLock" role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
     <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
     <!-- Security :: SIM Security -->
-    <section is="simpin" role="region" id="simpin"></section>
+    <section is="simpin" role="region" id="simpin" data-require-sub-panels="true"></section>
     <!-- Security :: Application Permissions :: Details -->
     <section is="appPermissions-details" role="region" id="appPermissions-details"></section>
     <!-- Security :: Application Permissions -->
-    <section is="appPermissions" role="region" id="appPermissions"></section>
+    <section is="appPermissions" role="region" id="appPermissions" data-require-sub-panels="true"></section>
     <!-- Security :: Do Not Track -->
     <section is="doNotTrack" role="region" id="doNotTrack"></section>
 
@@ -288,7 +293,7 @@
     <!-- Device :: Send Feedback -->
     <section is="improveBrowserOS-chooseFeedback" role="region" id="improveBrowserOS-chooseFeedback"></section>
     <!-- Device :: Improve Browser OS -->
-    <section is="improveBrowserOS" role="region" id="improveBrowserOS"></section>
+    <section is="improveBrowserOS" role="region" id="improveBrowserOS" data-require-sub-panels="true"></section>
     <!-- Device :: Help -->
     <section is="help" role="region" id="help"></section>
 

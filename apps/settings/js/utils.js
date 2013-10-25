@@ -43,8 +43,11 @@ function openDialog(dialogID, onSubmit, onReset) {
     return;
 
   var origin = Settings.currentPanel;
-  var dialog = document.getElementById(dialogID);
 
+  // Load dialog contents and show it.
+  Settings.currentPanel = dialogID;
+
+  var dialog = document.getElementById(dialogID);
   var submit = dialog.querySelector('[type=submit]');
   if (submit) {
     submit.onclick = function onsubmit() {
@@ -62,8 +65,6 @@ function openDialog(dialogID, onSubmit, onReset) {
       Settings.currentPanel = origin; // hide dialog box
     };
   }
-
-  Settings.currentPanel = dialogID; // show dialog box
 }
 
 /**
