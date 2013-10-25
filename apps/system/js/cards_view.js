@@ -172,8 +172,8 @@ var CardsView = (function() {
       cardsView.addEventListener('mousedown', CardsView);
     }
 
-    // Make sure we're in portrait mode
-    screen.mozLockOrientation('portrait-primary');
+    // Make sure we're in default orientation
+    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
 
     // If there is a displayed app, take keyboard focus away
     if (displayedApp)

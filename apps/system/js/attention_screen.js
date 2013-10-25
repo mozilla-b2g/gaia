@@ -137,8 +137,8 @@ var AttentionScreen = {
     // alternatively, if the newly appended frame is the visible frame
     // and we are in the status bar mode, expend to full screen mode.
     if (!this.isVisible()) {
-      // Attention screen now only support portrait mode.
-      screen.mozLockOrientation('portrait-primary');
+      // Attention screen now only support default orientation.
+      screen.mozLockOrientation(ScreenLayout.defaultOrientation);
 
       this.attentionScreen.classList.add('displayed');
       this.mainScreen.classList.add('attention');
@@ -240,8 +240,8 @@ var AttentionScreen = {
 
   // expend the attention screen overlay to full screen
   show: function as_show() {
-    // Attention screen now only support portrait mode.
-    screen.mozLockOrientation('portrait-primary');
+    // Attention screen now only support default orientation.
+    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
 
     this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize = false;
 
