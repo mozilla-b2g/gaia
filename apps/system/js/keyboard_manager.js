@@ -306,6 +306,7 @@ var KeyboardManager = {
     var manifestURL = layout.origin + '/manifest.webapp';
     var keyboard = document.createElement('iframe');
     keyboard.src = keyboardURL;
+    keyboard.setAttribute('mozapptype', 'inputmethod');
     keyboard.setAttribute('mozbrowser', 'true');
     keyboard.setAttribute('mozpasspointerevents', 'true');
     keyboard.setAttribute('mozapp', manifestURL);
