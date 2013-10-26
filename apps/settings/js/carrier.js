@@ -126,14 +126,6 @@ var Carrier = {
           }
           var input = document.getElementById('ril-' + usage + '-authType');
           input.value = AUTH_TYPES[item.authtype] || 'notDefined';
-          var parent = input.parentElement;
-          var button = input.previousElementSibling;
-          var index = input.selectedIndex;
-          if (index >= 0) {
-            var selection = input.options[index];
-            button.textContent = selection.textContent;
-            button.dataset.l10nId = selection.dataset.l10nId;
-          }
         };
 
         // include the radio button element in a list item
@@ -184,14 +176,6 @@ var Carrier = {
           'ril.' + usage + '.custom.authtype', function(value) {
             var input = document.getElementById('ril-' + usage + '-authType');
             input.value = value || 'notDefined';
-            var parent = input.parentElement;
-            var button = input.previousElementSibling;
-            var index = input.selectedIndex;
-            if (index >= 0) {
-              var selection = input.options[index];
-              button.textContent = selection.textContent;
-              button.dataset.l10nId = selection.dataset.l10nId;
-            }
         });
       }
 

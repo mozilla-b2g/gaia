@@ -436,34 +436,6 @@ var Settings = {
         }
       }
 
-      // use a <button> instead of the <select> element
-      var fakeSelector = function(select) {
-        var parent = select.parentElement;
-        var button = select.previousElementSibling;
-        // link the button with the select element
-        var index = select.selectedIndex;
-        var updateButton = function(selection) {
-          var args = selection.dataset.l10nArgs;
-          var argsObj = args ? JSON.parse(args) : null;
-          if (selection.dataset.l10nId) {
-            localize(button, selection.dataset.l10nId, argsObj);
-          } else {
-            button.textContent = selection.textContent;
-          }
-        };
-
-        if (index >= 0) {
-          var selection = select.options[index];
-          updateButton(selection);
-        }
-        if (parent.classList.contains('fake-select')) {
-          select.addEventListener('change', function() {
-            var newSelection = this.options[this.selectedIndex];
-            updateButton(newSelection);
-          });
-        }
-      };
-
       // preset all select
       var selects = panel.querySelectorAll('select');
       for (var i = 0, count = selects.length; i < count; i++) {
@@ -477,7 +449,6 @@ var Settings = {
             selectOption.selected = true;
           }
         }
-        fakeSelector(select);
       }
 
       // preset all span with data-name fields
@@ -632,17 +603,6 @@ var Settings = {
                   break;
                 case 'select-one':
                   input.value = request.result[key] || '';
-                  // Reset the select button content: We have to sync
-                  // the content to value in db before entering dialog
-                  var parent = input.parentElement;
-                  var button = input.previousElementSibling;
-                  // link the button with the select element
-                  var index = input.selectedIndex;
-                  if (index >= 0) {
-                    var selection = input.options[index];
-                    button.textContent = selection.textContent;
-                    button.dataset.l10nId = selection.dataset.l10nId;
-                  }
                   break;
                 default:
                   input.value = request.result[key] || '';

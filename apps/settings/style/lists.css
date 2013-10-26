@@ -350,78 +350,11 @@ ul li > label.bug344618_polyfill div span:last-child:active {
 /******************************************************************************
  * Select boxes
  */
-
-ul li select {
-  font-size: 1.9rem;
-  height: 3rem;
-  line-height: 3rem;
-  text-align: center;
-}
-
-/* half-width select boxes */
-ul li span select {
-  display: inline-block;
-  position: absolute;
-  top: 1.5rem;
-  right: 3rem;
-  width: calc(50% - 2rem);
-}
-
-/* full-width select boxes */
-ul li p + select {
-  display: block;
-  width: calc(100% - 15rem);
-  margin: -1rem 3rem 1rem 12rem;
-}
-
-/******************************************************************************
- * Fake select boxes
- */
-.fake-select {
-  position: relative;
-  display: block;
-  padding: 0;
-  margin-bottom: 1.5rem;
-  height: 3.8rem;
-}
-
-a + .fake-select {
-  margin-top: -1rem;
-}
-
-.fake-select.small {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.fake-select > button {
-  display: block;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-
-.fake-select > select {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3.8rem;
+.button.icon-dialog select {
   border: none;
-  background: red;
-  opacity: 0;
+  background: transparent;
+  font-size: 1.7rem;
 }
-
-p > .fake-select {
-  margin: 1rem -1.5rem 0.5rem;
-}
-
-/* */
-section[role="region"] > ul > li > p + .fake-select {
-  padding-top: 0;
-  margin-top: -0.8rem;
-}
-
 
 /******************************************************************************
  * Progress, Meter
