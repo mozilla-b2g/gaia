@@ -117,10 +117,10 @@ Once downloaded, you will need to extract the contents to a local folder.
 
 Because we’re running against the desktop client we must filter out all tests that are unsuitable. To run the tests, use the following command:
 
-`gaiatest --address=localhost:2828 \
+```gaiatest --address=localhost:2828 \
     --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi-xfail \
     gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini \
-    --testvars=(path/filename).json`
+    --testvars=(path/filename).json```
 
 You should then start to see the tests running.
 
