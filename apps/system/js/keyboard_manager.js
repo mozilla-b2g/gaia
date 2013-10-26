@@ -90,6 +90,7 @@ var KeyboardManager = {
       console.log('[Keyboard Manager] ' + msg);
   },
   keyboardHeight: 0,
+  isOutOfProcessEnabled: false,
 
   init: function km_init() {
     // generate typeTable
@@ -100,6 +101,11 @@ var KeyboardManager = {
       res[k].push(curr);
       return res;
     }, {});
+
+    SettingsListener.observe('debug.keyboard-oop.enabled', false,
+      function(value) {
+        this.isOutOfProcessEnabled = value;
+      }.bind(this));
 
     this.keyboardFrameContainer = document.getElementById('keyboards');
 
@@ -343,7 +349,12 @@ var KeyboardManager = {
     keyboard.setAttribute('mozbrowser', 'true');
     keyboard.setAttribute('mozpasspointerevents', 'true');
     keyboard.setAttribute('mozapp', manifestURL);
-    //keyboard.setAttribute('remote', 'true');
+
+    if (this.isOutOfProcessEnabled) {
+      console.log('=== Enable keyboard run as OOP ===');
+      keyboard.setAttribute('remote', 'true');
+      keyboard.classList.add('ignore-focus');
+    }
 
     this.keyboardFrameContainer.appendChild(keyboard);
     return keyboard;
