@@ -5,7 +5,8 @@
  * @api public
  */
 
-(function(global) {
+
+module.exports = JSONMozTestReporter;
 
 function JSONMozTestReporter(runner) {
   var self = this;
@@ -76,5 +77,3 @@ function cleanErr(test) {
     expected: expected
   }
 };
-global.JSONMozTestReporter = JSONMozTestReporter;
-})(this);

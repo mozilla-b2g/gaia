@@ -1,68 +1,52 @@
 'use strict';
 
-require('/tests/js/app_integration.js');
-require('/tests/js/integration_helper.js');
-require('/tests/performance/performance_helper.js');
+var App = require('./app');
+var PerformanceHelper = require(GAIA_DIR + '/tests/performance/performance_helper.js');
 
-function GenericIntegration(device) {
-  AppIntegration.apply(this, arguments);
-}
+var manifestPath, entryPoint;
 
-var [manifestPath, entryPoint] = window.mozTestInfo.appPath.split('/');
+var arr = mozTestInfo.appPath.split('/');
+manifestPath = arr[0];
+entryPoint = arr[1];
 
-GenericIntegration.prototype = {
-  __proto__: AppIntegration.prototype,
-  appName: window.mozTestInfo.appPath,
-  manifestURL: 'app://' + manifestPath + '.gaiamobile.org/manifest.webapp',
-  entryPoint: entryPoint
-};
+marionette('startup test ' + mozTestInfo.appPath + ' >', function() {
 
-suite(window.mozTestInfo.appPath + ' >', function() {
-  var device;
   var app;
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
+  });
 
   var performanceHelper;
 
-  MarionetteHelper.start(function(client) {
-    app = new GenericIntegration(client);
-    device = app.device;
-    performanceHelper = new PerformanceHelper({ app: app });
-  });
+  app = new App(client, mozTestInfo.appPath);
+  if (app.skip) {
+    return;
+  }
 
-  setup(function() {
-    yield IntegrationHelper.unlock(device); // it affects the first run otherwise
-    yield PerformanceHelper.registerLoadTimeListener(device);
-  });
+  performanceHelper = new PerformanceHelper({ app: app });
 
-  teardown(function() {
-    yield PerformanceHelper.unregisterLoadTimeListener(device);
-  });
+  suite(mozTestInfo.appPath + ' >', function() {
 
-  test('startup time', function() {
-    // Mocha timeout for this test
-    this.timeout(100000);
-    // Marionnette timeout for each command sent to the device
-    yield device.setScriptTimeout(10000);
+    test('startup time', function() {
 
-    yield performanceHelper.repeatWithDelay(function(app, next) {
-      yield app.launch();
-      yield app.close();
+      // Mocha timeout for this test
+      this.timeout(100000);
+      // Marionnette timeout for each command sent to the device
+      client.setScriptTimeout(10000);
+
+      app.unlock(); // it affects the first run otherwise
+      PerformanceHelper.registerLoadTimeListener(client);
+
+      app.launch();
+      app.close();
+
+      var results = PerformanceHelper.getLoadTimes(client);
+      PerformanceHelper.reportDuration(results.time);
+      PerformanceHelper.unregisterLoadTimeListener(client);
     });
-
-    var results = yield PerformanceHelper.getLoadTimes(device);
-    results = results.filter(function (element) {
-      if (element.src.indexOf('app://' + manifestPath) !== 0) {
-        return false;
-      }
-      if (entryPoint && element.src.indexOf(entryPoint) === -1) {
-        return false;
-      }
-      return true;
-    }).map(function (element) {
-      return element.time;
-    });
-
-    PerformanceHelper.reportDuration(results);
   });
+
 });
 

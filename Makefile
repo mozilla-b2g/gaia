@@ -732,7 +732,7 @@ test-integration: b2g $(PROFILE_FOLDER)
 .PHONY: test-perf
 test-perf:
 	# All echo calls help create a JSON array
-	adb forward tcp:2828 tcp:2828
+	#adb forward tcp:2828 tcp:2828
 	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
 	echo '['; \
 	for app in ${APPS}; \
@@ -743,7 +743,7 @@ test-perf:
 			echo ','; \
 		fi; \
 		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
-		REPORTER=JSONMozPerf ./tests/js/bin/runner $$app $${SHARED_PERF} $${FILES_PERF}; \
+		GAIA_DIR=`pwd` CURRENT_APP=$$app NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette ./tests/js/perf.js $${SHARED_PERF} $${FILES_PERF} ;\
 	done; \
 	echo ']';
 
@@ -764,9 +764,6 @@ common-install:
 
 .PHONY: update-common
 update-common: common-install
-	# integration tests
-	rm -f tests/vendor/marionette.js
-	cp $(TEST_AGENT_DIR)/node_modules/marionette-client/marionette.js tests/js/vendor/
 
 	# common testing tools
 	mkdir -p $(TEST_COMMON)/vendor/test-agent/

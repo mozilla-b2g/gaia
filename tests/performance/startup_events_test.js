@@ -1,68 +1,66 @@
 'use strict';
 
-require('/tests/js/app_integration.js');
-require('/tests/js/integration_helper.js');
-require('/tests/performance/performance_helper.js');
 
-const whitelistedApps = ['communications/contacts'];
+var App = require('./app');
+var PerformanceHelper = require(GAIA_DIR + '/tests/performance/performance_helper.js');
 
-function GenericIntegration(device) {
-  AppIntegration.apply(this, arguments);
-}
+var whitelistedApps = ['communications/contacts'];
 
-var [manifestPath, entryPoint] = window.mozTestInfo.appPath.split('/');
+var manifestPath, entryPoint;
+var arr = mozTestInfo.appPath.split('/');
+manifestPath = arr[0];
+entryPoint = arr[1];
 
-GenericIntegration.prototype = {
-  __proto__: AppIntegration.prototype,
-  appName: window.mozTestInfo.appPath,
-  manifestURL: 'app://' + manifestPath + '.gaiamobile.org/manifest.webapp',
-  entryPoint: entryPoint
-};
+marionette('startup event test ' + mozTestInfo.appPath + ' >', function() {
 
-suite(window.mozTestInfo.appPath + ' >', function() {
-  var device;
   var app;
-
-  MarionetteHelper.start(function(client) {
-    app = new GenericIntegration(client);
-    device = app.device;
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
   });
 
-  setup(function() {
-    // it affects the first run otherwise
-    yield IntegrationHelper.unlock(device);
-  });
-
-  if (whitelistedApps.indexOf(window.mozTestInfo.appPath) === -1) {
+  app = new App(client, mozTestInfo.appPath);
+  if (app.skip){
     return;
   }
 
-  test('', function() {
-
-    this.timeout(500000);
-    yield device.setScriptTimeout(50000);
-
-    var lastEvent = 'startup-path-done';
-
-    var performanceHelper = new PerformanceHelper({
-      app: app,
-      lastEvent: lastEvent
+  suite(mozTestInfo.appPath + ' >', function() {
+    setup(function() {
+      // it affects the first run otherwise
+      app.unlock();
     });
 
-    yield performanceHelper.repeatWithDelay(function(app, next) {
+    if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {
+      return;
+    }
 
-      var waitForBody = false;
-      yield app.launch(waitForBody);
+    test('startup', function() {
 
-      var runResults = yield performanceHelper.observe(next);
+      this.timeout(500000);
+      client.setScriptTimeout(50000);
 
-      performanceHelper.reportRunDurations(runResults);
-      yield app.close();
+      var lastEvent = 'startup-path-done';
+
+      var performanceHelper = new PerformanceHelper({
+	app: app,
+	lastEvent: lastEvent
+      });
+
+      performanceHelper.repeatWithDelay(function(app, next) {
+
+	var waitForBody = false;
+	app.launch(waitForBody);
+
+	var runResults = performanceHelper.observe(next);
+
+	performanceHelper.reportRunDurations(runResults);
+	app.close();
+      });
+
+      performanceHelper.finish();
+
     });
-
-    performanceHelper.finish();
 
   });
-
 });
-

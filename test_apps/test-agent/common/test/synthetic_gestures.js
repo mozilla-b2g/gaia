@@ -576,7 +576,8 @@ var SyntheticGestures = (function() {
   }
 
   return {
-    touchSupported: (typeof document.createTouch === 'function'),
+    // in the context of node, we don't even have document....
+    touchSupported: (typeof document !== 'undefined' && typeof document.createTouch === 'function'),
     tap: tap,
     mousetap: mousetap,
     dbltap: dbltap,

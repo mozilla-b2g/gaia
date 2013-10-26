@@ -1,26 +1,44 @@
 'use strict';
 
-requireCommon('test/synthetic_gestures.js');
-require('/tests/performance/performance_helper.js');
-require('apps/communications/dialer/test/integration/app.js');
+require(GAIA_DIR + '/test_apps/test-agent/common/test/synthetic_gestures.js');
 
-suite(window.mozTestInfo.appPath + '>', function() {
-  var device;
-  var app;
+var App =
+  require(GAIA_DIR + '/tests/performance/app.js');
+var PerformanceHelper =
+  require(GAIA_DIR + '/tests/performance/performance_helper.js');
 
-  MarionetteHelper.start(function(client) {
-    app = new DialerIntegration(client);
-    device = app.device;
+function DialerIntegration(client) {
+  App.apply(this, arguments);
+}
+
+DialerIntegration.prototype = {
+  __proto__: App.prototype,
+  appName: 'Phone',
+  manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
+  entryPoint: 'dialer',
+
+  selectors: {
+    optionRecents: '#option-recents'
+  }
+};
+
+suite(mozTestInfo.appPath + '>', function() {
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
   });
 
+  var app = new DialerIntegration(client);
+
   setup(function() {
-    yield IntegrationHelper.unlock(device);
+    app.unlock();
   });
 
   test('Dialer/callLog rendering time >', function() {
 
     this.timeout(500000);
-    yield device.setScriptTimeout(50000);
+    client.setScriptTimeout(50000);
 
     var lastEvent = 'call-log-ready';
 
@@ -29,18 +47,18 @@ suite(window.mozTestInfo.appPath + '>', function() {
       lastEvent: lastEvent
     });
 
-    yield performanceHelper.repeatWithDelay(function(app, next) {
+    performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
-      yield app.launch(waitForBody);
+      app.launch(waitForBody);
 
-      var recentsButton = yield app.element('optionRecents');
+      var recentsButton = app.element('optionRecents');
 
-      yield recentsButton.singleTap();
+      recentsButton.singleTap();
 
-      var runResults = yield performanceHelper.observe(next);
+      var runResults = performanceHelper.observe(next);
       performanceHelper.reportRunDurations(runResults);
 
-      yield app.close();
+      app.close();
     });
 
     performanceHelper.finish();

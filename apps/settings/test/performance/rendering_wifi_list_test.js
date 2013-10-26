@@ -1,26 +1,44 @@
 'use strict';
 
-requireCommon('test/synthetic_gestures.js');
-require('/tests/performance/performance_helper.js');
-require('apps/settings/test/integration/app.js');
+var App = require(GAIA_DIR + '/tests/performance/app.js');
 
-suite(window.mozTestInfo.appPath + ' >', function() {
-  var device;
+require(GAIA_DIR + '/test_apps/test-agent/common/test/synthetic_gestures.js');
+
+var PerformanceHelper =
+  require(GAIA_DIR + '/tests/performance/performance_helper.js');
+
+function SettingsIntegration(client) {
+  App.apply(this, arguments);
+}
+
+SettingsIntegration.prototype = {
+  __proto__: App.prototype,
+  appName: 'Settings',
+  manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
+
+  selectors: {
+    wifiSelector: '#menuItem-wifi'
+  }
+};
+
+suite(mozTestInfo.appPath + ' >', function() {
   var app;
-
-  MarionetteHelper.start(function(client) {
-    app = new SettingsIntegration(client);
-    device = app.device;
+  var client = marionette.client({
+    settings: {
+      'ftu.manifestURL': null
+    }
   });
+
+  app = new SettingsIntegration(client, mozTestInfo.appPath);
 
   setup(function() {
     // It affects the first run otherwise
-    yield IntegrationHelper.unlock(device);
+    app.unlock();
   });
 
   test('rendering WiFi list >', function() {
     this.timeout(500000);
-    yield device.setScriptTimeout(50000);
+    client.setScriptTimeout(50000);
 
     var lastEvent = 'settings-panel-wifi-ready';
 
@@ -29,17 +47,17 @@ suite(window.mozTestInfo.appPath + ' >', function() {
       lastEvent: lastEvent
     });
 
-    yield performanceHelper.repeatWithDelay(function(app, next) {
+    performanceHelper.repeatWithDelay(function(app, next) {
       var waitForBody = true;
-      yield app.launch(waitForBody);
+      app.launch(waitForBody);
 
-      var wifiSubpanel = yield app.element('wifiSelector');
-      yield wifiSubpanel.singleTap();
+      var wifiSubpanel = app.element('wifiSelector');
+      wifiSubpanel.singleTap();
 
-      var runResults = yield performanceHelper.observe(next);
+      var runResults = performanceHelper.observe(next);
       performanceHelper.reportRunDurations(runResults);
 
-      yield app.close();
+      app.close();
     });
 
     performanceHelper.finish();
