@@ -241,25 +241,28 @@ var Filmstrip = (function() {
         var previewBlob = blob.slice(metadata.preview.start,
                                      metadata.preview.end,
                                      'image/jpeg');
-        createThumbnail(
-          previewBlob,
-          false,
-          metadata.rotation,
-          metadata.mirrored,
-          function(thumbnail) {
-            addItem({
-              isImage: true,
-              filename: filename,
-              thumbnail: thumbnail,
-              blob: blob,
-              width: metadata.width,
-              height: metadata.height,
-              preview: metadata.preview,
-              rotation: metadata.rotation,
-              mirrored: metadata.mirrored
-            });
-          }
-        );
+        parseJPEGMetadata(previewBlob, function(thumbnailMetadata) {
+          metadata.preview.width = thumbnailMetadata.width;
+          metadata.preview.height = thumbnailMetadata.height;
+          createThumbnail(
+            previewBlob,
+            false,
+            metadata.rotation,
+            metadata.mirrored,
+            function(thumbnail) {
+              addItem({
+                isImage: true,
+                filename: filename,
+                thumbnail: thumbnail,
+                blob: blob,
+                width: metadata.width,
+                height: metadata.height,
+                preview: metadata.preview,
+                rotation: metadata.rotation,
+                mirrored: metadata.mirrored
+              });
+          });
+        });
       }
     }, function logerr(msg) { console.warn(msg); });
   }
@@ -384,7 +387,7 @@ var Filmstrip = (function() {
   // Create a thumbnail size canvas, copy the <img> or <video> into it
   // cropping the edges as needed to make it fit, and then extract the
   // thumbnail image as a blob and pass it to the callback.
-  function createThumbnail(imageBlob, video, rotation, mirrored, callback) 
+  function createThumbnail(imageBlob, video, rotation, mirrored, callback)
   {
     offscreenImage.src = URL.createObjectURL(imageBlob);
     offscreenImage.onload = function() {
