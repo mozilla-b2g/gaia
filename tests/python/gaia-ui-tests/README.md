@@ -17,7 +17,7 @@ that you can
 Installation
 ============
 
-If you only want to run the tests without developing anything:
+If you only want to run the tests without developing gaia-ui-tests further:
 
     pip install gaiatest
 
@@ -34,7 +34,7 @@ If you want to modify gaiatest, do this instead:
 Risks
 =====
 
-Please visit [this page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests.
+Please visit [this page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests.  You have to modify your testvars.json file, showing your acknowledgement of the risks, to run the tests.
 
 Command line interface
 ======================
@@ -99,30 +99,25 @@ Alternatively, it may be downloaded as part of the
 Testing on Desktop build
 ========================
 
-You can download the latest build of the desktop client from [this location](http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-b2g18/),
+You can download the latest build of the desktop client from [this location](http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-central),
 but make sure you download the appropriate file for your operating system.
 
-Note : Unfortunately, due to [Bug 832469](https://bugzilla.mozilla.org/show_bug.cgi?id=832469) the nightly desktop builds do not currently work on Windows, so you will
+Note : Unfortunately, due to 
+[Bug 832396](https://bugzilla.mozilla.org/show_bug.cgi?id=832396)
+the nightly desktop builds do not currently work on Windows, so you will
 need either Mac or Linux to continue :
 
   * **Mac**: b2g-[VERSION].multi.mac64.dmg
   * **Linux (32bit)**: b2g-[VERSION].multi.linux-i686.tar.bz2
-  * **Linux (64bit)**: b2g-[VERSION].multi.linux-x86_64.tar.bz2
+  * **Linux (64bit)**: b2g-[VERSION].multi.linux-x86\_64.tar.bz2
 
 Note : If you do not have the operating systems installed on your machine, a virtual machine is fine as well.
 
-Once downloaded, you will need to extract the contents to a local folder. For the purposes of the rest
-of this guide, I’ll refer to this location as `$B2G_HOME`.
-
-
-Add the line `user_pref('marionette.force-local', true);` to your gaia/profile/user.js file, which on :
-
-  * **Mac** is located in $B2G_HOME/B2G.app/Contents/MacOS
-  * **Linux** is located in $B2G_HOME/b2g
+Once downloaded, you will need to extract the contents to a local folder.
 
 Because we’re running against the desktop client we must filter out all tests that are unsuitable. To run the tests, use the following command:
 
-`gaiatest --address=localhost:2828 --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi gaiatest/tests/manifest.ini`
+`gaiatest --address=localhost:2828 --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi-xfail gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini --testvars=(path/filename).json`
 
 You should then start to see the tests running.
 
@@ -238,6 +233,7 @@ Or:
 }"
 ```
 
+Don't forget to add `"acknowledged_risks" : true` to your testvars file after you have visited [the Risks page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests, or the tests will not be run.
 
 Test data Prerequisites
 =======================
