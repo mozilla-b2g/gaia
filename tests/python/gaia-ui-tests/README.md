@@ -117,7 +117,10 @@ Once downloaded, you will need to extract the contents to a local folder.
 
 Because we’re running against the desktop client we must filter out all tests that are unsuitable. To run the tests, use the following command:
 
-`gaiatest --address=localhost:2828 --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi-xfail gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini --testvars=(path/filename).json`
+`gaiatest --address=localhost:2828 \
+    --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi-xfail \
+    gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini \
+    --testvars=(path/filename).json`
 
 You should then start to see the tests running.
 
@@ -153,7 +156,7 @@ Test Variables
 ==============
 We use the --testvars option to pass in local variables, particularly those that cannot be checked into the repository. For example in gaia-ui-tests these variables can be your private login credentials, phone number or details of your WiFi connection.
 
-To use it, copy testvars_template.json to a different filename but add it into .gitignore so you don't check it into your repository.
+To use it, copy `gaia/tests/python/gaia-ui-tests/gaiatest/testvars_template.json` to a different filename but add it into .gitignore so you don't check it into your repository.
 
 When running your tests add the argument:
     --testvars=(filename).json
