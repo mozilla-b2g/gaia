@@ -114,7 +114,7 @@ Add the line `user_pref('marionette.force-local', true);` to your gaia/profile/u
 
 Because we’re running against the desktop client we must filter out all tests that are unsuitable. To run the tests, use the following command:
 
-`gaiatest --address=localhost:2828 --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi gaiatest/tests/manifest.ini`
+`gaiatest --address=localhost:2828 --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi-xfail gaiatest/tests/manifest.ini`
 
 You should then start to see the tests running.
 
@@ -139,6 +139,7 @@ Here is a list of the types used, and when to use them:
 * qemu - these tests require the Firefox OS emulator to run.
 * sdcard - a storage device must be present.
 * wifi - this means a WiFi connection is required.
+* xfail - a special type that indicates the test is expected to fail.
 
 You may be thinking that there is only WiFi or cell data, and why the need for the 'lan' test type. Well, these tests
 aren't only run on mobile devices... We also run then on single-board computers known as
