@@ -59,13 +59,10 @@ var UtilityTray = {
       // When IME switcher shows, prevent the keyboard's focus getting changed.
       case 'keyboardimeswitchershow':
         this.overlay.addEventListener('mousedown', this._pdIMESwitcherShow);
-        this.statusbar.addEventListener('mousedown', this._pdIMESwitcherShow);
         break;
 
       case 'keyboardimeswitcherhide':
         this.overlay.removeEventListener('mousedown', this._pdIMESwitcherShow);
-        this.statusbar.removeEventListener('mousedown',
-                                           this._pdIMESwitcherShow);
         break;
 
 
