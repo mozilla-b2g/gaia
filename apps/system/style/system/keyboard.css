@@ -36,6 +36,10 @@
   border: 0;
 }
 
+#keyboards iframe.ignore-focus {
+  -moz-user-focus: ignore;
+}
+
 /* notification */
 #keyboard-show-ime-list > .fake-notification {
   background-repeat: no-repeat;
