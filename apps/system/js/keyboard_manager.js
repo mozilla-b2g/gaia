@@ -343,7 +343,7 @@ var KeyboardManager = {
     keyboard.setAttribute('mozbrowser', 'true');
     keyboard.setAttribute('mozpasspointerevents', 'true');
     keyboard.setAttribute('mozapp', manifestURL);
-    //keyboard.setAttribute('remote', 'true');
+    keyboard.setAttribute('remote', 'true');
 
     this.keyboardFrameContainer.appendChild(keyboard);
     return keyboard;
