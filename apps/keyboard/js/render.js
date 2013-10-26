@@ -401,6 +401,7 @@ const IMERender = (function() {
 
     var docFragment = document.createDocumentFragment();
     if (candidates.length == 0) {
+      candidatePanel.dataset.rowCount = 0;
       return docFragment;
     }
 
