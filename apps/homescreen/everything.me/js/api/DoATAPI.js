@@ -33,7 +33,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
       permanentStats = null,
 
       requestsQueue = {},
-      requestsToPerformOnOnline = [],
+      requestsToPerformOnOnline = {},
       sessionInitRequest = null,
 
       // here we will save the actual params to pass
@@ -443,6 +443,14 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
   this.initSession = function initSession(options, callback) {
     !options && (options = {});
 
+    if (!options.cachedIcons) {
+      var icons = Evme.IconManager.getKeys();
+      if (icons) {
+        icons = Evme.Utils.convertIconsToAPIFormat(icons);
+        options.cachedIcons = icons;
+      }
+    }
+
     var params = {
       'id': (self.Session.get() || {}).id,
       'deviceId': deviceId,
@@ -514,8 +522,11 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
   }
 
   // the "requestsQueue" will empty after the session has been init'ed
+  // the "key" prevents from adding multiple requests of the same "type"
+  // so if someone open 2 folders, only the latest request will go out
   function addRequestToSessionQueue(requestOptions) {
-    requestsQueue[JSON.stringify(requestOptions)] = requestOptions;
+    var key = requestOptions.methodNamespace + '.' + requestOptions.methodName;
+    requestsQueue[key] = requestOptions;
   }
 
   this.getSessionId = function getSessionId() {
@@ -563,26 +574,31 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     };
 
     this.shouldInit = function shouldInit() {
+      var should = { 'should': false };
+
       if (!_session) {
-        return {
+        should = {
           'should': true,
           'cause': self.INIT_CAUSE.ABSENT
         };
-      }
-      if (_session.ttl == DEFAULT_TTL) {
-        return {
+      } else if (_session.ttl == DEFAULT_TTL) {
+        should = {
           'should': true,
           'cause': _session.createCause
         };
-      }
-      if (!self.creds()) {
-        return {
+      } else if (self.expired(_session)) {
+        should = {
+          'should': true,
+          'cause': self.INIT_CAUSE.EXPIRED
+        };
+      } else if (!self.creds()) {
+        should = {
           'should': true,
           'cause': self.INIT_CAUSE.NO_CREDS
         };
       }
 
-      return { 'should': false };
+      return should;
     };
 
     this.get = function get() {
@@ -636,22 +652,24 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
     }
   };
 
+  function addRequestToPerformOnline(request) {
+    requestsToPerformOnOnline[request.getKey()] = request;
+  }
+
   this.cancelQueue = function cancelQueue() {
-    for (var i = 0; i < requestsToPerformOnOnline.length; i++) {
-      requestsToPerformOnOnline[i].abort();
+    for (var key in requestsToPerformOnOnline) {
+      requestsToPerformOnOnline[key].abort();
     }
 
-    requestsToPerformOnOnline = [];
+    requestsToPerformOnOnline = {};
   };
 
   this.backOnline = function backOnline() {
-    if (requestsToPerformOnOnline.length == 0) return;
-
-    for (var i = 0; i < requestsToPerformOnOnline.length; i++) {
-      requestsToPerformOnOnline[i].request();
+    for (var key in requestsToPerformOnOnline) {
+      requestsToPerformOnOnline[key].request();
     }
 
-    requestsToPerformOnOnline = [];
+    requestsToPerformOnOnline = {};
   };
 
   this.setClientInfoLocale = function setClientInfoLocale(newLocale) {
@@ -691,11 +709,20 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
 
       _request;
 
-    if (requestsToPerformOnOnline.length != 0 && shouldInit.should &&
-      !doesntNeedSession[methodNamespace + '.' + methodName] &&
-      !manualCredentials && !dontRetryIfNoSession) {
+
+    // init the session (and THEN make the request)
+    // if the session expired/non-existent
+    if (shouldInit.should &&
+        !doesntNeedSession[methodNamespace + '.' + methodName]) {
+
         addRequestToSessionQueue(options);
         reInitSession(shouldInit.cause);
+
+        Evme.EventHandler.trigger(NAME, 'cantSendRequest', {
+          'method': methodNamespace + '/' + methodName,
+          'queue': requestsToPerformOnOnline
+        });
+
         return false;
     }
 
@@ -790,7 +817,7 @@ Evme.DoATAPI = new function Evme_DoATAPI() {
           if (isOnline) {
             _request.request();
           } else {
-            requestsToPerformOnOnline.push(_request);
+            addRequestToPerformOnline(_request);
 
             Evme.EventHandler.trigger(NAME, 'cantSendRequest', {
               'method': methodNamespace + '/' + methodName,
@@ -1038,6 +1065,10 @@ Evme.Request = function Evme_Request() {
     cacheTTL = options.cacheTTL;
 
     return self;
+  };
+
+  this.getKey = function getKey() {
+    return methodNamespace + '.' + methodName;
   };
 
   this.request = function request() {

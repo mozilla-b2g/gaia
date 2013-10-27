@@ -309,6 +309,8 @@ window.Evme = new function Evme_Core() {
 
     Evme.IconGroup.init({});
 
+    Evme.IconManager.init({});
+
     Evme.SearchHistory.init({
       'maxEntries': data.maxHistoryEntries
     });
