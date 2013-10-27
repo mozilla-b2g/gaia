@@ -179,15 +179,6 @@ window.Evme = new function Evme_Core() {
     // lazy components
     window.addEventListener('suggestcollections', initSuggestCollections);
 
-    self.Banner = lazifyModule('Banner',
-      ['everything.me/modules/Banner/Banner.css',
-       'everything.me/modules/Banner/Banner.js'],
-      function initModule() {
-        Evme.Banner.init({
-          'el': Evme.$('#homescreenStatus')
-        });
-      });
-
     self.ConnectionMessage = lazifyModule('ConnectionMessage',
       ['everything.me/modules/ConnectionMessage/ConnectionMessage.css',
        'everything.me/modules/ConnectionMessage/ConnectionMessage.js'],
