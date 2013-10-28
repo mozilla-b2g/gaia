@@ -27,6 +27,5 @@ var MockUtils = {
   getCarrierTag: Utils.getCarrierTag,
   removeNonDialables: Utils.removeNonDialables,
   probablyMatches: Utils.probablyMatches,
-  getDisplayObject: Utils.getDisplayObject,
-  basicContact: Utils.basicContact
+  getDisplayObject: Utils.getDisplayObject
 };

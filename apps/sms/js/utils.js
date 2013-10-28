@@ -452,50 +452,43 @@
     */
     getContactDisplayInfo: function(resolver, phoneNumber, callback) {
       resolver(phoneNumber, function onContacts(contacts) {
-        callback(Utils.basicContact(phoneNumber, contacts));
+        var contact;
+        if (Array.isArray(contacts)) {
+          if (contacts.length > 0) {
+            contact = contacts[0];
+          }
+        } else if (contacts !== null) {
+          contact = contacts;
+        }
+
+        // Only exit when no contact and no phone number case.
+        if (!contact && !phoneNumber) {
+          callback(null);
+          return;
+        }
+
+        var telLength = (contact && contact.tel) ? contact.tel.length : 0;
+        var tel;
+        // Look for the right tel. A contact can contains more than
+        // one contact, so we need to identify which one is the right one.
+        for (var i = 0; i < telLength; i++) {
+          if (contact.tel[i].value === phoneNumber) {
+            tel = contact.tel[i];
+            break;
+          }
+        }
+        // If after looking there is no tel. matching, we apply
+        // directly the phoneNumber
+        if (!tel) {
+          tel = {type: [''], value: phoneNumber, carrier: ''};
+        }
+        // Get the title in the standard way
+        var details = Utils.getContactDetails(tel, contact);
+        var info = Utils.getDisplayObject(details.title || null, tel);
+
+        callback(info);
       });
     },
-
-    basicContact: function(number, records, callback) {
-      var record;
-      if (Array.isArray(records)) {
-        if (records.length > 0) {
-          record = records[0];
-        }
-      } else if (records !== null) {
-        record = records;
-      }
-
-      // Only exit when no record and no phone number case.
-      if (!record && !number) {
-        if (typeof callback === 'function') {
-          callback(null);
-        }
-        return;
-      }
-
-      var telLength = (record && record.tel) ? record.tel.length : 0;
-      var tel;
-      // Look for the right tel. A record can contains more than
-      // one record, so we need to identify which one is the right one.
-      for (var i = 0; i < telLength; i++) {
-        if (record.tel[i].value === number) {
-          tel = record.tel[i];
-          break;
-        }
-      }
-      // If after looking there is no tel. matching, we apply
-      // directly the number
-      if (!tel) {
-        tel = {type: [''], value: number, carrier: ''};
-      }
-      // Get the title in the standard way
-      var details = Utils.getContactDetails(tel, record);
-      var info = Utils.getDisplayObject(details.title || null, tel);
-
-      return info;
-    },
-
     /*
       Given a title for a contact, a the current information for
       an specific phone, of that contact, creates an object with

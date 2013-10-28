@@ -1,9 +1,8 @@
 /*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
-         MockNavigatormozMobileMessage, Compose, Contacts, MockDialog,
-         Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
-         LinkHelper, Attachment, MockContact, MockOptionMenu,
-         MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
-         MockContacts, ActivityHandler */
+         MockNavigatormozMobileMessage, Compose, MockDialog, Template, MockSMIL,
+         Utils, MessageManager, LinkActionHandler, LinkHelper, Attachment,
+         MockContact, MockOptionMenu, MockActivityPicker, Threads, Settings,
+         MockMessages, MockUtils, MockContacts, ActivityHandler */
 
 'use strict';
 
@@ -225,7 +224,7 @@ suite('thread_ui.js >', function() {
       window.location.hash = '';
     });
 
-    suite('In #thread view, button should be...', function() {
+    suite('Thread View', function() {
       setup(function() {
         window.location.hash = '#thread-1';
       });
@@ -234,18 +233,18 @@ suite('thread_ui.js >', function() {
         window.location.hash = '';
       });
 
-      test('disabled at the beginning', function() {
+      test('button should be disabled at the beginning', function() {
         Compose.clear();
         assert.isTrue(sendButton.disabled);
       });
 
-      test('enabled when there is message input', function() {
+      test('button should be enabled when there is some text', function() {
         Compose.append('Hola');
         assert.isFalse(sendButton.disabled);
       });
 
-      test('enabled when there is message input, but too many segments',
-        function() {
+      test('button should not be disabled if there is some text ' +
+        'but too many segments', function() {
 
         Compose.append('Hola');
         this.sinon.clock.tick(ThreadUI.UPDATE_DELAY);
@@ -262,7 +261,7 @@ suite('thread_ui.js >', function() {
     });
 
 
-    suite('In #new view, button should be...', function() {
+    suite('#new mode >', function() {
       setup(function() {
         window.location.hash = '#new';
         Compose.clear();
@@ -277,130 +276,79 @@ suite('thread_ui.js >', function() {
         ThreadUI.recipients.inputValue = '';
       });
 
-      suite('enabled', function() {
-
-        suite('when there is message input...', function() {
-
-          test('and recipient field value is valid ', function() {
-            Compose.append('Hola');
-            ThreadUI.recipients.inputValue = '999';
-
-            // Call directly since no input event will be triggered
-            ThreadUI.enableSend();
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after adding a valid recipient ',
-            function() {
-            Compose.append('Hola');
-
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-
-          test('after adding valid & questionable recipients ', function() {
-            Compose.append('Hola');
-
-            ThreadUI.recipients.add({
-              number: 'foo',
-              isQuestionable: true
-            });
-
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-        });
-
-        suite('when a valid recipient exists...', function() {
-          test('after adding message input ', function() {
-
-            ThreadUI.recipients.add({
-              number: '999'
-            });
-            Compose.append('Hola');
-
-            assert.isFalse(sendButton.disabled);
-          });
-        });
-
-
-        test('after appending image within size limits ', function() {
-          ThreadUI.recipients.add({
-            number: '999'
-          });
-
-          Compose.append(mockImgAttachment());
-          assert.isFalse(sendButton.disabled);
-        });
+      test('button should be disabled when there is neither contact or input',
+        function() {
+        assert.isTrue(sendButton.disabled);
       });
 
-      suite('disabled', function() {
-
-        test('when there is no message input or recipient ', function() {
-          assert.isTrue(sendButton.disabled);
-        });
-
-        test('when message is over data limit ', function() {
-          ThreadUI.recipients.add({
-            number: '999'
-          });
-
-          Compose.append(mockAttachment(300 * 1024));
-
-          assert.isFalse(sendButton.disabled);
-          Compose.append('Hola');
-
-          assert.isTrue(sendButton.disabled);
-        });
-
-
-        suite('when there is message input...', function() {
-          test('there is no recipient ', function() {
-            Compose.append('Hola');
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('recipient field value is questionable ', function() {
-            Compose.append('Hola');
-            ThreadUI.recipients.inputValue = 'a';
-
-            // Call directly since no input event will be triggered
-            ThreadUI.enableSend();
-            assert.isTrue(sendButton.disabled);
-          });
-
-          test('after adding a questionable recipient ', function() {
-            Compose.append('Hola');
-
-            ThreadUI.recipients.add({
-              number: 'foo',
-              isQuestionable: true
-            });
-
-            assert.isFalse(sendButton.disabled);
-          });
-        });
-
-        suite('when a valid recipient exists...', function() {
-          test('there is no message input ', function() {
-
-            ThreadUI.recipients.add({
-              number: 'foo'
-            });
-
-            assert.isTrue(sendButton.disabled);
-          });
-        });
+      test('button should be disabled when there is no contact', function() {
+        Compose.append('Hola');
+        assert.isTrue(sendButton.disabled);
       });
 
-      test('disabled while resizing oversized image and ' +
-        'enabled when resize complete ',
+      test('button should be enabled with recipient input', function() {
+        Compose.append('Hola');
+        ThreadUI.recipients.inputValue = '999';
+
+        // Call directly since no input event will be triggered
+        ThreadUI.enableSend();
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('button should be enabled after adding a recipient when text exists',
+        function() {
+        Compose.append('Hola');
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('button should be enabled after adding text when recipient exists',
+        function() {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+        Compose.append('Hola');
+
+        assert.isFalse(sendButton.disabled);
+      });
+
+      // TODO: Fix this test to be about being over the MMS limit inside #840035
+
+      test('button should be disabled when there is both contact and ' +
+          'input, but too much data to send as mms',
+        function() {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        Compose.append(mockAttachment(300 * 1024));
+
+        assert.isFalse(sendButton.disabled);
+        Compose.append('Hola');
+
+        assert.isTrue(sendButton.disabled);
+      });
+
+      test('When adding an image that is under the limitation, button ' +
+           'should be enabled right after appended',
+        function() {
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        Compose.append(mockImgAttachment());
+        assert.isFalse(sendButton.disabled);
+      });
+
+      test('When adding an oversized image, button should be disabled while ' +
+           'resizing and enabled when resize complete',
         function(done) {
 
         ThreadUI.recipients.add({
@@ -1051,13 +999,10 @@ suite('thread_ui.js >', function() {
   });
 
   suite('Recipient Assimiliation', function() {
+
     setup(function() {
-      this.sinon.spy(ThreadUI, 'validateContact');
-      this.sinon.spy(ThreadUI.recipients, 'add');
-      this.sinon.spy(ThreadUI.recipients, 'remove');
-      this.sinon.spy(ThreadUI.recipients, 'update');
       this.sinon.spy(ThreadUI.recipients, 'visible');
-      this.sinon.spy(Utils, 'basicContact');
+      this.sinon.spy(ThreadUI.recipients, 'add');
 
       Threads.set(1, {
         participants: ['999']
@@ -1067,20 +1012,6 @@ suite('thread_ui.js >', function() {
     teardown(function() {
       Threads.delete(1);
       window.location.hash = '';
-    });
-
-    suite('Existing Conversation', function() {
-
-      setup(function() {
-        window.location.hash = '#thread=1';
-      });
-
-      test('Will not assimilate recipients ', function() {
-        ThreadUI.assimilateRecipients();
-
-        sinon.assert.notCalled(ThreadUI.recipients.visible);
-        sinon.assert.notCalled(ThreadUI.recipients.add);
-      });
     });
 
     suite('New Conversation', function() {
@@ -1100,373 +1031,42 @@ suite('thread_ui.js >', function() {
         ThreadUI.recipientsList.removeChild(node);
       });
 
-      suite('Typed number', function() {
-        test('Triggers assimilation ', function() {
-          var visible;
+      test('Will assimilate recipients', function() {
+        var visible, add;
 
-          ThreadUI.assimilateRecipients();
+        ThreadUI.assimilateRecipients();
 
-          visible = ThreadUI.recipients.visible;
+        visible = ThreadUI.recipients.visible;
+        add = ThreadUI.recipients.add;
 
-          assert.isTrue(visible.called);
-          assert.isTrue(visible.firstCall.calledWith('singleline'));
-          assert.isTrue(ThreadUI.recipients.add.called);
-          assert.isTrue(
-            ThreadUI.recipients.add.calledWithMatch({
-              name: '999',
-              number: '999',
-              source: 'manual'
-            })
-          );
-        });
-      });
+        assert.ok(visible.called);
+        assert.equal(visible.args[0][0], 'singleline');
 
-      suite('Typed non-number', function() {
-        var realContacts;
-
-        suiteSetup(function() {
-          realContacts = window.Contacts;
-          window.Contacts = MockContacts;
-        });
-
-        suiteTeardown(function() {
-          window.Contacts = realContacts;
-        });
-
-        setup(function() {
-          this.sinon.spy(ThreadUI, 'searchContact');
-          this.sinon.spy(ThreadUI, 'exactContact');
-        });
-
-        test('Triggers assimilation & silent search ', function() {
-          node.textContent = 'foo';
-          ThreadUI.assimilateRecipients();
-
-          assert.isTrue(ThreadUI.recipients.add.called);
-          assert.isTrue(
-            ThreadUI.recipients.add.calledWithMatch({
-              name: 'foo',
-              number: 'foo',
-              source: 'manual'
-            })
-          );
-        });
-
-        test('Matches contact ', function() {
-          var record = {
-            isQuestionable: true,
-            name: 'Jane Doozer',
-            number: 'Jane Doozer',
-            source: 'manual'
-          };
-
-          this.sinon.stub(Contacts, 'findByString').yields(
-            MockContact.list([
-              { givenName: ['Jane'], familyName: ['Doozer'] }
-            ])
-          );
-
-          ThreadUI.searchContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
-          );
-
-          assert.isTrue(ThreadUI.recipients.remove.called);
-          assert.isTrue(ThreadUI.recipients.add.called);
-          assert.isTrue(
-            ThreadUI.recipients.add.calledWithMatch({
-              name: 'Jane Doozer',
-              number: '+346578888888',
-              type: 'Mobile',
-              carrier: 'TEF, ',
-              separator: ' | ',
-              source: 'contacts',
-              nameHTML: '',
-              numberHTML: ''
-            })
-          );
-        });
-
-        test('Does not match contact ', function() {
-          var record = {
-            isQuestionable: true,
-            name: 'Jane Doozer',
-            number: 'Jane Doozer',
-            source: 'manual'
-          };
-
-          this.sinon.stub(Contacts, 'findByString', function(term, callback) {
-            callback([]);
-          });
-
-          ThreadUI.searchContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
-          );
-
-          assert.isTrue(ThreadUI.recipients.update.called);
-
-          record.isInvalid = true;
-
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, record);
-        });
-
-        test('Exact contact ', function() {
-          var record = {
-            isQuestionable: true,
-            name: 'Jane Doozer',
-            number: 'Jane Doozer',
-            source: 'manual'
-          };
-
-          this.sinon.stub(Contacts, 'findExact').yields(
-            MockContact.list([
-              { givenName: ['Jane'], familyName: ['Doozer'] }
-            ])
-          );
-
-          ThreadUI.exactContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
-          );
-
-          assert.isTrue(ThreadUI.recipients.remove.called);
-          assert.isTrue(ThreadUI.recipients.add.called);
-          assert.isTrue(
-            ThreadUI.recipients.add.calledWithMatch({
-              name: 'Jane Doozer',
-              number: '+346578888888',
-              type: 'Mobile',
-              carrier: 'TEF, ',
-              separator: ' | ',
-              source: 'contacts',
-              nameHTML: '',
-              numberHTML: ''
-            })
-          );
-        });
-
-        test('No exact contact ', function() {
-          var record = {
-            isQuestionable: true,
-            name: 'Jane Doozer',
-            number: 'Jane Doozer',
-            source: 'manual'
-          };
-
-          this.sinon.stub(Contacts, 'findExact', function(term, callback) {
-            callback([], {});
-          });
-
-          ThreadUI.exactContact(
-            record.number, ThreadUI.validateContact.bind(ThreadUI, record)
-          );
-
-          sinon.assert.called(ThreadUI.recipients.update);
-
-          record.isInvalid = true;
-
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, record);
-        });
-
-        test('Determines correct strategy ', function() {
-          var record = {
-            isQuestionable: true,
-            isLookupable: true,
-            name: 'Jane Doozer',
-            number: 'Jane Doozer',
-            source: 'manual'
-          };
-
-          ThreadUI.recipients.add(record);
-
-          record.isLookupable = false;
-
-          ThreadUI.recipients.add(record);
-
-          sinon.assert.calledOnce(ThreadUI.searchContact);
-          sinon.assert.calledOnce(ThreadUI.exactContact);
+        assert.ok(add.called);
+        assert.deepEqual(add.args[0][0], {
+          name: '999',
+          number: '999',
+          source: 'manual'
         });
       });
     });
 
-    suite('validateContact', function() {
-      var fixture, contacts;
+    suite('Existing Conversation', function() {
 
       setup(function() {
-        fixture = {
-          name: 'Janet Jones',
-          number: '+346578888888',
-          source: 'manual',
-          isInvalid: false
-        };
-
-        contacts = MockContact.list([
-          { givenName: ['Janet'], familyName: ['Jones'] }
-        ]);
+        window.location.hash = '#thread=1';
       });
 
-      suite('No Recipients', function() {
-        test('input value has matching record ', function() {
+      test('Will not assimilate recipients ', function() {
+        var visible, add;
 
-          ThreadUI.validateContact(fixture, '', contacts);
+        ThreadUI.assimilateRecipients();
 
-          sinon.assert.calledOnce(ThreadUI.recipients.remove);
-          sinon.assert.calledWith(ThreadUI.recipients.remove, 0);
+        visible = ThreadUI.recipients.visible;
+        add = ThreadUI.recipients.add;
 
-          assert.equal(
-            ThreadUI.recipients.add.firstCall.args[0].source, 'contacts'
-          );
-          assert.equal(
-            ThreadUI.recipients.add.firstCall.args[0].number, '+346578888888'
-          );
-        });
-
-        test('input value is invalid ', function() {
-          // An actual accepted recipient from contacts
-          ThreadUI.recipients.add(fixture);
-
-
-          assert.isFalse(fixture.isInvalid);
-
-          ThreadUI.validateContact(fixture, '', []);
-
-          sinon.assert.calledOnce(ThreadUI.recipients.update);
-          sinon.assert.calledWithMatch(ThreadUI.recipients.update, 0, fixture);
-
-          assert.isTrue(fixture.isInvalid);
-        });
-      });
-
-      suite('Has Recipients', function() {
-
-
-        test('input value has matching duplicate record w/ ' +
-              'multiple, different tel records (accept) ', function() {
-
-          // An actual accepted recipient from contacts
-          ThreadUI.recipients.add(fixture);
-
-          // The last accepted recipient, manually entered.a
-          ThreadUI.recipients.add({
-            name: 'Janet Jones',
-            number: 'Janet Jones',
-            source: 'manual'
-          });
-
-          ThreadUI.validateContact(fixture, '', contacts);
-
-          sinon.assert.calledOnce(ThreadUI.recipients.remove);
-          sinon.assert.calledWith(ThreadUI.recipients.remove, 1);
-
-          assert.equal(
-            ThreadUI.recipients.add.lastCall.args[0].source, 'contacts'
-          );
-          assert.equal(
-            ThreadUI.recipients.add.lastCall.args[0].number, '+12125559999'
-          );
-          assert.equal(
-            Utils.basicContact.returnValues[0].number, '+12125559999'
-          );
-        });
-
-        test('input value has multiple matching records, the ' +
-              'first is a duplicate, use next (accept) ', function() {
-
-          contacts = MockContact.list([
-            { givenName: ['Janet'], familyName: ['Jones'] },
-            { givenName: ['Jane'], familyName: ['Johnson'] }
-          ]);
-
-          contacts[0].tel = [{value: '777'}];
-          contacts[1].tel = [{value: '888'}];
-
-          // An actual accepted recipient from contacts
-          ThreadUI.recipients.add({
-            name: 'Janet Jones',
-            number: '777',
-            source: 'contacts'
-          });
-
-          // The last accepted recipient, manually entered.a
-          ThreadUI.recipients.add({
-            name: 'Jane',
-            number: 'Jane',
-            source: 'manual'
-          });
-
-          ThreadUI.validateContact(fixture, '', contacts);
-
-          // Called from here, then called again for the
-          // second contact record.
-          sinon.assert.calledTwice(ThreadUI.validateContact);
-
-          sinon.assert.called(ThreadUI.recipients.remove);
-          sinon.assert.called(ThreadUI.recipients.add);
-
-          assert.equal(
-            ThreadUI.recipients.add.lastCall.args[0].source, 'contacts'
-          );
-          assert.equal(
-            ThreadUI.recipients.add.lastCall.args[0].number, '888'
-          );
-          assert.equal(
-            Utils.basicContact.returnValues[0].number, '888'
-          );
-        });
-
-        test('input value has matching duplicate record w/ ' +
-              'single, same tel record (invalid) ', function() {
-
-          // Get rid of the second tel record to create a "duplicate"
-          contacts[0].tel.length = 1;
-
-          // An actual accepted recipient from contacts
-          fixture.source = 'contacts';
-          ThreadUI.recipients.add(fixture);
-
-          fixture.source = 'manual';
-          // The last accepted recipient, manually entered.
-          ThreadUI.recipients.add(fixture);
-
-          assert.isFalse(fixture.isInvalid);
-
-          ThreadUI.validateContact(fixture, '', contacts);
-
-          // ThreadUI.recipients.update is called with the updated
-          // source recipient object. This object's isValid property
-          // has been set to true.
-          sinon.assert.calledOnce(
-            ThreadUI.recipients.update
-          );
-          sinon.assert.calledWithMatch(
-            ThreadUI.recipients.update, 1, fixture
-          );
-          assert.isTrue(fixture.isInvalid);
-        });
-
-        test('input value is invalid (invalid) ', function() {
-          // An actual accepted recipient from contacts
-          ThreadUI.recipients.add(fixture);
-
-          // The last accepted recipient, manually entered.a
-          ThreadUI.recipients.add({
-            name: 'Janet Jones',
-            number: 'Janet Jones',
-            source: 'manual'
-          });
-
-          assert.isFalse(fixture.isInvalid);
-
-          ThreadUI.validateContact(fixture, '', []);
-
-          sinon.assert.calledOnce(
-            ThreadUI.recipients.update
-          );
-          sinon.assert.calledWithMatch(
-            ThreadUI.recipients.update, 1, fixture
-          );
-
-          assert.isTrue(fixture.isInvalid);
-        });
-
+        assert.isFalse(visible.called);
+        assert.isFalse(add.called);
       });
     });
   });

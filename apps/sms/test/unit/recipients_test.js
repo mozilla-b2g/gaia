@@ -69,11 +69,7 @@ suite('Recipients', function() {
       // Disambiguation 'display' attributes
       type: 'Type',
       separator: ' | ',
-      carrier: 'Carrier',
-      className: 'recipient',
-      isLookupable: false,
-      isQuestionable: false,
-      isInvalid: false
+      carrier: 'Carrier'
     };
   });
 
@@ -95,6 +91,7 @@ suite('Recipients', function() {
       assert.ok(Recipients.prototype.off);
       assert.ok(Recipients.prototype.emit);
     });
+
 
     test('recipients.add() 1 ', function() {
       var recipient;
@@ -137,15 +134,6 @@ suite('Recipients', function() {
       } catch (e) {
         assert.equal(e.message, 'recipient entry missing number');
       }
-    });
-
-    test('recipients.add() turns `number` to string >', function(done) {
-      recipients.on('add', function(_, record) {
-        assert.equal(typeof record.number, 'string');
-        recipients.off('add');
-        done();
-      });
-      recipients.add({ number: 999 });
     });
 
 
@@ -241,16 +229,6 @@ suite('Recipients', function() {
       assert.equal(recipients.numbers[0], '999');
     });
 
-    test('recipients.numbers contains no invalid entries ', function() {
-      recipients.add(fixture);
-      recipients.add({
-        number: '999',
-        isInvalid: true
-      });
-
-      assert.equal(recipients.numbers.length, 1);
-    });
-
     test('recipients.on(add, ...)', function(done) {
       recipients.on('add', function(count) {
         assert.ok(true);
@@ -276,33 +254,6 @@ suite('Recipients', function() {
       recipients.remove(recipients.list[0]);
     });
 
-    suite('Detecting Questionable Entries', function() {
-      test('Correctly detects a questionable entry ', function(done) {
-        recipients.on('add', function(count, added) {
-          assert.isTrue(added.isQuestionable);
-          recipients.off('add');
-          done();
-        });
-
-        recipients.add({
-          number: 'abc',
-          source: 'manual'
-        });
-      });
-
-      test('Ignore entries that are not questionable ', function(done) {
-        recipients.on('add', function(count, added) {
-          assert.isFalse(added.isQuestionable);
-          recipients.off('add');
-          done();
-        });
-
-        recipients.add({
-          number: '999',
-          source: 'manual'
-        });
-      });
-    });
   });
 
   suite('Recipients.View', function() {
