@@ -1,8 +1,24 @@
-<element name="phoneLock-passcode" extends="section">
-  <template>
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>phone lock passcode</title>
 
+  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+  <link rel="stylesheet" type="text/css" href="/style/settings.css">
+  <link rel="stylesheet" type="text/css" href="/style/phone_lock.css">
+
+  <link rel="resource" type="application/l10n" href="/locales/locales.ini">
+  <script defer src="/shared/js/l10n.js"></script>
+
+  <script defer src="/shared/js/sheet.js"></script>
+  <script defer src="/js/settings_base.js"></script>
+  <script defer src="/js/phone_lock_passcode.js"></script>
+</head>
+<body class="skin-organic">
+  <section class="current" role="region" id="phoneLock-passcode" data-rendered="true">
     <header>
-      <a href="#phoneLock"><span class="icon icon-back">back</span></a>
+      <a href="#" id="close-sheet"><span class="icon icon-back">back</span></a>
       <menu type="toolbar" data-mode="new">
         <button id="passcode-change" data-l10n-id="change">Change</button>
       </menu>
@@ -36,6 +52,6 @@
         <div class="passcode-error" data-l10n-id="passcode-doesnt-match" data-type="mismatch">Passcode doesn't match. Try again!</div>
       </div>
     </div>
-
-  </template>
-</element>
+  </section>
+</body>
+</html>

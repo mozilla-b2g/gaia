@@ -1,8 +1,30 @@
-<element name="phoneLock" extends="section">
-  <template>
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>phone lock</title>
+
+  <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css"/>
+  <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
+  <link rel="stylesheet" type="text/css" href="/shared/style/headers.css">
+
+  <link rel="stylesheet" type="text/css" href="/style/settings.css">
+  <link rel="stylesheet" type="text/css" href="/style/lists.css">
+  <link rel="stylesheet" type="text/css" href="/style/icons.css">
+  <link rel="stylesheet" type="text/css" href="/style/phone_lock.css">
+
+  <link rel="resource" type="application/l10n" href="/locales/locales.ini">
+  <script defer src="/shared/js/l10n.js"></script>
+
+  <script defer src="/shared/js/sheet.js"></script>
+  <script defer src="/js/settings_base.js"></script>
+  <script defer src="/js/phone_lock.js"></script>
+</head>
+<body class="skin-organic">
+  <section class="current" role="region" id="phoneLock">
 
     <header>
-      <a href="#root"><span class="icon icon-back">back</span></a>
+      <a href="#" id="close-sheet"><span class="icon icon-back">back</span></a>
       <h1 data-l10n-id="phoneLock"> Phone Lock </h1>
     </header>
 
@@ -49,7 +71,6 @@
       </ul>
     </div>
 
-    <script src="js/phone_lock.js"></script>
-
-  </template>
-</element>
+  </section>
+</body>
+</html>
