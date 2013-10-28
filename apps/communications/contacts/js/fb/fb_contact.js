@@ -741,11 +741,12 @@ fb.Contact = function(deviceContact, cid) {
 
       var fbNumReq = fb.utils.getNumberMozContacts(uid);
       fbNumReq.onsuccess = function num_onsuccess() {
+        var theContact = (devContact instanceof mozContact) ?
+                                      devContact : new mozContact(devContact);
         // If there is only one Device Contact associated
         // Then corresponding FB Data is removed otherwise only
         // the device contact is removed
         if (fbNumReq.result === 1) {
-          var theContact = new mozContact(devContact);
           var removeReq = navigator.mozContacts.remove(theContact);
           removeReq.onsuccess = function(e) {
             var fbReq = fb.contacts.remove(uid);
@@ -762,7 +763,6 @@ fb.Contact = function(deviceContact, cid) {
           };
         }
         else {
-          var theContact = new mozContact(devContact);
           var removeReq = navigator.mozContacts.remove(theContact);
           removeReq.onsuccess = function(e) {
             out.done();
