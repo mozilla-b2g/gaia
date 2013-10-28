@@ -92,7 +92,7 @@
       var _ = navigator.mozL10n.get;
       var today = Utils.getDayDate(Date.now());
       var otherDay = Utils.getDayDate(time);
-      var dayDiff = (today - otherDay) / 86400000;
+      var dayDiff = Math.floor((today - otherDay) / 86400000);
       this.date.shared.setTime(+time);
 
       if (isNaN(dayDiff)) {
