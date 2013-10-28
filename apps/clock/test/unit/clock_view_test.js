@@ -347,7 +347,8 @@ suite('ClockView', function() {
 
     suiteSetup(function() {
       this.analogClockContainer = document.getElementById(
-        'analog-clock-container');
+        'analog-clock-container'
+      );
     });
 
     setup(function() {
