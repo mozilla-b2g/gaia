@@ -537,6 +537,13 @@ var WindowManager = (function() {
 
     var onSwitchWindow = isSwitchWindow();
 
+    // Send a synthentic 'appwillclose' event.
+    // The keyboard uses this and the appclose event to know when to close
+    // See https://github.com/andreasgal/gaia/issues/832
+    var evt = document.createEvent('CustomEvent');
+    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
+    closeFrame.dispatchEvent(evt);
+
     if (!onSwitchWindow) {
       // invoke openWindow to show homescreen here
       // XXX: This doesn't really do the opening. Clean it.
@@ -550,13 +557,6 @@ var WindowManager = (function() {
         app.resize();
       }
     }
-
-    // Send a synthentic 'appwillclose' event.
-    // The keyboard uses this and the appclose event to know when to close
-    // See https://github.com/andreasgal/gaia/issues/832
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('appwillclose', true, false, { origin: origin });
-    closeFrame.dispatchEvent(evt);
 
     transitionCloseCallback = function startClosingTransition() {
       // Remove the wrapper and reset the homescreen to a normal state
