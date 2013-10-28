@@ -2,6 +2,7 @@
 
 var WifiManager = {
   init: function wn_init() {
+    _ = navigator.mozL10n.get;
     this.api = WifiHelper.getWifiManager();
     this.changeStatus();
     // Ensure that wifi is on.
@@ -20,18 +21,33 @@ var WifiManager = {
 
   scan: function wn_scan(callback) {
     utils.overlay.show(_('scanningNetworks'), 'spinner');
+    var scanTimeout;
+
     var req = this.api.getNetworks();
-    if (!req)
+    if (!req) {
       callback();
+    }
+
     var self = this;
+
     req.onsuccess = function onScanSuccess() {
       self.networks = req.result;
+      clearTimeout(scanTimeout);
       callback(self.networks);
     };
+
     req.onerror = function onScanError() {
-      console.log('Error reading networks: ' + req.error.name);
+      console.error('Error reading networks: ' + req.error.name);
+      clearTimeout(scanTimeout);
       callback();
     };
+
+    // Timeout in case of scanning errors not thrown by the API
+    // We can't block the user in the screen (bug 889623)
+    scanTimeout = setTimeout(function() {
+      console.warn('Timeout while reading networks');
+      callback();
+    }, 10000);
   },
   enable: function wn_enable(lock) {
     lock.set({'wifi.enabled': true});
