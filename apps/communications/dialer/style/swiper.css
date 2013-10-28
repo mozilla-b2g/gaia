@@ -39,10 +39,6 @@
   background-position: center;
   background-repeat: no-repeat;
 }
-.swiper-icon-left {
-  left: 0;
-  z-index: 1;
-}
 
 .swiper-icon {
   margin-top: 2rem;
@@ -87,10 +83,6 @@
   background-image: url("images/pickup_icon_pressed.png");
   background-position: center;
   background-repeat: no-repeat;
-}
-.swiper-icon-right {
-  right: 0;
-  z-index: 1;
 }
 
 /* swiper */
@@ -142,31 +134,36 @@
 
 #swiper-slider-handler {
   position: relative;
-  top: -8.3rem;
+  top: -8.1rem;
 }
 
 /* Sync the landscape/portrait layout of the system locksrceen*/
-@media (orientation:landscape) {
+#swiper-area-slider #swiper-slider-track .swiper-slider-center {
+  width: 22rem;
+}
+
+.swiper-icon-left {
+  left: calc(50% - 16rem);
+  z-index: 1;
+}
+
+.swiper-icon-right {
+  right: calc(50% - 16rem);
+  z-index: 1;
+}
+
+
+@media (min-width:768px) {
   #swiper-area-slider #swiper-slider-track .swiper-slider-center {
     width: 35rem;
   }
-}
 
-@media (orientation:portrait) {
-  #swiper-area-slider #swiper-slider-track .swiper-slider-center {
-    width: 22rem;
+  .swiper-icon-left {
+    left: calc(50% - 22.5rem);
   }
-}
 
-@media (min-width:768px) and (orientation:landscape) {
-  #swiper-area-slider #swiper-slider-track .swiper-slider-center {
-    width: 115rem;
-  }
-}
-
-@media (min-width:768px) and (orientation:portrait) {
-  #swiper-area-slider #swiper-slider-track .swiper-slider-center {
-    width: 67rem;
+  .swiper-icon-right {
+    right: calc(50% - 22.5rem);
   }
 }
 
@@ -178,27 +175,37 @@
    background-color: rgba(0, 0, 0, 0.3);
    -moz-box-sizing: border-box;
    border: 0.2rem solid rgba(255, 255, 255, 0.8);
+   display: inline-block;
+   position: relative;
   /* Will become wider while user pull it */
   transition: width 0.2s ease;
 }
 
-#swiper-area-slider .swiper-slider-left.swiper-icon {
+#swiper-slider-track .swiper-slider-left.swiper-icon {
   /* half-circle toward left */
   border-radius: 6rem 0 0 6rem;
   border-right: none;
-  display: inline-block;
-
-  /* to move it while sliding */
-  position: relative;
   height: 6rem;
   width: 3rem;
 }
 
-.swiper-slider-left.swiper-icon > span {
+#swiper-slider-handler .swiper-slider-left.swiper-icon {
+  /* half-circle toward left */
+  border-radius: 5.6rem 0 0 5.6rem;
+  border-right: none;
+  height: 5.6rem;
+  width: 2.8rem;
+}
+
+.swiper-icon > span {
+  background: url("images/larrow.png") no-repeat top left;
+
   /* float to prevent its parent got wrong place */
   float: left;
-  font-size: 32pt;
-  margin-left: 0.5rem;
+  margin-left: 1.1rem;
+  margin-top: 1.7rem;
+  width: 100%;
+  height: 100%;
 }
 
 #swiper-slider-handler.touched span {
@@ -206,7 +213,6 @@
 }
 
 #swiper-area-slider .swiper-slider-center.swiper-icon {
-  display: inline-block;
   border-left: none;
   border-right: none;
   border-radius: 0rem;
@@ -216,8 +222,11 @@
   margin-right: -0.3rem;
 
   /* to move and scale it while sliding */
-  position: relative;
   width: 1px; /* for the default circle */
+}
+
+#swiper-slider-handler .swiper-slider-center.swiper-icon {
+  height: 5.6rem;
 }
 
 #swiper-slider-handler.touched.left > div {
@@ -229,26 +238,33 @@
   background-color: #84c82c;
 }
 
-#swiper-area-slider .swiper-slider-right.swiper-icon {
+#swiper-slider-track .swiper-slider-right.swiper-icon {
   border-left: none;
 
   /* half-circle toward right */
   border-radius: 0 6rem 6rem 0;
-  display: inline-block;
   height: 6rem;
-
-  /* to move it while sliding */
-  position: relative;
   width: 3rem;
+}
+
+#swiper-slider-handler .swiper-slider-right.swiper-icon {
+  border-left: none;
+
+  /* half-circle toward right */
+  border-radius: 0 5.6rem 5.6rem 0;
+  height: 5.6rem;
+  width: 2.8rem;
 }
 
 .swiper-slider-right.swiper-icon > span {
   /* float to prevent its parent got wrong place */
   float: right;
-  font-size: 32pt;
-  margin-right: 0.5rem;
+  margin-right: 1.1rem;
+  /* flip it to toward right. */
+  transform: scaleX(-1);
  }
 
- #swiper-slider-handler > div.bounce {
+ #swiper-slider-handler.bounce > div,
+ #swiper-slider-handler.extend > div {
   transition: transform 0.2s ease-out 0s;
  }
