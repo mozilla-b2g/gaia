@@ -1,12 +1,7 @@
-'use strict';
 
 var MockL10n = {
   get: function get(key, params) {
     return key;
-  },
-  localize: function localize() {},
-  ready: function(callback) {
-    callback();
   },
   DateTimeFormat: function() {}
 };

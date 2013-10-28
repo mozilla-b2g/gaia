@@ -1,11 +1,6 @@
 /*global requireApp suite test assert setup teardown suiteSetup
   KeyboardManager Applications sinon */
-mocha.globals(['SettingsListener']);
-
-require('/shared/test/unit/mocks/mock_lazy_loader.js');
-require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 requireApp('system/js/keyboard_manager.js');
-requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 // Prevent auto-init
 Applications = {
@@ -13,21 +8,6 @@ Applications = {
 };
 
 suite('KeyboardManager', function() {
-  var realSettingsListener;
-
-  function trigger(event, detail) {
-    if (!detail) {
-      detail = {};
-    }
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent(event, true, false, detail);
-    window.dispatchEvent(evt);
-  }
-
-  new MocksHelper([
-    'KeyboardHelper', 'LazyLoader'
-  ]).init().attachTestHelpers();
-
   function setupHTML() {
     var rc = document.querySelector('#run-container');
     rc.innerHTML = '';
@@ -64,21 +44,16 @@ suite('KeyboardManager', function() {
     document.body.innerHTML += '<div id="run-container"></div>';
   });
 
-  setup(function() {
+  setup(function(next) {
     setupHTML();
     injectCss();
-
-    realSettingsListener = window.SettingsListener;
-    window.SettingsListener = MockSettingsListener;
-
     KeyboardManager.init();
+
+    // Give some time to stabilize
+    setTimeout(next, 500);
   });
 
   suite('Transitions', function() {
-    setup(function(next) {
-      setTimeout(next, 500);
-    });
-
     test('showKeyboard triggers transition', function(next) {
       var triggered = false;
       KeyboardManager.keyboardFrameContainer.addEventListener('transitionend',
@@ -178,9 +153,6 @@ suite('KeyboardManager', function() {
   });
 
   suite('UpdateHeight', function() {
-    setup(function(next) {
-      setTimeout(next, 500);
-    });
     test('Second updateHeight evt triggers keyboardchange', function(next) {
       var kcEvent = sinon.stub();
       window.addEventListener('keyboardchange', kcEvent);
@@ -206,108 +178,6 @@ suite('KeyboardManager', function() {
           next();
         }, 100);
       }, 100);
-    });
-  });
-
-  suite('Switching keyboard focus', function() {
-    setup(function() {
-      this.clock = this.sinon.useFakeTimers();
-      this.sinon.stub(KeyboardManager, 'showKeyboard');
-      this.sinon.stub(KeyboardManager, 'hideKeyboard');
-      this.sinon.stub(KeyboardManager, 'hideIMESwitcher');
-      this.sinon.stub(KeyboardManager, 'showIMESwitcher');
-      this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
-    });
-
-    suite('keyboard type "url" - has enabled layouts', function() {
-      setup(function() {
-        this.getLayouts = this.sinon.stub(KeyboardHelper, 'getLayouts');
-        this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
-        MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
-          { apps: true });
-        trigger('mozChromeEvent', {
-          type: 'inputmethod-contextchange',
-          inputType: 'url'
-        });
-        // setTimeout is used to debouce this
-        this.clock.tick(500);
-      });
-      test('does not request layouts or defaults', function() {
-        assert.isFalse(this.getLayouts.called);
-        assert.isFalse(this.checkDefaults.called);
-      });
-      test('shows "url" keyboard', function() {
-        assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
-        assert.ok(KeyboardManager.showKeyboard.called);
-      });
-    });
-    suite('keyboard type "url" - no enabled layout', function() {
-      setup(function() {
-        this.saveToSettings = this.sinon.stub(KeyboardHelper, 'saveToSettings');
-        this.getLayouts = this.sinon.stub(KeyboardHelper, 'getLayouts');
-        // make this respond automatically
-        this.getLayouts.yields([]);
-
-        // trigger no keyboards in the first place
-        MockKeyboardHelper.watchCallback([], { apps: true, settings: true });
-      });
-      teardown(function() {
-        MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
-          { apps: true });
-      });
-      suite('no defaults enabled', function() {
-        setup(function() {
-          this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
-          trigger('mozChromeEvent', {
-            type: 'inputmethod-contextchange',
-            inputType: 'url'
-          });
-          // setTimeout is used to debouce this
-          this.clock.tick(500);
-        });
-
-        test('requests layouts', function() {
-          assert.ok(this.getLayouts.called);
-        });
-        test('requests defaults', function() {
-          assert.ok(this.checkDefaults.calledAfter(this.getLayouts));
-        });
-        test('reverts to "text" when no defaults', function() {
-          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
-        });
-      });
-
-      suite('defaults enabled', function() {
-        setup(function() {
-          this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults',
-            function overrideCheckDefaults(callback) {
-              this.getLayouts.yields([KeyboardHelper.layouts[0]]);
-              callback();
-            }.bind(this));
-          trigger('mozChromeEvent', {
-            type: 'inputmethod-contextchange',
-            inputType: 'url'
-          });
-          // setTimeout is used to debouce this
-          this.clock.tick(500);
-        });
-
-        test('requests layouts', function() {
-          assert.ok(this.getLayouts.called);
-        });
-        test('requests defaults', function() {
-          assert.ok(this.checkDefaults.called);
-        });
-        test('requests layouts again', function() {
-          assert.ok(this.getLayouts.calledAfter(this.checkDefaults));
-        });
-        test('saves', function() {
-          assert.ok(this.saveToSettings.called);
-        });
-        test('keeps "url" when defaults found', function() {
-          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
-        });
-      });
     });
   });
 });
