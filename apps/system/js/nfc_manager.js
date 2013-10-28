@@ -354,12 +354,12 @@
           // current user context to accept a message via registered app
           // callback/message. If so, fire P2P NDEF to app.
           // If not, drop message.
-          handled = handleNdefDiscovered(techs[i], command.sessionId);
+          handled = handleNdefDiscovered(techs[i], command.sessionToken);
         } else if (techs[i] == 'NDEF') {
-          handled = handleNdefDiscovered(techs[i], command.sessionId);
+          handled = handleNdefDiscovered(techs[i], command.sessionToken);
         } else if (techs[i] == 'NDEF_FORMATTABLE') {
           handled = handleNdefFormattableDiscovered(techs[i],
-                                                    command.sessionId);
+                                                    command.sessionToken);
         } else if (techs[i] == 'NFC_A') {
           debug('NFCA unsupported: ' + command.content);
         } else if (techs[i] == 'MIFARE_ULTRALIGHT') {
@@ -382,7 +382,7 @@
         name: 'tag-discovered',
         data: {
           type: 'tag',
-          sessionId: command.sessionId,
+          sessionId: command.sessionToken,
           tag: technologyTags
         }
       });
