@@ -266,6 +266,17 @@ const keyboardHashKey = [
   'numberLayout'
 ];
 
+// If we get a focuschange event from mozKeyboard for an element with
+// one of these types, we'll just ignore it.
+const ignoredFormElementTypes = {
+  'select-one': true,
+  'select-multiple': true,
+  'date': true,
+  'time': true,
+  'datetime': true,
+  'datetime-local': true
+};
+
 // Special key codes
 const BASIC_LAYOUT = -1;
 const ALTERNATE_LAYOUT = -2;
