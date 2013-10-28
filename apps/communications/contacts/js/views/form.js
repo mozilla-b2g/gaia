@@ -441,7 +441,8 @@ contacts.Form = (function() {
     var theContact = (contact instanceof mozContact) ?
                        contact : new mozContact(contact);
     if (fb.isFbContact(contact)) {
-      window.console.log('Contact Id: ', theContact.id);
+      window.console.log('Contact Id without constructor: ', contact.id);
+      window.console.log('Contact Id in constructor: ', theContact.id);
       window.console.log('Contact Dump: ', JSON.stringify(theContact));
       var fbContact = new fb.Contact(theContact);
       request = fbContact.remove();
