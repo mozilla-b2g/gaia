@@ -27,5 +27,6 @@ var MockUtils = {
   getCarrierTag: Utils.getCarrierTag,
   removeNonDialables: Utils.removeNonDialables,
   probablyMatches: Utils.probablyMatches,
-  getDisplayObject: Utils.getDisplayObject
+  getDisplayObject: Utils.getDisplayObject,
+  MMSFilename: Utils.MMSFilename
 };
