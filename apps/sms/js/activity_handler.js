@@ -10,10 +10,6 @@
 
 var ActivityHandler = {
   isLocked: false,
-
-  // Will hold current activity object
-  currentActivity: { new: null },
-
   init: function() {
     if (!window.navigator.mozSetMessageHandler) {
       return;
@@ -33,7 +29,6 @@ var ActivityHandler = {
   // The Messaging application's global Activity handler. Delegates to specific
   // handler based on the Activity name.
   global: function activityHandler(activity) {
-
     var name = activity.source.name;
     var handler = this._handlers[name];
 
@@ -42,8 +37,6 @@ var ActivityHandler = {
     } else {
       console.error('Unrecognized activity: "' + name + '"');
     }
-
-    ThreadUI.enableActivityRequestMode();
   },
 
   // A mapping of MozActivity names to their associated event handler
@@ -55,7 +48,6 @@ var ActivityHandler = {
         return;
       }
 
-      this.currentActivity.new = activity;
       this.isLocked = true;
 
       var number = activity.source.data.number;
@@ -113,11 +105,6 @@ var ActivityHandler = {
         insertAttachments();
       }
     }
-  },
-
-  resetActivity: function ah_resetActivity() {
-    this.currentActivity.new = null;
-    ThreadUI.resetActivityRequestMode();
   },
 
   handleMessageNotification: function ah_handleMessageNotification(message) {

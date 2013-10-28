@@ -21,8 +21,6 @@ var MockThreadUI = {
     });
   },
   initSentAudio: function() {},
-  enableActivityRequestMode: function() {},
-  resetActivityRequestMode: function() {},
   getAllInputs: function() {},
   getSelectedInputs: function() {},
   setMessageBody: function() {},
