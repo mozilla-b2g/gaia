@@ -16,6 +16,18 @@ var GridManager = (function() {
 
   var HIDDEN_ROLES = ['system', 'keyboard', 'homescreen'];
 
+  function isHiddenApp(role) {
+    if (!role) {
+      console.warn(
+        'Unexpected role when checking hidden app: ' + JSON.stringify(role)
+      );
+
+      return false;
+    }
+
+    return (HIDDEN_ROLES.indexOf(role) !== -1);
+  }
+
   // Holds the list of single variant apps that have been installed
   // previously already
   var svPreviouslyInstalledApps = [];
@@ -837,7 +849,7 @@ var GridManager = (function() {
       var manifest = app.manifest || app.updateManifest;
 
       if (!manifest || app.type === GridItemsFactory.TYPE.COLLECTION ||
-          (suppressHiddenRoles && HIDDEN_ROLES.indexOf(manifest.role) !== -1)) {
+          (suppressHiddenRoles && isHiddenApp(manifest.role))) {
         continue;
       }
 
@@ -1004,7 +1016,7 @@ var GridManager = (function() {
     appsByOrigin[app.origin] = app;
 
     var manifest = app.manifest ? app.manifest : app.updateManifest;
-    if (!manifest || HIDDEN_ROLES.indexOf(manifest.role) !== -1)
+    if (!manifest)
       return;
 
     var entryPoints = manifest.entry_points;
@@ -1146,8 +1158,20 @@ var GridManager = (function() {
     // let it update itself.
     var existingIcon = getIcon(descriptor);
     if (existingIcon) {
-      existingIcon.update(descriptor, app);
+      if (app.manifest && isHiddenApp(app.manifest.role)) {
+        existingIcon.remove();
+      } else {
+        existingIcon.update(descriptor, app);
+      }
       markDirtyState();
+      return;
+    }
+
+    // If we have manifest and no updateManifest, do not add the icon:
+    // this is especially the case for pre-installed hidden apps, like
+    // keyboard, system, etc.
+    if (app.manifest && !app.updateManifest &&
+        isHiddenApp(app.manifest.role)) {
       return;
     }
 

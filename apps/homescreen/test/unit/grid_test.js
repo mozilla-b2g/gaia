@@ -329,6 +329,48 @@ suite('grid.js >', function() {
     });
   });
 
+  suite('install role system app >', function() {
+    var mockApp;
+    var tempIcon;
+    var appManifest = {
+      name: 'My Ringtones',
+      role: 'system'
+    };
+    var appUpdateManifest = {
+      name: 'My Ringtones'
+    };
+
+    setup(function() {
+      mockApp = new MockApp({
+        manifest: null,
+        updateManifest: appUpdateManifest
+      });
+      this.sinon.useFakeTimers();
+
+      MockAppsMgmt.mTriggerOninstall(mockApp);
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+    });
+
+    test('should have a temp icon', function() {
+      tempIcon = GridManager.getIcon(mockApp);
+      assert.ok(tempIcon);
+    });
+
+    suite('finish role system app install >', function() {
+      setup(function() {
+        this.sinon.spy(MockIcon.prototype, 'remove');
+        mockApp.manifest = appManifest;
+        mockApp.updateManifest = null;
+        mockApp.mTriggerDownloadApplied();
+        this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+      });
+
+      test('icon remove method called', function() {
+        assert.isTrue(tempIcon.remove.calledOnce);
+      });
+    });
+  });
+
   suite('install single variant apps >', function() {
     var prevMaxIconNumber;
 
