@@ -21,7 +21,7 @@ class SearchPanel(Base):
 
     def type_into_search_box(self, search_term):
         frame = self.marionette.get_active_frame()
-        self.keyboard.send(search_term)
+        self.keyboard.send(search_term.lower())
         self.keyboard.tap_enter()
         self.marionette.switch_to_frame(frame)
 
