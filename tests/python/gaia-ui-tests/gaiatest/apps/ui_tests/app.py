@@ -97,6 +97,7 @@ class KeyboardPage(Base):
 
     _keyboard_iframe_locator = (By.CSS_SELECTOR, "#test-iframe[src*='keyboard']")
     _number_input_locator =(By.CSS_SELECTOR, 'input[type="number"]')
+    _text_input_locator = (By.CSS_SELECTOR, 'input[type="text"]')
 
     def tap_number_input(self):
         self.marionette.find_element(*self._number_input_locator).tap()
@@ -106,3 +107,12 @@ class KeyboardPage(Base):
     @property
     def number_input(self):
         return self.marionette.find_element(*self._number_input_locator).get_attribute('value')
+
+    def tap_text_input(self):
+        self.marionette.find_element(*self._text_input_locator).tap()
+        from gaiatest.apps.keyboard.app import Keyboard
+        return Keyboard(self.marionette)
+
+    @property
+    def text_input(self):
+        return self.marionette.find_element(*self._text_input_locator).get_attribute('value')
