@@ -451,6 +451,11 @@ button::-moz-focus-inner {
   pointer-events: auto;
 }
 
+/* Compensation for the effects after enabling the pointer-event attribute. */
+#lockscreen-area-unlock:active {
+  background: none;
+}
+
 #lockscreen-alt-camera,
 #lockscreen-area-camera > div {
   background-image: url('./images/icon-camera.png');
@@ -463,6 +468,11 @@ button::-moz-focus-inner {
   /* Otherwise it will be overlayed by the track. */
   z-index: 1;
   pointer-events: auto;
+}
+
+/* Compensation for the effects after enabling the pointer-event attribute. */
+#lockscreen-area-camera:active {
+  background: none;
 }
 
 #lockscreen-alt-camera {
