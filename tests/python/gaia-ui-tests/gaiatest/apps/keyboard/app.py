@@ -119,8 +119,8 @@ class Keyboard(Base):
     # this is to tap on desired key on keyboard
     def _tap(self, val):
         try:
+            self.wait_for_condition(lambda m: m.find_element(*self._key_locator(val)).is_displayed)
             key = self.marionette.find_element(*self._key_locator(val))
-            self.wait_for_condition(lambda m: key.is_displayed)
             Actions(self.marionette).press(key).wait(0.1).release().perform()
         except (NoSuchElementException, ElementNotVisibleException):
             self.marionette.log('Key %s not found on the keyboard' % val)
