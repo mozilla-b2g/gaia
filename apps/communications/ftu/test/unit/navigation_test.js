@@ -23,7 +23,8 @@ var mocksHelperForNavigation = new MocksHelper([
   'DataMobile',
   'IccHelper',
   'Tutorial',
-  'OperatorVariant'
+  'OperatorVariant',
+  'utils'
 ]);
 mocksHelperForNavigation.init();
 
