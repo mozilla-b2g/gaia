@@ -74,6 +74,8 @@ var ActivityHandler = {
           contact: contact || null
         });
       });
+
+      ThreadUI.enableActivityRequestMode();
     },
     share: function shareHandler(activity) {
       var blobs = activity.source.data.blobs,

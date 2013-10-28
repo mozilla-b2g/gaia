@@ -147,6 +147,12 @@ suite('ActivityHandler', function() {
 
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
     });
+
+    test('share shouldn\'t change the ThreadUI back button', function() {
+      this.sinon.stub(ThreadUI, 'enableActivityRequestMode');
+      MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
+      assert.isFalse(ThreadUI.enableActivityRequestMode.called);
+    });
   });
 
   suite('sms received', function() {
