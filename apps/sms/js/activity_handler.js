@@ -42,8 +42,6 @@ var ActivityHandler = {
     } else {
       console.error('Unrecognized activity: "' + name + '"');
     }
-
-    ThreadUI.enableActivityRequestMode();
   },
 
   // A mapping of MozActivity names to their associated event handler
@@ -82,6 +80,8 @@ var ActivityHandler = {
           contact: contact || null
         });
       });
+
+      ThreadUI.enableActivityRequestMode();
     },
     share: function shareHandler(activity) {
       var blobs = activity.source.data.blobs,
