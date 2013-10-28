@@ -63,12 +63,13 @@ marionette('notification tests', function() {
               'notification list contains the new notification');
   });
 
-  test.skip('lockscreen > replace notification', function() {
+  test('lockscreen > replace notification', function() {
     var tag = 'test tag, replace';
     var oldTitle = 'test title, replace';
     var oldBody = 'test body, replace';
     var newTitle = 'new test title, replace';
     var newBody = 'new test body, replace';
+
     var notify = new NotificationTest(client, tag, oldTitle, oldBody);
     notificationList.refreshLockScreen();
     assert.ok(notificationList.containsLockScreen(oldTitle, oldBody),
