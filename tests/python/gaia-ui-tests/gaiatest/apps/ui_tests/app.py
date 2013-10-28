@@ -65,7 +65,10 @@ class UiTests(Base):
 
     def tap_mozId_button(self):
         self.wait_for_element_displayed(*self._mozId_tests_button_locator, timeout=120)
-        self.marionette.find_element(*self._mozId_tests_button_locator).tap()
+        # Hack to make the identity button visible from underneath the toolbar
+        mozId_button = self.marionette.find_element(*self._mozId_tests_button_locator)
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [mozId_button])
+        mozId_button.tap()
 
     def tap_logout_button(self):
         self.wait_for_element_displayed(*self._app_logout_button_locator)
