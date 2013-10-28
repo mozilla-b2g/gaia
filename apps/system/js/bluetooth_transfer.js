@@ -110,28 +110,16 @@ var BluetoothTransfer = {
     var self = this;
     var icon = 'style/bluetooth_transfer/images/icon_bluetooth.png';
 
-    // Check storage is available or not before the prompt.
-    this.checkStorageSpace(fileSize,
-      function checkStorageSpaceComplete(isStorageAvailable, errorMessage) {
-        if (isStorageAvailable) {
-          self.getPairedDevice(function getPairedDeviceComplete() {
-            var deviceName = self.getDeviceName(address);
-            NotificationHelper.send(_('notification-fileTransfer-title',
-                                    { deviceName: deviceName }),
-                                    _('notification-fileTransfer-description'),
-                                    icon,
-                                    function() {
-                                      UtilityTray.hide();
-                                      self.showReceivePrompt(evt);
-                                    });
-          });
-        } else {
-          var adapter = Bluetooth.getAdapter();
-          if (adapter != null)
-            adapter.confirmReceivingFile(address, false);
-
-          self.showStorageUnavaliablePrompt(errorMessage);
-        }
+    this.getPairedDevice(function getPairedDeviceComplete() {
+      var deviceName = self.getDeviceName(address);
+      NotificationHelper.send(_('notification-fileTransfer-title',
+                              { deviceName: deviceName }),
+                              _('notification-fileTransfer-description'),
+                              icon,
+                              function() {
+                                UtilityTray.hide();
+                                self.showReceivePrompt(evt);
+                              });
     });
   },
 
@@ -148,21 +136,20 @@ var BluetoothTransfer = {
 
     var confirm = {
       title: _('transfer'),
-      callback: this.acceptReceive.bind(this, address),
+      callback: this.acceptReceive.bind(this, evt),
       recommend: true
     };
 
     var deviceName = '';
-    var self = this;
     this.getPairedDevice(function getPairedDeviceComplete() {
-      deviceName = self.getDeviceName(address);
+      deviceName = this.getDeviceName(address);
       CustomDialog.show(_('acceptFileTransfer'),
                         _('wantToReceiveFile',
                         { deviceName: deviceName,
                           fileName: fileName,
                           fileSize: fileSize }),
                         cancel, confirm);
-    });
+    }.bind(this));
   },
 
   declineReceive: function bt_declineReceive(address) {
@@ -176,15 +163,27 @@ var BluetoothTransfer = {
     }
   },
 
-  acceptReceive: function bt_acceptReceive(address, fileSize) {
+  acceptReceive: function bt_acceptReceive(evt) {
     CustomDialog.hide();
-    var adapter = Bluetooth.getAdapter();
-    if (adapter != null) {
-      adapter.confirmReceivingFile(address, true);
-    } else {
-      var msg = 'Cannot get adapter from system Bluetooth monitor.';
-      this.debug(msg);
-    }
+    // Check storage is available or not before confirm receiving file
+    var address = evt.address;
+    var fileSize = evt.fileLength;
+    var self = this;
+    this.checkStorageSpace(fileSize,
+      function checkStorageSpaceComplete(isStorageAvailable, errorMessage) {
+        var adapter = Bluetooth.getAdapter();
+        var option = (isStorageAvailable) ? true : false;
+        if (adapter) {
+          adapter.confirmReceivingFile(address, option);
+        } else {
+          var msg = 'Cannot get adapter from system Bluetooth monitor.';
+          self.debug(msg);
+        }
+        // Storage is not available, then pop out a prompt with the reason
+        if (!isStorageAvailable) {
+          self.showStorageUnavaliablePrompt(errorMessage);
+        }
+    });
   },
 
   showStorageUnavaliablePrompt: function bt_showStorageUnavaliablePrompt(msg) {
