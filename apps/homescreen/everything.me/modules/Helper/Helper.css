@@ -133,7 +133,7 @@
             position: relative;
             display: inline-block;
             height: 100%;
-            padding: 0 1rem 0.4rem;
+            padding: 0 1rem 0.4rem 1rem;
             cursor: pointer;
         }
         #helper ul li b {
@@ -174,7 +174,7 @@
             color: rgb(160,160,160);
             font-style: italic;
             font-weight: normal;
-            padding-right: 0.2rem;
+            padding: 0 0.2rem 0 0.5rem;
             cursor: default;
             text-transform: none;
         }
@@ -195,7 +195,7 @@
         }
         #helper ul li.label + li:after {
             display: none;
-            padding-left: 0;
+            padding-left: 0.7rem;
         }
         #helper ul li.link {
             color: #00e4ff !important;
