@@ -2,6 +2,7 @@
 
 var MockMozContacts = {
   limit: 20,
+  contacts: [],
   find: function dummy() {},
   total: 0,
   set number(n) {
@@ -54,6 +55,7 @@ var MockMozContacts = {
     };
   },
   save: function save(ct) {
+    this.contacts.push(ct);
     return {
       set onsuccess(callback) {
         var self = this;
