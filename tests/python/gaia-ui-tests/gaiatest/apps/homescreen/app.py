@@ -13,12 +13,10 @@ class Homescreen(Base):
 
     name = 'Homescreen'
 
-    _homescreen_iframe_locator = (By.CSS_SELECTOR, 'div.homescreen iframe')
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"]')
     _visible_icons_locator = (By.CSS_SELECTOR, 'div.page[style*="transform: translateX(0px);"] > ol > .icon')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body[data-mode="edit"]')
     _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
-    _landing_page_locator = (By.ID, 'icongrid')
     _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
     _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
 
@@ -26,9 +24,8 @@ class Homescreen(Base):
         Base.launch(self)
 
     def switch_to_homescreen_frame(self):
-        self.marionette.switch_to_frame()
-        hs_frame = self.marionette.find_element(*self._homescreen_iframe_locator)
-        self.marionette.switch_to_frame(hs_frame)
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
+        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
 
     def tap_search_bar(self):
         search_bar = self.marionette.find_element(*self._search_bar_icon_locator)
@@ -93,9 +90,6 @@ class Homescreen(Base):
         return self.marionette.execute_script("""
         var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
         return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")
-
-    def wait_for_landing_page_visible(self):
-        self.wait_for_element_displayed(*self._landing_page_locator)
 
     @property
     def collections_count(self):
