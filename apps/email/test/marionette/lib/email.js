@@ -35,6 +35,7 @@ var Selector = {
   composeSendButton: '.card-compose .cmp-send-btn',
   composeBackButton: '.card-compose .cmp-back-btn',
   composeDraftDiscard: '#cmp-draft-discard',
+  composeDraftSave: '#cmp-draft-save',
   refreshButton: '.card.center .msg-refresh-btn',
   messageHeaderItem: '.msg-messages-container .msg-header-item',
   cardMessageReader: '.card-message-reader',
@@ -53,7 +54,8 @@ var Selector = {
   // Checkboxes are weird: hidden to marionette, but the associated span
   // is clickable and does the job.
   notifyEmailCheckbox: '.tng-notify-mail-label > span',
-  accountSettingsBackButton: '.card-settings-account .tng-back-btn'
+  accountSettingsBackButton: '.card-settings-account .tng-back-btn',
+  localDraftsItem: '.fld-folders-container a[data-type=localdrafts]'
 };
 
 Email.prototype = {
@@ -142,6 +144,10 @@ Email.prototype = {
     this._waitForTransitionEnd('account_picker');
   },
 
+  tapLocalDraftsItem: function() {
+    this._waitForElementNoTransition(Selector.localDraftsItem).tap();
+  },
+
   switchAccount: function(number) {
     var accountSelector = '.acct-list-container ' +
                           'a:nth-child(' + number + ')';
@@ -223,6 +229,12 @@ Email.prototype = {
     this._waitForTransitionEnd(cardId);
   },
 
+  saveLocalDrafts: function() {
+    this._waitForElementNoTransition(Selector.composeBackButton).tap();
+    this._waitForElementNoTransition(Selector.composeDraftSave).tap();
+    this._waitForTransitionEnd('message_list');
+  },
+
   tapSend: function() {
     var client = this.client;
     /*
@@ -283,6 +295,30 @@ Email.prototype = {
     var element = client.findElements(Selector.messageHeaderItem)[index];
     element.tap();
     this.waitForMessageReader();
+  },
+
+  tapEmailBySubject: function(subject, cardId) {
+    var element = this.getEmailBySubject(subject);
+
+    if (element) {
+      element.tap();
+      this._waitForTransitionEnd(cardId);
+    }
+  },
+
+  getEmailBySubject: function(subject) {
+    var messageHeaders = this.client.findElements(Selector.messageHeaderItem),
+        messageHeadersLength = messageHeaders.length,
+        element;
+
+    for (var i = 0; i < messageHeadersLength; i++) {
+      if (messageHeaders[i].
+            findElement('.msg-header-subject').
+            text() === subject) {
+        element = messageHeaders[i];
+      }
+    }
+    return element;
   },
 
   /**
