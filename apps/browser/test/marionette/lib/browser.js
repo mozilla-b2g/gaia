@@ -18,8 +18,11 @@ Browser.Selectors = {
   'searchButton': '#url-button',
   'shareButton': '#share-button',
   'shareMenu': 'form[data-z-index-level="action-menu"]',
-  'mozbrowser': 'iframe[mozbrowser]'
+  'mozbrowser': 'iframe[mozbrowser]',
+  'tabsBadge': '#tabs-badge',
+  'settingsButton': '#settings-button'
 };
+
 /**
  * @private
  * @param {Marionette.Client} client for selector.
@@ -44,6 +47,14 @@ Browser.prototype = {
 
   get shareButton() {
     return findElement(this.client, 'shareButton');
+  },
+
+  get tabsBadge() {
+    return findElement(this.client, 'tabsBadge');
+  },
+
+  get settingsButton() {
+    return findElement(this.client, 'settingsButton');
   },
 
   // TODO(gareth): Move this shareMenu stuff into the helper.
