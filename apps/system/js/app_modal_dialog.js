@@ -4,24 +4,27 @@
   var _ = navigator.mozL10n.get;
   var _id = 0;
 
+  /**
+   * The ModalDialog of the appWindow.
+   *
+   * @class AppModalDialog
+   * @param {AppWindow} app The app
+   *                        window instance this modal dialog belongs to.
+   */
   window.AppModalDialog = function AppModalDialog(app) {
     this.app = app;
     var element = this.app.element;
     this.containerElement = element;
+    this.events = [];
+    this.elements = {};
     // One to one mapping.
     this.instanceID = _id++;
-    element.addEventListener('mozbrowsershowmodalprompt', function(evt) {
-      evt.preventDefault();
-      if (!this.events) {
-        this.events = [];
-      }
-      this.events.push(evt);
-      if (!this._injected) {
-        this.render();
-      }
-      this.show();
-      this._injected = true;
-    }.bind(this));
+    this._injected = false;
+    try {
+      element.addEventListener('mozbrowsershowmodalprompt', this);
+    } catch (e) {
+      this.app._dump();
+    }
     return this;
   };
 
@@ -39,15 +42,26 @@
     }
   };
 
-  AppModalDialog.prototype.render = function amd_render() {
-    this.app.frame.insertAdjacentHTML('beforeend', this.view());
-    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
-    this.elements = {};
-    var elementsID = ['alert', 'alert-ok', 'alert-message',
+  AppModalDialog.prototype.handleEvent = function amd_handleEvent(evt) {
+    evt.preventDefault();
+    this.events.push(evt);
+    if (!this._injected) {
+      this.render();
+    }
+    this.show();
+    this._injected = true;
+  };
+
+  AppModalDialog.elementClasses = ['alert', 'alert-ok', 'alert-message',
       'prompt', 'prompt-ok', 'prompt-cancel', 'prompt-input', 'prompt-message',
       'confirm', 'confirm-ok', 'confirm-cancel', 'confirm-message',
       'select-one', 'select-one-cancel', 'select-one-menu', 'select-one-title',
       'alert-title', 'confirm-title', 'prompt-title'];
+
+  AppModalDialog.prototype.render = function amd_render() {
+    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    this.element = document.getElementById(this.CLASS_NAME + this.instanceID);
+    this.elements = {};
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -56,7 +70,7 @@
     };
 
     // Loop and add element with camel style name to Modal Dialog attribute.
-    elementsID.forEach(function createElementRef(name) {
+    this.constructor.elementClasses.forEach(function createElementRef(name) {
       this.elements[toCamelCase(name)] =
         this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
     }, this);

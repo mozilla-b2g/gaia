@@ -3,10 +3,11 @@
 requireApp('system/js/sheets_transition.js');
 
 requireApp('system/test/unit/mock_stack_manager.js');
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_homescreen_launcher.js');
 
 var mocksForSheetsTransition = new MocksHelper([
-  'StackManager'
+  'StackManager', 'AppWindowManager', 'HomescreenLauncher'
 ]).init();
 
 suite('system/SheetsTransition >', function() {
@@ -33,16 +34,16 @@ suite('system/SheetsTransition >', function() {
     getPrevStub = this.sinon.stub(MockStackManager, 'getPrev');
     getPrevStub.returns(dialer);
     dialerFrame = document.createElement('div');
-    dialer.frame = dialerFrame;
+    dialer.element = dialerFrame;
 
     this.sinon.stub(MockStackManager, 'getCurrent').returns(settings);
     settingsFrame = document.createElement('div');
-    settings.frame = settingsFrame;
+    settings.element = settingsFrame;
 
     getNextStub = this.sinon.stub(MockStackManager, 'getNext');
     getNextStub.returns(contacts);
     contactsFrame = document.createElement('div');
-    contacts.frame = contactsFrame;
+    contacts.element = contactsFrame;
   });
 
   suite('Begining the transition', function() {
@@ -68,6 +69,11 @@ suite('system/SheetsTransition >', function() {
     test('it should set the transition property on the new sheet',
     function() {
       assert.equal(dialerFrame.style.transition, 'transform 0s ease 0s');
+    });
+
+    test('it should bump the zIndex of the new sheet',
+    function() {
+      assert.equal(dialerFrame.dataset.zIndexLevel, 'bottom-app');
     });
 
     test('it should not fail when we\'re at the beginning of the stack',

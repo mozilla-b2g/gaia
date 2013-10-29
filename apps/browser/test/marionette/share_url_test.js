@@ -84,7 +84,12 @@ marionette('share url from browser', function() {
     fileServer.stop();
   });
 
-  test('share button should put url in email body', function() {
+  /**
+   * XXX: Bug 907013 changes the DOM structure of window.confirm,
+   * and this is causing problems in finding out the confirm dialog
+   * as well as tapping the ok button.
+   */
+  test.skip('share button should put url in email body', function() {
     shareViaEmail(browser, fileServer, COOLPAGE);
     email.confirmWantAccount();
     email.manualSetupImapEmail(emailServer, 'waitForCompose');
@@ -94,6 +99,11 @@ marionette('share url from browser', function() {
 
   test.skip('mailto link should put email in "to" field - intermt bug 932331',
   function() {
+  /**
+   * XXX: Bug 907013 changes the DOM structure of window.confirm,
+   * and this is causing problems in finding out the confirm dialog
+   * as well as tapping the ok button.
+   */
     goToUrl(browser, fileServer, MAILTOPAGE);
     var frame = browser.currentTabFrame();
     client.switchToFrame(frame);

@@ -34,21 +34,7 @@
   background-color: gray;
 }
 
-#screen.edges #windows > .appWindow.inside-edges {
-  opacity: 1;
-  transform: translateX(0);
-}
-
-#screen.edges #windows > .appWindow.outside-edges-left {
-  opacity: 1;
-  transform: translateX(-20%);
-}
-
-#screen.edges #windows > .appWindow.outside-edges-right {
-  opacity: 1;
-  transform: translateX(100%);
-}
-
 #screen.edges-debug .gesture-panel {
   opacity: 0.5;
 }
+

@@ -1,18 +1,10 @@
 'use strict';
-requireApp('system/test/unit/mock_clock.js', function() {
-  window.realClock = window.Clock;
-  window.Clock = MockClock;
-  window.realOrientationManager = window.OrientationManager;
-  window.OrientationManager = {
-    defaultOrientation: null
-  };
-requireApp('system/js/lockscreen.js');
-});
-
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
 requireApp('system/test/unit/mock_ftu_launcher.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
+requireApp('system/test/unit/mock_app_window.js');
 
 if (!this.FtuLauncher) {
   this.FtuLauncher = null;
@@ -22,12 +14,27 @@ if (!this.SettingsListener) {
   this.SettingsListener = null;
 }
 
+var mocksForLockScreen = new MocksHelper([
+  'OrientationManager', 'AppWindowManager', 'AppWindow'
+]).init();
+
+requireApp('system/test/unit/mock_clock.js', function() {
+  window.realClock = window.Clock;
+  window.Clock = MockClock;
+  requireApp('system/test/unit/mock_orientation_manager.js',
+    function() {
+      window.realOrientationManager = window.OrientationManager;
+      window.OrientationManager = MockOrientationManager;
+      requireApp('system/js/lockscreen.js');
+    });
+});
+
 suite('system/LockScreen >', function() {
   var subject;
-  var realOrientationManager;
   var realL10n;
   var realMozTelephony;
   var realClock;
+  var realOrientationManager;
   var realFtuLauncher;
   var realSettingsListener;
   var domPasscodePad;
@@ -36,22 +43,21 @@ suite('system/LockScreen >', function() {
   var domPasscodeCode;
   var domMainScreen;
   var DUMMYTEXT1 = 'foo';
+  mocksForLockScreen.attachTestHelpers();
 
   setup(function() {
     subject = window.LockScreen;
     realL10n = navigator.mozL10n;
     navigator.mozL10n = window.MockL10n;
 
-    realOrientationManager = window.OrientationManager;
-    window.OrientationManager = {
-      defaultOrientation: null
-    };
-
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = window.MockNavigatorMozTelephony;
 
     realClock = window.Clock;
     window.Clock = MockClock;
+
+    realOrientationManager = window.OrientationManager;
+    window.OrientationManager = MockOrientationManager;
 
     realFtuLauncher = window.FtuLauncher;
     window.FtuLauncher = MockFtuLauncher;
@@ -136,6 +142,7 @@ suite('system/LockScreen >', function() {
     navigator.mozL10n = realL10n;
     navigator.mozTelephony = realMozTelephony;
     window.Clock = window.realClock;
+    window.OrientationManager = window.realOrientationManager;
     window.FtuLauncher = realFtuLauncher;
     window.OrientationManager = window.realOrientationManager;
     window.SettingsListener = realSettingsListener;

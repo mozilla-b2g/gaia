@@ -43,7 +43,8 @@ var AttentionScreen = {
     window.addEventListener('appwillopen', this.appOpenHandler.bind(this));
     window.addEventListener('emergencyalert', this.hide.bind(this));
 
-    window.addEventListener('will-unlock', this.screenUnlocked.bind(this));
+    window.addEventListener('appforeground',
+      this.appForegroundHandler.bind(this));
   },
 
   resize: function as_resize(evt) {
@@ -228,11 +229,6 @@ var AttentionScreen = {
         { origin: this.attentionScreen.lastElementChild.dataset.frameOrigin });
     }
 
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
-
     this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('attention');
     this.dispatchEvent('attentionscreenhide', { origin: origin });
@@ -268,12 +264,6 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (!this.isFullyVisible())
       return;
-
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
 
     // entering "active-statusbar" mode,
     // with a transform: translateY() slide up transition.
@@ -322,11 +312,11 @@ var AttentionScreen = {
     }
   },
 
-  screenUnlocked: function as_screenUnlocked() {
+  appForegroundHandler: function as_appForegroundHandler(evt) {
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
-    var app = WindowManager.getCurrentDisplayedApp();
-    app && this.showForOrigin(app.origin);
+    var app = evt.detail;
+    this.showForOrigin(app.origin);
   },
 
   getAttentionScreenOrigins: function as_getAttentionScreenOrigins() {

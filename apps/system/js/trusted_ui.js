@@ -139,7 +139,7 @@ var TrustedUIManager = {
   },
 
   _hideCallerApp: function trui_hideCallerApp(origin, callback) {
-    var app = WindowManager.getRunningApps()[origin];
+    var app = AppWindowManager.getApp(origin);
     if (app == null || app.isHomescreen) {
       return;
     }
@@ -168,13 +168,13 @@ var TrustedUIManager = {
   },
 
   _restoreCallerApp: function trui_restoreCallerApp(origin) {
-    var frame = WindowManager.getAppFrame(origin);
+    var frame = AppWindowManager.getRunningApps()[origin].frame;
     frame.style.visibility = 'visible';
     frame.classList.remove('back');
-    if (!WindowManager.getCurrentDisplayedApp().isHomescreen) {
+    if (!AppWindowManager.getActiveApp().isHomescreen) {
       this.publish('trusteduihide', { origin: origin });
     }
-    if (WindowManager.getDisplayedApp() == origin) {
+    if (AppWindowManager.getDisplayedApp() == origin) {
       frame.classList.add('restored');
       frame.addEventListener('transitionend', function removeRestored() {
         frame.removeEventListener('transitionend', removeRestored);
@@ -254,8 +254,7 @@ var TrustedUIManager = {
   },
 
   _restoreOrientation: function trui_restoreOrientation() {
-    var app = WindowManager.getDisplayedApp();
-    WindowManager.setOrientationForApp(app);
+    window.dispatchEvent(new Event('trusteduiclose'));
   },
 
   /**
@@ -362,14 +361,15 @@ var TrustedUIManager = {
         }
         break;
       case 'appwillopen':
+        var app = evt.detail;
         // Hiding trustedUI when coming from Activity
         if (this.isVisible())
           this._hideTrustedApp();
 
         // Ignore homescreen
-        if (evt.target.classList.contains('homescreen'))
+        if (app.isHomescreen)
           return;
-        this._lastDisplayedApp = evt.detail.origin;
+        this._lastDisplayedApp = app.origin;
         if (this.currentStack.length) {
           // Reopening an app with trustedUI
           this.popupContainer.classList.remove('up');

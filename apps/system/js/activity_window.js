@@ -3,12 +3,73 @@
 (function(window) {
   var _id = 0;
 
-  // XXX: Move into WrapperWindow.
-  var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
-  var wrapperFooter = document.querySelector('#wrapper-footer');
-
+  /**
+   * ActivityWindow is the wrapper for the inline activity instances.
+   * For window disposition activity, they are done in AppWindow.
+   *
+   * ##### Flow chart
+   * <a href="http://i.imgur.com/4O1Frs3.png" target="_blank">
+   * <img src="http://i.imgur.com/4O1Frs3.png"></img>
+   * </a>
+   *
+   * @example
+   * var app = new AppWindow({
+   *   url: 'http://uitest.gaiamobile.org:8080/index.html',
+   *   manifestURL: 'http://uitest.gaiamobile.org:8080/manifest.webapp'
+   * });
+   * var activity = new ActivityWindow({
+   *   url: 'http://gallery.gaiamobile.org:8080/pick.html',
+   *   manifestURL: 'http://gallery.gaiamobile.org:8080/manifest.webapp'
+   * }, app);
+   *
+   * @class ActivityWindow
+   * @param {Object} config The configuration object of this activity.
+   * @param {AppWindow|ActivityWindow} caller The caller of this activity.
+   */
+  /**
+   * Fired when the activity window is created.
+   * @event ActivityWindow#activitycreated
+   */
+  /**
+   * Fired when the activity window is removed.
+   * @event ActivityWindow#activityterminated
+   */
+  /**
+   * Fired when the activity window is opening.
+   * @event ActivityWindow#activityopening
+   */
+  /**
+   * Fired when the activity window is opened.
+   * @event ActivityWindow#activityopen
+   */
+  /**
+   * Fired when the activity window is cloing.
+   * @event ActivityWindow#activityclosing
+   */
+  /**
+   * Fired when the activity window is closed.
+   * @event ActivityWindow#activityclose
+   */
+  /**
+   * Fired before the activity window is rendered.
+   * @event ActivityWindow#activitywillrender
+   */
+  /**
+   * Fired when the activity window is rendered to the DOM tree.
+   * @event ActivityWindow#activityrendered
+   */
+  /**
+   * Fired when the page visibility of the activity window is
+   * changed to foreground.
+   * @event ActivityWindow#activityforeground
+   */
+  /**
+   * Fired when the page visibility of the activity window is
+   * changed to background.
+   * @event ActivityWindow#activitybackground
+   */
   var ActivityWindow = function ActivityWindow(config, caller) {
-    this.browser_config = config;
+    this.config = config;
     for (var key in config) {
       this[key] = config[key];
     }
@@ -16,10 +77,13 @@
     if (caller) {
       caller.setActivityCallee(this);
       this.activityCaller = caller;
+      // TODO: Put us inside the caller element.
     }
 
     this.render();
     this.publish('created');
+    // We'll open ourselves automatically,
+    // but maybe we should do requestOpen and let manager open us.
     this.open();
   };
 
@@ -29,10 +93,14 @@
 
   ActivityWindow.prototype.CLASS_NAME = 'ActivityWindow';
 
-  ActivityWindow.prototype._transitionState = 'closed';
+  ActivityWindow.prototype._DEBUG = false;
 
-  // Current policy is to copy the caller's orientation.
-  // So we just overwrite resize method.
+  ActivityWindow.prototype.openAnimation = 'slideleft';
+  ActivityWindow.prototype.closeAnimation = 'slideright';
+
+  /**
+   * Lock or unlock orientation for this activity.
+   */
   ActivityWindow.prototype.setOrientation =
     function acw_setOrientation(noCapture) {
       if (this.isActive()) {
@@ -40,7 +108,8 @@
                         this.activityCaller.manifest :
                         (this.manifest || this.config.manifest);
 
-        var orientation = manifest.orientation ||
+        var orientation = manifest ? (manifest.orientation ||
+                          OrientationManager.globalOrientation) :
                           OrientationManager.globalOrientation;
         if (orientation) {
           var rv = false;
@@ -77,80 +146,31 @@
             '</div>';
   };
 
-  ActivityWindow.prototype._registerEvents = function acw__registerEvents() {
-    this.element.
-      addEventListener('animationend', this._transitionHandler.bind(this));
-
-    this.element.addEventListener('mozbrowseractivitydone',
-      this.kill.bind(this));
-    this.element.addEventListener('mozbrowserclose', this.kill.bind(this));
-    this.element.addEventListener('mozbrowsererror', function onError(evt) {
-      if (evt.detail.type == 'fatal') {
-        this.kill(evt);
-      }
-    }.bind(this));
-
-    this.element.addEventListener('mozbrowserloadend',
-      function activityloaded(e) {
-        this._loaded = true;
-        e.target.removeEventListener(e.type, activityloaded, true);
-        this.publish('loadtime', {
-          time: parseInt(Date.now() - this.browser.element.dataset.start),
-          type: 'c', // Activity is always cold booted now.
-          src: this.iframe.src
-        });
-      }.bind(this), true);
-
-    this.element.addEventListener('mozbrowservisibilitychange',
-      function visibilitychange(e) {
-        var type = e.detail.visible ? 'foreground' : 'background';
-        this._visibilityState = type;
-        this.publish(type);
-      }.bind(this));
+  ActivityWindow.SUB_COMPONENTS = {
+    'transitionController': window.AppTransitionController,
+    'modalDialog': window.AppModalDialog,
+    'authDialog': window.AppAuthenticationDialog
   };
 
-  ActivityWindow.prototype._transitionHandler =
-    function acw__transitionHandler(evt) {
-      evt.stopPropagation();
-      if (this.element.classList.contains('opening')) {
-        this.element.classList.remove('opening');
-        this.element.classList.remove('slideleft');
-        this.publish('open');
-        this._transitionState = 'opened';
-        var app = this.activityCaller;
-        // Set page visibility of focused app to false
-        // once inline activity frame's transition is ended.
-        // XXX: We have trouble to make all inline activity
-        // openers being sent to background now,
-        // because of OOM killer may kill them accidently.
-        // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
-        // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
-        // So we only set browser app(in-process)'s page visibility
-        // to false now to resolve 914412.
-        if (app && app instanceof AppWindow && app.iframe &&
-            'contentWindow' in app.iframe &&
-            app.iframe.contentWindow != null) {
-          app.setVisible(false);
-        }
-        // XXX: Move into WrapperWindow
-        if (app && app instanceof AppWindow && 'wrapper' in app.frame.dataset) {
-          wrapperFooter.classList.remove('visible');
-          wrapperHeader.classList.remove('visible');
-        }
-        if (this.openCallback)
-          this.openCallback();
-      } else {
-        this.element.classList.remove('closing');
-        this.element.classList.remove('slideright');
-        this.element.classList.remove('active');
-        this.publish('close');
-        this._transitionState = 'closed';
-        this.setVisible(false);
-        if (this.closeCallback)
-          this.closeCallback();
-      }
+  ActivityWindow.REGISTERED_EVENTS =
+    ['mozbrowserclose', 'mozbrowsererror', 'mozbrowservisibilitychange',
+      'mozbrowserloadend', 'mozbrowseractivitydone', 'mozbrowserloadstart',
+      '_localized', '_opened', '_closing'];
+
+  ActivityWindow.prototype._handle__closing =
+    function acw__handle__closing() {
+      this.restoreCaller();
     };
 
+  ActivityWindow.prototype._handle_mozbrowseractivitydone =
+    function aw__handle_mozbrowseractivitydone() {
+      this.kill();
+    };
+
+  /**
+   * Kill ActivityWindow. We overwrite the default behavior of
+   * AppWindow.kill here.
+   */
   ActivityWindow.prototype.kill = function acw_kill(evt) {
     if (this._killed)
       return;
@@ -159,44 +179,37 @@
       evt.stopPropagation();
     }
     if (this.isActive()) {
-      this.close(function onClose() {
-        if (this._screenshotURL) {
-          URL.revokeObjectURL(this._screenshotURL);
-        }
-        this.publish('terminated');
+      var self = this;
+      this.element.addEventListener('_closed', function onClose() {
+        self.element.addEventListener('_closed', onClose);
+        self.publish('terminated');
         // If caller is an instance of appWindow,
-        // tell WindowManager to open it.
+        // tell AppWindowManager to open it.
         // XXX: Call this.activityCaller.open() if open logic is done.
-        if (this.activityCallee) {
-          this.activityCallee.kill();
+        if (self.activityCallee) {
+          self.activityCallee.kill();
         }
-        if (this.activityCaller instanceof AppWindow) {
+        if (self.activityCaller instanceof AppWindow) {
           // If we're killed by event handler, display the caller.
           if (evt) {
-            // XXX: We should just request this.activityCaller.open()
-            // But we won't have this method before bug 907013 landed.
-            // This is also another harm by using origin to identify an app.
-            if (this.activityCaller.isHomescreen) {
-              WindowManager.setDisplayedApp();
-            } else {
-              WindowManager.setDisplayedApp(this.activityCaller.origin);
-            }
+            self.activityCaller.requestOpen();
           }
-        } else if (this.activityCaller instanceof ActivityWindow) {
+        } else if (self.activityCaller instanceof ActivityWindow) {
           if (evt) {
-            this.activityCaller.open();
+            self.activityCaller.open();
           }
         } else {
           console.warn('unknown window type of activity caller.');
         }
-        this.containerElement.removeChild(this.element);
-      }.bind(this));
+        self.element.parentNode.removeChild(self.element);
+      });
+      this.close();
     } else {
       this.publish('terminated');
       if (this.activityCallee) {
         this.activityCallee.kill();
       }
-      this.containerElement.removeChild(this.element);
+      this.element.parentNode.removeChild(this.element);
     }
     this.debug('killed by ', evt ? evt.type : 'direct function call.');
     this.activityCaller.unsetActivityCallee();
@@ -205,7 +218,8 @@
   ActivityWindow.prototype.render = function acw_render() {
     this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
-    this.browser = new BrowserFrame({
+    // TODO: Use BrowserConfigHelper.
+    this.browser_config = {
       origin: this.origin,
       url: this.url,
       name: this.name,
@@ -213,7 +227,8 @@
       manifestURL: this.manifestURL,
       window_name: 'inline' + this.instanceID,
       oop: true
-    });
+    };
+    this.browser = new BrowserFrame(this.browser_config);
     this.element =
       document.getElementById('activity-window-' + this.instanceID);
     this.element.insertBefore(this.browser.element, this.element.childNodes[0]);
@@ -223,9 +238,7 @@
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
     this._registerEvents();
-    if (window.AppModalDialog) {
-      new AppModalDialog(this);
-    }
+    this.installSubComponents();
     this.publish('rendered');
   };
 
@@ -237,68 +250,24 @@
   ActivityWindow.prototype.containerElement =
     document.getElementById('windows');
 
-  // XXX: Refactor this in TransitionStateController.
-  ActivityWindow.prototype.open = function acw_open(openCallback) {
-    if (this._transitionState == 'opened')
-      return;
-
-    this.openCallback = openCallback;
-    this.publish('willopen');
-    this._transitionState = 'opening';
-
-    if (this._visibilityState !== 'foreground') {
-      this.setVisible(true);
-    }
-    this.element.classList.add('active');
-    this.element.classList.add('slideleft');
-    this.element.classList.add('opening');
-  };
-
-  // XXX: Refactor this in TransitionStateController.
-  ActivityWindow.prototype.close = function acw_close(closeCallback) {
-    if (this._transitionState == 'closed')
-      return;
-    this.closeCallback = closeCallback;
-    this.publish('willclose');
-    this._transitionState = 'closing';
-    this.restoreCaller();
-    this.element.classList.add('slideright');
-    this.element.classList.add('closing');
-  };
-
-  ActivityWindow.prototype.show = function acw_show() {
-    if (!this.isActive()) {
-      this.element.classList.add('active');
-    }
-  };
-
-  ActivityWindow.prototype.hide = function acw_hide() {
-    if (this.isActive()) {
-      this.element.classList.remove('active');
-    }
-  };
-
+  /**
+   * Restore caller's visibility when we start closing.
+   * But if the caller is not active, it would return early.
+   */
   ActivityWindow.prototype.restoreCaller = function restoreCaller() {
     var app = this.activityCaller;
     // Do nothing if app is not active.
-    if (!app || !app.isActive())
+    if (!app || !app.isActive() || app._killed)
       return;
 
     // Do not bubble the orientation lock this time.
     app.setOrientation(true);
     if (app instanceof AppWindow) {
-      app.iframe.focus();
       // XXX: Refine this in AttentionWindow
       if (!AttentionScreen.isFullyVisible()) {
         app.setVisible(true);
       }
-      // XXX: use app instanceof WrapperWindow instead.
-      if ('wrapper' in app.frame.dataset) {
-        wrapperFooter.classList.add('visible');
-      }
     } else if (app instanceof ActivityWindow) {
-      app.show();
-      app.iframe.focus();
       // XXX: Refine this in AttentionWindow
       if (!AttentionScreen.isFullyVisible()) {
         app.setVisible(true);
@@ -306,14 +275,22 @@
     }
   };
 
-  ActivityWindow.prototype.setFrameBackground =
-    function acw_setFrameBackground(frame, callback) {
-      var splash = this.element.firstChild.splash;
-      this.element.style.backgroundImage = 'url("' + splash + '")';
-      setTimeout(callback);
+  ActivityWindow.prototype._handle__opened =
+    function acw__handle__opened() {
+      var app = this.activityCaller;
+      // Set page visibility of focused app to false
+      // once inline activity frame's transition is ended.
+      // XXX: We have trouble to make all inline activity
+      // openers being sent to background now,
+      // because of OOM killer may kill them accidently.
+      // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
+      // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
+      // So we only set browser app(in-process)'s page visibility
+      // to false now to resolve 914412.
+      if (app && app instanceof AppWindow && !app.isOOP()) {
+        app.setVisible(false, true);
+      }
     };
-
-  ActivityWindow.prototype._transitionTimeout = 300;
 
   window.ActivityWindow = ActivityWindow;
 

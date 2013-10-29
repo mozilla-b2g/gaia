@@ -6,12 +6,19 @@
 /**
  * Creates an object used for refreshing the clock UI element. Handles all
  * related timer manipulation (start/stop/cancel).
+ * @class  Clock
  */
 function Clock() {
-  /** One-shot timer used to refresh the clock at a minute's turn */
+  /**
+   * One-shot timer used to refresh the clock at a minute's turn
+   * @memberOf Clock
+   */
   this.timeoutID = null;
 
-  /** Timer used to refresh the clock every minute */
+  /**
+   * Timer used to refresh the clock every minute
+   * @memberOf Clock
+   */
   this.timerID = null;
 
   /**
@@ -22,6 +29,7 @@ function Clock() {
    *
    * @param {Function} refresh Function used to refresh the UI at every timer
    *        tick, should accept a date object as its only argument.
+   * @memberOf Clock
    */
   this.start = function cl_start(refresh) {
     var date = new Date();
@@ -44,6 +52,7 @@ function Clock() {
 
   /**
    * Stops the timer used to refresh the clock
+   * @memberOf Clock
    */
   this.stop = function cl_stop() {
     if (this.timeoutID != null) {
@@ -127,13 +136,20 @@ var StatusBar = {
   get height() {
     if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    } else if (this.screen.classList.contains('fullscreen-app') ||
-        document.mozFullScreen) {
+    } else if (document.mozFullScreen) {
       return 0;
     } else {
       return this._cacheHeight ||
              (this._cacheHeight = this.element.getBoundingClientRect().height);
     }
+  },
+
+  show: function sb_show() {
+    this.element.classList.remove('invisible');
+  },
+
+  hide: function sb_hide() {
+    this.element.classList.add('invisible');
   },
 
   init: function sb_init() {
@@ -213,6 +229,8 @@ var StatusBar = {
     // Listen to the IME switcher shows/hide
     window.addEventListener('keyboardimeswitchershow', this);
     window.addEventListener('keyboardimeswitcherhide', this);
+    window.addEventListener('appopened', this);
+    window.addEventListener('homescreenopened', this.show.bind(this));
 
     this.systemDownloadsCount = 0;
     this.setActive(true);
@@ -220,6 +238,14 @@ var StatusBar = {
 
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
+      case 'appopened':
+        var app = evt.detail;
+        if (app.isFullScreen()) {
+          this.hide();
+        } else {
+          this.show();
+        }
+        break;
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;

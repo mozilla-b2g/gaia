@@ -276,6 +276,7 @@ function execute(options) {
    'software-button.enabled': false,
    'homegesture.enabled': false,
    'edgesgesture.enabled': false,
+   'continuous-transition.enabled': false,
    'support.onlinesupport.title': '',
    'support.onlinesupport.href': '',
    'support.callsupport1.title': '',

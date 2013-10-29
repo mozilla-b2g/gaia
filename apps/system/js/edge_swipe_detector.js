@@ -9,7 +9,6 @@ var EdgeSwipeDetector = {
     window.addEventListener('homescreenopening', this);
     window.addEventListener('appopen', this);
     window.addEventListener('launchapp', this);
-    window.addEventListener('launchwrapper', this);
 
     ['touchstart', 'touchmove', 'touchend'].forEach(function(e) {
       this.previous.addEventListener(e, this);
@@ -46,7 +45,6 @@ var EdgeSwipeDetector = {
         this._updateEnabled();
         break;
       case 'launchapp':
-      case 'launchwrapper':
         if (!e.detail.stayBackground) {
           this._lifecycleEnabled = true;
           this._updateEnabled();

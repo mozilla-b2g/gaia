@@ -2,14 +2,12 @@
 #modal-dialog-confirm,
 #modal-dialog-prompt,
 #modal-dialog-custom-prompt,
-#authentication-dialog,
-#authentication-dialog-http,
 #modal-dialog-error,
 #modal-dialog-select-one {
   display: none;
 }
 
-#authentication-dialog input,
+.authentication-dialog input,
 #modal-dialog input {
   border-radius: 0.2rem;
   height: 4rem;
@@ -21,8 +19,6 @@
 }
 
 #screen.modal-dialog #modal-dialog,
-#screen.authentication-dialog #authentication-dialog,
-#authentication-dialog-http.visible,
 #modal-dialog-alert.visible,
 #modal-dialog-confirm.visible,
 #modal-dialog-prompt.visible,

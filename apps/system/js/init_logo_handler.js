@@ -29,9 +29,15 @@ var InitLogoHandler = {
   },
 
   init: function ilh_init(logoLoader) {
+    window.addEventListener('ftuopen', this);
+    window.addEventListener('ftuskip', this);
     this.logoLoader = logoLoader;
     logoLoader.onnotfound = this._removeCarrierPowerOn.bind(this);
     logoLoader.onload = this._appendCarrierPowerOn.bind(this);
+  },
+
+  handleEvent: function ilh_handleEvent() {
+    this.animate();
   },
 
   _removeCarrierPowerOn: function ilh_removeCarrierPowerOn() {
