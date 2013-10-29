@@ -855,6 +855,11 @@ ul.contact-prompt {
   line-height: normal;
 }
 
+ul.contact-prompt a {
+  z-index: 101;
+  color: white;
+}
+
 body[role="application"] form[role="dialog"][data-type="action"] > section:first-child{
   height: auto;
   border-bottom: 0.1rem solid #616262;
