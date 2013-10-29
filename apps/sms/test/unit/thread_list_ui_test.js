@@ -24,7 +24,8 @@ var mocksHelperForThreadListUI = new MocksHelper([
   'FixedHeader',
   'MessageManager',
   'Utils',
-  'WaitingScreen'
+  'WaitingScreen',
+  'TimeHeaders'
 ]).init();
 
 suite('thread_list_ui', function() {
@@ -221,7 +222,6 @@ suite('thread_list_ui', function() {
 
     test(' > createThreadMockup without options', function() {
       var thread = ThreadListUI.createThreadMockup(message);
-      var options = { read: true };
       assert.equal(thread.unreadCount, 0);
     });
 
