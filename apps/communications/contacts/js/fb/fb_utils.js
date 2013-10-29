@@ -135,11 +135,10 @@ var fb = window.fb || {};
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_num_fb_contacts() {
-        var req = fb.contacts.getAll();
+        var req = fb.contacts.getLength();
 
         req.onsuccess = function() {
-          var result = req.result || [];
-          outReq.done(Object.keys(result).length);
+          outReq.done(req.result);
         };
 
         req.onerror = function() {
