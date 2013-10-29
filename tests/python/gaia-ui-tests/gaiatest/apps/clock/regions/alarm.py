@@ -61,7 +61,7 @@ class NewAlarm(Clock):
 
     def wait_for_panel_to_load(self):
         self.wait_for_condition(lambda m: m.find_element(*self._close_locator).location['x'] == 0)
-        self.wait_for_element_displayed(*self._edit_alarm_fields_locator)
+        self.wait_for_element_present(*self._edit_alarm_fields_locator)
 
     def tap_done(self):
         self.wait_for_element_displayed(*self._done_locator)
