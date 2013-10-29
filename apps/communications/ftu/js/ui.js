@@ -188,9 +188,20 @@ var UIManager = {
         }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
-      WifiManager.finish();
-      window.close();
+      var layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
+        ScreenLayout.getCurrentLayout() : 'tiny';
+
+      // For tiny devices
+      if (ScreenLayout.getCurrentLayout() === 'tiny') {
+        WifiManager.finish();
+        window.close();
+      }
+      else {
+        // for large devices
+        Tutorial.jumpToExitStep();
+      }
     });
+
     this.letsGoButton.addEventListener('click', function() {
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');

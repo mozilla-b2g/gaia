@@ -45,7 +45,12 @@ var MockUIManager = {
     'sim-import-button',
     'no-sim',
     'sd-import-button',
-    'no-memorycard'
+    'no-memorycard',
+    // Tutorial
+    'tutorial-screen',
+    'tutorial-progress',
+    'lets-go-button',
+    'skip-tutorial-button'
   ],
 
   mSetup: function muim_mSetup() {
