@@ -2,6 +2,7 @@
 
 mocha.globals(['resizeTo']);
 
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
@@ -485,4 +486,43 @@ suite('call screen', function() {
     });
   });
 
+  suite('background image setter', function() {
+    var realMozSettings;
+    var dummyImage = 'This is a dummy image';
+
+    setup(function() {
+      realMozSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+      MockNavigatorSettings.mSettings['wallpaper.image'] = dummyImage;
+    });
+
+    teardown(function() {
+      navigator.mozSettings = realMozSettings;
+    });
+
+    test('should change background to default wallpaper (non-forced)',
+    function(done) {
+      var setCallerContactImageSpy =
+          this.sinon.stub(CallScreen, 'setCallerContactImage')
+          .withArgs(dummyImage, {force: false});
+
+      CallScreen.setDefaultContactImage({force: false});
+      setTimeout(function() {
+        assert.isTrue(setCallerContactImageSpy.calledOnce);
+        done();
+      });
+    });
+
+    test('should change background to default wallpaper (forced)',
+    function(done) {
+      var setCallerContactImageSpy =
+          this.sinon.stub(CallScreen, 'setCallerContactImage')
+          .withArgs(dummyImage, {force: true});
+      CallScreen.setDefaultContactImage({force: true});
+      setTimeout(function() {
+        assert.isTrue(setCallerContactImageSpy.calledOnce);
+        done();
+      });
+    });
+  });
 });

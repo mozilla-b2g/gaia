@@ -4,7 +4,8 @@
 /*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
          URL, SMIL, Dialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
-         Attachment, WaitingScreen, MozActivity, LinkActionHandler */
+         Attachment, WaitingScreen, MozActivity, LinkActionHandler,
+         TimeHeaders */
 /*exported ThreadUI */
 
 (function(global) {
@@ -239,8 +240,6 @@ var ThreadUI = global.ThreadUI = {
       return tmpls;
     }, {});
 
-    Utils.startTimeHeaderScheduler();
-
     this.initRecipients();
 
     // Initialized here, but used in ThreadUI.cleanFields
@@ -446,7 +445,7 @@ var ThreadUI = global.ThreadUI = {
   onMessageReceived: function thui_onMessageReceived(message) {
     this.appendMessage(message);
     this.scrollViewToBottom();
-    Utils.updateTimeHeaders();
+    TimeHeaders.updateAll();
     if (this.isScrolledManually) {
       this.showNewMessageNotice(message);
     }
@@ -954,7 +953,7 @@ var ThreadUI = global.ThreadUI = {
     if (hidden) {
       header.classList.add('hidden');
     } else {
-      Utils.updateTimeHeader(header);
+      TimeHeaders.update(header);
     }
 
     // Where do I have to append the Container?
@@ -1111,7 +1110,7 @@ var ThreadUI = global.ThreadUI = {
     // Show chunk of messages
     ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
-    Utils.updateTimeHeaders();
+    TimeHeaders.updateAll();
     // Go to Bottom
     ThreadUI.scrollViewToBottom();
   },
@@ -1364,7 +1363,7 @@ var ThreadUI = global.ThreadUI = {
       var element = elements[i];
       element.classList.remove('hidden');
       if (element.tagName === 'HEADER') {
-        Utils.updateTimeHeader(element);
+        TimeHeaders.update(element);
       }
     }
   },

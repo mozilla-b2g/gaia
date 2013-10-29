@@ -3,22 +3,15 @@
 
 'use strict';
 
-requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
 requireApp('sms/test/unit/mock_navigator_mozphonenumberservice.js');
 requireApp('sms/js/utils.js');
 
-var mocksHelperForUtils = new MocksHelper([
-  'FixedHeader'
-]).init();
-
 suite('Utils', function() {
   var nativeMozL10n = navigator.mozL10n;
   var nmpns = navigator.mozPhoneNumberService;
-
-  mocksHelperForUtils.attachTestHelpers();
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -172,49 +165,6 @@ suite('Utils', function() {
       test('(epoch [String|Number])', function() {
       });
     */
-  });
-
-  suite('Utils.startTimeHeaderScheduler', function() {
-
-    setup(function() {
-      this.callTimes = [];
-      this.sinon.useFakeTimers();
-      this.updateStub = this.sinon.stub(Utils, 'updateTimeHeaders',
-        function() {
-          this.callTimes.push(Date.now());
-        }.bind(this));
-    });
-
-    teardown(function() {
-      Utils.updateTimeHeaders.restore();
-    });
-
-    test('timeout on minute boundary', function() {
-      // "Fri Jul 12 2013 16:01:54 GMT-0400 (EDT)"
-      var start = 1373659314572;
-
-      this.sinon.clock.tick(start);
-      Utils.startTimeHeaderScheduler();
-      this.sinon.clock.tick(100 * 1000);
-
-      // we are called on start
-      assert.equal(this.callTimes[0], start);
-      // Fri Jul 12 2013 16:02:00 GMT-0400 (EDT)
-      assert.equal(this.callTimes[1], 1373659320000);
-      // Fri Jul 12 2013 16:03:00 GMT-0400 (EDT)
-      assert.equal(this.callTimes[2], 1373659380000);
-    });
-
-    test('multiple calls converge', function() {
-      this.updateStub.reset();
-
-      for (var i = 0; i < 100; i++) {
-        Utils.startTimeHeaderScheduler();
-      }
-      this.sinon.clock.tick(60 * 1000);
-      assert.equal(this.updateStub.callCount, 101);
-    });
-
   });
 
   suite('Utils.getContactDetails', function() {
@@ -852,123 +802,6 @@ suite('Utils', function() {
       test(testIndex, function() {
         assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
       });
-    });
-  });
-
-  suite('Utils.updateTimeHeader', function() {
-    var subject, formattedTime, formattedDate;
-
-    setup(function() {
-      subject = document.createElement('header');
-      subject.dataset.timeUpdate = 'true';
-      var time = Date.parse('2013-01-01');
-      subject.dataset.time = time;
-      formattedTime = Utils.getFormattedHour(time);
-      formattedDate = Utils.getHeaderDate(time);
-    });
-
-    test('date and time header', function() {
-      Utils.updateTimeHeader(subject);
-      var content = subject.textContent;
-      assert.include(content, formattedTime);
-      assert.include(content, formattedDate);
-    });
-
-    test('date header', function() {
-      subject.dataset.isThread = 'true';
-      Utils.updateTimeHeader(subject);
-
-      var content = subject.textContent;
-      assert.isTrue(content.indexOf(formattedTime) === -1);
-      assert.include(content, formattedDate);
-    });
-
-    test('time header', function() {
-      subject.dataset.timeOnly = 'true';
-      Utils.updateTimeHeader(subject);
-
-      var content = subject.textContent;
-      assert.include(content, formattedTime);
-      assert.isTrue(content.indexOf(formattedDate) === -1);
-    });
-  });
-
-  suite('Utils.updateTimeHeaders', function() {
-    var existingTitles;
-
-    setup(function() {
-      this.sinon.useFakeTimers(Date.parse('2013-01-01'));
-      this.sinon.spy(MockFixedHeader, 'updateHeaderContent');
-
-      var additionalDataset = [
-        'data-is-thread="true"',
-        'data-hour-only="true"',
-        ''
-      ];
-
-      var mockThreadListMarkup = '';
-
-      additionalDataset.forEach(function(dataset, i) {
-        dataset += ' data-time-update="true"' +
-          ' data-time="' + Date.now() + '"';
-
-        mockThreadListMarkup +=
-          '<header ' + dataset + '>header ' + i + '</header>' +
-          '<ul>' +
-            '<li>this is a thread</li>' +
-            '<li>this is another thread</li>' +
-          '</ul>';
-      });
-
-      document.body.innerHTML = mockThreadListMarkup;
-
-      Utils.updateTimeHeaders();
-
-
-      existingTitles = [];
-
-      var headers = document.querySelectorAll('header');
-      for (var i = 0, l = headers.length; i < l; i++) {
-        existingTitles[i] = headers[i].textContent;
-      }
-
-    });
-
-    teardown(function() {
-      document.body.innerHTML = '';
-    });
-
-    test('calling after one hour should not update time headers', function() {
-      this.sinon.clock.tick(60 * 60 * 1000);
-      Utils.updateTimeHeaders();
-
-      var headers = document.querySelectorAll('header');
-      for (var i = 0, l = headers.length; i < l; i++) {
-        assert.equal(headers[i].textContent, existingTitles[i]);
-      }
-    });
-
-    suite('calling after one day', function() {
-      setup(function() {
-        this.sinon.clock.tick(24 * 60 * 60 * 1000);
-        this.sinon.spy(Utils, 'updateTimeHeader');
-        Utils.updateTimeHeaders();
-      });
-
-      test('should update all date headers', function() {
-        var headers = document.querySelectorAll('header');
-        for (var i = 0, l = headers.length; i < l; i++) {
-          assert.notEqual(headers[i].textContent, existingTitles[i]);
-        }
-      });
-
-      test('should call updateTimeHeader 3 times', function() {
-        assert.equal(Utils.updateTimeHeader.callCount, 3);
-      });
-    });
-
-    test('should call FixedHeader.updateHeaderContent', function() {
-      assert.ok(MockFixedHeader.updateHeaderContent.called);
     });
   });
 });

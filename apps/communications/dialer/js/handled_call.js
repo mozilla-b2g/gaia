@@ -81,15 +81,6 @@ HandledCall.prototype.handleEvent = function hc_handle(evt) {
     case 'disconnected':
       this.disconnected();
       break;
-    case 'resuming':
-      CallsHandler.updateKeypadEnabled();
-      this.node.classList.remove('held');
-      if (this.photo) {
-        CallScreen.setCallerContactImage(this.photo,
-                                         {force: true});
-      }
-      CallScreen.syncSpeakerEnabled();
-      break;
     case 'held':
       CallsHandler.updateKeypadEnabled();
       this.node.classList.add('held');
@@ -329,6 +320,12 @@ HandledCall.prototype.connected = function hc_connected() {
   this.updateDirection();
   CallScreen.enableKeypad();
   CallScreen.syncSpeakerEnabled();
+
+  if (this.photo) {
+    CallScreen.setCallerContactImage(this.photo, {force: true});
+  } else {
+    CallScreen.setDefaultContactImage({force: true});
+  }
 };
 
 HandledCall.prototype.disconnected = function hc_disconnected() {

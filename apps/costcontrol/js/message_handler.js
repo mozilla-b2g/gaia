@@ -11,6 +11,7 @@
   if (!inStandAloneMode()) {
     ConfigManager = window.parent.ConfigManager;
     CostControl = window.parent.CostControl;
+    NetworkstatsProxy = window.parent.NetworkstatsProxy;
   }
 
   // XXX: This case implies that message handler triggered by system

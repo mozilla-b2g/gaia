@@ -301,8 +301,6 @@ var SleepMenu = {
   _actualPowerOff: function sm_actualPowerOff(isReboot) {
     var power = navigator.mozPower;
 
-    // Paint screen to black before reboot/poweroff
-    ScreenManager.turnScreenOff(true);
     if (isReboot) {
       power.reboot();
     } else {

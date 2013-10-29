@@ -18,7 +18,6 @@ class Homescreen(Base):
     _visible_icons_locator = (By.CSS_SELECTOR, 'div.page[style*="transform: translateX(0px);"] > ol > .icon')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body[data-mode="edit"]')
     _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
-    _landing_page_locator = (By.ID, 'icongrid')
     _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
     _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
 
@@ -94,8 +93,8 @@ class Homescreen(Base):
         var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
         return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")
 
-    def wait_for_landing_page_visible(self):
-        self.wait_for_element_displayed(*self._landing_page_locator)
+    def wait_for_homescreen_displayed(self):
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
 
     @property
     def collections_count(self):

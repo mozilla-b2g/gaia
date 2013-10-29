@@ -19,6 +19,7 @@ requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
 
+requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_attachment.js');
