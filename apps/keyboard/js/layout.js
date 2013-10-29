@@ -460,6 +460,44 @@ const Keyboards = {
       ]
     ]
   },
+  'fr-dvorak-bepo': {
+    label: 'French - Bépo',
+    menuLabel: 'Bépo',
+    imEngine: 'latin',
+    autoCorrectLanguage: 'fr',
+    alt: {
+      a: 'àâæáãäåā',
+      c: 'çćč',
+      e: 'éèêë€ē',
+      i: 'îïìíī',
+      o: 'ôœòóõöōø',
+      u: 'ùûüúū',
+      s: 'śšşß',
+      S: 'ŚŠŞ',
+      n: 'ńñň',
+      '.': ',?!-;:'
+    },
+    width: 11,
+    keys: [
+      [
+        { value: 'b' }, { value: 'é' }, { value: 'p' }, { value: 'o' },
+        { value: 'è' }, { value: 'v' } , { value: 'd' }, { value: 'l' },
+        { value: 'j' }, { value: 'z' }, { value: 'w' }
+      ], [
+        { value: 'a' }, { value: 'u' }, { value: 'i' }, { value: 'e' },
+        { value: 'c' } , { value: 't' }, { value: 's' }, { value: 'r' },
+        { value: 'n' }, { value: 'm' }, { value: 'à' }
+      ], [
+        { value: '⇪', ratio: 2, keyCode: KeyEvent.DOM_VK_CAPS_LOCK },
+        { value: 'y' }, { value: 'x' }, { value: 'k' }, { value: 'q' },
+        { value: 'g' }, { value: 'h' }, { value: 'f' },
+        { value: '⌫', ratio: 2, keyCode: KeyEvent.DOM_VK_BACK_SPACE }
+      ], [
+        { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+        { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
+      ]
+    ]
+  },
   de: {
     label: 'German',
     menuLabel: 'Deutsch',
