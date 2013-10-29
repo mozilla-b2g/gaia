@@ -1135,18 +1135,18 @@ suite('thread_ui.js >', function() {
           ThreadUI.showSendMessageError('NoSignalError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
+                      'sendNoSignalErrorTitle');
           assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
+                      'sendNoSignalErrorBody');
         });
 
         test('show general error for not found error', function() {
           ThreadUI.showSendMessageError('NotFoundError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
+                      'sendNotFoundErrorTitle');
           assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
+                      'sendNotFoundErrorBody');
         });
 
         test('show general error for unknown error', function() {
@@ -1171,9 +1171,9 @@ suite('thread_ui.js >', function() {
           ThreadUI.showSendMessageError('InvalidAddressError');
           assert.isTrue(MockDialog.instances[0].show.called);
           assert.equal(MockDialog.calls[0].title.l10nId,
-                      'sendGeneralErrorTitle');
+                      'sendInvalidAddressErrorTitle');
           assert.equal(MockDialog.calls[0].body.l10nId,
-                      'sendGeneralErrorBody');
+                      'sendInvalidAddressErrorBody');
         });
 
         test('show no SIM card', function() {

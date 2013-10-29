@@ -1832,11 +1832,23 @@ var ThreadUI = global.ThreadUI = {
         buttonLabel = 'fdnBlockedBtnOk';
         break;
       case 'NoSignalError':
+        messageTitle = 'sendNoSignalErrorTitle';
+        messageBody = 'sendNoSignalErrorBody';
+        buttonLabel = 'sendNoSignalErrorBtnOk';
+        break;
       case 'NotFoundError':
+        messageTitle = 'sendNotFoundErrorTitle';
+        messageBody = 'sendNotFoundErrorBody';
+        buttonLabel = 'sendNotFoundErrorBtnOk';
+      break;
+      case 'InvalidAddressError':
+        messageTitle = 'sendInvalidAddressErrorTitle';
+        messageBody = 'sendInvalidAddressErrorBody';
+        buttonLabel = 'sendInvalidAddressErrorBtnOk';
+        break;
       case 'UnknownError':
       case 'InternalError':
-      case 'InvalidAddressError':
-        /* falls through */
+      /* falls through */
       default:
         messageTitle = 'sendGeneralErrorTitle';
         messageBody = 'sendGeneralErrorBody';
