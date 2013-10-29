@@ -248,8 +248,7 @@ const keyboardGroups = {
 // Define language code aliases to correctly match the relevant keyboard,
 // i.e. language -> relevant keyboard name
 const keyboardAlias = {
-  'en-US': 'en',
-  'pt-BR': 'pt_BR'
+  'en-US': 'en'
 };
 
 // This is the default keyboard if none is selected in settings
@@ -271,6 +270,7 @@ const BASIC_LAYOUT = -1;
 const ALTERNATE_LAYOUT = -2;
 const SWITCH_KEYBOARD = -3;
 const TOGGLE_CANDIDATE_PANEL = -4;
+const NO_OP = -5;
 
 const specialCodes = [
   KeyEvent.DOM_VK_BACK_SPACE,
@@ -659,6 +659,8 @@ function modifyLayout(keyboardName) {
         altLayoutName = 'pinLayout';
       } else if (currentInputMode === 'numeric') {
         altLayoutName = 'numberLayout';
+      } else if (isGreekSMS()) {
+        altLayoutName = 'el-sms';
       }
       break;
   }
@@ -1670,7 +1672,6 @@ function switchToNextIME() {
   mgmt.next();
 }
 
-
 function showIMEList() {
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.showAll();
@@ -1760,11 +1761,14 @@ function showKeyboard() {
   };
 
   function doShowKeyboard() {
+    // Force to disable the auto correction for Greek SMS layout.
+    // This is because the suggestion result is still unicode and
+    // we would not convert the suggestion result to GSM 7-bit.
     if (inputMethod.activate) {
       inputMethod.activate(Keyboards[keyboardName].autoCorrectLanguage,
         state, {
-          suggest: suggestionsEnabled,
-          correct: correctionsEnabled
+          suggest: suggestionsEnabled && !isGreekSMS(),
+          correct: correctionsEnabled && !isGreekSMS()
         });
     }
 
@@ -1989,12 +1993,24 @@ function getSettings(settings, callback) {
 
 // To determine if the candidate panel for word suggestion is needed
 function needsCandidatePanel() {
+  // Disable the word suggestion for Greek SMS layout.
+  // This is because the suggestion result is still unicode and
+  // we would not convert the suggestion result to GSM 7-bit.
+  if (isGreekSMS()) {
+    return false;
+  }
+
   return !!((Keyboards[keyboardName].autoCorrectLanguage ||
            Keyboards[keyboardName].needsCandidatePanel) &&
           (!inputMethod.displaysCandidates ||
            inputMethod.displaysCandidates()));
 }
 
+// To determine if we need to show a "all uppercase layout" for Greek SMS
+function isGreekSMS() {
+  return (currentInputMode === '-moz-sms' &&
+          keyboardName === 'el');
+}
 /*
  * This is a helper to scroll the keyboard layout menu when the touch moves near
  * the edge of the top or bottom of the menu

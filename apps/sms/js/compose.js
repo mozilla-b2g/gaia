@@ -459,7 +459,7 @@ var Compose = (function() {
 
     onTypeChange: function c_onTypeChange() {
       if (this.type === 'sms') {
-        dom.message.setAttribute('x-inputmode', '-moz-sms-7bit');
+        dom.message.setAttribute('x-inputmode', '-moz-sms');
       } else {
         dom.message.removeAttribute('x-inputmode');
       }

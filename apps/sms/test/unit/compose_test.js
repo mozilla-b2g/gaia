@@ -515,7 +515,7 @@ suite('compose_test.js', function() {
 
     suite('changing inputmode', function() {
       test('initial inputmode is sms', function() {
-        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms-7bit');
+        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
       });
 
       test('changing type to mms', function() {
@@ -528,7 +528,7 @@ suite('compose_test.js', function() {
         Compose.type = 'mms';
         Compose.type = 'sms';
 
-        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms-7bit');
+        assert.equal(message.getAttribute('x-inputmode'), '-moz-sms');
       });
     });
   });

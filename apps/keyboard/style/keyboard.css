@@ -210,6 +210,22 @@ button::-moz-focus-inner {
   border-color: #6a6c6e;
 }
 
+/* For disabled keys */
+.keyboard-key.special-key[disabled="true"] {
+  /* Without this rule, the focus would lose when the user clicks this key. 
+     This seems to be because a disabled key would not get touch/click event. */
+  pointer-events: none;
+}
+
+.keyboard-key.special-key[disabled="true"] > .visual-wrapper {
+  border-color: #535757;
+  background-color:  #585D5D;
+}
+
+.keyboard-key.special-key[disabled="true"] > .visual-wrapper > span {
+  color: #888;
+}
+
 /* Special keys - text */
 .keyboard-key.special-key.text > .visual-wrapper > span {
   font-family: Sans-serif;
