@@ -16,7 +16,8 @@ contacts.List = (function() {
       photoTemplate,
       headers = {},
       loadedContacts = {},
-      viewHeight,
+      viewHeight = -1,
+      rowsPerPage = -1,
       renderTimer = null,
       toRender = [],
       releaseTimer = null,
@@ -55,6 +56,8 @@ contacts.List = (function() {
   // config.json file (see bug 841693)
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
+
+  var MAX_INT = 0x7fffffff;
 
   // Specify group short names or "letters" for those groups that have a name
   // different from something like "A" or "B".
@@ -177,8 +180,6 @@ contacts.List = (function() {
     scrollable = document.querySelector('#groups-container');
     settingsView = document.querySelector('#view-settings .view-body-inner');
     noContacts = document.querySelector('#no-contacts');
-
-    viewHeight = scrollable.getBoundingClientRect().height;
 
     groupsList = document.getElementById('groups-list');
     groupsList.addEventListener('click', onClickHandler);
@@ -317,35 +318,33 @@ contacts.List = (function() {
   }
 
   var initOrder = function initOrder(callback) {
-    if (orderByLastName === null) {
-      if (document.cookie) {
-        var cookie = JSON.parse(document.cookie);
-        orderByLastName = cookie.order;
-        if (callback)
-          callback();
-      } else {
-        var req = utils.config.load('/contacts/config.json');
-        req.onload = function configReady(configData) {
-          orderByLastName = (configData.defaultContactsOrder ===
-                    ORDER_BY_FAMILY_NAME ? true : false);
-          document.cookie = JSON.stringify({order: orderByLastName});
-          if (callback)
-            callback();
-        };
-
-        req.onerror = function configError() {
-          window.console.error('Error while reading configuration file');
-          orderByLastName = false;
-          document.cookie = JSON.stringify({order: false});
-          if (callback) {
-            callback();
-          }
-        };
-      }
-    } else {
-      if (callback)
-        callback();
+    callback = callback || function() {};
+    if (orderByLastName !== null) {
+      callback();
+      return;
     }
+
+    var config = utils.cookie.load();
+    if (config) {
+      orderByLastName = config.order;
+      callback();
+      return;
+    }
+
+    var req = utils.config.load('/contacts/config.json');
+    req.onload = function configReady(configData) {
+      orderByLastName = (configData.defaultContactsOrder ===
+                ORDER_BY_FAMILY_NAME ? true : false);
+      utils.cookie.update({order: orderByLastName});
+      callback();
+    };
+
+    req.onerror = function configError() {
+      window.console.error('Error while reading configuration file');
+      orderByLastName = utils.cookie.getDefault('order');
+      utils.cookie.update({order: orderByLastName});
+      callback();
+    };
   };
 
   var renderGroupHeader = function renderGroupHeader(group, letter) {
@@ -625,15 +624,17 @@ contacts.List = (function() {
   function loadChunk(chunk) {
     var nodes = [];
     for (var i = 0, n = chunk.length; i < n; ++i) {
-      if (i === rowsPerPage)
+      if (i === getRowsPerPage()) {
         notifyAboveTheFold();
+      }
 
       var newNodes = appendToLists(chunk[i]);
       nodes.push.apply(nodes, newNodes);
     }
 
-    if (i < rowsPerPage)
+    if (i < getRowsPerPage()) {
       notifyAboveTheFold();
+    }
 
     // If the search view has been activated by the user, then send newly
     // loaded contacts over to populate any in-progress search.  Nothing
@@ -659,7 +660,7 @@ contacts.List = (function() {
     // onscreen() calls when adding those first contacts.
     var vm_file = '/shared/js/tag_visibility_monitor.js';
     LazyLoader.load([vm_file], function() {
-      var scrollMargin = ~~(viewHeight * 1.5);
+      var scrollMargin = ~~(getViewHeight() * 1.5);
       // NOTE: Making scrollDelta too large will cause janky scrolling
       //       due to bursts of onscreen() calls from the monitor.
       var scrollDelta = ~~(scrollMargin / 10);
@@ -668,10 +669,46 @@ contacts.List = (function() {
     });
   };
 
-  // Default to infinite rows fitting on a page and then recalculate after
-  // the first row is added.
-  var MAX_INT = 0x7ffffff;
-  var rowsPerPage = MAX_INT;
+  function getViewHeight(config) {
+    if (viewHeight < 0) {
+      config = config || utils.cookie.load();
+      if (config && config.viewHeight > -1) {
+        viewHeight = config.viewHeight;
+      } else {
+        viewHeight = scrollable.getBoundingClientRect().height;
+        utils.cookie.update({viewHeight: viewHeight});
+      }
+    }
+    return viewHeight;
+  }
+
+  function getRowsPerPage() {
+    if (rowsPerPage < 0) {
+      var config = utils.cookie.load();
+      if (config && config.rowsPerPage > -1) {
+        rowsPerPage = config.rowsPerPage;
+      }
+    }
+
+    // If we couldn't load from config, then return max int since we can't
+    // calculate yet
+    if (rowsPerPage < 0) {
+      return MAX_INT;
+    }
+
+    // Otherwise return loaded config value
+    return rowsPerPage;
+  }
+
+  function setRowsPerPage(row) {
+    if (rowsPerPage > -1) {
+      return;
+    }
+
+    var rowHeight = row.getBoundingClientRect().height;
+    rowsPerPage = Math.ceil(getViewHeight() / rowHeight);
+    utils.cookie.update({rowsPerPage: rowsPerPage});
+  }
 
   // Utility function for appending a newly loaded contact to both its default
   // group and, if necessary, the favorites list.
@@ -701,7 +738,7 @@ contacts.List = (function() {
     var list = getGroupList(group);
 
     // If above the fold for list, render immediately
-    if (list.children.length < rowsPerPage) {
+    if (list.children.length < getRowsPerPage()) {
       renderContact(contact, ph);
     }
 
@@ -713,12 +750,7 @@ contacts.List = (function() {
     list.appendChild(ph);
     if (list.children.length === 1) {
       showGroupByList(list);
-    }
-
-    if (rowsPerPage === MAX_INT) {
-      var listHeight = list.getBoundingClientRect().height;
-      var rowHeight = listHeight / list.children.length;
-      rowsPerPage = Math.ceil(viewHeight / rowHeight);
+      setRowsPerPage(list.firstChild);
     }
 
     return ph;
