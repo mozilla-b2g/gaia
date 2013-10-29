@@ -64,59 +64,45 @@ function NotificationList(client) {
 NotificationList.Selector = Object.freeze((function() {
   var listSelector = '#desktop-notifications-container';
   var itemsSelector = listSelector + ' > div';
-  var containerSelector = listSelector + ' > [data-notification-id="%s"]';
 
   var lockScreenSelector = '#notifications-lockscreen-container';
   var lockScreenItemsSelector = lockScreenSelector + ' > div';
-  var lockScreenContainerSelector =
-    lockScreenSelector + ' > [data-notification-id="%s"]';
 
   return {
     items: itemsSelector,
-    titleElement: containerSelector + ' > div',
-    bodyElement: containerSelector + ' > .detail',
-    lockScreenItems: lockScreenItemsSelector,
-    lockScreenTitleElement: lockScreenContainerSelector + ' > div',
-    lockScreenBodyElement: lockScreenContainerSelector + ' > .detail',
-    manifestAttribute: 'data-manifest-u-r-l'
+    lockScreenItems: lockScreenItemsSelector
   };
 })());
 
 NotificationList.prototype = {
 
+  _remoteGetNotificationDetails: function(selector) {
+    var nodes = document.querySelectorAll(selector);
+    var details = [];
+    for (var node, i = 0; node = nodes[i]; i++) {
+      var id = node.getAttribute('data-notification-id');
+      var query = selector + '[data-notification-id="' + id + '"]';
+      details.push({
+        title: document.querySelector(query + ' > div').innerHTML,
+        body: document.querySelector(query + ' > .detail').innerHTML,
+        manifestURL: node.getAttribute('data-manifest-u-r-l')
+      });
+    }
+    return details;
+  },
+
   // fetch the list of open notifications from system tray
   refresh: function() {
-    var elements = this.client.findElements(this.selectors.items);
-    this.notifications = elements.map(function(el) {
-      var notificationID = el.getAttribute('data-notification-id');
-      var titleElement = util.format(this.selectors.titleElement,
-                                     notificationID);
-      var bodyElement = util.format(this.selectors.bodyElement,
-                                    notificationID);
-      return {
-        title: el.client.findElement(titleElement).getAttribute('innerHTML'),
-        body: el.client.findElement(bodyElement).getAttribute('innerHTML'),
-        manifestURL: el.getAttribute(this.selectors.manifestAttribute)
-      };
-    }.bind(this));
+    this.notifications = this.client.executeScript(
+      this._remoteGetNotificationDetails,
+      [this.selectors.items]);
   },
 
   // fetch the list of open notifications from the lockscreen.
   refreshLockScreen: function() {
-    var lockScreenElements =
-      this.client.findElements(this.selectors.lockScreenItems);
-    this.lockScreenNotifications = lockScreenElements.map(function(el) {
-      var notificationID = el.getAttribute('data-notification-id');
-      var titleElement = util.format(this.selectors.lockScreenTitleElement,
-                                     notificationID);
-      var bodyElement = util.format(this.selectors.lockScreenBodyElement,
-                                    notificationID);
-      return {
-        title: el.client.findElement(titleElement).getAttribute('innerHTML'),
-        body: el.client.findElement(bodyElement).getAttribute('innerHTML'),
-        manifestURL: el.getAttribute(this.selectors.manifestAttribute)
-      };
-    }.bind(this));
+    this.lockScreenNotifications = this.client.executeScript(
+      this._remoteGetNotificationDetails,
+      [this.selectors.lockScreenItems]);
   },
 
   // return a list of notifications for a certain app
