@@ -4,7 +4,7 @@
 
 (function(window) {
   'use strict';
-  var DEBUG = false;
+  var DEBUG = true;
   var _id = 0;
   var _start = new Date().getTime() / 1000;
   window.AppWindow = function AppWindow(configuration) {
@@ -35,6 +35,8 @@
 
     return this;
   };
+
+  AppWindow.prototype._DEBUG = false;
 
   AppWindow.prototype.focus = function aw_focus() {
     var iframe = this.iframe || this.browser.element;
@@ -313,7 +315,7 @@
   AppWindow.prototype.CLASS_NAME = 'AppWindow';
 
   AppWindow.prototype.debug = function aw_debug(msg) {
-    if (DEBUG) {
+    if (DEBUG && this._DEBUG) {
       console.log('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
         '[' + (new Date().getTime() / 1000 - _start).toFixed(3) + ']' +
@@ -686,5 +688,41 @@
     function aw_setActivityCallee() {
       this.activityCallee = null;
     };
+
+  /**
+   * Acquire one-time callback of certain type of state
+   */
+  AppWindow.prototype.one = function aw_one(type, state, callback) {
+    var self = this;
+    var observer = new MutationObserver(function() {
+      if (self.element.getAttribute('data-' + type + 'State') === state) {
+        observer.disconnect();
+        callback();
+      }
+    });
+
+    // configuration of the observer:
+    // we only care dataset change here.
+    var config = { characterData: true, attributes: true };
+
+    // pass in the target node, as well as the observer options
+    observer.observe(this.element, config);
+  };
+
+  /**
+   * Mixin the appWindow prototype with {mixin} object.
+   * @param  {Object} mixin The object to be mixed.
+   */
+  AppWindow.addMixin = function AW_addMixin(mixin) {
+    for (var prop in mixin) {
+      if (mixin.hasOwnProperty(prop)) {
+        // Put event handler function into an array,
+        // if the name of the propery is '_on'.
+        if (!this.prototype.hasOwnProperty(prop)) {
+          this.prototype[prop] = mixin[prop];
+        }
+      }
+    }
+  };
 
 }(this));

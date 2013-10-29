@@ -4,16 +4,14 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
       'HomescreenWindow', 'KeyboardManager', 'StatusBar',
       'SoftwareButtonManager', 'AttentionScreen', 'OrientationManager',
-      'AppWindow']);
+      'AppWindow', 'TransitionMixin', 'BrowserFrame', 'BrowserConfigHelper']);
 
-requireApp('system/js/browser_config_helper.js');
-requireApp('system/js/browser_frame.js');
-requireApp('system/js/orientation_manager.js');
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
-requireApp('/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
@@ -48,6 +46,7 @@ suite('system/HomescreenWindow', function() {
 
   setup(function(done) {
     switchProperty(window, 'OrientationManager', MockOrientationManager, reals);
+    switchProperty(window, 'SettingsListener', MockSettingsListener, reals);
     switchProperty(window, 'WindowManager', MockWindowManager, reals);
     switchProperty(window, 'Applications', MockApplications, reals);
     switchProperty(window, 'ManifestHelper', MockManifestHelper, reals);
@@ -59,7 +58,11 @@ suite('system/HomescreenWindow', function() {
     clock = sinon.useFakeTimers();
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+    requireApp('system/js/browser_config_helper.js');
+    requireApp('system/js/browser_frame.js');
+    requireApp('system/js/orientation_manager.js');
     requireApp('system/js/window.js');
+    requireApp('system/js/transition_mixin.js');
     requireApp('system/js/homescreen_window.js', done);
   });
 
@@ -81,6 +84,7 @@ suite('system/HomescreenWindow', function() {
     restoreProperty(window, 'Applications', reals);
     restoreProperty(window, 'ManifestHelper', reals);
     restoreProperty(window, 'OrientationManager', reals);
+    restoreProperty(window, 'SettingsListener', reals);
   });
 
   suite('homescreen window instance.', function() {

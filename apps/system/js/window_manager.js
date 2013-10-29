@@ -1222,7 +1222,6 @@ var WindowManager = (function() {
       setDisplayedApp(HomescreenLauncher.origin);
     } else {
       // dispatch event to close activity.
-
       HomescreenLauncher.getHomescreen().ensure(true);
     }
   });
