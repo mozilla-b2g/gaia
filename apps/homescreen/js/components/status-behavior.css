@@ -11,6 +11,7 @@ section[role="status"].onviewport {
 
 section[role="status"].hidden {
   visibility: hidden;
+  display: none;
 }
 
 @keyframes show {
