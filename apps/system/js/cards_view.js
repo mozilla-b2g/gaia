@@ -171,6 +171,13 @@ var CardsView = (function() {
     if (MANUAL_CLOSING) {
       cardsView.addEventListener('mousedown', CardsView);
     }
+    
+    // If there is no running app, show "no recent apps" message
+    if (Object.keys(runningApps).length > 1) {
+      cardsView.classList.remove('empty');
+    } else {
+      cardsView.classList.add('empty');
+    }
 
     // Make sure we're in default orientation
     screen.mozLockOrientation(ScreenLayout.defaultOrientation);
