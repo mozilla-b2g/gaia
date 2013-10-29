@@ -162,10 +162,10 @@ var ActivityHandler = {
   // Launch the UI properly taking into account the hash
   launchComposer: function ah_launchComposer(activity) {
     if (location.hash === '#new') {
-      MessageManager.launchComposer(activity);
+      MessageManager.handleActivity(activity);
     } else {
-      // Move to new message
       MessageManager.activity = activity;
+      // Move to new message
       window.location.hash = '#new';
     }
   },

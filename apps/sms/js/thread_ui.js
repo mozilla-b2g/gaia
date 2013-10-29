@@ -1601,6 +1601,8 @@ var ThreadUI = global.ThreadUI = {
         }
         break;
       case 'contextmenu':
+        evt.preventDefault();
+        evt.stopPropagation();
         var messageBubble = this.getMessageBubble(evt.target);
 
         if (!messageBubble) {
@@ -1611,8 +1613,6 @@ var ThreadUI = global.ThreadUI = {
         // TODO Add the following functionality:
         // + Details of a single message:
         // https://bugzilla.mozilla.org/show_bug.cgi?id=901453
-        // + Forward of a single message:
-        // https://bugzilla.mozilla.org/show_bug.cgi?id=927784
         var messageId = messageBubble.id;
         var params = {
           items:
@@ -1629,7 +1629,16 @@ var ThreadUI = global.ThreadUI = {
                 },
                 params: [messageId]
               },
-              // TODO Add forward & details options
+              {
+                l10nId: 'forward',
+                method: function forwardMessage(messageId) {
+                  MessageManager.forward = {
+                    messageId: messageId
+                  };
+                  window.location.hash = '#new';
+                },
+                params: [messageId]
+              },
               {
                 l10nId: 'cancel'
               }

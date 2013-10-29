@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter, Compose,
-         Utils, LinkActionHandler, Contacts */
+         Utils, LinkActionHandler, Contacts, Attachment */
 /*exported MessageManager */
 
 'use strict';
@@ -10,7 +10,7 @@
 var MessageManager = {
 
   activity: null,
-
+  forward: null,
   init: function mm_init(callback) {
     if (this.initialized) {
       return;
@@ -151,58 +151,96 @@ var MessageManager = {
     });
   },
 
-  launchComposer: function mm_openComposer(activity) {
-    // Do we have to handle a pending activity?
+  launchComposer: function mm_launchComposer(callback) {
     ThreadUI.cleanFields(true);
-    Compose.clear();
     this.threadMessages.classList.add('new');
+    this.slide('left', function() {
+      callback && callback();
+    });
+  },
 
-    MessageManager.slide('left', function() {
-      ThreadUI.initRecipients();
-      if (!activity) {
-        return;
-      }
+  handleForward: function mm_handleForward(forward) {
+    if (!forward) {
+      return;
+    }
 
-      /**
-       * Choose the appropriate contact resolver:
-       *  - if we have a phone number and no contact, rely on findByPhoneNumber
-       *    to get a contact matching the number;
-       *  - if we have a contact object and no phone number, just use a dummy
-       *    source that returns the contact.
-       */
-      var findByPhoneNumber = Contacts.findByPhoneNumber.bind(Contacts);
-      var number = activity.number;
-      if (activity.contact && !number) {
-        findByPhoneNumber = function dummySource(contact, cb) {
-          cb(activity.contact);
-        };
-        number = activity.contact.number || activity.contact.tel[0].value;
-      }
+    var request = MessageManager.getMessage(+forward.messageId);
 
-      // Add recipients and fill+focus the Compose area.
-      if (activity.contact && number) {
-        Utils.getContactDisplayInfo(
-          findByPhoneNumber, number, function onData(data) {
-            data.source = 'contacts';
-            ThreadUI.recipients.add(data);
-            ThreadUI.setMessageBody(activity.body);
-          }
-        );
+    request.onsuccess = (function() {
+      var message = request.result;
+      if (message.type === 'sms') {
+        ThreadUI.setMessageBody(message.body);
       } else {
-        if (number) {
-          // If the activity delivered the number of an unknown recipient,
-          // create a recipient directly.
-          ThreadUI.recipients.add({
-            number: number,
-            source: 'manual'
-          });
-        }
-        ThreadUI.setMessageBody(activity.body);
-      }
 
-      // Clean activity object
-      this.activity = null;
-    }.bind(this));
+        SMIL.parse(message, function(parsedArray) {
+          parsedArray.forEach(function(mmsElement) {
+            if (mmsElement.blob) {
+              var attachment = new Attachment(mmsElement.blob, {
+                name: mmsElement.name,
+                isDraft: true
+              });
+              Compose.append(attachment);
+            }
+            if (mmsElement.text) {
+              Compose.append(mmsElement.text);
+            }
+          });
+        });
+      }
+      // Focus en recipients
+      ThreadUI.recipients.focus();
+    }).bind(this);
+
+    request.onerror = function() {
+      console.error('Error while forwarding.');
+    };
+
+    this.forward = null;
+  },
+
+  handleActivity: function mm_handleActivity(activity) {
+    if (!activity) {
+      return;
+    }
+    /**
+     * Choose the appropriate contact resolver:
+     *  - if we have a phone number and no contact, rely on findByPhoneNumber
+     *    to get a contact matching the number;
+     *  - if we have a contact object and no phone number, just use a dummy
+     *    source that returns the contact.
+     */
+    var findByPhoneNumber = Contacts.findByPhoneNumber.bind(Contacts);
+    var number = activity.number;
+    if (activity.contact && !number) {
+      findByPhoneNumber = function dummySource(contact, cb) {
+        cb(activity.contact);
+      };
+      number = activity.contact.number || activity.contact.tel[0].value;
+    }
+
+    // Add recipients and fill+focus the Compose area.
+    if (activity.contact && number) {
+      Utils.getContactDisplayInfo(
+        findByPhoneNumber, number, function onData(data) {
+          data.source = 'contacts';
+          ThreadUI.recipients.add(data);
+          ThreadUI.setMessageBody(activity.body);
+        }
+      );
+    } else {
+      if (number) {
+        // If the activity delivered the number of an unknown recipient,
+        // create a recipient directly.
+        ThreadUI.recipients.add({
+          number: number,
+          source: 'manual'
+        });
+      }
+      ThreadUI.setMessageBody(activity.body);
+    }
+
+    // Clean activity object
+    this.activity = null;
   },
 
   onHashChange: function mm_onHashChange(e) {
@@ -222,7 +260,10 @@ var MessageManager = {
     switch (window.location.hash) {
       case '#new':
         ThreadUI.inThread = false;
-        this.launchComposer(this.activity);
+        MessageManager.launchComposer(function() {
+          this.handleActivity(this.activity);
+          this.handleForward(this.forward);
+        }.bind(this));
         break;
       case '#thread-list':
         ThreadUI.inThread = false;
@@ -237,6 +278,9 @@ var MessageManager = {
           // Clear it before sliding.
           ThreadUI.container.textContent = '';
           MessageManager.slide('right', function() {
+            // When going to Messaging App, being in a thread, from
+            // a notification, we go directly to the thread, no to the
+            // composer.
             if (self.activity && self.activity.threadId) {
               window.location.hash = '#thread=' + self.activity.threadId;
               self.activity = null;

@@ -355,19 +355,23 @@ suite('ActivityHandler', function() {
       this.sinon.stub(Contacts, 'findByPhoneNumber').callsArgWith(1, []);
     });
 
+    teardown(function() {
+      MessageManager.activity = null;
+    });
+
     suiteSetup(function() {
       window.location.hash = '#new';
     });
 
     test('Activity lock should be released properly', function() {
       // Review the status after handling the activity
-      this.sinon.stub(MessageManager, 'launchComposer', function(activity) {
+      this.sinon.stub(MessageManager, 'handleActivity', function(activity) {
         assert.equal(activity.number, '123');
         assert.equal(activity.body, 'foo');
         //Is the lock released for a new request?
         assert.isFalse(ActivityHandler.isLocked);
-
       });
+
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
     });
 
@@ -395,7 +399,7 @@ suite('ActivityHandler', function() {
 
     test('new message with user input msg, discard it', function() {
       // Review the status after handling the activity
-      this.sinon.stub(MessageManager, 'launchComposer', function(activity) {
+      this.sinon.stub(MessageManager, 'handleActivity', function(activity) {
         assert.equal(activity.number, '123');
         assert.equal(activity.body, 'foo');
         //Is the lock released for a new request?
