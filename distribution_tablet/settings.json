@@ -1,3 +1,4 @@
 {
- "app.launch_path.blacklist": ["/dialer/index.html#keyboard-view"]
+ "app.launch_path.blacklist": ["/dialer/index.html#keyboard-view"],
+ "wap.push.enabled": false
 }

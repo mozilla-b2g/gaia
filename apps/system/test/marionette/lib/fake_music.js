@@ -10,8 +10,7 @@ module.exports = FakeMusic;
 FakeMusic.Selector = Object.freeze({
   albumOneElement: '#album-one',
 
-  playElement: '#play',
-  pauseElement: '#pause',
+  playPauseElement: '#play-pause',
   stopElement: '#stop',
   previousTrackElement: '#previous',
   nextTrackElement: '#next'
@@ -24,12 +23,8 @@ FakeMusic.prototype = {
     return this.client.findElement(FakeMusic.Selector.albumOneElement);
   },
 
-  get playElement() {
-    return this.client.findElement(FakeMusic.Selector.playElement);
-  },
-
-  get pauseElement() {
-    return this.client.findElement(FakeMusic.Selector.pauseElement);
+  get playPauseElement() {
+    return this.client.findElement(FakeMusic.Selector.playPauseElement);
   },
 
   get stopElement() {
@@ -42,6 +37,11 @@ FakeMusic.prototype = {
 
   get nextTrackElement() {
     return this.client.findElement(FakeMusic.Selector.nextTrackElement);
+  },
+
+  get isPlaying() {
+    var className = this.playPauseElement.getAttribute('class');
+    return !(/\bis-paused\b/.test(className));
   },
 
   launchInBackground: function() {

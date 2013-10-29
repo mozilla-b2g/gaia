@@ -1,3 +1,6 @@
+/*global MockContact */
+/*exported MockContacts */
+
 'use strict';
 
 requireApp('sms/test/unit/mock_contact.js');

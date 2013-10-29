@@ -1,3 +1,5 @@
+/*global LinkHelper, FixturePhones */
+
 /*
   Link Helper Tests
 */
@@ -172,6 +174,15 @@ suite('link_helper_test.js', function() {
       test('Bug 890342 2', function() {
         testURLNOK('21.72');
       });
+
+      test('Bug 923739', function() {
+        testURLNOK('foo.zz');
+        testURLNOK('foo.foo');
+        testURLNOK('foo.quux');
+
+        testURLOK('http://whatever.stuff');
+        testURLOK('https://whatever.stuff');
+      });
     });
   });
 
@@ -286,13 +297,15 @@ suite('link_helper_test.js', function() {
 
     suite('Varied cases', function() {
       FixturePhones.forEach(function(fixture) {
-        suite(fixture.name, function() {
-          fixture.values.forEach(function(value) {
-            test(value, function() {
-              testPhoneOK(value);
+        if (fixture.isTestable) {
+          suite(fixture.title, function() {
+            fixture.values.forEach(function(value) {
+              test(value, function() {
+                testPhoneOK(value);
+              });
             });
           });
-        });
+        }
       });
     });
 
@@ -310,7 +323,6 @@ suite('link_helper_test.js', function() {
         assert.equal(result, expected);
       });
     });
-
   });
 
   suite('Multiple in the same string', function() {

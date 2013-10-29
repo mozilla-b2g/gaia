@@ -269,6 +269,8 @@ function initDB() {
   };
 
   photodb.onscanstart = function onscanstart() {
+    // Prevents user to edit images when scanning pictures from storage
+    $('fullscreen-edit-button').classList.add('disabled');
     // Show the scanning indicator
     $('progress').classList.remove('hidden');
     $('throbber').classList.add('throb');
@@ -279,6 +281,8 @@ function initDB() {
     if (currentOverlay === 'scanning')
       showOverlay('emptygallery');
 
+    // Allows the user to edit images when scanning is finished
+    $('fullscreen-edit-button').classList.remove('disabled');
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');

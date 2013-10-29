@@ -47,11 +47,12 @@ class TestAgentServer(tornado.websocket.WebSocketHandler):
 
     def on_envs_complete(self):
         exitCode = 0
+        if self.failures or not self.passes:
+            # Magic non-zero value to match the expectations of the mozharness
+            # script.
+            exitCode = 10
 
         for env in self.envs:
-            if (self.envs[env].failures > 0):
-                exitCode = 10
-
             if len(self.envs[env].output):
                 print '\ntest report: (' + env + ')'
                 print '\n'.join(self.envs[env].output)
@@ -184,7 +185,8 @@ def cli():
         for root, dirs, files in os.walk(appsdir):
             for file in files:
                 # only include tests in a 'unit' directory
-                if os.path.basename(root) == 'unit':
+                roots = root.split(os.path.sep)
+                if 'unit' in roots:
                     full_path = os.path.relpath(os.path.join(root, file), appsdir)
                     if full_path.endswith('_test.js') and full_path not in disabled:
                         tests.append(full_path)

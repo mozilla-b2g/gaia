@@ -7,7 +7,6 @@ suite('mobile data >', function() {
   var realSettings,
       settingToggleKey = 'ril.data.enabled',
       settingApnKey = 'ril.data.apnSettings';
-  var mocksHelper = mocksHelperForNavigation;
 
   suiteSetup(function() {
     realSettings = navigator.mozSettings;

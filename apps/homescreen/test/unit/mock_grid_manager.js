@@ -24,9 +24,13 @@ var MockGridManager = {
 
         },
         draggableElem: {
+          dataset: nodes[i].dataset,
           style: {
 
           }
+        },
+        getLeft: function() {
+          return this.container.getBoundingClientRect().left;
         },
         addClassToDragElement: function() {
 
@@ -39,6 +43,9 @@ var MockGridManager = {
         },
         loadRenderedIcon: function(callback) {
           callback('http://app.png');
+        },
+        remove: function() {
+          this.container.parentNode.removeChild(this.container);
         }
       };
     }
@@ -60,6 +67,9 @@ var MockGridManager = {
     },
     getCurrentPageNumber: function() {
       return 0;
+    },
+    getPage: function() {
+      return currentPage;
     }
   },
   dirCtrl: {

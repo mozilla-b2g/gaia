@@ -3,8 +3,13 @@
 var MockURL = {
   createObjectURL: function(url) {
     return url;
+  },
+
+  revokeObjectURL: function(url) {
+    // do nothing
   }
 };
+
 
 var MockImageLoader = function() {
   this.init = function() {};

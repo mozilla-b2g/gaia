@@ -1,5 +1,13 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
+         URL, SMIL, Dialog, MessageManager, MozSmsFilter, LinkHelper,
+         ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
+         Attachment, WaitingScreen, MozActivity, LinkActionHandler,
+         TimeHeaders */
+/*exported ThreadUI */
+
 (function(global) {
 'use strict';
 
@@ -52,6 +60,7 @@ var ThreadUI = global.ThreadUI = {
   // Set to |true| when in edit mode
   inEditMode: false,
   inThread: false,
+  isNewMessageNoticeShown: false,
   _updateTimeout: null,
   init: function thui_init() {
     var templateIds = [
@@ -75,7 +84,8 @@ var ThreadUI = global.ThreadUI = {
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
       'edit-icon', 'edit-mode', 'edit-form', 'tel-form',
-      'max-length-notice', 'convert-notice', 'resize-notice'
+      'max-length-notice', 'convert-notice', 'resize-notice',
+      'new-message-notice'
     ].forEach(function(id) {
       this[Utils.camelCase(id)] = document.getElementById('messages-' + id);
     }, this);
@@ -162,6 +172,9 @@ var ThreadUI = global.ThreadUI = {
       'click', this.onParticipantClick.bind(this)
     );
 
+    this.newMessageNotice.addEventListener(
+      'click', this.onNewMessageNoticeClick.bind(this)
+    );
 
     // Assimilations
     // -------------------------------------------------
@@ -227,8 +240,6 @@ var ThreadUI = global.ThreadUI = {
       return tmpls;
     }, {});
 
-    Utils.startTimeHeaderScheduler();
-
     this.initRecipients();
 
     // Initialized here, but used in ThreadUI.cleanFields
@@ -284,8 +295,9 @@ var ThreadUI = global.ThreadUI = {
   },
 
   initSentAudio: function thui_initSentAudio() {
-    if (this.sentAudio)
+    if (this.sentAudio) {
       return;
+    }
 
     this.sentAudioKey = 'message.sent-sound.enabled';
     this.sentAudio = new Audio('/sounds/sent.ogg');
@@ -410,7 +422,7 @@ var ThreadUI = global.ThreadUI = {
           break;
         }
       }
-    } while (node = node.previousSibling);
+    } while ((node = node.previousSibling));
   },
 
   onMessageTypeChange: function thui_onMessageType(event) {
@@ -428,6 +440,21 @@ var ThreadUI = global.ThreadUI = {
     } else {
       this.messageComposerTypeHandler();
     }
+  },
+
+  onMessageReceived: function thui_onMessageReceived(message) {
+    this.appendMessage(message);
+    this.scrollViewToBottom();
+    TimeHeaders.updateAll();
+    if (this.isScrolledManually) {
+      this.showNewMessageNotice(message);
+    }
+  },
+
+  onNewMessageNoticeClick: function thui_onNewMessageNoticeClick(event) {
+    event.preventDefault();
+    this.hideNewMessageNotice();
+    this.forceScrollViewToBottom();
   },
 
   // Message composer type changed:
@@ -546,6 +573,12 @@ var ThreadUI = global.ThreadUI = {
 
     this.isScrolledManually = ((scrollTop + clientHeight) < scrollHeight);
 
+    // Check if the banner has been showed and close it when the scroll
+    // reach the bottom
+    if (!this.isScrolledManually && this.isNewMessageNoticeShown) {
+      this.hideNewMessageNotice();
+    }
+
     // kEdge will be the limit (in pixels) for showing the next chunk
     var kEdge = 30;
     if (scrollTop < kEdge) {
@@ -565,6 +598,40 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  forceScrollViewToBottom: function thui_forceScrollViewToBottom() {
+    this.isScrolledManually = false;
+    this.scrollViewToBottom();
+  },
+
+  showNewMessageNotice: function thui_showNewMessageNotice(message) {
+    Contacts.findByPhoneNumber(message.sender, (function gotContact(contact) {
+      var sender = message.sender;
+      if (contact && contact.length) {
+        var details = Utils.getContactDetails(sender, contact[0]);
+        sender = details.title || sender;
+        // Get the first name
+        var index = sender.indexOf(' ');
+        if (index !== -1) {
+          sender = sender.slice(0, index);
+        }
+      }
+
+      var newMessageContactNode = document.getElementById(
+        'new-message-notice-contact'
+      );
+
+      newMessageContactNode.textContent = sender;
+
+      this.isNewMessageNoticeShown = true;
+      this.newMessageNotice.classList.remove('hide');
+    }).bind(this));
+  },
+
+  hideNewMessageNotice: function thui_hideNewMessageNotice() {
+    this.isNewMessageNoticeShown = false;
+    //Hide the new message's banner
+    this.newMessageNotice.classList.add('hide');
+  },
   // Limit the maximum height of the Compose input field such that it never
   // grows larger than the space available.
   setInputMaxHeight: function thui_setInputMaxHeight() {
@@ -700,8 +767,6 @@ var ThreadUI = global.ThreadUI = {
   // will return true if we can send the message, false if we can't send the
   // message
   updateCounter: function thui_updateCount() {
-    var message;
-
     if (Compose.type === 'mms') {
       return this.updateCounterForMms();
     } else {
@@ -868,7 +933,6 @@ var ThreadUI = global.ThreadUI = {
     header.dataset.time = messageTimestamp;
 
     // Add text
-    var content, timeOnly = false;
     if (isLastMessagesBlock) {
       var lastContainer = this.container.lastElementChild;
       if (lastContainer) {
@@ -889,7 +953,7 @@ var ThreadUI = global.ThreadUI = {
     if (hidden) {
       header.classList.add('hidden');
     } else {
-      Utils.updateTimeHeader(header);
+      TimeHeaders.update(header);
     }
 
     // Where do I have to append the Container?
@@ -1046,7 +1110,7 @@ var ThreadUI = global.ThreadUI = {
     // Show chunk of messages
     ThreadUI.showChunkOfMessages(this.CHUNK_SIZE);
     // Boot update of headers
-    Utils.updateTimeHeaders();
+    TimeHeaders.updateAll();
     // Go to Bottom
     ThreadUI.scrollViewToBottom();
   },
@@ -1056,7 +1120,6 @@ var ThreadUI = global.ThreadUI = {
     var scrollViewToBottom = ThreadUI.scrollViewToBottom.bind(ThreadUI);
 
     dataArray.forEach(function(messageData) {
-      var mediaElement, textElement;
 
       if (messageData.blob) {
         var attachment = new Attachment(messageData.blob, {
@@ -1068,7 +1131,7 @@ var ThreadUI = global.ThreadUI = {
       }
 
       if (messageData.text) {
-        textElement = document.createElement('span');
+        var textElement = document.createElement('span');
 
         // escape text for html and look for clickable numbers, etc.
         var text = Template.escape(messageData.text);
@@ -1300,7 +1363,7 @@ var ThreadUI = global.ThreadUI = {
       var element = elements[i];
       element.classList.remove('hidden');
       if (element.tagName === 'HEADER') {
-        Utils.updateTimeHeader(element);
+        TimeHeaders.update(element);
       }
     }
   },
@@ -1348,6 +1411,50 @@ var ThreadUI = global.ThreadUI = {
       this.editForm.querySelector('menu').offsetHeight + 'px';
   },
 
+  deleteUIMessages: function thui_deleteUIMessages(list, callback) {
+    // Strategy:
+    // - Delete message/s from the DOM
+    // - Update the thread in thread-list without re-rendering
+    // the entire list
+    // - Change hash if needed
+
+    if (!Array.isArray(list)) {
+      list = [list];
+    }
+    // Removing from DOM all messages to delete
+    for (var i = 0, l = list.length; i < l; i++) {
+      ThreadUI.removeMessageDOM(
+        document.getElementById('message-' + list[i])
+      );
+    }
+    callback = typeof callback === 'function' ? callback : function() {};
+    // Retrieve threadID
+    var threadId = Threads.currentId;
+    // Do we remove all messages of the Thread?
+    if (!ThreadUI.container.firstElementChild) {
+      // Remove the thread from DOM and go back to the thread-list
+      ThreadListUI.removeThread(threadId);
+      callback();
+      window.location.hash = '#thread-list';
+    } else {
+      // Retrieve latest message in the UI
+      var lastMessageId =
+        ThreadUI.container.querySelector('li:last-child').dataset.messageId;
+      var request = MessageManager.getMessage(+lastMessageId);
+      // We need to make Thread-list to show the same info
+      request.onsuccess = function() {
+        var message = request.result;
+        callback();
+        ThreadListUI.updateThread(message);
+      };
+
+      request.onerror = function() {
+        console.error('Error when updating the list of threads');
+        callback();
+      };
+    }
+  },
+
   delete: function thui_delete() {
     var question = navigator.mozL10n.get('deleteMessages-confirmation');
     if (window.confirm(question)) {
@@ -1358,28 +1465,15 @@ var ThreadUI = global.ThreadUI = {
       for (var i = 0; i < length; i++) {
         delNumList.push(+inputs[i].value);
       }
-
-      // Method for deleting all inputs selected
-      var deleteMessages = function() {
-        MessageManager.getThreads(ThreadListUI.renderThreads,
-        function afterRender() {
-          var completeDeletionDone = false;
-          // Then sending/received messages
-          for (var i = 0; i < length; i++) {
-            ThreadUI.removeMessageDOM(inputs[i].parentNode.parentNode);
-          }
-
-          ThreadUI.cancelEdit();
-
-          if (!ThreadUI.container.firstElementChild) {
-            window.location.hash = '#thread-list';
-          }
-
-          WaitingScreen.hide();
-        });
-      };
-
-      MessageManager.deleteMessages(delNumList, deleteMessages);
+      // Complete deletion in DB and in UI
+      MessageManager.deleteMessage(delNumList,
+        function onDeletionDone() {
+          ThreadUI.deleteUIMessages(delNumList, function uiDeletionDone() {
+            ThreadUI.cancelEdit();
+            WaitingScreen.hide();
+          });
+        }
+      );
     }
   },
 
@@ -1421,7 +1515,6 @@ var ThreadUI = global.ThreadUI = {
 
   handleMessageClick: function thui_handleMessageClick(evt) {
     var currentNode = evt.target;
-    var inBubble = false;
     var elems = {};
 
     // Walk up the DOM, inspecting all the elements
@@ -1470,6 +1563,25 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
+  /*
+   * Given an element of a message, this function will dive into
+   * the DOM for getting the bubble container of this message.
+   */
+
+  getMessageBubble: function thui_getMessageContainer(element) {
+    var node = element;
+    do {
+      if (node.dataset && node.dataset.messageId) {
+        return {
+          id: +node.dataset.messageId,
+          node: node
+        };
+      }
+    } while ((node = node.parentNode));
+
+    return null;
+  },
+
   handleEvent: function thui_handleEvent(evt) {
     switch (evt.type) {
       case 'click':
@@ -1489,7 +1601,46 @@ var ThreadUI = global.ThreadUI = {
         }
         break;
       case 'contextmenu':
-        LinkActionHandler.onContextMenu(evt);
+        var messageBubble = this.getMessageBubble(evt.target);
+
+        if (!messageBubble) {
+          return;
+        }
+
+        // Show options per single message.
+        // TODO Add the following functionality:
+        // + Details of a single message:
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=901453
+        // + Forward of a single message:
+        // https://bugzilla.mozilla.org/show_bug.cgi?id=927784
+        var messageId = messageBubble.id;
+        var params = {
+          items:
+            [
+              {
+                l10nId: 'delete',
+                method: function deleteMessage(messageId) {
+                  // Complete deletion in DB and UI
+                  MessageManager.deleteMessage(messageId,
+                    function onDeletionDone() {
+                      ThreadUI.deleteUIMessages(messageId);
+                    }
+                  );
+                },
+                params: [messageId]
+              },
+              // TODO Add forward & details options
+              {
+                l10nId: 'cancel'
+              }
+            ],
+          type: 'action',
+          header: navigator.mozL10n.get('message-options')
+        };
+
+        var options = new OptionMenu(params);
+        options.show();
+
         break;
       case 'submit':
         evt.preventDefault();
@@ -1685,6 +1836,7 @@ var ThreadUI = global.ThreadUI = {
       case 'UnknownError':
       case 'InternalError':
       case 'InvalidAddressError':
+        /* falls through */
       default:
         messageTitle = 'sendGeneralErrorTitle';
         messageBody = 'sendGeneralErrorBody';
@@ -1845,7 +1997,7 @@ var ThreadUI = global.ThreadUI = {
       // input value when not rendering a suggestion. If the tel
       // record value _doesn't_ match, then continue.
       //
-      if (!isSuggestion && !Utils.compareDialables(current.value, input)) {
+      if (!isSuggestion && !Utils.probablyMatches(current.value, input)) {
         continue;
       }
 
@@ -1862,6 +2014,7 @@ var ThreadUI = global.ThreadUI = {
 
       var data = Utils.getDisplayObject(details.title, current);
 
+      /*jshint loopfunc: true */
       ['name', 'number'].forEach(function(key) {
         var escapedData = Template.escape(data[key]);
         if (isSuggestion) {
@@ -2052,9 +2205,10 @@ var ThreadUI = global.ThreadUI = {
       var contact = isContact ? results[0] : {
         tel: [{ value: number }]
       };
-      var ul;
+      var ul, id;
 
       if (isContact) {
+        id = contact.id;
         ul = document.createElement('ul');
         ul.classList.add('contact-prompt');
 
@@ -2068,8 +2222,8 @@ var ThreadUI = global.ThreadUI = {
       }
 
       this.prompt({
-        name: name,
         number: number,
+        contactId: id,
         isContact: isContact,
         inMessage: inMessage,
         body: ul
@@ -2127,23 +2281,12 @@ var ThreadUI = global.ThreadUI = {
     var thread = Threads.get(Threads.lastId || Threads.currentId);
     var number = opt.number || '';
     var email = opt.email || '';
-    var name = opt.name || number || email;
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
     var header = '';
     var section = typeof opt.body !== 'undefined' ? opt.body : '';
     var items = [];
     var params, props;
-
-    // Multi-participant activation for for a single, known
-    // recipient contact, that is not triggered from a message,
-    // will initiate a call to that recipient contact.
-    if ((thread && thread.participants.length === 1) &&
-        isContact && !inMessage) {
-
-      ActivityPicker.dial(number);
-      return;
-    }
 
     // Create a params object.
     //  - complete: callback to be invoked when a
@@ -2225,6 +2368,22 @@ var ThreadUI = global.ThreadUI = {
           method: function oAdd(param) {
             ActivityPicker.addToExistingContact(
               param, ThreadUI.onCreateContact
+            );
+          },
+          params: props
+        }
+      );
+    }
+
+    if (opt.contactId) {
+
+        props = [{ id: opt.contactId }];
+
+        params.items.push({
+          l10nId: 'viewContact',
+          method: function oView(param) {
+            ActivityPicker.viewContact(
+              param
             );
           },
           params: props

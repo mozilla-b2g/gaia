@@ -44,6 +44,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   // not originally metadata from the files
   var RATED = 'rated';
   var PLAYED = 'played';
+  var FAVORITED = "favorited";
 
   // Map id3v2 tag ids to metadata property names
   var ID3V2TAGS = {
@@ -94,6 +95,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var metadata = {};
   metadata[ARTIST] = metadata[ALBUM] = metadata[TITLE] = metadata[GENRE] = '';
   metadata[RATED] = metadata[PLAYED] = 0;
+  metadata[FAVORITED] = false;
 
   // If the blob has a name, use that as a default title in case
   // we can't find one in the file

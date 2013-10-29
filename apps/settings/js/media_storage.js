@@ -363,11 +363,6 @@ var MediaStorage = {
       var selectedOption = selectionMenu.options[selectedIndex];
       selectedOption.selected = true;
 
-      // update fake selection button content
-      var button = selectionMenu.previousElementSibling;
-      button.textContent = selectedOption.textContent;
-      button.dataset.l10nId = selectedOption.dataset.l10nId;
-
       // disable option menu if we have only one option
       if (self._volumeList.length === 1) {
         selectionMenu.disabled = true;

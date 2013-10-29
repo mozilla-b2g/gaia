@@ -1,3 +1,5 @@
+/*global MocksHelper, MockL10n, ActivityPicker, MozActivity */
+
 'use strict';
 
 requireApp('sms/js/activity_picker.js');
@@ -13,7 +15,7 @@ var mocksHelperAP = new MocksHelper([
 ]).init();
 
 suite('ActivityPicker', function() {
-  var realMozL10n, events, onsuccess, onerror;
+  var realMozL10n, onsuccess, onerror;
 
   suiteSetup(function() {
     realMozL10n = navigator.mozL10n;
@@ -329,6 +331,29 @@ suite('ActivityPicker', function() {
         data: {
           type: 'websms/sms',
           number: '999'
+        }
+      });
+    });
+  });
+
+  suite('viewContact', function() {
+
+    test('viewContact(props, success, error) ', function() {
+      ActivityPicker.viewContact({foo: ['bar']}, onsuccess, onerror);
+
+      assert.equal(
+        MozActivity.instances[0].onsuccess, onsuccess
+      );
+
+      assert.equal(
+        MozActivity.instances[0].onerror, onerror
+      );
+
+      assert.deepEqual(MozActivity.calls[0], {
+        name: 'open',
+        data: {
+          type: 'webcontacts/contact',
+          params: {foo: ['bar']}
         }
       });
     });

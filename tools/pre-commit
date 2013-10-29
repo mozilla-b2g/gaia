@@ -23,4 +23,3 @@ if [ -z "$diff_with_exclude" ] ; then
 fi
 
 LINTED_FILES="$diff_with_exclude" make -s lint
-

@@ -1,3 +1,5 @@
+/*global SettingsURL */
+
 (function(exports) {
   'use strict';
 

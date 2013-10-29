@@ -2,7 +2,7 @@ var PhoneNumberActionMenu = (function() {
 
   var _initiated, _newPhoneNumber, _addContactActionMenu, _callMenuItem,
     _createNewContactMenuItem, _addToExistingContactMenuItem,
-    _cancelActionMenuItem;
+    _cancelActionMenuItem, _addContactActionTitle;
 
   var _formSubmit = function _formSubmit(event) {
     return false;
@@ -101,6 +101,7 @@ var PhoneNumberActionMenu = (function() {
         contactsIframe.src = src + '&timestamp=' + timestamp;
       });
     } else {
+      _addContactActionTitle.textContent = phoneNumber;
       _newPhoneNumber = phoneNumber;
       _addContactActionMenu.hidden = false;
       _addContactActionMenu.classList.add('visible');
@@ -111,6 +112,8 @@ var PhoneNumberActionMenu = (function() {
     if (_initiated) {
       return;
     }
+    _addContactActionTitle = document.querySelector(
+      '#add-contact-action-title');
     _addContactActionMenu = document.getElementById('add-contact-action-menu');
     _addContactActionMenu.addEventListener('submit', _formSubmit);
     _callMenuItem = document.getElementById('call-menuitem');

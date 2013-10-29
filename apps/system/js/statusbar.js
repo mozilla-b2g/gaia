@@ -67,7 +67,7 @@ var StatusBar = {
     'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
-  kActiveIndicatorTimeout: 60 * 1000,
+  kActiveIndicatorTimeout: 5 * 1000,
 
   /* Whether or not status bar is actively updating or not */
   active: true,
@@ -90,6 +90,11 @@ var StatusBar = {
     'edge': 'E', // EDGE
     'gprs': '2G',
     '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x' // 2G CDMA
+  },
+
+  cdmaTypes: {
+    'evdo0': true, 'evdoa': true,
+    'evdob': true, 'ehrpd': true
   },
 
   geolocationActive: false,
@@ -175,6 +180,15 @@ var StatusBar = {
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
 
+    // mozChromeEvent fired from Gecko is earlier been loaded,
+    // so we use mozAudioChannelManager to
+    // check the headphone plugged or not when booting up
+    var acm = navigator.mozAudioChannelManager;
+    if (acm) {
+      this.headphonesActive = acm.headphones;
+      this.update.headphones.call(this);
+    }
+
     // Listen to 'geolocation-status' and 'recording-status' mozChromeEvent
     window.addEventListener('mozChromeEvent', this);
 
@@ -207,7 +221,7 @@ var StatusBar = {
       case 'attentionscreenhide':
       case 'lock':
         // Hide the clock in the statusbar when screen is locked
-        this.toggleTimeLabel(false);
+        this.toggleTimeLabel(!LockScreen.locked);
         break;
       case 'attentionscreenshow':
       case 'unlock':
@@ -242,6 +256,7 @@ var StatusBar = {
 
       case 'callschanged':
         this.update.signal.call(this);
+        this.update.data.call(this);
         break;
 
       case 'iccinfochange':
@@ -343,6 +358,9 @@ var StatusBar = {
 
       window.addEventListener('moznetworkupload', this);
       window.addEventListener('moznetworkdownload', this);
+
+      this.refreshCallListener();
+
       this.toggleTimeLabel(!LockScreen.locked);
     } else {
       var battery = window.navigator.battery;
@@ -364,6 +382,8 @@ var StatusBar = {
 
       window.removeEventListener('moznetworkupload', this);
       window.removeEventListener('moznetworkdownload', this);
+
+      this.removeCallListener();
 
       // Always prevent the clock from refreshing itself when the screen is off
       this.toggleTimeLabel(false);
@@ -489,12 +509,7 @@ var StatusBar = {
         delete icon.dataset.roaming;
       }
 
-      if (voice.emergencyCallsOnly) {
-        this.addCallListener();
-      } else {
-        this.removeCallListener();
-      }
-
+      this.refreshCallListener();
     },
 
     data: function sb_updateSignal() {
@@ -518,10 +533,24 @@ var StatusBar = {
       icon.textContent = '';
       icon.classList.remove('sb-icon-data-circle');
       if (type) {
-        icon.textContent = type;
+        if (this.cdmaTypes[data.type]) {
+          // If the current data connection is CDMA types, we need to check
+          // if there exist any calls. If yes, we have to set the status text
+          // to empty.
+          var telephony = window.navigator.mozTelephony;
+          if (telephony.calls && telephony.calls.length > 0) {
+            icon.textContent = '';
+          } else {
+            icon.textContent = type;
+          }
+        } else {
+          icon.textContent = type;
+        }
       } else {
         icon.classList.add('sb-icon-data-circle');
       }
+
+      this.refreshCallListener();
     },
 
 
@@ -690,6 +719,22 @@ var StatusBar = {
 
     // will return true as soon as we begin dialing
     return !!(telephony && telephony.active);
+  },
+
+  refreshCallListener: function sb_refreshCallListener() {
+    // Listen to callschanged only when connected to CDMA networks and emergency
+    // calls.
+    var conn = window.navigator.mozMobileConnection;
+    var emergencyCallsOnly =
+      (conn && conn.voice && conn.voice.emergencyCallsOnly);
+    var cdmaConnection =
+      (conn && conn.data && !!this.cdmaTypes[conn.data.type]);
+
+    if (emergencyCallsOnly || cdmaConnection) {
+      this.addCallListener();
+    } else {
+      this.removeCallListener();
+    }
   },
 
   addCallListener: function sb_addCallListener() {

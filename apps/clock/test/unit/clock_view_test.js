@@ -1,30 +1,32 @@
-requireApp('clock/js/alarm_list.js');
-requireApp('clock/js/clock_view.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/test/unit/mocks/mock_alarm_list.js');
-requireApp('clock/test/unit/mocks/mock_asyncstorage.js');
-
 suite('ClockView', function() {
-  var al;
+  var ClockView;
+  var AlarmList;
+  var asyncStorage;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
+    // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
+    // system's time zone
+    this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
 
     // Load before clock_view to ensure elements are initialized properly.
     loadBodyHTML('/index.html');
 
-    al = AlarmList;
-    AlarmList = MockAlarmList;
+    testRequire([
+      'clock_view',
+      'mocks/mock_alarm_list',
+      'mocks/mock_shared/js/async_storage'
+      ], {
+        mocks: ['alarm_list', 'shared/js/async_storage']
+      }, function(clockView, mockAlarmList, mockAsyncStorage) {
+        ClockView = clockView;
+        AlarmList = mockAlarmList;
 
-    ClockView.init();
+        asyncStorage = mockAsyncStorage;
 
-    // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
-    // system's time zone
-    this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
-  });
-
-  suiteTeardown(function() {
-    AlarmList = al;
+        ClockView.init();
+        AlarmList.init();
+        done();
+      });
   });
 
   test('ClockView.isInitialized ', function() {
@@ -123,15 +125,15 @@ suite('ClockView', function() {
 
       rotate = this.second;
       assert.ok(rotate, 'Second hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(6,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(6deg)');
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(-180,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(0,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
     test('second-, minute-, and hour- hands are not updated twice in the ' +
@@ -142,15 +144,15 @@ suite('ClockView', function() {
 
       rotate = this.second;
       assert.ok(rotate, 'Second hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(6,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(6deg)');
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(-180,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(0,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
     test('second-, minute-, and hour- hands are updated each second',
@@ -161,31 +163,20 @@ suite('ClockView', function() {
 
       rotate = this.second;
       assert.ok(rotate, 'Second hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(12,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(12deg)');
 
       rotate = this.minute;
       assert.ok(rotate, 'Minute hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(-180,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(0deg)');
 
       rotate = this.hour;
       assert.ok(rotate, 'Hour hand rotation element exists');
-      assert.equal(rotate.getAttribute('transform'), 'rotate(0,135,135)');
+      assert.equal(rotate.style.transform, 'rotate(180deg)');
     });
 
   });
 
   suite('show', function() {
-    var as;
-
-    suiteSetup(function() {
-      as = asyncStorage;
-      asyncStorage = MockAsyncStorage;
-    });
-
-    suiteTeardown(function() {
-      asyncStorage = as;
-    });
-
     setup(function() {
       ClockView.mode = 'analog';
       window.location.hash = 'alarm-view';
@@ -350,5 +341,47 @@ suite('ClockView', function() {
 
       ClockView.digital.click();
     });
+  });
+
+  suite('resizeAnalogClock', function() {
+
+    suiteSetup(function() {
+      this.analogClockContainer = document.getElementById(
+        'analog-clock-container'
+      );
+    });
+
+    setup(function() {
+      this.getAlarmCountStub = this.sinon.stub(AlarmList, 'getAlarmCount');
+    });
+
+    test('large size when no alarms in alarms list', function() {
+      this.getAlarmCountStub.returns(0);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('large'));
+    });
+
+    test('large size when 1 alarm in alarms list', function() {
+      this.getAlarmCountStub.returns(1);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('large'));
+    });
+
+    test('medium size when 2 alarms in alarms list', function() {
+      this.getAlarmCountStub.returns(2);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('medium'));
+    });
+
+    test('small size when 3 or more alarms in alarms list', function() {
+      this.getAlarmCountStub.returns(3);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('small'));
+
+      this.getAlarmCountStub.returns(4);
+      ClockView.resizeAnalogClock();
+      assert.isTrue(this.analogClockContainer.classList.contains('small'));
+    });
+
   });
 });

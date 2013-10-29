@@ -1,3 +1,6 @@
+/*global MocksHelper, MockL10n, ThreadUI, MockContact, Utils,
+         MockNavigatormozMobileMessage, loadBodyHTML, Compose, MessageManager */
+
 'use strict';
 
 if (typeof GestureDetector === 'undefined') {
@@ -11,6 +14,7 @@ requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_message_manager.js');
 requireApp('sms/test/unit/mock_moz_activity.js');
 requireApp('sms/js/utils.js');
+requireApp('sms/js/settings.js');
 requireApp('sms/js/attachment_menu.js');
 requireApp('sms/js/compose.js');
 requireApp('sms/js/contacts.js');
@@ -28,15 +32,12 @@ var mHelperIntegration = new MocksHelper([
 ]).init();
 
 suite('ThreadUI Integration', function() {
-  var realContacts;
   var getContactDetails;
   var realMozL10n;
   var threadUIMozMobileMessage;
   var recipients;
-  var recipient;
   var children;
   var fixture;
-  var container;
   var sendButton;
   var input;
 
@@ -47,8 +48,6 @@ suite('ThreadUI Integration', function() {
   }
 
   suiteSetup(function() {
-    realContacts = Contacts;
-
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
 
@@ -60,7 +59,6 @@ suite('ThreadUI Integration', function() {
   });
 
   suiteTeardown(function() {
-    Contacts = realContacts;
     navigator.mozL10n = realMozL10n;
     ThreadUI._mozMobileMessage = threadUIMozMobileMessage;
   });

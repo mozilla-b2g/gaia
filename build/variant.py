@@ -50,7 +50,7 @@ def copy_app(app_path, profile_path, app_id):
     for filename in os.walk(app_path).next()[2]:
         shutil.copy(os.path.join(app_path, filename), os.path.join(dst, filename))
 
-def download_app(manifest_url, manifest, app_path, app_id, origin):
+def download_app(manifest_url, manifest, app_path, app_id, origin, installOrigin):
     """ Determine if application is hosted or packaged and save manifest """
     filename = 'manifest.webapp'
     manifestJSON = json.loads(manifest)
@@ -71,11 +71,11 @@ def download_app(manifest_url, manifest, app_path, app_id, origin):
 
     if not origin:
         raise Exception("installOrigin required for app '" + app_id + "' in local_apps.json configuration file")
- 
+
     """ Generate metadata.json """
     metadata = {
         'id': app_id,
-        'installOrigin': origin,
+        'installOrigin': installOrigin,
         'manifestURL': manifest_url,
         'origin': origin
     }
@@ -92,7 +92,7 @@ def download_app(manifest_url, manifest, app_path, app_id, origin):
         with open(os.path.join(app_path, 'application.zip'), 'wb') as temp_file:
             temp_file.write(app)
 
-def fetch_manifest(app_id, manifest_url, origin, profile_path, app_path, is_app_cached):
+def fetch_manifest(app_id, manifest_url, origin, installOrigin, profile_path, app_path, is_app_cached):
     print 'Application ', app_id
 
     """ Download manifest """
@@ -133,7 +133,7 @@ def fetch_manifest(app_id, manifest_url, origin, profile_path, app_path, is_app_
         """ remote manifest has changed, app needs to be updated """
         os.rename(os.path.join(app_path, 'manifest.tmp'), os.path.join(app_path, manifestName))
 
-    download_app(manifest_url, manifest, app_path, app_id, origin)
+    download_app(manifest_url, manifest, app_path, app_id, origin, installOrigin)
     copy_app(app_path, profile_path, app_id)
 
 def fetch_apps(data, profile_path, distribution_path):
@@ -154,10 +154,14 @@ def fetch_apps(data, profile_path, distribution_path):
                 is_app_cached = False
 
         origin = None
-        if 'installOrigin' in apps[app]:
-            origin = apps[app]['installOrigin']
+        if 'origin' in apps[app]:
+            origin = apps[app]['origin']
 
-        fetch_manifest(app, apps[app]['manifestURL'], origin, profile_path, app_path, is_app_cached)
+        installOrigin = None
+        if 'installOrigin' in apps[app]:
+            installOrigin = apps[app]['installOrigin']
+
+        fetch_manifest(app, apps[app]['manifestURL'], origin, installOrigin, profile_path, app_path, is_app_cached)
 
     for app in cached_apps:
         deleteFolder(os.path.join(distribution_path, app))
@@ -184,7 +188,10 @@ def fetch_conf(data, profile_path, distribution_path):
 
                 row.append(app_id)
 
-                app['manifest'] = apps[app_id]
+                if not apps[app_id].has_key('manifestURL'):
+                    raise Exception("manifestURL not found for application \'" + app_id + "\'")
+
+                app['manifestURL'] = apps[app_id]['manifestURL']
                 if app.has_key('id'):
                     del app['id']
                 row_homescreen.append(app)

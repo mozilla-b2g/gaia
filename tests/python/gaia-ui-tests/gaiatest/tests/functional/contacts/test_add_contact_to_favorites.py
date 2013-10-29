@@ -20,7 +20,7 @@ class TestAddContactToFavorite(GaiaTestCase):
         contacts_app.launch()
         contacts_app.wait_for_contacts()
 
-        contact_details = contacts_app.contact(self.contact['givenName']).tap()
+        contact_details = contacts_app.contact(self.contact['givenName'][0]).tap()
         contact_details.tap_add_remove_favorite()
         self.assertEqual(contact_details.add_remove_text, 'Remove as Favorite')
 

@@ -50,14 +50,14 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
 
   this.newCustom = function newCustom() {
     elList.blur();
-    var customQuery = prompt(Evme.Utils.l10n(NAME, "prompt-create"));
+    var customQuery = prompt(Evme.Utils.l10n(NAME, 'prompt-create'));
 
     if (!customQuery) {
       return;
     }
 
     Evme.EventHandler.trigger(NAME, 'custom', {
-      "query": customQuery
+      'query': customQuery
     });
   };
 
@@ -65,11 +65,11 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
     var selectedShortcuts = [],
         elShourtcuts = Evme.$('option', elList);
 
-    for (var i=0, elOption; elOption=elShourtcuts[i++];) {
+    for (var i = 0, elOption; elOption = elShourtcuts[i++];) {
       if (elOption.selected) {
         selectedShortcuts.push({
-          "query": elOption.value,
-          "experienceId": elOption.dataset.experience || ''
+          'query': elOption.value,
+          'experienceId': elOption.dataset.experience || ''
         });
       }
     }
@@ -99,7 +99,8 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
 
     elList.appendChild(optCustom);
 
-    for (var i=0,shortcut,query,queryKey,experienceId,name; shortcut=shortcuts[i++];) {
+    for (var i = 0, shortcut, query, queryKey, experienceId, name;
+                                                shortcut = shortcuts[i++];) {
       query = shortcut.query;
       queryKey = query.toLowerCase();
       experienceId = shortcut.experienceId || '';
@@ -133,7 +134,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
         ID = 'shortcuts-customize-loading';
 
     this.show = function loadingShow() {
-      if (active) return;
+      if (active) { return; }
 
       var el = Evme.$create('form',
         {'id': ID, 'role': 'dialog', 'data-type': 'confirm'},
@@ -144,11 +145,12 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
         '</p>' +
         '</section>' +
         '<menu>' +
-        '<button ' + Evme.Utils.l10nAttr(NAME, 'loading-cancel') + ' class="full"></button>' +
+        '<button ' + Evme.Utils.l10nAttr(NAME, 'loading-cancel') +
+        ' class="full"></button>' +
         '</menu>');
 
-      Evme.$("button", el, function onItem(elButton) {
-        elButton.addEventListener("click", onLoadingCancel)
+      Evme.$('button', el, function onItem(elButton) {
+        elButton.addEventListener('click', onLoadingCancel);
       });
 
       Evme.Utils.getOverlay().appendChild(el);
@@ -159,7 +161,7 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
     };
 
     this.hide = function loadingHide() {
-      if (!active) return;
+      if (!active) { return; }
 
       Evme.$remove('#' + ID);
       active = false;
@@ -192,14 +194,14 @@ Evme.CollectionsSuggest = new function Evme_CollectionsSuggest() {
   function onLoadingCancel(e) {
     e.stopPropagation();
     Evme.EventHandler.trigger(NAME, 'loadingCancel', {
-      "e": e
+      'e': e
     });
   }
 
   function done() {
     Evme.EventHandler.trigger(NAME, 'done', {
-      "shortcuts": self.get(),
-      "icons": savedIcons
+      'shortcuts': self.get(),
+      'icons': savedIcons
     });
   }
-};
+}

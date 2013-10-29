@@ -7,7 +7,7 @@
  * This is the main module of the Gaia keyboard app. It does these things:
  *
  * - Hides and shows the keyboard in response to focuschange events from
- *   navigator.mozKeyboard
+ *   navigator.mozInputMethod.inputcontext
  *
  * - Loads the input method (from imes/) module required by a keyboard
  *
@@ -21,7 +21,7 @@
  *   mouse events over the keyboard and passes them to the input method.
  *
  * - When the input method sends value back to the keyboard, it turns
- *   them into synthetic key events using the navigator.mozKeyboard API.
+ *   them into synthetic key events using the inputmethod API.
  *
  * This module includes code that was formerly in the controller.js and
  * feedback.js modules. Other modules handle other parts of the keyboard:
@@ -38,22 +38,22 @@
  * methods; the keyboard checks that other methods are defined before
  * invoking them:
  *
- *    init(keyboard)
- *      keyboard is the object that the IM uses to communicate with the keyboard
+ *    init(keyboard):
+ *      Keyboard is the object that the IM uses to communicate with the keyboard
  *
- *    activate(language, suggestionsEnabled, inputstate)
- *      the keyboard calls this method when it becomes active.
+ *    activate(language, suggestionsEnabled, inputstate):
+ *      The keyboard calls this method when it becomes active.
  *      language is the current language.  suggestionsEnabled
  *      specifies whether the user wants word suggestions inputstate
  *      is an object that holds the state of the input field or
  *      textarea being typed into.  it includes content, cursor
  *      position and type and inputmode attributes.
  *
- *    deactivate()
- *      called when the keyboard is hidden.
+ *    deactivate():
+ *      Called when the keyboard is hidden.
  *
  *    empty:
- *      clear any currently displayed candidates/suggestions.
+ *      Clear any currently displayed candidates/suggestions.
  *      The latin input method does not use this, and it is not clear
  *      to me whether the Asian IMs need it either.
  *
@@ -83,41 +83,51 @@
  * properties and methods:
  *
  *    path:
- *      a url that the IM can use to load dictionaries or other resources
+ *      A url that the IM can use to load dictionaries or other resources
  *
- *    sendCandidates:
+ *    sendCandidates(candidates):
  *      A method that makes the keyboard display candidates or suggestions
  *
- *    sendPendingSymbols:
- *      like sendCandidates, but used by Asian IMs.
+ *    setComposition(symbols, cursor):
+ *      Set current composing text. This method will start composition or update
+ *      composition if it has started.
+ *
+ *    endComposition(text):
+ *      End composition, clear the composing text and commit given text to
+ *      current input field.
  *
  *    sendKey(keycode):
  *      Generate output. Typically the keyboard will just pass this
- *      keycode to mozKeyboard.sendKey(). The IM could call
- *      mozKeyboard.sendKey() directly, but doing it this way allows
+ *      keycode to inputcontext.sendKey(). The IM could call
+ *      inputcontext.sendKey() directly, but doing it this way allows
  *      us to chain IMs, I think.
  *
- *    sendString:
+ *    sendString(str):
  *      Outputs a string of text by repeated calls to sendKey().
  *
- *    alterKeyboard(layout): allows the IM to modify the keyboard layout
- *      by specifying a new layout name. Only used by asian ims currently.
+ *    alterKeyboard(layout):
+ *      Allows the IM to modify the keyboard layout by specifying a new layout
+ *      name. Only used by asian ims currently.
  *
- *    setLayoutPage(): allows the IM to switch between default and symbol
- *      layouts on the keyboard. Used by the latin IM.
+ *    setLayoutPage():
+ *      Allows the IM to switch between default and symbol layouts on the
+ *      keyboard. Used by the latin IM.
  *
- *    setUpperCase(upperCase, upperCaseLocked): allows the IM to switch between
- *      uppercase and lowercase layout on the keyboard. Used by the latin IM.
- *      - upperCase: to enable the upper case or not.
- *      - upperCaseLocked: to change the caps lock state.
+ *    setUpperCase(upperCase, upperCaseLocked):
+ *      Allows the IM to switch between uppercase and lowercase layout on the
+ *      keyboard. Used by the latin IM.
+ *        - upperCase: to enable the upper case or not.
+ *        - upperCaseLocked: to change the caps lock state.
  *
- *    resetUpperCase(): allows the IM to reset the upperCase to lowerCase
- *      without knowing the internal states like caps lock and current layout
- *      page while keeping setUpperCase simple as it is.
+ *    resetUpperCase():
+ *      Allows the IM to reset the upperCase to lowerCase without knowing the
+ *      internal states like caps lock and current layout page while keeping
+ *      setUpperCase simple as it is.
  *
- *    getNumberOfCandidatesPerRow(): allow the IM to know how many candidates
- *      the Render need in one row so that IM can reduce search time and run the
- *      remaining process when "getMoreCandidates" is called.
+ *    getNumberOfCandidatesPerRow():
+ *      Allow the IM to know how many candidates the Render need in one row so
+ *      the IM can reduce search time and run the remaining process when
+ *      "getMoreCandidates" is called.
  *
  */
 
@@ -503,6 +513,12 @@ function handleKeyboardSound() {
   }
 }
 
+function deactivateInputMethod() {
+  if (inputMethod.deactivate) {
+    inputMethod.deactivate();
+  }
+}
+
 function setKeyboardName(name, callback) {
   var keyboard;
 
@@ -521,6 +537,8 @@ function setKeyboardName(name, callback) {
       return;
     }
   }
+
+  deactivateInputMethod();
 
   if (keyboard.imEngine) {
     loadIMEngine(name, function() {
@@ -685,9 +703,11 @@ function modifyLayout(keyboardName) {
 
     // This gives the author the ability to change the basic layout
     // key contents
+    // 'layout' holds alternatelayout which doesn't include basicLayoutKey.
+    // Check and use 'basicLayoutKey' defined by each keyboard.
     var basicLayoutKey = 'ABC';
-    if (layout['basicLayoutKey']) {
-      basicLayoutKey = layout['basicLayoutKey'];
+    if (Keyboards[keyboardName]['basicLayoutKey']) {
+      basicLayoutKey = Keyboards[keyboardName]['basicLayoutKey'];
     }
 
     if (!layout['disableAlternateLayout']) {
@@ -1238,7 +1258,7 @@ function onTouchEnd(evt) {
         clearInterval(deleteInterval);
         clearTimeout(menuTimeout);
 
-        window.navigator.mozKeyboard.removeFocus();
+        navigator.mozInputMethod.mgmt.hide();
         return;
       }
     }
@@ -1464,6 +1484,10 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
   if (keyCode != KeyEvent.DOM_VK_SPACE)
     isContinousSpacePressed = false;
 
+  var keyStyle = getComputedStyle(target);
+  if (keyStyle.display == 'none' || keyStyle.visibility == 'hidden')
+    return;
+
   // Handle normal key
   switch (keyCode) {
 
@@ -1511,7 +1535,7 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
         IMERender.toggleCandidatePanel(true);
       };
 
-      if (candidatePanel.dataset.rowCount < 2) {
+      if (candidatePanel.dataset.rowCount == 1) {
         var firstPageRows = 11;
         var numberOfCandidatesPerRow = IMERender.getNumberOfCandidatesPerRow();
         var candidateIndicator =
@@ -1522,8 +1546,10 @@ function endPress(target, coords, touchId, hasCandidateScrolled) {
             candidateIndicator,
             firstPageRows * numberOfCandidatesPerRow + 1,
             function getMoreCandidatesCallbackOnToggle(list) {
-              IMERender.showMoreCandidates(firstPageRows, list);
-              doToggleCandidatePanel();
+              if (candidatePanel.dataset.rowCount == 1) {
+                IMERender.showMoreCandidates(firstPageRows, list);
+                doToggleCandidatePanel();
+              }
             }
           );
         } else {
@@ -1634,6 +1660,7 @@ function getKeyCoordinateY(y) {
 }
 
 function switchToNextIME() {
+  deactivateInputMethod();
   var mgmt = navigator.mozInputMethod.mgmt;
   mgmt.next();
 }
@@ -1687,25 +1714,16 @@ function replaceSurroundingText(text, offset, length) {
 // This is called when we get an event from mozKeyboard.
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
-function showKeyboard(state) {
+function showKeyboard() {
   // If no keyboard has been selected yet, choose the first enabled one.
   // This will also set the inputMethod
   if (!keyboardName) {
-    setKeyboardName(defaultKeyboardName, showKeyboard.bind(this, state));
+    setKeyboardName(defaultKeyboardName, showKeyboard.bind(this));
     return;
   }
 
   inputContext = navigator.mozInputMethod.inputcontext;
   IMERender.showIME();
-
-  if (inputContext) {
-    currentInputMode = inputContext.inputMode;
-    currentInputType = mapInputType(inputContext.inputType);
-  } else {
-    console.error('Cannot get inputContext');
-    currentInputMode = '';
-    currentInputType = mapInputType('text');
-  }
 
   resetKeyboard();
 
@@ -1717,6 +1735,15 @@ function showKeyboard(state) {
     navigator.mozSettings.createLock().set({
       'keyboard.ftu.enabled': false
     });
+  }
+
+  if (inputContext) {
+    currentInputMode = inputContext.inputMode;
+    currentInputType = mapInputType(inputContext.inputType);
+  } else {
+    currentInputMode = '';
+    currentInputType = mapInputType('text');
+    return;
   }
 
   var state = {
@@ -1760,9 +1787,11 @@ function showKeyboard(state) {
 
 // Hide keyboard
 function hideKeyboard() {
+  if (!isKeyboardRendered)
+    return;
+
   IMERender.hideIME();
-  if (inputMethod.deactivate)
-    inputMethod.deactivate();
+  deactivateInputMethod();
 
   isKeyboardRendered = false;
 }
@@ -1812,16 +1841,13 @@ function loadIMEngine(name, callback) {
       currentCandidates = candidates;
       IMERender.showCandidates(candidates);
     },
-    sendPendingSymbols:
-    function kc_glue_sendPendingSymbols(symbols,
-                                        highlightStart,
-                                        highlightEnd,
-                                        highlightState) {
-
-      IMERender.showPendingSymbols(
-        symbols,
-        highlightStart, highlightEnd, highlightState
-      );
+    setComposition: function kc_glue_setComposition(symbols, cursor) {
+      cursor = cursor || symbols.length;
+      inputContext.setComposition(symbols, cursor);
+    },
+    endComposition: function kc_glue_endComposition(text) {
+      text = text || '';
+      inputContext.endComposition(text);
     },
     sendKey: sendKey,
     sendString: function kc_glue_sendString(str) {

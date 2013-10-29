@@ -88,8 +88,8 @@ OperatorVariantHelper.prototype = {
   _listener: null,
   // The actual registered listener (since we use bind we need this).
   _addedListener: null,
-  // Cached ICC information for hot swapping SIM cards in multi-SIM devices.
-  _iccSettings: { mcc: '-1', mnc: '-1' },
+  // Cached ICC information.
+  _iccSettings: { mcc: '', mnc: '' },
   // Settings persistence key.
   _persistKey: null,
   // Are operator variant customizations disabled?
@@ -124,10 +124,11 @@ OperatorVariantHelper.prototype = {
     var mccRequest = transaction.get(this.MCC_SETTINGS_KEY);
 
     mccRequest.onsuccess = (function() {
-      this._iccSettings.mcc = mccRequest.result[this.MCC_SETTINGS_KEY] || '0';
+      this._iccSettings.mcc = mccRequest.result[this.MCC_SETTINGS_KEY] || '000';
       var mncRequest = transaction.get(this.MNC_SETTINGS_KEY);
       mncRequest.onsuccess = (function() {
-        this._iccSettings.mnc = mncRequest.result[this.MNC_SETTINGS_KEY] || '0';
+        this._iccSettings.mnc = mncRequest.result[this.MNC_SETTINGS_KEY] ||
+                                '00';
         this.checkICCInfo();
       }).bind(this);
     }).bind(this);
@@ -139,32 +140,64 @@ OperatorVariantHelper.prototype = {
    * to enable customization.
    */
   checkICCInfo: function() {
-    if (!IccHelper.iccInfo || IccHelper.cardState !== 'ready')
+    if (!IccHelper.iccInfo || IccHelper.cardState !== 'ready') {
       return;
+    }
+
+    // XXX sometimes we get 000/00 for mcc/mnc, even when cardState === 'ready'
+    var mcc = IccHelper.iccInfo.mcc || '000';
+    var mnc = IccHelper.iccInfo.mnc || '00';
+    if (mcc === '000') {
+      return;
+    }
 
     // ensure that the iccSettings have been retrieved
-    if ((this._iccSettings.mcc < 0) || (this._iccSettings.mnc < 0))
+    if ((this._iccSettings.mcc === '') || (this._iccSettings.mnc === '')) {
       return;
-
-    // XXX sometimes we get 0/0 for mcc/mnc, even when cardState === 'ready'...
-    var mcc = IccHelper.iccInfo.mcc || '0';
-    var mnc = IccHelper.iccInfo.mnc || '0';
-    if (mcc === '0')
-      return;
-
-    // same SIM card => do nothing
-    if ((mcc == this._iccSettings.mcc) && (mnc == this._iccSettings.mnc))
-      return;
-
-    // new SIM card => cache iccInfo, load and apply new APN settings
-    this._iccSettings.mcc = mcc;
-    this._iccSettings.mnc = mnc;
-
-    try {
-      this._listener(mcc, mnc);
     }
-    catch (e) {
-      console.error('Listener threw an error!', e);
+
+    if ((mcc !== this._iccSettings.mcc) || (mnc !== this._iccSettings.mnc)) {
+      // new SIM card => cache iccInfo
+      this._iccSettings.mcc = mcc;
+      this._iccSettings.mnc = mnc;
+
+      if (this._addedListener) {
+        try {
+          // apply new APN settings
+          this._listener(mcc, mnc);
+        }
+        catch (e) {
+          console.error('Listener threw an error!', e);
+        }
+        this.listen(false);
+      }
+
+      // store current mcc/mnc info in the settings
+      var transaction = this.settings.createLock();
+      var iccSettings = {};
+      iccSettings[this.MCC_SETTINGS_KEY] = this._iccSettings.mcc;
+      iccSettings[this.MNC_SETTINGS_KEY] = this._iccSettings.mnc;
+      transaction.set(iccSettings);
+
+    } else {
+      // Check whether we ran customizations already.
+      var transaction = this.settings.createLock();
+      var persistKeyGetRequest = transaction.get(this._persistKey);
+      persistKeyGetRequest.onsuccess = (function persistKeyGetRequestCb() {
+        // Looks like we didn't run customizations, apply settings.
+        if (!persistKeyGetRequest.result[this._persistKey]) {
+          if (this._addedListener) {
+            try {
+              // apply new APN settings
+              this._listener(mcc, mnc);
+            }
+            catch (e) {
+              console.error('Listener threw an error!', e);
+            }
+          }
+        }
+        this.listen(false);
+      }).bind(this);
     }
   },
 
@@ -176,7 +209,9 @@ OperatorVariantHelper.prototype = {
     var transaction = this.settings.createLock();
 
     // Persist the fact that we ran customizations.
-    var opVariantReq = transaction.set(this._persistKey, true);
+    var item = {};
+    item[this._persistKey] = true;
+    var opVariantReq = transaction.set(item);
 
     // We're running in test mode, just return.
     if (opVariantReq === undefined) {
@@ -199,7 +234,10 @@ OperatorVariantHelper.prototype = {
   revert: function() {
     var transaction = this.settings.createLock();
 
-    var opVariantReq = transaction.set(this._persistKey, false);
+    // Persist the fact that we ran customizations.
+    var item = {};
+    item[this._persistKey] = false;
+    var opVariantReq = transaction.set(item);
 
     // We're running in test mode, just return.
     if (opVariantReq === undefined) {
@@ -215,21 +253,10 @@ OperatorVariantHelper.prototype = {
   },
 
   /**
-   * Check to see if we should customize. If customizations were already
-   * completed we will omit calling the listener registered during
-   * construction.
+   * Start the customization process.
    */
   customize: function() {
-    // Check to see if we ran customizations already.
-    var transaction = this.settings.createLock();
-    var opVariantReq = transaction.get(this._persistKey);
-    opVariantReq.onsuccess = (function() {
-      // Looks like we didn't run customizations, go ahead and check the ICC
-      // settings vs what the SIM card is reporting.
-      if (!opVariantReq.result[this._persistKey]) {
-        this.getICCSettings();
-      }
-    }).bind(this);
+    this.getICCSettings();
   },
 
   /**

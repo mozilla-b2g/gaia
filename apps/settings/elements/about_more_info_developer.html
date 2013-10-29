@@ -39,7 +39,14 @@
             <input type="checkbox" name="layers.draw-borders"/>
             <span></span>
           </label>
-          <a data-l10n-id="layers-draw-borders">Flash repainted area</a>
+          <a data-l10n-id="layers-draw-borders">Draw layers borders</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="apz.force-enable"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="apz-force-enable">Enable APZ for all content processes</a>
         </li>
         <li>
           <label class="pack-checkbox">
@@ -90,14 +97,14 @@
           </label>
           <a data-l10n-id="console-enabled">Console enabled</a>
         </li>
-        <li>
+        <li id="software-home-button">
           <label class="pack-checkbox">
             <input type="checkbox" name="software-button.enabled"/>
             <span></span>
           </label>
           <a data-l10n-id="software-button-enabled">Software home button enabled</a>
         </li>
-        <li>
+        <li id="homegesture">
           <label class="pack-checkbox">
             <input type="checkbox" name="homegesture.enabled"/>
             <span></span>
@@ -110,6 +117,13 @@
             <span></span>
           </label>
           <a data-l10n-id="debug-gaia-enabled">Gaia debug traces</a>
+        </li>
+        <li>
+          <label class="pack-checkbox">
+            <input type="checkbox" name="debug.keyboard-oop.enabled"/>
+            <span></span>
+          </label>
+          <a>Run Keyboard app OOP</a>
         </li>
         <li>
           <label>
@@ -153,6 +167,8 @@
         </li>
       </ul>
     </div>
+
+    <script src="js/about_more_info_developer.js"></script>
 
   </template>
 </element>

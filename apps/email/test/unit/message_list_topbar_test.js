@@ -103,8 +103,13 @@ suite('MessageListTopbar', function() {
 
   suite('#destroy', function() {
     setup(function() {
+      sinon.stub(subject, '_onclick');
       subject.decorate(el);
       subject.render();
+    });
+
+    teardown(function() {
+      subject._onclick.restore();
     });
 
     test('should hide _el', function() {
@@ -126,7 +131,6 @@ suite('MessageListTopbar', function() {
     });
 
     test('should remove the click listener on _el', function() {
-      sinon.stub(subject, '_onclick');
       subject.destroy();
       el.click();
       sinon.assert.notCalled(subject._onclick);

@@ -1,4 +1,6 @@
 requireApp('communications/contacts/js/export/sd.js');
+requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
+requireApp('communications/contacts/test/unit/export/mock_export_utils.js');
 
 mocha.globals(
   [
@@ -29,21 +31,7 @@ suite('Sd export', function() {
   suiteSetup(function() {
     // Device storage mock
     realDeviceStorage = navigator.getDeviceStorage;
-    var deviceStorageAddNamed = function(contact, filename) {
-      var self = this;
-      return {
-        set onsuccess(cb) {
-            cb();
-        }
-      };
-    };
-
-    navigator.getDeviceStorage = function() {
-      var obj = {
-        'addNamed': deviceStorageAddNamed
-      };
-      return obj;
-    };
+    navigator.getDeviceStorage = MockgetDeviceStorage;
 
     // L10n mock
     real_ = window._;
@@ -51,17 +39,11 @@ suite('Sd export', function() {
 
     //getStorageIfAvailable mock
     realgetStorageIfAvailable = window.getStorageIfAvailable;
-    window.getStorageIfAvailable = function(type, size, callback) {
-      callback(navigator.getDeviceStorage());
-    };
-
+    window.getStorageIfAvailable = MockGetStorageIfAvailable;
 
     //getUnusedFilename mock
     realgetUnusedFilename = window.getUnusedFilename;
-    window.getUnusedFilename = function(storage, filename, cb) {
-      fileName = filename;
-      cb(filename);
-    };
+    window.getUnusedFilename = MockGetUnusedFilename;
 
   });
 
@@ -96,7 +78,6 @@ suite('Sd export', function() {
     subject.doExport(function onFinish(error, exported, msg) {
       assert.equal(false, subject.hasDeterminativeProgress());
       assert.equal(1, updateSpy.callCount);
-      assert.equal('bar_foo.vcf', fileName);
       assert.isNull(error);
       assert.equal(1, exported);
       done();
@@ -121,7 +102,6 @@ suite('Sd export', function() {
       assert.equal(1, updateSpy.callCount);
       assert.isNull(error);
       assert.equal(contacts.length, exported);
-      assert.equal(name, fileName);
       done();
     });
   });

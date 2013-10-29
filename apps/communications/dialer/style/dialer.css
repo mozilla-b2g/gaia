@@ -117,7 +117,7 @@ body.hidden *[data-l10n-id] {
 /* For showing/hiding navbar */
 article[role="tab"] > .icon {
   transform: translateY(0%);
-  z-index: 20;
+  z-index: 2;
   transition: 0.5s transform 0.5s;
 }
 

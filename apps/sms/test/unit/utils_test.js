@@ -1,19 +1,17 @@
+/*global MocksHelper, MockL10n, Utils, MockContact, FixturePhones,
+         MockFixedHeader, MockContacts, MockMozPhoneNumberService */
+
 'use strict';
 
-requireApp('sms/test/unit/mock_fixed_header.js');
 requireApp('sms/test/unit/mock_contact.js');
 requireApp('sms/test/unit/mock_contacts.js');
 requireApp('sms/test/unit/mock_l10n.js');
+requireApp('sms/test/unit/mock_navigator_mozphonenumberservice.js');
 requireApp('sms/js/utils.js');
-
-var mocksHelperForUtils = new MocksHelper([
-  'FixedHeader'
-]).init();
 
 suite('Utils', function() {
   var nativeMozL10n = navigator.mozL10n;
-
-  mocksHelperForUtils.attachTestHelpers();
+  var nmpns = navigator.mozPhoneNumberService;
 
   suiteSetup(function() {
     navigator.mozL10n = MockL10n;
@@ -169,50 +167,6 @@ suite('Utils', function() {
     */
   });
 
-  suite('Utils.startTimeHeaderScheduler', function() {
-
-    setup(function() {
-      this.callTimes = [];
-      this.sinon.useFakeTimers();
-      this.updateStub = this.sinon.stub(Utils, 'updateTimeHeaders',
-        function() {
-          this.callTimes.push(Date.now());
-        }.bind(this));
-    });
-
-    teardown(function() {
-      Utils.updateTimeHeaders.restore();
-    });
-
-    test('timeout on minute boundary', function() {
-      // "Fri Jul 12 2013 16:01:54 GMT-0400 (EDT)"
-      var start = 1373659314572;
-      var callTimes = [];
-
-      this.sinon.clock.tick(start);
-      Utils.startTimeHeaderScheduler();
-      this.sinon.clock.tick(100 * 1000);
-
-      // we are called on start
-      assert.equal(this.callTimes[0], start);
-      // Fri Jul 12 2013 16:02:00 GMT-0400 (EDT)
-      assert.equal(this.callTimes[1], 1373659320000);
-      // Fri Jul 12 2013 16:03:00 GMT-0400 (EDT)
-      assert.equal(this.callTimes[2], 1373659380000);
-    });
-
-    test('multiple calls converge', function() {
-      this.updateStub.reset();
-
-      for (var i = 0; i < 100; i++) {
-        Utils.startTimeHeaderScheduler();
-      }
-      this.sinon.clock.tick(60 * 1000);
-      assert.equal(this.updateStub.callCount, 101);
-    });
-
-  });
-
   suite('Utils.getContactDetails', function() {
     test('(number, contact)', function() {
       var contact = new MockContact();
@@ -237,8 +191,6 @@ suite('Utils', function() {
     });
 
     test('(number, null)', function() {
-      var contact = new MockContact();
-
       var details = Utils.getContactDetails('346578888888', null);
       assert.deepEqual(details, {
         title: ''
@@ -260,7 +212,6 @@ suite('Utils', function() {
 
     test('(number, contact (blank information))', function() {
       var contact = new MockContact();
-      var name = contact.name[0];
 
       // Remove the name value
       contact.name[0] = '';
@@ -382,7 +333,6 @@ suite('Utils', function() {
           { givenName: [''], familyName: [''] },
           { givenName: ['Jane'], familyName: ['Doozer'] }
         ]);
-        var name = contacts[0].name[0];
         contacts[0].name[0] = '';
 
         var details = Utils.getContactDetails('346578888888', contacts);
@@ -397,7 +347,6 @@ suite('Utils', function() {
 
       test('number is empty, apply organization name if exist', function() {
         var contact = new MockContact();
-        var name = contact.name[0];
 
         // Remove the name value and add org name
         contact.name[0] = '';
@@ -618,28 +567,49 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.compareDialables(a, b)', function() {
-    test('spaces', function() {
+  suite('Utils.probablyMatches(a, b)', function() {
+
+    test('mozPhoneNumberService is null', function() {
+      navigator.mozPhoneNumberService = null;
+
       assert.ok(
-        Utils.compareDialables('888 999 5555', '8889995555')
+        Utils.probablyMatches('888 999 5555', '8889995555')
       );
+
+      navigator.mozPhoneNumberService = nmpns;
     });
 
-    test('non-digit, common chars', function() {
+    test('spaces', function() {
       assert.ok(
-        Utils.compareDialables('(1A)2B 3C', '123')
+        Utils.probablyMatches('888 999 5555', '8889995555')
       );
     });
 
     suite('Varied Cases', function() {
       FixturePhones.forEach(function(fixture) {
-        suite(fixture.name, function() {
+        var title = fixture.title;
+
+        if (!fixture.isTestable) {
+          title += ' (this feature is not really being tested)';
+        }
+
+        suite(title, function() {
           var values = fixture.values;
+
+          if (!fixture.isTestable) {
+            suiteSetup(function() {
+              navigator.mozPhoneNumberService = MockMozPhoneNumberService;
+            });
+
+            suiteTeardown(function() {
+              navigator.mozPhoneNumberService = nmpns;
+            });
+          }
 
           values.forEach(function(value) {
             values.forEach(function(versus) {
-              test(value + ' likely same as ' + versus, function() {
-                assert.ok(Utils.compareDialables(value, versus));
+              test(value + ' probably matches ' + versus, function() {
+                assert.ok(Utils.probablyMatches(value, versus));
               });
             });
           });
@@ -669,6 +639,7 @@ suite('Utils', function() {
       var assetsNeeded = 0;
 
       function loadBlob(filename) {
+        /*jshint validthis: true */
         assetsNeeded++;
 
         var req = new XMLHttpRequest();
@@ -789,7 +760,6 @@ suite('Utils', function() {
   });
 
   suite('Utils.typeFromMimeType', function() {
-    var testIndex;
     var tests = {
       'text/plain': 'text',
       'image/jpeg': 'img',
@@ -824,7 +794,6 @@ suite('Utils', function() {
   });
 
   suite('Utils.params', function() {
-    var testIndex;
     var tests = {
       '?foo=bar&baz=1&quux=null': {foo: 'bar', baz: '1', quux: 'null'}
     };
@@ -833,123 +802,6 @@ suite('Utils', function() {
       test(testIndex, function() {
         assert.deepEqual(Utils.params(testIndex), tests[testIndex]);
       });
-    });
-  });
-
-  suite('Utils.updateTimeHeader', function() {
-    var subject, formattedTime, formattedDate;
-
-    setup(function() {
-      subject = document.createElement('header');
-      subject.dataset.timeUpdate = 'true';
-      var time = Date.parse('2013-01-01');
-      subject.dataset.time = time;
-      formattedTime = Utils.getFormattedHour(time);
-      formattedDate = Utils.getHeaderDate(time);
-    });
-
-    test('date and time header', function() {
-      Utils.updateTimeHeader(subject);
-      var content = subject.textContent;
-      assert.include(content, formattedTime);
-      assert.include(content, formattedDate);
-    });
-
-    test('date header', function() {
-      subject.dataset.isThread = 'true';
-      Utils.updateTimeHeader(subject);
-
-      var content = subject.textContent;
-      assert.isTrue(content.indexOf(formattedTime) === -1);
-      assert.include(content, formattedDate);
-    });
-
-    test('time header', function() {
-      subject.dataset.timeOnly = 'true';
-      Utils.updateTimeHeader(subject);
-
-      var content = subject.textContent;
-      assert.include(content, formattedTime);
-      assert.isTrue(content.indexOf(formattedDate) === -1);
-    });
-  });
-
-  suite('Utils.updateTimeHeaders', function() {
-    var existingTitles;
-
-    setup(function() {
-      this.sinon.useFakeTimers(Date.parse('2013-01-01'));
-      this.sinon.spy(MockFixedHeader, 'updateHeaderContent');
-
-      var additionalDataset = [
-        'data-is-thread="true"',
-        'data-hour-only="true"',
-        ''
-      ];
-
-      var mockThreadListMarkup = '';
-
-      additionalDataset.forEach(function(dataset, i) {
-        dataset += ' data-time-update="true"' +
-          ' data-time="' + Date.now() + '"';
-
-        mockThreadListMarkup +=
-          '<header ' + dataset + '>header ' + i + '</header>' +
-          '<ul>' +
-            '<li>this is a thread</li>' +
-            '<li>this is another thread</li>' +
-          '</ul>';
-      });
-
-      document.body.innerHTML = mockThreadListMarkup;
-
-      Utils.updateTimeHeaders();
-
-
-      existingTitles = [];
-
-      var headers = document.querySelectorAll('header');
-      for (var i = 0, l = headers.length; i < l; i++) {
-        existingTitles[i] = headers[i].textContent;
-      }
-
-    });
-
-    teardown(function() {
-      document.body.innerHTML = '';
-    });
-
-    test('calling after one hour should not update time headers', function() {
-      this.sinon.clock.tick(60 * 60 * 1000);
-      Utils.updateTimeHeaders();
-
-      var headers = document.querySelectorAll('header');
-      for (var i = 0, l = headers.length; i < l; i++) {
-        assert.equal(headers[i].textContent, existingTitles[i]);
-      }
-    });
-
-    suite('calling after one day', function() {
-      setup(function() {
-        this.sinon.clock.tick(24 * 60 * 60 * 1000);
-        this.sinon.spy(Utils, 'updateTimeHeader');
-        Utils.updateTimeHeaders();
-      });
-
-      test('should update all date headers', function() {
-        var headers = document.querySelectorAll('header');
-        for (var i = 0, l = headers.length; i < l; i++) {
-          assert.notEqual(headers[i].textContent, existingTitles[i]);
-        }
-      });
-
-      test('should call updateTimeHeader 3 times', function() {
-        assert.equal(Utils.updateTimeHeader.callCount, 3);
-      });
-    });
-
-    test('should call FixedHeader.updateHeaderContent', function() {
-      assert.ok(MockFixedHeader.updateHeaderContent.called);
     });
   });
 });
@@ -1006,7 +858,6 @@ suite('getDisplayObject', function() {
 
   test('Tel object with NO carrier title and NO type', function() {
     var myTitle = 'My title';
-    var type = 'Mobile';
     var value = 111111;
     var data = Utils.getDisplayObject(myTitle, {
       'value': value
@@ -1021,7 +872,6 @@ suite('getDisplayObject', function() {
   });
 
   test('Tel object with carrier title and type and NO title', function() {
-    var myTitle = 'My title';
     var type = 'Mobile';
     var carrier = 'Carrier';
     var value = 111111;

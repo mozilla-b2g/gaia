@@ -46,6 +46,12 @@ MockPage.prototype = {
 
   hasEmptySlot: function mp_hasEmptySlot() {
     return this.icons.length < this.mMAX_ICON_NUMBER;
+  },
+
+  popIcon: function mp_popIcon() {
+    return {
+      loadRenderedIcon: function() {}
+    };
   }
 };
 

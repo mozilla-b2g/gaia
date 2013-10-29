@@ -1,6 +1,10 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*global Template, Utils, Threads, Contacts, URL, FixedHeader, Threads,
+         WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders */
+/*exported ThreadListUI */
+
 'use strict';
 
 var ThreadListUI = {
@@ -190,7 +194,7 @@ var ThreadListUI = {
     this.checkInputs();
   },
 
-  removeThread: function(threadId) {
+  removeThread: function thlui_removeThread(threadId) {
     var li = document.getElementById('thread-' + threadId);
     var parent = li.parentNode;
     parent.removeChild(li);
@@ -211,10 +215,10 @@ var ThreadListUI = {
 
   delete: function thlui_delete() {
     var question = navigator.mozL10n.get('deleteThreads-confirmation2');
-    var messageIds = [];
     var threadIds, threadId, filter, count;
 
     function checkDone(threadId) {
+      /* jshint validthis: true */
       Threads.delete(threadId);
       // Cleanup the DOM
       this.removeThread(threadId);
@@ -223,6 +227,11 @@ var ThreadListUI = {
         this.cancelEdit();
         WaitingScreen.hide();
       }
+    }
+
+    function deleteMessage(message) {
+      MessageManager.deleteMessage(message.id);
+      return true;
     }
 
     if (confirm(question)) {
@@ -237,7 +246,7 @@ var ThreadListUI = {
       // Remove and coerce the threadId back to a number
       // MozSmsFilter and all other platform APIs
       // expect this value to be a number.
-      while (threadId = +threadIds.pop()) {
+      while ((threadId = +threadIds.pop())) {
 
         // Filter and request all messages with this threadId
         filter = new MozSmsFilter();
@@ -246,10 +255,7 @@ var ThreadListUI = {
         MessageManager.getMessages({
           filter: filter,
           invert: true,
-          each: function each(message) {
-            MessageManager.deleteMessage(message.id);
-            return true;
-          },
+          each: deleteMessage,
           end: checkDone.bind(this, threadId)
         });
       }
@@ -327,7 +333,7 @@ var ThreadListUI = {
         // set the fixed header
         FixedHeader.refresh();
         // Boot update of headers
-        Utils.updateTimeHeaders();
+        TimeHeaders.updateAll();
         // Once the rendering it's done, callback if needed
         if (renderCallback) {
           renderCallback();
@@ -399,18 +405,30 @@ var ThreadListUI = {
 
   // This method fills the gap while we wait for next 'getThreads' request,
   // letting us rendering the new thread with a better performance.
-  createThreadMockup: function mm_createThreadMockup(message) {
+  createThreadMockup: function thlui_createThreadMockup(message, options) {
     // Given a message we create a thread as a mockup. This let us render the
     // thread without requesting Gecko, so we increase the performance and we
     // reduce Gecko requests.
     return {
       id: message.threadId,
-      participants: [message.sender],
+      participants: [message.sender || message.receiver],
       body: message.body,
       timestamp: message.timestamp,
-      unreadCount: 1,
+      unreadCount: (options && !options.read) ? 1 : 0,
       lastMessageType: message.type || 'sms'
     };
+  },
+
+  updateThread: function thlui_updateThread(message, options) {
+    var thread = this.createThreadMockup(message, options);
+    // We remove the previous one in order to place the new one properly
+    var existingThreadElement = document.getElementById('thread-' + thread.id);
+    if (existingThreadElement) {
+      this.removeThread(thread.id);
+    }
+    ThreadListUI.appendThread(thread);
+    ThreadListUI.setEmpty(false);
+    FixedHeader.refresh();
   },
 
   onMessageReceived: function thlui_onMessageReceived(message) {
@@ -432,13 +450,7 @@ var ThreadListUI = {
         return;
       }
 
-      // We remove the previous one in order to place the new one properly
-      if (previousThread) {
-        this.removeThread(threadId);
-      }
-
-      this.appendThread(threadMockup);
-      FixedHeader.refresh();
+      this.updateThread(message, {read: false});
       this.setEmpty(false);
     } else {
       this.renderThreads([threadMockup]);
@@ -478,6 +490,7 @@ var ThreadListUI = {
         break;
       }
     }
+
     if (!threadFound) {
       threadsContainer.appendChild(node);
     }

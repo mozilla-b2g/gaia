@@ -99,6 +99,7 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
     gTimePicker.disabled = _timeAutoEnabled;
     gTimezoneRegion.disabled = (_timezoneAutoAvailable && _timeAutoEnabled);
     gTimezoneCity.disabled = (_timezoneAutoAvailable && _timeAutoEnabled);
+    gTimezone.hidden = !(_timezoneAutoAvailable && _timeAutoEnabled);
 
     if (_timeAutoEnabled) {
       document.getElementById('time-manual').classList.add('disabled');
@@ -121,6 +122,7 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
   function setTimeAutoEnabled(enabled) {
     _timeAutoEnabled = enabled;
     gTimeAutoSwitch.dataset.state = enabled ? 'auto' : 'manual';
+    gTimezone.hidden = !(_timezoneAutoAvailable && _timeAutoEnabled);
 
     var cset = {};
     cset[kTimezoneAutoEnabled] = enabled;
@@ -204,13 +206,7 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
   };
 
   function updateTimezone(timezone) {
-    if (timezone.indexOf('+') >= 0) {
-      timezone = timezone.replace('+', '-');
-    } else if (timezone.indexOf('-') >= 0) {
-      timezone = timezone.replace('-', '+');
-    }
     gTimezoneValue.textContent = timezone;
-    gTimezone.hidden = !(_timezoneAutoAvailable && _timeAutoEnabled);
   }
 
   settings.addObserver('time.timezone', function(event) {
@@ -230,21 +226,9 @@ navigator.mozL10n.ready(function SettingsDateAndTime() {
   updateDate();
   updateClock();
 
-  // need to provide an onchange callback to tzSelect, so that
-  // when we change region, both region/city will be updated
-  function tzOnchange() {
-    var selectList = [gTimezoneRegion, gTimezoneCity];
-    selectList.forEach(function initLabel(select) {
-      var button = select.previousElementSibling;
-      var index = select.selectedIndex;
-      if (index >= 0) {
-        button.textContent = select.options[index].textContent;
-      }
-    });
-  }
-
   // monitor time.timezone changes, see /shared/js/tz_select.js
-  tzSelect(gTimezoneRegion, gTimezoneCity, tzOnchange, tzOnchange);
+  var noOp = function() {};
+  tzSelect(gTimezoneRegion, gTimezoneCity, noOp, noOp);
 
   gDatePicker.addEventListener('input', function datePickerChange() {
     setTime('date');

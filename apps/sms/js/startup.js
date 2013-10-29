@@ -3,6 +3,9 @@
 
 'use strict';
 
+/*global Utils, ActivityHandler, ThreadUI, ThreadListUI, MessageManager,
+         Settings, LazyLoader, TimeHeaders */
+
 var lazyLoadFiles = [
   'shared/js/async_storage.js',
   'shared/js/l10n_date.js',
@@ -25,6 +28,7 @@ var lazyLoadFiles = [
   'js/waiting_screen.js',
   'js/utils.js',
   'js/fixed_header.js',
+  'js/time_headers.js',
   'js/activity_picker.js',
   'js/wbmp.js',
   'js/smil.js',
@@ -82,6 +86,7 @@ window.addEventListener('localized', function localized() {
 
 window.addEventListener('load', function() {
   function initUIApp() {
+    TimeHeaders.init();
     ActivityHandler.init();
     // Init UI Managers
     ThreadUI.init();
@@ -95,7 +100,10 @@ window.addEventListener('load', function() {
   navigator.mozL10n.ready(function waitLocalizedForLoading() {
     LazyLoader.load(lazyLoadFiles, function() {
       if (!navigator.mozMobileMessage) {
-        var mocks = ['js/desktop_sms_mock.js', 'js/desktop_contacts_mock.js'];
+        var mocks = [
+          'js/desktop-only/mobilemessage.js',
+          'js/desktop-only/contacts.js'
+        ];
         LazyLoader.load(mocks, function() {
           MessageManager.init(initUIApp);
         });

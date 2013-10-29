@@ -100,8 +100,8 @@ var SleepMenu = {
     this.elements.container.innerHTML = '';
     this.buildMenu(this.generateItems());
     this.elements.overlay.classList.add('visible');
-    // Lock orientation to portrait
-    screen.mozLockOrientation('portrait-primary');
+    // Lock to default orientation
+    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
   },
 
   buildMenu: function sm_buildMenu(items) {

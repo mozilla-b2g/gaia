@@ -12,18 +12,20 @@ let Cu = Components.utils;
 let Cr = Components.results;
 
 Cu.import('resource://gre/modules/Services.jsm');
+Cu.import('resource://gre/modules/Keyboard.jsm');
 
 // Various helpers coming from /b2g/chrome/content/shell.js
 function getContentWindow() {
   return content;
 }
 
-function sendChromeEvent(details) {
+function sendChromeEvent(details, type) {
+  type = type || 'mozChromeEvent';
   let content = getContentWindow();
   details = details || {};
 
   let event = content.document.createEvent('CustomEvent');
-  event.initCustomEvent('mozChromeEvent', true, true,
+  event.initCustomEvent(type, true, true,
                         ObjectWrapper.wrap(details, content));
   content.dispatchEvent(event);
 }
@@ -43,12 +45,11 @@ Services.obs.addObserver(function onLaunch(subject, topic, data) {
 
     let manifest = new ManifestHelper(aManifest, json.origin);
     let data = {
-      'type': 'webapps-launch',
       'timestamp': json.timestamp,
       'url': manifest.fullLaunchPath(json.startPoint),
       'manifestURL': json.manifestURL
     };
-    sendChromeEvent(data);
+    sendChromeEvent(data, 'webapps-launch');
   });
 }, 'webapps-launch', false);
 
@@ -61,13 +62,12 @@ Services.obs.addObserver(function onSystemMessage(subject, topic, data) {
 
   let origin = Services.io.newURI(msg.manifest, null, null).prePath;
   sendChromeEvent({
-    type: 'open-app',
     url: msg.uri,
     manifestURL: msg.manifest,
     isActivity: (msg.type == 'activity'),
     target: msg.target,
     expectingSystemMessage: true
-  });
+  }, 'open-app');
 }, 'system-messages-open-app', false);
 
 Services.obs.addObserver(function(aSubject, aTopic, aData) {

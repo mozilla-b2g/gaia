@@ -2,7 +2,7 @@
 'use strict';
 
 requireApp('system/test/unit/mock_l10n.js');
-requireApp('system/test/unit/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/test/unit/mock_wifi_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');

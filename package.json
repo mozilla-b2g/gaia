@@ -7,17 +7,17 @@
   "devDependencies": {
     "debug": "*",
     "empty-port": "~0.0.1",
-    "jshint": "2.1.10",
+    "jshint": "2.1.11",
     "mail-fakeservers": "~0.0.3",
-    "marionette-apps": "0.3.0",
-    "marionette-client": "0.15.5",
+    "marionette-apps": "~0.3.1",
+    "marionette-client": "1.0.0",
     "marionette-content-script": "0.0.0",
     "marionette-helper": "0.0.9",
     "marionette-profile-builder": "0.0.2",
     "marionette-js-runner": "0.3.0",
     "mocha": "1.12.0",
     "mocha-tbpl-reporter": "~0.0.4",
-    "mozilla-download": "~0.2.1",
+    "mozilla-download": "~0.3.0",
     "node-static": "0.6.9",
     "travis-project-jobs": "0.0.1"
   }

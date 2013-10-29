@@ -15,6 +15,11 @@ class Contacts(Base):
     _new_contact_button_locator = (By.ID, 'add-contact-button')
     _settings_button_locator = (By.ID, 'settings-button')
     _favorites_list_locator = (By.ID, 'contacts-list-favorites')
+    _app_heading_locator = (By.CSS_SELECTOR, 'h1[data-l10n-id="contacts"]')
+    _contacts_frame_locator = (By.CSS_SELECTOR, 'iframe[src*="contacts"][src*="/index.html"]')
+    _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
+    _export_button_locator = (By.ID, 'select-action')
+    _status_message_locator = (By.ID, 'statusMsg')
 
     #  contacts
     _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
@@ -24,9 +29,15 @@ class Contacts(Base):
         self.wait_for_element_not_displayed(*self._loading_overlay_locator)
         self.wait_for_element_displayed(*self._settings_button_locator)
 
+    def switch_to_contacts_frame(self):
+        self.marionette.switch_to_frame()
+        self.wait_for_element_present(*self._contacts_frame_locator)
+        contacts_frame = self.marionette.find_element(*self._contacts_frame_locator)
+        self.marionette.switch_to_frame(contacts_frame)
+
     @property
     def contacts(self):
-        self.wait_for_element_displayed(*self._new_contact_button_locator)
+        self.wait_for_element_displayed(*self._app_heading_locator)
         return [self.Contact(marionette=self.marionette, element=contact)
                 for contact in self.marionette.find_elements(*self._contact_locator)]
 
@@ -48,9 +59,20 @@ class Contacts(Base):
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
+    def tap_select_all(self):
+        self.marionette.find_element(*self._select_all_button_locator).tap()
+
+    def tap_export(self):
+        self.marionette.find_element(*self._export_button_locator).tap()
+
     @property
     def is_favorites_list_displayed(self):
         return self.marionette.find_element(*self._favorites_list_locator).is_displayed()
+
+    @property
+    def status_message(self):
+        self.wait_for_element_displayed(*self._status_message_locator)
+        return self.marionette.find_element(*self._status_message_locator).text
 
     class Contact(PageRegion):
 
@@ -65,8 +87,9 @@ class Contacts(Base):
         def full_name(self):
             return self.root_element.find_element(*self._full_name_locator).text
 
-        def tap(self):
+        def tap(self, return_details=True):
             self.root_element.find_element(*self._name_locator).tap()
 
-            from gaiatest.apps.contacts.regions.contact_details import ContactDetails
-            return ContactDetails(self.marionette)
+            if return_details:
+                from gaiatest.apps.contacts.regions.contact_details import ContactDetails
+                return ContactDetails(self.marionette)

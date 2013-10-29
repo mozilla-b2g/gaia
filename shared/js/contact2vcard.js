@@ -5,6 +5,11 @@ var HEADER = 'BEGIN:VCARD\nVERSION:' + VCARD_VERSION + '\n';
 var FOOTER = 'END:VCARD\n';
 var ContactToVcard;
 var ContactToVcardBlob;
+var VCARD_MAP = {
+  'mobile' : 'cell'
+};
+// Field list to be skipped on vcard
+var VCARD_SKIP_FIELD = ['fb_profile_photo'];
 
 function ISODateString(d) {
   function pad(n) {
@@ -38,9 +43,26 @@ function ISODateString(d) {
 
     var str = vcardField;
     return sourceField.map(function(field) {
+      var skipField = false;
       var types = [];
-      if (field.type && field.type.length) {
-        types = types.concat(field.type);
+      if (Array.isArray(field.type)) {
+        var fieldType = field.type.map(function(aType) {
+          var out = '';
+          if (aType) {
+            aType = aType.trim().toLowerCase();
+            if (VCARD_SKIP_FIELD.indexOf(aType) !== -1) {
+              skipField = true;
+            }
+            out = VCARD_MAP[aType] || aType;
+          }
+          return out;
+        });
+
+        types = types.concat(fieldType);
+      }
+
+      if (skipField) {
+        return;
       }
 
       if (field.pref && field.pref === true) {

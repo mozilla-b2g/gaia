@@ -8,13 +8,25 @@ var GridManager = (function() {
   // use 100px icons for tablet
   var notTinyLayout = !ScreenLayout.getCurrentLayout('tiny');
   var PREFERRED_ICON_SIZE =
-      (notTinyLayout ? 100 : 60) * (window.devicePixelRatio || 1);
+      (notTinyLayout ? 90 : 60) * (window.devicePixelRatio || 1);
 
   var SAVE_STATE_TIMEOUT = 100;
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
 
   var HIDDEN_ROLES = ['system', 'keyboard', 'homescreen'];
+
+  function isHiddenApp(role) {
+    if (!role) {
+      console.warn(
+        'Unexpected role when checking hidden app: ' + JSON.stringify(role)
+      );
+
+      return false;
+    }
+
+    return (HIDDEN_ROLES.indexOf(role) !== -1);
+  }
 
   // Holds the list of single variant apps that have been installed
   // previously already
@@ -47,21 +59,37 @@ var GridManager = (function() {
     right: 0
   };
 
-  var MAX_ICONS_PER_PAGE = 4 * 4;
-  var MAX_ICONS_PER_EVME_PAGE = 4 * 3;
   var EVME_PAGE_STATE_INDEX = 1;
+
+  var MAX_ICONS_PER_PAGE = 4 * 4;
+
   // Check if there is space for another row of icons
   // For WVGA, 800x480, we also want to show 4 x 5 grid on homescreen
   // the homescreen size would be 770 x 480, and 770/480 ~= 1.6
   if (DEVICE_HEIGHT - BASE_HEIGHT > BASE_HEIGHT / 5 ||
       DEVICE_HEIGHT / windowWidth >= 1.6) {
     MAX_ICONS_PER_PAGE += 4;
-    MAX_ICONS_PER_EVME_PAGE += 4;
   }
 
-  // tablet+ devices are stricted to 5 x 3 grid
+  // tablet+ devices are stricted to 6 x 3 grid
   if (notTinyLayout) {
-    MAX_ICONS_PER_PAGE = 5 * 3;
+    MAX_ICONS_PER_PAGE = 6 * 3;
+  }
+
+  // The same number of icons by default
+  var MAX_ICONS_PER_EVME_PAGE = MAX_ICONS_PER_PAGE;
+
+  function setMaxIconsToSearchPage() {
+    if (!document.body.classList.contains('searchPageEnabled')) {
+      return;
+    }
+
+    // One row is consumed by the search bar
+    MAX_ICONS_PER_EVME_PAGE -= 4;
+
+    if (notTinyLayout) {
+      MAX_ICONS_PER_EVME_PAGE -= 6;
+    }
   }
 
   var startEvent, isPanning = false, startX, currentX, deltaX, removePanHandler,
@@ -179,20 +207,11 @@ var GridManager = (function() {
     };
   }
 
-  function addActive(target) {
-    if ('isIcon' in target.dataset) {
-      target.classList.add('active');
-      removeActive !== noop && removeActive();
-      removeActive = function _removeActive() {
-        target.classList.remove('active');
-        removeActive = noop;
-      };
-    } else {
-      removeActive = noop;
-    }
+  function tap(element) {
+    releaseEvents();
+    IconManager.cancelActive();
+    pageHelper.getCurrent().tap(element, IconManager.removeActive);
   }
-
-  var removeActive = noop;
 
   function handleEvent(evt) {
     switch (evt.type) {
@@ -205,7 +224,7 @@ var GridManager = (function() {
         attachEvents();
         removePanHandler = noop;
         isPanning = false;
-        addActive(evt.target);
+        IconManager.addActive(evt.target);
         panningResolver.reset();
         break;
 
@@ -234,7 +253,7 @@ var GridManager = (function() {
         var forward = deltaX < 0;
 
         // Since we're panning, the icon we're over shouldn't be active
-        removeActive();
+        IconManager.removeActive();
 
         var refresh;
 
@@ -328,9 +347,8 @@ var GridManager = (function() {
         break;
 
       case touchend:
-        releaseEvents();
-        pageHelper.getCurrent().tap(evt.target);
-        removeActive();
+        tap(evt.target);
+
         break;
 
       case 'wheel':
@@ -355,7 +373,7 @@ var GridManager = (function() {
 
     removePanHandler();
     Homescreen.setMode('edit');
-    removeActive();
+    IconManager.removeActive();
     LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
       DragDropManager.init();
       DragDropManager.start(evt, {
@@ -380,8 +398,7 @@ var GridManager = (function() {
         page = page - 1;
       }
     } else if (!isPanning && evt) {
-      releaseEvents();
-      pageHelper.getCurrent().tap(evt.target);
+      tap(evt.target);
     }
 
     goToPage(page);
@@ -832,7 +849,7 @@ var GridManager = (function() {
       var manifest = app.manifest || app.updateManifest;
 
       if (!manifest || app.type === GridItemsFactory.TYPE.COLLECTION ||
-          (suppressHiddenRoles && HIDDEN_ROLES.indexOf(manifest.role) !== -1)) {
+          (suppressHiddenRoles && isHiddenApp(manifest.role))) {
         continue;
       }
 
@@ -999,7 +1016,7 @@ var GridManager = (function() {
     appsByOrigin[app.origin] = app;
 
     var manifest = app.manifest ? app.manifest : app.updateManifest;
-    if (!manifest || HIDDEN_ROLES.indexOf(manifest.role) !== -1)
+    if (!manifest)
       return;
 
     var entryPoints = manifest.entry_points;
@@ -1141,8 +1158,20 @@ var GridManager = (function() {
     // let it update itself.
     var existingIcon = getIcon(descriptor);
     if (existingIcon) {
-      existingIcon.update(descriptor, app);
+      if (app.manifest && isHiddenApp(app.manifest.role)) {
+        existingIcon.remove();
+      } else {
+        existingIcon.update(descriptor, app);
+      }
       markDirtyState();
+      return;
+    }
+
+    // If we have manifest and no updateManifest, do not add the icon:
+    // this is especially the case for pre-installed hidden apps, like
+    // keyboard, system, etc.
+    if (app.manifest && !app.updateManifest &&
+        isHiddenApp(app.manifest.role)) {
       return;
     }
 
@@ -1303,6 +1332,8 @@ var GridManager = (function() {
     swipeThreshold = windowWidth * options.swipeThreshold;
     swipeFriction = options.swipeFriction || defaults.swipeFriction; // Not zero
     kPageTransitionDuration = options.swipeTransitionDuration;
+
+    setMaxIconsToSearchPage();
 
     IconRetriever.init();
 

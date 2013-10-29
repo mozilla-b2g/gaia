@@ -17,6 +17,10 @@ body {
   overflow: hidden;
 }
 
+.invisible {
+  display: none;
+}
+
 .panel {
   position: absolute;
   display: block;
@@ -26,22 +30,22 @@ body {
   top: 0;
 }
 
-#test-panel {
+.test-panel {
   -moz-transform: translateX(100%);
 }
 
-#tests {
+.selection-panel{
   -moz-transform: translateX(0);
 }
 
-body.test #test-panel {
-  -moz-transform: translateX(0);
-}
-
-body.test #tests {
+body.test .selection-panel{
   -moz-transform: translateX(-100%);
 }
 
+body.test .test-panel {
+  -moz-transform: translateX(0);
+}
+	
 .toolbar {
   -moz-box-sizing: border-box;
   position: absolute;
@@ -61,21 +65,6 @@ body.test #tests {
   height: 64px;
   border-bottom: solid 3px #9b9b9b;
 }
-
-.list {
-  position: absolute;
-  top: 64px;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  overflow-y: auto;
-  -moz-user-select: none;
-
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
-
 .toolbar-title {
   font-size: 26px;
   font-weight: bold;
@@ -89,15 +78,28 @@ body.test #tests {
   white-space: nowrap;
 }
 
-#test-list {
-    background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
-    margin: 0;
-    padding: 0;
+.list {
+  background: url("images/app-texture.png") repeat scroll 50% 50%, rgb(243, 243, 243);
+  margin: 0;
+  padding: 0;
+
+  position: absolute;
+  top: 64px;
+  bottom: 3rem;
+  left: 0;
+  right: 0;
+  overflow-y: auto;
+  -moz-user-select: none;
+
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
 }
 
-#test-list > li {
+.list > li {
   -moz-box-sizing: border-box;
-  height: 56px;
+
+  height: calc(100% / 7);
+
   padding: 4px 16px;
   border-top: 1px solid hsla(207,22%,92%,1);
   border-bottom: 1px solid hsla(223,7%,81%,1);
@@ -107,7 +109,7 @@ body.test #tests {
   font-weight: 600;
 }
 
-#test-list > li > a {
+.list > li > a {
   display: block;
   outline: none;
   width: 100%; height: 100%;
@@ -115,14 +117,14 @@ body.test #tests {
   text-decoration: none;
 }
 
-#test-list > li:active {
+.list > li:active {
   background: hsla(35,100%,50%,.2);
 }
 
 #test-iframe {
   border: none;
   width: 100%;
-  height: -moz-calc(100% - 64px);
+  height: calc(100% - 64px);
   top: 64px;
   background-color: #fff;
   position: absolute;

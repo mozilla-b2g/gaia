@@ -180,7 +180,7 @@ class GaiaData(object):
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
     def set_volume(self, value):
-        channels = ['master', 'content', 'notification', 'alarm', 'telephony', 'bt_sco']
+        channels = ['alarm', 'content', 'notification']
         for channel in channels:
             self.set_setting('audio.volume.%s' % channel, value)
 
@@ -326,6 +326,13 @@ class GaiaData(object):
         return self.marionette.execute_async_script(
             'return GaiaDataLayer.getAllVideos();')
 
+    def sdcard_files(self, extension=''):
+        files = self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllSDCardFiles();')
+        if len(extension):
+            return [filename for filename in files if filename.endswith(extension)]
+        return files
+
 
 class GaiaDevice(object):
 
@@ -412,6 +419,8 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     marionetteScriptFinished();
   }
 });""", script_timeout=60000)
+            # TODO: Remove this sleep when Bug 924912 is addressed
+            time.sleep(5)
 
     def stop_b2g(self):
         if self.marionette.instance:

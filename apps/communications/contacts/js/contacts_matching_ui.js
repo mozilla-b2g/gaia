@@ -273,9 +273,20 @@ if (!contacts.MatchingUI) {
       var theContact = matchingResults[uuid].matchingContact;
       if (Array.isArray(theContact.photo) && theContact.photo[0]) {
         // If the contact has a photo, preload it before showing the overlay.
-        matchingImg.src = window.URL.createObjectURL(theContact.photo[0]);
+        var url = window.URL.createObjectURL(theContact.photo[0]);
+
+        // Check to see if the image is already loaded, if so process
+        // it immediately.  We won't get another 'load' event by resetting the
+        // same url.
+        if (matchingImg.src === url && matchingImg.naturalWidth) {
+          window.URL.revokeObjectURL(url);
+          imageLoaded();
+          return;
+        }
+
         matchingImg.onload = imageLoaded;
         matchingImg.onerror = imageLoadingError;
+        matchingImg.src = url;
       }
       else {
         doShowMatchingDetails();

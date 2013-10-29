@@ -1,5 +1,6 @@
 'use strict';
 
+requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_request.html.js');
 requireApp('homescreen/js/request.js');
 

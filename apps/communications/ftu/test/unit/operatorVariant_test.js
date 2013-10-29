@@ -1,6 +1,6 @@
 'use strict';
 
-requireApp('communications/ftu/test/unit/mock_icc_helper.js');
+requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
 
 requireApp('communications/ftu/js/operatorVariant.js');

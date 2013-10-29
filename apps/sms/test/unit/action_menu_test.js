@@ -1,3 +1,5 @@
+/*global OptionMenu, MockL10n */
+
 'use strict';
 
 requireApp('sms/js/action_menu.js');

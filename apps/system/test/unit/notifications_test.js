@@ -5,7 +5,7 @@ mocha.globals(['ScreenManager']);
 requireApp('system/shared/test/unit/mocks/mock_settings_url.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
-requireApp('system/test/unit/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 requireApp('system/js/notifications.js');
 
@@ -151,6 +151,53 @@ suite('system/NotificationScreen >', function() {
       delete detail.icon;
       NotificationScreen.addNotification(detail);
       assert.isTrue(toasterIcon.hidden);
+    });
+
+    function testNotificationWithDirection(dir) {
+      var toasterTitle = NotificationScreen.toasterTitle;
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath,
+                    title: 'title',
+                    detail: 'detail',
+                    bidi: dir};
+      NotificationScreen.addNotification(detail);
+      assert.equal(dir, toasterTitle.dir);
+    };
+
+    test('calling addNotification with rtl direction', function() {
+      testNotificationWithDirection('rtl');
+    });
+
+    test('calling addNotification with ltr direction', function() {
+      testNotificationWithDirection('ltr');
+    });
+
+    test('calling addNotification with auto direction', function() {
+      testNotificationWithDirection('auto');
+    });
+
+    test('calling addNotification without direction', function() {
+      var toasterTitle = NotificationScreen.toasterTitle;
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath, title: 'title', detail: 'detail'};
+      NotificationScreen.addNotification(detail);
+      assert.equal('auto', toasterTitle.dir);
+    });
+
+    test('calling addNotification with language', function() {
+      var toasterTitle = NotificationScreen.toasterTitle;
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath, title: 'title', lang: 'en'};
+      NotificationScreen.addNotification(detail);
+      assert.equal('en', toasterTitle.lang);
+    });
+
+    test('calling addNotification without language', function() {
+      var toasterTitle = NotificationScreen.toasterTitle;
+      var imgpath = 'http://example.com/test.png';
+      var detail = {icon: imgpath, title: 'title'};
+      NotificationScreen.addNotification(detail);
+      assert.equal('undefined', toasterTitle.lang);
     });
 
     test('remove lockscreen notifications at the same time', function() {

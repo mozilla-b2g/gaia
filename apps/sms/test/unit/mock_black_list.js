@@ -1,3 +1,5 @@
+/*exported MockBlackList */
+
 'use strict';
 
 var MockBlackList = {

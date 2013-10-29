@@ -12,6 +12,8 @@ html, body {
   background-size: 100% 6rem;
 
   border-top:0.1rem black solid;
+
+  pointer-events: none;
 }
 
 #quick-settings > a {
@@ -29,6 +31,8 @@ html, body {
   line-height: 1.8rem;
   background-color: transparent;
   background-size: 3rem;
+
+  pointer-events: auto;
 }
 
 #quick-settings > .separator {

@@ -33,7 +33,8 @@ suite('L10n', function() {
     '                            <span>Tap for more info.</span>',
     'update.innerHTML[other]   = <strong>{{n}} updates available.</strong> \\',
     '                            <span>Tap for more info.</span>',
-    'inline-translation-test   = static content provided by inlined JSON'
+    'inline-translation-test   = static content provided by inlined JSON',
+    'a11y-label.ariaLabel      = label via ARIA'
   ].join('\n');
 
   var inlineL10Props = {
@@ -70,7 +71,10 @@ suite('L10n', function() {
     document.head.appendChild(inline);
 
     navigator.mozL10n.language.code = lang;
-    navigator.mozL10n.ready(function() {
+    navigator.mozL10n.ready(function suiteSetup_ready() {
+      // Make sure to remove this event listener in case we re-translate
+      // below.  The xhr mock won't exist any more.
+      window.removeEventListener('localized', suiteSetup_ready);
       xhr.restore();
       done();
     });
@@ -147,6 +151,12 @@ suite('L10n', function() {
       elem.dataset.l10nId = 'style-test';
       _translate(elem);
       assert.equal(elem.style.padding, '10px');
+    });
+
+    test('ARIA labels', function() {
+      elem.dataset.l10nId = 'a11y-label';
+      _translate(elem);
+      assert.equal(elem.getAttribute('aria-label'), 'label via ARIA');
     });
   });
 

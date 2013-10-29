@@ -1103,7 +1103,7 @@ var MediaDB = (function() {
               callback(cursor.value);
           }
           catch (e) {
-            console.warn('MediaDB.enumerate(): callback threw', e);
+            console.warn('MediaDB.enumerate(): callback threw', e, e.stack);
           }
           cursor.continue();
         }
@@ -1894,7 +1894,8 @@ var MediaDB = (function() {
         handler.call(media, event);
       }
       catch (e) {
-        console.warn('MediaDB: ', 'on' + type, 'event handler threw', e);
+        console.warn('MediaDB: ', 'on' + type,
+                     'event handler threw', e, e.stack);
       }
     }
 
@@ -1912,7 +1913,7 @@ var MediaDB = (function() {
         }
       }
       catch (e) {
-        console.warn('MediaDB: ', type, 'event listener threw', e);
+        console.warn('MediaDB: ', type, 'event listener threw', e, e.stack);
       }
     }
   }

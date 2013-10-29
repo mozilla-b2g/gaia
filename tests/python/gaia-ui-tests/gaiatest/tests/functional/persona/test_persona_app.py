@@ -32,6 +32,7 @@ class TestPersonaStandard(GaiaTestCase):
         """
         uitests = UiTests(self.marionette)
         uitests.launch()
+        uitests.tap_api_button()
         uitests.tap_mozId_button()
 
         persona = uitests.launch_standard_sign_in()

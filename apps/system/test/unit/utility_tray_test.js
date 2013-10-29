@@ -60,27 +60,49 @@ suite('system/UtilityTray', function() {
 
 
   suite('onTouch', function() {
-    test('should be opening', function() {
-      UtilityTray.onTouchStart({ pageY: 0 });
-      for (var distance = 0; distance < 100; distance++) {
-        UtilityTray.onTouchStart({ pageY: distance });
+    function fakeTouches(start, end) {
+      UtilityTray.onTouchStart({ pageY: start });
+      UtilityTray.screenHeight = 480;
+
+      var y = start;
+      while (y != end) {
+        UtilityTray.onTouchMove({ pageY: y });
+
+        if (y < end) {
+          y++;
+        } else {
+          y--;
+        }
       }
       UtilityTray.onTouchEnd();
-      assert.equal(UtilityTray.opening, true);
+    }
+
+    suite('showing', function() {
+      test('should not be shown by a tap', function() {
+        fakeTouches(0, 5);
+        assert.equal(UtilityTray.shown, false);
+      });
+
+      test('should be shown by a drag from the top', function() {
+        fakeTouches(0, 100);
+        assert.equal(UtilityTray.shown, true);
+      });
     });
 
-    test('should be shown', function() {
-      UtilityTray.onTouchStart({ pageY: 0 });
-      for (var distance = 0; distance < 100; distance++) {
-        UtilityTray.onTouchStart({ pageY: distance });
-      }
-      UtilityTray.onTouchEnd();
-      assert.equal(UtilityTray.shown, true);
-    });
+    suite('hiding', function() {
+      setup(function() {
+        UtilityTray.show();
+      });
 
-    test('UtilityTray.onTouchMove is called with correct argument', function() {
-      UtilityTray.onTouchStart({ pageY: 20 });
-      assert.equal(UtilityTray.lastY, 20);
+      test('should not be hidden by a tap', function() {
+        fakeTouches(480, 475);
+        assert.equal(UtilityTray.shown, true);
+      });
+
+      test('should be hidden by a drag from the bottom', function() {
+        fakeTouches(480, 380);
+        assert.equal(UtilityTray.shown, false);
+      });
     });
   });
 

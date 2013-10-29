@@ -95,8 +95,28 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
     if (hasProgress) {
       utils.overlay.hide();
     }
-    // TODO: show error if any
+    // Error handling
     if (error) {
+      var cancel = {
+        title: _('cancel'),
+        callback: function() {
+          ConfirmDialog.hide();
+        }
+      };
+      var retry = {
+        title: _('retry'),
+        isRecommend: true,
+        callback: function() {
+          ConfirmDialog.hide();
+          // And now the action is reproduced one more time
+          window.setTimeout(strategy.doExport(doHandleResult), 0);
+        }
+      };
+      var errorString = 'exportError-' + strategy.name + '-';
+      Contacts.confirmDialog(_('exportErrorTitle'),
+                             _(errorString + error.reason),
+                             cancel, retry);
+      Contacts.hideOverlay();
       console.error('An error occurred during the export: ' + error.reason);
     }
     // TODO: Better mechanism to show result

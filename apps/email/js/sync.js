@@ -87,7 +87,7 @@ define(function(require) {
         if (froms.indexOf(info.from) === -1)
           froms.push(info.from);
       });
-      return froms.join(', ');
+      return froms.join(mozL10n.get('senders-separation-sign'));
     }
 
     /*
@@ -127,7 +127,9 @@ define(function(require) {
               if (!model.getAccount(result.id).notifyOnNew)
                 return;
 
-              var dataString;
+              var dataString,
+                  subject,
+                  body;
 
               if (navigator.mozNotification) {
                 if (result.count > 1) {
@@ -136,12 +138,24 @@ define(function(require) {
                     accountId: result.id
                   });
 
+                  if (model.getAccountCount() === 1) {
+                    subject = mozL10n.get(
+                      'new-emails-notify-one-account',
+                      { n: result.count }
+                    );
+                  } else {
+                    subject = mozL10n.get(
+                      'new-emails-notify-multiple-accounts',
+                      {
+                        n: result.count,
+                        accountName: result.address
+                      }
+                    );
+                  }
+
                   sendNotification(
                     result.id,
-                    mozL10n.get('new-emails-notify', {
-                      n: result.count,
-                      accountName: result.address
-                    }),
+                    subject,
                     makeNotificationDesc(result.latestMessageInfos.sort(
                                            function(a, b) {
                                              return b.date - a.date;
@@ -151,16 +165,36 @@ define(function(require) {
                   );
                 } else {
                   result.latestMessageInfos.forEach(function(info) {
-                      dataString = fromObject({
-                        type: 'message_reader',
-                        accountId: info.accountId,
-                        messageSuid: info.messageSuid
-                      });
+                    dataString = fromObject({
+                      type: 'message_reader',
+                      accountId: info.accountId,
+                      messageSuid: info.messageSuid
+                    });
+
+                    if (model.getAccountCount() === 1) {
+                      subject = info.subject;
+                      body = info.from;
+                    } else {
+                      subject = mozL10n.get(
+                        'new-emails-notify-multiple-accounts',
+                        {
+                          n: result.count,
+                          accountName: result.address
+                        }
+                      );
+                      body = mozL10n.get(
+                        'new-emails-notify-multiple-accounts-body',
+                        {
+                          from: info.from,
+                          subject: info.subject
+                        }
+                      );
+                    }
 
                     sendNotification(
                       result.id,
-                      info.subject,
-                      info.from,
+                      subject,
+                      body,
                       iconUrl + '#' + dataString
                     );
                   });

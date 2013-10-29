@@ -1,3 +1,4 @@
+
 (function(exports) {
   'use strict';
 
@@ -22,7 +23,7 @@
     this.messages = [];
   }
 
-  exports.Threads = {
+  var Threads = exports.Threads = {
     set: function(id, thread) {
       var old;
       id = +id;
@@ -71,7 +72,7 @@
       return lastId;
     },
     get active() {
-      return Threads.get(Threads.currentId);
+      return threads.get(+Threads.currentId);
     }
   };
 

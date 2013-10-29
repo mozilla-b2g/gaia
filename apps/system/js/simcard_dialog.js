@@ -71,9 +71,7 @@ var SimPinDialog = {
     var cardState = IccHelper.cardState;
     var lockType = this.lockTypeMap[cardState];
     IccHelper.getCardLockRetryCount(lockType, (function(retryCount) {
-      if (!retryCount) {
-        this.triesLeftMsg.hidden = true;
-      } else {
+      if (retryCount) {
         var l10nArgs = { n: retryCount };
         this.triesLeftMsg.textContent = _('inputCodeRetriesLeft', l10nArgs);
         this.triesLeftMsg.hidden = false;
@@ -186,6 +184,9 @@ var SimPinDialog = {
   unlockCardLock: function spl_unlockCardLock(options) {
     var req = IccHelper.unlockCardLock(options);
     req.onsuccess = this.close.bind(this, 'success');
+    req.onerror = (function spl_unlockCardLockError() {
+      this.handleError(req.error);
+    }).bind(this);
   },
 
   enableLock: function spl_enableLock() {
@@ -328,9 +329,6 @@ var SimPinDialog = {
 
     if (!IccHelper.enabled)
       return;
-
-    IccHelper.addEventListener('icccardlockerror',
-      this.handleError.bind(this));
 
     this.dialogDone.onclick = this.verify.bind(this);
     this.dialogClose.onclick = this.skip.bind(this);

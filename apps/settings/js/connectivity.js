@@ -77,6 +77,7 @@ var Connectivity = (function(window, document, undefined) {
       'serviceProviderLocked' : 'simLockedPhone',
       'corporateLocked' : 'simLockedPhone',
       'unknown' : 'unknownSimCardState',
+      'illegal' : 'simCardIllegal',
       'absent' : 'noSimCard',
       'null' : 'simCardNotReady',
       'ready': ''

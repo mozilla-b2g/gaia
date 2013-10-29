@@ -20,10 +20,11 @@ var BlackList = (function() {
     xhr.send(null);
 
     xhr.onreadystatechange = function cc_loadConfiguration(evt) {
-      if (xhr.readyState != 4)
+      if (xhr.readyState !== 4) {
         return;
+      }
 
-      if (xhr.status == 0 || xhr.status == 200) {
+      if (xhr.status === 0 || xhr.status === 200) {
         var list = JSON.parse(xhr.responseText);
 
         _blackList = {};

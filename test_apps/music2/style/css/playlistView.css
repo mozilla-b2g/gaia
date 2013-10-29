@@ -33,7 +33,7 @@
   padding-bottom: .75em;
 }
 
-.playlistViewItem .info.right {
+.playlistViewItem .info.albumRight {
   width: calc(100% - 5.5em);
   margin-left: 5.5em;
   min-height: 5em;
@@ -50,10 +50,10 @@
   padding-left: 0em;
 }
 
-.playlistViewItem .tracknum {
-  color: #aac;
-  text-align: center;
-  padding-top: .75em;
+.playlistViewItem .songInfo {
+  position: absolute;
+  height: 100%;
+  width: 1.5rem;
 }
 
 .playlistViewItem .playlistItemDelete {
@@ -65,13 +65,22 @@
   background-size: 60% auto;
 }
 
+.playlistViewItem .beingPlayedIcon,
+.playlistViewItem .beingPausedIcon {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 80% auto;
+
+  position: absolute;
+  height: 100%;
+  width: 100%;
+}
+
 .playlistViewItem .beingPlayedIcon {
   background-image: url('../images/controls/play.png');
-  background-size: 80% auto;
 }
 
 .playlistViewItem .beingPausedIcon {
   background-image: url('../images/controls/pause.png');
-  background-size: 80% auto;
 }
 

@@ -3,7 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+
 from gaiatest import GaiaTestCase
+from gaiatest.apps.homescreen.app import Homescreen
 
 MANIFEST = 'http://mozqa.com/data/webapps/mozqa.com/manifest.webapp'
 APP_NAME = 'Mozilla QA WebRT Tester'
@@ -11,63 +13,36 @@ TITLE = 'Index of /data'
 
 
 class TestLaunchApp(GaiaTestCase):
-    _yes_button_locator = (By.ID, 'app-install-install-button')
-    _installed_app_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"]' % APP_NAME)
-
-    # locator for li.icon, because click on label doesn't work.
-    _visible_icon_locator = (By.CSS_SELECTOR, 'div.page[style*="transform: translateX(0px);"] li.icon[aria-label="%s"]' % APP_NAME)
-    _app_locator = (By.CSS_SELECTOR, 'iframe[src="http://mozqa.com/data"]')
+    _confirm_install_button_locator = (By.ID, 'app-install-install-button')
     _header_locator = (By.CSS_SELECTOR, 'h1')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
         self.connect_to_network()
-        self.homescreen = self.apps.launch('Homescreen')
 
-        # install app
+        self.homescreen = Homescreen(self.marionette)
+        self.homescreen.launch()
+
+        # Install app
         self.marionette.switch_to_frame()
         self.marionette.execute_script(
             'navigator.mozApps.install("%s")' % MANIFEST)
 
-        # click yes on the installation dialog and wait for icon displayed
-        self.wait_for_element_displayed(*self._yes_button_locator)
-        self.marionette.find_element(*self._yes_button_locator).tap()
-
-        self.marionette.switch_to_frame(self.homescreen.frame)
-
-        # We don't need to check it's displayed, only present(installed)
-        # We'll find the icon in the test instead
-        self.wait_for_element_present(*self._installed_app_locator)
+        # Confirm the installation and wait for the app icon to be present
+        self.wait_for_element_displayed(*self._confirm_install_button_locator)
+        self.marionette.find_element(*self._confirm_install_button_locator).tap()
+        self.homescreen.switch_to_homescreen_frame()
+        self.homescreen.wait_for_app_icon_present(APP_NAME)
 
     def test_launch_app(self):
-        # We iterate through the homescreen pages until we find the app icon visible
-        # It can be on different screens depending on what is packaged with the build
-        while True:
-            if self.is_element_present(*self._visible_icon_locator):
-                break
-            if self._homescreen_has_more_pages():
-                self._go_to_next_page()
-            else:
-                break
+        # Verify that the app icon is visible on one of the homescreen pages
+        self.assertTrue(self.homescreen.is_app_installed(APP_NAME),
+            "App %s not found on Homescreen" % APP_NAME)
 
-        # click icon and wait for h1 element displayed
-        self.marionette.find_element(*self._visible_icon_locator).tap()
-        self.marionette.switch_to_frame()
-        iframe = self.marionette.find_element(*self._app_locator)
-        self.marionette.switch_to_frame(iframe)
+        # Click icon and wait for h1 element displayed
+        self.homescreen.installed_app(APP_NAME).tap_icon()
         self.wait_for_element_displayed(*self._header_locator, timeout=20)
         self.assertEqual(self.marionette.find_element(*self._header_locator).text, TITLE)
-
-    def _go_to_next_page(self):
-        self.marionette.execute_script('window.wrappedJSObject.GridManager.goToNextPage()')
-        self.wait_for_condition(lambda m: m.find_element('tag name', 'body')
-            .get_attribute('data-transitioning') != 'true')
-
-    def _homescreen_has_more_pages(self):
-        # the naming of this could be more concise when it's in an app object!
-        return self.marionette.execute_script("""
-            var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
-            return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")
 
     def tearDown(self):
         self.apps.uninstall(APP_NAME)

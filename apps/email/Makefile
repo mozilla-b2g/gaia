@@ -1,16 +1,9 @@
-SYS=$(shell uname -s)
-
-ifeq ($(SYS),Darwin)
-XULRUNNERSDK=../../xulrunner-sdk/bin/XUL.framework/Versions/Current/run-mozilla.sh
-XPCSHELLSDK=../../xulrunner-sdk/bin/XUL.framework/Versions/Current/xpcshell
-else ifeq ($(findstring MINGW32,$(SYS)), MINGW32)
-# For windows we only have one binary
-XULRUNNERSDK=
-XPCSHELLSDK=../../xulrunner-sdk/bin/xpcshell
-else
-# Otherwise, assume linux
-XULRUNNERSDK=../../xulrunner-sdk/bin/run-mozilla.sh
-XPCSHELLSDK=../../xulrunner-sdk/bin/xpcshell
+# We can't figure out XULRUNNERSDK on our own; it's complex and some builders
+# # may want to override our find logic (ex: TBPL), so let's just leave it up to
+# # the root Makefile.  If you know what you're doing, you can manually define
+# # XULRUNNERSDK and XPCSHELLSDK on the command line.
+ifndef XPCSHELLSDK
+$(error This Makefile needs to be run by the root gaia makefile. Use `make APP=email` from the root gaia directory.)
 endif
 
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))

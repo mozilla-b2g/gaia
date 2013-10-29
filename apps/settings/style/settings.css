@@ -32,40 +32,20 @@ section[role="region"] {
 
 /**
  * Panel targets -- transitions
- * the `.previous', '.current' and '.forward' classes are set by settings.js
- * we use the '.peek' class to force the rendering of the panel before
- * starting the transition, thus avoiding an ugly flickering with gecko 18
+ * the `.previous', '.current' classes are set by settings.js
  */
 
 section[role="region"] {
-  visibility: hidden;
   transform: translateX(+100%);
   transition: transform .4s ease, visibility .4s ease;
 }
-section[role="region"].peek {
-  visibility: visible;
-  transition: transform 1ms linear;
-  transform: translateX(+0.1%);
-}
 
 section[role="region"].previous {
-  visibility: hidden;
   transform: translateX(-100%);
-}
-section[role="region"].previous.peek {
-  visibility: visible;
-  transform: translateX(-0.1%);
 }
 
 section[role="region"].current {
-  visibility: visible;
   transform: translateX(0);
-}
-section[role="region"].current.peek.forward {
-  transform: translateX(99.9%);
-}
-section[role="region"].current.peek {
-  transform: translateX(-99.9%);
 }
 
 /**
@@ -122,7 +102,7 @@ section[role="region"] > div {
   color: #505859;
 }
 
-.link-text, .tel-text a {
+.link-text {
   font-size: 1.4rem;
   color: #336699;
   text-decoration: underline;
@@ -214,7 +194,7 @@ section li.password > label > span {
 section li.password > span {
   position: absolute;
   top: 8.3rem;
-  left: 3rem;
+  left: 4.5rem;
   padding: 0;
   height: 3rem;
   color: #848484;
@@ -332,7 +312,7 @@ section li.password > p {
   height: 2.7rem;
 }
 
-#call li[aria-disabled="true"] .fake-select {
+#call li[aria-disabled="true"] .icon-dialog {
   opacity: 0.6;
   pointer-events: none;
 }
@@ -347,7 +327,7 @@ section li.password > p {
 #carrier-operatorSettings-content:not(.gsm) #availableOperatorsHeader,
 #carrier-operatorSettings-content:not(.gsm) #availableOperators {
   display: none;
-} 
+}
 
 #carrier-dc-warning h1 > span:before,
 #carrier-dr-warning h1 > span:before {
@@ -481,7 +461,7 @@ ul li > label .range-icons.brightness {
  * Date & Time
  */
 
-#timezone-raw a,
+#timezone-raw span,
 #dateTime ul.disabled p,
 #dateTime ul.disabled a {
   color: #797e80;
@@ -510,12 +490,87 @@ ul li > label .range-icons.brightness {
 /******************************************************************************
  * Improve Browser OS
  */
-
+#improveBrowserOS-chooseFeedback li,
+#improveBrowserOS-sendFeedback li {
+  border: none;
+}
+#improveBrowserOS-sendFeedback li:first-child {
+  min-height: 3rem;
+}
 #improveBrowserOS .link-text {
   white-space: nowrap;
 }
+#feedback-description {
+  display: block;
+  height: 10rem;
+  padding: 1rem 1rem 1.2rem;
+  resize: none;
+}
+#sendFeedback .pack-checkbox span {
+  left: 3rem;
+  right: auto;
+  top: 2rem;
+}
+.feedback-choose-face {
+  display: block;
+  background: url(images/feedback_faces.png);
+  width: 10rem;
+  height: 10rem;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-size: 20rem;
+}
+#feedback-mood {
+  text-align: center;
+}
+#feedback-mood li{
+  display: inline-block;
+}
+#feedback-happy {
+  float: left;
+}
+#feedback-sad {
+  float: right;
+}
+#feedback-happy .feedback-choose-face{
+  display: inline-block;
+  background-position: 0;
+}
+#feedback-sad .feedback-choose-face{
+  background-position: 100%;
+}
+.feedback-feel{
+  text-align: center;
+}
+.feedback-choose-item {
+  float: left;
+  width: 100%;
+}
+.feedback-choose-item .checkbox-span {
+  text-align: center;
+}
+p.checkbox-description {
+  margin-left: 3rem;
+}
+#feedback-email {
+  width: 100%;
+}
+#feedback-email.hidden {
+  display: none;
+}
+.email-enable .pack-checkbox > .checkbox-span {
+  left: 2.4rem;
+  right: auto;
+  top: 2rem;
 
-
+}
+#feedback-emailbar p {
+  padding-bottom: 0;
+}
+#feedback-send-btn {
+  text-align: center;
+  top: 2.1rem;
+}
 /******************************************************************************
  * OS License
  */
@@ -531,14 +586,18 @@ ul li > label .range-icons.brightness {
  * Help
  */
 
-#call-support-numbers {
-  position: absolute;
-  right: 2rem;
+#call-support-link, #online-support-link {
+  height: auto;
 }
 
-html[dir="rtl"] #call-support-numbers {
-  right: inherit;
-  left: 2rem;
+#call-support-numbers, #online-support-text {
+  display: block;
+  line-height: 3rem;
+  margin-bottom: 2rem;
+}
+
+#call-support-numbers a, #online-support-text a {
+  display: block;
 }
 
 #help[data-has-support-info] .no-support-info,

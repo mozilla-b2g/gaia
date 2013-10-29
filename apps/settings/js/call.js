@@ -132,6 +132,7 @@ var Calls = (function(window, document, undefined) {
       'corporateLocked' : _('simLockedPhone'),
       'serviceProviderLocked' : _('simLockedPhone'),
       'unknown' : _('unknownSimCardState'),
+      'illegal' : _('simCardIllegal'),
       'absent' : _('noSimCard'),
       'null' : _('simCardNotReady')
     };
@@ -486,14 +487,6 @@ var Calls = (function(window, document, undefined) {
       }
 
       input.value = value;
-      var parent = input.parentElement;
-      var button = input.previousElementSibling;
-      var index = input.selectedIndex;
-      if (index >= 0) {
-        var selection = input.options[index];
-        button.textContent = selection.textContent;
-        button.dataset.l10nId = selection.dataset.l10nId;
-      }
 
       if (callback) {
         callback(null);

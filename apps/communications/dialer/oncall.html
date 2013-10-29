@@ -2,7 +2,6 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
     <title>Dialer</title>
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall.css">
     <link rel="stylesheet" type="text/css" href="/dialer/style/oncall_status_bar.css">
@@ -32,6 +31,7 @@
     <script defer type="application/javascript" src="/dialer/js/keypad.js"></script>
     <script defer type="application/javascript" src="/dialer/js/utils.js"></script>
     <script defer type="application/javascript" src="/dialer/js/call_screen.js"></script>
+    <script defer type="application/javascript" src="/dialer/js/bluetooth_helper.js"></script>
     <script defer type="application/javascript" src="/dialer/js/calls_handler.js"></script>
     <script defer type="application/javascript" src="/dialer/js/conference_group_handler.js"></script>
     <script defer type="application/javascript" src="/dialer/js/voicemail.js"></script>
@@ -56,7 +56,7 @@
         </div>
         <div id="lockscreen-date"></div>
       </div>
-      <article id="calls" data-count="0" data-cdma-call-waiting="false">
+      <article id="calls" data-count="0">
         <section id="handled-call-template" hidden>
           <div class="switch-calls">
             <span role="button" id="switch-calls-button">
@@ -133,12 +133,12 @@
 
                 <div id="swiper-slider-handler">
                   <div class="swiper-icon swiper-slider-left" data-role="handler-left">
-                    <span>‹</span>
+                    <span></span>
                   </div>
                   <div class="swiper-icon swiper-slider-center" data-role="handler-center">
                   </div>
                   <div class="swiper-icon swiper-slider-right" data-role="handler-right">
-                    <span>›</span>
+                    <span></span>
                   </div>
                 </div>
 
@@ -163,7 +163,7 @@
                     </span>
                   </button>
                 </span>
-                <span class="grid-cell options-column">
+                <span id="place-new-call-container" class="grid-cell options-column">
                   <button id="place-new-call" class="co-advanced-option grid-wraper grid center">
                     <span class="icon icon-place-new-call">
                     </span>
