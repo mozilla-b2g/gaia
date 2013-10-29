@@ -58,7 +58,8 @@ var mocksHelperForThreadUI = new MocksHelper([
   'OptionMenu',
   'Dialog',
   'Contacts',
-  'SMIL'
+  'SMIL',
+  'TimeHeaders'
 ]);
 
 mocksHelperForThreadUI.init();
