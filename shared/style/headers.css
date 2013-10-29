@@ -340,9 +340,6 @@ section[role="region"].skin-organic header h2,
  * HEADERS: right-to-left tweaks
  * ---------------------------------- */
 
-
-
-
 html[dir="rtl"] section[role="region"] > header:first-child menu[type="toolbar"] {
   float: left;
 }
@@ -363,6 +360,7 @@ html[dir="rtl"] section[role="region"] > header:first-child h1 {
   text-align: right;
   padding: 0 3rem 0 1rem;
 }
+
 html[dir="rtl"] section[role="region"] > header:first-child > button,
 html[dir="rtl"] section[role="region"] > header:first-child > a {
   float: right;
@@ -392,9 +390,6 @@ html[dir="rtl"] section[role="region"] > header:first-child form button[type="re
   left: 1rem;
   right:inherit;
 }
-
-
-
 
 /* ----------------------------------
  * HEADERS: dark
