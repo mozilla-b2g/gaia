@@ -591,7 +591,11 @@ node_modules:
 	npm install
 
 b2g: node_modules
-	./node_modules/.bin/mozilla-download --verbose --product b2g $@
+	./node_modules/.bin/mozilla-download \
+		--verbose \
+		--channel prerelease \
+		--branch aurora \
+		--product b2g $@
 
 .PHONY: test-integration
 test-integration:
