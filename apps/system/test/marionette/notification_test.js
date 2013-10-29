@@ -60,7 +60,9 @@ marionette('notification tests', function() {
   var screenStatusIsOn = screenStatusIs.bind(null, true);
   var screenStatusIsOff = screenStatusIs.bind(null, false);
 
-  test('email notification should not wake screen', function() {
+  // skipping this test until we can figure out why we see intermittent oranges
+  // see also: bug 916730
+  test.skip('email notification should not wake screen', function() {
     client.switchToFrame();
     client.executeScript(function() {
       window.wrappedJSObject.ScreenManager.turnScreenOff(true);
