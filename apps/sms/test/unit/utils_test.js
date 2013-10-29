@@ -102,6 +102,9 @@ suite('Utils', function() {
     var spy;
 
     setup(function() {
+      // choose a date that is far away from a DST change
+      var today = new Date('Tue Jan 29 2013 14:18:15 GMT+0100 (CET)').getTime();
+      this.sinon.useFakeTimers(today);
       spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
         'localeFormat');
     });
@@ -123,6 +126,62 @@ suite('Utils', function() {
     test('(yesterday [String|Number|Date])', function() {
       var expect = 'yesterday';
       var yesterday = Date.now() - 86400000;
+      var fixtures = {
+        string: yesterday + '',
+        number: yesterday,
+        date: new Date(yesterday)
+      };
+
+      assert.equal(Utils.getHeaderDate(fixtures.string), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.number), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.date), expect);
+    });
+
+    test('yesterday, after a DST-we-gain-one-hour change', function() {
+      var expect = 'yesterday';
+      var now = new Date();
+      var yesterday = Date.now() - 86400000;
+      var yesterdayBeforeDST = new Date(yesterday);
+      yesterdayBeforeDST.setHours(0, 0, 0, 0);
+      yesterdayBeforeDST = yesterdayBeforeDST.getTime() - 3600;
+
+      var realGetTime = Date.prototype.getTime;
+      this.sinon.stub(Date.prototype, 'getTime', function() {
+        if (this.getDate() < now.getDate()) { // ok, this is yesterday
+          return yesterdayBeforeDST;
+        } else {
+          return realGetTime.call(this);
+        }
+      });
+
+      var fixtures = {
+        string: yesterday + '',
+        number: yesterday,
+        date: new Date(yesterday)
+      };
+
+      assert.equal(Utils.getHeaderDate(fixtures.string), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.number), expect);
+      assert.equal(Utils.getHeaderDate(fixtures.date), expect);
+    });
+
+    test('yesterday, after a DST-we-lose-one-hour change', function() {
+      var expect = 'yesterday';
+      var now = new Date();
+      var yesterday = Date.now() - 86400000;
+      var yesterdayBeforeDST = new Date(yesterday);
+      yesterdayBeforeDST.setHours(0, 0, 0, 0);
+      yesterdayBeforeDST = yesterdayBeforeDST.getTime() + 3600;
+
+      var realGetTime = Date.prototype.getTime;
+      this.sinon.stub(Date.prototype, 'getTime', function() {
+        if (this.getDate() < now.getDate()) { // ok, this is yesterday
+          return yesterdayBeforeDST;
+        } else {
+          return realGetTime.call(this);
+        }
+      });
+
       var fixtures = {
         string: yesterday + '',
         number: yesterday,
