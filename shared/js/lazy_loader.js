@@ -84,7 +84,7 @@ var LazyLoader = (function() {
         } else {
           var method, idx;
           if (typeof file === 'string') {
-            method = file.match(/\.(.*?)$/)[1];
+            method = file.match(/.([^\.]+)$/)[1];
             idx = file;
           } else {
             method = 'html';
