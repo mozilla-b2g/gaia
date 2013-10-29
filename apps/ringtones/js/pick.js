@@ -54,36 +54,12 @@ navigator.mozSetMessageHandler('activity', function handler(activity) {
     xhr.responseType = 'blob';
     xhr.send();
     xhr.onload = function() {
-      /*
-       * This is a workaround for bug 914404.
-       * XXX When that bug is fixed, clean up like this:
-       *  remove makePersistentCopy
-       *  remove the deleteMe parameter below
-       *  remove the device storage permission in manifest.webapp
-       */
-      makePersistentCopy(xhr.response, function(copy, filename) {
-        activity.postResult({
-          name: selectedSoundName,
-          blob: copy,
-          deleteMe: filename
-        });
+      activity.postResult({
+        name: selectedSoundName,
+        blob: xhr.response
       });
     };
   };
-
-  function makePersistentCopy(blob, callback) {
-    var filename = 'tmp/' + Math.random().toString().substring(2) + '.ogg';
-    console.log('Bug 914404 workaround saving blob to device storage',
-                filename);
-    var storage = navigator.getDeviceStorage('music');
-    var write = storage.addNamed(blob, filename);
-    write.onsuccess = function() {
-      var read = storage.get(filename);
-      read.onsuccess = function() {
-        callback(read.result, filename);
-      };
-    };
-  }
 
   // When we start up, we first need to get the list of all sounds.
   // We also need the name of the currently selected sound.

@@ -112,7 +112,6 @@
             }
           }
 
-
           // Save the sound in the settings db so that other apps can use it.
           // Also save the sound name in the db so we can display it in the
           // future.  And update the button text to the new name now.
@@ -122,20 +121,7 @@
             var values = {};
             values[tone.settingsKey] = blob;
             values[namekey] = name || '';
-            var request = navigator.mozSettings.createLock().set(values);
-            /*
-             * This is a workaround for bug 914404.
-             * XXX When that bug is fixed, clean up like this:
-             *  remove the onsuccess handler below and the request variable
-             *  switch back to readonly permission for music in the manifest
-             */
-            request.onsuccess = function() {
-              if (activity.result.deleteMe) {
-                console.log('Bug 914404: deleting', activity.result.deleteMe);
-                var storage = navigator.getDeviceStorage('music');
-                storage.delete(activity.result.deleteMe);
-              }
-            };
+            navigator.mozSettings.createLock().set(values);
           }
         };
       });
