@@ -116,47 +116,53 @@ var ContactsBTExport = function ContactsBTExport() {
       return true;
     };
 
-    ContactToVcardBlob(contacts, function onContacts(blob) {
-      _getStorage(_getFileName(), blob,
-      function onStorage(error, storage, filename) {
-        if (checkError(error))
-          return;
+    var vcfStr = '';
+    ContactToVcardBlob(contacts, function onContacts(blob, remaining) {
+      vcfStr += blob;
 
-        _saveToSdcard(storage, filename, blob,
-        function onVcardSaved(error, filepath) {
-          if (checkError(error))
-            return;
-
-          _getFile(storage, filepath,
-          function onFileRetrieved(error, file) {
+      if (remaining === 0) {
+        _getStorage(_getFileName(), blob,
+          function onStorage(error, storage, filename) {
             if (checkError(error))
               return;
 
-            var a = new MozActivity({
-              name: 'share',
-              data: {
-                type: 'text/vcard',
-                number: 1,
-                blobs: [file],
-                filenames: [filename],
-                filepaths: [filepath]
-              }
-            });
-            a.onsuccess = function() { // Everything went OK
-              finishCallback(null, contacts.length, null); // final callback
-            };
+            _saveToSdcard(storage, filename, blob,
+              function onVcardSaved(error, filepath) {
+                if (checkError(error))
+                  return;
 
-            a.onerror = function(e) {
-              if (a.error.name === 'NO_PROVIDER') {
-                alert(_('share-noprovider'));
-              } else {
-                console.warn('share activity error:', a.error.name);
-              }
-              finishCallback({'reason': a.error}, 0, a.error.name);
-            };
+                _getFile(storage, filepath,
+                  function onFileRetrieved(error, file) {
+                    if (checkError(error))
+                      return;
+
+                    var a = new MozActivity({
+                      name: 'share',
+                      data: {
+                        type: 'text/vcard',
+                        number: 1,
+                        blobs: [file],
+                        filenames: [filename],
+                        filepaths: [filepath]
+                      }
+                    });
+                    a.onsuccess = function() { // Everything went OK
+                      // final callback
+                      finishCallback(null, contacts.length, null);
+                    };
+
+                    a.onerror = function(e) {
+                      if (a.error.name === 'NO_PROVIDER') {
+                        alert(_('share-noprovider'));
+                      } else {
+                        console.warn('share activity error:', a.error.name);
+                      }
+                      finishCallback({'reason': a.error}, 0, a.error.name);
+                    };
+                  });
+              });
           });
-        });
-      });
+      }
     });
   };
 

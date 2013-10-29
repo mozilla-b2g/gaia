@@ -9,6 +9,6 @@ var MockGetUnusedFilename = function(storage, filename, callback) {
 };
 
 var MockContactToVcarBlob = function(contacts, callback) {
-  callback({ size: contacts.length });
+  callback({ size: contacts.length }, 0);
 };
 

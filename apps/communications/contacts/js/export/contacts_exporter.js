@@ -126,7 +126,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
 
   //
   // Based on the strategy configure the progress display to show a
-  // determinative or indeterminate ui depending on the strategy
+  // determinate or indeterminate ui depending on the strategy
   //
   var _configureProgress = function _configureProgress() {
     determinativeProgress =
