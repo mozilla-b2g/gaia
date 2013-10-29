@@ -153,7 +153,7 @@
   #main-container:before {
     content: "";
     position: absolute;
-    top: 0rem;
+    top: 0;
     left: 0;
     background-color: rgba(0, 0, 0, 0.45);
     width: 100%;
@@ -334,7 +334,7 @@
     position: absolute;
     top: 0;
     width: 100%;
-    height: 14rem;
+    height: 16rem;
 
     z-index: 500;
   }
@@ -345,10 +345,10 @@
 
   #calls > section {
     position: relative;
-    height: 7rem;
+    height: 8rem;
 
     font-size: 1.8em;
-    line-height: 7rem;
+    line-height: 8rem;
     background-color: #01c5ed;
 
     transition: background-color 0.3s linear;
@@ -356,7 +356,7 @@
   }
 
   #calls > section div {
-    padding-left: 2rem;
+    padding-left: 2.5rem;
     padding-right: 1.5rem;
   }
 
@@ -375,16 +375,22 @@
     height: 8.0rem;
     width: auto;
     float: right;
-    padding: 0rem;
+    padding: 0;
+  }
+
+  #calls[data-cdma-call-waiting="true"] > section.additionalInfo .switch-calls {
+    height: 10rem;
   }
 
   #switch-calls-button {
     display: block;
-    margin: 1.5rem 1.3rem 0rem 0rem;
-    padding: 0rem;
+    margin: 0 1.3rem 0 0;
+    padding: 0;
     height: 4rem;
     width: 12.8rem;
     border: 0;
+    position: relative;
+    top: calc(50% - 2rem);
     border-radius: .3rem;
     background: url('images/ActionIcon_40x40_switchlines.png'),
                 url('images/btn_switchlines.png');
@@ -401,12 +407,22 @@
     background-repeat: no-repeat, repeat-x;
   }
 
-  #calls.big-duration > section .numberWrapper {
+  #calls:not(.big-duration) > section .numberWrapper {
+    padding-left: 4rem;
+    padding-right: 7rem;
+  }
+
+  #calls.big-duration > section .numberWrapper,
+  #calls.big-duration > section .additionalContactInfo {
     background: #01c5ed;
-    overflow: auto;
   }
 
   #calls.big-duration > section .numberWrapper .number {
+    height: 3.2rem;
+    line-height: 3rem;
+  }
+
+  #calls > section .numberWrapper .number {
     height: 2.5rem;
     padding: 2rem 0 0 0;
     font-size: 3.2rem;
@@ -418,7 +434,7 @@
     font-weight: lighter;
   }
 
-  #calls.big-duration > section:not(.additionalInfo) .numberWrapper
+  #calls > section:not(.additionalInfo) .numberWrapper
     .number {
     height: 8rem;
     line-height: 8rem;
@@ -436,20 +452,22 @@
     white-space: nowrap;
   }
 
-  #calls.big-duration > section .additionalContactInfo {
+  #calls > section .additionalContactInfo {
     height: 1.2rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0.3rem 2rem 2rem 2rem;
-    background: #01c5ed;
+    padding: 0 7rem 2rem 4rem;
     font-size: 1.5rem;
     line-height: 2rem;
     color: white;
   }
 
-  #calls.big-duration > section:not(.additionalInfo)
-    .additionalContactInfo {
+  #calls.big-duration > section .additionalContactInfo {
+    padding: 0 2rem 3.6rem 2.5rem;
+  }
+
+  #calls > section:not(.additionalInfo) .additionalContactInfo {
     display: none;
   }
 
@@ -462,6 +480,15 @@
     background: url('images/Shadow_SwitchBg.png');
     height: 0.9rem;
     width: 100%;
+  }
+
+  #calls:not(.big-duration) > section .duration {
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: black;
+    font-weight: bold;
+    line-height: 6.6rem;
   }
 
   #calls.big-duration > section .duration {
@@ -483,33 +510,38 @@
     line-height: 8.1rem;
   }
 
+  #calls:not(.big-duration) > section.incoming {
+    background-image: url('images/incoming-call.png');
+    background-size: 1.6rem;
+    background-position: center left 1.5rem;
+    background-repeat: no-repeat;
+  }
+
+  #calls:not(.big-duration) > section.outgoing {
+    background-image: url('images/outgoing-call.png');
+    background-size: 1.6rem;
+    background-position: center left 1.5rem;
+    background-repeat: no-repeat;
+  }
+
   #calls > section.held {
     background-color: rgba(28, 24, 24, 0.7);
+  }
+
+  #calls:not(.big-duration) > section.held {
     background-image: url('images/DialerIcon_35x35_paused.png');
     background-size: 1.6rem;
     background-position: center left 1.5rem;
     background-repeat: no-repeat;
   }
 
-  #calls.big-duration > section.held {
-    background-image: url('images/DialerIcon_35x35_paused.png');
-    background-size: 1.6rem;
-    background-position: top 2rem right 2rem;
-    background-repeat: no-repeat;
-    opacity: 0.7;
-  }
-
-  #calls.big-duration > section.held .numberWrapper {
-    background-color: #1c1818;
-  }
-
-  #calls.big-duration > section.held,
-  #calls.big-duration > section.held .duration,
-  #calls.big-duration > section.held .additionalContactInfo {
+  #calls > section.held .duration,
+  #calls > section.held .additionalContactInfo,
+  #calls > section.held .numberWrapper {
     background: none;
   }
 
-  #calls.big-duration > section.held .numberWrapper .number {
+  #calls > section.held .numberWrapper .number {
     color: white;
   }
 
@@ -668,7 +700,7 @@
     display: none;
   }
 
-  #calls.big-duration #group-call #group-show {
+  #calls #group-call #group-show {
     height: 8rem;
   }
 
@@ -706,7 +738,7 @@
 
   #locked-contact-photo {
     position: absolute;
-    top: 0rem;
+    top: 0;
     width: 100%;
     height: 100%;
     background-repeat: no-repeat;

@@ -115,13 +115,7 @@ var CallScreen = {
     }
     CallScreen.showClock(new Date());
 
-    if (navigator.mozSettings) {
-      var req = navigator.mozSettings.createLock().get('wallpaper.image');
-      req.onsuccess = function cs_wi_onsuccess() {
-        CallScreen.setCallerContactImage(
-          req.result['wallpaper.image'], {force: false});
-      };
-    }
+    this.setDefaultContactImage({force: false});
 
     // Handle resize events
     window.addEventListener('resize', this.resizeHandler.bind(this));
@@ -182,6 +176,18 @@ var CallScreen = {
     if (!target.style.backgroundImage || (opt && opt.force)) {
       target.style.backgroundImage = 'url(' + photoURL + ')';
     }
+  },
+
+
+  setDefaultContactImage: function cs_setDefaultContactImage(opt) {
+    if (!navigator.mozSettings) {
+      return;
+    }
+
+    var req = navigator.mozSettings.createLock().get('wallpaper.image');
+    req.onsuccess = function cs_wi_onsuccess() {
+      CallScreen.setCallerContactImage(req.result['wallpaper.image'], opt);
+    };
   },
 
   toggleMute: function cs_toggleMute() {

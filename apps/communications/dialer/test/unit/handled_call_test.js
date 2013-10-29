@@ -289,6 +289,19 @@ suite('dialer/handled_call', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
     });
 
+    suite('with a contact with no picture', function() {
+      setup(function() {
+        subject.photo = null;
+        MockCallScreen.mSetCallerContactImageCalled = false;
+        mockCall._connect();
+      });
+
+      test('wallpaper displaying', function() {
+        assert.isFalse(MockCallScreen.mSetCallerContactImageCalled);
+        assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
+      });
+    });
+
     test('primary contact info', function() {
       assert.isTrue(MockUtils.mCalledGetPhoneNumberPrimaryInfo);
     });
@@ -381,8 +394,12 @@ suite('dialer/handled_call', function() {
 
   suite('resuming', function() {
     setup(function() {
+      mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
-      MockCallsHandler.mUpdateKeypadEnabledCalled = false;
+      MockCallScreen.mEnableKeypadCalled = false;
+      MockCallScreen.mSetCallerContactImageCalled = false;
+      MockCallScreen.mSetDefaultContactImageCalled = false;
+      subject.photo = 'dummy_photo_1';
       mockCall._resume();
     });
 
@@ -391,11 +408,23 @@ suite('dialer/handled_call', function() {
     });
 
     test('enable keypad', function() {
-      assert.equal(MockCallsHandler.mUpdateKeypadEnabledCalled, true);
+      assert.isTrue(MockCallScreen.mEnableKeypadCalled);
     });
 
     test('sync speaker', function() {
       assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
+    });
+
+    test('changed the user photo', function() {
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+    });
+
+    test('change image to default if there are no user images', function() {
+      assert.isFalse(MockCallScreen.mSetDefaultContactImageCalled);
+      subject.photo = null;
+      mockCall._hold();
+      mockCall._resume();
+      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
     });
   });
 

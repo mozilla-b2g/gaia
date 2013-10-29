@@ -61,6 +61,6 @@ function MockCall(aNumber, aState) {
 
   this._resume = (function() {
     this.mChangeState('resuming');
-    this.mChangeState('resumed');
+    this.mChangeState('connected');
   }).bind(this);
 }
