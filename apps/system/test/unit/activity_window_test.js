@@ -3,9 +3,11 @@
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
       'ActivityWindow', 'KeyboardManager', 'StatusBar',
-      'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
-      'OrientationManager', 'SettingsListener', 'BrowserFrame',
-      'BrowserConfigHelper']);
+      'SoftwareButtonManager', 'AttentionScreen',
+      'OrientationManager', 'SettingsListener']);
+
+mocha.globals(['AppWindow', 'BrowserMixin', 'TransitionMixin',
+  'System', 'BrowserFrame', 'BrowserConfigHelper']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -70,9 +72,12 @@ suite('system/ActivityWindow', function() {
 
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
+    requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/window.js');
+    requireApp('system/js/brower_mixin.js');
+    requireApp('system/js/transition_mixin.js');
     requireApp('system/js/activity_window.js', done);
   });
 

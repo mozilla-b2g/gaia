@@ -34,6 +34,7 @@
 
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
+      window.addEventListener('appopening', this);
     },
 
     handleEvent: function hl_handleEvent(evt) {
@@ -43,6 +44,13 @@
           break;
         case 'trusteduihide':
           this.getHomescreen().toggle(false);
+          break;
+        case 'appopening':
+          // Fade out homescreen if the opening app is landscape.
+          if (evt.detail.rotatingDegree === 90 ||
+              evt.detail.rotatingDegree === 270) {
+            this.getHomescreen().fadeOut();
+          }
           break;
       }
     },

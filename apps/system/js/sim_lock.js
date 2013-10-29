@@ -59,15 +59,14 @@ var SimLock = {
         // connection) and the SIM card is locked, the SIM PIN unlock screen
         // should be launched
 
-        var app = Applications.getByManifestURL(
-          evt.target.getAttribute('mozapp'));
+        var app = evt.detail;
 
         if (!app || !app.manifest.permissions)
           return;
 
         // Ignore first time usage (FTU) app which already asks for the PIN code
         // XXX: We should have a better way to detect this app is FTU or not.
-        if (evt.target.dataset.frameOrigin == FtuLauncher.getFtuOrigin())
+        if (app.origin == FtuLauncher.getFtuOrigin())
           return;
 
         // Ignore apps that don't require a mobile connection
@@ -84,7 +83,7 @@ var SimLock = {
 
         // Ignore second 'appwillopen' event when showIfLocked eventually opens
         // the app on valid PIN code
-        var origin = evt.target.dataset.frameOrigin;
+        var origin = app.origin;
         if (origin == this._lastOrigin) {
           delete this._lastOrigin;
           return;
@@ -93,8 +92,8 @@ var SimLock = {
 
         // If SIM is locked, cancel app opening in order to display
         // it after the SIM PIN dialog is shown
-        if (this.showIfLocked())
-          evt.preventDefault();
+        //if (this.showIfLocked())
+        //  evt.preventDefault();
 
         break;
     }

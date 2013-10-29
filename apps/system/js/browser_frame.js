@@ -22,10 +22,14 @@ var BrowserFrame = (function invocation() {
   // on and hammer out the bugs that result. Once APZ is enabled by default
   // this setting can be removed.
   var apzSetting = 'apz.force-enable';
-  var forceEnableApz = SettingsListener.getSettingsLock().get(apzSetting);
-  SettingsListener.observe(apzSetting, false, function(value) {
-    forceEnableApz = value;
-  });
+  var forceEnableApz = false;
+  if (SettingsListener) {
+    forceEnableApz = SettingsListener.getSettingsLock().get(apzSetting);
+
+    SettingsListener.observe(apzSetting, false, function(value) {
+      forceEnableApz = value;
+    });
+  }
 
   function BrowserFrame() { // This constructor function is a local variable.
     this.element = null;
@@ -74,6 +78,9 @@ var BrowserFrame = (function invocation() {
     browser.id = BrowserFrame.className + this._id;
 
     browser.classList.add(BrowserFrame.className);
+
+    // Store the config
+    this.config = config;
 
     // Store the element
     this.element = browser;
