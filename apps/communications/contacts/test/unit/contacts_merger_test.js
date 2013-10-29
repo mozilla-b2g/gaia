@@ -245,7 +245,7 @@ suite('Contacts Merging Tests', function() {
         assert.lengthOf(result.email, 1);
 
         assertFieldValues(result.tel, ['67676767', '0987654']);
-        assertFieldValues(result.tel, ['work', 'another'], 'type');
+        assertFieldValues(result.tel, ['work', 'other'], 'type');
 
         done();
     }});
@@ -353,7 +353,7 @@ suite('Contacts Merging Tests', function() {
 
         assertFieldValues(result.email, ['jj@jj.com', 'home@sweet.home']);
 
-        assertFieldValues(result.email, ['work', 'personal'], 'type');
+        assertFieldValues(result.email, ['work', 'other'], 'type');
 
         done();
     }});

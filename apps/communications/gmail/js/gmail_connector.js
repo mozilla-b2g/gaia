@@ -302,7 +302,7 @@ var GmailConnector = (function GmailConnector() {
   // Returns an array with the possible emails found in a contact
   // as a ContactField format
   var parseEmails = function parseEmails(googleContact) {
-    var DEFAULT_EMAIL_TYPE = 'personal';
+    var DEFAULT_EMAIL_TYPE = 'other';
     var emails = [];
     var fields = googleContact.getElementsByTagNameNS(GD_NAMESPACE,
       'email');
@@ -351,7 +351,13 @@ var GmailConnector = (function GmailConnector() {
   // Given a google contact this function returns an array of
   // ContactField with the pones stored for that contact
   var parsePhones = function parsePhones(googleContact) {
-    var DEFAULT_PHONE_TYPE = 'personal';
+    var DEFAULT_PHONE_TYPE = 'other';
+    var GMAIL_MAP = {
+      'work_fax' : 'faxOffice',
+      'home_fax' : 'faxHome',
+      'pager' : 'other',
+      'main' : 'other'
+    };
     var phones = [];
     var fields = googleContact.getElementsByTagNameNS(GD_NAMESPACE,
       'phoneNumber');
@@ -366,7 +372,7 @@ var GmailConnector = (function GmailConnector() {
         }
 
         phones.push({
-          'type': [type],
+          'type': [GMAIL_MAP[type] || type],
           'value': field.textContent
         });
       }
