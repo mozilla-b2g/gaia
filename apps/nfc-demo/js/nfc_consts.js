@@ -16,7 +16,15 @@ var nfc = {
     }
     return buf;
   },
-  
+
+  toUTF8: function(a) {
+    var str = "";
+    for (var i = 0; i < a.length; i++) {
+      str += String.fromCharCode(a[i]);
+    }
+    return str;
+  },
+
   flags_tnf: 0x07,
   flags_ss: 0x10,
   flags_il: 0x08,
