@@ -171,7 +171,7 @@ var CardsView = (function() {
     if (MANUAL_CLOSING) {
       cardsView.addEventListener('mousedown', CardsView);
     }
-    
+
     // If there is no running app, show "no recent apps" message
     if (Object.keys(runningApps).length > 1) {
       cardsView.classList.remove('empty');
