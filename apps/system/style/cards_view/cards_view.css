@@ -42,8 +42,8 @@
   height: 2rem;
   text-align: center;
   color: #52b6cc;
-  font-weight: 500;
   font-size: 2rem;
+  font-weight: 500;
 }
 
 #cards-view.empty .no-recent-apps {
