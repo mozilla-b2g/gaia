@@ -18,11 +18,12 @@ class TestFtu(GaiaTestCase):
     _step2_header_locator = (By.ID, 'step2Header')
     _step3_header_locator = (By.ID, 'step3Header')
     _step4_header_locator = (By.ID, 'step4Header')
-    _tour_next_button_locator = (By.ID, 'forwardTutorial')
-    _tour_back_button_locator = (By.ID, 'backTutorial')
+    _step5_header_locator = (By.ID, 'step5Header')
+    _tour_next_button_locator = (By.ID, 'forward-tutorial')
+    _tour_back_button_locator = (By.ID, 'back-tutorial')
 
     # Section Tutorial Finish
-    _section_tutorial_finish_locator = (By.ID, 'tutorialFinish')
+    _section_tutorial_finish_locator = (By.CSS_SELECTOR, '.tutorial-finish-base')
     _lets_go_button_locator = (By.ID, 'tutorialFinished')
 
     def setUp(self):
