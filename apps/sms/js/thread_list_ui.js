@@ -2,7 +2,7 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Template, Utils, Threads, Contacts, URL, FixedHeader, Threads,
-         WaitingScreen, MozSmsFilter, MessageManager */
+         WaitingScreen, MozSmsFilter, MessageManager, TimeHeaders */
 /*exported ThreadListUI */
 
 'use strict';
@@ -333,7 +333,7 @@ var ThreadListUI = {
         // set the fixed header
         FixedHeader.refresh();
         // Boot update of headers
-        Utils.updateTimeHeaders();
+        TimeHeaders.updateAll();
         // Once the rendering it's done, callback if needed
         if (renderCallback) {
           renderCallback();
