@@ -120,7 +120,7 @@ class Keyboard(Base):
     def _tap(self, val):
         try:
             key = self.marionette.find_element(*self._key_locator(val))
-            self.wait_for_condition(lambda m: key.is_displayed)
+            self.wait_for_condition(lambda m: key.is_displayed())
             Actions(self.marionette).press(key).wait(0.1).release().perform()
         except (NoSuchElementException, ElementNotVisibleException):
             self.marionette.log('Key %s not found on the keyboard' % val)
@@ -136,7 +136,7 @@ class Keyboard(Base):
         self._switch_to_correct_layout(long_press_key)
         try:
             key = self.marionette.find_element(*self._key_locator(long_press_key))
-            self.wait_for_condition(lambda m: key.is_displayed)
+            self.wait_for_condition(lambda m: key.is_displayed())
         except:
             raise Exception('Key %s not found on the keyboard' % long_press_key)
         action.press(key).wait(1).perform()
