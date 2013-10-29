@@ -379,6 +379,9 @@ function getKeyboardSettings() {
 
     // We've got all the settings, so initialize the rest
     initKeyboard();
+
+    // initialize the current loaded layout
+    setKeyboardName(keyboardName);
   });
 }
 
