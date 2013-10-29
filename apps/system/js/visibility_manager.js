@@ -35,13 +35,15 @@
             return;
 
           this.publish('showwindows');
-          this.publish('showwindow');
+          if (!AttentionScreen.isFullyVisible())
+            this.publish('showwindow');
           this._resetDeviceLockedTimer();
           break;
         case 'lock':
           this.publish('hidewindows');
           // If the audio is active, the app should not set non-visible
           // otherwise it will be muted.
+          // TODO: Remove this hack.
           if (!this._normalAudioChannelActive) {
             this.publish('hidewindow', { screenshoting: false });
           }

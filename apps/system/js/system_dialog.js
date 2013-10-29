@@ -68,12 +68,12 @@ function SystemDialog(id, options) {
         // Automatically hide the dialog on home button press
         if (SystemScreen.isVisible(screenName)) {
           hide(evt.type);
-          // Prevent WindowManager to shift homescreen to the first page
+          // Prevent AppWindowManager to shift homescreen to the first page
           // when the dialog is on top of the homescreen
-          var displayedApp = WindowManager.getDisplayedApp();
-          var displayedAppFrame = WindowManager.getAppFrame(displayedApp);
+          // XXX: Move SIM PIN Dialog to AppWindow.
+          var activeApp = AppWindowManager.getActiveApp();
           if (evt.type == 'home' &&
-              displayedAppFrame.classList.contains('homescreen'))
+              activeApp.isHomescreen)
             evt.stopImmediatePropagation();
         }
         break;

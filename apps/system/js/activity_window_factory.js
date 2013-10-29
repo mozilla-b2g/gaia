@@ -97,9 +97,9 @@
                 this._lastActivity);
               break;
             }
-            var app = WindowManager.getCurrentActiveAppWindow();
-            var callee = app.activityCallee;
-            if (callee) {
+            var app = AppWindowManager._activeApp;
+            if (app) {
+              var callee = app.activityCallee;
               // XXX: We don't know the activity is the same request
               // or not here. The data passed may be different.
               // So we just kill all.

@@ -21,21 +21,27 @@ var StackManager = {
 
   goPrev: function sm_goPrev() {
     var newApp = this.getPrev();
-    if (!newApp) {
+    var oldApp = this.getCurrent();
+    if (!newApp || !oldApp) {
       return;
     }
 
-    WindowManager.setActiveApp(newApp);
+    // XXX: Move into AppWindow.
+    newApp._enter_swipein();
+    oldApp._enter_swipeout();
     this._current--;
   },
 
   goNext: function sm_goNext() {
     var newApp = this.getNext();
-    if (!newApp) {
+    var oldApp = this.getCurrent();
+    if (!newApp || !oldApp) {
       return;
     }
 
-    WindowManager.setActiveApp(newApp);
+    // XXX: Move into AppWindow.
+    newApp._enter_swipein();
+    oldApp._enter_swipeout();
     this._current++;
   },
 

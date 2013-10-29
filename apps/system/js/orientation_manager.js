@@ -8,9 +8,18 @@ var OrientationManager = {
         function(value) {
           this.globalOrientation = value ?
             this.fetchCurrentOrientation() : null;
-          this.publish('globalorientationchanged');
+          this.publish('reset-orientation');
         }.bind(this));
     }
+
+    window.addEventListener('attentionscreenhide', this);
+    window.addEventListener('status-active', this);
+    window.addEventListener('sleepmenuhide', this);
+    window.addEventListener('trusteduiclose', this);
+  },
+
+  handleEvent: function om_handleEvent(evt) {
+    this.publish('reset-orientation');
   },
 
   globalOrientation: null,

@@ -216,6 +216,8 @@ var LockScreen = {
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
 
+    window.addEventListener('ftuopen', this);
+
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
@@ -319,6 +321,9 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
+      case 'ftuopen':
+        this.unlock(true);
+        break;
       case 'screenchange':
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {
@@ -760,15 +765,8 @@ var LockScreen = {
     // This file is loaded before the Window Manager in order to intercept
     // hardware buttons events. As a result WindowManager is not defined when
     // the device is turned on and this file is loaded.
-    var currentApp =
-      'WindowManager' in window ? WindowManager.getDisplayedApp() : null;
-
-    var currentFrame = null;
-
-    if (currentApp) {
-      currentFrame = WindowManager.getAppFrame(currentApp).firstChild;
-      WindowManager.setOrientationForApp(currentApp);
-    }
+    var app = 'WindowManager' in window ?
+      WindowManager.getCurrentActiveAppWindow() : null;
 
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
@@ -776,10 +774,6 @@ var LockScreen = {
     var repaintTimeout = 0;
     var nextPaint = (function() {
       clearTimeout(repaintTimeout);
-
-      if (currentFrame)
-        currentFrame.removeNextPaintListener(nextPaint);
-
 
       if (instant) {
         this.overlay.classList.add('no-transition');
@@ -806,8 +800,8 @@ var LockScreen = {
       }
     }).bind(this);
 
-    if (currentFrame)
-      currentFrame.addNextPaintListener(nextPaint);
+    if (app)
+      app.ensureFullRepaint(nextPaint);
 
     repaintTimeout = setTimeout(function ensureUnlock() {
       nextPaint();

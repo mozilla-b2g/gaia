@@ -105,12 +105,12 @@ var CardsView = (function() {
     UtilityTray.hide(true);
 
     // Apps info from WindowManager
-    displayedApp = WindowManager.getDisplayedApp();
+    displayedApp = AppWindowManager.getDisplayedApp();
     currentDisplayed = 0;
-    runningApps = WindowManager.getRunningApps();
+    runningApps = AppWindowManager.getRunningApps();
 
     // Switch to homescreen
-    WindowManager.launch(null);
+    AppWindowManager.display(null);
     cardsViewShown = true;
 
     // If user is not able to sort apps manualy,
@@ -121,6 +121,7 @@ var CardsView = (function() {
         sortable.push({origin: origin, app: runningApps[origin]});
 
       sortable.sort(function(a, b) {
+        console.log(a.origin);
         return b.app.launchTime - a.app.launchTime;
       });
       runningApps = {};
@@ -199,7 +200,7 @@ var CardsView = (function() {
         setTimeout(displayedAppCallback);
       }
       // Not showing homescreen
-      if (app.frame.classList.contains('homescreen')) {
+      if (app.isHomescreen) {
         return;
       }
 
@@ -346,13 +347,13 @@ var CardsView = (function() {
       cardsList.removeChild(element);
       closeApp(element, true);
     } else if ('origin' in e.target.dataset) {
-      WindowManager.launch(e.target.dataset.origin);
+      AppWindowManager.display(e.target.dataset.origin);
     }
   }
 
   function closeApp(element, removeImmediately) {
     // Stop the app itself
-    WindowManager.kill(element.dataset.origin);
+    AppWindowManager.kill(element.dataset.origin);
 
     // Fix for non selectable cards when we remove the last card
     // Described in https://bugzilla.mozilla.org/show_bug.cgi?id=825293
@@ -885,8 +886,7 @@ var CardsView = (function() {
           return;
 
         SleepMenu.hide();
-        var currentApp = WindowManager.getDisplayedApp();
-        var app = WindowManager.getRunningApps()[currentApp];
+        var app = AppWindowManager.getActiveApp();
         if (!app) {
           showCardSwitcher();
         } else {
