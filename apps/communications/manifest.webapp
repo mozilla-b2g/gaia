@@ -70,6 +70,7 @@
   },
   "permissions": {
     "telephony":{},
+    "bluetooth":{},
     "voicemail":{},
     "contacts":{ "access": "readwrite" },
     "mobileconnection":{},
