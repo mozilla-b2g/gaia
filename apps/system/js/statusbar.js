@@ -335,7 +335,12 @@ var StatusBar = {
         this.update.battery.call(this);
       }
 
-      var conn = window.navigator.mozMobileConnection;
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (conn) {
         conn.addEventListener('voicechange', this);
         conn.addEventListener('datachange', this);
@@ -371,7 +376,12 @@ var StatusBar = {
         battery.removeEventListener('statuschange', this);
       }
 
-      var conn = window.navigator.mozMobileConnection;
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (conn) {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
@@ -393,7 +403,13 @@ var StatusBar = {
 
   update: {
     label: function sb_updateLabel() {
-      var conn = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
 
@@ -464,7 +480,13 @@ var StatusBar = {
     },
 
     signal: function sb_updateSignal() {
-      var conn = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (!conn || !conn.voice)
         return;
 
@@ -523,7 +545,13 @@ var StatusBar = {
     },
 
     data: function sb_updateSignal() {
-      var conn = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (!conn || !conn.data)
         return;
 
@@ -738,7 +766,13 @@ var StatusBar = {
   refreshCallListener: function sb_refreshCallListener() {
     // Listen to callschanged only when connected to CDMA networks and emergency
     // calls.
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     var emergencyCallsOnly =
       (conn && conn.voice && conn.voice.emergencyCallsOnly);
     var cdmaConnection =

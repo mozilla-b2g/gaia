@@ -62,7 +62,14 @@ var icc = {
   },
 
   getICC: function icc_getICC() {
-    if (!window.navigator.mozMobileConnection) {
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
+    if (!conn) {
       return;
     }
 
@@ -72,8 +79,7 @@ var icc = {
     // try to get it from mozMobileConnection.
     // 'window.navigator.mozMobileConnection.icc' can be dropped
     // after bug 859220 is landed.
-    return window.navigator.mozIccManager ||
-           window.navigator.mozMobileConnection.icc;
+    return window.navigator.mozIccManager || conn.icc;
   },
 
   clearMenuCache: function icc_clearMenuCache(callback) {

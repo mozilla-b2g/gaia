@@ -13,7 +13,13 @@ var icc_events = {
     if (evt.type != 'voicechange') {
       return;
     }
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     DUMP(' STK Location changed to MCC=' + IccHelper.iccInfo.mcc +
       ' MNC=' + IccHelper.iccInfo.mnc +
       ' LAC=' + conn.voice.cell.gsmLocationAreaCode +
@@ -137,7 +143,14 @@ var icc_events = {
         break;
       case icc._icc.STK_EVENT_TYPE_LOCATION_STATUS:
         DUMP('icc_events_register - Location changes event');
-        var conn = window.navigator.mozMobileConnection;
+
+        // XXX: check bug-926169
+        // this is used to keep all tests passing while introducing
+        // multi-sim APIs
+        var conn = window.navigator.mozMobileConnection ||
+          window.navigator.mozMobileConnections &&
+            window.navigator.mozMobileConnections[0];
+
         conn.addEventListener('voicechange',
           function register_icc_event_voicechange(evt) {
             icc_events.handleLocationStatus(evt);
