@@ -23,7 +23,7 @@ marionette('Awesomescreen', function() {
       client.helper.waitForElement('#awesomescreen');
       assert.ok(true, 'Awesome screen is shown');
     });
+
   });
 
 });
-
