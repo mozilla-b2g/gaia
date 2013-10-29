@@ -76,7 +76,7 @@ function resetData(onsuccess, onerror) {
 
     // Get current mobile data
     var now = new Date();
-    var mobileRequest = window.navigator.mozNetworkStats.getNetworkStats({
+    var mobileRequest = NetworkstatsProxy.getNetworkStats({
       start: now,
       end: now,
       connectionType: 'mobile'
@@ -111,7 +111,7 @@ function resetData(onsuccess, onerror) {
       });
     };
 
-    var wifiRequest = window.navigator.mozNetworkStats.getNetworkStats({
+    var wifiRequest = NetworkstatsProxy.getNetworkStats({
       start: now,
       end: now,
       connectionType: 'wifi'
