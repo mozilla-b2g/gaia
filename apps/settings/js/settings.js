@@ -738,13 +738,8 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
 
   setTimeout(function nextTick() {
+    LazyLoader.load(['js/utils.js'], startupLocale);
     LazyLoader.load([
-      'js/utils.js',
-      'js/mvvm/models.js',
-      'js/mvvm/views.js'],
-      startupLocale);
-    LazyLoader.load([
-      'shared/js/keyboard_helper.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'shared/js/async_storage.js',
