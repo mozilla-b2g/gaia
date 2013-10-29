@@ -8,3 +8,5 @@ notifications:
   irc:
     channels:
       - "irc.mozilla.org#gaia"
+git:
+  strategy: tarball
