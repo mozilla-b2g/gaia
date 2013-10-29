@@ -60,35 +60,6 @@ body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
   display: none;
 }
 
-/* Adds 1 row of icons */
-@media (min-device-width: 320px) and (min-device-height: 640px) {
-  body.searchPageEnabled .apps ol:first-child > li:nth-child(13) {
-    display: inline-block;
-  }
-
-  .apps ol > li:nth-child(17) {
-    display: inline-block;
-  }
-
-	 /* Maximum 16 icons for first page */
-  body.searchPageEnabled .apps ol:first-child > li:nth-child(17) {
-    display: none;
-  }
-
-   /* Maximum 20 icons for page */
-  .apps ol > li:nth-child(21) {
-    display: none;
-  }
-}
-
-@media (min-width: 768px) {
-
-  /* Maximum 12 icons for first page when searchPageEnabled */
-  body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
-    display: none;
-  }
-}
-
 /* Option to delete apps */
 .apps ol > li span.options {
   position: absolute;
@@ -207,6 +178,27 @@ body[data-transitioning] .loading:after {
   }
 }
 
+/* if disable e.me, adds 1 row of icons back */
+@media (min-device-width: 320px) and (min-device-height: 640px) {
+  body.searchPageEnabled .apps ol:first-child > li:nth-child(13) {
+    display: inline-block;
+  }
+
+  .apps ol > li:nth-child(17) {
+    display: inline-block;
+  }
+
+   /* Maximum 16 icons for first page */
+  body.searchPageEnabled .apps ol:first-child > li:nth-child(17) {
+    display: none;
+  }
+
+   /* Maximum 20 icons for page */
+  .apps ol > li:nth-child(21) {
+    display: none;
+  }
+}
+
 /* For WVGA (800 x 480), adjust the padding to make app icons fit in 4 x 5 grid */
 /* The width here is described as CSS pixel, so it would be 320px while dppx = 1.5 */
 @media (min-device-width: 320px) and (max-device-width: 359px) and (max-aspect-ratio: 4 / 6) {
@@ -256,6 +248,11 @@ body[data-transitioning] .loading:after {
   .apps ol > li > div > span > span {
     font-size: 1.6rem;
     text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
+  }
+
+  /* Maximum 12 icons for first page when searchPageEnabled */
+  body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
+    display: none;
   }
 }
 
