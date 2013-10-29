@@ -7,7 +7,7 @@
   "devDependencies": {
     "debug": "*",
     "marionette-profile-builder": "0.0.2",
-    "marionette-apps": "0.3.0",
+    "marionette-apps": "0.3.1",
     "marionette-client": "1.0.0",
     "marionette-helper": "0.0.9",
     "marionette-content-script": "0.0.0",
