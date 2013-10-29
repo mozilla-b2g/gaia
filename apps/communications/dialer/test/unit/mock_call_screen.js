@@ -18,6 +18,9 @@ var MockCallScreen = {
   setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
   },
+  setDefaultContactImage: function() {
+    this.mSetDefaultContactImageCalled = true;
+  },
   mute: function() {
     this.mMuteOn = true;
   },
@@ -78,6 +81,7 @@ var MockCallScreen = {
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
+  mSetDefaultContactImageCalled: false,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,
