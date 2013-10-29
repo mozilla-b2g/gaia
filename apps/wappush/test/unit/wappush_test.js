@@ -79,25 +79,23 @@ suite('WAP Push', function() {
 
   setup(function() {
     mocksHelperWapPush.setup();
+    MockNavigatorSettings.createLock().set({ 'wap.push.enabled': 'true' });
   });
 
   teardown(function() {
     MockNavigatormozApps.mTeardown();
+    MockNavigatorSettings.mTeardown();
     mocksHelperWapPush.teardown();
   });
 
   suite('init', function() {
-    suiteSetup(function(done) {
+    setup(function(done) {
       MockNavigatormozSetMessageHandler.mSetup();
-      MockNavigatorSettings.createLock().set(
-        { 'wap.push.enabled': 'true' }
-      );
       WapPushManager.init(done);
     });
 
-    suiteTeardown(function() {
+    teardown(function() {
       MockNavigatormozSetMessageHandler.mTeardown();
-      MockNavigatorSettings.mTeardown();
     });
 
     test('the message handlers are bound', function() {
@@ -116,25 +114,18 @@ suite('WAP Push', function() {
   });
 
   suite('unsupported message', function() {
-    var message;
+    var message = {
+      sender: '+31641600986',
+      contentType: 'text/foobar',
+      content: ''
+    };
 
-    suiteSetup(function(done) {
-      MockNavigatorSettings.createLock().set(
-        { 'wap.push.enabled': 'true' }
-      );
+    setup(function(done) {
+      MockNavigatormozSetMessageHandler.mSetup();
       WapPushManager.init(done);
-
-      message = {
-        unsupported: {
-          sender: '+31641600986',
-          contentType: 'text/foobar',
-          content: ''
-        }
-      };
     });
 
     suiteTeardown(function() {
-      MockNavigatorSettings.mTeardown();
       MockNavigatormozSetMessageHandler.mTeardown();
     });
 
@@ -146,41 +137,35 @@ suite('WAP Push', function() {
   });
 
   suite('receiving and displaying a message', function() {
-    var message;
+    var message = {
+      sender: '+31641600986',
+      contentType: 'text/vnd.wap.si',
+      content: '<si><indication href="http://www.mozilla.org">' +
+               'check this out</indication></si>'
+    };
 
-    suiteSetup(function(done) {
+    setup(function(done) {
       MockNavigatormozSetMessageHandler.mSetup();
-      MockNavigatorSettings.createLock().set(
-        { 'wap.push.enabled': 'true' }
-      );
       WapPushManager.init(done);
-
-      message = {
-        sender: '+31641600986',
-        contentType: 'text/vnd.wap.si',
-        content: '<si><indication href="http://www.mozilla.org">' +
-                 'check this out</indication></si>'
-      };
     });
 
-    suiteTeardown(function() {
+    teardown(function() {
       MockNavigatormozApps.mTeardown();
-      MockNavigatorSettings.mTeardown();
       MockNavigatormozSetMessageHandler.mTeardown();
-    });
-
-    setup(function() {
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
     });
 
     test('the notification is sent', function() {
       var sendSpy = this.sinon.spy(MockNotificationHelper, 'send');
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.isTrue(sendSpy.calledOnce);
     });
 
     test('the display is populated with the message contents', function() {
       var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
       retrieveSpy.yield(ParsedMessage.from(message, 0));
@@ -193,48 +178,40 @@ suite('WAP Push', function() {
   });
 
   suite('handling out-of-order reception of messages', function() {
-    var messages;
-
-    suiteSetup(function() {
-      messages = {
-        oldest: {
-          sender: '+31641600986',
-          contentType: 'text/vnd.wap.si',
-          content: '<si>' +
-                   '<indication si-id="gaia-test@mozilla.org" ' +
-                   '            created="2013-09-03T10:35:33Z">' +
-                   'oldest message' +
-                   '</indication>' +
-                   '</si>'
-        },
-        old: {
-          sender: '+31641600986',
-          contentType: 'text/vnd.wap.si',
-          content: '<si>' +
-                   '<indication si-id="gaia-test@mozilla.org" ' +
-                   '            created="2013-09-03T12:35:33Z">' +
-                   'old message' +
-                   '</indication>' +
-                   '</si>'
-        },
-        current: {
-          sender: '+31641600986',
-          contentType: 'text/vnd.wap.si',
-          content: '<si>' +
-                   '<indication si-id="gaia-test@mozilla.org" ' +
-                   '            created="2013-09-03T14:35:33Z">' +
-                   'current message' +
-                   '</indication>' +
-                   '</si>'
-        }
-      };
-    });
+    var messages = {
+      oldest: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication si-id="gaia-test@mozilla.org" ' +
+                 '            created="2013-09-03T10:35:33Z">' +
+                 'oldest message' +
+                 '</indication>' +
+                 '</si>'
+      },
+      old: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication si-id="gaia-test@mozilla.org" ' +
+                 '            created="2013-09-03T12:35:33Z">' +
+                 'old message' +
+                 '</indication>' +
+                 '</si>'
+      },
+      current: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication si-id="gaia-test@mozilla.org" ' +
+                 '            created="2013-09-03T14:35:33Z">' +
+                 'current message' +
+                 '</indication>' +
+                 '</si>'
+      }
+    };
 
     setup(function(done) {
-      MockNavigatorSettings.createLock().set(
-        { 'wap.push.enabled': 'true' }
-      );
-
       this.sinon.stub(MockMessageDB, 'put');
       this.sinon.stub(MockMessageDB, 'retrieve');
 
@@ -245,7 +222,6 @@ suite('WAP Push', function() {
     teardown(function() {
       MockNavigatormozSetMessageHandler.mTeardown();
       MockNavigatormozApps.mTeardown();
-      MockNavigatorSettings.mTeardown();
     });
 
     test('the old message is expired', function() {
@@ -274,6 +250,34 @@ suite('WAP Push', function() {
       WapPushManager.displayWapPushMessage(0);
       MockMessageDB.retrieve.yield(ParsedMessage.from(messages.current, 0));
       assert.equal(text.textContent, 'current message');
+    });
+  });
+
+  suite('handling expired messages', function() {
+    var message = {
+      sender: '+31641600986',
+      contentType: 'text/vnd.wap.si',
+      content: '<si>' +
+               '<indication si-expires="2013-09-03T10:35:33Z">' +
+               'check this out' +
+               '</indication>' +
+               '</si>'
+    };
+
+    setup(function(done) {
+      MockNavigatormozSetMessageHandler.mSetup();
+      WapPushManager.init(done);
+    });
+
+    teardown(function() {
+      MockNavigatormozApps.mTeardown();
+      MockNavigatormozSetMessageHandler.mTeardown();
+    });
+
+    test('the message was not stored in the database', function() {
+      var putSpy = this.sinon.spy(MockMessageDB, 'put');
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
+      assert.isTrue(putSpy.notCalled);
     });
   });
 });
