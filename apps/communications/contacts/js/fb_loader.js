@@ -29,14 +29,16 @@ var fbLoader = (function() {
     var scripts = [
       '/contacts/js/service_extensions.js',
       '/contacts/oauth2/js/parameters.js',
+      '/shared/js/fb/fb_request.js',
+      '/contacts/js/fb/fb_data.js',
       '/contacts/js/fb/fb_utils.js',
       '/contacts/js/fb/fb_query.js',
+      '/shared/js/fb/fb_reader_utils.js',
       '/contacts/js/fb/fb_contact_utils.js',
       '/contacts/js/fb/fb_contact.js',
       '/contacts/js/fb/fb_link.js',
       '/contacts/js/fb/fb_messaging.js',
-      '/contacts/js/value_selector.js',
-      '/contacts/js/fb/fb_data.js'
+      '/contacts/js/value_selector.js'
     ];
 
     LazyLoader.load(scripts, function() {
