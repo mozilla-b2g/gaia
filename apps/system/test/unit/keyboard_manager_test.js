@@ -219,6 +219,52 @@ suite('KeyboardManager', function() {
       this.sinon.stub(KeyboardManager, 'setKeyboardToShow');
     });
 
+    suite('Switching inputType', function() {
+      setup(function() {
+        this.getLayouts = this.sinon.stub(KeyboardHelper, 'getLayouts');
+        this.checkDefaults = this.sinon.stub(KeyboardHelper, 'checkDefaults');
+        var resetShowingKeyboard = this.resetShowingKeyboard =
+                      this.sinon.stub(KeyboardManager, 'resetShowingKeyboard');
+        MockKeyboardHelper.watchCallback(KeyboardHelper.layouts,
+          { apps: true });
+      });
+      test('Switching from "text" to "number"', function() {
+        trigger('mozChromeEvent', {
+          type: 'inputmethod-contextchange',
+          inputType: 'text'
+        });
+        this.clock.tick(2000);
+        trigger('mozChromeEvent', {
+          type: 'inputmethod-contextchange',
+          inputType: 'number'
+        });
+        assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
+        assert.ok(KeyboardManager.showKeyboard.called);
+        setTimeout(function() {
+          sinon.assert.callCount(resetShowingKeyboard.called, 2);
+          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('number'));
+        }, 2000);
+      });
+
+      test('Switching from "text" to "text"', function() {
+        trigger('mozChromeEvent', {
+          type: 'inputmethod-contextchange',
+          inputType: 'text'
+        });
+        this.clock.tick(2000);
+        trigger('mozChromeEvent', {
+          type: 'inputmethod-contextchange',
+          inputType: 'text'
+        });
+        assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
+        assert.ok(KeyboardManager.showKeyboard.called);
+        setTimeout(function() {
+          sinon.assert.callCount(resetShowingKeyboard.called, 1);
+          assert.ok(KeyboardManager.setKeyboardToShow.calledWith('number'));
+        }, 2000);
+      });
+    });
+
     suite('keyboard type "url" - has enabled layouts', function() {
       setup(function() {
         this.getLayouts = this.sinon.stub(KeyboardHelper, 'getLayouts');
