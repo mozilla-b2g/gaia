@@ -43,13 +43,13 @@
         background: transparent;
         border: none;
         width: 84%;
-        top: 1.3rem;
+        top: 1.4rem;
         left: 1.1rem;
         display: inline;
         color: #fff;
-        font-style: normal;
         font-size: 1.9rem;
-        font-weight: 300;
+        font-style: normal;
+        font-weight: normal;
     }
 
     #evmeContainer #search-q-bg {
