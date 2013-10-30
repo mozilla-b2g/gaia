@@ -129,6 +129,8 @@ define(function(require) {
         99 /* ensure that this matches the value in
               apps/clock/js/stopwatch.js#lap */) {
       this.nodes.lap.setAttribute('disabled', 'true');
+    } else {
+      this.nodes.lap.removeAttribute('disabled');
     }
   };
 
