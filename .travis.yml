@@ -16,29 +16,23 @@ env:
   - CI_ACTION=test_agent
   - CI_ACTION=marionette_js
   - CI_ACTION=jshint
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/bluetooth/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/browser/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/calendar/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/camera/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/cards_view/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/clock/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/contacts/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/cost_control/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/dialer/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/email/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/everythingme/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/fmradio/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/ftu/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/gallery/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/homescreen/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/keyboard/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/lockscreen/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/messages/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/music/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/persona/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/settings/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/system/manifest.ini
-  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/videoplayer/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/browser/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/calendar/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/cards_view/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/clock/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/contacts/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/dialer/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/email/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/everythingme/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/ftu/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/homescreen/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/keyboard/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/lockscreen/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/messages/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/music/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/persona/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/settings/manifest.ini
+  - CI_ACTION=gaia_ui_tests GAIATEST_MANIFEST=tests/functional/system/manifest.ini
 matrix:
   allow_failures:
     - env: CI_ACTION=jshint
