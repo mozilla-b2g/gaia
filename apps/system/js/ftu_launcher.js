@@ -134,6 +134,9 @@ var FtuLauncher = {
   // Used by Bootstrap module.
   retrieve: function fl_retrieve() {
     var self = this;
+    self.skip();
+    return;
+    // XXXXXXXXX;
     window.asyncStorage.getItem('ftu.enabled', function getItem(launchFTU) {
       if (launchFTU === false) {
         self.skip();

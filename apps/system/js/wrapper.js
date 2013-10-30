@@ -11,13 +11,12 @@ window.addEventListener('load', function onload_launcher_init() {
   }
 
   function currentAppFrame() {
-    return WindowManager.getAppFrame(WindowManager.getDisplayedApp());
+    return WindowManager.getCurrentActiveAppWindow().element;
   }
 
 
   function currentAppIframe() {
-    var frame = currentAppFrame();
-    return frame ? frame.firstChild : null;
+    return WindowManager.getCurrentActiveAppWindow().browser.element;
   }
 
   var _ = navigator.mozL10n.get;

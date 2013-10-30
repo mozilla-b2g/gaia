@@ -228,11 +228,6 @@ var AttentionScreen = {
         { origin: this.attentionScreen.lastElementChild.dataset.frameOrigin });
     }
 
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
-
     this.attentionScreen.classList.remove('displayed');
     this.mainScreen.classList.remove('attention');
     this.dispatchEvent('attentionscreenhide', { origin: origin });
@@ -268,12 +263,6 @@ var AttentionScreen = {
   hide: function as_hide() {
     if (!this.isFullyVisible())
       return;
-
-    // Restore the orientation of current displayed app
-    var currentApp = WindowManager.getDisplayedApp();
-
-    if (currentApp)
-      WindowManager.setOrientationForApp(currentApp);
 
     // entering "active-statusbar" mode,
     // with a transform: translateY() slide up transition.

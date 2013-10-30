@@ -254,8 +254,7 @@ var TrustedUIManager = {
   },
 
   _restoreOrientation: function trui_restoreOrientation() {
-    var app = WindowManager.getDisplayedApp();
-    WindowManager.setOrientationForApp(app);
+    window.dispatchEvent(new Event('trusteduiclose'));
   },
 
   /**

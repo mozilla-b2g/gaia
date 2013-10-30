@@ -218,13 +218,6 @@
     }
   };
 
-  ActivityWindow.prototype.setFrameBackground =
-    function acw_setFrameBackground(frame, callback) {
-      var splash = this.element.firstChild.splash;
-      this.element.style.backgroundImage = 'url("' + splash + '")';
-      setTimeout(callback);
-    };
-
   // Config TransitionMixin of ActivityWindow.
   ActivityWindow.prototype._transitionTimeout = 300;
   ActivityWindow.prototype.openAnimation = 'slideleft';

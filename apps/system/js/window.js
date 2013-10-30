@@ -7,6 +7,11 @@
   var DEBUG = true;
   var _id = 0;
   var _start = new Date().getTime() / 1000;
+
+  // XXX: Move this into WrapperWindow.
+  var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
+  var wrapperFooter = document.querySelector('#wrapper-footer');
+
   window.AppWindow = function AppWindow(configuration) {
     for (var key in configuration) {
       this[key] = configuration[key];
@@ -25,18 +30,33 @@
 
     this.element = this.frame;
 
+    if (!this.element) {
+      this.browser_config = {
+        origin: this.origin,
+        url: this.url,
+        name: this.name,
+        manifest: this.manifest,
+        manifestURL: this.manifestURL
+      };
+      console.log(JSON.stringify(this.browser_config));
+    }
+
+    this.instanceID = this.CLASS_NAME + '-' + _id;
+
+    _id++;
+
     this.render();
 
     this.publish('created');
 
     if (DEBUG) {
-      window.AppWindow['app' + (_id++)] = this;
+      // window.AppWindow[this.instanceID] = this;
     }
 
     return this;
   };
 
-  AppWindow.prototype._DEBUG = false;
+  AppWindow.prototype._DEBUG = true;
 
   AppWindow.prototype.focus = function aw_focus() {
     var iframe = this.iframe || this.browser.element;
@@ -212,22 +232,61 @@
     this.publish('terminated');
   };
 
-  AppWindow.prototype._transitionState = 'closed';
+  AppWindow.prototype.containerElement = document.getElementById('windows');
+
+  AppWindow.prototype.view = function aw_view() {
+    return '<div class="appWindow" id="' + this.instanceID + '">' +
+              '<div class="screenshot-overlay"></div>' +
+              '<div class="fade-overlay"></div>' +
+           '</div>';
+  };
+
+  AppWindow.prototype._render = function aw__render() {
+    if (this.element)
+      return;
+    this.publish('willrender');
+    this.containerElement.insertAdjacentHTML('beforeend', this.view());
+    this.browser = new BrowserFrame(this.browser_config);
+    this.element = document.getElementById(this.instanceID);
+
+    // XXX: Remove following two lines once mozbrowser element is moved
+    // into appWindow.
+    this.frame = this.element;
+    this.iframe = this.browser.element;
+    this.iframe.dataset.frameType = 'window';
+    this.iframe.dataset.frameOrigin = 'homescreen';
+
+    this.element.appendChild(this.browser.element);
+    this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
+    this.fadeOverlay = this.element.querySelector('.fade-overlay');
+    this.publish('rendered');
+  };
 
   AppWindow.prototype.render = function aw_render() {
-    var screenshotOverlay = document.createElement('div');
-    screenshotOverlay.classList.add('screenshot-overlay');
+    if (!this.element) {
+      this._render();
+    } else { // backward compatibility
+      var screenshotOverlay = document.createElement('div');
+      screenshotOverlay.classList.add('screenshot-overlay');
 
-    this.element = this.iframe;
+      this.element = this.iframe;
 
-    this.frame.appendChild(screenshotOverlay);
-    this.screenshotOverlay = screenshotOverlay;
+      this.frame.appendChild(screenshotOverlay);
+      this.screenshotOverlay = screenshotOverlay;
 
-    var fadeOverlay = document.createElement('div');
-    fadeOverlay.classList.add('fade-overlay');
-    this.frame.appendChild(fadeOverlay);
-    this.fadeOverlay = fadeOverlay;
+      var fadeOverlay = document.createElement('div');
+      fadeOverlay.classList.add('fade-overlay');
+      this.frame.appendChild(fadeOverlay);
+      this.fadeOverlay = fadeOverlay;
+    }
 
+    this._registerEvents();
+
+    // Pre determine the rotation degree.
+    this.determineRotationDegree();
+  };
+
+  AppWindow.prototype._registerEvents = function aw__registerEvents() {
     this.iframe.addEventListener('mozbrowservisibilitychange',
       function visibilitychange(e) {
         var type = e.detail.visible ? 'foreground' : 'background';
@@ -293,8 +352,27 @@
       this._transitionState = 'closing';
     }.bind(this));
 
-    // Pre determine the rotation degree.
-    this.determineRotationDegree();
+    this.element.addEventListener('mozbrowserloadend', function loadend(evt) {
+      this.loaded = true;
+      var backgroundColor = evt.detail.backgroundColor;
+      /* When rotating the screen, the child may take some time to reflow.
+       * If the child takes longer than layers.orientation.sync.timeout
+       * to respond, gecko will go ahead and draw anyways. This code
+       * uses a simple heuristic to guess the least distracting color
+       * we should draw in the blank space. */
+
+      /* Only allow opaque colors */
+      // TODOEVME - this kept throwing errors when homescreen launched,
+      // bgcolor was null
+      if (backgroundColor && backgroundColor.indexOf('rgb(') != -1) {
+        this.iframe.style.backgroundColor = backgroundColor;
+      }
+    }.bind(this));
+
+    // Deal with locationchange
+    this.element.addEventListener('mozbrowserlocationchange', function(evt) {
+      this.iframe.dataset.url = evt.detail;
+    });
   };
 
   /**
@@ -343,12 +421,15 @@
       return;
 
     var iframe = this.iframe;
+    var self = this;
     if ('getScreenshot' in iframe) {
       var request = iframe.getScreenshot(1, 1);
       request.onsuccess = request.onerror = function onRepainted() {
+        self.debug('repainted by screenshoting.');
         setTimeout(callback);
       };
     } else {
+      this.debug('no repaint.');
       setTimeout(callback);
     }
   };
@@ -734,5 +815,45 @@
       }
     }
   };
+
+  AppWindow.prototype._AppWindow_opened =
+    function aw__AppWindow_opened() {
+      if ('wrapper' in this.element.dataset) {
+        wrapperFooter.classList.add('visible');
+      }
+    };
+
+  AppWindow.prototype.getIconForSplash =
+    function aw_getIconForSplash(manifest) {
+      var icons = 'icons' in this.manifest ? this.manifest['icons'] : null;
+      if (!icons) {
+        return null;
+      }
+
+      var sizes = Object.keys(icons).map(function parse(str) {
+        return parseInt(str, 10);
+      });
+
+      sizes.sort(function(x, y) { return y - x; });
+
+      var index = 0;
+      var width = document.documentElement.clientWidth;
+      for (var i = 0; i < sizes.length; i++) {
+        if (sizes[i] < width) {
+          index = i;
+          break;
+        }
+      }
+
+      this._splash = icons[sizes[index]];
+
+      return icons[sizes[index]];
+    };
+
+  AppWindow.prototype.setFrameBackground =
+    function aw_setFrameBackground(frame, callback) {
+      this.element.style.backgroundImage = 'url("' + this._splash + '")';
+      setTimeout(callback);
+    };
 
 }(this));

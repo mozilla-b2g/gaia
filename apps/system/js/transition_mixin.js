@@ -2,6 +2,7 @@
 
 (function(window) {
   var TransitionEvents = ['open', 'close', 'complete', 'timeout'];
+  var screenElement = document.getElementById('screen');
 
   // XXX: Move all transition related functions into a mixin.
   var TransitionStateTable = {
@@ -91,8 +92,21 @@
       // XXX: Refine this.
       if (this.isHomescreen)
         this.ensure();
-      if (!AttentionScreen.isFullyVisible())
+      if (!AttentionScreen.isFullyVisible()) {
         this.setVisible(true);
+          // Set the frame to be visible.
+      } else {
+        // If attention screen is fully visible now,
+        // don't give the open frame visible.
+        // This is the case that homescreen is restarted behind attention screen
+
+        // XXX: After bug 822325 is fixed in gecko,
+        // we don't need to check trusted ui state here anymore.
+        // We do this because we don't want the trustedUI opener
+        // is killed in background due to OOM.
+        if (!TrustedUIManager.hasTrustedUI(this.origin))
+          this.setVisible(false);
+      }
       this.resetTransition();
       this.resize();
 
@@ -113,7 +127,19 @@
       this.element.classList.add('active');
       this.element.classList.add('transition-opening');
       this.element.classList.add(this.currentAnimation || this.openAnimation);
+      this.element.removeAttribute('aria-hidden');
+      // Only resize after the resize function is called once.
+      if (this.resized)
+        this.resize();
+      this.launchTime = Date.now();
+      if (this.isFullScreen())
+        screenElement.classList.add('fullscreen-app');
+      if (this.rotatingDegree !== 0) {
+        // Lock the orientation before transitioning.
+        this.setOrientation();
+      }
       this.publish('opening');
+      this.publish('willopen'); // backward compatibility
       if (this.browser)
         this.browser.element.focus();
     },
@@ -128,7 +154,12 @@
       this._transitionStateTimeout = setTimeout(function() {
         this._processTransitionEvent('timeout');
       }.bind(this), this._transitionTimeout);
+      this.element.setAttribute('aria-hidden', 'true');
+      if (this.determineClosingRotationDegree() !== 0) {
+        this.fadeOut();
+      }
       this.publish('closing');
+      this.publish('willclose'); // backward compatibility
       if (this.browser)
         this.browser.element.blur();
     },
@@ -141,6 +172,7 @@
       }
       this.element.classList.add('active');
       this.publish('opened');
+      this.publish('open'); // backward compatibity
     },
 
     _enter_closed: function tm__enter_closed(prev, evt) {
@@ -149,6 +181,15 @@
       this.resetTransition();
       this.currentAnimation = '';
       this.publish('closed');
+      this.publish('close'); // backward compatibity
+    },
+
+    _open: function tm__open(callback) {
+      this._processTransitionEvent('open', callback);
+    },
+
+    _close: function tm__close(callback) {
+      this._processTransitionEvent('close', callback);
     },
 
     open: function tm_open(callback) {
@@ -157,17 +198,27 @@
           this.currentAnimation = arguments[0];
           callback = arguments[1];
         }
-        this._processTransitionEvent('open', callback);
+        if (this instanceof AppWindow && !this.isFTU && !this.isHomescreen) {
+          this.publish('requestopen'); // Request open to AppWindowManager.
+        } else {
+          this._open();
+        }
+        // TODO: loadtime event
       }
     },
 
     close: function tm_close(callback) {
       if (this.element) {
+        this.debug(' close======');
         if (typeof(arguments[0]) !== 'function') {
           this.currentAnimation = arguments[0];
           callback = arguments[1];
         }
-        this._processTransitionEvent('close', callback);
+        if (this instanceof AppWindow && !this.isFTU && !this.isHomescreen) {
+          this.publish('requestclose'); // Request open to AppWindowManager.
+        } else {
+          this._close();
+        }
       }
     }
   };
