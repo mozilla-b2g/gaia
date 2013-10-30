@@ -3,6 +3,7 @@
 }
 
 #evme-activation-icon {
+  position: absolute;
   background: rgba(0, 0, 0, 0.4);
   height: 5rem;
   width: 100%;
@@ -11,6 +12,9 @@
   #evme-activation-icon input {
     height: 100%;
     width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
     border: none;
     padding: 0;
     background: url('/everything.me/images/search-icon.png') 28.3rem 50% no-repeat transparent;
