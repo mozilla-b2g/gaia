@@ -33,6 +33,27 @@
   transition: none;
 }
 
+#cards-view .no-recent-apps {
+  display: none;
+  position: absolute;
+  top: calc(50% - 1rem);
+  left: 3rem;
+  width: calc(100% - 6rem);
+  height: 2rem;
+  text-align: center;
+  color: #52b6cc;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+#cards-view.empty .no-recent-apps {
+  display: block;
+}
+
+#cards-view.empty {
+  background-color: rgba(0, 0, 0, .8);
+}
+
 #cards-view ul {
   list-style: none;
   margin: 0;
