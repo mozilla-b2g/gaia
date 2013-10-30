@@ -7,8 +7,13 @@ b2g=`find b2g -follow -name "b2g-bin" | tail -n 1`
 profile=profile
 gaiatest="python $root/cli.py"
 
+manifest="$root/$GAIATEST_MANIFEST";
+
+echo $manifest;
+
 $gaiatest --app=b2gdesktop \
           --binary=$b2g \
           --profile=$profile \
           --type=b2g \
-          --restart $root/tests/manifest.ini
+          --restart \
+          $root/$GAIATEST_MANIFEST
