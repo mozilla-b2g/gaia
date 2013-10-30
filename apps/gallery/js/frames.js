@@ -22,6 +22,12 @@ var nextFrame = new MediaFrame($('frame3'));
 // so we don't try to pan or zoom during a frame transition.
 var transitioning = false;
 
+$('fullscreen-slideshow-button').onclick = function() {
+  if (!files[currentFileIndex].metadata.video) {
+    setView(slideshowView);
+    startSlideshow();
+  }
+};
 // Clicking on the back button goes back to the thumbnail view
 $('fullscreen-back-button').onclick = setView.bind(null, thumbnailListView);
 
