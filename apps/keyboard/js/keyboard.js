@@ -379,6 +379,9 @@ function getKeyboardSettings() {
 
     // We've got all the settings, so initialize the rest
     initKeyboard();
+
+    // initialize the current loaded layout
+    setKeyboardName(keyboardName);
   });
 }
 
@@ -470,6 +473,7 @@ function initKeyboard() {
 
   window.addEventListener('hashchange', function() {
     var inputMethodName = window.location.hash.substring(1);
+
     setKeyboardName(inputMethodName, function() {
       resetKeyboard();
       showKeyboard();
@@ -484,6 +488,7 @@ function initKeyboard() {
   // showKeyboard() when mozHidden is false and we got inputContext
   window.addEventListener('mozvisibilitychange', function visibilityHandler() {
     var inputMethodName = window.location.hash.substring(1);
+
     setKeyboardName(inputMethodName, function() {
       if (!document.mozHidden && inputContext) {
         showKeyboard();
@@ -541,6 +546,7 @@ function setKeyboardName(name, callback) {
   deactivateInputMethod();
 
   if (keyboard.imEngine) {
+
     loadIMEngine(name, function() {
       inputMethod = InputMethods[keyboard.imEngine];
       callback();
