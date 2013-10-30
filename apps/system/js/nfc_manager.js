@@ -330,21 +330,18 @@
       var type = '';
       for (var i = 0; i < r.type.length; i++) {
         type += String.fromCharCode(r.type[i]);
-        debug('Type: ' + type);
       }
       r.type = type;
       debug('Type: ' + r.type);
       var id = '';
       for (var i = 0; i < r.id.length; i++) {
         id += String.fromCharCode(r.id[i]);
-        debug('id: ' + id);
       }
       r.id = id;
       debug('id: ' + r.id);
       var payload = '';
       for (var i = 0; i < r.payload.length; i++) {
         payload += String.fromCharCode(r.payload[i]);
-        debug('payload: ' + payload);
       }
       r.payload = payload;
       debug('payload: ' + r.payload);
