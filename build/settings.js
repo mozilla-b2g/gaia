@@ -258,6 +258,7 @@ function execute(options) {
    'ril.sms.strict7BitEncoding.enabled': false,
    'ril.cellbroadcast.disabled': false,
    'ril.data.apnSettings': '',
+   'ril.data.cp.apns': '',
    'ril.callerId': 'CLIR_DEFAULT',
    'screen.automatic-brightness': true,
    'screen.brightness': 1,
