@@ -22,14 +22,14 @@ suite('dialer/voicemail', function() {
 
   suite('SIM card and mozSettings have voicemail number', function() {
     setup(function() {
-      MockMozVoicemail.number = '123';
+      MockMozVoicemail._number = '123';
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '123' }
       );
     });
 
     teardown(function() {
-      MockMozVoicemail.number = null;
+      MockMozVoicemail._number = null;
       MockNavigatorSettings.mTeardown();
     });
 
@@ -51,14 +51,14 @@ suite('dialer/voicemail', function() {
   suite('SIM card has voicemail number but ' +
         'mozSettings does not have' , function() {
     setup(function() {
-      MockMozVoicemail.number = null;
+      MockMozVoicemail._number = null;
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '123' }
       );
     });
 
     teardown(function() {
-      MockMozVoicemail.number = null;
+      MockMozVoicemail._number = null;
       MockNavigatorSettings.mTeardown();
     });
 
@@ -80,14 +80,14 @@ suite('dialer/voicemail', function() {
 
   suite('SIM card has no voicemail number but mozSettings has' , function() {
     setup(function() {
-      MockMozVoicemail.number = null;
+      MockMozVoicemail._number = null;
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '123' }
       );
     });
 
     teardown(function() {
-      MockMozVoicemail.number = null;
+      MockMozVoicemail._number = null;
       MockNavigatorSettings.mTeardown();
     });
 
@@ -108,14 +108,14 @@ suite('dialer/voicemail', function() {
 
   suite('SIM card and mozSettings have no voicemail number' , function() {
     setup(function() {
-      MockMozVoicemail.number = null;
+      MockMozVoicemail._number = null;
       MockNavigatorSettings.createLock().set(
         { 'ril.iccInfo.mbdn': '' }
       );
     });
 
     teardown(function() {
-      MockMozVoicemail.number = null;
+      MockMozVoicemail._number = null;
       MockNavigatorSettings.mTeardown();
     });
 
