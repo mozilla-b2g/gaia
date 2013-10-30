@@ -1,0 +1,13 @@
+#! /bin/bash -ve
+ROOT=$PWD
+echo "setting up python"
+cd tests/python/gaia-ui-tests/
+sudo python setup.py develop
+
+cd $ROOT;
+
+echo "Downloading b2g-desktop"
+make b2g
+
+echo "building profile"
+make
