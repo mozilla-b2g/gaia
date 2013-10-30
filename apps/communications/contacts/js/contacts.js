@@ -36,7 +36,7 @@ var Contacts = (function() {
   var contactsDetails;
   var contactsForm;
 
-  var customTag, tagDone, tagCancel, lazyLoadedTagsDom = false;
+  var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
 
   var checkUrl = function checkUrl() {
     var hasParams = window.location.hash.split('?');
@@ -340,6 +340,10 @@ var Contacts = (function() {
       customTag = document.querySelector('#custom-tag');
       customTag.addEventListener('touchend', handleCustomTag);
     }
+    if (!customTagReset) {
+      customTagReset = document.getElementById('custom-tag-reset');
+      customTagReset.addEventListener('touchstart', handleCustomTagReset);
+    }
     if (!tagDone) {
       tagDone = document.querySelector('#settings-done');
       tagDone.addEventListener('click', handleSelectTagDone);
@@ -433,6 +437,13 @@ var Contacts = (function() {
 
   var handleCustomTag = function handleCustomTag() {
     ContactsTag.touchCustomTag();
+  };
+
+  var handleCustomTagReset = function handleCustomTagReset(ev) {
+    ev.preventDefault();
+    if (customTag) {
+      customTag.value = '';
+    }
   };
 
   var sendEmailOrPick = function sendEmailOrPick(address) {
