@@ -21,6 +21,8 @@
       if (evt.target !== this.element)
         return;
 
+      evt.stopPropagation();
+
       this._processTransitionEvent('complete');
     },
 
@@ -29,8 +31,12 @@
         window.clearTimeout(this._transitionStateTimeout);
         this._transitionStateTimeout = null;
       }
-      this.element.classList.remove(this.openAnimation);
-      this.element.classList.remove(this.closeAnimation);
+      this.element.classList.remove(
+        this.currentAnimation || this.openAnimation);
+      this.element.classList.remove(
+        this.currentAnimation || this.closeAnimation);
+      this.element.classList.remove('transition-opening');
+      this.element.classList.remove('transition-closing');
     },
 
     _processTransitionEvent:
@@ -75,15 +81,24 @@
         if (typeof(this['_enter_' + current]) == 'function') {
           this['_enter_' + current](previous, evt);
         }
+
+        if (typeof(this['_' + this.CLASSNAME + '_' + current]) == 'function') {
+          this['_' + this.CLASSNAME + '_' + current](previous, evt);
+        }
       },
 
     _leave_closed: function tm__leave_closed(next, evt) {
-      this.ensure();
+      // XXX: Refine this.
+      if (this.isHomescreen)
+        this.ensure();
       if (!AttentionScreen.isFullyVisible())
         this.setVisible(true);
       this.resetTransition();
       this.resize();
-      this.setOrientation();
+
+      if (this.isHomescreen) {
+        this.setOrientation();
+      }
     },
 
     // Should be the same as defined in system.css animation time.
@@ -96,17 +111,16 @@
         this._processTransitionEvent('timeout');
       }.bind(this), this._transitionTimeout * 1.3);
       this.element.classList.add('active');
-      this.element.classList.add(this.openAnimation);
+      this.element.classList.add('transition-opening');
+      this.element.classList.add(this.currentAnimation || this.openAnimation);
       this.publish('opening');
       if (this.browser)
         this.browser.element.focus();
     },
 
     _leave_opened: function tm__leave_opened(next, evt) {
-      this.element.classList.remove('active');
-      this.element.classList.add(this.closeAnimation);
-      if (this.browser)
-        this.browser.element.focus();
+      this.element.classList.add('transition-closing');
+      this.element.classList.add(this.currentAnimation || this.closeAnimation);
     },
 
     _enter_closing: function tm__enter_closing(prev, evt) {
@@ -114,8 +128,6 @@
       this._transitionStateTimeout = setTimeout(function() {
         this._processTransitionEvent('timeout');
       }.bind(this), this._transitionTimeout);
-      this.element.classList.remove('active');
-      this.element.classList.add('this.closeAnimation');
       this.publish('closing');
       if (this.browser)
         this.browser.element.blur();
@@ -123,24 +135,38 @@
 
     _enter_opened: function tm__enter_opened(prev, evt) {
       this.resetTransition();
+      this.currentAnimation = '';
+      if (!this.isHomescreen) {
+        this.setOrientation();
+      }
       this.element.classList.add('active');
       this.publish('opened');
     },
 
     _enter_closed: function tm__enter_closed(prev, evt) {
+      this.element.classList.remove('active');
       this.setVisible(false);
       this.resetTransition();
+      this.currentAnimation = '';
       this.publish('closed');
     },
 
     open: function tm_open(callback) {
       if (this.element) {
+        if (typeof(arguments[0]) !== 'function') {
+          this.currentAnimation = arguments[0];
+          callback = arguments[1];
+        }
         this._processTransitionEvent('open', callback);
       }
     },
 
     close: function tm_close(callback) {
       if (this.element) {
+        if (typeof(arguments[0]) !== 'function') {
+          this.currentAnimation = arguments[0];
+          callback = arguments[1];
+        }
         this._processTransitionEvent('close', callback);
       }
     }

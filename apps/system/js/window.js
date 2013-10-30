@@ -323,6 +323,18 @@
     }
   };
 
+  AppWindow.prototype.show = function aw_show() {
+    if (!this.isActive()) {
+      this.element.classList.add('active');
+    }
+  };
+
+  AppWindow.prototype.hide = function aw_hide() {
+    if (this.isActive()) {
+      this.element.classList.remove('active');
+    }
+  };
+
   /**
    * Wait for a full repaint of the mozbrowser iframe.
    */
@@ -670,13 +682,11 @@
 
 
   AppWindow.prototype.fadeOut = function hw__fadeout() {
-    this.frame.classList.add('fadeout');
-    this.iframe.style.display = 'none';
+    this.element.classList.add('fadeout');
   };
 
   AppWindow.prototype.fadeIn = function hw__fadein() {
-    this.frame.classList.remove('fadeout');
-    this.iframe.style.display = 'block';
+    this.element.classList.remove('fadeout');
   };
 
   AppWindow.prototype.setActivityCallee =
