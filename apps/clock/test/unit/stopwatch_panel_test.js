@@ -8,10 +8,10 @@ suite('Stopwatch.Panel', function() {
   var MockL10n, localize;
 
   suiteSetup(function(done) {
-    var threeMin = 3 * 60 * 1000;
-    var sevenMin = 7 * 60 * 1000;
-    var fourSec = 4 * 1000;
-    var thirtyMins = 30 * 60 * 1000;
+    var threeMin = 3 * 60 * 1000 + 130;
+    var sevenMin = 7 * 60 * 1000 + 170;
+    var fourSec = 4 * 1000 + 230;
+    var thirtyMins = 30 * 60 * 1000 + 270;
 
     runningSw = function() {
       return new Stopwatch({
@@ -41,13 +41,17 @@ suite('Stopwatch.Panel', function() {
     };
 
     withLapsSw = function() {
-      return new Stopwatch({
-        startTime: Date.now() - sevenMin,
-        totalElapsed: 0,
-        state: Stopwatch.RUNNING,
-        laps: [{time: threeMin, duration: threeMin},
-               {time: threeMin + fourSec, duration: fourSec}]
-      });
+      var sw = new Stopwatch();
+      sw.start();
+      clock.tick(threeMin);
+      panel.update();
+      sw.lap();
+      clock.tick(fourSec);
+      panel.update();
+      sw.lap();
+      clock.tick(thirtyMins + threeMin * 3 + fourSec * 2);
+      panel.update();
+      return sw;
     };
 
     isHidden = function(element) {
@@ -90,7 +94,7 @@ suite('Stopwatch.Panel', function() {
     var x = sevenMinSw();
     panel.setStopwatch(x);
 
-    assert.equal(panel.nodes.time.textContent, '07:00.00');
+    assert.equal(panel.nodes.time.textContent, '07:00.17');
     assert.isFalse(isHidden(panel.nodes.pause));
     assert.isFalse(isHidden(panel.nodes.lap));
 
@@ -100,7 +104,7 @@ suite('Stopwatch.Panel', function() {
 
     clock.tick(3000);
     panel.update(); // required due to requestAnimationFrame not being called
-    assert.equal(panel.nodes.time.textContent, '07:03.00');
+    assert.equal(panel.nodes.time.textContent, '07:03.17');
   });
 
   test('Pause a stopwatch', function() {
@@ -109,14 +113,14 @@ suite('Stopwatch.Panel', function() {
 
     clock.tick(3000);
     panel.update(); // required due to requestAnimationFrame not being called
-    assert.equal(panel.nodes.time.textContent, '07:00.00');
+    assert.equal(panel.nodes.time.textContent, '07:00.17');
   });
 
   test('Four Second Paused', function() {
     panel.setStopwatch(fourSecPausedSw());
     panel.update(); // required due to requestAnimationFrame not being called
 
-    assert.equal(panel.nodes.time.textContent, '00:04.00');
+    assert.equal(panel.nodes.time.textContent, '00:04.23');
     assert.isFalse(isHidden(panel.nodes.resume));
     assert.isFalse(isHidden(panel.nodes.reset));
 
@@ -126,7 +130,7 @@ suite('Stopwatch.Panel', function() {
 
     clock.tick(3000);
     panel.update(); // required due to requestAnimationFrame not being called
-    assert.equal(panel.nodes.time.textContent, '00:04.00');
+    assert.equal(panel.nodes.time.textContent, '00:04.23');
   });
 
   test('Resume a stopwatch', function() {
@@ -135,23 +139,24 @@ suite('Stopwatch.Panel', function() {
 
     clock.tick(3000);
     panel.update(); // required due to requestAnimationFrame not being called
-    assert.equal(panel.nodes.time.textContent, '00:07.00');
+    assert.equal(panel.nodes.time.textContent, '00:07.23');
   });
 
   test('Pre-existing laps', function() {
-    panel.setStopwatch(withLapsSw());
+    var tmp = withLapsSw();
+    panel.setStopwatch(tmp); //withLapsSw());
     var laps = panel.nodes['laps'].querySelectorAll('li');
     assert.equal(laps.length, 3);
     var lapTime;
 
     lapTime = laps[0].children[1].textContent.trim();
-    assert.equal(lapTime, '03:56.00');
+    assert.equal(lapTime, '39:09.12');
 
     lapTime = laps[1].children[1].textContent.trim();
-    assert.equal(lapTime, '00:04.00');
+    assert.equal(lapTime, '00:04.23');
 
     lapTime = laps[2].children[1].textContent.trim();
-    assert.equal(lapTime, '03:00.00');
+    assert.equal(lapTime, '03:00.13');
   });
 
   test('Add laps', function() {

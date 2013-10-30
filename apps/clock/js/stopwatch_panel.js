@@ -109,7 +109,7 @@ define(function(require) {
     //Clear any existing lap indicators and make new ones
     var lapsUl = this.nodes.laps;
     lapsUl.textContent = '';
-    var laps = stopwatch.getLapDurations();
+    var laps = stopwatch.getLaps();
     for (var i = 0; i < laps.length; i++) {
       this.onlap(laps[i]);
     }
@@ -184,7 +184,7 @@ define(function(require) {
 
   Stopwatch.Panel.prototype.activeLap = function(force) {
     var stopwatch = priv.get(this).stopwatch;
-    var num = stopwatch.getLapDurations().length + 1;
+    var num = stopwatch.getLaps().length + 1;
     if (num === 1 && !force) {
       return;
     }
@@ -201,13 +201,13 @@ define(function(require) {
   Stopwatch.Panel.prototype.onlap = function(val) {
     var stopwatch = priv.get(this).stopwatch;
     var node = this.nodes.laps;
-    var laps = stopwatch.getLapDurations();
+    var laps = stopwatch.getLaps();
     var num = laps.length;
-    if (num > 1000) {
+    if (num > 99) {
       return;
     }
     this.activeLap(true);
-    var li = lapDom.call(this, num, val);
+    var li = lapDom.call(this, num, val ? val.duration : 0);
     if (laps.length > 1) {
       var lapnodes = node.querySelectorAll('li.lap-cell');
       node.insertBefore(li, lapnodes[1]);

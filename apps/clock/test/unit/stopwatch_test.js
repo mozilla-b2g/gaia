@@ -25,7 +25,7 @@ suite('Stopwatch', function() {
     test('defaults', function() {
       assert.isTrue(this.sw.getState() === Stopwatch.RESET);
       assert.equal(this.sw.getElapsedTime(), 0);
-      assert.deepEqual(this.sw.getLapDurations(), []);
+      assert.deepEqual(this.sw.getLaps(), []);
     });
 
     test('from object', function() {
@@ -143,7 +143,7 @@ suite('Stopwatch', function() {
       this.sw.start();
       this.clock.tick(oneHour);
       var l = this.sw.lap();
-      assert.equal(l, oneHour);
+      assert.deepEqual(l, { duration: oneHour, time: oneHour });
     });
 
     test('3 times', function() {
@@ -154,9 +154,9 @@ suite('Stopwatch', function() {
       var l2 = this.sw.lap();
       this.clock.tick(oneHour);
       var l3 = this.sw.lap();
-      assert.equal(l1, oneHour);
-      assert.equal(l2, oneHour);
-      assert.equal(l3, oneHour);
+      assert.deepEqual(l1, { duration: oneHour, time: oneHour });
+      assert.deepEqual(l2, { duration: oneHour, time: 2 * oneHour });
+      assert.deepEqual(l3, { duration: oneHour, time: 3 * oneHour });
     });
 
     test('lap & pause & start & lap', function() {
@@ -168,13 +168,13 @@ suite('Stopwatch', function() {
       this.sw.start();
       this.clock.tick(oneHour);
       var l2 = this.sw.lap();
-      assert.equal(l1, oneHour);
-      assert.equal(l2, oneHour);
+      assert.deepEqual(l1, { duration: oneHour, time: oneHour });
+      assert.deepEqual(l2, { duration: oneHour, time: 2 * oneHour });
     });
 
   });
 
-  suite('getLapDurations', function() {
+  suite('getLaps', function() {
 
     setup(function() {
       this.sw.start();
@@ -187,9 +187,9 @@ suite('Stopwatch', function() {
       this.sw.lap();
       this.clock.tick(oneHour + oneHour);
       this.sw.lap();
-      assert.equal(this.sw.getLapDurations()[0], oneHour);
-      assert.equal(this.sw.getLapDurations()[1], oneHour);
-      assert.equal(this.sw.getLapDurations()[2], oneHour + oneHour);
+      assert.equal(this.sw.getLaps()[0].duration, oneHour);
+      assert.equal(this.sw.getLaps()[1].duration, oneHour);
+      assert.equal(this.sw.getLaps()[2].duration, oneHour + oneHour);
     });
 
   });
@@ -235,7 +235,7 @@ suite('Stopwatch', function() {
         this.sw.pause();
         var serialized = this.sw.toSerializable();
         serialized.laps.push({ duration: 23, time: 0 });
-        assert.deepEqual(this.sw.getLapDurations(), []);
+        assert.deepEqual(this.sw.getLaps(), []);
       });
 
       test('elapse 1hr', function() {

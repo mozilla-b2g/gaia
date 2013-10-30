@@ -69,7 +69,7 @@ define(function() {
     /**
     * getElapsedTime Calculates the total elapsed duration since the
     *                stopwatch was started
-    * @return {Date} return total elapsed duration.
+    * @return {Number} return total elapsed duration.
     */
     getElapsedTime: function sw_getElapsedTime() {
       var sw = priv.get(this);
@@ -137,17 +137,17 @@ define(function() {
       }
       var nl = this.nextLap();
       sw.laps.push(nl);
-      return nl.duration;
+      return nl;
     },
 
     /**
-    * getLapDurations Returns an array of lap durations, sorted by oldest first
-    * @return {Array} return an array of lap durations.
+    * getLaps Returns an array of laps, sorted by oldest first
+    * @return {Array} return an array of laps.
     */
-    getLapDurations: function sw_getLapDurations() {
+    getLaps: function sw_getLaps() {
       var sw = priv.get(this);
       return sw.laps.map(function(lap) {
-        return lap.duration;
+        return lap;
       });
     },
 
