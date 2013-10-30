@@ -1,0 +1,19 @@
+The keyboard app uses large dictionary files for autocorrection. If we
+include all the dictionaries we have, our builds become too large. So
+the keyboard is configured at build time to include only the layouts
+and dictionaries we need for a particular build.
+
+Dictionaries live in gaia/keyboard/dictionaries and layouts are
+defined in gaia/keyboard/layouts. Files are copied into this app, but
+are not checked into github in this app.
+
+We also configure the manifest.webapp file at build time, to add entry
+points for each layout.
+
+Configuration is done with the GAIA_KEYBOARD_LAYOUTS environment
+variable, and there is a default value defined in the Makefile.
+
+The actual configuration code is in build/keyboard-config.js. The
+functions defined by that file are used by build/application-data.js
+and build/webapp-manifests.js
+
