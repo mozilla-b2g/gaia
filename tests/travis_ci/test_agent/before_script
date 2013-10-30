@@ -1,0 +1,23 @@
+#! /bin/bash -v
+
+# not using -e here because we use code failure for other things here.
+RETRY=10
+
+function waiting_port {
+  for i in $(seq 1 $RETRY); do
+    nc -z localhost $1
+    if [ $? -eq 0 ]; then return; fi
+    sleep 1
+  done
+  echo "Waiting for server on port $1 failed."
+  exit 1
+}
+
+echo "Starting test-agent-server"
+make test-agent-server &
+
+echo 'Starting Firefox'
+
+FIREFOX=`find firefox -name "firefox" | tail -n 1`
+$FIREFOX -profile `pwd`/profile-debug "http://test-agent.gaiamobile.org:8080" &
+waiting_port 8080
