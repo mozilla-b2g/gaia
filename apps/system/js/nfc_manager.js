@@ -289,7 +289,7 @@
     };
   }
 
-  function handleNdefDiscovered(tech, session) {
+  function handleNdefDiscoveredNotification(tech, session) {
     var connected = false;
     var handled = false;
     var nfcdom = window.navigator.mozNfc;
@@ -303,7 +303,7 @@
       var req = nfctag.readNDEF();
       req.onsuccess = function() {
         debug('System read 2: ' + JSON.stringify(req.result));
-        var action = handleNdefMessages(req.result.records);
+        /*var action = handleNdefMessages(req.result.records);
 
         if (action.length <= 0) {
           debug('Unimplemented. Handle Unknown type.');
@@ -312,8 +312,8 @@
           action[0].data.tech = tech;
           action[0].data.sessionToken = token;
           var a = new MozActivity(action[0]);
-        }
-        handled = true;
+        }*/
+        handled = handleNdefDiscovered(tech, session, req.result.records);
         doClose(nfctag);
       };
       req.onerror = function() {
@@ -325,9 +325,55 @@
     return handled;
   }
 
+  function convertRawPayloadToString(ndefMsg) {
+    var records = ndefMsg.map(function(r) {
+      var type = '';
+      for (var i = 0; i < r.type.length; i++) {
+        type += String.fromCharCode(r.type[i]);
+        debug('Type: ' + type);
+      }
+      r.type = type;
+      debug('Type: ' + r.type);
+      var id = '';
+      for (var i = 0; i < r.id.length; i++) {
+        id += String.fromCharCode(r.id[i]);
+        debug('id: ' + id);
+      }
+      r.id = id;
+      debug('id: ' + r.id);
+      var payload = '';
+      for (var i = 0; i < r.payload.length; i++) {
+        payload += String.fromCharCode(r.payload[i]);
+        debug('payload: ' + payload);
+      }
+      r.payload = payload;
+      debug('payload: ' + r.payload);
+      return r;
+    });
+    return records;
+  }
+
+  function handleNdefDiscovered(tech, session, ndefMsg) {
+    debug('handleNdefDiscovered: ' + JSON.stringify(ndefMsg));
+    var records = convertRawPayloadToString(ndefMsg);
+    debug('handleNdefDiscovered: ' + JSON.stringify(records));
+    var action = handleNdefMessages(records);
+    if (action.length <= 0) {
+      debug('Unimplemented. Handle Unknown type.');
+    } else {
+      debug('Action: ' + JSON.stringify(action[0]));
+      action[0].data.tech = tech;
+      action[0].data.sessionToken = session;
+      var a = new MozActivity(action[0]);
+      return true;
+    }
+
+    return false;
+  }
+
   // TODO:
   function handleNdefFormattableDiscovered(tech, session) {
-    return handleNdefDiscovered(tech, session);
+    return handleNdefDiscoveredNotification(tech, session);
   }
 
   function handleTechnologyDiscovered(command) {
@@ -342,6 +388,8 @@
     debug('command.content.tech: ' + command.content.tech);
     var handled = false;
     var techs = command.content.tech;
+    // Pick the first NDEF message for now.
+    var ndefMsg = command.content.ndef[0];
 
     // Force Tech Priority:
     var pri = ['P2P', 'NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
@@ -354,9 +402,11 @@
           // current user context to accept a message via registered app
           // callback/message. If so, fire P2P NDEF to app.
           // If not, drop message.
-          handled = handleNdefDiscovered(techs[i], command.sessionToken);
+          handled = handleNdefDiscovered(techs[i], command.sessionToken,
+                                         ndefMsg);
         } else if (techs[i] == 'NDEF') {
-          handled = handleNdefDiscovered(techs[i], command.sessionToken);
+          handled = handleNdefDiscovered(techs[i], command.sessionToken,
+                                         ndefMsg);
         } else if (techs[i] == 'NDEF_FORMATTABLE') {
           handled = handleNdefFormattableDiscovered(techs[i],
                                                     command.sessionToken);
