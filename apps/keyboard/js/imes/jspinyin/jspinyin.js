@@ -165,8 +165,10 @@ var emEngineWrapper = {
   },
 
   init: function(path, byteArray, callback) {
-    if (this._initialized)
+    if (this._initialized) {
       callback(true);
+      return;
+    }
 
     var self = this;
 
@@ -508,7 +510,7 @@ IMEngine.prototype = {
     var request = indexedDB.open('EmpinyinDatabase', dbVersion);
 
     request.onerror = function opendb_onerror(event) {
-      log('Error occurs when openning database: ' + event.target.errorCode);
+      debug('Error occurs when openning database: ' + event.target.errorCode);
       callback(null);
     };
 
@@ -529,7 +531,7 @@ IMEngine.prototype = {
         };
 
         request.onerror = function readdb_oncomplete(event) {
-          log('Failed to read file from DB: ' + event.target.result.name);
+          debug('Failed to read file from DB: ' + event.target.result.name);
           db.close();
           callback(null);
         };
@@ -548,7 +550,7 @@ IMEngine.prototype = {
         };
 
         request.onerror = function readdb_oncomplete(event) {
-          log('Failed to write file to DB: ' + event.target.result.name);
+          debug('Failed to write file to DB: ' + event.target.result.name);
           db.close();
           callback(false);
         };
@@ -581,6 +583,11 @@ IMEngine.prototype = {
   uninit: function engine_uninit() {
     IMEngineBase.prototype.uninit.call(this);
     debug('Uninit.');
+
+    if (this._uninitTimer) {
+      clearTimeout(this._uninitTimer);
+      this._uninitTimer = null;
+    }
 
     if (emEngineWrapper.isReady())
       emEngineWrapper.uninit();
