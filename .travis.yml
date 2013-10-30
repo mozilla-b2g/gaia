@@ -1,4 +1,4 @@
-script: "./hash.py `find apps -path '*/test/*.js'`"
+script: "time ./hash.py `find apps -path '*/test/*.js'`"
 branches:
   except:
     - v1-train
