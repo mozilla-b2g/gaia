@@ -291,6 +291,21 @@ function handleNdefType(sessionToken, techType) {
   return handled;
 }
 
+var hexEncodeArray = [
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+];
+
+function convertUint8ArrayToHex(arr) {
+  var s = '';
+  for (var i = 0; i < arr.length; i++) {
+    var code = arr[i];
+    s += hexEncodeArray[code >>> 4];
+    s += hexEncodeArray[code & 0x0F];
+    s += ' ';
+  }
+  return s;
+}
+
 // NDEF only:
 function handleNdefDiscoveredMessages(ndefmessage) {
   debug('Found tag!');
@@ -314,13 +329,12 @@ function handleNdefDiscoveredMessages(ndefmessage) {
   for (var i = 0; i < ndefmessage.length; i++) {
     var record = ndefmessage[i];
     console.log('RECORD: ' + JSON.stringify(record));
-
     //Dump generic data
     html += '<li data-theme="c">';
     html += 'tnf: ' + record.tnf + '<br/>';
-    html += 'type: ' + record.type + '<br/>';
-    html += 'id: ' + record.id + '<br/>';
-    html += 'raw payload: ' + record.payload + '<br/>';
+    html += 'type: ' + convertUint8ArrayToHex(record.type) + '<br/>';
+    html += 'id: ' + convertUint8ArrayToHex(record.id) + '<br/>';
+    html += 'raw payload: ' + convertUint8ArrayToHex(record.payload) + '<br/>';
     html += '</li>';
 
     var action = '';
@@ -408,6 +422,40 @@ function setListenState(boolState) {
 }
 
 /**
+ * There appears to be a bug in WebIDL where Uint8Array parameters are
+ * converted to a JS object. While this bug persists, this helper function
+ * converts the JS object back to a Uint8Array.
+ */
+function convertNDEFRecords(records) {
+  var convertedRecords = new Array();
+  for (var i = 0; i < records.length; i++) {
+    var rec = records[i];
+    var convertedRecord = {};
+    convertedRecord.tnf = rec.tnf;
+    convertedRecord.type = convertArray(rec.type);
+    convertedRecord.id = convertArray(rec.id);
+    convertedRecord.payload = convertArray(rec.payload);
+    convertedRecords.push(convertedRecord);
+  }
+  return convertedRecords;
+}
+
+function convertArray(obj) {
+  if (obj == null) {
+    return null;
+  }
+  var size = 0, key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) size++;
+  }
+  var a = new Uint8Array(size);
+  for (var i = 0; i < size; i++) {
+    a[i] = obj[i];
+  }
+  return a;
+}
+
+/**
  * NfcActivityHandler is the entry point of all discovery messages.
  */
 function NfcActivityHandler(activity) {
@@ -415,6 +463,7 @@ function NfcActivityHandler(activity) {
 
   var activityName = activity.source.name;
   var data = activity.source.data;
+  data.records = convertNDEFRecords(data.records);
   nfcUI.setActivityData(data);
 
   debug('XX Received Activity: name: ' + activityName);

@@ -483,7 +483,6 @@
     for (key in obj) {
       if (obj.hasOwnProperty(key)) size++;
     }
-    debug("convertArray: " + size);
     var a = new Uint8Array(size);
     for (var i = 0; i < size; i++) {
       a[i] = obj[i];
