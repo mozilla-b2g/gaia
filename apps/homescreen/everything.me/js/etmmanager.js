@@ -54,6 +54,21 @@ var EvmeManager = (function EvmeManager() {
     });
   }
 
+  function onAppSavedToHomescreen(name) {
+    var message = navigator.mozL10n.get('evme-banner-app-install-success', {
+      'name': name
+    });
+    statusShow(message);
+  }
+
+  function statusShow(message, duration) {
+    LazyLoader.load(['shared/style/status.css',
+                     'js/components/status.js'],
+      function onLoad() {
+        utils.status.show(message, duration);
+      });
+  }
+
   function menuShow() {
     footerStyle.MozTransform = 'translateY(0)';
   }
@@ -333,6 +348,8 @@ var EvmeManager = (function EvmeManager() {
     openMarketplaceSearch: openMarketplaceSearch,
 
     isEvmeVisible: isEvmeVisible,
+
+    onAppSavedToHomescreen: onAppSavedToHomescreen,
 
     menuShow: menuShow,
     menuHide: menuHide,

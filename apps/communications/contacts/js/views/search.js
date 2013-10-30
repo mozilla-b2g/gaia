@@ -497,11 +497,11 @@ contacts.Search = (function() {
     searchList.removeChild(contact);
   };
 
-  var selectRow = function s_selectRow(id) {
+  var selectRow = function s_selectRow(id, value) {
     var check = searchList.querySelector(
       '#search-view input[value="' + id + '"]');
     if (check) {
-      check.checked = !check.checked;
+      check.checked = value;
     }
   };
 

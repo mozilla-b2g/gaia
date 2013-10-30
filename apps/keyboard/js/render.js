@@ -142,8 +142,16 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
+        var attributeList = [];
+        if (key.disabled) {
+          attributeList.push({
+            key: 'disabled',
+            value: 'true'
+          });
+        }
+
         kbRow.appendChild(buildKey(keyChar, className, keyWidth + 'px',
-          dataset, key.altNote));
+          dataset, key.altNote, attributeList));
       }));
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;
@@ -759,7 +767,9 @@ const IMERender = (function() {
     return toggleButton;
   };
 
-  var buildKey = function buildKey(label, className, width, dataset, altNote) {
+  var buildKey = function buildKey(label, className, width, dataset, altNote,
+                                   attributeList) {
+
     var altNoteNode;
     if (altNote) {
       altNoteNode = document.createElement('div');
@@ -770,6 +780,13 @@ const IMERender = (function() {
     var contentNode = document.createElement('button');
     contentNode.className = 'keyboard-key ' + className;
     contentNode.setAttribute('style', 'width: ' + width + ';');
+
+    if (attributeList) {
+      attributeList.forEach(function(attribute) {
+        contentNode.setAttribute(attribute.key, attribute.value);
+      });
+    }
+
     dataset.forEach(function(data) {
       contentNode.dataset[data.key] = data.value;
     });

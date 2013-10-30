@@ -44,6 +44,9 @@ class Contacts(Base):
     def wait_for_contacts(self, number_to_wait_for=1):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._contact_locator)) == number_to_wait_for)
 
+    def wait_for_contacts_frame_to_close(self):
+        self.wait_for_condition(lambda m: not m.find_element(*self._contact_locator).is_displayed())
+
     def contact(self, name):
         for contact in self.contacts:
             if contact.name == name:

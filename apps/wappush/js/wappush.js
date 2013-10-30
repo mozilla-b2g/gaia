@@ -113,9 +113,10 @@ var WapPushManager = {
    */
   shouldDisplayMessage: function wpm_shouldDisplayMessage(message) {
     if (!this._wapPushEnabled || (message === null) ||
-        !WhiteList.has(message.sender)) {
-       /* WAP push functionality is either completely disabled or the message
-        * comes from a non white-listed MSISDN, ignore it. */
+        !WhiteList.has(message.sender) || message.isExpired()) {
+       /* WAP push functionality is either completely disabled, the message
+        * comes from a non white-listed MSISDN, or it has already been expired,
+        * ignore it. */
        return false;
     }
 
@@ -206,15 +207,13 @@ var WapPushManager = {
         var _ = navigator.mozL10n.get;
 
         // Populate the message
-        if (message) {
+        if (message && !message.isExpired()) {
           self._title.textContent = message.sender;
           self._text.textContent = message.text;
           self._link.textContent = message.href;
           self._link.href = message.href;
           self._link.dataset.url = message.href;
         } else {
-          /* If we couldn't retrieve the message then it means that the message
-           * has been expired before it was displayed. */
           self._title.textContent = _('wap-push-message');
           self._text.textContent = _('this-message-has-expired');
           self._link.textContent = '';

@@ -1,5 +1,5 @@
-/*global MocksHelper, MockL10n, Utils, MockContact, FixturePhones,
-         MockFixedHeader, MockContacts, MockMozPhoneNumberService */
+/*global MockL10n, Utils, MockContact, FixturePhones,
+         MockContacts, MockMozPhoneNumberService */
 
 'use strict';
 
