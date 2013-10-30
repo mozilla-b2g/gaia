@@ -38,11 +38,6 @@ suite('configurator.js >', function() {
 
   setup(function() {
     mocksHelper.setup();
-
-    containerNode = document.createElement('div');
-    containerNode.innerHTML = '<div role="search-page"></div>';
-    document.body.appendChild(containerNode);
-
     Configurator.load();
 
     // We set up a wrong landing page index in order to check what its value
@@ -55,7 +50,6 @@ suite('configurator.js >', function() {
   teardown(function() {
     mocksHelper.teardown();
     navigator.mozSettings.mTeardown();
-    document.body.removeChild(containerNode);
   });
 
   function sendResponseText(text) {
@@ -66,8 +60,6 @@ suite('configurator.js >', function() {
 
   function assertHomescreen(number) {
     assert.equal(Homescreen.landingPage, number);
-    assert.equal(document.querySelectorAll('div[role="search-page"]').length,
-                 number);
   }
 
   // helper to change single key-value of mozSettings
@@ -191,6 +183,15 @@ suite('configurator.js >', function() {
    */
   test('Search provider disabled >', function() {
     sendResponseText('{ "search_page":{ "provider": "xx","enabled": false } }');
+    assertHomescreen(0);
+  });
+
+  /*
+   * It checks the conditions when there is a search provider and enable search
+   */
+  test('Search provider enabled >', function() {
+    sendResponseText('{ "search_page":{ "provider": "em","enabled": true } }');
+    assert.include(document.body.classList, 'searchPageEnabled');
     assertHomescreen(0);
   });
 

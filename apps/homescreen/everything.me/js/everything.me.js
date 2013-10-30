@@ -192,6 +192,13 @@ var EverythingME = {
       var resource = list[i];
       resource.parentNode.removeChild(resource);
     }
+
+    // Deleting all exising nodes
+    var elementsId = ['evmeContainer'];
+    elementsId.forEach(function(id) {
+      var elementDom = document.getElementById(id);
+      elementDom.parentNode.removeChild(elementDom);
+    });
   },
 
   // copy relevant user data from 1.0.1 to 1.1 versions
