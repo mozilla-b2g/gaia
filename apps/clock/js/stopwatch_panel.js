@@ -113,12 +113,22 @@ define(function(require) {
     for (var i = 0; i < laps.length; i++) {
       this.onlap(laps[i]);
     }
+    this.checkLapButton();
   };
 
   Stopwatch.Panel.prototype.onvisibilitychange = function(isVisible) {
     var stopwatch = priv.get(this).stopwatch;
     if (isVisible) {
       this.setState(stopwatch.getState());
+    }
+  };
+
+  Stopwatch.Panel.prototype.checkLapButton = function() {
+    var swp = priv.get(this);
+    if (swp.stopwatch.getLaps().length >=
+        99 /* ensure that this matches the value in
+              apps/clock/js/stopwatch.js#lap */) {
+      this.nodes.lap.setAttribute('disabled', 'true');
     }
   };
 
@@ -132,11 +142,20 @@ define(function(require) {
     var button = priv.get(event.target);
 
     if (swp.stopwatch && swp.stopwatch[button.action]) {
-      // call action on stopwatch
-      var val = swp.stopwatch[button.action]();
+      try {
+        // call action on stopwatch
+        var val = swp.stopwatch[button.action]();
 
-      // call panel handler
-      this['on' + button.action](val);
+        // call panel handler
+        this['on' + button.action](val);
+      } catch (err) {
+        if (err instanceof Stopwatch.MaxLapsException) {
+          // do nothing
+        } else {
+          throw err;
+        }
+      }
+      this.checkLapButton();
     }
   };
 
@@ -209,9 +228,6 @@ define(function(require) {
     var node = this.nodes.laps;
     var laps = stopwatch.getLaps();
     var num = laps.length;
-    if (num > 99) {
-      return;
-    }
     this.activeLap(true);
     var li = createLapDom.call(this, num, val ? val.duration : 0);
     if (laps.length > 1) {
