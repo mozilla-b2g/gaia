@@ -173,7 +173,7 @@ marionette('Notification.get():', function() {
     client.apps.launch(CALENDAR_APP);
     client.apps.switchToApp(CALENDAR_APP);
 
-    error = client.executeAsyncScript(function(title, tag) {
+    var error = client.executeAsyncScript(function(title, tag) {
       var promise = Notification.get({tag: tag});
       promise.then(function(notifications) {
         if (!notifications || notifications.length !== 1) {
@@ -192,4 +192,19 @@ marionette('Notification.get():', function() {
     assert.equal(error, false, 'notification persist error: ' + error);
     done();
   });
+
+  test('bug 931307, empty title should not cause crash', function(done) {
+    var error = client.executeAsyncScript(function() {
+      var notification = new Notification('');
+      var promise = Notification.get();
+      promise.then(function() {
+        marionetteScriptFinished(false);
+      }, function() {
+        marionetteScriptFinished('promise returned an error');
+      });
+    });
+    assert.equal(error, false, 'empty title returned error: ' + error);
+    done();
+  });
+
 });
