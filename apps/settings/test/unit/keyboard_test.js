@@ -1,6 +1,6 @@
 'use strict';
 
-mocha.globals(['openDialog']);
+mocha.globals(['openDialog', 'Settings']);
 requireApp('settings/test/unit/mock_l10n.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -213,6 +213,8 @@ suite('keyboard >', function() {
       test('Disable app1 layout1', function() {
         var targetLayout = layouts[0][0];
         targetLayout.enabled = false;
+        KeyboardHelper.saveToSettings();
+
         assert.isFalse(isActuallyEnabled(targetLayout));
         assert.isTrue(this.checkDefaults.called);
       });
@@ -220,6 +222,8 @@ suite('keyboard >', function() {
       test('Enable app1 layout1', function() {
         var targetLayout = layouts[0][0];
         targetLayout.enabled = true;
+        KeyboardHelper.saveToSettings();
+
         assert.isTrue(isActuallyEnabled(targetLayout));
         // don't check defaults when enabling a keyboard
         assert.isFalse(this.checkDefaults.called);
@@ -228,6 +232,8 @@ suite('keyboard >', function() {
       test('Disable app1 layout1', function() {
         var targetLayout = layouts[0][0];
         targetLayout.enabled = false;
+        KeyboardHelper.saveToSettings();
+
         assert.isFalse(isActuallyEnabled(targetLayout));
         assert.isTrue(this.checkDefaults.called);
       });
@@ -235,6 +241,8 @@ suite('keyboard >', function() {
       test('Enable app1 layout2', function() {
         var targetLayout = layouts[0][1];
         targetLayout.enabled = true;
+        KeyboardHelper.saveToSettings();
+
         assert.isTrue(isActuallyEnabled(targetLayout));
         // don't check defaults when enabling a keyboard
         assert.isFalse(this.checkDefaults.called);
@@ -243,6 +251,8 @@ suite('keyboard >', function() {
       test('Enable app2 layout1', function() {
         var targetLayout = layouts[1][0];
         targetLayout.enabled = true;
+        KeyboardHelper.saveToSettings();
+
         assert.isTrue(isActuallyEnabled(targetLayout));
         // don't check defaults when enabling a keyboard
         assert.isFalse(this.checkDefaults.called);
@@ -251,6 +261,8 @@ suite('keyboard >', function() {
       test('Disable app3 layout1', function() {
         var targetLayout = layouts[2][0];
         targetLayout.enabled = false;
+        KeyboardHelper.saveToSettings();
+
         assert.isFalse(isActuallyEnabled(targetLayout));
         assert.isTrue(this.checkDefaults.called);
       });
@@ -258,6 +270,8 @@ suite('keyboard >', function() {
       test('Disable app2 layout1', function() {
         var targetLayout = layouts[1][0];
         targetLayout.enabled = false;
+        KeyboardHelper.saveToSettings();
+
         assert.isFalse(isActuallyEnabled(targetLayout));
         assert.isTrue(this.checkDefaults.called);
       });
@@ -346,6 +360,47 @@ suite('keyboard >', function() {
       test('calls openDialog', function() {
         assert.ok(this.openDialog.calledWith('keyboard-enabled-default'));
       });
+    });
+  });
+
+  suite('InstalledLayoutsPanel', function() {
+    var realSettings;
+    var MockSettings = {
+      currentPanel: null
+    };
+
+    suiteSetup(function() {
+      realSettings = window.Settings;
+      window.Settings = MockSettings;
+      Settings.currentPanel = '#root';
+
+      this.container = document.createElement('div');
+      this.container.id = 'keyboardAppContainer';
+      document.body.appendChild(this.container);
+    });
+
+    suiteTeardown(function() {
+      window.Settings = realSettings;
+      MockSettings = null;
+
+      document.body.removeChild(this.container);
+    });
+
+    test('Save to settings when leaving panel', function() {
+      var saveToSettingsStub =
+        this.sinon.stub(KeyboardHelper, 'saveToSettings');
+
+      // Init the panel.
+      // The panel is visible as 'currentPanel' is #keyboard-selection-addMore.
+      MockSettings.currentPanel = '#keyboard-selection-addMore';
+      InstalledLayoutsPanel.init('#keyboard-selection-addMore');
+
+      // Change to other panel
+      MockSettings.currentPanel = '#other-panel';
+      var event = new CustomEvent('panelready');
+      window.dispatchEvent(event);
+
+      assert.isTrue(saveToSettingsStub.called);
     });
   });
 });

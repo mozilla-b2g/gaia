@@ -65,8 +65,8 @@ var Settings = {
       window.scrollTo(0, 0);
     }
 
-    window.addEventListener('transitionend', function paintWait() {
-      window.removeEventListener('transitionend', paintWait);
+    newPanel.addEventListener('transitionend', function paintWait() {
+      newPanel.removeEventListener('transitionend', paintWait);
 
       // We need to wait for the next tick otherwise gecko gets confused
       setTimeout(function nextTick() {
