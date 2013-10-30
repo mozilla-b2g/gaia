@@ -72,6 +72,7 @@ class Keyboard(Base):
     _keyboard_locator = (By.CSS_SELECTOR, '#keyboard')
     _button_locator = (By.CSS_SELECTOR, 'button.keyboard-key[data-keycode="%s"]')
     _highlight_key_locator = (By.CSS_SELECTOR, 'div.highlighted button')
+    _predicted_word_locator = (By.CSS_SELECTOR, '.autocorrect')
 
     # find the key to long press and return
     def _find_key_for_longpress(self, input_value):
@@ -277,3 +278,8 @@ class Keyboard(Base):
         is_visible = self.marionette.find_element(*self._keyboard_frame_locator).is_displayed()
         self.marionette.switch_to_frame(frame)
         return is_visible
+
+    def tap_first_predictive_word(self):
+        self.switch_to_keyboard()
+        self.wait_for_element_displayed(*self._predicted_word_locator)
+        self.marionette.find_element(*self._predicted_word_locator).tap()
