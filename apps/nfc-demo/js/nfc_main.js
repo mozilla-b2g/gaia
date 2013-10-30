@@ -53,7 +53,6 @@ function handleURIRecord(record) {
       'action': 'Open URI',
       'uri': prefix + nfc.toUTF8(record.payload.subarray(1))
     };
-  }
 }
 
 function handleVCardRecord(record) {

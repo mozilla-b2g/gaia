@@ -50,14 +50,14 @@
 
     equalArrays: function(a1, a2) {
       if (a1.length != a2.length) {
-        return 0;
+        return false;
       }
       for (var i = 0; i < a1.length; i++) {
         if (a1[i] != a2[i]) {
-          return 0;
+          return false;
         }
       }
-      return 1;
+      return true;
     },
 
     flags_tnf: 0x07,
@@ -259,6 +259,7 @@
 
   // An Ndef Message is an array of one or more Ndef tags.
   function handleNdefMessages(ndefmessages) {
+    ndefmessages = convertNDEFRecords(ndefmessages);
     var action = new Array();
 
     for (var i = 0; i < ndefmessages.length; i++) {
@@ -455,6 +456,41 @@
     };
   }
 
+  /**
+   * There appears to be a bug in WebIDL where Uint8Array parameters are
+   * converted to a JS object. While this bug persists, this helper function
+   * converts the JS object back to a Uint8Array.
+   */
+  function convertNDEFRecords(records) {
+    var convertedRecords = new Array();
+    for (var i = 0; i < records.length; i++) {
+      var rec = records[i];
+      var convertedRecord = {};
+      convertedRecord.tnf = rec.tnf;
+      convertedRecord.type = convertArray(rec.type);
+      convertedRecord.id = convertArray(rec.id);
+      convertedRecord.payload = convertArray(rec.payload);
+      convertedRecords.push(convertedRecord);
+    }
+    return convertedRecords;
+  }
+
+  function convertArray(obj) {
+    if (obj == null) {
+      return null;
+    }
+    var size = 0, key;
+    for (key in obj) {
+      if (obj.hasOwnProperty(key)) size++;
+    }
+    debug("convertArray: " + size);
+    var a = new Uint8Array(size);
+    for (var i = 0; i < size; i++) {
+      a[i] = obj[i];
+    }
+    return a;
+  }
+
   function handleWellKnownRecord(record) {
     debug('XXXXXXXXXXXXXXXXXXXX HandleWellKnowRecord XXXXXXXXXXXXXXXXXXXX');
     if (nfc.equalArrays(record.type, nfc.rtd_text)) {
@@ -466,7 +502,7 @@
     } else if (nfc.equalArrays(record.type, nfc.smartposter_action)) {
       return handleSmartPosterAction(record);
     } else {
-      console.log('Unknown record type: ' + record.type);
+      console.log('Unknown record type: ' + JSON.stringify(record));
     }
     return null;
   }
@@ -479,7 +515,7 @@
     var text;
     var encodingString;
     if (encoding == nfc.rtd_text_utf8) {
-      text = nfc.toUTF8(record.payload.subarray(languageLength + 1)));
+      text = nfc.toUTF8(record.payload.subarray(languageLength + 1));
       encodingString = 'UTF-8';
     } else if (encoding == nfc.rtd_text_utf16) {
       //TODO needs to be fixed. payload is Uint8Array
