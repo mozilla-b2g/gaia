@@ -155,6 +155,12 @@
       "description": "Greek layout",
       "types": ["url", "text"]
     },
+    "bn": {
+      "launch_path": "/index.html#bn",
+      "name": "Bangla",
+      "description": "Bangla layout",
+      "types": ["url", "text"]
+    },
     "zh-Hans-Pinyin": {
       "launch_path": "/index.html#zh-Hans-Pinyin",
       "name": "Pinyin",

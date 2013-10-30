@@ -242,7 +242,8 @@ const keyboardGroups = {
   'pinyin': ['zh-Hans-Pinyin'],
   'arabic': ['ar'],
   'greek': ['el'],
-  'japanese': ['jp-kanji']
+  'japanese': ['jp-kanji'],
+  'indic': ['bn']
 };
 
 // Define language code aliases to correctly match the relevant keyboard,
@@ -260,7 +261,7 @@ const keyboardHashKey = [
   'en', 'en-Dvorak', 'es', 'pt-BR', 'pl',
   'cz', 'fr', 'de', 'nb', 'sk',
   'tr', 'ru', 'sr-Cyrl', 'ar', 'he',
-  'el',
+  'el', 'bn',
   'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
   'numberLayout'
 ];
