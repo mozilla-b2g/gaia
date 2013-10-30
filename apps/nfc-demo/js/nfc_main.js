@@ -11,13 +11,13 @@ var isListening = false;
 
 // Main Functions:
 function handleWellKnownRecord(record) {
-  if (record.type == nfc.rtd_text) {
+  if (nfc.equalArrays(record.type, nfc.rtd_text)) {
     return handleTextRecord(record);
-  } else if (record.type == nfc.rtd_uri) {
+  } else if (nfc.equalArrays(record.type, nfc.rtd_uri)) {
     return handleURIRecord(record);
-  } else if (record.type == nfc.rtd_smart_poster) {
+  } else if (nfc.equalArrays(record.type, nfc.rtd_smart_poster)) {
     return handleSmartPosterRecord(record);
-  } else if (record.type == nfc.smartposter_action) {
+  } else if (nfc.equalArrays(record.type, nfc.smartposter_action)) {
     return handleSmartPosterAction(record);
   } else {
     console.log('Unknown record type: ' + record.type);
@@ -139,10 +139,10 @@ function handleSmartPosterAction(record) {
 }
 
 function getRecordActionText(record, handle) {
-  if (record.type == nfc.rtd_text) {
+  if (nfc.equalArrays(record.type, nfc.rtd_text)) {
     return 'text: ' + handle.text + ' (Language: ' + handle.language +
            ', Encoding: ' + handle.encoding + ')';
-  } else if (record.type == nfc.rtd_uri) {
+  } else if (nfc.equalArrays(record.type, nfc.rtd_uri)) {
     if (handle.uri.indexOf('tel') == 0) {
       return '<div class="dialer" href="' + handle.uri + '">' + handle.uri +
              '</div>';
@@ -150,12 +150,12 @@ function getRecordActionText(record, handle) {
       return '<div class="actionuri" href="' + handle.uri + '">' +
              handle.uri + '</div>';
     }
-  } else if (record.type == 'text/x-vCard') {
+  } else if (nfc.equalArrays(record.type, nfc.fromUTF8('text/x-vCard'))) {
     return '<a href="javascript:addContact(\'' + handle.first + '\', \'' +
            handle.last + '\', \'' + handle.cell + '\')">' +
            'first name: ' + handle.first + '<br/>last name: ' + handle.last +
            '<br/>cell: ' + handle.cell + '</a>';
-  } else if (record.type == nfc.smartposter_action) {
+  } else if (nfc.equalArrays(record.type, nfc.smartposter_action)) {
     return 'Recommended Action : ' + handle.action;
   }
 }
@@ -343,7 +343,7 @@ function handleNdefDiscoveredMessages(ndefmessage) {
       action += '<li data-role="list-divider" role="heading">Action: ' +
                handle.action + '</li>';
       action += '<li data-theme="c">';
-      if (record.type == nfc.rtd_smart_poster) {
+      if (nfc.equalArrays(record.type, nfc.rtd_smart_poster)) {
         for (var j = 0; j < handle.records.length; j++) {
           var subRecord = handle.records[j];
           var subHandle = handleWellKnownRecord(subRecord);
@@ -365,7 +365,7 @@ function handleNdefDiscoveredMessages(ndefmessage) {
       action += handle;
       action += '</li>';
     } else if (record.tnf == nfc.tnf_mime_media) {
-      if (record.type == 'text/x-vCard') {
+      if (nfc.equalArrays(record.type, nfc.fromUTF8('text/x-vCard'))) {
          action += '<li data-role="list-divider" role="heading">' +
                    'Action: Add to Contacts</li>';
          action += '<li data-theme="c">';
@@ -463,7 +463,9 @@ function NfcActivityHandler(activity) {
 
   var activityName = activity.source.name;
   var data = activity.source.data;
-  data.records = convertNDEFRecords(data.records);
+  if (data.records) {
+    data.records = convertNDEFRecords(data.records);
+  }
   nfcUI.setActivityData(data);
 
   debug('XX Received Activity: name: ' + activityName);

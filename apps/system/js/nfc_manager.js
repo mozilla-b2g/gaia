@@ -575,7 +575,7 @@
     var activityText = null;
 
     debug('XXXXXXXXXXXXXXXXXXXX HandleMimeMedia XXXXXXXXXXXXXXXXXXXX');
-    if (record.type == 'text/vcard') {
+    if (nfc.equalArrays(record.type, 'text/vcard')) {
       activityText = handleVCardRecord(record);
     } else {
       activityText = {
