@@ -84,11 +84,11 @@ var MessageManager = {
       return;
     }
 
-    // Here we can only have one sender, so deliveryStatus[0] => message
-    // status from sender. Ignore 'pending' messages that are received
+    // Here we can only have one sender, so deliveryInfo[0].deliveryStatus =>
+    // message status from sender. Ignore 'pending' messages that are received
     // this means we are in automatic download mode
     if (message.delivery === 'not-downloaded' &&
-        message.deliveryStatus[0] === 'pending') {
+        message.deliveryInfo[0].deliveryStatus === 'pending') {
       return;
     }
 

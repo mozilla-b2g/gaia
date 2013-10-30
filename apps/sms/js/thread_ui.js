@@ -1203,8 +1203,8 @@ var ThreadUI = global.ThreadUI = {
     var messageL10nId = 'not-downloaded-mms';
     var downloadL10nId = 'download';
 
-    // assuming that incoming message only has one deliveryStatus
-    var status = message.deliveryStatus[0];
+    // assuming that incoming message only has one deliveryInfo
+    var status = message.deliveryInfo[0].deliveryStatus;
 
     var expireFormatted = Utils.date.format.localeFormat(
       message.expiryDate, navigator.mozL10n.get('dateTimeFormat_%x')
@@ -1239,13 +1239,12 @@ var ThreadUI = global.ThreadUI = {
   // In multiple recipient case, we return true only when all the recipients
   // deliveryStatus set to success.
   isDeliveryStatusSuccess: function thui_isDeliveryStatusSuccess(message) {
-    var statusSet = message.deliveryStatus;
-    if (Array.isArray(statusSet)) {
-      return statusSet.every(function(status) {
-        return status === 'success';
+    if (message.type === 'mms') {
+      return message.deliveryInfo.every(function(info) {
+        return info.deliveryStatus === 'success';
       });
     } else {
-      return statusSet === 'success';
+      return message.deliveryStatus === 'success';
     }
   },
 

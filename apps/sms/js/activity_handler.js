@@ -429,9 +429,9 @@ var ActivityHandler = {
     if (message.type === 'sms') {
       dispatchNotification();
     } else {
-      // Here we can only have one sender, so deliveryStatus[0] => message
-      // status from sender.
-      var status = message.deliveryStatus[0];
+      // Here we can only have one sender, so deliveryInfo[0].deliveryStatus =>
+      // message status from sender.
+      var status = message.deliveryInfo[0].deliveryStatus;
       if (status === 'pending') {
         return;
       }
