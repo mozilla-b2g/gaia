@@ -22,5 +22,6 @@ matrix:
     - env: CI_ACTION=jshint
 notifications:
   irc:
+    on_success: change
     channels:
       - "irc.mozilla.org#gaia"
