@@ -1,22 +1,5 @@
-before_install: "travis_retry npm install"
-install: "./node_modules/.bin/travisaction $CI_ACTION install"
-before_script:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - "./node_modules/.bin/travisaction $CI_ACTION before_script"
-script: "./node_modules/.bin/travisaction $CI_ACTION script"
+script: "time ./hash.py `find apps -path '*/test/*.js'`"
 branches:
   except:
     - v1-train
     - v1.1.0hd
-    - v1.0.0
-    - v1.0.1
-env:
-  - CI_ACTION=gjslint
-  - CI_ACTION=test_agent
-  - CI_ACTION=marionette_js
-  - CI_ACTION=gaia_ui_tests
-notifications:
-  irc:
-    channels:
-      - "irc.mozilla.org#gaia"
