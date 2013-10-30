@@ -1,7 +1,13 @@
-requireApp('clock/js/emitter.js');
-requireApp('clock/js/tabs.js');
-
 suite('Tabs', function() {
+  var Tabs;
+
+  suiteSetup(function(done) {
+    testRequire(['tabs'], function(tabs) {
+      Tabs = tabs;
+      done();
+    });
+  });
+
   setup(function() {
     this.element = document.createElement('div');
     this.element.innerHTML =

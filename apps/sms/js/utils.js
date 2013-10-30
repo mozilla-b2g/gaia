@@ -1,5 +1,6 @@
 /* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
 (function(exports) {
   'use strict';
   var rdashes = /-(.)/g;
@@ -15,59 +16,8 @@
         delete Utils.date.format;
         // Late initialization allows us to safely mock the mozL10n object
         // without creating race conditions or hard script dependencies
-        return Utils.date.format = new navigator.mozL10n.DateTimeFormat();
+        return (Utils.date.format = new navigator.mozL10n.DateTimeFormat());
       }
-    },
-    updateTimeHeaders: function ut_updateTimeHeaders() {
-      var headers = document.querySelectorAll('header[data-time-update]'),
-          length = headers.length,
-          i, ts, header, headerDate, formattedHour, newHeader;
-
-      for (i = 0; i < length; i++) {
-        Utils.updateTimeHeader(headers[i]);
-      }
-
-      FixedHeader.updateHeaderContent();
-    },
-
-    updateTimeHeader: function ut_updateTimeHeader(header) {
-      var ts = header.dataset.time;
-      if (!ts) {
-        return;
-      }
-
-      var newHeader;
-
-      // only date
-      if (header.dataset.isThread === 'true') {
-        newHeader = Utils.getHeaderDate(ts);
-
-      // only time
-      } else if (header.dataset.timeOnly === 'true') {
-        newHeader = Utils.getFormattedHour(ts);
-
-      // date + time
-      } else {
-        newHeader = Utils.getHeaderDate(ts) + ' ' + Utils.getFormattedHour(ts);
-      }
-
-      if (newHeader !== header.textContent) {
-        header.textContent = newHeader;
-      }
-    },
-
-    startTimeHeaderScheduler: function ut_startTimeHeaderScheduler() {
-      var updateFunction = (function() {
-        this.updateTimeHeaders();
-        var now = Date.now(),
-            nextTimeout = new Date(now + 60000);
-        nextTimeout.setSeconds(0);
-        nextTimeout.setMilliseconds(0);
-        clearTimeout(this.updateTimer);
-        this.updateTimer = setTimeout(updateFunction,
-          nextTimeout.getTime() - now);
-      }).bind(this);
-      updateFunction();
     },
     escapeRegex: function ut_escapeRegex(str) {
       if (typeof str !== 'string') {
@@ -155,7 +105,7 @@
         // Add photo
         if (include.photoURL) {
           if (contact.photo && contact.photo[0]) {
-            details.photoURL = URL.createObjectURL(contact.photo[0]);
+            details.photoURL = window.URL.createObjectURL(contact.photo[0]);
           }
         }
 
@@ -201,8 +151,9 @@
         //    just display phone number.
         for (var i = 0, l = contacts.length; i < l; i++) {
           updateDetails(contacts[i]);
-          if (details.name)
+          if (details.name) {
             break;
+          }
         }
         details.title = details.name || details.org;
       }
@@ -245,7 +196,7 @@
       for (var i = 0; i < length; i++) {
         tel = tels[i];
 
-        if (tel.value && Utils.compareDialables(tel.value, input)) {
+        if (tel.value && Utils.probablyMatches(tel.value, input)) {
           found = tel;
         }
 
@@ -293,10 +244,18 @@
     //
     // ...It would appear that a maximally-minimal
     // 7 digit comparison is safe.
-    compareDialables: function ut_compareDialables(a, b) {
-      a = Utils.removeNonDialables(a).slice(-7);
-      b = Utils.removeNonDialables(b).slice(-7);
-      return a === b;
+    probablyMatches: function ut_probablyMatches(a, b) {
+      var service = navigator.mozPhoneNumberService;
+
+      if (service && service.normalize) {
+        a = service.normalize(a);
+        b = service.normalize(b);
+      } else {
+        a = Utils.removeNonDialables(a);
+        b = Utils.removeNonDialables(b);
+      }
+
+      return a === b || a.slice(-7) === b.slice(-7);
     },
 
     // Default image size limitation is set to 300KB for MMS user story.
@@ -345,10 +304,10 @@
       }
 
       var img = document.createElement('img');
-      var url = URL.createObjectURL(blob);
+      var url = window.URL.createObjectURL(blob);
       img.src = url;
       img.onload = function onBlobLoaded() {
-        URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(url);
         var imageWidth = img.width;
         var imageHeight = img.height;
         var targetWidth = imageWidth / ratio;

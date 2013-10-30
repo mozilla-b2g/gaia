@@ -1,3 +1,4 @@
+/*global loadBodyHTML, Dialog, MockL10n */
 'use strict';
 
 requireApp('sms/test/unit/mock_l10n.js');

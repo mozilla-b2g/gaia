@@ -1,0 +1,47 @@
+<element name="topup-dialog" extends="section">
+  <template>
+
+    <header>
+      <menu type="toolbar">
+        <button id="topup-send-button" data-l10n-id="send">
+          Send
+        </button>
+      </menu>
+      <a class="close-dialog">
+        <span id="topup-close-button" class="icon icon-close">
+          close
+        </span>
+      </a>
+      <h1 data-l10n-id="top-up">
+        Top Up
+      </h1>
+    </header>
+    <section class="content">
+      <div class="info">
+        <h2 data-l10n-id="enter-top-up-code">
+          Enter the top up code
+        </h2>
+        <p id="topup-code-explanation" data-l10n-id="top-up-code-explanation2">
+          Find it on the scratch card or directly in your receipt.
+        </p>
+        <p id="topup-incorrect-code" aria-hidden="true" data-l10n-id="incorrect-code2">
+          Make sure the code is correct and try again.
+        </p>
+        <p id="topup-error" aria-hidden="true" data-l10n-id="topup-error2">
+          There was a problem sending the code. Please, try again.
+        </p>
+        <section aria-hidden="true" class="loading" id="topup-in-progress">
+          <progress>
+          </progress>
+          <p data-l10n-id="wait-for-confirmation">
+            You'll receive a confirmation message
+          </p>
+        </section>
+      </div>
+    </section>
+    <form>
+      <input id="topup-code-input" type="number" />
+    </form>
+
+  </template>
+</element>

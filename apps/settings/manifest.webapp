@@ -20,6 +20,7 @@
     "webapps-manage":{},
     "open-remote-window":{},
     "permissions":{},
+    "systemXHR": {},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
     "attention":{},
@@ -70,5 +71,5 @@
     "90": "/style/icons/Settings_90.png",
     "120": "/style/icons/Settings_120.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "default"
 }

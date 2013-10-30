@@ -72,7 +72,9 @@ form[role="dialog"][data-type="confirm"] menu {
 form[role="dialog"][data-type="confirm"] menu button::-moz-focus-inner {
   border: none;
   outline: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
 }
+
 form[role="dialog"][data-type="confirm"] menu button {
   width: 100%;
   height: 3.8rem;

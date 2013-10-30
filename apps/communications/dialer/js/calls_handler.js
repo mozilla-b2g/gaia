@@ -16,7 +16,6 @@ var CallsHandler = (function callsHandler() {
 
   var displayed = false;
   var closing = false;
-  var animating = false;
   var ringing = false;
 
   /* === Settings === */
@@ -44,6 +43,8 @@ var CallsHandler = (function callsHandler() {
     SimplePhoneMatcher.mcc = conn.voice.network.mcc;
   }
 
+  var btHelper = new BluetoothHelper();
+
   var ringtonePlayer = new Audio();
   ringtonePlayer.mozAudioChannelType = 'ringer';
   ringtonePlayer.src = phoneSoundURL.get();
@@ -63,6 +64,21 @@ var CallsHandler = (function callsHandler() {
       // Set it to false.
       telephony.muted = false;
     }
+
+    var acm = navigator.mozAudioChannelManager;
+    if (acm) {
+      acm.addEventListener('headphoneschange', function onheadphoneschange() {
+        if (acm.headphones) {
+          CallScreen.turnSpeakerOff();
+        }
+      });
+    }
+
+    btHelper.onscostatuschanged = function onscostatuschanged(evt) {
+      if (evt.status) {
+        CallScreen.turnSpeakerOff();
+      }
+    };
 
     postToMainWindow('ready');
   }
@@ -288,6 +304,10 @@ var CallsHandler = (function callsHandler() {
       });
     });
 
+    if (cdmaCallWaiting()) {
+      CallScreen.holdAndAnswerOnly = true;
+    }
+
     CallScreen.showIncoming();
     playWaitingTone(call);
   }
@@ -295,11 +315,8 @@ var CallsHandler = (function callsHandler() {
   /* === Call Screen === */
   function toggleScreen() {
     displayed = !displayed;
-    animating = true;
 
     CallScreen.toggle(function transitionend() {
-      animating = false;
-
       // We did animate the call screen off the viewport
       // now closing the window.
       if (!displayed) {
@@ -325,9 +342,8 @@ var CallsHandler = (function callsHandler() {
 
     postToMainWindow('closing');
 
-
     // If the screen is not displayed yet we close the window directly
-    if (animate && !animating && displayed) {
+    if (animate && displayed) {
       toggleScreen();
     } else {
       closeWindow();

@@ -1,3 +1,4 @@
+require('/shared/js/text_normalizer.js');
 requireApp('communications/contacts/test/unit/mock_link.html.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 requireApp('communications/facebook/test/unit/mock_curtain.js');

@@ -8,8 +8,7 @@ var GaiaDataLayer = {
 
   insertContact: function(aContact) {
     SpecialPowers.addPermission('contacts-create', true, document);
-    contact = new mozContact();
-    contact.init(aContact);
+    contact = new mozContact(aContact);
     var req = window.navigator.mozContacts.save(contact);
     req.onsuccess = function() {
       console.log('success saving contact');

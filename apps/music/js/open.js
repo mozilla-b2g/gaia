@@ -39,8 +39,9 @@ function handleOpenActivity(request) {
 
   // If the app that initiated this activity wants us to allow the
   // user to save this blob as a file, and if device storage is available
-  // and if there is enough free space, then display a save button.
-  if (data.allowSave && data.filename) {
+  // and if there is enough free space, and if provided file extention
+  // is appropriate for the file type, then display a save button.
+  if (data.allowSave && data.filename && checkFilename()) {
     getStorageIfAvailable('music', blob.size, function(ds) {
       storage = ds;
       saveButton.hidden = false;
@@ -94,6 +95,24 @@ function handleOpenActivity(request) {
         console.error('Error saving', filename, e);
       };
     });
+  }
+
+  function checkFilename() {
+    var dotIdx = data.filename.lastIndexOf('.'), ext, type;
+
+    if (dotIdx > -1) {
+      ext = data.filename.substr(dotIdx + 1);
+
+      // workaround for bug909373 and bug852864, since for audio/ogg files we
+      // get video/ogg for blob.type, we let any file with ogg extention pass
+      if (ext === 'ogg') {
+        return true;
+      } else {
+        return MimeMapper.guessTypeFromExtension(ext) === blob.type;
+      }
+    } else {
+      return false;
+    }
   }
 
   function showBanner(msg) {

@@ -62,6 +62,7 @@ var Homescreen = (function() {
       }
 
       document.body.addEventListener('contextmenu', onContextMenu);
+      IconManager.init(Configurator.getSection('tap_effect_delay'));
 
       if (typeof onInit === 'function') {
         onInit();
@@ -85,7 +86,8 @@ var Homescreen = (function() {
       evt.preventDefault();
       var contextMenuEl = document.getElementById('contextmenu-dialog');
 
-      if (Configurator.getSection('search_page')) {
+      var searchPage = Configurator.getSection('search_page');
+      if (searchPage && searchPage.enabled) {
         LazyLoader.load(['style/contextmenu.css',
                          'shared/style/action_menu.css',
                          contextMenuEl,

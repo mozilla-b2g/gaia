@@ -1,3 +1,5 @@
+/*exported MockAttachmentMenu */
+
 'use strict';
 
 var MockAttachmentMenu = {

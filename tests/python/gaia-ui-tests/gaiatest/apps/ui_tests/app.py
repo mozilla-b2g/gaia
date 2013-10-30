@@ -4,11 +4,15 @@
 from marionette.by import By
 from gaiatest.apps.base import Base
 
+
 UI_TESTS = "UI Tests"
 
 
 class UiTests(Base):
 
+    _ui_page_locator = (By.CSS_SELECTOR, 'a[href="#UI"]')
+    _api_page_locator = (By.CSS_SELECTOR, 'a[href="#API"]')
+    _hw_page_locator = (By.CSS_SELECTOR, 'a[href="#HW"]')
     _mozId_tests_button_locator = (By.LINK_TEXT, 'navigator.mozId')
     _app_identity_frame = (By.CSS_SELECTOR, 'iframe[src*="identity"]')
     _app_std_request_button_locator = (By.ID, 't-request')
@@ -18,6 +22,7 @@ class UiTests(Base):
     _app_login_event = (By.CSS_SELECTOR, 'li.login')
     _app_logout_event = (By.CSS_SELECTOR, 'li.logout')
     _app_login_assertion_text = (By.CSS_SELECTOR, 'li.login div.assertion')
+    _keyboard_locator = (By.LINK_TEXT, 'Keyboard')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -42,13 +47,28 @@ class UiTests(Base):
         # we're done getting assertions
         return self.marionette.find_elements(*self._app_login_assertion_text)[-1].text
 
+    def tap_ui_button(self):
+        self.wait_for_element_displayed(*self._ui_page_locator)
+        self.marionette.find_element(*self._ui_page_locator).tap()
+
+    def tap_api_button(self):
+        self.wait_for_element_displayed(*self._api_page_locator)
+        self.marionette.find_element(*self._api_page_locator).tap()
+
+    def tap_hw_button(self):
+        self.wait_for_element_displayed(*self._hw_page_locator)
+        self.marionette.find_element(*self._hw_page_locator).tap()
+
     def tap_standard_button(self):
         self.wait_for_element_displayed(*self._app_std_request_button_locator)
         self.marionette.find_element(*self._app_std_request_button_locator).tap()
 
     def tap_mozId_button(self):
         self.wait_for_element_displayed(*self._mozId_tests_button_locator, timeout=120)
-        self.marionette.find_element(*self._mozId_tests_button_locator).tap()
+        # Hack to make the identity button visible from underneath the toolbar
+        mozId_button = self.marionette.find_element(*self._mozId_tests_button_locator)
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [mozId_button])
+        mozId_button.tap()
 
     def tap_logout_button(self):
         self.wait_for_element_displayed(*self._app_logout_button_locator)
@@ -62,3 +82,30 @@ class UiTests(Base):
 
     def wait_for_login_event(self):
         self.wait_for_element_displayed(*self._app_login_event)
+
+    def tap_keyboard_option(self):
+        self.wait_for_element_displayed(*self._keyboard_locator, timeout=120)
+        # Hack to make the keyboard button visible from underneath the toolbar
+        keyboard_button = self.marionette.find_element(*self._keyboard_locator)
+        self.marionette.execute_script('arguments[0].scrollIntoView(false);', [keyboard_button])
+        keyboard_button.tap()
+
+    def switch_to_keyboard_page_frame(self):
+        keyboard_page_iframe = self.marionette.find_element(By.CSS_SELECTOR, "#test-iframe[src*='keyboard']")
+        self.marionette.switch_to_frame(keyboard_page_iframe)
+        return KeyboardPage(self.marionette)
+
+
+class KeyboardPage(Base):
+
+    _keyboard_iframe_locator = (By.CSS_SELECTOR, "#test-iframe[src*='keyboard']")
+    _number_input_locator =(By.CSS_SELECTOR, 'input[type="number"]')
+
+    def tap_number_input(self):
+        self.marionette.find_element(*self._number_input_locator).tap()
+        from gaiatest.apps.keyboard.app import Keyboard
+        return Keyboard(self.marionette)
+
+    @property
+    def number_input(self):
+        return self.marionette.find_element(*self._number_input_locator).get_attribute('value')

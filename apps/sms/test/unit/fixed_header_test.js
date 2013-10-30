@@ -1,3 +1,5 @@
+/*global loadBodyHTML, FixedHeader */
+
 'use strict';
 
 requireApp('sms/js/fixed_header.js');

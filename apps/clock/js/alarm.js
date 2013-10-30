@@ -1,6 +1,11 @@
-(function(exports) {
+define(function(require, exports, module) {
 
   'use strict';
+
+  var AlarmsDB = require('alarmsdb');
+  var Utils = require('utils');
+  var constants = require('constants');
+  var mozL10n = require('l10n');
 
   // define WeakMaps for protected properties
   var protectedProperties = (function() {
@@ -104,7 +109,7 @@
 
     set repeat(x) {
       var rep = {};
-      for (var y of DAYS) {
+      for (var y of constants.DAYS) {
         if (x[y] === true) {
           rep[y] = true;
         }
@@ -133,11 +138,11 @@
     // Time Handling
 
     summarizeDaysOfWeek: function alarm_summarizeRepeat() {
-      var _ = navigator.mozL10n.get;
+      var _ = mozL10n.get;
       // Build a bitset
       var value = 0;
-      for (var i = 0; i < DAYS.length; i++) {
-        var dayName = DAYS[i];
+      for (var i = 0; i < constants.DAYS.length; i++) {
+        var dayName = constants.DAYS[i];
         if (this.repeat[dayName] === true) {
           value |= (1 << i);
         }
@@ -151,8 +156,8 @@
         summary = _('weekends');
       } else if (value !== 0) { // any day was true
         var weekdays = [];
-        for (var i = 0; i < DAYS.length; i++) {
-          var dayName = DAYS[i];
+        for (var i = 0; i < constants.DAYS.length; i++) {
+          var dayName = constants.DAYS[i];
           if (this.repeat[dayName]) {
             // Note: here, Monday is the first day of the week
             // whereas in JS Date(), it's Sunday -- hence the (+1) here.
@@ -178,7 +183,7 @@
 
     isDateInRepeat: function alarm_isDateInRepeat(date) {
       // return true if repeat contains date
-      var day = DAYS[(date.getDay() + 6) % 7];
+      var day = constants.DAYS[(date.getDay() + 6) % 7];
       return !!this.repeat[day];
     },
 
@@ -361,6 +366,6 @@
   // ---------------------------------------------------------
   // Export
 
-  exports.Alarm = Alarm;
+  module.exports = Alarm;
 
-})(this);
+});

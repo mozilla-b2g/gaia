@@ -234,6 +234,32 @@ suite('dialer/handled_call', function() {
     });
   });
 
+  suite('while dialing', function() {
+    var updateKeypadSpy;
+
+    setup(function() {
+      updateKeypadSpy = this.sinon.spy(MockCallsHandler, 'updateKeypadEnabled');
+      mockCall.mChangeState('dialing');
+    });
+
+    test('should check if we can enable the keypad', function() {
+      assert.isTrue(updateKeypadSpy.calledOnce);
+    });
+  });
+
+  suite('while alerting', function() {
+    var updateKeypadSpy;
+
+    setup(function() {
+      updateKeypadSpy = this.sinon.spy(MockCallsHandler, 'updateKeypadEnabled');
+      mockCall.mChangeState('alerting');
+    });
+
+    test('should check if we can enable the keypad', function() {
+      assert.isTrue(updateKeypadSpy.calledOnce);
+    });
+  });
+
   suite('on connect', function() {
     setup(function() {
       mockCall._connect();
@@ -261,6 +287,19 @@ suite('dialer/handled_call', function() {
 
     test('photo displaying', function() {
       assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+    });
+
+    suite('with a contact with no picture', function() {
+      setup(function() {
+        subject.photo = null;
+        MockCallScreen.mSetCallerContactImageCalled = false;
+        mockCall._connect();
+      });
+
+      test('wallpaper displaying', function() {
+        assert.isFalse(MockCallScreen.mSetCallerContactImageCalled);
+        assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
+      });
     });
 
     test('primary contact info', function() {
@@ -355,8 +394,12 @@ suite('dialer/handled_call', function() {
 
   suite('resuming', function() {
     setup(function() {
+      mockCall._hold();
       MockCallScreen.mSyncSpeakerCalled = false;
-      MockCallsHandler.mUpdateKeypadEnabledCalled = false;
+      MockCallScreen.mEnableKeypadCalled = false;
+      MockCallScreen.mSetCallerContactImageCalled = false;
+      MockCallScreen.mSetDefaultContactImageCalled = false;
+      subject.photo = 'dummy_photo_1';
       mockCall._resume();
     });
 
@@ -365,11 +408,23 @@ suite('dialer/handled_call', function() {
     });
 
     test('enable keypad', function() {
-      assert.equal(MockCallsHandler.mUpdateKeypadEnabledCalled, true);
+      assert.isTrue(MockCallScreen.mEnableKeypadCalled);
     });
 
     test('sync speaker', function() {
       assert.isTrue(MockCallScreen.mSyncSpeakerCalled);
+    });
+
+    test('changed the user photo', function() {
+      assert.isTrue(MockCallScreen.mSetCallerContactImageCalled);
+    });
+
+    test('change image to default if there are no user images', function() {
+      assert.isFalse(MockCallScreen.mSetDefaultContactImageCalled);
+      subject.photo = null;
+      mockCall._hold();
+      mockCall._resume();
+      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
     });
   });
 
@@ -593,14 +648,12 @@ suite('dialer/handled_call', function() {
       test('is voicemail call', function() {
         mockCall = new MockCall('123', 'dialing');
         subject = new HandledCall(mockCall);
-        mockCall._disconnect();
         assert.isTrue(subject.recentsEntry.voicemail);
       });
 
       test('is not voicemail call', function() {
         mockCall = new MockCall('111', 'dialing');
         subject = new HandledCall(mockCall);
-        mockCall._disconnect();
         assert.isFalse(subject.recentsEntry.voicemail);
       });
     });
@@ -621,9 +674,10 @@ suite('dialer/handled_call', function() {
   });
 
   test('should display switch-calls l10n key', function() {
-    mockCall = new MockCall('12345', 'connected');
-    mockCall.secondNumber = '67890';
+    mockCall = new MockCall('888', 'connected');
     subject = new HandledCall(mockCall);
+    mockCall.secondNumber = '999';
+    subject.updateCallNumber();
 
     assert.equal(subject.numberNode.textContent, 'switch-calls');
   });
@@ -653,6 +707,17 @@ suite('dialer/handled_call', function() {
     test('check without additional info', function() {
       mockCall = new MockCall('999', 'incoming');
       subject = new HandledCall(mockCall);
+      assert.equal('', subject.additionalInfoNode.textContent);
+    });
+
+    test('check switch-calls mode', function() {
+      mockCall = new MockCall('888', 'connected');
+      subject = new HandledCall(mockCall);
+      mockCall.secondNumber = '999';
+      subject.updateCallNumber();
+
+      assert.equal('', subject.additionalInfoNode.textContent);
+      subject.restoreAdditionalContactInfo();
       assert.equal('', subject.additionalInfoNode.textContent);
     });
 

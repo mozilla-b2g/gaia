@@ -93,6 +93,11 @@ suite('everything.me.js >', function() {
       EverythingME.destroy();
       assert.equal(document.querySelectorAll('head > [href*="everything.me"]').
                    length, 0);
+
+      var elementsId = ['evmeOverlay', 'evmeContainer'];
+      elementsId.forEach(function(id) {
+        assert.isNull(document.getElementById(id));
+      });
     });
 
   });

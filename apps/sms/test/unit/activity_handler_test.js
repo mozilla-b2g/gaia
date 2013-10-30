@@ -1,6 +1,13 @@
+/*global Notify, Compose, mocha, MocksHelper, ActivityHandler, Contacts,
+         MessageManager, Attachment, ThreadUI */
+/*global MockNavigatormozSetMessageHandler, MockNavigatormozApps,
+         MockNavigatorWakeLock, MockNotificationHelper, MockOptionMenu,
+         Mockalert, MockMessages, MockNavigatorSettings, MockL10n,
+         MockNavigatormozMobileMessage */
+
 'use strict';
 
-mocha.globals(['alert', 'Notify']);
+mocha.globals(['alert', 'confirm', 'Notify']);
 
 requireApp(
   'sms/shared/test/unit/mocks/mock_navigator_moz_set_message_handler.js'
@@ -50,6 +57,7 @@ suite('ActivityHandler', function() {
   var realSetMessageHandler;
   var realWakeLock;
   var realMozApps;
+  var realMozL10n;
 
   suiteSetup(function() {
     realSetMessageHandler = navigator.mozSetMessageHandler;
@@ -61,6 +69,9 @@ suite('ActivityHandler', function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
+    realMozL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
+
     // in case a previous state does not properly clean its stuff
     window.location.hash = '';
   });
@@ -69,6 +80,7 @@ suite('ActivityHandler', function() {
     navigator.mozSetMessageHandler = realSetMessageHandler;
     navigator.requestWakeLock = realWakeLock;
     navigator.mozApps = realMozApps;
+    navigator.mozL10n = realMozL10n;
   });
 
   setup(function() {
@@ -84,6 +96,7 @@ suite('ActivityHandler', function() {
 
   suite('init', function() {
     test('the message handlers are bound', function() {
+      /*jshint sub: true */
       var handlers = MockNavigatormozSetMessageHandler.mMessageHandlers;
       assert.ok(handlers['activity']);
       assert.ok(handlers['sms-received']);
@@ -317,8 +330,6 @@ suite('ActivityHandler', function() {
   });
 
   suite('"new" activity', function() {
-    var realMozL10n;
-
     // Mockup activity
     var newActivity = {
       source: {
@@ -346,12 +357,6 @@ suite('ActivityHandler', function() {
 
     suiteSetup(function() {
       window.location.hash = '#new';
-      realMozL10n = navigator.mozL10n;
-      navigator.mozL10n = MockL10n;
-    });
-
-    suiteTeardown(function() {
-      navigator.mozL10n = realMozL10n;
     });
 
     test('Activity lock should be released properly', function() {
@@ -375,6 +380,17 @@ suite('ActivityHandler', function() {
 
       // Call the activity. As we are in 'new' there is no hashchange.
       MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity);
+    });
+
+    test('new message with no body, with empty msg', function() {
+      // No message in the input field.
+      Compose.mEmpty = true;
+      this.sinon.stub(MockOptionMenu.prototype, 'show', function() {
+        assert.ok(false, 'confirmation dialog should not show');
+      });
+
+      // Call the activity. As we are in 'new' there is no hashchange.
+      MockNavigatormozSetMessageHandler.mTrigger('activity', newActivity_empty);
     });
 
     test('new message with user input msg, discard it', function() {

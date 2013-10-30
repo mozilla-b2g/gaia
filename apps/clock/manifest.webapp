@@ -38,7 +38,7 @@
     "90": "/style/icons/Clock_90.png",
     "120": "/style/icons/Clock_120.png"
   },
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "messages": [
      { "alarm": "/index.html" }
   ]

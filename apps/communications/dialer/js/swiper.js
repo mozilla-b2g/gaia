@@ -90,7 +90,7 @@ var Swiper = {
     this.restoreSlider();
   },
 
-  handleSlide: function ls_handleSlide() {
+  handleSlide: function ls_handleSlide(forceExtend) {
 
     if (!this._sliderPulling)
       return;
@@ -109,38 +109,29 @@ var Swiper = {
     // Unsigned.
     var utx = Math.abs(tx);
 
-    // XXX: the overlay area between center and the left & right.
-    // When the movement offset is even (86px for ex),
-    // the glitch will be the left, and when it's odd,
-    // the glitch will be the right.
-    var glitchC = 0;
-
+    // XXX: the overlay area between center and the left/right.
     // Thanks the color effect on the slider, we can overlay icons
     // without any obvious glitches.
-    var glitchS = 5;
+    var glitchS = 1.8;
 
 
-    // XXX: lots of try and errors
-    if ('right' === dir) {
-      glitchC = (0 === utx % 2) ? -1 : 0;
-    } else {
-      glitchC = (0 === utx % 2) ? 0 : 0;
-    }
 
     var leftIcon = this.areaHangup;
     var rightIcon = this.areaPickup;
-    var offset = utx;
     var maxOffset = this._getMaxOffset();
+    var offset = forceExtend ? maxOffset : utx;
 
     // If the front-end slider reached the boundary.
-    // We plus and minus the icon width because maxLength should be fixed,
-    // and only the handler and the blue occured area should be adjusted.
-    if (offset + (this.iconWidth / 2) > maxOffset) {
-      var target = 'left' === dir ? leftIcon : rightIcon;
+    // We made a small adjustment for right boundary limit.
+    if (offset + this.iconWidth > maxOffset) {
+      var target = leftIcon;
+      if ('right' === dir) {
+        target = rightIcon;
+        maxOffset--;
+      }
       this._sliderReachEnd = true;
       offset = Math.min(maxOffset, offset);
       target.classList.add('triggered');
-
     } else {
       leftIcon.classList.remove('triggered');
       rightIcon.classList.remove('triggered');
@@ -170,7 +161,7 @@ var Swiper = {
     cntsubject.style.transform = 'translateX(0px)';
 
     // Move center as long as half of the offset, then scale it.
-    var cMove = Math.floor(offset / 2 + glitchC);
+    var cMove = offset / 2;
     var cScale = offset + glitchS;
 
     if ('right' === dir) {
@@ -193,26 +184,28 @@ var Swiper = {
   restoreSlider: function ls_restoreSlider(easing) {
     // To prevent magic numbers...
     var sh = this.sliderHandler;
-    var sliderParts = [this.sliderLeft, this.sliderRight, this.sliderCenter];
-    var numbers = sliderParts.length;
+    var numbers = this.sliderParts.length;
+    var areaHangup = this.areaHangup;
+    var areaPickup = this.areaPickup;
     var exit = 0;
     // Mimic the `getAllElements` function...
-    sliderParts.forEach(function ls_rSlider(h) {
+    this.sliderParts.forEach(function ls_rSlider(h) {
         if (easing) {
-
           // Add transition to let it bounce back slowly.
-          h.classList.add('bounce');
+          sh.classList.add('bounce');
           var tsEnd = function ls_tsEnd(evt) {
             h.style.transition = '';
 
-            // Remove the effects to these icons.
-            h.classList.remove('bounce');
             h.removeEventListener('transitionend', tsEnd);
             if (++exit < numbers) {
+              // Remove the effects to these icons.
+              sh.classList.remove('bounce');
               return;
             }
             sh.style.opacity = 1;
             sh.classList.remove('touched');
+            areaHangup.classList.remove('triggered');
+            areaPickup.classList.remove('triggered');
           };
           h.addEventListener('transitionend', tsEnd);
 
@@ -224,12 +217,14 @@ var Swiper = {
           sh.style.opacity = 1;
           sh.classList.remove('touched');
 
+          areaHangup.classList.remove('triggered');
+          areaPickup.classList.remove('triggered');
         }
 
         // After setup, bounce it back.
         h.style.transform = '';
     });
-
+    sh.classList.remove('extend');
     this._sliderPulling = true;
     this._sliderReachEnd = false;
   },
@@ -245,6 +240,10 @@ var Swiper = {
       var tx = this._touch.tx;
       var target = (tx > 0) ? rightIcon : leftIcon;
       this.handleIconTriggered(target);
+      // Extend the slider to the end
+      this.sliderHandler.classList.add('extend');
+      this.handleSlide(true);
+
       // Restore it only after screen changed.
       var appLaunchDelay = 400;
       setTimeout(this.restoreSlider.bind(this, true), appLaunchDelay);
@@ -305,6 +304,7 @@ var Swiper = {
     this.sliderCenter =
       this.sliderHandler.querySelector('.swiper-slider-center');
     this.sliderRight = this.sliderHandler.querySelector('.swiper-slider-right');
+    this.sliderParts = [this.sliderLeft, this.sliderRight, this.sliderCenter];
     this.sliderEdgeWidth = this.sliderLeft.clientWidth;
   }
 };

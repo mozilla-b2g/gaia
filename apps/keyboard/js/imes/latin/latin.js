@@ -103,7 +103,11 @@
   const COLON = 58;
   const SEMICOLON = 59;
 
-  const WS = /^\s+$/;                    // all whitespace characters
+  // all whitespace characters
+  // U+FFFC place holder is added to white space
+  // this enables suggestions
+  // when cursor is before place holder.
+  const WS = /^[\s\ufffc]+$/;
 
   // word separator characters
   // U+FFFC is the placeholder character for non-text object

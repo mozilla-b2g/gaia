@@ -4,26 +4,9 @@ var contacts = window.contacts || {};
 
 contacts.Matcher = (function() {
   var blankRegExp = /\s+/g;
-  // Regular expression for filtering out additional punctuation / blank chars
-  // on a telephone number "(" ")" "." "-"
-  var telRegExp = /\s+|-|\(|\)|\./g;
 
   var FB_CATEGORY = 'facebook';
   var FB_LINKED = 'fb_linked';
-
-  function sanitize(field, value) {
-    var out = value;
-
-    if (value) {
-      if (field === 'tel') {
-        out = value.replace(telRegExp, '');
-      }
-      else {
-        out = value.trim().toLowerCase();
-      }
-    }
-    return out;
-  }
 
   // Multiple matcher Object. It tries to find a set of Contacts that match at
   // least one of the targets passed as parameters
@@ -56,49 +39,56 @@ contacts.Matcher = (function() {
 
         var filterBy = options.filterBy;
 
+        var sanitizedTarget = SimplePhoneMatcher.sanitizedNumber(target);
+        var targetVariants = SimplePhoneMatcher.generateVariants(target);
+
         matchings.forEach(function(aMatching) {
           if (matchingOptions.selfContactId === aMatching.id) {
             return;
           }
-          var matchings, matchingObj;
-          if (!finalMatchings[aMatching.id]) {
-            matchingObj = {
-              matchings: {},
-              matchingContact: aMatching
-            };
-            finalMatchings[aMatching.id] = matchingObj;
-            matchingObj.matchings[filterBy[0]] = [];
-          }
-          else {
-            matchingObj = finalMatchings[aMatching.id];
-          }
 
           var field = options.filterBy[0];
           var values = aMatching[field];
-          var matchedValue;
 
           values.forEach(function(aValue) {
             var value = aValue.value;
-            var sanitizedValue = value;
-            var sanitizedTarget = target;
-
-            sanitizedValue = sanitize(field, value);
-            sanitizedTarget = sanitize(field, target);
-
+            var sanitizedValue = SimplePhoneMatcher.sanitizedNumber(value);
             var valueMatched = false;
-            if (sanitizedValue === sanitizedTarget ||
-                sanitizedValue.indexOf(sanitizedTarget) !== -1 ||
-                sanitizedTarget.indexOf(sanitizedValue) !== -1) {
-              matchedValue = value;
-              valueMatched = true;
-            }
+
+            if (targetVariants.length > 1) {
+              if (targetVariants.indexOf(sanitizedValue) !== -1) {
+                valueMatched = true;
+              }
+            } else if (SimplePhoneMatcher.generateVariants(sanitizedValue).
+                       indexOf(sanitizedTarget) !== -1) {
+                valueMatched = true;
+              }
 
             if (valueMatched) {
+              var matchings, matchingObj;
+              if (!finalMatchings[aMatching.id]) {
+                matchingObj = {
+                  matchings: {},
+                  matchingContact: aMatching
+                };
+                finalMatchings[aMatching.id] = matchingObj;
+                matchingObj.matchings[filterBy[0]] = [];
+              }
+              else {
+                matchingObj = finalMatchings[aMatching.id];
+              }
               matchings = matchingObj.matchings[filterBy[0]];
-              matchings.push({
-                'target': target,
-                'matchedValue': matchedValue
+
+              // Avoinding to report multiple matchings due to variants
+              var sameValueMatchings = matchings.filter(function(matching) {
+                return (matching.matchedValue === value);
               });
+              if (sameValueMatchings.length === 0) {
+                matchings.push({
+                  'target': target,
+                  'matchedValue': value
+                });
+              }
             }
           });
         });  // matchings.forEach
@@ -156,7 +146,15 @@ contacts.Matcher = (function() {
 
     if (Array.isArray(aContact[field])) {
       aContact[field].forEach(function(aField) {
-        if (typeof aField.value === 'string') {
+        if (field === 'tel') {
+          // Bug 924378 Contacts API does not properly match phone numbers
+          // and their variants
+          var variants = SimplePhoneMatcher.generateVariants(aField.value);
+          variants.forEach(function(aVariant) {
+            values.push(aVariant);
+          });
+        }
+        else if (typeof aField.value === 'string') {
           values.push(aField.value.trim());
         }
       });
@@ -380,7 +378,7 @@ contacts.Matcher = (function() {
 
     var finalResult = {};
 
-    var resultsByName = null;
+    var resultsByName = [];
     if (!isEmptyStr(aContact.name)) {
       var targetName = aContact.name[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
@@ -396,27 +394,22 @@ contacts.Matcher = (function() {
           return filterFacebook(aResult, options);
         });
         notifyFindNameReady();
-        if (isEmptyStr(aContact.familyName)) {
-          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
-        }
       };
 
       reqName.onerror = function(e) {
         window.console.warn('Error while trying to find by name: ',
                                 e.target.error.name);
-        resultsByName = [];
         notifyFindNameReady();
-        if (isEmptyStr(aContact.familyName)) {
-          endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
-        }
       };
     }
     else {
-      resultsByName = [];
       notifyFindNameReady();
     }
 
-    if (!isEmptyStr(aContact.familyName)) {
+    if (isEmptyStr(aContact.familyName)) {
+      endOfMatchByName(finalResult, targetName, resultsByName, callbacks);
+    }
+    else {
       var targetFamilyName = aContact.familyName[0].trim();
       // Filter by familyName using startsWith. Gecko 'startsWith' operation
       // acts as 'equal' but does not match case.

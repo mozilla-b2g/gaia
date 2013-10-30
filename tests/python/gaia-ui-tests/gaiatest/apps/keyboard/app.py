@@ -103,6 +103,13 @@ class Keyboard(Base):
         keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
         self.marionette.switch_to_frame(keybframe, focus=False)
 
+    @property
+    def current_keyboard(self):
+        self.marionette.switch_to_frame()
+        keyboard = self.marionette.find_element(*self._keyboard_frame_locator).get_attribute('data-frame-name')
+        self.switch_to_keyboard()
+        return keyboard
+
     # this is to get the locator of desired key on keyboard
     def _key_locator(self, val):
         if len(val) == 1:
@@ -112,8 +119,8 @@ class Keyboard(Base):
     # this is to tap on desired key on keyboard
     def _tap(self, val):
         try:
+            self.wait_for_condition(lambda m: m.find_element(*self._key_locator(val)).is_displayed())
             key = self.marionette.find_element(*self._key_locator(val))
-            self.wait_for_condition(lambda m: key.is_displayed)
             Actions(self.marionette).press(key).wait(0.1).release().perform()
         except (NoSuchElementException, ElementNotVisibleException):
             self.marionette.log('Key %s not found on the keyboard' % val)
@@ -129,7 +136,7 @@ class Keyboard(Base):
         self._switch_to_correct_layout(long_press_key)
         try:
             key = self.marionette.find_element(*self._key_locator(long_press_key))
-            self.wait_for_condition(lambda m: key.is_displayed)
+            self.wait_for_condition(lambda m: key.is_displayed())
         except:
             raise Exception('Key %s not found on the keyboard' % long_press_key)
         action.press(key).wait(1).perform()

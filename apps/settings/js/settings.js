@@ -45,13 +45,9 @@ var Settings = {
     // load panel (+ dependencies) if necessary -- this should be synchronous
     this.lazyLoad(newPanel);
 
-    // switch previous/current/forward classes
-    // FIXME: The '.peek' is here to avoid an ugly white
-    // flickering when transitioning (gecko 18)
-    // the forward class helps us 'peek' in the right direction
-    oldPanel.className = newPanel.className ? 'peek' : 'peek previous forward';
-    newPanel.className = newPanel.className ?
-                           'current peek' : 'peek current forward';
+    // switch previous/current classes
+    oldPanel.className = newPanel.className ? '' : 'previous';
+    newPanel.className = 'current';
 
     /**
      * Most browsers now scroll content into view taking CSS transforms into
@@ -70,11 +66,6 @@ var Settings = {
 
       // We need to wait for the next tick otherwise gecko gets confused
       setTimeout(function nextTick() {
-        oldPanel.classList.remove('peek');
-        oldPanel.classList.remove('forward');
-        newPanel.classList.remove('peek');
-        newPanel.classList.remove('forward');
-
         // Bug 818056 - When multiple visible panels are present,
         // they are not painted correctly. This appears to fix the issue.
         // Only do this after the first load
@@ -157,7 +148,7 @@ var Settings = {
       if (!input)
         return;
 
-      switch (input.dataset.type || input.type) { // bug344618
+      switch (input.type) {
         case 'checkbox':
         case 'switch':
           if (input.checked == value)
@@ -168,9 +159,6 @@ var Settings = {
           if (input.value == value)
             return;
           input.value = value;
-          if (input.refresh) {
-            input.refresh(); // XXX to be removed when bug344618 lands
-          }
           break;
         case 'select':
           for (var i = 0; i < input.options.length; i++) {
@@ -268,25 +256,25 @@ var Settings = {
     }
     panel.dataset.rendered = true;
 
-    // load the panel and its sub-panels (dependencies)
-    // (load the main panel last because it contains the scripts)
-    var selector = 'section[id^="' + panel.id + '-"]';
-    var subPanels = document.querySelectorAll(selector);
-    for (var i = 0, il = subPanels.length; i < il; i++) {
-      this.loadPanel(subPanels[i]);
+    if (panel.dataset.requireSubPanels) {
+      // load the panel and its sub-panels (dependencies)
+      // (load the main panel last because it contains the scripts)
+      var selector = 'section[id^="' + panel.id + '-"]';
+      var subPanels = document.querySelectorAll(selector);
+      for (var i = 0, il = subPanels.length; i < il; i++) {
+        this.loadPanel(subPanels[i]);
+      }
+      this.loadPanel(panel, this.panelLoaded.bind(this, panel, subPanels));
+    } else {
+      this.loadPanel(panel, this.panelLoaded.bind(this, panel));
     }
-    this.loadPanel(panel, this.panelLoaded.bind(this, panel, subPanels));
   },
 
   panelLoaded: function(panel, subPanels) {
     // panel-specific initialization tasks
     switch (panel.id) {
       case 'display':             // <input type="range"> + brightness control
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
         this.updateDisplayPanel();
-        break;
-      case 'sound':               // <input type="range">
-        bug344618_polyfill();     // XXX to be removed when bug344618 is fixed
         break;
       case 'languages':           // fill language selector
         var langSel = document.querySelector('select[name="language.current"]');
@@ -314,17 +302,16 @@ var Settings = {
         });
         setTimeout(this.updateLanguagePanel);
         break;
-      case 'keyboard':
-        //Settings.updateKeyboardPanel();
-        break;
       case 'battery':             // full battery status
         Battery.update();
         break;
     }
 
     // preset all inputs in the panel and subpanels.
-    for (var i = 0; i < subPanels.length; i++) {
-      this.presetPanel(subPanels[i]);
+    if (panel.dataset.requireSubPanels) {
+      for (var i = 0; i < subPanels.length; i++) {
+        this.presetPanel(subPanels[i]);
+      }
     }
     this.presetPanel(panel);
   },
@@ -436,39 +423,8 @@ var Settings = {
         var key = ranges[i].name;
         if (key && result[key] != undefined) {
           ranges[i].value = parseFloat(result[key]);
-          if (ranges[i].refresh) {
-            ranges[i].refresh(); // XXX to be removed when bug344618 lands
-          }
         }
       }
-
-      // use a <button> instead of the <select> element
-      var fakeSelector = function(select) {
-        var parent = select.parentElement;
-        var button = select.previousElementSibling;
-        // link the button with the select element
-        var index = select.selectedIndex;
-        var updateButton = function(selection) {
-          var args = selection.dataset.l10nArgs;
-          var argsObj = args ? JSON.parse(args) : null;
-          if (selection.dataset.l10nId) {
-            localize(button, selection.dataset.l10nId, argsObj);
-          } else {
-            button.textContent = selection.textContent;
-          }
-        };
-
-        if (index >= 0) {
-          var selection = select.options[index];
-          updateButton(selection);
-        }
-        if (parent.classList.contains('fake-select')) {
-          select.addEventListener('change', function() {
-            var newSelection = this.options[this.selectedIndex];
-            updateButton(newSelection);
-          });
-        }
-      };
 
       // preset all select
       var selects = panel.querySelectorAll('select');
@@ -483,7 +439,6 @@ var Settings = {
             selectOption.selected = true;
           }
         }
-        fakeSelector(select);
       }
 
       // preset all span with data-name fields
@@ -556,7 +511,7 @@ var Settings = {
 
   handleEvent: function settings_handleEvent(event) {
     var input = event.target;
-    var type = input.dataset.type || input.type; // bug344618
+    var type = input.type;
     var key = input.name;
 
     var settings = window.navigator.mozSettings;
@@ -577,7 +532,12 @@ var Settings = {
         value = input.checked; // boolean
         break;
       case 'range':
-        value = parseFloat(input.value).toFixed(1); // float
+        // Bug 906296:
+        //   We parseFloat() once to be able to round to 1 digit, then
+        //   we parseFloat() again to make sure to store a Number and
+        //   not a String, otherwise this will make Gecko unable to
+        //   apply new settings.
+        value = parseFloat(parseFloat(input.value).toFixed(1)); // float
         break;
       case 'select-one':
       case 'radio':
@@ -633,17 +593,6 @@ var Settings = {
                   break;
                 case 'select-one':
                   input.value = request.result[key] || '';
-                  // Reset the select button content: We have to sync
-                  // the content to value in db before entering dialog
-                  var parent = input.parentElement;
-                  var button = input.previousElementSibling;
-                  // link the button with the select element
-                  var index = input.selectedIndex;
-                  if (index >= 0) {
-                    var selection = input.options[index];
-                    button.textContent = selection.textContent;
-                    button.dataset.l10nId = selection.dataset.l10nId;
-                  }
                   break;
                 default:
                   input.value = request.result[key] || '';
@@ -703,24 +652,6 @@ var Settings = {
         if (data) {
           self._languages = data;
           callback(self._languages);
-        }
-      });
-    }
-  },
-
-  getSupportedKbLayouts: function settings_getSupportedKbLayouts(callback) {
-    if (!callback)
-      return;
-
-    if (this._kbLayoutList) {
-      callback(this._kbLayoutList);
-    } else {
-      var self = this;
-      var KEYBOARDS = '/shared/resources/keyboard_layouts.json';
-      loadJSON(KEYBOARDS, function loadKeyboardLayouts(data) {
-        if (data) {
-          self._kbLayoutList = data;
-          callback(self._kbLayoutList);
         }
       });
     }
@@ -791,53 +722,6 @@ var Settings = {
     function callback() {
       self._panelStylesheetsLoaded = true;
     });
-  },
-
-  updateKeyboardPanel: function settings_updateKeyboardPanel() {
-    // var panel = document.getElementById('keyboard');
-    // Update the keyboard layouts list from the Keyboard panel
-    // if (panel) {
-    //   this.getSupportedKbLayouts(function updateKbList(keyboards) {
-    //     var kbLayoutsList = document.getElementById('keyboard-layouts');
-    //   // Get pointers to the top list entry and its labels which are used to
-    // // pin the language associated keyboard at the top of the keyboards list
-    //     var pinnedKb = document.getElementById('language-keyboard');
-    //     var pinnedKbLabel = pinnedKb.querySelector('a');
-    //     var pinnedKbSubLabel = pinnedKb.querySelector('small');
-    //     pinnedKbSubLabel.textContent = '';
-
-    //     // Get the current language and its associate keyboard layout
-    //     var currentLang = document.documentElement.lang;
-    //     var langKeyboard = keyboards.layout[currentLang];
-
-    //  var kbSelector = 'input[name="keyboard.layouts.' + langKeyboard + '"]';
-    //     var kbListQuery = kbLayoutsList.querySelector(kbSelector);
-
-    //     if (kbListQuery) {
-    //       // Remove the entry from the list since it will be pinned on top
-    //       // of the Keyboard Layouts list
-    //       var kbListEntry = kbListQuery.parentNode.parentNode;
-    //       kbListEntry.hidden = true;
-
-    //       var label = kbListEntry.querySelector('a');
-    //       var sub = kbListEntry.querySelector('small');
-    //       pinnedKbLabel.dataset.l10nId = label.dataset.l10nId;
-    //       pinnedKbLabel.textContent = label.textContent;
-    //       if (sub) {
-    //         pinnedKbSubLabel.dataset.l10nId = sub.dataset.l10nId;
-    //         pinnedKbSubLabel.textContent = sub.textContent;
-    //       }
-    //     } else {
-    //       // If the current language does not have an associated keyboard,
-    //       // fallback to the default keyboard: 'en'
-    //       // XXX update this if the list order in index.html changes
-    //       var englishEntry = kbLayoutsList.children[1];
-    //       englishEntry.hidden = true;
-    //       pinnedKbLabel.dataset.l10nId = 'english';
-    //       pinnedKbSubLabel.textContent = '';
-    //     }
-    //   });
-    // }
   }
 };
 
@@ -853,9 +737,13 @@ window.addEventListener('load', function loadSettings() {
 
   Settings.init();
 
-  LazyLoader.load(['js/utils.js', 'js/mvvm/models.js', 'js/mvvm/views.js'],
-    startupLocale);
-  LazyLoader.load([
+  setTimeout(function nextTick() {
+    LazyLoader.load([
+      'js/utils.js',
+      'js/mvvm/models.js',
+      'js/mvvm/views.js'],
+      startupLocale);
+    LazyLoader.load([
       'shared/js/keyboard_helper.js',
       'js/airplane_mode.js',
       'js/battery.js',
@@ -869,7 +757,8 @@ window.addEventListener('load', function loadSettings() {
       'js/icc_menu.js',
       'js/nfc.js',
       'shared/js/settings_listener.js'
-  ], handleRadioAndCardState);
+    ], handleRadioAndCardState);
+  });
 
   function handleRadioAndCardState() {
     function disableSIMRelatedSubpanels(disable) {
@@ -982,37 +871,6 @@ function initLocale() {
   });
 
   Settings.updateLanguagePanel();
-
-  // update the enabled keyboards list with the language associated keyboard
-  Settings.getSupportedKbLayouts(function updateEnabledKb(keyboards) {
-    var newKb = keyboards.layout[lang];
-    var settingNewKeyboard = {};
-    var settingNewKeyboardLayout = {};
-    settingNewKeyboard['keyboard.current'] = lang;
-    settingNewKeyboardLayout['keyboard.layouts.' + newKb] = true;
-
-    var settings = navigator.mozSettings;
-    try {
-      var lock = settings.createLock();
-      // Enable the language specific keyboard layout group
-      lock.set(settingNewKeyboardLayout);
-      // Activate the language associated keyboard, everything.me also uses
-      // this setting to improve searches
-      lock.set(settingNewKeyboard);
-    } catch (ex) {
-      console.warn('Exception in mozSettings.createLock():', ex);
-    }
-  });
-
-  // update the keyboard layouts list by resetting the top pinned element,
-  // since it displays the previous language setting
-  // var kbLayoutsList = document.getElementById('keyboard-layouts');
-  // if (kbLayoutsList) {
-  //   var prevKbLayout = kbLayoutsList.querySelector('li[hidden]');
-  //   prevKbLayout.hidden = false;
-
-  //   Settings.updateKeyboardPanel();
-  // }
 }
 
 // Do initialization work that doesn't depend on the DOM, as early as

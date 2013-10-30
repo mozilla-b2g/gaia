@@ -28,8 +28,11 @@ class TestDialer(GaiaTestCase):
             lambda m: self.data_layer.active_telephony_state in active_states,
             timeout=30)
 
-        # Check the number displayed is the one we dialed
-        self.assertEqual(test_phone_number, call_screen.outgoing_calling_contact)
+        if len(test_phone_number) <= 12:
+            # Check the number displayed is the one we dialed
+            self.assertEqual(test_phone_number, call_screen.outgoing_calling_contact)
+        else:
+            self.assertEqual(test_phone_number[:2], call_screen.outgoing_calling_contact[:2])
 
     def tearDown(self):
         # Switch back to main frame before Marionette loses track bug #840931

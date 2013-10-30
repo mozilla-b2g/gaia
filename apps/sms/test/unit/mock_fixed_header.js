@@ -1,4 +1,7 @@
+/*exported MockFixedHeader */
+
 'use strict';
+
 var MockFixedHeader = {
   refresh: function() {},
   updateHeaderContent: function() {},

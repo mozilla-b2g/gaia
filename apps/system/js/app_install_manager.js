@@ -294,8 +294,10 @@ var AppInstallManager = {
     var keyboards = this.imeList.getElementsByTagName('input');
     for (var i = 0, l = keyboards.length; i < l; i++) {
       var keyboardIME = keyboards[i];
-      if (keyboardIME.checked)
+      if (keyboardIME.checked) {
         KeyboardHelper.setLayoutEnabled(origin, keyboardIME.value, true);
+        KeyboardHelper.saveToSettings();
+      }
     }
     this.hideIMEList();
   },
@@ -403,7 +405,7 @@ var AppInstallManager = {
     newNode.querySelector('.message').textContent = message;
 
     var progressNode = newNode.querySelector('progress');
-    if (app.updateManifest) {
+    if (app.updateManifest && app.updateManifest.size) {
       progressNode.max = app.updateManifest.size;
       appInfo.hasMax = true;
     }

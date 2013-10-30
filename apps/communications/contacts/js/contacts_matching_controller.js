@@ -60,6 +60,7 @@ if (!contacts.MatchingController) {
       };
 
       var matcherDependencies = ['/shared/js/text_normalizer.js',
+                                 '/shared/js/simple_phone_matcher.js',
                                  '/contacts/js/contacts_matcher.js'];
       LazyLoader.load(matcherDependencies, function loaded() {
         parent.contacts.List.getContactById(cid, function success(mContact) {
@@ -145,12 +146,13 @@ if (!contacts.MatchingController) {
     }
 
     function abort() {
-      Curtain.hide();
-
-      parent.postMessage({
-        type: 'abort',
-        data: ''
-      }, CONTACTS_APP_ORIGIN);
+      var notifyParent = function cmc_notifyParent() {
+        parent.postMessage({
+          type: 'abort',
+          data: ''
+        }, CONTACTS_APP_ORIGIN);
+      };
+      Curtain.hide(notifyParent);
     }
 
     function merge(checkedContacts) {

@@ -99,7 +99,7 @@ var MusicComms = {
 
     this.mrc.notifyAppInfo({
       origin: window.location.origin,
-      icon: window.location.origin + '/style/icons/Music.png'
+      icon: window.location.origin + '/style/icons/Music_60.png'
     });
   },
 

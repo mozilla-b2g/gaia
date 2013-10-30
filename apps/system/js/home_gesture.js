@@ -21,17 +21,17 @@ var HomeGesture = {
     // This 'click' listener can prevent other element which
     // have click listener steal 'touchstart'.
     this.homeBar.addEventListener('click', this, true);
-    // enable gesture for tablet without hardware home button
-    // as default
-    if (!this.hasHardwareHomeButton && isTablet) {
-      SettingsListener.getSettingsLock().set({
-        'homegesture.enabled': true});
-    }
 
-    SettingsListener.observe('homegesture.enabled', false,
-      function onObserve(value) {
-        this.toggle(value);
-      }.bind(this));
+    if (!this.hasHardwareHomeButton && isTablet) {
+      // enable gesture for tablet without hardware home button
+      // as default
+      this.toggle(true);
+    } else {
+      SettingsListener.observe('homegesture.enabled', false,
+        function onObserve(value) {
+          this.toggle(value);
+        }.bind(this));
+    }
   },
 
   toggle: function hg_toggle(enable) {

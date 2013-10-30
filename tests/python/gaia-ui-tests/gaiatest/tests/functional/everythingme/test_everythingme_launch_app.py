@@ -21,7 +21,7 @@ class TestEverythingMeLaunchApp(GaiaTestCase):
         homescreen.switch_to_homescreen_frame()
 
         search_panel = homescreen.tap_search_bar()
-        search_panel.wait_for_keyboard_visible()
+        search_panel.wait_for_everything_me_loaded()
         search_panel.type_into_search_box(app_name)
 
         search_panel.wait_for_everything_me_results_to_load()

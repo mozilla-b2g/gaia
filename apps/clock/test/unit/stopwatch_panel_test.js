@@ -1,28 +1,16 @@
-requireApp('clock/js/emitter.js');
-requireApp('clock/js/view.js');
-requireApp('clock/js/panel.js');
-requireApp('clock/js/utils.js');
-
-requireApp('clock/test/unit/mocks/mock_navigator_mozl10n.js');
-requireApp('clock/js/stopwatch.js');
-requireApp('clock/js/stopwatch_panel.js');
-
 suite('Stopwatch.Panel', function() {
 
   var defaultSw, sevenMinSw, fourSecPausedSw, withLapsSw, runningSw;
   var isHidden;
   var panel;
   var clock;
-  var nativeMozL10n;
-  var localize;
+  var Stopwatch;
+  var MockL10n, localize;
 
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     var sevenMin = 7 * 60 * 1000;
     var fourSec = 4 * 1000;
     var thirtyMins = 30 * 60 * 1000;
-
-    nativeMozL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
 
     runningSw = function() {
       return new Stopwatch({
@@ -66,16 +54,24 @@ suite('Stopwatch.Panel', function() {
 
     loadBodyHTML('/index.html');
 
-    panel = new Stopwatch.Panel(document.getElementById('stopwatch-panel'));
-  });
 
-  suiteTeardown(function() {
-    navigator.mozL10n = nativeMozL10n;
+    testRequire([
+      'stopwatch', 'stopwatch_panel', 'mocks/mock_shared/js/l10n'
+      ], function(stopwatch, stopwatchPanel, mockL10n) {
+        Stopwatch = stopwatch;
+        Stopwatch.Panel = stopwatchPanel;
+        MockL10n = mockL10n;
+        panel = new Stopwatch.Panel(
+          document.getElementById('stopwatch-panel')
+        );
+        done();
+      }
+    );
   });
 
   setup(function() {
     clock = this.sinon.useFakeTimers();
-    localize = this.sinon.spy(navigator.mozL10n, 'localize');
+    localize = this.sinon.spy(MockL10n, 'localize');
   });
 
   test('Default', function() {

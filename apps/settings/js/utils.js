@@ -43,8 +43,11 @@ function openDialog(dialogID, onSubmit, onReset) {
     return;
 
   var origin = Settings.currentPanel;
-  var dialog = document.getElementById(dialogID);
 
+  // Load dialog contents and show it.
+  Settings.currentPanel = dialogID;
+
+  var dialog = document.getElementById(dialogID);
   var submit = dialog.querySelector('[type=submit]');
   if (submit) {
     submit.onclick = function onsubmit() {
@@ -62,8 +65,6 @@ function openDialog(dialogID, onSubmit, onReset) {
       Settings.currentPanel = origin; // hide dialog box
     };
   }
-
-  Settings.currentPanel = dialogID; // show dialog box
 }
 
 /**
@@ -204,140 +205,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
 })();
 
 /**
- * This emulates <input type="range"> elements on Gecko until they get
- * supported natively.  To be removed when bug 344618 lands.
- * https://bugzilla.mozilla.org/show_bug.cgi?id=344618
- */
-
-function bug344618_polyfill() {
-  var range = document.createElement('input');
-  range.type = 'range';
-  if (range.type == 'range') {
-    // In some future version of gaia that will only be used with gecko v23+,
-    // we can remove the bug344618_polyfill stuff.
-    console.warn("bug344618 has landed, there's some dead code to remove.");
-    var sel = 'label:not(.without_bug344618_polyfill) > input[type="range"]';
-    var ranges = document.querySelectorAll(sel);
-    for (var i = 0; i < ranges.length; i++) {
-      var label = ranges[i].parentNode;
-      label.classList.add('without_bug344618_polyfill');
-    }
-    return; // <input type="range"> is already supported, early way out.
-  }
-
-  /**
-   * The JS polyfill transforms this:
-   *
-   *   <label>
-   *     <input type="range" value="60" />
-   *   </label>
-   *
-   * into this:
-   *
-   *   <label class="bug344618_polyfill">
-   *     <div>
-   *       <span style="width: 60%"></span>
-   *       <span style="left: 60%"></span>
-   *     </div>
-   *     <input type="range" value="60" />
-   *   </label>
-   *
-   * JavaScript-wise, two main differences between this polyfill and the
-   * standard implementation:
-   *   - the `.type' property equals `text' instead of `range';
-   *   - the value is a string, not a float.
-   */
-
-  var polyfill = function(input) {
-    input.dataset.type = 'range';
-
-    var slider = document.createElement('div');
-    var thumb = document.createElement('span');
-    var fill = document.createElement('span');
-    var label = input.parentNode;
-    slider.appendChild(fill);
-    slider.appendChild(thumb);
-    label.insertBefore(slider, input);
-    label.classList.add('bug344618_polyfill');
-
-    var min = parseFloat(input.min);
-    var max = parseFloat(input.max);
-
-    // move the throbber to the proper position, according to input.value
-    var refresh = function refresh() {
-      var pos = (input.value - min) / (max - min);
-      pos = Math.max(pos, 0);
-      pos = Math.min(pos, 1);
-      fill.style.width = (100 * pos) + '%';
-      thumb.style.left = (100 * pos) + '%';
-    };
-
-    // move the throbber to the proper position, according to touch events
-    var updatePosition = function updatePosition(event) {
-      var pointer = event.changedTouches && event.changedTouches[0] ?
-                    event.changedTouches[0] :
-                    event;
-      var rect = slider.getBoundingClientRect();
-      var pos = (pointer.clientX - rect.left) / rect.width;
-      pos = Math.max(pos, 0);
-      pos = Math.min(pos, 1);
-      fill.style.width = (100 * pos) + '%';
-      thumb.style.left = (100 * pos) + '%';
-      input.value = min + pos * (max - min);
-    };
-
-    // send a 'change' event
-    var notify = function notify() {
-      var evtObject = document.createEvent('Event');
-      evtObject.initEvent('change', true, false);
-      input.dispatchEvent(evtObject);
-    };
-
-    // user interaction support
-    var isDragging = false;
-    var onDragStart = function onDragStart(event) {
-      updatePosition(event);
-      isDragging = true;
-    };
-    var onDragMove = function onDragMove(event) {
-      if (isDragging) {
-        updatePosition(event);
-        // preventDefault prevents vertical scrolling
-        event.preventDefault();
-      }
-    };
-    var onDragStop = function onDragStop(event) {
-      if (isDragging) {
-        updatePosition(event);
-        notify();
-      }
-      isDragging = false;
-    };
-    var onClick = function onClick(event) {
-      updatePosition(event);
-      notify();
-    };
-
-    slider.addEventListener('touchstart', onClick);
-    thumb.addEventListener('touchstart', onDragStart);
-    label.addEventListener('touchmove', onDragMove);
-    label.addEventListener('touchend', onDragStop);
-    label.addEventListener('touchcancel', onDragStop);
-
-    // expose the 'refresh' method on <input>
-    // XXX remember to call it after setting input.value manually...
-    input.refresh = refresh;
-  };
-
-  // apply to all input[type="range"] elements
-  var selector = 'label:not(.bug344618_polyfill) > input[type="range"]';
-  var ranges = document.querySelectorAll(selector);
-  for (var i = 0; i < ranges.length; i++) {
-    polyfill(ranges[i]);
-  }
-}
-
-/**
  * Connectivity accessors
  */
 
@@ -468,4 +335,147 @@ function sanitizeAddress(input) {
   } else {
     return input;
   }
+}
+
+function getTruncated(oldName, options) {
+
+  // options
+  var maxLine = options.maxLine || 2;
+  var node = options.node;
+  var ellipsisIndex = options.ellipsisIndex || 3;
+  var ellipsisCharacter = options.ellipsisCharacter || '...';
+
+  if (node === null) {
+    return oldName;
+  }
+
+  // used variables and functions
+  function hitsNewline(oldHeight, newHeight) {
+    return oldHeight !== newHeight;
+  }
+
+  var newName = '';
+  var oldHeight;
+  var newHeight;
+  var baseHeight;
+  var currentLine;
+  var ellipsisAt;
+  var hasNewEllipsisPoint = true;
+  var nameBeforeEllipsis = [];
+  var nameBeforeEllipsisString;
+  var nameAfterEllipsis = oldName.slice(-ellipsisIndex);
+  var realVisibility = node.style.visibility;
+  var realWordBreak = node.style.wordBreak;
+
+  /*
+   * Hide UI, because we are manipulating DOM
+   */
+  node.style.visibility = 'hidden';
+
+  /*
+   * Force breaking on boundaries
+   */
+  node.style.wordBreak = 'break-all';
+
+  /*
+   * Get the base height to count the currentLine at first
+   */
+  node.textContent = '.';
+  baseHeight = node.clientHeight;
+  node.textContent = '';
+
+  var needEllipsis = oldName.split('').some(function(character, index) {
+
+    nameBeforeEllipsis.push(character);
+    nameBeforeEllipsisString = nameBeforeEllipsis.join('');
+
+    oldHeight = node.clientHeight;
+    node.textContent = nameBeforeEllipsisString +
+        ellipsisCharacter + nameAfterEllipsis;
+    newHeight = node.clientHeight;
+
+    /*
+     * When index is 0, we have to update currentLine according to
+     * the first assignment (it is possible that at first the currentLine
+     * is not 0 if the width of node is too small)
+     */
+    if (index === 0) {
+      currentLine = Math.floor(newHeight / baseHeight);
+    }
+
+    if (hitsNewline(oldHeight, newHeight) && index !== 0) {
+
+      /*
+       * The reason why we have to check twice is because there is a
+       * situation that truncated string is overflowed but there is
+       * still room for original string.
+       *
+       * In this way, we have to memorize the ellipsis index and
+       * slice `nameBeforeEllipsis` to the index in the end.
+       */
+      var testHeight;
+      node.textContent = nameBeforeEllipsisString;
+      testHeight = node.clientHeight;
+
+      if (hitsNewline(oldHeight, testHeight)) {
+
+        /*
+         * We have to make it true again to keep the ellipsisAt
+         * up to date.
+         */
+        hasNewEllipsisPoint = true;
+        currentLine += 1;
+      } else {
+        /*
+         * This is the situation that we still have room, so we have
+         * to keep the ellipsisAt value for later use.
+         */
+        if (hasNewEllipsisPoint) {
+          ellipsisAt = index;
+          hasNewEllipsisPoint = false;
+        }
+      }
+    }
+
+    if (currentLine > maxLine) {
+      if (index === 0) {
+
+        /*
+         * It means that at first, the whole string is already in
+         * an overflowed situation, you have to avoid this situation.
+         * And we will bypass oldName back to you.
+         *
+         * There are some options for you :
+         *
+         *   1. Check options.ellipsisCharacter
+         *   2. Check options.maxLine
+         *   3. Check node's width (maybe too narrow)
+         */
+        console.log(
+          'Your string is in a overflowed situation, ' +
+          'please check your options');
+      }
+
+      /*
+       * Remove the last character, because it causes the overflow
+       */
+      nameBeforeEllipsis.pop();
+      node.textContent = '';
+      return true;
+    }
+  });
+
+  // restore UI
+  node.style.visibility = realVisibility;
+  node.style.wordBreak = realWordBreak;
+
+  if (!needEllipsis) {
+    newName = oldName;
+  } else {
+    newName += nameBeforeEllipsis.join('').slice(0, ellipsisAt);
+    newName += ellipsisCharacter;
+    newName += nameAfterEllipsis;
+  }
+
+  return newName;
 }

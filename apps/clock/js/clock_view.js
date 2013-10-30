@@ -1,7 +1,11 @@
-(function(exports) {
+define(function(require) {
 'use strict';
 
+var asyncStorage = require('shared/js/async_storage');
+var AlarmList = require('alarm_list');
+var Utils = require('utils');
 var SETTINGS_CLOCKMODE = 'settings_clockoptions_mode';
+var mozL10n = require('l10n');
 var viewMode = null;
 
 // Retrieve stored view mode data as early as possible.
@@ -114,8 +118,8 @@ var ClockView = {
 
   updateDayDate: function cv_updateDayDate() {
     var d = new Date();
-    var f = new navigator.mozL10n.DateTimeFormat();
-    var format = navigator.mozL10n.get('dateFormat');
+    var f = new mozL10n.DateTimeFormat();
+    var format = mozL10n.get('dateFormat');
     var formated = f.localeFormat(d, format);
     var remainMillisecond = (24 - d.getHours()) * 3600 * 1000 -
                             d.getMinutes() * 60 * 1000 -
@@ -176,18 +180,16 @@ var ClockView = {
     var hand = this.hands[id];
     // return correct angle for different hands
     function conv(timeFrag) {
-      var mult, offset;
+      var mult;
       // generate a conformable number to rotate about
       // 30 degrees per hour 6 per second and minute
       mult = id === 'hour' ? 30 : 6;
-      // note the minute and hour hands are reversed relative to the secondhand
-      offset = id === 'second' ? 0 : 180;
       // we generate the angle from the fractional sec/min/hour
-      return (timeFrag * mult) - offset;
+      return (timeFrag * mult);
     }
     // Use transform rotate on the rect itself vs on a child element
     // avoids unexpected behavior if either dur and fill are set to defaults
-    hand.setAttribute('transform', 'rotate(' + conv(angle) + ',135,135)');
+    hand.style.transform = 'rotate(' + conv(angle) + 'deg)';
   },
 
   handleEvent: function cv_handleEvent(event) {
@@ -246,17 +248,18 @@ var ClockView = {
   },
 
   calAnalogClockType: function cv_calAnalogClockType(count) {
-    if (count <= 1) {
-      count = 1;
-    } else if (count >= 4) {
-      count = 4;
+    var type = 'small';
+    if (count < 2) {
+      type = 'large';
+    } else if (count === 2) {
+      type = 'medium';
     }
-    return count;
+    return type;
   },
 
   resizeAnalogClock: function cv_resizeAnalogClock() {
-    var type = this.calAnalogClockType(AlarmList.getAlarmCount() + 1);
-    this.container.className = 'marks' + type;
+    var type = this.calAnalogClockType(AlarmList.getAlarmCount());
+    this.container.className = type;
     document.getElementById('alarms').className = 'count' + type;
   },
 
@@ -305,6 +308,5 @@ var ClockView = {
   }
 };
 
-exports.ClockView = ClockView;
-
-}(this));
+return ClockView;
+});

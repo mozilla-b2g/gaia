@@ -1,5 +1,8 @@
-(function(exports) {
+define(function(require) {
   'use strict';
+
+  var Template = require('shared/js/template');
+  var GestureDetector = require('shared/js/gesture_detector');
 
   // units covered per millisecond threshold to kick off inertia
   var SPEED_THRESHOLD = 0.01;
@@ -218,5 +221,5 @@
 
   };
 
-  exports.Spinner = Spinner;
-}(this));
+  return Spinner;
+});

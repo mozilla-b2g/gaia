@@ -1,3 +1,9 @@
+/*global mocha, MocksHelper, MockAttachment, MockL10n, loadBodyHTML, ThreadUI,
+         MockNavigatormozMobileMessage, Compose, MockDialog, Template, MockSMIL,
+         Utils, MessageManager, LinkActionHandler, LinkHelper, Attachment,
+         MockContact, MockOptionMenu, MockActivityPicker, Threads, Settings,
+         MockMessages, MockUtils, MockContacts */
+
 'use strict';
 
 mocha.setup({ globals: ['alert'] });
@@ -13,6 +19,7 @@ requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
 
+requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_alert.js');
 requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_attachment.js');
@@ -61,7 +68,6 @@ suite('thread_ui.js >', function() {
   var container;
   var sendButton;
   var composeForm;
-  var recipient;
 
   var realMozL10n;
   var realMozMobileMessage;
@@ -354,7 +360,7 @@ suite('thread_ui.js >', function() {
             assert.isFalse(sendButton.disabled);
             done();
           }
-        };
+        }
         Compose.on('input', onInput);
         Compose.append(mockImgAttachment(true));
         assert.isTrue(sendButton.disabled);
@@ -379,6 +385,7 @@ suite('thread_ui.js >', function() {
     });
 
     function updateCounter(segmentInfo) {
+      /*jshint validthis: true */
       // display the banner to check that it is correctly hidden
       banner.classList.remove('hide');
 
@@ -2129,7 +2136,6 @@ suite('thread_ui.js >', function() {
     var messageId = 23, link, phone = '123123123';
     setup(function() {
       this.sinon.spy(LinkActionHandler, 'onClick');
-      this.sinon.spy(LinkActionHandler, 'onContextMenu');
 
       this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
         return '<a data-dial="' + phone +
@@ -2158,7 +2164,6 @@ suite('thread_ui.js >', function() {
       link.click();
       // This 'click' was handled properly?
       assert.ok(LinkActionHandler.onClick.called);
-      assert.isFalse(LinkActionHandler.onContextMenu.called);
     });
 
     test(' "contextmenu"', function() {
@@ -2172,21 +2177,71 @@ suite('thread_ui.js >', function() {
       // test were relocated to link_action_handler_test.js
       // This 'context-menu' was handled properly?
       assert.isFalse(LinkActionHandler.onClick.called);
-      assert.ok(LinkActionHandler.onContextMenu.called);
     });
 
-    test(' "contextmenu" after "click"', function() {
-      var contextMenuEvent = new CustomEvent('contextmenu', {
+  });
+
+  suite('Long press on the bubble >', function() {
+    var messageId = 23;
+    var link, messageDOM, contextMenuEvent;
+    setup(function() {
+      contextMenuEvent = new CustomEvent('contextmenu', {
         'bubbles': true,
         'cancelable': true
       });
-      // Clicking on the element
-      link.click();
-      // After clicking, we dispatch a context menu
+
+      this.sinon.spy(LinkActionHandler, 'onClick');
+      this.sinon.spy(ThreadUI, 'promptContact');
+      MockOptionMenu.mSetup();
+
+
+      this.sinon.stub(LinkHelper, 'searchAndLinkClickableData', function() {
+        return '<a data-dial="123123123" data-action="dial-link">123123123</a>';
+      });
+
+      ThreadUI.appendMessage({
+        id: messageId,
+        type: 'sms',
+        body: 'This is a test with 123123123',
+        delivery: 'error',
+        timestamp: new Date()
+      });
+      // Retrieve DOM element for executing the event
+      messageDOM = document.getElementById('message-' + messageId);
+      link = messageDOM.querySelector('a');
+    });
+
+    teardown(function() {
+      ThreadUI.container.innerHTML = '';
+      link = null;
+      MockOptionMenu.mTeardown();
+    });
+    test(' "click" on bubble (not in link-action) has no effect', function() {
+      messageDOM.click();
+      assert.ok(LinkActionHandler.onClick.calledOnce);
+      // As there is no action, we are not going to show any menu
+      assert.isFalse(ThreadUI.promptContact.calledOnce);
+    });
+    test(' "long-press" on link-action is not redirected to "onClick"',
+      function() {
+      // Dispatch custom event for testing long press
       link.dispatchEvent(contextMenuEvent);
-      // Are 'click' and 'contextmenu' working properly?
-      assert.ok(LinkActionHandler.onClick.called);
-      assert.ok(LinkActionHandler.onContextMenu.called);
+      assert.isFalse(LinkActionHandler.onClick.calledOnce);
+    });
+    test(' "long-press" on link-action shows the option menu from the bubble',
+      function() {
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      // It should show the list of options of the bubble (forward, delete...)
+      assert.ok(MockOptionMenu.calls.length, 1);
+    });
+    test(' "long-press" on bubble shows a menu with delete as first option',
+      function() {
+      // Dispatch custom event for testing long press
+      link.dispatchEvent(contextMenuEvent);
+      assert.ok(MockOptionMenu.calls.length, 1);
+      // Is first element of the menu 'delete'?
+      assert.equal(MockOptionMenu.calls[0].items[0].l10nId, 'delete');
     });
   });
 
@@ -2627,6 +2682,8 @@ suite('thread_ui.js >', function() {
       suite('prompt', function() {
         test('Single known', function() {
 
+          var contact = new MockContact();
+
           Threads.set(1, {
             participants: ['999']
           });
@@ -2635,12 +2692,32 @@ suite('thread_ui.js >', function() {
 
           ThreadUI.prompt({
             number: '999',
+            contactId: contact.id,
             isContact: true
           });
 
-          assert.equal(MockOptionMenu.calls.length, 0);
-          assert.ok(MockActivityPicker.dial.called);
-          assert.equal(MockActivityPicker.dial.calledWith, '999');
+          assert.equal(MockOptionMenu.calls.length, 1);
+
+          var call = MockOptionMenu.calls[0];
+          var items = call.items;
+
+          // Ensures that the OptionMenu was given
+          // the phone number to diplay
+          assert.equal(call.header, '999');
+
+          // Only known Contact details should appear in the "section"
+          assert.equal(call.section, '');
+
+          assert.equal(items.length, 3);
+
+          // The first item is a "call" option
+          assert.equal(items[0].l10nId, 'call');
+
+          // The second item is a "viewContact" option
+          assert.equal(items[1].l10nId, 'viewContact');
+
+          // The fourth and last item is a "cancel" option
+          assert.equal(items[2].l10nId, 'cancel');
         });
 
         test('Single unknown (phone)', function() {
@@ -2812,11 +2889,12 @@ suite('thread_ui.js >', function() {
 
           ThreadUI.onHeaderActivation();
 
-          // Does not initiate an OptionMenu
-          assert.equal(MockOptionMenu.calls.length, 0);
+          var calls = MockOptionMenu.calls;
 
-          // Does initiate a "call" activity
-          assert.equal(MockActivityPicker.dial.called, 1);
+          assert.equal(calls.length, 1);
+          assert.equal(calls[0].header, '+12125559999');
+          assert.equal(calls[0].items.length, 3);
+          assert.equal(typeof calls[0].complete, 'function');
         });
 
         test('Single unknown', function() {
@@ -3073,36 +3151,37 @@ suite('thread_ui.js >', function() {
         return false;
       };
 
-      MessageManager = {
+      var MockMessageManager = {
         activity: {
           recipients: []
         }
       };
 
       ['sendMMS', 'sendSMS'].forEach(function(prop) {
-        MessageManager[prop] = function() {
-          MessageManager[prop].called = true;
-          MessageManager[prop].calledWith = [].slice.call(arguments);
+        MockMessageManager[prop] = function() {
+          MockMessageManager[prop].called = true;
+          MockMessageManager[prop].calledWith = [].slice.call(arguments);
         };
 
-        MessageManager[prop].mSetup = function() {
-          MessageManager[prop].called = false;
-          MessageManager[prop].calledWith = null;
+        MockMessageManager[prop].mSetup = function() {
+          MockMessageManager[prop].called = false;
+          MockMessageManager[prop].calledWith = null;
         };
 
-        MessageManager[prop].mTeardown = function() {
-          delete MessageManager[prop].called;
-          delete MessageManager[prop].calledWith;
+        MockMessageManager[prop].mTeardown = function() {
+          delete MockMessageManager[prop].called;
+          delete MockMessageManager[prop].calledWith;
         };
       });
 
-      MessageManager = MessageManager;
+      window.MessageManager = MockMessageManager;
     });
 
     suiteTeardown(function() {
       ThreadUI.enableSend = realEnableSend;
       Compose.isEmpty = realComposeisEmpty;
-      MessageManager = realMessageManager;
+      window.MessageManager = realMessageManager;
+      realMessageManager = null;
     });
 
     setup(function() {
@@ -3320,4 +3399,77 @@ suite('thread_ui.js >', function() {
       assert.doesNotThrow(ThreadUI.initSentAudio);
     });
   });
+
+  suite('New Message banner', function() {
+    var notice;
+    var testMessage;
+
+    function addMessages() {
+      for (var i = 0; i < 15; i++) {
+        var message = {
+          id: i,
+          type: 'sms',
+          body: 'This is a test message',
+          delivery: 'received',
+          timestamp: new Date()
+        };
+        ThreadUI.appendMessage(message);
+      }
+    }
+
+    setup(function() {
+      container.style.overflow = 'scroll';
+      container.style.height = '50px';
+      notice = document.getElementById('messages-new-message-notice');
+      testMessage = {
+        id: 20,
+        type: 'sms',
+        body: 'New test message',
+        delivery: 'received',
+        timestamp: new Date()
+      };
+
+      addMessages();
+
+    });
+
+    suite('should be shown', function(done) {
+      test('when new message is recieved', function() {
+        container.addEventListener('scroll', function onscroll() {
+          ThreadUI.onMessageReceived(testMessage);
+          assert.isFalse(notice.classList.contains('hide'));
+          done();
+        });
+        //Put the scroll on top
+        container.scrollTop = 0;
+      });
+    });
+
+    suite('should be closed', function(done) {
+      test('when the notice is clicked', function() {
+        container.addEventListener('scroll', function onscroll() {
+          ThreadUI.onMessageReceived(testMessage);
+          notice.click();
+          assert.isFalse(ThreadUI.isScrolledManually);
+          assert.isTrue(notice.classList.contains('hide'));
+          done();
+        });
+        //Put the scroll on top
+        container.scrollTop = 0;
+
+      });
+
+      test('when the scroll reach the bottom', function(done) {
+        container.scrollTop = 0;
+        ThreadUI.onMessageReceived(testMessage);
+        container.addEventListener('scroll', function onscroll() {
+          container.removeEventListener('scroll', onscroll);
+          assert.isTrue(notice.classList.contains('hide'));
+          done();
+        });
+        container.scrollTop = container.scrollHeight;
+      });
+    });
+  });
+
 });

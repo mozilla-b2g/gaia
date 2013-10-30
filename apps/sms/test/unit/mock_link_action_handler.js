@@ -1,3 +1,5 @@
+/*exported MockLinkActionHandler */
+
 'use strict';
 
 var MockLinkActionHandler = {

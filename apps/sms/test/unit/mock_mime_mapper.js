@@ -1,3 +1,5 @@
+/*exported MockMimeMapper */
+
 'use strict';
 
 var MockMimeMapper = {

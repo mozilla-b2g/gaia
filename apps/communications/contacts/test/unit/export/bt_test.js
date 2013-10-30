@@ -1,6 +1,7 @@
 requireApp('communications/contacts/js/export/bt.js');
 requireApp('communications/contacts/test/unit/mock_mozActivity.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
+requireApp('communications/contacts/test/unit/export/mock_export_utils.js');
 requireApp('communications/contacts/test/unit/mock_l10n.js');
 
 if (!this._)
@@ -57,22 +58,15 @@ suite('BT export', function() {
 
     //getStorageIfAvailable mock
     realgetStorageIfAvailable = window.getStorageIfAvailable;
-    window.getStorageIfAvailable = function(type, size, callback) {
-      callback(navigator.getDeviceStorage());
-    };
+    window.getStorageIfAvailable = MockGetStorageIfAvailable;
 
     //getUnusedFilename mock
     realgetUnusedFilename = window.getUnusedFilename;
-    window.getUnusedFilename = function(storage, filename, cb) {
-      mockFileName = filename;
-      cb(filename);
-    };
+    window.getUnusedFilename = MockGetUnusedFilename;
 
     //ContactToVcardBlob mock
     realContactToVcardBlob = window.ContactToVcardBlob;
-    window.ContactToVcardBlob = function(contacts, callback) {
-      callback({ size: contacts.length });
-    };
+    window.ContactToVcardBlob = MockContactToVcarBlob;
 
     mockProgress = function() {};
   });
@@ -101,7 +95,6 @@ suite('BT export', function() {
 
     subject.doExport(function onFinish(error, exported, msg) {
       assert.equal(false, subject.hasDeterminativeProgress());
-      assert.equal('name1_surname1.vcf', mockFileName);
       assert.isNull(error);
       assert.equal(1, exported);
       done();
@@ -125,7 +118,6 @@ suite('BT export', function() {
     subject.doExport(function onFinish(error, exported, msg) {
       assert.isNull(error);
       assert.equal(contacts.length, exported);
-      assert.equal(name, mockFileName);
       done();
     });
   });

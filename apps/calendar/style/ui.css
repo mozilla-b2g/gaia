@@ -447,100 +447,43 @@ Indicators are in units of 12
 .rtl .busy-indicator .busy-11 { right: 83.3%; }
 .rtl .busy-indicator .busy-12 { right: 91.63%; }
 
-/** sub: view selector **/
+/* sub: months day view */
+#months-day-view  h1 {
+  padding: 0.2rem 1.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 2.8rem;
+  color: #F93700;
+  border-bottom: 0.1rem solid #F93700;
+}
 
+/* [BB][tabs]*/
 #view-selector {
-  position: relative;
-  z-index: 1000;
-  width: 100%;
-  height: 4rem;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border-top: 0.1rem solid #989898;
-  border-bottom: none;
-  background: #c7c7c7;
-  box-shadow: 0 0 0.2rem 0.05rem #6F7070;
+  position: absolute;
+  bottom: 0;
+  z-index: 20;
 }
 
-#view-selector menu {
-  padding: 0;
+body[data-path="/month/"] #view-selector > .month,
+body[data-path="/week/"] #view-selector > .week,
+body[data-path="/day/"] #view-selector > .day {
+  background: #fff;
 }
 
-#view-selector a {
-  text-decoration: none;
-  color: #444;
+body[data-path="/month/"] #view-selector > .month > a,
+body[data-path="/week/"] #view-selector > .week > a,
+body[data-path="/day/"] #view-selector > .day > a {
+  color: #000;
+  font-weight: 500;
+}
+
+#view-selector > li > a {
   outline: none;
 }
 
-.rtl #view-selector li {
-  float: right;
-}
-
-.ltr #view-selector li {
-  float: left;
-}
-
-#view-selector > li.today {
-  width: 25%;
-  height: 4rem;
-  background-image: -moz-linear-gradient(#D9D9D9, #969696);
-  border-right: 0.1rem solid #989898;
-}
-
-.rtl #view-selector > li.today {
-  border-left: 0.1rem solid #989898;
-}
-
-
-.ltr #view-selector > li.today {
-  border-right: 0.1rem solid #989898;
-}
-
-#view-selector > li.time-selection {
-  width: 75%;
-}
-
-/**  Selected items */
-body[data-path="/day/"] #view-selector .day,
-body[data-path="/week/"] .time-selection .week,
-body[data-path="/month/"] .time-selection .month {
-  background-color: #fff;
-  color: #000;
-  border-left: 0.1rem solid #989898;
-  border-right: 0.1rem solid #989898;
-}
-
-body[data-path="/month/"] #view-selector .month {
-  border-left: none;
-}
-
-body[data-path="/day/"] #view-selector .day a,
-body[data-path="/week/"] #view-selector .week a,
-body[data-path="/month/"] #view-selector .month a {
-  color: #000;
-}
-
-#view-selector > li a {
-  display: block;
-  height: 4rem;
-  line-height: 3.7rem;
-}
-
-#view-selector > li {
-  display: block;
-  text-align: center;
-  font-weight: bold;
-  color: #000;
-  font-size: 1.4rem;
-}
-
-#view-selector menu li {
-  width: 33%;
-}
-
-#view-selector menu li:last-child {
-  width: 34%;
+#view-selector > li > a:active {
+  background-color: #008aaa;
+  color: #fff;
 }
 
 @keyframes fade-status {
@@ -568,3 +511,4 @@ section[role="status"].active {
 #settings {
   visibility: hidden;
 }
+

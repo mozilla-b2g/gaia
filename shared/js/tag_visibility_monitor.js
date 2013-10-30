@@ -208,6 +208,9 @@ function monitorTagVisibility(
   //    - as we keep track of indices, adding and deleting indices changes what
   //      element we meant to point to
   function fixRange(mutations) {
+    var firstAfterScreen = (state.lastChildIndex < state.children.length - 1) ?
+                           state.children[state.lastChildIndex + 1] : null;
+    var nodesAddedAfterScreen = true;
     var numNodesAdded = 0;
     for (var i = 0; i < mutations.length; i++) {
       var mutation = mutations[i];
@@ -215,8 +218,16 @@ function monitorTagVisibility(
         for (var j = 0; j < mutation.addedNodes.length; j++) {
           var child = mutation.addedNodes[j];
           if (child.nodeType === Node.ELEMENT_NODE &&
-            child.tagName === tag)
+            child.tagName === tag) {
             numNodesAdded += 1;
+            // Determine if this new child is being appended below the
+            // currently visible area.  This check assumes no nodes were
+            // removed.  If any node is not an append, then we must follow
+            // the slow path below.
+            if (!firstAfterScreen || !after(child, firstAfterScreen)) {
+              nodesAddedAfterScreen = false;
+            }
+          }
         }
       }
     }
@@ -226,14 +237,25 @@ function monitorTagVisibility(
     //  so we can get its sibling. Using WeakMaps allow us to use the deleted
     //  node as a key to get the mutation for that deleted node
     var removedNodes = new WeakMap();
+    var nodesRemoved = false;
     for (var i = 0; i < mutations.length; i++) {
       var mutation = mutations[i];
       if (mutation.removedNodes) {
         for (var j = 0; j < mutation.removedNodes.length; j++) {
           var child = mutation.removedNodes[j];
           removedNodes.set(child, mutation);
+          nodesRemoved = true;
         }
       }
+    }
+
+    // If we are only appending after the visible region, then we can skip
+    // the rest of the work here.  This is a big win since calling
+    // recomputeFirstAndLastOnscreen() below can trigger visibility triggers
+    // sync reflows. Note, we can only trust our append detection here if
+    // no nodes were removed.
+    if (!nodesRemoved && nodesAddedAfterScreen) {
+      return;
     }
 
     // -------------------------------
@@ -294,6 +316,9 @@ function monitorTagVisibility(
   //    find the elements that are the first/last child on screen
   //    - to make this faster, we use the last first/last child on screen as a
   //      guess for where to start looking
+  //
+  //  NOTE: Calling recomputeFirstAndLastOnscreen() can trigger a sync reflow
+  //        by calling computeBorderVisibilityIndex().
   function recomputeFirstAndLastOnscreen() {
 
     if (state.children.length === 0) {
@@ -320,6 +345,8 @@ function monitorTagVisibility(
     state.lastChild = state.children[state.lastChildIndex];
   }
 
+  // NOTE: Calling computeBorderVisibilityIndex() can trigger a sync reflow
+  //       by calling relativeVisibilityPosition().
   function computeBorderVisibilityIndex(guess, visibilityPosition, dir) {
     // move in direction past container
     var limit = getLimit(dir);
@@ -422,6 +449,8 @@ function monitorTagVisibility(
   //  dom helpers
   //====================================
 
+  // NOTE: Calling relativeVisibilityPosition() can trigger a sync reflow
+  //       by touching scrollTop and offsetTop.
   function relativeVisibilityPosition(container, child) {
 
     var scrollTop = container.scrollTop;

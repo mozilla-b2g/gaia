@@ -28,9 +28,9 @@ class SearchPanel(Base):
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._search_title_query_locator).text.lower() ==
                                 search_term.lower())
 
-    def wait_for_keyboard_visible(self):
+    def wait_for_everything_me_loaded(self):
         self.wait_for_condition(
-            lambda m: 'evme-keyboard-visible' in self.marionette.find_element(*self._body).get_attribute('class'))
+            lambda m: 'evme-loading' not in self.marionette.find_element(*self._body).get_attribute('class'))
 
     def wait_for_everything_me_results_to_load(self):
         self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)

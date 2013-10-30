@@ -57,8 +57,24 @@ var CallScreen = {
     this.calls.classList.toggle('big-duration', enabled);
   },
 
+  /**
+   * When enabled hides the end-and-answer button in call waiting mode and
+   * displays only the hold-and-answer one.
+   *
+   * @param {Boolean} enabled Enables hold-and-answer-only operation.
+   */
+  set holdAndAnswerOnly(enabled) {
+    this.incomingContainer.classList.toggle('hold-and-answer-only', enabled);
+  },
+
+  /**
+   * When enabled displays the CDMA-specific call-waiting UI
+   *
+   * @param {Boolean} enabled Enables the CDMA call-waiting UI.
+   */
   set cdmaCallWaiting(enabled) {
-    this.calls.dataset.cdmaCallWaiting = enabled;
+    this.calls.classList.toggle('switch', enabled);
+    this.callToolbar.classList.toggle('no-add-call', enabled);
   },
 
   get inStatusBarMode() {
@@ -99,13 +115,7 @@ var CallScreen = {
     }
     CallScreen.showClock(new Date());
 
-    if (navigator.mozSettings) {
-      var req = navigator.mozSettings.createLock().get('wallpaper.image');
-      req.onsuccess = function cs_wi_onsuccess() {
-        CallScreen.setCallerContactImage(
-          req.result['wallpaper.image'], {force: false});
-      };
-    }
+    this.setDefaultContactImage({force: false});
 
     // Handle resize events
     window.addEventListener('resize', this.resizeHandler.bind(this));
@@ -117,16 +127,20 @@ var CallScreen = {
     var screen = this.screen;
     screen.classList.toggle('displayed');
 
-    if (!callback) {
+    if (!callback || typeof(callback) !== 'function') {
+      return;
+    }
+
+    // We have no opening transition for incoming locked
+    if (this.screen.dataset.layout === 'incoming-locked') {
+      setTimeout(callback);
       return;
     }
 
     /* We need CSS transitions for the status bar state and the regular state */
     screen.addEventListener('transitionend', function trWait() {
       screen.removeEventListener('transitionend', trWait);
-      if (typeof(callback) == 'function') {
-        callback();
-      }
+      callback();
     });
   },
 
@@ -162,6 +176,18 @@ var CallScreen = {
     if (!target.style.backgroundImage || (opt && opt.force)) {
       target.style.backgroundImage = 'url(' + photoURL + ')';
     }
+  },
+
+
+  setDefaultContactImage: function cs_setDefaultContactImage(opt) {
+    if (!navigator.mozSettings) {
+      return;
+    }
+
+    var req = navigator.mozSettings.createLock().get('wallpaper.image');
+    req.onsuccess = function cs_wi_onsuccess() {
+      CallScreen.setCallerContactImage(req.result['wallpaper.image'], opt);
+    };
   },
 
   toggleMute: function cs_toggleMute() {

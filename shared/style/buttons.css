@@ -7,6 +7,7 @@ a[role="button"]::-moz-focus-inner,
 button::-moz-focus-inner {
   border: none;
   outline: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
 }
 
 button,

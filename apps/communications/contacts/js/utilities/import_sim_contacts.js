@@ -9,7 +9,7 @@
  *   - onread: SIM card has been read properly;
  *   - onimport: A Contact has been imported
  *   - onfinish: contacts have been saved into navigator.mozContacts;
- *   - onerror: SIM card us empty or could not be read.
+ *   - onerror: SIM card is empty or could not be read.
  */
 
 function SimContactsImporter() {
@@ -62,6 +62,7 @@ function SimContactsImporter() {
     }
 
     LazyLoader.load([
+      '/shared/js/simple_phone_matcher.js',
       '/contacts/js/contacts_matcher.js',
       '/contacts/js/contacts_merger.js',
       '/contacts/js/merger_adapter.js'
@@ -148,7 +149,7 @@ function SimContactsImporter() {
           var aTel = item.tel[j];
           // Filtering out empty values
           if (aTel.value && aTel.value.trim()) {
-            aTel.type = 'mobile';
+            aTel.type = ['mobile'];
             telItems.push(aTel);
           }
         }
@@ -156,6 +157,8 @@ function SimContactsImporter() {
       }
 
       item.category = ['sim'];
+
+      var contact = new mozContact(item);
 
       var cbs = {
         onmatch: function(results) {
@@ -168,10 +171,10 @@ function SimContactsImporter() {
           };
 
           contacts.adaptAndMerge(this, results, mergeCbs);
-        }.bind(item),
+        }.bind(contact),
         onmismatch: function() {
           saveContact(this);
-        }.bind(item)
+        }.bind(contact)
       };
 
       contacts.Matcher.match(item, 'passive', cbs);
@@ -179,8 +182,8 @@ function SimContactsImporter() {
   } // importSlice
 
 
-  function saveContact(item) {
-    var req = window.navigator.mozContacts.save(item);
+  function saveContact(contact) {
+    var req = window.navigator.mozContacts.save(contact);
       req.onsuccess = function saveSuccess() {
         continueCb();
       };

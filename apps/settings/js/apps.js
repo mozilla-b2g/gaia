@@ -288,13 +288,8 @@ var ApplicationsList = {
     content.textContent = _(contentL10nId);
     content.dataset.l10nId = contentL10nId;
 
-    var fakeSelect = document.createElement('p');
-    fakeSelect.classList.add('fake-select');
-
-    var fakeSelectButton = document.createElement('button');
-    fakeSelectButton.classList.add('icon');
-    fakeSelectButton.classList.add('icon-dialog');
-    fakeSelectButton.textContent = value;
+    var fakeSelect = document.createElement('span');
+    fakeSelect.classList.add('button', 'icon', 'icon-dialog');
 
     var select = document.createElement('select');
     select.dataset.perm = perm;
@@ -314,6 +309,9 @@ var ApplicationsList = {
     allowOpt.text = _('allow');
     select.add(allowOpt);
 
+    var opt = select.querySelector('[value="' + value + '"]');
+    opt.setAttribute('selected', true);
+
     select.value = select.options[select.selectedIndex].textContent;
     select.setAttribute('value', value);
     select.onchange = this.selectValueChanged.bind(this);
@@ -322,10 +320,9 @@ var ApplicationsList = {
       select.focus();
     };
 
-    fakeSelect.appendChild(fakeSelectButton);
     fakeSelect.appendChild(select);
-    content.appendChild(fakeSelect);
     item.appendChild(content);
+    item.appendChild(fakeSelect);
     this.detailPermissionsList.appendChild(item);
   },
 
@@ -335,7 +332,6 @@ var ApplicationsList = {
 
     var select = evt.target;
     select.setAttribute('value', select.value);
-    select.previousSibling.textContent = select.value;
     this._changePermission(this._displayedApp,
                            select.dataset.perm, select.value);
   },

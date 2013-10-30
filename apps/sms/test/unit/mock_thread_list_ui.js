@@ -1,9 +1,12 @@
+/*exported MockThreadListUI */
+
 'use strict';
 
 var MockThreadListUI = {
   count: 0,
   inEditMode: false,
   init: function() {},
+  updateThread: function() {},
   getAllInputs: function() {},
   getSelectedInputs: function() {},
   setContact: function() {},

@@ -48,6 +48,12 @@ function MockContactAllFields() {
         'carrier': 'KPN'
       }
     ],
+    'url' : [
+      {
+        'type' : ['fb_profile_photo'],
+        'value' : 'https://abcd1.jpg'
+      }
+    ],
     'category': ['favorite'],
     'note': ['Note 1'],
     'photo': [getPhotoBlob()]

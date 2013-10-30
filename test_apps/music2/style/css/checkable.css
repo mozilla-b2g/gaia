@@ -1,0 +1,31 @@
+.checkable {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.checkable .title {
+  position: absolute;
+  width: calc(100% - 2rem);
+  top: 0;
+  left: 0;
+  height: 100%;
+  text-align: center;
+}
+
+.checkable .checkbox {
+  position: absolute;
+  width: 2rem;
+  top: 0;
+  right: 0;
+  height: 100%;
+
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 60% auto;
+  background-image: url('../images/radio-unchecked.png');
+}
+
+.checkable .checkbox.checked {
+  background-image: url('../images/radio-checked.png');
+}

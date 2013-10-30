@@ -129,17 +129,14 @@ form[role="dialog"][data-type="action"] > header button {
   text-decoration: none;
 }
 
-/* Pressed state */
-form[role="dialog"][data-type="action"] > header a::-moz-focus-inner,
-form[role="dialog"][data-type="action"] > header button::-moz-focus-inner,
-form[role="dialog"][data-type="action"] > header a:active,
-form[role="dialog"][data-type="action"] > header button:active,
-form[role="dialog"][data-type="action"] > header a:focus,
-form[role="dialog"][data-type="action"][data-type="action"] > header button:focus {
-  outline: none !important;
-  border: none !important;
+form[role="dialog"][data-type="action"] button::-moz-focus-inner,
+form[role="dialog"][data-type="object"] button::-moz-focus-inner {
+  outline: none;
+  border: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
 }
 
+/* Pressed state */
 form[role="dialog"][data-type="action"] > header a:active .icon:after,
 form[role="dialog"][data-type="action"] > header button:active .icon:after,
 form[role="dialog"][data-type="action"] > header menu[type="toolbar"] a:active,

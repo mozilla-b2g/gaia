@@ -50,6 +50,7 @@ var TrustedUIManager = {
     window.addEventListener('appwillopen', this);
     window.addEventListener('appopen', this);
     window.addEventListener('appwillclose', this);
+    window.addEventListener('appcreated', this);
     window.addEventListener('appterminated', this);
     window.addEventListener('keyboardhide', this);
     window.addEventListener('keyboardchange', this);
@@ -349,6 +350,16 @@ var TrustedUIManager = {
         break;
       case 'appterminated':
         this._destroyDialog(evt.detail.origin);
+        break;
+      case 'appcreated':
+        // XXX: This is a quick fix for sometimes an app is created
+        // at background and never got brought to foregroud.
+        // We ought not to repy on app* events but embed us
+        // in appWindow class to achieve a true fix.
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=911880
+        if (!this._dialogStacks[evt.detail.origin]) {
+          this._dialogStacks[evt.detail.origin] = [];
+        }
         break;
       case 'appwillopen':
         // Hiding trustedUI when coming from Activity

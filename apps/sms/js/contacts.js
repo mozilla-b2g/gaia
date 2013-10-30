@@ -41,7 +41,7 @@
         var field = criteria.fields[j];
         for (var k = 0, klen = contact[field].length; k < klen; k++) {
           var value = contact[field][k];
-          if (found[term] = value.toLowerCase().startsWith(term)) {
+          if ((found[term] = value.toLowerCase().startsWith(term))) {
             continue outer;
           }
         }

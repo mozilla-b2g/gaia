@@ -140,30 +140,30 @@ body[data-online = 'offline'] li[data-offline-ready = 'false'] > div > span {
 }
 @media (min-width: 768px) {
   #bg-overlay {
-    height: calc(100% - 16rem);
+    height: calc(100% - 16.9rem);
   }
 }
 /* This is a dirty hack to hide the bottom toolbar while
  * the keyboard is active, than device-height - 40px
- * (for status bar/mini attention screen),
+ * (for status bar/mini attention screen/software home button),
  * then the keyboard is likely activated
  */
-/* For the Otoro, 320x480 */
-@media (device-height: 480px) and (max-height: 430px),
-       (device-height: 320px) and (max-height: 270px) {
-  footer { display: none !important; }
-  .apps > div { height: 100% !important; }
-}
-/* For the Galaxy SII, 640x480 */
-@media (device-height: 480px) and (max-height: 430px),
-       (device-height: 640px) and (max-height: 590px) {
-  footer { display: none !important; }
-  .apps > div { height: 100% !important; }
-}
 
-/* For the Twist , 960x540 */
-@media (device-height: 540px) and (max-height: 490px),
-       (device-height: 960px) and (max-height: 910px) {
+       /* For the Otoro, 320x480 */
+@media (device-height: 480px) and (max-height: 390px),
+       (device-height: 320px) and (max-height: 230px),
+       /* For the Nexus 4 640x384 (no hardware button) */
+       (device-height: 384px) and (max-height: 294px),
+       (device-height: 640px) and (max-height: 550px),
+       /* For the Galaxy SII, 640x480 */
+       (device-height: 480px) and (max-height: 390px),
+       /* For the Tablet, 800x1280 */
+       (device-height: 800px) and (max-height: 710px),
+       (device-height: 1280px) and (max-height: 1190px),
+       /* For the Twist , 960x540 */
+       (device-height: 540px) and (max-height: 450px),
+       (device-height: 960px) and (max-height: 870px) {
   footer { display: none !important; }
   .apps > div { height: 100% !important; }
+  #bg-overlay { height: 100%;}
 }

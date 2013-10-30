@@ -43,10 +43,17 @@
 
     this.element.appendChild(this.browser.element);
 
+    /* XXX: We dynamically insert nodes here because
+       appWindow.frame.firstChild is used as appWindow.iframe */
     var screenshotOverlay = document.createElement('div');
     screenshotOverlay.classList.add('screenshot-overlay');
     this.element.appendChild(screenshotOverlay);
     this.screenshotOverlay = screenshotOverlay;
+
+    var fadeOverlay = document.createElement('div');
+    fadeOverlay.classList.add('fade-overlay');
+    this.element.appendChild(fadeOverlay);
+    this.fadeOverlay = fadeOverlay;
 
     this._registerEvents();
     this.resize();
@@ -179,6 +186,7 @@
 
   HomescreenWindow.prototype._enter_opening = function(prev, evt) {
     // Establish a timer to force finish the opening state.
+    this.fadeIn();
     this._transitionStateTimeout = setTimeout(function() {
       this._processTransitionEvent('timeout');
     }.bind(this), this._transitionTimeout * 1.3);

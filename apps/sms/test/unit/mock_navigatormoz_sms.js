@@ -1,3 +1,5 @@
+/*exported MockNavigatormozMobileMessage */
+
 'use strict';
 
 var MockNavigatormozMobileMessage = {

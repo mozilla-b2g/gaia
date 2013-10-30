@@ -1,7 +1,7 @@
-(function(){
-  "use strict";
+(function() {
+  'use strict';
 
-  function NativeScroll(el, initOptions){
+  function NativeScroll(el, initOptions) {
     var self = this,
         startPos,
         startPointer,
@@ -10,8 +10,8 @@
         altDirProperty,
         reportedDirection,
         options = {
-            "hScroll": false,
-            "vScroll": true
+            'hScroll': false,
+            'vScroll': true
         },
         optionsOnScrollStart,
         optionsOnScrollMove,
@@ -21,26 +21,28 @@
         optionsOnTouchEnd,
 
         scrollEventListener,
-        
-        // once swiped more than this value in the correct direction, 
+
+        // once swiped more than this value in the correct direction,
         // cancel system swipe altogether
         THRESHOLD_DISALLOW_SYSTEM_SWIPE = 5 * window.innerWidth / 100,
-        // release system swipe (out of e.me) only after finger had passed this value
+        // release system swipe (out of e.me)
+        // only after finger had passed this value
         THRESHOLD_ALLOW_SYSTEM_SWIPE = 10 * window.innerWidth / 100;
 
     for (var key in initOptions) {
       options[key] = initOptions[key];
     }
 
-    positionKey = options.hScroll? 0 : 1;
-    dirProperty = positionKey === 0? 'distX' : 'distY';
-    altDirProperty = dirProperty === 'distY'? 'distX' : 'distY';
+    positionKey = options.hScroll ? 0 : 1;
+    dirProperty = positionKey === 0 ? 'distX' : 'distY';
+    altDirProperty = dirProperty === 'distY' ? 'distX' : 'distY';
 
-    el.style.cssText += ';overflow-y: ' + (options.vScroll? 'auto' : 'hidden') +
-                        ';overflow-x: ' + (options.hScroll? 'auto' : 'hidden');
+    el.style.cssText += ';overflow-y: ' +
+                        (options.vScroll ? 'auto' : 'hidden') +
+                        ';overflow-x: ' + (options.hScroll ? 'auto' : 'hidden');
 
-    
-    // scroll event handlers  
+
+    // scroll event handlers
     optionsOnScrollStart = options.onScrollStart;
     optionsOnScrollMove = options.onScrollMove;
     optionsOnScrollEnd = options.onScrollEnd;
@@ -67,7 +69,7 @@
     this.hScroll = options.hScroll;
     this.vScroll = options.vScroll;
 
-    this.refresh = function refresh(){
+    this.refresh = function refresh() {
       // for backwrads compitability with iScroll
       // this is not needed
     };
@@ -77,7 +79,7 @@
       y !== undefined && (el.scrollTop = y);
     };
 
-    function onTouchStart(e){
+    function onTouchStart(e) {
       var touch = 'touches' in e ? e.touches[0] : e;
 
       el.dataset.touched = true;
@@ -94,11 +96,11 @@
       el.addEventListener('touchend', onTouchEnd, true);
 
       scrollEventListener.start();
-      
+
       optionsOnTouchStart && optionsOnTouchStart(e);
     }
 
-    function onTouchMove(e){
+    function onTouchMove(e) {
       // messages panning handler to prevent it
       e.preventPanning = true;
 
@@ -112,7 +114,8 @@
       if (!reportedDirection) {
         if (Math.abs(self[dirProperty]) >= THRESHOLD_DISALLOW_SYSTEM_SWIPE) {
           reportedDirection = true;
-        } else if (Math.abs(self[altDirProperty]) >= THRESHOLD_ALLOW_SYSTEM_SWIPE) {
+        } else if (Math.abs(self[altDirProperty]) >=
+                                                THRESHOLD_ALLOW_SYSTEM_SWIPE) {
           reportedDirection = true;
           // messages panning handler to pan normally
           e.preventPanning = false;
@@ -122,7 +125,7 @@
       optionsOnTouchMove && optionsOnTouchMove(e);
     }
 
-    function onTouchEnd(e){
+    function onTouchEnd(e) {
       el.dataset.touched = false;
 
       el.removeEventListener('touchmove', onTouchMove);
@@ -156,9 +159,10 @@
   }
 
   function ScrollEventListener(cfg) {
-    var onMove = cfg.onMove || function(){},
-        onEnd = cfg.onEnd || function(){},
-        hadScrolled = false,
+    var onMove = cfg.onMove || function() {};
+    var onEnd = cfg.onEnd || function() {};
+
+    var hadScrolled = false,
         isScrolling = false,
         shouldKeepListening,
         interval, intervalDelay = 100;
@@ -184,7 +188,7 @@
 
       !isScrolling && (isScrolling = true);
     }
-    
+
     function checkIfScrolled() {
       // if there was a scroll event
       if (!hadScrolled && !shouldKeepListening) {

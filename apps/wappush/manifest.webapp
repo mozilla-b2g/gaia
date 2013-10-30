@@ -18,13 +18,12 @@
   "icons": {
     "30": "/style/icons/wappush.png"
   },
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "messages": [
      { "notification": "/index.html" },
      { "wappush-received": "/index.html" }
   ],
   "permissions": {
-    "attention": {},
     "desktop-notification": {},
     "settings": { "access": "readonly" },
     "wappush": {}

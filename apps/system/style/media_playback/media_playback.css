@@ -1,6 +1,10 @@
+#media-playback-container {
+  height: auto;
+}
+
 #media-playback-nowplaying {
   height: 4rem;
-  margin: 1rem 1.5rem 0rem 1rem;
+  margin: 1rem 1rem 0rem 1rem;
 }
 
 #media-playback-nowplaying > .icon {
@@ -16,8 +20,9 @@
 
 #media-playback-nowplaying > .albumart {
   float: right;
-  width: 4rem;
-  height: 4rem;
+  width: 3rem;
+  height: 3rem;
+  margin: 0.5rem 0;
   background-size: 4rem;
 }
 
@@ -41,4 +46,46 @@
   font-size: 1.4rem;
   font-weight: 400;
   color: #bfbfbf;
+}
+
+#media-playback-controls {
+  height: 4.5rem;
+  overflow: hidden;
+  text-align: center;
+  font-size: 0; /* ensure there's no space between the buttons */
+}
+
+#media-playback-controls > button {
+  height: 100%;
+  padding: 0;
+  border-width: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+  background-color: transparent;
+}
+
+#media-playback-controls > button:active {
+  background-color: #00aacc;
+}
+
+#media-playback-controls > .previous {
+  width: 9.7rem;
+  background-image: url("./images/icon-previous.png");
+}
+
+#media-playback-controls > .play-pause {
+  width: 10.6rem;
+  background-image: url("./images/icon-pause.png");
+}
+
+#media-playback-controls > .play-pause.is-paused {
+  background-image: url("./images/icon-play.png");
+}
+
+#media-playback-controls > .next {
+  width: 9.7rem;
+  background-image: url("./images/icon-next.png");
 }

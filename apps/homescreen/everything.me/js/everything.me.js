@@ -16,7 +16,9 @@ var EverythingME = {
     // pre-evme-load pseudo searchbar
     var activationIcon = document.createElement('div');
     activationIcon.id = 'evme-activation-icon';
-    activationIcon.innerHTML = '<div><input type="text" x-inputmode="verbatim" data-l10n-id="evme-searchbar-default2" /></div>';
+    activationIcon.innerHTML =
+      '<div><input type="text" x-inputmode="verbatim"' +
+      ' data-l10n-id="evme-searchbar-default2" /></div>';
 
     // insert into first page
     gridPage.insertBefore(activationIcon, gridPage.firstChild);
@@ -40,6 +42,12 @@ var EverythingME = {
     function triggerActivateFromInput(e) {
       // gives the searchbar evme styling
       document.body.classList.add('evme-loading-from-input');
+      document.body.classList.add('evme-keyboard-visible');
+
+      var activationInput = activationIcon.querySelector('input');
+      activationInput.addEventListener('blur',
+                                        EverythingME.onActivationIconBlur);
+
       triggerActivate(e);
     }
 
@@ -72,43 +80,51 @@ var EverythingME = {
         'everything.me/css/common.css',
         'everything.me/modules/Collection/Collection.css'],
         function assetsLoaded() {
-          // open the collection immediately
-          if (e && e.type === 'collectionlaunch') {
-            onCollectionOpened(activationIcon, e.detail.id);
-          }
-
           // Activate evme load
           // But wait a tick, so there's no flash of unstyled progress indicator
-          window.setTimeout(EverythingME.activate, 0);
+          window.setTimeout(function() {
+            // open the collection immediately
+            if (e && e.type === 'collectionlaunch') {
+              onCollectionOpened(e.detail.id);
+            }
+
+            EverythingME.activate();
+          }, 0);
         }
       );
     }
 
     // show Collection loading
-    function onCollectionOpened(activationIcon, id) {
+    function onCollectionOpened(id) {
       // add classes for Collection styling
-      var appsEl = document.getElementById('icongrid');
+      var appsEl = document.getElementById('icongrid'),
+          elCollection = document.getElementById('collection'),
+          collection = GridManager.getIconByOrigin(id),
+          elLoader = elCollection.querySelector('.loading-more');
+
       appsEl.classList.add('evme-collection-visible');
-      var elCollection = document.getElementById('collection');
-      elCollection.classList.add('visible');
-      var collection = GridManager.getIconByOrigin(id);
+
       elCollection.querySelector('.title').innerHTML =
               '<em></em>' +
-              '<span class="actual">' + collection.getName() + '</span>' + ' ' +
-              '<span> ' +
-              navigator.mozL10n.get('evme-collection-title-suffix') +
-              '</span>';
-      var elLoader = elCollection.querySelector(".loading-more");
+              '<span>' + collection.getName() + '</span>';
+
       elLoader.classList.add('show');
 
-      // hide the pagination bar
-      // need timeout to make it match the normal collections animation timing
-      window.setTimeout(PaginationBar.hide, 100);
+      PaginationBar.hide();
 
       // add temporary Collection close listeners
-      var closeButton  = elCollection.querySelector('.close');
+      var closeButton = elCollection.querySelector('.close');
       closeButton.addEventListener('click', EverythingME.onCollectionClosed);
-      window.addEventListener("hashchange", EverythingME.onCollectionClosed);
+      window.addEventListener('hashchange', EverythingME.onCollectionClosed);
+
+      elCollection.style.display = 'block';
+      window.setTimeout(function() {
+        elCollection.addEventListener('transitionend', function end() {
+          elCollection.removeEventListener('transitionend', end);
+          document.dispatchEvent(new CustomEvent('collectionopened'));
+        });
+        elCollection.classList.add('visible');
+      }, 0);
     }
 
     function onContextMenu(e) {
@@ -125,15 +141,31 @@ var EverythingME = {
     EverythingME.migrateStorage();
   },
 
+  onActivationIconBlur: function onActivationIconBlur(e) {
+    EverythingME.pendingEvent = null;
+    e.target.removeEventListener('blur', onActivationIconBlur);
+    document.body.classList.remove('evme-keyboard-visible');
+    document.body.classList.remove('evme-loading-from-input');
+  },
+
   // remove pre-evme-load changes
-  onCollectionClosed: function onCollectionClosed(activationIcon) {
+  onCollectionClosed: function onCollectionClosed() {
     var appsEl = document.getElementById('icongrid');
     appsEl.classList.remove('evme-collection-visible');
 
-    var elCollection = document.getElementById('collection');
-    elCollection.classList.remove('visible');
+    var elCollection = document.getElementById('collection'),
+        elHeader = elCollection.querySelector('.header');
 
     EverythingME.pendingEvent = undefined;
+
+    elHeader.addEventListener('transitionend', function end(e) {
+      e.target.removeEventListener('transitionend', end);
+
+      elCollection.style.display = 'none';
+      PaginationBar.show();
+    });
+
+    elCollection.classList.remove('visible');
   },
 
   activate: function EverythingME_activate() {
@@ -168,11 +200,8 @@ var EverythingME = {
           'js/plugins/APIStatsEvents.js',
           'js/Brain.js',
           'modules/BackgroundImage/BackgroundImage.js',
-          'modules/Banner/Banner.js',
-          'modules/ConnectionMessage/ConnectionMessage.js',
           'modules/Features/Features.js',
           'modules/Helper/Helper.js',
-          'modules/Location/Location.js',
           'modules/Results/Result.js',
           'modules/Results/providers/CloudApps.js',
           'modules/Results/providers/InstalledApps.js',
@@ -190,8 +219,6 @@ var EverythingME = {
           'shared/style/action_menu.css',
           'css/common.css',
           'modules/BackgroundImage/BackgroundImage.css',
-          'modules/Banner/Banner.css',
-          'modules/ConnectionMessage/ConnectionMessage.css',
           'modules/Helper/Helper.css',
           'modules/Results/Results.css',
           'modules/Searchbar/Searchbar.css'
@@ -272,6 +299,9 @@ var EverythingME = {
         evmeInput = document.getElementById('search-q'),
         closeButton = document.querySelector('#collection .close');
 
+    activationIconInput.removeEventListener('blur',
+                                            EverythingME.onActivationIconBlur);
+
     // add evme into the first grid page
     gridPage.appendChild(page.parentNode.removeChild(page));
 
@@ -285,13 +315,14 @@ var EverythingME = {
         EvmeFacade.searchFromOutside(existingQuery);
       }
 
-      EvmeFacade.Searchbar && EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
+      EvmeFacade.Searchbar &&
+        EvmeFacade.Searchbar.focus && EvmeFacade.Searchbar.focus();
       evmeInput.setSelectionRange(existingQuery.length, existingQuery.length);
     }
 
     closeButton.removeEventListener('click', EverythingME.onCollectionClosed);
 
-    window.removeEventListener("hashchange", EverythingME.onCollectionClosed);
+    window.removeEventListener('hashchange', EverythingME.onCollectionClosed);
 
     document.body.classList.remove('evme-loading');
     document.body.classList.remove('evme-loading-from-input');
@@ -302,7 +333,7 @@ var EverythingME = {
       e.target.dispatchEvent(e);
     }
 
-    if (e.type === 'suggestcollections') {
+    if (e && e.type === 'suggestcollections') {
       window.addEventListener('CollectionSuggestLoadingShow', loadingShow);
       window.addEventListener('CollectionSuggestOffline', suggestOffline);
     } else {
@@ -328,6 +359,13 @@ var EverythingME = {
       var resource = list[i];
       resource.parentNode.removeChild(resource);
     }
+
+    // Deleting all existing nodes
+    var elementsId = ['evmeOverlay', 'evmeContainer'];
+    elementsId.forEach(function(id) {
+      var elementDom = document.getElementById(id);
+      elementDom.parentNode.removeChild(elementDom);
+    });
   },
 
   // copy relevant user data from 1.0.1 to 1.1 versions
@@ -345,7 +383,8 @@ var EverythingME = {
         return;
       }
 
-      // first mark as "migrated", so if we have an error we won't keep running this
+      // first mark as "migrated",
+      // so if we have an error we won't keep running this
       asyncStorage.setItem(migrationStorageKey, true);
 
       // start the migration
@@ -394,7 +433,8 @@ var EverythingME = {
       console.log('[EVME migration] [' + oldKey + '] got value: ' + oldValue);
       oldValue = JSON.parse(oldValue);
       if (!oldValue) {
-        console.log('[EVME migration] [' + oldKey + ']: invalid json: ' + window.localStorage[oldKey]);
+        console.log('[EVME migration] [' + oldKey + ']: invalid json: ' +
+                                                  window.localStorage[oldKey]);
         deleteOld();
         onComplete(false);
         return false;
@@ -406,15 +446,18 @@ var EverythingME = {
         'expires': oldValue._e
       };
 
-      console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saving: ' + JSON.stringify(newValue));
+      console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saving: ' +
+                                                     JSON.stringify(newValue));
       asyncStorage.setItem(newKey, newValue, function onsaved() {
-        console.log('[EVME migration] [' + oldKey + ':' + newKey + ']: saved, remove old data');
+        console.log('[EVME migration] [' + oldKey + ':' + newKey +
+                                                  ']: saved, remove old data');
         deleteOld();
         onComplete(true);
       });
-    } catch(ex) {
+    } catch (ex) {
       deleteOld();
-      console.warn('[EVME migration] [' + oldKey + ']: error: ' + oldValue + ' (' + ex.message + ')');
+      console.warn('[EVME migration] [' + oldKey + ']: error: ' + oldValue +
+                                                      ' (' + ex.message + ')');
       onComplete(false);
       return false;
     }
@@ -436,11 +479,12 @@ var EverythingME = {
       'shared/style/confirm.css',
       elLoading],
       function assetsLoaded() {
-        elLoading.querySelector('button').addEventListener('click', function onCancel(e) {
-          e.target.removeEventListener('click', onCancel);
-          EverythingME.hideLoading();
-          EverythingME.pendingEvent = null;
-        });
+        elLoading.querySelector('button').addEventListener('click',
+          function onCancel(e) {
+            e.target.removeEventListener('click', onCancel);
+            EverythingME.hideLoading();
+            EverythingME.pendingEvent = null;
+          });
 
         navigator.mozL10n.translate(elLoading);
 

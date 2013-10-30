@@ -23,7 +23,7 @@ class TestEverythingMeSearchAccented(GaiaTestCase):
         homescreen.switch_to_homescreen_frame()
 
         search_panel = homescreen.tap_search_bar()
-        search_panel.wait_for_keyboard_visible()
+        search_panel.wait_for_everything_me_loaded()
         search_panel.type_into_search_box(test_string)
 
         search_panel.wait_for_type('Sports')

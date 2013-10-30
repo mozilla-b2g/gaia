@@ -4,12 +4,14 @@ requireApp('homescreen/test/unit/mock_grid_manager.js');
 requireApp('homescreen/test/unit/mock_dock_manager.js');
 
 requireApp('homescreen/test/unit/mock_dragdrop.html.js');
+requireApp('homescreen/test/unit/mock_configurator.js');
 requireApp('homescreen/js/page.js');
 requireApp('homescreen/js/dragdrop.js');
 
 var mocksHelperForDragDrop = new MocksHelper([
   'GridManager',
-  'DockManager'
+  'DockManager',
+  'Configurator'
 ]);
 
 mocksHelperForDragDrop.init();
@@ -65,6 +67,8 @@ suite('dragdrop.js >', function() {
 
   // Simulate when users release the finger
   function end(node, x, cb, over) {
+    cb = cb || function() {};
+
     var coords = {
       x: x,
       y: getY(over)
@@ -256,6 +260,29 @@ suite('dragdrop.js >', function() {
         assert.equal(dock.getNumIcons(), 2);
         done();
       });
+    });
+  });
+
+  test('Copy app2 into a collection (first child is a collection) > ',
+       function(done) {
+    dragabbleIcon =
+                document.querySelector('li[data-manifest-u-r-l="http://app2"]');
+    start(dragabbleIcon, 1);
+    move(dragabbleIcon, 0, function() {
+      window.addEventListener('collectiondropapp', function onDrop(e) {
+        window.removeEventListener('collectiondropapp', onDrop);
+
+        assert.equal(e.detail.collection.id, 'http://app1');
+        assert.equal(e.detail.descriptor.manifestURL, 'http://app2');
+
+        checkPositions(page, ['app1', 'app2', 'app3', 'app4']);
+        checkPositions(dock, ['app5', 'app6']);
+        assert.equal(page.getNumIcons(), 4);
+        assert.equal(dock.getNumIcons(), 2);
+        done();
+      });
+
+      end(dragabbleIcon, 0);
     });
   });
 

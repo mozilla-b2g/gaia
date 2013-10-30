@@ -1,3 +1,6 @@
+/*global MocksHelper, MockL10n, LinkActionHandler, ActivityPicker, ThreadUI,
+         Contacts */
+
 'use strict';
 
 requireApp('sms/js/link_action_handler.js');
@@ -75,6 +78,7 @@ suite('LinkActionHandler', function() {
     mocksHelperLAH.teardown();
   });
 
+
   suite('onClick', function() {
 
     setup(function() {
@@ -83,38 +87,6 @@ suite('LinkActionHandler', function() {
 
     teardown(function() {
       LinkActionHandler.reset();
-      mocksHelperLAH.teardown();
-    });
-
-    test('url-link ', function() {
-      LinkActionHandler.onClick(events.url);
-
-      assert.ok(ActivityPicker.url.called);
-      assert.equal(ActivityPicker.url.calledWith[0], 'http://mozilla.com');
-    });
-
-    test('email-link ', function() {
-      LinkActionHandler.onClick(events.email);
-
-      assert.ok(ActivityPicker.email.called);
-      assert.equal(ActivityPicker.email.calledWith[0], 'a@b.com');
-    });
-
-    test('dial-link ', function() {
-      LinkActionHandler.onClick(events.phone);
-
-      assert.ok(ActivityPicker.dial.called);
-      assert.equal(ActivityPicker.dial.calledWith[0], '999');
-    });
-  });
-
-  suite('onContextMenu', function() {
-
-    setup(function() {
-      mocksHelperLAH.setup();
-    });
-
-    teardown(function() {
       mocksHelperLAH.teardown();
     });
 
@@ -128,7 +100,7 @@ suite('LinkActionHandler', function() {
           }
         }]);
 
-      LinkActionHandler.onContextMenu(events.phone);
+      LinkActionHandler.onClick(events.phone);
 
       assert.deepEqual(ThreadUI.promptContact.args[0][0], {
         number: '999',
@@ -144,7 +116,7 @@ suite('LinkActionHandler', function() {
       this.sinon.stub(Contacts, 'findByPhoneNumber')
         .callsArgWith(1, []);
 
-      LinkActionHandler.onContextMenu(events.phone);
+      LinkActionHandler.onClick(events.phone);
 
       assert.deepEqual(ThreadUI.promptContact.args[0][0], {
         number: '999',
@@ -158,7 +130,7 @@ suite('LinkActionHandler', function() {
     test('email-link: delegates to prompt ', function() {
       this.sinon.stub(ThreadUI, 'prompt');
 
-      LinkActionHandler.onContextMenu(events.email);
+      LinkActionHandler.onClick(events.email);
 
       assert.ok(ThreadUI.prompt.called);
       assert.deepEqual(ThreadUI.prompt.args[0][0], {
@@ -167,22 +139,12 @@ suite('LinkActionHandler', function() {
       });
     });
 
-    test('url-link: delegates to onClick ', function() {
-      this.sinon.stub(LinkActionHandler, 'onClick');
+    test('url-link: go directly to the action ', function() {
+      this.sinon.stub(ActivityPicker, 'url');
 
-      LinkActionHandler.onContextMenu(events.url);
+      LinkActionHandler.onClick(events.url);
 
-      assert.deepEqual(LinkActionHandler.onClick.args[0][0].target, {
-        dataset: {
-          action: 'url-link',
-          url: 'http://mozilla.com'
-        }
-      });
-
-      // Ensures that the _ACTUAL_ event object (whatever that may be)
-      // is the object that is sent to LinkActionHandler.onClick
-      assert.equal(LinkActionHandler.onClick.args[0][0], events.url);
-
+      assert.isTrue(ActivityPicker.url.called);
       assert.ok(events.url.preventDefault.called);
       assert.ok(events.url.stopPropagation.called);
     });

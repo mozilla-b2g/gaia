@@ -19,7 +19,7 @@ class TestKeyboard(GaiaTestCase):
         contacts_app.launch()
 
         new_contact_form = contacts_app.tap_new_contact()
-        new_contact_form.type_phone(contact['tel']['value'])
+        new_contact_form.type_phone(contact['tel'][0]['value'])
         new_contact_form.type_comment('')
 
         # initialize the keyboard app

@@ -121,6 +121,7 @@ function execute(options) {
    'app.launch_path.blacklist': [],
    'app.reportCrashes': 'ask',
    'app.update.interval': 86400,
+   'apz.force-enable': false,
    'audio.volume.alarm': 15,
    'audio.volume.bt_sco': 15,
    'audio.volume.dtmf': 15,
@@ -140,6 +141,7 @@ function execute(options) {
    'debug.console.enabled': false,
    'debug.grid.enabled': false,
    'debug.oop.disabled': false,
+   'debug.keyboard-oop.enabled': false,
    'debug.fps.enabled': false,
    'debug.ttl.enabled': false,
    'debug.log-animations.enabled': false,
@@ -157,6 +159,7 @@ function execute(options) {
    'deviceinfo.update_channel': '',
    'device.storage.writable.name': 'sdcard',
    'dom.mozContacts.debugging.enabled': false,
+   'feedback.url': 'https://input.allizom.org/api/v1/feedback/',
    'gaia.system.checkForUpdates': false,
    'geolocation.enabled': true,
    'geolocation.suspended': false,
@@ -208,8 +211,8 @@ function execute(options) {
    'nfc.enabled': false,
    'nfc.suspended': false,
    'nfc.powerlevel': 0,
-   'operatorvariant.mcc': '0',
-   'operatorvariant.mnc': '0',
+   'operatorvariant.mcc': '000',
+   'operatorvariant.mnc': '00',
    'phone.ring.keypad': true,
    'phone.dtmf.type': 'long',
    'powersave.enabled': false,
@@ -291,6 +294,7 @@ function execute(options) {
    'time.timezone': null,
    'ums.enabled': false,
    'ums.mode': 0,
+   'ums.status': 0,
    'ums.volume.sdcard.enabled': true,
    'ums.volume.extsdcard.enabled': false,
    'vibration.enabled': true,
@@ -300,7 +304,7 @@ function execute(options) {
    'wifi.disabled_by_wakelock': false,
    'wifi.notification': false,
    'wifi.connect_via_settings': false,
-   'wap.push.enabled': false
+   'wap.push.enabled': true
   };
 
   // We want the console to be disabled for device builds using the user variant.
@@ -315,6 +319,10 @@ function execute(options) {
   if (config.NOFTU === '0') {
     settings['ftu.manifestURL'] = utils.gaiaManifestURL('communications',
       config.GAIA_SCHEME, config.GAIA_DOMAIN, config.GAIA_PORT);
+  }
+
+  if (config.PRODUCTION === '1') {
+    settings['feedback.url'] = 'https://input.mozilla.org/api/v1/feedback/';
   }
 
   settings['language.current'] = config.GAIA_DEFAULT_LOCALE;

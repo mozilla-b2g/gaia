@@ -182,8 +182,9 @@ function getMetadata(videofile, callback) {
     // Otherwise it is a video!
     metadata.isVideo = true;
 
-    // Base the title on the filename
-    metadata.title = fileNameToVideoName(videofile.name);
+    // read title from metadata or fallback to filename.
+    metadata.title = readFromMetadata('title') ||
+                     fileNameToVideoName(videofile.name);
 
     // The video element tells us the video duration and size.
     metadata.duration = offscreenVideo.duration;
@@ -207,6 +208,21 @@ function getMetadata(videofile, callback) {
       createThumbnail();
     }
   };
+
+  // The text case of key in metadata is not always lower or upper cases. That
+  // depends on the creation tools. This function helps to read keys in lower
+  // cases and returns the value of corresponding key.
+  function readFromMetadata(lowerCaseKey) {
+    var tags = offscreenVideo.mozGetMetadata();
+    for (var key in tags) {
+      // to lower case and match it.
+      if (key.toLowerCase() === lowerCaseKey) {
+        return tags[key];
+      }
+    }
+    // no matched key, return undefined.
+    return;
+  }
 
   function createThumbnail() {
     // Videos often begin with a black screen, so skip ahead 5 seconds

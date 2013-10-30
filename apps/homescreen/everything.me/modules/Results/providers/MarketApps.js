@@ -25,16 +25,16 @@
       canvas.height = height + TEXT_MARGIN + (2 * TEXT_HEIGHT) - 1;
 
       Evme.Utils.writeTextToCanvas({
-        "text": Evme.Utils.l10n('apps', 'market-download'),
-        "context": context,
-        "offset": height + TEXT_MARGIN,
-        "fontSize": FONT_SIZE
+        'text': Evme.Utils.l10n('apps', 'market-download'),
+        'context': context,
+        'offset': height + TEXT_MARGIN,
+        'fontSize': FONT_SIZE
       });
 
       Evme.Utils.writeTextToCanvas({
-        "text": this.cfg.name,
-        "context": context,
-        "offset": height + TEXT_MARGIN + FONT_SIZE + SCALE_RATIO
+        'text': this.cfg.name,
+        'context': context,
+        'offset': height + TEXT_MARGIN + FONT_SIZE + SCALE_RATIO
       });
 
       return canvas;
@@ -43,7 +43,7 @@
     // @override
     this.launch = function launchMarketResult() {
       if (slug) {
-        EvmeManager.openMarketplaceApp({"slug": slug});
+        EvmeManager.openMarketplaceApp({'slug': slug});
       }
     };
   };
@@ -73,7 +73,8 @@
 
       var newSignature = Evme.Utils.getAppsSignature(apps);
       if (lastSignature === newSignature) {
-        Evme.Utils.log("MarketAppsRenderer: nothing to render (signature match)");
+        Evme.Utils.log('MarketAppsRenderer: nothing to render' +
+          ' (signature match)');
         return;
       }
       lastSignature = newSignature;
@@ -119,17 +120,18 @@
     /**
      * Market icons are hosted on marketplace.cdn.mozilla.net
      * Get it using system XHR to avoid canvas security issues.
-     * see http://www.w3.org/TR/2011/WD-html5-20110525/the-canvas-element.html#security-with-canvas-elements
+     * see http://www.w3.org/TR/2011/WD-html5-20110525/
+     *                     the-canvas-element.html#security-with-canvas-elements
      */
     function getMarketIcon(app, result) {
       Evme.Utils.systemXHR({
-        "url": app.icon.data,
-        "responseType": 'blob',
-        "onSuccess": function onIconSuccess(response) {
+        'url': app.icon.data,
+        'responseType': 'blob',
+        'onSuccess': function onIconSuccess(response) {
           app.icon = response;
           result.draw(app.icon);
         },
-        "onError": function onIconError(e) {
+        'onError': function onIconError(e) {
           app.icon = DEFAULT_ICON;
           result.draw(app.icon);
         }

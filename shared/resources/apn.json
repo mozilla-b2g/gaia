@@ -2472,6 +2472,11 @@
   "01": [
     {"carrier":"遠傳電信(Far EasTone) (MMS)","apn":"fetnet01","mmsc":"http://mms","mmsproxy":"210.241.199.199","mmsport":"9201","type":["mms"]},
     {"carrier":"遠傳電信(Far EasTone) (Internet)","apn":"internet","type":["default","supl"]}
+  ],
+  "05": [
+    {"carrier":"亞太電信(APBW) (Internet)","apn":"aptnet","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","password":"aptwap","authtype":"2","type":["default"]},
+    {"carrier":"亞太電信(APBW) (WAP)","apn":"aptwap","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","password":"aptwap","authtype":"2","type":["default"]},
+    {"carrier":"亞太電信(APBW) (MMS)","apn":"aptmms","mmsc":"http://mms.aptg.com.tw","mmsproxy":"210.200.66.196","mmsport":"80","user":"aptwap@nsip.qma.com.tw","password":"aptwap","type":["mms"]}
   ]
 },
 "502": {
@@ -3178,17 +3183,8 @@
 },
 "001": {
   "01": [
-    {"carrier":"Test Network","apn":"internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]}
-  ],
-  "02": [
-    {"carrier":"Test Network with MMS","apn":"mms.internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms"]}
-  ],
-  "03": [
-    {"carrier":"Test Network with Operator Variant Settings","apn":"mms.internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]},
+    {"carrier":"Test Network","apn":"internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","mmsc":"http://127.0.0.1","mmsproxy":"127.0.0.1","mmsport":"8080","authtype":"0","type":["default","supl","mms"]},
     {"voicemail":"999999","cellBroadcastSearchList":"0,1,2,3","type":["operatorvariant"]}
-  ],
-  "04": [
-    {"carrier":"Test Network with SUPL","apn":"supl.internet","user":"user","password":"password","proxy":"127.0.0.1","port":"8080","authtype":"0","type":["default","supl"]}
   ]
 }
 }

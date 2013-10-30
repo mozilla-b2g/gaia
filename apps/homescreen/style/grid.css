@@ -56,13 +56,13 @@ body[data-transitioning] .apps > div {
 }
 
 /* Maximum 12 icons for first page */
-.apps div:first-child ol > li:nth-child(13) {
+body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
   display: none;
 }
 
 /* Adds 1 row of icons */
 @media (min-device-width: 320px) and (min-device-height: 640px) {
-  .apps ol:first-child > li:nth-child(13) {
+  body.searchPageEnabled .apps ol:first-child > li:nth-child(13) {
     display: inline-block;
   }
 
@@ -71,12 +71,20 @@ body[data-transitioning] .apps > div {
   }
 
 	 /* Maximum 16 icons for first page */
-  .apps ol:first-child > li:nth-child(21) {
+  body.searchPageEnabled .apps ol:first-child > li:nth-child(17) {
     display: none;
   }
 
    /* Maximum 20 icons for page */
   .apps ol > li:nth-child(21) {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+
+  /* Maximum 12 icons for first page when searchPageEnabled */
+  body.searchPageEnabled .apps div:first-child ol > li:nth-child(13) {
     display: none;
   }
 }
@@ -122,7 +130,7 @@ body[data-transitioning] .apps > div {
 	text-overflow: '';
 }
 
-ol:not([disabled]) li.active > div > img {
+ol > li.active > div > img {
   filter: url('app_tapped_filter.svg#blur');
 }
 
@@ -222,6 +230,10 @@ body[data-transitioning] .loading:after {
 
 /* For tablet+ Device */
 @media (min-width: 768px) {
+  .apps > div {
+    height: calc(100% - 16.9rem);
+  }
+
   .apps ol > li span.options {
     height: 4.5rem;
     background: url(../resources/images/delete.png) no-repeat left top / 4.5rem;
@@ -230,30 +242,42 @@ body[data-transitioning] .loading:after {
   .apps ol {
     -moz-box-sizing: border-box;
          box-sizing: border-box;
-    padding: 5.3rem 6rem 5.6rem 9.3rem;
+    padding: 3.5rem 7rem 6.5rem 7rem;
   }
 
   .labelWrapper {
-    margin-top: 1.5rem;
-    font-size: 1.8rem;
-    line-height: 1.8rem;
-    height: 2.3rem;
-    font-weight: 400;
+    margin-top: 1rem;
+    font-size: 1.6rem;
+    line-height: 1.6rem;
+    font-weight: bold;
   }
 
+  /* text label */
   .apps ol > li > div > span > span {
-    font-size: 1.8rem;
-    text-shadow: 0 0 0.5rem;
-  }
-
-  /* Maximum 15 icons for page */
-  .apps ol > li:nth-child(16) {
-    display: none;
+    font-size: 1.6rem;
+    text-shadow: 0 0 0.5rem rgba(0,0,0,0.5);
   }
 }
 
 @media (min-width: 768px) and (orientation: landscape) {
   .apps ol > li {
-    width: 20%; /* five a line */
+    width: calc(100% / 6); /* six a line */
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .apps ol {
+    -moz-box-sizing: border-box;
+         box-sizing: border-box;
+    padding: 3.5rem 11rem 6.5rem 11rem;
+  }
+
+  /* Maximum 18 icons for page */
+  .apps ol > li:nth-child(19) {
+    display: none;
+  }
+
+  .apps ol {
+    margin-top: 0;
   }
 }

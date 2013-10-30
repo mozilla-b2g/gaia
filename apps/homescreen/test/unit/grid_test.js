@@ -3,6 +3,7 @@
 mocha.globals(['mozRequestAnimationFrame']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
 requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_page.js');
@@ -14,10 +15,10 @@ requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_apps_mgmt.js');
 requireApp('homescreen/test/unit/mock_configurator.js');
 requireApp('homescreen/test/unit/mock_hidden_apps.js');
-requireApp('homescreen/test/unit/mock_manifest_helper.js');
 requireApp('homescreen/test/unit/mock_icon_retriever.js');
 
 require('/shared/js/screen_layout.js');
+requireApp('homescreen/js/icon_manager.js');
 requireApp('homescreen/js/grid_components.js');
 requireApp('homescreen/js/grid.js');
 
@@ -248,6 +249,7 @@ suite('grid.js >', function() {
       sendMouseEvent('mouseup', containerNode, point);
 
       // Icon lost the focus
+      IconManager.removeActive();
       assert.isFalse(icon.classList.contains('active'));
     });
 
@@ -284,6 +286,7 @@ suite('grid.js >', function() {
 
       // No one is active
       assert.isFalse(icon1.classList.contains('active'));
+      IconManager.removeActive();
       assert.isFalse(icon2.classList.contains('active'));
     });
 
@@ -322,6 +325,48 @@ suite('grid.js >', function() {
 
       test('should save the state', function() {
         assert.ok(MockHomeState.mLastSavedGrid);
+      });
+    });
+  });
+
+  suite('install role system app >', function() {
+    var mockApp;
+    var tempIcon;
+    var appManifest = {
+      name: 'My Ringtones',
+      role: 'system'
+    };
+    var appUpdateManifest = {
+      name: 'My Ringtones'
+    };
+
+    setup(function() {
+      mockApp = new MockApp({
+        manifest: null,
+        updateManifest: appUpdateManifest
+      });
+      this.sinon.useFakeTimers();
+
+      MockAppsMgmt.mTriggerOninstall(mockApp);
+      this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+    });
+
+    test('should have a temp icon', function() {
+      tempIcon = GridManager.getIcon(mockApp);
+      assert.ok(tempIcon);
+    });
+
+    suite('finish role system app install >', function() {
+      setup(function() {
+        this.sinon.spy(MockIcon.prototype, 'remove');
+        mockApp.manifest = appManifest;
+        mockApp.updateManifest = null;
+        mockApp.mTriggerDownloadApplied();
+        this.sinon.clock.tick(SAVE_STATE_WAIT_TIMEOUT);
+      });
+
+      test('icon remove method called', function() {
+        assert.isTrue(tempIcon.remove.calledOnce);
       });
     });
   });
