@@ -18,5 +18,6 @@ env:
   - CI_ACTION=gaia_ui_tests
 notifications:
   irc:
+    on_success: change
     channels:
       - "irc.mozilla.org#gaia"
