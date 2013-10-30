@@ -71,6 +71,12 @@
       "description": "French layout",
       "types": ["url", "text"]
     },
+    "fr-dvorak-bepo": {
+      "launch_path": "/index.html#fr-dvorak-bepo",
+      "name": "French (Bépo)",
+      "description": "French BÉPO layout",
+      "types": ["url", "text"]
+    },
     "de": {
       "launch_path": "/index.html#de",
       "name": "German",

@@ -227,7 +227,7 @@ const keyboardGroups = {
   'polish' : ['pl'],
   'catalan' : ['ca'],
   'czech': ['cz'],
-  'french': ['fr'],
+  'french': ['fr', 'fr-dvorak-bepo'],
   'german': ['de'],
   'hungarian': ['hu'],
   'norwegian': ['nb'],
@@ -259,7 +259,7 @@ const defaultKeyboardNames = ['en'];
 
 const keyboardHashKey = [
   'en', 'en-Dvorak', 'es', 'pt-BR', 'pl',
-  'cz', 'fr', 'de', 'nb', 'sk',
+  'cz', 'fr', 'fr-dvorak-bepo', 'de', 'nb', 'sk',
   'tr', 'ru', 'sr-Cyrl', 'ar', 'he',
   'el',
   'zh-Hant-Zhuyin', 'zh-Hans-Pinyin', 'jp-kanji',
