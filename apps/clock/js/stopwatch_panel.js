@@ -162,18 +162,24 @@ define(function(require) {
     this.onstart();
   };
 
-  function lapDom(num, time, li) {
-    if (typeof li === 'undefined') {
-      li = document.createElement('li');
-      li.setAttribute('class', 'lap-cell');
-      var html = this.lapTemplate.interpolate({
-        time: Utils.format.durationMs(time)
-      });
-      li.innerHTML = html;
-    } else {
-      li.querySelector('.lap-duration').textContent =
-        Utils.format.durationMs(time);
-    }
+  function createLapDom(num, time) {
+    var li = document.createElement('li');
+    li.setAttribute('class', 'lap-cell');
+    var html = this.lapTemplate.interpolate({
+      time: Utils.format.durationMs(time)
+    });
+    li.innerHTML = html;
+    mozL10n.localize(
+      li.querySelector('.lap-name'),
+      'lap-number',
+      { n: num }
+    );
+    return li;
+  }
+
+  function updateLapDom(num, time, li) {
+    li.querySelector('.lap-duration').textContent =
+      Utils.format.durationMs(time);
     mozL10n.localize(
       li.querySelector('.lap-name'),
       'lap-number',
@@ -192,9 +198,9 @@ define(function(require) {
     var lapnodes = node.querySelectorAll('li.lap-cell');
     var time = stopwatch.nextLap().duration;
     if (lapnodes.length === 0) {
-      node.appendChild(lapDom.call(this, num, time));
+      node.appendChild(createLapDom.call(this, num, time));
     } else {
-      lapDom.call(this, num, time, lapnodes[0]);
+      updateLapDom.call(this, num, time, lapnodes[0]);
     }
   };
 
@@ -207,7 +213,7 @@ define(function(require) {
       return;
     }
     this.activeLap(true);
-    var li = lapDom.call(this, num, val ? val.duration : 0);
+    var li = createLapDom.call(this, num, val ? val.duration : 0);
     if (laps.length > 1) {
       var lapnodes = node.querySelectorAll('li.lap-cell');
       node.insertBefore(li, lapnodes[1]);
