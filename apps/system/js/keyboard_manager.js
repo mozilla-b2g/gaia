@@ -261,6 +261,9 @@ var KeyboardManager = {
         if (!self.keyboardLayouts[group]) {
           group = 'text';
         }
+        if (group !== self.showingLayout.type) {
+          self.resetShowingKeyboard();
+        }
         self.setKeyboardToShow(group);
         self.showKeyboard();
 
