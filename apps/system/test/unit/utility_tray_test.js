@@ -2,14 +2,21 @@
 
 mocha.globals(['UtilityTray']);
 
+requireApp('system/test/unit/mock_lock_screen.js');
+requireApp('system/js/lockscreen.js');
+
 var LockScreen = { locked: false };
 
+var mocksForUtilityTray = new MocksHelper([
+  'LockScreen'
+]).init();
 
 suite('system/UtilityTray', function() {
   var stubById;
   var fakeEvt;
   var fakeElement;
 
+  mocksForUtilityTray.attachTestHelpers();
   setup(function(done) {
     fakeElement = document.createElement('div');
     fakeElement.style.cssText = 'height: 100px; display: block;';
