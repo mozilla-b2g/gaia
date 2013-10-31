@@ -412,6 +412,7 @@ class GaiaDevice(object):
         self.marionette.wait_for_port()
         self.marionette.start_session()
         if self.is_android_build:
+            time.sleep(10)
             self.marionette.execute_async_script("""
 window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
   if (aEvent.target.src.indexOf('ftu') != -1 || aEvent.target.src.indexOf('homescreen') != -1) {
