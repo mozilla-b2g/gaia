@@ -1,9 +1,12 @@
 /*global requireApp suiteSetup suite teardown setup test sinon assert
   suiteTeardown initKeyboard defaultKeyboardName Keyboards IMERender
   isKeyboardRendered */
+
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('keyboard/js/keyboard.js');
 
 defaultKeyboardName = 'Default';
+
 Keyboards = {
   Default: {
     keys: []
@@ -20,6 +23,7 @@ IMERender = {};
 suite('Keyboard', function() {
   var imeRender;
   var imm, _mozInputMethod;
+  var realSettings;
 
   function setupIMERender() {
     return {
@@ -43,6 +47,9 @@ suite('Keyboard', function() {
     confirmDialog.id = 'confirm-dialog';
     document.body.appendChild(confirmDialog);
 
+    realSettings = navigator.mozSettings;
+    navigator.mozSettings = MockNavigatorSettings;
+
     _mozInputMethod = navigator.mozInputMethod;
     navigator.mozInputMethod = imm = {};
 
@@ -59,6 +66,7 @@ suite('Keyboard', function() {
 
   suiteTeardown(function() {
     navigator.mozInputMethod = _mozInputMethod;
+    navigator.mozSettings = realSettings;
   });
 
   suite('Focus change', function() {
@@ -66,8 +74,9 @@ suite('Keyboard', function() {
       imm.inputcontext = null;
       imm.oninputcontextchange();
 
+      // The keyboard was hidden originally, so no need to hide again
       setTimeout(function() {
-        sinon.assert.callCount(imeRender.hideIME, 1);
+        sinon.assert.callCount(imeRender.hideIME, 0);
         next();
       }, 150);
     });
