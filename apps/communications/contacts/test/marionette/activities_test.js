@@ -1,9 +1,13 @@
 var Contacts = require('./lib/contacts');
+var Dialer = require('./lib/dialer');
 var Sms = require('./lib/sms');
 var assert = require('assert');
 
 marionette('Contacts > Activities', function() {
   var client = marionette.client(Contacts.config);
+
+  var dialerSubject;
+
   var smsSubject;
   var smsSelectors;
 
@@ -14,8 +18,57 @@ marionette('Contacts > Activities', function() {
     subject = new Contacts(client);
     selectors = Contacts.Selectors;
 
+    dialerSubject = new Dialer(client);
+
     smsSubject = new Sms(client);
     smsSelectors = Sms.Selectors;
+  });
+
+  suite('webcontacts/contact activity', function() {
+    test('a contact with duplicate number shows merge page', function() {
+
+      subject.launch();
+
+      subject.addContact({
+        givenName: 'From Contacts App',
+        tel: 1111
+      });
+
+      client.apps.close(Contacts.URL, 'contacts');
+
+      dialerSubject.launch();
+
+      // Dialer keys don't work in b2g desktop for some reason yet,
+      // So just manually fire off the activity
+      client.executeScript(function() {
+        var activity = new MozActivity({
+          name: 'new',
+          data: {
+            type: 'webcontacts/contact',
+            params: {
+              'tel': 1111
+            }
+          }
+        });
+      });
+
+      client.switchToFrame();
+      client.apps.switchToApp(Contacts.URL, 'contacts');
+
+      subject.enterContactDetails({
+        givenName: 'From Dialer Activity'
+      }, true);
+
+      client.switchToFrame(client.findElement(selectors.duplicateFrame));
+
+      var duplicateHeader = client.helper.
+        waitForElement(selectors.duplicateHeader);
+      var expectedResult = subject.l10n(
+        '/contacts/locales/matcher/matcher.en-US.properties',
+        'duplicatesFoundTitle');
+
+      assert.equal(duplicateHeader.text(), expectedResult);
+    });
   });
 
   suite('webcontacts/tel activity', function() {
@@ -81,5 +134,4 @@ marionette('Contacts > Activities', function() {
       assert.equal(confirmText, expectedResult);
     });
   });
-
 });

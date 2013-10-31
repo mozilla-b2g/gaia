@@ -30,6 +30,9 @@ Contacts.Selectors = {
   detailsEditContact: '#edit-contact-button',
   detailsTelLabelFirst: '#phone-details-template-0 h2',
 
+  duplicateFrame: 'iframe[src*="matching_contacts.html"]',
+  duplicateHeader: '#title',
+
   form: '#view-contact-form',
   formCustomTag: '#custom-tag',
   formCustomTagPage: '#view-select-tag',
@@ -97,17 +100,14 @@ Contacts.prototype = {
     return result;
   },
 
-  addContact: function(details) {
+  enterContactDetails: function(details) {
+
+    var selectors = Contacts.Selectors;
 
     details = details || {
       givenName: 'Hello',
       familyName: 'Contact'
     };
-
-    var selectors = Contacts.Selectors;
-
-    var addContact = client.findElement(selectors.formNew);
-    addContact.click();
 
     client.helper.waitForElement(selectors.formGivenName);
 
@@ -125,6 +125,15 @@ Contacts.prototype = {
       var location = client.findElement(selectors.form).location();
       return location.y >= 460;
     });
+  },
+
+  addContact: function(details) {
+    var selectors = Contacts.Selectors;
+
+    var addContact = client.findElement(selectors.formNew);
+    addContact.click();
+
+    this.enterContactDetails(details);
 
     client.helper.waitForElement(selectors.list);
   }
