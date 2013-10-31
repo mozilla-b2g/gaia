@@ -204,7 +204,6 @@ function registerProfileDirectory(profileDir) {
 }
 
 function getGaia(options) {
-  registerProfileDirectory(options.PROFILE_DIR);
   return {
     engine: options.GAIA_ENGINE,
     sharedFolder: getFile(options.GAIA_DIR, 'shared'),
