@@ -1210,25 +1210,36 @@ suite('thread_ui.js >', function() {
 
     suite('onDeliverySuccess >', function() {
       teardown(function() {
+        this.fakeMessage.type = null;
         this.fakeMessage.deliveryStatus = null;
+        this.fakeMessage.deliveryInfo = null;
       });
       test('sms delivery success', function() {
+        this.fakeMessage.type = 'sms';
         this.fakeMessage.deliveryStatus = 'success';
         ThreadUI.onDeliverySuccess(this.fakeMessage);
         assert.isTrue(this.container.classList.contains('delivered'));
       });
       test('mms delivery success', function() {
-        this.fakeMessage.deliveryStatus = ['success'];
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.deliveryInfo = [{
+          receiver: null, deliveryStatus: 'success'}];
         ThreadUI.onDeliverySuccess(this.fakeMessage);
         assert.isTrue(this.container.classList.contains('delivered'));
       });
       test('multiple recipients mms delivery success', function() {
-        this.fakeMessage.deliveryStatus = ['success', 'success'];
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.deliveryInfo = [
+          {receiver: null, deliveryStatus: 'success'},
+          {receiver: null, deliveryStatus: 'success'}];
         ThreadUI.onDeliverySuccess(this.fakeMessage);
         assert.isTrue(this.container.classList.contains('delivered'));
       });
       test('not all recipients return mms delivery success', function() {
-        this.fakeMessage.deliveryStatus = ['success', 'pending'];
+        this.fakeMessage.type = 'mms';
+        this.fakeMessage.deliveryInfo = [
+          {receiver: null, deliveryStatus: 'success'},
+          {receiver: null, deliveryStatus: 'pending'}];
         ThreadUI.onDeliverySuccess(this.fakeMessage);
         assert.isFalse(this.container.classList.contains('delivered'));
       });
@@ -1564,7 +1575,7 @@ suite('thread_ui.js >', function() {
         sender: '123456',
         type: 'mms',
         delivery: 'not-downloaded',
-        deliveryStatus: ['pending'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'pending'}],
         subject: 'Pending download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() + ONE_DAY_TIME)
@@ -1575,7 +1586,7 @@ suite('thread_ui.js >', function() {
         sender: '123456',
         type: 'mms',
         delivery: 'not-downloaded',
-        deliveryStatus: ['manual'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'manual'}],
         subject: 'manual download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
@@ -1586,7 +1597,7 @@ suite('thread_ui.js >', function() {
         sender: '123456',
         type: 'mms',
         delivery: 'not-downloaded',
-        deliveryStatus: ['error'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'error download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
@@ -1597,7 +1608,7 @@ suite('thread_ui.js >', function() {
         sender: '123456',
         type: 'mms',
         delivery: 'not-downloaded',
-        deliveryStatus: ['error'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'Error download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() - ONE_DAY_TIME)
@@ -1913,7 +1924,7 @@ suite('thread_ui.js >', function() {
         sender: '123456',
         type: 'mms',
         delivery: 'received',
-        deliveryStatus: ['success'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'success'}],
         subject: 'No attachment testing',
         smil: '<smil><body><par><text src="cid:1"/>' +
               '</par></body></smil>',
@@ -1927,7 +1938,7 @@ suite('thread_ui.js >', function() {
         sender: '123456',
         type: 'mms',
         delivery: 'received',
-        deliveryStatus: ['success'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'success'}],
         subject: 'Empty attachment testing',
         smil: '<smil><body><par><text src="cid:1"/>' +
               '</par></body></smil>',
