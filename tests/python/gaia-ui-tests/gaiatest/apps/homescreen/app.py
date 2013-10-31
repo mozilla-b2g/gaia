@@ -71,6 +71,16 @@ class Homescreen(Base):
             perform()
         self.wait_for_element_displayed(By.CSS_SELECTOR, 'div.dockWrapper ol[style*="transition: -moz-transform 0.5ms ease 0s;"]')
 
+    def open_context_menu(self):
+        test = self.marionette.find_element(*self._visible_icons_locator)
+        Actions(self.marionette).\
+            press(test, 100, 100).\
+            wait(3).\
+            release().\
+            perform()
+        from gaiatest.apps.homescreen.regions.context_menu import ContextMenu
+        return ContextMenu(self.marionette)
+
     def move_app_to_position(self, app_position, to_position):
         app = self.marionette.find_elements(*self._visible_icons_locator)[app_position]
         destination = self.marionette.find_elements(*self._visible_icons_locator)[to_position]
@@ -78,10 +88,9 @@ class Homescreen(Base):
         Actions(self.marionette).\
             press(app).\
             wait(3).\
-            move(destination).\
-            wait(1).\
             release().\
             perform()
+        self.wait_for_element_displayed(*self._actions_menu_locator)
 
     @property
     def is_edit_mode_active(self):
@@ -135,7 +144,7 @@ class Homescreen(Base):
         def tap_delete_app(self):
             """Tap on (x) to delete app"""
             delete_app_locator = (self._delete_app_locator[0], self._delete_app_locator[1] % self.name)
-            self.wait_for_element_displayed(*delete_app_locator)
+            self.wait_for_element_displayed(*self._)
             self.marionette.find_element(*delete_app_locator).tap()
 
             from gaiatest.apps.homescreen.regions.confirm_dialog import ConfirmDialog
