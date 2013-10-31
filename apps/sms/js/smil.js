@@ -96,26 +96,50 @@ function SMIL_generateSlides(data, slide, slideIndex) {
 }
 
 function SMIL_generateUniqueLocation(data, location) {
+  var extension, name, result;
+
+  // Need to add reference spec here
+  var FILENAME_LIMIT = 40;
 
   // if the location is already being used by the attachment
   function SMIL_uniqueLocationMatches(attachment) {
     return attachment.location === result;
   }
 
-  // we will add our number right before the '.' if it exists
+  // Check if a file extension exists
+  // Cache index of last non-extension portion of the filename
   var index = location.lastIndexOf('.');
   if (index === -1) {
-    index = location.length;
+    name = location;
+    // Set to empty string so we can check length and append it to things
+    extension = '';
+  } else {
+    // Cache potential file extension
+    extension = location.slice(index);
+    name = location.slice(0, index);
   }
 
-  // start with the location given to us
-  var result = location;
-  var dupIndex = 2;
+  // First truncate below the limit to make de-duplicating worthwhile
+  if (name.length + extension.length > FILENAME_LIMIT) {
+    name = name.slice(0, FILENAME_LIMIT - extension.length);
+  }
+  result = name + extension;
 
-  // while any attachment already has this location:
+  var duplicateIndex = 2;
+  // If result is identical to any other attached files
+  // add a duplicate marker and recheck the length
   while (data.attachments.some(SMIL_uniqueLocationMatches)) {
-    result = location.slice(0, index) +
-        '_' + (dupIndex++) + location.slice(index);
+    var truncIndex = 0;
+    // Construct a de-deuplicated name with the extention and
+    // update duplicate index in case de-duplicated name is already chosen
+    result = name + '_' + duplicateIndex++ + extension;
+    // Truncate until the name (no longer needs to be de-duplicated)
+    // and extension are below the limit
+    while (result.length > FILENAME_LIMIT) {
+      duplicateIndex = 2;
+      name = name.slice(0, --truncIndex);
+      result = name + extension;
+    }
   }
   return result;
 }
