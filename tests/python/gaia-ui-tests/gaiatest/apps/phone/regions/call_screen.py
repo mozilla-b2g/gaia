@@ -39,12 +39,8 @@ class CallScreen(Phone):
     def tap_hang_up(self):
         hang_up = self.marionette.find_element(*self._hangup_bar_locator)
         hang_up.tap()
-        # TODO Bug 877397 - [b2g] switch to frame failing after tap
-        time.sleep(0.5)
 
     def hang_up(self):
         self.tap_hang_up()
         self.marionette.switch_to_frame()
-        self.wait_for_condition(lambda m:
-                                not self.marionette.execute_script('return window.navigator.mozTelephony.active;'),
-                                timeout=30)
+        self.wait_for_element_not_present(*self._call_screen_locator)
