@@ -13,7 +13,8 @@ version = {}
 execfile(os.path.join('gaiatest', 'version.py'), version)
 
 # dependencies
-deps = ['marionette_client>=0.6', 'mozdevice', 'py==1.4.14', 'moztest>=0.3']
+deps = ['marionette_client>=0.6.1', 'mozdevice', 'py==1.4.14', 'requests',
+        'moztest>=0.3']
 
 setup(name='gaiatest',
       version=version['__version__'],
@@ -33,10 +34,7 @@ setup(name='gaiatest',
           'resources/report/style.css']},
       include_package_data=True,
       zip_safe=False,
-      entry_points="""
-      # -*- Entry points: -*-
-      [console_scripts]
-      gaiatest = gaiatest.runtests:main
-      """,
-      install_requires=deps,
-      )
+      entry_points={'console_scripts': [
+          'gaiatest = gaiatest.runtests:main',
+          'gcli = gaiatest.gcli:cli']},
+      install_requires=deps)
