@@ -15,8 +15,10 @@
   <link rel="stylesheet" type="text/css" href="style/css/drawer.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/header.css"></link>
 
+  <link rel="stylesheet" type="text/css" href="style/css/extraOptions.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/itemList.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/menu.css"></link>
+  <link rel="stylesheet" type="text/css" href="style/css/checkable.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/playlistView.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/playlistsView.css"></link>
@@ -25,7 +27,6 @@
   <link rel="stylesheet" type="text/css" href="style/css/currentMusicPageControls.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/settingsDrawer.css"></link>
-  <link rel="stylesheet" type="text/css" href="style/css/playlistDrawer.css"></link>
 
   <link rel="stylesheet" type="text/css" href="style/css/mediaLibraryPage.css"></link>
   <link rel="stylesheet" type="text/css" href="style/css/mediaLibraryPagePanel.css"></link>
@@ -35,78 +36,80 @@
       SCRIPTS
   ====================== -->
 
-  <!--==================  util ================== -->
-    <script src="js/Utils.js"></script>
-    <script src="js/TapManager.js"></script>
-    <script src="js/Router.js"></script>
-    <script src="js/RouterMonitor.js"></script>
-    <script src="js/TransitionUtils.js"></script>
+    <script src="js/Launcher.js"></script>
+    <script src="js/Tests.js"></script>
 
-  <!--==================  UI ================== -->
-    <script src="js/UI/MusicUI.js"></script>
-    <script src="js/UI/ViewEvents.js"></script>
-    <script src="js/UI/Views.js"></script>
-    <script src="js/UI/ViewVisibility.js"></script>
-
-    <script src="js/UI/UIItem.js"></script>
-    <script src="js/UI/UIItemDrag.js"></script>
-    <script src="js/UI/UIItemList.js"></script>
-
-    <script src="js/UI/Menu.js"></script>
-
-    <!--================== CurrentPlaylist ================== -->
-      <script src="js/UI/CurrentPlaylist/NowPlaying.js"></script>
-      <script src="js/UI/CurrentPlaylist/SeekBar.js"></script>
-      <script src="js/UI/CurrentPlaylist/CurrentMusicPageControls.js"></script>
-      <script src="js/UI/CurrentPlaylist/CurrentMusicPageSource.js"></script>
-      <script src="js/UI/CurrentPlaylist/CurrentMusicPage.js"></script>
-      <script src="js/UI/CurrentPlaylist/CurrentMusicPageOptions.js"></script>
-
-    <!--================== MusicLibrary ================== -->
-      <script src="js/UI/MediaLibrary/PanelTools.js"></script>
-      <script src="js/UI/MediaLibrary/MediaLibraryPage.js"></script>
-      <script src="js/UI/MediaLibrary/MediaLibraryPanelManager.js"></script>
-
-      <!--==================  panels ================== -->
-        <script src="js/UI/MediaLibrary/MediaLibraryMainPanel.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryCategoryPanel.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryPlaylistPanel.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryPlaylistsPanel.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryDiscoverPanel.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibrarySearchPanel.js"></script>
-
-        <script src="js/UI/MediaLibrary/MediaLibraryMusicPanelFactory.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryAlbumPanel.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryArtistPanel.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryAllMusicPanel.js"></script>
-
-        <script src="js/UI/MediaLibrary/PlaylistView.js"></script>
-        <script src="js/UI/MediaLibrary/PlaylistsView.js"></script>
-        <script src="js/UI/MediaLibrary/PlaylistDrawer.js"></script>
-        <script src="js/UI/MediaLibrary/MediaLibraryPageNotifications.js"></script>
-
-  <!--==================  app ================== -->
+    <script src="js/metadata_scripts.js"></script>
     <script src="shared/js/device_storage/enumerate_all.js"></script>
     <script src="shared/js/mediadb.js"></script>
     <script src="shared/js/async_storage.js"></script>
 
-    <script src="js/metadata_scripts.js"></script>
+  <!--==================  app ================== -->
+    <script src="js/app/Music.js"></script> 
+    <script src="js/app/Song.js"></script>
+    <script src="js/app/AudioPlayer.js"></script>
+    <script src="js/app/Playlist.js"></script>
+    <script src="js/app/PlayingPlaylist.js"></script>
+    <script src="js/app/Playlists.js"></script>
 
-    <script src="js/MusicDB.js"></script>
-    <script src="js/MusicLibrary.js"></script>
+  <!--==================  UI ================== -->
+    <script src="js/ui/MusicUI.js"></script>
+    <script src="js/ui/ViewEvents.js"></script>
+    <script src="js/ui/Views.js"></script>
+    <script src="js/ui/ViewVisibility.js"></script>
 
-    <script src="js/Song.js"></script>
-    <script src="js/Tests.js"></script>
+    <script src="js/ui/UIItem.js"></script>
+    <script src="js/ui/UIItemDrag.js"></script>
+    <script src="js/ui/UIItemList.js"></script>
 
-    <script src="js/AudioPlayer.js"></script>
-    <script src="js/Playlist.js"></script>
-    <script src="js/UI/PlaylistUI.js"></script>
-    <script src="js/PlayingPlaylist.js"></script>
-    <script src="js/Playlists.js"></script>
+    <script src="js/ui/SongExtraOptions.js"></script>
 
-    <script src="js/Music.js"></script> 
-    
-    <script src="js/Bridge.js"></script>
+    <script src="js/ui/Menu.js"></script>
+    <script src="js/ui/Checkable.js"></script>
+
+    <!--================== CurrentPlaylist ================== -->
+      <script src="js/ui/currentPlaylist/NowPlaying.js"></script>
+      <script src="js/ui/currentPlaylist/SeekBar.js"></script>
+      <script src="js/ui/currentPlaylist/CurrentMusicPageControls.js"></script>
+      <script src="js/ui/currentPlaylist/CurrentMusicPageSource.js"></script>
+      <script src="js/ui/currentPlaylist/CurrentMusicPage.js"></script>
+      <script src="js/ui/currentPlaylist/CurrentMusicPageOptions.js"></script>
+
+    <!--================== MusicLibrary ================== -->
+      <script src="js/ui/mediaLibrary/PanelTools.js"></script>
+      <script src="js/ui/mediaLibrary/MediaLibraryPage.js"></script>
+      <script src="js/ui/mediaLibrary/MediaLibraryPanelManager.js"></script>
+
+      <!--==================  panels ================== -->
+        <script src="js/ui/mediaLibrary/MediaLibraryMainPanel.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryCategoryPanel.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryPlaylistPanel.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryPlaylistsPanel.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryDiscoverPanel.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibrarySearchPanel.js"></script>
+
+        <script src="js/ui/mediaLibrary/MediaLibraryMusicPanelFactory.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryAlbumPanel.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryArtistPanel.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryAllMusicPanel.js"></script>
+
+        <script src="js/ui/mediaLibrary/PlaylistView.js"></script>
+        <script src="js/ui/mediaLibrary/MediaLibraryPageNotifications.js"></script>
+
+  <!--==================  music library ================== -->
+
+    <script src="js/musicLibrary/MusicDB.js"></script>
+    <script src="js/musicLibrary/MusicLibrary.js"></script>
+
+  <!--==================  util ================== -->
+    <script src="js/util/Utils.js"></script>
+    <script src="js/util/TapManager.js"></script>
+    <script src="js/util/DragManager.js"></script>
+    <script src="js/util/Router.js"></script>
+    <script src="js/util/Eventer.js"></script>
+    <script src="js/util/RouterMonitor.js"></script>
+    <script src="js/util/TransitionUtils.js"></script>
+
 </head>
 <body>
   <!--================== MusicLibrary ================== -->
@@ -140,7 +143,8 @@
     <audio id="audioPlayer" class="hidden"></audio>
     <div id="currentSourceView">
       <div id="currentSourceInfo" class="fastTransition"></div>
-      <img src = "" id="currentSourceImg" ></img>
+      <div id="currentSourceImg"></div>
+      <div id="currentSourceFavorite" class="fastTransition"></div>
     </div>
     <div id="currentPlaylistView" class="hidden"></div>
     <div id="toggleCurrentMusicPageView"></div>
@@ -160,6 +164,5 @@
       </div>
     </div>
   </div>
-
 </body>
 </html>

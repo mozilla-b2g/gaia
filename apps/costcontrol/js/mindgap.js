@@ -134,7 +134,7 @@ var MindGap = (function() {
     var now = new Date();
     asyncStorage.getItem('dataUsageTags', function _onTags(tags) {
       tags = tags || [];
-      var request = window.navigator.mozNetworkStats.getNetworkStats({
+      var request = NetworkstatsProxy.getNetworkStats({
         start: now,
         end: now,
         connectionType: 'mobile'

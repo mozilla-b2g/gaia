@@ -1,7 +1,13 @@
-(function(Stopwatch, Panel) {
+define(function(require) {
 
   'use strict';
 
+  var Panel = require('panel');
+  var View = require('view');
+  var Stopwatch = require('stopwatch');
+  var Utils = require('utils');
+  var Template = require('shared/js/template');
+  var mozL10n = require('l10n');
   var priv = new WeakMap();
 
   /**
@@ -166,7 +172,7 @@
       time: time
     });
     li.innerHTML = html;
-    navigator.mozL10n.localize(
+    mozL10n.localize(
       li.querySelector('.lap-name'),
       'lap-number',
       { n: num }
@@ -184,4 +190,5 @@
     this.update();
   };
 
-}(Stopwatch, Panel));
+  return Stopwatch.Panel;
+});

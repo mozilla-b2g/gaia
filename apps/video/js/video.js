@@ -530,6 +530,28 @@ function showOverlay(id) {
 function showVideoControls(visible) {
   dom.videoControls.classList[visible ? 'remove' : 'add']('hidden');
   controlShowing = visible;
+  // to sync the slider under the case of auto-pause(unplugging headset), we
+  // need to update the slider when controls is visible.
+  if (visible) {
+    updateVideoControlSlider();
+  }
+}
+
+function updateVideoControlSlider() {
+  var percent = (dom.player.currentTime / dom.player.duration) * 100;
+  if (isNaN(percent)) {
+    return;
+  }
+
+  percent += '%';
+
+  dom.elapsedText.textContent =
+                  MediaUtils.formatDuration(dom.player.currentTime);
+  dom.elapsedTime.style.width = percent;
+  // Don't move the play head if the user is dragging it.
+  if (!dragging) {
+    dom.playHead.style.left = percent;
+  }
 }
 
 function setVideoPlaying(playing) {
@@ -723,7 +745,7 @@ function showPlayer(video, autoPlay) {
   });
 }
 
-function hidePlayer(updateMetadata) {
+function hidePlayer(updateVideoMetadata) {
   if (!playerShowing)
     return;
 
@@ -754,7 +776,7 @@ function hidePlayer(updateMetadata) {
     startParsingMetadata();
   }
 
-  if (!('metadata' in currentVideo) || !updateMetadata || pendingPick) {
+  if (!('metadata' in currentVideo) || !updateVideoMetadata || pendingPick) {
     completeHidingPlayer();
     return;
   }
@@ -816,11 +838,7 @@ function playerEnded() {
 
   dom.player.currentTime = 0;
 
-  if (pendingPick) {
-    pause();
-  } else {
-    hidePlayer(true);
-  }
+  pause();
 }
 
 function play() {
@@ -851,14 +869,7 @@ function timeUpdated() {
       return;
     }
 
-    var percent = (dom.player.currentTime / dom.player.duration) * 100 + '%';
-
-    dom.elapsedText.textContent = MediaUtils.formatDuration(
-      dom.player.currentTime);
-    dom.elapsedTime.style.width = percent;
-    // Don't move the play head if the user is dragging it.
-    if (!dragging)
-      dom.playHead.style.left = percent;
+    updateVideoControlSlider();
   }
 
   // Since we don't always get reliable 'ended' events, see if

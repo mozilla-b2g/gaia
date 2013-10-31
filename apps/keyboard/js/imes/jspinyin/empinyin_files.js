@@ -42,12 +42,6 @@
     }
     Module.expectedDataFileDownloads++;
 
-    var PACKAGE_PATH = window['encodeURIComponent'](
-      window.location.pathname.toString().substring(
-        0, window.location.pathname.toString().lastIndexOf('/')
-      ) + '/'
-    );
-
     var PACKAGE_NAME = 'empinyin_files.data';
     var REMOTE_PACKAGE_NAME =
     (Module['empinyin_files_path'] ? Module['empinyin_files_path'] + '/' : '') +

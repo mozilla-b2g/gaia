@@ -55,9 +55,6 @@ var IccHelper = (function() {
         case 'iccinfochange':
           var actor = actors['iccInfo'];
           return actor && actor.addEventListener.apply(actor, arguments);
-        case 'icccardlockerror':
-          var actor = actors['cardLock'];
-          return actor && actor.addEventListener.apply(actor, arguments);
       }
     },
 
@@ -69,9 +66,6 @@ var IccHelper = (function() {
           return actor.removeEventListener.apply(actor, arguments);
         case 'iccinfochange':
           var actor = actors['iccInfo'];
-          return actor.removeEventListener.apply(actor, arguments);
-        case 'icccardlockerror':
-          var actor = actors['cardLock'];
           return actor.removeEventListener.apply(actor, arguments);
       }
     },
@@ -130,13 +124,6 @@ var IccHelper = (function() {
       var actor = actors['iccInfo'];
       if (actor) {
         actor.oniccinfochange = callback;
-      }
-    },
-
-    set onicccardlockerror(callback) {
-      var actor = actors['cardLock'];
-      if (actor) {
-        actor.onicccardlockerror = callback;
       }
     }
   };

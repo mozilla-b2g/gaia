@@ -28,6 +28,7 @@ var Selector = {
   showMailButton: '.card-setup-done .sup-show-mail-btn',
   manualConfigButton: '.scrollregion-below-header .sup-manual-config-btn',
   composeButton: '.msg-list-header .msg-compose-btn',
+  composeEmailContainer: '.card-compose .cmp-to-container',
   composeEmailInput: '.card-compose .cmp-addr-text',
   composeSubjectInput: '.card-compose .cmp-subject-text',
   composeBodyInput: '.card-compose .cmp-body-text',
@@ -60,7 +61,19 @@ Email.prototype = {
     return this.client.findElement(Selector.notificationBar);
   },
 
-  manualSetupImapEmail: function(server) {
+  getComposeBody: function() {
+    var input = this.client.findElement(Selector.composeBodyInput);
+    var value = input.getAttribute('value');
+    return value;
+  },
+
+  getComposeTo: function() {
+    var container = this.client.findElement(Selector.composeEmailContainer);
+    var text = container.text();
+    return text;
+  },
+
+  manualSetupImapEmail: function(server, finalActionName) {
     // wait for the setup page is loaded
     this._waitForElementNoTransition(Selector.manualConfigButton).tap();
     this._waitForTransitionEnd('setup_manual_config');
@@ -80,10 +93,10 @@ Email.prototype = {
     this._manualSetupTypeSmtpPort(server.smtp.port);
     this._manualSetupUpdateSocket('manualSetupSmtpSocket');
 
-    this._finishSetup(Selector.manualNextButton);
+    this._finishSetup(Selector.manualNextButton, finalActionName);
   },
 
-  _finishSetup: function(nextSelector) {
+  _finishSetup: function(nextSelector, finalActionName) {
     this._tapNext(nextSelector);
     this._waitForElementNoTransition(Selector.prefsNextButton);
     this._tapNext(Selector.prefsNextButton, 'setup_done');
@@ -92,7 +105,21 @@ Email.prototype = {
     this.client.
       findElement(Selector.showMailButton).
       tap();
-    this.waitForMessageList();
+    return this[finalActionName || 'waitForMessageList']();
+  },
+
+  // Waits for confirm dialog to show up, then clicks OK to confirm
+  // going to setting up a new account after triggering email launch
+  // from an activity.
+  confirmWantAccount: function() {
+    this.client.helper.waitForAlert('not set up to send or receive email');
+    // inlined selector since it is specific to the out-of-app confirm
+    // dialog found in system/index.html
+    this._tapSelector('#modal-dialog-confirm-ok');
+    this.client.switchToFrame();
+    this.client.apps.switchToApp(Email.EMAIL_ORIGIN);
+    this.client.helper.waitForElement(Selector.manualConfigButton);
+    this.client.findElement(Selector.manualConfigButton).tap();
   },
 
   tapFolderListButton: function() {
@@ -164,8 +191,7 @@ Email.prototype = {
 
   tapCompose: function() {
     this._tapSelector(Selector.composeButton);
-    // wait for being in the compose page
-    this._waitForTransitionEnd('compose');
+    this.waitForCompose();
   },
 
   typeTo: function(email) {
@@ -229,6 +255,10 @@ Email.prototype = {
 
   waitForMessageReader: function() {
     this._waitForTransitionEnd('message_reader');
+  },
+
+  waitForCompose: function() {
+    this._waitForTransitionEnd('compose');
   },
 
   waitForNewEmail: function() {

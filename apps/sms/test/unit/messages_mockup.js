@@ -1,3 +1,6 @@
+/*global getMockupedDate */
+/*exported MockThreadMessages */
+
 'use strict';
 
 function MockThreadMessages() {

@@ -98,3 +98,33 @@
   position: relative;
   background: none;
 }
+
+@media (min-width: 768px) {
+  [role="dialog"].generic-dialog {
+    -moz-box-sizing: border-box;
+    position: absolute;
+    top: calc(50% - 24rem);
+    left: calc(50% - 39rem);
+    width: 78rem;
+    height: 48rem;
+    padding: 7rem 7rem;
+    font-size: 2rem;
+  }
+
+  [role="dialog"].generic-dialog:before {
+    content: none;
+  }
+
+  [role="dialog"].generic-dialog .inner {
+    display: block;
+  }
+
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
+    padding: 2.5rem 7rem;
+  }
+
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:last-child {
+    margin-left: 2rem;
+  }
+}

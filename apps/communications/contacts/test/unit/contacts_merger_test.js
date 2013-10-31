@@ -1,3 +1,4 @@
+require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_merger.js');
 
@@ -13,7 +14,13 @@ if (!this.realmozContacts) {
   this.realmozContacts = null;
 }
 
+if (!this.SimplePhoneMatcher) {
+  this.SimplePhoneMatcher = null;
+}
+
 suite('Contacts Merging Tests', function() {
+
+  var aPhoto = new Blob();
 
   function MasterContact() {
     this.id = '1A';
@@ -442,7 +449,7 @@ suite('Contacts Merging Tests', function() {
         type: ['work'],
         value: '67676767'
       }],
-      photo: ['aphoto.jpg']
+      photo: [aPhoto]
     };
 
     contacts.Merger.merge(new MasterContact(), toMergeContacts, {
@@ -461,12 +468,12 @@ suite('Contacts Merging Tests', function() {
         type: ['work'],
         value: '67676767'
       }],
-      photo: ['aphoto.jpg']
+      photo: [aPhoto]
     };
 
     var masterContact = new MasterContact();
 
-    masterContact.photo = ['bphoto.jpg'];
+    masterContact.photo = [new Blob()]; // Different photo
 
     contacts.Merger.merge(masterContact, toMergeContacts, {
       success: function(result) {
@@ -520,7 +527,7 @@ suite('Contacts Merging Tests', function() {
         note: [
           'Another note'
         ],
-        photo: ['cool.jpg']
+        photo: [aPhoto]
       },
       matchings: {}
     });
@@ -549,7 +556,7 @@ suite('Contacts Merging Tests', function() {
         assert.lengthOf(result.note, 2);
 
         assert.lengthOf(result.photo, 1);
-        assertFieldValues(result.photo, ['cool.jpg']);
+        assertFieldValues(result.photo, [aPhoto]);
 
         assert.lengthOf(result.org, 1);
         assertFieldValues(result.org, ['Müller & Co']);

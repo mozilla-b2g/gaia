@@ -143,8 +143,6 @@
   height: calc(100% - 6.9rem);
   position: absolute;
   width: 100%;
-  border-left: 0.1rem solid #AAA;
-  border-right: 0.1rem solid #AAA;
   display: none;
 }
 

@@ -368,8 +368,9 @@ function showFile(n) {
 
   resetFramesPosition();
 
-  // Disable the edit button if this is a video, and enable otherwise
-  if (files[n].metadata.video)
+  // Disable the edit button if this is a video or mediaDB is scanning
+  // Enable otherwise
+  if (files[n].metadata.video || photodb.scanning)
     $('fullscreen-edit-button').classList.add('disabled');
   else
     $('fullscreen-edit-button').classList.remove('disabled');
@@ -422,8 +423,9 @@ function nextFile(time) {
     previousFrame.reset();
   });
 
-  // Disable the edit button if we're now viewing a video, and enable otherwise
-  if (currentFrame.displayingVideo)
+  // Disable the edit button if this is a video or
+  // mediaDB is scanning, enable otherwise
+  if (currentFrame.displayingVideo || photodb.scanning)
     $('fullscreen-edit-button').classList.add('disabled');
   else
     $('fullscreen-edit-button').classList.remove('disabled');
@@ -470,8 +472,9 @@ function previousFile(time) {
     nextFrame.reset();
   });
 
-  // Disable the edit button if we're now viewing a video, and enable otherwise
-  if (currentFrame.displayingVideo)
+  // Disable the edit button if we're now viewing a video or mediaDB
+  // is scanning, enable otherwise
+  if (currentFrame.displayingVideo || photodb.scanning)
     $('fullscreen-edit-button').classList.add('disabled');
   else
     $('fullscreen-edit-button').classList.remove('disabled');

@@ -48,14 +48,14 @@ suite('mozContact to vCard', function() {
         assert.ok(_contains('note:note 1'));
         assert.ok(_contains('bday:1970-01-01'));
         assert.ok(_contains('photo:data:image/gif;base64,' + b64));
-        assert.ok(_contains('email;type=personal:test@test.com'));
+        assert.ok(_contains('email;type=home:test@test.com'));
         assert.ok(_contains(
-          'email;type=personal;type=work,pref:test@work.com'));
-        assert.ok(_contains('tel;type=mobile,pref:+346578888888'));
-        assert.ok(_contains('tel;type=mobile,pref;type=home:+3120777777'));
+          'email;type=work,pref:test@work.com'));
+        assert.ok(_contains('tel;type=cell,pref:+346578888888'));
+        assert.ok(_contains('tel;type=home:+3120777777'));
         assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
                             'chemnitz;chemnitz;09034;germany'));
-
+        assert.ok(!_contains('url;type=fb_profile_photo:https://abcd1.jpg'));
         done();
       });
     });
@@ -75,11 +75,11 @@ suite('mozContact to vCard', function() {
         assert.ok(_contains('note:note 1'));
         assert.ok(_contains('bday:1970-01-01'));
         assert.ok(_contains('photo:data:image/gif;base64,' + b64));
-        assert.ok(_contains('email;type=personal:test@test.com'));
+        assert.ok(_contains('email;type=home:test@test.com'));
         assert.ok(_contains(
-          'email;type=personal;type=work,pref:test@work.com'));
-        assert.ok(_contains('tel;type=mobile,pref:+346578888888'));
-        assert.ok(_contains('tel;type=mobile,pref;type=home:+3120777777'));
+          'email;type=work,pref:test@work.com'));
+        assert.ok(_contains('tel;type=cell,pref:+346578888888'));
+        assert.ok(_contains('tel;type=home:+3120777777'));
         assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
                             'chemnitz;chemnitz;09034;germany'));
 

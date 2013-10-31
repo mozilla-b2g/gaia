@@ -1,3 +1,5 @@
+/*global MockContact, Contacts */
+
 'use strict';
 
 requireApp('sms/test/unit/mock_contact.js');
@@ -454,10 +456,7 @@ suite('Contacts', function(done) {
     // "Contact finding error. Error: Mock missing filter params"
     // to the console
     test('({}, ...)', function(done) {
-      var mozContacts = navigator.mozContacts;
-
       Contacts.findBy({}, function(contacts) {
-        var mHistory = mozContacts.mHistory;
         assert.equal(contacts, null);
         done();
       });

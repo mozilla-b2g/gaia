@@ -115,6 +115,7 @@ var ActionMenu = {
         break;
 
       case 'click':
+        evt.preventDefault();
         var action = target.dataset.action;
         if (action && action === 'cancel') {
            this.hide();

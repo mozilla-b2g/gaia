@@ -96,18 +96,22 @@ suite('Import Friends Test Suite', function() {
     groupsList.appendChild(groupsListChild);
 
     importer.start('mock_token', MockConnector, '*', function() {
-      assert.equal(document.querySelectorAll('#groups-list li').length, 2);
+      assert.equal(document.querySelectorAll('#groups-list li').length,
+                   MockImportedContacts.length);
 
       // MockAsyncStorage is ordering by first name
       assert.isNotNull(document.
                        querySelector('section#group-P li[data-uuid="1xz"]'));
       assert.isNotNull(document.
                        querySelector('section#group-A li[data-uuid="2abc"]'));
+       assert.isNotNull(document.
+                       querySelector('section#group-Ψ li[data-uuid="3cde"]'));
 
       assert.equal(document.querySelectorAll('section#group-G *').length, 0);
 
       assert.equal(document.querySelector('input[name="1xz"]').checked, false);
       assert.equal(document.querySelector('input[name="2abc"]').checked, false);
+      assert.equal(document.querySelector('input[name="3cde"]').checked, false);
 
       assert.isTrue(document.getElementById('deselect-all').disabled);
       assert.isFalse(document.getElementById('select-all').disabled);
@@ -169,6 +173,9 @@ suite('Import Friends Test Suite', function() {
         },
         {
           uid: '2abc'
+        },
+        {
+          uid: '3cde'
         }
       ]);
     };
@@ -183,6 +190,11 @@ suite('Import Friends Test Suite', function() {
                                 'li[data-uuid="2abc"] input[type="checkbox"]');
 
       assert.isTrue(otherCheck.checked);
+
+      var anotherCheck = document.querySelector(
+                                'li[data-uuid="3cde"] input[type="checkbox"]');
+
+      assert.isTrue(anotherCheck.checked);
 
       assert.isTrue(document.getElementById('deselect-all').disabled === false);
       assert.isTrue(document.getElementById('select-all').disabled === true);

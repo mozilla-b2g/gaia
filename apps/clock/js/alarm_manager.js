@@ -1,3 +1,4 @@
+define(function(require) {
 /* An Alarm's ID:
  * ID in Clock app                              ID in mozAlarms API
  * id (unique)                                  id (unique)
@@ -53,6 +54,10 @@
  *                |
  *                |  ----> [S] ----> [S]
  */
+
+var Utils = require('utils');
+var AlarmsDB = require('alarmsdb');
+
 var AlarmManager = {
 
   toggleAlarm: function am_toggleAlarm(alarm, enabled, callback) {
@@ -98,3 +103,6 @@ var AlarmManager = {
   }
 
 };
+
+return AlarmManager;
+});

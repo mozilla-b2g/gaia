@@ -10,10 +10,10 @@ var mocksForOperatorVariant = new MocksHelper([
 ]).init();
 
 suite('operator variant helper', function() {
-  const EXPECTED_MCC = 123;
-  const EXPECTED_MNC = 456;
+  const EXPECTED_MCC = '123';
+  const EXPECTED_MNC = '45';
   const EXPECTED_ICC_INFO = { mcc: EXPECTED_MCC, mnc: EXPECTED_MNC };
-  const NULL_ICC_INFO = { mcc: 0, mnc: 0 };
+  const NULL_ICC_INFO = { mcc: '', mnc: '' };
   const PERSIST_KEY = 'operator_variant_helper_test.customize';
 
   var realMozSettings;
@@ -81,9 +81,10 @@ suite('operator variant helper', function() {
         helper.applied();
         done();
       },
-      'operator_variant_helper_test.customize',
+      PERSIST_KEY,
       true
     );
+    helper.listen();
   });
 
   test('listen for iccinfochange (checkNow = false)', function(done) {
@@ -99,10 +100,7 @@ suite('operator variant helper', function() {
           mnc,
           'Expected MNC value of ' + EXPECTED_MNC
         );
-
-        helper.listen(false);
         helper.applied();
-
         done();
       },
       PERSIST_KEY,
@@ -126,10 +124,12 @@ suite('operator variant helper', function() {
           mnc,
           'Expected MNC value of ' + EXPECTED_MNC
         );
+        helper.applied();
       },
       PERSIST_KEY,
       true
     );
+    helper.listen();
 
     helper = new OperatorVariantHelper(
       function(mcc, mnc) {
@@ -138,6 +138,7 @@ suite('operator variant helper', function() {
       PERSIST_KEY,
       true
     );
+    helper.listen();
   });
 
 });

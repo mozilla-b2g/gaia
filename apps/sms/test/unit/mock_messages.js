@@ -1,3 +1,5 @@
+/*exported MockMessages */
+
 'use strict';
 
 var MockMessages = {

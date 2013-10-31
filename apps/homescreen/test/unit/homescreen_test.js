@@ -1,12 +1,14 @@
 'use strict';
 
+require('/shared/js/lazy_loader.js');
 requireApp('homescreen/test/unit/mock_app.js');
 requireApp('homescreen/test/unit/mock_request.html.js');
 requireApp('homescreen/test/unit/mock_lazy_loader.js');
 requireApp('homescreen/test/unit/mock_l10n.js');
 requireApp('homescreen/test/unit/mock_grid_manager.js');
 requireApp('homescreen/test/unit/mock_pagination_bar.js');
-requireApp('homescreen/test/unit/mock_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('homescreen/js/grid_components.js');
 requireApp('homescreen/js/message.js');
 requireApp('homescreen/js/request.js');
 

@@ -79,6 +79,10 @@
     "mediacomms": {
       "description": "Communication with media apps for now playing info",
       "rules": {}
+    },
+    "ftucomms": {
+      "description": "Communicate between communications/ftu and System",
+      "rules": {}
     }
   }
 }

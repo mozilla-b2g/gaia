@@ -48,10 +48,9 @@
     }
 
     function saveMozContact(deviceContact, successCb, errorCb) {
-      var mzContact = new mozContact();
-      mzContact.init(deviceContact);
+      var mzContact = new mozContact(deviceContact);
 
-      var req = navigator.mozContacts.save(deviceContact);
+      var req = navigator.mozContacts.save(mzContact);
 
       req.onsuccess = successCb;
       req.onerror = errorCb;
@@ -118,7 +117,7 @@
             success: successCb,
             error: errorCb
           });
-        }.bind(contactData),
+        }.bind(new mozContact(contactData)),
         onmismatch: function() {
           saveMozContact(this, successCb, function onMismatchError(evt) {
             errorCb(evt.target.error);

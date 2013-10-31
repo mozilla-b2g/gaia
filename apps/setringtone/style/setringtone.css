@@ -1,0 +1,38 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  background-color: white;
+  overflow: hidden;
+}
+
+#playpause {
+  width: 8rem;
+  height: 8rem;
+  margin: 0 auto 0 auto;
+  background:
+    url("images/play_button.png") no-repeat center center / 8rem,
+    url("images/play_normal.png") no-repeat center center / 8rem;
+}
+
+#playpause:active {
+  background:
+    url("images/play_button.png") no-repeat center center / 8rem,
+    url("images/play_focus.png") no-repeat center center / 8rem;
+}
+
+#playpause.playing {
+  border: 2px solid white;
+  border-radius: 4rem;
+  background:
+    url("images/pause_button.png") no-repeat center center / 4rem,
+    url("images/play_normal.png") no-repeat center center / 8rem;
+}
+
+#playpause.playing:active {
+  background:
+    url("images/pause_button.png") no-repeat center center / 4rem,
+    url("images/play_focus.png") no-repeat center center / 8rem;
+}

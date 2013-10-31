@@ -2,8 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
-    <title>WAP Push</title>
+    <title>WAP Push message</title>
 
     <!-- Localization -->
     <script defer src="shared/js/l10n.js"></script>
@@ -14,17 +13,37 @@
     <link rel="stylesheet" type="text/css" href="shared/style/status.css">
 
     <!-- Specific styles -->
-    <link rel="stylesheet" type="text/css" href="/style/wappush.css">
+    <link rel="stylesheet" type="text/css" href="style/wappush.css">
 
     <!-- Shared code -->
-    <script defer src="shared/js/async_storage.js"></script>
     <script defer src="shared/js/notification_helper.js"></script>
 
     <!-- Specific code -->
+    <script defer src="js/activity_picker.js"></script>
+    <script defer src="js/link_action_handler.js"></script>
+    <script defer src="js/messagedb.js"></script>
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/parsed_message.js"></script>
     <script defer src="js/wappush.js"></script>
     <script defer src="js/whitelist.js"></script>
   </head>
 
   <body role="application">
+    <article id="wappush-screen" role="region">
+      <section role="region">
+        <header>
+          <button id="close"><span class="icon icon-close"> close </span></button>
+          <menu type="toolbar">
+          </menu>
+          <h1 id="title"> wap-push-message </h1>
+        </header>
+      </section>
+      <section id="wappush-container" role="region">
+        <div id="message">
+          <p></p>
+          <a data-url="" data-action="url-link"></a>
+        </div>
+      </section>
+    </article>
   </body>
 </html>

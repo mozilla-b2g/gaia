@@ -49,6 +49,10 @@ button::-moz-focus-inner {
   text-align: center;
 }
 
+#keyboard.full-candidate-panel button.keyboard-key {
+  visibility: hidden;
+}
+
 /* Buttons: logic keys */
 .keyboard-key {
   -moz-box-sizing: border-box;
@@ -204,6 +208,22 @@ button::-moz-focus-inner {
   color: #ccc;
   font: 500 1.5rem/3.9rem 'Keyboard Symbols', sans-serif;
   border-color: #6a6c6e;
+}
+
+/* For disabled keys */
+.keyboard-key.special-key[disabled="true"] {
+  /* Without this rule, the focus would lose when the user clicks this key. 
+     This seems to be because a disabled key would not get touch/click event. */
+  pointer-events: none;
+}
+
+.keyboard-key.special-key[disabled="true"] > .visual-wrapper {
+  border-color: #535757;
+  background-color:  #585D5D;
+}
+
+.keyboard-key.special-key[disabled="true"] > .visual-wrapper > span {
+  color: #888;
 }
 
 /* Special keys - text */
@@ -538,29 +558,17 @@ bubble above the key when you tap and hold. */
 #keyboard-candidate-panel-toggle-button {
   display: none;
   z-index: 1;
-  background-color: #252220;
   position: absolute;
   right: 0rem;
-  top: 0.34rem;
+  top: 0.25rem;
   font-size: 0;
   height: 2.8rem;
-}
-
-#keyboard-candidate-panel-toggle-button-image {
-  display: block;
-  background: transparent url('images/icon_extend.png') center center no-repeat;
-  height: 100%;
-  pointer-events: none;
+  background: #252220 url('images/icon_extend.png') center center no-repeat;
+  background-size: 2.4rem;
 }
 
 #keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button {
-  display: block;
-  right: 8px;
-}
-
-#keyboard.full-candidate-panel #keyboard-candidate-panel-toggle-button-image {
   background-image: url('images/icon_close.png');
-  margin-left: 8px;
 }
 
 #keyboard-candidate-panel .candidate-row {
@@ -596,6 +604,7 @@ bubble above the key when you tap and hold. */
   text-align: center;
   line-height: 2.8rem;
   background: transparent url('images/divider.png') right center no-repeat;
+  background-size: auto 10rem;
   border: none;
 }
 
@@ -741,7 +750,6 @@ bubble above the key when you tap and hold. */
 
 @media (min-width:768px) and (orientation:landscape) {
   #confirm-dialog .tip-section {
-    background: url(images/ftu_keyboard_landscape@2x.png) no-repeat top left;
     width: 35rem;
     height: 23rem;
   }
@@ -749,7 +757,6 @@ bubble above the key when you tap and hold. */
 
 @media (min-width:768px) and (orientation:portrait) {
   #confirm-dialog .tip-section {
-    background: url(images/ftu_keyboard@2x.png) no-repeat top left;
     width: 23rem;
     height: 25rem;
   }

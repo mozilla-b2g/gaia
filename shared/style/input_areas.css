@@ -307,7 +307,7 @@ form[role="search"] button[type="submit"] {
   color: #000;
   font-weight: 500;
   font-size: 1.6rem;
-  line-height: 3.2rem;
+  line-height: 3.7rem;
   background: url(input_areas/images/ui/separator.png) no-repeat 0 50%;
   background-size: auto 100%;
   border-radius: 0;
@@ -353,10 +353,10 @@ form[role="search"] button[type="submit"][disabled] {
               url(input_areas/images/ui/background.png) repeat-x 0 100%;
 }
 
-form p button[type="reset"]:focus,
-form p button[type="reset"]::-moz-focus-inner {
+form button::-moz-focus-inner {
   border: none;
   outline: none;
+  margin-top: -0.2rem; /* To fix line-height bug (697451) */
 }
 
 /******************************************************************************

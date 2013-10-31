@@ -2,7 +2,6 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
 
     <!-- Shared code -->
     <script src="shared/js/l10n.js"></script>
@@ -22,7 +21,8 @@
     <script defer src="shared/js/advanced_timer.js"></script>
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
-    <!-- 
+    <script defer src="shared/js/iac_handler.js"></script>
+    <!--
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
     -->
@@ -67,6 +67,7 @@
     <script defer src="js/activities.js"></script>
     <script defer src="js/bootstrap.js"></script>
     <script defer src="js/screenshot.js"></script>
+    <script defer src="js/async_semaphore.js"></script>
     <script defer src="js/sound_manager.js"></script>
     <script defer src="js/source_view.js"></script>
     <script defer src="js/storage.js"></script>
@@ -449,6 +450,11 @@
               <div class="artist">
               </div>
             </div>
+            <div id="media-playback-controls">
+              <button class="previous"></button>
+              <button class="play-pause"></button>
+              <button class="next"></button>
+            </div>
           </div>
           <!-- App Install Manager -->
           <div id="install-manager-notification-container">
@@ -486,7 +492,7 @@
           <a href="#" id="quick-settings-full-app" data-enabled="false"></a>
         </div>
 
-        <div id="utility-tray-grippy">
+        <div id="utility-tray-grippy" role="button">
         </div>
       </div>
 
@@ -525,7 +531,7 @@
                 <span id="messageBody">3 tries left.</span>
               </div>
               <!-- tries left -->
-              <div id="triesLeft" data-l10n-id="inputCodeRetriesLeft">3 tries left</div>
+              <div id="triesLeft" data-l10n-id="inputCodeRetriesLeft" hidden>3 tries left</div>
 
               <!-- sim pin input field -->
               <div id="pinArea" hidden>
@@ -992,8 +998,7 @@
                 </div>
               </div>
               <div id="lockscreen-area-slide"
-                   class="lockscreen-icon-area lockscreen-icon-center" role="button"
-                   data-l10n-id="unlock-a11y-button" aria-label="Slider">
+                   class="lockscreen-icon-area lockscreen-icon-center">
 
                 <!-- Order matters. If track after handle, it will overlay on the handle -->
                 <div id="lockscreen-slide-track">
@@ -1023,15 +1028,15 @@
           <div id="lockscreen-panel-passcode" class="lockscreen-panel">
             <p id="lockscreen-passcode-code"><span></span><span></span><span></span><span></span></p>
             <div id="lockscreen-passcode-pad">
-              <a role="button" href="#" data-key="1">1<span>.<span></a>
-              <a role="button" href="#" data-key="2">2<span>ABC<span></a>
-              <a role="button" href="#" data-key="3">3<span>DEF<span></a>
-              <a role="button" href="#" data-key="4">4<span>GHI<span></a>
-              <a role="button" href="#" data-key="5">5<span>JKL<span></a>
-              <a role="button" href="#" data-key="6">6<span>MNO<span></a>
-              <a role="button" href="#" data-key="7">7<span>PQRS<span></a>
-              <a role="button" href="#" data-key="8">8<span>TUV<span></a>
-              <a role="button" href="#" data-key="9">9<span>WXYZ<span></a>
+              <a role="button" href="#" data-key="1">1<span>.</span></a>
+              <a role="button" href="#" data-key="2">2<span>ABC</span></a>
+              <a role="button" href="#" data-key="3">3<span>DEF</span></a>
+              <a role="button" href="#" data-key="4">4<span>GHI</span></a>
+              <a role="button" href="#" data-key="5">5<span>JKL</span></a>
+              <a role="button" href="#" data-key="6">6<span>MNO</span></a>
+              <a role="button" href="#" data-key="7">7<span>PQRS</span></a>
+              <a role="button" href="#" data-key="8">8<span>TUV</span></a>
+              <a role="button" href="#" data-key="9">9<span>WXYZ</span></a>
               <a role="button" href="#" data-key="e" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="emergency-call-button">Emergency Call</span></a>
               <a role="button" href="#" data-key="0" class="last-row">0</a>
               <a role="button" href="#" data-key="c" class="lockscreen-passcode-pad-func last-row"><span data-l10n-id="cancel">Cancel</span></a>
@@ -1131,7 +1136,7 @@
 
       <div id="sleep-menu" data-z-index-level="sleep-menu">
         <div id="sleep-menu-container">
-          <h3 data-l10n-id="deviceMenu">Device menu</h3>
+          <h1 data-l10n-id="deviceMenu">Device menu</h1>
           <ul role="menu">
           </ul>
         </div>

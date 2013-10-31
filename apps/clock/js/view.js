@@ -1,7 +1,6 @@
-// outer IIFE
-(function(exports) {
+define(function(require) {
 'use strict';
-
+var Emitter = require('emitter');
 var priv = new WeakMap();
 var elementMap = new WeakMap();
 
@@ -72,7 +71,6 @@ Object.defineProperties(View.prototype, {
   }
 });
 
-exports.View = View;
+return View;
 
-// end outer IIFE
-}(this));
+});

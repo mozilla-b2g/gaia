@@ -5,6 +5,7 @@
 mocha.setup({ignoreLeaks: true});
 
 requireApp('system/test/unit/mock_gesture_detector.js');
+requireApp('system/test/unit/mock_screen_layout.js');
 requireApp('system/test/unit/mock_trusted_ui_manager.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_window_manager.js');
@@ -14,6 +15,7 @@ requireApp('system/test/unit/mock_popup_manager.js');
 
 var mocksForCardsView = new MocksHelper([
   'GestureDetector',
+  'ScreenLayout',
   'TrustedUIManager',
   'UtilityTray',
   'WindowManager',
@@ -25,7 +27,7 @@ var mocksForCardsView = new MocksHelper([
 suite('cards view >', function() {
   var subject;
 
-  var screenNode, realMozLockOrientation;
+  var screenNode, realMozLockOrientation, realScreenLayout;
   var cardsView;
 
   mocksForCardsView.attachTestHelpers();
@@ -39,6 +41,8 @@ suite('cards view >', function() {
 
     screenNode.appendChild(cardsView);
     document.body.appendChild(screenNode);
+    realScreenLayout = window.ScreenLayout;
+    window.ScreenLayout = MockScreenLayout;
     realMozLockOrientation = screen.mozLockOrientation;
     screen.mozLockOrientation = MockLockScreen.mozLockOrientation;
     requireApp('system/js/cards_view.js', done);
@@ -46,6 +50,7 @@ suite('cards view >', function() {
 
   suiteTeardown(function() {
     screenNode.parentNode.removeChild(screenNode);
+    window.ScreenLayout = realScreenLayout;
     screen.mozLockOrientation = realMozLockOrientation;
   });
 
@@ -63,7 +68,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'portrait-primary'
         },
-        currentOrientation: 'portrait-primary',
+        rotatingDegree: 0,
         getScreenshot: function(callback) {
           callback();
         }
@@ -76,7 +81,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape-primary'
         },
-        currentOrientation: 'landscape-primary',
+        rotatingDegree: 90,
         getScreenshot: function(callback) {
           callback();
         }
@@ -89,7 +94,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape-secondary'
         },
-        currentOrientation: 'landscape-secondary',
+        rotatingDegree: 270,
         getScreenshot: function(callback) {
           callback();
         }
@@ -102,7 +107,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'landscape'
         },
-        currentOrientation: 'landscape-primary',
+        rotatingDegree: 90,
         getScreenshot: function(callback) {
           callback();
         }
@@ -115,7 +120,7 @@ suite('cards view >', function() {
         manifest: {
           orientation: 'portrait-secondary'
         },
-        currentOrientation: 'portrait-secondary',
+        rotatingDegree: 180,
         getScreenshot: function(callback) {
           callback();
         }
@@ -198,23 +203,23 @@ suite('cards view >', function() {
 
     test('cardsview defines a landscape-primary app', function() {
       assert.isTrue(testCardOrientation('http://game.gaiamobile.org',
-                                        'landscape-primary'));
+                                        'rotate-90'));
     });
     test('cardsview defines a landscape-secondary app', function() {
       assert.isTrue(testCardOrientation('http://game2.gaiamobile.org',
-                                        'landscape-secondary'));
+                                        'rotate-270'));
     });
     test('cardsview defines a landscape app in landscape-primary', function() {
       assert.isTrue(testCardOrientation('http://game3.gaiamobile.org',
-                                        'landscape-primary'));
+                                        'rotate-90'));
     });
     test('cardsview defines a portrait app in portrait-primary', function() {
       assert.isTrue(testCardOrientation('http://sms.gaiamobile.org',
-                                        'portrait-primary'));
+                                        'rotate-0'));
     });
     test('cardsview defines a portrait-secondary app', function() {
       assert.isTrue(testCardOrientation('http://game4.gaiamobile.org',
-                                        'portrait-secondary'));
+                                        'rotate-180'));
     });
 
   });

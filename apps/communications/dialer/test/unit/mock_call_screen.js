@@ -18,6 +18,9 @@ var MockCallScreen = {
   setCallerContactImage: function() {
     this.mSetCallerContactImageCalled = true;
   },
+  setDefaultContactImage: function() {
+    this.mSetDefaultContactImageCalled = true;
+  },
   mute: function() {
     this.mMuteOn = true;
   },
@@ -54,10 +57,15 @@ var MockCallScreen = {
   },
   mSingleLine: null,
 
+  set holdAndAnswerOnly(enabled) {
+    this.mHoldAndAnswerOnly = enabled;
+  },
+  mHoldAndAnswerOnly: false,
+
   set cdmaCallWaiting(enabled) {
     this.mCdmaCallWaiting = enabled;
   },
-  mCdmaCallWaiting: null,
+  mCdmaCallWaiting: false,
 
   get inStatusBarMode() {
     return this.mInStatusBarMode;
@@ -73,6 +81,7 @@ var MockCallScreen = {
   mEnableKeypadCalled: false,
   mSyncSpeakerCalled: false,
   mSetCallerContactImageCalled: false,
+  mSetDefaultContactImageCalled: false,
   mMuteOn: false,
   mSpeakerOn: false,
   mLastRenderMode: null,

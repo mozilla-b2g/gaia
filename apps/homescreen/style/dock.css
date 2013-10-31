@@ -64,11 +64,11 @@
 /* For tablet+ Device */
 @media (min-width: 768px) {
   #footer {
-    height: 16rem;
+    height: 16.9rem;
   }
 
   #footer ol {
-    margin-top: 2.5rem;
+    margin-top: 3.49rem;
   }
 
   #footer > div li,
@@ -88,27 +88,27 @@
 
   #footer > div li,
   #footer > div.scrollable li {
-    width: 22rem;
+    width: 17.5rem;
   }
 
   #footer > div li:first-child {
-    width: 10rem;
-    padding-left: 15rem;
-    padding-right: 6rem;
+    width: 9rem;
+    padding-left: 14.5rem;
+    padding-right: 4.5rem;
   }
 
   #footer li:first-child span.options {
-    left: 15rem;
+    left: 16rem;
   }
 
   #footer > div li:last-child:not(:first-child) {
-    width: 10rem;
-    padding-right: 15rem;
-    padding-left: 6rem;
+    width: 9rem;
+    padding-right: 14.5rem;
+    padding-left: 4.5rem;
   }
 
   #footer li:last-child:not(:first-child) span.options {
-    left: 6rem;
+    left: 4.2rem;
   }
 
   #footer li span.options {

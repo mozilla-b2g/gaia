@@ -135,11 +135,10 @@ var fb = window.fb || {};
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_num_fb_contacts() {
-        var req = fb.contacts.getAll();
+        var req = fb.contacts.getLength();
 
         req.onsuccess = function() {
-          var result = req.result || [];
-          outReq.done(Object.keys(result).length);
+          outReq.done(req.result);
         };
 
         req.onerror = function() {
@@ -441,7 +440,9 @@ var fb = window.fb || {};
               req = fbContact.remove();
             }
             else {
-              var req = navigator.mozContacts.remove(contact);
+              var theContact = (contact instanceof mozContact) ?
+                               contact : new mozContact(contact);
+              var req = navigator.mozContacts.remove(theContact);
             }
           }
           req.number = number;

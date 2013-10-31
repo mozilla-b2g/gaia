@@ -8,8 +8,8 @@
  * VALUE_KEY    "privacy.donottrackheader.value"
 
  *                ENABLED_KEY  VALUE_KEY
- * Do not track:     true         0
- * Track:            true         1
+ * Do not track:     true         1
+ * Track:            true         0
  * No preference:    false        N/A
  */
 (function() {
@@ -18,8 +18,8 @@
     return;
 
   var enabledMap = {
-    '0': true,   // Do not track
-    '1': true,   // Track
+    '0': true,   // Track
+    '1': true,   // Do not track
     '-1': false  // No preference
   };
   settings.addObserver('privacy.donottrackheader.value', function(result) {

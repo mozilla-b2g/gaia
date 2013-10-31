@@ -72,10 +72,9 @@
   z-index: 0;
 }
 
-[data-type="list"] li > a:active:after {
+[data-type="list"] li > a:active:after,
+[data-type="list"] li > a:hover:after {
   opacity: 0.6;
-  /* Only transition on 'press', not on 'release' */
-  transition: opacity 0.2s ease;
 }
 
 /* Disabled */
@@ -195,6 +194,7 @@
   pointer-events: auto;
 }
 
-[data-type="list"] [data-type="edit"] li > a:active:after {
+[data-type="list"] [data-type="edit"] li > a:active:after,
+[data-type="list"] [data-type="edit"] li > a:hover:after {
   display: none;
 }

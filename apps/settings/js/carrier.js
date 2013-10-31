@@ -126,14 +126,6 @@ var Carrier = {
           }
           var input = document.getElementById('ril-' + usage + '-authType');
           input.value = AUTH_TYPES[item.authtype] || 'notDefined';
-          var parent = input.parentElement;
-          var button = input.previousElementSibling;
-          var index = input.selectedIndex;
-          if (index >= 0) {
-            var selection = input.options[index];
-            button.textContent = selection.textContent;
-            button.dataset.l10nId = selection.dataset.l10nId;
-          }
         };
 
         // include the radio button element in a list item
@@ -184,14 +176,6 @@ var Carrier = {
           'ril.' + usage + '.custom.authtype', function(value) {
             var input = document.getElementById('ril-' + usage + '-authType');
             input.value = value || 'notDefined';
-            var parent = input.parentElement;
-            var button = input.previousElementSibling;
-            var index = input.selectedIndex;
-            if (index >= 0) {
-              var selection = input.options[index];
-              button.textContent = selection.textContent;
-              button.dataset.l10nId = selection.dataset.l10nId;
-            }
         });
       }
 
@@ -741,7 +725,31 @@ var Carrier = {
       });
     }
 
-    function initNetworkTypeSelector(types) {
+    function initNetworkTypeSelector(types, GSM, CDMA) {
+      var NETWORK_GSM_MAP = {
+        'wcdma/gsm': 'operator-networkType-auto',
+        'gsm': 'operator-networkType-2G',
+        'wcdma': 'operator-networkType-3G',
+        'wcdma/gsm-auto': 'operator-networkType-prefer2G'
+      };
+
+      var NETWORK_CDMA_MAP = {
+        'cdma/evdo': 'operator-networkType-auto',
+        'cdma': 'operator-networkType-CDMA',
+        'evdo': 'operator-networkType-EVDO'
+      };
+
+      var NETWORK_DUALSTACK_MAP = {
+        'wcdma/gsm': 'operator-networkType-preferWCDMA',
+        'gsm': 'operator-networkType-GSM',
+        'wcdma': 'operator-networkType-WCDMA',
+        'wcdma/gsm-auto': 'operator-networkType-preferGSM',
+        'cdma/evdo': 'operator-networkType-preferEVDO',
+        'cdma': 'operator-networkType-CDMA',
+        'evdo': 'operator-networkType-EVDO',
+        'wcdma/gsm/cdma/evdo': 'operator-networkType-auto'
+      };
+
       Settings.getSettings(function(result) {
         var setting = result['ril.radio.preferredNetworkType'];
         if (setting) {
@@ -750,7 +758,25 @@ var Carrier = {
             var option = document.createElement('option');
             option.value = type;
             option.selected = (setting === type);
-            option.textContent = type;
+            // show user friendly network mode names
+            if (GSM && CDMA) {
+              if (type in NETWORK_DUALSTACK_MAP) {
+                option.textContent =
+                  localize(option, NETWORK_DUALSTACK_MAP[type]);
+              }
+            } else if (GSM) {
+              if (type in NETWORK_GSM_MAP) {
+                option.textContent =
+                  localize(option, NETWORK_GSM_MAP[type]);
+              }
+            } else if (CDMA) {
+              if (type in NETWORK_CDMA_MAP) {
+                option.textContent =
+                  localize(option, NETWORK_CDMA_MAP[type]);
+              }
+            } else { //failback only
+              option.textContent = type;
+            }
             selector.appendChild(option);
           });
 
@@ -777,7 +803,7 @@ var Carrier = {
 
         // init different selectors based on the network type.
         if (result.networkTypes) {
-          initNetworkTypeSelector(result.networkTypes);
+          initNetworkTypeSelector(result.networkTypes, result.gsm, result.cdma);
         }
 
         if (result.gsm) {

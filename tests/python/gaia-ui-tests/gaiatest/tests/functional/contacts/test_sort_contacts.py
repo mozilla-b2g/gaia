@@ -17,7 +17,7 @@ class TestContacts(GaiaTestCase):
 
         # insert contacts by given names
         for contact_name in self._contacts_name_list:
-            contact = MockContact(givenName=contact_name[0], familyName=contact_name[1])
+            contact = MockContact(givenName=[contact_name[0]], familyName=[contact_name[1]])
             self.data_layer.insert_contact(contact)
         # prepare the sorted-by-first-name and sorted-by-last-name lists
         self.sorted_contacts_name_by_first = sorted(self._contacts_name_list, key=lambda name: name[0])

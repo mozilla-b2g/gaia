@@ -1,3 +1,5 @@
+/*exported FixedHeader */
+
 'use strict';
 
 var FixedHeader = (function FixedHeader() {

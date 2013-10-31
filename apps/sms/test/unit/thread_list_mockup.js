@@ -1,3 +1,6 @@
+/*global getMockupedDate */
+/*exported MockThreadList */
+
 'use strict';
 
 function MockThreadList() {

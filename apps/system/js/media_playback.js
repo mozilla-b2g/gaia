@@ -4,34 +4,33 @@ var MediaPlayback = {
   init: function mp_init() {
     this.container = document.getElementById('media-playback-container');
     this.nowPlaying = document.getElementById('media-playback-nowplaying');
+
     this.icon = this.container.querySelector('.icon');
     this.trackTitle = this.container.querySelector('.title');
     this.trackArtist = this.container.querySelector('.artist');
     this.albumArt = this.container.querySelector('.albumart');
 
-    var self = this;
-    window.navigator.mozSetMessageHandler('connection', function(request) {
-      if (request.keyword !== 'mediacomms')
-        return;
-
-      var port = request.port;
-      port.onmessage = function(event) {
-        var message = event.data;
-        switch (message.type) {
-        case 'appinfo':
-          self.updateAppInfo(message.data);
-          break;
-        case 'nowplaying':
-          self.updateNowPlaying(message.data);
-          break;
-        case 'status':
-          self.updatePlaybackStatus(message.data);
-          break;
-        }
-      };
-    });
+    this.previousButton = this.container.querySelector('.previous');
+    this.playPauseButton = this.container.querySelector('.play-pause');
+    this.nextButton = this.container.querySelector('.next');
 
     this.nowPlaying.addEventListener('click', this.openMediaApp.bind(this));
+    this.container.addEventListener('click', this);
+
+    window.addEventListener('iac-mediacomms', function onIAC(evt) {
+      var message = evt.detail.data;
+      switch (message.type) {
+        case 'appinfo':
+          this.updateAppInfo(message.data);
+          break;
+        case 'nowplaying':
+          this.updateNowPlaying(message.data);
+          break;
+        case 'status':
+          this.updatePlaybackStatus(message.data);
+          break;
+      }
+    }.bind(this));
 
     // Listen for when the music app is terminated. We know which app to look
     // for because we got it from the "appinfo" message. Then we hide the Now
@@ -75,7 +74,19 @@ var MediaPlayback = {
   },
 
   updatePlaybackStatus: function mp_updatePlaybackStatus(status) {
-    this.container.hidden = (status.playStatus === 'STOPPED');
+    switch (status.playStatus) {
+      case 'PLAYING':
+        this.container.hidden = false;
+        this.playPauseButton.classList.remove('is-paused');
+        break;
+      case 'PAUSED':
+        this.container.hidden = false;
+        this.playPauseButton.classList.add('is-paused');
+        break;
+      case 'STOPPED':
+        this.container.hidden = true;
+        break;
+    }
   },
 
   openMediaApp: function mp_openMediaApp(event) {
@@ -87,6 +98,31 @@ var MediaPlayback = {
       });
       window.dispatchEvent(evt);
     }
+  },
+
+  handleEvent: function mp_handleEvent(event) {
+    var port = IACHandler.getPort('mediacomms');
+    if (!port)
+      return;
+
+    var command = null;
+    switch (event.target) {
+      case this.previousButton:
+        command = 'prevtrack';
+        break;
+      case this.playPauseButton:
+        // The play/pause indicator will get set once the music app replies with
+        // its "mode" message, but this will make us appear speedier.
+        this.playPauseButton.classList.toggle('is-paused');
+        command = 'playpause';
+        break;
+      case this.nextButton:
+        command = 'nexttrack';
+        break;
+    }
+
+    if (command)
+      port.postMessage({command: command});
   }
 };
 

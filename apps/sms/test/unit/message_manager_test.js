@@ -1,9 +1,15 @@
+/*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
+         MockL10n, Contacts, MockContact, loadBodyHTML, MozSmsFilter,
+         ThreadListUI, MockThreads, MockMessages, Threads */
+
 'use strict';
 
 requireApp('sms/js/utils.js');
+requireApp('sms/js/time_headers.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_messages.js');
 
+requireApp('sms/test/unit/mock_link_action_handler.js');
 requireApp('sms/test/unit/mock_thread_ui.js');
 requireApp('sms/test/unit/mock_thread_list_ui.js');
 requireApp('sms/test/unit/mock_threads.js');
@@ -28,7 +34,8 @@ var mocksHelperForMessageManager = new MocksHelper([
   'Compose',
   'Contacts',
   'Utils',
-  'MozSmsFilter'
+  'MozSmsFilter',
+  'LinkActionHandler'
 ]);
 
 mocksHelperForMessageManager.init();

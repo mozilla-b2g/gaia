@@ -3,9 +3,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from marionette.marionette import Actions
 
 from gaiatest import GaiaTestCase
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class TestDeleteApp(GaiaTestCase):
@@ -14,15 +14,9 @@ class TestDeleteApp(GaiaTestCase):
     APP_NAME = 'Mozilla QA WebRT Tester'
     APP_INSTALLED = False
 
-    _visible_icon_locator = (By.CSS_SELECTOR, 'div.page[style*="transform: translateX(0px);"] li.icon[aria-label="%s"]' % APP_NAME)
-    _delete_app_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"] span.options' % APP_NAME)
-
     # App install popup
-    _yes_button_locator = (By.ID, 'app-install-install-button')
+    _confirm_install_button_locator = (By.ID, 'app-install-install-button')
     _notification_banner_locator = (By.ID, 'system-banner')
-
-    # Delete popup
-    _confirm_delete_locator = (By.ID, 'confirm-dialog-confirm-button')
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -31,73 +25,42 @@ class TestDeleteApp(GaiaTestCase):
             self.apps.uninstall(self.APP_NAME)
 
         self.connect_to_network()
-        self.homescreen = self.apps.launch('Homescreen')
+
+        self.homescreen = Homescreen(self.marionette)
+        self.homescreen.launch()
 
     def test_delete_app(self):
 
-        # install app
+        # Install app
         self.marionette.switch_to_frame()
         self.marionette.execute_script(
             'navigator.mozApps.install("%s")' % self.MANIFEST)
 
-        # click YES on the installation dialog and wait for icon displayed
-        self.wait_for_element_displayed(*self._yes_button_locator)
-        self.marionette.find_element(*self._yes_button_locator).tap()
+        # Confirm the installation
+        self.wait_for_element_displayed(*self._confirm_install_button_locator)
+        self.marionette.find_element(*self._confirm_install_button_locator).tap()
 
-        # wait for the app to be installed and the notification banner to be available
+        # Wait for the app to be installed and the notification banner to be available
         self.wait_for_element_displayed(*self._notification_banner_locator)
         self.wait_for_element_not_displayed(*self._notification_banner_locator)
 
-        self.marionette.switch_to_frame(self.homescreen.frame)
+        self.homescreen.switch_to_homescreen_frame()
 
-        # switch pages until the app is found
-        while True:
-            if self.is_element_present(*self._visible_icon_locator):
-                break
-            if self._homescreen_has_more_pages():
-                self._go_to_next_page()
-            else:
-                break
+        # Verify that the app is installed i.e. the app icon is visible on one of the homescreen pages
+        self.assertTrue(self.homescreen.is_app_installed(self.APP_NAME),
+            "App %s not found on Homescreen" % self.APP_NAME)
 
-        # check that the app is available
-        app_icon = self.marionette.find_element(*self._visible_icon_locator)
-        self.assertTrue(app_icon.is_displayed())
+        # Activate edit mode
+        self.homescreen.activate_edit_mode()
 
-        # go to edit mode
-        Actions(self.marionette). \
-            press(app_icon). \
-            wait(3). \
-            release(). \
-            perform()
+        # Tap on the (x) to start delete process and tap on the confirm delete button
+        self.homescreen.installed_app(self.APP_NAME).tap_delete_app().tap_confirm()
 
-        # Tap on the (x) to start delete process
-        self.wait_for_element_displayed(*self._delete_app_locator)
-        self.marionette.find_element(*self._delete_app_locator).tap()
+        self.homescreen.wait_for_app_icon_not_present(self.APP_NAME)
 
-        # Tap on the confirm delete button
-        self.wait_for_element_displayed(*self._confirm_delete_locator)
-        self.marionette.find_element(*self._confirm_delete_locator).tap()
+        # Return to normal mode
+        self.homescreen.touch_home_button()
 
-        self.wait_for_element_not_present(*self._visible_icon_locator)
-
-        # return to normal mode
-        self.marionette.switch_to_frame()
-        self._touch_home_button()
-
-        # check that the app is no longer available
+        # Check that the app is no longer available
         with self.assertRaises(AssertionError):
             self.apps.launch(self.APP_NAME)
-
-    def _touch_home_button(self):
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
-
-    def _go_to_next_page(self):
-        self.marionette.execute_script('window.wrappedJSObject.GridManager.goToNextPage()')
-        self.wait_for_condition(lambda m: m.find_element('tag name', 'body')
-            .get_attribute('data-transitioning') != 'true')
-
-    def _homescreen_has_more_pages(self):
-        # the naming of this could be more concise when it's in an app object!
-        return self.marionette.execute_script("""
-            var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
-            return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")

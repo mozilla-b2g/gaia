@@ -1,6 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/*global Utils, MessageManager, Compose, OptionMenu, NotificationHelper,
+         Attachment, Template, Notify, BlackList, Threads, SMIL, Contacts,
+         ThreadUI */
+/*exported ActivityHandler */
+
 'use strict';
 
 var ActivityHandler = {
@@ -134,7 +139,6 @@ var ActivityHandler = {
     var msgDiv = document.createElement('div');
     msgDiv.innerHTML = '<h1 data-l10n-id="unsent-message-title"></h1>' +
                        '<p data-l10n-id="unsent-message-description"></p>';
-    var self = this;
     var options = new OptionMenu({
       type: 'confirm',
       section: msgDiv,
@@ -381,8 +385,9 @@ var ActivityHandler = {
             SMIL.parse(message, function slideCb(slideArray) {
               var text, slidesLength = slideArray.length;
               for (var i = 0; i < slidesLength; i++) {
-                if (!slideArray[i].text)
+                if (!slideArray[i].text) {
                   continue;
+                }
 
                 text = slideArray[i].text;
                 break;
@@ -398,10 +403,9 @@ var ActivityHandler = {
           var sender = message.sender;
           if (!contact) {
             console.error('We got a null contact for sender:', sender);
-          } else if (contact.length && contact[0].name) {
-            var senderName = Template.escape(contact[0].name[0]);
-            sender = senderName.length == 0 ?
-              message.sender : contact[0].name[0];
+          } else if (contact.length && contact[0].name &&
+            contact[0].name.length && contact[0].name[0]) {
+            sender = contact[0].name[0];
           }
 
           if (message.type === 'sms') {
@@ -428,8 +432,9 @@ var ActivityHandler = {
       // Here we can only have one sender, so deliveryStatus[0] => message
       // status from sender.
       var status = message.deliveryStatus[0];
-      if (status === 'pending')
+      if (status === 'pending') {
         return;
+      }
 
       // If the delivery status is manual/rejected/error, we need to apply
       // specific text to notify user that message is not downloaded.

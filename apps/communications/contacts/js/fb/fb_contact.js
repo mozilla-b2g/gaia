@@ -120,7 +120,6 @@ fb.Contact = function(deviceContact, cid) {
   };
 
   function doSave(outReq) {
-    var contactObj = new mozContact();
     // Info to be saved on mozContacts
     var contactInfo = {};
 
@@ -133,7 +132,7 @@ fb.Contact = function(deviceContact, cid) {
 
     doSetFacebookUid(contactInfo, contactData.uid);
 
-    contactObj.init(contactInfo);
+    var contactObj = new mozContact(contactInfo);
 
     var fbReq = persistToFbCache(contactData);
 
@@ -155,7 +154,9 @@ fb.Contact = function(deviceContact, cid) {
   }
 
   // Persists FB Friend Data to the FB cache
-  function persistToFbCache(contactData) {
+  function persistToFbCache(contactData, mUpdate) {
+    var isUpdate = (mUpdate === true ? mUpdate : false);
+
     var outReq = new fb.utils.Request();
 
     window.setTimeout(function persist_fb_do() {
@@ -174,7 +175,9 @@ fb.Contact = function(deviceContact, cid) {
       // thus restoring the contact (if unlinked) will be trivial
       copyNames(contactData, data);
 
-      var fbReq = fb.contacts.save(data);
+      var updaterFn = (isUpdate === true ?
+                                        fb.contacts.update : fb.contacts.save);
+      var fbReq = updaterFn(data);
 
       fbReq.onsuccess = function() {
         outReq.done(fbReq.result);
@@ -198,7 +201,7 @@ fb.Contact = function(deviceContact, cid) {
         var dataReq = fb.contacts.get(contactData.uid);
         dataReq.onsuccess = function() {
           contactData.fbInfo.photo = dataReq.result.photo;
-          auxCachePersist(contactData, outReq);
+          auxCachePersist(contactData, outReq, true);
         };
         dataReq.onerror = function() {
           window.console.error('Error while retrieving existing photo for ',
@@ -210,15 +213,15 @@ fb.Contact = function(deviceContact, cid) {
         utils.squareImage(contactData.fbInfo.photo[0],
           function sq_img(squaredImg) {
             contactData.fbInfo.photo[0] = squaredImg;
-            auxCachePersist(contactData, outReq);
+            auxCachePersist(contactData, outReq, true);
           }
         );
       }
     }
 
     // Persist the data to the FB Cache
-    function auxCachePersist(contactData, outReq) {
-      var fbReq = persistToFbCache(contactData);
+    function auxCachePersist(contactData, outReq, isUpdate) {
+      var fbReq = persistToFbCache(contactData, isUpdate);
 
       fbReq.onsuccess = function() {
         outReq.done(fbReq.result);
@@ -271,11 +274,15 @@ fb.Contact = function(deviceContact, cid) {
     return outReq;
   };
 
+  function asArrayOfValues(value) {
+    return Array.isArray(value) ? value : [value];
+  }
+
   function copyNames(source, destination) {
-    destination.name = source.name;
-    destination.givenName = source.givenName;
-    destination.familyName = source.familyName;
-    destination.additionalName = source.additionalName;
+    destination.name = asArrayOfValues(source.name);
+    destination.givenName = asArrayOfValues(source.givenName);
+    destination.familyName = asArrayOfValues(source.familyName);
+    destination.additionalName = asArrayOfValues(source.additionalName);
   }
 
   /*
@@ -299,7 +306,7 @@ fb.Contact = function(deviceContact, cid) {
     var out = devContact;
 
     if (fbdata) {
-      out = Object.create(devContact);
+      out = Object.create(null);
       out.updated = devContact.updated;
       out.published = devContact.published;
 
@@ -586,7 +593,10 @@ fb.Contact = function(deviceContact, cid) {
       mozContactsReq.onsuccess = function(e) {
         // The FB contact on mozContacts needs to be removed
         if (fbFriend.mozContact && !fb.isFbLinked(fbFriend.mozContact)) {
-          var deleteReq = navigator.mozContacts.remove(fbFriend.mozContact);
+          var theContact = (fbFriend.mozContact instanceof mozContact) ?
+                           fbFriend.mozContact :
+                           new mozContact(fbFriend.mozContact);
+          var deleteReq = navigator.mozContacts.remove(theContact);
 
           deleteReq.onsuccess = function(e) {
             out.done(e.target.result);
@@ -682,8 +692,7 @@ fb.Contact = function(deviceContact, cid) {
               data.url = imported.url;
               doSetFacebookUid(data, uid);
 
-              var mcontact = new mozContact();
-              mcontact.init(data);
+              var mcontact = new mozContact(data);
 
               // The FB contact is restored
               var reqRestore = navigator.mozContacts.save(mcontact);
@@ -728,7 +737,9 @@ fb.Contact = function(deviceContact, cid) {
     };
   }
 
-  this.remove = function() {
+  this.remove = function(pforceFlush) {
+    var forceFlush = (pforceFlush === true) ? pforceFlush : false;
+
     var out = new fb.utils.Request();
 
     window.setTimeout(function do_remove() {
@@ -740,9 +751,10 @@ fb.Contact = function(deviceContact, cid) {
         // Then corresponding FB Data is removed otherwise only
         // the device contact is removed
         if (fbNumReq.result === 1) {
-          var removeReq = navigator.mozContacts.remove(devContact);
+          var theContact = new mozContact(devContact);
+          var removeReq = navigator.mozContacts.remove(theContact);
           removeReq.onsuccess = function(e) {
-            var fbReq = fb.contacts.remove(uid);
+            var fbReq = fb.contacts.remove(uid, forceFlush);
             fbReq.onsuccess = function() {
               out.done(fbReq.result);
             };
@@ -756,7 +768,8 @@ fb.Contact = function(deviceContact, cid) {
           };
         }
         else {
-          var removeReq = navigator.mozContacts.remove(devContact);
+          var theContact = new mozContact(devContact);
+          var removeReq = navigator.mozContacts.remove(theContact);
           removeReq.onsuccess = function(e) {
             out.done();
           };

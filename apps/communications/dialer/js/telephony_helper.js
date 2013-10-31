@@ -36,6 +36,14 @@ var TelephonyHelper = (function() {
       return;
     }
 
+    // Making sure we're not dialing the same number twice
+    var alreadyDialed = telephony.calls.some(function callIterator(call) {
+      return (call.number == sanitizedNumber);
+    });
+    if (alreadyDialed) {
+      return;
+    }
+
     LazyLoader.load('/shared/js/icc_helper.js', function() {
       var conn = window.navigator.mozMobileConnection;
       var cardState = IccHelper.cardState;
@@ -44,7 +52,8 @@ var TelephonyHelper = (function() {
 
       // Note: no need to check for cardState null. While airplane mode is on
       // cardState is null and we handle that situation in call() above.
-      if (cardState === 'unknown') {
+      if (((cardState === 'unknown') || (cardState === 'illegal')) &&
+           (emergencyOnly === false)) {
         error();
         return;
       } else if (emergencyOnly) {

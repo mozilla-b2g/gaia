@@ -49,6 +49,7 @@ var Awesomescreen = {
    */
   show: function awesomescreen_show() {
     this.results.classList.add('hidden');
+    Browser.hideCurrentTab();
     Browser.tabsBadge.innerHTML = '';
     // Ensure the user cannot interact with the browser until the
     // transition has ended, this will not be triggered unless the

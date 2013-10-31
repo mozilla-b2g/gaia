@@ -5,8 +5,9 @@ var DockManager = (function() {
 
   var container, dock;
 
-  var MAX_NUM_ICONS = 7;
-  var maxNumAppInViewPort = 4, maxOffsetLeft;
+  var notTinyLayout = !ScreenLayout.getCurrentLayout('tiny');
+  var MAX_NUM_ICONS = notTinyLayout ? 8 : 7;
+  var maxNumAppInViewPort = notTinyLayout ? 6 : 4, maxOffsetLeft;
 
   var windowWidth = window.innerWidth;
   var duration = 300;
@@ -24,19 +25,6 @@ var DockManager = (function() {
                      function(e) { return e.pageX };
   })();
 
-  function addActive(target) {
-    if ('isIcon' in target.dataset) {
-      target.classList.add('active');
-      removeActive = function _removeActive() {
-        target.classList.remove('active');
-      };
-    } else {
-      removeActive = function() {};
-    }
-  }
-
-  var removeActive = function() {};
-
   function handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
@@ -46,7 +34,7 @@ var DockManager = (function() {
         numApps = dock.getNumIcons();
         startEvent = isTouch ? evt.touches[0] : evt;
         attachEvents();
-        addActive(evt.target);
+        IconManager.addActive(evt.target);
         break;
 
       case touchmove:
@@ -56,6 +44,8 @@ var DockManager = (function() {
             return;
           } else {
             isPanning = true;
+            // Since we're panning, the icon we're over shouldn't be active
+            IconManager.removeActive();
             document.body.dataset.transitioning = 'true';
           }
         }
@@ -92,13 +82,12 @@ var DockManager = (function() {
         releaseEvents();
 
         if (!isPanning) {
-          dock.tap(evt.target);
+          IconManager.cancelActive();
+          dock.tap(evt.target, IconManager.removeActive);
         } else {
           isPanning = false;
           onTouchEnd(deltaX);
         }
-
-        removeActive();
 
         break;
     }
@@ -110,7 +99,7 @@ var DockManager = (function() {
     }
 
     Homescreen.setMode('edit');
-    removeActive();
+    IconManager.removeActive();
 
     LazyLoader.load(['style/dragdrop.css', 'js/dragdrop.js'], function() {
       DragDropManager.init();

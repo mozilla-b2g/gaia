@@ -13,10 +13,14 @@ suite('dialer/swiper', function() {
   var previousBody;
   var sCenter,
       sLeft,
-      sRight;
+      sRight,
+      sliderParts;
   var restoreSpy,
+      handleSlideSpy,
       endSpy,
       answerSpy;
+  var handlerClass,
+      overlayClass;
 
   mocksHelperForSwiper.attachTestHelpers();
 
@@ -41,7 +45,10 @@ suite('dialer/swiper', function() {
     sCenter = Swiper.sliderCenter;
     sLeft = Swiper.sliderLeft,
     sRight = Swiper.sliderRight;
+    sliderParts = [sLeft, sRight, sCenter];
     Swiper.iconWidth = 20;
+    handlerClass = Swiper.sliderHandler.classList;
+    overlayClass = Swiper.overlay.classList;
   });
 
   suiteTeardown(function() {
@@ -50,6 +57,7 @@ suite('dialer/swiper', function() {
 
   setup(function() {
     restoreSpy = this.sinon.spy(Swiper, 'restoreSlider');
+    handleSlideSpy = this.sinon.spy(Swiper, 'handleSlide');
     endSpy = this.sinon.spy(CallsHandler, 'end');
     answerSpy = this.sinon.spy(CallsHandler, 'answer');
     // stub getMaxOffset with mock length because we could not get correct
@@ -62,19 +70,17 @@ suite('dialer/swiper', function() {
 
   suite('Swiper behavior test', function() {
     test('init status', function() {
-      assert.isFalse(Swiper.overlay.classList.contains('touched'));
+      assert.isFalse(overlayClass.contains('touched'));
     });
 
     test('touch begin', function() {
       var pos = { x: 160, y: 0 };
       sendTouchEvent('touchstart', Swiper.area, pos);
-      assert.isTrue(Swiper.overlay.classList.contains('touched'));
+      assert.isTrue(overlayClass.contains('touched'));
       assert.isTrue(restoreSpy.calledWith());
     });
 
     test('touch move without icon reached', function() {
-      var handlerClass = Swiper.sliderHandler.classList;
-
       // Move to left with 10 px
       var pos = { x: 150, y: 0 };
       sendTouchEvent('touchmove', Swiper.area, pos);
@@ -91,8 +97,6 @@ suite('dialer/swiper', function() {
     });
 
     test('touch move and reach the icon', function() {
-      var handlerClass = Swiper.sliderHandler.classList;
-
       // Move to left with 160 px, icon is triggered and status changed
       var pos = { x: 0, y: 0 };
       sendTouchEvent('touchmove', Swiper.area, pos);
@@ -115,23 +119,20 @@ suite('dialer/swiper', function() {
 
     test('touch end without icon triggered', function() {
       var pos = { x: 170, y: 0 };
-      var sliderParts = [sLeft, sRight, sCenter];
       Swiper._sliderReachEnd = false;
       sendTouchEvent('touchend', Swiper.area, pos);
-      assert.isFalse(Swiper.overlay.classList.contains('touched'));
+      assert.isFalse(overlayClass.contains('touched'));
       assert.isTrue(restoreSpy.calledWith(true));
-      sliderParts.forEach(function(part) {
-        assert.isTrue(part.classList.contains('bounce'));
-      });
-      assert.isTrue(Swiper.sliderLeft.classList.contains('bounce'));
-      assert.isTrue(Swiper.sliderHandler.classList.contains('touched'));
+      assert.isTrue(handlerClass.contains('bounce'));
+      assert.isTrue(handlerClass.contains('touched'));
+      assert.isFalse(handleSlideSpy.calledWith(true));
 
-      // slider widgets' status should be restored after bounce back
+      // slider handler's status should be restored after bounce back
       sliderParts.forEach(function(part) {
         part.dispatchEvent(new CustomEvent('transitionend'));
-        assert.isFalse(part.classList.contains('bounce'));
       });
-      assert.isFalse(Swiper.sliderHandler.classList.contains('touched'));
+      assert.isFalse(handlerClass.contains('bounce'));
+      assert.isFalse(handlerClass.contains('touched'));
     });
 
     test('touch end with end icon triggered', function() {
@@ -143,13 +144,18 @@ suite('dialer/swiper', function() {
       Swiper._sliderReachEnd = true;
       restoreSpy.reset();
       sendTouchEvent('touchend', Swiper.area, end);
-      assert.isFalse(Swiper.overlay.classList.contains('touched'));
+      assert.isFalse(overlayClass.contains('touched'));
       assert.isTrue(endSpy.called);
+      assert.isTrue(handleSlideSpy.calledWith(true));
+
+      // slider handler's status should be extended after triggered
+      assert.isTrue(handlerClass.contains('extend'));
 
       // Test slider restore it only after screen changed.
       assert.isFalse(restoreSpy.called);
       this.sinon.clock.tick(500);
       assert.isTrue(restoreSpy.called);
+      assert.isFalse(Swiper.areaPickup.classList.contains('triggered'));
     });
 
     test('touch end with answer icon triggered', function() {
@@ -159,9 +165,20 @@ suite('dialer/swiper', function() {
       sendTouchEvent('touchstart', Swiper.area, start);
       sendTouchEvent('touchmove', Swiper.area, move);
       Swiper._sliderReachEnd = true;
+      restoreSpy.reset();
       sendTouchEvent('touchend', Swiper.area, end);
-      assert.isFalse(Swiper.overlay.classList.contains('touched'));
+      assert.isFalse(overlayClass.contains('touched'));
       assert.isTrue(answerSpy.called);
+      assert.isTrue(handleSlideSpy.calledWith(true));
+
+      // slider handler's status should be extended after triggered
+      assert.isTrue(handlerClass.contains('extend'));
+
+      // Test slider restore it only after screen changed.
+      assert.isFalse(restoreSpy.called);
+      this.sinon.clock.tick(500);
+      assert.isTrue(restoreSpy.called);
+      assert.isFalse(Swiper.areaHangup.classList.contains('triggered'));
     });
 
   });

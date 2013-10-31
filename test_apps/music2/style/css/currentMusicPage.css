@@ -108,16 +108,16 @@
 
 #toggleCurrentMusicPageView {
   position: absolute;
-  bottom: 5.5em;
-  right: 1em;
+  bottom: 5rem;
+  right: 0;
   width: 3em;
   height: 3em;
   background-repeat: no-repeat;
-  background-position: center top;
-  background-size: auto 200%;
+  background-position: center center;
+  background-size: auto 75%;
   background-image: url('../images/playlist.png');
   background-color: rgba(0, 0, 0, .5);
-  border-radius: .25rem;
+  border-top-left-radius: .25rem;
 }
 
 #toggleCurrentMusicPageView.switchSong {
@@ -127,7 +127,7 @@
 #currentSourceView {
   position: absolute;
   top: 0;
-  bottom: 4.5em;
+  bottom: 5rem;
   left: 0;
   right: 0;
 }
@@ -142,13 +142,35 @@
   padding: 1em;
 }
 
+#currentSourceFavorite {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 3rem;
+  height: 3rem;
+  z-index: 1;
+  background: rgba(0, 0, 0, .5);
+  border-top-right-radius: .5rem;
+
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: auto 75%;
+  background-image: url('../images/star_off.png');
+}
+
+#currentSourceFavorite.favorited {
+  background-image: url('../images/star_on.png');
+}
+
 #currentSourceImg {
   position: absolute;
   top: 3rem;
   bottom: 0;
   left: 0;
   right: 0;
-  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: 100% 100%;
 }
 
 #currentSourceImg[src=''] {
@@ -168,7 +190,7 @@
 #currentPlaylistView {
   position: absolute;
   top: 3rem;
-  bottom: 4.5em;
+  bottom: 5em;
   left: 0;
   right: 0;
   overflow-y: scroll;

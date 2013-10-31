@@ -21,7 +21,6 @@ suite('configurator.js >', function() {
   var SAVE_STATE_WAIT_TIMEOUT = 200;
 
   var mocksHelper = mocksHelperForConfigurator;
-  var containerNode;
   var realSettings;
 
   suiteSetup(function() {
@@ -38,11 +37,6 @@ suite('configurator.js >', function() {
 
   setup(function() {
     mocksHelper.setup();
-
-    containerNode = document.createElement('div');
-    containerNode.innerHTML = '<div role="search-page"></div>';
-    document.body.appendChild(containerNode);
-
     Configurator.load();
 
     // We set up a wrong landing page index in order to check what its value
@@ -55,7 +49,6 @@ suite('configurator.js >', function() {
   teardown(function() {
     mocksHelper.teardown();
     navigator.mozSettings.mTeardown();
-    document.body.removeChild(containerNode);
   });
 
   function sendResponseText(text) {
@@ -66,8 +59,6 @@ suite('configurator.js >', function() {
 
   function assertHomescreen(number) {
     assert.equal(Homescreen.landingPage, number);
-    assert.equal(document.querySelectorAll('div[role="search-page"]').length,
-                 number);
   }
 
   // helper to change single key-value of mozSettings
@@ -115,22 +106,22 @@ suite('configurator.js >', function() {
 
     MockIccHelper.fireEvent('iccinfochange', '214', '007');
     sendResponseText('{"214-007": [{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan1",' +
+                     '"manifestURL": "https://aHost/aMan1",' +
                      '"location": 15},' +
                      '{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan2",' +
+                     '"manifestURL": "https://aHost/aMan2",' +
                      '"location": 6},' +
                      '{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan3",' +
+                     '"manifestURL": "https://aHost/aMan3",' +
                      '"location": 3}],' +
                      '"214-006": [{"screen": 2,' +
-                     '"manifest": "https://aHost/aMan4",' +
+                     '"manifestURL": "https://aHost/aMan4",' +
                      '"location": 3}]}');
 
     var singleVariantApps = Configurator.getSingleVariantApps();
     assert.isDefined(singleVariantApps['https://aHost/aMan3']);
     assert.equal(singleVariantApps['https://aHost/aMan3'].screen, 2);
-    assert.equal(singleVariantApps['https://aHost/aMan3'].manifest,
+    assert.equal(singleVariantApps['https://aHost/aMan3'].manifestURL,
                  'https://aHost/aMan3');
     assert.equal(singleVariantApps['https://aHost/aMan3'].location, 3);
     assert.equal(singleVariantApps['https://aHost/aManNoExist'], undefined);
@@ -191,6 +182,15 @@ suite('configurator.js >', function() {
    */
   test('Search provider disabled >', function() {
     sendResponseText('{ "search_page":{ "provider": "xx","enabled": false } }');
+    assertHomescreen(0);
+  });
+
+  /*
+   * It checks the conditions when there is a search provider and enable search
+   */
+  test('Search provider enabled >', function() {
+    sendResponseText('{ "search_page":{ "provider": "em","enabled": true } }');
+    assert.include(document.body.classList, 'searchPageEnabled');
     assertHomescreen(0);
   });
 

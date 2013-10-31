@@ -1,3 +1,5 @@
+/*exported AttachmentMenu */
+
 'use strict';
 
 /**

@@ -19,11 +19,13 @@ class TestDialerAddContact(GaiaTestCase):
 
     def test_dialer_add_contact(self):
 
+        number_to_verify = self.contact['tel'][0]['value']
+
         # Dial number
-        self.phone.keypad.dial_phone_number(self.contact['tel']['value'])
+        self.phone.keypad.dial_phone_number(number_to_verify)
 
         # Assert that the number was entered correctly.
-        self.assertEqual(self.phone.keypad.phone_number, self.contact['tel']['value'])
+        self.assertEqual(self.phone.keypad.phone_number, number_to_verify)
 
         # Click Add contact button
         add_new_number = self.phone.keypad.tap_add_contact()
@@ -32,8 +34,8 @@ class TestDialerAddContact(GaiaTestCase):
         new_contact = add_new_number.tap_create_new_contact()
 
         # Enter data into fields
-        new_contact.type_given_name(self.contact['givenName'])
-        new_contact.type_family_name(self.contact['familyName'])
+        new_contact.type_given_name(self.contact['givenName'][0])
+        new_contact.type_family_name(self.contact['familyName'][0])
 
         # Click Done button
         new_contact.tap_done()
@@ -51,8 +53,8 @@ class TestDialerAddContact(GaiaTestCase):
         contact_details = contacts.contacts[0].tap()
 
         # Verify full name
-        full_name = self.contact['givenName'] + " " + self.contact['familyName']
+        full_name = self.contact['givenName'][0] + " " + self.contact['familyName'][0]
         self.assertEqual(contact_details.full_name, full_name)
 
         # Verify phone number
-        self.assertEqual(contact_details.phone_number, self.contact['tel']['value'])
+        self.assertEqual(contact_details.phone_number, number_to_verify)

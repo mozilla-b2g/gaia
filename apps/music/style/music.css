@@ -352,6 +352,7 @@ body.picker-mode #title-player {
   width: 8rem;
   height: 8rem;
   overflow: hidden;
+  background-clip: content-box;
 }
 
 #views-sublist-header-image {
@@ -646,17 +647,39 @@ body.picker-mode #title-player {
 }
 
 #player-cover-artist {
-  width: 100%;
+  width: 75%;
   height: auto;
   text-align: left;
   font-size: 1.9rem;
 }
 
 #player-cover-album {
-  width: 100%;
+  width: 75%;
   height: auto;
   text-align: left;
   font-size: 1.7rem;
+}
+
+#player-cover-artist.hidden-cover-share,
+#player-cover-album.hidden-cover-share {
+  width: 100%;
+}
+
+#player-cover-share {
+  width: calc(25% - 2rem);
+  height: 80%;
+  padding: 0;
+  border-radius: 3.5rem;
+  margin: 0 1rem;
+  font-weight: 500;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+  background-image: url("./images/iconaction_media_share_30x30.png");
+  position: absolute;
+  top: 10%;
+  right: -2%;
+  z-index: 1;
 }
 
 #player-cover-buttons {
@@ -972,14 +995,14 @@ li.list-item a {
   text-overflow: ellipsis;
   width: 100%;
   height: 6rem;
-  background: transparent;
-  transition: background 200ms ease;
+  background-color: transparent;
+  transition: background-color 200ms ease;
 }
 
 li.list-item a:active {
   color: black;
   text-shadow: rgba(255, 255, 255, 0.5) 0.1rem 0.1rem;
-  background: rgb(0, 138, 170);
+  background-color: rgba(52,140,158, .6);
 }
 
 /* title width is 100% - 1rem(padding) - 6rem(albumArt) */

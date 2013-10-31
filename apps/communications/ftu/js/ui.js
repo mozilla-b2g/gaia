@@ -21,6 +21,7 @@ var UIManager = {
     'pin-label',
     'pin-retries-left',
     'pin-input',
+    'back-sim-button',
     'pin-error',
     'skip-pin-button',
     'unlock-sim-button',
@@ -102,6 +103,7 @@ var UIManager = {
     this.simImportButton.addEventListener('click', this);
     this.sdImportButton.addEventListener('click', this);
     this.skipPinButton.addEventListener('click', this);
+    this.backSimButton.addEventListener('click', this);
     this.unlockSimButton.addEventListener('click', this);
 
     this.dataConnectionSwitch.addEventListener('click', this);
@@ -186,9 +188,20 @@ var UIManager = {
         }.bind(this));
 
     this.skipTutorialButton.addEventListener('click', function() {
-      WifiManager.finish();
-      window.close();
+      var layout = (ScreenLayout && ScreenLayout.getCurrentLayout) ?
+        ScreenLayout.getCurrentLayout() : 'tiny';
+
+      // For tiny devices
+      if (ScreenLayout.getCurrentLayout() === 'tiny') {
+        WifiManager.finish();
+        window.close();
+      }
+      else {
+        // for large devices
+        Tutorial.jumpToExitStep();
+      }
     });
+
     this.letsGoButton.addEventListener('click', function() {
       UIManager.activationScreen.classList.remove('show');
       UIManager.finishScreen.classList.remove('show');
@@ -264,6 +277,9 @@ var UIManager = {
       // SIM
       case 'skip-pin-button':
         SimManager.skip();
+        break;
+      case 'back-sim-button':
+        SimManager.back();
         break;
       case 'unlock-sim-button':
         Navigation.skipped = false;

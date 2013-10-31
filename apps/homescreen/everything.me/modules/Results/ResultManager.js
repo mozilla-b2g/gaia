@@ -10,7 +10,7 @@ Evme.PROVIDER_TYPES = {
 
 Evme.ResultManager = function Evme_ResultsManager() {
 
-  var NAME = "NOT_SET", // SearchResults or CollectionResults
+  var NAME = 'NOT_SET', // SearchResults or CollectionResults
       self = this,
       progressIndicator,
       DEFAULT_NUMBER_OF_APPS_TO_LOAD = Evme.Config.numberOfAppsToLoad,
@@ -46,12 +46,12 @@ Evme.ResultManager = function Evme_ResultsManager() {
       MAX_SCROLL_FADE = 200,
       FULLSCREEN_THRESHOLD = 0.8,
       MAX_APPS_CLASSES = 150,
-      APPS_PER_ROW = "FROM CONFIG",
-      ICONS_STYLE_ID = "apps-icons",
-      DEFAULT_ICON_URL = "FROM CONFIG",
+      APPS_PER_ROW = 'FROM CONFIG',
+      ICONS_STYLE_ID = 'apps-icons',
+      DEFAULT_ICON_URL = 'FROM CONFIG',
       TIMEOUT_BEFORE_REPORTING_APP_HOLD = 800,
       SLUG_PREFIX = 'store://',
-      CLASS_HAS_MORE_APPS = "has-more",
+      CLASS_HAS_MORE_APPS = 'has-more',
       ftr = {
         'fadeOnScroll': false
       };
@@ -62,7 +62,7 @@ Evme.ResultManager = function Evme_ResultsManager() {
       !options && (options = {});
 
       for (var k in options.features) {
-        ftr[k] = options.features[k]
+        ftr[k] = options.features[k];
       }
 
       NAME = options.NAME;
@@ -71,28 +71,28 @@ Evme.ResultManager = function Evme_ResultsManager() {
       el = options.el;
       scrollableEl = Evme.$('div', el)[0];
 
-      options.providers.forEach(function registerProviders(provider){
+      options.providers.forEach(function registerProviders(provider) {
         registerProvider(provider.type, provider.config);
       });
 
       progressIndicator = new Evme.ResultsProgressIndicator();
       progressIndicator.init({
-        "el": Evme.$(SELECTOR_PROGRESS_INDICATOR, el)[0],
-        "waitTime": TIMEOUT_BEFORE_SHOWING_PROGRESS_INDICATOR
+        'el': Evme.$(SELECTOR_PROGRESS_INDICATOR, el)[0],
+        'waitTime': TIMEOUT_BEFORE_SHOWING_PROGRESS_INDICATOR
       });
 
-      scrollableEl.addEventListener("touchend", function onTouchEnd() {
+      scrollableEl.addEventListener('touchend', function onTouchEnd() {
         self.timeoutHold && window.clearTimeout(self.timeoutHold);
       });
 
       scroll = new Scroll(el, {
-        "onTouchStart": touchStart,
-        "onTouchMove": touchMove,
-        "onTouchEnd": touchEnd,
-        "onScrollEnd": scrollEnd
+        'onTouchStart': touchStart,
+        'onTouchMove': touchMove,
+        'onTouchEnd': touchEnd,
+        'onScrollEnd': scrollEnd
       });
 
-      Evme.EventHandler.trigger(NAME, "init");
+      Evme.EventHandler.trigger(NAME, 'init');
     };
 
     this.clear = function clear() {
@@ -143,7 +143,8 @@ Evme.ResultManager = function Evme_ResultsManager() {
         if (app.type === Evme.RESULT_TYPE.MARKET) {
           app.slug = getSlug(app);
           marketApps.push(app);
-        } else if (app.type === Evme.RESULT_TYPE.CLOUD || app.type === Evme.RESULT_TYPE.WEBLINK) {
+        } else if (app.type === Evme.RESULT_TYPE.CLOUD ||
+                    app.type === Evme.RESULT_TYPE.WEBLINK) {
           cloudApps.push(app);
         }
       });
@@ -153,19 +154,19 @@ Evme.ResultManager = function Evme_ResultsManager() {
       if (!pageNum) {
         self.scrollToTop();
 
-        MARKETAPPS in providers
-        && providers[MARKETAPPS].render(marketApps, pageNum);
+        MARKETAPPS in providers &&
+          providers[MARKETAPPS].render(marketApps, pageNum);
 
-        response.nativeAppsHint && MARKETSEARCH in providers
-        && providers[MARKETSEARCH].render({
-          "query": response.query
+        response.nativeAppsHint && MARKETSEARCH in providers &&
+          providers[MARKETSEARCH].render({
+          'query': response.query
         });
       }
 
       CLOUD in providers && providers[CLOUD].render(cloudApps, {
-        "query": response.query,
-        "pageNum": pageNum,
-        "requestMissingIcons": requestMissingIcons
+        'query': response.query,
+        'pageNum': pageNum,
+        'requestMissingIcons': requestMissingIcons
       });
     }
   };
@@ -175,20 +176,27 @@ Evme.ResultManager = function Evme_ResultsManager() {
   };
 
   // used to update a collection icon when closing it
-  this.getCloudResultsIconData = function getCloudResultsIconData(numToGet=Evme.Config.numberOfAppInCollectionIcon) {
-    var iconData = [],
-    items = Evme.$(SELECTOR_CLOUD_RESULTS, el);
+  this.getCloudResultsIconData =
+    function getCloudResultsIconData(
+                            numToGet=Evme.Config.numberOfAppInCollectionIcon) {
+      var iconData = [],
+      items = Evme.$(SELECTOR_CLOUD_RESULTS, el);
 
-    for (var i = 0, item; item = items[i++];) {
-      if (item.dataset.iconSrc && Evme.$isVisible(item)) {
-        iconData.push({"id": item.dataset.iconId, "icon": item.dataset.iconSrc});
+      for (var i = 0, item; item = items[i++];) {
+        if (item.dataset.iconSrc && Evme.$isVisible(item)) {
+          iconData.push({
+            'id': item.dataset.iconId,
+            'icon': item.dataset.iconSrc
+          });
+        }
+
+        if (iconData.length === numToGet) {
+          break;
+        }
       }
 
-      if (iconData.length === numToGet) break;
-    }
-
-    return iconData;
-  };
+      return iconData;
+    };
 
   this.getAppTapAndHoldTime = function getAppTapAndHoldTime() {
     return TIMEOUT_BEFORE_REPORTING_APP_HOLD;
@@ -226,8 +234,12 @@ Evme.ResultManager = function Evme_ResultsManager() {
         rowsBelow = Math.ceil(numBelow / APPS_PER_ROW);
 
     // get clicked result index
-    var itemSelector = (clickedResult.type === Evme.RESULT_TYPE.CLOUD) ? SELECTOR_CLOUD_RESULTS : SELECTOR_ALL_RESULTS;
-    var nodeList = Array.prototype.slice.call(Evme.$(itemSelector, scrollableEl));
+    var itemSelector = (clickedResult.type === Evme.RESULT_TYPE.CLOUD) ?
+                          SELECTOR_CLOUD_RESULTS : SELECTOR_ALL_RESULTS;
+
+    var nodeList =
+      Array.prototype.slice.call(Evme.$(itemSelector, scrollableEl));
+
     var resultIndex = nodeList.indexOf(clickedResult.getElement());
 
     // calculate result row col
@@ -238,11 +250,11 @@ Evme.ResultManager = function Evme_ResultsManager() {
     }
 
     return {
-      "cols": cols,
-      "rows": rowsAbove + rowsBelow,
-      "rowIndex": row,
-      "colIndex": col
-    }
+      'cols': cols,
+      'rows': rowsAbove + rowsBelow,
+      'rowIndex': row,
+      'colIndex': col
+    };
   };
 
   this.hasResults = function hasResults() {
@@ -291,13 +303,13 @@ Evme.ResultManager = function Evme_ResultsManager() {
   }
 
   function requestMissingIcons(ids) {
-    Evme.Utils.log("requestMissingIcons: requesting " + ids.length + " icons");
-    Evme.EventHandler.trigger("ResultManager", "requestMissingIcons", ids);
+    Evme.Utils.log('requestMissingIcons: requesting ' + ids.length + ' icons');
+    Evme.EventHandler.trigger('ResultManager', 'requestMissingIcons', ids);
   }
 
   this.cbMissingIcons = function cbMissingIcons(data) {
     providers[CLOUD].updateIcons(data);
-  }
+  };
 
   function touchStart(e) {
     if (ftr.fadeOnScroll) {
@@ -326,7 +338,8 @@ Evme.ResultManager = function Evme_ResultsManager() {
   }
 
   function touchEnd(data) {
-    if (shouldFadeBG && scroll.distY >= FULLSCREEN_THRESHOLD * MAX_SCROLL_FADE) {
+    if (shouldFadeBG &&
+          scroll.distY >= FULLSCREEN_THRESHOLD * MAX_SCROLL_FADE) {
       showingFullScreen = true;
       cbScrolledToTop();
       window.setTimeout(function onTimeout() {
@@ -341,7 +354,8 @@ Evme.ResultManager = function Evme_ResultsManager() {
     if (apiHasMoreCloudApps) {
 
       // kept separate for performance reasons
-      var reachedBottom = scrollableEl.offsetHeight - el.offsetHeight <= scroll.y;
+      var reachedBottom =
+        scrollableEl.offsetHeight - el.offsetHeight <= scroll.y;
       if (reachedBottom) {
         cbScrolledToEnd();
       }
@@ -349,22 +363,22 @@ Evme.ResultManager = function Evme_ResultsManager() {
   }
 
   function cbLoadComplete(data, missingIcons) {
-    Evme.EventHandler.trigger(NAME, "loadComplete", {
-      "data": data,
-      "icons": missingIcons
+    Evme.EventHandler.trigger(NAME, 'loadComplete', {
+      'data': data,
+      'icons': missingIcons
     });
   }
 
   this.scrollToTop = function scrollToTop() {
     scroll.scrollTo(0, 0);
-  }
+  };
 
   function cbScrolledToTop() {
-    Evme.EventHandler.trigger(NAME, "scrollTop");
+    Evme.EventHandler.trigger(NAME, 'scrollTop');
   }
 
   function cbScrolledToEnd() {
-    Evme.EventHandler.trigger(NAME, "scrollBottom");
+    Evme.EventHandler.trigger(NAME, 'scrollBottom');
   }
 
   function handleAPIHasMoreCloudApps(data) {
@@ -381,7 +395,7 @@ Evme.ResultManager = function Evme_ResultsManager() {
       el.classList.remove(CLASS_HAS_MORE_APPS);
     }
   }
-}
+};
 
 Evme.ResultsProgressIndicator = function Evme_ResultsProgressIndicator() {
   var self = this,

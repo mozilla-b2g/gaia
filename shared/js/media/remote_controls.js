@@ -183,8 +183,12 @@ MediaRemoteControls.prototype.start = function() {
 
     app.connect('mediacomms').then(function(ports) {
       self._ports = ports;
-      self._queuedMessages.forEach(function(message) {
-        self._ports.forEach(function(port) {
+      self._ports.forEach(function(port) {
+        port.onmessage = function(event) {
+          self._commandHandler(event.data.command);
+        };
+
+        self._queuedMessages.forEach(function(message) {
           port.postMessage(message);
         });
       });

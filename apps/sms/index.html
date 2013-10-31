@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <meta http-equiv="pragma" content="no-cache">
     <title>Messages</title>
     <!-- Stable Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
     <link rel="stylesheet" type="text/css" href="shared/style/edit_mode.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
     <!--
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
@@ -146,6 +146,19 @@
                     class="hide">
               <p data-l10n-id="resize-image">Resizing the attached image</p>
             </section>
+            <section id="messages-new-message-notice"
+                    role="notification"
+                    class="hide">
+              <div id="new-message-notice-content">
+                <div id="new-message-notice-container-1">
+                  <div id="new-message-notice-text" data-l10n-id="new-message-notice-text">You have new messages</div>
+                  <div id="new-message-notice-contact">Contact</div>
+                </div>
+                <div id="new-message-notice-container-2">
+                  <a role="button" data-l10n-id="new-message-notice-a-text">read it</a>
+                </div>
+              </div>
+            </section>
           </div>
         </div>
         <article id="messages-container" class="view-body article-list" data-type="list">
@@ -158,7 +171,7 @@
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
           <!-- The <br> is needed because of 414223, which is a WONTFIX. It's just because of how contentEditable works. https://bugzilla.mozilla.org/show_bug.cgi?id=414223 -->
           <div id="messages-input" contentEditable="true" name="message"
-            data-l10n-id="composeMessage" x-inputmode="-moz-sms-7bit"><br></div>
+            data-l10n-id="composeMessage" x-inputmode="-moz-sms"><br></div>
         </form>
         <form role="dialog" id="messages-edit-form" role="dialog" data-type="edit" >
           <section>

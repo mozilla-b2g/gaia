@@ -20,7 +20,7 @@
   };
 
   Evme.Result = function Evme_Result() {
-    var NAME = "Result",
+    var NAME = 'Result',
         self = this,
         el = null,
 
@@ -29,6 +29,7 @@
     this.type = 'NOT_SET';
     this.cfg = {};
     this.elIcon = null;
+    this.elName = null;
 
     this.init = function init(cfg) {
       self.cfg = cfg;
@@ -36,9 +37,11 @@
       el = Evme.$create('li', {
         'id': 'app_' + cfg.id,
         'data-name': cfg.name
-      }, '<img />');
+      }, '<img class="icon" />' +
+         '<img class="name" />');
 
-      this.elIcon = el.querySelector('img');
+      this.elIcon = el.querySelector('.icon');
+      this.elName = el.querySelector('.name');
 
       if ('isOfflineReady' in cfg) {
         el.dataset.offlineReady = cfg.isOfflineReady;
@@ -54,10 +57,26 @@
         el.appendChild(removeButton);
       }
 
-      el.addEventListener("click", onClick);
-      el.addEventListener("contextmenu", onContextMenu);
+      el.addEventListener('click', onClick);
+      el.addEventListener('contextmenu', onContextMenu);
 
       return el;
+    };
+
+    this.drawAppName = function drawAppName() {
+      var canvas = document.createElement('canvas'),
+          context = canvas.getContext('2d');
+
+      canvas.width = TEXT_WIDTH;
+      canvas.height = APP_NAME_HEIGHT;
+
+      Evme.Utils.writeTextToCanvas({
+        'text': self.cfg.name,
+        'context': context,
+        'offset': TEXT_MARGIN
+      });
+
+      self.elName.src = canvas.toDataURL();
     };
 
     this.draw = function draw(iconObj) {
@@ -66,13 +85,15 @@
       if (el) {
         el.setAttribute('data-name', self.cfg.name);
 
+        self.drawAppName();
+
         if (Evme.Utils.isBlob(iconObj)) {
           Evme.Utils.blobToDataURI(iconObj, function onDataReady(src) {
             setImageSrc(src);
           });
 
         } else {
-          var src  = Evme.Utils.formatImageData(iconObj);
+          var src = Evme.Utils.formatImageData(iconObj);
           setImageSrc(src);
         }
       }
@@ -96,7 +117,8 @@
     this.onAppIconLoad = function onAppIconLoad() {
       // use OS icon rendering
       var iconCanvas = Icon.prototype.createCanvas(image),
-          canvas = self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
+          canvas =
+            self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
           context = canvas.getContext('2d');
 
       context.drawImage(iconCanvas, (TEXT_WIDTH - iconCanvas.width) / 2, 0);
@@ -111,13 +133,7 @@
           context = canvas.getContext('2d');
 
       canvas.width = TEXT_WIDTH;
-      canvas.height = height + APP_NAME_HEIGHT;
-
-      Evme.Utils.writeTextToCanvas({
-        "text": self.cfg.name,
-        "context": context,
-        "offset": height + TEXT_MARGIN
-      });
+      canvas.height = height;
 
       return canvas;
     };
@@ -136,9 +152,11 @@
         icon.removeEventListener('load', onIconLoad);
 
         // resize to "real" size to handle pixel ratios greater than 1
-        icon.style.cssText += 'width: ' + Evme.Utils.rem(canvas.width/ratio) + ';' +
-                              'height: ' + Evme.Utils.rem(canvas.height/ratio) + ';';
-        icon.dataset.loaded = true;
+        icon.style.cssText +=
+          'width: ' + Evme.Utils.rem(canvas.width / ratio) + ';' +
+          'height: ' + Evme.Utils.rem(canvas.height / ratio) + ';';
+
+        el.dataset.loaded = true;
       });
 
       icon.src = canvas.toDataURL();
@@ -146,7 +164,7 @@
 
     // @default
     this.launch = function launchResult() {
-      Evme.Utils.log("Result.launch [not implemented]");
+      Evme.Utils.log('Result.launch [not implemented]');
     };
 
     this.remove = function remove() {
@@ -170,7 +188,7 @@
     };
 
     this.getFavLink = function getFavLink() {
-      return self.cfg.favUrl != "@" && self.cfg.favUrl || self.cfg.appUrl;
+      return self.cfg.favUrl != '@' && self.cfg.favUrl || self.cfg.appUrl;
     };
 
     this.getIcon = function getIcon() {
@@ -184,12 +202,12 @@
     function onClick(e) {
       e.stopPropagation();
 
-      Evme.EventHandler.trigger(NAME, "click", {
-        "app": self,
-        "appId": self.cfg.id,
-        "el": el,
-        "data": self.cfg,
-        "e": e
+      Evme.EventHandler.trigger(NAME, 'click', {
+        'app': self,
+        'appId': self.cfg.id,
+        'el': el,
+        'data': self.cfg,
+        'e': e
       });
     }
 
@@ -197,11 +215,11 @@
       e.stopPropagation();
       e.preventDefault();
 
-      Evme.EventHandler.trigger(NAME, "hold", {
-        "app": self,
-        "appId": self.cfg.id,
-        "el": el,
-        "data": self.cfg
+      Evme.EventHandler.trigger(NAME, 'hold', {
+        'app': self,
+        'appId': self.cfg.id,
+        'el': el,
+        'data': self.cfg
       });
     }
 
@@ -212,8 +230,9 @@
 
     function cbRemoveClick(e) {
       e.stopPropagation();
-      Evme.EventHandler.trigger(NAME, "remove", {
-        "id": self.cfg.id
+      self.remove();
+      Evme.EventHandler.trigger(NAME, 'remove', {
+        'id': self.cfg.id
       });
     }
   };

@@ -13,13 +13,14 @@
     "voicemail":{},
     "bluetooth":{},
     "device-storage:pictures":{ "access": "readonly" },
-    "device-storage:music":{ "access": "readwrite" },
+    "device-storage:music":{ "access": "readonly" },
     "device-storage:videos":{ "access": "readonly" },
     "device-storage:sdcard":{ "access": "readonly" },
     "device-storage:apps":{ "access": "readonly" },
     "webapps-manage":{},
     "open-remote-window":{},
     "permissions":{},
+    "systemXHR": {},
     "settings":{ "access": "readwrite" },
     "wifi-manage":{},
     "attention":{},
@@ -70,5 +71,5 @@
     "90": "/style/icons/Settings_90.png",
     "120": "/style/icons/Settings_120.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": "default"
 }

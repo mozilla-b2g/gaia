@@ -1,4 +1,5 @@
 require('/shared/js/text_normalizer.js');
+require('/shared/js/simple_phone_matcher.js');
 requireApp('communications/contacts/test/unit/mock_find_matcher.js');
 requireApp('communications/contacts/js/contacts_matcher.js');
 
@@ -18,8 +19,12 @@ if (!this.contactFB) {
   this.contactFB = null;
 }
 
+if (!this.SimplePhoneMatcher) {
+  this.SimplePhoneMatcher = null;
+}
+
 suite('Test Contacts Matcher', function() {
-  function assertDefaultMatch(results, matchingFields) {
+  function assertDefaultMatch(results, matchingFields, telValue) {
     assert.equal(Object.keys(results).length, 1);
     assert.equal(Object.keys(results)[0], '1B');
     var matchingContact = results['1B'].matchingContact;
@@ -27,7 +32,7 @@ suite('Test Contacts Matcher', function() {
       assert.equal(matchingContact.email[0].value, 'jj@jj.com');
     }
     if (Array.isArray(matchingContact.tel) && matchingContact.tel[0]) {
-      assert.equal(matchingContact.tel[0].value, '676767671');
+      assert.equal(matchingContact.tel[0].value, telValue || '676767671');
     }
 
     if (matchingFields) {
@@ -44,10 +49,10 @@ suite('Test Contacts Matcher', function() {
     }
   }
 
-  function testMatch(myObj, mode, matchingFields, done) {
+  function testMatch(myObj, mode, matchingFields, done, telValue) {
     var cbs = {
       onmatch: function(results) {
-        assertDefaultMatch(results, matchingFields);
+        assertDefaultMatch(results, matchingFields, telValue);
         done();
       },
       onmismatch: function() {
@@ -117,6 +122,42 @@ suite('Test Contacts Matcher', function() {
       myObj.familyName = ['Alvarez delrio'];
 
       testMatch(myObj, 'passive', null, done);
+    });
+
+    test('Matching by name and phone number. International number incoming',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = '1A';
+        myObj.tel = [{
+          type: contact.tel[0].type,
+          value: '+34' + contact.tel[0].value
+        }];
+        myObj.email = [];
+        myObj.familyName = ['Alvarez delrio'];
+
+        testMatch(myObj, 'passive', null, done);
+    });
+
+    test('Matching by name and phone number. International number existing',
+      function(done) {
+        var myObj = Object.create(contact);
+        var savedContactTel = contact.tel;
+        contact.tel = [{
+          type: ['mobile'],
+          value: '+34' + savedContactTel[0].value
+        }];
+        myObj.id = '1A';
+        myObj.tel = [{
+          type: savedContactTel[0].type,
+          value: savedContactTel[0].value
+        }];
+        myObj.email = [];
+        myObj.familyName = ['Alvarez delrio'];
+
+        testMatch(myObj, 'passive', null, function() {
+          contact.tel = savedContactTel;
+          done();
+        }, contact.tel[0].value);
     });
 
     test('Matching by name and phone number. Name defined in the name prop',
@@ -381,6 +422,45 @@ suite('Test Contacts Matcher', function() {
       testMatch(myObj, 'active', ['tel'], done);
     });
 
+    test('Matching by phone internationalized number', function(done) {
+      var myObj = Object.create(contact);
+      myObj.id = '1A';
+
+      myObj.givenName = [];
+      myObj.familyName = null;
+      myObj.tel = [];
+      myObj.tel[0] = {
+        type: ['mobile'],
+        value: '+34' + contact.tel[0].value
+      };
+
+      testMatch(myObj, 'active', ['tel'], done);
+    });
+
+    test('Matching by phone internationalized number existing', function(done) {
+      var savedTel = contact.tel;
+      var myObj = Object.create(contact);
+      myObj.id = '1A';
+
+      myObj.givenName = [];
+      myObj.familyName = null;
+      myObj.tel = [];
+      myObj.tel[0] = {
+        type: ['mobile'],
+        value: savedTel[0].value
+      };
+      contact.tel = [{
+        type: savedTel[0].type,
+        value: '0034' + savedTel[0].value
+      }];
+
+      testMatch(myObj, 'active', ['tel'], function() {
+        contact.tel = savedTel;
+        done();
+      }, contact.tel[0].value);
+    });
+
+
     test('Matching by multiple phones', function(done) {
       var myObj = Object.create(contact);
       myObj.id = '1A';
@@ -456,6 +536,37 @@ suite('Test Contacts Matcher', function() {
 
       testMatch(myObj, 'active', ['name'], done);
     });
+
+    test('SIM Contact. Name is totally empty and there is tel. No matches',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = '1A';
+        myObj.name = myObj.givenName = myObj.familyName = [];
+        myObj.category = ['sim'];
+        myObj.tel = [{
+          type: ['personal'],
+          value: '9999999'
+        }];
+        myObj.email = null;
+
+        testMismatch(myObj, 'active', done);
+    });
+
+    test('Regular Contact. Name is totally empty and there is tel. No matches',
+      function(done) {
+        var myObj = Object.create(contact);
+        myObj.id = '1A';
+        myObj.name = myObj.givenName = myObj.familyName = [];
+        myObj.category = null;
+        myObj.tel = [{
+          type: ['personal'],
+          value: '9999999'
+        }];
+        myObj.email = null;
+
+        testMismatch(myObj, 'active', done);
+    });
+
 
     test('Matching by phone, email and name', function(done) {
       var myObj = Object.create(contact);

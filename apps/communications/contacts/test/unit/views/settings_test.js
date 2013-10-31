@@ -1,17 +1,21 @@
 require('/shared/js/lazy_loader.js');
-requireElements('communications/contacts/elements/settings.html');
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+requireApp('communications/contacts/test/unit/mock_contacts_index.html.js');
 requireApp('communications/contacts/test/unit/mock_contacts.js');
 requireApp('communications/contacts/test/unit/mock_asyncstorage.js');
 requireApp('communications/contacts/test/unit/mock_fb.js');
+requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/mock_sdcard.js');
 requireApp('communications/contacts/test/unit/mock_icc_helper.js');
 requireApp('communications/dialer/test/unit/mock_confirm_dialog.js');
 requireApp('communications/contacts/test/unit/mock_vcard_parser.js');
 requireApp('communications/contacts/test/unit/mock_mozContacts.js');
+requireApp('communications/contacts/test/unit/mock_sim_importer.js');
+requireApp('communications/contacts/test/unit/mock_wakelock.js');
 requireApp('communications/contacts/js/import_utils.js');
 requireApp('communications/contacts/js/navigation.js');
 requireApp('communications/contacts/js/views/settings.js');
+requireApp('communications/contacts/js/utilities/cookie.js');
 requireApp('communications/contacts/js/utilities/event_listeners.js');
 
 if (!this._) this._ = null;
@@ -24,20 +28,21 @@ if (!window.Rest) {
 
 window.self = null;
 
-
-var realMozContacts;
+var realMozContacts, realUtils;
 
 if (!this.realMozContacts) {
   realMozContacts = null;
 }
 
 var mocksHelperForContactSettings = new MocksHelper([
-  'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper'
+  'Contacts', 'asyncStorage', 'fb', 'ConfirmDialog', 'VCFReader', 'IccHelper',
+  'SimContactsImporter', 'WakeLock'
 ]);
 mocksHelperForContactSettings.init();
 
 suite('Contacts settings', function() {
   var checkForCard, real_;
+  var realDeviceStorage;
   var mocksHelper = mocksHelperForContactSettings;
 
   function stub(additionalCode, ret) {
@@ -57,11 +62,15 @@ suite('Contacts settings', function() {
     return nfn;
   }
 
-  suiteTemplate('settings');
-
-  suiteSetup(function() {
+  suiteSetup(function(done) {
     mocksHelper.suiteSetup();
+
     real_ = window._;
+    realUtils = window.utils;
+    realDeviceStorage = navigator.getDeviceStorage;
+    navigator.getDeviceStorage = MockgetDeviceStorage;
+
+
     if (!window.utils) {
       window.utils = { sdcard: MockSdCard };
     } else {
@@ -77,14 +86,47 @@ suite('Contacts settings', function() {
       showMenu: function() {}
     };
     window._ = stub('blah');
+
+    document.body.innerHTML = MockContactsIndexHtml;
+
+    LazyLoader.load(TestUrlResolver.resolve(
+      'communications/contacts/js/utilities/status.js'), done);
   });
 
   suiteTeardown(function() {
     window._ = real_;
+    window.utils = realUtils;
+    navigator.getDeviceStorage = realDeviceStorage;
     mocksHelper.suiteTeardown();
   });
 
+  suite('SIM Import', function() {
+    suiteSetup(function() {
+      Contacts.showStatus = utils.status.show;
+      contacts.Settings.init();
+    });
+    test('If there are no Contacts to be imported a message appears',
+      function(done) {
+        var observer = new MutationObserver(function(record) {
+          observer.disconnect();
+          assert.isTrue(record[0].target.classList.contains('visible'));
+          done();
+        });
+        observer.observe(document.getElementById('statusMsg'), {
+          attributes: true,
+          attributeFilter: ['class']
+        });
+        var simOption = document.querySelector('#import-sim-option button');
+        simOption.click();
+    });
+  });
+
   suite('Export options', function() {
+    var oldCheckStorageCard;
+    suiteSetup(function() {
+      oldCheckStorageCard = utils.sdcard.checkStorageCard;
+    });
+
     setup(function() {
       utils.sdcard.checkStorageCard = function() { return true; };
       contacts.Settings.init();
@@ -112,14 +154,33 @@ suite('Contacts settings', function() {
     suiteTeardown(function() {
       mocksHelper.suiteTeardown();
       navigator.mozContacts = realMozContacts;
+      utils.sdcard.checkStorageCard = oldCheckStorageCard;
     });
   });
 
   suite('SD Card import', function() {
+    var showMenuSpy;
+    var showStatusSpy;
+    var realWakeLock;
+
+    suiteSetup(function() {
+      checkForCard = utils.sdcard.checkStorageCard;
+      if (navigator.requestWakeLock) {
+        realWakeLock = navigator.requestWakeLock;
+      }
+      navigator.requestWakeLock = MockWakeLock;
+    });
+
+    suiteTeardown(function() {
+      utils.sdcard.checkStorageCard = checkForCard;
+      navigator.requestWakeLock = realWakeLock;
+    });
+
     setup(function() {
       contacts.Settings.init();
-      checkForCard = utils.sdcard.checkStorageCard;
       mocksHelper.setup();
+      showMenuSpy = sinon.spy(window.utils.overlay, 'showMenu');
+      showStatusSpy = sinon.spy(Contacts, 'showStatus');
     });
 
     test('show SD Card import if SD card is present', function() {
@@ -131,6 +192,7 @@ suite('Contacts settings', function() {
 
       assert.equal(importSdOption
         .classList.contains('error'), false);
+      utils.sdcard.checkStorageCard = checkForCard;
 
     });
 
@@ -144,26 +206,50 @@ suite('Contacts settings', function() {
 
       assert.equal(importSdOption
         .classList.contains('error'), true);
+      utils.sdcard.checkStorageCard = checkForCard;
+    });
 
+    test('SD Import went well', function(done) {
+      contacts.Settings.importFromSDCard(function onImported() {
+        sinon.assert.called(showMenuSpy);
+        sinon.assert.called(showStatusSpy);
+        assert.equal(false, MyLocks['cpu']);
+        done();
+      });
+    });
+
+    test('SD Import with error cause no files to import', function(done) {
+      // Simulate not finding any files
+      MockSdCard.failOnRetrieveFiles = true;
+      contacts.Settings.importFromSDCard(function onImported() {
+        sinon.assert.called(showMenuSpy);
+        sinon.assert.notCalled(showStatusSpy);
+        assert.equal(false, MyLocks['cpu']);
+        // Restore the mock
+        MockSdCard.failOnRetrieveFiles = false;
+        done();
+      });
     });
 
     teardown(function() {
       utils.sdcard.checkStorageCard = checkForCard;
       mocksHelper.teardown();
       MockasyncStorage.clear();
+      showMenuSpy.restore();
+      showStatusSpy.restore();
     });
   });
 
   suite('Timestamp Import', function() {
-
-    suiteTemplate('settings');
-
     var gmailTime = Date.now();
     var liveTime = Date.now() - 24 * 60 * 60 * 1000;
 
     setup(function() {
+      // Restore previous tainted html
+      document.body.innerHTML = MockContactsIndexHtml;
       contacts.Settings.init();
 
+      MockasyncStorage.clear();
       MockasyncStorage.setItem('gmail_last_import_timestamp', gmailTime);
       MockasyncStorage.setItem('live_last_import_timestamp', liveTime);
 
@@ -201,83 +287,63 @@ suite('Contacts settings', function() {
     });
   });
 
-  suite('SD Export when UMS enabled', function() {
-    var realSettings = navigator.mozSettings;
+  suite('SD Export when sharing sd card', function() {
     var importSDButton = exportSDButton = null;
-    var checkForCard;
+
+    // Sets the state of the sdcard to shared (not usable)
+    function shareSDCard() {
+      utils.sdcard.status = MockSdCard.NOT_AVAILABLE;
+    }
+
+    // Free's the sdcard so we can use it
+    function unShareSDCard() {
+      utils.sdcard.status = MockSdCard.AVAILABLE;
+    }
 
     suiteSetup(function() {
-      checkForCard = utils.sdcard.checkStorageCard;
-      utils.sdcard.checkStorageCard = function() { return true; };
-      navigator.mozSettings = MockNavigatorSettings;
-    });
-
-    suiteTeardown(function() {
-      navigator.mozSettings.mTeardown();
-      navigator.mozSettings = realSettings;
-      utils.sdcard.checkStorageCard = checkForCard;
-    });
-
-    setup(function() {
-      navigator.mozSettings.mTeardown();
-
       importSDButton = document.getElementById('import-sd-option').
         firstElementChild;
       exportSDButton = document.getElementById('export-sd-option').
         firstElementChild;
-    });
-
-    function setUMS(value) {
-      navigator.mozSettings.createLock().set({
-        'ums.enabled': value
-      });
-    }
-
-    function triggerUMSChange(value) {
-      navigator.mozSettings.mTriggerObservers('ums.enabled', {
-        'settingValue': value
-      });
-    }
-
-    test('Without the UMS enabled', function() {
-      setUMS(false);
 
       contacts.Settings.init();
+    });
+
+    test('Without sharing the sdcard', function() {
+      unShareSDCard();
+
+      contacts.Settings.refresh();
       assert.ok(!importSDButton.hasAttribute('disabled'));
       assert.ok(!exportSDButton.hasAttribute('disabled'));
     });
 
-    test('Without UMS enabled at start and enabling it', function(done) {
-      setUMS(false);
+    test('Without sharing sdcard at start and sharing it', function(done) {
+      unShareSDCard();
 
-      contacts.Settings.init();
-
-      // Trigger the ums change
-      triggerUMSChange(true);
+      // Trigger the card state change
+      shareSDCard();
 
       setTimeout(function checkStorageButtons() {
-        assert.ok(importSDButton.hasAttribute('disabled'));
-        assert.ok(exportSDButton.hasAttribute('disabled'));
-        done();
+          assert.ok(importSDButton.hasAttribute('disabled'));
+          assert.ok(exportSDButton.hasAttribute('disabled'));
+          done();
       }, 200);
     });
 
-    test('With UMS enabled at start and disabling it', function(done) {
-      setUMS(true);
+    test('With sharing sdcrd enabled at start and disabling it',
+      function(done) {
+      shareSDCard();
 
-      contacts.Settings.init();
-      contacts.Settings.refresh(function onRefreshFinished() {
-        assert.ok(importSDButton.hasAttribute('disabled'));
-        assert.ok(exportSDButton.hasAttribute('disabled'));
+      contacts.Settings.refresh();
+      assert.ok(importSDButton.hasAttribute('disabled'));
+      assert.ok(exportSDButton.hasAttribute('disabled'));
 
-        triggerUMSChange(false);
-
-        setTimeout(function checkStorageButtons() {
-          assert.ok(!importSDButton.hasAttribute('disabled'));
-          assert.ok(!exportSDButton.hasAttribute('disabled'));
-          done();
-        }, 200);
-      });
+      unShareSDCard();
+      setTimeout(function checkStorageButtons() {
+        assert.ok(!importSDButton.hasAttribute('disabled'));
+        assert.ok(!exportSDButton.hasAttribute('disabled'));
+        done();
+      }, 200);
 
     });
   });

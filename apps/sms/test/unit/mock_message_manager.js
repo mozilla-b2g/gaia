@@ -2,6 +2,7 @@
 
 var MockMessageManager = {
   getMessages: function() {},
+  getMessage: function() {},
   deleteMessage: function(messageId, callback) {
     if (callback) {
       callback();

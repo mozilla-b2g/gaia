@@ -61,13 +61,25 @@ contacts.Search = (function() {
 
   var initialized = false;
 
+  var ignoreReturnKey = function ignoreReturnKey(evt) {
+    if (evt.keyCode == 13) { // VK_Return
+      evt.preventDefault();
+    }
+  };
+
   var doInit = function doInit() {
     if (initialized) {
       return;
     }
 
     utils.listeners.add({
-      '#cancel-search': exitSearchMode
+      '#cancel-search': exitSearchMode,
+      '#search-contact': [
+        {
+          event: 'keypress',
+          handler: ignoreReturnKey
+        }
+      ]
     });
 
     initialized = true;
@@ -107,7 +119,9 @@ contacts.Search = (function() {
   var exitSearchMode = function exitSearchMode(evt) {
     evt.preventDefault();
     searchView.classList.remove('insearchmode');
-    Contacts.navigation.back();
+    if (Contacts && Contacts.navigation) {
+      Contacts.navigation.back();
+    }
 
     window.setTimeout(function exit_search() {
       hideProgressResults();
@@ -227,7 +241,9 @@ contacts.Search = (function() {
       fillInitialSearchPage();
       inSearchMode = true;
       emptySearch = true;
-      Contacts.navigation.go('search-view', 'none');
+      if (Contacts && Contacts.navigation) {
+        Contacts.navigation.go('search-view', 'none');
+      }
 
       setTimeout(function nextTick() {
         searchBox.focus();
@@ -481,11 +497,11 @@ contacts.Search = (function() {
     searchList.removeChild(contact);
   };
 
-  var selectRow = function s_selectRow(id) {
+  var selectRow = function s_selectRow(id, value) {
     var check = searchList.querySelector(
       '#search-view input[value="' + id + '"]');
     if (check) {
-      check.checked = !check.checked;
+      check.checked = value;
     }
   };
 

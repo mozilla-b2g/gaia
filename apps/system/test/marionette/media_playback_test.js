@@ -78,4 +78,86 @@ marionette('media playback tests', function() {
       playback.waitForContainerShown(false);
     });
   });
+
+  test('play/pause icon is updated correctly', function() {
+    music.runInApp(function() {
+      music.albumOneElement.click();
+    });
+
+    playback.openUtilityTray(function() {
+      playback.waitForContainerShown(true);
+      assert.equal(playback.isPlaying, true);
+    });
+
+    music.runInApp(function() {
+      music.playPauseElement.click();
+    });
+
+    playback.openUtilityTray(function() {
+      client.waitFor(function() {
+        return !playback.isPlaying;
+      });
+    });
+
+    music.runInApp(function() {
+      music.playPauseElement.click();
+    });
+
+    playback.openUtilityTray(function() {
+      client.waitFor(function() {
+        return playback.isPlaying;
+      });
+    });
+  });
+
+  test('play/pause from notification area', function() {
+    music.runInApp(function() {
+      music.albumOneElement.click();
+    });
+
+    playback.openUtilityTray(function() {
+      playback.waitForContainerShown(true);
+      playback.waitForNowPlayingText('Some Artist', 'Some Song');
+      music.runInApp(function() {
+        assert.equal(music.isPlaying, true);
+      });
+      assert.equal(playback.isPlaying, true);
+
+      playback.playPause();
+      music.runInApp(function() {
+        assert.equal(music.isPlaying, false);
+      });
+      assert.equal(playback.isPlaying, false);
+
+      playback.playPause();
+      music.runInApp(function() {
+        assert.equal(music.isPlaying, true);
+      });
+      assert.equal(playback.isPlaying, true);
+    });
+  });
+
+  test('go to next/prev track from notification area', function() {
+    music.runInApp(function() {
+      music.albumOneElement.click();
+    });
+
+    playback.openUtilityTray(function() {
+      playback.waitForContainerShown(true);
+      playback.waitForNowPlayingText('Some Artist', 'Some Song');
+
+      playback.nextTrack();
+
+      playback.waitForNowPlayingText('Another Artist', 'Another Song');
+
+      playback.previousTrack();
+
+      playback.waitForNowPlayingText('Some Artist', 'Some Song');
+
+      playback.nextTrack();
+      playback.nextTrack();
+
+      playback.waitForContainerShown(false);
+    });
+  });
 });

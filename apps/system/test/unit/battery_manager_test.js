@@ -1,7 +1,7 @@
 'use strict';
 
 requireApp('system/test/unit/mock_navigator_battery.js');
-requireApp('system/test/unit/mock_settings_listener.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/test/unit/mock_l10n.js');

@@ -70,6 +70,7 @@
   },
   "permissions": {
     "telephony":{},
+    "bluetooth":{},
     "voicemail":{},
     "contacts":{ "access": "readwrite" },
     "mobileconnection":{},
@@ -86,7 +87,7 @@
     "storage": {},
     "device-storage:sdcard": { "access": "readcreate" }
   },
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "activities": {
     "pick": {
       "filters": {
@@ -101,7 +102,7 @@
     },
     "import": {
       "filters": {
-        "type": ["text/x-vcard", "text/vcard", "application/vcard"]
+        "type": "text/vcard"
       },
       "disposition": "inline",
       "href": "/contacts/index.html?open",
@@ -159,5 +160,10 @@
     "to": "/redirects/redirect.html"},
     {"from": "gmail",
     "to": "/redirects/redirect.html"}
-  ]
+  ],
+  "datastores-owned": {
+    "Gaia_Facebook_Friends": {
+      "description": "Imported Facebook Friends"
+    }
+  }
 }

@@ -41,10 +41,12 @@ ul li > span {
   height: 6rem;
   font-size: 1.9rem;
   line-height: 6rem;
-  padding: 0 1.5rem;
+  padding: 0 3rem;
+  margin: 0 -1.5rem;
 }
 
-ul li.active,
+ul li.active a,
+ul li.active span,
 ul li:not([aria-disabled="true"]) > small + a:active,
 ul li:not([aria-disabled="true"]) > a[href]:active,
 ul li:not([aria-disabled="true"]) > small + a:focus,
@@ -266,160 +268,14 @@ ul li#brightness-manual > label input[type="range"] {
   width: calc(100% - 10rem);
 }
 
-/**
- * Polyfill until input[type=range] is natively supported by Gecko:
- * https://bugzilla.mozilla.org/show_bug.cgi?id=344618
- *
- * The JS polyfill transforms this:
- *
- *   <label>
- *     <input type="range" value="60" />
- *   </label>
- *
- * into this:
- *
- *   <label class="bug344618_polyfill">
- *     <div>
- *       <span style="width: 60%"></span>
- *       <span style="left: 60%"></span>
- *     </div>
- *     <input type="range" />
- *   </label>
- */
-
-ul li > label.bug344618_polyfill input {
-  display: none;
-}
-
-/* slider */
-
-ul li > label.bug344618_polyfill div:before {
-  content: "";
-  position: absolute;
-  top: calc(50% - 0.1rem);
-  left: 0;
-  right: 0;
-  height: 0.1rem;
-  border-top: 0.1rem solid #7e7e7e;
-}
-
-ul li > label.bug344618_polyfill div {
-  position: relative;
-  top: calc(50% - 1.5rem);
-  left: 1.5rem;
-  right: 1.5rem;
-  height: 3rem;
-  width: calc(100% - 3rem);
-}
-
-/* fill */
-
-ul li > label.bug344618_polyfill div span:first-child {
-  position: absolute;
-  display: block;
-  top: calc(50% - 0.15rem);
-  width: 4rem;
-  height: 0.3rem;
-  background-color: #01c5ed;
-}
-
-/* throbber */
-
-ul li > label.bug344618_polyfill div span:last-child {
-  position: absolute;
-  top: 50%;
-  margin: -2rem 0 0 -2rem;
-  display: block;
-  width: 3.8rem;
-  height: 3.8rem;
-  outline: solid 0.1rem transparent;
-  outline-offset: -1rem;
-  -moz-outline-radius: 3rem;
-  transition: outline 0.15s ease;
-  background: url(images/range_thumb.png) no-repeat 50% 50%;
-  background-size: 2.8rem 2.8rem;
-}
-
-ul li > label.bug344618_polyfill div span:last-child:active {
-  outline: solid 0.4rem #01c5ed;
-}
-
-
 /******************************************************************************
  * Select boxes
  */
-
-ul li select {
-  font-size: 1.9rem;
-  height: 3rem;
-  line-height: 3rem;
-  text-align: center;
-}
-
-/* half-width select boxes */
-ul li span select {
-  display: inline-block;
-  position: absolute;
-  top: 1.5rem;
-  right: 3rem;
-  width: calc(50% - 2rem);
-}
-
-/* full-width select boxes */
-ul li p + select {
-  display: block;
-  width: calc(100% - 15rem);
-  margin: -1rem 3rem 1rem 12rem;
-}
-
-/******************************************************************************
- * Fake select boxes
- */
-.fake-select {
-  position: relative;
-  display: block;
-  padding: 0;
-  margin-bottom: 1.5rem;
-  height: 3.8rem;
-}
-
-a + .fake-select {
-  margin-top: -1rem;
-}
-
-.fake-select.small {
-  display: inline-block;
-  vertical-align: top;
-}
-
-.fake-select > button {
-  display: block;
-  top: 0;
-  left: 0;
-  width: 100%;
-}
-
-.fake-select > select {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3.8rem;
+.button.icon-dialog select {
   border: none;
-  background: red;
-  opacity: 0;
+  background: transparent;
+  font-size: 1.7rem;
 }
-
-p > .fake-select {
-  margin: 1rem -1.5rem 0.5rem; 
-}
-
-/* */
-section[role="region"] > ul > li > p + .fake-select {
-  padding-top: 0;
-  margin-top: -0.8rem;
-}
-
 
 /******************************************************************************
  * Progress, Meter

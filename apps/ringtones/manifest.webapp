@@ -3,14 +3,13 @@
   "description": "Gaia Ringtone Picker",
   "type": "certified",
   "role": "system",
-  "orientation": "portrait-primary",
+  "orientation": "default",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "settings":{ "access": "readonly" },
-    "device-storage:music":{ "access": "readwrite" }
+    "settings":{ "access": "readonly" }
   },
   "activities": {
     "pick": {
@@ -27,6 +26,11 @@
       "name": "System Ringtones",
       "description": "Gaia Ringtone Picker"
     }
+  },
+  "icons": {
+    "60": "/style/icons/Ringtones_60.png",
+    "90": "/style/icons/Ringtones_90.png",
+    "120": "/style/icons/Ringtones_120.png"
   },
   "default_locale": "en-US"
 }

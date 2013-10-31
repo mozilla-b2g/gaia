@@ -142,8 +142,16 @@ const IMERender = (function() {
           dataset.push({'key': 'compositekey', 'value': key.compositeKey});
         }
 
+        var attributeList = [];
+        if (key.disabled) {
+          attributeList.push({
+            key: 'disabled',
+            value: 'true'
+          });
+        }
+
         kbRow.appendChild(buildKey(keyChar, className, keyWidth + 'px',
-          dataset, key.altNote));
+          dataset, key.altNote, attributeList));
       }));
 
       kbRow.dataset.layoutWidth = rowLayoutWidth;
@@ -255,19 +263,6 @@ const IMERender = (function() {
     } else {
       IMERender.ime.classList.remove('full-candidate-panel');
       IMERender.ime.classList.add('candidate-panel');
-    }
-
-    resizeCandidatePanelToggleButton();
-  };
-
-  var resizeCandidatePanelToggleButton = function() {
-    var candidatePanelToggleButton =
-      document.getElementById('keyboard-candidate-panel-toggle-button');
-
-    if (candidatePanelToggleButton) {
-      candidatePanelToggleButton.style.width =
-        (IMERender.isFullCandidataPanelShown() ?
-         candidateUnitWidth - 8 : candidateUnitWidth) + 'px';
     }
   };
 
@@ -387,6 +382,7 @@ const IMERender = (function() {
         });
       } else {
         candidatePanelToggleButton.style.display = 'none';
+        toggleCandidatePanel(false);
         docFragment = candidatesFragmentCode(1, candidates, true);
       }
 
@@ -413,6 +409,7 @@ const IMERender = (function() {
 
     var docFragment = document.createDocumentFragment();
     if (candidates.length == 0) {
+      candidatePanel.dataset.rowCount = 0;
       return docFragment;
     }
 
@@ -717,7 +714,14 @@ const IMERender = (function() {
         }
       );
 
-      resizeCandidatePanelToggleButton();
+      var candidatePanelToggleButton =
+        document.getElementById('keyboard-candidate-panel-toggle-button');
+
+      if (candidatePanelToggleButton) {
+        candidatePanelToggleButton.style.width = candidateUnitWidth + 'px';
+        candidatePanelToggleButton.style.left =
+          (candidateUnitWidth * (numberOfCandidatesPerRow - 1)) + 'px';
+      }
     }
   };
 
@@ -756,10 +760,6 @@ const IMERender = (function() {
       toggleButton.classList.add(inputMethodName);
     }
 
-    var toggleButtonImage = document.createElement('span');
-    toggleButtonImage.id = 'keyboard-candidate-panel-toggle-button-image';
-    toggleButton.appendChild(toggleButtonImage);
-
     toggleButton.style.width =
       Math.floor(document.getElementById('keyboard').clientWidth /
                  numberOfCandidatesPerRow) + 'px';
@@ -767,7 +767,9 @@ const IMERender = (function() {
     return toggleButton;
   };
 
-  var buildKey = function buildKey(label, className, width, dataset, altNote) {
+  var buildKey = function buildKey(label, className, width, dataset, altNote,
+                                   attributeList) {
+
     var altNoteNode;
     if (altNote) {
       altNoteNode = document.createElement('div');
@@ -778,6 +780,13 @@ const IMERender = (function() {
     var contentNode = document.createElement('button');
     contentNode.className = 'keyboard-key ' + className;
     contentNode.setAttribute('style', 'width: ' + width + ';');
+
+    if (attributeList) {
+      attributeList.forEach(function(attribute) {
+        contentNode.setAttribute(attribute.key, attribute.value);
+      });
+    }
+
     dataset.forEach(function(data) {
       contentNode.dataset[data.key] = data.value;
     });

@@ -1,7 +1,8 @@
 'use strict';
 
-var utils = {
+var Mockutils = {
   overlay: {
-    show: function() {}
+    show: function() {},
+    hide: function() {}
   }
 };

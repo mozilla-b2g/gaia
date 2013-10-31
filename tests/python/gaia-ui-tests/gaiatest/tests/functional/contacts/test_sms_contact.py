@@ -25,12 +25,12 @@ class TestContacts(GaiaTestCase):
         contacts.wait_for_contacts()
 
         # Tap on the created contact.
-        contact_details = contacts.contact(self.contact['givenName']).tap()
+        contact_details = contacts.contact(self.contact['givenName'][0]).tap()
         new_message = contact_details.tap_send_sms()
         new_message.wait_for_recipients_displayed()
 
-        expected_name = self.contact['givenName'] + " " + self.contact['familyName']
-        expected_tel = self.contact['tel']['value']
+        expected_name = self.contact['givenName'][0] + " " + self.contact['familyName'][0]
+        expected_tel = self.contact['tel'][0]['value']
 
         # Now check the first listed is from contacts app.
         # Name and phone number have been passed in correctly.

@@ -331,7 +331,6 @@ var WindowManager = (function() {
 
     var app = runningApps[displayedApp];
 
-    app.addClearRotateTransition();
     // Set orientation for the new app
     app.setOrientation();
   }
@@ -357,11 +356,14 @@ var WindowManager = (function() {
         HomescreenLauncher.getHomescreen().setVisible(false);
       }
 
-      // Give the focus to the frame
-      iframe.focus();
-
       waitForNextPaint(frame, function makeWindowActive() {
         frame.classList.add('render');
+
+        // Giving focus to a frame can create an expensive reflow, so let's
+        // delay it until the frame has rendered.
+        if (frame.classList.contains('active')) {
+          iframe.focus();
+        }
       });
     }
 
@@ -378,7 +380,6 @@ var WindowManager = (function() {
     var origin = iframe.dataset.frameOrigin;
 
     frame.classList.remove('active');
-    runningApps[origin].addClearRotateTransition();
 
     // set the closed frame visibility to false
 
@@ -431,11 +432,13 @@ var WindowManager = (function() {
     openCallback = callback || noop;
     preCallback = preCallback || noop;
 
-    // set the size of the opening app
-    app.resize();
-
     // Make window visible to screenreader
     app.frame.removeAttribute('aria-hidden');
+
+    app.fadeIn();
+
+    if (app.resized)
+      app.resize();
 
     if (origin === HomescreenLauncher.origin) {
       // Call the openCallback only once. We have to use tmp var as
@@ -455,7 +458,10 @@ var WindowManager = (function() {
     if (app.isFullScreen())
       screenElement.classList.add('fullscreen-app');
 
-    app.setRotateTransition(app.manifest.orientation);
+    if (app.rotatingDegree !== 0) {
+      // Lock the orientation before transitioning.
+      app.setOrientation();
+    }
 
     transitionOpenCallback = function startOpeningTransition() {
       // We have been canceled by another transition.
@@ -469,10 +475,11 @@ var WindowManager = (function() {
       HomescreenLauncher.getHomescreen().close();
     };
 
-    if ('unloaded' in openFrame.firstChild.dataset) {
+    var iframe = openFrame.firstChild;
+    if ('unloaded' in iframe.dataset) {
       setFrameBackground(openFrame, transitionOpenCallback);
     } else {
-      app._waitForNextPaint(transitionOpenCallback);
+      app.ensureFullRepaint(transitionOpenCallback);
     }
 
     // Set the frame to be visible.
@@ -530,20 +537,26 @@ var WindowManager = (function() {
 
     var onSwitchWindow = isSwitchWindow();
 
-    if (!onSwitchWindow) {
-      // invoke openWindow to show homescreen here
-      // XXX: This doesn't really do the opening. Clean it.
-      displayedApp = HomescreenLauncher.origin;
-      HomescreenLauncher.getHomescreen().setVisible(true);
-      app.setRotateTransition();
-    }
-
     // Send a synthentic 'appwillclose' event.
     // The keyboard uses this and the appclose event to know when to close
     // See https://github.com/andreasgal/gaia/issues/832
     var evt = document.createEvent('CustomEvent');
     evt.initCustomEvent('appwillclose', true, false, { origin: origin });
     closeFrame.dispatchEvent(evt);
+
+    if (!onSwitchWindow) {
+      // invoke openWindow to show homescreen here
+      // XXX: This doesn't really do the opening. Clean it.
+      displayedApp = HomescreenLauncher.origin;
+      HomescreenLauncher.getHomescreen().setVisible(true);
+      if (app.determineClosingRotationDegree() !== 0) {
+        app.fadeOut();
+      }
+      setOrientationForApp(HomescreenLauncher.origin);
+      if (app.resized) {
+        app.resize();
+      }
+    }
 
     transitionCloseCallback = function startClosingTransition() {
       // Remove the wrapper and reset the homescreen to a normal state
@@ -704,6 +717,10 @@ var WindowManager = (function() {
       } else {
         iframe.dataset.start = Date.now();
         iframe.dataset.enableAppLoaded = 'appopen';
+      }
+
+      if (app.rotatingDegree === 90 || app.rotatingDegree === 270) {
+        HomescreenLauncher.getHomescreen().fadeOut();
       }
     }
 
@@ -889,7 +906,6 @@ var WindowManager = (function() {
       iframe.setAttribute('expecting-system-message',
                           'expecting-system-message');
     }
-    maybeSetFrameIsCritical(iframe, origin);
 
     // Register appLoadedHandler as a capturing listener for the
     // 'mozbrowserloadend' and 'appopen' events on this iframe.  This event
@@ -989,6 +1005,21 @@ var WindowManager = (function() {
       });
       iframe.dispatchEvent(evt);
     }, true);
+
+    iframe.addEventListener('mozbrowseractivitydone',
+      function activityFinished(e) {
+        stopInlineActivity();
+        if (runningApps[displayedApp].activityCaller) {
+          // Display activity callee if there's one bind to current activity.
+          var caller = runningApps[displayedApp].activityCaller;
+          delete caller.activityCallee;
+          delete runningApps[displayedApp].activityCaller;
+          setDisplayedApp(caller.origin);
+        } else if (!inlineActivityFrames.length && !activityCallerOrigin) {
+          setDisplayedApp(activityCallerOrigin);
+          activityCallerOrigin = '';
+        }
+      }, true);
 
     // Add the iframe to the document
     windows.appendChild(frame);
@@ -1104,25 +1135,6 @@ var WindowManager = (function() {
     }
   }
 
-  // Watch activity completion here instead of activity.js
-  // Because we know when and who to re-launch when activity ends.
-  window.addEventListener('mozChromeEvent', function(e) {
-    if (e.detail.type == 'activity-done') {
-      stopInlineActivity();
-      if (runningApps[displayedApp].activityCaller) {
-        // Display activity callee if there's one bind to current activity.
-        var caller = runningApps[displayedApp].activityCaller;
-        delete caller.activityCallee;
-        delete runningApps[displayedApp].activityCaller;
-        setDisplayedApp(caller.origin);
-      } else if (!inlineActivityFrames.length && !activityCallerOrigin) {
-        // Remove the top most frame every time we get an 'activity-done' event.
-        setDisplayedApp(activityCallerOrigin);
-        activityCallerOrigin = '';
-      }
-    }
-  });
-
   // Watch chrome event that order to close an app
   window.addEventListener('killapp', function(e) {
     kill(e.detail.origin);
@@ -1145,7 +1157,16 @@ var WindowManager = (function() {
 
     sizes.sort(function(x, y) { return y - x; });
 
-    return icons[sizes[0]];
+    var index = 0;
+    var width = document.documentElement.clientWidth;
+    for (var i = 0; i < sizes.length; i++) {
+      if (sizes[i] < width) {
+        index = i;
+        break;
+      }
+    }
+
+    return icons[sizes[index]];
   }
 
   // TODO: Move into app window.

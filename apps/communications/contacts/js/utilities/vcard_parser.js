@@ -68,7 +68,8 @@ VCFReader.prototype.process = function(cb) {
     }
   }
 
-  LazyLoader.load(['/contacts/js/contacts_matcher.js',
+  LazyLoader.load(['/shared/js/simple_phone_matcher.js',
+                   '/contacts/js/contacts_matcher.js',
                    '/contacts/js/contacts_merger.js',
                    '/contacts/js/merger_adapter.js'
                    ],
@@ -388,8 +389,6 @@ VCFReader.vcardToContact = function(vcard) {
   VCFReader.processAddr(vcard, obj);
   VCFReader.processComm(vcard, obj);
   VCFReader.processFields(vcard, obj);
-  var contact = new mozContact();
-  contact.init(obj);
 
-  return contact;
+  return new mozContact(obj);
 };

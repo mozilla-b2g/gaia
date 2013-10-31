@@ -1,3 +1,5 @@
+/*global MozActivity */
+
 (function(exports) {
 'use strict';
 
@@ -74,6 +76,18 @@ var ActivityPicker = {
    function ap_addToExistingContact(contactProps, onsuccess, onerror) {
     var params = {
       name: 'update',
+      data: {
+        type: 'webcontacts/contact',
+        params: contactProps
+      }
+    };
+
+    tryActivity(params, onsuccess, onerror);
+  },
+  viewContact:
+   function ap_viewContact(contactProps, onsuccess, onerror) {
+    var params = {
+      name: 'open',
       data: {
         type: 'webcontacts/contact',
         params: contactProps

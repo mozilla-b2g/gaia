@@ -194,9 +194,9 @@ var LockScreen = {
 
     /* Gesture */
     this.area.addEventListener('touchstart', this);
-    this.areaCamera.addEventListener('touchstart', this);
+    this.areaCamera.addEventListener('click', this);
+    this.areaUnlock.addEventListener('click', this);
     this.altCamera.addEventListener('touchstart', this);
-    this.areaUnlock.addEventListener('touchstart', this);
     this.iconContainer.addEventListener('touchstart', this);
 
     /* Unlock & camera panel clean up */
@@ -317,6 +317,12 @@ var LockScreen = {
           break;
         }
 
+        // If the screen got blackout, should restore the slide.
+        this.restoreSlide();
+        this.slideLeft.classList.remove('touched');
+        this.slideCenter.classList.remove('touched');
+        this.slideRight.classList.remove('touched');
+
         // XXX: If the screen is not turned off by ScreenManager
         // we would need to lock the screen again
         // when it's being turned back on
@@ -360,6 +366,14 @@ var LockScreen = {
         break;
 
       case 'click':
+        if (evt.mozInputSource === 0 &&
+            (evt.target === this.areaUnlock ||
+             evt.target === this.areaCamera)) {
+          evt.preventDefault();
+          this.handleIconClick(evt.target);
+          break;
+        }
+
         if (!evt.target.dataset.key)
           break;
 
@@ -369,15 +383,15 @@ var LockScreen = {
         break;
 
       case 'touchstart':
-        if (evt.target === this.areaUnlock ||
-           evt.target === this.areaCamera ||
-           evt.target === this.altCamera) {
+        if (evt.target === this.altCamera) {
           evt.preventDefault();
           this.handleIconClick(evt.target);
           break;
         }
 
-        if (evt.target === this.area)
+        if (evt.target === this.area ||
+            evt.target === this.areaUnlock ||
+            evt.target === this.areaCamera)
           this.handleSlideBegin();
 
         var leftTarget = this.areaCamera;
@@ -811,8 +825,7 @@ var LockScreen = {
       this.overlay.classList.remove('no-transition');
 
     this.mainScreen.classList.add('locked');
-
-    screen.mozLockOrientation('portrait-primary');
+    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
 
     if (!wasAlreadyLocked) {
       if (document.mozFullScreen)

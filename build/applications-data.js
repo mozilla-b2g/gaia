@@ -205,6 +205,9 @@ function execute(options) {
 				 customize.move_collection_threshold : 1500;
   // It defines the threshold in pixels to consider a gesture like a tap event
   let tap_threshold = (customize.tap_threshold) ? customize.tap_threshold : 10;
+	// It defines the delay to show the blurring effect for clicked icons
+	let tap_effect_delay = (customize.tap_effect_delay) ?
+																							customize.tap_effect_delay : 140;
   // It defines the threshold to consider a gesture like a swipe. Number
   // in the range 0.0 to 1.0, both included, representing the screen width
   let swipe_threshold = 0.4;
@@ -222,6 +225,24 @@ function execute(options) {
       transition_duration = customize.swipe.transition_duration;
   }
 
+  // if we disabled search_page
+  if (!search_page_enabled) {
+    let hasCollection = customize.homescreens.some(function(applist) {
+      return applist.some(function(eachApp) {
+        if (/collections$/.test(eachApp[0])) {
+          return true;
+        }
+      });
+    });
+
+    // but we still have collections
+    // then it means we have to take off them in build time.
+    if (hasCollection) {
+      throw new Error(
+        'bad homescreens.json, please remove collections when disabling search_page');
+    }
+  }
+
   let content = {
     search_page: {
       provider: 'EverythingME',
@@ -230,6 +251,8 @@ function execute(options) {
     },
 
     tap_threshold: tap_threshold,
+
+		tap_effect_delay: tap_effect_delay,
 
     move_collection_threshold: move_collection_threshold,
 
@@ -366,8 +389,7 @@ function execute(options) {
   init = utils.getFile(config.GAIA_DIR,
     'apps', 'settings', 'resources', 'network.json');
   content = {
-    'types': ['wcdma/gsm', 'gsm', 'wcdma', 'wcdma/gsm-auto', 'cdma/evdo',
-              'cdma', 'evdo', 'wcdma/gsm/cdma/evdo']
+    'types': ['wcdma/gsm', 'gsm', 'wcdma']
   };
 
   utils.writeContent(init,

@@ -17,19 +17,23 @@ class MockContact(dict):
         # set your default values
         import time
         curr_time = repr(time.time()).replace('.', '')
-        self['givenName'] = 'gaia%s' % curr_time[10:]
-        self['familyName'] = "test"
-        self['name'] = self['givenName'] + " " + self['familyName']
-        self['email'] = '%s@restmail.net' % self['givenName']
+        self['givenName'] = ['gaia%s' % curr_time[10:]]
+        self['familyName'] = ['test']
+        self['name'] = [self['givenName'][0] + " " + self['familyName'][0]]
+        self['email'] = [{
+            'type': ['Personal'],
+            'value': '%s@restmail.net' % self['givenName'][0]}]
         # TODO this will only support one phone number
-        self['tel'] = {
-            'type': 'Mobile',
-            'value': "555%s" % curr_time[8:]}
-        self['street'] = "101 Testing street"
-        self['zip'] = "90210"
-        self['city'] = "London"
-        self['country'] = "UK"
-        self['comment'] = "Gaia automated test"
+        self['tel'] = [{
+            'type': ['Mobile'],
+            'value': '555%s' % curr_time[8:]}]
+        self['adr'] = [{
+            'type': ['Home'],
+            'streetAddress': '101 Testing street',
+            'postalCode': '90210',
+            'locality': 'London',
+            'countryName': 'UK'}]
+        self['note'] = ["Gaia automated test"]
 
         # update with any keyword arguments passed
         self.update(**kwargs)

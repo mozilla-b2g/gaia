@@ -1,3 +1,5 @@
+/*global SettingsURL */
+
 (function(exports) {
   'use strict';
 
@@ -35,7 +37,8 @@
     ringtonePlayer.play();
     window.setTimeout(function smsRingtoneEnder() {
       ringtonePlayer.pause();
-      ringtonePlayer.src = '';
+      ringtonePlayer.removeAttribute('src');
+      ringtonePlayer.load();
     }, 2000);
   }
 

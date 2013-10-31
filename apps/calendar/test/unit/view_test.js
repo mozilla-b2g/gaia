@@ -173,7 +173,7 @@ suite('view', function() {
     });
 
     test('miss - on element', function(done) {
-      subject.delegate(element, 'click', function() {
+      subject.delegate(element, 'click', null, function() {
         done(new Error('should not triger'));
       });
 
@@ -185,7 +185,7 @@ suite('view', function() {
     });
 
     test('miss - on child', function(done) {
-      subject.delegate(element, 'click', function() {
+      subject.delegate(element, 'click', null, function() {
         done(new Error('should not triger'));
       });
 

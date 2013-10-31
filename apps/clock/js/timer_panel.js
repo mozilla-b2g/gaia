@@ -1,5 +1,13 @@
-(function(Timer, Panel) {
+define(function(require) {
 'use strict';
+
+var Panel = require('panel');
+var Picker = require('picker/picker');
+var asyncStorage = require('shared/js/async_storage');
+var View = require('view');
+var Utils = require('utils');
+var Timer = require('timer');
+var _ = require('l10n').get;
 
 var priv = new WeakMap();
 
@@ -288,4 +296,5 @@ Timer.Panel.prototype.onclick = function(event) {
   }
 };
 
-}(Timer, Panel));
+return Timer.Panel;
+});

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="pragma" content="no-cache" />
+    <title>Set Ringtone</title>
+    <link rel="stylesheet" href="style/setringtone.css" type="text/css" />
+    <link rel="stylesheet" href="shared/style/confirm.css" type="text/css" />
+    <!-- Localization -->
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <script type="text/javascript" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer src="js/share.js"></script>
+  </head>
+
+  <body>
+    <form role="dialog" data-type="confirm">
+      <section>
+        <h1 id="title" data-l10n-id="setringtone">set ringtone</h1>
+        <p id="message">
+          <span id="songtitle"></span><br/><small id="artist" class="small"></small>
+          <audio id="preview" preload="metadata" loop></audio>
+          <div id="playpause"></div>
+        </p>
+      </section>
+      <menu>
+        <button type="button" id="cancel" data-l10n-id="cancel">cancel</button>
+        <button type="button" id="set" data-l10n-id="setringtone"
+                class="recommend" disabled>set ringtone</button>
+      </menu>
+    </form>
+  </body>
+</html>

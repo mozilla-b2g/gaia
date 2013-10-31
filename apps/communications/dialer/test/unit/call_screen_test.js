@@ -2,6 +2,7 @@
 
 mocha.globals(['resizeTo']);
 
+require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
 requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
@@ -28,6 +29,7 @@ suite('call screen', function() {
   var calls;
   var groupCalls;
   var groupCallsList;
+  var callToolbar;
   var muteButton;
   var speakerButton;
   var statusMessage,
@@ -37,6 +39,7 @@ suite('call screen', function() {
       lockedClockNumbers,
       lockedClockMeridiem,
       lockedDate;
+  var incomingContainer;
 
   mocksHelperForCallScreen.attachTestHelpers();
 
@@ -73,13 +76,17 @@ suite('call screen', function() {
     groupCallsList.id = 'group-call-details-list';
     groupCalls.appendChild(groupCallsList);
 
+    callToolbar = document.createElement('section');
+    callToolbar.id = 'co-advanced';
+    screen.appendChild(callToolbar);
+
     muteButton = document.createElement('button');
     muteButton.id = 'mute';
-    screen.appendChild(muteButton);
+    callToolbar.appendChild(muteButton);
 
     speakerButton = document.createElement('button');
     speakerButton.id = 'speaker';
-    screen.appendChild(speakerButton);
+    callToolbar.appendChild(speakerButton);
 
     statusMessage = document.createElement('div');
     statusMessage.id = 'statusMsg';
@@ -98,11 +105,16 @@ suite('call screen', function() {
     lockedHeader.appendChild(lockedDate);
     screen.appendChild(lockedHeader);
 
+    incomingContainer = document.createElement('article');
+    incomingContainer.id = 'incoming-container';
+    screen.appendChild(incomingContainer);
+
     // Replace the existing elements
     // Since we can't make the CallScreen look for them again
     if (CallScreen != null) {
       CallScreen.screen = screen;
       CallScreen.calls = calls;
+      CallScreen.callToolbar = callToolbar;
       CallScreen.muteButton = muteButton;
       CallScreen.speakerButton = speakerButton;
       CallScreen.groupCalls = groupCalls;
@@ -110,6 +122,7 @@ suite('call screen', function() {
       CallScreen.lockedClockNumbers = lockedClockNumbers;
       CallScreen.lockedClockMeridiem = lockedClockMeridiem;
       CallScreen.lockedDate = lockedDate;
+      CallScreen.incomingContainer = incomingContainer;
     }
 
     requireApp('communications/dialer/js/call_screen.js', done);
@@ -136,11 +149,28 @@ suite('call screen', function() {
         assert.isFalse(calls.classList.contains('big-duration'));
       });
 
-      test('cdmaCallWaiting should update the dataset', function() {
-        assert.isUndefined(calls.dataset.cdmaCallWaiting);
+      test('cdmaCallWaiting should toggle the appropriate classes', function() {
+        assert.isFalse(calls.classList.contains('switch'));
+        assert.isFalse(callToolbar.classList.contains('no-add-call'));
+
         CallScreen.cdmaCallWaiting = true;
-        assert.equal(calls.dataset.cdmaCallWaiting, 'true');
+        assert.isTrue(calls.classList.contains('switch'));
+        assert.isTrue(callToolbar.classList.contains('no-add-call'));
+
+        CallScreen.cdmaCallWaiting = false;
+        assert.isFalse(calls.classList.contains('switch'));
+        assert.isFalse(callToolbar.classList.contains('no-add-call'));
       });
+
+      test('holdAndAnswerOnly should add the hold-and-answer-only class',
+        function() {
+          assert.isFalse(
+            incomingContainer.classList.contains('hold-and-answer-only'));
+          CallScreen.holdAndAnswerOnly = true;
+          assert.isTrue(
+            incomingContainer.classList.contains('hold-and-answer-only'));
+        }
+      );
     });
 
     suite('insertCall', function() {
@@ -194,6 +224,30 @@ suite('call screen', function() {
 
         test('should trigger the callback', function() {
           assert.isTrue(spyCallback.calledOnce);
+        });
+      });
+    });
+
+    suite('when opening in incoming-locked mode', function() {
+      var addEventListenerSpy;
+      var spyCallback;
+
+      setup(function() {
+        CallScreen.screen.dataset.layout = 'incoming-locked';
+        addEventListenerSpy = this.sinon.spy(screen, 'addEventListener');
+        spyCallback = this.sinon.spy();
+
+        CallScreen.toggle(spyCallback);
+      });
+
+      test('should not listen for transitionend', function() {
+        assert.isFalse(addEventListenerSpy.called);
+      });
+
+      test('should call the callback', function(done) {
+        setTimeout(function() {
+          assert.isTrue(spyCallback.called);
+          done();
         });
       });
     });
@@ -432,4 +486,43 @@ suite('call screen', function() {
     });
   });
 
+  suite('background image setter', function() {
+    var realMozSettings;
+    var dummyImage = 'This is a dummy image';
+
+    setup(function() {
+      realMozSettings = navigator.mozSettings;
+      navigator.mozSettings = MockNavigatorSettings;
+      MockNavigatorSettings.mSettings['wallpaper.image'] = dummyImage;
+    });
+
+    teardown(function() {
+      navigator.mozSettings = realMozSettings;
+    });
+
+    test('should change background to default wallpaper (non-forced)',
+    function(done) {
+      var setCallerContactImageSpy =
+          this.sinon.stub(CallScreen, 'setCallerContactImage')
+          .withArgs(dummyImage, {force: false});
+
+      CallScreen.setDefaultContactImage({force: false});
+      setTimeout(function() {
+        assert.isTrue(setCallerContactImageSpy.calledOnce);
+        done();
+      });
+    });
+
+    test('should change background to default wallpaper (forced)',
+    function(done) {
+      var setCallerContactImageSpy =
+          this.sinon.stub(CallScreen, 'setCallerContactImage')
+          .withArgs(dummyImage, {force: true});
+      CallScreen.setDefaultContactImage({force: true});
+      setTimeout(function() {
+        assert.isTrue(setCallerContactImageSpy.calledOnce);
+        done();
+      });
+    });
+  });
 });

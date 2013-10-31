@@ -7,6 +7,20 @@ var FakeMusicComms = {
   _ports: null,
   _queuedMessages: [],
 
+  commands: {
+    playpause: function(event) {
+      FakeMusic.playpause();
+    },
+
+    prevtrack: function(event) {
+      FakeMusic.previous();
+    },
+
+    nexttrack: function(event) {
+      FakeMusic.next();
+    }
+  },
+
   init: function() {
     this._sendMessage('appinfo', {
       origin: window.location.origin,
@@ -19,8 +33,14 @@ var FakeMusicComms = {
 
       app.connect('mediacomms').then(function(ports) {
         self._ports = ports;
-        self._queuedMessages.forEach(function(message) {
-          self._ports.forEach(function(port) {
+        self._ports.forEach(function(port) {
+          port.onmessage = function(event) {
+            var message = event.data;
+            if (message.command in self.commands)
+              self.commands[message.command](event);
+          };
+
+          self._queuedMessages.forEach(function(message) {
             port.postMessage(message);
           });
         });

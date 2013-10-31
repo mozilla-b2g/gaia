@@ -6,9 +6,7 @@
 var About = {
   init: function about_init() {
     document.getElementById('check-update-now').onclick = this.checkForUpdates;
-    document.getElementById('ftuLauncher').onclick = this.launchFTU;
     this.loadHardwareInfo();
-    this.loadGaiaCommit();
     this.loadLastUpdated();
     this.networkStatus();
   },
@@ -22,51 +20,6 @@ var About = {
     window.addEventListener('offline', status.offline);
     window.addEventListener('online', status.online);
     status[(window.navigator.onLine ? 'online' : 'offline')]();
-  },
-
-  loadGaiaCommit: function about_loadGaiaCommit() {
-    var GAIA_COMMIT = 'resources/gaia_commit.txt';
-
-    var dispDate = document.getElementById('gaia-commit-date');
-    var dispHash = document.getElementById('gaia-commit-hash');
-    if (dispHash.textContent)
-      return; // `gaia-commit.txt' has already been loaded
-
-    function dateToUTC(d) {
-      var arr = [];
-      [
-        d.getUTCFullYear(), (d.getUTCMonth() + 1), d.getUTCDate(),
-        d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()
-      ].forEach(function(n) {
-        arr.push((n >= 10) ? n : '0' + n);
-      });
-      return arr.splice(0, 3).join('-') + ' ' + arr.join(':');
-    }
-
-    var req = new XMLHttpRequest();
-    req.onreadystatechange = (function(e) {
-      if (req.readyState === 4) {
-        if (req.status === 0 || req.status === 200) {
-          var data = req.responseText.split('\n');
-
-          /**
-           * XXX it would be great to pop a link to the github page showing the
-           * commit, but there doesn't seem to be any way to tell the browser
-           * to do it.
-           */
-
-          var d = new Date(parseInt(data[1] + '000', 10));
-          dispDate.textContent = dateToUTC(d);
-          dispHash.textContent = data[0];
-        } else {
-          console.error('Failed to fetch gaia commit: ', req.statusText);
-        }
-      }
-    }).bind(this);
-
-    req.open('GET', GAIA_COMMIT, true); // async
-    req.responseType = 'text';
-    req.send();
   },
 
   loadLastUpdated: function about_loadLastUpdated() {
@@ -99,24 +52,13 @@ var About = {
     if (!IccHelper.enabled)
       return;
 
-    var deviceInfoIccid = document.getElementById('deviceInfo-iccid');
-    var deviceInfoMsisdn = document.getElementById('deviceInfo-msisdn');
-    var deviceInfoImei = document.getElementById('deviceInfo-imei');
-    var info = IccHelper.iccInfo;
-    if (!navigator.mozTelephony) {
-      deviceInfoIccid.parentNode.hidden = true;
-      deviceInfoMsisdn.parentNode.hidden = true;
-      deviceInfoImei.parentNode.hidden = true;
-    } else {
-      deviceInfoIccid.textContent = info.iccid;
-      deviceInfoMsisdn.textContent = info.msisdn ||
-      navigator.mozL10n.get('unknown-phoneNumber');
-      var req = mobileConnection.sendMMI('*#06#');
-      req.onsuccess = function getIMEI() {
-        if (req.result && req.result.statusMessage) {
-          deviceInfoImei.textContent = req.result.statusMessage;
-        }
-      };
+     var deviceInfoMsisdn = document.getElementById('deviceInfo-msisdn');
+     var info = IccHelper.iccInfo;
+     if (!navigator.mozTelephony || !info) {
+       deviceInfoMsisdn.parentNode.hidden = true;
+     } else {
+       deviceInfoMsisdn.textContent = info.msisdn ||
+       navigator.mozL10n.get('unknown-phoneNumber');
     }
   },
 
@@ -206,43 +148,6 @@ var About = {
     lock.set({
       'gaia.system.checkForUpdates': true
     });
-  },
-
-  launchFTU: function about_launchFTU() {
-    var settings = Settings.mozSettings;
-    if (!settings)
-      return;
-
-    var key = 'ftu.manifestURL';
-    var req = settings.createLock().get(key);
-    req.onsuccess = function ftuManifest() {
-      var ftuManifestURL = req.result[key];
-
-      // fallback if no settings present
-      if (!ftuManifestURL) {
-        ftuManifestURL = document.location.protocol +
-          '//communications.gaiamobile.org' +
-          (location.port ? (':' + location.port) : '') +
-          '/manifest.webapp';
-      }
-
-      var ftuApp = null;
-      navigator.mozApps.mgmt.getAll().onsuccess = function gotApps(evt) {
-        var apps = evt.target.result;
-        for (var i = 0; i < apps.length && ftuApp == null; i++) {
-          var app = apps[i];
-          if (app.manifestURL == ftuManifestURL) {
-            ftuApp = app;
-          }
-        }
-
-        if (ftuApp) {
-          ftuApp.launch('ftu');
-        } else {
-          alert(navigator.mozL10n.get('no-ftu'));
-        }
-      };
-    };
   }
 };
 

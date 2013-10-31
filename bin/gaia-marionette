@@ -22,10 +22,18 @@ if [ ! -d $DIR/../profile-test ]; then
   PROFILE_FOLDER=profile-test make -C $DIR/../
 fi
 
-# find the xulrunner
-XULRUNNER=`cd $DIR/../xulrunner-sdk* && pwd`
+if [ -z "$XULRUNNER_DIRECTORY" ] ; then
+  # the xulrunner directory isn't in the environment
+  XULRUNNER_DIRECTORY=`ls -d "$DIR/../xulrunner-sdk"*/xulrunner-sdk | sort -nr | head -n1 2> /dev/null`
+fi
+
+if [ -z "$XULRUNNER_DIRECTORY" ] ; then
+  echo "Couldn't find XULrunner. Please execute this file from 'make' or install XULrunner yourself."
+  exit 1
+fi
+
 # find xpcshell and put it in the path
-XPCSHELL_DIR=$(dirname $(find $XULRUNNER/bin -type f -name "xpcshell" | head -n 1));
+XPCSHELL_DIR=$(dirname $(find "$XULRUNNER_DIRECTORY"/bin -type f -name "xpcshell" | head -n 1));
 
 # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
 # xpcshell in available for email fake servers.

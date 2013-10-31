@@ -3,219 +3,159 @@
 var fb = window.fb || {};
 
 if (!window.fb.contacts) {
-  (function(document) {
-
+  (function() {
     var contacts = fb.contacts = {};
-    var indexedDB = window.mozIndexedDB || window.webkitIndexedDB ||
-      window.indexedDB;
 
-    var database;
-    var DB_NAME = 'Gaia_Facebook_Friends';
-    var OLD_DB_VERSIONS = [1.0, 2.0];
-    var DB_VERSION = 3.0;
-    var OLD_STORE_NAMES = ['FBFriends', 'FBFriendsV2'];
-    var STORE_NAME = 'FBFriendsV3';
-    var INDEX_LONG_PHONE = 'byTelephone';
-    var INDEX_SHORT_PHONE = 'byShortTelephone';
-    var isInitialized = false;
-    var migrationNeeded = false;
-    var oldStoreName;
+    var datastore;
+    // Datastore name declared on the manifest.webapp
+    var DATASTORE_NAME = 'Gaia_Facebook_Friends';
+    // Record Id for the index
+    var INDEX_ID = 1;
 
-    function DatabaseMigrator(items) {
-      var pointer = 0;
-      var CHUNK_SIZE = 5;
-      var numResponses = 0;
-      var self = this;
+    // Indicates the initialization state
+    var readyState = 'notInitialized';
+    // Custom event for notifying initializations
+    var INITIALIZE_EVENT = 'fb_ds_init';
 
-      this.items = items;
-
-      function continueCb() {
-        numResponses++;
-        pointer++;
-        if (pointer < self.items.length && numResponses === CHUNK_SIZE) {
-          numResponses = 0;
-          migrateSlice(pointer);
-        }
-        else if (pointer >= self.items.length) {
-          if (typeof self.onfinish === 'function') {
-            self.onfinish();
-          }
-        }
-      }
-
-      this.start = function() {
-        if (Array.isArray(self.items) && self.items.length > 0) {
-          migrateSlice(0);
-        }
-        else {
-          if (typeof self.onfinish === 'function') {
-            self.onfinish();
-          }
-        }
-      };
-
-      function migrateSlice(from) {
-        for (var i = from; i < from + CHUNK_SIZE &&
-             i < self.items.length; i++) {
-          var req = new fb.utils.Request();
-          var item = self.items[i];
-          doSave(item, req);
-          req.onsuccess = function saveSuccess() {
-            console.log('FB Cache: Success migrating ', item.uid);
-            continueCb();
-          };
-          req.onerror = function saveError() {
-            console.error('FB Cache: Error migrating ', item.uid);
-            continueCb();
-          };
-        }
-      }
-    }
-
-    /**
-     *  Creates the store
-     *
-     */
-    function createStore(e) {
-      var db = e.target.result;
-      if (db.objectStoreNames.contains(STORE_NAME)) {
-        db.deleteObjectStore(STORE_NAME);
-      }
-      return db.createObjectStore(STORE_NAME, { keyPath: 'uid' });
-    }
-
-    function createStoreAndIndex(e) {
-      var store = createStore(e);
-      store.createIndex(INDEX_LONG_PHONE, 'telephone', {
-        unique: true,
-        multiEntry: true
-      });
-      store.createIndex(INDEX_SHORT_PHONE, 'shortTelephone', {
-        unique: true,
-        multiEntry: true
-      });
-    }
-
-    function upgradeDB(e) {
-      var oldDbSearch = OLD_DB_VERSIONS.indexOf(e.oldVersion);
-      if (oldDbSearch !== -1 && e.newVersion === DB_VERSION) {
-        window.console.warn('Upgrading Facebook Cache!!!!!');
-        migrationNeeded = true;
-        oldStoreName = OLD_STORE_NAMES[oldDbSearch];
-        createStoreAndIndex(e);
-      }
-      else if (e.newVersion === 1.0) {
-        createStore(e);
-      }
-      else if (e.newVersion === DB_VERSION) {
-        createStoreAndIndex(e);
-      }
-    }
-
-    function clearOldObjStore(cb) {
-      var transaction = database.transaction([oldStoreName], 'readwrite');
-      var objectStore = transaction.objectStore(oldStoreName);
-
-      var req = objectStore.clear();
-      req.onsuccess = cb;
-      req.onerror = function error_del_objstore(e) {
-        window.console.error('FB Cache. Error while clearing old Obj Store',
-                             e.target.error.name);
-        cb();
+    // Creates the internal Object in the datastore that will act as an index
+    function createIndex() {
+      return {
+        // By Facebook UID
+        byUid: Object.create(null),
+        // By internationalized tel number
+        // (We are not supporting dups right now)
+        byTel: Object.create(null),
+        // By short tel number
+        // (We are not supporting dups right now)
+        byShortTel: Object.create(null)
       };
     }
 
-    function migrateData(onfinishCb) {
-      if (!database.objectStoreNames.contains(oldStoreName)) {
-        onfinishCb();
-        return;
+    // The index we need to keep the correspondance between FB Friends and
+    // datastore Ids
+    var index;
+
+    // Indicates whether the index is dirty
+    var isIndexDirty = false;
+
+    function notifyOpenSuccess(cb) {
+      readyState = 'initialized';
+      if (typeof cb === 'function') {
+        window.setTimeout(cb, 0);
       }
-
-      var transaction = database.transaction([oldStoreName], 'readonly');
-      var objectStore = transaction.objectStore(oldStoreName);
-
-      var req = objectStore.mozGetAll();
-
-      req.onsuccess = function(e) {
-        var data = e.target.result;
-
-        var migrator = new DatabaseMigrator(data);
-         migrator.onfinish = function migration_finished() {
-          window.console.log('FB Cache: Migration process finished!!');
-          migrationNeeded = false;
-          clearOldObjStore(onfinishCb);
-        };
-        migrator.start();
-      };
-
-      req.onerror = function(e) {
-        window.console.error('FB Cache: Data migration failed !!!! ');
-        onfinishCb();
-      };
+      var ev = new CustomEvent(INITIALIZE_EVENT);
+      document.dispatchEvent(ev);
     }
 
     function initError(outRequest, error) {
       outRequest.failed(error);
     }
 
+    // Creates a default handler for errors
+    function defaultError(request) {
+      return defaultErrorCb.bind(null, request);
+    }
+
+    // Creates a default handler for success
+    function defaultSuccess(request) {
+      return defaultSuccessCb.bind(null, request);
+    }
+
+    function defaultErrorCb(request, error) {
+      request.failed(error);
+    }
+
+    function defaultSuccessCb(request, result) {
+      request.done(result);
+    }
+
+    function setIndex(obj) {
+      index = obj;
+      isIndexDirty = false;
+    }
+
     function doGet(uid, outRequest) {
-      var transaction = database.transaction([STORE_NAME], 'readonly');
-      var objectStore = transaction.objectStore(STORE_NAME);
-      var areq = objectStore.get(uid);
+      var dsId = index.byUid[uid];
 
-      areq.onsuccess = function(e) {
-        outRequest.done(e.target.result);
-      };
+      var successCb = successGet.bind(null, outRequest);
+      var errorCb = errorGet.bind(null, outRequest, uid);
 
-      areq.onerror = function(e) {
-        outRequest.failed(e.target.error);
-      };
+      if (typeof dsId === 'undefined') {
+        // Refreshing the index just in case
+        datastore.get(INDEX_ID).then(function success_index(obj) {
+          setIndex(obj);
+          dsId = index.byUid[uid];
+          if (typeof dsId !== 'undefined') {
+            return datastore.get(dsId);
+          }
+          else {
+            errorGet(outRequest, uid, {
+              name: 'No DataStore Id found'
+            });
+            // Just to avoid warnings of function not always returning
+            return null;
+          }
+        }, errorCb).then(successCb, errorCb);
+      }
+      else {
+        datastore.get(dsId).then(successCb, errorCb);
+      }
+    }
+
+    function successGet(outReq, data) {
+      outReq.done(data);
+    }
+
+    function errorGet(outReq, uid, err) {
+      window.console.error('Error while getting object for UID: ', uid);
+      outReq.failed(err.name);
     }
 
     /**
-     *  Allows to obtain the FB contact information by UID
+     *  Allows to obtain the FB friend information by UID
      *
      *
      */
     contacts.get = function(uid) {
-      var retRequest = new fb.utils.Request();
+      var outRequest = new fb.utils.Request();
 
       window.setTimeout(function get() {
         contacts.init(function() {
-          doGet(uid, retRequest);
+          doGet(uid, outRequest);
         }, function() {
-          initError(retRequest);
+          initError(outRequest);
         });
-      },0);
+      }, 0);
 
-      return retRequest;
+      return outRequest;
     };
 
     function doGetByPhone(tel, outRequest) {
-      var transaction = database.transaction([STORE_NAME], 'readonly');
-      var objectStore = transaction.objectStore(STORE_NAME);
+      var dsId = index.byTel[tel] || index.byShortTel[tel];
 
-      var index = objectStore.index(INDEX_LONG_PHONE);
-      var areq = index.get(tel);
-      areq.onsuccess = function(e) {
-        if (e.target.result) {
-          outRequest.done(e.target.result);
-        }
-        else {
-          var otherIndex = objectStore.index(INDEX_SHORT_PHONE);
-          var otherReq = otherIndex.get(tel);
-          otherReq.onsuccess = function(e) {
-            outRequest.done(e.target.result);
-          };
-          otherReq.onerror = function(e) {
-            outRequest.failed(e.target.error);
-          };
-        }
-      };
-
-      areq.onerror = function(e) {
-        outRequest.failed(e.target.error);
-      };
+      if (typeof dsId !== 'undefined') {
+        datastore.get(dsId).then(function success(friend) {
+          outRequest.done(friend);
+        }, defaultError(outRequest));
+      }
+      else {
+        // Refreshing the index just in case
+        datastore.get(INDEX_ID).then(function success(obj) {
+          setIndex(obj);
+          dsId = index.byTel[tel] || index.byShortTel[tel];
+          if (typeof dsId !== 'undefined') {
+            datastore.get(dsId).then(function success(friend) {
+              outRequest.done(friend);
+            }, defaultError(outRequest));
+          }
+          else {
+            outRequest.done(null);
+          }
+        }, function(err) {
+          window.console.error('The index cannot be refreshed: ', err.name);
+          outRequest.failed(err);
+        });
+      }
     }
 
     contacts.getByPhone = function(tel) {
@@ -234,34 +174,34 @@ if (!window.fb.contacts) {
     };
 
     function doSave(obj, outRequest) {
-      var transaction = database.transaction([STORE_NAME], 'readwrite');
+      var globalId;
 
-      transaction.onerror = function(e) {
-        outRequest.failed(e.target.error);
-      };
+      datastore.add(obj).then(function success(newId) {
+        var uid = obj.uid;
+        index.byUid[uid] = newId;
+        // Update index by tel
+        // As this is populated by FB importer we don't need to have
+        // extra checks
+        if (Array.isArray(obj.tel)) {
+          obj.tel.forEach(function(aTel) {
+            index.byTel[aTel.value] = newId;
+          });
+        }
+        if (Array.isArray(obj.shortTelephone)) {
+          obj.shortTelephone.forEach(function(aTel) {
+            index.byShortTel[aTel] = newId;
+          });
+        }
+        globalId = newId;
 
-      var objectStore = transaction.objectStore(STORE_NAME);
-
-      if (Array.isArray(obj.tel) && obj.tel.length > 0) {
-        obj.telephone = [];
-        obj.tel.forEach(function(atel) {
-          obj.telephone.push(atel.value);
-        });
-      }
-
-      var req = objectStore.put(obj);
-      req.onsuccess = function(e) {
-        outRequest.done(e.target.result);
-      };
-
-      req.onerror = function(e) {
-        outRequest.failed(e.target.error);
-      };
+        return datastore.update(INDEX_ID, index);
+      }, defaultError(outRequest)).then(function success() {
+          defaultSuccessCb(outRequest, globalId);
+        }, defaultError(outRequest));
     }
 
     /**
-     *  Allows to save FB Contact Information
-     *
+     *  Allows to save FB Friend Information
      *
      */
     contacts.save = function(obj) {
@@ -274,80 +214,210 @@ if (!window.fb.contacts) {
         function() {
           initError(retRequest);
         });
-      },0);
+      }, 0);
 
       return retRequest;
     };
 
-    function doGetAll(outRequest) {
-      var transaction = database.transaction([STORE_NAME], 'readonly');
-      var objectStore = transaction.objectStore(STORE_NAME);
-
-      var req = objectStore.mozGetAll();
-
-      req.onsuccess = function(e) {
-        var data = e.target.result;
-        var out = {};
-        data.forEach(function(contact) {
-          out[contact.uid] = contact;
-        });
-        outRequest.done(out);
-      };
-
-      req.onerror = function(e) {
-        outRequest.failed(e.target.error);
-      };
-    }
-
-    contacts.getAll = function() {
+    /**
+     *  Allows to update FB Friend Information
+     *
+     *
+     */
+    contacts.update = function(obj) {
       var retRequest = new fb.utils.Request();
 
-      window.setTimeout(function() {
-        contacts.init(function get_all() {
-          doGetAll(retRequest);
+      window.setTimeout(function save() {
+        contacts.init(function() {
+          doUpdate(obj, retRequest);
         },
         function() {
           initError(retRequest);
         });
-      },0);
+      }, 0);
 
       return retRequest;
     };
 
-    function doRemove(uid, outRequest) {
-      var transaction = database.transaction([STORE_NAME], 'readwrite');
-      transaction.oncomplete = function(e) {
-        outRequest.done(e.target.result);
-      };
+    function doUpdate(obj, outRequest) {
+      var dsId = index.byUid[obj.uid];
 
-      transaction.onerror = function(e) {
-        outRequest.failed(e.target.error);
-      };
-      var objectStore = transaction.objectStore(STORE_NAME);
+      var successCb = successUpdate.bind(null, outRequest);
+      var errorCb = errorUpdate.bind(null, outRequest, obj.uid);
 
-      objectStore.delete(uid);
+      if (typeof dsId !== 'undefined') {
+        datastore.update(dsId, obj).then(successCb, errorCb);
+      }
+      else {
+        // Let's try to refresh the index
+        datastore.get(INDEX_ID).then(function success_index(data) {
+          setIndex(data);
+          dsId = index.byUid[obj.uid];
+          if (typeof dsId !== 'undefined') {
+            return datastore.update(dsId, obj);
+          }
+          else {
+            errorCb({
+              name: 'Datastore Id cannot be found'
+            });
+            // Just to avoid warnings in strict mode
+            return null;
+          }
+        }, errorCb).then(successCb, errorCb);
+      }
+    }
+
+    function successUpdate(outRequest) {
+      outRequest.done();
+    }
+
+    function errorUpdate(outRequest, uid, error) {
+      window.console.error('Error while updating datastore for: ', uid);
+      outRequest.failed(error);
+    }
+
+    /**
+     *  Allows to return the total number of records in the DataStore (minus 1)
+     *  That's because the index object also counts
+     *
+     */
+    function doGetLength(outRequest) {
+      datastore.getLength().then(function success(length) {
+        outRequest.done(length - 1);
+      },
+      function error(err) {
+        outRequest.failed(err);
+      });
+    }
+
+    contacts.getLength = function() {
+      var retRequest = new fb.utils.Request();
+
+      window.setTimeout(function() {
+        contacts.init(function get_all() {
+          doGetLength(retRequest);
+        },
+        function() {
+          initError(retRequest);
+        });
+      }, 0);
+
+      return retRequest;
+    };
+
+    function doRemove(uid, outRequest, forceFlush) {
+      var dsId = index.byUid[uid];
+
+      var errorCb = errorRemove.bind(null, outRequest, uid);
+      var objToDelete;
+
+      if (typeof dsId === 'undefined') {
+        // Refreshing the index
+        datastore.get(INDEX_ID).then(function success_index(obj) {
+          setIndex(obj);
+          dsId = index.byUid[uid];
+
+          if (typeof dsId !== 'undefined') {
+            return datastore.get(dsId);
+          }
+          else {
+            errorRemove(outRequest, {
+              name: 'No DataStore Id for UID: ' + uid
+            });
+            // Just to avoid warnings of no return
+            return null;
+          }
+        }, function(err) {
+            errorRemove(outRequest, uid, {
+              name: 'Could not get the index data: ' + err.name
+            });
+          }).then(function success_get_remove(obj) {
+            objToDelete = obj;
+            return datastore.remove(dsId);
+        },errorCb).then(function sucess_rm(removed) {
+          successRemove(outRequest, objToDelete, forceFlush, removed);
+        }, errorCb);
+      }
+      else {
+        datastore.get(dsId).then(function success_get_remove(obj) {
+          objToDelete = obj;
+          return datastore.remove(dsId);
+        }, errorCb).then(function success_rm(removed) {
+          successRemove(outRequest, objToDelete, forceFlush, removed);
+        }, errorCb);
+      }
+    }
+
+    // Needs to update the index data conveniently
+    function successRemove(outRequest, deletedFriend, forceFlush, removed) {
+      if (removed === true) {
+        delete index.byUid[deletedFriend.uid];
+
+        // Need to update the tel indexes
+        if (Array.isArray(deletedFriend.tel)) {
+          deletedFriend.tel.forEach(function(aTel) {
+            delete index.byTel[aTel.value];
+          });
+        }
+
+        if (Array.isArray(deletedFriend.shortTelephone)) {
+          deletedFriend.shortTelephone.forEach(function(aTel) {
+            delete index.byShortTel[aTel];
+          });
+        }
+
+        if (forceFlush) {
+          var flushReq = fb.contacts.flush();
+
+          flushReq.onsuccess = function() {
+            outRequest.done(true);
+          };
+          flushReq.onerror = function() {
+            outRequest.failed(flushReq.error);
+          };
+        }
+        else {
+          isIndexDirty = true;
+          outRequest.done(true);
+        }
+      }
+      else {
+        outRequest.done(false);
+      }
+    }
+
+    function errorRemove(outRequest, uid, error) {
+      window.console.error('FB Data: Error while removing ', uid, ': ',
+                           error.name);
+      outRequest.failed(error);
     }
 
     /**
      *  Allows to remove FB contact from the DB
      *
-     *
      */
-    contacts.remove = function(uid) {
+    contacts.remove = function(uid, flush) {
+      var hasToFlush = (flush === true ? flush : false);
       var retRequest = new fb.utils.Request();
 
       window.setTimeout(function remove() {
         contacts.init(function() {
-          doRemove(uid, retRequest);
+          doRemove(uid, retRequest, hasToFlush);
         },
         function() {
            initError(retRequest);
         });
-      },0);
+      }, 0);
 
       return retRequest;
     };
 
+    /**
+     *  Removes all the FB Friends and the index
+     *
+     *  The index is restored as empty
+     *
+     */
     contacts.clear = function() {
       var outRequest = new fb.utils.Request();
 
@@ -358,62 +428,127 @@ if (!window.fb.contacts) {
         function() {
            initError(outRequest);
         });
-      },0);
+      }, 0);
 
       return outRequest;
     };
 
     function doClear(outRequest) {
-      var transaction = database.transaction([STORE_NAME], 'readwrite');
-      transaction.oncomplete = function(e) {
-        outRequest.done(e.target.result);
-      };
-
-      transaction.onerror = function(e) {
-        outRequest.failed(e.target.error);
-      };
-      var objectStore = transaction.objectStore(STORE_NAME);
-
-      objectStore.clear();
+      datastore.clear().then(function success() {
+        index = createIndex();
+        // TODO:
+        // This is working but there are open questions on the mailing list
+        datastore.update(INDEX_ID, index).then(defaultSuccess(outRequest),
+          function error(err) {
+            window.console.error('Error while re-creating the index: ', err);
+            outRequest.failed(err);
+          }
+        );
+      }, defaultError(outRequest));
     }
 
-    function notifyOpenSuccess(cb) {
-      isInitialized = true;
-      if (typeof cb === 'function') {
-        cb();
+    /**
+     *  Persists the index on the datastore
+     *
+     */
+    contacts.flush = function() {
+      var outRequest = new fb.utils.Request();
+
+      window.setTimeout(function do_Flush() {
+        if (readyState !== 'initialized' || !isIndexDirty) {
+          window.console.warn(
+                      'The datastore has not been initialized or is not dirty');
+          outRequest.done();
+          return;
+        }
+
+        datastore.update(INDEX_ID, index).then(defaultSuccess(outRequest),
+                                               defaultError(outRequest));
+      }, 0);
+
+      return outRequest;
+    };
+
+    /**
+     *  Refreshes the index data
+     *
+     */
+    contacts.refresh = function() {
+      var outRequest = new fb.utils.Request();
+
+       window.setTimeout(function clear() {
+        contacts.init(function() {
+          doRefresh(outRequest);
+        },
+        function() {
+           initError(outRequest);
+        });
+      }, 0);
+
+      return outRequest;
+    };
+
+    function doRefresh(outRequest) {
+      if (isIndexDirty) {
+        datastore.get(INDEX_ID).then(function success(obj) {
+          setIndex(obj);
+          outRequest.done();
+        }, defaultError(outRequest));
+      }
+      else {
+        outRequest.done();
       }
     }
 
     contacts.init = function(cb, errorCb) {
-      if (isInitialized === true) {
+      if (readyState === 'initialized') {
         cb();
         return;
       }
 
-      var req = indexedDB.open(DB_NAME, DB_VERSION);
+      if (readyState === 'initializing') {
+        document.addEventListener(INITIALIZE_EVENT, function oninitalized() {
+          cb();
+          document.removeEventListener(INITIALIZE_EVENT, oninitalized);
+        });
+        return;
+      }
 
-      req.onsuccess = function(e) {
-        database = e.target.result;
-        if (migrationNeeded === true) {
-          migrateData(function migrated() {
-            notifyOpenSuccess(cb);
-          });
+      readyState = 'initializing';
+
+      navigator.getDataStores(DATASTORE_NAME).then(function success(ds) {
+        if (ds.length < 1) {
+          window.console.error('FB: Cannot get access to the DataStore');
+           if (typeof errorCb === 'function') {
+            errorCb();
+          }
+          return;
         }
-        else {
+
+        datastore = ds[0];
+        // Checking the length as the index should be there
+        datastore.getLength().then(function(length) {
+          if (length === 0) {
+            window.console.info('Adding index as length is 0');
+            index = createIndex();
+            return datastore.add(index);
+          }
+          else {
+            return datastore.get(INDEX_ID);
+          }
+        }).then(function(v) {
+          if (typeof v === 'object') {
+            setIndex(v);
+          }
           notifyOpenSuccess(cb);
-        }
-      };
-
-      req.onerror = function(e) {
-        window.console.error('FB: Error while opening the DB: ',
+        });
+      }, function error() {
+        window.console.error('FB: Error while opening the DataStore: ',
                                                         e.target.error.name);
         if (typeof errorCb === 'function') {
           errorCb();
         }
-      };
-
-      req.onupgradeneeded = upgradeDB;
+     });
     };
-
-  }) (document);
+  })();
 }

@@ -17,6 +17,7 @@ var MockUIManager = {
     'pin-input',
     'fake-pin-input',
     'pin-error',
+    'back-sim-button',
     'skip-pin-button',
     'unlock-sim-button',
     // PUK Screen
@@ -44,7 +45,12 @@ var MockUIManager = {
     'sim-import-button',
     'no-sim',
     'sd-import-button',
-    'no-memorycard'
+    'no-memorycard',
+    // Tutorial
+    'tutorial-screen',
+    'tutorial-progress',
+    'lets-go-button',
+    'skip-tutorial-button'
   ],
 
   mSetup: function muim_mSetup() {
@@ -58,7 +64,7 @@ var MockUIManager = {
     this.activationScreen = this.progressBar = this.navBar = null;
   },
 
-  sendNewsletter: function() { return true;},
+  sendNewsletter: function(callback) {return callback(true);},
   updateDataConnectionStatus: function(status) {return DataMobile.getStatus()},
   displayOfflineDialog: function() {}
 };
