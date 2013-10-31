@@ -68,3 +68,9 @@ class NewMessage(Messages):
     @property
     def first_recipient_number_attribute(self):
         return self.marionette.find_element(*self._receiver_input_locator).get_attribute('data-number')
+
+    def tap_send_without_waiting(self):
+        self.wait_for_condition(lambda m: m.find_element(*self._send_message_button_locator).is_enabled())
+        self.marionette.find_element(*self._send_message_button_locator).tap()
+        from gaiatest.apps.messages.regions.message_thread import MessageThread
+        return MessageThread(self.marionette)

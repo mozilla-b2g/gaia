@@ -31,3 +31,6 @@ class Notification(PageRegion):
     @property
     def content(self):
         return self.root_element.find_element(*self._body_locator).text
+
+    def tap_message_notification(self):
+        self.marionette.find_element(*self._body_locator).tap()
