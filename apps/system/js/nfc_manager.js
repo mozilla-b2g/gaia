@@ -382,11 +382,11 @@
     }
 
     // Check for tech types:
-    debug('command.content.tech: ' + command.content.tech);
+    debug('command.tech: ' + command.tech);
     var handled = false;
-    var techs = command.content.tech;
+    var techs = command.tech;
     // Pick the first NDEF message for now.
-    var ndefMsg = command.content.ndef[0];
+    var ndefMsg = command.ndef[0];
 
     // Force Tech Priority:
     var pri = ['P2P', 'NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
@@ -408,9 +408,9 @@
           handled = handleNdefFormattableDiscovered(techs[i],
                                                     command.sessionToken);
         } else if (techs[i] == 'NFC_A') {
-          debug('NFCA unsupported: ' + command.content);
+          debug('NFCA unsupported: ' + command);
         } else if (techs[i] == 'MIFARE_ULTRALIGHT') {
-          debug('MiFare unsupported: ' + command.content);
+          debug('MiFare unsupported: ' + command);
         } else {
           debug('Unknown or unsupported tag tech type');
         }
@@ -424,7 +424,7 @@
     if (handled == false) {
       // Fire off activity to whoever is registered to handle a generic binary
       // blob tag (TODO: tagRead).
-      var technologyTags = command.content.tag;
+      var technologyTags = command.tag;
       var a = new MozActivity({
         name: 'tag-discovered',
         data: {
