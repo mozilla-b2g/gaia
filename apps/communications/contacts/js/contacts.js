@@ -318,7 +318,7 @@ var Contacts = (function() {
     var attr;
     for (var i = 0; i < fields.length; i++) {
       attr = fields[i];
-      if (obj.hasOwnProperty(attr) && obj[attr]) {
+      if (obj[attr]) {
         if (Array.isArray(obj[attr])) {
           if (obj[attr].length > 0) {
             return false;
