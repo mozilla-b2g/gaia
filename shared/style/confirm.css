@@ -210,7 +210,6 @@ form[role="dialog"][data-type="confirm"] figure {
   margin: 1.5rem;
   display: flex;
   align-items: center;
-  flex: column wrap;
 }
 
 form[role="dialog"][data-type="confirm"] figure img {
