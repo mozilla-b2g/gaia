@@ -33,6 +33,11 @@ class ContextMenu(Base):
     def tap_collections(self):
         self.wait_for_element_displayed(*self._collections_button_locator)
         self.marionette.find_element(*self._collections_button_locator).tap()
+        from gaiatest.apps.homescreen.regions.addcollectionsmenu import AddCollectionsMenu
+        collectionsmenu = AddCollectionsMenu(self.marionette)
+        return collectionsmenu
+    
+    
 
 
     @property

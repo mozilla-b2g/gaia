@@ -21,12 +21,8 @@ class TestEverythingMeLongPress(GaiaTestCase):
         
         contextmenu = homescreen.open_context_menu()
         self.assertGreater(contextmenu.options_count, 1)
-        contextmenu.tap_collections()
-        #time.sleep(100)
-        #wallpaper.tap_gallery()
-        #time.sleep(100)
-        #gallery = wallpaper.tap_gallery()
-        #cropview = gallery.tap_random_gallery_item()
-        #cropview.tap_crop_done()
-        #self.marionette.switch_to_frame()
-        #print self.marionette.page_source
+        collectionsmenu = contextmenu.tap_collections()
+        collectionsmenu.tap_app('Auto')
+        collectionsmenu.tap_confirm()
+        self.assertTrue(homescreen.is_app_installed('Auto'),
+                        "App %s not found on Homescreen" % 'Auto')
