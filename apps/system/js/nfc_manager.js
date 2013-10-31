@@ -365,34 +365,9 @@
     return handled;
   }
 
-  function convertRawPayloadToString(ndefMsg) {
-    var records = ndefMsg.map(function(r) {
-      var type = '';
-      for (var i = 0; i < r.type.length; i++) {
-        type += String.fromCharCode(r.type[i]);
-      }
-      r.type = type;
-      debug('Type: ' + r.type);
-      var id = '';
-      for (var i = 0; i < r.id.length; i++) {
-        id += String.fromCharCode(r.id[i]);
-      }
-      r.id = id;
-      debug('id: ' + r.id);
-      var payload = '';
-      for (var i = 0; i < r.payload.length; i++) {
-        payload += String.fromCharCode(r.payload[i]);
-      }
-      r.payload = payload;
-      debug('payload: ' + r.payload);
-      return r;
-    });
-    return records;
-  }
-
   function handleNdefDiscovered(tech, session, ndefMsg) {
     debug('handleNdefDiscovered: ' + JSON.stringify(ndefMsg));
-    var records = convertRawPayloadToString(ndefMsg);
+    var records = ndefMsg;
     debug('handleNdefDiscovered: ' + JSON.stringify(records));
     var action = handleNdefMessages(records);
     if (action.length <= 0) {
