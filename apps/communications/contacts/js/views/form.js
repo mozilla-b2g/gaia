@@ -438,13 +438,17 @@ contacts.Form = (function() {
     };
     var request;
 
+    var theContact = (contact instanceof mozContact) ?
+                       contact : new mozContact(contact);
     if (fb.isFbContact(contact)) {
-      var fbContact = new fb.Contact(contact);
+      window.console.log('Contact Id without constructor: ', contact.id);
+      window.console.log('Contact Id in constructor: ', theContact.id);
+      window.console.log('Contact Dump: ', JSON.stringify(theContact));
+      var fbContact = new fb.Contact(theContact);
       request = fbContact.remove();
       request.onsuccess = deleteSuccess;
     } else {
-      var theContact = (contact instanceof mozContact) ?
-                       contact : new mozContact(contact);
+      window.console.log('Contact Id: ', theContact.id);
       request = navigator.mozContacts.remove(theContact);
       request.onsuccess = deleteSuccess;
     }
