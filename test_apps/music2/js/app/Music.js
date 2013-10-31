@@ -1,20 +1,41 @@
+'use strict';
 
 var Music = function() {
 
   this.playingPlaylist = new PlayingPlaylist();
   this.playlists = new Playlists();
 
-  this.playlists.router.when('switchToPlaylist', [this.playingPlaylist, 'switchToPlaylist']);
-  this.playlists.router.when('togglePlayingPlaylist', [this.playingPlaylist, 'togglePlaylist']);
-  this.playingPlaylist.router.when('savePlaylistToPlaylists', [this.playlists, 'savePlaylist']);
+  this.playlists.router.when(
+    'switchToPlaylist', [this.playingPlaylist, 'switchToPlaylist']
+  );
+  this.playlists.router.when(
+    'togglePlayingPlaylist', [this.playingPlaylist, 'togglePlaylist']
+  );
+  this.playingPlaylist.router.when(
+    'savePlaylistToPlaylists', [this.playlists, 'savePlaylist']
+  );
 
-  this.playlists.router.when('deletedPlaylist', [this.playingPlaylist, 'deletedPlaylist']);
-  this.playlists.router.when('renamedPlaylist', [this.playingPlaylist, 'renamedPlaylist']);
-  this.playlists.router.when('shuffledPlaylist', [this.playingPlaylist, 'shuffledPlaylist']);
-  this.playlists.router.when('deletedItemFromPlaylist', [this.playingPlaylist, 'deletedItemFromPlaylist']);
-  this.playlists.router.when('addedToPlaylist', [this.playingPlaylist, 'addedToPlaylist']);
-  this.playlists.router.when('movedItemInPlaylist', [this.playingPlaylist, 'movedItemInPlaylist']);
-  this.playlists.router.when('switchToSources', [this.playingPlaylist, 'switchToSources']);
+  this.playlists.router.when(
+    'deletedPlaylist', [this.playingPlaylist, 'deletedPlaylist']
+  );
+  this.playlists.router.when(
+    'renamedPlaylist', [this.playingPlaylist, 'renamedPlaylist']
+  );
+  this.playlists.router.when(
+    'shuffledPlaylist', [this.playingPlaylist, 'shuffledPlaylist']
+  );
+  this.playlists.router.when(
+    'deletedItemFromPlaylist', [this.playingPlaylist, 'deletedItemFromPlaylist']
+  );
+  this.playlists.router.when(
+    'addedToPlaylist', [this.playingPlaylist, 'addedToPlaylist']
+  );
+  this.playlists.router.when(
+    'movedItemInPlaylist', [this.playingPlaylist, 'movedItemInPlaylist']
+  );
+  this.playlists.router.when(
+    'switchToSources', [this.playingPlaylist, 'switchToSources']
+  );
 
   this.audioPlayer = new AudioPlayer();
 
@@ -28,41 +49,52 @@ var Music = function() {
 
   this.router.declareRoutes([
     'requestTargetPlaylist',
-    'requestSourceFromSong',
+    'requestSourceFromSong'
   ]);
 
-  Router.proxy([this.playingPlaylist, 'requestSourceFromSong'], [this, 'requestSourceFromSong']);
-  Router.proxy([this.playlists, 'requestSourceFromSong'], [this, 'requestSourceFromSong']);
+  Router.proxy(
+    [this.playingPlaylist, 'requestSourceFromSong'],
+    [this, 'requestSourceFromSong']
+  );
+  Router.proxy(
+    [this.playlists, 'requestSourceFromSong'], [this, 'requestSourceFromSong']
+  );
 
   this.playingPlaylist.router.when('save', [this.playlists, 'savePlaylist']);
-  this.playlists.router.when('createdPlaylist', [this.playingPlaylist, 'createdPlaylist']);
-}
+  this.playlists.router.when(
+    'createdPlaylist', [this.playingPlaylist, 'createdPlaylist']
+  );
+};
 
 Music.prototype = {
-  name: "music",
-  addSongsToCustom: function(title, songs){
+  name: 'music',
+  addSongsToCustom: function(title, songs) {
     var hasCurrent = this.playingPlaylist.playlist !== null;
     console.log(hasCurrent);
-    this.router.route('requestTargetPlaylist')(this.playlists.playlists, title, hasCurrent, function(choice){
-      if (choice === 'new'){
-        var playlistId = this.playlists.createEmptyPlaylist(title);
-        this.playlists.addToPlaylist(playlistId, songs);
+    this.router.route('requestTargetPlaylist')(
+      this.playlists.playlists, title, hasCurrent, function(choice) {
+        if (choice === 'new') {
+          var playlistId = this.playlists.createEmptyPlaylist(title);
+          this.playlists.addToPlaylist(playlistId, songs);
 
-        if (!hasCurrent){
-          this.playingPlaylist.switchToPlaylist(this.playlists.playlists[playlistId], playlistId);
+          if (!hasCurrent) {
+            this.playingPlaylist.switchToPlaylist(
+              this.playlists.playlists[playlistId], playlistId
+            );
+          }
         }
-      }
-      else if (choice === 'current'){
-        this.playingPlaylist.enqueue(title, songs);
-      }
-      else if (choice !== 'cancel'){
-        this.playlists.addToPlaylist(choice, songs);
-      }
-    }.bind(this));
+        else if (choice === 'current') {
+          this.playingPlaylist.enqueue(title, songs);
+        }
+        else if (choice !== 'cancel') {
+          this.playlists.addToPlaylist(choice, songs);
+        }
+      }.bind(this)
+    );
   },
-  shareSong: function(song){
-    var filename = song.name
-    window.musicLibrary.musicDB.getFile(filename, function(file){
+  shareSong: function(song) {
+    var filename = song.name;
+    window.musicLibrary.musicDB.getFile(filename, function(file) {
       // We try to fix Bug 814323 by using
       // current workaround of bluetooth transfer
       // so we will pass both filenames and filepaths
@@ -89,5 +121,4 @@ Music.prototype = {
       };
     });
   }
-}
-
+};

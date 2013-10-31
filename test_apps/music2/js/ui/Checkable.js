@@ -1,5 +1,6 @@
-function Checkable(title){
+'use strict';
 
+function Checkable(title) {
   this.when = {};
 
   this.dom = {};
@@ -19,8 +20,8 @@ function Checkable(title){
 }
 
 Checkable.prototype = {
-  toggle: function(){
+  toggle: function() {
     this.dom.checkbox.classList.toggle('checked');
     this.when.setChecked(this.dom.checkbox.classList.contains('checked'));
   }
-}
+};
