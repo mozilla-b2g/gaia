@@ -10,7 +10,7 @@
 
 #search-title {
     position: absolute;
-    top: -0.1rem;
+    top: 0rem;
     left: 1.3rem;
     right: 0.6rem;
     color: #fff;
@@ -102,7 +102,7 @@
 
 #helper {
     position: absolute;
-    top: -0.2rem;
+    top: 0;
     left: 0;
     right: 0;
     height: 130%;

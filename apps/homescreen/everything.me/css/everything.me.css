@@ -4,24 +4,23 @@
 
 #evme-activation-icon {
   position: absolute;
-  background: rgba(0, 0, 0, 0.4);
+  background: url('/everything.me/images/search-icon.png') 28.3rem 50% no-repeat rgba(0, 0, 0, 0.4);
+  background-size: 3rem;
   height: 5rem;
   width: 100%;
   z-index: 200;
 }
   #evme-activation-icon input {
-    height: 100%;
-    width: 100%;
+    background: transparent;
+    width: 84%;
     position: absolute;
-    top: 0;
-    left: 0;
+    top: 1.25rem;
+    left: 1.1rem;
     border: none;
     padding: 0;
-    background: url('/everything.me/images/search-icon.png') 28.3rem 50% no-repeat transparent;
-    background-size: 3rem;
     color: #eee;
+    font-family: 'Fira Sans Light', 'Fira Sans', 'Feura Sans';
     font-size: 1.9rem;
-    text-indent: 1.1rem;
   }
   #evme-activation-icon input::-moz-placeholder {
     color: #eee;

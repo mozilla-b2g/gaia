@@ -43,13 +43,13 @@
         background: transparent;
         border: none;
         width: 84%;
-        top: 1.4rem;
+        top: 1.35rem;
         left: 1.1rem;
         display: inline;
         color: #fff;
         font-size: 1.9rem;
         font-style: normal;
-        font-weight: normal;
+        font-weight: 400;
     }
 
     #evmeContainer #search-q-bg {
@@ -92,11 +92,12 @@
     
     #evmeContainer #default-text {
         position: absolute;
-        top: 1.1rem;
-        left: 1.1rem;
+        top: 1.25rem;
+        left: 1.2rem;
         text-transform: none;
         display: none;
         color: #858585;
+        font-family: 'Fira Sans Light', 'Fira Sans', 'Feura Sans';
         font-style: italic;
         font-size: 1.9rem;
         font-weight: 300;
