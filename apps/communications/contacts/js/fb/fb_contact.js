@@ -154,7 +154,9 @@ fb.Contact = function(deviceContact, cid) {
   }
 
   // Persists FB Friend Data to the FB cache
-  function persistToFbCache(contactData) {
+  function persistToFbCache(contactData, mUpdate) {
+    var isUpdate = (mUpdate === true ? mUpdate : false);
+
     var outReq = new fb.utils.Request();
 
     window.setTimeout(function persist_fb_do() {
@@ -173,7 +175,9 @@ fb.Contact = function(deviceContact, cid) {
       // thus restoring the contact (if unlinked) will be trivial
       copyNames(contactData, data);
 
-      var fbReq = fb.contacts.save(data);
+      var updaterFn = (isUpdate === true ?
+                                        fb.contacts.update : fb.contacts.save);
+      var fbReq = updaterFn(data);
 
       fbReq.onsuccess = function() {
         outReq.done(fbReq.result);
@@ -197,7 +201,7 @@ fb.Contact = function(deviceContact, cid) {
         var dataReq = fb.contacts.get(contactData.uid);
         dataReq.onsuccess = function() {
           contactData.fbInfo.photo = dataReq.result.photo;
-          auxCachePersist(contactData, outReq);
+          auxCachePersist(contactData, outReq, true);
         };
         dataReq.onerror = function() {
           window.console.error('Error while retrieving existing photo for ',
@@ -209,15 +213,15 @@ fb.Contact = function(deviceContact, cid) {
         utils.squareImage(contactData.fbInfo.photo[0],
           function sq_img(squaredImg) {
             contactData.fbInfo.photo[0] = squaredImg;
-            auxCachePersist(contactData, outReq);
+            auxCachePersist(contactData, outReq, true);
           }
         );
       }
     }
 
     // Persist the data to the FB Cache
-    function auxCachePersist(contactData, outReq) {
-      var fbReq = persistToFbCache(contactData);
+    function auxCachePersist(contactData, outReq, isUpdate) {
+      var fbReq = persistToFbCache(contactData, isUpdate);
 
       fbReq.onsuccess = function() {
         outReq.done(fbReq.result);
@@ -733,7 +737,9 @@ fb.Contact = function(deviceContact, cid) {
     };
   }
 
-  this.remove = function() {
+  this.remove = function(pforceFlush) {
+    var forceFlush = (pforceFlush === true) ? pforceFlush : false;
+
     var out = new fb.utils.Request();
 
     window.setTimeout(function do_remove() {
@@ -748,7 +754,7 @@ fb.Contact = function(deviceContact, cid) {
           var theContact = new mozContact(devContact);
           var removeReq = navigator.mozContacts.remove(theContact);
           removeReq.onsuccess = function(e) {
-            var fbReq = fb.contacts.remove(uid);
+            var fbReq = fb.contacts.remove(uid, forceFlush);
             fbReq.onsuccess = function() {
               out.done(fbReq.result);
             };

@@ -14,9 +14,7 @@
     "deprecated-hwvideo":{},
     "audio-channel-content":{},
     "systemXHR":{},
-    "bluetooth":{},
-    "network-http": {},
-    "network-tcp": {}
+    "bluetooth":{}
   },
   "locales": {
     "ar": {

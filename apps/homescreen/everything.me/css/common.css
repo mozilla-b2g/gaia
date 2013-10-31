@@ -58,6 +58,11 @@
 
 /* Notifications */
 
+section[role="status"] {
+  /* override status.css to show above collections */
+  z-index: 10002 !important;
+}
+
 .evmeScope .evme-apps section[role="notification"] {
     position: relative;
     -moz-box-flex: 1;

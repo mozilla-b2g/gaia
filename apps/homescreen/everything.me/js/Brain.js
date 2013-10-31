@@ -354,9 +354,7 @@
         'extraIconsData': extraIconsData,
         'callback': function onSave() {
           data.callback && data.callback();
-          Evme.Banner.show('app-install-success', {
-            'name': query
-          });
+          EvmeManager.onAppSavedToHomescreen(query);
         }
       });
     };
@@ -730,9 +728,7 @@
       });
 
       // display system banner
-      Evme.Banner.show('app-install-success', {
-        'name': data.data.name
-      });
+      EvmeManager.onAppSavedToHomescreen(data.data.name);
 
       // analytics
       Evme.EventHandler.trigger(NAME, 'addToHomeScreen', {

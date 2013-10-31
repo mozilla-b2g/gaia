@@ -14,30 +14,23 @@ var MediaPlayback = {
     this.playPauseButton = this.container.querySelector('.play-pause');
     this.nextButton = this.container.querySelector('.next');
 
-    var self = this;
-    window.navigator.mozSetMessageHandler('connection', function(request) {
-      if (request.keyword !== 'mediacomms')
-        return;
-
-      self._port = request.port;
-      self._port.onmessage = function(event) {
-        var message = event.data;
-        switch (message.type) {
-        case 'appinfo':
-          self.updateAppInfo(message.data);
-          break;
-        case 'nowplaying':
-          self.updateNowPlaying(message.data);
-          break;
-        case 'status':
-          self.updatePlaybackStatus(message.data);
-          break;
-        }
-      };
-    });
-
     this.nowPlaying.addEventListener('click', this.openMediaApp.bind(this));
     this.container.addEventListener('click', this);
+
+    window.addEventListener('iac-mediacomms', function onIAC(evt) {
+      var message = evt.detail.data;
+      switch (message.type) {
+        case 'appinfo':
+          this.updateAppInfo(message.data);
+          break;
+        case 'nowplaying':
+          this.updateNowPlaying(message.data);
+          break;
+        case 'status':
+          this.updatePlaybackStatus(message.data);
+          break;
+      }
+    }.bind(this));
 
     // Listen for when the music app is terminated. We know which app to look
     // for because we got it from the "appinfo" message. Then we hide the Now
@@ -108,7 +101,8 @@ var MediaPlayback = {
   },
 
   handleEvent: function mp_handleEvent(event) {
-    if (!this._port)
+    var port = IACHandler.getPort('mediacomms');
+    if (!port)
       return;
 
     var command = null;
@@ -128,7 +122,7 @@ var MediaPlayback = {
     }
 
     if (command)
-      this._port.postMessage({command: command});
+      port.postMessage({command: command});
   }
 };
 

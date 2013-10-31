@@ -122,9 +122,12 @@ utils.status = (function() {
     content = document.createElement('p');
 
     section.appendChild(content);
-    document.body.appendChild(section);
-
     section.addEventListener('animationend', animationEnd);
+
+    // to prevent flickering
+    setTimeout(function append() {
+      document.body.appendChild(section);
+    });
   }
 
   // Initializing the library

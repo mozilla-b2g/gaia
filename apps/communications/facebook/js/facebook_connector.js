@@ -331,6 +331,7 @@ if (!window.FacebookConnector) {
 
       oncontactsimported: function(existingContacts, friendsImported, cb) {
         setInfraForSync(existingContacts, friendsImported, cb);
+        fb.contacts.flush();
       },
 
       startSync: function(existingContacts, myFriendsByUid, syncFinished) {

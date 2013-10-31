@@ -6,7 +6,19 @@ var FOOTER = 'END:VCARD\n';
 var ContactToVcard;
 var ContactToVcardBlob;
 var VCARD_MAP = {
-  'mobile' : 'cell'
+  'fax' : 'fax',
+  'faxoffice' : 'fax,work',
+  'faxhome' : 'fax,home',
+  'faxother' : 'fax',
+  'home' : 'home',
+  'mobile' : 'cell',
+  'pager' : 'pager',
+  'personal' : 'home',
+  'pref' : 'pref',
+  'text' : 'text',
+  'textphone' : 'textphone',
+  'voice' : 'voice',
+  'work' : 'work'
 };
 // Field list to be skipped on vcard
 var VCARD_SKIP_FIELD = ['fb_profile_photo'];
@@ -41,8 +53,8 @@ function ISODateString(d) {
     if (!sourceField || !sourceField.length)
       return [];
 
-    var str = vcardField;
     return sourceField.map(function(field) {
+      var str = vcardField;
       var skipField = false;
       var types = [];
       if (Array.isArray(field.type)) {
