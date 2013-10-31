@@ -3,6 +3,10 @@
   visibility: visible;
 }
 
+.appWindow > .modal-dialog {
+  z-index: 2;
+}
+
 .appWindow > .fade-overlay {
   background-color: black;
   position: absolute;
@@ -15,6 +19,44 @@
 }
 
 .appWindow.fadeout > .fade-overlay {
+  display: block;
+}
+
+.appWindow > .modal-dialog {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+}
+
+.appWindow > .modal-dialog.visible {
+  display: block;
+}
+
+.appWindow > .modal-dialog > form {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  display: none;
+}
+
+.appWindow > .modal-dialog input {
+  border-radius: 0.2rem;
+  height: 4rem;
+  font-size: 2rem;
+  width: 100%;
+  color: white;
+  background: none;
+  -moz-box-sizing: border-box;
+}
+
+.appWindow > .modal-dialog > form.visible {
   display: block;
 }
 
@@ -52,4 +94,28 @@
 
 .appWindow > iframe.hidden {
   visibility: hidden;
+}
+
+/* inline activity */
+
+
+/* animation */
+
+#windows > .activityWindow.opening.slideleft {
+  animation: slideLeft 0.3s forwards ease-out;
+}
+
+#windows > .activityWindow.closing.slideright {
+  animation: slideRight 0.3s forwards ease-out;
+}
+
+@keyframes slideLeft {
+  0%   { transform: translateX(100%) scale(1.0); }
+  100% { transform: translateX(0) scale(1.0); }
+}
+
+@keyframes slideRight {
+  0%   { transform: translateX(0) scale(1.0); }
+  100% { transform: translateX(100%) scale(1.0); }
+
 }
