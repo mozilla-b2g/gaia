@@ -134,6 +134,7 @@ function execute() {
    'debug.console.enabled': false,
    'debug.grid.enabled': false,
    'debug.oop.disabled': false,
+   'debug.keyboard-oop.enabled': false,
    'debug.fps.enabled': false,
    'debug.ttl.enabled': false,
    'debug.log-animations.enabled': false,
