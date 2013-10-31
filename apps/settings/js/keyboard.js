@@ -46,13 +46,15 @@ var KeyboardContext = (function() {
   var _callbacks = [];
 
   var Keyboard = function(name, description, launchPath, layouts, app) {
-    return {
+    var _observable = Observable({
       name: name,
       description: description,
       launchPath: launchPath,
       layouts: layouts,
       app: app
-    };
+    });
+
+    return _observable;
   };
 
   var Layout =
@@ -315,6 +317,7 @@ var InstalledLayoutsPanel = (function() {
       container = recycled;
       checkbox = container.querySelector('input');
       span = container.querySelector('span');
+      layoutName = container.querySelector('a');
     } else {
       container = document.createElement('li');
       checkbox = document.createElement('input');
@@ -354,7 +357,12 @@ var InstalledLayoutsPanel = (function() {
         var h2 = document.createElement('h2');
         var ul = document.createElement('ul');
 
-        h2.textContent = keyboard.name;
+        var refreshName = function() {
+          h2.textContent = keyboard.name;
+        };
+        keyboard.observe('name', refreshName);
+        refreshName();
+
         header.appendChild(h2);
         container.appendChild(header);
         container.appendChild(ul);
