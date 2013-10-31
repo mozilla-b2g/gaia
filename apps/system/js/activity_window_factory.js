@@ -1,3 +1,5 @@
+'use strict';
+
 (function(window) {
   var ActivityWindowFactory = {
     // Last created activtiy window object.
