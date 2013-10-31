@@ -17,7 +17,7 @@ class Clock(Base):
     _clock_day_date_locator = (By.ID, 'clock-day-date')
     _digital_clock_hour24_state_locator = (By.ID, 'clock-hour24-state')
     _all_alarms_locator = (By.CSS_SELECTOR, '#alarms li')
-    _banner_countdown_notification_locator = (By.ID, 'banner-countdown')
+    _banner_countdown_notification_locator = (By.CSS_SELECTOR, 'section#banner-countdown.visible')
 
     def launch(self):
         Base.launch(self)
