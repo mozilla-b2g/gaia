@@ -122,8 +122,12 @@ make test-integration
 - If you have some weird node errors, try removing node_modules since
   things may be stale.
 
-- You get can get lots of debug information when running tests like
-this: `DEBUG=* ./bin/gaia-marionette name/of/test.js`
+- To get debug information from the b2g desktop client, run this:
+`DEBUG=b2g-desktop ./bin/gaia-marionette name/of/test.js`
+
+- To get debug information from b2g desktop and all of the marionette 
+plugins, run this:
+`DEBUG=* ./bin/gaia-marionette name/of/test.js`
 
 ### UI Tests
 
