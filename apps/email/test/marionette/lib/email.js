@@ -27,6 +27,10 @@ var Selector = {
   manualSetupSmtpPortInput: '.sup-manual-form .sup-manual-smtp-port',
   manualSetupSmtpSocket: '.sup-manual-form .sup-manual-smtp-socket',
   manualNextButton: '.sup-account-header .sup-manual-next-btn',
+  msgDownBtn: '.card-message-reader .msg-down-btn',
+  msgListScrollOuter: '.card-message-list .msg-list-scrollouter',
+  msgUpBtn: '.card-message-reader .msg-up-btn',
+  msgEnvelopeSubject: '.card-message-reader .msg-envelope-subject',
   showMailButton: '.card-setup-done .sup-show-mail-btn',
   manualConfigButton: '.scrollregion-below-header .sup-manual-config-btn',
   composeButton: '.msg-list-header .msg-compose-btn',
@@ -57,12 +61,67 @@ var Selector = {
   // is clickable and does the job.
   notifyEmailCheckbox: '.tng-notify-mail-label',
   accountSettingsBackButton: '.card-settings-account .tng-back-btn',
-  localDraftsItem: '.fld-folders-container a[data-type=localdrafts]'
+  localDraftsItem: '.fld-folders-container a[data-type=localdrafts]',
+  toaster: 'section[role="status"]'
 };
 
 Email.prototype = {
+  /**
+   * Send some emails and then receive them.
+   *
+   * @param {Array} messages list of messages with to, subject, and body.
+   */
+  sendAndReceiveMessages: function(messages) {
+    messages.forEach(function(message) {
+      this.tapCompose();
+      this.typeTo(message.to);
+      this.typeSubject(message.subject);
+      this.typeBody(message.body);
+      this.tapSend();
+    }.bind(this));
+
+    this.tapRefreshButton();
+    this.waitForNewEmail();
+    this.tapNotificationBar();
+  },
+
+  waitForToaster: function() {
+    var toaster = this.client.helper.waitForElement(Selector.toaster);
+    this.client.helper.waitForElementToDisappear(toaster);
+  },
+
   get notificationBar() {
     return this.client.findElement(Selector.notificationBar);
+  },
+
+  tapNotificationBar: function() {
+    this.notificationBar.click();
+  },
+
+  get msgDownBtn() {
+    return this.client.findElement(Selector.msgDownBtn);
+  },
+
+  get msgListScrollOuter() {
+    return this.client.findElement(Selector.msgListScrollOuter);
+  },
+
+  get msgUpBtn() {
+    return this.client.findElement(Selector.msgUpBtn);
+  },
+
+  /**
+   * @param {boolean} up whether we're advancing up or down.
+   */
+  advanceMessageReader: function(up) {
+    var el = up ? this.msgUpBtn : this.msgDownBtn;
+    el.click();
+    this.waitForMessageReader();
+  },
+
+  getMessageReaderSubject: function() {
+    var el = this.client.findElement(Selector.msgEnvelopeSubject);
+    return el.text();
   },
 
   getComposeBody: function() {
@@ -296,9 +355,14 @@ Email.prototype = {
     client.apps.close(Email.EMAIL_ORIGIN);
   },
 
-  tapEmailAtIndex: function(index) {
+  getHeaderAtIndex: function(index) {
     var client = this.client;
-    var element = client.findElements(Selector.messageHeaderItem)[index];
+    var elements = client.findElements(Selector.messageHeaderItem);
+    return elements[index];
+  },
+
+  tapEmailAtIndex: function(index) {
+    var element = this.getHeaderAtIndex(index);
     element.tap();
     this.waitForMessageReader();
   },

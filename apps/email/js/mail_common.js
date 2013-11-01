@@ -484,6 +484,23 @@ Cards = {
       args.onPushed(cardImpl);
   },
 
+  /**
+   * Pushes a new card if none exists, otherwise, uses existing
+   * card and passes args to that card via tellCard. Arguments
+   * are the same as pushCard.
+   * @return {Boolean} true if card was pushed.
+   */
+  pushOrTellCard: function(type, mode, showMethod, args, placement) {
+    var query = [type, mode];
+    if (this.hasCard(query)) {
+      this.tellCard(query, args);
+      return false;
+    } else {
+      this.pushCard.apply(this, Array.slice(arguments));
+      return true;
+    }
+  },
+
   _findCardUsingTypeAndMode: function(type, mode) {
     for (var i = 0; i < this._cardStack.length; i++) {
       var cardInst = this._cardStack[i];

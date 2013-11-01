@@ -189,12 +189,21 @@ section[role="region"] > header:first-child .icon.icon-user {
   background-image: url(headers/images/icons/user.png);
 }
 
-section[role="region"] > header:first-child .icon.icon-reply {
-  background-image: url(headers/images/icons/reply.png);
+section[role="region"] > header:first-child .icon.icon-up {
+  background-image: url(headers/images/icons/up.png);
 }
 
-section[role="region"] > header:first-child .icon.icon-reply-all {
-  background-image: url(headers/images/icons/reply-all.png);
+section[role="region"] > header:first-child .icon.icon-down {
+  background-image: url(headers/images/icons/down.png);
+}
+
+section[role="region"] > header:first-child .icon.icon-disabled {
+  opacity: 0.5;
+}
+
+/* We need to opt out of the header separator */
+section[role="region"] > header:first-child menu[type="toolbar"] a.msg-down-btn {
+  background: no-repeat left center / auto 4.8rem !important;
 }
 
 section[role="region"] > header:first-child .icon.icon-options {
