@@ -5,7 +5,7 @@
          URL, SMIL, Dialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
-         TimeHeaders */
+          ActivityHandler, TimeHeaders */
 /*exported ThreadUI */
 
 (function(global) {
@@ -319,6 +319,19 @@ var ThreadUI = global.ThreadUI = {
         this.sentAudioEnabled = false;
       }
     }
+  },
+
+  // Change the back button to close button
+  enableActivityRequestMode: function thui_enableActivityRequestMode() {
+    var domBackButtonSpan = this.backButton.querySelector('span');
+    domBackButtonSpan.classList.remove('icon-back');
+    domBackButtonSpan.classList.add('icon-close');
+  },
+
+  resetActivityRequestMode: function thui_resetActivityRequestMode() {
+    var domBackButtonSpan = this.backButton.querySelector('span');
+    domBackButtonSpan.classList.remove('icon-close');
+    domBackButtonSpan.classList.add('icon-back');
   },
 
   getAllInputs: function thui_getAllInputs() {
@@ -675,6 +688,12 @@ var ThreadUI = global.ThreadUI = {
     var goBack = (function() {
       this.stopRendering();
 
+      var currentActivity = ActivityHandler.currentActivity.new;
+      if (currentActivity) {
+        currentActivity.postResult({ success: true });
+        ActivityHandler.resetActivity();
+        return;
+      }
       if (Compose.isEmpty()) {
         window.location.hash = '#thread-list';
         return;

@@ -2,7 +2,7 @@
          MockNavigatormozMobileMessage, Compose, MockDialog, Template, MockSMIL,
          Utils, MessageManager, LinkActionHandler, LinkHelper, Attachment,
          MockContact, MockOptionMenu, MockActivityPicker, Threads, Settings,
-         MockMessages, MockUtils, MockContacts */
+         MockMessages, MockUtils, MockContacts, ActivityHandler */
 
 'use strict';
 
@@ -43,6 +43,7 @@ requireApp('sms/test/unit/mock_smil.js');
 requireApp('sms/test/unit/mock_custom_dialog.js');
 requireApp('sms/test/unit/mock_url.js');
 requireApp('sms/test/unit/mock_compose.js');
+requireApp('sms/test/unit/mock_activity_handler.js');
 
 var mocksHelperForThreadUI = new MocksHelper([
   'Attachment',
@@ -59,6 +60,7 @@ var mocksHelperForThreadUI = new MocksHelper([
   'Dialog',
   'Contacts',
   'SMIL',
+  'ActivityHandler',
   'TimeHeaders'
 ]);
 
@@ -3412,6 +3414,34 @@ suite('thread_ui.js >', function() {
     });
   });
 
+  suite('enableActivityRequestMode', function() {
+    test('calling function change the back button icon', function() {
+      var backButtonSpan = ThreadUI.backButton.querySelector('span');
+
+      ThreadUI.enableActivityRequestMode();
+      assert.isTrue(backButtonSpan.classList.contains('icon-close'));
+      assert.isFalse(backButtonSpan.classList.contains('icon-back'));
+    });
+  });
+
+  suite('back action', function() {
+    setup(function() {
+      this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
+      this.sinon.stub(ThreadUI, 'stopRendering');
+    });
+
+    test('call postResult when there is an activity', function() {
+      var mockActivity = {
+        postResult: sinon.stub()
+      };
+
+      ActivityHandler.currentActivity.new = mockActivity;
+
+      ThreadUI.back();
+      assert.isTrue(mockActivity.postResult.called);
+    });
+  });
+
   suite('New Message banner', function() {
     var notice;
     var testMessage;
@@ -3483,5 +3513,4 @@ suite('thread_ui.js >', function() {
       });
     });
   });
-
 });
