@@ -97,6 +97,9 @@ suite('Utils', function() {
     var spy;
 
     setup(function() {
+      // choose a date that is far away from a DST change
+      var today = new Date('Tue Jan 29 2013 14:18:15 GMT+0100 (CET)').getTime();
+      this.sinon.useFakeTimers(today);
       spy = this.sinon.spy(MockL10n.DateTimeFormat.prototype,
         'localeFormat');
     });
