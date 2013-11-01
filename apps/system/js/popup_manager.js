@@ -67,7 +67,7 @@ var PopupManager = {
     // this seems needed, or an override to origin in close()
     this._currentOrigin = origin;
 
-    if (WindowManager.getDisplayedApp() == origin) {
+    if (AppWindowManager.displayedApp == origin) {
       this.screen.classList.add('popup');
     }
 
@@ -147,7 +147,7 @@ var PopupManager = {
       case 'mozbrowserlocationchange':
         evt.target.dataset.url = evt.detail;
 
-        if (WindowManager.getDisplayedApp() !== evt.target.dataset.frameOrigin)
+        if (AppWindowManager.displayedApp !== evt.target.dataset.frameOrigin)
           return;
 
         if (typeof(popup) === 'undefined') {

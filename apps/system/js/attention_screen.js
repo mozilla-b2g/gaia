@@ -43,7 +43,8 @@ var AttentionScreen = {
     window.addEventListener('appwillopen', this.appOpenHandler.bind(this));
     window.addEventListener('emergencyalert', this.hide.bind(this));
 
-    window.addEventListener('will-unlock', this.screenUnlocked.bind(this));
+    window.addEventListener('appforeground',
+      this.appForegroundHandler.bind(this));
   },
 
   resize: function as_resize(evt) {
@@ -311,10 +312,10 @@ var AttentionScreen = {
     }
   },
 
-  screenUnlocked: function as_screenUnlocked() {
+  appForegroundHandler: function as_appForegroundHandler(evt) {
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
-    var app = WindowManager.getCurrentDisplayedApp();
+    var app = evt.detail;
     this.showForOrigin(app.origin);
   },
 

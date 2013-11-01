@@ -81,6 +81,7 @@
       if (LockScreen && LockScreen.locked) {
         windows.setAttribute('aria-hidden', 'true');
       }
+      window.addEventListener('launchapp', this);
       window.addEventListener('home', this);
       window.addEventListener('appcreated', this);
       window.addEventListener('appterminated', this);
@@ -109,6 +110,26 @@
       window.addEventListener('showwindow', this);
       window.addEventListener('overlaystart', this);
       window.addEventListener('hidewindow', this);
+
+      // When a resize event occurs, resize the running app, if there is one
+      // When the status bar is active it doubles in height so we need a resize
+      var appResizeEvents = ['resize', 'status-active', 'status-inactive',
+                             'keyboardchange', 'keyboardhide',
+                             'attentionscreenhide', 'mozfullscreenchange',
+                             'software-button-enabled',
+                             'software-button-disabled'];
+      appResizeEvents.forEach(function eventIterator(event) {
+        window.addEventListener(event, function on(evt) {
+          var keyboardHeight = KeyboardManager.getHeight();
+          if (event == 'keyboardchange') {
+            // Cancel fullscreen if keyboard pops
+            if (document.mozFullScreen)
+              document.mozCancelFullScreen();
+          }
+          if (this._activeApp)
+            this._activeApp.resize();
+        }.bind(this));
+      });
 
       // update app name when language setting changes
       SettingsListener.observe('language.current', null,
@@ -323,12 +344,35 @@
             HomescreenLauncher.getHomescreen().ensure(true);
           }
           break;
+
+        case 'launchapp':
+          var config = evt.detail;
+          if (config.isSystemMessage);
+            return;
+
+          if (config.origin == HomescreenLauncher.origin) {
+            // No need to append a frame if is homescreen
+            this.displayedApp();
+          } else {
+            if (!this.runningApps[config.origin]) {
+              new AppWindow(config);
+            }
+            // TODO: Move below iframe hack into app window.
+            this.display(config.origin);
+          }
+          break;
       }
     },
 
     debug: function awm_debug(msg) {
       if (DEBUG) {
         console.log('AppWindowManager:' + msg);
+      }
+    },
+
+    kill: function awm_kill(origin) {
+      if (this.runningApps[origin]) {
+        this.runningApps[origin].kill();
       }
     }
   };

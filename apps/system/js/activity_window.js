@@ -131,7 +131,7 @@
         if (this.activityCaller instanceof AppWindow) {
           // If we're killed by event handler, display the caller.
           if (evt) {
-            WindowManager.setDisplayedApp(this.activityCaller.origin);
+            AppWindowManager.display(this.activityCaller.origin);
           }
         } else if (this.activityCaller instanceof ActivityWindow) {
           this.activityCaller.open();

@@ -225,7 +225,8 @@
         window.removeEventListener('homescreenopened', onhomeopen);
         self.publish('closedbykilling');
       });
-      WindowManager.setDisplayedApp(HomescreenLauncher.origin);
+      // XXX: Refinde this.
+      AppWindowManager.display(HomescreenLauncher.origin);
     } else {
       this.publish('closedbykilling');
     }
@@ -287,6 +288,12 @@
   };
 
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
+    if (window.AppModalDialog) {
+      new AppModalDialog(this);
+    }
+    if (window.AppAuthenticationDialog) {
+      new AppAuthenticationDialog(this);
+    }
     this.iframe.addEventListener('mozbrowservisibilitychange',
       function visibilitychange(e) {
         var type = e.detail.visible ? 'foreground' : 'background';
@@ -302,7 +309,7 @@
           this.activityCaller = null;
           this.activityCaller.activityCallee = null;
           // XXX: Do call appWindow.open()
-          WindowManager.setDisplayedApp(this.activityCaller.origin);
+          AppWindowManager.display(this.activityCaller.origin);
         }
       }.bind(this));
 
@@ -386,7 +393,6 @@
   /**
    * A static timeout to make sure
    * the next event don't happen too late.
-   * (The same as WindowManager: kTransitionTimeout)
    */
   AppWindow.prototype.NEXTPAINT_TIMEOUT = 1000;
 

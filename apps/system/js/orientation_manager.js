@@ -8,7 +8,7 @@ var OrientationManager = {
         function(value) {
           this.globalOrientation = value ?
             this.fetchCurrentOrientation() : null;
-          this.publish('globalorientationchanged');
+          this.publish('reset-orientation');
         }.bind(this));
     }
 
