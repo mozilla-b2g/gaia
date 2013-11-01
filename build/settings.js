@@ -176,6 +176,7 @@ function execute(options) {
    'keyboard.layouts.german': false,
    'keyboard.layouts.hungarian': false,
    'keyboard.layouts.norwegian': false,
+   'keyboard.layouts.myanmar': false,
    'keyboard.layouts.slovak': false,
    'keyboard.layouts.turkish': false,
    'keyboard.layouts.romanian': false,
