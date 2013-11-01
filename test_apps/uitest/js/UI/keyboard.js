@@ -1,4 +1,4 @@
-window.addEventListenr('load', function onload() {
+window.addEventListener('load', function onload() {
   (function designmode(id) {
     var iframe = document.querySelector('#' + id);
     iframe.contentDocument.designMode = 'on';
