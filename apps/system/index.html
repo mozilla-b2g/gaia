@@ -149,9 +149,6 @@
     <link rel="stylesheet" type="text/css" href="style/modal_dialog/modal_dialog.css">
     <script defer src="js/modal_dialog.js"></script>
 
-    <!-- Authentication Dialog-->
-    <script defer src="js/app_authentication_dialog.js"></script>
-
     <!-- Carrier info notifier, shared by CDMA and Cell Broadcast -->
     <script defer src="js/carrier_info_notifier.js"></script>
 
@@ -261,8 +258,12 @@
     <script defer src="js/base_ui.js"></script>
     <script defer src="js/error.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
+    <script defer src="js/app_chrome.js"></script>
+    <!-- Authentication Dialog-->
+    <script defer src="js/app_authentication_dialog.js"></script>
     <script defer src="js/window.js"></script>
     <script defer src="js/transition_mixin.js"></script>
+    <script defer src="js/browser_mixin.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/homescreen_window.js"></script>
     <script defer src="js/homescreen_launcher.js"></script>
@@ -503,17 +504,6 @@
 
       <div id="windows" data-z-index-level="app">
         <!-- application windows are added here -->
-        <header id="wrapper-activity-indicator"></header>
-        <footer id="wrapper-footer" class="closed">
-          <div id="handler"></div>
-          <menu type="buttonbar">
-            <button type="button" id="back-button" alt="Back" data-disabled="disabled"></button>
-            <button type="button" id="forward-button" alt="Forward" data-disabled="disabled"></button>
-            <button type="button" id="reload-button" alt="Reload"></button>
-            <button type="button" id="bookmark-button" alt="Bookmark" data-disabled="disabled"></button>
-            <button type="button" id="close-button" alt="Close"></button>
-          </menu>
-        </footer>
       </div>
 
       <div id="dialog-overlay" data-z-index-level="dialog-overlay">

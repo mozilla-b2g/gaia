@@ -21,7 +21,7 @@
       }.bind(this));
   };
 
-  AppAutheticationDialog.prototype.__proto__ = window.BaseUI.prototype;
+  AppAuthenticationDialog.prototype.__proto__ = window.BaseUI.prototype;
 
   AppAuthenticationDialog.prototype.CLASS_NAME = 'AuthenticationDialog';
 
@@ -57,8 +57,8 @@
       }, this);
     };
 
-  AppAuthenticationDialog.prototype.registerEvents =
-    function aad_registerEvents() {
+  AppAuthenticationDialog.prototype._registerEvents =
+    function aad__registerEvents() {
       this.elements['httpAuthenticationOk'].
         addEventListener('click', this.confirmHandler.bind(this));
       this.elements['httpAuthenticationCancel'].

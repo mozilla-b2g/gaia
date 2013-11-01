@@ -31,10 +31,6 @@
           // relaunch homescreen
           HomescreenLauncher.getHomescreen().open(callback);
         } else {
-          if (runningApps[newApp].isFullScreen()) {
-            screenElement.classList.add('fullscreen-app');
-          }
-
           // Just run the callback right away if it is not homescreen
           if (callback) {
             callback();
@@ -43,28 +39,29 @@
       }
       // Case 2: null --> app
       // XXX: Fix ME!!!
-      else if (FtuLauncher._ftuManifestURL == runningApps[newApp].manifestURL &&
+      else if (this.runningApps[newApp].isFTU &&
                newApp !== HomescreenLauncher.origin) {
-        runningApps[newApp].one('opened',
+        this.runningApps[newApp].one('opened',
           function onOpened() {
             InitLogoHandler.animate();
           });
-        runningApps[newApp].open();
+        this.runningApps[newApp].open();
       }
       // Case 3: null->homescreen
       else if ((!currentApp && newApp == HomescreenLauncher.origin)) {
         HomescreenLauncher.getHomescreen().open();
-        displayedApp = HomescreenLauncher.origin;
+        this.displayedApp = HomescreenLauncher.origin;
+        this._activeApp = this.runningApps[this.displayedApp];
       }
       // Case 4: homescreen->app
       else if ((!currentApp && newApp == HomescreenLauncher.origin) ||
                (currentApp == HomescreenLauncher.origin && newApp)) {
-        runningApps[newApp].open();
+        this.runningApps[newApp].open();
       }
       // Case 5: app->homescreen
       else if (currentApp && currentApp != HomescreenLauncher.origin &&
                newApp == HomescreenLauncher.origin) {
-        runningApps[currentApp].close();
+        this.runningApps[currentApp].close();
         HomescreenLauncher.getHomescreen().open();
       }
       // Case 6: app-to-app transition
@@ -109,7 +106,6 @@
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
       window.addEventListener('overlaystart', this);
-      window.addEventListener('hidewindow', this);
 
       // When a resize event occurs, resize the running app, if there is one
       // When the status bar is active it doubles in height so we need a resize
@@ -129,7 +125,7 @@
           if (this._activeApp)
             this._activeApp.resize();
         }.bind(this));
-      });
+      }, this);
 
       // update app name when language setting changes
       SettingsListener.observe('language.current', null,
@@ -190,16 +186,13 @@
           }
           HomescreenLauncher.getHomescreen().close();
           this.displayedApp = evt.detail.origin;
+          this._activeApp = this.runningApps[this.displayedApp];
           break;
 
         case 'appclosing':
           HomescreenLauncher.getHomescreen().open();
-          // Remove the wrapper and reset the homescreen to a normal state
-          if (wrapperFooter.classList.contains('visible')) {
-            wrapperHeader.classList.remove('visible');
-            wrapperFooter.classList.remove('visible');
-          }
           this.displayedApp = HomescreenLauncher.origin;
+          this._activeApp = this.runningApps[this.displayedApp];
           break;
 
         case 'apprequestclose':
@@ -210,7 +203,7 @@
 
         case 'apprequestopen':
           var app = evt.detail;
-          if (displayedApp !== HomescreenLauncher.origin) {
+          if (this.displayedApp !== HomescreenLauncher.origin) {
             // Do switch window here.
           }
           if (app.loaded) {
@@ -311,17 +304,6 @@
           }
           break;
 
-        /**
-         * We only retain the screenshot layer
-         * when attention screen drops.
-         * Otherwise we just bring the app to background.
-         */
-        case 'hidewindow':
-          if (this._activeApp) {
-            this._activeApp..setVisible(false, true);
-          }
-          break;
-
         // If the lockscreen is active, it will stop propagation on this event
         // and we'll never see it here. Similarly, other overlays may use this
         // event to hide themselves and may prevent the event from getting here.
@@ -347,13 +329,14 @@
 
         case 'launchapp':
           var config = evt.detail;
-          if (config.isSystemMessage);
-            return;
+          this.debug('launching' + config.origin);
 
           if (config.origin == HomescreenLauncher.origin) {
             // No need to append a frame if is homescreen
             this.displayedApp();
           } else {
+            // The policy is we always check the same apps are already
+            // opened by checking manifestURL + pageURL.
             if (!this.runningApps[config.origin]) {
               new AppWindow(config);
             }

@@ -49,10 +49,6 @@
 
     this.publish('created');
 
-    if (DEBUG) {
-      // window.AppWindow[this.instanceID] = this;
-    }
-
     return this;
   };
 
@@ -198,6 +194,13 @@
     }
     this.killed = true;
 
+    // Clear observers
+    if (this._observers && this._observers.length > 0) {
+      this._observer.forEach(function iterator(observer) {
+        observer.disconnect();
+      }, this);
+    }
+
     // Remove callee <-> caller reference before we remove the window.
     if (this.activityCaller) {
       delete this.activityCaller.activityCallee;
@@ -255,7 +258,7 @@
     this.frame = this.element;
     this.iframe = this.browser.element;
     this.iframe.dataset.frameType = 'window';
-    this.iframe.dataset.frameOrigin = 'homescreen';
+    this.iframe.dataset.frameOrigin = this.origin;
 
     this.element.appendChild(this.browser.element);
     this.screenshotOverlay = this.element.querySelector('.screenshot-overlay');
@@ -292,7 +295,7 @@
       new AppModalDialog(this);
     }
     if (window.AppAuthenticationDialog) {
-      new AppAuthenticationDialog(this);
+      //new AppAuthenticationDialog(this);
     }
     this.iframe.addEventListener('mozbrowservisibilitychange',
       function visibilitychange(e) {
@@ -359,8 +362,18 @@
       this._transitionState = 'closing';
     }.bind(this));
 
+    this.element.addEventListener('mozbrowserloadstart',
+      function loadstart(evt) {
+        this.loading = true;
+        this._changeState('loading', true);
+        this.publish('loading');
+      }.bind(this));
+
     this.element.addEventListener('mozbrowserloadend', function loadend(evt) {
+      this.loading = false;
       this.loaded = true;
+      this._changeState('loading', false);
+      this.publish('loaded');
       var backgroundColor = evt.detail.backgroundColor;
       /* When rotating the screen, the child may take some time to reflow.
        * If the child takes longer than layers.orientation.sync.timeout
@@ -379,7 +392,7 @@
     // Deal with locationchange
     this.element.addEventListener('mozbrowserlocationchange', function(evt) {
       this.iframe.dataset.url = evt.detail;
-    });
+    }.bind(this));
   };
 
   /**
@@ -804,6 +817,37 @@
 
     // pass in the target node, as well as the observer options
     observer.observe(this.element, config);
+  };
+
+
+  /**
+   * Continues monitor certain type of state change.
+   */
+  AppWindow.prototype.once = function aw_once(type, state, callback) {
+    var self = this;
+    var observer = new MutationObserver(function() {
+      if (self.element.getAttribute('data-' + type + 'State') === state) {
+        callback();
+      }
+    });
+
+    // configuration of the observer:
+    // we only care dataset change here.
+    var config = { characterData: true, attributes: true };
+
+    // pass in the target node, as well as the observer options
+    observer.observe(this.element, config);
+
+    // Store the new observers.
+    if (!this._observers) {
+      this._observers = [];
+    }
+
+    this._observers.push(observer);
+  };
+
+  AppWindow.prototype._changeState = function aw__changeState(type, state) {
+    this.element.setAttribute('data-' + type + 'State', state.toString());
   };
 
   /**
