@@ -18,7 +18,8 @@ var mocksForNotificationScreen = new MocksHelper([
 
 suite('system/NotificationScreen >', function() {
   var fakeNotifContainer, fakeLockScreenContainer, fakeToaster,
-    fakeButton, fakeToasterIcon, fakeToasterTitle, fakeToasterDetail;
+    fakeButton, fakeNoNotifications, fakeToasterIcon, fakeToasterTitle,
+    fakeToasterDetail, fakeSomeNotifications;
 
   mocksForNotificationScreen.attachTestHelpers();
   setup(function() {
@@ -37,6 +38,8 @@ suite('system/NotificationScreen >', function() {
     fakeLockScreenContainer = createFakeElement('div',
       'notifications-lockscreen-container');
     fakeToaster = createFakeElement('div', 'notification-toaster');
+    fakeSomeNotifications = createFakeElement('span', 'notification-some');
+    fakeNoNotifications = createFakeElement('span', 'notification-none');
     fakeButton = createFakeElement('button', 'notification-clear');
     fakeToasterIcon = createFakeElement('img', 'toaster-icon');
     fakeToasterTitle = createFakeElement('div', 'toaster-title');
@@ -46,6 +49,8 @@ suite('system/NotificationScreen >', function() {
 
     document.body.appendChild(fakeLockScreenContainer);
     document.body.appendChild(fakeToaster);
+    document.body.appendChild(fakeSomeNotifications);
+    document.body.appendChild(fakeNoNotifications);
     document.body.appendChild(fakeButton);
     document.body.appendChild(fakeToasterIcon);
     document.body.appendChild(fakeToasterTitle);
