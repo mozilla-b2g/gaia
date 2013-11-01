@@ -61,36 +61,34 @@ var Settings = {
       window.scrollTo(0, 0);
     }
 
-    window.addEventListener('transitionend', function paintWait() {
-      window.removeEventListener('transitionend', paintWait);
+    newPanel.addEventListener('transitionend', function paintWait() {
+      newPanel.removeEventListener('transitionend', paintWait);
 
       // We need to wait for the next tick otherwise gecko gets confused
       setTimeout(function nextTick() {
+        var detail = {
+          previous: oldPanelHash,
+          current: newPanelHash
+        };
+        var event = new CustomEvent('panelready', {detail: detail});
+        window.dispatchEvent(event);
+
         // Bug 818056 - When multiple visible panels are present,
         // they are not painted correctly. This appears to fix the issue.
         // Only do this after the first load
         if (oldPanel.className === 'current')
           return;
 
-        oldPanel.addEventListener('transitionend', function onTransitionEnd(e) {
-          oldPanel.removeEventListener('transitionend', onTransitionEnd);
-          var detail = {
-            previous: oldPanelHash,
-            current: newPanelHash
-          };
-          var event = new CustomEvent('panelready', {detail: detail});
-          window.dispatchEvent(event);
-          switch (newPanel.id) {
-            case 'about-licensing':
-              // Workaround for bug 825622, remove when fixed
-              var iframe = document.getElementById('os-license');
-              iframe.src = iframe.dataset.src;
-              break;
-            case 'wifi':
-              PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
-              break;
-          }
-        });
+        switch (newPanel.id) {
+          case 'about-licensing':
+            // Workaround for bug 825622, remove when fixed
+            var iframe = document.getElementById('os-license');
+            iframe.src = iframe.dataset.src;
+            break;
+          case 'wifi':
+            PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+            break;
+        }
       });
     });
   },
