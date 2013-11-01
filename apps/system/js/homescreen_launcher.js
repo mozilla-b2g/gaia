@@ -34,10 +34,18 @@
 
       window.addEventListener('trusteduishow', this);
       window.addEventListener('trusteduihide', this);
+      window.addEventListener('awmswitchstart', this);
+      window.addEventListener('awmswitchend', this);
     },
 
     handleEvent: function hl_handleEvent(evt) {
       switch (evt.type) {
+        case 'awmswitchstart':
+          this.getHomescreen()._ignoreRepaintRequest = true;
+          break;
+        case 'awmswitchend':
+          this.getHomescreen()._ignoreRepaintRequest = false;
+          break;
         case 'trusteduishow':
           this.getHomescreen().toggle(true);
           break;

@@ -10,6 +10,8 @@
 
   HomescreenWindow.prototype.CLASS_NAME = 'HomescreenWindow';
 
+  HomescreenWindow.prototype._ignoreRepaintRequest = false;
+
   HomescreenWindow.prototype.setBrowserConfig =
     function hw_setBrowserConfig(manifestURL) {
       var app = Applications.getByManifestURL(manifestURL);

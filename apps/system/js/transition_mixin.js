@@ -8,7 +8,7 @@
   var TransitionStateTable = {
     'closed': ['opening', null, null, null],
     'opened': [null, 'closing', null, null],
-    'opening': [null, null, 'opened', 'opened'],
+    'opening': [null, 'closing', 'opened', 'opened'],
     'closing': ['opened', null, 'closed', 'closed']
   };
 
@@ -55,7 +55,8 @@
         }
         this._changeTransitionState(state);
         this.debug('transition state changed from ' +
-          currentState, ' to ', state, ' by ', evt);
+          currentState, ' to ', state, ' by ', evt, '. classing: ',
+          this.element.classList);
         this._callbackTransitonStateChange(currentState, state, evt);
       },
 
@@ -116,7 +117,7 @@
     },
 
     // Should be the same as defined in system.css animation time.
-    _transitionTimeout: 300,
+    _transitionTimeout: System.slowTransition ? 3000 : 300,
 
     _enter_opening: function tm__enter_opening(prev, evt) {
       // Establish a timer to force finish the opening state.
@@ -132,8 +133,10 @@
       if (this.resized)
         this.resize();
       this.launchTime = Date.now();
-      if (this.isFullScreen())
+      if (this.isFullScreen()) {
         screenElement.classList.add('fullscreen-app');
+        this.element.classList.add('fullscreen-app');
+      }
       if (this.rotatingDegree !== 0) {
         // Lock the orientation before transitioning.
         this.setOrientation();

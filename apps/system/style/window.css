@@ -138,18 +138,19 @@
 /* Invoking app moves out */
 @keyframes invokingApp {
   0%   { transform: scale(1.0); opacity: 1 }
-  50%  { transform: scale(0.8) translateX(0); opacity: 0.3 }
+  50%  { transform: scale(0.8) translateX(0); opacity: 0.3; }
   100% { transform: scale(0.6) translateX(105%); }
 }
 
 /* Invoked app moves in */
 @keyframes invokedApp {
-  0%   { transform: scale(0.6) translateX(-133%); opacity: 0.3 }
-  50%  { transform: scale(0.6) translateX(-105%); opacity: 1 }
-  100% { transform: scale(1.0) translateX(0) }
+  0%   { transform: scale(0.6) translateX(-133%); opacity: 0.3; }
+  50%  { transform: scale(0.6) translateX(-105%); opacity: 1; }
+  100% { transform: scale(1.0) translateX(0); }
 }
 
-#windows > .appWindow.transition-closing {
+#windows > .appWindow.transition-closing,
+#windows > .appWindow.transition-opening {
   /* The animation takes .3 seconds so users cannot touch the app while the
    * closing animation is performing */
   pointer-events: none;
@@ -196,7 +197,7 @@
   width: 100%;
 }
 
-#screen.fullscreen-app:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
   height: 100%;
   width: 100%;
 }

@@ -361,14 +361,15 @@ var TrustedUIManager = {
         }
         break;
       case 'appwillopen':
+        var app = evt.detail;
         // Hiding trustedUI when coming from Activity
         if (this.isVisible())
           this._hideTrustedApp();
 
         // Ignore homescreen
-        if (evt.target.classList.contains('homescreen'))
+        if (app.isHomescreen)
           return;
-        this._lastDisplayedApp = evt.detail.origin;
+        this._lastDisplayedApp = app.origin;
         if (this.currentStack.length) {
           // Reopening an app with trustedUI
           this.popupContainer.classList.remove('up');

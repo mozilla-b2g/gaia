@@ -3,6 +3,7 @@
 (function(window) {
   var DEBUG = true;
   var windows = document.getElementById('windows');
+  var screenElement = document.getElementById('screen');
   window.AppWindowManager = {
     // backward compatibility to WindowManager
     displayedApp: null,
@@ -20,6 +21,8 @@
     display: function awm_display(origin, callback) {
       var currentApp = this.displayedApp, newApp = origin ||
         HomescreenLauncher.origin;
+
+      screenElement.classList.remove('fullscreen-app');
 
       if (newApp === HomescreenLauncher.origin)
         HomescreenLauncher.getHomescreen();
@@ -50,33 +53,55 @@
       // Case 3: null->homescreen
       else if ((!currentApp && newApp == HomescreenLauncher.origin)) {
         HomescreenLauncher.getHomescreen().open();
-        this.displayedApp = HomescreenLauncher.origin;
-        this._activeApp = this.runningApps[this.displayedApp];
+        this._changeActiveApp(HomescreenLauncher.origin);
       }
       // Case 4: homescreen->app
       else if ((!currentApp && newApp == HomescreenLauncher.origin) ||
                (currentApp == HomescreenLauncher.origin && newApp)) {
+        this.runningApps[newApp].one('transition', 'opening',
+          function onopening() {
+            HomescreenLauncher.getHomescreen().close();
+          });
         this.runningApps[newApp].open();
       }
       // Case 5: app->homescreen
       else if (currentApp && currentApp != HomescreenLauncher.origin &&
                newApp == HomescreenLauncher.origin) {
+        this.runningApps[currentApp].one('transition', 'closing',
+          function onopening() {
+            HomescreenLauncher.getHomescreen().open();
+          });
         this.runningApps[currentApp].close();
-        HomescreenLauncher.getHomescreen().open();
       }
       // Case 6: app-to-app transition
       else {
-        // XXX
-        // switchWindow(newApp, callback);
+        this.publish('awmswitchingstart');
+        this.runningApps[newApp].one('transition', 'opened',
+          function onnewappopened() {
+            this.publish('awmswitchend');
+          }.bind(this));
+        if (this.runningApps[newApp].loaded) {
+          this.runningApps[newApp].ensureFullRepaint(function onrepaint() {
+            this.runningApps[currentApp].close('invoking');
+            this.runningApps[newApp].open('invoked');
+          }.bind(this));
+        } else {
+          this.runningApps[currentApp].close('invoking');
+          this.runningApps[newApp].open('invoked');
+        }
       }
 
-      // If the app has a attention screen open, displaying it
-      // XXX: AttentionScreen.showForOrigin(newApp);
+      // TODO: If the app has a attention screen open, displaying it
     },
 
     init: function awm_init() {
       if (LockScreen && LockScreen.locked) {
         windows.setAttribute('aria-hidden', 'true');
+      }
+      if (System.slowTransition) {
+        windows.classList.add('slow-transition');
+      } else {
+        windows.classList.remove('slow-transition');
       }
       window.addEventListener('launchapp', this);
       window.addEventListener('home', this);
@@ -85,7 +110,7 @@
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
       window.addEventListener('appopening', this);
-      window.addEventListener('appclosing', this);
+      window.addEventListener('homescreenopening', this);
       window.addEventListener('apprequestclose', this);
       window.addEventListener('apprequestopen', this);
       window.addEventListener('activityrequestopen', this);
@@ -184,15 +209,11 @@
               evt.detail.rotatingDegree === 270) {
             HomescreenLauncher.getHomescreen().fadeOut();
           }
-          HomescreenLauncher.getHomescreen().close();
-          this.displayedApp = evt.detail.origin;
-          this._activeApp = this.runningApps[this.displayedApp];
+          this._changeActiveApp(evt.detail.origin);
           break;
 
-        case 'appclosing':
-          HomescreenLauncher.getHomescreen().open();
-          this.displayedApp = HomescreenLauncher.origin;
-          this._activeApp = this.runningApps[this.displayedApp];
+        case 'homescreenopening':
+          this._changeActiveApp(HomescreenLauncher.origin);
           break;
 
         case 'apprequestclose':
@@ -331,6 +352,14 @@
           var config = evt.detail;
           this.debug('launching' + config.origin);
 
+          // Don't need to launch system app.
+          if (config.url === window.location.href)
+            return;
+
+          if (config.isActivity && config.inline) {
+            break;
+          }
+
           if (config.origin == HomescreenLauncher.origin) {
             // No need to append a frame if is homescreen
             this.displayedApp();
@@ -347,9 +376,11 @@
       }
     },
 
-    debug: function awm_debug(msg) {
+    debug: function awm_debug() {
       if (DEBUG) {
-        console.log('AppWindowManager:' + msg);
+        console.log('[AppWindowManager]' +
+          '[' + System.currentTime() + ']' +
+          Array.slice(arguments).concat());
       }
     },
 
@@ -357,6 +388,20 @@
       if (this.runningApps[origin]) {
         this.runningApps[origin].kill();
       }
+    },
+
+    publish: function awm_publish(event, detail) {
+      var evt = document.createEvent('CustomEvent');
+      evt.initCustomEvent(event, true, false, detail || this);
+
+      this.debug('publish: ' + event);
+      window.dispatchEvent(evt);
+    },
+
+    _changeActiveApp: function awm__changeActiveApp(origin) {
+      this.displayedApp = origin;
+      this._activeApp = this.runningApps[this.displayedApp];
+      this.debug('=== Active app now is: ', this._activeApp.name, '===');
     }
   };
 

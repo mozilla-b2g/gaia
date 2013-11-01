@@ -415,7 +415,7 @@
     if (DEBUG && this._DEBUG) {
       console.log('[' + this.CLASS_NAME + ']' +
         '[' + (this.name || this.origin) + ']' +
-        '[' + (new Date().getTime() / 1000 - _start).toFixed(3) + ']' +
+        '[' + System.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
   };
@@ -438,6 +438,12 @@
   AppWindow.prototype.ensureFullRepaint = function onFullRepaint(callback) {
     if (!callback)
       return;
+
+    if (this._ignoreRepaintRequest) {
+      this.fadeOut();
+      callback();
+      return;
+    }
 
     var iframe = this.iframe;
     var self = this;
@@ -781,11 +787,11 @@
     };
 
 
-  AppWindow.prototype.fadeOut = function hw__fadeout() {
+  AppWindow.prototype.fadeOut = function aw__fadeout() {
     this.element.classList.add('fadeout');
   };
 
-  AppWindow.prototype.fadeIn = function hw__fadein() {
+  AppWindow.prototype.fadeIn = function aw__fadein() {
     this.element.classList.remove('fadeout');
   };
 
