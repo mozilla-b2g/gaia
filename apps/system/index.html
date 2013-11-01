@@ -139,6 +139,7 @@
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
+    <script defer src="js/lockscreen_slide.js"></script>
     <script defer src="js/lockscreen.js"></script>
 
     <!-- PIN Unlocking -->
@@ -1040,8 +1041,9 @@
               </div>
               <div id="lockscreen-area-slide"
                    class="lockscreen-icon-area lockscreen-icon-center">
-
-                <!-- Order matters. If track after handle, it will overlay on the handle -->
+                <div id="lockscreen-canvas-wrapper">
+                  <canvas id="lockscreen-canvas"></canvas>
+                </div>
                 <div id="lockscreen-slide-track">
                   <div class="lockscreen-icon lockscreen-slide-left">
                   </div>
@@ -1050,18 +1052,6 @@
                   <div class="lockscreen-icon lockscreen-slide-right">
                   </div>
                 </div>
-
-                <div id="lockscreen-slide-handle">
-                  <div class="lockscreen-icon lockscreen-slide-left" data-role="handle-left">
-                    <span>&nbsp;</span>
-                  </div>
-                  <div class="lockscreen-icon lockscreen-slide-center" data-role="handle-center">
-                  </div>
-                  <div class="lockscreen-icon lockscreen-slide-right" data-role="handle-right">
-                    <span>&nbsp;</span>
-                  </div>
-                </div>
-
               </div>
             </div>
           </div>
