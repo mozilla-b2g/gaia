@@ -36,7 +36,7 @@ opensave.onclick = function() {
 var videoblob;
 
 var xhr = new XMLHttpRequest();
-xhr.open('GET', '../data/video/stapler.3gp');
+xhr.open('GET', '../../data/video/stapler.3gp');
 xhr.responseType = 'blob';
 xhr.send();
 xhr.onload = function() {

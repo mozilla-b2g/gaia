@@ -52,7 +52,7 @@ opensaveblob.onclick = function() {
 // The audio we want to open
 var localblob;
 var remoteblob;
-var localURL = '../data/audio/jonobacon-freesoftwaresong2.ogg';
+var localURL = '../../data/audio/jonobacon-freesoftwaresong2.ogg';
 var remoteURL = 'http://upload.wikimedia.org/wikipedia/en/4/45/' +
                 'ACDC_-_Back_In_Black-sample.ogg';
 
