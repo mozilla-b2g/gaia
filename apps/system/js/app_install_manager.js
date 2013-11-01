@@ -294,10 +294,8 @@ var AppInstallManager = {
     var keyboards = this.imeList.getElementsByTagName('input');
     for (var i = 0, l = keyboards.length; i < l; i++) {
       var keyboardIME = keyboards[i];
-      if (keyboardIME.checked) {
+      if (keyboardIME.checked)
         KeyboardHelper.setLayoutEnabled(origin, keyboardIME.value, true);
-        KeyboardHelper.saveToSettings();
-      }
     }
     this.hideIMEList();
   },
