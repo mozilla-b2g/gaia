@@ -1,4 +1,4 @@
-Keyboards.bn = {
+Keyboards['bn-BD'] = {
   label: 'Bangla',
   menuLabel: 'বাংলা',
   alternateLayoutKey: '?১২৩',
