@@ -382,10 +382,6 @@ footer {
   box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
 }
 
-.icon.icon-done {
-  background-image: url('images/iconaction_done_30x30.png') !important;
-}
-
 #thumbnails-camera-button {
   position: absolute;
   width: 50%;
@@ -716,13 +712,8 @@ a.filter-faded {
 /* all buttons in the toolbar share these styles */
 #edit-toolbar > a {
   display: inline-block;
-  width: 25%;
+  width: 20%;
   height: 100%;
-}
-
-#edit-toolbar a.selected.radio.button {
-  outline: solid #00aacc 0.2rem;
-  outline-offset: -0.2rem;
 }
 
 #edit-exposure-button {
@@ -731,18 +722,72 @@ a.filter-faded {
 }
 
 #edit-crop-button {
-  left: 25%;
+  left: 20%;
   background-image: url('images/actionicon_gallery_edit_crop_30x30.png');
 }
 
 #edit-effect-button {
-  left: 50%;
+  left: 40%;
   background-image: url('images/actionicon_gallery_edit_effects_30x30.png');
 }
 
 #edit-border-button {
-  left: 75%;
+  left: 60%;
   background-image: url('images/actionicon_gallery_edit_borders_30x30.png');
+}
+
+#edit-enhance-button {
+  left: 80%;
+  background-image: url('images/actionicon_gallery_edit_enhance_30x30.png');
+}
+
+#edit-effect-button.selected{
+  background-image: url('images/actionicon_gallery_edit_effect_selected_30x30.png');
+}
+
+#edit-crop-button.selected {
+  background-image: url('images/actionicon_gallery_edit_crop_selected_30x30.png');
+}
+
+#edit-border-button.selected {
+  background-image: url('images/actionicon_gallery_edit_border_selected_30x30.png');
+}
+
+#edit-exposure-button.selected {
+  background-image: url('images/actionicon_gallery_edit_exposure_selected_30x30.png');
+}
+
+#edit-enhance-button.selected {
+  background-image: url('images/actionicon_gallery_edit_enhance_selected_30x30.png');
+}
+
+#edit-enhance-button.on {
+  background-image: url('images/actionicon_gallery_edit_enhance_on_30x30.png');
+}
+
+#edit-enhance-button.selected.on {
+  background-image: url('images/actionicon_gallery_edit_enhance_on_selected_30x30.png');
+}
+
+#edit-enhance-options {
+  line-height: 5.5rem;
+  text-align: center;
+}
+
+#edit-enhance-options a.button {
+  position: absolute;
+  display: block;
+  top: 0;
+  bottom: 0;
+  width: 20%;
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  border-right: solid black 0.1rem;
+  overflow: hidden;
+  padding-top: 1.6rem;
+  font-size: 1.4rem;
+  background-position: center;
 }
 
 /*
