@@ -5,7 +5,7 @@ class AddCollectionsMenu(Base):
     
     
     _collections_menu_locator = (By.ID, 'collections-select')
-    _auto_collection_option_locator = (By.XPATH, "//section[@id='collections-select']//li[a[text()='%s']]")
+    _apps_locator = (By.XPATH, "//section[@id='collections-select']//li[a[text()='%s']]")
     _cancel_button_locator = (By.ID, 'confirm-dialog-cancel-button')
     _confirm_button_locator = (By.ID, 'confirm-dialog-confirm-button')
     
