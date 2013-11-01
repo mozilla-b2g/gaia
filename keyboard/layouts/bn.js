@@ -1,4 +1,4 @@
-Keyboards.bn: {
+Keyboards.bn = {
   label: 'Bangla',
   menuLabel: 'বাংলা',
   alternateLayoutKey: '?১২৩',
