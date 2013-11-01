@@ -24,67 +24,13 @@ var PermissionManager = {
   currentOrigin: undefined,
   currentPermission: undefined,
   currentPermissions: undefined,
-  currentOptions: {}, //origin options
   currentChoices: {}, //select choices
+  isVideo: false,
+  isAudio: false,
   init: function pm_init() {
+    window.addEventListener('mozChromeEvent', this);
+
     var self = this;
-
-    window.addEventListener('mozChromeEvent',
-      function pm_chromeEventHandler(evt) {
-      var detail = evt.detail;
-      switch (detail.type) {
-        case 'permission-prompt':
-          self.overlay.dataset.type = detail.permission;
-          self.currentPermission = detail.permission;
-          // not show remember my choice option in gUM
-          if ('video-capture' === detail.permission ||
-              'audio-capture' === detail.permission) {
-            self.rememberSection.style.display = 'none';
-            self.remember.checked = false;
-          } else {
-            self.rememberSection.style.display = 'block';
-          }
-
-          if (detail.options) {
-            if ('video-capture' in detail.options ||
-                'audio-capture' in detail.options) {
-              // set default choice
-              self.currentOptions = detail.options;
-              self.currentChoices[detail.permission] =
-                detail.options[detail.permission][0];
-            }
-            // handle getUserMedia multiple permissions request
-            if (detail.permissions && detail.permissions.length > 1) {
-              self.currentPermissions = detail.permissions;
-
-              detail.permissions.forEach(function(permission) {
-                // set default choices
-                self.currentChoices[permission] = detail.options[permission][0];
-              });
-
-              if ('video-capture' in detail.options &&
-                  'audio-capture' in detail.options) {
-                self.overlay.dataset.type = 'media-capture';
-                self.currentPermission = 'media-capture';
-              }
-            } else {
-              self.currentPermissions = undefined;
-            }
-          }
-
-          self.currentOrigin = detail.origin;
-          self.handlePermissionPrompt(detail);
-          break;
-        case 'cancel-permission-prompt':
-          self.discardPermissionRequest();
-          break;
-        case 'fullscreenoriginchange':
-          delete self.overlay.dataset.type;
-          self.handleFullscreenOriginChange(detail);
-          break;
-      }
-    });
-
     this.rememberSection.addEventListener('click',
       function onLabelClick() {
       self.remember.checked = !self.remember.checked;
@@ -97,6 +43,67 @@ var PermissionManager = {
     window.addEventListener('home', this.discardPermissionRequest.bind(this));
     window.addEventListener('holdhome',
       this.discardPermissionRequest.bind(this));
+  },
+
+  handleEvent: function pm_chromeEventHandler(evt) {
+    var detail = evt.detail;
+    switch (detail.type) {
+      case 'permission-prompt':
+        this.currentOrigin = detail.origin;
+
+        if (detail.permissions) {
+          this.isVideo = false;
+          this.isAudio = false;
+          if ('video-capture' in detail.permissions) {
+            this.isVideo = true;
+          }
+          if ('audio-capture' in detail.permissions) {
+            this.isAudio = true;
+          }
+        } else {
+          console.log('XXX version < v1.2 does not support new permissions');
+          return;
+        }
+
+        // set default permission
+        if (this.isVideo && this.isAudio) {
+          this.currentPermission = 'media-capture';
+        } else {
+          for (var permission in detail.permissions) {
+            if (detail.permissions.hasOwnProperty(permission)) {
+              this.currentPermission = permission;
+            }
+          }
+        }
+        this.overlay.dataset.type = this.currentPermission;
+
+        // not show remember my choice option in gUM
+        if (this.isAudio || this.isVideo) {
+          this.rememberSection.style.display = 'none';
+          this.remember.checked = false;
+
+          //set default option
+          this.currentPermissions = detail.permissions;
+          for (var permission in detail.permissions) {
+            if (detail.permissions.hasOwnProperty(permission)) {
+              this.currentChoices[permission] =
+                detail.permissions[permission][0];
+            }
+          }
+        } else {
+          this.rememberSection.style.display = 'block';
+        }
+
+        this.handlePermissionPrompt(detail);
+        break;
+      case 'cancel-permission-prompt':
+        this.discardPermissionRequest();
+        break;
+      case 'fullscreenoriginchange':
+        delete this.overlay.dataset.type;
+        this.handleFullscreenOriginChange(detail);
+        break;
+    }
   },
 
 
@@ -163,10 +170,8 @@ var PermissionManager = {
       remember: remember
     };
 
-    if (this.currentPermission === 'video-capture' ||
-        this.currentPermission === 'audio-capture' ||
-        this.currentPermission === 'media-capture') {
-      response['choice'] = this.currentChoices;
+    if (this.isVideo || this.isAudio) {
+      response['choices'] = this.currentChoices;
     }
     var event = document.createEvent('CustomEvent');
     event.initCustomEvent('mozContentEvent', true, true, response);
@@ -289,10 +294,8 @@ var PermissionManager = {
     this.overlay.classList.add('visible');
 
     // Set event listeners for the yes and no buttons
-    var isSharedPermission = this.currentPermission === 'video-capture' ||
-      this.currentPermission === 'audio-capture' ||
-      this.currentPermission === 'media-capture' ||
-      this.currentPermission === 'geolocation';
+    var isSharedPermission = this.isVideo || this.isAudio ||
+         this.currentPermission === 'geolocation';
 
     var _ = navigator.mozL10n.get;
 
