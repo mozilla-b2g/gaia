@@ -23,6 +23,10 @@ var MockNavigatormozApps = {
     }
   },
 
+  mgmt: {
+    getAll: function() {}
+  },
+
   mLastRequest: null,
 
   _mLaunch: function mnma_launch(entryPoint) {

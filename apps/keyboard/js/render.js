@@ -295,8 +295,7 @@ const IMERender = (function() {
           var div = document.createElement('div');
           // Size the div based on the # of candidates (-2% for margins)
           div.style.width = (100 / candidates.length - 2) + '%';
-          docFragment.appendChild(div);
-
+          candidatePanel.appendChild(div);
           var text, data, correction = false;
           if (typeof candidate === 'string') {
             if (candidate[0] === '*') { // it is an autocorrection candidate
@@ -384,9 +383,9 @@ const IMERender = (function() {
         candidatePanelToggleButton.style.display = 'none';
         toggleCandidatePanel(false);
         docFragment = candidatesFragmentCode(1, candidates, true);
+        candidatePanel.appendChild(docFragment);
       }
 
-      candidatePanel.appendChild(docFragment);
     }
   };
 

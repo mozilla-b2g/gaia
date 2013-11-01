@@ -66,6 +66,16 @@ suite('telephony helper', function() {
     mockTelephony.verify();
   });
 
+  test('should not dial the same number twice', function() {
+    var dialNumber = '0145345520';
+    MockMozTelephony.calls = [{number: dialNumber}];
+
+    mockTelephony.expects('dial').never();
+    subject.call(dialNumber);
+
+    mockTelephony.verify();
+  });
+
   suite('should dialEmergency if the card state is unknown',
     function() {
       var initialState;

@@ -6,7 +6,8 @@
       settings = {
         'dom.mms.operatorSizeLimitation' : 300
       },
-      removedObservers = {};
+      removedObservers = {},
+      requests = [];
 
   function mns_mLockSet(obj) {
     // Set values.
@@ -23,6 +24,25 @@
     }
   }
 
+  function mns_clearRequests() {
+    requests = [];
+  }
+
+  function mns_mReplyToRequests() {
+    try {
+      requests.forEach(function(request) {
+        if (request.onsuccess) {
+          request.onsuccess({
+            target: request
+          });
+        }
+      });
+    }
+    finally {
+      requests = [];
+    }
+  }
+
   function mns_mLockGet(key) {
     var resultObj = {};
     resultObj[key] = settings[key];
@@ -33,11 +53,15 @@
       }
     };
 
-    setTimeout(function() {
-      if (settingsRequest.onsuccess) {
-        settingsRequest.onsuccess();
-      }
-    });
+    if (!MockNavigatorSettings.mSyncRepliesOnly) {
+      setTimeout(function() {
+        if (settingsRequest.onsuccess) {
+          settingsRequest.onsuccess();
+        }
+      });
+    } else {
+      requests.push(settingsRequest);
+    }
 
     return settingsRequest;
   }
@@ -80,6 +104,7 @@
     observers = {};
     settings = {};
     removedObservers = {};
+    requests = [];
   }
 
   window.MockNavigatorSettings = {
@@ -87,8 +112,12 @@
     removeObserver: mns_removeObserver,
     createLock: mns_createLock,
 
+    mClearRequests: mns_clearRequests,
+    mReplyToRequests: mns_mReplyToRequests,
     mTriggerObservers: mns_mTriggerObservers,
     mTeardown: mns_teardown,
+    mSyncRepliesOnly: false,
+
     get mObservers() {
       return observers;
     },
@@ -97,6 +126,9 @@
     },
     get mRemovedObservers() {
       return removedObservers;
+    },
+    get mRequests() {
+      return requests;
     }
   };
 

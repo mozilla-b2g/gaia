@@ -9,29 +9,22 @@ var MediaPlayback = {
     this.trackArtist = this.container.querySelector('.artist');
     this.albumArt = this.container.querySelector('.albumart');
 
-    var self = this;
-    window.navigator.mozSetMessageHandler('connection', function(request) {
-      if (request.keyword !== 'mediacomms')
-        return;
+    this.nowPlaying.addEventListener('click', this.openMediaApp.bind(this));
 
-      var port = request.port;
-      port.onmessage = function(event) {
-        var message = event.data;
-        switch (message.type) {
+    window.addEventListener('iac-mediacomms', function onIAC(evt) {
+      var message = evt.detail.data;
+      switch (message.type) {
         case 'appinfo':
-          self.updateAppInfo(message.data);
+          this.updateAppInfo(message.data);
           break;
         case 'nowplaying':
-          self.updateNowPlaying(message.data);
+          this.updateNowPlaying(message.data);
           break;
         case 'status':
-          self.updatePlaybackStatus(message.data);
+          this.updatePlaybackStatus(message.data);
           break;
-        }
-      };
-    });
-
-    this.nowPlaying.addEventListener('click', this.openMediaApp.bind(this));
+      }
+    }.bind(this));
 
     // Listen for when the music app is terminated. We know which app to look
     // for because we got it from the "appinfo" message. Then we hide the Now

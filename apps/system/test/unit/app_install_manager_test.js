@@ -3,16 +3,17 @@
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_statusbar.js');
-requireApp('system/test/unit/mock_manifest_helper.js');
 requireApp('system/test/unit/mock_system_banner.js');
 requireApp('system/test/unit/mock_notification_screen.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_lazy_loader.js');
 requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_template.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_wake_lock.js');
+
+require('/shared/test/unit/mocks/mock_lazy_loader.js');
+require('/shared/test/unit/mocks/mock_manifest_helper.js');
+require('/shared/test/unit/mocks/mock_navigator_wake_lock.js');
 
 requireApp('system/js/app_install_manager.js');
 
@@ -1261,7 +1262,7 @@ suite('system/AppInstallManager >', function() {
       mockApp = new MockApp({
         manifest: {
           name: mockAppName,
-          role: 'keyboard',
+          role: 'input',
           developer: {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'
@@ -1293,7 +1294,7 @@ suite('system/AppInstallManager >', function() {
       mockAppTwo = new MockApp({
         manifest: {
           name: mockAppTwoName,
-          role: 'keyboard',
+          role: 'input',
           developer: {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'
@@ -1367,7 +1368,7 @@ suite('system/AppInstallManager >', function() {
       var badKeyboardApp = new MockApp({
         manifest: {
           name: mockAppName,
-          role: 'keyboard',
+          role: 'input',
           developer: {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'

@@ -235,7 +235,7 @@ var WifiUI = {
     window.location.hash = '#hidden-wifi-authentication';
   },
 
-  handleHiddenWifiSecurity: function wui_handleSecurity(secuityType) {
+  handleHiddenWifiSecurity: function wui_handleSecurity(securityType) {
     if (securityType.indexOf('EAP') !== -1) {
       UIManager.hiddenWifiIdentityBox.classList.remove('hidden');
     } else {

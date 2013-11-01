@@ -30,7 +30,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
 
   // XXX: Bug 904623 since we cannot fetch a list of contacts by
   // contact id, we will need to fetch them all and filter
-  var init = function init(theContacts, cb) {
+  var _init = function _init(theContacts, cb) {
     if (theContacts == null || theContacts.length == 0) {
       return;
     }
@@ -58,7 +58,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // Checks if the export module has been properly configured
   // and start the process of exporting.
   //
-  var start = function start() {
+  var _start = function _start() {
     if (!contacts || !strategy) {
       throw new Error('Not properly configured');
     }
@@ -67,21 +67,21 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
 
     // Check if we have a 'Preparation step'
     if (typeof strategy.prepare === 'function') {
-      strategy.prepare(doExport);
+      strategy.prepare(_doExport);
     } else {
-      doExport();
+      _doExport();
     }
   };
 
-  var doExport = function doExport() {
+  var _doExport = function _doExport() {
     if (typeof strategy.shouldShowProgress === 'function' &&
         strategy.shouldShowProgress()) {
       hasProgress = true;
-      configureProgress();
-      displayProgress();
+      _configureProgress();
+      _displayProgress();
     }
 
-    strategy.doExport(doHandleResult);
+    strategy.doExport(_doHandleResult);
   };
 
   //
@@ -91,7 +91,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // @param: {Integer} exported Number of contacts successfuly exported
   // @param: {String} message Any extra message from the exporting mechanism
   //
-  var doHandleResult = function doHandleResult(error, exported, message) {
+  var _doHandleResult = function _doHandleResult(error, exported, message) {
     if (hasProgress) {
       utils.overlay.hide();
     }
@@ -109,7 +109,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
         callback: function() {
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
-          window.setTimeout(strategy.doExport(doHandleResult), 0);
+          window.setTimeout(_doExport, 0);
         }
       };
       var errorString = 'exportError-' + strategy.name + '-';
@@ -128,7 +128,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   // Based on the strategy configure the progress display to show a
   // determinative or indeterminate ui depending on the strategy
   //
-  var configureProgress = function configureProgress() {
+  var _configureProgress = function _configureProgress() {
     determinativeProgress =
       strategy['hasDeterminativeProgress'] !== undefined &&
       strategy.hasDeterminativeProgress();
@@ -137,7 +137,7 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   //
   // Shows the progress dialog based on the
   //
-  var displayProgress = function displayProgress() {
+  var _displayProgress = function _displayProgress() {
     var progressClass = determinativeProgress ? 'progressBar' : 'spinner';
 
     Contacts.utility('Overlay', function _loaded() {
@@ -156,8 +156,8 @@ window.ContactsExporter = function ContactsExporter(theStrategy) {
   };
 
   return {
-    'init': init,
-    'start': start
+    'init': _init,
+    'start': _start
   };
 
 };
