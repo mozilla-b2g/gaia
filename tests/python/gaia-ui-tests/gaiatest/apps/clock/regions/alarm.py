@@ -149,10 +149,11 @@ class NewAlarm(Clock):
 class EditAlarm(NewAlarm):
 
     _alarm_delete_button_locator = (By.ID, 'alarm-delete')
+    _edit_alarm_active_panel_locator = (By.CSS_SELECTOR, "#alarm-edit-panel[class='panel active']")
 
     def __init__(self, marionette):
         NewAlarm.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._alarm_delete_button_locator)
+        self.wait_for_element_displayed(*self._edit_alarm_active_panel_locator)
 
     def tap_delete(self):
         self.marionette.find_element(*self._alarm_delete_button_locator).tap()
