@@ -727,7 +727,7 @@ b2g: node_modules/.bin/mozilla-download
 test-integration:
 	# override existing profile-test folder.
 	PROFILE_FOLDER=profile-test make
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
+	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*clock/test/marionette/*_test.js") \
 		--host $(MARIONETTE_RUNNER_HOST) \
 		--reporter $(MOCHA_REPORTER)
 
