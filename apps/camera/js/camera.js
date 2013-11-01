@@ -539,10 +539,17 @@ var Camera = {
     }
   },
 
-  turnOffFlash: function camera_turnOffFlash() {
+  turnOffFlash: function camera_turnOffFlash(saveState) {
     var flash = this._flashState[this._captureMode];
+    var savedMode=undefined;
+    if(saveState===true){
+    	savedMode=flash.currentMode[this._cameraNumber];
+    }
     flash.currentMode[this._cameraNumber] = 0;
     this.setFlashMode();
+    if( (typeof savedMode) !== 'undefined'){
+        flash.currentMode[this._cameraNumber] = savedMode;
+    }
   },
 
   // isAuto: true if caller want to set it as auto; false for always light.
@@ -1539,7 +1546,7 @@ Camera.init();
 
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
-    Camera.turnOffFlash();
+    Camera.turnOffFlash(true);
     Camera.stopPreview();
     Camera.cancelPick();
     Camera.cancelPositionUpdate();
