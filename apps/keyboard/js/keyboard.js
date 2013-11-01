@@ -230,6 +230,7 @@ const keyboardGroups = {
   'french': ['fr'],
   'german': ['de'],
   'hungarian': ['hu'],
+  'macedonian': ['mk'],
   'norwegian': ['nb'],
   'swedish': ['sv'],
   'slovak': ['sk'],
