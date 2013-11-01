@@ -79,6 +79,10 @@
     "ftucomms": {
       "description": "Communicate between communications/ftu and System",
       "rules": {}
+    },
+    "bluetoothTransfercomms": {
+      "description": "Communication with bluetooth apps for sending files info",
+      "rules": {}
     }
   }
 }

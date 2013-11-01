@@ -281,7 +281,11 @@ body, html {
 }
 
 .sb-icon-bluetooth-headphones {
-  background-position: -21rem -8rem;
+  background-position: -23.1rem -8rem;
+}
+
+.sb-icon-bluetooth-transferring {
+  background-position: -29.4rem -8rem;
 }
 
 .sb-icon-geolocation {
