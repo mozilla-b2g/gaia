@@ -1262,7 +1262,7 @@ suite('system/AppInstallManager >', function() {
       mockApp = new MockApp({
         manifest: {
           name: mockAppName,
-          role: 'keyboard',
+          role: 'input',
           developer: {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'
@@ -1294,7 +1294,7 @@ suite('system/AppInstallManager >', function() {
       mockAppTwo = new MockApp({
         manifest: {
           name: mockAppTwoName,
-          role: 'keyboard',
+          role: 'input',
           developer: {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'
@@ -1368,7 +1368,7 @@ suite('system/AppInstallManager >', function() {
       var badKeyboardApp = new MockApp({
         manifest: {
           name: mockAppName,
-          role: 'keyboard',
+          role: 'input',
           developer: {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'
