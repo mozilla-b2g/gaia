@@ -32,16 +32,22 @@ class Homescreen(Base):
     def is_app_installed(self, app_name):
         """Checks whether app is installed"""
         is_installed = False
-        while self.homescreen_has_more_pages:
-            self.go_to_next_page()
+        for i in range(self.homescreen_get_total_pages_number):
             if self.is_element_displayed(self._homescreen_icon_locator[0], self._homescreen_icon_locator[1] % app_name):
                 is_installed = True
                 break
-
+            elif self.homescreen_has_more_pages:
+                self.go_to_next_page()
         return is_installed
 
     def go_to_next_page(self):
         self.marionette.execute_script('window.wrappedJSObject.GridManager.goToNextPage()')
+
+    @property
+    def homescreen_get_total_pages_number(self):
+        return self.marionette.execute_script("""
+        var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
+        return pageHelper.getTotalPagesNumber();""")
 
     @property
     def homescreen_has_more_pages(self):
