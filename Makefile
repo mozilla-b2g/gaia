@@ -596,7 +596,7 @@ b2g: node_modules
 	./node_modules/.bin/mozilla-download \
 		--verbose \
 		--channel prerelease \
-		--branch aurora \
+		--branch b2g26_v1_2 \
 		--product b2g $@
 
 .PHONY: test-integration
