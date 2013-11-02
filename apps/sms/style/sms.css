@@ -9,7 +9,7 @@ html, body {
 }
 
 
-/* 
+/*
   Override BB. Some CSS tweaks for having a better confirm readability
 */
 form[role="dialog"][data-type="confirm"] p {
@@ -220,6 +220,38 @@ form[data-type="action"] img[src=""] {
 
 #messages-contact-pick-button {
   display: none;
+}
+
+.new-message-notice-text {
+  font-size: 1.8rem;
+}
+
+#new-message-notice-content {
+  margin: 1rem 2rem;
+  padding: 0;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+  line-height: 2rem;
+  font-size: 1.8rem;
+  text-align: left;
+}
+
+#new-message-notice-contact {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#new-message-notice-container-1 {
+  display: inline-block;
+}
+
+#new-message-notice-container-2 {
+  vertical-align: super;
+  float: right;
 }
 
 /*
@@ -799,6 +831,28 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   margin-right: 0.5rem;
   padding: 0 0.8rem;
   border-width: 0.1rem;
+}
+
+.recipient[contenteditable=false].attention {
+  padding-left: 1.2rem;
+
+  border: 0.1rem solid #b90000;
+
+  background: transparent;
+}
+
+.recipient[contenteditable=false].attention::before {
+  position: absolute;
+
+  border-bottom-left-radius: 0.3rem;
+  border-top-left-radius: 0.3rem;
+  padding: 0.2rem 0.2rem 0 0.2rem;
+  margin-left: -1.2rem;
+  margin-top: -0.1rem;
+
+  background-color: #b90000;
+  color: #fff;
+  content: "!";
 }
 
 .article-list[data-type="list"] ul.contact-list {

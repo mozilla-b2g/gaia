@@ -92,6 +92,12 @@ suite('Contacts', function(done) {
                     ]);
                   }
 
+                  if (filter.filterValue === 'doozer') {
+                    return MockContact.list([
+                      { givenName: ['Jane'], familyName: ['Doozer'] }
+                    ]);
+                  }
+
                   // All other cases
                   return MockContact.list();
                 }());
@@ -379,6 +385,23 @@ suite('Contacts', function(done) {
 
         // navigator.mozContacts.find was called?
         assert.equal(mHistory.length, 1);
+        done();
+      });
+    });
+  });
+
+
+  suite('Contacts.findExact', function() {
+    test('yields a match ', function(done) {
+      Contacts.findExact('jane doozer', function(contacts) {
+        assert.equal(contacts.length, 1);
+        done();
+      });
+    });
+
+    test('yields no matches ', function(done) {
+      Contacts.findExact('j doozer', function(contacts) {
+        assert.equal(contacts.length, 0);
         done();
       });
     });

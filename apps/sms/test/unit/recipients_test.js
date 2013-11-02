@@ -68,7 +68,11 @@ suite('Recipients', function() {
       // Disambiguation 'display' attributes
       type: 'Type',
       separator: ' | ',
-      carrier: 'Carrier'
+      carrier: 'Carrier',
+      className: 'recipient',
+      isLookupable: false,
+      isQuestionable: false,
+      isInvalid: false
     };
   });
 
@@ -90,7 +94,6 @@ suite('Recipients', function() {
       assert.ok(Recipients.prototype.off);
       assert.ok(Recipients.prototype.emit);
     });
-
 
     test('recipients.add() 1 ', function() {
       var recipient;
@@ -133,6 +136,15 @@ suite('Recipients', function() {
       } catch (e) {
         assert.equal(e.message, 'recipient entry missing number');
       }
+    });
+
+    test('recipients.add() turns `number` to string >', function(done) {
+      recipients.on('add', function(_, record) {
+        assert.equal(typeof record.number, 'string');
+        recipients.off('add');
+        done();
+      });
+      recipients.add({ number: 999 });
     });
 
 
@@ -232,6 +244,18 @@ suite('Recipients', function() {
       assert.equal(recipients.numbers[0], '999');
     });
 
+    test('recipients.numbers contains no invalid entries ', function() {
+      recipients.add({
+        number: '999'
+      });
+      recipients.add({
+        number: 'foo',
+        isInvalid: true
+      });
+
+      assert.equal(recipients.numbers.length, 1);
+    });
+
     test('recipients.on(add, ...)', function(done) {
       recipients.on('add', function(count) {
         assert.ok(true);
@@ -257,6 +281,33 @@ suite('Recipients', function() {
       recipients.remove(recipients.list[0]);
     });
 
+    suite('Detecting Questionable Entries', function() {
+      test('Correctly detects a questionable entry ', function(done) {
+        recipients.on('add', function(count, added) {
+          assert.isTrue(added.isQuestionable);
+          recipients.off('add');
+          done();
+        });
+
+        recipients.add({
+          number: 'abc',
+          source: 'manual'
+        });
+      });
+
+      test('Ignore entries that are not questionable ', function(done) {
+        recipients.on('add', function(count, added) {
+          assert.isFalse(added.isQuestionable);
+          recipients.off('add');
+          done();
+        });
+
+        recipients.add({
+          number: '999',
+          source: 'manual'
+        });
+      });
+    });
   });
 
   suite('Recipients.View', function() {
@@ -495,6 +546,10 @@ suite('Recipients', function() {
 
       suite('Clicks on accepted recipients', function() {
 
+        setup(function() {
+          Recipients.View.isObscured = false;
+        });
+
         test('while manually entering a recipient ', function() {
           var view = document.getElementById('messages-recipients-list');
 
@@ -526,6 +581,21 @@ suite('Recipients', function() {
           //    - A placeholder for the cursor
           //
           assert.equal(view.children.length, 3);
+        });
+
+        test('obscures the recipients view to prevent focus ', function() {
+          var view = document.getElementById('messages-recipients-list');
+
+          fixture.source = 'contacts';
+
+          recipients.add(fixture).focus();
+
+          // A recipient is accepted
+          assert.equal(recipients.length, 1);
+
+          view.firstElementChild.click();
+
+          assert.isTrue(Recipients.View.isObscured);
         });
 
         test('with only accepted recipients ', function() {

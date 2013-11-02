@@ -3,6 +3,18 @@
 (function(exports) {
   'use strict';
 
+  var filterFns = {
+    startsWith: function(a, b) {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      return a.startsWith(b);
+    },
+    equality: function(a, b) {
+      a = a.toLowerCase();
+      b = b.toLowerCase();
+      return a === b;
+    }
+  };
   /**
    * isMatch
    *
@@ -13,8 +25,11 @@
    * @param {Object} criteria fields and terms to validate a contact.
    *        - fields (fields of a contact record).
    *        - terms (terms to validate against contact record field values).
+   * @param {Function} filterFn function accepts 2 arguments for
+   *                             comparison.
+   *
    */
-  function isMatch(contact, criteria) {
+  function isMatch(contact, criteria, filterFn) {
     /**
      * Validation Strategy
      *
@@ -22,9 +37,9 @@
      * 2. Let _contact_ be a contact record.
      * 3. For each _term_ [...input list], with the label _outer_
      *   - For each _field_ of [givenName, familyName]
-     *     - For each _value_ in _contact_[ _field_ ]
+     *     - For each _value_ of _contact_[ _field_ ]
      *       - Let _found_[ _term_ ] be the result of calling
-     *           _value_.startsWith( _term_ )
+     *         _filterFn_( _value_, _term_).
      *         - If _found_[ _term_ ] is **true**, continue to
      *           loop labelled _outer_
      * 4. If every value of _key_ in _found_ is **true** return **true**,
@@ -40,8 +55,9 @@
       for (var j = 0, jlen = criteria.fields.length; j < jlen; j++) {
         var field = criteria.fields[j];
         for (var k = 0, klen = contact[field].length; k < klen; k++) {
-          var value = contact[field][k];
-          if (found[term] = value.toLowerCase().startsWith(term)) {
+          var value = contact[field][k].trim();
+
+          if ((found[term] = filterFn(value, term))) {
             continue outer;
           }
         }
@@ -91,7 +107,7 @@
              *    result a no-op.
              *
              */
-            typeof filter.filterValue === 'undefined' ? null : []
+            typeof filter.filterValue === 'undefined' ? null : [], {}
           );
         });
         return;
@@ -155,20 +171,24 @@
       request.onsuccess = function onsuccess() {
         var contacts = this.result.slice();
         var fields = ['givenName', 'familyName'];
+        var criteria = { fields: fields, terms: lower };
         var results = [];
         var contact;
 
         // Step 7
         if (terms.length > 1) {
           while ((contact = contacts.pop())) {
-            if (isMatch(contact, { fields: fields, terms: lower })) {
+            if (isMatch(contact, criteria, filterFns.startsWith)) {
               results.push(contact);
             }
           }
         } else {
           results = contacts;
         }
-        callback(results);
+
+        callback(results, {
+          terms: terms
+        });
       };
 
       request.onerror = function onerror() {
@@ -185,6 +205,27 @@
         filterOp: 'contains',
         filterValue: filterValue
       }, callback);
+    },
+
+    findExact: function contacts_findBy(filterValue, callback) {
+      return this.findBy({
+        filterBy: ['givenName', 'familyName'],
+        filterOp: 'contains',
+        filterValue: filterValue
+      }, function(results, meta) {
+        var contact = results && results.length ? results[0] : null;
+        var criteria = {
+          fields: ['name'],
+          terms: [filterValue]
+        };
+        var isExact = false;
+
+        if (contact) {
+          isExact = isMatch(contact, criteria, filterFns.equality);
+        }
+
+        callback(isExact ? [contact] : []);
+      });
     },
     findByPhoneNumber: function contacts_findByPhone(filterValue, callback) {
       return this.findBy({
