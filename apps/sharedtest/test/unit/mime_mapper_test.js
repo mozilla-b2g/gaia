@@ -1,6 +1,4 @@
 'use strict';
-// We might need to modify the build script to run the shared lib
-// right under the shared folder in the future(bug 841422).
 require('/shared/js/mime_mapper.js');
 
 suite('Shared library mime_mapper api tests', function() {
