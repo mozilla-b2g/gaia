@@ -459,19 +459,8 @@ class GaiaTestCase(MarionetteTestCase):
                 # filename is a fully qualified path
                 self.device.manager.removeFile(filename)
 
-        if self.data_layer.get_setting('ril.radio.disabled'):
-            # enable the device radio, disable Airplane mode
-            self.data_layer.set_setting('ril.radio.disabled', False)
-
-        # disable passcode before restore settings from testvars
-        self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
-        self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
-
-        # Change language back to English
-        self.data_layer.set_setting("language.current", "en-US")
-
-        # Switch off spanish keyboard before test
-        self.data_layer.set_setting("keyboard.layouts.spanish", False)
+        # Set screen timeout to 0 so it does not lock during the test
+        self.data_layer.set_setting('screen.timeout', 0)
 
         # Switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
@@ -480,14 +469,49 @@ class GaiaTestCase(MarionetteTestCase):
         self.data_layer.set_setting("time.timezone", "America/Los_Angeles")
         self.data_layer.set_setting("time.timezone.user-selected", "America/Los_Angeles")
 
-        # Set do not track pref back to the default
-        self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
-        # unlock
-        self.lockscreen.unlock()
+
+        # If we are restarting all of these values are reset to default earlier in the setUp
+        if not self.restart:
+
+            # disable passcode before restore settings from testvars
+            self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
+            self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
+
+            # Change language back to English
+            self.data_layer.set_setting("language.current", "en-US")
+
+            # Switch off spanish keyboard before test
+            self.data_layer.set_setting("keyboard.layouts.spanish", False)
+
+            # Set do not track pref back to the default
+            self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
+
+            # unlock
+            self.lockscreen.unlock()
+
+            if self.data_layer.get_setting('ril.radio.disabled'):
+                # enable the device radio, disable Airplane mode
+                self.data_layer.set_setting('ril.radio.disabled', False)
+
+            # disable carrier data connection
+            if self.device.has_mobile_connection:
+                self.data_layer.disable_cell_data()
+
+            self.data_layer.disable_cell_roaming()
+
+            if self.device.has_wifi:
+                self.data_layer.enable_wifi()
+                self.data_layer.forget_all_networks()
+                self.data_layer.disable_wifi()
+
+            # remove data
+            self.data_layer.remove_all_contacts(self._script_timeout)
+
+            # reset to home screen
+            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
         # kill any open apps
         self.apps.kill_all()
@@ -495,22 +519,6 @@ class GaiaTestCase(MarionetteTestCase):
         # disable sound completely
         self.data_layer.set_volume(0)
 
-        # disable carrier data connection
-        if self.device.has_mobile_connection:
-            self.data_layer.disable_cell_data()
-
-        self.data_layer.disable_cell_roaming()
-
-        if self.device.has_wifi:
-            self.data_layer.enable_wifi()
-            self.data_layer.forget_all_networks()
-            self.data_layer.disable_wifi()
-
-        # remove data
-        self.data_layer.remove_all_contacts(self._script_timeout)
-
-        # reset to home screen
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
     def install_marketplace(self):
         _yes_button_locator = (By.ID, 'app-install-install-button')
