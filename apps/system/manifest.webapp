@@ -38,9 +38,7 @@
     "audio-channel-content":{},
     "cellbroadcast":{},
     "input":{},
-    "input-manage":{},
-    "keyboard":{},
-    "inputmethod-manage":{}
+    "input-manage":{}
   },
   "locales": {
     "ar": {
