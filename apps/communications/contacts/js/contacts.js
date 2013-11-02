@@ -338,7 +338,6 @@ var Contacts = (function() {
 
     if (!customTag) {
       customTag = document.querySelector('#custom-tag');
-      customTag.addEventListener('keydown', handleCustomTag);
       customTag.addEventListener('touchend', handleCustomTag);
     }
     if (!customTagReset) {
