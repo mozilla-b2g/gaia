@@ -1,9 +1,3 @@
-/**
- * Tests for the shared scroll detector helper
- * TODO: Shared code unit tests should not be in gallery
- * Bug #841422 has been filed to move these tests
- */
-
 'use strict';
 
 require('/shared/js/scroll_detector.js');
