@@ -32,6 +32,11 @@ var MockContacts = {
     this.mCallCallback(callback, result);
   },
 
+  findExact: function mc_findByString(value, callback) {
+    var result = MockContact.list();
+    this.mCallCallback(callback, result);
+  },
+
   mTeardown: function mc_mTeardown() {
     this.mAsync = false;
   }

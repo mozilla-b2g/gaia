@@ -112,6 +112,10 @@ var ThreadUI = global.ThreadUI = {
       'input', this.toFieldInput.bind(this), true
     );
 
+    this.toField.addEventListener(
+      'focus', this.toFieldInput.bind(this), true
+    );
+
     // Handlers for send button and avoiding to hide keyboard instead
     this.sendButton.addEventListener(
       'mousedown', function mouseDown(event) {
@@ -268,13 +272,41 @@ var ThreadUI = global.ThreadUI = {
 
   // Initialize Recipients list and Recipients.View (DOM)
   initRecipients: function thui_initRecipients() {
-    var recipientsChanged = (function recipientsChanged() {
-      // update composer header whenever recipients change
-      this.updateComposerHeader();
-      // check for enable send whenever recipients change
-      this.enableSend();
+    var recipientsChanged = (function recipientsChanged(length, record) {
+      var isOk = true;
+      var strategy;
+
+      if (record && (record.isQuestionable || record.isLookupable)) {
+        if (record.isQuestionable) {
+          isOk = false;
+        }
+
+        strategy = record.isLookupable ? 'searchContact' : 'exactContact';
+
+        this[strategy](
+          record.number, this.validateContact.bind(this, record)
+        );
+      }
+
+      // The isOk flag will prevent "questionable" recipient entries from
+      //
+      //    - Updating the header
+      //    - Enabling send.
+      //
+      //  Ideally, the contact will be found by the
+      //  searchContact + validateContact operation and the
+      //  recipientsChanged handler will be re-called with a known
+      //  and valid recipient from the user's contacts.
+      if (isOk) {
+        // update composer header whenever recipients change
+        this.updateComposerHeader();
+        // check for enable send whenever recipients change
+        this.enableSend();
+      }
+
       // Clean search result after recipient count change.
       this.container.textContent = '';
+
     }).bind(this);
 
     if (this.recipients) {
@@ -432,6 +464,7 @@ var ThreadUI = global.ThreadUI = {
             number: typed,
             source: 'manual'
           });
+
           break;
         }
       }
@@ -533,12 +566,6 @@ var ThreadUI = global.ThreadUI = {
     });
 
     activity.onsuccess = (function() {
-      // As we have the whole contact from the activity, there is no
-      // need for adding a second request to Contacts API.
-      var dummyResolver = function dummyResolver(phoneNumber, cb) {
-        cb(activity.result);
-      };
-
       if (!activity.result ||
           !activity.result.tel ||
           !activity.result.tel.length ||
@@ -547,12 +574,12 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
 
-      Utils.getContactDisplayInfo(dummyResolver,
-        activity.result.tel[0].value,
-        (function onData(data) {
-        data.source = 'contacts';
-        this.recipients.add(data);
-      }).bind(this));
+      var data = Utils.basicContact(
+        activity.result.tel[0].value, activity.result
+      );
+      data.source = 'contacts';
+
+      this.recipients.add(data);
     }).bind(this);
 
     activity.onerror = (function(e) {
@@ -562,7 +589,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for updating the header when needed
   updateComposerHeader: function thui_updateComposerHeader() {
-    var recipientCount = this.recipients.length;
+    var recipientCount = this.recipients.numbers.length;
     if (recipientCount > 0) {
       navigator.mozL10n.localize(this.headerText, 'recipient', {
           n: recipientCount
@@ -729,8 +756,23 @@ var ThreadUI = global.ThreadUI = {
     // should disable if we have no message input
     var disableSendMessage = Compose.isEmpty() || Compose.isResizing;
     var messageNotLong = this.updateCounter();
-    var hasRecipients = this.recipients &&
-      (this.recipients.length || !!this.recipients.inputValue);
+    var recipientsValue = this.recipients.inputValue;
+    var hasRecipients = false;
+
+    // Set hasRecipients to true based on the following conditions:
+    //
+    //  1. There is a valid recipients object
+    //  2. One of the following is true:
+    //      - The recipients object contains at least 1 valid recipient
+    //        - OR -
+    //      - There is >=1 character typed and the value is a finite number
+    //
+    if (this.recipients &&
+        (this.recipients.numbers.length ||
+          (recipientsValue && isFinite(recipientsValue)))) {
+
+      hasRecipients = true;
+    }
 
     // should disable if the message is too long
     disableSendMessage = disableSendMessage || !messageNotLong;
@@ -2117,14 +2159,18 @@ var ThreadUI = global.ThreadUI = {
     var typed;
     if (event.target.isPlaceholder) {
       typed = event.target.textContent.trim();
-      this.searchContact(typed);
+      this.searchContact(typed, this.listContacts.bind(this));
     }
 
     this.enableSend();
   },
 
-  searchContact: function thui_searchContact(filterValue) {
-    if (!filterValue) {
+  exactContact: function thui_searchContact(fValue, handler) {
+    Contacts.findExact(fValue, handler.bind(null, fValue));
+  },
+
+  searchContact: function thui_searchContact(fValue, handler) {
+    if (!fValue) {
       // In cases where searchContact was invoked for "input"
       // that was actually a "delete" that removed the last
       // character in the recipient input field,
@@ -2134,52 +2180,154 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
-    Contacts.findByString(filterValue, function gotContact(contacts) {
-      // If the user has cleared the typed input before the
-      // results came back, prevent the results from being rendered
-      // by returning immediately.
-      if (!this.recipients.inputValue) {
-        return;
+    Contacts.findByString(fValue, handler.bind(null, fValue));
+  },
+
+  validateContact: function thui_validateContact(source, fValue, contacts) {
+    // fValue is currently unused here, but must be in the parameter
+    // list in order for exactContact and searchContact to both use
+    // validateContact as a handler.
+    //
+    var isInvalid = true;
+    var index = this.recipients.length - 1;
+    var last = this.recipientsList.lastElementChild;
+    var typed = last && last.textContent.trim();
+    var isContact = false;
+    var record, tel, length, number, contact;
+
+    if (index < 0) {
+      index = 0;
+    }
+
+    // If there is greater than zero matches,
+    // process the first found contact into
+    // an accepted Recipient.
+    if (contacts && contacts.length) {
+      isInvalid = false;
+      record = contacts[0];
+      length = record.tel.length;
+
+      // Received an exact match with a single tel record
+      if (source.isLookupable && !source.isQuestionable && length === 1) {
+        if (Utils.probablyMatches(record.tel[0].value, fValue)) {
+          isContact = true;
+          number = record.tel[0].value;
+        }
+      } else {
+        // Received an exact match that may have multiple tel records
+        for (var i = 0; i < length; i++) {
+          tel = record.tel[i];
+          if (this.recipients.numbers.indexOf(tel.value) === -1) {
+            number = tel.value;
+            break;
+          }
+        }
+
+        // If number is not undefined, then it's safe to assume
+        // that this number is unique to the recipient list and
+        // can be added as an accepted recipient from the user's
+        // known contacts.
+        //
+        // It _IS_ possible for this to appear to be a duplicate
+        // of an existing accepted recipient: by display name ONLY;
+        // however this case will always have a different number.
+        //
+        if (typeof number !== 'undefined') {
+          isContact = true;
+        } else {
+          // If no number match could be made, then this
+          // contact record is actually inValid.
+          isInvalid = true;
+        }
       }
-      // There are contacts that match the input.
-      this.container.textContent = '';
-      if (!contacts || !contacts.length) {
-        return;
-      }
-      // TODO Modify in Bug 861227 in order to create a standalone element
-      var ul = document.createElement('ul');
-      ul.classList.add('contact-list');
-      ul.addEventListener('click', function ulHandler(event) {
-        event.stopPropagation();
-        event.preventDefault();
-        // Since the "dataset" DOMStringMap property is essentially
-        // just an object of properties that exactly match the properties
-        // used for recipients, push the whole dataset object into
-        // the current recipients list as a new entry.
-        this.recipients.add(
-          event.target.dataset
-        ).focus();
+    }
 
-        // Clean up the event listener
-        ul.removeEventListener('click', ulHandler);
+    // Either an exact contact with a single tel record was matched
+    // or an exact contact with multiple tel records and we've taken
+    // one of the non-accepted tel records to add a new recipient.
+    if (isContact) {
 
-        event.stopPropagation();
-        event.preventDefault();
-      }.bind(this));
+      // Remove the last assimilated recipient entry.
+      this.recipients.remove(index);
 
-      this.container.appendChild(ul);
+      contact = Utils.basicContact(number, record);
+      contact.source = 'contacts';
 
-      // Render each contact in the contacts results
-      contacts.forEach(function(contact) {
-        this.renderContact({
-          contact: contact,
-          input: filterValue,
-          target: ul,
-          isContact: true,
-          isSuggestion: true
-        });
-      }, this);
+      // Add the newly minted contact as an accepted recipient
+      this.recipients.add(contact).focus();
+
+      return;
+    }
+
+    // Received multiple contact matches and the current
+    // contact record had a number that has already been
+    // accepted as a recipient. Try the next contact in the
+    // set of results.
+    if (isInvalid && contacts.length > 1) {
+      this.validateContact(source, fValue, contacts.slice(1));
+      return;
+    }
+
+    // Plain numbers with no contact matches can never be "invalid"
+    if (!source.isQuestionable && !length) {
+      isInvalid = false;
+    }
+
+    // If there are no contacts matched
+    // this input was definitely invalid.
+    source.isInvalid = isInvalid;
+
+    // Avoid colliding with an "edit-in-progress".
+    if (!typed) {
+      this.recipients.update(index, source).focus();
+    }
+  },
+
+  listContacts: function thui_listContacts(fValue, contacts) {
+    // If the user has cleared the typed input before the
+    // results came back, prevent the results from being rendered
+    // by returning immediately.
+    if (!this.recipients.inputValue) {
+      return;
+    }
+
+    this.container.textContent = '';
+    if (!contacts || !contacts.length) {
+      return;
+    }
+
+    // There are contacts that match the input.
+
+    // TODO Modify in Bug 861227 in order to create a standalone element
+    var ul = document.createElement('ul');
+    ul.classList.add('contact-list');
+    ul.addEventListener('click', function ulHandler(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      // Since the "dataset" DOMStringMap property is essentially
+      // just an object of properties that exactly match the properties
+      // used for recipients, push the whole dataset object into
+      // the current recipients list as a new entry.
+      this.recipients.add(
+        event.target.dataset
+      ).focus();
+
+      // Clean up the event listener
+      ul.removeEventListener('click', ulHandler);
     }.bind(this));
+
+    this.container.appendChild(ul);
+
+    // Render each contact in the contacts results
+    contacts.forEach(function(contact) {
+      this.renderContact({
+        contact: contact,
+        input: fValue,
+        target: ul,
+        isContact: true,
+        isSuggestion: true
+      });
+    }, this);
   },
 
   onHeaderActivation: function thui_onHeaderActivation() {
