@@ -1,8 +1,11 @@
 /*global requireApp suite test assert setup teardown suiteSetup
   KeyboardManager Applications sinon */
+mocha.globals(['SettingsListener']);
+
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 requireApp('system/js/keyboard_manager.js');
+requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 // Prevent auto-init
 Applications = {
@@ -10,6 +13,8 @@ Applications = {
 };
 
 suite('KeyboardManager', function() {
+  var realSettingsListener;
+
   function trigger(event, detail) {
     if (!detail) {
       detail = {};
@@ -62,6 +67,10 @@ suite('KeyboardManager', function() {
   setup(function() {
     setupHTML();
     injectCss();
+
+    realSettingsListener = window.SettingsListener;
+    window.SettingsListener = MockSettingsListener;
+
     KeyboardManager.init();
   });
 
