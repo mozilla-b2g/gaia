@@ -220,10 +220,10 @@ endif
 
 SETTINGS_PATH := build/custom-settings.json
 ifdef GAIA_DISTRIBUTION_DIR
-	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
-	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
-	DISTRIBUTION_APP_CONFIG := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps.list
-	DISTRIBUTION_VARIANT := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)variant.json
+	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
+	DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
+	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
+	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -353,7 +353,8 @@ define BUILD_CONFIG
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)" \
+	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
+	"VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
 export BUILD_CONFIG
@@ -465,7 +466,7 @@ endif
 
 local-apps:
 ifdef VARIANT_PATH
-	python build/variant.py usage --local-apps-path=$(VARIANT_PATH) --profile-path=$(PROFILE_FOLDER) --distribution-path=$(GAIA_DISTRIBUTION_DIR)
+	@$(call run-js-command, variant)
 endif
 
 # Create webapps
@@ -574,11 +575,15 @@ endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
+# When an xpcshell module throws exception which is already captured by
+# JavaScript module, some exceptions will make xpcshell returns error code.
+# We put quit(0); to override the return code when all exceptions are handled
+# in JavaScript module.
 	echo "run-js-command $1";
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
 		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
 		-f build/xpcshell-commonjs.js \
-		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); } \
+		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); quit(0);} \
 			catch(e) { \
 				dump('Exception: ' + e + '\n' + e.stack + '\n'); \
 				throw(e); \
