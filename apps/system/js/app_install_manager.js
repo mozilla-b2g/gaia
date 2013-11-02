@@ -207,6 +207,9 @@ var AppInstallManager = {
   },
 
   showInstallSuccess: function ai_showInstallSuccess(app) {
+    if (FtuLauncher.isFtuRunning()) {
+      return;
+    }
     var manifest = app.manifest || app.updateManifest;
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
