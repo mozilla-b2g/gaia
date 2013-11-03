@@ -225,6 +225,7 @@ const keyboardGroups = {
   'spanish' : ['es'],
   'portuguese' : ['pt_BR'],
   'polish' : ['pl'],
+  'bangla': ['bn-BD'],
   'catalan' : ['ca'],
   'czech': ['cz'],
   'french': ['fr'],
