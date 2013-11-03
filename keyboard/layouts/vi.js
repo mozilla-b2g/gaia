@@ -1,22 +1,16 @@
 Keyboards.vi = {
     label: 'Vietnamese',
-    menuLabel: 'Vietnamese',
+    menuLabel: 'Tiếng Việt',
     imEngine: 'latin',
     autoCorrectLanguage: '',
     alt: {
-      a: 'áàâäåãāæ',
-      c: 'çćč',
-      e: 'éèêëēę€ɛ',
-      i: 'ïíìîīį',
-      o: 'öóòôōœøɵ',
-      u: 'üúùûū',
-      s: 'ßśš$',
-      S: 'ŚŠ$',
-      n: 'ñń',
-      l: 'ł£',
-      y: 'ÿ¥',
-      z: 'žźż',
-      r: 'R$ ',
+      a: '@àáảãạăằắẳẵặâầấẩẫậ',
+      e: 'èéẻẽẹềếểễệê',
+      i: 'ìíỉĩị',
+      o: 'òóỏõọồốổỗộôờớởỡợơ',
+      u: 'ùúủũụừứửữựư',
+      d: 'đ',
+      y: 'ỳýỷỹỵ',
       '.': ',?!;:'
     },
     keys: [
@@ -77,4 +71,4 @@ Keyboards.vi = {
       ]
     }
   };
-  
+
