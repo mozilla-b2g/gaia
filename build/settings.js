@@ -171,6 +171,7 @@ function execute(options) {
    'icc.selectTimeout': 150000,
    'keyboard.layouts.english': true,
    'keyboard.layouts.dvorak': false,
+   'keyboard.layouts.bangla': false,
    'keyboard.layouts.czech': false,
    'keyboard.layouts.french': false,
    'keyboard.layouts.german': false,
