@@ -1,4 +1,3 @@
-
 /******************************************************************************
  * Setting icons
  */
@@ -424,3 +423,7 @@ html[dir="rtl"] #bluetooth .devices li {
   padding-right: inherit;
 }
 
+
+html[dir="rtl"] .menu-item::before {
+  right: calc((5.5rem - 28px) / 2);
+}
