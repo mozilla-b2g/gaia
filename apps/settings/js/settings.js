@@ -269,42 +269,6 @@ var Settings = {
   },
 
   panelLoaded: function(panel, subPanels) {
-    // panel-specific initialization tasks
-    switch (panel.id) {
-      case 'display':             // <input type="range"> + brightness control
-        this.updateDisplayPanel();
-        break;
-      case 'languages':           // fill language selector
-        var langSel = document.querySelector('select[name="language.current"]');
-        langSel.innerHTML = '';
-        Settings.getSupportedLanguages(function fillLanguageList(languages) {
-          for (var lang in languages) {
-            var option = document.createElement('option');
-            option.value = lang;
-            // Right-to-Left (RTL) languages:
-            // (http://www.w3.org/International/questions/qa-scripts)
-            // Arabic, Hebrew, Farsi, Pashto, Urdu
-            var rtlList = ['ar', 'he', 'fa', 'ps', 'ur'];
-            // Use script direction control-characters to wrap the text labels
-            // since markup (i.e. <bdo>) does not work inside <option> tags
-            // http://www.w3.org/International/tutorials/bidi-xhtml/#nomarkup
-            var lEmbedBegin =
-                (rtlList.indexOf(lang) >= 0) ? '&#x202B;' : '&#x202A;';
-            var lEmbedEnd = '&#x202C;';
-            // The control-characters enforce the language-specific script
-            // direction to correctly display the text label (Bug #851457)
-            option.innerHTML = lEmbedBegin + languages[lang] + lEmbedEnd;
-            option.selected = (lang == document.documentElement.lang);
-            langSel.appendChild(option);
-          }
-        });
-        setTimeout(this.updateLanguagePanel);
-        break;
-      case 'battery':             // full battery status
-        Battery.update();
-        break;
-    }
-
     // preset all inputs in the panel and subpanels.
     if (panel.dataset.requireSubPanels) {
       for (var i = 0; i < subPanels.length; i++) {
@@ -655,53 +619,6 @@ var Settings = {
     }
   },
 
-  updateDisplayPanel: function settings_updateDisplayPanel() {
-    var panel = document.getElementById('display');
-    var settings = Settings.mozSettings;
-    if (!settings || !panel)
-      return;
-
-    var manualBrightness = panel.querySelector('#brightness-manual');
-    var autoBrightness = panel.querySelector('#brightness-auto');
-    var autoBrightnessSetting = 'screen.automatic-brightness';
-
-    // hide "Adjust automatically" if there's no ambient light sensor --
-    // until bug 876496 is fixed, we have to read the `sensors.json' file to
-    // be sure this ambient light sensor is enabled.
-    loadJSON('/resources/sensors.json', function loadSensors(activeSensors) {
-      if (activeSensors.ambientLight) { // I can haz ambient light sensor
-        autoBrightness.hidden = false;
-        settings.addObserver(autoBrightnessSetting, function(event) {
-          manualBrightness.hidden = event.settingValue;
-        });
-        var req = settings.createLock().get(autoBrightnessSetting);
-        req.onsuccess = function brightness_onsuccess() {
-          manualBrightness.hidden = req.result[autoBrightnessSetting];
-        };
-      } else { // no ambient light sensor: force manual brightness setting
-        autoBrightness.hidden = true;
-        manualBrightness.hidden = false;
-        var cset = {};
-        cset[autoBrightnessSetting] = false;
-        settings.createLock().set(cset);
-      }
-    });
-  },
-
-  updateLanguagePanel: function settings_updateLanguagePanel() {
-    var panel = document.getElementById('languages');
-    // update the date and time samples in the 'languages' panel
-    if (panel.children.length) {
-      var d = new Date();
-      var f = new navigator.mozL10n.DateTimeFormat();
-      var _ = navigator.mozL10n.get;
-      panel.querySelector('#region-date').textContent =
-          f.localeFormat(d, _('longDateFormat'));
-      panel.querySelector('#region-time').textContent =
-          f.localeFormat(d, _('shortTimeFormat'));
-    }
-  },
-
   loadPanelStylesheetsIfNeeded: function settings_loadPanelStylesheetsIN() {
     var self = this;
     if (self._panelStylesheetsLoaded) {
@@ -861,8 +778,6 @@ function initLocale() {
   Settings.getSupportedLanguages(function displayLang(languages) {
     document.getElementById('language-desc').textContent = languages[lang];
   });
-
-  Settings.updateLanguagePanel();
 }
 
 // Do initialization work that doesn't depend on the DOM, as early as
