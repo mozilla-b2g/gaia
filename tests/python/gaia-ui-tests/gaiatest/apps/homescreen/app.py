@@ -13,7 +13,6 @@ class Homescreen(Base):
     _homescreen_iframe_locator = (By.CSS_SELECTOR, 'div.homescreen iframe')
     _homescreen_icon_locator = (By.CSS_SELECTOR, 'li.icon[aria-label="%s"]')
     _search_bar_icon_locator = (By.ID, 'evme-activation-icon')
-    _landing_page_locator = (By.ID, 'icongrid')
 
     def launch(self):
         Base.launch(self)
@@ -50,5 +49,5 @@ class Homescreen(Base):
         var pageHelper = window.wrappedJSObject.GridManager.pageHelper;
         return pageHelper.getCurrentPageNumber() < (pageHelper.getTotalPagesNumber() - 1);""")
 
-    def wait_for_landing_page_visible(self):
-        self.wait_for_element_displayed(*self._landing_page_locator)
+    def wait_for_homescreen_displayed(self):
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
