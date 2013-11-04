@@ -36,6 +36,7 @@ class TestSmsWithAttachments(GaiaTestCase):
 
         # switch back to messages app frame
         messages.switch_to_messages_frame()
+        new_message.wait_for_resizing_to_finish()
 
         #click send
         self.message_thread = new_message.tap_send(timeout=300)

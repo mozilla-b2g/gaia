@@ -17,6 +17,7 @@ class NewMessage(Messages):
     _attach_button_locator = (By.ID, 'messages-attach-button')
     _message_sending_locator = (By.CSS_SELECTOR, "li.message.outgoing.sending")
     _thread_messages_locator = (By.ID, 'thread-messages')
+    _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -37,6 +38,7 @@ class NewMessage(Messages):
         message_field.send_keys(value)
 
     def tap_send(self, timeout=120):
+        self.wait_for_condition(lambda m: m.find_element(*self._send_message_button_locator).is_enabled())
         self.marionette.find_element(*self._send_message_button_locator).tap()
         self.wait_for_element_not_present(*self._message_sending_locator, timeout=timeout)
         from gaiatest.apps.messages.regions.message_thread import MessageThread
@@ -55,6 +57,9 @@ class NewMessage(Messages):
 
     def wait_for_recipients_displayed(self):
         self.wait_for_element_displayed(*self._receiver_input_locator)
+
+    def wait_for_resizing_to_finish(self):
+        self.wait_for_element_not_displayed(*self._message_resize_notice_locator)
 
     @property
     def first_recipient_name(self):
