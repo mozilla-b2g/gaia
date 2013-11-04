@@ -16,13 +16,10 @@ class TestLockScreen(GaiaTestCase):
 
         # this time we need it locked!
         self.lockscreen.lock()
-
         self.lock_screen = LockScreen(self.marionette)
-        self.lock_screen.wait_for_lockscreen_handle_visible()
 
-    def test_unlock_swipe_to_camera(self):
-        # https://moztrap.mozilla.org/manage/case/2460/
-
+    def test_unlock_to_camera(self):
+        # https://moztrap.mozilla.org/manage/case/1296/
         camera = self.lock_screen.unlock_to_camera()
         self.lock_screen.wait_for_lockscreen_not_visible()
 

@@ -20,9 +20,8 @@ class TestLockScreen(GaiaTestCase):
         # this time we need it locked!
         self.lockscreen.lock()
         self.lock_screen = LockScreen(self.marionette)
-        self.lock_screen.wait_for_lockscreen_handle_visible()
 
-    def test_lockscreen_unlock_to_emergency_call_screen(self):
+    def test_unlock_to_emergency_call_screen(self):
         """Test that emergency call screen can open
 
         https://github.com/mozilla/gaia-ui-tests/issues/762
