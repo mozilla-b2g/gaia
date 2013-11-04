@@ -21,7 +21,7 @@
   var iccLastCommand = null;
   var iccLastCommandProcessed = false;
   var stkOpenAppName = null;
-  var stkLastSelectedTest = null;
+  var stkLastSelectedText = null;
   var goBackTimer = {
     timer: null,
     timeout: 0
@@ -268,8 +268,8 @@
     var identifier = event.target.getAttribute('stk-menu-item-identifier');
     DUMP('sendStkMenuSelection: ', identifier);
     icc.sendStkMenuSelection(identifier, false);
-    stkLastSelectedTest = event.target.textContent;
-    stkOpenAppName = stkLastSelectedTest;
+    stkLastSelectedText = event.target.textContent;
+    stkOpenAppName = stkLastSelectedText;
   }
 
   function showHelpMenu(event) {
@@ -303,8 +303,8 @@
     var identifier = event.target.getAttribute('stk-help-item-identifier');
     DUMP('sendStkHelpMenuSelection: ', identifier);
     icc.sendStkMenuSelection(identifier, true);
-    stkLastSelectedTest = event.target.textContent;
-    stkOpenAppName = stkLastSelectedTest;
+    stkLastSelectedText = event.target.textContent;
+    stkOpenAppName = stkLastSelectedText;
   }
 
   /**
@@ -341,7 +341,7 @@
       resultCode: icc.STK_RESULT_OK,
       itemIdentifier: identifier
     });
-    stkLastSelectedTest = event.target.textContent;
+    stkLastSelectedText = event.target.textContent;
   }
 
   /**
