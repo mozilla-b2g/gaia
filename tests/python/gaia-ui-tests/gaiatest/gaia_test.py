@@ -180,7 +180,7 @@ class GaiaData(object):
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
     def set_volume(self, value):
-        channels = ['master', 'content', 'notification', 'alarm', 'telephony', 'bt_sco']
+        channels = ['alarm', 'content', 'notification']
         for channel in channels:
             self.set_setting('audio.volume.%s' % channel, value)
 
@@ -294,9 +294,9 @@ class GaiaData(object):
     @property
     def media_files(self):
         result = []
-        result.extend(self.marionette.execute_async_script('return GaiaDataLayer.getAllPictures();'))
-        result.extend(self.marionette.execute_async_script('return GaiaDataLayer.getAllVideos();'))
-        result.extend(self.marionette.execute_async_script('return GaiaDataLayer.getAllMusic();'))
+        result.extend(self.music_files)
+        result.extend(self.picture_files)
+        result.extend(self.video_files)
         return result
 
     def delete_all_sms(self):
@@ -310,6 +310,21 @@ class GaiaData(object):
     def kill_active_call(self):
         self.marionette.execute_script("var telephony = window.navigator.mozTelephony; " +
                                        "if(telephony.active) telephony.active.hangUp();")
+
+    @property
+    def music_files(self):
+        return self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllMusic();')
+
+    @property
+    def picture_files(self):
+        return self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllPictures();')
+
+    @property
+    def video_files(self):
+        return self.marionette.execute_async_script(
+            'return GaiaDataLayer.getAllVideos();')
 
 
 class GaiaDevice(object):
@@ -397,6 +412,8 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
     marionetteScriptFinished();
   }
 });""", script_timeout=60000)
+            # TODO: Remove this sleep when Bug 924912 is addressed
+            time.sleep(5)
 
     def stop_b2g(self):
         if self.marionette.instance:
@@ -459,20 +476,6 @@ class GaiaTestCase(MarionetteTestCase):
                 # filename is a fully qualified path
                 self.device.manager.removeFile(filename)
 
-        if self.data_layer.get_setting('ril.radio.disabled'):
-            # enable the device radio, disable Airplane mode
-            self.data_layer.set_setting('ril.radio.disabled', False)
-
-        # disable passcode before restore settings from testvars
-        self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
-        self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
-
-        # Change language back to English
-        self.data_layer.set_setting("language.current", "en-US")
-
-        # Switch off spanish keyboard before test
-        self.data_layer.set_setting("keyboard.layouts.spanish", False)
-
         # Switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
 
@@ -480,14 +483,49 @@ class GaiaTestCase(MarionetteTestCase):
         self.data_layer.set_setting("time.timezone", "America/Los_Angeles")
         self.data_layer.set_setting("time.timezone.user-selected", "America/Los_Angeles")
 
-        # Set do not track pref back to the default
-        self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
         # unlock
         self.lockscreen.unlock()
+
+        # If we are restarting all of these values are reset to default earlier in the setUp
+        if not self.restart:
+
+            # disable passcode before restore settings from testvars
+            self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
+            self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
+
+            # Change language back to English
+            self.data_layer.set_setting("language.current", "en-US")
+
+            # Switch off spanish keyboard before test
+            self.data_layer.set_setting("keyboard.layouts.spanish", False)
+
+            # Set do not track pref back to the default
+            self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
+
+
+            if self.data_layer.get_setting('ril.radio.disabled'):
+                # enable the device radio, disable Airplane mode
+                self.data_layer.set_setting('ril.radio.disabled', False)
+
+            # disable carrier data connection
+            if self.device.has_mobile_connection:
+                self.data_layer.disable_cell_data()
+
+            self.data_layer.disable_cell_roaming()
+
+            if self.device.has_wifi:
+                self.data_layer.enable_wifi()
+                self.data_layer.forget_all_networks()
+                self.data_layer.disable_wifi()
+
+            # remove data
+            self.data_layer.remove_all_contacts(self._script_timeout)
+
+            # reset to home screen
+            self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
         # kill any open apps
         self.apps.kill_all()
@@ -495,22 +533,6 @@ class GaiaTestCase(MarionetteTestCase):
         # disable sound completely
         self.data_layer.set_volume(0)
 
-        # disable carrier data connection
-        if self.device.has_mobile_connection:
-            self.data_layer.disable_cell_data()
-
-        self.data_layer.disable_cell_roaming()
-
-        if self.device.has_wifi:
-            self.data_layer.enable_wifi()
-            self.data_layer.forget_all_networks()
-            self.data_layer.disable_wifi()
-
-        # remove data
-        self.data_layer.remove_all_contacts(self._script_timeout)
-
-        # reset to home screen
-        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
 
     def install_marketplace(self):
         _yes_button_locator = (By.ID, 'app-install-install-button')
