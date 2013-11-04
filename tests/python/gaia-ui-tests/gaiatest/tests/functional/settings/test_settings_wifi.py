@@ -8,6 +8,10 @@ from gaiatest.apps.settings.app import Settings
 
 class TestSettingsWifi(GaiaTestCase):
 
+    def setUp(self):
+        GaiaTestCase.setUp(self)
+        self.data_layer.disable_wifi()
+
     def test_connect_to_wifi_via_settings_app(self):
         """ Connect to a wifi network via the Settings app
 
