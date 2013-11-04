@@ -55,111 +55,110 @@ var AirplaneMode = {
     this.element.disabled = true;
   },
 
-  init: function apm_init() {
+  init: function apm_init(settingsResult) {
     var mobileConnection = getMobileConnection();
     var wifiManager = WifiHelper.getWifiManager();
-
+    var bluetooth = navigator.mozBluetooth;
     var settings = Settings.mozSettings;
-    if (!settings)
-      return;
+
+    var geolocationCheckbox =
+      document.querySelector('input[name="geolocation.enabled"]');
+    geolocationCheckbox.onchange = function toggleGeo() {
+      // 'geolocation.suspended' is always false if users toggle it manually.
+      settings.createLock().set({
+        'geolocation.suspended': false
+      });
+    };
 
     var self = this;
 
     // Disable airplane mode when we interact with it
     this.element.addEventListener('change', this);
 
-    var mobileDataEnabled = false;
-    settings.addObserver('ril.data.enabled', function(e) {
-      mobileDataEnabled = e.settingValue;
-      self.notify('ril.data.enabled');
-    });
+    var enabled = {};
+    var suspended = {};
+    var deviceNames = [];
 
-    var bluetoothEnabled = false;
-    var wifiEnabled = false;
-    var geolocationEnabled = false;
-    settings.addObserver('geolocation.enabled', function(e) {
-      geolocationEnabled = e.settingValue;
-      self.notify('geolocation.enabled');
-    });
+    // mobile connection
+    if (mobileConnection) {
+      deviceNames.push('ril.data');
 
-    // when wifi is really enabled, notify if needed
-    window.addEventListener('wifi-enabled', function() {
-      wifiEnabled = true;
-      self.notify('wifi.enabled');
-    });
+      settings.addObserver('ril.data.enabled', function(e) {
+        enabled['ril.data'] = e.settingValue;
+        self.notify('ril.data.enabled');
+      });
 
-    // when wifi is really disabled, notify if needed
-    window.addEventListener('wifi-disabled', function() {
-      wifiEnabled = false;
-      self.notify('wifi.enabled');
-    });
+      enabled['ril.data'] = settingsResult['ril.data.enabled'] || false;
+      suspended['ril.data'] = settingsResult['ril.data.suspended'] || false;
+    }
 
-    if (window.gBluetooth) {
+    // bluetooth
+    if (bluetooth) {
+      deviceNames.push('bluetooth');
+
       // when bluetooth is really enabled, notify if needed
       window.addEventListener('bluetooth-adapter-added', function() {
-        bluetoothEnabled = true;
+        enabled['bluetooth.enabled'] = true;
         self.notify('bluetooth.enabled');
       });
 
       // when bluetooth is really disabled, notify if needed
       window.addEventListener('bluetooth-disabled', function() {
-        bluetoothEnabled = false;
+        enabled['bluetooth.enabled'] = false;
         self.notify('bluetooth.enabled');
       });
+
+      enabled['bluetooth'] = bluetooth.enabled;
+      suspended['bluetooth'] = settingsResult['bluetooth.suspended'] || false;
     }
 
-    var restoreMobileData = false;
-    var restoreBluetooth = false;
-    var restoreWifi = false;
-    var restoreGeolocation = false;
+    // wifi
+    if (wifiManager) {
+      deviceNames.push('wifi');
 
+      // when wifi is really enabled, notify if needed
+      window.addEventListener('wifi-enabled', function() {
+        enabled['wifi'] = true;
+        self.notify('wifi.enabled');
+      });
+
+      // when wifi is really disabled, notify if needed
+      window.addEventListener('wifi-disabled', function() {
+        enabled['wifi'] = false;
+        self.notify('wifi.enabled');
+      });
+
+      enabled['wifi'] = wifiManager.enabled;
+      suspended['wifi'] = settingsResult['wifi.suspended'] || false;
+    }
+
+    // geolocation
+    deviceNames.push('geolocation');
+    settings.addObserver('geolocation.enabled', function(e) {
+      enabled['geolocation'] = e.settingValue;
+      self.notify('geolocation.enabled');
+    });
+    enabled['geolocation'] = settingsResult['geolocation.enabled'] || false;
+    suspended['geolocation'] = settingsResult['geolocation.suspended'] || false;
+
+    // Observe the change of airplane mode
     settings.addObserver('ril.radio.disabled', function(e) {
       // Reset notification params
       self._ops = 0;
       self._doNotify = true;
 
       if (e.settingValue) {
-        if (mobileConnection) {
-          restoreMobileData = mobileDataEnabled;
-          if (mobileDataEnabled)
+        deviceNames.forEach(function(deviceName) {
+          suspended[deviceName] = enabled[deviceName];
+          if (enabled[deviceName])
             self._ops++;
-        }
-
-        // Bluetooth.
-        if (window.gBluetooth) {
-          restoreBluetooth = bluetoothEnabled;
-          if (bluetoothEnabled)
-            self._ops++;
-        }
-
-        // Wifi.
-        if (wifiManager) {
-          restoreWifi = wifiEnabled;
-          if (wifiEnabled)
-            self._ops++;
-        }
-
-        // Geolocation
-        restoreGeolocation = geolocationEnabled;
-        if (geolocationEnabled)
-          self._ops++;
-
+        });
       } else {
-        // Don't count mobile data if it's already on
-        if (mobileConnection && !mobileDataEnabled && restoreMobileData)
-          self._ops++;
-
-        // Don't count Bluetooth if it's already on
-        if (window.gBluetooth && !gBluetooth.enabled && restoreBluetooth)
-          self._ops++;
-
-        // Don't count Wifi if it's already on
-        if (wifiManager && !wifiManager.enabled && restoreWifi)
-          self._ops++;
-
-        // Don't count Geolocation if it's already on
-        if (!geolocationEnabled && restoreGeolocation)
-          self._ops++;
+        // Don't count if the device is already on
+        deviceNames.forEach(function(deviceName) {
+          if (!enabled[deviceName] && suspended[deviceName])
+            self._ops++;
+        });
       }
 
       // If we have zero operations to perform, enable the radio switch
@@ -174,7 +173,9 @@ navigator.mozL10n.ready(function loadWhenIdle() {
   var idleObserver = {
     time: 5,
     onidle: function() {
-      AirplaneMode.init();
+      if (Settings.mozSettings) {
+        Settings.getSettings(AirplaneMode.init.bind(AirplaneMode));
+      }
       navigator.removeIdleObserver(idleObserver);
     }
   };

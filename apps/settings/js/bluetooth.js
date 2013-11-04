@@ -39,7 +39,10 @@ navigator.mozL10n.ready(function bluetoothSettings() {
 
   // activate main button
   gBluetoothCheckBox.onchange = function changeBluetooth() {
-    var req = settings.createLock().set({'bluetooth.enabled': this.checked});
+    var req = settings.createLock().set({
+      'bluetooth.enabled': this.checked,
+      'bluetooth.suspended': false
+    });
     this.disabled = true;
     req.onerror = function() {
       gBluetoothCheckBox.disabled = false;
