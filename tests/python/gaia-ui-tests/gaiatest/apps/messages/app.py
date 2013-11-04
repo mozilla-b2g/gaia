@@ -12,7 +12,7 @@ class Messages(Base):
 
     _summary_header_locator = (By.CSS_SELECTOR, "h1[data-l10n-id='messages']")
     _create_new_message_locator = (By.ID, 'icon-add')
-    _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-frame-origin*=sms]')
+    _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*=sms]')
 
     def launch(self):
         Base.launch(self)
