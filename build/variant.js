@@ -1,4 +1,5 @@
 var utils = require('./utils');
+var applicationsData = require('./applications-data');
 var downloadMgr = require('./download-manager').getDownloadManager();
 
 const OUTPUT_FOLDER = 'temp';
@@ -10,6 +11,7 @@ const APPS_CONF_FILENAME = 'singlevariantconf.json';
 
 const PROFILE_APPS_FOLDER = 'svoperapps';
 
+const MAX_ICONS_PER_PAGE = 4 * 4;
 /**
  * the done flag to tell the console it is ready to exit.
  */
@@ -285,14 +287,106 @@ function customizeAppPosition(data, profilePath, distributionPath) {
   utils.writeContentToFile(distFn, JSON.stringify(outputHomescreen));
 }
 
+function validateHomescreen(data, config) {
+  // Read init.json from homescreen to know homescreen layout
+  var homescreen = null;
+  try {
+    homescreen = utils.readJSONFromPath(utils.joinPath(config.GAIA_DIR, 'apps',
+                                        'homescreen', 'js', 'init.json'));
+  } catch (e) {
+    homescreen = applicationsData.customizeHomescreen(config);
+  }
+
+  // Custom comparation function used to sort apps by screen and location
+  function compare(a, b) {
+    if (a.screen < b.screen)
+       return -1;
+    if (a.screen > b.screen)
+      return 1;
+    if (a.location < b.location)
+      return -1;
+    if (a.location > b.location)
+      return 1;
+    return 0;
+  }
+
+  data.operators.forEach(function(operator) {
+    var grid = JSON.parse(JSON.stringify(homescreen['grid']));
+    var apps = [];
+    // variable to hold apps with no location and screen, used to fill gaps
+    var wildcardApps = [];
+    operator.apps.forEach(function(app) {
+      if(!app.id) {
+        throw new Error('Missing id in some app');
+      }
+
+      // Check if screen and location both exists and are a number
+      if ((typeof app.screen !==  'undefined' && typeof app.screen !== 'number') ||
+           typeof app.screen !== typeof app.location) {
+        throw new Error('Invalid app position for ' + app.id +
+                        '. Missing location or screen property,' +
+                        ' or properties are not a number');
+      }
+
+      if(app.screen) {
+        apps.push(app);
+      } else {
+        wildcardApps.push(app);
+      }
+    });
+
+    // sort list of apps with position by screen and location and validate position in
+    // homescreen
+    apps = apps.sort(compare);
+
+    var screenLocations = [];
+    apps.forEach(function(app) {
+      var screen = grid[app.screen];
+      if (!screen) {
+        if (!(grid[app.screen - 1])) {
+          throw new Error('Invalid screen position');
+        }
+
+        // Create new screen
+        screen = [];
+        grid.push(screen);
+      }
+
+      var screenLocation = parseInt(app.screen + '' + app.location);
+      if (screenLocation in screenLocations) {
+        throw new Error('Two applications are in the same position');
+      }
+
+      while (app.location > screen.length) {
+        if (wildcardApps.length == 0) {
+          throw new Error('Invalid position for app ' + app.id);
+        }
+        screen.push(wildcardApps.pop());
+      }
+      screen.splice(app.location, 0, app);
+      screenLocations.push(screenLocation);
+    });
+
+    // Check if some screen has more apps than MAX_ICON_PER_PAGE
+    var counter = 0;
+    grid.forEach(function(screen) {
+      if (screen.length > MAX_ICONS_PER_PAGE) {
+        utils.log('variant.js', 'WARNING: More apps than ' + MAX_ICONS_PER_PAGE + ' in screen ' + counter);
+      }
+      counter++;
+    });
+  });
+}
+
 // main function
 // the main flow of this module is:
 // 1. read variants.json
-// 2. download all apps.
-//    2.1. download manifest
-//    2.2. download packaged app if it is packaged
-//    2.3. create manifest/update and metadata
-// 3. customize layout with mcc-mnc.
+// 2. validate variant.json and reorder index
+// 3. download all apps.
+//    3.1. download manifest
+//    3.2. download packaged app if it is packaged
+//    3.3. create manifest/update and metadata
+// 4. customize layout with mcc-mnc.
 function execute(options) {
   if (!options.PROFILE_DIR || !options.GAIA_DISTRIBUTION_DIR ||
       !options.VARIANT_PATH) {
@@ -320,6 +414,8 @@ function execute(options) {
   done = false;
   // read variant.json
   var data = utils.readJSONFromPath(options.VARIANT_PATH);
+  // validate variant.json
+  validateHomescreen(data, options);
   // download all apps
   fetchApps(data, profilePath, distributionPath, function() {
     try {
