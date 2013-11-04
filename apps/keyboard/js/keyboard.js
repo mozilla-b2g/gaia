@@ -210,11 +210,16 @@ const FOCUS_CHANGE_DELAY = 100;
 // to lock the keyboard at upper case state.
 const CAPS_LOCK_TIMEOUT = 450;
 
+// Time we wait after blur to hide the keyboard
+// in case we get a focus event right after
+const HIDE_KEYBOARD_TIMEOUT = 100;
+
 // timeout and interval for delete, they could be cancelled on mouse over
 var deleteTimeout = 0;
 var deleteInterval = 0;
 var menuTimeout = 0;
 var redrawTimeout = 0;
+var hideKeyboardTimeout = 0;
 
 // This object has one property for each keyboard layout setting.
 // If the user turns on that setting in the settings app, the value of
@@ -849,7 +854,7 @@ function modifyLayout(keyboardName) {
 // keyboardName to produce a currentLayout that is different than the base
 // layout for keyboardName
 //
-function renderKeyboard(keyboardName) {
+function renderKeyboard(keyboardName, callback) {
   // Add meta keys and type-specific keys to the base layout
   currentLayout = modifyLayout(keyboardName);
 
@@ -881,6 +886,9 @@ function renderKeyboard(keyboardName) {
     IMERender.showCandidates(currentCandidates);
 
     isKeyboardRendered = true;
+
+    if (callback)
+      callback();
   }
 
   clearTimeout(redrawTimeout);
@@ -1729,6 +1737,8 @@ function replaceSurroundingText(text, offset, length) {
 // The state argument is the data passed with that event, and includes
 // the input field type, its inputmode, its content, and the cursor position.
 function showKeyboard() {
+  clearTimeout(hideKeyboardTimeout);
+
   // If no keyboard has been selected yet, choose the first enabled one.
   // This will also set the inputMethod
   if (!keyboardName) {
@@ -1737,7 +1747,6 @@ function showKeyboard() {
   }
 
   inputContext = navigator.mozInputMethod.inputcontext;
-  IMERender.showIME();
 
   resetKeyboard();
 
@@ -1782,7 +1791,9 @@ function showKeyboard() {
 
     // render the keyboard after activation, which will determine the state
     // of uppercase/suggestion, etc.
-    renderKeyboard(keyboardName);
+    renderKeyboard(keyboardName, function() {
+      IMERender.showIME();
+    });
   }
 
   var promise = inputContext.getText();
@@ -1807,7 +1818,14 @@ function hideKeyboard() {
   if (!isKeyboardRendered)
     return;
 
-  IMERender.hideIME();
+  clearTimeout(hideKeyboardTimeout);
+
+  // For quick blur/focus events we don't want to hide the IME div
+  // to avoid flickering and such
+  hideKeyboardTimeout = setTimeout(function() {
+    IMERender.hideIME();
+  }, HIDE_KEYBOARD_TIMEOUT);
+
   deactivateInputMethod();
 
   isKeyboardRendered = false;
