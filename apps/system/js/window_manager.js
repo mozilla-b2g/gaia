@@ -1038,11 +1038,11 @@ var WindowManager = (function() {
   });
 
   window.addEventListener('hidewindows', function() {
-    windows.setAttribute('aria-hidden', 'false');
+    windows.setAttribute('aria-hidden', 'true');
   });
 
   window.addEventListener('showwindows', function() {
-    windows.setAttribute('aria-hidden', 'true');
+    windows.setAttribute('aria-hidden', 'false');
   });
 
   window.addEventListener('hidewindow', function() {
