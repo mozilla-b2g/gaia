@@ -1058,7 +1058,6 @@ var Browser = {
             icon: item.icon,
             label: item.label,
             callback: function() {
-              self.contextMenuHasCalled = false;
               evt.detail.contextMenuItemSelected(item.id);
             }
           });
@@ -1084,6 +1083,7 @@ var Browser = {
 
       button.addEventListener('click', function() {
         document.body.removeChild(dialog);
+        self.contextMenuHasCalled = false;
         menuitem.callback();
       });
 
@@ -1092,6 +1092,7 @@ var Browser = {
     }, this);
 
     var cancel = document.createElement('li');
+    cancel.id = 'cancel';
     cancel.appendChild(this.createButton('Cancel'));
     list.appendChild(cancel);
 
