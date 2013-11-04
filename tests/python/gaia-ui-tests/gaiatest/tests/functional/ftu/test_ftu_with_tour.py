@@ -42,7 +42,7 @@ class TestFtu(GaiaTestCase):
             if self.is_element_displayed(*self._next_button_locator):
                 self.marionette.find_element(*self._next_button_locator).tap()
             else:
-                count=count+1
+                count = count + 1
             if count > 5:
                 break
 
@@ -65,18 +65,23 @@ class TestFtu(GaiaTestCase):
 
         self.wait_for_element_displayed(*self._step3_header_locator)
         self.assertEqual(self.marionette.find_element(*self._step3_header_locator).text,
-                         "Swipe down to access recent notifications, credit information and settings.")
+                         "Enter any keyword or topic and your phone will instantly adapt.")
         self.marionette.find_element(*self._tour_next_button_locator).tap()
 
         self.wait_for_element_displayed(*self._step4_header_locator)
         self.assertEqual(self.marionette.find_element(*self._step4_header_locator).text,
+                         "Swipe down to access recent notifications, credit information and settings.")
+        self.marionette.find_element(*self._tour_next_button_locator).tap()
+
+        self.wait_for_element_displayed(*self._step5_header_locator)
+        self.assertEqual(self.marionette.find_element(*self._step5_header_locator).text,
                          "Tap and hold the home button to browse and close recent apps.")
 
         # Try going back a step
         self.marionette.find_element(*self._tour_back_button_locator).tap()
-        self.wait_for_element_displayed(*self._step3_header_locator)
-        self.marionette.find_element(*self._tour_next_button_locator).tap()
         self.wait_for_element_displayed(*self._step4_header_locator)
+        self.marionette.find_element(*self._tour_next_button_locator).tap()
+        self.wait_for_element_displayed(*self._step5_header_locator)
         self.marionette.find_element(*self._tour_next_button_locator).tap()
 
         self.wait_for_element_displayed(*self._section_tutorial_finish_locator)
