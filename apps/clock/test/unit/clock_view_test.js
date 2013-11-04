@@ -6,7 +6,7 @@ suite('ClockView', function() {
   suiteSetup(function(done) {
     // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
     // system's time zone
-    this.sixAm = 1373954400000 + (new Date()).getTimezoneOffset() * 60 * 1000;
+    this.sixAm = new Date(2013, 5, 16, 6).getTime();
 
     // Load before clock_view to ensure elements are initialized properly.
     loadBodyHTML('/index.html');
