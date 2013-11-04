@@ -1,4 +1,6 @@
-var UIItem = function(icon, content, more, primaryButton){
+'use strict';
+
+var UIItem = function(icon, content, more, primaryButton) {
   this.icon = icon;
   this.content = content;
   this.more = more;
@@ -9,26 +11,25 @@ var UIItem = function(icon, content, more, primaryButton){
   this.data = {};
 
   Eventer.makeEventable(this);
-
-}
+};
 
 UIItem.prototype = {
-  setIcon: function(newIcon){
+  setIcon: function(newIcon) {
     Utils.empty(this.dom.icon);
-    if (typeof this.icon === 'string'){
+    if (typeof this.icon === 'string') {
       this.dom.icon.classList.remove(this.icon);
     }
     if (!newIcon)
       return;
     this.icon = newIcon;
-    if (typeof this.icon === 'string'){
+    if (typeof this.icon === 'string') {
       this.dom.icon.classList.add(this.icon);
     }
     else {
       this.dom.icon.appendChild(this.icon);
     }
   },
-  createDiv: function(){
+  createDiv: function() {
     var div = Utils.classDiv('uiItem');
 
     this.dom.icon = document.createElement('div');
@@ -40,8 +41,8 @@ UIItem.prototype = {
     content.classList.add('content');
     content.appendChild(this.content);
     div.appendChild(content);
-    
-    if (this.more !== null){
+
+    if (this.more !== null) {
       var toggleMore = document.createElement('div');
       toggleMore.classList.add('toggleMore');
       div.appendChild(toggleMore);
@@ -52,17 +53,17 @@ UIItem.prototype = {
       more.appendChild(this.more);
       div.appendChild(more);
 
-      Utils.onButtonTap(toggleMore, function(){
+      Utils.onButtonTap(toggleMore, function() {
         more.classList.toggle('hidden');
         toggleMore.classList.toggle('unhide');
       }.bind(this));
     }
 
-    if (this.primaryButton){
+    if (this.primaryButton) {
         var primaryButton = document.createElement('div');
         primaryButton.classList.add('primaryButton');
         primaryButton.appendChild(this.primaryButton);
-        if (this.more === null){
+        if (this.more === null) {
           primaryButton.classList.add('full');
         }
         div.appendChild(primaryButton);
@@ -71,13 +72,11 @@ UIItem.prototype = {
       content.classList.add('noButtons');
     }
 
-
     this.dom.div = div;
     this.dom.content = content;
     this.dom.more = more;
     this.dom.primaryButton = primaryButton;
 
-
     return div;
   }
-}
+};

@@ -1,15 +1,17 @@
+'use strict';
+
 var Eventer = {
-  makeEventable: function(view){
-    view.on = function(event, fn){
+  makeEventable: function(view) {
+    view.on = (function(event, fn) {
       this['on' + event] = fn;
-    }.bind(view);
-    view.emit = function(event){
+    }.bind(view));
+    view.emit = (function(event) {
       var fn = this['on' + event];
-      if (fn){
+      if (fn) {
         var args = Array.prototype.slice.call(arguments, 0);
         args.shift();
         fn.apply(null, args);
       }
-    }.bind(view);
+    }.bind(view));
   }
-}
+};

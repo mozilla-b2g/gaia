@@ -1,4 +1,6 @@
-function MediaLibraryPlaylistPanel(playlist, id, currentPlaylistId){
+'use strict';
+
+function MediaLibraryPlaylistPanel(playlist, id, currentPlaylistId) {
   PanelTools.setupDom(this);
 
   this.router = new Router(this);
@@ -8,9 +10,8 @@ function MediaLibraryPlaylistPanel(playlist, id, currentPlaylistId){
     'shufflePlaylist',
     'renamePlaylist',
     'movePlaylistItemRelative',
-    'switchPlaylist',
+    'switchPlaylist'
   ]);
-
 
   this.title = playlist.title;
   PanelTools.setTitle(this, this.title);
@@ -19,7 +20,7 @@ function MediaLibraryPlaylistPanel(playlist, id, currentPlaylistId){
   Router.connect(this.playlistView, this, {
     'deleteItemFromPlayingPlaylist': '_deleteItem',
     'switchToPlaylistItem': '_gotoItem',
-    'movePlaylistItemRelative': '_movePlaylistItemRelative',
+    'movePlaylistItemRelative': '_movePlaylistItemRelative'
   });
   Router.proxy(this.playlistView, this, {
     'requestAddSongsToCustom': 'requestAddSongsToCustom',
@@ -34,27 +35,27 @@ function MediaLibraryPlaylistPanel(playlist, id, currentPlaylistId){
 }
 
 MediaLibraryPlaylistPanel.prototype = {
-  name: "MediaLibraryPlaylistPanel",
+  name: 'MediaLibraryPlaylistPanel',
   //============== API ===============
-  getContainer: function(){
+  getContainer: function() {
     return this.dom.panel;
   },
-  unload: function(){
+  unload: function() {
     this.playlistView.destroy();
   },
-  refresh: function(done){
+  refresh: function(done) {
     if (done)
       done();
   },
-  updatePlaylist: function(playlist){
+  updatePlaylist: function(playlist) {
     this.playlist = playlist;
     this.playlistView.setPlaylist(this.playlist, this.mode);
   },
-  updateCurrentPlaylist: function(playlist, playlistId){
+  updateCurrentPlaylist: function(playlist, playlistId) {
     if (this.menu)
       Utils.remove(this.menu.dom.icon);
-    if (playlistId !== this.id){
-      this.menu = new Menu({ 
+    if (playlistId !== this.id) {
+      this.menu = new Menu({
         'delete': 'delete',
         'shuffle': 'shuffle',
         'rename': 'rename',
@@ -64,7 +65,7 @@ MediaLibraryPlaylistPanel.prototype = {
       this.menu.router.when('select', this._selectMenu.bind(this));
     }
     else {
-      this.menu = new Menu({ 
+      this.menu = new Menu({
         'delete': 'delete',
         'shuffle': 'shuffle',
         'rename': 'rename'
@@ -73,36 +74,39 @@ MediaLibraryPlaylistPanel.prototype = {
       this.menu.router.when('select', this._selectMenu.bind(this));
     }
   },
-  updateMode: function(mode){
+  updateMode: function(mode) {
     //this.mode = mode;
     //this.playlistView.updateMode(this.mode);
   },
   //============== helpers ===============
-  _deleteItem: function(item){
+  _deleteItem: function(item) {
     this.router.route('deleteItemFromPlaylist')(this.id, item);
   },
-  _gotoItem: function(item){
+  _gotoItem: function(item) {
     this.router.route('switchPlaylist')(this.id);
     this.router.route('switchPlayingToIndex')(item);
   },
-  _movePlaylistItemRelative: function(playlist, itemSource, relativeItemSource, relativeDir){
-    this.router.route('movePlaylistItemRelative')(this.id, itemSource, relativeItemSource, relativeDir);
+  _movePlaylistItemRelative:
+    function(playlist, itemSource, relativeItemSource, relativeDir) {
+      this.router.route('movePlaylistItemRelative')(
+        this.id, itemSource, relativeItemSource, relativeDir
+      );
   },
-  _selectMenu: function(select){
-    if (select === 'delete'){
+  _selectMenu: function(select) {
+    if (select === 'delete') {
       this.router.route('deletePlaylist')(this.id);
       this.router.route('pop')();
     }
-    else if (select === 'shuffle'){
+    else if (select === 'shuffle') {
       this.router.route('shufflePlaylist')(this.id);
     }
-    else if (select === 'rename'){
-      var title = prompt("Playlist Name:");
+    else if (select === 'rename') {
+      var title = prompt('Playlist Name:');
       if (title !== null && title !== '')
         this.router.route('renamePlaylist')(this.id, title);
     }
-    else if (select === 'open'){
+    else if (select === 'open') {
       this.router.route('switchPlaylist')(this.id);
     }
   }
-}
+};

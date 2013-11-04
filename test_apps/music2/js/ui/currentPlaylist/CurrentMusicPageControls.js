@@ -1,8 +1,10 @@
-var CurrentMusicPageControls = function(){
+'use strict';
+
+var CurrentMusicPageControls = function() {
   Utils.loadDomIds(this, [
-    "playPrev",
-    "togglePlay",
-    "playNext",
+    'playPrev',
+    'togglePlay',
+    'playNext'
   ]);
 
   this.router = new Router(this);
@@ -14,7 +16,7 @@ var CurrentMusicPageControls = function(){
     'play',
     'pause',
     'playPrev',
-    'playNext',
+    'playNext'
   ]);
 
   Utils.onButtonTap(this.dom.playPrev, this.router.route('playPrev'));
@@ -23,28 +25,28 @@ var CurrentMusicPageControls = function(){
   this.nowPlaying.router.when('togglePlaying', [this, 'togglePlaying']);
 
   Utils.onButtonTap(this.dom.togglePlay, this.togglePlaying.bind(this));
-}
+};
 
 CurrentMusicPageControls.prototype = {
-  name: "CurrentMusicPageControls",
-  togglePlaying: function(){
-    if (this.dom.togglePlay.classList.contains('pause')){
+  name: 'CurrentMusicPageControls',
+  togglePlaying: function() {
+    if (this.dom.togglePlay.classList.contains('pause')) {
       this.router.route('pause')();
     }
     else {
       this.router.route('play')();
     }
   },
-  setPlaying: function(){
+  setPlaying: function() {
     this.dom.togglePlay.classList.add('pause');
     this.nowPlaying.setPlaying();
     this.seekBar.enable();
   },
-  setPaused: function(){
+  setPaused: function() {
     this.dom.togglePlay.classList.remove('pause');
     this.nowPlaying.setPaused();
   },
-  disable: function(){
+  disable: function() {
     this.dom.togglePlay.classList.add('disabled');
     this.dom.playPrev.classList.add('disabled');
     this.dom.playNext.classList.add('disabled');
@@ -53,9 +55,8 @@ CurrentMusicPageControls.prototype = {
     this.dom.playPrev.disabled = true;
     this.dom.playNext.disabled = true;
     this.seekBar.disable();
-
   },
-  enable: function(){
+  enable: function() {
     this.dom.togglePlay.classList.remove('disabled');
     this.dom.playPrev.classList.remove('disabled');
     this.dom.playNext.classList.remove('disabled');
@@ -64,21 +65,20 @@ CurrentMusicPageControls.prototype = {
     this.dom.playPrev.disabled = false;
     this.dom.playNext.disabled = false;
   },
-  disablePrev: function(){
+  disablePrev: function() {
     this.dom.playPrev.classList.add('disabled');
     this.dom.playPrev.disabled = true;
   },
-  disableNext: function(){
+  disableNext: function() {
     this.dom.playNext.classList.add('disabled');
     this.dom.playNext.disabled = true;
   },
-  enablePrev: function(){
+  enablePrev: function() {
     this.dom.playPrev.classList.remove('disabled');
     this.dom.playPrev.disabled = false;
   },
-  enableNext: function(){
+  enableNext: function() {
     this.dom.playNext.classList.remove('disabled');
     this.dom.playNext.disabled = false;
   }
-}
-
+};

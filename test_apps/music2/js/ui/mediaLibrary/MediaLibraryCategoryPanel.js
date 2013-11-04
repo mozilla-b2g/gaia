@@ -1,5 +1,6 @@
-var MediaLibraryCategoryPanel = function(title, category, query){
+'use strict';
 
+var MediaLibraryCategoryPanel = function(title, category, query) {
   PanelTools.setupDom(this);
 
   this.category = category;
@@ -8,7 +9,7 @@ var MediaLibraryCategoryPanel = function(title, category, query){
 
   this.router.declareRoutes([
     'ready',
-    'requestMusicPanel',
+    'requestMusicPanel'
   ]);
 
   this.query = query || {
@@ -19,45 +20,45 @@ var MediaLibraryCategoryPanel = function(title, category, query){
   };
 
   this._prepPanel();
-}
+};
 
 MediaLibraryCategoryPanel.prototype = {
-  name: "MediaLibraryCategoryPanel",
+  name: 'MediaLibraryCategoryPanel',
   //============== APi ===============
-  getContainer: function(){
+  getContainer: function() {
     return this.dom.panel;
   },
-  unload: function(){
-
+  unload: function() {
   },
-  refresh: function(done){
+  refresh: function(done) {
     if (done)
       done();
   },
-  updateMode: function(mode){
-
+  updateMode: function(mode) {
   },
   //============== helpers ===============
-  _prepPanel: function(){
-    if (this.category === 'Genres'){
+  _prepPanel: function() {
+    if (this.category === 'Genres') {
       window.musicLibrary.musicDB.getGenres(this._gotPrepResults.bind(this));
     }
-    else if (this.category === 'Artists'){
-      window.musicLibrary.musicDB.getArtists(this.query.genre, this._gotPrepResults.bind(this));
+    else if (this.category === 'Artists') {
+      window.musicLibrary.musicDB.getArtists(
+        this.query.genre, this._gotPrepResults.bind(this)
+      );
     }
-    else if (this.category === 'Albums'){
+    else if (this.category === 'Albums') {
       window.musicLibrary.musicDB.getAlbums(
         this.query.genre,
         this.query.artist,
         this._gotPrepResults.bind(this));
     }
   },
-  _gotPrepResults: function(items){
+  _gotPrepResults: function(items) {
     this.items = items;
     this.router.route('ready')();
     this._set();
   },
-  _set: function(){
+  _set: function() {
     this.fields = [];
     if (this.category === 'Genres')
       this.fields.push('genre');
@@ -67,7 +68,7 @@ MediaLibraryCategoryPanel.prototype = {
       this.fields.push('album', 'artist');
     this._renderItems();
   },
-  _renderItems: function(){
+  _renderItems: function() {
     var sortFields = [];
     if (this.category === 'Genres')
       sortFields.push('genre');
@@ -81,12 +82,11 @@ MediaLibraryCategoryPanel.prototype = {
     var itemsToRender = this.items.map(this._prepRenderListItem.bind(this));
 
     PanelTools.renderItems(this.itemsList, itemsToRender, this.done);
-    
   },
-  _prepRenderListItem: function(item){
+  _prepRenderListItem: function(item) {
     var content = document.createElement('div');
     content.classList.add('fields');
-    for (var j = 0; j < this.fields.length; j++){
+    for (var j = 0; j < this.fields.length; j++) {
       var fieldDiv = document.createElement('div');
       var field = item.metadata[this.fields[j]];
       if (this.fields[j] === 'genre')
@@ -100,18 +100,18 @@ MediaLibraryCategoryPanel.prototype = {
     }
 
     var icon = null;
-    if (this.category === 'Albums'){
+    if (this.category === 'Albums') {
       icon = document.createElement('img');
       icon.classList.add('albumCoverThumbnail');
-      icon.onerror="this.src='';";
-      window.musicLibrary.musicDB.getAlbumArtAsURL(item, function(url){
+      icon.onerror = "this.src='';";
+      window.musicLibrary.musicDB.getAlbumArtAsURL(item, function(url) {
         icon.src = url;
       }.bind(this));
     }
 
     var gotoPanelButton = Utils.classDiv('gotoPanelButton');
     var target = item.metadata[this.fields[0]];
-    Utils.onButtonTap(gotoPanelButton, function(){
+    Utils.onButtonTap(gotoPanelButton, function() {
       this.query[this.fields[0]] = target;
       this.router.route('requestMusicPanel')(this.query);
     }.bind(this));
@@ -119,10 +119,9 @@ MediaLibraryCategoryPanel.prototype = {
 
     var item = new UIItem(icon, gotoPanelButton, null, null);
     item.createDiv();
-    if (this.category === 'Albums'){
+    if (this.category === 'Albums') {
       item.dom.content.classList.add('right');
     }
     return item;
-  },
-
-}
+  }
+};

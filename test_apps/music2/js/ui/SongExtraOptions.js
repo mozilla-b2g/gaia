@@ -1,5 +1,6 @@
-function SongExtraOptions(config){
+'use strict';
 
+function SongExtraOptions(config) {
   this.itemList = config.list;
   this.draggable = config.draggable;
 
@@ -40,37 +41,41 @@ function SongExtraOptions(config){
 }
 
 SongExtraOptions.prototype = {
-  show: function(config, song){
-
+  show: function(config, song) {
     this.itemList.appendChild(this.dom.overlay);
     this.itemList.appendChild(this.dom.content);
 
     this.dom.overlay.style.height = this.itemList.scrollHeight;
 
     this._updateIsFavorite(song.metadata.favorited);
-    this.clearListener = window.musicLibrary.musicDB.registerSongFavoriteChangeListener(song, this._updateIsFavorite.bind(this));
+    this.clearListener =
+      window.musicLibrary.musicDB.registerSongFavoriteChangeListener(
+        song, this._updateIsFavorite.bind(this)
+      );
 
     this.dom.content.style.left = 0;
     this.dom.content.style.top = config.elem.offsetTop;
     this.dom.content.style.height = config.elem.offsetHeight;
 
-    this.favoriteTM = Utils.onButtonTap(this.dom.favorite, config.toggleFavorite);
+    this.favoriteTM =
+      Utils.onButtonTap(this.dom.favorite, config.toggleFavorite);
+
     this.addTM = Utils.onButtonTap(this.dom.add, config.addTo);
     this.shareTM = Utils.onButtonTap(this.dom.share, config.share);
-    if (this.draggable){
+    if (this.draggable) {
       this.dragTM = new TapManager(this.dom.drag);
       this.dragTM.router.when('down', config.drag);
     }
 
   },
-  setDraggable: function(draggable){
+  setDraggable: function(draggable) {
     this.draggable = draggable;
     if (this.draggable)
       this.dom.drag.classList.remove('hidden');
     else
       this.dom.drag.classList.add('hidden');
   },
-  hide: function(){
+  hide: function() {
     this.dom.overlay.parentNode.removeChild(this.dom.overlay);
     this.dom.content.parentNode.removeChild(this.dom.content);
 
@@ -80,14 +85,14 @@ SongExtraOptions.prototype = {
     this.favoriteTM.destroy();
     this.addTM.destroy();
     this.shareTM.destroy();
-    if (this.draggable){
+    if (this.draggable) {
       this.dragTM.destroy();
     }
   },
-  _updateIsFavorite: function(isFavorite){
+  _updateIsFavorite: function(isFavorite) {
     if (isFavorite)
       this.dom.favorite.classList.add('favorited');
     else
       this.dom.favorite.classList.remove('favorited');
   }
-}
+};

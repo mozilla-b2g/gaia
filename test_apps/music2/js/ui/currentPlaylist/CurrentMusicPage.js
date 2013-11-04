@@ -1,8 +1,7 @@
-var CurrentMusicPage = function(){
+'use strict';
 
-  Utils.loadDomIds(this, [
-      "currentMusicPageHeaderTitle"
-  ]);
+var CurrentMusicPage = function() {
+  Utils.loadDomIds(this, ['currentMusicPageHeaderTitle']);
 
   this.controls = new CurrentMusicPageControls();
 
@@ -12,10 +11,10 @@ var CurrentMusicPage = function(){
   this.playlist = new PlaylistView(currentPlaylistView);
 
   this.source = new CurrentMusicPageSource();
-}
+};
 
 CurrentMusicPage.prototype = {
-  setTitle: function(text){
+  setTitle: function(text) {
     this.dom.currentMusicPageHeaderTitle.textContent = text;
   }
-}
+};

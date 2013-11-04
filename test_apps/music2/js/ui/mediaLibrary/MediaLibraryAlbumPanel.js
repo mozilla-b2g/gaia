@@ -1,14 +1,15 @@
-var MediaLibraryAlbumPanel = function(mode, items){
+'use strict';
 
+var MediaLibraryAlbumPanel = function(mode, items) {
   this.mode = mode;
 
   PanelTools.setupDom(this);
 
   //================= album cover =================
   this.dom.albumCover = document.createElement('img');
-  this.dom.albumCover.onerror="this.src='';";
+  this.dom.albumCover.onerror = "this.src='';";
   this.dom.albumCover.classList.add('albumCover');
-  window.musicLibrary.musicDB.getAlbumArtAsURL(items[0], function(url){
+  window.musicLibrary.musicDB.getAlbumArtAsURL(items[0], function(url) {
     this.dom.albumCover.src = url;
   }.bind(this));
   this.dom.title.appendChild(this.dom.albumCover);
@@ -37,40 +38,40 @@ var MediaLibraryAlbumPanel = function(mode, items){
   this.items = items;
 
   this._set();
-}
+};
 
 MediaLibraryAlbumPanel.prototype = {
-  name: "MediaLibraryAlbumPanel",
+  name: 'MediaLibraryAlbumPanel',
   //============== APi ===============
-  getContainer: function(){
+  getContainer: function() {
     return this.dom.panel;
   },
-  unload: function(){
+  unload: function() {
     this.itemsList.destroy();
   },
-  refresh: function(done){
+  refresh: function(done) {
     if (done)
       done();
   },
-  updateMode: function(mode){
+  updateMode: function(mode) {
     this.mode = mode;
     this._setIcons();
     this._set();
   },
   //============== helpers ===============
-  _setIcons: function(){
+  _setIcons: function() {
     Utils.empty(this.dom.controls);
-    if (this.mode !== 'edit'){
+    if (this.mode !== 'edit') {
       this.dom.play = document.createElement('div');
       this.dom.play.classList.add('play');
-      Utils.onButtonTap(this.dom.play, function(){
+      Utils.onButtonTap(this.dom.play, function() {
         this.router.route('requestPlaySongs')(this.title, this.items);
       }.bind(this));
       this.dom.controls.appendChild(this.dom.play);
 
       this.dom.shuffle = document.createElement('div');
       this.dom.shuffle.classList.add('shuffle');
-      Utils.onButtonTap(this.dom.shuffle, function(){
+      Utils.onButtonTap(this.dom.shuffle, function() {
         var itemsShuffled = Utils.copyArray(this.items);
         Utils.shuffleArray(itemsShuffled);
         this.router.route('requestPlaySongs')(this.title, itemsShuffled);
@@ -81,18 +82,18 @@ MediaLibraryAlbumPanel.prototype = {
       this.dom.add = document.createElement('div');
       this.dom.add.classList.add('add');
 
-      Utils.onButtonLongTap(this.dom.add, function(){
+      Utils.onButtonLongTap(this.dom.add, function() {
         this.router.route('requestAddSongs')(this.title, this.items);
-      }.bind(this), function(){
+      }.bind(this), function() {
         this.router.route('requestAddSongsToCustom')(this.title, this.items);
       }.bind(this));
       this.dom.controls.appendChild(this.dom.add);
     }
   },
-  _set: function(){
+  _set: function() {
     this._setSongs();
   },
-  _setSongs: function(){
+  _setSongs: function() {
     this.itemsList.empty();
     var sortFields = [];
     sortFields.push('artist', 'album', 'tracknum', 'title');
@@ -104,7 +105,7 @@ MediaLibraryAlbumPanel.prototype = {
 
     PanelTools.renderItems(this.itemsList, itemsToRender, this.done);
   },
-  _prepRenderListItem: function(song){
+  _prepRenderListItem: function(song) {
     var uiItem = PanelTools.renderSong({
       song: song,
       fields: this.fields,
@@ -115,9 +116,11 @@ MediaLibraryAlbumPanel.prototype = {
       },
       hideAdd: this.mode !== 'edit',
       showTrack: true,
-      ontap: function(){
-        if (this.mode !== 'edit'){
-          this.router.route('requestPlaySongs')(song.metadata.title, this.items);
+      ontap: function() {
+        if (this.mode !== 'edit') {
+          this.router.route('requestPlaySongs')(
+            song.metadata.title, this.items
+          );
           var index = this.items.indexOf(song);
           this.router.route('switchPlayingToIndex')(index);
         }
@@ -126,17 +129,19 @@ MediaLibraryAlbumPanel.prototype = {
         }
       }.bind(this),
       extraOptions: this.extraOptions,
-      addTo: function(){
-        this.router.route('requestAddSongsToCustom')(song.metadata.title, [song]);
+      addTo: function() {
+        this.router.route('requestAddSongsToCustom')(
+          song.metadata.title, [song]
+        );
       }.bind(this),
-      toggleFavorite: function(){
+      toggleFavorite: function() {
         window.musicLibrary.musicDB.toggleSongFavorited(song);
       }.bind(this),
-      share: function(){
+      share: function() {
         this.router.route('shareSong')(song);
       }.bind(this)
     });
 
     return uiItem;
   }
-}
+};

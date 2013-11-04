@@ -1,16 +1,17 @@
-var ViewEvents = function(){
+'use strict';
 
+var ViewEvents = function() {
   Utils.loadDomIds(this, [
-      'selectPageContentOverlay',
-      'currentMusicContentOverlay',
+    'selectPageContentOverlay',
+    'currentMusicContentOverlay',
 
-      'gotoSelectMusicPage',
+    'gotoSelectMusicPage',
 
-      'toggleCurrentMusicPageView',
+    'toggleCurrentMusicPageView',
 
-      'nowPlayingInfo',
+    'nowPlayingInfo',
 
-      'nowPlayingControls',
+    'nowPlayingControls'
   ]);
 
   this.router = new Router(this);
@@ -25,9 +26,18 @@ var ViewEvents = function(){
     'snapPositionCurrentMusicPage'
   ]);
 
-  Utils.onButtonTap(this.dom.toggleCurrentMusicPageView, this.router.route('toggleCurrentMusicPageView'));
-  Utils.onButtonTap(this.dom.nowPlayingInfo, this.router.route('gotoCurrentMusicPage'));
-  Utils.onButtonTap(this.dom.gotoSelectMusicPage, this.router.route('gotoSelectMusicPage'));
+  Utils.onButtonTap(
+    this.dom.toggleCurrentMusicPageView,
+    this.router.route('toggleCurrentMusicPageView')
+  );
+  Utils.onButtonTap(
+    this.dom.nowPlayingInfo,
+    this.router.route('gotoCurrentMusicPage')
+  );
+  Utils.onButtonTap(
+    this.dom.gotoSelectMusicPage,
+    this.router.route('gotoSelectMusicPage')
+  );
 
   var dragManager = new DragManager(this.dom.nowPlayingControls);
 
@@ -44,9 +54,8 @@ var ViewEvents = function(){
     'drag': 'dragCurrentMusicPage',
     'end': 'snapPositionCurrentMusicPage'
   });
-}
+};
 
 ViewEvents.prototype = {
-  name: "ViewEvents",
-
-}
+  name: 'ViewEvents'
+};
