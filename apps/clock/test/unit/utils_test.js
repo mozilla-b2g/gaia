@@ -78,7 +78,7 @@ suite('Time functions', function() {
   suite('#dateMath', function() {
     suiteSetup(function() {
       // The timestamp for "Tue Jul 16 2013 06:00:00" GMT
-      this.sixAm = 1373954400000;
+      this.sixAm = new Date(2013, 5, 16, 6).getTime();
       // Set clock so calls to new Date() and Date.now() will not vary
       // across test locales
       this.dat = new Date(this.sixAm + 15120000);
