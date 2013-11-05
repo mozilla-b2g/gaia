@@ -249,6 +249,12 @@ function execute(options) {
     if (config.BUILD_APP_NAME != '*' && webapp.sourceDirectoryName != config.BUILD_APP_NAME)
       return;
 
+    // Zip generation is not needed for external apps, aaplication data is copied to profile
+    // webapps folder in webapp-manifests.js
+    if (webapp.metaData) {
+      return;
+    }
+
     // Compute webapp folder name in profile
     let webappTargetDir = webappsTargetDir.clone();
     webappTargetDir.append(webapp.domain);
