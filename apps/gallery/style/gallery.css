@@ -169,6 +169,32 @@ section {
   visibility: hidden;
 }
 
+.thumbnail-group-header {
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: #8a9699;
+  padding: 0 0 0 0.5rem;
+  height: 4rem;
+  line-height: 4rem;
+  width:100%;
+  float:left;
+}
+.thumbnail-group-container {
+  padding: 0;
+}
+
+#thumbnails>li {
+  /* no list item bullets */
+  list-style-type: none;
+}
+
+
+#thumbnails>li:first-child .thumbnail-group-header {
+  border-top: 0.1rem solid;
+  border-color:rgba(255,255,255, 0.1);
+}
+
+
 .thumbnail {
   margin-right: 0.1rem;
   margin-bottom: 0.1rem;
@@ -217,7 +243,7 @@ section {
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
  */
-.thumbnail:last-child {
+#thumbnails>li:last-child {
   margin-bottom: 4.5rem;
 }
 
