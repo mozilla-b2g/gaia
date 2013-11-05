@@ -114,7 +114,7 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li:active label
 }
 
 /* Checked status */
-form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-checked="true"] span {
+form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-selected="true"] span {
   padding-right: 2.6rem;
   margin-right: 1.2rem;
   color: #00abcd;
@@ -196,7 +196,7 @@ form[role="dialog"][data-type="value-selector"] menu button.full {
 
 /* Right to left tweaks */
 html[dir="rtl"] #value-selector li input:checked + span,
-html[dir="rtl"] #value-selector li[aria-checked="true"] span {
+html[dir="rtl"] #value-selector li[aria-selected="true"] span {
   padding-left: 2.6rem;
   margin-left: 1.2rem;
 }
