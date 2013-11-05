@@ -128,7 +128,7 @@ function SMIL_generateUniqueLocation(data, location) {
   // If result is identical to any other attached files
   // add a duplicate marker and recheck the length
   while (data.attachments.some(SMIL_uniqueLocationMatches)) {
-    let truncIndex = 0;
+    var truncIndex = 0;
     // Construct a de-deuplicated name with the extention and
     // update duplicate index in case de-duplicated name is already chosen
     result = name + '_' + duplicateIndex++ + extension;
