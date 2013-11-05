@@ -46,6 +46,7 @@ suite('check the ringtone and vibrate function', function() {
     this.sinon.spy(Audio.prototype, 'play');
     this.sinon.spy(navigator, 'vibrate');
     this.sinon.spy(window, 'Audio');
+    this.sinon.useFakeTimers();
 
     this.sinon.stub(SettingsURL.prototype, 'get', function() {
       return 'ringtone';

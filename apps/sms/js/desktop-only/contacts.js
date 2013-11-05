@@ -430,6 +430,20 @@
     })
   );
 
+  ContactsDB.push(
+    new Contact({
+      familyName: '',
+      givenName: 'Bob',
+      tel: [
+        {
+          value: '555-666-1234',
+          type: ['Mobile'],
+          carrier: 'ScamCo'
+        }
+      ]
+    })
+  );
+
   // console.log( ContactsDB );
 
 

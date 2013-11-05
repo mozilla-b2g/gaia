@@ -2,14 +2,14 @@
   "name": "Gaia Test Keyboard",
   "description": "for Gaia 3rd-party keyboard testing",
   "type": "certified",
-  "role": "keyboard",
+  "role": "input",
   "launch_path": "/settings.html",
   "developer": {
     "name": "The Gaia Team",
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "keyboard": {
+    "input": {
       "description": "To send key events"
     }
   },

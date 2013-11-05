@@ -69,6 +69,8 @@ suite('Picker', function() {
     assert.equal(spinners.minutes.lower, 0);
     assert.equal(spinners.minutes.upper, 59);
     assert.equal(spinners.minutes.range, 60);
+
+    assert.equal(picker.value, '0:0');
   });
 
 

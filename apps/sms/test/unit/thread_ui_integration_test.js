@@ -90,21 +90,9 @@ suite('ThreadUI Integration', function() {
   });
 
   suite('Search Contact Events', function() {
-    var realSearchContact;
 
     setup(function() {
-      realSearchContact = ThreadUI.searchContact;
-
-      ThreadUI.searchContact = function(filterValue) {
-        ThreadUI.searchContact.called++;
-        ThreadUI.searchContact.calledWith = filterValue;
-      };
-      ThreadUI.searchContact.called = 0;
-      ThreadUI.searchContact.calledWith = '';
-    });
-
-    teardown(function() {
-      realSearchContact = ThreadUI.searchContact;
+      this.sinon.spy(ThreadUI, 'searchContact');
     });
 
     test('toFieldInput handler, successful', function() {
@@ -117,8 +105,8 @@ suite('ThreadUI Integration', function() {
 
       ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
 
-      assert.equal(ThreadUI.searchContact.called, 1);
-      assert.equal(ThreadUI.searchContact.calledWith, 'abc');
+      sinon.assert.calledOnce(ThreadUI.searchContact);
+      sinon.assert.calledWith(ThreadUI.searchContact, 'abc');
     });
 
     test('toFieldInput handler, unsuccessful', function() {
@@ -131,16 +119,15 @@ suite('ThreadUI Integration', function() {
 
       ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
 
-      assert.equal(ThreadUI.searchContact.called, 1);
-      assert.equal(ThreadUI.searchContact.calledWith, '');
+      sinon.assert.called(ThreadUI.searchContact);
+      sinon.assert.calledWith(ThreadUI.searchContact, '');
 
       fakeEvent.target.textContent = 'abd';
       fakeEvent.target.isPlaceholder = false;
 
       ThreadUI.toFieldInput.call(ThreadUI, fakeEvent);
 
-      assert.equal(ThreadUI.searchContact.called, 1);
-      assert.equal(ThreadUI.searchContact.calledWith, '');
+      assert.isFalse(ThreadUI.searchContact.calledTwice);
     });
   });
 

@@ -41,3 +41,7 @@ class Activities(Base):
     @property
     def options_count(self):
         return len(self.marionette.find_elements(*self._action_option_locator))
+
+    @property
+    def is_menu_visible(self):
+        return self.is_element_displayed(*self._actions_menu_locator)

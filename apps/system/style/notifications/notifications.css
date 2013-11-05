@@ -77,6 +77,10 @@ html, body {
   line-height: 3rem;
 }
 
+#notification-bar span[hidden] {
+  display: none;
+}
+
 #notification-bar button {
   float: right;
   margin-right: 1.5rem;
@@ -88,6 +92,10 @@ html, body {
   text-align: right;
   font-size: 1.4rem;
   font-weight: 500;
+}
+
+#notification-bar button[disabled] {
+  color: #556365;
 }
 
 /* remove ugly dotted outline when focus */

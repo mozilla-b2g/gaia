@@ -1,4 +1,4 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 # This is Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -26,7 +26,7 @@ class TestChangeKeyboardLanguage(GaiaTestCase):
         add_more_keyboards = select_keyboard.tap_add_more_keyboards()
 
         # Select keyboard language
-        add_more_keyboards.select_language('Spanish')
+        add_more_keyboards.select_language(u'Espa\u00F1ol')
 
         # launch the Contacts app to verify the keyboard layout
         contacts_app = Contacts(self.marionette)

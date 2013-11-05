@@ -55,6 +55,9 @@
         obj.text = this.text;
       }
 
+      if (this.provisioning) {
+        obj.provisioning = this.provisioning;
+      }
       return obj;
     },
 
@@ -90,6 +93,7 @@
    * - id: optional for SI messages, a pseudo-unique ID for the message
    * - created: optional for SI messages, creation time of this message
    * - expires: optional for SI messages, expiration time of this message
+   * - provisioning: only for CP messages, CP related object
    * - text: optional, text to be displayed
    *
    * @param {Object} message A WAP Push message as delivered by the system.
@@ -148,6 +152,15 @@
 
       // 'href' attribute, always present
       obj.href = slNode.getAttribute('href');
+    } else if (message.contentType === 'text/vnd.wap.connectivity-xml') {
+      // Client provisioning (CP) message
+      obj.provisioning = Provisioning.fromMessage(message);
+      // Security information is mandatory for the application. The application
+      // must discard any message with no security information.
+      if (!obj.provisioning.authInfo) {
+        return null;
+      }
+      obj.text = 'cp-message-received';
     } else {
       return null;
     }

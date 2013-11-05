@@ -1,4 +1,6 @@
-var MediaLibrarySearchPanel = function(mode){
+'use strict';
+
+var MediaLibrarySearchPanel = function(mode) {
   PanelTools.setupDom(this);
 
   this.mode = mode;
@@ -19,38 +21,39 @@ var MediaLibrarySearchPanel = function(mode){
   this.router.declareRoutes([
     'requestMusicPanel'
   ]);
-
-}
+};
 
 MediaLibrarySearchPanel.prototype = {
-  name: "MediaLibrarySearchPanel",
+  name: 'MediaLibrarySearchPanel',
   //============== APi ===============
-  getContainer: function(){
+  getContainer: function() {
     return this.dom.panel;
   },
-  unload: function(){
-
+  unload: function() {
   },
-  refresh: function(done){
+  refresh: function(done) {
     if (done)
       done();
   },
-  updateMode: function(mode){
+  updateMode: function(mode) {
     this.mode = mode;
     this._search();
   },
   //============== helpers ===============
-  _search: function(){
+  _search: function() {
     var search = this.dom.input.value;
     this.dom.input.blur();
-    window.musicLibrary.musicDB.search(search, this._displaySearchResults.bind(this));
+    window.musicLibrary.musicDB.search(
+      search, this._displaySearchResults.bind(this)
+    );
   },
-  _displaySearchResults: function(results){
+  _displaySearchResults: function(results) {
     this.itemsList.empty();
 
     if (results.artists.length === 0 &&
         results.albums.length === 0 &&
-        results.songs.length === 0){
+        results.songs.length === 0)
+    {
       this._addTitle('Nothing Found');
     }
 
@@ -64,7 +67,7 @@ MediaLibrarySearchPanel.prototype = {
       this._addTitle('Songs');
     this._renderSongs(results.songs);
   },
-  _addTitle: function(title){
+  _addTitle: function(title) {
     var content = document.createElement('div');
     content.textContent = title;
     var uiItem = new UIItem(null, content, null, null);
@@ -72,56 +75,56 @@ MediaLibrarySearchPanel.prototype = {
     uiItem.dom.div.classList.add('subtitle');
     this.itemsList.append(uiItem);
   },
-  _renderArtists: function(artists){
+  _renderArtists: function(artists) {
     this.fields = ['artist'];
     var itemsToRender = artists.map(this._renderArtist.bind(this));
     itemsToRender.forEach(this.itemsList.append.bind(this.itemsList));
   },
-  _renderAlbums: function(albums){
+  _renderAlbums: function(albums) {
     this.fields = ['album', 'artist'];
     var itemsToRender = albums.map(this._renderAlbum.bind(this));
     itemsToRender.forEach(this.itemsList.append.bind(this.itemsList));
   },
-  _renderSongs: function(songs){
+  _renderSongs: function(songs) {
     this.fields = ['title', 'artist', 'album'];
     var itemsToRender = songs.map(this._renderSong.bind(this));
     PanelTools.renderItems(this.itemsList, itemsToRender, this.done);
   },
-  _renderArtist: function(artist){
+  _renderArtist: function(artist) {
     var uiItem = PanelTools.renderGotoPanel({
       song: artist,
       fields: this.fields,
       category: 'Artists',
-      ontap: function(){
+      ontap: function() {
         var query = {
           'genre': '*',
           'artist': artist.metadata.artist,
           'album': '*',
           'song': '*'
-        }
+        };
         this.router.route('requestMusicPanel')(query);
       }.bind(this)
     });
     return uiItem;
   },
-  _renderAlbum: function(album){
+  _renderAlbum: function(album) {
     var uiItem = PanelTools.renderGotoPanel({
       song: album,
       fields: this.fields,
       category: 'Albums',
-      ontap: function(){
+      ontap: function() {
         var query = {
           'genre': '*',
           'artist': '*',
           'album': album.metadata.album,
           'song': '*'
-        }
+        };
         this.router.route('requestMusicPanel')(query);
       }.bind(this)
     });
     return uiItem;
   },
-  _renderSong: function(song){
+  _renderSong: function(song) {
     var uiItem = PanelTools.renderSong({
       song: song,
       fields: this.fields,
@@ -132,11 +135,13 @@ MediaLibrarySearchPanel.prototype = {
       },
       showTrack: false,
       hideAdd: this.mode !== 'edit',
-      ontap: function(){
-        if (this.mode !== 'edit'){
+      ontap: function() {
+        if (this.mode !== 'edit') {
           this.router.route('requestPlaySongs')(song.metadata.title, [song]);
           //TODO should we play all found sounds here?
-          //this.router.route('requestPlaySongs')(song.metadata.title, this.items);
+          // this.router.route('requestPlaySongs')(
+            // song.metadata.title, this.items
+          // );
           //var index = this.items.indexOf(song);
           //this.router.route('switchPlayingToIndex')(index);
         }
@@ -145,16 +150,18 @@ MediaLibrarySearchPanel.prototype = {
         }
       }.bind(this),
       extraOptions: this.extraOptions,
-      addTo: function(){
-        this.router.route('requestAddSongsToCustom')(song.metadata.title, [song]);
+      addTo: function() {
+        this.router.route('requestAddSongsToCustom')(
+          song.metadata.title, [song]
+        );
       }.bind(this),
-      toggleFavorite: function(){
+      toggleFavorite: function() {
         window.musicLibrary.musicDB.toggleSongFavorited(song);
       }.bind(this),
-      share: function(){
+      share: function() {
         this.router.route('shareSong')(song);
       }.bind(this)
     });
     return uiItem;
-  },
-}
+  }
+};

@@ -611,6 +611,13 @@ suite('calls handler', function() {
             CallsHandler.holdAndAnswer();
             assert.equal(MockCallScreen.mCdmaCallWaiting, true);
           });
+
+          test('should inform bluetooth of answering second call', function() {
+            var switchCallsSpy = this.sinon.spy(
+              MockBluetoothHelperInstance, 'answerWaitingCall');
+            CallsHandler.holdAndAnswer();
+            assert.equal(switchCallsSpy.calledOnce, true);
+          });
       });
     });
 
@@ -657,7 +664,7 @@ suite('calls handler', function() {
 
           test('should hide the call waiting UI', function() {
             var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
-            CallsHandler.holdAndAnswer();
+            CallsHandler.endAndAnswer();
             assert.isTrue(hideSpy.calledOnce);
           });
       });
@@ -702,19 +709,26 @@ suite('calls handler', function() {
 
           test('should invoke hold to answer the second call', function() {
             var holdSpy = this.sinon.spy(mockCall, 'hold');
-            CallsHandler.holdAndAnswer();
+            CallsHandler.endAndAnswer();
             assert.isTrue(holdSpy.calledOnce);
           });
 
           test('should hide the call waiting UI', function() {
             var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
-            CallsHandler.holdAndAnswer();
+            CallsHandler.endAndAnswer();
             assert.isTrue(hideSpy.calledOnce);
           });
 
           test('should enable the CDMA call waiting UI', function() {
-            CallsHandler.holdAndAnswer();
+            CallsHandler.endAndAnswer();
             assert.equal(MockCallScreen.mCdmaCallWaiting, true);
+          });
+
+          test('should inform bluetooth of answering second call', function() {
+            var switchCallsSpy = this.sinon.spy(
+              MockBluetoothHelperInstance, 'answerWaitingCall');
+            CallsHandler.endAndAnswer();
+            assert.equal(switchCallsSpy.calledOnce, true);
           });
       });
 
@@ -808,6 +822,13 @@ suite('calls handler', function() {
         CallsHandler.ignore();
         assert.isTrue(hideSpy.calledOnce);
       });
+
+      test('should inform bluetooth of ignoring', function() {
+        var ignoreSpy = this.sinon.spy(
+          MockBluetoothHelperInstance, 'ignoreWaitingCall');
+        CallsHandler.ignore();
+        assert.isTrue(ignoreSpy.calledOnce);
+      });
     });
 
     suite('> CallsHandler.toggleCalls()', function() {
@@ -888,6 +909,13 @@ suite('calls handler', function() {
           var holdSpy = this.sinon.spy(mockCall, 'hold');
           CallsHandler.toggleCalls();
           assert.isTrue(holdSpy.calledOnce);
+        });
+
+        test('should inform bluetooth of toggling calls', function() {
+          var btToggleSpy = this.sinon.spy(
+            MockBluetoothHelperInstance, 'toggleCalls');
+          CallsHandler.toggleCalls();
+          assert.isTrue(btToggleSpy.calledOnce);
         });
       });
 

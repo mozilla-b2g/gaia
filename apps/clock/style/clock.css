@@ -85,6 +85,12 @@ html, body {
   display: block;
 }
 
+/* Make sure the rotating hand elements are never clickable outside of our box */
+#analog-clock-container {
+  pointer-events: none;
+  overflow: hidden;
+}
+
 #analog-clock-container.large {
   width: 27rem;
   height: 27rem;

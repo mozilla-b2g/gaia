@@ -277,12 +277,12 @@ function initDB() {
   };
 
   photodb.onscanend = function onscanend() {
+    // Allows the user to edit images when scanning is finished
+    $('fullscreen-edit-button').classList.remove('disabled');
     // if we're still having the scanning overlay there are no photo's
     if (currentOverlay === 'scanning')
       showOverlay('emptygallery');
 
-    // Allows the user to edit images when scanning is finished
-    $('fullscreen-edit-button').classList.remove('disabled');
     // Hide the scanning indicator
     $('progress').classList.add('hidden');
     $('throbber').classList.remove('throb');

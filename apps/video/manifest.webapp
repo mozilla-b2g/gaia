@@ -14,8 +14,7 @@
     "device-storage:videos":{ "access": "readwrite" },
     "settings":{ "access": "readonly" },
     "deprecated-hwvideo":{},
-    "audio-channel-content":{},
-    "systemXHR":{}
+    "audio-channel-content":{}
   },
   "locales": {
     "ar": {

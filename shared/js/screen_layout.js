@@ -26,8 +26,17 @@ var ScreenLayout = {
     hardwareHomeButton: '(-moz-physical-home-button)'
   },
 
-  // Fetch the default orientation once the module is loaded.
-  defaultOrientation: screen.mozOrientation,
+  init: function sl_init() {
+    // loop defaultQueries and add window.matchMedia()
+    // to this.queries object
+    this.queries = (function(qs) {
+      var result = {};
+      for (var key in qs) {
+        result[key] = window.matchMedia(qs[key]);
+      }
+      return result;
+    })(this.defaultQueries);
+  },
 
   _isOnRealDevice: undefined,
 
@@ -46,39 +55,6 @@ var ScreenLayout = {
     }
 
     return this._isOnRealDevice;
-  },
-
-  fetchDefaultOrientation: function sl_fetchDefaultOrientation() {
-    if (!this.isOnRealDevice()) {
-      // Fallback to use width/height to calculate default orientation
-      // if we're running on desktop browser or simulator.
-      this.defaultOrientation = window.innerWidth > window.innerHeight ?
-        'landscape-primary' : 'portrait-primary';
-    }
-  },
-
-  fetchCurrentOrientation: function sl_fetchDefaultOrientation() {
-    if (!this.isOnRealDevice()) {
-      // Fallback to use width/height to calculate default orientation
-      // if we're running on desktop browser or simulator.
-      return window.innerWidth > window.innerHeight ?
-        'landscape-primary' : 'portrait-primary';
-    } else {
-      return screen.mozOrientation;
-    }
-  },
-
-  init: function sl_init() {
-    this.fetchDefaultOrientation();
-    // loop defaultQueries and add window.matchMedia()
-    // to this.queries object
-    this.queries = (function(qs) {
-      var result = {};
-      for (var key in qs) {
-        result[key] = window.matchMedia(qs[key]);
-      }
-      return result;
-    })(this.defaultQueries);
   },
 
   // name: |String|, ex: 'tiny', 'small', 'medium'

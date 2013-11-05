@@ -13,6 +13,8 @@ class EditPhoto(Base):
     _edit_effect_button_locator = (By.ID, 'edit-effect-button')
     _effect_options_locator = (By.CSS_SELECTOR, '#edit-effect-options a')
     _edit_save_locator = (By.ID, 'edit-save-button')
+    _edit_crop_button_locator = (By.ID, 'edit-crop-button')
+    _crop_portrait_locator = (By.ID, 'edit-crop-aspect-portrait')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -22,10 +24,18 @@ class EditPhoto(Base):
         self.marionette.find_element(*self._edit_effect_button_locator).tap()
         self.wait_for_element_displayed(*self._effect_options_locator)
 
+    def tap_edit_crop_button(self):
+        self.marionette.find_element(*self._edit_crop_button_locator).tap()
+        self.wait_for_element_displayed(*self._crop_portrait_locator)
+
     def tap_edit_save_button(self):
         self.marionette.find_element(*self._edit_save_locator).tap()
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
+
+    def tap_portrait_crop(self):
+        self.marionette.find_element(*self._crop_portrait_locator).tap()
+        self.wait_for_condition(lambda m: 'selected' in self.marionette.find_element(*self._crop_portrait_locator).get_attribute('class'))
 
     @property
     def effects(self):

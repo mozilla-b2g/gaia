@@ -17,14 +17,8 @@ var SettingsListener = {
    */
 
   getSettingsLock: function sl_getSettingsLock() {
-    // Each time there is a getSettingsLock call, we pospone the removal
-    clearTimeout(this._timer);
-    this._timer = setTimeout((function removeLock() {
-      this._lock = null;
-    }).bind(this), 0);
-
     // If there is a lock present we return that
-    if (this._lock) {
+    if (this._lock && !this._lock.closed) {
       return this._lock;
     }
 

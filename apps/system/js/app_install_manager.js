@@ -186,7 +186,7 @@ var AppInstallManager = {
   },
 
   configurations: {
-    'keyboard': {
+    'input': {
       fnName: 'showIMEList'
     }
   },

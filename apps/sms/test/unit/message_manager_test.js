@@ -1,6 +1,6 @@
 /*global MocksHelper, MockNavigatormozMobileMessage, MessageManager, ThreadUI,
-         MockL10n, Contacts, MockContact, loadBodyHTML, MozSmsFilter,
-         ThreadListUI, MockThreads, MockMessages, Threads */
+         MockL10n, MockContact, loadBodyHTML, MozSmsFilter,
+         ThreadListUI, MockThreads, MockMessages, Threads, Compose */
 
 'use strict';
 
@@ -16,6 +16,7 @@ requireApp('sms/test/unit/mock_threads.js');
 requireApp('sms/test/unit/mock_navigatormoz_sms.js');
 requireApp('sms/test/unit/mock_moz_sms_filter.js');
 requireApp('sms/test/unit/mock_smil.js');
+requireApp('sms/test/unit/mock_attachment.js');
 requireApp('sms/test/unit/mock_recipients.js');
 requireApp('sms/test/unit/mock_compose.js');
 requireApp('sms/test/unit/mock_contact.js');
@@ -34,6 +35,7 @@ var mocksHelperForMessageManager = new MocksHelper([
   'Compose',
   'Contacts',
   'Utils',
+  'Attachment',
   'MozSmsFilter',
   'LinkActionHandler'
 ]);
@@ -210,44 +212,66 @@ suite('message_manager.js >', function() {
   });
 
   suite('launchComposer() >', function() {
+
+    suiteSetup(function() {
+      MessageManager.threadMessages = document.createElement('div');
+      MessageManager.mainWrapper = document.createElement('div');
+    });
+
+    suiteTeardown(function() {
+      MessageManager.threadMessages = null;
+      MessageManager.mainWrapper = null;
+    });
+
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'cleanFields');
+      MessageManager.launchComposer();
+    });
+
+    test(' all fields cleaned', function() {
+      assert.ok(ThreadUI.cleanFields.calledWith(true));
+    });
+
+    test(' layout updated', function() {
+      assert.ok(MessageManager.threadMessages.classList.contains('new'));
+    });
+
+    test(' slide & callback', function(done) {
+      MessageManager.launchComposer(function() {
+        done();
+      });
+    });
+  });
+
+  suite('handleActivity() >', function() {
     var nativeMozL10n = navigator.mozL10n;
+
     suiteSetup(function() {
       navigator.mozL10n = MockL10n;
       loadBodyHTML('/index.html');
       ThreadUI.initRecipients();
     });
 
+    suiteTeardown(function() {
+      navigator.mozL10n = nativeMozL10n;
+    });
+
     setup(function() {
-
-      ThreadUI.recipients.length = 0;
-
-      this.sinon.stub(
-        MessageManager, 'slide', function(direction, callback) {
-          callback();
-        }
-      );
-
-      this.sinon.stub(
-        Contacts, 'findByPhoneNumber', function(tel, callback) {
-          callback(MockContact.list());
-        }
-      );
-
+      ThreadUI.initRecipients();
       this.sinon.stub(ThreadUI, 'setMessageBody');
-
       MessageManager.threadMessages = document.createElement('div');
     });
 
-    suiteTeardown(function() {
-      navigator.mozL10n = nativeMozL10n;
-      ThreadUI.recipients = null;
+    teardown(function() {
+      MessageManager.activity = null;
     });
 
     test('from activity with unknown contact', function() {
-      MessageManager.launchComposer({
+      var activity = {
         number: '998',
         contact: null
-      });
+      };
+      MessageManager.handleActivity(activity);
 
       assert.equal(ThreadUI.recipients.numbers.length, 1);
       assert.equal(ThreadUI.recipients.numbers[0], '998');
@@ -255,9 +279,10 @@ suite('message_manager.js >', function() {
     });
 
     test('from activity with known contact', function() {
-      MessageManager.launchComposer({
+      var activity = {
         contact: new MockContact()
-      });
+      };
+      MessageManager.handleActivity(activity);
 
       assert.equal(ThreadUI.recipients.numbers.length, 1);
       assert.equal(ThreadUI.recipients.numbers[0], '+346578888888');
@@ -265,22 +290,78 @@ suite('message_manager.js >', function() {
     });
 
     test('with message body', function() {
-      MessageManager.launchComposer({
+      var activity = {
         number: '998',
         contact: null,
         body: 'test'
-      });
+      };
+      MessageManager.handleActivity(activity);
       assert.ok(ThreadUI.setMessageBody.calledWith('test'));
     });
 
     test('No contact and no number', function() {
-      MessageManager.launchComposer({
+      var activity = {
         number: null,
         contact: null,
         body: 'Youtube url'
-      });
+      };
+      MessageManager.handleActivity(activity);
       assert.equal(ThreadUI.recipients.numbers.length, 0);
       assert.ok(ThreadUI.setMessageBody.calledWith('Youtube url'));
+    });
+  });
+
+  suite('handleForward() >', function() {
+
+    setup(function() {
+      this.sinon.spy(ThreadUI, 'setMessageBody');
+      this.sinon.spy(Compose, 'append');
+      this.sinon.stub(MessageManager, 'getMessage', function(id) {
+        var result;
+        switch (id) {
+          case 1:
+            result = MockMessages.sms();
+            break;
+          case 2:
+            result = MockMessages.mms();
+            break;
+        }
+        var request = {
+          result: result,
+          set onsuccess(cb) {
+            cb();
+          },
+          get onsuccess() {
+            return {};
+          }
+        };
+        return request;
+      });
+    });
+
+    teardown(function() {
+      MessageManager.forward = null;
+    });
+
+    test(' forward SMS', function() {
+      var forward = {
+        messageId: 1
+      };
+      MessageManager.handleForward(forward);
+      assert.ok(MessageManager.getMessage.calledOnce);
+      assert.ok(MessageManager.getMessage.calledWith(1));
+      assert.ok(ThreadUI.setMessageBody.called);
+    });
+
+    test(' forward MMS with attachment', function() {
+      var forward = {
+        messageId: 2
+      };
+      MessageManager.handleForward(forward);
+      assert.ok(MessageManager.getMessage.calledOnce);
+      assert.ok(MessageManager.getMessage.calledWith(2));
+      assert.isFalse(ThreadUI.setMessageBody.called);
+      assert.ok(Compose.append.called);
     });
   });
 
@@ -392,7 +473,7 @@ suite('message_manager.js >', function() {
       this.sinon.spy(ThreadListUI, 'cancelEdit');
       this.sinon.spy(ThreadListUI, 'mark');
       this.sinon.spy(ThreadUI.groupView, 'reset');
-      this.sinon.spy(MessageManager, 'launchComposer');
+      this.sinon.spy(MessageManager, 'handleActivity');
       this.sinon.stub(MessageManager, 'slide');
 
       MessageManager.onHashChange();
@@ -414,6 +495,7 @@ suite('message_manager.js >', function() {
     suite('> Switch to #new', function() {
       setup(function() {
         this.activity = MessageManager.activity = { test: true };
+        MessageManager.handleActivity();
         ThreadUI.inThread = true; // to test this is reset correctly
         window.location.hash = '#new';
         MessageManager.onHashChange();
@@ -421,8 +503,8 @@ suite('message_manager.js >', function() {
       teardown(function() {
         MessageManager.activity = null;
       });
-      test('called launchComposer with activity', function() {
-        assert.ok(MessageManager.launchComposer.calledWith(this.activity));
+      test('called handleActivity with activity', function() {
+        assert.ok(MessageManager.handleActivity.calledOnce);
       });
 
       suite('> Switch to #thread=100', function() {

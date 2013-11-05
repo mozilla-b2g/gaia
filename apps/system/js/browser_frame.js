@@ -52,7 +52,7 @@ var BrowserFrame = (function invocation() {
     // Give a name to the frame for differentiating between main frame and
     // inline frame. With the name we can get frames of the same app using the
     // window.open method.
-    browser.name = 'main';
+    browser.name = config.window_name || 'main';
 
     if (config.oop)
       browser.setAttribute('remote', 'true');

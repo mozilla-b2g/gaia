@@ -10,6 +10,10 @@
 
 var ActivityHandler = {
   isLocked: false,
+
+  // Will hold current activity object
+  currentActivity: { new: null },
+
   init: function() {
     if (!window.navigator.mozSetMessageHandler) {
       return;
@@ -29,6 +33,7 @@ var ActivityHandler = {
   // The Messaging application's global Activity handler. Delegates to specific
   // handler based on the Activity name.
   global: function activityHandler(activity) {
+
     var name = activity.source.name;
     var handler = this._handlers[name];
 
@@ -48,6 +53,7 @@ var ActivityHandler = {
         return;
       }
 
+      this.currentActivity.new = activity;
       this.isLocked = true;
 
       var number = activity.source.data.number;
@@ -74,6 +80,8 @@ var ActivityHandler = {
           contact: contact || null
         });
       });
+
+      ThreadUI.enableActivityRequestMode();
     },
     share: function shareHandler(activity) {
       var blobs = activity.source.data.blobs,
@@ -105,6 +113,11 @@ var ActivityHandler = {
         insertAttachments();
       }
     }
+  },
+
+  resetActivity: function ah_resetActivity() {
+    this.currentActivity.new = null;
+    ThreadUI.resetActivityRequestMode();
   },
 
   handleMessageNotification: function ah_handleMessageNotification(message) {
@@ -162,10 +175,10 @@ var ActivityHandler = {
   // Launch the UI properly taking into account the hash
   launchComposer: function ah_launchComposer(activity) {
     if (location.hash === '#new') {
-      MessageManager.launchComposer(activity);
+      MessageManager.handleActivity(activity);
     } else {
-      // Move to new message
       MessageManager.activity = activity;
+      // Move to new message
       window.location.hash = '#new';
     }
   },
@@ -429,9 +442,9 @@ var ActivityHandler = {
     if (message.type === 'sms') {
       dispatchNotification();
     } else {
-      // Here we can only have one sender, so deliveryStatus[0] => message
-      // status from sender.
-      var status = message.deliveryStatus[0];
+      // Here we can only have one sender, so deliveryInfo[0].deliveryStatus =>
+      // message status from sender.
+      var status = message.deliveryInfo[0].deliveryStatus;
       if (status === 'pending') {
         return;
       }

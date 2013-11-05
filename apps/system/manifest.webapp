@@ -37,8 +37,8 @@
     "audio-channel-notification":{},
     "audio-channel-content":{},
     "cellbroadcast":{},
-    "keyboard":{},
-    "inputmethod-manage":{},
+    "input":{},
+    "input-manage":{},
     "nfc":{ "access": "readonly" },
     "nfc-manager":{}
   },

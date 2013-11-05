@@ -53,10 +53,6 @@ var WindowManager = (function() {
     dump('WindowManager: ' + str + '\n');
   }
 
-  // keep the reference of inline activity frame here
-  var inlineActivityFrames = [];
-  var activityCallerOrigin = '';
-
   // Some document elements we use
   var windows = document.getElementById('windows');
   var screenElement = document.getElementById('screen');
@@ -74,7 +70,8 @@ var WindowManager = (function() {
   var _currentSetOrientationOrigin;
   var _globalOrientation;
 
-  SettingsListener.observe('screen.orientation.lock', false, function(value) {
+  // XXX: Refine this.
+  window.addEventListener('globalorientationchanged', function(value) {
     _globalOrientation = value ? 'portrait-primary' : null;
     setOrientationForApp(_currentSetOrientationOrigin);
   });
@@ -95,13 +92,6 @@ var WindowManager = (function() {
 
   // The origin of the currently displayed app, or null if there isn't one
   var displayedApp = null;
-
-  // Track the audio activity.
-  var normalAudioChannelActive = false;
-
-  // When an app stops playing audio and the device is locked, we use a timer
-  // in order to restore its visibility.
-  var deviceLockedTimer = 0;
 
   if (LockScreen.locked) {
     windows.setAttribute('aria-hidden', 'true');
@@ -145,42 +135,6 @@ var WindowManager = (function() {
       return runningApps[origin].frame;
     else
       return null;
-  }
-
-  // XXX: appWindow.resize needs to call setInlineActivityFramseSize().
-  // We should maintain a link in appWindow to activity frame
-  // so that appWindow can resize activity by itself.
-  window.addEventListener('appresize', function appResized(evt) {
-    // We will call setInlineActivityFrameSize()
-    // if changeActivityFrame is not explicitly set to false.
-    if (evt.detail.changeActivityFrame !== false) {
-      setInlineActivityFrameSize();
-    }
-  });
-
-  // Copy the dimension of the currently displayed app
-  function setInlineActivityFrameSize() {
-    if (!inlineActivityFrames.length)
-      return;
-
-    var app = runningApps[displayedApp];
-    var appFrame = app.frame;
-    var frame = inlineActivityFrames[inlineActivityFrames.length - 1];
-
-    frame.style.width = appFrame.style.width;
-
-    if (document.mozFullScreen) {
-      frame.style.height = window.innerHeight + 'px';
-      frame.style.top = '0px';
-    } else {
-      if ('wrapper' in appFrame.dataset) {
-        frame.style.height = window.innerHeight -
-          StatusBar.height - SoftwareButtonManager.height + 'px';
-      } else {
-        frame.style.height = appFrame.style.height;
-      }
-      frame.style.top = appFrame.offsetTop + 'px';
-    }
   }
 
   var openFrame = null;
@@ -285,42 +239,6 @@ var WindowManager = (function() {
      }
   });
 
-  windows.addEventListener('transitionend', function frameTransitionend(evt) {
-    var prop = evt.propertyName;
-    var frame = evt.target;
-    if (prop !== 'transform')
-      return;
-
-    var classList = frame.classList;
-
-    if (classList.contains('inlineActivity')) {
-      if (classList.contains('active')) {
-        if (openFrame) {
-          openFrame.firstChild.focus();
-          var app = runningApps[displayedApp];
-          // Set page visibility of focused app to false
-          // once inline activity frame's transition is ended.
-          // XXX: We have trouble to make all inline activity
-          // openers being sent to background now,
-          // because of OOM killer may kill them accidently.
-          // See https://bugzilla.mozilla.org/show_bug.cgi?id=914412,
-          // and https://bugzilla.mozilla.org/show_bug.cgi?id=822325.
-          // So we only set browser app(in-process)'s page visibility
-          // to false now to resolve 914412.
-          if (app && app.iframe &&
-              'contentWindow' in app.iframe &&
-              app.iframe.contentWindow != null) {
-            app.setVisible(false);
-          }
-        }
-
-        setOpenFrame(null);
-      } else {
-        windows.removeChild(frame);
-      }
-    }
-  });
-
   // Executes when the opening transition scale the app
   // to full size.
   function windowScaled(frame) {
@@ -392,7 +310,7 @@ var WindowManager = (function() {
     }
 
     // Inform keyboardmanager that we've finished the transition
-    dispatchEvent(new CustomEvent('appclose'));
+    iframe.dispatchEvent(new CustomEvent('appclose'));
   }
 
   windows.addEventListener('mozbrowserloadend', function loadend(evt) {
@@ -648,9 +566,6 @@ var WindowManager = (function() {
     transitionOpenCallback = null;
     transitionCloseCallback = null;
 
-    // Discard any existing activity
-    stopInlineActivity(true);
-
     // Cancel fullscreen
     if (document.mozFullScreen)
       document.mozCancelFullScreen();
@@ -773,16 +688,6 @@ var WindowManager = (function() {
 
     // If the app has a attention screen open, displaying it
     AttentionScreen.showForOrigin(newApp);
-  }
-
-  function setOrientationForInlineActivity(frame) {
-    if ('orientation' in frame.dataset) {
-      screen.mozLockOrientation(frame.dataset.orientation);
-    } else if (_globalOrientation) { // Global orientation lock set?
-      screen.mozLockOrientation(_globalOrientation);
-    } else {  // If no orientation was requested, then let it rotate
-      screen.mozUnlockOrientation();
-    }
   }
 
   function setOrientationForApp(origin) {
@@ -957,96 +862,9 @@ var WindowManager = (function() {
       setDisplayedApp();
     });
 
-  function startInlineActivity(origin, url, name, manifest, manifestURL) {
-    // If the same inline activity frame is existed and showing,
-    // we reuse its iframe.
-    if (inlineActivityFrames.length) {
-      var showingInlineActivityFrame =
-        inlineActivityFrames[inlineActivityFrames.length - 1].firstChild;
-
-      if (showingInlineActivityFrame.dataset.frameURL == url) {
-        return;
-      }
-    }
-
-    var evt = document.createEvent('CustomEvent');
-    evt.initCustomEvent('activitywillopen', true, true, { origin: origin });
-
-    // Create the <iframe mozbrowser mozapp> that hosts the app
-    var frame = createFrame(null, origin, url, name, manifest, manifestURL);
-    var iframe = frame.firstChild;
-    frame.classList.add('inlineActivity');
-    iframe.dataset.frameType = 'inline-activity';
-
-    iframe.setAttribute('expecting-system-message',
-                        'expecting-system-message');
-    maybeSetFrameIsCritical(iframe, origin);
-
-    // Give a name to the frame for differentiating between main frame and
-    // inline frame. With the name we can get frames of the same app using the
-    // window.open method.
-    iframe.name = 'inline';
-    iframe.dataset.start = Date.now();
-
-    // Save the reference
-    inlineActivityFrames.push(frame);
-
-    // Set the size
-    setInlineActivityFrameSize();
-
-    frame.addEventListener('mozbrowserloadend', function activityloaded(e) {
-      e.target.removeEventListener(e.type, activityloaded, true);
-
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent('activityloadtime', true, false, {
-        time: parseInt(Date.now() - iframe.dataset.start),
-        type: 'c', // Activity is always cold booted now.
-        src: iframe.src
-      });
-      iframe.dispatchEvent(evt);
-    }, true);
-
-    iframe.addEventListener('mozbrowseractivitydone',
-      function activityFinished(e) {
-        stopInlineActivity();
-        if (runningApps[displayedApp].activityCaller) {
-          // Display activity callee if there's one bind to current activity.
-          var caller = runningApps[displayedApp].activityCaller;
-          delete caller.activityCallee;
-          delete runningApps[displayedApp].activityCaller;
-          setDisplayedApp(caller.origin);
-        } else if (!inlineActivityFrames.length && !activityCallerOrigin) {
-          setDisplayedApp(activityCallerOrigin);
-          activityCallerOrigin = '';
-        }
-      }, true);
-
-    // Add the iframe to the document
-    windows.appendChild(frame);
-
-    // Open the frame, first, store the reference
-    openFrame = frame;
-
-    // set the frame to visible state
-    if ('setVisible' in iframe)
-      iframe.setVisible(true);
-
-    if ('orientation' in manifest) {
-      frame.dataset.orientation = manifest.orientation;
-      setOrientationForInlineActivity(frame);
-    }
-
-    setFrameBackground(openFrame, function gotBackground() {
-      // Start the transition when this async/sync callback is called.
-      openFrame.classList.add('active');
-      if (inlineActivityFrames.length == 1)
-        activityCallerOrigin = displayedApp;
-      if ('wrapper' in runningApps[displayedApp].frame.dataset) {
-        wrapperFooter.classList.remove('visible');
-        wrapperHeader.classList.remove('visible');
-      }
-    });
-  }
+  window.addEventListener('appclosedbykilling', function onkilled(e) {
+    removeFrame(e.detail.origin);
+  });
 
   function removeFrame(origin) {
     var app = runningApps[origin];
@@ -1069,70 +887,6 @@ var WindowManager = (function() {
 
     delete runningApps[origin];
     numRunningApps--;
-  }
-
-  function removeInlineFrame(frame) {
-    // If frame is transitioning we should remove the reference
-    if (openFrame == frame)
-      setOpenFrame(null);
-
-    // Bug 856692: force the close of the keyboard in closing inline activities
-    dispatchEvent(new CustomEvent('activitywillclose'));
-
-    // If frame is never set visible, we can remove the frame directly
-    // without closing transition
-    if (!frame.classList.contains('active')) {
-      windows.removeChild(frame);
-      return;
-    }
-    // Take keyboard focus away from the closing window
-    frame.firstChild.blur();
-    // Remove the active class and start the closing transition
-    frame.classList.remove('active');
-  }
-
-  function restoreRunningApp() {
-    // Give back focus to the displayed app
-    var app = runningApps[displayedApp];
-    app.setOrientation();
-    if (app && app.iframe) {
-      app.iframe.focus();
-      app.setVisible(true);
-      if ('wrapper' in app.frame.dataset) {
-        wrapperFooter.classList.add('visible');
-      }
-    }
-  }
-
-  // If all is not specified,
-  // remove the top most frame
-  function stopInlineActivity(all) {
-    if (!inlineActivityFrames.length)
-      return;
-
-    if (!all) {
-      var frame = inlineActivityFrames.pop();
-      removeInlineFrame(frame);
-    } else {
-      // stop all activity frames
-      // Remore the inlineActivityFrame reference
-      inlineActivityFrames.forEach(function(frame) {
-        removeInlineFrame(frame);
-      });
-      inlineActivityFrames = [];
-    }
-
-    if (!inlineActivityFrames.length) {
-      screenElement.classList.remove('inline-activity');
-      // if attention screen is fully visible, we shouldn't restore the running
-      // app. It will be done when attention screen is closed.
-      if (!AttentionScreen.isFullyVisible()) {
-        restoreRunningApp();
-      }
-    } else {
-      setOrientationForInlineActivity(
-        inlineActivityFrames[inlineActivityFrames.length - 1]);
-    }
   }
 
   // Watch chrome event that order to close an app
@@ -1209,11 +963,7 @@ var WindowManager = (function() {
       }
     } else {
       if (config.isActivity && config.inline) {
-        // Inline activities behaves more like a dialog,
-        // let's deal them here.
-        startInlineActivity(config.origin, config.url,
-                            config.name, config.manifest, config.manifestURL);
-
+        // ActivityWindowFactory is dealing with this.
         return;
       }
 
@@ -1248,8 +998,7 @@ var WindowManager = (function() {
           // so Cards View will get a correct screenshot of the frame
           if (config.stayBackground) {
             app.resize(false);
-            if ('setVisible' in app.iframe)
-              app.iframe.setVisible(false);
+            app.setVisible(false);
           }
         } else {
           HomescreenLauncher.getHomescreen().ensure();
@@ -1274,25 +1023,6 @@ var WindowManager = (function() {
     }
   };
 
-  // If the application tried to close themselves by calling window.close()
-  // we will handle that here.
-  // XXX: this event is fired twice:
-  // https://bugzilla.mozilla.org/show_bug.cgi?id=814583
-  window.addEventListener('mozbrowserclose', function(e) {
-    if (!'frameType' in e.target.dataset)
-      return;
-
-    switch (e.target.dataset.frameType) {
-      case 'window':
-        kill(e.target.dataset.frameOrigin);
-        break;
-
-      case 'inline-activity':
-        stopInlineActivity(true);
-        break;
-    }
-  });
-
   // Deal with locationchange
   window.addEventListener('mozbrowserlocationchange', function(e) {
     if (!'frameType' in e.target.dataset)
@@ -1307,177 +1037,65 @@ var WindowManager = (function() {
     kill(e.detail.application.origin);
   });
 
-  // When an UI layer is overlapping the current app,
-  // WindowManager should set the visibility of app iframe to false
-  // And reset to true when the layer is gone.
-  // We may need to handle windowclosing, windowopened in the future.
-  var attentionScreenTimer = null;
-
-  var overlayEvents = [
-    'lock',
-    'will-unlock',
-    'attentionscreenshow',
-    'attentionscreenhide',
-    'status-active',
-    'status-inactive',
-    'mozChromeEvent'
-  ];
-
-  function resetDeviceLockedTimer() {
-    if (deviceLockedTimer) {
-      clearTimeout(deviceLockedTimer);
-      deviceLockedTimer = 0;
-    }
-  }
-
-  function overlayEventHandler(evt) {
-    if (attentionScreenTimer && 'mozChromeEvent' != evt.type)
-      clearTimeout(attentionScreenTimer);
-    switch (evt.type) {
-      case 'status-active':
-      case 'attentionscreenhide':
-      case 'will-unlock':
-        if (LockScreen.locked)
-          return;
-
-        windows.setAttribute('aria-hidden', 'false');
-        if (inlineActivityFrames.length) {
-          setVisibilityForInlineActivity(true);
-        } else {
-          runningApps[displayedApp].setVisible(true);
-        }
-        resetDeviceLockedTimer();
-        break;
-      case 'lock':
-        windows.setAttribute('aria-hidden', 'true');
-        // If the audio is active, the app should not set non-visible
-        // otherwise it will be muted.
-        if (!normalAudioChannelActive) {
-          if (inlineActivityFrames.length) {
-            // XXX: With this, some inline activities may close
-            // themselves when visibility is true. but some may not.
-            // See bug 853759 and bug 846850.
-            setVisibilityForInlineActivity(false);
-          } else {
-            runningApps[displayedApp].setVisible(false);
-          }
-        }
-        resetDeviceLockedTimer();
-        break;
-
-      /*
-      * Because in-transition is needed in attention screen,
-      * We set a timer here to deal with visibility change
-      */
-      case 'status-inactive':
-        if (!AttentionScreen.isVisible())
-          return;
-      case 'attentionscreenshow':
-        var detail = evt.detail;
-        if (detail && detail.origin && detail.origin != displayedApp) {
-          attentionScreenTimer = setTimeout(function setVisibility() {
-            if (inlineActivityFrames.length) {
-              setVisibilityForInlineActivity(false);
-            } else {
-              /**
-               * We only retain the screenshot layer
-               * when attention screen drops.
-               * Otherwise we just bring the app to background.
-               */
-              runningApps[displayedApp].setVisible(false, true);
-            }
-          }, 3000);
-
-          // Instantly blur the frame in order to ensure hiding the keyboard
-          var app = runningApps[displayedApp];
-          if (app) {
-            if ('contentWindow' in app.iframe &&
-                app.iframe.contentWindow != null) {
-              // Bug 845661 - Attention screen does not appears when
-              // the url bar input is focused.
-              // Calling app.iframe.blur() on an in-process window
-              // seems to triggers heavy tasks that froze the main
-              // process for a while and seems to expose a gecko
-              // repaint issue.
-              // So since the only in-process frame is the browser app
-              // let's switch it's visibility as soon as possible when
-              // there is an attention screen and delegate the
-              // responsibility to blur the possible focused elements
-              // itself.
-              app.iframe.setVisible(false);
-            } else {
-              app.iframe.blur();
-            }
-          }
-        }
-        break;
-
-      case 'mozChromeEvent':
-        if (evt.detail.type == 'visible-audio-channel-changed') {
-          resetDeviceLockedTimer();
-
-          if (normalAudioChannelActive && evt.detail.channel !== 'normal' &&
-              LockScreen.locked) {
-            deviceLockedTimer = setTimeout(function setVisibility() {
-              runningApps[displayedApp].setVisible(false);
-            }, 3000);
-          }
-
-          normalAudioChannelActive = (evt.detail.channel === 'normal');
-        }
-        break;
-    }
-  }
-
-  overlayEvents.forEach(function overlayEventIterator(event) {
-    window.addEventListener(event, overlayEventHandler);
+  window.addEventListener('hidewindows', function() {
+    windows.setAttribute('aria-hidden', 'true');
   });
 
-  function setVisibilityForInlineActivity(visible) {
-    if (!inlineActivityFrames.length)
-      return;
+  window.addEventListener('showwindows', function() {
+    windows.setAttribute('aria-hidden', 'false');
+  });
 
-    var topFrame = inlineActivityFrames[inlineActivityFrames.length - 1]
-      .firstChild;
-    if ('setVisible' in topFrame) {
-      topFrame.setVisible(visible);
-    }
-
-    // Restore/give away focus on visiblity change
-    // so that the app can take back its focus
-    if (visible) {
-      topFrame.focus();
+  window.addEventListener('hidewindow', function() {
+    if (displayedApp !== HomescreenLauncher.origin) {
+      runningApps[displayedApp].setVisible(false);
     } else {
-      topFrame.blur();
+      HomescreenLauncher.getHomescreen().setVisible(false);
     }
-  }
+  });
 
-  function setVisibilityForCurrentApp(visible) {
+  window.addEventListener('showwindow', function() {
+    // XXX: Refine this in AttentionWindow
+    if (AttentionScreen.isFullyVisible())
+      return;
+    if (displayedApp !== HomescreenLauncher.origin) {
+      runningApps[displayedApp].setVisible(true);
+    } else {
+      HomescreenLauncher.getHomescreen().setVisible(true);
+    }
+  });
+
+  window.addEventListener('overlaystart', function() {
+    // Instantly blur the frame in order to ensure hiding the keyboard
     var app = runningApps[displayedApp];
-    if (!app)
-      return;
-    if ('setVisible' in app.iframe)
-      app.iframe.setVisible(visible);
-
-    // Restore/give away focus on visiblity change
-    // so that the app can take back its focus
-    if (visible)
-      app.iframe.focus();
-    else
-      app.iframe.blur();
-  }
-
-  function handleAppCrash(origin, manifestURL) {
-    if (origin && manifestURL) {
-      // When inline activity frame crashes,
-      // query the localized name from manifest
-      var app = Applications.getByManifestURL(manifestURL);
-      CrashReporter.setAppName(getAppName(origin, app.manifest));
-    } else {
-      var app = runningApps[displayedApp];
-      CrashReporter.setAppName(app.name);
+    if (app) {
+      if ('contentWindow' in app.iframe &&
+          app.iframe.contentWindow != null) {
+        // Bug 845661 - Attention screen does not appears when
+        // the url bar input is focused.
+        // Calling app.iframe.blur() on an in-process window
+        // seems to triggers heavy tasks that froze the main
+        // process for a while and seems to expose a gecko
+        // repaint issue.
+        // So since the only in-process frame is the browser app
+        // let's switch it's visibility as soon as possible when
+        // there is an attention screen and delegate the
+        // responsibility to blur the possible focused elements
+        // itself.
+        app.setVisible(false);
+      } else {
+        app.iframe.blur();
+      }
     }
-  }
+  });
+
+  /**
+   * We only retain the screenshot layer
+   * when attention screen drops.
+   * Otherwise we just bring the app to background.
+   */
+  window.addEventListener('hidewindow', function() {
+    runningApps[displayedApp].setVisible(false, true);
+  });
 
   function getAppName(origin, manifest) {
     if (!manifest)
@@ -1489,40 +1107,6 @@ var WindowManager = (function() {
     }
     return new ManifestHelper(manifest).name;
   }
-
-  // Deal with crashed apps
-  window.addEventListener('mozbrowsererror', function(e) {
-    if (!'frameType' in e.target.dataset)
-      return;
-
-    var origin = e.target.dataset.frameOrigin;
-    var manifestURL = e.target.getAttribute('mozapp');
-
-    if (e.target.dataset.frameType == 'inline-activity') {
-      stopInlineActivity(true);
-      handleAppCrash(origin, manifestURL);
-      return;
-    }
-
-    if (e.target.dataset.frameType !== 'window')
-      return;
-
-    /*
-      detail.type = error (Server Not Found case)
-      is handled in Modal Dialog
-    */
-    if (e.detail.type !== 'fatal')
-      return;
-
-    // If the crashing app is currently displayed, we will present
-    // the user with a banner notification.
-    if (displayedApp == origin)
-      handleAppCrash();
-
-    // Actually remove the frame, and trigger the closing transition
-    // if the app is currently displaying
-    kill(origin);
-  });
 
   window.addEventListener('launchwrapper', function(evt) {
     var config = evt.detail;
@@ -1583,48 +1167,7 @@ var WindowManager = (function() {
     }
 
     var app = runningApps[origin];
-    // As we can't immediatly remove runningApps entry,
-    // we flag it as being killed in order to avoid trying to remove it twice.
-    // (Check required because of bug 814583)
-    if (app.killed) {
-      return;
-    }
-    app.killed = true;
-
-    // Remove callee <-> caller reference before we remove the window.
-    if ('activityCaller' in runningApps[origin] &&
-        runningApps[origin].activityCaller) {
-      delete runningApps[origin].activityCaller.activityCallee;
-      delete runningApps[origin].activityCaller;
-    }
-
-    if ('activityCallee' in runningApps[origin] &&
-        runningApps[origin].activityCallee) {
-      delete runningApps[origin].activityCallee.activityCaller;
-      delete runningApps[origin].activityCallee;
-    }
-
-    // If the app is the currently displayed app, switch to the homescreen
-    if (origin === displayedApp) {
-      if (origin !== HomescreenLauncher.origin) {
-        setDisplayedApp(HomescreenLauncher.origin, function() {
-          removeFrame(origin);
-        });
-      }
-    } else {
-      removeFrame(origin);
-    }
-
-    // Send a synthentic 'appterminated' event.
-    // Let other system app module know an app is
-    // being killed, removed or crashed.
-    var evt = document.createEvent('CustomEvent');
-    var manifestURL = app.manifestURL;
-    evt.initCustomEvent('appterminated', true, false, {
-      origin: origin,
-      manifestURL: manifestURL
-    });
-    window.dispatchEvent(evt);
+    app.kill();
   }
 
   // Reload the frame of the running app
@@ -1676,11 +1219,10 @@ var WindowManager = (function() {
       // Because we will be asked by a 'activity-done' event from gecko
       // to relaunch to activity caller, and this is the only way to
       // determine if we are going to homescreen or the original app.
-      activityCallerOrigin = '';
-
       setDisplayedApp(HomescreenLauncher.origin);
     } else {
-      stopInlineActivity(true);
+      // dispatch event to close activity.
+
       HomescreenLauncher.getHomescreen().ensure(true);
     }
   });
@@ -1719,6 +1261,13 @@ var WindowManager = (function() {
       if (!app)
         return;
       app.saveScreenshot(screenshot);
+    },
+    getCurrentActiveAppWindow: function() {
+      if (displayedApp) {
+        return runningApps[displayedApp];
+      } else {
+        return null;
+      }
     }
   };
 }());

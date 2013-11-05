@@ -48,15 +48,15 @@
           "pattern":"[\\w\\s+#*().-]{0,50}"
         }
        },
-      "disposition": "window"
+      "disposition": "inline",
+      "returnValue": true
     },
     "share": {
       "filters": {
         "type": ["image/*", "audio/*", "video/*"],
         "number": 1
        },
-      "disposition": "window",
-      "returnValue": true
+      "disposition": "window"
     }
   },
   "messages": [
