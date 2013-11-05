@@ -12,6 +12,7 @@ class TestEverythingMeSearchPanel(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        self.apps.set_permission('Homescreen', 'geolocation', 'deny')
 
     def test_launch_packaged_app_from_search_panel(self):
         """Launch packaged app from homescreen search panel.
