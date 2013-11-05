@@ -3924,7 +3924,7 @@ suite('thread_ui.js >', function() {
 
       test('when the scroll reach the bottom', function(done) {
         container.scrollTop = 0;
-        ThreadUI.onMessageReceived(testMessage);
+        ThreadUI.onMessage(testMessage);
         container.addEventListener('scroll', function onscroll() {
           container.removeEventListener('scroll', onscroll);
           assert.isTrue(notice.classList.contains('hide'));

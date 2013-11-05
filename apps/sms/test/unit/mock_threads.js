@@ -11,5 +11,11 @@ var MockThreads = {
 
   has: function() {
     return false;
+  },
+  set: function() {
+
+  },
+  get: function() {
+    return {};
   }
 };
