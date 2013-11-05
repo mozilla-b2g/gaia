@@ -500,4 +500,81 @@ suite('KeyboardManager', function() {
       }, 200);
     });
   });
+
+  suite('Focus and Blur', function() {
+    var _show, _hide, _setKeyboard, _showIME;
+    setup(function() {
+      _show = KeyboardManager.showKeyboard;
+      _hide = KeyboardManager.hideKeyboard;
+      _setKeyboard = KeyboardManager.setKeyboardToShow;
+      _showIME = KeyboardManager.showIMESwitcher;
+
+      KeyboardManager.showKeyboard = sinon.stub();
+      KeyboardManager.hideKeyboard = sinon.stub();
+      KeyboardManager.setKeyboardToShow = sinon.stub();
+      KeyboardManager.showIMESwitcher = sinon.stub();
+      KeyboardManager.keyboardLayouts = {
+        text: {
+          activeLayout: {}
+        }
+      };
+    });
+
+    teardown(function() {
+      KeyboardManager.showKeyboard = _show;
+      KeyboardManager.hideKeyboard = _hide;
+      KeyboardManager.setKeyboardToShow = _setKeyboard;
+      KeyboardManager.showIMESwitcher = _showIME;
+    });
+
+    test('Blur should hide', function(next) {
+      KeyboardManager.inputFocusChange({
+        detail: {
+          inputType: 'blur'
+        }
+      });
+
+      setTimeout(function() {
+        sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
+        sinon.assert.callCount(KeyboardManager.showKeyboard, 0);
+        next();
+      }, 110);
+    });
+
+    test('Focus should show', function(next) {
+      KeyboardManager.inputFocusChange({
+        detail: {
+          inputType: 'text'
+        }
+      });
+
+      setTimeout(function() {
+        sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
+        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
+        next();
+      }, 110);
+    });
+
+    test('Focus followed by blur should not hide', function(next) {
+      KeyboardManager.inputFocusChange({
+        detail: {
+          inputType: 'blur'
+        }
+      });
+
+      setTimeout(function() {
+        KeyboardManager.inputFocusChange({
+          detail: {
+            inputType: 'text'
+          }
+        });
+      }, 10);
+
+      setTimeout(function() {
+        sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
+        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
+        next();
+      }, 110);
+    });
+  });
 });
