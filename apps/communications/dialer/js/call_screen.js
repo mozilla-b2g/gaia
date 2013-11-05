@@ -4,6 +4,7 @@ var CallScreen = {
   _ticker: null,
   _screenWakeLock: null,
   _typedNumber: '',
+  callEndPromptTime: 2000,
 
   body: document.body,
   screen: document.getElementById('call-screen'),
@@ -44,7 +45,8 @@ var CallScreen = {
     var self = this;
     self.statusMessage.querySelector('p').textContent = text;
     self.statusMessage.classList.add('visible');
-    self.statusMessage.addEventListener('transitionend', function tend() {
+    self.statusMessage.addEventListener('transitionend', function tend(evt) {
+      evt.stopPropagation();
       self.statusMessage.removeEventListener('transitionend', tend);
       setTimeout(function hide() {
         self.statusMessage.classList.remove('visible');
@@ -52,7 +54,9 @@ var CallScreen = {
     });
   },
 
-  set singleLine(enabled) {
+  updateSingleLine: function cs_updateSingleLine() {
+    var enabled =
+      (this.calls.querySelectorAll('section:not([hidden])').length <= 1);
     this.calls.classList.toggle('single-line', enabled);
     this.calls.classList.toggle('big-duration', enabled);
   },
@@ -138,7 +142,10 @@ var CallScreen = {
     }
 
     /* We need CSS transitions for the status bar state and the regular state */
-    screen.addEventListener('transitionend', function trWait() {
+    screen.addEventListener('transitionend', function trWait(evt) {
+      if (evt.target != screen) {
+        return;
+      }
       screen.removeEventListener('transitionend', trWait);
       callback();
     });
@@ -146,6 +153,13 @@ var CallScreen = {
 
   insertCall: function cs_insertCall(node) {
     this.calls.appendChild(node);
+    this.updateSingleLine();
+  },
+
+  removeCall: function cs_removeCall(node) {
+    // The node can be either inside groupCallsList or calls.
+    node.parentNode.removeChild(node);
+    this.updateSingleLine();
   },
 
   moveToGroup: function cs_moveToGroup(node) {
@@ -341,5 +355,17 @@ var CallScreen = {
     durationNode.classList.remove('isTimer');
     clearInterval(durationNode.dataset.tickerId);
     delete durationNode.dataset.tickerId;
+  },
+
+  // XXX: This is a workaround before bug 936982 is fixed.
+  // the last call quitting conference changes its status with one additional
+  // connected for now, namely disconnecting-->**connected**-->disconnected
+  // so we just hide disconnecting calls to prevent it from appearing on call
+  // screen again.
+  setCallsEndedInGroup: function cs_markEndOnCallsInGroup() {
+    var callElems = this.groupCallsList.getElementsByTagName('SECTION');
+    for (var i = 0; i < callElems.length; i++) {
+      callElems[i].classList.add('groupended');
+    }
   }
 };

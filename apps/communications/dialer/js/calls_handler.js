@@ -9,9 +9,6 @@ var CallsHandler = (function callsHandler() {
 
   var handledCalls = [];
 
-  // Represents the number of visible lines for the user
-  var openLines = 0;
-
   var toneInterval = null; // Timer used to play the waiting tone
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
@@ -146,17 +143,8 @@ var CallsHandler = (function callsHandler() {
 
     if (handledCalls.length === 0) {
       exitCallScreen(false);
-    } else {
-      // Letting the CallScreen know how to display the call duration
-      // (depending on how many calls/conference group are on)
-      openLines = telephony.calls.length +
-        (telephony.conferenceGroup.calls.length ? 1 : 0);
-
-      CallScreen.singleLine = (openLines == 1);
-
-      if (!displayed && !closing) {
-        toggleScreen();
-      }
+    } else if (!displayed && !closing) {
+      toggleScreen();
     }
   }
 
@@ -230,8 +218,8 @@ var CallsHandler = (function callsHandler() {
     handledCalls.splice(index, 1);
 
     if (handledCalls.length > 0) {
-      // Only hiding the call if we have another one to display
-      removedCall.hide();
+      // Only hiding the incoming bar if we have another one to display.
+      // Let handledCall catches disconnect event itself.
       CallScreen.hideIncoming();
 
       var remainingCall = handledCalls[0];
@@ -573,6 +561,9 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
+    var openLines = telephony.calls.length +
+      (telephony.conferenceGroup.calls.length ? 1 : 0);
+
     if (openLines < 2 && !cdmaCallWaiting()) {
       // Putting a call on Hold when there are no other
       // calls in progress has been disabled until a less
@@ -633,6 +624,7 @@ var CallsHandler = (function callsHandler() {
 
   function endConferenceCall() {
     var callsToEnd = telephony.conferenceGroup.calls;
+    CallScreen.setCallsEndedInGroup();
     for (var i = (callsToEnd.length - 1); i >= 0; i--) {
       var call = callsToEnd[i];
       call.hangUp();

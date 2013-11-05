@@ -10,8 +10,8 @@ requireApp('communications/dialer/test/unit/mock_contacts.js');
 requireApp('communications/dialer/test/unit/mock_tone_player.js');
 requireApp('communications/dialer/test/unit/mock_swiper.js');
 requireApp('communications/dialer/test/unit/mock_bluetooth_helper.js');
-requireApp('communications/shared/test/unit/mocks/mock_settings_listener.js');
-requireApp('sms/shared/test/unit/mocks/mock_settings_url.js');
+require('/shared/test/unit/mocks/mock_settings_listener.js');
+require('/shared/test/unit/mocks/mock_settings_url.js');
 
 // The CallsHandler binds stuff when evaluated so we load it
 // after the mocks and we don't want it to show up as a leak.
@@ -89,11 +89,6 @@ suite('calls handler', function() {
         assert.isTrue(toggleSpy.calledOnce);
       });
 
-      test('should update the CallScreen\'s duration style', function() {
-        MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mSingleLine, true);
-      });
-
       test('should unmute', function() {
         var unmuteSpy = this.sinon.spy(MockCallScreen, 'unmute');
         MockMozTelephony.mTriggerCallsChanged();
@@ -161,11 +156,6 @@ suite('calls handler', function() {
         var playSpy = this.sinon.spy(MockTonePlayer, 'playSequence');
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(playSpy.calledOnce);
-      });
-
-      test('should update the CallScreen\'s duration style', function() {
-        MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mSingleLine, false);
       });
     });
 
@@ -282,20 +272,10 @@ suite('calls handler', function() {
         MockMozTelephony.calls = [firstCall];
       });
 
-      test('should hide the call', function() {
-        MockMozTelephony.mTriggerCallsChanged();
-        assert.isTrue(hideSpy.calledOnce);
-      });
-
       test('should hide the call waiting UI', function() {
         var hideSpy = this.sinon.spy(MockCallScreen, 'hideIncoming');
         MockMozTelephony.mTriggerCallsChanged();
         assert.isTrue(hideSpy.calledOnce);
-      });
-
-      test('should update the CallScreen\'s duration style', function() {
-        MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mSingleLine, true);
       });
     });
 
@@ -324,11 +304,6 @@ suite('calls handler', function() {
 
         assert.isTrue(firstHideSpy.notCalled);
         assert.isTrue(secondHideSpy.notCalled);
-      });
-
-      test('should update the CallScreen\'s duration style', function() {
-        MockMozTelephony.mTriggerCallsChanged();
-        assert.equal(MockCallScreen.mSingleLine, true);
       });
     });
 
@@ -976,13 +951,6 @@ suite('calls handler', function() {
         telephonyAddCall.call(this, firstConfCall, {trigger: true});
         secondConfCall = new MockCall('432423555', 'incoming');
         telephonyAddCall.call(this, secondConfCall, {trigger: true});
-      });
-
-      test('should check and set singleLine when exiting conference call mode',
-      function() {
-        MockMozTelephony.calls = [firstConfCall];
-        CallsHandler.checkCalls();
-        assert.isTrue(MockCallScreen.mSingleLine);
       });
     });
 
