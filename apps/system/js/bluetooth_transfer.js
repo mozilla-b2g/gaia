@@ -241,7 +241,7 @@ var BluetoothTransfer = {
         // skip down to the code below
         break;
       case 'unavailable':
-        callback(false, _('sdcard-not-exist'));
+        callback(false, _('sdcard-not-exist2'));
         return;
       case 'shared':
         callback(false, _('sdcard-in-use'));
