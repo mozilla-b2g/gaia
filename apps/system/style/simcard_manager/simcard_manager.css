@@ -1,0 +1,32 @@
+#simcard-manager-widget {
+  position: relative;
+  width: 100%;
+  height: 5rem;
+  padding: 0;
+  background: #606060;
+  clear: both;
+}
+
+#simcard-manager-widget .icon {
+  float: left;
+  width: 3rem;
+  height: 3rem;
+  margin: 1rem;
+  border-radius: 2rem;
+  background: #aaaaaa;
+}
+
+#simcard-manager-widget p {
+  margin: 0;
+  line-height: 1;
+}
+
+#simcard-manager-widget .title {
+  font-size: 1.6rem; 
+  padding-top: 1rem;
+}
+
+#simcard-manager-widget .description {
+  font-size: 1rem;
+  padding-top: 0.5rem;
+}
