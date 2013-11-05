@@ -59,9 +59,20 @@ class Contacts(Base):
         from gaiatest.apps.contacts.regions.settings_form import SettingsForm
         return SettingsForm(self.marionette)
 
+    def tap_select_all(self):
+        self.marionette.find_element(*self._select_all_button_locator).tap()
+
+    def tap_export(self):
+        self.marionette.find_element(*self._export_button_locator).tap()
+
     @property
     def is_favorites_list_displayed(self):
         return self.marionette.find_element(*self._favorites_list_locator).is_displayed()
+
+    @property
+    def status_message(self):
+        self.wait_for_element_displayed(*self._status_message_locator)
+        return self.marionette.find_element(*self._status_message_locator).text
 
     class Contact(PageRegion):
 
