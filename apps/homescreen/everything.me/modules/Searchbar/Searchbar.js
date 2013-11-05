@@ -2,7 +2,7 @@
 
 Evme.Searchbar = new function Evme_Searchbar() {
   var NAME = 'Searchbar', self = this,
-      el = null, elForm = null, elDefaultText = null,
+      el = null, elForm = null,
       value = '', isFocused = false,
       timeoutSearchOnBackspace = null, timeoutPause = null, timeoutIdle = null,
       intervalPolling = null,
@@ -22,7 +22,6 @@ Evme.Searchbar = new function Evme_Searchbar() {
     !options && (options = {});
 
     el = options.el;
-    elDefaultText = options.elDefaultText;
     elForm = options.elForm;
 
     if (typeof options.setFocusOnClear === 'boolean') {

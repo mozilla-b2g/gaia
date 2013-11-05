@@ -73,7 +73,6 @@ void function() {
 
         elTitle.innerHTML = '<input type="text" ' +
                                     'autocorrect="off" ' +
-                                    'autocapitalize="off" ' +
                                     'x-inputmode="verbatim" />' +
                             '<b class="done"></b>';
 
