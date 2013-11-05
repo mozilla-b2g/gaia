@@ -422,40 +422,6 @@ function setListenState(boolState) {
 }
 
 /**
- * There appears to be a bug in WebIDL where Uint8Array parameters are
- * converted to a JS object. While this bug persists, this helper function
- * converts the JS object back to a Uint8Array.
- */
-function convertNDEFRecords(records) {
-  var convertedRecords = new Array();
-  for (var i = 0; i < records.length; i++) {
-    var rec = records[i];
-    var convertedRecord = {};
-    convertedRecord.tnf = rec.tnf;
-    convertedRecord.type = convertArray(rec.type);
-    convertedRecord.id = convertArray(rec.id);
-    convertedRecord.payload = convertArray(rec.payload);
-    convertedRecords.push(convertedRecord);
-  }
-  return convertedRecords;
-}
-
-function convertArray(obj) {
-  if (obj == null) {
-    return null;
-  }
-  var size = 0, key;
-  for (key in obj) {
-    if (obj.hasOwnProperty(key)) size++;
-  }
-  var a = new Uint8Array(size);
-  for (var i = 0; i < size; i++) {
-    a[i] = obj[i];
-  }
-  return a;
-}
-
-/**
  * NfcActivityHandler is the entry point of all discovery messages.
  */
 function NfcActivityHandler(activity) {
@@ -463,9 +429,6 @@ function NfcActivityHandler(activity) {
 
   var activityName = activity.source.name;
   var data = activity.source.data;
-  if (data.records) {
-    data.records = convertNDEFRecords(data.records);
-  }
   nfcUI.setActivityData(data);
 
   debug('XX Received Activity: name: ' + activityName);
