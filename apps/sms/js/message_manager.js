@@ -2,7 +2,8 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global ThreadListUI, ThreadUI, Threads, SMIL, MozSmsFilter, Compose,
-         Utils, LinkActionHandler, Contacts, Attachment */
+         Utils, LinkActionHandler, Contacts, Attachment, GroupView,
+         ReportView */
 /*exported MessageManager */
 
 'use strict';
@@ -234,8 +235,9 @@ var MessageManager = {
     // when changing UI panels
     document.activeElement.blur();
 
-    // Group Participants should never persist any hash changes
-    ThreadUI.groupView.reset();
+    // Information view pages should never persist any hash changes
+    GroupView.reset();
+    ReportView.reset();
 
     // Leave the edit mode before transitioning to another panel. This is safe
     // to do even if we're not in edit mode as it's essentially a no-op then.
@@ -243,7 +245,8 @@ var MessageManager = {
     ThreadListUI.cancelEdit();
 
     var self = this;
-    switch (window.location.hash) {
+    // TODO: We might need to refactor the view hash controlling in bug 881469.
+    switch (window.location.hash.split('=')[0]) {
       case '#new':
         ThreadUI.inThread = false;
         MessageManager.launchComposer(function() {
@@ -277,7 +280,10 @@ var MessageManager = {
         }
         break;
       case '#group-view':
-        ThreadUI.groupView();
+        GroupView.show();
+        break;
+      case '#report-view':
+        ReportView.show();
         break;
       default:
         var threadId = Threads.currentId;

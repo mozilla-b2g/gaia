@@ -1018,3 +1018,12 @@ section[role="region"].new .article-list[data-type="list"]  li {
   margin: 1.5rem 1.5rem 0 0;
   float: right;
 }
+
+/* Elements related to information view */
+section[role="region"].information #messages-options-icon,
+section[role="region"].information #messages-attach-button,
+section[role="region"].information #messages-subheader,
+section[role="region"].information #messages-container,
+section[role="region"].information #messages-compose-form {
+  display: none;
+}

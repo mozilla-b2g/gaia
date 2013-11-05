@@ -1,0 +1,63 @@
+/* Message information page for report details*/
+.report-view {
+  background-color: #fff;
+}
+
+.report-view > div {
+  padding: 1rem;
+  font-size: 1.8rem;
+}
+
+.report-view > div:first-child {
+  padding-bottom: 0;
+}
+
+.article-list[data-type="list"].report-view > ul.contact-list{
+  /* Showing 4 complete contacts and part of the contact name if list
+     contains more than 4 contacts */
+  max-height: 27rem;
+  margin: 1rem 0;
+  position: static;
+}
+
+.report-view > ul.contact-list > li,
+.report-view > ul.contact-list a {
+  min-height: 6rem;
+  height: auto;
+}
+
+.report-view > ul.contact-list > li:first-child {
+  border-top: solid 0.1rem #e7e7e7;
+}
+
+.report-view > ul.contact-list > li:last-child {
+  border-bottom: solid 0.1rem #e7e7e7;
+}
+
+.report-view .suggestion div > p {
+  padding: 0px;
+  color: #5b5b5b;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  white-space: normal;
+}
+
+.report-view span ~ aside {
+  background-size: 2.2rem;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.report-view span[data-type="received"] ~ aside,
+.report-view span[data-type="sent"] ~ aside {
+  background: url('images/icons/deliveredtick.png') no-repeat center center;
+}
+
+.report-view span[data-type="error"] ~ aside {
+  background: url('images/icons/exclamation.png') no-repeat center center;
+}
+
+.report-view span[data-type="not-downloaded"] ~ aside {
+  background: url('images/icons/download.png') no-repeat center center;
+  opacity: 0.5;
+}

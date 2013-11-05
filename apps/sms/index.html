@@ -25,6 +25,7 @@
     <link rel="stylesheet" type="text/css" href="style/common.css">
     <link rel="stylesheet" type="text/css" href="style/sms.css">
     <link rel="stylesheet" type="text/css" href="style/attachment.css">
+    <link rel="stylesheet" type="text/css" href="style/report_view.css">
     <!-- Localization -->
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="shared/locales/date.ini">
@@ -167,8 +168,24 @@
         </div>
         <article id="messages-container" class="view-body article-list" data-type="list">
         </article>
-        <article id="messages-participants" class="view-body article-list hide" data-type="list">
-          <ul id="messages-participants-list" class="contact-list"></ul>
+        <article id="information-participants" class="view-body article-list hide" data-type="list">
+          <ul class="contact-list"></ul>
+        </article>
+        <article id="information-report" class="view-body article-list report-view hide" data-type="list">
+          <div class="description">
+            <p class="type"></p>
+            <p class="subject"></p>
+            <p class="datetime"></p>
+          </div>
+          <div>
+            <span class="status"></span>
+            <aside></aside>
+          </div>
+          <ul class="contact-list"></ul>
+          <div class="size-block">
+            <span data-l10n-id="message-size-was"></span>
+            <span class="size"></span>
+          </div>
         </article>
         <form role="search" id="messages-compose-form" class="bottom messages-compose-form" data-message-type="sms">
           <button id="messages-send-button" disabled data-l10n-id="send" type="submit">Send</button>
@@ -278,6 +295,19 @@
       <a class="suggestion" data-number="${number}" data-source="manual" data-name="${number}">
         <p class="name">${number}</p>
       </a>
+      -->
+    </div>
+
+    <div id="information-report-tmpl" class="hide">
+      <!--
+      <p class="${delivery}">
+        <span data-l10n-id="message-delivered"></span>
+        <span data-l10n-id="${deliveryL10n}">${deliveryDateL10n}</span>
+      </p>
+      <p class="${read}">
+        <span data-l10n-id="message-read"></span>
+        <span data-l10n-id="${readL10n}">${readDateL10n}</span>
+      </p>
       -->
     </div>
 
