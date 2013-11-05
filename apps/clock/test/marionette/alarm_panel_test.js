@@ -183,9 +183,7 @@ marionette('Alarm Panel', function() {
         alarm.toggleAlarm(0);
 
         assert(alarm.isEnabled(0), 'Alarm is re-enabled after toggling');
-        client.waitFor(function() {
-          return alarm.countdownBannerDisplayed;
-        });
+        alarm.waitForBannerHidden();
       });
 
       test('deletion', function() {
