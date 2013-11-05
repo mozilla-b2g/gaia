@@ -501,32 +501,6 @@ suite('system/Statusbar', function() {
       mockTel.mTriggerEvent(evt);
       assert.equal(mockTel.mCountEventListener('callschanged', StatusBar), 1);
     });
-
-    test('EVDO connection, show data call signal strength', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 0,
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
-      MockNavigatorMozMobileConnection.data = {
-        connected: true,
-        relSignalStrength: 80,
-        type: 'evdo',
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
-
-      IccHelper.mProps['cardState'] = 'ready';
-      IccHelper.mProps['iccInfo'] = {};
-
-      StatusBar.update.signal.call(StatusBar);
-      assert.equal(dataset.level, 4);
-    });
   }),
 
   suite('data connection', function() {
