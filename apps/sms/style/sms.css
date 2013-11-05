@@ -918,18 +918,6 @@ generateHeightRule() (in ThreadUI/thread_ui.js) will create:
   background: white;
 }
 
-ul.contact-prompt {
-  position: relative;
-  z-index: 5;
-  overflow-y: auto;
-  overflow-x: hidden;
-  max-height: calc(100% - 8rem);
-  text-align: left;
-  color: white;
-  font-weight: lighter;
-  line-height: normal;
-}
-
 body[role="application"] form[role="dialog"][data-type="action"] > section:first-child{
   height: auto;
   border-bottom: 0.1rem solid #616262;
@@ -937,14 +925,48 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
   padding-left: 2rem 2.5rem 0 2.5rem;
 }
 
-ul.contact-prompt .number{
-  font-size: 1.5rem;
-  margin-top: 0.5rem;
+/* building blocks overload
+ * TODO load building-blocks CSS before sms.css so that we don't need !important
+ * Bug XXX
+ */
+form[role="dialog"][data-type="action"] > header {
+  height: auto !important;
+  min-height: 5rem !important;
 }
 
-ul.contact-prompt .name{
-  font-size: 2.3rem;
+.contact-header {
+  /* bottom padding is .6rem because we need .1rem more for the 
+   * nice shadow line at the header bottom, defined as a :after element */
+  padding: .5rem 0 .6rem;
+}
+
+.contact-header .name {
   line-height: 2.5rem;
+  padding: 1.5rem 0 1rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  font-size: 2.3rem;
+}
+
+.contact-header .details {
+  line-height: 1.5rem;
+  padding: 0 0 .5rem;
+  margin: 0;
+  overflow: hidden;
+
+  font-size: 1.5rem;
+}
+
+.contact-header img {
+  display: block;
+  width: 7rem;
+  height: 7rem;
+}
+
+.contact-header aside.pack-end {
+  float: right;
 }
 
 body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{

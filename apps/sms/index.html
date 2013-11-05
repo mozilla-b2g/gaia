@@ -229,25 +229,45 @@
       -  Templates
       -->
 
-    <div id="messages-contact-tmpl" class="hide">
+    <div id="contact-suggestion-tmpl" class="hide">
       <!--
-      <a class="suggestion"
-        data-number="${number}" data-source="contacts" data-name="${name}"
-        data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
-        ${photoHTML}
-        <p class="name">${nameHTML}</p>
-        <p class="number">
-          <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${numberHTML}
-        </p>
-      </a>
+      <li>
+        <a class="suggestion"
+          data-number="${number}" data-source="contacts" data-name="${name}"
+          data-type="${type}" data-separator="${separator}" data-carrier="${carrier}">
+          ${photoHTML}
+          <p class="name">${nameHTML}</p>
+          <p class="number">
+            <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${numberHTML}
+          </p>
+        </a>
+      </li>
       -->
     </div>
 
-    <div id="messages-contact-photo-tmpl" class="hide">
+    <div id="contact-prompt-tmpl" class="hide">
+      <!--
+      <div class="contact-header">
+        ${photoHTML}
+        <p class="name">${name}</p>
+        <p class="details">
+          <span data-l10n-id="${type}">${type}</span>${separator}${carrier}${number}
+        </p>
+      </div>
+      -->
+    </div>
+
+    <div id="contact-photo-tmpl" class="hide">
       <!--
       <aside class="pack-end">
-        <img src="${photoURL}">
+        <img src="${photoURL}" alt="">
       </aside>
+      -->
+    </div>
+
+    <div id="contact-highlight-tmpl" class="hide">
+      <!--
+      <span class="highlight">${str}</span>
       -->
     </div>
 
@@ -267,12 +287,6 @@
             data-l10n-date="${messageL10nDate}"
             data-l10n-date-format="${messageL10nDateFormat}"></span>
       <form><button class="download" data-l10n-id="${downloadL10nId}"></button></form>
-      -->
-    </div>
-
-    <div id="messages-highlight-tmpl" class="hide">
-      <!--
-      <span class="highlight">${str}</span>
       -->
     </div>
 
