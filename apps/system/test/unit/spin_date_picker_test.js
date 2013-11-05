@@ -28,7 +28,8 @@ suite('value selector/spin date picker', function() {
     // mockup element
     function mock_obj() {};
     mock_obj.prototype.querySelector = function() {
-      return document.createElement('div');
+      return document.createElement('div').
+        appendChild(document.createElement('div'));
     };
 
     stubById = this.sinon.stub(document, 'getElementById')
