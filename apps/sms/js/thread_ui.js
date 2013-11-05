@@ -2321,7 +2321,9 @@ var ThreadUI = global.ThreadUI = {
         params: [email]
       });
     } else {
-      header = number;
+      if (!isContact) {
+        header = number;
+      }
 
       items.push({
         l10nId: 'call',
