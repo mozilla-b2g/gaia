@@ -90,6 +90,10 @@ class GaiaApps(object):
                        name=result.get('name'),
                        origin=result.get('origin'))
 
+    def switch_to_displayed_app(self):
+        self.marionette.switch_to_default_content()
+        self.marionette.switch_to_frame(self.displayed_app.frame)
+
     def is_app_installed(self, app_name):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
