@@ -234,6 +234,16 @@ var CpScreenHelper = (function() {
     var parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
     apns = parsedProvisioningDoc.getApns();
 
+    // The provisioning document might not have valid APNs (other ones that
+    // those ones in APPLICATION nodes for the Browsing Enabler and AC for the
+    // Multimedia Messaging System Enabler). In this case we must not continue.
+    if (apns.length === 0) {
+      message = finishConfirmDialog.querySelector('strong');
+      message.textContent = _('cp-finish-confirm-dialog-message-no-apns');
+      finishConfirmDialog.hidden = false;
+      return;
+    }
+
     var names = [];
     var i;
 
