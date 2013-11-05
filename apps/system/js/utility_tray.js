@@ -135,14 +135,11 @@ var UtilityTray = {
   },
 
   onTouchEnd: function ut_onTouchEnd(touch) {
-    if (LockScreen.locked) {
-      this.hide(true);
-    } else {
-      var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
-      var shouldOpen = significant ? !this.shown : this.shown;
+    var significant = (Math.abs(this.lastDelta) > (this.screenHeight / 5));
+    var shouldOpen = significant ? !this.shown : this.shown;
 
-      shouldOpen ? this.show() : this.hide();
-    }
+    shouldOpen ? this.show() : this.hide();
+
     this.startY = undefined;
     this.lastDelta = undefined;
     this.screenHeight = undefined;
