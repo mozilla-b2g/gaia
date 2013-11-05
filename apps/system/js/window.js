@@ -49,6 +49,10 @@
 
     this.publish('created');
 
+    if (DEBUG) {
+      AppWindow[this.instanceID] = this;
+    }
+
     return this;
   };
 
@@ -194,6 +198,10 @@
     }
     this.killed = true;
 
+    if (DEBUG) {
+      AppWindow[this.instanceID] = null;
+    }
+
     // Clear observers
     if (this._observers && this._observers.length > 0) {
       this._observer.forEach(function iterator(observer) {
@@ -297,6 +305,13 @@
     if (window.AppAuthenticationDialog) {
       //new AppAuthenticationDialog(this);
     }
+
+    if (DEBUG) {
+      this.once('transition', 'infinite', function() {
+        this.debug('closedddddd');
+      }.bind(this));
+    }
+
     this.iframe.addEventListener('mozbrowservisibilitychange',
       function visibilitychange(e) {
         var type = e.detail.visible ? 'foreground' : 'background';
@@ -333,34 +348,6 @@
 
         this.kill();
       }.bind(this));
-
-    // XXX: Refine in bug 907013
-    this.element.addEventListener('appopen', function onopen() {
-      this.debug('[transition state]: ',
-        this._transitionState, '->', 'opened');
-      this._transitionState = 'opened';
-    }.bind(this));
-
-    // XXX: Refine in bug 907013
-    this.element.addEventListener('appwillopen', function onopening() {
-      this.debug('[transition state]: ',
-        this._transitionState, '->', 'opening');
-      this._transitionState = 'opening';
-    }.bind(this));
-
-    // XXX: Refine in bug 907013
-    this.element.addEventListener('appclose', function onclose() {
-      this.debug('[transition state]: ',
-        this._transitionState, '->', 'closed');
-      this._transitionState = 'closed';
-    }.bind(this));
-
-    // XXX: Refine in bug 907013
-    this.element.addEventListener('appwillclose', function onclosing() {
-      this.debug('[transition state]: ',
-        this._transitionState, '->', 'closing');
-      this._transitionState = 'closing';
-    }.bind(this));
 
     this.element.addEventListener('mozbrowserloadstart',
       function loadstart(evt) {
@@ -807,19 +794,21 @@
 
   /**
    * Acquire one-time callback of certain type of state
+   * XXX: Still unstable.
    */
   AppWindow.prototype.one = function aw_one(type, state, callback) {
     var self = this;
-    var observer = new MutationObserver(function() {
-      if (self.element.getAttribute('data-' + type + 'State') === state) {
-        observer.disconnect();
+    var observer = new MutationObserver(function(mr, o) {
+      if (self.element.getAttribute(type + '-state') === state) {
+        self.debug('observing ' + type + ' ===> ' + state);
         callback();
+        o.disconnect();
       }
     });
 
     // configuration of the observer:
     // we only care dataset change here.
-    var config = { characterData: true, attributes: true };
+    var config = { attributes: true };
 
     // pass in the target node, as well as the observer options
     observer.observe(this.element, config);
@@ -828,18 +817,20 @@
 
   /**
    * Continues monitor certain type of state change.
+   * XXX: Still unstable
    */
   AppWindow.prototype.once = function aw_once(type, state, callback) {
     var self = this;
-    var observer = new MutationObserver(function() {
-      if (self.element.getAttribute('data-' + type + 'State') === state) {
+    var observer = new MutationObserver(function(mr, o) {
+      if (self.element.getAttribute(type + '-state') === state) {
+        self.debug('observing ' + type + ' ===> ' + state);
         callback();
       }
     });
 
     // configuration of the observer:
     // we only care dataset change here.
-    var config = { characterData: true, attributes: true };
+    var config = { attributes: true };
 
     // pass in the target node, as well as the observer options
     observer.observe(this.element, config);
@@ -853,7 +844,7 @@
   };
 
   AppWindow.prototype._changeState = function aw__changeState(type, state) {
-    this.element.setAttribute('data-' + type + 'State', state.toString());
+    this.element.setAttribute(type + '-state', state.toString());
   };
 
   /**

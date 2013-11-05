@@ -118,9 +118,6 @@
     }
     if (this.isActive()) {
       this.one('transition', 'closed', function onClose() {
-        if (this._screenshotURL) {
-          URL.revokeObjectURL(this._screenshotURL);
-        }
         this.publish('terminated');
         // If caller is an instance of appWindow,
         // tell WindowManager to open it.

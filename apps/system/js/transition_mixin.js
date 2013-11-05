@@ -53,18 +53,23 @@
           var s = evt == 'open' ? 'opened' : 'closed';
           this.one('transition', s, callback);
         }
-        this._changeTransitionState(state);
-        this.debug('transition state changed from ' +
-          currentState, ' to ', state, ' by ', evt, '. classing: ',
-          this.element.classList);
-        this._callbackTransitonStateChange(currentState, state, evt);
+        this._changeTransitionState(state, evt);
+        var self = this;
+        setTimeout(
+          function() {
+            self._callbackTransitonStateChange(currentState, state, evt);
+          });
       },
 
     _changeTransitionState:
-      function tm__changeTransitionState(state) {
+      function tm__changeTransitionState(state, evt) {
+        var currentState = this._transitionState;
         this._transitionState = state;
-        this.element.setAttribute('data-transitionState',
+        this.element.setAttribute('transition-state',
           this._transitionState);
+
+        this.debug('transition state changed from ' +
+          currentState, ' to ', state, ' by ', evt);
       },
 
     _callbackTransitonStateChange:
@@ -109,7 +114,8 @@
           this.setVisible(false);
       }
       this.resetTransition();
-      this.resize();
+      if (this._resized || this.isHomescreen)
+        this.resize();
 
       if (this.isHomescreen) {
         this.setOrientation();
@@ -187,40 +193,43 @@
       this.publish('close'); // backward compatibity
     },
 
-    _open: function tm__open(callback) {
+    open: function tm__open(callback) {
+      if (typeof(arguments[0]) !== 'function') {
+        this.currentAnimation = arguments[0];
+        callback = arguments[1];
+      }
       this._processTransitionEvent('open', callback);
     },
 
-    _close: function tm__close(callback) {
+    close: function tm__close(callback) {
+      if (typeof(arguments[0]) !== 'function') {
+        this.currentAnimation = arguments[0];
+        callback = arguments[1];
+      }
       this._processTransitionEvent('close', callback);
     },
 
-    open: function tm_open(callback) {
+    readyToOpen: function tm_open(callback) {
       if (this.element) {
-        if (typeof(arguments[0]) !== 'function') {
-          this.currentAnimation = arguments[0];
-          callback = arguments[1];
-        }
-        if (this instanceof AppWindow && !this.isFTU && !this.isHomescreen) {
-          this.publish('requestopen'); // Request open to AppWindowManager.
+        this.debug('requesting to open');
+        if (!this.loaded) {
+          this.debug('loaded yet');
+          callback();
         } else {
-          this._open();
-        }
-        // TODO: loadtime event
-      }
-    },
-
-    close: function tm_close(callback) {
-      if (this.element) {
-        this.debug(' close======');
-        if (typeof(arguments[0]) !== 'function') {
-          this.currentAnimation = arguments[0];
-          callback = arguments[1];
-        }
-        if (this instanceof AppWindow && !this.isFTU && !this.isHomescreen) {
-          this.publish('requestclose'); // Request open to AppWindowManager.
-        } else {
-          this._close();
+          this.debug('loaded');
+          var invoked = false;
+          this._waitForNextPaint(function() {
+            if (invoked)
+              return;
+            invoked = true;
+            callback();
+          });
+          this.ensureFullRepaint(function() {
+            if (invoked)
+              return;
+            invoked = true;
+            callback();
+          });
         }
       }
     }

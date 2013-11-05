@@ -175,13 +175,12 @@
  * - app frame must be on top of homescreen frame, inactive or active.
  * - finally, everything else needs to be on top of them (hence the lowest nums)
  */
-#screen > [data-z-index-level="app"] > #wrapper-footer,
-#screen > [data-z-index-level="app"] > #wrapper-activity-indicator {
+
+#screen > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen) {
   z-index: 6;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
-#screen > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen),
 #screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.homescreen) {
   z-index: 5;
 }

@@ -29,67 +29,27 @@
       // todo 1: sim lock
       // todo 2: loadtime
       // Case 1: the app is already displayed
-      if (currentApp && currentApp == newApp) {
-        if (newApp == HomescreenLauncher.origin) {
-          // relaunch homescreen
-          HomescreenLauncher.getHomescreen().open(callback);
-        } else {
-          // Just run the callback right away if it is not homescreen
-          if (callback) {
-            callback();
-          }
-        }
+      if (currentApp == newApp) {
+        if (callback)
+          callback();
+        return;
       }
-      // Case 2: null --> app
-      // XXX: Fix ME!!!
-      else if (this.runningApps[newApp].isFTU &&
-               newApp !== HomescreenLauncher.origin) {
-        this.runningApps[newApp].one('opened',
-          function onOpened() {
-            InitLogoHandler.animate();
-          });
-        this.runningApps[newApp].open();
-      }
-      // Case 3: null->homescreen
-      else if ((!currentApp && newApp == HomescreenLauncher.origin)) {
-        HomescreenLauncher.getHomescreen().open();
-        this._changeActiveApp(HomescreenLauncher.origin);
-      }
-      // Case 4: homescreen->app
-      else if ((!currentApp && newApp == HomescreenLauncher.origin) ||
-               (currentApp == HomescreenLauncher.origin && newApp)) {
-        this.runningApps[newApp].one('transition', 'opening',
-          function onopening() {
-            HomescreenLauncher.getHomescreen().close();
-          });
-        this.runningApps[newApp].open();
-      }
-      // Case 5: app->homescreen
-      else if (currentApp && currentApp != HomescreenLauncher.origin &&
-               newApp == HomescreenLauncher.origin) {
-        this.runningApps[currentApp].one('transition', 'closing',
-          function onopening() {
-            HomescreenLauncher.getHomescreen().open();
-          });
-        this.runningApps[currentApp].close();
-      }
-      // Case 6: app-to-app transition
-      else {
-        this.publish('awmswitchingstart');
-        this.runningApps[newApp].one('transition', 'opened',
-          function onnewappopened() {
-            this.publish('awmswitchend');
-          }.bind(this));
-        if (this.runningApps[newApp].loaded) {
-          this.runningApps[newApp].ensureFullRepaint(function onrepaint() {
-            this.runningApps[currentApp].close('invoking');
-            this.runningApps[newApp].open('invoked');
-          }.bind(this));
-        } else {
-          this.runningApps[currentApp].close('invoking');
-          this.runningApps[newApp].open('invoked');
-        }
-      }
+
+      var appNext = this.runningApps[newApp];
+      var appCurrent = this.runningApps[currentApp];
+      var switching = appCurrent && !appCurrent.isHomescreen &&
+                      !appNext.isHomescreen;
+
+      appNext.readyToOpen(function() {
+        if (switching)
+          HomescreenLauncher.getHomescreen().fadeOut();
+        appNext.open(switching ? 'invoked' : null);
+        if (appCurrent)
+          appCurrent.close(switching ? 'invoking' : null);
+        this._changeActiveApp(newApp);
+      }.bind(this));
+
+      // XXX: FTU case
 
       // TODO: If the app has a attention screen open, displaying it
     },
@@ -209,42 +169,6 @@
               evt.detail.rotatingDegree === 270) {
             HomescreenLauncher.getHomescreen().fadeOut();
           }
-          this._changeActiveApp(evt.detail.origin);
-          break;
-
-        case 'homescreenopening':
-          this._changeActiveApp(HomescreenLauncher.origin);
-          break;
-
-        case 'apprequestclose':
-          var app = evt.detail;
-          HomescreenLauncher.getHomescreen().
-                           ensureFullRepaint(app._close.bind(app));
-          break;
-
-        case 'apprequestopen':
-          var app = evt.detail;
-          if (this.displayedApp !== HomescreenLauncher.origin) {
-            // Do switch window here.
-          }
-          if (app.loaded) {
-            app.ensureFullRepaint(app._open.bind(app));
-          } else {
-            // TODO
-            //app.setFrameBackground(e.detail._open.bind(e.detail));
-
-            app._open();
-          }
-          break;
-
-        case 'activityrequestopen':
-          var activity = evt.detail;
-          activity._open();
-          break;
-
-        case 'activityrequestclose':
-          var activity = evt.detail;
-          activity._close();
           break;
 
         case 'homescreencreated':
@@ -341,6 +265,8 @@
             // Because we will be asked by a 'activity-done' event from gecko
             // to relaunch to activity caller, and this is the only way to
             // determine if we are going to homescreen or the original app.
+
+            HomescreenLauncher.getHomescreen().fadeIn();
             this.display(HomescreenLauncher.origin);
           } else {
             // dispatch event to close activity.

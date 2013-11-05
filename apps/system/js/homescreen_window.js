@@ -87,6 +87,11 @@
           'foreground' : 'background';
         self.publish(self._visibilityState);
       });
+
+    this.browser.element.addEventListener('mozbrowserloadend',
+      function(evt) {
+        this.loaded = true;
+      }.bind(this));
   };
 
   HomescreenWindow.prototype.restart = function hw_restart() {

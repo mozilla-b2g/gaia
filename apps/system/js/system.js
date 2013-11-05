@@ -8,6 +8,6 @@
       return (new Date().getTime() / 1000 - this._start).toFixed(3);
     },
 
-    slowTransition: true
+    slowTransition: false
   };
 }(this));
