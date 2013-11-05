@@ -10,6 +10,7 @@ from gaiatest.apps.messages.app import Messages
 
 class NewMessage(Messages):
 
+    _recipient_section_locator = (By.ID, 'messages-recipients-list')
     _receiver_input_locator = (By.CSS_SELECTOR, '#messages-recipients-list span.recipient')
     _add_recipient_button_locator = (By.ID, 'messages-contact-pick-button')
     _message_field_locator = (By.ID, 'messages-input')
@@ -26,7 +27,8 @@ class NewMessage(Messages):
         self.wait_for_condition(lambda m: section.location['x'] == 0)
 
     def type_phone_number(self, value):
-        self.wait_for_element_displayed(*self._receiver_input_locator)
+        # tap on the parent element to activate editable
+        self.marionette.find_element(*self._recipient_section_locator).tap()
         contact_field = self.marionette.find_element(*self._receiver_input_locator)
         contact_field.send_keys(value)
 
