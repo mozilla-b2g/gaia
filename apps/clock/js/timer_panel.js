@@ -11,17 +11,14 @@ var _ = require('l10n').get;
 
 var priv = new WeakMap();
 
-function duration(value) {
-  var hm = value.split(':');
-  var duration = 0;
-  var unit;
-
-  for (var i = 0; i < hm.length; i++) {
-    unit = Math.pow(60, hm.length - 1 - i);
-    duration += unit * 1000 * hm[i];
-  }
-
-  return duration;
+function timeFromPicker(value) {
+  var hm, ms;
+  hm = value.split(':');
+  ms = Utils.dateMath.toMS({
+        hours: hm[0],
+        minutes: hm[1]
+       });
+  return ms;
 }
 
 /**
@@ -45,10 +42,6 @@ Timer.Panel = function(element) {
         range: [0, 23]
       },
       minutes: {
-        range: [0, 59],
-        isPadded: true
-      },
-      seconds: {
         range: [0, 59],
         isPadded: true
       }
@@ -100,7 +93,6 @@ Timer.Panel.prototype = Object.create(Panel.prototype);
 
 Timer.Panel.prototype.onvisibilitychange = function(isVisible) {
   var nodes = this.nodes;
-  var dialog = View.instance(this.nodes.dialog);
   var timer = this.timer;
   var isPaused = false;
 
@@ -246,7 +238,7 @@ Timer.Panel.prototype.onclick = function(event) {
       // Reset shared timer object
       panel.timer = null;
 
-      // Restore the panel to 00:00
+      // Restore the panel to 00:00:00
       panel.update(0);
 
       // Show new timer dialog
@@ -268,7 +260,7 @@ Timer.Panel.prototype.onclick = function(event) {
 
     if (meta.action === 'create') {
 
-      time = duration(panel.picker.value);
+      time = timeFromPicker(panel.picker.value);
 
       if (!time) {
         return;
@@ -278,7 +270,7 @@ Timer.Panel.prototype.onclick = function(event) {
       // selected duration time.
       panel.timer = new Timer({
         sound: nodes.sound.value,
-        duration: duration(panel.picker.value),
+        duration: time,
         vibrate: nodes.vibrate.checked
       });
 

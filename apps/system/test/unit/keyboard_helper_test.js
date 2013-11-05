@@ -20,7 +20,7 @@ suite('KeyboardHelper', function() {
     {
       origin: keyboardAppOrigin,
       manifest: {
-        role: 'keyboard',
+        role: 'input',
         entry_points: {
           en: {
             types: ['url', 'text'],
@@ -136,13 +136,13 @@ suite('KeyboardHelper', function() {
         {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
-            role: 'keyboard',
+            role: 'input',
             entry_points: {}
           }
         }, {
           origin: 'app://keyboard2.gaiamobile.org',
           manifest: {
-            role: 'keyboard',
+            role: 'input',
             entry_points: {}
           }
         },
@@ -150,20 +150,20 @@ suite('KeyboardHelper', function() {
         {
           origin: 'app://system.gaiamobile.org',
           manifest: {
-            role: 'keyboard',
+            role: 'input',
             entry_points: {}
           }
         },
         // invalid because there aren't entry_points
         {
           origin: 'app://keyboard.gaiamobile.org',
-          manifest: { role: 'keyboard' }
+          manifest: { role: 'input' }
         },
-        // invalid because it's not keyboard role
+        // invalid because it's not input role
         {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
-            role: 'notkeyboard',
+            role: 'notinput',
             entry_points: {}
           }
         }
@@ -297,7 +297,7 @@ suite('KeyboardHelper', function() {
       this.apps = [{
         origin: keyboardAppOrigin,
         manifest: {
-          role: 'keyboard',
+          role: 'input',
           entry_points: {
             en: {
               types: ['text', 'url']
@@ -311,7 +311,7 @@ suite('KeyboardHelper', function() {
       }, {
         origin: 'app://keyboard2.gaiamobile.org',
         manifest: {
-          role: 'keyboard',
+          role: 'input',
           entry_points: {
             number: {
               types: ['number', 'url']

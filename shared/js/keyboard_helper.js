@@ -386,9 +386,9 @@ var KeyboardHelper = exports.KeyboardHelper = {
 
     navigator.mozApps.mgmt.getAll().onsuccess = function onsuccess(event) {
       var keyboardApps = event.target.result.filter(function filterApps(app) {
-        // keyboard apps will set role as 'keyboard'
+        // keyboard apps will set role as 'input'
         // https://wiki.mozilla.org/WebAPI/KeboardIME#Proposed_Manifest_of_a_3rd-Party_IME
-        if (!app.manifest || 'keyboard' !== app.manifest.role) {
+        if (!app.manifest || 'input' !== app.manifest.role) {
           return;
         }
         //XXX remove this hard code check if one day system app no longer

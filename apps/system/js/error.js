@@ -6,7 +6,8 @@
   window.AppError = function AppError(app) {
     var self = this;
     this.app = app;
-    this.app.iframe.addEventListener('mozbrowsererror', function(evt) {
+    var element = this.app.iframe || this.app.element;
+    element.addEventListener('mozbrowsererror', function(evt) {
       if (evt.detail.type != 'other')
         return;
 

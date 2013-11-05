@@ -96,7 +96,11 @@ class GaiaTestResult(MarionetteTestResult):
         try:
             # TODO make screenshot consistant size by using full viewport
             # Bug 883294 - Add ability to take full viewport screenshots
-            debug['screenshot'] = self.marionette.screenshot()[22:]
+            # TODO Bug 838287 - remove condition after marionette release.
+            screenshot = self.marionette.screenshot()
+            if screenshot.startswith('data:'):
+                screenshot = screenshot[22:]
+            debug['screenshot'] = screenshot
             debug['source'] = self.marionette.page_source
             self.marionette.switch_to_frame()
             debug['settings'] = json.dumps(self.marionette.execute_async_script("""

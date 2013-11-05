@@ -1,5 +1,6 @@
-var MediaLibraryDiscoverPanel = function(albums){
+'use strict';
 
+var MediaLibraryDiscoverPanel = function(albums) {
   PanelTools.setupDom(this);
 
   PanelTools.setTitle(this, 'Discover');
@@ -11,39 +12,37 @@ var MediaLibraryDiscoverPanel = function(albums){
   this.albums = albums;
 
   this._set();
-}
+};
 
 MediaLibraryDiscoverPanel.prototype = {
-  name: "MediaLibraryDiscoverPanel",
+  name: 'MediaLibraryDiscoverPanel',
   //============== API ===============
-  getContainer: function(){
+  getContainer: function() {
     return this.dom.panel;
   },
-  unload: function(){
-
+  unload: function() {
   },
-  refresh: function(done){
+  refresh: function(done) {
     if (done)
       done();
   },
-  updateMode: function(mode){
-
+  updateMode: function(mode) {
   },
   //============== helpers ===============
-  _set: function(){
+  _set: function() {
     this._setAlbums();
   },
-  _setAlbums: function(){
+  _setAlbums: function() {
     var itemsToRender = this.albums.map(this._prepAlbum.bind(this));
     itemsToRender.forEach(this.itemsList.append.bind(this.itemsList));
   },
-  _prepAlbum: function(album){
+  _prepAlbum: function(album) {
     var content = Utils.classDiv('album');
 
     var img = document.createElement('img');
-    img.onerror="this.src='';";
+    img.onerror = "this.src='';";
     //TODO on onload, URL.releaseObjectURL(url);
-    window.musicLibrary.musicDB.getAlbumArtAsURL(album, function(url){
+    window.musicLibrary.musicDB.getAlbumArtAsURL(album, function(url) {
       img.src = url;
     }.bind(this));
     content.appendChild(img);
@@ -53,7 +52,7 @@ MediaLibraryDiscoverPanel.prototype = {
     content.appendChild(text);
 
     var target = album.metadata.album;
-    Utils.onButtonTap(content, function(){
+    Utils.onButtonTap(content, function() {
       var query = {
         'genre': '*',
         'artist': '*',
@@ -68,5 +67,5 @@ MediaLibraryDiscoverPanel.prototype = {
     item.dom.div.classList.add('albumItem');
     item.dom.div.classList.add('half');
     return item;
-  },
-}
+  }
+};

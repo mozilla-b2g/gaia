@@ -3,6 +3,13 @@
 'use strict';
 
 var MockMessages = {
+  smilMockup: '<smil><head><layout>' +
+    '<root-layout width="320px" height="480px"/>' +
+    '<region id="Image" left="0px" top="0px" width="320px" ' +
+    'height="320px" fit="meet"/><region id="Text" left="0px" ' +
+    'top="320px" width="320px" height="160px" fit="meet"/>' +
+    '</layout></head><body><par dur="5000ms"><img src="IMG_0011.jpg" ' +
+    'region="Image"/></par></body></smil>',
   sms: function(opts = {}) {
     // default sms message
     var message = {
@@ -12,6 +19,7 @@ var MockMessages = {
       receiver: 'receiver',
       body: 'body',
       delivery: 'received',
+      deliveryStatus: 'success',
       type: 'sms',
       messageClass: 'normal',
       timestamp: new Date(),
@@ -39,11 +47,12 @@ var MockMessages = {
       sender: 'sender',
       receivers: ['receiver'],
       delivery: 'received',
+      deliveryInfo: [{receiver: 'receiver', deliveryStatus: 'success'}],
       type: 'mms',
       timestamp: now,
       read: true,
       subject: '',
-      smil: null,
+      smil: this.smilMockup,
       attachments: [new Blob(['body'], {type: 'text/plain'})],
       expiryDate: tomorrow
     };

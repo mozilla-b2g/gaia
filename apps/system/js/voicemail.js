@@ -22,11 +22,16 @@ var Voicemail = {
   },
 
   handleEvent: function vm_handleEvent(evt) {
+    // TODO: remove this backward compatibility check
+    // after bug-814634 is landed
     var voicemail = window.navigator.mozVoicemail;
-    if (!voicemail.status)
+    var status = voicemail.status ||
+      voicemail.getStatus && voicemail.getStatus();
+
+    if (!status)
       return;
 
-    this.updateNotification(voicemail.status);
+    this.updateNotification(status);
   },
 
   updateNotification: function vm_updateNotification(status) {
@@ -55,8 +60,11 @@ var Voicemail = {
     request.onsuccess = function() {
       var number = request.result['ril.iccInfo.mbdn'];
       var voicemail = navigator.mozVoicemail;
-      if (!number && voicemail && voicemail.number) {
-        number = voicemail.number;
+      // TODO: remove this backward compatibility check
+      // after bug-814634 is landed
+      if (!number && voicemail) {
+        number = voicemail.number ||
+          voicemail.getNumber && voicemail.getNumber();
       }
       if (number) {
         text = _('dialNumber', { number: number });

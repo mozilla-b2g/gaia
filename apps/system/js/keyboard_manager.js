@@ -131,6 +131,7 @@ var KeyboardManager = {
     // when an inline activity goes away.
     window.addEventListener('appwillclose', this);
     window.addEventListener('activitywillclose', this);
+    window.addEventListener('attentionscreenshow', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -260,6 +261,9 @@ var KeyboardManager = {
         // if there are still no keyboards to use
         if (!self.keyboardLayouts[group]) {
           group = 'text';
+        }
+        if (group !== self.showingLayout.type) {
+          self.resetShowingKeyboard();
         }
         self.setKeyboardToShow(group);
         self.showKeyboard();
@@ -393,9 +397,17 @@ var KeyboardManager = {
   },
 
   handleEvent: function km_handleEvent(evt) {
+    var self = this;
     switch (evt.type) {
       case 'mozbrowserresize':
         this.resizeKeyboard(evt);
+        break;
+      case 'attentionscreenshow':
+        // If we call hideKeyboardImmediately synchronously,
+        // attention screen will not show up.
+        setTimeout(function hideKeyboardAsync() {
+          self.hideKeyboardImmediately();
+        }, 0);
         break;
       case 'activitywillclose':
       case 'appwillclose':

@@ -22,6 +22,7 @@
     <script defer src="shared/js/lazy_loader.js"></script>
     <script defer src="shared/js/screen_layout.js"></script>
     <script defer src="shared/js/iac_handler.js"></script>
+    <script defer src="js/orientation_manager.js"></script>
     <!--
     <script defer src="shared/js/keyboard_helper.js"></script>
     <script defer src="shared/js/template.js"></script>
@@ -260,13 +261,18 @@
     <!-- Any module that wants to intercept the Home button and prevent the -->
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window.css">
+    <script defer src="js/base_ui.js"></script>
     <script defer src="js/error.js"></script>
+    <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/window.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
     <script defer src="js/homescreen_window.js"></script>
     <script defer src="js/homescreen_launcher.js"></script>
-    <script defer src="js/window_manager.js"></script>
+    <script defer src="js/activity_window.js"></script>
+    <script defer src="js/activity_window_factory.js"></script>
     <script defer src="js/app_window_factory.js"></script>
+    <script defer src="js/window_manager.js"></script>
+    <script defer src="js/visibility_manager.js"></script>
 
     <!-- Entry Sheet -->
     <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
@@ -406,8 +412,10 @@
       <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- notifications -->
         <div id="notification-bar">
-          <span data-l10n-id="notifications">Notifications</span>
-          <button id="notification-clear" data-l10n-id="clear-all">Clear all</button>
+          <span id="notification-some" data-l10n-id="notifications" hidden>Notifications</span>
+          <span id="notification-none" data-l10n-id="no-notifications">No notifications</span>
+
+          <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
         </div>
 
         <div id="notifications-container">
@@ -1080,6 +1088,7 @@
       <div id="cards-view" data-z-index-level="cards-view">
         <ul>
         </ul>
+        <span class="no-recent-apps" data-l10n-id="no-recent-apps">No recent apps</span>
       </div>
 
       <!-- icc / stk -->

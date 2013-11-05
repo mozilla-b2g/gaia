@@ -113,7 +113,6 @@ var ActivityHandler = {
     var numOfData = hasData ? dataSet.length : 0;
 
     var result = {};
-    var data;
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
@@ -129,11 +128,9 @@ var ActivityHandler = {
       case 1:
         // if one required type of data
         if (this.activityDataType == 'webcontacts/tel') {
-          result = {};
-          this.copyContactData(theContact, result);
+          result = theContact;
         } else {
-          data = dataSet[0].value;
-          result[type] = data;
+          result[type] = dataSet[0].value;
         }
 
         this.postPickSuccess(result);
@@ -141,6 +138,7 @@ var ActivityHandler = {
       default:
         // if more than one required type of data
         var prompt1 = new ValueSelector();
+        var data;
         for (var i = 0; i < dataSet.length; i++) {
           data = dataSet[i].value;
           var carrier = dataSet[i].carrier || '';
@@ -150,10 +148,9 @@ var ActivityHandler = {
         prompt1.onchange = (function onchange(itemData) {
           if (this.activityDataType == 'webcontacts/tel') {
             // filter phone from data.tel to take out the rest
-            result = {};
-            this.copyContactData(theContact, result);
+            result = theContact;
             result.tel =
-            this.filterPhoneNumberForActivity(itemData, result.tel);
+              this.filterPhoneNumberForActivity(itemData, result.tel);
           } else {
             result[type] = itemData;
           }
@@ -162,16 +159,6 @@ var ActivityHandler = {
         }).bind(this);
         prompt1.show();
     } // switch
-  },
-
-  /*
-   * All the Contact properties are defined in the prototype object,
-   * so we need to copy them in a proper way
-   */
-  copyContactData: function ah_copyContactData(source, dest) {
-    for (var prop in Object.getPrototypeOf(source)) {
-      dest[prop] = source[prop];
-    }
   },
 
   /*
@@ -186,13 +173,7 @@ var ActivityHandler = {
   },
 
   postNewSuccess: function ah_postNewSuccess(contact) {
-    // XXX: the contact cannot be passed if we don't duplicate it
-    var dupContact = {};
-    for (var attr in contact) {
-      dupContact[attr] = contact[attr];
-    }
-
-    this._currentActivity.postResult({ contact: dupContact });
+    this._currentActivity.postResult({ contact: contact });
     this._currentActivity = null;
   },
 

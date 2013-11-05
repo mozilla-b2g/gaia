@@ -1,4 +1,6 @@
-var MediaLibraryAllMusicPanel = function(mode, songs){
+'use strict';
+
+var MediaLibraryAllMusicPanel = function(mode, songs) {
   PanelTools.setupDom(this);
 
   this.songs = songs;
@@ -8,27 +10,27 @@ var MediaLibraryAllMusicPanel = function(mode, songs){
   PanelTools.setTitle(this, 'All Music');
 
   this._setSongs();
-}
+};
 
 MediaLibraryAllMusicPanel.prototype = {
-  name: "MediaLibraryAllMusicPanel",
+  name: 'MediaLibraryAllMusicPanel',
   //============== APi ===============
-  getContainer: function(){
+  getContainer: function() {
     return this.dom.panel;
   },
-  unload: function(){
+  unload: function() {
     this.itemsList.destroy();
   },
-  refresh: function(done){
+  refresh: function(done) {
     if (done)
       done();
   },
-  updateMode: function(mode){
+  updateMode: function(mode) {
     this.mode = mode;
     this._setSongs();
   },
   //============== helpers ===============
-  _setSongs: function(){
+  _setSongs: function() {
     this.itemsList.empty();
     var sortFields = [];
     sortFields.push('artist');
@@ -38,7 +40,7 @@ MediaLibraryAllMusicPanel.prototype = {
     var itemsToRender = this.songs.map(this._prepSong.bind(this));
     PanelTools.renderItems(this.itemsList, itemsToRender, this.done);
   },
-  _prepSong: function(song){
+  _prepSong: function(song) {
     var uiItem = PanelTools.renderSong({
       song: song,
       fields: this.fields,
@@ -49,11 +51,13 @@ MediaLibraryAllMusicPanel.prototype = {
       },
       hideAdd: this.mode !== 'edit',
       showTrack: true,
-      ontap: function(){
-        if (this.mode !== 'edit'){
+      ontap: function() {
+        if (this.mode !== 'edit') {
           this.router.route('requestPlaySongs')(song.metadata.title, [song]);
           //TODO the following is correct but has awful perf
-          //this.router.route('requestPlaySongs')(song.metadata.title, this.items);
+          // this.router.route('requestPlaySongs')(
+            // song.metadata.title, this.items
+          // );
           //var index = this.items.indexOf(song);
           //this.router.route('switchPlayingToIndex')(index);
         }
@@ -62,18 +66,19 @@ MediaLibraryAllMusicPanel.prototype = {
         }
       }.bind(this),
       extraOptions: this.extraOptions,
-      addTo: function(){
-        this.router.route('requestAddSongsToCustom')(song.metadata.title, [song]);
+      addTo: function() {
+        this.router.route('requestAddSongsToCustom')(
+          song.metadata.title, [song]
+        );
       }.bind(this),
-      toggleFavorite: function(){
+      toggleFavorite: function() {
         window.musicLibrary.musicDB.toggleSongFavorited(song);
       }.bind(this),
-      share: function(){
+      share: function() {
         this.router.route('shareSong')(song);
       }.bind(this)
     });
 
     return uiItem;
   }
-}
-
+};

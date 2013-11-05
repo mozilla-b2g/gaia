@@ -12,6 +12,9 @@ var Settings = {
     this.clearHistoryButton = document.getElementById('clear-history-button');
     this.clearPrivateDataButton =
       document.getElementById('clear-private-data-button');
+    this.aboutBrowserButton = document.getElementById('about-browser-button');
+    this.searchEngineHeading = document.getElementById('search-engine-heading');
+    this.searchEngineSection = document.getElementById('search-engine-section');
     this.searchEngineButton = document.getElementById('search-engine-button');
     this.searchEngineSelect = document.getElementById('search-engine-select');
 
@@ -32,10 +35,12 @@ var Settings = {
    */
   populateSearchEngines: function settings_populateSearchEngines() {
     BrowserDB.getSearchEngines((function(engineList) {
-      if (engineList.length == 0) {
+      if (engineList.length == 0)
         return;
-      }
       this.searchEnginesFound = true;
+      // Only show the search engine selection UI if we have more than one
+      if (engineList.length <= 1)
+        return;
       engineList.forEach(function(engine) {
         var option = document.createElement('option');
         option.value = engine.uri;
@@ -46,8 +51,8 @@ var Settings = {
         }
         this.searchEngineSelect.add(option);
       }, this);
-      this.searchEngineButton.disabled = false;
-      this.searchEngineSelect.disabled = false;
+      this.searchEngineHeading.classList.remove('hidden');
+      this.searchEngineSection.classList.remove('hidden');
     }).bind(this));
   },
 

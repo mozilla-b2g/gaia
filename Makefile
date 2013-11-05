@@ -117,6 +117,8 @@ endif
 REPORTER?=Spec
 MOCHA_REPORTER?=dot
 NPM_REGISTRY?=http://registry.npmjs.org
+# Ensure that NPM only logs warnings and errors
+export npm_config_loglevel=warn
 
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
@@ -220,10 +222,10 @@ endif
 
 SETTINGS_PATH := build/custom-settings.json
 ifdef GAIA_DISTRIBUTION_DIR
-	DISTRIBUTION_SETTINGS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)settings.json
-	DISTRIBUTION_CONTACTS := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)contacts.json
-	DISTRIBUTION_APP_CONFIG := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)apps.list
-	DISTRIBUTION_VARIANT := $(realpath $(GAIA_DISTRIBUTION_DIR))$(SEP)variant.json
+	DISTRIBUTION_SETTINGS := $(GAIA_DISTRIBUTION_DIR)$(SEP)settings.json
+	DISTRIBUTION_CONTACTS := $(GAIA_DISTRIBUTION_DIR)$(SEP)contacts.json
+	DISTRIBUTION_APP_CONFIG := $(GAIA_DISTRIBUTION_DIR)$(SEP)apps.list
+	DISTRIBUTION_VARIANT := $(GAIA_DISTRIBUTION_DIR)$(SEP)variant.json
 	ifneq ($(wildcard $(DISTRIBUTION_SETTINGS)),)
 		SETTINGS_PATH := $(DISTRIBUTION_SETTINGS)
 	endif
@@ -284,6 +286,9 @@ GAIA_DEFAULT_LOCALE?=en-US
 GAIA_INLINE_LOCALES?=1
 GAIA_CONCAT_LOCALES?=1
 
+# This variable is for customizing the keyboard layouts in a build.
+GAIA_KEYBOARD_LAYOUTS?=en,pt-BR,es,de,fr,pl
+
 ifeq ($(SYS),Darwin)
 MD5SUM = md5 -r
 SED_INPLACE_NO_SUFFIX = /usr/bin/sed -i ''
@@ -319,7 +324,6 @@ MARIONETTE_HOST ?= localhost
 MARIONETTE_PORT ?= 2828
 TEST_DIRS ?= $(CURDIR)/tests
 
-
 define BUILD_CONFIG
 { \
 	"GAIA_DIR" : "$(CURDIR)", \
@@ -335,6 +339,7 @@ define BUILD_CONFIG
 	"GAIA_PORT" : "$(GAIA_PORT)", \
 	"GAIA_LOCALES_PATH" : "$(GAIA_LOCALES_PATH)", \
 	"LOCALES_FILE" : "$(subst \,\\,$(LOCALES_FILE))", \
+	"GAIA_KEYBOARD_LAYOUTS" : "$(GAIA_KEYBOARD_LAYOUTS)", \
 	"BUILD_APP_NAME" : "$(BUILD_APP_NAME)", \
 	"PRODUCTION" : "$(PRODUCTION)", \
 	"GAIA_OPTIMIZE" : "$(GAIA_OPTIMIZE)", \
@@ -350,7 +355,8 @@ define BUILD_CONFIG
 	"NOFTU" : "$(NOFTU)", \
 	"REMOTE_DEBUGGER" : "$(REMOTE_DEBUGGER)", \
 	"TARGET_BUILD_VARIANT" : "$(TARGET_BUILD_VARIANT)", \
-	"SETTINGS_PATH" : "$(SETTINGS_PATH)" \
+	"SETTINGS_PATH" : "$(SETTINGS_PATH)", \
+	"VARIANT_PATH" : "$(VARIANT_PATH)" \
 }
 endef
 export BUILD_CONFIG
@@ -462,7 +468,7 @@ endif
 
 local-apps:
 ifdef VARIANT_PATH
-	python build/variant.py usage --local-apps-path=$(VARIANT_PATH) --profile-path=$(PROFILE_FOLDER) --distribution-path=$(GAIA_DISTRIBUTION_DIR)
+	@$(call run-js-command, variant)
 endif
 
 # Create webapps
@@ -542,6 +548,10 @@ endif
 # So let's export these variables to external processes.
 export XULRUNNER_DIRECTORY XULRUNNERSDK XPCSHELLSDK
 
+.PHONY: print-xulrunner-sdk
+print-xulrunner-sdk:
+	@echo "$(XULRUNNER_DIRECTORY)"
+
 .PHONY: install-xulrunner-sdk
 install-xulrunner-sdk:
 	@echo "XULrunner directory: $(XULRUNNER_DIRECTORY)"
@@ -567,11 +577,15 @@ endif # XULRUNNER_SDK_DOWNLOAD
 endif # USE_LOCAL_XULRUNNER_SDK
 
 define run-js-command
+# When an xpcshell module throws exception which is already captured by
+# JavaScript module, some exceptions will make xpcshell returns error code.
+# We put quit(0); to override the return code when all exceptions are handled
+# in JavaScript module.
 	echo "run-js-command $1";
 	$(XULRUNNERSDK) $(XPCSHELLSDK) \
 		-e "const GAIA_BUILD_DIR='$(BUILDDIR)'" \
 		-f build/xpcshell-commonjs.js \
-		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); } \
+		-e "try { require('$(strip $1)').execute($$BUILD_CONFIG); quit(0);} \
 			catch(e) { \
 				dump('Exception: ' + e + '\n' + e.stack + '\n'); \
 				throw(e); \
@@ -665,7 +679,7 @@ b2g: node_modules/.bin/mozilla-download
 		--verbose \
 		--product b2g \
 		--channel tinderbox \
- 		--branch mozilla-central $@
+		--branch mozilla-central $@
 
 .PHONY: test-integration
 test-integration:
@@ -996,7 +1010,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules
+	rm -rf xulrunner-* .xulrunner-* node_modules b2g
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

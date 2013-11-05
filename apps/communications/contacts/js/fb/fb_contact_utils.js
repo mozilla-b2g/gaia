@@ -264,22 +264,21 @@ fb.markAsUnlinked = function(devContact) {
 // Merge done specifically for dialer and Call Log apps
 fb.mergeContact = function(devContact, fbContact) {
   var fbPhotos = fbContact.photo;
-  if (!devContact.photo && Array.isArray(fbPhotos)) {
-    devContact.photo = [];
-  }
+
+  var devPhotos = devContact.photo || [];
 
   if (Array.isArray(fbPhotos) && fbPhotos.length > 0 && fbPhotos[0]) {
-    devContact.photo.push(fbPhotos[0]);
+    devPhotos.push(fbPhotos[0]);
+    devContact.photo = devPhotos;
   }
 
-  if (!devContact.tel && Array.isArray(fbContact.tel)) {
-    devContact.tel = [];
-  }
+  var devTels = devContact.tel || [];
 
   if (Array.isArray(fbContact.tel)) {
     fbContact.tel.forEach(function(atel) {
-      devContact.tel.push(atel);
+      devTels.push(atel);
     });
+    devContact.tel = devTels;
   }
 
   // It is needed to merge names just in case the contact has no local name

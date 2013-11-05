@@ -290,7 +290,7 @@ var ContactsTest = {
   loadContacts: function ct_loadContacts() {
     var req = new XMLHttpRequest();
     req.overrideMimeType('application/json');
-    req.open('GET', '../data/fakecontacts/fakecontacts.json', true);
+    req.open('GET', '../../data/fakecontacts/fakecontacts.json', true);
     req.onreadystatechange = function() {
       // We will get a 0 status if the app is in app://
       if (req.readyState === 4 && (req.status === 200 ||
@@ -336,7 +336,7 @@ var ContactsTest = {
   finsertSocialContacts: function ct_finsertSocialContacts() {
     var xhr = new XMLHttpRequest();
     xhr.overrideMimeType('application/json');
-    xhr.open('GET', '../data/fakesocialcontacts/contacts_social.json', true);
+    xhr.open('GET', '../../data/fakesocialcontacts/contacts_social.json', true);
     xhr.onload = function(e) {
       // We will get a 0 status if the app is in app://
       if (xhr.status === 200 || xhr.status === 0) {

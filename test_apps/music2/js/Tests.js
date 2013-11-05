@@ -1,19 +1,27 @@
-var Tests = function(){
-  this.loaded = false;
+'use strict';
 
-}
+var Tests = function() {
+  this.loaded = false;
+};
 
 Tests.prototype = {
   name: 'Tests',
-  testMainNavigation: function(done){
-    this.doAfterLoaded(function(){
-      window.ui.mediaLibraryPage.panelManager.panels[0].router.route('pop')();
-      var panelButtons = window.ui.mediaLibraryPage.panelManager.panels[0].dom.items.querySelectorAll('.gotoPanelButton');
-      i = 0;
-      function next(){
+  testMainNavigation: function(done) {
+    this.doAfterLoaded(function() {
+      function getFirstPanel() {
+        return window.ui.mediaLibraryPage.panelManager.panels[0];
+      }
+
+      getFirstPanel().router.route('pop')();
+
+      var panelButtons =
+        getFirstPanel().dom.items.querySelectorAll('.gotoPanelButton');
+      var i = 0;
+
+      function next() {
         panelButtons[i].tapManager.router.route('tap')();
-        setTimeout(function(){
-          window.ui.mediaLibraryPage.panelManager.panels[0].router.route('pop')();
+        setTimeout(function() {
+          getFirstPanel().router.route('pop')();
           i++;
           var all_songs_index = 5;
           if (i === all_songs_index)
@@ -28,13 +36,13 @@ Tests.prototype = {
       next();
     });
   },
-  doAfterLoaded: function(fn){
-    if (this.loaded){
+  doAfterLoaded: function(fn) {
+    if (this.loaded) {
       fn();
     }
     else {
-      window.musicLibrary.router.when('doneLoading', function(){
-        setTimeout(function(){
+      window.musicLibrary.router.when('doneLoading', function() {
+        setTimeout(function() {
           this.loaded = true;
           fn();
         }.bind(this), 1000);
@@ -42,4 +50,4 @@ Tests.prototype = {
     }
 
   }
-}
+};

@@ -30,36 +30,37 @@ function Calendar(client) {
     searchTimeout: 20000
   });
 }
-
 module.exports = Calendar;
 
 
 /**
- * @const {string}
+ * @type {string}
  */
 Calendar.DEFAULT_EVENT_LOCATION = 'Knoxville, Tennessee';
 
-
 /**
- * @const {string}
+ * @type {string}
  */
 Calendar.DEFAULT_EVENT_TITLE = 'Go drinking with coworkers';
 
-
 /**
- * @const {string}
+ * @type {string}
  */
 Calendar.OFFLINE_CALENDAR_NAME = 'Offline calendar';
 
-
 /**
- * @const {string}
+ * @type {string}
  */
 Calendar.ORIGIN = 'app://calendar.gaiamobile.org';
 
+/**
+ * Month1 Month2 YYYY.
+ * @type {RegExp}
+ */
+Calendar.HEADER_PATTERN = /^([JFMASOND][a-z]+\s){2}\d{4}$/;
 
 /**
- * @const {Object}
+ * @type {Object}
  */
 Calendar.Selector = Object.freeze({
   addEventButton: 'a[href="/event/add/"]',
@@ -91,7 +92,6 @@ Calendar.Selector = Object.freeze({
   viewEventViewTitle: '#event-view .title .content'
 });
 
-
 Calendar.prototype = {
   /**
    * Marionette client to use.
@@ -99,200 +99,25 @@ Calendar.prototype = {
    */
   client: null,
 
-
   /**
-   * @return {Marionette.Element} Element to click to get to add event view.
+   * Find some element given its name like 'addEventButton' or 'weekButton'.
+   *
+   * @param {string} name of some calendar element.
+   * @return {Marionette.Element} the element.
    */
-  get addEventButton() {
-    return this.client.findElement(Calendar.Selector.addEventButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click to go to week view.
-   */
-  get weekButton() {
-    return this.client.findElement(Calendar.Selector.weekButton);
+  findElement: function(name) {
+    return this.client.findElement(Calendar.Selector[name]);
   },
 
   /**
-   * @return {Marionette.Element} Element of hint navigate.
+   * findElement and then waitForElement.
+   *
+   * @param {string} name of some calendar element.
+   * @return {Marionette.Element} the element.
    */
-  get hintSwipeToNavigate() {
-    return this.client.findElement(Calendar.Selector.hintSwipeToNavigate);
+  waitForElement: function(name) {
+    return this.client.waitForElement(this.findElement(name));
   },
-
-  /**
-   * @return {Marionette.Element} Input for event alarm.
-   */
-  get editEventAlarm() {
-    return this.client.findElement(Calendar.Selector.editEventAlarm);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Form for editing events.
-   */
-  get editEventForm() {
-    return this.client.findElement(Calendar.Selector.editEventForm);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Input for event end date.
-   */
-  get editEventEndDate() {
-    return this.client.findElement(Calendar.Selector.editEventEndDate);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Input for event end time.
-   */
-  get editEventEndTime() {
-    return this.client.findElement(Calendar.Selector.editEventEndTime);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Input for event location.
-   */
-  get editEventLocation() {
-    return this.client.findElement(Calendar.Selector.editEventLocation);
-  },
-
-
-  get editEventSaveButton() {
-    return this.client.findElement(Calendar.Selector.editEventSaveButton);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Input for event start time.
-   */
-  get editEventStartDate() {
-    return this.client.findElement(Calendar.Selector.editEventStartDate);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Input for event start time.
-   */
-  get editEventStartTime() {
-    return this.client.findElement(Calendar.Selector.editEventStartTime);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Input for event title.
-   */
-  get editEventTitle() {
-    return this.client.findElement(Calendar.Selector.editEventTitle);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Section for events.
-   */
-  get eventListSection() {
-    return this.client.findElement(Calendar.Selector.eventListSection);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Modify event view.
-   */
-  get modifyEventView() {
-    return this.client.findElement(Calendar.Selector.modifyEventView);
-  },
-
-
-  /**
-   * @return {Marionette.Element} List of elements at bottom of month view.
-   */
-  get monthViewDayEvents() {
-    return this.client.findElements(Calendar.Selector.monthViewDayEvent);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Header with month and year.
-   */
-  get monthYearHeader() {
-    return this.client.findElement(Calendar.Selector.monthYearHeader);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Section for read only event.
-   */
-  get viewEventView() {
-    return this.client.findElement(Calendar.Selector.viewEventView);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event alarm in read only event view.
-   */
-  get viewEventViewAlarm() {
-    return this.client.findElement(Calendar.Selector.viewEventViewAlarm);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event calendar in read only event view.
-   */
-  get viewEventViewCalendar() {
-    return this.client.findElement(Calendar.Selector.viewEventViewCalendar);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event end date in read only event view.
-   */
-  get viewEventViewEndDate() {
-    return this.client.findElement(Calendar.Selector.viewEventViewEndDate);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event end time in read only event view.
-   */
-  get viewEventViewEndTime() {
-    return this.client.findElement(Calendar.Selector.viewEventViewEndTime);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event location in read only event view.
-   */
-  get viewEventViewLocation() {
-    return this.client.findElement(Calendar.Selector.viewEventViewLocation);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event start date in read only event view.
-   */
-  get viewEventViewStartDate() {
-    return this.client.findElement(Calendar.Selector.viewEventViewStartDate);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event start time in read only event view.
-   */
-  get viewEventViewStartTime() {
-    return this.client.findElement(Calendar.Selector.viewEventViewStartTime);
-  },
-
-
-  /**
-   * @return {Marionette.Element} Event title in read only event view.
-   */
-  get viewEventViewTitle() {
-    return this.client.findElement(Calendar.Selector.viewEventViewTitle);
-  },
-
 
   /**
    * Create an offline event with a single reminder (alarm) that fires when
@@ -323,20 +148,22 @@ Calendar.prototype = {
     var endTime = DateHelper.formatTime(endDate);
 
     // Navigate to the add event view.
-    var addEventButton =
-        this.client.helper.waitForElement(this.addEventButton);
+    var addEventButton = this.waitForElement('addEventButton');
     addEventButton.click();
 
     // Wait for the add event view to render.
+    this.waitForElement('modifyEventView');
     this.client.helper.waitForElement(this.modifyEventView);
 
     // TODO(gareth): Update these sendKeys calls to use strings instead
     //     of arrays of strings once there's support for that.
     // Fill in the form.
-    this.editEventTitle.sendKeys([title]);
-    this.editEventLocation.sendKeys([location]);
+    this.findElement('editEventTitle').sendKeys([title]);
+    this.findElement('editEventLocation').sendKeys([location]);
 
-    var form = this.editEventForm;
+    var form = this.findElement('editEventForm');
+
+    // TODO(gareth): Can we use marionette form helper here?
     var updateFormValues = {
       startDate: startDay,
       startTime: startTime,
@@ -350,7 +177,7 @@ Calendar.prototype = {
     }
 
     // Save event.
-    this.editEventSaveButton.click();
+    this.findElement('editEventSaveButton').click();
 
     // TODO(gareth): Sort out the dates and times here.
     var result = new Event();

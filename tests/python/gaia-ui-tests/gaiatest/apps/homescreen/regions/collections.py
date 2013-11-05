@@ -12,7 +12,7 @@ from gaiatest.apps.base import PageRegion
 class Collection(Base):
 
     _apps_locator = (By.CSS_SELECTOR, '.evme-apps ul.cloud li[data-name]')
-    _homescreen_status_notification = (By.CSS_SELECTOR, '#homescreenStatus.visible > p.noreset')
+    _homescreen_status_notification = (By.CSS_SELECTOR, "section[role='status'] > p")
     _close_collection_locator = (By.CSS_SELECTOR, '#collection div.header .close')
 
     def wait_for_collection_screen_visible(self):

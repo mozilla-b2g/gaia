@@ -385,7 +385,7 @@
         sender: '123456',
         type: 'mms',
         delivery: 'not-downloaded',
-        deliveryStatus: ['pending'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'pending'}],
         subject: 'Pending download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() + ONE_DAY_TIME)
@@ -395,7 +395,7 @@
         sender: '123456',
         type: 'mms',
         delivery: 'not-downloaded',
-        deliveryStatus: ['error'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'Error download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() + ONE_DAY_TIME * 2)
@@ -405,7 +405,7 @@
         sender: '123456',
         type: 'mms',
         delivery: 'not-downloaded',
-        deliveryStatus: ['error'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'error'}],
         subject: 'Error download',
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() - ONE_DAY_TIME)
@@ -415,7 +415,7 @@
         sender: '123456',
         type: 'mms',
         delivery: 'received',
-        deliveryStatus: ['success'],
+        deliveryInfo: [{receiver: null, deliveryStatus: 'success'}],
         subject: 'No attachment error',
         smil: '<smil><body><par><text src="text1"/></par></body></smil>',
         attachments: null,

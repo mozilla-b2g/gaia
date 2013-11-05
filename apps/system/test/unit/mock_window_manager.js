@@ -1,4 +1,8 @@
 var MockWindowManager = {
+  getCurrentActiveAppWindow: function mwm_getCurrentActiveAppWindow() {
+    return this.mRunningApps[this.mDisplayedApp];
+  },
+
   getDisplayedApp: function mwm_getDisplayedApp() {
     return this.mDisplayedApp;
   },
@@ -34,8 +38,6 @@ var MockWindowManager = {
   kill: function mwm_kill(origin) {
     this.mLastKilledOrigin = origin;
   },
-
-  screenshots: {},
 
   mRunningApps: {},
   mScreenshots: {},

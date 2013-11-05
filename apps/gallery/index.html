@@ -88,7 +88,7 @@
       <header id="edit-header">
         <button id="edit-cancel-button"><span class="icon icon-close"></span></button>
         <menu type="toolbar">
-          <button id="edit-save-button"><span class="icon icon-done"></span></button>
+          <button id="edit-save-button" data-l10n-id="save"></span></button>
         </menu>
         <h1 id="edit-title" data-l10n-id="edit"></h1>
       </header>
@@ -150,6 +150,11 @@
           <a id="edit-border-thick-black" class="radio button bgimage"
              data-border-width=".03" data-border-color="black"></a>
         </div>
+
+        <div id="edit-enhance-options" class="edit-options-bar hidden">
+          <span id="edit-enhance-status"></span>
+        </div>
+
       </div>
 
       <!-- buttons for selecting the type of edit to perform -->
@@ -158,6 +163,7 @@
         <a id="edit-crop-button" class="radio button"></a>
         <a id="edit-effect-button" class="radio button"></a>
         <a id="edit-border-button" class="radio button"></a>
+        <a id="edit-enhance-button" class="radio button"></a>
       </footer>
     </section>
 

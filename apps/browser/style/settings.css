@@ -23,6 +23,11 @@
   opacity: 0.7;
 }
 
+#search-engine-heading.hidden,
+#search-engine-section.hidden {
+  display: none;
+}
+
 .fake-select {
   display: block;
   width: 100%;

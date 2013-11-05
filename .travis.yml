@@ -16,7 +16,12 @@ env:
   - CI_ACTION=test_agent
   - CI_ACTION=marionette_js
   - CI_ACTION=gaia_ui_tests
+  - CI_ACTION=jshint
+matrix:
+  allow_failures:
+    - env: CI_ACTION=jshint
 notifications:
   irc:
+    on_success: change
     channels:
       - "irc.mozilla.org#gaia"

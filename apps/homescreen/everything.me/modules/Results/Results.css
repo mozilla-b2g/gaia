@@ -75,11 +75,6 @@
   display: none;
 }
 
-body[data-online = 'offline'] .evmeScope .evme-apps ul li[data-offline-ready = 'false'] .icon {
-  filter: url('/style/app_offline_filter.svg#grayscale');
-  opacity: 0.3;
-}
-
 /* Loading an app */
 .evmeScope.loading-app .evme-apps ul li,
 .evmeScope.loading-app .evme-apps ul #button-more.visible,

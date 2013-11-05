@@ -22,6 +22,7 @@
     "camera":{},
     "geolocation":{},
     "wifi-manage":{},
+    "sms":{},
     "desktop-notification":{},
     "idle":{},
     "network-events":{},
