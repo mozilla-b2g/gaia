@@ -34,6 +34,21 @@ contacts.List = (function() {
   var ORDER_BY_FAMILY_NAME = 'familyName';
   var ORDER_BY_GIVEN_NAME = 'givenName';
 
+  // Define the order in which groups should appear in the list.  We allow
+  // arbitrary ordering here in anticipation of additional scripts being added.
+  var GROUP_HEADERS = (function getGroupHeaders() {
+    var letters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZ' +          // Roman
+      'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ' +            // Greek
+      'АБВГДЂЕЁЖЗИЙЈКЛЉМНЊОПРСТЋУФХЦЧЏШЩЭЮЯ'; // Cyrillic (Russian + Serbian)
+    var groups = { 'favorites': '' };
+    for (var i = 0; i < letters.length; i++) {
+      groups[letters[i]] = i + 1;
+    }
+    groups['und'] = '#';
+    return groups;
+  })();
+
   // Time to wait for detecting that the user is not scrolling
   var NO_SCROLL_TIME = 200;
 
@@ -868,9 +883,7 @@ contacts.List = (function() {
   var getGroupName = function getGroupName(contact) {
     var ret = getStringToBeOrdered(contact);
     ret = ret.charAt(0).toUpperCase();
-
-    var code = ret.charCodeAt(0);
-    if (code < 65 || code > 90) {
+    if (!(ret in GROUP_ORDER)) {
       ret = 'und';
     }
     return ret;
@@ -938,12 +951,9 @@ contacts.List = (function() {
   var initHeaders = function initHeaders(show) {
     // Populating contacts by groups
     headers = {};
-    renderGroupHeader('favorites', '', show);
-    for (var i = 65; i <= 90; i++) {
-      var letter = String.fromCharCode(i);
-      renderGroupHeader(letter, letter, show);
+    for (var h in GROUP_HEADERS) {
+      renderGroupHeader(h, GROUP_HEADERS[h], show);
     }
-    renderGroupHeader('und', '#', show);
   };
 
   var setOrderByLastName = function setOrderByLastName(value) {
