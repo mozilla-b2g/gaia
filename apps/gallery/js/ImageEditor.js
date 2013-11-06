@@ -531,7 +531,10 @@ ImageEditor.prototype.generateNewPreview = function(callback) {
 
   function thumbnailReady(thumbnail) {
     self.preview.src = URL.createObjectURL(thumbnail);
+    self.preview.loaded = false;
     self.preview.onload = function() {
+      self.preview.loaded = true;
+
       callback();
     };
   };
@@ -1463,13 +1466,16 @@ ImageProcessor.prototype.draw = function(image,
   gl.enableVertexAttribArray(this.srcPixelAddress);
   gl.vertexAttribPointer(this.srcPixelAddress, 2, gl.FLOAT, false, 0, 0);
 
-  // Load the image into the texture
-  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
   // Define the destination rectangle we're copying the image into
   makeRectangle(this.destinationRectangle, dx, dy, dw, dh);
   gl.enableVertexAttribArray(this.destPixelAddress);
   gl.vertexAttribPointer(this.destPixelAddress, 2, gl.FLOAT, false, 0, 0);
+  // Load the image into the texture
+  if (image != this.lastImage && image.loaded) {
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    this.lastImage = image;
+  }
 
   // And draw it all
   gl.drawArrays(gl.TRIANGLES, 0, 6);
