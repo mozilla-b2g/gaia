@@ -70,3 +70,8 @@ class NewMessage(Messages):
     @property
     def first_recipient_number_attribute(self):
         return self.marionette.find_element(*self._receiver_input_locator).get_attribute('data-number')
+
+    def tap_recipient_section(self):
+        self.marionette.find_element(*self._recipient_section_locator).tap()
+        from gaiatest.apps.keyboard.app import Keyboard
+        return Keyboard(self.marionette)
