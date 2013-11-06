@@ -122,6 +122,11 @@ var LockScreen = {
   elasticEnabled: false,
 
   /*
+  * A reference to the media playback widget in the lockscreen.
+  */
+  mediaPlaybackWidget: null,
+
+  /*
   * elastic animation interval
   */
   ELASTIC_INTERVAL: 5000,
@@ -224,6 +229,9 @@ var LockScreen = {
       IccHelper.addEventListener('cardstatechange', this);
       IccHelper.addEventListener('iccinfochange', this);
     }
+
+    /* media playback widget */
+    this.mediaPlaybackWidget = new MediaPlaybackWidget(this.mediaContainer);
 
     var self = this;
 
@@ -1183,8 +1191,8 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'area-slide', 'passcode-code', 'alt-camera',
-        'alt-camera-button', 'slide-handle',
+        'area-handle', 'area-slide', 'media-container', 'passcode-code',
+        'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
 

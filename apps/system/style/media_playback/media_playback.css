@@ -2,12 +2,25 @@
   height: auto;
 }
 
-#media-playback-nowplaying {
+#lockscreen-media-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(10rem + 1px);
+  height: 12rem;
+  background: rgba(0, 0, 0, 0.75);
+  border-top: 1px solid #9c9a9c;
+  border-bottom: 1px solid black;
+}
+
+/* The "Now Playing" section */
+
+.media-playback-nowplaying {
   height: 4rem;
   margin: 1rem 1rem 0rem 1rem;
 }
 
-#media-playback-nowplaying > .icon {
+.media-playback-nowplaying > .icon {
   position: relative;
   float: left;
   width: 3rem;
@@ -18,16 +31,16 @@
   background-size: 3rem;
 }
 
-#media-playback-nowplaying > .albumart {
+.media-playback-nowplaying > .albumart {
   float: right;
   width: 3rem;
   height: 3rem;
   margin: 0.5rem 0;
-  background-size: 4rem;
+  background-size: 3rem;
 }
 
-#media-playback-nowplaying > .title,
-#media-playback-nowplaying > .artist {
+.media-playback-nowplaying > .title,
+.media-playback-nowplaying > .artist {
   margin-left: 4rem;
   margin-right: 5rem;
   line-height: 1.9rem;
@@ -36,26 +49,28 @@
   white-space: nowrap;
 }
 
-#media-playback-nowplaying > .title {
+.media-playback-nowplaying > .title {
   font-size: 1.5rem;
   font-weight: 500;
   color: #ffffff;
 }
 
-#media-playback-nowplaying > .artist {
+.media-playback-nowplaying > .artist {
   font-size: 1.4rem;
   font-weight: 400;
   color: #bfbfbf;
 }
 
-#media-playback-controls {
+/* The playback controls section */
+
+.media-playback-controls {
   height: 4.5rem;
   overflow: hidden;
   text-align: center;
   font-size: 0; /* ensure there's no space between the buttons */
 }
 
-#media-playback-controls > button {
+.media-playback-controls > button {
   height: 100%;
   padding: 0;
   border-width: 0;
@@ -63,29 +78,50 @@
   overflow: hidden;
   background-position: center center;
   background-repeat: no-repeat;
-  background-size: 3rem;
   background-color: transparent;
 }
 
-#media-playback-controls > button:active {
+.media-playback-controls > button:active {
   background-color: #00aacc;
 }
 
-#media-playback-controls > .previous {
+.media-playback-controls > .previous {
   width: 9.7rem;
   background-image: url("./images/icon-previous.png");
 }
 
-#media-playback-controls > .play-pause {
+.media-playback-controls > .play-pause {
   width: 10.6rem;
   background-image: url("./images/icon-pause.png");
 }
 
-#media-playback-controls > .play-pause.is-paused {
+.media-playback-controls > .play-pause.is-paused {
   background-image: url("./images/icon-play.png");
 }
 
-#media-playback-controls > .next {
+.media-playback-controls > .next {
   width: 9.7rem;
   background-image: url("./images/icon-next.png");
+}
+
+/* Overrides for the larger-sized playback controls */
+
+.media-playback-controls.big {
+  height: 7rem;
+}
+
+.media-playback-controls.big > .previous {
+  background-image: url("./images/icon-big-previous.png");
+}
+
+.media-playback-controls.big > .play-pause {
+  background-image: url("./images/icon-big-pause.png");
+}
+
+.media-playback-controls.big > .play-pause.is-paused {
+  background-image: url("./images/icon-big-play.png");
+}
+
+.media-playback-controls.big > .next {
+  background-image: url("./images/icon-big-next.png");
 }

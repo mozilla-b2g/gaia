@@ -132,6 +132,10 @@
     <!-- FTU launcher -->
     <script defer src="js/ftu_launcher.js"></script>
 
+    <!-- Media Playback -->
+    <script defer src="js/media_playback.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
+
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
     <script defer src="js/lockscreen.js"></script>
@@ -211,10 +215,6 @@
     <script defer src="js/updatable.js"></script>
     <script defer src="js/update_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
-
-    <!-- Media Playback -->
-    <script defer src="js/media_playback.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
 
     <!-- Media Recording -->
     <script defer src="js/media_recording.js"></script>
@@ -448,7 +448,7 @@
           </div>
           <!-- Media playback notification -->
           <div id="media-playback-container" class="fake-notification" hidden>
-            <div id="media-playback-nowplaying">
+            <div class="media-playback-nowplaying">
               <div class="icon">
               </div>
               <div class="albumart">
@@ -458,7 +458,7 @@
               <div class="artist">
               </div>
             </div>
-            <div id="media-playback-controls">
+            <div class="media-playback-controls">
               <button class="previous"></button>
               <button class="play-pause"></button>
               <button class="next"></button>
@@ -1003,6 +1003,19 @@
             <div id="notifications-lockscreen-container">
             </div>
             <div id="lockscreen-area"></div>
+            <div id="lockscreen-media-container" hidden>
+              <div class="media-playback-nowplaying">
+                <div class="icon"></div>
+                <div class="albumart"></div>
+                <div class="title"></div>
+                <div class="artist"></div>
+              </div>
+              <div class="media-playback-controls big">
+                <button class="previous"></button>
+                <button class="play-pause"></button>
+                <button class="next"></button>
+              </div>
+            </div>
             <div id="lockscreen-icon-container">
               <div id="lockscreen-area-camera"
                    class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
