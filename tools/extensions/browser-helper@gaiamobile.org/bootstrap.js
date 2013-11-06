@@ -180,18 +180,7 @@ function startup(data, reason) {
 
       // XXX This code should be loaded by the keyboard/ extension
       Cu.import('resource://gre/modules/Keyboard.jsm')
-      mm.addMessageListener('Forms:Input', Keyboard);
-      mm.addMessageListener('Forms:SelectionChange', Keyboard);
-      mm.addMessageListener('Forms:GetText:Result:OK', Keyboard);
-      mm.addMessageListener('Forms:GetText:Result:Error', Keyboard);
-      mm.addMessageListener('Forms:SetSelectionRange:Result:OK', Keyboard);
-      mm.addMessageListener('Forms:ReplaceSurroundingText:Result:OK', Keyboard);
-      mm.addMessageListener('Forms:SendKey:Result:OK', Keyboard);
-      mm.addMessageListener('Forms:SequenceError', Keyboard);
-      mm.addMessageListener('Forms:GetContext:Result:OK', Keyboard);
-      mm.addMessageListener('Forms:SetComposition:Result:OK', Keyboard);
-      mm.addMessageListener('Forms:EndComposition:Result:OK', Keyboard);
-      mm.loadFrameScript('chrome://keyboard.js/content/forms.js', true);
+      Keyboard.initFormsFrameScript(mm);
     }, 'sessionstore-windows-restored', false);
 
     try {
