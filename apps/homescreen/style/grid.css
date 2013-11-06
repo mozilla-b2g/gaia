@@ -18,16 +18,6 @@
    * painted.
    */
   border-bottom: 0.01px solid rgba(0,0,0,0.01);
-
-  visibility: hidden;
-}
-
-.apps > div[data-current-page] {
-  visibility: visible;
-}
-
-body[data-transitioning] .apps > div {
-  visibility: visible;
 }
 
 /* Here users can view the clock while grid is loading -> better experience */
