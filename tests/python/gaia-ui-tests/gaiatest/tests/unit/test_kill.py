@@ -18,7 +18,7 @@ class TestKill(GaiaTestCase):
 
         for app in ['Calendar', 'Clock']:
             running_apps.append(self.apps.launch(app))
-	    time.sleep(1)
+            time.sleep(1)
 
         for app in running_apps:
             self.apps.launch(app.name)
