@@ -65,11 +65,9 @@ var UtilityTray = {
         this.overlay.removeEventListener('mousedown', this._pdIMESwitcherShow);
         break;
 
-
       case 'screenchange':
         if (this.shown && !evt.detail.screenEnabled)
           this.hide(true);
-
         break;
 
       case 'touchstart':
