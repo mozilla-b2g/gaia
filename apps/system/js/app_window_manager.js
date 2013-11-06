@@ -91,6 +91,8 @@
       window.addEventListener('hidewindow', this);
       window.addEventListener('showwindow', this);
       window.addEventListener('overlaystart', this);
+      window.addEventListener('homegesture-enabled', this);
+      window.addEventListener('homegesture-disabled', this);
 
       // When a resize event occurs, resize the running app, if there is one
       // When the status bar is active it doubles in height so we need a resize
@@ -131,6 +133,18 @@
 
     handleEvent: function awm_handleEvent(evt) {
       switch (evt.type) {
+        case 'homegesture-disabled':
+          for (var id in this.runningApps) {
+            this.runningApps[id]._publish('homegesture-disabled');
+          }
+          break;
+
+        case 'homegesture-enabled':
+          for (var id in this.runningApps) {
+            this.runningApps[id]._publish('homegesture-enabled');
+          }
+          break;
+
         case 'appcreated':
           var app = evt.detail;
           this._apps[app.instanceID] = app;
@@ -138,6 +152,7 @@
           break;
 
         case 'appterminated':
+          var app = evt.detail;
           var instanceID = evt.detail.instanceID;
           if (app.instanceID === this._activeApp.instanceID) {
             this._activeApp = null;
@@ -277,30 +292,77 @@
         case 'launchapp':
           var config = evt.detail;
           this.debug('launching' + config.origin);
-
-          // Don't need to launch system app.
-          if (config.url === window.location.href)
-            return;
-
-          if (config.isActivity && config.inline) {
-            break;
-          }
-
-          if (config.origin == HomescreenLauncher.origin) {
-            // No need to append a frame if is homescreen
-            this.displayedApp();
-          } else {
-            // The policy is we always check the same apps are already
-            // opened by checking manifestURL + pageURL.
-            if (!this.runningApps[config.origin]) {
-              new AppWindow(config);
-            }
-            // TODO: Move below iframe hack into app window.
-            this.display(config.origin);
-          }
+          this.launch(config);
           break;
       }
     },
+
+    launch: function awm_launch(config) {
+      // Don't need to relaunch system app.
+      if (config.url === window.location.href)
+        return;
+
+      if (config.stayBackground) {
+        this.debug('launching background service: ' + config.url);
+        // If the message specifies we only have to show the app,
+        // then we don't have to do anything here
+        if (config.changeURL) {
+          if (this.runningApps[config.origin]) {
+            // If the app is in foreground, it's too risky to change it's
+            // URL. We'll ignore this request.
+            if (this.displayedApp !== config.origin) {
+              var iframe = this.runningApps[config.origin].browser.element;
+
+              // If the app is opened and it is loaded to the correct page,
+              // then th=ere is nothing to do.
+              if (iframe.src !== config.url) {
+                // Rewrite the URL of the app frame to the requested URL.
+                // XXX: We could ended opening URls not for the app frame
+                // in the app frame. But we don't care.
+                iframe.src = config.url;
+              }
+            }
+          } else if (config.origin !== HomescreenLauncher.origin) {
+            // XXX: We could ended opening URls not for the app frame
+            // in the app frame. But we don't care.
+            var app = new AppWindow(config);
+
+            // set the size of the iframe
+            // so Cards View will get a correct screenshot of the frame
+            if (config.stayBackground) {
+              app.resize(false);
+              app.setVisible(false);
+            }
+          } else {
+            HomescreenLauncher.getHomescreen().ensure();
+          }
+        }
+      } else {
+        if (config.origin == HomescreenLauncher.origin) {
+          // No need to append a frame if is homescreen
+          this.display();
+        } else {
+          // The policy is we always check the same apps are already
+          // opened by checking manifestURL + pageURL.
+          if (!this.runningApps[config.origin]) {
+            new AppWindow(config);
+          }
+          // TODO: Move below iframe hack into app window.
+          this.display(config.origin);
+        }
+
+        // We will only bring apps to the foreground when the message
+        // specifically requests it.
+        if (!config.isActivity)
+          return;
+
+        var caller = this.runningApps[displayedApp];
+
+        this.runningApps[config.origin].activityCaller = caller;
+        caller.activityCallee = this.runningApps[config.origin];
+      }
+    },
+
 
     debug: function awm_debug() {
       if (DEBUG) {

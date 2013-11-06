@@ -201,7 +201,7 @@
 
     // Clear observers
     if (this._observers && this._observers.length > 0) {
-      this._observer.forEach(function iterator(observer) {
+      this._observers.forEach(function iterator(observer) {
         observer.disconnect();
       }, this);
     }
@@ -640,13 +640,21 @@
     evt.initCustomEvent(this.eventPrefix + event,
                         true, false, detail || this);
 
-    this.debug('publish: ' + event);
+    this.debug(' publishing external event: ' + event);
 
-    if (this.frame) {
-      // for testability.
-      window.dispatchEvent(evt);
-    } else {
-      window.dispatchEvent(evt);
+    window.dispatchEvent(evt);
+    this._publish(event, detail);
+  };
+
+  AppWindow.prototype._publish = function(event, detail) {
+    // Dispatch internal event.
+    if (this.element) {
+      var internalEvent = document.createEvent('CustomEvent');
+      internalEvent.initCustomEvent('_' + this.eventPrefix + event,
+                          true, false, detail || this);
+
+      this.debug(' publishing internal event: ' + event);
+      this.element.dispatchEvent(internalEvent);
     }
   };
 
@@ -745,6 +753,11 @@
       this.frame.style.height = cssHeight;
 
       this.publish('resize');
+      if (keyboardHeight) {
+        this._publish('withkeyboard');
+      } else {
+        this._publish('withoutkeyboard');
+      }
       this.debug('W:', cssWidth, 'H:', cssHeight);
       this.resized = true;
     }

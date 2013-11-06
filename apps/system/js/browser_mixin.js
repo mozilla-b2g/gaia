@@ -22,13 +22,13 @@
 
     back: function bm_back() {
       if (this.browser.element) {
-        this.browser.element.back();
+        this.browser.element.goBack();
       }
     },
 
     forward: function bm_forward() {
       if (this.browser.element) {
-        this.browser.element.forward();
+        this.browser.element.goForward();
       }
     },
 

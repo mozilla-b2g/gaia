@@ -40,7 +40,8 @@
                         this.activityCaller.manifest :
                         (this.manifest || this.config.manifest);
 
-        var orientation = manifest.orientation ||
+        var orientation = manifest ? (manifest.orientation ||
+                          OrientationManager.globalOrientation) :
                           OrientationManager.globalOrientation;
         if (orientation) {
           var rv = false;

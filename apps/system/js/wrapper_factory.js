@@ -115,23 +115,6 @@
         app.manifest.name = config.title;
       }
 
-      // XXX: Move into app window object.
-      // Do not use dataset to communicate with others
-      // to avoid conflict.
-      iframe = app.iframe;
-      iframe.dataset.name = config.title;
-      iframe.dataset.icon = config.icon;
-
-      if (config.originName)
-        iframe.dataset.originName = config.originName;
-      if (config.originURL)
-        iframe.dataset.originURL = config.originURL;
-
-      if (config.searchName)
-        iframe.dataset.searchName = config.searchName;
-      if (config.searchURL)
-        iframe.dataset.searchURL = config.searchURL;
-
       AppWindowManager.display(config.origin);
     },
 
