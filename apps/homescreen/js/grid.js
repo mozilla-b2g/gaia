@@ -472,8 +472,8 @@ var GridManager = (function() {
     current.MozTransition = '';
     current.MozTransform = 'translateX(0)';
 
-    delete fromPage.container.dataset.currentPage;
-    toPage.container.dataset.currentPage = 'true';
+    fromPage.container.setAttribute('aria-hidden', true);
+    toPage.container.removeAttribute('aria-hidden');
 
     togglePagesVisibility(index - 1, index + 1);
 
