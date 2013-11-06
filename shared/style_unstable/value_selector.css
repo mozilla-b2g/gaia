@@ -119,7 +119,7 @@ form[role="dialog"][data-type="value-selector"] [role="listbox"] li[aria-checked
   margin-right: 1.2rem;
   color: #00abcd;
   background: transparent url(value_selector/images/icons/checked.png) no-repeat 100% 50%;
-  background-size: 1.9rem;
+  background-size: 2rem;
 }
 
 
