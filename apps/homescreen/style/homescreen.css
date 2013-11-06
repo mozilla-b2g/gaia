@@ -148,8 +148,7 @@ body[data-mode = 'normal'] ol > li span.options {
        /* For the Galaxy SII, 640x480 */
        (device-height: 480px) and (max-height: 390px),
        /* For the Tablet, 800x1280 */
-       (device-height: 800px) and (max-height: 710px),
-       (device-height: 1280px) and (max-height: 1190px),
+       (device-height: 1280px) and (max-height: 710px),
        /* For the Twist , 960x540 */
        (device-height: 540px) and (max-height: 450px),
        (device-height: 960px) and (max-height: 870px) {
