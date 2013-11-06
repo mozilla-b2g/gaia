@@ -260,10 +260,10 @@ var AppInstallManager = {
 
   showIMEList: function ai_showIMEList() {
     var app = this.setupQueue[0];
-    var entryPoints = app.manifest.entry_points;
-    if (typeof entryPoints !== 'object') {
-      console.error('entry_points must be an object for ' +
-                                          'third-party keyboard layouts');
+    var inputs = app.manifest.inputs;
+    if (typeof inputs !== 'object') {
+      console.error('inputs must be an object for ' +
+                    'third-party keyboard layouts');
       this.completedSetupTask();
       return;
     }
@@ -271,8 +271,8 @@ var AppInstallManager = {
     // build the list of keyboard layouts
     var listHtml = '';
     var imeListWrap = Template(this.imeListTemplate);
-    for (var name in entryPoints) {
-      var displayIMEName = new ManifestHelper(entryPoints[name]).name;
+    for (var name in inputs) {
+      var displayIMEName = new ManifestHelper(inputs[name]).name;
       listHtml += imeListWrap.interpolate({
         imeName: name,
         displayName: displayIMEName

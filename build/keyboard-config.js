@@ -43,11 +43,11 @@ function addEntryPointsToManifest(config, manifest) {
   // Get the set of layouts
   let layouts = getLayouts(config);
 
-  // The entry_points property of the manifest object has one property
+  // The inputs property of the manifest object has one property
   // for each keyboard layout we support. The manifest file has a hard-coded
   // entry for the numeric layout, but we have to add each additional layout.
   layouts.forEach(function(layout) {
-    manifest.entry_points[layout.name] = {
+    manifest.inputs[layout.name] = {
       launch_path: '/index.html#' + layout.name,
       name: layout.label,
       description: layout.label,

@@ -13,7 +13,7 @@
       "description": "To send key events"
     }
   },
-  "entry_points": {
+  "inputs": {
     "english": {
       "launch_path": "/index.html#en",
       "name": "English",
