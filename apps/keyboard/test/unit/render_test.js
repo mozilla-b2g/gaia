@@ -38,29 +38,24 @@ suite('Renderer', function() {
       ime.id = 'keyboard';
       document.body.appendChild(ime);
 
-      _iw = Object.getOwnPropertyDescriptor(Window.prototype, 'innerWidth');
-      _ih = Object.getOwnPropertyDescriptor(Window.prototype, 'innerHeight');
-
       // we're testing layout stuff, so make sure to also have width/height
       // in a headless browser
-      Object.defineProperty(Window.prototype, 'innerWidth',
-        makeDescriptor(300));
-      Object.defineProperty(ime, 'clientWidth',
-        makeDescriptor(300));
-      Object.defineProperty(Window.prototype, 'innerHeight',
-        makeDescriptor(400));
+      _iw = Object.getOwnPropertyDescriptor(window, 'innerWidth');
+      _ih = Object.getOwnPropertyDescriptor(window, 'innerHeight');
+      Object.defineProperty(window, 'innerWidth', makeDescriptor(300));
+      Object.defineProperty(window, 'innerHeight', makeDescriptor(400));
+      Object.defineProperty(ime, 'clientWidth', makeDescriptor(300));
     });
 
     teardown(function() {
-      Object.defineProperty(Window.prototype, 'innerWidth', _iw);
-      Object.defineProperty(Window.prototype, 'innerHeight', _ih);
+      Object.defineProperty(window, 'innerWidth', _iw);
+      Object.defineProperty(window, 'innerHeight', _ih);
+      _iw = _ih = null;
     });
 
     test('Add portrait class to IME in portrait mode', function() {
-      Object.defineProperty(Window.prototype, 'innerWidth',
-        makeDescriptor(200));
-      Object.defineProperty(Window.prototype, 'innerHeight',
-        makeDescriptor(400));
+      Object.defineProperty(window, 'innerWidth', makeDescriptor(200));
+      Object.defineProperty(window, 'innerHeight', makeDescriptor(400));
 
       IMERender.resizeUI(null);
 
@@ -69,10 +64,8 @@ suite('Renderer', function() {
     });
 
     test('Add landscape class to IME in landscape mode', function() {
-      Object.defineProperty(Window.prototype, 'innerWidth',
-        makeDescriptor(400));
-      Object.defineProperty(Window.prototype, 'innerHeight',
-        makeDescriptor(200));
+      Object.defineProperty(window, 'innerWidth', makeDescriptor(400));
+      Object.defineProperty(window, 'innerHeight', makeDescriptor(200));
 
       IMERender.resizeUI(null);
 
