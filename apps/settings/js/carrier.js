@@ -70,12 +70,6 @@ var Carrier = {
         return found;
       };
 
-      // early way out if the query has already been performed
-      if (allApnList) {
-        callback(filter(allApnList), usage);
-        return;
-      }
-
       // load and query both apn.json database and 'ril.data.cp.apns' setting,
       // then trigger callback on results
       loadJSON(APN_FILE, function loadAPN(apn) {
@@ -852,17 +846,27 @@ var Carrier = {
       });
     }
 
+    // Update the list of APNs in the APN panels.
+    window.addEventListener('panelready', function(e) {
+      if (!e.detail.current.startsWith('#carrier-')) {
+        return;
+      }
+
+      getMccMncCodes(function() {
+        if (e.detail.current === '#carrier-dataSettings') {
+          queryApns(updateApnList, 'data');
+        } else if (e.detail.current === '#carrier-mmsSettings') {
+          queryApns(updateApnList, 'mms');
+        } else if (e.detail.current === '#carrier-suplSettings') {
+          queryApns(updateApnList, 'supl');
+        }
+      });
+    });
+
     // startup
     init(function() {
       Connectivity.updateCarrier(); // see connectivity.js
       initDataConnectionAndRoamingWarnings();
-
-      // XXX this should be done later
-      getMccMncCodes(function() {
-        queryApns(updateApnList, 'data');
-        queryApns(updateApnList, 'mms');
-        queryApns(updateApnList, 'supl');
-      });
     });
   },
 
