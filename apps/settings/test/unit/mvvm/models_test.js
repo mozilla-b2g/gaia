@@ -13,6 +13,8 @@ suite('Observable', function() {
       testNumber: 10,
       testString: 'test',
       'test object': {}
+      // currently disabled - we don't handle functions
+      // testFunction: function() {}
     };
     var props = Object.keys(template);
     setup(function() {
@@ -23,11 +25,6 @@ suite('Observable', function() {
     props.forEach(function(prop) {
       test('prop: "' + prop + '" copied value', function() {
         assert.equal(this.observable[prop], template[prop]);
-      });
-      test('prop: "' + prop + '" has a setter and getter', function() {
-        var desc = Object.getOwnPropertyDescriptor(this.observable, prop);
-        assert.ok(desc.get, 'has getter');
-        assert.ok(desc.set, 'has setter');
       });
 
       // test some stuff for observing
@@ -42,7 +39,7 @@ suite('Observable', function() {
 
         suite('overwrite', function() {
           setup(function() {
-            this.newValue = 100;
+            this.newValue = {};
             this.observable[prop] = this.newValue;
           });
           test('got callback', function() {
@@ -78,6 +75,7 @@ suite('ObservableArray', function() {
   });
 
   test('get()', function() {
+    assert.ok(this.array.length);
     for (var index = 0; index < this.array.length; index++) {
       assert.equal(this.observable.get(index), this.array[index],
         'index: ' + index);
@@ -89,9 +87,9 @@ suite('ObservableArray', function() {
 
     function checkSpies(expected) {
       events.forEach(function(event) {
-        var expect = expected[event] || 0;
-        test(event + ' called ' + expect + ' times', function() {
-          assert.equal(this.spies[event].args.length, expect);
+        var expectedCount = expected[event] || 0;
+        test(event + ' called ' + expectedCount + ' times', function() {
+          assert.equal(this.spies[event].args.length, expectedCount);
         });
       }, this);
     }
@@ -130,9 +128,9 @@ suite('ObservableArray', function() {
         }
       });
       test('modifies array', function() {
-        var expect = methods.slice();
-        expect.pop();
-        assert.deepEqual(this.array, expect);
+        var expected = methods.slice();
+        expected.pop();
+        assert.deepEqual(this.array, expected);
       });
     });
 
@@ -150,9 +148,9 @@ suite('ObservableArray', function() {
         }
       });
       test('modifies array', function() {
-        var expect = methods.slice();
-        expect.push('test');
-        assert.deepEqual(this.array, expect);
+        var expected = methods.slice();
+        expected.push('test');
+        assert.deepEqual(this.array, expected);
       });
     });
 
@@ -205,9 +203,9 @@ suite('ObservableArray', function() {
         }
       });
       test('modifies array', function() {
-        var expect = methods.slice();
-        expect.splice(1, 2, 3, 4);
-        assert.deepEqual(this.array, expect);
+        var expected = methods.slice();
+        expected.splice(1, 2, 3, 4);
+        assert.deepEqual(this.array, expected);
       });
     });
 
@@ -233,9 +231,9 @@ suite('ObservableArray', function() {
         }
       });
       test('modifies array', function() {
-        var expect = methods.slice();
-        expect.splice(2, 0, 2);
-        assert.deepEqual(this.array, expect);
+        var expected = methods.slice();
+        expected.splice(2, 0, 2);
+        assert.deepEqual(this.array, expected);
       });
     });
 
@@ -253,9 +251,9 @@ suite('ObservableArray', function() {
         }
       });
       test('modifies array', function() {
-        var expect = methods.slice();
-        expect[7] = true;
-        assert.deepEqual(this.array, expect);
+        var expected = methods.slice();
+        expected[7] = true;
+        assert.deepEqual(this.array, expected);
       });
     });
 
