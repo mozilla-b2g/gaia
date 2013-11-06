@@ -1,6 +1,11 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* global CpScreenHelper, NotificationHelper, ParsedMessage, SiSlScreenHelper,
+          Utils, WhiteList */
+
+/* exported WapPushManager */
+
 'use strict';
 
 // Set the 'lang' and 'dir' attributes to <html> when the page is translated
@@ -138,9 +143,16 @@ var WapPushManager = {
       return;
     }
 
+    /* If a message has a 'signal-none' action but no 'si-id' and 'created'
+     * fields then it does nothing in the current implementation and we can
+     * drop it right away. */
+    if (message.action === 'signal-none' && (!message.id || !message.created)) {
+      return;
+    }
+
     message.save(
       (function wpm_saveSuccess(status) {
-        if ((status !== 'new') && (status !== 'updated')) {
+        if ((status === 'discarded') || (message.action === 'signal-none')) {
           return;
         }
 
@@ -201,26 +213,25 @@ var WapPushManager = {
    * @param {String} timestamp The message timestamp as a string.
    */
   displayWapPushMessage: function wpm_displayWapPushMessage(timestamp) {
-    var self = this;
-    var message = ParsedMessage.load(timestamp,
-      function wpm_loadSuccess(message) {
+    ParsedMessage.load(timestamp,
+      (function wpm_loadSuccess(message) {
         var _ = navigator.mozL10n.get;
 
         // Populate the message
         if (message && !message.isExpired()) {
-          self._title.textContent = message.sender;
-          self._text.textContent = message.text;
-          self._link.textContent = message.href;
-          self._link.href = message.href;
-          self._link.dataset.url = message.href;
+          this._title.textContent = message.sender;
+          this._text.textContent = message.text;
+          this._link.textContent = message.href;
+          this._link.href = message.href;
+          this._link.dataset.url = message.href;
         } else {
-          self._title.textContent = _('wap-push-message');
-          self._text.textContent = _('this-message-has-expired');
-          self._link.textContent = '';
-          self._link.href = '';
-          self._link.dataset.url = '';
+          this._title.textContent = _('wap-push-message');
+          this._text.textContent = _('this-message-has-expired');
+          this._link.textContent = '';
+          this._link.href = '';
+          this._link.dataset.url = '';
         }
-      },
+      }).bind(this),
       function wpm_loadError(error) {
         console.log('Could not retrieve the message:' + error + '\n');
       });
@@ -244,9 +255,3 @@ var WapPushManager = {
     }
   }
 };
-
-window.addEventListener('load', function callSetup(evt) {
-  window.removeEventListener('load', callSetup);
-
-  WapPushManager.init();
-});
