@@ -13,7 +13,7 @@ var QuickSettings = {
   init: function qs_init() {
     var settings = window.navigator.mozSettings;
     var conn = window.navigator.mozMobileConnection;
-    if (!settings || !conn)
+    if (!settings)
       return;
 
     this.getAllElements();
@@ -26,32 +26,36 @@ var QuickSettings = {
     /*
      * Monitor data network icon
      */
-    conn.addEventListener('datachange', function qs_onDataChange() {
-      var label = {
-        'lte': '4G', // 4G LTE
-        'ehrpd': '4G', // 4G CDMA
-        'hspa+': 'H+', // 3.5G HSPA+
-        'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
-        'evdo0': '3G', 'evdoa': '3G', 'evdob': '3G', '1xrtt': '3G', // 3G CDMA
-        'umts': '3G', // 3G
-        'edge': 'E', // EDGE
-        'is95a': '2G', 'is95b': '2G', // 2G CDMA
-        'gprs': '2G'
-      };
-      self.data.dataset.network = label[conn.data.type];
-    });
+    if (conn) {
+      conn.addEventListener('datachange', function qs_onDataChange() {
+        var label = {
+          'lte': '4G', // 4G LTE
+          'ehrpd': '4G', // 4G CDMA
+          'hspa+': 'H+', // 3.5G HSPA+
+          'hsdpa': 'H', 'hsupa': 'H', 'hspa': 'H', // 3.5G HSDPA
+          'evdo0': '3G', 'evdoa': '3G', 'evdob': '3G', '1xrtt': '3G', // 3G CDMA
+          'umts': '3G', // 3G
+          'edge': 'E', // EDGE
+          'is95a': '2G', 'is95b': '2G', // 2G CDMA
+          'gprs': '2G'
+        };
+        self.data.dataset.network = label[conn.data.type];
+      });
 
-    /* monitor data setting
-     * TODO prevent quickly tapping on it
-     */
-    SettingsListener.observe('ril.data.enabled', true, function(value) {
-      if (value) {
-        self.data.dataset.enabled = 'true';
-      } else {
-        delete self.data.dataset.enabled;
-      }
-    });
-
+      /* monitor data setting
+       * TODO prevent quickly tapping on it
+       */
+      SettingsListener.observe('ril.data.enabled', true, function(value) {
+        if (value) {
+          self.data.dataset.enabled = 'true';
+        } else {
+          delete self.data.dataset.enabled;
+        }
+      });
+    } else {
+      // hide data icon without mozMobileConnection object
+      this.overlay.classList.add('non-mobile');
+    }
     /* monitor bluetooth setting and initialization/disable ready event
      * - when settings changed, update UI and lock toogle to prevent quickly
      *   tapping on it.

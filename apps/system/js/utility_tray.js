@@ -37,6 +37,10 @@ var UtilityTray = {
     window.addEventListener('keyboardchangecanceled', this);
 
     this.overlay.addEventListener('transitionend', this);
+
+    if (window.navigator.mozMobileConnection) {
+      LazyLoader.load('js/cost_control.js');
+    }
   },
 
   startY: undefined,
