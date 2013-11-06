@@ -104,7 +104,7 @@ suite('save-bookmark.js >', function() {
 
     window.addEventListener('status-showed', function showed() {
       window.removeEventListener('status-showed', showed);
-      assert.isTrue(document.querySelectorAll('[role="status"] p').textContent.
+      assert.isTrue(document.querySelector('[role="status"] p').textContent.
                                                                     length > 0);
     });
 
