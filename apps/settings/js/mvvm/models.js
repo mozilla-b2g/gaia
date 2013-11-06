@@ -133,7 +133,7 @@ var ObservableArray = function(array) {
         return;
 
       var addedItems = Array.prototype.slice.call(arguments, 2);
-      _array.splice(_array, arguments);
+      _array.splice.apply(_array, arguments);
 
       _notify('remove', {
         index: index,
