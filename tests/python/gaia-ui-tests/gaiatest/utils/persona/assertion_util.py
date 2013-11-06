@@ -45,3 +45,4 @@ class AssertionUtil():
         return {"header": self.decode(header),
                 "claim": self.decode(claim),
                 "payload": self.decode(payload)}
+

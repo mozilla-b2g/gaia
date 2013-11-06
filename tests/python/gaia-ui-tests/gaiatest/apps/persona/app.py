@@ -118,3 +118,4 @@ class Persona(Base):
 
     def wait_for_continue_button(self):
         self.wait_for_element_displayed(*self._continue_button_locator)
+
