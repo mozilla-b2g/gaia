@@ -621,16 +621,16 @@ suite('Utils', function() {
     });
   });
 
-  suite('Utils.compareDialables(a, b)', function() {
+  suite('Utils.probablyMatches(a, b)', function() {
     test('spaces', function() {
       assert.ok(
-        Utils.compareDialables('888 999 5555', '8889995555')
+        Utils.probablyMatches('888 999 5555', '8889995555')
       );
     });
 
     test('non-digit, common chars', function() {
       assert.ok(
-        Utils.compareDialables('(1A)2B 3C', '123')
+        Utils.probablyMatches('(1A)2B 3C', '123')
       );
     });
 
@@ -642,7 +642,7 @@ suite('Utils', function() {
           values.forEach(function(value) {
             values.forEach(function(versus) {
               test(value + ' likely same as ' + versus, function() {
-                assert.ok(Utils.compareDialables(value, versus));
+                assert.ok(Utils.probablyMatches(value, versus));
               });
             });
           });

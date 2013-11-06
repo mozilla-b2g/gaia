@@ -245,7 +245,7 @@
       for (var i = 0; i < length; i++) {
         tel = tels[i];
 
-        if (tel.value && Utils.compareDialables(tel.value, input)) {
+        if (tel.value && Utils.probablyMatches(tel.value, input)) {
           found = tel;
         }
 
@@ -293,7 +293,7 @@
     //
     // ...It would appear that a maximally-minimal
     // 7 digit comparison is safe.
-    compareDialables: function ut_compareDialables(a, b) {
+    probablyMatches: function ut_probablyMatches(a, b) {
       a = Utils.removeNonDialables(a).slice(-7);
       b = Utils.removeNonDialables(b).slice(-7);
       return a === b;
