@@ -737,6 +737,8 @@ Page.prototype = {
    *               List of Icon objects.
    */
   render: function pg_render(icons) {
+    // By default the page is hidden unless it is the current page.
+    this.container.setAttribute('aria-hidden', true);
     this.olist = document.createElement('ol');
     for (var i = 0, icon; icon = icons[i++];) {
       this.appendIcon(icon);
