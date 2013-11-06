@@ -102,17 +102,6 @@ Testing on Desktop build
 You can download the latest build of the desktop client from [this location](http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-central),
 but make sure you download the appropriate file for your operating system.
 
-Note : Unfortunately, due to 
-[Bug 832396](https://bugzilla.mozilla.org/show_bug.cgi?id=832396)
-the nightly desktop builds do not currently work on Windows, so you will
-need either Mac or Linux to continue :
-
-  * **Mac**: b2g-[VERSION].multi.mac64.dmg
-  * **Linux (32bit)**: b2g-[VERSION].multi.linux-i686.tar.bz2
-  * **Linux (64bit)**: b2g-[VERSION].multi.linux-x86\_64.tar.bz2
-
-Note : If you do not have the operating systems installed on your machine, a virtual machine is fine as well.
-
 Once downloaded, you will need to extract the contents to a local folder.
 
 Because we’re running against the desktop client we must filter out all tests that are unsuitable. To run the tests, use the following command:
