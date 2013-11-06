@@ -368,6 +368,8 @@ ul li p + select {
   padding: 1.1rem 0;
   margin: 0;
   height: 3.8rem;
+  left: 1.5rem;
+  width: calc(100% - 3rem);
 }
 
 .fake-select.small {
