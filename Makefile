@@ -72,6 +72,14 @@ DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
+# Flag to ease build a simulator-compatible profile
+SIMULATOR?=0
+ifeq ($(SIMULATOR),1)
+DESKTOP=1
+NO_FTU=1
+DEVICE_DEBUG=1
+endif
+
 # Enable compatibility to run in Firefox Desktop
 DESKTOP?=$(DEBUG)
 # Disable first time experience screen
@@ -446,10 +454,10 @@ optimize-clean: webapp-zip install-xulrunner-sdk
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
-ifeq ($(DESKTOP),1)
+ifeq ($(SIMULATOR),1)
+	# Prevent installing external firefox helper addon for the simulator
+else ifeq ($(DESKTOP),1)
 	python build/additional-extensions.py --gaia-dir="$(CURDIR)" --profile-dir="$(PROFILE_FOLDER)"
-else ifeq ($(DEBUG),1)
-	touch $(PROFILE_FOLDER)/installed-extensions.json
 endif
 
 profile-dir:
@@ -640,7 +648,9 @@ extensions:
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
-ifeq ($(DESKTOP),1)
+ifeq ($(SIMULATOR),1)
+	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org,keyboard,keyboard@gaiamobile.org} $(EXT_DIR)/
+else ifeq ($(DESKTOP),1)
 	cp -r tools/extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
