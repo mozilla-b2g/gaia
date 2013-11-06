@@ -91,26 +91,6 @@
     width: 17.5rem;
   }
 
-  #footer > div li:first-child {
-    width: 9rem;
-    padding-left: 14.5rem;
-    padding-right: 4.5rem;
-  }
-
-  #footer li:first-child span.options {
-    left: 16rem;
-  }
-
-  #footer > div li:last-child:not(:first-child) {
-    width: 9rem;
-    padding-right: 14.5rem;
-    padding-left: 4.5rem;
-  }
-
-  #footer li:last-child:not(:first-child) span.options {
-    left: 4.2rem;
-  }
-
   #footer li span.options {
     width: calc(50% - .5rem);
     height: 4.5rem;
