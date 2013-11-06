@@ -22,10 +22,11 @@ var WhiteList = {
     xhr.send(null);
 
     xhr.onreadystatechange = (function wl_load(evt) {
-      if (xhr.readyState != 4)
+      if (xhr.readyState !== 4) {
         return;
+      }
 
-      if (xhr.status == 0 || xhr.status == 200) {
+      if (xhr.status === 0 || xhr.status === 200) {
         var list = JSON.parse(xhr.responseText);
         var whiteList = [];
 
@@ -42,7 +43,7 @@ var WhiteList = {
    * Checks if the element is in the whitelist.
    *
    * @return {Boolean} true if the element is in the whitelist, always return
-   *         true if the whitelist is empty
+   *         true if the whitelist is empty.
    */
   has: function wl_has(value) {
     if (this._whiteList.length === 0) {

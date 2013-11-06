@@ -1,5 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* global Provisioning, MessageDB */
+
 (function(exports) {
   'use strict';
 
@@ -55,6 +58,10 @@
         obj.text = this.text;
       }
 
+      if (this.action) {
+        obj.action = this.action;
+      }
+
       return obj;
     },
 
@@ -90,6 +97,7 @@
    * - id: optional for SI messages, a pseudo-unique ID for the message
    * - created: optional for SI messages, creation time of this message
    * - expires: optional for SI messages, expiration time of this message
+   * - action: optional for SI/SL message, action to be executed
    * - text: optional, text to be displayed
    *
    * @param {Object} message A WAP Push message as delivered by the system.
@@ -142,12 +150,34 @@
 
         obj.expires = expiresDate.getTime();
       }
+
+      /* 'action' attribute, optional, string, defaults to 'signal-medium' when
+       * not present in the incoming message, see WAP-167 7.2 */
+      if (indicationNode.hasAttribute('action')) {
+        obj.action = indicationNode.getAttribute('action');
+      } else {
+        obj.action = 'signal-medium';
+      }
+
+      /* If the message has a 'delete' action but no 'si-id' field than it's
+       * malformed and should be immediately discarded, see WAP-167 6.2 */
+      if (obj.action === 'delete' && !obj.id) {
+        return null;
+      }
     } else if (message.contentType === 'text/vnd.wap.sl') {
       // SL message
       var slNode = doc.querySelector('sl');
 
       // 'href' attribute, always present
       obj.href = slNode.getAttribute('href');
+
+      /* 'action' attribute, optional, string, defaults to 'execute-low' when
+       * not present in the incoming message, see WAP-168 5.2 */
+      if (slNode.hasAttribute('action')) {
+        obj.action = slNode.getAttribute('action');
+      } else {
+        obj.action = 'execute-low';
+      }
     } else {
       return null;
     }
