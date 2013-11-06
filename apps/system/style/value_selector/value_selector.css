@@ -167,7 +167,7 @@ button.affirmative.active {
   padding-right: 2.6rem;
   margin-right: 1.2rem;
   background: transparent url("../bb/value_selector/images/icons/checked.png") no-repeat 100% 50%;
-  background-size: 1.9rem;
+  background-size: 2rem;
 }
 
 html[dir="rtl"] #value-selector li input:checked + span,
