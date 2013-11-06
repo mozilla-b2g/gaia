@@ -21,6 +21,9 @@ class TestClockSetAlarmSound(GaiaTestCase):
         """
         new_alarm = self.clock.tap_new_alarm()
 
+        # Ensure sound has the default value
+        self.assertEquals(new_alarm.alarm_sound, 'Classic Buzz')
+
         # set label &sound
         new_alarm.type_alarm_label("TestSetAlarmSound")
         new_alarm.select_sound('Gem Echoes')
