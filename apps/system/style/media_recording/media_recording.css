@@ -1,0 +1,70 @@
+html, body {
+  font-size: 10px;
+}
+
+#media-recoding-status-list {
+  display: none;
+  overflow: hidden;
+}
+
+#media-recoding-status-list.displayed {
+  display: block;
+  position: relative;
+  height: 6rem;
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1.9rem;
+  background-color: rgba(0,0,0,0.5);
+  border-top: 0.1rem solid #404547;
+  border-bottom: 0.1rem solid #000;
+}
+
+#media-recoding-status-list:first-child {
+  border-top-color: #000;
+}
+
+#media-recoding-status-list > .icon {
+  float: left;
+  width: 3rem;
+  height: 3rem;
+  margin: 1.3rem 1rem;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+}
+
+#media-recoding-status-list > .origin,
+#media-recoding-status-list > .message {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#media-recoding-status-list > .origin {
+  margin: 1rem 0 0 5rem;
+  width: calc(100% - 12rem);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #FFF;
+}
+
+#media-recoding-status-list > .message {
+  width: calc(100% - 6.5rem);
+  color: #bfbfbf;
+}
+
+#media-recoding-status-list > .timer {
+  position: absolute;
+  top: -0.2rem;
+  right: 1.5rem;
+  color: #52B6CC;
+  margin-top: 1.3rem;
+  padding: 0;
+  display: inline;
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1.6rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
