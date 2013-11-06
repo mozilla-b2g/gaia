@@ -14,7 +14,7 @@ var GridManager = (function() {
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
 
-  var HIDDEN_ROLES = ['system', 'keyboard', 'homescreen'];
+  var HIDDEN_ROLES = ['system', 'input', 'homescreen'];
 
   function isHiddenApp(role) {
     if (!role) {
