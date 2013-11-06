@@ -179,8 +179,8 @@
     if (!AttentionScreen.isFullyVisible())
       this.setVisible(true);
     this.resetTransition();
-    this.resize();
     this.setOrientation();
+    this.resize();
   };
 
   // Should be the same as defined in system.css animation time.
