@@ -8,10 +8,6 @@
   var _id = 0;
   var _start = new Date().getTime() / 1000;
 
-  // XXX: Move this into WrapperWindow.
-  var wrapperHeader = document.querySelector('#wrapper-activity-indicator');
-  var wrapperFooter = document.querySelector('#wrapper-footer');
-
   window.AppWindow = function AppWindow(configuration) {
     for (var key in configuration) {
       this[key] = configuration[key];
@@ -21,12 +17,13 @@
 
     // Check if it's a fullscreen app.
     var manifest = this.manifest;
-    if ('entry_points' in manifest && manifest.entry_points &&
+    if (manifest && 'entry_points' in manifest && manifest.entry_points &&
         manifest.type == 'certified') {
       var miniManifest = manifest.entry_points[this.origin.split('/')[3]];
       manifest = miniManifest || manifest;
     }
-    this._fullScreen = 'fullscreen' in manifest ? manifest.fullscreen : false;
+    this._fullScreen = manifest &&
+      ('fullscreen' in manifest ? manifest.fullscreen : false);
 
     this.element = this.frame;
 
@@ -298,6 +295,10 @@
     this.determineRotationDegree();
   };
 
+  AppWindow.prototype.move = function(x) {
+    // body...
+  };
+
   AppWindow.prototype._registerEvents = function aw__registerEvents() {
     if (window.AppModalDialog) {
       new AppModalDialog(this);
@@ -305,11 +306,23 @@
     if (window.AppAuthenticationDialog) {
       //new AppAuthenticationDialog(this);
     }
+    if (this.manifest && this.manifest.chrome) {
+      new AppChrome(this.manifest.chrome, this);
+      this.hasNavigation = this.manifest.chrome.navigation;
+      this.hasTitle = this.manifest.chrome.rocketbar;
+    } else if (this.hasNavigation || this.hasTitle) {
+      new AppChrome({
+        title: this.hasTitle,
+        navigation: this.hasNavigation
+      }, this);
+    }
 
-    if (DEBUG) {
-      this.once('transition', 'infinite', function() {
-        this.debug('closedddddd');
-      }.bind(this));
+    if (this.hasNavigation) {
+      this.element.classList.add('navigation');
+    }
+
+    if (this.hasTitle) {
+      this.element.classList.add('rocketbar');
     }
 
     this.iframe.addEventListener('mozbrowservisibilitychange',
@@ -717,7 +730,7 @@
                       StatusBar.height -
                       SoftwareButtonManager.height -
                       keyboardHeight;
-      if (!keyboardHeight && 'wrapper' in this.frame.dataset) {
+      if (!keyboardHeight && this.hasNavigation) {
         cssHeight -= 10;
       }
       cssHeight += 'px';
@@ -745,8 +758,8 @@
   AppWindow.prototype.setOrientation =
     function aw_setOrientation(noCapture) {
       var manifest = this.manifest || this.config.manifest;
-
-      var orientation = manifest.orientation ||
+      var orientation = manifest ? (manifest.orientation ||
+                        OrientationManager.globalOrientation) :
                         OrientationManager.globalOrientation;
       if (orientation) {
         var rv = false;
@@ -862,13 +875,6 @@
       }
     }
   };
-
-  AppWindow.prototype._AppWindow_opened =
-    function aw__AppWindow_opened() {
-      if ('wrapper' in this.element.dataset) {
-        wrapperFooter.classList.add('visible');
-      }
-    };
 
   AppWindow.prototype.getIconForSplash =
     function aw_getIconForSplash(manifest) {

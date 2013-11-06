@@ -101,8 +101,11 @@
 
     launchWrapper: function wf_launchWrapper(config) {
       var app = AppWindowManager.runningApps[config.origin];
+      var iframe;
       if (!app) {
-        app = new WrapperWindow(config);
+        config.hasNavigation = true;
+        config.hasTitle = false;
+        app = new AppWindow(config);
       } else {
         iframe = app.iframe;
 
@@ -115,6 +118,7 @@
       // XXX: Move into app window object.
       // Do not use dataset to communicate with others
       // to avoid conflict.
+      iframe = app.iframe;
       iframe.dataset.name = config.title;
       iframe.dataset.icon = config.icon;
 

@@ -43,7 +43,7 @@
   opacity: 0;
 }
 
-#windows > .appWindow > iframe {
+.appWindow > iframe {
   position: absolute;
   top: 0;
   left: 0;
@@ -51,6 +51,34 @@
   height: 100%;
   border: none;
 }
+
+.appWindow.navigation:not(.rocketbar) > iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 1rem;
+  width: 100%;
+  height: calc(100% - 1rem);
+}
+
+.appWindow.rocketbar:not(.navigation) > iframe {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+}
+
+.appWindow.navigation.rocketbar > iframe {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  bottom: 1rem;
+  width: 100%;
+  height: calc(100% - 6rem);
+}
+
 
 #windows > .appWindow:not(.homescreen).render > iframe {
   background-color: #fff;
@@ -251,8 +279,12 @@
   visibility: visible;
 }
 
-.appWindow > .modal-dialog {
+.appWindow > .chrome {
   z-index: 2;
+}
+
+.appWindow > .modal-dialog {
+  z-index: 3;
 }
 
 .appWindow > .fade-overlay {
