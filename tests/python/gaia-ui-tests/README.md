@@ -118,7 +118,7 @@ Once downloaded, you will need to extract the contents to a local folder.
 Because we’re running against the desktop client we must filter out all tests that are unsuitable. To run the tests, use the following command:
 
     gaiatest --address=localhost:2828 \
-        --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi-xfail \
+        --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi \
         gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini \
         --testvars=(path/filename).json
 
@@ -236,7 +236,7 @@ Or:
 }"
 ```
 
-Don't forget to add `"acknowledged_risks" : true` to your testvars file after you have visited [the Risks page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests, or the tests will not be run.
+Don't forget to acknowledged risks in your testvars file after you have visited [the Risks page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests, or the tests will not be run.
 
 Test data Prerequisites
 =======================
