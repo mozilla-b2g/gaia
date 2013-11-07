@@ -179,10 +179,7 @@ var QuickSettings = {
             break;
 
           case this.airplaneMode:
-            var enabled = !!this.airplaneMode.dataset.enabled;
-            SettingsListener.getSettingsLock().set({
-              'ril.radio.disabled': !enabled
-            });
+            AirplaneMode.enabled = !this.airplaneMode.dataset.enabled;
             break;
 
           case this.fullApp:
