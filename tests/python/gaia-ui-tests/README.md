@@ -92,6 +92,8 @@ Options:
     --restart restart target instance between tests. This option will remove 
         the /data/local/indexedDB and /data/b2g/mozilla folders and restore the 
         device back to a common state
+    --timeout < time in milliseconds >  to set default timeout values (30s for page load timeout, 
+                   10s for search timeout and 10s for script timeout) to a common specified value
 
 Testing on a Device
 ===================
