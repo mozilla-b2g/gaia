@@ -112,7 +112,15 @@ var GaiaDataLayer = {
 
   getSIMContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    var req = navigator.mozIccManager.readContacts("adn");
+    var icc = navigator.mozIccManager;
+
+    // See bug 932134
+    // To keep all tests passed while introducing multi-sim APIs, in bug 928325
+    // we do the following check. Remove it after the APIs land.
+    if (icc && icc.iccIds && icc.iccIds[0]) {
+      icc = icc.getIccById(icc.iccIds[0]);
+    }
+    var req = icc.readContacts("adn");
     req.onsuccess = function () {
       console.log('success finding contacts');
       SpecialPowers.removePermission('contacts-read', document);

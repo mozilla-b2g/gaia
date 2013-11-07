@@ -5,8 +5,15 @@ var FdnAuthorizedNumbers = {
   icc: null,
 
   init: function() {
-    this.icc = navigator.mozIccManager ||
-      (navigator.mozMobileConnection && navigator.mozMobileConnection.icc);
+    var icc = navigator.mozIccManager;
+
+    // See bug 932134
+    // To keep all tests passed while introducing multi-sim APIs, in bug 928325
+    // we do the following check. Remove it after the APIs land.
+    if (icc && icc.iccIds && icc.iccIds[0]) {
+      icc = icc.getIccById(icc.iccIds[0]);
+    }
+    this.icc = icc;
   },
 
   getContacts: function(er, cb) {

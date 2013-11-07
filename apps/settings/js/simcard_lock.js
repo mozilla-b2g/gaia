@@ -49,7 +49,7 @@ var SimPinLock = {
     if (!this.mobileConnection)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     IccHelper.addEventListener('cardstatechange',

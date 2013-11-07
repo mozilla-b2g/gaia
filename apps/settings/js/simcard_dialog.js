@@ -4,14 +4,13 @@
 'use strict';
 
 function SimPinDialog(dialog) {
-
   // XXX: check bug-926169
   // this is used to keep all tests passing while introducing multi-sim APIs
   var conn = navigator.mozMobileConnection ||
     window.navigator.mozMobileConnections &&
       window.navigator.mozMobileConnections[0];
 
-  if (!conn || !IccHelper.enabled)
+  if (!conn || !IccHelper)
     return;
 
   var _localize = navigator.mozL10n.localize;

@@ -44,7 +44,7 @@ var SimFdnLock = {
   },
 
   init: function spl_init() {
-    if (!IccHelper.enabled) {
+    if (!IccHelper) {
       return;
     }
 

@@ -1,13 +1,12 @@
 'use strict';
 
 var MockIccHelper = {
-  mProps: {'enabled': true, 'cardState': null, 'iccInfo': {}, 'retryCount': 0},
+  mProps: {'cardState': null, 'iccInfo': {}, 'retryCount': 0},
 
   mEventListeners: {'cardstatechange': [], 'iccinfochange': []},
 
   mSuiteSetup: function icch_suite_setup() {
     this.mProps = {
-      'enabled': true,
       'cardState': null,
       'iccInfo': {},
       'retryCount': 0};
@@ -32,10 +31,6 @@ var MockIccHelper = {
     if (typeof this['on' + type] === 'function') {
       this['on' + type](evt);
     }
-  },
-
-  get enabled() {
-    return this.mProps['enabled'];
   },
 
   get cardState() {

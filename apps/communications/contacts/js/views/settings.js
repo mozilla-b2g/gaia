@@ -42,7 +42,7 @@ contacts.Settings = (function() {
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     // To listen to card state changes is needed for enabling import from SIM
-    if (IccHelper.enabled) {
+    if (IccHelper) {
       IccHelper.oncardstatechange = contacts.Settings.cardStateChanged;
     }
     fb.init(function onFbInit() {
@@ -299,7 +299,7 @@ contacts.Settings = (function() {
   // Options checking & updating
 
   var checkSIMCard = function checkSIMCard() {
-    if (!IccHelper.enabled) {
+    if (!IccHelper) {
       enableSIMOptions(false);
       return;
     }

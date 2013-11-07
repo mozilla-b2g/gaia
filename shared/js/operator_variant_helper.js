@@ -48,10 +48,10 @@ function OperatorVariantHelper(listener, persistKey, checkNow) {
     return;
   }
 
-  // ... and it should be enabled.
-  if (!IccHelper.enabled) {
+  // ... and it should have a value.
+  if (IccHelper === null) {
     // Indicate this may be an expected exception.
-    errMsg = 'Expected IccHelper to be enabled. This error is expected and ' +
+    errMsg = 'Expected IccHelper to have a value. This error is expected and ' +
              'normal if you are running B2G Desktop or FxOS Simulator.';
     console.error(errMsg);
     // Exceptional errors require exceptions. :P
