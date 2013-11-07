@@ -60,6 +60,13 @@ var Filmstrip = (function() {
 
   function hide() {
     document.body.classList.add('filmstriphidden');
+    clearHideTimer();
+    if (isPreviewShown()) {
+      hidePreview();
+    }
+  }
+
+  function clearHideTimer() {
     if (hideTimer) {
       clearTimeout(hideTimer);
       hideTimer = null;
@@ -77,11 +84,9 @@ var Filmstrip = (function() {
    */
   function show(time) {
     document.body.classList.remove('filmstriphidden');
-    if (hideTimer) {
-      clearTimeout(hideTimer);
-      hideTimer = null;
-    }
-    if (time)
+    clearHideTimer();
+    // Request hide timer when timer exists and preview is not shown.
+    if (time && !isPreviewShown())
       hideTimer = setTimeout(hide, time);
   }
 
@@ -135,7 +140,10 @@ var Filmstrip = (function() {
 
   function hidePreview() {
     Camera.viewfinder.play();        // Restart the viewfinder
-    show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
+    if (isShown()) {
+      // Fade the filmstrip after a delay only if the filmstrip is shown.
+      hideTimer = setTimeout(hide, Camera.FILMSTRIP_DURATION);
+    }
     preview.classList.add('offscreen');
     Camera.requestScreenWakeLock();
     frame.clear();
