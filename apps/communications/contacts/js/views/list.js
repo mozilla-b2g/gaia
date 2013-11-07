@@ -12,6 +12,7 @@ contacts.List = (function() {
       settingsView,
       noContacts,
       imgLoader = null,
+      needImgLoaderReload = false,
       orderByLastName = null,
       photoTemplate,
       headers = {},
@@ -114,6 +115,16 @@ contacts.List = (function() {
       renderPhoto(row, id);
       updateSingleRowSelection(row, id);
     }
+
+    // Since imgLoader.reload() causes sync reflows we only want to make this
+    // call when something happens that affects our onscreen view.  Therefore
+    // we defer the call until here when we know the visibility monitor has
+    // detected a change and called onscreen().
+    if (imgLoader && needImgLoaderReload) {
+      needImgLoaderReload = false;
+      imgLoader.reload();
+    }
+
     monitor.resumeMonitoringMutations(false);
   };
 
@@ -1083,9 +1094,16 @@ contacts.List = (function() {
       addToGroup(cloned, list);
     }
     toggleNoContactsScreen(false);
-    FixedHeader.refresh();
-    if (imgLoader)
-      imgLoader.reload();
+
+    // Avoid calling imgLoader.reload() here because it causes a sync reflow
+    // of the entire list.  Ideally it would only do this if the new contact
+    // was added on screen or earlier, but unfortunately it doesn't have
+    // enough information.  The visibility monitor, however, does have this
+    // information.  Therefore set a flag here and then defer the reload until
+    // the next monitor onscreen() call.
+    if (imgLoader) {
+      needImgLoaderReload = true;
+    }
 
     // When we add a new contact to the list we will by default
     // select it depending on this two cases:
