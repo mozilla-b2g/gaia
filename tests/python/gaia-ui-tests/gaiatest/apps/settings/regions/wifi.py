@@ -42,4 +42,5 @@ class Wifi(Base):
             self.marionette.find_element(*self._password_ok_button_locator).tap()
 
         self.wait_for_condition(
-            lambda m: m.find_element(*self._connected_message_locator).text == "Connected")
+            lambda m: m.find_element(*self._connected_message_locator).text == "Connected",
+                        timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60))
