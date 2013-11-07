@@ -358,9 +358,11 @@
     if (stkOpenAppName != title) {
       iccStkSubheader.textContent = title;
       iccStkSubheader.parentNode.classList.remove('hiddenheader');
+      iccStkSubheader.classList.remove('hidden');
     } else {
       iccStkSubheader.textContent = '';
       iccStkSubheader.parentNode.classList.add('hiddenheader');
+      iccStkSubheader.classList.add('hidden');
     }
   }
 
