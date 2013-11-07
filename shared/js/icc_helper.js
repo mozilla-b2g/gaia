@@ -19,6 +19,8 @@ var IccHelper = (function() {
     'iccInfo': null
   };
 
+  var k = 0;
+
   if (mobileConn) {
     iccManager = navigator.mozIccManager || mobileConn.icc;
 
