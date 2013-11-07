@@ -62,5 +62,11 @@
   "messages": [
      { "sms-received": "/index.html" },
      { "notification": "/index.html" }
-  ]
+  ],
+  "datastores-access": {
+    "Gaia_Facebook_Friends": {
+      "access": "readonly",
+      "description": "Facebook Friends"
+    }
+  }
 }
