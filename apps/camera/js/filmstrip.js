@@ -261,23 +261,27 @@ var Filmstrip = (function() {
                                      metadata.preview.end,
                                      'image/jpeg');
 
-        offscreenImage.src = URL.createObjectURL(previewBlob);
-        offscreenImage.onload = function() {
-          createThumbnailFromImage(offscreenImage, function(thumbnail) {
-            addItem({
-              isImage: true,
-              filename: filename,
-              thumbnail: thumbnail,
-              blob: blob,
-              width: metadata.width,
-              height: metadata.height,
-              preview: metadata.preview
+        parseJPEGMetadata(previewBlob, function(thumbnailMetadata) {
+          metadata.preview.width = thumbnailMetadata.width;
+          metadata.preview.height = thumbnailMetadata.height;
+          offscreenImage.src = URL.createObjectURL(previewBlob);
+          offscreenImage.onload = function() {
+            createThumbnailFromImage(offscreenImage, function(thumbnail) {
+              addItem({
+                isImage: true,
+                filename: filename,
+                thumbnail: thumbnail,
+                blob: blob,
+                width: metadata.width,
+                height: metadata.height,
+                preview: metadata.preview
+              });
             });
-          });
-          URL.revokeObjectURL(offscreenImage.src);
-          offscreenImage.onload = null;
-          offscreenImage.src = null;
-        };
+            URL.revokeObjectURL(offscreenImage.src);
+            offscreenImage.onload = null;
+            offscreenImage.src = null;
+          };
+        });
       }
     }, function logerr(msg) { console.warn(msg); });
   }
