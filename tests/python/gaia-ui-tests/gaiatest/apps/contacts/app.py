@@ -39,6 +39,7 @@ class Contacts(Base):
         self.marionette.switch_to_frame(contacts_frame)
 
     def switch_to_select_contacts_frame(self):
+        self.switch_to_contacts_frame()
         self.wait_for_element_displayed(*self._select_contacts_to_import_frame_locator)
         select_contacts = self.marionette.find_element(*self._select_contacts_to_import_frame_locator)
         self.marionette.switch_to_frame(select_contacts)
