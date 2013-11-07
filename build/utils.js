@@ -134,6 +134,40 @@ function getFileAsDataURI(file) {
   return "data:" + contentType + ";base64," + encoded;
 }
 
+function readZipManifest(appDir) {
+  let zipFile = appDir.clone();
+  zipFile.append("application.zip");
+
+  if (!zipFile.exists()) {
+    return null;
+  }
+
+  var zipReader = Cc["@mozilla.org/libjar/zip-reader;1"].createInstance(Ci.nsIZipReader);
+  zipReader.open(zipFile);
+  zipReader.test(null);
+  if (zipReader.hasEntry('manifest.webapp')) {
+    let zipStream = zipReader.getInputStream('manifest.webapp');
+
+    let converterStream = Cc['@mozilla.org/intl/converter-input-stream;1']
+                             .createInstance(Ci.nsIConverterInputStream);
+    converterStream.init(zipStream, 'utf-8', zipStream.available(),
+        Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
+
+    let out = {};
+    let count = zipStream.available();
+    converterStream.readString(count, out);
+
+    let manifest = JSON.parse(out.value);
+    converterStream.close();
+    zipStream.close();
+
+    return manifest;
+  }
+
+  throw new Error(' -*- build/utils.js: missing manifest.webapp for packaged' +
+                  ' app (' + appDir.leafName + ')\n');
+}
+
 function makeWebappsObject(appdirs, domain, scheme, port) {
   return {
     forEach: function(fun) {
@@ -173,6 +207,7 @@ function makeWebappsObject(appdirs, domain, scheme, port) {
         let metaData = webapp.sourceDirectoryFile.clone();
         metaData.append('metadata.json');
         if (metaData.exists()) {
+          webapp.pckManifest = readZipManifest(webapp.sourceDirectoryFile);
           webapp.metaData = getJSON(metaData);
         }
 
