@@ -1,7 +1,11 @@
 'use strict';
 
 var WallpaperCustomizer = (function() {
-  Customizer.call(this, 'wallpaper', 'blob');
+  var resourceParams = {
+    type: 'blob'
+  };
+
+  Customizer.call(this, 'wallpaper', resourceParams);
   this.set = function(blob) {
     var request = navigator.mozSettings.createLock().set({
       'wallpaper.image': blob
