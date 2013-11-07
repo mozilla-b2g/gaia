@@ -3,6 +3,9 @@ Keyboards.el = {
   menuLabel: 'Greek',
   imEngine: 'latin',
   autoCorrectLanguage: 'el',
+  upperCase: {
+    'ς': 'ς'
+  },
   alt: {
     α: 'ά',
     ε: 'έ€',

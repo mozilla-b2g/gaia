@@ -290,8 +290,8 @@ suite('Renderer', function() {
       ime.id = 'keyboard';
       document.body.appendChild(ime);
 
-      IMERender.init(function(inp) {
-        return inp.toUpperCase();
+      IMERender.init(function(key) {
+        return key.value.toUpperCase();
       }, function(key) {
         return false; // is special key
       });
