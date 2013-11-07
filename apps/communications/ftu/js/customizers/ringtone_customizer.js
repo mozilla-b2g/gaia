@@ -9,7 +9,8 @@ var RingtoneCustomizer = (function() {
   Customizer.call(this, 'ringtone', resourceParams);
   this.set = function(blob) {
     var request = navigator.mozSettings.createLock().set({
-      'dialer.ringtone': blob
+      'dialer.ringtone': blob,
+      'dialer.ringtone': 'Default'
     });
   };
 });
