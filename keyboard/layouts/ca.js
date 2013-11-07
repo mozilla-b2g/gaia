@@ -2,6 +2,7 @@ Keyboards.ca = {
   label: 'Catalan',
   menuLabel: 'Català',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'ca',
   alt: {
     a: 'àáâäåãāæª@',

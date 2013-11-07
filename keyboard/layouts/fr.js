@@ -2,6 +2,7 @@ Keyboards.fr = {
   label: 'French',
   menuLabel: 'Français',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'fr',
   alt: {
     a: 'àâæáãäåā',
