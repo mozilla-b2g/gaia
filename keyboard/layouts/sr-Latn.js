@@ -2,6 +2,7 @@ Keyboards['sr-Latn'] = {
   label: 'Serbian (Latin)',
   menuLabel: 'Srpski',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'sr-Latn',
   alt: {
     c: 'čć',

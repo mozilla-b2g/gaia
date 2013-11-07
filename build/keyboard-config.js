@@ -51,7 +51,7 @@ function addEntryPointsToManifest(config, manifest) {
       launch_path: '/index.html#' + layout.name,
       name: layout.label,
       description: layout.label,
-      types: ['text', 'url']
+      types: layout.types
     };
   });
 
@@ -108,6 +108,7 @@ function getLayouts(config) {
       name: layoutName,
       label: Keyboards[layoutName].menuLabel,
       file: layoutFile,
+      types: Keyboards[layoutName].types,
       dictfile: dictFile
     };
   }

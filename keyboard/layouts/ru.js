@@ -2,6 +2,7 @@ Keyboards.ru = {
   label: 'Russian',
   menuLabel: 'Pусский',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'ru',
   alt: {
     е: 'ё',

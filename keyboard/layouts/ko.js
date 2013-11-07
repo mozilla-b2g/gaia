@@ -1,6 +1,7 @@
 Keyboards.ko = {
   label: 'Korean',
   imEngine: 'jshangul',
+  types: ['text', 'url', 'email'],
   menuLabel: '한국어',
   upperCase: {
     'ㅂ': 'ㅃ',

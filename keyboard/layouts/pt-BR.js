@@ -2,6 +2,7 @@ Keyboards['pt-BR'] = {
   label: 'Portuguese',
   menuLabel: 'Português',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'pt_br',
   alt: {
     a: 'áãàâäåæª',

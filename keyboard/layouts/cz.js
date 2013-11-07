@@ -2,6 +2,7 @@ Keyboards.cz = {
   label: 'Czech',
   menuLabel: 'Česká',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'cs',
   alt: {
     a: 'á',
