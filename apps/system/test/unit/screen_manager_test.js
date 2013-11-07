@@ -7,6 +7,7 @@ mocha.globals(['SettingsListener', 'LockScreen', 'Bluetooth', 'StatusBar',
 
 requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
+requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
@@ -76,6 +77,14 @@ suite('system/ScreenManager', function() {
     teardown(function() {
       restoreProperty(navigator, 'mozTelephony', reals);
       restoreProperty(window, 'LockScreen', reals);
+    });
+
+    test('Event listener adding', function() {
+      var eventListenerStub = this.sinon.stub(window, 'addEventListener');
+      ScreenManager.init();
+      assert.isTrue(eventListenerStub.withArgs('sleep').calledOnce);
+      assert.isTrue(eventListenerStub.withArgs('wake').calledOnce);
+      assert.isTrue(eventListenerStub.withArgs('requestshutdown').calledOnce);
     });
 
     suite('power.addWakeLockListener handling', function() {
@@ -346,6 +355,20 @@ suite('system/ScreenManager', function() {
         assert.isTrue(stubAddListener.called);
         assert.isTrue(stubReqWakeLock.called);
       });
+    });
+
+    test('Testing shutdown event', function() {
+      var powerOffSpy = this.sinon.spy(MockSleepMenu, 'startPowerOff');
+      powerOffSpy.withArgs(false);
+      this.sinon.stub(ScreenManager, 'turnScreenOn');
+
+      ScreenManager.handleEvent({
+        type: 'requestshutdown',
+        detail: MockSleepMenu
+      });
+
+      assert.isTrue(ScreenManager.turnScreenOn.calledOnce);
+      assert.isTrue(powerOffSpy.withArgs(false).calledOnce);
     });
   });
 
