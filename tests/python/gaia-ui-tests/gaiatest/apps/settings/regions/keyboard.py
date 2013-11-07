@@ -61,4 +61,4 @@ class KeyboardAddMoreKeyboards(Base):
         self.marionette.execute_script("arguments[0].scrollIntoView(false);", [selected_language])
         selected_language.tap()
         checkbox = selected_language.find_element(By.TAG_NAME, 'input')
-        self.wait_for_condition(lambda m: checkbox.get_attribute('checked'))
+        self.wait_for_condition(lambda m: checkbox.is_selected())
