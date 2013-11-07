@@ -18,8 +18,8 @@ const TYPE_GROUP_MAPPING = {
   'text': 'text',
   'textarea': 'text',
   'url': 'url',
-  'email': 'email',
-  'password': 'password',
+  'email': 'text',
+  'password': 'text',
   'search': 'text',
   // number
   'number': 'number',
