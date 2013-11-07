@@ -180,9 +180,24 @@ var PlayerView = {
   setInfo: function pv_setInfo(fileinfo) {
     var metadata = fileinfo.metadata;
 
+    // Handle the title bar and the share button when the player is not launched
+    // by open activity.
     if (typeof ModeManager !== 'undefined') {
       ModeManager.playerTitle = metadata.title;
       ModeManager.updateTitle();
+
+      // If it is a locked music file, or if we are handling a Pick activity
+      // then we should not give the user the option of sharing the file.
+      if (metadata.locked || pendingPick) {
+        this.shareButton.classList.add('hidden');
+        this.artist.classList.add('hidden-cover-share');
+        this.album.classList.add('hidden-cover-share');
+      }
+      else {
+        this.shareButton.classList.remove('hidden');
+        this.artist.classList.remove('hidden-cover-share');
+        this.album.classList.remove('hidden-cover-share');
+      }
     } else {
       var titleBar = document.getElementById('title-text');
 
@@ -194,19 +209,6 @@ var PlayerView = {
     this.artist.dataset.l10nId = metadata.artist ? '' : unknownArtistL10nId;
     this.album.textContent = metadata.album || unknownAlbum;
     this.album.dataset.l10nId = metadata.album ? '' : unknownAlbumL10nId;
-
-    // if it is a locked music file, hide the share button
-    // and use the full width for cover info
-    if (metadata.locked) {
-      this.shareButton.classList.add('hidden');
-      this.artist.classList.add('hidden-cover-share');
-      this.album.classList.add('hidden-cover-share');
-    }
-    else {
-      this.shareButton.classList.remove('hidden');
-      this.artist.classList.remove('hidden-cover-share');
-      this.album.classList.remove('hidden-cover-share');
-    }
 
     this.setCoverImage(fileinfo, this.backgroundIndex);
   },
