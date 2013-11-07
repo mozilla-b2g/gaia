@@ -317,8 +317,11 @@ var icc_worker = {
   // STK_CMD_SET_UP_MENU
   '0x25': function STK_CMD_SET_UP_MENU(command, iccManager) {
     DUMP('STK_CMD_SET_UP_MENU:', command.options);
+    var menu = command.options;
+    menu.iccId = iccManager.getICCID();
+    DUMP('Caching STK with ICCID: ' + menu.iccId);
     var reqApplications = window.navigator.mozSettings.createLock().set({
-      'icc.applications': JSON.stringify(command.options)
+      'icc.applications': JSON.stringify(menu)
     });
     reqApplications.onsuccess = function icc_getApplications() {
       DUMP('Cached');
