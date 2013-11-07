@@ -32,7 +32,10 @@ class TestSmsAddContact(GaiaTestCase):
         contacts_app = new_message.tap_add_recipient()
         contacts_app.wait_for_contacts()
         contacts_app.contact(self.contact['givenName']).tap(return_details=False)
-        self.messages.switch_to_messages_frame()
+        contacts_app.wait_for_contacts_frame_to_close()
+
+        # Now switch to the displayed frame which should be Messages app
+        self.marionette.switch_to_frame(self.apps.displayed_app.frame)
 
         self.assertIn(self.contact['givenName'], new_message.first_recipient_name)
 
