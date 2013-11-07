@@ -9,6 +9,7 @@ window.addEventListener('localized', function showPanel() {
   var bluetooth = window.navigator.mozBluetooth;
   var defaultAdapter = null;
   var activity = null;
+  var sendingFilesSchedule = {};
   var _debug = false;
 
   navigator.mozSetMessageHandler('activity', function handler(activityRequest) {
@@ -138,30 +139,47 @@ window.addEventListener('localized', function showPanel() {
 
   function transferToDevice(device) {
     var targetDevice = device;
-    // '0x1105' is a service id to distigush connection type.
-    // https://www.bluetooth.org/Technical/AssignedNumbers/service_discovery.htm
-    var transferRequest = defaultAdapter.connect(targetDevice, 0x1105);
-    transferRequest.onsuccess = function bt_connSuccess() {
-      var blobs = activity.source.data.blobs;
-      blobs.forEach(function(blob) {
-        defaultAdapter.sendFile(targetDevice.address, blob);
-        // Notify user that we are sending file
-        var icon = 'app://bluetooth.gaiamobile.org/style/images/transfer.png';
-        NotificationHelper.send(_('transfer-has-started-title'),
-                                _('transfer-has-started-description'),
-                                icon);
-        var msg = 'file is sending...';
-        debug(msg);
-      });
 
-      activity.postResult('transferred');
-      endTransfer();
+    // Post message to system app for sending files in queue
+    // Producer: Bluetooth app produce one message for each sending file request
+    sendingFilesSchedule = {
+      filenames: activity.source.data.filenames,
+      numSuccessful: 0,
+      numUnsuccessful: 0
     };
+    postMessageToSystemApp(sendingFilesSchedule);
 
-    transferRequest.onerror = function bt_connError() {
-      var msg = 'Can not get adapter connect!';
-      cannotTransfer(msg);
-    };
+    // Send each file via Bluetooth sendFile API
+    var blobs = activity.source.data.blobs;
+    blobs.forEach(function(blob) {
+      defaultAdapter.sendFile(targetDevice.address, blob);
+      var msg = 'file is sending...';
+      debug(msg);
+    });
+
+    activity.postResult('transferred');
+    endTransfer();
   }
 
+  // Inner app communcation:
+  function postMessageToSystemApp(sendingFilesSchedule) {
+    // Set up Inter-App Communications
+    navigator.mozApps.getSelf().onsuccess = function gotSelf(evt) {
+      var app = evt.target.result;
+      // If IAC doesn't exist, just bail out.
+      if (!app.connect) {
+        sendingFilesSchedule = {};
+        return;
+      }
+
+      app.connect('bluetoothTransfercomms').then(function(ports) {
+        ports.forEach(function(port) {
+          port.postMessage(sendingFilesSchedule);
+          var msg = 'post message to system app...';
+          debug(msg);
+        });
+        sendingFilesSchedule = {};
+      });
+    };
+  }
 });

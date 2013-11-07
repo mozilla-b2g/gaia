@@ -63,7 +63,8 @@ var StatusBar = {
   ELEMENTS: ['notification', 'emergency-cb-notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
     'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
-    'bluetooth-headphones', 'recording', 'sms', 'geolocation', 'usb', 'label',
+    'bluetooth-headphones', 'bluetooth-transferring', 'recording', 'sms',
+    'geolocation', 'usb', 'label',
     'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
@@ -629,9 +630,13 @@ var StatusBar = {
 
     bluetoothProfiles: function sv_updateBluetoothProfiles() {
       var bluetoothHeadphoneIcon = this.icons.bluetoothHeadphones;
+      var bluetoothTransferringIcon = this.icons.bluetoothTransferring;
 
       bluetoothHeadphoneIcon.hidden =
         !Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
+
+      bluetoothTransferringIcon.hidden =
+        !Bluetooth.isProfileConnected(Bluetooth.Profiles.OPP);
     },
 
     alarm: function sb_updateAlarm() {
