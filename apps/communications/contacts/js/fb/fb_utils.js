@@ -1,6 +1,7 @@
 'use strict';
 
 var fb = window.fb || {};
+window.fb = fb;
 
   (function(document) {
     var Utils = fb.utils || {};
@@ -67,7 +68,7 @@ var fb = window.fb || {};
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_mozContact_ByUid() {
-        Utils.getMozContactByUid(uid,
+        fb.getMozContactByUid(uid,
           function onsuccess(e) {
             if (e.target.result && e.target.result.length > 0) {
               outReq.done(e.target.result[0]);
@@ -89,7 +90,7 @@ var fb = window.fb || {};
       var outReq = new Utils.Request();
 
       window.setTimeout(function get_mozContact_ByUid() {
-        Utils.getMozContactByUid(uid,
+        fb.getMozContactByUid(uid,
           function onsuccess(e) {
             if (e.target.result && e.target.result.length > 0) {
               outReq.done(e.target.result.length);
