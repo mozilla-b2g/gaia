@@ -75,3 +75,7 @@ class NewMessage(Messages):
         self.marionette.find_element(*self._recipient_section_locator).tap()
         from gaiatest.apps.keyboard.app import Keyboard
         return Keyboard(self.marionette)
+
+    @property
+    def is_send_button_enabled(self):
+        return self.marionette.find_element(*self._send_message_button_locator).is_enabled()
