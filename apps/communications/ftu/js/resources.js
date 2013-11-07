@@ -7,11 +7,11 @@ var Resources = {
       return;
     }
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
     xhr.responseType = params.type;
     if (!params.mimetype) {
       xhr.overrideMimeType(params.mimetype);
     }
+    xhr.open('GET', url, true);
 
     xhr.onload = function() {
       if (xhr.status === 200) {
