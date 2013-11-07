@@ -61,6 +61,7 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
                                                           rotation,
                                                           mirrored)
 {
+  var previewSizeFillsScreen;
   this.clear();  // Reset everything
 
   // Remember what we're displaying
@@ -77,23 +78,34 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
   // Keep track of what kind of content we have
   this.displayingImage = true;
 
-  function bigEnough(preview) {
-    if (!preview.width || !preview.height)
+  function isPreviewBigEnough(preview) {
+
+    if (!preview || !preview.width || !preview.height)
       return false;
 
     // A preview is big enough if at least one dimension is >= the
     // screen size in both portait and landscape mode.
-    var sw = window.innerWidth;
-    var sh = window.innerHeight;
+    var screenWidth = window.innerWidth;
+    var screenHeight = window.innerHeight;
 
-    return ((preview.width >= sw || preview.height >= sh) && // portrait
-            (preview.width >= sh || preview.height >= sw));  // landscape
+    return ((preview.width >= screenWidth ||
+             preview.height >= screenHeight) && // portrait
+            (preview.width >= screenHeight ||
+             preview.height >= screenWidth));  // landscape
   }
 
+  previewSizeFillsScreen = isPreviewBigEnough(preview);
+
+  if (!previewSizeFillsScreen) {
+    console.error('The thumbnail contained in the jpeg doesn\'t fit' +
+                  'the device screen. The full size image is rendered.' +
+                  'This might cause out of memory errors');
+  }
 
   // If the preview is at least as big as the screen, display that.
   // Otherwise, display the full-size image.
-  if (preview && (preview.start || preview.filename) && bigEnough(preview)) {
+  if (preview && (preview.start || preview.filename) &&
+      previewSizeFillsScreen) {
     this.displayingPreview = true;
     if (preview.start) {
       this.previewblob = blob.slice(preview.start, preview.end, 'image/jpeg');
