@@ -123,14 +123,15 @@
     <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
     <script defer src="js/software_button_manager.js"></script>
 
+    <!-- FTU launcher -->
+    <script defer src="js/ftu_launcher.js"></script>
+
     <!-- ICC/STK -->
+    <!-- This depends on ftu_launcher.js, please load it in order ;) -->
     <link rel="stylesheet" type="text/css" href="style/icc.css">
     <script defer src="js/icc_events.js"></script>
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
-
-    <!-- FTU launcher -->
-    <script defer src="js/ftu_launcher.js"></script>
 
     <!-- Media Playback -->
     <script defer src="js/media_playback.js"></script>
@@ -1130,7 +1131,7 @@
             <p id="icc-alert-msg"></p>
           </section>
           <menu>
-            <button type="button" data-l10n-id="ok" id="icc-alert-btn" class="recommend full">OK</button>
+            <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
           </menu>
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
