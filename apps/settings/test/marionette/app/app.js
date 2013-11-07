@@ -3,6 +3,7 @@ var Base = require('./base'),
     DoNotTrackPanel = require('./regions/do_not_track'),
     HotspotPanel = require('./regions/hotspot');
     HotspotSettingsPanel = require('./regions/hotspot_settings');
+    SupportPanel = require('./regions/support');
 
 /**
  * Abstraction around settings app
@@ -26,7 +27,8 @@ Settings.Selectors = {
   'doNotTrackMenuItem': '#menuItem-doNotTrack',
   'hotspotMenuItem': '#menuItem-internetSharing',
   'hotspotPanel': '#hotspot',
-  'hotspotSettingsTrigger': '#hotspot-settings-section button'
+  'hotspotSettingsTrigger': '#hotspot-settings-section button',
+  'supportMenuItem': '#menuItem-help'
 };
 
 Settings.prototype = {
@@ -55,6 +57,12 @@ Settings.prototype = {
     openPanel.call(this, 'hotspotSettingsTrigger', 'hotspotPanel');
     return this._hotspotSettingsPanel = this._hotspotSettingsPanel ||
       new HotspotSettingsPanel(this.client);
+  },
+
+  get supportPanel() {
+    openPanel.call(this, 'supportMenuItem');
+    return this._supportPanel = this._supportPanel ||
+      new SupportPanel(this.client);
   }
 };
 
