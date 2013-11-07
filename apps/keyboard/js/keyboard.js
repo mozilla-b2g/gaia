@@ -530,7 +530,8 @@ function setKeyboardName(name, callback) {
       if (im !== inputMethod && inputMethod && inputMethod.deactivate)
         inputMethod.deactivate();
       inputMethod = im;
-      callback();
+      if (callback)
+        callback();
     }
   });
 
