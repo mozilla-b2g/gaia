@@ -13,7 +13,7 @@
     "marionette-content-script": "0.0.0",
     "marionette-js-runner": "~0.1.0",
     "mocha": "1.12.0",
-    "mozilla-download": "0.4.0",
+    "mozilla-download": "~0.4.1-alpha",
     "mail-fakeservers": "~0.0.3",
     "node-static": "0.6.9",
     "empty-port": "~0.0.1",
