@@ -3853,21 +3853,105 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('back action', function() {
-    setup(function() {
-      this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
-      this.sinon.stub(ThreadUI, 'stopRendering');
+  suite('Back button behaviour', function() {
+
+    suite('During activity', function() {
+      setup(function() {
+        this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
+        this.sinon.stub(ThreadUI, 'stopRendering');
+      });
+
+      test('Call postResult when there is an activity', function() {
+        var mockActivity = {
+          postResult: sinon.stub()
+        };
+
+        ActivityHandler.currentActivity.new = mockActivity;
+
+        ThreadUI.back();
+        assert.isTrue(mockActivity.postResult.called);
+      });
     });
 
-    test('call postResult when there is an activity', function() {
-      var mockActivity = {
-        postResult: sinon.stub()
-      };
+    suite('From new message', function() {
+      var showCalled = false;
 
-      ActivityHandler.currentActivity.new = mockActivity;
+      setup(function() {
+        showCalled = false;
+        this.sinon.stub(window, 'OptionMenu').returns({
+          show: function() {
+            showCalled = true;
+          },
+          hide: function() {}
+        });
 
-      ThreadUI.back();
-      assert.isTrue(mockActivity.postResult.called);
+        this.sinon.stub(ThreadUI, 'isKeyboardDisplayed').returns(false);
+        this.sinon.stub(ThreadUI, 'stopRendering');
+
+        window.location.hash = '#new';
+
+        ThreadUI.recipients.add({
+          number: '999'
+        });
+
+        Compose.append('foo');
+      });
+
+      test('Displays OptionMenu prompt', function() {
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      suite('OptionMenu operations', function() {
+        test('Save as Draft', function() {
+          ThreadUI.back();
+
+          // Yes, seriously.
+          // This will be replaced when the real Draft save mechanism
+          // is implemented. Use a stub to prevent from actually logging
+          // to the console here. This is obviously restored after the
+          // test is completed.
+          this.sinon.stub(console, 'log');
+
+          OptionMenu.args[0][0].items[0].method();
+
+          // We just want to ensure that the recipients and composer
+          // contents have been collected before the new message is
+          // discarded.
+          sinon.assert.calledWithMatch(console.log, ['999'], ['foo']);
+
+          // Nothing actually happens yet, but when Draft saving is ready,
+          // this will be updated to assert that the recipients and
+          // contents of the composer were passed as arguments to the
+          // draft save mechanism.
+          assert.ok('Draft Save Mechanism');
+
+
+          // These things will be true
+          assert.equal(window.location.hash, '#thread-list');
+          assert.equal(ThreadUI.recipients.length, 0);
+          assert.equal(Compose.getContent(), '');
+        });
+
+        test('Discard', function() {
+          ThreadUI.back();
+
+          OptionMenu.args[0][0].items[1].method();
+
+          assert.equal(window.location.hash, '#thread-list');
+          assert.equal(ThreadUI.recipients.length, 0);
+          assert.equal(Compose.getContent(), '');
+        });
+      });
     });
   });
 

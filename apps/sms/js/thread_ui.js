@@ -755,19 +755,52 @@ var ThreadUI = global.ThreadUI = {
       this.stopRendering();
 
       var currentActivity = ActivityHandler.currentActivity.new;
+      var discard;
+
       if (currentActivity) {
         currentActivity.postResult({ success: true });
         ActivityHandler.resetActivity();
         return;
       }
-      if (Compose.isEmpty()) {
-        window.location.hash = '#thread-list';
-        return;
-      }
-      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
+
+      discard = (function() {
         this.cleanFields(true);
         window.location.hash = '#thread-list';
+      }).bind(this);
+
+      if (Compose.isEmpty()) {
+        discard();
+        return;
       }
+
+      var options = {
+        items: [
+          {
+            l10nId: 'save-as-draft',
+            method: function onsave() {
+              // When Draft saving is implemented,
+              // update this handler to perform that operation.
+              var recipients = this.recipients.numbers;
+              var content = Compose.getContent();
+              var timestamp = Date.now();
+
+              console.log( recipients, content );
+
+              discard();
+            }.bind(this)
+          },
+          {
+            l10nId: 'discard-message',
+            method: discard
+          },
+          {
+            l10nId: 'cancel'
+          }
+        ]
+      };
+
+      new OptionMenu(options).show();
+
     }).bind(this);
 
     // We're waiting for the keyboard to disappear before animating back
