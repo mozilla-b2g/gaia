@@ -140,9 +140,9 @@ var BluetoothTransfer = {
 
     this.getPairedDevice(function getPairedDeviceComplete() {
       var deviceName = self.getDeviceName(address);
-      NotificationHelper.send(_('notification-fileTransfer-title',
+      NotificationHelper.send(_('transfer-confirmation-title',
                               { deviceName: deviceName }),
-                              _('notification-fileTransfer-description'),
+                              _('transfer-confirmation-description'),
                               icon,
                               function() {
                                 UtilityTray.hide();
