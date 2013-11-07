@@ -171,7 +171,7 @@
 
 /* Invoked app moves in */
 @keyframes invokedApp {
-  0%   { transform: translateX(-100%); }
+  0%   { transform: translateX(100%); }
   50%  { transform: translateX(0); }
 }
 

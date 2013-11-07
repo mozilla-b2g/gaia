@@ -269,7 +269,7 @@ var PopupManager = {
   },
 
   getTitleFromUrl: function pm_getTitleFromUrl(url) {
-    var app = WindowManager.getCurrentDisplayedApp();
+    var app = AppWindowManager.getActiveApp();
     var opened = this._getOriginObject(url);
     var opener = this._getOriginObject(app.frame.dataset.frameOrigin);
     // Same origin means: Protocol, Domain, Port

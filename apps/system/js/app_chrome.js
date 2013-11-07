@@ -25,7 +25,7 @@
   AppChrome.prototype.view = function an_view() {
     return '<div class="chrome" id="' +
             this.CLASS_NAME + this.instanceID + '">' +
-            '<header class="progress"><div class="title"></div></header>' +
+            '<header class="progress"></header>' +
             '<footer class="navigation closed visible">' +
               '<div class="handler"></div>' +
               '<menu type="buttonbar">' +

@@ -22,10 +22,19 @@
       var miniManifest = manifest.entry_points[this.origin.split('/')[3]];
       manifest = miniManifest || manifest;
     }
+
+    this.getIconForSplash();
+    this.preloadSplash();
+
     this._fullScreen = manifest &&
       ('fullscreen' in manifest ? manifest.fullscreen : false);
 
     this.element = this.frame;
+
+        this.instanceID = this.CLASS_NAME + '-' + _id;
+
+    _id++;
+
 
     if (!this.element) {
       this.browser_config = {
@@ -38,11 +47,10 @@
       console.log(JSON.stringify(this.browser_config));
     }
 
-    this.instanceID = this.CLASS_NAME + '-' + _id;
-
-    _id++;
-
     this.render();
+
+    if (!this.loaded)
+      this.setFrameBackground();
 
     this.publish('created');
 
@@ -231,14 +239,20 @@
       var self = this;
       window.addEventListener('homescreenopened', function onhomeopen() {
         window.removeEventListener('homescreenopened', onhomeopen);
-        self.publish('closedbykilling');
-      });
+        this.destroy();
+      }.bind(this));
       // XXX: Refinde this.
       AppWindowManager.display(HomescreenLauncher.origin);
     } else {
-      this.publish('closedbykilling');
+      this.destroy();
     }
     this.publish('terminated');
+  };
+
+  AppWindow.prototype.destroy = function aw_destroy() {
+    if (this.element) {
+      this.containerElement.removeChild(this.element);
+    }
   };
 
   AppWindow.prototype.containerElement = document.getElementById('windows');
@@ -889,9 +903,26 @@
     }
   };
 
+  AppWindow.prototype.preloadSplash = function aw_preloadSplash() {
+    if (this._splash || this.config.icon) {
+      var a = document.createElement('a');
+      a.href = this.config.origin;
+      if (this.config.icon) {
+        this._splash = this.config.icon;
+      } else {
+        this._splash = a.protocol + '//' + a.hostname + ':' +
+                    (a.port || 80) + this._splash;
+      }
+      // Start to load the image in background to avoid flickering if possible.
+      var img = new Image();
+      img.src = this._splash;
+    }
+  };
+
   AppWindow.prototype.getIconForSplash =
     function aw_getIconForSplash(manifest) {
-      var icons = 'icons' in this.manifest ? this.manifest['icons'] : null;
+      var icons = this.manifest ?
+        ('icons' in this.manifest ? this.manifest['icons'] : null) : null;
       if (!icons) {
         return null;
       }
@@ -919,7 +950,8 @@
   AppWindow.prototype.setFrameBackground =
     function aw_setFrameBackground(frame, callback) {
       this.element.style.backgroundImage = 'url("' + this._splash + '")';
-      setTimeout(callback);
+      if (callback)
+        setTimeout(callback);
     };
 
 }(this));

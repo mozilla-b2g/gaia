@@ -10,6 +10,19 @@
 
     runningApps: {},
 
+    // TODO: Remove this.
+    getRunningApps: function awm_getRunningApps() {
+      return this.runningApps;
+    },
+
+    getDisplayedApp: function awm_getDisplayedApp() {
+      return this.displayedApp;
+    },
+
+    getActiveApp: function awm_getActiveApp() {
+      return this._activeApp;
+    },
+
     // reference to active appWindow instance.
     _activeApp: null,
 
@@ -127,6 +140,7 @@
             var manifest = app.manifest;
             // XXX
             app.name = new ManifestHelper(manifest).name;
+            app.element.dataset.name = app.name;
           }
         }.bind(this));
     },
@@ -157,8 +171,8 @@
           if (app.instanceID === this._activeApp.instanceID) {
             this._activeApp = null;
           }
-          this._apps[instanceID] = null;
-          this.runningApps[evt.detail.origin] = null;
+          delete this._apps[instanceID];
+          delete this.runningApps[evt.detail.origin];
           break;
 
         case 'reset-orientation':
@@ -299,6 +313,10 @@
     launch: function awm_launch(config) {
       // Don't need to relaunch system app.
       if (config.url === window.location.href)
+        return;
+
+      // ActivityWindowManager
+      if (config.isActivity && config.inline)
         return;
 
       if (config.stayBackground) {
