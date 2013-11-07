@@ -207,10 +207,10 @@
       this._pxLogicalNodes =
         domDocument.querySelectorAll('characteristic[type="PXLOGICAL"]');
 
-      // The NAPDEF nodes can occur 0 or more times but it makes no sense to
-      // continue when the current document doesn't have at least one one of
+      // The APPLICATION nodes can occur 0 or more times but it makes no sense
+      // to continue when the current document doesn't have at least one one of
       // them.
-      if (!this._napDefNodes) {
+      if (!this._applicationNodes) {
         return;
       }
 
@@ -297,20 +297,6 @@
           }
         }
       } // for this._applicationNodes
-
-      // APPLICATION nodes might not be present so we should continue looking
-      // for APNs.
-      var applicationNodeFound = (this._applicationNodes.length > 0);
-      if (applicationNodeFound && (this._apns.length > 0)) {
-        return;
-      }
-
-      // Iterate over every NAPDEF node and build the APNs.
-      for (var p = 0; p < this._napDefNodes.length; p++) {
-        napDefNode = this._napDefNodes[p];
-        apn = parseNapDefNode(napDefNode);
-        this._apns.push(apn);
-      }
     },
 
     /**
