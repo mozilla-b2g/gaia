@@ -3,6 +3,7 @@
 requireApp('system/test/unit/mock_navigator_battery.js');
 requireApp('system/test/unit/mock_settings_listener.js');
 requireApp('system/test/unit/mock_sleep_menu.js');
+requireApp('system/test/unit/mock_screen_manager.js');
 requireApp('system/test/unit/mock_gesture_detector.js');
 requireApp('system/test/unit/mocks_helper.js');
 requireApp('system/js/battery_manager.js');
@@ -19,6 +20,8 @@ mocksForBatteryManager.forEach(function(mockName) {
   }
 });
 
+
+mocha.globals(['dispatchEvent']);
 
 suite('battery manager >', function() {
   var realBattery;
@@ -119,6 +122,17 @@ suite('battery manager >', function() {
 
       test('display notification', function() {
         assertDisplayed();
+      });
+
+      test('should auto shutdown when battery is below threshold', function() {
+        var dispatchEventStub = this.sinon.stub(window, 'dispatchEvent')
+          .throws('should send event with wake type');
+        dispatchEventStub.withArgs(sinon.match.has('type', 'wake'));
+        var powerOffSpy = this.sinon.spy(MockSleepMenu, 'startPowerOff');
+
+        sendLevelChange(0.02);
+        assert.isTrue(dispatchEventStub.called);
+        assert.isTrue(powerOffSpy.called);
       });
     });
 

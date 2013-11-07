@@ -24,9 +24,11 @@ var BatteryManager = {
     var battery = this._battery;
     if (!battery)
       return;
-
-    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL)
+    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL) {
+      // Fire a event in case device is not awaken.
+      window.dispatchEvent(new Event('wake'));
       SleepMenu.startPowerOff(false);
+    }
   },
 
   init: function bm_init() {
