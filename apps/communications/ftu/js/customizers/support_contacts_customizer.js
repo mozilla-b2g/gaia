@@ -1,7 +1,12 @@
 'use strict';
 
 var SupportContactsCustomizer = (function() {
-  Customizer.call(this, 'support_contacts', 'json');
+  var resourceParams = {
+    type: 'json',
+    mimetype: 'application/json'
+  };
+
+  Customizer.call(this, 'support_contacts', resourceParams);
   this.set = function(contacts) {
     if (contacts) {
       navigator.mozSettings.createLock().set({

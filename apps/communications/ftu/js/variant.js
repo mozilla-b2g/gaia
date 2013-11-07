@@ -22,7 +22,13 @@ var VariantManager = {
   getVariantSettings: function vm_getVariantSettings(onsuccess, onerror) {
     var self = this;
     var filePath = this.CUSTOMIZATION_FILE;
-    Resources.load(filePath, 'json', function(data) {
+
+    var fileParams = {
+      type: 'json',
+      mimetype: 'application/json'
+    };
+
+    Resources.load(filePath, fileParams, function(data) {
       onsuccess && onsuccess(data);
     }, onerror);
   },

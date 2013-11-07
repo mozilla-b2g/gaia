@@ -1,13 +1,18 @@
 'use strict';
 
 var Resources = {
-  load: function load(url, type, onsuccess, onerror) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = type;
-    if (type == 'json') {
-      xhr.overrideMimeType('application/json');
+  load: function load(url, params, onsuccess, onerror) {
+    if (!params || !params.type) {
+      console.error('No params for retrieving the resource.');
+      return;
     }
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = params.type;
+    if (!params.mimetype) {
+      xhr.overrideMimeType(params.mimetype);
+    }
+    xhr.open('GET', url, true);
+
     xhr.onload = function() {
       if (xhr.status === 200) {
         onsuccess && onsuccess(xhr.response);

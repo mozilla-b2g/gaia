@@ -1,7 +1,12 @@
 'use strict';
 
 var DefaultContactsCustomizer = (function() {
-  Customizer.call(this, 'default_contacts', 'json');
+  var resourceParams = {
+    type: 'json',
+    mimetype: 'application/json'
+  };
+
+  Customizer.call(this, 'default_contacts', resourceParams);
   this.set = function(contacts) {
     for (var i = 0; i < contacts.length; ++i) {
       var contact = new mozContact(contacts[i]);
