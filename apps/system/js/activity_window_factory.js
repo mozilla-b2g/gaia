@@ -46,7 +46,7 @@
         case 'holdhome':
           this._activities.forEach(function iterator(activity) {
             // XXX: Change to close()
-            activity.close();
+            activity.kill();
           }, this);
           break;
 
