@@ -266,6 +266,7 @@ function execute(options) {
    'screen.timeout': 60,
    'software-button.enabled': false,
    'homegesture.enabled': false,
+   'edgesgesture.enabled': false,
    'support.onlinesupport.title': '',
    'support.onlinesupport.href': '',
    'support.callsupport1.title': '',
