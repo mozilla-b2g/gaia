@@ -6,6 +6,7 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ui_tests.app import UiTests
 
+
 class TestKeyboardPredictiveKey(GaiaTestCase):
 
     def test_keyboard_predictive_key(self):
@@ -13,8 +14,8 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         self.ui_tests.launch()
 
         # go to UI/keyboard page
-        self.ui_tests.tap_keyboard_option()
-        keyboard_page = self.ui_tests.switch_to_keyboard_page_frame()
+        keyboard_page = self.ui_tests.tap_keyboard_option()
+        keyboard_page.switch_to_frame()
 
         # tap the field "input type=text"
         keyboard = keyboard_page.tap_text_input()
@@ -25,14 +26,15 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         keyboard.send(expected_word[:6])
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.ui_tests.app.frame)
-        keyboard_page = self.ui_tests.switch_to_keyboard_page_frame()
+
+        keyboard_page.switch_to_frame()
         keyboard_page.tap_text_input()
 
         # tap the first predictive word
         keyboard.tap_first_predictive_word()
         self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.ui_tests.app.frame)
-        keyboard_page = self.ui_tests.switch_to_keyboard_page_frame()
+        keyboard_page.switch_to_frame()
 
         # check if the word in the input field is the same as the expected word
         typed_word = keyboard_page.text_input
