@@ -6,17 +6,18 @@ requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/js/permission_manager.js');
 
 function sendChromeEvent(evt_type, evt_permission) {
-  var detail = {'type': evt_type, 'permission': evt_permission,
+  var permissions = {};
+  permissions[evt_permission] = [''];
+  var detail = {'type': evt_type, 'permissions': permissions,
                 'origin': 'test', 'isApp': false };
   var evt = new CustomEvent('mozChromeEvent', { detail: detail });
   window.dispatchEvent(evt);
 }
 
-function sendMediaEvent(evt_type, evt_permission, evt_permissions, options) {
-  var detail = {'type': evt_type, 'permission': evt_permission,
+function sendMediaEvent(evt_type, evt_permissions) {
+  var detail = {'type': evt_type,
                 'permissions': evt_permissions,
-                'origin': 'test', 'isApp': false,
-                'options': options
+                'origin': 'test', 'isApp': false
                };
   var evt = new CustomEvent('mozChromeEvent', { detail: detail });
   window.dispatchEvent(evt);
@@ -208,10 +209,8 @@ suite('system/permission manager', function() {
 
       spyResponse = this.sinon.spy(PermissionManager,
         'dispatchResponse');
-      sendMediaEvent('permission-prompt', 'audio-capture',
-        ['audio-capture'], {'audio-capture': ['']});
-      sendMediaEvent('permission-prompt', 'audio-capture',
-        ['audio-capture'], {'audio-capture': ['']});
+      sendMediaEvent('permission-prompt', {'audio-capture': ['']});
+      sendMediaEvent('permission-prompt', {'audio-capture': ['']});
     });
 
     teardown(function() {
@@ -255,8 +254,7 @@ suite('system/permission manager', function() {
       PermissionManager.rememberSection = document.createElement('div');
       spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
 
-      sendMediaEvent('permission-prompt', 'audio-capture', ['audio-capture'],
-        {'audio-capture': ['']});
+      sendMediaEvent('permission-prompt', {'audio-capture': ['']});
     });
 
     teardown(function() {
@@ -295,7 +293,7 @@ suite('system/permission manager', function() {
       PermissionManager.rememberSection = document.createElement('div');
       spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
 
-      sendMediaEvent('permission-prompt', 'video-capture', ['video-capture'],
+      sendMediaEvent('permission-prompt',
         {'video-capture': ['front', 'back']});
     });
 
@@ -332,8 +330,7 @@ suite('system/permission manager', function() {
       PermissionManager.rememberSection = document.createElement('div');
       spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
 
-      sendMediaEvent('permission-prompt', 'audio-capture',
-        ['audio-capture', 'video-capture'],
+      sendMediaEvent('permission-prompt',
         {
           'video-capture': ['front', 'back'],
           'audio-capture': ['']
