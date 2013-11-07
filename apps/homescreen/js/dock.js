@@ -218,6 +218,9 @@ var DockManager = (function() {
       if (numIcons <= maxNumAppInViewPort) {
         dock.moveBy(maxOffsetLeft / 2);
       }
+
+      // The dock is always visible.
+      container.removeAttribute('aria-hidden');
     },
 
     onDragStop: function dm_onDragStop(callback) {
