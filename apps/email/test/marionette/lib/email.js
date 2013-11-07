@@ -338,18 +338,45 @@ Email.prototype = {
     });
   },
 
+  _onTransitionEndScriptTimeout: function(cardId) {
+    var result = this.client.executeScript(function(cardId) {
+      var Cards = window.wrappedJSObject.require('mail_common').Cards,
+          card = Cards._cardStack[Cards.activeCardIndex],
+          cardNode = card && card.domNode;
+
+      return {
+        cardNode: !!cardNode,
+        centered: cardNode && cardNode.classList.contains('center'),
+        correctId: cardNode && cardNode.dataset.type === cardId,
+        eventsClear: !Cards._eatingEventsUntilNextCard
+      };
+    }, [cardId]);
+
+    console.log('TRANSITION END TIMEOUT:');
+    console.log(JSON.stringify(result, null, '  '));
+  },
+
   _waitForTransitionEnd: function(cardId) {
     var client = this.client;
+
+    // To find out what is wrong with an intermittent failure in here,
+    // log the script test criteria
+    client.onScriptTimeout = this._onTransitionEndScriptTimeout
+                                 .bind(this, cardId);
+
     client.waitFor(function() {
       return client.executeScript(function(cardId) {
         var Cards = window.wrappedJSObject.require('mail_common').Cards,
             card = Cards._cardStack[Cards.activeCardIndex],
             cardNode = card && card.domNode;
+
         return !!cardNode && cardNode.classList.contains('center') &&
                cardNode.dataset.type === cardId &&
                !Cards._eatingEventsUntilNextCard;
       }, [cardId]);
     });
+
+    client.onScriptTimeout = null;
   },
 
   _waitForNoTransition: function() {
