@@ -160,6 +160,7 @@ function execute() {
    'icc.data': null,
    'icc.displayTextTimeout': 40000,
    'icc.inputTextTimeout': 40000,
+   'icc.toneDefaultTimeout': 5000,
    'icc.goBackTimeout': 1000,
    'icc.selectTimeout': 150000,
    'keyboard.layouts.english': true,

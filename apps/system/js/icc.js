@@ -8,6 +8,7 @@ var icc = {
   _displayTextTimeout: 40000,
   _defaultURL: null,
   _inputTimeout: 40000,
+  _toneDefaultTimeout: 5000,
 
   init: function icc_init() {
     this._icc = this.getICC();
@@ -35,6 +36,13 @@ var icc = {
       'icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       self._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
+    };
+    // Update toneDefaultTimeout with settings parameter
+    var reqToneDefaultTimeout = window.navigator.mozSettings.createLock().get(
+      'icc.toneDefaultTimeout');
+    reqToneDefaultTimeout.onsuccess = function icc_getToneDefaultTimeout() {
+      self._toneDefaultTimeout =
+        reqToneDefaultTimeout.result['icc.toneDefaultTimeout'];
     };
   },
 
