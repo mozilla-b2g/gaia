@@ -124,6 +124,10 @@ html, body {
   border-bottom: 0.1rem black solid;
 }
 
+.notification:active {
+  background-color: rgba(52,140,158, .6);
+}
+
 .notification:first-child {
   border-top-color: black;
 }
