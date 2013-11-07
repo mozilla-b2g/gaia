@@ -1,4 +1,4 @@
-#filmstrip {
+.filmstrip {
   transition: 0.2s ease-in-out;
   position: absolute;
   z-index: 100;
@@ -11,6 +11,10 @@
    * in camera mode, we'll have to change it with javascript
    */
   background: black;
+}
+
+.filmstriphidden .filmstrip {
+  transform: translateY(-5rem);
 }
 
 img.thumbnail {
@@ -31,18 +35,18 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
 /*
  * Make the thumbnails rotate with the phone
  */
-#filmstrip[data-orientation="90"] img.thumbnail {
+.filmstrip[data-orientation="90"] img.thumbnail {
   transform: rotate(-90deg);
 }
-#filmstrip[data-orientation="180"] img.thumbnail {
+.filmstrip[data-orientation="180"] img.thumbnail {
   transform: rotate(-180deg);
 }
-#filmstrip[data-orientation="270"] img.thumbnail {
+.filmstrip[data-orientation="270"] img.thumbnail {
   transform: rotate(-270deg);
 }
 
 /* this is where we display image and video previews */
-#preview {
+.preview {
   position: absolute;
   left: 0;
   width: 100%;
@@ -58,7 +62,11 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   transform-origin: 0 0;
 }
 
-#frame-container {
+.preview.offscreen {
+  transform: translateY(-100%) scale(.125) translateX(50%);
+}
+
+.frame-container {
   position: absolute;
   left: 0;
   top: 0;
@@ -70,12 +78,12 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   -moz-user-select: none;
 }
 
-#media-frame {
+.media-frame {
   position: absolute;
   /* size, position, and rotation are set based on the phone orientation */
 }
 
-#media-frame > img {
+.media-frame > img {
   top: 0;  /* javascript modifies this position with a transform */
   left: 0;
   position: absolute;
@@ -87,11 +95,11 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   -moz-user-select: none;
 }
 
-#media-frame > video {
+.media-frame > video {
   transform-origin: 0 0;
 }
 
-#preview-controls {
+.preview-controls {
   position: absolute;
   left: 0;
   right: 0;
@@ -101,7 +109,7 @@ img.thumbnail.previewed {  /* if the thumbnail is being previewed */
   z-index: 100; /* above the dynamically inserted frame elements */
 }
 
-a.button {
+.button {
   display: block;
   padding: 0;
   margin: 0;
@@ -112,15 +120,16 @@ a.button {
   transition: 0.2s ease-in-out;
 }
 
-a.button:active, a.button:focus {
+.button:active,
+.button:focus {
   outline: none;
 }
 
-a.button.hidden {
+.button.hidden {
   display: none;
 }
 
-#camera-button {
+.camera-button {
  position: absolute;
  left: 0;
  width: 33%;
@@ -129,7 +138,7 @@ a.button.hidden {
  background-size: 3rem;
 }
 
-#share-button {
+.share-button {
  position: absolute;
  left: 33%;
  width: 33%;
@@ -138,7 +147,7 @@ a.button.hidden {
  background-size: 3rem;
 }
 
-#delete-button {
+.delete-button {
  position: absolute;
  left: 67%;
  width: 33%;
@@ -150,12 +159,12 @@ a.button.hidden {
 /*
  * Make the button icons rotate with the phone
  */
-#preview[data-orientation="90"] a.button {
+.preview[data-orientation="90"] a.button {
   transform: rotate(-90deg);
 }
-#preview[data-orientation="180"] a.button {
+.preview[data-orientation="180"] a.button {
   transform: rotate(-180deg);
 }
-#preview[data-orientation="270"] a.button {
+.preview[data-orientation="270"] a.button {
   transform: rotate(-270deg);
 }
