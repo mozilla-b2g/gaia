@@ -611,16 +611,16 @@
     };
 
     this.queryIndexUpdated = function queryIndexUpdated() {
-      Evme.Collection.onQueryIndexUpdated();
-    };
-
-    this.appIndexUpdated = function appIndexUpdated() {
-      if (currentResultsManager &&
+      // update the results only if search is open
+      var searchValue = Evme.Searchbar.getValue();
+      if (searchValue && currentResultsManager &&
             currentResultsManager === Evme.SearchResults) {
         Evme.SearchResults.onNewQuery({
-          'query': Evme.Searchbar.getValue()
+          'query': searchValue
         });
       }
+
+      Evme.Collection.onQueryIndexUpdated();
     };
   };
 
