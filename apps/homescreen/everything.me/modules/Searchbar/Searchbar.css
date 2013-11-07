@@ -56,10 +56,9 @@
     body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-q-bg {
         background-position: 98% 1.1rem;
     }
-    
+
     #evmeContainer #search-q,
-    #evmeContainer #search-q-bg,
-    #evmeContainer #search-selection {
+    #evmeContainer #search-q-bg {
         position: relative;
         font-size: 1.5rem;
         vertical-align: middle;
@@ -67,6 +66,10 @@
         text-transform: lowercase;
         height: 100%;
         -moz-box-sizing: border-box;
+    }
+    #evmeContainer #search-q::-moz-placeholder,
+    #evmeContainer #search-q-bg::-moz-placeholder {
+        text-transform: none;
     }
     #evmeContainer #search-header fieldset {
         height: 100%;
@@ -96,7 +99,7 @@
     #evmeContainer #search-q:focus {
         outline: none;
     }
-        
+
     #evmeContainer #button-clear {
         position: absolute;
         top: 0rem;
@@ -110,19 +113,6 @@
         display: none;
     }
     #evmeContainer .clear-visible #button-clear {
-        display: block;
-    }
-    
-    #evmeContainer #default-text {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0.7rem;
-        color: #a0a0a0;
-        text-transform: none;
-        display: none;
-    }
-    #evmeContainer.empty-query #default-text {
         display: block;
     }
 

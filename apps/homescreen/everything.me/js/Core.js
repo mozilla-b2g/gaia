@@ -206,7 +206,6 @@ window.Evme = new function Evme_Core() {
     Evme.Searchbar.init({
       'el': Evme.$('#search-q'),
       'elForm': Evme.$('#search-rapper'),
-      'elDefaultText': Evme.$('#default-text'),
       'timeBeforeEventPause': data.searchbar.timeBeforeEventPause,
       'timeBeforeEventIdle': data.searchbar.timeBeforeEventIdle,
       'setFocusOnClear': false
