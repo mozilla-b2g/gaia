@@ -211,6 +211,8 @@ var LockScreen = {
     /* blocking holdhome and prevent Cards View from show up */
     window.addEventListener('holdhome', this, true);
 
+    window.addEventListener('ftuopen', this);
+
     /* mobile connection state on lock screen */
     var conn = window.navigator.mozMobileConnection;
     if (conn && conn.voice) {
@@ -311,6 +313,9 @@ var LockScreen = {
 
   handleEvent: function ls_handleEvent(evt) {
     switch (evt.type) {
+      case 'ftuopen':
+        this.unlock(true);
+        break;
       case 'screenchange':
         // Don't lock if screen is turned off by promixity sensor.
         if (evt.detail.screenOffBy == 'proximity') {

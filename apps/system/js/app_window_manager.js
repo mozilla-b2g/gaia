@@ -168,7 +168,6 @@
           break;
 
         case 'ftuskip':
-          InitLogoHandler.animate();
           this.display(HomescreenLauncher.origin);
           break;
 
