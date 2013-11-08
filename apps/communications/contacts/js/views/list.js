@@ -206,6 +206,22 @@ contacts.List = (function() {
     }
   };
 
+  function hide() {
+    contactsListView.classList.add('hide');
+    if (monitor) {
+      monitor.pauseMonitoringMutations();
+    }
+  }
+
+  function show() {
+    contactsListView.classList.remove('hide');
+    needImgLoaderReload = true;
+    if (monitor) {
+      monitor.resumeMonitoringMutations(true);
+    }
+    FixedHeader.refresh();
+  }
+
   // Define a source adapter object to pass to contacts.Search.
   //
   // Since multiple, separate apps use contacts.Search its important for
@@ -1292,7 +1308,7 @@ contacts.List = (function() {
     });
   };
 
-  var refreshContact = function refreshContact(contact, enriched, callback) {
+  function refreshContact(contact, enriched, callback) {
     remove(contact.id);
     addToList(contact, enriched);
     if (callback)
@@ -1774,6 +1790,8 @@ contacts.List = (function() {
     'getContactById': getContactById,
     'getAllContacts': getAllContacts,
     'handleClick': handleClick,
+    'hide': hide,
+    'show': show,
     'initAlphaScroll': initAlphaScroll,
     'initSearch': initSearch,
     'remove': remove,
