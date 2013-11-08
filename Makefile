@@ -14,6 +14,8 @@
 #               the offline cache. This is mostly for desktop debugging.      #
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
+#
+# MARIONETTE_RUNNER_HOST : The Marionnette runner host.
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
@@ -119,6 +121,7 @@ MOCHA_REPORTER?=dot
 NPM_REGISTRY?=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
+MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
@@ -685,7 +688,7 @@ b2g: node_modules/.bin/mozilla-download
 test-integration:
 	# override existing profile-test folder.
 	PROFILE_FOLDER=profile-test make
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
+	MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
 		--reporter $(MOCHA_REPORTER)
 
 .PHONY: test-perf
