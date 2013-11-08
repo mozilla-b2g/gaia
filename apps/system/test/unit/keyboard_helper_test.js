@@ -21,7 +21,7 @@ suite('KeyboardHelper', function() {
       origin: keyboardAppOrigin,
       manifest: {
         role: 'input',
-        entry_points: {
+        inputs: {
           en: {
             types: ['url', 'text'],
             launch_path: '/index.html#en'
@@ -137,13 +137,13 @@ suite('KeyboardHelper', function() {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
             role: 'input',
-            entry_points: {}
+            inputs: {}
           }
         }, {
           origin: 'app://keyboard2.gaiamobile.org',
           manifest: {
             role: 'input',
-            entry_points: {}
+            inputs: {}
           }
         },
         // invalid because it's system
@@ -151,10 +151,10 @@ suite('KeyboardHelper', function() {
           origin: 'app://system.gaiamobile.org',
           manifest: {
             role: 'input',
-            entry_points: {}
+            inputs: {}
           }
         },
-        // invalid because there aren't entry_points
+        // invalid because there aren't inputs
         {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: { role: 'input' }
@@ -164,7 +164,7 @@ suite('KeyboardHelper', function() {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
             role: 'notinput',
-            entry_points: {}
+            inputs: {}
           }
         }
       ];
@@ -298,7 +298,7 @@ suite('KeyboardHelper', function() {
         origin: keyboardAppOrigin,
         manifest: {
           role: 'input',
-          entry_points: {
+          inputs: {
             en: {
               types: ['text', 'url']
             },
@@ -312,7 +312,7 @@ suite('KeyboardHelper', function() {
         origin: 'app://keyboard2.gaiamobile.org',
         manifest: {
           role: 'input',
-          entry_points: {
+          inputs: {
             number: {
               types: ['number', 'url']
             }
@@ -392,10 +392,10 @@ suite('KeyboardHelper', function() {
           if (!inOrder) {
             return false;
           }
-          if (layout.entryPoint.types.length < inOrder) {
+          if (layout.inputManifest.types.length < inOrder) {
             return false;
           }
-          return layout.entryPoint.types.length;
+          return layout.inputManifest.types.length;
         }, 1));
       });
     });
@@ -433,7 +433,7 @@ suite('KeyboardHelper', function() {
       });
       test('only number keyboards', function() {
         assert.ok(this.result.every(function(layout) {
-          return layout.entryPoint.types.indexOf('number') !== -1;
+          return layout.inputManifest.types.indexOf('number') !== -1;
         }));
       });
     });
@@ -452,7 +452,7 @@ suite('KeyboardHelper', function() {
       });
       test('only url keyboards', function() {
         assert.ok(this.result.every(function(layout) {
-          return layout.entryPoint.types.indexOf('url') !== -1;
+          return layout.inputManifest.types.indexOf('url') !== -1;
         }));
       });
     });
