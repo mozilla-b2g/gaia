@@ -62,7 +62,9 @@ var PermissionManager = {
           }
         } else {
           console.log('XXX version < v1.2 does not support new permissions');
-          return;
+          if (detail.permission) {
+            this.currentPermission = detail.permission;
+          }
         }
 
         // set default permission
