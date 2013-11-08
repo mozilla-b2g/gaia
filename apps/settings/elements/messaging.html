@@ -1,0 +1,69 @@
+<element name="messaging" extends="section">
+  <template>
+
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="messagingSettings"> Messaging Settings </h1>
+    </header>
+
+    <div>
+      <header>
+        <h2 data-l10n-id="message-confirmation"> Message confirmation </h2>
+      </header>
+      <ul id="general-message-list">
+        <li id="menuItem-deliveryReport" aria-disabled="true" class="hint">
+          <label class="pack-switch">
+            <input type="checkbox" name="ril.sms.requestStatusReport.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="message-delivery-reports"> Delivery reports </a>
+          <p class="explanation" data-l10n-id="message-delivery-reports-details">Request notification of delivery for each message sent</p>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="mmsTitle"> Multimedia messaging (MMS) </h2>
+      </header>
+      <ul class="mmsSettings-list">
+        <li id="menuItem-autoRetrieve" aria-disabled="true" class="hint">
+          <a data-l10n-id="auto-retrieve">Auto retrieve</a>
+          <p class="explanation" data-l10n-id="auto-retrieve-details">automatically retieve messages</p>
+          <p class="fake-select">
+            <button class="icon icon-dialog">empty</button>
+            <select data-setting="ril.mms.retrieval_mode">
+              <option value="manual" data-l10n-id="manual-retrieve">Off</option>
+              <option value="automatic" data-l10n-id="auto-roaming-retrieve">On with roaming</option>
+              <option value="automatic-home" data-l10n-id="auto-no-roaming-retrieve">On without roaming/option>
+            </select>
+          </p>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="wapPushMessages"> WAP Push messages </h2>
+      </header>
+      <ul>
+        <li id="menuItem-wapPush" aria-disabled="true">
+          <label class="pack-switch">
+            <input type="checkbox" name="wap.push.enabled"/>
+            <span></span>
+          </label>
+          <a data-l10n-id="wapPush">WAP Push</a>
+        </li>
+      </ul>
+      <header>
+        <h2 data-l10n-id="cellBroadcastMessages"> Cell broadcast messages (MMS) </h2>
+      </header>
+      <ul>
+        <li id="menuItem-cellBroadcast" aria-disabled="true">
+          <label class="pack-switch checkbox-label">
+            <input type="checkbox" data-ignore disabled />
+            <span></span>
+          </label>
+          <a data-l10n-id="callBroadcast">Cell broadcast</a>
+        </li>
+      </ul>
+    </div>
+
+    <script src="js/messaging.js"></script>
+
+  </template>
+</element>

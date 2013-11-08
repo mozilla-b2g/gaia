@@ -23,6 +23,7 @@ var Connectivity = (function(window, document, undefined) {
 
   mobileConnection.addEventListener('datachange', updateCarrier);
   IccHelper.addEventListener('cardstatechange', updateCallSettings);
+  IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
 
   // XXX if wifiManager implements addEventListener function
   // we can remove these listener lists.
@@ -84,6 +85,7 @@ var Connectivity = (function(window, document, undefined) {
 
     updateCarrier();
     updateCallSettings();
+    updateMessagingSettings();
     updateWifi();
     updateBluetooth();
     // register blutooth system message handler
@@ -259,6 +261,27 @@ var Connectivity = (function(window, document, undefined) {
     // update the current SIM card state
     var cardState = IccHelper.cardState || 'null';
     localize(callDesc, kCardStateL10nId[cardState]);
+  }
+
+  /**
+   * Messaging Settings
+   */
+
+  var messagingDesc = document.getElementById('messaging-desc');
+  messagingDesc.style.fontStyle = 'italic';
+
+  function updateMessagingSettings() {
+    if (!_initialized) {
+      init();
+      return; // init will call updateMessagingSettings()
+    }
+
+    if (!IccHelper.enabled)
+      return;
+
+    // update the current SIM card state
+    var cardState = IccHelper.cardState || 'null';
+    localize(messagingDesc, kCardStateL10nId[cardState]);
   }
 
   /**
