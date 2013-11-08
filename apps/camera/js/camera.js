@@ -948,19 +948,29 @@ var Camera = {
 
     // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
+      // var isLarger = res.height >= screenHeight && res.width >= screenWidth;
       var aspectRatio = res.height / res.width;
       var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
-      return matchesRatio && isLarger;
+      return matchesRatio;
     });
 
     // We should always have a valid preview size, but just in case
     // we dont, pick the first provided.
-    if (validPreviews.length) {
-      // Pick the smallest valid preview
+    var validPreviewsLength = validPreviews.length;
+    if (validPreviewsLength) {
+      // Pick the approximate valid preview
+      for (var i = 0; i < validPreviewsLength; i++) {
+        var widthDiff = screenWidth - validPreviews[i].width;
+        var heightDiff = screenHeight - validPreviews[i].height;
+        validPreviews[i].diff =
+              Math.pow((widthDiff * widthDiff + heightDiff * heightDiff), 0.5);
+      }
       this._previewConfig = validPreviews.sort(function(a, b) {
-        return a.width * a.height - b.width * b.height;
+        return a.diff - b.diff;
       }).shift();
+      // this._previewConfig = validPreviews.sort(function(a, b) {
+      //   return a.width * a.height - b.width * b.height;
+      // }).shift();
     } else {
       this._previewConfig = camera.capabilities.previewSizes[0];
     }
