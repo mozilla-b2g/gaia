@@ -188,16 +188,16 @@ var ValueSelector = {
 
     if (this._currentPickerType === 'select-one') {
       var selectee = this._containers['select'].
-          querySelectorAll('[aria-selected="true"]');
+          querySelectorAll('[aria-checked="true"]');
       for (var i = 0; i < selectee.length; i++) {
-        selectee[i].removeAttribute('aria-selected');
+        selectee[i].removeAttribute('aria-checked');
       }
 
-      target.setAttribute('aria-selected', 'true');
-    } else if (target.getAttribute('aria-selected') === 'true') {
-      target.removeAttribute('aria-selected');
+      target.setAttribute('aria-checked', 'true');
+    } else if (target.getAttribute('aria-checked') === 'true') {
+      target.removeAttribute('aria-checked');
     } else {
-      target.setAttribute('aria-selected', 'true');
+      target.setAttribute('aria-checked', 'true');
     }
 
     // setValue here to trigger change event
@@ -205,7 +205,7 @@ var ValueSelector = {
     var optionIndices = [];
 
     var selectee = this._containers['select'].
-          querySelectorAll('[aria-selected="true"]');
+          querySelectorAll('[aria-checked="true"]');
 
     if (this._currentPickerType === 'select-one') {
 
@@ -352,15 +352,15 @@ var ValueSelector = {
 
     for (var i = 0, n = options.length; i < n; i++) {
 
-      var checked = options[i].selected ? ' aria-selected="true"' : '';
+      var checked = options[i].selected ? ' aria-checked="true"' : '';
 
       // This for attribute is created only to avoid applying
       // a general rule in building block
       var forAttribute = ' for="gaia-option-' + options[i].optionIndex + '"';
 
-      optionHTML += '<li role="option" data-option-index="' +
-                     options[i].optionIndex + '"' + checked + '>' +
-                     '<label role="presentation"' + forAttribute + '> <span>' +
+      optionHTML += '<li data-option-index="' + options[i].optionIndex + '"' +
+                     checked + '>' +
+                     '<label' + forAttribute + '> <span>' +
                      escapeHTML(options[i].text) +
                      '</span></label>' +
                     '</li>';
@@ -370,10 +370,6 @@ var ValueSelector = {
                              '#value-selector-container ol');
     if (!optionsContainer)
       return;
-
-    // Add ARIA property to notify if this is a multi-select or not.
-    optionsContainer.setAttribute('aria-multiselectable',
-      this._currentPickerType !== 'select-one');
 
     optionsContainer.innerHTML = optionHTML;
 
