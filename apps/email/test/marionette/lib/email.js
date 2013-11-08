@@ -379,14 +379,36 @@ Email.prototype = {
     client.onScriptTimeout = null;
   },
 
+  _onNoTransitionScriptTimeout: function() {
+    var result = this.client.executeScript(function() {
+      var Cards = window.wrappedJSObject.require('mail_common').Cards;
+
+      return {
+        cards: !!Cards,
+        eventsClear: !!Cards && !Cards._eatingEventsUntilNextCard
+      };
+    });
+
+    console.log('NO TRANSITION TIMEOUT:');
+    console.log(JSON.stringify(result, null, '  '));
+  },
+
   _waitForNoTransition: function() {
     var client = this.client;
+
+    // To find out what is wrong with an intermittent failure in here,
+    // log the script test criteria
+    client.onScriptTimeout = this._onNoTransitionScriptTimeout
+                                 .bind(this);
+
     client.waitFor(function() {
       return client.executeScript(function() {
         var Cards = window.wrappedJSObject.require('mail_common').Cards;
         return !Cards._eatingEventsUntilNextCard;
       });
     });
+
+    client.onScriptTimeout = null;
   },
 
   _setupTypeName: function(name) {
