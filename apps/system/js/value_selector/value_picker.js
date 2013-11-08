@@ -7,7 +7,6 @@ var ValuePicker = (function() {
   //
   function VP(e, unitStyle) {
     this.element = e;
-    this.container = e.parentNode;
     this._valueDisplayedText = unitStyle.valueDisplayedText;
     this._unitClassName = unitStyle.className;
     this._top = 0;
@@ -86,9 +85,6 @@ var ValuePicker = (function() {
       index++;
     }
 
-    this.container.setAttribute('aria-valuemin', this._lower);
-    this.container.setAttribute('aria-valuemax', this._upper);
-
     this._range = this._upper - this._lower + 1;
     this.setSelectedIndex(this._currentIndex);
   };
@@ -99,7 +95,6 @@ var ValuePicker = (function() {
   VP.prototype.init = function() {
     this.initUI();
     this.setSelectedIndex(0); // Default Index is zero
-    this.keypressHandler = vp_keypress.bind(this);
     this.mousedonwHandler = vp_mousedown.bind(this);
     this.mousemoveHandler = vp_mousemove.bind(this);
     this.mouseupHandler = vp_mouseup.bind(this);
@@ -107,9 +102,8 @@ var ValuePicker = (function() {
   };
 
   VP.prototype.initUI = function() {
-    this.container.setAttribute('role', 'spinbutton');
-    this.container.setAttribute('aria-valuemin', this._lower);
-    this.container.setAttribute('aria-valuemax', this._upper);
+    var lower = this._lower;
+    var upper = this._upper;
     var unitCount = this._valueDisplayedText.length;
     for (var i = 0; i < unitCount; ++i) {
       this.addPickerUnit(i);
@@ -134,14 +128,10 @@ var ValuePicker = (function() {
     if (true !== ignorePicker) {
       this._top = -index * this._space;
       this.element.style.transform = 'translateY(' + this._top + 'px)';
-      this.container.setAttribute('aria-valuenow', index);
-      this.container.setAttribute('aria-valuetext',
-                                  this._valueDisplayedText[index]);
     }
   };
 
   VP.prototype.addEventListeners = function() {
-    this.container.addEventListener('keypress', this.keypressHandler, false);
     this.element.addEventListener('mousedown', this.mousedonwHandler, false);
   };
 
@@ -156,12 +146,6 @@ var ValuePicker = (function() {
     this.element.removeEventListener('mouseup', this.mouseupHandler, false);
     this.element.removeEventListener('mousemove', this.mousemoveHandler, false);
     this.element.style.transform = 'translateY(0px)';
-    this.container.removeEventListener('keypress', this.keypressHandler, false);
-    this.container.removeAttribute('role');
-    this.container.removeAttribute('aria-valuemin');
-    this.container.removeAttribute('aria-valuemax');
-    this.container.removeAttribute('aria-valuenow');
-    this.container.removeAttribute('aria-valuetext');
     this.onselectedindexchange = null;
     empty(this.element);
   };
@@ -259,13 +243,6 @@ var ValuePicker = (function() {
     this.removeEventListeners();
     this.element.addEventListener('mousemove', this.mousemoveHandler, false);
     this.element.addEventListener('mouseup', this.mouseupHandler, false);
-  }
-
-  function vp_keypress(event) {
-    if (event.keyCode == KeyEvent.DOM_VK_DOWN)
-      this.setSelectedIndex(this._currentIndex - 1);
-    else
-      this.setSelectedIndex(this._currentIndex + 1);
   }
 
   return VP;
