@@ -1168,6 +1168,11 @@ contacts.List = (function() {
   };
 
   var remove = function remove(id) {
+    // Nothing to do if we don't know about this contact
+    if (!(id in selectedContacts)) {
+      return;
+    }
+
     // Could be more than one item if it's in favorites
     var items = groupsList.querySelectorAll('li[data-uuid=\"' + id + '\"]');
     // We have a node list, not an array, and we want to walk it
