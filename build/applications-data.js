@@ -371,7 +371,8 @@ function execute(options) {
   init = utils.getFile(config.GAIA_DIR,
     'apps', 'settings', 'resources', 'network.json');
   content = {
-    'types': ['wcdma/gsm', 'gsm', 'wcdma']
+    'types': ['wcdma/gsm', 'gsm', 'wcdma', 'wcdma/gsm-auto', 'cdma/evdo',
+              'cdma', 'evdo', 'wcdma/gsm/cdma/evdo']
   };
 
   utils.writeContent(init,
