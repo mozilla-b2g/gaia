@@ -87,6 +87,14 @@ body[data-path^='/settings'] #time-views {
   background-color: rgba(0, 0, 0, 0.3);
 }
 
+#settings .sync {
+  display: none;
+}
+
+#settings .sync.active {
+  display: block;
+}
+
 .pending-operation #settings .sync {
   display: none;
 }
