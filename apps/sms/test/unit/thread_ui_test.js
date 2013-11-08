@@ -3764,6 +3764,10 @@ suite('thread_ui.js >', function() {
       test('calls focus', function() {
         assert.ok(Compose.focus.called);
       });
+
+      test('content is escaped', function() {
+        assert.ok(Template.escape.called);
+      });
     });
 
     suite('without data', function() {
