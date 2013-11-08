@@ -565,11 +565,21 @@ var Contacts = (function() {
   };
 
   var showOverlay = function c_showOverlay(message, progressClass, textId) {
-    return utils.overlay.show(message, progressClass, textId);
+    var out = utils.overlay.show(message, progressClass, textId);
+    // When we are showing the overlay we are often performing other
+    // significant work, such as importing.  While performing this work
+    // it would be nice to avoid the overhead of any accidental reflows
+    // due to touching the list DOM.  For example, importing incrementally
+    // adds contacts to the list which triggers many reflows.  Therefore,
+    // minimize this impact by hiding the list while we are showing the
+    // overlay.
+    contacts.List.hide();
+    return out;
   };
 
   var hideOverlay = function c_hideOverlay() {
     Contacts.utility('Overlay', function _loaded() {
+      contacts.List.show();
       utils.overlay.hide();
     });
   };
