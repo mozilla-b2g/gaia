@@ -2600,6 +2600,82 @@ suite('thread_ui.js >', function() {
 
   });
 
+
+  suite('updateCarrier', function() {
+    var contacts = [], details, number;
+    var threadMessages, carrierTag;
+
+    suiteSetup(function() {
+      contacts.push(new MockContact());
+      number = contacts[0].tel[0].value;
+      details = Utils.getContactDetails(number, contacts);
+    });
+
+    setup(function() {
+      loadBodyHTML('/index.html');
+      threadMessages = document.getElementById('thread-messages');
+      carrierTag = document.getElementById('contact-carrier');
+      this.sinon.spy(ThreadUI, 'updateInputHeight');
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    test(' If there is >1 participant, hide carrier info', function() {
+      var thread = {
+        participants: [number, '123123']
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.isFalse(threadMessages.classList.contains('has-carrier'));
+    });
+
+    test(' If there is one participant & contacts', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.isTrue(threadMessages.classList.contains('has-carrier'));
+    });
+
+    test(' If there is one participant & no contacts', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, [], details);
+      assert.isFalse(threadMessages.classList.contains('has-carrier'));
+    });
+
+    test(' input height are updated properly', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.ok(ThreadUI.updateInputHeight.calledOnce);
+
+      // Change number of recipients,so now there should be no carrier
+      thread.participants.push('123123');
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.ok(ThreadUI.updateInputHeight.calledTwice);
+    });
+
+    test(' input height are not updated if its not needed', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.isFalse(ThreadUI.updateInputHeight.calledTwice);
+    });
+
+  });
+
   suite('Long press on the bubble >', function() {
     var messageId = 23;
     var link, messageDOM, contextMenuEvent;

@@ -62,6 +62,11 @@ var ThreadListUI = {
     this.editForm.addEventListener(
       'submit', this
     );
+
+    navigator.mozContacts.addEventListener(
+      'contactchange',
+      this.updateContactsInfo.bind(this)
+    );
   },
 
   getAllInputs: function thlui_getAllInputs() {
