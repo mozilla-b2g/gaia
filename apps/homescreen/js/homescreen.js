@@ -87,22 +87,36 @@ var Homescreen = (function() {
       var contextMenuEl = document.getElementById('contextmenu-dialog');
 
       var searchPage = Configurator.getSection('search_page');
-      if (searchPage && searchPage.enabled) {
-        LazyLoader.load(['style/contextmenu.css',
-                         'shared/style/action_menu.css',
-                         contextMenuEl,
-                         'js/contextmenu.js'
-                         ], function callContextMenu() {
-                          navigator.mozL10n.translate(contextMenuEl);
-                          ContextMenuDialog.show();
-                        }
-        );
-      } else {
+      var notTinyLayout = !ScreenLayout.getCurrentLayout('tiny');
+
+      // Edge case
+      if (searchPage && !searchPage.enabled && !notTinyLayout) {
         // only wallpaper
         LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
                       function callWallpaper() {
                         Wallpaper.contextmenu();
                       });
+      } else {
+        LazyLoader.load(['style/contextmenu.css',
+                         'shared/style/action_menu.css',
+                         contextMenuEl,
+                         'js/contextmenu.js'
+                         ], function callContextMenu() {
+            navigator.mozL10n.translate(contextMenuEl);
+
+            if (searchPage && !searchPage.enabled) {
+              var eme =
+              document.getElementById('contextmenu-dialog-collections-button');
+              eme.style.display = 'none';
+            }
+            if (!notTinyLayout) {
+              var slideshow =
+              document.getElementById('contextmenu-dialog-slideshow-button');
+              slideshow.style.display = 'none';
+            }
+            ContextMenuDialog.show();
+          }
+        );
       }
     }
   }

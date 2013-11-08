@@ -3,7 +3,8 @@
 var ContextMenuDialog = (function() {
   var initialized = false;
 
-  var dialog, wallpaperButton, collectionsButton, cancelButton;
+  var dialog, wallpaperButton, collectionsButton,
+      slideshowButton, cancelButton;
 
   function initialize() {
     if (initialized) {
@@ -17,6 +18,9 @@ var ContextMenuDialog = (function() {
 
     collectionsButton =
       document.getElementById('contextmenu-dialog-collections-button');
+
+    slideshowButton =
+      document.getElementById('contextmenu-dialog-slideshow-button');
 
     cancelButton =
       document.getElementById('contextmenu-dialog-cancel-button');
@@ -38,11 +42,20 @@ var ContextMenuDialog = (function() {
     });
   }
 
+  function playSlideShow() {
+    hide(function() {
+      new MozActivity({
+        name: 'slideshow'
+      });
+    }
+  }
+
   function show() {
     initialize();
 
     wallpaperButton.addEventListener('click', chooseWallpaper);
     collectionsButton.addEventListener('click', addCollection);
+    slideshowButton.addEventListener('click', playSlideShow);
     cancelButton.addEventListener('click', hide);
 
     var classList = dialog.classList;
@@ -58,6 +71,7 @@ var ContextMenuDialog = (function() {
 
     wallpaperButton.removeEventListener('click', chooseWallpaper);
     collectionsButton.removeEventListener('click', addCollection);
+    slideshowButton.removeEventListener('click', playSlideShow);
     cancelButton.removeEventListener('click', hide);
 
     var classList = dialog.classList;
