@@ -12,7 +12,7 @@ class Settings(Base):
 
     _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
     _data_text_locator = (By.ID, 'data-desc')
-    _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
+    _airplane_switch_locator = (By.XPATH, "//input[@name='ril.radio.disabled']/..")
     _wifi_text_locator = (By.ID, 'wifi-desc')
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")

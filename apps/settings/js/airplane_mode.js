@@ -23,7 +23,7 @@ var AirplaneMode = {
    */
   _doNotify: false,
 
-  element: document.getElementById('airplaneMode-input'),
+  element: document.querySelector('input[name="ril.radio.disabled"]'),
 
   /**
    * Enable the radio state
@@ -48,42 +48,11 @@ var AirplaneMode = {
     }
   },
 
-  _initRadioSwitch: function() {
-    var mobileConnection = getMobileConnection();
-    // See bug 933659
-    // Gecko stops using the settings key 'ril.radio.disabled' to turn
-    // off RIL radio, but use mobileConnection.setRadioEnabled instead. We need
-    // to remove the code that checks existence of the new API after bug 856553
-    // lands.
-    var _setRadioEnabled = function(enabled) {
-      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
-        var req = mobileConnection.setRadioEnabled(enabled);
-        req.onsuccess = function() {
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': !enabled}
-          );
-        };
-        req.onerror = function() {
-          SettingsListener.getSettingsLock().set(
-            {'ril.radio.disabled': enabled}
-          );
-        };
-      } else {
-        SettingsListener.getSettingsLock().set(
-          {'ril.radio.disabled': !enabled}
-        );
-      }
-    };
-
-    var self = this;
-    SettingsListener.observe('ril.radio.disabled', false, function(value) {
-      self.element.checked = value;
-    });
-    this.element.addEventListener('change', function(e) {
-      this.disabled = true;
-      var enabled = !this.checked;
-      _setRadioEnabled(enabled);
-    });
+  /**
+   * Called when the user interacts with the airplane_mode switch
+   */
+  handleEvent: function(e) {
+    this.element.disabled = true;
   },
 
   init: function apm_init() {
@@ -95,7 +64,9 @@ var AirplaneMode = {
       return;
 
     var self = this;
-    this._initRadioSwitch();
+
+    // Disable airplane mode when we interact with it
+    this.element.addEventListener('change', this);
 
     var mobileDataEnabled = false;
     settings.addObserver('ril.data.enabled', function(e) {
