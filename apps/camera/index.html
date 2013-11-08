@@ -46,15 +46,17 @@
     <video id="viewfinder" class="viewfinder" autoplay></video>
 
     <div id="hud" class="hud">
-      <a id="toggle-camera" class="toggle-camera hidden"></a>
-      <a id="toggle-flash" class="toggle-flash hidden"></a>
+      <a id="toggle-flash" class="toggle-flash rotates hidden">
+        <div class="flash-text">Flash: <span class="flash-name js-flash-name"></span></div>
+      </a>
+      <a id="toggle-camera" class="toggle-camera rotates hidden"></a>
     </div>
 
     <div id="controls" class="controls">
-      <a id="switch-button" class="switch-button hidden" name="Switch source" disabled="disabled"><span></span></a>
-      <a id="capture-button" class="capture-button" name="Capture" disabled="disabled"><span></span></a>
+      <a id="switch-button" class="switch-button hidden" name="Switch source" disabled="disabled"><span class="rotates"></span></a>
+      <a id="capture-button" class="capture-button" name="Capture" disabled="disabled"><span class="rotates"></span></a>
       <div id="misc-button" class="misc-button">
-        <a id="gallery-button" class="gallery-button hidden" name="View Gallery"><span></span></a>
+        <a id="gallery-button" class="gallery-button hidden" name="View Gallery"><span class="rotates"></span></a>
         <a id="cancel-pick" class="cancel-pick hidden"><span></span></a>
         <span id="video-timer" class="video-timer">00:00</span>
       </div>

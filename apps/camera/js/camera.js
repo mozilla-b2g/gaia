@@ -248,6 +248,10 @@ var Camera = {
     return document.getElementById('toggle-flash');
   },
 
+  get flashName() {
+    return document.querySelector('.js-flash-name');
+  },
+
   get cancelPickButton() {
     return document.getElementById('cancel-pick');
   },
@@ -320,14 +324,6 @@ var Camera = {
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
     this.requestScreenWakeLock();
-    this.setToggleCameraStyle();
-
-    // We lock the screen orientation and deal with rotating
-    // the icons manually
-    var css = '#switch-button span, #capture-button span, #toggle-flash, ' +
-      '#toggle-camera, #gallery-button span { -moz-transform: rotate(0deg); }';
-    var insertId = this._styleSheet.cssRules.length - 1;
-    this._orientationRule = this._styleSheet.insertRule(css, insertId);
 
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
@@ -514,18 +510,34 @@ var Camera = {
   },
 
   toggleCamera: function camera_toggleCamera() {
-    this._cameraNumber = 1 - this._cameraNumber;
-    // turn off flash light before switch to front camera
-    this.updateFlashUI();
-    // Disable the buttons so the user can't use them while we're switching.
-    this.disableButtons();
-    this.loadCameraPreview(this._cameraNumber, this.enableButtons.bind(this));
-    this.setToggleCameraStyle();
-  },
+    var stateClass = 'is-toggling-camera';
+    var camera = 1 - this._cameraNumber;
+    var bodyClasses = document.body.classList;
+    var fadeTime = 800;
+    var self = this;
 
-  setToggleCameraStyle: function camera_setToggleCameraStyle() {
-    var modeName = this._cameraNumber === 0 ? 'back' : 'front';
-    this.toggleButton.setAttribute('data-mode', modeName);
+    this._cameraNumber = camera;
+
+    // turn off flash light
+    // before switch to front camera
+    this.updateFlashUI();
+
+    // Disable the buttons so
+    // the user can't use them
+    // while we're switching.
+    // Then add the state class
+    // to the body to cause the
+    // viewfinder to fade out.
+    this.disableButtons();
+    bodyClasses.add(stateClass);
+    setTimeout(onFadeFinish, fadeTime);
+
+    function onFadeFinish() {
+      self.loadCameraPreview(camera, function() {
+        self.enableButtons();
+        bodyClasses.remove(stateClass);
+      });
+    }
   },
 
   updateFlashUI: function camera_updateFlashUI() {
@@ -561,9 +573,24 @@ var Camera = {
 
   toggleFlash: function camera_toggleFlash() {
     var flash = this._flashState[this._captureMode];
-    flash.currentMode[this._cameraNumber] =
-               (flash.currentMode[this._cameraNumber] + 1) % flash.modes.length;
+    var cameraNumber = this._cameraNumber;
+    var numModes = flash.modes.length;
+    var next = (flash.currentMode[cameraNumber] + 1) % numModes;
+    var toggleBtn = this.toggleFlashBtn;
+    var cls = 'is-toggling';
+
+    flash.currentMode[cameraNumber] = next;
     this.setFlashMode();
+
+    // Add the toggle state class,
+    // then remove it after 1 second
+    // of inactivity. We use this class
+    // to show the flash name text.
+    toggleBtn.classList.add(cls);
+    clearTimeout(this.toggleTimer);
+    this.toggleTimer = setTimeout(function() {
+      toggleBtn.classList.remove(cls);
+    }, 1000);
   },
 
   setFlashMode: function camera_setFlashMode() {
@@ -575,6 +602,7 @@ var Camera = {
     var flashModeName = flash.modes[flash.currentMode[this._cameraNumber]];
 
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
+    this.flashName.textContent = flashModeName;
     this._cameraObj.flashMode = flashModeName;
   },
 
@@ -863,10 +891,7 @@ var Camera = {
   },
 
   handleOrientationChanged: function camera_orientationChanged(orientation) {
-    var rule = this._styleSheet.cssRules[this._orientationRule];
-    rule.style.MozTransform = 'rotate(' + (-orientation) + 'deg)';
-    this._phoneOrientation = orientation;
-
+    document.body.setAttribute('data-orientation', 'deg' + orientation);
     Filmstrip.setOrientation(orientation);
   },
 
