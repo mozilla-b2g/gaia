@@ -37,6 +37,15 @@ suite('Observable', function() {
           assert.isFalse(this.spy.called);
         });
 
+        suite('set to same value', function() {
+          setup(function() {
+            this.observable[prop] = template[prop];
+          });
+          test('no callback', function() {
+            assert.isFalse(this.spy.called);
+          });
+        });
+
         suite('overwrite', function() {
           setup(function() {
             this.newValue = {};
@@ -60,7 +69,7 @@ suite('ObservableArray', function() {
     this.observable = ObservableArray(this.array);
   });
 
-  suite('shape: Observable(array)', function() {
+  suite('shape: ObservableArray(array)', function() {
     methods.forEach(function(method) {
       test('.' + method + ' is a function', function() {
         assert.equal(typeof this.observable[method], 'function');
@@ -158,21 +167,12 @@ suite('ObservableArray', function() {
       setup(function() {
         this.observable.splice(1, 2);
       });
-      checkSpies({ remove: 1, insert: 1 });
+      checkSpies({ remove: 1 });
       checkArgs('remove', {
         type: 'remove',
         data: {
           index: 1,
           count: 2
-        }
-      });
-      // huh??? - seems wrong
-      checkArgs('insert', {
-        type: 'insert',
-        data: {
-          index: 1,
-          count: 0,
-          items: []
         }
       });
       test('modifies array', function() {
@@ -213,15 +213,7 @@ suite('ObservableArray', function() {
       setup(function() {
         this.observable.splice(2, 0, 2);
       });
-      checkSpies({ remove: 1, insert: 1 });
-      // huh??
-      checkArgs('remove', {
-        type: 'remove',
-        data: {
-          index: 2,
-          count: 0
-        }
-      });
+      checkSpies({ insert: 1 });
       checkArgs('insert', {
         type: 'insert',
         data: {
@@ -274,8 +266,7 @@ suite('ObservableArray', function() {
       });
     });
 
-    // skip test: i hope we can fix this
-    suite.skip('pop() on empty', function() {
+    suite('pop() on empty', function() {
       setup(function() {
         this.observable.reset([]);
         resetSpies.call(this);

@@ -118,6 +118,10 @@ var ObservableArray = function(array) {
     },
 
     pop: function oa_pop() {
+      if (!_array.length) {
+        return;
+      }
+
       var item = _array.pop();
 
       _notify('remove', {
@@ -135,16 +139,20 @@ var ObservableArray = function(array) {
       var addedItems = Array.prototype.slice.call(arguments, 2);
       _array.splice.apply(_array, arguments);
 
-      _notify('remove', {
-        index: index,
-        count: count
-      });
+      if (count) {
+        _notify('remove', {
+          index: index,
+          count: count
+        });
+      }
 
-      _notify('insert', {
-        index: index,
-        count: addedItems.length,
-        items: addedItems
-      });
+      if (addedItems.length) {
+        _notify('insert', {
+          index: index,
+          count: addedItems.length,
+          items: addedItems
+        });
+      }
     },
 
     set: function oa_set(index, value) {
