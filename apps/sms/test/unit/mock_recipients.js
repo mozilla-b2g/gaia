@@ -76,3 +76,8 @@ MockRecipients.prototype.emit = function(type) {
 
   return this;
 };
+
+
+MockRecipients.View = function() {};
+
+MockRecipients.View.isObscured = false;
