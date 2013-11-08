@@ -57,7 +57,7 @@ var KeyboardManager = {
    *
    * Each element in the arrays represents a keyboard layout:
    * {
-   *    id: the unique id of the keyboard, the key of entry_point
+   *    id: the unique id of the keyboard, the key of inputs
    *    name: the keyboard layout's name
    *    appName: the keyboard app name
    *    origin: the keyboard's origin
@@ -174,7 +174,7 @@ var KeyboardManager = {
     function reduceLayouts(carry, layout) {
       enabledApps.add(layout.app.origin);
       // add the layout to each type and return the carry
-      layout.entryPoint.types.filter(KeyboardHelper.isKeyboardType)
+      layout.inputManifest.types.filter(KeyboardHelper.isKeyboardType)
         .forEach(function(type) {
           if (!carry[type]) {
             carry[type] = [];
@@ -183,14 +183,14 @@ var KeyboardManager = {
           var enabledLayout = {
             id: layout.layoutId,
             origin: layout.app.origin,
-            path: layout.entryPoint.launch_path
+            path: layout.inputManifest.launch_path
           };
 
           // define properties for name that resolve at display time
           // to the correct language via the ManifestHelper
           Object.defineProperties(enabledLayout, {
             name: {
-              get: getName.bind(layout.entryPoint),
+              get: getName.bind(layout.inputManifest),
               enumerable: true
             },
             appName: {

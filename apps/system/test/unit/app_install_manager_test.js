@@ -1267,7 +1267,7 @@ suite('system/AppInstallManager >', function() {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'
           },
-          entry_points: {
+          inputs: {
             'english': {
               launch_path: '/index.html#en',
               name: 'english',
@@ -1299,7 +1299,7 @@ suite('system/AppInstallManager >', function() {
             name: 'Fake dev',
             url: 'http://fakesoftware.com'
           },
-          entry_points: {
+          inputs: {
             'english': {
               launch_path: '/index.html#en',
               name: 'english',
@@ -1364,7 +1364,7 @@ suite('system/AppInstallManager >', function() {
     });
 
     test('should not show list', function() {
-      // keyboard app without entry_points
+      // keyboard app without inputs
       var badKeyboardApp = new MockApp({
         manifest: {
           name: mockAppName,

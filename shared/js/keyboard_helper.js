@@ -396,8 +396,8 @@ var KeyboardHelper = exports.KeyboardHelper = {
         if (app.origin === 'app://system.gaiamobile.org') {
           return;
         }
-        // all keyboard apps should define its layout(s) in entry_points section
-        if (!app.manifest.entry_points) {
+        // all keyboard apps should define its layout(s) in "inputs" section
+        if (!app.manifest.inputs) {
           return;
         }
         return true;
@@ -443,9 +443,9 @@ var KeyboardHelper = exports.KeyboardHelper = {
       var layouts = apps.reduce(function eachApp(result, app) {
 
         var manifest = new ManifestHelper(app.manifest);
-        for (var layoutId in manifest.entry_points) {
-          var entryPoint = manifest.entry_points[layoutId];
-          if (!entryPoint.types) {
+        for (var layoutId in manifest.inputs) {
+          var inputManifest = manifest.inputs[layoutId];
+          if (!inputManifest.types) {
             console.warn(app.origin, layoutId, 'did not declare type.');
             continue;
           }
@@ -453,7 +453,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
           var layout = new KeyboardLayout({
             app: app,
             manifest: manifest,
-            entryPoint: entryPoint,
+            inputManifest: inputManifest,
             layoutId: layoutId
           });
 
@@ -469,7 +469,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
             options.type = [].concat(options.type);
             // check for any type in our options to be any type in the layout
             if (!options.type.some(function(type) {
-              return entryPoint.types.indexOf(type) !== -1;
+              return inputManifest.types.indexOf(type) !== -1;
             })) {
               continue;
             }
@@ -481,7 +481,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
         // sort the default query by most specific keyboard
         if (options['default']) {
           result.sort(function(a, b) {
-            return a.entryPoint.types.length - b.entryPoint.types.length;
+            return a.inputManifest.types.length - b.inputManifest.types.length;
           });
         }
         return result;
