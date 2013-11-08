@@ -72,6 +72,17 @@ DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
 
+# Set installation path depending on debug or production version
+SYSTEMCHECK=$(shell adb shell cat /data/local/webapps/webapps.json | grep -q '"basePath": "/system')
+
+ifeq ($(SYSTEMCHECK),)
+B2G_SYSTEM_APPS=0
+else
+B2G_SYSTEM_APPS=1
+$(shell adb remount)
+endif
+$(info systemcheck=$(SYSTEMCHECK))
+
 # Flag to ease build a simulator-compatible profile
 SIMULATOR?=0
 ifeq ($(SIMULATOR),1)
