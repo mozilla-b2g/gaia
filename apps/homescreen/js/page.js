@@ -238,6 +238,16 @@ Icon.prototype = {
       window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
       self.isDefaultIcon = false;
+
+      // real icon is ready (not default icon)
+      if (!self.app.downloading &&
+          self.descriptor.type !== GridItemsFactory.TYPE.COLLECTION) {
+        window.dispatchEvent(new CustomEvent('appInstalled', {
+          'detail': {
+            'app': self.app
+          }
+        }));
+      }
     };
 
     img.onerror = function icon_loadError() {

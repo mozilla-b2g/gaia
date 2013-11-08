@@ -1431,20 +1431,6 @@ var GridManager = (function() {
 
       processApp(app, null, gridPageOffset);
 
-      if (app.type === GridItemsFactory.TYPE.COLLECTION) {
-        window.dispatchEvent(new CustomEvent('collectionInstalled', {
-          'detail': {
-            'collection': app
-          }
-        }));
-      } else {
-        window.dispatchEvent(new CustomEvent('appInstalled', {
-          'detail': {
-            'app': app
-          }
-        }));
-      }
-
       if (extra.callback) {
         extra.callback();
       }
