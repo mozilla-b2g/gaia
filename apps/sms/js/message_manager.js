@@ -47,21 +47,14 @@ var MessageManager = {
     var message = e.message;
     var threadId = message.threadId;
 
-    if (Threads.has(threadId)) {
-      Threads.get(message.threadId).messages.push(message);
-    }
+    MessageManager.registerMessage(message);
 
-    if (window.location.hash === '#new') {
-      // If we are in 'new' we go to right to thread view
+    if (threadId === Threads.currentId) {
+      ThreadUI.onMessage(message);
+    } else {
       window.location.hash = '#thread=' + threadId;
-    } else if (threadId === Threads.currentId) {
-      ThreadUI.appendMessage(message);
-      ThreadUI.forceScrollViewToBottom();
     }
-
-    MessageManager.getThreads(function() {
-      ThreadListUI.updateThread(message);
-    });
+    ThreadListUI.updateThread(message);
   },
 
   onMessageFailed: function mm_onMessageFailed(e) {
@@ -76,9 +69,17 @@ var MessageManager = {
     ThreadUI.onMessageSent(e.message);
   },
 
+  registerMessage: function mm_registerMessage(message) {
+    var threadMockup = ThreadListUI.createThreadMockup(message);
+    var threadId = message.threadId;
+    if (!Threads.has(threadId)) {
+      Threads.set(threadId, threadMockup);
+    }
+    Threads.get(threadId).messages.push(message);
+  },
+
   onMessageReceived: function mm_onMessageReceived(e) {
     var message = e.message;
-    var threadId;
 
     if (message.messageClass && message.messageClass === 'class-0') {
       return;
@@ -92,20 +93,16 @@ var MessageManager = {
       return;
     }
 
-    threadId = message.threadId;
+    MessageManager.registerMessage(message);
 
-    if (Threads.has(threadId)) {
-      Threads.get(threadId).messages.push(message);
-    }
-
-    if (threadId === Threads.currentId) {
-      //Append message and mark as read
+    if (message.threadId === Threads.currentId) {
+      // Mark as read in Gecko
       this.markMessagesRead([message.id], function() {
         ThreadListUI.updateThread(message);
       });
-      ThreadUI.onMessageReceived(message);
+      ThreadUI.onMessage(message);
     } else {
-      ThreadListUI.onMessageReceived(message);
+      ThreadListUI.updateThread(message, {read: false});
     }
   },
 

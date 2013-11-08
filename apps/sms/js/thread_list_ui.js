@@ -423,38 +423,24 @@ var ThreadListUI = {
     var thread = this.createThreadMockup(message, options);
     // We remove the previous one in order to place the new one properly
     var existingThreadElement = document.getElementById('thread-' + thread.id);
+    // New message is older than the latest one?
+    var timestamp = message.timestamp.getTime();
+    if (existingThreadElement &&
+      existingThreadElement.dataset.time > timestamp) {
+      // If the received SMS it's older that the latest one
+      // We need only to update the 'unread status' if needed
+      if ((options && !options.read)) {
+        ThreadListUI.mark(thread.id, 'unread');
+      }
+      return;
+    }
+
     if (existingThreadElement) {
       this.removeThread(thread.id);
     }
     ThreadListUI.appendThread(thread);
     ThreadListUI.setEmpty(false);
     FixedHeader.refresh();
-  },
-
-  onMessageReceived: function thlui_onMessageReceived(message) {
-    var threadMockup = this.createThreadMockup(message);
-    var threadId = message.threadId;
-
-    if (!Threads.get(threadId)) {
-      Threads.set(threadId, threadMockup);
-      Threads.get(threadId).messages.push(message);
-    }
-
-    if (this.container.querySelector('ul')) {
-      var timestamp = threadMockup.timestamp.getTime();
-      var previousThread = document.getElementById('thread-' + threadId);
-      if (previousThread && previousThread.dataset.time > timestamp) {
-        // If the received SMS it's older that the latest one
-        // We need only to update the 'unread status'
-        this.mark(threadId, 'unread');
-        return;
-      }
-
-      this.updateThread(message, {read: false});
-      this.setEmpty(false);
-    } else {
-      this.renderThreads([threadMockup]);
-    }
   },
 
   appendThread: function thlui_appendThread(thread) {

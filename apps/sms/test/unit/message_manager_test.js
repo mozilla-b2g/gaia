@@ -61,16 +61,17 @@ suite('message_manager.js >', function() {
   suite('on message sent > ', function() {
 
     setup(function() {
-      this.sinon.spy(ThreadUI, 'appendMessage');
+      this.sinon.stub(MessageManager, 'registerMessage');
+      this.sinon.spy(ThreadUI, 'onMessage');
     });
 
-    test('message is shown in the current thread if it belongs to the thread',
+    test(' should not be shown in the thread if it belongs to other thread',
       function() {
         var sms = MockMessages.sms;
         // ensure the threadId is different
         Threads.currentId = sms.threadId + 1;
         MessageManager.onMessageSending({ message: sms });
-        assert.isFalse(ThreadUI.appendMessage.called);
+        assert.isFalse(ThreadUI.onMessage.called);
       }
     );
   });

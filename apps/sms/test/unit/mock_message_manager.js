@@ -10,6 +10,7 @@ var MockMessageManager = {
   },
   onHashChange: function() {},
   launchComposer: function() {},
+  registerMessage: function() {},
   handleActivity: function() {},
   handleForward: function() {},
   sendSMS: function() {
