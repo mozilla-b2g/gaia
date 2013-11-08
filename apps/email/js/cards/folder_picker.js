@@ -183,6 +183,7 @@ FolderPickerCard.prototype = {
 
       folderNode.getElementsByClassName('fld-folder-name')[0]
         .textContent = folder.name;
+      folderNode.dataset.type = folder.type;
     }
 
     if (folder === this.curFolder)
