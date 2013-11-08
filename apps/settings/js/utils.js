@@ -51,7 +51,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   var submit = dialog.querySelector('[type=submit]');
   if (submit) {
     submit.onclick = function onsubmit() {
-      if (onSubmit)
+      if (typeof onSubmit === 'function')
         (onSubmit.bind(dialog))();
       Settings.currentPanel = origin; // hide dialog box
     };
@@ -60,7 +60,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   var reset = dialog.querySelector('[type=reset]');
   if (reset) {
     reset.onclick = function onreset() {
-      if (onReset)
+      if (typeof onReset === 'function')
         (onReset.bind(dialog))();
       Settings.currentPanel = origin; // hide dialog box
     };
