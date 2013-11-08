@@ -369,9 +369,6 @@ function getKeyboardSettings() {
 
     // We've got all the settings, so initialize the rest
     initKeyboard();
-
-    // initialize the current loaded layout
-    setKeyboardName(keyboardName);
   });
 }
 
@@ -494,6 +491,16 @@ function initKeyboard() {
       hideKeyboard();
     }
   };
+
+  // Initialize the current loaded layout
+  setKeyboardName(keyboardName);
+
+  // Finally, if we are only loaded by keyboard manager when the user
+  // have already focused, the keyboard should show right away.
+  inputContext = navigator.mozInputMethod.inputcontext;
+  if (!document.mozHidden && inputContext) {
+    showKeyboard();
+  }
 }
 
 function handleKeyboardSound() {
