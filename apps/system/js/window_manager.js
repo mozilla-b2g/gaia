@@ -70,9 +70,8 @@ var WindowManager = (function() {
   var _currentSetOrientationOrigin;
   var _globalOrientation;
 
-  // XXX: Refine this.
   window.addEventListener('globalorientationchanged', function(value) {
-    _globalOrientation = value ? 'portrait-primary' : null;
+    _globalOrientation = value ? OrientationManager.globalOrientation : null;
     setOrientationForApp(_currentSetOrientationOrigin);
   });
 
@@ -713,7 +712,7 @@ var WindowManager = (function() {
     _currentSetOrientationOrigin = origin;
 
     if (origin == null) { // No app is currently running.
-      screen.mozLockOrientation('portrait-primary');
+      screen.mozLockOrientation(OrientationManager.globalOrientation);
       return;
     }
 
