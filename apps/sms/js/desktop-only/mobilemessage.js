@@ -342,7 +342,7 @@
         body: 'This message is intended to demonstrate natural line ' +
           'wrapping. (delivery: received)',
         delivery: 'received',
-        deliveryStatus: 'not-applicable',
+        deliveryStatus: 'success',
         type: 'sms',
         timestamp: new Date(Date.now() - 500000)
       },
@@ -376,7 +376,7 @@
         body: 'short (delivery: sent)',
         delivery: 'sent',
         type: 'sms',
-        deliveryStatus: 'sent',
+        deliveryStatus: 'success',
         timestamp: new Date(Date.now() - 200000)
       },
       {
