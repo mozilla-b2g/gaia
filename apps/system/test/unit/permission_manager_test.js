@@ -245,6 +245,34 @@ suite('system/permission manager', function() {
     });
   });
 
+  // bug 935557 compatibility with old permission
+  suite('compatibility with old detail.permission', function() {
+    var spyReq;
+    setup(function() {
+      PermissionManager.overlay = document.createElement('div');
+      spyReq = this.sinon.spy(PermissionManager, 'requestPermission');
+
+      var detail = {'type': 'permission-prompt',
+                'permission': 'geolocation',
+                'origin': 'test', 'isApp': false };
+      var evt = new CustomEvent('mozChromeEvent', { detail: detail });
+      window.dispatchEvent(evt);
+    });
+
+    teardown(function() {
+      spyReq.restore();
+    });
+
+    test('permission-prompt', function() {
+      assert.equal(PermissionManager.currentPermission, 'geolocation');
+    });
+
+    test('permission id matched', function() {
+      assert.isTrue(spyReq.calledWithMatch('test', 'geolocation',
+        sinon.match.string, 'perm-geolocation-more-info'));
+    });
+  });
+
   // test getUserMedia related permissions
   suite('audio capture permission', function() {
     var spyReq;
