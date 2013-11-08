@@ -450,6 +450,81 @@ function log(/*tag, ...*/) {
   dump(msg + '\n');
 }
 
+function getBuildConfig(builddir) {
+  var result = {};
+  ls(getFile(builddir), false).forEach(function(file) {
+    var matched = file.leafName.match(/apps-(.+)\.list$/);
+    if (matched) {
+      result[matched[1]] = {
+        'path': file.path,
+        'content': getFileContent(file)
+      };
+    }
+  });
+  return result;
+}
+
+function getAppsByList(content, gaiadir, distdir) {
+  var re = /(.+)\/(.+)/;
+  var apps = {};
+  content.split('\n').forEach(function(line) {
+    line = line.trim();
+    var matched = line.match(re);
+    if (matched) {
+      if (matched[2] === '*') {
+        ls(getFile(gaiadir, matched[1])).forEach(function(file) {
+          if (file.isDirectory()) {
+            var app = getApp(matched[1], file.leafName, gaiadir, distdir);
+            if (apps[app.name]) {
+              throw new Error('two apps with same name: \n  - ' + app.path +
+                      '\n  ' + apps[app.name]);
+            }
+            apps[app.name] = app;
+          }
+        });
+      } else {
+        var app = getApp(matched[1], matched[2], gaiadir, distdir);
+        if (apps[app.name]) {
+          throw new Error('two apps with same name: \n  - ' + app.path +
+                      '\n  ' + apps[app.name]);
+        }
+        apps[app.name] = app;
+      }
+    } else if (line) {
+      var msg = 'Unsupported path "' + line + '" in app list file.';
+      log('utils', msg);
+      throw new Error(msg);
+    }
+  });
+  return apps;
+}
+
+function getApp(parent, appname, gaiadir, distdir) {
+  var app = { 'name': appname, 'parent': parent };
+  var appInGaia = getFile(gaiadir, parent, appname);
+  var appInDist = getFile(distdir, parent, appname);
+
+  if (appInGaia.exists()) {
+    app.path = appInGaia.path;
+  } else if (appInDist.exists()) {
+    app.path = appInDist.path;
+  } else {
+    throw new Error('app doesn\'t exist: ' + app.name);
+  }
+
+  var filename;
+  if (getFile(app.path, 'manifest.webapp').exists()) {
+    filename = 'manifest.webapp';
+  } else if (getFile(app.path, 'update.webapp').exists()) {
+    filename = 'update.webapp';
+  } else {
+    throw new Error('manifest or update.webapp deosn\'t exists: ' + appname);
+  }
+  app.manifest = getJSON(getFile(app.path, filename));
+
+  return app;
+}
+
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -464,6 +539,9 @@ exports.gaiaManifestURL = gaiaManifestURL;
 exports.getDistributionFileContent = getDistributionFileContent;
 exports.getAbsoluteOrRelativePath = getAbsoluteOrRelativePath;
 exports.getGaia = getGaia;
+exports.getBuildConfig = getBuildConfig;
+exports.getAppsByList = getAppsByList;
+exports.getApp = getApp;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;
