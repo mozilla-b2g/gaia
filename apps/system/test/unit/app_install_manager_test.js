@@ -10,6 +10,7 @@ requireApp('system/test/unit/mock_utility_tray.js');
 requireApp('system/test/unit/mock_modal_dialog.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_template.js');
+requireApp('system/test/unit/mock_ftu_launcher.js');
 
 require('/shared/test/unit/mocks/mock_lazy_loader.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
@@ -26,6 +27,7 @@ var mocksForAppInstallManager = new MocksHelper([
   'ModalDialog',
   'ManifestHelper',
   'LazyLoader',
+  'FtuLauncher',
   'Template'
 ]).init();
 
@@ -552,6 +554,51 @@ suite('system/AppInstallManager >', function() {
 
       dispatchEvent(evtName, partialApp);
     }
+
+    suite('Do not display a confirmation message when ftu is running >',
+    function() {
+      var testCases = [
+        {
+          'name': 'FTU is running. Should not display a confirmation',
+          'value': true
+        },
+        {
+          'name': 'FTU is not running. Should display a confirmation',
+          'value': false
+        }
+      ];
+
+      suiteTeardown(function() {
+        MockFtuLauncher.mIsRunning = false;
+      });
+
+      setup(function() {
+        mockAppName = 'FTU Fake hosted app';
+        mockApp = new MockApp({
+          manifest: {
+            name: mockAppName,
+            developer: {
+              name: 'Fake dev',
+              url: 'http://fakesoftware.com'
+            }
+          },
+          updateManifest: null,
+          installState: 'installed'
+        });
+        MockSystemBanner.mTeardown();
+      });
+
+      testCases.forEach(function(testCase) {
+        test(testCase.name, function() {
+          MockFtuLauncher.mIsRunning = testCase.value;
+          dispatchInstallEvent();
+          assert.equal(MockSystemBanner.mMessage,
+                       FtuLauncher.isFtuRunning() ?
+                        null :
+                        'app-install-success{"appName":"' + mockAppName + '"}');
+        });
+      });
+    });
 
     suite('hosted app without cache >', function() {
       setup(function() {
