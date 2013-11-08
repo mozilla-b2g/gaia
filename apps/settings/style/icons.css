@@ -45,6 +45,10 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: 0 -15rem;
 }
 
+#menuItem-messagingSettings::before {
+  background-position: -9rem -15rem;
+}
+
 #menuItem-cellularAndData::before {
   background-position: -9rem 0;
 }
