@@ -50,8 +50,10 @@ var StackManager = {
     switch (e.type) {
       case 'appcreated':
         var app = e.detail;
-        if (!app.stayBackground) {
-          this._insert(app);
+        if (app.stayBackground) {
+          this._insertBelow(app);
+        } else {
+          this._insertOnTop(app);
         }
         break;
       case 'launchapp':
@@ -76,7 +78,16 @@ var StackManager = {
     }
   },
 
-  _insert: function sm_insert(app) {
+  _insertBelow: function sm_insertBelow(app) {
+    this._stack.splice(0, 0, app);
+    if (this._stack.length > 1) {
+      this._current++;
+    } else {
+      this._current = 0;
+    }
+  },
+
+  _insertOnTop: function sm_insertOnTop(app) {
     this._current = this._stack.push(app) - 1;
   },
 

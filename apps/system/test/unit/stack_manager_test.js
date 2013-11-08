@@ -215,9 +215,24 @@ suite('system/StackManager >', function() {
         settings.stayBackground = false;
       });
 
-      test('it should not go in the stack', function() {
+      test('it should go at the bottom of the stack while keeping the current',
+      function() {
         assert.deepEqual(StackManager.getCurrent(), dialer);
-        assert.equal(StackManager.length, 1);
+        assert.deepEqual(StackManager.getPrev(), settings);
+      });
+
+      suite('and the stack is empty', function() {
+        setup(function() {
+          StackManager.__clearAll();
+          appLaunch(settings);
+        });
+
+        test('it should go at the bottom of the stack and become the current',
+        function() {
+          assert.deepEqual(StackManager.getCurrent(), settings);
+          assert.isUndefined(StackManager.getPrev());
+          assert.isUndefined(StackManager.getNext());
+        });
       });
     });
   });
