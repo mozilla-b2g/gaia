@@ -2,6 +2,7 @@ Keyboards.mk = {
   label: 'Macedonian',
   menuLabel: 'Македонски',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'mk',
   alt: {
     'е': 'ѐ',
