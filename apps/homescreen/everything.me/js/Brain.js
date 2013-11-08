@@ -1193,7 +1193,7 @@
       Evme.Utils.isOnline(function(isOnline) {
         if (!isOnline) {
           window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT,
-                                                    'offline-shortcuts-more'));
+                                        'offline-collections-more'));
           window.dispatchEvent(new CustomEvent('CollectionSuggestOffline'));
           window.setTimeout(function() {
             isRequesting = false;
@@ -1230,7 +1230,7 @@
 
           if (suggestedShortcuts.length === 0) {
             window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT,
-                                                        'no-more-shortcuts'));
+                                          'no-more-collections'));
             Evme.CollectionsSuggest.Loading.hide();
           } else {
             Evme.CollectionsSuggest.load({
