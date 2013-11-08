@@ -231,9 +231,10 @@ var KeyboardManager = {
       }
     }, this);
 
-    // if there are no keyboards running - set text to show
+    // if there are no keyboards running - set text to show,
+    // but don't bring it to the foreground.
     if (!Object.keys(this.runningLayouts).length) {
-      this.setKeyboardToShow('text');
+      this.setKeyboardToShow('text', undefined, true);
     }
   },
 
@@ -442,7 +443,7 @@ var KeyboardManager = {
     delete this.runningLayouts[origin];
   },
 
-  setKeyboardToShow: function km_setKeyboardToShow(group, index) {
+  setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
     if (!this.keyboardLayouts[group]) {
       console.warn('trying to set a layout group to show that doesnt exist');
       return;
@@ -455,6 +456,15 @@ var KeyboardManager = {
     this.showingLayout.index = index;
     var layout = this.keyboardLayouts[group][index];
     this.showingLayout.frame = this.launchLayoutFrame(layout);
+
+    // By setting launchOnly to true, we load the keyboard frame w/o bringing it
+    // to the foreground; this is effectively equal to calling
+    // setKeyboardToShow() *then* call resetShowingKeyboard().
+    if (launchOnly) {
+      this.showingLayout.frame.hidden = true;
+      return;
+    }
+
     this.showingLayout.frame.hidden = false;
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
