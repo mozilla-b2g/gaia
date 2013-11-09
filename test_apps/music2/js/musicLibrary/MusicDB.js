@@ -288,10 +288,23 @@ MusicDB.prototype = {
     }
     getThumbnailURL(song, function(url) {
       if (!url) {
-        url = 'style/images/AlbumArt10_small.png';
+        var infoForHash = song.metadata.album + song.metadata.artist;
+        var hashedNumber = (Math.abs(this._hash(infoForHash)) % 10) + 1;
+
+        url = '/style/images/AlbumArt' + hashedNumber + '_small.png';
       }
       done(url);
-    });
+    }.bind(this));
+  },
+  _hash: function(str) {
+    var hash = 0;
+    if (str.length == 0) return hash;
+    for (var i = 0; i < str.length; i++) {
+      var c = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + c;
+      hash = hash & hash;
+    }
+    return hash;
   },
   _songToKey: function(song) {
     var key = '<' + song.metadata.genre + '>' +
