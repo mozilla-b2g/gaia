@@ -289,7 +289,7 @@ body.picker-mode #title-player {
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
+  background-color: #0E1214;
 }
 
 #views-tiles {

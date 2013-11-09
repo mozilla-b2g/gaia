@@ -21,7 +21,7 @@ section {
   padding: 0;
   overflow: hidden;
   font-size: 1.4rem;
-  background-color: black;
+  background-color: #0E1214;
 }
 
 .hidden {
@@ -38,13 +38,11 @@ section {
 }
 
 ul {
-  background: url(images/background.png);
-  background-size: 100% 100%;
   padding: 0;
   margin: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  background: linear-gradient(to bottom, #222 0%,#000 100%);
+  background-color: #0E1214;
 }
 
 li .inner {
@@ -135,7 +133,7 @@ span.line-break {
    * the body background is black, but remind the UA of that here to
    * keep the thumbnail view opaque if possible.
    */
-  background-color: black;
+  background-color: #0E1214;
   height: 100%;
 }
 
