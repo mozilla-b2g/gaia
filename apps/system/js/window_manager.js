@@ -1077,10 +1077,11 @@ var WindowManager = (function() {
     // XXX: Refine this in AttentionWindow
     if (AttentionScreen.isFullyVisible())
       return;
-    if (displayedApp !== HomescreenLauncher.origin) {
+    if (displayedApp && displayedApp !== HomescreenLauncher.origin) {
       runningApps[displayedApp].setVisible(true);
     } else {
-      HomescreenLauncher.getHomescreen().setVisible(true);
+      var homescreen = HomescreenLauncher.getHomescreen();
+      homescreen && homescreen.setVisible(true);
     }
   });
 
