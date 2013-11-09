@@ -657,4 +657,62 @@ suite('KeyboardHelper', function() {
       assert.isFalse(KeyboardHelper.saveToSettings.called);
     });
   });
+
+  suite('change default settings', function() {
+    var expectedSettings = {
+      'default': {},
+      enabled: {}
+    };
+
+    suiteSetup(function(done) {
+      KeyboardHelper.getDefaultLayoutConfig(function(configData) {
+        done();
+      });
+    });
+
+    setup(function() {
+      // reset KeyboardHelper each time
+      KeyboardHelper.settings['default'] = defaultSettings['default'];
+      KeyboardHelper.settings['enabled'] = defaultSettings['default'];
+    });
+
+    test('change default settings, keeping the enabled layouts', function() {
+      expectedSettings['default'][keyboardAppOrigin] = {fr: true, number: true};
+      expectedSettings['enabled'][keyboardAppOrigin] = {en: true, fr: true,
+                                                        number: true};
+
+      KeyboardHelper.changeDefaultLayouts('fr', false);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
+    });
+
+    test('change default settings and reset enabled layouts', function() {
+      expectedSettings['default'][keyboardAppOrigin] = {es: true, number: true};
+      expectedSettings['enabled'][keyboardAppOrigin] = {es: true, number: true};
+
+      KeyboardHelper.changeDefaultLayouts('es', true);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
+    });
+
+    test('change default settings and reset for nonLatin', function() {
+      expectedSettings['default'][keyboardAppOrigin] = {'zh-Hant-Zhuyin': true,
+                                                        en: true, number: true};
+      expectedSettings['enabled'][keyboardAppOrigin] = {'zh-Hant-Zhuyin': true,
+                                                        en: true, number: true};
+
+      KeyboardHelper.changeDefaultLayouts('zh-TW', true);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
+    });
+  });
 });

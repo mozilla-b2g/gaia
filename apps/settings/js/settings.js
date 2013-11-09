@@ -655,7 +655,9 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
 
   setTimeout(function nextTick() {
-    LazyLoader.load(['js/utils.js'], startupLocale);
+    LazyLoader.load(['js/utils.js',
+                     'shared/js/keyboard_helper.js'], startupLocale);
+
     LazyLoader.load([
       'js/airplane_mode.js',
       'js/battery.js',
@@ -781,6 +783,8 @@ function initLocale() {
   Settings.getSupportedLanguages(function displayLang(languages) {
     document.getElementById('language-desc').textContent = languages[lang];
   });
+
+  KeyboardHelper.changeDefaultLayouts(lang);
 }
 
 // Do initialization work that doesn't depend on the DOM, as early as
