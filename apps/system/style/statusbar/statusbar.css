@@ -105,43 +105,43 @@ body, html {
 }
 
 .sb-icon-battery {
-  width: 2.1rem;
-}
-.sb-icon-battery:not([data-level]) {
-  background-position: -28.6rem 0;
+  width: 2.5rem;
 }
 .sb-icon-battery[data-level="0"] {
   background-position: 0 0;
 }
 .sb-icon-battery[data-level="10"] {
-  background-position: -2.6rem 0;
+  background-position: -2.5rem 0;
 }
 .sb-icon-battery[data-level="20"] {
-  background-position: -5.2rem 0;
+  background-position: -5rem 0;
 }
 .sb-icon-battery[data-level="30"] {
-  background-position: -7.8rem 0;
+  background-position: -7.5rem 0;
 }
 .sb-icon-battery[data-level="40"] {
-  background-position: -10.4rem 0;
+  background-position: -10rem 0;
 }
 .sb-icon-battery[data-level="50"] {
-  background-position: -13rem 0;
+  background-position: -12.5rem 0;
 }
 .sb-icon-battery[data-level="60"] {
-  background-position: -15.6rem 0;
+  background-position: -15rem 0;
 }
 .sb-icon-battery[data-level="70"] {
-  background-position: -18.2rem 0;
+  background-position: -17.5rem 0;
 }
 .sb-icon-battery[data-level="80"] {
-  background-position: -20.8rem 0;
+  background-position: -20rem 0;
 }
 .sb-icon-battery[data-level="90"] {
-  background-position: -23.4rem 0;
+  background-position: -22.5rem 0;
 }
 .sb-icon-battery[data-level="100"] {
-  background-position: -26rem 0;
+  background-position: -25rem 0;
+}
+.sb-icon-battery:not([data-level]) {
+  background-position: -27.5rem 0;
 }
 
 .sb-icon-battery:not([data-level])[data-charging="true"],
@@ -149,34 +149,34 @@ body, html {
   background-position: 0 -2rem;
 }
 .sb-icon-battery[data-level="10"][data-charging="true"] {
-  background-position: -2.6rem -2rem;
+  background-position: -2.5rem -2rem;
 }
 .sb-icon-battery[data-level="20"][data-charging="true"] {
-  background-position: -5.2rem -2rem;
+  background-position: -5rem -2rem;
 }
 .sb-icon-battery[data-level="30"][data-charging="true"] {
-  background-position: -7.8rem -2rem;
+  background-position: -7.5rem -2rem;
 }
 .sb-icon-battery[data-level="40"][data-charging="true"] {
-  background-position: -10.4rem -2rem;
+  background-position: -10rem -2rem;
 }
 .sb-icon-battery[data-level="50"][data-charging="true"] {
-  background-position: -13rem -2rem;
+  background-position: -12.5rem -2rem;
 }
 .sb-icon-battery[data-level="60"][data-charging="true"] {
-  background-position: -15.6rem -2rem;
+  background-position: -15rem -2rem;
 }
 .sb-icon-battery[data-level="70"][data-charging="true"] {
-  background-position: -18.2rem -2rem;
+  background-position: -17.5rem -2rem;
 }
 .sb-icon-battery[data-level="80"][data-charging="true"] {
-  background-position: -20.8rem -2rem;
+  background-position: -20rem -2rem;
 }
 .sb-icon-battery[data-level="90"][data-charging="true"] {
-  background-position: -23.4rem -2rem;
+  background-position: -22.5rem -2rem;
 }
 .sb-icon-battery[data-level="100"][data-charging="true"] {
-  background-position: -26rem -2rem;
+  background-position: -25rem -2rem;
 }
 
 .sb-icon-wifi[data-level="0"][data-connecting="true"] {
