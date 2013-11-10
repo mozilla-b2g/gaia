@@ -1,0 +1,97 @@
+.hide {
+  display:none !important;
+}
+
+#downloadList {
+  font-weight: 400;
+  padding: 0;
+}
+
+#downloadList strong {
+  font-weight: 500;
+}
+
+/* Text */
+.fileName {
+  padding: 1rem 3rem 1rem;
+  pointer-events: none;
+}
+
+.info {
+  font-size: 1.2rem;
+  padding: 0 3rem 0;
+  pointer-events: none;
+}
+
+/* Informative icons */
+.actionCancel {
+  width: 3rem;
+  height: 3rem !important;
+  background: url('images/download_close.png');
+  background-repeat: no-repeat;
+}
+
+.actionRetry {
+  width: 3rem;
+  height: 3rem !important;
+  background: url('images/download_refresh.png');
+  background-repeat: no-repeat;
+}
+
+.statusError {
+  width: 3rem;
+  height: 3rem !important;
+  background: url('images/download_exclamation.png'); 
+  background-repeat: no-repeat;
+  left: 0.2rem;
+}
+
+/* List items */
+#downloadList li {
+  margin: 0;
+  pointer-events: none;
+}
+
+#downloadList li[data-state="stopped"] {
+  pointer-events: all !important;
+}
+
+#downloadList ul li progress {
+  width: 100%;
+}
+
+/* Graphic content */
+#downloadList aside {
+  margin: 1.75rem 0.5rem 0 0;
+  position: absolute;
+  pointer-events: none;
+}
+
+#downloadList aside.pack-end {
+  margin: 1.75rem 0 0 0.5rem;
+  pointer-events: all;
+}
+
+/* Progress */
+#downloadList ul > li progress[value] {
+  width: 100% !important;
+  height: 0.5rem !important;
+  margin: 0;
+  background: #e7e7e7;
+  border: 0.1rem solid #b6b6b6;
+}
+
+#downloadList ul > li progress[value]::-moz-progress-bar {
+  margin: 1px;
+  height: calc(100% - 0.2rem);
+  border-radius: 0.2rem;
+  background-color: #01c5ed;
+}
+
+#downloadList progress[value].pack-activity {
+  background-image: url(images/activity.png);
+  background-repeat: repeat;
+  background-size: auto 100%;
+  animation: 0.5s move infinite steps(15);
+}
+
