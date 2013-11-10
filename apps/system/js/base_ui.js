@@ -23,12 +23,14 @@
     return '<div class="' + this.CLASS_NAME + '"></div>';
   };
 
-  BaseUI.prototype.show = function bu_show() {
-    this.element.classList.add('visible');
+  BaseUI.prototype.show = function bu_show(ele) {
+    ele = ele || this.element;
+    ele.classList.add('visible');
   };
 
-  BaseUI.prototype.hide = function bu_hide() {
-    this.element.classList.remove('visible');
+  BaseUI.prototype.hide = function bu_hide(ele) {
+    ele = ele || this.element;
+    ele.classList.remove('visible');
   };
 
   BaseUI.prototype.publish = function bu_publish(event, detail) {
@@ -51,7 +53,7 @@
   BaseUI.prototype.debug = function bu_debug(msg) {
     if (DEBUG && ('DEBUG' in this.constructor && this.constructor.DEBUG)) {
       console.log('[' + this.CLASS_NAME + '][' + this.customID() + ']' +
-        '[' + new Date().getTime() / 1000 + ']' +
+        '[' + System.currentTime() + ']' +
         Array.slice(arguments).concat());
     }
   };

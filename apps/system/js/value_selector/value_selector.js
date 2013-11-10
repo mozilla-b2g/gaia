@@ -71,8 +71,8 @@ var ValueSelector = {
       el.addEventListener('mousedown', this);
     }, this);
 
-    window.addEventListener('appopen', this);
-    window.addEventListener('appwillclose', this);
+    window.addEventListener('appopened', this);
+    window.addEventListener('appclosing', this);
 
     // invalidate the current spin date picker when language setting changes
     navigator.mozSettings.addObserver('language.current',
@@ -141,8 +141,8 @@ var ValueSelector = {
 
   handleEvent: function vs_handleEvent(evt) {
     switch (evt.type) {
-      case 'appopen':
-      case 'appwillclose':
+      case 'appopened':
+      case 'appclosing':
         this.hide();
         break;
 

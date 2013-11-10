@@ -27,6 +27,7 @@ var UtilityTray = {
     window.addEventListener('home', this);
     window.addEventListener('attentionscreenshow', this);
     window.addEventListener('displayapp', this);
+    window.addEventListener('appopening', this);
 
     // Firing when the keyboard and the IME switcher shows/hides.
     window.addEventListener('keyboardimeswitchershow', this);
@@ -55,6 +56,7 @@ var UtilityTray = {
       case 'displayapp':
       case 'keyboardchanged':
       case 'keyboardchangecanceled':
+      case 'appopening':
         if (this.shown) {
           this.hide();
         }

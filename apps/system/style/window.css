@@ -1,10 +1,288 @@
+#windows > .appWindow,
+#windows > .activityWindow {
+  position: fixed;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  left: 0;
+  top: 2rem;
+
+  /*
+  * Disable this for now because it forces an expensive fallback path in
+  * Gecko.  The performance issue should be fixed by
+  * https://bugzilla.mozilla.org/show_bug.cgi?id=697645 or a related bug.
+  *
+    border-radius: 0.8rem;
+  */
+
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+@media not all and (-moz-physical-home-button) {
+  #screen:not(.software-button-disabled) > #windows > .appWindow {
+    bottom: 5rem;
+  }
+}
+
+#screen.software-button-enabled #windows > .appWindow {
+  bottom: 5rem;
+}
+
+#windows > .appWindow:not(.homescreen) {
+  background-color: black;
+}
+
+#windows > .appWindow:not(.homescreen).render {
+  background-image: none !important;
+  background-color: transparent;
+}
+
+#windows > .appWindow:not(.homescreen):not(.active):not(.transition-opening):not(.transition-closing) {
+  opacity: 0;
+}
+
+.appWindow > iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.appWindow.navigation:not(.rocketbar) > iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 1rem;
+  width: 100%;
+  height: calc(100% - 1rem);
+}
+
+.appWindow.rocketbar:not(.navigation) > iframe {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(100% - 5rem);
+}
+
+.appWindow.navigation.rocketbar > iframe {
+  position: absolute;
+  top: 5rem;
+  left: 0;
+  bottom: 1rem;
+  width: 100%;
+  height: calc(100% - 6rem);
+}
+
+
+#windows > .appWindow:not(.homescreen).render > iframe {
+  background-color: #fff;
+}
+
+#screen.active-statusbar #windows > .appWindow,
+#screen.active-statusbar #windows > .appWindow.fullscreen-app {
+  top: 4rem;
+  height: calc(100% - 4rem);
+}
+
+.appWindow.enlarge {
+  pointer-events: auto;
+  animation: openApp 0.3s forwards ease;
+}
+
+#windows > .appWindow.transition-closing.perpendicular {
+  animation-duration: 0.1s;
+}
+
+#windows.slow-transition > .appWindow.transition-opening {
+  animation-duration: 3s;
+}
+
+#windows > .appWindow.from-cardview {
+  animation: openAppFromCardView 0.15s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.from-cardview {
+  animation-duration: 1.5s;
+}
+
+/* Opacity increases start up time then we don't use it anymore for opening */
+@keyframes openApp {
+  0%   { transform: scale(0.1); }
+  100% { transform: scale(1.0); }
+}
+
+#windows > .appWindow.zoom-in {
+  transform: scale(1);
+  animation: zoom-in 0.3s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.zoom-in {
+  animation-duration: 3s;
+}
+
+@keyframes zoom-in {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.8); }
+}
+
+@keyframes openAppFromCardView {
+  0%   { transform: scale(0.8); }
+  100% { transform: scale(1.0); }
+}
+
+#screen.switch-app > #windows > .appWindow.opening > iframe {
+  /* The background is defined for invoked apps because we don't have the
+     splash screen available at this point */
+  background-attachment: scroll, scroll;
+  background-clip: border-box, border-box;
+  background-color: transparent;
+  background-image: url("../themes/default/images/images/ui/pattern.png"),
+                    url("../themes/default/images/ui/gradient.png");
+  background-origin: padding-box, padding-box;
+  background-position: left top, left top;
+  background-repeat: repeat, no-repeat;
+  background-size: auto auto, 100% 100%;
+}
+
+.appWindow.invoked {
+  animation: invokedApp 0.6s forwards ease-out;
+}
+
+.appWindow.invoking {
+  animation: invokingApp 0.6s forwards ease-out;
+}
+
+#windows.slow-transition > .appWindow.transition-opening,
+#windows.slow-transition > .appWindow.transition-closing {
+  animation-duration: 6s;
+}
+
+/* Invoking app moves out */
+@keyframes invokingApp {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-20%); }
+}
+
+/* Invoked app moves in */
+@keyframes invokedApp {
+  0%   { transform: translateX(100%); }
+  50%  { transform: translateX(0); }
+}
+
+#windows > .appWindow.transition-closing,
+#windows > .appWindow.transition-opening {
+  /* The animation takes .3 seconds so users cannot touch the app while the
+   * closing animation is performing */
+  pointer-events: none;
+}
+
+#windows > .appWindow.reduce {
+  animation: closeApp 0.3s forwards ease;
+}
+
+#windows > .appWindow.transition-closing.perpendicular {
+  animation-duration: 0.1s;
+}
+
+#windows.slow-transition > .appWindow.transition-closing {
+  animation-duration: 3s;
+}
+
+#windows > .appWindow.zoom-out {
+  transform: scale(1.8);
+  animation: zoom-out 0.3s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.zoom-out {
+  animation-duration: 3s;
+}
+
+@keyframes zoom-out {
+  0%   { transform: scale(1.8); }
+  100% { transform: scale(1); }
+}
+
+#windows > .appWindow.to-cardview {
+  animation: closeAppTowardsCardView 0.15s forwards ease;
+}
+
+#windows.slow-transition > .appWindow.to-cardview {
+  animation: closeAppTowardsCardView 1.5s forwards ease;
+}
+
+/* Prebuild width/height */
+#screen:not(.fullscreen-app):not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow:not(.fullscreen-app) {
+  top: 2rem;
+  height: calc(100% - 2rem);
+  width: 100%;
+}
+
+#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+  height: 100%;
+  width: 100%;
+}
+
+#screen.active-statusbar:not(.software-button-enabled) > #windows > .appWindow {
+  top: 4rem;
+  height: calc(100% - 4rem);
+  width: 100%;
+}
+
+#screen.active-statusbar.software-button-enabled > #windows > .appWindow {
+  top: 4rem;
+  bottom: 5rem;
+  height: calc(100% - 5rem - 4rem);
+  width: 100%;
+}
+
+#screen.software-button-enabled > #windows > .appWindow {
+  top: 2rem;
+  bottom: 5rem;
+  height: calc(100% - 5rem - 2rem);
+  width: 100%;
+}
+
+@keyframes closeApp {
+  0%   { transform: scale(1.0); opacity: 1; }
+  100% { transform: scale(0.1); opacity: 0; }
+}
+
+@keyframes closeAppTowardsCardView {
+  0%   { transform: scale(1.0); }
+  100% { transform: scale(0.8); }
+}
+
+.appWindow.back {
+  transition: transform 0.25s ease, visibility 0.25s ease;
+  transform: scale(0.86);
+}
+
+.appWindow.restored {
+  transform: none;
+  transition: transform 0.25s ease;
+}
+
+#screen > #windows > .appWindow.fullscreen-app {
+  top: 0;
+}
+
 .appWindow > iframe {
   z-index: 1;
   visibility: visible;
 }
 
-.appWindow > .modal-dialog {
+.appWindow > .chrome {
   z-index: 2;
+}
+
+.appWindow > .modal-dialog {
+  z-index: 3;
 }
 
 .appWindow > .fade-overlay {
@@ -101,11 +379,11 @@
 
 /* animation */
 
-#windows > .activityWindow.opening.slideleft {
+#windows > .activityWindow.slideleft {
   animation: slideLeft 0.3s forwards ease-out;
 }
 
-#windows > .activityWindow.closing.slideright {
+#windows > .activityWindow.slideright {
   animation: slideRight 0.3s forwards ease-out;
 }
 

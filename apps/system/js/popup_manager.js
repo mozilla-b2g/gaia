@@ -67,7 +67,7 @@ var PopupManager = {
     // this seems needed, or an override to origin in close()
     this._currentOrigin = origin;
 
-    if (WindowManager.getDisplayedApp() == origin) {
+    if (AppWindowManager.displayedApp == origin) {
       this.screen.classList.add('popup');
     }
 
@@ -147,7 +147,7 @@ var PopupManager = {
       case 'mozbrowserlocationchange':
         evt.target.dataset.url = evt.detail;
 
-        if (WindowManager.getDisplayedApp() !== evt.target.dataset.frameOrigin)
+        if (AppWindowManager.displayedApp !== evt.target.dataset.frameOrigin)
           return;
 
         if (typeof(popup) === 'undefined') {
@@ -269,7 +269,7 @@ var PopupManager = {
   },
 
   getTitleFromUrl: function pm_getTitleFromUrl(url) {
-    var app = WindowManager.getCurrentDisplayedApp();
+    var app = AppWindowManager.getActiveApp();
     var opened = this._getOriginObject(url);
     var opener = this._getOriginObject(app.frame.dataset.frameOrigin);
     // Same origin means: Protocol, Domain, Port

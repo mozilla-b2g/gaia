@@ -1,18 +1,18 @@
 'use strict';
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
-      'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
+      'dispatchEvent', 'AppWindowManager', 'Applications', 'ManifestHelper',
       'ActivityWindow', 'KeyboardManager', 'StatusBar',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'ActivityWindowFactory', 'OrientationManager', 'BrowserFrame',
-      'BrowserConfigHelper']);
+      'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
 requireApp('system/test/unit/mock_software_button_manager.js');
 requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_applications.js');
 requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
@@ -117,7 +117,7 @@ suite('system/ActivityWindowFactory', function() {
   setup(function(done) {
     switchProperty(window, 'OrientationManager', MockOrientationManager, reals);
     switchProperty(window, 'SettingsListener', MockSettingsListener, reals);
-    switchProperty(window, 'WindowManager', MockWindowManager, reals);
+    switchProperty(window, 'AppWindowManager', MockAppWindowManager, reals);
     switchProperty(window, 'Applications', MockApplications, reals);
     switchProperty(window, 'ManifestHelper', MockManifestHelper, reals);
     switchProperty(window, 'KeyboardManager', MockKeyboardManager, reals);
@@ -130,15 +130,18 @@ suite('system/ActivityWindowFactory', function() {
     stubById = this.sinon.stub(document, 'getElementById');
     stubById.returns(document.createElement('div'));
 
+    requireApp('system/js/system.js');
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/window.js');
+    requireApp('system/js/browser_mixin.js');
+    requireApp('system/js/transition_mixin.js');
     requireApp('system/js/activity_window.js');
     requireApp('system/js/activity_window_factory.js', done);
   });
 
   teardown(function() {
-    MockWindowManager.mTeardown();
+    MockAppWindowManager.mTeardown();
     MockApplications.mTeardown();
     MockKeyboardManager.mTeardown();
     MockStatusBar.mTeardown();
@@ -152,7 +155,7 @@ suite('system/ActivityWindowFactory', function() {
     restoreProperty(window, 'SoftwareButtonManager', reals);
     restoreProperty(window, 'StatusBar', reals);
     restoreProperty(window, 'KeyboardManager', reals);
-    restoreProperty(window, 'WindowManager', reals);
+    restoreProperty(window, 'AppWindowManager', reals);
     restoreProperty(window, 'Applications', reals);
     restoreProperty(window, 'ManifestHelper', reals);
     restoreProperty(window, 'OrientationManager', reals);
@@ -160,7 +163,7 @@ suite('system/ActivityWindowFactory', function() {
 
   suite('handle events', function() {
     setup(function() {
-      MockWindowManager.mRunningApps = {
+      MockAppWindowManager.mRunningApps = {
         'fake': new AppWindow({
                   origin: 'fake',
                   manifestURL: 'fake',
@@ -176,7 +179,7 @@ suite('system/ActivityWindowFactory', function() {
                   iframe: document.createElement('iframe')
                 })
       };
-      MockWindowManager.mDisplayedApp = 'fake';
+      MockAppWindowManager.mDisplayedApp = 'fake';
     });
     teardown(function() {
     });

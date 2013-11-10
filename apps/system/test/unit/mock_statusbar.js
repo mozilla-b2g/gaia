@@ -1,4 +1,6 @@
 var MockStatusBar = {
+  height: 20,
+
   notificationsCount: null,
 
   wasMethodCalled: {},
@@ -24,6 +26,7 @@ var MockStatusBar = {
     this.mNotificationsUpdated = false;
     this.mNotificationUnread = false;
     this.wasMethodCalled = {};
+    this.height = 20;
   },
 
   incSystemDownloads: function msb_incSystemDownloads() {
