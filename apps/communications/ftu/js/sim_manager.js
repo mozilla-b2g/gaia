@@ -74,7 +74,7 @@ var SimManager = {
     return (IccHelper.cardState === 'ready');
   },
 
- /**
+ /*
   * Possible values:
   *   null,
   *   'absent',
@@ -417,11 +417,14 @@ var SimManager = {
         if (importedContacts !== 0) {
           window.importUtils.setTimestamp('sim');
           SimManager.alreadyImported = true;
-          if (!cancelled) {
-            utils.status.show(_('simContacts-imported3',
-                                {n: importedContacts}));
-          }
+
         }
+        // Showing import complete message
+        if (!cancelled) {
+          utils.status.show(_('simContacts-imported3',
+                                {n: importedContacts}));
+        }
+
       }, DELAY_FEEDBACK);
 
       importer.onfinish = null;
