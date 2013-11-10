@@ -333,6 +333,13 @@ class GaiaData(object):
             return [filename for filename in files if filename.endswith(extension)]
         return files
 
+    def send_sms(self, number, message):
+        import json
+        number = json.dumps(number)
+        message = json.dumps(message)
+        result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
+        assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
+
 
 class GaiaDevice(object):
 

@@ -427,6 +427,31 @@ var GaiaDataLayer = {
     };
   },
 
+  sendSMS: function (recipient, content, aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    console.log('sending sms message to number: ' + recipient);
+
+    SpecialPowers.addPermission('sms', true, document);
+    SpecialPowers.setBoolPref('dom.sms.enabled', true);
+    let sms = window.navigator.mozMobileMessage;
+
+    let request = sms.send(recipient, content);
+
+    request.onsuccess = function() {
+      console.log('sms message sent successfully');
+      SpecialPowers.removePermission('sms', document);
+      SpecialPowers.clearUserPref('dom.sms.enabled');
+      callback(true);
+    };
+
+    request.onerror = function () {
+      console.log('sms message not sent');
+      SpecialPowers.removePermission('sms', document);
+      SpecialPowers.clearUserPref('dom.sms.enabled');
+      callback(false);
+    };
+  },
+
   deleteAllSms: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
     console.log('searching for sms messages');
