@@ -21,6 +21,10 @@ this.fb = fb;
   // Custom event for notifying initializations
   var INITIALIZE_EVENT = 'fb_ds_init';
 
+  // Last known revision Id. Used to determine whether the index has to
+  // be reloaded or not
+  var revisionId;
+
   // Creates the internal Object in the datastore that will act as an index
   function createIndex() {
     return {
@@ -116,14 +120,15 @@ this.fb = fb;
   };
 
   function doGet(uid, outRequest) {
-    var dsId = index.byUid[uid];
+    var dsId;
 
     var successCb = successGet.bind(null, outRequest);
     var errorCb = errorGet.bind(null, outRequest, uid);
 
-    if (typeof dsId === 'undefined') {
+    if (datastore.revisionId !== revisionId) {
       // Refreshing the index just in case
       datastore.get(INDEX_ID).then(function success_index(obj) {
+        revisionId = datastore.revisionId;
         setIndex(obj);
         dsId = index.byUid[uid];
         if (typeof dsId !== 'undefined') {
@@ -138,7 +143,13 @@ this.fb = fb;
       }, errorCb).then(successCb, errorCb);
     }
     else {
-      datastore.get(dsId).then(successCb, errorCb);
+      dsId = index.byUid[uid];
+      if (typeof dsId === 'number') {
+        datastore.get(dsId).then(successCb, errorCb);
+      }
+      else {
+        outRequest.done(null);
+      }
     }
   }
 
@@ -162,17 +173,14 @@ this.fb = fb;
   };
 
   function doGetByPhone(tel, outRequest) {
-    var dsId = index.byTel[tel] || index.byShortTel[tel];
+    var dsId;
 
-    if (typeof dsId !== 'undefined') {
-      datastore.get(dsId).then(function success(friend) {
-        outRequest.done(friend);
-      }, defaultError(outRequest));
-    }
-    else {
+    if (datastore.revisionId !== revisionId) {
+      window.console.info('Datastore revision id has changed!');
       // Refreshing the index just in case
       datastore.get(INDEX_ID).then(function success(obj) {
         setIndex(obj);
+        revisionId = datastore.revisionId;
         dsId = index.byTel[tel] || index.byShortTel[tel];
         if (typeof dsId !== 'undefined') {
           datastore.get(dsId).then(function success(friend) {
@@ -186,6 +194,17 @@ this.fb = fb;
         window.console.error('The index cannot be refreshed: ', err.name);
         outRequest.failed(err);
       });
+    }
+    else {
+      dsId = index.byTel[tel] || index.byShortTel[tel];
+      if (typeof dsId !== 'undefined') {
+        datastore.get(dsId).then(function success(friend) {
+          outRequest.done(friend);
+        }, defaultError(outRequest));
+      }
+      else {
+        outRequest.done(null);
+      }
     }
   }
 
@@ -300,6 +319,7 @@ this.fb = fb;
         if (typeof v === 'object') {
           setIndex(v);
         }
+        revisionId = datastore.revisionId;
         notifyOpenSuccess(cb);
       });
     }, function error() {

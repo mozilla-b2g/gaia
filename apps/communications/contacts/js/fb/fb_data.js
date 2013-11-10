@@ -86,27 +86,50 @@ var fb = window.fb || {};
       var globalId;
 
       datastore().add(obj).then(function success(newId) {
+        globalId = newId;
         var uid = obj.uid;
         index().byUid[uid] = newId;
-        // Update index by tel
-        // As this is populated by FB importer we don't need to have
-        // extra checks
-        if (Array.isArray(obj.tel)) {
-          obj.tel.forEach(function(aTel) {
-            index().byTel[aTel.value] = newId;
-          });
-        }
-        if (Array.isArray(obj.shortTelephone)) {
-          obj.shortTelephone.forEach(function(aTel) {
-            index().byShortTel[aTel] = newId;
-          });
-        }
-        globalId = newId;
+        indexByPhone(obj, newId);
 
         return datastore().update(INDEX_ID, index());
       }, defaultError(outRequest)).then(function success() {
           defaultSuccessCb(outRequest, globalId);
         }, defaultError(outRequest));
+    }
+
+    function indexByPhone(obj, newId) {
+      // Update index by tel
+      // As this is populated by FB importer we don't need to have
+      // extra checks
+      if (Array.isArray(obj.tel)) {
+        obj.tel.forEach(function(aTel) {
+          index().byTel[aTel.value] = newId;
+        });
+      }
+      if (Array.isArray(obj.shortTelephone)) {
+        obj.shortTelephone.forEach(function(aTel) {
+          index().byShortTel[aTel] = newId;
+        });
+      }
+    }
+
+    function reIndexByPhone(oldObj, newObj, dsId) {
+      removePhoneIndex(oldObj);
+      indexByPhone(newObj, dsId);
+    }
+
+    function removePhoneIndex(deletedFriend) {
+      // Need to update the tel indexes
+      if (Array.isArray(deletedFriend.tel)) {
+        deletedFriend.tel.forEach(function(aTel) {
+          delete index().byTel[aTel.value];
+        });
+      }
+      if (Array.isArray(deletedFriend.shortTelephone)) {
+        deletedFriend.shortTelephone.forEach(function(aTel) {
+          delete index().byShortTel[aTel];
+        });
+      }
     }
 
     /**
@@ -155,24 +178,18 @@ var fb = window.fb || {};
       var errorCb = errorUpdate.bind(null, outRequest, obj.uid);
 
       if (typeof dsId !== 'undefined') {
-        datastore().update(dsId, obj).then(successCb, errorCb);
+        // It is necessary to get the old object and delete old indexes
+        datastore().get(dsId).then(function success(oldObj) {
+          reIndexByPhone(oldObj, obj, dsId);
+          return datastore().update(dsId, obj);
+        }, errorCb).then(function success() {
+          return datastore().update(INDEX_ID, index());
+        }, errorCb).then(successCb, errorCb);
       }
       else {
-        // Let's try to refresh the index
-        datastore().get(INDEX_ID).then(function success_index(data) {
-          setIndex(data);
-          dsId = index().byUid[obj.uid];
-          if (typeof dsId !== 'undefined') {
-            return datastore().update(dsId, obj);
-          }
-          else {
-            errorCb({
-              name: 'Datastore Id cannot be found'
-            });
-            // Just to avoid warnings in strict mode
-            return null;
-          }
-        }, errorCb).then(successCb, errorCb);
+        errorCb({
+          name: 'Datastore Id cannot be found'
+        });
       }
     }
 
@@ -192,31 +209,9 @@ var fb = window.fb || {};
       var objToDelete;
 
       if (typeof dsId === 'undefined') {
-        // Refreshing the index
-        datastore().get(INDEX_ID).then(function success_index(obj) {
-          setIndex(obj);
-          dsId = index().byUid[uid];
-
-          if (typeof dsId !== 'undefined') {
-            return datastore().get(dsId);
-          }
-          else {
-            errorRemove(outRequest, {
-              name: 'No DataStore Id for UID: ' + uid
-            });
-            // Just to avoid warnings of no return
-            return null;
-          }
-        }, function(err) {
-            errorRemove(outRequest, uid, {
-              name: 'Could not get the index data: ' + err.name
-            });
-          }).then(function success_get_remove(obj) {
-            objToDelete = obj;
-            return datastore().remove(dsId);
-        },errorCb).then(function sucess_rm(removed) {
-          successRemove(outRequest, objToDelete, forceFlush, removed);
-        }, errorCb);
+        errorRemove(outRequest, uid, {
+          name: 'UID not found'
+        });
       }
       else {
         datastore().get(dsId).then(function success_get_remove(obj) {
@@ -232,24 +227,15 @@ var fb = window.fb || {};
     function successRemove(outRequest, deletedFriend, forceFlush, removed) {
       if (removed === true) {
         delete index().byUid[deletedFriend.uid];
+        isIndexDirty = true;
 
-        // Need to update the tel indexes
-        if (Array.isArray(deletedFriend.tel)) {
-          deletedFriend.tel.forEach(function(aTel) {
-            delete index().byTel[aTel.value];
-          });
-        }
-
-        if (Array.isArray(deletedFriend.shortTelephone)) {
-          deletedFriend.shortTelephone.forEach(function(aTel) {
-            delete index().byShortTel[aTel];
-          });
-        }
+        removePhoneIndex(deletedFriend);
 
         if (forceFlush) {
           var flushReq = fb.contacts.flush();
 
           flushReq.onsuccess = function() {
+            isIndexDirty = false;
             outRequest.done(true);
           };
           flushReq.onerror = function() {
@@ -257,7 +243,6 @@ var fb = window.fb || {};
           };
         }
         else {
-          isIndexDirty = true;
           outRequest.done(true);
         }
       }

@@ -602,7 +602,7 @@ fb.Contact = function(deviceContact, cid) {
       }
       else {
         // FB Data is removed from the cache
-        var removeReq = fb.contacts.remove(uid);
+        var removeReq = fb.contacts.remove(uid, true);
 
         removeReq.onsuccess = function() {
           out.done(removeReq.result);
