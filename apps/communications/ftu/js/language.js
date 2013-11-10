@@ -5,11 +5,12 @@ var LanguageManager = {
 
   init: function init() {
     this.getCurrentLanguage(this.buildLanguageList.bind(this));
-    this.getCurrentKeyboardLayout();
-    this.getSupportedKbLayouts();
     document.getElementById('languages').addEventListener('change', this);
     this.settings.addObserver('language.current',
-        this.changeDefaultKb.bind(this));
+      function updateDefaultLayouts(event) {
+        // the 2nd parameter is to reset the current enabled layouts
+        KeyboardHelper.changeDefaultLayouts(event.settingValue, true);
+      });
   },
 
   handleEvent: function handleEvent(evt) {
@@ -19,50 +20,11 @@ var LanguageManager = {
     return false;
   },
 
-  changeDefaultKb: function changeDefaultKb(event) {
-    if (this._kbLayoutList) {
-      var lock = this.settings.createLock();
-      // Disable all other keyboard layouts to switch to the new one
-      if (this._languages) {
-        for (var lang in this._languages)
-          if (lang != event.settingValue) {
-            var oldKB = this._kbLayoutList.layout[lang];
-            var settingOldKB = {};
-            settingOldKB['keyboard.layouts.' + oldKB] = false;
-            lock.set(settingOldKB);
-          }
-      }
-
-      var newKB = this._kbLayoutList.layout[event.settingValue];
-      var settingNewKB = {};
-      settingNewKB['keyboard.layouts.' + newKB] = true;
-
-      lock.set(settingNewKB);
-      lock.set({'keyboard.current': event.settingValue});
-      console.log('Keyboard layout changed to ' + event.settingValue);
-
-      this._currentLanguage = event.settingValue;
-      // If the currently selected language has a non-latin keyboard,
-      // activate the English keyboard as well
-      if (this._kbLayoutList.nonLatin.indexOf(event.settingValue) !== -1)
-        lock.set({'keyboard.layouts.english': true});
-    }
-  },
-
   getCurrentLanguage: function settings_getCurrent(callback) {
     var self = this;
     this.readSetting('language.current', function onResponse(setting) {
       self._currentLanguage = setting;
       callback(setting);
-    });
-  },
-
-  getCurrentKeyboardLayout: function settings_getCurrentKb() {
-    var self = this;
-    this.readSetting('keyboard.current', function onResponse(setting) {
-      if (setting) {
-        self._currentKbLayout = setting;
-      }
     });
   },
 
@@ -95,23 +57,6 @@ var LanguageManager = {
         if (data) {
           self._languages = data;
           callback(self._languages);
-        }
-      });
-    }
-  },
-
-  getSupportedKbLayouts: function settings_getSupportedKbLayouts(callback) {
-    if (this._kbLayoutList) {
-      if (callback)
-        callback(this._kbLayoutList);
-    } else {
-      var KEYBOARDS = 'keyboard_layouts.json';
-      var self = this;
-      this.readSharedFile(KEYBOARDS, function getKeyboardLayouts(data) {
-        if (data) {
-          self._kbLayoutList = data;
-          if (callback)
-            callback(self._kbLayoutList);
         }
       });
     }
