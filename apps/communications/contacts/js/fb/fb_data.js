@@ -1,5 +1,9 @@
 'use strict';
 
+// WARNING: This file lazy loads:
+// 'shared/js/fb/fb_data_reader.js
+// 'shared/js/fb/fb_tel_index.js'
+
 var fb = window.fb || {};
 
   (function() {
@@ -14,10 +18,13 @@ var fb = window.fb || {};
     var isIndexDirty = false;
     var READER_LOADED_EV = 'reader_loaded';
 
+    var TEL_INDEXER_JS = '/shared/js/fb/fb_tel_index.js';
+
     // This is needed for having proxy methods setted and ready before
     // the real reader methods (in fb_data_reader) are loaded
     if (!contacts.init) {
-      var proxyMethods = ['get', 'getLength', 'getByPhone', 'refresh', 'init'];
+      var proxyMethods = ['get', 'getLength', 'getByPhone', 'search',
+                          'refresh', 'init'];
       proxyMethods.forEach(function(aMethod) {
         contacts[aMethod] = defaultFunction.bind(null, aMethod);
       });
@@ -85,16 +92,18 @@ var fb = window.fb || {};
     function doSave(obj, outRequest) {
       var globalId;
 
-      datastore().add(obj).then(function success(newId) {
-        globalId = newId;
-        var uid = obj.uid;
-        index().byUid[uid] = newId;
-        indexByPhone(obj, newId);
+      LazyLoader.load(TEL_INDEXER_JS, function() {
+        datastore().add(obj).then(function success(newId) {
+          globalId = newId;
+          var uid = obj.uid;
+          index().byUid[uid] = newId;
+          indexByPhone(obj, newId);
 
-        return datastore().put(index(), INDEX_ID);
-      }, defaultError(outRequest)).then(function success() {
+          return datastore().put(index(), INDEX_ID);
+        }, defaultError(outRequest)).then(function success() {
           defaultSuccessCb(outRequest, globalId);
         }, defaultError(outRequest));
+      });
     }
 
     function indexByPhone(obj, newId) {
@@ -104,6 +113,8 @@ var fb = window.fb || {};
       if (Array.isArray(obj.tel)) {
         obj.tel.forEach(function(aTel) {
           index().byTel[aTel.value] = newId;
+          // To avoid the '+' char
+          TelIndexer.index(index().treeTel, aTel.value.substring(1), newId);
         });
       }
       if (Array.isArray(obj.shortTelephone)) {
@@ -123,6 +134,7 @@ var fb = window.fb || {};
       if (Array.isArray(deletedFriend.tel)) {
         deletedFriend.tel.forEach(function(aTel) {
           delete index().byTel[aTel.value];
+          TelIndexer.remove(index().treeTel, aTel.value.substring(1));
         });
       }
       if (Array.isArray(deletedFriend.shortTelephone)) {
@@ -172,25 +184,27 @@ var fb = window.fb || {};
     };
 
     function doUpdate(obj, outRequest) {
-      var dsId = index().byUid[obj.uid];
+      LazyLoader.load(TEL_INDEXER_JS, function() {
+        var dsId = index().byUid[obj.uid];
 
-      var successCb = successUpdate.bind(null, outRequest);
-      var errorCb = errorUpdate.bind(null, outRequest, obj.uid);
+        var successCb = successUpdate.bind(null, outRequest);
+        var errorCb = errorUpdate.bind(null, outRequest, obj.uid);
 
-      if (typeof dsId !== 'undefined') {
-        // It is necessary to get the old object and delete old indexes
-        datastore().get(dsId).then(function success(oldObj) {
-          reIndexByPhone(oldObj, obj, dsId);
-          return datastore().put(obj, dsId);
-        }, errorCb).then(function success() {
-          return datastore().put(index(), INDEX_ID);
-        }, errorCb).then(successCb, errorCb);
-      }
-      else {
-        errorCb({
-          name: 'Datastore Id cannot be found'
-        });
-      }
+        if (typeof dsId !== 'undefined') {
+          // It is necessary to get the old object and delete old indexes
+          datastore().get(dsId).then(function success(oldObj) {
+            reIndexByPhone(oldObj, obj, dsId);
+            return datastore().update(dsId, obj);
+          }, errorCb).then(function success() {
+            return datastore().update(INDEX_ID, index());
+          }, errorCb).then(successCb, errorCb);
+        }
+        else {
+          errorCb({
+            name: 'Datastore Id cannot be found'
+          });
+        }
+      });
     }
 
     function successUpdate(outRequest) {
@@ -203,24 +217,26 @@ var fb = window.fb || {};
     }
 
     function doRemove(uid, outRequest, forceFlush) {
-      var dsId = index().byUid[uid];
+      LazyLoader.load(TEL_INDEXER_JS, function() {
+        var dsId = index().byUid[uid];
 
-      var errorCb = errorRemove.bind(null, outRequest, uid);
-      var objToDelete;
+        var errorCb = errorRemove.bind(null, outRequest, uid);
+        var objToDelete;
 
-      if (typeof dsId === 'undefined') {
-        errorRemove(outRequest, uid, {
-          name: 'UID not found'
-        });
-      }
-      else {
-        datastore().get(dsId).then(function success_get_remove(obj) {
-          objToDelete = obj;
-          return datastore().remove(dsId);
-        }, errorCb).then(function success_rm(removed) {
-          successRemove(outRequest, objToDelete, forceFlush, removed);
-        }, errorCb);
-      }
+        if (typeof dsId === 'undefined') {
+          errorRemove(outRequest, uid, {
+            name: 'UID not found'
+          });
+        }
+        else {
+          datastore().get(dsId).then(function success_get_remove(obj) {
+            objToDelete = obj;
+            return datastore().remove(dsId);
+          }, errorCb).then(function success_rm(removed) {
+            successRemove(outRequest, objToDelete, forceFlush, removed);
+          }, errorCb);
+        }
+      });
     }
 
     // Needs to update the index data conveniently
