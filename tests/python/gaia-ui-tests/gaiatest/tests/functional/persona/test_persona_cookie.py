@@ -44,7 +44,10 @@ class TestPersonaCookie(GaiaTestCase):
         persona = Persona(self.marionette)
         persona.login(self.user.email, self.user.password)
 
-        browser.launch()
+        # wait to fall back to browser
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == browser.name)
+        self.apps.switch_to_displayed_app()
+
         browser.switch_to_content()
         self.wait_for_element_displayed(*self._logged_in_button_locator)
 
