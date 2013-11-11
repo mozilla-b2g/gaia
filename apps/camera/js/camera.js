@@ -15,104 +15,21 @@ function padLeft(num, length) {
   return r;
 }
 
+var CameraMode = {
+  CAMERA: 'camera',
+  VIDEO: 'video'
+};
 
-// This handles the logic pertaining to the naming of files according
-// to the Design rule for Camera File System
-// * http://en.wikipedia.org/wiki/Design_rule_for_Camera_File_system
-var DCFApi = (function() {
-
-  var api = {};
-
-  var dcfConfigLoaded = false;
-  var deferredArgs = null;
-  var defaultSeq = {file: 1, dir: 100};
-
-  var dcfConfig = {
-    key: 'dcf_key',
-    seq: null,
-    postFix: 'MZLLA',
-    prefix: {video: 'VID_', image: 'IMG_'},
-    ext: {video: '3gp', image: 'jpg'}
-  };
-
-  api.init = function() {
-
-    asyncStorage.getItem(dcfConfig.key, function(value) {
-
-      dcfConfigLoaded = true;
-      dcfConfig.seq = value ? value : defaultSeq;
-
-      // We have a previous call to createDCFFilename that is waiting for
-      // a response, fire it again
-      if (deferredArgs) {
-        var args = deferredArgs;
-        api.createDCFFilename(args.storage, args.type, args.callback);
-        deferredArgs = null;
-      }
-    });
-  };
-
-  api.createDCFFilename = function(storage, type, callback) {
-
-    // We haven't loaded the current counters from indexedDB yet, defer
-    // the call
-    if (!dcfConfigLoaded) {
-      deferredArgs = {storage: storage, type: type, callback: callback};
-      return;
-    }
-
-    var filepath = 'DCIM/' + dcfConfig.seq.dir + dcfConfig.postFix + '/';
-    var filename = dcfConfig.prefix[type] +
-      padLeft(dcfConfig.seq.file, 4) + '.' +
-      dcfConfig.ext[type];
-
-    // A file with this name may have been written by the user or
-    // our indexeddb sequence tracker was cleared, check we wont overwrite
-    // anything
-    var req = storage.get(filepath + filename);
-
-    // A file existed, we bump the directory then try to generate a
-    // new filename
-    req.onsuccess = function() {
-      dcfConfig.seq.file = 1;
-      dcfConfig.seq.dir += 1;
-      asyncStorage.setItem(dcfConfig.key, dcfConfig.seq, function() {
-        api.createDCFFilename(storage, type, callback);
-      });
-    };
-
-    // No file existed, we are good to go
-    req.onerror = function() {
-      if (dcfConfig.seq.file < 9999) {
-        dcfConfig.seq.file += 1;
-      } else {
-        dcfConfig.seq.file = 1;
-        dcfConfig.seq.dir += 1;
-      }
-      asyncStorage.setItem(dcfConfig.key, dcfConfig.seq, function() {
-        callback(filepath, filename);
-      });
-    };
-  };
-
-  return api;
-
-})();
+var DCFApi;
 
 var screenLock = null;
 var Camera = {
-  _initialised: false,
   _cameras: null,
-  _cameraNumber: 0,
   _captureMode: null,
-  _recording: false,
 
   // In secure mode the user cannot browse to the gallery
   _secureMode: window.parent !== window,
   _currentOverlay: null,
-
-  CAMERA: 'camera',
-  VIDEO: 'video',
 
   _videoTimer: null,
   _videoStart: null,
@@ -128,8 +45,6 @@ var Camera = {
   _photosTaken: [],
   _cameraProfile: null,
 
-  _styleSheet: document.styleSheets[0],
-  _orientationRule: null,
   _phoneOrientation: 0,
 
   _pictureStorage: null,
@@ -144,8 +59,6 @@ var Camera = {
 
   _pictureSize: null,
   _previewConfig: null,
-  _previewPaused: false,
-  _previewActive: false,
 
   // We can recieve multiple FileSizeLimitReached events
   // when recording, since we stop recording on this event
@@ -216,22 +129,6 @@ var Camera = {
     return document.getElementById('storage-setting-button');
   },
 
-  get viewfinder() {
-    return document.getElementById('viewfinder');
-  },
-
-  get switchButton() {
-    return document.getElementById('switch-button');
-  },
-
-  get captureButton() {
-    return document.getElementById('capture-button');
-  },
-
-  get galleryButton() {
-    return document.getElementById('gallery-button');
-  },
-
   get videoTimer() {
     return document.getElementById('video-timer');
   },
@@ -274,6 +171,7 @@ var Camera = {
   // active we do the rest of the initialisation.
   init: function() {
     PerformanceTestingHelper.dispatch('initialising-camera-preview');
+
     // We dont want to initialise until we know what type of activity
     // we are handling
     var hasMessage = navigator.mozHasPendingMessage('activity');
@@ -286,71 +184,120 @@ var Camera = {
     // The activity may have defined a captureMode, otherwise
     // be default we use the camera
     if (this._captureMode === null) {
-      this.setCaptureMode(this.CAMERA);
+      this.setCaptureMode(CameraMode.CAMERA);
     }
+    
+    requirejs.config({ baseUrl: 'js' });
+    
+    var requires = [
+      'models/state',
+      'models/settings',
+      'views/viewfinder',
+      'views/controls',
+      'dcf',
+      '/shared/js/async_storage.js',
+      '/shared/js/blobview.js',
+      '/shared/js/media/jpeg_metadata_parser.js',
+      '/shared/js/media/get_video_rotation.js',
+      '/shared/js/media/video_player.js',
+      '/shared/js/media/media_frame.js',
+      '/shared/js/gesture_detector.js',
+      '/shared/js/lazy_l10n.js',
+      'panzoom',
+      'views/filmstrip',
+      'confirm',
+      'soundeffect',
+      'orientation'
+    ];
 
-    this.loadCameraPreview(this._cameraNumber, function() {
-      PerformanceTestingHelper.dispatch('camera-preview-loaded');
-      var files = [
-        '/shared/js/async_storage.js',
-        '/shared/js/blobview.js',
-        '/shared/js/media/jpeg_metadata_parser.js',
-        '/shared/js/media/get_video_rotation.js',
-        '/shared/js/media/video_player.js',
-        '/shared/js/media/media_frame.js',
-        '/shared/js/gesture_detector.js',
-        '/shared/js/lazy_l10n.js',
-        'js/panzoom.js',
-        'js/filmstrip.js',
-        'js/confirm.js',
-        'js/soundeffect.js',
-        'js/orientation.js'
-      ];
-      loader.load(files, function() {
-        LazyL10n.get(function localized() {
-          Camera.delayedInit();
-        });
+    require(requires, function(CameraState,
+                               CameraSettings,
+                               ViewfinderView,
+                               ControlsView,
+                               DCF) {
+
+      window.CameraState = CameraState;
+      window.CameraSettings = CameraSettings;
+      window.ViewfinderView = ViewfinderView;
+      window.ControlsView = ControlsView;
+      window.DCFApi = DCF;
+
+      // Re-render views when CameraState changes
+      ViewfinderView.watch(CameraState);
+      ControlsView.watch(CameraState);
+
+      // Handle model change events
+      CameraState.on('change:recording', function(evt) {
+        var recording = evt.value;
+
+        ControlsView.setRecording(recording);
+
+        // Hide the filmstrip to prevent the users from entering the
+        // preview mode after Camera starts recording button pressed
+        if (recording && Filmstrip.isShown()) {
+          Filmstrip.hide();
+        }
+      });
+
+      // CameraState.on('change:????', function(evt) {
+      //   ...
+      // });
+      //
+      // ... Add additional event handlers here ...
+
+      Camera.loadCameraPreview(CameraState.get('cameraNumber'), function() {
+        PerformanceTestingHelper.dispatch('camera-preview-loaded');
+
+        Camera.checkStorageSpace();
+      });
+
+      LazyL10n.get(function localized() {
+        Camera.delayedInit();
       });
     });
+
+    var files = [
+      'style/filmstrip.css',
+      'style/confirm.css',
+      'style/VideoPlayer.css'
+    ];
+
+    loader.load(files);
   },
 
   delayedInit: function camera_delayedInit() {
     if (!this._pendingPick) {
-      this.galleryButton.classList.remove('hidden');
-      this.switchButton.classList.remove('hidden');
+      CameraState.set({
+        modeButtonHidden: false,
+        galleryButtonHidden: false
+      });
     }
+
     this.enableButtons();
 
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
     this.requestScreenWakeLock();
 
+    this.setToggleCameraStyle();
+
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
-    this.viewfinder.addEventListener('click', this.toggleFilmStrip.bind(this));
-    CameraOrientation.addEventListener('orientation',
-                                      this.handleOrientationChanged.bind(this));
+    
+    CameraOrientation.addEventListener('orientation', this.handleOrientationChanged.bind(this));
 
-    this.switchButton
-      .addEventListener('click', this.toggleModePressed.bind(this));
-    this.captureButton
-      .addEventListener('click', this.capturePressed.bind(this));
-    this.galleryButton
-      .addEventListener('click', this.galleryBtnPressed.bind(this));
-    this.cancelPickButton
-      .addEventListener('click', this.cancelPick.bind(this));
     this.overlayCloseButton
       .addEventListener('click', this.cancelPick.bind(this));
     this.storageSettingButton
       .addEventListener('click', this.storageSettingPressed.bind(this));
 
     if (!navigator.mozCameras) {
-      this.captureButton.setAttribute('disabled', 'disabled');
+      CameraState.set('captureButtonEnabled', false);
       return;
     }
 
     if (this._secureMode) {
-      this.galleryButton.setAttribute('disabled', 'disabled');
+      CameraState.set('galleryButtonEnabled', false);
     }
 
     CameraOrientation.start();
@@ -367,10 +314,11 @@ var Camera = {
 
     this._pictureStorage
       .addEventListener('change', this.deviceStorageChangeHandler.bind(this));
-    this.checkStorageSpace();
+
     this.previewEnabled();
 
-    this._initialised = true;
+    CameraState.set('initialized', true);
+    
     DCFApi.init();
     PerformanceTestingHelper.dispatch('startup-path-done');
   },
@@ -378,20 +326,23 @@ var Camera = {
   handleActivity: function camera_handleActivity(activity) {
     // default to allow both photos and videos
     var types = activity.source.data.type || ['image/*', 'video/*'];
-    var mode = this.CAMERA;
+    var mode = CameraMode.CAMERA;
 
     if (activity.source.name === 'pick') {
       // When inside an activity the user cannot switch between
       // the gallery or video recording.
       this._pendingPick = activity;
 
-      // Hide the gallery and switch buttons, leaving only the shutter
-      this.galleryButton.classList.add('hidden');
-      this.switchButton.classList.add('hidden');
+      CameraState.set({
 
-      // Display the cancel button, and make sure it's enabled
-      this.cancelPickButton.classList.remove('hidden');
-      this.cancelPickButton.removeAttribute('disabled');
+        // Hide the gallery and switch buttons, leaving only the shutter
+        modeButtonHidden: true,
+        galleryButtonHidden: true,
+
+        // Display the cancel button, and make sure it's enabled
+        cancelPickButtonHidden: false,
+        cancelPickButtonEnabled: true
+      });
 
       if (typeof types === 'string') {
         types = [types];
@@ -404,23 +355,25 @@ var Camera = {
       });
 
       if (allowedTypes.image && allowedTypes.video) {
-        this.switchButton.classList.remove('hidden');
-        this.switchButton.removeAttribute('disabled');
+        CameraState.set({
+          modeButtonHidden: false,
+          modeButtonEnabled: true
+        });
       } else if (allowedTypes.video) {
-        mode = this.VIDEO;
+        mode = CameraMode.VIDEO;
       }
     } else { // record
       if (types === 'videos') {
-        mode = this.VIDEO;
+        mode = CameraMode.VIDEO;
       }
     }
 
-    if (!this._initialised) {
+    if (!CameraState.get('initialized')) {
       this.setCaptureMode(mode);
       this.init();
     } else if (this._captureMode !== mode) {
       // I dont think it is currently possible to get a pick activity
-      // with an initialised camera, but it may be in the future
+      // with an initialized camera, but it may be in the future
       this.changeMode(mode);
     }
   },
@@ -438,25 +391,15 @@ var Camera = {
   },
 
   enableButtons: function camera_enableButtons() {
-    this.captureButton.removeAttribute('disabled');
-    this.switchButton.removeAttribute('disabled');
-    this.toggleButton.removeAttribute('disabled');
-    this.toggleFlashBtn.removeAttribute('disabled');
+    CameraState.enableButtons();
 
-    if (this._pendingPick) {
-      this.cancelPickButton.removeAttribute('disabled');
-    }
+    this.toggleFlashBtn.removeAttribute('disabled');
   },
 
   disableButtons: function camera_disableButtons() {
-    this.switchButton.setAttribute('disabled', 'disabled');
-    this.captureButton.setAttribute('disabled', 'disabled');
-    this.toggleButton.setAttribute('disabled', 'disabled');
-    this.toggleFlashBtn.setAttribute('disabled', 'disabled');
+    CameraState.disableButtons();
 
-    if (this._pendingPick) {
-      this.cancelPickButton.setAttribute('disabled', 'disabled');
-    }
+    this.toggleFlashBtn.setAttribute('disabled', 'disabled');
   },
 
   cancelPick: function camera_cancelPick() {
@@ -464,16 +407,6 @@ var Camera = {
       this._pendingPick.postError('pick cancelled');
     }
     this._pendingPick = null;
-  },
-
-  toggleModePressed: function camera_toggleCaptureMode(e) {
-    if (e.target.getAttribute('disabled')) {
-      return;
-    }
-
-    var newMode = (this._captureMode === this.CAMERA) ?
-      this.VIDEO : this.CAMERA;
-    this.changeMode(newMode);
   },
 
   changeMode: function(mode) {
@@ -484,8 +417,8 @@ var Camera = {
     this.setFocusMode();
 
     function gotPreviewStream(stream) {
-      this.viewfinder.mozSrcObject = stream;
-      this.viewfinder.play();
+      ViewfinderView.setPreviewStream(stream);
+      ViewfinderView.startPreview();
     }
     Camera._cameraObj.onPreviewStateChange = function(state) {
       // We disabled the buttons above. Now we wait for the preview
@@ -499,7 +432,7 @@ var Camera = {
         Camera._cameraObj.onPreviewStateChange = null;
       }
     };
-    if (this._captureMode === this.CAMERA) {
+    if (this._captureMode === CameraMode.CAMERA) {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
     } else {
@@ -511,15 +444,14 @@ var Camera = {
 
   toggleCamera: function camera_toggleCamera() {
     var stateClass = 'is-toggling-camera';
-    var camera = 1 - this._cameraNumber;
     var bodyClasses = document.body.classList;
     var fadeTime = 800;
     var self = this;
 
-    this._cameraNumber = camera;
-
     // turn off flash light
     // before switch to front camera
+    var cameraNumber = 1 - CameraState.get('cameraNumber');
+    
     this.updateFlashUI();
 
     // Disable the buttons so
@@ -529,20 +461,33 @@ var Camera = {
     // to the body to cause the
     // viewfinder to fade out.
     this.disableButtons();
+
     bodyClasses.add(stateClass);
     setTimeout(onFadeFinish, fadeTime);
 
     function onFadeFinish() {
-      self.loadCameraPreview(camera, function() {
+      self.loadCameraPreview(cameraNumber, function() {
         self.enableButtons();
         bodyClasses.remove(stateClass);
       });
     }
+
+    this.loadCameraPreview(cameraNumber, this.enableButtons.bind(this));
+    this.setToggleCameraStyle();
+
+    CameraState.set('cameraNumber', cameraNumber);
+  },
+
+  setToggleCameraStyle: function camera_setToggleCameraStyle() {
+    var cameraNumber = CameraState.get('cameraNumber');
+    var modeName = cameraNumber === 0 ? 'back' : 'front';
+    this.toggleButton.setAttribute('data-mode', modeName);
   },
 
   updateFlashUI: function camera_updateFlashUI() {
     var flash = this._flashState[this._captureMode];
-    if (flash.supported[this._cameraNumber]) {
+    var cameraNumber = CameraState.get('cameraNumber');
+    if (flash.supported[cameraNumber]) {
       this.setFlashMode();
       this.toggleFlashBtn.classList.remove('hidden');
     } else {
@@ -555,7 +500,8 @@ var Camera = {
 
   turnOffFlash: function camera_turnOffFlash() {
     var flash = this._flashState[this._captureMode];
-    flash.currentMode[this._cameraNumber] = 0;
+    var cameraNumber = CameraState.get('cameraNumber');
+    flash.currentMode[cameraNumber] = 0;
     this.setFlashMode();
   },
 
@@ -563,23 +509,25 @@ var Camera = {
   // Auto mode only works when camera is currently at camera mode (not video).
   turnOnFlash: function camera_turnOnFlash(isAuto) {
     var flash = this._flashState[this._captureMode];
-    if (this._captureMode === this.CAMERA) {
-      flash.currentMode[this._cameraNumber] = isAuto ? 1 : 2;
+    var cameraNumber = CameraState.get('cameraNumber');
+    if (this._captureMode === CameraMode.CAMERA) {
+      flash.currentMode[cameraNumber] = isAuto ? 1 : 2;
     } else {
-      flash.currentMode[this._cameraNumber] = 1;
+      flash.currentMode[cameraNumber] = 1;
     }
     this.setFlashMode();
   },
 
   toggleFlash: function camera_toggleFlash() {
     var flash = this._flashState[this._captureMode];
-    var cameraNumber = this._cameraNumber;
+    var cameraNumber = CameraState.get('cameraNumber');
     var numModes = flash.modes.length;
     var next = (flash.currentMode[cameraNumber] + 1) % numModes;
     var toggleBtn = this.toggleFlashBtn;
     var cls = 'is-toggling';
 
     flash.currentMode[cameraNumber] = next;
+
     this.setFlashMode();
 
     // Add the toggle state class,
@@ -595,11 +543,12 @@ var Camera = {
 
   setFlashMode: function camera_setFlashMode() {
     var flash = this._flashState[this._captureMode];
-    if ((typeof flash.currentMode[this._cameraNumber]) === 'undefined') {
-      flash.currentMode[this._cameraNumber] = flash.defaultMode;
+    var cameraNumber = CameraState.get('cameraNumber');
+    if ((typeof flash.currentMode[cameraNumber]) === 'undefined') {
+      flash.currentMode[cameraNumber] = flash.defaultMode;
     }
 
-    var flashModeName = flash.modes[flash.currentMode[this._cameraNumber]];
+    var flashModeName = flash.modes[flash.currentMode[cameraNumber]];
 
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this.flashName.textContent = flashModeName;
@@ -608,7 +557,7 @@ var Camera = {
 
   setFocusMode: function camera_setFocusMode() {
     this._callAutoFocus = false;
-    if (this._captureMode === this.CAMERA) {
+    if (this._captureMode === CameraMode.CAMERA) {
       if (this._autoFocusSupport[FOCUS_MODE_CONTINUOUS_CAMERA]) {
         this._cameraObj.focusMode = FOCUS_MODE_CONTINUOUS_CAMERA;
         return;
@@ -625,24 +574,25 @@ var Camera = {
     }
   },
 
-  toggleRecording: function camera_toggleRecording() {
-    if (this._recording) {
-      this.stopRecording();
+  capture: function camera_capture() {
+    if (Camera._captureMode === CameraMode.CAMERA) {
+      Camera.prepareTakePicture();
       return;
     }
-    // Hide the filmstrip to prevent the users from
-    // entering the preview mode after Camera starts recording button pressed
-    if (Filmstrip.isShown())
-      Filmstrip.hide();
 
-    this.startRecording();
+    var recording = CameraState.get('recording');
+    if (recording) {
+      this.stopRecording();
+    }
+
+    else {
+      this.startRecording();
+    }
   },
 
   startRecording: function camera_startRecording() {
-    document.body.classList.add('recording');
+    // document.body.classList.add('recording');
     this._sizeLimitAlertActive = false;
-    var captureButton = this.captureButton;
-    var switchButton = this.switchButton;
 
     var onerror = function() {
       handleError('error-recording');
@@ -654,9 +604,11 @@ var Camera = {
       // To have more information on video track, we wait for 500ms to have
       // few video and audio samples, see bug 899864.
       window.setTimeout(function() {
-        captureButton.removeAttribute('disabled');
+        CameraState.set('captureButtonEnabled', true);
       }, Camera.MIN_RECORDING_TIME);
-      this._recording = true;
+
+      CameraState.set('recording', true);
+      
       this.startRecordingTimer();
 
       // User closed app while recording was trying to start
@@ -739,13 +691,14 @@ var Camera = {
   },
 
   stopRecording: function camera_stopRecording() {
-    document.body.classList.remove('recording');
+    // document.body.classList.remove('recording');
     var self = this;
     this._cameraObj.stopRecording();
     // play camcorder shutter sound while stop recording.
     SoundEffect.playRecordingEndSound();
 
-    this._recording = false;
+    CameraState.set('recording', false);
+
     // Register a listener for writing completion of current video file
     (function(videoStorage, videofile) {
       videoStorage.addEventListener('change', function changeHandler(e) {
@@ -862,37 +815,13 @@ var Camera = {
     return '';
   },
 
-  capturePressed: function camera_doCapture(e) {
-    if (e.target.getAttribute('disabled')) {
-      return;
-    }
-
-    if (this._captureMode === this.CAMERA) {
-      this.prepareTakePicture();
-    } else {
-      this.toggleRecording();
-    }
-  },
-
-  galleryBtnPressed: function camera_galleryBtnPressed() {
-    // Can't launch the gallery if the lockscreen is locked.
-    // The button shouldn't even be visible in this case, but
-    // let's be really sure here.
-    if (this._secureMode)
-      return;
-
-    // Launch the gallery with an activity
-    var a = new MozActivity({
-      name: 'browse',
-      data: {
-        type: 'photos'
-      }
-    });
-  },
-
   handleOrientationChanged: function camera_orientationChanged(orientation) {
     document.body.setAttribute('data-orientation', 'deg' + orientation);
+
+    this._phoneOrientation = orientation;
+
     Filmstrip.setOrientation(orientation);
+    CameraState.set('orientation', orientation);
   },
 
   setCaptureMode: function camera_setCaptureMode(mode) {
@@ -903,30 +832,17 @@ var Camera = {
     document.body.classList.add(mode);
   },
 
-  toggleFilmStrip: function camera_toggleFilmStrip(ev) {
-    // We will just ignore
-    // because the filmstrip shouldn't be shown
-    // while Camera is recording
-    if (this._recording || this._pendingPick)
-      return;
-
-    if (Filmstrip.isShown())
-      Filmstrip.hide();
-    else
-      Filmstrip.show();
-  },
-
   loadCameraPreview: function camera_loadCameraPreview(cameraNumber, callback) {
-
-    this.viewfinder.mozSrcObject = null;
+    ViewfinderView.setPreviewStream(null);
     this._timeoutId = 0;
     this._cameras = navigator.mozCameras.getListOfCameras();
     var options = {camera: this._cameras[cameraNumber]};
 
     function gotPreviewScreen(stream) {
-      this.viewfinder.mozSrcObject = stream;
-      this.viewfinder.play();
-      this._previewActive = true;
+      ViewfinderView.setPreviewStream(stream);
+      ViewfinderView.startPreview();
+
+      CameraState.set('previewActive', true);
 
       if (callback) {
         // Even though we have the stream now, the camera hardware hasn't
@@ -947,16 +863,21 @@ var Camera = {
       var thumbnailSize;
       var availableThumbnailSizes = camera.capabilities.thumbnailSizes;
       this._cameraObj = camera;
+
+      var autoFocusSupported = camera.capabilities.focusModes.indexOf('auto') !== -1;
+      CameraState.set('autoFocusSupported', autoFocusSupported);
+
       this.pickPictureSize(camera);
       thumbnailSize = this.selectThumbnailSize(availableThumbnailSizes,
                                                this._pictureSize);
       if (thumbnailSize) {
         camera.thumbnailSize = thumbnailSize;
       }
+
       this.getPreferredSizes((function() {
         this._videoProfile =
           this.pickVideoProfile(camera.capabilities.recorderProfiles);
-          if (this._captureMode === this.VIDEO) {
+          if (this._captureMode === CameraMode.VIDEO) {
             this._videoProfile.rotation = this._phoneOrientation;
             this._cameraObj.getPreviewStreamVideoMode(
               this._videoProfile, gotPreviewScreen.bind(this));
@@ -971,7 +892,7 @@ var Camera = {
         SoundEffect.playCameraShutterSound();
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
-      if (this._captureMode === this.CAMERA) {
+      if (this._captureMode === CameraMode.CAMERA) {
         camera.getPreviewStream(this._previewConfig,
                                 gotPreviewScreen.bind(this));
       }
@@ -988,16 +909,11 @@ var Camera = {
   },
 
   setPreviewSize: function(camera) {
+    var style = ViewfinderView.el.style;
 
-    var viewfinder = this.viewfinder;
-    var style = viewfinder.style;
-    // Switch screen dimensions to landscape. The screen width/height is css
-    // pixel size. The following calculation are all based on css pixel.
-    var screenWidth = document.body.clientHeight;
-    var screenHeight = document.body.clientWidth;
-    // We need real device pixel size to choose the correct preview image size.
-    var deviceWidth = screenWidth * window.devicePixelRatio;
-    var deviceHeight = screenHeight * window.devicePixelRatio;
+    // Switch screen dimensions to landscape
+    var screenWidth = document.body.clientHeight * window.devicePixelRatio;
+    var screenHeight = document.body.clientWidth * window.devicePixelRatio;
     var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
     var screenAspectRatio = screenHeight / screenWidth;
 
@@ -1034,7 +950,8 @@ var Camera = {
       height = screenHeight;
     }
 
-    if (this._cameraNumber == 1) {
+    var cameraNumber = CameraState.get('cameraNumber');
+    if (cameraNumber == 1) {
       /* backwards-facing camera */
       transform += ' scale(-1, 1)';
       translateX = width;
@@ -1086,14 +1003,15 @@ var Camera = {
     }
 
     var flashModes = capabilities.flashModes;
+    var cameraNumber = CameraState.get('cameraNumber');
     if (flashModes) {
       // Check camera flash support
-      var flash = this._flashState[this.CAMERA];
-      flash.supported[this._cameraNumber] = isSubset(flash.modes, flashModes);
+      var flash = this._flashState[CameraMode.CAMERA];
+      flash.supported[cameraNumber] = isSubset(flash.modes, flashModes);
 
       // Check video flash support
-      flash = this._flashState[this.VIDEO];
-      flash.supported[this._cameraNumber] = isSubset(flash.modes, flashModes);
+      flash = this._flashState[CameraMode.VIDEO];
+      flash.supported[cameraNumber] = isSubset(flash.modes, flashModes);
 
       this.updateFlashUI();
     } else {
@@ -1113,10 +1031,13 @@ var Camera = {
   },
 
   startPreview: function camera_startPreview() {
+    var cameraNumber = CameraState.get('cameraNumber');
+
     this.requestScreenWakeLock();
-    this.viewfinder.play();
-    this.loadCameraPreview(this._cameraNumber, this.previewEnabled.bind(this));
-    this._previewActive = true;
+    ViewfinderView.startPreview();
+    this.loadCameraPreview(cameraNumber, this.previewEnabled.bind(this));
+
+    CameraState.set('previewActive', true);
   },
 
   previewEnabled: function() {
@@ -1129,14 +1050,18 @@ var Camera = {
   stopPreview: function camera_stopPreview() {
     try {
       this.releaseScreenWakeLock();
-      if (this._recording) {
+
+      var recording = CameraState.get('recording');
+      if (recording) {
         this.stopRecording();
       }
       this.hideFocusRing();
       this.disableButtons();
-      this.viewfinder.pause();
-      this._previewActive = false;
-      this.viewfinder.mozSrcObject = null;
+      ViewfinderView.stopPreview();
+
+      CameraState.set('previewActive', false);
+
+      ViewfinderView.setPreviewStream(null);
     } catch (ex) {
       console.error('error while stopping preview', ex.message);
     } finally {
@@ -1146,7 +1071,9 @@ var Camera = {
 
   resumePreview: function camera_resumePreview() {
     this._cameraObj.resumePreview();
-    this._previewActive = true;
+
+    CameraState.set('previewActive', true);
+
     this.enableButtons();
   },
 
@@ -1157,6 +1084,9 @@ var Camera = {
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
     this._config.position = null;
+
+    CameraState.set('manuallyFocused', false);
+
     this.hideFocusRing();
 
 
@@ -1187,7 +1117,7 @@ var Camera = {
 
   retakePressed: function camera_retakePressed() {
     this._savedMedia = null;
-    if (this._captureMode === this.CAMERA) {
+    if (this._captureMode === CameraMode.CAMERA) {
       this.resumePreview();
     } else {
       this.startPreview();
@@ -1198,7 +1128,7 @@ var Camera = {
     var self = this;
     var media = this._savedMedia;
     this._savedMedia = null;
-    if (this._captureMode === this.CAMERA) {
+    if (this._captureMode === CameraMode.CAMERA) {
       this._resizeBlobIfNeeded(media.blob, function(resized_blob) {
         this._pendingPick.postResult({
           type: 'image/jpeg',
@@ -1355,12 +1285,14 @@ var Camera = {
       return false;
     }
 
+    var previewActive = CameraState.get('previewActive');
+
     if (this._storageState === this.STORAGE_AVAILABLE) {
       // Preview may have previously been paused if storage
       // was not available
       // Don't start the preview when confirm dialog is showing. The choices of
       // ConfirmDialog call the startPreview or close this activity.
-      if (!this._previewActive && !document.hidden &&
+      if (!previewActive && !document.hidden &&
           !ConfirmDialog.isShowing()) {
         this.startPreview();
       }
@@ -1379,7 +1311,7 @@ var Camera = {
       this.showOverlay('nospace');
       break;
     }
-    if (this._previewActive) {
+    if (previewActive) {
       this.stopPreview();
     }
     return true;
@@ -1387,6 +1319,7 @@ var Camera = {
 
   prepareTakePicture: function camera_takePicture() {
     this.disableButtons();
+
     if (this._callAutoFocus) {
       this.focusRing.setAttribute('data-state', 'focusing');
       this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
@@ -1665,5 +1598,5 @@ document.addEventListener('visibilitychange', function() {
 window.addEventListener('beforeunload', function() {
   window.clearTimeout(Camera._timeoutId);
   delete Camera._timeoutId;
-  Camera.viewfinder.mozSrcObject = null;
+  ViewfinderView.setPreviewStream(null);
 });

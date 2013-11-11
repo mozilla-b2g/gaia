@@ -95,7 +95,7 @@ var Filmstrip = (function() {
     // If we're showing previews be sure we're showing the filmstrip
     // with no timeout and be sure that the viewfinder video is paused.
     show();
-    Camera.viewfinder.pause();
+    ViewfinderView.el.pause();
   };
 
   function previewItem(index) {
@@ -134,7 +134,7 @@ var Filmstrip = (function() {
   }
 
   function hidePreview() {
-    Camera.viewfinder.play();        // Restart the viewfinder
+    ViewfinderView.el.play();        // Restart the viewfinder
     show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
     preview.classList.add('offscreen');
     Camera.requestScreenWakeLock();
