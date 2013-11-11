@@ -3,17 +3,45 @@
 
 'use strict';
 
-function SimPinDialog(dialog) {
-  if (!window.navigator.mozMobileConnection || !IccHelper.enabled)
+/*
+ *  How to use SimPinDialog
+ *
+ *  1.
+ *
+ *  var simPinDialog = new SimPinDialog(yourDom, {
+ *    cardIndex: 0 // this will maps to the card on connection[0]
+ *  });
+ *
+ *  2.
+ *
+ *  var SimPinDialog = new SimPinDialog(yourDom);
+ *
+ *  This will select on the first card by default for non-DSDS devices
+ *
+ */
+function SimPinDialog(dialog, options) {
+
+  var mozMobileConnections = window.navigator.mozMobileConnections;
+  var mozIccManager = window.navigator.mozIccManager;
+  var _localize = window.navigator.mozL10n.localize;
+
+  if (!mozMobileConnections || !mozIccManager) {
     return;
+  }
 
-  var _localize = navigator.mozL10n.localize;
+  /**
+   * User options
+   */
+  options = options || {};
 
+  // we will select on the first card by default
+  var cardIndex = options.cardIndex || 0;
+  var iccId = mozMobileConnections[cardIndex];
+  var icc = mozIccManager.getIccById(iccId);
 
   /**
    * Global variables and callbacks -- set by the main `show()' method
    */
-
   var _origin = ''; // id of the dialog caller (specific to the Settings app)
   var _action = ''; // requested action: unlock*, enable*, disable*, change*
   var _onsuccess = function() {};
@@ -148,7 +176,7 @@ function SimPinDialog(dialog) {
   }
 
   function unlockCardLock(options) {
-    var req = IccHelper.unlockCardLock(options);
+    var req = icc.unlockCardLock(options);
     req.onsuccess = function sp_unlockSuccess() {
       close();
       _onsuccess();
@@ -200,7 +228,7 @@ function SimPinDialog(dialog) {
   }
 
   function setCardLock(options) {
-    var req = IccHelper.setCardLock(options);
+    var req = icc.setCardLock(options);
     req.onsuccess = function spl_enableSuccess() {
       close();
       _onsuccess();
@@ -356,7 +384,7 @@ function SimPinDialog(dialog) {
     // display the number of remaining retries if necessary
     // XXX this only works with the emulator (and some commercial RIL stacks...)
     // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
-    IccHelper.getCardLockRetryCount(lockType, showRetryCount);
+    icc.getCardLockRetryCount(lockType, showRetryCount);
     return action;
   }
 
