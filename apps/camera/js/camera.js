@@ -946,8 +946,8 @@ var Camera = {
     var viewfinder = this.viewfinder;
     var style = viewfinder.style;
     // Switch screen dimensions to landscape
-    var screenWidth = document.body.clientHeight;
-    var screenHeight = document.body.clientWidth;
+    var screenWidth = document.body.clientHeight * window.devicePixelRatio;
+    var screenHeight = document.body.clientWidth * window.devicePixelRatio;
     var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
     var screenAspectRatio = screenHeight / screenWidth;
 
@@ -1356,8 +1356,8 @@ var Camera = {
 
   selectThumbnailSize: function(thumbnailSizes, pictureSize) {
     var i;
-    var screenWidth = window.innerWidth;
-    var screenHeight = window.innerHeight;
+    var screenWidth = window.innerWidth * window.devicePixelRatio;
+    var screenHeight = window.innerHeight * window.devicePixelRatio;
     var pictureAspectRatio = pictureSize.width / pictureSize.height;
     var currentThumbnailSize;
     var selectedThumbnailSize;
