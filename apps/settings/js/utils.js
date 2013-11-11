@@ -207,8 +207,6 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
 /**
  * Connectivity accessors
  */
-
-// create a fake mozMobileConnection if required (e.g. desktop browser)
 var getMobileConnection = function() {
   var navigator = window.navigator;
 
@@ -220,50 +218,10 @@ var getMobileConnection = function() {
 
   if (mobileConnection && mobileConnection.data)
     return mobileConnection;
-
-  var initialized = false;
-  var fakeNetwork = { shortName: 'Fake Orange F', mcc: '208', mnc: '1' };
-  var fakeVoice = {
-    state: 'notSearching',
-    roaming: true,
-    connected: true,
-    emergencyCallsOnly: false
-  };
-
-  function fakeEventListener(type, callback, bubble) {
-    if (initialized)
-      return;
-
-    // simulates a connection to a data network;
-    setTimeout(function fakeCallback() {
-      initialized = true;
-      callback();
-    }, 5000);
-  }
-
-  return {
-    addEventListener: fakeEventListener,
-    get data() {
-      return initialized ? { network: fakeNetwork } : null;
-    },
-    get voice() {
-      return initialized ? fakeVoice : null;
-    }
-  };
 };
 
 var getBluetooth = function() {
-  var navigator = window.navigator;
-  if ('mozBluetooth' in navigator)
-    return navigator.mozBluetooth;
-  return {
-    enabled: false,
-    addEventListener: function(type, callback, bubble) {},
-    onenabled: function(event) {},
-    onadapteradded: function(event) {},
-    ondisabled: function(event) {},
-    getDefaultAdapter: function() {}
-  };
+  return navigator.mozBluetooth;
 };
 
 /**
