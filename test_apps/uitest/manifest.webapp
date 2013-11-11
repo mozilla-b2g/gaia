@@ -23,6 +23,7 @@
     "device-storage:sdcard":{ "access": "readonly" },
     "settings":{ "access": "readwrite" },
     "audio-capture": {},
+    "video-capture": {},
     "bluetooth":{}
   }
 }
