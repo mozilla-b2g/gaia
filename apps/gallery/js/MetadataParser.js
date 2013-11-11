@@ -8,12 +8,11 @@
 // This file depends on JPEGMetadataParser.js and blobview.js
 //
 var metadataParser = (function() {
-  var DEVICE_RATIO = window.devicePixelRatio;
   // If we generate our own thumbnails, aim for this size.
   // Calculate needed size from longer side of the screen.
   var THUMBNAIL_WIDTH = Math.round(
                           Math.max(window.innerWidth, window.innerHeight) *
-                            DEVICE_RATIO / 4);
+                            window.devicePixelRatio / 4);
   var THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH;
 
   // Don't try to decode image files of unknown type if bigger than this
@@ -31,8 +30,8 @@ var metadataParser = (function() {
   // cropping the edges as needed to make it fit, and then extract the
   // thumbnail image as a blob and pass it to the callback.
   // This utility function is used by both the image and video metadata parsers
-  function createThumbnailFromElement(elt, video, rotation, 
-                                      mirrored, callback) 
+  function createThumbnailFromElement(elt, video, rotation,
+                                      mirrored, callback)
   {
     // Create a thumbnail image
     var canvas = document.createElement('canvas');
