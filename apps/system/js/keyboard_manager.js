@@ -625,6 +625,8 @@ var KeyboardManager = {
     var self = this;
     var showed = this.showingLayout;
     var activeLayout = this.keyboardLayouts[showed.type].activeLayout;
+    var _ = navigator.mozL10n.get;
+    var actionMenuTitle = _('layout-selection');
 
     this.switchChangeTimeout = setTimeout(function keyboardLayoutList() {
       var items = [];
@@ -642,7 +644,7 @@ var KeyboardManager = {
       });
       self.hideKeyboard();
 
-      ActionMenu.open(items, 'Layout selection', function(selectedIndex) {
+      ActionMenu.open(items, actionMenuTitle, function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
         self.keyboardLayouts[showed.type].activeLayout = selectedIndex;
