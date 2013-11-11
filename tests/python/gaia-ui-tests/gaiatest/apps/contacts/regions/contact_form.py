@@ -22,7 +22,7 @@ class ContactForm(Base):
     _comment_locator = (By.ID, 'note_0')
 
     _add_picture_link_locator = (By.ID, 'thumbnail-photo')
-    _picture_loaded_locator = (By.CSS_SELECTOR, '#thumbnail-photo[style*="background-image"] ')
+    _picture_loaded_locator = (By.CSS_SELECTOR, '#thumbnail-photo[style*="background-image"]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -144,6 +144,7 @@ class EditContact(ContactForm):
         self.wait_for_element_displayed(*self._update_locator)
 
     def tap_update(self):
+        self.wait_for_update_button_enabled()
         self.marionette.find_element(*self._update_locator).tap()
         from gaiatest.apps.contacts.regions.contact_details import ContactDetails
         return ContactDetails(self.marionette)
@@ -168,6 +169,9 @@ class EditContact(ContactForm):
         self.marionette.find_element(*self._confirm_delete_locator).tap()
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
+
+    def wait_for_update_button_enabled(self):
+        self.wait_for_condition(lambda m: self.marionette.find_element(*self._update_locator).is_enabled())
 
 
 class NewContact(ContactForm):
