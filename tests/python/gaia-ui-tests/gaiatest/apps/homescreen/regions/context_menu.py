@@ -32,5 +32,3 @@ class ContextMenu(Base):
     @property
     def options_count(self):
         return len(self.marionette.find_elements(*self._action_option_locator))
-
-
