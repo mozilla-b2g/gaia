@@ -839,7 +839,7 @@ var LockScreen = {
       this.overlay.classList.remove('no-transition');
 
     this.mainScreen.classList.add('locked');
-    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+    screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     if (!wasAlreadyLocked) {
       if (document.mozFullScreen)
