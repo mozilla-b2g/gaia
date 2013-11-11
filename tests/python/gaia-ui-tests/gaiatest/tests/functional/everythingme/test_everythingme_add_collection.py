@@ -26,3 +26,4 @@ class TestEverythingMeLongPress(GaiaTestCase):
         collectionsmenu.tap_confirm()
         self.assertTrue(homescreen.is_app_installed('Autos'),
                         "App %s not found on Homescreen" % 'Autos')
+
