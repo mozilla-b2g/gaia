@@ -24,7 +24,13 @@
   if (!settings) {
     return;
   }
-  var mobileConnection = window.navigator.mozMobileConnection;
+
+  // XXX: check bug-926169
+  // this is used to keep all tests passing while introducing multi-sim APIs
+  var mobileConnection = window.navigator.mozMobileConnection ||
+    window.navigator.mozMobileConnections &&
+      window.navigator.mozMobileConnections[0];
+
   if (!mobileConnection) {
     return;
   }

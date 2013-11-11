@@ -217,7 +217,13 @@ var LockScreen = {
     window.addEventListener('holdhome', this, true);
 
     /* mobile connection state on lock screen */
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
       this.updateConnState();
@@ -992,7 +998,13 @@ var LockScreen = {
   },
 
   updateConnState: function ls_updateConnState() {
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     if (!conn)
       return;
 

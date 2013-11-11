@@ -330,7 +330,13 @@ var icc_worker = {
 
   // STK_CMD_PROVIDE_LOCAL_INFO
   '0x26': function STK_CMD_PROVIDE_LOCAL_INFO(command, iccManager) {
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     DUMP('STK_CMD_PROVIDE_LOCAL_INFO:', command.options);
     switch (command.options.localInfoType) {
       case iccManager._icc.STK_LOCAL_INFO_LOCATION_INFO:

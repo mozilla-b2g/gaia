@@ -211,10 +211,15 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
 // create a fake mozMobileConnection if required (e.g. desktop browser)
 var getMobileConnection = function() {
   var navigator = window.navigator;
-  if (('mozMobileConnection' in navigator) &&
-      navigator.mozMobileConnection &&
-      navigator.mozMobileConnection.data)
-    return navigator.mozMobileConnection;
+
+  // XXX: check bug-926169
+  // this is used to keep all tests passing while introducing multi-sim APIs
+  var mobileConnection = navigator.mozMobileConnection ||
+    navigator.mozMobileConnections &&
+      navigator.mozMobileConnections[0];
+
+  if (mobileConnection && mobileConnection.data)
+    return mobileConnection;
 
   var initialized = false;
   var fakeNetwork = { shortName: 'Fake Orange F', mcc: '208', mnc: '1' };

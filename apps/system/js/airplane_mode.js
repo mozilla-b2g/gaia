@@ -19,11 +19,16 @@ var AirplaneMode = {
 
   set enabled(value) {
     if (value !== this._enabled) {
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var mobileConnection = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       // See bug 933659
       // Gecko stops using the settings key 'ril.radio.disabled' to turn
       // off RIL radio. We need to remove the code that checks existence of the
       // new API after bug 856553 lands.
-      var mobileConnection = window.navigator.mozMobileConnection;
       if (mobileConnection && !!mobileConnection.setRadioEnabled) {
         var self = this;
         var req = mobileConnection.setRadioEnabled(!value);
@@ -119,9 +124,14 @@ var AirplaneMode = {
     }
 
     var mozSettings = window.navigator.mozSettings;
-    var mobileConnection = window.navigator.mozMobileConnection;
     var bluetooth = window.navigator.mozBluetooth;
     var wifiManager = window.navigator.mozWifiManager;
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var mobileConnection = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     var mobileData = mobileConnection && mobileConnection.data;
     var fmRadio = window.navigator.mozFMRadio;
 
