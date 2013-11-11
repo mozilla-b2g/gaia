@@ -42,6 +42,6 @@ class TestEnduranceGalleryCamera(GaiaEnduranceTestCase):
         time.sleep(3)
 
         # From camera app, switch back to gallery again
-        self.gallery = self.camera.switch_to_gallery()
+        self.gallery = self.camera.tap_switch_to_gallery()
         self.gallery.wait_for_files_to_load(1)
         self.assertTrue(self.gallery.are_gallery_items_displayed)
