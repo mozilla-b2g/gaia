@@ -1,5 +1,4 @@
 /*global requireApp suite test assert setup teardown IMERender */
-requireApp('keyboard/js/render.js');
 
 suite('Renderer', function() {
   function makeDescriptor(val) {
@@ -10,6 +9,10 @@ suite('Renderer', function() {
       writable: true
     };
   }
+
+  suiteSetup(function(next) {
+    requireApp('keyboard/js/render.js', next);
+  });
 
   suite('resizeUI', function() {
     function createKeyboardRow(chars, layoutWidth) {

@@ -447,10 +447,10 @@ suite('jspinyin', function() {
     var tempLayoutPage = jspinyin._layoutPage;
 
     this.sinon.stub(glue, 'sendKey', function(keyCode) {
-      jspinyin.setLayoutPage(LAYOUT_PAGE_DEFAULT);
+      jspinyin.setLayoutPage('Default');
       done(function() {
         assert.equal(tempLayoutPage, 'test');
-        assert.equal(jspinyin._layoutPage, LAYOUT_PAGE_DEFAULT);
+        assert.equal(jspinyin._layoutPage, 'Default');
       });
     });
 
