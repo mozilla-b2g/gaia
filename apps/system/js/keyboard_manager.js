@@ -133,6 +133,7 @@ var KeyboardManager = {
     window.addEventListener('appwillclose', this);
     window.addEventListener('activitywillclose', this);
     window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('mozbrowsererror', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -412,7 +413,6 @@ var KeyboardManager = {
       case 'appwillclose':
         this.hideKeyboardImmediately();
         break;
-      //XXX the following case hasn't been tested.
       case 'mozbrowsererror': // OOM
         var origin = evt.target.dataset.frameOrigin;
         this.removeKeyboard(origin);
