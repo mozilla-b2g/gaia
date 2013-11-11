@@ -102,7 +102,7 @@ var InternetSharing = (function() {
     }
     // link the iccid with current internet state for future restoring.
     var type = (evt.settingName.indexOf('wifi') > -1) ? 'wifi' : 'usb';
-    var cardId = IccHelper.iccInfo.iccid || 'absent';
+    var cardId = (IccHelper.iccInfo && IccHelper.iccInfo.iccid) || 'absent';
     // wifi hotspot cannot be enabled without sim
     if ('wifi' === type && 'absent' === cardId && true === evt.settingValue) {
       settings.createLock().set({'tethering.wifi.enabled': false});
