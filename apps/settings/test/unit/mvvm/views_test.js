@@ -1,3 +1,5 @@
+/* global ListView:false */
+/* global ObservableArray:false */
 'use strict';
 
 // The views are very tightly coupled to models, rather than reimplement model

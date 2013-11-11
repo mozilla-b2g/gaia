@@ -1,3 +1,6 @@
+/* global Observable:false */
+/* global ObservableArray:false */
+
 'use strict';
 requireApp('settings/js/mvvm/models.js');
 
@@ -100,7 +103,7 @@ suite('ObservableArray', function() {
         test(event + ' called ' + expectedCount + ' times', function() {
           assert.equal(this.spies[event].args.length, expectedCount);
         });
-      }, this);
+      });
     }
 
     function checkArgs(event) {
@@ -111,10 +114,10 @@ suite('ObservableArray', function() {
       });
     }
 
-    function resetSpies() {
+    function resetSpies(environment) {
       events.forEach(function(event) {
         this.spies[event].reset();
-      }, this);
+      }, environment);
     }
 
     setup(function() {
@@ -269,7 +272,7 @@ suite('ObservableArray', function() {
     suite('pop() on empty', function() {
       setup(function() {
         this.observable.reset([]);
-        resetSpies.call(this);
+        resetSpies(this);
         this.observable.pop();
       });
       // no events expected
