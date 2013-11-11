@@ -395,10 +395,21 @@
       var i = techs.indexOf(pri[ti]);
       if (i != -1) {
         if (techs[i] == 'P2P') {
-          // FIXME: Do P2P UI: ask user if P2P event is acceptable in the app's
-          // current user context to accept a message via registered app
-          // callback/message. If so, fire P2P NDEF to app.
-          // If not, drop message.
+          if (!ndefMsg) {
+            // FIXME: Do P2P UI: ask user if P2P event is acceptable in the app's
+            // current user context to accept a message via registered app
+            // callback/message. If so, fire P2P NDEF to app.
+            // If not, drop message.
+
+            // This is a P2P notification with no ndef.
+            debug('P2P UI : Shrink UI');
+            // TODO: Upon user akcnowledgement on the shrunk UI , system application notifies gecko of the top most window.
+
+            // Notify gecko of User's acknowledgement.
+            //var nfcdom = window.navigator.mozNfc;
+            //nfcdom.setAppWindow(window.top);
+            return;
+          }
           handled = handleNdefDiscovered(techs[i], command.sessionToken,
                                          ndefMsg);
         } else if (techs[i] == 'NDEF') {
