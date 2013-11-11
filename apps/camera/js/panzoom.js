@@ -1,3 +1,19 @@
+define(function(require, exports, module) {
+'use strict';
+
+/**
+ * Dependencies
+ */
+
+var GestureDetector = require('GestureDetector');
+var orientation = require('orientation');
+
+/**
+ * Exports
+ */
+
+module.exports = addPanAndZoomHandlers;
+
 /*
  * This module adds pan-and-zoom capability to images displayed by
  * shared/js/media/media_frame.js.  It is used by filmstrip.js and confirm.js
@@ -27,7 +43,7 @@ function addPanAndZoomHandlers(frame) {
     // specify a point to zoom in or out on. For other orientations we could
     // calculate the correct point, but instead just use the midpoint.
     var x, y;
-    if (Camera._phoneOrientation === 0) {
+    if (orientation.get() === 0) {
       x = e.detail.clientX;
       y = e.detail.clientY;
     }
@@ -45,7 +61,7 @@ function addPanAndZoomHandlers(frame) {
     // specify a point to zoom in or out on. For other orientations we could
     // calculate the correct point, but instead just use the midpoint.
     var x, y;
-    if (Camera._phoneOrientation === 0) {
+    if (orientation.get() === 0) {
       x = e.detail.midpoint.clientX;
       y = e.detail.midpoint.clientY;
     }
@@ -62,7 +78,7 @@ function addPanAndZoomHandlers(frame) {
     // account, so we have to pan by a dx and dy that depend on how
     // the MediaFrame is rotated
     var dx, dy;
-    switch (Camera._phoneOrientation) {
+    switch (orientation.get()) {
     case 0:
       dx = e.detail.relative.dx;
       dy = e.detail.relative.dy;
@@ -84,3 +100,5 @@ function addPanAndZoomHandlers(frame) {
     frame.pan(dx, dy);
   }
 }
+
+});
