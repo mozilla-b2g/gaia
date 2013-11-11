@@ -22,7 +22,7 @@ class TestEverythingMeLongPress(GaiaTestCase):
         contextmenu = homescreen.open_context_menu()
         self.assertGreater(contextmenu.options_count, 1)
         collectionsmenu = contextmenu.tap_collections()
-        collectionsmenu.tap_app('Auto')
+        collectionsmenu.tap_app('Autos')
         collectionsmenu.tap_confirm()
-        self.assertTrue(homescreen.is_app_installed('Auto'),
-                        "App %s not found on Homescreen" % 'Auto')
+        self.assertTrue(homescreen.is_app_installed('Autos'),
+                        "App %s not found on Homescreen" % 'Autos')

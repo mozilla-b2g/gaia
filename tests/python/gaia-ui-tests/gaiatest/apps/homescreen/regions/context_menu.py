@@ -23,23 +23,14 @@ class ContextMenu(Base):
         self.marionette.find_element(*self._cancel_button_locator).tap()
         self.marionette.switch_to_frame(self.apps.displayed_app.frame_id)
     
-    def tap_wallpaper(self):
-        self.wait_for_element_displayed(*self._wallpaper_button_locator)
-        self.marionette.find_element(*self._wallpaper_button_locator).tap()
-        from gaiatest.apps.system.regions.wallpaper import Wallpaper
-        wallpaper = Wallpaper(self.marionette)
-        return wallpaper
-    
     def tap_collections(self):
         self.wait_for_element_displayed(*self._collections_button_locator)
         self.marionette.find_element(*self._collections_button_locator).tap()
         from gaiatest.apps.homescreen.regions.addcollectionsmenu import AddCollectionsMenu
-        collectionsmenu = AddCollectionsMenu(self.marionette)
-        return collectionsmenu
-    
-    
-
+        return AddCollectionsMenu(self.marionette)
 
     @property
     def options_count(self):
         return len(self.marionette.find_elements(*self._action_option_locator))
+
+

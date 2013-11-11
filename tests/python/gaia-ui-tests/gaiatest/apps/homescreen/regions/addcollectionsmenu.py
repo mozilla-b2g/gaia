@@ -5,7 +5,7 @@ class AddCollectionsMenu(Base):
     
     
     _collections_menu_locator = (By.ID, 'collections-select')
-    _apps_locator = (By.XPATH, "//section[@id='collections-select']//li[a[text()='%s']]")
+    _apps_locator = (By.CSS_SELECTOR, '#collections-select option[value="%s"]')
     _cancel_button_locator = (By.ID, 'confirm-dialog-cancel-button')
     _confirm_button_locator = (By.ID, 'confirm-dialog-confirm-button')
     
@@ -27,3 +27,5 @@ class AddCollectionsMenu(Base):
     def tap_confirm(self):
         self.wait_for_element_displayed(*self._confirm_button_locator)
         self.marionette.find_element(*self._confirm_button_locator).tap()
+
+
