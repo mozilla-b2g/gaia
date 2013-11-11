@@ -6,9 +6,9 @@
   top: 0;
   z-index: 25;
   opacity: 1;
-  transition: opacity 400ms ease-in-out;
+  transition: opacity 200ms ease-in-out;
 }
 
-.is-toggling-camera .viewfinder {
+.viewfinder.fade-out {
   opacity: 0;
 }
