@@ -903,6 +903,17 @@ var Camera = {
       this._cameraObj = camera;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
+      if (this._captureMode === this.CAMERA) {
+        if (camera.capabilities.focusModes.indexOf('continuous-picture') !== -1) {
+          camera.focusMode = 'continuous-picture';
+          this._autoFocusSupported = false;
+        }
+      } else {
+        if (camera.capabilities.focusModes.indexOf('continuous-video') !== -1) {
+          camera.focusMode = 'continuous-video';
+          this._autoFocusSupported = false;
+        }
+      }
       this.pickPictureSize(camera);
       thumbnailSize = this.selectThumbnailSize(availableThumbnailSizes,
                                                this._pictureSize);
