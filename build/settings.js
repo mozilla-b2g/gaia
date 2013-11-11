@@ -189,7 +189,7 @@ function execute() {
    'keyboard.autocorrect': true,
    'keyboard.wordsuggestion': true,
    'keyboard.current': 'en',
-   'keyboard.ftu.enabled': true,
+   'keyboard.ftu.enabled': false,
    'keyboard.3rd-party-app.enabled': false,
    'language.current': 'en-US',
    'layers.draw-borders': false,
