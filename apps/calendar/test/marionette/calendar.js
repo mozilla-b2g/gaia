@@ -70,6 +70,15 @@ Calendar.Selector = Object.freeze({
   addEventButton: 'a[href="/event/add/"]',
   weekButton: 'a[href="/week/"]',
   hintSwipeToNavigate: '#hint-swipe-to-navigate',
+  toolbarButton: '#time-header button.settings',
+  toolbarAddAccountButton: '#settings a[href="/select-preset/"]',
+  toolbarSyncButton: '#settings [role="toolbar"] .sync',
+  addCalDavAccountButton: '#create-account-view ' +
+                          'a[href="/create-account/caldav"]',
+  addAccountUsernameInput: '#modify-account-view input[name="user"]',
+  addAccountPasswordInput: '#modify-account-view input[name="password"]',
+  addAccountUrlInput: '#modify-account-view input[name="fullUrl"]',
+  addAccountSaveButton: '#modify-account-view button.save',
   editEventForm: '#modify-event-view form',
   editEventAlarm: '#modify-event-view select[name="alarm[]"]',
   editEventEndDate: '#modify-event-view input[name="endDate"]',
@@ -95,7 +104,8 @@ Calendar.Selector = Object.freeze({
   viewEventViewLocation: '#event-view .location > .content',
   viewEventViewStartDate: '#event-view .start-date > .content',
   viewEventViewStartTime: '#event-view .start-date > .start-time > .content',
-  viewEventViewTitle: '#event-view .title .content'
+  viewEventViewTitle: '#event-view .title .content',
+  monthEventList: '#event-list div.events > section'
 });
 
 Calendar.prototype = {
@@ -121,6 +131,84 @@ Calendar.prototype = {
    */
   waitForElement: function(name) {
     return this.client.helper.waitForElement(Calendar.Selector[name]);
+  },
+
+  /**
+   * Create a new CalDAV account.
+   *
+   * @param {String} username username for the CalDAV calendar.
+   * @param {String} password password for the CalDAV calendar.
+   * @param {String} url the url of the CalDAV calendar.
+   */
+  createCalDavAccount: function(username, password, url) {
+    var client = this.client;
+
+    // Go to the Account page.
+    client.findElement(Calendar.Selector.toolbarButton).click();
+    // Wait for the transition end.
+    this._waitForTransitionEnd('#time-views');
+
+    client.findElement(Calendar.Selector.toolbarAddAccountButton).click();
+    client.findElement(Calendar.Selector.addCalDavAccountButton).click();
+
+    // Create a the account.
+    client
+      .findElement(Calendar.Selector.addAccountUsernameInput)
+      .sendKeys(username);
+    client
+      .findElement(Calendar.Selector.addAccountPasswordInput)
+      .sendKeys(password);
+    client
+      .findElement(Calendar.Selector.addAccountUrlInput)
+      .sendKeys(url);
+    client
+      .findElement(Calendar.Selector.addAccountSaveButton)
+      .click();
+    // Wait for the settings view is showed.
+    this._waitForLocationPathname('/settings/');
+
+    // Go back to the main page.
+    client.helper.waitForElement(Calendar.Selector.toolbarButton).click();
+    // Wait for the transition end.
+    this._waitForTransitionEnd('#time-views');
+  },
+
+  /**
+   * Sync the calendar.
+   */
+  syncCalendar: function() {
+    var client = this.client;
+
+    // Go to the Account page.
+    client.findElement(Calendar.Selector.toolbarButton).click();
+    // Wait for the transition end.
+    this._waitForTransitionEnd('#time-views');
+
+    client.findElement(Calendar.Selector.toolbarSyncButton).click();
+
+    // Go back to the main page.
+    client.helper.waitForElement(Calendar.Selector.toolbarButton).click();
+    // Wait for the transition end.
+    this._waitForTransitionEnd('#time-views');
+  },
+
+  /**
+   * Get the event element in month view with specified title.
+   * Return the first item matched the title.
+   *
+   * @param {String} title event title.
+   * @return {Marionette.Element} the event element.
+   */
+  getMonthEventByTitle: function(title) {
+    var eventList = this.client.findElements(Calendar.Selector.monthEventList);
+    // h5 is the title element in event element.
+    return eventList.filter(function(event) {
+      if (event
+            .findElement('h5')
+            .text() === title) {
+        return event;
+      }
+    })[0];
   },
 
   /**
@@ -191,7 +279,6 @@ Calendar.prototype = {
     return result;
   },
 
-
   /**
    * Read the event if we're currently on the read only event view.
    * @return {Event} The event we're currently looking at.
@@ -208,7 +295,6 @@ Calendar.prototype = {
     event.title = this.viewEventViewTitle.text();
     return event;
   },
-
 
   /**
    * @return {boolean} Whether or not the calendar is active.
@@ -233,7 +319,6 @@ Calendar.prototype = {
     return actual === expected;
   },
 
-
   /**
    * @return {boolean} Whether or not the read only event view is active.
    */
@@ -241,7 +326,6 @@ Calendar.prototype = {
     var url = this.client.getUrl();
     return url.indexOf('/event/show') !== -1;
   },
-
 
   /**
    * Start the calendar, save the client for future ops, and wait for the
@@ -294,5 +378,67 @@ Calendar.prototype = {
       panel = element;
     }
     actions.flick(panel, X1, Y1, X2, Y2).perform();
+  },
+
+  /**
+   * Wait for the transition end event of a element.
+   *
+   * @param {String} element css selector of the element.
+   */
+  _waitForTransitionEnd: function(selector) {
+    var client = this.client;
+
+    // Add transitionend event for the element.
+    client.executeScript(function(selector) {
+      var doc = window.wrappedJSObject.document,
+          ele = doc.querySelector(selector);
+      // Init transition status of the element.
+      ele.dataset.transitionStatus = '';
+      ele.addEventListener('transitionend', function() {
+        ele.dataset.transitionStatus = 'end';
+      });
+    }, [selector]);
+
+    // XXX: Workaround for the transition waiting.
+    // We have transitionend events twice for the #time-views element
+    // once we click the Calendar.Selector.toolbarButton button.
+    waitForTransitionStatusEnd(selector);
+    waitForTransitionStatusEnd(selector);
+
+    function waitForTransitionStatusEnd(selector) {
+      client.waitFor(function() {
+        var transitionStatus =
+          client.executeScript(function(selector) {
+            var doc = window.wrappedJSObject.document,
+                ele = doc.querySelector(selector),
+                transitionStatus = ele.dataset.transitionStatus;
+
+            // Clean the transition status.
+            if (transitionStatus === 'end') {
+              delete ele.transitionStatus;
+            }
+            return transitionStatus;
+          }, [selector]);
+
+        return (transitionStatus === 'end');
+      });
+    }
+  },
+
+  /**
+   * Wait for that the path dataset value is specificed value.
+   *
+   * @param {String} path the path of the page.
+   */
+  _waitForLocationPathname: function(path) {
+    this.client.waitFor(function() {
+      var currentPath =
+        client.executeScript(function() {
+          var doc = window.wrappedJSObject.document;
+          return doc.querySelector('body').dataset.path;
+        });
+
+      return (currentPath === path);
+    });
   }
 };
