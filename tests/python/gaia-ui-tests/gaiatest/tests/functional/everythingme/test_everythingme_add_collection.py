@@ -7,7 +7,7 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
 import time
 
-class TestEverythingMeLongPress(GaiaTestCase):
+class TestEverythingMeAddCollection(GaiaTestCase):
     
     def setUp(self):
         GaiaTestCase.setUp(self)
