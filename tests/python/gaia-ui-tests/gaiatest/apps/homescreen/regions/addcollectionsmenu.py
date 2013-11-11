@@ -28,4 +28,3 @@ class AddCollectionsMenu(Base):
         self.wait_for_element_displayed(*self._confirm_button_locator)
         self.marionette.find_element(*self._confirm_button_locator).tap()
 
-
