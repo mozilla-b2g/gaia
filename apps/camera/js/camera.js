@@ -896,11 +896,17 @@ var Camera = {
     }
 
     function gotCamera(camera) {
+      var thumbnailSize;
+      var availableThumbnailSizes = camera.capabilities.thumbnailSizes;
       this._cameraObj = camera;
       this._autoFocusSupported =
         camera.capabilities.focusModes.indexOf('auto') !== -1;
-      this._pictureSize =
-        this.pickPictureSize(camera.capabilities.pictureSizes);
+      this.pickPictureSize(camera);
+      thumbnailSize = this.selectThumbnailSize(availableThumbnailSizes,
+                                               this._pictureSize);
+      if (thumbnailSize) {
+        camera.thumbnailSize = thumbnailSize;
+      }
       this.getPreferredSizes((function() {
         this._videoProfile =
           this.pickVideoProfile(camera.capabilities.recorderProfiles);
@@ -1316,7 +1322,7 @@ var Camera = {
 
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
-    this._config.pictureSize = this._pictureSize;
+    this._cameraObj.pictureSize = this._pictureSize;
     this._config.dateTime = Date.now() / 1000;
     // We do not attach our current position to the exif of photos
     // that are taken via an activity as that leaks position information
@@ -1348,9 +1354,56 @@ var Camera = {
     this.overlay.classList.remove('hidden');
   },
 
-  pickPictureSize: function camera_pickPictureSize(pictureSizes) {
+  selectThumbnailSize: function(thumbnailSizes, pictureSize) {
+    var i;
+    var screenWidth = window.innerWidth;
+    var screenHeight = window.innerHeight;
+    var pictureAspectRatio = pictureSize.width / pictureSize.height;
+    var currentThumbnailSize;
+    var selectedThumbnailSize;
+    var currentThumbnailAspectRatio;
+    // Coping the array to not modify the original
+    var thumbnailSizes = thumbnailSizes.slice(0);
+    if (!thumbnailSizes || !pictureSize) {
+      return;
+    }
+    var thumbnailSizes = thumbnailSizes.slice(0);
+    function imageSizeFillsScreen(pixelsWidth, pixelsHeight) {
+      return ((pixelsWidth >= screenWidth || // portrait
+               pixelsHeight >= screenHeight) &&
+              (pixelsWidth >= screenHeight || // landscape
+               pixelsHeight >= screenWidth));
+    };
+    // Removes the sizes with the wrong aspect ratio
+    thumbnailSizes = thumbnailSizes.filter(function(thumbnailSize) {
+      var thumbnailAspectRatio = thumbnailSize.width / thumbnailSize.height;
+      return Math.abs(thumbnailAspectRatio - pictureAspectRatio) < 0.05;
+    });
+    if (thumbnailSizes.length === 0) {
+      console.error('Error while selecting thumbnail size. ' +
+        'There are no thumbnail sizes that match the ratio of ' +
+        'the selected picture size: ' + JSON.stringify(pictureSize));
+      return;
+    }
+    // Sorting the array from smaller to larger sizes
+    thumbnailSizes.sort(function(a, b) {
+      return a.width * a.height - b.width * b.height;
+    });
+    for (i = 0; i < thumbnailSizes.length; ++i) {
+      currentThumbnailSize = thumbnailSizes[i];
+      if (imageSizeFillsScreen(currentThumbnailSize.width,
+                               currentThumbnailSize.height)) {
+        return currentThumbnailSize;
+      }
+    }
+    return thumbnailSizes[thumbnailSizes.length - 1];
+  },
+
+  pickPictureSize: function camera_pickPictureSize(camera) {
     var targetSize = null;
     var targetFileSize = 0;
+    var pictureSizes = camera.capabilities.pictureSizes;
+
     if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes) {
       // we use worse case of all compression method: gif, jpg, png
       targetFileSize = this._pendingPick.source.data.maxFileSizeBytes;
@@ -1399,9 +1452,9 @@ var Camera = {
     }, {width: 0, height: 0});
 
     if (size.width === 0 && size.height === 0) {
-      return pictureSizes[0];
+      this._pictureSize = pictureSizes[0];
     } else {
-      return size;
+      this._pictureSize = size;
     }
   },
 
