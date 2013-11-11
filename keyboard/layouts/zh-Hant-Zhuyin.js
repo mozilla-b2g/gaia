@@ -5,8 +5,8 @@ Keyboards['zh-Hant-Zhuyin'] = {
   imEngine: 'jszhuyin',
   width: 11,
   textLayoutOverwrite: {
-    ',': '，',
-    '.': '。'
+    ',': false,
+    '.': false
   },
   keys: [
     [
@@ -27,7 +27,9 @@ Keyboards['zh-Hant-Zhuyin'] = {
       { value: 'ㄡ'},{ value: 'ㄥ'},
       { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '&nbsp', ratio: 7, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '，'},
+      { value: '。'},
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]
