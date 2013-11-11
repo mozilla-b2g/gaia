@@ -88,8 +88,8 @@ class Homescreen(Base):
         Actions(self.marionette).\
             press(app).\
             wait(3).\
-	    move(destination).\
-	    wait(1).\
+            move(destination).\
+            wait(1).\
             release().\
             perform()
         self.wait_for_element_displayed(*self._actions_menu_locator)
