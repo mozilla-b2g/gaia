@@ -50,7 +50,7 @@ var DCFApi = (function() {
 
   api.createDCFFilename = function(storage, type, callback) {
 
-    // We havent loaded the current counters from indexedDB yet, defer
+    // We haven't loaded the current counters from indexedDB yet, defer
     // the call
     if (!dcfConfigLoaded) {
       deferredArgs = {storage: storage, type: type, callback: callback};
@@ -115,7 +115,17 @@ var Camera = {
   _videoPath: null, // file path relative to video root directory
   _videoRootDir: null, // video root directory string
 
-  _autoFocusSupported: 0,
+  _focusModes: {
+    AUTO: 'auto',
+    CONTINUOUS_CAMERA: 'continuous-picture',
+    CONTINUOUS_VIDEO: 'continuous-video'
+  },
+  _autoFocusSupport: {
+    auto: false,
+    continuousCamera: false,
+    continuousVideo: false
+  },
+  _callAutoFocus: false,
   _manuallyFocused: false,
 
   _timeoutId: 0,
@@ -484,6 +494,7 @@ var Camera = {
     this.setCaptureMode(mode);
     this.updateFlashUI();
     this.enableCameraFeatures(this._cameraObj.capabilities);
+    this.setFocusMode();
 
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
@@ -574,6 +585,25 @@ var Camera = {
 
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
     this._cameraObj.flashMode = flashModeName;
+  },
+
+  setFocusMode: function camera_setFocusMode() {
+    this._callAutoFocus = false;
+    if (this._captureMode === this.CAMERA) {
+      if (this._autoFocusSupport.continuousCamera) {
+        this._cameraObj.focusMode = this._focusModes.CONTINUOUS_CAMERA;
+        return;
+      }
+    } else {
+      if (this._autoFocusSupport.continuousVideo) {
+        this._cameraObj.focusMode = this._focusModes.CONTINUOUS_VIDEO;
+        return;
+      }
+    }
+    if (this._autoFocusSupport.auto) {
+      this._cameraObj.focusMode = this._focusModes.AUTO;
+      this._callAutoFocus = true;
+    }
   },
 
   toggleRecording: function camera_toggleRecording() {
@@ -901,8 +931,6 @@ var Camera = {
       var thumbnailSize;
       var availableThumbnailSizes = camera.capabilities.thumbnailSizes;
       this._cameraObj = camera;
-      this._autoFocusSupported =
-        camera.capabilities.focusModes.indexOf('auto') !== -1;
       this.pickPictureSize(camera);
       thumbnailSize = this.selectThumbnailSize(availableThumbnailSizes,
                                                this._pictureSize);
@@ -920,6 +948,7 @@ var Camera = {
       }).bind(this));
       this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
+      this.setFocusMode();
 
       camera.onShutter = (function() {
         // play shutter sound.
@@ -1049,6 +1078,14 @@ var Camera = {
       this.updateFlashUI();
     } else {
       this.toggleFlashBtn.classList.add('hidden');
+    }
+
+    var focusModes = capabilities.focusModes;
+    if (focusModes) {
+      var support = this._autoFocusSupport;
+      support.auto = focusModes.indexOf(this._focusModes.AUTO) !== -1;
+      support.continuousCamera = focusModes.indexOf(this._focusModes.CONTINUOUS_CAMERA) !== -1;
+      support.continuousVideo = focusModes.indexOf(this._focusModes.CONTINUOUS_VIDEO) !== -1;
     }
   },
 
@@ -1328,7 +1365,7 @@ var Camera = {
 
   prepareTakePicture: function camera_takePicture() {
     this.disableButtons();
-    if (this._autoFocusSupported && !this._manuallyFocused) {
+    if (this._callAutoFocus && !this._manuallyFocused) {
       this.focusRing.setAttribute('data-state', 'focusing');
       this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
     } else {
