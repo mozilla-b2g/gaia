@@ -440,7 +440,7 @@ contacts.Form = (function() {
 
     if (fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
-      request = fbContact.remove();
+      request = fbContact.remove(true);
       request.onsuccess = deleteSuccess;
     } else {
       var theContact = (contact instanceof mozContact) ?
