@@ -34,7 +34,11 @@ If you want to modify gaiatest, do this instead:
 Risks
 =====
 
-Please visit [this page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests.  You have to modify your testvars.json file, showing your acknowledgement of the risks, to run the tests.
+Please visit
+[this page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner)
+to understand and acknowledge the risks involved when running these tests.
+You have to modify your testvars.json file, showing your acknowledgement of the
+risks, to run the tests.
 
 Command line interface
 ======================
@@ -99,12 +103,14 @@ Alternatively, it may be downloaded as part of the
 Testing on Desktop build
 ========================
 
-You can download the latest build of the desktop client from [this location](http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-central),
+You can download the latest build of the desktop client from
+[this location](http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-central),
 but make sure you download the appropriate file for your operating system.
 
 Once downloaded, you will need to extract the contents to a local folder.
 
-Because we’re running against the desktop client we must filter out all tests that are unsuitable. To run the tests, use the following command:
+Because we’re running against the desktop client we must filter out all tests 
+that are unsuitable. To run the tests, use the following command:
 
     gaiatest --address=localhost:2828 \
         --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi \
@@ -115,44 +121,57 @@ You should then start to see the tests running.
 
 Test Types
 ==========
-Tests can be filtered by type, and the types are defined in the manifest files. Tests can belong to multiple types, some
-types imply others, and some are mutually exclusive - for example a test cannot be both 'online' and 'offline' but a
-test that is 'lan' is by definition 'online'. Be warned that despite these rules, there is no error checking on types,
-so you must take care when assigning them. Default types are set in the [DEFAULT] section of a manifest file, and are
+Tests can be filtered by type, and the types are defined in the manifest files.
+Tests can belong to multiple types, some types imply others, and some are
+mutually exclusive - for example a test cannot be both 'online' and 'offline'
+but a test that is 'lan' is by definition 'online'. Be warned that despite these
+rules, there is no error checking on types, so you must take care when assigning
+them. Default types are set in the [DEFAULT] section of a manifest file, and are
 inherited by manifest files referenced by an include.
 
 Here is a list of the types used, and when to use them:
 
-* b2g - this means the test is a B2G (Firefox OS) test. All tests must include this type.
+* b2g - this means the test is a B2G (Firefox OS) test. All tests must include
+  this type.
 * antenna - these tests require an antenna (headphones) to be connected.
 * bluetooth - requires bluetooth to be available.
 * camera - these tests require use of a camera.
 * carrier - an active SIM card with carrier connection is required.
-* lan - a local area connection (not cell data) is required by these tests (see note below).
+* lan - a local area connection (not cell data) is required by these tests (see
+  note below).
 * offline - specifically requires no online connection.
 * online - some sort of online connection (lan or carrier) is required.
 * qemu - these tests require the Firefox OS emulator to run.
 * sdcard - a storage device must be present.
 * wifi - this means a WiFi connection is required.
 
-You may be thinking that there is only WiFi or cell data, and why the need for the 'lan' test type. Well, these tests
-aren't only run on mobile devices... We also run then on single-board computers known as
-[pandaboards](https://en.wikipedia.org/wiki/Panda_Board), which have an ethernet port, and on desktop builds, which
-share the host computer's connection. It is for this reason that we need 'lan' to indicate a connection that is not cell
-data. For an example of where online/lan/carrier are used take a look at the browser tests.
+You may be thinking that there is only WiFi or cell data, and why the need for
+the 'lan' test type. Well, these tests aren't only run on mobile devices... We
+also run then on single-board computers known as
+[pandaboards](https://en.wikipedia.org/wiki/Panda_Board), which have an ethernet
+port, and on desktop builds, which share the host computer's connection. It is
+for this reason that we need 'lan' to indicate a connection that is not cell
+data. For an example of where online/lan/carrier are used take a look at the
+browser tests.
 
 Test Variables
 ==============
-We use the --testvars option to pass in local variables, particularly those that cannot be checked into the repository. For example in gaia-ui-tests these variables can be your private login credentials, phone number or details of your WiFi connection.
+We use the --testvars option to pass in local variables, particularly those that
+cannot be checked into the repository. For example in gaia-ui-tests these
+variables can be your private login credentials, phone number or details of your
+WiFi connection.
 
-To use it, copy `gaia/tests/python/gaia-ui-tests/gaiatest/testvars_template.json` to a different filename but add it into .gitignore so you don't check it into your repository.
+To use it, copy
+`gaia/tests/python/gaia-ui-tests/gaiatest/testvars_template.json` to a different
+filename but add it into .gitignore so you don't check it into your repository.
 
 When running your tests add the argument:
     --testvars=(filename).json
 
 Variables:
 
-`"carrier": {} (dict)` The carrier information of the test phone. This contains the phone number, country and network of the SIM card.
+`"carrier": {} (dict)` The carrier information of the test phone. This contains
+the phone number, country and network of the SIM card.
 
 ```
 "carrier":{
@@ -162,8 +181,13 @@ Variables:
 }
 ```
 `"imei": "" (string)` The 12 digit IMEI code of the test phone.
-`"remote_phone_number": "" (string)` A phone number that your device can call during the tests (try not to be a nuisance!). Prefix the number with '+' and your international dialing code.
-`"wifi":{}{ (dict)` This are the settings of your WiFi connection. Currently this supports WPA/WEP/etc. You can add WiFi networks by doing the following (remember to replace "KeyManagement" and "wep" with the value your network supports) :
+`"remote_phone_number": "" (string)` A phone number that your device can call
+during the tests (try not to be a nuisance!). Prefix the number with '+' and
+your international dialing code.
+`"wifi":{}{ (dict)` This are the settings of your WiFi connection. Currently
+this supports WPA/WEP/etc. You can add WiFi networks by doing the following
+(remember to replace "KeyManagement" and "wep" with the value your network
+supports) :
 
 ```
 "wifi": {
@@ -181,9 +205,11 @@ WPA-PSK:
     "psk": "MyPassword"
 }
 ```
-__Note__: Due to [Bug 775499](http://bugzil.la/775499), WiFi connections via WPA-EAP are not capable at this time.
+__Note__: Due to [Bug 775499](http://bugzil.la/775499), WiFi connections via
+WPA-EAP are not capable at this time.
 
-`"email": {} (dict)` The email login information used by the email tests. It can contain different types of email accounts:
+`"email": {} (dict)` The email login information used by the email tests. It can
+contain different types of email accounts:
 
 Gmail:
 ```
@@ -218,22 +244,28 @@ Or:
     "active_sync_username": ""
 }
 ```
-`"settings": {} (dict)` Custom settings to override the Gaia default settings. These will be set before each test run but are not mandatory.
+`"settings": {} (dict)` Custom settings to override the Gaia default settings.
+These will be set before each test run but are not mandatory.
 ```
 "settings:{
     "<setting>":<value>
 }"
 ```
 
-Don't forget to acknowledged risks in your testvars file after you have visited [the Risks page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to understand and acknowledge the risks involved when running these tests, or the tests will not be run.
+Don't forget to acknowledged risks in your testvars file after you have visited
+[the Risks page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner) to
+understand and acknowledge the risks involved when running these tests, or the
+tests will not be run.
 
 Test data Prerequisites
 =======================
 
-Occasionally a test will need data on the hardware that cannot be set during the test setUp.
+Occasionally a test will need data on the hardware that cannot be set during the
+test setUp.
 The following tests need data set up before they can be run successfully:
 
-`test_ftu` Requires a single record/contact saved onto the SIM card to test the SIM contact import
+`test_ftu` Requires a single record/contact saved onto the SIM card to test the
+SIM contact import
 
 
 Writing Tests
@@ -242,13 +274,13 @@ Writing Tests
 Test writing for Marionette Python tests is described at
 https://developer.mozilla.org/en-US/docs/Marionette/Marionette_Python_Tests.
 
-Additionally, gaiatest exposes some API's for managing Gaia's lockscreen
-and application manager.  See https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaiatest/gaia_test.py.
+Additionally, gaiatest exposes some API's for managing Gaia's lockscreen and
+application manager.  See
+https://github.com/mozilla-b2g/gaia/blob/master/tests/python/gaiatest/gaia_test.py.
 
 At the moment we don't have a specific style guide. Please follow the
 prevailing style of the existing tests. Use them as a template for writing
 your tests.
-We follow [PEP8](http://www.python.org/dev/peps/pep-0008/) for formatting, although we're pretty lenient on the
-80-character line length.
-
+We follow [PEP8](http://www.python.org/dev/peps/pep-0008/) for formatting,
+although we're pretty lenient on the 80-character line length.
 
