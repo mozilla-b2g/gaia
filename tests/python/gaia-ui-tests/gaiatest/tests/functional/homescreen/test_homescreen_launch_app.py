@@ -21,7 +21,7 @@ class TestLaunchApp(GaiaTestCase):
         self.connect_to_network()
 
         self.homescreen = Homescreen(self.marionette)
-        self.homescreen.launch()
+        self.homescreen.switch_to_homescreen_frame()
 
         # Install app
         self.marionette.switch_to_frame()
