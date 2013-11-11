@@ -50,8 +50,7 @@ var SleepMenu = {
     var options = {
       airplane: {
         label: _('airplane'),
-        value: 'airplane',
-        icon: '/style/sleep_menu/images/airplane.png'
+        value: 'airplane'
       },
       airplaneOff: {
         label: _('airplaneOff'),
@@ -59,8 +58,7 @@ var SleepMenu = {
       },
       silent: {
         label: _('silent'),
-        value: 'silent',
-        icon: '/style/sleep_menu/images/vibration.png'
+        value: 'silent'
       },
       silentOff: {
         label: _('normal'),
@@ -68,13 +66,11 @@ var SleepMenu = {
       },
       restart: {
         label: _('restart'),
-        value: 'restart',
-        icon: '/style/sleep_menu/images/restart.png'
+        value: 'restart'
       },
       power: {
         label: _('power'),
-        value: 'power',
-        icon: '/style/sleep_menu/images/power-off.png'
+        value: 'power'
       }
     };
 
