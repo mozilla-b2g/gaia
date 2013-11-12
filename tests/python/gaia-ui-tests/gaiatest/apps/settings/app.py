@@ -13,6 +13,7 @@ class Settings(Base):
     _header_text_locator = (By.CSS_SELECTOR, '#root > header > h1')
     _data_text_locator = (By.ID, 'data-desc')
     _airplane_switch_locator = (By.XPATH, "//input[@id='airplaneMode-input']/..")
+    _airplane_checkbox_locator = (By.ID, "airplaneMode-input")
     _wifi_text_locator = (By.ID, 'wifi-desc')
     _gps_enabled_locator = (By.XPATH, "//input[@name='geolocation.enabled']")
     _gps_switch_locator = (By.XPATH, "//input[@name='geolocation.enabled']/..")
@@ -30,13 +31,17 @@ class Settings(Base):
 
     def launch(self):
         Base.launch(self)
-        self.wait_for_element_displayed(*self._airplane_switch_locator)
+        checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
+        self.wait_for_condition(lambda m: checkbox.is_enabled())
 
-    def enable_airplane_mode(self):
-        self.marionette.find_element(*self._airplane_switch_locator).tap()
+    def toggle_airplane_mode(self):
+        checkbox = self.marionette.find_element(*self._airplane_checkbox_locator)
+        label = self.marionette.find_element(*self._airplane_switch_locator)
 
-    def disable_airplane_mode(self):
-        self.marionette.find_element(*self._airplane_switch_locator).tap()
+        checkbox_state = checkbox.is_selected()
+
+        label.tap()
+        self.wait_for_condition(lambda m: checkbox_state is not checkbox.is_selected())
 
     def enable_gps(self):
         self.marionette.find_element(*self._gps_switch_locator).tap()
