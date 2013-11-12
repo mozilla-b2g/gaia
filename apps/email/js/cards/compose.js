@@ -223,10 +223,11 @@ ComposeCard.prototype = {
         var dataSet = bubbles[i].dataset;
         addrList.push({ name: dataSet.name, address: dataSet.address });
       }
-      if (node.value.trim().length !== 0) {
-        var mailbox = model.api.parseMailbox(node.value);
-        addrList.push({ name: mailbox.name, address: mailbox.address });
-      }
+      // TODO: We will apply email address parser for setting name properly.
+      //       We set both name to null and address to text input value
+      //       before parser is ready.
+      if (node.value.trim().length !== 0)
+        addrList.push({ name: null, address: node.value });
       return addrList;
     }
     this.composer.to = frobAddressNode(this.toNode);
@@ -269,6 +270,7 @@ ComposeCard.prototype = {
     bubble.classList.add('peep-bubble');
     bubble.classList.add('msg-peep-bubble');
     bubble.setAttribute('data-address', address);
+    bubble.setAttribute('data-name', name);
     bubble.querySelector('.cmp-peep-address').textContent = address;
     var nameNode = bubble.querySelector('.cmp-peep-name');
     if (!name) {
@@ -276,7 +278,6 @@ ComposeCard.prototype = {
                     address.split('@')[0] : address;
     } else {
       nameNode.textContent = name;
-      bubble.setAttribute('data-name', name);
     }
     return bubble;
   },
@@ -375,8 +376,10 @@ ComposeCard.prototype = {
     if (makeBubble) {
       // TODO: Need to match the email with contact name.
       node.style.width = '0.5rem';
-      var mailbox = model.api.parseMailbox(node.value);
-      this.insertBubble(node, mailbox.name, mailbox.address);
+      // TODO: We will apply email address parser for showing bubble properly.
+      //       We simply set name as string that splited from address
+      //       before parser is ready.
+      this.insertBubble(node, null, node.value.slice(0, -1));
       node.value = '';
     }
     // XXX: Workaround to get the length of the string. Here we create a dummy
