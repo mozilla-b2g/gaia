@@ -421,7 +421,15 @@ endif
 endif
 
 .PHONY: app-makefiles
-app-makefiles:
+# Applications may want to perform their own build steps.  (For example, the
+# clock and e-mail apps use r.js to perform optimization steps.)  These steps
+# may produce the following output consumed by other tooling:
+# - build_stage/APPNAME/*: This is where the build output goes.
+#   build/webapp-zip.js knows about this directory.
+# - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
+#   dependencies that build/webapp-zip.js's detection logic might not determine
+#   because of lazy loading, etc.
+app-makefiles: install-xulrunner-sdk
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -432,26 +440,40 @@ app-makefiles:
 		fi; \
 	done;
 
+.PHONY: webapp-manifests
 # Generate $(PROFILE_FOLDER)/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
-webapp-manifests: install-xulrunner-sdk
+#
+# We depend on app-makefiles so that per-app Makefiles could modify the manifest
+# as part of their build step.  None currently do this, and webapp-manifests.js
+# would likely want to change to see if the build directory includes a manifest
+# in that case.  Right now this is just making sure we don't race app-makefiles
+# in case someone does decide to get fancy.
+webapp-manifests: app-makefiles install-xulrunner-sdk
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-manifests)
 	@#cat $(PROFILE_FOLDER)/webapps/webapps.json
 
+.PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize install-xulrunner-sdk
+webapp-zip: webapp-manifests webapp-optimize app-makefiles install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
 endif
 
+.PHONY: webapp-optimize
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
-webapp-optimize: install-xulrunner-sdk
+# You need xulrunner (install-xulrunner-sdk) to do this, and you need the app
+# to have been built (app-makefiles).
+webapp-optimize: app-makefiles install-xulrunner-sdk
 	@$(call run-js-command, webapp-optimize)
 
-# Remove temporary l10n files
+.PHONY: optimize-clean
+# Remove temporary l10n files created by the webapp-optimize step.  Because
+# webapp-zip wants these files to still be around during the zip stage, depend
+# on webapp-zip so it runs to completion before we start the cleanup.
 optimize-clean: webapp-zip install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
 
