@@ -47,7 +47,6 @@
     return parseInt((100 * currently) / total);
   }
 
-
   var DownloadFormatter = {
     getFormattedSize: function(bytes) {
       return _getFormattedSize(bytes);

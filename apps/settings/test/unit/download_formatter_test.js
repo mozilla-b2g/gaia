@@ -16,6 +16,7 @@ suite('DownloadFormatter', function() {
 
   suiteTeardown(function() {
     navigator.mozL10n = realL10n;
+    realL10n = null;
   });
 
   var l10nSpy;

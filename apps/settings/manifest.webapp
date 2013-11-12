@@ -29,7 +29,8 @@
     "power":{},
     "idle":{},
     "telephony":{},
-    "audio-channel-notification":{}
+    "audio-channel-notification":{},
+    "downloads":{}
   },
   "activities": {
     "configure": {
@@ -61,6 +62,12 @@
     "zh-TW": {
       "name": "設定",
       "description": "Gaia 設定"
+    }
+  },
+  "datastores-access": {
+    "download_store": {
+      "access": "readwrite",
+      "description": "Stores download finished"
     }
   },
   "default_locale": "en-US",
