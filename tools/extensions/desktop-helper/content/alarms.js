@@ -11,7 +11,7 @@ Cu.import('resource://gre/modules/XPCOMUtils.jsm');
 Cu.import('resource://gre/modules/Services.jsm');
 
 function debug(str) {
-  //dump('AlarmHalService: ' + str + '\n');
+  dump('AlarmHalService: ' + str + '\n');
 }
 
 // -----------------------------------------------------------------------

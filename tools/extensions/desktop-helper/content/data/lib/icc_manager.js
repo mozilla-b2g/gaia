@@ -8,11 +8,13 @@
     iccInfo: {
       iccid: true
     },
-    cardState: 'ready',
+    cardState: 'absent',
     setCardLock: function() {
       debug('setCardLock');
     },
-    getCardLock: FFOS_RUNTIME.domRequest({ enabled: false }),
+    getCardLock: function() {
+      debug('getCardLock');
+    },
     unlockCardLock: function() {
       debug('unlockCardLock');
     },

@@ -16,7 +16,7 @@ var Connectivity = (function(window, document, undefined) {
   var _macAddress = '';
   var _ = navigator.mozL10n.get;
 
-  // in desktop helper we fake these device interfaces if they don't exist.
+  // in util.js, we fake these device interfaces if they are not exist.
   var wifiManager = WifiHelper.getWifiManager();
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
