@@ -24,6 +24,12 @@ var Languages = {
       }
     });
     setTimeout(this.update);
+
+    window.addEventListener('localized',
+      function updateDefaultLayouts(event) {
+        var lang = navigator.mozL10n.language.code;
+        KeyboardHelper.changeDefaultLayouts(lang);
+      });
   },
   update: function() {
     var panel = document.getElementById('languages');
