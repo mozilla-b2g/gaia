@@ -1,10 +1,24 @@
 #!/bin/sh
 
+export LC_ALL=C NO_XFAIL=1
 LINTED_DIRECTORIES="apps shared"
-
+JSHINT_EXECUTABLE="node_modules/.bin/jshint"
+JSHINT_XFAIL_LIST="build/jshint/xfail.list"
+JSHINT_ARGS="--reporter=build/jshint/xfail $JSHINT_ARGS"
 excluded_list=".jshintignore"
-if [ ! -f $excluded_list ];
+
+jshint_information() {
+  echo "Please read https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md for more information.\n"
+}
+
+if [ ! -r $excluded_list ];
 then
+  exit 0
+fi
+
+if [ ! -r "$JSHINT_XFAIL_LIST" ];
+then
+  # early bailout, this commit hook is newer than the gaia code it runs in
   exit 0
 fi
 
@@ -16,10 +30,60 @@ then
   exit 0
 fi
 
-# LINTED_FILES needs to be space-separated
-diff_with_exclude=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$' | tr '[:space:]' ' '`
-if [ -z "$diff_with_exclude" ] ; then
+hash node > /dev/null 2>&1
+if [ $? -eq 1 ];
+then
+  echo >&2 "You should install node to lint your patch"
+  echo >&2 "http://nodejs.org/download/"
   exit 0
 fi
 
-LINTED_FILES="$diff_with_exclude" make -s lint
+if [ ! -x "$JSHINT_EXECUTABLE" ];
+then
+  echo >&2 'You should run `npm install` to lint your patch'
+  exit 0
+fi
+
+changed_files=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$'`
+if [ -z "$changed_files" ] ; then
+  exit 0
+fi
+
+# gjslint: only test files xfailed in jshint
+# echo with the quotes keeps the whitespace -- comm needs newlines, but
+# LINTED_FILES needs to be space-separated
+# Note also that xfail.list _must_ be sorted.
+xfailed=`echo "$changed_files" | sort | comm -12 "$JSHINT_XFAIL_LIST" - | tr '[:space:]' ' '`
+
+gjslint_result=0
+if [ -n "$xfailed" ] ; then
+  echo "gjslint check:"
+  LINTED_FILES="$xfailed" make -s gjslint
+  gjslint_result=$?
+  echo
+fi
+
+echo "jshint check:"
+# warn about files being xfailed
+for file in $changed_files ; do
+  one_was_ignored=""
+  if grep -q $file "$JSHINT_XFAIL_LIST" ; then
+    one_was_ignored="1"
+    echo "$file: jshint errors are ignored. Please consider fixing lint errors and removing it from $JSHINT_XFAIL_LIST."
+  fi
+done
+
+test -n "$one_was_ignored" && jshint_information
+
+# using the real jshint instead of the make target to prevent running npm
+# install at commit time
+$JSHINT_EXECUTABLE $JSHINT_ARGS $changed_files
+jshint_result=$?
+
+if [ $gjslint_result -ne 0 -o $jshint_result -ne 0 ] ; then
+  echo "There were errors while linting the files, please see above."
+  test $jshint_result -ne 0 && jshint_information
+  exit 1
+fi
+
+echo "No errors - committing"
