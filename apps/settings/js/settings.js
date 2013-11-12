@@ -791,10 +791,11 @@ window.addEventListener('load', function loadSettings() {
   Settings.init();
   handleRadioAndCardState();
 
-  LazyLoader.load(['js/utils.js', 'js/mvvm/models.js', 'js/mvvm/views.js'],
+  LazyLoader.load(['js/utils.js', 'js/mvvm/models.js', 'js/mvvm/views.js',
+                   'shared/js/keyboard_helper.js'],
     startupLocale);
+
   LazyLoader.load([
-      'shared/js/keyboard_helper.js',
       'js/airplane_mode.js',
       'js/battery.js',
       'shared/js/async_storage.js',
@@ -918,6 +919,7 @@ function initLocale() {
   });
 
   Settings.updateLanguagePanel();
+  KeyboardHelper.changeDefaultLayouts(lang);
 }
 
 // Do initialization work that doesn't depend on the DOM, as early as
