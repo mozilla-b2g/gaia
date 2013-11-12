@@ -595,8 +595,14 @@ void function() {
     // TODO save only reference, get data from IconManager
     // get static apps' icons from InstalledAppsService
     // list of {"id": 3, "icon": "base64icon"}
-    this.extraIconsData = args.extraIconsData || [];
-
+    this.extraIconsData = [];
+    if (args.extraIconsData) {
+      for (var i = 0, iconData; iconData = args.extraIconsData[i++]; ) {
+        if (iconData.id && iconData.icon) {
+          this.extraIconsData.push(iconData);
+        }
+      }
+    }
   };
 
   /**

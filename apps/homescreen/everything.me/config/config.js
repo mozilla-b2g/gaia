@@ -54,7 +54,6 @@ Evme.Config = Evme.__config = {
     }
   },
   'maxHistoryEntries': '10',
-  'emptyCollectionIcon': '/everything.me/images/empty-collection.png',
   'iconsGroupSettings': {
     '1': [{
       'x': 'center',
