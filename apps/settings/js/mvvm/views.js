@@ -45,8 +45,7 @@ var ListView = function(root, observableArray, templateFunc) {
     }
 
     // add DOM elements
-    var referenceElement =
-      _root.querySelector('li:nth-child(' + (index + 1) + ')');
+    var referenceElement = _root.children[index];
     for (var i = items.length - 1; i >= 0; i--) {
       var curElement = _templateFunc(items[i]);
       _root.insertBefore(curElement, referenceElement);
@@ -66,8 +65,7 @@ var ListView = function(root, observableArray, templateFunc) {
         _root.removeChild(_root.firstElementChild);
       }
     } else {
-      var nextElement =
-        _root.querySelector('li:nth-child(' + (index + 1) + ')');
+      var nextElement = _root.children[index];
       for (var i = 0; i < count; i++) {
         if (nextElement) {
           var temp = nextElement.nextElementSibling;
@@ -81,7 +79,7 @@ var ListView = function(root, observableArray, templateFunc) {
   };
 
   var _replace = function(index, value) {
-    var element = _root.querySelector('li:nth-child(' + (index + 1) + ')');
+    var element = _root.children[index];
     if (element) {
       var newElement = _templateFunc(value, element);
       if (newElement !== element) {
@@ -160,6 +158,8 @@ var ListView = function(root, observableArray, templateFunc) {
     }
   };
 
+  // emtpy element at creation time
+  _root.innerHTML = '';
   view.set(observableArray);
   return view;
 };
