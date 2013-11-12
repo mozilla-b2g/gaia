@@ -958,6 +958,7 @@ apps/system/test/marionette/fakemusic/js/fakemusic.js
 apps/system/test/marionette/lib/fake_music.js
 apps/system/test/marionette/lib/media_playback.js
 apps/system/test/marionette/lib/notification.js
+apps/system/test/marionette/lockscreen_disabled_test.js
 apps/system/test/marionette/media_playback_test.js
 apps/system/test/marionette/notification_get_test.js
 apps/system/test/marionette/notification_launch_app.js
@@ -1069,6 +1070,7 @@ shared/js/custom_dialog.js
 shared/js/device_storage/enumerate_all.js
 shared/js/device_storage/get_storage_if_available.js
 shared/js/device_storage/get_unused_filename.js
+shared/js/download/download_launcher.js
 shared/js/download/download_ui.js
 shared/js/dump.js
 shared/js/fb/fb_data_reader.js
