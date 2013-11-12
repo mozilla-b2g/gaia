@@ -8,13 +8,34 @@
    * Main Entry
    */
   var SimCardManager = {
+    isUIinitialized: false,
     init: function() {
 
-      this.simcards = [];
+      // we encapsulate simcards to do related UI changes
+      // when setting it (Key-Value Observing)
+      var simcards = [];
+
+      Object.defineProperty(this, 'simcards', {
+        get: function() {
+          return simcards;
+        },
+        set: function(newSimcardsInfo) {
+          simcards = newSimcardsInfo;
+
+          // We have to make sure we have initialized
+          // UI so that we can update
+          if (this.isUIinitialized) {
+            this.updateSimCardsUI();
+          }
+        }
+      });
 
       // init DOM related stuffs
       this.setAllElements();
       this.simItemTemplate = new Template(this.simCardTmpl);
+
+      // make sure we can control card change events
+      this.handleCardChangeEvent();
 
       // `handleEvent` is used to handle these sim related changes
       this.simManagerOutgoingCallSelect.addEventListener('change', this);
@@ -127,6 +148,43 @@
         this.toggleSimCard(cardIndex, evt);
       }
     },
+    handleCardChangeEvent: function() {
+      var conns = this.getMobileConnections();
+      conns.forEach(function(conn, cardIndex) {
+
+        var self = this;
+
+        // XXX:
+        // is conn / connIndex the same with what we think here ?
+        //
+        // users plug or unplug the simcard
+        conn.onicccardchange = function() {
+          return function() {
+
+            var iccManager = window.navigator.mozIccManager;
+            var iccId = conn.iccId;
+            var icc = iccManager.getIccById(iccId);
+
+            // it means we plug in a simcard
+            if (icc) {
+              // TODO:
+              // do related changes here
+              self.updateSimCardInfo(cardIndex, {
+
+              });
+            }
+            // it means we unplug a simcard
+            else {
+              // TODO:
+              // do related changes here
+              self.updateSimCardInfo(cardIndex, {
+
+              });
+            }
+          };
+        };
+      }.bind(this));
+    },
     toggleSimCard: function(cardIndex, evt) {
       var simcardsCount = this.getSimCardsCount();
       var simcardInfo = this.getSimCardInfo(cardIndex);
@@ -202,11 +260,15 @@
     },
     enableSimCard: function(cardIndex) {
       this.updateSimCardInfo(cardIndex, { enabled: true });
-      this.updateSimCardUI(cardIndex);
+
+      // TODO:
+      // call new Gecko API to enable this simcard
     },
     disableSimCard: function(cardIndex) {
       this.updateSimCardInfo(cardIndex, { enabled: false });
-      this.updateSimCardUI(cardIndex);
+
+      // TODO:
+      // call new Gecko API to disable this simcard
     },
     getSimCardsCount: function() {
       return this.simcards.length;
@@ -215,9 +277,19 @@
       return this.simcards[cardIndex];
     },
     updateSimCardInfo: function(cardIndex, newInfo) {
+      var newSimcardsInfo = this.simcards;
+
       for (var infoKey in newInfo) {
-        this.simcards[cardIndex][infoKey] = newInfo[infoKey];
+        newSimcardsInfo[cardIndex][infoKey] = newInfo[infoKey];
       }
+
+      // This will force updating UI
+      this.simcards = newSimcardsInfo;
+    },
+    updateSimCardsUI: function() {
+      this.simcards.forEach(function(cardInfo, cardIndex) {
+        this.updateSimCardUI(cardIndex);
+      }.bind(this));
     },
     updateSimCardUI: function(cardIndex) {
       var simcardInfo = this.getSimCardInfo(cardIndex);
@@ -275,10 +347,12 @@
       }, this);
     },
     initSimCardManagerUI: function() {
-      this.updateSimCardsUI();
-      this.updateSelectOptionsUI();
+      this.initSimCardsUI();
+      this.initSelectOptionsUI();
+
+      this.isUIinitialized = true;
     },
-    updateSimCardsUI: function() {
+    initSimCardsUI: function() {
       var simItemHTMLs = [];
 
       // cleanup old child nodes first
@@ -304,7 +378,7 @@
 
       this.simCardContainer.innerHTML = simItemHTMLs.join('');
     },
-    updateSelectOptionsUI: function(selectedIndex) {
+    initSelectOptionsUI: function(selectedIndex) {
 
       // make sure we select the first one by default
       selectedIndex = selectedIndex || 0;
