@@ -668,13 +668,10 @@ var LockScreen = {
   },
 
   handleSlideEnd: function() {
-    // Bounce back to the center immediately.
+    // Bounce back to the center.
     if (false === this._slideReachEnd) {
       this.restoreSlide(true);
     } else {
-      // Restore it only after screen changed.
-      var appLaunchDelay = 400;
-      setTimeout(this.restoreSlide.bind(this, true), appLaunchDelay);
       this.handleIconClick('left' === this._slidingToward ?
         this.leftIcon : this.rightIcon);
     }
@@ -794,7 +791,6 @@ var LockScreen = {
 
       if (currentFrame)
         currentFrame.removeNextPaintListener(nextPaint);
-
 
       if (instant) {
         this.overlay.classList.add('no-transition');
