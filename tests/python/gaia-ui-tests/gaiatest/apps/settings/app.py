@@ -69,6 +69,10 @@ class Settings(Base):
 
     def open_bluetooth_settings(self):
         from gaiatest.apps.settings.regions.bluetooth import Bluetooth
+        # this is technically visible, but needs scroll to be tapped
+        # TODO Remove when bug 937053 is resolved
+        bluetooth_menu_item = self.marionette.find_element(*self._bluetooth_menu_item_locator)
+        self.marionette.execute_script("arguments[0].scrollIntoView(false);", [bluetooth_menu_item])
         self._tap_menu_item(self._bluetooth_menu_item_locator)
         return Bluetooth(self.marionette)
 
