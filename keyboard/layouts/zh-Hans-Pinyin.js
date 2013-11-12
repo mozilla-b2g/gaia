@@ -4,6 +4,7 @@ Keyboards['zh-Hans-Pinyin'] = {
   needsCandidatePanel: true,
   disableAlternateLayout: true,
   imEngine: 'jspinyin',
+  types: ['text', 'url', 'email'],
   width: 10,
   textLayoutOverwrite: {
     ',': false,

@@ -1,5 +1,6 @@
 Keyboards.bg = {
   menuLabel: 'Български',
+  types: ['text', 'url', 'email'],
   width: 11,
   alt: {
     'и': 'ѝ'

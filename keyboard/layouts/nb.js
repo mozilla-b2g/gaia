@@ -2,6 +2,7 @@ Keyboards.nb = {
   label: 'Norwegian Bokmal',
   menuLabel: 'Norsk',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   alt: {
     a: 'äáàâąã',
     e: 'éèêëę€',

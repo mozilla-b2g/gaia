@@ -2,6 +2,7 @@ Keyboards.el = {
   label: 'Greek',
   menuLabel: 'Greek',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'el',
   upperCase: {
     'ς': 'ς'

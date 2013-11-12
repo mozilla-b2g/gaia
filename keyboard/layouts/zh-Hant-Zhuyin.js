@@ -3,6 +3,7 @@ Keyboards['zh-Hant-Zhuyin'] = {
   menuLabel: '繁體注音輸入',
   needsCandidatePanel: true,
   imEngine: 'jszhuyin',
+  types: ['text', 'url', 'email'],
   width: 11,
   textLayoutOverwrite: {
     ',': false,

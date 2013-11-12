@@ -2,6 +2,7 @@ Keyboards.ro = {
   label: 'Romanian',
   menuLabel: 'Română',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'ro',
   alt: {
     a: 'ăâ',
