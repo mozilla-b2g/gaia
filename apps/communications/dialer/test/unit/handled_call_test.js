@@ -89,10 +89,6 @@ suite('dialer/handled_call', function() {
   });
 
   suite('initialization', function() {
-    test('ticker', function() {
-      assert.equal(subject._ticker, null);
-    });
-
     test('photo', function() {
       assert.equal(subject.photo, MockContacts.mPhoto);
     });
@@ -274,7 +270,7 @@ suite('dialer/handled_call', function() {
     });
 
     test('start the timer', function() {
-      assert.ok(subject._ticker);
+      assert.isTrue(MockCallScreen.mCalledCreateTicker);
     });
 
     test('keypad enabled', function() {
@@ -351,7 +347,7 @@ suite('dialer/handled_call', function() {
       });
 
       test('should clear the ticker', function() {
-        assert.equal(subject._ticker, null);
+        assert.isTrue(MockCallScreen.mCalledStopTicker);
       });
 
       test('should remove the node from the dom', function() {

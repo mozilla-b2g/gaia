@@ -3,8 +3,8 @@
 mocha.globals(['resizeTo']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
-requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
@@ -523,6 +523,42 @@ suite('call screen', function() {
         assert.isTrue(setCallerContactImageSpy.calledOnce);
         done();
       });
+    });
+  });
+
+  suite('ticker functions > ', function() {
+    var durationNode;
+    var timeNode;
+    setup(function() {
+      this.sinon.useFakeTimers();
+
+      durationNode = document.createElement('div');
+      durationNode.className = 'duration';
+
+      timeNode = document.createElement('span');
+      durationNode.appendChild(timeNode);
+
+      CallScreen.createTicker(durationNode);
+    });
+
+    test('createTicker should set a timer on durationNode', function() {
+      assert.ok(durationNode.dataset.tickerId);
+      assert.isTrue(durationNode.classList.contains('isTimer'));
+    });
+
+    test('createTicker should update timer every second', function() {
+      this.sinon.clock.tick(1000);
+      assert.deepEqual(MockLazyL10n.keys['callDurationMinutes'], {
+        h: '00',
+        m: '00',
+        s: '01'
+      });
+    });
+
+    test('stopTicker should stop counter on durationNode', function() {
+      CallScreen.stopTicker(durationNode);
+      assert.isUndefined(durationNode.dataset.tickerId);
+      assert.isFalse(durationNode.classList.contains('isTimer'));
     });
   });
 });

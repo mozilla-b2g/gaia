@@ -693,7 +693,7 @@
     right : 0;
     height: 7rem;
     width: 8rem;
-    background: url('images/proceed.png') no-repeat center center / 3rem;
+    background: url('images/proceed.png') no-repeat right 1rem center / 3rem;
   }
 
   #group-call.held #group-show {
@@ -710,6 +710,7 @@
   }
 
   #group-call .hangup-button,
+  #calls:not(.big-duration) #group-call > .duration.isTimer,
   #group-call-details-list .fake-number,
   #group-call-details-list .duration,
   #group-call-details-list .switch-calls {

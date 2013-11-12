@@ -208,6 +208,38 @@ suite('conference group handler', function() {
       MockMozTelephony.mTriggerCallsChanged();
     });
 
+    test('should start timer when connected', function() {
+      assert.isFalse(MockCallScreen.mCalledCreateTicker);
+
+      MockMozTelephony.conferenceGroup.state = 'connected';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isTrue(MockCallScreen.mCalledCreateTicker);
+    });
+
+    test('should set photo to default when connected', function() {
+      MockMozTelephony.conferenceGroup.state = 'connected';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
+    });
+
+    test('should set photo to default when resuming', function() {
+      MockMozTelephony.conferenceGroup.state = 'resuming';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isTrue(MockCallScreen.mSetDefaultContactImageCalled);
+    });
+
+    test('should stop timer when groupcall ends', function() {
+      assert.isFalse(MockCallScreen.mCalledStopTicker);
+
+      MockMozTelephony.conferenceGroup.state = '';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isTrue(MockCallScreen.mCalledStopTicker);
+    });
+
     test('should add the held class once held', function() {
       assert.isFalse(fakeGroupLine.classList.contains('held'));
 

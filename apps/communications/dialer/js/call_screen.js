@@ -304,5 +304,42 @@ var CallScreen = {
       evt.preventDefault();
     }
     this.groupCalls.classList.remove('display');
+  },
+
+  createTicker: function(durationNode) {
+    var durationChildNode = durationNode.querySelector('span');
+
+    if (durationNode.dataset.tickerId)
+      return false;
+
+    durationChildNode.textContent = '00:00';
+    durationNode.classList.add('isTimer');
+
+    function padNumber(n) {
+      return n > 9 ? n : '0' + n;
+    }
+
+    LazyL10n.get(function localized(_) {
+      var ticker = setInterval(function ut_updateTimer(startTime) {
+        // Bug 834334: Ensure that 28.999 -> 29.000
+        var delta = Math.round((Date.now() - startTime) / 1000) * 1000;
+        var elapsed = new Date(delta);
+        var duration = {
+          h: padNumber(elapsed.getUTCHours()),
+          m: padNumber(elapsed.getUTCMinutes()),
+          s: padNumber(elapsed.getUTCSeconds())
+        };
+        durationChildNode.textContent = _(elapsed.getUTCHours() > 0 ?
+          'callDurationHours' : 'callDurationMinutes', duration);
+      }, 1000, Date.now());
+      durationNode.dataset.tickerId = ticker;
+    });
+    return true;
+  },
+
+  stopTicker: function(durationNode) {
+    durationNode.classList.remove('isTimer');
+    clearInterval(durationNode.dataset.tickerId);
+    delete durationNode.dataset.tickerId;
   }
 };
