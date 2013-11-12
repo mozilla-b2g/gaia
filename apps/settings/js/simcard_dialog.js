@@ -34,10 +34,19 @@ function SimPinDialog(dialog, options) {
    */
   options = options || {};
 
-  // we will select on the first card by default
-  var cardIndex = options.cardIndex || 0;
-  var iccId = mozMobileConnections[cardIndex];
+  var cardIndex = options.cardIndex;
+  var conn = mozMobileConnections[cardIndex];
+
+  if (!conn) {
+    return;
+  }
+
+  var iccId = conn.iccId;
   var icc = mozIccManager.getIccById(iccId);
+
+  if (!icc) {
+    return;
+  }
 
   /**
    * Global variables and callbacks -- set by the main `show()' method
