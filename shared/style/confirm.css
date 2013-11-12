@@ -248,3 +248,10 @@ form[role="dialog"][data-type="confirm"] ul li ul {
   margin: 0;
   padding: 0;
 }
+
+@media (min-width: 768px) {
+  form[role="dialog"][data-type="confirm"] {
+    top: calc(50% - 23rem); /* dialog height 46rem */
+    left: calc(50% - 34rem); /* dialog width 68rem */
+  }
+}
