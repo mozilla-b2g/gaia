@@ -30,8 +30,11 @@
 #                                                                             #
 # Lint your code                                                              #
 #                                                                             #
-# use "make hint" and "make lint" to lint using respectively jshint and       #
+# use "make hint" and "make gjslint" to lint using respectively jshint and    #
 # gjslint.                                                                    #
+#                                                                             #
+# Use "make lint" to lint using gjslint for blacklisted files, and jshint for #
+# other files.                                                                #
 #                                                                             #
 # APP=<app name> will hint/lint only this app.                                #
 # LINTED_FILES=<list of files> will (h/l)int only these space-separated files #
@@ -831,32 +834,46 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint hint
+.PHONY: lint gjslint hint
 
 # Lint apps
+## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
+## "ls" is used to filter the existing files only, in case the xfail.list is not maintained well enough.
 ifndef LINTED_FILES
 ifdef APP
   JSHINTED_PATH = apps/$(APP)
-  GJSLINTED_PATH = -r apps/$(APP)
+  GJSLINTED_PATH = $(shell grep "^apps/$(APP)" build/jshint/xfail.list | ( while read file ; do test -f "$$file" && echo $$file ; done ) )
 else
   JSHINTED_PATH = apps shared
-  GJSLINTED_PATH = -r apps -r shared
+  GJSLINTED_PATH = $(shell ( while read file ; do test -f "$$file" && echo $$file ; done ) < build/jshint/xfail.list )
 endif
 endif
 
-lint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
-lint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
 lint:
-	# --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
+	NO_XFAIL=1 $(MAKE) -k gjslint hint
+
+gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
+gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
+gjslint:
+	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
-	gjslint --disable 210,217,220,225 --custom_jsdoc_tags="event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property" $(GJSLINTED_PATH) -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(LINTED_FILES)
+	@echo Running gjslint...
+	@gjslint --disable 210,217,220,225 --custom_jsdoc_tags="event,example,mixes,mixin,fires,inner,todo,access,namespace,listens,module,memberOf,property" -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
+	@echo Note: gjslint only checked the files that are xfailed for jshint.
+
+JSHINT_ARGS := --reporter=build/jshint/xfail $(JSHINT_ARGS)
 
 ifdef JSHINTRC
 	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
 endif
 
+ifdef VERBOSE
+	JSHINT_ARGS := $(JSHINT_ARGS) --verbose
+endif
+
 hint: node_modules/.bin/jshint
-	./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES)
+	@echo Running jshint...
+	@./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES) || (echo Please consult https://github.com/mozilla-b2g/gaia/tree/master/build/jshint/README.md to get some information about how to fix jshint issues. && exit 1)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
