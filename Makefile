@@ -874,9 +874,12 @@ endif
 lint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
 lint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
 lint:
-	# --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
+	# You should also `make hint` if you want to really check for lint! Only legacy files are
+	# being checked by `make lint` anymore.
+	#
+	# gjslint --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
-	gjslint --disable 210,217,220,225 -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
+	@gjslint --disable 210,217,220,225 -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
 
 ifdef JSHINTRC
 	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
