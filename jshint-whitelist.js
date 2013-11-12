@@ -7,6 +7,8 @@ module.exports = {
     var len = results.length;
     var redErrors = '';
     var whiteErrors = '';
+    var lastFile;
+    var fileCount = 0;
 
     try {
       whitelist = fs.readFileSync('./.jshintwhitelist', 'utf-8');
@@ -24,6 +26,11 @@ module.exports = {
       var error = result.error;
       var white = whitelist.indexOf(file) !== -1;
       var str = '';
+      if (lastFile && (file !== lastFile)) {
+        fileCount = 0;
+      }
+      lastFile = file;
+      fileCount++;
 
       str += file  + ': line ' + error.line + ', col ' +
         error.character + ', ' + error.reason;
@@ -34,7 +41,16 @@ module.exports = {
 
       if (white) {
         str += ' (white)';
-        whiteErrors += str + '\n';
+        if (!opts.verbose) {
+          if (fileCount === 6) {
+            whiteErrors += file + ': more whitelisted errors silenced,' +
+              ' run with --verbose\n';
+          } else if (fileCount < 6) {
+            whiteErrors += str + '\n';
+          }
+        } else {
+          whiteErrors += str + '\n';
+        }
       } else {
         str += ' (ERROR)';
         redErrors += str + '\n';
