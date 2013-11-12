@@ -34,9 +34,6 @@
       this.setAllElements();
       this.simItemTemplate = new Template(this.simCardTmpl);
 
-      // make sure we can control card change events
-      this.handleCardChangeEvent();
-
       // `handleEvent` is used to handle these sim related changes
       this.simManagerOutgoingCallSelect.addEventListener('change', this);
       this.simManagerOutgoingMessagesSelect.addEventListener('change', this);
@@ -59,6 +56,7 @@
         this.simcards = [
           {
             enabled: true,
+            locked: false,
             iccId: '11111',
             name: 'SIM 1',
             number: '0123456789',
@@ -66,6 +64,7 @@
           },
           {
             enabled: true,
+            locked: true,
             iccId: '11111',
             name: 'SIM 2',
             number: '9876543210',
@@ -88,6 +87,7 @@
         if (!iccId) {
           simcardInfo = {
             enabled: false,
+            locked: false,
             iccId: '-1',
             name: 'simcard' + cardIndex,
             number: _('unknown-phoneNumber'),
@@ -98,9 +98,17 @@
           var icc = iccManager.getIccById(iccId);
           var iccInfo = icc.iccInfo;
           var operatorInfo = MobileOperator.userFacingInfo(conn);
+          var lockedState = ['pinRequired', 'pukRequired'];
+          var locked = false;
+
+          // make sure the card is in locked mode or not
+          if (icc.cardState.indexOf(lockedState)) {
+            locked = true;
+          }
 
           simcardInfo = {
             enabled: true,
+            locked: locked,
             iccId: iccId,
             name: 'simcard' + cardIndex,
             number: iccInfo.spn || _('unknown-phoneNumber'),
@@ -147,43 +155,6 @@
         var cardIndex = parseInt(target.dataset.cardIndex, 10);
         this.toggleSimCard(cardIndex, evt);
       }
-    },
-    handleCardChangeEvent: function() {
-      var conns = this.getMobileConnections();
-      conns.forEach(function(conn, cardIndex) {
-
-        var self = this;
-
-        // XXX:
-        // is conn / connIndex the same with what we think here ?
-        //
-        // users plug or unplug the simcard
-        conn.onicccardchange = function() {
-          return function() {
-
-            var iccManager = window.navigator.mozIccManager;
-            var iccId = conn.iccId;
-            var icc = iccManager.getIccById(iccId);
-
-            // it means we plug in a simcard
-            if (icc) {
-              // TODO:
-              // do related changes here
-              self.updateSimCardInfo(cardIndex, {
-
-              });
-            }
-            // it means we unplug a simcard
-            else {
-              // TODO:
-              // do related changes here
-              self.updateSimCardInfo(cardIndex, {
-
-              });
-            }
-          };
-        };
-      }.bind(this));
     },
     toggleSimCard: function(cardIndex, evt) {
       var simcardsCount = this.getSimCardsCount();
@@ -293,16 +264,20 @@
     },
     updateSimCardUI: function(cardIndex) {
       var simcardInfo = this.getSimCardInfo(cardIndex);
-
-      var cardSelector = '.sim-card-' + cardIndex;
       var selectors = [
         'name',
         'number',
         'operator'
       ];
 
-      this.simCardContainer.querySelector(cardSelector)
-        .classList.toggle('enabled', simcardInfo.enabled);
+      var cardSelector = '.sim-card-' + cardIndex;
+      var cardDom = this.simCardContainer.querySelector(cardSelector);
+
+      // locked state
+      cardDom.classList.toggle('locked', simcardInfo.locked);
+
+      // enabled state
+      cardDom.classList.toggle('enabled', simcardInfo.enabled);
 
       selectors.forEach(function(selector) {
         // will generate ".sim-card-0 .sim-card-name" for example
@@ -371,8 +346,12 @@
           'sim-operator': simcard.operator,
           // for simcard UI
           'sim-enabled': (simcard.enabled) ? 'enabled' : '',
+          // for simcard UI
+          'sim-locked': (simcard.locked) ? 'locked' : '',
           // for initial checkbox attribute
-          'sim-checked': (simcard.enabled) ? 'checked' : ''
+          'sim-checkbox-checked': (simcard.enabled) ? 'checked' : '',
+          // for initial checkbox attribute
+          'sim-checkbox-locked': (simcard.locked) ? 'disabled' : ''
         }));
       }.bind(this));
 
