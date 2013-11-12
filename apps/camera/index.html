@@ -6,10 +6,20 @@
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
     <link rel="resource" type="application/l10n" href="/shared/locales/date.ini">
 
-    <link rel="stylesheet" type="text/css" href="style/camera.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css">
-    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css">
+    <link rel="stylesheet" type="text/css" href="style/app.css" />
+    <link rel="stylesheet" type="text/css" href="style/viewfinder.css" />
+    <link rel="stylesheet" type="text/css" href="style/focus-ring.css" />
+    <link rel="stylesheet" type="text/css" href="style/controls.css" />
+    <link rel="stylesheet" type="text/css" href="style/overlay.css" />
+    <link rel="stylesheet" type="text/css" href="style/hud.css" />
+    <link rel="stylesheet" type="text/css" href="style/filmstrip.css" />
+    <link rel="stylesheet" type="text/css" href="style/confirm.css" />
+    <link rel="stylesheet" type="text/css" href="style/VideoPlayer.css" />
+
+    <!-- Shared CSS -->
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/style/buttons.css" />
+    <link rel="stylesheet" type="text/css" href="/shared/style/confirm.css" />
 
     <!-- for perf-measurement related utilities -->
     <script defer src="/shared/js/performance_testing_helper.js"></script>
@@ -26,26 +36,27 @@
     <!-- <script defer src="/shared/js/media/video_player.js"></script> -->
     <!-- <script defer src="/shared/js/media/media_frame.js"></script> -->
     <!-- <script defer src="/shared/js/gesture_detector.js"></script> -->
+
     <script defer src="/shared/js/lazy_loader.js"></script>
     <script defer src="js/config.js"></script>
     <script defer src="js/camera.js"></script>
   </head>
   <body class="filmstriphidden">
-    <div id="focus-ring"></div>
-    <video id="viewfinder" autoplay></video>
+    <div id="focus-ring" class="focus-ring"></div>
+    <video id="viewfinder" class="viewfinder" autoplay></video>
 
-    <div id="hud">
-      <a id="toggle-camera" class="hidden"></a>
-      <a id="toggle-flash" class="hidden"></a>
+    <div id="hud" class="hud">
+      <a id="toggle-camera" class="toggle-camera hidden"></a>
+      <a id="toggle-flash" class="toggle-flash hidden"></a>
     </div>
 
-    <div id="controls">
-      <a id="switch-button" name="Switch source" class="hidden" disabled="disabled"><span></span></a>
-      <a id="capture-button" name="Capture" disabled="disabled"><span></span></a>
-      <div id="misc-button">
-        <a id="gallery-button" class="hidden" name="View Gallery"><span></span></a>
-        <a id="cancel-pick" class="hidden"><span></span></a>
-        <span id="video-timer">00:00</span>
+    <div id="controls" class="controls">
+      <a id="switch-button" class="switch-button hidden" name="Switch source" disabled="disabled"><span></span></a>
+      <a id="capture-button" class="capture-button" name="Capture" disabled="disabled"><span></span></a>
+      <div id="misc-button" class="misc-button">
+        <a id="gallery-button" class="gallery-button hidden" name="View Gallery"><span></span></a>
+        <a id="cancel-pick" class="cancel-pick hidden"><span></span></a>
+        <span id="video-timer" class="video-timer">00:00</span>
       </div>
     </div>
 
@@ -66,25 +77,25 @@
     </div>
 
     <!-- see filmstrip.js and filmstrip.css for these elements -->
-    <div id="filmstrip">
+    <div id="filmstrip" class="filmstrip">
     </div>
-    <div id="preview" class="offscreen">
-      <div id="frame-container">     <!-- media frame rotates inside this -->
-        <div id="media-frame"></div> <!-- image or video here -->
+    <div id="preview" class="preview offscreen">
+      <div id="frame-container" class="frame-container">     <!-- media frame rotates inside this -->
+        <div id="media-frame" class="media-frame"></div> <!-- image or video here -->
       </div>
-      <footer id="preview-controls"> <!-- camera, delete, share buttons -->
-        <a id="camera-button" class="button"></a>
-        <a id="delete-button" class="button"></a>
-        <a id="share-button" class="button"></a>
+      <footer id="preview-controls" class="preview-controls"> <!-- camera, delete, share buttons -->
+        <a id="camera-button" class="camera-button button"></a>
+        <a id="delete-button" class="delete-button button"></a>
+        <a id="share-button" class="share-button button"></a>
       </footer>
     </div>
 
     <!-- see confirm.js and confirm.css for these elements -->
-    <div id="confirm" hidden>
-      <div id="confirm-media-frame"></div> <!-- image or video here -->
-      <footer id="confirm-controls">
-        <button id="retake-button" data-l10n-id="retake-button"></button>
-        <button id="select-button" class="recommend"
+    <div id="confirm" class="confirm" hidden>
+      <div id="confirm-media-frame" class="confirm-media-frame"></div> <!-- image or video here -->
+      <footer id="confirm-controls" class="confirm-controls">
+        <button id="retake-button" class="retake-button" data-l10n-id="retake-button"></button>
+        <button id="select-button" class="select-button recommend"
                 data-l10n-id="select-button"></button>
       </footer>
     </div>

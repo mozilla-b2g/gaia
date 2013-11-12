@@ -284,9 +284,6 @@ var Camera = {
     this.loadCameraPreview(this._cameraNumber, function() {
       PerformanceTestingHelper.dispatch('camera-preview-loaded');
       var files = [
-        'style/filmstrip.css',
-        'style/confirm.css',
-        'style/VideoPlayer.css',
         '/shared/js/async_storage.js',
         '/shared/js/blobview.js',
         '/shared/js/media/jpeg_metadata_parser.js',

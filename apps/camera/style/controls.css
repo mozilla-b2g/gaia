@@ -1,0 +1,145 @@
+
+.controls {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  height: 4.5rem;
+  z-index: 50;
+  background-color: rgba(0, 0, 0, 0.8);
+  overflow: hidden;
+}
+
+.switch-button,
+.capture-button,
+.misc-button {
+  position: absolute;
+}
+
+.cancel-pick[disabled=disabled],
+.capture-button[disabled=disabled],
+.switch-button[disabled=disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.switch-button,
+.misc-button {
+  height: 4.5rem;
+  width: 33%;
+}
+
+.switch-button span,
+.capture-button span,
+.gallery-button span,
+.cancel-pick span {
+  -moz-transition: -moz-transform 0.2s ease-in-out;
+  pointer-events: none;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 3rem;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -1.5rem;
+  margin-top: -1.5rem;
+  width: 3rem;
+  height: 3rem;
+}
+
+.switch-button {
+  left: 66%;
+}
+
+.misc-button {
+  text-align: center;
+  left: 0;
+}
+
+.video-timer {
+  position:relative;
+  top:50%;
+  margin-top:-0.5em;
+}
+
+.gallery-button {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.gallery-button.hidden {
+  display:none;
+}
+
+.gallery-button span {
+  background-image: url(images/grid.png);
+}
+
+.gallery-button[disabled=disabled] {
+  display: none;
+}
+
+.cancel-pick {
+  display:block;
+  width: 100%;
+  height: 100%;
+}
+
+.cancel-pick.hidden {
+  display:none
+}
+
+.cancel-pick span {
+  background-image: url(images/actionicon_cancel.png);
+}
+
+.capture-button {
+  background-color: #03a2b4;
+  border-radius: 10rem;
+  left: 33%;
+  height: 10rem;
+  width: 33%;
+  top: -2.8rem;
+}
+
+.video-timer {
+  display: none;
+  color: white;
+  font-size: 1.8rem;
+}
+
+/* Specific to when we are capturing video */
+.capturing .video-timer {
+  display: block;
+}
+
+.capturing .gallery-button {
+  display: none;
+}
+
+.capturing .capture-button {
+  background-color: #d3361c;
+}
+
+.video.capturing .capture-button span {
+  background-image: url(images/stop.png);
+}
+
+/* Swap the camera and video icons depending on mode */
+.video .switch-button span {
+  background-image: url(images/camera.png);
+}
+
+.camera .switch-button span {
+  background-image: url(images/video.png);
+}
+
+.camera .capture-button span {
+  background-image: url(images/camera.png);
+}
+
+.video .capture-button span {
+  background-image: url(images/video.png);
+}
