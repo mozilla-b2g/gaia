@@ -12,6 +12,10 @@ var SuggestionBar = {
   _contactList: null,
   _loaded: false,
 
+  _pendingFbRequest: null,
+  _hasMatchingFbContacts: false,
+  _hasMatchingLocalContacts: false,
+
   // Visual Elements
   bar: document.getElementById('suggestion-bar'),
   countTag: document.getElementById('suggestion-count'),
@@ -53,7 +57,7 @@ var SuggestionBar = {
               ((number.charAt(0) === '+') ? this.SKIP_FOR_COUNTRYCODE : 0);
 
     if (number.length < min) {
-      this.clear();
+      this.clear(true);
       return;
     }
     if (this._loaded) {
@@ -71,45 +75,113 @@ var SuggestionBar = {
     }
   },
 
-  _updateByContacts: function sb_updateByContacts(onempty) {
+  _renderBar: function sb_renderBar() {
     var self = this;
-    Contacts.findListByNumber(self._phoneNumber, this.MAX_ITEMS,
-    function callback(contacts) {
-      if (!Array.isArray(contacts) || contacts.length < 1 ||
-          !self._phoneNumber) {
-        self.bar.dataset.lastId = '';
-        self.clear();
-        if (onempty) {
-          onempty();
-        }
-        return;
-      }
 
-      self.bar.hidden = false;
+    self.bar.hidden = false;
 
-      // Store contacts for constructing multiple suggestions.
+    // Create matching index table for reference
+    self._allMatched = self._getAllMatched(self._contactList);
+    var totalMatchNum = self._allMatched.totalMatchNum;
+
+    self.countTag.textContent =
+      (totalMatchNum < self.MAX_ITEMS) ?
+      totalMatchNum : (self.MAX_ITEMS + '+');
+
+    self.countTag.hidden = (totalMatchNum <= 1);
+    self.countTag.classList.toggle('more', (totalMatchNum > 1));
+
+    var node = self.bar.querySelector('.suggestion-item');
+    var contact = self._contactList[0];
+
+    self._fillContacts(contact, self._allMatched.allMatches[0][0], node);
+    self.bar.dataset.lastId = contact.id || contact.uid;
+
+    return totalMatchNum;
+  },
+
+  _checkIfCleared: function sb_checkIfCleared() {
+    var out = false;
+
+    if (!this._phoneNumber) {
+      this.bar.dataset.lastId = '';
+      this.clear(true);
+      out = true;
+    }
+    return out;
+  },
+
+  _searchCallback: function sb_searchCallback(contacts) {
+    var self = this;
+
+    self._pendingFbRequest = null;
+
+    if (self._checkIfCleared())
+      return;
+
+    var totalMatchNum = 0;
+
+    if (Array.isArray(contacts) && contacts.length > 0) {
       self._contactList = contacts.slice(0, self.MAX_ITEMS);
-      // Create matching index table for reference
-      self._allMatched = self._getAllMatched(self._contactList);
-
-      var totalMatchNum = self._allMatched.totalMatchNum;
-
-      self.countTag.textContent =
-        (totalMatchNum < self.MAX_ITEMS) ?
-        totalMatchNum : (self.MAX_ITEMS + '+');
-      if (totalMatchNum > 1) {
-        self.countTag.hidden = false;
-        self.countTag.classList.add('more');
-      } else {
-        self.countTag.hidden = true;
-        self.countTag.classList.remove('more');
+      totalMatchNum = self._renderBar();
+      self._hasMatchingLocalContacts = true;
+    }
+    else {
+       // Avoid to clear the list if we have previous FB Contacts
+       // This will avoid continous reflows while refreshing
+      if (!self._hasMatchingFbContacts ||
+            (self._hasMatchingFbContacts && self._hasMatchingLocalContacts)) {
+        self.clear(false);
       }
+      self._hasMatchingLocalContacts = false;
+      self._contactList = null;
+    }
 
-      var node = self.bar.querySelector('.suggestion-item');
-      var contact = self._contactList[0];
-      self._fillContacts(contact, self._allMatched.allMatches[0][0], node);
-      self.bar.dataset.lastId = contact.id;
-    });
+    if (totalMatchNum >= self.MAX_ITEMS) {
+      self._hasMatchingFbContacts = false;
+      return;
+    }
+
+    var req = fb.contacts.search('phone', self._phoneNumber);
+    self._pendingFbRequest = req;
+
+    req.onsuccess = function() {
+      // Avoid to overlap FB requests
+      if (self._pendingFbRequest === req) {
+        self._pendingFbRequest = null;
+        self._searchCallbackFb(req.result);
+      }
+    };
+    req.onerror = function() {
+      window.console.error('Error while searching FB Data: ', req.error.name);
+      self._hasMatchingFbContacts = false;
+    };
+  },
+
+  _searchCallbackFb: function sb_searchCallbackFb(contacts) {
+    if (this._checkIfCleared())
+      return;
+
+    if (!Array.isArray(contacts) || contacts.length === 0) {
+      this._hasMatchingFbContacts = false;
+      if (!this._hasMatchingLocalContacts) {
+        this.clear(true);
+      }
+      return;
+    }
+
+    this._hasMatchingFbContacts = true;
+    this._contactList = this._contactList || [];
+    var toBeAdded = contacts.slice(0, this.MAX_ITEMS -
+                                     this._contactList.length);
+    this._contactList = this._contactList.concat(toBeAdded);
+    this._renderBar();
+  },
+
+  _updateByContacts: function sb_updateByContacts() {
+    // A search is both launched on mozContacts and on Facebook DS
+    Contacts.findListByNumber(this._phoneNumber, this.MAX_ITEMS,
+                              this._searchCallback.bind(this));
   },
 
   _fillContacts: function sb_fillContacts(contact, matchLocal, node) {
@@ -147,16 +219,19 @@ var SuggestionBar = {
     telTag.innerHTML = tel ? tel : null;
   },
 
-  clear: function sb_clear() {
+  clear: function sb_clear(isHardClear) {
     this.countTag.textContent = '';
     this.countTag.classList.remove('more');
     // Clear contents
     var node = this.bar.querySelector('.suggestion-item');
     this._setItem(node);
     this._contactList = null;
-    this._phoneNumber = null;
     this.bar.hidden = true;
-    delete this.bar.dataset.lastId;
+
+    if (isHardClear) {
+      this._phoneNumber = null;
+      delete this.bar.dataset.lastId;
+    }
   },
 
   _markMatched: function sb_markMatched(str, substr) {
