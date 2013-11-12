@@ -37,8 +37,8 @@ Risks
 Please visit
 [this page](https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner)
 to understand and acknowledge the risks involved when running these tests.
-You have to modify your testvars.json file, showing your acknowledgement of the
-risks, to run the tests.
+You have to modify your testvars.json file (see the **Test Variables** section 
+below,) showing your acknowledgement of the risks, to run the tests.
 
 Command line interface
 ======================
@@ -73,7 +73,7 @@ Options:
         which you've manually launched yourself, a real device, or a b2g
         desktop build.  If you've used port forwarding as described below,
         you'd specify --address localhost:2828
-    --testvars= (see section below)
+    --testvars= (see the Test Variables section below)
     --restart restart target instance between tests. This option will remove 
         the /data/local/indexedDB and /data/b2g/mozilla folders and restore the 
         device back to a common state
@@ -109,15 +109,22 @@ but make sure you download the appropriate file for your operating system.
 
 Once downloaded, you will need to extract the contents to a local folder.
 
-Because we’re running against the desktop client we must filter out all tests 
-that are unsuitable. To run the tests, use the following command:
+If a profile is specified when running the tests (recommended), a clone of the
+profile will be used. This helps to ensure that all tests run in a clean state,
+however if you also intend to launch and interact with the desktop build
+manually we recommend making a copy of the default profile and using the copy
+for your tests.
 
-    gaiatest --address=localhost:2828 \
-        --type=b2g-antenna-bluetooth-carrier-camera-sdcard-wifi \
+To run the tests, use the following command:
+
+    gaiatest --app=b2gdesktop --binary=$B2G_HOME/path/to/b2g-bin  \
+        --profile=$B2G_HOME/path/to/gaia/profile --type=b2g \
         gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini \
-        --testvars=(path/filename).json
+        --testvars=path/to/filename.json
 
-You should then start to see the tests running.
+You should then start to see the tests running.  The next two sections provide
+details on the test types used in the `--type` option and the test variables for
+the `--testvars` option respectively.
 
 Test Types
 ==========
@@ -261,8 +268,8 @@ Test data Prerequisites
 =======================
 
 Occasionally a test will need data on the hardware that cannot be set during the
-test setUp.
-The following tests need data set up before they can be run successfully:
+test setUp.  The following tests need data set up before they can be run
+successfully:
 
 `test_ftu` Requires a single record/contact saved onto the SIM card to test the
 SIM contact import
