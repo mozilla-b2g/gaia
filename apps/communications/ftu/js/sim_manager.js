@@ -377,7 +377,8 @@ var SimManager = {
     var importButton = UIManager.simImportButton;
     importButton.setAttribute('disabled', 'disabled');
 
-    var cancelled = false, contactsRead = false;
+    var cancelled = false,
+        contactsRead = false;
     var importer = new SimContactsImporter();
     utils.overlay.showMenu();
     utils.overlay.oncancel = function oncancel() {
@@ -397,9 +398,11 @@ var SimManager = {
 
     importer.onread = function sim_import_read(n) {
       contactsRead = true;
-      progress.setClass('progressBar');
-      progress.setHeaderMsg(_('simContacts-importing'));
-      progress.setTotal(n);
+      if (n > 0) {
+        progress.setClass('progressBar');
+        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setTotal(n);
+      }
     };
 
     importer.onimported = function imported_contact() {
@@ -413,13 +416,14 @@ var SimManager = {
       window.setTimeout(function do_sim_import_finish() {
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
-        if (importedContacts !== 0) {
+        if (importedContacts > 0) {
           window.importUtils.setTimestamp('sim');
           SimManager.alreadyImported = true;
-          if (!cancelled) {
-            utils.status.show(_('simContacts-imported3',
-                                {n: importedContacts}));
-          }
+        }
+        if (!cancelled) {
+          utils.status.show(_('simContacts-imported3',
+                              {n: importedContacts})
+          );
         }
       }, DELAY_FEEDBACK);
 
