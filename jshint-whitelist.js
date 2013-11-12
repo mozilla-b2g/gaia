@@ -5,8 +5,8 @@ module.exports = {
   reporter: function (results, data, opts) {
     var whitelist;
     var len = results.length;
-    var str = '';
-    var prevfile;
+    var redErrors = '';
+    var whiteErrors = '';
 
     try {
       whitelist = fs.readFileSync('./.jshintwhitelist', 'utf-8');
@@ -23,11 +23,7 @@ module.exports = {
       var file = result.file;
       var error = result.error;
       var white = whitelist.indexOf(file) !== -1;
-
-      if (prevfile && prevfile !== file) {
-        str += "\n";
-      }
-      prevfile = file;
+      var str = '';
 
       str += file  + ': line ' + error.line + ', col ' +
         error.character + ', ' + error.reason;
@@ -37,24 +33,24 @@ module.exports = {
       }
 
       if (white) {
-        str += ' (whitelist)';
+        str += ' (white)';
+        whiteErrors += str + '\n';
+      } else {
+        str += ' (ERROR)';
+        redErrors += str + '\n';
       }
 
-
-      str += '\n';
       return !white;
     });
 
     var white = len - red.length;
 
-    if (str) {
-      process.stdout.write(
-        str + "\n" +
-        red.length + ' error' + ((red.length === 1) ? '' : 's') +
-        (white ? ' (' + (white) + ' whitelisted)' : '') +
-        '\n'
-      );
-    }
+    process.stdout.write(
+      redErrors + whiteErrors + '\n' +
+      red.length + ' error' + ((red.length === 1) ? '' : 's') +
+      (white ? ' (' + (white) + ' whitelisted)' : '') +
+      '\n'
+    );
     // interesting - if we modify 'results' to be 0 in length, jshint exits
     // with 0 :)
     results.splice.apply(results, [0,len].concat(red));
