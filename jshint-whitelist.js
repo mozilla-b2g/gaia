@@ -43,13 +43,19 @@ module.exports = {
       return !white;
     });
 
-    var white = len - red.length;
+    var redCount = red.length;
+    var whiteCount = len - redCount;
+
+    // if we are running in travis, skip output of white errors
+    if (process.env.CI_ACTION) {
+      whiteErrors = '';
+    }
 
     process.stdout.write(
-      // silence white errors when run from CI - show redErrors first always
-      redErrors + (process.env.CI_ACTION ? '' : whiteErrors) + '\n' +
-      red.length + ' error' + ((red.length === 1) ? '' : 's') +
-      (white ? ' (' + (white) + ' whitelisted)' : '') +
+      // show redErrors first always
+      redErrors + whiteErrors + '\n' +
+      redCount + ' error' + ((redCount === 1) ? '' : 's') +
+      (whiteCount ? ' (' + (whiteCount) + ' whitelisted)' : '') +
       '\n'
     );
     // interesting - if we modify 'results' to be 0 in length, jshint exits
