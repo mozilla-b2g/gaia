@@ -7,7 +7,7 @@ if (!contacts.MatchingUI) {
 
     var _ = navigator.mozL10n.get;
 
-    var CONTACTS_APP_ORIGIN = location.origin;
+    var CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
     // Counter for checked list items
     var checked = 0;

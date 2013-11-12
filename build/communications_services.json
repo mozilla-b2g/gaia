@@ -1,5 +1,7 @@
 {
   "facebook": {
+    "appOrigin":
+      "app://communications.gaiamobile.org",
     "redirectURI":
       "https://www.facebook.com/connect/login_success.html",
     "loginPage":
@@ -20,6 +22,8 @@
   },
 
   "live": {
+    "appOrigin":
+      "app://communications.gaiamobile.org",
     "redirectURI":
       "https://www.mozilla.org/index.html",
     "loginPage":
@@ -34,6 +38,8 @@
   },
 
   "gmail": {
+    "appOrigin":
+      "app://communications.gaiamobile.org",
     "redirectURI":
       "https://serene-cove-3587.herokuapp.com/liveowd/oauth2_new/flow_live.html",
     "loginPage":

@@ -8,7 +8,7 @@ fb.PROPAGATED_PREFIX = 'fb_propagated_';
 fb.PROFILE_PHOTO_URI = 'fb_profile_photo';
 fb.FRIEND_URI = 'fb_friend';
 
-fb.CONTACTS_APP_ORIGIN = location.origin;
+fb.CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
 fb.isPropagated = function fcu_isPropagated(field, devContact) {
   return (devContact.category && devContact.category.

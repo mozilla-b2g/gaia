@@ -2,7 +2,8 @@
 
 var _;
 var TAG_OPTIONS;
-var COMMS_APP_ORIGIN = location.origin;
+var COMMS_APP_ORIGIN = document.location.protocol + '//' +
+  document.location.host;
 var asyncScriptsLoaded;
 
 // Scale ratio for different devices

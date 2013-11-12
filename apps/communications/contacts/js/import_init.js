@@ -2,7 +2,7 @@
 
 (function(document) {
   var serviceName = getServiceName();
-  var allowedOrigin = location.origin;
+  var allowedOrigin = oauthflow.params[serviceName].appOrigin;
 
   function parseParams(paramsStr) {
     var out = {};

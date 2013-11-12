@@ -5,7 +5,7 @@ var contacts = window.contacts || {};
 if (!contacts.MatchingController) {
   contacts.MatchingController = (function() {
 
-    var CONTACTS_APP_ORIGIN = location.origin;
+    var CONTACTS_APP_ORIGIN = 'app://communications.gaiamobile.org';
 
     var contact = null,
         matchings = {};

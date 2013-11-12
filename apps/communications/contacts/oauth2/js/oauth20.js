@@ -11,8 +11,6 @@ if (typeof window.oauth2 === 'undefined') {
 
     var STORAGE_KEY = 'tokenData';
 
-    var APP_ORIGIN = location.origin;
-
     /**
      *  Clears credential data stored locally
      *
@@ -107,7 +105,8 @@ if (typeof window.oauth2 === 'undefined') {
       }
       var location = getLocation(oauthflow.params[accessTokenCbData.service].
         redirectURI);
-      if (e.origin !== APP_ORIGIN) {
+      var allowedOrigin = oauthflow.params[accessTokenCbData.service].appOrigin;
+      if (e.origin !== allowedOrigin) {
         return;
       }
 
@@ -133,7 +132,7 @@ if (typeof window.oauth2 === 'undefined') {
               parent.postMessage({
                 type: 'token_stored',
                 data: ''
-              }, APP_ORIGIN);
+              }, oauthflow.params[accessTokenCbData.service].appOrigin);
         });
       },0);
     } // tokenReady
