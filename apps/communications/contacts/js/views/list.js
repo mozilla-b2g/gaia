@@ -19,10 +19,6 @@ contacts.List = (function() {
       loadedContacts = {},
       viewHeight = -1,
       rowsPerPage = -1,
-      renderTimer = null,
-      toRender = [],
-      releaseTimer = null,
-      toRelease = [],
       monitor = null,
       loading = false,
       cancelLoadCB = null,
@@ -84,37 +80,21 @@ contacts.List = (function() {
 
   var NOP_FUNCTION = function() {};
 
-  var onscreen = function(el) {
-    var id = el.dataset.uuid;
-    var group = el.dataset.group;
+  var onscreen = function(row) {
+    var id = row.dataset.uuid;
+    var group = row.dataset.group;
     if (!id || !group) {
       return;
     }
 
     rowsOnScreen[id] = rowsOnScreen[id] || {};
-    rowsOnScreen[id][group] = el;
-    // Save the element reference to process in a batch from a timer callback.
-    toRender.push(el);
+    rowsOnScreen[id][group] = row;
 
-    // Avoid rescheduling the timer if it has not run yet.
-    if (renderTimer) {
-      return;
-    }
-
-    renderTimer = setTimeout(doRenderTimer);
-  };
-
-  var doRenderTimer = function doRenderTimer() {
-    renderTimer = null;
-    monitor.pauseMonitoringMutations();
-    while (toRender.length) {
-      var row = toRender.shift();
-      var id = row.dataset.uuid;
-      renderLoadedContact(row, id);
-      updateRowStyle(row, true);
-      renderPhoto(row, id);
-      updateSingleRowSelection(row, id);
-    }
+    monitor && monitor.pauseMonitoringMutations();
+    renderLoadedContact(row, id);
+    updateRowStyle(row, true);
+    renderPhoto(row, id);
+    updateSingleRowSelection(row, id);
 
     // Since imgLoader.reload() causes sync reflows we only want to make this
     // call when something happens that affects our onscreen view.  Therefore
@@ -125,7 +105,7 @@ contacts.List = (function() {
       imgLoader.reload();
     }
 
-    monitor.resumeMonitoringMutations(false);
+    monitor && monitor.resumeMonitoringMutations(false);
   };
 
   var renderLoadedContact = function(el, id) {
@@ -152,34 +132,21 @@ contacts.List = (function() {
       loadedContacts[id][group] = null;
   };
 
-  var offscreen = function(el) {
-    var id = el.dataset.uuid;
-    var group = el.dataset.group;
+  var offscreen = function(row) {
+    var id = row.dataset.uuid;
+    var group = row.dataset.group;
     if (!id || !group) {
       return;
     }
 
-    delete rowsOnScreen[id][group];
-
-    // Save the element reference to process in a batch from a timer callback.
-    toRelease.push(el);
-
-    // Avoid rescheduling the timer if it has not run yet.
-    if (releaseTimer)
-      return;
-
-    releaseTimer = setTimeout(doReleaseTimer);
-  };
-
-  var doReleaseTimer = function doReleaseTimer() {
-    releaseTimer = null;
-    monitor.pauseMonitoringMutations();
-    while (toRelease.length) {
-      var row = toRelease.shift();
-      updateRowStyle(row, false);
-      releasePhoto(row);
+    if (rowsOnScreen[id]) {
+      delete rowsOnScreen[id][group];
     }
-    monitor.resumeMonitoringMutations(false);
+
+    monitor && monitor.pauseMonitoringMutations();
+    updateRowStyle(row, false);
+    releasePhoto(row);
+    monitor && monitor.resumeMonitoringMutations(false);
   };
 
   var init = function load(element, reset) {
@@ -690,7 +657,7 @@ contacts.List = (function() {
       var scrollMargin = ~~(getViewHeight() * 1.5);
       // NOTE: Making scrollDelta too large will cause janky scrolling
       //       due to bursts of onscreen() calls from the monitor.
-      var scrollDelta = ~~(scrollMargin / 10);
+      var scrollDelta = ~~(scrollMargin / 15);
       monitor = monitorTagVisibility(scrollable, 'li', scrollMargin,
                                      scrollDelta, onscreen, offscreen);
     });
