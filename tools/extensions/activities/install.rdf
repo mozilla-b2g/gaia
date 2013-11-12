@@ -6,7 +6,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>activities@gaiamobile.org</em:id>
     <em:name>activities.js</em:name>
-    <em:version>0.1</em:version>
+    <em:version>0.2</em:version>
 	  <em:iconURL>chrome://activities.js/skin/logo.png</em:iconURL>
     <em:targetApplication>
       <Description>
