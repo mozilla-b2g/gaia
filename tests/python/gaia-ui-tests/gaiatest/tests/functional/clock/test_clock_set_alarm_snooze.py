@@ -22,6 +22,9 @@ class TestClockSetAlarmSnooze(GaiaTestCase):
 
         new_alarm = self.clock.tap_new_alarm()
 
+        # Ensure snooze has the default value
+        self.assertEquals(new_alarm.alarm_snooze, '5 minutes')
+
         # Set label & snooze
         new_alarm.type_alarm_label("TestSetAlarmSnooze")
         new_alarm.select_snooze("15 minutes")
