@@ -33,8 +33,10 @@ module.exports = {
       }
 
       if (white) {
-        str += ' (white)';
-        whiteErrors += str + '\n';
+        if (!process.env.CI_ACTION) {
+          str += ' (white)';
+          whiteErrors += str + '\n';
+        }
       } else {
         str += ' (ERROR)';
         redErrors += str + '\n';

@@ -1,2 +1,2 @@
 #! /bin/bash -v
-make hint | grep -v "(white)"
+make hint
