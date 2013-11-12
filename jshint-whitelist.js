@@ -33,10 +33,8 @@ module.exports = {
       }
 
       if (white) {
-        if (!process.env.CI_ACTION) {
-          str += ' (white)';
-          whiteErrors += str + '\n';
-        }
+        str += ' (white)';
+        whiteErrors += str + '\n';
       } else {
         str += ' (ERROR)';
         redErrors += str + '\n';
@@ -48,7 +46,8 @@ module.exports = {
     var white = len - red.length;
 
     process.stdout.write(
-      redErrors + whiteErrors + '\n' +
+      // silence white errors when run from CI - show redErrors first always
+      redErrors + (process.env.CI_ACTION ? '' : whiteErrors) + '\n' +
       red.length + ' error' + ((red.length === 1) ? '' : 's') +
       (white ? ' (' + (white) + ' whitelisted)' : '') +
       '\n'
