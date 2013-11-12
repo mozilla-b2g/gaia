@@ -41,7 +41,6 @@ suite('enable/disable homegesture', function() {
     ScreenLayout.setDefault({
       hardwareHomeButton: false
     });
-
   });
 
   teardown(function() {
@@ -64,7 +63,8 @@ suite('enable/disable homegesture', function() {
     });
     HomeGesture.init();
     assert.equal(
-      HomeGesture.homeBar.style.display, 'block');
+      HomeGesture.homeBar.classList.contains('visible'),
+      true);
   });
 
   test('enable software button when homegesture is enabled', function() {
@@ -92,7 +92,8 @@ suite('enable/disable homegesture', function() {
       type: 'utilitytrayshow'
     });
     assert.equal(
-      HomeGesture.homeBar.style.display, 'none');
+      HomeGesture.homeBar.classList.contains('visible'),
+      false);
   });
 
   test('when utility tray hide', function() {
@@ -100,7 +101,8 @@ suite('enable/disable homegesture', function() {
       type: 'utilitytrayhide'
     });
     assert.equal(
-      HomeGesture.homeBar.style.display, 'block');
+      HomeGesture.homeBar.classList.contains('visible'),
+      true);
   });
 
   test('when lockscreen is enabled', function() {
@@ -108,7 +110,8 @@ suite('enable/disable homegesture', function() {
       type: 'lock'
     });
     assert.equal(
-      HomeGesture.homeBar.style.display, 'none');
+      HomeGesture.homeBar.classList.contains('visible'),
+      false);
   });
 
   test('when lockscreen is disabled', function() {
@@ -116,6 +119,7 @@ suite('enable/disable homegesture', function() {
       type: 'unlock'
     });
     assert.equal(
-      HomeGesture.homeBar.style.display, 'block');
+      HomeGesture.homeBar.classList.contains('visible'),
+      true);
   });
 });
