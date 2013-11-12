@@ -9,7 +9,7 @@ var fb = window.fb || {};
     var Reader;
     var readerLoaded = false;
 
-     // Record Id for the index
+    // Record Id for the index
     var INDEX_ID = 1;
     var isIndexDirty = false;
     var READER_LOADED_EV = 'reader_loaded';
@@ -91,7 +91,7 @@ var fb = window.fb || {};
         index().byUid[uid] = newId;
         indexByPhone(obj, newId);
 
-        return datastore().update(INDEX_ID, index());
+        return datastore().put(index(), INDEX_ID);
       }, defaultError(outRequest)).then(function success() {
           defaultSuccessCb(outRequest, globalId);
         }, defaultError(outRequest));
@@ -181,9 +181,9 @@ var fb = window.fb || {};
         // It is necessary to get the old object and delete old indexes
         datastore().get(dsId).then(function success(oldObj) {
           reIndexByPhone(oldObj, obj, dsId);
-          return datastore().update(dsId, obj);
+          return datastore().put(obj, dsId);
         }, errorCb).then(function success() {
-          return datastore().update(INDEX_ID, index());
+          return datastore().put(index(), INDEX_ID);
         }, errorCb).then(successCb, errorCb);
       }
       else {
@@ -303,7 +303,7 @@ var fb = window.fb || {};
         setIndex(null);
         // TODO:
         // This is working but there are open questions on the mailing list
-        datastore().update(INDEX_ID, index()).then(defaultSuccess(outRequest),
+        datastore().put(index(), INDEX_ID).then(defaultSuccess(outRequest),
           function error(err) {
             window.console.error('Error while re-creating the index: ', err);
             outRequest.failed(err);
@@ -327,7 +327,7 @@ var fb = window.fb || {};
           return;
         }
 
-        datastore().update(INDEX_ID, index()).then(
+        datastore().put(index(), INDEX_ID).then(
                                               defaultSuccess(outRequest),
                                               defaultError(outRequest));
       }, 0);
