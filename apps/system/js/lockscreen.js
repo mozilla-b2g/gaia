@@ -621,6 +621,8 @@ var LockScreen = {
   // easing {Boolean} true|undefined to bounce back slowly.
   restoreSlide: function(easing) {
 
+    var slideCenter = this.slideCenter;
+
     // Mimic the `getAllElements` function...
     [this.slideLeft, this.slideRight, this.slideCenter]
       .forEach(function ls_rSlide(h) {
@@ -628,6 +630,8 @@ var LockScreen = {
 
           // To prevent magic numbers...
           var bounceBackTime = '0.3s';
+          if ('handle-center' === h.dataset.role)
+            bounceBackTime = '0.4s';  // The center should be slower.
 
           // Add transition to let it bounce back slowly.
           h.style.transition = 'transform ' + bounceBackTime + ' ease 0s';
@@ -643,6 +647,11 @@ var LockScreen = {
             // but we don't need to reset the blue are at such scenario.
             h.classList.remove('touched');
             h.removeEventListener('transitionend', tsEnd);
+
+            // End the center immediately when the ends ended.
+            if ('handle-center' !== h.dataset.role) {
+              slideCenter.classList.remove('touched');
+            }
           };
           h.addEventListener('transitionend', tsEnd);
 
