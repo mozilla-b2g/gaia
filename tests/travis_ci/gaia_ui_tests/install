@@ -11,3 +11,5 @@ make b2g
 
 echo "building profile"
 make
+# Inclue desktop shims
+cp -R tools/extensions/desktop-helper* profile/extensions/.
