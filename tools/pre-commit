@@ -22,4 +22,15 @@ if [ -z "$diff_with_exclude" ] ; then
   exit 0
 fi
 
-LINTED_FILES="$diff_with_exclude" make -s lint
+# for now ensure it passes both lint and hint, someday hint only.
+echo "gjslint:"
+LINTED_FILES="$diff_with_exclude" make -s lint || exit 1
+
+echo "jshint:"
+# warn about files being whitelisted
+for file in $diff_with_exclude ; do
+  grep $file .jshintwhitelist > /dev/null 2>&1 && \
+   echo "$file is in the .jshintwhitelist - errors will be ignored. Please consider fixing lint errors and removing it from the .jshintwhitelist"
+done
+
+LINTED_FILES="$diff_with_exclude" make -s hint && echo "No errors - committing"

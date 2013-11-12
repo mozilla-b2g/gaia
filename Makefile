@@ -882,7 +882,7 @@ ifdef JSHINTRC
 endif
 
 hint: node_modules/.bin/jshint
-	./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES)
+	./node_modules/.bin/jshint --reporter=jshint-whitelist $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:
