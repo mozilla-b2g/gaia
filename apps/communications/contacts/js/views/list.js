@@ -351,6 +351,7 @@ contacts.List = (function() {
     // Create the DOM for the group list
     var letteredSection = document.createElement('section');
     letteredSection.id = 'section-group-' + group;
+    letteredSection.className = 'group-section';
     var title = document.createElement('header');
     title.id = 'group-' + group;
     title.className = 'hide';
@@ -362,6 +363,7 @@ contacts.List = (function() {
 
     var contactsContainer = document.createElement('ol');
     contactsContainer.id = 'contacts-list-' + group;
+    contactsContainer.className = 'group-list';
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
     letteredSection.appendChild(contactsContainer);
