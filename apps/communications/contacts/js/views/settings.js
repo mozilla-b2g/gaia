@@ -771,7 +771,7 @@ contacts.Settings = (function() {
         callback: function() {
           ConfirmDialog.hide();
           // And now the action is reproduced one more time
-          sdImportLink.click();
+          window.setTimeout(requireOverlay.bind(this, onSdImport), 0);
         }
       };
       Contacts.confirmDialog(null, _('memoryCardContacts-error'), cancel,
