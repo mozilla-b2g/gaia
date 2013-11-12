@@ -22,13 +22,4 @@ class TestWallpaper(GaiaTestCase):
 
         display_settings.choose_wallpaper(3)
 
-        new_wallpaper_src = display_settings.wallpaper_preview_src
-
-        self.assertFalse(new_wallpaper_src == self._default_wallpaper_src, 'Wallpaper has not changed from default.')
-
-    def tearDown(self):
-        # reset to the default wallpaper only if we have saved it
-        if self._default_wallpaper_src is not None:
-            self.marionette.execute_script("navigator.mozSettings.createLock().set({'wallpaper.image' : arguments[0]});", [self._default_wallpaper_src])
-
-        GaiaTestCase.tearDown(self)
+        self.assertNotEqual(display_settings.wallpaper_preview_src[0:24], self._default_wallpaper_src[0:24])
