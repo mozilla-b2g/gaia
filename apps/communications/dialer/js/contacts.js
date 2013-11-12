@@ -100,6 +100,11 @@ var Contacts = {
   },
 
   _findByNumber: function _findByNumber(number, callback) {
+    if (!number) {
+      callback(null);
+      return;
+    }
+
     var options;
     var variants;
 
@@ -126,8 +131,10 @@ var Contacts = {
     }
 
     var mozContacts = navigator.mozContacts;
-    if (!mozContacts)
+    if (!mozContacts) {
       callback(null);
+      return;
+    }
 
     var request = mozContacts.find(options);
     request.onsuccess = function findCallback() {
