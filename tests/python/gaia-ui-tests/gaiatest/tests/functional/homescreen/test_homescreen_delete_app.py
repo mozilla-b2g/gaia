@@ -6,7 +6,7 @@ from marionette.by import By
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
-
+from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
 
 class TestDeleteApp(GaiaTestCase):
 
@@ -15,7 +15,6 @@ class TestDeleteApp(GaiaTestCase):
     APP_INSTALLED = False
 
     # App install popup
-    _confirm_install_button_locator = (By.ID, 'app-install-install-button')
     _notification_banner_locator = (By.ID, 'system-banner')
 
     def setUp(self):
@@ -37,8 +36,8 @@ class TestDeleteApp(GaiaTestCase):
             'navigator.mozApps.install("%s")' % self.MANIFEST)
 
         # Confirm the installation
-        self.wait_for_element_displayed(*self._confirm_install_button_locator)
-        self.marionette.find_element(*self._confirm_install_button_locator).tap()
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
 
         # Wait for the app to be installed and the notification banner to be available
         self.wait_for_element_displayed(*self._notification_banner_locator)

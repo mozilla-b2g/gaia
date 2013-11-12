@@ -6,6 +6,7 @@ from marionette.by import By
 
 from gaiatest import GaiaTestCase
 from gaiatest.apps.homescreen.app import Homescreen
+from gaiatest.apps.homescreen.regions.confirm_install import ConfirmInstall
 
 MANIFEST = 'http://mozqa.com/data/webapps/mozqa.com/manifest.webapp'
 APP_NAME = 'Mozilla QA WebRT Tester'
@@ -13,7 +14,6 @@ TITLE = 'Index of /data'
 
 
 class TestLaunchApp(GaiaTestCase):
-    _confirm_install_button_locator = (By.ID, 'app-install-install-button')
     _header_locator = (By.CSS_SELECTOR, 'h1')
 
     def setUp(self):
@@ -29,8 +29,8 @@ class TestLaunchApp(GaiaTestCase):
             'navigator.mozApps.install("%s")' % MANIFEST)
 
         # Confirm the installation and wait for the app icon to be present
-        self.wait_for_element_displayed(*self._confirm_install_button_locator)
-        self.marionette.find_element(*self._confirm_install_button_locator).tap()
+        confirm_install = ConfirmInstall(self.marionette)
+        confirm_install.tap_confirm()
         self.homescreen.switch_to_homescreen_frame()
         self.homescreen.wait_for_app_icon_present(APP_NAME)
 
