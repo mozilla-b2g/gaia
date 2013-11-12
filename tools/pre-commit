@@ -22,9 +22,13 @@ if [ -z "$diff_with_exclude" ] ; then
   exit 0
 fi
 
-# for now ensure it passes both lint and hint, someday hint only.
-echo "gjslint:"
-LINTED_FILES="$diff_with_exclude" make -s lint || exit 1
+# Only test files whitelisted in jshint in gjslint
+whitelisted=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$' | comm -12 .jshintwhitelist - | tr '[:space:]' ' '`
+
+if [ -n "$whitelisted" ] ; then
+  echo "gjslint:"
+  LINTED_FILES="$whitelisted" make -s lint || exit 1
+fi
 
 echo "jshint:"
 # warn about files being whitelisted

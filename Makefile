@@ -860,13 +860,14 @@ endif
 .PHONY: lint hint
 
 # Lint apps
+## only gjslint files from .jshintwhitelist - files not yet safe to jshint
 ifndef LINTED_FILES
 ifdef APP
   JSHINTED_PATH = apps/$(APP)
-  GJSLINTED_PATH = -r apps/$(APP)
+  GJSLINTED_PATH = $(shell cat .jshintwhitelist | grep "^apps/$(APP)" | paste -s -d" " -)
 else
   JSHINTED_PATH = apps shared
-  GJSLINTED_PATH = -r apps -r shared
+  GJSLINTED_PATH = $(shell cat .jshintwhitelist | paste -s -d" " -)
 endif
 endif
 
@@ -875,7 +876,7 @@ lint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore 
 lint:
 	# --disable 210,217,220,225 replaces --nojsdoc because it's broken in closure-linter 2.3.10
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
-	gjslint --disable 210,217,220,225 $(GJSLINTED_PATH) -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(LINTED_FILES)
+	gjslint --disable 210,217,220,225 -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
 
 ifdef JSHINTRC
 	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
