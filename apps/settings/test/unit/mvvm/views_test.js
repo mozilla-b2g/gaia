@@ -8,15 +8,6 @@ requireApp('settings/js/mvvm/models.js');
 requireApp('settings/js/mvvm/views.js');
 
 suite('ListView', function() {
-  // remove when we upgrade mocha, or get rid of all skipped tests
-  if (!test.skip) {
-    test.skip = function(desc) {
-      test(desc, function() {});
-    };
-    suite.skip = function(desc) {
-      suite(desc, function() {});
-    };
-  }
 
   var suiteSandbox = sinon.sandbox.create();
   suiteSetup(function() {
@@ -42,19 +33,22 @@ suite('ListView', function() {
   suite('ListView(<ul>, ObservableArray, function)', function() {
     setup(function() {
       this.ul = document.createElement('ul');
-      this.template = function(item, recycle) {
+      this.template = (function(item, recycle) {
+        if (recycle && this.template.recycle) {
+          return recycle;
+        }
         return document.createElement('li');
-      };
+      }).bind(this);
       this.sinon.spy(this, 'template');
       this.listView = ListView(this.ul, this.observableArray, this.template);
     });
 
-    suite('Listens to ObservableArray', function() {
-      ['insert', 'remove', 'replace', 'reset'].forEach(function(event) {
-        test(event, function() {
-          assert.ok(this.observableArray.observe.withArgs(event).called);
-        });
-      });
+    test('Listens to ObservableArray', function() {
+      var observe = this.observableArray.observe;
+      assert.ok(observe.calledWith('insert'));
+      assert.ok(observe.calledWith('remove'));
+      assert.ok(observe.calledWith('replace'));
+      assert.ok(observe.calledWith('reset'));
     });
 
     suite('Add Multiple Elements', function() {
@@ -102,11 +96,40 @@ suite('ListView', function() {
           assert.equal(this.template.callCount, 1);
         });
 
-        // I'd like to re-enable this test and add this behavior, if the
-        // template chooses to return a different element, it should replace it.
-        test.skip('replaced element', function() {
+        test('replaced element', function() {
           var li = this.template.withArgs(this.item).returnValues[0];
           assert.equal(this.ul.children[1], li);
+        });
+
+        test('leaves other elements alone', function() {
+          assert.equal(this.ul.children[0], this.originalElements[0]);
+          assert.equal(this.ul.children[2], this.originalElements[2]);
+        });
+      });
+
+      suite('Replace Element (w/recycle)', function() {
+        setup(function() {
+          this.template.recycle = true;
+          this.template.reset();
+          this.item = { replacement: true };
+          this.originalElements = [].slice.call(this.ul.children);
+          this.observableArray.set(1, this.item);
+        });
+
+        test('called template with recycled element', function() {
+          assert.ok(
+            this.template.calledWith(this.item, this.originalElements[1])
+          );
+        });
+
+        test('only called template method once', function() {
+          assert.equal(this.template.callCount, 1);
+        });
+
+        test('same element still in place', function() {
+          var li = this.template.withArgs(this.item).returnValues[0];
+          assert.equal(li, this.originalElements[1], 'returned original');
+          assert.equal(this.ul.children[1], this.originalElements[1]);
         });
 
         test('leaves other elements alone', function() {
@@ -136,8 +159,7 @@ suite('ListView', function() {
                 this.template.calledWith(this.item, this.originalElement)
               );
             });
-            // same, I expect this behavior...
-            test.skip('replaced element', function() {
+            test('replaced element', function() {
               var li = this.template.withArgs(this.item).returnValues[0];
               assert.equal(this.ul.children[index], li);
             });
@@ -171,8 +193,7 @@ suite('ListView', function() {
                 this.template.calledWith(this.item, this.originalElement)
               );
             });
-            // same, I expect this behavior...
-            test.skip('replaced element', function() {
+            test('replaced element', function() {
               var li = this.template.withArgs(this.item).returnValues[0];
               assert.equal(this.ul.children[index], li);
             });
@@ -199,10 +220,7 @@ suite('ListView', function() {
         });
       });
 
-      // I feel this should behave exactly the same way as reset on the
-      // observable array, however it currently batches as a remove followed
-      // by an insert.
-      suite.skip('reset with .set()', function() {
+      suite('reset with .set([{},{}])', function() {
         setup(function() {
           this.template.reset();
           this.originalElements = [].slice.call(this.ul.children);
@@ -210,6 +228,16 @@ suite('ListView', function() {
           this.array = [{ reset: 1 }, { reset: 2 }];
           this.listView.set(this.array);
         });
+
+        test('creates and watches an ObservableArray', function() {
+          var withNew = ObservableArray.withArgs(this.array);
+          assert.ok(withNew.called);
+          var observe = withNew.returnValues[0].observe;
+          assert.ok(observe.calledWith('insert'));
+          assert.ok(observe.calledWith('remove'));
+          assert.ok(observe.calledWith('replace'));
+          assert.ok(observe.calledWith('reset'));
+       });
 
         // use forEach instead of for to store 'index' in closure
         [0, 1].forEach(function(index) {
@@ -223,8 +251,7 @@ suite('ListView', function() {
                 this.template.calledWith(this.item, this.originalElement)
               );
             });
-            // same, I expect this behavior...
-            test.skip('replaced element', function() {
+            test('replaced element', function() {
               var li = this.template.withArgs(this.item).returnValues[0];
               assert.equal(this.ul.children[index], li);
             });
@@ -253,15 +280,10 @@ suite('ListView', function() {
         }, function reset() {
           this.array = [{}];
           this.observableArray.reset(this.array);
-        }
-        // commented out because it currently doesn't pass:  it changes
-        // the elements even though .enabled is false.
-
-        // function set() {
-        //   this.array = [{}];
-        //   this.listView.set(this.array);
-        // }
-        ].forEach(function(method) {
+        }, function set() {
+          this.array = [{}];
+          this.listView.set(this.array);
+        }].forEach(function(method) {
           suite(method.name, function() {
             setup(method);
             test('does not call template', function() {
@@ -281,7 +303,7 @@ suite('ListView', function() {
                   ), 'array[' + index + ']');
                 }, this);
               });
-              test.skip('elements are put in the right place', function() {
+              test('elements are put in the right place', function() {
                 this.array.forEach(function(item, index) {
                   var template = this.template.withArgs(item);
                   assert.equal(
@@ -295,7 +317,6 @@ suite('ListView', function() {
         });
       });
     });
-
   });
 });
 

@@ -40,23 +40,15 @@ suite('Observable', function() {
           assert.isFalse(this.spy.called);
         });
 
-        suite('set to same value', function() {
-          setup(function() {
-            this.observable[prop] = template[prop];
-          });
-          test('no callback', function() {
-            assert.isFalse(this.spy.called);
-          });
+        test('does not notify when set to same value', function() {
+          this.observable[prop] = template[prop];
+          assert.isFalse(this.spy.called);
         });
 
-        suite('overwrite', function() {
-          setup(function() {
-            this.newValue = {};
-            this.observable[prop] = this.newValue;
-          });
-          test('got callback', function() {
-            assert.isTrue(this.spy.calledWith(this.newValue, template[prop]));
-          });
+        test('notifies when set to new value', function() {
+          this.newValue = {};
+          this.observable[prop] = this.newValue;
+          assert.isTrue(this.spy.calledWith(this.newValue, template[prop]));
         });
       });
     });
