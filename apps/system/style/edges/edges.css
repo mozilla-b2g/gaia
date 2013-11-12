@@ -48,3 +48,7 @@
   opacity: 1;
   transform: translateX(100%);
 }
+
+#screen.edges-debug .gesture-panel {
+  opacity: 0.5;
+}
