@@ -7,6 +7,11 @@
     "as": [
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
     ],
+    "bg": [
+        {"layoutId": "bg-BDS", "appOrigin": "keyboard.gaiamobile.org"},
+        {"layoutId": "bg-Pho-Ban", "appOrigin": "keyboard.gaiamobile.org"},
+        {"layoutId": "bg-Pho-Trad", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
     "bn-BD": [
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
     ],
