@@ -11,4 +11,5 @@ $gaiatest --app=b2gdesktop \
           --binary=$b2g \
           --profile=$profile \
           --type=b2g \
-          --restart $root/tests/manifest.ini
+          --restart $root/tests/functional/clock/manifest.ini \
+          --repeat=10
