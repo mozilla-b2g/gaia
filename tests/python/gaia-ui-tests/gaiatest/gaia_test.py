@@ -183,6 +183,37 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.setSetting("%s", %s)' % (name, value), special_powers=True)
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
+    def _get_pref(self, datatype, name):
+        return self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
+
+    def _set_pref(self, datatype, name, value):
+        value = json.dumps(value)
+        self.marionette.execute_script("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
+
+    def get_bool_pref(self, name):
+        """Returns the value of a Gecko boolean pref, which is different from a Gaia setting."""
+        return self._get_pref('Bool', name)
+
+    def set_bool_pref(self, name, value):
+        """Sets the value of a Gecko boolean pref, which is different from a Gaia setting."""
+        return self._set_pref('Bool', name, value)
+
+    def get_int_pref(self, name):
+        """Returns the value of a Gecko integer pref, which is different from a Gaia setting."""
+        return self._get_pref('Int', name)
+
+    def set_int_pref(self, name, value):
+        """Sets the value of a Gecko integer pref, which is different from a Gaia setting."""
+        return self._set_pref('Int', name, value)
+
+    def get_char_pref(self, name):
+        """Returns the value of a Gecko string pref, which is different from a Gaia setting."""
+        return self._get_pref('Char', name)
+
+    def set_char_pref(self, name, value):
+        """Sets the value of a Gecko string pref, which is different from a Gaia setting."""
+        return self._set_pref('Char', name, value)
+
     def set_volume(self, value):
         channels = ['alarm', 'content', 'notification']
         for channel in channels:
@@ -239,7 +270,7 @@ class GaiaData(object):
         return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
                                               'window.navigator.mozMobileConnections && ' +
                                               'window.navigator.mozMobileConnections[0]; ' +
-                                              'return mobileConnection.data.connected;');
+                                              'return mobileConnection.data.connected;')
 
     def enable_cell_roaming(self):
         self.set_setting('ril.data.roaming_enabled', True)
@@ -394,7 +425,7 @@ class GaiaDevice(object):
         return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
                                               'window.navigator.mozMobileConnections && ' +
                                               'window.navigator.mozMobileConnections[0]; ' +
-                                              'return mobileConnection !== undefined');
+                                              'return mobileConnection !== undefined')
 
     @property
     def has_wifi(self):
