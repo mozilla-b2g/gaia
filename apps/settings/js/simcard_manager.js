@@ -417,12 +417,6 @@
       var outgoingDataSelect =
         this.simManagerOutgoingDataSelect;
 
-      var areCardsAllAbsent = false;
-      this.simcards.forEach(function(simcard) {
-        areCardsAllAbsent = areCardsAllAbsent ||
-          (simcard.absent === true);
-      });
-
       this.simcards.forEach(function(simcard, index) {
         var options = [];
 
@@ -431,7 +425,8 @@
           option.value = index;
           option.text = simcard.name;
 
-          if (areCardsAllAbsent) {
+          if (simcard.absent) {
+            option.value = -1;
             option.text = '--';
           }
 
