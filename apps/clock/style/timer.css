@@ -107,3 +107,19 @@ ul li > label.pack-switch > input + span {
   background-color: #4D4D4D;
   text-shadow: 0 0;
 }
+
+#timer-plus-time {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+
+  margin-right: 3rem;
+  margin-bottom: 3rem;
+}
+
+#timer-plus-time a {
+  color: #CFE2E6;
+  font: 2.5rem sans-serif;
+  font-weight: normal;
+  text-decoration: none;
+}
