@@ -42,6 +42,5 @@ PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
   --ui tdd \
   --profile-builder $SHARED/profile_builder.js \
   --profile-base $SHARED/profile.js \
-  --host $MARIONETTE_RUNNER_HOST \
   $SHARED/setup.js \
   $@
