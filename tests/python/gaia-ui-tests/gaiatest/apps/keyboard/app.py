@@ -66,6 +66,7 @@ class Keyboard(Base):
     _alt_key = '18'
     _upper_case_key = '20'
     _space_key = '32'
+    _com_key = '.com'
 
     # keyboard app locators
     _keyboard_frame_locator = (By.CSS_SELECTOR, '#keyboards iframe')
@@ -263,6 +264,11 @@ class Keyboard(Base):
         if self.is_element_present(*self._key_locator(self._numeric_sign_key)):
             self._tap(self._numeric_sign_key)
         self._tap(self._alt_key)
+        self.marionette.switch_to_frame()
+
+    def tap_com(self):
+        self.switch_to_keyboard()
+        self._tap(self._com_key)
         self.marionette.switch_to_frame()
 
     def dismiss(self):
