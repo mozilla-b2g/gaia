@@ -17,10 +17,6 @@
   var screenLocked = false;
 
   /**
-   * Constants
-   */
-
-  /**
    * NFC powerlevels must match config PDUs.i
    */
   const NFC_POWER_LEVEL_DISABLED = 0;
@@ -31,7 +27,6 @@
    * NDEF format
    */
   var nfc = {
-  
     fromUTF8: function(str) {
       var buf = new Uint8Array(str.length);
       for (var i = 0; i < str.length; i++) {
@@ -41,7 +36,7 @@
     },
 
     toUTF8: function(a) {
-      var str = "";
+      var str = '';
       for (var i = 0; i < a.length; i++) {
         str += String.fromCharCode(a[i]);
       }
@@ -101,7 +96,7 @@
       this.rtd_handover_select = nfc.fromUTF8('Hs');
 
       this.smartposter_action = nfc.fromUTF8('act');
-    
+
       this.uris[0x00] = '';
       this.uris[0x01] = 'http://www.';
       this.uris[0x02] = 'https://www.';
@@ -146,10 +141,6 @@
     rtd_text_utf16: 1
   };
 
-
-  /**
-   * Debug method
-   */
   function debug(msg, optObject) {
     if (DEBUG) {
       var output = '[DEBUG] SYSTEM NFC: ' + msg;
@@ -160,7 +151,7 @@
     }
   }
 
-  debug(' Initializing NFC Message %%%%%%%%%%%%%%%%%%%%%%');
+  debug('Initializing NFC Message');
   /**
    * NFC certified apps can register to receive Nfc commands. Apps without
    * NFC certified app permissions can still receive activity messages.
@@ -191,7 +182,7 @@
    * Events:
    */
   function handleEvent(evt) {
-    debug('XXXXXXXXX Handle Event evt.type' + evt.type);
+    debug('Handle Event evt.type' + evt.type);
     switch (evt.type) {
       case 'screenchange':
         screenEnabled = evt.detail.screenEnabled;
@@ -212,50 +203,6 @@
   window.addEventListener('unlock', handleEvent);
 
   nfc.init();
-
-  /**
-   * Local functions
-   */
-
-  function launchBrowser(url) {
-    var a = new MozActivity({
-      name: 'view',
-      data: {
-        type: 'url',
-        url: url
-      }
-    });
-  }
-
-  function launchAddContact(vcard) {
-    var a = new MozActivity({
-      name: 'new',
-      data: {
-        type: 'webcontacts/contact',
-        params: {
-          'tel': vcard.tel,
-          'email': vcard.email,
-          'address': vcard.address,
-          'note': vcard.note,
-          'giveName': vcard.givenName,
-          'familyName': vcard.familyName,
-          'company': vcard.company
-        }
-      }
-    });
-  }
-
-  function launchDialer(record) {
-    var number = nfc.toUTF8(record.payload.subarray(1));
-    var a = new MozActivity({
-      name: 'dial',
-      data: {
-        type: 'webtelephony/number',
-        number: number,
-        records: [record]
-      }
-    });
-  }
 
   // An Ndef Message is an array of one or more Ndef tags.
   function handleNdefMessages(ndefmessages) {
@@ -338,20 +285,9 @@
 
     var conn = nfctag.connect(tech);
     conn.onsuccess = function() {
-      debug('DBG: Success');
       var req = nfctag.readNDEF();
       req.onsuccess = function() {
-        debug('System read 2: ' + JSON.stringify(req.result));
-        /*var action = handleNdefMessages(req.result.records);
-
-        if (action.length <= 0) {
-          debug('Unimplemented. Handle Unknown type.');
-        } else {
-          debug('Action: ' + JSON.stringify(action[0]));
-          action[0].data.tech = tech;
-          action[0].data.sessionToken = token;
-          var a = new MozActivity(action[0]);
-        }*/
+        debug('NDEF Read result: ' + JSON.stringify(req.result));
         handled = handleNdefDiscovered(tech, session, req.result.records);
         doClose(nfctag);
       };
@@ -479,7 +415,7 @@
    * NDEF parsing functions
    */
   function handleEmpty(record) {
-    debug('XXXXXXXXXXXXXXXXXXXXXXXXXXXX Activity for empty tag.');
+    debug('Activity for empty tag.');
     return {
       name: 'nfc-ndef-discovered',
       data: {
@@ -490,7 +426,7 @@
   }
 
   function handleWellKnownRecord(record) {
-    debug('XXXXXXXXXXXXXXXXXXXX HandleWellKnowRecord XXXXXXXXXXXXXXXXXXXX');
+    debug('HandleWellKnowRecord');
     if (nfc.equalArrays(record.type, nfc.rtd_text)) {
       return handleTextRecord(record);
     } else if (nfc.equalArrays(record.type, nfc.rtd_uri)) {
@@ -535,7 +471,7 @@
   }
 
   function handleURIRecord(record) {
-    debug('XXXXXXXXXXXXXXX Handle Ndef URI type XXXXXXXXXXXXXXXX');
+    debug('XXXX Handle Ndef URI type');
     var activityText = null;
     var prefix = nfc.uris[record.payload[0]];
     if (!prefix) {
@@ -545,7 +481,7 @@
     if (prefix == 'tel:') {
       // handle special case
       var number = nfc.toUTF8(record.payload.subarray(1));
-      debug('XXXXXXXXXXXXXXX Handle Ndef URI type, TEL XXXXXXXXXXXXXXXX');
+      debug('Handle Ndef URI type, TEL');
       activityText = {
         name: 'dial',
         data: {
@@ -573,7 +509,7 @@
     var type = 'mime-media';
     var activityText = null;
 
-    debug('XXXXXXXXXXXXXXXXXXXX HandleMimeMedia XXXXXXXXXXXXXXXXXXXX');
+    debug('XXXX HandleMimeMedia');
     if (nfc.equalArrays(record.type, 'text/vcard')) {
       activityText = handleVCardRecord(record);
     } else {
@@ -587,8 +523,6 @@
     }
     return activityText;
   }
-
-
 
   function findKey(key, payload) {
     var p = payload.indexOf(key);
