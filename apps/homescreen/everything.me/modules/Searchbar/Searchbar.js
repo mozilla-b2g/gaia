@@ -39,8 +39,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
 
     el.addEventListener('focus', cbFocus);
     el.addEventListener('blur', cbBlur);
-    el.addEventListener('keydown', inputKeyDown);
-    el.addEventListener('keyup', inputKeyUp);
+    el.addEventListener('input', inputChanged);
     el.addEventListener('contextmenu', onContextMenu);
 
     var elButtonClear = Evme.$('#button-clear');
@@ -154,12 +153,10 @@ Evme.Searchbar = new function Evme_Searchbar() {
     Evme.EventHandler.trigger(NAME, 'clearButtonClick');
   }
 
-  function inputKeyDown(e) {
+  function inputChanged(e) {
     window.clearTimeout(timeoutPause);
     window.clearTimeout(timeoutIdle);
-  }
 
-  function inputKeyUp(e) {
     var currentValue = el.value;
 
     if (currentValue !== value) {
@@ -194,7 +191,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
      // before the paste.
      //
     window.setTimeout(function onTimeout() {
-      inputKeyUp({
+      inputChanged({
         'keyCode': ''
       });
     }, 0);
