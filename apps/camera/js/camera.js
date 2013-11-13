@@ -2,10 +2,6 @@
 
 var loader = LazyLoader;
 
-var FOCUS_MODE_MANUALLY_TRIGGERED = 'auto';
-var FOCUS_MODE_CONTINUOUS_CAMERA = 'continuous-picture';
-var FOCUS_MODE_CONTINUOUS_VIDEO = 'continuous-video';
-
 // Utility functions
 function padLeft(num, length) {
   var r = String(num);
@@ -14,21 +10,6 @@ function padLeft(num, length) {
   }
   return r;
 }
-
-var CAMERA_MODE_TYPE = {
-  CAMERA: 'camera',
-  VIDEO: 'video'
-};
-
-var STORAGE_STATE_TYPE = {
-  INIT: 0,
-  AVAILABLE: 1,
-  NOCARD: 2,
-  UNMOUNTED: 3,
-  CAPACITY: 4
-};
-
-var DCFApi;
 
 var screenLock = null;
 var Camera = {
@@ -67,8 +48,6 @@ var Camera = {
   // only show one alert per recording
   _sizeLimitAlertActive: false,
 
-  FILMSTRIP_DURATION: 5000, // show filmstrip for 5s before fading
-
   _flashState: {
     camera: {
       defaultMode: 1,
@@ -94,26 +73,11 @@ var Camera = {
 
   preferredRecordingSizes: null,
 
-  PROMPT_DELAY: 2000,
-
   _watchId: null,
   _position: null,
 
   _pendingPick: null,
   _savedMedia: null,
-
-  // The minimum available disk space to start recording a video.
-  RECORD_SPACE_MIN: 1024 * 1024 * 2,
-
-  // Number of bytes left on disk to let us stop recording.
-  RECORD_SPACE_PADDING: 1024 * 1024 * 1,
-
-  // An estimated JPEG file size is caluclated from 90% quality 24bit/pixel
-  ESTIMATED_JPEG_FILE_SIZE: 300 * 1024,
-
-  // Minimum video duration length for creating a video that contains at least
-  // few samples, see bug 899864.
-  MIN_RECORDING_TIME: 500,
 
   get overlayTitle() {
     return document.getElementById('overlay-title');
@@ -182,12 +146,6 @@ var Camera = {
     if (hasMessage) {
       return;
     }
-
-    // The activity may have defined a captureMode, otherwise
-    // be default we use the camera
-    if (this._captureMode === null) {
-      this.setCaptureMode(CAMERA_MODE_TYPE.CAMERA);
-    }
     
     requirejs.config({ baseUrl: 'js' });
     
@@ -198,6 +156,7 @@ var Camera = {
       'views/controls',
       'controllers/app',
       'dcf',
+      'constants',
       '/shared/js/async_storage.js',
       '/shared/js/blobview.js',
       '/shared/js/media/jpeg_metadata_parser.js',
@@ -222,7 +181,7 @@ var Camera = {
 
       window.CameraState = CameraState;
       window.CameraSettings = CameraSettings;
-      
+
       window.ViewfinderView = new ViewfinderView(document.getElementById('viewfinder'));
       window.ControlsView = new ControlsView(document.getElementById('controls'));
 
@@ -232,6 +191,12 @@ var Camera = {
       });
 
       window.DCFApi = DCF;
+
+      // The activity may have defined a captureMode, otherwise
+      // be default we use the camera
+      if (Camera._captureMode === null) {
+        Camera.setCaptureMode(CAMERA_MODE_TYPE.CAMERA);
+      }
 
       Camera.loadCameraPreview(CameraState.get('cameraNumber'), function() {
         PerformanceTestingHelper.dispatch('camera-preview-loaded');
@@ -546,18 +511,18 @@ var Camera = {
   setFocusMode: function camera_setFocusMode() {
     this._callAutoFocus = false;
     if (this._captureMode === CAMERA_MODE_TYPE.CAMERA) {
-      if (this._autoFocusSupport[FOCUS_MODE_CONTINUOUS_CAMERA]) {
-        this._cameraObj.focusMode = FOCUS_MODE_CONTINUOUS_CAMERA;
+      if (this._autoFocusSupport[FOCUS_MODE_TYPE.CONTINUOUS_CAMERA]) {
+        this._cameraObj.focusMode = FOCUS_MODE_TYPE.CONTINUOUS_CAMERA;
         return;
       }
     } else {
-      if (this._autoFocusSupport[FOCUS_MODE_CONTINUOUS_VIDEO]) {
-        this._cameraObj.focusMode = FOCUS_MODE_CONTINUOUS_VIDEO;
+      if (this._autoFocusSupport[FOCUS_MODE_TYPE.CONTINUOUS_VIDEO]) {
+        this._cameraObj.focusMode = FOCUS_MODE_TYPE.CONTINUOUS_VIDEO;
         return;
       }
     }
-    if (this._autoFocusSupport[FOCUS_MODE_MANUALLY_TRIGGERED]) {
-      this._cameraObj.focusMode = FOCUS_MODE_MANUALLY_TRIGGERED;
+    if (this._autoFocusSupport[FOCUS_MODE_TYPE.MANUALLY_TRIGGERED]) {
+      this._cameraObj.focusMode = FOCUS_MODE_TYPE.MANUALLY_TRIGGERED;
       this._callAutoFocus = true;
     }
   },
@@ -593,7 +558,7 @@ var Camera = {
       // few video and audio samples, see bug 899864.
       window.setTimeout(function() {
         CameraState.set('captureButtonEnabled', true);
-      }, Camera.MIN_RECORDING_TIME);
+      }, MIN_RECORDING_TIME);
 
       CameraState.set('recording', true);
       
@@ -614,14 +579,14 @@ var Camera = {
     this.disableButtons();
 
     var startRecording = (function startRecording(freeBytes) {
-      if (freeBytes < this.RECORD_SPACE_MIN) {
+      if (freeBytes < RECORD_SPACE_MIN) {
         handleError('nospace');
         return;
       }
 
       var config = {
         rotation: this._phoneOrientation,
-        maxFileSizeBytes: freeBytes - this.RECORD_SPACE_PADDING
+        maxFileSizeBytes: freeBytes - RECORD_SPACE_PADDING
       };
 
       if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes) {
@@ -713,7 +678,7 @@ var Camera = {
             } else {
               Filmstrip.addVideo(videofile, video, poster,
                                  data.width, data.height, data.rotation);
-              Filmstrip.show(Camera.FILMSTRIP_DURATION);
+              Filmstrip.show(FILMSTRIP_DURATION);
             }
           });
         }
@@ -1009,12 +974,12 @@ var Camera = {
     var focusModes = capabilities.focusModes;
     if (focusModes) {
       var support = this._autoFocusSupport;
-      support[FOCUS_MODE_MANUALLY_TRIGGERED] =
-        focusModes.indexOf(FOCUS_MODE_MANUALLY_TRIGGERED) !== -1;
-      support[FOCUS_MODE_CONTINUOUS_CAMERA] =
-        focusModes.indexOf(FOCUS_MODE_CONTINUOUS_CAMERA) !== -1;
-      support[FOCUS_MODE_CONTINUOUS_VIDEO] =
-        focusModes.indexOf(FOCUS_MODE_CONTINUOUS_VIDEO) !== -1;
+      support[FOCUS_MODE_TYPE.MANUALLY_TRIGGERED] =
+        focusModes.indexOf(FOCUS_MODE_TYPE.MANUALLY_TRIGGERED) !== -1;
+      support[FOCUS_MODE_TYPE.CONTINUOUS_CAMERA] =
+        focusModes.indexOf(FOCUS_MODE_TYPE.CONTINUOUS_CAMERA) !== -1;
+      support[FOCUS_MODE_TYPE.CONTINUOUS_VIDEO] =
+        focusModes.indexOf(FOCUS_MODE_TYPE.CONTINUOUS_VIDEO) !== -1;
     }
   },
 
@@ -1031,7 +996,7 @@ var Camera = {
   previewEnabled: function() {
     this.enableButtons();
     if (!this._pendingPick) {
-      setTimeout(this.initPositionUpdate.bind(this), this.PROMPT_DELAY);
+      setTimeout(this.initPositionUpdate.bind(this), PROMPT_DELAY);
     }
   },
 
@@ -1098,7 +1063,7 @@ var Camera = {
     // In either case, save the photo to device storage
     this._addPictureToStorage(blob, function(name, absolutePath) {
       Filmstrip.addImage(absolutePath, blob);
-      Filmstrip.show(Camera.FILMSTRIP_DURATION);
+      Filmstrip.show(FILMSTRIP_DURATION);
       this.checkStorageSpace();
     }.bind(this));
   },
@@ -1442,7 +1407,6 @@ var Camera = {
     // 5 megapixels by default (see build/application-data.js). It should be
     // synced with Gallery app and update carefully.
     var maxRes = CONFIG_MAX_IMAGE_PIXEL_SIZE;
-    var estimatedJpgSize = this.ESTIMATED_JPEG_FILE_SIZE;
     var size = pictureSizes.reduce(function(acc, size) {
       var mp = size.width * size.height;
       // we don't need the resolution larger than maxRes
@@ -1451,7 +1415,7 @@ var Camera = {
       }
       // We assume the relationship between MP to file size is linear.
       // This may be inaccurate on all cases.
-      var estimatedFileSize = mp * estimatedJpgSize / maxRes;
+      var estimatedFileSize = mp * ESTIMATED_JPEG_FILE_SIZE / maxRes;
       if (targetFileSize > 0 && estimatedFileSize > targetFileSize) {
         return acc;
       }
