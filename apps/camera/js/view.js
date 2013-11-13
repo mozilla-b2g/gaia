@@ -27,26 +27,6 @@ define(function(require) {
       });
     },
 
-    setBooleanAttribute: function(el, attribute, value) {
-      if (value) {
-        el.setAttribute(attribute, attribute);
-      }
-
-      else {
-        el.removeAttribute(attribute);
-      }
-    },
-
-    setBooleanClass: function(el, className, value) {
-      if (value) {
-        el.classList.add(className);
-      }
-
-      else {
-        el.classList.remove(className);
-      }
-    },
-
     mixin: function(properties) {
       for (var property in properties) {
         this[property] = properties[property];

@@ -3,19 +3,31 @@ define(function(require) {
 
   var View = require('view');
 
+  var setBooleanAttribute = function(el, attribute, value) {
+    if (value) {
+      el.setAttribute(attribute, attribute);
+    }
+
+    else {
+      el.removeAttribute(attribute);
+    }
+  };
+
+  var setBooleanClass = function(el, className, value) {
+    if (value) {
+      el.classList.add(className);
+    }
+
+    else {
+      el.classList.remove(className);
+    }
+  };
+
   var ControlsView = new View('#controls', {
     modeButton: document.getElementById('switch-button'),
     captureButton: document.getElementById('capture-button'),
     galleryButton: document.getElementById('gallery-button'),
     cancelPickButton: document.getElementById('cancel-pick'),
-
-    orientationStyle: (function() {
-      var style = document.createElement('style');
-      
-      document.head.appendChild(style);
-
-      return style;
-    })(),
 
     render: function() {
       if (!this.model) {
@@ -24,28 +36,19 @@ define(function(require) {
 
       var properties = this.model.get();
 
-      this.setBooleanAttribute(this.modeButton,       'disabled', !properties.modeButtonEnabled);
-      this.setBooleanAttribute(this.captureButton,    'disabled', !properties.captureButtonEnabled);
-      this.setBooleanAttribute(this.galleryButton,    'disabled', !properties.galleryButtonEnabled);
-      this.setBooleanAttribute(this.cancelPickButton, 'disabled', !properties.cancelPickButtonEnabled);
+      setBooleanAttribute(this.modeButton,       'disabled', !properties.modeButtonEnabled);
+      setBooleanAttribute(this.captureButton,    'disabled', !properties.captureButtonEnabled);
+      setBooleanAttribute(this.galleryButton,    'disabled', !properties.galleryButtonEnabled);
+      setBooleanAttribute(this.cancelPickButton, 'disabled', !properties.cancelPickButtonEnabled);
 
-      this.setBooleanClass(this.modeButton,       'hidden', properties.modeButtonHidden);
-      this.setBooleanClass(this.captureButton,    'hidden', properties.captureButtonHidden);
-      this.setBooleanClass(this.galleryButton,    'hidden', properties.galleryButtonHidden);
-      this.setBooleanClass(this.cancelPickButton, 'hidden', properties.cancelPickButtonHidden);
-
-      this.orientationStyle.innerHTML =
-        '#switch-button span,'            +
-        '#capture-button span,'           +
-        '#toggle-flash,'                  +
-        '#toggle-camera,'                 +
-        '#gallery-button span {'          +
-          '-moz-transform: rotate(' + (-properties.orientation) + 'deg);' +
-        '}';
+      setBooleanClass(this.modeButton,       'hidden', properties.modeButtonHidden);
+      setBooleanClass(this.captureButton,    'hidden', properties.captureButtonHidden);
+      setBooleanClass(this.galleryButton,    'hidden', properties.galleryButtonHidden);
+      setBooleanClass(this.cancelPickButton, 'hidden', properties.cancelPickButtonHidden);
     },
 
     setRecording: function(recording) {
-      this.setBooleanClass(document.body, 'recording', recording);
+      setBooleanClass(document.body, 'recording', recording);
     },
 
     // Event Handlers
