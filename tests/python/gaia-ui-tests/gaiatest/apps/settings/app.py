@@ -24,6 +24,8 @@ class Settings(Base):
     _do_not_track_menu_item_locator = (By.ID, 'menuItem-doNotTrack')
     _media_storage_menu_item_locator = (By.ID, 'menuItem-mediaStorage')
     _phone_lock_menu_item_locator = (By.ID, 'menuItem-phoneLock')
+    _phone_lock_sheet_locator = (By.CSS_SELECTOR, 'iframe[src*="/pages/phone_lock.html"]')
+    _phone_lock_passcode_sheet_locator = (By.CSS_SELECTOR, 'iframe[src*="/pages/phone_lock_passcode.html"]')
     _display_menu_item_locator = (By.ID, 'menuItem-display')
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
@@ -103,7 +105,7 @@ class Settings(Base):
 
     def open_phone_lock_settings(self):
         from gaiatest.apps.settings.regions.phone_lock import PhoneLock
-        self._tap_menu_item(self._phone_lock_menu_item_locator)
+        self._open_menu_item(self._phone_lock_menu_item_locator, self._phone_lock_sheet_locator)
         return PhoneLock(self.marionette)
 
     def open_display_settings(self):
@@ -132,3 +134,12 @@ class Settings(Base):
         parent_section = menu_item.find_element(By.XPATH, 'ancestor::section')
         menu_item.tap()
         self.wait_for_condition(lambda m: parent_section.location['x'] + parent_section.size['width'] == 0)
+
+    def _open_menu_item(self, menu_item_locator, new_sheet_locator):
+        self.wait_for_element_displayed(*menu_item_locator)
+        menu_item = self.marionette.find_element(*menu_item_locator)
+        menu_item.tap()
+
+        self.wait_for_element_present(*new_sheet_locator)
+        new_sheet = self.marionette.find_element(*new_sheet_locator)
+        self.marionette.switch_to_frame(new_sheet)

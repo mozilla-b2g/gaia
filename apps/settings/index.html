@@ -24,7 +24,6 @@
     <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css"/>
     <link rel="stylesheet" type="text/css" href="shared/style_unstable/progress_activity.css"/>
     <link rel="stylesheet" type="text/css" href="style/apps.css"/>
-    <link rel="stylesheet" type="text/css" href="style/phone_lock.css"/>
     <link rel="stylesheet" type="text/css" href="style/simcard.css"/>
     <link rel="stylesheet" type="text/css" href="style/updates.css"/>
     -->
@@ -50,16 +49,20 @@
     <script defer="" src="shared/js/l10n_date.js"></script>
 
     <!-- For perf-measurement related utilities -->
-    <script defer="" src="/shared/js/performance_testing_helper.js"></script>
+    <script defer src="/shared/js/performance_testing_helper.js"></script>
+
+    <!-- Sheet loader -->
+    <script defer src="/shared/js/sheet.js"></script>
 
     <!-- Lazy loader -->
-    <script defer="" src="/shared/js/lazy_loader.js"></script>
+    <script defer src="/shared/js/lazy_loader.js"></script>
 
     <!-- Screen layout watcher -->
-    <script defer="" src="/shared/js/screen_layout.js"></script>
+    <script defer src="/shared/js/screen_layout.js"></script>
 
     <!-- Specific code -->
-    <script defer="" src="js/settings.js"></script>
+    <script defer src="js/settings_base.js"></script>
+    <script defer src="js/settings.js"></script>
 
     <!-- shared helper library -->
     <!--<script defer src="/shared/js/icc_helper.js"></script>-->
@@ -108,8 +111,6 @@
     <link rel="import" href="/elements/keyboard_enabled_default.html">
     <link rel="import" href="/elements/keyboard_selection_add_more.html">
     <link rel="import" href="/elements/keyboard_selection.html">
-    <link rel="import" href="/elements/phone_lock_passcode.html">
-    <link rel="import" href="/elements/phone_lock.html">
     <link rel="import" href="/elements/simpin_dialog.html">
     <link rel="import" href="/elements/simpin.html">
     <link rel="import" href="/elements/app_permissions_details.html">
@@ -251,10 +252,6 @@
     <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
     <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
 
-    <!-- Security :: Phone Lock :: PIN Input -->
-    <section is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
-    <!-- Security :: Phone Lock -->
-    <section is="phoneLock" role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
     <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
     <!-- Security :: SIM Security -->
@@ -408,7 +405,7 @@
         <ul>
           <li>
             <small id="phoneLock-desc" class="menu-item-desc"></small>
-            <a id="menuItem-phoneLock" class="menu-item" href="#phoneLock" data-l10n-id="phoneLock">Phone Lock</a>
+            <a id="menuItem-phoneLock" class="menu-item" href="/pages/phone_lock.html" data-l10n-id="phoneLock">Phone Lock</a>
           </li>
           <li id="simSecurity-settings">
             <small id="simCardLock-desc" class="menu-item-desc"></small>

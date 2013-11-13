@@ -159,8 +159,9 @@ class Keyboard(Base):
         self.marionette.switch_to_frame()
 
     # this would go through fastest way to tap/click through a string
-    def send(self, string):
+    def send(self, string, stayInFrame=False):
         frame = self.marionette.get_active_frame()
+
         self.switch_to_keyboard()
         for val in string:
             if ord(val) > 127:
@@ -181,8 +182,9 @@ class Keyboard(Base):
                 self._switch_to_correct_layout(val)
                 self._tap(val)
 
-        self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(frame)
+        if not stayInFrame:
+            self.marionette.switch_to_frame()
+            self.marionette.switch_to_frame(frame)
 
     # Switch keyboard language
     # Mapping of language code => {
