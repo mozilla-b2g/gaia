@@ -13,7 +13,7 @@ createSmsNdefRecord: function(sms) {
 
   var tnf = nfc.tnf_well_known;
   var type = nfc.rtd_uri;
-  var id = null;
+  var id = new Uint8Array(0);
 
   // Payload:
   var prefix = 0x00; // No Prefix.
