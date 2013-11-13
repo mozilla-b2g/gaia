@@ -582,19 +582,29 @@
     </menu>
   </section>
 
-  <!-- for tiny devices -->
-
   <section id="finish-screen" class="finish-screen-base" role="region">
     <section class="content">
-      <h1 data-l10n-id="startYourPhone">
-        Start your Phone Tour!
-      </h1>
-      <h2 data-l10n-id="joinTutorial">
-        Join us for a quick tutorial about your new phone.
-      </h2>
-      <p data-l10n-id="optionsAvailable">
-        You can alter the language, Date / Time, Wi-Fi connection in the settings area.
-      </p>
+
+      <!-- for tiny devices -->
+      <div class="for-tiny">
+        <h1 data-l10n-id="startYourPhone">
+          Start your Phone Tour!
+        </h1>
+        <h2 data-l10n-id="joinTutorial">
+          Join us for a quick tutorial about your new phone.
+        </h2>
+        <p data-l10n-id="optionsAvailable">
+          You can alter the language, Date / Time, Wi-Fi connection in the settings area.
+        </p>
+      </div>
+
+      <!-- for large devices -->
+      <div class="for-large">
+        <p data-l10n-id="startYourTablet">
+          Start your tablet tour!
+        </p>
+      </div>
+
       </section>
       <menu role="navigation">
         <button id="skip-tutorial-button" class="button-left" data-l10n-id="skip">
@@ -621,9 +631,7 @@
     <article role="main">
       <section role="region" id="step1">
         <div>
-          <header id="step1Header">
-            step1 placeholder
-          </header>
+          <header id="step1Header"></header>
         </div>
         <section>
           <img id="step1Img" class="step-img-base">
@@ -631,9 +639,7 @@
       </section>
       <section role="region" id="step2">
         <div>
-          <header id="step2Header">
-            step2 placeholder
-          </header>
+          <header id="step2Header"></header>
         </div>
         <section>
           <img id="step2Img" class="step-img-base">
@@ -641,9 +647,7 @@
       </section>
       <section role="region" id="step3">
         <div>
-          <header id="step3Header">
-            step3 placeholder
-          </header>
+          <header id="step3Header"></header>
         </div>
         <section>
           <img id="step3Img" class="step-img-base">
@@ -651,9 +655,7 @@
       </section>
       <section role="region" id="step4">
         <div>
-          <header id="step4Header">
-            step4 placeholder
-          </header>
+          <header id="step4Header"></header>
         </div>
         <section>
           <img id="step4Img" class="step-img-base">
@@ -661,9 +663,7 @@
       </section>
       <section role="region" id="step5">
         <div>
-          <header id="step5Header">
-            step5 placeholder
-          </header>
+          <header id="step5Header"></header>
         </div>
         <section>
           <img id="step5Img" class="step-img-base">
@@ -671,9 +671,7 @@
       </section>
       <section role="region" id="step6">
         <div>
-          <header id="step6Header">
-            step6 placeholder
-          </header>
+          <header id="step6Header"></header>
         </div>
         <section>
           <img id="step6Img" class="step-img-base">
@@ -681,9 +679,7 @@
       </section>
       <section role="region" id="step7">
         <div>
-          <header id="step7Header">
-            step7 placeholder
-          </header>
+          <header id="step7Header"></header>
         </div>
         <section>
           <img id="step7Img" class="step-img-base">
@@ -691,9 +687,7 @@
       </section>
       <section role="region" id="step8">
         <div>
-          <header id="step8Header">
-            step8 placeholder
-          </header>
+          <header id="step8Header"></header>
         </div>
         <section>
           <img id="step8Img" class="step-img-base">
@@ -733,11 +727,11 @@
   <section id="tutorial-finish-large" class="tutorial-finish-base" role="region">
     <section class="content">
       <header>
-        <p data-l10n-id="thatsIt1Tablet">
-          That’s it ! You’re ready to enjoy your new tablet.
+        <p data-l10n-id="thatsIt1Tablet-2">
+          You can always swipe from the bottom edge to enter home screen.
         </p>
-        <p data-l10n-id="thatsIt2Tablet">
-          Swipe up from bottom to leave tutorial
+        <p data-l10n-id="thatsIt2Tablet-2">
+          Let's do it !
         </p>
       </header>
     </section>

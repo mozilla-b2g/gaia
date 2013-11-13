@@ -614,6 +614,14 @@ aside.connecting {
   background: url(images/icon_tour.png) no-repeat center 95% / 16.9rem;
 }
 
+.finish-screen-base .content .for-tiny {
+  display: block;
+}
+
+.finish-screen-base .content .for-large {
+  display: none;
+}
+
 .tutorial-finish-base .content {
   background: url(images/thumb_up.png) no-repeat center 70% / 14.4rem;
 }
