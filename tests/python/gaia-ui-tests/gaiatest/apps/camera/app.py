@@ -136,12 +136,19 @@ class FilmStripImage(PageRegion):
 
 
 class ImagePreview(Base):
+
+    _media_frame_locator = (By.ID, 'preview')
     _image_preview_locator = (By.CSS_SELECTOR, '#media-frame > img')
     _camera_button_locator = (By.ID, 'camera-button')
 
     @property
     def is_image_preview_visible(self):
         return self.is_element_displayed(*self._image_preview_locator)
+
+    def wait_for_media_frame(self):
+        media_frame =  self.marionette.find_element(*self._media_frame_locator)
+        scr_height = int(self.marionette.execute_script('return window.screen.height'))
+        self.wait_for_condition(lambda m: (media_frame.location['y'] + media_frame.size['height']) == scr_height)
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()
