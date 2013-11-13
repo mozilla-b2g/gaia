@@ -68,5 +68,28 @@ class NewMessage(Messages):
         return self.marionette.find_element(*self._receiver_input_locator).text
 
     @property
+    def recipient_css_class(self):
+        return self.marionette.find_element(*self._receiver_input_locator).get_attribute('class')
+
+    @property
+    def is_recipient_name_editable(self):
+        return self.marionette.find_element(*self._receiver_input_locator).get_attribute('contenteditable')
+
+    @property
     def first_recipient_number_attribute(self):
         return self.marionette.find_element(*self._receiver_input_locator).get_attribute('data-number')
+
+    def tap_recipient_section(self):
+        self.marionette.find_element(*self._recipient_section_locator).tap()
+        from gaiatest.apps.keyboard.app import Keyboard
+        return Keyboard(self.marionette)
+
+    @property
+    def is_send_button_enabled(self):
+        return self.marionette.find_element(*self._send_message_button_locator).is_enabled()
+
+    def tap_recipient_name(self):
+        self.marionette.find_element(*self._receiver_input_locator).tap()
+
+    def tap_message_field(self):
+        self.marionette.find_element(*self._message_field_locator).tap()
