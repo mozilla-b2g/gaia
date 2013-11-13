@@ -190,6 +190,9 @@ var NotificationScreen = {
   },
 
   tap: function ns_tap(notificationNode) {
+    if (LockScreen.locked)
+      return;
+
     var notificationID = notificationNode.dataset.notificationID;
 
     var event = document.createEvent('CustomEvent');
