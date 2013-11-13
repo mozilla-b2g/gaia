@@ -92,6 +92,10 @@ suite('attachment_test.js', function() {
     AttachmentMenu.init('attachment-options-menu');
   });
 
+  teardown(function() {
+    document.body.textContent = '';
+  });
+
   test('Name property defaults to a string value', function() {
     var attachment = new Attachment(new Blob());
     assert.typeOf(attachment.name, 'string');
@@ -183,6 +187,47 @@ suite('attachment_test.js', function() {
       done();
     });
   });
+
+  suite('render draft image attachments', function() {
+    function testDraftImage(testName, attachmentName) {
+      test(testName + ' attachment', function(done) {
+        var attachment = new Attachment(testImageBlob, {
+          name: attachmentName,
+          isDraft: true
+        });
+
+        var el = attachment.render(function() {
+          assert.equal(el.tagName, 'IFRAME');
+          el.addEventListener('load', function onload() {
+            done(function() {
+              var doc = el.contentDocument;
+              var attachmentNode = doc.querySelector('.attachment');
+              assert.ok(attachmentNode);
+              assert.isNull(attachmentNode.querySelector('div.corrupted'));
+              assert.ok(attachmentNode.querySelector('.thumbnail'));
+              var fileNameNode = doc.querySelector('.file-name');
+              assert.ok(fileNameNode);
+              assert.isNull(fileNameNode.firstElementChild);
+              assert.equal(fileNameNode.textContent, attachment.name);
+            });
+          });
+
+          document.body.appendChild(el);
+        });
+      });
+    }
+
+    testDraftImage('normal', 'Image attachment');
+    testDraftImage(
+      'malicious script',
+      '%3Cscript%3Ealert(%22I%20am%20dangerous%22)%3C%2Fscript%3E'
+    );
+    testDraftImage(
+      'malicious image',
+      '%3Cimg%20src%3D%22http%3A%2F%2Fmalicious.server.ru%2Fpingback%22%3E'
+    );
+  });
+
 
   suite('view attachment with open activity', function() {
     setup(function() {
