@@ -11,13 +11,13 @@ var isListening = false;
 
 // Main Functions:
 function handleWellKnownRecord(record) {
-  if (record.type == nfc.rtd_text) {
+  if (nfc.equalArrays(record.type, nfc.rtd_text)) {
     return handleTextRecord(record);
-  } else if (record.type == nfc.rtd_uri) {
+  } else if (nfc.equalArrays(record.type, nfc.rtd_uri)) {
     return handleURIRecord(record);
-  } else if (record.type == nfc.rtd_smart_poster) {
+  } else if (nfc.equalArrays(record.type, nfc.rtd_smart_poster)) {
     return handleSmartPosterRecord(record);
-  } else if (record.type == nfc.smartposter_action) {
+  } else if (nfc.equalArrays(record.type, nfc.smartposter_action)) {
     return handleSmartPosterAction(record);
   } else {
     console.log('Unknown record type: ' + record.type);
@@ -25,17 +25,17 @@ function handleWellKnownRecord(record) {
 }
 
 function handleTextRecord(record) {
-  var status = record.payload.charCodeAt(0);
+  var status = record.payload[0];
   var languageLength = status & nfc.rtd_text_iana_length;
-  var language = record.payload.substring(1, languageLength + 1);
+  var language = nfc.toUTF8(record.payload.subarray(1, languageLength + 1));
   var encoding = status & nfc.rtd_text_encoding;
   var text;
   var encodingString;
   if (encoding == nfc.rtd_text_utf8) {
-    text = decodeURIComponent(
-      escape(record.payload.substring(languageLength + 1)));
+    text = nfc.toUTF8(record.payload.subarray(languageLength + 1));
     encodingString = 'UTF-8';
   } else if (encoding == nfc.rtd_text_utf16) {
+    //TODO handle UTF16
     record.payload.substring(languageLength + 1);
     encodingString = 'UTF-16';
   }
@@ -48,28 +48,21 @@ function handleTextRecord(record) {
 }
 
 function handleURIRecord(record) {
-  var prefix = nfc.uris[record.payload.charCodeAt(0)];
-  if (record.payload.substring(1).indexOf('dl.dropbox.com/u/7530841/') >= 0) {
-    return {
-        'action': 'Purchase',
-        'uri': 'http://192.168.1.108/~arno/mc/?purchase_url=' + prefix +
-               record.payload.substring(1)
-      };
-    } else {
+  var prefix = nfc.uris[record.payload[0]];
   return {
       'action': 'Open URI',
-      'uri': prefix + record.payload.substring(1)
+      'uri': prefix + nfc.toUTF8(record.payload.subarray(1))
     };
-  }
 }
 
 function handleVCardRecord(record) {
-  var name = record.payload.substring(record.payload.indexOf('FN:') +
+  var payload = nfc.toUTF8(record.payload);
+  var name = payload.substring(payload.indexOf('FN:') +
              'FN:'.length);
   name = name.substring(0, name.indexOf('\n'));
   var first = name.substring(0, name.indexOf(' '));
   var last = name.substring(name.indexOf(' ') + 1);
-  var cell = record.payload.substring(record.payload.indexOf('CELL:') +
+  var cell = payload.substring(payload.indexOf('CELL:') +
              'CELL:'.length);
   cell = cell.substring(0, cell.indexOf('\n'));
   return {
@@ -83,21 +76,21 @@ function handleVCardRecord(record) {
 function handleSmartPosterRecord(record) {
   var ret = new Array();
   do {
-    var tnf = record.payload.charCodeAt(0) & nfc.flags_tnf;
+    var tnf = record.payload[0] & nfc.flags_tnf;
 
-    var typeLength = record.payload.charCodeAt(1);
+    var typeLength = record.payload[1];
 
     var payloadLength = 0;
-    var isShortRecord = (record.payload.charCodeAt(0) & nfc.flags_ss) > 0;
+    var isShortRecord = (record.payload[0] & nfc.flags_ss) > 0;
     if (isShortRecord) {
-      payloadLength = record.payload.charCodeAt(2);
+      payloadLength = record.payload[2];
     } else {
-      payloadLength = (record.payload.charCodeAt(2) << 32) +
-                      record.payload.charCodeAt(3);
+      payloadLength = (record.payload[2] << 32) +
+                      record.payload[3];
     }
 
     var idLength = 0;
-    var isIdPresent = (record.payload.charCodeAt(0) & nfc.flags_il) > 0;
+    var isIdPresent = (record.payload[0] & nfc.flags_il) > 0;
     if (isIdPresent) {
       idLength = record.payload.charCodeAt(isShortRecord ? 3 : 4);
     } else {
@@ -105,14 +98,14 @@ function handleSmartPosterRecord(record) {
     }
 
     var offset = 1 + 1 + (isShortRecord ? 1 : 2) + (isIdPresent ? 1 : 0);
-    var type = record.payload.substring(offset, offset + typeLength);
+    var type = record.payload.subarray(offset, offset + typeLength);
     offset += typeLength;
 
     var id = isIdPresent ?
-             record.payload.substring(offset, offset + idLength) : '';
+             record.payload.subarray(offset, offset + idLength) : '';
     offset += idLength;
 
-     var payload = record.payload.substring(offset, offset + payloadLength);
+     var payload = record.payload.subarray(offset, offset + payloadLength);
      offset += payloadLength;
 
      var subrecord = {
@@ -123,14 +116,14 @@ function handleSmartPosterRecord(record) {
        };
      console.log('SUBRECORD: ' + JSON.stringify(subrecord));
      ret.push(subrecord);
-     record.payload = record.payload.substring(offset);
+     record.payload = record.payload.subarray(offset);
    } while (record.payload.length > 0);
    return { 'action': 'Smart Poster', 'records' : ret };
 }
 
 function handleSmartPosterAction(record) {
   // The recommended action has an application specific meaning:
-  var action = record.payload.charCodeAt(0);
+  var action = record.payload[0];
   var recommendedAction;
   console.log('action in payload: ' + JSON.stringify(action));
   if (action == nfcSmartPoster.doAction) {
@@ -146,10 +139,10 @@ function handleSmartPosterAction(record) {
 }
 
 function getRecordActionText(record, handle) {
-  if (record.type == nfc.rtd_text) {
+  if (nfc.equalArrays(record.type, nfc.rtd_text)) {
     return 'text: ' + handle.text + ' (Language: ' + handle.language +
            ', Encoding: ' + handle.encoding + ')';
-  } else if (record.type == nfc.rtd_uri) {
+  } else if (nfc.equalArrays(record.type, nfc.rtd_uri)) {
     if (handle.uri.indexOf('tel') == 0) {
       return '<div class="dialer" href="' + handle.uri + '">' + handle.uri +
              '</div>';
@@ -157,12 +150,12 @@ function getRecordActionText(record, handle) {
       return '<div class="actionuri" href="' + handle.uri + '">' +
              handle.uri + '</div>';
     }
-  } else if (record.type == 'text/x-vCard') {
+  } else if (nfc.equalArrays(record.type, nfc.fromUTF8('text/x-vCard'))) {
     return '<a href="javascript:addContact(\'' + handle.first + '\', \'' +
            handle.last + '\', \'' + handle.cell + '\')">' +
            'first name: ' + handle.first + '<br/>last name: ' + handle.last +
            '<br/>cell: ' + handle.cell + '</a>';
-  } else if (record.type == nfc.smartposter_action) {
+  } else if (nfc.equalArrays(record.type, nfc.smartposter_action)) {
     return 'Recommended Action : ' + handle.action;
   }
 }
@@ -298,6 +291,21 @@ function handleNdefType(sessionToken, techType) {
   return handled;
 }
 
+var hexEncodeArray = [
+  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+];
+
+function convertUint8ArrayToHex(arr) {
+  var s = '';
+  for (var i = 0; i < arr.length; i++) {
+    var code = arr[i];
+    s += hexEncodeArray[code >>> 4];
+    s += hexEncodeArray[code & 0x0F];
+    s += ' ';
+  }
+  return s;
+}
+
 // NDEF only:
 function handleNdefDiscoveredMessages(ndefmessage) {
   debug('Found tag!');
@@ -321,13 +329,12 @@ function handleNdefDiscoveredMessages(ndefmessage) {
   for (var i = 0; i < ndefmessage.length; i++) {
     var record = ndefmessage[i];
     console.log('RECORD: ' + JSON.stringify(record));
-
     //Dump generic data
     html += '<li data-theme="c">';
     html += 'tnf: ' + record.tnf + '<br/>';
-    html += 'type: ' + record.type + '<br/>';
-    html += 'id: ' + record.id + '<br/>';
-    html += 'raw payload: ' + record.payload + '<br/>';
+    html += 'type: ' + convertUint8ArrayToHex(record.type) + '<br/>';
+    html += 'id: ' + convertUint8ArrayToHex(record.id) + '<br/>';
+    html += 'raw payload: ' + convertUint8ArrayToHex(record.payload) + '<br/>';
     html += '</li>';
 
     var action = '';
@@ -336,7 +343,7 @@ function handleNdefDiscoveredMessages(ndefmessage) {
       action += '<li data-role="list-divider" role="heading">Action: ' +
                handle.action + '</li>';
       action += '<li data-theme="c">';
-      if (record.type == nfc.rtd_smart_poster) {
+      if (nfc.equalArrays(record.type, nfc.rtd_smart_poster)) {
         for (var j = 0; j < handle.records.length; j++) {
           var subRecord = handle.records[j];
           var subHandle = handleWellKnownRecord(subRecord);
@@ -358,7 +365,7 @@ function handleNdefDiscoveredMessages(ndefmessage) {
       action += handle;
       action += '</li>';
     } else if (record.tnf == nfc.tnf_mime_media) {
-      if (record.type == 'text/x-vCard') {
+      if (nfc.equalArrays(record.type, nfc.fromUTF8('text/x-vCard'))) {
          action += '<li data-role="list-divider" role="heading">' +
                    'Action: Add to Contacts</li>';
          action += '<li data-theme="c">';

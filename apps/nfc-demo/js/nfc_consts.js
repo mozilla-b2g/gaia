@@ -9,6 +9,34 @@
 
 var nfc = {
 
+  fromUTF8: function(str) {
+    var buf = new Uint8Array(str.length);
+    for (var i = 0; i < str.length; i++) {
+      buf[i] = str.charCodeAt(i);
+    }
+    return buf;
+  },
+
+  toUTF8: function(a) {
+    var str = "";
+    for (var i = 0; i < a.length; i++) {
+      str += String.fromCharCode(a[i]);
+    }
+    return str;
+  },
+
+  equalArrays: function(a1, a2) {
+    if (a1.length != a2.length) {
+      return false;
+    }
+    for (var i = 0; i < a1.length; i++) {
+      if (a1[i] != a2[i]) {
+        return false;
+      }
+    }
+    return true;
+  },
+
   flags_tnf: 0x07,
   flags_ss: 0x10,
   flags_il: 0x08,
@@ -22,19 +50,29 @@ var nfc = {
   tnf_unchanged: 0x06,
   tnf_reserved: 0x07,
 
-  rtd_text: 'T',
-  rtd_uri: 'U',
-  rtd_smart_poster: 'Sp',
-  rtd_alternative_carrier: 'ac',
-  rtd_handover_carrier: 'Hc',
-  rtd_handover_request: 'Hr',
-  rtd_handover_select: 'Hs',
+  rtd_text: 0,
+  rtd_uri: 0,
+  rtd_smart_poster: 0,
+  rtd_alternative_carrier: 0,
+  rtd_handover_carrier: 0,
+  rtd_handover_request: 0,
+  rtd_handover_select: 0,
 
-  smartposter_action: 'act',
+  smartposter_action: 0,
 
   uris: new Array(),
 
   init: function() {
+    this.rtd_text = nfc.fromUTF8('T');
+    this.rtd_uri = nfc.fromUTF8('U');
+    this.rtd_smart_poster = nfc.fromUTF8('Sp');
+    this.rtd_alternative_carrier = nfc.fromUTF8('ac');
+    this.rtd_handover_carrier = nfc.fromUTF8('Hc');
+    this.rtd_handover_request = nfc.fromUTF8('Hr');
+    this.rtd_handover_select = nfc.fromUTF8('Hs');
+
+    this.smartposter_action = nfc.fromUTF8('act');
+    
     this.uris[0x00] = '';
     this.uris[0x01] = 'http://www.';
     this.uris[0x02] = 'https://www.';

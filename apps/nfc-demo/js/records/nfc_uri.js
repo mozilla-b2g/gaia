@@ -52,7 +52,7 @@ createUriNdefRecord: function(uri, abbreviate) {
   var tnf = nfc.tnf_well_known; // NFC Forum Well Known type
   var type = nfc.rtd_uri; // URL type
   var id = null;
-  var payload = urlPayload;
+  var payload = nfc.fromUTF8(urlPayload);
 
   var record = new MozNdefRecord(
     tnf,
@@ -83,7 +83,7 @@ createEmailNdefRecord: function(mail) {
   var prefix = 0x06; // mailto: URI
   var uri = mail.mailto + '?' + 'subject=' + mail.subject + '&' +
             'body' + mail.body;
-  payload = String.fromCharCode(prefix) + uri;
+  payload = nfc.fromUTF8(String.fromCharCode(prefix) + uri);
 
   var main = new MozNdefRecord(
     tnf,

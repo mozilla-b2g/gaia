@@ -31,6 +31,35 @@
    * NDEF format
    */
   var nfc = {
+  
+    fromUTF8: function(str) {
+      var buf = new Uint8Array(str.length);
+      for (var i = 0; i < str.length; i++) {
+        buf[i] = str.charCodeAt(i);
+      }
+      return buf;
+    },
+
+    toUTF8: function(a) {
+      var str = "";
+      for (var i = 0; i < a.length; i++) {
+        str += String.fromCharCode(a[i]);
+      }
+      return str;
+    },
+
+    equalArrays: function(a1, a2) {
+      if (a1.length != a2.length) {
+        return false;
+      }
+      for (var i = 0; i < a1.length; i++) {
+        if (a1[i] != a2[i]) {
+          return false;
+        }
+      }
+      return true;
+    },
+
     flags_tnf: 0x07,
     flags_ss: 0x10,
     flags_il: 0x08,
@@ -44,15 +73,15 @@
     tnf_unchanged: 0x06,
     tnf_reserved: 0x07,
 
-    rtd_text: 'T',
-    rtd_uri: 'U',
-    rtd_smart_poster: 'Sp',
-    rtd_alternative_carrier: 'ac',
-    rtd_handover_carrier: 'Hc',
-    rtd_handover_request: 'Hr',
-    rtd_handover_select: 'Hs',
+    rtd_text: 0,
+    rtd_uri: 0,
+    rtd_smart_poster: 0,
+    rtd_alternative_carrier: 0,
+    rtd_handover_carrier: 0,
+    rtd_handover_request: 0,
+    rtd_handover_select: 0,
 
-    smartposter_action: 'act',
+    smartposter_action: 0,
 
     // Action Record Values:
     doAction: 0x00,
@@ -63,6 +92,16 @@
     uris: new Array(),
 
     init: function() {
+      this.rtd_text = nfc.fromUTF8('T');
+      this.rtd_uri = nfc.fromUTF8('U');
+      this.rtd_smart_poster = nfc.fromUTF8('Sp');
+      this.rtd_alternative_carrier = nfc.fromUTF8('ac');
+      this.rtd_handover_carrier = nfc.fromUTF8('Hc');
+      this.rtd_handover_request = nfc.fromUTF8('Hr');
+      this.rtd_handover_select = nfc.fromUTF8('Hs');
+
+      this.smartposter_action = nfc.fromUTF8('act');
+    
       this.uris[0x00] = '';
       this.uris[0x01] = 'http://www.';
       this.uris[0x02] = 'https://www.';
@@ -207,7 +246,7 @@
   }
 
   function launchDialer(record) {
-    var number = record.payload.substring(1);
+    var number = nfc.toUTF8(record.payload.subarray(1));
     var a = new MozActivity({
       name: 'dial',
       data: {
@@ -325,34 +364,9 @@
     return handled;
   }
 
-  function convertRawPayloadToString(ndefMsg) {
-    var records = ndefMsg.map(function(r) {
-      var type = '';
-      for (var i = 0; i < r.type.length; i++) {
-        type += String.fromCharCode(r.type[i]);
-      }
-      r.type = type;
-      debug('Type: ' + r.type);
-      var id = '';
-      for (var i = 0; i < r.id.length; i++) {
-        id += String.fromCharCode(r.id[i]);
-      }
-      r.id = id;
-      debug('id: ' + r.id);
-      var payload = '';
-      for (var i = 0; i < r.payload.length; i++) {
-        payload += String.fromCharCode(r.payload[i]);
-      }
-      r.payload = payload;
-      debug('payload: ' + r.payload);
-      return r;
-    });
-    return records;
-  }
-
   function handleNdefDiscovered(tech, session, ndefMsg) {
     debug('handleNdefDiscovered: ' + JSON.stringify(ndefMsg));
-    var records = convertRawPayloadToString(ndefMsg);
+    var records = ndefMsg;
     debug('handleNdefDiscovered: ' + JSON.stringify(records));
     var action = handleNdefMessages(records);
     if (action.length <= 0) {
@@ -477,32 +491,32 @@
 
   function handleWellKnownRecord(record) {
     debug('XXXXXXXXXXXXXXXXXXXX HandleWellKnowRecord XXXXXXXXXXXXXXXXXXXX');
-    if (record.type == nfc.rtd_text) {
+    if (nfc.equalArrays(record.type, nfc.rtd_text)) {
       return handleTextRecord(record);
-    } else if (record.type == nfc.rtd_uri) {
+    } else if (nfc.equalArrays(record.type, nfc.rtd_uri)) {
       return handleURIRecord(record);
-    } else if (record.type == nfc.rtd_smart_poster) {
+    } else if (nfc.equalArrays(record.type, nfc.rtd_smart_poster)) {
       return handleSmartPosterRecord(record);
-    } else if (record.type == nfc.smartposter_action) {
+    } else if (nfc.equalArrays(record.type, nfc.smartposter_action)) {
       return handleSmartPosterAction(record);
     } else {
-      console.log('Unknown record type: ' + record.type);
+      console.log('Unknown record type: ' + JSON.stringify(record));
     }
     return null;
   }
 
   function handleTextRecord(record) {
-    var status = record.payload.charCodeAt(0);
+    var status = record.payload[0];
     var languageLength = status & nfc.rtd_text_iana_length;
-    var language = record.payload.substring(1, languageLength + 1);
+    var language = nfc.toUTF8(record.payload.subarray(1, languageLength + 1));
     var encoding = status & nfc.rtd_text_encoding;
     var text;
     var encodingString;
     if (encoding == nfc.rtd_text_utf8) {
-      text = decodeURIComponent(
-        escape(record.payload.substring(languageLength + 1)));
+      text = nfc.toUTF8(record.payload.subarray(languageLength + 1));
       encodingString = 'UTF-8';
     } else if (encoding == nfc.rtd_text_utf16) {
+      //TODO needs to be fixed. payload is Uint8Array
       record.payload.substring(languageLength + 1);
       encodingString = 'UTF-16';
     }
@@ -523,21 +537,21 @@
   function handleURIRecord(record) {
     debug('XXXXXXXXXXXXXXX Handle Ndef URI type XXXXXXXXXXXXXXXX');
     var activityText = null;
-    var prefix = nfc.uris[record.payload.charCodeAt(0)];
+    var prefix = nfc.uris[record.payload[0]];
     if (!prefix) {
       return null;
     }
 
     if (prefix == 'tel:') {
       // handle special case
-      var number = record.payload.substring(1);
+      var number = nfc.toUTF8(record.payload.subarray(1));
       debug('XXXXXXXXXXXXXXX Handle Ndef URI type, TEL XXXXXXXXXXXXXXXX');
       activityText = {
         name: 'dial',
         data: {
           type: 'webtelephony/number',
           number: number,
-          uri: prefix + record.payload.substring(1),
+          uri: prefix + number,
           records: [record]
         }
       };
@@ -547,7 +561,7 @@
         data: {
           type: 'uri',
           rtd: record.type,
-          uri: prefix + record.payload.substring(1),
+          uri: prefix + nfc.toUTF8(record.payload.subarray(1)),
           records: [record]
         }
       };
@@ -560,7 +574,7 @@
     var activityText = null;
 
     debug('XXXXXXXXXXXXXXXXXXXX HandleMimeMedia XXXXXXXXXXXXXXXXXXXX');
-    if (record.type == 'text/vcard') {
+    if (nfc.equalArrays(record.type, 'text/vcard')) {
       activityText = handleVCardRecord(record);
     } else {
       activityText = {
@@ -593,7 +607,7 @@
   // VCARD 2.1:
   function handleVCardRecord(record) {
     var vcard = {};
-    var payload = record.payload;
+    var payload = nfc.toUTF8(record.payload);
     /**
       https://tools.ietf.org/html/rfc6350:
       name  = "SOURCE" / "KIND" / "FN" / "N" / "NICKNAME"
@@ -698,7 +712,7 @@
 
   function handleSmartPosterAction(record) {
     // The recommended action has an application specific meaning:
-    var smartaction = record.payload.charCodeAt(0);
+    var smartaction = record.payload[0];
     var activityText = {
       name: 'nfc-ndef-discovered',
       data: {
