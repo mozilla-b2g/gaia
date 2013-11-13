@@ -12,14 +12,8 @@ branches:
     - v1.0.0
     - v1.0.1
 env:
-  - CI_ACTION=gjslint
-  - CI_ACTION=test_agent
-  - CI_ACTION=marionette_js
   - CI_ACTION=gaia_ui_tests
-  - CI_ACTION=jshint
-matrix:
-  allow_failures:
-    - env: CI_ACTION=jshint
+
 notifications:
   irc:
     on_success: change
