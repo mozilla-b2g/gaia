@@ -1,35 +1,31 @@
+/*global define*/
+
 define(function(require) {
   'use strict';
 
-  /**
-   * Dependencies
-   */
-
   var View = require('view');
-
-  /**
-   * Exports
-   */
+  var bind = require('utils/event').bind;
+  var find = require('utils/find');
 
   return View.extend({
     initialize: function() {
       this.el.innerHTML = this.render();
 
       // Get elments
-      this.els.flash = this.find('.js-flash-button');
-      this.els.camera = this.find('.js-toggle-button');
+      this.els.flash = find('.js-flash-button', this.el);
+      this.els.camera = find('.js-toggle-button', this.el);
 
       // Bind events
-      this.bind(this.els.flash, 'click', this.onFlashClick);
-      this.bind(this.els.camera, 'click', this.onCameraClick);
+      bind(this.els.flash, 'click', this.onFlashClick);
+      bind(this.els.camera, 'click', this.onCameraClick);
     },
 
     onFlashClick: function() {
-      this.fire('flashToggle');
+      this.emit('flashToggle');
     },
 
     onCameraClick: function() {
-      this.fire('cameraToggle');
+      this.emit('cameraToggle');
     },
 
     render: function() {

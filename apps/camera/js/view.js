@@ -3,10 +3,6 @@
 define(function(require) {
   'use strict';
 
-  /**
-   * Dependencies
-   */
-
   var evt = require('libs/evt');
   var mixin = require('utils/mixin');
 
@@ -33,40 +29,7 @@ define(function(require) {
    */
   View.prototype = evt.mix({
     tag: 'div',
-
-    // NO-OP
     initialize: function(){},
-
-    /**
-     * addEventListener shorthand.
-     * @param  {Element}   el
-     * @param  {String}   name
-     * @param  {Function} fn
-     */
-    bind: function(el, name, fn) {
-      el.addEventListener(name, fn);
-    },
-
-    /**
-     * removeEventListener shorthand.
-     * @param  {Element}   el
-     * @param  {String}   name
-     * @param  {Function} fn
-     */
-    unbind: function(el, name, fn) {
-      el.removeEventListener(name, fn);
-    },
-
-    /**
-     * Shorthand querySelector
-     * from view module's root.
-     *
-     * @param  {String} query
-     * @return {Element|null}
-     */
-    find: function(query) {
-      return this.el.querySelector(query);
-    }
   });
 
   /**
@@ -74,25 +37,24 @@ define(function(require) {
    * class with the given
    * properties.
    *
-   * @param  {Object} props
+   * @param  {Object} properties
    * @return {Function}
    */
-  View.extend = function(props) {
-
+  View.extend = function(properties) {
     // The child class constructor
     // just calls the parent constructor
-    var Child = function(){
+    var Extended = function(){
       View.apply(this, arguments);
     };
 
     // Base the Child prototype
     // on the View's prototype.
-    Child.prototype = Object.create(View.prototype);
+    Extended.prototype = Object.create(View.prototype);
 
     // Mixin any given properties
-    mixin(Child.prototype, props);
+    mixin(Extended.prototype, properties);
 
-    return Child;
+    return Extended;
   };
 
   // Exports
