@@ -2,7 +2,7 @@
   "name": "Music2",
   "description": "Gaia Music2",
   "type": "certified",
-  "launch_path": "/index.html",
+  "launch_path": "/index.html#select-mix",
   "developer": {
     "name": "Evan Shapiro",
     "url": "https://github.com/mozilla-b2g/gaia"
@@ -40,5 +40,5 @@
     "120": "/style/icons/Music.png",
     "320": "/style/icons/320/Music.png"
   },
-  "orientation": "portrait-primary"
+  "orientation": ["portrait", "landscape"]
 }
