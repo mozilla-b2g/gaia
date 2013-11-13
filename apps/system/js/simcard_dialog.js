@@ -274,6 +274,13 @@ var SimPinDialog = {
   },
 
   onclose: null,
+
+  _visible: false,
+
+  get visible() {
+    return this._visible;
+  },
+
   /**
    * Show the SIM pin dialog
    * @param {String}   action  Name of the action to execute,
@@ -289,6 +296,7 @@ var SimPinDialog = {
     UtilityTray.hide(true);
 
     this.systemDialog.show();
+    this._visible = true;
     this.action = action;
     this.lockType = 'pin';
     switch (action) {
@@ -311,6 +319,7 @@ var SimPinDialog = {
 
   close: function spl_close(reason) {
     this.systemDialog.hide(reason);
+    this._visible = false;
   },
 
   skip: function spl_skip() {

@@ -4,12 +4,14 @@
   var DEBUG = false;
   window.LayoutManager = {
     get fullscreenHeight() {
-      return window.innerHeight - KeyboardManager.getHeight();
+      return window.innerHeight -
+        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0);
     },
 
     get usualHeight() {
-      return window.innerHeight - KeyboardManager.getHeight() -
-              SoftwareButtonManager.height - StatusBar.height;
+      return window.innerHeight -
+        (this.keyboardEnabled ? KeyboardManager.getHeight() : 0) -
+        SoftwareButtonManager.height - StatusBar.height;
     },
 
     get width() {
@@ -36,11 +38,12 @@
         case 'keyboardchange':
           if (document.mozFullScreen)
             document.mozCancelFullScreen();
-          this.keyboardEnabled = KeyboardManager.getHeight() ? true : false;
+          this.keyboardEnabled = true;
           this.publish('system-resize');
           break;
         default:
-          this.keyboardEnabled = KeyboardManager.getHeight() ? true : false;
+          if (evt.type === 'keyboardhide')
+            this.keyboardEnabled = false;
           this.publish('system-resize');
           break;
       }

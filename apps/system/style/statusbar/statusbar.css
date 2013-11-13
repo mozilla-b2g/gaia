@@ -22,6 +22,10 @@ body, html {
   -moz-user-focus: ignore;
 }
 
+#statusbar.invisible {
+  opacity: 0;
+}
+
 #screen.locked:not(.attention) #statusbar{
   background-color: transparent;
 }

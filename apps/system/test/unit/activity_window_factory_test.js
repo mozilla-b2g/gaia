@@ -5,7 +5,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'ActivityWindow', 'KeyboardManager', 'StatusBar',
       'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
       'ActivityWindowFactory', 'OrientationManager', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'BrowserMixin', 'TransitionMixin']);
+      'BrowserConfigHelper', 'System', 'BrowserMixin']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -135,7 +135,6 @@ suite('system/ActivityWindowFactory', function() {
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/window.js');
     requireApp('system/js/browser_mixin.js');
-    requireApp('system/js/transition_mixin.js');
     requireApp('system/js/activity_window.js');
     requireApp('system/js/activity_window_factory.js', done);
   });

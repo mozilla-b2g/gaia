@@ -60,12 +60,22 @@
     this.fadeOverlay = fadeOverlay;
 
     this._registerEvents();
-    this.resize();
+    this._resize();
     this.publish('rendered');
   };
 
   HomescreenWindow.prototype._registerEvents = function hw_registerEvents() {
     var self = this;
+
+    if (window.AppTransitionController) {
+      this.transitionController =
+        new AppTransitionController(this, 'zoom-out', 'zoom-in');
+    }
+
+    this.element.addEventListener('_opening', function onOpening() {
+      self.ensure();
+    });
+
     this.browser.element.addEventListener('mozbrowserclose', function(evt) {
       evt.stopImmediatePropagation();
       self.restart();
@@ -77,9 +87,6 @@
         self.restart();
       }
     });
-
-    this.element.addEventListener('animationend',
-      this._transitionHandler.bind(this));
 
     this.browser.element.addEventListener('mozbrowservisibilitychange',
       function(evt) {
@@ -160,8 +167,6 @@
     return this.element;
   };
 
-  HomescreenWindow.prototype.openAnimation = 'zoom-out';
-  HomescreenWindow.prototype.closeAnimation = 'zoom-in';
   HomescreenWindow.prototype._DEBUG = true;
 
   window.HomescreenWindow = HomescreenWindow;

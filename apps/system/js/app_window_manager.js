@@ -24,6 +24,10 @@
       return this._activeApp;
     },
 
+    getApp: function awm_getApp(origin) {
+      return this.runningApps[origin];
+    },
+
     // reference to active appWindow instance.
     _activeApp: null,
 
@@ -33,12 +37,17 @@
 
     // Switch to a different app
     display: function awm_display(origin, callback) {
+      this.debug('displaying ' + origin);
       var currentApp = this.displayedApp, newApp = origin ||
         HomescreenLauncher.origin;
 
-      if (newApp === HomescreenLauncher.origin)
+      if (newApp === HomescreenLauncher.origin) {
         HomescreenLauncher.getHomescreen();
+      } else if (currentApp === null) {
+        HomescreenLauncher.getHomescreen().setVisible(false);
+      }
 
+      this.debug(' current is ' + currentApp + '; next is ' + newApp);
       if (currentApp == newApp) {
         if (callback)
           callback();
@@ -46,27 +55,47 @@
       }
 
       var appNext = this.runningApps[newApp];
+      this.debug(appNext);
       if (!appNext)
         return;
 
       if (document.mozFullScreen) {
         document.mozCancelFullScreen();
       }
+
       screenElement.classList.remove('fullscreen-app');
 
       var appCurrent = this.runningApps[currentApp];
       var switching = appCurrent && !appCurrent.isHomescreen &&
                       !appNext.isHomescreen;
 
+      if (appCurrent && LayoutManager.keyboardEnabled) {
+        // Ask keyboard to hide before we
+        var self = this;
+        window.addEventListener('keyboardhidden', function onhiddenkeyboard() {
+          window.removeEventListener('keyboardhidden', onhiddenkeyboard);
+          self.switchApp(appCurrent, appNext, switching);
+        });
+        KeyboardManager.hideKeyboard();
+      } else {
+        this.switchApp(appCurrent, appNext, switching);
+      }
+    },
+
+    switchApp: function awm_switchApp(appCurrent, appNext, switching) {
       this.debug('before ready check');
-      appNext.readyToOpen(function() {
+      appNext.ready(function() {
         this.debug('ready to open/close');
         if (switching)
           HomescreenLauncher.getHomescreen().fadeOut();
-        appNext.open(switching ? 'invoked' : null);
-        if (appCurrent)
-          appCurrent.close(switching ? 'invoking' : null);
-        this._updateActiveApp(newApp);
+        this._updateActiveApp(appNext.isHomescreen ?
+          HomescreenLauncher.origin : appNext.origin);
+        appNext.open((switching === true) ? 'invoked' : null);
+        if (appCurrent) {
+          appCurrent.close((switching === true) ? 'invoking' : null);
+        } else {
+          this.debug('No current running app!');
+        }
       }.bind(this));
     },
 
@@ -85,10 +114,9 @@
       window.addEventListener('appterminated', this);
       window.addEventListener('ftuskip', this);
       window.addEventListener('appopened', this);
-      window.addEventListener('appopening', this);
-      window.addEventListener('homescreenopening', this);
       window.addEventListener('apprequestopen', this);
       window.addEventListener('apprequestclose', this);
+      window.addEventListener('homescreenopened', this);
       window.addEventListener('reset-orientation', this);
       window.addEventListener('homescreencreated', this);
       window.addEventListener('homescreen-changed', this);
@@ -121,7 +149,9 @@
     handleEvent: function awm_handleEvent(evt) {
       switch (evt.type) {
         case 'system-resize':
+          this.debug(' Resizing...');
           if (this._activeApp) {
+            this.debug(' Resizing ' + this._activeApp.name);
             this._activeApp.resize();
           }
           break;
@@ -162,16 +192,12 @@
           break;
 
         case 'appopened':
+        case 'homescreenopened':
           // Someone else may open the app,
           // so we need to update active app.
-          this._updateActiveApp(evt.detail.origin);
-          break;
-
-        case 'appopening':
-          if (evt.detail.rotatingDegree === 90 ||
-              evt.detail.rotatingDegree === 270) {
-            HomescreenLauncher.getHomescreen().fadeOut();
-          }
+          this._updateActiveApp(evt.detail.isHomescreen ?
+            HomescreenLauncher.origin :
+            evt.detail.origin);
           break;
 
         case 'homescreencreated':
@@ -188,6 +214,7 @@
 
         case 'displayapp':
         case 'apprequestopen':
+          this.debug(evt.type, '========>');
           this.display(evt.detail.origin);
           break;
 
@@ -247,7 +274,7 @@
               // there is an attention screen and delegate the
               // responsibility to blur the possible focused elements
               // itself.
-              app.setVisible(false);
+              app.setVisible(false, true);
             } else {
               app.blur();
             }
@@ -270,9 +297,11 @@
             // to relaunch to activity caller, and this is the only way to
             // determine if we are going to homescreen or the original app.
 
+            this.debug('back to home.');
             this.display(HomescreenLauncher.origin);
           } else {
             // dispatch event to close activity.
+            this.debug('ensure home.');
             HomescreenLauncher.getHomescreen().ensure(true);
           }
           break;
@@ -305,7 +334,6 @@
             // XXX: We could ended opening URls not for the app frame
             // in the app frame. But we don't care.
             new AppWindow(config);
-            debugger;
           } else {
             HomescreenLauncher.getHomescreen().ensure();
           }
@@ -320,7 +348,6 @@
           if (!this.runningApps[config.origin]) {
             new AppWindow(config);
           }
-          debugger;
           this.display(config.origin);
         }
 
@@ -360,13 +387,19 @@
     _updateActiveApp: function awm__changeActiveApp(origin) {
       this.displayedApp = origin;
       this._activeApp = this.runningApps[this.displayedApp];
+      this.debug(origin + this._activeApp.isFullScreen());
+      if (this._activeApp.isFullScreen()) {
+        screenElement.classList.add('fullscreen-app');
+      } else {
+        screenElement.classList.remove('fullscreen-app');
+      }
       this.debug('=== Active app now is: ',
         this._activeApp.name || this._activeApp.origin, '===');
     },
 
     broadcastMessage: function awm_broadcastMessage(message, detail) {
       for (var id in this.runningApps) {
-        this.runningApps[id]._publish(message, detail);
+        this.runningApps[id].broadcast(message, detail);
       }
     }
   };

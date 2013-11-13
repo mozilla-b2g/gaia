@@ -4,7 +4,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
       'HomescreenWindow', 'KeyboardManager', 'StatusBar',
       'SoftwareButtonManager', 'AttentionScreen', 'OrientationManager',
-      'AppWindow', 'TransitionMixin', 'BrowserFrame', 'BrowserConfigHelper']);
+      'AppWindow', 'BrowserFrame', 'BrowserConfigHelper', 'BrowserMixin']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -62,7 +62,7 @@ suite('system/HomescreenWindow', function() {
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/orientation_manager.js');
     requireApp('system/js/window.js');
-    requireApp('system/js/transition_mixin.js');
+    requireApp('system/js/browser_mixin.js');
     requireApp('system/js/homescreen_window.js', done);
   });
 

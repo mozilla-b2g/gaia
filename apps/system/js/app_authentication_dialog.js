@@ -4,21 +4,12 @@
   var _id = 0;
   window.AppAuthenticationDialog = function AppAuthenticationDialog(app) {
     this.app = app;
+    this.events = [];
+    this.elements = {};
     this.containerElement = app.element;
     this.instanceID = _id++;
     this.app.element.addEventListener('mozbrowserusernameandpasswordrequired',
-      function onrequired(evt) {
-        evt.preventDefault();
-        if (!this.events) {
-          this.events = [];
-        }
-        this.events.push(evt);
-        if (!this._injected) {
-          this.render();
-        }
-        this.show();
-        this._injected = true;
-      }.bind(this));
+      this);
   };
 
   AppAuthenticationDialog.prototype.__proto__ = window.BaseUI.prototype;
@@ -39,23 +30,33 @@
   // Get all elements when inited.
   AppAuthenticationDialog.prototype.getAllElements =
     function aad_getAllElements() {
-      var elementsID = [
-        'http-authentication', 'http-username-input', 'http-password-input',
-        'http-authentication-message', 'http-authentication-ok',
-        'http-authentication-cancel', 'title'
-      ];
-
       var toCamelCase = function toCamelCase(str) {
         return str.replace(/\-(.)/g, function replacer(str, p1) {
           return p1.toUpperCase();
         });
       };
 
-      elementsID.forEach(function createElementRef(name) {
+      this.elementClasses = [
+        'http-authentication', 'http-username-input', 'http-password-input',
+        'http-authentication-message', 'http-authentication-ok',
+        'http-authentication-cancel', 'title'
+      ];
+
+      this.elementClasses.forEach(function createElementRef(name) {
         this.elements[toCamelCase(name)] =
           this.element.querySelector('.' + this.ELEMENT_PREFIX + name);
       }, this);
     };
+
+  AppAuthenticationDialog.prototype.handleEvent = function(evt) {
+    evt.preventDefault();
+    this.events.push(evt);
+    if (!this._injected) {
+      this.render();
+    }
+    this.show();
+    this._injected = true;
+  };
 
   AppAuthenticationDialog.prototype._registerEvents =
     function aad__registerEvents() {
@@ -63,6 +64,13 @@
         addEventListener('click', this.confirmHandler.bind(this));
       this.elements['httpAuthenticationCancel'].
         addEventListener('click', this.cancelHandler.bind(this));
+    };
+
+  AppAuthenticationDialog.prototype._unregisterEvents =
+    function aad__unregisterEvents() {
+      this.app.element.removeEventListener(
+        'mozbrowserusernameandpasswordrequired',
+        this);
     };
 
   AppAuthenticationDialog.prototype.show = function aad_show() {

@@ -763,10 +763,10 @@ var LockScreen = {
 
   unlock: function ls_unlock(instant, detail) {
     // This file is loaded before the Window Manager in order to intercept
-    // hardware buttons events. As a result WindowManager is not defined when
+    // hardware buttons events. As a result AppWindowManager is not defined when
     // the device is turned on and this file is loaded.
-    var app = 'WindowManager' in window ?
-      WindowManager.getCurrentActiveAppWindow() : null;
+    var app = 'AppWindowManager' in window ?
+      AppWindowManager.getActiveApp() : null;
 
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
@@ -827,7 +827,6 @@ var LockScreen = {
       this.overlay.classList.remove('no-transition');
 
     this.mainScreen.classList.add('locked');
-    console.log('alive', OrientationManager.defaultOrientation);
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     if (!wasAlreadyLocked) {

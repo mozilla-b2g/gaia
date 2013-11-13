@@ -376,7 +376,7 @@ suite('system/AppWindowManager', function() {
       AppWindowManager._activeApp = null;
       app = new AppWindow(fakeFTUConfig);
       AppWindowManager.runningApps[fakeFTUConfig.origin] = app;
-      var stubReady = this.sinon.stub(app, 'readyToOpen');
+      var stubReady = this.sinon.stub(app, 'ready');
       stubReady.callsArg(0);
       AppWindowManager.display(fakeFTUConfig.origin);
       assert.equal(AppWindowManager.displayedApp, fakeFTUConfig.origin);
@@ -387,7 +387,7 @@ suite('system/AppWindowManager', function() {
       injectRunningApps(app1, app2);
       AppWindowManager.displayedApp = app1.origin;
       AppWindowManager._activeApp = app1;
-      var stubReady = this.sinon.stub(app2, 'readyToOpen');
+      var stubReady = this.sinon.stub(app2, 'ready');
       var stubFadeout = this.sinon.stub(home, 'fadeOut');
       stubReady.callsArg(0);
       AppWindowManager.display(app2.origin);
@@ -399,13 +399,13 @@ suite('system/AppWindowManager', function() {
   suite('BroadcastMessage', function() {
     test('fake message', function() {
       injectRunningApps(app1, app2, app3);
-      var stubApp1_Publish = this.sinon.stub(app1, '_publish');
-      var stubApp2_Publish = this.sinon.stub(app2, '_publish');
-      var stubApp3_Publish = this.sinon.stub(app3, '_publish');
+      var stubApp1broadcast = this.sinon.stub(app1, 'broadcast');
+      var stubApp2broadcast = this.sinon.stub(app2, 'broadcast');
+      var stubApp3broadcast = this.sinon.stub(app3, 'broadcast');
       AppWindowManager.broadcastMessage('fake-message');
-      assert.isTrue(stubApp1_Publish.called);
-      assert.isTrue(stubApp2_Publish.calledWith('fake-message', undefined));
-      assert.isTrue(stubApp3_Publish.calledWith('fake-message', undefined));
+      assert.isTrue(stubApp1broadcast.called);
+      assert.isTrue(stubApp2broadcast.calledWith('fake-message', undefined));
+      assert.isTrue(stubApp3broadcast.calledWith('fake-message', undefined));
     });
   });
 

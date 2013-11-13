@@ -6,7 +6,7 @@ mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'SoftwareButtonManager', 'AttentionScreen',
       'OrientationManager', 'SettingsListener']);
 
-mocha.globals(['AppWindow', 'BrowserMixin', 'TransitionMixin',
+mocha.globals(['AppWindow', 'BrowserMixin',
   'System', 'BrowserFrame', 'BrowserConfigHelper']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
@@ -77,7 +77,6 @@ suite('system/ActivityWindow', function() {
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/window.js');
     requireApp('system/js/brower_mixin.js');
-    requireApp('system/js/transition_mixin.js');
     requireApp('system/js/activity_window.js', done);
   });
 

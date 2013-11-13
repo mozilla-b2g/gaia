@@ -165,18 +165,6 @@
 }
 
 /* Level 8 */
-<<<<<<< HEAD
-#screen.switch-app [data-z-index-level="app"] > .appWindow.opening {
-  z-index: 7;
-}
-
-#screen.switch-app [data-z-index-level="app"] > .appWindow.closing,
-#screen.switch-app [data-z-index-level="app"] > .appWindow:not(.homescreen).active {
-  z-index: 6;
-}
-
-=======
->>>>>>> 7066784... Bug 907013 Implement AppWindowManager + AppChrome
 #screen > [data-z-index-level="app"] {
   /**
    * Should not specify z-index here
@@ -194,15 +182,19 @@
  * - finally, everything else needs to be on top of them (hence the lowest nums)
  */
 #screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="top-app"] {
-  z-index: 7;
+  z-index: 8;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.transition-opening:not(.homescreen) {
-  z-index: 6;
+  z-index: 7;
 }
 
 #screen > [data-z-index-level="app"] > .appWindow.active:not(.homescreen),
 #screen > [data-z-index-level="app"] > .appWindow.transition-closing:not(.homescreen) {
+  z-index: 6;
+}
+
+#screen > [data-z-index-level="app"] > .appWindow[data-z-index-level="bottom-app"] {
   z-index: 5;
 }
 

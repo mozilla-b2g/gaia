@@ -16,7 +16,7 @@
 
     blur: function bm_blur() {
       if (this.browser.element) {
-        this.browser.element.focus();
+        this.browser.element.blur();
       }
     },
 

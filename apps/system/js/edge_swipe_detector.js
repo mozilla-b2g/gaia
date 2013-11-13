@@ -83,7 +83,7 @@ var EdgeSwipeDetector = {
     this._touchStartEvt = e;
     this._startDate = Date.now();
 
-    this._iframe = StackManager.getCurrent().iframe;
+    this._iframe = StackManager.getCurrent().browser.element;
 
     var touch = e.changedTouches[0];
     this._startX = touch.screenX;

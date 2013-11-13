@@ -28,6 +28,7 @@ var MockAppWindowManager = {
   },
 
   kill: function mawm_kill(origin) {
+    this.mLastKilledOrigin = origin;
   },
 
   mTeardown: function mawm_mTeardown() {

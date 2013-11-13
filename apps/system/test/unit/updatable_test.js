@@ -5,18 +5,18 @@ requireApp('system/js/updatable.js');
 requireApp('system/test/unit/mock_app.js');
 requireApp('system/test/unit/mock_asyncStorage.js');
 requireApp('system/test/unit/mock_update_manager.js');
-requireApp('system/test/unit/mock_window_manager.js');
+requireApp('system/test/unit/mock_app_window_manager.js');
 requireApp('system/test/unit/mock_apps_mgmt.js');
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_custom_dialog.js');
 requireApp('system/test/unit/mock_utility_tray.js');
-requireApp('shared/test/unit/mocks/mock_manifest_helper.js');
+requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 
 
 var mocksHelperForUpdatable = new MocksHelper([
   'CustomDialog',
   'UpdateManager',
-  'WindowManager',
+  'AppWindowManager',
   'UtilityTray',
   'ManifestHelper',
   'asyncStorage'
@@ -139,7 +139,7 @@ suite('system/Updatable', function() {
       });
 
       test('should kill the app if downloaded', function() {
-        assert.equal(MockWindowManager.mLastKilledOrigin, mockApp.origin);
+        assert.equal(MockAppWindowManager.mLastKilledOrigin, mockApp.origin);
       });
     });
 
@@ -344,7 +344,7 @@ suite('system/Updatable', function() {
         suite('application of the download', function() {
           test('should apply if the app is not in foreground', function() {
             mockApp.mTriggerDownloadAvailable();
-            MockWindowManager.mDisplayedApp =
+            MockAppWindowManager.mDisplayedApp =
               'http://homescreen.gaiamobile.org';
             mockApp.mTriggerDownloadSuccess();
             assert.isNotNull(MockAppsMgmt.mLastAppApplied);
@@ -354,7 +354,7 @@ suite('system/Updatable', function() {
           test('should wait for appwillclose if it is', function() {
             var origin = 'http://testapp.gaiamobile.org';
             mockApp.origin = origin;
-            MockWindowManager.mDisplayedApp = origin;
+            MockAppWindowManager.mDisplayedApp = origin;
 
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
@@ -373,7 +373,7 @@ suite('system/Updatable', function() {
             mockApp.mTriggerDownloadAvailable();
             mockApp.mTriggerDownloadSuccess();
             assert.equal('https://testapp.gaiamobile.org',
-                         MockWindowManager.mLastKilledOrigin);
+                         MockAppWindowManager.mLastKilledOrigin);
           });
         });
       });

@@ -127,13 +127,20 @@ var StatusBar = {
   get height() {
     if (this.screen.classList.contains('active-statusbar')) {
       return this.attentionBar.offsetHeight;
-    } else if (this.screen.classList.contains('fullscreen-app') ||
-        document.mozFullScreen) {
+    } else if (document.mozFullScreen) {
       return 0;
     } else {
       return this._cacheHeight ||
              (this._cacheHeight = this.element.getBoundingClientRect().height);
     }
+  },
+
+  show: function sb_show() {
+    this.element.classList.remove('invisible');
+  },
+
+  hide: function sb_hide() {
+    this.element.classList.add('invisible');
   },
 
   init: function sb_init() {
@@ -210,12 +217,23 @@ var StatusBar = {
     window.addEventListener('unlock', this);
     window.addEventListener('lockpanelchange', this);
 
+    window.addEventListener('appopened', this);
+    window.addEventListener('homescreenopened', this.show.bind(this));
+
     this.systemDownloadsCount = 0;
     this.setActive(true);
   },
 
   handleEvent: function sb_handleEvent(evt) {
     switch (evt.type) {
+      case 'appopened':
+        var app = evt.detail;
+        if (app.isFullScreen()) {
+          this.hide();
+        } else {
+          this.show();
+        }
+        break;
       case 'screenchange':
         this.setActive(evt.detail.screenEnabled);
         break;

@@ -570,6 +570,8 @@ var KeyboardManager = {
 
       self._debug('hideKeyboard display transitionend');
 
+      window.dispatchEvent(new CustomEvent('keyboardhidden'));
+
       // prevent destroying the keyboard when we're not hidden anymore
       if (!self.keyboardFrameContainer.classList.contains('hide')) {
         return;

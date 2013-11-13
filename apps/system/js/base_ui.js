@@ -9,9 +9,11 @@
   BaseUI.prototype.EVENT_PREFIX = 'base-';
 
   BaseUI.prototype.render = function bu_render() {
+    this.publish('willrender');
     this.containerElement.insertAdjacentHTML('beforeend', this.view());
     this._fetchElements();
     this._registerEvents();
+    this.publish('rendered');
   };
 
   BaseUI.prototype._registerEvents = function bu__registerEvents() {
@@ -48,6 +50,23 @@
   // Override me. Human readable ID.
   BaseUI.prototype.customID = function bu_customID() {
     return '';
+  };
+
+  /**
+   * Overwrite me if you need to unregister event handlers.
+   */
+  BaseUI.prototype._unregisterEvents = function bu__unregisterEvents() {
+
+  };
+
+  BaseUI.prototype.destroy = function bu_destroy() {
+    this.publish('willdestroy');
+    this._unregisterEvents();
+    if (this.element) {
+      this.element.parentNode.removeChild(this.element);
+      this.element = null;
+    }
+    this.publish('destroyed');
   };
 
   BaseUI.prototype.debug = function bu_debug(msg) {

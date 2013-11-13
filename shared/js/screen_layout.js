@@ -48,7 +48,7 @@ var ScreenLayout = {
     // is to detect screen size.
     // The screen size of b2g running on real device
     // is the same as the size of system app.
-    if (window.innerWidth === screen.width) {
+    if (window.innerWidth === screen.availWidth) {
       this._isOnRealDevice = true;
     } else {
       this._isOnRealDevice = false;

@@ -139,7 +139,7 @@ var TrustedUIManager = {
   },
 
   _hideCallerApp: function trui_hideCallerApp(origin, callback) {
-    var app = WindowManager.getRunningApps()[origin];
+    var app = AppWindowManager.getApp(origin);
     if (app == null || app.isHomescreen) {
       return;
     }

@@ -16,6 +16,9 @@
     border-radius: 0.8rem;
   */
 
+  width: 100%;
+  height: 100%;
+
   background-repeat: no-repeat;
   background-position: center center;
 }
@@ -24,6 +27,10 @@
   #screen:not(.software-button-disabled) > #windows > .appWindow {
     bottom: 5rem;
   }
+}
+
+.appWindow[transition-state="closed"]:not(.fadeout):not(.homescreen) {
+  opacity: 0;
 }
 
 #screen.software-button-enabled #windows > .appWindow {
@@ -37,10 +44,6 @@
 #windows > .appWindow:not(.homescreen).render {
   background-image: none !important;
   background-color: transparent;
-}
-
-#windows > .appWindow:not(.homescreen):not(.active):not(.transition-opening):not(.transition-closing) {
-  opacity: 0;
 }
 
 .appWindow > iframe {
@@ -92,23 +95,15 @@
 
 .appWindow.enlarge {
   pointer-events: auto;
-  animation: openApp 0.3s forwards ease;
+  animation: openApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #windows > .appWindow.transition-closing.perpendicular {
   animation-duration: 0.1s;
 }
 
-#windows.slow-transition > .appWindow.transition-opening {
-  animation-duration: 3s;
-}
-
 #windows > .appWindow.from-cardview {
-  animation: openAppFromCardView 0.15s forwards ease;
-}
-
-#windows.slow-transition > .appWindow.from-cardview {
-  animation-duration: 1.5s;
+  animation: openAppFromCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Opacity increases start up time then we don't use it anymore for opening */
@@ -119,11 +114,7 @@
 
 #windows > .appWindow.zoom-in {
   transform: scale(1);
-  animation: zoom-in 0.3s forwards ease;
-}
-
-#windows.slow-transition > .appWindow.zoom-in {
-  animation-duration: 3s;
+  animation: zoom-in 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-in {
@@ -136,31 +127,12 @@
   100% { transform: scale(1.0); }
 }
 
-#screen.switch-app > #windows > .appWindow.opening > iframe {
-  /* The background is defined for invoked apps because we don't have the
-     splash screen available at this point */
-  background-attachment: scroll, scroll;
-  background-clip: border-box, border-box;
-  background-color: transparent;
-  background-image: url("../themes/default/images/images/ui/pattern.png"),
-                    url("../themes/default/images/ui/gradient.png");
-  background-origin: padding-box, padding-box;
-  background-position: left top, left top;
-  background-repeat: repeat, no-repeat;
-  background-size: auto auto, 100% 100%;
-}
-
 .appWindow.invoked {
-  animation: invokedApp 0.6s forwards ease-out;
+  animation: invokedApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 .appWindow.invoking {
-  animation: invokingApp 0.6s forwards ease-out;
-}
-
-#windows.slow-transition > .appWindow.transition-opening,
-#windows.slow-transition > .appWindow.transition-closing {
-  animation-duration: 6s;
+  animation: invokingApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Invoking app moves out */
@@ -183,41 +155,30 @@
 }
 
 #windows > .appWindow.reduce {
-  animation: closeApp 0.3s forwards ease;
+  animation: closeApp 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #windows > .appWindow.transition-closing.perpendicular {
   animation-duration: 0.1s;
 }
 
-#windows.slow-transition > .appWindow.transition-closing {
-  animation-duration: 3s;
-}
-
 #windows > .appWindow.zoom-out {
   transform: scale(1.8);
-  animation: zoom-out 0.3s forwards ease;
-}
-
-#windows.slow-transition > .appWindow.zoom-out {
-  animation-duration: 3s;
+  animation: zoom-out 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes zoom-out {
-  0%   { transform: scale(1.8); }
-  100% { transform: scale(1); }
+  0%   { transform: scale(1.8);}
+  100% { transform: scale(1);}
 }
 
 #windows > .appWindow.to-cardview {
-  animation: closeAppTowardsCardView 0.15s forwards ease;
-}
-
-#windows.slow-transition > .appWindow.to-cardview {
-  animation: closeAppTowardsCardView 1.5s forwards ease;
+  animation: closeAppTowardsCardView 0.15s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 /* Prebuild width/height */
-#screen:not(.fullscreen-app):not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow:not(.fullscreen-app) {
+#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow:not(.fullscreen-app),
+.appWindow.homescreen {
   top: 2rem;
   height: calc(100% - 2rem);
   width: 100%;
@@ -249,8 +210,8 @@
 }
 
 @keyframes closeApp {
-  0%   { transform: scale(1.0); opacity: 1; }
-  100% { transform: scale(0.1); opacity: 0; }
+  0%   { transform: scale(1.0);}
+  100% { transform: scale(0.1);}
 }
 
 @keyframes closeAppTowardsCardView {
@@ -259,13 +220,13 @@
 }
 
 .appWindow.back {
-  transition: transform 0.25s ease, visibility 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0), visibility 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
   transform: scale(0.86);
 }
 
 .appWindow.restored {
   transform: none;
-  transition: transform 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #screen > #windows > .appWindow.fullscreen-app {
@@ -380,11 +341,11 @@
 /* animation */
 
 #windows > .activityWindow.slideleft {
-  animation: slideLeft 0.3s forwards ease-out;
+  animation: slideLeft 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 #windows > .activityWindow.slideright {
-  animation: slideRight 0.3s forwards ease-out;
+  animation: slideRight 0.3s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
 }
 
 @keyframes slideLeft {
@@ -396,4 +357,20 @@
   0%   { transform: translateX(0) scale(1.0); }
   100% { transform: translateX(100%) scale(1.0); }
 
+}
+
+/* Edges */
+#windows > .appWindow.inside-edges {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+#windows > .appWindow.outside-edges-left {
+  opacity: 1;
+  transform: translateX(-20%);
+}
+
+#windows > .appWindow.outside-edges-right {
+  opacity: 1;
+  transform: translateX(100%);
 }

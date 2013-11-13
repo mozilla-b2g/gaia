@@ -66,7 +66,7 @@
         // already running with this url.
         if (origin in runningApps &&
             runningApps[origin].windowName == '_blank') {
-          AppWindowManager.display(origin);
+          this.publish('displayapp', { origin: origin });
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
@@ -75,11 +75,11 @@
         if (runningApp && runningApp.windowName === name) {
           if (runningApp.iframe.src === url) {
             // If the url is already loaded, just display the app
-            AppWindowManager.display(origin);
+            this.publish('displayapp', { origin: origin });
             return;
           } else {
             // Wrapper context shouldn't be shared between two apps -> killing
-            AppWindowManager.kill(origin);
+            this.publish('killapp', { origin: origin });
           }
         }
       }
@@ -101,8 +101,10 @@
       var app = AppWindowManager.runningApps[config.origin];
       var iframe;
       if (!app) {
-        config.hasNavigation = true;
-        config.hasTitle = false;
+        config.chrome = {
+          navigation: true,
+          rocketbar: false
+        };
         app = new AppWindow(config);
       } else {
         iframe = app.iframe;
@@ -113,7 +115,7 @@
         app.manifest.name = config.title;
       }
 
-      AppWindowManager.display(config.origin);
+      this.publish('displayapp', { origin: config.origin });
     },
 
     hasPermission: function wf_hasPermission(app, permission) {
@@ -152,8 +154,7 @@
     },
 
     publish: function wf_publish(event, detail) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent(event, true, false, detail);
+      var evt = new CustomEvent(event, { detail: detail });
       window.dispatchEvent(evt);
     }
   };

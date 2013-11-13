@@ -25,6 +25,19 @@ suite('system/AppAuthenticationDialog', function() {
     stubById.restore();
   });
 
+  var toCamelCase = function toCamelCase(str) {
+    return str.replace(/\-(.)/g, function replacer(str, p1) {
+      return p1.toUpperCase();
+    });
+  };
+
+  function renderFakeElements(ad) {
+    ad.element = document.createElement('div');
+    ad.elementClasses.forEach(function createElementRef(name) {
+      md.elements[toCamelCase(name)] = document.createElement('div');
+    });
+  };
+
   var fakeAppConfig1 = {
     url: 'app://www.fake/index.html',
     manifest: {},
@@ -33,7 +46,7 @@ suite('system/AppAuthenticationDialog', function() {
   };
 
   test('new', function() {
-    var app = new AppWindow(fakeAppConfig1);
-    var auth = new AppAuthenticationDialog(app);
+    var app1 = new AppWindow(fakeAppConfig1);
+    var auth1 = new AppAuthenticationDialog(app1);
   });
 });

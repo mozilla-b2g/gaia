@@ -16,6 +16,7 @@
     if (caller) {
       caller.setActivityCallee(this);
       this.activityCaller = caller;
+      // TODO: Put us inside the caller element.
     }
 
     this.render();
@@ -79,9 +80,13 @@
   };
 
   ActivityWindow.prototype._registerEvents = function acw__registerEvents() {
-    this.element.
-      addEventListener('animationend', this._transitionHandler.bind(this));
-
+    if (window.AppTransitionController) {
+      this.transitionController =
+        new AppTransitionController(this, 'slideleft', 'slideright');
+    }
+    this.element.addEventListener('_closed', this.restoreCaller.bind(this));
+    this.element.addEventListener('_opened',
+      this._ActivityWindow_opened.bind(this));
     this.element.addEventListener('mozbrowseractivitydone',
       this.kill.bind(this));
     this.element.addEventListener('mozbrowserclose', this.kill.bind(this));
@@ -123,7 +128,7 @@
         self.element.addEventListener('_closed', onClose);
         self.publish('terminated');
         // If caller is an instance of appWindow,
-        // tell WindowManager to open it.
+        // tell AppWindowManager to open it.
         // XXX: Call this.activityCaller.open() if open logic is done.
         if (self.activityCallee) {
           self.activityCallee.kill();
@@ -218,10 +223,6 @@
     }
   };
 
-  // Config TransitionMixin of ActivityWindow.
-  ActivityWindow.prototype._transitionTimeout = 300;
-  ActivityWindow.prototype.openAnimation = 'slideleft';
-  ActivityWindow.prototype.closeAnimation = 'slideright';
   ActivityWindow.prototype._ActivityWindow_opened =
     function acw__ActivityWindow_opened() {
       var app = this.activityCaller;
@@ -246,11 +247,6 @@
       }
       if (this.openCallback)
         this.openCallback();
-    };
-
-  ActivityWindow.prototype._ActivityWindow_closing =
-    function _ActivityWindow_closing() {
-      this.restoreCaller();
     };
 
   window.ActivityWindow = ActivityWindow;

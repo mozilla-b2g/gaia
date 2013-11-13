@@ -2,10 +2,11 @@
 
 mocha.globals(['SettingsListener', 'removeEventListener', 'addEventListener',
       'dispatchEvent', 'WindowManager', 'Applications', 'ManifestHelper',
-      'KeyboardManager', 'StatusBar', 'BrowserMixin', 'TransitionMixin',
-      'SoftwareButtonManager', 'AttentionScreen', 'AppWindow',
+      'KeyboardManager', 'StatusBar', 'BrowserMixin',
+      'SoftwareButtonManager', 'AppWindow',
       'OrientationManager', 'SettingsListener', 'BrowserFrame',
-      'BrowserConfigHelper', 'System', 'LayoutManager']);
+      'BrowserConfigHelper', 'System', 'LayoutManager',
+      'AppTransitionController']);
 
 requireApp('system/test/unit/mock_orientation_manager.js');
 requireApp('system/test/unit/mock_statusbar.js');
@@ -14,11 +15,10 @@ requireApp('system/test/unit/mock_keyboard_manager.js');
 requireApp('system/shared/test/unit/mocks/mock_manifest_helper.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/test/unit/mock_applications.js');
-requireApp('system/test/unit/mock_attention_screen.js');
 requireApp('system/test/unit/mock_layout_manager.js');
 
 new MocksHelper([
-  'OrientationManager', 'AttentionScreen',
+  'OrientationManager',
   'Applications', 'SettingsListener', 'SoftwareButtonManager',
   'ManifestHelper', 'KeyboardManager', 'StatusBar', 'LayoutManager'
 ]).init().attachTestHelpers();
@@ -34,8 +34,7 @@ suite('system/AppWindow', function() {
     requireApp('system/js/browser_config_helper.js');
     requireApp('system/js/browser_frame.js');
     requireApp('system/js/window.js');
-    requireApp('system/js/browser_mixin.js');
-    requireApp('system/js/transition_mixin.js', done);
+    requireApp('system/js/browser_mixin.js', done);
   });
 
   teardown(function() {
@@ -112,19 +111,19 @@ suite('system/AppWindow', function() {
     test('Send message to appChrome: w/o keyboard', function() {
       MockLayoutManager.keyboardEnabled = false;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
-      var stub_publish = this.sinon.stub(app1, '_publish');
+      var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
       app1.resize();
-      assert.isTrue(stub_publish.calledWith('withoutkeyboard'));
+      assert.isTrue(stubbroadcast.calledWith('withoutkeyboard'));
     });
 
     test('Send message to appChrome: w/ keyboard', function() {
       MockLayoutManager.keyboardEnabled = true;
       var stubIsActive = this.sinon.stub(app1, 'isActive');
-      var stub_publish = this.sinon.stub(app1, '_publish');
+      var stubbroadcast = this.sinon.stub(app1, 'broadcast');
       stubIsActive.returns(true);
       app1.resize();
-      assert.isTrue(stub_publish.calledWith('withkeyboard'));
+      assert.isTrue(stubbroadcast.calledWith('withkeyboard'));
     });
   });
 
@@ -234,6 +233,7 @@ suite('system/AppWindow', function() {
         this.sinon.stub(MockOrientationManager, 'fetchCurrentOrientation');
       stubCurrentOrientation.returns('portrait-primary');
       var app1 = new AppWindow(fakeAppConfig1);
+      var angle1 = app1.determineClosingRotationDegree();
       assert.equal(angle1, 0);
 
       stubCurrentOrientation.returns('portrait-secondary');
@@ -274,25 +274,7 @@ suite('system/AppWindow', function() {
 
   suite('Screenshots', function() {
     test('getScreenshot', function() {
-
-    });
-  });
-
-  suite('Transitions', function() {
-    test('open', function() {
-      // Hack querySelector
       var app1 = new AppWindow(fakeAppConfig1);
-      var stubQuerySelector = this.sinon.stub(app1.element, 'querySelector');
-      stubQuerySelector.returns(document.createElement('div'));
-      assert.equal(app1._transitionState, 'closed');
-      app1.open();
-      assert.equal(app1._transitionState, 'opening');
-      clock.tick(500);
-      assert.equal(app1._transitionState, 'opened');
-      app1.close();
-      assert.equal(app1._transitionState, 'closing');
-      clock.tick(500);
-      assert.equal(app1._transitionState, 'closed');
     });
   });
 
@@ -314,5 +296,53 @@ suite('system/AppWindow', function() {
       assert.isTrue(app1f.isFullScreen());
       assert.isTrue(app1f.element.classList.contains('fullscreen-app'));
     });
+  });
+
+  test('Open', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var fakeTransitionController = {
+      requireOpen: function() {},
+      requireClose: function() {}
+    };
+    app1.transitionController = fakeTransitionController;
+    var stubRequireOpen =
+      this.sinon.stub(fakeTransitionController, 'requireOpen');
+    app1.open();
+    assert.isTrue(stubRequireOpen.called);
+    app1.open('Orz');
+    assert.isTrue(stubRequireOpen.calledWith('Orz'));
+  });
+
+  test('Close', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var fakeTransitionController = {
+      requireOpen: function() {},
+      requireClose: function() {}
+    };
+    app1.transitionController = fakeTransitionController;
+    var stubRequireClose =
+      this.sinon.stub(fakeTransitionController, 'requireClose');
+    app1.close();
+    assert.isTrue(stubRequireClose.called);
+    app1.close('XD');
+    assert.isTrue(stubRequireClose.calledWith('XD'));
+  });
+
+  test('publish', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var stubbroadcast = this.sinon.stub(app1, 'broadcast');
+    var stubDispatchEvent = this.sinon.stub(window, 'dispatchEvent');
+    app1.publish('I-hate-you');
+    assert.isTrue(stubDispatchEvent.called);
+    assert.equal(stubDispatchEvent.getCall(0).args[0].type, 'appI-hate-you');
+    assert.isTrue(stubbroadcast.calledWith('I-hate-you'));
+  });
+
+  test('broadcast', function() {
+    var app1 = new AppWindow(fakeAppConfig1);
+    var stubDispatchEvent = this.sinon.stub(app1.element, 'dispatchEvent');
+    app1.broadcast('I-love-you');
+    assert.isTrue(stubDispatchEvent.called);
+    assert.equal(stubDispatchEvent.getCall(0).args[0].type, '_I-love-you');
   });
 });

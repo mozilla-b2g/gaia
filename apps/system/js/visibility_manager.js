@@ -1,10 +1,13 @@
 (function(window) {
+  var DEBUG = false;
   // When an UI layer is overlapping the current app,
   // WindowManager should set the visibility of app iframe to false
   // And reset to true when the layer is gone.
   // We may need to handle windowclosing, windowopened in the future.
   var VisibilityManager = {
     _attentionScreenTimer: null,
+
+    _normalAudioChannelActive: false,
 
     _deviceLockedTimer: 0,
 
@@ -44,6 +47,8 @@
           // If the audio is active, the app should not set non-visible
           // otherwise it will be muted.
           // TODO: Remove this hack.
+          this.debug('locking, hide the whole windows',
+            this._normalAudioChannelActive);
           if (!this._normalAudioChannelActive) {
             this.publish('hidewindow', { screenshoting: false });
           }
@@ -82,6 +87,8 @@
             }
 
             this._normalAudioChannelActive = (evt.detail.channel === 'normal');
+            this.debug('Normal AudioChannel changes to ',
+              evt.detail.channel, this._normalAudioChannelActive);
           }
           break;
       }
@@ -95,9 +102,17 @@
     },
 
     publish: function vm_publish(eventName, detail) {
-      var evt = document.createEvent('CustomEvent');
-      evt.initCustomEvent(eventName, true, false, detail);
+      this.debug('publishing: ', eventName);
+      var evt = new CustomEvent(eventName, { detail: detail });
       window.dispatchEvent(evt);
+    },
+
+    debug: function vm_debug() {
+      if (DEBUG) {
+        console.log('[VisibilityManager]' +
+          '[' + System.currentTime() + ']' +
+          Array.slice(arguments).concat());
+      }
     }
   };
 
