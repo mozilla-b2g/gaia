@@ -248,7 +248,6 @@
     }
     if (action.length <= 0) {
       debug('XX Found no ndefmessage actions. XX');
-      return null;
     }
     return action;
   }
@@ -335,8 +334,12 @@
     debug('command.tech: ' + command.tech);
     var handled = false;
     var techs = command.tech;
-    // Pick the first NDEF message for now.
-    var ndefMsg = command.ndef[0];
+    if (command.ndef.length) {
+      // Pick the first NDEF message for now.
+      var ndefMsg = command.ndef[0];
+    } else {
+      var ndefMsg = [];
+    }
 
     // Force Tech Priority:
     var pri = ['P2P', 'NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
