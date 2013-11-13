@@ -24,6 +24,11 @@
     window.addEventListener('online', onLineChanged);
     window.addEventListener('offline', onLineChanged);
 
+    function getContact(contact) {
+      return (contact instanceof mozContact) ?
+        contact : new mozContact(contact);
+    }
+
     function onLineChanged() {
       isOnLine = navigator.onLine;
     }
@@ -48,9 +53,7 @@
     }
 
     function saveMozContact(deviceContact, successCb, errorCb) {
-      var mzContact = new mozContact(deviceContact);
-
-      var req = navigator.mozContacts.save(mzContact);
+      var req = navigator.mozContacts.save(getContact(deviceContact));
 
       req.onsuccess = successCb;
       req.onerror = errorCb;
