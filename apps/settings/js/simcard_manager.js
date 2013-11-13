@@ -43,6 +43,10 @@
       this.simCardContainer.addEventListener('click',
         this.handleDelegateEvents.bind(this));
 
+      // TODO
+      // if we support hot plugging in the future,
+      // we have to register `onicccardchange` event to handle its state here
+
       // init needed cardInfo
       this.initSimCardsInfo();
 
@@ -168,6 +172,12 @@
 
       var cardIndex = evt.target.value;
 
+      // it means users is seleting '--' options
+      // when simcards are all disabled
+      if (cardIndex == -1) {
+        return;
+      }
+
       switch (evt.target) {
         case this.simManagerOutgoingCallSelect:
           SettingsHelper.set('outgoingCall').on(cardIndex);
@@ -260,8 +270,11 @@
         }
         // and current card is disabled, it means we want to enable it
         else if (!simcardInfo.enabled) {
-          // TODO, add sth here
-          // ok, you can just enable it !
+
+          // TODO
+          // there is one more situation on UX spec p23,
+          // maybe we have to handle that here.
+
           var wantToEnable =
             window.confirm('Are you sure you want to enable this card ?');
 
@@ -417,15 +430,15 @@
       var outgoingDataSelect =
         this.simManagerOutgoingDataSelect;
 
-      this.simcards.forEach(function(simcard, index) {
+      this.simcards.forEach(function(simcardInfo, index) {
         var options = [];
 
         for (var i = 0; i < 3; i++) {
           var option = document.createElement('option');
           option.value = index;
-          option.text = simcard.name;
+          option.text = simcardInfo.name;
 
-          if (simcard.absent) {
+          if (simcardInfo.absent) {
             option.value = -1;
             option.text = '--';
           }
