@@ -4,7 +4,7 @@ define(function(require) {
   'use strict';
 
   var View = require('view');
-  var bind = require('utils/event').bind;
+  var bind = require('utils/bind');
   var find = require('utils/find');
 
   return View.extend({

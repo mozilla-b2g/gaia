@@ -1,7 +1,11 @@
+/*global define*/
+
 define(function(require) {
   'use strict';
 
   var View = require('view');
+  var bind = require('utils/bind');
+  var find = require('utils/find');
 
   var setBooleanAttribute = function(el, attribute, value) {
     if (value) {
@@ -23,49 +27,58 @@ define(function(require) {
     }
   };
 
-  var ControlsView = new View('#controls', {
-    modeButton: document.getElementById('switch-button'),
-    captureButton: document.getElementById('capture-button'),
-    galleryButton: document.getElementById('gallery-button'),
-    cancelPickButton: document.getElementById('cancel-pick'),
+  return View.extend({
+    initialize: function() {
+
+      // Find elements
+      this.els.modeButton = find('#switch-button', this.el);
+      this.els.captureButton = find('#capture-button', this.el);
+      this.els.galleryButton = find('#gallery-button', this.el);
+      this.els.cancelPickButton = find('#cancel-pick', this.el);
+
+      // Bind events
+      bind(this.els.modeButton, 'click', this.modeButtonHandler);
+      bind(this.els.captureButton, 'click', this.captureButtonHandler);
+      bind(this.els.galleryButton, 'click', this.galleryButtonHandler);
+      bind(this.els.cancelPickButton, 'click', this.cancelPickButtonHandler);
+    },
 
     setRecording: function(recording) {
       setBooleanClass(document.body, 'recording', recording);
     },
 
     setModeButtonEnabled: function(enabled) {
-      setBooleanAttribute(this.modeButton, 'disabled', !enabled);
+      setBooleanAttribute(this.els.modeButton, 'disabled', !enabled);
     },
 
     setCaptureButtonEnabled: function(enabled) {
-      setBooleanAttribute(this.captureButton, 'disabled', !enabled);
+      setBooleanAttribute(this.els.captureButton, 'disabled', !enabled);
     },
 
     setGalleryButtonEnabled: function(enabled) {
-      setBooleanAttribute(this.galleryButton, 'disabled', !enabled);
+      setBooleanAttribute(this.els.galleryButton, 'disabled', !enabled);
     },
 
     setCancelPickButtonEnabled: function(enabled) {
-      setBooleanAttribute(this.cancelPickButton, 'disabled', !enabled);
+      setBooleanAttribute(this.els.cancelPickButton, 'disabled', !enabled);
     },
 
     setModeButtonHidden: function(hidden) {
-      setBooleanClass(this.modeButton, 'hidden', hidden);
+      setBooleanClass(this.els.modeButton, 'hidden', hidden);
     },
 
     setCaptureButtonHidden: function(hidden) {
-      setBooleanClass(this.captureButton, 'hidden', hidden);
+      setBooleanClass(this.els.captureButton, 'hidden', hidden);
     },
 
     setGalleryButtonHidden: function(hidden) {
-      setBooleanClass(this.galleryButton, 'hidden', hidden);
+      setBooleanClass(this.els.galleryButton, 'hidden', hidden);
     },
 
     setCancelPickButtonHidden: function(hidden) {
-      setBooleanClass(this.cancelPickButton, 'hidden', hidden);
+      setBooleanClass(this.els.cancelPickButton, 'hidden', hidden);
     },
 
-    // Event Handlers
     modeButtonHandler: function controls_modeButtonHandler(event) {
       if (event.target.getAttribute('disabled')) {
         return;
@@ -104,13 +117,4 @@ define(function(require) {
       Camera.cancelPick();
     }
   });
-
-  ControlsView.attach({
-    'click #switch-button': 'modeButtonHandler',
-    'click #capture-button': 'captureButtonHandler',
-    'click #gallery-button': 'galleryButtonHandler',
-    'click #cancel-pick': 'cancelPickButtonHandler'
-  });
-
-  return ControlsView;
 });
