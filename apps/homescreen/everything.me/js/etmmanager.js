@@ -112,6 +112,23 @@ var EvmeManager = (function EvmeManager() {
     return GridManager.getCollections();
   }
 
+  /**
+   * Returns a list of all Collections names
+   * @param  {bool} lowerCase the name strings
+   */
+  function getCollectionNames(lowerCase) {
+    var names = [];
+    var gridCollections = getCollections();
+    for (var i = 0; collection = gridCollections[i++]; ) {
+      var name = getIconName(collection.origin);
+      if (name) {
+        names.push(lowerCase ? name.toLowerCase() : name);
+      }
+    }
+
+    return names;
+  }
+
   function getAppByOrigin(origin) {
     var gridApp = GridManager.getApp(origin);
     if (gridApp) {
@@ -314,6 +331,7 @@ var EvmeManager = (function EvmeManager() {
     getAppByOrigin: getAppByOrigin,
     getGridApps: getGridApps,
     getCollections: getCollections,
+    getCollectionNames: getCollectionNames,
     getAppInfo: getAppInfo,
     getAllAppsInfo: getAllAppsInfo,
 
