@@ -16,17 +16,6 @@ define(function(require) {
 
     model: null,
 
-    watch: function(model) {
-      var self = this;
-
-      this.model = model;
-      this.render();
-
-      model.on('change', function(evt) {
-        self.render();
-      });
-    },
-
     mixin: function(properties) {
       for (var property in properties) {
         this[property] = properties[property];

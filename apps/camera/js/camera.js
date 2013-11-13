@@ -222,10 +222,6 @@ var Camera = {
       window.ControlsView = ControlsView;
       window.DCFApi = DCF;
 
-      // Re-render views when CameraState changes
-      ViewfinderView.watch(CameraState);
-      ControlsView.watch(CameraState);
-
       // Handle model change events
       CameraState.on('change:recording', function(evt) {
         var recording = evt.value;
@@ -237,6 +233,38 @@ var Camera = {
         if (recording && Filmstrip.isShown()) {
           Filmstrip.hide();
         }
+      });
+
+      CameraState.on('change:modeButtonEnabled', function(evt) {
+        ControlsView.setModeButtonEnabled(evt.value);
+      });
+
+      CameraState.on('change:captureButtonEnabled', function(evt) {
+        ControlsView.setCaptureButtonEnabled(evt.value);
+      });
+
+      CameraState.on('change:galleryButtonEnabled', function(evt) {
+        ControlsView.setGalleryButtonEnabled(evt.value);
+      });
+
+      CameraState.on('change:cancelPickButtonEnabled', function(evt) {
+        ControlsView.setCancelPickButtonEnabled(evt.value);
+      });
+
+      CameraState.on('change:modeButtonHidden', function(evt) {
+        ControlsView.setModeButtonHidden(evt.value);
+      });
+
+      CameraState.on('change:captureButtonHidden', function(evt) {
+        ControlsView.setCaptureButtonHidden(evt.value);
+      });
+
+      CameraState.on('change:galleryButtonHidden', function(evt) {
+        ControlsView.setGalleryButtonHidden(evt.value);
+      });
+
+      CameraState.on('change:cancelPickButtonHidden', function(evt) {
+        ControlsView.setCancelPickButtonHidden(evt.value);
       });
 
       // CameraState.on('change:????', function(evt) {

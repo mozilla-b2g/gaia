@@ -29,26 +29,40 @@ define(function(require) {
     galleryButton: document.getElementById('gallery-button'),
     cancelPickButton: document.getElementById('cancel-pick'),
 
-    render: function() {
-      if (!this.model) {
-        return;
-      }
-
-      var properties = this.model.get();
-
-      setBooleanAttribute(this.modeButton,       'disabled', !properties.modeButtonEnabled);
-      setBooleanAttribute(this.captureButton,    'disabled', !properties.captureButtonEnabled);
-      setBooleanAttribute(this.galleryButton,    'disabled', !properties.galleryButtonEnabled);
-      setBooleanAttribute(this.cancelPickButton, 'disabled', !properties.cancelPickButtonEnabled);
-
-      setBooleanClass(this.modeButton,       'hidden', properties.modeButtonHidden);
-      setBooleanClass(this.captureButton,    'hidden', properties.captureButtonHidden);
-      setBooleanClass(this.galleryButton,    'hidden', properties.galleryButtonHidden);
-      setBooleanClass(this.cancelPickButton, 'hidden', properties.cancelPickButtonHidden);
-    },
-
     setRecording: function(recording) {
       setBooleanClass(document.body, 'recording', recording);
+    },
+
+    setModeButtonEnabled: function(enabled) {
+      setBooleanAttribute(this.modeButton, 'disabled', !enabled);
+    },
+
+    setCaptureButtonEnabled: function(enabled) {
+      setBooleanAttribute(this.captureButton, 'disabled', !enabled);
+    },
+
+    setGalleryButtonEnabled: function(enabled) {
+      setBooleanAttribute(this.galleryButton, 'disabled', !enabled);
+    },
+
+    setCancelPickButtonEnabled: function(enabled) {
+      setBooleanAttribute(this.cancelPickButton, 'disabled', !enabled);
+    },
+
+    setModeButtonHidden: function(hidden) {
+      setBooleanClass(this.modeButton, 'hidden', hidden);
+    },
+
+    setCaptureButtonHidden: function(hidden) {
+      setBooleanClass(this.captureButton, 'hidden', hidden);
+    },
+
+    setGalleryButtonHidden: function(hidden) {
+      setBooleanClass(this.galleryButton, 'hidden', hidden);
+    },
+
+    setCancelPickButtonHidden: function(hidden) {
+      setBooleanClass(this.cancelPickButton, 'hidden', hidden);
     },
 
     // Event Handlers
