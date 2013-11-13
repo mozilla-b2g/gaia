@@ -1,6 +1,26 @@
 FFOS_RUNTIME = {
 
   /**
+   * Emulates a dom request
+   * Returns an object and calls it's onsuccess handler.
+   */
+  domRequest: function(result, timeout) {
+    timeout = timeout || 1000;
+
+    return function() {
+      var request = { result: result };
+
+      setTimeout(function() {
+        if (request.onsuccess) {
+          request.onsuccess();
+        }
+      }, timeout);
+
+      return request;
+    }
+  },
+
+  /**
    * This is so we have a single entry-point for the APP window
    * This is needed as the interface to window may be changing soon
    */

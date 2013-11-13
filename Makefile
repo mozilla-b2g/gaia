@@ -68,6 +68,7 @@ GAIA_DOMAIN?=gaiamobile.org
 DEBUG?=0
 DEVICE_DEBUG?=0
 PRODUCTION?=0
+DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
@@ -684,6 +685,8 @@ else ifeq ($(DESKTOP),1)
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
 	cp -r tools/extensions/httpd $(EXT_DIR)/
+else ifeq ($(DESKTOP_SHIMS),1)
+	cp -r tools/extensions/{desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
 endif
 	@echo "Finished: Generating extensions"
 endif
