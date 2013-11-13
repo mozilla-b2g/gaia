@@ -5,10 +5,10 @@ define(function(require) {
 
   var evt = require('libs/evt');
 
-  var AppController = function(models, views) {
-    var CameraState = models.CameraState;
-    var CameraSettings = models.CameraSettings;
+  var CameraState = require('models/state');
+  var CameraSettings = require('models/settings');
 
+  var AppController = function(views) {
     var ControlsView = views.ControlsView;
     var ViewfinderView = views.ViewfinderView;
 
@@ -58,7 +58,6 @@ define(function(require) {
   };
 
   AppController.prototype = evt.mix({
-    models: null,
     views: null
   });
 
