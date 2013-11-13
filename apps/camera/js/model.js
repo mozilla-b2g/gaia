@@ -1,7 +1,7 @@
 define(function(require) {
   'use strict';
 
-  var evt = require('evt');
+  var evt = require('libs/evt');
 
   var Model = function(properties) {
     this._properties = properties || {};
