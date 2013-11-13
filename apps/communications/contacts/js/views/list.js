@@ -1125,29 +1125,53 @@ contacts.List = (function() {
     return { givenName: givenName, modified: true };
   };
 
+  // Search the given array of DOM li nodes using a binary search.  Return
+  // the index that the new node should be inserted before.
+  function searchNodes(nodes, name) {
+    var len = nodes.length;
+    var begin = 0;
+    var end = len;
+    var comp = 0;
+    var target = len;
+    while (begin <= end) {
+      var target = ~~((begin + end) / 2);
+      if (target >= len) {
+        break;
+      }
+      var targetNode = nodes[target];
+      renderOrderString(targetNode);
+      var targetName = targetNode.dataset.order;
+      comp = name.localeCompare(targetName);
+      if (comp < 0) {
+        end = target - 1;
+      } else if (comp > 0) {
+        begin = target + 1;
+      } else {
+        return target;
+      }
+    }
+
+    if (target >= len) {
+      return len;
+    }
+
+    if (comp <= 0) {
+      return target;
+    }
+
+    return target + 1;
+  }
+
   var addToGroup = function addToGroup(renderedNode, list) {
     renderOrderString(renderedNode);
     var newLi = renderedNode;
     var cName = newLi.dataset.order;
 
     var liElems = list.getElementsByTagName('li');
-    var len = liElems.length;
-    for (var i = 0; i < len; i++) {
-      var liElem = liElems[i];
-
-      // This may just be a placeholder that has not been rendered yet.
-      // Therefore, make sure the order string has been rendered before
-      // trying to compare against it.
-      renderOrderString(liElem);
-
-      var name = liElem.dataset.order;
-      if (name.localeCompare(cName) >= 0) {
-        list.insertBefore(newLi, liElem);
-        break;
-      }
-    }
-
-    if (i === len) {
+    var insertAt = searchNodes(liElems, cName);
+    if (insertAt < liElems.length) {
+      list.insertBefore(newLi, liElems[insertAt]);
+    } else {
       list.appendChild(newLi);
     }
 
