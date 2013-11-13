@@ -196,6 +196,7 @@ var Camera = {
       'models/settings',
       'views/viewfinder',
       'views/controls',
+      'controllers/app',
       'dcf',
       '/shared/js/async_storage.js',
       '/shared/js/blobview.js',
@@ -216,64 +217,24 @@ var Camera = {
                                CameraSettings,
                                ViewfinderView,
                                ControlsView,
+                               AppController,
                                DCF) {
 
       window.CameraState = CameraState;
       window.CameraSettings = CameraSettings;
       window.ViewfinderView = ViewfinderView;
       window.ControlsView = ControlsView;
+
+      window.AppController = new AppController({
+        CameraState: CameraState,
+        CameraSettings: CameraSettings
+      }, {
+        ViewfinderView: ViewfinderView,
+        ControlsView, ControlsView
+        Filmstrip, Filmstrip
+      });
+
       window.DCFApi = DCF;
-
-      // Handle model change events
-      CameraState.on('change:recording', function(evt) {
-        var recording = evt.value;
-
-        ControlsView.setRecording(recording);
-
-        // Hide the filmstrip to prevent the users from entering the
-        // preview mode after Camera starts recording button pressed
-        if (recording && Filmstrip.isShown()) {
-          Filmstrip.hide();
-        }
-      });
-
-      CameraState.on('change:modeButtonEnabled', function(evt) {
-        ControlsView.setModeButtonEnabled(evt.value);
-      });
-
-      CameraState.on('change:captureButtonEnabled', function(evt) {
-        ControlsView.setCaptureButtonEnabled(evt.value);
-      });
-
-      CameraState.on('change:galleryButtonEnabled', function(evt) {
-        ControlsView.setGalleryButtonEnabled(evt.value);
-      });
-
-      CameraState.on('change:cancelPickButtonEnabled', function(evt) {
-        ControlsView.setCancelPickButtonEnabled(evt.value);
-      });
-
-      CameraState.on('change:modeButtonHidden', function(evt) {
-        ControlsView.setModeButtonHidden(evt.value);
-      });
-
-      CameraState.on('change:captureButtonHidden', function(evt) {
-        ControlsView.setCaptureButtonHidden(evt.value);
-      });
-
-      CameraState.on('change:galleryButtonHidden', function(evt) {
-        ControlsView.setGalleryButtonHidden(evt.value);
-      });
-
-      CameraState.on('change:cancelPickButtonHidden', function(evt) {
-        ControlsView.setCancelPickButtonHidden(evt.value);
-      });
-
-      // CameraState.on('change:????', function(evt) {
-      //   ...
-      // });
-      //
-      // ... Add additional event handlers here ...
 
       Camera.loadCameraPreview(CameraState.get('cameraNumber'), function() {
         PerformanceTestingHelper.dispatch('camera-preview-loaded');
