@@ -98,7 +98,14 @@
           var icc = iccManager.getIccById(iccId);
           var iccInfo = icc.iccInfo;
           var operatorInfo = MobileOperator.userFacingInfo(conn);
-          var lockedState = ['pinRequired', 'pukRequired'];
+          var lockedState = [
+            'pinRequired',
+            'pukRequired',
+            'networkLocked',
+            'serviceProviderLocked',
+            'corporateLocked'
+          ];
+
           var locked = false;
 
           // make sure the card is in locked mode or not
@@ -125,11 +132,11 @@
 
       switch (evt.target) {
         case this.simManagerOutgoingCallSelect:
-          Settings.set('outgoingCall').on(cardIndex);
+          SettingsHelper.set('outgoingCall').on(cardIndex);
           break;
 
         case this.simManagerOutgoingMessagesSelect:
-          Settings.set('outgoingMessages').on(cardIndex);
+          SettingsHelper.set('outgoingMessages').on(cardIndex);
           break;
 
         case this.simManagerOutgoingDataSelect:
@@ -139,7 +146,7 @@
           var wantToChange = window.confirm(_('change-outgoing-data-confirm'));
 
           if (wantToChange) {
-            Settings.set('outgoingData').on(cardIndex);
+            SettingsHelper.set('outgoingData').on(cardIndex);
           }
           else {
             var previousCardIndex = (cardIndex == 0) ? 1 : 0;
@@ -409,68 +416,6 @@
         outgoingDataSelect.add(options[2]);
 
       }.bind(this));
-    }
-  };
-
-  /*
-   *  This is a helper which supplies more semantics
-   *  to set something on mozSettings
-   */
-  var Settings = {
-    set: function(serviceName) {
-      // cleanup old keys first
-      this.settingKeys = [];
-
-      switch (serviceName) {
-      case 'outgoingCall':
-        this.settingKeys.push('ril.telephony.defaultServiceId');
-        this.settingKeys.push('ril.voicemail.defaultServiceId');
-        break;
-
-      case 'outgoingMessages':
-        this.settingKeys.push('ril.sms.defaultServiceId');
-        break;
-
-      case 'outgoingData':
-        this.settingKeys.push('ril.mms.defaultServiceId');
-        this.settingKeys.push('ril.data.defaultServiceId');
-        break;
-      }
-
-      return this;
-    },
-    on: function(cardIndex) {
-      this.settingKeys.forEach(function(key) {
-        this.setToSettingsDB(key, cardIndex);
-      }.bind(this));
-    },
-    setToSettingsDB: function(key, newValue, callback) {
-      var done = function done() {
-        if (callback) {
-          callback();
-        }
-      };
-
-      var settings = window.navigator.mozSettings;
-      var getLock = settings.createLock();
-      var getReq = getLock.get(key);
-
-      getReq.onsuccess = function() {
-        var oldValue = getReq.result[key];
-        if (oldValue !== newValue) {
-          var setLock = settings.createLock();
-          var setReq = setLock.set({
-            key: newValue
-          });
-
-          setReq.onsuccess = done;
-          setReq.onerror = done;
-        }
-        else {
-          done();
-        }
-      };
-      getReq.onerror = done;
     }
   };
 
