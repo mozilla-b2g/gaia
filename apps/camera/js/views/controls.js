@@ -71,8 +71,8 @@ define(function(require) {
         return;
       }
 
-      var newMode = (Camera._captureMode === CameraMode.CAMERA) ?
-        CameraMode.VIDEO : CameraMode.CAMERA;
+      var newMode = (Camera._captureMode === CAMERA_MODE_TYPE.CAMERA) ?
+        CAMERA_MODE_TYPE.VIDEO : CAMERA_MODE_TYPE.CAMERA;
       Camera.changeMode(newMode);
     },
 

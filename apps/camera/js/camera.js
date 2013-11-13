@@ -15,9 +15,17 @@ function padLeft(num, length) {
   return r;
 }
 
-var CameraMode = {
+var CAMERA_MODE_TYPE = {
   CAMERA: 'camera',
   VIDEO: 'video'
+};
+
+var STORAGE_STATE_TYPE = {
+  INIT: 0,
+  AVAILABLE: 1,
+  NOCARD: 2,
+  UNMOUNTED: 3,
+  CAPACITY: 4
 };
 
 var DCFApi;
@@ -50,12 +58,6 @@ var Camera = {
   _pictureStorage: null,
   _videoStorage: null,
   _storageState: null,
-
-  STORAGE_INIT: 0,
-  STORAGE_AVAILABLE: 1,
-  STORAGE_NOCARD: 2,
-  STORAGE_UNMOUNTED: 3,
-  STORAGE_CAPACITY: 4,
 
   _pictureSize: null,
   _previewConfig: null,
@@ -184,7 +186,7 @@ var Camera = {
     // The activity may have defined a captureMode, otherwise
     // be default we use the camera
     if (this._captureMode === null) {
-      this.setCaptureMode(CameraMode.CAMERA);
+      this.setCaptureMode(CAMERA_MODE_TYPE.CAMERA);
     }
     
     requirejs.config({ baseUrl: 'js' });
@@ -335,7 +337,7 @@ var Camera = {
       this.getPreferredSizes();
     }
 
-    this._storageState = this.STORAGE_INIT;
+    this._storageState = STORAGE_STATE_TYPE.INIT;
 
     this._pictureStorage = navigator.getDeviceStorage('pictures');
     this._videoStorage = navigator.getDeviceStorage('videos'),
@@ -354,7 +356,7 @@ var Camera = {
   handleActivity: function camera_handleActivity(activity) {
     // default to allow both photos and videos
     var types = activity.source.data.type || ['image/*', 'video/*'];
-    var mode = CameraMode.CAMERA;
+    var mode = CAMERA_MODE_TYPE.CAMERA;
 
     if (activity.source.name === 'pick') {
       // When inside an activity the user cannot switch between
@@ -388,11 +390,11 @@ var Camera = {
           modeButtonEnabled: true
         });
       } else if (allowedTypes.video) {
-        mode = CameraMode.VIDEO;
+        mode = CAMERA_MODE_TYPE.VIDEO;
       }
     } else { // record
       if (types === 'videos') {
-        mode = CameraMode.VIDEO;
+        mode = CAMERA_MODE_TYPE.VIDEO;
       }
     }
 
@@ -460,7 +462,7 @@ var Camera = {
         Camera._cameraObj.onPreviewStateChange = null;
       }
     };
-    if (this._captureMode === CameraMode.CAMERA) {
+    if (this._captureMode === CAMERA_MODE_TYPE.CAMERA) {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
     } else {
@@ -538,7 +540,7 @@ var Camera = {
   turnOnFlash: function camera_turnOnFlash(isAuto) {
     var flash = this._flashState[this._captureMode];
     var cameraNumber = CameraState.get('cameraNumber');
-    if (this._captureMode === CameraMode.CAMERA) {
+    if (this._captureMode === CAMERA_MODE_TYPE.CAMERA) {
       flash.currentMode[cameraNumber] = isAuto ? 1 : 2;
     } else {
       flash.currentMode[cameraNumber] = 1;
@@ -585,7 +587,7 @@ var Camera = {
 
   setFocusMode: function camera_setFocusMode() {
     this._callAutoFocus = false;
-    if (this._captureMode === CameraMode.CAMERA) {
+    if (this._captureMode === CAMERA_MODE_TYPE.CAMERA) {
       if (this._autoFocusSupport[FOCUS_MODE_CONTINUOUS_CAMERA]) {
         this._cameraObj.focusMode = FOCUS_MODE_CONTINUOUS_CAMERA;
         return;
@@ -603,7 +605,7 @@ var Camera = {
   },
 
   capture: function camera_capture() {
-    if (Camera._captureMode === CameraMode.CAMERA) {
+    if (Camera._captureMode === CAMERA_MODE_TYPE.CAMERA) {
       Camera.prepareTakePicture();
       return;
     }
@@ -905,7 +907,7 @@ var Camera = {
       this.getPreferredSizes((function() {
         this._videoProfile =
           this.pickVideoProfile(camera.capabilities.recorderProfiles);
-          if (this._captureMode === CameraMode.VIDEO) {
+          if (this._captureMode === CAMERA_MODE_TYPE.VIDEO) {
             this._videoProfile.rotation = this._phoneOrientation;
             this._cameraObj.getPreviewStreamVideoMode(
               this._videoProfile, gotPreviewScreen.bind(this));
@@ -920,7 +922,7 @@ var Camera = {
         SoundEffect.playCameraShutterSound();
       }).bind(this);
       camera.onRecorderStateChange = this.recordingStateChanged.bind(this);
-      if (this._captureMode === CameraMode.CAMERA) {
+      if (this._captureMode === CAMERA_MODE_TYPE.CAMERA) {
         camera.getPreviewStream(this._previewConfig,
                                 gotPreviewScreen.bind(this));
       }
@@ -1034,11 +1036,11 @@ var Camera = {
     var cameraNumber = CameraState.get('cameraNumber');
     if (flashModes) {
       // Check camera flash support
-      var flash = this._flashState[CameraMode.CAMERA];
+      var flash = this._flashState[CAMERA_MODE_TYPE.CAMERA];
       flash.supported[cameraNumber] = isSubset(flash.modes, flashModes);
 
       // Check video flash support
-      flash = this._flashState[CameraMode.VIDEO];
+      flash = this._flashState[CAMERA_MODE_TYPE.VIDEO];
       flash.supported[cameraNumber] = isSubset(flash.modes, flashModes);
 
       this.updateFlashUI();
@@ -1145,7 +1147,7 @@ var Camera = {
 
   retakePressed: function camera_retakePressed() {
     this._savedMedia = null;
-    if (this._captureMode === CameraMode.CAMERA) {
+    if (this._captureMode === CAMERA_MODE_TYPE.CAMERA) {
       this.resumePreview();
     } else {
       this.startPreview();
@@ -1156,7 +1158,7 @@ var Camera = {
     var self = this;
     var media = this._savedMedia;
     this._savedMedia = null;
-    if (this._captureMode === CameraMode.CAMERA) {
+    if (this._captureMode === CAMERA_MODE_TYPE.CAMERA) {
       this._resizeBlobIfNeeded(media.blob, function(resized_blob) {
         this._pendingPick.postResult({
           type: 'image/jpeg',
@@ -1232,7 +1234,7 @@ var Camera = {
     // The first time we're called, we need to make sure that there
     // is an sdcard and that it is mounted. (Subsequently the device
     // storage change handler will track that.)
-    if (this._storageState === this.STORAGE_INIT) {
+    if (this._storageState === STORAGE_STATE_TYPE.INIT) {
       this._pictureStorage.available().onsuccess = (function(e) {
         this.updateStorageState(e.target.result);
         this.updateOverlay();
@@ -1254,11 +1256,11 @@ var Camera = {
       // If we ever enter this out-of-space condition, it looks like
       // this code will never be able to exit. The user will have to
       // quit the app and start it again. Just deleting files will
-      // not be enough to get back to the STORAGE_AVAILABLE state.
+      // not be enough to get back to the STORAGE_STATE_TYPE.AVAILABLE state.
       // To fix this, we need an else clause here, and also a change
       // in the updateOverlay() method.
       if (e.target.result < MAX_IMAGE_SIZE) {
-        this._storageState = this.STORAGE_CAPACITY;
+        this._storageState = STORAGE_STATE_TYPE.CAPACITY;
       }
       this.updateOverlay();
     }).bind(this);
@@ -1283,10 +1285,10 @@ var Camera = {
   updateStorageState: function camera_updateStorageState(state) {
     switch (state) {
     case 'available':
-      this._storageState = this.STORAGE_AVAILABLE;
+      this._storageState = STORAGE_STATE_TYPE.AVAILABLE;
       break;
     case 'unavailable':
-      this._storageState = this.STORAGE_NOCARD;
+      this._storageState = STORAGE_STATE_TYPE.NOCARD;
       if (Filmstrip.isPreviewShown()) {
         // If media frame is shown and storage is unavailable or shared, it may
         // be a video or a picture is opened. We should go back to camera mode
@@ -1296,7 +1298,7 @@ var Camera = {
       }
       break;
     case 'shared':
-      this._storageState = this.STORAGE_UNMOUNTED;
+      this._storageState = STORAGE_STATE_TYPE.UNMOUNTED;
       if (Filmstrip.isPreviewShown()) {
         // If media frame is shown and storage is unavailable or shared, it may
         // be a video or a picture is opened. We should go back to camera mode
@@ -1309,13 +1311,13 @@ var Camera = {
   },
 
   updateOverlay: function camera_updateOverlay() {
-    if (this._storageState === this.STORAGE_INIT) {
+    if (this._storageState === STORAGE_STATE_TYPE.INIT) {
       return false;
     }
 
     var previewActive = CameraState.get('previewActive');
 
-    if (this._storageState === this.STORAGE_AVAILABLE) {
+    if (this._storageState === STORAGE_STATE_TYPE.AVAILABLE) {
       // Preview may have previously been paused if storage
       // was not available
       // Don't start the preview when confirm dialog is showing. The choices of
@@ -1329,13 +1331,13 @@ var Camera = {
     }
 
     switch (this._storageState) {
-    case this.STORAGE_NOCARD:
+    case STORAGE_STATE_TYPE.NOCARD:
       this.showOverlay('nocard');
       break;
-    case this.STORAGE_UNMOUNTED:
+    case STORAGE_STATE_TYPE.UNMOUNTED:
       this.showOverlay('pluggedin');
       break;
-    case this.STORAGE_CAPACITY:
+    case STORAGE_STATE_TYPE.CAPACITY:
       this.showOverlay('nospace');
       break;
     }
