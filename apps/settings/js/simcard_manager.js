@@ -22,8 +22,9 @@
         set: function(newSimcardsInfo) {
           simcards = newSimcardsInfo;
 
-          // We have to make sure we have initialized
-          // UI so that we can update
+          // we have to make sure our UI has been initialized
+          // so that we can update its views when setting
+          // values.
           if (this.isUIinitialized) {
             this.updateSimCardsUI();
           }
@@ -45,7 +46,7 @@
       // init needed cardInfo
       this.initSimCardsInfo();
 
-      // render UI
+      // render basic UI
       this.initSimCardManagerUI();
     },
     initSimCardsInfo: function() {
@@ -54,21 +55,39 @@
       // NOTE: this is for desktop testing
       if (conns && conns.length == 1 && !conns[0].data) {
         this.simcards = [
+            /*
           {
             enabled: true,
+            absent: true,
             locked: false,
-            iccId: '11111',
             name: 'SIM 1',
             number: '0123456789',
             operator: 'Chunghwa Telecom'
           },
           {
             enabled: true,
+            absent: true,
             locked: true,
-            iccId: '11111',
             name: 'SIM 2',
             number: '9876543210',
             operator: 'FarEastTone'
+          }
+          */
+          {
+            enabled: true,
+            absent: true,
+            locked: false,
+            name: _('noSimCard'),
+            number: '',
+            operator: ''
+          },
+          {
+            enabled: true,
+            absent: true,
+            locked: false,
+            name: _('noSimCard'),
+            number: '',
+            operator: ''
           }
         ];
 
@@ -85,19 +104,25 @@
 
         // if this mobileConnection has no simcard on it
         if (!iccId) {
+
+          // you can refer related UI in DSDS spec
           simcardInfo = {
-            enabled: false,
+            enabled: true,
+            absent: true,
             locked: false,
-            iccId: '-1',
-            name: 'simcard' + cardIndex,
-            number: _('unknown-phoneNumber'),
-            operator: _('no-operator')
+            name: _('noSimCard'),
+            number: '',
+            operator: ''
           };
         }
+        // else if we can get mobileConnection,
+        // we have to check locked / enabled state
         else {
           var icc = iccManager.getIccById(iccId);
           var iccInfo = icc.iccInfo;
           var operatorInfo = MobileOperator.userFacingInfo(conn);
+
+          var locked = false;
           var lockedState = [
             'pinRequired',
             'pukRequired',
@@ -106,23 +131,36 @@
             'corporateLocked'
           ];
 
-          var locked = false;
-
           // make sure the card is in locked mode or not
           if (icc.cardState.indexOf(lockedState)) {
             locked = true;
           }
 
-          simcardInfo = {
-            enabled: true,
-            locked: locked,
-            iccId: iccId,
-            name: 'simcard' + cardIndex,
-            number: iccInfo.spn || _('unknown-phoneNumber'),
-            operator: operatorInfo.operator || _('no-operator')
-          };
-        }
+          if (locked) {
+            simcardInfo = {
+              enabled: true,
+              absent: false,
+              locked: true,
+              name: 'simcard' + cardIndex,
+              number: '',
+              operator: ''
+            };
+          }
+          else {
 
+            // TODO:
+            // we have to call Gecko API here to make sure the
+            // simcard is enabled / disabled
+            simcardInfo = {
+              enabled: true,
+              absent: false,
+              locked: locked,
+              name: 'simcard' + cardIndex,
+              number: iccInfo.spn || _('unknown-phoneNumber'),
+              operator: operatorInfo.operator || _('no-operator')
+            };
+          }
+        }
         this.simcards.push(simcardInfo);
       }
     },
@@ -271,28 +309,35 @@
     },
     updateSimCardUI: function(cardIndex) {
       var simcardInfo = this.getSimCardInfo(cardIndex);
-      var selectors = [
-        'name',
-        'number',
-        'operator'
-      ];
+      var selectors = ['name', 'number', 'operator'];
 
       var cardSelector = '.sim-card-' + cardIndex;
-      var cardDom = this.simCardContainer.querySelector(cardSelector);
+      var checkboxSelector = cardSelector + ' .simcard-checkbox';
 
-      // locked state
+      var cardDom =
+        this.simCardContainer.querySelector(cardSelector);
+
+      var checkboxDom =
+        this.simCardContainer.querySelector(checkboxSelector);
+
+      // reflect cardState on UI
+      cardDom.classList.toggle('absent', simcardInfo.absent);
       cardDom.classList.toggle('locked', simcardInfo.locked);
-
-      // enabled state
       cardDom.classList.toggle('enabled', simcardInfo.enabled);
 
+      // relflect wordings on UI
       selectors.forEach(function(selector) {
+
         // will generate ".sim-card-0 .sim-card-name" for example
         var targetSelector = cardSelector + ' .sim-card-' + selector;
 
         this.simCardContainer.querySelector(targetSelector)
           .textContent = simcardInfo[selector];
       }.bind(this));
+
+      // reflect cardState on checkbox attributes
+      checkboxDom.disabled = simcardInfo.absent || simcardInfo.locked;
+      checkboxDom.checked = simcardInfo.enabled;
     },
     getMobileConnections: function() {
       var conns;
@@ -332,7 +377,13 @@
       this.initSimCardsUI();
       this.initSelectOptionsUI();
 
+      // Because we use KVO pattern, we will update view when setting
+      // values, but we have to initSimCardsInfo() before than
+      // initSimCardManagerUI() to make sure the simcards count is
+      // correct, in this way, we will manually call updateSimCardsUI
+      // by ourselves here.
       this.isUIinitialized = true;
+      this.updateSimCardsUI();
     },
     initSimCardsUI: function() {
       var simItemHTMLs = [];
@@ -343,31 +394,19 @@
           this.simCardContainer.lastChild);
       }
 
-      // inject new childs later
+      // inject new childs
       this.simcards.forEach(function(simcard, index) {
         simItemHTMLs.push(
           this.simItemTemplate.interpolate({
-          'sim-index': index.toString(),
-          'sim-name': simcard.name,
-          'sim-number': simcard.number,
-          'sim-operator': simcard.operator,
-          // for simcard UI
-          'sim-enabled': (simcard.enabled) ? 'enabled' : '',
-          // for simcard UI
-          'sim-locked': (simcard.locked) ? 'locked' : '',
-          // for initial checkbox attribute
-          'sim-checkbox-checked': (simcard.enabled) ? 'checked' : '',
-          // for initial checkbox attribute
-          'sim-checkbox-locked': (simcard.locked) ? 'disabled' : ''
+          'sim-index': index.toString()
         }));
       }.bind(this));
 
       this.simCardContainer.innerHTML = simItemHTMLs.join('');
     },
-    initSelectOptionsUI: function(selectedIndex) {
+    initSelectOptionsUI: function() {
 
-      // make sure we select the first one by default
-      selectedIndex = selectedIndex || 0;
+      var selectedOptionIndex = 0;
 
       var outgoingCallSelect =
         this.simManagerOutgoingCallSelect;
@@ -378,23 +417,11 @@
       var outgoingDataSelect =
         this.simManagerOutgoingDataSelect;
 
-      // remove all options in outgoing call
-      while (outgoingCallSelect.hasChildNodes()) {
-        outgoingCallSelect.removeChild(
-          outgoingCallSelect.lastChild);
-      }
-
-      // remove all options in outgoing messages
-      while (outgoingMessagesSelect.hasChildNodes()) {
-        outgoingMessagesSelect.removeChild(
-          outgoingMessagesSelect.lastChild);
-      }
-
-      // remove all options in outgoing data
-      while (outgoingDataSelect.hasChildNodes()) {
-        outgoingDataSelect.removeChild(
-          outgoingDataSelect.lastChild);
-      }
+      var areCardsAllAbsent = false;
+      this.simcards.forEach(function(simcard) {
+        areCardsAllAbsent = areCardsAllAbsent ||
+          (simcard.absent === true);
+      });
 
       this.simcards.forEach(function(simcard, index) {
         var options = [];
@@ -404,8 +431,12 @@
           option.value = index;
           option.text = simcard.name;
 
+          if (areCardsAllAbsent) {
+            option.text = '--';
+          }
+
           // select the first simcard by default
-          if (index == selectedIndex) {
+          if (index == selectedOptionIndex) {
             option.selected = true;
           }
           options.push(option);

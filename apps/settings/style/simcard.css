@@ -90,6 +90,11 @@
 .sim-card.locked .information-container {
   opacity: 0.4;
 }
+
+.sim-card.absent .information-container {
+  opacity: 0.4;
+}
+
 .sim-card .information-container {
   opacity: 0.4;
 }
