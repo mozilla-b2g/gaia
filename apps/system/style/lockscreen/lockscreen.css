@@ -273,8 +273,6 @@
   background-color: rgba(0, 0, 0, 0.3);
   -moz-box-sizing: border-box;
   border: 0.2rem solid rgba(255, 255, 255, 0.8);
-  /* Will become wider while user pull it */
-  transition: width 0.2s ease, background-color 0.5s linear, border-color 0.5s linear;
 }
 
 #lockscreen-slide-track .lockscreen-slide-left.lockscreen-icon {
