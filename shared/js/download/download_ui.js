@@ -19,6 +19,8 @@
  *    alert('CONFIRM');
  *  };
  *
+ *  WARNING: To use this library you need to include 'shared/js/l10n.js'
+ *
  */
 var DownloadUI = (function() {
 
@@ -32,18 +34,14 @@ var DownloadUI = (function() {
     this.cancel = function() {
       removeConfirm();
       if (typeof this.oncancel === 'function') {
-        window.setTimeout(function() {
-          this.oncancel();
-        }.bind(this), 0);
+        this.oncancel();
       }
     };
 
     this.confirm = function() {
       removeConfirm();
       if (typeof this.onconfirm === 'function') {
-        window.setTimeout(function() {
-          this.onconfirm();
-        }.bind(this), 0);
+        this.onconfirm();
       }
     };
   };
@@ -57,13 +55,14 @@ var DownloadUI = (function() {
     confirm = null;
   }
 
-  // When users click on home button the confirmation should be removed
+  // When users click or hold on home button the confirmation should be removed
   window.addEventListener('home', removeConfirm);
+  window.addEventListener('holdhome', removeConfirm);
 
   function createConfirm(type, req, download) {
     var _ = navigator.mozL10n.get;
 
-    var confirm = document.createElement('form');
+    confirm = document.createElement('form');
     confirm.setAttribute('role', 'dialog');
     confirm.setAttribute('data-type', 'confirm');
 
@@ -79,7 +78,7 @@ var DownloadUI = (function() {
     if (type === DownloadUI.TYPE.FAILED ||
         type === DownloadUI.TYPE.DELETE) {
       message.textContent = _(type + '_download_message', {
-        'name': download.fileName
+        'name': DownloadFormatter.getFileName(download)
       });
     } else {
       message.textContent = _(type + '_download_message');
@@ -96,7 +95,10 @@ var DownloadUI = (function() {
       document.createTextNode(_(type + '_download_left_button'))
     );
 
-    lButton.addEventListener('click', req.cancel.bind(req));
+    lButton.onclick = function l_cancel() {
+      lButton.onclick = null;
+      req.cancel();
+    };
     menu.appendChild(lButton);
 
     // Right button
@@ -113,13 +115,16 @@ var DownloadUI = (function() {
       document.createTextNode(_(type + '_download_right_button'))
     );
 
-    rButton.addEventListener('click', req.confirm.bind(req));
+    rButton.onclick = function r_confirm() {
+      rButton.onclick = null;
+      req.confirm();
+    };
     menu.appendChild(rButton);
 
     dialog.appendChild(menu);
     confirm.appendChild(dialog);
 
-    return confirm;
+    document.body.appendChild(confirm);
   }
 
   /*
@@ -137,10 +142,8 @@ var DownloadUI = (function() {
       LazyLoader.load(['shared/style/buttons.css',
                        'shared/style/headers.css',
                        'shared/style/confirm.css',
-                       'shared/js/l10n.js'], function loaded() {
-        confirm = createConfirm(type, req, download);
-        document.body.appendChild(confirm);
-      });
+                       'shared/js/download/download_formatter.js'],
+                      createConfirm.call(this, type, req, download));
     }, 0);
 
     return req;
