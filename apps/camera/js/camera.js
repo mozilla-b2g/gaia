@@ -222,7 +222,7 @@ var Camera = {
 
       window.CameraState = CameraState;
       window.CameraSettings = CameraSettings;
-      window.ViewfinderView = ViewfinderView;
+      window.ViewfinderView = new ViewfinderView(document.getElementById('viewfinder'));
       window.ControlsView = ControlsView;
 
       window.AppController = new AppController({

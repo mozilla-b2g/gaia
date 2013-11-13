@@ -1,9 +1,19 @@
+/*global define*/
+
 define(function(require) {
   'use strict';
 
   var View = require('view');
+  var bind = require('utils/event').bind;
+  var find = require('utils/find');
 
-  var ViewfinderView = new View('#viewfinder', {
+  return View.extend({
+    initialize: function() {
+
+      // Bind events
+      bind(this.el, 'click', this.toggleFilmstrip);
+    },
+
     toggleFilmstrip: function viewfinder_toggleFilmstrip(evt) {
       // We will just ignore
       // because the filmstrip shouldn't be shown
@@ -30,10 +40,4 @@ define(function(require) {
       this.el.stop();
     }
   });
-
-  ViewfinderView.attach({
-    'click': 'toggleFilmstrip'
-  });
-
-  return ViewfinderView;
 });
