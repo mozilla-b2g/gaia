@@ -1,0 +1,135 @@
+
+.sublist {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+/*=========================================*/
+
+.sublist-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 8rem;
+}
+
+.sublist-header-title {
+  position: absolute;
+  top: 0;
+  left: calc(33% + 1rem);
+  right: 0;
+  bottom: 50%;
+  font-size: 2rem;
+}
+
+.sublist-header-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 33%;
+  bottom: 0;
+
+  background-size: contain;
+  background-position: right;
+  background-repeat: no-repeat;
+}
+
+.sublist-header-controls {
+  position: absolute;
+  top: 50%;
+  left: calc(33% + 1rem);
+  right: 0;
+  bottom: 0%;
+}
+
+.sublist-header-controls-play {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 50%;
+  bottom: 0;
+  background: url('images/IconAction_Media_Play_30x30.png');
+  background-size: auto 75%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.sublist-header-controls-shuffle {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  right: 0;
+  bottom: 0;
+  background: green;
+  background: url('images/IconAction_Media_ShuffleOn_30x30.png');
+  background-size: auto 75%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/*=========================================*/
+
+.sublist-items {
+  position: absolute;
+  left: 0;
+  top: 8rem;
+  width: 100%;
+  height: calc(100% - 8rem);
+
+  margin: 0;
+  padding: 0;
+
+  overflow: auto;
+}
+
+.sublist-item {
+  list-style: none;
+  position: relative;
+  width: 100%;
+  background-size: contain;
+  background-position: calc(100% - 2.5rem) -0.1rem;
+  background-repeat: no-repeat;
+}
+
+.sublist-item:last-child {
+  margin-bottom: 4rem;
+}
+
+.sublist-item-title {
+  position: absolute;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  pointer-events: none;
+
+  top: 10%;
+  left: 0;
+  width: calc(100% - 12rem);
+  padding: 0 0.5rem 0 3rem;
+  font-size: 1.9rem;
+  color: white;
+}
+
+.sublist-item a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  outline: none;
+  margin: 0;
+  text-shadow: black 0.1rem 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  height: 6rem;
+  background-color: transparent;
+  transition: background-color 200ms ease;
+}
+
+.sublist-item a:active {
+  color: black;
+  text-shadow: rgba(255, 255, 255, 0.5) 0.1rem 0.1rem;
+  background-color: rgba(52,140,158, .6);
+}

@@ -288,7 +288,7 @@ MusicDB.prototype = {
     }
     getThumbnailURL(song, function(url) {
       if (!url) {
-        url = 'style/images/AlbumArt10_small.png';
+        url = 'images/AlbumArt10_small.png';
       }
       done(url);
     });
