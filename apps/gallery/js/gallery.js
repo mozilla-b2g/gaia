@@ -54,12 +54,13 @@ var fullscreenView = $('fullscreen-view');
 var editView = $('edit-view');
 var pickView = $('pick-view');
 var cropView = $('crop-view');
+var slideshowView = $('slideshow-view');
 
 // These are the top-level view objects.
 // This array is used by setView()
 var views = [
   thumbnailListView, thumbnailSelectView, fullscreenView, editView,
-  pickView, cropView
+  pickView, cropView, slideshowView
 ];
 var currentView;
 
@@ -200,6 +201,13 @@ function init() {
       if (!photodb)
         initDB();
       startPick();
+      break;
+    case 'slideshow':
+      if (!photodb) {
+        initDB();
+      }
+      slideshowActivity = a;
+      setView(slideshowView);
       break;
     }
   });
@@ -354,7 +362,6 @@ function initThumbnails() {
     photodb.scan();
     return;
   }
-
   // Keep track of when thumbnails are onscreen and offscreen
 /*
   // Tune for low memory usage and small batch jobes to fetch new
@@ -399,7 +406,7 @@ function initThumbnails() {
   photodb.enumerate('date', null, 'prev', function(fileinfo) {
     if (fileinfo) {
       // For a pick activity, don't display videos
-      if (pendingPick && fileinfo.metadata.video)
+      if ((slideshowActivity || pendingPick) && fileinfo.metadata.video)
         return;
 
       batch.push(fileinfo);
@@ -420,14 +427,18 @@ function initThumbnails() {
 
   function thumb(fileinfo) {
     files.push(fileinfo);              // remember the file
-    var thumbnail = createThumbnail(files.length - 1); // create its thumbnail
-    thumbnails.appendChild(thumbnail); // display the thumbnail
+    if (!slideshowActivity) {
+      var thumbnail = createThumbnail(files.length - 1); // create its thumbnail
+      thumbnails.appendChild(thumbnail); // display the thumbnail
+    }
   }
 
   function done() {
     flush();
     if (files.length === 0) { // If we didn't find anything
       showOverlay('scanning');
+    } else if (slideshowActivity) {
+      startSlideshow();
     }
     // Now that we've enumerated all the photos and videos we already know
     // about go start looking for new photos and videos.
@@ -518,7 +529,7 @@ function fileCreated(fileinfo) {
 
   // If the new file is a video and we're handling an image pick activity
   // then we won't display the new file.
-  if (pendingPick && fileinfo.metadata.video)
+  if ((slideshowActivity || pendingPick) && fileinfo.metadata.video)
     return;
 
   // If we were showing the 'no pictures' overlay, hide it
@@ -690,6 +701,51 @@ function thumbnailOffscreen(thumbnail) {
 }
 
 //
+// slideshow activity
+//
+var slideshowActivity;
+
+function startSlideshow() {
+  loader.load(['style/slideshow.css',
+    'js/slideshow.js', 'js/frame_scripts.js'],
+    function() {
+    SlideShow.fileIndex = currentFileIndex;
+    if (SlideShow.hasInit) {
+      SlideShow.run();
+    } else {
+      SlideShow.files = files;
+      SlideShow.db = photodb;
+      SlideShow.run();
+      SlideShow.container
+        .addEventListener('click', stopSlideShow);
+    }
+  });
+}
+
+function stopSlideShow() {
+  SlideShow.stop();
+  // show confirm dialog if slideshow is triggered from other app
+  if (slideshowActivity) {
+    showConfirmDialog({
+      message: 'Quit digital photo frame mode?',
+      cancelText: 'cancel',
+      confirmText: 'ok'
+    }, function onConfirm() {
+      SlideShow.clear();
+      slideshowActivity.postResult({});
+      slideshowActivity = null;
+    }, function onCancel() {
+      SlideShow.run();
+    });
+  // back to fullscreen mode and show the last image of slideshow
+  } else {
+    currentFileIndex = SlideShow.lastDisplayPicIndex;
+    setView(fullscreenView);
+    showFile(currentFileIndex);
+  }
+}
+
+//
 // Pick activity
 //
 
@@ -829,8 +885,12 @@ function cleanupPick() {
 // is fixed and replace it with an onerror handler on the activity to
 // switch out of pickView.
 window.addEventListener('visibilitychange', function() {
-  if (document.hidden && pendingPick)
-    cancelPick();
+  if (document.hidden) {
+    if (pendingPick)
+      cancelPick();
+    if (SlideShow.hasInit)
+      stopSlideShow();
+  }
 });
 
 
@@ -1129,7 +1189,7 @@ function showOverlay(id) {
         title = navigator.mozL10n.get('nocard3-title');
         text = navigator.mozL10n.get('nocard3-text');
         $('overlay-menu').classList.remove('hidden');
-        if (pendingPick) {
+        if (pendingPick || slideshowActivity) {
           $('overlay-cancel-button').classList.remove('hidden');
         } else {
           $('storage-setting-button').classList.remove('hidden');
@@ -1138,7 +1198,7 @@ function showOverlay(id) {
       case 'pluggedin':
         title = navigator.mozL10n.get('pluggedin2-title');
         text = navigator.mozL10n.get('pluggedin2-text');
-        if (pendingPick) {
+        if (pendingPick || slideshowActivity) {
           $('overlay-cancel-button').classList.remove('hidden');
           $('overlay-menu').classList.remove('hidden');
         }
@@ -1146,7 +1206,7 @@ function showOverlay(id) {
       case 'scanning':
         title = navigator.mozL10n.get('scanning-title');
         text = navigator.mozL10n.get('scanning-text');
-        if (pendingPick) {
+        if (pendingPick || slideshowActivity) {
           $('overlay-cancel-button').classList.remove('hidden');
           $('overlay-menu').classList.remove('hidden');
         }
@@ -1155,7 +1215,7 @@ function showOverlay(id) {
         title = navigator.mozL10n.get('emptygallery2-title');
         text = navigator.mozL10n.get('emptygallery2-text');
         $('overlay-menu').classList.remove('hidden');
-        if (pendingPick) {
+        if (pendingPick || slideshowActivity) {
           $('overlay-cancel-button').classList.remove('hidden');
         } else {
           $('overlay-camera-button').classList.remove('hidden');
@@ -1164,14 +1224,14 @@ function showOverlay(id) {
       case 'upgrade':
         title = navigator.mozL10n.get('upgrade-title');
         text = navigator.mozL10n.get('upgrade-text');
-        if (pendingPick) {
+        if (pendingPick || slideshowActivity) {
           $('overlay-cancel-button').classList.remove('hidden');
           $('overlay-menu').classList.remove('hidden');
         }
         break;
       default:
         console.warn('Reference to undefined overlay', currentOverlay);
-        if (pendingPick) {
+        if (pendingPick || slideshowActivity) {
           $('overlay-cancel-button').classList.remove('hidden');
           $('overlay-menu').classList.remove('hidden');
         }

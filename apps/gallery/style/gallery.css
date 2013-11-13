@@ -32,7 +32,7 @@ section {
 }
 
 /* All of the main views fill the screen */
-#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view {
+#thumbnail-list-view, #thumbnail-select-view, #fullscreen-view, #pick-view, #edit-view, #crop-view, #slideshow-view {
   position: absolute;
   top: 0;
   left: 0;
@@ -256,7 +256,8 @@ section {
   background-color: #00b0d5;
 }
 
-#frames {
+#frames,
+#slides {
   position: absolute;
   top: 0;
   left: 0;
@@ -458,6 +459,10 @@ footer {
 
 #fullscreen-delete-button {
   background-image: url('images/iconaction_delete_30x30.png');
+}
+
+#fullscreen-slideshow-button {
+  background-image: url('images/actionicon_slideshow.png');
 }
 
 #pick-top {
