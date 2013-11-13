@@ -662,6 +662,7 @@ window.addEventListener('load', function loadSettings() {
       'js/battery.js',
       'shared/js/async_storage.js',
       'js/storage.js',
+      'js/try_show_homescreen_section.js',
       'shared/js/mobile_operator.js',
       'shared/js/wifi_helper.js',
       'shared/js/icc_helper.js',
