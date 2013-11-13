@@ -104,11 +104,20 @@
     -moz-box-sizing: border-box;
     position: absolute;
     top: calc(50% - 24rem);
-    left: calc(50% - 39rem);
-    width: 78rem;
+    left: calc(50% - 34rem);
+    width: 68rem;
     height: 48rem;
-    padding: 7rem 7rem;
-    font-size: 2rem;
+    padding: 6rem 6rem;
+    font-size: 2.2rem;
+    background-image: none;
+    background-color: #333333;
+    box-shadow: 0 0 1rem #222222;
+    border: 0.1rem solid #282828;
+  }
+
+  /* remove dotted outline when focus */
+  [role="dialog"].generic-dialog:focus {
+     outline: none;
   }
 
   [role="dialog"].generic-dialog:before {
@@ -120,11 +129,36 @@
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
-    padding: 2.5rem 7rem;
+    padding: 2.5rem 7.5rem;
+  }
+
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) {
+    background: none;
+    background-color: #2d2d2d;
   }
 
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:last-child,
   [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:last-child {
-    margin-left: 2rem;
+    margin-left: 4rem;
+    font-size: 2.3rem;
+    font-weight: 400;
+    width: 18rem;
+    height: 4rem;
+  }
+
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) button,
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"],
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) button:first-child,
+  [role="dialog"].generic-dialog menu:not([type="toolbar"]) a[role="button"]:first-child {
+    margin-left: calc(50% - 9rem);
+  }
+
+  [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] button:first-child,
+  [role="dialog"].generic-dialog menu:not([type="toolbar"])[data-items="2"] a[role="button"]:first-child {
+    margin-left: calc(50% - 20rem);
+    font-size: 2.3rem;
+    font-weight: 400;
+    width: 18rem;
+    height: 4rem;
   }
 }
