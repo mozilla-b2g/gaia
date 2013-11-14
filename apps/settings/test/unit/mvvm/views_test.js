@@ -82,7 +82,7 @@ suite('ListView', function() {
         setup(function() {
           this.template.reset();
           this.item = { replacement: true };
-          this.originalElements = [].slice.call(this.ul.children);
+          this.originalElements = Array.prototype.slice.call(this.ul.children);
           this.observableArray.set(1, this.item);
         });
 
@@ -112,7 +112,7 @@ suite('ListView', function() {
           this.template.recycle = true;
           this.template.reset();
           this.item = { replacement: true };
-          this.originalElements = [].slice.call(this.ul.children);
+          this.originalElements = Array.prototype.slice.call(this.ul.children);
           this.observableArray.set(1, this.item);
         });
 
@@ -141,7 +141,7 @@ suite('ListView', function() {
       suite('Reset With Shorter Array', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = [].slice.call(this.ul.children);
+          this.originalElements = Array.prototype.slice.call(this.ul.children);
           this.originalArray = this.array;
           this.array = [{ reset: 1 }, { reset: 2 }];
           this.observableArray.reset(this.array);
@@ -175,7 +175,7 @@ suite('ListView', function() {
       suite('Reset With Longer Array', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = [].slice.call(this.ul.children);
+          this.originalElements = Array.prototype.slice.call(this.ul.children);
           this.originalArray = this.array;
           this.array = [{ reset: 1 }, { reset: 2 }, { reset: 3 }, { reset: 4 }];
           this.observableArray.reset(this.array);
@@ -223,7 +223,7 @@ suite('ListView', function() {
       suite('reset with .set([{},{}])', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = [].slice.call(this.ul.children);
+          this.originalElements = Array.prototype.slice.call(this.ul.children);
           this.originalArray = this.array;
           this.array = [{ reset: 1 }, { reset: 2 }];
           this.listView.set(this.array);
@@ -237,7 +237,7 @@ suite('ListView', function() {
           assert.ok(observe.calledWith('remove'));
           assert.ok(observe.calledWith('replace'));
           assert.ok(observe.calledWith('reset'));
-       });
+        });
 
         // use forEach instead of for to store 'index' in closure
         [0, 1].forEach(function(index) {
@@ -267,7 +267,7 @@ suite('ListView', function() {
       suite('.enabled = false', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = [].slice.call(this.ul.children);
+          this.originalElements = Array.prototype.slice.call(this.ul.children);
           this.listView.enabled = false;
         });
         // test a bunch of things that modify the array
