@@ -1,0 +1,156 @@
+
+.hud {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 7.5rem;
+  z-index: 50;
+  transition: all 0.2s ease-in-out;
+}
+
+body:not(.filmstriphidden) .hud {
+  transform: translateY(5rem);
+}
+
+/** Buttons
+ ---------------------------------------------------------*/
+
+/**
+ * 1. Extend touchable zone.
+ * 2. When the button is pressed
+ *    it changes color instanly.
+ *    When it is released it transitons
+ *    back to the default color.
+ */
+
+.hud a {
+  height: 5rem;
+  width: 5rem;
+  border-radius: 50%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-color: rgba(0,0,0,.3);
+  background-clip: padding-box; /* 1 */
+  border: solid 2rem transparent; /* 1 */
+  transition: background-color 1s; /* 2 */
+  color: #fff;
+}
+
+.hud a:active {
+  background-color: #00b9df;
+  transition: none; /* 2 */
+}
+
+.hud a:first-child {
+  float: left;
+}
+
+.hud a:last-child {
+  float: right;
+}
+
+.toggle-camera[disabled=disabled],
+.toggle-flash[disabled=disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/** Camera Button
+ ---------------------------------------------------------*/
+
+.toggle-camera {
+  background-image: url(images/toggle-camera.png);
+  background-size: 100%;
+}
+
+/**
+ * @is-toggling-camera
+ */
+
+.is-toggling-camera .toggle-camera {
+  background-color: #00b9df;
+}
+
+/**
+ * @recording
+ */
+
+.recording .toggle-camera {
+  display: none;
+}
+
+/** Flash Button
+ ---------------------------------------------------------*/
+
+.toggle-flash {
+  position: relative;
+  background-size: 100%;
+}
+
+.toggle-flash[data-mode=on] {
+  background-image: url(images/flash_on.png);
+}
+
+.toggle-flash[data-mode=off] {
+  background-image: url(images/flash_off.png);
+}
+
+.toggle-flash[data-mode=auto] {
+  background-image: url(images/flash_auto.png);
+}
+
+.toggle-flash[data-mode=torch] {
+  background-image: url(images/flash_on.png);
+}
+
+/** Flash Text
+ ---------------------------------------------------------*/
+
+.flash-text {
+  position: absolute;
+  top: 50%; left: 100%;
+  margin: 0 1rem;
+  margin-top: -0.4em;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+  font-size: 14px;
+  line-height: 1em;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 1000ms;
+}
+
+/**
+ * @deg90,
+ * @deg180
+ *
+ * The flash text must be moved
+ * to the left of the icon so
+ * that it doesn't hang off the
+ * endge of the screen.
+ */
+
+body[data-orientation=deg90] .flash-text,
+body[data-orientation=deg180] .flash-text {
+  left: auto;
+  right: 100%;
+}
+
+/**
+ * @is-toggling
+ *
+ * When the user is toggling
+ * the flash setting we show
+ * the flash text.
+ */
+
+.is-toggling .flash-text {
+  opacity: 1;
+  transition: none;
+}
+
+/** Flash Name
+ ---------------------------------------------------------*/
+
+.flash-name {
+  text-transform: capitalize;
+}

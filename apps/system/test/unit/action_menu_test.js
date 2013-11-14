@@ -4,11 +4,10 @@ require('/shared/test/unit/load_body_html_helper.js');
 requireApp('system/js/action_menu.js');
 requireApp('system/test/unit/mock_l10n.js');
 
-var activitiesMockup, realL10n, genericActionsMockup;
-var iconUrl = 'images/icon.png', title = 'Title';
-var actionMenu, screen;
-
 suite('ActionMenu', function() {
+  var activitiesMockup, realL10n, genericActionsMockup;
+  var iconUrl = 'images/icon.png', title = 'Title';
+  var actionMenu, screenElement;
 
   suiteSetup(function() {
     activitiesMockup = [
@@ -43,7 +42,7 @@ suite('ActionMenu', function() {
     realL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
     loadBodyHTML('/index.html');
-    screen = document.getElementById('screen');
+    screenElement = document.getElementById('screen');
     ActionMenu.init();
   });
 
@@ -57,7 +56,7 @@ suite('ActionMenu', function() {
 
   suite(' > Structure & Basic methods', function() {
     setup(function() {
-      actionMenu = screen.querySelector('[data-type="action"]');
+      actionMenu = screenElement.querySelector('[data-type="action"]');
     });
 
     teardown(function() {
@@ -67,7 +66,7 @@ suite('ActionMenu', function() {
       // We must have *only* one action menu in system
 
       // We should have only one 'action' menu in system
-      var actionMenus = screen.querySelectorAll('[data-type="action"]');
+      var actionMenus = screenElement.querySelectorAll('[data-type="action"]');
       assert.equal(actionMenus.length, 1);
 
       // Check header
@@ -131,7 +130,7 @@ suite('ActionMenu', function() {
   suite(' > handleEvent', function() {
     var clickEvent;
     setup(function() {
-      actionMenu = screen.querySelector('[data-type="action"]');
+      actionMenu = screenElement.querySelector('[data-type="action"]');
       ActionMenu.open(activitiesMockup, title);
       this.sinon.spy(ActionMenu, 'handleEvent');
       this.sinon.spy(ActionMenu, 'hide');

@@ -1,0 +1,14 @@
+
+.viewfinder {
+  position: absolute;
+  transform-origin: 0 0;
+  left: 0;
+  top: 0;
+  z-index: 25;
+  opacity: 1;
+  transition: opacity 400ms ease-in-out;
+}
+
+.is-toggling-camera .viewfinder {
+  opacity: 0;
+}

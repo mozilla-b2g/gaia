@@ -48,7 +48,8 @@
           window.navigator.mozMobileConnection.icc;
 
     icc.onstksessionend = function handleSTKSessionEnd(event) {
-      Settings.currentPanel = '#root';
+      updateMenu();
+      Settings.currentPanel = '#icc';
     };
 
     document.getElementById('icc-stk-app-back').onclick = stkResGoBack;
@@ -358,9 +359,11 @@
     if (stkOpenAppName != title) {
       iccStkSubheader.textContent = title;
       iccStkSubheader.parentNode.classList.remove('hiddenheader');
+      iccStkSubheader.classList.remove('hidden');
     } else {
       iccStkSubheader.textContent = '';
       iccStkSubheader.parentNode.classList.add('hiddenheader');
+      iccStkSubheader.classList.add('hidden');
     }
   }
 

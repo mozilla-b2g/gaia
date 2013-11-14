@@ -1,3 +1,8 @@
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* global ParsedProvisioningDoc */
+
 'use strict';
 
 requireApp('wappush/js/parsed_doc.js');
@@ -166,7 +171,58 @@ suite('ParsedProvisioningDoc >', function() {
         '</wap-provisioningdoc>';
 
       parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
-      assert.lengthOf(parsedProvisioningDoc.getApns(), 1);
+      assert.lengthOf(parsedProvisioningDoc.getApns(), 0);
+    });
+
+    test('TEF document without valid APPLICATION nodes', function() {
+      var parsedProvisioningDoc;
+      var provisioningDoc =
+        '<wap-provisioningdoc>' +
+          '<characteristic type="NAPDEF">' +
+            '<parm name="NAPID" value="Yahoo"/>' +
+            '<parm name="BEARER" value="GSM-GPRS"/>' +
+            '<parm name="NAME" value="Yahoo"/>' +
+            '<parm name="NAP-ADDRESS" value="movistar.es"/>' +
+            '<parm name="NAP-ADDRTYPE" value="APN"/>' +
+            '<characteristic type="NAPAUTHINFO">' +
+              '<parm name="AUTHTYPE" value="PAP"/>' +
+              '<parm name="AUTHNAME" value=""/>' +
+              '<parm name="AUTHSECRET" value=""/>' +
+            '</characteristic>' +
+          '</characteristic>' +
+          '<characteristic type="APPLICATION">' +
+            '<parm name="APPID" value="25"/>' +
+            '<parm name="PROVIDER-ID" value="Yahoo"/>' +
+            '<parm name="NAME" value="Yahoo"/>' +
+            '<parm name="FROM" value="owdqa_test1@yahoo.es"/>' +
+            '<parm name="TO-NAPID" value="Yahoo"/>' +
+            '<characteristic type="APPADDR">' +
+              '<parm name="ADDR" value="smtp.yahoo.es"/>' +
+              '<characteristic type="PORT">' +
+                '<parm name="PORTNBR" value="25"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+          '</characteristic>' +
+          '<characteristic type="APPLICATION">' +
+            '<parm name="APPID" value="110"/>' +
+            '<parm name="PROVIDER-ID" value="Yahoo"/>' +
+            '<parm name="NAME" value="Yahoo"/>' +
+            '<parm name="TO-NAPID" value="Yahoo"/>' +
+            '<characteristic type="APPADDR">' +
+              '<parm name="ADDR" value="pop.yahoo.es"/>' +
+              '<characteristic type="PORT">' +
+                '<parm name="PORTNBR" value="110"/>' +
+              '</characteristic>' +
+            '</characteristic>' +
+            '<characteristic type="APPAUTH">' +
+              '<parm name="AAUTHNAME" value="owdqa_test1@yahoo.es"/>' +
+              '<parm name="AAUTHSECRET"/>' +
+            '</characteristic>' +
+          '</characteristic>' +
+        '</wap-provisioningdoc>';
+
+      parsedProvisioningDoc = ParsedProvisioningDoc.from(provisioningDoc);
+      assert.lengthOf(parsedProvisioningDoc.getApns(), 0);
     });
   });
 });

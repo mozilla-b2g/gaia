@@ -2,6 +2,7 @@ Keyboards.it = {
   label: 'Italian',
   menuLabel: 'Italiano',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'it',
   alt: {
     a: 'à@',

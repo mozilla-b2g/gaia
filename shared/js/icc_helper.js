@@ -10,7 +10,13 @@
  */
 
 var IccHelper = (function() {
-  var mobileConn = navigator.mozMobileConnection;
+
+  // XXX: check bug-926169
+  // this is used to keep all tests passing while introducing multi-sim APIs
+  var mobileConn = navigator.mozMobileConnection ||
+    window.navigator.mozMobileConnections &&
+      window.navigator.mozMobileConnections[0];
+
   var iccManager = null;
 
   var actors = {
@@ -87,7 +93,12 @@ var IccHelper = (function() {
 
     getCardLockRetryCount: function
       icch_getCardLockRetryCount(lockType, onresult) {
-      var mobileConn = navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var mobileConn = navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
 
       if ('retryCount' in mobileConn) {
         onresult(mobileConn.retryCount);

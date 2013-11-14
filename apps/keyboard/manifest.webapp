@@ -12,7 +12,7 @@
     "settings": { "access": "readwrite" },
     "input": {}
   },
-  "entry_points": {
+  "inputs": {
     "number": {
       "launch_path": "/index.html#numberLayout",
       "name": "Number",

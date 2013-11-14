@@ -345,6 +345,11 @@ Evme.Utils = new function Evme_Utils() {
         roundedIconsMap = {},
         processed = 0;
 
+    if (total === 0) {
+      callback(iconsMap);
+      return;
+    }
+
     for (var id in iconsMap) {
       var src = Evme.Utils.formatImageData(iconsMap[id]);
 
@@ -474,10 +479,6 @@ Evme.Utils = new function Evme_Utils() {
 
   this.getDefaultAppIcon = function getDefaultAppIcon() {
     return Evme.Config.design.apps.defaultAppIcon[this.PIXEL_RATIO_NAME];
-  };
-
-  this.getEmptyCollectionIcon = function getEmptyCollectionIcon() {
-    return Evme.__config.emptyCollectionIcon;
   };
 
   this.getIconGroup = function getIconGroup(numIcons) {
@@ -938,11 +939,13 @@ Evme.Utils = new function Evme_Utils() {
     }
 
     function getMobileConnection() {
-      var navigator = window.navigator;
-      if (navigator.mozMobileConnection &&
-            navigator.mozMobileConnection.data) {
-        return navigator.mozMobileConnection;
-      }
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var mobileConnection = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
+      return mobileConnection;
     }
 
     // init

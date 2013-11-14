@@ -511,6 +511,7 @@ suite('system/Statusbar', function() {
         roaming: false,
         network: {}
       };
+
       MockNavigatorMozMobileConnection.data = {
         connected: true,
         relSignalStrength: 80,

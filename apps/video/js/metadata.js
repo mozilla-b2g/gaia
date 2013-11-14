@@ -320,13 +320,22 @@ function captureFrame(player, metadata, callback) {
       break;
     }
 
-    // Figure out what portion of the video we want to draw into the thumbnail
-    var scale = Math.min(vw / tw, vh / th);
-    var w = tw * scale, h = th * scale;
-    var x = (vw - w) / 2, y = (vh - h) / 2;
+    // Need to find the minimum ratio between heights and widths,
+    // so the image (especailly the square thumbnails) would fit
+    // in the container with right ratio and no extra stretch.
+    // x and y are right/left and top/bottom margins and where we
+    // start drawing the image. Since we scale the image, x and y
+    // will be scaled too. Below gives us x and y actual pixels
+    // without scaling.
+    var scale = Math.min(tw / vw, th / vh),
+        w = scale * vw, h = scale * vh,
+        x = (tw - w) / 2 / scale, y = (th - h) / 2 / scale;
+
+    // Scale the image
+    ctx.scale(scale, scale);
 
     // Draw the current video frame into the image
-    ctx.drawImage(player, x, y, w, h, 0, 0, tw, th);
+    ctx.drawImage(player, x, y);
 
     // Convert it to an image file and pass to the callback.
     canvas.toBlob(callback, 'image/jpeg');

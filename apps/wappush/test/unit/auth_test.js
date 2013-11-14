@@ -1,3 +1,8 @@
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* global ProvisioningAuthentication */
+
 'use strict';
 
 requireApp('wappush/js/ext/CryptoJSv3.1.2/rollups/hmac-sha1.js');

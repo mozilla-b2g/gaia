@@ -1,34 +1,43 @@
 'use strict';
 
+requireApp('communications/ftu/js/navigation.js');
+
 requireApp('communications/ftu/test/unit/mock_l10n.js');
-requireApp(
-    'communications/ftu/test/unit/mock_navigator_moz_mobile_connection.js');
-requireApp('communications/ftu/test/unit/mock_navigator_moz_settings.js');
+requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_data_mobile.js');
 requireApp('communications/ftu/test/unit/mock_sim_manager.js');
+requireApp('communications/ftu/test/unit/mock_sd_manager.js');
+requireApp('communications/ftu/test/unit/mock_import_services.js');
 requireApp('communications/ftu/test/unit/mock_ui_manager.js');
 requireApp('communications/ftu/test/unit/mock_tutorial.js');
 requireApp('communications/ftu/test/unit/mock_wifi_manager.js');
 requireApp('communications/ftu/test/unit/mock_utils.js');
 requireApp('communications/ftu/test/unit/mock_operatorVariant.js');
-requireApp('communications/ftu/js/navigation.js');
+requireApp(
+    'communications/ftu/test/unit/mock_navigator_moz_mobile_connection.js');
 
 requireApp('communications/shared/test/unit/mocks/mock_icc_helper.js');
+requireApp(
+    'communications/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+
+requireApp('communications/ftu/test/unit/mock_navigation.html.js');
 
 mocha.globals(['open']);
 
 var _;
 var mocksHelperForNavigation = new MocksHelper([
+  'utils',
   'UIManager',
   'SimManager',
   'DataMobile',
   'OperatorVariant',
   'IccHelper',
   'Tutorial',
-  'utils'
-
-]);
-mocksHelperForNavigation.init();
+  'SdManager',
+  'ImportIntegration',
+  'WifiManager',
+  'WifiUI'
+]).init();
 
 suite('navigation >', function() {
   var mocksHelper = mocksHelperForNavigation;
@@ -37,7 +46,8 @@ suite('navigation >', function() {
   var realOnLine,
       realL10n,
       realMozMobileConnection,
-      realSettings;
+      realSettings,
+      realHTML;
 
   function navigatorOnLine() {
     return isOnLine;
@@ -47,66 +57,18 @@ suite('navigation >', function() {
     isOnLine = value;
   }
 
-  function createDOM() {
-    var markup =
-    '<header>' +
-    ' <menu type="toolbar">' +
-    '   <button id="wifi-refresh-button" data-l10n-id="refresh">' +
-    '     Refresh' +
-    '   </button>' +
-    ' </menu>' +
-    ' <h1 id="main-title"></h1>' +
-    '</header>' +
-    '<ol id="progress-bar" class="step-state">' +
-    '</ol>' +
-    '<section id="unlock-sim-screen"' +
-    ' role="region" class="skin-organic">' +
-    ' <nav role="navigation">' +
-    ' <button id="skip-pin-button" class="button-left" data-l10n-id="skip">' +
-    'Skip</button>' +
-    ' <button id="back-sim-button" class="button-left back hidden" ' +
-    '   data-l10n-id="back">' +
-    '     Back' +
-    '  </button>' +
-    '<button id="unlock-sim-button" class="recommend" data-l10n-id="send">' +
-    'Send</button></nav>' +
-    '</section>' +
-    '<section id="activation-screen"' +
-    ' role="region" class="skin-organic no-options">' +
-    ' <menu role="navigation" id="nav-bar" class="forward-only">' +
-    '   <button id="back" class="button-left back">' +
-    '     Back' +
-    '     <span></span>' +
-    '   </button>' +
-    '   <button class="recommend forward" id="forward">' +
-    '     Next' +
-    '     <span></span>' +
-    '   </button>' +
-    '   <button class="recommend" id="wifi-join-button">' +
-    '     Join' +
-    '   </button>' +
-    ' </menu>' +
-    ' <a href="https://www.mozilla.org/privacy/firefox-os/"' +
-    '    class="external" title="URL title">url text</a>' +
-    '</section>' +
-    '<section id="finish-screen" role="region">' +
-    '</section>' +
-    '<section id="tutorial-screen" role="region">' +
-    '</section>';
-
-    container = document.createElement('div');
-    container.insertAdjacentHTML('beforeend', markup);
-    document.body.appendChild(container);
-  }
-
-  setup(function() {
-    createDOM();
+  suiteSetup(function() {
+    realHTML = document.body.innerHTML;
+    document.body.innerHTML = MockImportNavigationHTML;
 
     realMozMobileConnection = navigator.mozMobileConnection;
     navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
 
     realSettings = navigator.mozSettings;
     navigator.mozSettings = MockNavigatorSettings;
+
+    realL10n = navigator.mozL10n;
+    navigator.mozL10n = MockL10n;
 
     realOnLine = Object.getOwnPropertyDescriptor(navigator, 'onLine');
     Object.defineProperty(navigator, 'onLine', {
@@ -116,21 +78,21 @@ suite('navigation >', function() {
     });
     MockIccHelper.setProperty('cardState', 'ready');
 
-    realL10n = navigator.mozL10n;
-    navigator.mozL10n = MockL10n;
-
-    mocksHelper.setup();
+    mocksHelper.suiteSetup();
     Navigation.init();
   });
 
-  teardown(function() {
-    navigator.mozSettings = realSettings;
-    realSettings = null;
-    mocksHelper.teardown();
-    container.parentNode.removeChild(container);
+  suiteTeardown(function() {
+    mocksHelper.suiteTeardown();
+
+    document.body.innerHTML = realHTML;
+    realHTML = null;
 
     navigator.mozMobileConnection = realMozMobileConnection;
     realMozMobileConnection = null;
+
+    navigator.mozSettings = realSettings;
+    realSettings = null;
 
     navigator.mozL10n = realL10n;
     realL10n = null;
@@ -140,17 +102,13 @@ suite('navigation >', function() {
     }
   });
 
-  suiteSetup(function() {
-    mocksHelper.suiteSetup();
-  });
-
-  suiteTeardown(function() {
-    mocksHelper.suiteTeardown();
-  });
+  var setStepState = function(current, callback) {
+    Navigation.currentStep = Navigation.previousStep = current;
+    Navigation.manageStep(callback);
+  };
 
   test('navigates forward', function() {
-    // The second step isn't mandatory.
-    Navigation.forward();
+    setStepState(1);
     for (var i = Navigation.currentStep; i < numSteps; i++) {
       Navigation.forward();
       assert.equal(Navigation.previousStep, i);
@@ -160,9 +118,7 @@ suite('navigation >', function() {
   });
 
   test('navigates backwards', function() {
-    Navigation.currentStep = numSteps;
-    Navigation.previousStep = numSteps;
-    window.location.hash = steps[Navigation.currentStep].hash;
+    setStepState(numSteps);
     // The second step isn't mandatory.
     for (var i = Navigation.currentStep; i > 2; i--) {
       Navigation.back();
@@ -170,37 +126,6 @@ suite('navigation >', function() {
       assert.equal(Navigation.currentStep, i - 1);
       assert.equal(window.location.hash, steps[i - 1].hash);
     }
-  });
-
-  test('navigate loop with SIMMandatory', function() {
-    Navigation.simMandatory = true;
-    MockIccHelper.setProperty('cardState', 'absent');
-    Navigation.currentStep = 1;
-    Navigation.previousStep = 1;
-    Navigation.forward();
-
-    assert.equal(Navigation.previousStep, 1);
-    assert.equal(Navigation.currentStep, 2);
-    assert.equal(window.location.hash, '#SIM_mandatory');
-
-    Navigation.back();
-    Navigation.forward();
-
-    assert.equal(Navigation.previousStep, 1);
-    assert.equal(Navigation.currentStep, 2);
-    assert.equal(window.location.hash, '#SIM_mandatory');
-  });
-
-  test('navigate SIMMandatory with SIM', function() {
-    Navigation.simMandatory = true;
-    MockIccHelper.setProperty('cardState', 'ready');
-    Navigation.currentStep = 1;
-    Navigation.previousStep = 1;
-    Navigation.forward();
-
-    assert.equal(Navigation.previousStep, 1);
-    assert.equal(Navigation.currentStep, 2);
-    assert.equal(window.location.hash, steps[Navigation.currentStep].hash);
   });
 
   test('last step launches tutorial', function() {
@@ -211,6 +136,138 @@ suite('navigation >', function() {
     Navigation.forward();
     assert.include(UIManager.finishScreen.classList, 'show');
     assert.isFalse(UIManager.activationScreen.classList.contains('show'));
+  });
+
+  suite('UI changes>', function() {
+    var observerConfig = {
+      childList: true
+    };
+
+    setup(function() {
+      MockIccHelper.setProperty('cardstate', 'ready');
+      Navigation.simMandatory = false;
+    });
+
+    test('languages screen >', function(done) {
+      setStepState(1);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('language'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('data mobile screen >', function(done) {
+      setStepState(2);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('3g'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('wifi screen >', function(done) {
+      setStepState(3);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('selectNetwork'));
+        assert.isFalse(UIManager.navBar.classList.contains('secondary-menu'));
+        assert.isFalse(UIManager.activationScreen.classList.contains(
+                       'no-options'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('date&time screen >', function(done) {
+      setStepState(4);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('dateAndTime'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('geolocation screen >', function(done) {
+      setStepState(5);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('geolocation'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('import contacts screen >', function(done) {
+      setStepState(6);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('importContacts3'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('welcome screen >', function(done) {
+      setStepState(7);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('privacy screen >', function(done) {
+      setStepState(8);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+  });
+
+  suite('SIM mandatory', function() {
+    var hash = '#SIM_mandatory';
+
+    setup(function() {
+      Navigation.simMandatory = true;
+      setStepState(1);
+    });
+
+    teardown(function() {
+      Navigation.simMandatory = false;
+    });
+
+    test('without SIM card', function() {
+      MockIccHelper.setProperty('cardState', 'absent');
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+      assert.equal(window.location.hash, hash);
+
+      Navigation.back();
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+      assert.equal(window.location.hash, hash);
+    });
+
+    test('with SIM card', function() {
+      MockIccHelper.setProperty('cardState', 'ready');
+      Navigation.forward();
+
+      assert.equal(Navigation.previousStep, 1);
+      assert.equal(Navigation.currentStep, 2);
+      assert.equal(window.location.hash, steps[Navigation.currentStep].hash);
+    });
   });
 
   suite('external-url-loader >', function() {

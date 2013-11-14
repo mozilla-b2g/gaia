@@ -238,6 +238,16 @@ Icon.prototype = {
       window.URL.revokeObjectURL(img.src);
       self.renderImage(img);
       self.isDefaultIcon = false;
+
+      // real icon is ready (not default icon)
+      if (!self.app.downloading &&
+          self.descriptor.type !== GridItemsFactory.TYPE.COLLECTION) {
+        window.dispatchEvent(new CustomEvent('appInstalled', {
+          'detail': {
+            'app': self.app
+          }
+        }));
+      }
     };
 
     img.onerror = function icon_loadError() {
@@ -737,6 +747,8 @@ Page.prototype = {
    *               List of Icon objects.
    */
   render: function pg_render(icons) {
+    // By default the page is hidden unless it is the current page.
+    this.container.setAttribute('aria-hidden', true);
     this.olist = document.createElement('ol');
     for (var i = 0, icon; icon = icons[i++];) {
       this.appendIcon(icon);

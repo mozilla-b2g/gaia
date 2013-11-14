@@ -3,7 +3,7 @@
          Template, MockSMIL, Utils, MessageManager, LinkActionHandler,
          LinkHelper, Attachment, MockContact, MockOptionMenu,
          MockActivityPicker, Threads, Settings, MockMessages, MockUtils,
-         MockContacts, ActivityHandler */
+         MockContacts, ActivityHandler, Recipients, MockMozActivity */
 
 'use strict';
 
@@ -3109,10 +3109,13 @@ suite('thread_ui.js >', function() {
 
           window.location.hash = '#thread=1';
 
+          var body = document.createElement('ul');
+
           ThreadUI.prompt({
             number: '999',
             contactId: contact.id,
-            isContact: true
+            isContact: true,
+            body: body
           });
 
           assert.equal(MockOptionMenu.calls.length, 1);
@@ -3120,12 +3123,12 @@ suite('thread_ui.js >', function() {
           var call = MockOptionMenu.calls[0];
           var items = call.items;
 
-          // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.header, '999');
+          // Ensures that the OptionMenu does not have
+          // the phone number to display since it's a contact
+          assert.equal(call.header, '');
 
           // Only known Contact details should appear in the "section"
-          assert.equal(call.section, '');
+          assert.equal(call.section, body);
 
           assert.equal(items.length, 3);
 
@@ -3226,9 +3229,11 @@ suite('thread_ui.js >', function() {
 
           window.location.hash = '#thread=1';
 
+          var body = document.createElement('ul');
           ThreadUI.prompt({
             number: '999',
-            isContact: true
+            isContact: true,
+            body: body
           });
 
           assert.equal(MockOptionMenu.calls.length, 1);
@@ -3237,8 +3242,11 @@ suite('thread_ui.js >', function() {
           var items = call.items;
 
           // Ensures that the OptionMenu was given
-          // the phone number to diplay
-          assert.equal(call.header, '999');
+          // the contact informations to be displayed
+          assert.equal(call.section, body);
+
+          // ensures we'll show no header
+          assert.equal(call.header, '');
 
           assert.equal(items.length, 3);
 
@@ -3295,6 +3303,7 @@ suite('thread_ui.js >', function() {
 
       suite('onHeaderActivation', function() {
         test('Single known', function() {
+          this.sinon.spy(ThreadUI, 'renderContact');
 
           Threads.set(1, {
             participants: ['+12125559999']
@@ -3311,7 +3320,14 @@ suite('thread_ui.js >', function() {
           var calls = MockOptionMenu.calls;
 
           assert.equal(calls.length, 1);
-          assert.equal(calls[0].header, '+12125559999');
+
+          // contacts do not show the number in the header
+          assert.equal(calls[0].header, '');
+
+          // but do have a body
+          var body = ThreadUI.renderContact.lastCall.args[0].target;
+          assert.equal(calls[0].section, body);
+
           assert.equal(calls[0].items.length, 3);
           assert.equal(typeof calls[0].complete, 'function');
         });
@@ -3691,10 +3707,36 @@ suite('thread_ui.js >', function() {
     setup(function() {
       this.sinon.spy(ThreadUI, 'assimilateRecipients');
     });
+    teardown(function() {
+      Recipients.View.isObscured = false;
+    });
 
     test('assimilate called after mousedown on picker button', function() {
       ThreadUI.contactPickButton.dispatchEvent(new CustomEvent('mousedown'));
       assert.ok(ThreadUI.assimilateRecipients.called);
+    });
+
+    suite('Recipients.View.isObscured', function() {
+      test('true during activity', function() {
+        ThreadUI.requestContact();
+        assert.isTrue(Recipients.View.isObscured);
+      });
+
+      test('false after activity', function() {
+        this.sinon.stub(Utils, 'basicContact').returns({});
+
+        ThreadUI.requestContact();
+
+        var activity = MockMozActivity.instances[0];
+
+        activity.result = {
+          tel: [{ value: true }]
+        };
+
+        MockMozActivity.instances[0].onsuccess();
+
+        assert.isFalse(Recipients.View.isObscured);
+      });
     });
   });
 

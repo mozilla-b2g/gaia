@@ -252,6 +252,7 @@ contacts.Form = (function() {
       var current = toRender[i];
       renderTemplate(current, contact[current]);
     }
+
     deleteContactButton.onclick = function deleteClicked(event) {
       var msg = _('deleteConfirmMsg');
       var yesObject = {
@@ -260,6 +261,9 @@ contacts.Form = (function() {
         callback: function onAccept() {
           deleteContact(currentContact);
           ConfirmDialog.hide();
+          if (ActivityHandler.currentlyHandling) {
+            cancelButton.click();
+          }
         }
       };
 
@@ -440,7 +444,7 @@ contacts.Form = (function() {
 
     if (fb.isFbContact(contact)) {
       var fbContact = new fb.Contact(contact);
-      request = fbContact.remove();
+      request = fbContact.remove(true);
       request.onsuccess = deleteSuccess;
     } else {
       var theContact = (contact instanceof mozContact) ?

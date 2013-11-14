@@ -166,14 +166,7 @@ var SleepMenu = {
         //
         // It should also save the status of the latter 4 items
         // so when leaving the airplane mode we could know which one to turn on.
-
-        if (!window.navigator.mozSettings)
-          return;
-
-        SettingsListener.getSettingsLock().set({
-          'ril.radio.disabled': !this.isFlightModeEnabled
-        });
-
+        AirplaneMode.enabled = !this.isFlightModeEnabled;
         break;
 
       // About silent and silentOff

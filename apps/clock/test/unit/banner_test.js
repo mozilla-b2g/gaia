@@ -3,11 +3,11 @@ suite('Banner', function() {
 
   suiteSetup(function(done) {
     // store timezone offset for fake timers
-    var offset = (new Date()).getTimezoneOffset() * 60 * 1000;
+    var offset = (new Date(2013, 5, 16, 6)).getTimezoneOffset() * 60 * 1000;
 
     // The timestamp for "Tue Jul 16 2013 06:00:00" according to the local
     // system's time zone
-    this.sixAm = 1373954400000 + offset;
+    this.sixAm = new Date(2013, 5, 16, 6).getTime();
 
     // +12 minutes +20 seconds
     this.minutes = this.sixAm + 740000;

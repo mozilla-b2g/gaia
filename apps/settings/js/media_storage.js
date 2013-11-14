@@ -62,9 +62,8 @@ var Volume = function(name, external, externalIndex, storages) {
 //  <li>
 //    <label class="pack-switch">
 //      <input type="checkbox" name="ums.volume.sdcard.enabled" />
-//      <span></span>
+//      <span data-l10n-id="share-using-usb">Share using USB</span>
 //    </label>
-//    <a data-l10n-id="share-using-usb">Share using USB</a>
 //  </li>
 //</ul>
 
@@ -120,18 +119,16 @@ Volume.prototype.createView = function volume_createView(listRoot) {
   var input = document.createElement('input');
   input.type = 'checkbox';
   input.name = 'ums.volume.' + this.name + '.enabled';
-  var span = document.createElement('span');
   var label = document.createElement('label');
   label.classList.add('pack-switch');
   label.appendChild(input);
+  var span = document.createElement('span');
+  span.dataset.l10nId = 'share-using-usb';
+  span.textContent = _('share-using-usb');
   label.appendChild(span);
-  var text = document.createElement('a');
-  text.dataset.l10nId = 'share-using-usb';
-  text.textContent = _('share-using-usb');
 
   var ele = document.createElement('li');
   ele.appendChild(label);
-  ele.appendChild(text);
   this.rootElement.appendChild(ele);
 };
 

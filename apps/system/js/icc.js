@@ -8,6 +8,7 @@ var icc = {
   _displayTextTimeout: 40000,
   _defaultURL: null,
   _inputTimeout: 40000,
+  _toneDefaultTimeout: 5000,
 
   init: function icc_init() {
     this._icc = this.getICC();
@@ -36,6 +37,13 @@ var icc = {
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       self._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
+    // Update toneDefaultTimeout with settings parameter
+    var reqToneDefaultTimeout = window.navigator.mozSettings.createLock().get(
+      'icc.toneDefaultTimeout');
+    reqToneDefaultTimeout.onsuccess = function icc_getToneDefaultTimeout() {
+      self._toneDefaultTimeout =
+        reqToneDefaultTimeout.result['icc.toneDefaultTimeout'];
+    };
   },
 
   getIccInfo: function icc_getIccInfo() {
@@ -54,7 +62,14 @@ var icc = {
   },
 
   getICC: function icc_getICC() {
-    if (!window.navigator.mozMobileConnection) {
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
+    if (!conn) {
       return;
     }
 
@@ -64,8 +79,7 @@ var icc = {
     // try to get it from mozMobileConnection.
     // 'window.navigator.mozMobileConnection.icc' can be dropped
     // after bug 859220 is landed.
-    return window.navigator.mozIccManager ||
-           window.navigator.mozMobileConnection.icc;
+    return window.navigator.mozIccManager || conn.icc;
   },
 
   clearMenuCache: function icc_clearMenuCache(callback) {

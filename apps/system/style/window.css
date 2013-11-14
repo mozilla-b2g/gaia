@@ -78,7 +78,7 @@
 
 .appWindow > .screenshot-overlay {
   z-index: -1;
-  display: none;
+  visibility: hidden;
   position: absolute;
   top: 0;
   left: 0;
@@ -89,7 +89,7 @@
 
 .appWindow > .screenshot-overlay.visible {
   z-index: 2;
-  display: block;
+  visibility: visible;
 }
 
 .appWindow > iframe.hidden {

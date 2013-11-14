@@ -27,9 +27,9 @@ var ApplicationsList = {
   },
 
   init: function al_init() {
-    var appsMgmt = navigator.mozApps.mgmt;
-    appsMgmt.oninstall = this.oninstall.bind(this);
-    appsMgmt.onuninstall = this.onuninstall.bind(this);
+    window.addEventListener('applicationinstall', this.oninstall.bind(this));
+    window.addEventListener('applicationuninstall',
+                            this.onuninstall.bind(this));
 
     this.uninstallButton.addEventListener('click', this);
     this.container.addEventListener('click', this);

@@ -1,0 +1,45 @@
+
+#tabs {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 4rem;
+  z-index: 20;
+}
+
+/* Overwrite BB tabs background transparency */
+[role="tablist"] > [role="tab"] > a {
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+#tabs a {
+  outline: none;
+}
+
+#mix[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_gridview.png");
+}
+
+#playlists[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_playlistfilter.png");
+}
+
+#artists[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_artistfilter.png");
+}
+
+#albums[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_albumfilter.png");
+}
+
+#songs[role="tab"] a:after {
+  background-image: url("./images/iconaction_media_songsfilter.png");
+}
+
+#select-mix:target ~ #tabs #mix > a,
+#select-playlists:target ~ #tabs #playlists > a,
+#select-artists:target ~ #tabs #artists > a,
+#select-albums:target ~ #tabs #albums > a,
+#select-songs:target ~ #tabs #songs > a {
+  background-color: rgba(0, 128, 160, .75);
+}

@@ -19,7 +19,7 @@ class TestSettingsMediaStorage(GaiaTestCase):
         self.assertEqual(media_storage_settings.pictures_size, '0 B')
         self.assertEqual(media_storage_settings.movies_size, '0 B')
 
-        # Close the settings application
+        # Close the settings application. We need to kill it to re-init the UI
         self.apps.kill(settings.app)
 
         # Push media to the device

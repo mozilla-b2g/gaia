@@ -1,5 +1,13 @@
+
+/**
+ * This file adds custom styles to
+ * the unstyled video component
+ * inside sharedjs.
+ */
+
 /* styles for the video element itself */
-.videoPoster, .videoPlayer {
+.videoPoster,
+.videoPlayer {
   position: absolute;
   left: 0; /* we position it with a transform */
   top:0;
@@ -122,7 +130,8 @@ button::-moz-focus-inner {
   pointer-events: none;
 }
 
-.videoPlayerElapsedBar, .videoPlayerBackgroundBar {
+.videoPlayerElapsedBar,
+.videoPlayerBackgroundBar {
   height: 0.4rem;
   width: 0%;
   top: 50%;

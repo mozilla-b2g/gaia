@@ -1,6 +1,7 @@
 Keyboards.pl = {
   label: 'Polish',
   imEngine: 'latin',
+  types: ['text', 'url' , 'email'],
   autoCorrectLanguage: 'pl',
   menuLabel: 'Polski',
   alt: {

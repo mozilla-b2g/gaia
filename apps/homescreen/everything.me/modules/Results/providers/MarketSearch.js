@@ -65,12 +65,11 @@
 
     this.render = function publicRender(data) {
       // get marketlpace icon
-      EvmeManager.getAppByOrigin(gridAppOrigin, function(appInfo) {
-        app.icon = appInfo.icon; // update app info
-        self.render = render; // override this.render next time
+      var appInfo = EvmeManager.getAppByOrigin(gridAppOrigin);
+      app.icon = appInfo.icon; // update app info
+      self.render = render; // override this.render next time
 
-        render(data); // actually render
-      });
+      render(data); // actually render
     };
 
     this.clear = function clear() {

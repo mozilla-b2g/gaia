@@ -24,6 +24,7 @@ class TestCameraMultipleShots(GaiaTestCase):
         self.camera.tap_to_display_filmstrip()
 
         image_preview = self.camera.filmstrip_images[0].tap()
+        image_preview.wait_for_media_frame()
         self.assertTrue(image_preview.is_image_preview_visible)
 
         self.camera = image_preview.tap_camera()
@@ -33,6 +34,7 @@ class TestCameraMultipleShots(GaiaTestCase):
         self.camera.tap_to_display_filmstrip()
 
         image_preview = self.camera.filmstrip_images[1].tap()
+        image_preview.wait_for_media_frame()
         self.assertTrue(image_preview.is_image_preview_visible)
 
         self.camera = image_preview.tap_camera()
@@ -42,6 +44,7 @@ class TestCameraMultipleShots(GaiaTestCase):
         self.camera.tap_to_display_filmstrip()
 
         image_preview = self.camera.filmstrip_images[2].tap()
+        image_preview.wait_for_media_frame()
         self.assertTrue(image_preview.is_image_preview_visible)
 
         self.camera = image_preview.tap_camera()

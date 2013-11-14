@@ -895,9 +895,6 @@ ul.contact-prompt .name{
 
 body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{
   text-align: left;
-  padding: 1.5rem 2rem;
-  font-size: 2.3rem;
-  font-weight: lighter;
 }
 
 section[role="region"].new .article-list[data-type="list"]  li:first-child {

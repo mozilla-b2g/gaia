@@ -173,10 +173,19 @@
         if (this.activityCaller instanceof AppWindow) {
           // If we're killed by event handler, display the caller.
           if (evt) {
-            WindowManager.setDisplayedApp(this.activityCaller.origin);
+            // XXX: We should just request this.activityCaller.open()
+            // But we won't have this method before bug 907013 landed.
+            // This is also another harm by using origin to identify an app.
+            if (this.activityCaller.isHomescreen) {
+              WindowManager.setDisplayedApp();
+            } else {
+              WindowManager.setDisplayedApp(this.activityCaller.origin);
+            }
           }
         } else if (this.activityCaller instanceof ActivityWindow) {
-          this.activityCaller.open();
+          if (evt) {
+            this.activityCaller.open();
+          }
         } else {
           console.warn('unknown window type of activity caller.');
         }

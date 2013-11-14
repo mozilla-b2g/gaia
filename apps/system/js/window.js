@@ -129,15 +129,15 @@
     if (this._screenshotOverlayState != 'frame')
       return;
 
-    // Require a next paint event
-    // to remove the screenshot overlay if it exists.
-    if (this.screenshotOverlay.classList.contains('visible')) {
-      this._waitForNextPaint(this._hideScreenshotOverlay.bind(this));
-    }
-
     this.iframe.classList.remove('hidden');
     if ('setVisible' in this.iframe)
       this.iframe.setVisible(true);
+
+    // Getting a new screenshot to force compositing before
+    // removing the screenshot overlay if it exists.
+    if (this.screenshotOverlay.classList.contains('visible')) {
+      this.ensureFullRepaint(this._hideScreenshotOverlay.bind(this));
+    }
   };
 
   /**
@@ -538,7 +538,7 @@
     'landscape-primary', 'landscape-secondary', 'landscape', 'default'];
   var OrientationRotationTable = {
     'portrait-primary': [0, 180, 0, 90, 270, 90, isDefaultPortrait ? 0 : 90],
-    'landscape-primary': [270, 90, 270, 0, 180, 0, isDefaultPortrait ? 0 : 270]
+    'landscape-primary': [270, 90, 270, 0, 180, 0, isDefaultPortrait ? 270 : 0]
   };
 
   AppWindow.prototype.determineRotationDegree =

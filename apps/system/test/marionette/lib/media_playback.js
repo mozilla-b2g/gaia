@@ -5,63 +5,74 @@ function click(client, element) {
   // and is probably masking a bug in Marionette, since all the elements we're
   // clicking on should be displayed thanks to waitForContainerShown.
   if (!element.displayed()) {
-    this.client.waitFor(function() {
+    client.waitFor(function() {
       return element.displayed();
     });
   }
   element.click();
 }
 
-function MediaPlaybackTest(client) {
+function MediaPlaybackContainer(client, container) {
   this.client = client;
+  this.containerElement = container;
 }
 
-module.exports = MediaPlaybackTest;
+MediaPlaybackContainer.Selector = Object.freeze({
+  nowPlayingElement: '.media-playback-nowplaying',
+  controlsElement: '.media-playback-controls',
 
-MediaPlaybackTest.Selector = Object.freeze({
-  containerElement: '#media-playback-container',
-  nowPlayingElement: '#media-playback-nowplaying',
+  titleElement: '.title',
+  artistElement: '.artist',
 
-  titleElement: '#media-playback-nowplaying > .title',
-  artistElement: '#media-playback-nowplaying > .artist',
-
-  previousTrackElement: '#media-playback-controls > .previous',
-  playPauseElement: '#media-playback-controls > .play-pause',
-  nextTrackElement: '#media-playback-controls > .next'
+  previousTrackElement: '.previous',
+  playPauseElement: '.play-pause',
+  nextTrackElement: '.next'
 });
 
-MediaPlaybackTest.prototype = {
+MediaPlaybackContainer.prototype = {
   client: null,
-  origin: null,
-
-  get containerElement() {
-    return this.client.findElement(MediaPlaybackTest.Selector.containerElement);
-  },
+  container: null,
 
   get nowPlayingElement() {
-    return this.client.findElement(
-      MediaPlaybackTest.Selector.nowPlayingElement);
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.nowPlayingElement
+    );
+  },
+
+  get controlsElement() {
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.controlsElement
+    );
   },
 
   get titleElement() {
-    return this.client.findElement(MediaPlaybackTest.Selector.titleElement);
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.titleElement
+    );
   },
 
   get artistElement() {
-    return this.client.findElement(MediaPlaybackTest.Selector.artistElement);
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.artistElement
+    );
   },
 
   get previousTrackElement() {
-    return this.client.findElement(
-      MediaPlaybackTest.Selector.previousTrackElement);
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.previousTrackElement
+    );
   },
 
   get playPauseElement() {
-    return this.client.findElement(MediaPlaybackTest.Selector.playPauseElement);
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.playPauseElement
+    );
   },
 
   get nextTrackElement() {
-    return this.client.findElement(MediaPlaybackTest.Selector.nextTrackElement);
+    return this.containerElement.findElement(
+      MediaPlaybackContainer.Selector.nextTrackElement
+    );
   },
 
   get titleText() {
@@ -70,18 +81,6 @@ MediaPlaybackTest.prototype = {
 
   get artistText() {
     return this.artistElement.getAttribute('textContent');
-  },
-
-  openUtilityTray: function(callback) {
-    this.client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.show();
-    });
-
-    callback();
-
-    this.client.executeScript(function() {
-      window.wrappedJSObject.UtilityTray.hide();
-    });
   },
 
   waitForContainerShown: function(shouldBeShown) {
@@ -113,5 +112,72 @@ MediaPlaybackTest.prototype = {
 
   nextTrack: function() {
     click(this.client, this.nextTrackElement);
+  }
+};
+
+function MediaPlayback(client) {
+  this.client = client;
+}
+
+module.exports = MediaPlayback;
+
+MediaPlayback.Selector = Object.freeze({
+  notificationContainerElement: '#media-playback-container',
+  lockscreenContainerElement: '#lockscreen-media-container'
+});
+
+MediaPlayback.prototype = {
+  client: null,
+
+  get notificationContainerElement() {
+    return this.client.findElement(
+      MediaPlayback.Selector.notificationContainerElement
+    );
+  },
+
+  get lockscreenContainerElement() {
+    return this.client.findElement(
+      MediaPlayback.Selector.lockscreenContainerElement
+    );
+  },
+
+  openUtilityTray: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.UtilityTray.show();
+    });
+  },
+
+  closeUtilityTray: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.UtilityTray.hide();
+    });
+  },
+
+  inUtilityTray: function(callback) {
+    this.openUtilityTray();
+    callback(new MediaPlaybackContainer(
+      this.client, this.notificationContainerElement
+    ));
+    this.closeUtilityTray();
+  },
+
+  lockScreen: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.LockScreen.lock();
+    });
+  },
+
+  unlockScreen: function() {
+    this.client.executeScript(function() {
+      window.wrappedJSObject.LockScreen.unlock();
+    });
+  },
+
+  inLockscreen: function(callback) {
+    this.lockScreen();
+    callback(new MediaPlaybackContainer(
+      this.client, this.lockscreenContainerElement
+    ));
+    this.unlockScreen();
   }
 };

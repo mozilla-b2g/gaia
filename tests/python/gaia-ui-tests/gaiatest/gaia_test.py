@@ -90,6 +90,10 @@ class GaiaApps(object):
                        name=result.get('name'),
                        origin=result.get('origin'))
 
+    def switch_to_displayed_app(self):
+        self.marionette.switch_to_default_content()
+        self.marionette.switch_to_frame(self.displayed_app.frame)
+
     def is_app_installed(self, app_name):
         self.marionette.switch_to_frame()
         return self.marionette.execute_async_script("GaiaApps.locateWithName('%s')" % app_name)
@@ -230,7 +234,12 @@ class GaiaData(object):
 
     @property
     def is_cell_data_connected(self):
-        return self.marionette.execute_script("return window.navigator.mozMobileConnection.data.connected;")
+        # XXX: check bug-926169
+        # this is used to keep all tests passing while introducing multi-sim APIs
+        return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
+                                              'window.navigator.mozMobileConnections && ' +
+                                              'window.navigator.mozMobileConnections[0]; ' +
+                                              'return mobileConnection.data.connected;');
 
     def enable_cell_roaming(self):
         self.set_setting('ril.data.roaming_enabled', True)
@@ -333,6 +342,13 @@ class GaiaData(object):
             return [filename for filename in files if filename.endswith(extension)]
         return files
 
+    def send_sms(self, number, message):
+        import json
+        number = json.dumps(number)
+        message = json.dumps(message)
+        result = self.marionette.execute_async_script('return GaiaDataLayer.sendSMS(%s, %s)' % (number, message), special_powers=True)
+        assert result, 'Unable to send SMS to recipient %s with text %s' % (number, message)
+
 
 class GaiaDevice(object):
 
@@ -373,7 +389,12 @@ class GaiaDevice(object):
 
     @property
     def has_mobile_connection(self):
-        return self.marionette.execute_script('return window.navigator.mozMobileConnection !== undefined')
+        # XXX: check bug-926169
+        # this is used to keep all tests passing while introducing multi-sim APIs
+        return self.marionette.execute_script('var mobileConnection = window.navigator.mozMobileConnection || ' +
+                                              'window.navigator.mozMobileConnections && ' +
+                                              'window.navigator.mozMobileConnections[0]; ' +
+                                              'return mobileConnection !== undefined');
 
     @property
     def has_wifi(self):
@@ -512,7 +533,6 @@ class GaiaTestCase(MarionetteTestCase):
             # Set do not track pref back to the default
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
-
             if self.data_layer.get_setting('ril.radio.disabled'):
                 # enable the device radio, disable Airplane mode
                 self.data_layer.set_setting('ril.radio.disabled', False)
@@ -539,7 +559,6 @@ class GaiaTestCase(MarionetteTestCase):
 
         # disable sound completely
         self.data_layer.set_volume(0)
-
 
     def install_marketplace(self):
         _yes_button_locator = (By.ID, 'app-install-install-button')
@@ -802,8 +821,8 @@ class GaiaEnduranceTestCase(GaiaTestCase):
         # Calculate the average b2g_rss
         total = 0
         for b2g_mem_value in b2g_rss_list:
-            total+=int(b2g_mem_value)
-        avg_rss = total/len(b2g_rss_list)
+            total += int(b2g_mem_value)
+        avg_rss = total / len(b2g_rss_list)
 
         # Create a summary text file
         summary_name = self.log_name.replace('.log', '_summary.log')

@@ -62,6 +62,7 @@ class Homescreen(Base):
     def touch_home_button(self):
         self.marionette.switch_to_frame()
         self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == self.name)
 
     def activate_edit_mode(self):
         app = self.marionette.find_element(*self._visible_icons_locator)
@@ -71,6 +72,16 @@ class Homescreen(Base):
             release().\
             perform()
         self.wait_for_element_displayed(By.CSS_SELECTOR, 'div.dockWrapper ol[style*="transition: -moz-transform 0.5ms ease 0s;"]')
+
+    def open_context_menu(self):
+        test = self.marionette.find_element(*self._landing_page_locator)
+        Actions(self.marionette).\
+            press(test, 0, 0).\
+            wait(3).\
+            release().\
+            perform()
+        from gaiatest.apps.homescreen.regions.context_menu import ContextMenu
+        return ContextMenu(self.marionette)
 
     def move_app_to_position(self, app_position, to_position):
         app = self.marionette.find_elements(*self._visible_icons_locator)[app_position]

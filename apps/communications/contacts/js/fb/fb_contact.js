@@ -148,7 +148,8 @@ fb.Contact = function(deviceContact, cid) {
       }; // fbReq.onsuccess
     };
     fbReq.onerror = function() {
-      window.console.error('FB: Error while saving on indexedDB');
+      window.console.error('FB: Error while saving on datastore',
+                           fbReq.error && fbReq.error.name);
       outReq.failed(fbReq.error);
     };
   }
@@ -171,7 +172,7 @@ fb.Contact = function(deviceContact, cid) {
         data[prop] = contactData.fbInfo[prop];
       });
 
-      // Names are also stored on indexedDB
+      // Names are also stored on datastore
       // thus restoring the contact (if unlinked) will be trivial
       copyNames(contactData, data);
 
@@ -183,7 +184,8 @@ fb.Contact = function(deviceContact, cid) {
         outReq.done(fbReq.result);
       };
       fbReq.onerror = function() {
-        window.console.error('FB: Error while saving on indexedDB');
+        window.console.error('FB: Error while saving Fb data on the Datastore',
+                             fbReq.error && fbReq.error.name);
         outReq.failed(fbReq.error);
       };
     },0);
@@ -285,136 +287,16 @@ fb.Contact = function(deviceContact, cid) {
     destination.additionalName = asArrayOfValues(source.additionalName);
   }
 
-  /*
-   * Shallow copy from source to target object
-   */
-  function populate(source, target, propertyNames) {
-    propertyNames.forEach(function(property) {
-      var propertyValue = source[property];
-      if (propertyValue) {
-        if (Array.isArray(propertyValue)) {
-          target[property] = propertyValue.slice(0, propertyValue.length);
-        } else {
-          target[property] = propertyValue;
-        }
-      }
-    });
-  }
-
   // Merges mozContact data with Facebook data
   this.merge = function(fbdata) {
-    var out = devContact;
-
-    if (fbdata) {
-      out = Object.create(null);
-      out.updated = devContact.updated;
-      out.published = devContact.published;
-
-      // The id comes from devContact and the rest of properties like
-      // familyName, propertyName, etc... are defined in the prototype object
-      populate(devContact, out, Object.getOwnPropertyNames(devContact));
-      populate(devContact, out,
-                 Object.getOwnPropertyNames(Object.getPrototypeOf(devContact)));
-
-      mergeFbData(out, fbdata);
-    }
-
-    return out;
+    return fb.mergeContact(devContact, fbdata);
   };
 
-
-  // Checks whether there is a duplicate for the field value
-  // both in FB and in the local device Contact data
-  // Returns an array with the values which are duplicated or empty if
-  // no duplicates were found
-  // Parameters are: field on which to search, the corresponding fbItem
-  // the local device items, and extra FB Items which correspond to the short
-  // telephone numbers allowing to filter out duplicates with intl-ed numbers
-  function checkDuplicates(field, fbItem, devContactItems, extraFbItems) {
-    var potentialDuplicatesFields = ['email', 'tel'];
-    var out = [];
-
-    if (devContactItems && potentialDuplicatesFields.indexOf(field) !== -1) {
-      var total = devContactItems.length;
-      for (var i = 0; i < total; i++) {
-        var localValue = devContactItems[i].value;
-        var fbValue = fbItem.value;
-        // Checking for telephone international number matching
-        if (localValue) {
-          var trimedLocal = localValue.trim();
-          if (trimedLocal === fbValue ||
-             (field === 'tel' && Array.isArray(extraFbItems) &&
-              extraFbItems.indexOf(trimedLocal) !== -1)) {
-            out.push(trimedLocal);
-            out.push(fbValue);
-          }
-        } // if(localValue)
-      } // for
-    } // if(devContactItems)
-
-    return out;
-  }
-
-
-  function mergeFbData(dcontact, fbdata) {
-    var multipleFields = ['email', 'tel', 'photo', 'org', 'adr'];
-
-    multipleFields.forEach(function(field) {
-      if (!dcontact[field]) {
-        dcontact[field] = [];
-      }
-      var items = fbdata[field];
-      if (items) {
-        items.forEach(function(item) {
-          // If there are no duplicates the merge is done
-          var dupList = checkDuplicates(field, item, dcontact[field],
-                                        fbdata.shortTelephone);
-          if (dupList.length === 0) {
-            dcontact[field].push(item);
-          }
-        });
-      }
-    });
-
-    var singleFields = ['bday'];
-    singleFields.forEach(function(field) {
-      dcontact[field] = fbdata[field];
-    });
-
-    // To support the case in which the contact does not have a local name
-    fb.mergeNames(dcontact, fbdata);
-  }
 
   // Gets the data
   this.getData = function() {
-
-    var outReq = new fb.utils.Request();
-
-    window.setTimeout(function do_getData() {
-      var uid = doGetFacebookUid(devContact);
-
-      if (uid) {
-        var fbreq = fb.contacts.get(uid);
-
-        fbreq.onsuccess = (function() {
-          var fbdata = fbreq.result;
-          var out = this.merge(fbdata);
-          outReq.done(out);
-
-        }).bind(this);
-
-        fbreq.onerror = function() {
-          outReq.failed(fbreq.error);
-        };
-      }
-      else {
-        outReq.done(devContact);
-      }
-    }.bind(this), 0);
-
-    return outReq;
+    return fb.getData(devContact);
   };
-
 
   this.getDataAndValues = function() {
     var outReq = new fb.utils.Request();
@@ -441,7 +323,7 @@ fb.Contact = function(deviceContact, cid) {
                 if (item.value && item.value.length > 0) {
                   // Check for duplicates. Those duplicates are annotated to
                   // be later removed from the out2 array
-                  var dupList = checkDuplicates(key, item, devContact[key],
+                  var dupList = fb.checkDuplicates(key, item, devContact[key],
                                                       fbdata.shortTelephone);
                   dupList.forEach(function(aDup) {
                     duplicates[aDup] = true;
@@ -720,7 +602,7 @@ fb.Contact = function(deviceContact, cid) {
       }
       else {
         // FB Data is removed from the cache
-        var removeReq = fb.contacts.remove(uid);
+        var removeReq = fb.contacts.remove(uid, true);
 
         removeReq.onsuccess = function() {
           out.done(removeReq.result);

@@ -1,6 +1,6 @@
 /*global requireApp suite setup test teardown sinon KeyEvent */
-var InputMethods = {};
 
+requireApp('keyboard/test/unit/setup_engine.js');
 requireApp('keyboard/js/imes/latin/latin.js');
 
 suite('Latin suggestions', function() {

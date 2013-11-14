@@ -2,6 +2,8 @@ Keyboards.hu = {
   label: 'Hungarian',
   menuLabel: 'Magyar',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
+  autoCorrectLanguage: 'hu',
   alt: {
     a: 'áàâäåãāæª',
     c: 'çćč',

@@ -227,22 +227,27 @@ class TestFtu(GaiaTestCase):
         self.marionette.switch_to_frame()
 
     def _select(self, match_string):
-        # Cheeky Select wrapper until Marionette has its own
-        # Due to the way B2G wraps the app's select box we match on text
+        # cheeky Select wrapper until Marionette has its own
+        # due to the way B2G wraps the app's select box we match on text
 
-        # Have to go back to top level to get the B2G select box wrapper
+        _list_item_locator = (By.XPATH, "id('value-selector-container')/descendant::li[descendant::span[.='%s']]" % match_string)
+        _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
+
+        # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
 
-        options = self.marionette.find_elements(By.CSS_SELECTOR, '#value-selector-container li')
-        close_button = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
+        li = self.wait_for_element_present(*_list_item_locator)
 
-        # Loop options until we find the match
-        for li in options:
-            if li.text == match_string:
-                li.tap()
-                break
+       # TODO Remove scrollintoView upon resolution of bug 877651
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(false);', [li])
+        li.tap()
 
+        close_button = self.marionette.find_element(*_close_button_locator)
+
+        # Tap close and wait for it to hide
         close_button.tap()
+        self.wait_for_element_not_displayed(*_close_button_locator)
 
-        # Now back to app
-        self.marionette.switch_to_frame(self.app.frame)
+        # now back to app
+        self.marionette.switch_to_frame(self.apps.displayed_app.frame)

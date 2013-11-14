@@ -22,7 +22,6 @@ class Keypad(Phone):
 
     def __init__(self, marionette):
         Phone.__init__(self, marionette)
-        self.wait_for_element_displayed(*self._keyboard_container_locator)
 
     @property
     def phone_number(self):
@@ -49,6 +48,10 @@ class Keypad(Phone):
     def tap_add_contact(self):
         self.marionette.find_element(*self._add_new_contact_button_locator).tap()
         return AddNewNumber(self.marionette)
+
+    def switch_to_keypad_frame(self):
+        app = self.apps.displayed_app
+        self.marionette.switch_to_frame(app.frame)
 
 
 class AddNewNumber(Base):
