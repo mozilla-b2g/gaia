@@ -4,7 +4,9 @@
 
 'use strict';
 
-define(function() {
+define(function(require) {
+
+  var broadcast = require('broadcast');
 
   // This array holds all the data we need for image and video previews
   var items = [];
@@ -36,6 +38,11 @@ define(function() {
   deleteButton.onclick = deleteCurrentItem;
   shareButton.onclick = shareCurrentItem;
   mediaFrame.addEventListener('swipe', handleSwipe);
+  broadcast.on('newVideo', onNewVideo);
+  broadcast.on('newImage', onNewImage);
+  broadcast.on('itemDeleted', onItemDeleted);
+  broadcast.on('storageUnavailable', hidePreview);
+  broadcast.on('storageShared', hidePreview);
 
   // Create the MediaFrame for previews
   var frame = new MediaFrame(mediaFrame);
@@ -98,6 +105,24 @@ define(function() {
     ViewfinderView.el.pause();
   };
 
+  function onNewVideo(data) {
+    addVideo(
+      data.file, data.video, data.poster,
+      data.width, data.height, data.rotation
+    );
+
+    show(FILMSTRIP_DURATION);
+  }
+
+  function onNewImage(data) {
+    addImage(data.path, data.blob);
+    show(FILMSTRIP_DURATION);
+  }
+
+  function onItemDeleted(data) {
+    deleteItem(data.path);
+  }
+
   function previewItem(index) {
     // Don't redisplay the item if it is already displayed
     if (currentItemIndex === index)
@@ -134,6 +159,10 @@ define(function() {
   }
 
   function hidePreview() {
+    if (!isPreviewShown()) {
+      return;
+    }
+
     ViewfinderView.el.play();        // Restart the viewfinder
     show(Camera.FILMSTRIP_DURATION); // Fade the filmstrip after a delay
     preview.classList.add('offscreen');
