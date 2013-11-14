@@ -234,7 +234,7 @@ contacts.List = (function() {
       renderPhoto(node, id);
       updateRowStyle(node, true);
       updateSingleRowSelection(node, id);
-      return node.cloneNode();
+      return node.cloneNode(true);
     },
 
     getNodeById: function(id) {
@@ -1074,7 +1074,7 @@ contacts.List = (function() {
     // If is favorite add as well to the favorite group
     if (isFavorite(contact)) {
       list = getGroupList('favorites');
-      var cloned = renderedNode.cloneNode();
+      var cloned = renderedNode.cloneNode(true);
       cloned.dataset.group = 'favorites';
       addToGroup(cloned, list);
     }
