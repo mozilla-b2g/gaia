@@ -9,8 +9,8 @@ define(function(require) {
    * @param  {String}   name
    * @param  {Function} fn
    */
-  var exports = function(el, name, fn) {
-    el.addEventListener(name, fn);
+  var exports = function(el, name, fn, context) {
+    el.addEventListener(name, fn.bind(context));
   };
 
   /**
