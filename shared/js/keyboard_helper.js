@@ -429,6 +429,19 @@ var KeyboardHelper = exports.KeyboardHelper = {
         if (!app.manifest || 'input' !== app.manifest.role) {
           return;
         }
+
+        // Check app type
+        if (app.manifest.type !== 'certified' &&
+            app.manifest.type !== 'privileged') {
+          return;
+        }
+
+        // Check permission
+        if (app.manifest.permissions &&
+            !('input' in app.manifest.permissions)) {
+          return;
+        }
+
         //XXX remove this hard code check if one day system app no longer
         //    use mozKeyboard API
         if (app.origin === 'app://system.gaiamobile.org') {
