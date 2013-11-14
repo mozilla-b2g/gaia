@@ -92,8 +92,6 @@ suite('Render contacts list', function() {
       groupC,
       groupD,
       groupT,
-      groupGreek,
-      groupCyrillic,
       groupFav,
       groupUnd,
       containerA,
@@ -101,8 +99,6 @@ suite('Render contacts list', function() {
       containerC,
       containerD,
       containerT,
-      containerGreek,
-      containerCyrillic,
       containerFav,
       containerUnd,
       list,
@@ -400,10 +396,7 @@ suite('Render contacts list', function() {
       containerC = container.querySelector('#contacts-list-C');
       groupD = container.querySelector('#group-D');
       containerD = container.querySelector('#contacts-list-D');
-      groupGreek = container.querySelector('#group-Π');    // U+03A0
-      containerGreek = container.querySelector('#contacts-list-Π');
-      groupCyrillic = container.querySelector('#group-П'); // U+041F
-      containerCyrillic = container.querySelector('#contacts-list-П');
+
       groupUnd = container.querySelector('#group-und');
       containerUnd = container.querySelector('#contacts-list-und');
 
@@ -413,8 +406,7 @@ suite('Render contacts list', function() {
       assertGroup(groupB, containerB, 1);
       assertGroup(groupC, containerC, 1);
       assertNoGroup(groupD, containerD);
-      assertNoGroup(groupGreek, containerGreek);
-      assertNoGroup(groupCyrillic, containerCyrillic);
+
     });
 
     test('adding one at the beginning', function() {
@@ -584,38 +576,6 @@ suite('Render contacts list', function() {
       assert.notEqual(undContacts[0].querySelector('p').innerHTML.
                       indexOf('noName'), -1);
       assertTotal(5, 5);
-    });
-
-    test('adding one with a name in Greek', function() {
-      var name = ['πέτρος']; // 'Π' is an uppercase 'π'
-      var newContact = new MockContactAllFields();
-      newContact.id = '4';
-      newContact.familyName = name;
-      newContact.name = [newContact.givenName + ' ' + newContact.familyName];
-      newContact.category = null;
-      doRefreshContact(subject, newContact);
-      assertNoGroup(groupFav, containerFav);
-      var _Contacts = assertGroup(groupGreek, containerGreek, 1);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      assert.isTrue(_Contacts[0].querySelector('p').innerHTML.indexOf(name) >
-                    -1);
-      assertTotal(4, 4);
-    });
-
-    test('adding one with a name in Cyrillic', function() {
-      var name = ['пётр']; // 'П' is an uppercase 'п'
-      var newContact = new MockContactAllFields();
-      newContact.id = '4';
-      newContact.familyName = name;
-      newContact.name = [newContact.givenName + ' ' + newContact.familyName];
-      newContact.category = null;
-      doRefreshContact(subject, newContact);
-      assertNoGroup(groupFav, containerFav);
-      assert.isTrue(noContacts.classList.contains('hide'));
-      var _Contacts = assertGroup(groupCyrillic, containerCyrillic, 1);
-      assert.isTrue(_Contacts[0].querySelector('p').innerHTML.indexOf(name) >
-                    -1);
-      assertTotal(4, 4);
     });
 
     test('adding one in the middle of a group', function() {
