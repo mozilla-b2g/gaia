@@ -18,7 +18,7 @@ class TestEverythingMeSearch(GaiaTestCase):
         # Tests a search with a common string.
         # Asserts that the title and shortcuts are listed
 
-        test_string = u'skyfall'
+        test_string = u'News'
         homescreen = Homescreen(self.marionette)
         homescreen.launch()
 
