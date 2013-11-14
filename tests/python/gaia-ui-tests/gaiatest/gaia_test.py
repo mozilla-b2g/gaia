@@ -537,6 +537,9 @@ class GaiaTestCase(MarionetteTestCase):
                 # enable the device radio, disable Airplane mode
                 self.data_layer.set_setting('ril.radio.disabled', False)
 
+            # Re-set edge gestures pref to False
+            self.data_layer.set_setting('edgesgesture.enabled', False)
+
             # disable carrier data connection
             if self.device.has_mobile_connection:
                 self.data_layer.disable_cell_data()
