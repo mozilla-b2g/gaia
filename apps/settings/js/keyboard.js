@@ -339,18 +339,16 @@ var InstalledLayoutsPanel = (function() {
   // A template function for generating an UI element for a layout object.
   var _layoutTemplate = function ksa_layoutTemplate(layout, recycled) {
     var container = null;
-    var layoutName, checkbox;
+    var span, checkbox;
     if (recycled) {
       container = recycled;
       checkbox = container.querySelector('input');
       span = container.querySelector('span');
-      layoutName = container.querySelector('a');
     } else {
       container = document.createElement('li');
       checkbox = document.createElement('input');
-      layoutName = document.createElement('a');
       var label = document.createElement('label');
-      var span = document.createElement('span');
+      span = document.createElement('span');
 
       label.className = 'pack-checkbox';
       checkbox.type = 'checkbox';
@@ -359,7 +357,6 @@ var InstalledLayoutsPanel = (function() {
       label.appendChild(span);
 
       container.appendChild(label);
-      container.appendChild(layoutName);
     }
 
     checkbox.onchange = function() {
@@ -367,7 +364,7 @@ var InstalledLayoutsPanel = (function() {
     };
 
     var refreshName = function() {
-      layoutName.textContent = layout.name;
+      span.textContent = layout.name;
     };
     var refreshCheckbox = function() {
       checkbox.checked = layout.enabled;

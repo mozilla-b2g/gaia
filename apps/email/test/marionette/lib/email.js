@@ -51,9 +51,9 @@ var Selector = {
   accountListButton: '.fld-folders-header .fld-accounts-btn',
   settingsMainAccountItems: '.tng-accounts-container .tng-account-item',
   syncIntervalSelect: '.tng-account-check-interval ',
-  // Checkboxes are weird: hidden to marionette, but the associated span
+  // Checkboxes are weird: hidden to marionette, but the associated label
   // is clickable and does the job.
-  notifyEmailCheckbox: '.tng-notify-mail-label > span',
+  notifyEmailCheckbox: '.tng-notify-mail-label',
   accountSettingsBackButton: '.card-settings-account .tng-back-btn',
   localDraftsItem: '.fld-folders-container a[data-type=localdrafts]'
 };

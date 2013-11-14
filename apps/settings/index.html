@@ -319,16 +319,14 @@
           <li>
             <label class="pack-switch">
               <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
-              <span></span>
+              <span id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</span>
             </label>
-            <a id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</a>
           </li>
           <li>
             <label class="pack-switch">
               <input name="geolocation.enabled" class="uninit" type="checkbox">
-              <span></span>
+              <span id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</span>
             </label>
-            <a id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</a>
           </li>
           <li>
             <small id="wifi-desc" class="menu-item-desc"></small>
@@ -429,11 +427,10 @@
         <ul>
           <li>
             <label class="pack-switch">
-              <input id="ums-switch-root" data-ignore="" type="checkbox">
-              <span></span>
+              <input id="ums-switch-root" data-ignore type="checkbox">
+              <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
+              <span id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage1">USB storage</span>
             </label>
-            <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
-            <a id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage1">USB storage</a>
           </li>
           <li>
             <small id="application-storage-desc" class="menu-item-desc"></small>
