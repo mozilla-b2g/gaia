@@ -92,23 +92,29 @@ var ContactsSDExport = function ContactsSDExport() {
       throw new Error('SD export requires a callback function');
     }
 
-    ContactToVcardBlob(contacts, function onContacts(blob) {
-      getStorage(getFileName(), blob, function onStorage(error,
-        storage, finalName) {
-        if (error) {
-          var reason = error;
-          // numeric error means not enough space available
-          if (parseInt(error, 10) > 0) {
-            reason = 'noSpace';
-          }
-          finishCallback({
-            'reason': reason
-          }, 0, error.message);
-          return;
-        }
+    var vcfStr = '';
+    ContactToVcardBlob(contacts, function onContacts(blob, remaining) {
+      vcfStr += blob;
 
-        saveToSdcard(storage, finalName, blob, finishCallback);
-      });
+      // If there are no remaining contacts to process, write the file
+      if (remaining === 0) {
+        getStorage(getFileName(), vcfStr,
+          function onStorage(error, storage, finalName) {
+            if (error) {
+              var reason = error;
+              // numeric error means not enough space available
+              if (parseInt(error, 10) > 0) {
+                reason = 'noSpace';
+              }
+              finishCallback({
+                'reason': reason
+              }, 0, error.message);
+              return;
+            }
+
+            saveToSdcard(storage, finalName, vcfStr, finishCallback);
+          });
+      }
     });
   };
 

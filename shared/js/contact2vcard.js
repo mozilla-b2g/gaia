@@ -1,24 +1,21 @@
 'use strict';
 
-var VCARD_VERSION = '4.0';
-var HEADER = 'BEGIN:VCARD\nVERSION:' + VCARD_VERSION + '\n';
-var FOOTER = 'END:VCARD\n';
 var ContactToVcard;
 var ContactToVcardBlob;
 var VCARD_MAP = {
-  'fax' : 'fax',
-  'faxoffice' : 'fax,work',
-  'faxhome' : 'fax,home',
-  'faxother' : 'fax',
-  'home' : 'home',
-  'mobile' : 'cell',
-  'pager' : 'pager',
-  'personal' : 'home',
-  'pref' : 'pref',
-  'text' : 'text',
-  'textphone' : 'textphone',
-  'voice' : 'voice',
-  'work' : 'work'
+  'fax': 'fax',
+  'faxoffice': 'fax,work',
+  'faxhome': 'fax,home',
+  'faxother': 'fax',
+  'home': 'home',
+  'mobile': 'cell',
+  'pager': 'pager',
+  'personal': 'home',
+  'pref': 'pref',
+  'text': 'text',
+  'textphone': 'textphone',
+  'voice': 'voice',
+  'work': 'work'
 };
 // Field list to be skipped on vcard
 var VCARD_SKIP_FIELD = ['fb_profile_photo'];
@@ -28,7 +25,9 @@ function ISODateString(d) {
     return n < 10 ? '0' + n : n;
   }
 
-  if (typeof d === 'string') { d = new Date(d); }
+  if (typeof d === 'string') {
+    d = new Date(d);
+  }
 
   return d.getUTCFullYear() + '-' +
     pad(d.getUTCMonth() + 1) + '-' +
@@ -39,6 +38,17 @@ function ISODateString(d) {
 }
 
 (function() {
+  var VCARD_VERSION = '4.0';
+  var HEADER = 'BEGIN:VCARD\nVERSION:' + VCARD_VERSION + '\n';
+  var FOOTER = 'END:VCARD\n';
+
+  var VCARD_MAP = {
+    'mobile': 'cell'
+  };
+
+  // Field list to be skipped on vcard
+  var VCARD_SKIP_FIELD = ['fb_profile_photo'];
+
   function blobToBase64(blob, cb) {
     var reader = new FileReader();
     reader.onload = function() {
@@ -49,14 +59,32 @@ function ISODateString(d) {
     reader.readAsDataURL(blob);
   }
 
+  /**
+   * Given an array withcontact fields (usually containing only one field),
+   * returns the equivalent vcard field
+   *
+   * @param {Array} sourceField
+   * @param {String} vcardField
+   * @return {Array}
+   */
   function fromContactField(sourceField, vcardField) {
-    if (!sourceField || !sourceField.length)
+    if (!sourceField || !sourceField.length) {
       return [];
+    }
 
     return sourceField.map(function(field) {
       var str = vcardField;
+      /**
+       * If the field doesn't have an equivalent in vcard standard.
+       * Incompatible fields are stored in `VCARD_SKIP_FIELD`.
+       *
+       * @type {boolean}
+       */
       var skipField = false;
       var types = [];
+
+      // Checks existing types and converts them to vcard types if necessary
+      // and fill `types` array with the final types.
       if (Array.isArray(field.type)) {
         var fieldType = field.type.map(function(aType) {
           var out = '';
@@ -82,16 +110,17 @@ function ISODateString(d) {
       }
 
       if (types.length) {
-        str += ';type=' + types.join(',');
+        vcardField += ';type=' + types.join(',');
       }
 
-      return str + ':' + (field.value || '');
+      return vcardField + ':' + (field.value || '');
     });
   }
 
   function fromStringArray(sourceField, vcardField) {
-    if (!sourceField)
+    if (!sourceField) {
       return '';
+    }
 
     return vcardField + ':' + sourceField.join(',');
   }
@@ -105,34 +134,42 @@ function ISODateString(d) {
   }
 
   ContactToVcardBlob = function(contacts, callback) {
-    ContactToVcard(contacts, function onVcard(vcard) {
+    ContactToVcard(contacts, function onVcard(vcard, remaining) {
       vcard = vcard ? toBlob(vcard) : null;
-      callback(toBlob(vcard));
+      callback(toBlob(vcard), remaining);
     });
   };
 
   ContactToVcard = function(ctArray, callback) {
-    var numContacts = ctArray.length;
-    var processed = 0;
     var vcardString = '';
+    var cardsInBatch = 0;
+    var totalCardsProcessed = 0;
+    var batchSize = 10;
 
     function appendVcard(vcard) {
-      processed += 1;
-      if (vcard)
+      if (vcard && vcard.length > 0) {
         vcardString += HEADER + vcard + '\n' + FOOTER;
+      }
 
-      if (numContacts === processed) {
-        if (!vcardString || /^\s+$/.test(vcardString))
-          callback(null);
-        else
-          callback(vcardString);
+      cardsInBatch += 1;
+      totalCardsProcessed += 1;
+
+      console.log(vcard, cardsInBatch, ctArray.length)
+      if (cardsInBatch === batchSize ||
+        cardsInBatch === ctArray.length) {
+        callback(vcardString, ctArray.length - totalCardsProcessed);
+        cardsInBatch = 0;
+        vcardString = '';
       }
     }
 
-    ctArray.forEach(function(ct) {
+    /**
+     * Process a single contact from the batch
+     */
+    function processContact(ct, _onProcessed) {
       if (navigator.mozContact && !(ct instanceof navigator.mozContact)) {
         console.error('An instance of mozContact was expected');
-        appendVcard(null);
+        _onProcessed('');
         return;
       }
 
@@ -143,13 +180,12 @@ function ISODateString(d) {
         ct.honorificPrefix,
         ct.honorificSuffix
       ].map(function(f) {
-        f = f || [''];
-        return f.join(',') + ';';
-      }).join(''));
+          return (f || ['']).join(',') + ';';
+        }).join(''));
 
-      // vCard standard does not accept contacts without 'n' or 'fn fields.
+      // vCard standard does not accept contacts without 'n' or 'fn' fields.
       if (n === 'n:;;;;;' || !ct.name) {
-        appendVcard(null);
+        _onProcessed('');
         return;
       }
 
@@ -176,8 +212,8 @@ function ISODateString(d) {
       allFields.push.apply(allFields, adrs.map(function(adrStr, i) {
         var orig = ct.adr[i];
         return adrStr + (['', '', orig.streetAddress || '', orig.locality ||
-                         '', orig.region || '', orig.postalCode || '',
-                         orig.countryName || ''].join(';'));
+          '', orig.region || '', orig.postalCode || '',
+          orig.countryName || ''].join(';'));
       }));
 
       if (ct.photo && ct.photo.length) {
@@ -185,13 +221,16 @@ function ISODateString(d) {
         var blob = ct.photo[0];
         var mime = blob.type;
         blobToBase64(blob, function(b64) {
-          var finalStr = 'data:' + mime + ';base64,' + b64;
-          allFields.push(photoStr + finalStr);
-          appendVcard(joinFields(allFields));
+          allFields.push(photoStr + 'data:' + mime + ';base64,' + b64);
+          _onProcessed(joinFields(allFields));
         });
       } else {
-        appendVcard(joinFields(allFields));
+        _onProcessed(joinFields(allFields));
       }
-    });
+    }
+
+    for (var i = 0, l = ctArray.length; i < l; i++) {
+      processContact(ctArray[i], appendVcard);
+    }
   };
 })();

@@ -5,7 +5,7 @@ require('/shared/test/unit/mocks/mock_contact_all_fields.js');
 require('/shared/js/contact2vcard.js');
 
 var mocksHelperForContact2vcard = new MocksHelper([
-  'mozContact'
+    'mozContact'
 ]).init();
 
 suite('mozContact to vCard', function() {
@@ -35,82 +35,93 @@ suite('mozContact to vCard', function() {
 
     test('Convert a single contact to a vcard', function(done) {
       var mc = new MockContactAllFields();
-      ContactToVcard([mc], function(vcard) {
-        assert.ok(vcard);
+      var str = '';
+      ContactToVcard([mc], function(vcard, remaining) {
+        assert.ok(vcard !== null);
+        str += vcard;
 
-        var _contains = contains(vcard);
-        assert.ok(_contains('fn:pepito grillo'));
-        assert.ok(_contains('n:grillo;pepito;green;mr.;;'));
-        assert.ok(_contains('nickname:pg'));
-        assert.ok(_contains('category:favorite'));
-        assert.ok(_contains('org:test org'));
-        assert.ok(_contains('title:sr. software architect'));
-        assert.ok(_contains('note:note 1'));
-        assert.ok(_contains('bday:1970-01-01'));
-        assert.ok(_contains('photo:data:image/gif;base64,' + b64));
-        assert.ok(_contains('email;type=home:test@test.com'));
-        assert.ok(_contains(
-          'email;type=work,pref:test@work.com'));
-        assert.ok(_contains('tel;type=cell,pref:+346578888888'));
-        assert.ok(_contains('tel;type=home:+3120777777'));
-        assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
-                            'chemnitz;chemnitz;09034;germany'));
-        assert.ok(!_contains('url;type=fb_profile_photo:https://abcd1.jpg'));
-        done();
+        if (remaining === 0) {
+          var _contains = contains(vcard);
+          assert.ok(_contains('fn:pepito grillo'));
+          assert.ok(_contains('n:grillo;pepito;green;mr.;;'));
+          assert.ok(_contains('nickname:pg'));
+          assert.ok(_contains('category:favorite'));
+          assert.ok(_contains('org:test org'));
+          assert.ok(_contains('title:sr. software architect'));
+          assert.ok(_contains('note:note 1'));
+          assert.ok(_contains('bday:1970-01-01'));
+          assert.ok(_contains('photo:data:image/gif;base64,' + b64));
+          assert.ok(_contains('email;type=personal:test@test.com'));
+          assert.ok(_contains(
+            'email;type=personal;type=work,pref:test@work.com'));
+          assert.ok(_contains('tel;type=cell,pref:+346578888888'));
+          assert.ok(_contains('tel;type=cell,pref;type=home:+3120777777'));
+          assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
+            'chemnitz;chemnitz;09034;germany'));
+          assert.ok(!_contains('url;type=fb_profile_photo:https://abcd1.jpg'));
+          done();
+        }
       });
     });
 
     test('Convert multiple contacts to a vcard', function(done) {
       var mc = new MockContactAllFields();
-      ContactToVcard([mc, new mozContact()], function(vcard) {
+      var str = '';
+      ContactToVcard([mc, new mozContact()], function(vcard, remaining) {
         assert.ok(vcard);
 
-        var _contains = contains(vcard);
-        assert.ok(_contains('fn:pepito grillo'));
-        assert.ok(_contains('n:grillo;pepito;green;mr.;;'));
-        assert.ok(_contains('nickname:pg'));
-        assert.ok(_contains('category:favorite'));
-        assert.ok(_contains('org:test org'));
-        assert.ok(_contains('title:sr. software architect'));
-        assert.ok(_contains('note:note 1'));
-        assert.ok(_contains('bday:1970-01-01'));
-        assert.ok(_contains('photo:data:image/gif;base64,' + b64));
-        assert.ok(_contains('email;type=home:test@test.com'));
-        assert.ok(_contains(
-          'email;type=work,pref:test@work.com'));
-        assert.ok(_contains('tel;type=cell,pref:+346578888888'));
-        assert.ok(_contains('tel;type=home:+3120777777'));
-        assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
-                            'chemnitz;chemnitz;09034;germany'));
+        if (remaining === 0) {
+          var _contains = contains(vcard);
+          assert.ok(_contains('fn:pepito grillo'));
+          assert.ok(_contains('n:grillo;pepito;green;mr.;;'));
+          assert.ok(_contains('nickname:pg'));
+          assert.ok(_contains('category:favorite'));
+          assert.ok(_contains('org:test org'));
+          assert.ok(_contains('title:sr. software architect'));
+          assert.ok(_contains('note:note 1'));
+          assert.ok(_contains('bday:1970-01-01'));
+          assert.ok(_contains('photo:data:image/gif;base64,' + b64));
+          assert.ok(_contains('email;type=personal:test@test.com'));
+          assert.ok(_contains(
+            'email;type=personal;type=work,pref:test@work.com'));
+          assert.ok(_contains('tel;type=cell,pref:+346578888888'));
+          assert.ok(_contains('tel;type=cell,pref;type=home:+3120777777'));
+          assert.ok(_contains('adr;type=home,pref:;;gotthardstrasse 22;' +
+            'chemnitz;chemnitz;09034;germany'));
 
-        done();
+          done();
+        }
       });
     });
 
     test('Convert an empty contact to a vcard', function(done) {
       ContactToVcard([new mozContact], function(vcard) {
-        assert.strictEqual(vcard, null);
+        assert.strictEqual(vcard, '');
         done();
       });
     });
 
     test('Convert contact to vcard blob', function(done) {
       var contact = new MockContactAllFields();
+      var str = '';
       ContactToVcardBlob([contact], function(blob) {
         assert.isNotNull(blob);
         assert.equal('text/vcard', blob.type);
         // Fetch the same content as a normal vcard
-        ContactToVcard([contact], function(vcard) {
-          // Size of blob in bytes should be the length of the string
-          assert.equal(vcard.length, blob.size);
-          // Read the content and verify that is what we generate
-          var reader = new FileReader();
-          reader.addEventListener('loadend', function() {
-            var blobContent = reader.result;
-            assert.equal(blobContent, vcard);
-            done();
-          });
-          reader.readAsText(blob);
+        ContactToVcard([contact], function(vcard, remaining) {
+          str += vcard;
+          if (remaining === 0) {
+            // Size of blob in bytes should be the length of the string
+            assert.equal(vcard.length, blob.size);
+            // Read the content and verify that is what we generate
+            var reader = new FileReader();
+            reader.addEventListener('loadend', function() {
+              var blobContent = reader.result;
+              assert.equal(blobContent, vcard);
+              done();
+            });
+            reader.readAsText(blob);
+          }
         });
       });
     });

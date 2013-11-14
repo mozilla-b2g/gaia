@@ -63,7 +63,7 @@ suite('Sd export', function() {
       window,
       'ContactToVcardBlob',
       function(contact, callback) {
-        callback(contact[0]);
+        callback(contact[0], 0);
       }
     );
   });
