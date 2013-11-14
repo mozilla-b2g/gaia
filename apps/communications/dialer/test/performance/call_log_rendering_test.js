@@ -1,11 +1,10 @@
 'use strict';
 
-require(GAIA_DIR + '/test_apps/test-agent/common/test/synthetic_gestures.js');
+requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
 
-var App =
-  require(GAIA_DIR + '/tests/performance/app.js');
+var App = requireGaia('/tests/performance/app.js');
 var PerformanceHelper =
-  require(GAIA_DIR + '/tests/performance/performance_helper.js');
+  requireGaia('/tests/performance/performance_helper.js');
 
 function DialerIntegration(client) {
   App.apply(this, arguments);
@@ -22,7 +21,7 @@ DialerIntegration.prototype = {
   }
 };
 
-suite(mozTestInfo.appPath + '>', function() {
+marionette(mozTestInfo.appPath + '>', function() {
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null
@@ -51,11 +50,11 @@ suite(mozTestInfo.appPath + '>', function() {
       var waitForBody = true;
       app.launch(waitForBody);
 
-      var recentsButton = app.element('optionRecents');
+      app.element('optionRecents', function(err, recentsButton) {
+        recentsButton.tap();
+      });
 
-      recentsButton.singleTap();
-
-      var runResults = performanceHelper.observe(next);
+      var runResults = performanceHelper.observe();
       performanceHelper.reportRunDurations(runResults);
 
       app.close();

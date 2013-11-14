@@ -1,5 +1,17 @@
 'use strict';
 
+// XXX make that exportable from the mocha-proxy
+function write(event, content) {
+  var args = Array.prototype.slice.call(arguments);
+
+  if (!process.env['MOCHA_PROXY_SEND_ONLY']) {
+    process.stdout.write(JSON.stringify(args) + '\n');
+    return;
+  }
+
+  process.send(['mocha-proxy', args]);
+}
+
 
 function extend(dest, obj) {
   for (var key in obj) {
@@ -27,11 +39,6 @@ function PerformanceHelper(opts) {
     runs: mozTestInfo.runs
   };
 
-  // this is global because we need to access this in the Reporter
-  if (global.mozPerfDurations === undefined) {
-    global.mozPerfDurations = {};
-  }
-
   // overwrite values from the user
   extend(this.opts, opts);
 
@@ -49,7 +56,7 @@ function PerformanceHelper(opts) {
   extend(PerformanceHelper, {
     // FIXME encapsulate this in a nice object like PerformanceHelperAtom
     // https://bugzilla.mozilla.org/show_bug.cgi?id=844032
-    registerLoadTimeListener: function(device) {
+    registerLoadTimeListener: function(client) {
       var registerListener =
         'var w = global.wrappedJSObject;' +
         'w.loadTimes = [];' +
@@ -58,19 +65,21 @@ function PerformanceHelper(opts) {
         '  w.removeEventListener("apploadtime", w.onapplicationloaded);' +
         '}' +
         'w.onapplicationloaded = function(e) {' +
-        '  w.loadTimes.push(e.detail);' +
+        '  var data = e.detail;' +
+        '  data.src = e.target.src;' +
+        '  w.loadTimes.push(data);' +
         '};' +
         'w.addEventListener("apploadtime", w.onapplicationloaded);';
 
-      device.executeScript(registerListener);
+      client.executeScript(registerListener);
     },
 
-    unregisterLoadTimeListener: function(device) {
+    unregisterLoadTimeListener: function(client) {
       var removeListener =
         'var w = global.wrappedJSObject;' +
         'w.removeEventListener("apploadtime", w.onapplicationloaded);';
 
-      device.executeScript(removeListener);
+      client.executeScript(removeListener);
     },
 
     getLoadTimes: function(client) {
@@ -79,14 +88,21 @@ function PerformanceHelper(opts) {
     },
 
 
+    // t is the (Mocha) test object.
     reportDuration: function(values, title) {
       title = title || '';
+      // this is stored in the test object
+      // because we need to access this in the Reporter
+      if (this.mozPerfDurations == null) {
+        this.mozPerfDurations = Object.create(null);
+      }
 
-      if (title in global.mozPerfDurations) {
+      if (title in this.mozPerfDurations) {
         var errMsg = 'reportDuration was called twice with the same title';
         throw new Error('PerformanceHelper: ' + errMsg);
       }
-      global.mozPerfDurations[title] = values;
+      this.mozPerfDurations[title] = values;
+      write('mozPerfDuration', this.mozPerfDurations);
     }
   });
 
@@ -121,7 +137,7 @@ function PerformanceHelper(opts) {
      */
     repeatWithDelay: function(generator, callback) {
 
-      callback = callback || this.app.client.defaultCallback;
+      callback = callback || this.app.defaultCallback;
 
       var pending = this.runs;
 
@@ -153,53 +169,20 @@ function PerformanceHelper(opts) {
      * execution completes.
      *
      *
-     *    yield perf.task(function(app, next) {
-     *      yield app.something();
+     *    perf.task(function(app, next) {
+     *      app.something();
      *    });
      *
      */
     task: function(generator, callback) {
       var app = this.app;
-      callback = (callback || app.client.defaultCallback);
+      callback = (callback || app.defaultCallback);
       var instance;
 
-      function singleTaskNext(err, value) {
-        if (err && !(err instanceof StopIteration)) {
-          try {
-            instance.throw(err);
-          } catch (e) {
-            callback(e, null);
-            instance.close();
-          }
-        } else {
-          try {
-            instance.send(value);
-          } catch (e) {
-            if (!(e instanceof StopIteration)) {
-              callback(e);
-            }
-            callback();
-          }
-        }
-      }
-
-      // ugly but awesome hack
-      // this is how we can switch
-      // generators in .task
-      var appInstance = Object.create(app);
-      appInstance.defaultCallback = singleTaskNext;
-      appInstance.client = Object.create(app.client);
-      appInstance.client.defaultCallback = singleTaskNext;
-
-      try {
-        var instance = generator.call(this, appInstance, singleTaskNext);
-        instance.next();
-      } catch (e) {
-        callback(e);
-      }
+      generator(app, callback);
     },
 
-    delay: function(client, givenCallback) {
+    delay: function(givenCallback) {
       givenCallback = givenCallback || client.defaultCallback;
       var interval = this.opts.spawnInterval;
 

@@ -1,11 +1,11 @@
 'use strict';
 
-var App = require(GAIA_DIR + '/tests/performance/app.js');
+var App = requireGaia('/tests/performance/app.js');
 
-require(GAIA_DIR + '/test_apps/test-agent/common/test/synthetic_gestures.js');
+requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
 
 var PerformanceHelper =
-  require(GAIA_DIR + '/tests/performance/performance_helper.js');
+  requireGaia('/tests/performance/performance_helper.js');
 
 function SettingsIntegration(client) {
   App.apply(this, arguments);
@@ -21,7 +21,7 @@ SettingsIntegration.prototype = {
   }
 };
 
-suite(mozTestInfo.appPath + ' >', function() {
+marionette(mozTestInfo.appPath + ' >', function() {
   var app;
   var client = marionette.client({
     settings: {
@@ -51,10 +51,11 @@ suite(mozTestInfo.appPath + ' >', function() {
       var waitForBody = true;
       app.launch(waitForBody);
 
-      var wifiSubpanel = app.element('wifiSelector');
-      wifiSubpanel.singleTap();
+      app.element('wifiSelector', function(err, wifiSubpanel) {
+        wifiSubpanel.tap();
+      });
 
-      var runResults = performanceHelper.observe(next);
+      var runResults = performanceHelper.observe();
       performanceHelper.reportRunDurations(runResults);
 
       app.close();

@@ -7,7 +7,7 @@
 
 'use strict';
 
-module.exports = JSONMozPerfReporter;
+exports = module.exports = JSONMozPerfReporter;
 
 var Mocha = require('mocha'),
     util = require('util');
@@ -15,36 +15,34 @@ var Mocha = require('mocha'),
 function JSONMozPerfReporter(runner) {
   Mocha.reporters.Base.call(this, runner);
 
-  // "mocha" is the Mocha instance
-  // by default mocha report if any test leaks a variable in the global scope.
-  // We don't need this here because we're really running tests on the device,
-  // so this ignores leaks in our tests, and make it easier to use a global
-  // variable to save our test resuls.
-//  global.mocha.options.ignoreLeaks = true;
-
   var failures = [];
   var passes = [];
+  var mozPerfDurations;
 
   runner.on('test', function(test) {
-    global.mozPerfDurations = null;
+  });
+
+  runner.on('mozPerfDuration', function(content) {
+    mozPerfDurations = content;
   });
 
   runner.on('pass', function(test) {
-    if (global.mozPerfDurations === null) {
+
+    if (mozPerfDurations === null) {
       test.err = new Error('No perf data was reported');
       failures.push(test);
       return;
     }
 
-    for (var title in global.mozPerfDurations) {
+    for (var title in mozPerfDurations) {
       // we can have several measurements for one test, that's why we're
       // rewriting the title (each measurement has a title)
       passes.push({
         title: test.title + ' ' + title,
         fullTitle: test.fullTitle() + ' ' + title,
         duration: test.duration,
-        mozPerfDurations: global.mozPerfDurations[title],
-        mozPerfDurationsAverage: average(global.mozPerfDurations[title])
+        mozPerfDurations: mozPerfDurations[title],
+        mozPerfDurationsAverage: average(mozPerfDurations[title])
       });
     }
   });
@@ -84,13 +82,18 @@ function cleanErr(test) {
     msg: msg,
     actual: actual,
     expected: expected
-  }
+  };
 };
 
 function average(arr) {
+  if(arr.length == 0) {
+    return 0;
+  }
   var sum = arr.reduce(function(i, j) {
     return i + j;
   });
 
   return sum / arr.length;
-};
+}
+
+JSONMozPerfReporter.prototype.__proto__ = Mocha.reporters.Base.prototype;

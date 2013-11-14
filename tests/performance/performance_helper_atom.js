@@ -11,7 +11,8 @@
   function debug() {
     if (DEBUG) {
       var msg = Array.slice(arguments).join(' ');
-      console.log('PerformanceHelperAtom: ' + msg + ' (' + Date.now() / 1000 + ')' );
+      console.log('PerformanceHelperAtom: ' + msg + ' (' + Date.now() / 1000 +
+                  ')');
     }
   }
 
@@ -45,10 +46,13 @@
   }
 
   function finish() {
-    marionetteScriptFinished(perfMeasurements);
   }
 
   window.PerformanceHelperAtom = {
+    getMeasurements: function() {
+      return perfMeasurements;
+    },
+
     register: function() {
       if (hasRegistered) {
         return;

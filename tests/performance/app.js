@@ -1,14 +1,15 @@
 var fs = require('fs'),
     util = require('util');
 
-function PerfApp(client, origin) {
-  if(excludedApps.indexOf(origin) !== -1) {
+/* This is a helper to for perftesting apps. */
+function PerfTestApp(client, origin) {
+  if (excludedApps.indexOf(origin) !== -1) {
     this.client = null;
     this.origin = null;
     this.skip = true;
     if (process.env.VERBOSE) {
       console.log("'" + origin +
-		  "' is an excluded app, skipping tests.");
+                  "' is an excluded app, skipping tests.");
     }
     return;
   }
@@ -17,21 +18,24 @@ function PerfApp(client, origin) {
   entryPoint = arr[1];
 
   origin = util.format('app://%s.gaiamobile.org',
-		       manifestPath);
+                       manifestPath);
+  this.entryPoint = entryPoint;
   this.client = client;
   this.origin = origin;
   this.skip = false;
 }
 
-module.exports = PerfApp;
+module.exports = PerfTestApp;
 
-PerfApp.prototype = {
+PerfTestApp.prototype = {
+
+  selectors: {},
 
   /**
    * Launches app, switches to frame, and waits for it to be loaded.
    */
   launch: function() {
-    this.client.apps.launch(this.origin);
+    this.client.apps.launch(this.origin, this.entryPoint);
     this.client.apps.switchToApp(this.origin);
     this.client.helper.waitForElement('body');
   },
@@ -41,15 +45,69 @@ PerfApp.prototype = {
   },
 
   unlock: function() {
-/*
     var client = this.client;
-    client.importScript(
-      './tests/atoms/gaia_lock_screen.js',
-      function() {
-        client.executeJsScript('GaiaLockScreen.unlock()',
-				  client.defaultCallback);
-      });
-*/
-  }
 
+    client.executeScript(fs.readFileSync('./tests/atoms/gaia_lock_screen.js') +
+                         'GaiaLockScreen.unlock();\n');
+  },
+
+  /**
+   * Finds a named selector.
+   *
+   * @param {String} name aliased css selector.
+   * @return {String} css selector.
+   */
+  selector: function(name) {
+    var selector;
+    if (!(name in this.selectors)) {
+      throw new Error('unknown element "' + name + '"');
+    }
+
+    return this.selectors[name];
+  },
+
+  /**
+   * Find a named selector.
+   * (see .selectors)
+   *
+   *
+   *    var dayView = app.element('dayView');
+   *
+   *
+   * @param {String} name selector alias.
+   * @param {Function} [callback] uses driver by default.
+   */
+  element: function(name, callback) {
+    this.client.findElement(this.selector(name), callback);
+  },
+
+  observePerfEvents: function(stopEventName, callback) {
+    var runResults;
+
+    this.client.executeScript(
+      fs.readFileSync('./tests/performance/performance_helper_atom.js') + '\n'
+    );
+
+    var helperObject = 'window.wrappedJSObject.PerformanceHelperAtom';
+    this.client.executeScript(
+      helperObject + '.register();'
+    );
+
+    this.client.executeScript(
+      helperObject + '.waitForEvent("' + stopEventName + '");'
+    );
+
+    runResults = this.client.executeScript(
+      'return ' + helperObject + '.getMeasurements();'
+    );
+
+    this.client.executeScript(
+      helperObject + '.unregister();'
+    );
+
+    if (callback) {
+      callback();
+    }
+    return runResults;
+  }
 };

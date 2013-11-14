@@ -2,14 +2,20 @@
 
 
 var App = require('./app');
-var PerformanceHelper = require(GAIA_DIR + '/tests/performance/performance_helper.js');
+var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
 
+// This test is only for communications/contacts for now.
+// XXX extend to more apps.
 var whitelistedApps = ['communications/contacts'];
+if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {
+  return;
+}
 
 var manifestPath, entryPoint;
 var arr = mozTestInfo.appPath.split('/');
 manifestPath = arr[0];
 entryPoint = arr[1];
+
 
 marionette('startup event test ' + mozTestInfo.appPath + ' >', function() {
 
@@ -21,19 +27,14 @@ marionette('startup event test ' + mozTestInfo.appPath + ' >', function() {
   });
 
   app = new App(client, mozTestInfo.appPath);
-  if (app.skip){
+  if (app.skip) {
     return;
   }
 
   suite(mozTestInfo.appPath + ' >', function() {
     setup(function() {
       // it affects the first run otherwise
-      app.unlock();
     });
-
-    if (whitelistedApps.indexOf(mozTestInfo.appPath) === -1) {
-      return;
-    }
 
     test('startup', function() {
 
@@ -43,19 +44,21 @@ marionette('startup event test ' + mozTestInfo.appPath + ' >', function() {
       var lastEvent = 'startup-path-done';
 
       var performanceHelper = new PerformanceHelper({
-	app: app,
-	lastEvent: lastEvent
+        app: app,
+        lastEvent: lastEvent
       });
+
+      app.unlock();
 
       performanceHelper.repeatWithDelay(function(app, next) {
 
-	var waitForBody = false;
-	app.launch(waitForBody);
+        var waitForBody = false;
+        app.launch(waitForBody);
 
-	var runResults = performanceHelper.observe(next);
+        var runResults = performanceHelper.observe();
 
-	performanceHelper.reportRunDurations(runResults);
-	app.close();
+        performanceHelper.reportRunDurations(runResults);
+        app.close();
       });
 
       performanceHelper.finish();

@@ -731,21 +731,7 @@ test-integration: b2g $(PROFILE_FOLDER)
 
 .PHONY: test-perf
 test-perf:
-	# All echo calls help create a JSON array
-	#adb forward tcp:2828 tcp:2828
-	SHARED_PERF=`find tests/performance -name "*_test.js" -type f`; \
-	echo '['; \
-	for app in ${APPS}; \
-	do \
-		if [ -z "$${FIRST_LOOP_ITERATION}" ]; then \
-			FIRST_LOOP_ITERATION=done; \
-		else \
-			echo ','; \
-		fi; \
-		FILES_PERF=`test -d apps/$$app/test/performance && find apps/$$app/test/performance -name "*_test.js" -type f`; \
-		GAIA_DIR=`pwd` CURRENT_APP=$$app NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette ./tests/js/perf.js $${SHARED_PERF} $${FILES_PERF} ;\
-	done; \
-	echo ']';
+	APPS="$(APPS)" MARIONETTE_RUNNER_HOST=$(MARIONETTE_RUNNER_HOST) GAIA_DIR=`pwd` NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-perf-marionette
 
 .PHONY: tests
 tests: webapp-manifests offline
