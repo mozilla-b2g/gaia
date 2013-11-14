@@ -217,6 +217,12 @@ suite('jspinyin', function() {
 
   test('click \'z\'', function(done) {
     var len;
+    mockIndexedDB({
+      ignoreUndefinedHandler: true,
+      testing: function() {
+        jspinyin.activate('zh-Hans', { type: 'textarea' }, {});
+      }
+    });
 
     this.sinon.stub(glue, 'sendCandidates', function(list) {
       firstCandidate = list[0];
@@ -237,6 +243,13 @@ suite('jspinyin', function() {
   });
 
   test('get more candidates', function(done) {
+    mockIndexedDB({
+      ignoreUndefinedHandler: true,
+      testing: function() {
+        jspinyin.activate('zh-Hans', { type: 'textarea' }, {});
+      }
+    });
+
     jspinyin.getMoreCandidates(
       NUMBER_OF_CANDIDATES_PER_ROW,
       NUMBER_OF_CANDIDATES_PER_ROW * 12,
@@ -285,12 +298,17 @@ suite('jspinyin', function() {
   });
 
   test('select first predict', function(done) {
+    var sentText;
     this.sinon.stub(glue, 'sendString', function(text) {
+        sentText = text;
+    });
+    // Ensure that the `encComposition` method has been invoked before
+    // continuing with other tests.
+    this.sinon.stub(glue, 'endComposition', function() {
       done(function() {
-        assert.equal(text, firstPredict[0]);
+        assert.equal(sentText, firstPredict[0]);
       });
     });
-
     jspinyin.select(firstPredict[0], firstPredict[1]);
   });
 
