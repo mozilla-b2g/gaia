@@ -8,7 +8,6 @@ define(function(require) {
   var CameraState = require('models/state');
   var CameraSettings = require('models/settings');
   var ViewfinderView = require('views/viewfinder');
-  var ControlsView = require('views/controls');
   var broadcast = require('broadcast');
   var find = require('utils/find');
   var DCF = require('dcf');
@@ -37,8 +36,6 @@ define(function(require) {
     window.CameraState = CameraState;
     window.CameraSettings = CameraSettings;
     window.ViewfinderView = new ViewfinderView(find('#viewfinder'));
-    var controlsView = new ControlsView(find('#controls'));
-    window.ControlsView = controlsView;
 
     window.DCFApi = DCF;
 
@@ -55,47 +52,12 @@ define(function(require) {
     CameraState.on('change:recording', function(evt) {
       var recording = evt.value;
 
-      controlsView.setRecording(recording);
-
       // Hide the filmstrip to prevent the users from entering the
       // preview mode after Camera starts recording button pressed
       if (recording && filmstrip.isShown()) {
         filmstrip.hide();
       }
     });
-
-    CameraState.on('change:modeButtonEnabled', function(evt) {
-      controlsView.setModeButtonEnabled(evt.value);
-    });
-
-    CameraState.on('change:captureButtonEnabled', function(evt) {
-      controlsView.setCaptureButtonEnabled(evt.value);
-    });
-
-    CameraState.on('change:galleryButtonEnabled', function(evt) {
-      controlsView.setGalleryButtonEnabled(evt.value);
-    });
-
-    CameraState.on('change:cancelPickButtonEnabled', function(evt) {
-      controlsView.setCancelPickButtonEnabled(evt.value);
-    });
-
-    CameraState.on('change:modeButtonHidden', function(evt) {
-      controlsView.setModeButtonHidden(evt.value);
-    });
-
-    CameraState.on('change:captureButtonHidden', function(evt) {
-      controlsView.setCaptureButtonHidden(evt.value);
-    });
-
-    CameraState.on('change:galleryButtonHidden', function(evt) {
-      controlsView.setGalleryButtonHidden(evt.value);
-    });
-
-    CameraState.on('change:cancelPickButtonHidden', function(evt) {
-      controlsView.setCancelPickButtonHidden(evt.value);
-    });
-
 
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {
