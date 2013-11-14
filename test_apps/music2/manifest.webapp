@@ -40,5 +40,5 @@
     "120": "/style/icons/Music.png",
     "320": "/style/icons/320/Music.png"
   },
-  "orientation": ["portrait", "landscape"]
+  "orientation": "default"
 }
