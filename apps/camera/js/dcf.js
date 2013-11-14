@@ -1,12 +1,12 @@
-/*global define, setTimeout */
+/*global asyncStorage*/
 
 // This handles the logic pertaining to the naming of files according
 // to the Design rule for Camera File System
 // * http://en.wikipedia.org/wiki/Design_rule_for_Camera_File_system
-define(function() {
+define(function(require) {
+  'use strict';
 
   var api = {};
-
   var dcfConfigLoaded = false;
   var deferredArgs = null;
   var defaultSeq = {file: 1, dir: 100};

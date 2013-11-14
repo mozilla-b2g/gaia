@@ -1,6 +1,6 @@
+
 'use strict';
 
-// Utility functions
 function padLeft(num, length) {
   var r = String(num);
   while (r.length < length) {
@@ -10,10 +10,9 @@ function padLeft(num, length) {
 }
 
 var screenLock = null;
-var Camera = {
+var Camera = window.Camera = {
   _cameras: null,
   _captureMode: null,
-  _config: {},
 
   // In secure mode the user cannot browse to the gallery
   _secureMode: window.parent !== window,
@@ -240,13 +239,14 @@ var Camera = {
     }
   },
 
-  releaseScreenWakeLock: function camera_releaseScreenWakeLock() {
+  releaseScreenWakeLock: function() {
     if (screenLock && Filmstrip.isPreviewShown()) {
       screenLock.unlock();
       screenLock = null;
     }
   },
-  requestScreenWakeLock: function camera_requestScreenWakeLock() {
+
+  requestScreenWakeLock: function() {
     if (!screenLock && !Filmstrip.isPreviewShown()) {
       screenLock = navigator.requestWakeLock('screen');
     }

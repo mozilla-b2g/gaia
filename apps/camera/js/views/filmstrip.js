@@ -4,7 +4,7 @@
 
 'use strict';
 
-var Filmstrip = (function() {
+define(function() {
 
   // This array holds all the data we need for image and video previews
   var items = [];
@@ -523,7 +523,7 @@ var Filmstrip = (function() {
     frame.video.setPlayerOrientation(orientation);
   }
 
-  return {
+  var Filmstrip = {
     isShown: isShown,
     hide: hide,
     show: show,
@@ -535,4 +535,8 @@ var Filmstrip = (function() {
     hidePreview: hidePreview,
     isPreviewShown: isPreviewShown
   };
-}());
+
+  // camera.js needs this to be global
+  window.Filmstrip = Filmstrip;
+  return Filmstrip;
+});

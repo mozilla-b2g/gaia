@@ -5,7 +5,7 @@ define(function(require) {
 
   var View = require('view');
   var bind = require('utils/bind');
-  var find = require('utils/find');
+  var Filmstrip = require('views/filmstrip');
 
   var lastTouchA = null,
       lastTouchB = null,
@@ -20,7 +20,7 @@ define(function(require) {
     }
     return null;
   };
-  
+
   var getNewTouchB = function(touches) {
     if (!lastTouchB) return null;
     for (var i = 0, length = touches.length, touch; i < length; i++) {
@@ -32,7 +32,7 @@ define(function(require) {
 
   var getDeltaScale = function(touchA, touchB) {
     if (!touchA || !lastTouchA || !touchB || !lastTouchB) return 0;
-    
+
     var oldDistance = Math.sqrt(Math.pow(lastTouchB.pageX - lastTouchA.pageX, 2) + Math.pow(lastTouchB.pageY - lastTouchA.pageY, 2));
     var newDistance = Math.sqrt(Math.pow(touchB.pageX - touchA.pageX, 2) + Math.pow(touchB.pageY - touchA.pageY, 2));
     return newDistance - oldDistance;
