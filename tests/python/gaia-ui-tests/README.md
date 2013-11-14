@@ -38,8 +38,8 @@ entirely optional.
     virtualenv env_name
     source env_name/bin/activate
 
-With the virtual environment activate, the python packages will be installed in
-under the `env_name` folder instead of disturbing you main system.
+With the virtual environment activated, the python packages will be installed
+under the `env_name` folder instead of disturbing your main system.
 
 Finally, run:
 
@@ -139,8 +139,7 @@ To run the tests, use the following command:
     gaiatest --app=b2gdesktop --binary=$B2G_HOME/path/to/b2g-bin  \
         --profile=$B2G_HOME/path/to/gaia/profile --type=b2g \
         gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini \
-        --testvars=path/to/filename.json \
-        --restart
+        --testvars=path/to/filename.json --restart
 
 You should then start to see the tests running.  The next two sections provide
 details on the test types used in the `--type` option and the test variables for
