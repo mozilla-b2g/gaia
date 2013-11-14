@@ -4,9 +4,12 @@
 
 requirejs.config({ baseUrl: 'js' });
 
+// The Camera global must be
+// loaded before any other modules
 require(['camera'], function() {
   require([
     'controllers/app',
+    'controllers/hud',
     '/shared/js/async_storage.js',
     '/shared/js/blobview.js',
     '/shared/js/media/jpeg_metadata_parser.js',

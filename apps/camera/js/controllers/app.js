@@ -9,7 +9,7 @@ define(function(require) {
   var CameraSettings = require('models/settings');
   var ViewfinderView = require('views/viewfinder');
   var ControlsView = require('views/controls');
-  var HudView = require('views/hud');
+  var broadcast = require('broadcast');
   var find = require('utils/find');
   var DCF = require('dcf');
   var camera = window.Camera;
@@ -40,26 +40,15 @@ define(function(require) {
     var controlsView = new ControlsView(find('#controls'));
     window.ControlsView = controlsView;
 
-    var hud = new HudView();
-    hud.on('flashToggle', function() {
-      var mode = camera.toggleFlash();
-      hud.setFlashMode(mode);
-    });
-    hud.on('cameraToggle', function() {
-      camera.toggleCamera();
-    });
-
-    document.body.appendChild(hud.el);
-
     window.DCFApi = DCF;
 
     camera.loadCameraPreview(CameraState.get('cameraNumber'), function() {
       PerformanceTestingHelper.dispatch('camera-preview-loaded');
       camera.checkStorageSpace();
-      hud.setFlashMode(camera.getFlashMode());
+      broadcast.emit('cameraLoaded');
     });
 
-    window.LazyL10n.get(function localized() {
+    window.LazyL10n.get(function() {
       camera.delayedInit();
     });
 
