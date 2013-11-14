@@ -7,6 +7,7 @@
 define(function(require) {
 
   var broadcast = require('broadcast');
+  var orientation = require('orientation');
 
   // This array holds all the data we need for image and video previews
   var items = [];
@@ -43,6 +44,7 @@ define(function(require) {
   broadcast.on('itemDeleted', onItemDeleted);
   broadcast.on('storageUnavailable', hidePreview);
   broadcast.on('storageShared', hidePreview);
+  orientation.on('orientation', setOrientation);
 
   // Create the MediaFrame for previews
   var frame = new MediaFrame(mediaFrame);
@@ -51,7 +53,7 @@ define(function(require) {
   addPanAndZoomHandlers(frame);
 
   // Start off with it positioned correctly.
-  setOrientation(Camera._phoneOrientation);
+  setOrientation(orientation.get());
 
   // In secure mode, we never want the user to see the share button.
   // We also remove the delete button because we currently can't
@@ -560,7 +562,6 @@ define(function(require) {
     addVideo: addVideo,
     deleteItem: deleteItem,
     clear: clear,
-    setOrientation: setOrientation,
     hidePreview: hidePreview,
     isPreviewShown: isPreviewShown
   };

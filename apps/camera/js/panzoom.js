@@ -27,7 +27,7 @@ function addPanAndZoomHandlers(frame) {
     // specify a point to zoom in or out on. For other orientations we could
     // calculate the correct point, but instead just use the midpoint.
     var x, y;
-    if (Camera._phoneOrientation === 0) {
+    if (window.orientation.get() === 0) {
       x = e.detail.clientX;
       y = e.detail.clientY;
     }
@@ -45,7 +45,7 @@ function addPanAndZoomHandlers(frame) {
     // specify a point to zoom in or out on. For other orientations we could
     // calculate the correct point, but instead just use the midpoint.
     var x, y;
-    if (Camera._phoneOrientation === 0) {
+    if (window.orientation.get() === 0) {
       x = e.detail.midpoint.clientX;
       y = e.detail.midpoint.clientY;
     }
@@ -62,7 +62,7 @@ function addPanAndZoomHandlers(frame) {
     // account, so we have to pan by a dx and dy that depend on how
     // the MediaFrame is rotated
     var dx, dy;
-    switch (Camera._phoneOrientation) {
+    switch (window.orientation.get()) {
     case 0:
       dx = e.detail.relative.dx;
       dy = e.detail.relative.dy;

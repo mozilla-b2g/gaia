@@ -33,7 +33,6 @@ var Camera = window.Camera = {
   _photosTaken: [],
   _cameraProfile: null,
 
-  _phoneOrientation: 0,
 
   _pictureStorage: null,
   _videoStorage: null,
@@ -146,7 +145,6 @@ var Camera = window.Camera = {
 
     this.setToggleCameraStyle();
 
-    CameraOrientation.addEventListener('orientation', this.handleOrientationChanged.bind(this));
 
     this.overlayCloseButton
       .addEventListener('click', this.cancelPick.bind(this));
@@ -162,7 +160,6 @@ var Camera = window.Camera = {
       CameraState.set('galleryButtonEnabled', false);
     }
 
-    CameraOrientation.start();
     SoundEffect.init();
 
     if ('mozSettings' in navigator) {
@@ -299,7 +296,7 @@ var Camera = window.Camera = {
       this._cameraObj.getPreviewStream(this._previewConfig,
                                        gotPreviewStream.bind(this));
     } else {
-      this._videoProfile.rotation = this._phoneOrientation;
+      this._videoProfile.rotation = window.orientation.get();
       this._cameraObj.getPreviewStreamVideoMode(this._videoProfile,
                                                 gotPreviewStream.bind(this));
     }
@@ -473,7 +470,7 @@ var Camera = window.Camera = {
       }
 
       var config = {
-        rotation: this._phoneOrientation,
+        rotation: window.orientation.get(),
         maxFileSizeBytes: freeBytes - RECORD_SPACE_PADDING
       };
 
@@ -662,15 +659,6 @@ var Camera = window.Camera = {
     return '';
   },
 
-  handleOrientationChanged: function camera_orientationChanged(orientation) {
-    document.body.setAttribute('data-orientation', 'deg' + orientation);
-
-    this._phoneOrientation = orientation;
-
-    Filmstrip.setOrientation(orientation);
-    CameraState.set('orientation', orientation);
-  },
-
   setCaptureMode: function camera_setCaptureMode(mode) {
     if (this._captureMode) {
       document.body.classList.remove(this._captureMode);
@@ -725,7 +713,7 @@ var Camera = window.Camera = {
         this._videoProfile =
           this.pickVideoProfile(camera.capabilities.recorderProfiles);
           if (this._captureMode === CAMERA_MODE_TYPE.VIDEO) {
-            this._videoProfile.rotation = this._phoneOrientation;
+            this._videoProfile.rotation = window.orientation.get();
             this._cameraObj.getPreviewStreamVideoMode(
               this._videoProfile, gotPreviewScreen.bind(this));
           }
@@ -1112,7 +1100,7 @@ var Camera = window.Camera = {
   },
 
   takePicture: function camera_takePicture() {
-    this._config.rotation = this._phoneOrientation;
+    this._config.rotation = window.orientation.get();
     this._cameraObj.pictureSize = this._pictureSize;
     this._config.dateTime = Date.now() / 1000;
     // We do not attach our current position to the exif of photos
