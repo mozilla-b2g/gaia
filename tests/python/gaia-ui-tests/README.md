@@ -96,7 +96,7 @@ local machine. You can do this by running the command:
 
     adb forward tcp:2828 tcp:2828
 
-ADB is available in emulator packages under out/host/linux_x86/bin.
+ADB is available in emulator packages under `out/host/linux_x86/bin`.
 Alternatively, it may be downloaded as part of the
 [Android SDK](http://developer.android.com/sdk/index.html).
 
@@ -107,12 +107,17 @@ You can download the latest build of the desktop client from
 [this location](http://ftp.mozilla.org/pub/mozilla.org/b2g/nightly/latest-mozilla-central),
 but make sure you download the appropriate file for your operating system.
 
+* **Linux (32bit)**: b2g-[VERSION].multi.linux-i686.tar.bz2
+* **Linux (64bit)**: b2g-[VERSION].multi.linux-x86\_64.tar.bz2
+* **Mac**: b2g-[VERSION].multi.mac64.dmg
+* **Windows**: b2g-[VERSION].multi.win32.zip
+
 Once downloaded, you will need to extract the contents to a local folder.
 
 If a profile is specified when running the tests (recommended), a clone of the
-profile will be used. This helps to ensure that all tests run in a clean state,
-however if you also intend to launch and interact with the desktop build
-manually we recommend making a copy of the default profile and using the copy
+profile will be used. This helps to ensure that all tests run in a clean state.
+However, if you also intend to launch and interact with the desktop build
+manually, we recommend making a copy of the default profile and using the copy
 for your tests.
 
 To run the tests, use the following command:
@@ -120,7 +125,8 @@ To run the tests, use the following command:
     gaiatest --app=b2gdesktop --binary=$B2G_HOME/path/to/b2g-bin  \
         --profile=$B2G_HOME/path/to/gaia/profile --type=b2g \
         gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini \
-        --testvars=path/to/filename.json
+        --testvars=path/to/filename.json \
+        --restart
 
 You should then start to see the tests running.  The next two sections provide
 details on the test types used in the `--type` option and the test variables for
