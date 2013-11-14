@@ -127,10 +127,18 @@ suite('ActivityHandler', function() {
       Compose.append = this.prevAppend;
     });
 
-    test('modifies the URL "hash" when necessary', function() {
+    test('modifies the URL "hash" when necessary', function(done) {
+      var cleanup = function() {
+        window.removeEventListener('hashchange', cleanup);
+        done();
+      };
       window.location.hash = '#wrong-location';
       MockNavigatormozSetMessageHandler.mTrigger('activity', shareActivity);
       assert.equal(window.location.hash, '#new');
+
+      // The test execution schedules a call to `Compose.append`, so do not
+      // continue with future tests until the hashchange event has occured.
+      window.addEventListener('hashchange', cleanup);
     });
 
     test('Appends an attachment to the Compose field for each media file',
