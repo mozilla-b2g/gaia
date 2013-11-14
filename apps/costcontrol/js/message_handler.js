@@ -464,17 +464,35 @@
           }
 
           var mobileMessageManager = window.navigator.mozMobileMessage;
-          var smsInfo = mobileMessageManager.getSegmentInfoForText(sms.body);
-          var realCount = smsInfo.segments;
+          var infoRequest =
+            mobileMessageManager.getSegmentInfoForText(sms.body);
+          infoRequest.onsuccess = function onInfo(evt) {
+            var realCount, smsInfo = evt.target.result;
+            if (!smsInfo || !smsInfo.segments) {
+              console.error(
+                'Invalid getSegmentInfoForText() result. Counting 1 segment.');
+              realCount = 1;
+            } else {
+              realCount = smsInfo.segments;
+            }
+            updateSMSCount(settings, realCount);
+          };
+          infoRequest.onerror = function onError() {
+            console.error('Can not retrieve segment info for body ' + sms.body);
+            updateSMSCount(settings, 1);
+          };
+        });
+
+        function updateSMSCount(settings, count) {
           settings.lastTelephonyActivity.timestamp = new Date();
-          settings.lastTelephonyActivity.smscount += realCount;
+          settings.lastTelephonyActivity.smscount += count;
           ConfigManager.setOption({
             lastTelephonyActivity: settings.lastTelephonyActivity
           }, function _sync() {
             localStorage['sync'] = 'lastTelephonyActivity#' + Math.random();
             closeIfProceeds();
           });
-        });
+        }
       });
 
       // When a call ends
