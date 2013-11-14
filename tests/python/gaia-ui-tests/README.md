@@ -30,12 +30,16 @@ If you want to modify gaiatest, do this instead:
     git clone https://github.com/mozilla-b2g/gaia.git
     cd gaia/tests/python/gaia-ui-tests
 
-The next command will install several python packages on your system such as marionette, gaiatest, and other Mozilla packages.  Before you run `python setup.py develop`, consider setting-up a virtual environment.  This is entirely optional.
+The next command will install several python packages on your system such as
+marionette, gaiatest, and other Mozilla packages.  Before you run
+`python setup.py develop`, consider setting-up a virtual environment.  This is
+entirely optional.
 
     virtualenv env_name
     source env_name/bin/activate
 
-With the virtual environment activate, the python packages will be installed in under the `env_name` folder instead of disturbing you main system.
+With the virtual environment activate, the python packages will be installed in
+under the `env_name` folder instead of disturbing you main system.
 
 Finally, run:
 
