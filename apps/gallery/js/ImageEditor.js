@@ -1421,8 +1421,9 @@ function ImageProcessor(canvas) {
   this.destOriginAddress = gl.getUniformLocation(program, 'dest_origin');
   this.matrixAddress = gl.getUniformLocation(program, 'matrix');
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
-  this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
-                                                      'rgb_min_max_values');
+  this.rgbMinAddress = gl.getUniformLocation(program, 'rgb_min');
+  this.rgbMaxAddress = gl.getUniformLocation(program, 'rgb_max');
+  this.rgbOneOverMaxMinusMinAddress = gl.getUniformLocation(program, 'rgb_one_over_max_minus_min');
 }
 
 // Destroy all the stuff we allocated
@@ -1464,9 +1465,16 @@ ImageProcessor.prototype.draw = function(image,
                       options.matrix || ImageProcessor.IDENTITY_MATRIX);
 
   // set rgb max/min values for auto Enhancing
-  gl.uniformMatrix3fv(this.rgbMinMaxValuesAddress, false,
-                      options.rgbMinMaxValues ||
-                      ImageProcessor.default_enhancement);
+  var minMaxValuesMatrix = options.rgbMinMaxValues ||
+                           ImageProcessor.default_enhancement;
+  gl.uniform3f(this.rgbMinAddress,
+                minMaxValuesMatrix[0], minMaxValuesMatrix[1], minMaxValuesMatrix[2]);
+  gl.uniform3f(this.rgbMaxAddress,
+                minMaxValuesMatrix[3], minMaxValuesMatrix[4], minMaxValuesMatrix[5]);
+  gl.uniform3f(this.rgbOneOverMaxMinusMinAddress,
+               1 / (minMaxValuesMatrix[3] - minMaxValuesMatrix[0]),
+               1 / (minMaxValuesMatrix[4] - minMaxValuesMatrix[1]),
+               1 / (minMaxValuesMatrix[5] - minMaxValuesMatrix[2]));
 
   gl.bindBuffer(gl.ARRAY_BUFFER, this.rectangleBuffer);
   gl.enableVertexAttribArray(this.rectangleVertexAddress);
@@ -1506,17 +1514,18 @@ ImageProcessor.fragmentShader =
   'uniform vec2 dest_origin;\n' +  // upper-left corner of destination rectangle
   'uniform vec4 gamma;\n' +
   'uniform mat4 matrix;\n' +
-  'uniform mat3 rgb_min_max_values;\n' +
+  'uniform vec3 rgb_min;\n' +
+  'uniform vec3 rgb_max;\n' +
+  'uniform vec3 rgb_one_over_max_minus_min;\n' +
   'varying vec2 src_position;\n' + // from the vertex shader
   'void main() {\n' +
   // Otherwise take the image color, apply color and gamma correction and
   // the color manipulation matrix.
   '  vec4 original_color = texture2D(image, src_position);\n' +
-  '  vec3 minValues = rgb_min_max_values[0];\n' +
-  '  vec3 maxValues = rgb_min_max_values[1];\n' +
-  '  vec3 clamped_color = clamp(original_color.xyz, minValues, maxValues);\n' +
-  '  vec4 corrected_color = vec4((clamped_color.xyz - minValues) /' +
-  '  (maxValues - minValues), original_color.a);\n' +
+  '  vec3 clamped_color = clamp(original_color.xyz, rgb_min, rgb_max);\n' +
+  '  vec4 corrected_color = \n' +
+  '    vec4((clamped_color.xyz - rgb_min) * rgb_one_over_max_minus_min, \n' +
+  '         original_color.a);\n' +
   '  gl_FragColor = pow(corrected_color, gamma) * matrix;\n' +
   '}';
 
