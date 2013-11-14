@@ -199,7 +199,7 @@ var NfcManager = {
 
   handleEvent: function nm_handleEvent(evt) {
     switch (evt.type) {
-      case 'screenchange':
+      case 'screenchange': // Fall thorough
       case 'lock':
       case 'unlock':
         this.handlePowerLevel();
