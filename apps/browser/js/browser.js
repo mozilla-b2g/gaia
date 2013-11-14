@@ -511,6 +511,8 @@ var Browser = {
       this.addressBarState = this.HIDDEN;
       this.mainScreen.removeEventListener('transitionend', addressBarHidden);
     }).bind(this);
+    // Prevent interaction with fluffy address bar when hidden, bug 937929
+    this.urlInput.disabled = true;
     this.mainScreen.addEventListener('transitionend', addressBarHidden);
     this.addressBarState = this.TRANSITIONING;
     this.mainScreen.classList.add('expanded');
@@ -529,6 +531,8 @@ var Browser = {
       this.addressBarState = this.VISIBLE;
       this.mainScreen.removeEventListener('transitionend', addressBarVisible);
     }).bind(this);
+    // Only allow interaction with fluffy address bar when visible, bug 937929
+    this.urlInput.disabled = false;
     this.mainScreen.addEventListener('transitionend', addressBarVisible);
     this.addressBarState = this.TRANSITIONING;
     this.mainScreen.clientTop;
