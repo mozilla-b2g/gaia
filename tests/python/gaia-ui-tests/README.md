@@ -229,6 +229,15 @@ Or:
     "<setting>":<value>
 }"
 ```
+__Note__: When running with no SIM card or offline the timezone may not be automatically updated to match the local timezone. In that case you may need to force the timezone to match the desired timezone using settings in testvars.json which will set it during the test setUp:
+
+```
+"settings:{
+    "time.timezone": <value>,
+    "time.timezone.user-selected": <value>
+}"
+```
+
 
 
 Test data Prerequisites
