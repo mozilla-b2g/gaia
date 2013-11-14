@@ -4,10 +4,9 @@
 
 import json
 import os
-import sys
 import time
 
-from marionette import MarionetteTestCase
+from marionette import MarionetteTestCase, EnduranceTestCaseMixin
 from marionette.by import By
 from marionette.errors import NoSuchElementException
 from marionette.errors import ElementNotVisibleException
@@ -732,59 +731,11 @@ class GaiaTestCase(MarionetteTestCase):
         MarionetteTestCase.tearDown(self)
 
 
-class GaiaEnduranceTestCase(GaiaTestCase):
+class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin):
 
     def __init__(self, *args, **kwargs):
-        self.iterations = kwargs.pop('iterations') or 1
-        self.checkpoint_interval = kwargs.pop('checkpoint_interval') or self.iterations
         GaiaTestCase.__init__(self, *args, **kwargs)
-
-    def drive(self, test, app):
-        self.test_method = test
-        self.app_under_test = app
-
-        # Now drive the actual test case iterations
-        for count in range(1, self.iterations + 1):
-            self.iteration = count
-            self.marionette.log("%s iteration %d of %d" % (self.test_method.__name__, count, self.iterations))
-            # Print to console so can see what iteration we're on while test is running
-            if self.iteration == 1:
-                print "\n"
-            print "Iteration %d of %d..." % (count, self.iterations)
-            sys.stdout.flush()
-
-            self.test_method()
-            # Checkpoint time?
-            if ((count % self.checkpoint_interval) == 0) or count == self.iterations:
-                self.checkpoint()
-
-        # Finished, now process checkpoint data into .json output
-        self.process_checkpoint_data()
-
-    def checkpoint(self):
-        # Console output so know what's happening if watching console
-        print "Checkpoint..."
-        sys.stdout.flush()
-        # Sleep to give device idle time (for gc)
-        idle_time = 30
-        self.marionette.log("sleeping %d seconds to give the device some idle time" % idle_time)
-        time.sleep(idle_time)
-
-        # Dump out some memory status info
-        self.marionette.log("checkpoint")
-        self.cur_time = time.strftime("%Y%m%d%H%M%S", time.localtime())
-        # If first checkpoint, create the file if it doesn't exist already
-        if self.iteration in (0, self.checkpoint_interval):
-            self.checkpoint_path = "checkpoints"
-            if not os.path.exists(self.checkpoint_path):
-                os.makedirs(self.checkpoint_path, 0755)
-            self.log_name = "%s/checkpoint_%s_%s.log" % (self.checkpoint_path, self.test_method.__name__, self.cur_time)
-            with open(self.log_name, 'a') as log_file:
-                log_file.write('%s Gaia Endurance Test: %s\n' % (self.cur_time, self.test_method.__name__))
-        output_str = self.device.manager.shellCheckOutput(["b2g-ps"])
-        with open(self.log_name, 'a') as log_file:
-            log_file.write('%s Checkpoint after iteration %d of %d:\n' % (self.cur_time, self.iteration, self.iterations))
-            log_file.write('%s\n' % output_str)
+        EnduranceTestCaseMixin.__init__(self, *args, **kwargs)
 
     def close_app(self):
         # Close the current app (self.app) by using the home button
@@ -805,47 +756,3 @@ class GaiaEnduranceTestCase(GaiaTestCase):
         close_card_app_button = self.marionette.find_element(*_close_button_locator)
         close_card_app_button.tap()
 
-    def process_checkpoint_data(self):
-        # Process checkpoint data into .json
-        self.marionette.log("processing checkpoint data from %s" % self.log_name)
-
-        # Open the checkpoint file
-        checkpoint_file = open(self.log_name, 'r')
-
-        # Grab every b2g rss reading for each checkpoint
-        b2g_rss_list = []
-        for next_line in checkpoint_file:
-            if next_line.startswith("b2g"):
-                b2g_rss_list.append(next_line.split()[5])
-
-        # Close the checkpoint file
-        checkpoint_file.close()
-
-        # Calculate the average b2g_rss
-        total = 0
-        for b2g_mem_value in b2g_rss_list:
-            total += int(b2g_mem_value)
-        avg_rss = total / len(b2g_rss_list)
-
-        # Create a summary text file
-        summary_name = self.log_name.replace('.log', '_summary.log')
-        summary_file = open(summary_name, 'w')
-
-        # Write the summarized checkpoint data
-        summary_file.write('test_name: %s\n' % self.test_method.__name__)
-        summary_file.write('completed: %s\n' % self.cur_time)
-        summary_file.write('app_under_test: %s\n' % self.app_under_test.lower())
-        summary_file.write('total_iterations: %d\n' % self.iterations)
-        summary_file.write('checkpoint_interval: %d\n' % self.checkpoint_interval)
-        summary_file.write('b2g_rss: ')
-        summary_file.write(', '.join(b2g_rss_list))
-        summary_file.write('\navg_rss: %d\n\n' % avg_rss)
-
-        # Close the summary file
-        summary_file.close()
-
-        # Write to suite summary file
-        suite_summary_file_name = '%s/avg_b2g_rss_suite_summary.log' % self.checkpoint_path
-        suite_summary_file = open(suite_summary_file_name, 'a')
-        suite_summary_file.write('%s: %s\n' % (self.test_method.__name__, avg_rss))
-        suite_summary_file.close()
