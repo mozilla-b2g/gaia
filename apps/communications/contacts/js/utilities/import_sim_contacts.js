@@ -21,10 +21,6 @@ function SimContactsImporter() {
   var mustFinish = false;
   var loadedMatch = false;
 
-  function getContact(contact) {
-    return (contact instanceof mozContact) ? contact : new mozContact(contact);
-  }
-
   function notifyFinish() {
     if (typeof self.onfinish === 'function') {
       window.setTimeout(self.onfinish, 0);
@@ -187,7 +183,7 @@ function SimContactsImporter() {
 
 
   function saveContact(contact) {
-    var req = window.navigator.mozContacts.save(getContact(contact));
+    var req = window.navigator.mozContacts.save(contact);
       req.onsuccess = function saveSuccess() {
         continueCb();
       };

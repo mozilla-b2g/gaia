@@ -7,9 +7,6 @@ contacts.Merger = (function() {
   var DEFAULT_TEL_TYPE = 'another';
   var DEFAULT_EMAIL_TYPE = 'personal';
 
-  function getContact(contact) {
-    return (contact instanceof mozContact) ? contact : new mozContact(contact);
-  }
 
   // Performs the merge passing the master contact and matching contacts
   // The master contact will be the one that will contain all the merged info
@@ -206,7 +203,7 @@ contacts.Merger = (function() {
     }
 
     // Updating the master contact
-    var req = navigator.mozContacts.save(getContact(masterContact));
+    var req = navigator.mozContacts.save(masterContact);
 
     req.onsuccess = function() {
       // Now for all the matchingContacts they have to be removed
@@ -214,7 +211,10 @@ contacts.Merger = (function() {
         // Only remove those contacts which are already in the DB
         if (aMatchingContact.matchingContact.id) {
           var contact = aMatchingContact.matchingContact;
-          navigator.mozContacts.remove(getContact(contact));
+          if (!(contact instanceof mozContact)) {
+            contact = new mozContact(contact);
+          }
+          navigator.mozContacts.remove(contact);
         }
       });
 
