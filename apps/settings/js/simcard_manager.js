@@ -1,3 +1,6 @@
+/* exported SimCardManager */
+/* global Template, SimCard, SettingsHelper, MobileOperator, SimCardManager */
+
 'use strict';
 
 (function(exports) {
@@ -8,28 +11,10 @@
    * Main Entry
    */
   var SimCardManager = {
-    isUIinitialized: false,
     init: function() {
 
-      // we encapsulate simcards to do related UI changes
-      // when setting it (Key-Value Observing)
-      var simcards = [];
-
-      Object.defineProperty(this, 'simcards', {
-        get: function() {
-          return simcards;
-        },
-        set: function(newSimcardsInfo) {
-          simcards = newSimcardsInfo;
-
-          // we have to make sure our UI has been initialized
-          // so that we can update its views when setting
-          // values.
-          if (this.isUIinitialized) {
-            this.updateSimCardsUI();
-          }
-        }
-      });
+      // we store all SimCard instances into this array
+      this.simcards = [];
 
       // init DOM related stuffs
       this.setAllElements();
@@ -58,43 +43,13 @@
 
       // NOTE: this is for desktop testing
       if (conns && conns.length == 1 && !conns[0].data) {
-        this.simcards = [
-            /*
-          {
-            enabled: true,
-            absent: true,
-            locked: false,
-            name: 'SIM 1',
-            number: '0123456789',
-            operator: 'Chunghwa Telecom'
-          },
-          {
-            enabled: true,
-            absent: true,
-            locked: true,
-            name: 'SIM 2',
-            number: '9876543210',
-            operator: 'FarEastTone'
-          }
-          */
-          {
-            enabled: true,
-            absent: true,
-            locked: false,
-            name: _('noSimCard'),
-            number: '',
-            operator: ''
-          },
-          {
-            enabled: true,
-            absent: true,
-            locked: false,
-            name: _('noSimCard'),
-            number: '',
-            operator: ''
-          }
-        ];
+        var simcard0 = new SimCard(0);
+        var simcard1 = new SimCard(1);
 
+        simcard0.setState('test');
+        simcard1.setState('test');
+
+        this.simcards = [simcard0, simcard1];
         return;
       }
 
@@ -102,22 +57,12 @@
 
       for (var i = 0; i < conns.length; i++) {
         var conn = conns[i];
-        var cardIndex = i + 1;
         var iccId = conn.iccId;
-        var simcardInfo;
+        var simcard = new SimCard(i);
 
         // if this mobileConnection has no simcard on it
         if (!iccId) {
-
-          // you can refer related UI in DSDS spec
-          simcardInfo = {
-            enabled: true,
-            absent: true,
-            locked: false,
-            name: _('noSimCard'),
-            number: '',
-            operator: ''
-          };
+          simcard.setState('nosim');
         }
         // else if we can get mobileConnection,
         // we have to check locked / enabled state
@@ -141,31 +86,23 @@
           }
 
           if (locked) {
-            simcardInfo = {
-              enabled: true,
-              absent: false,
-              locked: true,
-              name: 'simcard' + cardIndex,
-              number: '',
-              operator: ''
-            };
+            simcard.setState('lock');
           }
           else {
 
             // TODO:
             // we have to call Gecko API here to make sure the
             // simcard is enabled / disabled
-            simcardInfo = {
-              enabled: true,
-              absent: false,
-              locked: locked,
-              name: 'simcard' + cardIndex,
+
+            simcard.setState('normal', {
+              locked: false,
               number: iccInfo.spn || _('unknown-phoneNumber'),
               operator: operatorInfo.operator || _('no-operator')
-            };
+            });
           }
         }
-        this.simcards.push(simcardInfo);
+
+        this.simcards.push(simcard);
       }
     },
     handleEvent: function(evt) {
@@ -197,7 +134,7 @@
             SettingsHelper.set('outgoingData').on(cardIndex);
           }
           else {
-            var previousCardIndex = (cardIndex == 0) ? 1 : 0;
+            var previousCardIndex = (cardIndex === 0) ? 1 : 0;
             this.simManagerOutgoingDataSelect.selectedIndex = previousCardIndex;
           }
           break;
@@ -234,7 +171,7 @@
       // Else if we are in DSDS infrastructure
       else if (simcardsCount === 2) {
 
-        var anotherCardIndex = (cardIndex == 0) ? 1 : 0;
+        var anotherCardIndex = (cardIndex === 0) ? 1 : 0;
         var anotherCardInfo = this.getSimCardInfo(anotherCardIndex);
 
         // and current card is enabled, it means we want to disable it
@@ -288,13 +225,15 @@
       }
     },
     enableSimCard: function(cardIndex) {
-      this.updateSimCardInfo(cardIndex, { enabled: true });
+      this.getSimCard(cardIndex).setState('enabled');
+      this.updateSimCardsUI(cardIndex);
 
       // TODO:
       // call new Gecko API to enable this simcard
     },
     disableSimCard: function(cardIndex) {
-      this.updateSimCardInfo(cardIndex, { enabled: false });
+      this.getSimCard(cardIndex).setState('disabled');
+      this.updateSimCardsUI(cardIndex);
 
       // TODO:
       // call new Gecko API to disable this simcard
@@ -303,20 +242,13 @@
       return this.simcards.length;
     },
     getSimCardInfo: function(cardIndex) {
+      return this.simcards[cardIndex].getInfo();
+    },
+    getSimCard: function(cardIndex) {
       return this.simcards[cardIndex];
     },
-    updateSimCardInfo: function(cardIndex, newInfo) {
-      var newSimcardsInfo = this.simcards;
-
-      for (var infoKey in newInfo) {
-        newSimcardsInfo[cardIndex][infoKey] = newInfo[infoKey];
-      }
-
-      // This will force updating UI
-      this.simcards = newSimcardsInfo;
-    },
     updateSimCardsUI: function() {
-      this.simcards.forEach(function(cardInfo, cardIndex) {
+      this.simcards.forEach(function(simcard, cardIndex) {
         this.updateSimCardUI(cardIndex);
       }.bind(this));
     },
@@ -390,12 +322,8 @@
       this.initSimCardsUI();
       this.initSelectOptionsUI();
 
-      // Because we use KVO pattern, we will update view when setting
-      // values, but we have to initSimCardsInfo() before than
-      // initSimCardManagerUI() to make sure the simcards count is
-      // correct, in this way, we will manually call updateSimCardsUI
-      // by ourselves here.
-      this.isUIinitialized = true;
+      // we only inject basic DOM from templates before
+      // , so we have to map UI to its info
       this.updateSimCardsUI();
     },
     initSimCardsUI: function() {
@@ -430,8 +358,9 @@
       var outgoingDataSelect =
         this.simManagerOutgoingDataSelect;
 
-      this.simcards.forEach(function(simcardInfo, index) {
+      this.simcards.forEach(function(simcard, index) {
         var options = [];
+        var simcardInfo = simcard.getInfo();
 
         for (var i = 0; i < 3; i++) {
           var option = document.createElement('option');
