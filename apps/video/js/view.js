@@ -9,8 +9,31 @@
  * the shared code into a single shared file. If the video player UI changes
  * those changes will have to be made in both video.js and view.js
  */
-navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
-  var dom = {};            // document elements
+navigator.mozSetMessageHandler('activity', viewVideo);
+navigator.mozSetMessageHandler('rtsp-open-video', function(activity) {
+  navigator.mozApps.getSelf().onsuccess = function(event) {
+    var app = event.target.result;
+    app.launch();
+    viewVideo({
+      source: {
+        data: {
+          type: activity.type,
+          url: activity.url,
+          title: activity.title
+        }
+      },
+      postResult: function() {
+        window.close();
+      },
+      postError: function() {
+        window.close();
+      }
+    });
+  };
+});
+
+function viewVideo(activity) {
+  var dom = {};      // document elements
   var playing = false;
   var endedTimer;
   var controlShowing = false;
@@ -300,7 +323,9 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
 
       play();
     };
-    dom.player.onloadeddata = function(evt) { URL.revokeObjectURL(url); };
+    dom.player.onloadeddata = function(evt) {
+      URL.revokeObjectURL(url);
+    };
     dom.player.onerror = function(evt) {
       var errorid = '';
 
@@ -498,4 +523,4 @@ navigator.mozSetMessageHandler('activity', function viewVideo(activity) {
   function hideSpinner() {
     dom.spinnerOverlay.classList.add('hidden');
   }
-});
+}
