@@ -30,10 +30,8 @@ class TestUrlKeyboard(GaiaTestCase):
         self.assertEqual(typed_key, u'/')
 
         # Test .com key
-        keyboard.switch_to_keyboard()
-        keyboard.tap_com()
+        keyboard.tap_dotcom()
 
-        self.marionette.switch_to_frame()
         self.marionette.switch_to_frame(self.ui_tests.app.frame)
 
         keyboard_page.switch_to_frame()

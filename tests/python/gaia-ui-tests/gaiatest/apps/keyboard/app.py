@@ -266,7 +266,7 @@ class Keyboard(Base):
         self._tap(self._alt_key)
         self.marionette.switch_to_frame()
 
-    def tap_com(self):
+    def tap_dotcom(self):
         self.switch_to_keyboard()
         dotcom = self.marionette.find_element(*self._dotcom_key_locator)
         dotcom.tap()
