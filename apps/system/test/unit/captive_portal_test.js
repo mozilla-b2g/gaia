@@ -1,6 +1,7 @@
 // Captive Portal Test
 
 'use strict';
+mocha.globals(['MozActivity']);
 
 requireApp('system/test/unit/mock_chrome_event.js');
 requireApp('system/test/unit/mock_app.js');
