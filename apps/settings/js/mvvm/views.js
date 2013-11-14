@@ -1,6 +1,11 @@
-'use strict';
-/* global ObservableArray:false */
+/* global ObservableArray */
 /* exported ListView */
+
+// start outer IIFE - exports === window
+(function(exports) {
+'use strict';
+
+var elements = new WeakMap();
 
 /*
  * A ListView takes an ObservableArray or an ordinary array, and generate/
@@ -121,10 +126,16 @@ var ListView = function(root, observableArray, templateFunc) {
 
   var view = {
     set: function lv_set(newArray) {
+      if (_observableArray) {
+        _observableArray.unobserve(_handleEvent);
+      }
+
       if (!newArray) {
         // clear all existing items
-        _remove(0, _observableArray.length);
-        _observableArray = null;
+        if (_observableArray) {
+          _remove(0, _observableArray.length);
+          _observableArray = null;
+        }
         return;
       }
 
@@ -146,6 +157,18 @@ var ListView = function(root, observableArray, templateFunc) {
       }
     },
 
+    destroy: function() {
+      // unobserve from array and null everything out
+      if (_observableArray) {
+        _observableArray.unobserve(_handleEvent);
+      }
+      elements.delete(_root);
+      _root = null;
+      _observableArray = null;
+      _templateFunc = null;
+      _enabled = false;
+    },
+
     set enabled(value) {
       if (_enabled !== value) {
         _enabled = value;
@@ -158,8 +181,21 @@ var ListView = function(root, observableArray, templateFunc) {
     }
   };
 
+  if (elements.has(_root)) {
+    // destroy old ListView if we setup a second one
+    elements.get(_root).destroy();
+  }
+
+  elements.set(_root, view);
+
   // emtpy element at creation time
   _root.innerHTML = '';
+
   view.set(observableArray);
   return view;
 };
+
+exports.ListView = ListView;
+
+// end outer IIFE
+}(window));
