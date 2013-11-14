@@ -38,7 +38,7 @@ Keyboards['jp-kanji'] = {
   ]
 };
 
-Keybords['jp-kanji-en'] = {
+Keyboards['jp-kanji-en'] = {
   needsCandidatePanel: true,
   disableAlternateLayout: true,
   hidesSwitchKey: true,
