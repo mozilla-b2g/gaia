@@ -65,10 +65,6 @@ var Camera = {
     }
   },
 
-  _config: {
-    fileFormat: 'jpeg'
-  },
-
   _videoProfile: {},
 
   preferredRecordingSizes: null,
