@@ -32,4 +32,8 @@ const CAMERA_MODE_TYPE = {
 
   // Minimum video duration length for creating a video that contains at least
   // few samples, see bug 899864.
-  MIN_RECORDING_TIME = 500;
+  MIN_RECORDING_TIME = 500,
+
+  MIN_VIEWFINDER_SCALE = 1.0,
+
+  MAX_VIEWFINDER_SCALE = 4.0;

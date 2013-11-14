@@ -65,6 +65,10 @@ var Camera = {
     }
   },
 
+  _config: {
+    fileFormat: 'jpeg'
+  },
+
   _videoProfile: {},
 
   preferredRecordingSizes: null,
@@ -832,7 +836,7 @@ var Camera = {
               this._videoProfile, gotPreviewScreen.bind(this));
           }
       }).bind(this));
-      this.setPreviewSize(camera);
+      ViewfinderView.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
       this.setFocusMode();
 
@@ -855,73 +859,6 @@ var Camera = {
     } else {
       navigator.mozCameras.getCamera(options, gotCamera.bind(this));
     }
-  },
-
-  setPreviewSize: function(camera) {
-    var style = ViewfinderView.el.style;
-
-    // Switch screen dimensions to landscape
-    var screenWidth = document.body.clientHeight * window.devicePixelRatio;
-    var screenHeight = document.body.clientWidth * window.devicePixelRatio;
-    var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
-    var screenAspectRatio = screenHeight / screenWidth;
-
-    // Previews should match the aspect ratio and not be smaller than the screen
-    var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      var isLarger = res.height >= deviceHeight && res.width >= deviceWidth;
-      var aspectRatio = res.height / res.width;
-      var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
-      return matchesRatio && isLarger;
-    });
-
-    // We should always have a valid preview size, but just in case
-    // we dont, pick the first provided.
-    if (validPreviews.length) {
-      // Pick the smallest valid preview
-      this._previewConfig = validPreviews.sort(function(a, b) {
-        return a.width * a.height - b.width * b.height;
-      }).shift();
-    } else {
-      this._previewConfig = camera.capabilities.previewSizes[0];
-    }
-
-    var transform = 'rotate(90deg)';
-    var width, height;
-    var translateX = 0;
-
-    // The preview should be larger than the screen, shrink it so that as
-    // much as possible is on screen.
-    if (screenAspectRatio < pictureAspectRatio) {
-      width = screenWidth;
-      height = screenWidth * pictureAspectRatio;
-    } else {
-      width = screenHeight / pictureAspectRatio;
-      height = screenHeight;
-    }
-
-    var cameraNumber = CameraState.get('cameraNumber');
-    if (cameraNumber == 1) {
-      /* backwards-facing camera */
-      transform += ' scale(-1, 1)';
-      translateX = width;
-    }
-
-    // Counter the position due to the rotation
-    // This translation goes after the rotation so the element is shifted up
-    // (for back camera) - shifted up after it is rotated 90 degress clockwise.
-    // (for front camera) - shifted up-left after it is mirrored and rotated.
-    transform += ' translate(-' + translateX + 'px, -' + height + 'px)';
-
-    // Now add another translation at to center the viewfinder on the screen.
-    // We put this at the start of the transform, which means it is applied
-    // last, after the rotation, so width and height are reversed.
-    var dx = -(height - screenHeight) / 2;
-    var dy = -(width - screenWidth) / 2;
-    transform = 'translate(' + dx + 'px,' + dy + 'px) ' + transform;
-
-    style.transform = transform;
-    style.width = width + 'px';
-    style.height = height + 'px';
   },
 
   recordingStateChanged: function(msg) {
