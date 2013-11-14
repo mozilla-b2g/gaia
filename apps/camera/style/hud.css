@@ -59,7 +59,8 @@ body:not(.filmstriphidden) .hud {
  ---------------------------------------------------------*/
 
 .toggle-camera {
-  background-image: url(images/toggle_front-rear.png);
+  background-image: url(images/toggle-camera.png);
+  background-size: 100%;
 }
 
 /**
@@ -83,6 +84,7 @@ body:not(.filmstriphidden) .hud {
 
 .toggle-flash {
   position: relative;
+  background-size: 100%;
 }
 
 .toggle-flash[data-mode=on] {
@@ -94,7 +96,7 @@ body:not(.filmstriphidden) .hud {
 }
 
 .toggle-flash[data-mode=auto] {
-  background-image: url(images/flash_on.png);
+  background-image: url(images/flash_auto.png);
 }
 
 .toggle-flash[data-mode=torch] {
