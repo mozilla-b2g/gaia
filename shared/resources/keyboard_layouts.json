@@ -79,7 +79,7 @@
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "it": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "it", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "jp": [
         {"layoutId": "jp-kanji", "appOrigin": "keyboard.gaiamobile.org"},
@@ -99,7 +99,7 @@
         {"layoutId": "nb", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "nl": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "nl", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "or": [
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
@@ -140,7 +140,7 @@
         {"layoutId": "sr-Latn", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "sv-SE": [
-        {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+        {"layoutId": "sv", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "te": [
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
@@ -159,6 +159,9 @@
     "zh-TW": [
         {"layoutId": "zh-Hant-Zhuyin", "appOrigin": "keyboard.gaiamobile.org"},
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
+    "mk": [
+        {"layoutId": "mk", "appOrigin": "keyboard.gaiamobile.org"}
     ],
     "my": [
         {"layoutId": "my", "appOrigin": "keyboard.gaiamobile.org"}
