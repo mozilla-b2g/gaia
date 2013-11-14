@@ -29,7 +29,6 @@ lookupUrlRecordType: function(uri) {
 // Abbreviate will shorten the protocol of that url
 createUriNdefRecord: function(uri, abbreviate) {
   var uriPayload = null;
-
   if (uri == null) {
     return null;
   }
@@ -45,13 +44,13 @@ createUriNdefRecord: function(uri, abbreviate) {
       urlPayload = String.fromCharCode(split.identifier) + split.uri;
     }
   } else {
-    urlPayload = url; // unmodified.
+    urlPayload = uri; // unmodified.
   }
   console.log('Current URL payload: ' + urlPayload);
 
   var tnf = nfc.tnf_well_known; // NFC Forum Well Known type
   var type = nfc.rtd_uri; // URL type
-  var id = null;
+  var id = new Uint8Array(0);
   var payload = nfc.fromUTF8(urlPayload);
 
   var record = new MozNdefRecord(

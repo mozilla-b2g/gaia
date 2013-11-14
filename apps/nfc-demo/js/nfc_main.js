@@ -292,7 +292,7 @@ function handleNdefType(sessionToken, techType) {
 }
 
 var hexEncodeArray = [
-  '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F',
+'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
 ];
 
 function convertUint8ArrayToHex(arr) {
@@ -521,6 +521,16 @@ $(document).bind('ready', function() {
   $('#button_nfc_contact_id').click(function(event) {
     nfcWriter.postContactFormToNdef('#nfc_contact_form_id');
   });
+
+  window.navigator.mozNfc.onpeerfound = function(event) {
+    debug('In onpeerfound handler' + JSON.stringify(event.detail));
+    var nfcdom = window.navigator.mozNfc;
+    var nfcPeer = nfcdom.getNFCPeer(event.detail);
+    var records = new Array();
+    var ndef = nfcText.createTextNdefRecord_Utf8('Dummy Text', 'en');
+    records.push(ndef);
+    nfcPeer.sendNDEF(records);
+  };
 
 });
 
