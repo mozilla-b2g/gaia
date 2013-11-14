@@ -1,3 +1,7 @@
+'use strict';
+/* global ObservableArray:false */
+/* exported ListView */
+
 /*
  * A ListView takes an ObservableArray or an ordinary array, and generate/
  * manipulate the corresponding DOM elements of the content in the array using
@@ -29,14 +33,16 @@ var ListView = function(root, observableArray, templateFunc) {
         break;
       case 'reset':
         _reset(data.items || []);
+        break;
       default:
         break;
     }
   };
 
   var _insert = function(index, items) {
-    if (items.length <= 0)
+    if (items.length <= 0) {
       return;
+    }
 
     // add DOM elements
     var referenceElement =
@@ -49,8 +55,9 @@ var ListView = function(root, observableArray, templateFunc) {
   };
 
   var _remove = function(index, count) {
-    if (count === 0)
+    if (count === 0) {
       return;
+    }
 
     // remove DOM elements
     if (count === _root.childElementCount) {
@@ -76,7 +83,11 @@ var ListView = function(root, observableArray, templateFunc) {
   var _replace = function(index, value) {
     var element = _root.querySelector('li:nth-child(' + (index + 1) + ')');
     if (element) {
-      _templateFunc(value, element);
+      var newElement = _templateFunc(value, element);
+      if (newElement !== element) {
+        _root.insertBefore(newElement, element);
+        _root.removeChild(element);
+      }
     }
   };
 
@@ -84,7 +95,7 @@ var ListView = function(root, observableArray, templateFunc) {
     var itemCount = items.length;
     var elementCount = _root.childElementCount;
 
-    if (itemCount == 0) {
+    if (itemCount === 0) {
       _remove(0, elementCount);
     } else if (itemCount <= elementCount) {
       items.forEach(function(item, index) {
@@ -112,12 +123,9 @@ var ListView = function(root, observableArray, templateFunc) {
 
   var view = {
     set: function lv_set(newArray) {
-      // clear all existing items
-      if (_observableArray) {
-        _remove(0, _observableArray.length);
-      }
-
       if (!newArray) {
+        // clear all existing items
+        _remove(0, _observableArray.length);
         _observableArray = null;
         return;
       }
@@ -135,7 +143,9 @@ var ListView = function(root, observableArray, templateFunc) {
       _observableArray.observe('replace', _handleEvent);
       _observableArray.observe('reset', _handleEvent);
 
-      _insert(0, _observableArray.array);
+      if (this.enabled) {
+        _reset(_observableArray.array);
+      }
     },
 
     set enabled(value) {
