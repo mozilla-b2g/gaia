@@ -38,7 +38,9 @@
     "audio-channel-content":{},
     "cellbroadcast":{},
     "input":{},
-    "input-manage":{}
+    "input-manage":{},
+    "nfc":{ "access": "readonly" },
+    "nfc-manager":{}
   },
   "locales": {
     "ar": {
@@ -69,7 +71,9 @@
      { "bluetooth-opp-receiving-file-confirmation": "/index.html" },
      { "bluetooth-opp-transfer-start": "/index.html" },
      { "icc-stkcommand": "/index.html" },
-     { "cdma-info-rec-received": "/index.html" }
+     { "cdma-info-rec-received": "/index.html" },
+     { "nfc-manager-tech-discovered": "/index.html" },
+     { "nfc-manager-tech-lost": "/index.html" }
   ],
   "connections": {
     "mediacomms": {
