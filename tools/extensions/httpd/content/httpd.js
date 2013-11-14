@@ -1512,26 +1512,21 @@ RequestReader.prototype =
     // /apps/browser/locales/browser.fr.properties
     // /apps/calendar/../../shared/locales/date/date.fr.properties
     var parts = path.split("/");
-    var appDir = parts[1]; // apps, apps
-    var appName = parts[2]; // browser, calendar
-    var component = parts[3]; // locales, ..
-
-    // browser.fr.properties, date/date.fr.properties
-    var resource = path.split("/locales/")[1];
-    var resourceParts = resource.split(".");
-    var resourceName = resourceParts[0]; // browser
-    var localeCode = resourceParts[1]; // date/date
-
-    var debugPath;
-    if (component === "locales") {
-      // /locales/fr/apps/browser/browser.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/" + appDir +
-                   "/" + appName + "/" + resourceName + ".properties");
-    } else {
-      // /locales/fr/shared/date/date.properties
-      debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + "/shared" +
-                   "/" + resourceName + ".properties");
+    // resolve '..' first
+    var dotdot;
+    while ((dotdot = parts.indexOf('..')) > 0) {
+      parts = parts.slice(0, dotdot-1).concat(parts.slice(dotdot+1));
     }
+    // how our paths map just the top-level path
+    // remove 'locales'
+    var locales = parts.indexOf('locales');
+    if (locales == -1) return path;
+    parts = parts.slice(0, locales).concat(parts.slice(locales+1));
+    // extract locale from filename
+    var localeCode = parts[parts.length-1].match("\\.(.+?)\\.")[1];
+    parts[parts.length-1] = parts[parts.length-1].replace('.' + localeCode, '');
+
+    debugPath = ("/" + GAIA_LOCALES_PATH + "/" + localeCode + parts.join('/'));
 
     dumpn("l10n: try loading " + debugPath + " instead of " + path);
 
