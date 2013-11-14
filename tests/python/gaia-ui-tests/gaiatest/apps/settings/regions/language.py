@@ -8,7 +8,7 @@ from gaiatest.apps.base import Base
 
 class Language(Base):
 
-    _select_language_locator = (By.CSS_SELECTOR, '#languages li:nth-child(2) .icon-dialog select')
+    _select_language_locator = (By.CSS_SELECTOR, "select[name='language.current']")
     _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
 
     def go_back(self):
