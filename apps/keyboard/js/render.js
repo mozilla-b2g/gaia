@@ -34,6 +34,7 @@ const IMERender = (function() {
     this.ime = document.getElementById('keyboard');
   };
 
+  var zus = 3;
   var setInputMethodName = function(name) {
     var candidatePanel = document.getElementById('keyboard-candidate-panel');
     if (candidatePanel) {
