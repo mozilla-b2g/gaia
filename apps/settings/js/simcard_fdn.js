@@ -62,7 +62,7 @@ var SimFdnLock = {
       if (IccHelper.cardState === 'puk2Required') {
         action = 'unlock_puk2';
       }
-      self.pinDialog.show(action, callback, callback);
+      self.pinDialog.show(action, { onsuccess: callback, oncancel: callback });
     };
 
     this.resetPin2Button.onclick = function spl_resetPin2() {
@@ -83,7 +83,9 @@ var SimFdnLock = {
       localize(self.fdnContactTitle, 'fdnAction-add');
       self.fdnContactName.value = '';
       self.fdnContactNumber.value = '';
-      self.fdnContactSubmit.onclick = self.addContact.bind(self);
+      self.fdnContactSubmit.onclick = function addContact() {
+        self.updateContact('add');
+      };
       Settings.currentPanel = '#call-fdnList-add';
     };
 
@@ -91,14 +93,16 @@ var SimFdnLock = {
       localize(self.fdnContactTitle, 'fdnAction-edit');
       self.fdnContactName.value = self.currentContact.name;
       self.fdnContactNumber.value = self.currentContact.number;
-      self.fdnContactSubmit.onclick = self.editContact.bind(self);
+      self.fdnContactSubmit.onclick = function editContact() {
+        self.updateContact('edit');
+      };
       self.hideActionMenu();
       Settings.currentPanel = '#call-fdnList-add';
     };
 
     this.fdnActionMenuRemove.onclick = function() { // remove FDN contact
       self.hideActionMenu();
-      self.removeContact();
+      self.updateContact('remove');
     };
 
     this.fdnActionMenuCall.onclick = function() {
@@ -161,58 +165,32 @@ var SimFdnLock = {
    * Add|Edit|Remove FDN contact
    */
 
-  addContact: function() {
-    var name = this.fdnContactName.value;
-    var number = this.fdnContactNumber.value;
+  updateContact: function(action) {
+    // `action' is either `add', `edit' or `remove': these three actions all
+    // rely on the same mozIccManager.updateContact() method.
 
-    var cb = this.clear.bind(this);
-    var er = function(e) {
-      throw new Error('Could not add FDN contact to SIM card', e);
+    var contact = FdnAuthorizedNumbers.getContactInfo(action, {
+      id: this.currentContact && this.currentContact.id,
+      name: this.fdnContactName.value,
+      number: this.fdnContactNumber.value
+    });
+
+    var clear = function() {
+      // Warning, the panel navigation is like this:
+      //   FDN list -> FDN add/edit contact -> PIN2 dialog -> FDN list
+      // so we have to make sure the FDN add/edit panel has no 'previous' class.
+      document.querySelector('#call-fdnList-add').className = '';
+      this.fdnContactName.value = '';
+      this.fdnContactNumber.value = '';
     };
 
-    this.pinDialog.show('get_pin2', function(pinCode) {
-      FdnAuthorizedNumbers.addNumber(er, cb, name, number, pinCode);
-    }, this.wrongPinError);
-  },
-
-  editContact: function() {
-    var id = this.currentContact.id;
-    var name = this.fdnContactName.value;
-    var number = this.fdnContactNumber.value;
-
-    var cb = this.clear.bind(this);
-    var er = function(e) {
-      throw new Error('Could not edit FDN contact on SIM card', e);
-    };
-
-    this.pinDialog.show('get_pin2', function(pinCode) {
-      FdnAuthorizedNumbers.updateNumber(er, cb, id, name, number, pinCode);
-    }, this.wrongPinError);
-  },
-
-  removeContact: function() {
-    var id = this.currentContact.id;
-
-    var cb = this.clear.bind(this);
-    var er = function(e) {
-      throw new Error('Could not edit FDN contact on SIM card', e);
-    };
-
-    this.pinDialog.show('get_pin2', function(pinCode) {
-      FdnAuthorizedNumbers.removeNumber(er, cb, id, pinCode);
-    }, this.wrongPinError);
-  },
-
-  clear: function() {
-    Settings.currentPanel = '#call-fdnList';
-    this.fdnContactName.value = '';
-    this.fdnContactNumber.value = '';
-  },
-
-  wrongPinError: function(e) {
-    throw new Error('Incorrect PIN2 code.', e);
+    this.pinDialog.show('get_pin2', {
+      exitPanel: '#call-fdnList',
+      onsuccess: clear.bind(this),
+      oncancel: clear.bind(this),
+      fdnContact: contact
+    });
   }
-
 };
 
 navigator.mozL10n.ready(SimFdnLock.init.bind(SimFdnLock));
