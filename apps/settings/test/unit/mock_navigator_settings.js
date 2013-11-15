@@ -6,9 +6,19 @@
       removedObservers = {};
 
   function mns_mLockSet(obj) {
+    var settingsRequest = {};
+
     for (var key in obj) {
       settings[key] = obj[key];
     }
+
+    setTimeout(function() {
+      if (settingsRequest.onsuccess) {
+        settingsRequest.onsuccess();
+      }
+    });
+
+    return settingsRequest;
   }
 
   function mns_mLockGet() {

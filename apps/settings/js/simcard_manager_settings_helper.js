@@ -1,3 +1,7 @@
+/* exported SettingsHelper */
+
+'use strict';
+
 (function(exports) {
 
   /*
