@@ -188,19 +188,24 @@ section li.password > label {
 }
 
 section li.password > label > span:after {
-  left: 1.1rem;
+  left: 0;
   right: auto;
+  margin-left: 0;
 }
 
 section li.password > label > span {
   position: absolute;
-  top: 8.3rem;
-  left: 4.5rem;
-  padding: 0;
+  left: 1.5rem;
+  padding-left: 3rem;
   height: 3rem;
   color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
+}
+
+section li.password > label:active > span {
+  background-color: transparent;
+  color: #848484;
 }
 
 section li.password > p {
