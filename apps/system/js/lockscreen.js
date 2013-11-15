@@ -4,6 +4,43 @@
 'use strict';
 
 var LockScreen = {
+
+  /**
+   * Information of the canvas lockscreen.
+   */
+  _canvasDetails: {
+    arrows: {
+      left: null, right: null,
+      // Left and right drawing origin.
+      ldraw: {x: null, y: null},
+      rdraw: {x: null, y: null}
+    },
+    width: 0, // We need dynamic length here.
+    height: 80,
+    center: {x: null, y: null},
+    slidingColorful: false,   // Start to color the handle.
+    slidingColorGradientEnd: false, // Full color the handle.
+    handle: {
+      // Whether we need to auto extend the handle.
+      autoExpand: {
+        accFactorOriginal: 1.0,
+        accFactor: 1.0,     // Accelerate sliding if user's finger crossed.
+        accFactorMax: 1.3,
+        accFactorInterval: 0.02,
+        sentinelOffset: 40,  // How many pixels before reaching end.
+        sentinelWidth: 0   // Max width - offset
+      },
+      bounceBackTime: 200,  // ms
+      radius: 28, // The radius of the handle in pixel.
+      lineWidth: 1.6,
+      maxWidth: 0,  // We need dynamic length here.
+      // If it slide across the boundary to color it.
+      touchedColor: '0, 170, 204', // RGB
+      // The intermediate color of touched color.
+      touchedColorStop: '178, 229, 239'
+    }
+  },
+
   /*
   * Boolean return true when initialized.
   */
@@ -111,32 +148,6 @@ var LockScreen = {
   triggeredTimeoutId: 0,
 
   /*
-  * Interval ID for elastic of curve and arrow (null means the animation is
-  * not running).
-  */
-  elasticIntervalId: null,
-
-  /*
-  * True if the animation should be running right now.
-  */
-  elasticEnabled: false,
-
-  /*
-  * A reference to the media playback widget in the lockscreen.
-  */
-  mediaPlaybackWidget: null,
-
-  /*
-  * elastic animation interval
-  */
-  ELASTIC_INTERVAL: 5000,
-
-  /*
-  * timeout for triggered state after swipe up
-  */
-  TRIGGERED_TIMEOUT: 7000,
-
-  /*
   * Max value for handle swiper up
   */
   HANDLE_MAX: 70,
@@ -175,6 +186,7 @@ var LockScreen = {
 
   /* init */
   init: function ls_init() {
+
     if (this.ready) { // already initialized: just trigger a translation
       this.refreshClock(new Date());
       this.updateConnState();
@@ -186,6 +198,9 @@ var LockScreen = {
 
     this.lockIfEnabled(true);
     this.writeSetting(this.enabled);
+
+    // Start to draw the slide and handle.
+    this._initializeCanvas();
 
     /* Status changes */
     window.addEventListener('volumechange', this);
@@ -278,6 +293,7 @@ var LockScreen = {
       0, function(value) {
       self.passCodeRequestTimeout = value;
     });
+
   },
 
   /*
@@ -313,12 +329,22 @@ var LockScreen = {
     }
   },
 
-  lightIcons: function() {
+  /**
+   * Light the camera and unlocking icons when user touch on our LockScreen.
+   *
+   * @this {LockScreen}
+   */
+  _lightIcons: function() {
     this.rightIcon.classList.remove('dark');
     this.leftIcon.classList.remove('dark');
   },
 
-  darkIcons: function() {
+  /**
+   * Dark the camera and unlocking icons when user leave our LockScreen.
+   *
+   * @this {LockScreen}
+   */
+  _darkIcons: function() {
     this.rightIcon.classList.add('dark');
     this.leftIcon.classList.add('dark');
   },
@@ -332,7 +358,10 @@ var LockScreen = {
         }
 
         // If the screen got blackout, should restore the slide.
-        this.restoreSlide();
+        this._clearCanvas();
+        this._resetArrows();
+        this._resetHandle();
+
         this.slideLeft.classList.remove('touched');
         this.slideCenter.classList.remove('touched');
         this.slideRight.classList.remove('touched');
@@ -397,28 +426,30 @@ var LockScreen = {
         break;
 
       case 'touchstart':
-        if (evt.target === this.altCamera) {
+        if (evt.target === this.areaUnlock ||
+           evt.target === this.areaCamera ||
+           evt.target === this.altCamera) {
           evt.preventDefault();
           this.handleIconClick(evt.target);
           break;
         }
 
-        if (evt.target === this.area ||
-            evt.target === this.areaUnlock ||
-            evt.target === this.areaCamera)
-          this.handleSlideBegin();
-
         var leftTarget = this.areaCamera;
         var rightTarget = this.areaUnlock;
         var overlay = this.overlay;
         var target = evt.target;
-
         this._touch = {
+          direction: '',
           touched: false,
           leftTarget: leftTarget,
           rightTarget: rightTarget,
           overlayWidth: this.overlay.offsetWidth
         };
+
+        if (evt.target === this.area) {
+          this._onSlideBegin(evt);
+        }
+
         window.addEventListener('touchend', this);
         window.addEventListener('touchmove', this);
 
@@ -433,19 +464,24 @@ var LockScreen = {
           evt.touches[0].pageX,
           evt.touches[0].pageY
         );
-        this.handleSlide();
+        if (this._sliding) {
+          this._onSliding(evt);
+        }
         break;
 
       case 'touchend':
         window.removeEventListener('touchmove', this);
         window.removeEventListener('touchend', this);
 
-        this.handleSlideEnd();
-
         this.handleMove(
           evt.changedTouches[0].pageX,
           evt.changedTouches[0].pageY
         );
+
+        if (this._sliding) {
+          this._onSlideEnd();
+        }
+
         delete this._touch;
         this.overlay.classList.remove('touched');
 
@@ -520,164 +556,562 @@ var LockScreen = {
     touch.ty = ty;
 
     touch.tx = pageX - touch.initX;
+    touch.pageX = pageX;
+    touch.pageY = pageY;
   },
 
-  handleSlideBegin: function() {
-    this.lightIcons();
-    this.restoreSlide();
-    this._sliding = true;
+  /**
+   * Start slide the handle of the lockscreen.
+   * Effect: Will set touch and sliding flag in this.
+   *
+   * @param {event} |evt| The touch event.
+   * @this {LockScreen}
+   */
+  _onSlideBegin: function ls_onSlideBegin(evt) {
 
-    // The '0.5' is the original width of the center of the circle.
-    this._slideOrigin = this.slideCenter.offsetLeft + 0.5;
-  },
-
-  handleSlide: function() {
-
-    if (!this._sliding)
-      return;
-
-    /**
-     * Return the distance between the end of the handle to the origin.
-     *
-     * @return {Pixel} the length of the handle dragged from the origin.
-     * @this
-     */
-    var slidingLength = function ls_hs_slidingLength(subject, dir) {
-      if ('right' === dir) {
-        return subject.offsetLeft + subject.clientWidth - this._slideOrigin;
-      } else {
-        return this._slideOrigin - subject.offsetLeft + subject.clientWidth;
-      }
-    };
-
-    var tx = this._touch.tx;
-    var dir = 'right';
-    if (0 > tx)
-      var dir = 'left';
-
-    // Drag from left to right or counter-direction.
-    if ('' !== this._slidingToward && dir !== this._slidingToward) {
-      this.restoreSlide();
-      this._sliding = true;
-    }
-    this._slidingToward = dir;
-
-    // Unsigned.
-    var utx = Math.abs(tx);
-
+    // Because if we initialize this value while init the lockscreen,
+    // the offset would be zero.
     var trackLength = this.rightIcon.offsetLeft -
                       this.leftIcon.offsetLeft +
                       this.rightIcon.clientWidth;
 
-    var natureBoundary = Math.floor(trackLength / 2);
+    // Because the canvas would draw from the center to one point
+    // on the circle, it would add dimeter long distance for one side.
+    var maxWidth = (trackLength -
+        (this._canvasDetails.handle.radius << 1)) >> 1;
 
-    // Shrink the boundaries.
-    var slideBoundaryOffset = this.leftIcon.clientWidth;
+    // Left 1 pixel each side for the border.
+    maxWidth -= 2;
+    this._canvasDetails.handle.maxWidth = this._dpx(maxWidth);
 
-    // They're different because the center element of the circle
-    // occurs 1px width toward right.
-    var boundaryBorderRight = 5;
-    var boundaryBorderLeft = 4;
-    var boundaryBorder = 'left' === dir ? boundaryBorderLeft :
-      boundaryBorderRight;
+    this._canvasDetails.handle.radius =
+      this._dpx(this._canvasDetails.handle.radius);
 
-    // Boundaries will shorter than the track length,
-    // to make unlocking with one hand easier.
-    var maxLength = natureBoundary -
-                    slideBoundaryOffset +
-                    Math.floor(this.leftIcon.clientWidth / 2);
+    this._canvasDetails.handle.lineWidth =
+      this._dpx(this._canvasDetails.handle.lineWidth);
 
-    var offset = utx;
-    var slideLength = offset + this.slideLeft.clientWidth + boundaryBorder;
+    this._canvasDetails.handle.autoExpand.sentinelOffset =
+      this._dpx(this._canvasDetails.handle.autoExpand.sentinelOffset);
 
-    // Start to paint the slide.
-    this.slideLeft.classList.add('pulling');
-    this.slideRight.classList.add('pulling');
+    this._canvasDetails.handle.autoExpand.sentinelWidth =
+      maxWidth - this._canvasDetails.handle.autoExpand.sentinelOffset;
 
-    // If the front-end slide reached the boundary.
-    // We plus and minus the icon width because maxLength should be fixed,
-    // and only the handle and the blue occurred area should be adjusted.
-    if (slideLength > maxLength) {
-      this._slideReachEnd = true;
-      offset = natureBoundary - this.slideLeft.clientWidth - boundaryBorder;
-      this._slideTo(offset, dir, true);
-    } else {
-      this._slideTo(offset, dir);
-      this._slideReachEnd = false;
+    var tx = evt.touches[0].pageX;
+    var ty = evt.touches[0].pageY;
+
+    var canvasCenterX = this.canvas.clientWidth >> 1;
+
+    var center = this._canvasDetails.center;
+
+    // To see if the finger touch on the area of the center circle.
+    var boundaryR = center.x + this._canvasDetails.handle.radius;
+    var boundaryL = center.x - this._canvasDetails.handle.radius;
+
+    if (tx > boundaryR || tx < boundaryL) {
+      return; // Do nothing.
     }
-    this._slideCount += utx;
-    if (this._slideCount > 15) {
 
-      // Add the effects to these icons.
-      this.slideLeft.classList.add('touched');
-      this.slideCenter.classList.add('touched');
-      this.slideRight.classList.add('touched');
-    }
-    this._slideCount = 0;
+    this._touch.initX = tx;
+    this._touch.initY = ty;
+
+    this._sliding = true;
+    this._lightIcons();
   },
 
-  // Restore all elements in the slide.
-  //
-  // easing {Boolean} true|undefined to bounce back slowly.
-  restoreSlide: function(easing) {
+  /**
+   * Initialize the canvas.
+   *
+   * @this {LockScreen}
+   */
+  _initializeCanvas: function ls_initializeCanvas() {
+    var center = this._canvasDetails.center;
+    this._canvasDetails.arrows.left = new Image();
+    this._canvasDetails.arrows.right = new Image();
+    var larrow = this._canvasDetails.arrows.left;
+    var rarrow = this._canvasDetails.arrows.right;
+    larrow.src = '/style/lockscreen/images/larrow.png';
+    rarrow.src = '/style/lockscreen/images/rarrow.png';
 
-    var slideCenter = this.slideCenter;
+    // XXX: Bet it would be OK while user start to drag the slide.
+    larrow.onload = (function() {
+      this._canvasDetails.arrows.ldraw.x =
+            center.x - (this._canvasDetails.arrows.left.width << 1);
+      this._canvasDetails.arrows.ldraw.y =
+            center.y - (this._canvasDetails.arrows.left.height >> 1);
+      var ctx = this.canvas.getContext('2d');
+      ctx.drawImage(this._canvasDetails.arrows.left,
+          this._canvasDetails.arrows.ldraw.x,
+          this._canvasDetails.arrows.ldraw.y);
+    }).bind(this);
+    rarrow.onload = (function() {
+      this._canvasDetails.arrows.rdraw.x =
+            center.x + (this._canvasDetails.arrows.right.width);
+      this._canvasDetails.arrows.rdraw.y =
+            center.y - (this._canvasDetails.arrows.right.height >> 1);
+      var ctx = this.canvas.getContext('2d');
+      ctx.drawImage(this._canvasDetails.arrows.right,
+          this._canvasDetails.arrows.rdraw.x,
+          this._canvasDetails.arrows.rdraw.y);
+    }).bind(this);
 
-    // Mimic the `getAllElements` function...
-    [this.slideLeft, this.slideRight, this.slideCenter]
-      .forEach(function ls_rSlide(h) {
-        if (easing) {
+    this._canvasDetails.width = this._dpx(window.innerWidth);
+    this._canvasDetails.height = this._dpx(80);
 
-          // To prevent magic numbers...
-          var bounceBackTime = '0.3s';
-          if ('handle-center' === h.dataset.role)
-            bounceBackTime = '0.4s';  // The center should be slower.
+    this.canvas.width = this._canvasDetails.width;
+    this.canvas.height = this._canvasDetails.height;
 
-          // Add transition to let it bounce back slowly.
-          h.style.transition = 'transform ' + bounceBackTime + ' ease 0s';
+    this._canvasDetails.center.x =
+      this.canvas.offsetLeft + this.canvas.width >> 1;
+    this._canvasDetails.center.y =
+      this.canvas.offsetHeight + this.canvas.height >> 1;
 
-          var tsEnd = function ls_tsEnd(evt) {
+    this.canvas.getContext('2d').save();
 
-            h.style.transition = 'none';
+    // Need to move the context toward right, to compensate the circle which
+    // would be draw at the center, and make it align too left.
+    this.canvas.getContext('2d', this._canvasDetails.handle.radius << 1, 0);
 
-            // Remove the effects to these icons, and only do it
-            // when it bounce back.
-            //
-            // This is because crossing the origin will restore it as well,
-            // but we don't need to reset the blue are at such scenario.
-            h.classList.remove('touched');
-            h.removeEventListener('transitionend', tsEnd);
+    // Draw the handle.
+    this._resetHandle();
 
-            // End the center immediately when the ends ended.
-            if ('handle-center' !== h.dataset.role) {
-              slideCenter.classList.remove('touched');
-            }
-          };
-          h.addEventListener('transitionend', tsEnd);
+    // We don't reset the arrows because it need to be draw while image
+    // got loaded, which is a asynchronous process.
+  },
 
-        } else {
-          h.style.transition = '';
+  /**
+   * Finalize the canvas: restore its default state.
+   *
+   * @this {LockScreen}
+   */
+  _finalizeCanvas: function ls_finalizeCanvas() {
+    this._canvasDetails.slidingColorful = false;
+    this._canvasDetails.slidingColorGradientEnd = false,
+    //this.canvas.getContext('2d').restore();
+    this._clearCanvas();
+  },
+
+  /**
+   * Records how long the user's finger dragged.
+   *
+   * @param {event} |evt| The touch event.
+   * @this {LockScreen}
+   */
+  _onSliding: function ls_onSliding(evt) {
+    var tx = evt.touches[0].pageX;
+    var mtx = this._mapCoord(tx, 0)[0];
+    this._clearCanvas();
+
+    var expandSentinelR = this._canvasDetails.center.x +
+      this._canvasDetails.handle.autoExpand.sentinelWidth;
+
+    var expandSentinelL = this._canvasDetails.center.x -
+      this._canvasDetails.handle.autoExpand.sentinelWidth;
+
+    if (tx > expandSentinelR || tx < expandSentinelL) {
+      mtx = this._accelerateSlide(tx, tx < expandSentinelL);
+    } else {
+      this._canvasDetails.handle.autoExpand.accFactor =
+        this._canvasDetails.handle.autoExpand.accFactorOriginal;
+    }
+
+    // Slide must overlay on arrows.
+    this._drawArrowsTo(mtx);
+    this._drawSlideTo(mtx);
+  },
+
+  /**
+   * Accelerate the slide when the finger is near the end.
+   *
+   * @param {number} |tx|
+   * @param {boolean} |isLeft|
+   * @return {number}
+   * @this {LockScreen}
+   */
+  _accelerateSlide: function ls_accelerateSlide(tx, isLeft) {
+    var accFactor = this._canvasDetails.handle.autoExpand.accFactor;
+    var accFactorMax = this._canvasDetails.handle.autoExpand.accFactorMax;
+    var interval = this._canvasDetails.handle.autoExpand.accFactorInterval;
+    var adjustedAccFactor = isLeft ? 1 / accFactor : accFactor;
+    if (accFactor + interval < accFactorMax)
+      accFactor += interval;
+    this._canvasDetails.handle.autoExpand.accFactor = accFactor;
+    return tx * adjustedAccFactor;
+  },
+
+  _clearCanvas: function ls_clearCanvas() {
+    var canvas = this.canvas;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  },
+
+  /**
+   * Map absolution X and Y to canvas' X and Y.
+   * Note this should only be used when user want to draw something
+   * follow the user's input. If the canvans need adjust its position,
+   * the absolute coordinates should be used.
+   *
+   * @param {number} |x|
+   * @param {number} |y|
+   * @return {[number]} Array of single pair of X and Y
+   * @this {LockScreen}
+   */
+  _mapCoord: function ls_mapCoord(x, y) {
+    var cw = this.canvas.width;
+    var ch = this.canvas.height;
+
+    return [cw * x / window.innerWidth,
+            ch * y / window.innerHeight];
+  },
+
+  /**
+   * Extend the handle to one end of the slide.
+   * This would help user to be apt to to drag to one of the ends.
+   * The |tx| is necessary to detect which side should be the end.
+   *
+   * @param {number} |tx| The absolute horizontal position of the finger.
+   * @this {LockScreen}
+   */
+  _extendHandle: function ls_extendHandle(tx) {
+
+    var canvas = this.canvas;
+    var ctx = canvas.getContext('2d');
+    var center = {'x': canvas.width >> 1,
+                  'y': canvas.height >> 1};
+    // In fact, we don't care Y, so set it as 0.
+    var offset = this._mapCoord(tx, 0)[0];
+  },
+
+  /**
+   * Bounce the handle back from the |tx|.
+   *
+   * @param {number} |tx| The absolute horizontal position of the finger.
+   * @param {Function()} |cb| (Optional) Callback. Will be executed after
+   * the animation ended.
+   *
+   * @this {LockScreen}
+   */
+  _bounceBack: function ls_bounceBack(tx, cb) {
+
+    var canvas = this.canvas;
+    var ctx = canvas.getContext('2d');
+
+    // Absolute coordinate of the canvas center.
+    var duration = this._canvasDetails.handle.bounceBackTime;
+    var center = this._canvasDetails.center;
+    var nextTx = tx;
+    var tsBegin = null;
+    var mspf = 0; // ms per frame.
+    var interval = 1; // How many pixels per frame should draw.
+    // This means: draw from the circle center to one end on the circle itself.
+    var isLeft = tx - center.x < 0;
+
+    var drawIt = (function _drawIt(ts) {
+      if (null === tsBegin)
+        tsBegin = ts;
+
+      if (ts - tsBegin < duration) {
+        if (0 === mspf)
+          mspf = ts - tsBegin;  // Not an accurate way to determine mspf.
+        interval = Math.abs(center.x - tx) / (duration / mspf);
+        nextTx = isLeft ? nextTx + interval : nextTx - interval;
+        if ((isLeft && nextTx < center.x) || (!isLeft && nextTx >= center.x)) {
+          this._clearCanvas();
+          this._drawArrowsTo(nextTx);
+          this._drawSlideTo(nextTx);
         }
+        requestAnimationFrame(drawIt);
+      } else {
+        // Compensation from the current position to the center of the slide.
+        this._clearCanvas();
+        this._drawArrowsTo(center.x);
+        this._drawSlideTo(center.x);
+        if (cb)
+          cb();
+      }
+    }).bind(this);
+    requestAnimationFrame(drawIt);
+  },
 
-        // After setup, bounce it back.
-        h.style.transform = '';
-    });
+  /**
+   * Draw the handle with its initial state (a transparent circle).
+   *
+   * @this {LockScreen}
+   */
+  _resetHandle: function ls_resetHandle() {
+    this._canvasDetails.slidingColorful = false;
+    this._canvasDetails.slidingColorGradientEnd = false;
+    var canvas = this.canvas;
+    var centerx = this._canvasDetails.center.x;
+    this._drawSlideTo(centerx);
+  },
+
+  /**
+   * Drag the slide to the specific position.
+   * Need this because we need to show the arrows.
+   *
+   * @this {LockScreen}
+   */
+  _dragSlideTo: function ls_dragSlideTo(tx) {
+    var center = this._canvasDetails.center;
+    var offset = tx - center.x;
+    var isLeft = offset < 0;
+
+    if (this._canvasDetails.handle.maxWidth < Math.abs(offset)) {
+      this._slideReachEnd = true;
+      return;
+    }
+    this._slideReachEnd = false;
+
+    if (isLeft) {
+      this.slideLeft.style.transform = 'translateX(' + offset + 'px)';
+    } else {
+      this.slideRight.style.transform = 'translateX(' + offset + 'px)';
+    }
+  },
+  /**
+   * Draw the two arrows on the slide.
+   * TODO
+   *
+   * @param {number} |tx| The absolute horizontal position of the target.
+   * @this {LockScreen}
+   */
+  _drawArrowsTo: function ls_drawArrows(tx) {
+    var canvas = this.canvas;
+    var ctx = canvas.getContext('2d');
+    var radius = this._canvasDetails.handle.radius;
+    var center = this._canvasDetails.center;
+    var offset = tx - center.x;
+    var isLeft = offset < 0;
+
+    if (this._canvasDetails.handle.maxWidth < Math.abs(offset)) {
+      this._slideReachEnd = true;
+      return;
+    }
+    this._slideReachEnd = false;
+
+    // The Y of arrows: need to put it from center to sink half of the arrow.
+    if (isLeft) {
+      ctx.drawImage(this._canvasDetails.arrows.left,
+        tx - (this._canvasDetails.arrows.left.width << 1),
+        this._canvasDetails.arrows.ldraw.y);  // XXX:<<1: OK but don't know why!
+      ctx.drawImage(this._canvasDetails.arrows.right,
+        this._canvasDetails.arrows.rdraw.x,
+        this._canvasDetails.arrows.ldraw.y);
+
+    } else {
+      ctx.drawImage(this._canvasDetails.arrows.right,
+        tx + this._canvasDetails.arrows.right.width,
+        this._canvasDetails.arrows.rdraw.y);
+      ctx.drawImage(this._canvasDetails.arrows.left,
+        this._canvasDetails.arrows.ldraw.x,
+        this._canvasDetails.arrows.ldraw.y);
+    }
+  },
+
+  /**
+   * Restore the arrow to the original position.
+   * TODO
+   *
+   * @this {LockScreen}
+   */
+  _resetArrows: function ls_restoreArrows() {
+    var canvas = this.canvas;
+    var ctx = canvas.getContext('2d');
+    var center = this._canvasDetails.center;
+    ctx.drawImage(this._canvasDetails.arrows.left,
+        this._canvasDetails.arrows.ldraw.x,
+        this._canvasDetails.arrows.ldraw.y);
+    ctx.drawImage(this._canvasDetails.arrows.right,
+        this._canvasDetails.arrows.rdraw.x,
+        this._canvasDetails.arrows.rdraw.y);
+  },
+
+  /**
+   * Extend the slide from its center to the specific position.
+   *
+   * @param {number} |tx| The absolute horizontal position of the target.
+   * @this {LockScreen}
+   */
+  _drawSlideTo: function ls_drawSlideTo(tx) {
+
+    var canvas = this.canvas;
+    var ctx = canvas.getContext('2d');
+    var maxWidth = this._canvasDetails.handle.maxWidth;
+
+    var offset = tx;
+    var radius = this._canvasDetails.handle.radius;
+    var center = this._canvasDetails.center;
+
+    // The width and height of the rectangle.
+    var rw = offset - center.x;
+    var urw = Math.abs(rw);
+
+    if (this._canvasDetails.handle.maxWidth < urw) {
+      offset = rw > 0 ? center.x + maxWidth : center.x - maxWidth;
+    }
+
+    // 1.5 ~ 0.5 is the right part of a circle.
+    var startAngle = 1.5 * Math.PI;
+    var endAngle = 0.5 * Math.PI;
+    var fillAlpha = 0.0;
+    var strokeStyle = 'white';
+    const GRADIENT_LENGTH = 50;
+
+    // If user move over 15px, fill the slide.
+    if (urw > 15 && true !== this._canvasDetails.slidingColorful) {
+      // The color should be gradient in this length, from the origin.
+      // It would decide how long the color turning to the touched color.
+
+      fillAlpha = (urw - 15) / GRADIENT_LENGTH;
+      if (fillAlpha > 1.0) {
+        fillAlpha = 1.0;
+        this._canvasDetails.slidingColorGradientEnd = true;
+      }
+
+      // The border must disappear during the sliding,
+      // so it's alpha would decrease to zero.
+      var borderAlpha = 1.0 - fillAlpha;
+
+      // From white to covered blue.
+      strokeStyle = 'rgba(' + this._canvasDetails.handle.touchedColorStop +
+        ',' + borderAlpha + ')';
+
+      // It's colorful now.
+      this._canvasDetails.slidingColorful = true;
+    } else {
+
+      // Has pass the stage of gradient color.
+      if (true === this._canvasDetails.slidingColorGradientEnd) {
+        fillAlpha = 1.0;
+        var color = this._canvasDetails.handle.touchedColor;
+      } else if (0 === urw) {  // Draw as the initial circle.
+        fillAlpha = 0.0;
+        var color = '255,255,255';
+      } else {
+        fillAlpha = (urw - 15) / GRADIENT_LENGTH;
+        if (fillAlpha > 1.0) {
+          fillAlpha = 1.0;
+          this._canvasDetails.slidingColorGradientEnd = true;
+        }
+        var color = this._canvasDetails.handle.touchedColorStop;
+      }
+      var borderAlpha = 1.0 - fillAlpha;
+      strokeStyle = 'rgba(' + color + ',' + borderAlpha + ')';
+    }
+    ctx.fillStyle = 'rgba(' + this._canvasDetails.handle.touchedColor +
+      ',' + fillAlpha + ')';
+    ctx.lineWidth = this._canvasDetails.handle.lineWidth;
+    ctx.strokeStyle = strokeStyle;
+
+    var counterclock = false;
+    if (offset - center.x < 0) {
+      counterclock = true;
+    }
+
+    // Start to draw it.
+    // Can't use functions like rect or these individual parts
+    // would show its borders.
+    ctx.beginPath();
+
+    ctx.arc(center.x, center.y,
+        radius, endAngle, startAngle, counterclock);
+    ctx.lineTo(center.x, center.y - radius);
+    ctx.lineTo(center.x + (offset - center.x), center.y - radius);
+    ctx.arc(offset, center.y, radius, startAngle, endAngle, counterclock);
+    ctx.lineTo(center.x, center.y + radius);
+
+    // Note: When setting both the fill and stroke for a shape,
+    // make sure that you use fill() before stroke().
+    // Otherwise, the fill will overlap half of the stroke.
+    ctx.fill();
+    ctx.stroke();
+    ctx.closePath();
+  },
+
+  /**
+   * When user released the finger, bounce it back.
+   *
+   * @param {event} |evt| The touch event.
+   * @this {LockScreen}
+   */
+  _onSlideEnd: function ls_onSlideEnd(evt) {
+    var isLeft = this._touch.pageX - this._canvasDetails.center.x < 0;
+    var bounceEnd = (function _bounceEnd() {
+      this._clearCanvas();
+      this._resetArrows();
+      this._resetHandle();
+    }).bind(this);
+
+    if (false === this._slideReachEnd) {
+      this._bounceBack(this._touch.pageX, bounceEnd);
+    } else {
+      this.handleIconClick(isLeft ?
+        this.leftIcon : this.rightIcon);
+
+      // Restore it only after screen changed.
+      var appLaunchDelay = 400;
+      setTimeout(bounceEnd, appLaunchDelay);
+    }
+
+    this._darkIcons();
+    this._restoreSlide();
+  },
+
+  /**
+   * Restore the left and right slide.
+   *
+   * @param {boolean} |instant| (Optional) true if restore it immediately
+   * @this {LockScreen}
+   */
+  _restoreSlide: function(instant) {
+    var bounceBackSec = '0.0s';
+    if (!instant) {
+      // The magic number: it's subtle to keep the arrows sync with the slide.
+      bounceBackSec = (0.07 + this._canvasDetails.handle.bounceBackTime / 1000)
+        .toString() + 's';
+    }
+
+    var tsEndLeft = (function(evt) {
+      this.slideLeft.removeEventListener('transition', tsEndLeft);
+
+      // Clear them all because we don't want to calc if the affecting slide is
+      // left or right here.
+      this.slideLeft.style.transition = '';
+      this.slideRight.style.transition = '';
+    }).bind(this);
+
+    var tsEndRight = (function(evt) {
+      this.slideRight.removeEventListener('transition', tsEndRight);
+      this.slideRight.style.transition = '';
+      this.slideLeft.style.transition = '';
+    }).bind(this);
+
+    this.slideLeft.style.transition = 'transform ease ' +
+      bounceBackSec + ' 0s';
+    this.slideRight.style.transition = 'transform ease ' +
+      bounceBackSec + ' 0s';
+
+    this.slideLeft.addEventListener('transitionend', tsEndLeft);
+    this.slideRight.addEventListener('transitionend', tsEndRight);
+
+    // Run it.
+    this.slideLeft.style.transform = '';
+    this.slideRight.style.transform = '';
 
     this._sliding = false;
     this._slideReachEnd = false;
   },
 
-  handleSlideEnd: function() {
-    // Bounce back to the center.
-    if (false === this._slideReachEnd) {
-      this.restoreSlide(true);
-    } else {
-      this.handleIconClick('left' === this._slidingToward ?
-        this.leftIcon : this.rightIcon);
-    }
-    this.darkIcons();
-    this._slideCount = 0;
-    this._sliding = false;
+  /**
+   * Return the mapping pixels according to the device pixel ratio.
+   * This may need to be put int the shared/js.
+   *
+   * @param {number} |px|
+   * @return {number}
+   * @this {LockScreen}
+   */
+  _dpx: function ls_dpx(px) {
+    return px * window.devicePixelRatio;
   },
 
   handleIconClick: function ls_handleIconClick(target) {
@@ -1211,7 +1645,7 @@ var LockScreen = {
         'area-handle', 'area-slide', 'media-container', 'passcode-code',
         'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
-        'accessibility-unlock', 'panel-emergency-call'];
+        'accessibility-unlock', 'panel-emergency-call', 'canvas'];
 
     var toCamelCase = function toCamelCase(str) {
       return str.replace(/\-(.)/g, function replacer(str, p1) {
@@ -1257,97 +1691,11 @@ var LockScreen = {
     });
   },
 
-  stopElasticTimer: function ls_stopElasticTimer() {
-    // Stop the timer if its running.
-    if (this.elasticIntervalId != null) {
-      clearInterval(this.elasticIntervalId);
-      this.elasticIntervalId = null;
-    }
-  },
-
-  startElasticTimer: function ls_startElasticTimer() {
-    this.elasticIntervalId =
-      setInterval(this.playElastic.bind(this), this.ELASTIC_INTERVAL);
-  },
-
-  setElasticEnabled: function ls_setElasticEnabled(value) {
-    // Remember the state we want to be in.
-    this.elasticEnabled = value;
-    // If the timer is already running, stop it.
-    this.stopElasticTimer();
-    // If the document is visible, go ahead and start the timer now.
-    if (value && !document.hidden) {
-      this.startElasticTimer();
-    }
-  },
-
-  playElastic: function ls_playElastic() {
-    if (this._touch && this._touch.touched)
-      return;
-
-    var overlay = this.overlay;
-    var container = this.iconContainer;
-
-    container.addEventListener('animationend', function animationend(e) {
-      container.removeEventListener(e.type, animationend);
-    });
-  },
-
   // Used by CellBroadcastSystem to notify the lockscreen of
   // any incoming CB messages that need to be displayed.
   setCellbroadcastLabel: function ls_setCellbroadcastLabel(label) {
     this.cellbroadcastLabel = label;
     this.updateConnState();
-  },
-
-  /**
-   * Pull the handle of the slide to the position corresponding
-   * to the offset.
-   *
-   * @param {Number} offset: pixels; how long the handle should move.
-   * @param {DOM Element} subject: the handle.
-   * @param {'right'|'left'} dir
-   * @param {Boolean} easing: if the pulling must go with animation.
-   * @this
-   */
-  _slideTo: function ls__slideTo(offset, dir, easing) {
-    var easingSec = 0.5;
-
-    // XXX: To solve the odd glitches among these 3 elements.
-    // Make the center element scale more.
-    var glitchS = 1.8;
-
-    var subject = ('right' === dir) ? this.slideRight : this.slideLeft;
-    var cntsubject = ('right' === dir) ? this.slideLeft : this.slideRight;
-
-    subject.style.transition = (!easing) ? '' :
-      'ease ' + easingSec + 's';
-    cntsubject.style.transition = (!easing) ? '' :
-      'ease ' + easingSec + 's';
-    this.slideCenter.style.transition = (!easing) ? '' :
-      'ease ' + easingSec + 's';
-
-    // Need to set this to let transition event triggered while
-    // we bounce the handles back.
-    // @see `restoreSlide`
-    cntsubject.style.transform = 'translateX(0px) ';
-
-    // 'translateX' will move it according to the left border.
-    if ('right' === dir) {
-      subject.style.transform = 'translateX(' + offset + 'px) ';
-    } else {
-      subject.style.transform = 'translateX(-' + offset + 'px) ';
-    }
-    // Move center as long as half of the offset, then scale it.
-    var cMove = offset / 2;
-    var cScale = offset + glitchS;
-
-    if ('right' === dir) {
-      this.slideCenter.style.transform = 'translateX(' + cMove + 'px) ';
-    } else {
-      this.slideCenter.style.transform = 'translateX(-' + cMove + 'px) ';
-    }
-    this.slideCenter.style.transform += 'scaleX(' + cScale + ') ';
   }
 };
 
