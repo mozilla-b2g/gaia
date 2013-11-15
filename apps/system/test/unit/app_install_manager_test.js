@@ -1341,6 +1341,7 @@ suite('system/AppInstallManager >', function() {
       mockAppTwo = new MockApp({
         manifest: {
           name: mockAppTwoName,
+          type: 'privileged',
           role: 'input',
           developer: {
             name: 'Fake dev',
@@ -1359,6 +1360,9 @@ suite('system/AppInstallManager >', function() {
               description: 'number layout',
               types: ['number']
             }
+          },
+          permissions: {
+            input: {}
           }
         }
       });
@@ -1429,5 +1433,64 @@ suite('system/AppInstallManager >', function() {
                       imeLayoutDialog.classList.contains('visible'));
     });
 
+    test('should not show list if no permission', function() {
+      // keyboard app without permissions
+      var badKeyboardApp = new MockApp({
+        manifest: {
+          name: mockAppName,
+          role: 'input',
+          type: 'privileged',
+          developer: {
+            name: 'Fake dev',
+            url: 'http://fakesoftware.com'
+          },
+          inputs: {
+            'english': {
+              launch_path: '/index.html#en',
+              name: 'english',
+              description: 'English layout',
+              types: ['text', 'url', 'number']
+            }
+          },
+          permissions: {
+          }
+        }
+      });
+      AppInstallManager.handleInstallSuccess(badKeyboardApp);
+      AppInstallManager.setupConfirmButton.click();
+      assert.equal(0, AppInstallManager.setupQueue.length);
+      assert.isFalse(AppInstallManager.
+                      imeLayoutDialog.classList.contains('visible'));
+    });
+
+    test('should not show list if not privileged app', function() {
+      // keyboard app without permissions
+      var badKeyboardApp = new MockApp({
+        manifest: {
+          name: mockAppName,
+          role: 'input',
+          developer: {
+            name: 'Fake dev',
+            url: 'http://fakesoftware.com'
+          },
+          inputs: {
+            'english': {
+              launch_path: '/index.html#en',
+              name: 'english',
+              description: 'English layout',
+              types: ['text', 'url', 'number']
+            }
+          },
+          permissions: {
+            input: {}
+          }
+        }
+      });
+      AppInstallManager.handleInstallSuccess(badKeyboardApp);
+      AppInstallManager.setupConfirmButton.click();
+      assert.equal(0, AppInstallManager.setupQueue.length);
+      assert.isFalse(AppInstallManager.
+                      imeLayoutDialog.classList.contains('visible'));
+    });
   });
 });
