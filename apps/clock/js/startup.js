@@ -18,21 +18,10 @@ function initialize() {
   // all three of these should disappear as we refactor
   ClockView.init();
   AlarmList.init();
-  ActiveAlarm.init();
+  ActiveAlarm.singleton().init();
 }
 
-var needsMocks = !navigator.mozAlarms;
-if (needsMocks) {
-  testReq([
-      '../test/unit/mocks/mock_moz_alarm.js'
-    ], function(MockMozAlarms) {
-    navigator.mozAlarms = new MockMozAlarms.MockMozAlarms(function() {});
-    mozL10n.ready(initialize);
-  });
-} else {
-  mozL10n.ready(initialize);
-}
-
+mozL10n.ready(initialize);
 });
 
 require(['require_config'], function() {
