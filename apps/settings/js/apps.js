@@ -8,6 +8,11 @@ var ApplicationsList = {
   _displayedApp: null,
 
   _permissionsTable: null,
+  _permissionTextMap: {
+    'prompt': 'ask',
+    'deny': 'deny',
+    'allow': 'allow'
+  },
 
   container: document.querySelector('#appPermissions > div > ul'),
   detailTitle: document.querySelector('#appPermissions-details > header > h1'),
@@ -288,13 +293,14 @@ var ApplicationsList = {
     content.textContent = _(contentL10nId);
     content.dataset.l10nId = contentL10nId;
 
+    var textL10nId = this._permissionTextMap[value] || '';
     var fakeSelect = document.createElement('p');
     fakeSelect.classList.add('fake-select');
 
     var fakeSelectButton = document.createElement('button');
     fakeSelectButton.classList.add('icon');
     fakeSelectButton.classList.add('icon-dialog');
-    fakeSelectButton.textContent = value;
+    navigator.mozL10n.localize(fakeSelectButton, textL10nId);
 
     var select = document.createElement('select');
     select.dataset.perm = perm;
@@ -314,8 +320,7 @@ var ApplicationsList = {
     allowOpt.text = _('allow');
     select.add(allowOpt);
 
-    select.value = select.options[select.selectedIndex].textContent;
-    select.setAttribute('value', value);
+    select.value = value;
     select.onchange = this.selectValueChanged.bind(this);
 
     item.onclick = function focusSelect() {
@@ -334,8 +339,9 @@ var ApplicationsList = {
       return;
 
     var select = evt.target;
+    var textL10nId = this._permissionTextMap[select.value] || '';
     select.setAttribute('value', select.value);
-    select.previousSibling.textContent = select.value;
+    navigator.mozL10n.localize(select.previousSibling, textL10nId);
     this._changePermission(this._displayedApp,
                            select.dataset.perm, select.value);
   },
