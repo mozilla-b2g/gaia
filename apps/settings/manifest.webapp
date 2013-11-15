@@ -69,5 +69,5 @@
     "90": "/style/icons/Settings_90.png",
     "120": "/style/icons/Settings_120.png"
   },
-  "orientation": "default"
+  "orientation": "portrait-primary"
 }

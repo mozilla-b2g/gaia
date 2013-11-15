@@ -41,7 +41,7 @@
   "icons": {
     "30": "/style/icons/HomeScreen.png"
   },
-  "orientation": "default",
+  "orientation": "portrait-primary",
   "activities": {
     "save-bookmark": {
       "filters": {

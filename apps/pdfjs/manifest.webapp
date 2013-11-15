@@ -18,7 +18,7 @@
     "48": "/icon.png",
     "64": "/icon64.png"
   },
-  "orientation": "default",
+  "orientation": "portrait-primary",
   "activities": {
     "view" : {
       "filters": {

@@ -18,7 +18,7 @@
   "icons": {
     "30": "/style/icons/wappush.png"
   },
-  "orientation": "default",
+  "orientation": "portrait-primary",
   "messages": [
      { "notification": "/index.html" },
      { "wappush-received": "/index.html" }
