@@ -41,7 +41,7 @@ class KeyboardAddMoreKeyboards(Base):
     _section_locator = (By.ID, 'keyboard-selection-addMore')
     _select_language_locator = (
         By.XPATH,
-        "//div[@id='keyboardAppContainer']//li[label[span[text()='%s']]]"
+        "//div[@id='keyboardAppContainer']//li[a[text()='%s']]"
     )
 
     def __init__(self, marionette):
