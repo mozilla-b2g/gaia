@@ -2,10 +2,16 @@ var ContactsSIMExport = function ContactsSIMExport() {
 
   var contacts;
   var progressStep;
-  var icc = navigator.mozIccManager || (navigator.mozMobileConnection &&
-            navigator.mozMobileConnection.icc);
+  var icc = navigator.mozIccManager;
   var exported = [];
   var notExported = [];
+
+  // See bug 932134
+  // To keep all tests passed while introducing multi-sim APIs, in bug 928325
+  // we do the following check. Remove it after the APIs land.
+  if (icc && icc.iccIds && icc.iccIds[0]) {
+    icc = icc.getIccById(icc.iccIds[0]);
+  }
 
   var setContactsToExport = function setContactsToExport(cts) {
     contacts = cts;

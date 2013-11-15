@@ -71,15 +71,15 @@ function SimContactsImporter() {
       document.dispatchEvent(new CustomEvent('matchLoaded'));
     });
 
-    // See bug 870237
-    // To have the backward compatibility for bug 859220.
-    // If we could not get iccManager from navigator,
-    // try to get it from mozMobileConnection.
-    // 'window.navigator.mozMobileConnection.icc' can be dropped
-    // after bug 859220 is landed.
-    var icc = navigator.mozIccManager || (navigator.mozMobileConnection &&
-                                            navigator.mozMobileConnection.icc);
+    var icc = navigator.mozIccManager;
     var request;
+
+    // See bug 932134
+    // To keep all tests passed while introducing multi-sim APIs, in bug 928325
+    // we do the following check. Remove it after the APIs land.
+    if (icc && icc.iccIds && icc.iccIds[0]) {
+      icc = icc.getIccById(icc.iccIds[0]);
+    }
 
     // request contacts with readContacts() -- valid types are:
     //   'adn': Abbreviated Dialing Numbers

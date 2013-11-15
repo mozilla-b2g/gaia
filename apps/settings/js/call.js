@@ -414,7 +414,7 @@ var Calls = (function(window, document, undefined) {
 
   function initCallForwarding() {
     displayInfoForAll(_('callSettingsQuery'));
-    if (!settings || !mobileConnection || !IccHelper.enabled) {
+    if (!settings || !mobileConnection || !IccHelper) {
       displayInfoForAll(_('callSettingsQueryError'));
       return;
     }
@@ -495,7 +495,7 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallerId() {
-    if (!settings || !mobileConnection || !IccHelper.enabled) {
+    if (!settings || !mobileConnection || !IccHelper) {
       return;
     }
 
@@ -576,7 +576,7 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallWaiting() {
-    if (!settings || !mobileConnection || !IccHelper.enabled) {
+    if (!settings || !mobileConnection || !IccHelper) {
       return;
     }
 
@@ -741,7 +741,7 @@ var Calls = (function(window, document, undefined) {
   }
 
   function updateFdnStatus() {
-    if (!IccHelper.enabled) {
+    if (!IccHelper) {
       return;
     }
 
