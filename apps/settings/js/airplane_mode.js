@@ -140,7 +140,6 @@ var AirplaneMode = {
       });
     }
     settings.addObserver('nfc.enabled', function(e) {
-      console.log('XXXXXXXXXXXXXX nfc.enabled');
       nfcEnabled = e.settingValue;
       self.notify('nfc.enabled');
     });

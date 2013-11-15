@@ -41,8 +41,7 @@
     }
   },
   "messages": ["bluetooth-pairing-request",
-               "bluetooth-cancel",
-               "nfc-powerlevel-change"],
+               "bluetooth-cancel"],
   "locales": {
     "ar": {
       "name": "الضبط",
