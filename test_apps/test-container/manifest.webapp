@@ -33,5 +33,8 @@
       "description": "Test framework container"
     }
   },
-  "default_locale": "en-US"
+  "default_locale": "en-US",
+  "messages": [
+     { "dummy-system-message": "/index.html" }
+  ]
 }
