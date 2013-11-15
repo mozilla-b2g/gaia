@@ -63,8 +63,6 @@ var NotificationScreen = {
     this.toasterTitle = document.getElementById('toaster-title');
     this.toasterDetail = document.getElementById('toaster-detail');
     this.clearAllButton = document.getElementById('notification-clear');
-    this.noNotifications = document.getElementById('notification-none');
-    this.someNotifications = document.getElementById('notification-some');
 
     this._toasterGD = new GestureDetector(this.toaster);
     ['tap', 'mousedown', 'swipe'].forEach(function(evt) {
@@ -399,8 +397,6 @@ var NotificationScreen = {
     }
 
     // must be at least one notification now
-    this.noNotifications.hidden = true;
-    this.someNotifications.hidden = false;
     this.clearAllButton.disabled = false;
 
     return notificationNode;
@@ -434,8 +430,6 @@ var NotificationScreen = {
 
     if (!this.container.firstElementChild) {
       // no notifications left
-      this.noNotifications.hidden = false;
-      this.someNotifications.hidden = true;
       this.clearAllButton.disabled = true;
     }
   },
