@@ -1242,3 +1242,16 @@ html[dir="rtl"] [data-type="list"].pack-value-selector li label:not([for]) input
   transform: translateX(700%);
 }
 
+.fxa-logo {
+  background-image: url('images/fxa_logo.png');
+  background-size: 100% auto;
+  margin: 0 auto;
+  width: 28rem;
+  height: 19.4rem;
+}
+
+#firefox_accounts {
+  padding: 1rem 1rem 0;
+  font-size: 1.5rem;
+}
+

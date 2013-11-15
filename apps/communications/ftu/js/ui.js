@@ -60,6 +60,8 @@ var UIManager = {
     'no-sim',
     'sd-import-button',
     'no-memorycard',
+    // Fxa Intro
+    'fxa-create-account',
     // Wifi
     'networks',
     'wifi-refresh-button',
@@ -150,6 +152,8 @@ var UIManager = {
     this.initTZ();
 
     this.geolocationSwitch.addEventListener('click', this);
+
+    this.fxaCreateAccount.addEventListener('click', this);
 
     // Prevent form submit in case something tries to send it
     this.timeForm.addEventListener('submit', function(event) {
@@ -354,6 +358,10 @@ var UIManager = {
       case 'share-performance':
         this.updateSetting(event.target.name, event.target.checked);
         break;
+      // Fxa Intro
+      case 'fxa-create-account':
+        this.createFirefoxAccount();
+        break;
       default:
         // wifi selection
         if (event.target.parentNode.id === 'networks-list') {
@@ -370,6 +378,16 @@ var UIManager = {
     }
     var cset = {}; cset[name] = value;
     settings.createLock().set(cset);
+  },
+
+  createFirefoxAccount: function ui_createFirefoxAccount() {
+    var showResponse = function ui_showResponse(response) {
+      Navigation.forward();
+    };
+    var showError = function ui_showError(response) {
+      console.error('Create FxA Error: ' + JSON.stringify(response));
+    };
+    FxAccountsIACHelper.openFlow(showResponse, showError);
   },
 
   displayOfflineDialog: function ui_displayOfflineDialog(href, title) {

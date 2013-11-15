@@ -210,8 +210,18 @@ suite('navigation >', function() {
       observer.observe(UIManager.mainTitle, observerConfig);
     });
 
-    test('welcome screen >', function(done) {
+    test('firefox accounts screen >', function(done) {
       setStepState(7);
+      var observer = new MutationObserver(function() {
+        observer.disconnect();
+        assert.equal(UIManager.mainTitle.innerHTML, _('firefox-accounts'));
+        done();
+      });
+      observer.observe(UIManager.mainTitle, observerConfig);
+    });
+
+    test('welcome screen >', function(done) {
+      setStepState(8);
       var observer = new MutationObserver(function() {
         observer.disconnect();
         assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
@@ -221,7 +231,7 @@ suite('navigation >', function() {
     });
 
     test('privacy screen >', function(done) {
-      setStepState(8);
+      setStepState(9);
       var observer = new MutationObserver(function() {
         observer.disconnect();
         assert.equal(UIManager.mainTitle.innerHTML, _('aboutBrowser'));
