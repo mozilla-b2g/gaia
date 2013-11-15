@@ -32,7 +32,7 @@ suite('ListView', function() {
 
   suite('ListView(<ul>, ObservableArray, function)', function() {
     setup(function() {
-      this.ul = document.createElement('ul');
+      this.container = document.createElement('ul');
       this.template = (function(item, recycle) {
         if (recycle && this.template.recycle) {
           return recycle;
@@ -40,7 +40,9 @@ suite('ListView', function() {
         return document.createElement('li');
       }).bind(this);
       this.sinon.spy(this, 'template');
-      this.listView = ListView(this.ul, this.observableArray, this.template);
+      this.listView = ListView(
+        this.container, this.observableArray, this.template
+      );
     });
 
     test('Listens to ObservableArray', function() {
@@ -73,7 +75,7 @@ suite('ListView', function() {
           });
           test('template returned element is in correct position', function() {
             var li = this.template.withArgs(this.item).returnValues[0];
-            assert.equal(this.ul.children[count], li);
+            assert.equal(this.container.children[count], li);
           });
         });
       });
@@ -82,7 +84,8 @@ suite('ListView', function() {
         setup(function() {
           this.template.reset();
           this.item = { replacement: true };
-          this.originalElements = Array.prototype.slice.call(this.ul.children);
+          this.originalElements =
+            Array.prototype.slice.call(this.container.children);
           this.observableArray.set(1, this.item);
         });
 
@@ -98,12 +101,12 @@ suite('ListView', function() {
 
         test('replaced element', function() {
           var li = this.template.withArgs(this.item).returnValues[0];
-          assert.equal(this.ul.children[1], li);
+          assert.equal(this.container.children[1], li);
         });
 
         test('leaves other elements alone', function() {
-          assert.equal(this.ul.children[0], this.originalElements[0]);
-          assert.equal(this.ul.children[2], this.originalElements[2]);
+          assert.equal(this.container.children[0], this.originalElements[0]);
+          assert.equal(this.container.children[2], this.originalElements[2]);
         });
       });
 
@@ -112,7 +115,8 @@ suite('ListView', function() {
           this.template.recycle = true;
           this.template.reset();
           this.item = { replacement: true };
-          this.originalElements = Array.prototype.slice.call(this.ul.children);
+          this.originalElements =
+            Array.prototype.slice.call(this.container.children);
           this.observableArray.set(1, this.item);
         });
 
@@ -129,19 +133,20 @@ suite('ListView', function() {
         test('same element still in place', function() {
           var li = this.template.withArgs(this.item).returnValues[0];
           assert.equal(li, this.originalElements[1], 'returned original');
-          assert.equal(this.ul.children[1], this.originalElements[1]);
+          assert.equal(this.container.children[1], this.originalElements[1]);
         });
 
         test('leaves other elements alone', function() {
-          assert.equal(this.ul.children[0], this.originalElements[0]);
-          assert.equal(this.ul.children[2], this.originalElements[2]);
+          assert.equal(this.container.children[0], this.originalElements[0]);
+          assert.equal(this.container.children[2], this.originalElements[2]);
         });
       });
 
       suite('Reset With Shorter Array', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = Array.prototype.slice.call(this.ul.children);
+          this.originalElements =
+            Array.prototype.slice.call(this.container.children);
           this.originalArray = this.array;
           this.array = [{ reset: 1 }, { reset: 2 }];
           this.observableArray.reset(this.array);
@@ -161,13 +166,13 @@ suite('ListView', function() {
             });
             test('replaced element', function() {
               var li = this.template.withArgs(this.item).returnValues[0];
-              assert.equal(this.ul.children[index], li);
+              assert.equal(this.container.children[index], li);
             });
           });
         });
 
         test('removed extra elements', function() {
-          assert.equal(this.ul.children.length, 2);
+          assert.equal(this.container.children.length, 2);
           assert.equal(this.originalElements[2].parentNode, null);
         });
       });
@@ -175,7 +180,8 @@ suite('ListView', function() {
       suite('Reset With Longer Array', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = Array.prototype.slice.call(this.ul.children);
+          this.originalElements =
+            Array.prototype.slice.call(this.container.children);
           this.originalArray = this.array;
           this.array = [{ reset: 1 }, { reset: 2 }, { reset: 3 }, { reset: 4 }];
           this.observableArray.reset(this.array);
@@ -195,7 +201,7 @@ suite('ListView', function() {
             });
             test('replaced element', function() {
               var li = this.template.withArgs(this.item).returnValues[0];
-              assert.equal(this.ul.children[index], li);
+              assert.equal(this.container.children[index], li);
             });
           });
         });
@@ -213,9 +219,9 @@ suite('ListView', function() {
           });
 
           test('added extra element', function() {
-            assert.equal(this.ul.children.length, 4);
+            assert.equal(this.container.children.length, 4);
             var li = this.template.withArgs(this.item).returnValues[0];
-            assert.equal(this.ul.children[3], li);
+            assert.equal(this.container.children[3], li);
           });
         });
       });
@@ -223,7 +229,8 @@ suite('ListView', function() {
       suite('reset with .set([{},{}])', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = Array.prototype.slice.call(this.ul.children);
+          this.originalElements =
+            Array.prototype.slice.call(this.container.children);
           this.originalArray = this.array;
           this.array = [{ reset: 1 }, { reset: 2 }];
           this.listView.set(this.array);
@@ -253,13 +260,13 @@ suite('ListView', function() {
             });
             test('replaced element', function() {
               var li = this.template.withArgs(this.item).returnValues[0];
-              assert.equal(this.ul.children[index], li);
+              assert.equal(this.container.children[index], li);
             });
           });
         });
 
         test('removed extra elements', function() {
-          assert.equal(this.ul.children.length, 2);
+          assert.equal(this.container.children.length, 2);
           assert.equal(this.originalElements[2].parentNode, null);
         });
       });
@@ -267,7 +274,8 @@ suite('ListView', function() {
       suite('.enabled = false', function() {
         setup(function() {
           this.template.reset();
-          this.originalElements = Array.prototype.slice.call(this.ul.children);
+          this.originalElements =
+            Array.prototype.slice.call(this.container.children);
           this.listView.enabled = false;
         });
         // test a bunch of things that modify the array
@@ -290,7 +298,7 @@ suite('ListView', function() {
               assert.equal(this.template.called, 0);
             });
             test('does not change elements', function() {
-              assert.deepEqual(this.ul.children, this.originalElements);
+              assert.deepEqual(this.container.children, this.originalElements);
             });
             suite('.enabled = true', function() {
               setup(function() {
@@ -307,13 +315,147 @@ suite('ListView', function() {
                 this.array.forEach(function(item, index) {
                   var template = this.template.withArgs(item);
                   assert.equal(
-                    this.ul.children[index], template.returnValues[0],
+                    this.container.children[index], template.returnValues[0],
                     'element[' + index + ']'
                   );
                 }, this);
               });
             });
           });
+        });
+      });
+    });
+  });
+
+  suite('ListView(<div>, ObservableArray, function)', function() {
+    setup(function() {
+      this.container = document.createElement('div');
+      // ensure content inside the container at creation doesn't interfere
+      this.container.appendChild(document.createElement('span'));
+      this.template = (function(item, recycle) {
+        if (recycle && this.template.recycle) {
+          return recycle;
+        }
+        return document.createElement('div');
+      }).bind(this);
+      this.sinon.spy(this, 'template');
+      this.observableArray.push({ count: 0 });
+      this.listView = ListView(
+        this.container, this.observableArray, this.template
+      );
+    });
+
+    test('Listens to ObservableArray', function() {
+      var observe = this.observableArray.observe;
+      assert.ok(observe.calledWith('insert'));
+      assert.ok(observe.calledWith('remove'));
+      assert.ok(observe.calledWith('replace'));
+      assert.ok(observe.calledWith('reset'));
+    });
+
+    test('Initial Element doesnt recycle', function() {
+      var item = this.array[0];
+      var filtered = this.template.withArgs(item);
+      // ensures that if there happens to be an element in the creation
+      // of the ListView, it is not used as a "recycled" element
+      assert.ok(filtered.callCount, 1);
+      assert.equal(filtered.args[0].length, 1);
+    });
+
+    suite('Add Multiple Elements', function() {
+      setup(function() {
+        // add 2 more items
+        for (var count = 1; count < 3; count++) {
+          this.observableArray.push({ count: count });
+        }
+      });
+
+      // use forEach instead of for to keep 'count' in a closure
+      [1, 2].forEach(function(count) {
+        suite('item ' + count, function() {
+          setup(function() {
+            this.item = this.array[count];
+          });
+          test('kept order', function() {
+            assert.equal(this.item.count, count);
+          });
+          test('called template', function() {
+            assert.ok(this.template.calledWith(this.item));
+          });
+          test('template returned element is in correct position', function() {
+            var div = this.template.withArgs(this.item).returnValues[0];
+            assert.equal(this.container.children[count], div);
+          });
+        });
+      });
+
+      suite('Replace Element', function() {
+        setup(function() {
+          this.template.reset();
+          this.item = { replacement: true };
+          this.originalElements = [].slice.call(this.container.children);
+          this.observableArray.set(1, this.item);
+        });
+
+        test('called template with recycled element', function() {
+          assert.ok(
+            this.template.calledWith(this.item, this.originalElements[1])
+          );
+        });
+
+        test('only called template method once', function() {
+          assert.equal(this.template.callCount, 1);
+        });
+
+        test('replaced element', function() {
+          var div = this.template.withArgs(this.item).returnValues[0];
+          assert.equal(this.container.children[1], div);
+        });
+
+        test('leaves other elements alone', function() {
+          assert.equal(this.container.children[0], this.originalElements[0]);
+          assert.equal(this.container.children[2], this.originalElements[2]);
+        });
+      });
+
+      suite('Remove Element', function() {
+        setup(function() {
+          this.template.reset();
+          this.originalElements = [].slice.call(this.container.children);
+          this.observableArray.pop();
+        });
+
+        test('removed last element', function() {
+          assert.equal(this.originalElements[2].parentNode, null);
+        });
+
+        test('leaves other elements alone', function() {
+          assert.equal(this.container.children[0], this.originalElements[0]);
+          assert.equal(this.container.children[1], this.originalElements[1]);
+        });
+      });
+
+      suite('Insert Element', function() {
+        setup(function() {
+          this.originalElements = [].slice.call(this.container.children);
+          this.item = {};
+          this.template.reset();
+          this.observableArray.splice(0, 0, this.item);
+        });
+
+        test('only called template method once', function() {
+          assert.equal(this.template.callCount, 1);
+        });
+
+        test('inserted element', function() {
+          var div = this.template.withArgs(this.item).returnValues[0];
+          assert.equal(this.container.children[0], div);
+        });
+
+        test('shifts other elements', function() {
+          assert.equal(this.container.children[1], this.originalElements[0]);
+          assert.equal(this.container.children[2], this.originalElements[1]);
+          assert.equal(this.container.children[3], this.originalElements[2]);
         });
       });
     });
