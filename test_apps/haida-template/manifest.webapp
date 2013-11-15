@@ -1,0 +1,19 @@
+{
+  "name": "Haida Template",
+  "description": "Tablet template",
+  "launch_path": "/index.html",
+  "developer": {
+    "name": "Michal Budzynski",
+    "url": "https://github.com/michalbe"
+  },
+  "locales": {
+    "en-US": {
+      "name": "Haida Template",
+      "description": "Tablet template"
+    }
+  },
+  "default_locale": "en-US",
+  "icons": {
+    "128": "/style/icons/Blank.jpg"
+  }
+}

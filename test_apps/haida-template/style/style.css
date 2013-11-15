@@ -1,0 +1,74 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-size: 10px;
+  overflow: hidden;
+  background-color: #FFF;
+}
+
+.content {
+  font-size: 20px;
+  padding: 10px;
+  color: #999;
+  text-align: justify;
+}
+
+#index {
+  height: 100%;
+}
+
+@media (orientation: portrait) {
+  [data-position="right"].current {
+    animation: rightToCurrentPortrait 0.4s forwards;
+  }
+  
+  /* '!important' is evil */
+  iframe {
+    width: 100% !important;
+  }
+}
+
+@media (orientation: landscape) {
+  [data-position="right"].current {
+    animation: rightToCurrent 0.4s forwards;
+  }
+  
+  .portrait-menu {
+    display: none;
+  }
+  
+}
+
+/* Those values need to be adjusted somehow */
+@media (max-width: 480px) {
+  .portrait-menu {
+    display: none;
+  }
+}
+
+[data-position="right"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transform: translateX(100%);
+  z-index: 15;
+  position: absolute;
+}
+
+@keyframes rightToCurrent {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(33%); }
+}
+
+@keyframes rightToCurrentPortrait {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+.menuShowed {
+  transform: translateX(35%) !important;
+}
