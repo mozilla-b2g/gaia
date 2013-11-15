@@ -4,14 +4,9 @@
 'use strict';
 
 function SimPinDialog(dialog) {
-  // XXX: check bug-926169
-  // this is used to keep all tests passing while introducing multi-sim APIs
-  var conn = navigator.mozMobileConnection ||
-    window.navigator.mozMobileConnections &&
-      window.navigator.mozMobileConnections[0];
-
-  if (!conn || !IccHelper)
+  if (!IccHelper) {
     return;
+  }
 
   var _localize = navigator.mozL10n.localize;
 
@@ -218,6 +213,36 @@ function SimPinDialog(dialog) {
 
 
   /**
+   * Add|Edit|Remove FDN contact
+   */
+
+  var _fdnContactInfo = {};
+
+  function updateFdnContact() {
+    var req = IccHelper.updateContact('fdn', _fdnContactInfo, pinInput.value);
+
+    req.onsuccess = function onsuccess() {
+      _onsuccess(_fdnContactInfo);
+      close();
+    };
+
+    req.onerror = function onerror(e) {
+      var wrongPin2 = /IncorrectPassword/.test(req.error.name);
+      if (wrongPin2) { // TODO: count retries (not supported by the platform)
+        _action = initUI('get_pin2');
+        showMessage('fdnErrorMsg');
+        pinInput.value = '';
+        pinInput.focus();
+      } else {
+        _oncancel(_fdnContactInfo);
+        close();
+        throw new Error('Could not edit FDN contact on SIM card', e);
+      }
+    };
+  }
+
+
+  /**
    * Dialog box handling
    */
 
@@ -225,7 +250,6 @@ function SimPinDialog(dialog) {
     switch (_action) {
       // get PIN code
       case 'get_pin':
-      case 'get_pin2':
         _onsuccess(pinInput.value);
         close();
         break;
@@ -250,6 +274,11 @@ function SimPinDialog(dialog) {
         break;
       case 'change_pin':
         changePin('pin');
+        break;
+
+      // get PIN2 code (FDN contact list)
+      case 'get_pin2':
+        updateFdnContact();
         break;
 
       // PIN2 lock (FDN)
@@ -366,7 +395,7 @@ function SimPinDialog(dialog) {
     return action;
   }
 
-  function show(action, onsuccess, oncancel) {
+  function show(action, options) {
     var dialogPanel = '#' + dialog.id;
     if (dialogPanel == Settings.currentPanel) {
       return;
@@ -378,11 +407,14 @@ function SimPinDialog(dialog) {
       return;
     }
 
-    _origin = Settings.currentPanel;
+    _origin = options.exitPanel || Settings.currentPanel;
     Settings.currentPanel = dialogPanel;
 
-    _onsuccess = (typeof onsuccess === 'function') ? onsuccess : function() {};
-    _oncancel = (typeof oncancel === 'function') ? oncancel : function() {};
+    _onsuccess = (typeof options.onsuccess === 'function') ?
+        options.onsuccess : function() {};
+    _oncancel = (typeof options.oncancel === 'function') ?
+        options.oncancel : function() {};
+    _fdnContactInfo = options.fdnContact;
 
     window.addEventListener('panelready', function inputFocus() {
       window.removeEventListener('panelready', inputFocus);
