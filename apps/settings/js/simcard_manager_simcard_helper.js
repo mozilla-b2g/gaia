@@ -4,9 +4,8 @@
 
 (function(exports) {
 
-  var _ = window.navigator.mozL10n.get;
-
   var SimCard = function(cardIndex) {
+    this._ = window.navigator.mozL10n.get;
     this.cardIndex = cardIndex;
 
     // state list
@@ -38,7 +37,7 @@
           this.enabled = true;
           this.absent = true;
           this.locked = false;
-          this.name = _('noSimCard');
+          this.name = this._('noSimCard');
           this.number = '';
           this.operator = '';
           break;
