@@ -2,7 +2,7 @@
 
 requireApp('settings/test/unit/mock_l10n.js');
 requireApp('settings/test/unit/mock_template.js');
-requireApp('settings/test/unit/mock_sm_simcard_helper.js');
+requireApp('settings/test/unit/mock_simcard_manager_simcard_helper.js');
 
 mocha.globals(['Template', 'SimCard', 'SimCardManager']);
 
