@@ -36,12 +36,13 @@
    *               serve as a placeholder for visible but not active apps.
    * 'none': nothing is currently visible.
    */
-  AppWindow.prototype._visibilityState = 'frame';
+  AppWindow.prototype._visibilityState = 'frame',
 
   /**
-   * The rotating degree of current frame.
+   * The current orientation of this app window corresponding to screen
+   * orientation.
    */
-  AppWindow.prototype.rotatingDegree = 0;
+  AppWindow.prototype.currentOrientation = 'portrait-primary',
 
   /**
    * In order to prevent flashing of unpainted frame/screenshot overlay
@@ -140,20 +141,6 @@
     screenshotOverlay.classList.add('screenshot-overlay');
     this.frame.appendChild(screenshotOverlay);
     this.screenshotOverlay = screenshotOverlay;
-
-    var fadeOverlay = document.createElement('div');
-    fadeOverlay.classList.add('fade-overlay');
-    this.frame.appendChild(fadeOverlay);
-    this.fadeOverlay = fadeOverlay;
-
-    this.iframe.addEventListener('mozbrowservisibilitychange',
-      function visibilitychange(e) {
-        var type = e.detail.visible ? 'foreground' : 'background';
-        this.publish(type);
-      }.bind(this));
-
-    // Pre determine the rotation degree.
-    this.determineRotationDegree();
   };
 
   /**
@@ -351,45 +338,55 @@
     this.frame.dispatchEvent(evt);
   };
 
-  var isDefaultPortrait =
-    (ScreenLayout.defaultOrientation === 'portrait-primary');
+  /**
+   * We will rotate the app window during app transition per current screen
+   * orientation and app's orientation. The width and height would be
+   * temporarily changed during the transition in this function.
+   *
+   * For example, when browser app is opened from
+   * homescreen and the current device orientation is
+   * 1) 'portrait-primary' :   Do nothing.
+   * 2) 'landscape-primary':   Rotate app frame by 90 degrees and set
+   *    width/height to device height/width correspondingly. Move frame position
+   *    to counter the position change due to rotation.
+   * 3) 'portrait-secondary':  Rotate app frame by 180 degrees.
+   * 4) 'landscape-secondary': Rotate app frame by 270 degrees and set
+   *    width/height to device height/width correspondingly. Move frame position
+   *    to counter the position change due to rotation.
+   */
+  AppWindow.prototype.setRotateTransition = function aw_setRotateTransition() {
+    var statusBarHeight = StatusBar.height;
+    var softkeyHeight = SoftwareButtonManager.height;
 
-  var OrientationRotationArray = [
-    'portrait-primary', 'portrait-secondary', 'portrait',
-    'landscape-primary', 'landscape-secondary', 'landscape', 'default'];
-  var OrientationRotationTable = {
-    'portrait-primary': [0, 180, 0, 90, 270, 90, isDefaultPortrait ? 0 : 90],
-    'landscape-primary': [270, 90, 270, 0, 180, 0, isDefaultPortrait ? 0 : 270]
+    var width;
+    var height;
+
+    var appOrientation = this.manifest.orientation;
+    var orientation = this.determineOrientation(appOrientation);
+
+    this.frame.classList.remove(this.currentOrientation);
+    this.currentOrientation = orientation;
+    this.frame.classList.add(orientation);
+
+    if (!AttentionScreen.isFullyVisible() && !AttentionScreen.isVisible() &&
+      this.isFullScreen()) {
+      statusBarHeight = 0;
+    }
+
+    // Rotate the frame if needed
+    if (orientation == 'landscape-primary' ||
+        orientation == 'landscape-secondary') {
+      width = window.innerHeight;
+      height = window.innerWidth - statusBarHeight - softkeyHeight;
+      this.frame.style.left = ((height - width) / 2) + 'px';
+      this.frame.style.top = ((width - height) / 2) + 'px';
+    } else {
+      width = window.innerWidth;
+      height = window.innerHeight - statusBarHeight - softkeyHeight;
+    }
+    this.frame.style.width = width + 'px';
+    this.frame.style.height = height + 'px';
   };
-
-  AppWindow.prototype.determineRotationDegree =
-    function aw__determineRotationDegree() {
-      if (!this.manifest)
-        return 0;
-
-      var appOrientation = this.manifest.orientation;
-      var orientation = this.determineOrientation(appOrientation);
-      var table = OrientationRotationTable[ScreenLayout.defaultOrientation];
-      var degree = table[OrientationRotationArray.indexOf(orientation)];
-      this.rotatingDegree = degree;
-      if (degree == 90 || degree == 270) {
-        this.frame.classList.add('perpendicular');
-      }
-      return degree;
-    };
-
-  AppWindow.prototype.determineClosingRotationDegree =
-    function aw__determineClosingRotationDegree() {
-      if (!this.manifest)
-        return 0;
-
-      // XXX: Assume homescreen's orientation is just device default.
-      var homeOrientation = ScreenLayout.defaultOrientation;
-      var currentOrientation = ScreenLayout.fetchCurrentOrientation();
-      var table = OrientationRotationTable[currentOrientation];
-      var degree = table[OrientationRotationArray.indexOf(homeOrientation)];
-      return degree;
-    };
 
   // Detect whether this is a full screen app by its manifest.
   AppWindow.prototype.isFullScreen = function aw_isFullScreen() {
@@ -403,16 +400,55 @@
       if (this._defaultOrientation) {
         return this._defaultOrientation;
       } else if (!orientation) {
-        this._defaultOrientation = 'default';
+        this._defaultOrientation = 'portrait-primary';
         return this._defaultOrientation;
       }
 
       if (!Array.isArray(orientation))
         orientation = [orientation];
 
-      this._defaultOrientation = orientation[0];
+      orientation.every(function orientationIterator(o) {
+        if (o.endsWith('-primary') || o.endsWith('-secondary')) {
+          this._defaultOrientation = o;
+          return false;
+        }
+      }, this);
+
+      // Make a guess to the orientation,
+      // if there's no '-primary' or '-secondary' suffix.
+      if (!this._defaultOrientation)
+        this._defaultOrientation = orientation[0] + '-primary';
 
       return this._defaultOrientation;
+    };
+
+  // Queueing a cleaning task for styles set for rotate transition.
+  // We need to clear rotate after orientation changes; however when
+  // orientation changes didn't raise (ex: user rotates the device during
+  // transition; or the device is always in portrait primary;
+  // we should do cleanup on appopen / appclose instead)
+  AppWindow.prototype.addClearRotateTransition =
+    function aw_clearRotateTransition() {
+      var self = this;
+      var onClearRotate = function aw_onClearRotate(evt) {
+        window.screen.removeEventListener('mozorientationchange',
+                                          onClearRotate);
+        window.removeEventListener('appopen', onClearRotate);
+        window.removeEventListener('appclose', onClearRotate);
+
+        self.frame.style.left = '';
+        self.frame.style.top = '';
+        self.frame.classList.remove(self.currentOrientation);
+
+        if (self.currentOrientation != screen.mozOrientation &&
+            evt.type != 'appclose') {
+          self.resize();
+        }
+      };
+
+      window.screen.addEventListener('mozorientationchange', onClearRotate);
+      window.addEventListener('appopen', onClearRotate);
+      window.addEventListener('appclose', onClearRotate);
     };
 
   // Set the size of the app's iframe to match the size of the screen.
@@ -444,42 +480,6 @@
     this.frame.style.height = cssHeight;
 
     this.publish('resize', {changeActivityFrame: changeActivityFrame});
-    this.resized = true;
   };
 
-  AppWindow.prototype.setOrientation =
-    function aw_setOrientation(globalOrientation) {
-      var manifest = this.manifest || this.config.manifest;
-
-      var orientation = manifest.orientation || globalOrientation;
-      if (orientation) {
-        var rv = false;
-        if ('lockOrientation' in screen) {
-          rv = screen.lockOrientation(orientation);
-        } else if ('mozLockOrientation' in screen) {
-          rv = screen.mozLockOrientation(orientation);
-        }
-        if (rv === false) {
-          console.warn('screen.mozLockOrientation() returned false for',
-                       this.origin, 'orientation', orientation);
-        }
-      } else {  // If no orientation was requested, then let it rotate
-        if ('unlockOrientation' in screen) {
-          screen.unlockOrientation();
-        } else if ('mozUnlockOrientation' in screen) {
-          screen.mozUnlockOrientation();
-        }
-      }
-    };
-
-
-  AppWindow.prototype.fadeOut = function hw__fadeout() {
-    this.frame.classList.add('fadeout');
-    this.iframe.style.display = 'none';
-  };
-
-  AppWindow.prototype.fadeIn = function hw__fadein() {
-    this.frame.classList.remove('fadeout');
-    this.iframe.style.display = 'block';
-  };
 }(this));

@@ -43,5 +43,5 @@
     "90": "/style/icons/Calendar_90.png",
     "120": "/style/icons/Calendar_120.png"
   },
-  "orientation": "default"
+  "orientation": "portrait-primary"
 }

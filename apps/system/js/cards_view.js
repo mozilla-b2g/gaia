@@ -271,14 +271,14 @@ var CardsView = (function() {
         }
 
         // Handling cards in different orientations
-        var degree = app.rotatingDegree;
+        var orientation = app.currentOrientation;
         var isLandscape = false;
-        if (degree == 90 ||
-            degree == 270) {
+        if (orientation == 'landscape-primary' ||
+            orientation == 'landscape-secondary') {
           isLandscape = true;
         }
         // Rotate screenshotView if needed
-        screenshotView.classList.add('rotate-' + degree);
+        screenshotView.classList.add(orientation);
         if (isLandscape) {
           // We must exchange width and height if it's landscape mode
           var width = card.clientHeight;

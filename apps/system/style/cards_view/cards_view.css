@@ -65,15 +65,16 @@
   position: relative;
 }
 
-#cards-view .screenshotView.rotate-90 {
+#cards-view .screenshotView.landscape,
+#cards-view .screenshotView.landscape-primary {
   transform: rotate(90deg);
 }
 
-#cards-view .screenshotView.rotate-270 {
+#cards-view .screenshotView.landscape-secondary {
   transform: rotate(270deg);
 }
 
-#cards-view .screenshotView.rotate-180 {
+#cards-view .screenshotView.portrait-secondary {
   transform: rotate(180deg);
   transform-origin: 50% 50%;
 }

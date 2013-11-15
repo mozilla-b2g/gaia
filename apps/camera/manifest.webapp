@@ -3,7 +3,7 @@
   "description": "Gaia Camera",
   "type": "certified",
   "launch_path": "/index.html",
-  "orientation": "default",
+  "orientation": "portrait-primary",
   "fullscreen": true,
   "developer": {
     "name": "The Gaia Team",

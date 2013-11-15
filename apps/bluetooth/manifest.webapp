@@ -18,7 +18,7 @@
     "60": "/style/icons/60/Bluetooth.png",
     "120": "/style/icons/Bluetooth.png"
   },
-  "orientation": "default",
+  "orientation": "portrait-primary",
   "activities": {
     "share": {
       "filters": {
