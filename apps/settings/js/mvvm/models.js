@@ -2,6 +2,33 @@
 (function(exports) {
 'use strict';
 
+function unobserve(_eventHandlers, prop, handler) {
+
+  // arguments in reverse order to support .bind(handler) for the
+  // unbind from all case
+  function removeHandler(handler, prop) {
+    var handlers = _eventHandlers[prop];
+    if (!handlers) {
+      return;
+    }
+    var index = handlers.indexOf(handler);
+    if (index >= 0) {
+      handlers.splice(index, 1);
+    }
+  }
+
+  if (typeof prop === 'function') {
+    // (handler) -- remove from every key in _eventHandlers
+    Object.keys(_eventHandlers).forEach(removeHandler.bind(null, prop));
+  } else if (handler) {
+    // (prop, handler) -- remove handler from the specific prop
+    removeHandler(handler, prop);
+  } else if (prop in _eventHandlers) {
+    // (prop) -- otherwise remove all handlers for property
+    _eventHandlers[prop] = [];
+  }
+}
+
 /*
  * An Observable is able to notify its property change. It is initialized by an
  * ordinary object.
@@ -19,7 +46,11 @@ function Observable(obj) {
       if (handlers) {
         handlers.push(handler);
       }
-    }
+    },
+    /**
+     * unobserve([prop], handler) - remove handler from observeable callbacks
+     */
+    unobserve: unobserve.bind(null, _eventHandlers)
   };
 
   var _getFunctionTemplate = function(p) {
@@ -111,6 +142,8 @@ function ObservableArray(array) {
         handlers.push(handler);
       }
     },
+
+    unobserve: unobserve.bind(null, _eventHandlers),
 
     push: function oa_push(item) {
       _array.push(item);

@@ -16,6 +16,7 @@ suite('ListView', function() {
     suiteSandbox.stub(window, 'ObservableArray', function() {
       var result = OriginalObservableArray.apply(this, arguments);
       sinon.spy(result, 'observe');
+      sinon.spy(result, 'unobserve');
       return result;
     });
 
@@ -458,6 +459,44 @@ suite('ListView', function() {
           assert.equal(this.container.children[3], this.originalElements[2]);
         });
       });
+    });
+  });
+
+  suite('destroy', function() {
+    setup(function() {
+      this.observableArray = ObservableArray([]);
+      this.container = document.createElement('div');
+      this.listView = ListView(
+        this.container, this.observableArray, function() {}
+      );
+    });
+
+    test('sanity check', function() {
+      assert.equal(this.observableArray.unobserve.callCount, 0);
+    });
+
+    test('unbinds from observeable', function() {
+      this.listView.destroy();
+      // called unobserve with a method
+      assert.equal(this.observableArray.unobserve.callCount, 1);
+      var arg = this.observableArray.unobserve.args[0][0];
+      assert.isFunction(arg);
+    });
+
+    test('creating another ListView destroys old', function() {
+      this.observableArray.observe.reset();
+      this.sinon.spy(this.listView, 'destroy');
+      // create a new one, we don't care about what happens to it.
+      ListView(
+        this.container, this.observableArray, function() {}
+      );
+
+      // destroys old view
+      assert.ok(this.listView.destroy.called);
+      // unbinds from observable
+      assert.ok(this.observableArray.unobserve.called);
+      // re-observes
+      assert.ok(this.observableArray.observe.called);
     });
   });
 });
