@@ -90,6 +90,7 @@ var AirplaneMode = {
   init: function apm_init() {
     var mobileConnection = getMobileConnection();
     var wifiManager = WifiHelper.getWifiManager();
+    var nfcManager = getNfc();
 
     var settings = Settings.mozSettings;
     if (!settings)
@@ -107,6 +108,7 @@ var AirplaneMode = {
     var bluetoothEnabled = false;
     var wifiEnabled = false;
     var geolocationEnabled = false;
+    var nfcEnabled = false;
     settings.addObserver('geolocation.enabled', function(e) {
       geolocationEnabled = e.settingValue;
       self.notify('geolocation.enabled');
@@ -137,12 +139,17 @@ var AirplaneMode = {
         self.notify('bluetooth.enabled');
       });
     }
+    settings.addObserver('nfc.enabled', function(e) {
+      nfcEnabled = e.settingValue;
+      self.notify('nfc.enabled');
+    });
+
 
     var restoreMobileData = false;
     var restoreBluetooth = false;
     var restoreWifi = false;
     var restoreGeolocation = false;
-
+    var restoreNfc = false;
     settings.addObserver('ril.radio.disabled', function(e) {
       // Reset notification params
       self._ops = 0;
@@ -174,6 +181,12 @@ var AirplaneMode = {
         if (geolocationEnabled)
           self._ops++;
 
+        // NFC
+        restoreNfc = nfcEnabled;
+        if (nfcManager) {
+          self._ops++;
+        }
+
       } else {
         // Don't count mobile data if it's already on
         if (mobileConnection && !mobileDataEnabled && restoreMobileData)
@@ -189,6 +202,10 @@ var AirplaneMode = {
 
         // Don't count Geolocation if it's already on
         if (!geolocationEnabled && restoreGeolocation)
+          self._ops++;
+
+        // Don't count NFC if it's already on
+        if (!nfcEnabled && restoreNfc)
           self._ops++;
       }
 
