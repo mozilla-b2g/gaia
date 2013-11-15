@@ -5,7 +5,7 @@ Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 
 function debug(str) {
-  dump(' -*- webapp-optimize.js: ' + str + '\n');
+  // dump(' -*- webapp-optimize.js: ' + str + '\n');
 }
 
 /**
