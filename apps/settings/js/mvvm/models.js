@@ -18,13 +18,13 @@ function unobserve(_eventHandlers, prop, handler) {
   }
 
   if (typeof prop === 'function') {
-    // remove from every key in _eventHandlers
+    // (handler) -- remove from every key in _eventHandlers
     Object.keys(_eventHandlers).forEach(removeHandler.bind(null, prop));
   } else if (handler) {
-    // remove from every key in _eventHandlers
+    // (prop, handler) -- remove handler from the specific prop
     removeHandler(handler, prop);
   } else if (prop in _eventHandlers) {
-    // otherwise remove all handlers for property
+    // (prop) -- otherwise remove all handlers for property
     _eventHandlers[prop] = [];
   }
 }
