@@ -23,7 +23,7 @@ define(function() {
    *                 - isStarted, started state boolean.
    *                 - laps, array of lap objects (lap = {time:, duration:}).
    */
-  function Stopwatch(opts = {}) {
+  function Stopwatch(opts = {}) { // this
     var defaults = new Defaults();
     var obj = {};
 
