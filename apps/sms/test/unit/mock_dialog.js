@@ -37,3 +37,21 @@ MockDialog.mTeardown = function() {
     MockDialog.triggers[trigger].called = false;
   });
 };
+
+function MockErrorDialog() {
+  MockErrorDialog.calls.push(arguments);
+}
+
+MockErrorDialog.prototype = {
+  show: function() {
+    this.show.called = true;
+  }
+};
+
+MockErrorDialog.mSetup = function() {
+  MockErrorDialog.calls = [];
+};
+
+MockErrorDialog.mTeardown = function() {
+  delete MockErrorDialog.calls;
+};
