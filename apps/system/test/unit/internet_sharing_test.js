@@ -1,5 +1,6 @@
 // Internet Sharing Test
 'use strict';
+mocha.globals(['InternetSharing']);
 
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_settings.js');
 requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');

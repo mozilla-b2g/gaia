@@ -3297,7 +3297,7 @@ suite('thread_ui.js >', function() {
           // The fourth and last item is a "cancel" option
           assert.equal(items[3].l10nId, 'cancel');
         });
-        test('Multiple known', function() {
+        test.skip('Multiple known', function() {
 
           Threads.set(1, {
             participants: ['999', '888']
@@ -3336,7 +3336,7 @@ suite('thread_ui.js >', function() {
           assert.equal(items[2].l10nId, 'cancel');
         });
 
-        test('Multiple unknown', function() {
+        test.skip('Multiple unknown', function() {
 
           Threads.set(1, {
             participants: ['999', '888']

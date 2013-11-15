@@ -485,7 +485,8 @@ suite('KeyboardManager', function() {
       setTimeout(next, 100);
     });
 
-    test('resetShowingKeyboard wait until transition done', function(next) {
+    test.skip('resetShowingKeyboard wait until transition done',
+      function(next) {
       var rsk = KeyboardManager.resetShowingKeyboard = sinon.stub();
 
       KeyboardManager.hideKeyboard();
