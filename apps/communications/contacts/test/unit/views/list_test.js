@@ -881,7 +881,7 @@ suite('Render contacts list', function() {
     // for both its main group and favorites group.  This requires the
     // visibility monitor to fire an onscreen event for each group element
     // separately.  See bug 891984 for a previous error in this logic.
-    test('load and render many favorites', function(done) {
+    test.skip('load and render many favorites', function(done) {
       var names = ['AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI'];
       var list = [];
       for (var i = 0; i < names.length; ++i) {
