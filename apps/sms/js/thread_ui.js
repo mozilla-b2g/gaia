@@ -238,6 +238,11 @@ var ThreadUI = global.ThreadUI = {
       'mousedown', this.requestContact.bind(this)
     );
 
+    navigator.mozContacts.addEventListener(
+      'contactchange',
+      this.updateHeaderData
+    );
+
     this.tmpl = templateIds.reduce(function(tmpls, name) {
       tmpls[Utils.camelCase(name)] =
         Template('messages-' + name + '-tmpl');
@@ -255,17 +260,6 @@ var ThreadUI = global.ThreadUI = {
     var style = window.getComputedStyle(this.input, null);
     this.INPUT_MARGIN = parseInt(style.getPropertyValue('margin-top'), 10) +
       parseInt(style.getPropertyValue('margin-bottom'), 10);
-
-    // Synchronize changes to the Compose field according to relevant changes
-    // in the subheader.
-    var subheaderMutationHandler = this.subheaderMutationHandler.bind(this);
-    var subheaderMutation = new MutationObserver(subheaderMutationHandler);
-    subheaderMutation.observe(this.subheader, {
-      attributes: true, subtree: true
-    });
-    subheaderMutation.observe(document.getElementById('thread-messages'), {
-      attributes: true
-    });
 
     ThreadUI.setInputMaxHeight();
   },
@@ -526,13 +520,6 @@ var ThreadUI = global.ThreadUI = {
     this._convertNoticeTimeout = setTimeout(function hideConvertNotice() {
       this.convertNotice.classList.add('hide');
     }.bind(this), this.CONVERTED_MESSAGE_DURATION);
-  },
-
-  // Ensure that when the subheader is updated, the Compose field's dimensions
-  // are updated to avoid interference.
-  subheaderMutationHandler: function thui_subheaderMutationHandler() {
-    this.setInputMaxHeight();
-    this.updateInputHeight();
   },
 
   // Triggered when the onscreen keyboard appears/disappears.
@@ -927,8 +914,6 @@ var ThreadUI = global.ThreadUI = {
     // the container
     var buttonOffset = newHeight + verticalMargin - buttonHeight;
     this.sendButton.style.marginTop = buttonOffset + 'px';
-
-    this.scrollViewToBottom();
   },
 
   findNextContainer: function thui_findNextContainer(container) {
@@ -1061,6 +1046,48 @@ var ThreadUI = global.ThreadUI = {
     return messageContainer;
   },
 
+  updateCarrier: function thui_updateCarrier(thread, contacts, details) {
+    var carrierTag = document.getElementById('contact-carrier');
+    var threadMessages = document.getElementById('thread-messages');
+    var number = thread.participants[0];
+    var wasCarrierTagShown = threadMessages.classList.contains('has-carrier');
+    var isCarrierTagShown = false;
+    var carrierText;
+
+    // The carrier banner is meaningless and confusing in
+    // group message mode.
+    if (thread.participants.length === 1 &&
+        (contacts && contacts.length)) {
+
+
+      carrierText = Utils.getCarrierTag(
+        number, contacts[0].tel, details
+      );
+
+      // Known Contact with at least:
+      //
+      //  1. a name
+      //  2. a carrier
+      //  3. a type
+      //
+      if (carrierText) {
+        carrierTag.textContent = carrierText;
+        isCarrierTagShown = true;
+        threadMessages.classList.add('has-carrier');
+      } else {
+        threadMessages.classList.remove('has-carrier');
+      }
+    } else {
+      // Hide carrier tag in group message or unknown contact cases.
+      threadMessages.classList.remove('has-carrier');
+    }
+
+    if (wasCarrierTagShown !== isCarrierTagShown) {
+      this.setInputMaxHeight();
+      this.updateInputHeight();
+    }
+  },
+
   // Method for updating the header with the info retrieved from Contacts API
   updateHeaderData: function thui_updateHeaderData(callback) {
     var thread, number, others;
@@ -1105,14 +1132,10 @@ var ThreadUI = global.ThreadUI = {
     //    Jane Doe (+2)
     //
     Contacts.findByPhoneNumber(number, function gotContact(contacts) {
-      var carrierTag = document.getElementById('contact-carrier');
-      var threadMessages = document.getElementById('thread-messages');
+      var details = Utils.getContactDetails(number, contacts);
       // Bug 867948: contacts null is a legitimate case, and
       // getContactDetails is okay with that.
-      var details = Utils.getContactDetails(number, contacts);
       var contactName = details.title || number;
-      var carrierText;
-
       this.headerText.dataset.isContact = !!details.isContact;
       this.headerText.dataset.title = contactName;
       navigator.mozL10n.localize(this.headerText, 'thread-header-text', {
@@ -1120,33 +1143,7 @@ var ThreadUI = global.ThreadUI = {
           n: others
       });
 
-      // The carrier banner is meaningless and confusing in
-      // group message mode.
-      if (thread.participants.length === 1 &&
-          (contacts && contacts.length)) {
-
-
-        carrierText = Utils.getCarrierTag(
-          number, contacts[0].tel, details
-        );
-
-        // Known Contact with at least:
-        //
-        //  1. a name
-        //  2. a carrier
-        //  3. a type
-        //
-
-        if (carrierText) {
-          carrierTag.textContent = carrierText;
-          threadMessages.classList.add('has-carrier');
-        } else {
-          threadMessages.classList.remove('has-carrier');
-        }
-      } else {
-        // Hide carrier tag in group message or unknown contact cases.
-        threadMessages.classList.remove('has-carrier');
-      }
+      this.updateCarrier(thread, contacts, details);
 
       if (callback) {
         callback();
