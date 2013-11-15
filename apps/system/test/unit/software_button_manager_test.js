@@ -191,11 +191,6 @@ suite('enable/disable software home button', function() {
     function() {
     SoftwareButtonManager.init();
     SoftwareButtonManager._enable = true;
-    HomeGesture.homeBar = {
-      style: {
-        display: 'none'
-      }
-    };
     HomeGesture.toggle(true);
     assert.equal(
       MockNavigatorSettings.
@@ -211,11 +206,6 @@ suite('enable/disable software home button', function() {
     });
     SoftwareButtonManager.init();
     SoftwareButtonManager._enable = false;
-    HomeGesture.homeBar = {
-      style: {
-        display: 'none'
-      }
-    };
     SoftwareButtonManager.OverrideFlag = false;
     HomeGesture.toggle(false);
     assert.equal(
