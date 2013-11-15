@@ -93,12 +93,9 @@ var IccHelper = (function() {
 
     getCardLockRetryCount: function
       icch_getCardLockRetryCount(lockType, onresult) {
-      var mobileConn = navigator.mozMobileConnection;
-
       if ('retryCount' in mobileConn) {
         onresult(mobileConn.retryCount);
       } else {
-        var iccManager = navigator.mozIccManager || mobileConn.icc;
         var req = iccManager.getCardLockRetryCount(lockType);
         req.onsuccess = function onsuccess() {
           onresult(req.result.retryCount);
@@ -106,6 +103,24 @@ var IccHelper = (function() {
         req.onerror = function onerror() {
           onresult(0);
         };
+      }
+    },
+
+    readContacts: function icch_readContacts(type) {
+      if (iccManager.readContacts) {
+        return iccManager.readContacts(type);
+      } else if (navigator.mozContacts) {
+        return navigator.mozContacts.getSimContacts(type.toUpperCase());
+      } else {
+        throw new Error('Platform cannot read SIM contacts.');
+      }
+    },
+
+    updateContact: function icch_updateContact(type, contact, pinCode) {
+      if (iccManager.readContacts) {
+        return iccManager.updateContact(type, contact, pinCode);
+      } else {
+        throw new Error('Platform cannot write SIM contacts.');
       }
     },
 
