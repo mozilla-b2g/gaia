@@ -93,7 +93,7 @@ ul li > *, ul li > label > * {
 }
 
 /* sublines */
-ul li > small, ul li > label > small {
+ul li small {
   position: absolute;
   left: 1.5rem;
   right: 1.5rem;
