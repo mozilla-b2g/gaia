@@ -334,6 +334,8 @@ function saveEditedImage() {
     imageEditor.cropImage();
 
   var progressBar = $('save-progress');
+  // Show progressbar when start to save.
+  progressBar.classList.remove('hidden');
   progressBar.value = 0;
   progressBar.max = 110; // Allow an extra 10% time for conversion to blob
 
@@ -344,6 +346,8 @@ function saveEditedImage() {
   }
 
   function gotBlob(blob) {
+    // Hide progressbar when saved.
+    progressBar.classList.add('hidden');
     var original = files[editedPhotoIndex].name;
     var basename, extension, filename;
     var version = 1;
@@ -725,7 +729,7 @@ ImageEditor.prototype.showCropOverlay = function showCropOverlay(newRegion) {
   canvas.height = canvas.clientHeight;
 
   // Crop handle styles
-  context.translate(10, 10);
+  context.translate(15, 15);
   context.lineCap = 'round';
   context.lineJoin = 'round';
   context.strokeStyle = 'rgba(255,255,255,.75)';
@@ -783,7 +787,7 @@ ImageEditor.prototype.drawCropControls = function(handle) {
   var height = bottom - top;
 
   // Erase everything
-  context.clearRect(-10, -10, canvas.width, canvas.height);
+  context.clearRect(-15, -15, canvas.width, canvas.height);
 
   // Overlay the preview canvas with translucent gray
   context.fillStyle = 'rgba(0, 0, 0, .5)';
