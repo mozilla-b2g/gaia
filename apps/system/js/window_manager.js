@@ -566,7 +566,8 @@ var WindowManager = (function() {
     var evt = doc.createEvent('CustomEvent');
     evt.initCustomEvent('apploadtime', true, false, {
       time: parseInt(Date.now() - iframe.dataset.start),
-      type: (e.type == 'appopen') ? 'w' : 'c'
+      type: (e.type == 'appopen') ? 'w' : 'c',
+      src: iframe.src // this is used in the performance framework
     });
     iframe.dispatchEvent(evt);
   }
