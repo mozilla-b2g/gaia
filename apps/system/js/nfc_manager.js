@@ -238,11 +238,10 @@ var NfcManager = {
         this._debug('Unknown or unimplemented tnf or rtd subtype.');
         break;
     }
-    if (action != null) {
-      action.data.records = ndefmessage;
-    }
     if (action == null) {
       this._debug('XX Found no ndefmessage actions. XX');
+    } else {
+      action.data.records = ndefmessage;
     }
     return action;
   },
@@ -328,7 +327,8 @@ var NfcManager = {
       // Pick the first NDEF message for now.
       var ndefMsg = command.ndef[0];
     } else {
-      var ndefMsg = null;
+      this._debug('Empty NDEF Message sent to Technology Discovered');
+      var ndefMsg = [];
     }
 
     // Force Tech Priority:
@@ -499,7 +499,7 @@ var NfcManager = {
     var activityText = null;
 
     this._debug('XXXX HandleMimeMedia');
-    if (NfcUtil.equalArrays(record.type, NfcUtil.fromUTF8('text/x-vCard'))) {
+    if (NfcUtil.equalArrays(record.type, 'text/vcard')) {
       activityText = this.handleVCardRecord(record);
     } else {
       activityText = {
