@@ -48,9 +48,12 @@
   color: #fff;
 }
 
-[role="tablist"] > [role="tab"] > a:active {
+[role="tablist"] > [role="tab"] > a:target {
   background-color: #008aaa;
-  color: #fff;
+}
+
+[role="tablist"] > [role="tab"] > a:active {
+  background-color: #00bbff;
 }
 
 [role="tablist"] > [role="tab"][aria-disabled="true"] > a:active {

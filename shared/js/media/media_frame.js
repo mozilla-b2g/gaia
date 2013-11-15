@@ -85,8 +85,8 @@ MediaFrame.prototype.displayImage = function displayImage(blob,
 
     // A preview is big enough if at least one dimension is >= the
     // screen size in both portait and landscape mode.
-    var screenWidth = window.innerWidth;
-    var screenHeight = window.innerHeight;
+    var screenWidth = window.innerWidth * window.devicePixelRatio;
+    var screenHeight = window.innerHeight * window.devicePixelRatio;
 
     return ((preview.width >= screenWidth ||
              preview.height >= screenHeight) && // portrait

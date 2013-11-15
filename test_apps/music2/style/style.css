@@ -1,0 +1,22 @@
+html {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-size: 10px;
+  overflow: hidden;
+}
+
+body {
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
+}
+
+.hidden {
+  display: none;
+}

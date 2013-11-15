@@ -91,6 +91,20 @@ var EvmeManager = (function EvmeManager() {
     return GridManager.getApps(true /* Flatten */, true /* Hide hidden */);
   }
 
+  function getAllAppsInfo() {
+    var gridApps = getGridApps();
+    var infos = [];
+
+    for (var i = 0; i < gridApps.length; i++) {
+      var info = getAppInfo(gridApps[i]);
+      if (info) {
+        infos.push(info);
+      }
+    }
+
+    return infos;
+  }
+
   /**
    * Returns only the collections on the user's phone
    */
@@ -98,23 +112,25 @@ var EvmeManager = (function EvmeManager() {
     return GridManager.getCollections();
   }
 
-  function getAppByOrigin(origin, cb) {
+  function getAppByOrigin(origin) {
     var gridApp = GridManager.getApp(origin);
     if (gridApp) {
-      getAppInfo(gridApp, cb);
+      return getAppInfo(gridApp);
     } else {
       console.error('E.me error: app ' + origin + ' does not exist');
+      return undefined;
     }
   }
 
-  function getAppByDescriptor(cb, descriptor) {
+  function getAppByDescriptor(descriptor) {
     var icon = getIconByDescriptor(descriptor);
 
     if (icon) {
-      getAppInfo(icon, cb);
+      return getAppInfo(icon);
     } else {
-      console.error('E.me error: app ' + origin + ' does not exist');
-      cb();
+      console.error('E.me error: app by descriptor does not exist' +
+                      JSON.stringify(descriptor));
+      return undefined;
     }
   }
 
@@ -123,20 +139,15 @@ var EvmeManager = (function EvmeManager() {
   }
 
   /**
-   * Returns E.me formatted information about an object
-   * returned by GridManager.getApps.
+   * Returns E.me formatted information about an object that was returned by
+   * GridManager.getApps.
    */
-  function getAppInfo(gridApp, cb) {
-    cb = cb || Evme.Utils.NOOP;
-
+  function getAppInfo(gridApp) {
     var nativeApp = gridApp.app,  // XPCWrappedNative
         descriptor = gridApp.descriptor,
-        id,
-        icon,
-        appInfo;
+        appInfo = {};
 
-    // TODO document
-    // TODO launch by entry_point
+    var id;
     if (nativeApp.manifestURL) {
       id = generateAppId(nativeApp.manifestURL, descriptor.entry_point);
     } else {
@@ -146,46 +157,34 @@ var EvmeManager = (function EvmeManager() {
     if (!id) {
       console.warn('E.me: no id found for ' + descriptor.name +
                                               '. Will not show up in results');
-      cb();
-      return;
+      return undefined;
     }
 
-    icon = GridManager.getIcon(descriptor);
+    var icon = GridManager.getIcon(descriptor);
+    if (icon && icon.descriptor) {
+      icon = icon.descriptor.renderedIcon;
+    }
 
     appInfo = {
       'id': id,
       'name': descriptor.name,
       'appUrl': nativeApp.origin,
-      'icon': Icon.prototype.DEFAULT_ICON_URL,
-      'isOfflineReady': icon &&
-                          'isOfflineReady' in icon && icon.isOfflineReady()
+      'icon': icon || Icon.prototype.DEFAULT_ICON_URL,
+      'isOfflineReady': gridApp && 'isOfflineReady' in gridApp &&
+                          gridApp.isOfflineReady()
     };
 
-    // appInfo is an extended descriptor
-    // when we will remove Eme's appIndex we can use plain descriptors
-    if ('bookmarkURL' in descriptor) {
+    if (descriptor.bookmarkURL) {
       appInfo.bookmarkURL = descriptor.bookmarkURL;
     }
-    if ('manifestURL' in descriptor) {
+    if (descriptor.manifestURL) {
       appInfo.manifestURL = descriptor.manifestURL;
     }
-    if ('entry_point' in descriptor) {
+    if (descriptor.entry_point) {
       appInfo.entry_point = descriptor.entry_point;
     }
 
-    if (!icon) {
-      cb(appInfo);
-    } else {
-      retrieveIcon({
-        icon: icon,
-        done: function(blob) {
-          if (blob) {
-            appInfo['icon'] = blob;
-          }
-          cb(appInfo);
-        }
-      });
-    }
+    return appInfo;
   }
 
   /**
@@ -198,39 +197,6 @@ var EvmeManager = (function EvmeManager() {
     }
 
     return manifestURL;
-  }
-
-  function retrieveIcon(request) {
-    var xhr = new XMLHttpRequest({
-      mozAnon: true,
-      mozSystem: true
-    });
-
-    var icon = request.icon.descriptor.icon;
-
-    xhr.open('GET', icon, true);
-    xhr.responseType = 'blob';
-
-    try {
-      xhr.send(null);
-    } catch (evt) {
-      request.done();
-      return;
-    }
-
-    xhr.onload = function onload(evt) {
-      var status = xhr.status;
-      if (status !== 0 && status !== 200) {
-        request.done();
-      }
-      else {
-        request.done(xhr.response);
-      }
-    };
-
-    xhr.ontimeout = xhr.onerror = function onerror(evt) {
-      request.done();
-    };
   }
 
   function getIconSize() {
@@ -277,21 +243,30 @@ var EvmeManager = (function EvmeManager() {
   }
 
   function openMarketplaceApp(data) {
-    launchMarketplaceApp(data.slug);
+    var activity = new MozActivity({
+      name: 'marketplace-app',
+      data: {
+        slug: data.slug
+      }
+    });
+
+    activity.onerror = function() {
+      window.open('https://marketplace.firefox.com/app/' + data.slug, 'e.me');
+    };
   }
 
   function openMarketplaceSearch(data) {
-    launchMarketplaceSearch(data.query);
-  }
+    var activity = new MozActivity({
+      name: 'marketplace-search',
+      data: {
+        query: data.query
+      }
+    });
 
-  function launchMarketplaceApp(slug) {
-    var url = 'https://marketplace.firefox.com/app/';
-    window.open(url + encodeURIComponent(slug), 'e.memarket');
-  }
-
-  function launchMarketplaceSearch(query) {
-    var url = 'https://marketplace.firefox.com/search/?q=';
-    window.open(url + encodeURIComponent(query), 'e.memarket');
+    activity.onerror = function() {
+      window.open('https://marketplace.firefox.com/search/?q=' + data.query,
+                                                                        'e.me');
+    };
   }
 
   // sets an image as the device's wallpaper
@@ -340,6 +315,7 @@ var EvmeManager = (function EvmeManager() {
     getGridApps: getGridApps,
     getCollections: getCollections,
     getAppInfo: getAppInfo,
+    getAllAppsInfo: getAllAppsInfo,
 
     openUrl: openUrl,
     openCloudApp: openCloudApp,

@@ -343,7 +343,12 @@ var GaiaDataLayer = {
   },
 
   connectToCellData: function() {
-    var manager = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var manager = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
 
     if (!manager.data.connected) {
       waitFor(
@@ -364,7 +369,13 @@ var GaiaDataLayer = {
   disableCellData: function() {
     var self = this;
     this.getSetting('ril.data.enabled', function(aCellDataEnabled) {
-      var manager = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var manager = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (aCellDataEnabled) {
         waitFor(
           function() {
@@ -422,6 +433,31 @@ var GaiaDataLayer = {
     };
     req.onerror = function() {
       console.error('failed to enumerate ' + aType, req.error.name);
+      callback(false);
+    };
+  },
+
+  sendSMS: function (recipient, content, aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    console.log('sending sms message to number: ' + recipient);
+
+    SpecialPowers.addPermission('sms', true, document);
+    SpecialPowers.setBoolPref('dom.sms.enabled', true);
+    let sms = window.navigator.mozMobileMessage;
+
+    let request = sms.send(recipient, content);
+
+    request.onsuccess = function() {
+      console.log('sms message sent successfully');
+      SpecialPowers.removePermission('sms', document);
+      SpecialPowers.clearUserPref('dom.sms.enabled');
+      callback(true);
+    };
+
+    request.onerror = function () {
+      console.log('sms message not sent');
+      SpecialPowers.removePermission('sms', document);
+      SpecialPowers.clearUserPref('dom.sms.enabled');
       callback(false);
     };
   },

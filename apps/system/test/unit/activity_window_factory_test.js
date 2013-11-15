@@ -192,14 +192,14 @@ suite('system/ActivityWindowFactory', function() {
     test('back to home: one inline activity', function() {
       ActivityWindowFactory.handleEvent(fakeLaunchConfig1);
       var activity = ActivityWindowFactory._lastActivity;
-      var stubClose = this.sinon.stub(activity, 'close');
+      var stubKill = this.sinon.stub(activity, 'kill');
 
       ActivityWindowFactory.handleEvent({
         'type': 'home'
       });
 
-      assert.isTrue(stubClose.called);
-      stubClose.restore();
+      assert.isTrue(stubKill.called);
+      stubKill.restore();
 
       ActivityWindowFactory._lastActivity = null;
       ActivityWindowFactory._activities = [];

@@ -17,10 +17,9 @@
         </li>
         <li class="password">
           <label class="pack-checkbox">
-            <input type="checkbox" data-ignore name="show_password" />
-            <span></span>
+            <input type="checkbox" data-ignore name="show_password">
+            <span data-l10n-id="showPassword">Show password</span>
           </label>
-          <span data-l10n-id="showPassword">Show password</span>
           <p data-l10n-id="wifi-password">Password</p>
           <input type="password" name="password" x-inputmode="verbatim" data-setting="tethering.wifi.security.password" />
         </li>
@@ -36,6 +35,8 @@
         </li>
       </ul>
     </div>
+
+    <script src="js/hotspot_wifi_settings.js"></script>
 
   </template>
 </element>

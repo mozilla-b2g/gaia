@@ -2,6 +2,7 @@ Keyboards['en-Dvorak'] = {
   label: 'English - Dvorak',
   menuLabel: 'Dvorak',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'àáâãäåāæ',

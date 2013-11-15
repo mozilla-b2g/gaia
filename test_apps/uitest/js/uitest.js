@@ -25,6 +25,7 @@ var UITest = {
     delete this.panelTitle;
     return this.panelTitle = document.getElementById('test-panel-title');
   },
+  currentTab: 'UI',
   handleNotificationMessage: function(message) {
     if (!message.clicked) {
       return;
@@ -49,8 +50,13 @@ var UITest = {
     }.bind(this));
 
     var name = this.getNameFromHash();
-    if (name)
+    if (name) {
       this.openTest(name);
+    }
+    else {
+      // if no test is specified, load UI tests list (select UI tab)
+      window.location.hash = 'UI';
+    }
   },
   uninit: function ut_uninit() {
     this.iframe.removeEventListener('load', this);
@@ -123,6 +129,9 @@ var UITest = {
     }
   },
   openTest: function ut_openTest(name) {
+    // save tab name from URL
+    // e.g. '#test=UI/empty' => 'UI'
+    this.currentTab = (/=\b(.+)\//.exec(window.location.hash) || [])[1];
     document.body.classList.add('test');
 
     var self = this;
@@ -135,6 +144,9 @@ var UITest = {
     if (!isOpened)
       return false;
     document.body.classList.remove('test');
+
+    // select tab after close test iframe
+    window.location.hash = this.currentTab;
     return true;
   }
 };

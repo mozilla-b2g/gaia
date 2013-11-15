@@ -35,10 +35,7 @@
     var settings = Settings.mozSettings;
     var lock = settings.createLock();
 
-    var reqApplications = lock.get('icc.applications');
-    reqApplications.onsuccess = function icc_getApplications() {
-      var json = reqApplications.result['icc.applications'];
-      var menu = json && JSON.parse(json);
+    function showStkEntry(menu) {
       if (!menu || !menu.items ||
         (menu.items.length == 1 && menu.items[0] === null)) {
         DUMP('No STK available - exit');
@@ -52,8 +49,24 @@
       document.getElementById('menuItem-icc').textContent = menu.title;
       document.getElementById('icc-mainheader').hidden = false;
       document.getElementById('icc-mainentry').hidden = false;
+    }
+
+    // Check if SIM card sends an Applications menu
+    var reqApplications = lock.get('icc.applications');
+    reqApplications.onsuccess = function icc_getApplications() {
+      var json = reqApplications.result['icc.applications'];
+      var menu = json && JSON.parse(json);
+      showStkEntry(menu);
     };
 
+    settings.addObserver('icc.applications',
+      function icc_getApplications(event) {
+        var json = event.settingValue;
+        var menu = json && JSON.parse(json);
+        showStkEntry(menu);
+      });
+
+    // Check if there are pending STK commands
     var reqIccData = lock.get('icc.data');
     reqIccData.onsuccess = function icc_getIccData() {
       var cmd = reqIccData.result['icc.data'];

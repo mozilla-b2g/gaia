@@ -2431,10 +2431,12 @@ var HTMLParser = (function(){
         var pos = 0;
 
       // Find the closest opened tag of the same type
-      else
+      else {
+        tagName = tagName.toLowerCase();
         for ( var pos = stack.length - 1; pos >= 0; pos-- )
           if ( stack[ pos ] == tagName )
             break;
+      }
 
       if ( pos >= 0 ) {
         // Close all the open elements, up the stack

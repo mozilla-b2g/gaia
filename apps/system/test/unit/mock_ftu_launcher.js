@@ -1,7 +1,9 @@
 'use strict';
 
 var MockFtuLauncher = {
+  mIsRunning: false,
+
   isFtuRunning: function() {
-    return false;
+    return this.mIsRunning;
   }
 };

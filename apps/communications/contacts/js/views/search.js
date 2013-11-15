@@ -119,7 +119,7 @@ contacts.Search = (function() {
   var exitSearchMode = function exitSearchMode(evt) {
     evt.preventDefault();
     searchView.classList.remove('insearchmode');
-    if (Contacts && Contacts.navigation) {
+    if (window.Contacts && Contacts.navigation) {
       Contacts.navigation.back();
     }
 
@@ -241,7 +241,7 @@ contacts.Search = (function() {
       fillInitialSearchPage();
       inSearchMode = true;
       emptySearch = true;
-      if (Contacts && Contacts.navigation) {
+      if (window.Contacts && Contacts.navigation) {
         Contacts.navigation.go('search-view', 'none');
       }
 

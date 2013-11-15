@@ -4,7 +4,58 @@
 'use strict';
 
 var AirplaneMode = {
-  enabled: false,
+  _enabled: null,
+  _ready: function apm_ready(callback) {
+    if (document && (document.readyState === 'complete' ||
+                     document.readyState === 'interactive')) {
+      setTimeout(callback);
+    } else {
+      window.addEventListener('load', function onload() {
+        window.removeEventListener('load', onload);
+        callback();
+      });
+    }
+  },
+
+  set enabled(value) {
+    if (value !== this._enabled) {
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var mobileConnection = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
+      // See bug 933659
+      // Gecko stops using the settings key 'ril.radio.disabled' to turn
+      // off RIL radio. We need to remove the code that checks existence of the
+      // new API after bug 856553 lands.
+      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
+        var self = this;
+        var req = mobileConnection.setRadioEnabled(!value);
+        req.onsuccess = function() {
+          self._enabled = value;
+          SettingsListener.getSettingsLock().set(
+            {'ril.radio.disabled': self._enabled}
+          );
+        };
+        req.onerror = function() {
+          self._enabled = !value;
+          SettingsListener.getSettingsLock().set(
+            {'ril.radio.disabled': self._enabled}
+          );
+        };
+      } else {
+        this._enabled = value;
+        SettingsListener.getSettingsLock().set(
+          {'ril.radio.disabled': this._enabled}
+        );
+      }
+    }
+  },
+
+  get enabled() {
+    return this._enabled;
+  },
 
   init: function apm_init() {
     if (!window.navigator.mozSettings)
@@ -74,10 +125,16 @@ var AirplaneMode = {
       }
     }
 
+    var mozSettings = window.navigator.mozSettings;
     var bluetooth = window.navigator.mozBluetooth;
     var wifiManager = window.navigator.mozWifiManager;
-    var mobileData = window.navigator.mozMobileConnection &&
-      window.navigator.mozMobileConnection.data;
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var mobileConnection = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
+    var mobileData = mobileConnection && mobileConnection.data;
     var fmRadio = window.navigator.mozFMRadio;
 
     // Note that we don't restore Wifi tethering when leaving airplane mode
@@ -85,7 +142,7 @@ var AirplaneMode = {
     // established.
 
     var self = this;
-    SettingsListener.observe('ril.radio.disabled', false, function(value) {
+    function updateStatus(value) {
       if (value) {
         // Entering airplane mode.
         self.enabled = true;
@@ -149,6 +206,28 @@ var AirplaneMode = {
           restore('nfc');
         }
       }
+    }
+
+    // Initialize radio state
+    var request = SettingsListener.getSettingsLock().get('ril.radio.disabled');
+    request.onsuccess = function() {
+      var enabled = !!request.result['ril.radio.disabled'];
+      // See bug 933659
+      // Gecko stops using the settings key 'ril.radio.disabled' to turn
+      // off RIL radio. We need to remove the code that checks existence of the
+      // new API after bug 856553 lands.
+      if (mobileConnection && !!mobileConnection.setRadioEnabled) {
+        self._ready(function() {
+          self.enabled = enabled;
+        });
+      } else {
+        self.enabled = enabled;
+      }
+    };
+
+    // Observe settings changes
+    mozSettings.addObserver('ril.radio.disabled', function(e) {
+      updateStatus(e.settingValue);
     });
   }
 };

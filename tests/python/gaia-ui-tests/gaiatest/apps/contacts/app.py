@@ -20,6 +20,9 @@ class Contacts(Base):
     _select_all_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="selectAll"]')
     _export_button_locator = (By.ID, 'select-action')
     _status_message_locator = (By.ID, 'statusMsg')
+    _select_contacts_to_import_frame_locator = (By.ID, 'fb-extensions')
+    _import_locator = (By.ID, 'import-action')
+    _first_contact_locator = (By.CSS_SELECTOR, 'li.block-item label span')
 
     #  contacts
     _contact_locator = (By.CSS_SELECTOR, 'li.contact-item')
@@ -35,6 +38,19 @@ class Contacts(Base):
         contacts_frame = self.marionette.find_element(*self._contacts_frame_locator)
         self.marionette.switch_to_frame(contacts_frame)
 
+    def switch_to_select_contacts_frame(self):
+        self.wait_for_element_displayed(*self._select_contacts_to_import_frame_locator)
+        select_contacts = self.marionette.find_element(*self._select_contacts_to_import_frame_locator)
+        self.marionette.switch_to_frame(select_contacts)
+
+    def tap_first_contact(self):
+        self.marionette.find_element(*self._first_contact_locator).tap()
+
+    def tap_import_button(self):
+        self.marionette.find_element(*self._import_locator).tap()
+        from gaiatest.apps.contacts.regions.settings_form import SettingsForm
+        return SettingsForm(self.marionette)
+
     @property
     def contacts(self):
         self.wait_for_element_displayed(*self._app_heading_locator)
@@ -45,7 +61,8 @@ class Contacts(Base):
         self.wait_for_condition(lambda m: len(m.find_elements(*self._contact_locator)) == number_to_wait_for)
 
     def wait_for_contacts_frame_to_close(self):
-        self.wait_for_condition(lambda m: not m.find_element(*self._contact_locator).is_displayed())
+        self.marionette.switch_to_default_content()
+        self.wait_for_element_not_present(*self._contacts_frame_locator)
 
     def contact(self, name):
         for contact in self.contacts:

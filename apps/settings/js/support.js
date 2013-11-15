@@ -71,7 +71,7 @@ var Support = {
             transaction.get('support.onlinesupport.href');
           onlineSupportHrefRequest.onsuccess = function() {
             onlineSupportInfo.href =
-              onlineSupportHrefRequest['support.onlinesupport.href'];
+              onlineSupportHrefRequest.result['support.onlinesupport.href'];
             setOnlineSupportInfo(onlineSupportInfo);
           };
         } else if (supportInfo) {

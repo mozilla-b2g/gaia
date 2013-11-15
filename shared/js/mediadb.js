@@ -1117,6 +1117,73 @@ var MediaDB = (function() {
       return handle;
     },
 
+    // Basically this function is a variation of enumerate(), since retrieving
+    // a large number of records from indexedDB takes some time and if the
+    // enumeration is cancelled, people can use this function to resume getting
+    // the rest records by providing an index where it was stopped.
+    // Also, if you want to get just one record, just give the target index and
+    // the first returned record is the record you want, remember to call
+    // cancelEnumeration() immediately after you got the record.
+    // All the arguments are required because this function is for advancing
+    // enumeration, people who use this function should already have all the
+    // arguments, and pass them again to get the target records from the index.
+    advancedEnumerate: function(key, range, direction, index, callback) {
+      if (this.state !== MediaDB.READY)
+        throw Error('MediaDB is not ready. State: ' + this.state);
+
+      var handle = { state: 'enumerating' };
+
+      var store = this.db.transaction('files').objectStore('files');
+
+      // If a key other than "name" is specified, then use the index for that
+      // key instead of the store.
+      if (key && key !== 'name')
+        store = store.index(key);
+
+      // Now create a cursor for the store or index.
+      var cursorRequest = store.openCursor(range || null, direction || 'next');
+      var isTarget = false;
+
+      cursorRequest.onerror = function() {
+        console.error('MediaDB.enumerate() failed with', cursorRequest.error);
+        handle.state = 'error';
+      };
+
+      cursorRequest.onsuccess = function() {
+        // If the enumeration has been cancelled, return without
+        // calling the callback and without calling cursor.continue();
+        if (handle.state === 'cancelling') {
+          handle.state = 'cancelled';
+          return;
+        }
+
+        var cursor = cursorRequest.result;
+        if (cursor) {
+          try {
+            // if metadata parsing succeeded and is the target record
+            if (!cursor.value.fail && isTarget) {
+              callback(cursor.value);
+              cursor.continue();
+            }
+            else {
+              cursor.advance(index - 1);
+              isTarget = true;
+            }
+          }
+          catch (e) {
+            console.warn('MediaDB.enumerate(): callback threw', e, e.stack);
+          }
+        }
+        else {
+          // Final time, tell the callback that there are no more.
+          handle.state = 'complete';
+          callback(null);
+        }
+      };
+
+      return handle;
+    },
+
     // This method takes the same arguments as enumerate(), but batches
     // the results into an array and passes them to the callback all at
     // once when the enumeration is complete. It uses enumerate() so it
@@ -1254,62 +1321,6 @@ var MediaDB = (function() {
       var path = filename.substring(0, filename.lastIndexOf('/') + 1);
       return (path[0] === '.' || path.indexOf('/.') !== -1);
     }
-  }
-
-  // With the removal of composite storage, this function emulates
-  // the composite storage enumeration (i.e. return files from
-  // all of the storage areas).
-  function enumerateAll(storages, dir, options) {
-    var storageIndex = 0;
-    var ds_cursor = null;
-
-    var cursor = {
-      continue: function cursor_continue() {
-        ds_cursor.continue();
-      }
-    };
-
-    function enumerateNextStorage() {
-      // The || {} on the next line is required to make enumerate work properly
-      // on v1-train.
-      ds_cursor = storages[storageIndex].enumerate(dir, options || {});
-      ds_cursor.onsuccess = onsuccess;
-      ds_cursor.onerror = onerror;
-    };
-
-    function onsuccess(e) {
-      cursor.result = e.target.result;
-      if (!cursor.result) {
-        storageIndex++;
-        if (storageIndex < storages.length) {
-          enumerateNextStorage();
-          return;
-        }
-        // If we've run out of storages, then we fall through and call
-        // onsuccess with the null result.
-      }
-      if (cursor.onsuccess) {
-        try {
-          cursor.onsuccess(e);
-        } catch (err) {
-          console.warn('enumerateAll onsuccess threw', err);
-        }
-      }
-    };
-
-    function onerror(e) {
-      cursor.error = e.target.error;
-      if (cursor.onerror) {
-        try {
-          cursor.onerror(e);
-        } catch (err) {
-          console.warn('enumerateAll onerror threw', err);
-        }
-      }
-    };
-
-    enumerateNextStorage();
-    return cursor;
   }
 
   // Tell the db to start a manual scan. I think we don't do

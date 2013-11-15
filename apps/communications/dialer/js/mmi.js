@@ -28,7 +28,12 @@ var MmiManager = {
     var lazyFiles = ['/shared/js/icc_helper.js',
                      '/shared/js/mobile_operator.js'];
     LazyLoader.load(lazyFiles, function resourcesLoaded() {
-      self._conn = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      self._conn = window.navigator.mozMobileConnection ||
+                   window.navigator.mozMobileConnections &&
+                   window.navigator.mozMobileConnections[0];
 
       if (self._conn.voice) {
         self._operator = MobileOperator.userFacingInfo(self._conn).operator;

@@ -35,6 +35,10 @@ html, body {
   pointer-events: auto;
 }
 
+#quick-settings.non-mobile > a {
+  width: calc(25% - 0.2rem);
+}
+
 #quick-settings > .separator {
   border-right: 0.1rem black solid;
   border-left: 0.1rem gray solid;
@@ -53,6 +57,10 @@ html, body {
   border-right: 0;
 }
 
+#quick-settings.non-mobile > a:first-child,
+#quick-settings.non-mobile > a:last-child {
+  width: calc(25% - 0.1rem);
+}
 
 #quick-settings > a {
   background-position: center;
@@ -70,6 +78,10 @@ html, body {
 }
 #quick-settings-data {
   background-image: url(images/data-off.png);
+}
+.non-mobile #quick-settings-data,
+.non-mobile #quick-settings-data + .separator {
+  display: none;
 }
 #quick-settings-data[data-network="2G"]  {
   background-image: url(images/data-2g-off.png);

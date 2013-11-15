@@ -1,9 +1,9 @@
 'use strict';
 
-var WifiManager = {
+var MockWifiManager = {
   scan: function() {}
 };
 
-var WifiUI = {
+var MockWifiUI = {
   renderNetworks: function() {}
 };

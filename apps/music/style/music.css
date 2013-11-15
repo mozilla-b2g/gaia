@@ -289,7 +289,7 @@ body.picker-mode #title-player {
   height: 100%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: -moz-linear-gradient(center top, #303030 0%, #000000 100%) repeat scroll 0 0 transparent;
+  background-color: #0E1214;
 }
 
 #views-tiles {
@@ -961,7 +961,7 @@ button::-moz-focus-inner {
 }
 
 li:last-child {
-  padding-bottom: 4rem;
+  margin-bottom: 4rem;
 }
 
 li.list-header {
@@ -981,6 +981,9 @@ li.list-item {
   list-style-type: none;
   position: relative;
   width: 100%;
+  background-size: contain;
+  background-position: calc(100% - 2.5rem) -0.1rem;
+  background-repeat: no-repeat;
 }
 
 li.list-item a {
@@ -1101,22 +1104,6 @@ li.list-item a:active {
   width: 5rem;
   padding-right: 0.5rem;
   border-bottom: solid 0.1rem rgba(255, 255, 255, 0.1);
-}
-
-.list-image-parent {
-  position: absolute;
-  right: 2.5rem;
-  top: 0;
-  height: 6rem;
-  width: 6rem;
-  overflow: hidden;
-  background-color: #8a9699;
-  box-shadow: 0 0 0.1rem black;
-  pointer-events: none;
-}
-
-.list-image {
-  position: absolute;
 }
 
 form[role="search"] {

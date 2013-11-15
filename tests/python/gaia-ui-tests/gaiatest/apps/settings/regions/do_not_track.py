@@ -10,9 +10,9 @@ from gaiatest.apps.base import Base
 
 class DoNotTrack(Base):
 
-    _allow_tracking_checkbox_locator = (By.XPATH, '//li[p[@data-l10n-id="allowTracking"]]/label')
-    _disallow_tracking_checkbox_locator = (By.XPATH, '//li[p[@data-l10n-id="doNotTrackActions"]]/label')
-    _do_not_have_pref_on_tracking_checkbox_locator = (By.XPATH, '//li[p[@data-l10n-id="doNotHavePrefOnTracking"]]/label')
+    _allow_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="allowTracking"]]')
+    _disallow_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="doNotTrackActions"]]')
+    _do_not_have_pref_on_tracking_checkbox_locator = (By.XPATH, '//li/label[span[@data-l10n-id="doNotHavePrefOnTracking"]]')
 
     def tap_allow_tracking(self):
         el = self.marionette.find_element(*self._allow_tracking_checkbox_locator)

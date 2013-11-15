@@ -14,7 +14,7 @@ var GridManager = (function() {
   var BASE_HEIGHT = 460; // 480 - 20 (status bar height)
   var DEVICE_HEIGHT = window.innerHeight;
 
-  var HIDDEN_ROLES = ['system', 'keyboard', 'homescreen'];
+  var HIDDEN_ROLES = ['system', 'input', 'homescreen'];
 
   function isHiddenApp(role) {
     if (!role) {
@@ -472,8 +472,8 @@ var GridManager = (function() {
     current.MozTransition = '';
     current.MozTransform = 'translateX(0)';
 
-    delete fromPage.container.dataset.currentPage;
-    toPage.container.dataset.currentPage = 'true';
+    fromPage.container.setAttribute('aria-hidden', true);
+    toPage.container.removeAttribute('aria-hidden');
 
     togglePagesVisibility(index - 1, index + 1);
 
@@ -1430,20 +1430,6 @@ var GridManager = (function() {
       extra = extra || {};
 
       processApp(app, null, gridPageOffset);
-
-      if (app.type === GridItemsFactory.TYPE.COLLECTION) {
-        window.dispatchEvent(new CustomEvent('collectionInstalled', {
-          'detail': {
-            'collection': app
-          }
-        }));
-      } else {
-        window.dispatchEvent(new CustomEvent('appInstalled', {
-          'detail': {
-            'app': app
-          }
-        }));
-      }
 
       if (extra.callback) {
         extra.callback();

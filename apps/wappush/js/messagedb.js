@@ -1,6 +1,8 @@
 /* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
+/* exported MessageDB */
+
 'use strict';
 
 var MessageDB = (function() {
@@ -29,9 +31,11 @@ var MessageDB = (function() {
       return;
     }
 
+    var indexedDB;
+
     try {
-      var indexedDB = window.indexedDB || window.webkitIndexedDB ||
-                      window.mozIndexedDB || window.msIndexedDB;
+      indexedDB = window.indexedDB || window.webkitIndexedDB ||
+                  window.mozIndexedDB || window.msIndexedDB;
     } catch (e) {
       error(e);
       return;
@@ -56,12 +60,12 @@ var MessageDB = (function() {
       success(db);
     };
     req.onerror = function mdb_openError(event) {
-      error(event.target.errorCode);
+      error(event.target.error.name);
     };
     req.onupgradeneeded = function mdb_upgradeNeeded(event) {
       var db = event.target.result;
 
-      if (event.oldVersion == 0) {
+      if (event.oldVersion === 0) {
         var store = db.createObjectStore(MESSAGE_STORE_NAME,
                                          { keyPath: KEY_PATH });
         store.createIndex(ID_INDEX, ID_INDEX_KEYPATH, { unique: false });
@@ -95,7 +99,7 @@ var MessageDB = (function() {
         success(status);
       };
       transaction.onerror = function mdb_putError(event) {
-        error(event.target.errorCode);
+        error(event.target.error.name);
       };
 
       var store = transaction.objectStore(MESSAGE_STORE_NAME);
@@ -113,13 +117,22 @@ var MessageDB = (function() {
             /* If this is a new version of an existing message, expire the
              * previous message and flag this message as updated. Older versions
              * are discarded right away with no further action required. */
-            if (storedMessage.created && message.created &&
-                (storedMessage.created < message.created)) {
-              status = 'updated';
-              store.delete(storedMessage.timestamp);
-              store.put(message);
-            } else {
+            if (storedMessage.created && message.created) {
+              if (storedMessage.created < message.created) {
+                status = 'updated';
+                store.delete(storedMessage.timestamp);
+                store.put(message);
+              } else {
+                status = 'discarded';
+              }
+            }
+
+            /* After the normal message replacement if this message has a
+             * delete action remove all messages with the same ID including
+             * the received message itself. The user will not be notified. */
+            if (message.action === 'delete') {
               status = 'discarded';
+              mdb_deleteById(transaction, message.id, error);
             }
           } else {
             /* No existing message has a matching ID, notify the user */
@@ -132,6 +145,33 @@ var MessageDB = (function() {
         store.put(message);
       }
     }, error);
+  }
+
+  /**
+   * Deletes all messages with the specified si-id. This method is private and
+   * should only be called from within an existing transaction.
+   *
+   * @param {Object} transaction A transaction within which this operation will
+   *        take place.
+   * @param {String} id The si-id of the messages to be deleted.
+   * @param {Function} error A callback invoked if an operation fails.
+   */
+  function mdb_deleteById(transaction, id, error) {
+    var store = transaction.objectStore(MESSAGE_STORE_NAME);
+    var index = store.index(ID_INDEX);
+    var req = index.openCursor(id);
+
+    req.onsuccess = function mdb_openCursorSuccess(event) {
+      var cursor = event.target.result;
+
+      if (cursor) {
+        cursor.delete();
+        cursor.continue();
+      }
+    };
+    req.onerror = function mdb_openCursorError(event) {
+      error(event.target.error.name);
+    };
   }
 
   /**
@@ -157,7 +197,7 @@ var MessageDB = (function() {
         success(state.message);
       };
       transaction.onerror = function mdb_retrieveError(event) {
-        error(event.target.errorCode);
+        error(event.target.error.name);
       };
 
       var store = transaction.objectStore(MESSAGE_STORE_NAME);
@@ -194,11 +234,12 @@ var MessageDB = (function() {
         success();
       };
       transaction.onerror = function mdb_clearError(event) {
-        error(event.target.errorCode);
+        error(event.target.error.name);
       };
 
       var store = transaction.objectStore(MESSAGE_STORE_NAME);
-      var req = store.clear();
+
+      store.clear();
     }, error);
   }
 

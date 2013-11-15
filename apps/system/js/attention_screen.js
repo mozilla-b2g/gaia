@@ -326,7 +326,7 @@ var AttentionScreen = {
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
     var app = WindowManager.getCurrentDisplayedApp();
-    this.showForOrigin(app.origin);
+    app && this.showForOrigin(app.origin);
   },
 
   getAttentionScreenOrigins: function as_getAttentionScreenOrigins() {

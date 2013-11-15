@@ -141,15 +141,14 @@ window.Evme = new function Evme_Core() {
           descriptor.entry_point = info[1];
         }
 
-        EvmeManager.getAppByDescriptor(function getting(app) {
-          if (app) {
-            infoApps.push(app);
-          }
+        var app = EvmeManager.getAppByDescriptor(descriptor);
+        if (app) {
+          infoApps.push(app);
+        }
 
-          if (--total === 0) {
-            saveCollectionSettings(collection, infoApps, onDone);
-          }
-        }, descriptor);
+        if (--total === 0) {
+          saveCollectionSettings(collection, infoApps, onDone);
+        }
       });
     };
 
@@ -206,7 +205,6 @@ window.Evme = new function Evme_Core() {
     Evme.Searchbar.init({
       'el': Evme.$('#search-q'),
       'elForm': Evme.$('#search-rapper'),
-      'elDefaultText': Evme.$('#default-text'),
       'timeBeforeEventPause': data.searchbar.timeBeforeEventPause,
       'timeBeforeEventIdle': data.searchbar.timeBeforeEventIdle,
       'setFocusOnClear': false

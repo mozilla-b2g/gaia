@@ -70,9 +70,8 @@ var WindowManager = (function() {
   var _currentSetOrientationOrigin;
   var _globalOrientation;
 
-  // XXX: Refine this.
   window.addEventListener('globalorientationchanged', function(value) {
-    _globalOrientation = value ? 'portrait-primary' : null;
+    _globalOrientation = value ? OrientationManager.globalOrientation : null;
     setOrientationForApp(_currentSetOrientationOrigin);
   });
 
@@ -296,6 +295,7 @@ var WindowManager = (function() {
   function windowClosed(frame) {
     var iframe = frame.firstChild;
     var origin = iframe.dataset.frameOrigin;
+    var app = runningApps[origin];
 
     frame.classList.remove('active');
 
@@ -305,12 +305,29 @@ var WindowManager = (function() {
     // we don't need to check trusted ui state here anymore.
     // We do this because we don't want the trustedUI opener
     // is killed in background due to OOM.
-    if ('setVisible' in iframe && !TrustedUIManager.hasTrustedUI(origin)) {
-      iframe.setVisible(false);
+    if (!TrustedUIManager.hasTrustedUI(origin)) {
+      app.setVisible(false, true);
     }
 
     // Inform keyboardmanager that we've finished the transition
     iframe.dispatchEvent(new CustomEvent('appclose'));
+  }
+
+  function setActiveApp(app) {
+    var openedApp = app;
+    var closedApp = runningApps[displayedApp];
+    var closedFrame = closedApp.frame;
+
+    displayedApp = app.origin;
+    openedApp.setVisible(true);
+
+    windowOpened(openedApp.frame);
+    windowClosed(closedFrame);
+
+    var wrapper = ('wrapper' in openedApp.frame.dataset);
+    wrapperFooter.classList.toggle('visible', wrapper);
+
+    screenElement.classList.toggle('fullscreen-app', openedApp.isFullScreen());
   }
 
   windows.addEventListener('mozbrowserloadend', function loadend(evt) {
@@ -559,8 +576,9 @@ var WindowManager = (function() {
     var currentApp = displayedApp, newApp = origin ||
       HomescreenLauncher.origin;
 
-    if (newApp === HomescreenLauncher.origin)
+    if (newApp === HomescreenLauncher.origin) {
       HomescreenLauncher.getHomescreen();
+    }
 
     // Cancel transitions waiting to be started.
     transitionOpenCallback = null;
@@ -694,7 +712,7 @@ var WindowManager = (function() {
     _currentSetOrientationOrigin = origin;
 
     if (origin == null) { // No app is currently running.
-      screen.mozLockOrientation('portrait-primary');
+      screen.mozLockOrientation(OrientationManager.globalOrientation);
       return;
     }
 
@@ -794,7 +812,7 @@ var WindowManager = (function() {
   }
 
   function appendFrame(origFrame, origin, url, name, manifest, manifestURL,
-                       expectingSystemMessage) {
+                       expectingSystemMessage, stayBackground) {
     // Create the <iframe mozbrowser mozapp> that hosts the app
     var frame =
         createFrame(origFrame, origin, url, name, manifest, manifestURL);
@@ -835,12 +853,14 @@ var WindowManager = (function() {
     // And map the app origin to the info we need for the app
     var app = new AppWindow({
       origin: origin,
+      url: url,
       name: name,
       manifest: manifest,
       manifestURL: manifestURL,
       frame: frame,
       iframe: iframe,
-      launchTime: 0
+      launchTime: 0,
+      stayBackground: stayBackground
     });
     runningApps[origin] = app;
 
@@ -992,13 +1012,13 @@ var WindowManager = (function() {
                                 config.name, config.manifest,
                                 config.manifestURL,
                                 /* expectingSystemMessage */
-                                true);
+                                true, config.stayBackground);
 
           // set the size of the iframe
           // so Cards View will get a correct screenshot of the frame
           if (config.stayBackground) {
             app.resize(false);
-            app.setVisible(false);
+            app.setVisible(false, true /*screenshot*/);
           }
         } else {
           HomescreenLauncher.getHomescreen().ensure();
@@ -1057,10 +1077,11 @@ var WindowManager = (function() {
     // XXX: Refine this in AttentionWindow
     if (AttentionScreen.isFullyVisible())
       return;
-    if (displayedApp !== HomescreenLauncher.origin) {
+    if (displayedApp && displayedApp !== HomescreenLauncher.origin) {
       runningApps[displayedApp].setVisible(true);
     } else {
-      HomescreenLauncher.getHomescreen().setVisible(true);
+      var homescreen = HomescreenLauncher.getHomescreen();
+      homescreen && homescreen.setVisible(true);
     }
   });
 
@@ -1126,12 +1147,14 @@ var WindowManager = (function() {
 
       app = appendFrame(iframe, config.origin, config.url, config.title, {
         'name': config.title
-      }, null, /* expectingSystemMessage */ false);
+      }, null, /* expectingSystemMessage */ false,
+      /* stayBackground */ false);
 
       // XXX: Move this into app window.
       // Set the window name in order to reuse this app if we try to open
       // a new window with same name
       app.windowName = config.windowName;
+      runningApps[config.origin] = app;
     } else {
       iframe = app.iframe;
 
@@ -1239,6 +1262,7 @@ var WindowManager = (function() {
       return runningApps;
     },
     setDisplayedApp: setDisplayedApp,
+    setActiveApp: setActiveApp,
     getCurrentDisplayedApp: function() {
       return runningApps[displayedApp];
     },

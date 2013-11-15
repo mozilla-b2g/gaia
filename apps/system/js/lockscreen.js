@@ -122,6 +122,11 @@ var LockScreen = {
   elasticEnabled: false,
 
   /*
+  * A reference to the media playback widget in the lockscreen.
+  */
+  mediaPlaybackWidget: null,
+
+  /*
   * elastic animation interval
   */
   ELASTIC_INTERVAL: 5000,
@@ -212,7 +217,13 @@ var LockScreen = {
     window.addEventListener('holdhome', this, true);
 
     /* mobile connection state on lock screen */
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     if (conn && conn.voice) {
       conn.addEventListener('voicechange', this);
       this.updateConnState();
@@ -224,6 +235,9 @@ var LockScreen = {
       IccHelper.addEventListener('cardstatechange', this);
       IccHelper.addEventListener('iccinfochange', this);
     }
+
+    /* media playback widget */
+    this.mediaPlaybackWidget = new MediaPlaybackWidget(this.mediaContainer);
 
     var self = this;
 
@@ -607,6 +621,8 @@ var LockScreen = {
   // easing {Boolean} true|undefined to bounce back slowly.
   restoreSlide: function(easing) {
 
+    var slideCenter = this.slideCenter;
+
     // Mimic the `getAllElements` function...
     [this.slideLeft, this.slideRight, this.slideCenter]
       .forEach(function ls_rSlide(h) {
@@ -614,6 +630,8 @@ var LockScreen = {
 
           // To prevent magic numbers...
           var bounceBackTime = '0.3s';
+          if ('handle-center' === h.dataset.role)
+            bounceBackTime = '0.4s';  // The center should be slower.
 
           // Add transition to let it bounce back slowly.
           h.style.transition = 'transform ' + bounceBackTime + ' ease 0s';
@@ -629,6 +647,11 @@ var LockScreen = {
             // but we don't need to reset the blue are at such scenario.
             h.classList.remove('touched');
             h.removeEventListener('transitionend', tsEnd);
+
+            // End the center immediately when the ends ended.
+            if ('handle-center' !== h.dataset.role) {
+              slideCenter.classList.remove('touched');
+            }
           };
           h.addEventListener('transitionend', tsEnd);
 
@@ -645,13 +668,10 @@ var LockScreen = {
   },
 
   handleSlideEnd: function() {
-    // Bounce back to the center immediately.
+    // Bounce back to the center.
     if (false === this._slideReachEnd) {
       this.restoreSlide(true);
     } else {
-      // Restore it only after screen changed.
-      var appLaunchDelay = 400;
-      setTimeout(this.restoreSlide.bind(this, true), appLaunchDelay);
       this.handleIconClick('left' === this._slidingToward ?
         this.leftIcon : this.rightIcon);
     }
@@ -772,7 +792,6 @@ var LockScreen = {
       if (currentFrame)
         currentFrame.removeNextPaintListener(nextPaint);
 
-
       if (instant) {
         this.overlay.classList.add('no-transition');
         this.switchPanel();
@@ -825,7 +844,7 @@ var LockScreen = {
       this.overlay.classList.remove('no-transition');
 
     this.mainScreen.classList.add('locked');
-    screen.mozLockOrientation(ScreenLayout.defaultOrientation);
+    screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     if (!wasAlreadyLocked) {
       if (document.mozFullScreen)
@@ -984,7 +1003,13 @@ var LockScreen = {
   },
 
   updateConnState: function ls_updateConnState() {
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     if (!conn)
       return;
 
@@ -1183,8 +1208,8 @@ var LockScreen = {
     // ID of elements to create references
     var elements = ['connstate', 'clock-numbers', 'clock-meridiem',
         'date', 'area', 'area-unlock', 'area-camera', 'icon-container',
-        'area-handle', 'area-slide', 'passcode-code', 'alt-camera',
-        'alt-camera-button', 'slide-handle',
+        'area-handle', 'area-slide', 'media-container', 'passcode-code',
+        'alt-camera', 'alt-camera-button', 'slide-handle',
         'passcode-pad', 'camera', 'accessibility-camera',
         'accessibility-unlock', 'panel-emergency-call'];
 

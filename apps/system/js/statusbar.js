@@ -63,7 +63,8 @@ var StatusBar = {
   ELEMENTS: ['notification', 'emergency-cb-notification', 'time',
     'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
     'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
-    'bluetooth-headphones', 'recording', 'sms', 'geolocation', 'usb', 'label',
+    'bluetooth-headphones', 'bluetooth-transferring', 'recording', 'sms',
+    'geolocation', 'usb', 'label',
     'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
@@ -334,7 +335,12 @@ var StatusBar = {
         this.update.battery.call(this);
       }
 
-      var conn = window.navigator.mozMobileConnection;
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (conn) {
         conn.addEventListener('voicechange', this);
         conn.addEventListener('datachange', this);
@@ -370,7 +376,12 @@ var StatusBar = {
         battery.removeEventListener('statuschange', this);
       }
 
-      var conn = window.navigator.mozMobileConnection;
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (conn) {
         conn.removeEventListener('voicechange', this);
         conn.removeEventListener('datachange', this);
@@ -392,7 +403,13 @@ var StatusBar = {
 
   update: {
     label: function sb_updateLabel() {
-      var conn = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
 
@@ -463,7 +480,13 @@ var StatusBar = {
     },
 
     signal: function sb_updateSignal() {
-      var conn = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (!conn || !conn.voice)
         return;
 
@@ -492,18 +515,18 @@ var StatusBar = {
         delete icon.dataset.emergency;
         delete icon.dataset.searching;
         delete icon.dataset.roaming;
-      } else if (voice.connected || this.hasActiveCall()) {
-        // "Carrier" / "Carrier (Roaming)"
-        icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
-        icon.dataset.roaming = voice.roaming;
-
-        delete icon.dataset.emergency;
-        delete icon.dataset.searching;
       } else if (data && data.connected && data.type.startsWith('evdo')) {
         // "Carrier" / "Carrier (Roaming)" (EVDO)
         // Show signal strength of data call as EVDO only supports data call.
         icon.dataset.level = Math.ceil(data.relSignalStrength / 20); // 0-5
         icon.dataset.roaming = data.roaming;
+
+        delete icon.dataset.emergency;
+        delete icon.dataset.searching;
+      } else if (voice.connected || this.hasActiveCall()) {
+        // "Carrier" / "Carrier (Roaming)"
+        icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
+        icon.dataset.roaming = voice.roaming;
 
         delete icon.dataset.emergency;
         delete icon.dataset.searching;
@@ -522,7 +545,13 @@ var StatusBar = {
     },
 
     data: function sb_updateSignal() {
-      var conn = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var conn = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (!conn || !conn.data)
         return;
 
@@ -629,9 +658,13 @@ var StatusBar = {
 
     bluetoothProfiles: function sv_updateBluetoothProfiles() {
       var bluetoothHeadphoneIcon = this.icons.bluetoothHeadphones;
+      var bluetoothTransferringIcon = this.icons.bluetoothTransferring;
 
       bluetoothHeadphoneIcon.hidden =
         !Bluetooth.isProfileConnected(Bluetooth.Profiles.A2DP);
+
+      bluetoothTransferringIcon.hidden =
+        !Bluetooth.isProfileConnected(Bluetooth.Profiles.OPP);
     },
 
     alarm: function sb_updateAlarm() {
@@ -733,7 +766,13 @@ var StatusBar = {
   refreshCallListener: function sb_refreshCallListener() {
     // Listen to callschanged only when connected to CDMA networks and emergency
     // calls.
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     var emergencyCallsOnly =
       (conn && conn.voice && conn.voice.emergencyCallsOnly);
     var cdmaConnection =

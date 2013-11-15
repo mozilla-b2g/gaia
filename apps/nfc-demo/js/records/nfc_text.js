@@ -12,11 +12,11 @@ var nfcText = {
 createTextNdefRecord_Utf8: function(text, lang) {
   var tnf = nfc.tnf_well_known;
   var type = nfc.rtd_text;
-  var id = new Uint8Array(0);//null;
+  var id = new Uint8Array(0);
 
   var payloadLen = 1 /*status*/ + lang.length + text.length;
   var payload = new Uint8Array(payloadLen);
-  
+
   // Payload:
   var k = 0;
   payload[k++] = 0x02;

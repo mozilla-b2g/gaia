@@ -14,7 +14,7 @@ input, textarea {
 select {
   border: none;
   background: transparent;
-  font-size: 1.2rem;
+  font-size: 1.7rem;
 }
 
 input[type="checkbox"] {
@@ -31,7 +31,6 @@ form ol {
 
 form li {
   margin: 1rem 2rem;
-  padding: 0.25rem;
 }
 
 .datetime {
@@ -39,8 +38,7 @@ form li {
   pointer-events: none;
   position: absolute;
   top: 0rem;
-  left: 2rem;
-  font-size: 1.4rem;
+  left: 1.5rem;
   font-weight: normal;
 }
 

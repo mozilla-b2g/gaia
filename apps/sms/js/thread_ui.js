@@ -558,6 +558,10 @@ var ThreadUI = global.ThreadUI = {
       return;
     }
 
+    // Ensure that Recipients does not trigger focus on
+    // itself, which causes the keyboard to appear.
+    Recipients.View.isObscured = true;
+
     var activity = new MozActivity({
       name: 'pick',
       data: {
@@ -574,6 +578,8 @@ var ThreadUI = global.ThreadUI = {
         return;
       }
 
+      Recipients.View.isObscured = false;
+
       var data = Utils.basicContact(
         activity.result.tel[0].value, activity.result
       );
@@ -583,6 +589,8 @@ var ThreadUI = global.ThreadUI = {
     }).bind(this);
 
     activity.onerror = (function(e) {
+      Recipients.View.isObscured = false;
+
       console.log('WebActivities unavailable? : ' + e);
     }).bind(this);
   },
@@ -2490,7 +2498,9 @@ var ThreadUI = global.ThreadUI = {
         params: [email]
       });
     } else {
-      header = number;
+      if (!isContact) {
+        header = number;
+      }
 
       items.push({
         l10nId: 'call',

@@ -92,6 +92,12 @@ function execute(options) {
     prefs.push(['dom.experimental_forms', true]);
     prefs.push(['dom.webapps.useCurrentProfile', true]);
 
+    // Settings so desktop shims will work
+    prefs.push(['bluetooth.enabled', true]);
+    prefs.push(['bluetooth.visible', false]);
+    prefs.push(['wifi.enabled', true]);
+    prefs.push(['wifi.suspended', false]);
+
     // Partial implementation of gonk fonts
     // See: http://mxr.mozilla.org/mozilla-central/source/modules/libpref/src/init/all.js#3202
     prefs.push(['font.default.x-western', 'sans-serif']);

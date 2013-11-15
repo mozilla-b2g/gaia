@@ -833,8 +833,6 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, ' | ');
-    assert.ok(navigator.mozL10n.get.called);
-    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);
@@ -852,8 +850,6 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, ' | ');
-    assert.ok(navigator.mozL10n.get.called);
-    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -868,7 +864,6 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, myTitle);
     assert.equal(data.separator, '');
-    assert.isFalse(navigator.mozL10n.get.called);
     assert.equal(data.type, '');
     assert.equal(data.carrier, '');
     assert.equal(data.number, value);
@@ -886,8 +881,6 @@ suite('getDisplayObject', function() {
 
     assert.equal(data.name, value);
     assert.equal(data.separator, ' | ');
-    assert.ok(navigator.mozL10n.get.called);
-    assert.equal(navigator.mozL10n.get.args[0][0], type);
     assert.equal(data.type, type);
     assert.equal(data.carrier, carrier + ', ');
     assert.equal(data.number, value);

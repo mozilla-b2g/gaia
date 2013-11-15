@@ -2,6 +2,7 @@ Keyboards.es = {
   label: 'Spanish',
   menuLabel: 'Español',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'es',
   alt: {
     a: 'áªàâäåãāæ',

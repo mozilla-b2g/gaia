@@ -19,7 +19,7 @@ const TYPE_GROUP_MAPPING = {
   'textarea': 'text',
   'url': 'url',
   'email': 'email',
-  'password': 'password',
+  'password': 'text',
   'search': 'text',
   // number
   'number': 'number',
@@ -37,7 +37,8 @@ const TYPE_GROUP_MAPPING = {
 };
 
 // How long to wait for more focuschange events before processing
-const FOCUS_CHANGE_DELAY = 20;
+const BLUR_CHANGE_DELAY = 100;
+const SWITCH_CHANGE_DELAY = 20;
 
 var KeyboardManager = {
   inputTypeTable: {},
@@ -56,7 +57,7 @@ var KeyboardManager = {
    *
    * Each element in the arrays represents a keyboard layout:
    * {
-   *    id: the unique id of the keyboard, the key of entry_point
+   *    id: the unique id of the keyboard, the key of inputs
    *    name: the keyboard layout's name
    *    appName: the keyboard app name
    *    origin: the keyboard's origin
@@ -132,6 +133,7 @@ var KeyboardManager = {
     window.addEventListener('appwillclose', this);
     window.addEventListener('activitywillclose', this);
     window.addEventListener('attentionscreenshow', this);
+    window.addEventListener('mozbrowsererror', this);
 
     // To handle keyboard layout switching
     window.addEventListener('mozChromeEvent', function(evt) {
@@ -173,7 +175,7 @@ var KeyboardManager = {
     function reduceLayouts(carry, layout) {
       enabledApps.add(layout.app.origin);
       // add the layout to each type and return the carry
-      layout.entryPoint.types.filter(KeyboardHelper.isKeyboardType)
+      layout.inputManifest.types.filter(KeyboardHelper.isKeyboardType)
         .forEach(function(type) {
           if (!carry[type]) {
             carry[type] = [];
@@ -182,14 +184,14 @@ var KeyboardManager = {
           var enabledLayout = {
             id: layout.layoutId,
             origin: layout.app.origin,
-            path: layout.entryPoint.launch_path
+            path: layout.inputManifest.launch_path
           };
 
           // define properties for name that resolve at display time
           // to the correct language via the ManifestHelper
           Object.defineProperties(enabledLayout, {
             name: {
-              get: getName.bind(layout.entryPoint),
+              get: getName.bind(layout.inputManifest),
               enumerable: true
             },
             appName: {
@@ -230,9 +232,10 @@ var KeyboardManager = {
       }
     }, this);
 
-    // if there are no keyboards running - set text to show
+    // if there are no keyboards running - set text to show,
+    // but don't bring it to the foreground.
     if (!Object.keys(this.runningLayouts).length) {
-      this.setKeyboardToShow('text');
+      this.setKeyboardToShow('text', undefined, true);
     }
   },
 
@@ -245,56 +248,53 @@ var KeyboardManager = {
       return;
 
     var self = this;
-    // We can get multiple focuschange events in rapid succession
-    // so wait a bit before responding to see if we get another.
+    // Before a new focus event we get a blur event
+    // So if that's the case, wait a bit and see if a focus comes in
     clearTimeout(this.focusChangeTimeout);
-    this.focusChangeTimeout = setTimeout(function keyboardFocusChanged() {
-      function showKeyboard() {
-        // if we already have layouts for the group, no need to check default
-        if (!self.keyboardLayouts[group]) {
-          KeyboardHelper.checkDefaults(function changedDefaults() {
-              KeyboardHelper.getLayouts({ enabled: true },
-                self.updateLayouts.bind(self));
-              KeyboardHelper.saveToSettings();
-          });
-        }
-        // if there are still no keyboards to use
-        if (!self.keyboardLayouts[group]) {
-          group = 'text';
-        }
-        if (group !== self.showingLayout.type) {
-          self.resetShowingKeyboard();
-        }
-        self.setKeyboardToShow(group);
-        self.showKeyboard();
 
-        // We also want to show the permanent notification
-        // in the UtilityTray.
-        self.showIMESwitcher();
+    function showKeyboard() {
+      // if we already have layouts for the group, no need to check default
+      if (!self.keyboardLayouts[group]) {
+        KeyboardHelper.checkDefaults(function changedDefaults() {
+            KeyboardHelper.getLayouts({ enabled: true },
+              self.updateLayouts.bind(self));
+            KeyboardHelper.saveToSettings();
+        });
       }
+      // if there are still no keyboards to use
+      if (!self.keyboardLayouts[group]) {
+        group = 'text';
+      }
+      if (group !== self.showingLayout.type) {
+        self.resetShowingKeyboard();
+      }
+      self.setKeyboardToShow(group);
+      self.showKeyboard();
 
-      var group = TYPE_GROUP_MAPPING[type];
-      var index = (self.showingLayout.type === type) ?
-        self.showingLayout.index : 0;
+      // We also want to show the permanent notification
+      // in the UtilityTray.
+      self.showIMESwitcher();
+    }
 
-      if (type === 'blur') {
+    if (type === 'blur') {
+      this.focusChangeTimeout = setTimeout(function keyboardFocusChanged() {
         self._debug('get blur event');
         self.hideKeyboard();
         self.hideIMESwitcher();
+      }, BLUR_CHANGE_DELAY);
+    }
+    else {
+      var group = TYPE_GROUP_MAPPING[type];
+      self._debug('get focus event ' + type);
+      // by the order in Settings app, we should display
+      // if target group (input type) does not exist, use text for default
+      if (!self.keyboardLayouts[group]) {
+        // ensure the helper has apps and settings data first:
+        KeyboardHelper.getLayouts(showKeyboard);
       } else {
-        self._debug('get focus event');
-        // by the order in Settings app, we should display
-        // if target group (input type) does not exist, use text for default
-        if (!self.keyboardLayouts[group]) {
-          // ensure the helper has apps and settings data first:
-          KeyboardHelper.getLayouts(showKeyboard);
-        } else {
-          showKeyboard();
-        }
-
-
+        showKeyboard();
       }
-    }, FOCUS_CHANGE_DELAY);
+    }
   },
 
   launchLayoutFrame: function km_launchLayoutFrame(layout) {
@@ -413,7 +413,6 @@ var KeyboardManager = {
       case 'appwillclose':
         this.hideKeyboardImmediately();
         break;
-      //XXX the following case hasn't been tested.
       case 'mozbrowsererror': // OOM
         var origin = evt.target.dataset.frameOrigin;
         this.removeKeyboard(origin);
@@ -444,7 +443,7 @@ var KeyboardManager = {
     delete this.runningLayouts[origin];
   },
 
-  setKeyboardToShow: function km_setKeyboardToShow(group, index) {
+  setKeyboardToShow: function km_setKeyboardToShow(group, index, launchOnly) {
     if (!this.keyboardLayouts[group]) {
       console.warn('trying to set a layout group to show that doesnt exist');
       return;
@@ -457,6 +456,15 @@ var KeyboardManager = {
     this.showingLayout.index = index;
     var layout = this.keyboardLayouts[group][index];
     this.showingLayout.frame = this.launchLayoutFrame(layout);
+
+    // By setting launchOnly to true, we load the keyboard frame w/o bringing it
+    // to the foreground; this is effectively equal to calling
+    // setKeyboardToShow() *then* call resetShowingKeyboard().
+    if (launchOnly) {
+      this.showingLayout.frame.hidden = true;
+      return;
+    }
+
     this.showingLayout.frame.hidden = false;
     this.setLayoutFrameActive(this.showingLayout.frame, true);
     this.showingLayout.frame.addEventListener(
@@ -608,7 +616,7 @@ var KeyboardManager = {
       self.keyboardLayouts[showed.type].activeLayout = index;
       self.resetShowingKeyboard();
       self.setKeyboardToShow(showed.type, index);
-    }, FOCUS_CHANGE_DELAY);
+    }, SWITCH_CHANGE_DELAY);
   },
 
   showAll: function km_showAll() {
@@ -617,6 +625,8 @@ var KeyboardManager = {
     var self = this;
     var showed = this.showingLayout;
     var activeLayout = this.keyboardLayouts[showed.type].activeLayout;
+    var _ = navigator.mozL10n.get;
+    var actionMenuTitle = _('layout-selection');
 
     this.switchChangeTimeout = setTimeout(function keyboardLayoutList() {
       var items = [];
@@ -634,7 +644,7 @@ var KeyboardManager = {
       });
       self.hideKeyboard();
 
-      ActionMenu.open(items, 'Layout selection', function(selectedIndex) {
+      ActionMenu.open(items, actionMenuTitle, function(selectedIndex) {
         if (!self.keyboardLayouts[showed.type])
           showed.type = 'text';
         self.keyboardLayouts[showed.type].activeLayout = selectedIndex;
@@ -662,7 +672,7 @@ var KeyboardManager = {
         // user canceled.
         window.dispatchEvent(new CustomEvent('keyboardchangecanceled'));
       });
-    }, FOCUS_CHANGE_DELAY);
+    }, SWITCH_CHANGE_DELAY);
   },
 
   setLayoutFrameActive: function km_setLayoutFrameActive(frame, active) {

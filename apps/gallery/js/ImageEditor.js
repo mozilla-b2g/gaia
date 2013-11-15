@@ -343,8 +343,17 @@ function saveEditedImage() {
   if ($('edit-crop-button').classList.contains('selected'))
     imageEditor.cropImage();
 
-  imageEditor.getFullSizeBlob('image/jpeg', function(blob) {
+  var progressBar = $('save-progress');
+  progressBar.value = 0;
+  progressBar.max = 110; // Allow an extra 10% time for conversion to blob
 
+  imageEditor.getFullSizeBlob('image/jpeg', gotBlob, onProgress);
+
+  function onProgress(p) {
+    progressBar.value = Math.floor(p * 100);
+  }
+
+  function gotBlob(blob) {
     var original = files[editedPhotoIndex].name;
     var basename, extension, filename;
     var version = 1;
@@ -379,7 +388,8 @@ function saveEditedImage() {
 
     // We're done.
     exitEditMode(true);
-  });
+    progressBar.value = 0;
+  }
 }
 
 /*
@@ -576,6 +586,12 @@ ImageEditor.prototype.finishEdit = function(callback) {
   this.dest.width = this.preview.width;
   this.dest.height = this.preview.height;
 
+  var borderWidth = Math.ceil(this.edits.borderWidth * this.dest.width);
+  this.edits.borderLeftWidth = borderWidth;
+  this.edits.borderRightWidth = borderWidth;
+  this.edits.borderTopWidth = borderWidth;
+  this.edits.borderBottomWidth = borderWidth;
+
   this.processor.draw(this.preview,
                       0, 0, this.preview.width, this.preview.height,
                       this.dest.x, this.dest.y, this.dest.width,
@@ -588,29 +604,116 @@ ImageEditor.prototype.finishEdit = function(callback) {
 // Apply the edits offscreen and pass the full-size edited image as a blob
 // to the specified callback function. The code here is much like the
 // code above in edit().
-ImageEditor.prototype.getFullSizeBlob = function(type, callback) {
-  // Create an offscreen canvas of the same size
+ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
+  const TILE_SIZE = 1024;
+  var self = this;
+
+  // Create an offscreen canvas and copy the image into it
   var canvas = document.createElement('canvas');
   canvas.width = this.source.width; // "full size" is cropped image size
   canvas.height = this.source.height;
+  var context = canvas.getContext('2d');
+  context.drawImage(this.original,
+                    this.source.x, this.source.y,
+                    this.source.width, this.source.height,
+                    0, 0, this.source.width, this.source.height);
 
-  // Create an ImageProcessor object and use it to draw the edited
-  // image to the full-size offscreen canvas
-  var processor = new ImageProcessor(canvas);
-  processor.draw(this.original,
-                 this.source.x, this.source.y, this.source.width,
-                 this.source.height,
-                 0, 0, this.source.width, this.source.height,
-                 this.edits);
+  // How many pixels do we have to process? How many have we processed so far?
+  var total_pixels = canvas.width * canvas.height;
+  var processed_pixels = 0;
 
-  // Now get the canvas contents as a file and pass to the callback
-  canvas.toBlob(function(blobData) {
-    callback(blobData);
+  function makeTileList(imageWidth, imageHeight, tileWidth, tileHeight) {
+    var tiles = [];
+    var x = 0, y = 0;
+    while (y < imageHeight) {
+      x = 0;
+      while (x < imageWidth) {
+        var tile = {x: x, y: y, w: tileWidth, h: tileHeight};
+        if (x + tileWidth > imageWidth)
+          tile.w = imageWidth - x;
+        if (y + tileHeight > imageHeight)
+          tile.h = imageHeight - y;
+        tiles.push(tile);
+        x += tileWidth;
+      }
+      y += tileHeight;
+    }
+    return tiles;
+  }
 
-    // Deallocate stuff
-    processor.destroy();
-    canvas.width = 0;
-   }, type);
+  // Create a smaller tile canvas.
+  var tile = document.createElement('canvas');
+  tile.width = tile.height = TILE_SIZE;
+
+  // Create an ImageProcessor object that renders into the tile.
+  var processor = new ImageProcessor(tile);
+
+  // Divide the image into a set of tiled rectangles
+  var rectangles = makeTileList(this.source.width, this.source.height,
+                                tile.width, tile.height);
+
+  var borderWidth = Math.ceil(this.edits.borderWidth * this.source.width);
+
+  processNextTile();
+
+  // Process one tile of the original image, copy the processed tile
+  // to the full-size canvas, and then return to the event queue.
+  function processNextTile() {
+    var rect = rectangles.shift();
+
+    // Set the borders for this tile
+    self.edits.borderTopWidth =
+      (rect.y === 0) ? borderWidth : 0;
+    self.edits.borderBottomWidth =
+      (rect.y + rect.h === self.source.height) ? borderWidth : 0;
+    self.edits.borderLeftWidth =
+      (rect.x === 0) ? borderWidth : 0;
+    self.edits.borderRightWidth =
+      (rect.x + rect.w === self.source.width) ? borderWidth : 0;
+
+    // Get the input pixels for this tile
+    var pixels = context.getImageData(rect.x, rect.y, rect.w, rect.h);
+
+    var centerX = Math.floor((tile.width - rect.w) / 2);
+    var centerY = Math.floor((tile.height - rect.h) / 2);
+
+    // Edit the pixels and draw them to the tile
+    processor.draw(pixels,
+                   0, 0, rect.w, rect.h,
+                   centerX, centerY, rect.w, rect.h,
+                   self.edits);
+
+    // Copy the edited pixels from the tile back to the canvas
+    context.drawImage(tile,
+                      centerX, centerY, rect.w, rect.h,
+                      rect.x, rect.y, rect.w, rect.h);
+
+    processed_pixels += rect.w * rect.h;
+    if (progress)
+      progress(processed_pixels / total_pixels);
+
+    if (rectangles.length) {
+      // If we're not done yet return to the event loop,
+      // and process the next tile soon.
+      setTimeout(processNextTile);
+    }
+    else {      // Otherwise we are done.
+      // The processed image is in our offscreen canvas, so we don't need
+      // the WebGL stuff anymore.
+      processor.destroy();
+      tile.width = tile.height = 0;
+      processor = tile = null;
+
+      // Now get the canvas contents as a file and pass to the callback
+      canvas.toBlob(function(blobData) {
+        // Now that we've got the blob, we don't need the canvas anymore
+        canvas.width = canvas.height = 0;
+        canvas = null;
+        // Pass the blob to the callback
+        done(blobData);
+      }, type);
+    }
+  }
 };
 
 ImageEditor.prototype.isCropOverlayShown = function() {
@@ -1190,8 +1293,10 @@ ImageEditor.prototype.prepareAutoEnhancement = function(pixel) {
 function ImageProcessor(canvas) {
   // WebGL context for the canvas
   this.canvas = canvas;
-  var gl = this.context = canvas.getContext('webgl') ||
-    canvas.getContext('experimental-webgl');
+  var options = { depth: false, stencil: false, antialias: false };
+  var gl = this.context =
+    canvas.getContext('webgl', options) ||
+    canvas.getContext('experimental-webgl', options);
 
   // Define our shader programs
   var vshader = this.vshader = gl.createShader(gl.VERTEX_SHADER);
@@ -1238,7 +1343,6 @@ function ImageProcessor(canvas) {
   this.sourceRectangle = gl.createBuffer();
   this.destinationRectangle = gl.createBuffer();
 
-
   // Look up the addresses of the program's input variables
   this.srcPixelAddress = gl.getAttribLocation(program, 'src_pixel');
   this.destPixelAddress = gl.getAttribLocation(program, 'dest_pixel');
@@ -1248,22 +1352,30 @@ function ImageProcessor(canvas) {
   this.destOriginAddress = gl.getUniformLocation(program, 'dest_origin');
   this.matrixAddress = gl.getUniformLocation(program, 'matrix');
   this.gammaAddress = gl.getUniformLocation(program, 'gamma');
-  this.borderWidthAddress = gl.getUniformLocation(program, 'border_width');
-  this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
   this.rgbMinMaxValuesAddress = gl.getUniformLocation(program,
                                                       'rgb_min_max_values');
-
+  this.borderLeftWidthAddress =
+    gl.getUniformLocation(program, 'border_left_width');
+  this.borderRightWidthAddress =
+    gl.getUniformLocation(program, 'border_right_width');
+  this.borderTopWidthAddress =
+    gl.getUniformLocation(program, 'border_top_width');
+  this.borderBottomWidthAddress =
+    gl.getUniformLocation(program, 'border_bottom_width');
+  this.borderColorAddress = gl.getUniformLocation(program, 'border_color');
 }
 
 // Destroy all the stuff we allocated
 ImageProcessor.prototype.destroy = function() {
   var gl = this.context;
+  this.context = null; // Don't retain a reference to it
   gl.deleteShader(this.vshader);
   gl.deleteShader(this.fshader);
   gl.deleteProgram(this.program);
   gl.deleteTexture(this.sourceTexture);
   gl.deleteBuffer(this.sourceRectangle);
   gl.deleteBuffer(this.destinationRectangle);
+  gl.viewport(0, 0, 0, 0);
 };
 
 ImageProcessor.prototype.draw = function(image,
@@ -1293,10 +1405,10 @@ ImageProcessor.prototype.draw = function(image,
                       options.matrix || ImageProcessor.IDENTITY_MATRIX);
 
   // Set border size and color
-  if (options.borderWidth)
-    gl.uniform1f(this.borderWidthAddress, Math.ceil(dw * options.borderWidth));
-  else
-    gl.uniform1f(this.borderWidthAddress, 0);
+  gl.uniform1f(this.borderLeftWidthAddress, options.borderLeftWidth || 0);
+  gl.uniform1f(this.borderRightWidthAddress, options.borderRightWidth || 0);
+  gl.uniform1f(this.borderTopWidthAddress, options.borderTopWidth || 0);
+  gl.uniform1f(this.borderBottomWidthAddress, options.borderBottomWidth || 0);
 
   gl.uniform4fv(this.borderColorAddress, options.borderColor || [0, 0, 0, 0]);
 
@@ -1345,7 +1457,10 @@ ImageProcessor.vertexShader =
 ImageProcessor.fragmentShader =
   'precision mediump float;\n' +
   'uniform sampler2D image;\n' +
-  'uniform float border_width;\n' +
+  'uniform float border_left_width;\n' +
+  'uniform float border_right_width;\n' +
+  'uniform float border_top_width;\n' +
+  'uniform float border_bottom_width;\n' +
   'uniform vec4 border_color;\n' +
   'uniform vec2 dest_size;\n' +    // size of the destination rectangle
   'uniform vec2 dest_origin;\n' +  // upper-left corner of destination rectangle
@@ -1355,10 +1470,10 @@ ImageProcessor.fragmentShader =
   'varying vec2 src_position;\n' + // from the vertex shader
   'void main() {\n' +
   // Use border color if we're over the border
-  '  if (gl_FragCoord.x < dest_origin.x + border_width ||\n' +
-  '      gl_FragCoord.y < dest_origin.y + border_width ||\n' +
-  '      gl_FragCoord.x > dest_origin.x + dest_size.x - border_width ||\n' +
-  '      gl_FragCoord.y > dest_origin.y + dest_size.y - border_width) {\n' +
+  '  if (gl_FragCoord.x < dest_origin.x + border_left_width ||\n' +
+  '      gl_FragCoord.y < dest_origin.y + border_bottom_width ||\n' +
+  '      gl_FragCoord.x > dest_origin.x + dest_size.x-border_right_width ||\n' +
+  '      gl_FragCoord.y > dest_origin.y + dest_size.y - border_top_width) {\n' +
   '    gl_FragColor = border_color;\n' +
   '    return;\n' +
   '  }\n' +

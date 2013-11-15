@@ -515,7 +515,7 @@ suite('grid.js >', function() {
           role: 'app'
         },
         {
-          role: 'keyboard'
+          role: 'input'
         },
         {
           role: 'app',
@@ -544,7 +544,7 @@ suite('grid.js >', function() {
           origin: 'updateManifestOnly',
           manifest: undefined,
           updateManifest: {
-            role: 'keyboard'
+            role: 'input'
           }
         }));
 

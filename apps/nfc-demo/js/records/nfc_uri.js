@@ -75,7 +75,7 @@ createEmailNdefRecord: function(mail) {
 
   var tnf = nfc.tnf_well_known;
   var type = nfc.rtd_uri;
-  var id = null;
+  var id = new Uint8Array(0);
   var payload = null;
 
   // Construct email payload:

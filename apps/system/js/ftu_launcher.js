@@ -86,7 +86,7 @@ var FtuLauncher = {
         break;
 
       case 'iac-ftucomms':
-        var message = evt.detail.data;
+        var message = evt.detail;
         if (message === 'done') {
           this.setBypassHome(true);
         }

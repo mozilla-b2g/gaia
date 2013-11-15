@@ -1,0 +1,35 @@
+#view-mix {
+  overflow: auto;
+}
+
+.tile {
+  background-position: center;
+  background-size: cover;
+  height: 0;
+  border: 0.1rem solid black;
+  -moz-box-sizing: border-box;
+}
+
+.tile.left {
+  float: left;
+}
+
+.tile.right {
+  float: right;
+}
+
+@media only screen
+and (orientation : portrait) {
+  .tile {
+    width: 25%;
+    padding-bottom: 25%;
+  }
+}
+
+@media only screen
+and (orientation : landscape) {
+  .tile {
+    width: 20%;
+    padding-bottom: 20%;
+  }
+}

@@ -20,11 +20,10 @@
         </li>
         <li id="fdn-enabled">
           <label class="pack-switch">
-            <input type="checkbox" data-ignore />
-            <span></span>
+            <input type="checkbox" data-ignore>
+            <small></small>
+            <span data-l10n-id="fdnSettings">Fixed dialing numbers</span>
           </label>
-          <small></small>
-          <a data-l10n-id="fdnSettings">Fixed dialing numbers</a>
         </li>
         <li>
           <small data-l10n-id="fdn-authorizedNumbers-desc">
@@ -36,15 +35,15 @@
         </li>
         <li id="fdn-resetPIN2">
           <label>
-            <button data-l10n-id="fdn-resetPIN2">Reset PIN2 code</button>
+            <button data-l10n-id="fdnReset">Reset PIN2 code</button>
           </label>
         </li>
       </ul>
     </div>
 
+    <script src="js/simcard_dialog.js"></script>
     <script src="js/simcard_fdn_list.js"></script>
     <script src="js/simcard_fdn.js"></script>
-    <script src="js/simcard_dialog.js"></script>
 
   </template>
 </element>

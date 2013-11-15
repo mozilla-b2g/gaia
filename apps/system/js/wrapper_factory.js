@@ -67,7 +67,6 @@
         if (origin in runningApps &&
             runningApps[origin].windowName == '_blank') {
           WindowManager.setDisplayedApp(origin);
-          return;
         }
       } else {
         origin = 'window:' + name + ',source:' + callerOrigin;
@@ -89,7 +88,6 @@
       var browser_config = this.generateBrowserConfig(features);
 
       // If we don't reuse an existing app, open a brand new one
-      var iframe;
       browser_config.url = url;
       browser_config.origin = origin;
       browser_config.windowName = name;

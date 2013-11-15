@@ -288,6 +288,32 @@
     },
 
     /**
+     * Finds and returns all accounts that can sync (based on their provider).
+     *
+     *    accountStore.syncableAccounts(function(err, list) {
+     *      if (list.length === 0)
+     *        // hide sync options
+     *    });
+     *
+     * @param {Function} callback [Error err, Array accountList].
+     */
+    syncableAccounts: function(callback) {
+      this.all(function(err, list) {
+        if (err) return callback(err);
+
+        var results = [];
+        for (var key in list) {
+          var account = list[key];
+          var provider = Calendar.App.provider(account.providerType);
+          if (provider.canSync) {
+            results.push(account);
+          }
+        }
+        callback(null, results);
+      });
+    },
+
+    /**
      * Returns a list of available presets filtered by
      * the currently used presets in the database.
      *

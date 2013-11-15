@@ -6,8 +6,6 @@
 (function() {
 'use strict';
 
-// Need to add reference spec here
-const FILENAME_LIMIT = 40;
 // characters not allowed in smil filenames
 var unsafeFilenamePattern = /[^a-zA-Z0-9_#.()?&%-]/g;
 
@@ -100,6 +98,9 @@ function SMIL_generateSlides(data, slide, slideIndex) {
 function SMIL_generateUniqueLocation(data, location) {
   var extension, name, result;
 
+  // Need to add reference spec here
+  var FILENAME_LIMIT = 40;
+
   // if the location is already being used by the attachment
   function SMIL_uniqueLocationMatches(attachment) {
     return attachment.location === result;
@@ -128,7 +129,7 @@ function SMIL_generateUniqueLocation(data, location) {
   // If result is identical to any other attached files
   // add a duplicate marker and recheck the length
   while (data.attachments.some(SMIL_uniqueLocationMatches)) {
-    let truncIndex = 0;
+    var truncIndex = 0;
     // Construct a de-deuplicated name with the extention and
     // update duplicate index in case de-duplicated name is already chosen
     result = name + '_' + duplicateIndex++ + extension;

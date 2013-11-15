@@ -4,10 +4,10 @@ requireApp('communications/shared/test/unit/mocks/mock_navigator_moz_settings.js
 requireApp('communications/ftu/test/unit/mock_settings.js');
 requireApp('communications/ftu/js/language.js');
 
+mocha.globals(['KeyboardHelper']);
 
 suite('languages >', function() {
   var realSettings;
-
   suiteSetup(function() {
 
     realSettings = navigator.mozSettings;
@@ -60,49 +60,31 @@ suite('languages >', function() {
     done();
   });
 
-    test('loads keyboard layouts from file', function(done) {
-    LanguageManager.getSupportedKbLayouts(function() {
-      assert.isNotNull(LanguageManager._kbLayoutList);
-      done();
+  suite('keyboard settings >', function() {
+    var langKey = 'language.current';
+
+    suiteSetup(function() {
+      window.KeyboardHelper = {};
+      MockNavigatorSettings.mSyncRepliesOnly = true;
+    });
+
+    suiteTeardown(function() {
+      delete window.KeyboardHelper;
+    });
+
+    setup(function() {
+      KeyboardHelper.changeDefaultLayouts = this.sinon.spy();
+      LanguageManager.init();
+    });
+
+    test('observes settings', function() {
+      assert.equal(MockNavigatorSettings.mObservers[langKey].length, 1);
+    });
+
+    test('keyboard layouts changed after language change', function() {
+      MockNavigatorSettings.mTriggerObservers(langKey,
+                                              {settingValue: 'newLanguage'});
+      assert.isTrue(KeyboardHelper.changeDefaultLayouts.called);
     });
   });
-
-  test('change keyboard', function() {
-    var settingName = 'keyboard.current',
-        currentLanguage = 'currentLanguage',
-        newLanguage = 'newLanguage';
-
-    LanguageManager._currentLanguage = 'currentLanguage';
-    LanguageManager._kbLayoutList = {
-      'layout': {
-        currentLanguage: currentLanguage,
-        newLanguage: newLanguage
-      },
-      'nonLatin': [newLanguage]
-    };
-    LanguageManager._languages = {
-      'en': 'english',
-      currentLanguage: 'The Current Language',
-      newLanguage: 'The New Language'
-    };
-
-    var fakeEvent = {
-      settingValue: newLanguage
-    };
-    LanguageManager.changeDefaultKb(fakeEvent);
-
-    // Check current language
-    assert.equal(MockNavigatorSettings.mSettings[settingName],
-                 fakeEvent.settingValue);
-
-    // Check old layout set to false
-    assert.isFalse(MockNavigatorSettings.mSettings['keyboard.layouts.' +
-                                                    currentLanguage]);
-    // Check new layout set to true
-    assert.isTrue(MockNavigatorSettings.mSettings['keyboard.layouts.' +
-                                                   newLanguage]);
-    // Check english layout enabled for non-latin keyboard
-    assert.isTrue(MockNavigatorSettings.mSettings['keyboard.layouts.english']);
-  });
-
 });

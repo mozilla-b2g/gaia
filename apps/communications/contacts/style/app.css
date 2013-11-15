@@ -396,7 +396,7 @@ form p + p {
 /* ICONS */
 
 span[role="button"] {
-  font: 0/0 a;
+  font-size: 0;
   background: transparent no-repeat center center;
   background-size: 100% auto;
   display: inline-block;
@@ -692,4 +692,12 @@ form[role="dialog"].no-overlay button {
 
 #selectable-form {
   background: none;
+}
+
+.group-section {
+  overflow: hidden;
+}
+
+.group-list {
+  overflow: hidden;
 }

@@ -15,6 +15,7 @@ class SearchPanel(Base):
     _body = (By.CSS_SELECTOR, 'body')
     _search_title_type_locator = (By.CSS_SELECTOR, '#search-title > .type')
     _search_title_query_locator = (By.CSS_SELECTOR, '#search-title > .query')
+    _search_title_first_word_locator = (By.CSS_SELECTOR, '#search-title [data-l10n-id="evme-helper-title-prefix"]')
     _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.cloud li[data-name]')
     _search_results_installed_app_locator = (By.CSS_SELECTOR, '#search .evme-apps ul.installed li[data-name]')
     _app_icon_locator = (By.CSS_SELECTOR, 'ul.cloud li[data-name]')
@@ -27,6 +28,8 @@ class SearchPanel(Base):
 
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._search_title_query_locator).text.lower() ==
                                 search_term.lower())
+
+        self.wait_for_element_displayed(*self._search_title_first_word_locator)
 
     def wait_for_everything_me_loaded(self):
         self.wait_for_condition(

@@ -23,8 +23,9 @@ label.pack-switch input {
   left: 0;
 }
 
-label.pack-checkbox input + span,
-label.pack-radio input + span {
+label.pack-checkbox input ~ span:after,
+label.pack-radio input ~ span:after {
+  content: '';
   position: absolute;
   left: 50%;
   top: 50%;
@@ -34,27 +35,27 @@ label.pack-radio input + span {
   pointer-events: none;
 }
 
-label.pack-checkbox input + span {
+label.pack-checkbox input ~ span:after {
   background: url(switches/images/check/default.png) no-repeat center top / 2.2rem auto;
 }
 
-label.pack-radio input + span {
+label.pack-radio input ~ span:after {
   background: url(switches/images/radio/default.png) no-repeat center top / 2.2rem auto;
 }
 
-label.pack-checkbox input:checked + span,
-label.pack-radio input:checked + span,
-label.pack-switch input:checked + span {
+label.pack-checkbox input:checked ~ span:after,
+label.pack-radio input:checked ~ span:after,
+label.pack-switch input:checked ~ span:after {
   background-position: center bottom;
 }
 
 /* 'Dangerous' switches */
 
-label.pack-checkbox.danger input + span {
+label.pack-checkbox.danger input ~ span:after {
   background-image: url(switches/images/check/danger.png);
 }
 
-label.pack-radio.danger input + span {
+label.pack-radio.danger input ~ span:after {
   background-image: url(switches/images/radio/danger.png);
 }
 
@@ -63,9 +64,10 @@ label.pack-radio.danger input + span {
  * ON/OFF SWITCHES
  * ---------------------------------- */
 
-label.pack-switch input + span {
+label.pack-switch input ~ span:after {
+  content: '';
   position: absolute;
-  left: 50%;
+  right: 0;
   top: 50%;
   margin: -1.1rem 0 0 -2.7rem;
   width: 5.1rem;
@@ -79,16 +81,16 @@ label.pack-switch input + span {
 }
 
 /* switch: 'ON' state */
-label.pack-switch input:checked + span {
+label.pack-switch input:checked ~ span:after {
   background: #e6e6e6 url(switches/images/switch/background.png) no-repeat 0 0 / 8.3rem 2.1rem;
   border-color: #00abcd;
 }
 
 /* switch: disabled state */
-label.pack-switch input:disabled + span {
+label.pack-switch input:disabled ~ span:after {
   opacity: 0.4;
 }
 
-label.pack-switch input.uninit + span {
+label.pack-switch input.uninit ~ span:after {
   transition: none;
 }

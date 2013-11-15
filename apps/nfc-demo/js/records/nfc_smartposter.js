@@ -30,7 +30,7 @@ createEmailNdefRecord: function(aEmail, aTitle, aAction) {
 
   var tnf = nfc.tnf_well_known;
   var type = nfc.rtd_smart_poster;
-  var id = null;
+  var id = new Uint8Array(0);
   var payload = null;
 
   // Sub-payload byte strings attached to main payload
@@ -40,7 +40,7 @@ createEmailNdefRecord: function(aEmail, aTitle, aAction) {
 
   var payloadUtf8 = uriRec + actionRec + titleRec;
   payload = nfc.fromUTF8(payloadUtf8);
-  
+
   var main = new MozNdefRecord(
     tnf,
     type,
@@ -56,7 +56,7 @@ createUriNdefRecord: function(aUri, aTitle, aAction) {
 
   var tnf = nfc.tnf_well_known;
   var type = nfc.rtd_smart_poster;
-  var id = null;
+  var id = new Uint8Array(0);
   var payload = null;
 
   // Sub-payload byte strings attached to main payload
@@ -64,7 +64,8 @@ createUriNdefRecord: function(aUri, aTitle, aAction) {
   var actionRec = this.createActionRecord(aAction);
   var titleRec = this.createTitleRecord(aTitle);
 
-  payload = uriRec + actionRec + titleRec;
+  var payloadUtf8 = uriRec + actionRec + titleRec;
+  payload = nfc.fromUTF8(payloadUtf8);
 
   var main = new MozNdefRecord(
     tnf,

@@ -3,6 +3,11 @@ requireLib('models/account.js');
 requireCommon('test/synthetic_gestures.js');
 
 suiteGroup('Views.Settings', function() {
+  ['Provider.Local', 'Provider.Caldav'].forEach(function(name) {
+    suiteSetup(function(done) {
+      Calendar.App.loadObject(name, done);
+    });
+  });
 
   var subject;
   var app;
@@ -11,6 +16,19 @@ suiteGroup('Views.Settings', function() {
   var template;
   var triggerEvent;
   var account;
+
+  function syncButtonVisible(yesNo) {
+    return function(done) {
+      subject.render();
+      subject.onrender = function() {
+        var contains =
+          subject.syncButton.classList.contains(Calendar.ACTIVE);
+
+        assert.equal(contains, yesNo, 'syncButton active');
+        done();
+      };
+    }
+  }
 
   function stageModels(list) {
     var object = Object.create(null);
@@ -84,7 +102,7 @@ suiteGroup('Views.Settings', function() {
   teardown(function(done) {
     testSupport.calendar.clearStore(
       app.db,
-      ['calendars'],
+      ['accounts', 'calendars'],
       function() {
         app.db.close();
         done();
@@ -116,7 +134,55 @@ suiteGroup('Views.Settings', function() {
     assert.ok(subject.syncProgressTarget);
   });
 
-  suite('#observeStore', function() {
+  suite('#_observeAccountStore', function() {
+    var accounts = testSupport.calendar.dbFixtures(
+      'account',
+      'Account',
+      {
+        sync: { _id: 'sync', providerType: 'Caldav' },
+        nosync: { _id: 'nosync', providerType: 'Local' }
+      }
+    );
+
+    var syncAccount;
+    var accountStore;
+    setup(function(done) {
+      accountStore = app.store('Account');
+      syncAccount = accounts.sync;
+
+      subject.render();
+      subject.onrender = done;
+    });
+
+    suite('remove', function() {
+      setup(function(done) {
+        accountStore.remove(accounts.sync._id);
+        subject.onupdatesyncbutton = function() {
+          subject.onupdatesyncbutton = null;
+          done();
+        };
+      });
+
+      test('hides button', syncButtonVisible(false));
+
+      suite('add', function() {
+        setup(function(done) {
+          delete syncAccount._id;
+
+          accountStore.persist(syncAccount);
+          subject.onupdatesyncbutton = function() {
+            subject.onupdatesyncbutton = null;
+            done();
+          };
+        });
+
+        test('shows button', syncButtonVisible(true));
+      });
+    });
+
+  });
+
+  suite('#_observeCalendarStore', function() {
     var models = stageModels({
       first: {
         localDisplayed: true,
@@ -137,7 +203,7 @@ suiteGroup('Views.Settings', function() {
       };
     });
 
-    suite('update / error', function() {
+    suite('calendar update / error', function() {
       var model;
       var container;
 
@@ -321,68 +387,91 @@ suiteGroup('Views.Settings', function() {
   });
 
   suite('#render', function() {
-    var models = {};
+    var accounts = testSupport.calendar.dbFixtures(
+      'account',
+      'Account', {
+        one: {
+          _id: 'one',
+          providerType: 'Local'
+        },
 
-    setup(function(done) {
-      models[1] = Factory('calendar', {
-        name: 'First',
-        localDisplayed: true,
-        _id: 1
+        two: {
+          _id: 'two',
+          providerType: 'Caldav'
+        }
+      }
+    );
+
+    var calendars = testSupport.calendar.dbFixtures(
+      'calendar',
+      'Calendar', {
+        one: {
+          accountId: 'one',
+          name: 'First',
+          localDisplayed: true,
+          _id: 1
+        },
+
+        two: {
+          accountId: 'two',
+          name: 'Second',
+          localDisplayed: false,
+          _id: 2,
+          error: {}
+        }
+      }
+    );
+
+    test('sync button with syncable accounts', syncButtonVisible(true));
+
+    suite('sync button visibility without syncable accounts', function() {
+      setup(function(done) {
+        Calendar.App.store('Account').remove(accounts.two._id, done);
       });
 
-      models[2] = Factory('calendar', {
-        name: 'Second',
-        localDisplayed: false,
-        _id: 2,
-        error: {}
+      test('without syncable accounts', syncButtonVisible(false));
+    });
+
+    suite('calendars', function() {
+      var one;
+      var two;
+      var children;
+
+      setup(function(done) {
+        subject.onrender = function() {
+          children = subject.calendars.children;
+          one = children[0];
+          two = children[1];
+          done();
+        };
+        subject.render();
       });
 
-      var trans = app.db.transaction('calendars', 'readwrite');
+      test('number of calendars', function() {
+        assert.equal(children.length, 2);
+      });
 
-      store.persist(models[1], trans);
-      store.persist(models[2], trans);
+      test('naming', function() {
+        assert.equal(one.textContent, calendars.one.name);
+        assert.equal(two.textContent, calendars.two.name);
+      });
 
-      trans.oncomplete = function() {
-        done();
-      };
+      test('localDisplayed on calendar', function() {
+        assert.isTrue(
+          one.querySelector('*[type="checkbox"]').checked
+        );
 
-      trans.onerror = function(e) {
-        done(e);
-      };
-    });
+        assert.isFalse(
+          two.querySelector('*[type="checkbox"]').checked
+        );
+      });
 
-    setup(function(done) {
-      subject.onrender = done;
-      subject.render();
-    });
-
-    test('output', function() {
-      var children = subject.calendars.children;
-      assert.equal(children.length, 2);
-
-      var one = children[0];
-      var two = children[1];
-
-      assert.equal(one.textContent, models[1].name);
-      assert.equal(two.textContent, models[2].name);
-
-      assert.isTrue(
-        one.querySelector('*[type="checkbox"]').checked
-      );
-
-      assert.ok(
-        !one.classList.contains('error'),
-        'error is not added without an .error field'
-      );
-
-      assert.isFalse(
-        two.querySelector('*[type="checkbox"]').checked
-      );
-
-      assert.ok(
-        two.classList.contains('error'),
-        'if error is present in model render shows it'
-      );
+      test('error on calendar', function() {
+        assert.ok(
+          two.classList.contains('error'),
+          'if error is present in model render shows it'
+        );
+      });
     });
 
   });

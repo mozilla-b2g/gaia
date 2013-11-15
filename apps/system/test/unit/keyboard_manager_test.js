@@ -383,6 +383,102 @@ suite('KeyboardManager', function() {
     });
   });
 
+  suite('removeKeyboard test', function() {
+    var fakeFrame_A, fakeFrame_B;
+    setup(function() {
+      fakeFrame_A = {origin: 'app://keyboard.gaiamobile.org',
+                        id: 'en'};
+
+      fakeFrame_B = {origin: 'app://keyboard-test.gaiamobile.org',
+                         id: 'en'};
+    });
+
+    test('Not exist in runningLayouts', function() {
+      KeyboardManager.runningLayouts[fakeFrame_A.origin] = {};
+      KeyboardManager.runningLayouts[fakeFrame_A.origin][fakeFrame_A.id] =
+                                                              this.sinon.stub;
+      KeyboardManager.removeKeyboard(fakeFrame_B.origin);
+      assert.equal(
+      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.origin), true);
+    });
+
+    test('Not in showingLayout', function() {
+      var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
+      KeyboardManager.runningLayouts[fakeFrame_B.origin] = {};
+      KeyboardManager.runningLayouts[fakeFrame_B.origin][fakeFrame_B.id] =
+                                                              this.sinon.stub;
+      KeyboardManager.removeKeyboard(fakeFrame_B.origin);
+      sinon.assert.callCount(hideKeyboard, 0);
+      assert.equal(
+      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_B.origin), false);
+    });
+
+    test('In showingLayout', function() {
+      var hideKeyboard = this.sinon.stub(KeyboardManager, 'hideKeyboard');
+      KeyboardManager.runningLayouts[fakeFrame_A.origin] = {};
+      KeyboardManager.runningLayouts[fakeFrame_A.origin][fakeFrame_A.id] =
+                                                              this.sinon.stub;
+      var fakeFrame = document.createElement('div');
+      fakeFrame.dataset.frameOrigin = 'app://keyboard.gaiamobile.org';
+
+      KeyboardManager.showingLayout.frame = fakeFrame;
+      KeyboardManager.removeKeyboard(fakeFrame_A.origin);
+      sinon.assert.callCount(hideKeyboard, 1);
+      assert.equal(
+      KeyboardManager.runningLayouts.hasOwnProperty(fakeFrame_A.origin), false);
+    });
+  });
+
+  suite('Event handler', function() {
+    var resizeKeyboard, hideKeyboardImmediately, removeKeyboard;
+    setup(function() {
+      resizeKeyboard = this.sinon.stub(KeyboardManager, 'resizeKeyboard');
+      hideKeyboardImmediately =
+            this.sinon.stub(KeyboardManager, 'hideKeyboardImmediately');
+      removeKeyboard = this.sinon.stub(KeyboardManager, 'removeKeyboard');
+    });
+
+    test('OOM event', function() {
+      var fakeFrame = document.createElement('div');
+      fakeFrame.dataset.frameOrigin = 'app://keyboard.gaiamobile.org';
+      KeyboardManager.handleEvent({
+        type: 'mozbrowsererror',
+        target: fakeFrame
+      });
+      assert.ok(removeKeyboard.calledWith('app://keyboard.gaiamobile.org'));
+    });
+
+    test('mozbrowserresize event', function() {
+      KeyboardManager.handleEvent({
+        type: 'mozbrowserresize'
+      });
+      assert.ok(resizeKeyboard.called);
+    });
+
+    test('attentionscreenshow event', function() {
+      KeyboardManager.handleEvent({
+        type: 'attentionscreenshow'
+      });
+      setTimeout(function() {
+        sinon.assert.callCount(hideKeyboardImmediately, 1);
+      }, 0);
+    });
+
+    test('activitywillclose event', function() {
+      KeyboardManager.handleEvent({
+        type: 'activitywillclose'
+      });
+      assert.ok(hideKeyboardImmediately.called);
+    });
+
+    test('appwillclose event', function() {
+      KeyboardManager.handleEvent({
+        type: 'appwillclose'
+      });
+      assert.ok(hideKeyboardImmediately.called);
+    });
+  });
+
   suite('Hide Keyboard', function() {
     setup(function(next) {
       KeyboardManager.keyboardFrameContainer.classList.remove('hide');
@@ -498,6 +594,83 @@ suite('KeyboardManager', function() {
           true);
         next();
       }, 200);
+    });
+  });
+
+  suite('Focus and Blur', function() {
+    var _show, _hide, _setKeyboard, _showIME;
+    setup(function() {
+      _show = KeyboardManager.showKeyboard;
+      _hide = KeyboardManager.hideKeyboard;
+      _setKeyboard = KeyboardManager.setKeyboardToShow;
+      _showIME = KeyboardManager.showIMESwitcher;
+
+      KeyboardManager.showKeyboard = sinon.stub();
+      KeyboardManager.hideKeyboard = sinon.stub();
+      KeyboardManager.setKeyboardToShow = sinon.stub();
+      KeyboardManager.showIMESwitcher = sinon.stub();
+      KeyboardManager.keyboardLayouts = {
+        text: {
+          activeLayout: {}
+        }
+      };
+    });
+
+    teardown(function() {
+      KeyboardManager.showKeyboard = _show;
+      KeyboardManager.hideKeyboard = _hide;
+      KeyboardManager.setKeyboardToShow = _setKeyboard;
+      KeyboardManager.showIMESwitcher = _showIME;
+    });
+
+    test('Blur should hide', function(next) {
+      KeyboardManager.inputFocusChange({
+        detail: {
+          inputType: 'blur'
+        }
+      });
+
+      setTimeout(function() {
+        sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
+        sinon.assert.callCount(KeyboardManager.showKeyboard, 0);
+        next();
+      }, 110);
+    });
+
+    test('Focus should show', function(next) {
+      KeyboardManager.inputFocusChange({
+        detail: {
+          inputType: 'text'
+        }
+      });
+
+      setTimeout(function() {
+        sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
+        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
+        next();
+      }, 110);
+    });
+
+    test('Focus followed by blur should not hide', function(next) {
+      KeyboardManager.inputFocusChange({
+        detail: {
+          inputType: 'blur'
+        }
+      });
+
+      setTimeout(function() {
+        KeyboardManager.inputFocusChange({
+          detail: {
+            inputType: 'text'
+          }
+        });
+      }, 10);
+
+      setTimeout(function() {
+        sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
+        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
+        next();
+      }, 110);
     });
   });
 });

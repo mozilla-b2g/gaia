@@ -67,6 +67,7 @@
       type: 'mms',
       read: true,
       delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS Image message',
       smil: '<smil><body><par><img src="example.jpg"/>' +
             '<text src="text1"/></par></body></smil>',
@@ -86,6 +87,7 @@
       type: 'mms',
       read: true,
       delivery: 'sent',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS Image message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><img src="example.jpg"/></par></body></smil>',
@@ -108,6 +110,7 @@
       type: 'mms',
       read: true,
       delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS Video message',
       smil: '<smil><body><par><video src="example.ogv"/>' +
             '<text src="text1"/></par></body></smil>',
@@ -127,6 +130,7 @@
       type: 'mms',
       read: true,
       delivery: 'sent',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS Video message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><video src="example.ogv"/></par></body></smil>',
@@ -148,6 +152,7 @@
       read: true,
       type: 'mms',
       delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS audio message',
       smil: '<smil><body><par><audio src="example.ogg"/>' +
             '<text src="text1"/></par></body></smil>',
@@ -167,6 +172,7 @@
       read: true,
       type: 'mms',
       delivery: 'sent',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS audio message',
       smil: '<smil><body><par><text src="text1"/></par>' +
             '<par><audio src="example.ogg"/></par></body></smil>',
@@ -189,6 +195,7 @@
       type: 'mms',
       read: true,
       delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS bmp format Image message',
       smil: '<smil><body><par><img src="example.bmp"/>' +
             '<text src="text1"/></par></body></smil>',
@@ -212,6 +219,7 @@
       type: 'mms',
       read: true,
       delivery: 'received',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: 'Test MMS wbmp format Image message',
       smil: '<smil><body><par><img src="grid.wbmp"/>' +
             '<text src="text1"/></par></body></smil>',
@@ -243,7 +251,8 @@
         delivery: 'sent',
         read: true,
         type: 'sms',
-        timestamp: new Date(Date.now())
+        timestamp: new Date(Date.now()),
+        deliveryStatus: 'success'
       },
       {
         threadId: 1,
@@ -253,6 +262,7 @@
         delivery: 'sent',
         read: true,
         type: 'sms',
+        deliveryStatus: 'not-applicable',
         timestamp: new Date(Date.now() - 8400000000)
       },
       {
@@ -263,6 +273,7 @@
         delivery: 'sending',
         read: true,
         type: 'sms',
+        deliveryStatus: 'not-applicable',
         timestamp: new Date(Date.now() - 172800000)
       },
       {
@@ -275,6 +286,7 @@
         ' or\ngoogle.com or www.google.es',
         error: true,
         type: 'sms',
+        deliveryStatus: 'not-applicable',
         timestamp: new Date(Date.now() - 900000)
       },
       {
@@ -286,6 +298,7 @@
           'wrapping. (delivery: sending)',
         delivery: 'sending',
         type: 'sms',
+        deliveryStatus: 'pending',
         timestamp: new Date(Date.now() - 800000)
       },
       {
@@ -297,6 +310,7 @@
           'wrapping. (delivery: error)',
         delivery: 'error',
         type: 'sms',
+        deliveryStatus: 'error',
         timestamp: new Date(Date.now() - 700000)
       },
       {
@@ -307,6 +321,7 @@
           'wrapping. (delivery: sent)',
         delivery: 'sent',
         type: 'sms',
+        deliveryStatus: 'not-applicable',
         timestamp: new Date(Date.now() - 600000)
        },
       {
@@ -327,6 +342,7 @@
         body: 'This message is intended to demonstrate natural line ' +
           'wrapping. (delivery: received)',
         delivery: 'received',
+        deliveryStatus: 'success',
         type: 'sms',
         timestamp: new Date(Date.now() - 500000)
       },
@@ -338,6 +354,7 @@
         body: 'short (delivery: sending)',
         delivery: 'sending',
         type: 'sms',
+        deliveryStatus: 'not-applicable',
         timestamp: new Date(Date.now() - 400000)
       },
       {
@@ -348,6 +365,7 @@
         body: 'short (delivery: error)',
         delivery: 'error',
         type: 'sms',
+        deliveryStatus: 'error',
         timestamp: new Date(Date.now() - 300000)
       },
       {
@@ -358,6 +376,7 @@
         body: 'short (delivery: sent)',
         delivery: 'sent',
         type: 'sms',
+        deliveryStatus: 'success',
         timestamp: new Date(Date.now() - 200000)
       },
       {
@@ -378,6 +397,7 @@
         body: 'short (delivery: received)',
         delivery: 'received',
         type: 'sms',
+        deliveryStatus: 'success',
         timestamp: new Date(Date.now() - 100000)
       },
       {
@@ -531,6 +551,7 @@
       id: messagesDb.id++,
       read: true,
       type: 'mms',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: '',
       smil: '<smil><body><par><text src="text1"/></par></body></smil>',
       attachments: [{
@@ -557,6 +578,7 @@
       id: messagesDb.id++,
       read: true,
       type: 'mms',
+      deliveryInfo: [{deliveryStatus: 'success'}],
       subject: '',
       smil: '<smil><body><par><text src="text1"/></par></body></smil>',
       attachments: [{
@@ -576,6 +598,7 @@
     id: messagesDb.id++,
     read: true,
     type: 'mms',
+    deliveryInfo: [{deliveryStatus: 'success'}],
     subject: '',
     smil: '<smil><body><par><text src="text1"/></par></body></smil>',
     attachments: [{
@@ -800,6 +823,7 @@
         receivers: params.receivers,
         type: 'mms',
         delivery: 'sending',
+        deliveryInfo: [{deliveryStatus: 'not-applicable'}],
         read: true,
         subject: '',
         smil: params.smil,
@@ -861,6 +885,7 @@
             timestamp: new Date(),
             threadId: thread.id,
             type: 'mms',
+            deliveryInfo: [{deliveryStatus: 'success'}],
             read: false,
             subject: '',
             smil: '<smil><body><par><text src="text1"/></par></body></smil>',

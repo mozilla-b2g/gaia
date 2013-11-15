@@ -336,6 +336,7 @@ body {
   100% { transform: scale(1.0); }
 }
 
+#screen.edges > #windows,
 #screen.switch-app > #windows {
   /* The background color is black behind the switch app animation
    * (the homescreen is hidden) */
@@ -365,11 +366,11 @@ body {
 }
 
 #screen.switch-app > #windows > .appWindow.opening {
-  animation: invokedApp 0.6s forwards ease-out;
+  animation: invokedApp 0.3s forwards linear;
 }
 
 #screen.switch-app > #windows > .appWindow.closing {
-  animation: invokingApp 0.6s forwards ease-out;
+  animation: invokingApp 0.3s forwards linear;
 }
 
 #screen.switch-app > #windows > .appWindow.homescreen {
@@ -378,21 +379,19 @@ body {
 
 #screen.switch-app > #windows.slow-transition > .appWindow.opening,
 #screen.switch-app > #windows.slow-transition > .appWindow.closing {
-  animation-duration: 6s;
+  animation-duration: 3s;
 }
 
 /* Invoking app moves out */
 @keyframes invokingApp {
-  0%   { transform: scale(1.0); opacity: 1 }
-  50%  { transform: scale(0.8) translateX(0); opacity: 0.3 }
-  100% { transform: scale(0.6) translateX(105%); }
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-20%); }
 }
 
 /* Invoked app moves in */
 @keyframes invokedApp {
-  0%   { transform: scale(0.6) translateX(-133%); opacity: 0.3 }
-  50%  { transform: scale(0.6) translateX(-105%); opacity: 1 }
-  100% { transform: scale(1.0) translateX(0) }
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(0) }
 }
 
 #windows > .appWindow.closing {
@@ -422,7 +421,7 @@ body {
   animation-duration: 3s;
 }
 
-#screen.switch-app > #windows > .appWindow.homescreen.zoom-out > iframe ,
+#screen.switch-app > #windows > .appWindow.homescreen.zoom-out > iframe,
 #screen.cards-view > #windows > .appWindow.homescreen.zoom-out > iframe {
   animation: none;
 }
@@ -445,13 +444,13 @@ body {
 }
 
 /* Prebuild width/height */
-#screen:not(.fullscreen-app):not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow:not(.fullscreen-app) {
+#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow:not(.fullscreen-app) {
   top: 2rem;
   height: calc(100% - 2rem);
   width: 100%;
 }
 
-#screen.fullscreen-app:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
+#screen:not(.active-statusbar):not(.software-button-enabled) > #windows > .appWindow.fullscreen-app {
   height: 100%;
   width: 100%;
 }
@@ -599,5 +598,6 @@ body {
 @media (min-width: 768px) {
   #dialog-overlay {
     background-color: rgba(0,0,0,0.6);
+    background: url(../themes/default/images/ui/menu_bg.png) no-repeat;
   }
 }

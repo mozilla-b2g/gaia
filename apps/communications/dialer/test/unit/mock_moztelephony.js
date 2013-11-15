@@ -13,6 +13,8 @@ var MockMozTelephony = {
     resume: function() {}
   },
   speakerEnabled: false,
+  startTone: function(dtmfChar) {},
+  stopTone: function() {},
 
   mTriggerCallsChanged: function() {
     if (this.oncallschanged) {

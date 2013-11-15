@@ -37,6 +37,10 @@ var UtilityTray = {
     window.addEventListener('keyboardchangecanceled', this);
 
     this.overlay.addEventListener('transitionend', this);
+
+    if (window.navigator.mozMobileConnection) {
+      LazyLoader.load('js/cost_control.js');
+    }
   },
 
   startY: undefined,
@@ -65,11 +69,9 @@ var UtilityTray = {
         this.overlay.removeEventListener('mousedown', this._pdIMESwitcherShow);
         break;
 
-
       case 'screenchange':
         if (this.shown && !evt.detail.screenEnabled)
           this.hide(true);
-
         break;
 
       case 'touchstart':

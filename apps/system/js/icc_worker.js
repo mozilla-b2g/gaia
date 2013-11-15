@@ -111,29 +111,14 @@ var icc_worker = {
   '0x14': function STK_CMD_SEND_DTMF(command, iccManager) {
     DUMP('STK_CMD_SEND_DTMF:', command.options);
     var options = command.options;
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._icc.STK_RESULT_OK
+    });
     if (options.text) {
-      iccManager.responseSTKCommand({
-        resultCode: iccManager._icc.STK_RESULT_OK
-      });
       iccManager.alert(options.text);
     } else if (options.text == '') {
       var _ = navigator.mozL10n.get;
-      iccManager.confirm(_('icc-confirmMessage-defaultmessage'), 0,
-        function(userCleared) {
-          if (userCleared) {
-            iccManager.responseSTKCommand({
-              resultCode: iccManager._icc.STK_RESULT_OK
-            });
-          } else {
-            iccManager.responseSTKCommand({
-              resultCode: iccManager._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
-            });
-          }
-        });
-    } else {
-      iccManager.responseSTKCommand({
-        resultCode: iccManager._icc.STK_RESULT_OK
-      });
+      iccManager.alert(_('icc-confirmMessage-defaultmessage'));
     }
   },
 
@@ -195,6 +180,8 @@ var icc_worker = {
         options.timeInterval != undefined) {
       timeout = iccManager.calculateDurationInMS(options.timUnit,
         options.timeInterval);
+    } else {
+      timeout = iccManager._toneDefaultTimeout;
     }
     timeout && DUMP('Tone stop in (ms): ', timeout);
 
@@ -213,6 +200,10 @@ var icc_worker = {
       iccManager.responseSTKCommand({
         resultCode: iccManager._icc.STK_RESULT_OK
       });
+      // Stop playing after timeout
+      setTimeout(function _iccTonePlayerStop() {
+        tonePlayer.pause();
+      }, timeout);
     }
 
     if (options.isVibrate) {
@@ -339,7 +330,13 @@ var icc_worker = {
 
   // STK_CMD_PROVIDE_LOCAL_INFO
   '0x26': function STK_CMD_PROVIDE_LOCAL_INFO(command, iccManager) {
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     DUMP('STK_CMD_PROVIDE_LOCAL_INFO:', command.options);
     switch (command.options.localInfoType) {
       case iccManager._icc.STK_LOCAL_INFO_LOCATION_INFO:
