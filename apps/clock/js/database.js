@@ -1,5 +1,7 @@
-(function(exports) {
+define(function(require) {
   'use strict';
+
+  var Utils = require('utils');
 
   // ===========================================================
   // SchemaVersion Object
@@ -167,14 +169,9 @@
 
   var databaseSingletons = new Map();
 
-  Database.singleton = function(options) {
-    var db = databaseSingletons.get(options.name);
-    if (!db) {
-      db = new Database(options);
-      databaseSingletons.set(options.name, db);
-    }
-    return db;
-  };
+  Database.singleton = Utils.singleton(Database, function(args) {
+    return args[0].name;
+  });
 
   // ===========================================================
   // Database Object Private Methods
@@ -552,7 +549,8 @@
     }
   };
 
-  exports.SchemaVersion = SchemaVersion;
-  exports.Database = Database;
-
-})(this);
+  return {
+    SchemaVersion: SchemaVersion,
+    Database: Database
+  };
+});

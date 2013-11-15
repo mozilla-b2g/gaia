@@ -1,23 +1,18 @@
-requireApp('clock/js/database.js');
-
 requireApp('clock/test/unit/mocks/mock_shared/js/lazy_loader.js');
-
-// database.js has a dependency on utils.js. Since database.js is planned to
-// be shared across Gaia, it is not defined as a AMD module, and the `Utils`
-// object must be available in the global scope.
-mocha.setup({ globals: ['Utils'] });
 
 suite('Database Test', function() {
 
   var ll = window.LazyLoader;
-  var hadUtils = 'Utils' in window;
-  var _Utils = window.Utils;
+  var Utils;
+  var Database, SchemaVersion;
   window.LazyLoader = window.LazyLoader || {};
 
   suiteSetup(function(done) {
     LazyLoader = MockLazyLoader;
-    testRequire(['utils'], function(Utils) {
-      window.Utils = Utils;
+    testRequire(['utils', 'database'], function(rUtils, db) {
+      Utils = rUtils;
+      Database = db.Database;
+      SchemaVersion = db.SchemaVersion;
       done();
     });
   });
@@ -27,11 +22,6 @@ suite('Database Test', function() {
       delete window.LazyLoader;
     } else {
       LazyLoader = ll;
-    }
-    if (hadUtils) {
-      window.Utils = _Utils;
-    } else {
-      delete window.Utils;
     }
   });
 

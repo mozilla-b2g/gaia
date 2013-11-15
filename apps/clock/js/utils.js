@@ -14,6 +14,47 @@ var dateMultipliers = {
 };
 var units = Object.keys(dateMultipliers);
 
+/**
+ * Define a singleton method that returns a unified instance
+ * based on arguments.
+ *
+ * @param {function} constructor - A constructor function used
+ *        to create a new instance.
+ * @param {function} [getKey] - A function called with (arguments),
+ *        and returns a lookup key for this singleton.
+ * @return {object} - returns the instance either created or retrieved
+ *        from the singleton-map by the key.
+ */
+Utils.singleton = function(constructor, getKey) {
+  var singletonMap = new Map();
+  return function() {
+    var arglist = Array.prototype.slice.call(arguments);
+    var key = (typeof getKey === 'function') ? getKey(arglist) : constructor;
+    var instance = singletonMap.get(key);
+    if (!instance) {
+      instance = Object.create(constructor.prototype);
+      constructor.apply(instance, arglist);
+      singletonMap.set(key, instance);
+    }
+    return instance;
+  };
+};
+
+Utils.memoizedDomPropertyDescriptor = function(selector) {
+  var memoizedValue = null;
+  return {
+    get: function() {
+      if (memoizedValue === null) {
+        memoizedValue = document.querySelectorAll(selector)[0];
+      }
+      return memoizedValue;
+    },
+    set: function(value) {
+      memoizedValue = value;
+    }
+  };
+};
+
 Utils.dateMath = {
   /**
    * Convert object literals containing interval length to milliseconds
@@ -126,6 +167,46 @@ Utils.extend = function(initialObject, extensions) {
   return initialObject;
 };
 
+/**
+ * RequestAnimationFrame after a delay.
+ *
+ * @param {function} fn - The function to evaluate
+ *        in a future delayed animation frame.
+ * @param {number} time - The number of milliseconds
+ *        to delay (using setTimeout) before we
+ *        request an animation frame.
+ *
+ * @return {object} an object that can be passed to
+ *         `Utils.cancelAnimationAfter`.
+ */
+Utils.requestAnimationAfter = function(fn, time) {
+  var currentTime = Date.now();
+  var id, ret = {};
+  if (time <= 0) {
+    ret.raf = requestAnimationFrame(fn);
+  } else {
+    ret.timeout = setTimeout(function() {
+      delete this.timeout;
+      this.raf = requestAnimationFrame(fn);
+    }.bind(ret), time);
+  }
+  return ret;
+};
+
+/**
+ * Cancel a scheduled requestAnimationAfter.
+ *
+ * @param {object} id - the value returned from `requestAnimationAfter`.
+ */
+Utils.cancelAnimationAfter = function(id) {
+  if (id && typeof id.raf !== 'undefined') {
+    cancelAnimationFrame(id.raf);
+  }
+  if (id && typeof id.timeout !== 'undefined') {
+    clearTimeout(id.timeout);
+  }
+};
+
 Utils.escapeHTML = function(str, escapeQuotes) {
   var span = document.createElement('span');
   span.textContent = str;
@@ -186,31 +267,88 @@ Utils.parseTime = function(time) {
   };
 };
 
-Utils.safeCpuLock = function(timeoutMs, fn) {
-    /*
-     * safeCpuLock
-     *
-     * Create a CPU lock that is automatically released after
-     * timeoutMs.
-     *
-     *
-     * @timeoutMs {integer} a number of milliseconds
-     * @callback {Function} a function to be called after
-     *           all other generated callbacks have been
-     *           called
-     *           function ([err]) -> undefined
-     */
-  var cpuWakeLock, unlockTimeout;
-  var unlockFn = function() {
-    clearTimeout(unlockTimeout);
-    if (cpuWakeLock) {
-      cpuWakeLock.unlock();
-      cpuWakeLock = null;
+var wakeTarget = {
+  requests: {
+    cpu: new Map(), screen: new Map(), wifi: new Map()
+  },
+  locks: {
+    cpu: null, screen: null, wifi: null
+  },
+  timeouts: {
+    cpu: null, screen: null, wifi: null
+  }
+};
+function getLongestLock(type) {
+  var max = 0;
+  for (var i of wakeTarget.requests[type]) {
+    var key = i[0], request = i[1];
+    if (request.time > max) {
+      max = request.time;
     }
+  }
+  return {
+    time: max,
+    lock: wakeTarget.locks[type],
+    timeout: wakeTarget.timeouts[type]
   };
-  unlockTimeout = setTimeout(unlockFn, timeoutMs);
+}
+Utils.safeWakeLock = function(opts, fn) {
+    /*
+     * safeWakeLock
+     *
+     * Create a Wake lock that is automatically released after
+     * timeoutMs. Locks are reentrant, and have no meaningful mutual
+     * exclusion behavior.
+     *
+     * @param {Object} options - an object containing
+     *                 [type] {string} a string passed to requestWakeLock
+     *                                 default = 'cpu'. This string can be any
+     *                                 resource exposed by the environment that
+     *                                 this application was designed to run in.
+     *                                 Gaia exposes three of them: 'cpu',
+     *                                 'screen', and 'wifi'. Certified apps may
+     *                                 expose more.
+     *                 timeoutMs {number} number of milliseconds to hold
+     *                                    the lock.
+     * @param {Function} callback - a function to be called after all other
+     *                              generated callbacks have been called.
+     *                              function ([err]) -> undefined.
+     */
+  opts = opts || {};
+  var type = opts.type || 'cpu';
+  var timeoutMs = opts.timeoutMs | 0;
+  var now = Date.now();
+  var myKey = {};
+  wakeTarget.requests[type].set(myKey, {
+    time: now + timeoutMs
+  });
+  var max = getLongestLock(type);
+  var unlockFn = function() {
+    if (!myKey) {
+      return;
+    }
+    wakeTarget.requests[type]. delete(myKey);
+    var now = Date.now();
+    var max = getLongestLock(type);
+    if (max.time > now) {
+      clearTimeout(wakeTarget.timeouts[type]);
+      wakeTarget.timeouts[type] = setTimeout(unlockFn, max.time - now);
+    } else {
+      if (wakeTarget.locks[type]) {
+        wakeTarget.locks[type].unlock();
+      }
+      wakeTarget.locks[type] = null;
+      clearTimeout(wakeTarget.timeouts[type]);
+      wakeTarget.timeouts[type] = null;
+    }
+    myKey = null;
+  };
+  clearTimeout(wakeTarget.timeouts[type]);
+  wakeTarget.timeouts[type] = setTimeout(unlockFn, max.time - now);
   try {
-    cpuWakeLock = navigator.requestWakeLock('cpu');
+    if (!wakeTarget.locks[type] && max.time > now) {
+      wakeTarget.locks[type] = navigator.requestWakeLock(type);
+    }
     fn(unlockFn);
   } catch (err) {
     unlockFn();
@@ -487,7 +625,6 @@ Utils.data = {
     }
     return removed;
   }
-
 };
 
 return Utils;

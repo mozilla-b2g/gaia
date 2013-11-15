@@ -54,7 +54,7 @@ html, body {
   padding-left: 0.94rem;
 }
 
-#ring-alarm-label {
+#ring-label {
   font-weight: lighter;
   font-size: 2.50rem;
   line-height: 3.25rem;
@@ -82,7 +82,6 @@ html, body {
   display: inline-block;
   overflow: hidden;
   -moz-box-sizing: border-box;
-  width: calc((100% - 4.06rem) / 2 );
   height: 4.12rem;
   padding: 0 0.94rem;
   border: 0.1rem solid #9F9F9F;
@@ -114,7 +113,6 @@ html, body {
   display: inline-block;
   overflow: hidden;
   -moz-box-sizing: border-box;
-  width: calc((100% - 4.06rem) / 2 );
   height: 4.12rem;
   padding: 0 0.94rem;
   border: 0.1rem solid #00ACCE;
@@ -140,6 +138,18 @@ html, body {
   background: none repeat scroll 0 0 #008AAA;
   border-color: #008AAA;
   color: #333333;
+}
+
+.ring-display[data-ring-type="alarm"] #footer-button-container .button {
+  width: calc((100% - 4.06rem) / 2);
+}
+
+.ring-display[data-ring-type="timer"] #ring-button-close {
+  width: calc(100% - (4.06rem * .7666));
+}
+
+.ring-display[data-ring-type="timer"] #ring-button-snooze {
+  display: none;
 }
 
 /* 320x480 phones */
