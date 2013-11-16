@@ -13,7 +13,7 @@ var GaiaDataLayer = {
       adapter.ondevicefound = function(aEvent) {
         device = aEvent.device;
         if (device.name === aDeviceName) {
-          var pair = adapter.pair(device);
+          var pair = adapter.pair(device.address);
           marionetteScriptFinished(true);
         }
       };
@@ -29,7 +29,7 @@ var GaiaDataLayer = {
       req.onsuccess = function() {
         var total = req.result.slice().length;
         for (var i = total; i > 0; i--) {
-          var up = adapter.unpair(req.result.slice()[i-1]);
+          var up = adapter.unpair(req.result.slice()[i-1].address);
         }
       };
     };
