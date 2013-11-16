@@ -110,7 +110,7 @@ suite('album art', function() {
         assert.equal(metadata.album, 'Dirty Deeds Done Dirt Cheap');
         assert.equal(metadata.title, 'Problem Child');
         assert.equal(metadata.tracknum, 5);
-        checkPicture(metadata.picture, expectedPicture, done);
+        checkPicture(metadata.picture.blob, expectedPicture, done);
       });
     });
   });
@@ -157,7 +157,7 @@ suite('unsynchronized data', function() {
         assert.equal(metadata.album, 'Dirty Deeds Done Dirt Cheap');
         assert.equal(metadata.title, 'Problem Child');
         assert.equal(metadata.tracknum, 5);
-        checkPicture(metadata.picture, expectedPicture, done);
+        checkPicture(metadata.picture.blob, expectedPicture, done);
       });
     });
   });
@@ -169,10 +169,9 @@ suite('unsynchronized data', function() {
       assert.equal(metadata.album, 'Dirty Deeds Done Dirt Cheap');
       assert.equal(metadata.title, 'Problem Child');
       assert.equal(metadata.tracknum, 5);
-      checkPicture(metadata.picture, expectedPicture, done);
+      checkPicture(metadata.picture.blob, expectedPicture, done);
     });
   });
-
 });
 
 suite('multivalue frames', function() {

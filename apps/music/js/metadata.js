@@ -5,9 +5,46 @@ var THUMBNAIL_WIDTH = 300;
 var THUMBNAIL_HEIGHT = 300;
 var offscreenImage = new Image();
 var externalCoverCache = {};
+var pictureStorage = navigator.getDeviceStorage('pictures');
 
-// Parse the specified blob and pass an object of metadata to the
-// metadataCallback, or invoke the errorCallback with an error message.
+// XXX We're hiding the fact that these are JSdoc comments because our linter
+// refuses to accept "property" as a valid tag. Grumble grumble.
+
+/*
+ * Metadata for a track.
+ *
+ * @typedef {Object} Metadata
+ * @property {string} artist The track's artist.
+ * @property {string} album The track's album.
+ * @property {number} tracknum The number of the track on the album.
+ * @property {string} title The track's title.
+ * @property {Picture} [picture] The cover art, if any.
+ * @property {number} rated The track's rating; starts at 0.
+ * @property {number} played The track's play count; starts at 0.
+ */
+
+/*
+ * Metadata describing the cover art for a track.
+ *
+ * @typedef {Object} Picture
+ * @property {string} flavor How the art was stored; one of "embedded",
+ *   "unsync", or "external".
+ * @property {string} [thumbnail] The path on the filesystem to the thumbnail
+ *   for the picture, if any.
+ * @property {number} [start] The offset in bytes to where the picture is
+ *   stored in the audio file; only applies when flavor="embedded".
+ * @property {number} [end] The offset in bytes to the end of where the
+ *   picture is stored in the audio file; only applies when flavor="embedded".
+ * @property {number} [type] The mimetype of the picture; only applies when
+ *   flavor="embedded".
+ * @property {string} [original] The path on the filesystem to the original
+ *   (full-size) picture; only applies when flavor="external".
+ */
+
+/**
+ * Parse the specified blob and pass an object of metadata to the
+ * metadataCallback, or invoke the errorCallback with an error message.
+ */
 function parseAudioMetadata(blob, metadataCallback, errorCallback) {
   var filename = blob.name;
 
@@ -316,6 +353,10 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         }
       }
 
+      // If this tag has cover art in an unsynchronized block, we'll store it
+      // here. Otherwise, this will be null.
+      var coverBlob;
+
       // Now we have a series of frames, each of which is one ID3 field
       while (id3.index < id3.byteLength) {
         var frameid, framesize, frameflags, frame_unsynchronized = false;
@@ -390,6 +431,16 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           case 'APIC':
           case 'PIC':
             framevalue = readPicFrame(frameview, framesize, frameid);
+
+            // If the picture is unsynchronized, we need to grab the slice for
+            // it immediately, before we lose the deunsynced state.
+            if (tag_unsynchronized || frame_unsynchronized) {
+              coverBlob = new Blob(
+                [frameview.buffer.slice(framevalue.start, framevalue.end)],
+                { type: framevalue.type }
+              );
+              framevalue = { flavor: 'unsynced' };
+            }
             break;
           }
 
@@ -404,9 +455,19 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         id3.index = nextframe;
       }
 
-      handleCoverArt(metadata);
+      handleCoverArt(metadata, coverBlob);
     }
 
+    /**
+     * Reverse the ID3 unsynchronization so that we get the unescaped data. This
+     * will advance the view to the end of the unsynchronized block so that you
+     * can continue to use the original view once you're finished with the
+     * deunsynced view.
+     *
+     * @param {BlobView} view The original BlobView for the ID3 tag.
+     * @param {Number} framesize The size of the unsynchronized frame.
+     * @return {BlobView} A new BlobView with the deunsynced data.
+     */
     function deunsync(view, framesize) {
       // To de-unsychronize a frame, we need to convert all instances of
       // |0xff 00| to |0xff|.
@@ -415,7 +476,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var b = view.readUnsignedByte();
         if (was0xff && b === 0x00)
           continue;
-        was0xff = b === 0xff;
+        was0xff = (b === 0xff);
         data[dataIndex++] = b;
       }
 
@@ -450,7 +511,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       // Now return an object that specifies where to pull the image from
       // The properties of this object can be passed to blob.slice()
       return {
-        blob: view.blob,
+        flavor: 'embedded',
         start: picstart,
         end: picstart + piclength,
         type: mimetype
@@ -466,18 +527,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // In id3v2.4, all text frames can have multiple values, separated by
         // the null character. For now, we join them together to make one big
         // string.
-        var end = size + view.index, values = [];
-
-        if (encoding === 1) { // UTF-16
-          // Handle the UTF-16 BOM reading here, since we'll be doing multiple
-          // reads and want to remember the BOM.
-          var bom = view.readUnsignedShort();
-          encoding = bom === 0xFEFF ? 'utf16be' : 'utf16le';
-        }
-        while (view.index < end) {
-          values.push(readEncodedText(view, end - view.index, encoding));
-        }
-        return values.join(' / ');
+        return readEncodedTextArray(view, size, encoding);
       }
       else {
         // In id3v2.3, some text frames can have multiple values, separated by
@@ -488,6 +538,31 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
     }
 
+    function readEncodedTextArray(view, size, encoding) {
+      var text;
+      switch (encoding) {
+      case 0:
+        text = view.readASCIIText(size);
+        break;
+      case 1:
+        text = view.readUTF16Text(size, undefined);
+        break;
+      case 2:
+        text = view.readUTF16Text(size, false);
+        break;
+      case 3:
+        text = view.readUTF8Text(size);
+        break;
+      default:
+        throw Error('unknown text encoding');
+      }
+
+      // Remove any trailing nulls and replace nulls in the middle with ' / '.
+      // XXX: When the database supports arrays of values for each field, we
+      // should split this into a proper array!
+      return text.replace(/\0+$/, '').replace('\0', ' / ');
+    }
+
     function readEncodedText(view, size, encoding) {
       switch (encoding) {
       case 0:
@@ -495,10 +570,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       case 1:
         return view.readNullTerminatedUTF16Text(size, undefined);
       case 2:
-      case 'utf16be':
         return view.readNullTerminatedUTF16Text(size, false);
-      case 'utf16le':
-        return view.readNullTerminatedUTF16Text(size, true);
       case 3:
         return view.readNullTerminatedUTF8Text(size);
       default:
@@ -871,12 +943,14 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
           return data.readUTF8Text(datasize);
         case 13: // jpeg
           return {
+            flavor: 'embedded',
             start: data.sliceOffset + data.viewOffset + data.index,
             end: data.sliceOffset + data.viewOffset + data.index + datasize,
             type: 'image/jpeg'
           };
         case 14: // png
           return {
+            flavor: 'embedded',
             start: data.sliceOffset + data.viewOffset + data.index,
             end: data.sliceOffset + data.viewOffset + data.index + datasize,
             type: 'image/png'
@@ -913,59 +987,92 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     });
   }
 
-  function handleCoverArt(metadata) {
+  function handleCoverArt(metadata, coverBlob) {
+    // First, get the cover blob if we don't already have it.
+    if (!coverBlob && metadata.picture) {
+      coverBlob = blob.slice(metadata.picture.start,
+                             metadata.picture.end,
+                             metadata.picture.type);
+    }
+
     // Media files that aren't backed by actual files get the picture as a Blob,
     // since they're just temporary. We also use this in our tests.
     if (!filename) {
-      extractEmbeddedPicture(metadata, function(blob) {
-        metadata.picture = blob;
+      if (coverBlob) {
+        thumbnailizePicture(coverBlob, function(type, blob) {
+          metadata.picture.blob = blob;
+          metadataCallback(metadata);
+        });
+      } else {
         metadataCallback(metadata);
-      });
+      }
       return;
     }
 
     var storage = navigator.getDeviceStorage('pictures');
+    var thumbnailBaseDir;
 
-    if (metadata.picture) {
-      // See if we have the image already.
-      var coverFilename = namePictureFile(metadata, filename);
-      var getrequest = storage.get(coverFilename);
-
-      // We do have the image. We're done!
-      getrequest.onsuccess = function() {
-        metadata.picture = coverFilename;
+    // Figure out what directory to store the thumbnail in (if we have one).
+    if (filename[0] === '/') {
+      // We expect filename to be a fully qualified name (perhaps something
+      // like /sdcard/Music/file.mp3).
+      var slashIndex = filename.indexOf('/', 1);
+      if (slashIndex < 0) {
+        console.error("handleCoverArt: Bad filename: '" + filename + "'");
+        metadata.picture = null;
         metadataCallback(metadata);
-      };
+        return;
+      }
 
-      // We don't have the image yet. Let's save it.
-      getrequest.onerror = function() {
-        extractEmbeddedPicture(metadata, function(blob) {
-          if (!blob) {
-            metadata.picture = null;
-            metadataCallback(metadata);
-            return;
-          }
-
-          var saverequest = storage.addNamed(blob, coverFilename);
-          saverequest.onerror = function() {
-            console.error('Could not save cover image', coverFilename);
-          };
-
-          // Don't bother waiting for saving to finish. Just return.
-          metadata.picture = coverFilename;
-          metadataCallback(metadata);
-        });
-      };
+      var storageName = filename.substring(0, slashIndex); // e.g. /sdcard
+      thumbnailBaseDir = storageName + '/.music/covers/';
     } else {
+      thumbnailBaseDir = '.music/covers/';
+    }
+
+    if (coverBlob) {
+      // We have embedded album art! First, try to make a unique filename for
+      // the thumbnail based on the artist, album, and file size. The file size
+      // is essentially a poor man's checksum to make sure we aren't reusing an
+      // inappropriate image, such as if the user updated the embedded art.
+      var albumKey;
+      if (metadata.artist || metadata.album) {
+        // Don't let the artist or album strings be too long; VFAT has a maximum
+        // of 255 characters for the path, and we need some room for the rest of
+        // it!
+        var artist = (metadata.artist || '').substr(0, 64);
+        var album = (metadata.album || '').substr(0, 64);
+        albumKey = artist + '.' + album;
+      } else {
+        // If there's no album or artist, use the path to the file instead; we
+        // truncate from the end to help ensure uniqueness.
+        albumKey = filename.substr(-128);
+      }
+
+      var size = metadata.picture.end - metadata.picture.start;
+      var thumbnailFilename = thumbnailBaseDir + vfatEscape(albumKey) + '.' +
+        size + '.jpg';
+
+      checkSaveThumbnail(coverBlob, thumbnailFilename, function() {
+        metadataCallback(metadata);
+      });
+    } else {
+      // We don't have any embedded album art; see if there's any external album
+      // art in the same directory.
       var lastSlash = filename.lastIndexOf('/');
       var dirName = filename.substring(0, lastSlash + 1);
 
+      // First, check if we've recently fetched this cover; if so, just use the
+      // cached results so we're not going out to the disk more than necessary.
       if (dirName in externalCoverCache) {
         metadata.picture = externalCoverCache[dirName];
         metadataCallback(metadata);
         return;
       }
 
+      // Try to find external album art using a handful of common names. The
+      // possibilities listed here appear to be the most common, based on a
+      // brief survey of what people use in the wild.
       var possibleFilenames = ['folder.jpg', 'cover.jpg', 'front.jpg'];
       var tryFetchExternalCover = function(index) {
         if (index === possibleFilenames.length) {
@@ -975,76 +1082,44 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         }
 
         var externalCoverFilename = dirName + possibleFilenames[index];
-        var getrequest = storage.get(externalCoverFilename);
-        getrequest.onsuccess = function() {
-          metadata.picture = externalCoverFilename;
-          externalCoverCache[dirName] = externalCoverFilename;
-          metadataCallback(metadata);
+        var getcoverrequest = pictureStorage.get(externalCoverFilename);
+        getcoverrequest.onsuccess = function() {
+          var externalBlob = this.result;
+          var thumbnailFilename = thumbnailBaseDir +
+                                  vfatEscape(dirName.substr(0, 128)) + '.' +
+                                  externalBlob.size + '.jpg';
+
+          metadata.picture = { flavor: 'external',
+                               original: externalCoverFilename };
+          checkSaveThumbnail(externalBlob, thumbnailFilename, function() {
+            // Cache the picture object we generated to make things faster.
+            externalCoverCache[dirName] = metadata.picture;
+            metadataCallback(metadata);
+          });
         };
-        getrequest.onerror = function() {
+        getcoverrequest.onerror = function() {
           tryFetchExternalCover(index + 1);
         };
       };
       tryFetchExternalCover(0);
     }
 
-    function namePictureFile(metadata, filename) {
-      var coverFilename;
-      var size = metadata.picture.end - metadata.picture.start;
-
-      // First, make a filename for the picture based on the artist, album,
-      // and file size (or the filename and file size if the artist and album
-      // fields are missing).
-      if (metadata.artist || metadata.album) {
-        // Remove any characters in the filename that would be illegal under
-        // VFAT.
-        var artist = (metadata.artist || '').replace(/["*\/:<>?\|]/, '_');
-        var album = (metadata.album || '').replace(/["*\/:<>?\|]/, '_');
-        coverFilename = artist + '.' + album + '.' + size + '.jpg';
-      } else {
-        // If there's no album or artist, use the leaf name of the file instead.
-        var lastSlash = filename.lastIndexOf('/');
-        var leafName = filename.substring(lastSlash + 1);
-        coverFilename = leafName + '.' + size + '.jpg';
-      }
-
-      // Next, figure out what directory to store the picture in.
-      if (filename[0] === '/') {
-        // We expect filename to be a fully qualified name (perhaps something
-        // like /sdcard/Music/file.mp3).
-        var slashIndex = filename.indexOf('/', 1);
-        if (slashIndex < 0) {
-          throw Error("handleCoverArt: Bad filename: '" + filename + "'");
-          return;
-        }
-        return filename.substring(0, slashIndex) + // storageName (i.e. /sdcard)
-          '/.music/covers/' + coverFilename;
-      } else {
-        return '.music/covers/' + coverFilename;
-      }
+    function vfatEscape(str) {
+      return str.replace(/["*\/:<>?\|]/g, '_');
     }
 
-    function extractEmbeddedPicture(metadata, callback) {
-      if (!metadata.picture) {
-        callback(null);
-        return;
-      }
+    function thumbnailizePicture(pictureBlob, callback) {
+      var blobURL = URL.createObjectURL(pictureBlob);
 
-      var embedded = metadata.picture.blob.slice(
-        metadata.picture.start, metadata.picture.end, metadata.picture.type
-      );
-
-      // Convert to a blob url
-      var embeddedURL = URL.createObjectURL(embedded);
-      // Load it into an image element
-      offscreenImage.src = embeddedURL;
+      // Load the blob into an image element
+      offscreenImage.src = blobURL;
       offscreenImage.onerror = function() {
-        URL.revokeObjectURL(embeddedURL);
+        URL.revokeObjectURL(blobURL);
         offscreenImage.removeAttribute('src');
         // Something went wrong reading the embedded image.
         // Return a default one instead
         console.warn('Album cover art failed to load', filename);
-        callback(null);
+        callback('error', null);
       };
       offscreenImage.onload = function() {
         // We've loaded the image, now copy it to a canvas
@@ -1061,7 +1136,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         // If the image was already thumbnail size, it is its own thumbnail
         if (scale >= 1) {
           offscreenImage.removeAttribute('src');
-          callback(embedded);
+          callback('original', pictureBlob);
           return;
         }
 
@@ -1078,11 +1153,44 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
 
         // We're done with the image now
         offscreenImage.removeAttribute('src');
-        URL.revokeObjectURL(embeddedURL);
+        URL.revokeObjectURL(blobURL);
 
-        canvas.toBlob(function(blob) {
-          callback(blob);
+        canvas.toBlob(function(canvasBlob) {
+          callback('thumbnail', canvasBlob);
         }, 'image/jpeg');
+      };
+    }
+
+    function checkSaveThumbnail(coverBlob, thumbnailFilename, callback) {
+      var getthumbrequest = pictureStorage.get(thumbnailFilename);
+
+      // We already have the thumbnail. We're done!
+      getthumbrequest.onsuccess = function() {
+        metadata.picture.thumbnail = thumbnailFilename;
+        callback();
+      };
+
+      // We don't have the thumbnail yet. Let's save it.
+      getthumbrequest.onerror = function() {
+        thumbnailizePicture(coverBlob, function(type, thumbnailBlob) {
+          if (type === 'error') {
+            metadata.picture = null;
+            callback();
+          } else if (type === 'original' &&
+                     metadata.picture.flavor !== 'unsynced') {
+            callback();
+          } else {
+            var saverequest = pictureStorage.addNamed(thumbnailBlob,
+                                                      thumbnailFilename);
+            saverequest.onerror = function() {
+              console.error('Could not save cover image', filename);
+            };
+
+            // Don't bother waiting for saving to finish. Just return.
+            metadata.picture.thumbnail = thumbnailFilename;
+            callback();
+          }
+        });
       };
     }
   }
@@ -1097,22 +1205,59 @@ function getThumbnailURL(fileinfo, callback) {
     return;
   }
 
-  if (picture.constructor === Blob) {
-    var url = URL.createObjectURL(picture);
+  // Audio tracks without an associated file are just temporary, so they store
+  // their art in a blob.
+  if (picture.blob) {
+    var url = URL.createObjectURL(picture.blob);
     callback(url);
     return;
   }
 
-  if (picture in thumbnailCache) {
-    callback(thumbnailCache[picture]);
+  var cacheKey;
+
+  // Check if we have an external file on the filesystem for the cover art.
+  var pictureFilename = picture.thumbnail || picture.original;
+  if (pictureFilename) {
+    cacheKey = 'external:' + pictureFilename;
+    if (cacheKey in thumbnailCache) {
+      callback(thumbnailCache[cacheKey]);
+      return;
+    }
+
+    var getreq = pictureStorage.get(pictureFilename);
+    getreq.onsuccess = function() {
+      var url = URL.createObjectURL(this.result);
+      thumbnailCache[cacheKey] = url;
+      callback(url);
+    };
     return;
   }
 
-  var storage = navigator.getDeviceStorage('pictures');
-  var getreq = storage.get(picture);
-  getreq.onsuccess = function() {
-    var url = URL.createObjectURL(this.result);
-    thumbnailCache[picture] = url;
-    callback(url);
-  };
+  // Check if the cover art is embedded in the audio file.
+  if (picture.flavor === 'embedded') {
+    var album = fileinfo.metadata.album;
+    var artist = fileinfo.metadata.artist;
+    var size = fileinfo.metadata.picture.end - fileinfo.metadata.picture.start;
+
+    if (album || artist) {
+      cacheKey = 'embedded:' + album + '.' + artist + '.' + size;
+    } else {
+      cacheKey = 'embedded:' + (fileinfo.name || fileinfo.blob.name);
+    }
+
+    if (cacheKey in thumbnailCache) {
+      callback(thumbnailCache[cacheKey]);
+      return;
+    }
+
+    var embedded = fileinfo.blob.slice(
+      picture.start, picture.end, picture.type
+    );
+    var embeddedURL = URL.createObjectURL(embedded);
+    thumbnailCache[cacheKey] = embeddedURL;
+    callback(embeddedURL);
+  }
+
+  // We should never get here!
+  throw Error('unknown picture flavor: ' + picture.flavor);
 }
