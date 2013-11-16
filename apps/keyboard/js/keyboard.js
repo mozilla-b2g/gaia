@@ -1707,21 +1707,30 @@ function resetKeyboard() {
 // This is a wrapper around inputContext.sendKey()
 // We use it in the defaultInputMethod and in the interface object
 // we pass to real input methods
-function sendKey(keyCode) {
-  switch (keyCode) {
-  case KeyEvent.DOM_VK_BACK_SPACE:
-  case KeyEvent.DOM_VK_RETURN:
-    if (inputContext) {
-      inputContext.sendKey(keyCode, 0, 0);
-    }
+function sendKey(code) {
+  if (!inputContext) {
+    // Sliently drop the key.
+    return;
+  }
+
+  var keyCode = 0;
+  var charCode = 0;
+  switch (code) {
+    case KeyEvent.DOM_VK_BACK_SPACE:
+    case KeyEvent.DOM_VK_RETURN:
+      keyCode = code;
+      charCode = 0;
     break;
 
-  default:
-    if (inputContext) {
-      inputContext.sendKey(0, keyCode, 0);
-    }
-    break;
+    default:
+      charCode = code;
+      // The code here should be a charCode, but we use it as if
+      // it's a keyCode here.
+      keyCode = code;
+      break;
   }
+
+  inputContext.sendKey(keyCode, charCode, 0 /* modifiers */);
 }
 
 function replaceSurroundingText(text, offset, length) {
