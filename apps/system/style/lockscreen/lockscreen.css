@@ -8,7 +8,9 @@
   -moz-user-select: none;
   opacity: 1;
   transition:
+    transform 0.5s ease,
     opacity 0.5s ease,
+    visibility 0.5s ease;
 }
 
 #screen.active-statusbar > #lockscreen {
@@ -18,7 +20,9 @@
 
 #screen:not(.locked) > #lockscreen,
 #screen.lockscreen-camera > #lockscreen {
+  transform: scale(2);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
