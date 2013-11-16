@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from gaiatest import GaiaTestCase
 from gaiatest.apps.system.regions.cards_view import CardsView
 
@@ -17,6 +19,8 @@ class TestCardsViewThreeApps(GaiaTestCase):
         # Launch the test apps
         for app in self._test_apps:
             self.apps.launch(app)
+            # We need to wait a bit so to not trip the OOM killer
+            time.sleep(2)
 
     def test_cards_view(self):
         # https://moztrap.mozilla.org/manage/case/1909/
