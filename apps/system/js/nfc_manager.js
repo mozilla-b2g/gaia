@@ -286,8 +286,13 @@ var NfcManager = {
   handleNdefDiscovered:
     function nm_handleNdefDiscovered(tech, session, ndefMsg) {
 
+    if (ndefMsg == null) {
+      return false;
+    }
+
     this._debug('handleNdefDiscovered: ' + JSON.stringify(ndefMsg));
     var records = ndefMsg;
+
     var action = this.handleNdefMessage(records);
     if (action == null) {
       this._debug('Unimplemented. Handle Unknown type.');
@@ -329,6 +334,22 @@ var NfcManager = {
     } else {
       this._debug('Empty NDEF Message sent to Technology Discovered');
       var ndefMsg = [];
+    }
+
+    if (ndefMsg != null) {
+      var firstRecord = ndefMsg[0];
+      if ((firstRecord.tnf == NDEF.tnf_well_known) &&
+          NfcUtil.equalArrays(firstRecord.type, NDEF.rtd_handover_select)) {
+        this._debug('Handle Handover Select');
+        handoverManager.handleHandoverSelect(ndefMsg);
+        return;
+      }
+      if ((firstRecord.tnf == NDEF.tnf_well_known) &&
+          NfcUtil.equalArrays(firstRecord.type, NDEF.rtd_handover_request)) {
+        this._debug('Handle Handover Request');
+        handoverManager.handleHandoverRequest(ndefMsg, command.sessionToken);
+        return;
+      }
     }
 
     // Force Tech Priority:
