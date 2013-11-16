@@ -78,9 +78,7 @@ Clock.prototype.navigate = function(panelName) {
 
 Clock.prototype.waitForSlideEnd = function(element) {
   this.client.waitFor(function() {
-    return element.scriptWith(function(element) {
-      return !!element.className.match(/\bslide-(in|out)-(right|left)\b/);
-    });
+    return element.displayed();
   });
 
   this.client.waitFor(function() {
