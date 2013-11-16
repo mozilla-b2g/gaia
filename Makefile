@@ -127,7 +127,7 @@ endif
 
 REPORTER?=Spec
 MOCHA_REPORTER?=dot
-NPM_REGISTRY?=http://registry.npmjs.org
+NPM_REGISTRY=http://registry.npmjs.org
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
