@@ -29,7 +29,6 @@ lookupUrlRecordType: function(uri) {
 // Abbreviate will shorten the protocol of that url
 createUriNdefRecord: function(uri, abbreviate) {
   var uriPayload = null;
-
   if (uri == null) {
     return null;
   }
@@ -45,7 +44,7 @@ createUriNdefRecord: function(uri, abbreviate) {
       urlPayload = String.fromCharCode(split.identifier) + split.uri;
     }
   } else {
-    urlPayload = url; // unmodified.
+    urlPayload = uri; // unmodified.
   }
   console.log('Current URL payload: ' + urlPayload);
 
