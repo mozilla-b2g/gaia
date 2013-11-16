@@ -348,7 +348,7 @@ var StatusBar = {
         this.update.data.call(this);
       }
 
-      if (IccHelper.enabled) {
+      if (IccHelper) {
         IccHelper.addEventListener('iccinfochange', this);
       }
 
@@ -387,7 +387,7 @@ var StatusBar = {
         conn.removeEventListener('datachange', this);
       }
 
-      if (IccHelper.enabled) {
+      if (IccHelper) {
         IccHelper.removeEventListener('iccinfochange', this);
       }
 
@@ -413,7 +413,7 @@ var StatusBar = {
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
 
-      if (!IccHelper.enabled || !conn || !conn.voice || !conn.voice.connected ||
+      if (!IccHelper || !conn || !conn.voice || !conn.voice.connected ||
           conn.voice.emergencyCallsOnly) {
         delete l10nArgs.operator;
         label.dataset.l10nArgs = JSON.stringify(l10nArgs);
@@ -490,7 +490,7 @@ var StatusBar = {
       if (!conn || !conn.voice)
         return;
 
-      if (!IccHelper.enabled)
+      if (!IccHelper)
         return;
 
       var voice = conn.voice;

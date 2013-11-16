@@ -1,3 +1,12 @@
+/* global ObservableArray */
+/* exported ListView */
+
+// start outer IIFE - exports === window
+(function(exports) {
+'use strict';
+
+var elements = new WeakMap();
+
 /*
  * A ListView takes an ObservableArray or an ordinary array, and generate/
  * manipulate the corresponding DOM elements of the content in the array using
@@ -29,18 +38,19 @@ var ListView = function(root, observableArray, templateFunc) {
         break;
       case 'reset':
         _reset(data.items || []);
+        break;
       default:
         break;
     }
   };
 
   var _insert = function(index, items) {
-    if (items.length <= 0)
+    if (items.length <= 0) {
       return;
+    }
 
     // add DOM elements
-    var referenceElement =
-      _root.querySelector('li:nth-child(' + (index + 1) + ')');
+    var referenceElement = _root.children[index];
     for (var i = items.length - 1; i >= 0; i--) {
       var curElement = _templateFunc(items[i]);
       _root.insertBefore(curElement, referenceElement);
@@ -49,8 +59,9 @@ var ListView = function(root, observableArray, templateFunc) {
   };
 
   var _remove = function(index, count) {
-    if (count === 0)
+    if (count === 0) {
       return;
+    }
 
     // remove DOM elements
     if (count === _root.childElementCount) {
@@ -59,8 +70,7 @@ var ListView = function(root, observableArray, templateFunc) {
         _root.removeChild(_root.firstElementChild);
       }
     } else {
-      var nextElement =
-        _root.querySelector('li:nth-child(' + (index + 1) + ')');
+      var nextElement = _root.children[index];
       for (var i = 0; i < count; i++) {
         if (nextElement) {
           var temp = nextElement.nextElementSibling;
@@ -74,9 +84,13 @@ var ListView = function(root, observableArray, templateFunc) {
   };
 
   var _replace = function(index, value) {
-    var element = _root.querySelector('li:nth-child(' + (index + 1) + ')');
+    var element = _root.children[index];
     if (element) {
-      _templateFunc(value, element);
+      var newElement = _templateFunc(value, element);
+      if (newElement !== element) {
+        _root.insertBefore(newElement, element);
+        _root.removeChild(element);
+      }
     }
   };
 
@@ -84,7 +98,7 @@ var ListView = function(root, observableArray, templateFunc) {
     var itemCount = items.length;
     var elementCount = _root.childElementCount;
 
-    if (itemCount == 0) {
+    if (itemCount === 0) {
       _remove(0, elementCount);
     } else if (itemCount <= elementCount) {
       items.forEach(function(item, index) {
@@ -112,13 +126,16 @@ var ListView = function(root, observableArray, templateFunc) {
 
   var view = {
     set: function lv_set(newArray) {
-      // clear all existing items
       if (_observableArray) {
-        _remove(0, _observableArray.length);
+        _observableArray.unobserve(_handleEvent);
       }
 
       if (!newArray) {
-        _observableArray = null;
+        // clear all existing items
+        if (_observableArray) {
+          _remove(0, _observableArray.length);
+          _observableArray = null;
+        }
         return;
       }
 
@@ -135,7 +152,21 @@ var ListView = function(root, observableArray, templateFunc) {
       _observableArray.observe('replace', _handleEvent);
       _observableArray.observe('reset', _handleEvent);
 
-      _insert(0, _observableArray.array);
+      if (this.enabled) {
+        _reset(_observableArray.array);
+      }
+    },
+
+    destroy: function() {
+      // unobserve from array and null everything out
+      if (_observableArray) {
+        _observableArray.unobserve(_handleEvent);
+      }
+      elements.delete(_root);
+      _root = null;
+      _observableArray = null;
+      _templateFunc = null;
+      _enabled = false;
     },
 
     set enabled(value) {
@@ -150,6 +181,21 @@ var ListView = function(root, observableArray, templateFunc) {
     }
   };
 
+  if (elements.has(_root)) {
+    // destroy old ListView if we setup a second one
+    elements.get(_root).destroy();
+  }
+
+  elements.set(_root, view);
+
+  // emtpy element at creation time
+  _root.innerHTML = '';
+
   view.set(observableArray);
   return view;
 };
+
+exports.ListView = ListView;
+
+// end outer IIFE
+}(window));

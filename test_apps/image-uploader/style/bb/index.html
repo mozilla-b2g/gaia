@@ -353,7 +353,7 @@
           if ( element.getAttribute("data-codetrash") == "true" ) {
             var temporalNode = element;
           } else {
-            var cloned = element.cloneNode();
+            var cloned = element.cloneNode(true);
             cloned.removeAttribute("data-codeexample");
             var temporalNode = documentPreview.createElement("div");
             temporalNode.appendChild(cloned);

@@ -423,8 +423,7 @@
       <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- notifications -->
         <div id="notification-bar">
-          <span id="notification-some" data-l10n-id="notifications" hidden>Notifications</span>
-          <span id="notification-none" data-l10n-id="no-notifications">No notifications</span>
+          <span id="notification-some" data-l10n-id="notifications">Notifications</span>
 
           <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
         </div>
@@ -440,7 +439,7 @@
             </div>
           </div>
           <!-- Emergency callback Manager -->
-          <div id="emergency-callback-notification" class="fake-notification">
+          <div id="emergency-callback-notification" class="fake-notification" hidden>
             <div class="icon">
             </div>
             <div class="message" data-l10n-id="emergency-callback-mode">
@@ -841,8 +840,8 @@
               </label>
             </div>
             <menu data-items="2">
-              <button id="permission-no" data-l10n-id="dontshare">Don't Share</button>
-              <button id="permission-yes" class="affirmative" data-l10n-id="share">Share</button>
+              <button id="permission-no"></button>
+              <button id="permission-yes" class="affirmative"></button>
             </menu>
           </div>
         </div>
@@ -927,7 +926,7 @@
       </form>
 
       <form id="emergency-callback-dialog" role="dialog" data-type="confirm"
-            data-z-index-level="emergency-callback-dialog" class="generic-dialog">
+            data-z-index-level="emergency-callback-dialog" class="generic-dialog" hidden>
         <section>
           <h1 data-l10n-id="confirm">Confirm</h1>
           <p id="emergency-callback-dialog-wrapper">
@@ -1105,7 +1104,7 @@
         </div>
       </div>
 
-      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster">
+      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden>
         <div class="icon">
         </div>
         <div class="message" data-l10n-id="emergency-callback-mode">

@@ -549,7 +549,7 @@ Icon.prototype = {
     // and don't revoke it until we're finished with the animation.
     this.loadRenderedIcon();
 
-    var icon = this.icon.cloneNode();
+    var icon = this.icon.cloneNode(true);
     var img = icon.querySelector('img');
     img.style.visibility = 'hidden';
     img.onload = img.onerror = function unhide() {

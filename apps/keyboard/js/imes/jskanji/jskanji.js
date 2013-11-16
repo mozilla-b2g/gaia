@@ -334,7 +334,7 @@
 
     this.select = function ime_select(kanji, kana) {
       debug('select ' + kanji + ' ' + kana);
-      _glue.sendString(kanji);
+      sendString(kanji);
 
       _inputBuf.splice(0, kana.length);
       _selectedKanji = kanji;
@@ -451,7 +451,7 @@
       // append new key code to the end of `_inputBuf`
       // and begin to deal with the new buf
       if (!(kana in IMEKeyMap)) {
-        _glue.sendString(kana);
+        sendString(kana);
         return 1;
       }
       if (_previousKeycode !== IMESpecialKey.BACK &&
@@ -480,10 +480,8 @@
 
       switch (code) {
 
-        case 32:
-          // Space
-          debug('space');
-          _glue.sendString(' ');
+        case KeyEvent.DOM_VK_SPACE:
+          _glue.sendKey(code);
           break;
 
         case 0:
@@ -553,7 +551,7 @@
             break;
           }
           if (_inputBuf.length === 0) {
-            _glue.sendString(' ');
+            _glue.sendKey(KeyEvent.DOM_VK_SPACE);
             break;
           }
 
@@ -639,7 +637,7 @@
         case IMESpecialKey.MARK:
           debug(_inputBuf.length);
           if (_inputBuf.length !== 0) {
-            _glue.sendString(SyllableUtils.arrayToString(_inputBuf));
+            sendString(SyllableUtils.arrayToString(_inputBuf));
             _inputBuf = [];
             _firstKana = '';
             _firstKanji = '';
@@ -746,7 +744,7 @@
 
         debug('handle return in transform mode or select mode');
         // select first term
-        _glue.sendString(_firstKanji);
+        sendString(_firstKanji);
         _inputBuf.splice(0, _firstKana.length);
 
         // query to generate first term
@@ -765,7 +763,7 @@
         } else if (_keyboardMode === IMEMode.HALF_KATAKANA) {
           mode = IMEMode.FULL_KATAKANA;
         }
-        _glue.sendString(_getPossibleStrings(mode)[0]);
+        sendString(_getPossibleStrings(mode)[0]);
         _inputBuf = [];
         _candidateList = [];
         _keyboardMode = IMEMode.FULL_HIRAGANA;
@@ -780,7 +778,7 @@
 
         debug('handle return in transform mode or select mode');
         // select first term
-        _glue.sendString(_firstKanji);
+        sendString(_firstKanji);
         _inputBuf.splice(0, _firstKana.length);
 
         // query to generate first term
@@ -792,7 +790,7 @@
       } else {
         if (_firstKana.length > 0) {
           debug('first term ' + _firstKanji + ' ' + _firstKana);
-          _glue.sendString(_firstKanji);
+          sendString(_firstKanji);
           _inputBuf.splice(0, _firstKana.length);
           handleInputBuf();
 
@@ -1061,6 +1059,12 @@
       return [displayStr, strFullHiragana, strFullKatakana, strHalfKatakana];
     };
 
+    // Send string to input field
+    var sendString = function ime_sendString(text) {
+      _glue.setComposition('');
+      _glue.endComposition(text);
+    };
+
     // Send pending symbols to display
     var sendPendingSymbols = function ime_sendPendingSymbols() {
 
@@ -1070,12 +1074,12 @@
       debug('sending pending symbols: ' + bufStr);
 
       if (_inputBuf.length === 0) {
-        _glue.sendPendingSymbols('');
+        _glue.endComposition();
         return;
       }
 
       if (_keyMode === KeyMode.NORMAL) {
-        _glue.sendPendingSymbols(bufStr);
+        _glue.setComposition(bufStr);
         return;
 
       } else if (_keyMode === KeyMode.TRANSFORM) {
@@ -1084,7 +1088,12 @@
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          _glue.sendPendingSymbols(bufStr, 0, _firstKana.length, 'blue');
+          // XXX: New composition APIs don't support changing the style of
+          // composition string so we left the previous statements here to
+          // remind us of the original design.
+
+          // _glue.sendPendingSymbols(bufStr, 0, _firstKana.length, 'blue');
+          _glue.setComposition(bufStr);
         }
 
         return;
@@ -1094,7 +1103,8 @@
           _keyMode = KeyMode.NORMAL;
 
         } else {
-          _glue.sendPendingSymbols(bufStr, 0, _firstKana.length, 'green');
+          //_glue.sendPendingSymbols(bufStr, 0, _firstKana.length, 'green');
+          _glue.setComposition(bufStr);
         }
 
         return;
@@ -1102,7 +1112,8 @@
 
         var strs = _getPossibleStrings(_keyboardMode);
         var candidates = [];
-        _glue.sendPendingSymbols(bufStr, 0, strs[1].length, 'red');
+        //_glue.sendPendingSymbols(bufStr, 0, strs[1].length, 'red');
+        _glue.setComposition(bufStr);
 
         // candidate list is updated here
         // to avoide loop again in `handleInputBuf`
@@ -1115,7 +1126,7 @@
         return;
       }
 
-      _glue.sendPendingSymbols(bufStr);
+      _glue.setComposition(bufStr);
     };
 
     // Update candidate list
@@ -1179,7 +1190,8 @@
   if (!KeyEvent) {
     var KeyEvent = {
       DOM_VK_BACK_SPACE: 0x8,
-      DOM_VK_RETURN: 0xd
+      DOM_VK_RETURN: 0xd,
+      DOM_VK_SPACE: 0x20
     };
   }
   /* end copy */

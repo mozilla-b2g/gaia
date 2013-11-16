@@ -231,7 +231,7 @@ var LockScreen = {
     }
 
     /* icc state on lock screen */
-    if (IccHelper.enabled) {
+    if (IccHelper) {
       IccHelper.addEventListener('cardstatechange', this);
       IccHelper.addEventListener('iccinfochange', this);
     }
@@ -1013,7 +1013,7 @@ var LockScreen = {
     if (!conn)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     navigator.mozL10n.ready(function() {

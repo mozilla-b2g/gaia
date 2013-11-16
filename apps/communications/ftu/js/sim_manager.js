@@ -15,7 +15,7 @@ var SimManager = {
     if (!this.mobConn)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     _ = navigator.mozL10n.get;
@@ -74,7 +74,7 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return false;
     return (IccHelper.cardState === 'ready');
   },

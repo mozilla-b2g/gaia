@@ -217,7 +217,7 @@ var Connectivity = (function(window, document, undefined) {
       }
     };
 
-    if (!mobileConnection || !IccHelper.enabled)
+    if (!mobileConnection || !IccHelper)
       return setCarrierStatus({});
 
     // ensure the SIM card is present and unlocked
@@ -256,7 +256,7 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateCallSettings()
     }
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     // update the current SIM card state
@@ -277,7 +277,7 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateMessagingSettings()
     }
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     // update the current SIM card state

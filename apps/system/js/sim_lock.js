@@ -9,7 +9,7 @@ var SimLock = {
 
   init: function sl_init() {
     // Do not do anything if we can't have access to IccHelper API
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     this.onClose = this.onClose.bind(this);
@@ -101,7 +101,7 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked() {
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return false;
 
     if (LockScreen.locked)
