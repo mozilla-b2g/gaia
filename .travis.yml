@@ -1,4 +1,4 @@
-before_install: "travis_retry npm install --registry http://54.204.30.62:8080"
+before_install: "travis_retry npm install"
 install: "./node_modules/.bin/travisaction $CI_ACTION install"
 before_script:
   - "export DISPLAY=:99.0"
@@ -12,11 +12,27 @@ branches:
     - v1.0.0
     - v1.0.1
 env:
-  - CI_ACTION=gjslint
-  - CI_ACTION=test_agent
-  - CI_ACTION=marionette_js
-  - CI_ACTION=gaia_ui_tests
-  - CI_ACTION=jshint
+  - CI_ACTION=marionette_js TRY=1
+  - CI_ACTION=marionette_js TRY=2
+  - CI_ACTION=marionette_js TRY=3
+  - CI_ACTION=marionette_js TRY=4
+  - CI_ACTION=marionette_js TRY=5
+  - CI_ACTION=marionette_js TRY=6
+  - CI_ACTION=marionette_js TRY=7
+  - CI_ACTION=marionette_js TRY=8
+  - CI_ACTION=marionette_js TRY=9
+  - CI_ACTION=marionette_js TRY=10
+  - CI_ACTION=marionette_js TRY=11
+  - CI_ACTION=marionette_js TRY=12
+  - CI_ACTION=marionette_js TRY=13
+  - CI_ACTION=marionette_js TRY=14
+  - CI_ACTION=marionette_js TRY=15
+  - CI_ACTION=marionette_js TRY=16
+  - CI_ACTION=marionette_js TRY=17
+  - CI_ACTION=marionette_js TRY=18
+  - CI_ACTION=marionette_js TRY=19
+  - CI_ACTION=marionette_js TRY=20
+  - CI_ACTION=marionette_js TRY=21
 matrix:
   allow_failures:
     - env: CI_ACTION=jshint

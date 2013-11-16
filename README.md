@@ -138,3 +138,5 @@ See [Gaia functional tests README](https://github.com/mozilla-b2g/gaia/blob/mast
 #### Endurance
 
 See [how to run the Gaia endurance tests](https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/endurance_tests/how_to_run_gaiaui_endurance_tests)
+
+MUWHAHA

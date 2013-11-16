@@ -127,7 +127,7 @@ endif
 
 REPORTER?=Spec
 MOCHA_REPORTER?=dot
-NPM_REGISTRY?=http://54.204.30.62:8080
+NPM_REGISTRY=https://registry.npmjs.org/
 # Ensure that NPM only logs warnings and errors
 export npm_config_loglevel=warn
 MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
@@ -727,8 +727,7 @@ b2g: node_modules/.bin/mozilla-download
 test-integration:
 	# override existing profile-test folder.
 	PROFILE_FOLDER=profile-test make
-	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
-		--host $(MARIONETTE_RUNNER_HOST) \
+	DEBUG=* NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*clock/test/marionette/*_test.js") \
 		--reporter $(MOCHA_REPORTER)
 
 .PHONY: test-perf
