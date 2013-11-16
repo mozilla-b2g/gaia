@@ -1,4 +1,6 @@
 let utils = require('./utils');
+const { Cc, Ci, Cr, Cu, CC } = require('chrome');
+Cu.import('resource://gre/modules/Services.jsm');
 
 exports.copyLayoutsAndDictionaries = copyLayoutsAndDictionaries;
 exports.addEntryPointsToManifest = addEntryPointsToManifest;
@@ -78,8 +80,11 @@ function getLayouts(config) {
       return getLayoutDetails(layoutName, layoutFile);
     }
     catch(e) {
-      throw new Error('Unknown keyboard layout "' + layoutName +
-                      '" in GAIA_KEYBOARD_LAYOUTS');
+      // keep the original Error with its stack, just annotate which
+      // keyboard failed.	
+      e.message = 'Problem with keyboard layout "' + layoutName +
+                  '" in GAIA_KEYBOARD_LAYOUTS\n' + e.message;
+      throw e;
     }
   });
 
@@ -88,27 +93,26 @@ function getLayouts(config) {
   // Read the .js file for the named keyboard layout and extract
   // the language name and auto-correct dictionary name.
   function getLayoutDetails(layoutName, layoutFile) {
-    let content = utils.getFileContent(layoutFile);
-
     // The keyboard layout files are JavaScript files that add properties
-    // to the Keybords object. They are not clean JSON, so we have to eval()
-    // them.  They reference globals KeyEvent and KeyboardEvent, so we
-    // have to define those here.
-    let Keyboards = {};
-    let KeyEvent = {};
-    let KeyboardEvent = {};
-    eval(content);  // Layouts are js, not JSON, so we can't JSON.parse()
-
-    let dictName = Keyboards[layoutName].autoCorrectLanguage;
+    // to the Keybords object. They are not clean JSON, so we have to use
+    // use the scriptloader to load them. That also gives stacktraces for
+    // errors inside the keyboard file.
+    // They reference globals KeyEvent and KeyboardEvent, so we
+    // have to define those on the context object.
+    var win = {Keyboards: {},
+               KeyEvent: {},
+               KeyboardEvent: {}};
+    Services.scriptloader.loadSubScript('file://' + layoutFile.path, win, 'UTF-8');
+    let dictName = win.Keyboards[layoutName].autoCorrectLanguage;
     let dictFile = dictName
       ? utils.getFile(dictSrc.path, dictName + '.dict')
       : null;
 
     return {
       name: layoutName,
-      label: Keyboards[layoutName].menuLabel,
+      label: win.Keyboards[layoutName].menuLabel,
       file: layoutFile,
-      types: Keyboards[layoutName].types,
+      types: win.Keyboards[layoutName].types,
       dictfile: dictFile
     };
   }

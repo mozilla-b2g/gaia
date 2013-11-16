@@ -3,7 +3,6 @@ Keyboards.mk = {
   menuLabel: 'Македонски',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
-  autoCorrectLanguage: 'mk',
   alt: {
     'е': 'ѐ',
     'и': 'ѝ'
