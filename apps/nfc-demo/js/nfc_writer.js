@@ -110,6 +110,12 @@ contactFormToNdefRecord: function(elementRef) {
   var type = $(elementRef + ' > .nfc_contact_type').val();
   var id = $(elementRef + ' > .nfc_contact_id').val();
 
+  if (!type) {
+    type = '';
+  }
+  if (!id) {
+    id = '';
+  }
   /* payload */
   var fname = $(elementRef + ' > .nfc_contact_payload_name_first').val();
   var lname = $(elementRef + ' > .nfc_contact_payload_name_last').val();
@@ -146,14 +152,18 @@ contactFormToNdefRecord: function(elementRef) {
   }
 
   if (mobile) {
-    payload += 'TEL;TYPE:cell:' + mobile + '\n';
+    payload += 'TEL;TYPE=cell:' + mobile + '\n';
   }
 
   if (address) {
-    payload += 'ADR;HOME:' + address + '\n';
+    payload += 'ADR;TYPE=home:' + address + '\n';
   }
 
   payload += 'END:VCARD';
+
+  type = nfc.fromUTF8(type);
+  id = nfc.fromUTF8(id);
+  payload = nfc.fromUTF8(payload);
 
   var record = new MozNdefRecord(
     tnf,
