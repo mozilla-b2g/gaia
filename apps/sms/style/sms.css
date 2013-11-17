@@ -26,7 +26,7 @@ form[role="dialog"][data-type="confirm"] p small{
 section[role="region"] > header:first-child .icon.icon-clear {
   background-image: url(images/icons/clear.png);
   background-position: center calc(50% + 0.1rem);
-  background-size: 1.7rem;
+  background-size: 3rem;
   right: calc(-50% + 7rem);
   width: 2rem;
   margin: 0;
