@@ -13,7 +13,7 @@ var GaiaDataLayer = {
       adapter.ondevicefound = function(aEvent) {
         device = aEvent.device;
         if (device.name === aDeviceName) {
-          var pair = adapter.pair(device);
+          var pair = adapter.pair(device.address);
           marionetteScriptFinished(true);
         }
       };
@@ -29,7 +29,7 @@ var GaiaDataLayer = {
       req.onsuccess = function() {
         var total = req.result.slice().length;
         for (var i = total; i > 0; i--) {
-          var up = adapter.unpair(req.result.slice()[i-1]);
+          var up = adapter.unpair(req.result.slice()[i-1].address);
         }
       };
     };
@@ -112,7 +112,15 @@ var GaiaDataLayer = {
 
   getSIMContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    var req = navigator.mozIccManager.readContacts("adn");
+    var icc = navigator.mozIccManager;
+
+    // See bug 932134
+    // To keep all tests passed while introducing multi-sim APIs, in bug 928325
+    // we do the following check. Remove it after the APIs land.
+    if (icc && icc.iccIds && icc.iccIds[0]) {
+      icc = icc.getIccById(icc.iccIds[0]);
+    }
+    var req = icc.readContacts("adn");
     req.onsuccess = function () {
       console.log('success finding contacts');
       SpecialPowers.removePermission('contacts-read', document);

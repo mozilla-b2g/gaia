@@ -188,19 +188,24 @@ section li.password > label {
 }
 
 section li.password > label > span:after {
-  left: 1.1rem;
+  left: 0;
   right: auto;
+  margin-left: 0;
 }
 
 section li.password > label > span {
   position: absolute;
-  top: 8.3rem;
-  left: 4.5rem;
-  padding: 0;
+  left: 1.5rem;
+  padding-left: 3rem;
   height: 3rem;
   color: #848484;
   font-size: 1.7rem;
   line-height: 3rem;
+}
+
+section li.password > label:active > span {
+  background-color: transparent;
+  color: #848484;
 }
 
 section li.password > p {
@@ -329,19 +334,6 @@ section li.password > p {
 #carrier-operatorSettings-content:not(.gsm) #availableOperators {
   display: none;
 }
-
-#carrier-dc-warning h1 > span:before,
-#carrier-dr-warning h1 > span:before {
-  content: "";
-  position: relative;
-  display: inline-block;
-  background: -moz-image-rect(url(images/icons_sprite.png), 0, 120, 30, 90) no-repeat scroll 0 50% transparent;
-  top: 0.9rem;
-  margin: 0.5rem;
-  width: 3rem;
-  height: 3rem;
-}
-
 
 /******************************************************************************
  * APN settings

@@ -700,7 +700,7 @@ window.addEventListener('load', function loadSettings() {
       }
     }
 
-    if (!IccHelper.enabled) {
+    if (!IccHelper) {
       return disableSIMRelatedSubpanels(true);
     }
 

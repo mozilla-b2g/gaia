@@ -127,7 +127,7 @@ var Feedback = {
     var currentSetting = Settings.settingsCache;
     var feedbackUrl = currentSetting['feedback.url'];
     this.feedbackObj.version =
-      currentSetting['deviceinfo.platform_build_id'];
+      currentSetting['deviceinfo.os'];
     this.feedbackObj.device =
       currentSetting['deviceinfo.hardware'];
     this.feedbackObj.locale =

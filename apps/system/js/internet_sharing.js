@@ -117,7 +117,7 @@ var InternetSharing = (function() {
     if (!settings) {
       return;
     }
-    if (!IccHelper.enabled) {
+    if (!IccHelper) {
       return;
     }
     observerHooked = false;

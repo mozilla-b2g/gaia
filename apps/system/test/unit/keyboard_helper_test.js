@@ -136,35 +136,80 @@ suite('KeyboardHelper', function() {
         {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
+            type: 'privileged',
             role: 'input',
-            inputs: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
           }
         }, {
           origin: 'app://keyboard2.gaiamobile.org',
           manifest: {
+            type: 'certified',
             role: 'input',
-            inputs: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
           }
         },
         // invalid because it's system
         {
           origin: 'app://system.gaiamobile.org',
           manifest: {
+            type: 'certified',
             role: 'input',
-            inputs: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
           }
         },
         // invalid because there aren't inputs
         {
           origin: 'app://keyboard.gaiamobile.org',
-          manifest: { role: 'input' }
+          manifest: {
+            type: 'certified',
+            role: 'input',
+            permissions: {
+              input: {}
+            }
+          }
         },
         // invalid because it's not input role
         {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
+            type: 'privileged',
             role: 'notinput',
-            inputs: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
+          }
+        },
+        // invalid because it's not privileged, nor certified
+        {
+          origin: 'app://keyboard-no.gaiamobile.org',
+          manifest: {
+            role: 'input',
+            inputs: {},
+            permissions: {
+              input: {}
+            }
+          }
+        },
+        // invalid because it does not have input permission
+        {
+          origin: 'app://keyboard-no.gaiamobile.org',
+          manifest: {
+            type: 'privileged',
+            role: 'input',
+            inputs: {},
+            permissions: {
+              notinput: {}
+            }
           }
         }
       ];

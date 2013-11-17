@@ -12,7 +12,7 @@ var Messaging = (function(window, document, undefined) {
    */
   function m_init() {
     var settings = window.navigator.mozSettings;
-    if (!settings || !IccHelper.enabled || IccHelper.cardState !== 'ready') {
+    if (!settings || !IccHelper || IccHelper.cardState !== 'ready') {
       m_disableItems(true);
       return;
     }

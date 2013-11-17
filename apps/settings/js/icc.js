@@ -31,6 +31,7 @@
     timeout: 0
   };
   var icc;
+  var iccManager;
 
   init();
 
@@ -38,14 +39,11 @@
    * Init STK UI
    */
   function init() {
-    // See bug 859712
-    // To have the backward compatibility for bug 859220.
-    // If we could not get iccManager from navigator,
-    // try to get it from mozMobileConnection.
-    // 'window.navigator.mozMobileConnection.icc' can be dropped
-    // after bug 859220 is landed.
-    icc = window.navigator.mozIccManager ||
-          window.navigator.mozMobileConnection.icc;
+    // See bug 932134
+    // To keep all tests passed while introducing multi-sim APIs, in bug 928325
+    // we use IccHelper. Stop using IccHelper after the APIs land.
+    icc = IccHelper;
+    iccManager = window.navigator.mozIccManager;
 
     icc.onstksessionend = function handleSTKSessionEnd(event) {
       updateMenu();
@@ -62,7 +60,7 @@
     }, false);
     window.onbeforeunload = function() {
       responseSTKCommand({
-        resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+        resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
       }, true);
     };
 
@@ -86,14 +84,14 @@
     Settings.currentPanel = '#root';
     iccLastCommandProcessed = true;
     responseSTKCommand({
-      resultCode: icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+      resultCode: iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
     }, true);
   }
 
   function stkResGoBack() {
     iccLastCommandProcessed = true;
     responseSTKCommand({
-      resultCode: icc.STK_RESULT_BACKWARD_MOVE_BY_USER
+      resultCode: iccManager.STK_RESULT_BACKWARD_MOVE_BY_USER
     });
     // We'll return to settings if no STK response received in a grace period
     var reqTimerGoBack =
@@ -114,7 +112,7 @@
       selectTimer.timer = setTimeout(function() {
         iccLastCommandProcessed = true;
         responseSTKCommand({
-         resultCode: icc.STK_RESULT_NO_RESPONSE_FROM_USER
+         resultCode: iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
         }, true);
         stkResGoBack();
       }, selectTimer.timeout);
@@ -193,7 +191,7 @@
     reopenSettings();
 
     switch (command.typeOfCommand) {
-      case icc.STK_CMD_SELECT_ITEM:
+      case iccManager.STK_CMD_SELECT_ITEM:
         updateSelection(command);
         openSTKApplication();
         iccLastCommandProcessed = true;
@@ -203,7 +201,7 @@
         DUMP('STK Message not managed... response OK');
         iccLastCommandProcessed = true;
         responseSTKCommand({
-          resultCode: icc.STK_RESULT_OK
+          resultCode: iccManager.STK_RESULT_OK
         });
     }
   }
@@ -339,7 +337,7 @@
   function onSelectOptionClick(command, event) {
     var identifier = event.target.getAttribute('stk-select-option-identifier');
     responseSTKCommand({
-      resultCode: icc.STK_RESULT_OK,
+      resultCode: iccManager.STK_RESULT_OK,
       itemIdentifier: identifier
     });
     stkLastSelectedTest = event.target.textContent;

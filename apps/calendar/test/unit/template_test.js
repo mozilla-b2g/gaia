@@ -262,7 +262,7 @@ suite('calendar/template', function() {
 
       var results = support.vs(5000, {
         html: function() {
-          var myDiv = div.cloneNode(),
+          var myDiv = div.cloneNode(true),
               mySpan = myDiv.querySelector('span');
 
           myDiv.className = 'dynamic';

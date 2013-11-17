@@ -150,6 +150,7 @@ var AirplaneMode = {
     var restoreWifi = false;
     var restoreGeolocation = false;
     var restoreNfc = false;
+
     settings.addObserver('ril.radio.disabled', function(e) {
       // Reset notification params
       self._ops = 0;
@@ -205,7 +206,7 @@ var AirplaneMode = {
           self._ops++;
 
         // Don't count NFC if it's already on
-        if (!nfcEnabled && restoreNfc)
+        if (nfcManager && !nfcEnabled && restoreNfc)
           self._ops++;
       }
 

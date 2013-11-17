@@ -507,10 +507,6 @@ class GaiaTestCase(MarionetteTestCase):
         # Switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
 
-        # Change timezone back to PST
-        self.data_layer.set_setting("time.timezone", "America/Los_Angeles")
-        self.data_layer.set_setting("time.timezone.user-selected", "America/Los_Angeles")
-
         # restore settings from testvars
         [self.data_layer.set_setting(name, value) for name, value in self.testvars.get('settings', {}).items()]
 
@@ -536,6 +532,9 @@ class GaiaTestCase(MarionetteTestCase):
             if self.data_layer.get_setting('ril.radio.disabled'):
                 # enable the device radio, disable Airplane mode
                 self.data_layer.set_setting('ril.radio.disabled', False)
+
+            # Re-set edge gestures pref to False
+            self.data_layer.set_setting('edgesgesture.enabled', False)
 
             # disable carrier data connection
             if self.device.has_mobile_connection:

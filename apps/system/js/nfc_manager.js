@@ -155,17 +155,12 @@ var NfcManager = {
 
   init: function nm_init() {
     this._debug('Initializing NFC Message');
-    var self = this;
     window.navigator.mozSetMessageHandler(
       'nfc-manager-tech-discovered',
-      function callTechnologyDiscovered(message) {
-         self.handleTechnologyDiscovered(message);
-      });
+      this.handleTechnologyDiscovered.bind(this));
     window.navigator.mozSetMessageHandler(
       'nfc-manager-tech-lost',
-      function callHandleTechnologyLost(message) {
-        self.handleTechLost(message);
-      });
+      this.handleTechLost.bind(this));
     window.addEventListener('screenchange', this);
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
@@ -256,61 +251,58 @@ var NfcManager = {
     };
   },
 
-  handleNdefDiscoveredNotification:
-    function nm_handleNdefDiscoveredNotification(tech, session) {
+  handleNdefDiscoveredUseConnect:
+    function nm_handleNdefDiscoveredUseConnect(tech, session) {
 
-    var connected = false;
-    var handled = false;
-    var nfcdom = window.navigator.mozNfc;
+      var connected = false;
+      var handled = false;
+      var nfcdom = window.navigator.mozNfc;
 
-    var token = session;
-    var nfctag = nfcdom.getNFCTag(token);
+      var token = session;
+      var nfctag = nfcdom.getNFCTag(token);
 
-    var conn = nfctag.connect(tech);
-    conn.onsuccess = function() {
-      var req = nfctag.readNDEF();
-      req.onsuccess = function() {
-        this._debug('NDEF Read result: ' + JSON.stringify(req.result));
-        handled = this.handleNdefDiscovered(tech, session, req.result.records);
-        this.doClose(nfctag);
+      var conn = nfctag.connect(tech);
+      conn.onsuccess = function() {
+        var req = nfctag.readNDEF();
+        req.onsuccess = function() {
+          this._debug('NDEF Read result: ' + JSON.stringify(req.result));
+          handled = this.handleNdefDiscovered(tech, session,
+                                              req.result.records);
+          this.doClose(nfctag);
+        };
+        req.onerror = function() {
+          this._debug('Error reading NDEF record');
+          this.doClose(nfctag);
+        };
       };
-      req.onerror = function() {
-        this._debug('Error reading NDEF record');
-        this.doClose(nfctag);
-      };
-    };
-
-    return handled;
+      return handled;
   },
 
   handleNdefDiscovered:
     function nm_handleNdefDiscovered(tech, session, ndefMsg) {
 
-    this._debug('handleNdefDiscovered: ' + JSON.stringify(ndefMsg));
-    var records = ndefMsg;
-    var action = this.handleNdefMessage(records);
-    if (action == null) {
-      this._debug('Unimplemented. Handle Unknown type.');
-    } else {
-      this._debug('Action: ' + JSON.stringify(action));
-      action.data.tech = tech;
-      action.data.sessionToken = session;
-      var a = new MozActivity(action);
-      return true;
-    }
-
-    return false;
+      this._debug('handleNdefDiscovered: ' + JSON.stringify(ndefMsg));
+      var records = ndefMsg;
+      var action = this.handleNdefMessage(records);
+      if (action == null) {
+        this._debug('Unimplemented. Handle Unknown type.');
+      } else {
+        this._debug('Action: ' + JSON.stringify(action));
+        action.data.tech = tech;
+        action.data.sessionToken = session;
+        var a = new MozActivity(action);
+        return true;
+      }
+      return false;
   },
 
   // TODO:
   handleNdefFormattableDiscovered:
     function nm_handleNdefFormattableDiscovered(tech, session) {
-
-    return this.handleNdefDiscoveredNotification(tech, session);
+      return this.handleNdefDiscoveredUseConnect(tech, session);
   },
 
   handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
-
     this._debug('Technology Discovered: ' + JSON.stringify(command));
 
     if (!this.acceptNfcEvents()) {
@@ -322,13 +314,14 @@ var NfcManager = {
     // Check for tech types:
     this._debug('command.tech: ' + command.tech);
     var handled = false;
-    var techs = command.tech;
+    var techs = command.tech; // FIXME: command.techlist
+    var ndefMsg = null;
     if (command.ndef.length) {
       // Pick the first NDEF message for now.
-      var ndefMsg = command.ndef[0];
+      ndefMsg = command.ndef[0];
     } else {
       this._debug('Empty NDEF Message sent to Technology Discovered');
-      var ndefMsg = [];
+      ndefMsg = [];
     }
 
     // Force Tech Priority:
@@ -359,13 +352,13 @@ var NfcManager = {
           return;
         }
         handled = this.handleNdefDiscovered(techs[i], command.sessionToken,
-                                         ndefMsg);
+                                           ndefMsg);
       } else if (tech == 'NDEF') {
         handled = this.handleNdefDiscovered(techs[i], command.sessionToken,
-                                         ndefMsg);
+                                           ndefMsg);
       } else if (tech == 'NDEF_FORMATTABLE') {
         handled = handleNdefFormattableDiscovered(techs[i],
-                                                    command.sessionToken);
+                                                  command.sessionToken);
       } else if (tech == 'NFC_A') {
         this._debug('NFCA unsupported: ' + command);
       } else if (tech == 'MIFARE_ULTRALIGHT') {
@@ -379,7 +372,7 @@ var NfcManager = {
       }
     }
 
-    if (handled == false) {
+    if (handled === false) {
       // Fire off activity to whoever is registered to handle a generic binary
       // blob tag (TODO: tagRead).
       var technologyTags = command.tag;
@@ -499,8 +492,8 @@ var NfcManager = {
     var type = 'mime-media';
     var activityText = null;
 
-    this._debug('XXXX HandleMimeMedia');
-    if (NfcUtil.equalArrays(record.type, 'text/vcard')) {
+    this._debug('HandleMimeMedia');
+    if (NfcUtil.equalArrays(record.type, NfcUtil.fromUTF8('text/vcard'))) {
       activityText = this.handleVCardRecord(record);
     } else {
       activityText = {
@@ -513,95 +506,14 @@ var NfcManager = {
     return activityText;
   },
 
-  findKey: function nm_findKey(key, payload) {
-    var p = payload.indexOf(key);
-    var value = null;
-    this._debug('Key: ' + key + ', At position: ' + p);
-    if (p >= 0) {
-      value = payload.substring(p + key.length);
-      value = value.substring(0, value.indexOf('\n'));
-    }
-    this._debug('Value: ' + value);
-    return value;
-  },
-
-  // FIXME, incomplete mapping/formatting. App (or full featured vcard parser
-  // library should parse the full ndef vcard.
-  // VCARD 2.1:
   handleVCardRecord: function nm_handleVCardRecord(record) {
-    var vcard = {};
-    var payload = NfcUtil.toUTF8(record.payload);
-    /**
-      https://tools.ietf.org/html/rfc6350:
-      name  = "SOURCE" / "KIND" / "FN" / "N" / "NICKNAME"
-         / "PHOTO" / "BDAY" / "ANNIVERSARY" / "GENDER" / "ADR" / "TEL"
-         / "EMAIL" / "IMPP" / "LANG" / "TZ" / "GEO" / "TITLE" / "ROLE"
-         / "LOGO" / "ORG" / "MEMBER" / "RELATED" / "CATEGORIES"
-         / "NOTE" / "PRODID" / "REV" / "SOUND" / "UID" / "CLIENTPIDMAP"
-         / "URL" / "KEY" / "FBURL" / "CALADRURI" / "CALURI" / "XML"
-         / iana-token / x-name
-     */
-    var fn = this.findKey('FN:', payload);
-    var n = this.findKey('N:', payload);
-    var p = fn.indexOf(' ');
-    var first = null;
-    var last = null;
-    if (p == 0) {
-      var first = fn.substring(0, fn.indexOf(' '));
-    } else {
-      var first = fn.substring(0, fn.indexOf(' '));
-      var last = fn.substring(fn.indexOf(' ') + 1);
-    }
-
-    var nickname = this.findKey('NICKNAME:', payload);
-    var photo = this.findKey('PHOTO:', payload);
-    var cell = this.findKey('TEL;TYPE:cell:', payload);
-    var tel = this.findKey('TEL:', payload);
-    var email = this.findKey('EMAIL:', payload);
-    var note = this.findKey('NOTE:', payload);
-    var address = this.findKey('ADR;HOME:', payload);
-    var company = this.findKey('ADR;WORK:', payload);
-
-    // Add fields:
-    if (tel) {
-      vcard.tel = tel;
-    }
-    if (cell) {
-      vcard.cell = cell;
-    }
-    if (email) {
-      vcard.email = email;
-    }
-    if (address) {
-      vcard.address = address;
-    }
-    if (note) {
-      vcard.note = note;
-    }
-    if (photo) {
-      card.photo = photo;
-    }
-    if (first) {
-      vcard.givenName = first;
-    }
-    if (last) {
-      vcard.familyName = last;
-    }
-    if (n) {
-      vcard.n = n;
-    }
-    if (nickname) {
-      vcard.nickname = nickname;
-    }
-    if (company) {
-      vcard.company = company;
-    }
-
+    var vcardBlob = new Blob([NfcUtil.toUTF8(record.payload)],
+                             {'type': 'text/vcard'});
     var activityText = {
-      name: 'new',
+      name: 'import',
       data: {
-        type: 'webcontacts/contact',
-        params: vcard
+        type: 'text/vcard',
+        blob: vcardBlob
       }
     };
     return activityText;
@@ -630,7 +542,7 @@ var NfcManager = {
     return activityText;
   },
 
-  handleSmartPosterAction: function nm_nm_handleSmartPosterAction(record) {
+  handleSmartPosterAction: function nm_handleSmartPosterAction(record) {
     // The recommended action has an application specific meaning:
     var smartaction = record.payload[0];
     var activityText = {

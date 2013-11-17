@@ -31,12 +31,13 @@ suite('dialer/call_log_db', function() {
               now + (2 * 86400000) + 1];
 
   function checkGroup(group, call, lastEntryDate, retryCount, contact, result) {
-    var id = Utils.getDayDate(call.date) + '-' + call.number + '-' + call.type;
+    var id = Utils.getDayDate(call.date) + '-' +
+             (call.number || '') + '-' + call.type;
     if (call.status) {
       id += '-' + call.status;
     }
     assert.equal(group.id, id);
-    assert.equal(group.number, call.number);
+    assert.equal(group.number, call.number || '');
     assert.equal(group.date, Utils.getDayDate(call.date));
     assert.equal(group.type, call.type);
     assert.equal(group.status, call.status);
@@ -112,6 +113,33 @@ suite('dialer/call_log_db', function() {
     test('Add a call', function(done) {
       var call = {
         number: numbers[0],
+        type: 'incoming',
+        date: days[0]
+      };
+      CallLogDBManager.add(call, function(result) {
+        CallLogDBManager.getGroupList(function(groups) {
+          assert.equal(groups.length, 1);
+          checkGroup(groups[0], call, call.date, 1, true, result);
+          CallLogDBManager.getRecentList(function(recents) {
+            assert.length(recents, 1);
+            checkCall(recents[0], call);
+            done();
+          });
+        });
+      });
+    });
+
+    suiteTeardown(function(done) {
+      CallLogDBManager.deleteAll(function() {
+        done();
+      });
+    });
+  });
+
+  suite('Single withheld number call with null number', function() {
+    test('Add a call', function(done) {
+      var call = {
+        number: null,
         type: 'incoming',
         date: days[0]
       };

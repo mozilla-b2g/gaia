@@ -13,29 +13,22 @@ navigator.mozL10n.ready(function nfcSettings() {
     return;
   }
 
-  debug('Query Nfc CheckBox Setting.');
-  var gNfcCheckBox = document.querySelector('input[name="nfc.enabled"]');
-  debug('CheckBox setting: ' + gNfcCheckBox);
-
   function debug(str) {
     if (DEBUG) {
       dump(' -*- Nfc Settings: ' + str + '\n');
     }
   }
 
-  // Read NFC enabled setting, and update UI
+  // Check if NFC is available on platform, and update UI
   function updateNfcSettingUI() {
-    var req = settings.createLock().get('nfc.enabled');
-    req.onsuccess = function nfc_getSettingsSuccess() {
-      var enabled = req.result['nfc.enabled'];
-      if (getNfc() == null) {
-        gNfcCheckBox.checked = false;
-        document.querySelector('#nfc-settings').hidden = true;
-      } else {
-        document.querySelector('#nfc-settings').hidden = false;
-        gNfcCheckBox.checked = enabled;
-      }
-    };
+    if (getNfc() == null) {
+      var nfcCheckBox = document.getElementById('nfc-input');
+      nfcCheckBox.checked = false;
+      document.getElementById('nfc-settings').hidden = true;
+      return;
+    } else {
+      document.getElementById('nfc-settings').hidden = false;
+    }
   }
 
   updateNfcSettingUI();

@@ -5,7 +5,7 @@ const HomeState = (function() {
   var DB_NAME = 'homescreen';
   var GRID_STORE_NAME = 'grid';
   var SV_APP_STORE_NAME = 'svAppsInstalled';
-  var DB_VERSION = 1;
+  var DB_VERSION = 2;
 
   var database = null;
   var initQueue = [];
@@ -62,10 +62,17 @@ const HomeState = (function() {
 
     request.onupgradeneeded = function(event) {
       var db = event.target.result;
-      if (event.oldVersion == 0) {
-        emptyDB = true;
-        db.createObjectStore(GRID_STORE_NAME, { keyPath: 'index' });
-        db.createObjectStore(SV_APP_STORE_NAME, { keyPath: 'manifest' });
+      var oldVersion = event.oldVersion || 0;
+      switch (oldVersion) {
+        case 0:
+          emptyDB = true;
+          db.createObjectStore(GRID_STORE_NAME, { keyPath: 'index' });
+          /* falls through */
+        case 1:
+          // This works as we're just adding a new object store.
+          // Please take into accout that in case we were altering the schema
+          // this wouldn't be enough
+          db.createObjectStore(SV_APP_STORE_NAME, { keyPath: 'manifest' });
       }
     };
   }

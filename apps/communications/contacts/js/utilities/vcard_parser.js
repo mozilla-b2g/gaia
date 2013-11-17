@@ -5,6 +5,10 @@ var VCFReader = (function _VCFReader() {
   var ReBasic = /^([^:]+):(.+)$/;
   var ReTuple = /([a-zA-Z]+)=(.+)/;
 
+  function getContact(contact) {
+    return (contact instanceof mozContact) ? contact : new mozContact(contact);
+  }
+
   function _parseTuple(p) {
     var match = p.match(ReTuple);
     return match ? [match[1].toLowerCase(), match[2]] : ['type', p];
@@ -456,7 +460,7 @@ var VCFReader = (function _VCFReader() {
    * @param {Function} cb Callback.
    */
   VCFReader._save = function(item, cb) {
-    var req = navigator.mozContacts.save(item);
+    var req = navigator.mozContacts.save(getContact(item));
     req.onsuccess = cb;
     req.onerror = cb;
   };
