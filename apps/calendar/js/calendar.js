@@ -6,7 +6,7 @@
 
   var hasOwnProperty = Object.prototype.hasOwnProperty;
 
-  window.Calendar = {
+  window.Calendar || window.Calendar = {
 
     ERROR: 'error',
     ACTIVE: 'active',
