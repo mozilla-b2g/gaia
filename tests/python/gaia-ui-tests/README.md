@@ -25,10 +25,10 @@ or
 
     easy_install gaiatest
 
-If you want to modify gaiatest, do this instead:
+You can now skip down to the "Risks" section.  On the other hand, if you want to
+modify gaia-ui-tests, do this instead:
 
     git clone https://github.com/mozilla-b2g/gaia.git
-    cd gaia/tests/python/gaia-ui-tests
 
 The next command will install several python packages on your system such as
 marionette, gaiatest, and other Mozilla packages.  Before you run
@@ -41,8 +41,9 @@ entirely optional.
 With the virtual environment activated, the python packages will be installed
 under the `env_name` folder instead of disturbing your main system.
 
-Finally, run:
+Finally, do:
 
+    cd gaia/tests/python/gaia-ui-tests
     python setup.py develop
 
 Risks
@@ -110,7 +111,7 @@ local machine. You can do this by running the command:
 
     adb forward tcp:2828 tcp:2828
 
-ADB is available in emulator packages under `out/host/linux_x86/bin`.
+ADB is available in emulator packages under out/host/linux\_x86/bin.
 Alternatively, it may be downloaded as part of the
 [Android SDK](http://developer.android.com/sdk/index.html).
 
@@ -127,19 +128,22 @@ but make sure you download the appropriate file for your operating system.
 * **Windows**: b2g-[VERSION].multi.win32.zip
 
 Once downloaded, you will need to extract the contents to a local folder.
+$B2G\_HOME refers to the location of the local folder for the remainder of the
+documentation.
 
 If a profile is specified when running the tests (recommended), a clone of the
 profile will be used. This helps to ensure that all tests run in a clean state.
 However, if you also intend to launch and interact with the desktop build
 manually, we recommend making a copy of the default profile and using the copy
-for your tests.
+for your tests.  The location of the default profile is $B2G\_HOME/gaia/profile.
 
 To run the tests, use the following command:
 
-    gaiatest --app=b2gdesktop --binary=$B2G_HOME/path/to/b2g-bin  \
-        --profile=$B2G_HOME/path/to/gaia/profile --type=b2g \
+    gaiatest --restart --type=b2g --app=b2gdesktop \
+        --binary=$B2G_HOME/b2g-bin \
+        --profile=$B2G_HOME/gaia/profile \
+        --testvars=path/to/filename.json \
         gaia/tests/python/gaia-ui-tests/gaiatest/tests/manifest.ini \
-        --testvars=path/to/filename.json --restart
 
 You should then start to see the tests running.  The next two sections provide
 details on the test types used in the `--type` option and the test variables for
