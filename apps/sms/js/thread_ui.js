@@ -1097,7 +1097,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (!thread) {
-      if (callback) {
+      if (callback && typeof callback === 'function') {
         callback();
       }
       return;
@@ -1145,7 +1145,7 @@ var ThreadUI = global.ThreadUI = {
 
       this.updateCarrier(thread, contacts, details);
 
-      if (callback) {
+      if (callback && typeof callback === 'function') {
         callback();
       }
     }.bind(this));
