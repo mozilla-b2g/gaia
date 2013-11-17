@@ -354,7 +354,8 @@ var NfcManager = {
 
           // Notify gecko of User's acknowledgement.
           var nfcdom = window.navigator.mozNfc;
-          nfcdom.setPeerWindow(window.top);
+          var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
+          nfcdom.setPeerWindow(currentActiveApp.manifestURL);
           return;
         }
         handled = this.handleNdefDiscovered(techs[i], command.sessionToken,
