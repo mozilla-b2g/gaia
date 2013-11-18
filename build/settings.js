@@ -212,7 +212,6 @@ function execute(options) {
    'message.sent-sound.enabled': true,
    'nfc.enabled': false,
    'nfc.suspended': false,
-   'nfc.powerlevel': 0,
    'operatorvariant.mcc': '000',
    'operatorvariant.mnc': '00',
    'phone.ring.keypad': true,
