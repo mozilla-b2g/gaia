@@ -14,12 +14,11 @@
       return '<li id="calendar-' + id + '">' +
           '<div class="calendar-id-' + id + ' calendar-color"></div>' +
           '<label class="pack-checkbox">' +
-            '<span ' + l10n + ' class="name">' + this.h('name') + '</span>' +
             '<input ' +
               'value="' + id + '" ' +
               'type="checkbox" ' +
               this.bool('localDisplayed', 'checked') + ' />' +
-            '<span></span>' +
+            '<span ' + l10n + ' class="name">' + this.h('name') + '</span>' +
           '</label>' +
         '</li>';
     }
