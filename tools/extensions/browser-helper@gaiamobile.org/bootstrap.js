@@ -49,6 +49,46 @@ function startup(data, reason) {
       }
     }, 'document-element-inserted', false);
 
+    // Watch for app load start in firefox tabs.
+    // We have to set the app id on each docshell where we are trying to load
+    // an app. That's because we can't set mozapp attribute on firefox iframes
+    // as Firefox is still using xul:browser.
+    let nsIWebProgressListener = Ci.nsIWebProgressListener;
+    let appsService = Cc['@mozilla.org/AppsService;1'].getService(Ci.nsIAppsService);
+    let docShellListener = {
+      onStateChange: function onStateChange(webProgress, request, flags, status) {
+        // Catch any load start request
+        if (flags & nsIWebProgressListener.STATE_START &&
+            flags & nsIWebProgressListener.STATE_IS_DOCUMENT &&
+            (request instanceof Ci.nsIChannel || 'URI' in request)) {
+          // Try to compute the manifest URL out of document URL
+          // We should end up with urls like:
+          //   http://system.gaiamobile.org:8080/manifest.webapp
+          //   app://system.gaiamobile.org/manifest.webapp
+          let manifestURL = request.URI.prePath + '/manifest.webapp';
+          let manifest = appsService.getAppByManifestURL(manifestURL);
+          if (manifest) {
+            let app = manifest.QueryInterface(Ci.mozIApplication);
+            // test-agent expects its iframes to load apps without any permissions
+            // so prevent setting the correct app id to its iframes
+            if (!webProgress.DOMWindow || !webProgress.DOMWindow.top ||
+                !webProgress.DOMWindow.top.location.host.startWith("test-agent.gaiamobile.org")) {
+              webProgress.QueryInterface(Ci.nsIDocShell).setIsApp(app.localId);
+            }
+          }
+        }
+      }
+    };
+    // Listen for loads happening in all browser windows.
+    Services.obs.addObserver(function(win) {
+      win.addEventListener('DOMContentLoaded', function loaded() {
+        win.removeEventListener('DOMContentLoaded', loaded);
+        if (win.gBrowser) {
+          win.gBrowser.addProgressListener(docShellListener);
+        }
+      });
+    }, 'domwindowopened', false);
+
     Services.obs.addObserver(function() {
       let browserWindow = Services.wm.getMostRecentWindow('navigator:browser');
 
