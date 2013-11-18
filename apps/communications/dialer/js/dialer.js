@@ -534,8 +534,9 @@ var dialerStartup = function startup(evt) {
 
     CallHandler.init();
     LazyL10n.get(function loadLazyFilesSet() {
-      LazyLoader.load(['/contacts/js/fb/fb_data.js',
-                       '/contacts/js/fb/fb_contact_utils.js',
+      LazyLoader.load(['/shared/js/fb/fb_request.js',
+                       '/shared/js/fb/fb_data_reader.js',
+                       '/shared/js/fb/fb_reader_utils.js',
                        '/shared/style/confirm.css',
                        '/contacts/js/utilities/confirm.js',
                        '/dialer/js/newsletter_manager.js',
@@ -557,10 +558,7 @@ window.onresize = function(e) {
   }
 };
 
-// If the app loses focus, close the audio stream. This works around an
-// issue in Gecko where the Audio Data API causes gfx performance problems,
-// in particular when scrolling the homescreen.
-// See: https://bugzilla.mozilla.org/show_bug.cgi?id=779914
+// If the app loses focus, close the audio stream.
 document.addEventListener('visibilitychange', function visibilitychanged() {
   if (!document.hidden) {
     TonePlayer.ensureAudio();

@@ -51,7 +51,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   var submit = dialog.querySelector('[type=submit]');
   if (submit) {
     submit.onclick = function onsubmit() {
-      if (onSubmit)
+      if (typeof onSubmit === 'function')
         (onSubmit.bind(dialog))();
       Settings.currentPanel = origin; // hide dialog box
     };
@@ -60,7 +60,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   var reset = dialog.querySelector('[type=reset]');
   if (reset) {
     reset.onclick = function onreset() {
-      if (onReset)
+      if (typeof onReset === 'function')
         (onReset.bind(dialog))();
       Settings.currentPanel = origin; // hide dialog box
     };
@@ -207,58 +207,21 @@ var DeviceStorageHelper = (function DeviceStorageHelper() {
 /**
  * Connectivity accessors
  */
-
-// create a fake mozMobileConnection if required (e.g. desktop browser)
 var getMobileConnection = function() {
   var navigator = window.navigator;
-  if (('mozMobileConnection' in navigator) &&
-      navigator.mozMobileConnection &&
-      navigator.mozMobileConnection.data)
-    return navigator.mozMobileConnection;
 
-  var initialized = false;
-  var fakeNetwork = { shortName: 'Fake Orange F', mcc: '208', mnc: '1' };
-  var fakeVoice = {
-    state: 'notSearching',
-    roaming: true,
-    connected: true,
-    emergencyCallsOnly: false
-  };
+  // XXX: check bug-926169
+  // this is used to keep all tests passing while introducing multi-sim APIs
+  var mobileConnection = navigator.mozMobileConnection ||
+    navigator.mozMobileConnections &&
+      navigator.mozMobileConnections[0];
 
-  function fakeEventListener(type, callback, bubble) {
-    if (initialized)
-      return;
-
-    // simulates a connection to a data network;
-    setTimeout(function fakeCallback() {
-      initialized = true;
-      callback();
-    }, 5000);
-  }
-
-  return {
-    addEventListener: fakeEventListener,
-    get data() {
-      return initialized ? { network: fakeNetwork } : null;
-    },
-    get voice() {
-      return initialized ? fakeVoice : null;
-    }
-  };
+  if (mobileConnection && mobileConnection.data)
+    return mobileConnection;
 };
 
 var getBluetooth = function() {
-  var navigator = window.navigator;
-  if ('mozBluetooth' in navigator)
-    return navigator.mozBluetooth;
-  return {
-    enabled: false,
-    addEventListener: function(type, callback, bubble) {},
-    onenabled: function(event) {},
-    onadapteradded: function(event) {},
-    ondisabled: function(event) {},
-    getDefaultAdapter: function() {}
-  };
+  return navigator.mozBluetooth;
 };
 
 /**

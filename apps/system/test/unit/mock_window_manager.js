@@ -7,6 +7,12 @@ var MockWindowManager = {
     return this.mDisplayedApp;
   },
 
+  getAppFrame: function mwm_getAppFrame() {
+    return {
+      firstChild: {}
+    };
+  },
+
   getRunningApps: function mwm_getRunningApps() {
     return this.mRunningApps;
   },
@@ -17,6 +23,10 @@ var MockWindowManager = {
 
   setDisplayedApp: function mwm_setDisplayedApp(app) {
     this.mDisplayedApp = app;
+  },
+
+  setActiveApp: function mwm_setActiveApp(appWindow) {
+    this.mDisplayedApp = appWindow.origin;
   },
 
   getOrientationForApp: function(origin) {

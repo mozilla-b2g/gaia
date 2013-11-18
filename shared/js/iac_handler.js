@@ -2,7 +2,8 @@
 
 var IACHandler = {
   _eventPrefix: 'iac-',
-  _ports: [],
+  _ports: {},
+
   init: function onInit() {
     var self = this;
 
@@ -11,10 +12,10 @@ var IACHandler = {
         var keyword = request.keyword;
         var port = request.port;
 
-        // We will save each port by keyword
-        if (!self._ports[keyword]) {
-          self._ports[keyword] = port;
-        }
+        // We will save each port by keyword; ports may get overwritten
+        // sometimes, but that's ok because there should only be one *active*
+        // port with a given keyword at any time.
+        self._ports[keyword] = port;
 
         port.onmessage = function onReceivedMessage(evt) {
           var message = evt.data;
@@ -29,19 +30,18 @@ var IACHandler = {
 
           /*
            * You can get the message by accessing
-           * `event.detail.data`
+           * `event.detail`
            *
-           * It will stores the whole message you passed from postMessage
+           * It will store the whole message you passed from postMessage
            */
           iacEvt.initCustomEvent(evtName,
-            /* canBubble: */ true, /* cancelable */ false, {
-            data: message
-          });
+            /* canBubble: */ true, /* cancelable */ false, message);
 
           window.dispatchEvent(iacEvt);
         };
     });
   },
+
   getPort: function(keyword) {
     return this._ports[keyword];
   }

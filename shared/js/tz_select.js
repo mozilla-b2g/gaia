@@ -34,8 +34,13 @@ function tzSelect(regionSelector, citySelector, onchange, onload) {
     // retrieve MCC/MNC: use the current network codes when available,
     // default to the SIM codes if necessary.
     var mcc, mnc;
-    var conn = navigator.mozMobileConnection;
-    if (conn && IccHelper.enabled) {
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
+    if (conn && IccHelper) {
       if (conn.voice && conn.voice.network && conn.voice.network.connected) {
         mcc = conn.voice.network.mcc;
         mnc = conn.voice.network.mnc;

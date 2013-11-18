@@ -1,0 +1,91 @@
+
+#views {
+  position: absolute;
+  top: 5rem;
+  bottom: 0rem;
+  width: 100%;
+  z-index: 20;
+}
+
+/*=========================================*/
+
+@media only screen 
+and (orientation : portrait) {
+
+  #views > * {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: none;
+  }
+
+  #select-mix:target ~ #views:not(.player) > #view-mix,
+  #select-playlists:target ~ #views:not(.player) > #view-playlists,
+  #select-artists:target ~ #views:not(.player) > #view-artists,
+  #select-albums:target ~ #views:not(.player) > #view-albums,
+  #select-songs:target ~ #views:not(.player) > #view-songs {
+    display: block;
+  }
+
+  #views.player > #view-player {
+    display: block;
+    height: calc(100% - 4rem);
+  }
+
+  #views ~ #tabs {
+    width: 100%;
+  }
+}
+
+@media only screen 
+and (orientation : landscape) {
+
+  #views > * {
+    position: absolute;
+    display: none;
+  }
+
+  #select-mix:target ~ #views > #view-mix,
+  #select-playlists:target ~ #views > #view-playlists,
+  #select-artists:target ~ #views > #view-artists,
+  #select-albums:target ~ #views > #view-albums,
+  #select-songs:target ~ #views > #view-songs {
+    display: block;
+    top: 0;
+    left: 0;
+    right: 33%;
+    bottom: 0;
+  }
+  
+  #views > #view-player {
+    display: block;
+    top: 0;
+    left: 67%;
+    right: 0;
+    bottom: 0;
+  }
+  
+  #views ~ #tabs {
+    width: 67%;
+  }
+
+}
+
+/*=========================================*/
+
+#views > * > .list {
+  display: none;
+}
+
+#views > * > .sublist {
+  display: block;
+}
+
+#views > *.noSublist > .list {
+  display: block;
+}
+
+#views > *.noSublist > .sublist {
+  display: none;
+}
+

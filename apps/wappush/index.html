@@ -31,6 +31,7 @@
     <script defer src="js/parsed_message.js"></script>
     <script defer src="js/provisioning.js"></script>
     <script defer src="js/si_sl_screen_helper.js"></script>
+    <script defer src="js/startup.js"></script>
     <script defer src="js/store.js"></script>
     <script defer src="js/utils.js"></script>
     <script defer src="js/wappush.js"></script>
@@ -40,88 +41,88 @@
   <body role="application">
     <section role="region">
       <header>
-	<button id="close"><span class="icon icon-close"> close </span></button>
-	<menu type="toolbar">
-	  <button id="accept" data-l10n-id="accept" class="full recommend" hidden>Accept</button>
-	</menu>
-	<h1 id="title" data-l10n-id="title"> title </h1>
+        <button id="close"><span class="icon icon-close" data-l10n-id="close"> close </span></button>
+        <menu type="toolbar">
+          <button id="accept" data-l10n-id="accept" class="full recommend" hidden>Accept</button>
+        </menu>
+        <h1 id="title" data-l10n-id="title"> title </h1>
       </header>
 
       <!-- SI SL message screen -->
       <article id="si-sl-screen" role="main" hidden>
-	<section class="container" role="region">
-	  <div class="message">
-	    <p></p>
-	    <a data-url="" data-action="url-link"></a>
-	  </div>
-	</section>
+        <section class="container" role="region">
+          <div class="message">
+            <p></p>
+            <a data-url="" data-action="url-link"></a>
+          </div>
+        </section>
       </article>
 
-	<!-- Client provisioning message screen -->
+      <!-- Client provisioning message screen -->
       <article id="cp-screen" role="main" hidden>
-	<section class="container" role="region">
-	  <div class="message">
-	    <p data-l10n-id="cp-container-title"> OTA Access Point Configuration </p>
-	    <input type="hidden" placeholder="PIN" required="">
-	    <p id="cp-accept-help" data-l10n-id="cp-accept-help">Configuration message received, click on 'Accept' to continue.</p>
-	  </section>
-	</section>
+        <section class="container" role="region">
+          <div class="message">
+            <p data-l10n-id="cp-container-title"> OTA Access Point Configuration </p>
+            <input type="hidden" data-l10n-id="cp-pin" placeholder="PIN" required="">
+            <p id="cp-accept-help" data-l10n-id="cp-accept-help">Configuration message received, click on 'Accept' to continue.</p>
+          </section>
+        </section>
       </article>
     </section>
 
     <!-- Client provisioning quit app confirm dialog -->
     <form id="cp-quit-app-confirm" role="dialog" data-type="confirm" hidden>
       <section>
-	<h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
-	<p>
-	  <strong data-l10n-id="cp-quit-app-confirm-dialog-message">The message has not been processed yet, do you really want to quit?</strong>
-	</p>
+        <h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
+        <p>
+          <strong data-l10n-id="cp-quit-app-confirm-dialog-message">The message has not been processed yet, do you really want to quit?</strong>
+        </p>
       </section>
       <menu>
-	<button data-l10n-id="quit" class="quit danger">Quit</button>
-	<button data-l10n-id="cancel" class="cancel recommend">Cancel</button>
+        <button data-l10n-id="quit" class="quit danger">Quit</button>
+        <button data-l10n-id="cancel" class="cancel recommend">Cancel</button>
       </menu>
     </form>
 
     <!-- Client provisioning store confirm dialog -->
     <form id="cp-store-confirm" role="dialog" data-type="confirm" hidden>
       <section>
-	<h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
-	<p>
-	  <strong data-l10n-id="cp-store-confirm-dialog-message">You are about to store the following APN(s) on your phone:</strong>
-	</p>
-	<div class="message">
-	</div>
+        <h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
+        <p>
+          <strong data-l10n-id="cp-store-confirm-dialog-message">You are about to store the following APN(s) on your phone:</strong>
+        </p>
+        <div class="message">
+        </div>
       </section>
       <menu>
-	<button data-l10n-id="cancel" class="cancel">Cancel</button>
-	<button data-l10n-id="store" class="store recommend">Store</button>
+        <button data-l10n-id="cancel" class="cancel">Cancel</button>
+        <button data-l10n-id="store" class="store recommend">Store</button>
       </menu>
     </form>
 
     <!-- Client provisioning authentication failure confirm dialog -->
     <form id="cp-auth-failure-confirm" role="dialog" data-type="confirm" hidden>
       <section>
-	<h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
-	<p>
-	  <strong data-l10n-id="cp-auth-failure-confirm-dialog-message">The PIN you have entered is incorrect. The PIN code should have been provided to you by whomever sent you the configuration message.</strong>
-	</p>
+        <h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
+        <p>
+          <strong data-l10n-id="cp-auth-failure-confirm-dialog-message">The PIN you have entered is incorrect. The PIN code should have been provided to you by whomever sent you the configuration message.</strong>
+        </p>
       </section>
       <menu>
-	<button data-l10n-id="try-again" class="full">Try again</button>
+        <button data-l10n-id="try-again" class="full">Try again</button>
       </menu>
     </form>
 
     <!-- Client provisioning finish confirm dialog -->
     <form id="cp-finish-confirm" role="dialog" data-type="confirm" hidden>
       <section>
-	<h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
-	<p>
-	  <strong data-l10n-id="cp-finish-confirm-dialog-message">We are done, the APN(s) are now stored.</strong>
-	</p>
+        <h1 data-l10n-id="cp-container-title"> OTA Access Point Configuration </h1>
+        <p>
+          <strong data-l10n-id="cp-finish-confirm-dialog-message">We are done, the APN(s) are now stored.</strong>
+        </p>
       </section>
       <menu>
-	<button data-l10n-id="finish" class="full">Finish</button>
+        <button data-l10n-id="finish" class="full">Finish</button>
       </menu>
     </form>
   </body>

@@ -2,6 +2,7 @@ Keyboards['jp-kanji'] = {
   label: 'Japanese - Kanji',
   menuLabel: 'Japanese - Kanji',
   imEngine: 'jskanji',
+  types: ['text', 'url', 'email'],
   needsCandidatePanel: true,
   disableAlternateLayout: true,
   hidesSwitchKey: true,
@@ -37,7 +38,7 @@ Keyboards['jp-kanji'] = {
   ]
 };
 
-Keybords['jp-kanji-en'] = {
+Keyboards['jp-kanji-en'] = {
   needsCandidatePanel: true,
   disableAlternateLayout: true,
   hidesSwitchKey: true,

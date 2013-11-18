@@ -175,9 +175,9 @@
   border-top: solid 0.1rem #e7e7e7;
 }
 
-[data-type="list"] li > .pack-checkbox input + span,
-[data-type="list"] li > .pack-radio input + span,
-[data-type="list"] li > .pack-switch input + span {
+[data-type="list"] li > .pack-checkbox input ~ span:after,
+[data-type="list"] li > .pack-radio input ~ span:after,
+[data-type="list"] li > .pack-switch input ~ span:after {
   left: 0;
   margin-left: 0;
 }

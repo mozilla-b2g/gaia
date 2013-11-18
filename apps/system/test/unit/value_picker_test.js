@@ -14,7 +14,8 @@ suite('value selector/value picker', function() {
 
   setup(function() {
     stubByQuery = this.sinon.stub(document, 'querySelector')
-                       .returns(document.createElement('div'));
+                       .returns(document.createElement('div').
+                                  appendChild(document.createElement('div')));
 
     // month value picker
     var monthUnitStyle = {

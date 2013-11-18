@@ -18,16 +18,6 @@
    * painted.
    */
   border-bottom: 0.01px solid rgba(0,0,0,0.01);
-
-  visibility: hidden;
-}
-
-.apps > div[data-current-page] {
-  visibility: visible;
-}
-
-body[data-transitioning] .apps > div {
-  visibility: visible;
 }
 
 .apps ol {
@@ -233,7 +223,6 @@ body[data-transitioning] .loading:after {
 
   .apps ol {
     -moz-box-sizing: border-box;
-         box-sizing: border-box;
     padding: 3.5rem 7rem 6.5rem 7rem;
   }
 
@@ -265,7 +254,6 @@ body[data-transitioning] .loading:after {
 
   .apps ol {
     -moz-box-sizing: border-box;
-         box-sizing: border-box;
     padding: 3.5rem 11rem 6.5rem 11rem;
   }
 

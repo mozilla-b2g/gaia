@@ -2,6 +2,7 @@ Keyboards.hr = {
   label: 'Croatian',
   menuLabel: 'Hrvatski',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'hr',
   alt: {
     c: 'čćç',

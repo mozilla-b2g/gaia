@@ -57,6 +57,10 @@ class Browser(Base):
         self.tap_go_button(timeout=timeout)
 
     @property
+    def url_src(self):
+        return self.marionette.find_element(*self._browser_frame_locator).get_attribute('src')
+
+    @property
     def url(self):
         return self.marionette.execute_script("return window.wrappedJSObject.Browser.currentTab.url;")
 

@@ -92,7 +92,6 @@ button::-moz-focus-inner {
   color: #fff;
   font-size: 2.4rem;
   line-height: 3.8rem;
-  text-transform: uppercase;
   font-weight: 500;
   text-align: center;
   border-top: 0.1rem solid #504e4d;
@@ -212,7 +211,7 @@ button::-moz-focus-inner {
 
 /* For disabled keys */
 .keyboard-key.special-key[disabled="true"] {
-  /* Without this rule, the focus would lose when the user clicks this key. 
+  /* Without this rule, the focus would lose when the user clicks this key.
      This seems to be because a disabled key would not get touch/click event. */
   pointer-events: none;
 }
@@ -388,7 +387,6 @@ and displays the list of alternatives. */
 #keyboard-accent-char-menu .keyboard-key > .visual-wrapper span {
   background: none;
   border-radius: 0;
-  text-transform: none;
 }
 
 #keyboard-accent-char-menu .keyboard-key.highlighted > .visual-wrapper:after,
@@ -487,7 +485,6 @@ bubble above the key when you tap and hold. */
   font-weight: 500;
   font-size: 1.8rem;
   line-height: 5rem;
-  text-transform: none;
   position: static; /* This will make the keyboard-key in keyboard menu's height correct */
 }
 

@@ -112,9 +112,12 @@ const IMERender = (function() {
         if (key.visible && key.visible.indexOf(flags.inputType) === -1)
           return;
 
+        // We will always display keys in uppercase, per request from UX.
+        var upperCaseKeyChar = getUpperCaseValue(key);
+
         // Handle uppercase
         if (flags.uppercase) {
-          keyChar = getUpperCaseValue(key);
+          keyChar = upperCaseKeyChar;
         }
 
         // Handle override
@@ -150,7 +153,7 @@ const IMERender = (function() {
           });
         }
 
-        kbRow.appendChild(buildKey(keyChar, className, keyWidth + 'px',
+        kbRow.appendChild(buildKey(upperCaseKeyChar, className, keyWidth + 'px',
           dataset, key.altNote, attributeList));
       }));
 

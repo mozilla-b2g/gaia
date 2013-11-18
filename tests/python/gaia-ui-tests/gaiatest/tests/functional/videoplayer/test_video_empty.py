@@ -18,6 +18,7 @@ class TestVideoEmpty(GaiaTestCase):
 
         video_player = VideoPlayer(self.marionette)
         video_player.launch()
+        video_player.wait_for_progress_bar_not_visible()
 
         # Verify title when no videos
         self.assertEqual(video_player.empty_video_title, 'Add videos to get started')

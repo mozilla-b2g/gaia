@@ -44,6 +44,7 @@ class Display(Base):
 
         # switch to the system app
         self.marionette.switch_to_frame()
+        self.wait_for_element_not_present(*self._wallpaper_frame_locator)
 
         # switch to the setting app
         self.marionette.switch_to_frame(self.apps.displayed_app.frame)

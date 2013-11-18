@@ -1,3 +1,10 @@
+/* -*- Mode: js; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- /
+/* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
+
+/* global loadBodyHTML, MockL10n, MockMessageDB, MockNavigatormozApps,
+          MockNavigatormozSetMessageHandler, MockNavigatorSettings,
+          MockNotificationHelper, MocksHelper, ParsedMessage, WapPushManager */
+
 'use strict';
 
 requireApp('wappush/shared/test/unit/mocks/mock_navigator_moz_apps.js');
@@ -12,17 +19,12 @@ requireApp('wappush/js/parsed_message.js');
 requireApp('wappush/js/provisioning.js');
 requireApp('wappush/js/si_sl_screen_helper.js');
 requireApp('wappush/js/utils.js');
+requireApp('wappush/js/wappush.js');
 
 requireApp('wappush/test/unit/mock_l10n.js');
 requireApp('wappush/test/unit/mock_link_action_handler.js');
 requireApp('wappush/test/unit/mock_messagedb.js');
 requireApp('wappush/test/unit/mock_whitelist.js');
-
-/* The WapPushManager binds stuff when evaluated so we load it after the mocks
- * and we don't want it to show up as a leak. */
-if (!this.WapPushManager) {
-  this.WapPushManager = null;
-}
 
 var mocksHelperWapPush = new MocksHelper([
   'LinkActionHandler',
@@ -39,7 +41,7 @@ suite('WAP Push', function() {
 
   mocksHelperWapPush.attachTestHelpers();
 
-  suiteSetup(function(done) {
+  suiteSetup(function() {
     realMozApps = navigator.mozApps;
     navigator.mozApps = MockNavigatormozApps;
 
@@ -51,12 +53,6 @@ suite('WAP Push', function() {
 
     realSetMessageHandler = navigator.mozSetMessageHandler;
     navigator.mozSetMessageHandler = MockNavigatormozSetMessageHandler;
-
-    /* We load the body before the JS sources to prevent the load event from
-     * being triggered, this in turn prevents the WapPushManager from starting
-     * up automatically. */
-    loadBodyHTML('/index.html');
-    requireApp('wappush/js/wappush.js', done);
   });
 
   suiteTeardown(function() {
@@ -69,6 +65,7 @@ suite('WAP Push', function() {
   setup(function() {
     mocksHelperWapPush.setup();
     MockNavigatorSettings.createLock().set({ 'wap.push.enabled': 'true' });
+    loadBodyHTML('/index.html');
   });
 
   teardown(function() {
@@ -89,7 +86,7 @@ suite('WAP Push', function() {
 
     test('the message handlers are bound', function() {
       var handlers = MockNavigatormozSetMessageHandler.mMessageHandlers;
-      assert.ok(handlers['notification']);
+      assert.ok(handlers.notification);
       assert.ok(handlers['wappush-received']);
     });
   });
@@ -204,22 +201,20 @@ suite('WAP Push', function() {
       };
     });
 
-    suiteTeardown(function() {
+    setup(function(done) {
+      MockNavigatormozSetMessageHandler.mSetup();
+      WapPushManager.init(done);
+    });
+
+    teardown(function() {
       MockNavigatormozApps.mTeardown();
       MockNavigatorSettings.mTeardown();
       MockNavigatormozSetMessageHandler.mTeardown();
     });
 
-    setup(function() {
-      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
-    });
-
-    teardown(function(done) {
-      MockMessageDB.clear(done, done);
-    });
-
     test('the notification is sent', function() {
       var sendSpy = this.sinon.spy(MockNotificationHelper, 'send');
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       assert.isTrue(sendSpy.calledOnce);
     });
@@ -232,6 +227,7 @@ suite('WAP Push', function() {
       pin = screen.querySelector('input');
 
       var retrieveSpy = this.sinon.spy(MockMessageDB, 'retrieve');
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       MockNavigatormozApps.mTriggerLastRequestSuccess();
       WapPushManager.displayWapPushMessage(0);
       retrieveSpy.yield(ParsedMessage.from(message, 0));
@@ -351,6 +347,39 @@ suite('WAP Push', function() {
       var putSpy = this.sinon.spy(MockMessageDB, 'put');
       MockNavigatormozSetMessageHandler.mTrigger('wappush-received', message);
       assert.isTrue(putSpy.notCalled);
+    });
+  });
+
+  suite('handling actions', function() {
+    var messages = {
+      none: {
+        sender: '+31641600986',
+        contentType: 'text/vnd.wap.si',
+        content: '<si>' +
+                 '<indication si-id="gaia-test@mozilla.org"' +
+                 '            action="signal-none">' +
+                 'check this out' +
+                 '</indication>' +
+                 '</si>'
+      }
+    };
+
+    setup(function(done) {
+      MockNavigatormozSetMessageHandler.mSetup();
+      WapPushManager.init(done);
+    });
+
+    teardown(function() {
+      MockNavigatormozApps.mTeardown();
+      MockNavigatormozSetMessageHandler.mTeardown();
+    });
+
+    test('action=signal-none does not send a notification', function() {
+      var getSelfSpy = this.sinon.spy(MockNavigatormozApps, 'getSelf');
+
+      MockNavigatormozSetMessageHandler.mTrigger('wappush-received',
+                                                 messages.none);
+      assert.isTrue(getSelfSpy.notCalled);
     });
   });
 });

@@ -95,5 +95,10 @@ navigator.mozL10n.ready(function SettingsBattery() {
       Battery.detachListeners();
     }
   });
-});
 
+  window.addEventListener('panelready', function(e) {
+    if (e.detail.current === '#battery') {
+      Battery.update();
+    }
+  });
+});

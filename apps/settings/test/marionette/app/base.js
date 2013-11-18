@@ -34,6 +34,14 @@ Base.prototype = {
    * @protected
    * @param {String} name of selector [its a key in Settings.Selectors].
    */
+  findElements: function(name) {
+    return this.client.findElements(this.selectors[name]);
+  },
+
+  /**
+   * @protected
+   * @param {String} name of selector [its a key in Settings.Selectors].
+   */
   waitForElement: function(name) {
     return this.client.helper.waitForElement(this.selectors[name]);
   }

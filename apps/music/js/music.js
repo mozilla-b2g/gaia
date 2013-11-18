@@ -388,25 +388,23 @@ function showCurrentView(callback) {
   // to display thumbnails in TilesView
   // it's possibly not loaded so load it
   LazyLoader.load('js/metadata_scripts.js', function() {
+    function showListView() {
+      var option = TabBar.option;
+      var info = {
+        key: 'metadata.' + option,
+        range: null,
+        direction: (option === 'title') ? 'next' : 'nextunique',
+        option: option
+      };
+
+      ListView.activate(info);
+    }
     // If it's in picking mode we will just enumerate all the songs
     // and don't need to enumerate data for TilesView
     // because mix page is not needed in picker mode
     if (pendingPick) {
-      ListView.clean();
-
-      knownSongs.length = 0;
-      listHandle =
-        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
-                          function(song) {
-                            // Don't allow the user to pick locked music
-                            if (song.metadata.locked)
-                              return;
-
-                            ListView.update(TabBar.option, song);
-                            // Push the song to knownSongs then
-                            // we can display a correct overlay
-                            knownSongs.push(song);
-                          });
+      showListView();
+      knownSongs = ListView.dataSource;
 
       if (callback)
         callback();
@@ -419,15 +417,7 @@ function showCurrentView(callback) {
     // and modified the songs so musicdb will be updated
     // then we should update the list view if music app is in list mode
     if (ModeManager.currentMode === MODE_LIST && TabBar.option !== 'playlist')
-    {
-      ListView.clean();
-
-      listHandle =
-        musicdb.enumerate('metadata.' + TabBar.option, null, 'nextunique',
-                          function(song) {
-                            ListView.update(TabBar.option, song);
-                          });
-    }
+      showListView();
 
     // Enumerate existing song entries in the database
     // List them all, and sort them in ascending order by album.
@@ -953,7 +943,6 @@ function createListElement(option, data, index, highlight) {
   li.className = 'list-item';
 
   var a = document.createElement('a');
-  a.href = '#';
   a.dataset.index = index;
   a.dataset.option = option;
 
@@ -1004,16 +993,17 @@ function createListElement(option, data, index, highlight) {
     case 'artist':
     case 'album':
     case 'title':
-      var parent = document.createElement('div');
-      parent.className = 'list-image-parent';
-      parent.classList.add('default-album-' + index % 10);
-      var img = document.createElement('img');
-      img.className = 'list-image';
+      // Use background image instead of creating img elements can reduce
+      // the amount of total elements in the DOM tree, it can save memory
+      // and gecko can render the elements faster as well.
+      var setBackground = function(url) {
+        if (url)
+          li.style.backgroundImage = 'url(' + url + ')';
+        else
+          li.classList.add('default-album-' + index % 10);
+      };
 
-      if (data.metadata.picture) {
-        parent.appendChild(img);
-        displayAlbumArt(img, data);
-      }
+      getThumbnailURL(data, setBackground);
 
       if (option === 'artist') {
         var artistSpan = document.createElement('span');
@@ -1055,8 +1045,6 @@ function createListElement(option, data, index, highlight) {
         li.appendChild(artistSpan);
       }
 
-      li.appendChild(parent);
-
       a.dataset.keyRange = data.metadata[option];
       a.dataset.option = option;
 
@@ -1087,6 +1075,9 @@ function createListElement(option, data, index, highlight) {
   return li;
 }
 
+// Assuming the ListView will prepare 5 pages for batch loading.
+// Each page contains 7 list elements.
+var LIST_BATCH_SIZE = 7 * 5;
 // View of List
 var ListView = {
   get view() {
@@ -1119,27 +1110,37 @@ var ListView = {
   },
 
   init: function lv_init() {
-    this.dataSource = [];
-    this.index = 0;
-    this.lastFirstLetter = null;
+    this.clean();
 
     this.view.addEventListener('click', this);
     this.view.addEventListener('input', this);
+    this.view.addEventListener('touchmove', this);
     this.view.addEventListener('touchend', this);
+    this.view.addEventListener('scroll', this);
     this.searchInput.addEventListener('focus', this);
   },
 
   clean: function lv_clean() {
+    this.cancelEnumeration();
+
+    this.info = null;
+    this.dataSource = [];
+    this.index = 0;
+    this.lastDataIndex = 0;
+    this.firstLetters = [];
+    this.lastFirstLetter = null;
+    this.anchor.innerHTML = '';
+    this.anchor.style.height = 0;
+    this.view.scrollTop = 0;
+    this.hideSearch();
+    this.moveTimer = null;
+    this.scrollTimer = null;
+  },
+
+  cancelEnumeration: function lv_cancelEnumeration() {
     // Cancel a pending enumeration before start a new one
     if (listHandle)
       musicdb.cancelEnumeration(listHandle);
-
-    this.dataSource = [];
-    this.index = 0;
-    this.lastFirstLetter = null;
-    this.anchor.innerHTML = '';
-    this.view.scrollTop = 0;
-    this.hideSearch();
   },
 
   hideSearch: function lv_hideSearch() {
@@ -1147,6 +1148,74 @@ var ListView = {
     // XXX: we probably want to animate this...
     if (this.view.scrollTop < this.searchBox.offsetHeight)
       this.view.scrollTop = this.searchBox.offsetHeight;
+  },
+
+  // This function basically create the section header of the list elements.
+  // When we hit a different first letter, this function will use it to
+  // create a new header then keep it, until to hit another different one,
+  // it will create the next header with the new first letter.
+  createHeader: function lv_createHeader(option, result) {
+    var firstLetter = result.metadata[option].charAt(0);
+    var headerLi;
+
+    if (this.lastFirstLetter !== firstLetter) {
+      this.lastFirstLetter = firstLetter;
+
+      headerLi = document.createElement('li');
+      headerLi.className = 'list-header';
+      headerLi.textContent = this.lastFirstLetter || '?';
+    }
+
+    return headerLi;
+  },
+
+  activate: function lv_activate(info) {
+    // If info is not provided, then we should be displaying playlists,
+    // so it does not need to enumerate from MediaDB.
+    if (!info) {
+      this.clean();
+      return;
+    }
+
+    // Choose one of the indexes to get the count and it should be the
+    // correct count because failed records don't contain metadata, so
+    // here we just pick the album, artist or title as indexes.
+    musicdb.count('metadata.' + info.option, null, function(count) {
+      this.clean();
+      this.info = info;
+      // Keep the count with the info for later use in PlayerView.
+      this.info.count = count;
+
+      listHandle = musicdb.enumerate(info.key, info.range, info.direction,
+        function(record) {
+          if (record) {
+            // Check if music is in picker mode because we don't to allow the
+            // user to pick locked music.
+            if (!pendingPick || !record.metadata.locked)
+              this.dataSource.push(record);
+
+            // Save the current length of the dataSource to lastDataIndex
+            // because we might expand the length to the total count of
+            // the records, since we cannot retrieve all of them in a short
+            // time and the enumeration might be cancelled.
+            // It will also be used to judge the enumeration is end of not.
+            this.lastDataIndex = this.dataSource.length;
+          }
+
+          // When we got the first batch size of the records,
+          // or the total count is less than the batch size,
+          // display it so that users are able to see the first paint
+          // very quickly.
+          if (this.dataSource.length === LIST_BATCH_SIZE || !record) {
+            this.batchUpdate(info.option, LIST_BATCH_SIZE);
+            // If record is null then the enumeration is finished,
+            // so ListView has all the records and is able to adjust
+            // the height.
+            count = record ? count : null;
+            this.adjustHeight(info.option, count);
+          }
+        }.bind(this));
+    }.bind(this));
   },
 
   update: function lv_update(option, result) {
@@ -1158,22 +1227,194 @@ var ListView = {
     this.dataSource.push(result);
 
     if (option !== 'playlist') {
-      var firstLetter = result.metadata[option].charAt(0);
-
-      if (this.lastFirstLetter != firstLetter) {
-        this.lastFirstLetter = firstLetter;
-
-        var headerLi = document.createElement('li');
-        headerLi.className = 'list-header';
-        headerLi.textContent = this.lastFirstLetter || '?';
-
-        this.anchor.appendChild(headerLi);
+      var header = this.createHeader(option, result);
+      if (header) {
+        this.anchor.appendChild(header);
       }
     }
 
     this.anchor.appendChild(createListElement(option, result, this.index));
 
     this.index++;
+  },
+
+  // This function is used for judging if the ListView should update and the
+  // range it should update, it sees where the bottom element is and calculates
+  // its position to know how many to update.
+  judgeAndUpdate: function lv_judgeAndUpdate() {
+    // If there is no lastChild then the first paint is not drawn yet.
+    // Also if the info is not provide, we don't have to judge for updating.
+    if (!this.anchor.lastChild || !this.info)
+      return;
+
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var scrolledHeight = this.view.scrollTop + this.view.offsetHeight;
+    var position = Math.round(scrolledHeight / itemHeight);
+    var last = this.anchor.children.length;
+    var range = position + this.firstLetters.length - last;
+
+    if (range > 0) {
+      this.batchUpdate(TabBar.option, range + LIST_BATCH_SIZE);
+
+      // If the listHandle is cancelled and the lastDataIndex is not -1,
+      // it means the enumeration was cancelled and the dataSource is incomplete
+      // so that we have to resume it from the last data index we have.
+      if (listHandle.state === 'cancelled' && this.lastDataIndex > -1) {
+        var info = this.info;
+        var index = this.lastDataIndex + 1;
+
+        listHandle =
+          musicdb.advancedEnumerate(info.key, info.range, info.direction, index,
+            function(record) {
+              if (record) {
+                this.dataSource[index] = record;
+                this.lastDataIndex = index;
+                index++;
+              } else {
+                this.lastDataIndex = -1;
+              }
+            }.bind(this)
+          );
+      }
+    }
+  },
+
+  // See where is the last index we have for the existing children, and start
+  // to create the rest elements from it, note that here we use fragment to
+  // update all the new elements at once, this is for reducing the amount of
+  // appending child to the DOM tree.
+  batchUpdate: function lv_batchUpdate(option, range) {
+    var start = this.index;
+    var end = start + range;
+    var fragment = document.createDocumentFragment();
+
+    if (end > this.dataSource.length)
+      end = this.dataSource.length;
+
+    for (var i = start; i < end; i++) {
+      var data = this.dataSource[i];
+      if (data) {
+        var header = this.createHeader(option, data);
+
+        if (header)
+          fragment.appendChild(header);
+
+        fragment.appendChild(createListElement(option, data, this.index));
+        this.index++;
+      }
+    }
+
+    this.anchor.appendChild(fragment);
+  },
+
+  // Because the correct height of ListView depends on how many records and
+  // how many section headers it got, also we don't want to cause too many
+  // repaints by appending children to the DOM tree and changes the height,
+  // when we got the first count from the MediaDB or the enumeration is end,
+  // we can fake the the height by the first adjustment(count), then fix the
+  // height to correct by the second adjustment(record is null).
+  adjustHeight: function lv_adjustHeight(option, count) {
+    // If it's the first launch, then dataSource will be empty and we don't
+    // need to adjust the height.
+    if (this.dataSource.length === 0)
+      return;
+
+    if (!count) {
+      count = this.dataSource.length;
+      this.firstLetters.length = 0;
+      var previousFirstLetter;
+      for (var i = 0; i < this.dataSource.length; i++) {
+        var metadata = this.dataSource[i].metadata;
+        var firstLetter = metadata[option].charAt(0);
+        if (previousFirstLetter !== firstLetter) {
+          this.firstLetters.push(firstLetter);
+          previousFirstLetter = firstLetter;
+        }
+      }
+    } else {
+      // Assuming we have all the letters from A to Z.
+      this.firstLetters.length = 26;
+    }
+
+    var headerHeight = this.anchor.firstChild.offsetHeight;
+    var itemHeight = this.anchor.lastChild.offsetHeight;
+    var bottomHeight = parseInt(getComputedStyle(this.anchor.lastChild, null).
+      getPropertyValue('margin-bottom'));
+
+    this.anchor.style.height = (
+      headerHeight * this.firstLetters.length +
+      itemHeight * count +
+      bottomHeight
+    ) + 'px';
+  },
+
+  playWithShuffleAll: function lv_playWithShuffleAll() {
+    ModeManager.push(MODE_PLAYER, function() {
+      musicdb.count('metadata.title', null, function(count) {
+        var info = {
+          key: 'metadata.title',
+          range: null,
+          direction: 'next',
+          option: 'title',
+          count: count
+        };
+
+        PlayerView.setSourceType(TYPE_MIX);
+        // Assign an empty array with correct length to the data source
+        // so that the PlayerView knows we have a queue in playing and
+        // the play icon in the title bar can be displayed correctly.
+        PlayerView.dataSource = new Array(count);
+        PlayerView.setDBInfo(info);
+        PlayerView.setShuffle(true);
+        PlayerView.play(PlayerView.shuffledList[0]);
+      });
+    });
+  },
+
+  playWithIndex: function lv_playWithIndex(index) {
+    ModeManager.push(MODE_PLAYER, function() {
+      if (pendingPick)
+        PlayerView.setSourceType(TYPE_SINGLE);
+      else
+        PlayerView.setSourceType(TYPE_MIX);
+
+      // Because the ListView might still retrieving the records, and
+      // we are assigning the dataSource to the PlayerView, since
+      // setDBInfo will expand the dataSource length to the total
+      // count we will be retrieved, we must cancel the enumeration
+      // or the length will be expanded to a wrong number.
+      this.cancelEnumeration();
+      PlayerView.dataSource = this.dataSource;
+      PlayerView.setDBInfo(this.info);
+
+      if (PlayerView.shuffleOption) {
+        // Shuffled list does not exist yet in all songs.
+        // Here we need to create a new shuffled list
+        // and start from the song which the user clicked.
+        PlayerView.shuffleList(index);
+        PlayerView.play(PlayerView.shuffledList[0]);
+      } else {
+        PlayerView.play(index);
+      }
+    }.bind(this));
+  },
+
+  activateSubListView: function lv_activateSubListView(target) {
+    var option = target.dataset.option;
+    var index = target.dataset.index;
+    var data = this.dataSource[index];
+    var keyRange = (target.dataset.keyRange != 'all') ?
+      IDBKeyRange.only(target.dataset.keyRange) : null;
+    var direction =
+      (data.metadata.title === mostPlayedTitle ||
+       data.metadata.title === recentlyAddedTitle ||
+       data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
+
+    SubListView.activate(
+      option, data, index, keyRange, direction, function() {
+        ModeManager.push(MODE_SUBLIST);
+      }
+    );
   },
 
   handleEvent: function lv_handleEvent(evt) {
@@ -1218,43 +1459,12 @@ var ListView = {
           // When an user select "Shuffle all"
           // We just play all songs with shuffle order
           // or change mode to subList view and list songs
-          if (option === 'shuffleAll') {
-            musicdb.getAll(function lv_getAll(dataArray) {
-              ModeManager.push(MODE_PLAYER, function() {
-                PlayerView.setSourceType(TYPE_MIX);
-                PlayerView.dataSource = dataArray;
-                PlayerView.setShuffle(true);
-                PlayerView.play(PlayerView.shuffledList[0]);
-              });
-            });
-          } else if (option === 'title') {
-            ModeManager.push(MODE_PLAYER, function() {
-              var targetIndex = parseInt(target.dataset.index);
-
-              if (pendingPick)
-                PlayerView.setSourceType(TYPE_SINGLE);
-              else
-                PlayerView.setSourceType(TYPE_MIX);
-
-                PlayerView.dataSource = this.dataSource;
-                PlayerView.play(targetIndex);
-            }.bind(this));
-          } else if (option) {
-            var index = target.dataset.index;
-            var data = this.dataSource[index];
-
-            var keyRange = (target.dataset.keyRange != 'all') ?
-              IDBKeyRange.only(target.dataset.keyRange) : null;
-            var direction =
-             (data.metadata.title === mostPlayedTitle ||
-              data.metadata.title === recentlyAddedTitle ||
-              data.metadata.title === highestRatedTitle) ? 'prev' : 'next';
-
-            SubListView.activate(
-              option, data, index, keyRange, direction, function() {
-                ModeManager.push(MODE_SUBLIST);
-              });
-          }
+          if (option === 'shuffleAll')
+            this.playWithShuffleAll();
+          else if (option === 'title')
+            this.playWithIndex(target.dataset.index);
+          else if (option)
+            this.activateSubListView(target);
         }
 
         break;
@@ -1274,6 +1484,40 @@ var ListView = {
           SearchView.search(target.value);
         }
 
+        break;
+
+      case 'touchmove':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.moveTimer)
+          clearTimeout(this.moveTimer);
+
+        // If the move timer is not cancelled, it should be a suitable time
+        // to update the ui because we don't want to render elements while
+        // the list is scrolling.
+        this.moveTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.moveTimer = null;
+        }.bind(this), 50);
+        break;
+
+      case 'scroll':
+        // Start the rest batch updating after the first paint
+        if (this.anchor.children.length === 0)
+          return;
+
+        if (this.scrollTimer)
+          clearTimeout(this.scrollTimer);
+
+        // If the user try to scroll as possible as it can, after the scrolling
+        // stops, we can see where the position is and try to render the rest
+        // elements that should be displayed on the screen.
+        this.scrollTimer = setTimeout(function() {
+          this.judgeAndUpdate();
+          this.scrollTimer = null;
+        }.bind(this), 500);
         break;
 
       default:
@@ -1673,13 +1917,18 @@ var TabBar = {
 
         switch (target.id) {
           case 'tabs-mix':
+            // Assuming the users will switch to ListView later or tap one of
+            // the album on TilesView to play, just cancel the enumeration
+            // because we will start a new one and it can be responsive.
+            ListView.cancelEnumeration();
+
             ModeManager.start(MODE_TILES);
             TilesView.hideSearch();
 
             break;
           case 'tabs-playlists':
             ModeManager.start(MODE_LIST);
-            ListView.clean();
+            ListView.activate();
 
             this.playlistArray.forEach(function(playlist) {
               ListView.update(this.option, playlist);
@@ -1689,14 +1938,15 @@ var TabBar = {
           case 'tabs-artists':
           case 'tabs-albums':
           case 'tabs-songs':
+            var info = {
+              key: 'metadata.' + this.option,
+              range: null,
+              direction: (this.option === 'title') ? 'next' : 'nextunique',
+              option: this.option
+            };
+
             ModeManager.start(MODE_LIST);
-            ListView.clean();
-
-            listHandle =
-              musicdb.enumerate('metadata.' + this.option, null,
-                                'nextunique',
-                                ListView.update.bind(ListView, this.option));
-
+            ListView.activate(info);
             break;
         }
 

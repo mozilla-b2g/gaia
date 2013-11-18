@@ -40,7 +40,7 @@ var AboutMoreInfo = {
 
           var d = new Date(parseInt(data[1] + '000', 10));
           dispDate.textContent = dateToUTC(d);
-          dispHash.textContent = data[0];
+          dispHash.textContent = data[0].substr(0, 8);
         } else {
           console.error('Failed to fetch gaia commit: ', req.statusText);
         }
@@ -57,7 +57,7 @@ var AboutMoreInfo = {
     if (!mobileConnection)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     var deviceInfoIccid = document.getElementById('deviceInfo-iccid');

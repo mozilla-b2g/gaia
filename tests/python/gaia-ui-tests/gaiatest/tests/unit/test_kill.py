@@ -2,8 +2,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-from gaiatest import GaiaTestCase
+import time
 
+from gaiatest import GaiaTestCase
 
 class TestKill(GaiaTestCase):
 
@@ -17,6 +18,7 @@ class TestKill(GaiaTestCase):
 
         for app in ['Calendar', 'Clock']:
             running_apps.append(self.apps.launch(app))
+            time.sleep(1)
 
         for app in running_apps:
             self.apps.launch(app.name)

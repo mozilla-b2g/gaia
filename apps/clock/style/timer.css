@@ -3,14 +3,9 @@
   height: calc(100% - 4rem);
 }
 
-@font-face {
-  font-family: SourceCodePro-Light;
-  src: url(fonts/SourceCodePro-Light.ttf);
-}
-
 #timer-time {
-  font-family: SourceCodePro-Light;
   letter-spacing: -0.5rem;
+  font-variant-numeric: tabular-nums;
   font-weight: lighter;
   font-size: 5.5rem;
   color: #CFE2E6;

@@ -22,6 +22,9 @@ class TestClockSetAlarmRepeat(GaiaTestCase):
         """
         new_alarm = self.clock.tap_new_alarm()
 
+        # Ensure repeat has the default value
+        self.assertEquals(new_alarm.alarm_repeat, 'Never')
+
         # Set label
         new_alarm.type_alarm_label("TestSetAlarmRepeat")
 

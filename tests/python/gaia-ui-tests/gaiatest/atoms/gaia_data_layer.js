@@ -13,7 +13,7 @@ var GaiaDataLayer = {
       adapter.ondevicefound = function(aEvent) {
         device = aEvent.device;
         if (device.name === aDeviceName) {
-          var pair = adapter.pair(device);
+          var pair = adapter.pair(device.address);
           marionetteScriptFinished(true);
         }
       };
@@ -29,7 +29,7 @@ var GaiaDataLayer = {
       req.onsuccess = function() {
         var total = req.result.slice().length;
         for (var i = total; i > 0; i--) {
-          var up = adapter.unpair(req.result.slice()[i-1]);
+          var up = adapter.unpair(req.result.slice()[i-1].address);
         }
       };
     };
@@ -112,7 +112,15 @@ var GaiaDataLayer = {
 
   getSIMContacts: function(aCallback) {
     var callback = aCallback || marionetteScriptFinished;
-    var req = navigator.mozIccManager.readContacts("adn");
+    var icc = navigator.mozIccManager;
+
+    // See bug 932134
+    // To keep all tests passed while introducing multi-sim APIs, in bug 928325
+    // we do the following check. Remove it after the APIs land.
+    if (icc && icc.iccIds && icc.iccIds[0]) {
+      icc = icc.getIccById(icc.iccIds[0]);
+    }
+    var req = icc.readContacts("adn");
     req.onsuccess = function () {
       console.log('success finding contacts');
       SpecialPowers.removePermission('contacts-read', document);
@@ -343,7 +351,12 @@ var GaiaDataLayer = {
   },
 
   connectToCellData: function() {
-    var manager = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var manager = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
 
     if (!manager.data.connected) {
       waitFor(
@@ -364,7 +377,13 @@ var GaiaDataLayer = {
   disableCellData: function() {
     var self = this;
     this.getSetting('ril.data.enabled', function(aCellDataEnabled) {
-      var manager = window.navigator.mozMobileConnection;
+
+      // XXX: check bug-926169
+      // this is used to keep all tests passing while introducing multi-sim APIs
+      var manager = window.navigator.mozMobileConnection ||
+        window.navigator.mozMobileConnections &&
+          window.navigator.mozMobileConnections[0];
+
       if (aCellDataEnabled) {
         waitFor(
           function() {
@@ -422,6 +441,31 @@ var GaiaDataLayer = {
     };
     req.onerror = function() {
       console.error('failed to enumerate ' + aType, req.error.name);
+      callback(false);
+    };
+  },
+
+  sendSMS: function (recipient, content, aCallback) {
+    var callback = aCallback || marionetteScriptFinished;
+    console.log('sending sms message to number: ' + recipient);
+
+    SpecialPowers.addPermission('sms', true, document);
+    SpecialPowers.setBoolPref('dom.sms.enabled', true);
+    let sms = window.navigator.mozMobileMessage;
+
+    let request = sms.send(recipient, content);
+
+    request.onsuccess = function() {
+      console.log('sms message sent successfully');
+      SpecialPowers.removePermission('sms', document);
+      SpecialPowers.clearUserPref('dom.sms.enabled');
+      callback(true);
+    };
+
+    request.onerror = function () {
+      console.log('sms message not sent');
+      SpecialPowers.removePermission('sms', document);
+      SpecialPowers.clearUserPref('dom.sms.enabled');
       callback(false);
     };
   },

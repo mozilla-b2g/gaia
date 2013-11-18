@@ -3,8 +3,11 @@
 var fb = this.fb || {};
 
 fb.resolver = function(item, loader) {
-  var FB_SCRIPTS_NEEDED = ['/contacts/js/fb/fb_contact_utils.js',
-                         '/contacts/js/fb/fb_data.js'];
+  var FB_SCRIPTS_NEEDED = [
+    '/shared/js/fb/fb_request.js',
+    '/shared/js/fb/fb_data_reader.js',
+    '/shared/js/fb/fb_reader_utils.js'
+  ];
 
   var status = item.dataset.status;
   var isFbContact = 'fbUid' in item.dataset;
@@ -19,7 +22,6 @@ fb.resolver = function(item, loader) {
         var fbData = fbReq.result;
         if (fbData) {
           var id = item.dataset.uuid;
-
           if (contacts.List.hasPhoto(id)) {
             loader.defaultLoad(item);
           }

@@ -327,7 +327,7 @@ suite('keyboard >', function() {
 
         DefaultKeyboardEnabledDialog.show({
           manifest: { name: 'appName' },
-          entryPoint: {
+          inputManifest: {
             types: ['url', 'text'],
             name: 'layoutName'
           }

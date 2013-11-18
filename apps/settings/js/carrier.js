@@ -6,7 +6,6 @@
 var Carrier = {
   init: function cr_init() {
     this.carrierSettings();
-    this.messageSettings();
   },
 
   // handle carrier settings
@@ -69,12 +68,6 @@ var Carrier = {
         }
         return found;
       };
-
-      // early way out if the query has already been performed
-      if (allApnList) {
-        callback(filter(allApnList), usage);
-        return;
-      }
 
       // load and query both apn.json database and 'ril.data.cp.apns' setting,
       // then trigger callback on results
@@ -852,48 +845,27 @@ var Carrier = {
       });
     }
 
+    // Update the list of APNs in the APN panels.
+    window.addEventListener('panelready', function(e) {
+      if (!e.detail.current.startsWith('#carrier-')) {
+        return;
+      }
+
+      getMccMncCodes(function() {
+        if (e.detail.current === '#carrier-dataSettings') {
+          queryApns(updateApnList, 'data');
+        } else if (e.detail.current === '#carrier-mmsSettings') {
+          queryApns(updateApnList, 'mms');
+        } else if (e.detail.current === '#carrier-suplSettings') {
+          queryApns(updateApnList, 'supl');
+        }
+      });
+    });
+
     // startup
     init(function() {
       Connectivity.updateCarrier(); // see connectivity.js
       initDataConnectionAndRoamingWarnings();
-
-      // XXX this should be done later
-      getMccMncCodes(function() {
-        queryApns(updateApnList, 'data');
-        queryApns(updateApnList, 'mms');
-        queryApns(updateApnList, 'supl');
-      });
-    });
-  },
-
-  // Basically we only need to handle ignored items manually here. Other options
-  // should be controlled in settings.js by default.
-  messageSettings: function cr_messageSettings() {
-    var settings = window.navigator.mozSettings;
-    if (!settings) {
-      return;
-    }
-
-    // Handle delivery report manually here because delivery report key is
-    // separated in database(sms/mms) but panel only have 1 option to control.
-    var lock = settings.createLock();
-    var SMSDR = 'ril.sms.requestStatusReport.enabled';
-    var MMSDR = 'ril.mms.requestStatusReport.enabled';
-    // Since delivery report for sms/mms should be the same,
-    // sync the value while init.
-    var request = lock.get(SMSDR);
-    var mmsSet = {};
-
-    function setMmsDeliveryReport(value) {
-      var lock = settings.createLock();
-      mmsSet[MMSDR] = value;
-      lock.set(mmsSet);
-    }
-    request.onsuccess = function() {
-      setMmsDeliveryReport(request.result[SMSDR]);
-    };
-    settings.addObserver(SMSDR, function(event) {
-      setMmsDeliveryReport(event.settingValue);
     });
   }
 };

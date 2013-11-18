@@ -1,0 +1,54 @@
+.gesture-panel.disabled {
+  pointer-events: none;
+}
+
+#left-panel {
+  position: absolute;
+  height: calc(100% - 88px);
+  width: 30px;
+  left: 0;
+  top: 44px;
+
+  border-radius: 0 50% 50% 0;
+
+  background-color: red;
+  opacity: 0;
+}
+#left-panel.disabled {
+  background-color: gray;
+}
+
+#right-panel {
+  position: absolute;
+  height: calc(100% - 88px);
+  width: 30px;
+  right: 0;
+  top: 44px;
+
+  border-radius: 50% 0 0 50%;
+
+  background-color: green;
+  opacity: 0;
+}
+#right-panel.disabled {
+  background-color: gray;
+}
+
+#screen.edges #windows > .appWindow.inside-edges {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+#screen.edges #windows > .appWindow.outside-edges-left {
+  opacity: 1;
+  transform: translateX(-20%);
+}
+
+#screen.edges #windows > .appWindow.outside-edges-right {
+  opacity: 1;
+  transform: translateX(100%);
+}
+
+#screen.edges-debug .gesture-panel {
+  opacity: 0.5;
+}

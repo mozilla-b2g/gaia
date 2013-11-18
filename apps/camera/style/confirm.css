@@ -1,5 +1,6 @@
+
 /* this is where we display image and video previews */
-#confirm {
+.confirm {
   position: absolute;
   left: 0;
   width: 100%;
@@ -15,7 +16,7 @@
   transform-origin: 0 0;
 }
 
-#confirm-media-frame {
+.confirm-media-frame {
   position: absolute;
   left: 0;
   top: 0;
@@ -27,7 +28,7 @@
   -moz-user-select: none;
 }
 
-#confirm-media-frame > img {
+.confirm-media-frame > img {
   top: 0;  /* javascript modifies this position with a transform */
   left: 0;
   position: absolute;
@@ -39,11 +40,11 @@
   -moz-user-select: none;
 }
 
-#confirm-media-frame > video {
+.confirm-media-frame > video {
   transform-origin: 0 0;
 }
 
-#confirm-controls {
+.confirm-controls {
   position: absolute;
   left: 0;
   right: 0;
@@ -52,7 +53,7 @@
   z-index: 100; /* above the dynamically inserted frame elements */
 }
 
-#retake-button {
+.retake-button {
   position: absolute;
   width: calc((100% - 3rem) / 2);
   left: 1rem;
@@ -60,7 +61,7 @@
   height: 3.8rem;
 }
 
-#select-button {
+.select-button {
   position: absolute;
   width: calc((100% - 3rem) / 2);
   right: 1rem;

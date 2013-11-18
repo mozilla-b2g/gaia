@@ -25,7 +25,12 @@ var EmergencyCbManager = {
   cancelButton: null,
 
   init: function ecm_init() {
-    this._conn = navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    this._conn = navigator.mozMobileConnection ||
+      navigator.mozMobileConnections &&
+        navigator.mozMobileConnections[0];
 
     // Dom elements
     this.notification =
@@ -65,6 +70,7 @@ var EmergencyCbManager = {
 
   exitEmergencyCbMode: function ecm_exitEmergencyCbMode() {
     this.warningDialog.classList.remove('visible');
+    this.warningDialog.hidden = true;
     this._conn.exitEmergencyCbMode();
   },
 
@@ -76,6 +82,7 @@ var EmergencyCbManager = {
   toasterClicked: function ecm_toasterClicker() {
     this.showEmergencyCbPrompt();
     this.toaster.classList.remove('displayed');
+    this.toaster.hidden = true;
   },
 
   showEmergencyCbPrompt: function ecm_showEmergencyCbPrompt() {
@@ -87,24 +94,29 @@ var EmergencyCbManager = {
       self.cancelPrompt();
     });
     this.warningDialog.classList.add('visible');
+    this.warningDialog.hidden = false;
   },
 
   cancelPrompt: function ecm_cancelPrompt() {
     this.warningDialog.classList.remove('visible');
+    this.warningDialog.hidden = true;
   },
 
   displayNotificationAndToaster: function ecm_displayNotificationAndToaster() {
     this.displayNotificationIfHidden();
     this.toasterTimer.textContent = this.timerString;
     this.toaster.classList.add('displayed');
+    this.toaster.hidden = false;
     setTimeout(function waitToHide() {
       this.toaster.classList.remove('displayed');
+      this.toaster.hidden = true;
     }.bind(this), this.TOASTER_TIMEOUT);
   },
 
   hideNotificationIfDisplayed: function ecm_hideNotificationIfDisplayed() {
     if (this.notification.classList.contains('displayed')) {
       this.notification.classList.remove('displayed');
+      this.notification.hidden = true;
       StatusBar.updateEmergencyCbNotification();
     }
   },
@@ -112,6 +124,7 @@ var EmergencyCbManager = {
   displayNotificationIfHidden: function ecm_displayNotificationIfHidden() {
     if (!this.notification.classList.contains('displayed')) {
       this.notification.classList.add('displayed');
+      this.notification.hidden = false;
       StatusBar.updateEmergencyCbNotification(true);
     }
   },
@@ -148,6 +161,7 @@ var EmergencyCbManager = {
     } else {
       this.hideNotificationIfDisplayed();
       this.warningDialog.classList.remove('visible');
+      this.warningDialog.hidden = true;
       window.clearInterval(this.timeoutController);
       this.timeoutController = null;
       this._conn.ondataerror = null;

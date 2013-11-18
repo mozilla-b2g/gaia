@@ -14,6 +14,8 @@
 #               the offline cache. This is mostly for desktop debugging.      #
 #                                                                             #
 # REPORTER    : Mocha reporter to use for test output.                        #
+#
+# MARIONETTE_RUNNER_HOST : The Marionnette runner host.
 #                                                                             #
 # COVERAGE    : Add blanket testing coverage report to use for test output.   #
 #                                                                             #
@@ -66,11 +68,20 @@ GAIA_DOMAIN?=gaiamobile.org
 DEBUG?=0
 DEVICE_DEBUG?=0
 PRODUCTION?=0
+DESKTOP_SHIMS?=0
 GAIA_OPTIMIZE?=0
 GAIA_DEV_PIXELS_PER_PX?=1
 DOGFOOD?=0
 TEST_AGENT_PORT?=8789
 GAIA_APP_TARGET?=engineering
+
+# Flag to ease build a simulator-compatible profile
+SIMULATOR?=0
+ifeq ($(SIMULATOR),1)
+DESKTOP=1
+NO_FTU=1
+DEVICE_DEBUG=1
+endif
 
 # Enable compatibility to run in Firefox Desktop
 DESKTOP?=$(DEBUG)
@@ -117,6 +128,9 @@ endif
 REPORTER?=Spec
 MOCHA_REPORTER?=dot
 NPM_REGISTRY?=http://registry.npmjs.org
+# Ensure that NPM only logs warnings and errors
+export npm_config_loglevel=warn
+MARIONETTE_RUNNER_HOST?=marionette-b2gdesktop-host
 
 GAIA_INSTALL_PARENT?=/data/local
 ADB_REMOUNT?=0
@@ -408,7 +422,15 @@ endif
 endif
 
 .PHONY: app-makefiles
-app-makefiles:
+# Applications may want to perform their own build steps.  (For example, the
+# clock and e-mail apps use r.js to perform optimization steps.)  These steps
+# may produce the following output consumed by other tooling:
+# - build_stage/APPNAME/*: This is where the build output goes.
+#   build/webapp-zip.js knows about this directory.
+# - build_stage/APPNAME/gaia_shared.json: This file lists shared resource
+#   dependencies that build/webapp-zip.js's detection logic might not determine
+#   because of lazy loading, etc.
+app-makefiles: install-xulrunner-sdk
 	@for d in ${GAIA_APPDIRS}; \
 	do \
 		if [[ ("$$d" =~ "${BUILD_APP_NAME}") || (${BUILD_APP_NAME} == "*") ]]; then \
@@ -419,35 +441,49 @@ app-makefiles:
 		fi; \
 	done;
 
+.PHONY: webapp-manifests
 # Generate $(PROFILE_FOLDER)/webapps/
 # We duplicate manifest.webapp to manifest.webapp and manifest.json
 # to accommodate Gecko builds without bug 757613. Should be removed someday.
-webapp-manifests: install-xulrunner-sdk
+#
+# We depend on app-makefiles so that per-app Makefiles could modify the manifest
+# as part of their build step.  None currently do this, and webapp-manifests.js
+# would likely want to change to see if the build directory includes a manifest
+# in that case.  Right now this is just making sure we don't race app-makefiles
+# in case someone does decide to get fancy.
+webapp-manifests: app-makefiles install-xulrunner-sdk
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-manifests)
 	@#cat $(PROFILE_FOLDER)/webapps/webapps.json
 
+.PHONY: webapp-zip
 # Generate $(PROFILE_FOLDER)/webapps/APP/application.zip
-webapp-zip: webapp-optimize install-xulrunner-sdk
+webapp-zip: webapp-manifests webapp-optimize app-makefiles install-xulrunner-sdk
 ifneq ($(DEBUG),1)
 	@mkdir -p $(PROFILE_FOLDER)/webapps
 	@$(call run-js-command, webapp-zip)
 endif
 
+.PHONY: webapp-optimize
 # Web app optimization steps (like precompling l10n, concatenating js files, etc..).
-webapp-optimize: install-xulrunner-sdk
+# You need xulrunner (install-xulrunner-sdk) to do this, and you need the app
+# to have been built (app-makefiles).
+webapp-optimize: app-makefiles install-xulrunner-sdk
 	@$(call run-js-command, webapp-optimize)
 
-# Remove temporary l10n files
+.PHONY: optimize-clean
+# Remove temporary l10n files created by the webapp-optimize step.  Because
+# webapp-zip wants these files to still be around during the zip stage, depend
+# on webapp-zip so it runs to completion before we start the cleanup.
 optimize-clean: webapp-zip install-xulrunner-sdk
 	@$(call run-js-command, optimize-clean)
 
 # Get additional extensions
 $(PROFILE_FOLDER)/installed-extensions.json: build/additional-extensions.json $(wildcard .build/custom-extensions.json)
-ifeq ($(DESKTOP),1)
+ifeq ($(SIMULATOR),1)
+	# Prevent installing external firefox helper addon for the simulator
+else ifeq ($(DESKTOP),1)
 	python build/additional-extensions.py --gaia-dir="$(CURDIR)" --profile-dir="$(PROFILE_FOLDER)"
-else ifeq ($(DEBUG),1)
-	touch $(PROFILE_FOLDER)/installed-extensions.json
 endif
 
 profile-dir:
@@ -598,6 +634,10 @@ EXTENDED_PREF_FILES = \
   gps-prefs.js \
   payment-prefs.js \
 
+ifeq ($(GAIA_APP_TARGET), engineering)
+EXTENDED_PREF_FILES += payment-dev-prefs.js
+endif
+
 ifeq ($(DOGFOOD),1)
 EXTENDED_PREF_FILES += dogfood-prefs.js
 endif
@@ -638,11 +678,15 @@ extensions:
 ifeq ($(BUILD_APP_NAME),*)
 	@rm -rf $(EXT_DIR)
 	@mkdir -p $(EXT_DIR)
-ifeq ($(DESKTOP),1)
+ifeq ($(SIMULATOR),1)
+	cp -r tools/extensions/{activities@gaiamobile.org,activities,alarms@gaiamobile.org,alarms,desktop-helper,desktop-helper@gaiamobile.org,keyboard,keyboard@gaiamobile.org} $(EXT_DIR)/
+else ifeq ($(DESKTOP),1)
 	cp -r tools/extensions/* $(EXT_DIR)/
 else ifeq ($(DEBUG),1)
 	cp tools/extensions/httpd@gaiamobile.org $(EXT_DIR)/
 	cp -r tools/extensions/httpd $(EXT_DIR)/
+else ifeq ($(DESKTOP_SHIMS),1)
+	cp -r tools/extensions/{desktop-helper,desktop-helper@gaiamobile.org} $(EXT_DIR)/
 endif
 	@echo "Finished: Generating extensions"
 endif
@@ -684,6 +728,7 @@ test-integration:
 	# override existing profile-test folder.
 	PROFILE_FOLDER=profile-test make
 	NPM_REGISTRY=$(NPM_REGISTRY) ./bin/gaia-marionette $(shell find . -path "*test/marionette/*_test.js") \
+		--host $(MARIONETTE_RUNNER_HOST) \
 		--reporter $(MOCHA_REPORTER)
 
 .PHONY: test-perf
@@ -1008,7 +1053,7 @@ clean:
 
 # clean out build products and tools
 really-clean: clean
-	rm -rf xulrunner-* .xulrunner-* node_modules
+	rm -rf xulrunner-* .xulrunner-* node_modules b2g
 
 .git/hooks/pre-commit: tools/pre-commit
 	test -d .git && cp tools/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit || true

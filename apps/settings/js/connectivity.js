@@ -16,13 +16,14 @@ var Connectivity = (function(window, document, undefined) {
   var _macAddress = '';
   var _ = navigator.mozL10n.get;
 
-  // in util.js, we fake these device interfaces if they are not exist.
+  // in desktop helper we fake these device interfaces if they don't exist.
   var wifiManager = WifiHelper.getWifiManager();
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
 
   mobileConnection.addEventListener('datachange', updateCarrier);
   IccHelper.addEventListener('cardstatechange', updateCallSettings);
+  IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
 
   // XXX if wifiManager implements addEventListener function
   // we can remove these listener lists.
@@ -85,6 +86,7 @@ var Connectivity = (function(window, document, undefined) {
 
     updateCarrier();
     updateCallSettings();
+    updateMessagingSettings();
     updateWifi();
     updateBluetooth();
     // register blutooth system message handler
@@ -103,41 +105,49 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateWifi()
     }
 
-    if (wifiManager.enabled) {
-      // network.connection.status has one of the following values:
-      // connecting, associated, connected, connectingfailed, disconnected.
-      localize(wifiDesc,
-               'fullStatus-' + wifiManager.connection.status,
-               wifiManager.connection.network);
-    } else {
-      localize(wifiDesc, 'disabled');
-    }
-
-    // record the MAC address here because the "Device Information" panel
-    // has to display it as well
+    // If the MAC address is in the Settings database, it's already displayed in
+    // all `MAC address' fields; if not, it will be set as soon as the Wi-Fi is
+    // enabled (see `storeMacAddress').
     if (!_macAddress && settings) {
       var req = settings.createLock().get('deviceinfo.mac');
       req.onsuccess = function macAddr_onsuccess() {
         _macAddress = req.result['deviceinfo.mac'];
       };
-      req.onerror = function macAddr_onerror() {
-        // Check if the MAC address is set by the wifiManager and is valid
-        // XXX the wifiManager sets macAddress to the string 'undefined' when
-        //     it is not available
-        if (wifiManager.macAddress && wifiManager.macAddress != 'undefined') {
-          _macAddress = wifiManager.macAddress;
-          settings.createLock().set({ 'deviceinfo.mac': _macAddress });
-        }
-      };
+    }
+
+    if (wifiManager.enabled) {
+      storeMacAddress();
+      // network.connection.status has one of the following values:
+      // connecting, associated, connected, connectingfailed, disconnected.
+      localize(wifiDesc, 'fullStatus-' + wifiManager.connection.status,
+               wifiManager.connection.network);
+    } else {
+      localize(wifiDesc, 'disabled');
+    }
+  }
+
+  function storeMacAddress() {
+    // Store the MAC address in the Settings database.  Note: the wifiManager
+    // sets macAddress to the string `undefined' when it is not available.
+    if (settings && wifiManager.macAddress &&
+                    wifiManager.macAddress !== _macAddress &&
+                    wifiManager.macAddress !== 'undefined') {
+      _macAddress = wifiManager.macAddress;
+      settings.createLock().set({ 'deviceinfo.mac': _macAddress });
+      // update all related fields in the UI
+      var fields = document.querySelectorAll('[data-name="deviceinfo.mac"]');
+      for (var i = 0, l = fields.length; i < l; i++) {
+        fields[i].textContent = _macAddress;
+      }
     }
   }
 
   function wifiEnabled() {
-    // Keep the setting in sync with the hardware state.
-    // We need to do this because b2g/dom/wifi/WifiWorker.js can turn
-    // the hardware on and off
+    // Keep the setting in sync with the hardware state.  We need to do this
+    // because b2g/dom/wifi/WifiWorker.js can turn the hardware on and off.
     settings.createLock().set({'wifi.enabled': true});
     wifiEnabledListeners.forEach(function(listener) { listener(); });
+    storeMacAddress();
   }
 
   function wifiDisabled() {
@@ -207,7 +217,7 @@ var Connectivity = (function(window, document, undefined) {
       }
     };
 
-    if (!mobileConnection || !IccHelper.enabled)
+    if (!mobileConnection || !IccHelper)
       return setCarrierStatus({});
 
     // ensure the SIM card is present and unlocked
@@ -246,12 +256,33 @@ var Connectivity = (function(window, document, undefined) {
       return; // init will call updateCallSettings()
     }
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     // update the current SIM card state
     var cardState = IccHelper.cardState || 'null';
     localize(callDesc, kCardStateL10nId[cardState]);
+  }
+
+  /**
+   * Messaging Settings
+   */
+
+  var messagingDesc = document.getElementById('messaging-desc');
+  messagingDesc.style.fontStyle = 'italic';
+
+  function updateMessagingSettings() {
+    if (!_initialized) {
+      init();
+      return; // init will call updateMessagingSettings()
+    }
+
+    if (!IccHelper)
+      return;
+
+    // update the current SIM card state
+    var cardState = IccHelper.cardState || 'null';
+    localize(messagingDesc, kCardStateL10nId[cardState]);
   }
 
   /**

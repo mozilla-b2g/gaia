@@ -123,14 +123,19 @@
     <link rel="stylesheet" type="text/css" href="style/software_button_manager/software_button_manager.css">
     <script defer src="js/software_button_manager.js"></script>
 
+    <!-- FTU launcher -->
+    <script defer src="js/ftu_launcher.js"></script>
+
     <!-- ICC/STK -->
+    <!-- This depends on ftu_launcher.js, please load it in order ;) -->
     <link rel="stylesheet" type="text/css" href="style/icc.css">
     <script defer src="js/icc_events.js"></script>
     <script defer src="js/icc_worker.js"></script>
     <script defer src="js/icc.js"></script>
 
-    <!-- FTU launcher -->
-    <script defer src="js/ftu_launcher.js"></script>
+    <!-- Media Playback -->
+    <script defer src="js/media_playback.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
 
     <!-- LockScreen -->
     <link rel="stylesheet" type="text/css" href="style/lockscreen/lockscreen.css">
@@ -183,7 +188,6 @@
 
     <!-- Cost Control -->
     <link rel="stylesheet" type="text/css" href="style/cost_control/cost_control.css">
-    <script defer src="js/cost_control.js"></script>
 
     <!-- Quick Settings -->
     <link rel="stylesheet" type="text/css" href="style/quick_settings/quick_settings.css">
@@ -213,9 +217,9 @@
     <script defer src="js/update_manager.js"></script>
     <link rel="stylesheet" type="text/css" href="style/update_manager/update_manager.css">
 
-    <!-- Media Playback -->
-    <script defer src="js/media_playback.js"></script>
-    <link rel="stylesheet" type="text/css" href="style/media_playback/media_playback.css">
+    <!-- Media Recording -->
+    <script defer src="js/media_recording.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/media_recording/media_recording.css">
 
     <!-- Theme and localization -->
     <link rel="stylesheet" type="text/css" href="style/themes/default/system.css">
@@ -270,6 +274,12 @@
     <script defer src="js/app_window_factory.js"></script>
     <script defer src="js/window_manager.js"></script>
     <script defer src="js/visibility_manager.js"></script>
+
+    <!-- Edge Gestures -->
+    <script defer src="js/stack_manager.js"></script>
+    <script defer src="js/sheets_transition.js"></script>
+    <script defer src="js/edge_swipe_detector.js"></script>
+    <link rel="stylesheet" type="text/css" href="style/edges/edges.css">
 
     <!-- Entry Sheet -->
     <link rel="stylesheet" type="text/css" href="style/entry_sheet/entry_sheet.css">
@@ -381,6 +391,7 @@
           data-level="5" hidden></div>
         <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
         <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" hidden></div>
+        <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" hidden></div>
 
         <!-- Permissions -->
         <div id="statusbar-tethering" class="sb-icon sb-icon-tethering" hidden></div>
@@ -409,8 +420,7 @@
       <div id="utility-tray" data-z-index-level="utility-tray">
         <!-- notifications -->
         <div id="notification-bar">
-          <span id="notification-some" data-l10n-id="notifications" hidden>Notifications</span>
-          <span id="notification-none" data-l10n-id="no-notifications">No notifications</span>
+          <span id="notification-some" data-l10n-id="notifications">Notifications</span>
 
           <button id="notification-clear" data-l10n-id="clear-all" disabled>Clear all</button>
         </div>
@@ -426,7 +436,7 @@
             </div>
           </div>
           <!-- Emergency callback Manager -->
-          <div id="emergency-callback-notification" class="fake-notification">
+          <div id="emergency-callback-notification" class="fake-notification" hidden>
             <div class="icon">
             </div>
             <div class="message" data-l10n-id="emergency-callback-mode">
@@ -445,7 +455,7 @@
           </div>
           <!-- Media playback notification -->
           <div id="media-playback-container" class="fake-notification" hidden>
-            <div id="media-playback-nowplaying">
+            <div class="media-playback-nowplaying">
               <div class="icon">
               </div>
               <div class="albumart">
@@ -455,7 +465,7 @@
               <div class="artist">
               </div>
             </div>
-            <div id="media-playback-controls">
+            <div class="media-playback-controls">
               <button class="previous"></button>
               <button class="play-pause"></button>
               <button class="next"></button>
@@ -474,6 +484,17 @@
                 </div>
                 <div class="tip">
                 </div>
+            </div>
+          </div>
+          <!-- media recording status -->
+          <div id="media-recoding-status-list">
+            <div class="icon">
+            </div>
+            <div class="origin">
+            </div>
+            <div class="message">
+            </div>
+            <div class="timer">
             </div>
           </div>
 
@@ -603,16 +624,19 @@
           <!-- "Crash Reports" information page -->
           <section role="region" class="skin-dark">
             <header>
-              <menu type="toolbar">
-                <button id="crash-reports-done" data-l10n-id="done">Done</button>
-              </menu>
+              <button id="crash-reports-close"><span class="icon icon-close">close</span></button>
               <h1 data-l10n-id="crashReports">Crash Reports</h1>
             </header>
-            <p data-l10n-id="crash-reports-description-1"></p>
-            <p data-l10n-id="crash-reports-description-2"></p>
-            <p>
-              <span data-l10n-id="crash-reports-description-3-start"></span><span data-l10n-id="crash-reports-description-3-privacy"></span><span data-l10n-id="crash-reports-description-3-end"></span>
-            </p>
+            <div>
+              <ul>
+                <li class="description" data-l10n-id="crash-reports-description-1">
+                A crash report contains some details about the crash and your device, as well as a snapshot of the state of your device when it crashed.</li>
+                <li class="description" data-l10n-id="crash-reports-description-2">This may include things like open pages and apps, text typed into forms and the content of open messages, recent browsing history, or geolocation used by an open app.</li>
+                <li class="description">
+                  <span data-l10n-id="crash-reports-description-3-start">We use crash reports to try to fix problems and improve our products. We handle your information as we describe in our</span><span data-l10n-id="crash-reports-description-3-privacy">privacy policy</span><span data-l10n-id="crash-reports-description-3-end">.</span>
+                </li>
+              </ul>
+            </div>
           </section>
         </div>
 
@@ -813,8 +837,8 @@
               </label>
             </div>
             <menu data-items="2">
-              <button id="permission-no" data-l10n-id="dontshare">Don't Share</button>
-              <button id="permission-yes" class="affirmative" data-l10n-id="share">Share</button>
+              <button id="permission-no"></button>
+              <button id="permission-yes" class="affirmative"></button>
             </menu>
           </div>
         </div>
@@ -899,7 +923,7 @@
       </form>
 
       <form id="emergency-callback-dialog" role="dialog" data-type="confirm"
-            data-z-index-level="emergency-callback-dialog" class="generic-dialog">
+            data-z-index-level="emergency-callback-dialog" class="generic-dialog" hidden>
         <section>
           <h1 data-l10n-id="confirm">Confirm</h1>
           <p id="emergency-callback-dialog-wrapper">
@@ -989,6 +1013,19 @@
             <div id="notifications-lockscreen-container">
             </div>
             <div id="lockscreen-area"></div>
+            <div id="lockscreen-media-container" hidden>
+              <div class="media-playback-nowplaying">
+                <div class="icon"></div>
+                <div class="albumart"></div>
+                <div class="title"></div>
+                <div class="artist"></div>
+              </div>
+              <div class="media-playback-controls big">
+                <button class="previous"></button>
+                <button class="play-pause"></button>
+                <button class="next"></button>
+              </div>
+            </div>
             <div id="lockscreen-icon-container">
               <div id="lockscreen-area-camera"
                    class="lockscreen-icon-area lockscreen-icon-left dark" role="button"
@@ -1064,7 +1101,7 @@
         </div>
       </div>
 
-      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster">
+      <div id="emergency-callback-toaster" data-z-index-level="notification-toaster" hidden>
         <div class="icon">
         </div>
         <div class="message" data-l10n-id="emergency-callback-mode">
@@ -1096,7 +1133,7 @@
             <p id="icc-alert-msg"></p>
           </section>
           <menu>
-            <button type="button" data-l10n-id="ok" id="icc-alert-btn" class="recommend full">OK</button>
+            <button type="button" data-l10n-id="close" id="icc-alert-btn" class="recommend full">Close</button>
           </menu>
         </form>
         <form role="dialog" class="generic-dialog" data-type="confirm" id="icc-confirm">
@@ -1188,9 +1225,11 @@
         </div>
       </div>
 
+      <div id="left-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
+      <div id="right-panel" class="gesture-panel disabled" data-z-index-level="gesture-panel"></div>
       <div id="bottom-panel" class="gesture-panel" data-z-index-level="gesture-panel"></div>
       <div id="software-buttons" data-z-index-level="software-buttons">
-        <button id="software-home-button"></button>
+        <button id="software-home-button" data-l10n-id="softwareHomeButton"></button>
       </div>
 
       <button id="fullscreen-software-home-button" data-z-index-level="fullscreen-software-home-button"></button>

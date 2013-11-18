@@ -32,6 +32,7 @@ html, body {
 }
 
 #clock-hour24-state {
+  font-weight: lighter;
   font-size: 3.7rem;
   color: #5C6466;
   text-transform: uppercase;
@@ -40,7 +41,6 @@ html, body {
 }
 
 #clock-day-date {
-  font-family: 'Fira Sans', sans-serif;
   font-weight: lighter;
   font-size: 2.1rem;
   margin: 2.6rem 0 0 1.5rem;
@@ -68,6 +68,7 @@ html, body {
 }
 
 #digital-clock-face {
+  font-weight: lighter;
   text-align: center;
   position: absolute;
   width: 100%;

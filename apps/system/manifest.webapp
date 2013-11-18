@@ -38,9 +38,7 @@
     "audio-channel-content":{},
     "cellbroadcast":{},
     "input":{},
-    "input-manage":{},
-    "keyboard":{},
-    "inputmethod-manage":{}
+    "input-manage":{}
   },
   "locales": {
     "ar": {
@@ -80,6 +78,10 @@
     },
     "ftucomms": {
       "description": "Communicate between communications/ftu and System",
+      "rules": {}
+    },
+    "bluetoothTransfercomms": {
+      "description": "Communication with bluetooth apps for sending files info",
       "rules": {}
     }
   }

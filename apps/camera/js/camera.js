@@ -2,6 +2,10 @@
 
 var loader = LazyLoader;
 
+var FOCUS_MODE_MANUALLY_TRIGGERED = 'auto';
+var FOCUS_MODE_CONTINUOUS_CAMERA = 'continuous-picture';
+var FOCUS_MODE_CONTINUOUS_VIDEO = 'continuous-video';
+
 // Utility functions
 function padLeft(num, length) {
   var r = String(num);
@@ -50,7 +54,7 @@ var DCFApi = (function() {
 
   api.createDCFFilename = function(storage, type, callback) {
 
-    // We havent loaded the current counters from indexedDB yet, defer
+    // We haven't loaded the current counters from indexedDB yet, defer
     // the call
     if (!dcfConfigLoaded) {
       deferredArgs = {storage: storage, type: type, callback: callback};
@@ -115,8 +119,8 @@ var Camera = {
   _videoPath: null, // file path relative to video root directory
   _videoRootDir: null, // video root directory string
 
-  _autoFocusSupported: 0,
-  _manuallyFocused: false,
+  _autoFocusSupport: {},
+  _callAutoFocus: false,
 
   _timeoutId: 0,
   _cameraObj: null,
@@ -244,6 +248,10 @@ var Camera = {
     return document.getElementById('toggle-flash');
   },
 
+  get flashName() {
+    return document.querySelector('.js-flash-name');
+  },
+
   get cancelPickButton() {
     return document.getElementById('cancel-pick');
   },
@@ -284,9 +292,6 @@ var Camera = {
     this.loadCameraPreview(this._cameraNumber, function() {
       PerformanceTestingHelper.dispatch('camera-preview-loaded');
       var files = [
-        'style/filmstrip.css',
-        'style/confirm.css',
-        'style/VideoPlayer.css',
         '/shared/js/async_storage.js',
         '/shared/js/blobview.js',
         '/shared/js/media/jpeg_metadata_parser.js',
@@ -319,14 +324,6 @@ var Camera = {
     // Dont let the phone go to sleep while the camera is
     // active, user must manually close it
     this.requestScreenWakeLock();
-    this.setToggleCameraStyle();
-
-    // We lock the screen orientation and deal with rotating
-    // the icons manually
-    var css = '#switch-button span, #capture-button span, #toggle-flash, ' +
-      '#toggle-camera, #gallery-button span { -moz-transform: rotate(0deg); }';
-    var insertId = this._styleSheet.cssRules.length - 1;
-    this._orientationRule = this._styleSheet.insertRule(css, insertId);
 
     this.toggleButton.addEventListener('click', this.toggleCamera.bind(this));
     this.toggleFlashBtn.addEventListener('click', this.toggleFlash.bind(this));
@@ -484,6 +481,7 @@ var Camera = {
     this.setCaptureMode(mode);
     this.updateFlashUI();
     this.enableCameraFeatures(this._cameraObj.capabilities);
+    this.setFocusMode();
 
     function gotPreviewStream(stream) {
       this.viewfinder.mozSrcObject = stream;
@@ -512,18 +510,34 @@ var Camera = {
   },
 
   toggleCamera: function camera_toggleCamera() {
-    this._cameraNumber = 1 - this._cameraNumber;
-    // turn off flash light before switch to front camera
-    this.updateFlashUI();
-    // Disable the buttons so the user can't use them while we're switching.
-    this.disableButtons();
-    this.loadCameraPreview(this._cameraNumber, this.enableButtons.bind(this));
-    this.setToggleCameraStyle();
-  },
+    var stateClass = 'is-toggling-camera';
+    var camera = 1 - this._cameraNumber;
+    var bodyClasses = document.body.classList;
+    var fadeTime = 800;
+    var self = this;
 
-  setToggleCameraStyle: function camera_setToggleCameraStyle() {
-    var modeName = this._cameraNumber === 0 ? 'back' : 'front';
-    this.toggleButton.setAttribute('data-mode', modeName);
+    this._cameraNumber = camera;
+
+    // turn off flash light
+    // before switch to front camera
+    this.updateFlashUI();
+
+    // Disable the buttons so
+    // the user can't use them
+    // while we're switching.
+    // Then add the state class
+    // to the body to cause the
+    // viewfinder to fade out.
+    this.disableButtons();
+    bodyClasses.add(stateClass);
+    setTimeout(onFadeFinish, fadeTime);
+
+    function onFadeFinish() {
+      self.loadCameraPreview(camera, function() {
+        self.enableButtons();
+        bodyClasses.remove(stateClass);
+      });
+    }
   },
 
   updateFlashUI: function camera_updateFlashUI() {
@@ -559,9 +573,24 @@ var Camera = {
 
   toggleFlash: function camera_toggleFlash() {
     var flash = this._flashState[this._captureMode];
-    flash.currentMode[this._cameraNumber] =
-               (flash.currentMode[this._cameraNumber] + 1) % flash.modes.length;
+    var cameraNumber = this._cameraNumber;
+    var numModes = flash.modes.length;
+    var next = (flash.currentMode[cameraNumber] + 1) % numModes;
+    var toggleBtn = this.toggleFlashBtn;
+    var cls = 'is-toggling';
+
+    flash.currentMode[cameraNumber] = next;
     this.setFlashMode();
+
+    // Add the toggle state class,
+    // then remove it after 1 second
+    // of inactivity. We use this class
+    // to show the flash name text.
+    toggleBtn.classList.add(cls);
+    clearTimeout(this.toggleTimer);
+    this.toggleTimer = setTimeout(function() {
+      toggleBtn.classList.remove(cls);
+    }, 1000);
   },
 
   setFlashMode: function camera_setFlashMode() {
@@ -573,7 +602,27 @@ var Camera = {
     var flashModeName = flash.modes[flash.currentMode[this._cameraNumber]];
 
     this.toggleFlashBtn.setAttribute('data-mode', flashModeName);
+    this.flashName.textContent = flashModeName;
     this._cameraObj.flashMode = flashModeName;
+  },
+
+  setFocusMode: function camera_setFocusMode() {
+    this._callAutoFocus = false;
+    if (this._captureMode === this.CAMERA) {
+      if (this._autoFocusSupport[FOCUS_MODE_CONTINUOUS_CAMERA]) {
+        this._cameraObj.focusMode = FOCUS_MODE_CONTINUOUS_CAMERA;
+        return;
+      }
+    } else {
+      if (this._autoFocusSupport[FOCUS_MODE_CONTINUOUS_VIDEO]) {
+        this._cameraObj.focusMode = FOCUS_MODE_CONTINUOUS_VIDEO;
+        return;
+      }
+    }
+    if (this._autoFocusSupport[FOCUS_MODE_MANUALLY_TRIGGERED]) {
+      this._cameraObj.focusMode = FOCUS_MODE_MANUALLY_TRIGGERED;
+      this._callAutoFocus = true;
+    }
   },
 
   toggleRecording: function camera_toggleRecording() {
@@ -842,10 +891,7 @@ var Camera = {
   },
 
   handleOrientationChanged: function camera_orientationChanged(orientation) {
-    var rule = this._styleSheet.cssRules[this._orientationRule];
-    rule.style.MozTransform = 'rotate(' + (-orientation) + 'deg)';
-    this._phoneOrientation = orientation;
-
+    document.body.setAttribute('data-orientation', 'deg' + orientation);
     Filmstrip.setOrientation(orientation);
   },
 
@@ -898,11 +944,15 @@ var Camera = {
     }
 
     function gotCamera(camera) {
+      var thumbnailSize;
+      var availableThumbnailSizes = camera.capabilities.thumbnailSizes;
       this._cameraObj = camera;
-      this._autoFocusSupported =
-        camera.capabilities.focusModes.indexOf('auto') !== -1;
-      this._pictureSize =
-        this.pickPictureSize(camera.capabilities.pictureSizes);
+      this.pickPictureSize(camera);
+      thumbnailSize = this.selectThumbnailSize(availableThumbnailSizes,
+                                               this._pictureSize);
+      if (thumbnailSize) {
+        camera.thumbnailSize = thumbnailSize;
+      }
       this.getPreferredSizes((function() {
         this._videoProfile =
           this.pickVideoProfile(camera.capabilities.recorderProfiles);
@@ -914,6 +964,7 @@ var Camera = {
       }).bind(this));
       this.setPreviewSize(camera);
       this.enableCameraFeatures(camera.capabilities);
+      this.setFocusMode();
 
       camera.onShutter = (function() {
         // play shutter sound.
@@ -940,15 +991,19 @@ var Camera = {
 
     var viewfinder = this.viewfinder;
     var style = viewfinder.style;
-    // Switch screen dimensions to landscape
+    // Switch screen dimensions to landscape. The screen width/height is css
+    // pixel size. The following calculation are all based on css pixel.
     var screenWidth = document.body.clientHeight;
     var screenHeight = document.body.clientWidth;
+    // We need real device pixel size to choose the correct preview image size.
+    var deviceWidth = screenWidth * window.devicePixelRatio;
+    var deviceHeight = screenHeight * window.devicePixelRatio;
     var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
     var screenAspectRatio = screenHeight / screenWidth;
 
     // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
+      var isLarger = res.height >= deviceHeight && res.width >= deviceWidth;
       var aspectRatio = res.height / res.width;
       var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
       return matchesRatio && isLarger;
@@ -1044,6 +1099,17 @@ var Camera = {
     } else {
       this.toggleFlashBtn.classList.add('hidden');
     }
+
+    var focusModes = capabilities.focusModes;
+    if (focusModes) {
+      var support = this._autoFocusSupport;
+      support[FOCUS_MODE_MANUALLY_TRIGGERED] =
+        focusModes.indexOf(FOCUS_MODE_MANUALLY_TRIGGERED) !== -1;
+      support[FOCUS_MODE_CONTINUOUS_CAMERA] =
+        focusModes.indexOf(FOCUS_MODE_CONTINUOUS_CAMERA) !== -1;
+      support[FOCUS_MODE_CONTINUOUS_VIDEO] =
+        focusModes.indexOf(FOCUS_MODE_CONTINUOUS_VIDEO) !== -1;
+    }
   },
 
   startPreview: function camera_startPreview() {
@@ -1091,7 +1157,6 @@ var Camera = {
 
   takePictureSuccess: function camera_takePictureSuccess(blob) {
     this._config.position = null;
-    this._manuallyFocused = false;
     this.hideFocusRing();
 
 
@@ -1322,7 +1387,7 @@ var Camera = {
 
   prepareTakePicture: function camera_takePicture() {
     this.disableButtons();
-    if (this._autoFocusSupported && !this._manuallyFocused) {
+    if (this._callAutoFocus) {
       this.focusRing.setAttribute('data-state', 'focusing');
       this._cameraObj.autoFocus(this.autoFocusDone.bind(this));
     } else {
@@ -1343,7 +1408,7 @@ var Camera = {
 
   takePicture: function camera_takePicture() {
     this._config.rotation = this._phoneOrientation;
-    this._config.pictureSize = this._pictureSize;
+    this._cameraObj.pictureSize = this._pictureSize;
     this._config.dateTime = Date.now() / 1000;
     // We do not attach our current position to the exif of photos
     // that are taken via an activity as that leaks position information
@@ -1390,9 +1455,56 @@ var Camera = {
     this.overlay.classList.remove('hidden');
   },
 
-  pickPictureSize: function camera_pickPictureSize(pictureSizes) {
+  selectThumbnailSize: function(thumbnailSizes, pictureSize) {
+    var i;
+    var screenWidth = window.innerWidth * window.devicePixelRatio;
+    var screenHeight = window.innerHeight * window.devicePixelRatio;
+    var pictureAspectRatio = pictureSize.width / pictureSize.height;
+    var currentThumbnailSize;
+    var selectedThumbnailSize;
+    var currentThumbnailAspectRatio;
+    // Coping the array to not modify the original
+    var thumbnailSizes = thumbnailSizes.slice(0);
+    if (!thumbnailSizes || !pictureSize) {
+      return;
+    }
+    var thumbnailSizes = thumbnailSizes.slice(0);
+    function imageSizeFillsScreen(pixelsWidth, pixelsHeight) {
+      return ((pixelsWidth >= screenWidth || // portrait
+               pixelsHeight >= screenHeight) &&
+              (pixelsWidth >= screenHeight || // landscape
+               pixelsHeight >= screenWidth));
+    };
+    // Removes the sizes with the wrong aspect ratio
+    thumbnailSizes = thumbnailSizes.filter(function(thumbnailSize) {
+      var thumbnailAspectRatio = thumbnailSize.width / thumbnailSize.height;
+      return Math.abs(thumbnailAspectRatio - pictureAspectRatio) < 0.05;
+    });
+    if (thumbnailSizes.length === 0) {
+      console.error('Error while selecting thumbnail size. ' +
+        'There are no thumbnail sizes that match the ratio of ' +
+        'the selected picture size: ' + JSON.stringify(pictureSize));
+      return;
+    }
+    // Sorting the array from smaller to larger sizes
+    thumbnailSizes.sort(function(a, b) {
+      return a.width * a.height - b.width * b.height;
+    });
+    for (i = 0; i < thumbnailSizes.length; ++i) {
+      currentThumbnailSize = thumbnailSizes[i];
+      if (imageSizeFillsScreen(currentThumbnailSize.width,
+                               currentThumbnailSize.height)) {
+        return currentThumbnailSize;
+      }
+    }
+    return thumbnailSizes[thumbnailSizes.length - 1];
+  },
+
+  pickPictureSize: function camera_pickPictureSize(camera) {
     var targetSize = null;
     var targetFileSize = 0;
+    var pictureSizes = camera.capabilities.pictureSizes;
+
     if (this._pendingPick && this._pendingPick.source.data.maxFileSizeBytes) {
       // we use worse case of all compression method: gif, jpg, png
       targetFileSize = this._pendingPick.source.data.maxFileSizeBytes;
@@ -1441,9 +1553,9 @@ var Camera = {
     }, {width: 0, height: 0});
 
     if (size.width === 0 && size.height === 0) {
-      return pictureSizes[0];
+      this._pictureSize = pictureSizes[0];
     } else {
-      return size;
+      this._pictureSize = size;
     }
   },
 

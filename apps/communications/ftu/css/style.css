@@ -1044,13 +1044,13 @@ i.hack-first-child {
   height: 100%
 }
 
-[data-type="list"].pack-value-selector li label:not([for]) input + span {
+[data-type="list"].pack-value-selector li label:not([for]) input + span:after {
   background: none;
   left: 100%;
   margin-left: -2.2rem;
 }
 
-[data-type="list"].pack-value-selector li label:not([for]) input:checked + span {
+[data-type="list"].pack-value-selector li label:not([for]) input:checked + span:after {
   background: url("images/checked.png") no-repeat right center / 100%;
 }
 

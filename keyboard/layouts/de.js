@@ -2,6 +2,7 @@ Keyboards.de = {
   label: 'German',
   menuLabel: 'Deutsch',
   imEngine: 'latin',
+  types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'de',
   alt: {
     a: 'äàáâãåāæ',

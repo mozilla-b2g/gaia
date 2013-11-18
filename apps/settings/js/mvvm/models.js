@@ -1,8 +1,39 @@
+// start outer IIFE - exports === window
+(function(exports) {
+'use strict';
+
+function unobserve(_eventHandlers, prop, handler) {
+
+  // arguments in reverse order to support .bind(handler) for the
+  // unbind from all case
+  function removeHandler(handler, prop) {
+    var handlers = _eventHandlers[prop];
+    if (!handlers) {
+      return;
+    }
+    var index = handlers.indexOf(handler);
+    if (index >= 0) {
+      handlers.splice(index, 1);
+    }
+  }
+
+  if (typeof prop === 'function') {
+    // (handler) -- remove from every key in _eventHandlers
+    Object.keys(_eventHandlers).forEach(removeHandler.bind(null, prop));
+  } else if (handler) {
+    // (prop, handler) -- remove handler from the specific prop
+    removeHandler(handler, prop);
+  } else if (prop in _eventHandlers) {
+    // (prop) -- otherwise remove all handlers for property
+    _eventHandlers[prop] = [];
+  }
+}
+
 /*
  * An Observable is able to notify its property change. It is initialized by an
  * ordinary object.
  */
-var Observable = function(obj) {
+function Observable(obj) {
   var _eventHandlers = {};
   var _observable = {
     observe: function o_observe(p, handler) {
@@ -15,7 +46,11 @@ var Observable = function(obj) {
       if (handlers) {
         handlers.push(handler);
       }
-    }
+    },
+    /**
+     * unobserve([prop], handler) - remove handler from observeable callbacks
+     */
+    unobserve: unobserve.bind(null, _eventHandlers)
   };
 
   var _getFunctionTemplate = function(p) {
@@ -43,8 +78,9 @@ var Observable = function(obj) {
    */
   for (var p in obj) {
     // XXX: We need to support function in the future. Filter it out for now.
-    if (typeof obj[p] === 'function')
+    if (typeof obj[p] === 'function') {
       continue;
+    }
 
     _eventHandlers[p] = [];
 
@@ -61,14 +97,14 @@ var Observable = function(obj) {
   }
 
   return _observable;
-};
+}
 
 /*
  * An ObservableArray is able to notify its change through four basic operations
  * including 'insert', 'remove', 'replace', 'reset'. It is initialized by an
  * ordinary array.
  */
-var ObservableArray = function(array) {
+function ObservableArray(array) {
   var _array = array || [];
   var _eventHandlers = {
     'insert': [],
@@ -107,6 +143,8 @@ var ObservableArray = function(array) {
       }
     },
 
+    unobserve: unobserve.bind(null, _eventHandlers),
+
     push: function oa_push(item) {
       _array.push(item);
 
@@ -118,6 +156,10 @@ var ObservableArray = function(array) {
     },
 
     pop: function oa_pop() {
+      if (!_array.length) {
+        return;
+      }
+
       var item = _array.pop();
 
       _notify('remove', {
@@ -129,27 +171,33 @@ var ObservableArray = function(array) {
     },
 
     splice: function oa_splice(index, count) {
-      if (arguments.length < 2)
+      if (arguments.length < 2) {
         return;
+      }
 
       var addedItems = Array.prototype.slice.call(arguments, 2);
-      _array.splice(_array, arguments);
+      _array.splice.apply(_array, arguments);
 
-      _notify('remove', {
-        index: index,
-        count: count
-      });
+      if (count) {
+        _notify('remove', {
+          index: index,
+          count: count
+        });
+      }
 
-      _notify('insert', {
-        index: index,
-        count: addedItems.length,
-        items: addedItems
-      });
+      if (addedItems.length) {
+        _notify('insert', {
+          index: index,
+          count: addedItems.length,
+          items: addedItems
+        });
+      }
     },
 
     set: function oa_set(index, value) {
-      if (index < 0 || index >= _array.length)
+      if (index < 0 || index >= _array.length) {
         return;
+      }
 
       var oldValue = _array[index];
       _array[index] = value;
@@ -171,4 +219,10 @@ var ObservableArray = function(array) {
       });
     }
   };
-};
+}
+
+exports.Observable = Observable;
+exports.ObservableArray = ObservableArray;
+
+// end outer IIFE
+}(window));

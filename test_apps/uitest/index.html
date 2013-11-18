@@ -40,6 +40,7 @@
         <li><a href="#test=API/contacts">Contacts</a></li>
         <li><a href="#test=API/csp">CSP Warning</a></li>
         <li><a href="#test=API/geolocation">Geolocation</a></li>
+        <li><a href="#test=API/getusermedia">getUserMedia</a></li>
         <li><a href="#test=API/httpauthentication">HTTP Auth</a></li>
         <li><a href="#test=API/identity">navigator.mozId</a></li>
         <li><a href="#test=API/identity-get">navigator.mozId.get</a></li>
@@ -52,7 +53,6 @@
         <li><a href="#test=API/pickphoto">Pick Photo</a></li>
         <li><a href="#test=API/picktype">Pick Photo/Video</a></li>
         <li><a href="#test=API/pickvideo">Pick Video</a></li>
-        <li><a href="#test=API/recording">Recording</a></li>
         <li><a href="#test=API/savebookmark">Save bookmark</a></li>
         <li><a href="#test=API/viewphoto">View Photo</a></li>
       </ul>
@@ -62,32 +62,33 @@
         <p class="toolbar-title">Hardware Tests</p>
       </div>
       <ul class="list">
-        <li><a href="#test=HW/audioloop">Audio Loop</a></li>
         <li><a href="#test=HW/battery">Battery</a></li>
         <li><a href="#test=HW/bluetooth">Bluetooth</a></li>
         <li><a href="#test=HW/camera">Camera</a></li>
         <li><a href="#test=HW/headphone">Headphone</a></li>
         <li><a href="#test=HW/lcd">LCD</a></li>
         <li><a href="#test=HW/physicalkeys">Physical keys</a></li>
+        <li><a href="#test=HW/radio">Radio information</a></li>
         <li><a href="#test=HW/ringer">Ringer</a></li>
         <li><a href="#test=HW/sdcards">SD cards</a></li>
         <li><a href="#test=HW/sensors">Sensors</a></li>
         <li><a href="#test=HW/touchscreen">Touch screen</a></li>
         <li><a href="#test=HW/vibrator">Vibrator</a></li>
+        <li><a href="#test=HW/wifi">Wi-Fi</a></li>
       </ul>
     </div>
     <div id="tabs" class="tabs">
       <ul role="tablist" data-items="3" class="bottom">
         <li id="panel1" role="tab">
-          <a href="#UI">UI</a>
+          <a href="#UI" id="UI">UI</a>
           <div role="tabpanel"></div>
         </li>
         <li id="panel2" role="tab">
-          <a href="#API">API</a>
+          <a href="#API" id="API">API</a>
           <div role="tabpanel"></div>
         </li>
         <li id="panel3" role="tab">
-          <a href="#HW">HW</a>
+          <a href="#HW" id="HW">HW</a>
           <div role="tabpanel"></div>
         </li>
       </ul>

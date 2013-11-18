@@ -28,6 +28,9 @@ class TestClockCreateNewAlarm(GaiaTestCase):
         # create a new alarm with the default values that are available
         new_alarm = self.clock.tap_new_alarm()
 
+        # Ensure label has the default placeholder and text
+        self.assertEquals(new_alarm.alarm_label_placeholder, 'Alarm name')
+
         # set label
         new_alarm.type_alarm_label(alarm_label_text)
         self.clock = new_alarm.tap_done()

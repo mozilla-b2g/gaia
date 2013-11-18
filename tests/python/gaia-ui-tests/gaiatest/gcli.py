@@ -61,6 +61,17 @@ class GCli(object):
             'lock': {
                 'function': self.lock,
                 'help': 'Lock screen'},
+            'screenshot': {
+                'function': self.screenshot,
+                'help': 'Take a screenshot'},
+            'sendsms': {
+                'function': self.send_sms,
+                'args': [
+                    {'name': 'number',
+                     'help': 'Phone number of recipient'},
+                    {'name': 'message',
+                     'help': 'Message content'}],
+                'help': 'Send an SMS'},
             'setsetting': {
                 'function': self.set_setting,
                 'args': [
@@ -69,9 +80,6 @@ class GCli(object):
                     {'name': 'value',
                      'help': 'New value for setting'}],
                 'help': 'Change the value of a setting'},
-            'screenshot': {
-                'function': self.screenshot,
-                'help': 'Take a screenshot'},
             'sleep': {
                 'function': self.sleep,
                 'help': 'Enter sleep mode'},
@@ -184,12 +192,15 @@ class GCli(object):
     def lock(self, args):
         self.lock_screen.lock()
 
-    def set_setting(self, args):
-        self.data_layer.set_setting(args.name, args.value)
-
     def screenshot(self, args):
         self.marionette.execute_script(
             "window.wrappedJSObject.dispatchEvent(new Event('home+sleep'));")
+
+    def send_sms(self, args):
+        self.data_layer.send_sms(args.number, args.message)
+
+    def set_setting(self, args):
+        self.data_layer.set_setting(args.name, args.value)
 
     def sleep(self, args):
         self.marionette.execute_script(

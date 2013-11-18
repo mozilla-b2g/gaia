@@ -19,24 +19,24 @@ html,body {
   z-index: 1;
 }
 
-#si-sl-screen .container {
+#si-sl-screen {
   height: -moz-calc(100% - 5rem - 5rem);
   overflow: auto;
 }
 
-#si-sl-message .container .message {
+#si-sl-screen .message {
   font-size: 2rem;
   padding: 1rem;
   white-space: pre-line;
   word-wrap: break-word;
 }
 
-#cp-screen .container .message {
+#cp-screen .message {
   color: #000;
   padding: 2rem 1.5rem;
 }
 
-#cp-screen .container .message p {
+#cp-screen .message p {
   margin: 0 0 2rem;
   font-size: 1.5rem;
   line-height: 1.8rem;

@@ -1,5 +1,5 @@
 var assert = require('assert'),
-    MediaPlaybackTest = require('./lib/media_playback'),
+    MediaPlayback = require('./lib/media_playback'),
     FakeMusic = require('./lib/fake_music');
 
 var FAKE_MUSIC_ORIGIN = 'fakemusic.gaiamobile.org';
@@ -14,150 +14,174 @@ marionette('media playback tests', function() {
       'dom.inter-app-communication-api.enabled': true
     },
     settings: {
-      'ftu.manifestURL': null,
-      'lockscreen.enabled': false
+      'ftu.manifestURL': null
     },
     apps: apps
   });
 
   setup(function() {
-    playback = new MediaPlaybackTest(client);
+    playback = new MediaPlayback(client);
     music = new FakeMusic(client, 'app://' + FAKE_MUSIC_ORIGIN);
     music.launchInBackground();
+    playback.unlockScreen();
   });
 
-  test('show now playing info', function() {
-    music.runInApp(function() {
-      music.albumOneElement.click();
-    });
+  // We want to run the same tests on both the utility tray and the lockscreen,
+  // so we'll write the tests once and then generate a pair of suites.
+  var suiteInfos = [
+    { name: 'in utility tray', opener: 'inUtilityTray' },
+    { name: 'in lockscreen', opener: 'inLockscreen' }
+  ];
 
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(true);
-      playback.waitForNowPlayingText('Some Artist', 'Some Song');
-    });
+  suiteInfos.forEach(function(suiteInfo) {
+    suite(suiteInfo.name, function() {
 
-    music.runInApp(function() {
-      music.nextTrackElement.click();
-    });
+      test('should show now playing info', function() {
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
 
-    playback.openUtilityTray(function() {
-      playback.waitForNowPlayingText('Another Artist', 'Another Song');
-    });
-  });
-
-  test('hide now playing info by stopping', function() {
-    music.runInApp(function() {
-      music.albumOneElement.click();
-    });
-
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(true);
-    });
-
-    music.runInApp(function() {
-      music.stopElement.click();
-    });
-
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(false);
-    });
-  });
-
-  test('hide now playing info by exiting', function() {
-    music.runInApp(function() {
-      music.albumOneElement.click();
-    });
-
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(true);
-    });
-
-    music.close();
-
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(false);
-    });
-  });
-
-  test('play/pause icon is updated correctly', function() {
-    music.runInApp(function() {
-      music.albumOneElement.click();
-    });
-
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(true);
-      assert.equal(playback.isPlaying, true);
-    });
-
-    music.runInApp(function() {
-      music.playPauseElement.click();
-    });
-
-    playback.openUtilityTray(function() {
-      client.waitFor(function() {
-        return !playback.isPlaying;
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+          container.waitForNowPlayingText('Some Artist', 'Some Song');
+        });
       });
-    });
 
-    music.runInApp(function() {
-      music.playPauseElement.click();
-    });
+      test('should hide now playing info by stopping', function() {
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
 
-    playback.openUtilityTray(function() {
-      client.waitFor(function() {
-        return playback.isPlaying;
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+        });
+
+        music.runInApp(function() {
+          music.stopElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(false);
+        });
       });
-    });
-  });
 
-  test('play/pause from notification area', function() {
-    music.runInApp(function() {
-      music.albumOneElement.click();
-    });
+      test('should hide now playing info by exiting', function() {
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
 
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(true);
-      playback.waitForNowPlayingText('Some Artist', 'Some Song');
-      music.runInApp(function() {
-        assert.equal(music.isPlaying, true);
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+        });
+
+        music.close();
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(false);
+        });
       });
-      assert.equal(playback.isPlaying, true);
 
-      playback.playPause();
-      music.runInApp(function() {
-        assert.equal(music.isPlaying, false);
+      test('should update play/pause icon correctly', function() {
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+          assert.equal(container.isPlaying, true);
+        });
+
+        music.runInApp(function() {
+          music.playPauseElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          client.waitFor(function() {
+            return !container.isPlaying;
+          });
+        });
+
+        music.runInApp(function() {
+          music.playPauseElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          client.waitFor(function() {
+            return container.isPlaying;
+          });
+        });
       });
-      assert.equal(playback.isPlaying, false);
 
-      playback.playPause();
-      music.runInApp(function() {
-        assert.equal(music.isPlaying, true);
+      test('should play/pause from now playing widget', function() {
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+          container.waitForNowPlayingText('Some Artist', 'Some Song');
+          music.runInApp(function() {
+            assert.equal(music.isPlaying, true);
+          });
+          assert.equal(container.isPlaying, true);
+
+          container.playPause();
+          music.runInApp(function() {
+            assert.equal(music.isPlaying, false);
+          });
+          assert.equal(container.isPlaying, false);
+
+          container.playPause();
+          music.runInApp(function() {
+            assert.equal(music.isPlaying, true);
+          });
+          assert.equal(container.isPlaying, true);
+        });
       });
-      assert.equal(playback.isPlaying, true);
-    });
-  });
 
-  test('go to next/prev track from notification area', function() {
-    music.runInApp(function() {
-      music.albumOneElement.click();
-    });
+      test('should play/pause from now playing widget after closing and ' +
+           'reopening music app', function() {
+        music.close();
+        music.launchInBackground();
 
-    playback.openUtilityTray(function() {
-      playback.waitForContainerShown(true);
-      playback.waitForNowPlayingText('Some Artist', 'Some Song');
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
 
-      playback.nextTrack();
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+          container.playPause();
+          music.runInApp(function() {
+            assert.equal(music.isPlaying, false);
+          });
+          assert.equal(container.isPlaying, false);
+        });
+      });
 
-      playback.waitForNowPlayingText('Another Artist', 'Another Song');
+      test('should go to next/prev track from notification area', function() {
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
 
-      playback.previousTrack();
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+          container.waitForNowPlayingText('Some Artist', 'Some Song');
 
-      playback.waitForNowPlayingText('Some Artist', 'Some Song');
+          container.nextTrack();
 
-      playback.nextTrack();
-      playback.nextTrack();
+          container.waitForNowPlayingText('Another Artist', 'Another Song');
 
-      playback.waitForContainerShown(false);
+          container.previousTrack();
+
+          container.waitForNowPlayingText('Some Artist', 'Some Song');
+
+          container.nextTrack();
+          container.nextTrack();
+
+          container.waitForContainerShown(false);
+        });
+      });
+
     });
   });
 });

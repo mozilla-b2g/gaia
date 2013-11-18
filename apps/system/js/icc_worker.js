@@ -7,7 +7,7 @@ var icc_worker = {
   dummy: function icc_worker_dummy(iccManager) {
     DUMP('STK Command not implemented yet');
     iccManager.responseSTKCommand({
-      resultCode: iccManager._icc.STK_RESULT_OK
+      resultCode: iccManager._iccManager.STK_RESULT_OK
     });
   },
 
@@ -35,7 +35,7 @@ var icc_worker = {
     DUMP('STK_CMD_SET_UP_EVENT_LIST:', command.options);
     icc_events.register(command.options.eventList);
     iccManager.responseSTKCommand({
-      resultCode: iccManager._icc.STK_RESULT_OK
+      resultCode: iccManager._iccManager.STK_RESULT_OK
     });
   },
 
@@ -44,7 +44,7 @@ var icc_worker = {
     function stkSetupCall(confirmed, postMessage) {
       iccManager.responseSTKCommand({
         hasConfirmed: confirmed,
-        resultCode: iccManager._icc.STK_RESULT_OK
+        resultCode: iccManager._iccManager.STK_RESULT_OK
       });
       if (confirmed && postMessage) {
         // Transfering the second alpha id to dialer (Bug #873906)
@@ -77,7 +77,7 @@ var icc_worker = {
     DUMP('STK_CMD_SEND_SS:', command.options);
     var options = command.options;
     iccManager.responseSTKCommand({
-      resultCode: iccManager._icc.STK_RESULT_OK
+      resultCode: iccManager._iccManager.STK_RESULT_OK
     });
     if (!options.text) {
       var _ = navigator.mozL10n.get;
@@ -97,7 +97,7 @@ var icc_worker = {
     DUMP('STK_CMD_SEND_SMS:', command.options);
     var options = command.options;
     iccManager.responseSTKCommand({
-      resultCode: iccManager._icc.STK_RESULT_OK
+      resultCode: iccManager._iccManager.STK_RESULT_OK
     });
     if (options.text) {
       iccManager.confirm(options.text);
@@ -111,29 +111,14 @@ var icc_worker = {
   '0x14': function STK_CMD_SEND_DTMF(command, iccManager) {
     DUMP('STK_CMD_SEND_DTMF:', command.options);
     var options = command.options;
+    iccManager.responseSTKCommand({
+      resultCode: iccManager._iccManager.STK_RESULT_OK
+    });
     if (options.text) {
-      iccManager.responseSTKCommand({
-        resultCode: iccManager._icc.STK_RESULT_OK
-      });
       iccManager.alert(options.text);
     } else if (options.text == '') {
       var _ = navigator.mozL10n.get;
-      iccManager.confirm(_('icc-confirmMessage-defaultmessage'), 0,
-        function(userCleared) {
-          if (userCleared) {
-            iccManager.responseSTKCommand({
-              resultCode: iccManager._icc.STK_RESULT_OK
-            });
-          } else {
-            iccManager.responseSTKCommand({
-              resultCode: iccManager._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
-            });
-          }
-        });
-    } else {
-      iccManager.responseSTKCommand({
-        resultCode: iccManager._icc.STK_RESULT_OK
-      });
+      iccManager.alert(_('icc-confirmMessage-defaultmessage'));
     }
   },
 
@@ -142,7 +127,7 @@ var icc_worker = {
     DUMP('STK_CMD_LAUNCH_BROWSER:', command.options);
     var options = command.options;
     iccManager.responseSTKCommand({
-      resultCode: iccManager._icc.STK_RESULT_OK
+      resultCode: iccManager._iccManager.STK_RESULT_OK
     });
     iccManager.showURL(options.url, options.confirmMessage);
   },
@@ -153,25 +138,25 @@ var icc_worker = {
       toneCode =
         typeof(toneCode) == 'string' ? toneCode.charCodeAt(0) : toneCode;
       switch (toneCode) {
-        case iccManager._icc.STK_TONE_TYPE_DIAL_TONE:
+        case iccManager._iccManager.STK_TONE_TYPE_DIAL_TONE:
           return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
+        case iccManager._iccManager.STK_TONE_TYPE_CALLED_SUBSCRIBER_BUSY:
           return 'resources/dtmf_tones/480Hz+620Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_CONGESTION:
+        case iccManager._iccManager.STK_TONE_TYPE_CONGESTION:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_RADIO_PATH_ACK:
-        case iccManager._icc.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
+        case iccManager._iccManager.STK_TONE_TYPE_RADIO_PATH_ACK:
+        case iccManager._iccManager.STK_TONE_TYPE_RADIO_PATH_NOT_AVAILABLE:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_ERROR:
+        case iccManager._iccManager.STK_TONE_TYPE_ERROR:
           return 'resources/dtmf_tones/950Hz+1400Hz+1800Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_CALL_WAITING_TONE:
-        case iccManager._icc.STK_TONE_TYPE_RINGING_TONE:
+        case iccManager._iccManager.STK_TONE_TYPE_CALL_WAITING_TONE:
+        case iccManager._iccManager.STK_TONE_TYPE_RINGING_TONE:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_GENERAL_BEEP:
+        case iccManager._iccManager.STK_TONE_TYPE_GENERAL_BEEP:
           return 'resources/dtmf_tones/400Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_POSITIVE_ACK_TONE:
+        case iccManager._iccManager.STK_TONE_TYPE_POSITIVE_ACK_TONE:
           return 'resources/dtmf_tones/425Hz_200ms.ogg';
-        case iccManager._icc.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
+        case iccManager._iccManager.STK_TONE_TYPE_NEGATIVE_ACK_TONE:
           return 'resources/dtmf_tones/300Hz+400Hz+500Hz_400ms.ogg';
         default:
           return 'resources/dtmf_tones/350Hz+440Hz_200ms.ogg';
@@ -195,6 +180,8 @@ var icc_worker = {
         options.timeInterval != undefined) {
       timeout = iccManager.calculateDurationInMS(options.timUnit,
         options.timeInterval);
+    } else {
+      timeout = iccManager._toneDefaultTimeout;
     }
     timeout && DUMP('Tone stop in (ms): ', timeout);
 
@@ -205,14 +192,18 @@ var icc_worker = {
           return;
         }
         iccManager.responseSTKCommand({
-          resultCode: iccManager._icc.STK_RESULT_OK
+          resultCode: iccManager._iccManager.STK_RESULT_OK
         });
       });
     } else {
       // If no dialog is showed, we answer the STK command
       iccManager.responseSTKCommand({
-        resultCode: iccManager._icc.STK_RESULT_OK
+        resultCode: iccManager._iccManager.STK_RESULT_OK
       });
+      // Stop playing after timeout
+      setTimeout(function _iccTonePlayerStop() {
+        tonePlayer.pause();
+      }, timeout);
     }
 
     if (options.isVibrate) {
@@ -228,7 +219,7 @@ var icc_worker = {
     var options = command.options;
     if (options.responseNeeded) {
       iccManager.responseSTKCommand({
-        resultCode: iccManager._icc.STK_RESULT_OK
+        resultCode: iccManager._iccManager.STK_RESULT_OK
       });
       iccManager.confirm(options.text, iccManager._displayTextTimeout, null);
     } else {
@@ -241,12 +232,13 @@ var icc_worker = {
           if (options.userClear && !userCleared) {
             DUMP('No response from user (Timeout)');
             iccManager.responseSTKCommand({
-              resultCode: iccManager._icc.STK_RESULT_NO_RESPONSE_FROM_USER
+              resultCode:
+                iccManager._iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
             });
           } else {
             DUMP('Alert closed');
             iccManager.responseSTKCommand({
-              resultCode: iccManager._icc.STK_RESULT_OK
+              resultCode: iccManager._iccManager.STK_RESULT_OK
             });
           }
         });
@@ -271,7 +263,8 @@ var icc_worker = {
         document.removeEventListener('visibilitychange', stkInputNoAttended,
           true);
         iccManager.responseSTKCommand({
-          resultCode: iccManager._icc.STK_RESULT_UICC_SESSION_TERM_BY_USER
+          resultCode:
+            iccManager._iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
         });
         iccManager.hideViews();
       }, true);
@@ -287,12 +280,12 @@ var icc_worker = {
         if (!response) {
           DUMP('STK_CMD_GET_INPUT: No response from user (Timeout)');
           iccManager.responseSTKCommand({
-            resultCode: iccManager._icc.STK_RESULT_NO_RESPONSE_FROM_USER
+            resultCode: iccManager._iccManager.STK_RESULT_NO_RESPONSE_FROM_USER
           });
         } else {
           DUMP('STK_CMD_GET_INPUT: Response = ', value);
           iccManager.responseSTKCommand({
-            resultCode: iccManager._icc.STK_RESULT_OK,
+            resultCode: iccManager._iccManager.STK_RESULT_OK,
             input: value
           });
         }
@@ -332,17 +325,23 @@ var icc_worker = {
     reqApplications.onsuccess = function icc_getApplications() {
       DUMP('Cached');
       iccManager.responseSTKCommand({
-        resultCode: iccManager._icc.STK_RESULT_OK
+        resultCode: iccManager._iccManager.STK_RESULT_OK
       });
     };
   },
 
   // STK_CMD_PROVIDE_LOCAL_INFO
   '0x26': function STK_CMD_PROVIDE_LOCAL_INFO(command, iccManager) {
-    var conn = window.navigator.mozMobileConnection;
+
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    var conn = window.navigator.mozMobileConnection ||
+      window.navigator.mozMobileConnections &&
+        window.navigator.mozMobileConnections[0];
+
     DUMP('STK_CMD_PROVIDE_LOCAL_INFO:', command.options);
     switch (command.options.localInfoType) {
-      case iccManager._icc.STK_LOCAL_INFO_LOCATION_INFO:
+      case iccManager._iccManager.STK_LOCAL_INFO_LOCATION_INFO:
         iccManager.responseSTKCommand({
           localInfo: {
             locationInfo: {
@@ -352,11 +351,11 @@ var icc_worker = {
               gsmCellId: conn.voice.cell.gsmCellId
             }
           },
-          resultCode: iccManager._icc.STK_RESULT_OK
+          resultCode: iccManager._iccManager.STK_RESULT_OK
         });
         break;
 
-      case iccManager._icc.STK_LOCAL_INFO_IMEI:
+      case iccManager._iccManager.STK_LOCAL_INFO_IMEI:
         var req = conn.sendMMI('*#06#');
         req.onsuccess = function getIMEI() {
           if (req.result && req.result.statusMessage) {
@@ -364,7 +363,7 @@ var icc_worker = {
               localInfo: {
                 imei: req.result.statusMessage
               },
-              resultCode: iccManager._icc.STK_RESULT_OK
+              resultCode: iccManager._iccManager.STK_RESULT_OK
             });
           }
         };
@@ -373,21 +372,22 @@ var icc_worker = {
               localInfo: {
                 imei: '0'
               },
-            resultCode: iccManager._icc.STK_RESULT_REQUIRED_VALUES_MISSING
+            resultCode:
+              iccManager._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
           });
         };
         break;
 
-      case iccManager._icc.STK_LOCAL_INFO_DATE_TIME_ZONE:
+      case iccManager._iccManager.STK_LOCAL_INFO_DATE_TIME_ZONE:
         iccManager.responseSTKCommand({
           localInfo: {
             date: new Date()
           },
-          resultCode: iccManager._icc.STK_RESULT_OK
+          resultCode: iccManager._iccManager.STK_RESULT_OK
         });
         break;
 
-      case iccManager._icc.STK_LOCAL_INFO_LANGUAGE:
+      case iccManager._iccManager.STK_LOCAL_INFO_LANGUAGE:
         var reqLanguage =
           window.navigator.mozSettings.createLock().get('language.current');
         reqLanguage.onsuccess = function icc_getLanguage() {
@@ -395,7 +395,7 @@ var icc_worker = {
             localInfo: {
               language: reqLanguage.result['language.current'].substring(0, 2)
             },
-            resultCode: iccManager._icc.STK_RESULT_OK
+            resultCode: iccManager._iccManager.STK_RESULT_OK
           });
         };
         reqLanguage.onerror = function icc_getLanguageFailed() {
@@ -403,7 +403,8 @@ var icc_worker = {
             localInfo: {
               language: 'en'
             },
-            resultCode: iccManager._icc.STK_RESULT_REQUIRED_VALUES_MISSING
+            resultCode:
+              iccManager._iccManager.STK_RESULT_REQUIRED_VALUES_MISSING
           });
         };
         break;
@@ -417,7 +418,7 @@ var icc_worker = {
     var options = command.options;
     var pendingTime = 0;
     switch (options.timerAction) {
-      case iccManager._icc.STK_TIMER_START:
+      case iccManager._iccManager.STK_TIMER_START:
         a_timer.start(options.timerId, options.timerValue * 1000,
           function() {
             DUMP('Timer expiration - ' + options.timerId);
@@ -429,33 +430,33 @@ var icc_worker = {
           timer: {
             'timerId': options.timerId,
             'timerValue': options.timerValue,
-            'timerAction': iccManager._icc.STK_TIMER_START
+            'timerAction': iccManager._iccManager.STK_TIMER_START
           },
-          resultCode: iccManager._icc.STK_RESULT_OK
+          resultCode: iccManager._iccManager.STK_RESULT_OK
         });
         break;
 
-      case iccManager._icc.STK_TIMER_DEACTIVATE:
+      case iccManager._iccManager.STK_TIMER_DEACTIVATE:
         pendingTime = a_timer.stop(options.timerId) / 1000;
         iccManager.responseSTKCommand({
           timer: {
             'timerId': options.timerId,
             'timerValue': pendingTime,
-            'timerAction': iccManager._icc.STK_TIMER_DEACTIVATE
+            'timerAction': iccManager._iccManager.STK_TIMER_DEACTIVATE
           },
-          resultCode: iccManager._icc.STK_RESULT_OK
+          resultCode: iccManager._iccManager.STK_RESULT_OK
         });
         break;
 
-      case iccManager._icc.STK_TIMER_GET_CURRENT_VALUE:
+      case iccManager._iccManager.STK_TIMER_GET_CURRENT_VALUE:
         pendingTime = a_timer.queryPendingTime(options.timerId) / 1000;
         iccManager.responseSTKCommand({
           timer: {
             'timerId': options.timerId,
             'timerValue': pendingTime,
-            'timerAction': iccManager._icc.STK_TIMER_GET_CURRENT_VALUE
+            'timerAction': iccManager._iccManager.STK_TIMER_GET_CURRENT_VALUE
           },
-          resultCode: iccManager._icc.STK_RESULT_OK
+          resultCode: iccManager._iccManager.STK_RESULT_OK
         });
         break;
     }
@@ -469,7 +470,7 @@ var icc_worker = {
       iccManager.alert(options.text);
     });
     iccManager.responseSTKCommand({
-      resultCode: iccManager._icc.STK_RESULT_OK
+      resultCode: iccManager._iccManager.STK_RESULT_OK
     });
   }
 

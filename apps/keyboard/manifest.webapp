@@ -10,10 +10,9 @@
   },
   "permissions": {
     "settings": { "access": "readwrite" },
-    "input": {},
-    "keyboard": {}
+    "input": {}
   },
-  "entry_points": {
+  "inputs": {
     "number": {
       "launch_path": "/index.html#numberLayout",
       "name": "Number",

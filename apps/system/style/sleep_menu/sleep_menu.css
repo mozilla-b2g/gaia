@@ -7,7 +7,6 @@
   left: 0;
   padding: 0 0 7rem;
   color: #fff;
-  font-family: sans-serif;
   background: url(/shared/style_unstable/value_selector/images/ui/pattern.png) repeat left top,
               url(/shared/style_unstable/value_selector/images/ui/gradient.png) no-repeat left top / 100% 100%;
   overflow: hidden;
@@ -156,4 +155,112 @@
   background: none repeat scroll 0 0 #008AAA;
   border-color: #008AAA;
   color: #333;
+}
+
+@media (min-width: 768px) {
+  #sleep-menu {
+    -moz-box-sizing: border-box;
+    background-color: rgba(0,0,0,0.6);
+    background: url(../themes/default/images/ui/menu_bg.png) no-repeat;
+  }
+
+  #sleep-menu-container:before {
+    background: none;
+  }
+
+  #sleep-menu-container {
+    position: absolute;
+    top: calc(50% - 24rem);
+    left: calc(50% - 34rem);
+    width: 68rem;
+    height: 39rem;
+    padding: 0 6rem;
+    font-size: 2.2rem;
+    background-color: #333333;
+    box-shadow: 0 0 1rem #222222;
+    border: 0.1rem solid #282828;
+  }
+
+  #sleep-menu-container h1 {
+    background-color: #333333;
+    border-bottom: none;
+    font-size: 2.2rem;
+    line-height: 2.2rem;
+    height: 7rem;
+    padding: 2.4rem 0;
+    margin: 0;
+  }
+
+  #sleep-menu-container ul {
+    border-top: 0.1rem solid #898989;
+    max-height: 32rem;
+  }
+
+  #sleep-menu-container li:before {
+    background-color: transparent;
+  }
+
+  #sleep-menu-container li:after {
+    background-color: transparent;
+  }
+
+  #sleep-menu-container li:first-child {
+    margin-top: 3rem;
+  }
+
+  #sleep-menu-container li {
+    -moz-box-sizing: border-box;
+    border: 0.1rem #a8a8a8;
+    background: none no-repeat 1rem 50%;
+    background-color: #898989;
+    height: 4.7rem;
+    font-size: 2.3rem;
+    line-height: 3rem;
+    font-weight: 400;
+    margin-top: 2.4rem;
+    padding: 1rem 6rem;
+  }
+
+  #sleep-menu-container ul [data-value="airplane"],
+  #sleep-menu-container ul [data-value="airplaneOff"] {
+    background-image: url(/style/sleep_menu/images/airplane.png);
+    background-size: 4rem;
+  }
+
+  #sleep-menu-container ul [data-value="normal"],
+  #sleep-menu-container ul [data-value="silent"] {
+    background-image: url(/style/sleep_menu/images/vibration.png);
+    background-size: 4rem;
+  }
+
+  #sleep-menu-container ul [data-value="restart"] {
+    background-image: url(/style/sleep_menu/images/restart.png);
+    background-size: 4rem;
+  }
+
+  #sleep-menu-container ul [data-value="power"] {
+    background-image: url(/style/sleep_menu/images/power-off.png);
+    background-size: 4rem;
+  }
+
+  #sleep-menu menu {
+    position: absolute;
+    top: calc(50% - 24rem + 39rem);
+    left: calc(50% - 34rem);
+    width: 68rem;
+    padding: 0.1rem;
+    height: 7rem;
+    background-color: #2D2D2D;
+    background-image: none;
+    box-shadow: 0 0 1rem #222222;
+  }
+
+  #sleep-menu menu button {
+    margin-left: calc(50% - 9rem);
+    margin-top: 1.5rem;
+    font-size: 2.3rem;
+    font-weight: 400;
+    width: 18rem;
+    height: 4rem;
+  }
 }

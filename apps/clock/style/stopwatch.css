@@ -2,17 +2,12 @@
   text-align: center;
 }
 
-@font-face {
-  font-family: SourceCodePro-Light;
-  src: url(fonts/SourceCodePro-Light.ttf);
-}
-
 .stopwatch-time {
   margin: 4rem 0 1rem 0;
 
   color: #CFE2E6;
-  font-family: SourceCodePro-Light;
-  font-weight: 300;
+  font-weight: lighter;
+  font-variant-numeric: tabular-nums;
   font-size: 5.5rem;
   letter-spacing: -0.5rem;
   pointer-events: none;
@@ -63,5 +58,6 @@
 
 .lap-duration {
   float: right;
-  font-family: SourceCodePro-Light;
+  font-variant-numeric: tabular-nums;
+  font-weight: lighter;
 }

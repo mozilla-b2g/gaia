@@ -150,7 +150,6 @@ var Navigation = {
   handleEvent: function n_handleEvent(event) {
     var actualHash = window.location.hash;
     var className = this.getProgressBarClassName();
-
     switch (actualHash) {
       case '#languages':
         UIManager.mainTitle.innerHTML = _('language');
@@ -170,11 +169,11 @@ var Navigation = {
         // Avoid refresh when connecting
         WifiManager.scan(WifiUI.renderNetworks);
         break;
-      case '#geolocation':
-        UIManager.mainTitle.innerHTML = _('geolocation');
-        break;
       case '#date_and_time':
         UIManager.mainTitle.innerHTML = _('dateAndTime');
+        break;
+      case '#geolocation':
+        UIManager.mainTitle.innerHTML = _('geolocation');
         break;
       case '#import_contacts':
         UIManager.mainTitle.innerHTML = _('importContacts3');
@@ -238,7 +237,7 @@ var Navigation = {
     }
   },
 
-  skipStep: function n_skipStep() {
+  skipStep: function n_skipStep(callback) {
     this.currentStep = this.currentStep +
                       (this.currentStep - this.previousStep);
     if (this.currentStep < 1) {
@@ -266,8 +265,9 @@ var Navigation = {
     }
 
     // If SIMcard is mandatory and no SIM, go to message window
-    if (self.simMandatory && IccHelper.cardState === 'absent' &&
-      futureLocation.requireSIM) {
+    if (self.simMandatory &&
+        (IccHelper.cardState === 'absent') &&
+        futureLocation.requireSIM) {
       //Send to SIM Mandatory message
       futureLocation.hash = '#SIM_mandatory';
       futureLocation.requireSIM = false;
@@ -286,6 +286,7 @@ var Navigation = {
     } else {
       nextButton.removeAttribute('disabled');
     }
+
     // Substitute button content on last step
     if (this.currentStep === numSteps) {
       nextButton.firstChild.textContent = _('done');

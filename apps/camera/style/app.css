@@ -1,0 +1,30 @@
+
+html,
+body {
+  font-size: 10px;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  background-color: black;
+}
+
+/** Rotates
+ ---------------------------------------------------------*/
+
+body[data-orientation=deg0] .rotates {
+  transform: rotate(0deg)
+}
+
+body[data-orientation=deg90] .rotates {
+  transform: rotate(-90deg)
+}
+
+body[data-orientation=deg180] .rotates {
+  transform: rotate(-180deg)
+}
+
+body[data-orientation=deg270] .rotates {
+  transform: rotate(-270deg)
+}

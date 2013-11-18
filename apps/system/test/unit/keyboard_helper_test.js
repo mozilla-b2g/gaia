@@ -21,7 +21,7 @@ suite('KeyboardHelper', function() {
       origin: keyboardAppOrigin,
       manifest: {
         role: 'input',
-        entry_points: {
+        inputs: {
           en: {
             types: ['url', 'text'],
             launch_path: '/index.html#en'
@@ -136,35 +136,80 @@ suite('KeyboardHelper', function() {
         {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
+            type: 'privileged',
             role: 'input',
-            entry_points: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
           }
         }, {
           origin: 'app://keyboard2.gaiamobile.org',
           manifest: {
+            type: 'certified',
             role: 'input',
-            entry_points: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
           }
         },
         // invalid because it's system
         {
           origin: 'app://system.gaiamobile.org',
           manifest: {
+            type: 'certified',
             role: 'input',
-            entry_points: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
           }
         },
-        // invalid because there aren't entry_points
+        // invalid because there aren't inputs
         {
           origin: 'app://keyboard.gaiamobile.org',
-          manifest: { role: 'input' }
+          manifest: {
+            type: 'certified',
+            role: 'input',
+            permissions: {
+              input: {}
+            }
+          }
         },
         // invalid because it's not input role
         {
           origin: 'app://keyboard.gaiamobile.org',
           manifest: {
+            type: 'privileged',
             role: 'notinput',
-            entry_points: {}
+            inputs: {},
+            permissions: {
+              input: {}
+            }
+          }
+        },
+        // invalid because it's not privileged, nor certified
+        {
+          origin: 'app://keyboard-no.gaiamobile.org',
+          manifest: {
+            role: 'input',
+            inputs: {},
+            permissions: {
+              input: {}
+            }
+          }
+        },
+        // invalid because it does not have input permission
+        {
+          origin: 'app://keyboard-no.gaiamobile.org',
+          manifest: {
+            type: 'privileged',
+            role: 'input',
+            inputs: {},
+            permissions: {
+              notinput: {}
+            }
           }
         }
       ];
@@ -298,7 +343,7 @@ suite('KeyboardHelper', function() {
         origin: keyboardAppOrigin,
         manifest: {
           role: 'input',
-          entry_points: {
+          inputs: {
             en: {
               types: ['text', 'url']
             },
@@ -312,7 +357,7 @@ suite('KeyboardHelper', function() {
         origin: 'app://keyboard2.gaiamobile.org',
         manifest: {
           role: 'input',
-          entry_points: {
+          inputs: {
             number: {
               types: ['number', 'url']
             }
@@ -392,10 +437,10 @@ suite('KeyboardHelper', function() {
           if (!inOrder) {
             return false;
           }
-          if (layout.entryPoint.types.length < inOrder) {
+          if (layout.inputManifest.types.length < inOrder) {
             return false;
           }
-          return layout.entryPoint.types.length;
+          return layout.inputManifest.types.length;
         }, 1));
       });
     });
@@ -433,7 +478,7 @@ suite('KeyboardHelper', function() {
       });
       test('only number keyboards', function() {
         assert.ok(this.result.every(function(layout) {
-          return layout.entryPoint.types.indexOf('number') !== -1;
+          return layout.inputManifest.types.indexOf('number') !== -1;
         }));
       });
     });
@@ -452,7 +497,7 @@ suite('KeyboardHelper', function() {
       });
       test('only url keyboards', function() {
         assert.ok(this.result.every(function(layout) {
-          return layout.entryPoint.types.indexOf('url') !== -1;
+          return layout.inputManifest.types.indexOf('url') !== -1;
         }));
       });
     });
@@ -655,6 +700,64 @@ suite('KeyboardHelper', function() {
     });
     test('does not save settings', function() {
       assert.isFalse(KeyboardHelper.saveToSettings.called);
+    });
+  });
+
+  suite('change default settings', function() {
+    var expectedSettings = {
+      'default': {},
+      enabled: {}
+    };
+
+    suiteSetup(function(done) {
+      KeyboardHelper.getDefaultLayoutConfig(function(configData) {
+        done();
+      });
+    });
+
+    setup(function() {
+      // reset KeyboardHelper each time
+      KeyboardHelper.settings['default'] = defaultSettings['default'];
+      KeyboardHelper.settings['enabled'] = defaultSettings['default'];
+    });
+
+    test('change default settings, keeping the enabled layouts', function() {
+      expectedSettings['default'][keyboardAppOrigin] = {fr: true, number: true};
+      expectedSettings['enabled'][keyboardAppOrigin] = {en: true, fr: true,
+                                                        number: true};
+
+      KeyboardHelper.changeDefaultLayouts('fr', false);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
+    });
+
+    test('change default settings and reset enabled layouts', function() {
+      expectedSettings['default'][keyboardAppOrigin] = {es: true, number: true};
+      expectedSettings['enabled'][keyboardAppOrigin] = {es: true, number: true};
+
+      KeyboardHelper.changeDefaultLayouts('es', true);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
+    });
+
+    test('change default settings and reset for nonLatin', function() {
+      expectedSettings['default'][keyboardAppOrigin] = {'zh-Hant-Zhuyin': true,
+                                                        en: true, number: true};
+      expectedSettings['enabled'][keyboardAppOrigin] = {'zh-Hant-Zhuyin': true,
+                                                        en: true, number: true};
+
+      KeyboardHelper.changeDefaultLayouts('zh-TW', true);
+      assert.deepEqual(KeyboardHelper.settings.default,
+                       expectedSettings['default']);
+
+      assert.deepEqual(KeyboardHelper.settings.enabled,
+                       expectedSettings.enabled);
     });
   });
 });

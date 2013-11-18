@@ -26,7 +26,10 @@ var Utils = {
     view.dom = {};
     for (var i = 0; i < ids.length; i++) {
       var id = ids[i];
-      view.dom[id] = document.getElementById(id);
+      var idName = id.replace(/-\w/g, function(str) {
+        return str[1].toUpperCase();
+      });
+      view.dom[idName] = document.getElementById(id);
     }
   },
   copyArray: function(array) {

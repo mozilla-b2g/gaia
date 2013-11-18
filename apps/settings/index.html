@@ -36,6 +36,7 @@
     <link rel="resource" type="application/json" href="shared/resources/languages.json"/>
     <link rel="resource" type="application/json" href="shared/resources/media/ringtones/"/>
     <link rel="resource" type="application/json" href="shared/resources/media/notifications/"/>
+    <link rel="resource" type="application/json" href="shared/resources/keyboard_layouts.json"/>
     <link rel="resource" type="image/png" href="shared/resources/branding/privacy_sprite.png"/>
     -->
 
@@ -85,6 +86,7 @@
     <link rel="import" href="/elements/call_fdn_list.html">
     <link rel="import" href="/elements/call_fdn_settings.html">
     <link rel="import" href="/elements/call.html">
+    <link rel="import" href="/elements/messaging.html">
     <link rel="import" href="/elements/carrier_operator_settings.html">
     <link rel="import" href="/elements/carrier_data_settings.html">
     <link rel="import" href="/elements/carrier_mms_settings.html">
@@ -202,6 +204,8 @@
     <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings"></section>
     <!-- Connectivity :: Call -->
     <section is="call" role="region" id="call" data-require-sub-panels="true"></section>
+    <!-- Connectivity :: Messaging -->
+    <section is="messaging" role="region" id="messaging"></section>
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
     <section is="carrier-operatorSettings" role="region" id="carrier-operatorSettings"></section>
     <!-- Connectivity :: Cellular & Data :: Data Settings -->
@@ -221,7 +225,7 @@
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
     <section is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings"></section>
     <!-- Connectivity :: Internet Sharing -->
-    <section is="hotspot" role="region" id="hotspot" data-require-sub-panels="true"></section>
+    <section is="hotspot" role="region" id="hotspot"></section>
 
     <!-- Personalization :: Sound :: Sound Selection -->
     <section is="sound-selection" role="region" id="sound-selection"></section>
@@ -314,17 +318,15 @@
         <ul>
           <li>
             <label class="pack-switch">
-              <input name="ril.radio.disabled" class="uninit" type="checkbox">
-              <span></span>
+              <input id="airplaneMode-input" class="uninit" type="checkbox" disabled>
+              <span id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</span>
             </label>
-            <a id="menuItem-airplaneMode" class="menu-item" data-l10n-id="airplaneMode">Airplane Mode</a>
           </li>
           <li>
             <label class="pack-switch">
               <input name="geolocation.enabled" class="uninit" type="checkbox">
-              <span></span>
+              <span id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</span>
             </label>
-            <a id="menuItem-gps" class="menu-item" data-l10n-id="geolocation">Geolocation</a>
           </li>
           <li>
             <small id="wifi-desc" class="menu-item-desc"></small>
@@ -333,6 +335,10 @@
           <li id="call-settings">
             <small id="call-desc" class="menu-item-desc"></small>
             <a id="menuItem-callSettings" class="menu-item" href="#call" data-l10n-id="callSettings">Call Settings</a>
+          </li>
+          <li id="messaging-settings">
+            <small id="messaging-desc" class="menu-item-desc"></small>
+            <a id="menuItem-messagingSettings" class="menu-item" href="#messaging" data-l10n-id="messagingSettings">Messaging Settings</a>
           </li>
           <li id="data-connectivity">
             <small id="data-desc" class="menu-item-desc"></small>
@@ -371,8 +377,7 @@
             <!-- The data-l10n-id and title should be changed from language to languageAndRegion in V2. -->
             <a id="menuItem-languageAndRegion" class="menu-item" href="#languages" data-l10n-id="language">Language</a>
           </li>
-          <li>
-            <small id="homescreen-desc" class="menu-item-desc"></small>
+          <li id="homescreen-section" hidden>
             <a id="menuItem-homescreen" class="menu-item" href="#homescreen" data-l10n-id="homescreen">Homescreen</a>
           </li>
           <li>
@@ -422,11 +427,10 @@
         <ul>
           <li>
             <label class="pack-switch">
-              <input id="ums-switch-root" data-ignore="" type="checkbox">
-              <span></span>
+              <input id="ums-switch-root" data-ignore type="checkbox">
+              <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
+              <span id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage1">USB storage</span>
             </label>
-            <small id="ums-desc-root" class="menu-item-desc">Disabled</small>
-            <a id="menuItem-enableStorage" class="menu-item" data-l10n-id="enableUSBStorage1">USB storage</a>
           </li>
           <li>
             <small id="application-storage-desc" class="menu-item-desc"></small>

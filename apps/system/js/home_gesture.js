@@ -7,6 +7,7 @@ var HomeGesture = {
   _startY1: 0,
   // minimum moving distance to home in pixel of screen height
   MINUMUM_DISTANCE: 50,
+
   init: function hg_init() {
     var isTablet =
       !ScreenLayout.getCurrentLayout('tiny');
@@ -43,14 +44,14 @@ var HomeGesture = {
       window.addEventListener('lock', this);
       window.addEventListener('utilitytrayshow', this);
       window.addEventListener('utilitytrayhide', this);
-      this.homeBar.style.display = 'block';
+      this.homeBar.classList.add('visible');
     } else {
       this.publish('homegesture-disabled');
       window.removeEventListener('unlock', this);
       window.removeEventListener('lock', this);
       window.removeEventListener('utilitytrayshow', this);
       window.removeEventListener('utilitytrayhide', this);
-      this.homeBar.style.display = 'none';
+      this.homeBar.classList.remove('visible');
     }
     this.enable = enable;
   },
@@ -81,11 +82,11 @@ var HomeGesture = {
       // hide gesture function when utilitytray/lockscreen display
       case 'lock':
       case 'utilitytrayshow':
-        this.homeBar.style.display = 'none';
+        this.homeBar.classList.remove('visible');
         break;
       case 'unlock':
       case 'utilitytrayhide':
-        this.homeBar.style.display = 'block';
+        this.homeBar.classList.add('visible');
         break;
       case 'software-button-disabled':
         // at least one of software home button or gesture is enabled

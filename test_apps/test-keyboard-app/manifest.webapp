@@ -9,14 +9,11 @@
     "url": "https://github.com/mozilla-b2g/gaia"
   },
   "permissions": {
-    "keyboard": {
-      "description": "To send key events"
-    },
     "input": {
       "description": "To send key events"
     }
   },
-  "entry_points": {
+  "inputs": {
     "english": {
       "launch_path": "/index.html#en",
       "name": "English",

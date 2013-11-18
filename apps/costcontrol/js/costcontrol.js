@@ -51,6 +51,11 @@ var CostControl = (function() {
     if ('mozMobileConnection' in window.navigator) {
       connection = window.navigator.mozMobileConnection;
     }
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    else if ('mozMobileConnections' in window.navigator) {
+      connection = window.navigator.mozMobileConnections[0];
+    }
 
     if ('mozNetworkStats' in window.navigator) {
       statistics = NetworkstatsProxy;

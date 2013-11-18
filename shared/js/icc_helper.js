@@ -2,129 +2,192 @@
 
 /**
  * IccHelper redirect calls to ICC related APIs to correct object. IccHelper is
- * created for backward compatibility of gaia master after the patches of
- * bug 860585, 874744, and 875721 landed in m-c. In those patches icc related
- * events and attributes are moved from mozMobileConnection to mozIccManager.
- * The helper *SHOULD* be removed once all gaia developement no longer depend
- * on b2g18.
+ * created for backward compatibility of gaia master after the patch of
+ * bug 814637 landed in m-c. In the patch the interface provided by IccManager
+ * was moved to a MozIcc object. Details please refer to the URL[1].
+ * The helper *MUST* be removed once all gaia developement no longer depend
+ * on b2g26.
+ * [1]: https://wiki.mozilla.org/WebAPI/WebIccManager/Multi-SIM
  */
+(function(exports) {
+  var _iccManager = navigator.mozIccManager;
+  var _iccProxy = null;
 
-var IccHelper = (function() {
-  var mobileConn = navigator.mozMobileConnection;
-  var iccManager = null;
+  Object.defineProperty(exports, 'IccHelper', {
+    get: function() {
+      return _iccProxy;
+    },
+    // This is for code that sets value to IccHelper. And for unit tests that
+    // mock IccHelper.
+    set: function(value) {
+      _iccProxy = value;
+    }
+  });
 
-  var actors = {
-    'cardLock': null,
-    'cardState': null,
-    'iccInfo': null
-  };
+  if (_iccManager && _iccManager.getIccById) {
+    var activeIccObj = null;
 
-  if (mobileConn) {
-    iccManager = navigator.mozIccManager || mobileConn.icc;
+    var eventListeners = {};
+    var cachedEventListeners = {}; // cache on + 'eventName' event handlers
+    var events = ['cardstatechange', 'iccinfochange',
+                  'stkcommand', 'stksessionend'];
 
-    if ('setCardLock' in mobileConn) {
-      actors['cardLock'] = mobileConn;
-    } else if ('setCardLock' in iccManager) {
-      actors['cardLock'] = iccManager;
+    var getters = ['iccInfo', 'cardState'];
+    var methods = ['sendStkResponse', 'sendStkMenuSelection',
+                   'sendStkTimerExpiration', 'sendStkEventDownload'];
+    var domRequests = ['getCardLock', 'unlockCardLock', 'setCardLock',
+                       'getCardLockRetryCount', 'readContacts',
+                       'updateContact', 'iccOpenChannel', 'iccExchangeAPDU',
+                       'iccCloseChannel'];
+
+    var getterTemplate = function(name) {
+      return function() {
+        if (activeIccObj) {
+          return activeIccObj[name];
+        } else {
+          return null;
+        }
+      };
+    };
+
+    var methodTemplate = function(name) {
+      return function() {
+        if (activeIccObj) {
+          return activeIccObj[name].apply(activeIccObj, arguments);
+        }
+      };
+    };
+
+    var domRequestTemplate = function(name) {
+      return function() {
+        if (activeIccObj) {
+          return activeIccObj[name].apply(activeIccObj, arguments);
+        } else {
+          throw new Error('The icc object is invalid');
+        }
+      };
+    };
+
+    // Multi-SIM API available
+    var createIccProxy = function() {
+      var iccProxy = {
+        addEventListener: function(eventName, callback) {
+          if (typeof callback !== 'function')
+            return;
+          if (events.indexOf(eventName) === -1)
+            return;
+
+          var listeners = eventListeners[eventName];
+          if (listeners == null) {
+            listeners = eventListeners[eventName] = [];
+          }
+          if (listeners.indexOf(callback) === -1) {
+            listeners.push(callback);
+          }
+        },
+        removeEventListener: function(eventName, callback) {
+          var listeners = eventListeners[eventName];
+          if (listeners) {
+            var index = listeners.indexOf(callback);
+            if (index !== -1) {
+              listeners.splice(index, 1);
+            }
+          }
+        }
+      };
+
+      getters.forEach(function(getter) {
+        Object.defineProperty(iccProxy, getter, {
+          enumerable: true,
+          get: getterTemplate(getter)
+        });
+      });
+
+      methods.forEach(function(method) {
+        iccProxy[method] = methodTemplate(method);
+      });
+
+      domRequests.forEach(function(request) {
+        iccProxy[request] = methodTemplate(request);
+      });
+
+      events.forEach(function(eventName) {
+        // Define 'on' + eventName properties
+        // Assigning an event handler and adding an event listener are
+        // handled separately. We need to simulate the same behavior in
+        // IccHelper.
+        Object.defineProperty(iccProxy, 'on' + eventName, {
+          enumerable: true,
+          set: function(newListener) {
+            var oldListener = cachedEventListeners[eventName];
+            if (oldListener) {
+              iccProxy.removeEventListener(eventName, oldListener);
+            }
+            cachedEventListeners[eventName] = newListener;
+
+            if (newListener) {
+              iccProxy.addEventListener(eventName, newListener);
+            }
+          },
+          get: function() {
+            return cachedEventListeners[eventName];
+          }
+        });
+      });
+
+      return iccProxy;
+    };
+
+    // Initialize icc proxy
+    _iccProxy = createIccProxy();
+    if (_iccManager.iccIds && _iccManager.iccIds.length) {
+      activeIccObj = _iccManager.getIccById(_iccManager.iccIds[0]);
+
+      if (activeIccObj) {
+        // register to callback
+        events.forEach(function(eventName) {
+          activeIccObj.addEventListener(eventName, function(event) {
+            var listeners = eventListeners[eventName];
+            if (listeners) {
+              listeners.forEach(function(listener) {
+                listener(event);
+              });
+            }
+          });
+        });
+      }
     }
 
-    if ('cardState' in mobileConn) {
-      actors['cardState'] = mobileConn;
-    } else if ('cardState' in iccManager) {
-      actors['cardState'] = iccManager;
-    }
+    _iccManager.oniccdetected = function(event) {
+      if (_iccProxy.cardState == null) {
+        activeIccObj = _iccManager.getIccById(event.iccId);
 
-    if ('iccInfo' in mobileConn) {
-      actors['iccInfo'] = mobileConn;
-    } else if ('iccInfo' in iccManager) {
-      actors['iccInfo'] = iccManager;
-    }
+        if (activeIccObj) {
+          // register to callback
+          events.forEach(function(eventName) {
+            activeIccObj.addEventListener(eventName, function(event) {
+              var listeners = eventListeners[eventName];
+              if (listeners) {
+                listeners.forEach(function(listener) {
+                  listener(event);
+                });
+              }
+            });
+          });
+
+          // trigger cardstatechange and iccinfochange manually when a mozIcc
+          // object becomes valid (detected).
+          ['cardstatechange', 'iccinfochange'].forEach(function(eventName) {
+            if (eventListeners[eventName]) {
+              eventListeners[eventName].forEach(function(listener) {
+                listener();
+              });
+            }
+          });
+        }
+      }
+    };
+  } else {
+    _iccProxy = _iccManager;
   }
-
-  return {
-    get enabled() {
-      return (iccManager !== null);
-    },
-
-    addEventListener: function icch_addEventListener() {
-      var eventName = arguments[0];
-      switch (eventName) {
-        case 'cardstatechange':
-          var actor = actors['cardState'];
-          return actor && actor.addEventListener.apply(actor, arguments);
-        case 'iccinfochange':
-          var actor = actors['iccInfo'];
-          return actor && actor.addEventListener.apply(actor, arguments);
-      }
-    },
-
-    removeEventListener: function icch_removeEventListener() {
-      var eventName = arguments[0];
-      switch (eventName) {
-        case 'cardstatechange':
-          var actor = actors['cardState'];
-          return actor.removeEventListener.apply(actor, arguments);
-        case 'iccinfochange':
-          var actor = actors['iccInfo'];
-          return actor.removeEventListener.apply(actor, arguments);
-      }
-    },
-
-    getCardLock: function icch_getCardLock() {
-      var actor = actors['cardLock'];
-      return actor && actor.getCardLock.apply(actor, arguments);
-    },
-
-    setCardLock: function icch_setCardLock() {
-      var actor = actors['cardLock'];
-      return actor && actor.setCardLock.apply(actor, arguments);
-    },
-
-    unlockCardLock: function icch_unlockCardLock() {
-      var actor = actors['cardLock'];
-      return actor && actor.unlockCardLock.apply(actor, arguments);
-    },
-
-    getCardLockRetryCount: function
-      icch_getCardLockRetryCount(lockType, onresult) {
-      var mobileConn = navigator.mozMobileConnection;
-
-      if ('retryCount' in mobileConn) {
-        onresult(mobileConn.retryCount);
-      } else {
-        var iccManager = navigator.mozIccManager || mobileConn.icc;
-        var req = iccManager.getCardLockRetryCount(lockType);
-        req.onsuccess = function onsuccess() {
-          onresult(req.result.retryCount);
-        };
-        req.onerror = function onerror() {
-          onresult(0);
-        };
-      }
-    },
-
-    get cardState() {
-      var actor = actors['cardState'];
-      return actor && actor.cardState;
-    },
-
-    get iccInfo() {
-      var actor = actors['iccInfo'];
-      return actor && actor.iccInfo;
-    },
-
-    set oncardstatechange(callback) {
-      var actor = actors['cardState'];
-      if (actor) {
-        actor.oncardstatechange = callback;
-      }
-    },
-
-    set oniccinfochange(callback) {
-      var actor = actors['iccInfo'];
-      if (actor) {
-        actor.oniccinfochange = callback;
-      }
-    }
-  };
-})();
+})(window);

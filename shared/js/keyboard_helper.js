@@ -47,7 +47,6 @@ currentSettings.defaultLayouts[defaultKeyboardOrigin] = {
 // and also assume that the defaults are the enabled
 currentSettings.enabledLayouts = map2dClone(currentSettings.defaultLayouts);
 
-
 /**
  * helper function for reading a value in one of the currentSettings
  */
@@ -99,6 +98,9 @@ var watchQueries = [];
 
 // holds the last result from getApps until something changes
 var currentApps;
+
+// holds the result of keyboard_layouts.json
+var defaultLayoutConfig;
 
 /**
  * Sends any watchers the result of their query.
@@ -213,6 +215,24 @@ function kh_parseEnabled() {
 }
 
 /**
+ * JSON loader
+ */
+function kh_loadJSON(href, callback) {
+  if (!callback)
+    return;
+  var xhr = new XMLHttpRequest();
+  xhr.onerror = function() {
+    console.error('Failed to fetch file: ' + href, xhr.statusText);
+  };
+  xhr.onload = function() {
+    callback(xhr.response);
+  };
+  xhr.open('GET', href, true); // async
+  xhr.responseType = 'json';
+  xhr.send();
+}
+
+/**
  * Creates an object that describes a keyboard layout.  The objects prototype
  * will give it accessors for 'default' and 'enabled' that will read or change
  * the proper setting from currentSettings.
@@ -275,6 +295,7 @@ Object.defineProperties(kh_SettingsHelper, {
 
 var KeyboardHelper = exports.KeyboardHelper = {
   settings: kh_SettingsHelper,
+  defaultKeyboardOrigin: defaultKeyboardOrigin,
 
   /**
    * Listen for changes in settings or apps and read the deafault settings
@@ -282,6 +303,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
   init: function kh_init() {
     watchQueries = [];
     currentApps = undefined;
+
     // load the current settings, and watch for changes to settings
     var settings = window.navigator.mozSettings;
     if (settings) {
@@ -323,6 +345,22 @@ var KeyboardHelper = exports.KeyboardHelper = {
    */
   getLayoutEnabled: function kh_getLayoutEnabled(appOrigin, layoutId) {
     return map2dIs.call(currentSettings.enabledLayouts, appOrigin, layoutId);
+  },
+
+  /**
+   * set/unset a layout as default based on origin and layoutId
+   */
+  setLayoutIsDefault: function kh_setLayoutIsDefault(appOrigin, layoutId,
+                                                     enabled) {
+    var method = enabled ? map2dSet : map2dUnset;
+    method.call(currentSettings.defaultLayouts, appOrigin, layoutId);
+  },
+
+  /**
+   * Returns true if the layout specified by origin and layoutId is default.
+   */
+  getLayoutIsDefault: function kh_getLayoutIsDefault(appOrigin, layoutId) {
+    return map2dIs.call(currentSettings.defaultLayouts, appOrigin, layoutId);
   },
 
   /**
@@ -391,13 +429,26 @@ var KeyboardHelper = exports.KeyboardHelper = {
         if (!app.manifest || 'input' !== app.manifest.role) {
           return;
         }
+
+        // Check app type
+        if (app.manifest.type !== 'certified' &&
+            app.manifest.type !== 'privileged') {
+          return;
+        }
+
+        // Check permission
+        if (app.manifest.permissions &&
+            !('input' in app.manifest.permissions)) {
+          return;
+        }
+
         //XXX remove this hard code check if one day system app no longer
         //    use mozKeyboard API
         if (app.origin === 'app://system.gaiamobile.org') {
           return;
         }
-        // all keyboard apps should define its layout(s) in entry_points section
-        if (!app.manifest.entry_points) {
+        // all keyboard apps should define its layout(s) in "inputs" section
+        if (!app.manifest.inputs) {
           return;
         }
         return true;
@@ -443,9 +494,9 @@ var KeyboardHelper = exports.KeyboardHelper = {
       var layouts = apps.reduce(function eachApp(result, app) {
 
         var manifest = new ManifestHelper(app.manifest);
-        for (var layoutId in manifest.entry_points) {
-          var entryPoint = manifest.entry_points[layoutId];
-          if (!entryPoint.types) {
+        for (var layoutId in manifest.inputs) {
+          var inputManifest = manifest.inputs[layoutId];
+          if (!inputManifest.types) {
             console.warn(app.origin, layoutId, 'did not declare type.');
             continue;
           }
@@ -453,7 +504,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
           var layout = new KeyboardLayout({
             app: app,
             manifest: manifest,
-            entryPoint: entryPoint,
+            inputManifest: inputManifest,
             layoutId: layoutId
           });
 
@@ -469,7 +520,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
             options.type = [].concat(options.type);
             // check for any type in our options to be any type in the layout
             if (!options.type.some(function(type) {
-              return entryPoint.types.indexOf(type) !== -1;
+              return inputManifest.types.indexOf(type) !== -1;
             })) {
               continue;
             }
@@ -481,7 +532,7 @@ var KeyboardHelper = exports.KeyboardHelper = {
         // sort the default query by most specific keyboard
         if (options['default']) {
           result.sort(function(a, b) {
-            return a.entryPoint.types.length - b.entryPoint.types.length;
+            return a.inputManifest.types.length - b.inputManifest.types.length;
           });
         }
         return result;
@@ -527,6 +578,62 @@ var KeyboardHelper = exports.KeyboardHelper = {
       watch.layouts = layouts;
       callback(layouts, { apps: true, settings: true });
     });
+  },
+
+  // Read keyboard_layouts for language -> layouts mapping
+  getDefaultLayoutConfig: function kh_getDefaultLayoutConfig(callback) {
+    if (!callback) {
+      return;
+    }
+
+    if (defaultLayoutConfig) {
+      callback(defaultLayoutConfig);
+    } else {
+      var KEYBOARDS = '/shared/resources/keyboard_layouts.json';
+      kh_loadJSON(KEYBOARDS, function loadKeyboardLayouts(data) {
+        if (data) {
+          defaultLayoutConfig = data;
+          callback(defaultLayoutConfig);
+        }
+      });
+    }
+  },
+
+  // Change the default layouts set according to the language
+  // language: the current system language, used to look up the mapping table
+  // reset: if set as true, will reset the current enabled layouts
+  changeDefaultLayouts: function kh_changeDefaultLayouts(language, reset) {
+    this.getDefaultLayoutConfig(function gotDefaultLayouts(keyboards) {
+      var newKbLayouts = keyboards.layout[language];
+
+      // XXX: change this so that it could support multiple built-in
+      // keyboard apps
+      var kbOrigin = defaultKeyboardOrigin;
+
+      // reset the set of default layouts
+      currentSettings.defaultLayouts = {};
+
+      // set the language-independent default layouts
+      var langIndependentLayouts = keyboards.langIndependentLayouts;
+      for (var i = langIndependentLayouts.length - 1; i >= 0; i--) {
+        this.setLayoutIsDefault(kbOrigin, langIndependentLayouts[i].layoutId,
+                                true);
+      }
+
+      if (reset) {
+        // reset the set of default layouts
+        currentSettings.enabledLayouts =
+          map2dClone(currentSettings.defaultLayouts);
+      }
+
+      // Enable the language specific keyboard layout group
+      for (i = newKbLayouts.length - 1; i >= 0; i--) {
+        this.setLayoutIsDefault(kbOrigin, newKbLayouts[i].layoutId, true);
+        this.setLayoutEnabled(kbOrigin, newKbLayouts[i].layoutId, true);
+      }
+
+      this.saveToSettings(); // save changes to settings
+    }.bind(this));
   }
 };
 

@@ -10,13 +10,13 @@ html {
 }
 
 body {
-  background-color: black;
-  color: #fff;
-  font-size: 1rem;
+  width: 100%;
+  height: 100%;
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
+  color: #fff;
+  font-size: 1rem;
+  background-color: #0E1214;
   overflow: hidden;
 }
 
@@ -142,7 +142,7 @@ section {
    * the body background is black, but remind the UA of that here to
    * keep the thumbnail view opaque if possible.
    */
-  background-color: black;
+  background-color: #0E1214;
 }
 
 /* thumbnails in regular thumbnail list view */
@@ -382,6 +382,10 @@ footer {
   box-shadow: 0 -0.2rem 0.5rem rgba(50, 50, 50, 0.75);
 }
 
+.icon.icon-done {
+  background-image: url('images/iconaction_done_30x30.png') !important;
+}
+
 #thumbnails-camera-button {
   position: absolute;
   width: 50%;
@@ -503,15 +507,15 @@ footer {
   left: 0;
   right: 0;
   top: 5rem;
-  bottom: 10rem;
+  bottom: 9rem; /* 4rem for edit-toolbar, 5rem for edit-options */
 }
 
 #edit-preview-canvas {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
-  width: calc(100% - 2rem);  /* I can't do right: 1rem here. Bug? */
-  height: calc(100% - 2rem);  /* can't just set bottom: 1rem here */
+  top: 1.5rem;
+  left: 1.5rem;
+  width: calc(100% - 3rem);  /* I can't do right: 1.5rem here. Bug? */
+  height: calc(100% - 3rem);  /* can't just set bottom: 1.5rem here */
 }
 
 #edit-crop-canvas {
@@ -526,9 +530,16 @@ footer {
   position: absolute;
   left: 0;
   width: 100%;
-  height: 5.5rem;
+  height: 5rem;
   bottom: 4rem;
   background: url(images/options-background.png);
+}
+
+/* The progress has higer selectivity css in progress.css to control display.
+ * The hidden attribute in progress is not working in this case. We need to use
+ * css to override it. */
+#save-progress.hidden {
+  display: none;
 }
 
 /* All the effect options radio buttons share these styles */
@@ -548,8 +559,8 @@ footer {
 }
 
 #edit-effect-options a.selected.radio.button {
-  outline: solid #00aacc 0.3rem;
-  outline-offset: -0.3rem;
+  outline: solid #00aacc 0.2rem;
+  outline-offset: -0.2rem;
 }
 
 #edit-crop-options a.button {

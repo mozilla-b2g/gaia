@@ -5,8 +5,10 @@ var Homescreen = {
     this._settings = navigator.mozSettings;
 
     this._appsMgmt = navigator.mozApps.mgmt;
-    this._appsMgmt.oninstall = this.renderHomescreens.bind(this);
-    this._appsMgmt.onuninstall = this.renderHomescreens.bind(this);
+    window.addEventListener('applicationinstall',
+                            this.renderHomescreens.bind(this));
+    window.addEventListener('applicationuninstall',
+                            this.renderHomescreens.bind(this));
 
     this._apps = [];
 

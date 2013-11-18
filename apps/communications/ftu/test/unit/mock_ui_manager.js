@@ -15,7 +15,6 @@ var MockUIManager = {
     'pin-label',
     'pin-retries-left',
     'pin-input',
-    'fake-pin-input',
     'pin-error',
     'back-sim-button',
     'skip-pin-button',
@@ -25,21 +24,17 @@ var MockUIManager = {
     'puk-label',
     'puk-retries-left',
     'puk-input',
-    'fake-puk-input',
     'puk-info',
     'puk-error',
     'newpin-input',
-    'fake-newpin-input',
     'newpin-error',
     'confirm-newpin-input',
-    'fake-confirm-newpin-input',
     'confirm-newpin-error',
     // XCK Screen
     'xckcode-screen',
     'xck-label',
     'xck-retries-left',
     'xck-input',
-    'fake-xck-input',
     'xck-error',
     // Import contacts
     'sim-import-button',
@@ -50,18 +45,25 @@ var MockUIManager = {
     'tutorial-screen',
     'tutorial-progress',
     'lets-go-button',
-    'skip-tutorial-button'
+    'skip-tutorial-button',
+    // Navigation
+    'back',
+    'forward',
+    'wifi-join-button'
   ],
 
-  mSetup: function muim_mSetup() {
+  mSuiteSetup: function muim_mSuiteSetup() {
     this.domSelectors.forEach(function createElementRef(name) {
       if (name)
         this[toCamelCase(name)] = document.getElementById(name);
     }.bind(this));
   },
 
-  mTeardown: function muim_mTeardown() {
-    this.activationScreen = this.progressBar = this.navBar = null;
+  mSuiteTeardown: function muim_mSuiteTeardown() {
+    this.domSelectors.forEach(function destroyElementRef(name) {
+      if (name)
+        this[toCamelCase(name)] = null;
+    }.bind(this));
   },
 
   sendNewsletter: function(callback) {return callback(true);},

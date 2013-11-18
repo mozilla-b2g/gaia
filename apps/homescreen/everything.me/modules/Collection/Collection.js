@@ -73,7 +73,6 @@ void function() {
 
         elTitle.innerHTML = '<input type="text" ' +
                                     'autocorrect="off" ' +
-                                    'autocapitalize="off" ' +
                                     'x-inputmode="verbatim" />' +
                             '<b class="done"></b>';
 
@@ -194,9 +193,9 @@ void function() {
      * Overwrite a collection's settings with new data
      * and update the homescreen icon if needed.
      */
-    this.update =
-      function updateCollection(collectionSettings, data,
-                                                    callback=Evme.Utils.NOOP) {
+    this.update = function updateCollection(collectionSettings, data,
+                                  callback=Evme.Utils.NOOP) {
+
       var pluck = Evme.Utils.pluck;
       var shouldUpdateIcon = false;
       var numIcons = Evme.Config.numberOfAppInCollectionIcon;
@@ -516,24 +515,20 @@ void function() {
         var options = e.detail;
 
         if (options.descriptor && options.collection) {
-            EvmeManager.getAppByDescriptor(function addApp(appInfo) {
-                self.addInstalledApp(appInfo, options.collection.id);
-            }, options.descriptor);
+            var appInfo = EvmeManager.getAppByDescriptor(options.descriptor);
+            self.addInstalledApp(appInfo, options.collection.id);
         }
     }
 
     // executed when a new installed app is added to query index
     function onAppIndexed(e) {
-      EvmeManager.getAppByOrigin(e.detail.app.origin,
-        function onAppInfo(appInfo) {
-          var queries = Evme.InstalledAppsService.getMatchingQueries(appInfo);
-          var gridCollections = EvmeManager.getCollections();
+      var appInfo = e.detail.appInfo;
+      var queries = Evme.InstalledAppsService.getMatchingQueries(appInfo);
+      var gridCollections = EvmeManager.getCollections();
 
-          for (var i = 0, gridCollection;
-                                  gridCollection = gridCollections[i++];) {
-            nominateApp(gridCollection, appInfo, queries);
-          }
-        });
+      for (var i = 0, gridCollection; gridCollection = gridCollections[i++];) {
+        nominateApp(gridCollection, appInfo, queries);
+      }
     }
 
     function onAppUninstall(e) {
@@ -600,8 +595,14 @@ void function() {
     // TODO save only reference, get data from IconManager
     // get static apps' icons from InstalledAppsService
     // list of {"id": 3, "icon": "base64icon"}
-    this.extraIconsData = args.extraIconsData || [];
-
+    this.extraIconsData = [];
+    if (args.extraIconsData) {
+      for (var i = 0, iconData; iconData = args.extraIconsData[i++]; ) {
+        if (iconData.id && iconData.icon) {
+          this.extraIconsData.push(iconData);
+        }
+      }
+    }
   };
 
   /**

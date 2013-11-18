@@ -68,7 +68,7 @@ class Camera(Base):
         self.wait_for_capture_ready()
 
     def tap_to_display_filmstrip(self):
-        self.marionette.find_element(*self._body_locator).tap(x=1, y=1)
+        self.marionette.find_element(*self._body_locator).tap()
         self.wait_for_filmstrip_visible()
 
     def wait_for_select_button_displayed(self):
@@ -100,11 +100,12 @@ class Camera(Base):
         self.marionette.switch_to_frame(camera_frame)
         self.wait_for_camera_ready()
 
-    def switch_to_gallery(self):
+    def tap_switch_to_gallery(self):
         switch_to_gallery_button = self.marionette.find_element(*self._gallery_button_locator)
         switch_to_gallery_button.tap()
         gallery_app = gaiatest.apps.gallery.app.Gallery(self.marionette)
-        gallery_app.launch()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == gallery_app.name)
+        self.apps.switch_to_displayed_app()
         return gallery_app
 
     @property
@@ -136,12 +137,19 @@ class FilmStripImage(PageRegion):
 
 
 class ImagePreview(Base):
+
+    _media_frame_locator = (By.ID, 'preview')
     _image_preview_locator = (By.CSS_SELECTOR, '#media-frame > img')
     _camera_button_locator = (By.ID, 'camera-button')
 
     @property
     def is_image_preview_visible(self):
         return self.is_element_displayed(*self._image_preview_locator)
+
+    def wait_for_media_frame(self):
+        media_frame =  self.marionette.find_element(*self._media_frame_locator)
+        scr_height = int(self.marionette.execute_script('return window.screen.height'))
+        self.wait_for_condition(lambda m: (media_frame.location['y'] + media_frame.size['height']) == scr_height)
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()

@@ -48,8 +48,8 @@ window.addEventListener('load', function onload_launcher_init() {
         footer.classList.remove('closed');
       }
     } else {
-      if (close_button.style.visibility !== 'visible') {
-        close_button.style.visibility = 'visible';
+      if (close_button.style.visibility === 'hidden') {
+        close_button.style.visibility = 'inherit';
       }
       if (!footer.classList.contains('closed')) {
         footer.classList.add('closed');

@@ -6,11 +6,16 @@ var SimManager = {
   _unlocked: false,
 
   init: function sm_init() {
-    this.mobConn = window.navigator.mozMobileConnection;
+    // XXX: check bug-926169
+    // this is used to keep all tests passing while introducing multi-sim APIs
+    this.mobConn = window.navigator.mozMobileConnection ||
+                   window.navigator.mozMobileConnections &&
+                   window.navigator.mozMobileConnections[0];
+
     if (!this.mobConn)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     _ = navigator.mozL10n.get;
@@ -69,7 +74,7 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return false;
     return (IccHelper.cardState === 'ready');
   },
@@ -123,7 +128,7 @@ var SimManager = {
     }
   },
 
-  showPinScreen: function sm_showScreen() {
+  showPinScreen: function sm_showPinScreen() {
     if (this._unlocked)
       return;
 
@@ -378,7 +383,8 @@ var SimManager = {
     var importButton = UIManager.simImportButton;
     importButton.setAttribute('disabled', 'disabled');
 
-    var cancelled = false, contactsRead = false;
+    var cancelled = false,
+        contactsRead = false;
     var importer = new SimContactsImporter();
     utils.overlay.showMenu();
     utils.overlay.oncancel = function oncancel() {
@@ -398,9 +404,11 @@ var SimManager = {
 
     importer.onread = function sim_import_read(n) {
       contactsRead = true;
-      progress.setClass('progressBar');
-      progress.setHeaderMsg(_('simContacts-importing'));
-      progress.setTotal(n);
+      if (n > 0) {
+        progress.setClass('progressBar');
+        progress.setHeaderMsg(_('simContacts-importing'));
+        progress.setTotal(n);
+      }
     };
 
     importer.onimported = function imported_contact() {
@@ -414,13 +422,14 @@ var SimManager = {
       window.setTimeout(function do_sim_import_finish() {
         UIManager.navBar.removeAttribute('aria-disabled');
         utils.overlay.hide();
-        if (importedContacts !== 0) {
+        if (importedContacts > 0) {
           window.importUtils.setTimestamp('sim');
           SimManager.alreadyImported = true;
-          if (!cancelled) {
-            utils.status.show(_('simContacts-imported3',
-                                {n: importedContacts}));
-          }
+        }
+        if (!cancelled) {
+          utils.status.show(_('simContacts-imported3',
+                              {n: importedContacts})
+          );
         }
       }, DELAY_FEEDBACK);
 
