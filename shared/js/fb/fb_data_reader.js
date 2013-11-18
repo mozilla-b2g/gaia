@@ -31,12 +31,9 @@ this.fb = fb;
     return {
       // By Facebook UID
       byUid: Object.create(null),
-      // By internationalized tel number
+      // By tel number and all its possible variants
       // (We are not supporting dups right now)
       byTel: Object.create(null),
-      // By short tel number
-      // (We are not supporting dups right now)
-      byShortTel: Object.create(null),
       // Prefix tree for enabling searching by partial tel numbers
       treeTel: Object.create(null)
     };
@@ -178,14 +175,14 @@ this.fb = fb;
 
   function doGetByPhone(tel, outRequest) {
     var dsId;
-
+    var normalizedNumber = navigator.mozPhoneNumberService.normalize(tel);
     if (datastore.revisionId !== revisionId) {
       window.console.info('Datastore revision id has changed!');
       // Refreshing the index just in case
       datastore.get(INDEX_ID).then(function success(obj) {
         setIndex(obj);
         revisionId = datastore.revisionId;
-        dsId = index.byTel[tel] || index.byShortTel[tel];
+        dsId = index.byTel[normalizedNumber];
 
         if (typeof dsId !== 'undefined') {
           datastore.get(dsId).then(function success(friend) {
@@ -201,7 +198,7 @@ this.fb = fb;
       });
     }
     else {
-      dsId = index.byTel[tel] || index.byShortTel[tel];
+      dsId = index.byTel[normalizedNumber];
       if (typeof dsId !== 'undefined') {
         datastore.get(dsId).then(function success(friend) {
           outRequest.done(friend);
@@ -239,8 +236,9 @@ this.fb = fb;
 
 
   function doSearchByPhone(number, outRequest) {
+    var normalizedNumber = navigator.mozPhoneNumberService.normalize(number);
     LazyLoader.load('/shared/js/fb/fb_tel_index.js', function() {
-      var toSearchNumber = number;
+      var toSearchNumber = normalizedNumber;
       // TODO: Temporal way of searching for international numbers
       // A follow-up is needed by using PhoneNumber.js exposed to Gaia
       if (number.charAt(0) === '+') {
