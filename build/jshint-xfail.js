@@ -63,7 +63,7 @@ module.exports = {
     var xCount = len - redCount;
 
     // if we are running in travis, skip output of white errors
-    if (process.env.CI_ACTION) {
+    if (process.env.CI_ACTION || process.env.NO_XFAIL) {
       xErrors = '';
     }
 
