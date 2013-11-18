@@ -150,7 +150,7 @@ suite('Thumbnail Item Unit Tests', function() {
 
     test('#duration-text', function() {
       var durationNode = domNode.querySelector('.duration-text');
-      assert.equal(durationNode.textContent, '00:06');
+      assert.equal(durationNode.textContent, '00:05');
     });
 
     test('#size-text', function() {
