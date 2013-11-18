@@ -13,7 +13,7 @@ var MockIccHelper = function(state) {
     },
 
     get iccInfo() {
-      return {iccid: 'TEST_ICCID'};
+      return {iccid: '8100075100210526976'};
     }
   };
 };

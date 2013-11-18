@@ -1,5 +1,7 @@
 'use strict';
 
+requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
+
 var MockCommon = function(config) {
 
   function getMockRequiredMessage(mocking, parameter, isAFunction) {
@@ -12,11 +14,7 @@ var MockCommon = function(config) {
 
   config = config || {};
 
-  var fakeAllInterfaces = [
-    {'type': 0, 'id': '0'},
-    {'type': 1, 'id': '8100075100210526976'},
-    {'type': 1, 'id': '1234575100210522938'}
-  ];
+  var fakeAllInterfaces = MockAllNetworkInterfaces;
 
   return {
     COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
