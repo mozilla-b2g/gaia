@@ -114,6 +114,7 @@ class KeyboardPage(Base):
 
     _number_input_locator = (By.CSS_SELECTOR, 'input[type="number"]')
     _text_input_locator = (By.CSS_SELECTOR, 'input[type="text"]')
+    _url_input_locator = (By.CSS_SELECTOR, 'input[type="url"]')
 
     def tap_number_input(self):
         self.marionette.find_element(*self._number_input_locator).tap()
@@ -132,6 +133,15 @@ class KeyboardPage(Base):
     @property
     def text_input(self):
         return self.marionette.find_element(*self._text_input_locator).get_attribute('value')
+
+    def tap_url_input(self):
+        self.marionette.find_element(*self._url_input_locator).tap()
+        from gaiatest.apps.keyboard.app import Keyboard
+        return Keyboard(self.marionette)
+
+    @property
+    def url_input(self):
+        return self.marionette.find_element(*self._url_input_locator).get_attribute('value')
 
 
 class ContextmenuPage(Base):
