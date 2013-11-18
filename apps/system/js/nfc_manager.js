@@ -243,19 +243,20 @@ var NfcManager = {
 
   doClose: function nm_doClose(nfctag) {
     var conn = nfctag.close();
+    var self = this;
     conn.onsuccess = function() {
-      this._debug('NFC tech disconnected');
+      self._debug('NFC tech disconnected');
     };
     conn.onerror = function() {
-      this._debug('Disconnect failed.');
+      self._debug('Disconnect failed.');
     };
   },
 
   handleNdefDiscoveredUseConnect:
     function nm_handleNdefDiscoveredUseConnect(tech, session) {
+      var self = this;
 
       var connected = false;
-      var handled = false;
       var nfcdom = window.navigator.mozNfc;
 
       var token = session;
@@ -265,17 +266,16 @@ var NfcManager = {
       conn.onsuccess = function() {
         var req = nfctag.readNDEF();
         req.onsuccess = function() {
-          this._debug('NDEF Read result: ' + JSON.stringify(req.result));
-          handled = this.handleNdefDiscovered(tech, session,
+          self._debug('NDEF Read result: ' + JSON.stringify(req.result));
+          self.handleNdefDiscovered(tech, session,
                                               req.result.records);
-          this.doClose(nfctag);
+          self.doClose(nfctag);
         };
         req.onerror = function() {
-          this._debug('Error reading NDEF record');
-          this.doClose(nfctag);
+          self._debug('Error reading NDEF record');
+          self.doClose(nfctag);
         };
       };
-      return handled;
   },
 
   handleNdefDiscovered:
@@ -291,17 +291,53 @@ var NfcManager = {
         action.data.tech = tech;
         action.data.sessionToken = session;
         var a = new MozActivity(action);
-        return true;
       }
-      return false;
   },
 
-  // TODO:
-  handleNdefFormattableDiscovered:
-    function nm_handleNdefFormattableDiscovered(tech, session) {
-      return this.handleNdefDiscoveredUseConnect(tech, session);
+  // NDEF only
+  handleP2P: function handleP2P(tech, sessionToken, ndefMsg) {
+    if (ndefMsg != null) {
+      var nfcdom = window.navigator.mozNfc;
+
+      // FIXME: Do P2P UI: Ask user if P2P event is acceptable in the app's
+      // current user context to accept a message via registered app
+      // callback/message. If so, fire P2P NDEF to app.
+      // If not, drop message.
+
+      // This is a P2P notification with no ndef.
+      this._debug('P2P UI : Shrink UI');
+      // TODO: Upon user akcnowledgement on the shrunk UI,
+      //       system application notifies gecko of the top most window.
+
+      // Notify gecko of User's acknowledgement.
+      var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
+      nfcdom.setPeerWindow(currentActiveApp.manifestURL);
+      return;
+    }
+    this.handleNdefDiscovered(tech, sessionToken, ndefMsg);
   },
 
+  fireTagDiscovered: function fireTagDiscovered(command) {
+    var self = this;
+    // Fire off activity to whoever is registered to handle a generic binary
+    // blob tag (TODO: tagRead).
+    var technologyTags = command.tag;
+    var a = new MozActivity({
+      name: 'tag-discovered',
+      data: {
+        type: 'tag',
+        sessionId: command.sessionToken,
+        tag: technologyTags
+      }
+    });
+    a.onerror = function() {
+      self._debug('Firing tag-discovered failed');
+    };
+  },
+
+  // If a technology fails to match at the stated type, this function will just
+  // drop the message. Only if the technology is unknown does it get routed
+  // to "tag" discovered.
   handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
     this._debug('Technology Discovered: ' + JSON.stringify(command));
 
@@ -313,7 +349,6 @@ var NfcManager = {
 
     // Check for tech types:
     this._debug('command.tech: ' + command.tech);
-    var handled = false;
     var techs = command.tech; // FIXME: command.techlist
     var ndefMsg = null;
     if (command.ndef.length) {
@@ -333,57 +368,26 @@ var NfcManager = {
         continue;
       }
       var tech = techs[i];
-      if (tech == 'P2P') {
-        if (ndefMsg != null) {
-          // FIXME: Do P2P UI: Ask user if P2P event is acceptable in the
-          // app' surrent user context to accept a message via registered app
-          // callback/message. If so, fire P2P NDEF to app.
-          // If not, drop message.
-
-          // This is a P2P notification with no ndef.
-          this._debug('P2P UI : Shrink UI');
-          // TODO: Upon user akcnowledgement on the shrunk UI,
-          //       system application notifies gecko of the top most window.
-
-          // Notify gecko of User's acknowledgement.
-          var nfcdom = window.navigator.mozNfc;
-          var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
-          nfcdom.setPeerWindow(currentActiveApp.manifestURL);
-          return;
-        }
-        handled = this.handleNdefDiscovered(techs[i], command.sessionToken,
-                                           ndefMsg);
-      } else if (tech == 'NDEF') {
-        handled = this.handleNdefDiscovered(techs[i], command.sessionToken,
-                                           ndefMsg);
-      } else if (tech == 'NDEF_FORMATTABLE') {
-        handled = handleNdefFormattableDiscovered(techs[i],
-                                                  command.sessionToken);
-      } else if (tech == 'NFC_A') {
-        this._debug('NFCA unsupported: ' + command);
-      } else if (tech == 'MIFARE_ULTRALIGHT') {
-        this._debug('MiFare unsupported: ' + command);
-      } else {
-        this._debug('Unknown or unsupported tag tech type');
-      }
-
-      if (handled == true) {
+      switch (tech) {
+      case 'P2P':
+        this.handleP2P(command.sessionToken, ndefMsg);
         break;
+      case 'NDEF':
+        this.handleNdefDiscovered(techs[i], command.sessionToken, ndefMsg);
+        break;
+      case 'NDEF_FORMATTABLE':
+        this.handleNdefDiscoveredUseConnect(techs[i], command.sessionToken);
+        break;
+      case 'NFC_A':
+        this._debug('NFCA unsupported: ' + command);
+        break;
+      case 'MIFARE_ULTRALIGHT':
+        this._debug('MiFare unsupported: ' + command);
+        break;
+      default:
+        this._debug('Unknown or unsupported tag type. Fire Tag-Discovered.');
+        this.fireTagDiscovered(command);
       }
-    }
-
-    if (handled === false) {
-      // Fire off activity to whoever is registered to handle a generic binary
-      // blob tag (TODO: tagRead).
-      var technologyTags = command.tag;
-      var a = new MozActivity({
-        name: 'tag-discovered',
-        data: {
-          type: 'tag',
-          sessionId: command.sessionToken,
-          tag: technologyTags
-        }
-      });
     }
   },
 
@@ -400,7 +404,6 @@ var NfcManager = {
   },
 
   // Miscellaneous utility functions to handle formating the JSON for activities
-  // that have no special case handling.
 
   formatEmpty: function nm_formatEmpty(record) {
     this._debug('Activity for empty tag.');
