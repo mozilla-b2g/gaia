@@ -5,9 +5,13 @@ Keyboards['sr-Latn'] = {
   types: ['text', 'url', 'email'],
   autoCorrectLanguage: 'sr-Latn',
   alt: {
-    c: 'čć',
+    c: 'čćĉ',
     d: 'đ',
-    s: 'š',
+    g: 'ĝ',
+    h: 'ĥ',
+    j: 'ĵ',
+    s: 'šŝ',
+    u: 'ŭ',
     z: 'ž',
     '.': ',?!;:'
   },
