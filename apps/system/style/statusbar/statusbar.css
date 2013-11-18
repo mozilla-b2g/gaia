@@ -101,14 +101,11 @@ body, html {
   width: 1.6rem;
   height: 1.6rem;
   background: url('images/icons.png') no-repeat;
-  background-size: 31rem 9.6rem;
+  background-size: 31.4rem 9.6rem;
 }
 
 .sb-icon-battery {
-  width: 2.1rem;
-}
-.sb-icon-battery:not([data-level]) {
-  background-position: -28.6rem 0;
+  width: 2.5rem;
 }
 .sb-icon-battery[data-level="0"] {
   background-position: 0 0;
@@ -142,6 +139,9 @@ body, html {
 }
 .sb-icon-battery[data-level="100"] {
   background-position: -26rem 0;
+}
+.sb-icon-battery:not([data-level]) {
+  background-position: -28.6rem 0;
 }
 
 .sb-icon-battery:not([data-level])[data-charging="true"],
