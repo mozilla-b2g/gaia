@@ -10,6 +10,7 @@ class KeyboardPage(Base):
     _number_input_locator = (By.CSS_SELECTOR, 'input[type="number"]')
     _text_input_locator = (By.CSS_SELECTOR, 'input[type="text"]')
     _email_input_locator = (By.CSS_SELECTOR, 'input[type="email"]')
+    _url_input_locator = (By.CSS_SELECTOR, 'input[type="url"]')
     _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='keyboard']")
 
     def __init__(self, marionette):
@@ -49,3 +50,12 @@ class KeyboardPage(Base):
     def email_input(self):
         return self.marionette.find_element(*self._email_input_locator).get_attribute('value')
 
+    def tap_url_input(self):
+        self.marionette.find_element(*self._url_input_locator).tap()
+        from gaiatest.apps.keyboard.app import Keyboard
+
+        return Keyboard(self.marionette)
+
+    @property
+    def url_input(self):
+        return self.marionette.find_element(*self._url_input_locator).get_attribute('value')
