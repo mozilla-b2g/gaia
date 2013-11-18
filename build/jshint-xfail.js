@@ -1,21 +1,21 @@
-"use strict";
+'use strict';
 
-var fs = require("fs");
+var fs = require('fs');
 module.exports = {
   reporter: function (results, data, opts) {
-    var whitelist;
+    var xfail;
     var len = results.length;
     var redErrors = '';
-    var whiteErrors = '';
+    var xErrors = '';
     var lastFile;
     var fileCount = 0;
 
     try {
-      whitelist = fs.readFileSync('./.jshintwhitelist', 'utf-8');
-      whitelist = whitelist.split('\n');
+      xfail = fs.readFileSync('build/jshint-xfail.list', 'utf-8');
+      xfail = xfail.split('\n');
     } catch (e) {
-      process.stdout.write('Error reading .jshintwhitelist\n');
-      whitelist = [];
+      process.stdout.write('Error reading build/jshint-xfail.list\n');
+      xfail = [];
     }
 
     opts = opts || {};
@@ -24,7 +24,7 @@ module.exports = {
     var red = results.filter(function (result) {
       var file = result.file;
       var error = result.error;
-      var white = whitelist.indexOf(file) !== -1;
+      var expected = xfail.indexOf(file) !== -1;
       var str = '';
       if (lastFile && (file !== lastFile)) {
         fileCount = 0;
@@ -39,39 +39,39 @@ module.exports = {
         str += ' (' + error.code + ')';
       }
 
-      if (white) {
-        str += ' (white)';
+      if (expected) {
+        str += ' (xfail)';
         if (!opts.verbose) {
           if (fileCount === 6) {
-            whiteErrors += file + ': more whitelisted errors silenced,' +
+            xErrors += file + ': more xfail errors silenced,' +
               ' run with --verbose\n';
           } else if (fileCount < 6) {
-            whiteErrors += str + '\n';
+            xErrors += str + '\n';
           }
         } else {
-          whiteErrors += str + '\n';
+          xErrors += str + '\n';
         }
       } else {
         str += ' (ERROR)';
         redErrors += str + '\n';
       }
 
-      return !white;
+      return !expected;
     });
 
     var redCount = red.length;
-    var whiteCount = len - redCount;
+    var xCount = len - redCount;
 
     // if we are running in travis, skip output of white errors
     if (process.env.CI_ACTION) {
-      whiteErrors = '';
+      xErrors = '';
     }
 
     process.stdout.write(
       // show redErrors first always
-      redErrors + whiteErrors + '\n' +
+      redErrors + xErrors + '\n' +
       redCount + ' error' + ((redCount === 1) ? '' : 's') +
-      (whiteCount ? ' (' + (whiteCount) + ' whitelisted)' : '') +
+      (xCount ? ' (' + (xCount) + ' xfailed)' : '') +
       '\n'
     );
     // interesting - if we modify 'results' to be 0 in length, jshint exits

@@ -857,23 +857,25 @@ endif
 # Utils                                                                       #
 ###############################################################################
 
-.PHONY: lint hint
+.PHONY: lint gjslint hint
 
 # Lint apps
-## only gjslint files from .jshintwhitelist - files not yet safe to jshint
+## only gjslint files from build/jshint-xfail.list - files not yet safe to jshint
 ifndef LINTED_FILES
 ifdef APP
   JSHINTED_PATH = apps/$(APP)
-  GJSLINTED_PATH = $(shell cat .jshintwhitelist | grep "^apps/$(APP)" | paste -s -d" " -)
+  GJSLINTED_PATH = $(shell cat build/jshint-xfail.list | grep "^apps/$(APP)" | paste -s -d" " -)
 else
   JSHINTED_PATH = apps shared
-  GJSLINTED_PATH = $(shell cat .jshintwhitelist | paste -s -d" " -)
+  GJSLINTED_PATH = $(shell cat build/jshint-xfail.list | paste -s -d" " -)
 endif
 endif
 
-lint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
-lint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
-lint:
+lint: make -s gjslint hint
+
+gjslint: GJSLINT_EXCLUDED_DIRS = $(shell grep '\/\*\*$$' .jshintignore | sed 's/\/\*\*$$//' | paste -s -d, -)
+gjslint: GJSLINT_EXCLUDED_FILES = $(shell egrep -v '(\/\*\*|^\s*)$$' .jshintignore | paste -s -d, -)
+gjslint:
 	# You should also `make hint` if you want to really check for lint! Only legacy files are
 	# being checked by `make lint` anymore.
 	#
@@ -881,12 +883,14 @@ lint:
 	# http://code.google.com/p/closure-linter/issues/detail?id=64
 	@gjslint --disable 210,217,220,225 -e '$(GJSLINT_EXCLUDED_DIRS)' -x '$(GJSLINT_EXCLUDED_FILES)' $(GJSLINTED_PATH) $(LINTED_FILES)
 
+JSHINT_ARGS := --reporter=build/jshint-xfail $(JSHINT_ARGS)
+
 ifdef JSHINTRC
 	JSHINT_ARGS := $(JSHINT_ARGS) --config $(JSHINTRC)
 endif
 
 hint: node_modules/.bin/jshint
-	./node_modules/.bin/jshint --reporter=jshint-whitelist $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES)
+	./node_modules/.bin/jshint $(JSHINT_ARGS) $(JSHINTED_PATH) $(LINTED_FILES)
 
 # Erase all the indexedDB databases on the phone, so apps have to rebuild them.
 delete-databases:

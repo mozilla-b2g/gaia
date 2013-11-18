@@ -22,19 +22,19 @@ if [ -z "$diff_with_exclude" ] ; then
   exit 0
 fi
 
-# Only test files whitelisted in jshint in gjslint
-whitelisted=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$' | comm -12 .jshintwhitelist - | tr '[:space:]' ' '`
+# Only test files xfailed in jshint in gjslint
+xfailed=`git diff --staged --name-only --diff-filter=ACMRT -- $LINTED_DIRECTORIES | grep '\.js$' | comm -12 build/jshint-xfail.list - | tr '[:space:]' ' '`
 
-if [ -n "$whitelisted" ] ; then
+if [ -n "$xfailed" ] ; then
   echo "gjslint:"
-  LINTED_FILES="$whitelisted" make -s lint || exit 1
+  LINTED_FILES="$xfailed" make -s gjslint || exit 1
 fi
 
 echo "jshint:"
-# warn about files being whitelisted
+# warn about files being xfailed
 for file in $diff_with_exclude ; do
-  grep $file .jshintwhitelist > /dev/null 2>&1 && \
-   echo "$file is in the .jshintwhitelist - errors will be ignored. Please consider fixing lint errors and removing it from the .jshintwhitelist"
+  grep $file build/jshint-xfail.list > /dev/null 2>&1 && \
+   echo "$file is in the build/jshint-xfail.list - errors will be ignored. Please consider fixing lint errors and removing it from the build/jshint-xfail.list"
 done
 
 LINTED_FILES="$diff_with_exclude" make -s hint && echo "No errors - committing"
