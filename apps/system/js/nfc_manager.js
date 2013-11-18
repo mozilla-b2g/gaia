@@ -212,19 +212,19 @@ var NfcManager = {
 
     switch (+record.tnf) {
       case NDEF.tnf_empty:
-        action = this.handleEmpty(record);
+        action = this.formatEmpty(record);
         break;
       case NDEF.tnf_well_known:
-        action = this.handleWellKnownRecord(record);
+        action = this.formatWellKnownRecord(record);
         break;
       case NDEF.tnf_absolute_uri:
-        action = this.handleURIRecord(record);
+        action = this.formatURIRecord(record);
         break;
       case NDEF.tnf_mime_media:
-        action = this.handleMimeMedia(record);
+        action = this.formatMimeMedia(record);
         break;
       case NDEF.tnf_external_type:
-        action = this.handleExternalType(record);
+        action = this.formatExternalType(record);
         break;
       case NDEF.tnf_unknown:
       case NDEF.tnf_unchanged:
@@ -398,8 +398,10 @@ var NfcManager = {
     });
   },
 
-  // NDEF parsing functions
-  handleEmpty: function nm_handleEmpty(record) {
+  // Miscellaneous utility functions to handle formating the JSON for activities
+  // that have no special case handling.
+
+  formatEmpty: function nm_formatEmpty(record) {
     this._debug('Activity for empty tag.');
     return {
       name: 'nfc-ndef-discovered',
@@ -409,23 +411,23 @@ var NfcManager = {
     };
   },
 
-  handleWellKnownRecord: function nm_handleWellKnownRecord(record) {
+  formatWellKnownRecord: function nm_formatWellKnownRecord(record) {
     this._debug('HandleWellKnowRecord');
     if (NfcUtil.equalArrays(record.type, NDEF.rtd_text)) {
-      return this.handleTextRecord(record);
+      return this.formatTextRecord(record);
     } else if (NfcUtil.equalArrays(record.type, NDEF.rtd_uri)) {
-      return this.handleURIRecord(record);
+      return this.formatURIRecord(record);
     } else if (NfcUtil.equalArrays(record.type, NDEF.rtd_smart_poster)) {
-      return this.handleSmartPosterRecord(record);
+      return this.formatSmartPosterRecord(record);
     } else if (NfcUtil.equalArrays(record.type, NDEF.smartposter_action)) {
-      return this.handleSmartPosterAction(record);
+      return this.formatSmartPosterAction(record);
     } else {
       console.log('Unknown record type: ' + JSON.stringify(record));
     }
     return null;
   },
 
-  handleTextRecord: function nm_handleTextRecord(record) {
+  formatTextRecord: function nm_formatTextRecord(record) {
     var status = record.payload[0];
     var languageLength = status & NDEF.rtd_text_iana_length;
     var language = NfcUtil.toUTF8(
@@ -454,7 +456,7 @@ var NfcManager = {
     return activityText;
   },
 
-  handleURIRecord: function nm_handleURIRecord(record) {
+  formatURIRecord: function nm_formatURIRecord(record) {
     this._debug('XXXX Handle Ndef URI type');
     var activityText = null;
     var prefix = NDEF.uris[record.payload[0]];
@@ -487,13 +489,13 @@ var NfcManager = {
     return activityText;
   },
 
-  handleMimeMedia: function nm_handleMimeMedia(record) {
+  formatMimeMedia: function nm_formatMimeMedia(record) {
     var type = 'mime-media';
     var activityText = null;
 
     this._debug('HandleMimeMedia');
     if (NfcUtil.equalArrays(record.type, NfcUtil.fromUTF8('text/vcard'))) {
-      activityText = this.handleVCardRecord(record);
+      activityText = this.formatVCardRecord(record);
     } else {
       activityText = {
         name: 'nfc-ndef-discovered',
@@ -505,7 +507,7 @@ var NfcManager = {
     return activityText;
   },
 
-  handleVCardRecord: function nm_handleVCardRecord(record) {
+  formatVCardRecord: function nm_formatVCardRecord(record) {
     var vcardBlob = new Blob([NfcUtil.toUTF8(record.payload)],
                              {'type': 'text/vcard'});
     var activityText = {
@@ -518,7 +520,7 @@ var NfcManager = {
     return activityText;
   },
 
-  handleExternalType: function nm_handleExternalType(record) {
+  formatExternalType: function nm_formatExternalType(record) {
     var activityText = {
       name: 'nfc-ndef-discovered',
       data: {
@@ -531,7 +533,7 @@ var NfcManager = {
 
   // Smartposters can be multipart NDEF messages.
   // The meaning and actions are application dependent.
-  handleSmartPosterRecord: function nm_handleSmartPosterRecord(record) {
+  formatSmartPosterRecord: function nm_formatSmartPosterRecord(record) {
     var activityText = {
       name: 'nfc-ndef-discovered',
       data: {
@@ -541,7 +543,7 @@ var NfcManager = {
     return activityText;
   },
 
-  handleSmartPosterAction: function nm_handleSmartPosterAction(record) {
+  formatSmartPosterAction: function nm_formatSmartPosterAction(record) {
     // The recommended action has an application specific meaning:
     var smartaction = record.payload[0];
     var activityText = {
