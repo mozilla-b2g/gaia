@@ -2791,13 +2791,31 @@ ServerHandler.prototype =
     }
     else
     {
+      var lastModified;
+
       try
       {
-        response.setHeader("Last-Modified",
-                           toDateString(file.lastModifiedTime),
-                           false);
+        lastModified = toDateString(file.lastModifiedTime);
+        response.setHeader("Last-Modified", lastModified, false);
       }
-      catch (e) { /* lastModifiedTime threw, ignore */ }
+      catch (e) {
+        /* lastModifiedTime threw, ignore */
+        lastModified = null;
+      }
+
+      // force revalidation
+      response.setHeader("Expires", "-1");
+
+      var ifModifiedSince;
+      if (metadata.hasHeader("If-Modified-Since")) {
+        ifModifiedSince = metadata.getHeader("If-Modified-Since");
+      }
+
+      if (lastModified && ifModifiedSince && lastModified === ifModifiedSince) {
+        dumpn(">>> file was not modified, returning a 304 code");
+        response.setStatusLine("1.1", 304);
+        return;
+      }
 
       response.setHeader("Content-Type", type, false);
       maybeAddHeaders(file, metadata, response);
