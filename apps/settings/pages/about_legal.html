@@ -1,34 +1,35 @@
-<element name="about-legal" extends="section">
-  <template>
+<!DOCTYPE HTML>
+<html>
+<head is="settings-head"></head>
+<body>
+  <header>
+    <a href="#about">
+      <span class="icon icon-back">back</span>
+    </a>
+    <h1 data-l10n-id="about-legal-info"> Legal Information </h1>
+  </header>
 
+  <div>
     <header>
-      <a href="#about">
-        <span class="icon icon-back">back</span>
-      </a>
-      <h1 data-l10n-id="about-legal-info"> Legal Information </h1>
+      <h2 data-l10n-id="about-mozilla"> Mozilla </h2>
     </header>
+    <ul>
+      <li>
+        <a href="#about-licensing" data-l10n-id="open-source-notices">
+          Open Source Notices
+        </a>
+      </li>
+      <li>
+        <a href="#about-source-code" data-l10n-id="obtaining-source-code">
+          Obtaining Source Code
+        </a>
+      </li>
+    </ul>
 
-    <div>
-      <header>
-        <h2 data-l10n-id="about-mozilla"> Mozilla </h2>
-      </header>
-      <ul>
-        <li>
-          <a href="#about-licensing" data-l10n-id="open-source-notices">
-            Open Source Notices
-          </a>
-        </li>
-        <li>
-          <a href="#about-source-code" data-l10n-id="obtaining-source-code">
-            Obtaining Source Code
-          </a>
-        </li>
-      </ul>
+    <header hidden>
+      <h2 data-l10n-id="about-other"> Other </h2>
+    </header>
+  </div>
 
-      <header hidden>
-        <h2 data-l10n-id="about-other"> Other </h2>
-      </header>
-    </div>
-
-  </template>
-</element>
+</body>
+</html>

@@ -473,50 +473,6 @@ var Settings = {
     }
   },
 
-  handleEvent: function settings_handleEvent(event) {
-    var input = event.target;
-    var type = input.type;
-    var key = input.name;
-
-    var settings = window.navigator.mozSettings;
-    //XXX should we check data-ignore here?
-    if (!key || !settings || event.type != 'change')
-      return;
-
-    // Not touching <input> with data-setting attribute here
-    // because they would have to be committed with a explicit "submit"
-    // of their own dialog.
-    if (input.dataset.setting)
-      return;
-
-    var value;
-    switch (type) {
-      case 'checkbox':
-      case 'switch':
-        value = input.checked; // boolean
-        break;
-      case 'range':
-        // Bug 906296:
-        //   We parseFloat() once to be able to round to 1 digit, then
-        //   we parseFloat() again to make sure to store a Number and
-        //   not a String, otherwise this will make Gecko unable to
-        //   apply new settings.
-        value = parseFloat(parseFloat(input.value).toFixed(1)); // float
-        break;
-      case 'select-one':
-      case 'radio':
-      case 'text':
-      case 'password':
-        value = input.value; // default as text
-        if (input.dataset.valueType === 'integer') // integer
-          value = parseInt(value);
-        break;
-    }
-
-    var cset = {}; cset[key] = value;
-    settings.createLock().set(cset);
-  },
-
   openDialog: function settings_openDialog(dialogID) {
     var settings = this.mozSettings;
     var dialog = document.getElementById(dialogID);
@@ -645,7 +601,6 @@ var Settings = {
 // apply user changes to 'Settings' + panel navigation
 window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
-  window.addEventListener('change', Settings);
 
   navigator.addIdleObserver({
     time: 3,
@@ -727,12 +682,16 @@ window.addEventListener('load', function loadSettings() {
     }
 
     var href = target.getAttribute('href');
-    // skips the following case:
-    // 1. no href, which is not panel
-    // 2. href is not a hash which is not a panel
-    // 3. href equals # which is translated with loadPanel function, they are
-    //    external links.
-    if (!href || !href.startsWith('#') || href === '#') {
+    if (href && href.startsWith('/')) {
+      e.preventDefault();
+      window.open(href);
+      return;
+    } else if (!href || !href.startsWith('#') || href === '#') {
+      // skips the following case:
+      // 1. no href, which is not panel
+      // 2. href is not a hash which is not a panel
+      // 3. href equals # which is translated with loadPanel function, they are
+      //    external links.
       return;
     }
 
