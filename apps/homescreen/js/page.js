@@ -932,7 +932,7 @@ Page.prototype = {
       }
       callback();
     } else if ('isIcon' in elem.dataset && this.olist &&
-               !this.olist.getAttribute('disabled')) {
+               !document.body.hasAttribute('disabled-tapping')) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
         return;
@@ -960,18 +960,23 @@ Page.prototype = {
    * @param{Function} callback
    */
   disableTap: function pg_disableTap(callback) {
-    var olist = this.olist;
-    olist.setAttribute('disabled', true);
+    document.body.setAttribute('disabled-tapping', true);
 
     var enableTap = function enableTap() {
       document.removeEventListener('visibilitychange', enableTap);
       document.removeEventListener('collectionopened', enableTap);
-      olist.removeAttribute('disabled');
-      callback();
+      window.removeEventListener('hashchange', enableTap);
+      document.body.removeAttribute('disabled-tapping');
+      callback && callback();
     };
 
+    // We are going to enable the tapping feature under these conditions:
+    // 1. The opened app is in foreground
     document.addEventListener('visibilitychange', enableTap);
+    // 2. The opened collection is in foreground
     document.addEventListener('collectionopened', enableTap);
+    // 3. Users click on home button quickly while app are opening
+    window.addEventListener('hashchange', enableTap);
   },
 
   /*
