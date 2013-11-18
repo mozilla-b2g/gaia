@@ -945,15 +945,19 @@ var Camera = {
 
     var viewfinder = this.viewfinder;
     var style = viewfinder.style;
-    // Switch screen dimensions to landscape
-    var screenWidth = document.body.clientHeight * window.devicePixelRatio;
-    var screenHeight = document.body.clientWidth * window.devicePixelRatio;
+    // Switch screen dimensions to landscape. The screen width/height is css
+    // pixel size. The following calculation are all based on css pixel.
+    var screenWidth = document.body.clientHeight;
+    var screenHeight = document.body.clientWidth;
+    // We need real device pixel size to choose the correct preview image size.
+    var deviceWidth = screenWidth * window.devicePixelRatio;
+    var deviceHeight = screenHeight * window.devicePixelRatio;
     var pictureAspectRatio = this._pictureSize.height / this._pictureSize.width;
     var screenAspectRatio = screenHeight / screenWidth;
 
     // Previews should match the aspect ratio and not be smaller than the screen
     var validPreviews = camera.capabilities.previewSizes.filter(function(res) {
-      var isLarger = res.height >= screenHeight && res.width >= screenWidth;
+      var isLarger = res.height >= deviceHeight && res.width >= deviceWidth;
       var aspectRatio = res.height / res.width;
       var matchesRatio = Math.abs(aspectRatio - pictureAspectRatio) < 0.05;
       return matchesRatio && isLarger;
