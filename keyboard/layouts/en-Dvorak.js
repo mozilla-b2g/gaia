@@ -6,13 +6,16 @@ Keyboards['en-Dvorak'] = {
   autoCorrectLanguage: 'en_us',
   alt: {
     a: 'àáâãäåāæ',
-    c: 'çćč',
+    c: 'çćĉč',
     e: 'èéêëē€',
+    g: 'ĝ',
+    h: 'ĥ',
     i: 'ìíîïī',
+    j: 'ĵ',
     o: 'òóôõöōœø',
-    u: 'ùúûüū',
-    s: 'śšşß',
-    S: 'ŚŠŞ',
+    u: 'ùúûüūŭ',
+    s: 'śŝšşß',
+    S: 'ŚŜŠŞ',
     n: 'ńñň'
   },
   textLayoutOverwrite: {
