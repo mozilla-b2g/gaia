@@ -281,7 +281,7 @@ function optimize_embedHtmlImports(doc, app, htmlFile) {
   });
 
   // Insert comment node
-  var replaceableElements = doc.querySelectorAll('*[is]');
+  var replaceableElements = doc.querySelectorAll('*[is][defer]');
   Array.prototype.forEach.call(replaceableElements, function eachEl(el) {
     el.innerHTML = '<!--' + elementTemplates[el.getAttribute('is')] + '-->';
     el.removeAttribute('is');

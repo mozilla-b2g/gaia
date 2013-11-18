@@ -49,11 +49,6 @@
     <script type="text/javascript" defer src="js/configurator.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
-
-    <link rel="import" href="/elements/contextmenu.html">
-    <link rel="import" href="/elements/confirm_dialog.html">
-    <link rel="import" href="/elements/search_page.html">
-    <link rel="import" href="/elements/loading_dialog.html">
   </head>
 
   <body data-mode="normal">
@@ -67,17 +62,17 @@
       </span>
     </div>
 
-    <section is="confirm-dialog" id="confirm-dialog"></section>
+    <section defer is="confirm-dialog" id="confirm-dialog"></section>
 
-    <section is="contextmenu-dialog" id="contextmenu-dialog"></section>
+    <section defer is="contextmenu-dialog" id="contextmenu-dialog"></section>
 
-    <section is="loading-dialog" id="loading-dialog"></section>
+    <section defer is="loading-dialog" id="loading-dialog"></section>
 
     <header id="paginationBar">
       <div class="paginationScroller" role="slider" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0" aria-controls="icongrid"></div>
     </header>
 
-    <section is="search-page" id="search-page"></section>
+    <section defer is="search-page" id="search-page"></section>
 
     <div id="icongrid" class="apps" role="main"></div>
 

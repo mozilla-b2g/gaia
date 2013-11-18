@@ -146,7 +146,7 @@ suite('lazy loader', function() {
   test('populate web components', function(done) {
     document.body.innerHTML = [
       '<link rel="import" href="/test/unit/support/elements.html"> ',
-      '<div id="wrapper" is="custom-content"></div>'
+      '<div id="wrapper" defer is="custom-content"></div>'
       ].join('');
 
     var wrapper = document.getElementById('wrapper');
