@@ -428,3 +428,38 @@ html[dir="rtl"] #bluetooth .devices li {
   padding-right: inherit;
 }
 
+
+/******************************************************************************
+ * Styles for Settings List under id='root'
+ */
+#root .menu-item::before {
+  content: '';
+  position: absolute;
+  width: 3rem;
+  background-image: url(images/icons_sprite.gif);
+  background-size: 15rem;
+  left: 1.5rem;
+  top: calc((100% - 3rem) / 2);
+  height: 100%;
+  clip: rect(0, 3rem, 3rem, 0);
+  z-index: -1;
+}
+
+/******************************************************************************
+ * Wi-Fi icons
+ */
+#root aside.pack-end {
+  position: absolute;
+  z-index: 2;
+  right: 1.5rem;
+  margin: 0 0 0 0.5rem;
+  text-align: right;
+ }
+#root aside.wifi-icon {
+  background-repeat: no-repeat;
+  background-position: 0 center;
+  background-size: 16rem;
+  width: 3.2rem;
+  height: 5.6rem;
+  top: 0;
+}

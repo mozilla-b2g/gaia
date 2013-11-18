@@ -46,7 +46,7 @@ ul li > label > span {
   margin: 0 -1.5rem;
 }
 
-ul li.active a,
+/*ul li.active a,
 ul li.active span,
 ul li:not([aria-disabled="true"]) > small + a:active,
 ul li:not([aria-disabled="true"]) > a[href]:active,
@@ -54,7 +54,7 @@ ul li:not([aria-disabled="true"]) > small + a:focus,
 ul li:not([aria-disabled="true"]) > a[href]:focus {
   background-color: #b2f2ff;
   color: #222;
-}
+}*/
 
 ul li[aria-disabled="true"] > a {
   color: #797e80;
@@ -171,12 +171,12 @@ ul li > label.pack-radio > span {
   padding-right: 5.9rem;
 }
 
-ul li > label.pack-checkbox:active > span,
+/*ul li > label.pack-checkbox:active > span,
 ul li > label.pack-radio:active > span,
 ul li > label.pack-switch:active > span {
   background-color: #b2f2ff;
   color: #222;
-}
+}*/
 
 /******************************************************************************
  * Field inputs
@@ -373,4 +373,196 @@ html[dir="rtl"] ul li > a,
 html[dir="rtl"] ul li > span {
   padding-left: inherit;
   padding-right: 3rem;
+}
+
+/******************************************************************************
+ * Styles for Settings List under id='root'
+ */
+#root ul {
+  margin: 0;
+  overflow: hidden;
+  list-style: none;
+  padding: 0 1.5rem;
+}
+
+#root ul li {
+  -moz-box-sizing: border-box;
+  position: relative;
+  border-bottom: 0.1rem solid #e6e6e3;
+  color: #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 1rem 0;
+  min-height: 6rem;
+  margin: 0;
+}
+
+#root ul li:last-child {
+  border-bottom: none;
+}
+
+#root ul li.sound-setting {
+  min-height: 7.9rem;
+}
+
+#root ul li label:not([for]) {
+  background: none;
+}
+
+/* Hide elements with attribute hidden and display:flex */
+#root ul li[hidden] {
+  display: none;
+}
+
+#root ul li > a,
+#root ul li > span,
+#root ul li > label {
+  text-decoration: none;
+  outline: 0;
+  color: #000;
+  -moz-box-sizing: border-box;
+  font-size: 1.9rem;
+  margin: -1rem -1.5rem;
+  padding: 1rem 1.5rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  width: calc(100% + 3rem);
+  min-height: 6rem;
+  height: auto;
+  position: relative;
+}
+
+#root ul li > label.menu-item,
+#root ul li > a.menu-item {
+  padding: 1rem 1.5rem 1rem 5.5rem;
+}
+
+#root ul li.text-right > label,
+#root ul li.text-right > a {
+  flex-direction: row;
+}
+
+#root ul li[aria-disabled="true"] {
+  pointer-eventspointer-events: none;
+}
+
+ul li.active:after,
+ul li > label:active:after,
+ul li > a:active:after{
+  content:'';
+  background-color: rgba(0,213,255,0.3);
+  position: absolute;
+  top: 0rem;
+  right: -1.5rem;
+  bottom: 0rem;
+  left: -1.5rem;
+  z-index: 101;
+  width: auto;
+}
+
+ul li a:active,
+ul li label:active{
+  background: none;
+}
+
+#root ul li[aria-disabled="true"] > a {
+  color: #797e80;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+
+/* custom styles for boolean inputs (see /shared/style/switches.css) */
+#root ul li label {
+  text-transform: none;
+}
+
+#root ul li > label:not([for]),
+#root ul li > label.pack-checkbox,
+#root ul li > label.pack-radio,
+#root ul li > label.pack-switch {
+  display: flex;
+  min-height: 6rem;
+  height: 100%;
+  width: calc(100% + 3rem);
+}
+
+#root ul li > label.pack-switch > span {
+  margin-right: 7rem;
+  margin-left: 0rem;
+  padding: 0px;
+  line-height: 2.3rem;
+  height: auto;
+  white-space: normal;
+}
+#root ul li > label.pack-switch > small {
+  margin-right: 7rem;
+  margin-left: 0rem;
+  position: static;
+  padding-top:0.2rem;
+}
+
+#root ul li > label.pack-checkbox > span:after,
+#root ul li > label.pack-radio > span:after,
+#root ul li > label.pack-switch > input ~ span:after {
+  left: auto;
+  right: 1.5rem;
+}
+
+#root ul li > label.pack-checkbox > span.left-checkbox {
+  padding-left: 1.5rem;
+}
+#root ul li > label.pack-checkbox > span.left-checkbox:after {
+  left: 2.5rem;
+  right: auto;
+}
+
+#root ul li > label.pack-checkbox ~ a,
+#root ul li > label.pack-radio ~ a {
+  padding-right: 6.1rem;
+}
+#root ul li > label.pack-radio ~ p {
+  padding-right: 3rem;
+}
+
+#root ul li > label.pack-switch ~ a {
+   padding-right: 9rem;
+}
+#root ul li > label.pack-radio ~ a {
+  padding-right: 5.9rem;
+}
+
+#root ul li > label.pack-checkbox:active > span,
+#root ul li > label.pack-radio:active > span,
+#root ul li > label.pack-switch:active > span,
+#root ul li > a:active:after > span {
+  background: none;
+}
+
+/* sublines */
+#root ul li > a > small, 
+#root ul li > label > small {
+  font-size: 1.4rem;
+  color: #505859;
+  line-height: 1.6rem;
+  margin-top: 0.2rem;
+  white-space: normal;
+}
+
+#root ul li p {
+  font-size: 1.9rem;
+  line-height: 2.3rem;
+  font-weight: 400;
+  margin: 0;
+  padding: 0rem;
+  white-space: normal;
+}
+
+#root ul li a > p,
+#root ul li a > small {
+  pointer-events: none;
 }
