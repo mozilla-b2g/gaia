@@ -8,7 +8,9 @@ from marionette.by import By
 
 class TestMarketplaceLaunch(GaiaTestCase):
     
+    _marketplace_iframe_locator = (By.CSS_SELECTOR, 'iframe[src*="marketplace"]')
     _loading_fragment_locator = (By.CSS_SELECTOR, 'div.loading-fragment')
+    _site_header_locator = (By.ID, 'site-header')
     
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -26,6 +28,10 @@ class TestMarketplaceLaunch(GaiaTestCase):
         marketplace = homescreen.installed_app(app_name)
         marketplace.tap_icon()
         
-        self.assertIn(app_name, self.marionette.title)
-
         self.wait_for_element_not_displayed(*self._loading_fragment_locator)
+        
+        iframe = self.marionette.find_element(*self._marketplace_iframe_locator)
+        self.marionette.switch_to_frame(iframe)
+        
+        self.wait_for_element_displayed(*self._site_header_locator)
+
