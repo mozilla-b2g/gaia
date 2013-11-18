@@ -226,14 +226,14 @@
     },
     enableSimCard: function(cardIndex) {
       this.getSimCard(cardIndex).setState('enabled');
-      this.updateSimCardsUI(cardIndex);
+      this.updateSimCardUI(cardIndex);
 
       // TODO:
       // call new Gecko API to enable this simcard
     },
     disableSimCard: function(cardIndex) {
       this.getSimCard(cardIndex).setState('disabled');
-      this.updateSimCardsUI(cardIndex);
+      this.updateSimCardUI(cardIndex);
 
       // TODO:
       // call new Gecko API to disable this simcard
