@@ -966,6 +966,12 @@ var LockScreen = {
     }
 
     panel = panel || 'main';
+    if ('main' === panel) {
+      this.restoreSlide();
+      this.slideLeft.classList.remove('touched');
+      this.slideCenter.classList.remove('touched');
+      this.slideRight.classList.remove('touched');
+    }
     var overlay = this.overlay;
     var currentPanel = overlay.dataset.panel;
 
