@@ -112,7 +112,7 @@ marionette('media playback tests', function() {
         });
       });
 
-      test('should play/pause from notification area', function() {
+      test('should play/pause from now playing widget', function() {
         music.runInApp(function() {
           music.albumOneElement.click();
         });
@@ -136,6 +136,25 @@ marionette('media playback tests', function() {
             assert.equal(music.isPlaying, true);
           });
           assert.equal(container.isPlaying, true);
+        });
+      });
+
+      test('should play/pause from now playing widget after closing and ' +
+           'reopening music app', function() {
+        music.close();
+        music.launchInBackground();
+
+        music.runInApp(function() {
+          music.albumOneElement.click();
+        });
+
+        playback[suiteInfo.opener](function(container) {
+          container.waitForContainerShown(true);
+          container.playPause();
+          music.runInApp(function() {
+            assert.equal(music.isPlaying, false);
+          });
+          assert.equal(container.isPlaying, false);
         });
       });
 
