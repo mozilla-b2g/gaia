@@ -131,7 +131,6 @@ ol:not([disabled]) li.active > div > img {
   height: 1.6rem; /* 15px in otoro */
   margin: 0.3rem auto 0;
   font-weight: 500;
-  letter-spacing: -0.025rem;
 }
 
 /* Alternative icons when an app is being installed */
