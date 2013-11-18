@@ -329,12 +329,6 @@
     initSimCardsUI: function() {
       var simItemHTMLs = [];
 
-      // cleanup old child nodes first
-      while (this.simCardContainer.hasChildNodes()) {
-        this.simCardContainer.removeChild(
-          this.simCardContainer.lastChild);
-      }
-
       // inject new childs
       this.simcards.forEach(function(simcard, index) {
         simItemHTMLs.push(
