@@ -239,6 +239,54 @@
     '101', '102', '103', '104', '105', '106', '107', '108', '109'
   ];
 
+  // Fake drafts stored in local store
+  (function() {
+    var d1, d2, d3, d4, d5;
+    d1 = new Draft({
+      recipients: ['555', '666'],
+      content: 'This is a draft message',
+      timestamp: 1,
+      threadId: 42,
+      type: 'sms'
+    });
+    d2 = new Draft({
+      recipients: ['555'],
+      content: 'This is a draft message',
+      timestamp: 2,
+      threadId: 42,
+      type: 'sms'
+    });
+    d3 = new Draft({
+      recipients: ['555', '222'],
+      content: 'This is a draft message',
+      timestamp: 3,
+      threadId: 1,
+      type: 'sms'
+    });
+    d4 = new Draft({
+      recipients: ['555', '333'],
+      content: 'This is a draft message',
+      timestamp: 4,
+      threadId: 2,
+      type: 'sms'
+    });
+    d5 = new Draft({
+      recipients: ['555', '444'],
+      content: 'This is a draft message',
+      timestamp: 5,
+      threadId: null,
+      type: 'sms'
+    });
+    Drafts.clear();
+    Drafts.add(d1);
+    Drafts.add(d2);
+    Drafts.add(d3);
+    Drafts.add(d4);
+    Drafts.add(d5);
+    Drafts.store();
+  }());
+
+
   // Fake in-memory message database
   var messagesDb = {
     id: 0,
