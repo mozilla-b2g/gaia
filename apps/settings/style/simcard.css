@@ -48,7 +48,11 @@
   padding: 1.5rem 0;
 }
 .sim-card .pack-switch {
+  position: absolute;
+  right: 0;
+  top: 0;
   height: 60%;
+  width: 5.3rem;
 
   /*
    * Because of opacity in .information-container will make
