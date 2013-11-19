@@ -5,6 +5,9 @@
 
 (function(exports) {
 
+  // track used constants here
+  const EMPTY_OPTION = '--';
+
   var _ = window.navigator.mozL10n.get;
 
   /*
@@ -348,7 +351,7 @@
 
           if (simcardInfo.absent) {
             option.value = -1;
-            option.text = '--';
+            option.text = EMPTY_OPTION;
           }
 
           // select the first simcard by default
