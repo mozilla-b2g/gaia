@@ -81,6 +81,10 @@ def download_app(manifest_url, manifest, app_path, app_id, origin, installOrigin
     }
     metadata = json.dumps(metadata)
 
+    manifest = json.loads(manifest)
+    manifest.pop('appcache_path', None)
+    manifest = json.dumps(manifest)
+
     """ Save to filesystem """
     with open(os.path.join(app_path, filename), 'wb') as temp_file:
         temp_file.write(manifest)
@@ -116,22 +120,25 @@ def fetch_manifest(app_id, manifest_url, origin, installOrigin, profile_path, ap
     if not os.path.exists(app_path):
         os.makedirs(app_path)
 
-    with open(os.path.join(app_path, 'manifest.tmp'), 'wb') as temp_file:
-        temp_file.write(manifest)
-
     if is_app_cached:
         """ Compare manifests  """
         manifestName = 'manifest.webapp'
         if os.path.exists(os.path.join(app_path, 'update.webapp')):
             manifestName = 'update.webapp'
-        if filecmp.cmp(os.path.join(app_path, manifestName), os.path.join(app_path, 'manifest.tmp')):
+
+        with open(os.path.join(app_path, manifestName), 'r') as json_file:
+            local_manifest = json.load(json_file)
+
+        manifest = json.loads(manifest)
+        manifest.pop('appcache_path', None)
+        manifest = json.dumps(manifest, sort_keys=True)
+
+        if manifest == json.dumps(local_manifest, sort_keys=True):
             """ Cached manifest and rmeote are equal """
-            os.remove(os.path.join(app_path, 'manifest.tmp'))
             copy_app(app_path, profile_path, app_id)
             return
 
         """ remote manifest has changed, app needs to be updated """
-        os.rename(os.path.join(app_path, 'manifest.tmp'), os.path.join(app_path, manifestName))
 
     download_app(manifest_url, manifest, app_path, app_id, origin, installOrigin)
     copy_app(app_path, profile_path, app_id)
