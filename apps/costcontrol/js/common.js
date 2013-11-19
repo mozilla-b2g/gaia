@@ -223,16 +223,25 @@ var Common = {
     var docState = document.readyState;
     var DOMAlreadyLoaded = docState === 'complete' ||
                            docState === 'interactive';
-    var remainingSteps = DOMAlreadyLoaded ? 1 : 2;
+    var messagesReceived = {
+      'DOMContentLoaded': DOMAlreadyLoaded,
+      'messagehandlerready': false
+    };
+    function pendingMessages() {
+      var pending = 0;
+      !messagesReceived['DOMContentLoaded'] && pending++;
+      !messagesReceived['messagehandlerready'] && pending++;
+      return pending;
+    }
     debug('DOMAlreadyLoaded:', DOMAlreadyLoaded);
-    debug('Waiting for', remainingSteps, 'events to start!');
+    debug('Waiting for', pendingMessages(), 'events to start!');
 
     function checkReady(evt) {
       debug(evt.type, 'event received!');
-      remainingSteps--;
+      messagesReceived[evt.type] = true;
 
       // Once all events are received, execute the callback
-      if (!remainingSteps) {
+      if (pendingMessages() === 0) {
         window.removeEventListener('DOMContentLoaded', checkReady);
         window.removeEventListener('messagehandlerready', checkReady);
         debug('DOMContentLoaded and messagehandlerready received. Starting');
