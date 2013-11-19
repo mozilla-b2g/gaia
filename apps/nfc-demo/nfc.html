@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<!--
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ You can obtain one at http://mozilla.org/MPL/2.0/.
+-->
+<!--
+ Copyright © 2013, Deutsche Telekom, Inc.
+-->
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>
+        </title>
+        <link rel="stylesheet" href="jquery/jquery.mobile-1.1.1.min.css" />
+        <style>
+          [data-role=page]{height: 100% !important; position:relative !important;}
+          [data-role=footer]{bottom:0; position:absolute !important; top: auto !important; width:100%;} 
+        </style>
+        <script src="jquery/jquery-1.7.1.min.js">
+        </script>
+        <script src="jquery/jquery.mobile-1.1.1.min.js">
+        </script>
+        <script src="js/nfc.js">
+        </script>
+    </head>
+    <body>
+        <div data-role="page" id="page1">
+            <div data-theme="a" data-role="header">
+                <h3>
+                    NFC Demo - Deutsche Telekom
+                </h3>
+            </div>
+            <div id="NFCTagReader" data-role="content">
+                <h2>NFC Tag Reader</h2>
+                <a data-role="button" data-transition="fade" href="#page1" id="startbutton">
+                    <span id="buttontext">Start Tag Discovery</span>
+                </a>
+                <ul data-role="listview" data-divider-theme="b" data-inset="true">
+                    <li data-role="list-divider" role="heading">
+                        Status
+                    </li>
+                    <li data-theme="c" style="height: 100%">
+                      <textarea id="area" placeholder="" style="width:100%; padding: 0; height: auto" rows="6" readonly="readonly" disabled="true"></textarea>
+                    </li>
+                </ul>
+                <ul data-role="listview" data-divider-theme="b" data-inset="true" id="taglist" style="display: none;">
+                    <li data-role="list-divider" role="heading">
+                        NdefMessage
+                    </li>
+                </ul>
+                &nbsp;
+                <ul data-role="listview" data-divider-theme="b" data-inset="true" id="actionlist" style="display: none;">
+                    <li data-role="list-divider" role="heading">
+                        Action
+                    </li>
+                </ul>
+            </div>
+
+            <!-- NFC Tag Writer div -->
+            <a data-role="button" data-transition="fade" href="#page1" id="startbutton">
+              <span id="make_read_only_button">Make NDEF Tag readonly</span>
+            </a>
+            <a id="nfc_tag_write_dialog" href="TagWriteDialog.html" data-rel="dialog" style="display:none">Open NDef Write dialog</a>
+            <div id="NFCTagWriter" data-role="collapsible-set">
+                <div data-role="collapsible"><h2>Tag Eraser</h2>
+                    <div id="nfc_empty_form_id">
+                        <label for="basic">Erase Tag</label>
+                        <button id="button_nfc_empty_id">Erase Tag</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible"><h2>Text Tag Writer</h2>
+                    <div id="nfc_text_form_id">
+                        <label for="basic">Text</label>
+                        <input class="text" value="Dummy text"/>
+                        <button id="button_nfc_text_id">Write Text Tag</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible"><h2>URI Tag Writer (Smart Poster)</h2>
+                    <div id="nfc_smartposter_url_form_id">
+                        <label for="basic">SmartPoster Title</label>
+                        <input class="title" value="Hello, world">
+                        <label for="basic">SmartPoster Title Language</label>
+                        <input class="titleLang" value="en-US">
+                        <label for="basic">URI</label>
+                        <input class="uri" value="http://www.nfc-forum.org"/>
+                        <button id="button_nfc_smartposter_url_id">Write URI Tag</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible"><h2>URI Tag Writer</h2>
+                    <div id="nfc_uri_form_id">
+                        <label for="basic">URI</label>
+                        <input class="uri" value="http://www.nytimes.com"/>
+                        <button id="button_nfc_uri_id">Write URI Tag</button>
+                        <button id="button_nfc_push_p2p_uri_id">Push URI P2P</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible"><h2>URI Tel Tag Writer</h2>
+                    <div id="nfc_uri_tel_form_id">
+                        <label for="basic">URI</label>
+                        <input class="uri" value="tel:12345678"/>
+                        <button id="button_nfc_uri_tel_id">Write URI Tel Tag</button>
+                        <button id="button_nfc_push_p2p_uri_tel_id">Push URI P2P</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible"><h2>Email Tag Writer (Smart Poster)</h2>
+                    <div id="nfc_smartposter_email_form_id">
+                        <label for="basic">SmartPoster Title</label>
+                        <input class="title" value="Title">
+                        <label for="basic">SmartPoster Title Language</label>
+                        <input class="titleLang" value="en-US">
+                        <label for="basic">MailTo:</label>
+                        <input class="emailMailTo" value="someone@some_domain_location.com"/>
+                        <label for="basic">Subject:</label>
+                        <input class="emailSubject" value="Subject text."/>
+                        <label for="basic">Email Message:</label>
+                        <input class="emailBody" value="This is body text.  -Someone"/>
+                        <button id="button_nfc_smartposter_email_id">Write Email Tag</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible"><h2>Email Tag Writer</h2>
+                    <div id="nfc_email_form_id">
+                        <label for="basic">MailTo:</label>
+                        <input class="emailMailTo" value="someone@telekom.com"/>
+                        <label for="basic">Subject:</label>
+                        <input class="emailSubject" value="Subject text."/>
+                        <label for="basic">Email Message:</label>
+                        <input class="emailBody" value="This is body text.\n\n -Someone"/>
+                        <button id="button_nfc_email_id">Write Email Tag</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible"><h2>SMS Tag Writer</h2>
+                    <div id="nfc_sms_form_id">
+                        <label for="basic">Phone Number</label>
+                        <input class="smsPhoneNumber" value="16502294797"/>
+                        <label for="basic">Message</label>
+                        <input class="smsMessage" value="This is text."/>
+                        <button id="button_nfc_sms_id">Write SMS Tag</button>
+                    </div>
+                </div>
+
+                <div data-role="collapsible">
+                    <h2>Contact Tag Writer</h2>
+                    <div id="nfc_contact_form_id">
+                        <label for="basic">Type</label>
+                        <input class="nfc_contact_type" type="text" name="nfc_contact_type_name" value="text/vcard" disabled="true"/>
+
+                        <label for="basic">Id</label>
+                        <input class="nfc_contact_id" type="text" name="nfc_contact_type_id" value="" disabled="true"/>
+                        <br>
+                        <label for="basic">First</label>
+                        <input class="nfc_contact_payload_name_first"
+                            type="text" name="nfc_contact_payload_name_first" value="FirstName"/>
+                        <br>
+                        <label for="basic">Last</label>
+                        <input class="nfc_contact_payload_name_last"
+                            type="text" name="nfc_contact_payload_name_last" value="LastName"/>
+                        <br>
+                        <label for="basic">Middle 1</label>
+                        <input class="nfc_contact_payload_name_middle_1"
+                            type="text" name="nfc_contact_payload_name_middle_1" value="Middle1"/>
+                        <br>
+                        <label for="basic">Middle 2</label>
+                        <input class="nfc_contact_payload_name_middle_2"
+                            type="text" name="nfc_contact_payload_name_middle_2" value=""/>
+                        <label for="basic">Email</label>
+                        <input class="nfc_contact_payload_email"
+                            type="text" name="nfc_contact_payload_email" value="eemail@emaildomains.com"/>
+                        <br>
+                        <label for="basic">FullName</label>
+                        <input class="nfc_contact_payload_name_fullname"
+                            type="text" name="nfc_contact_payload_name_fullname" value="John Doe"/>
+                        <label for="basic">Telephone</label>
+                        <input class="nfc_contact_payload_telephone"
+                            type="text" name="nfc_contact_payload_telephone" value="4085551234"/>
+                        <label for="basic">Mobile</label>
+                        <input class ="nfc_contact_payload_mobile"
+                            type="text" name="nfc_contact_payload_mobile" value="4085551235"/>
+                        <input class ="nfc_contact_payload_address"
+                            type="text" name="nfc_contact_payload_address" value="1234 SomeplaceHere, State, 99999, USA"/>
+                        <button id="button_nfc_contact_id">Write Contact Tag</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </body>
+</html>

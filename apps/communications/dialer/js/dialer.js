@@ -34,7 +34,8 @@ var CallHandler = (function callHandler() {
     // Workaround here until the bug 787415 is fixed
     // Gecko is sending an activity event in every multiple entry point
     // instead only the one that the href match.
-    if (activity.source.name != 'dial')
+    if (activity.source.name != 'dial' &&
+        activity.source.name != 'nfc-ndef-discovered')
       return;
 
     currentActivity = activity;
