@@ -542,21 +542,6 @@ class GaiaTestCase(MarionetteTestCase):
         # disable sound completely
         self.data_layer.set_volume(0)
 
-    def install_marketplace(self):
-        _yes_button_locator = (By.ID, 'app-install-install-button')
-        mk = {"name": "Marketplace Dev",
-              "manifest": "https://marketplace-dev.allizom.org/manifest.webapp ",
-              }
-
-        if not self.apps.is_app_installed(mk['name']):
-            # install the marketplace dev app
-            self.marionette.execute_script('navigator.mozApps.install("%s")' % mk['manifest'])
-
-            # TODO add this to the system app object when we have one
-            self.wait_for_element_displayed(*_yes_button_locator)
-            self.marionette.find_element(*_yes_button_locator).tap()
-            self.wait_for_element_not_displayed(*_yes_button_locator)
-
     def connect_to_network(self):
         if not self.device.is_online:
             try:
