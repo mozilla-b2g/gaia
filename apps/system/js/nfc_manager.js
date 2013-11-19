@@ -335,9 +335,6 @@ var NfcManager = {
     };
   },
 
-  // If a technology fails to match at the stated type, this function will just
-  // drop the message. Only if the technology is unknown does it get routed
-  // to "tag" discovered.
   handleTechnologyDiscovered: function nm_handleTechnologyDiscovered(command) {
     this._debug('Technology Discovered: ' + JSON.stringify(command));
 
