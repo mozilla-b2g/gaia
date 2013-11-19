@@ -32,15 +32,14 @@ Gallery.Selector = Object.freeze({
   editExposureButton: '#edit-exposure-button',
   editCropButton: '#edit-crop-button',
   editEffectButton: '#edit-effect-button',
-  editBorderButton: '#edit-border-button',
+  editEnhanceButton: '#edit-enhance-button',
   exposureOptions: '#exposure-slider',
   cropOptions: '#edit-crop-options',
   effectOptions: '#edit-effect-options',
-  borderOptions: '#edit-border-options',
+  enhanceOptions: '#edit-enhance-options',
   exposureSlider: '#sliderthumb',
   editCropAspectPortraitButton: '#edit-crop-aspect-portrait',
   editEffectSepiaButton: '#edit-effect-sepia',
-  editBorderThickWhiteButton: '#edit-border-thick-white',
   editSaveButton: '#edit-save-button',
   fullscreenFrame2: '#frame2',
   fullscreenFrame3: '#frame3'
@@ -131,6 +130,13 @@ Gallery.prototype = {
   },
 
   /**
+   * @return {Marionette.Element} Element to click for enhance editing mode.
+   */
+  get editEnhanceButton() {
+    return this.client.findElement(Gallery.Selector.editEnhanceButton);
+  },
+
+  /**
    * @return {Marionette.Element} Element to click for the exposure editing mode
    */
   get editExposureButton() {
@@ -138,13 +144,6 @@ Gallery.prototype = {
   },
 
   /**
-   * @return {Marionette.Element} Element to click for border editing mode.
-   */
-  get editBorderButton() {
-    return this.client.findElement(Gallery.Selector.editBorderButton);
-  },
-
-    /**
    * @return {Marionette.Element} Element to click for crop editing mode.
    */
   get editCropButton() {
@@ -173,10 +172,10 @@ Gallery.prototype = {
   },
 
   /**
-   * @return {Marionette.Element} Container to host the border options' tab.
+   * @return {Marionette.Element} Container to host the enhance options' tab.
    */
-  get borderOptions() {
-    return this.client.findElement(Gallery.Selector.borderOptions);
+  get enhanceOptions() {
+    return this.client.findElement(Gallery.Selector.enhanceOptions);
   },
 
   /**
@@ -206,13 +205,6 @@ Gallery.prototype = {
    */
   get editEffectSepiaButton() {
     return this.client.findElement(Gallery.Selector.editEffectSepiaButton);
-  },
-
-  /**
-   * @return {Marionette.Element} Element to click to apply a thick white border
-   */
-  get editBorderThickWhiteButton() {
-    return this.client.findElement(Gallery.Selector.editBorderThickWhiteButton);
   },
 
   /**
@@ -252,7 +244,6 @@ Gallery.prototype = {
   */
   waitForImageEditor: function() {
     this.client.helper.waitForElement(Gallery.Selector.editCropButton);
-    this.client.helper.waitForElement(Gallery.Selector.editBorderButton);
     this.client.helper.waitForElement(Gallery.Selector.editEffectButton);
     this.client.helper.waitForElement(Gallery.Selector.editExposureButton);
   },
