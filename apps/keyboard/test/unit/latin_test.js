@@ -290,19 +290,19 @@ suite('latin input method capitalization and punctuation', function() {
 
       // test the output
       assert.equal(output, expected,
-                   'expected "' + expected + '" for input "' + input + '"');
+                  'expected "' + expected + '" for input "' + input + '"');
     });
   }
 });
 
 /*
- * This code is an attempt to test whether word suggestions are offered when
- * they are expected. It doesn't work because when we load latin.js from
- * this test file instead of the app, the path is wrong for loading the
- * worker thread, and the suggestion engine doesn't actually start up
- *
- * So for now, we can only test capitalization and punctuation
- *
+* This code is an attempt to test whether word suggestions are offered when
+* they are expected. It doesn't work because when we load latin.js from
+* this test file instead of the app, the path is wrong for loading the
+* worker thread, and the suggestion engine doesn't actually start up
+*
+* So for now, we can only test capitalization and punctuation
+*
 var finishTest; // we store the done function here
 var suggestionsExpected;
 var suggestionsTimer;

@@ -11,7 +11,7 @@
 // deepest interactive HTML element on the hierarchy or, if none, simply the
 // deepest element. This element must contain dataset-keycode and related
 // attributes.
-const IMERender = (function() {
+var IMERender = (function() {
 
   var ime, menu;
   var getUpperCaseValue, isSpecialKey;
@@ -199,7 +199,6 @@ const IMERender = (function() {
 
   var showIME = function hm_showIME() {
     delete this.ime.dataset.hidden;
-    this.ime.classList.remove('hide');
   };
 
   var hideIME = function km_hideIME() {

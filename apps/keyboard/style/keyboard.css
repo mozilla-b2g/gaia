@@ -49,6 +49,10 @@ button::-moz-focus-inner {
   text-align: center;
 }
 
+#keyboard[data-hidden] {
+  visibility: hidden;
+}
+
 #keyboard.full-candidate-panel button.keyboard-key {
   visibility: hidden;
 }
