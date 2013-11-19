@@ -1196,8 +1196,17 @@ var ListView = {
               else
                 PlayerView.setSourceType(TYPE_MIX);
 
-                PlayerView.dataSource = this.dataSource;
+              PlayerView.dataSource = this.dataSource;
+
+              if (PlayerView.shuffleOption) {
+                // Shuffled list does not exist yet in all songs.
+                // Here we need to create a new shuffled list
+                // and start from the song which the user clicked.
+                PlayerView.shuffleList(targetIndex);
+                PlayerView.play(PlayerView.shuffledList[0]);
+              } else {
                 PlayerView.play(targetIndex);
+              }
             }.bind(this));
           } else if (option) {
             var index = target.dataset.index;
