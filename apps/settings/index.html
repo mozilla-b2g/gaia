@@ -68,71 +68,6 @@
     <!--<script defer src="shared/js/async_storage.js"></script>-->
     <!--<script defer src="shared/js/wifi_helper.js"></script>-->
     <!--<script defer src="/shared/js/settings_listener.js"></script> -->
-
-    <!-- all non-#root panels will lazy-load their own scripts -->
-    <link rel="import" href="/elements/wifi_status.html">
-    <link rel="import" href="/elements/wifi_auth.html">
-    <link rel="import" href="/elements/wifi_join_hidden.html">
-    <link rel="import" href="/elements/wifi_wps.html">
-    <link rel="import" href="/elements/wifi_manage_networks.html">
-    <link rel="import" href="/elements/wifi.html">
-    <link rel="import" href="/elements/call_cf_not_reachable_settings.html">
-    <link rel="import" href="/elements/call_cf_no_reply_settings.html">
-    <link rel="import" href="/elements/call_cf_mobile_busy_settings.html">
-    <link rel="import" href="/elements/call_cf_unconditional_settings.html">
-    <link rel="import" href="/elements/call_voice_mail_settings.html">
-    <link rel="import" href="/elements/call_pin2_dialog.html">
-    <link rel="import" href="/elements/call_fdn_list_add.html">
-    <link rel="import" href="/elements/call_fdn_list.html">
-    <link rel="import" href="/elements/call_fdn_settings.html">
-    <link rel="import" href="/elements/call.html">
-    <link rel="import" href="/elements/messaging.html">
-    <link rel="import" href="/elements/carrier_operator_settings.html">
-    <link rel="import" href="/elements/carrier_data_settings.html">
-    <link rel="import" href="/elements/carrier_mms_settings.html">
-    <link rel="import" href="/elements/carrier_supl_settings.html">
-    <link rel="import" href="/elements/carrier_dc_warning.html">
-    <link rel="import" href="/elements/carrier_dr_warning.html">
-    <link rel="import" href="/elements/carrier.html">
-    <link rel="import" href="/elements/bluetooth.html">
-    <link rel="import" href="/elements/hotspot_wifi_settings.html">
-    <link rel="import" href="/elements/hotspot.html">
-    <link rel="import" href="/elements/sound.html">
-    <link rel="import" href="/elements/display.html">
-    <link rel="import" href="/elements/notifications.html">
-    <link rel="import" href="/elements/date_time.html">
-    <link rel="import" href="/elements/languages.html">
-    <link rel="import" href="/elements/homescreen_details.html">
-    <link rel="import" href="/elements/homescreen.html">
-    <link rel="import" href="/elements/keyboard.html">
-    <link rel="import" href="/elements/keyboard_enabled_default.html">
-    <link rel="import" href="/elements/keyboard_selection_add_more.html">
-    <link rel="import" href="/elements/keyboard_selection.html">
-    <link rel="import" href="/elements/phone_lock_passcode.html">
-    <link rel="import" href="/elements/phone_lock.html">
-    <link rel="import" href="/elements/simpin_dialog.html">
-    <link rel="import" href="/elements/simpin.html">
-    <link rel="import" href="/elements/app_permissions_details.html">
-    <link rel="import" href="/elements/app_permissions.html">
-    <link rel="import" href="/elements/do_not_track.html">
-    <link rel="import" href="/elements/about_more_info_developer.html">
-    <link rel="import" href="/elements/about_more_info.html">
-    <link rel="import" href="/elements/about_your_rights.html">
-    <link rel="import" href="/elements/about_your_privacy.html">
-    <link rel="import" href="/elements/about_licensing.html">
-    <link rel="import" href="/elements/about_source_code.html">
-    <link rel="import" href="/elements/about_legal.html">
-    <link rel="import" href="/elements/about.html">
-    <link rel="import" href="/elements/battery.html">
-    <link rel="import" href="/elements/application_storage.html">
-    <link rel="import" href="/elements/media_storage.html">
-    <link rel="import" href="/elements/accessibility.html">
-    <link rel="import" href="/elements/crash_reports.html">
-    <link rel="import" href="/elements/improve_browser_os_send_feedback.html">
-    <link rel="import" href="/elements/improve_browser_os_choose_feedback.html">
-    <link rel="import" href="/elements/improve_browser_os.html">
-    <link rel="import" href="/elements/help.html">
-    <link rel="import" href="/elements/icc.html">
   </head>
   <body class="skin-organic uninit">
     <!--
@@ -160,25 +95,25 @@
       -->
 
     <!-- Connectivity :: Wi-Fi :: Network Status -->
-    <section is="wifi-status" role="region" id="wifi-status"></section>
+    <section defer is="wifi-status" role="region" id="wifi-status"></section>
     <!-- Connectivity :: Wi-Fi :: Network Authentication -->
-    <section is="wifi-auth" role="region" id="wifi-auth"></section>
+    <section defer is="wifi-auth" role="region" id="wifi-auth"></section>
     <!-- Connectivity :: Wi-Fi :: Join Hidden Network -->
-    <section is="wifi-joinHidden" role="region" id="wifi-joinHidden"></section>
+    <section defer is="wifi-joinHidden" role="region" id="wifi-joinHidden"></section>
     <!-- Connectivity :: Wi-Fi :: WPS -->
-    <section is="wifi-wps" role="region" id="wifi-wps"></section>
+    <section defer is="wifi-wps" role="region" id="wifi-wps"></section>
     <!-- Connectivity :: Wi-Fi :: Saved Networks -->
-    <section is="wifi-manageNetworks" role="region" id="wifi-manageNetworks"></section>
+    <section defer is="wifi-manageNetworks" role="region" id="wifi-manageNetworks"></section>
     <!-- Connectivity :: Wi-Fi -->
-    <section is="wifi" role="region" id="wifi" data-require-sub-panels="true"></section>
+    <section defer is="wifi" role="region" id="wifi" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Call :: Call Forwarding Not Reachable -->
-    <section is="call-cf-notReachableSettings" role="region" id="call-cf-notReachableSettings"></section>
+    <section defer is="call-cf-notReachableSettings" role="region" id="call-cf-notReachableSettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding No Reply -->
-    <section is="call-cf-noReplySettings" role="region" id="call-cf-noReplySettings"></section>
+    <section defer is="call-cf-noReplySettings" role="region" id="call-cf-noReplySettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding Mobile Busy -->
-    <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
+    <section defer is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
-    <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
+    <section defer is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Action Menu -->
     <form id="call-fdnList-action" role="dialog" data-type="action">
       <header>
@@ -193,116 +128,100 @@
       </menu>
     </form>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Add -->
-    <section is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
+    <section defer is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
-    <section is="call-fdnList" role="region" id="call-fdnList" data-require-sub-panels="true"></section>
+    <section defer is="call-fdnList" role="region" id="call-fdnList" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: SIM PIN2 Input -->
-    <section is="call-pin2-dialog" role="region" id="call-pin2-dialog"></section>
+    <section defer is="call-pin2-dialog" role="region" id="call-pin2-dialog"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) -->
-    <section is="call-fdnSettings" role="region" id="call-fdnSettings"></section>
+    <section defer is="call-fdnSettings" role="region" id="call-fdnSettings"></section>
     <!-- Connectivity :: Call :: Voice Mail -->
-    <section is="call-voiceMailSettings" role="region" id="call-voiceMailSettings"></section>
+    <section defer is="call-voiceMailSettings" role="region" id="call-voiceMailSettings"></section>
     <!-- Connectivity :: Call -->
-    <section is="call" role="region" id="call" data-require-sub-panels="true"></section>
+    <section defer is="call" role="region" id="call" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Messaging -->
-    <section is="messaging" role="region" id="messaging"></section>
+    <section defer is="messaging" role="region" id="messaging"></section>
     <!-- Connectivity :: Cellular & Data :: Network Operator -->
-    <section is="carrier-operatorSettings" role="region" id="carrier-operatorSettings"></section>
+    <section defer is="carrier-operatorSettings" role="region" id="carrier-operatorSettings"></section>
     <!-- Connectivity :: Cellular & Data :: Data Settings -->
-    <section is="carrier-dataSettings" role="region" id="carrier-dataSettings"></section>
+    <section defer is="carrier-dataSettings" role="region" id="carrier-dataSettings"></section>
     <!-- Connectivity :: Cellular & Data :: Message Settings -->
-    <section is="carrier-mmsSettings" role="region" id="carrier-mmsSettings"></section>
+    <section defer is="carrier-mmsSettings" role="region" id="carrier-mmsSettings"></section>
     <!-- Connectivity :: Cellular & Data :: A-GPS Settings -->
-    <section is="carrier-suplSettings" role="region" id="carrier-suplSettings"></section>
+    <section defer is="carrier-suplSettings" role="region" id="carrier-suplSettings"></section>
     <!-- Connectivity :: Cellular & Data :: Data Connection Warnings -->
-    <section is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
+    <section defer is="carrier-dc-warning" role="region" id="carrier-dc-warning"></section>
     <!-- Connectivity :: Cellular & Data :: Data Roaming Warnings -->
-    <section is="carrier-dr-warning" role="region" id="carrier-dr-warning"></section>
+    <section defer is="carrier-dr-warning" role="region" id="carrier-dr-warning"></section>
     <!-- Connectivity :: Cellular & Data -->
-    <section is="carrier" role="region" id="carrier" data-require-sub-panels="true"></section>
+    <section defer is="carrier" role="region" id="carrier" data-require-sub-panels="true"></section>
     <!-- Connectivity :: Bluetooth -->
-    <section is="bluetooth" role="region" id="bluetooth"></section>
+    <section defer is="bluetooth" role="region" id="bluetooth"></section>
     <!-- Connectivity :: Internet Sharing :: Portable Wi-Fi Hotspot -->
-    <section is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings"></section>
+    <section defer is="hotspot-wifiSettings" role="region" id="hotspot-wifiSettings"></section>
     <!-- Connectivity :: Internet Sharing -->
-    <section is="hotspot" role="region" id="hotspot"></section>
+    <section defer is="hotspot" role="region" id="hotspot"></section>
 
     <!-- Personalization :: Sound :: Sound Selection -->
-    <section is="sound-selection" role="region" id="sound-selection"></section>
+    <section defer is="sound-selection" role="region" id="sound-selection"></section>
     <!-- Personalization :: Sound -->
-    <section is="sound" role="region" id="sound" data-require-sub-panels="true"></section>
+    <section defer is="sound" role="region" id="sound" data-require-sub-panels="true"></section>
     <!-- Personalization :: Display -->
-    <section is="display" role="region" id="display"></section>
+    <section defer is="display" role="region" id="display"></section>
     <!-- Personalization :: Notifications -->
-    <section is="notifications" role="region" id="notifications"></section>
+    <section defer is="notifications" role="region" id="notifications"></section>
     <!-- Personalization :: Date & Time -->
-    <section is="dateTime" role="region" id="dateTime"></section>
+    <section defer is="dateTime" role="region" id="dateTime"></section>
     <!-- Personalization :: Language & Region -->
-    <section is="languages" role="region" id="languages"></section>
+    <section defer is="languages" role="region" id="languages"></section>
     <!-- Personalization :: Homescreen :: details -->
-    <section is="homescreen-details" role="region" id="homescreen-details"></section>
+    <section defer is="homescreen-details" role="region" id="homescreen-details"></section>
     <!-- Personalization :: Homescreen -->
-    <section is="homescreen" role="region" id="homescreen" data-require-sub-panels="true"></section>
+    <section defer is="homescreen" role="region" id="homescreen" data-require-sub-panels="true"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard :: Add More Keyboards -->
-    <section is="keyboard-selection-addMore" role="region" id="keyboard-selection-addMore"></section>
+    <section defer is="keyboard-selection-addMore" role="region" id="keyboard-selection-addMore"></section>
     <!-- Personalization :: Keyboard :: Select Keyboard -->
-    <section is="keyboard-selection" role="region" id="keyboard-selection"></section>
+    <section defer is="keyboard-selection" role="region" id="keyboard-selection"></section>
     <!-- Personalization :: Keyboard -->
-    <section is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
-    <section is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
+    <section defer is="keyboard" role="region" id="keyboard" data-require-sub-panels="true"></section>
+    <section defer is="keyboard-enabled-default" role="region" id="keyboard-enabled-default"></section>
 
     <!-- Security :: Phone Lock :: PIN Input -->
-    <section is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
+    <section defer is="phoneLock-passcode" role="region" id="phoneLock-passcode"></section>
     <!-- Security :: Phone Lock -->
-    <section is="phoneLock" role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
+    <section defer is="phoneLock" role="region" id="phoneLock" data-passcode-enabled="false" data-lockscreen-enabled="false" data-require-sub-panels="true"></section>
     <!-- Security :: SIM Security :: SIM PIN Input -->
-    <section is="simpin-dialog" role="region" id="simpin-dialog"></section>
+    <section defer is="simpin-dialog" role="region" id="simpin-dialog"></section>
     <!-- Security :: SIM Security -->
-    <section is="simpin" role="region" id="simpin" data-require-sub-panels="true"></section>
+    <section defer is="simpin" role="region" id="simpin" data-require-sub-panels="true"></section>
     <!-- Security :: Application Permissions :: Details -->
-    <section is="appPermissions-details" role="region" id="appPermissions-details"></section>
+    <section defer is="appPermissions-details" role="region" id="appPermissions-details"></section>
     <!-- Security :: Application Permissions -->
-    <section is="appPermissions" role="region" id="appPermissions" data-require-sub-panels="true"></section>
+    <section defer is="appPermissions" role="region" id="appPermissions" data-require-sub-panels="true"></section>
     <!-- Security :: Do Not Track -->
-    <section is="doNotTrack" role="region" id="doNotTrack"></section>
+    <section defer is="doNotTrack" role="region" id="doNotTrack"></section>
 
-    <!-- Device :: Information :: More Information :: Developer -->
-    <section is="about-moreInfo-developer" role="region" id="about-moreInfo-developer"></section>
-    <!-- Device :: Information :: More Information -->
-    <section is="about-moreInfo" role="region" id="about-moreInfo"></section>
-    <!-- Device :: Information :: Your Rights -->
-    <section is="about-yourRights" role="region" id="about-yourRights"></section>
-    <!-- Device :: Information :: Your Privacy -->
-    <section is="about-yourPrivacy" role="region" id="about-yourPrivacy"></section>
-    <!-- Device :: Information :: Legal :: Open Source Notices -->
-    <section is="about-licensing" role="region" id="about-licensing"></section>
-    <!-- Device :: Information :: Legal :: Obtaining Source Code -->
-    <section is="about-source-code" role="region" id="about-source-code"></section>
-    <!-- Device :: Information :: Legal -->
-    <section is="about-legal" role="region" id="about-legal"></section>
-    <!-- Device :: Information -->
-    <section is="about" role="region" id="about"></section>
     <!-- Device :: Battery -->
-    <section is="battery" role="region" id="battery"></section>
+    <section defer is="battery" role="region" id="battery"></section>
     <!-- Device :: Device Storage -->
-    <section is="applicationStorage" role="region" id="applicationStorage"></section>
+    <section defer is="applicationStorage" role="region" id="applicationStorage"></section>
     <!-- Device :: Media Storage -->
-    <section is="mediaStorage" role="region" id="mediaStorage"></section>
+    <section defer is="mediaStorage" role="region" id="mediaStorage"></section>
     <!-- Device :: Accessibility -->
-    <section is="accessibility" role="region" id="accessibility"></section>
+    <section defer is="accessibility" role="region" id="accessibility"></section>
     <!-- Device :: Improve Browser OS :: Crash Reports-->
-    <section is="crashReports" role="region" id="crashReports"></section>
+    <section defer is="crashReports" role="region" id="crashReports"></section>
     <!-- Device :: Send Feedback -->
-    <section is="improveBrowserOS-sendFeedback" role="region" id="improveBrowserOS-sendFeedback"></section>
+    <section defer is="improveBrowserOS-sendFeedback" role="region" id="improveBrowserOS-sendFeedback"></section>
     <!-- Device :: Send Feedback -->
-    <section is="improveBrowserOS-chooseFeedback" role="region" id="improveBrowserOS-chooseFeedback"></section>
+    <section defer is="improveBrowserOS-chooseFeedback" role="region" id="improveBrowserOS-chooseFeedback"></section>
     <!-- Device :: Improve Browser OS -->
-    <section is="improveBrowserOS" role="region" id="improveBrowserOS" data-require-sub-panels="true"></section>
+    <section defer is="improveBrowserOS" role="region" id="improveBrowserOS" data-require-sub-panels="true"></section>
     <!-- Device :: Help -->
-    <section is="help" role="region" id="help"></section>
+    <section defer is="help" role="region" id="help"></section>
 
     <!-- SIM Toolkit -->
-    <section is="icc" role="region" id="icc"></section>
+    <section defer is="icc" role="region" id="icc"></section>
 
     <!-- Main List -->
     <section role="region" id="root" class="current" data-rendered="true">
@@ -448,7 +367,7 @@
         </header>
         <ul>
           <li>
-            <a id="menuItem-deviceInfo" class="menu-item" href="#about" data-l10n-id="deviceInfo">Device Information</a>
+            <a id="menuItem-deviceInfo" class="menu-item" href="/pages/about.html" data-l10n-id="deviceInfo">Device Information</a>
           </li>
           <li>
             <small id="battery-desc" class="menu-item-desc"></small>

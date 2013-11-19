@@ -86,23 +86,13 @@
   <script defer src="/js/controllers/sync.js"></script>
   <script defer src="/js/controllers/alarm.js"></script>
   <script defer src="/js/app.js"></script>
-
-  <link rel="import" href="/elements/errors.html">
-  <link rel="import" href="/elements/lazy_styles.html">
-  <link rel="import" href="/elements/advanced_settings.html">
-  <link rel="import" href="/elements/create_account.html">
-  <link rel="import" href="/elements/modify_account.html">
-  <link rel="import" href="/elements/modify_event.html">
-  <link rel="import" href="/elements/oauth.html">
-  <link rel="import" href="/elements/settings.html">
-  <link rel="import" href="/elements/show_event.html">
 </head>
 
 <body role="application" class="loading">
 
-<section is="lazy-styles" id="lazy-styles"></section>
-<section is="errors" id="errors" role="status"></section>
-<section is="settings" class="skin-organic" id="settings" role="region"></section>
+<section defer is="lazy-styles" id="lazy-styles"></section>
+<section defer is="errors" id="errors" role="status"></section>
+<section defer is="settings" class="skin-organic" id="settings" role="region"></section>
 
 <section id="time-views" role="region">
   <header id="time-header">
@@ -159,12 +149,12 @@
 
 </section>
 
-<section is="create-account" class="fullscreen-view skin-organic" id="create-account-view" role="region"></section>
-<section is="advanced-settings" class="fullscreen-view in-progress skin-organic" role="region" id="advanced-settings-view"></section>
-<section is="modify-event" class="fullscreen-view" id="modify-event-view" role="region"></section>
-<section is="show-event" class="fullscreen-view" id="event-view" role="region"></section>
-<section is="oauth" class="fullscreen-view skin-dark" id="oauth2" role="region"></section>
-<section is="modify-account" class="fullscreen-view skin-organic" id="modify-account-view" role="region">
+<section defer is="create-account" class="fullscreen-view skin-organic" id="create-account-view" role="region"></section>
+<section defer is="advanced-settings" class="fullscreen-view in-progress skin-organic" role="region" id="advanced-settings-view"></section>
+<section defer is="modify-event" class="fullscreen-view" id="modify-event-view" role="region"></section>
+<section defer is="show-event" class="fullscreen-view" id="event-view" role="region"></section>
+<section defer is="oauth" class="fullscreen-view skin-dark" id="oauth2" role="region"></section>
+<section defer is="modify-account" class="fullscreen-view skin-organic" id="modify-account-view" role="region">
 
 </body>
 </html>

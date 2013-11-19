@@ -50,11 +50,6 @@
     <script type="text/javascript" defer src="js/app.js"></script>
 
     <script type="text/javascript" defer src="js/application_init.js"></script>
-
-    <link rel="import" href="/elements/balance-tab.html">
-    <link rel="import" href="/elements/telephony-tab.html">
-    <link rel="import" href="/elements/topup-dialog.html">
-    <link rel="import" href="/elements/datausage-tab.html">
   </head>
   <body role="application">
 
@@ -91,16 +86,16 @@ the overlays) and we should distinguish between TABS and OVERLAY VIEWS -->
       </ul>
 
     <!-- BALANCE TAB -->
-    <section is="balance-tab" role="region" id="balance-tab" class="view" data-viewport="left" hidden></section>
+    <section defer is="balance-tab" role="region" id="balance-tab" class="view" data-viewport="left" hidden></section>
 
     <!-- TELEPHONY TAB -->
-    <section is="telephony-tab" role="region" id="telephony-tab" class="view" data-viewport="left" hidden></section>
+    <section defer is="telephony-tab" role="region" id="telephony-tab" class="view" data-viewport="left" hidden></section>
 
     <!-- The top up input -->
-    <section is="topup-dialog" role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
+    <section defer is="topup-dialog" role="region" id="topup-dialog" class="view" data-viewport="bottom" hidden></section>
 
     <!-- DATA USAGE TAB -->
-    <section is="datausage-tab" id="datausage-tab" role="region" class="view" data-viewport="right" hidden></section
+    <section defer is="datausage-tab" id="datausage-tab" role="region" class="view" data-viewport="right" hidden></section
 
     <!-- Settings view -->
     <section id="settings-view" class="view" data-viewport="bottom">

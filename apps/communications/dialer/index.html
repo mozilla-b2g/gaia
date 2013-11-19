@@ -59,10 +59,6 @@
     <script defer src="/dialer/js/mmi_ui.js"></script>
     <script defer src="/dialer/js/newsletter_manager.js"></script>
     -->
-
-    <link rel="import" href="elements/edit-mode.html">
-    <link rel="import" href="elements/add-contact-action-menu.html">
-    <link rel="import" href="elements/confirmation-message.html">
   </head>
   <body role="application">
     <section id="views" role="tablist" data-items="3" class="bottom">
@@ -199,11 +195,11 @@
       </article>
     </section>
 
-    <form is="edit-mode" id="edit-mode" role="dialog" data-type="edit" hidden></form>
+    <form defer is="edit-mode" id="edit-mode" role="dialog" data-type="edit" hidden></form>
 
-    <form is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-type="action" hidden></form>
+    <form defer is="add-contact-action-menu" id="add-contact-action-menu" role="dialog" data-type="action" hidden></form>
 
-    <form is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
+    <form defer is="confirmation-message" id="confirmation-message" class="hide no-opacity" role="dialog" data-type="confirm"></form>
 
     <form id="suggestion-overlay" role="dialog" data-type="action" class="overlay" hidden>
       <header></header>
