@@ -5,6 +5,20 @@ var currentPage;
 
 var MockGridManager = {
   svPreviouslyInstalledApps: [],
+  addPreviouslyInstalled: function(manifest) {
+    if (!this.isPreviouslyInstalled(manifest)) {
+      this.svPreviouslyInstalledApps.push({'manifest': manifest});
+    }
+  },
+  isPreviouslyInstalled: function(manifest) {
+    for (var i = 0, elemNum = this.svPreviouslyInstalledApps.length;
+         i < elemNum; i++) {
+      if (this.svPreviouslyInstalledApps[i].manifest === manifest) {
+        return true;
+      }
+    }
+    return false;
+  },
   markDirtyState: function() {},
   localize: function() {},
   onDragStart: function() {},
@@ -24,6 +38,7 @@ var MockGridManager = {
 
         },
         draggableElem: {
+          dataset: nodes[i].dataset,
           style: {
 
           }
