@@ -1,0 +1,24 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Root of my app</title>
+  <script src="lib/worker_router_client.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="views/event_list.js" type="text/javascript" charset="utf-8"></script>
+  <script defer src="event_list.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+<section class="event-list-view">
+  <!-- this is not the same problem we are trying to solve but we do need to
+       handle dynamic content --!>
+  <template class="tpl-item">
+    <li class="item">
+      <a target="_blank" href="event.html?id=%s">%s</a>
+    </li>
+  </template>
+
+  <h1>Event List</h1>
+  <ol class="items"></ol>
+</section>
+</body>
+</html>
