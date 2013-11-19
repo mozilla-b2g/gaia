@@ -1,4 +1,5 @@
 var Clock = require('./clock');
+var clockAssert = require('./assert');
 
 function Alarm() {
   Clock.apply(this, arguments);
@@ -111,7 +112,26 @@ Alarm.prototype.openForm = function(alarmIdx) {
 };
 
 Alarm.prototype.formSubmit = function() {
+  var formVals = this.readForm('name', 'time');
+  var timeParts = formVals.time.split(':');
+  var formTime = new Date();
+  formTime.setHours.apply(formTime, timeParts);
+
   dismissForm.call(this, 'doneBtn');
+
+  // Ensure that an Alarm with the same name and time are present in the DOM
+  // before considering the "formSubmit" operation complete.
+  this.client.waitFor(function() {
+    return this.readItems().some(function(item) {
+      var hasName = item.indexOf(formVals.name) > -1;
+      var hasTime = false;
+      try {
+        clockAssert.hasTime(item, formTime);
+        hasTime = true;
+      } catch (err) {}
+      return hasName && hasTime;
+    });
+  }.bind(this));
 };
 
 Alarm.prototype.formClose = function() {
@@ -119,10 +139,17 @@ Alarm.prototype.formClose = function() {
 };
 
 Alarm.prototype.formDelete = function() {
+  var withDeleted = this.readItems().length;
   dismissForm.call(this, 'deleteBtn');
+
+  // Ensure that the number of alarms has decreased before considering the
+  // "formDelete" operation complete.
+  this.client.waitFor(function() {
+    return withDeleted > this.readItems().length;
+  }.bind(this));
 };
 
 function dismissForm(btnName) {
   this.el.alarm[btnName].tap();
-  this.waitForSlideEnd(this.el.alarm.form);
+  this.waitForSlideEnd(this.el.panels.alarm);
 }
