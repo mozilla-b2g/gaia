@@ -16,7 +16,7 @@ import base64
 from py.xml import html
 from py.xml import raw
 from marionette import BaseMarionetteOptions, HTMLReportingOptionsMixin, HTMLReportingTestRunnerMixin, \
-                       EnduranceOptionsMixin, HTMLReportingTestResult
+                       EnduranceOptionsMixin, HTMLReportingTestResultMixin
 from marionette import MarionetteTestResult
 from marionette import MarionetteTextTestRunner
 from marionette import BaseMarionetteTestRunner
@@ -29,15 +29,24 @@ from version import __version__
 
 
 class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin, EnduranceOptionsMixin, HTMLReportingOptionsMixin):
+
     def __init__(self, **kwargs):
         BaseMarionetteOptions.__init__(self, **kwargs)
         GaiaOptionsMixin.__init__(self, **kwargs)
         HTMLReportingOptionsMixin.__init__(self, **kwargs)
         EnduranceOptionsMixin.__init__(self, **kwargs)
 
+
+class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
+
+    def __init__(self, *args, **kwargs):
+        MarionetteTestResult.__init__(self, *args, **kwargs)
+        HTMLReportingTestResultMixin.__init__(self, *args, **kwargs)
+
+
 class GaiaTextTestRunner(MarionetteTextTestRunner):
 
-    resultclass = HTMLReportingTestResult 
+    resultclass = GaiaTestResult 
 
 
 class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, HTMLReportingTestRunnerMixin):
@@ -49,6 +58,7 @@ class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, HTMLReportin
         GaiaTestRunnerMixin.__init__(self, **kwargs)
         HTMLReportingTestRunnerMixin.__init__(self, name=__name__, version=__version__, **kwargs)
         self.test_handlers = [GaiaTestCase]
+
 
 def main():
     cli(runner_class=GaiaTestRunner, parser_class=GaiaTestOptions)
