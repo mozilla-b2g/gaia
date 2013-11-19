@@ -52,12 +52,12 @@ marionette('Stopwatch Panel', function() {
 
     assert.hasDuration(
       laps[0],
-      [0, 200],
+      [1, 300],
       '"Current" lap entry contains nonzero time'
     );
 
     assert.hasDuration(laps[1],
-      [0, 200],
+      [1, 300],
       'Immediately-created lap entry contains nonzero time'
     );
 
