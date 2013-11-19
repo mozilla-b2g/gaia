@@ -8,6 +8,9 @@
  * - Download stopped (Download was stopped. Try downloading again?)
  * - Download failed (xfile failed to download. Try downloading again?)
  * - Delete download (Delete xfile?)
+ * - Unsupported file type
+ * - File not found
+ * - File open error
  *
  *  var request = DownloadUI.show(DownloadUI.TYPE.STOP, download);
  *
@@ -23,6 +26,32 @@
  *
  */
 var DownloadUI = (function() {
+
+  /**
+   * Download type constructor
+   *
+   * @param {String} Type name
+   * @param {Array} CSS classes to confirm button
+   * @param {Boolean} Message without parameters
+   */
+  var DownloadType = function(name, classes, isPlainMessage) {
+    this.name = name;
+    this.classes = classes;
+    this.isPlainMessage = isPlainMessage;
+    this.numberOfButtons = name === 'file_not_found' ? 1 : 2;
+  };
+
+  var TYPES = {
+    STOP: new DownloadType('stop', ['danger'], true),
+    STOPPED: new DownloadType('stopped', ['recommend'], true),
+    FAILED: new DownloadType('failed', ['recommend']),
+    DELETE: new DownloadType('delete', ['danger']),
+    UNSUPPORTED_FILE_TYPE: new DownloadType('unsupported_file_type',
+                                            ['danger']),
+    FILE_NOT_FOUND: new DownloadType('file_not_found', ['recommend', 'full'],
+                                     true),
+    FILE_OPEN_ERROR: new DownloadType('file_open_error', ['danger'])
+  };
 
   // Confirm dialog container
   var confirm = null;
@@ -70,49 +99,47 @@ var DownloadUI = (function() {
 
     // Header
     var header = document.createElement('h1');
-    header.textContent = _(type + '_download_title');
+    header.textContent = _(type.name + '_download_title');
     dialog.appendChild(header);
 
     // Message
     var message = document.createElement('p');
-    if (type === DownloadUI.TYPE.FAILED ||
-        type === DownloadUI.TYPE.DELETE) {
-      message.textContent = _(type + '_download_message', {
+    if (type.isPlainMessage) {
+      message.textContent = _(type.name + '_download_message');
+    } else {
+      message.textContent = _(type.name + '_download_message', {
         'name': DownloadFormatter.getFileName(download)
       });
-    } else {
-      message.textContent = _(type + '_download_message');
     }
     dialog.appendChild(message);
 
     var menu = document.createElement('menu');
-    menu.dataset['items'] = 2;
+    menu.dataset.items = type.numberOfButtons;
 
-    // Left button
-    var lButton = document.createElement('button');
-    lButton.type = 'button';
-    lButton.appendChild(
-      document.createTextNode(_(type + '_download_left_button'))
-    );
+    if (type.numberOfButtons === 2) {
+      // Left button
+      var lButton = document.createElement('button');
+      lButton.type = 'button';
+      lButton.appendChild(
+        document.createTextNode(_(type.name + '_download_left_button'))
+      );
 
-    lButton.onclick = function l_cancel() {
-      lButton.onclick = null;
-      req.cancel();
-    };
-    menu.appendChild(lButton);
+      lButton.onclick = function l_cancel() {
+        lButton.onclick = null;
+        req.cancel();
+      };
+      menu.appendChild(lButton);
+    }
 
     // Right button
     var rButton = document.createElement('button');
     rButton.type = 'button';
-    if (type === DownloadUI.TYPE.STOP ||
-        type === DownloadUI.TYPE.DELETE) {
-      rButton.className = 'danger';
-    } else {
-      rButton.className = 'recommend';
-    }
+    type.classes.forEach(function(clazz) {
+      rButton.classList.add(clazz);
+    });
 
     rButton.appendChild(
-      document.createTextNode(_(type + '_download_right_button'))
+      document.createTextNode(_(type.name + '_download_right_button'))
     );
 
     rButton.onclick = function r_confirm() {
@@ -127,6 +154,12 @@ var DownloadUI = (function() {
     document.body.appendChild(confirm);
   }
 
+  var styleSheets = [
+    'shared/style/buttons.css',
+    'shared/style/headers.css',
+    'shared/style/confirm.css'
+  ];
+
   /*
    * Shows a confirmation depending on type. It returns a request object with
    * oncancel and onconfirm callbacks
@@ -134,16 +167,19 @@ var DownloadUI = (function() {
    * @param {String} Confirmation type
    *
    * @param {Object} It represents the download object
+   *
+   * @param {Boolean} This optional parameter indicates if the library should
+   *                  include BBs
    */
-  function show(type, download) {
+  function show(type, download, ignoreStyles) {
     var req = new Request();
 
     window.setTimeout(function() {
-      LazyLoader.load(['shared/style/buttons.css',
-                       'shared/style/headers.css',
-                       'shared/style/confirm.css',
-                       'shared/js/download/download_formatter.js'],
-                      createConfirm.call(this, type, req, download));
+      var libs = ['shared/js/download/download_formatter.js'];
+      if (!ignoreStyles) {
+        libs.push.apply(libs, styleSheets);
+      }
+      LazyLoader.load(libs, createConfirm.call(this, type, req, download));
     }, 0);
 
     return req;
@@ -154,11 +190,8 @@ var DownloadUI = (function() {
 
     hide: removeConfirm,
 
-    TYPE: {
-      STOP: 'stop',
-      STOPPED: 'stopped',
-      FAILED: 'failed',
-      DELETE: 'delete'
+    get TYPE() {
+      return TYPES;
     }
   };
 }());
