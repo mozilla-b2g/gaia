@@ -8,6 +8,10 @@ var CallsHandler = (function callsHandler() {
   var CALLS_LIMIT = 2;
 
   var handledCalls = [];
+
+  // Represents the number of visible lines for the user
+  var openLines = 0;
+
   var toneInterval = null; // Timer used to play the waiting tone
   var telephony = window.navigator.mozTelephony;
   telephony.oncallschanged = onCallsChanged;
@@ -140,7 +144,7 @@ var CallsHandler = (function callsHandler() {
     } else {
       // Letting the CallScreen know how to display the call duration
       // (depending on how many calls/conference group are on)
-      var openLines = telephony.calls.length +
+      openLines = telephony.calls.length +
         (telephony.conferenceGroup.calls.length ? 1 : 0);
 
       CallScreen.singleLine = (openLines == 1);
@@ -562,8 +566,7 @@ var CallsHandler = (function callsHandler() {
       return;
     }
 
-    if ((handledCalls.length < 2) && !cdmaCallWaiting()) {
-
+    if (openLines < 2 && !cdmaCallWaiting()) {
       // Putting a call on Hold when there are no other
       // calls in progress has been disabled until a less
       // accidental user-interface is implemented.
