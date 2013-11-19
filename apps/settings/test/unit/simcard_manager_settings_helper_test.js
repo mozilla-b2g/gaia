@@ -89,10 +89,7 @@ suite('SettingsHelper > ', function() {
     });
 
     test('setToSettingsDB is called successfully', function() {
-      // XXX
-      // it is weird that we store to ['key']
-      // instead of ['ril.sms.defaultServiceId']
-      assert.equal(window.navigator.mozSettings.mSettings['key'],
+      assert.equal(window.navigator.mozSettings.mSettings[fakeSettingKey],
         fakeSettingValue);
 
       assert.ok(isFakeCbCalled);

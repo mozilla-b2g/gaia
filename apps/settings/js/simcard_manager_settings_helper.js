@@ -49,11 +49,12 @@
 
       getReq.onsuccess = function() {
         var oldValue = getReq.result[key];
+
         if (oldValue !== newValue) {
           var setLock = settings.createLock();
-          var setReq = setLock.set({
-            key: newValue
-          });
+          var setObject = {};
+          setObject[key] = newValue;
+          var setReq = setLock.set(setObject);
 
           setReq.onsuccess = done;
           setReq.onerror = done;

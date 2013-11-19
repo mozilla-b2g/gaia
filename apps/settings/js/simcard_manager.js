@@ -69,27 +69,13 @@
         else {
           var icc = iccManager.getIccById(iccId);
           var iccInfo = icc.iccInfo;
+          var cardState = icc.cardState;
           var operatorInfo = MobileOperator.userFacingInfo(conn);
 
-          var locked = false;
-          var lockedState = [
-            'pinRequired',
-            'pukRequired',
-            'networkLocked',
-            'serviceProviderLocked',
-            'corporateLocked'
-          ];
-
-          // make sure the card is in locked mode or not
-          if (icc.cardState.indexOf(lockedState)) {
-            locked = true;
-          }
-
-          if (locked) {
+          if (this.isSimCardLocked(cardState)) {
             simcard.setState('lock');
           }
           else {
-
             // TODO:
             // we have to call Gecko API here to make sure the
             // simcard is enabled / disabled
@@ -114,7 +100,6 @@
       if (cardIndex == -1) {
         return;
       }
-
       switch (evt.target) {
         case this.simManagerOutgoingCallSelect:
           SettingsHelper.set('outgoingCall').on(cardIndex);
@@ -378,6 +363,22 @@
         outgoingDataSelect.add(options[2]);
 
       }.bind(this));
+    },
+    isSimCardLocked: function(cardState) {
+
+      var lockedState = [
+        'pinRequired',
+        'pukRequired',
+        'networkLocked',
+        'serviceProviderLocked',
+        'corporateLocked'
+      ];
+
+      // make sure the card is in locked mode or not
+      if (icc.cardState.indexOf(lockedState)) {
+        return true;
+      }
+      return false;
     }
   };
 
