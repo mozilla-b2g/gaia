@@ -18,6 +18,8 @@ var SuggestionBar = {
   list: document.getElementById('suggestion-list'),
   overlay: document.getElementById('suggestion-overlay'),
   overlayCancel: document.getElementById('suggestion-overlay-cancel'),
+  addContact : document.getElementById('keypad-callbar-add-contact'),
+  callBarAddContactFlag : document.getElementById('addNewContactFlag'),
 
   init: function sb_init() {
     // When the DOM is abscent (in the call screen) we don't need
@@ -126,6 +128,15 @@ var SuggestionBar = {
     var markedNumber = this._markMatched(matchedTel.value, query);
     this._setItem(node, markedNumber, matchedTel.type,
                     contact.name[0]);
+	if(this._phoneNumber == matchedTel.value) {
+		this.addContact.classList.add('disabled');
+		this.callBarAddContactFlag.value = "false";
+		}
+	else {
+		this.addContact.classList.remove('disabled');
+		this.callBarAddContactFlag.value = "true";
+	}
+
   },
 
   _createItem: function sb_createItem() {
