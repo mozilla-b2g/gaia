@@ -18,11 +18,10 @@ class TestSmsAddContact(GaiaTestCase):
 
         # insert contact
         self.contact = MockContact(
-            tel={
+            tel=[{
                 'type': 'Mobile',
-                'value': self.testvars['carrier']['phone_number']
-            }
-        )
+                'value': '555%s' % repr(time.time()).replace('.', '')[8:]}])
+
         self.data_layer.insert_contact(self.contact)
 
         self.messages = Messages(self.marionette)
@@ -38,11 +37,8 @@ class TestSmsAddContact(GaiaTestCase):
         self.marionette.switch_to_frame(self.apps.displayed_app.frame)
 
         self.assertIn(self.contact['givenName'], new_message.first_recipient_name)
+        self.assertEquals(self.contact['tel'][0]['value'], new_message.first_recipient_number_attribute)
 
         new_message.type_message(_text_message_content)
 
-        self.message_thread = new_message.tap_send()
-        self.message_thread.wait_for_received_messages()
-
-        last_received_message = self.message_thread.received_messages[-1]
-        self.assertEqual(_text_message_content, last_received_message.text)
+        self.assertTrue(new_message.is_send_button_enabled)
