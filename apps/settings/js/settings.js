@@ -189,8 +189,15 @@ var Settings = {
         document.getElementById(el).hidden = true;
       });
     }
-    // register web activity handler
-    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
+
+    // hide SimCardManager if we are not in DSDS structure
+    if (navigator.mozMobileConnections &&
+        navigator.mozMobileConnections.length == 1) {
+      document.getElementById('SimCardManager-settings').hidden = true;
+    }
+    else {
+      document.getElementById('simSecurity-settings').hidden = true;
+    }
 
     // preset all inputs that have a `name' attribute
     this.presetPanel();
