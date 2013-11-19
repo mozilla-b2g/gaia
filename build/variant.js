@@ -98,6 +98,11 @@ function prepareHostedApp(manifestUrl, manifest, appPath, appId, origin,
     'origin': origin || getOrigin(manifest['launch_path'])
   };
 
+  // Bug 936028 - appcache needs to be removed from manifest
+  if (manifest.appcache_path) {
+    delete manifest.appcache_path;
+  }
+
   // write manifest
   utils.writeContentToFile(utils.joinPath(appPath, 'manifest.webapp'),
                            JSON.stringify(manifest));
@@ -170,6 +175,11 @@ function processApp(appId, manifestUrl, origin, installOrigin, profilePath,
                          'update.webapp' : 'manifest.webapp';
       var fileJSON = utils.readJSONFromPath(utils.joinPath(appPath,
                                                            manifestFile));
+
+      // Bug 936028 - Comparation has to be done removing appcache
+      if (json.appcache_path) {
+        delete json.appcache_path;
+      }
 
       if (JSON.stringify(json) === JSON.stringify(fileJSON)) {
         copyAppPathToProfile();

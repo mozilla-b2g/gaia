@@ -81,9 +81,6 @@ var Widget = (function() {
       showSimError('no-sim2');
     }
 
-    // loads the message handler
-    document.getElementById('message-handler').src = 'message_handler.html';
-
     Common.checkSIMChange(function _onSIMChecked() {
       CostControl.getInstance(function _onCostControlReady(instance) {
         costcontrol = instance;
@@ -446,6 +443,7 @@ var Widget = (function() {
   return {
     init: function() {
       Common.waitForDOMAndMessageHandler(window, onReady);
+      document.getElementById('message-handler').src = 'message_handler.html';
     }
   };
 

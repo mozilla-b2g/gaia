@@ -103,6 +103,7 @@ class Keyboard(Base):
     def switch_to_keyboard(self):
         self.marionette.switch_to_frame()
         keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
+        self.wait_for_condition(lambda m: keybframe.location['y'] == 0)
         self.marionette.switch_to_frame(keybframe, focus=False)
 
     @property
