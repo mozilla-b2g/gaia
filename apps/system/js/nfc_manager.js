@@ -359,24 +359,29 @@ var NfcManager = {
       ndefMsg = [];
     }
 
-    // Force Tech Priority:
-    var pri = ['P2P', 'NDEF', 'NDEF_FORMATTABLE', 'NFC_A', 'MIFARE_ULTRALIGHT'];
-    for (var ti = 0; ti < pri.length; ti++) {
-      this._debug('Going through NFC Technologies: ' + ti);
-      var i = techs.indexOf(pri[ti]);
-      if (i == -1) {
-        continue;
-      }
-      var tech = techs[i];
-      switch (tech) {
+    // Assign priority of tech handling. This list will expand with supported
+    // Technologies.
+    var priority = {
+      'P2P': 0,
+      'NDEF': 1,
+      'NDEF_FORMATTABLE': 2,
+      'NFC_A': 3,
+      'MIFARE_ULTRALIGHT': 4
+    };
+    techs.sort(function sorter(techA, techB) {
+      return priority[techA] - priority[techB];
+    });
+
+    // One shot try. Fallback directly to tag.
+    switch (techs[0]) {
       case 'P2P':
         this.handleP2P(command.sessionToken, ndefMsg);
         break;
       case 'NDEF':
-        this.handleNdefDiscovered(techs[i], command.sessionToken, ndefMsg);
+        this.handleNdefDiscovered(techs[0], command.sessionToken, ndefMsg);
         break;
       case 'NDEF_FORMATTABLE':
-        this.handleNdefDiscoveredUseConnect(techs[i], command.sessionToken);
+        this.handleNdefDiscoveredUseConnect(techs[0], command.sessionToken);
         break;
       case 'NFC_A':
         this._debug('NFCA unsupported: ' + command);
@@ -387,7 +392,6 @@ var NfcManager = {
       default:
         this._debug('Unknown or unsupported tag type. Fire Tag-Discovered.');
         this.fireTagDiscovered(command);
-      }
     }
   },
 
