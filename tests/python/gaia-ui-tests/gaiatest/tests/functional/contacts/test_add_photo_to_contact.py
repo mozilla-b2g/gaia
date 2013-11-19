@@ -34,7 +34,6 @@ class TestContacts(GaiaTestCase):
         saved_contact_image_style = contact_details.image_style
 
         edit_contact = contact_details.tap_edit()
-
         self.assertEqual('Edit contact', edit_contact.title)
 
         saved_picture_style = edit_contact.picture_style
@@ -50,8 +49,9 @@ class TestContacts(GaiaTestCase):
         image = gallery.tap_first_gallery_item()
         image.tap_crop_done()
 
-        # switch back to the contacts app
-        contacts_app.launch()
+        # fall back to the contacts app
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == contacts_app.name)
+        self.apps.switch_to_displayed_app()
 
         self.assertEqual('Edit contact', edit_contact.title)
 
