@@ -41,6 +41,8 @@ class Language(Base):
                     'arguments[0].scrollIntoView(false);', [li])
                 li.tap()
                 break
+        else:
+            raise Exception("Element '%s' could not be found in select wrapper" % match_string)
 
         close_button.tap()
 
