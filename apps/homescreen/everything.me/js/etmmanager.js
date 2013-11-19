@@ -14,7 +14,7 @@ var EvmeManager = (function EvmeManager() {
   function addGridItem(params, extra) {
     var item = GridItemsFactory.create({
       'id': params.id || Evme.Utils.uuid(),
-      'bookmarkURL': params.originUrl,
+      'bookmarkURL': params.originUrl.trim(),
       'name': params.name,
       'icon': params.icon,
       'iconable': false,
