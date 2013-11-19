@@ -83,7 +83,7 @@ var ThreadUI = global.ThreadUI = {
       'input', 'compose-form', 'check-all-button', 'uncheck-all-button',
       'contact-pick-button', 'back-button', 'send-button', 'attach-button',
       'delete-button', 'cancel-button',
-      'edit-icon', 'edit-mode', 'edit-form', 'tel-form',
+      'options-icon', 'edit-mode', 'edit-form', 'tel-form',
       'max-length-notice', 'convert-notice', 'resize-notice',
       'new-message-notice'
     ].forEach(function(id) {
@@ -160,8 +160,8 @@ var ThreadUI = global.ThreadUI = {
       'click', this.cancelEdit.bind(this)
     );
 
-    this.editIcon.addEventListener(
-      'click', this.startEdit.bind(this)
+    this.optionsIcon.addEventListener(
+      'click', this.showOptions.bind(this)
     );
 
     this.deleteButton.addEventListener(
@@ -1463,6 +1463,43 @@ var ThreadUI = global.ThreadUI = {
     this.checkInputs();
   },
 
+  showOptions: function thui_showOptions() {
+    /**
+      * Different situations depending on the state
+      * - Add / Delete subject to be trated on bug 885680
+      * - Delete messages (for existing conversations)
+      * - Settings (should open Message Settings from the Settings app)
+      */
+    var params = {
+      header: navigator.mozL10n.get('message'),
+      items: []
+    };
+
+    // If we are on a thread, we can call to DeleteMessages
+    if (window.location.hash !== '#new') {
+      params.items.push({
+        l10nId: 'deleteMessages-label',
+        method: this.startEdit.bind(this)
+      });
+    }
+
+    // Last option is Settings
+    params.items.push({
+      l10nId: 'settings',
+      method: function oSettings() {
+        ActivityPicker.openSettings();
+      }
+    });
+
+    // Last item is the Cancel button
+    params.items.push({
+      l10nId: 'cancel',
+      incomplete: true
+    });
+
+    new OptionMenu(params).show();
+  },
+
   startEdit: function thui_edit() {
     this.inEditMode = true;
     this.cleanForm();
@@ -1573,7 +1610,7 @@ var ThreadUI = global.ThreadUI = {
     } else {
       this.uncheckAllButton.disabled = true;
       this.deleteButton.classList.add('disabled');
-      navigator.mozL10n.localize(this.editMode, 'editMode');
+      navigator.mozL10n.localize(this.editMode, 'deleteMessages-title');
     }
   },
 
@@ -2438,7 +2475,7 @@ var ThreadUI = global.ThreadUI = {
     }.bind(this));
 
     // Hide the Messages edit icon, view container and composer form
-    this.editIcon.classList.add('hide');
+    this.optionsIcon.classList.add('hide');
     this.subheader.classList.add('hide');
     this.container.classList.add('hide');
     this.composeForm.classList.add('hide');
@@ -2578,8 +2615,7 @@ var ThreadUI = global.ThreadUI = {
       incomplete: true
     });
 
-    var options = new OptionMenu(params);
-    options.show();
+    new OptionMenu(params).show();
   },
 
   onCreateContact: function thui_onCreateContact() {
@@ -2609,7 +2645,7 @@ ThreadUI.groupView.reset = function groupViewReset() {
   // Remove all LIs
   ThreadUI.participantsList.textContent = '';
   // Restore message list view UI elements
-  ThreadUI.editIcon.classList.remove('hide');
+  ThreadUI.optionsIcon.classList.remove('hide');
   ThreadUI.subheader.classList.remove('hide');
   ThreadUI.container.classList.remove('hide');
   ThreadUI.composeForm.classList.remove('hide');

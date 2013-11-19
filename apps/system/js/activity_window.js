@@ -223,9 +223,6 @@
     this.fadeOverlay = this.element.querySelector('.fade-overlay');
 
     this._registerEvents();
-    if (window.AppError) {
-      new AppError(this);
-    }
     if (window.AppModalDialog) {
       new AppModalDialog(this);
     }

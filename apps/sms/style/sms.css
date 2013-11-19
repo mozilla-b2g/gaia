@@ -304,10 +304,6 @@ section[role="region"].new > header:first-child form {
   display: block;
 }
 
-.new #messages-edit-icon {
-  display: none;
-}
-
 .new #messages-contact-pick-button {
   display: block;
 }

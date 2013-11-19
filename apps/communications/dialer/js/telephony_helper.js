@@ -26,13 +26,13 @@ var TelephonyHelper = (function() {
   };
 
   function notifyBusyLine() {
-    // ANSI call waiting tone for a 3 seconds window.
-    var sequence = [[480, 620, 500],
-                    [0, 0, 500],
-                    [480, 620, 500],
-                    [0, 0, 500],
-                    [480, 620, 500],
-                    [0, 0, 500]];
+    // ANSI call waiting tone for a 6 seconds window.
+    var sequence = [[480, 620, 500], [0, 0, 500],
+                    [480, 620, 500], [0, 0, 500],
+                    [480, 620, 500], [0, 0, 500],
+                    [480, 620, 500], [0, 0, 500],
+                    [480, 620, 500], [0, 0, 500],
+                    [480, 620, 500], [0, 0, 500]];
     TonePlayer.playSequence(sequence);
   };
 

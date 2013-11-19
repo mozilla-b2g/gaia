@@ -506,6 +506,17 @@ ImapFolderConn.prototype = {
     // Having a connection is 10% of the battle
     if (progressCallback)
       progressCallback(0.1);
+
+    // Gmail IMAP servers cache search results until your connection
+    // gets notified of new messages via an unsolicited server
+    // response. Sending a command like NOOP is required to flush the
+    // cache and force SEARCH to return new messages that have just
+    // been received. Other IMAP servers don't need this as far as we know.
+    // See <https://bugzilla.mozilla.org/show_bug.cgi?id=933079>.
+    if (this._account.isGmail) {
+      this._conn.noop();
+    }
+
     this._conn.search(searchOptions, function(err, uids) {
         if (err) {
           console.error('Search error on', searchOptions, 'err:', err);

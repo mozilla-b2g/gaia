@@ -265,9 +265,11 @@ var MessageManager = {
         break;
       case '#thread-list':
         ThreadUI.inThread = false;
-        //Keep the  visible button the :last-child
-        var editButton = document.getElementById('messages-edit-icon');
-        editButton.parentNode.appendChild(editButton);
+
+        //Keep the visible button the :last-child
+        var optionsButton = document.getElementById('messages-options-icon');
+        optionsButton.parentNode.appendChild(optionsButton);
+
         if (this.threadMessages.classList.contains('new')) {
           MessageManager.slide('right', function() {
             self.threadMessages.classList.remove('new');

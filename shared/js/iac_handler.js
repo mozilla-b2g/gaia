@@ -2,7 +2,8 @@
 
 var IACHandler = {
   _eventPrefix: 'iac-',
-  _ports: [],
+  _ports: {},
+
   init: function onInit() {
     var self = this;
 
@@ -11,10 +12,10 @@ var IACHandler = {
         var keyword = request.keyword;
         var port = request.port;
 
-        // We will save each port by keyword
-        if (!self._ports[keyword]) {
-          self._ports[keyword] = port;
-        }
+        // We will save each port by keyword; ports may get overwritten
+        // sometimes, but that's ok because there should only be one *active*
+        // port with a given keyword at any time.
+        self._ports[keyword] = port;
 
         port.onmessage = function onReceivedMessage(evt) {
           var message = evt.data;
@@ -40,6 +41,7 @@ var IACHandler = {
         };
     });
   },
+
   getPort: function(keyword) {
     return this._ports[keyword];
   }

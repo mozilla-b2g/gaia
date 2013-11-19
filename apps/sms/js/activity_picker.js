@@ -106,6 +106,17 @@ var ActivityPicker = {
     };
 
     tryActivity(params, onsuccess, onerror);
+  },
+  openSettings: function ap_openSettings(onsuccess, onerror) {
+    var params = {
+      name: 'configure',
+      data: {
+        target: 'device',
+        section: 'carrier-mmsSettings'
+      }
+    };
+
+    tryActivity(params, onsuccess, onerror);
   }
 };
 

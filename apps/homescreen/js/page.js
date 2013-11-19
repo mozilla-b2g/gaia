@@ -45,7 +45,7 @@ Icon.prototype = {
   // element dataset and allow us to uniquely look up the Icon object from
   // the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL',
-                           'useAsyncPanZoom', 'desiredPos'],
+                           'useAsyncPanZoom', 'desiredPos', 'desiredScreen'],
 
   /**
    * The Application (or Bookmark) object corresponding to this icon.
@@ -932,7 +932,7 @@ Page.prototype = {
       }
       callback();
     } else if ('isIcon' in elem.dataset && this.olist &&
-               !this.olist.getAttribute('disabled')) {
+               !document.body.hasAttribute('disabled-tapping')) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
         return;
@@ -960,18 +960,23 @@ Page.prototype = {
    * @param{Function} callback
    */
   disableTap: function pg_disableTap(callback) {
-    var olist = this.olist;
-    olist.setAttribute('disabled', true);
+    document.body.setAttribute('disabled-tapping', true);
 
     var enableTap = function enableTap() {
       document.removeEventListener('visibilitychange', enableTap);
       document.removeEventListener('collectionopened', enableTap);
-      olist.removeAttribute('disabled');
-      callback();
+      window.removeEventListener('hashchange', enableTap);
+      document.body.removeAttribute('disabled-tapping');
+      callback && callback();
     };
 
+    // We are going to enable the tapping feature under these conditions:
+    // 1. The opened app is in foreground
     document.addEventListener('visibilitychange', enableTap);
+    // 2. The opened collection is in foreground
     document.addEventListener('collectionopened', enableTap);
+    // 3. Users click on home button quickly while app are opening
+    window.addEventListener('hashchange', enableTap);
   },
 
   /*
@@ -1020,6 +1025,24 @@ Page.prototype = {
     var icon = this.getLastIcon();
     icon.remove();
     return icon;
+  },
+
+  /*
+   * Returns the icons which desiredScreen is bigger than position
+   * @param{int} position is DesiredScreen value which with compare
+   */
+  getMisplacedIcons: function pg_getMisplacedIcons(currentScreen) {
+    var misplaced = [];
+    var appsDesiredScreen =
+         this.olist.querySelectorAll('li[data-desired-screen]');
+    var numApps = appsDesiredScreen.length;
+    for (var i = numApps - 1; i >= 0; i--) {
+      var desiredScreen = appsDesiredScreen[i].dataset.desiredScreen;
+      if (desiredScreen > currentScreen) {
+        misplaced.push(GridManager.getIcon(appsDesiredScreen[i].dataset));
+      }
+    }
+    return misplaced;
   },
 
   insertBeforeLastIcon: function pg_insertBeforeLastIcon(icon) {
@@ -1114,7 +1137,7 @@ Page.prototype = {
       var desiredPos = icon.descriptor.desiredPos;
       var manifest = icon.descriptor.manifestURL;
       // Add to the installed SV apps array
-      GridManager.svPreviouslyInstalledApps.push({'manifest': manifest});
+      GridManager.addPreviouslyInstalled(manifest);
       var numIcons = iconList.length;
       for (var i = 0; (i < numIcons) && (i <= desiredPos); i++) {
         var iconPos = iconList[i].dataset && iconList[i].dataset.desiredPos;

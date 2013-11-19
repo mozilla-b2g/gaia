@@ -14,7 +14,7 @@ var EvmeManager = (function EvmeManager() {
   function addGridItem(params, extra) {
     var item = GridItemsFactory.create({
       'id': params.id || Evme.Utils.uuid(),
-      'bookmarkURL': params.originUrl,
+      'bookmarkURL': params.originUrl.trim(),
       'name': params.name,
       'icon': params.icon,
       'iconable': false,
@@ -110,6 +110,23 @@ var EvmeManager = (function EvmeManager() {
    */
   function getCollections() {
     return GridManager.getCollections();
+  }
+
+  /**
+   * Returns a list of all Collections names
+   * @param  {bool} lowerCase the name strings
+   */
+  function getCollectionNames(lowerCase) {
+    var names = [];
+    var gridCollections = getCollections();
+    for (var i = 0; collection = gridCollections[i++]; ) {
+      var name = getIconName(collection.origin);
+      if (name) {
+        names.push(lowerCase ? name.toLowerCase() : name);
+      }
+    }
+
+    return names;
   }
 
   function getAppByOrigin(origin) {
@@ -314,6 +331,7 @@ var EvmeManager = (function EvmeManager() {
     getAppByOrigin: getAppByOrigin,
     getGridApps: getGridApps,
     getCollections: getCollections,
+    getCollectionNames: getCollectionNames,
     getAppInfo: getAppInfo,
     getAllAppsInfo: getAllAppsInfo,
 

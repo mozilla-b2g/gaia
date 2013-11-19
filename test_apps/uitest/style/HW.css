@@ -27,3 +27,6 @@ input[type='range']::-moz-range-thumb {
 .black {
   background: black;
 }
+.error {
+  color: red;
+}

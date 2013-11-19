@@ -40,6 +40,13 @@ const JS_AGGREGATION_BLACKLIST = [
 ];
 
 /**
+ * whitelist files by app for resource inlining
+ */
+const INLINE_WHITELIST = {
+  'system': [ 'net_error.html' ]
+};
+
+/**
  * whitelist by app name for l10n optimization.
  */
 const L10N_OPTIMIZATION_BLACKLIST = [
@@ -247,6 +254,65 @@ function optimize_aggregateJsResources(doc, webapp, htmlFile) {
 }
 
 /**
+ * Inline and minify all css/script resources on the page
+ *
+ * @param {HTMLDocument} doc DOM document of the file.
+ * @param {Object} webapp details of current web app.
+ * @param {String} path of the file to inline (verify whitelist)
+ * @param {NSFile} htmlFile filename/path of the document.
+ */
+function optimize_inlineResources(doc, webapp, filePath, htmlFile) {
+  var appName = webapp.sourceDirectoryName;
+  var fileName = filePath.split('/').pop();
+  if (!INLINE_WHITELIST[appName] ||
+      INLINE_WHITELIST[appName].indexOf(fileName) === -1) {
+    return;
+  }
+
+  dump(
+    'inlining resources for : "' +
+    appName + '/' + fileName + '" \n'
+  );
+
+  // inline javascript
+  let scripts = Array.slice(doc.querySelectorAll('script[src]'));
+  scripts.forEach(function(oldScript) {
+    let newScript = doc.createElement('script');
+    let content = optimize_getFileContent(webapp, htmlFile, oldScript.src);
+    try {
+      content = JSMin(content).code;
+    } catch (e) {
+      dump('Error minifying content: ' + htmlFile.path);
+    }
+    newScript.innerHTML = content;
+    if (oldScript.hasAttribute('defer')) {
+      doc.documentElement.appendChild(newScript);
+    } else {
+      oldScript.parentNode.insertBefore(newScript, oldScript);
+    }
+    oldScript.parentNode.removeChild(oldScript);
+  });
+
+  // inline stylesheets
+  let styles = Array.slice(doc.querySelectorAll('link[rel="stylesheet"]'));
+  styles.forEach(function(oldStyle) {
+    let cssPath = oldStyle.href.split('/').slice(0, -1).join('/');
+    let newStyle = doc.createElement('style');
+    newStyle.rel = 'stylesheet';
+    newStyle.type = 'text/css';
+    let content = optimize_getFileContent(webapp, htmlFile,
+                                                 oldStyle.href);
+    // inline css image url references
+    newStyle.innerHTML = content.replace(/url\(([^)]+?)\)/g, function(match, url) {
+      let file = utils.getFile(config.GAIA_DIR, cssPath, url);
+      return match.replace(url, utils.getFileAsDataURI(file));
+    });
+    oldStyle.parentNode.insertBefore(newStyle, oldStyle);
+    oldStyle.parentNode.removeChild(oldStyle);
+  });
+}
+
+/**
  * Part of our polyfill for web components
  * Inserts components into the DOM as comment nodes
  * @param {HTMLDocument} doc DOM document of the file.
@@ -328,15 +394,23 @@ function optimize_concatL10nResources(doc, webapp, dictionary) {
 
   var resources = doc.querySelectorAll('link[type="application/l10n"]');
   if (resources.length) {
-    let jsonLink = doc.createElement('link');
-    jsonLink.href = '/locales-obj/{{locale}}.json';
-    jsonLink.type = 'application/l10n';
-    jsonLink.rel = 'prefetch';
-    let link = resources[0];
-    link.parentNode.insertBefore(jsonLink, link);
+    let parentNode = resources[0].parentNode;
+    let fetch = false;
     for (let i = 0; i < resources.length; i++) {
-      link = resources[i];
+      let link = resources[i];
       link.parentNode.removeChild(link);
+      // if any l10n link does no have the no-fetch
+      // attribute we will embed the locales json link
+      if (!link.hasAttribute('data-no-fetch')) {
+        fetch = true;
+      }
+    }
+    if (fetch) {
+      let jsonLink = doc.createElement('link');
+      jsonLink.href = '/locales-obj/{{locale}}.json';
+      jsonLink.type = 'application/l10n';
+      jsonLink.rel = 'prefetch';
+      parentNode.appendChild(jsonLink);
     }
   }
 
@@ -471,6 +545,7 @@ function optimize_compile(webapp, file, callback) {
       optimize_embedL10nResources(win.document, subDict);
       optimize_concatL10nResources(win.document, webapp, fullDict);
       optimize_aggregateJsResources(win.document, webapp, newFile);
+      optimize_inlineResources(win.document, webapp, file.path, newFile);
       optimize_serializeHTMLDocument(win.document, newFile);
 
       // notify the world that this HTML document has been optimized

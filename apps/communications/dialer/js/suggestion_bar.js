@@ -61,7 +61,8 @@ var SuggestionBar = {
       return;
     } else {
       var self = this;
-      LazyLoader.load(['/dialer/js/contacts.js',
+      LazyLoader.load(['/shared/js/async_storage.js',
+                       '/dialer/js/contacts.js',
                        '/shared/js/simple_phone_matcher.js'],
       function callback() {
         self._loaded = true;

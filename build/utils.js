@@ -1,4 +1,5 @@
 const { Cc, Ci, Cr, Cu } = require('chrome');
+const { btoa } = Cu.import("resource://gre/modules/Services.jsm", {});
 const FILE_TYPE_FILE = 0;
 const FILE_TYPE_DIRECTORY = 1;
 
@@ -117,6 +118,20 @@ function getJSON(file) {
     dump('Invalid JSON file : ' + file.path + '\n');
     throw e;
   }
+}
+
+function getFileAsDataURI(file) {
+  var contentType = Cc["@mozilla.org/mime;1"]
+                    .getService(Ci.nsIMIMEService)
+                    .getTypeFromFile(file);
+  var inputStream = Cc["@mozilla.org/network/file-input-stream;1"]
+                    .createInstance(Ci.nsIFileInputStream);
+  inputStream.init(file, 0x01, 0600, 0);
+  var stream = Cc["@mozilla.org/binaryinputstream;1"]
+               .createInstance(Ci.nsIBinaryInputStream);
+  stream.setInputStream(inputStream);
+  var encoded = btoa(stream.readBytes(stream.available()));
+  return "data:" + contentType + ";base64," + encoded;
 }
 
 function makeWebappsObject(appdirs, domain, scheme, port) {
@@ -442,6 +457,7 @@ exports.writeContent = writeContent;
 exports.getFile = getFile;
 exports.ensureFolderExists = ensureFolderExists;
 exports.getJSON = getJSON;
+exports.getFileAsDataURI = getFileAsDataURI;
 exports.makeWebappsObject = makeWebappsObject;
 exports.gaiaOriginURL = gaiaOriginURL;
 exports.gaiaManifestURL = gaiaManifestURL;
