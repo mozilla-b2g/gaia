@@ -1,0 +1,4 @@
+#! /bin/bash -ve
+
+echo "Building browser debug profile"
+PROFILE_FOLDER=profile-test DEBUG=1 make

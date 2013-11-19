@@ -1,0 +1,3 @@
+#! /bin/bash -v
+
+MARIONETTE_RUNNER_HOST=marionette-firefox-host make test-integration
