@@ -3,6 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
+from marionette.marionette import Actions
 from gaiatest.apps.base import Base
 
 
@@ -12,6 +13,8 @@ class Calendar(Base):
 
     _current_month_year_locator = (By.ID, 'current-month-year')
     _current_months_day_locator = (By.ID, 'months-day-view')
+    _current_monthly_calendar_locator = (By.ID, 'month-view')
+    _hint_swipe_to_navigate_locator = (By.ID, 'hint-swipe-to-navigate')
     _add_event_button_locator = (By.XPATH, "//a[@href='/event/add/']")
     _event_title_input_locator = (By.XPATH, "//input[@data-l10n-id='event-title']")
 
@@ -23,6 +26,7 @@ class Calendar(Base):
     def launch(self):
         Base.launch(self)
         self.wait_for_element_displayed(*self._current_month_year_locator)
+        self.wait_for_element_not_displayed(*self._hint_swipe_to_navigate_locator)
 
     @property
     def current_month_year(self):
@@ -86,3 +90,25 @@ class Calendar(Base):
     @staticmethod
     def _get_data_hour(date_time):
         return date_time.hour
+
+    def flick_to_next_month(self):
+        self._flick_to_month('next')
+
+    def flick_to_previous_month(self):
+        self._flick_to_month('previous')
+
+    def _flick_to_month(self, direction):
+        """Flick current monthly calendar to next or previous month.
+
+        @param direction: flick to next month if direction='next', else flick to previous month
+        """
+        action = Actions(self.marionette)
+
+        current_monthly_calendar = self.marionette.find_element(*self._current_monthly_calendar_locator)
+        flick_origin_x = current_monthly_calendar.size['width'] // 2
+        flick_origin_y = current_monthly_calendar.size['height'] // 2
+        flick_destination_x = 0 if direction == 'next' else 2 * flick_origin_x
+
+        action.flick(current_monthly_calendar, flick_origin_x, flick_origin_y,
+                     flick_destination_x, flick_origin_y)
+        action.perform()
