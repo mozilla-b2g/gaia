@@ -967,6 +967,7 @@ form[role="dialog"][data-type="action"] > header {
 
 .contact-header aside.pack-end {
   float: right;
+  margin-right: -1.5rem; /* compensate the header's 3rem padding */
 }
 
 body[role="application"] form[role="dialog"][data-type="action"] > header:first-child{

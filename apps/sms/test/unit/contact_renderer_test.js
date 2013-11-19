@@ -1,5 +1,5 @@
 /*global ContactRenderer, loadBodyHTML, MockContact, MockL10n, MocksHelper,
-         Utils */
+         Utils, Template */
 
 'use strict';
 
@@ -56,6 +56,7 @@ suite('ContactRenderer', function() {
   setup(function() {
     loadBodyHTML('/index.html');
 
+    this.sinon.spy(Template.prototype, 'interpolate');
     ul = document.createElement('ul');
     contact = MockContact();
   });
@@ -72,6 +73,17 @@ suite('ContactRenderer', function() {
         contact: contact,
         input: 'foo',
         target: ul
+      });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        carrier: 'TEF, ',
+        name: 'Pepito O\'Hare',
+        nameHTML: 'Pepito O&apos;Hare',
+        number: '+346578888888',
+        numberHTML: '+346578888888',
+        photoHTML: '',
+        separator: ' | ',
+        type: 'Mobile'
       });
 
       html = ul.firstElementChild.innerHTML;
@@ -120,6 +132,17 @@ suite('ContactRenderer', function() {
         contact: contact,
         input: '346578888888',
         target: ul
+      });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        carrier: '',
+        name: 'Pepito O\'Hare',
+        nameHTML: 'Pepito O&apos;Hare',
+        number: '+346578888888',
+        numberHTML: '+<span class="highlight">346578888888</span>',
+        photoHTML: '',
+        separator: '',
+        type: ''
       });
 
       html = ul.firstElementChild.innerHTML;
@@ -290,6 +313,22 @@ suite('ContactRenderer', function() {
         input: '5559999',
         target: ul
       });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        photoURL: sinon.match(/^blob:/)
+      });
+
+      sinon.assert.calledWithMatch(Template.prototype.interpolate, {
+        carrier: 'XXX, ',
+        name: 'Pepito O\'Hare',
+        nameHTML: 'Pepito O&apos;Hare',
+        number: '+12125559999',
+        numberHTML: '+12125559999',
+        photoHTML: sinon.match('img src="blob:'),
+        separator: ' | ',
+        type: 'B'
+      });
+
       html = ul.firstElementChild.innerHTML;
 
       assert.ok(html.contains('img'));

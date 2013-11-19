@@ -5,6 +5,28 @@
 (function(exports) {
 
 var FLAVORS = {
+  /*
+   * renderAll controls whether all phone numbers sohuld be rendered for this
+   * contact
+   *
+   * shouldHighlight controls whether we should generate a markup allowing
+   * highlighting depending on the input
+   *
+   * template "main" will get the following parameters:
+   * - name: the contact's title
+   * - number: the phone number
+   * - nameHTML: same than name if shouldHighlight is false, otherwise contains
+   *   markup with the highlighting
+   * - numberHTML: see nameHTML
+   * - photoHTML: result of the "photo" template, if present
+   * - type: phone number type information
+   * - carrier: phone number carrier information
+   * - separator: the separator between type or carrier and the phone number
+   *
+   * template "photo" will get the following parameters:
+   * - photoURL: the URL of the contact's first photo
+   *
+   */
   suggestion: {
     renderAll: true,
     shouldHighlight: true,
