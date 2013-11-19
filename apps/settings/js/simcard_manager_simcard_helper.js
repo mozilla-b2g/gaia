@@ -44,7 +44,7 @@
           break;
 
         case 'lock':
-          this.enabled = true;
+          this.enabled = false;
           this.absent = false;
           this.locked = true;
           this.name = 'simcard' + (this.cardIndex + 1);
@@ -80,6 +80,11 @@
 
         case 'disabled':
           this.enabled = false;
+          this.absent = false;
+          this.locked = false;
+          this.name = 'simcard' + (this.cardIndex + 1);
+          this.number = '';
+          this.operator = '';
           break;
       }
     }

@@ -7,6 +7,7 @@
 
   // track used constants here
   const EMPTY_OPTION = '--';
+  const EMPTY_OPTION_VALUE = '-1';
 
   var _ = window.navigator.mozL10n.get;
 
@@ -49,8 +50,8 @@
         var simcard0 = new SimCard(0);
         var simcard1 = new SimCard(1);
 
-        simcard0.setState('test');
-        simcard1.setState('test');
+        simcard0.setState('lock');
+        simcard1.setState('lock');
 
         this.simcards = [simcard0, simcard1];
         return;
@@ -100,7 +101,7 @@
 
       // it means users is seleting '--' options
       // when simcards are all disabled
-      if (cardIndex == -1) {
+      if (cardIndex == EMPTY_OPTION_VALUE) {
         return;
       }
       switch (evt.target) {
@@ -213,18 +214,29 @@
       }
     },
     enableSimCard: function(cardIndex) {
-      this.getSimCard(cardIndex).setState('enabled');
-      this.updateSimCardUI(cardIndex);
-
       // TODO:
-      // call new Gecko API to enable this simcard
+      // we have to call new Gecko API to enable this simcard
+      // and put these logic in a callback function to make
+      // sure we can get information from Gecko
+      // function cb() {
+      //   var cardInfo = {};
+      this.getSimCard(cardIndex).setState('normal', {
+        locked: false,
+        number: '0123456789',
+        operator: 'Chunghwa Telecom'
+      });
+      this.updateSimCardUI(cardIndex);
+      // }
     },
     disableSimCard: function(cardIndex) {
+      // TODO:
+      // we have to call new Gecko API to disable this simcard
+      // and put these logic in a callback function to make
+      // sure we can do this after Gecko finished
+      // function cb() {
       this.getSimCard(cardIndex).setState('disabled');
       this.updateSimCardUI(cardIndex);
-
-      // TODO:
-      // call new Gecko API to disable this simcard
+      // }
     },
     getSimCardsCount: function() {
       return this.simcards.length;
@@ -269,7 +281,7 @@
       }.bind(this));
 
       // reflect cardState on checkbox attributes
-      checkboxDom.disabled = simcardInfo.absent || simcardInfo.locked;
+      checkboxDom.disabled = simcardInfo.absent;
       checkboxDom.checked = simcardInfo.enabled;
     },
     getMobileConnections: function() {
@@ -350,7 +362,7 @@
           option.text = simcardInfo.name;
 
           if (simcardInfo.absent) {
-            option.value = -1;
+            option.value = EMPTY_OPTION_VALUE;
             option.text = EMPTY_OPTION;
           }
 
