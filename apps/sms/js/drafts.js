@@ -86,6 +86,35 @@
     clear: function() {
       draftIndex = new Map();
       return this;
+    },
+    /**
+     * store
+     *
+     * Store draftIndex held in memory to local storage
+     *
+     * @return {Undefined} void return.
+     */
+    store: function() {
+      // Once ES6 syntax is allowed,
+      // replace the operations below with the following line:
+      // asyncStorage.setItem('draft index', [...draftIndex]);
+      var entries = [];
+      draftIndex.forEach(function(v, k) {
+        entries.push([k, v]);
+      });
+      asyncStorage.setItem('draft index', entries);
+    },
+    /**
+     * load
+     *
+     * Load draftIndex from potentially empty local storage
+     *
+     * @return {Undefined} void return.
+     */
+    load: function() {
+      asyncStorage.getItem('draft index', function(value) {
+        draftIndex = new Map(value || []);
+      });
     }
   };
 
