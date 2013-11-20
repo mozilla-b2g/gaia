@@ -116,7 +116,7 @@ suite('enable/disable homegesture', function() {
 
   test('when lockscreen is disabled', function() {
     HomeGesture.handleEvent({
-      type: 'unlock'
+      type: 'will-unlock'
     });
     assert.equal(
       HomeGesture.homeBar.classList.contains('visible'),
