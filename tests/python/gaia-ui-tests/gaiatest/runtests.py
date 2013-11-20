@@ -2,26 +2,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import cgi
-import datetime
-import json
-import math
-import os
-import pkg_resources
-import sys
-import textwrap
-import time
-import base64
-
-from py.xml import html
-from py.xml import raw
 from marionette import BaseMarionetteOptions, HTMLReportingOptionsMixin, HTMLReportingTestRunnerMixin, \
                        EnduranceOptionsMixin, HTMLReportingTestResultMixin
 from marionette import MarionetteTestResult
 from marionette import MarionetteTextTestRunner
 from marionette import BaseMarionetteTestRunner
 from marionette.runtests import cli
-from moztest.results import TestResult, relevant_line
 
 from gaiatest import __name__
 from gaiatest import GaiaTestCase, GaiaOptionsMixin, GaiaTestRunnerMixin
