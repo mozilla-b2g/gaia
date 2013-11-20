@@ -7,7 +7,8 @@ var LCDTest = {
   },
   init: function() {
     document.body.addEventListener('click', this);
-    this.fullscreenDiv.addEventListener('click', this.exitFullscreen.bind(this));
+    this.fullscreenDiv.addEventListener('click',
+                                         this.exitFullscreen.bind(this));
   },
   enterFullscreen: function(color) {
     this.fullscreenDiv.mozRequestFullScreen();
@@ -48,10 +49,11 @@ var LCDTest = {
         this.enterFullscreen('black');
         break;
       case 'off':
-        // We are going to shutdown the screen, this may lead to the sleep of CPU.
-        // Use wake lock to prevent from sleeping which cause setTimeout stop working.
+        // We are going to shutdown the screen, this may lead to
+        // the sleep of CPU. Use wake lock to prevent from sleeping
+        // which cause setTimeout stop working.
         this.wakeLock = window.navigator.requestWakeLock('screen');
-        
+
         setTimeout(this.turnOn.bind(this), 3000);
         navigator.mozPower.screenEnabled = false;
         break;

@@ -9,10 +9,12 @@ var clickHandlers = {
     alert(window.location.href);
   },
   'twitter': function() {
-    window.open('http://twitter.com/intent/tweet?text=' + document.title + ':  ' + window.location.href, 'shareWindow');
+    window.open('http://twitter.com/intent/tweet?text=' +
+      document.title + ':  ' + window.location.href, 'shareWindow');
   },
   'facebook': function() {
-    window.open('http://facebook.com/sharer/sharer.php?u=' + window.location.href, 'shareWindow');
+    window.open('http://facebook.com/sharer/sharer.php?u=' +
+      window.location.href, 'shareWindow');
   }
 };
 
