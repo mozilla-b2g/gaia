@@ -118,8 +118,6 @@ marionette('Alarm Panel', function() {
       var alarmItem;
 
       setup(function() {
-        var alarms;
-
         alarm.fill({
           name: 'coffee break',
           time: twentyFromNow
