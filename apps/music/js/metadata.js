@@ -1009,27 +1009,6 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       return;
     }
 
-    var storage = navigator.getDeviceStorage('pictures');
-    var thumbnailBaseDir;
-
-    // Figure out what directory to store the thumbnail in (if we have one).
-    if (filename[0] === '/') {
-      // We expect filename to be a fully qualified name (perhaps something
-      // like /sdcard/Music/file.mp3).
-      var slashIndex = filename.indexOf('/', 1);
-      if (slashIndex < 0) {
-        console.error("handleCoverArt: Bad filename: '" + filename + "'");
-        metadata.picture = null;
-        metadataCallback(metadata);
-        return;
-      }
-
-      var storageName = filename.substring(0, slashIndex); // e.g. /sdcard
-      thumbnailBaseDir = storageName + '/.music/covers/';
-    } else {
-      thumbnailBaseDir = '.music/covers/';
-    }
-
     if (coverBlob) {
       // We have embedded album art! First, try to make a unique filename for
       // the thumbnail based on the artist, album, and file size. The file size
@@ -1050,8 +1029,7 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       }
 
       var size = metadata.picture.end - metadata.picture.start;
-      var thumbnailFilename = thumbnailBaseDir + vfatEscape(albumKey) + '.' +
-        size + '.jpg';
+      var thumbnailFilename = vfatEscape(albumKey) + '.' + size + '.jpg';
 
       checkSaveThumbnail(coverBlob, thumbnailFilename, function() {
         metadataCallback(metadata);
@@ -1085,8 +1063,9 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var getcoverrequest = pictureStorage.get(externalCoverFilename);
         getcoverrequest.onsuccess = function() {
           var externalBlob = this.result;
-          var thumbnailFilename = thumbnailBaseDir +
-                                  vfatEscape(dirName.substr(0, 128)) + '.' +
+          // Create a filename for the thumbnail; truncate from the end to help
+          // ensure uniqueness.
+          var thumbnailFilename = vfatEscape(dirName.substr(-128)) + '.' +
                                   externalBlob.size + '.jpg';
 
           metadata.picture = { flavor: 'external',
@@ -1104,10 +1083,24 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       tryFetchExternalCover(0);
     }
 
+    /**
+     * Escape any characters that are illegal on the VFAT filesystem.
+     *
+     * @param {string} str The string to escape.
+     * @return {string} The escaped string.
+     */
     function vfatEscape(str) {
       return str.replace(/["*\/:<>?\|]/g, '_');
     }
 
+    /**
+     * Shrink a picture down to a thumbnail or, if the picture is already
+     * thumbnail-size, do nothing.
+     *
+     * @param {Blob} pictureBlob The full-size picture.
+     * @param {function} callback A callback taking a result type ('error',
+     *   'original', or 'thumbnail'), and a Blob for the thumbnailized picture.
+     */
     function thumbnailizePicture(pictureBlob, callback) {
       var blobURL = URL.createObjectURL(pictureBlob);
 
@@ -1117,12 +1110,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         URL.revokeObjectURL(blobURL);
         offscreenImage.removeAttribute('src');
         // Something went wrong reading the embedded image.
-        // Return a default one instead
         console.warn('Album cover art failed to load', filename);
         callback('error', null);
       };
       offscreenImage.onload = function() {
-        // We've loaded the image, now copy it to a canvas
+        // We've loaded the image, now copy it to a canvas.
         var canvas = document.createElement('canvas');
         canvas.width = THUMBNAIL_WIDTH;
         canvas.height = THUMBNAIL_HEIGHT;
@@ -1130,10 +1122,11 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         var scalex = canvas.width / offscreenImage.width;
         var scaley = canvas.height / offscreenImage.height;
 
-        // Take the larger of the two scales: we crop the image to the thumbnail
+        // Take the larger of the two scales: we'll crop the image to the
+        // thumbnail.
         var scale = Math.max(scalex, scaley);
 
-        // If the image was already thumbnail size, it is its own thumbnail
+        // If the image was already thumbnail size, it is its own thumbnail.
         if (scale >= 1) {
           offscreenImage.removeAttribute('src');
           callback('original', pictureBlob);
@@ -1141,17 +1134,17 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
         }
 
         // Calculate the region of the image that will be copied to the
-        // canvas to create the thumbnail
+        // canvas to create the thumbnail.
         var w = Math.round(THUMBNAIL_WIDTH / scale);
         var h = Math.round(THUMBNAIL_HEIGHT / scale);
         var x = Math.round((offscreenImage.width - w) / 2);
         var y = Math.round((offscreenImage.height - h) / 2);
 
-        // Draw that region of the image into the canvas, scaling it down
+        // Draw that region of the image into the canvas, scaling it down.
         context.drawImage(offscreenImage, x, y, w, h,
                           0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT);
 
-        // We're done with the image now
+        // We're done with the image now.
         offscreenImage.removeAttribute('src');
         URL.revokeObjectURL(blobURL);
 
@@ -1161,12 +1154,44 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       };
     }
 
+    /**
+     * Check for the existence of a thumbnail on the audio file's storage area,
+     * and if it's not present, save it.
+     *
+     * @param {Blob} coverBlob The blob for the full-size cover art.
+     * @param {string} thumbnailFilename A relative filename for the thumbnail.
+     * @param {function} callback A callback to call when finished.
+     */
     function checkSaveThumbnail(coverBlob, thumbnailFilename, callback) {
-      var getthumbrequest = pictureStorage.get(thumbnailFilename);
+      var storageName = '';
+
+      // Look at the filename for the audio file to figure out where we should
+      // put the thumbnail. Since the first part of the filename is the storage
+      // name, we can use that to ensure deviceStorage puts the thumbnail on the
+      // same storage area (no matter which deviceStorage we have).
+      //
+      // Filename is usually a fully qualified name (perhaps something like
+      // /sdcard/Music/file.mp3). On desktop, it's a relative name, but desktop
+      // only has one storage area anyway.
+      if (filename[0] === '/') {
+        var slashIndex = filename.indexOf('/', 1);
+        if (slashIndex < 0) {
+          console.error("handleCoverArt: Bad filename: '" + filename + "'");
+          delete metadata.picture;
+          callback();
+          return;
+        }
+
+        // Get the storage name, e.g. /sdcard/
+        var storageName = filename.substring(0, slashIndex + 1);
+      }
+
+      var thumbnailAbsPath = storageName + '.music/covers/' + thumbnailFilename;
+      var getthumbrequest = pictureStorage.get(thumbnailAbsPath);
 
       // We already have the thumbnail. We're done!
       getthumbrequest.onsuccess = function() {
-        metadata.picture.thumbnail = thumbnailFilename;
+        metadata.picture.thumbnail = thumbnailAbsPath;
         callback();
       };
 
@@ -1174,22 +1199,20 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
       getthumbrequest.onerror = function() {
         thumbnailizePicture(coverBlob, function(type, thumbnailBlob) {
           if (type === 'error') {
-            metadata.picture = null;
-            callback();
-          } else if (type === 'original' &&
-                     metadata.picture.flavor !== 'unsynced') {
-            callback();
-          } else {
+            delete metadata.picture;
+          } else if (type === 'thumbnail' ||
+                     metadata.picture.flavor === 'unsynced') {
             var saverequest = pictureStorage.addNamed(thumbnailBlob,
-                                                      thumbnailFilename);
+                                                      thumbnailAbsPath);
             saverequest.onerror = function() {
               console.error('Could not save cover image', filename);
             };
 
             // Don't bother waiting for saving to finish. Just return.
-            metadata.picture.thumbnail = thumbnailFilename;
-            callback();
+            metadata.picture.thumbnail = thumbnailAbsPath;
           }
+
+          callback();
         });
       };
     }
