@@ -343,10 +343,10 @@ var NfcManager = {
     nfcdom.setPeerWindow(currentActiveApp.manifestURL);
   },
 
-  fireTagDiscovered: function fireTagDiscovered(command) {
+  fireTagDiscovered: function nm_fireTagDiscovered(command) {
     var self = this;
-    // Fire off activity to whoever is registered to handle a generic binary
-    // blob tag (TODO: tagRead).
+    // Fire off activity to whoever is registered to handle a generic
+    // binary blob.
     var technologyTags = command.tag;
     var a = new MozActivity({
       name: 'tag-discovered',
@@ -469,7 +469,6 @@ var NfcManager = {
       text = NfcUtil.toUTF8(record.payload.subarray(languageLength + 1));
       encodingString = 'UTF-8';
     } else if (encoding == NDEF.rtd_text_utf16) {
-      //TODO needs to be fixed. payload is Uint8Array
       record.payload.substring(languageLength + 1);
       encodingString = 'UTF-16';
     }
