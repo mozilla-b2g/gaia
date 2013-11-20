@@ -17,6 +17,7 @@ class Homescreen(Base):
     _visible_icons_locator = (By.CSS_SELECTOR, 'div.page[style*="transform: translateX(0px);"] > ol > .icon')
     _edit_mode_locator = (By.CSS_SELECTOR, 'body[data-mode="edit"]')
     _search_bar_icon_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
+    _landing_page_locator = (By.ID, 'icongrid')
     _collections_locator = (By.CSS_SELECTOR, 'li.icon[data-collection-name]')
     _collection_locator = (By.CSS_SELECTOR, "li.icon[data-collection-name *= '%s']")
 
