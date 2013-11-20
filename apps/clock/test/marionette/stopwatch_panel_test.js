@@ -26,7 +26,7 @@ marionette('Stopwatch Panel', function() {
 
     assert.hasDuration(
       stopwatch.read(),
-      [1200, 1600]
+      [1200, Infinity]
     );
   });
 
@@ -56,12 +56,12 @@ marionette('Stopwatch Panel', function() {
 
     assert.hasDuration(
       laps[0],
-      [1, 300],
+      [1, Infinity],
       '"Current" lap entry contains nonzero time'
     );
 
     assert.hasDuration(laps[1],
-      [1, 300],
+      [1, Infinity],
       'Immediately-created lap entry contains nonzero time'
     );
 
@@ -73,18 +73,18 @@ marionette('Stopwatch Panel', function() {
 
     assert.hasDuration(
       laps[0],
-      [0, 200],
+      [0, Infinity],
       'New laps are inserted at the beginning of the lap list'
     );
 
     assert.hasDuration(
       laps[1],
-      [1200, 1600],
-      'New laps are inserted at the beginning of the lap list'
+      [1200, Infinity],
+      'Previously-created lap entries persist'
     );
 
     assert.hasDuration(laps[2],
-      [0, 200],
+      [1, Infinity],
       'Previously-created lap entries persist'
     );
   });
