@@ -1,4 +1,4 @@
-Keyboards.cz = {
+Keyboards.cs = {
   label: 'Czech',
   menuLabel: 'Česká',
   imEngine: 'latin',

@@ -59,6 +59,7 @@ class Keyboard(Base):
 
     # special keys locators
     _language_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-keycode='-3']")
+    _dotcom_key_locator = (By.CSS_SELECTOR, ".keyboard-row button[data-compositekey='.com']")
     _numeric_sign_key = '-2'
     _alpha_key = '-1'
     _backspace_key = '8'
@@ -102,6 +103,7 @@ class Keyboard(Base):
     def switch_to_keyboard(self):
         self.marionette.switch_to_frame()
         keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
+        self.wait_for_condition(lambda m: keybframe.location['y'] == 0)
         self.marionette.switch_to_frame(keybframe, focus=False)
 
     @property
@@ -263,6 +265,12 @@ class Keyboard(Base):
         if self.is_element_present(*self._key_locator(self._numeric_sign_key)):
             self._tap(self._numeric_sign_key)
         self._tap(self._alt_key)
+        self.marionette.switch_to_frame()
+
+    def tap_dotcom(self):
+        self.switch_to_keyboard()
+        dotcom = self.marionette.find_element(*self._dotcom_key_locator)
+        dotcom.tap()
         self.marionette.switch_to_frame()
 
     def dismiss(self):

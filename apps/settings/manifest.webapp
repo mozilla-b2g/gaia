@@ -29,8 +29,7 @@
     "power":{},
     "idle":{},
     "telephony":{},
-    "audio-channel-notification":{},
-    "nfc":{ "access": "readonly" }
+    "audio-channel-notification":{}
   },
   "activities": {
     "configure": {
