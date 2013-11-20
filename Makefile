@@ -723,6 +723,13 @@ b2g: node_modules/.bin/mozilla-download
 		--channel tinderbox \
 		--branch mozilla-central $@
 
+nightly: node_modules/.bin/mozilla-download
+	./node_modules/.bin/mozilla-download  \
+		--verbose \
+		--product firefox \
+		--channel prerelease \
+		--branch mozilla-central $@
+
 .PHONY: test-integration
 test-integration:
 	# override existing profile-test folder.

@@ -1,3 +1,6 @@
 #! /bin/bash -v
 
+echo "Downloading Firefox Nightly"
+make nightly
+
 MARIONETTE_RUNNER_HOST=marionette-firefox-host make test-integration
