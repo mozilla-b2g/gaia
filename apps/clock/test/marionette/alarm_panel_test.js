@@ -170,16 +170,31 @@ marionette('Alarm Panel', function() {
       });
 
       test('toggling', function() {
+        function check(num) {
+          var val;
+          try {
+            val = alarm.isEnabled(0);
+          } catch(err) {
+            val = 'change';
+          }
+          console.log('Check #' + num + ':\t' + val);
+        }
+
+        check(1);
         alarm.toggleAlarm(0);
+        check(2);
 
         assert(!alarm.isEnabled(0), 'Alarm is disabled after toggling');
+        check(3);
+
         assert(
           !alarm.countdownBannerDisplayed,
           'Countdown banner is not displayed after disabling an alarm'
         );
 
+        check(4);
         alarm.toggleAlarm(0);
-
+        check(5);
         try {
         assert(alarm.isEnabled(0), 'Alarm is re-enabled after toggling');
         } catch(e) {
