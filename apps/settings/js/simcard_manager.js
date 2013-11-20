@@ -107,10 +107,7 @@
 
       switch (evt.target) {
         case this.simManagerOutgoingCallSelect:
-          console.log('set on cardIndex : ', cardIndex);
-          window.asyncStorage.setItem('outgoingCall', cardIndex, function() {
-            console.log('is set on async successfully');
-          });
+          window.asyncStorage.setItem('outgoingCall', cardIndex);
           SettingsHelper.set('outgoingCall').on(cardIndex);
           break;
 
