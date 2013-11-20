@@ -182,7 +182,17 @@ marionette('Alarm Panel', function() {
 
         alarm.toggleAlarm(0);
 
+        try {
         assert(alarm.isEnabled(0), 'Alarm is re-enabled after toggling');
+        } catch(e) {
+          console.log('Alarm not enabled as expected. Checking again.');
+          client.waitFor(function() {
+            console.log('  waiting...');
+            return alarm.isEnabled(0);
+          });
+          console.log('Enabled!');
+          throw e;
+        }
         alarm.waitForBannerHidden();
       });
 
