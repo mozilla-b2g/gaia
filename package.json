@@ -13,6 +13,7 @@
     "marionette-client": "~1.1.0",
     "marionette-content-script": "0.0.0",
     "marionette-device-host": "0.0.1",
+    "marionette-firefox-host": "0.0.2",
     "marionette-helper": "0.0.9",
     "marionette-profile-builder": "0.0.2",
     "marionette-js-runner": "0.4.0",
