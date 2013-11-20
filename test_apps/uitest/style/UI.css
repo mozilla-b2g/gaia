@@ -1,9 +1,44 @@
-  body, textarea, input, [contenteditable] {
-    font-size: 1.5em;
-  }
-  input, textarea, iframe {
-    width: 100%;
-  }
-  .hidden {
-    display: none;
-  }
+textarea, input, select, [contenteditable] {
+  font-size: 1.5em;
+}
+input, textarea, iframe {
+  width: 100%;
+}
+button {
+  font-size: 2rem;
+}
+canvas {
+  display: none;
+}
+canvas.hidden {
+  display: block;
+}
+.box {
+  width: 200px;
+  height: 200px;
+  border: 1px solid red;
+  overflow: auto;
+  background-color: #fcc;
+  margin: 20px;
+}
+.sbox {
+  width: 20px;
+  height: 20px;
+  background-color: #ccc;
+  float: left;
+}
+.sbox:nth-child(2n) {
+  background-color: #fff;
+}
+
+.hidden {
+  display: none;
+}
+#fullscreen-div {
+  background-color: #ccf;
+}
+#contextMenu {
+  background: #eee;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
