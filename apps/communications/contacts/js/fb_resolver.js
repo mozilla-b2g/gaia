@@ -23,16 +23,31 @@ fb.resolver = function(item, loader) {
         if (fbData) {
           var id = item.dataset.uuid;
           if (contacts.List.hasPhoto(id)) {
-            loader.defaultLoad(item);
+            // Prevents any kind of race condition while rendering favs
+            // (bug 937205)
+            if (!item.querySelector('img[data-src]')) {
+              contacts.List.renderPhoto(item, id);
+              document.dispatchEvent(new CustomEvent('onupdate'));
+            }
+            else {
+              var imgEle = item.querySelector('img[data-src]');
+              var src = imgEle.dataset.src;
+              var photoUrl = contacts.List.getPhotoUrl(id);
+              // Guarantees that img keeps updated with the cache (bug 937205)
+              if (src !== photoUrl) {
+                window.console.warn('Photo URL changed');
+                imgEle.dataset.src = photoUrl;
+                item.visited = false;
+              }
+              loader.defaultLoad(item);
+            }
           }
           else if (contacts.List.updatePhoto(fbData, id)) {
             contacts.List.renderPhoto(item, id);
-            item.dataset.status = 'loaded';
             document.dispatchEvent(new CustomEvent('onupdate'));
           }
-          else {
-            item.dataset.status = 'loaded';
-          }
+
+          item.dataset.status = 'loaded';
 
           // The organization is also loaded
           var contactObj = EMPTY_OBJ;

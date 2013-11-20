@@ -802,7 +802,7 @@ contacts.List = (function() {
   // full contact object.
   var updatePhoto = function updatePhoto(contact, id) {
     id = id || contact.id;
-    var prevPhoto = photosById[id];
+    var prevPhoto = photosById[id] && photosById[id].blob;
     var newPhoto = Array.isArray(contact.photo) ? contact.photo[0] : null;
 
     // Do nothing if photo did not change
@@ -811,7 +811,10 @@ contacts.List = (function() {
     }
 
     if (newPhoto) {
-      photosById[id] = newPhoto;
+      photosById[id] = {
+        blob: newPhoto,
+        url: window.URL.createObjectURL(newPhoto)
+      };
     }
     else {
       delete photosById[id];
@@ -824,19 +827,28 @@ contacts.List = (function() {
     return !!photosById[id];
   };
 
+  var getPhotoUrl = function getPhotoUrl(id) {
+    var out = '';
+    if (photosById[id]) {
+      out = photosById[id].url;
+    }
+    return out;
+  };
+
   // "Render" the photo by setting the img tag's dataset-src attribute to the
   // value in our photo cache.  This in turn will allow the imgLoader to load
   // the image once we have stopped scrolling.
   var renderPhoto = function renderPhoto(link, id) {
     id = id || link.dataset.uuid;
-    var photo = photosById[id];
-    if (!photo)
+    var photo = photosById[id] && photosById[id].blob;
+    if (!photo) {
       return;
+    }
 
     var img = link.querySelector('aside > img');
     if (img) {
       try {
-        img.dataset.src = window.URL.createObjectURL(photo);
+        img.dataset.src = photosById[id].url;
       } catch (err) {
         img.dataset.src = '';
       }
@@ -852,7 +864,7 @@ contacts.List = (function() {
     var figure = photoTemplate.cloneNode(true);
     var img = figure.children[0];
     try {
-      img.dataset.src = window.URL.createObjectURL(photo);
+      img.dataset.src = photosById[id].url;
     } catch (err) {
       img.dataset.src = '';
     }
@@ -1794,6 +1806,7 @@ contacts.List = (function() {
     'renderPhoto': renderPhoto,
     'updatePhoto': updatePhoto,
     'hasPhoto' : hasPhoto,
+    'getPhotoUrl': getPhotoUrl,
     'renderFbData': renderFbData,
     'getHighlightedName': getHighlightedName,
     'selectFromList': selectFromList,
