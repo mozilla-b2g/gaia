@@ -302,7 +302,10 @@ Email.prototype = {
 
     if (element) {
       element.tap();
+      console.log('Found email by subject.');
       this._waitForTransitionEnd(cardId);
+    } else {
+      console.log('Could NOT find email by subject.');
     }
   },
 
