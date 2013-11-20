@@ -82,6 +82,7 @@ Alarm.prototype.toggleAlarm = function(alarmIdx) {
   // Ensure that the toggle has completed before continuing. This prevents
   // code that follows from inspecting elements that the application has yet
   // to re-generate in response to the toggle operation.
+  console.log('Waiting for toggle operation to complete...');
   this.client.waitFor(function() {
     var isEnabled;
     // Due to the same race condition this `waitFor` call attempts to avoid,
@@ -91,8 +92,10 @@ Alarm.prototype.toggleAlarm = function(alarmIdx) {
     try {
       isEnabled = check();
     } catch (err) {
+      console.log('\tCheck failed: re-trying');
       isEnabled = check();
     }
+    console.log('\tCheck: ', wasEnabled, isEnabled);
     return wasEnabled !== isEnabled;
   }.bind(this));
 };

@@ -200,7 +200,7 @@ marionette('Alarm Panel', function() {
         } catch(e) {
           console.log('Alarm not enabled as expected. Checking again.');
           client.waitFor(function() {
-            console.log('  waiting...');
+            console.log('\twaiting...');
             return alarm.isEnabled(0);
           });
           console.log('Enabled!');
