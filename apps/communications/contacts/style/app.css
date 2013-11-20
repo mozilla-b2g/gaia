@@ -693,11 +693,3 @@ form[role="dialog"].no-overlay button {
 #selectable-form {
   background: none;
 }
-
-.group-section {
-  overflow: hidden;
-}
-
-.group-list {
-  overflow: hidden;
-}
