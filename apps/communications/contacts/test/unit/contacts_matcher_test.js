@@ -406,7 +406,71 @@ suite('Test Contacts Matcher', function() {
           MockFindMatcher.setData(contact);
           done();
         });
+    });
+
+    test('Incoming SIM contact matches with an existing SIM contact',
+      function(done) {
+        var existingSimContact = {
+          id: '1B',
+          category: ['sim'],
+          name: ['Juan Ramón del SIM'],
+          givenName: ['Juan Ramón del SIM'],
+          tel: [{
+            type: ['home'],
+            value: '676767671'
+          }],
+          email: [{
+            type: ['personal'],
+            value: 'jj@jj.com'
+          }]
+        };
+
+        var incomingSimContact = Object.create(existingSimContact);
+        incomingSimContact.id = '1234DF';
+
+        MockFindMatcher.setData(existingSimContact);
+
+        testMatch(incomingSimContact, 'passive', null, function() {
+          MockFindMatcher.setData(contact);
+          done();
+        });
+    });
+
+    test('Incoming SIM Contact matches with a normal contact. Only with '+
+         'familyName defined', function(done) {
+      var simObj = {
+        id: '678',
+        category: ['sim'],
+        name: ['Juan Ramón del SIM'],
+        givenName: ['Juan Ramón del SIM'],
+        tel: [{
+          type: ['home'],
+          value: '676767671'
+        }]
+      };
+
+      var existingContact = {
+        id: '1B',
+        givenName: [],
+        familyName: ['Juan Ramón del SIM'],
+        name: ['Juan Ramón del SIM'],
+        tel: [{
+          type: ['home'],
+          value: '676767671'
+        }],
+        email: [{
+          type: ['personal'],
+          value: 'jj@jj.com'
+        }]
+      };
+
+      MockFindMatcher.setData(existingContact);
+
+      testMatch(simObj, 'passive', null, function() {
+        MockFindMatcher.setData(contact);
+        done();
       });
+    });
   });
 
   suite('Test Contacts Matcher. Active Mode', function() {

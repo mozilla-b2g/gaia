@@ -267,7 +267,10 @@ contacts.Matcher = (function() {
                           replace(blankRegExp, '');
           }
           // To support seamless matching of SIM contacts
-          var targetName = (targetGN || '') + (targetFN || '');
+          var targetName = Array.isArray(aContact.name) ?
+                Normalizer.toAscii(aContact.name[0].trim().toLowerCase()).
+                          replace(blankRegExp, '') :
+                ((targetGN || '') + (targetFN || ''));
 
           var mFamilyName = null;
           var mGivenName = null;
@@ -284,7 +287,10 @@ contacts.Matcher = (function() {
                           replace(blankRegExp, '');
           }
           // To support seamless matching of SIM contacts
-          var mName = (mGivenName || '') + (mFamilyName || '');
+          var mName = Array.isArray(mContact.name) ?
+                Normalizer.toAscii(mContact.name[0].trim().toLowerCase()).
+                          replace(blankRegExp, '') :
+                ((mGivenName || '') + (mFamilyName || ''));
 
           names.push({
             contact: mContact,
@@ -294,9 +300,9 @@ contacts.Matcher = (function() {
           });
 
           var matchingList = names.filter(function(obj) {
-            return ((obj.familyName === targetFN &&
-                     obj.givenName === targetGN) ||
-                    (obj.name && obj.name === targetName) && (
+            return (obj.name && obj.name === targetName ||
+                    (obj.familyName === targetFN &&
+                     obj.givenName === targetGN) && (
                     !Array.isArray(obj.contact.category) ||
                     obj.contact.category.indexOf(FB_CATEGORY) === -1));
           });
@@ -390,6 +396,7 @@ contacts.Matcher = (function() {
       });
 
       reqName.onsuccess = function() {
+        window.console.log('Results by name ready: ', reqName.result);
         resultsByName = reqName.result.filter(function(aResult) {
           return filterFacebook(aResult, options);
         });
