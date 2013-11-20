@@ -40,6 +40,7 @@ Options:
     --restart restart target instance between tests. This option will remove 
         the /data/local/indexedDB and /data/b2g/mozilla folders and restore the 
         device back to a common state
+    --yocto gather power draw data while running tests (see https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/gaia-ui-tests/Gaia_UI_Tests_Run_Tests#Gathering_Power_Draw_Data)
 
 Testing on a Device
 ===================
