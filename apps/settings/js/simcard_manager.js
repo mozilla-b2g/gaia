@@ -6,7 +6,7 @@
 (function(exports) {
 
   // track used constants here
-  const EMPTY_OPTION = '--';
+  const EMPTY_OPTION_TEXT = '--';
   const EMPTY_OPTION_VALUE = '-1';
 
   var _ = window.navigator.mozL10n.get;
@@ -104,12 +104,18 @@
       if (cardIndex == EMPTY_OPTION_VALUE) {
         return;
       }
+
       switch (evt.target) {
         case this.simManagerOutgoingCallSelect:
+          console.log('set on cardIndex : ', cardIndex);
+          window.asyncStorage.setItem('outgoingCall', cardIndex, function() {
+            console.log('is set on async successfully');
+          });
           SettingsHelper.set('outgoingCall').on(cardIndex);
           break;
 
         case this.simManagerOutgoingMessagesSelect:
+          window.asyncStorage.setItem('outgoingMessages', cardIndex);
           SettingsHelper.set('outgoingMessages').on(cardIndex);
           break;
 
@@ -120,6 +126,7 @@
           var wantToChange = window.confirm(_('change-outgoing-data-confirm'));
 
           if (wantToChange) {
+            window.asyncStorage.setItem('outgoingData', cardIndex);
             SettingsHelper.set('outgoingData').on(cardIndex);
           }
           else {
@@ -340,44 +347,41 @@
       this.simCardContainer.innerHTML = simItemHTMLs.join('');
     },
     initSelectOptionsUI: function() {
+      this.initSelectOptionUI('outgoingCall',
+        this.simManagerOutgoingCallSelect);
 
-      var selectedOptionIndex = 0;
+      this.initSelectOptionUI('outgoingMessages',
+        this.simManagerOutgoingMessagesSelect);
 
-      var outgoingCallSelect =
-        this.simManagerOutgoingCallSelect;
+      this.initSelectOptionUI('outgoingData',
+        this.simManagerOutgoingDataSelect);
+    },
+    initSelectOptionUI: function(storageKey, selectDOM) {
+      var defaultCardIndex;
+      var self = this;
 
-      var outgoingMessagesSelect =
-        this.simManagerOutgoingMessagesSelect;
+      // storageKey = outgoingCall
+      window.asyncStorage.getItem(storageKey, function(cardIndex) {
+        defaultCardIndex = cardIndex || 0;
 
-      var outgoingDataSelect =
-        this.simManagerOutgoingDataSelect;
-
-      this.simcards.forEach(function(simcard, index) {
-        var options = [];
-        var simcardInfo = simcard.getInfo();
-
-        for (var i = 0; i < 3; i++) {
+        self.simcards.forEach(function(simcard, index) {
+          var simcardInfo = simcard.getInfo();
           var option = document.createElement('option');
           option.value = index;
           option.text = simcardInfo.name;
 
           if (simcardInfo.absent) {
             option.value = EMPTY_OPTION_VALUE;
-            option.text = EMPTY_OPTION;
+            option.text = EMPTY_OPTION_TEXT;
           }
 
-          // select the first simcard by default
-          if (index == selectedOptionIndex) {
+          if (index == defaultCardIndex) {
             option.selected = true;
           }
-          options.push(option);
-        }
 
-        outgoingCallSelect.add(options[0]);
-        outgoingMessagesSelect.add(options[1]);
-        outgoingDataSelect.add(options[2]);
-
-      }.bind(this));
+          selectDOM.add(option);
+        });
+      });
     },
     isSimCardLocked: function(cardState) {
 
