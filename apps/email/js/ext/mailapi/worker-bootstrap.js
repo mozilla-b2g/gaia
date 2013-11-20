@@ -11687,10 +11687,14 @@ function bit_rol(num, cnt)
 
 define('encoding',['require','exports','module'],function(require, exports, module) {
 
-// from https://github.com/andris9/encoding/blob/master/index.js
+// originally from https://github.com/andris9/encoding/blob/master/index.js
 // (MIT licensed)
 /**
- * Converts charset name if needed
+ * Converts charset name from something TextDecoder does not understand to
+ * something it does understand for the set of weird charset names we have
+ * seen thus far.  Things it does not understand are passed through; you
+ * need to be prepared for TextDecoder to throw an exception if you give
+ * it something ridiculous.
  *
  * @param {String} name Character set
  * @return {String} Character set name
@@ -11711,7 +11715,10 @@ exports.checkEncoding = checkEncoding;
 var ENCODER_OPTIONS = { fatal: false };
 
 exports.convert = function(str, destEnc, sourceEnc, ignoredUseLite) {
-  destEnc = checkEncoding(destEnc || 'utf-8');
+  // TextEncoder only supports utf-8/utf-16be/utf-16le and we will never
+  // use a utf-16 encoding, so just hard-code this and save ourselves some
+  // weird edge case trouble in the future.
+  destEnc = 'utf-8';
   sourceEnc = checkEncoding(sourceEnc || 'utf-8');
 
   if (destEnc === sourceEnc)
@@ -11719,7 +11726,20 @@ exports.convert = function(str, destEnc, sourceEnc, ignoredUseLite) {
 
   // - decoding (Uint8Array => String)
   else if (/^utf-8$/.test(destEnc)) {
-    var decoder = new TextDecoder(sourceEnc, ENCODER_OPTIONS);
+    var decoder;
+    // The encoding comes from the message, so it could be anything.
+    // TextDecoder throws if it's not a supported encoding, so catch that
+    // and fall back to utf-8 decoding in that case so we get something, even
+    // if it's full of replacement characters, etc.
+    try {
+      decoder = new TextDecoder(sourceEnc, ENCODER_OPTIONS);
+    }
+    catch (ex) {
+      // Do log the encoding that we failed to support so that if we get bugs
+      // reporting gibberish
+      console.warn('Unsupported encoding', sourceEnc, 'switching to utf-8');
+      decoder = new TextDecoder('utf-8', ENCODER_OPTIONS);
+    }
     if (typeof(str) === 'string')
       str = new Buffer(str, 'binary');
     // XXX strictly speaking, we should be returning a buffer...
