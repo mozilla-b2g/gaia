@@ -313,24 +313,34 @@ var NfcManager = {
   // NDEF only
   handleP2P: function handleP2P(tech, sessionToken, ndefMsg) {
     if (ndefMsg != null) {
-      var nfcdom = window.navigator.mozNfc;
-
-      // FIXME: Do P2P UI: Ask user if P2P event is acceptable in the app's
-      // current user context to accept a message via registered app
-      // callback/message. If so, fire P2P NDEF to app.
-      // If not, drop message.
-
-      // This is a P2P notification with no ndef.
-      this._debug('P2P UI : Shrink UI');
-      // TODO: Upon user akcnowledgement on the shrunk UI,
-      //       system application notifies gecko of the top most window.
-
-      // Notify gecko of User's acknowledgement.
-      var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
-      nfcdom.setPeerWindow(currentActiveApp.manifestURL);
+      /*
+       * Incoming P2P message carries a NDEF message. Dispatch
+       * the NDEF message (this might bring another app to the
+       * foreground).
+       */
+      this.handleNdefDiscovered(tech, sessionToken, ndefMsg);
       return;
     }
-    this.handleNdefDiscovered(tech, sessionToken, ndefMsg);
+    /*
+     * Incoming P2P message does not carry an NDEF message.
+     * Check if the foreground app has registered an onpeerfound
+     * and do the shrinking UI if needed.
+     */
+    var nfcdom = window.navigator.mozNfc;
+
+    // FIXME: Do P2P UI: Ask user if P2P event is acceptable in the app's
+    // current user context to accept a message via registered app
+    // callback/message. If so, fire P2P NDEF to app.
+    // If not, drop message.
+
+    // This is a P2P notification with no ndef.
+    this._debug('P2P UI : Shrink UI');
+    // TODO: Upon user akcnowledgement on the shrunk UI,
+    //       system application notifies gecko of the top most window.
+
+    // Notify gecko of User's acknowledgement.
+    var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
+    nfcdom.setPeerWindow(currentActiveApp.manifestURL);
   },
 
   fireTagDiscovered: function fireTagDiscovered(command) {
@@ -364,12 +374,11 @@ var NfcManager = {
     this._debug('command.tech: ' + command.tech);
     var techs = command.tech; // FIXME: command.techlist
     var ndefMsg = null;
-    if (command.ndef.length) {
+    if (command.ndef.length > 0) {
       // Pick the first NDEF message for now.
       ndefMsg = command.ndef[0];
     } else {
-      this._debug('Empty NDEF Message sent to Technology Discovered');
-      ndefMsg = [];
+      this._debug('No NDEF Message sent to Technology Discovered');
     }
 
     // Assign priority of tech handling. This list will expand with supported
