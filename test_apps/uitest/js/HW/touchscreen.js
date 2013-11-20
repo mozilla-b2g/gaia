@@ -72,11 +72,12 @@ var util = {
 var test1 = function(canvas) {
   var ctx = canvas.getContext('2d');
   var circle_radius = Math.min(canvas.width, canvas.height) * 0.1;
-  var circles_coord = [[circle_radius, circle_radius],
-                       [circle_radius, canvas.height - circle_radius],
-                       [canvas.width - circle_radius, circle_radius],
-                       [canvas.width - circle_radius, canvas.height - circle_radius],
-                       [canvas.width / 2, canvas.height / 2]];
+  var circles_coord =
+                [[circle_radius, circle_radius],
+                 [circle_radius, canvas.height - circle_radius],
+                 [canvas.width - circle_radius, circle_radius],
+                 [canvas.width - circle_radius, canvas.height - circle_radius],
+                 [canvas.width / 2, canvas.height / 2]];
   var lineWidth = 2;
   var lineColor = 'red';
   var lineColorClicked = 'lime';
@@ -263,8 +264,8 @@ var test_driver = function() {
   };
 };
 
-// Handle touch input
-// Codes modified from https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Events/Touch_events
+// Handle touch input, Codes modified from
+// https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Events/Touch_events
 var touchTest = function() {
   var ongoingTouches = [];
   var driver = null;

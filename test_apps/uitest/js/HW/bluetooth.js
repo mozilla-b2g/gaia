@@ -28,8 +28,9 @@ function bluetoothTest() {
     };
   }
 
-  // Click on switch will only update settings and it takes some time for bluetooth
-  // hardware to turns on. That's why we should listen to 'enabled' event of bluetooth
+  // Click on switch will only update settings and
+  // it takes some time for bluetooth hardware to turns on.
+  // That's why we should listen to 'enabled' event of bluetooth
   function bluetoothSwitch() {
     settings.createLock().set({'bluetooth.enabled': switchButton.checked});
   }
