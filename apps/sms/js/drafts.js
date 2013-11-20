@@ -1,3 +1,4 @@
+/*global asyncStorage */
 (function(exports) {
   'use strict';
   var draftIndex = new Map();
