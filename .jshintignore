@@ -15,3 +15,5 @@ apps/keyboard/js/imes/jspinyin/libpinyin.js
 shared/js/setImmediate.js
 apps/gallery/test/unit/setImmediate_test.js
 apps/wappush/js/ext/**
+shared/js/l10n.js
+build/l10n.js

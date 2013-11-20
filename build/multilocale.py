@@ -106,6 +106,15 @@ def add_locale_imports(locales, ini_file):
     log.info("updated %s saved" % ini_file)
 
 
+def copy_official_branding(dirname, filename, locale):
+    log = logging.getLogger(__name__)
+    en_us_filename = filename.replace('.%s' % locale, '.en-US')
+    source_path = os.path.join(dirname, 'official', en_us_filename)
+    target_path = os.path.join(dirname, 'official', filename)
+    shutil.copy(source_path, target_path)
+    log.debug("copied %s to %s" % (source_path, target_path))
+
+
 def copy_properties(source, locales, ini_file):
     log = logging.getLogger(__name__)
     ini_dirname = os.path.dirname(ini_file)
@@ -113,7 +122,15 @@ def copy_properties(source, locales, ini_file):
     for locale in locales:
         log.info("copying %s files as per %s" % (locale, ini_file))
         for path in imports[locale]:
-            target_path = os.path.join(ini_dirname, path)
+            dirname, filename = os.path.split(path)
+            target_dirname = os.path.join(ini_dirname, dirname)
+            if dirname == 'branding':
+                # copy official branding from en-US, not from source
+                copy_official_branding(target_dirname, filename, locale)
+                # localization files can only modify unofficial branding, 
+                # amend the path accordingly
+                target_dirname = os.path.join(target_dirname, 'unofficial')
+            target_path = os.path.join(target_dirname, filename)
             # apps/browser/locales/browser.fr.properties becomes
             # apps/browser/browser.properties
             source_path = target_path.replace(os.sep + 'locales', '') \
@@ -238,6 +255,7 @@ def main():
 
     # 1. link properties files from the inis
     for ini_file in ini_files:
+        ini_file = make_relative(ini_file, options.gaia)
         log.info("########## adding locale import rules to %s" % ini_file)
         add_locale_imports(locales, ini_file)
 
@@ -246,15 +264,15 @@ def main():
 
     # 2. copy properties files as per the inis
     for ini_file in ini_files:
-        log.info("########## copying locale files as per %s" % ini_file)
         ini_file = make_relative(ini_file, options.gaia)
+        log.info("########## copying locale files as per %s" % ini_file)
         copy_properties(options.source, locales, ini_file)
 
     # 3. edit manifests
     manifest_files = find_files(options.target, 'manifest.webapp')
     for manifest_file in manifest_files:
-        log.info("########## adding localized names to %s" % manifest_file)
         manifest_file = make_relative(manifest_file, options.gaia)
+        log.info("########## adding localized names to %s" % manifest_file)
         add_locale_manifest(options.source, locales, manifest_file)
 
 

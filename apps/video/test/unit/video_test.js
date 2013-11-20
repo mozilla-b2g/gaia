@@ -20,6 +20,15 @@ suite('Video App Unit Tests', function() {
   });
 
   suite('#Video Info Populate Data', function() {
+
+    suiteSetup(function() {
+      MediaUtils._ = MockL10n.get;
+    });
+
+    suiteTeardown(function() {
+      MediaUtils._ = navigator.mozL10n.get;
+    });
+
     before(function() {
       currentVideo = {
         metadata: {

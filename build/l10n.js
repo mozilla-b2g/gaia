@@ -59,7 +59,7 @@ var require = req.bind(null, null);
 
 
 
-define('l20n/runtime', function(require, exports, module) {
+define('l20n/buildtime', function(require, exports, module) {
   'use strict';
 
 
@@ -69,80 +69,17 @@ define('l20n/runtime', function(require, exports, module) {
   var isBootstrapped = false;
   var isPretranslated = false;
 
-  ctx = L20n.getContext();
-  navigator.mozL10n = createPublicAPI(ctx);
-  ctx.addEventListener('error', logMessage.bind(null, 'error'));
-  ctx.addEventListener('warning', logMessage.bind(null, 'warn'));
 
-  isPretranslated = document.documentElement.lang === navigator.language;
-
-  if (isPretranslated) {
-    // if the DOM has been pretranslated, defer bootstrap as long as possible
-    waitFor('complete', function() {
-      window.setTimeout(bootstrap);
-    });
-  } else {
-    // otherwise, if the DOM is loaded, bootstrap now to fire 'localized'
-    if (document.readyState === 'complete') {
-      window.setTimeout(bootstrap);
-    } else {
-      // or wait for the DOM to be interactive to try to pretranslate it 
-      // using the inline resources
-      waitFor('interactive', pretranslate);
-    }
-  }
-
-  function waitFor(state, callback) {
-    if (document.readyState === state) {
-      callback();
-      return;
-    }
-    document.addEventListener('readystatechange', function l10n_onrsc() {
-      if (document.readyState === state) {
-        callback();
-      }
-    });
-  }
-
-  function pretranslate() {
-    if (inlineLocalization()) {
-      // if inlineLocalization succeeded, defer bootstrap
-      waitFor('complete', function() {
-        window.setTimeout(bootstrap);
-      });
-    } else {
-      bootstrap();
-    }
-  }
-
-  function inlineLocalization() {
-    var body = document.body;
-    var scripts = body.querySelectorAll('script[type="application/l10n"]');
-    if (scripts.length === 0) {
-      return false;
-    }
-    var inline = L20n.getContext();
-    inline.addEventListener('error', logMessage.bind(null, 'error'));
-    inline.addEventListener('warning', logMessage.bind(null, 'warn'));
-
-    var langs = [];
-    for (var i = 0; i < scripts.length; i++) {
-      var lang = scripts[i].getAttribute('lang');
-      langs.push(lang);
-      // pass the node to save memory
-      inline.addDictionary(scripts[i], lang);
-    }
-    inline.once(function() {
-      translateFragment(inline);
-      isPretranslated = true;
-    });
-    inline.registerLocales('en-US', langs);
-    inline.requestLocales(navigator.language);
-    // XXX check if we actually negotiatied navigator.language (i.e. the 
-    // corresponding <script> was present)?
-    return true;
-  }
-
+  Object.defineProperty(navigator, 'mozL10n', {
+    get: function() {
+      isBootstrapped = false;
+      ctx = L20n.getContext();
+      ctx.addEventListener('error', addBuildMessage.bind(null, 'error'));
+      ctx.addEventListener('warning', addBuildMessage.bind(null, 'warn'));
+      return createPublicAPI(ctx);
+    },
+    enumerable: true
+  });
 
   function bootstrap(forcedLocale) {
     isBootstrapped = true;
@@ -161,9 +98,6 @@ define('l20n/runtime', function(require, exports, module) {
     }
 
     ctx.ready(function() {
-      // on runtime, we can optimize the memory footprint of Locale objects by 
-      // removing the AST and the downloaded resources
-      ctx.cleanBuiltLocales();
       // XXX instead of using a flag, we could store the list of 
       // yet-to-localize nodes that we get from the inline context, and 
       // localize them here.
@@ -292,7 +226,12 @@ define('l20n/runtime', function(require, exports, module) {
           return ctx.supportedLocales[0];
         },
         set code(lang) {
-          ctx.requestLocales(lang);
+          if (!isBootstrapped) {
+            // build-time optimization uses this
+            bootstrap(lang);
+          } else {
+            ctx.requestLocales(lang);
+          }
         },
         get direction() {
           if (rtlLocales.indexOf(ctx.supportedLocales[0]) >= 0) {
@@ -303,17 +242,73 @@ define('l20n/runtime', function(require, exports, module) {
         }
       },
       ready: ctx.ready.bind(ctx),
+      getDictionary: getSubDictionary,
       get readyState() {
         return ctx.isReady ? 'complete' : 'loading';
       }
     };
   }
 
-  var DEBUG = false;
-  function logMessage(type, e) {
-    if (DEBUG) {
-      console[type](e);
+  var buildMessages = {};
+  function addBuildMessage(type, e) {
+    if (!(type in buildMessages)) {
+      buildMessages[type] = [];
     }
+    if (e instanceof L20n.Context.TranslationError &&
+        e.locale === ctx.supportedLocales[0] &&
+        buildMessages[type].indexOf(e.entity) === -1) {
+      buildMessages[type].push(e.entity);
+    }
+  }
+
+  function flushBuildMessages(variant) {
+    for (var type in buildMessages) {
+      if (buildMessages[type].length) {
+        console.log('[l10n] [' + ctx.supportedLocales[0] + ']: ' +
+            buildMessages[type].length + ' missing ' + variant + ': ' +
+            buildMessages[type].join(', '));
+        buildMessages[type] = [];
+      }
+    }
+  }
+
+  // return a sub-dictionary sufficient to translate a given fragment
+  function getSubDictionary(fragment) {
+    var ast = {
+      type: 'WebL10n',
+      body: {}
+    };
+
+    if (!fragment) {
+      ast.body = ctx.getSources();
+      flushBuildMessages('compared to en-US');
+      return ast;
+    }
+
+    var elements = getTranslatableChildren(fragment);
+
+    for (var i = 0, l = elements.length; i < l; i++) {
+      var attrs = getL10nAttributes(elements[i]);
+      var source = ctx.getSource(attrs.id);
+      if (!source) {
+        continue;
+      }
+      ast.body[attrs.id] = source;
+
+      // check for any dependencies
+      var entity = ctx.getEntity(attrs.id, attrs.args);
+      for (var id in entity.identifiers) {
+        if (!entity.identifiers.hasOwnProperty(id)) {
+          continue;
+        }
+        var depSource = ctx.getSource(id);
+        if (depSource) {
+          ast.body[id] = depSource;
+        }
+      }
+    }
+    flushBuildMessages('in the visible DOM');
+    return ast;
   }
 
   function getTranslatableChildren(element) {
@@ -2289,6 +2284,6 @@ define('l20n/plurals', function(require, exports, module) {
 
 
 // hook up the HTML bindings
-require('l20n/runtime');
+require('l20n/buildtime');
 
 })(this);
