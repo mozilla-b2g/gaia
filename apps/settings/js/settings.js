@@ -24,6 +24,21 @@ var Settings = {
     return this._currentPanel;
   },
 
+  // Map of panel objects
+  panels: {},
+
+  // Cached panel objects
+  cachedPanels: {},
+
+  /**
+   * Defines a panel.
+   * @param {String} id of panel.
+   * @param {Constructor} panel class.
+   */
+  definePanel: function(panelId, panel) {
+    this.panels[panelId] = panel;
+  },
+
   /**
    * Method to change a panel
    * @param {String} id of new panel.
@@ -31,14 +46,14 @@ var Settings = {
    */
   changePanel: function(id, data) {
     var hash = id;
+    var panelObj;
+
     if (!hash.startsWith('#')) {
       hash = '#' + hash;
     }
-
     if (hash == this._currentPanel) {
       return;
     }
-
     if (hash === '#wifi') {
       PerformanceTestingHelper.dispatch('start');
     }
@@ -49,18 +64,16 @@ var Settings = {
     var newPanel = document.querySelector(this._currentPanel);
 
     // load panel (+ dependencies) if necessary -- this should be synchronous
-    this.lazyLoad(newPanel);
+    var panelId = this._currentPanel.replace('#', '');
+    if (this.cachedPanels[panelId]) {
+      this.cachedPanels[panelId].render(data);
+    } else {
+      this.lazyLoad(newPanel, data);
+    }
 
     // switch previous/current classes
     oldPanel.className = newPanel.className ? '' : 'previous';
     newPanel.className = 'current';
-
-    // Set panel data
-    if (data) {
-      for (var i in data) {
-        newPanel.dataset[i] = data[i];
-      }
-    }
 
     /**
      * Most browsers now scroll content into view taking CSS transforms into
@@ -102,8 +115,8 @@ var Settings = {
             PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
             break;
         }
-      });
-    });
+      }.bind(this));
+    }.bind(this));
   },
 
   // Early initialization of parts of the application that don't
@@ -209,7 +222,7 @@ var Settings = {
     this.presetPanel();
   },
 
-  loadPanel: function settings_loadPanel(panel, cb) {
+  loadPanel: function settings_loadPanel(panel, data, cb) {
     if (!panel) {
       return;
     }
@@ -217,10 +230,25 @@ var Settings = {
     this.loadPanelStylesheetsIfNeeded();
 
     // apply the HTML markup stored in the first comment node
-    LazyLoader.load([panel], this.afterPanelLoad.bind(this, panel, cb));
+    LazyLoader.load([panel], this.afterPanelLoad.bind(this, panel, data, cb));
   },
 
-  afterPanelLoad: function(panel, cb) {
+  /**
+   * Called after lazy load, this function creates an
+   * necessary panel objects.
+   */
+  initPanelObject: function(data) {
+    // Load the new style panel objects if we have one
+    var panelId = this._currentPanel.replace('#', '');
+    if (this.panels[panelId]) {
+      var panelObj = new this.panels[panelId]();
+      navigator.mozL10n.ready(panelObj.render.bind(panelObj, data));
+      this.cachedPanels[panelId] = panelObj;
+      return;
+    }
+  },
+
+  afterPanelLoad: function(panel, data, cb) {
     // translate content
     navigator.mozL10n.translate(panel);
 
@@ -229,7 +257,7 @@ var Settings = {
     var scriptsSrc = Array.prototype.map.call(scripts, function(script) {
       return script.getAttribute('src') || script.getAttribute('href');
     });
-    LazyLoader.load(scriptsSrc);
+    LazyLoader.load(scriptsSrc, this.initPanelObject.bind(this, data));
 
     // activate all links
     var self = this;
@@ -263,7 +291,7 @@ var Settings = {
     }
   },
 
-  lazyLoad: function settings_lazyLoad(panel) {
+  lazyLoad: function settings_lazyLoad(panel, data) {
     if (panel.dataset.rendered) { // already initialized
       return;
     }
@@ -277,9 +305,10 @@ var Settings = {
       for (var i = 0, il = subPanels.length; i < il; i++) {
         this.loadPanel(subPanels[i]);
       }
-      this.loadPanel(panel, this.panelLoaded.bind(this, panel, subPanels));
+      this.loadPanel(panel, data,
+        this.panelLoaded.bind(this, panel, subPanels));
     } else {
-      this.loadPanel(panel, this.panelLoaded.bind(this, panel));
+      this.loadPanel(panel, data, this.panelLoaded.bind(this, panel));
     }
   },
 
@@ -737,6 +766,11 @@ window.addEventListener('load', function loadSettings() {
     }
 
     var href = target.getAttribute('href');
+    if (target.dataset.panel) {
+      Settings.changePanel(target.dataset.panel);
+      return;
+    }
+
     // skips the following case:
     // 1. no href, which is not panel
     // 2. href is not a hash which is not a panel
