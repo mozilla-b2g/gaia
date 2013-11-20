@@ -240,6 +240,6 @@ var AlarmList = {
     }
   }
 };
-
+window.REFRESHINGALARMS = AlarmList.refreshingAlarms;
 return AlarmList;
 });

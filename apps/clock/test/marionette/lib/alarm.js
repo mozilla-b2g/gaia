@@ -75,7 +75,18 @@ Alarm.prototype.readForm = function() {
 
 function getTapData(client) {
   return client.executeScript(function() {
-    return window.wrappedJSObject.TAPDATA;
+    var checks = {};
+    Array.prototype.forEach.call(
+      document.querySelectorAll('.alarm-cell'),
+      function(elem) {
+        checks[elem.id] = elem.querySelector('[type="checkbox"]').checked;
+      }
+    );
+    return {
+      checks: checks,
+      refreshingAlarms: window.wrappedJSObject.REFRESHINGALARMS,
+      tapData: window.wrappedJSObject.TAPDATA
+    };
   });
 }
 
