@@ -200,7 +200,7 @@ var ApplicationsList = {
     if (!app)
       return;
 
-    Settings.currentPanel = '#appPermissions';
+    Settings.changePanel('appPermissions');
 
     this._apps.splice(appIndex, 1);
 

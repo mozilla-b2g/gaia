@@ -24,7 +24,13 @@ var Settings = {
     return this._currentPanel;
   },
 
-  set currentPanel(hash) {
+  /**
+   * Method to change a panel
+   * @param {String} id of new panel.
+   * @param {Object} data to set on new panel.
+   */
+  changePanel: function(id, data) {
+    var hash = id;
     if (!hash.startsWith('#')) {
       hash = '#' + hash;
     }
@@ -48,6 +54,13 @@ var Settings = {
     // switch previous/current classes
     oldPanel.className = newPanel.className ? '' : 'previous';
     newPanel.className = 'current';
+
+    // Set panel data
+    if (data) {
+      for (var i in data) {
+        newPanel.dataset[i] = data[i];
+      }
+    }
 
     /**
      * Most browsers now scroll content into view taking CSS transforms into
@@ -212,11 +225,11 @@ var Settings = {
     navigator.mozL10n.translate(panel);
 
     // activate all scripts
-    var scripts = panel.getElementsByTagName('script');
-    var scripts_src = Array.prototype.map.call(scripts, function(script) {
-      return script.getAttribute('src');
+    var scripts = panel.querySelectorAll('script, link[rel="stylesheet"]');
+    var scriptsSrc = Array.prototype.map.call(scripts, function(script) {
+      return script.getAttribute('src') || script.getAttribute('href');
     });
-    LazyLoader.load(scripts_src);
+    LazyLoader.load(scriptsSrc);
 
     // activate all links
     var self = this;
@@ -466,9 +479,7 @@ var Settings = {
         }
 
         // Go to that section
-        setTimeout(function settings_goToSection() {
-          Settings.currentPanel = section;
-        });
+        setTimeout(Settings.changePanel.bind(this, section));
         break;
     }
   },
@@ -633,7 +644,6 @@ var Settings = {
                      'shared/style/input_areas.css',
                      'shared/style_unstable/progress_activity.css',
                      'style/apps.css',
-                     'style/phone_lock.css',
                      'style/simcard.css',
                      'style/updates.css'],
     function callback() {
@@ -716,7 +726,7 @@ window.addEventListener('load', function loadSettings() {
   document.addEventListener('click', function settings_backButtonClick(e) {
     var target = e.target;
     if (target.classList.contains('icon-back')) {
-      Settings.currentPanel = target.parentNode.getAttribute('href');
+      Settings.changePanel(target.parentNode.getAttribute('href'));
     }
   });
   document.addEventListener('click', function settings_sectionOpenClick(e) {
@@ -736,7 +746,7 @@ window.addEventListener('load', function loadSettings() {
       return;
     }
 
-    Settings.currentPanel = href;
+    Settings.changePanel(href);
     e.preventDefault();
   });
 });
@@ -754,7 +764,7 @@ window.addEventListener('keydown', function handleSpecialKeys(event) {
       dialog.classList.remove('active');
       document.body.classList.remove('dialog');
     } else {
-      Settings.currentPanel = '#root';
+      Settings.changePanel('root');
     }
   } else if (event.keyCode === event.DOM_VK_RETURN) {
     event.target.blur();

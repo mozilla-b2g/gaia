@@ -47,7 +47,7 @@
 
     icc.onstksessionend = function handleSTKSessionEnd(event) {
       updateMenu();
-      Settings.currentPanel = '#icc';
+      Settings.changePanel('icc');
     };
 
     document.getElementById('icc-stk-app-back').onclick = stkResGoBack;
@@ -81,7 +81,7 @@
   }
 
   function stkResTerminate() {
-    Settings.currentPanel = '#root';
+    Settings.changePanel('root');
     iccLastCommandProcessed = true;
     responseSTKCommand({
       resultCode: iccManager.STK_RESULT_UICC_SESSION_TERM_BY_USER
@@ -99,7 +99,7 @@
     reqTimerGoBack.onsuccess = function icc_getTimerGoBackSuccess() {
       goBackTimer.timeout = reqTimerGoBack.result['icc.goBackTimeout'];
       goBackTimer.timer = setTimeout(function() {
-        Settings.currentPanel = '#root';
+        Settings.changePanel('root');
       }, goBackTimer.timeout);
     };
   };
@@ -395,7 +395,7 @@
    * Open settings application with ICC section opened
    */
   function openSTKApplication() {
-    Settings.currentPanel = '#icc';
+    Settings.changePanel('icc');
     window.navigator.mozApps.getSelf().onsuccess = function getSelfCB(evt) {
       var app = evt.target.result;
       app.launch('settings');

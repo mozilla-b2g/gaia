@@ -307,7 +307,7 @@ function SimPinDialog(dialog) {
   function close() {
     clear();
     if (_origin) {
-      Settings.currentPanel = _origin;
+      Settings.changePanel(_origin);
     }
   }
 
@@ -408,7 +408,7 @@ function SimPinDialog(dialog) {
     }
 
     _origin = options.exitPanel || Settings.currentPanel;
-    Settings.currentPanel = dialogPanel;
+    Settings.changePanel(dialogPanel);
 
     _onsuccess = (typeof options.onsuccess === 'function') ?
         options.onsuccess : function() {};

@@ -328,7 +328,7 @@ var Connectivity = (function(window, document, undefined) {
   function initSystemMessageHandler() {
     // XXX this is not a good way to interact with bluetooth.js
     var handlePairingRequest = function(message) {
-      Settings.currentPanel = '#bluetooth';
+      Settings.changePanel('bluetooth');
       setTimeout(function() {
         dispatchEvent(new CustomEvent('bluetooth-pairing-request', {
           detail: message
