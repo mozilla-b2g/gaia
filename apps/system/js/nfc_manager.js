@@ -139,9 +139,10 @@ NDEF.init();
 var NfcManager = {
   DEBUG: false,
 
-  NFC_POWER_LEVEL_DISABLED: 0,
-  NFC_POWER_LEVEL_LOW: 1,
-  NFC_POWER_LEVEL_ENABLED: 2,
+  NFC_HW_STATE_OFF: 0,
+  NFC_HW_STATE_ON: 1,
+  NFC_HW_STATE_ENABLE_DISCOVERY: 2,
+  NFC_HW_STATE_DISABLE_DISCOVERY: 3,
 
   _debug: function nm_debug(msg, optObject) {
     if (this.DEBUG) {
@@ -155,6 +156,9 @@ var NfcManager = {
 
   init: function nm_init() {
     this._debug('Initializing NFC Message');
+    // Initialize nfc-dom so that it is ready to receive H/W state changes
+    var nfcdom = window.navigator.mozNfc;
+
     window.navigator.mozSetMessageHandler(
       'nfc-manager-tech-discovered',
       this.handleTechnologyDiscovered.bind(this));
@@ -164,6 +168,12 @@ var NfcManager = {
     window.addEventListener('screenchange', this);
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
+    var self = this;
+    window.navigator.mozSettings.addObserver('nfc.enabled', function(e) {
+      var state = (e.settingValue === true) ? self.NFC_HW_STATE_ON :
+                                              self.NFC_HW_STATE_OFF;
+      self.dispatchHardwareChangeEvt(state);
+    });
   },
 
   acceptNfcEvents: function nm_acceptNfcEvents() {
@@ -175,32 +185,38 @@ var NfcManager = {
     }
   },
 
-  handlePowerLevel: function nm_handlePowerLevel() {
+  dispatchHardwareChangeEvt: function nm_dispatchHardwareChangeEvt(state) {
     var acceptEvents = this.acceptNfcEvents();
-    var powerLevel = this.NFC_POWER_LEVEL_LOW;
-    if (acceptEvents) {
-      powerLevel = this.NFC_POWER_LEVEL_ENABLED;
-    }
-    var request = navigator.mozSettings.createLock().set({
-      'nfc.powerlevel': powerLevel
-    });
-    var self = this;
-    request.onsuccess = function() {
-      self._debug('Power level set successfully.');
-    };
-    request.onerror = function() {
-      self._debug('Power level set failure');
-    };
+    this._debug('dispatchHardwareChangeEvt : acceptEvents : ' + acceptEvents +
+                                 'state : ' + JSON.stringify(state));
+    var detail = { nfcHardwareState: state };
+    // Create the state-change event and dispatch
+    var evt = new CustomEvent('nfc-hardware-state-change',
+      { bubbles: true, cancelable: true,
+        detail: detail });
+    window.dispatchEvent(evt);
   },
 
   handleEvent: function nm_handleEvent(evt) {
+    var state = this.NFC_HW_STATE_ENABLE_DISCOVERY;
     switch (evt.type) {
-      case 'screenchange': // Fall thorough
-      case 'lock':
+      case 'screenchange':
+        if (true === this.acceptNfcEvents()) {
+          state = this.NFC_HW_STATE_ENABLE_DISCOVERY;
+        } else {
+          state = this.NFC_HW_STATE_DISABLE_DISCOVERY;
+        }
+        break;
+      case 'lock': // Fall thorough
       case 'unlock':
-        this.handlePowerLevel();
+        if (evt.type === 'unlock') {
+          state = this.NFC_HW_STATE_ENABLE_DISCOVERY;
+        } else {
+          state = this.NFC_HW_STATE_DISABLE_DISCOVERY;
+        }
         break;
     }
+    this.dispatchHardwareChangeEvt(state);
   },
 
   // An NDEF Message is an array of one or more NDEF records.
@@ -296,6 +312,13 @@ var NfcManager = {
       return false;
   },
 
+  sendPeerMessage:
+    function nm_sendPeerMessage() {
+      var nfcdom = window.navigator.mozNfc;
+      var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
+      nfcdom.setPeerWindow(currentActiveApp.manifestURL);
+  },
+
   // TODO:
   handleNdefFormattableDiscovered:
     function nm_handleNdefFormattableDiscovered(tech, session) {
@@ -346,9 +369,7 @@ var NfcManager = {
           //       system application notifies gecko of the top most window.
 
           // Notify gecko of User's acknowledgement.
-          var nfcdom = window.navigator.mozNfc;
-          var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
-          nfcdom.setPeerWindow(currentActiveApp.manifestURL);
+          this.sendPeerMessage();
           return;
         }
         handled = this.handleNdefDiscovered(techs[i], command.sessionToken,
