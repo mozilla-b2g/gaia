@@ -7,7 +7,7 @@ requireApp('communications/dialer/test/unit/mock_keypad.js');
 
 requireApp('communications/dialer/js/suggestion_bar.js');
 requireApp('communications/shared/js/simple_phone_matcher.js');
-requireApp('communications/dialer/test/unit/mock_fb_data_reader.js');
+require('/shared/test/unit/mocks/mock_fb_data_reader.js');
 
 var mocksHelperForSuggestionBar = new MocksHelper([
   'Contacts',
