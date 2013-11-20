@@ -19,7 +19,7 @@
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.12.0",
     "mocha-tbpl-reporter": "~0.0.4",
-    "mozilla-download": "~0.4.1-alpha",
+    "mozilla-download": "~0.4.1",
     "node-static": "0.6.9",
     "travis-project-jobs": "0.0.1"
   }

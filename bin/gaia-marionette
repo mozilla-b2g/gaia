@@ -9,7 +9,9 @@ DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 SHARED=$DIR/../shared/test/integration
 
 # download b2g-desktop (if its not present)
-make -C $DIR/../ b2g
+if [ "$MARIONETTE_RUNNER_HOST" == "marionette-b2gdesktop-host" ]; then
+  make -C $DIR/../ b2g
+fi
 
 # make sure node_modules are 100% up to date
 if [ -z "$NPM_REGISTRY" ]; then
@@ -35,12 +37,25 @@ fi
 # find xpcshell and put it in the path
 XPCSHELL_DIR=$(dirname $(find "$XULRUNNER_DIRECTORY"/bin -type f -name "xpcshell" | head -n 1));
 
-# wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
-# xpcshell in available for email fake servers.
-PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
-  --timeout 10s \
-  --ui tdd \
-  --profile-builder $SHARED/profile_builder.js \
-  --profile-base $SHARED/profile.js \
-  $SHARED/setup.js \
-  $@
+if [ "$MARIONETTE_RUNNER_HOST" == "marionette-b2gdesktop-host" ]; then
+  #B2G desktop runner
+  # wrap marionette-mocha with gaia's defaults. We also need to alter the paths to
+  # xpcshell in available for email fake servers.
+  PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
+    --timeout 10s \
+    --ui tdd \
+    --profile-builder $SHARED/profile_builder.js \
+    --profile-base $SHARED/profile.js \
+    $SHARED/setup.js \
+    $@
+else
+  #Browser runner
+  PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
+    --host marionette-firefox-host \
+    --timeout 30s \
+    --ui tdd \
+    --profile-builder $SHARED/profile_builder.js \
+    --profile-base $SHARED/profile.js \
+    $SHARED/setup.js \
+    $@
+fi
