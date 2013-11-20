@@ -92,7 +92,7 @@ var SimFdnLock = {
         self.updateContact('add');
       };
       checkContactInputs();
-      Settings.currentPanel = '#call-fdnList-add';
+      Settings.changePanel('call-fdnList-add');
     };
 
     this.fdnActionMenuEdit.onclick = function() { // edit FDN contact
@@ -104,7 +104,7 @@ var SimFdnLock = {
       };
       self.hideActionMenu();
       checkContactInputs();
-      Settings.currentPanel = '#call-fdnList-add';
+      Settings.changePanel('call-fdnList-add');
     };
 
     this.fdnActionMenuRemove.onclick = function() { // remove FDN contact

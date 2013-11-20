@@ -18,13 +18,10 @@ var Security = {
 
     // update phone code status
     var phonelockDesc = document.getElementById('phoneLock-desc');
-    var lock = settings.createLock();
-    var reqLockscreenEnable = lock.get('lockscreen.enabled');
-    reqLockscreenEnable.onsuccess = function onLockscreenEnableSuccess() {
-      var enable = reqLockscreenEnable.result['lockscreen.enabled'];
+    SettingsListener.observe('lockscreen.enabled', null, function obs(enable) {
       phonelockDesc.textContent = enable ? _('enabled') : _('disabled');
       phonelockDesc.dataset.l10nId = enable ? 'enabled' : 'disabled';
-    };
+    });
 
     // XXX: check bug-926169
     // this is used to keep all tests passing while introducing multi-sim APIs

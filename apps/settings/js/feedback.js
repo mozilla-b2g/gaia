@@ -40,7 +40,7 @@ var Feedback = {
         this.feedbackAlertMsg.textContent = '';
         break;
       case 'feedback-done-btn':
-        Settings.currentPanel = 'improveBrowserOS';
+        Settings.changePanel('improveBrowserOS');
         this.feedbackDone.hidden = true;
         break;
       case 'feedback-back-button':
@@ -55,7 +55,7 @@ var Feedback = {
   },
 
   openFeedbackDialog: function fk_openFeedbackDialog(value) {
-    Settings.currentPanel = 'improveBrowserOS-sendFeedback';
+    Settings.changePanel('improveBrowserOS-sendFeedback');
 
     if (!this.feedbackDialogInitFlag) {
       this.feedbackDialogInitFlag = true;

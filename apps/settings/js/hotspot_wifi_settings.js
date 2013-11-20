@@ -45,7 +45,7 @@ var HotspotWifiSettings = {
     submitBtn.addEventListener('click', function onsubmit(e) {
       e.preventDefault();
       this.submit();
-      Settings.currentPanel = 'hotspot';
+      Settings.changePanel('hotspot');
     }.bind(this));
 
     window.addEventListener('panelready', function(e) {

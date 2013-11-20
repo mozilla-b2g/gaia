@@ -2,6 +2,7 @@
 
 mocha.globals(['openDialog', 'Settings']);
 requireApp('settings/test/unit/mock_l10n.js');
+requireApp('settings/test/unit/mock_settings.js');
 require('/shared/test/unit/mocks/mock_keyboard_helper.js');
 require('/shared/test/unit/mocks/mock_manifest_helper.js');
 
@@ -12,6 +13,7 @@ requireApp('settings/js/keyboard.js');
 suite('keyboard >', function() {
   var suiteSandbox = sinon.sandbox.create();
   var mockHelper = new MocksHelper([
+    'Settings',
     'KeyboardHelper',
     'ManifestHelper'
   ]).init();
@@ -364,15 +366,8 @@ suite('keyboard >', function() {
   });
 
   suite('InstalledLayoutsPanel', function() {
-    var realSettings;
-    var MockSettings = {
-      currentPanel: null
-    };
-
     suiteSetup(function() {
-      realSettings = window.Settings;
-      window.Settings = MockSettings;
-      Settings.currentPanel = '#root';
+      Settings.changePanel('root');
 
       this.container = document.createElement('div');
       this.container.id = 'keyboardAppContainer';
@@ -380,9 +375,6 @@ suite('keyboard >', function() {
     });
 
     suiteTeardown(function() {
-      window.Settings = realSettings;
-      MockSettings = null;
-
       document.body.removeChild(this.container);
     });
 
@@ -392,11 +384,11 @@ suite('keyboard >', function() {
 
       // Init the panel.
       // The panel is visible as 'currentPanel' is #keyboard-selection-addMore.
-      MockSettings.currentPanel = '#keyboard-selection-addMore';
+      Settings.changePanel('keyboard-selection-addMore');
       InstalledLayoutsPanel.init('#keyboard-selection-addMore');
 
       // Change to other panel
-      MockSettings.currentPanel = '#other-panel';
+      Settings.changePanel('other-panel');
       var event = new CustomEvent('panelready');
       window.dispatchEvent(event);
 
