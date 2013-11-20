@@ -102,7 +102,7 @@ suite('KeyboardManager', function() {
         called = true;
       });
 
-      KeyboardManager.showKeyboard();
+      KeyboardManager.setKeyboardToShow('text');
       KeyboardManager.resizeKeyboard({
         detail: { height: 200 },
         stopPropagation: sinon.stub()
@@ -122,7 +122,11 @@ suite('KeyboardManager', function() {
     test('ShowKeyboard waits for transform transition', function(next) {
       injectCss('opacity 0.05s ease, transform 0.3s ease');
 
-      KeyboardManager.showKeyboard();
+      KeyboardManager.setKeyboardToShow('text');
+      KeyboardManager.resizeKeyboard({
+        detail: { height: 300 },
+        stopPropagation: sinon.stub()
+      });
 
       setTimeout(function() {
         assert.equal(
@@ -148,7 +152,7 @@ suite('KeyboardManager', function() {
 
       injectCss('opacity 0.05s ease, transform 0.3s ease');
 
-      KeyboardManager.showKeyboard();
+      KeyboardManager.setKeyboardToShow('text');
       KeyboardManager.resizeKeyboard({
         detail: { height: 200 },
         stopPropagation: sinon.stub()
@@ -264,7 +268,6 @@ suite('KeyboardManager', function() {
           inputType: 'number'
         });
         assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
-        assert.ok(KeyboardManager.showKeyboard.called);
         setTimeout(function() {
           sinon.assert.callCount(resetShowingKeyboard.called, 2);
           assert.ok(KeyboardManager.setKeyboardToShow.calledWith('number'));
@@ -282,7 +285,6 @@ suite('KeyboardManager', function() {
           inputType: 'text'
         });
         assert.ok(KeyboardManager.setKeyboardToShow.calledWith('text'));
-        assert.ok(KeyboardManager.showKeyboard.called);
         setTimeout(function() {
           sinon.assert.callCount(resetShowingKeyboard.called, 1);
           assert.ok(KeyboardManager.setKeyboardToShow.calledWith('number'));
@@ -309,7 +311,6 @@ suite('KeyboardManager', function() {
       });
       test('shows "url" keyboard', function() {
         assert.ok(KeyboardManager.setKeyboardToShow.calledWith('url'));
-        assert.ok(KeyboardManager.showKeyboard.called);
       });
     });
 
@@ -575,7 +576,7 @@ suite('KeyboardManager', function() {
         called = true;
       });
 
-      KeyboardManager.showKeyboard();
+      KeyboardManager.setKeyboardToShow('text');
 
       KeyboardManager.resizeKeyboard({
         detail: { height: 200 },
@@ -594,6 +595,62 @@ suite('KeyboardManager', function() {
           true);
         next();
       }, 200);
+    });
+  });
+
+  suite('mozbrowserresize event test', function() {
+    var showKeyboard;
+    setup(function() {
+      showKeyboard = this.sinon.stub(KeyboardManager, 'showKeyboard');
+    });
+
+    function fakeMozbrowserResize(height) {
+      KeyboardManager.handleEvent({
+        type: 'mozbrowserresize',
+        detail: { height: height },
+        stopPropagation: sinon.stub()
+      });
+    }
+
+    test('height is zero.', function() {
+      fakeMozbrowserResize(0);
+      sinon.assert.callCount(showKeyboard, 0,
+                                          'showKeyboard should not nt called');
+    });
+
+    test('keyboardFrameContainer is ready to show.', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(200);
+      sinon.assert.callCount(showKeyboard, 1, 'showKeyboard should be called');
+    });
+
+    test('keyboardFrameContainer is hiding.', function() {
+      KeyboardManager.keyboardFrameContainer.classList.add('hide');
+      KeyboardManager.keyboardFrameContainer.dataset.transitionOut = 'true';
+      fakeMozbrowserResize(200);
+      sinon.assert.callCount(showKeyboard, 0,
+                                          'ignore mozbrowserresize event');
+    });
+
+    test('Switching keyboard.', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(200);
+      KeyboardManager.keyboardFrameContainer.classList.remove('hide');
+      fakeMozbrowserResize(250);
+      assert.equal(KeyboardManager.keyboardHeight, 250);
+      sinon.assert.callCount(showKeyboard, 1,
+                                        'showKeyboard should be called');
+    });
+
+    test('keyboard is showing.', function() {
+      KeyboardManager.setKeyboardToShow('text');
+      fakeMozbrowserResize(300);
+      KeyboardManager.keyboardFrameContainer.classList.remove('hide');
+      KeyboardManager.keyboardFrameContainer.dataset.transitionIn = 'true';
+      fakeMozbrowserResize(350);
+      assert.equal(KeyboardManager.keyboardHeight, 350);
+      sinon.assert.callCount(showKeyboard, 1,
+                                        'showKeyboard should be called once');
     });
   });
 
@@ -632,7 +689,7 @@ suite('KeyboardManager', function() {
 
       setTimeout(function() {
         sinon.assert.callCount(KeyboardManager.hideKeyboard, 1);
-        sinon.assert.callCount(KeyboardManager.showKeyboard, 0);
+        sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 0);
         next();
       }, 110);
     });
@@ -646,7 +703,7 @@ suite('KeyboardManager', function() {
 
       setTimeout(function() {
         sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
-        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
+        sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
         next();
       }, 110);
     });
@@ -668,7 +725,7 @@ suite('KeyboardManager', function() {
 
       setTimeout(function() {
         sinon.assert.callCount(KeyboardManager.hideKeyboard, 0);
-        sinon.assert.callCount(KeyboardManager.showKeyboard, 1);
+        sinon.assert.callCount(KeyboardManager.setKeyboardToShow, 1);
         next();
       }, 110);
     });
