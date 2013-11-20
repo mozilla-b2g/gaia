@@ -1,4 +1,4 @@
-/*global Drafts Draft */
+/*global Drafts, Draft, asyncStorage */
 'use strict';
 
 requireApp('sms/js/drafts.js');
