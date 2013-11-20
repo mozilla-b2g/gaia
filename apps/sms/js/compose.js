@@ -250,14 +250,13 @@ var Compose = (function() {
 
     getContent: function() {
       var content = [];
-      var lastContent = 0;
       var node;
 
       for (node = dom.message.firstChild; node; node = node.nextSibling) {
         // hunt for an attachment in the WeakMap and append it
         var attachment = attachments.get(node);
         if (attachment) {
-          lastContent = content.push(attachment);
+          content.push(attachment);
           continue;
         }
 
@@ -278,16 +277,12 @@ var Compose = (function() {
         }
 
         // append (if possible) text to the last entry
-        if (text.length && typeof content[last] === 'string') {
-          content[last] += text;
-        } else {
-          // push even if text.length === 0, there could be a <br>
-          content.push(text);
-        }
-
-        // keep track of the last populated line
-        if (text.length > 0) {
-          lastContent = content.length;
+        if (text.length) {
+          if (typeof content[last] === 'string') {
+            content[last] += text;
+          } else {
+            content.push(text);
+          }
         }
       }
 
