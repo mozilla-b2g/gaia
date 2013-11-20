@@ -15,7 +15,7 @@
     "marionette-device-host": "0.0.1",
     "marionette-helper": "0.0.9",
     "marionette-profile-builder": "0.0.2",
-    "marionette-js-runner": "0.3.3",
+    "marionette-js-runner": "0.4.0",
     "marionette-settings-api": "~0.1.0",
     "mocha": "1.12.0",
     "mocha-tbpl-reporter": "~0.0.4",
