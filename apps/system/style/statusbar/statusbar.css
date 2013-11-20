@@ -92,9 +92,64 @@ body, html {
   font-size: 1rem;
 }
 
-#statusbar-data:not(.sb-icon-data-circle) {
+#statusbar-connections {
+  margin: 0;
+  padding: 0;
+}
+
+#statusbar-connections > * {
+  float: right;
+  pointer-events: none;
+  margin: 0 0.2rem;
+}
+
+#statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
+  color: #fff;
+  font-size: 1.49rem; /* 6.5pt */
+  position: relative;
+  bottom: 0.1rem;
+}
+
+#statusbar-connections .statusbar-data:not(.sb-icon-data-circle) {
   background: none;
   width: auto;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-signal {
+  position: relative;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-signal::before {
+  position: absolute;
+  font-size: 0.8rem;
+  top: 0.5rem;
+  left: -0.6rem;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="1"]::before {
+  content: '1';
+}
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="2"]::before {
+  content: '2';
+}
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="3"]::before {
+  content: '3';
+}
+#statusbar-connections[data-multiple="true"] .statusbar-signal[data-index="4"]::before {
+  content: '4';
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-data {
+  position: relative;
+  width: 1.3rem;
+  margin: 0;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+#statusbar-connections[data-multiple="true"] .statusbar-data[hidden] {
+  display: block;
+  opacity: 0;
 }
 
 .sb-icon {
