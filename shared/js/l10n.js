@@ -146,6 +146,7 @@
     // standard case: no element children
     if (!element.firstElementChild) {
       element.textContent = text;
+      fittext(element);
       return;
     }
 
@@ -1164,6 +1165,28 @@
     var translationRequired =
       (document.documentElement.lang !== navigator.language);
     loadLocale(navigator.language, translationRequired);
+  }
+
+  // reference https://github.com/davatron5000/FitText.js
+  function fittext(element) {
+    if (!element || element.clientWidth === 0 ||
+         element.textContent.length === 0) {
+      return;
+    }
+    var maxFontSize = window.getComputedStyle(element, null)
+            .getPropertyValue('font-size');
+    var minFontSize = 16;
+    // console.log('XXX max:' + maxFontSize);
+    // console.log('XXX ' + element.clientWidth + '/' +
+    // element.textContent.length + '/' + parseFloat(maxFontSize));
+
+    if ((element.clientWidth / element.textContent.length) <
+         parseFloat(maxFontSize)) {
+      element.style.fontSize = Math.max(
+        element.clientWidth / element.textContent.length,
+        parseFloat(minFontSize)) + 'px';
+      // console.log('XXX out:' + element.style.fontSize);
+    } else {console.log('skip')}
   }
 
   // the B2G build system doesn't expose any `document'...
