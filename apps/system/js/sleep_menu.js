@@ -29,6 +29,7 @@ var SleepMenu = {
     window.addEventListener('click', this, true);
     window.addEventListener('screenchange', this, true);
     window.addEventListener('home', this);
+    window.addEventListener('batteryshutdown', this);
     this.elements.cancel.addEventListener('click', this);
 
     var self = this;
@@ -119,6 +120,11 @@ var SleepMenu = {
 
   handleEvent: function sm_handleEvent(evt) {
     switch (evt.type) {
+      case 'batteryshutdown':
+        window.dispatchEvent(
+            new CustomEvent('requestshutdown', {detail: this}));
+        break;
+
       case 'screenchange':
         if (!evt.detail.screenEnabled)
           this.hide();
