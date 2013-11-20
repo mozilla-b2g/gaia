@@ -25,6 +25,10 @@ Alarm.bannerTimeout = 5 * 1000;
 // Ensure that the 'Countdown banner' element is eventually hidden.
 Alarm.prototype.waitForBannerHidden = function() {
    this.client.waitFor(function() {
+     return this.el.alarm.countdownBanner.displayed();
+   }.bind(this));
+
+   this.client.waitFor(function() {
      return !this.el.alarm.countdownBanner.displayed();
    }.bind(this), {
      timeout: Clock.bannerTimeout
