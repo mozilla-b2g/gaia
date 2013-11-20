@@ -68,18 +68,17 @@
       return _calcPercentage(downloadedBytes, totalBytes);
     },
     getDate: function(download, callback) {
-      var date = download.started;
+      var date = download.startTime;
       LazyLoader.load(['shared/js/l10n_date.js'], function onload() {
         var prettyDate = navigator.mozL10n.DateTimeFormat().fromNow(date, true);
         callback && callback(prettyDate);
       });
     },
     getUUID: function(download) {
-      return this.getFileName(download) + download.started.getTime();
+      return this.getFileName(download) + download.startTime.getTime();
     }
   };
 
   exports.DownloadFormatter = DownloadFormatter;
 
 }(this));
-
