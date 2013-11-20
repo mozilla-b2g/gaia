@@ -28,6 +28,7 @@ class Settings(Base):
     _wifi_menu_item_locator = (By.ID, 'menuItem-wifi')
     _device_info_menu_item_locator = (By.ID, 'menuItem-deviceInfo')
     _app_permissions_menu_item_locator = (By.ID, 'menuItem-appPermissions')
+    _battery_menu_item_locator = (By.ID, 'menuItem-battery')
 
     def launch(self):
         Base.launch(self)
@@ -125,6 +126,11 @@ class Settings(Base):
         from gaiatest.apps.settings.regions.app_permissions import AppPermissions
         self._tap_menu_item(self._app_permissions_menu_item_locator)
         return AppPermissions(self.marionette)
+
+    def open_battery_settings(self):
+        from gaiatest.apps.settings.regions.battery import Battery
+        self._tap_menu_item(self._battery_menu_item_locator)
+        return Battery(self.marionette)
 
     def _tap_menu_item(self, menu_item_locator):
         self.wait_for_element_displayed(*menu_item_locator)
