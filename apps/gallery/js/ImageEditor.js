@@ -608,6 +608,10 @@ ImageEditor.prototype.finishEdit = function(callback) {
 // Apply the edits offscreen and pass the full-size edited image as a blob
 // to the specified callback function. The code here is much like the
 // code above in edit().
+//
+// This function releases the this.original image so you should only call
+// it to get the edited image when you are done with the ImageEditor.
+//
 ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
   const TILE_SIZE = 1024;
   var self = this;
@@ -621,6 +625,10 @@ ImageEditor.prototype.getFullSizeBlob = function(type, done, progress) {
                     this.source.x, this.source.y,
                     this.source.width, this.source.height,
                     0, 0, this.source.width, this.source.height);
+
+  // As soon as we've copied the original image into the canvas we are
+  // done with the original and should release it to reduce memory usage.
+  this.original.src = '';
 
   // How many pixels do we have to process? How many have we processed so far?
   var total_pixels = canvas.width * canvas.height;
