@@ -10,14 +10,11 @@ import time
 
 class TestEnduranceLaunchPhone(GaiaEnduranceTestCase):
 
-    def setUp(self):
-        GaiaEnduranceTestCase.setUp(self)
-
     def test_endurance_launch_phone(self):
         self.drive(test=self.launch_phone, app='phone')
 
     def launch_phone(self):
-       self.app = self.apps.launch("Phone")
+       self.app = self.apps.launch('Phone')
        time.sleep(5)
        self.apps.kill(self.app)
        time.sleep(5)
