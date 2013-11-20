@@ -397,7 +397,7 @@ var NfcManager = {
     // One shot try. Fallback directly to tag.
     switch (techs[0]) {
       case 'P2P':
-        this.handleP2P(command.sessionToken, ndefMsg);
+        this.handleP2P(techs[0], command.sessionToken, ndefMsg);
         break;
       case 'NDEF':
         this.handleNdefDiscovered(techs[0], command.sessionToken, ndefMsg);
