@@ -73,11 +73,20 @@ Alarm.prototype.readForm = function() {
   return vals;
 };
 
+function getTapData(client) {
+  return client.executeScript(function() {
+    return window.wrappedJSObject.TAPDATA;
+  });
+}
+
 Alarm.prototype.toggleAlarm = function(alarmIdx) {
   var check = this.isEnabled.bind(this, alarmIdx);
   var wasEnabled = check();
   var alarm = this.els.alarm.enabler[alarmIdx];
+  var gtd = getTapData.bind(null, this.client);
+  console.log('pre tap:', gtd());
   alarm.tap();
+  console.log('post tap:', gtd());
 
   // Ensure that the toggle has completed before continuing. This prevents
   // code that follows from inspecting elements that the application has yet
@@ -93,9 +102,11 @@ Alarm.prototype.toggleAlarm = function(alarmIdx) {
       isEnabled = check();
     } catch (err) {
       console.log('\tCheck failed: re-trying');
+      console.log('\t', gtd());
       isEnabled = check();
     }
     console.log('\tCheck: ', wasEnabled, isEnabled);
+    console.log('\t', gtd());
     return wasEnabled !== isEnabled;
   }.bind(this));
 };

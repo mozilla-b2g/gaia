@@ -9,6 +9,14 @@ var Template = require('shared/js/template');
 var mozL10n = require('l10n');
 var _ = mozL10n.get;
 
+window.TAPDATA = {
+  hE: 0,
+  tA1: 0,
+  tA2: 0,
+  tA3: 0,
+  tA4: 0
+};
+
 var AlarmList = {
 
   alarmList: [],
@@ -42,6 +50,7 @@ var AlarmList = {
       this.alarmEditView();
       evt.preventDefault();
     } else if (link.classList.contains('input-enable')) {
+      TAPDATA.hE++;
       this.toggleAlarmEnableState(link.checked,
         this.getAlarmFromList(parseInt(link.dataset.id, 10)));
     } else if (link.classList.contains('alarm-item')) {
@@ -197,9 +206,11 @@ var AlarmList = {
 
   toggleAlarmEnableState: function al_toggleAlarmEnableState(enabled, alarm) {
     // Todo: queue actions instead of dropping them
+    TAPDATA.tA1++;
     if (this.refreshingAlarms.indexOf(alarm.id) !== -1) {
       return;
     }
+    TAPDATA.tA2++;
     var changed = false;
     // has a snooze active
     if (alarm.registeredAlarms.snooze !== undefined) {
@@ -210,9 +221,11 @@ var AlarmList = {
     }
     // normal state needs to change
     if (alarm.enabled !== enabled) {
+      TAPDATA.tA3++;
       this.refreshingAlarms.push(alarm.id);
       // setEnabled saves to database
       alarm.setEnabled(!alarm.enabled, function al_putAlarm(err, alarm) {
+        TAPDATA.tA4++;
         if (alarm.enabled) {
           this.banner.show(alarm.getNextAlarmFireTime());
         }
