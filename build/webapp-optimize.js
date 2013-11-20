@@ -589,7 +589,7 @@ function execute(options) {
   config = options;
 
   Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
-      '/shared/js/l10n.js?reload=' + new Date().getTime(), win);
+      '/build/l10n.js?reload=' + new Date().getTime(), win);
   Services.scriptloader.loadSubScript('file:///' + config.GAIA_DIR +
       '/build/jsmin.js?reload=' + new Date().getTime(), scope);
   JSMin = scope.JSMin;
