@@ -1,25 +1,11 @@
 'use strict';
 
-var App = requireGaia('/tests/performance/app.js');
-
 requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 var PerformanceHelper =
   requireGaia('/tests/performance/performance_helper.js');
-
-function SettingsIntegration(client) {
-  App.apply(this, arguments);
-}
-
-SettingsIntegration.prototype = {
-  __proto__: App.prototype,
-  appName: 'Settings',
-  manifestURL: 'app://settings.gaiamobile.org/manifest.webapp',
-
-  selectors: {
-    wifiSelector: '#menuItem-wifi'
-  }
-};
+var SettingsIntegration = require('./integration.js');
 
 marionette(mozTestInfo.appPath + ' >', function() {
   var app;
@@ -33,13 +19,12 @@ marionette(mozTestInfo.appPath + ' >', function() {
 
   setup(function() {
     // It affects the first run otherwise
-    app.unlock();
+    this.timeout(500000);
+    client.setScriptTimeout(50000);
+    MarionetteHelper.unlockScreen(client);
   });
 
   test('rendering WiFi list >', function() {
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
-
     var lastEvent = 'settings-panel-wifi-ready';
 
     var performanceHelper = new PerformanceHelper({
@@ -51,14 +36,17 @@ marionette(mozTestInfo.appPath + ' >', function() {
       var waitForBody = true;
       app.launch(waitForBody);
 
+      performanceHelper.observe();
+
       app.element('wifiSelector', function(err, wifiSubpanel) {
         wifiSubpanel.tap();
       });
 
-      var runResults = performanceHelper.observe();
-      performanceHelper.reportRunDurations(runResults);
+      performanceHelper.waitForPerfEvent(function(runResults) {
+        performanceHelper.reportRunDurations(runResults);
 
-      app.close();
+        app.close();
+      });
     });
 
     performanceHelper.finish();

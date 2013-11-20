@@ -3,6 +3,7 @@
 
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 // This test is only for communications/contacts for now.
 // XXX extend to more apps.
@@ -17,53 +18,50 @@ manifestPath = arr[0];
 entryPoint = arr[1];
 
 
-marionette('startup event test ' + mozTestInfo.appPath + ' >', function() {
+marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
 
-  var app;
   var client = marionette.client({
     settings: {
       'ftu.manifestURL': null
     }
   });
+  var lastEvent = 'startup-path-done';
 
-  app = new App(client, mozTestInfo.appPath);
+  var app = new App(client, mozTestInfo.appPath);
   if (app.skip) {
     return;
   }
 
-  suite(mozTestInfo.appPath + ' >', function() {
-    setup(function() {
-      // it affects the first run otherwise
-    });
+  var performanceHelper = new PerformanceHelper({
+    app: app,
+    lastEvent: lastEvent
+  });
 
-    test('startup', function() {
+  setup(function() {
+    // it affects the first run otherwise
+    this.timeout(500000);
+    client.setScriptTimeout(50000);
 
-      this.timeout(500000);
-      client.setScriptTimeout(50000);
+    MarionetteHelper.unlockScreen(client);
+  });
 
-      var lastEvent = 'startup-path-done';
+  test('startup', function() {
 
-      var performanceHelper = new PerformanceHelper({
-        app: app,
-        lastEvent: lastEvent
-      });
+    performanceHelper.repeatWithDelay(function(app, next) {
 
-      app.unlock();
+      var waitForBody = false;
+      app.launch(waitForBody);
 
-      performanceHelper.repeatWithDelay(function(app, next) {
+      performanceHelper.observe();
 
-        var waitForBody = false;
-        app.launch(waitForBody);
-
-        var runResults = performanceHelper.observe();
-
+      performanceHelper.waitForPerfEvent(function(runResults) {
         performanceHelper.reportRunDurations(runResults);
         app.close();
       });
-
-      performanceHelper.finish();
-
     });
 
+    performanceHelper.finish();
+
   });
+
 });

@@ -1,6 +1,9 @@
 'use strict';
 
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
+
 // XXX make that exportable from the mocha-proxy
+// see https://github.com/mozilla-b2g/mocha-json-proxy/pull/4
 function write(event, content) {
   var args = Array.prototype.slice.call(arguments);
 
@@ -87,8 +90,6 @@ function PerformanceHelper(opts) {
       return client.executeScript(getResults);
     },
 
-
-    // t is the (Mocha) test object.
     reportDuration: function(values, title) {
       title = title || '';
       // this is stored in the test object
@@ -126,16 +127,16 @@ function PerformanceHelper(opts) {
     },
 
     /**
-     * Runs a generator as a "task" .runs number
-     * of times with a delay between each task.
+     * Repeat the task 'fn' with a delay.
+     * Call 'callback' if exist.
      *
-     *    yield perf.repeatWithDelay(function(app, next) {
-     *      yield app.launch();
-     *      yield app.close();
+     *    perf.repeatWithDelay(function(app, next) {
+     *      app.launch();
+     *      app.close();
      *    });
      *
      */
-    repeatWithDelay: function(generator, callback) {
+    repeatWithDelay: function(fn, callback) {
 
       callback = callback || this.app.defaultCallback;
 
@@ -156,52 +157,41 @@ function PerformanceHelper(opts) {
       var self = this;
       function trigger() {
         self.delay(function() {
-          self.task(generator, nextTask);
+          self.task(fn, nextTask);
         });
       }
 
       trigger();
     },
 
-    /**
-     * Almost identical to app.task but generators
-     * do not take a done parameter and will close when
-     * execution completes.
-     *
-     *
-     *    perf.task(function(app, next) {
-     *      app.something();
-     *    });
-     *
+    /*
+     * Run a task 'fn', and then chain on the 'next' task.
      */
-    task: function(generator, callback) {
+    task: function(fn, next) {
       var app = this.app;
-      callback = (callback || app.defaultCallback);
-      var instance;
+      next = next || app.defaultCallback;
 
-      generator(app, callback);
+      fn(app);
+      next();
     },
 
     delay: function(givenCallback) {
       givenCallback = givenCallback || client.defaultCallback;
       var interval = this.opts.spawnInterval;
 
-      var start = Date.now();
-      this.app.client.waitFor(function(callback) {
-        if (Date.now() - start >= interval) {
-          callback(null, true);
-        } else {
-          callback(null, null);
-        }
-      }, null, givenCallback);
+      MarionetteHelper.delay(this.app.client, interval, givenCallback);
     },
 
-    observe: function(callback) {
+    observe: function() {
       if (! this.opts.lastEvent) {
-        var errMsg = 'the "lastEvent" property msut be configured.';
+        var errMsg = 'the "lastEvent" property must be configured.';
         throw new Error('PerformanceHelper: ' + errMsg);
       }
-      return this.app.observePerfEvents(this.opts.lastEvent, callback);
+      this.app.observePerfEvents(this.opts.lastEvent);
+    },
+
+    waitForPerfEvent: function(callback) {
+      this.app.waitForPerfEvents(this.opts.lastEvent, callback);
     }
   };
 

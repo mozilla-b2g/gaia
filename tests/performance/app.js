@@ -31,6 +31,9 @@ PerfTestApp.prototype = {
 
   selectors: {},
 
+  defaultCallback: function() {
+  },
+
   /**
    * Launches app, switches to frame, and waits for it to be loaded.
    */
@@ -42,13 +45,6 @@ PerfTestApp.prototype = {
 
   close: function() {
     this.client.apps.close(this.origin);
-  },
-
-  unlock: function() {
-    var client = this.client;
-
-    client.executeScript(fs.readFileSync('./tests/atoms/gaia_lock_screen.js') +
-                         'GaiaLockScreen.unlock();\n');
   },
 
   /**
@@ -81,8 +77,7 @@ PerfTestApp.prototype = {
     this.client.findElement(this.selector(name), callback);
   },
 
-  observePerfEvents: function(stopEventName, callback) {
-    var runResults;
+  observePerfEvents: function(stopEventName) {
 
     this.client.executeScript(
       fs.readFileSync('./tests/performance/performance_helper_atom.js') + '\n'
@@ -92,22 +87,26 @@ PerfTestApp.prototype = {
     this.client.executeScript(
       helperObject + '.register();'
     );
+  },
 
-    this.client.executeScript(
-      helperObject + '.waitForEvent("' + stopEventName + '");'
-    );
+  waitForPerfEvents: function(stopEventName, callback) {
+    var client = this.client;
+    var helperObject = 'window.wrappedJSObject.PerformanceHelperAtom';
 
-    runResults = this.client.executeScript(
-      'return ' + helperObject + '.getMeasurements();'
-    );
+    this.client.executeAsyncScript(
+      helperObject + '.waitForEvent("' + stopEventName + '");',
+      function() {
+	var runResults = client.executeScript(
+	  'return ' + helperObject + '.getMeasurements();'
+	);
 
-    this.client.executeScript(
-      helperObject + '.unregister();'
-    );
+	client.executeScript(
+	  helperObject + '.unregister();'
+	);
 
-    if (callback) {
-      callback();
-    }
-    return runResults;
+	if (callback) {
+	  callback(runResults);
+	}
+      });
   }
 };

@@ -54,8 +54,8 @@ function clean(test) {
     title: test.title,
     fullTitle: test.fullTitle(),
     duration: test.duration
-  }
-};
+  };
+}
 
 function cleanErr(test) {
   var err = test.err;
@@ -75,5 +75,5 @@ function cleanErr(test) {
     msg: msg,
     actual: actual,
     expected: expected
-  }
-};
+  };
+}

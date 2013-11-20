@@ -2,7 +2,7 @@ global.GAIA_DIR = process.env.GAIA_DIR || './';
 
 global.mozTestInfo = {
   appPath: process.env.CURRENT_APP,
-  runs: 5
+  runs: process.env.RUNS || 5
 };
 
 const excludedApps = [
@@ -23,8 +23,8 @@ global.excludedApps = excludedApps;
 
 if (excludedApps.indexOf(mozTestInfo.appPath) !== -1) {
   if (process.env.VERBOSE) {
-    console.log("'" + mozTestInfo.appPath +
-                "' is an excluded app, skipping tests.");
+    console.log('"' + mozTestInfo.appPath +
+                '" is an excluded app, skipping tests.');
   }
 
   var output = {};

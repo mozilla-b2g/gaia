@@ -2,6 +2,7 @@
 
 var App = require('./app');
 var PerformanceHelper = requireGaia('/tests/performance/performance_helper.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 var manifestPath, entryPoint;
 
@@ -9,7 +10,7 @@ var arr = mozTestInfo.appPath.split('/');
 manifestPath = arr[0];
 entryPoint = arr[1];
 
-marionette('startup test ' + mozTestInfo.appPath + ' >', function() {
+marionette('startup test > ' + mozTestInfo.appPath + ' >', function() {
 
   var app;
   var client = marionette.client({
@@ -25,16 +26,19 @@ marionette('startup test ' + mozTestInfo.appPath + ' >', function() {
     return;
   }
 
-  test('startup time', function() {
-
-    performanceHelper = new PerformanceHelper({ app: app });
-
+  setup(function() {
     // Mocha timeout for this test
     this.timeout(100000);
     // Marionnette timeout for each command sent to the device
     client.setScriptTimeout(10000);
 
-    app.unlock(); // it affects the first run otherwise
+    MarionetteHelper.unlockScreen(client);
+  });
+
+  test('startup time', function() {
+
+    performanceHelper = new PerformanceHelper({ app: app });
+
     PerformanceHelper.registerLoadTimeListener(client);
 
     performanceHelper.repeatWithDelay(function(app, next) {

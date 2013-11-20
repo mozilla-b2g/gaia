@@ -1,25 +1,11 @@
 'use strict';
 
 requireGaia('/test_apps/test-agent/common/test/synthetic_gestures.js');
+var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
-var App = requireGaia('/tests/performance/app.js');
 var PerformanceHelper =
   requireGaia('/tests/performance/performance_helper.js');
-
-function DialerIntegration(client) {
-  App.apply(this, arguments);
-}
-
-DialerIntegration.prototype = {
-  __proto__: App.prototype,
-  appName: 'Phone',
-  manifestURL: 'app://communications.gaiamobile.org/manifest.webapp',
-  entryPoint: 'dialer',
-
-  selectors: {
-    optionRecents: '#option-recents'
-  }
-};
+var DialerIntegration = require('./integration.js');
 
 marionette(mozTestInfo.appPath + '>', function() {
   var client = marionette.client({
@@ -28,16 +14,16 @@ marionette(mozTestInfo.appPath + '>', function() {
     }
   });
 
-  var app = new DialerIntegration(client);
-
   setup(function() {
-    app.unlock();
+    this.timeout(500000);
+    client.setScriptTimeout(50000);
+
+    MarionetteHelper.unlockScreen(client);
   });
 
   test('Dialer/callLog rendering time >', function() {
+    var app = new DialerIntegration(client);
 
-    this.timeout(500000);
-    client.setScriptTimeout(50000);
 
     var lastEvent = 'call-log-ready';
 
@@ -50,14 +36,18 @@ marionette(mozTestInfo.appPath + '>', function() {
       var waitForBody = true;
       app.launch(waitForBody);
 
+      performanceHelper.observe();
+
       app.element('optionRecents', function(err, recentsButton) {
         recentsButton.tap();
       });
 
-      var runResults = performanceHelper.observe();
-      performanceHelper.reportRunDurations(runResults);
+      performanceHelper.waitForPerfEvent(function(runResults) {
+        performanceHelper.reportRunDurations(runResults);
 
-      app.close();
+        app.close();
+      });
+
     });
 
     performanceHelper.finish();

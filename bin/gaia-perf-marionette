@@ -6,11 +6,11 @@ SOURCE="${BASH_SOURCE[0]}"
 DIR="$( cd "$( dirname "$SOURCE" )" && pwd )"
 
 # where all gaia specific customizations for mocha-marionette live.
-SHARED=$DIR/../shared/test/integration
+SHARED=$GAIA_DIR/shared/test/integration
 
 if [ $MARIONETTE_RUNNER_HOST = "marionette-b2gdesktop-host" ] ; then
   # download b2g-desktop (if its not present)
-  make -C $DIR/../ b2g
+  make -C $GAIA_DIR/ b2g
 fi
 
 # make sure node_modules are 100% up to date
@@ -66,7 +66,7 @@ for app in $APPS; do
     --profile-base $SHARED/profile.js \
     --host $MARIONETTE_RUNNER_HOST \
     $SHARED/setup.js \
-    $GAIA_DIR/tests/js/perf.js $SHARED_PERF $FILES_PERF \
+    $GAIA_DIR/tests/performance/perf.js $SHARED_PERF $FILES_PERF \
     -R "$GAIA_DIR/tests/reporters/jsonmozperf.js" \
     $@
 done

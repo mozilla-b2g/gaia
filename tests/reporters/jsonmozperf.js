@@ -20,6 +20,7 @@ function JSONMozPerfReporter(runner) {
   var mozPerfDurations;
 
   runner.on('test', function(test) {
+    mozPerfDurations = [];
   });
 
   runner.on('mozPerfDuration', function(content) {
@@ -83,10 +84,10 @@ function cleanErr(test) {
     actual: actual,
     expected: expected
   };
-};
+}
 
 function average(arr) {
-  if(arr.length == 0) {
+  if (arr.length == 0) {
     return 0;
   }
   var sum = arr.reduce(function(i, j) {
