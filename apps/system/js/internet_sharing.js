@@ -18,7 +18,7 @@ var InternetSharing = (function() {
 
   var settings;
   // null or unknown state will change to one of the following state
-  var validCardState = ['absent',
+  var validCardState = [null,
                         'pinRequired',
                         'pukRequired',
                         'networkLocked',

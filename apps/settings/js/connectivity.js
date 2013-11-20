@@ -15,6 +15,7 @@ var Connectivity = (function(window, document, undefined) {
   var _initialized = false;
   var _macAddress = '';
   var _ = navigator.mozL10n.get;
+  var _airplaneMode = false;
 
   // in desktop helper we fake these device interfaces if they don't exist.
   var wifiManager = WifiHelper.getWifiManager();
@@ -38,6 +39,13 @@ var Connectivity = (function(window, document, undefined) {
   // turns it on and off when wifi goes up and down.
   //
   settings.createLock().set({'wifi.enabled': wifiManager.enabled});
+
+  SettingsListener.observe('ril.radio.disabled', false, function(value) {
+    _airplaneMode = value;
+    updateCarrier();
+    updateCallSettings();
+    updateMessagingSettings();
+  });
 
   //
   // Now register callbacks to track the state of the wifi hardware
@@ -221,7 +229,7 @@ var Connectivity = (function(window, document, undefined) {
       return setCarrierStatus({});
 
     // ensure the SIM card is present and unlocked
-    var cardState = IccHelper.cardState || 'null';
+    var cardState = _airplaneMode ? 'null' : IccHelper.cardState || 'absent';
     var l10nId = kCardStateL10nId[cardState];
     if (l10nId) {
       return setCarrierStatus({ error: _(l10nId), l10nId: l10nId });
@@ -260,7 +268,7 @@ var Connectivity = (function(window, document, undefined) {
       return;
 
     // update the current SIM card state
-    var cardState = IccHelper.cardState || 'null';
+    var cardState = _airplaneMode ? 'null' : IccHelper.cardState || 'absent';
     localize(callDesc, kCardStateL10nId[cardState]);
   }
 
@@ -281,7 +289,7 @@ var Connectivity = (function(window, document, undefined) {
       return;
 
     // update the current SIM card state
-    var cardState = IccHelper.cardState || 'null';
+    var cardState = _airplaneMode ? 'null' : IccHelper.cardState || 'absent';
     localize(messagingDesc, kCardStateL10nId[cardState]);
   }
 

@@ -1089,12 +1089,12 @@ var LockScreen = {
         updateConnstateLine1('emergencyCallsOnly');
 
         switch (IccHelper.cardState) {
-          case 'unknown':
-            updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
+          case null:
+            updateConnstateLine2('emergencyCallsOnly-noSIM');
             break;
 
-          case 'absent':
-            updateConnstateLine2('emergencyCallsOnly-noSIM');
+          case 'unknown':
+            updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
             break;
 
           case 'pinRequired':

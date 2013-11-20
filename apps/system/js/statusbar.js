@@ -511,7 +511,7 @@ var StatusBar = {
         flightModeIcon.hidden = true;
         icon.hidden = false;
 
-        if (IccHelper.cardState === 'absent') {
+        if (!IccHelper.cardState) {
           // no SIM
           delete icon.dataset.level;
           delete icon.dataset.emergency;

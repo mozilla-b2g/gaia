@@ -245,7 +245,7 @@ suite('navigation >', function() {
     });
 
     test('without SIM card', function() {
-      MockIccHelper.setProperty('cardState', 'absent');
+      MockIccHelper.setProperty('cardState', null);
       Navigation.forward();
 
       assert.equal(Navigation.previousStep, 1);

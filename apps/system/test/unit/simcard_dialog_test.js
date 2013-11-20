@@ -141,18 +141,6 @@ suite('simcard dialog', function() {
       assert.isTrue(SimPinDialog.confirmPinArea.hidden);
     });
 
-    test('absent', function() {
-      MockIccHelper.setProperty('cardState', 'absent');
-      SimPinDialog.handleCardState();
-
-      assert.isTrue(SimPinDialog.triesLeftMsg.hidden);
-      assert.isTrue(SimPinDialog.pinArea.hidden);
-      assert.isTrue(SimPinDialog.pukArea.hidden);
-      assert.isTrue(SimPinDialog.xckArea.hidden);
-      assert.isTrue(SimPinDialog.newPinArea.hidden);
-      assert.isTrue(SimPinDialog.confirmPinArea.hidden);
-    });
-
     test('ready', function() {
       MockIccHelper.setProperty('cardState', 'ready');
       SimPinDialog.handleCardState();

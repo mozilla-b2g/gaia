@@ -666,11 +666,11 @@ window.addEventListener('load', function loadSettings() {
       'shared/js/mobile_operator.js',
       'shared/js/wifi_helper.js',
       'shared/js/icc_helper.js',
+      'shared/js/settings_listener.js',
       'js/connectivity.js',
       'js/security_privacy.js',
       'js/icc_menu.js',
-      'js/nfc.js',
-      'shared/js/settings_listener.js'
+      'js/nfc.js'
     ], handleRadioAndCardState);
   });
 
@@ -682,7 +682,7 @@ window.addEventListener('load', function loadSettings() {
 
       // Disable SIM security item only in case of SIM absent.
       var cardState = IccHelper.cardState;
-      if (cardState && cardState === 'absent') {
+      if (!disable || !cardState) {
         itemIds.push('simSecurity-settings');
       }
 
