@@ -79,19 +79,14 @@ marionette('search', function() {
         // now we can test the about:neterror page
 
         // verify we have the propery body
-        var netErrorBody = frame.client.findElement('body');
-        assert.equal(netErrorBody.getAttribute('id'),
-          'net-error', 'Net error body is net error');
+        frame.client.helper.waitForElement('body#net-error');
 
         // verify error message was set (using l10n)
         var errorMsg = frame.client.findElement('#error-message')
                        .getAttribute('innerHTML');
         assert.ok(errorMsg, 'Localization library populated error message');
 
-        // Unfortunately, there is no easy way to test if a mozbrowser
-        // window has been closed. So to test, we will attempt to fetch
-        // an element from the body of our about:neterror page, and expect
-        // that to throw an error since the window should be closed.
+        // verify that close button kills the browser tab
         frame.client.executeScript(function() {
           var closeBtn = document.getElementById('close-btn');
           if (!closeBtn) {
@@ -99,23 +94,23 @@ marionette('search', function() {
           }
           closeBtn.click();
         });
-        client.switchToFrame();
 
-        // Need to "sleep" for a few moments here since travis can be
-        // slow in closing the window.
-        var startTime = Date.now();
-        client.waitFor(function() {
-          return Date.now() - startTime > 3000;
-        });
         subject.backToApp();
-        frame = subject.currentTabFrame();
-        try {
-          netErrorBody = frame.client.findElement('body#net-error');
-        } catch (e) {
-          assert.ok(true, 'fetching body of closed window should throw error');
-          return;
-        }
-        assert.ok(false, 'fetching body of closed window should throw error');
+        var query = 'iframe[src="' + url + '"]';
+        // this is to wait for the iframe to go away
+        client.waitFor(function() {
+          try {
+            client.findElement(query);
+            return false;
+          } catch (err) {
+            // only if findElement throws NoSuchElement
+            // do we know for sure the tab is closed
+            if (err && err.type === 'NoSuchElement') {
+              return true;
+            }
+          }
+        });
+        assert.ok(true, 'browser tab was properly closed');
       }
     });
   });
