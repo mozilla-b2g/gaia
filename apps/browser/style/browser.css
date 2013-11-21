@@ -306,7 +306,7 @@ input[type="image"] {
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 2.4rem;
+  background-size: 3.2rem;
 }
 
 #ssl-indicator[value=secure] {
