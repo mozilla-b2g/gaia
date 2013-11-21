@@ -43,4 +43,4 @@ class Wifi(Base):
 
         self.wait_for_condition(
             lambda m: m.find_element(*self._connected_message_locator).text == "Connected",
-                        timeout = max(self.marionette.timeout / 1000, 60))
+                        timeout = max(self.marionette.timeout and self.marionette.timeout / 1000, 60))
