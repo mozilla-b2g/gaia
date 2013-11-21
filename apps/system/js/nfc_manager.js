@@ -310,22 +310,22 @@ var NfcManager = {
       }
   },
 
-  // NDEF only
+  // NDEF only currently
   handleP2P: function handleP2P(tech, sessionToken, ndefMsg) {
     if (ndefMsg != null) {
-      /*
-       * Incoming P2P message carries a NDEF message. Dispatch
-       * the NDEF message (this might bring another app to the
-       * foreground).
-       */
+       //
+       // Incoming P2P message carries a NDEF message. Dispatch
+       // the NDEF message (this might bring another app to the
+       // foreground).
+       //
       this.handleNdefDiscovered(tech, sessionToken, ndefMsg);
       return;
     }
-    /*
-     * Incoming P2P message does not carry an NDEF message.
-     * Check if the foreground app has registered an onpeerfound
-     * and do the shrinking UI if needed.
-     */
+     //
+     // Incoming P2P message does not carry an NDEF message.
+     // Check if the foreground app has registered an onpeerfound
+     // and do the shrinking UI if needed.
+     //
     var nfcdom = window.navigator.mozNfc;
 
     // FIXME: Do P2P UI: Ask user if P2P event is acceptable in the app's
