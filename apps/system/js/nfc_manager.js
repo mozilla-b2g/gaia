@@ -169,7 +169,7 @@ var NfcManager = {
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
     var self = this;
-    window.navigator.mozSettings.addObserver('nfc.enabled', function(e) {
+    SettingsListener.observe('nfc.enabled', false, function(e) {
       var state = (e.settingValue === true) ? self.NFC_HW_STATE_ON :
                                               self.NFC_HW_STATE_OFF;
       self.dispatchHardwareChangeEvt(state);
@@ -189,12 +189,14 @@ var NfcManager = {
     var acceptEvents = this.acceptNfcEvents();
     this._debug('dispatchHardwareChangeEvt : acceptEvents : ' + acceptEvents +
                                  'state : ' + JSON.stringify(state));
-    var detail = { nfcHardwareState: state };
+    var details = {
+      type: 'nfc-hardware-state-change',
+      nfcHardwareState: state
+    };
     // Create the state-change event and dispatch
-    var evt = new CustomEvent('nfc-hardware-state-change',
-      { bubbles: true, cancelable: true,
-        detail: detail });
-    window.dispatchEvent(evt);
+    var event = document.createEvent('customEvent');
+    event.initCustomEvent('mozContentEvent', true, true, details);
+    window.dispatchEvent(event);
   },
 
   handleEvent: function nm_handleEvent(evt) {
@@ -338,9 +340,7 @@ var NfcManager = {
     // TODO: Upon user akcnowledgement on the shrunk UI,
     //       system application notifies gecko of the top most window.
 
-    // Notify gecko of User's acknowledgement.
-    var currentActiveApp = WindowManager.getCurrentActiveAppWindow();
-    nfcdom.setPeerWindow(currentActiveApp.manifestURL);
+    // Notify gecko of User's acknowledgement. TODO: Bug 933136
   },
 
   fireTagDiscovered: function nm_fireTagDiscovered(command) {
