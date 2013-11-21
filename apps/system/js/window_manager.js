@@ -414,7 +414,7 @@ var WindowManager = (function() {
     if ('unloaded' in iframe.dataset) {
       setFrameBackground(openFrame, transitionOpenCallback);
     } else {
-      app.ensureFullRepaint(transitionOpenCallback);
+      app.tryWaitForFullRepaint(transitionOpenCallback);
     }
 
     // Set the frame to be visible.
