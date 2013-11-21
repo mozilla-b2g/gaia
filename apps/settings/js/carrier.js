@@ -155,15 +155,13 @@ var Carrier = {
 
         // include the radio button element in a list item
         var span = document.createElement('span');
+        span.textContent = item.carrier || item.apn;
         var label = document.createElement('label');
         label.classList.add('pack-radio');
         label.appendChild(input);
         label.appendChild(span);
-        var a = document.createElement('a');
-        a.textContent = item.carrier || item.apn;
         var li = document.createElement('li');
         li.appendChild(label);
-        li.appendChild(a);
 
         return li;
       }
