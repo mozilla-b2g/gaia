@@ -16,10 +16,12 @@ var Selector = {
   manualSetupNameInput: '.sup-manual-form .sup-info-name',
   manualSetupEmailInput: '.sup-manual-form .sup-info-email',
   manualSetupPasswordInput: '.sup-manual-form .sup-info-password',
-  manualSetupImapUsernameInput: '.sup-manual-form .sup-manual-imap-username',
-  manualSetupImapHostnameInput: '.sup-manual-form .sup-manual-imap-hostname',
-  manualSetupImapPortInput: '.sup-manual-form .sup-manual-imap-port',
-  manualSetupImapSocket: '.sup-manual-form .sup-manual-imap-socket',
+  manualSetupImapUsernameInput:
+    '.sup-manual-form .sup-manual-composite-username',
+  manualSetupImapHostnameInput:
+    '.sup-manual-form .sup-manual-composite-hostname',
+  manualSetupImapPortInput: '.sup-manual-form .sup-manual-composite-port',
+  manualSetupImapSocket: '.sup-manual-form .sup-manual-composite-socket',
   manualSetupSmtpUsernameInput: '.sup-manual-form .sup-manual-smtp-username',
   manualSetupSmtpHostnameInput: '.sup-manual-form .sup-manual-smtp-hostname',
   manualSetupSmtpPortInput: '.sup-manual-form .sup-manual-smtp-port',

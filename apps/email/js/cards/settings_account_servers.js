@@ -7,7 +7,8 @@ var templateNode = require('tmpl!./settings_account_servers.html'),
     Cards = common.Cards;
 
 /**
- * Per-account server settings, it can be activesync or imap+smtp
+ * Per-account server settings, it can be activesync, imap+smtp, or
+ * pop3+smtp
  */
 function SettingsAccountServerCard(domNode, mode, args) {
   this.domNode = domNode;

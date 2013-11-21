@@ -4236,10 +4236,12 @@ exports.decodeUI64 = function d(es) {
 
 define('mailapi/allback',
   [
-    'exports'
+    'exports',
+    'prim'
   ],
   function(
-    exports
+    exports,
+    prim
   ) {
 
 /**
@@ -4286,6 +4288,79 @@ exports.allbackMaker = function allbackMaker(names, allDoneCallback) {
 
   return callbacks;
 };
+
+
+/**
+ * A lightweight deferred 'run-all'-like construct for waiting for
+ * multiple callbacks to finish executing, with a final completion
+ * callback at the end. Neither promises nor Q provide a construct
+ * quite like this; Q.all and Promise.all tend to either require all
+ * promises to be created up front, or they return when the first
+ * error occurs. This is designed to allow you to wait for an unknown
+ * number of callbacks, with the knowledge that they're going to
+ * execute anyway -- no sense trying to abort early.
+ *
+ * Results passed to each callback can be passed along to the final
+ * result by adding a `name` parameter when calling latch.defer().
+ *
+ * Example usage:
+ *
+ * var latch = allback.latch();
+ * setTimeout(latch.defer('timeout1'), 200);
+ * var cb = latch.defer('timeout2');
+ * cb('foo');
+ * latch.then(function(results) {
+ *   console.log(results.timeout2[0]); // => 'foo'
+ * });
+ *
+ * The returned latch is an A+ Promises-compatible thennable, so you
+ * can chain multiple callbacks to the latch.
+ *
+ * The promise will never fail; it will always succeed. Each
+ * `.defer()` call can be passed a `name`; if a name is provided, that
+ * callback's arguments will be made available as a key on the result
+ * object.
+ *
+ * NOTE: The latch will not actually fire completion until you've
+ * attached a callback handler. This way, you can create the latch
+ * before you know how many callbacks you'll need; when you've called
+ * .defer() as many times as necessary, you can call `then()` to
+ * actually fire the completion function (when they have all
+ * completed).
+ */
+exports.latch = function() {
+  var ready = false;
+  var deferred = prim();
+  var results = {};
+  var count = 0;
+  function defer(name) {
+    count++;
+    var resolved = false;
+    return function resolve() {
+      if (resolved) { return; }
+      if (name) {
+        results[name] = Array.slice(arguments);
+      }
+      if (--count === 0) {
+        setZeroTimeout(function() {
+          deferred.resolve(results);
+        });
+      }
+    };
+  }
+  var unlatch = defer();
+  return {
+    defer: defer,
+    then: function () {
+      var ret = deferred.promise.then.apply(deferred.promise, arguments);
+      if (!ready) {
+        ready = true;
+        unlatch();
+      }
+      return ret;
+    }
+  };
+}
 
 }); // end define
 ;
@@ -5900,7 +5975,6 @@ function FolderStorage(account, folderId, persistedFolderInfo, dbConn,
   this._curSyncSlice = null;
 
   this._messagePurgeScheduled = false;
-
   this.folderSyncer = FolderSyncer && new FolderSyncer(account, this,
                                                        this._LOG);
 }
@@ -6353,7 +6427,7 @@ FolderStorage.prototype = {
    * next use the mail app all the information will be gone.  Likewise, if the
    * user is disconnected from the net, we won't purge their cached stuff that
    * they are still looking at.  The non-obvious impact on 'archive' folders
-   * whose first messages are quite some way sin the past is that the accuracy
+   * whose first messages are quite some ways in the past is that the accuracy
    * range for archive folders will have been updated with the current date for
    * at least whatever the UI needed, so we won't go completely purging archive
    * folders.
@@ -6386,7 +6460,7 @@ FolderStorage.prototype = {
    * - We do not do anything about attachments saved to DeviceStorage.  We leave
    *   those around and it's on the user to clean those up from the gallery.
    * - We do not currently take the size of downloaded embedded images into
-   *   account
+   *   account.
    *
    * @args[
    *   @param[callback @func[
@@ -7094,7 +7168,6 @@ FolderStorage.prototype = {
     // in order to avoid having the slice have data fed into it if there were
     // other synchronizations already in progress.
     this._slices.push(slice);
-
     var doneCallback = function doneSyncCallback(err, reportSyncStatusAs,
                                                  moreExpected) {
       if (!reportSyncStatusAs) {
@@ -7121,7 +7194,8 @@ FolderStorage.prototype = {
       // a straight-up boolean/ternarny combo.)
       var triggerRefresh;
       if (this._account.universe.online && this.folderSyncer.syncable &&
-          this.folderMeta.type !== 'localdrafts') {
+          this.folderMeta.type !== 'localdrafts'
+         ) {
         if (forceRefresh)
           triggerRefresh = 'force';
         else
@@ -7144,8 +7218,7 @@ FolderStorage.prototype = {
     // (we have never synchronized this folder)
 
     // -- no work to do if we are offline or synthetic folder
-    if (!this._account.universe.online ||
-        this.folderMeta.type === 'localdrafts') {
+    if (!this._account.universe.online || this.folderMeta.type === 'localdrafts') {
       doneCallback();
       return;
     }
@@ -8421,6 +8494,7 @@ FolderStorage.prototype = {
     var id = parseInt(suid.substring(suid.lastIndexOf('/') + 1)),
         posInfo = this._findRangeObjIndexForDateAndID(this._headerBlockInfos,
                                                       date, id);
+
     if (posInfo[1] === null) {
       this._LOG.headerNotFound();
       try {
@@ -8512,8 +8586,9 @@ FolderStorage.prototype = {
           // We never automatically grow a slice into the past if we are full,
           // but we do allow it if not full.
           if (BEFORE(date, slice.startTS)) {
-            if (slice.headers.length >= slice.desiredHeaders)
+            if (slice.headers.length >= slice.desiredHeaders) {
               continue;
+            }
           }
           // We do grow a slice into the present if it's already up-to-date.
           // We do count messages from the same second as our
@@ -8715,9 +8790,9 @@ FolderStorage.prototype = {
     }.bind(this));
   },
 
-  deleteMessageHeaderAndBodyUsingHeader: function(header, callback) {
+  deleteMessageHeaderUsingHeader: function(header, callback) {
     if (this._pendingLoads.length) {
-      this._deferredCalls.push(this.deleteMessageHeaderAndBodyUsingHeader.bind(
+      this._deferredCalls.push(this.deleteMessageHeaderUsingHeader.bind(
                                this, header, callback));
       return;
     }
@@ -8744,9 +8819,18 @@ FolderStorage.prototype = {
     if (this._serverIdHeaderBlockMapping && header.srvid)
       delete this._serverIdHeaderBlockMapping[header.srvid];
 
-    var callbacks = allbackMaker(['header', 'body'], callback);
-    this._deleteFromBlock('header', header.date, header.id, callbacks.header);
-    this._deleteFromBlock('body', header.date, header.id, callbacks.body);
+    this._deleteFromBlock('header', header.date, header.id, callback);
+  },
+
+  deleteMessageHeaderAndBodyUsingHeader: function(header, callback) {
+    if (this._pendingLoads.length) {
+      this._deferredCalls.push(this.deleteMessageHeaderAndBodyUsingHeader.bind(
+                               this, header, callback));
+      return;
+    }
+    this.deleteMessageHeaderUsingHeader(header, function() {
+      this._deleteFromBlock('body', header.date, header.id, callback);
+    }.bind(this));
   },
 
   /**
@@ -8914,7 +8998,6 @@ FolderStorage.prototype = {
       if (!bodyInfo) {
         return callback(bodyInfo);
       }
-
       if (self.messageBodyRepsDownloaded(bodyInfo)) {
         return callback(bodyInfo);
       }
@@ -8922,7 +9005,6 @@ FolderStorage.prototype = {
       // queue a job and return bodyInfo after it completes..
       self._account.universe.downloadMessageBodyReps(suid, date,
                                                      function(err, bodyInfo) {
-
         // the err (if any) will be logged by the job.
         callback(bodyInfo);
       });
@@ -8985,7 +9067,7 @@ FolderStorage.prototype = {
    *
    *    // ( body is a MessageBody )
    *    body.onchange = function(detail, bodyInfo) {
-   *      // detail => { changeType: x, value: y }
+   *      // detail => { changeDetails: { bodyReps: [0], ... }, value: y }
    *    };
    *
    *    // in the backend
@@ -8993,7 +9075,7 @@ FolderStorage.prototype = {
    *    storage.updateMessageBody(
    *      header,
    *      changedBodyInfo,
-   *      { changeType: x, value: y }
+   *      { changeDetails: { bodyReps: [0], ... }, value: y }
    *    );
    */
   updateMessageBody: function(header, bodyInfo, eventDetails, callback) {
@@ -10137,7 +10219,6 @@ exports.local_do_move = function(op, doneCallback, targetFolderId) {
           header.srvid = null;
 
         stateDelta.moveMap[sourceSuid] = header.suid;
-
         addWait = 2;
         targetStorage.addMessageHeader(header, added);
         targetStorage.addMessageBody(header, body, added);
@@ -10242,50 +10323,21 @@ exports.do_download = function(op, callback) {
 
     folderConn.downloadMessageAttachments(uid, partsToDownload, gotParts);
   };
-  var pendingStorageWrites = 0, downloadErr = null;
-  /**
-   * Save an attachment to device storage, making the filename unique if we
-   * encounter a collision.
-   */
-  function saveToStorage(blob, storage, filename, partInfo, isRetry) {
-    pendingStorageWrites++;
 
-    var callback = function(success, error, savedFilename) {
-      if (success) {
-        self._LOG.savedAttachment(storage, blob.type, blob.size);
-        console.log('saved attachment to', storage, savedFilename, 'type:', blob.type);
-        partInfo.file = [storage, savedFilename];
-        if (--pendingStorageWrites === 0)
-          done();
-      } else {
-        self._LOG.saveFailure(storage, blob.type, error, filename);
-        console.warn('failed to save attachment to', storage, filename,
-                     'type:', blob.type);
-        pendingStorageWrites--;
-        // if we failed to unique the file after appending junk, just give up
-        if (isRetry) {
-          if (pendingStorageWrites === 0)
-            done();
-          return;
-        }
-        // retry by appending a super huge timestamp to the file before its
-        // extension.
-        var idxLastPeriod = filename.lastIndexOf('.');
-        if (idxLastPeriod === -1)
-          idxLastPeriod = filename.length;
-        filename = filename.substring(0, idxLastPeriod) + '-' + Date.now() +
-                    filename.substring(idxLastPeriod);
-        saveToStorage(blob, storage, filename, partInfo, true);
-      }
-    };
-    sendMessage('save', [storage, blob, filename], callback);
-  }
+  var downloadErr = null;
   var gotParts = function gotParts(err, bodyBlobs) {
     if (bodyBlobs.length !== partsToDownload.length) {
       callback(err, null, false);
       return;
     }
     downloadErr = err;
+    var pendingCbs = 1;
+    function next() {
+      if (!--pendingCbs) {
+        done();
+      }
+    }
+
     for (var i = 0; i < partsToDownload.length; i++) {
       // Because we should be under a mutex, this part should still be the
       // live representation and we can mutate it.
@@ -10296,16 +10348,18 @@ exports.do_download = function(op, callback) {
       if (blob) {
         partInfo.sizeEstimate = blob.size;
         partInfo.type = blob.type;
-        if (storeTo === 'idb')
+        if (storeTo === 'idb') {
           partInfo.file = blob;
-        else
-          saveToStorage(blob, storeTo, partInfo.name, partInfo);
+        } else {
+          pendingCbs++;
+          saveToDeviceStorage(
+              self._LOG, blob, storeTo, partInfo.name, partInfo, next);
+        }
       }
     }
-    if (!pendingStorageWrites)
-      done();
-  };
 
+    next();
+  };
   function done() {
     folderStorage.updateMessageBody(header, bodyInfo, function() {
       callback(downloadErr, bodyInfo, true);
@@ -10314,7 +10368,43 @@ exports.do_download = function(op, callback) {
 
   self._accessFolderForMutation(folderId, true, gotConn, deadConn,
                                 'download');
-};
+}
+
+/**
+ * Save an attachment to device storage, making the filename unique if we
+ * encounter a collision.
+ */
+var saveToDeviceStorage = exports.saveToDeviceStorage =
+function(_LOG, blob, storeTo, filename, partInfo, cb, isRetry) {
+  var self = this;
+  var callback = function(success, error, savedFilename) {
+    if (success) {
+      _LOG.savedAttachment(storeTo, blob.type, blob.size);
+      console.log('saved attachment to', storeTo, savedFilename,
+                  'type:', blob.type);
+      partInfo.file = [storeTo, savedFilename];
+      cb();
+    } else {
+      _LOG.saveFailure(storeTo, blob.type, error, filename);
+      console.warn('failed to save attachment to', storeTo, filename,
+                   'type:', blob.type);
+      // if we failed to unique the file after appending junk, just give up
+      if (isRetry) {
+        cb(error);
+        return;
+      }
+      // retry by appending a super huge timestamp to the file before its
+      // extension.
+      var idxLastPeriod = filename.lastIndexOf('.');
+      if (idxLastPeriod === -1)
+        idxLastPeriod = filename.length;
+      filename = filename.substring(0, idxLastPeriod) + '-' + Date.now() +
+        filename.substring(idxLastPeriod);
+      saveToDeviceStorage(_LOG, blob, storeTo, filename, partInfo, cb, true);
+    }
+  };
+  sendMessage('save', [storeTo, blob, filename], callback);
+}
 
 exports.local_do_download = function(op, callback) {
   // Downloads are inherently online operations.
@@ -10801,6 +10891,18 @@ define('mailapi/accountmixins',
   ) {
 
 /**
+ * The no-op operation for job operations that are not implemented.
+ * Returns successs in a future turn of the event loop.
+ */
+function unimplementedJobOperation(op, callback) {
+  window.setZeroTimeout(function() {
+    callback(null, null);
+  });
+}
+
+
+
+/**
  * @args[
  *   @param[op MailOp]
  *   @param[mode @oneof[
@@ -10836,19 +10938,24 @@ exports.runOp = function runOp(op, mode, callback) {
 
   var methodName = mode + '_' + op.type, self = this;
 
-  if (!(methodName in this._jobDriver)) {
+  // If the job driver doesn't support the operation, assume that it
+  // is a moot operation that will succeed. Assign it a no-op callback
+  // that completes in the next tick, so as to maintain job ordering.
+  var method = this._jobDriver[methodName];
+  if (!method) {
     console.warn('Unsupported op:', op.type, 'mode:', mode);
-    callback('failure-give-up');
-    return;
+    method = unimplementedJobOperation;
   }
 
   this._LOG.runOp_begin(mode, op.type, null, op);
   // _LOG supports wrapping calls, but we want to be able to strip out all
   // logging, and that wouldn't work.
   try {
-    this._jobDriver[methodName](op, function(error, resultIfAny,
-                                             accountSaveSuggested) {
+    method.call(this._jobDriver, op,
+    function(error, resultIfAny, accountSaveSuggested) {
       self._jobDriver.postJobCleanup(!error);
+      console.log('runOp_end(' + mode + ': ' +
+                  JSON.stringify(op).substring(0, 160) + ')\n');
       self._LOG.runOp_end(mode, op.type, error, op);
       // defer the callback to the next tick to avoid deep recursion
       window.setZeroTimeout(function() {
@@ -12683,7 +12790,6 @@ MailBridge.prototype = {
 
       var folderStorage =
         this.universe.getFolderStorageForMessageSuid(msg.refSuid);
-
       var self = this;
       folderStorage.getMessage(
         msg.refSuid, msg.refDate, { withBodyReps: true }, function(res) {
@@ -12692,7 +12798,7 @@ MailBridge.prototype = {
           // cannot compose a reply/fwd message without a header/body
           return console.warn(
             'Cannot compose message missing header/body: ',
-            msg.suid
+            msg.refSuid
           );
         }
 
@@ -12756,6 +12862,7 @@ MailBridge.prototype = {
             referencesStr = '';
           }
           req.active = null;
+
           self.__sendMessage({
             type: 'composeBegun',
             handle: msg.handle,
@@ -13765,6 +13872,7 @@ var AUTOCONFIG_TIMEOUT_MS = 30 * 1000;
 
 var Configurators = {
   'imap+smtp': './composite/configurator',
+  'pop3+smtp': './composite/configurator',
   'activesync': './activesync/configurator'
 };
 
@@ -13805,6 +13913,21 @@ var autoconfigByDomain = exports._autoconfigByDomain = {
   },
   'fakeimaphost': {
     type: 'imap+smtp',
+    incoming: {
+      hostname: 'localhost',
+      port: 0,
+      socketType: 'plain',
+      username: '%EMAILLOCALPART%',
+    },
+    outgoing: {
+      hostname: 'localhost',
+      port: 0,
+      socketType: 'plain',
+      username: '%EMAILLOCALPART%',
+    },
+  },
+  'fakepop3host': {
+    type: 'pop3+smtp',
     incoming: {
       hostname: 'localhost',
       port: 0,
@@ -14401,7 +14524,6 @@ exports.tryToManuallyCreateAccount = tryToManuallyCreateAccount;
  *
  **/
 /*global define, console, window, Blob */
-
 define('mailapi/mailuniverse',
   [
     'rdcommon/log',
@@ -14539,8 +14661,8 @@ function makeBridgeFn(bridgeMethod) {
  *   }
  *   @key[identities @listof[IdentityDef]]
  *
- *   @key[type @oneof['imap+smtp' 'activesync']]
- *   @key[receiveType @oneof['imap' 'activesync']]
+ *   @key[type @oneof['pop3+smtp' 'imap+smtp' 'activesync']]
+ *   @key[receiveType @oneof['pop3' 'imap' 'activesync']]
  *   @key[sendType @oneof['smtp' 'activesync']]
  *   @key[receiveConnInfo ConnInfo]
  *   @key[sendConnInfo ConnInfo]
@@ -15482,6 +15604,7 @@ MailUniverse.prototype = {
 
   _localOpCompleted: function(account, op, err, resultIfAny,
                               accountSaveSuggested) {
+
     var queues = this._opsByAccount[account.id],
         serverQueue = queues.server,
         localQueue = queues.local;
@@ -15564,6 +15687,11 @@ MailUniverse.prototype = {
       op = serverQueue[0];
       this._dispatchServerOpForAccount(account, op);
     }
+    else if (this._opCompletionListenersByAccount[account.id]) {
+      this._opCompletionListenersByAccount[account.id](account);
+      this._opCompletionListenersByAccount[account.id] = null;
+    }
+
   },
 
   /**
@@ -15829,6 +15957,8 @@ MailUniverse.prototype = {
     if (optionalCallback)
       this._opCallbacks[op.longtermId] = optionalCallback;
 
+
+
     // - Enqueue
     var queues = this._opsByAccount[account.id];
     // Local processing needs to happen if we're not in the right local state.
@@ -16068,8 +16198,14 @@ MailUniverse.prototype = {
         type: 'append',
         longtermId: null,
         lifecycle: 'do',
-        localStatus: 'done',
-        serverStatus: null,
+        // XXX supportsServerFolders is a bit of a misnomer in this
+        // case; we are doing this to make the unit tests happy.
+        // ActiveSync does not support appending messages via the
+        // ActiveSync protocol, but it supports server folders. POP3
+        // doesn't support anything. Changing this will result in some
+        // hassle we don't want to deal with right now.
+        localStatus: (account.supportsServerFolders ? 'done' : null),
+        serverStatus: (account.supportsServerFolders ? null : 'n/a'),
         tryCount: 0,
         humanOp: 'append',
         messages: messages,
