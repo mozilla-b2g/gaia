@@ -37,12 +37,6 @@ ul, ol {
   height: -moz-calc(100% - 6.5rem);
 }
 
-#edit-alarm select,
-#edit-alarm input[type="time"] {
-  position: absolute;
-  opacity: 0;
-}
-
 .new #delete-menu {
   display: none;
 }
