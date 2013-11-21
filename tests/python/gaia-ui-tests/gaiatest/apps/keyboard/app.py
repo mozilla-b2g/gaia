@@ -2,6 +2,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+import time
 
 from marionette.by import By
 from marionette.errors import NoSuchElementException
@@ -276,6 +277,7 @@ class Keyboard(Base):
     def dismiss(self):
         frame = self.marionette.get_active_frame()
         self.marionette.switch_to_frame()
+        time.sleep(0.5)
         self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
         self.wait_for_condition(lambda m: not self.is_displayed())
         self.marionette.switch_to_frame(frame)
