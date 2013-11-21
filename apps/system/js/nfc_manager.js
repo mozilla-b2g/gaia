@@ -189,13 +189,13 @@ var NfcManager = {
     var acceptEvents = this.acceptNfcEvents();
     this._debug('dispatchHardwareChangeEvt : acceptEvents : ' + acceptEvents +
                                  'state : ' + JSON.stringify(state));
-    var details = {
+    var detail = {
       type: 'nfc-hardware-state-change',
       nfcHardwareState: state
     };
     // Create the state-change event and dispatch
     var event = document.createEvent('customEvent');
-    event.initCustomEvent('mozContentEvent', true, true, details);
+    event.initCustomEvent('mozContentEvent', true, true, detail);
     window.dispatchEvent(event);
   },
 
