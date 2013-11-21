@@ -7,26 +7,13 @@ section[role="region"] > header:first-child {
   padding: 0;
   height: 5rem;
   color: #fff;
-  background: url(headers/images/ui/header.png) repeat-x 0 0;
-  background-size: auto 100%;
+  background-color: #F97C17;
   border: none;
-}
-
-section[role="region"] > header:first-child:after {
-  content: "";
-  display: block;
-  height: 0.3rem;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: url(headers/images/ui/shadow.png) repeat-x;
-  background-size: auto 100%;
 }
 
 section[role="region"] > header:first-child h1 {
   font-size: 2.5rem;
-  line-height: 4.9rem;
+  line-height: 5rem;
   text-align: left;
   color: #fff;
   white-space: nowrap;
@@ -36,7 +23,7 @@ section[role="region"] > header:first-child h1 {
   margin: 0;
   padding: 0 1rem 0 3rem;
   height: 100%;
-  font-weight: normal;
+  font-weight: lighter;
 }
 
 section[role="region"] > header:first-child h1 em {
@@ -100,23 +87,17 @@ section[role="region"] > header:first-child menu[type="toolbar"] button {
   float: left;
   width: auto;
   min-width: 5rem;
-  height: 4.9rem;
+  height: 5rem;
   margin-bottom: 0;
   padding: 0 1rem;
   border-radius: 0;
-  line-height: 4.9rem;
+  line-height: 5rem;
   background: none;
   text-align: center;
   text-shadow: none;
   z-index: 5;
 }
 
-section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background: url(headers/images/ui/separator.png) no-repeat left center / auto 4.8rem;
-  margin-left: -0.2rem;
-  z-index: 1;
-}
 
 section[role="region"] > header:first-child menu[type="toolbar"] {
   padding: 0;
@@ -153,7 +134,7 @@ section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-dis
 section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):hover,
 section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
 section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
-  background: #008aaa !important;
+  background-color: #dc6a0e !important;
 }
 
 /* Disabled state */
@@ -167,9 +148,9 @@ section[role="region"] > header:first-child .icon {
   position: relative;
   float: none;
   display: inline-block;
-  vertical-align: top;
+  vertical-align: middle;
   width: 3rem;
-  height: 4.9rem;
+  height: 5rem;
   margin: 0 -1rem;
   background: transparent no-repeat center center / 3rem auto;
   font-size: 0;
@@ -225,11 +206,11 @@ section[role="region"] > header:first-child > button,
 section[role="region"] > header:first-child > a {
   position: relative;
   width: 5rem;
-  height: 4.9rem;
+  height: 5rem;
   background: none;
   float: left;
   overflow: visible;
-  margin: 0 -4rem 0 0;
+  margin: 0 -5rem 0 0;
 }
 
 section[role="region"] > header:first-child > button:after,
@@ -239,9 +220,8 @@ section[role="region"] > header:first-child > a:after {
   left: 0;
   top: 0;
   z-index: -1;
-  width: 3.2rem;
-  height: 4.9rem;
-  background: url(headers/images/ui/separator.png) no-repeat right center / 0.2rem 4.8rem;
+  width: 2.6rem;
+  height: 5rem;
 }
 
 section[role="region"] > header:first-child > button .icon,
@@ -279,30 +259,39 @@ section[role="region"] header h2 {
  * ---------------------------------- */
 section[role="region"].skin-dark > header:first-child,
 .skin-dark section[role="region"] > header:first-child {
-  background-image: url(headers/images/ui/dark/header.png);
+  background-color: #242D33;
 }
 
-section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:last-child,
-.skin-dark section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:last-child,
-.skin-dark section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background-image: url(headers/images/ui/dark/separator.png);
-}
 
 /* Navigation links (back, cancel, etc) */
-section[role="region"].skin-dark > header:first-child a:after,
-.skin-dark section[role="region"] > header:first-child a:after,
-section[role="region"].skin-dark > header:first-child button:after,
-.skin-dark section[role="region"] > header:first-child button:after {
-  background-image: url(headers/images/ui/dark/separator.png);
+section[role="region"].skin-dark > header:first-child .icon.icon-back {
+  background-image: url(headers/images/icons/organic/back.png);
+}
+
+section[role="region"].skin-dark > header:first-child .icon.icon-close {
+  background-image: url(headers/images/icons/organic/close.png);
+}
+
+
+section[role="region"].skin-dark > header:first-child > a:not([aria-disabled="true"]):active:after,
+section[role="region"].skin-dark > header:first-child > button:not(:disabled):active:after,
+section[role="region"].skin-dark > header:first-child > a:not([aria-disabled="true"]):hover:after,
+section[role="region"].skin-dark > header:first-child > button:not(:disabled):hover:after,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled):hover,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
+section[role="region"].skin-dark > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
+  background-color: #1d525e !important;
 }
 
 section[role="region"].skin-dark header h2,
 .skin-dark section[role="region"] header h2 {
-  background: #2e3c3f url(headers/images/ui/organic/subheader.png);
+  background-color: #2c353b;
   color: #fff;
   border: none;
 }
+
+
 
 /* ----------------------------------
  * HEADERS: organic
@@ -310,31 +299,56 @@ section[role="region"].skin-dark header h2,
 
 section[role="region"].skin-organic > header:first-child,
 .skin-organic section[role="region"] > header:first-child {
-  background-image: url(headers/images/ui/noise-pattern.png), url(headers/images/ui/organic/header.png);
-  background-size: auto;
+  background-color: #F4F4F4;
 }
 
-section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:last-child,
-.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:last-child,
-section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:last-child,
-.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] button:last-child {
-  background-image: url(headers/images/ui/organic/separator.png);
+section[role="region"].skin-organic > header:first-child h1,
+.skin-organic section[role="region"] > header:first-child h1 {
+  color: #868692;
 }
 
 /* Navigation links (back, cancel, etc) */
-section[role="region"].skin-organic > header:first-child a:after,
-.skin-organic section[role="region"] > header:first-child a:after,
-section[role="region"].skin-organic > header:first-child button:after,
-.skin-organic section[role="region"] > header:first-child button:after {
-  background-image: url(headers/images/ui/organic/separator.png);
+section[role="region"].skin-organic > header:first-child .icon.icon-back,
+.skin-organic section[role="region"] > header:first-child .icon.icon-back {
+  background-image: url(headers/images/icons/organic/back.png);
+}
+
+section[role="region"].skin-organic > header:first-child .icon.icon-close,
+.skin-organic section[role="region"] > header:first-child .icon.icon-close {
+  background-image: url(headers/images/icons/organic/close.png);
+}
+
+section[role="region"].skin-organic > header:first-child > a:not([aria-disabled="true"]):active:after,
+.skin-organic section[role="region"] > header:first-child > a:not([aria-disabled="true"]):active:after,
+section[role="region"].skin-organic > header:first-child > button:not(:disabled):active:after,
+.skin-organic section[role="region"] > header:first-child > button:not(:disabled):active:after,
+section[role="region"].skin-organic > header:first-child > a:not([aria-disabled="true"]):hover:after,
+.skin-organic section[role="region"] > header:first-child > a:not([aria-disabled="true"]):hover:after,
+section[role="region"].skin-organic > header:first-child > button:not(:disabled):hover:after,
+.skin-organic section[role="region"] > header:first-child > button:not(:disabled):hover:after,
+section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
+.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):hover,
+section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:not(:disabled):hover,
+.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):hover,
+section[role="region"].skin-organic > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
+.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] a:not([aria-disabled="true"]):active,
+section[role="region"].skin-organic > header:first-child menu[type="toolbar"] button:not(:disabled):active,
+.skin-organic section[role="region"] > header:first-child menu[type="toolbar"] button:not(:disabled):active  {
+  background-color: #aae1e9 !important;
 }
 
 section[role="region"].skin-organic header h2,
 .skin-organic section[role="region"] header h2 {
-  background: #5c6a6d url(headers/images/ui/organic/subheader.png);
-  color: #fff;
+  background-color: #e7e7e7;
+  color: #4D4D4D;
   border: none;
 }
+
+section[role="region"].skin-organic > header:first-child a,
+section[role="region"].skin-organic > header:first-child button {
+  color: #858585;
+}
+
 
 /* ----------------------------------
  * HEADERS: right-to-left tweaks
