@@ -203,7 +203,7 @@ Icon.prototype = {
       icon: this,
       success: function(blob) {
         this.loadImageData(blob);
-      },
+      }.bind(this),
       error: function() {
         if (this.icon && !this.downloading &&
             this.icon.classList.contains('loading')) {
@@ -211,7 +211,7 @@ Icon.prototype = {
           this.img.src = null;
         }
         this.loadCachedIcon();
-      }
+      }.bind(this)
     });
   },
 

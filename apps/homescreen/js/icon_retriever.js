@@ -3,19 +3,39 @@
 
 var IconRetriever = (function() {
 
-  // List of requests
-  var requests;
+  // A request can be being serviced, or it can be on air (ongoing).
+  // New requests can be added to the ongoing list only if there's no
+  // existing request for that uid ongoing (being serviced) already.
 
-  // List of requests waiting for network
-  var pendingsRequests;
+  // List of ongoing requests.
+  var ongoingRequests;
 
-  function retrieve(request) {
+  // List of requests waiting to be dispatched (because we don't have network
+  // or we have another request for the same uid ongoing).
+  var pendingRequests;
+
+  function retrieve(uid) {
+
+    if (ongoingRequests[uid]) {
+      // Already being processed, do nothing for now...
+      return;
+    }
+
+    // Move from pending to ongoing...
+    var request = ongoingRequests[uid] = pendingRequests[uid];
+    delete pendingRequests[uid];
+
+    if (!request) {
+      // This should not happen but doesn't hurt...
+      return;
+    }
+
     var xhr = new XMLHttpRequest({
       mozAnon: true,
       mozSystem: true
     });
 
-    var icon = request.icon.descriptor.icon;
+    var icon = request.icon;
 
     xhr.open('GET', icon, true);
     xhr.responseType = 'blob';
@@ -51,37 +71,44 @@ var IconRetriever = (function() {
 
   function postSuccess(request, response) {
     var uid = request.uid;
-    if (typeof requests[uid].success === 'function') {
-      requests[uid].success.call(request.icon, response);
+    delete ongoingRequests[uid];
+    if (typeof request.success === 'function') {
+      try {
+        request.success(response);
+      } catch (x) {
+        console.error('Unexpected exception ', JSON.stringify(x),
+                      ' while processing: ', request.icon);
+      }
     }
-
-    remove(request);
+    // Process the next request for this uid, if any...
+    if (canBeDispatched(pendingRequests[uid])) {
+      retrieve(uid);
+    }
   }
 
   function postError(request, retry) {
     var uid = request.uid;
-    if (typeof requests[uid].error === 'function') {
-      requests[uid].error.call(request.icon);
+    if (typeof request.error === 'function') {
+      try {
+        request.error();
+      } catch (x) {
+        console.error('Unexpected exception ', JSON.stringify(x),
+                      ' while processing: ', request.icon);
+      }
     }
 
     if (retry) {
-      pendingsRequests[uid] = requests[uid];
-    } else {
-      // We aren't going to get this icon anymore before rebooting
-      remove(request);
+      pendingRequests[uid] = pendingRequests[uid] || ongoingRequests[uid];
+      delete ongoingRequests[uid];
     }
   }
 
-  function remove(request) {
-    var uid = request.uid;
-    delete requests[uid];
-    delete pendingsRequests[uid];
-  }
-
   function online() {
-    // Try again pending operations
-    for (var uid in pendingsRequests) {
-      retrieve(pendingsRequests[uid]);
+    // Try again pending operations.
+    // Note that since we've just come online we should *not* have anything on
+    // the ongoing list.
+    for (var uid in pendingRequests) {
+      retrieve(uid);
     }
   }
 
@@ -90,33 +117,30 @@ var IconRetriever = (function() {
   function canBeDispatched(request) {
     // We can continue if the device is onLine or the icon is local (app, data
     // protocols)
-    return (window.navigator.onLine ||
-            request.icon.descriptor.icon.slice(0, HTTP_PROTOCOL.length) !==
-            HTTP_PROTOCOL);
+    return (request && (window.navigator.onLine ||
+                        request.icon.slice(0, HTTP_PROTOCOL.length) !==
+                        HTTP_PROTOCOL));
   }
 
   return {
     init: function IconRetriever_init() {
-      requests = Object.create(null);
-      pendingsRequests = Object.create(null);
+      ongoingRequests = Object.create(null);
+      pendingRequests = Object.create(null);
       window.addEventListener('online', online);
     },
 
     get: function IconRetriever_get(request) {
       var uid = request.uid = request.icon.getUID();
 
-      var pendingRequest = requests[uid];
-      if (pendingRequest &&
-          pendingRequest.icon.descriptor.icon == request.icon.descriptor.icon) {
-        // Still working or pending, returning...
-        return;
-      }
+      // The easiest way to do this is:
+      // 1. Add the new request to the pendingRequests always
+      pendingRequests[uid] = request;
+      pendingRequests[uid].icon = request.icon.descriptor.icon;
 
-      requests[uid] = request;
-      if (canBeDispatched(request)) {
-        retrieve(request);
-      } else {
-        pendingsRequests[uid] = request;
+      // and 2. leave the retrieve method the reponsibility to move the
+      // request to the other list if it must
+      if (canBeDispatched(pendingRequests[uid])) {
+        retrieve(uid);
       }
     }
   };
