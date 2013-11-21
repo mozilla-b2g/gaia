@@ -77,6 +77,7 @@ function getTapData(client) {
   return client.executeScript(function() {
     return {
       refreshingAlarms: window.wrappedJSObject.REFRESHINGALARMS,
+      fillListIds: window.wrappedJSObject.FILLLIST,
       tapData: window.wrappedJSObject.TAPDATA
     };
   });

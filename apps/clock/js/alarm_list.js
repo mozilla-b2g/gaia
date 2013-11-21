@@ -16,6 +16,7 @@ window.TAPDATA = {
   tA3: 0,
   tA4: 0
 };
+window.FILLLIST = [];
 
 var AlarmList = {
 
@@ -174,6 +175,7 @@ var AlarmList = {
      */
     this.alarms.innerHTML = '';
     this.alarmList = alarmList;
+window.FILLLIST.push(alarmList.map(function(alarm) { return alarm.id; }));
 
     alarmList.sort(function(a, b) {
       return a.id - b.id;
