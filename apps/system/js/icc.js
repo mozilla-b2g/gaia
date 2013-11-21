@@ -32,12 +32,22 @@ var icc = {
       self._displayTextTimeout =
         reqDisplayTimeout.result['icc.displayTextTimeout'];
     };
+    window.navigator.mozSettings.addObserver('icc.displayTextTimeout',
+      function(e) {
+        self._displayTextTimeout = e.settingValue;
+      }
+    );
     // Update inputTimeout with settings parameter
     var reqInputTimeout = window.navigator.mozSettings.createLock().get(
       'icc.inputTextTimeout');
     reqInputTimeout.onsuccess = function icc_getInputTimeout() {
       self._inputTimeout = reqInputTimeout.result['icc.inputTextTimeout'];
     };
+    window.navigator.mozSettings.addObserver('icc.inputTextTimeout',
+      function(e) {
+        self._inputTimeout = e.settingValue;
+      }
+    );
     // Update toneDefaultTimeout with settings parameter
     var reqToneDefaultTimeout = window.navigator.mozSettings.createLock().get(
       'icc.toneDefaultTimeout');
@@ -45,6 +55,11 @@ var icc = {
       self._toneDefaultTimeout =
         reqToneDefaultTimeout.result['icc.toneDefaultTimeout'];
     };
+    window.navigator.mozSettings.addObserver('icc.toneDefaultTimeout',
+      function(e) {
+        self._toneDefaultTimeout = e.settingValue;
+      }
+    );
   },
 
   getIccInfo: function icc_getIccInfo() {
