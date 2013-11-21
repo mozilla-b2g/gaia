@@ -693,6 +693,13 @@ var Contacts = (function() {
     contacts.Search.exitSearchMode(evt);
   };
 
+  var ignoreReturnKey = function ignoreReturnKey(evt) {
+    if (evt.keyCode == 13) { // VK_Return
+      evt.target.blur();
+      evt.preventDefault();
+    }
+  };
+
   var initEventListeners = function initEventListener() {
     // Definition of elements and handlers
     utils.listeners.add({
@@ -708,6 +715,12 @@ var Contacts = (function() {
         {
           event: 'click',
           handler: enterSearchMode
+        }
+      ],
+      '#search-contact': [
+        {
+          event: 'keypress',
+          handler: ignoreReturnKey
         }
       ],
       '#details-back': handleDetailsBack, // Details
