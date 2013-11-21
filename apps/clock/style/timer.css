@@ -95,11 +95,11 @@ ul li > label.pack-switch > input + span {
   opacity: 0;
 }
 
-#timer-menu:before {
+#timer-sound-menu:before {
   background: url("/shared/style/buttons/images/icons/dialog.png") no-repeat scroll 1.6rem -6rem / 1rem 9rem transparent;
 }
 
-#timer-menu {
+#timer-sound-menu {
   border-width: 0;
 
   color: #FFF;
