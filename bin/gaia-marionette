@@ -52,5 +52,10 @@ else
   #Browser runner
   PATH=$XPCSHELL_DIR:$PATH $DIR/../node_modules/.bin/marionette-mocha \
     --host marionette-firefox-host \
+    --timeout 10s \
+    --ui tdd \
+    --profile-builder $SHARED/profile_builder.js \
+    --profile-base $SHARED/profile.js \
+    $SHARED/setup.js \
     $@
 fi
