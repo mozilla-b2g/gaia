@@ -240,7 +240,7 @@ var ThreadUI = global.ThreadUI = {
 
     navigator.mozContacts.addEventListener(
       'contactchange',
-      this.updateHeaderData
+      this.updateHeaderData.bind(this)
     );
 
     this.tmpl = templateIds.reduce(function(tmpls, name) {
@@ -1097,7 +1097,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (!thread) {
-      if (callback) {
+      if (typeof callback === 'function') {
         callback();
       }
       return;
@@ -1145,7 +1145,7 @@ var ThreadUI = global.ThreadUI = {
 
       this.updateCarrier(thread, contacts, details);
 
-      if (callback) {
+      if (typeof callback === 'function') {
         callback();
       }
     }.bind(this));

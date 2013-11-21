@@ -3431,6 +3431,20 @@ suite('thread_ui.js >', function() {
       });
     });
 
+    suite('updateHeaderData', function() {
+
+      test('callback does not exist', function() {
+        ThreadUI.updateHeaderData({});
+      });
+
+      test('callback exists', function(done) {
+        ThreadUI.updateHeaderData(function() {
+          done();
+        });
+      });
+
+    });
+
     // See: utils_test.js
     // Utils.getCarrierTag
     //
