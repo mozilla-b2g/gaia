@@ -730,6 +730,9 @@ firefox: node_modules/.bin/mozilla-download
 		--branch nightly \
 		--channel prerelease  $@
 
+doesitworkyet:
+	MARIONETTE_RUNNER_HOST=marionette-firefox-host DEBUG=* ./bin/gaia-marionette apps/communications/contacts/test/marionette/form_test.js
+
 .PHONY: test-integration
 test-integration:
 	# override existing profile-test folder.

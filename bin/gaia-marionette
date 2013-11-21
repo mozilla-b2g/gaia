@@ -21,7 +21,7 @@ fi
 
 # tests can timeout without the profile-test folder so build it here.
 if [ ! -d $DIR/../profile-test ]; then
-  PROFILE_FOLDER=profile-test make -C $DIR/../
+  PROFILE_FOLDER=profile-test DEBUG=1 make -C $DIR/../
 fi
 
 if [ -z "$XULRUNNER_DIRECTORY" ] ; then
