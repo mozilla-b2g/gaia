@@ -67,12 +67,14 @@ var AirplaneMode = {
       'bluetooth.enabled': false,
       'wifi.enabled': false,
       'geolocation.enabled': false,
+      'nfc.enabled': false,
 
       // remember the mozSetting states before the airplane mode disables them
       'ril.data.suspended': false,
       'bluetooth.suspended': false,
       'wifi.suspended': false,
-      'geolocation.suspended': false
+      'geolocation.suspended': false,
+      'nfc.suspended': false
     };
 
     // observe the corresponding mozSettings
@@ -169,6 +171,9 @@ var AirplaneMode = {
         // Turn off Geolocation.
         suspend('geolocation');
 
+        // Turn off NFC
+        suspend('nfc');
+
         // Turn off FM Radio.
         if (fmRadio && fmRadio.enabled) {
           fmRadio.disable();
@@ -195,6 +200,10 @@ var AirplaneMode = {
         // Don't attempt to turn on Geolocation if it's already on
         if (!settings['geolocation.enabled']) {
           restore('geolocation');
+        }
+
+        if (!settings['nfc.enabled']) {
+          restore('nfc');
         }
       }
     }
