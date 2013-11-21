@@ -76,6 +76,9 @@ var Activities = {
 
     choices.forEach(function(choice, index) {
       var app = Applications.getByManifestURL(choice.manifest);
+      if (!app)
+        return;
+
       items.push({
         label: new ManifestHelper(app.manifest).name,
         icon: choice.icon,
