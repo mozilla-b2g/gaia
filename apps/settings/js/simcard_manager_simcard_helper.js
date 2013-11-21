@@ -6,6 +6,12 @@
 
   var _ = window.navigator.mozL10n.get;
 
+  /*
+   * SimCard is a helper to help us map real card status
+   * into needed virtual status, and SimCardManager will
+   * be responsible for reflecting these virtual status
+   * into real UI.
+   */
   var SimCard = function(cardIndex) {
     this.cardIndex = cardIndex;
 
@@ -35,7 +41,7 @@
     setState: function(key, options) {
       switch (key) {
         case 'nosim':
-          this.enabled = true;
+          this.enabled = false;
           this.absent = true;
           this.locked = false;
           this.name = _('noSimCard');

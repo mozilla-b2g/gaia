@@ -12,7 +12,10 @@
   var _ = window.navigator.mozL10n.get;
 
   /*
-   * Main Entry
+   * SimCardManager is responsible for
+   *   1. handling simcard UI
+   *   2. handling simcard virtual status (please refer SimCard class)
+   *   3. handling related mozSettings (please refer SettingsHelper class)
    */
   var SimCardManager = {
     init: function() {
@@ -107,12 +110,10 @@
 
       switch (evt.target) {
         case this.simManagerOutgoingCallSelect:
-          window.asyncStorage.setItem('outgoingCall', cardIndex);
           SettingsHelper.set('outgoingCall').on(cardIndex);
           break;
 
         case this.simManagerOutgoingMessagesSelect:
-          window.asyncStorage.setItem('outgoingMessages', cardIndex);
           SettingsHelper.set('outgoingMessages').on(cardIndex);
           break;
 
@@ -123,7 +124,6 @@
           var wantToChange = window.confirm(_('change-outgoing-data-confirm'));
 
           if (wantToChange) {
-            window.asyncStorage.setItem('outgoingData', cardIndex);
             SettingsHelper.set('outgoingData').on(cardIndex);
           }
           else {
@@ -142,78 +142,56 @@
       }
     },
     toggleSimCard: function(cardIndex, evt) {
-      var simcardsCount = this.getSimCardsCount();
       var simcardInfo = this.getSimCardInfo(cardIndex);
+      var anotherCardIndex = (cardIndex === 0) ? 1 : 0;
+      var anotherCardInfo = this.getSimCardInfo(anotherCardIndex);
 
-      // If we are in one-sim infrastructure
-      if (simcardsCount === 1) {
+      // and current card is enabled, it means we want to disable it
+      if (simcardInfo.enabled) {
 
-        // and current card is enabled, it means we want to disable it
-        if (simcardInfo.enabled) {
+        // but sadly, another card is disabled now, so we can't disable
+        // current card. In this way, we have to alert users.
+        if (!anotherCardInfo.enabled) {
           evt.preventDefault();
-          // sorry, this is not allowed because we have only one card
           window.alert(_('cant-disable-simcard-alert'));
         }
-        // and current card is disabled, it means we want to enable it
-        else if (!simcardInfo.enabled) {
-          // I have no idea why this will happen, just throw errors
-          throw new Error(
-            'In one-sim infrastructure, but current simcard is disabled');
+        // ok, because the other card is enabled, we can disable current
+        // card. We just have to confirm with users.
+        else {
+
+          // Because we start from 0, we have to change it to start from 1
+          var disableCardIndex = (cardIndex + 1) + '';
+          var enableCardIndex = (anotherCardIndex + 1) + '';
+
+          var wantToDisable =
+            window.confirm(_('disable-simcard-confirm', {
+              disableCardIndex: disableCardIndex,
+              enableCardIndex: enableCardIndex
+            }));
+
+          if (!wantToDisable) {
+            evt.preventDefault();
+          }
+          else {
+            this.disableSimCard(cardIndex);
+          }
         }
       }
-      // Else if we are in DSDS infrastructure
-      else if (simcardsCount === 2) {
+      // and current card is disabled, it means we want to enable it
+      else if (!simcardInfo.enabled) {
 
-        var anotherCardIndex = (cardIndex === 0) ? 1 : 0;
-        var anotherCardInfo = this.getSimCardInfo(anotherCardIndex);
+        // TODO
+        // there is one more situation on UX spec p23,
+        // maybe we have to handle that here.
 
-        // and current card is enabled, it means we want to disable it
-        if (simcardInfo.enabled) {
+        var wantToEnable =
+          window.confirm('Are you sure you want to enable this card ?');
 
-          // but sadly, another card is disabled now, so we can't disable
-          // current card. In this way, we have to alert users.
-          if (!anotherCardInfo.enabled) {
-            evt.preventDefault();
-            window.alert(_('cant-disable-simcard-alert'));
-          }
-          // ok, because the other card is enabled, we can disable current
-          // card. We just have to confirm with users.
-          else {
-
-            // Because we start from 0, we have to change it to start from 1
-            var disableCardIndex = (cardIndex + 1) + '';
-            var enableCardIndex = (anotherCardIndex + 1) + '';
-
-            var wantToDisable =
-              window.confirm(_('disable-simcard-confirm', {
-                disableCardIndex: disableCardIndex,
-                enableCardIndex: enableCardIndex
-              }));
-
-            if (!wantToDisable) {
-              evt.preventDefault();
-            }
-            else {
-              this.disableSimCard(cardIndex);
-            }
-          }
+        if (!wantToEnable) {
+          evt.preventDefault();
         }
-        // and current card is disabled, it means we want to enable it
-        else if (!simcardInfo.enabled) {
-
-          // TODO
-          // there is one more situation on UX spec p23,
-          // maybe we have to handle that here.
-
-          var wantToEnable =
-            window.confirm('Are you sure you want to enable this card ?');
-
-          if (!wantToEnable) {
-            evt.preventDefault();
-          }
-          else {
-            this.enableSimCard(cardIndex);
-          }
+        else {
+          this.enableSimCard(cardIndex);
         }
       }
     },
@@ -344,40 +322,82 @@
       this.simCardContainer.innerHTML = simItemHTMLs.join('');
     },
     initSelectOptionsUI: function() {
-      this.initSelectOptionUI('outgoingCall',
-        this.simManagerOutgoingCallSelect);
 
-      this.initSelectOptionUI('outgoingMessages',
-        this.simManagerOutgoingMessagesSelect);
+      var firstCardInfo = this.simcards[0].getInfo();
+      var secondCardInfo = this.simcards[1].getInfo();
 
-      this.initSelectOptionUI('outgoingData',
-        this.simManagerOutgoingDataSelect);
+      // two cards all are not absent, we have to update separately
+      if (!firstCardInfo.absent && !secondCardInfo.absent) {
+        SettingsHelper.get('outgoingCall').onWhichCard(function(cardIndex) {
+          this.initSelectOptionUI('outgoingCall', cardIndex,
+            this.simManagerOutgoingCallSelect);
+        }.bind(this));
+
+        SettingsHelper.get('outgoingMessages').onWhichCard(function(cardIndex) {
+          this.initSelectOptionUI('outgoingMessages', cardIndex,
+            this.simManagerOutgoingMessagesSelect);
+        }.bind(this));
+
+        SettingsHelper.get('outgoingData').onWhichCard(function(cardIndex) {
+          this.initSelectOptionUI('outgoingData', cardIndex,
+            this.simManagerOutgoingDataSelect);
+        }.bind(this));
+      }
+      // there is one car absent while the other one is not
+      else {
+
+        var selectedCardIndex;
+
+        // if two cards all are absent
+        if (firstCardInfo.absent && secondCardInfo.absent) {
+          // we will just set on the first card even
+          // they are all with '--'
+          selectedCardIndex = 0;
+        }
+        // if there is one card absent, the other one is not absent
+        else {
+
+          // we have to set defaultId to available card automatically
+          // and disable select/option
+          selectedCardIndex = firstCardInfo.absent ? 1 : 0;
+
+          SettingsHelper.set('outgoingCall').on(selectedCardIndex);
+          SettingsHelper.set('outgoingMessages').on(selectedCardIndex);
+          SettingsHelper.set('outgoingData').on(selectedCardIndex);
+        }
+
+        // for these two situations, they all have to be disabled
+        // and can not be selected by users
+        this.simManagerOutgoingCallSelect.disabled = true;
+        this.simManagerOutgoingMessagesSelect.disabled = true;
+        this.simManagerOutgoingDataSelect.disabled = true;
+
+        // then change related UI
+        this.initSelectOptionUI('outgoingCall', selectedCardIndex,
+          this.simManagerOutgoingCallSelect);
+        this.initSelectOptionUI('outgoingMessages', selectedCardIndex,
+          this.simManagerOutgoingMessagesSelect);
+        this.initSelectOptionUI('outgoingData', selectedCardIndex,
+          this.simManagerOutgoingDataSelect);
+      }
     },
-    initSelectOptionUI: function(storageKey, selectDOM) {
-      var defaultCardIndex;
-      var self = this;
+    initSelectOptionUI: function(storageKey, selectedCardIndex, selectDOM) {
+      this.simcards.forEach(function(simcard, index) {
+        var simcardInfo = simcard.getInfo();
+        var option = document.createElement('option');
+        option.value = index;
+        option.text = simcardInfo.name;
 
-      // storageKey = outgoingCall
-      window.asyncStorage.getItem(storageKey, function(cardIndex) {
-        defaultCardIndex = cardIndex || 0;
+        if (simcardInfo.absent) {
+          option.value = EMPTY_OPTION_VALUE;
+          option.text = EMPTY_OPTION_TEXT;
+        }
 
-        self.simcards.forEach(function(simcard, index) {
-          var simcardInfo = simcard.getInfo();
-          var option = document.createElement('option');
-          option.value = index;
-          option.text = simcardInfo.name;
+        if (index == selectedCardIndex) {
+          option.selected = true;
+        }
 
-          if (simcardInfo.absent) {
-            option.value = EMPTY_OPTION_VALUE;
-            option.text = EMPTY_OPTION_TEXT;
-          }
-
-          if (index == defaultCardIndex) {
-            option.selected = true;
-          }
-
-          selectDOM.add(option);
-        });
+        selectDOM.add(option);
       });
     },
     isSimCardLocked: function(cardState) {
