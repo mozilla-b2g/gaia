@@ -255,9 +255,11 @@ class Keyboard(Base):
         self.marionette.switch_to_frame()
 
     def tap_enter(self):
-        self.switch_to_keyboard()
+        current_frame = self.marionette.get_active_frame()
+        keyboard_frame = self.switch_to_keyboard()
         self._tap(self._enter_key)
         self.marionette.switch_to_frame()
+        self.wait_for_condition(lambda m: current_frame != keyboard_frame)
 
     def tap_alt(self):
         self.switch_to_keyboard()
