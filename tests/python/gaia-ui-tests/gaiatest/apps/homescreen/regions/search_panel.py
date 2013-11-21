@@ -2,6 +2,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+import time
+
 from marionette.by import By
 from marionette.keys import Keys
 from marionette.marionette import Actions
@@ -22,6 +24,8 @@ class SearchPanel(Base):
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
+        # wait for data transfer to finish
+        time.sleep(2)
         self.keyboard.tap_enter()
 
     def wait_for_keyboard_visible(self):
