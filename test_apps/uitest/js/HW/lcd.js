@@ -5,10 +5,12 @@ var LCDTest = {
     delete this.fullScreenDiv;
     return this.fullScreenDiv = document.getElementById('fullscreen-div');
   },
+  firstTimeHint: null,
   init: function() {
     document.body.addEventListener('click', this);
     this.fullscreenDiv.addEventListener('click',
                                          this.exitFullscreen.bind(this));
+    this.firstTimeHint = true;
   },
   enterFullscreen: function(color) {
     this.fullscreenDiv.mozRequestFullScreen();
@@ -19,6 +21,10 @@ var LCDTest = {
     this.fullscreenDiv.classList.remove('white');
     this.fullscreenDiv.classList.remove('black');
     this.fullscreenDiv.classList.add(color);
+    if (this.firstTimeHint) {
+      this.firstTimeHint = false;
+      alert('Tap screen again to exit fullscreen mode');
+    }
   },
   exitFullscreen: function() {
     document.mozCancelFullScreen();
