@@ -11,9 +11,11 @@ function HandledCall(aCall) {
     if (this.call.group) {
       this._leftGroup = false;
       CallScreen.moveToGroup(this.node);
+    } else if (this.call.state != 'disconnecting' &&
+               this.call.state != 'disconnected') {
+      CallScreen.insertCall(this.node);
     } else {
       this._leftGroup = true;
-      CallScreen.insertCall(this.node);
     }
   }).bind(this);
 
@@ -272,12 +274,18 @@ HandledCall.prototype.remove = function hc_remove() {
   this.call.removeEventListener('statechange', this);
   this.photo = null;
 
+  var self = this;
   CallScreen.stopTicker(this.durationNode);
 
-  if (this.node.parentNode) {
-    this.node.parentNode.removeChild(this.node);
-  }
-  this.node = null;
+  LazyL10n.get(function localized(_) {
+    self.durationNode.classList.remove('isTimer');
+    self.durationChildNode.textContent = _('callEnded');
+  });
+  this.node.classList.add('ended');
+  setTimeout(function(evt) {
+    CallScreen.removeCall(self.node);
+    self.node = null;
+  }, CallScreen.callEndPromptTime);
 };
 
 HandledCall.prototype.connected = function hc_connected() {
@@ -285,7 +293,7 @@ HandledCall.prototype.connected = function hc_connected() {
     this.recentsEntry.status = 'connected';
   }
 
-  this.node.hidden = false;
+  this.show();
   this.node.classList.remove('held');
 
   this.updateDirection();
@@ -330,10 +338,12 @@ HandledCall.prototype.show = function hc_show() {
   if (this.node) {
     this.node.hidden = false;
   }
+  CallScreen.updateSingleLine();
 };
 
 HandledCall.prototype.hide = function hc_hide() {
   if (this.node) {
     this.node.hidden = true;
   }
+  CallScreen.updateSingleLine();
 };

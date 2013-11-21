@@ -1,6 +1,9 @@
 var MockCallScreen = {
+  callEndPromptTime: 2000,
+
   insertCall: function() {},
   moveToGroup: function() {},
+  setCallsEndedInGroup: function() {},
   toggle: function(cb) {
     if (typeof(cb) == 'function') {
       cb();
@@ -51,19 +54,18 @@ var MockCallScreen = {
   hideGroupDetails: function() {
     this.mGroupDetailsShown = false;
   },
-
   createTicker: function(node) {
     this.mCalledCreateTicker = true;
   },
-
   stopTicker: function(node) {
     this.mCalledStopTicker = true;
   },
-
-  set singleLine(value) {
-    this.mSingleLine = value;
+  updateSingleLine: function() {
+    this.mUpdateSingleLineCalled = true;
   },
-  mSingleLine: null,
+  removeCall: function() {
+    this.mRemoveCallCalled = true;
+  },
 
   set holdAndAnswerOnly(enabled) {
     this.mHoldAndAnswerOnly = enabled;
@@ -104,12 +106,13 @@ var MockCallScreen = {
     this.mShowStatusMessageCalled = false;
     this.mCalledCreateTicker = false;
     this.mCalledStopTicker = false;
+    this.mUpdateSingleLineCalled = false;
     this.calls = document.createElement('div');
     this.screen = document.createElement('div');
     this.incomingContainer = document.createElement('div');
     this.incomingNumber = document.createElement('div');
-    this.mSingleLine = null;
     this.mGroupDetailsShown = false;
+    this.mRemoveCallCalled = false;
   }
 };
 

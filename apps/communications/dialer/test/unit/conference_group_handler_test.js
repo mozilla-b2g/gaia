@@ -30,6 +30,7 @@ suite('conference group handler', function() {
   var fakeGroupLabel;
   var fakeGroupDetails;
   var fakeMergeButton;
+  var fakeDurationChildNode;
 
   suiteSetup(function(done) {
     realMozTelephony = navigator.mozTelephony;
@@ -61,6 +62,8 @@ suite('conference group handler', function() {
     fakeGroupLabel = document.getElementById('group-call-label');
     fakeGroupDetails = document.getElementById('group-call-details');
     fakeMergeButton = document.querySelector('.merge-button');
+    fakeDurationChildNode =
+        document.querySelector('#group-call > .duration > span');
 
     requireApp('communications/dialer/js/conference_group_handler.js', done);
   });
@@ -98,12 +101,6 @@ suite('conference group handler', function() {
         MockMozTelephony.conferenceGroup.calls = [firstCall, secondCall];
       });
 
-      test('should display the group line', function() {
-        assert.isTrue(fakeGroupLine.hidden);
-        flush();
-        assert.isFalse(fakeGroupLine.hidden);
-      });
-
       test('should update the group label', function() {
         flush();
         assert.equal(fakeGroupLabel.textContent, 'group-call');
@@ -126,6 +123,12 @@ suite('conference group handler', function() {
           flush();
           assert.equal(fakeGroupLabel.textContent, 'group-call');
           assert.deepEqual(MockLazyL10n.keys['group-call'], {n: 3});
+        });
+
+        test('should update single line status', function() {
+          MockCallScreen.mUpdateSingleLineCalled = false;
+          flush();
+          assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
         });
 
         suite('when a call is unmerged from the conference', function() {
@@ -174,12 +177,6 @@ suite('conference group handler', function() {
           MockMozTelephony.conferenceGroup.calls = [];
         });
 
-        test('should hide the group line', function() {
-          assert.isFalse(fakeGroupLine.hidden);
-          flush();
-          assert.isTrue(fakeGroupLine.hidden);
-        });
-
         test('should hide the overlay of group details', function() {
           MockCallScreen.showGroupDetails();
           assert.isTrue(MockCallScreen.mGroupDetailsShown);
@@ -215,6 +212,18 @@ suite('conference group handler', function() {
       MockMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(MockCallScreen.mCalledCreateTicker);
+    });
+
+    test('should display the group line when connected to a group', function() {
+      fakeGroupLine.classList.add('held');
+      fakeGroupLine.classList.add('ended');
+
+      MockMozTelephony.conferenceGroup.state = 'connected';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isFalse(fakeGroupLine.classList.contains('held'));
+      assert.isFalse(fakeGroupLine.classList.contains('ended'));
+      assert.isFalse(fakeGroupLine.hidden);
     });
 
     test('should set photo to default when connected', function() {
@@ -268,6 +277,27 @@ suite('conference group handler', function() {
       MockMozTelephony.mTriggerGroupStateChange();
 
       assert.isTrue(checkCallsSpy.calledOnce);
+    });
+
+    test('should show call ended when exiting conference call', function() {
+      MockMozTelephony.conferenceGroup.state = '';
+      MockMozTelephony.mTriggerGroupStateChange();
+      assert.equal(fakeDurationChildNode.textContent, 'callEnded');
+    });
+
+    test('should hide the group line after leaving conference call',
+    function() {
+      fakeGroupLine.hidden = false;
+      this.sinon.useFakeTimers();
+
+      MockMozTelephony.conferenceGroup.state = '';
+      MockMozTelephony.mTriggerGroupStateChange();
+
+      assert.isFalse(fakeGroupLine.hidden);
+      assert.isTrue(fakeGroupLine.classList.contains('ended'));
+
+      this.sinon.clock.tick(2000);
+      assert.isTrue(fakeGroupLine.hidden);
     });
   });
 

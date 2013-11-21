@@ -328,10 +328,16 @@ suite('dialer/handled_call', function() {
 
     suite('from a regular call', function() {
       setup(function() {
+        this.sinon.useFakeTimers();
         mockCall._disconnect();
       });
       test('should save the recents entry', function() {
         assert.equal(subject.recentsEntry, MockCallsHandler.mLastEntryAdded);
+      });
+
+      test('should show call ended', function() {
+        assert.equal(
+          subject.node.querySelector('.duration').textContent, 'callEnded');
       });
 
       test('should remove listener on the call', function() {
@@ -351,12 +357,17 @@ suite('dialer/handled_call', function() {
       });
 
       test('should remove the node from the dom', function() {
-        assert.isNull(node.parentNode);
+        assert.isFalse(MockCallScreen.mRemoveCallCalled);
+        this.sinon.clock.tick(2000);
+        assert.isTrue(MockCallScreen.mRemoveCallCalled);
       });
 
       test('should nullify the node', function() {
+        assert.isNotNull(subject.node);
+        this.sinon.clock.tick(2000);
         assert.isNull(subject.node);
       });
+
       test('it does not show the banner', function() {
         assert.isFalse(MockCallScreen.mShowStatusMessageCalled);
       });
@@ -365,9 +376,11 @@ suite('dialer/handled_call', function() {
     suite('from a group', function() {
       setup(function() {
         mockCall.group = null;
+        mockCall.mChangeState('disconnecting');
         mockCall.ongroupchange(mockCall);
         mockCall._disconnect();
       });
+
       test('show the banner', function() {
         assert.isTrue(MockCallScreen.mShowStatusMessageCalled);
       });
@@ -821,10 +834,20 @@ suite('dialer/handled_call', function() {
       assert.isFalse(subject.node.hidden);
     });
 
+    test('calling show should update singleLine status', function() {
+      subject.show();
+      assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
+    });
+
     test('calling hide should hide the node', function() {
       subject.node.hidden = false;
       subject.hide();
       assert.isTrue(subject.node.hidden);
+    });
+
+    test('calling hide should update singleLine status', function() {
+      subject.show();
+      assert.isTrue(MockCallScreen.mUpdateSingleLineCalled);
     });
 
     suite('when the node got nullified', function() {

@@ -6,6 +6,7 @@ var ConferenceGroupHandler = (function() {
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
   var groupDuration = document.querySelector('#group-call > .duration');
+  var groupDurationChildNode = groupDuration.querySelector('span');
   var mergeButton = groupLine.querySelector('.merge-button');
   mergeButton.onclick = function(evt) {
     if (evt) {
@@ -20,7 +21,7 @@ var ConferenceGroupHandler = (function() {
 
   function onCallsChanged() {
     var calls = telephony.conferenceGroup.calls;
-    groupLine.hidden = !calls.length;
+    CallScreen.updateSingleLine();
     if (!calls.length) {
       CallScreen.hideGroupDetails();
     }
@@ -41,20 +42,40 @@ var ConferenceGroupHandler = (function() {
     }
   }
 
+  function show() {
+    groupLine.hidden = false;
+    groupLine.classList.remove('ended');
+    groupLine.classList.remove('held');
+    groupDurationChildNode.textContent = null;
+    CallScreen.createTicker(groupDuration);
+    CallScreen.setDefaultContactImage({force: true});
+  }
+
+  function end() {
+    LazyL10n.get(function localized(_) {
+      groupDurationChildNode.textContent = _('callEnded');
+    });
+    groupLine.classList.add('ended');
+    groupLine.classList.remove('held');
+    CallScreen.stopTicker(groupDuration);
+
+    setTimeout(function(evt) {
+      groupLine.hidden = true;
+    }, CallScreen.callEndPromptTime);
+  }
+
   function onStateChange() {
     switch (telephony.conferenceGroup.state) {
       case 'resuming':
       case 'connected':
-        CallScreen.createTicker(groupDuration);
-        CallScreen.setDefaultContactImage({force: true});
-        groupLine.classList.remove('held');
+        show();
         break;
       case 'held':
         groupLine.classList.add('held');
         break;
       case '':
         // Exiting conference call
-        CallScreen.stopTicker(groupDuration);
+        end();
         CallsHandler.checkCalls();
         break;
     }
