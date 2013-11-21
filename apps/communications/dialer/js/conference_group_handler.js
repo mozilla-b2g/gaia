@@ -5,6 +5,7 @@ var ConferenceGroupHandler = (function() {
   var groupLabel = document.getElementById('group-call-label');
   var groupDetails = document.getElementById('group-call-details');
   var groupDetailsHeader = groupDetails.querySelector('header');
+  var groupDuration = document.querySelector('#group-call > .duration');
   var mergeButton = groupLine.querySelector('.merge-button');
   mergeButton.onclick = function(evt) {
     if (evt) {
@@ -44,6 +45,8 @@ var ConferenceGroupHandler = (function() {
     switch (telephony.conferenceGroup.state) {
       case 'resuming':
       case 'connected':
+        CallScreen.createTicker(groupDuration);
+        CallScreen.setDefaultContactImage({force: true});
         groupLine.classList.remove('held');
         break;
       case 'held':
@@ -51,6 +54,7 @@ var ConferenceGroupHandler = (function() {
         break;
       case '':
         // Exiting conference call
+        CallScreen.stopTicker(groupDuration);
         CallsHandler.checkCalls();
         break;
     }
