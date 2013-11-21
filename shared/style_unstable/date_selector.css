@@ -228,6 +228,7 @@
 [role="dialog"][data-type="date-selector"] menu button:active,
 [role="dialog"][data-type="date-selector"] menu button.affirmative:active {
   border-color: #008aaa;
+  background: #008aaa;
   color: #333;
 }
 

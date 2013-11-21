@@ -171,6 +171,7 @@ form[role="dialog"][data-type="value-selector"] menu button {
 form[role="dialog"][data-type="value-selector"] menu button:active,
 form[role="dialog"][data-type="value-selector"] menu button.affirmative:active {
   border-color: #008aaa;
+  background: #008aaa;
   color: #333;
 }
 
