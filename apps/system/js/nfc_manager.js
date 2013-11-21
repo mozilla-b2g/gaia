@@ -369,6 +369,8 @@ var NfcManager = {
         'Ignoring NFC technology tag message. Screen state is disabled.');
       return;
     }
+    // UX: TODO
+    window.navigator.vibrate([25, 50, 125]);
 
     // Check for tech types:
     this._debug('command.tech: ' + command.tech);
@@ -419,14 +421,9 @@ var NfcManager = {
 
   handleTechLost: function nm_handleTechLost(command) {
     this._debug('Technology Lost: ' + JSON.stringify(command));
-    var a = new MozActivity({
-      name: 'nfc-tech-lost',
-      data: {
-        type: 'info',
-        sessionId: command.sessionToken,
-        message: ''
-      }
-    });
+    // TODO: Do something with the UI/UX to indicate the tag is gone.
+    // TODO: Dismiss activity chooser?
+    window.navigator.vibrate([125, 50, 25]);
   },
 
   // Miscellaneous utility functions to handle formating the JSON for activities
