@@ -6,7 +6,8 @@ import json
 import os
 import time
 
-from marionette import MarionetteTestCase, EnduranceTestCaseMixin
+from marionette import MarionetteTestCase, EnduranceTestCaseMixin, B2GTestCaseMixin, \
+                       MemoryEnduranceTestCaseMixin 
 from marionette.by import By
 from marionette.errors import NoSuchElementException
 from marionette.errors import ElementNotVisibleException
@@ -14,7 +15,6 @@ from marionette.errors import TimeoutException
 from marionette.errors import StaleElementException
 from marionette.errors import InvalidResponseException
 import mozdevice
-
 
 class LockScreen(object):
 
@@ -351,28 +351,16 @@ class GaiaData(object):
 
 class GaiaDevice(object):
 
-    def __init__(self, marionette, testvars=None):
+    def __init__(self, marionette, device_manager, testvars=None):
         self.marionette = marionette
         self.testvars = testvars or {}
+        self._manager = device_manager
 
     @property
     def manager(self):
-        if hasattr(self, '_manager') and self._manager:
-            return self._manager
-
         if not self.is_android_build:
             raise Exception('Device manager is only available for devices.')
 
-        dm_type = os.environ.get('DM_TRANS', 'adb')
-        if dm_type == 'adb':
-            self._manager = mozdevice.DeviceManagerADB()
-        elif dm_type == 'sut':
-            host = os.environ.get('TEST_DEVICE')
-            if not host:
-                raise Exception('Must specify host with SUT!')
-            self._manager = mozdevice.DeviceManagerSUT(host=host)
-        else:
-            raise Exception('Unknown device manager type: %s' % dm_type)
         return self._manager
 
     @property
@@ -455,7 +443,7 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
         self.marionette.window = None
 
 
-class GaiaTestCase(MarionetteTestCase):
+class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
 
     _script_timeout = 60000
     _search_timeout = 10000
@@ -468,6 +456,7 @@ class GaiaTestCase(MarionetteTestCase):
         kwargs.pop('iterations', None)
         kwargs.pop('checkpoint_interval', None)
         MarionetteTestCase.__init__(self, *args, **kwargs)
+        B2GTestCaseMixin.__init__(self, *args, **kwargs)
 
     def setUp(self):
         try:
@@ -476,7 +465,7 @@ class GaiaTestCase(MarionetteTestCase):
             if self.restart:
                 pass
 
-        self.device = GaiaDevice(self.marionette, self.testvars)
+        self.device = GaiaDevice(self.marionette, self.device_manager, self.testvars)
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             self.device.stop_b2g()
             if self.device.is_android_build:
@@ -731,11 +720,12 @@ class GaiaTestCase(MarionetteTestCase):
         MarionetteTestCase.tearDown(self)
 
 
-class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin):
+class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranceTestCaseMixin):
 
     def __init__(self, *args, **kwargs):
         GaiaTestCase.__init__(self, *args, **kwargs)
         EnduranceTestCaseMixin.__init__(self, *args, **kwargs)
+        MemoryEnduranceTestCaseMixin.__init__(self, *args, **kwargs)
 
     def close_app(self):
         # Close the current app (self.app) by using the home button
