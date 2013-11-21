@@ -116,7 +116,6 @@
       }
       else {
         reversion = null;
-        justCorrected = false;
       }
       break;
 
@@ -136,7 +135,6 @@
       reversion = null;
       break;
     }
-
   });
 
   // When the worker sends us back word suggestions, we handle them here.

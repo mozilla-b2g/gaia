@@ -281,13 +281,13 @@
     // actually display the Voronoi cells for each key
     // for (var keyname in page.keys) {
     //   var keyobj = page.keys[keyname];
-    //   var keyelt = keyobj.element;
+    //   var keyelt = pageview.keyelts[keyname];
     //   if (!keyelt)
     //     continue;
     //   var weight = weights[keyname];
     //   if (weight) {
     //     keyelt.style.boxShadow = '0 0 5px ' +
-    //       0.5 * Math.sqrt(weights[keyname]) +
+    //       0.5 * Math.sqrt(weight) +
     //       'px gold';
     //   }
     //   else {
