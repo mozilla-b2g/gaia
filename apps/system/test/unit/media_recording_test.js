@@ -38,7 +38,7 @@ suite('system/media recording', function() {
 
   suite('active stat', function() {
     setup(function() {
-      sendChromeEvent(true, false, 'www.mozilla.com', true, false);
+      sendChromeEvent(true, false, 'http://www.mozilla.com', true, false);
     });
 
     test('notification displayed', function() {
@@ -46,7 +46,19 @@ suite('system/media recording', function() {
     });
 
     test('is Web URL', function() {
-      assert.equal(MediaRecording.origin.textContent, 'www.mozilla.com');
+      assert.equal(MediaRecording.origin.textContent, 'http://www.mozilla.com');
+    });
+  });
+
+  suite('should display the origin, rather than the full URL', function() {
+    setup(function() {
+      sendChromeEvent(true, false,
+        'http://mozqa.com/qa-testcase-data/webapi/webrtc/gum_test.html',
+        true, false);
+    });
+
+    test('is Web URL', function() {
+      assert.equal(MediaRecording.origin.textContent, 'http://mozqa.com');
     });
   });
 
