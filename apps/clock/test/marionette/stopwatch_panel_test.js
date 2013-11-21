@@ -22,7 +22,7 @@ marionette('Stopwatch Panel', function() {
       'Start button is not usable while stopwatch advances'
     );
 
-    client.helper.wait(1200);
+    client.helper.wait(1300);
 
     assert.hasDuration(
       stopwatch.read(),
@@ -65,7 +65,7 @@ marionette('Stopwatch Panel', function() {
       'Immediately-created lap entry contains nonzero time'
     );
 
-    client.helper.wait(1200);
+    client.helper.wait(1300);
 
     stopwatch.lap();
 
