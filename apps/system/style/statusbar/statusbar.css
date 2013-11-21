@@ -81,10 +81,10 @@ body, html {
 }
 
 #statusbar-time, #statusbar-data:not(.sb-icon-data-circle) {
+  position: relative;
+  bottom: 0.1rem;
   color: #fff;
   font-size: 1.49rem; /* 6.5pt */
-  position: relative;
-  bottom: 0.2rem;
 }
 
 #statusbar-time span {
