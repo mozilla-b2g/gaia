@@ -147,7 +147,11 @@ Email.prototype = {
   },
 
   tapLocalDraftsItem: function() {
+    // we should already be looking at the folder list, no need to wait.
     this._waitForElementNoTransition(Selector.localDraftsItem).tap();
+    // clicking that transitions us back to the message list; wait for us
+    // to get there.
+    this._waitForTransitionEnd('message_list');
   },
 
   switchAccount: function(number) {
@@ -300,12 +304,17 @@ Email.prototype = {
   },
 
   tapEmailBySubject: function(subject, cardId) {
-    var element = this.getEmailBySubject(subject);
+    // The emails may not be present in the list yet.  So keep checking until
+    // we see one.  Then tap on it.
+    this.client.waitFor(function() {
+      var element = this.getEmailBySubject(subject);
+      if (!element)
+        return false;
 
-    if (element) {
       element.tap();
       this._waitForTransitionEnd(cardId);
-    }
+      return true;
+    }.bind(this));
   },
 
   getEmailBySubject: function(subject) {
