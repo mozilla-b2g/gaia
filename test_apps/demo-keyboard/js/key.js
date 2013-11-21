@@ -1,3 +1,5 @@
+'use strict';
+
 function Key(keyname, pagekeys, layoutkeys) {
   var keydata =
     (pagekeys && pagekeys[keyname]) ||

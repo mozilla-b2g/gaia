@@ -4,12 +4,17 @@
   <meta charset="utf-8">
   <title>Demo Keyboard</title>
   <link rel="stylesheet" type="text/css" href="style/keyboard.css" />
-  <script type="text/javascript" src="js/layout.js"></script>
-  <script type="text/javascript" src="js/page.js"></script>
-  <script type="text/javascript" src="js/key.js"></script>
-  <script type="text/javascript" src="js/hitdetector.js"></script>
-  <script type="text/javascript" src="js/controller.js"></script>
-  <script type="text/javascript" src="js/keyboard.js"></script>
+  <script defer type="text/javascript" src="js/layout.js"></script>
+  <script defer type="text/javascript" src="js/page.js"></script>
+  <script defer type="text/javascript" src="js/key.js"></script>
+  <script defer type="text/javascript" src="js/pageview.js"></script>
+  <script defer type="text/javascript" src="js/suggestions.js"></script>
+  <script defer type="text/javascript" src="js/touch_handler.js"></script>
+  <script defer type="text/javascript" src="js/input_field.js"></script>
+  <script defer type="text/javascript" src="js/shiftkey.js"></script>
+  <script defer type="text/javascript" src="js/doublespace.js"></script>
+  <script defer type="text/javascript" src="js/autocorrect.js"></script>
+  <script defer type="text/javascript" src="js/keyboard.js"></script>
 
   <!--
     page.js instantiates these templates to create a keyboard.
@@ -18,7 +23,7 @@
     Content will be added to the innermost first child of the first element.
   -->
   <template id="keyboard-page-template">
-    <div class="page"></div>
+    <div class="hidden page"></div>
   </template>
   <template id="keyboard-row-template">
     <div class="row"></div>
@@ -34,7 +39,6 @@
   </template>
 </head>
 <body>
-  <div id="keyboardContainer">
-  </div>
+  <div id="keyboardContainer"></div>
 </body>
 </html>
