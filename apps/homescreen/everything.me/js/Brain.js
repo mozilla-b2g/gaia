@@ -1572,12 +1572,7 @@ Evme.Brain = new function Evme_Brain() {
         // construct a valid API url- for debugging purposes
         function getRequestUrl(eventData) {
             var params = eventData.params || {},
-                urlParams = [];
-                
-            for (var p in params) {
-                urlParams.push(p + '=' + encodeURIComponent(params[p]));
-            }
-            urlParams = urlParams.join('&');
+                urlParams = Evme.Utils.serialize(params);
             
             return Evme.api.getBaseURL() + eventData.method + '?' + urlParams;
         }
