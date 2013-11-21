@@ -96,7 +96,7 @@ contacts.Search = (function() {
     });
   };
 
-  //Search mode instructions
+  // Search mode instructions
   var exitSearchMode = function exitSearchMode(evt) {
     evt.preventDefault();
     searchView.classList.remove('insearchmode');
@@ -105,6 +105,7 @@ contacts.Search = (function() {
       hideProgressResults();
 
       searchBox.value = '';
+
       // Resetting state
       contactNodes = null;
       searchList.innerHTML = '';
