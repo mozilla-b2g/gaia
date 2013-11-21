@@ -21,10 +21,8 @@ class SearchPanel(Base):
     _app_icon_locator = (By.CSS_SELECTOR, 'ul.cloud li[data-name]')
 
     def type_into_search_box(self, search_term):
-        frame = self.marionette.get_active_frame()
         self.keyboard.send(search_term)
         self.keyboard.tap_enter()
-        self.marionette.switch_to_frame(frame)
 
         self.wait_for_condition(lambda m: self.marionette.find_element(*self._search_title_query_locator).text.lower() ==
                                 search_term.lower())
