@@ -668,7 +668,7 @@ nav[data-type="scrollbar"] p img {
 }
 
 .contact-checkbox {
-  left: -1rem !important;
+  left: 0rem !important;
   display: none !important;
 }
 
@@ -677,7 +677,7 @@ nav[data-type="scrollbar"] p img {
 }
 
 .contact-text-selecting {
-  padding-left: 2rem !important;
+  padding-left: 3rem !important;
 }
 
 form[role="dialog"].no-overlay {
@@ -692,4 +692,12 @@ form[role="dialog"].no-overlay button {
 
 #selectable-form {
   background: none;
+}
+
+.group-section {
+  overflow: hidden;
+}
+
+.group-list {
+  overflow: hidden;
 }
