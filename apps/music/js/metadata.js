@@ -24,7 +24,10 @@ var pictureStorage = navigator.getDeviceStorage('pictures');
  */
 
 /*
- * Metadata describing the cover art for a track.
+ * Metadata describing the cover art for a track. Cover art comes in one of
+ * three flavors: embedded (stored in the audio track's metadata), unsync (like
+ * embedded, but stored in an unsynchronized block of ID3 data), or external
+ * (stored as a separate file in the same directory as the audio track).
  *
  * @typedef {Object} Picture
  * @property {string} flavor How the art was stored; one of "embedded",
@@ -1165,10 +1168,13 @@ function parseAudioMetadata(blob, metadataCallback, errorCallback) {
     function checkSaveThumbnail(coverBlob, thumbnailFilename, callback) {
       var storageName = '';
 
-      // Look at the filename for the audio file to figure out where we should
-      // put the thumbnail. Since the first part of the filename is the storage
-      // name, we can use that to ensure deviceStorage puts the thumbnail on the
-      // same storage area (no matter which deviceStorage we have).
+      // We want to put the thumbnail in the same storage area as the audio
+      // track it's for. Since the audio track could be in any storage area,
+      // we'll examine its filename to get the storage name; the storage name is
+      // always the first part of the (absolute) filename, so we'll grab that
+      // and build an absolute path for the thumbnail. This will ensure that the
+      // generic deviceStorage we use for pictures ("pictureStorage") puts the
+      // thumbnail where we want it.
       //
       // Filename is usually a fully qualified name (perhaps something like
       // /sdcard/Music/file.mp3). On desktop, it's a relative name, but desktop
