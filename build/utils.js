@@ -546,6 +546,10 @@ function getApp(parent, appname, gaiadir, distdir) {
   return app;
 }
 
+function normalizeAppId(appname) {
+  return appname.replace(' ', '-').toLowerCase().replace(/\W/g, '');
+}
+
 exports.isSubjectToBranding = isSubjectToBranding;
 exports.ls = ls;
 exports.getFileContent = getFileContent;
@@ -565,6 +569,7 @@ exports.getAppsByList = getAppsByList;
 exports.getApp = getApp;
 exports.getXML = getXML;
 exports.getTempFolder = getTempFolder;
+exports.normalizeAppId = normalizeAppId;
 // ===== the following functions support node.js compitable interface.
 exports.FILE_TYPE_FILE = FILE_TYPE_FILE;
 exports.FILE_TYPE_DIRECTORY = FILE_TYPE_DIRECTORY;

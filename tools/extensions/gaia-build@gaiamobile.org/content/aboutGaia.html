@@ -4,15 +4,27 @@
 	<meta charset="UTF-8">
 	<title>Homescreen customization</title>
 	<link rel="stylesheet" href="chrome://gaia-build/content/aboutGaia.css">
+  <script type="application/javascript;version=1.8" src="chrome://gaia-build/content/gaia.js"></script>
 	<script type="application/javascript;version=1.8" src="chrome://gaia-build/content/aboutGaia.js"></script>
 </head>
 <body>
 <div id="content">
   <div id="tools">
-  	<div id="builds-label">Build config: </div>
-    <select name="" id="gaia-builds"></select>
-		<div id="available-apps-label">Available apps</div>
-		<div id="available-apps"></div>
+    <section class="tool-section">
+    	<div id="builds-label">Build config: </div>
+      <select name="" id="gaia-builds"></select>
+    </section>
+    <section class="tool-section">
+  		<div id="available-apps-label">Available apps</div>
+  		<div id="available-apps"></div>
+    </section>
+    <section class="tool-section">
+      <div id="marketplace-label">Search from Marketplace</div>
+      <form>
+      <input id="marketplace-keyword" type="text" placeholder="keyword"></input>
+      <button type="submit" id="marketplace-search">Search</button>
+      </form>
+    </section>
 		<button id="launch">Preview</button><button id="save">Save</button>
     <a id="reset-gaia">Reset gaia path</a>
 	</div>
@@ -47,6 +59,15 @@
     <div class="lightbox-container">
         Gaia path is necessary.
         <button id="select-gaia">Select</button>
+    </div>
+  </div>
+</div>
+<div class="lightbox" id="marketplace-search-result">
+  <div class="lightbox-background">
+    <a href="#" class="closemsg"></a>
+    <div class="lightbox-container">
+      <div class="noted">Noted: Packaged app can't be executed in Browser, you need to verify it in b2g-desktop or device.</div>
+      <div id="marketplace-search-container"></div>
     </div>
   </div>
 </div>
