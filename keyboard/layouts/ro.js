@@ -6,12 +6,17 @@ Keyboards.ro = {
   autoCorrectLanguage: 'ro',
   alt: {
     a: 'ăâ',
+    c: 'ĉ',
     d: 'đ',
     e: '€',
+    g: 'ĝ',
+    h: 'ĥ',
     i: 'î',
+    j: 'ĵ',
     l: 'ł',
-    s: 'ș',
+    s: 'șŝ',
     t: 'ț',
+    u: 'ŭ',
     '.': ',?!;:'
   },
   keys: [
