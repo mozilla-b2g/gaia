@@ -151,6 +151,17 @@ def add_locale_manifest(source, locales, manifest_file):
                     continue
                 ep["locales"][locale] = {}
                 ep["locales"][locale].update(strings["entry_points"][name])
+        if "inputs" in manifest:
+            for name, ep in manifest["inputs"].items():
+                if "locales" not in ep:
+                    continue
+                log.debug("adding to inputs.%s.locales" % name)
+                if name not in strings["entry_points"]:
+                    log.warn("%s.* strings are missing from %s" %
+                                (name, manifest_properties))
+                    continue
+                ep["locales"][locale] = {}
+                ep["locales"][locale].update(strings["entry_points"][name])
         if "locales" in manifest:
             log.debug("adding to locales")
             manifest["locales"][locale] = {}
