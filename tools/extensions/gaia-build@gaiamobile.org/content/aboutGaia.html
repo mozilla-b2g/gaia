@@ -1,14 +1,54 @@
-<html>
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Homescreen customization</title>
+	<link rel="stylesheet" href="chrome://gaia-build/content/aboutGaia.css">
+	<script type="application/javascript;version=1.8" src="chrome://gaia-build/content/aboutGaia.js"></script>
+</head>
 <body>
-<center>
-<h1>Gaia</h1>
-<script
-  type="application/javascript;version=1.8"
-  src="chrome://gaia-build/content/aboutGaia.js"></script>
-<button id="select_gaia">Select sources folder</button>
-<input type="text" id="gaia_path" size="50"/><br/>
-<br />
-<button id="launch">Launch gaia</button>
-</center>
+<div id="content">
+  <div id="tools">
+  	<div id="builds-label">Build config: </div>
+    <select name="" id="gaia-builds"></select>
+		<div id="available-apps-label">Available apps</div>
+		<div id="available-apps"></div>
+		<button id="launch">Preview</button><button id="save">Save</button>
+    <a id="reset-gaia">Reset gaia path</a>
+	</div>
+	<div id="main">
+		<div id="notification">Your app will be added into selected page.</div>
+		<div id="grid">
+			<div class="page" id="add-page">+</div>
+		</div>
+		<div id="dock" class="page">
+			<input type="radio" name="page-selection" id="page0"  checked="checked">
+			<label for="page0"></label>
+			<div class="container"></div>
+		</div>
+	</div>
+</div>
+<div class="lightbox" id="options">
+  <div class="lightbox-background">
+    <a href="#" class="closemsg"></a>
+    <div class="lightbox-container">
+			<div id="options-title"></div>
+			<div id="options-content"></div>
+			<div class="lightbox-buttons">
+				<a href="#">Close</a>
+				<a href="#" id="options-remove">Remove</a>
+			</div>
+    </div>
+  </div>
+</div>
+<div class="lightbox" id="gaia-path-lightbox">
+  <div class="lightbox-background">
+    <a class="closemsg hidden"></a>
+    <div class="lightbox-container">
+        Gaia path is necessary.
+        <button id="select-gaia">Select</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
