@@ -38,10 +38,6 @@
   border: 0;
 }
 
-#keyboards iframe.ignore-focus {
-  -moz-user-focus: ignore;
-}
-
 /* notification */
 #keyboard-show-ime-list > .fake-notification {
   background-repeat: no-repeat;
@@ -73,8 +69,8 @@
 /* copied from settings page */
 #keyboard-show-ime-list > .fake-notification::before {
   position: absolute;
-  top: calc((6.2rem - 3.2rem) / 2); 
-  left: calc((5.5rem - 2.8rem) / 2); 
+  top: calc((6.2rem - 3.2rem) / 2);
+  left: calc((5.5rem - 2.8rem) / 2);
   width: 3rem;
   height: 3rem;
 
