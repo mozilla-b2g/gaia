@@ -148,6 +148,19 @@ suite('compose_test.js', function() {
         var txt = Compose.getContent();
         assert.equal(txt[0], 'start', 'text is appended');
       });
+
+      test('Message appended with html', function() {
+        var message = document.querySelector(
+          '#messages-compose-form [contenteditable]'
+        );
+
+        Compose.append('<b>hi!</b>test');
+        var txt = Compose.getContent();
+
+        assert.equal(message.innerHTML, '&lt;b&gt;hi!&lt;/b&gt;test<br>');
+        assert.equal(txt[0], '<b>hi!</b>test');
+      });
+
       test('Message prepend', function() {
         Compose.append('end');
         Compose.prepend('start');

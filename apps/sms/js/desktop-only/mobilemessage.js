@@ -490,6 +490,15 @@
         attachments: null,
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+      },
+      {
+        threadId: 10,
+        sender: '+12125551234',
+        read: true,
+        body: '<html>',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: new Date(Date.now())
       }
     ],
     threads: [
@@ -557,7 +566,7 @@
         id: 10,
         participants: ['+12125551234', '+15551237890'],
         lastMessageType: 'mms',
-        timestamp: new Date(new Date(now) - 874554444444),
+        timestamp: new Date(Date.now()),
         unreadCount: 0
       }
     ]
