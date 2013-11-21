@@ -15,6 +15,7 @@ class EditPhoto(Base):
     _edit_save_locator = (By.ID, 'edit-save-button')
     _edit_crop_button_locator = (By.ID, 'edit-crop-button')
     _crop_portrait_locator = (By.ID, 'edit-crop-aspect-portrait')
+    _save_progress_bar_locator = (By.ID, 'save-progress')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -30,6 +31,7 @@ class EditPhoto(Base):
 
     def tap_edit_save_button(self):
         self.marionette.find_element(*self._edit_save_locator).tap()
+        self.wait_for_element_not_displayed(*self._save_progress_bar_locator)
         from gaiatest.apps.gallery.app import Gallery
         return Gallery(self.marionette)
 
