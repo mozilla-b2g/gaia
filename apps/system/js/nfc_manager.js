@@ -313,11 +313,11 @@ var NfcManager = {
   // NDEF only currently
   handleP2P: function handleP2P(tech, sessionToken, ndefMsg) {
     if (ndefMsg != null) {
-       //
-       // Incoming P2P message carries a NDEF message. Dispatch
-       // the NDEF message (this might bring another app to the
-       // foreground).
-       //
+      /*
+       * Incoming P2P message carries a NDEF message. Dispatch
+       * the NDEF message (this might bring another app to the
+       * foreground).
+       */
       this.handleNdefDiscovered(tech, sessionToken, ndefMsg);
       return;
     }
@@ -381,6 +381,25 @@ var NfcManager = {
       ndefMsg = command.ndef[0];
     } else {
       this._debug('No NDEF Message sent to Technology Discovered');
+    }
+
+    if (ndefMsg != null) {
+      /* First check for handover messages that
+       * are handled by the handover manager.
+       */
+      var firstRecord = ndefMsg[0];
+      if ((firstRecord.tnf == NDEF.tnf_well_known) &&
+          NfcUtil.equalArrays(firstRecord.type, NDEF.rtd_handover_select)) {
+        this._debug('Handle Handover Select');
+        handoverManager.handleHandoverSelect(ndefMsg);
+        return;
+      }
+      if ((firstRecord.tnf == NDEF.tnf_well_known) &&
+          NfcUtil.equalArrays(firstRecord.type, NDEF.rtd_handover_request)) {
+        this._debug('Handle Handover Request');
+        handoverManager.handleHandoverRequest(ndefMsg, command.sessionToken);
+        return;
+      }
     }
 
     // Assign priority of tech handling. This list will expand with supported
