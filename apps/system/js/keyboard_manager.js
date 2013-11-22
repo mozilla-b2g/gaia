@@ -103,8 +103,7 @@ var KeyboardManager = {
       return res;
     }, {});
 
-    // 3rd-party keyboard apps must be run out-of-process.
-    SettingsListener.observe('keyboard.3rd-party-app.enabled', true,
+    SettingsListener.observe('debug.keyboard-oop.enabled', false,
       function(value) {
         this.isOutOfProcessEnabled = value;
       }.bind(this));
@@ -355,9 +354,9 @@ var KeyboardManager = {
     keyboard.setAttribute('mozapp', manifestURL);
 
     if (this.isOutOfProcessEnabled) {
-      console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
+      console.log('=== Enable keyboard run as OOP ===');
       keyboard.setAttribute('remote', 'true');
-      keyboard.setAttribute('ignoreuserfocus', 'true');
+      keyboard.classList.add('ignore-focus');
     }
 
     this.keyboardFrameContainer.appendChild(keyboard);
