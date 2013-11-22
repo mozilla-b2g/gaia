@@ -60,11 +60,10 @@ function Clock() {
 
 var StatusBar = {
   /* all elements that are children nodes of the status bar */
-  ELEMENTS: ['notification', 'emergency-cb-notification', 'time',
-    'battery', 'wifi', 'data', 'flight-mode', 'signal', 'network-activity',
-    'tethering', 'alarm', 'bluetooth', 'mute', 'headphones',
-    'bluetooth-headphones', 'bluetooth-transferring', 'recording', 'sms',
-    'geolocation', 'usb', 'label',
+  ELEMENTS: ['notification', 'emergency-cb-notification', 'time', 'connections',
+    'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
+    'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
+    'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
     'system-downloads', 'call-forwarding', 'playing'],
 
   /* Timeout for 'recently active' indicators */
@@ -334,6 +333,7 @@ var StatusBar = {
   },
 
   setActive: function sb_setActive(active) {
+    var self = this;
     this.active = active;
     if (active) {
       var battery = window.navigator.battery;
@@ -344,17 +344,14 @@ var StatusBar = {
         this.update.battery.call(this);
       }
 
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var conn = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
-
-      if (conn) {
-        conn.addEventListener('voicechange', this);
-        conn.addEventListener('datachange', this);
-        this.update.signal.call(this);
-        this.update.data.call(this);
+      var conns = window.navigator.mozMobileConnections;
+      if (conns) {
+        Array.prototype.slice.call(conns).forEach(function(conn) {
+          conn.addEventListener('voicechange', self);
+          conn.addEventListener('datachange', self);
+          self.update.signal.call(self);
+          self.update.data.call(self);
+        });
       }
 
       if (IccHelper) {
@@ -385,15 +382,12 @@ var StatusBar = {
         battery.removeEventListener('statuschange', this);
       }
 
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var conn = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
-
-      if (conn) {
-        conn.removeEventListener('voicechange', this);
-        conn.removeEventListener('datachange', this);
+      var conns = window.navigator.mozMobileConnections;
+      if (conns) {
+        Array.prototype.slice.call(conns).forEach(function(conn) {
+          conn.removeEventListener('voicechange', self);
+          conn.removeEventListener('datachange', self);
+        });
       }
 
       if (IccHelper) {
@@ -412,17 +406,18 @@ var StatusBar = {
 
   update: {
     label: function sb_updateLabel() {
+      var conns = window.navigator.mozMobileConnections;
+      var conn;
 
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var conn = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
+      // Do not show carrier's name if there are multiple sim cards.
+      if (conns && conns.length == 1) {
+        conn = conns[0];
+      }
 
       var label = this.icons.label;
       var l10nArgs = JSON.parse(label.dataset.l10nArgs || '{}');
 
-      if (!IccHelper || !conn || !conn.voice || !conn.voice.connected ||
+      if (!conn || !conn.voice || !conn.voice.connected ||
           conn.voice.emergencyCallsOnly) {
         delete l10nArgs.operator;
         label.dataset.l10nArgs = JSON.stringify(l10nArgs);
@@ -489,112 +484,110 @@ var StatusBar = {
     },
 
     signal: function sb_updateSignal() {
-
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var conn = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
-
-      if (!conn || !conn.voice)
+      var conns = window.navigator.mozMobileConnections;
+      if (!conns)
         return;
 
-      if (!IccHelper)
-        return;
+      var self = this;
+      for (var index = 0; index < conns.length; index++) {
+        var conn = conns[index];
+        var voice = conn.voice;
+        var data = conn.data;
+        var icon = self.icons.signals[index];
+        var flightModeIcon = self.icons.flightMode;
+        var _ = navigator.mozL10n.get;
 
-      var voice = conn.voice;
-      var data = conn.data;
-      var icon = this.icons.signal;
-      var flightModeIcon = this.icons.flightMode;
-      var _ = navigator.mozL10n.get;
+        if (!voice)
+          continue;
 
-      if (this.settingValues['ril.radio.disabled']) {
-        // "Airplane Mode"
-        icon.hidden = true;
-        flightModeIcon.hidden = false;
-        return;
-      }
+        if (self.settingValues['ril.radio.disabled']) {
+          // "Airplane Mode"
+          icon.hidden = true;
+          flightModeIcon.hidden = false;
+          continue;
+        }
 
-      flightModeIcon.hidden = true;
-      icon.hidden = false;
+        flightModeIcon.hidden = true;
+        icon.hidden = false;
 
-      if (IccHelper.cardState === 'absent') {
-        // no SIM
-        delete icon.dataset.level;
-        delete icon.dataset.emergency;
-        delete icon.dataset.searching;
-        delete icon.dataset.roaming;
-      } else if (data && data.connected && data.type.startsWith('evdo')) {
-        // "Carrier" / "Carrier (Roaming)" (EVDO)
-        // Show signal strength of data call as EVDO only supports data call.
-        icon.dataset.level = Math.ceil(data.relSignalStrength / 20); // 0-5
-        icon.dataset.roaming = data.roaming;
+        if (IccHelper.cardState === 'absent') {
+          // no SIM
+          delete icon.dataset.level;
+          delete icon.dataset.emergency;
+          delete icon.dataset.searching;
+          delete icon.dataset.roaming;
+        } else if (data && data.connected && data.type.startsWith('evdo')) {
+          // "Carrier" / "Carrier (Roaming)" (EVDO)
+          // Show signal strength of data call as EVDO only supports data call.
+          icon.dataset.level = Math.ceil(data.relSignalStrength / 20); // 0-5
+          icon.dataset.roaming = data.roaming;
 
-        delete icon.dataset.emergency;
-        delete icon.dataset.searching;
-      } else if (voice.connected || this.hasActiveCall()) {
-        // "Carrier" / "Carrier (Roaming)"
-        icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
-        icon.dataset.roaming = voice.roaming;
+          delete icon.dataset.emergency;
+          delete icon.dataset.searching;
+        } else if (voice.connected || self.hasActiveCall()) {
+          // "Carrier" / "Carrier (Roaming)"
+          icon.dataset.level = Math.ceil(voice.relSignalStrength / 20); // 0-5
+          icon.dataset.roaming = voice.roaming;
 
-        delete icon.dataset.emergency;
-        delete icon.dataset.searching;
-      } else {
-        // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
-        icon.dataset.level = -1;
-        // logically, we should have "&& !voice.connected" as well but we
-        // already know this.
-        icon.dataset.searching = (!voice.emergencyCallsOnly &&
-                                  voice.state !== 'notSearching');
-        icon.dataset.emergency = (voice.emergencyCallsOnly);
-        delete icon.dataset.roaming;
+          delete icon.dataset.emergency;
+          delete icon.dataset.searching;
+        } else {
+          // "No Network" / "Emergency Calls Only (REASON)" / trying to connect
+          icon.dataset.level = -1;
+          // logically, we should have "&& !voice.connected" as well but we
+          // already know this.
+          icon.dataset.searching = (!voice.emergencyCallsOnly &&
+                                    voice.state !== 'notSearching');
+          icon.dataset.emergency = (voice.emergencyCallsOnly);
+          delete icon.dataset.roaming;
+        }
       }
 
       this.refreshCallListener();
     },
 
     data: function sb_updateSignal() {
-
-      // XXX: check bug-926169
-      // this is used to keep all tests passing while introducing multi-sim APIs
-      var conn = window.navigator.mozMobileConnection ||
-        window.navigator.mozMobileConnections &&
-          window.navigator.mozMobileConnections[0];
-
-      if (!conn || !conn.data)
+      var conns = window.navigator.mozMobileConnections;
+      if (!conns)
         return;
 
-      var data = conn.data;
-      var icon = this.icons.data;
+      var self = this;
+      for (var index = 0; index < conns.length; index++) {
+        var conn = conns[index];
+        var data = conn.data;
+        var icon = self.icons.data[index];
 
-      if (this.settingValues['ril.radio.disabled'] ||
-          !this.settingValues['ril.data.enabled'] ||
-          !this.icons.wifi.hidden || !data.connected) {
-        icon.hidden = true;
+        if (!data)
+          continue;
 
-        return;
-      }
+        if (self.settingValues['ril.radio.disabled'] ||
+            !self.settingValues['ril.data.enabled'] ||
+            !self.icons.wifi.hidden || !data.connected) {
+          icon.hidden = true;
+          continue;
+        }
 
-      var type = this.mobileDataIconTypes[data.type];
-      icon.hidden = false;
-      icon.textContent = '';
-      icon.classList.remove('sb-icon-data-circle');
-      if (type) {
-        if (this.cdmaTypes[data.type]) {
-          // If the current data connection is CDMA types, we need to check
-          // if there exist any calls. If yes, we have to set the status text
-          // to empty.
-          var telephony = window.navigator.mozTelephony;
-          if (telephony.calls && telephony.calls.length > 0) {
-            icon.textContent = '';
+        var type = self.mobileDataIconTypes[data.type];
+        icon.hidden = false;
+        icon.textContent = '';
+        icon.classList.remove('sb-icon-data-circle');
+        if (type) {
+          if (self.cdmaTypes[data.type]) {
+            // If the current data connection is CDMA types, we need to check
+            // if there exist any calls. If yes, we have to set the status
+            // text to empty.
+            var telephony = window.navigator.mozTelephony;
+            if (telephony.calls && telephony.calls.length > 0) {
+              icon.textContent = '';
+            } else {
+              icon.textContent = type;
+            }
           } else {
             icon.textContent = type;
           }
         } else {
-          icon.textContent = type;
+          icon.classList.add('sb-icon-data-circle');
         }
-      } else {
-        icon.classList.add('sb-icon-data-circle');
       }
 
       this.refreshCallListener();
@@ -767,7 +760,6 @@ var StatusBar = {
 
   hasActiveCall: function sb_hasActiveCall() {
     var telephony = navigator.mozTelephony;
-
     // will return true as soon as we begin dialing
     return !!(telephony && telephony.active);
   },
@@ -775,17 +767,19 @@ var StatusBar = {
   refreshCallListener: function sb_refreshCallListener() {
     // Listen to callschanged only when connected to CDMA networks and emergency
     // calls.
+    var conns = window.navigator.mozMobileConnections;
+    if (!conns)
+      return;
 
-    // XXX: check bug-926169
-    // this is used to keep all tests passing while introducing multi-sim APIs
-    var conn = window.navigator.mozMobileConnection ||
-      window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
-
-    var emergencyCallsOnly =
-      (conn && conn.voice && conn.voice.emergencyCallsOnly);
-    var cdmaConnection =
-      (conn && conn.data && !!this.cdmaTypes[conn.data.type]);
+    var emergencyCallsOnly = false;
+    var cdmaConnection = false;
+    var self = this;
+    Array.prototype.slice.call(conns).forEach(function(conn) {
+      emergencyCallsOnly = emergencyCallsOnly ||
+        (conn && conn.voice && conn.voice.emergencyCallsOnly);
+      cdmaConnection = cdmaConnection ||
+        (conn && conn.data && !!self.cdmaTypes[conn.data.type]);
+    });
 
     if (emergencyCallsOnly || cdmaConnection) {
       this.addCallListener();
@@ -873,6 +867,32 @@ var StatusBar = {
         document.getElementById('statusbar-' + name);
     }).bind(this));
 
+    // Create signal elements based on the number of SIM slots.
+    var conns = window.navigator.mozMobileConnections;
+    if (conns) {
+      var sbConnections = document.getElementById('statusbar-connections');
+      var multipleSims = (conns.length > 1);
+      sbConnections.dataset.multiple = multipleSims;
+      this.icons.signals = {};
+      this.icons.data = {};
+      for (var i = conns.length - 1; i >= 0; i--) {
+        var signal = document.createElement('div');
+        var data = document.createElement('div');
+        signal.className = 'sb-icon sb-icon-signal statusbar-signal';
+        signal.dataset.level = '5';
+        if (multipleSims) {
+          signal.dataset.index = i + 1;
+        }
+        data.className = 'sb-icon statusbar-data';
+        data.hidden = true;
+
+        sbConnections.appendChild(signal);
+        sbConnections.appendChild(data);
+        this.icons.signals[i] = signal;
+        this.icons.data[i] = data;
+      }
+    }
+
     this.element = document.getElementById('statusbar');
     this.screen = document.getElementById('screen');
     this.attentionBar = document.getElementById('attention-bar');
@@ -885,5 +905,3 @@ if (navigator.mozL10n.readyState == 'complete' ||
 } else {
   window.addEventListener('localized', StatusBar.init.bind(StatusBar));
 }
-
-
