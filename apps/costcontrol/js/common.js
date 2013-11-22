@@ -67,70 +67,38 @@ function updateNextReset(trackingPeriod, value, callback) {
 
 function resetData(onsuccess, onerror) {
 
-  // Sets the fixing value for the current SIM
-  asyncStorage.getItem('dataUsageTags', function _updateTags(tags) {
-    if (!tags || !tags.length) {
-      console.error('dataUsageTags does not exists!');
-      return;
-    }
+  // Get all availabe Interfaces
+  var currentSimcardInterface = Common.getCurrentSIMInterface();
+  var wifiInterface = Common.getWifiInterface();
 
-    // Get current mobile data
-    var now = new Date();
-    var mobileRequest = NetworkstatsProxy.getNetworkStats({
-      start: now,
-      end: now,
-      connectionType: 'mobile'
-    });
-    mobileRequest.onerror = onerror;
-    mobileRequest.onsuccess = function _onMobileForToday() {
-      var data = mobileRequest.result.data;
-      debug('Data length should be 1 and it is', data.length);
-      var currentDataUsage = 0;
-      if (data[0].rxBytes) {
-        currentDataUsage += data[0].rxBytes;
-      }
-      if (data[0].txBytes) {
-        currentDataUsage += data[0].txBytes;
-      }
+  // Ask reset for all available Interfaces
+  var wifiClearRequest, mobileClearRequest;
+  if (wifiInterface) {
+    wifiClearRequest = navigator.mozNetworkStats.clearStats(wifiInterface);
+  }
+  if (currentSimcardInterface) {
+    mobileClearRequest = navigator.mozNetworkStats
+                                          .clearStats(currentSimcardInterface);
+  }
 
-      // Adds the fixing
-      var tag = tags[tags.length - 1];
-      tag.fixing.push([now, currentDataUsage]);
-
-      // Remove the previous ones
-      for (var i = tags.length - 2; i >= 0; i--) {
-        var ctag = tags[i];
-        if (ctag.sim === tag.sim) {
-          tags.splice(i, 1);
-        }
-      }
-      debug('After reset', tags);
-
-      asyncStorage.setItem('dataUsageTags', tags, function _done() {
-        ConfigManager.setOption({ lastDataReset: now });
-      });
+  var getOnErrorFor = function(networkInterface) {
+    return function() {
+      wifiClearRequest.onerror = undefined;
+      mobileClearRequest.onerror = undefined;
+      (typeof onerror === 'function') && onerror(netWorkInterface);
     };
+  };
 
-    var wifiRequest = NetworkstatsProxy.getNetworkStats({
-      start: now,
-      end: now,
-      connectionType: 'wifi'
-    });
-    wifiRequest.onerror = onerror;
-    wifiRequest.onsuccess = function _onWiFiForToday() {
-      var data = wifiRequest.result.data;
-      debug('Data length should be 1 and it is', data.length);
-      var currentWifiUsage = 0;
-      if (data[0].rxBytes) {
-        currentWifiUsage += data[0].rxBytes;
-      }
-      if (data[0].txBytes) {
-        currentWifiUsage += data[0].txBytes;
-      }
-      asyncStorage.setItem('wifiFixing', currentWifiUsage, onsuccess);
-    };
+  wifiClearRequest.onerror = getOnErrorFor('wi-Fi');
+  mobileClearRequest.onerror = getOnErrorFor('simcard');
 
-  });
+  // Set last Reset
+  ConfigManager.setOption({ lastDataReset: new Date() });
+
+  // call onsuccess
+  if (typeof onsuccess === 'function') {
+    onsuccess();
+  }
 }
 
 function resetTelephony(callback) {
@@ -144,8 +112,12 @@ function resetTelephony(callback) {
   }, callback);
 }
 
+function logResetDataError(networkInterface) {
+  console.log('Error when trying to reset ' + networkInterface + ' interface');
+}
+
 function resetAll(callback) {
-  resetData(thenResetTelephony, thenResetTelephony);
+  resetData(thenResetTelephony, logResetDataError);
 
   function thenResetTelephony() {
     resetTelephony(callback);
@@ -214,6 +186,10 @@ var Common = {
 
   COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
 
+  allNetworkInterfaces: {},
+
+  allNetworkInterfaceLoaded: false,
+
   isValidICCID: function(iccid) {
     return typeof iccid === 'string' && iccid.length;
   },
@@ -268,10 +244,6 @@ var Common = {
         return;
       }
 
-      if (lastSIM !== currentSIM) {
-        debug('SIM change!');
-        MindGap.updateTagList(currentSIM);
-      }
       ConfigManager.requestSettings(function _onSettings(settings) {
         if (settings.nextReset) {
           setNextReset(settings.nextReset, callback);
@@ -323,5 +295,57 @@ var Common = {
 
   get localize() {
     return navigator.mozL10n.localize;
+  },
+
+  // Returns whether exists an nsIDOMNetworkStatsInterfaces object
+  // that meet the argument function criteria
+  getInterface: function getInterface(findFunction) {
+    if (!Common.allNetworkInterfaceLoaded) {
+      debug('Network interfaces are not ready yet');
+      var header = _('data-usage');
+      var msg = _('loading-interface-data');
+      this.modalAlert(header + '\n' + msg);
+      return;
+    }
+
+    if (Common.allNetworkInterfaces) {
+      return Common.allNetworkInterfaces.find(findFunction);
+    }
+  },
+
+  getCurrentSIMInterface: function _getCurrentSIMInterface() {
+    var iccId = IccHelper.iccInfo ? IccHelper.iccInfo.iccid : null;
+
+    if (iccId) {
+      var findCurrentInterface = function(networkInterface) {
+        if (networkInterface.id === iccId) {
+          return networkInterface;
+        }
+      };
+      return this.getInterface(findCurrentInterface);
+    }
+    return undefined;
+  },
+
+  getWifiInterface: function _getWifiInterface() {
+    var findWifiInterface = function(networkInterface) {
+      if (networkInterface.type === navigator.mozNetworkStats.WIFI) {
+        return networkInterface;
+      }
+    };
+    return this.getInterface(findWifiInterface);
+  },
+
+  loadNetworkInterfaces: function() {
+    var networks = navigator.mozNetworkStats.getAvailableNetworks();
+
+    networks.onsuccess = function() {
+      Common.allNetworkInterfaces = networks.result;
+      Common.allNetworkInterfaceLoaded = true;
+    };
+
+    networks.onerror = function() {
+      debug('Error when trying to load network interfaces');
+    };
   }
 };

@@ -19,7 +19,7 @@ var Widget = (function() {
     // this is used to keep all tests passing while introducing multi-sim APIs
     var mobileConnection = window.navigator.mozMobileConnection ||
       window.navigator.mozMobileConnections &&
-        window.navigator.mozMobileConnections[0];
+      window.navigator.mozMobileConnections[0];
 
     if (!mobileConnection) {
       console.error('No mozMobileConnection available');

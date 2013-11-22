@@ -70,7 +70,7 @@ var NetworkstatsProxy = (function() {
     return {
       sampleRate: stats.sampleRate,
 
-      maxStorageSamples: stats.maxStorageAge,
+      maxStorageSamples: stats.maxStorageAge / stats.sampleRate,
 
       getNetworkStats: function(options) {
         var fakeRequest = {
@@ -95,6 +95,10 @@ var NetworkstatsProxy = (function() {
         }
 
         return fakeRequest;
+      },
+
+      getSamples: function(network, start, end) {
+        return stats.getSamples(network, start, end);
       }
     };
   }
