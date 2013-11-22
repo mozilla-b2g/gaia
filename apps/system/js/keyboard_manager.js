@@ -353,10 +353,15 @@ var KeyboardManager = {
     keyboard.setAttribute('mozpasspointerevents', 'true');
     keyboard.setAttribute('mozapp', manifestURL);
 
-    if (this.isOutOfProcessEnabled) {
-      console.log('=== Enable keyboard run as OOP ===');
+    // XXX: Making keyboard apps out-of-process is an experimental feature
+    // which we will not enable on our own Gaia keyboard(s).
+    // However we must always run non-Gaia keyboard out-of-process for
+    // the sake of security.
+    if (this.isOutOfProcessEnabled ||
+        !layout.origin.endsWith('gaiamobile.org')) {
+      console.log('=== Enable keyboard: ' + layout.origin + ' run as OOP ===');
       keyboard.setAttribute('remote', 'true');
-      keyboard.classList.add('ignore-focus');
+      keyboard.setAttribute('ignoreuserfocus', 'true');
     }
 
     this.keyboardFrameContainer.appendChild(keyboard);
