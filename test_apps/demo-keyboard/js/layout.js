@@ -64,6 +64,7 @@ function KeyboardLayout(config) {
   this.name = config.name;
   this.label = config.label;
   this.pages = {};
+  this.pageViewCache = {};
 
   // For each page of this layout
   for (var pagename in config.pages) {
@@ -85,21 +86,69 @@ function KeyboardLayout(config) {
     var pagedata = this.pages[pagename] = {};
 
     // Build the default page layout for this page
-    pagedata.defaultLayout = new KeyboardPage(pageconfig.layout,
+    pagedata.defaultLayout = new KeyboardPage(pagename, "default",
+                                              pageconfig.layout,
                                               pageconfig.keys, config.keys);
 
     // Build any variant page layouts for this page
     pagedata.variants = {};
     if (pageconfig.variants) {
       for (var variant in pageconfig.variants) {
-        pageconfig.variants[variant] =
-          new KeyboardPage(pageconfig.variants[variant],
+        pagedata.variants[variant] =
+          new KeyboardPage(pagename, variant,
+                           pageconfig.variants[variant],
                            pageconfig.keys, config.keys);
 
       }
     }
   }
 }
+
+// Get a PageView object for the specified page name and variant.  If
+// no pagename is specified, the first page specified in the layout is
+// used as the default. If the specified variant does not exist for
+// the named page (or if no variant is specified) then the default
+// layout for the page is used. PageView objects are built when they
+// are first requested and are then cached for later reuse.
+KeyboardLayout.prototype.getPageView = function(container, pagename, variant) {
+  if (!pagename)
+    pagename = Object.keys(this.pages)[0];
+
+  console.log('getPageView', pagename, variant);
+
+  if (!(pagename in this.pages)) {
+    throw Error('unknown page: ', pagename);
+  }
+
+  var cachekey = pagename;
+  var page = this.pages[pagename].defaultLayout;
+
+  if (variant && (variant in this.pages[pagename].variants)) {
+    cachekey += ' ' + variant;
+    page = this.pages[pagename].variants[variant];
+  }
+
+  console.log('getPageView', cachekey);
+
+  var pageview = this.pageViewCache[cachekey];
+
+  if (!pageview) {
+    console.log('creating new page view');
+    pageview = new KeyboardPageView(page);
+    this.pageViewCache[cachekey] = pageview;
+    pageview.resize();
+    container.appendChild(pageview.element);
+  }
+
+  return pageview;
+};
+
+// Invoke the function f on each page view object
+KeyboardLayout.prototype.forEachPageView = function forEachPageView(f) {
+  for (var key in this.pageViewCache) {
+    f(this.pageViewCache[key]);
+  }
+};
 
 KeyboardLayout.predefinedPages = {
   NUMBERS: {

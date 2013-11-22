@@ -4,7 +4,9 @@
 // The input layout is an array of strings, with each string representing
 // one row of the keyboard.  The pagekeys and layoutkeys arguments are objects
 // from which key definitions should be looked up.
-function KeyboardPage(layout, pagekeys, layoutkeys) {
+function KeyboardPage(pagename, variant, layout, pagekeys, layoutkeys) {
+  this.name = name;
+  this.variant = variant;
 
   // An array of arrays of keynames
   this.rows = [];

@@ -2,6 +2,7 @@
 
 var inputContext = null;
 var layout;
+var variant;
 var keyboardContainer;
 var currentPage;
 var currentPageView;
@@ -17,25 +18,12 @@ function init() {
 
   layout = new KeyboardLayout(englishLayout);
 
-  // Initialize KeyboardPageView objects for all of the layout pages
-  // XXX: this ignores variants like email and url
-  for (var pagename in layout.pages) {
-    var page = layout.pages[pagename].defaultLayout;
-    pages[pagename] = page;
-    var pageview = new KeyboardPageView(page);
-    pageviews[pagename] = pageview;
-    pageview.resize();
-    keyboardContainer.appendChild(pageview.element);
-
-    // The first named page is the default one for the layout
-    if (!mainpageName) {
-      mainpageName = pagename;
-    }
-  }
-
   // Start off with the main page
-  currentPage = pages[mainpageName];
-  currentPageView = pageviews[mainpageName];
+  variant = getVariant();
+  currentPageView = layout.getPageView(keyboardContainer, null, variant);
+  currentPage = currentPageView.page;
+
+  // Make it visible
   currentPageView.show();
 
   // Handle events
@@ -54,8 +42,50 @@ function init() {
     inputContext = navigator.mozInputMethod.inputcontext;
     resizeWindow();
   };
+
+
+  // If the variant changes, update the page view if needed
+  InputField.addEventListener('inputfieldchanged', function(e) {
+    var newvariant = getVariant();
+    if (newvariant === variant)
+      return;
+
+    console.log('variant changed to', newvariant);
+
+    variant = newvariant;
+    var newPageView = layout.getPageView(keyboardContainer,
+                                         currentPage.name, variant);
+    if (newPageView === currentPageView)
+      return;
+
+    console.log('pageview changed to',
+                newPageView.page.name, newPageView.page.variant);
+    currentPageView.hide();
+    currentPageView = newPageView;
+    currentPage = currentPageView.page;
+    currentPageView.show();
+    KeyboardTouchHandler.setPageView(currentPageView);
+  });
 }
 
+function getVariant() {
+  var variant;
+
+  // figure out what layout variant we're using
+  // XXX: match the old keyboard behavior
+  switch(InputField.inputType) {
+  case 'email':
+    variant = 'email';
+    break;
+  case 'url':
+    variant = 'url';
+    break;
+  default:
+    variant = null;
+  }
+  console.log("getVariant", variant);
+  return variant;
+}
 
 function handleKey(e) {
   var keyname = e.detail;
@@ -96,14 +126,11 @@ function handleKey(e) {
 }
 
 function switchPage(pagename) {
-  if (!(pagename in layout.pages)) {
-    console.log('unknown layout', pagename);
-    return;
-  }
-  currentPageView.hide();
-  // XXX: modify this to handle page layout variants
-  currentPage = pages[pagename];
-  currentPageView = pageviews[pagename];
+  var oldPageView = currentPageView;
+  currentPageView = layout.getPageView(keyboardContainer,
+                                       pagename, variant);
+  currentPage = currentPageView.page;
+  oldPageView.hide();
   currentPageView.show();
   KeyboardTouchHandler.setPageView(currentPageView);
 }
@@ -122,14 +149,14 @@ function sendKey(keycode) {
   }
 }
 
+// XXX:
+// The KeyboardLayout object could register this handler and do the resizing
 function resizeWindow() {
   window.resizeTo(window.innerWidth, keyboardContainer.clientHeight);
 
-  for (var pagename in pageviews) {
-    // XXX: modify this to handle page layout variants
-    // XXX: PageView object now, and method is layout()
-    pageviews[pagename].resize();
-  }
+  layout.forEachPageView(function(pageview) {
+    pageview.resize();
+  });
 }
 
 var englishLayout = {

@@ -143,7 +143,7 @@
     // think we were out of sync when we weren't.  Notice that this
     // requires that the inputcontext dispaches events before
     // resolving its promises.
-    if (e.type == 'inputcontextchanged') {
+    if (e.type === 'inputcontextchange') {
       syncState();
     }
     else if (!pendingPromise) {
