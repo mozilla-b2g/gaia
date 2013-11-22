@@ -3,9 +3,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from marionette.keys import Keys
 from marionette.marionette import Actions
-
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
 
@@ -19,6 +17,7 @@ class SearchPanel(Base):
     _category_item_locator = (By.CSS_SELECTOR, '#shortcuts-items li[data-query]')
     _loading_apps_locator = (By.CSS_SELECTOR, 'div.loading-apps')
     _app_icon_locator = (By.CSS_SELECTOR, 'li.cloud[data-name]')
+    _search_title_first_word_locator = (By.CSS_SELECTOR, '#search-title [data-l10n-id="evme-helper-title-prefix"]')
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
@@ -29,6 +28,7 @@ class SearchPanel(Base):
             lambda m: 'keyboard-visible' in self.marionette.find_element(*self._evme_container_locator).get_attribute('class'))
 
     def wait_for_everything_me_results_to_load(self):
+        self.wait_for_element_displayed(*self._search_title_first_word_locator)
         self.wait_for_element_displayed(*self._search_results_from_everything_me_locator)
 
     def wait_for_categories_to_load(self):
