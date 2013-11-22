@@ -1,7 +1,8 @@
-/*global Drafts Draft */
+/*global Drafts, Draft, asyncStorage */
 'use strict';
 
 requireApp('sms/js/drafts.js');
+require('/shared/js/async_storage.js');
 
 suite('Drafts', function() {
   var d1, d2, d3, d4, d5;
@@ -274,6 +275,51 @@ suite('Drafts', function() {
       assert.equal(draft.timestamp, 1, 'timestamp is 1');
       assert.equal(draft.threadId, 42, 'timestamp is 42');
       assert.equal(draft.type, 'sms', 'timestamp is \'sms\'');
+    });
+
+  });
+
+  suite('Storage', function() {
+    var stored = new Map();
+
+    setup(function() {
+      Drafts.clear();
+      Drafts.add(d1);
+      Drafts.add(d2);
+      Drafts.add(d5);
+
+      stored.set(d1.threadId, d1);
+      stored.set(d5.threadId, d5);
+    });
+
+    teardown(function() {
+      Drafts.clear();
+      asyncStorage.removeItem('draft index');
+    });
+
+    test('Store drafts', function() {
+      Drafts.store();
+      asyncStorage.getItem('draft index', function(value) {
+        var retrieved = new Map(value);
+        assert.deepEqual(retrieved.get(null), [d5]);
+        assert.deepEqual(retrieved.get(42), [d1, d2]);
+      });
+    });
+
+    test('Load drafts', function() {
+      var retrieved = [];
+      asyncStorage.setItem('draft index', [...stored], function() {
+        Drafts.load();
+      });
+
+      Drafts.byId(null).forEach(function(elem) {
+        assert.equal(elem, d5);
+      });
+
+      Drafts.byId(42).forEach(function(elem) {
+        retrieved.push(elem);
+      });
+      assert.deepEqual(retrieved, [d1, d2]);
     });
 
   });

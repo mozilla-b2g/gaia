@@ -34,17 +34,20 @@ var ContactsTest = {
   },
   get updateExistingActivityButton() {
     delete this.updateExistingActivityButton;
-    return this.updateExistingActivityButton = document.getElementById('activities-update');
+    return this.updateExistingActivityButton =
+      document.getElementById('activities-update');
   },
 
   get updateExistingActivityEmailButton() {
     delete this.updateExistingActivityEmailButton;
-    return this.updateExistingActivityEmailButton = document.getElementById('activities-update-email');
+    return this.updateExistingActivityEmailButton =
+      document.getElementById('activities-update-email');
   },
 
   get updateExistingActivityEmailPhoneButton() {
     delete this.updateExistingActivityEmailPhoneButton;
-    return this.updateExistingActivityEmailPhoneButton = document.getElementById('activities-update-email-phone');
+    return this.updateExistingActivityEmailPhoneButton =
+      document.getElementById('activities-update-email-phone');
   },
 
   get newWithDataActivityButton() {
@@ -65,33 +68,33 @@ var ContactsTest = {
     this.clearButton.addEventListener('click', this.clearContacts.bind(this));
     this.getButton.addEventListener('click', this.getContacts.bind(this));
     this.pickActivityButton.addEventListener('click',
-                                            this.pickActivity.bind(this));
+                        this.pickActivity.bind(this));
     this.newActivityButton.addEventListener('click',
-                                            this.newActivity.bind(this));
+                        this.newActivity.bind(this));
     this.updateExistingActivityButton.addEventListener('click',
-                                            this.updateExistingActivity.bind(this));
+                        this.updateExistingActivity.bind(this));
     this.updateExistingActivityEmailButton.addEventListener('click',
-                                            this.updateExistingActivityEmail.bind(this));
+                        this.updateExistingActivityEmail.bind(this));
 
     this.updateExistingActivityEmailPhoneButton.addEventListener('click',
-                                            this.updateExistingActivityEmailPhone.bind(this));
+                        this.updateExistingActivityEmailPhone.bind(this));
 
     this.newWithDataActivityButton.addEventListener('click',
-                                        this.newWithDataActivity.bind(this));
+                        this.newWithDataActivity.bind(this));
 
     this.insertSocialContacts.addEventListener('click',
-                                        this.finsertSocialContacts.bind(this));
+                        this.finsertSocialContacts.bind(this));
   },
 
   uninit: function ct_uninit() {
     this.loadButton.removeEventListener('click', this.loadContacts.bind(this));
     this.clearButton.removeEventListener('click',
-                                         this.clearContacts.bind(this));
+                                      this.clearContacts.bind(this));
     this.getButton.removeEventListener('click', this.getContacts.bind(this));
     this.newActivityButton.removeEventListener('click',
-                                            this.newActivity.bind(this));
+                                      this.newActivity.bind(this));
     this.updateExistingActivityButton.removeEventListener('click',
-                                            this.updateExistingActivity.bind(this));
+                                      this.updateExistingActivity.bind(this));
   },
 
   clearContacts: function ct_clearContacts() {
@@ -193,7 +196,7 @@ var ContactsTest = {
     activity.onsuccess = function() {
       var contact = this.result.contact;
       document.getElementById('activities-result').innerHTML =
-                            'updated contact' + ' update with id: ' + contact.id;
+                        'updated contact' + ' update with id: ' + contact.id;
       self.setContactId(contact.id);
     };
 
@@ -203,7 +206,7 @@ var ContactsTest = {
     };
   },
 
-  updateExistingActivityEmailPhone: function ct_updateExistingActivityEmailPhone() {
+  updateExistingActivityEmailPhone: function() {
     var activity = new MozActivity({
         name: 'update',
         data: {
@@ -219,7 +222,7 @@ var ContactsTest = {
     activity.onsuccess = function() {
       var contact = this.result.contact;
       document.getElementById('activities-result').innerHTML =
-                            'updated contact' + ' update with id: ' + contact.id;
+                      'updated contact' + ' update with id: ' + contact.id;
       self.setContactId(contact.id);
     };
 
@@ -244,7 +247,7 @@ var ContactsTest = {
     activity.onsuccess = function() {
       var contact = this.result.contact;
       document.getElementById('activities-result').innerHTML =
-                            'updated contact' + ' update with id: ' + contact.id;
+                        'updated contact' + ' update with id: ' + contact.id;
       self.setContactId(contact.id);
     };
 

@@ -103,7 +103,7 @@ class Keyboard(Base):
     def switch_to_keyboard(self):
         self.marionette.switch_to_frame()
         keybframe = self.marionette.find_element(*self._keyboard_frame_locator)
-        self.wait_for_condition(lambda m: keybframe.location['y'] == 0)
+        self.wait_for_condition(lambda m: self.is_displayed())
         self.marionette.switch_to_frame(keybframe, focus=False)
 
     @property
@@ -276,6 +276,7 @@ class Keyboard(Base):
     def dismiss(self):
         frame = self.marionette.get_active_frame()
         self.marionette.switch_to_frame()
+        self.wait_for_condition(lambda m: self.is_displayed())
         self.marionette.execute_script('navigator.mozKeyboard.removeFocus();')
         self.wait_for_condition(lambda m: not self.is_displayed())
         self.marionette.switch_to_frame(frame)
@@ -283,7 +284,8 @@ class Keyboard(Base):
     def is_displayed(self):
         frame = self.marionette.get_active_frame()
         self.marionette.switch_to_frame()
-        is_visible = self.marionette.find_element(*self._keyboard_frame_locator).is_displayed()
+        keyboard = self.marionette.find_element(*self._keyboard_frame_locator)
+        is_visible = keyboard.is_displayed() and keyboard.location['y'] == 0
         self.marionette.switch_to_frame(frame)
         return is_visible
 

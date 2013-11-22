@@ -95,6 +95,10 @@ var NetworkstatsProxy = (function() {
         }
 
         return fakeRequest;
+      },
+
+      getSamples: function(network, start, end) {
+          return stats.getSamples(network, start, end);
       }
     };
   }

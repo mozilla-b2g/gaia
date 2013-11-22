@@ -182,14 +182,13 @@ function init() {
     showCurrentView(function() {
       // Hide the  spinner once we've displayed the initial screen
       document.getElementById('spinner-overlay').classList.add('hidden');
+
+      // Concurrently, start scanning for new music
+      musicdb.scan();
+
+      // we shouldn't init the bluetooth comms until the UI is
+      MusicComms.init();
     });
-
-    // Concurrently, start scanning for new music
-    musicdb.scan();
-
-    // We have to wait for the MediaDB ready then we may able to play songs
-    // after we received media commands from the remote controls.
-    MusicComms.init();
   };
 
   var filesDeletedWhileScanning = 0;

@@ -16,10 +16,12 @@ var Selector = {
   manualSetupNameInput: '.sup-manual-form .sup-info-name',
   manualSetupEmailInput: '.sup-manual-form .sup-info-email',
   manualSetupPasswordInput: '.sup-manual-form .sup-info-password',
-  manualSetupImapUsernameInput: '.sup-manual-form .sup-manual-imap-username',
-  manualSetupImapHostnameInput: '.sup-manual-form .sup-manual-imap-hostname',
-  manualSetupImapPortInput: '.sup-manual-form .sup-manual-imap-port',
-  manualSetupImapSocket: '.sup-manual-form .sup-manual-imap-socket',
+  manualSetupImapUsernameInput:
+    '.sup-manual-form .sup-manual-composite-username',
+  manualSetupImapHostnameInput:
+    '.sup-manual-form .sup-manual-composite-hostname',
+  manualSetupImapPortInput: '.sup-manual-form .sup-manual-composite-port',
+  manualSetupImapSocket: '.sup-manual-form .sup-manual-composite-socket',
   manualSetupSmtpUsernameInput: '.sup-manual-form .sup-manual-smtp-username',
   manualSetupSmtpHostnameInput: '.sup-manual-form .sup-manual-smtp-hostname',
   manualSetupSmtpPortInput: '.sup-manual-form .sup-manual-smtp-port',
@@ -145,7 +147,11 @@ Email.prototype = {
   },
 
   tapLocalDraftsItem: function() {
+    // we should already be looking at the folder list, no need to wait.
     this._waitForElementNoTransition(Selector.localDraftsItem).tap();
+    // clicking that transitions us back to the message list; wait for us
+    // to get there.
+    this._waitForTransitionEnd('message_list');
   },
 
   switchAccount: function(number) {
@@ -298,12 +304,17 @@ Email.prototype = {
   },
 
   tapEmailBySubject: function(subject, cardId) {
-    var element = this.getEmailBySubject(subject);
+    // The emails may not be present in the list yet.  So keep checking until
+    // we see one.  Then tap on it.
+    this.client.waitFor(function() {
+      var element = this.getEmailBySubject(subject);
+      if (!element)
+        return false;
 
-    if (element) {
       element.tap();
       this._waitForTransitionEnd(cardId);
-    }
+      return true;
+    }.bind(this));
   },
 
   getEmailBySubject: function(subject) {

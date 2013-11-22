@@ -122,7 +122,7 @@ body[role="application"] .fieldbox label:last-child {
 #settings {
   position: absolute;
   width: 80%;
-  background: url("building_blocks/drawer/images/ui/pattern.png") repeat;
+  background-color: #2c353b;
   height: 100%;
   top: 0;
   left: 0;

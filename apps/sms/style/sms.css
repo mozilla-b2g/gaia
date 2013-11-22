@@ -118,7 +118,16 @@ form[role="dialog"][data-type="edit"] header menu[type="toolbar"] button {
   overflow: hidden;
 
   opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+[data-type="list"] li > .pack-checkbox input ~ span:after {
+  opacity: 0;
   transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+[data-type="list"] li > a > p {
+  transition: transform 0.3s ease;
 }
 
 [data-type="list"] aside.icon-unread {
@@ -148,7 +157,13 @@ form[data-type="action"] img[src=""] {
 .edit [data-type="list"] li > label {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(5rem);
+  left: -1.4rem;
+}
+
+.edit [data-type="list"] li > .pack-checkbox input ~ span:after {
+  opacity: 1;
+  transform: translateX(4.5rem);
+  left: -2.2rem;
 }
 
 .edit [data-type="list"] li > a > aside.icon-unread {
@@ -157,7 +172,6 @@ form[data-type="action"] img[src=""] {
 
 .edit [data-type="list"] li > a > p {
   transform: translateX(3.5rem);
-  transition: all 0.3s ease;
 }
 
 .edit #threads-container[data-type="list"] aside.pack-end {
@@ -412,6 +426,50 @@ section.has-carrier .article-list header:first-child {
 #messages-container[data-type="list"] .message.mms .bubble img {
   height: auto;
   width: auto;
+}
+
+.article-list[data-type="list"] .message .subject {
+  display: none;
+}
+
+.article-list[data-type="list"] .has-subject .bubble {
+  padding-top: 0rem;
+}
+
+.article-list[data-type="list"] .has-subject .subject {
+  display: block;
+  margin-bottom: 0.5rem;
+  padding-top: 0.9rem; /* 0.9 top + 1.4 line-height + 0.7 bottom = 3.0 */
+  padding-bottom: 0.7rem;
+
+  line-height: 1.4rem;
+  font-size: 1.4rem;
+  font-style: italic;
+  color: #666;
+}
+
+.article-list[data-type="list"] .has-subject.outgoing .subject {
+  /* to extend the background color and bottom border */
+  width: 100%; 
+  margin-left: -1.5rem;
+  padding-left: 1.5rem;
+  padding-right: 4rem;
+
+  background: #FAFAFA;
+  border-bottom: 1px solid #EFEEEE;
+  border-radius: 0.3rem 0 0 0;
+}
+
+.article-list[data-type="list"] .has-subject.incoming .subject {
+  /* to extend the background color and bottom border */
+  width: 100%;
+  margin-left: -4rem;
+  padding-left: 4rem;
+  padding-right: 1.5rem;
+
+  background: #F7C584;
+  border-bottom: 1px solid #EFBD7C;
+  border-radius: 0 0.3rem 0 0;
 }
 
 .article-list[data-type="list"] .message.outgoing .bubble {

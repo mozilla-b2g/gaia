@@ -24,9 +24,10 @@ var BatteryManager = {
     var battery = this._battery;
     if (!battery)
       return;
-
-    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL && !battery.charging)
-      SleepMenu.startPowerOff(false);
+    if (battery.level <= this.AUTO_SHUTDOWN_LEVEL && !battery.charging) {
+      // Fire a event to inform SleepMenu perform shutdown.
+      window.dispatchEvent(new CustomEvent('batteryshutdown'));
+    }
   },
 
   init: function bm_init() {
@@ -34,7 +35,7 @@ var BatteryManager = {
     var battery = this._battery;
     if (battery) {
       // When the device is booted, check if the battery is drained.
-      // If so, SleepMenu.startPowerOff() would be called.
+      // If so, batteryshutdown would be triggered to inform SleepMenu shutdown.
       window.addEventListener('homescreen-ready',
                               this.checkBatteryDrainage.bind(this));
 

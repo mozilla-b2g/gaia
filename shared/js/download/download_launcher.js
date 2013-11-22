@@ -109,16 +109,18 @@ var DownloadLauncher = (function() {
    *
    * @param{Object} The download object
    *
+   * @param{String} Mime type
+   *
    * @param{Object} The blob object that represents the file
    *
    * @param{Object} This is the Request object
    */
-  function createActivity(download, blob, req) {
+  function createActivity(download, contentType, blob, req) {
     var activity = new MozActivity({
       name: 'open',
       data: {
         url: download.path,
-        type: download.contentType,
+        type: contentType,
         blob: blob
       }
     });
@@ -135,9 +137,11 @@ var DownloadLauncher = (function() {
   }
 
   function doLaunch(download, req) {
-    var type = download.contentType;
+    var fileName = DownloadFormatter.getFileName(download);
+    var type = MimeMapper.guessTypeFromFileProperties(fileName,
+                                                      download.contentType);
 
-    if (!MimeMapper.isSupportedType(type)) {
+    if (type.length === 0) {
       sendError(req, 'Mime type not supported: ' + type,
                 CODE.MIME_TYPE_NOT_SUPPORTED);
       return;
@@ -147,7 +151,7 @@ var DownloadLauncher = (function() {
 
     blobReq.onsuccess = function() {
       // We have the blob, so opening and crossing fingers...
-      createActivity(download, blobReq.result, req);
+      createActivity(download, type, blobReq.result, req);
     };
 
     blobReq.onerror = function() {
@@ -168,8 +172,10 @@ var DownloadLauncher = (function() {
       // TODO: Maybe the API should express that the download finished
       // correctly, like 'finished' instead of 'stopped'
       var state = download.state;
-      if (state === 'stopped' || state === 'finished') {
-        LazyLoader.load('shared/js/mime_mapper.js', function loaded() {
+      if (state === 'done') {
+        LazyLoader.load(['shared/js/mime_mapper.js',
+                         'shared/js/download/download_formatter.js'],
+                        function loaded() {
           doLaunch(download, req);
         });
         return;

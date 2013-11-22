@@ -59,6 +59,8 @@ var CostControlApp = (function() {
       debug('SIM ready. ICCID:', iccid);
       IccHelper.oncardstatechange = undefined;
       IccHelper.oniccinfochange = undefined;
+      Common.loadNetworkInterfaces();
+
       startApp(callback);
     }
   }

@@ -17,6 +17,7 @@ var lazyLoadFiles = [
   'js/dialog.js',
   'js/blacklist.js',
   'js/contacts.js',
+  'js/drafts.js',
   'js/recipients.js',
   'js/threads.js',
   'js/message_manager.js',

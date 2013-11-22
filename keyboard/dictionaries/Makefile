@@ -6,6 +6,7 @@
 # hr.dict, it.dict, nb.dict, pt_pt.dict, pt_br.dict, ca.dict
 
 WHITELIST = \
+ bg.dict \
  ca.dict \
  cs.dict \
  de.dict \

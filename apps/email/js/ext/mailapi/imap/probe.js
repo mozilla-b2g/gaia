@@ -93,8 +93,8 @@ NetSocket.prototype._onclose = function() {
   this.emit('end');
 };
 
-exports.connect = function(port, host) {
-  return new NetSocket(port, host, false);
+exports.connect = function(port, host, crypto) {
+  return new NetSocket(port, host, !!crypto);
 };
 
 }); // end define

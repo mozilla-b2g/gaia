@@ -1,15 +1,14 @@
+'use strict';
+
 var inputContext = null;
 var layout;
 var keyboardContainer;
-var keyboardController;
 var currentPage;
-var mainpage;
+var currentPageView;
 var mainpageName;
-var shifted = false;
 
-// worker for predicting the next char 
-var worker;
-var predictionStartTime;
+var pages = {};
+var pageviews = {};
 
 window.addEventListener('load', init);
 
@@ -17,25 +16,31 @@ function init() {
   keyboardContainer = document.getElementById('keyboardContainer');
 
   layout = new KeyboardLayout(englishLayout);
+
+  // Initialize KeyboardPageView objects for all of the layout pages
+  // XXX: this ignores variants like email and url
   for (var pagename in layout.pages) {
-    // XXX: modify this to handle page layout variants
     var page = layout.pages[pagename].defaultLayout;
-    if (!mainpage) {
-      mainpage = page;
+    pages[pagename] = page;
+    var pageview = new KeyboardPageView(page);
+    pageviews[pagename] = pageview;
+    pageview.resize();
+    keyboardContainer.appendChild(pageview.element);
+
+    // The first named page is the default one for the layout
+    if (!mainpageName) {
       mainpageName = pagename;
     }
-    page.setKeySizes();
-    keyboardContainer.appendChild(page.element);
   }
 
   // Start off with the main page
-  currentPage = mainpage;
-  currentPage.element.hidden = false;
+  currentPage = pages[mainpageName];
+  currentPageView = pageviews[mainpageName];
+  currentPageView.show();
 
   // Handle events
-  keyboardController = new KeyboardController(keyboardContainer);
-  keyboardController.setPage(currentPage);
-  keyboardContainer.addEventListener('key', handleKey);
+  KeyboardTouchHandler.setPageView(currentPageView);
+  KeyboardTouchHandler.addEventListener('key', handleKey);
 
   // Prevent losing focus to the currently focused app
   // Otherwise, right after mousedown event, the app will receive a focus event.
@@ -45,33 +50,12 @@ function init() {
 
   window.addEventListener('resize', resizeWindow);
 
-  worker = new Worker('js/worker.js');
-  // XXX: english hardcoded for now
-  worker.postMessage({ cmd: 'setLanguage', args: ['en_us']});
-
-  worker.onmessage = function(e) {
-    switch (e.data.cmd) {
-    case 'log':
-      console.log(e.data.message);
-      break;
-    case 'error':
-      console.error(e.data.message);
-      break;
-    case 'chars':
-      console.log('Predictions for', e.data.input, 'in',
-                  performance.now() - predictionStartTime, ':',
-                  JSON.stringify(e.data.chars));
-      keyboardController.hitdetector.setExpectedChars(e.data.chars);
-      break;
-    }
-  };
-
   window.navigator.mozInputMethod.oninputcontextchange = function() {
     inputContext = navigator.mozInputMethod.inputcontext;
     resizeWindow();
   };
-
 }
+
 
 function handleKey(e) {
   var keyname = e.detail;
@@ -84,23 +68,16 @@ function handleKey(e) {
 
   switch (key.keycmd) {
   case 'sendkey':
-    if (shifted) {
+    if (currentPageView.shifted) {
       sendKey(String.fromCharCode(key.keycode).toUpperCase().charCodeAt(0));
-      shift(false);
     }
     else {
       sendKey(key.keycode);
     }
-
-    var char = String.fromCharCode(key.keycode);
-    if (shifted)
-      char = char.toUpperCase();
-    predictNextChar(inputContext.textBeforeCursor + char);
     break;
 
   case 'backspace':
     sendKey(8);
-    predictNextChar(inputContext.textBeforeCursor.slice(0,-1));
     break;
 
   case 'switch':
@@ -112,23 +89,10 @@ function handleKey(e) {
   case 'defaultPage':
     switchPage(mainpageName);
     break;
-  case 'shift':
-    shift(!shifted);
-    break;
   default:
     console.error('Unknown keycmd', key.keycmd);
     break;
   }
-}
-
-function predictNextChar(input) {
-  var lastSpace = input.lastIndexOf(' ');
-  var lastWord = input.substring(lastSpace + 1);
-  predictionStartTime = performance.now();
-  if (lastWord)
-    worker.postMessage({ cmd: 'predictNextChar', args: [lastWord] });
-  else
-    keyboardController.hitdetector.setExpectedChars([]);
 }
 
 function switchPage(pagename) {
@@ -136,35 +100,24 @@ function switchPage(pagename) {
     console.log('unknown layout', pagename);
     return;
   }
-  currentPage.element.hidden = true;
+  currentPageView.hide();
   // XXX: modify this to handle page layout variants
-  currentPage = layout.pages[pagename].defaultLayout;
-  keyboardController.setPage(currentPage);
-  currentPage.element.hidden = false;
-}
-
-function shift(on) {
-  if (on) {
-    shifted = true;
-    currentPage.element.classList.add('uppercase');
-  }
-  else {
-    shifted = false;
-    currentPage.element.classList.remove('uppercase');
-  }
+  currentPage = pages[pagename];
+  currentPageView = pageviews[pagename];
+  currentPageView.show();
+  KeyboardTouchHandler.setPageView(currentPageView);
 }
 
 function sendKey(keycode) {
-  console.log('sendKey:', String.fromCharCode(keycode));
   switch (keycode) {
   case KeyEvent.DOM_VK_BACK_SPACE:
   case KeyEvent.DOM_VK_RETURN:
-    inputContext.sendKey(keycode, 0, 0);
+    InputField.sendKey(keycode, 0, 0);
     break;
 
   default:
     var start = performance.now();
-    inputContext.sendKey(0, keycode, 0);
+    InputField.sendKey(0, keycode, 0);
     break;
   }
 }
@@ -172,9 +125,10 @@ function sendKey(keycode) {
 function resizeWindow() {
   window.resizeTo(window.innerWidth, keyboardContainer.clientHeight);
 
-  for (var pagename in layout.pages) {
+  for (var pagename in pageviews) {
     // XXX: modify this to handle page layout variants
-    layout.pages[pagename].defaultLayout.setKeySizes();
+    // XXX: PageView object now, and method is layout()
+    pageviews[pagename].resize();
   }
 }
 

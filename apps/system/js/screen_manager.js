@@ -101,6 +101,7 @@ var ScreenManager = {
   init: function scm_init() {
     window.addEventListener('sleep', this);
     window.addEventListener('wake', this);
+    window.addEventListener('requestshutdown', this);
 
     this.screen = document.getElementById('screen');
 
@@ -274,6 +275,13 @@ var ScreenManager = {
         window.removeEventListener('will-unlock', this);
         window.removeEventListener('lockpanelchange', this);
         this._setIdleTimeout(this._idleTimeout, false);
+        break;
+
+      case 'requestshutdown':
+        this.turnScreenOn();
+        if (evt.detail && evt.detail.startPowerOff) {
+          evt.detail.startPowerOff(false);
+        }
         break;
     }
   },

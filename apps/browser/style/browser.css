@@ -306,7 +306,7 @@ input[type="image"] {
   text-indent: -1000em;
   background-repeat: no-repeat;
   background-position: center center;
-  background-size: 2.4rem;
+  background-size: 3.2rem;
 }
 
 #ssl-indicator[value=secure] {
@@ -337,6 +337,10 @@ input[type="image"] {
 
 #url-input:invalid {
   box-shadow: none;
+}
+
+#url-input:disabled {
+  color: #000;
 }
 
 menu[type="toolbar"] {

@@ -1,3 +1,5 @@
+'use strict';
+
 /*
  * A KeyboardLayout object represnts a single localization of the keyboard
  * app. In general each language will have its own KeyboardLayout object.
@@ -67,7 +69,7 @@ function KeyboardLayout(config) {
   for (var pagename in config.pages) {
     var pageconfig = config.pages[pagename];  // Page configuration data
 
-    // If the page configuration data is just the string 'inherint',
+    // If the page configuration data is just the string 'inherit',
     // then it is a reference to a pre-defined page.
     if (pageconfig === 'inherit') {
       if (pagename in KeyboardLayout.predefinedPages) {
@@ -140,6 +142,7 @@ KeyboardLayout.predefinedKeys = {
     keycap: '\u00A0',  // non-breaking space
     size: 0,
     keycode: 32,
+    static: true,
     classes: ['specialkey']
   },
   RETURN: {
@@ -148,16 +151,19 @@ KeyboardLayout.predefinedKeys = {
     keycode: 13,
     static: true,
     size: 2,
-    classes: ['symbolfont', 'specialkey']
+    classes: ['symbolfont', 'specialkey'],
+    omitkeyrole: true  // Don't use role=key for this
   },
 
   BACKSPACE: {
     keycmd: 'backspace',
     keycap: '⌫',
     keycode: 8,
+    autorepeat: true,
     static: true,
     size: 0,
-    classes: ['symbolfont', 'specialkey']
+    classes: ['symbolfont', 'specialkey'],
+    omitkeyrole: true  // Don't use role=key for this
   },
 
   SHIFT: {

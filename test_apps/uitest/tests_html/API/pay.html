@@ -3,9 +3,11 @@
   <head>
     <meta charset="utf-8">
     <title>Payment Demo</title>
+    <script type="text/javascript" src="../../js/API/pay.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../style/API.css">
   </head>
   <body>
-    <div style="margin-top:50px">
+    <div>
       (PMPP = Public Mock Payment Provider)
     </div>
     <div>
@@ -13,26 +15,25 @@
     </div>
     <ul>
       <li>
-        <button id="test-pmpp" type=button style="width:100px;height:100px">
+        <button id="test-pmpp" type=button>
           Pay PMPP
         </button>
       </li>
       <li>
-        <button id="tests-invalid" type=button style="width:100px;height:100px">
+        <button id="tests-invalid" type=button>
           Pay with invalid JWT
         </button>
       </li>
       <li>
-        <button id="test-nojwt" type=button style="width:100px;height:100px">
+        <button id="test-nojwt" type=button>
           Pay with no JWT
         </button>
       </li>
       <li>
-        <button id="test-repeated" type=button style="width:100px;height:100px">
+        <button id="test-repeated" type=button>
           Pay with repeated Mock JWT
         </button>
       </li>
     </ul>
-    <script type="text/javascript" src="../../js/API/pay.js"></script>
   </body>
 </html>
