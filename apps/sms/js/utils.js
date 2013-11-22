@@ -247,6 +247,10 @@
     probablyMatches: function ut_probablyMatches(a, b) {
       var service = navigator.mozPhoneNumberService;
 
+      if (typeof a !== 'string' || typeof b !== 'string') {
+        return false;
+      }
+
       if (service && service.normalize) {
         a = service.normalize(a);
         b = service.normalize(b);
