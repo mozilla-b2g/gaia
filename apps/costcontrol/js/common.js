@@ -81,7 +81,6 @@ function resetData(onsuccess, onerror) {
                                           .clearStats(currentSimcardInterface);
   }
 
-  // onError launcher
   var getOnErrorFor = function(networkInterface) {
     return function() {
       wifiClearRequest.onerror = undefined;
@@ -306,12 +305,12 @@ var Common = {
       var header = _('data-usage');
       var msg = _('loading-interface-data');
       this.modalAlert(header + '\n' + msg);
+      return;
     }
 
     if (Common.allNetworkInterfaces) {
       return Common.allNetworkInterfaces.find(findFunction);
     }
-    return;
   },
 
   getCurrentSIMInterface: function _getCurrentSIMInterface() {
@@ -325,7 +324,7 @@ var Common = {
       };
       return this.getInterface(findCurrentInterface);
     }
-    return;
+    return undefined;
   },
 
   getWifiInterface: function _getWifiInterface() {

@@ -481,6 +481,7 @@ var CostControl = (function() {
         airplaneMode = value;
       }
     );
+    Common.loadNetworkInterfaces();
   }
 
   return {

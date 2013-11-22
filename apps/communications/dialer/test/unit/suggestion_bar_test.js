@@ -7,7 +7,7 @@ requireApp('communications/dialer/test/unit/mock_keypad.js');
 
 requireApp('communications/dialer/js/suggestion_bar.js');
 requireApp('communications/shared/js/simple_phone_matcher.js');
-
+requireApp('communications/dialer/test/unit/mock_fb_data_reader.js');
 
 var mocksHelperForSuggestionBar = new MocksHelper([
   'Contacts',
@@ -16,8 +16,20 @@ var mocksHelperForSuggestionBar = new MocksHelper([
   'KeypadManager'
 ]).init();
 
+var realFbContacts;
+
+if (!this.fb) {
+  this.fb = null;
+}
+
 suite('suggestion Bar', function() {
   mocksHelperForSuggestionBar.attachTestHelpers();
+
+  suiteSetup(function() {
+    window.fb = window.fb || {};
+    realFbContacts = window.fb.contacts;
+    window.fb.contacts = MockFbContacts;
+  });
 
   var domSuggestionBar;
   var domSuggestionCount;
@@ -65,6 +77,24 @@ suite('suggestion Bar', function() {
           value: '12340000' }]
 
     }];
+
+  var mockResultFb = [{
+    id: '000000',
+    name: ['William'],
+    tel: [
+      { type: 'mobile',
+        value: '12349999' }
+    ]
+  },
+  {
+    id: '000001',
+    name: ['Jack'],
+    tel: [
+      { type: 'mobile',
+        value: '12341111' }
+    ]
+  }];
+
 
   var triggerEvent = function(element, eventName) {
     var event = document.createEvent('HTMLEvents');
@@ -141,6 +171,60 @@ suite('suggestion Bar', function() {
     assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
   });
 
+  test('#update suggestions by contact data - 0 local data - 1 FB data',
+    function() {
+      var mockNumber = '12349999';
+      var enteredNumber = '1234';
+      var tel = domSuggestionBar.querySelector('.tel');
+
+      MockContacts.mResult = [];
+      MockFbContacts.mResult = mockResultFb.slice(0, 1);
+      subject.update(enteredNumber);
+
+      assert.equal(tel.textContent, mockNumber,
+                  'should got number 12349999 from Facebook');
+      assert.isFalse(domSuggestionCount.classList.contains('more'),
+                  '#suggestion-count should not contain "more" style');
+      assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+
+      assert.equal(SuggestionBar._contactList.length, 1,
+                   '_contactList.length should be 1');
+  });
+
+  test('#update suggestions by contact data - 1 local data - 1 FB data',
+    function() {
+      var mockNumber = '1234567890';
+      var enteredNumber = '1234';
+      var tel = domSuggestionBar.querySelector('.tel');
+
+      MockContacts.mResult = mockResult1;
+      MockFbContacts.mResult = mockResultFb.slice(0, 1);
+      subject.update(enteredNumber);
+
+      assert.equal(tel.textContent, mockNumber,
+                  'should got number 1234567890 from mozContact');
+      assert.isTrue(domSuggestionCount.classList.contains('more'),
+                  '#suggestion-count should contain "more" style');
+      assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+  });
+
+  test('#update suggestions by contact data - 0 local data - 2 FB data',
+    function() {
+      var mockNumber = '12349999';
+      var enteredNumber = '1234';
+      var tel = domSuggestionBar.querySelector('.tel');
+
+      MockContacts.mResult = [];
+      MockFbContacts.mResult = mockResultFb;
+      subject.update(enteredNumber);
+
+      assert.equal(tel.textContent, mockNumber,
+                  'should got number 12349999 from Facebook');
+      assert.isTrue(domSuggestionCount.classList.contains('more'),
+                  '#suggestion-count should contain "more" style');
+      assert.isFalse(domSuggestionBar.hidden, 'should show suggestionBar');
+  });
+
   test('#clear suggestions', function() {
     var tel = domSuggestionBar.querySelector('.tel');
 
@@ -204,5 +288,9 @@ suite('suggestion Bar', function() {
   teardown(function() {
     document.body.removeChild(domSuggestionBar);
     document.body.removeChild(domOverlay);
+  });
+
+  suiteTeardown(function() {
+    window.fb.contacts = realFbContacts;
   });
 });

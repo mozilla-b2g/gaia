@@ -18,7 +18,7 @@
       "launch_path": "/index.html#en",
       "name": "English",
       "description": "English layout",
-      "types": ["text", "url", "number"]
+      "types": ["text", "url", "email"]
     }
   }
 }

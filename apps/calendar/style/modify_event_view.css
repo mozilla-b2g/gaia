@@ -57,7 +57,7 @@
 
 #modify-event-view li.allday,
 #modify-event-view h3 {
-  padding: 0 1.5rem;
+  padding: 0 0 0 1.5rem;
   position: relative;
   font-size: 1.9rem;
   line-height: 3rem;
@@ -65,14 +65,11 @@
 }
 
 #modify-event-view li.allday > label {
-  position: absolute;
-  top: 0;
-  left: 0;
   height: 100%;
   width: 100%;
 }
 
-#modify-event-view li.allday > label > span {
+#modify-event-view li.allday > label > span:after {
   left: auto;
   right: 0;
 }

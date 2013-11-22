@@ -2,7 +2,7 @@
 
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 requireApp('system/shared/test/unit/mocks/mock_mobile_operator.js');
-requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connection.js');
+requireApp('system/shared/test/unit/mocks/mock_navigator_moz_mobile_connections.js');
 requireApp('system/shared/test/unit/mocks/mock_icc_helper.js');
 requireApp('system/test/unit/mock_l10n.js');
 requireApp('system/test/unit/mock_navigator_moz_telephony.js');
@@ -18,23 +18,27 @@ var mocksForStatusBar = new MocksHelper([
 ]).init();
 
 suite('system/Statusbar', function() {
+  var mobileConnectionCount = 2;
   var fakeStatusBarNode;
-
-  var realMozL10n, realMozMobileConnection, realMozTelephony, fakeIcons = [];
+  var realMozL10n, realMozMobileConnections, realMozTelephony, fakeIcons = [];
 
   mocksForStatusBar.attachTestHelpers();
   suiteSetup(function() {
+    for (var i = 1; i < mobileConnectionCount; i++) {
+      MockNavigatorMozMobileConnections.mAddMobileConnection();
+    }
+
     realMozL10n = navigator.mozL10n;
     navigator.mozL10n = MockL10n;
-    realMozMobileConnection = navigator.mozMobileConnection;
-    navigator.mozMobileConnection = MockNavigatorMozMobileConnection;
+    realMozMobileConnections = navigator.mozMobileConnections;
+    navigator.mozMobileConnections = MockNavigatorMozMobileConnections;
     realMozTelephony = navigator.mozTelephony;
     navigator.mozTelephony = MockNavigatorMozTelephony;
   });
 
   suiteTeardown(function() {
     navigator.mozL10n = realMozL10n;
-    navigator.mozMobileConnection = realMozMobileConnection;
+    navigator.mozMobileConnections = realMozMobileConnections;
     navigator.mozTelephony = realMozTelephony;
   });
 
@@ -59,11 +63,31 @@ suite('system/Statusbar', function() {
 
     // executing init again
     StatusBar.init();
+
+    var signalElements = document.querySelectorAll('.statusbar-signal');
+    var dataElements = document.querySelectorAll('.statusbar-data');
+
+    fakeIcons.signals = {};
+    Array.prototype.slice.call(signalElements).forEach(function(signal, index) {
+      fakeIcons.signals[mobileConnectionCount - index - 1] = signal;
+    });
+    fakeIcons.data = {};
+    Array.prototype.slice.call(dataElements).forEach(function(data, index) {
+      fakeIcons.data[mobileConnectionCount - index - 1] = data;
+    });
   });
   teardown(function() {
     fakeStatusBarNode.parentNode.removeChild(fakeStatusBarNode);
     MockNavigatorMozTelephony.mTeardown();
-    MockNavigatorMozMobileConnection.mTeardown();
+    MockNavigatorMozMobileConnections.mTeardown();
+  });
+
+  suite('init', function() {
+    test('signal and data icons are created correctly', function() {
+      assert.equal(Object.keys(fakeIcons.signals).length,
+        mobileConnectionCount);
+      assert.equal(Object.keys(fakeIcons.data).length, mobileConnectionCount);
+    });
   });
 
   suite('system-downloads', function() {
@@ -199,566 +223,642 @@ suite('system/Statusbar', function() {
   });
 
   suite('signal icon', function() {
-    var dataset;
-    setup(function() {
-      dataset = fakeIcons.signal.dataset;
-    });
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      (function(slotIndex) {
+        suite('slot: ' + slotIndex, function() {
+          var dataset;
+          setup(function() {
+            dataset = fakeIcons.signals[slotIndex].dataset;
+          });
 
-    test('no network without sim, not searching', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: null,
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('no network without sim, not searching', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: null,
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'absent';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'absent';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.notEqual(dataset.emergency, 'true');
-      assert.isUndefined(dataset.level);
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.notEqual(dataset.emergency, 'true');
+            assert.isUndefined(dataset.level);
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('no network without sim, searching', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: null,
-        emergencyCallsOnly: false,
-        state: 'searching',
-        roaming: false,
-        network: {}
-      };
+          test('no network without sim, searching', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: null,
+              emergencyCallsOnly: false,
+              state: 'searching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'absent';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'absent';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.notEqual(dataset.emergency, 'true');
-      assert.isUndefined(dataset.level);
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.notEqual(dataset.emergency, 'true');
+            assert.isUndefined(dataset.level);
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('no network with sim', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: null,
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('no network with sim', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: null,
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'pinRequired';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'pinRequired';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.notEqual(dataset.emergency, 'true');
-      assert.equal(dataset.level, -1);
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.notEqual(dataset.emergency, 'true');
+            assert.equal(dataset.level, -1);
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('searching', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: null,
-        emergencyCallsOnly: false,
-        state: 'searching',
-        roaming: false,
-        network: {}
-      };
+          test('searching', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: null,
+              emergencyCallsOnly: false,
+              state: 'searching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'ready';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'ready';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.notEqual(dataset.emergency, 'true');
-      assert.equal(dataset.level, -1);
-      assert.equal(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.notEqual(dataset.emergency, 'true');
+            assert.equal(dataset.level, -1);
+            assert.equal(dataset.searching, 'true');
+          });
 
-    test('emergency calls only, no sim', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 80,
-        emergencyCallsOnly: true,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('emergency calls only, no sim', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 80,
+              emergencyCallsOnly: true,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'absent';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'absent';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.notEqual(dataset.emergency, 'true');
-      assert.isUndefined(dataset.level);
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.notEqual(dataset.emergency, 'true');
+            assert.isUndefined(dataset.level);
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('emergency calls only, with sim', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 80,
-        emergencyCallsOnly: true,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('emergency calls only, with sim', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 80,
+              emergencyCallsOnly: true,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'pinRequired';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'pinRequired';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.equal(dataset.emergency, 'true');
-      assert.equal(dataset.level, '-1');
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.equal(dataset.emergency, 'true');
+            assert.equal(dataset.level, '-1');
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('emergency calls only, in call', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 80,
-        emergencyCallsOnly: true,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('emergency calls only, in call', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 80,
+              emergencyCallsOnly: true,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'pinRequired';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'pinRequired';
+            IccHelper.mProps['iccInfo'] = {};
 
-      MockNavigatorMozTelephony.active = {
-        state: 'connected'
-      };
+            MockNavigatorMozTelephony.active = {
+              state: 'connected'
+            };
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.equal(dataset.level, 4);
-      assert.notEqual(dataset.emergency, 'true');
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.equal(dataset.level, 4);
+            assert.notEqual(dataset.emergency, 'true');
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('emergency calls only, dialing', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 80,
-        emergencyCallsOnly: true,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('emergency calls only, dialing', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 80,
+              emergencyCallsOnly: true,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'pinRequired';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'pinRequired';
+            IccHelper.mProps['iccInfo'] = {};
 
-      MockNavigatorMozTelephony.active = {
-        state: 'dialing'
-      };
+            MockNavigatorMozTelephony.active = {
+              state: 'dialing'
+            };
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.equal(dataset.level, 4);
-      assert.notEqual(dataset.emergency, 'true');
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.equal(dataset.level, 4);
+            assert.notEqual(dataset.emergency, 'true');
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('emergency calls, passing a call', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 80,
-        emergencyCallsOnly: true,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('emergency calls, passing a call', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 80,
+              emergencyCallsOnly: true,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'pinRequired';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'pinRequired';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      var activeCall = {
-        state: 'dialing'
-      };
+            var activeCall = {
+              state: 'dialing'
+            };
 
-      MockNavigatorMozTelephony.active = activeCall;
-      MockNavigatorMozTelephony.calls = [activeCall];
+            MockNavigatorMozTelephony.active = activeCall;
+            MockNavigatorMozTelephony.calls = [activeCall];
 
-      var evt = new CustomEvent('callschanged');
-      MockNavigatorMozTelephony.mTriggerEvent(evt);
+            var evt = new CustomEvent('callschanged');
+            MockNavigatorMozTelephony.mTriggerEvent(evt);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.equal(dataset.level, 4);
-      assert.notEqual(dataset.emergency, 'true');
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.equal(dataset.level, 4);
+            assert.notEqual(dataset.emergency, 'true');
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('normal carrier', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: true,
-        relSignalStrength: 80,
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('normal carrier', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: true,
+              relSignalStrength: 80,
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'ready';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'ready';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.equal(dataset.level, 4);
-      assert.notEqual(dataset.emergency, 'true');
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.equal(dataset.level, 4);
+            assert.notEqual(dataset.emergency, 'true');
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('roaming', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: true,
-        relSignalStrength: 80,
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: true,
-        network: {}
-      };
+          test('roaming', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: true,
+              relSignalStrength: 80,
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: true,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'ready';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'ready';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.equal(dataset.roaming, 'true');
-      assert.equal(dataset.level, 4);
-      assert.notEqual(dataset.emergency, 'true');
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.equal(dataset.roaming, 'true');
+            assert.equal(dataset.level, 4);
+            assert.notEqual(dataset.emergency, 'true');
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('emergency calls, roaming', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 80,
-        emergencyCallsOnly: true,
-        state: 'notSearching',
-        roaming: true,
-        network: {}
-      };
+          test('emergency calls, roaming', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 80,
+              emergencyCallsOnly: true,
+              state: 'notSearching',
+              roaming: true,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'ready';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'ready';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
+            StatusBar.update.signal.call(StatusBar);
 
-      assert.notEqual(dataset.roaming, 'true');
-      assert.equal(dataset.level, -1);
-      assert.equal(dataset.emergency, 'true');
-      assert.notEqual(dataset.searching, 'true');
-    });
+            assert.notEqual(dataset.roaming, 'true');
+            assert.equal(dataset.level, -1);
+            assert.equal(dataset.emergency, 'true');
+            assert.notEqual(dataset.searching, 'true');
+          });
 
-    test('emergency calls, avoid infinite callback loop', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 80,
-        emergencyCallsOnly: true,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('emergency calls, avoid infinite callback loop', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 80,
+              emergencyCallsOnly: true,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'pinRequired';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'pinRequired';
+            IccHelper.mProps['iccInfo'] = {};
 
-      var mockTel = MockNavigatorMozTelephony;
+            var mockTel = MockNavigatorMozTelephony;
 
-      StatusBar.update.signal.call(StatusBar);
-      assert.equal(mockTel.mCountEventListener('callschanged', StatusBar), 1);
+            StatusBar.update.signal.call(StatusBar);
+            assert.equal(mockTel.mCountEventListener('callschanged',
+                                                     StatusBar), 1);
 
-      // Bug 880390: On B2G18 adding a 'callschanged' listener can trigger
-      // another event immediately.  To avoid an infinite loop, the listener
-      // must only be added once.  Simulate this immediate event here and then
-      // check that we still only have one listener.
+            // Bug 880390: On B2G18 adding a 'callschanged' listener can trigger
+            // another event immediately.  To avoid an infinite loop, the
+            // listener must only be added once.  Simulate this immediate event
+            // here and then check that we still only have one listener.
 
-      var evt = new CustomEvent('callschanged');
-      mockTel.mTriggerEvent(evt);
-      assert.equal(mockTel.mCountEventListener('callschanged', StatusBar), 1);
-    });
+            var evt = new CustomEvent('callschanged');
+            mockTel.mTriggerEvent(evt);
+            assert.equal(mockTel.mCountEventListener('callschanged',
+                                                     StatusBar), 1);
+          });
 
-    test('EVDO connection, show data call signal strength', function() {
-      MockNavigatorMozMobileConnection.voice = {
-        connected: false,
-        relSignalStrength: 0,
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+          test('EVDO connection, show data call signal strength', function() {
+            MockNavigatorMozMobileConnections[slotIndex].voice = {
+              connected: false,
+              relSignalStrength: 0,
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      MockNavigatorMozMobileConnection.data = {
-        connected: true,
-        relSignalStrength: 80,
-        type: 'evdo',
-        emergencyCallsOnly: false,
-        state: 'notSearching',
-        roaming: false,
-        network: {}
-      };
+            MockNavigatorMozMobileConnections[slotIndex].data = {
+              connected: true,
+              relSignalStrength: 80,
+              type: 'evdo',
+              emergencyCallsOnly: false,
+              state: 'notSearching',
+              roaming: false,
+              network: {}
+            };
 
-      IccHelper.mProps['cardState'] = 'ready';
-      IccHelper.mProps['iccInfo'] = {};
+            IccHelper.mProps['cardState'] = 'ready';
+            IccHelper.mProps['iccInfo'] = {};
 
-      StatusBar.update.signal.call(StatusBar);
-      assert.equal(dataset.level, 4);
-    });
-  }),
+            StatusBar.update.signal.call(StatusBar);
+            assert.equal(dataset.level, 4);
+          });
+        });
+      })(i);
+    }
+  });
 
   suite('data connection', function() {
-    suite('data connection unavailable', function() {
-      teardown(function() {
-        StatusBar.settingValues = {};
-      });
+    for (var i = 0; i < mobileConnectionCount; i++) {
+      (function(slotIndex) {
+        suite('slot: ' + slotIndex, function() {
+          suite('data connection unavailable', function() {
+            teardown(function() {
+              StatusBar.settingValues = {};
+            });
 
-      test('radio disabled', function() {
-        StatusBar.settingValues['ril.radio.disabled'] = true;
-        StatusBar.update.data.call(StatusBar);
-        assert.isTrue(StatusBar.icons.data.hidden);
-      });
+            test('radio disabled', function() {
+              StatusBar.settingValues['ril.radio.disabled'] = true;
+              StatusBar.update.data.call(StatusBar);
+              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+            });
 
-      test('data disabled', function() {
-        StatusBar.settingValues['ril.data.enabled'] = false;
-        StatusBar.update.data.call(StatusBar);
-        assert.isTrue(StatusBar.icons.data.hidden);
-      });
+            test('data disabled', function() {
+              StatusBar.settingValues['ril.data.enabled'] = false;
+              StatusBar.update.data.call(StatusBar);
+              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+            });
 
-      test('data not connected', function() {
-        MockNavigatorMozMobileConnection.data = { connected: false };
-        StatusBar.update.data.call(StatusBar);
-        assert.isTrue(StatusBar.icons.data.hidden);
-      });
+            test('data not connected', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data =
+                { connected: false };
+              StatusBar.update.data.call(StatusBar);
+              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+            });
 
-      test('wifi icon is displayed', function() {
-        StatusBar.icons.wifi.hidden = false;
-        StatusBar.update.data.call(StatusBar);
-        assert.isTrue(StatusBar.icons.data.hidden);
-      });
-    });
+            test('wifi icon is displayed', function() {
+              StatusBar.icons.wifi.hidden = false;
+              StatusBar.update.data.call(StatusBar);
+              assert.isTrue(StatusBar.icons.data[slotIndex].hidden);
+            });
+          });
 
-    suite('data connection available', function() {
-      setup(function() {
-        StatusBar.settingValues['ril.radio.disabled'] = false;
-        StatusBar.settingValues['ril.data.enabled'] = true;
-        StatusBar.icons.wifi.hidden = true;
-      });
+          suite('data connection available', function() {
+            setup(function() {
+              StatusBar.settingValues['ril.radio.disabled'] = false;
+              StatusBar.settingValues['ril.data.enabled'] = true;
+              StatusBar.icons.wifi.hidden = true;
+            });
 
-      teardown(function() {
-        StatusBar.settingValues = {};
-      });
+            teardown(function() {
+              StatusBar.settingValues = {};
+            });
 
-      test('type lte', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'lte'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, '4G');
-      });
+            test('type lte', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'lte'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '4G');
+            });
 
-      // GSM
-      test('type hspa+', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'hspa+'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, 'H+');
-      });
+            // GSM
+            test('type hspa+', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'hspa+'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H+');
+            });
 
-      test('type hsdpa', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'hsdpa'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, 'H');
-      });
+            test('type hsdpa', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'hsdpa'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+            });
 
-      test('type hsupa', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'hsupa'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, 'H');
-      });
+            test('type hsupa', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'hsupa'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+            });
 
-      test('type hspa', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'hspa'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, 'H');
-      });
+            test('type hspa', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'hspa'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'H');
+            });
 
-      test('type umts', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'umts'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, '3G');
-      });
+            test('type umts', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'umts'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '3G');
+            });
 
-      test('type edge', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'edge'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, 'E');
-      });
+            test('type edge', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'edge'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, 'E');
+            });
 
-      test('type gprs', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'gprs'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, '2G');
-      });
+            test('type gprs', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'gprs'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '2G');
+            });
 
-      // CDMA
-      test('type 1xrtt', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: '1xrtt'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, '1x');
-      });
+            // CDMA
+            test('type 1xrtt', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: '1xrtt'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+            });
 
-      test('type is95a', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'is95a'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, '1x');
-      });
+            test('type is95a', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'is95a'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+            });
 
-      test('type is95b', function() {
-        MockNavigatorMozMobileConnection.data = {
-          connected: true,
-          type: 'is95b'
-        };
-        StatusBar.update.data.call(StatusBar);
-        assert.equal(StatusBar.icons.data.textContent, '1x');
-      });
+            test('type is95b', function() {
+              MockNavigatorMozMobileConnections[slotIndex].data = {
+                connected: true,
+                type: 'is95b'
+              };
+              StatusBar.update.data.call(StatusBar);
+              assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+            });
 
-      // CDMA related to calls
-      suite('ehrpd, evdo0, evdoa, evdob when there is a call', function() {
-        test('type ehrpd', function() {
-          MockNavigatorMozTelephony.calls = [{}];
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'ehrpd'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, '');
+            // CDMA related to calls
+            suite('CDMA network types when there is a call',
+              function() {
+                test('type ehrpd', function() {
+                  MockNavigatorMozTelephony.calls = [{}];
+                  MockNavigatorMozMobileConnections[slotIndex].data = {
+                    connected: true,
+                    type: 'ehrpd'
+                  };
+                  StatusBar.update.data.call(StatusBar);
+                  assert.equal(StatusBar.icons.data[slotIndex].textContent,
+                               '4G');
+              });
+
+              test('type evdo0', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'evdo0'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+
+              test('type evdoa', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'evdoa'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+
+              test('type evdob', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'evdob'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+
+              test('type 1xrtt', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: '1xrtt'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+
+              test('type is95a', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95a'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+
+              test('type is95b', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95b'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+            });
+
+            suite('CDMA network types when there is no call',
+              function() {
+                test('type ehrpd', function() {
+                  MockNavigatorMozMobileConnections[slotIndex].data = {
+                    connected: true,
+                    type: 'ehrpd'
+                  };
+                  StatusBar.update.data.call(StatusBar);
+                  assert.equal(StatusBar.icons.data[slotIndex].textContent,
+                               '4G');
+              });
+
+              test('type evdo0', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'evdo0'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
+              });
+
+              test('type evdoa', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'evdoa'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
+              });
+
+              test('type evdob', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'evdob'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
+              });
+
+              test('type 1xrtt', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: '1xrtt'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+              });
+
+              test('type is95a', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95a'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+              });
+
+              test('type is95b', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95b'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+              });
+            });
+          });
         });
-
-        test('type evdo0', function() {
-          MockNavigatorMozTelephony.calls = [{}];
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'evdo0'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, '');
-        });
-
-        test('type evdoa', function() {
-          MockNavigatorMozTelephony.calls = [{}];
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'evdoa'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, '');
-        });
-
-        test('type evdob', function() {
-          MockNavigatorMozTelephony.calls = [{}];
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'evdob'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, '');
-        });
-      });
-
-      suite('ehrpd, evdo0, evdoa, evdob when there is no call', function() {
-        test('type ehrpd', function() {
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'ehrpd'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, '4G');
-        });
-
-        test('type evdo0', function() {
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'evdo0'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, 'Ev');
-        });
-
-        test('type evdoa', function() {
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'evdoa'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, 'Ev');
-        });
-
-        test('type evdob', function() {
-          MockNavigatorMozMobileConnection.data = {
-            connected: true,
-            type: 'evdob'
-          };
-          StatusBar.update.data.call(StatusBar);
-          assert.equal(StatusBar.icons.data.textContent, 'Ev');
-        });
-      });
-    });
-  }),
+      })(i);
+    }
+  });
 
   suite('operator name', function() {
     setup(function() {
-      MockNavigatorMozMobileConnection.voice = {
+      MockNavigatorMozMobileConnections[0].voice = {
         connected: true,
         network: {
           shortName: 'Fake short',
@@ -776,20 +876,53 @@ suite('system/Statusbar', function() {
       };
     });
 
-    test('Connection without region', function() {
-      MockMobileOperator.mOperator = 'Orange';
-      var evt = new CustomEvent('iccinfochange');
-      StatusBar.handleEvent(evt);
-      assert.include(fakeIcons.label.textContent, 'Orange');
+    suite('single sim', function() {
+      var conn;
+      suiteSetup(function() {
+        conn = MockNavigatorMozMobileConnections[1];
+        MockNavigatorMozMobileConnections.mRemoveMobileConnection(1);
+      });
+      suiteTeardown(function() {
+        MockNavigatorMozMobileConnections.mAddMobileConnection(conn, 1);
+      });
+
+      test('Connection without region', function() {
+        MockMobileOperator.mOperator = 'Orange';
+        var evt = new CustomEvent('iccinfochange');
+        StatusBar.handleEvent(evt);
+        var label_content = fakeIcons.label.textContent;
+        assert.include(label_content, 'Orange');
+      });
+
+      test('Connection with region', function() {
+        MockMobileOperator.mOperator = 'Orange';
+        MockMobileOperator.mRegion = 'PR';
+        var evt = new CustomEvent('iccinfochange');
+        StatusBar.handleEvent(evt);
+        var label_content = fakeIcons.label.textContent;
+        assert.include(label_content, 'Orange');
+        assert.include(label_content, 'PR');
+      });
     });
-    test('Connection with region', function() {
-      MockMobileOperator.mOperator = 'Orange';
-      MockMobileOperator.mRegion = 'PR';
-      var evt = new CustomEvent('iccinfochange');
-      StatusBar.handleEvent(evt);
-      var label_content = fakeIcons.label.textContent;
-      assert.include(label_content, 'Orange');
-      assert.include(label_content, 'PR');
+
+    suite('multiple sims', function() {
+      test('Connection without region', function() {
+        MockMobileOperator.mOperator = 'Orange';
+        var evt = new CustomEvent('iccinfochange');
+        StatusBar.handleEvent(evt);
+        var label_content = fakeIcons.label.textContent;
+        assert.equal(-1, label_content.indexOf('Orange'));
+      });
+
+      test('Connection with region', function() {
+        MockMobileOperator.mOperator = 'Orange';
+        MockMobileOperator.mRegion = 'PR';
+        var evt = new CustomEvent('iccinfochange');
+        StatusBar.handleEvent(evt);
+        var label_content = fakeIcons.label.textContent;
+        assert.equal(-1, label_content.indexOf('Orange'));
+        assert.equal(-1, label_content.indexOf('PR'));
+      });
     });
   });
 

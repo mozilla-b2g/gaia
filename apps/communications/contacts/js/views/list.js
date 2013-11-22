@@ -345,6 +345,7 @@ contacts.List = (function() {
     // Create the DOM for the group list
     var letteredSection = document.createElement('section');
     letteredSection.id = 'section-group-' + group;
+    letteredSection.className = 'group-section';
     var title = document.createElement('header');
     title.id = 'group-' + group;
     title.className = 'hide';
@@ -822,22 +823,39 @@ contacts.List = (function() {
     return !!photosById[id];
   };
 
+  // Utility function to manage the dataset-src URL for images.  Its important
+  // to only modify this attribute from this function in order to ensure that
+  // the URLs are properly revoked.
+  function setImageURL(img, photo) {
+    var oldURL = img.dataset.src;
+    if (oldURL) {
+      window.URL.revokeObjectURL(oldURL);
+      img.dataset.src = '';
+    }
+    if (photo) {
+      try {
+        img.dataset.src = window.URL.createObjectURL(photo);
+      } catch (err) {
+        // Warn, but do nothing else.  We cleared the old URL above.
+        console.warn('Failed to create URL for contacts image blob: ' + photo +
+                     ', error: ' + err);
+      }
+    }
+  }
+
   // "Render" the photo by setting the img tag's dataset-src attribute to the
   // value in our photo cache.  This in turn will allow the imgLoader to load
   // the image once we have stopped scrolling.
   var renderPhoto = function renderPhoto(link, id) {
     id = id || link.dataset.uuid;
     var photo = photosById[id];
-    if (!photo)
+    if (!photo) {
       return;
+    }
 
     var img = link.querySelector('aside > img');
     if (img) {
-      try {
-        img.dataset.src = window.URL.createObjectURL(photo);
-      } catch (err) {
-        img.dataset.src = '';
-      }
+      setImageURL(img, photo);
       return;
     }
     if (!photoTemplate) {
@@ -849,11 +867,7 @@ contacts.List = (function() {
 
     var figure = photoTemplate.cloneNode(true);
     var img = figure.children[0];
-    try {
-      img.dataset.src = window.URL.createObjectURL(photo);
-    } catch (err) {
-      img.dataset.src = '';
-    }
+    setImageURL(img, photo);
 
     link.insertBefore(figure, link.children[0]);
     return;
@@ -863,14 +877,16 @@ contacts.List = (function() {
   // however, so the image can be reloaded later.
   var releasePhoto = function releasePhoto(el) {
     // If the imgLoader isn't ready yet, we should have nothing to release
-    if (!imgLoader)
+    if (!imgLoader) {
       return;
+    }
 
     var img = imgLoader.releaseImage(el);
-    if (!img)
+    if (!img) {
       return;
+    }
 
-    img.dataset.src = '';
+    setImageURL(img, null);
   };
 
   var renderOrg = function renderOrg(contact, link, add) {
