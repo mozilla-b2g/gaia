@@ -1,7 +1,41 @@
-/*global asyncStorage */
+/*global asyncStorage, Utils, isEqual */
 (function(exports) {
   'use strict';
   var draftIndex = new Map();
+
+  /**
+   * Checks if two drafts are distinct based on
+   * the equality of the following fields:
+   *
+   * recipients
+   * content
+   * subject
+   *
+   * @param {Draft} a draft to check
+   * @param {Draft} b draft to check
+   *
+   * @return {Boolean} true if the drafts differ on those fields
+   */
+  function isDistinct(a, b) {
+    if (!a || !b) {
+      // if either or both are null
+      return true;
+    } else {
+      // if any recipient doesn't match
+      if (a.recipients.length !== b.recipients.length) {
+        return true;
+      } else {
+        for (var i = 0; i < a.recipients.length; i++) {
+          if (!Utils.probablyMatches(a.recipients[i], b.recipients[i])) {
+            return true;
+          }
+        }
+      }
+      // else check whether content or subject match
+      return !isEqual(a.content, b.content) ||
+        a.subject !== b.subject;
+    }
+  }
 
   /**
    * Drafts
@@ -31,14 +65,23 @@
     add: function(draft) {
       var id;
       var thread;
+      var stored;
+
       if (draft) {
         if (!(draft instanceof Draft)) {
           draft = new Draft(draft);
         }
         id = draft.threadId || null;
         thread = draftIndex.get(id) || [];
-        thread.push(draft);
-        draftIndex.set(id, thread);
+        stored = thread[thread.length > 1 ? thread.length - 1 : 0];
+
+        // If the new draft is distinct from the stored one
+        // then push and save a new draft
+        if (isDistinct(stored, draft)) {
+          thread.push(draft);
+          draftIndex.set(id, thread);
+          this.store();
+        }
       }
       return this;
     },
@@ -175,6 +218,7 @@
     var draft = opts || {};
     this.recipients = draft.recipients || [];
     this.content = draft.content || [];
+    this.subject = draft.subject || '';
     this.timestamp = +draft.timestamp || Date.now();
     this.threadId = draft.threadId || null;
     this.type = draft.type;

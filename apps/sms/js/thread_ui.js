@@ -768,7 +768,12 @@ var ThreadUI = global.ThreadUI = {
         window.location.hash = '#thread-list';
       }).bind(this);
 
-      if (Compose.isEmpty()) {
+      // TODO Add comment about assimilation above on line #183?
+      // Need to assimilate recipients in order to check if any entered
+      this.assimilateRecipients();
+
+      if (Compose.isEmpty() && this.recipients.length === 0) {
+        // TODO Also check for empty subject
         discard();
         return;
       }
@@ -778,14 +783,7 @@ var ThreadUI = global.ThreadUI = {
           {
             l10nId: 'save-as-draft',
             method: function onsave() {
-              // When Draft saving is implemented,
-              // update this handler to perform that operation.
-              var recipients = this.recipients.numbers;
-              var content = Compose.getContent();
-              var timestamp = Date.now();
-
-              console.log( recipients, content );
-
+              this.saveMessageDraft();
               discard();
             }.bind(this)
           },
@@ -2488,6 +2486,47 @@ var ThreadUI = global.ThreadUI = {
     if (window.location.hash.substr(0, 8) === '#thread=') {
       ThreadUI.updateHeaderData();
     }
+  },
+
+  saveMessageDraft: function thui_saveMessageDraft() {
+    var draft, recipients, content, timestamp, threadId, type;
+
+    content = Compose.getContent();
+    timestamp = Date.now();
+    type = Compose.type;
+
+    // TODO Also store subject
+
+    if (Threads.active) {
+      recipients = Threads.active.participants;
+      threadId = Threads.currentId;
+    } else {
+      recipients = this.recipients.numbers;
+
+      // Pick out the threadId that matches
+      // all the recipients in this draft.
+      Threads.forEach(function(t) {
+        var p = Threads.get(t.id).participants;
+        for (var i = 0; i < p.length; i++) {
+          if (Utils.probablyMatches(p[i], recipients[i])) {
+            threadId = t.id;
+            break;
+          }
+        }
+      });
+      threadId = threadId || null;
+    }
+
+    var draft = new Draft({
+      recipients: recipients,
+      content: content,
+      timestamp: timestamp,
+      threadId: threadId,
+      type: type
+    });
+
+    Drafts.add(draft);
+
   }
 };
 

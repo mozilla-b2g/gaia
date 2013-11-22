@@ -7,6 +7,7 @@
 
 requireApp('sms/js/utils.js');
 requireApp('sms/js/time_headers.js');
+requireApp('sms/js/drafts.js');
 requireApp('sms/test/unit/utils_mockup.js');
 requireApp('sms/test/unit/mock_messages.js');
 
@@ -663,4 +664,47 @@ suite('message_manager.js >', function() {
     });
 
   });
+
+  suite('onVisibilityChange() >', function() {
+    var isDocumentHidden;
+    var spy;
+
+    suiteSetup(function() {
+      spy = sinon.spy(ThreadUI, 'saveMessageDraft');
+      Object.defineProperty(document, 'hidden', {
+        configurable: true,
+        get: function() {
+          return isDocumentHidden;
+        }
+      });
+    });
+
+    suiteTeardown(function() {
+      delete document.hidden;
+    });
+
+    teardown(function() {
+      isDocumentHidden = false;
+    });
+
+    test('draft save on visibility change from new message', function() {
+      window.location.hash = '#new';
+      isDocumentHidden = true;
+      MessageManager.onVisibilityChange();
+
+      assert.isTrue(spy.calledOnce);
+      assert.equal(ThreadUI.recipients.length, 0);
+    });
+
+    test('draft save on visibility change from thread', function() {
+      window.location.hash = '#thread-1';
+      isDocumentHidden = true;
+      MessageManager.onVisibilityChange();
+
+      assert.isTrue(spy.calledOnce);
+      assert.equal(ThreadUI.recipients.length, 0);
+    });
+
+  });
+
 });

@@ -87,6 +87,11 @@
     clear: function() {
       threads = new Map();
     },
+    forEach: function(callback) {
+      threads.forEach(function(v, k) {
+        callback(v, k);
+      });
+    },
     get size() {
       // support: gecko 18 - size might be a function
       if (typeof threads.size === 'function') {

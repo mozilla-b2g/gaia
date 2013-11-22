@@ -251,35 +251,35 @@
     var d1, d2, d3, d4, d5;
     d1 = new Draft({
       recipients: ['555', '666'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 1,
       threadId: 42,
       type: 'sms'
     });
     d2 = new Draft({
       recipients: ['555'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 2,
       threadId: 42,
       type: 'sms'
     });
     d3 = new Draft({
       recipients: ['555', '222'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 3,
       threadId: 1,
       type: 'sms'
     });
     d4 = new Draft({
       recipients: ['555', '333'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 4,
       threadId: 2,
       type: 'sms'
     });
     d5 = new Draft({
       recipients: ['555', '444'],
-      content: 'This is a draft message',
+      content: ['This is a draft message'],
       timestamp: 5,
       threadId: null,
       type: 'sms'
