@@ -37,14 +37,14 @@ var HomeGesture = {
       return;
     if (enable) {
       this.publish('homegesture-enabled');
-      window.addEventListener('unlock', this);
+      window.addEventListener('will-unlock', this);
       window.addEventListener('lock', this);
       window.addEventListener('utilitytrayshow', this);
       window.addEventListener('utilitytrayhide', this);
       this.homeBar.style.display = 'block';
     } else {
       this.publish('homegesture-disabled');
-      window.removeEventListener('unlock', this);
+      window.removeEventListener('will-unlock', this);
       window.removeEventListener('lock', this);
       window.removeEventListener('utilitytrayshow', this);
       window.removeEventListener('utilitytrayhide', this);
@@ -81,7 +81,7 @@ var HomeGesture = {
       case 'utilitytrayshow':
         this.homeBar.style.display = 'none';
         break;
-      case 'unlock':
+      case 'will-unlock':
       case 'utilitytrayhide':
         this.homeBar.style.display = 'block';
         break;

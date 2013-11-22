@@ -179,6 +179,37 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.setSetting("%s", %s)' % (name, value), special_powers=True)
         assert result, "Unable to change setting with name '%s' to '%s'" % (name, value)
 
+    def _get_pref(self, datatype, name):
+        return self.marionette.execute_script("return SpecialPowers.get%sPref('%s');" % (datatype, name), special_powers=True)
+
+    def _set_pref(self, datatype, name, value):
+        value = json.dumps(value)
+        self.marionette.execute_script("SpecialPowers.set%sPref('%s', %s);" % (datatype, name, value), special_powers=True)
+
+    def get_bool_pref(self, name):
+        """Returns the value of a Gecko boolean pref, which is different from a Gaia setting."""
+        return self._get_pref('Bool', name)
+
+    def set_bool_pref(self, name, value):
+        """Sets the value of a Gecko boolean pref, which is different from a Gaia setting."""
+        return self._set_pref('Bool', name, value)
+
+    def get_int_pref(self, name):
+        """Returns the value of a Gecko integer pref, which is different from a Gaia setting."""
+        return self._get_pref('Int', name)
+
+    def set_int_pref(self, name, value):
+        """Sets the value of a Gecko integer pref, which is different from a Gaia setting."""
+        return self._set_pref('Int', name, value)
+
+    def get_char_pref(self, name):
+        """Returns the value of a Gecko string pref, which is different from a Gaia setting."""
+        return self._get_pref('Char', name)
+
+    def set_char_pref(self, name, value):
+        """Sets the value of a Gecko string pref, which is different from a Gaia setting."""
+        return self._set_pref('Char', name, value)
+
     def set_volume(self, value):
         channels = ['alarm', 'content', 'notification']
         for channel in channels:
@@ -541,21 +572,6 @@ class GaiaTestCase(MarionetteTestCase):
 
         # disable sound completely
         self.data_layer.set_volume(0)
-
-    def install_marketplace(self):
-        _yes_button_locator = (By.ID, 'app-install-install-button')
-        mk = {"name": "Marketplace Dev",
-              "manifest": "https://marketplace-dev.allizom.org/manifest.webapp ",
-              }
-
-        if not self.apps.is_app_installed(mk['name']):
-            # install the marketplace dev app
-            self.marionette.execute_script('navigator.mozApps.install("%s")' % mk['manifest'])
-
-            # TODO add this to the system app object when we have one
-            self.wait_for_element_displayed(*_yes_button_locator)
-            self.marionette.find_element(*_yes_button_locator).tap()
-            self.wait_for_element_not_displayed(*_yes_button_locator)
 
     def connect_to_network(self):
         if not self.device.is_online:

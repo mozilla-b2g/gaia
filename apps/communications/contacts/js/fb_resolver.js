@@ -19,18 +19,20 @@ fb.resolver = function(item, loader) {
         var fbData = fbReq.result;
         if (fbData) {
           var id = item.dataset.uuid;
-
-          if (contacts.List.hasPhoto(id)) {
-            loader.defaultLoad(item);
-          }
-          else if (contacts.List.updatePhoto(fbData, id)) {
-            contacts.List.renderPhoto(item, id);
-            item.dataset.status = 'loaded';
-            document.dispatchEvent(new CustomEvent('onupdate'));
+          var hasPhoto = contacts.List.hasPhoto(id);
+          var renderPhoto = false;
+          if (!hasPhoto) {
+            renderPhoto = contacts.List.updatePhoto(fbData, id);
           }
           else {
-            item.dataset.status = 'loaded';
+            renderPhoto = true;
           }
+          if (renderPhoto) {
+            contacts.List.renderPhoto(item, id);
+            document.dispatchEvent(new CustomEvent('onupdate'));
+          }
+
+          item.dataset.status = 'loaded';
 
           // The organization is also loaded
           var contactObj = EMPTY_OBJ;

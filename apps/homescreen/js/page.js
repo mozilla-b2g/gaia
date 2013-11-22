@@ -631,10 +631,6 @@ function Page(container, icons) {
 
 Page.prototype = {
 
-  // After launching an app we disable the page during <this time> in order to
-  // prevent multiple open-app animations
-  DISABLE_TAP_EVENT_DELAY: 600,
-
   FALLBACK_READY_EVENT_DELAY: 1000,
 
   /*
@@ -827,7 +823,7 @@ Page.prototype = {
           Homescreen.showAppDialog(icon.app);
       }
     } else if ('isIcon' in elem.dataset && this.olist &&
-               !this.olist.getAttribute('disabled')) {
+               !document.body.hasAttribute('disabled-tapping')) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
         return;
@@ -848,16 +844,22 @@ Page.prototype = {
   },
 
   /*
-   * Disables the tap event for the page
-   *
-   * @param{Integer} milliseconds
+   * Disables the tap event for the grid
    */
-  disableTap: function pg_disableTap(icon, time) {
-    var olist = this.olist;
-    olist.setAttribute('disabled', true);
-    setTimeout(function disableTapTimeout() {
-      olist.removeAttribute('disabled');
-    }, time || this.DISABLE_TAP_EVENT_DELAY);
+  disableTap: function pg_disableTap(callback) {
+    document.body.setAttribute('disabled-tapping', true);
+
+    var enableTap = function enableTap() {
+      document.removeEventListener('visibilitychange', enableTap);
+      window.removeEventListener('hashchange', enableTap);
+      document.body.removeAttribute('disabled-tapping');
+    };
+
+    // We are going to enable the tapping feature under these conditions:
+    // 1. The opened app is in foreground
+    document.addEventListener('visibilitychange', enableTap);
+    // 2. Users click on home button quickly while app are opening
+    window.addEventListener('hashchange', enableTap);
   },
 
   /*

@@ -852,6 +852,29 @@ suite('calls handler', function() {
         });
       });
 
+      suite('> toggling a conference call', function() {
+        setup(function() {
+          var firstConfCall = new MockCall('432423', 'incoming');
+          telephonyAddCall.call(this, firstConfCall, {trigger: true});
+          var secondConfCall = new MockCall('432423555', 'incoming');
+          telephonyAddCall.call(this, secondConfCall, {trigger: true});
+
+          MockMozTelephony.calls = [];
+          MockMozTelephony.conferenceGroup.calls = [firstConfCall,
+                                                    secondConfCall];
+
+          MockMozTelephony.active = MockMozTelephony.conferenceGroup;
+          MockMozTelephony.mTriggerCallsChanged();
+        });
+
+        test('should _not_ hold the active conference call', function() {
+          var holdSpy = this.sinon.spy(MockMozTelephony.conferenceGroup,
+                                       'hold');
+          CallsHandler.toggleCalls();
+          assert.isFalse(holdSpy.called);
+        });
+      });
+
       suite('> toggling between 2 calls', function() {
         var extraCall;
 

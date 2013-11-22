@@ -1240,6 +1240,10 @@ ImapConnection.prototype.delBox = function(name, cb) {
   this._send('DELETE', ' "' + escape(name) + '"', cb);
 };
 
+ImapConnection.prototype.noop = function(cb) {
+  this._send('NOOP', '', cb);
+};
+
 ImapConnection.prototype.renameBox = function(oldname, newname, cb) {
   cb = arguments[arguments.length-1];
   if (typeof oldname !== 'string' || oldname.length === 0)

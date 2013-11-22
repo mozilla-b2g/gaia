@@ -56,28 +56,28 @@ var SimPinLock = {
       var enabled = this.checked;
       switch (IccHelper.cardState) {
         case 'pukRequired':
-          pinDialog.show('unlock_puk',
-            function() {
+          pinDialog.show('unlock_puk', {
+            onsuccess: function() {
               // successful unlock puk will be in simcard lock enabled state
               self.simPinCheckBox.checked = true;
               self.updateSimCardStatus();
             },
-            function() {
+            oncancel: function() {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             }
-          );
+          });
           break;
         default:
-          pinDialog.show(enabled ? 'enable_lock' : 'disable_lock',
-            function() {
+          pinDialog.show(enabled ? 'enable_lock' : 'disable_lock', {
+            onsuccess: function() {
               self.updateSimCardStatus();
             },
-            function() {
+            oncancel: function() {
               self.simPinCheckBox.checked = !enabled;
               self.updateSimCardStatus();
             }
-          );
+          });
           break;
       }
     };

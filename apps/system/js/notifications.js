@@ -135,9 +135,20 @@ var NotificationScreen = {
     }
   },
 
+  // TODO: Workaround for bug 929895 until bug 890440 is addressed
+  clearBlacklist: [
+    window.location.protocol + '//wappush.gaiamobile.org/manifest.webapp'
+  ],
+
   handleAppopen: function ns_handleAppopen(evt) {
     var manifestURL = evt.detail.manifestURL,
         selector = '[data-manifest-u-r-l="' + manifestURL + '"]';
+
+    var isBlacklisted = (this.clearBlacklist.indexOf(manifestURL) >= 0);
+
+    if (isBlacklisted) {
+      return;
+    }
 
     var nodes = this.container.querySelectorAll(selector);
 

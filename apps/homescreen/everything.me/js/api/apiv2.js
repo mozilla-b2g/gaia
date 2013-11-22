@@ -118,14 +118,8 @@ Evme.api = new function Evme_api() {
         !options && (options = {});
         
         var url = BASE_URL + method,
-            params = "",
+            params = Evme.Utils.serialize(options),
             httpRequest = new XMLHttpRequest();
-        
-        for (var k in options) {
-            if (typeof options[k] !== "undefined") {
-                params += k + "=" + encodeURIComponent(options[k]) + "&";
-            }
-        }
         
         httpRequest.open("POST", url, true);
         httpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");

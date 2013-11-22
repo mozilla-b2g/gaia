@@ -219,7 +219,10 @@ var ScreenManager = {
 
       case 'callschanged':
         var telephony = window.navigator.mozTelephony;
-        if (!telephony.calls.length) {
+        if (!telephony.calls.length &&
+            !(telephony.conferenceGroup &&
+              telephony.conferenceGroup.calls.length)) {
+
           if (this._screenOffBy == 'proximity') {
             this.turnScreenOn();
           }
@@ -359,18 +362,25 @@ var ScreenManager = {
     // Set the brightness before the screen is on.
     this.setScreenBrightness(this._savedBrightness, instant);
 
-    // If we are in a call and there is no cpuWakeLock,
-    // we would have to get one here.
+    // If we are in a call  or a conference call and there
+    // is no cpuWakeLock, we would get one here.
     var telephony = window.navigator.mozTelephony;
-    if (!this._cpuWakeLock && telephony && telephony.calls.length) {
-      telephony.calls.some(function checkCallConnection(call) {
+    var ongoingConference = telephony && telephony.conferenceGroup &&
+        telephony.conferenceGroup.calls.length;
+    if (!this._cpuWakeLock && telephony &&
+        (telephony.calls.length || ongoingConference)) {
+
+      var connected = telephony.calls.some(function checkCallConnection(call) {
         if (call.state == 'connected') {
-          this._cpuWakeLock = navigator.requestWakeLock('cpu');
-          window.addEventListener('userproximity', this);
           return true;
         }
         return false;
-      }, this);
+      });
+
+      if (connected || ongoingConference) {
+        this._cpuWakeLock = navigator.requestWakeLock('cpu');
+        window.addEventListener('userproximity', this);
+      }
     }
 
     // Actually turn the screen on.

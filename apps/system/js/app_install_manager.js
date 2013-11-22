@@ -207,6 +207,9 @@ var AppInstallManager = {
   },
 
   showInstallSuccess: function ai_showInstallSuccess(app) {
+    if (FtuLauncher.isFtuRunning()) {
+      return;
+    }
     var manifest = app.manifest || app.updateManifest;
     var appManifest = new ManifestHelper(manifest);
     var name = appManifest.name;
@@ -264,6 +267,17 @@ var AppInstallManager = {
     if (typeof inputs !== 'object') {
       console.error('inputs must be an object for ' +
                     'third-party keyboard layouts');
+      this.completedSetupTask();
+      return;
+    }
+
+    // Check permission level is correct
+    var hasInputPermission = (app.manifest.type === 'certified' ||
+                              app.manifest.type === 'privileged') &&
+                             (app.manifest.permissions &&
+                              'input' in app.manifest.permissions);
+    if (!hasInputPermission) {
+      console.error('third-party IME does not have correct input permission');
       this.completedSetupTask();
       return;
     }

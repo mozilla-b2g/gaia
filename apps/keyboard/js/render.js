@@ -198,11 +198,12 @@ const IMERender = (function() {
   };
 
   var showIME = function hm_showIME() {
-    delete this.ime.dataset.hidden;
     this.ime.classList.remove('hide');
+    delete this.ime.dataset.hidden;
   };
 
   var hideIME = function km_hideIME() {
+    this.ime.classList.add('hide');
     this.ime.dataset.hidden = 'true';
   };
 

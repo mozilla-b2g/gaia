@@ -64,7 +64,7 @@ var AttentionScreen = {
 
   toggle: function as_toggle(evt) {
     if (evt.detail.height <= 40) {
-      evt.target.dataset.appRequestedSmallSize = true;
+      evt.target.dataset.appRequestedSmallSize = '';
       this.hide();
     } else {
       this.show();
@@ -243,7 +243,7 @@ var AttentionScreen = {
     // Attention screen now only support portrait mode.
     screen.mozLockOrientation('portrait-primary');
 
-    this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize = false;
+    delete this.attentionScreen.lastElementChild.dataset.appRequestedSmallSize;
 
     // leaving "status-mode".
     this.attentionScreen.classList.remove('status-mode');
@@ -312,7 +312,7 @@ var AttentionScreen = {
     var attentionFrame = this.attentionScreen.lastElementChild;
     // We don't want to reopen the attention screen when the app requested a
     // statusbar attention screen
-    if (attentionFrame.dataset.appRequestedSmallSize) {
+    if (attentionFrame.dataset.hasOwnProperty('appRequestedSmallSize')) {
       return;
     }
 

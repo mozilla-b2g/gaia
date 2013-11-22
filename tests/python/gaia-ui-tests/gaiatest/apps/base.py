@@ -11,6 +11,7 @@ from marionette.errors import TimeoutException
 from marionette.errors import StaleElementException
 
 from gaiatest import GaiaApps
+from gaiatest import GaiaData
 
 
 class Base(object):
@@ -20,6 +21,7 @@ class Base(object):
     def __init__(self, marionette):
         self.marionette = marionette
         self.apps = GaiaApps(self.marionette)
+        self.data_layer = GaiaData(self.marionette)
         self.frame = None
 
     def launch(self, launch_timeout=None):
@@ -117,22 +119,20 @@ class Base(object):
         # cheeky Select wrapper until Marionette has its own
         # due to the way B2G wraps the app's select box we match on text
 
+        _list_item_locator = (By.XPATH, "id('value-selector-container')/descendant::li[descendant::span[.='%s']]" % match_string)
+        _close_button_locator = (By.CSS_SELECTOR, 'button.value-option-confirm')
+
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()
 
-        self.wait_for_condition(lambda m: len(self.marionette.find_elements(By.CSS_SELECTOR, '#value-selector-container li')) > 0)
+        li = self.wait_for_element_present(*_list_item_locator)
 
-        options = self.marionette.find_elements(By.CSS_SELECTOR, '#value-selector-container li')
-        close_button = self.marionette.find_element(By.CSS_SELECTOR, 'button.value-option-confirm')
+       # TODO Remove scrollintoView upon resolution of bug 877651
+        self.marionette.execute_script(
+            'arguments[0].scrollIntoView(false);', [li])
+        li.tap()
 
-        # loop options until we find the match
-        for li in options:
-            if li.text == match_string:
-                # TODO Remove scrollintoView upon resolution of bug 877651
-                self.marionette.execute_script(
-                    'arguments[0].scrollIntoView(false);', [li])
-                li.tap()
-                break
+        close_button = self.marionette.find_element(*_close_button_locator)
 
         close_button.tap()
 

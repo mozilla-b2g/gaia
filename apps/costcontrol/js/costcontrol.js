@@ -201,13 +201,12 @@ var CostControl = (function() {
       return 'no_service';
     }
 
-    var data = connection.data;
-    if (!data.network.shortName && !data.network.longName) {
+    var voice = connection.voice;
+    if (!voice.connected) {
       return 'no_service';
     }
 
-    var voice = connection.voice;
-    if (voice.signalStrength === null) {
+    if (voice.relSignalStrength === null) {
       return 'no_coverage';
     }
 

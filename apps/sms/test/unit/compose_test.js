@@ -3,10 +3,7 @@
 */
 'use strict';
 
-mocha.globals(['0', '6']);
-
 requireApp('sms/js/compose.js');
-requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/utils.js');
 
 requireApp('sms/test/unit/mock_l10n.js');
@@ -83,9 +80,7 @@ suite('compose_test.js', function() {
 
     setup(function() {
       loadBodyHTML('/index.html');
-      // if we don't do the ThreadUI.init - it breaks when run in a full suite
-      ThreadUI.init();
-      // Compose.init('messages-compose-form');
+      Compose.init('messages-compose-form');
       message = document.querySelector('[contenteditable]');
     });
 
@@ -275,6 +270,18 @@ suite('compose_test.js', function() {
         assert.ok(txt[1] instanceof MockAttachment, 'Sub 1 is an attachment');
         assert.equal(txt[2], 'end', 'Last line is end text');
       });
+
+      test('text split in several text nodes', function() {
+        var lastChild = message.lastChild;
+        message.insertBefore(document.createTextNode('hello'), lastChild);
+        message.insertBefore(document.createTextNode(''), lastChild);
+        message.insertBefore(document.createTextNode('world'), lastChild);
+
+        var content = Compose.getContent();
+        assert.equal(content.length, 1);
+        assert.equal(content[0], 'helloworld');
+      });
+
       teardown(function() {
         Compose.clear();
       });

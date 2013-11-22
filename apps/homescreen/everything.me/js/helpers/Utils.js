@@ -357,6 +357,27 @@ Evme.Utils = new function Evme_Utils() {
         return parsedQuery[key]
     };
 
+    this.serialize = function serialize(params) {
+        var paramArray = [];
+
+        for (var k in params) {
+            var value = params[k],
+                finalValue = '';
+        
+            if (typeof value !== 'undefined') {
+                // if not object
+                if (!(value instanceof Object)) {
+                    finalValue = value;
+                // if object and isn't empty
+                } else if (Object.keys(value).length) {
+                    finalValue = JSON.stringify(value);
+                }
+                paramArray.push(k + '=' + encodeURIComponent(finalValue));
+            }
+        }
+        return paramArray.join('&');
+    };
+
     this.cssPrefix = function _cssPrefix() {
         return cssPrefix;
     };

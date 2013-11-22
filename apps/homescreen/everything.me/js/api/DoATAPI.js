@@ -1188,6 +1188,10 @@ Evme.Request = function Evme_Request() {
         
         cacheKey = options.cacheKey;
         cacheTTL = options.cacheTTL;
+
+        if (!params['stats']) {
+            params['stats'] = {};
+        }
         
         return self;
     };
@@ -1198,13 +1202,9 @@ Evme.Request = function Evme_Request() {
         requestSentTime = (new Date()).getTime();
         
         cbRequest(methodNamespace, methodName, params, retryNumber);
-        
-        // stats params to add to all API calls
-        (!params["stats"]) && (params["stats"] = {});
+
         params.stats.retryNum = retryNumber;
         params.stats.firstSession = Evme.Utils.isNewUser();
-        
-        params.stats = JSON.stringify(params.stats);
         
         httpRequest = Evme.api[methodNamespace][methodName](params, apiCallback);
         
@@ -1278,7 +1278,7 @@ Evme.Request = function Evme_Request() {
         
         cbError(methodNamespace, methodName, "", params, retryNumber, data, callback);
         
-        if (retryNumber >= 0) {
+        if (retryNumber < retries) {
             retry();
         }
         
