@@ -18,6 +18,102 @@ var Settings = {
         settings : null;
   },
 
+  isTabletAndLandscape: function is_tablet_and_landscape() {
+    return ScreenLayout.getCurrentLayout('tabletAndLandscaped');
+  },
+
+  _panelsWithClass: function pane_with_class(targetClass) {
+    return document.querySelectorAll(
+      'section[role="region"].' + targetClass);
+  },
+
+  _isTabletAndLandscapeLastTime: null,
+
+  rotate: function rotate(evt) {
+    var isTableAndLandscapeThisTime = Settings.isTabletAndLandscape();
+    var panelsWithCurrentClass;
+    if (Settings._isTabletAndLandscapeLastTime !==
+        isTableAndLandscapeThisTime) {
+      panelsWithCurrentClass = Settings._panelsWithClass('current');
+      // in two column style if we have only 'root' panel displayed,
+      // (left: root panel, right: blank)
+      // then show default panel too
+      if (panelsWithCurrentClass.length === 1 &&
+        panelsWithCurrentClass[0].id === 'root') {
+        // go to default panel
+        Settings.currentPanel = Settings.defaultPanelForTablet;
+      }
+    }
+    Settings._isTabletAndLandscapeLastTime = isTableAndLandscapeThisTime;
+  },
+
+  _transit: function transit(oldPanel, newPanel, callback) {
+    if (this.isTabletAndLandscape()) {
+      this._pageTransitions.twoColumn(oldPanel, newPanel, callback);
+    } else {
+      this._pageTransitions.oneColumn(oldPanel, newPanel, callback);
+    }
+  },
+
+  _pageTransitions: {
+    _sendPanelReady: function _send_panel_ready(oldPanelHash, newPanelHash) {
+      var detail = {
+        previous: oldPanelHash,
+        current: newPanelHash
+      };
+      var event = new CustomEvent('panelready', {detail: detail});
+      window.dispatchEvent(event);
+    },
+    oneColumn: function one_column(oldPanel, newPanel, callback) {
+      var self = this;
+      // switch previous/current classes
+      oldPanel.className = newPanel.className ? '' : 'previous';
+      newPanel.className = 'current';
+
+      /**
+       * Most browsers now scroll content into view taking CSS transforms into
+       * account.  That's not what we want when moving between <section>s,
+       * because the being-moved-to section is offscreen when we navigate to its
+       * #hash.  The transitions assume the viewport is always at document 0,0.
+       * So add a hack here to make that assumption true again.
+       * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
+       */
+      if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
+        window.scrollTo(0, 0);
+      }
+
+      newPanel.addEventListener('transitionend', function paintWait() {
+        newPanel.removeEventListener('transitionend', paintWait);
+
+        // We need to wait for the next tick otherwise gecko gets confused
+        setTimeout(function nextTick() {
+          self._sendPanelReady('#' + oldPanel.id, '#' + newPanel.id);
+
+          // Bug 818056 - When multiple visible panels are present,
+          // they are not painted correctly. This appears to fix the issue.
+          // Only do this after the first load
+          if (oldPanel.className === 'current')
+            return;
+
+          if (callback)
+            callback();
+        });
+      });
+    },
+    twoColumn: function two_column(oldPanel, newPanel, callback) {
+      oldPanel.className = newPanel.className ? '' : 'previous';
+      newPanel.className = 'current';
+
+      this._sendPanelReady('#' + oldPanel.id, '#' + newPanel.id);
+
+      if (callback) {
+        callback();
+      }
+    }
+  },
+
+  defaultPanelForTablet: '#wifi',
+
   _currentPanel: '#root',
 
   get currentPanel() {
@@ -45,51 +141,17 @@ var Settings = {
     // load panel (+ dependencies) if necessary -- this should be synchronous
     this.lazyLoad(newPanel);
 
-    // switch previous/current classes
-    oldPanel.className = newPanel.className ? '' : 'previous';
-    newPanel.className = 'current';
-
-    /**
-     * Most browsers now scroll content into view taking CSS transforms into
-     * account.  That's not what we want when moving between <section>s,
-     * because the being-moved-to section is offscreen when we navigate to its
-     * #hash.  The transitions assume the viewport is always at document 0,0.
-     * So add a hack here to make that assumption true again.
-     * https://bugzilla.mozilla.org/show_bug.cgi?id=803170
-     */
-    if ((window.scrollX !== 0) || (window.scrollY !== 0)) {
-      window.scrollTo(0, 0);
-    }
-
-    newPanel.addEventListener('transitionend', function paintWait() {
-      newPanel.removeEventListener('transitionend', paintWait);
-
-      // We need to wait for the next tick otherwise gecko gets confused
-      setTimeout(function nextTick() {
-        var detail = {
-          previous: oldPanelHash,
-          current: newPanelHash
-        };
-        var event = new CustomEvent('panelready', {detail: detail});
-        window.dispatchEvent(event);
-
-        // Bug 818056 - When multiple visible panels are present,
-        // they are not painted correctly. This appears to fix the issue.
-        // Only do this after the first load
-        if (oldPanel.className === 'current')
-          return;
-
-        switch (newPanel.id) {
-          case 'about-licensing':
-            // Workaround for bug 825622, remove when fixed
-            var iframe = document.getElementById('os-license');
-            iframe.src = iframe.dataset.src;
-            break;
-          case 'wifi':
-            PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
-            break;
-        }
-      });
+    this._transit(oldPanel, newPanel, function() {
+      switch (newPanel.id) {
+        case 'about-licensing':
+          // Workaround for bug 825622, remove when fixed
+          var iframe = document.getElementById('os-license');
+          iframe.src = iframe.dataset.src;
+          break;
+        case 'wifi':
+          PerformanceTestingHelper.dispatch('settings-panel-wifi-visible');
+          break;
+      }
     });
   },
 
@@ -647,6 +709,11 @@ window.addEventListener('load', function loadSettings() {
   window.removeEventListener('load', loadSettings);
   window.addEventListener('change', Settings);
 
+  ScreenLayout.watch(
+    'tabletAndLandscaped',
+    '(min-width: 768px) and (orientation: landscape)');
+  window.addEventListener('screenlayoutchange', Settings.rotate);
+
   navigator.addIdleObserver({
     time: 3,
     onidle: Settings.loadPanelStylesheetsIfNeeded.bind(Settings)
@@ -657,6 +724,8 @@ window.addEventListener('load', function loadSettings() {
   setTimeout(function nextTick() {
     LazyLoader.load(['js/utils.js'], startupLocale);
 
+    LazyLoader.load(['shared/js/wifi_helper.js'], displayDefaultPanel);
+
     LazyLoader.load([
       'js/airplane_mode.js',
       'js/battery.js',
@@ -664,7 +733,6 @@ window.addEventListener('load', function loadSettings() {
       'js/storage.js',
       'js/try_show_homescreen_section.js',
       'shared/js/mobile_operator.js',
-      'shared/js/wifi_helper.js',
       'shared/js/icc_helper.js',
       'shared/js/settings_listener.js',
       'js/connectivity.js',
@@ -673,6 +741,15 @@ window.addEventListener('load', function loadSettings() {
       'js/nfc.js'
     ], handleRadioAndCardState);
   });
+
+  function displayDefaultPanel() {
+    // display of default panel(#wifi) must wait for
+    // lazy-loaded script - wifi_helper.js - loaded
+    if (Settings.isTabletAndLandscape()) {
+      console.log('go to default Panel ' + Settings.defaultPanelForTablet);
+      Settings.currentPanel = Settings.defaultPanelForTablet;
+    }
+  }
 
   function handleRadioAndCardState() {
     function disableSIMRelatedSubpanels(disable) {
