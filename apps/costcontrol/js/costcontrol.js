@@ -395,23 +395,34 @@ var CostControl = (function() {
       end = new Date(start.getTime() + DAY);
     }
 
-    var wifiInterface = Common.getWifiInterface();
-    if (wifiInterface) {
-      var wifiRequest = statistics.getSamples(wifiInterface, start, end);
+    asyncStorage.getItem('dataUsageTags', function _onTags(tags) {
+      asyncStorage.getItem('wifiFixing', function _onFixing(wifiFixing) {
 
-      wifiRequest.onsuccess = function _WifiData() {
+        // Request Wi-Fi
+        var wifiRequest = statistics.getNetworkStats({
+          start: start,
+          end: end,
+          connectionType: 'wifi'
+        });
 
-        //Recover current Simcard info
-        var currentSimcardNetwork = Common.getCurrentSIMInterface();
-        if (currentSimcardNetwork) {
-          var mobileRequest = statistics
-                                .getSamples(currentSimcardNetwork, start, end);
+        wifiRequest.onsuccess = function _onWifiData() {
 
-          mobileRequest.onsuccess = function _MobileData() {
+          // Request Mobile
+          var mobileRequest = statistics.getNetworkStats({
+            start: start,
+            end: end,
+            connectionType: 'mobile'
+          });
 
-            var wifiData = adaptData(wifiRequest.result);
-            var mobileData = adaptData(mobileRequest.result);
-
+          // Finally, store the result and continue
+          mobileRequest.onsuccess = function _onMobileData() {
+            var fakeTag = {
+              sim: IccHelper.iccInfo.iccid,
+              start: settings.lastDataReset,
+              fixing: [[settings.lastDataReset, wifiFixing || 0]]
+            };
+            var wifiData = adaptData(wifiRequest.result, [fakeTag]);
+            var mobileData = adaptData(mobileRequest.result, tags);
             var lastDataUsage = {
               timestamp: new Date(),
               start: start,
@@ -438,15 +449,14 @@ var CostControl = (function() {
             if (callback) {
               callback(result);
             }
-
           };
-        }
-      };
-    }
+        };
+      });
+    });
   }
 
   // Transform data usage to the model accepted by the render
-  function adaptData(networkStatsResult) {
+  function adaptData(networkStatsResult, tags) {
     var data = networkStatsResult.data;
     var output = [];
     var totalData, accum = 0;
@@ -464,10 +474,19 @@ var CostControl = (function() {
         totalData += item.txBytes;
       }
 
-      accum += totalData;
+      var usage = totalData;
+      if (tags) {
+        usage = MindGap.getUsage(tags, totalData, item.date);
+      }
+
+      if (usage === undefined) {
+        continue;
+      }
+
+      accum += usage;
 
       output.push({
-        value: totalData,
+        value: usage,
         date: item.date
       });
     }

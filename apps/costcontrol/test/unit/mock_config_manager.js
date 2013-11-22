@@ -43,9 +43,6 @@ var MockConfigManager = function(config) {
     requestSettings: function(callback) {
       callback(JSON.parse(JSON.stringify(fakeSettings), settingsReviver));
     },
-    setOption: function(options, callback) {
-      callback();
-    },
     observe: function() {},
     getApplicationMode: function() {
       assert.isDefined(
