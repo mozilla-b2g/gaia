@@ -74,32 +74,26 @@ Alarm.prototype.readForm = function() {
 };
 
 Alarm.prototype.toggleAlarm = function(alarmIdx) {
-  var check = this.isEnabled.bind(this, alarmIdx);
-  var wasEnabled = check();
-  var alarm = this.els.alarm.enabler[alarmIdx];
-  alarm.tap();
+  var wasEnabled = this.isEnabled(alarmIdx);
+
+  this.safeInteract(
+    function() { return this.els.alarm.enabler[alarmIdx]; },
+    function(el) { el.tap(); }
+  );
 
   // Ensure that the toggle has completed before continuing. This prevents
   // code that follows from inspecting elements that the application has yet
   // to re-generate in response to the toggle operation.
   this.client.waitFor(function() {
-    var isEnabled;
-    // Due to the same race condition this `waitFor` call attempts to avoid,
-    // the "enabled" check may fail with a "Stale element reference" error.In
-    // these cases, simply re-try the check (since the error indicates that the
-    // UI has been successfully updated to reflect the toggle operation)
-    try {
-      isEnabled = check();
-    } catch (err) {
-      isEnabled = check();
-    }
-    return wasEnabled !== isEnabled;
+    return wasEnabled !== this.isEnabled(alarmIdx);
   }.bind(this));
 };
 
 Alarm.prototype.isEnabled = function(alarmIdx) {
-  var checkbox = this.els.alarm.enabledCheck[alarmIdx];
-  return !!checkbox.getAttribute('checked');
+  return this.safeInteract(
+    function() { return this.els.alarm.enabledCheck[alarmIdx]; },
+    function(checkbox) { return !!checkbox.getAttribute('checked'); }
+  );
 };
 
 // Open the alarm form for the given alarm item. If unspecified, open the

@@ -87,3 +87,41 @@ Clock.prototype.waitForSlideEnd = function(element) {
     });
   });
 };
+
+/**
+ * Execute an action on an unstable DOM element.
+ * In some cases, UI may be implemented by clearing some container DOM node and
+ * re-rendering its contents completely. Because interaction cannot be modeled
+ * as an atomic operation with Marionette (elements are always retrieved with
+ * one command and acted upon with another), Marionette scripts that interact
+ * with such UIs are prone to intermittent "Stale element reference" errors (an
+ * element may be re-rendered while an interaction is taking place).
+ *
+ * This function allows tests to be written as though interaction were an
+ * atomic operation.
+ *
+ * @param {Function} getElement - A function that returns a reference to an
+ *                                the element.
+ * @param {Function} iteractWith - A function that accepts the element as its
+ *                                 first argument and uses it as a target for
+ *                                 some Marionette action.
+ * @return The result of the `interactWith` function.
+ */
+Clock.prototype.safeInteract = function(getElement, interactWith) {
+  var result;
+
+  this.client.waitFor(function() {
+    var el = getElement.call(this);
+
+    try {
+      result = interactWith(el);
+      return true;
+    } catch(err) {
+      if (!/\bstale\b/i.test(err.message)) {
+        throw err;
+      }
+    }
+  }.bind(this));
+
+  return result;
+};
