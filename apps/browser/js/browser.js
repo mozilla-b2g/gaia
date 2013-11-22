@@ -1695,6 +1695,18 @@ var Browser = {
         }
         this.showPageScreen();
         break;
+      case 'uri':
+        var uri = this.getUrlFromInput(activity.source.data.uri);
+        if (this.currentTab) {
+          if (this.currentTab.url) {
+            this.hideCurrentTab();
+            this.selectTab(this.createTab(uri));
+          } else {
+            this.navigate(uri);
+          }
+        }
+        this.showPageScreen();
+        break;
     }
   }
 };
