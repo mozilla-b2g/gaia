@@ -92,9 +92,10 @@ var StatusBar = {
     '1xrtt': '1x', 'is95a': '1x', 'is95b': '1x' // 2G CDMA
   },
 
-  cdmaTypes: {
-    'evdo0': true, 'evdoa': true,
-    'evdob': true, 'ehrpd': true
+  // CDMA types that can support either data call or voice call simultaneously.
+  dataExclusiveCDMATypes: {
+    'evdo0': true, 'evdoa': true, 'evdob': true, // data call only
+    '1xrtt': true, 'is95a': true, 'is95b': true  // data call or voice call
   },
 
   geolocationActive: false,
@@ -542,7 +543,7 @@ var StatusBar = {
       icon.textContent = '';
       icon.classList.remove('sb-icon-data-circle');
       if (type) {
-        if (this.cdmaTypes[data.type]) {
+        if (this.dataExclusiveCDMATypes[data.type]) {
           // If the current data connection is CDMA types, we need to check
           // if there exist any calls. If yes, we have to set the status text
           // to empty.
@@ -737,7 +738,7 @@ var StatusBar = {
     var emergencyCallsOnly =
       (conn && conn.voice && conn.voice.emergencyCallsOnly);
     var cdmaConnection =
-      (conn && conn.data && !!this.cdmaTypes[conn.data.type]);
+      (conn && conn.data && !!this.dataExclusiveCDMATypes[conn.data.type]);
 
     if (emergencyCallsOnly || cdmaConnection) {
       this.addCallListener();
