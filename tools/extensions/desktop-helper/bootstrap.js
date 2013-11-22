@@ -11,7 +11,7 @@ const Cu = Components.utils;
 Cu.import('resource://gre/modules/Services.jsm');
 
 function debug(data) {
-  dump('desktop-helper: ' + data + '\n');
+  //dump('desktop-helper: ' + data + '\n');
 }
 
 const kChromeRootPath = 'chrome://desktop-helper.js/content/data/';
