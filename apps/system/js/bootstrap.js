@@ -117,15 +117,17 @@ windows.addEventListener('dragstart', function(evt) {
 // not trigger unexpected behaviors those are captured here.
 function cancelHomeTouchstart(e) {
   if (e.touches[0].pageX === 0 && e.touches[0].pageY === 0) {
+    e.preventDefault();
     e.stopImmediatePropagation();
   }
 }
 
 function cancelHomeTouchend(e) {
   if (e.touches[0].pageX === 0 && e.touches[0].pageY === 0) {
+    e.preventDefault();
     e.stopImmediatePropagation();
   }
 }
 
 window.addEventListener('touchstart', cancelHomeTouchstart, true);
-window.addEventListener('touchstart', cancelHomeTouchend, true);
+window.addEventListener('touchend', cancelHomeTouchend, true);
