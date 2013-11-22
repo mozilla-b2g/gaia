@@ -45,7 +45,7 @@ function openDialog(dialogID, onSubmit, onReset) {
   var origin = Settings.currentPanel;
 
   // Load dialog contents and show it.
-  Settings.currentPanel = dialogID;
+  Settings.changePanel(dialogID);
 
   var dialog = document.getElementById(dialogID);
   var submit = dialog.querySelector('[type=submit]');
@@ -53,7 +53,7 @@ function openDialog(dialogID, onSubmit, onReset) {
     submit.onclick = function onsubmit() {
       if (typeof onSubmit === 'function')
         (onSubmit.bind(dialog))();
-      Settings.currentPanel = origin; // hide dialog box
+      Settings.changePanel(origin); // hide dialog box
     };
   }
 
@@ -62,7 +62,7 @@ function openDialog(dialogID, onSubmit, onReset) {
     reset.onclick = function onreset() {
       if (typeof onReset === 'function')
         (onReset.bind(dialog))();
-      Settings.currentPanel = origin; // hide dialog box
+      Settings.changePanel(origin); // hide dialog box
     };
   }
 }

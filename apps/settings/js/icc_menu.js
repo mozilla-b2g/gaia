@@ -18,7 +18,7 @@
 
     // Open ICC section
     DUMP('ICC command to execute: ', iccCommand);
-    Settings.currentPanel = '#icc';
+    Settings.changePanel('icc');
 
     setTimeout(function() {
       var event = new CustomEvent('stkasynccommand', {
