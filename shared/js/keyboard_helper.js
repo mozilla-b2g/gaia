@@ -175,7 +175,7 @@ function kh_parse3rdPartyAppEnabled() {
   if (typeof value === 'boolean') {
     enable3rdPartyKeyboardApps = value;
   } else {
-    enable3rdPartyKeyboardApps = true;
+    enable3rdPartyKeyboardApps = false;
   }
   kh_loadedSetting(SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED);
 }
