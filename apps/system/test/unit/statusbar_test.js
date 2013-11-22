@@ -710,7 +710,7 @@ suite('system/Statusbar', function() {
             });
 
             // CDMA related to calls
-            suite('ehrpd, evdo0, evdoa, evdob when there is a call',
+            suite('CDMA network types when there is a call',
               function() {
                 test('type ehrpd', function() {
                   MockNavigatorMozTelephony.calls = [{}];
@@ -719,7 +719,8 @@ suite('system/Statusbar', function() {
                     type: 'ehrpd'
                   };
                   StatusBar.update.data.call(StatusBar);
-                  assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+                  assert.equal(StatusBar.icons.data[slotIndex].textContent,
+                               '4G');
               });
 
               test('type evdo0', function() {
@@ -751,9 +752,39 @@ suite('system/Statusbar', function() {
                 StatusBar.update.data.call(StatusBar);
                 assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
               });
+
+              test('type 1xrtt', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: '1xrtt'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+
+              test('type is95a', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95a'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
+
+              test('type is95b', function() {
+                MockNavigatorMozTelephony.calls = [{}];
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95b'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '');
+              });
             });
 
-            suite('ehrpd, evdo0, evdoa, evdob when there is no call',
+            suite('CDMA network types when there is no call',
               function() {
                 test('type ehrpd', function() {
                   MockNavigatorMozMobileConnections[slotIndex].data = {
@@ -790,6 +821,33 @@ suite('system/Statusbar', function() {
                 };
                 StatusBar.update.data.call(StatusBar);
                 assert.equal(StatusBar.icons.data[slotIndex].textContent, 'Ev');
+              });
+
+              test('type 1xrtt', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: '1xrtt'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+              });
+
+              test('type is95a', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95a'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
+              });
+
+              test('type is95b', function() {
+                MockNavigatorMozMobileConnections[slotIndex].data = {
+                  connected: true,
+                  type: 'is95b'
+                };
+                StatusBar.update.data.call(StatusBar);
+                assert.equal(StatusBar.icons.data[slotIndex].textContent, '1x');
               });
             });
           });
