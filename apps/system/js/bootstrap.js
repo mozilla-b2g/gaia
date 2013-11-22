@@ -123,7 +123,7 @@ function cancelHomeTouchstart(e) {
 }
 
 function cancelHomeTouchend(e) {
-  if (e.touches[0].pageX === 0 && e.touches[0].pageY === 0) {
+  if (e.changedTouches[0].pageX === 0 && e.changedTouches[0].pageY === 0) {
     e.preventDefault();
     e.stopImmediatePropagation();
   }
