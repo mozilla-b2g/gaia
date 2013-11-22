@@ -30,19 +30,21 @@ suite('AlarmList', function() {
     navigator.mozL10n = nml;
   });
 
+  setup(function() {
+    fixture = new Alarm({
+      id: 42,
+      hour: 14,
+      minute: 32,
+      label: 'FIXTURE',
+      registeredAlarms: {
+        normal: 37
+      }
+    });
+  });
+
   suite('render()', function() {
     setup(function() {
       dom = document.createElement('div');
-
-      fixture = new Alarm({
-        id: 42,
-        hour: 14,
-        minute: 32,
-        label: 'FIXTURE',
-        registeredAlarms: {
-          normal: 37
-        }
-      });
     });
 
     suite('markup contains correct information', function() {
@@ -108,6 +110,41 @@ suite('AlarmList', function() {
           dom.querySelector('.alarm-item').classList.contains('with-repeat')
         );
       });
+    });
+  });
+
+  suite('toggleAlarmEnableState', function() {
+
+    setup(function() {
+      this.sinon.stub(fixture, 'setEnabled');
+      this.sinon.spy(AlarmList, 'refreshItem');
+    });
+
+    test('invokes `refreshItem` if alarm state changes', function() {
+      fixture.setEnabled.callsArgWith(1, null, fixture);
+      AlarmList.toggleAlarmEnableState(false, fixture);
+      sinon.assert.calledWith(AlarmList.refreshItem, fixture);
+    });
+
+    test('does not invoke `refreshItem` if alarm state is static', function() {
+      fixture.setEnabled.callsArgWith(1, null, fixture);
+      AlarmList.toggleAlarmEnableState(true, fixture);
+      sinon.assert.neverCalledWith(AlarmList.refreshItem, fixture);
+    });
+
+    test('does not invoke `refreshItem` while other toggle operations are ' +
+      'pending', function() {
+      AlarmList.toggleAlarmEnableState(false, fixture);
+      AlarmList.toggleAlarmEnableState(false, fixture);
+      sinon.assert.calledTwice(fixture.setEnabled);
+
+      fixture.setEnabled.args[0][1](null, fixture);
+
+      sinon.assert.notCalled(AlarmList.refreshItem);
+
+      fixture.setEnabled.args[1][1](null, fixture);
+
+      sinon.assert.calledOnce(AlarmList.refreshItem);
     });
   });
 });
