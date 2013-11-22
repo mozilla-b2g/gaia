@@ -179,21 +179,9 @@ marionette('Alarm Panel', function() {
           'Countdown banner is not displayed after disabling an alarm'
         );
 
-        console.log('Alarm count:', alarm.readItems().length);
         alarm.toggleAlarm(0);
-        console.log('Alarm count:', alarm.readItems().length);
-        try {
         assert(alarm.isEnabled(0), 'Alarm is re-enabled after toggling');
-        } catch(e) {
-          console.log('Alarm not enabled as expected. Checking again.');
-          console.log('Alarm count:', alarm.readItems().length);
-          client.waitFor(function() {
-            console.log('\tChecking...');
-            return alarm.isEnabled(0);
-          });
-          console.log('Enabled!');
-          throw e;
-        }
+
         alarm.waitForBannerHidden();
       });
 
