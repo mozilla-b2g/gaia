@@ -15,11 +15,15 @@ body, html {
   height: 2rem;
   top: 0;
   left: 0;
-  background-color: #000;
-
+  background-color: rgba(0,0,0,.5);
   padding: 0.2rem 0;
   -moz-box-sizing: border-box;
   -moz-user-focus: ignore;
+}
+
+#screen:not(.fullscreen-app) #statusbar.semi-transparent,
+#screen.utility-tray #statusbar {
+  background-color: #121212;
 }
 
 #screen.locked:not(.attention) #statusbar{
