@@ -318,6 +318,7 @@ contacts.List = (function() {
     // Create the DOM for the group list
     var letteredSection = document.createElement('section');
     letteredSection.id = 'section-group-' + group;
+    letteredSection.className = 'group-section';
     var title = document.createElement('header');
     title.id = 'group-' + group;
     title.className = 'hide';
