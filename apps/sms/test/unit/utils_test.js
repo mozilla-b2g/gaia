@@ -588,6 +588,18 @@ suite('Utils', function() {
       );
     });
 
+    test('one number is undefined', function() {
+      assert.isFalse(
+        Utils.probablyMatches(undefined, '8889995555')
+      );
+    });
+
+    test('both numbers are undefined', function() {
+      assert.isFalse(
+        Utils.probablyMatches(undefined, undefined)
+      );
+    });
+
     suite('Varied Cases', function() {
       FixturePhones.forEach(function(fixture) {
         var title = fixture.title;

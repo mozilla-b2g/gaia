@@ -83,6 +83,7 @@ var MockThreadUI = {
   promptContact: function() {},
   groupView: function() {},
   prompt: function() {},
+  saveMessageDraft: function() {},
   onCreateContact: function() {},
   isShowMessageErrorCalledTimes: 0,
   showMessageError: function() {

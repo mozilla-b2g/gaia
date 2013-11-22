@@ -105,6 +105,14 @@ var MessageManager = {
     if (!ThreadListUI.fullHeight || ThreadListUI.fullHeight === 0) {
       ThreadListUI.fullHeight = ThreadListUI.container.offsetHeight;
     }
+    // If we leave the app and are in a thread or compose window
+    // save a message draft if necessary
+    if (document.hidden) {
+      var hash = window.location.hash;
+      if (hash === '#new' || hash.startsWith('#thread=')) {
+        ThreadUI.saveMessageDraft();
+      }
+    }
   },
 
   slide: function mm_slide(direction, callback) {

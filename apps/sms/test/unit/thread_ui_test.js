@@ -18,8 +18,12 @@ if (!navigator.mozContacts) {
 requireApp('sms/js/compose.js');
 requireApp('sms/js/threads.js');
 requireApp('sms/js/thread_ui.js');
+requireApp('sms/js/thread_list_ui.js');
+requireApp('sms/js/drafts.js');
+requireApp('sms/js/is-equal.js');
 requireApp('sms/js/utils.js');
 requireApp('sms/js/message_manager.js');
+require('/shared/js/async_storage.js');
 
 requireApp('sms/test/unit/mock_time_headers.js');
 requireApp('sms/test/unit/mock_alert.js');
@@ -3683,7 +3687,49 @@ suite('thread_ui.js >', function() {
     });
   });
 
-  suite('Back button behaviour', function() {
+  suite('saveMessageDraft() > ', function() {
+    var spy, arg;
+
+    setup(function() {
+      window.location.hash = '#new';
+      spy = this.sinon.spy(Drafts, 'add');
+
+      ThreadUI.recipients.add({
+        number: '999'
+      });
+
+      Compose.append('foo');
+    });
+
+    test('has entered content and recipients', function() {
+      ThreadUI.saveMessageDraft();
+      arg = spy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, ['999']);
+      assert.deepEqual(arg.content, ['foo']);
+    });
+
+    test('has entered recipients but not content', function() {
+      Compose.clear();
+      ThreadUI.saveMessageDraft();
+      arg = spy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, ['999']);
+      assert.deepEqual(arg.content, []);
+    });
+
+    test('has entered content but not recipients', function() {
+      ThreadUI.recipients.remove('999');
+      ThreadUI.saveMessageDraft();
+      arg = spy.firstCall.args[0];
+
+      assert.deepEqual(arg.recipients, []);
+      assert.deepEqual(arg.content, ['foo']);
+    });
+
+  });
+
+suite('Back button behaviour', function() {
 
     suite('During activity', function() {
       setup(function() {
@@ -3705,6 +3751,11 @@ suite('thread_ui.js >', function() {
 
     suite('From new message', function() {
       var showCalled = false;
+      var spy;
+
+      suiteSetup(function() {
+        spy = sinon.spy(ThreadUI, 'saveMessageDraft');
+      });
 
       setup(function() {
         showCalled = false;
@@ -3724,10 +3775,40 @@ suite('thread_ui.js >', function() {
           number: '999'
         });
 
-        Compose.append('foo');
       });
 
-      test('Displays OptionMenu prompt', function() {
+      test('Displays OptionMenu prompt if recipients', function() {
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      test('Displays OptionMenu prompt if recipients & content', function() {
+        Compose.append('foo');
+        ThreadUI.back();
+
+        assert.isTrue(OptionMenu.calledOnce);
+        assert.isTrue(showCalled);
+
+        var items = OptionMenu.args[0][0].items;
+
+        // Assert the correct menu items were displayed
+        assert.equal(items[0].l10nId, 'save-as-draft');
+        assert.equal(items[1].l10nId, 'discard-message');
+        assert.equal(items[2].l10nId, 'cancel');
+      });
+
+      test('Displays OptionMenu prompt if content', function() {
+        ThreadUI.recipients.remove('999');
+        Compose.append('foo');
         ThreadUI.back();
 
         assert.isTrue(OptionMenu.calledOnce);
@@ -3745,28 +3826,10 @@ suite('thread_ui.js >', function() {
         test('Save as Draft', function() {
           ThreadUI.back();
 
-          // Yes, seriously.
-          // This will be replaced when the real Draft save mechanism
-          // is implemented. Use a stub to prevent from actually logging
-          // to the console here. This is obviously restored after the
-          // test is completed.
-          this.sinon.stub(console, 'log');
-
           OptionMenu.args[0][0].items[0].method();
 
-          // We just want to ensure that the recipients and composer
-          // contents have been collected before the new message is
-          // discarded.
-          sinon.assert.calledWithMatch(console.log, ['999'], ['foo']);
-
-          // Nothing actually happens yet, but when Draft saving is ready,
-          // this will be updated to assert that the recipients and
-          // contents of the composer were passed as arguments to the
-          // draft save mechanism.
-          assert.ok('Draft Save Mechanism');
-
-
           // These things will be true
+          assert.isTrue(spy.calledOnce);
           assert.equal(window.location.hash, '#thread-list');
           assert.equal(ThreadUI.recipients.length, 0);
           assert.equal(Compose.getContent(), '');
