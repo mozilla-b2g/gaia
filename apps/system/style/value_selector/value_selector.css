@@ -27,3 +27,10 @@
 #value-selector-container li > label {
   pointer-events: none;
 }
+
+@media (min-width: 768px) {
+  #value-selector {
+    background-color: rgba(0,0,0,0.6);
+    background: url(../themes/default/images/ui/menu_bg.png) no-repeat;
+  }
+}
