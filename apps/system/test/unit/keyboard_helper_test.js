@@ -15,7 +15,6 @@ suite('KeyboardHelper', function() {
   var appEvents = ['applicationinstallsuccess', 'applicationuninstall'];
   var DEFAULT_KEY = 'keyboard.default-layouts';
   var ENABLED_KEY = 'keyboard.enabled-layouts';
-  var THIRD_PARTY_APP_ENABLED_KEY = 'keyboard.3rd-party-app.enabled';
   var keyboardAppOrigin = 'http://keyboard.gaiamobile.org:8080';
   var standardKeyboards = [
     {
@@ -126,11 +125,9 @@ suite('KeyboardHelper', function() {
 
   test('requests initial settings', function() {
     var requests = MockNavigatorSettings.mRequests;
-    assert.equal(requests.length, 3);
+    assert.equal(requests.length, 2);
     assert.ok(DEFAULT_KEY in requests[0].result, 'requested defaults');
     assert.ok(ENABLED_KEY in requests[1].result, 'requested enabled');
-    assert.ok(THIRD_PARTY_APP_ENABLED_KEY in requests[2].result,
-      'requested 3rd-party keyboard app enabled');
   });
 
   suite('getApps', function() {
