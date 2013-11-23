@@ -34,6 +34,7 @@ section[role="region"] > header:first-child .icon.icon-edit-contact {
 
 .view-contacts-list .view-body-inner {
   padding-left: 0.5rem;
+  padding-top: 0;
 }
 
 #contact-name-title {
@@ -672,6 +673,13 @@ section[role="region"] > header .icon.icon-settings
 }
 
 .group-section {
-  overflow: hidden;
+  /*overflow: hidden;*/
   padding-left: 1rem;
+}
+
+.group-title {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background-color: #f4f4f4;
 }
