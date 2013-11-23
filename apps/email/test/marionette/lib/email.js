@@ -412,14 +412,19 @@ Email.prototype = {
                                  .bind(this, cardId);
 
     client.waitFor(function() {
-      return client.executeScript(function(cardId) {
+      // Bug 932331 has tests flaking because this script times out.
+      // Make sure to use Marionette.Client#executeAsyncScript so that
+      // we see the timeouts.
+      return client.executeAsyncScript(function(cardId) {
         var Cards = window.wrappedJSObject.require('mail_common').Cards,
             card = Cards._cardStack[Cards.activeCardIndex],
             cardNode = card && card.domNode;
 
-        return !!cardNode && cardNode.classList.contains('center') &&
-               cardNode.dataset.type === cardId &&
-               !Cards._eatingEventsUntilNextCard;
+        marionetteScriptFinished(
+          !!cardNode &&
+          cardNode.classList.contains('center') &&
+          cardNode.dataset.type === cardId &&
+          !Cards._eatingEventsUntilNextCard);
       }, [cardId]);
     });
 
