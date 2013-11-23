@@ -1,3 +1,4 @@
+/* exported MockGridItem, MockGridItemsFactory */
 
 'use strict';
 
@@ -6,5 +7,8 @@ var MockGridItemsFactory = {
     APP: 'app',
     BOOKMARK: 'bookmark',
     COLLECTION: 'collection'
-  }
+  },
+
+  create: function mgif_create() {}
 };
+
