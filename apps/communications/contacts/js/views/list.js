@@ -1695,15 +1695,19 @@ contacts.List = (function() {
   // on the screen.
   var updateRowStyle = function updateRowStyle(row, onscreen) {
     if (inSelectMode && onscreen) {
-      utils.dom.addClassToNodes(row, '.contact-checkbox',
-                           'contact-checkbox-selecting');
-      utils.dom.addClassToNodes(row, '.contact-text',
-                           'contact-text-selecting');
-    } else {
+      if (!row.dataset.selectStyleSet) {
+        utils.dom.addClassToNodes(row, '.contact-checkbox',
+                             'contact-checkbox-selecting');
+        utils.dom.addClassToNodes(row, '.contact-text',
+                             'contact-text-selecting');
+        row.dataset.selectStyleSet = true;
+      }
+    } else if (row.dataset.selectStyleSet) {
       utils.dom.removeClassFromNodes(row, '.contact-checkbox-selecting',
                                 'contact-checkbox-selecting');
       utils.dom.removeClassFromNodes(row, '.contact-text-selecting',
                                 'contact-text-selecting');
+      delete row.dataset.selectStyleSet;
     }
   };
 
