@@ -30,7 +30,9 @@ canvas.hidden {
 .sbox:nth-child(2n) {
   background-color: #fff;
 }
-
+.bar {
+  font-size: 1.5rem
+}
 .hidden {
   display: none;
 }
