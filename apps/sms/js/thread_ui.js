@@ -2355,6 +2355,7 @@ var ThreadUI = global.ThreadUI = {
     //  - items: array of options to display in menu
     //
     params = {
+      classes: ['contact-prompt'],
       complete: complete,
       header: header,
       items: null

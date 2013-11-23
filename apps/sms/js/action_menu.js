@@ -46,6 +46,9 @@
     // Optional header text or node
     header: ...,
 
+    // additional classes on the dialog, as an array of strings
+    classes: ...
+
     // Optional section text or node
     section: ...
 
@@ -76,6 +79,12 @@ var OptionMenu = function(options) {
   this.form = document.createElement('form');
   this.form.dataset.type = options.type || 'action';
   this.form.setAttribute('role', 'dialog');
+  var classList = this.form.classList;
+
+  if (options.classes) {
+    classList.add.apply(classList, options.classes);
+  }
+
   // We append title if needed
   if (options.header) {
     var header = document.createElement('header');

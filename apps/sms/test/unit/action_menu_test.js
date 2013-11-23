@@ -13,6 +13,7 @@ suite('OptionMenu', function() {
       id: 'menu-fixture',
       header: 'Text Header',
       section: 'Text Section',
+      classes: ['class1', 'class2'],
       items: [
         {
           name: 'test',
@@ -156,8 +157,11 @@ suite('OptionMenu', function() {
         buttons[1], options.items[1].l10nId, options.items[1].l10nArgs
       ), 'localized with mozL10n.localize');
     });
+    test('classes', function() {
+      assert.ok(menu.form.classList.contains('class1'));
+      assert.ok(menu.form.classList.contains('class2'));
+    });
   });
-
 
   suite('Behaviours', function() {
     test('Fat fingering does not hide menu', function() {

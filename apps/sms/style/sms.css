@@ -929,20 +929,21 @@ body[role="application"] form[role="dialog"][data-type="action"] > section:first
  * TODO load building-blocks CSS before sms.css so that we don't need !important
  * Bug XXX
  */
-form[role="dialog"][data-type="action"] > header {
-  height: auto !important;
-  min-height: 5rem !important;
+form[role="dialog"][data-type="action"].contact-prompt > header {
+  height: auto;
+  min-height: 5rem;
+  font-weight: 100;
 }
 
 .contact-header {
-  /* bottom padding is .6rem because we need .1rem more for the 
+  /* bottom padding is .9rem because we need .1rem more for the 
    * nice shadow line at the header bottom, defined as a :after element */
-  padding: .5rem 0 .6rem;
+  padding: 0.8rem 0 0.9rem;
 }
 
 .contact-header .name {
   line-height: 2.5rem;
-  padding: 1.5rem 0 1rem;
+  padding: 0.5rem 0 0.8rem;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -952,7 +953,7 @@ form[role="dialog"][data-type="action"] > header {
 
 .contact-header .details {
   line-height: 1.5rem;
-  padding: 0 0 .5rem;
+  padding: 0 0 0.7rem;
   margin: 0;
   overflow: hidden;
 
@@ -961,8 +962,8 @@ form[role="dialog"][data-type="action"] > header {
 
 .contact-header img {
   display: block;
-  width: 7rem;
-  height: 7rem;
+  width: 6rem;
+  height: 6rem;
 }
 
 .contact-header aside.pack-end {
