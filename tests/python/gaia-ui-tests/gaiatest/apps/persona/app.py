@@ -68,12 +68,10 @@ class Persona(Base):
     def type_email(self, value):
         email_field = self.marionette.find_element(*self._email_input_locator)
         email_field.send_keys(value)
-        self.keyboard.dismiss()
 
     def type_password(self, value):
         password_field = self.marionette.find_element(*self._password_input_locator)
         password_field.send_keys(value)
-        self.keyboard.dismiss()
 
     def type_create_password(self, value):
         password_field = self.marionette.find_element(*self._create_password_locator)
