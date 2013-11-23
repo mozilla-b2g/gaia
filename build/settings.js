@@ -190,7 +190,7 @@ function execute() {
    'keyboard.wordsuggestion': true,
    'keyboard.current': 'en',
    'keyboard.ftu.enabled': true,
-   'keyboard.3rd-party-app.enabled': true,
+   'keyboard.3rd-party-app.enabled': false,
    'language.current': 'en-US',
    'layers.draw-borders': false,
    'lockscreen.passcode-lock.code': '0000',
