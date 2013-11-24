@@ -50,12 +50,17 @@
     // The outer loop is specifically labelled to allow the
     // nested condition a way out of the second and third loop.
     outer:
+    //alert(criteria.terms.length);
     for (var i = 0, ilen = criteria.terms.length; i < ilen; i++) {
       var term = criteria.terms[i];
       for (var j = 0, jlen = criteria.fields.length; j < jlen; j++) {
         var field = criteria.fields[j];
         for (var k = 0, klen = contact[field].length; k < klen; k++) {
-          var value = contact[field][k].trim();
+        	if (typeof contact[field][k] == 'string' || contact[field][k] instanceof String){
+					var value = contact[field][k].trim();       		
+        		}else{
+					var value = contact[field][k].value.toString(); 
+        		}
 
           if ((found[term] = filterFn(value, term))) {
             continue outer;
@@ -170,14 +175,14 @@
 
       request.onsuccess = function onsuccess() {
         var contacts = this.result.slice();
-        var fields = ['givenName', 'familyName'];
+        var fields = ['tel', 'givenName', 'familyName'];
         var criteria = { fields: fields, terms: lower };
         var results = [];
         var contact;
 
         // Step 7
         if (terms.length > 1) {
-          while ((contact = contacts.pop())) {
+          while (contact = contacts.pop()) {
             if (isMatch(contact, criteria, filterFns.startsWith)) {
               results.push(contact);
             }

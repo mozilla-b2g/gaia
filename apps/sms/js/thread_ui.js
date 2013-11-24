@@ -2087,7 +2087,11 @@ var ThreadUI = global.ThreadUI = {
         // only considers left aligned exact matches on words
         return new RegExp('^' + k, 'gi');
       }),
-      number: [new RegExp(escaped, 'ig')]
+      //This was the source of the problem, we were returning full string
+      //When compared to individual parameters there was no match
+		number: escsubs.map(function (k){
+			return new RegExp(k, 'gi');		
+			})
     };
 
     if (!telsLength) {
@@ -2143,11 +2147,12 @@ var ThreadUI = global.ThreadUI = {
               safe: ['str']
             });
           }).bind(this);
-          // For each "word"
-          for (var i = 0; i < splitData.length; i++) {
+          
+          //	Loop through all "words"
+            for (var i = 0; i < splitData.length; i++) {
             var matchFound = false;
-            // Loop over search term regexes
-            for (var k = 0; !matchFound && k < regexps[key].length; k++) {
+            //and then loop through search term regexes
+            for (var k = 0; !matchFound && k < regexps[key].length; k++) {	
               splitData[i] = splitData[i].replace(
                 regexps[key][k], loopReplaceFn);
             }
