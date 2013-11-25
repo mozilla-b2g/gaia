@@ -46,7 +46,7 @@ class LockScreen(Base):
         ).perform()
 
     def wait_for_lockscreen_not_visible(self):
-        self.wait_for_condition(lambda m: not self.marionette.find_element(*self._lockscreen_locator).location['x'] == 0, message="Lockscreen still visible after unlock")
+        self.wait_for_element_not_displayed(*self._lockscreen_locator)
 
     @property
     def passcode_pad(self):
