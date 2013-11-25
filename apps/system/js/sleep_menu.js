@@ -7,6 +7,9 @@ var SleepMenu = {
   // Indicate setting status of ril.radio.disabled
   isFlightModeEnabled: false,
 
+  // Indicate setting status of developer.menu.enabled
+  isDeveloperMenuEnabled: false,
+
   // Indicate setting status of volume
   isSilentModeEnabled: false,
 
@@ -37,10 +40,12 @@ var SleepMenu = {
       self.isFlightModeEnabled = value;
     });
 
-    var settings = navigator.mozSettings;
+    SettingsListener.observe('developer.menu.enabled', false, function(value) {
+      self.isDeveloperMenuEnabled = value;
+    });
 
     SettingsListener.observe('audio.volume.notification', 7, function(value) {
-      self.isSilentModeEnabled = (value == 0);
+      self.isSilentModeEnabled = (value === 0);
     });
   },
 

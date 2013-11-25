@@ -139,6 +139,7 @@ function execute(options) {
    'camera.recording.preferredSizes': [],
    'clear.remote-windows.data': false,
    'debug.console.enabled': false,
+   'developer.menu.enabled': false,
    'debug.grid.enabled': false,
    'debug.oop.disabled': false,
    'debug.fps.enabled': false,
@@ -310,9 +311,14 @@ function execute(options) {
    'wap.push.enabled': true
   };
 
-  // We want the console to be disabled for device builds using the user variant.
-  if (config.TARGET_BUILD_VARIANT != 'user')
+  if (config.TARGET_BUILD_VARIANT != 'user') {
+    // We want the console to be disabled for device builds using the user variant.
     settings['debug.console.enabled'] = true;
+
+    // Activate developer menu under the system menu when long pressing
+    // the power button by default for devs.
+    settings['developer.menu.enabled'] = true;
+  }
 
   // Set the homescreen URL
   settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen',
