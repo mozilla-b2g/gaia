@@ -2,8 +2,8 @@
 
 if (!window.ImageLoader) {
   var ImageLoader = function ImageLoader(pContainer, pItems) {
-    var container, items, itemsSelector, scrollLatency = 100, scrollTimer,
-        lastViewTop = 0, itemHeight, total, imgsLoading = 0,
+    var container, items, itemsSelector, lastScrollTime, scrollLatency = 100,
+        scrollTimer, lastViewTop = 0, itemHeight, total, imgsLoading = 0,
         loadImage = defaultLoadImage, self = this;
 
     var forEach = Array.prototype.forEach;
@@ -29,6 +29,7 @@ if (!window.ImageLoader) {
 
     function load() {
       window.clearTimeout(scrollTimer);
+      scrollTimer = null;
       items = container.querySelectorAll(itemsSelector);
       // All items have the same height
       itemHeight = items[0] ? items[0].offsetHeight : 1;
@@ -42,13 +43,31 @@ if (!window.ImageLoader) {
     }
 
     function onScroll() {
-      window.clearTimeout(scrollTimer);
       if (imgsLoading > 0) {
         // Stop the pending images load
         window.stop();
         imgsLoading = 0;
       }
-      scrollTimer = window.setTimeout(update, scrollLatency);
+      // Clearing and setting a timer on every scroll event is too slow on
+      // some mobile devices. Therefore, set a timer once here and then
+      // check how long it has been since the last scroll event in the
+      // timer handler to determine what to do.
+      lastScrollTime = Date.now();
+      if (!scrollTimer) {
+        scrollTimer = window.setTimeout(updateFromScroll, scrollLatency);
+      }
+    }
+
+    function updateFromScroll() {
+      scrollTimer = null;
+      // If we scrolled more since the timer was set, then we need to
+      // delay again.  Otherwise, go ahead and update now.
+      var deltaLatency = lastScrollTime - Date.now() + scrollLatency;
+      if (deltaLatency > 0) {
+        scrollTimer = window.setTimeout(updateFromScroll, deltaLatency);
+      } else {
+        update();
+      }
     }
 
     /**
