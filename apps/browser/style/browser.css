@@ -172,23 +172,19 @@ input[type="image"] {
   background: url(images/tab-icon-pressed-closetab.png) no-repeat 50% 50% / 3rem;
 }
 
+.start-page.page-screen #main-screen, .awesome-screen #main-screen, .crash-screen #main-screen {
+  overflow: hidden;
+  height: 100%;
+}
+
 #main-screen {
   margin: 0;
   width: 100%;
-  height: 100%;
+  height: calc(100% - 4.5rem);
   z-index: 50;
   position: relative;
   left: 0;
-  overflow: hidden;
-  /*
-   * Make sure this frame starts out with an identity transform so that
-   * when we apply the .address-hidden style, we aren't reframed.
-   *
-   * https://bugzilla.mozilla.org/show_bug.cgi?id=795657 will fix the
-   * underlying problem.
-   */
-  transform: translateY(0);
-  transition: transform 0.2s ease-in-out;
+  overflow: scroll;
 }
 
 #main-screen.address-hidden {
@@ -369,11 +365,16 @@ input::-moz-focus-inner {
   border: 0;
 }
 
+.start-page.page-screen #frames, .awesome-screen #frames, .crash-screen #frames {
+  height: calc(100% - 5rem);
+}
+
 #frames {
   width: 100%;
+  height: 100%;
   position: absolute;
   top: 5rem;
-  bottom: 4.5rem;
+  bottom: 0rem;
   background: white;
 }
 
