@@ -12,7 +12,11 @@
  *   - onerror: SIM card is empty or could not be read.
  */
 
-function SimContactsImporter() {
+function SimContactsImporter(targetIcc) {
+  if (targetIcc === null) {
+    throw new Error('We need an icc to continue with this operation');
+    return;
+  }
   var pointer = 0;
   var CHUNK_SIZE = 5;
   var numResponses = 0;
@@ -20,6 +24,7 @@ function SimContactsImporter() {
   var _ = navigator.mozL10n.get;
   var mustFinish = false;
   var loadedMatch = false;
+  var icc = targetIcc;
 
   function getContact(contact) {
     return (contact instanceof mozContact) ? contact : new mozContact(contact);
@@ -75,15 +80,8 @@ function SimContactsImporter() {
       document.dispatchEvent(new CustomEvent('matchLoaded'));
     });
 
-    var icc = navigator.mozIccManager;
+    var iccManager = navigator.mozIccManager;
     var request;
-
-    // See bug 932134
-    // To keep all tests passed while introducing multi-sim APIs, in bug 928325
-    // we do the following check. Remove it after the APIs land.
-    if (icc && icc.iccIds && icc.iccIds[0]) {
-      icc = icc.getIccById(icc.iccIds[0]);
-    }
 
     // request contacts with readContacts() -- valid types are:
     //   'adn': Abbreviated Dialing Numbers
