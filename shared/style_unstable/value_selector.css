@@ -201,3 +201,30 @@ html[dir="rtl"] #value-selector li[aria-selected="true"] span {
   padding-left: 2.6rem;
   margin-left: 1.2rem;
 }
+
+@media (min-width: 768px) {
+  form[role="dialog"][data-type="value-selector"] {
+    background-image: none;
+    background-color: #333333;
+    top: calc(50% - 24rem);
+    left: calc(50% - 34rem);
+  }
+
+  form[role="dialog"][data-type="value-selector"] h1 {
+    font-size: 2.5rem;
+    height: 7rem;
+    padding: 1rem 0 0 4.5rem; /* 6 - 1.5 */
+  }
+
+  form[role="dialog"][data-type="value-selector"] .scrollable:before {
+    top: 7rem;
+    bottom: 9.1rem;
+  }
+
+  form[role="dialog"][data-type="value-selector"] [role="listbox"] li {
+    padding: 0 4.5rem; /* 6 - 1.5 */
+    height: 6rem;
+    font-size: 2.5rem;
+    color: #00abcd;
+  }
+}
