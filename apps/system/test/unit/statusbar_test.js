@@ -241,7 +241,7 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'absent';
+            IccHelper.mProps['cardState'] = null;
             IccHelper.mProps['iccInfo'] = {};
 
             StatusBar.update.signal.call(StatusBar);
@@ -262,7 +262,7 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'absent';
+            IccHelper.mProps['cardState'] = null;
             IccHelper.mProps['iccInfo'] = {};
 
             StatusBar.update.signal.call(StatusBar);
@@ -325,7 +325,7 @@ suite('system/Statusbar', function() {
               network: {}
             };
 
-            IccHelper.mProps['cardState'] = 'absent';
+            IccHelper.mProps['cardState'] = null;
             IccHelper.mProps['iccInfo'] = {};
 
             StatusBar.update.signal.call(StatusBar);

@@ -82,7 +82,6 @@ var SimManager = {
  /**
   * Possible values:
   *   null,
-  *   'absent',
   *   'unknown',
   *   'pinRequired',
   *   'pukRequired',

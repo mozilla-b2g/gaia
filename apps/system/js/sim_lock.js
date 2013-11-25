@@ -118,9 +118,8 @@ var SimLock = {
     }
 
     switch (IccHelper.cardState) {
-      // do nothing in either absent, unknown or null card states
+      // do nothing in either unknown or null card states
       case null:
-      case 'absent':
       case 'unknown':
         break;
       case 'pukRequired':

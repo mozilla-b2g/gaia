@@ -266,7 +266,7 @@ var Navigation = {
 
     // If SIMcard is mandatory and no SIM, go to message window
     if (self.simMandatory &&
-        (IccHelper.cardState === 'absent') &&
+        !IccHelper.cardState &&
         futureLocation.requireSIM) {
       //Send to SIM Mandatory message
       futureLocation.hash = '#SIM_mandatory';
