@@ -192,6 +192,17 @@ var Contacts = (function() {
     initContainers();
     initEventListeners();
     window.addEventListener('hashchange', checkUrl);
+
+    // If the migration is not complete
+    var config = utils.cookie.load();
+    if (!config || !config.fbMigrated) {
+      LazyLoader.load('js/fb/datastore_migrator.js', function() {
+        new DatastoreMigration().start();
+      });
+    }
+    else {
+      window.console.info('FB Already migrated!!!');
+    }
   };
 
   var initContactsList = function initContactsList() {
