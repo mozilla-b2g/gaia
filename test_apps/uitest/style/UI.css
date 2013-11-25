@@ -13,6 +13,25 @@ canvas {
 canvas.hidden {
   display: block;
 }
+
+/* keyboard */
+.row {
+  display: table-row;
+}
+.column_left {
+  display: table-cell;
+  width: 20%;
+  padding-right: 1rem;
+}
+.column_middle {
+  display: table-cell;
+  width: 20%;
+  padding-right: 1rem;
+}
+.column_right {
+  display: table-cell;
+}
+
 .box {
   width: 200px;
   height: 200px;
