@@ -251,8 +251,9 @@ suite('compose_test.js', function() {
         assert.equal(txt.length, 1, 'Single text content');
         assert.equal(txt[0], expected, 'correct content');
 
+        // the CSS we use is pre-wrap so we can use plain spaces
         var html = message.innerHTML;
-        var expectedHTML = 'start&nbsp;&nbsp;&nbsp; end<br>';
+        var expectedHTML = 'start    end<br>';
         assert.equal(html, expectedHTML, 'correct markup');
       });
       test('Text with non-break spaces', function() {
