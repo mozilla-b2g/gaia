@@ -41,7 +41,7 @@
   TutorialSteps.tiny = {};
   TutorialSteps.large = {};
 
-  TutorialSteps.tiny.stepsCount = 5 + 1;
+  TutorialSteps.tiny.stepsCount = 4 + 1;
   TutorialSteps.large.stepsCount = 5 + 1;
 
   for (var supportLayout in TutorialSteps) {
