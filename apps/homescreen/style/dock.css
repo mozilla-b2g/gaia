@@ -4,8 +4,7 @@
   position: fixed;
   bottom: 0;
   z-index: 10000;
-  background-image: url('../resources/images/footer/background.png');
-  background-size: 100%;
+  background-color: rgba(0,0,0,.4);
   overflow: visible;
 }
 
