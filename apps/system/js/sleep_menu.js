@@ -10,6 +10,13 @@ var SleepMenu = {
   // Indicate setting status of developer.menu.enabled
   isDeveloperMenuEnabled: false,
 
+  developerOptions: {
+    asyncpanzoom: {
+      value: false,
+      setting: 'apz.force-enable'
+    }
+  },
+
   // Indicate setting status of volume
   isSilentModeEnabled: false,
 
@@ -44,6 +51,14 @@ var SleepMenu = {
       self.isDeveloperMenuEnabled = value;
     });
 
+    for (var option in this.developerOptions) {
+      var defaultValue = this.developerOptions[option].value;
+      var setting = this.developerOptions[option].setting;
+      SettingsListener.observe(setting, defaultValue, function(value) {
+        self.developerOptions[option].value = value;
+      });
+    }
+
     SettingsListener.observe('audio.volume.notification', 7, function(value) {
       self.isSilentModeEnabled = (value === 0);
     });
@@ -77,6 +92,14 @@ var SleepMenu = {
       power: {
         label: _('power'),
         value: 'power'
+      },
+      asyncpanzoom: {
+        label: _('asyncpanzoom'),
+        value: 'asyncpanzoom'
+      },
+      asyncpanzoomOff: {
+        label: _('asyncpanzoomOff'),
+        value: 'asyncpanzoom'
       }
     };
 
@@ -94,6 +117,17 @@ var SleepMenu = {
 
     items.push(options.restart);
     items.push(options.power);
+
+    // Add the developer options at the end.
+    if (this.isDeveloperMenuEnabled) {
+      for (var option in this.developerOptions) {
+        if (this.developerOptions[option].value) {
+          items.push(options[option]);
+        } else {
+          items.push(options[option + 'Off']);
+        }
+      }
+    }
 
     return items;
   },
@@ -156,6 +190,9 @@ var SleepMenu = {
           this.hide();
         }
         break;
+
+      default:
+        break;
     }
   },
 
@@ -174,6 +211,17 @@ var SleepMenu = {
         // It should also save the status of the latter 4 items
         // so when leaving the airplane mode we could know which one to turn on.
         AirplaneMode.enabled = !this.isFlightModeEnabled;
+        break;
+
+      case 'asyncpanzoom':
+        this.hide();
+
+        var option = this.developerOptions[action];
+        var data = {};
+        data[option.setting] = !option.value;
+
+        var lock = window.navigator.mozSettings.createLock();
+        lock.set(data);
         break;
 
       // About silent and silentOff
@@ -203,6 +251,9 @@ var SleepMenu = {
       case 'power':
         this.startPowerOff(false);
 
+        break;
+
+      default:
         break;
     }
   },
