@@ -451,6 +451,118 @@ suite('page.js >', function() {
 
   suite('page >', function() {
 
+    suite('getMisplacedIcons', function() {
+      var wrapperNode = null;
+      var page = null;
+
+      var testData = [
+        {
+          name: 'Page without incorrectly placed icons ',
+          id: 'getMisplacedIconsPage1',
+          desiredScreen: 2,
+          result: [],
+          msgError: ''
+        },
+        {
+          name: 'Page only with a incorrectly placed icon ',
+          id: 'getMisplacedIconsPage2',
+          desiredScreen: 2,
+          result: [
+            {
+              'manifestURL': 'http://app21'
+            }
+          ],
+          msgError: ''
+        },
+        {
+          name: 'Page only with incorrectly placed icons ',
+          id: 'getMisplacedIconsPage3',
+          desiredScreen: 2,
+          result: [
+            {
+              'manifestURL': 'http://app31'
+            },
+            {
+              'manifestURL': 'http://app32'
+            }
+          ],
+          msgError: ''
+        },
+        {
+          name: 'Page with a misplaced icon and correctly place icons ',
+          id: 'getMisplacedIconsPage4',
+          desiredScreen: 2,
+          result: [
+            {
+              'manifestURL': 'http://app42'
+            }
+          ],
+          msgError: ''
+        },
+        {
+          name: 'Page with correct icons and more than one misplaced icons ',
+          id: 'getMisplacedIconsPage5',
+          desiredScreen: 2,
+          result: [
+            {
+              'manifestURL': 'http://app51'
+            },
+            {
+              'manifestURL': 'http://app54'
+            }
+          ],
+          msgError: ''
+        }
+      ];
+
+      suiteSetup(function() {
+        wrapperNode = document.createElement('section');
+        wrapperNode.innerHTML = MockPageHtml;
+        document.body.appendChild(wrapperNode);
+      });
+
+      function assertIfIconIsPresent(manifest, lstManifest, msgError) {
+        var isPresent = false;
+        for (var i = 0; i < lstManifest.length && !isPresent; i++) {
+          isPresent = lstManifest[i].manifestURL === manifest;
+        }
+        assert.isTrue(isPresent, manifest + ' ' + msgError);
+      }
+
+      function initContext(aDatas) {
+        page = new Page(document.getElementById(aDatas.id));
+        page.olist = document.querySelector('#' + aDatas.id + ' > ol');
+        GridManager.init(page);
+      };
+
+      testData.forEach(function(aTest) {
+        test(aTest.name, function() {
+            initContext(aTest);
+            var removed = page.getMisplacedIcons(aTest.desiredScreen);
+            assert.ok(removed, 'Icons array no recibido');
+            assert.equal(removed.length, aTest.result.length,
+                         'Incorrect number of icons returned');
+            var removedParsed = [];
+            for (var i = 0; i < removed.length; i++) {
+              assert.ok(removed[i].draggableElem.dataset.manifestURL,
+                        'Icon returned incorrectly formed');
+              var manifestNow = removed[i].draggableElem.dataset.manifestURL;
+              removedParsed.push({'manifestURL': manifestNow});
+              assertIfIconIsPresent(manifestNow, aTest.result,
+                                    'Incorrect icon returned');
+            }
+            for (var i = 0; i < aTest.result.length; i++) {
+              assertIfIconIsPresent(aTest.result[i].manifestURL, removedParsed,
+                                    'Icon not returned');
+            }
+        });
+      });
+
+      suiteTeardown(function() {
+        document.body.removeChild(wrapperNode);
+      });
+    });
+
     suite('appendIcon >', function() {
 
       var wrapperNode = null;
@@ -490,8 +602,8 @@ suite('page.js >', function() {
       });
 
       //Test 1st boot with SIM
-      let svTestList = [{descr: '1st boot WITH sim.', simPresent: true},
-                        {descr: '1st boot WITHOUT sim.', simPresent: false}];
+      let svTestList = [{descr: '1st boot WITH sim. ', simPresent: true},
+                        {descr: '1st boot WITHOUT sim. ', simPresent: false}];
       for (var i = 0; i < svTestList.length; i++) {
         testData.forEach((function(bootType, aTest) {
           test(bootType.descr +

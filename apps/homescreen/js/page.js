@@ -45,7 +45,7 @@ Icon.prototype = {
   // element dataset and allow us to uniquely look up the Icon object from
   // the HTML element.
   _descriptorIdentifiers: ['manifestURL', 'entry_point', 'bookmarkURL',
-                           'useAsyncPanZoom', 'desiredPos'],
+                           'useAsyncPanZoom', 'desiredPos', 'desiredScreen'],
 
   /**
    * The Application (or Bookmark) object corresponding to this icon.
@@ -885,6 +885,24 @@ Page.prototype = {
     return icon;
   },
 
+  /*
+   * Returns the icons which desiredScreen is bigger than position
+   * @param{int} position is DesiredScreen value which with compare
+   */
+  getMisplacedIcons: function pg_getMisplacedIcons(currentScreen) {
+    var misplaced = [];
+    var appsDesiredScreen =
+         this.olist.querySelectorAll('li[data-desired-screen]');
+    var numApps = appsDesiredScreen.length;
+    for (var i = numApps - 1; i >= 0; i--) {
+      var desiredScreen = appsDesiredScreen[i].dataset.desiredScreen;
+      if (desiredScreen > currentScreen) {
+        misplaced.push(GridManager.getIcon(appsDesiredScreen[i].dataset));
+      }
+    }
+    return misplaced;
+  },
+
   insertBeforeLastIcon: function pg_insertBeforeLastIcon(icon) {
     var olist = this.olist;
     if (olist.children.length > 0) {
@@ -958,7 +976,7 @@ Page.prototype = {
       var desiredPos = icon.descriptor.desiredPos;
       var manifest = icon.descriptor.manifestURL;
       // Add to the installed SV apps array
-      GridManager.svPreviouslyInstalledApps.push({'manifest': manifest});
+      GridManager.addPreviouslyInstalled(manifest);
       var numIcons = iconList.length;
       for (var i = 0; (i < numIcons) && (i <= desiredPos); i++) {
         var iconPos = iconList[i].dataset && iconList[i].dataset.desiredPos;
