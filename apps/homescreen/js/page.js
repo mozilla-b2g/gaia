@@ -21,9 +21,6 @@ function Icon(descriptor, app) {
 var SCALE_RATIO = window.devicePixelRatio;
 var MAX_ICON_SIZE = 60;
 var ICON_PADDING_IN_CANVAS = 4;
-var ICONS_PER_ROW = 4;
-
-var DRAGGING_TRANSITION = '-moz-transform .3s';
 
 Icon.prototype = {
 
@@ -740,6 +737,12 @@ function Page(container, icons, numberOfIcons) {
 
 Page.prototype = {
 
+  ICONS_PER_ROW: 4,
+
+  DRAGGING_TRANSITION: '-moz-transform .3s',
+
+  REARRANGE_DELAY: 50,
+
   FALLBACK_READY_EVENT_DELAY: 1000,
 
   /*
@@ -844,10 +847,10 @@ Page.prototype = {
 
     if (upward) {
       for (var i = draggableIndex + 1; i <= targetIndex; i++)
-        this.placeIcon(children[i], i, i - 1, DRAGGING_TRANSITION);
+        this.placeIcon(children[i], i, i - 1, this.DRAGGING_TRANSITION);
     } else {
       for (var i = targetIndex; i < draggableIndex; i++)
-        this.placeIcon(children[i], i, i + 1, DRAGGING_TRANSITION);
+        this.placeIcon(children[i], i, i + 1, this.DRAGGING_TRANSITION);
     }
   },
 
@@ -905,11 +908,11 @@ Page.prototype = {
       return;
 
     var x = node.dataset.posX = parseInt(node.dataset.posX || 0) +
-                      ((Math.floor(to % ICONS_PER_ROW) -
-                        Math.floor(from % ICONS_PER_ROW)) * 100);
+                      ((Math.floor(to % this.ICONS_PER_ROW) -
+                        Math.floor(from % this.ICONS_PER_ROW)) * 100);
     var y = node.dataset.posY = parseInt(node.dataset.posY || 0) +
-                      ((Math.floor(to / ICONS_PER_ROW) -
-                        Math.floor(from / ICONS_PER_ROW)) * 100);
+                      ((Math.floor(to / this.ICONS_PER_ROW) -
+                        Math.floor(from / this.ICONS_PER_ROW)) * 100);
 
     window.mozRequestAnimationFrame(function() {
       node.style.MozTransform = 'translate(' + x + '%, ' + y + '%)';

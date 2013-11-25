@@ -193,8 +193,9 @@ void function() {
      * Overwrite a collection's settings with new data
      * and update the homescreen icon if needed.
      */
-    this.update = function updateCollection(collectionSettings, data,
-                                  callback=Evme.Utils.NOOP) {
+    this.update = function update(collectionSettings, data, callback, extra) {
+      callback = callback || Evme.Utils.NOOP;
+      extra = extra || {};
 
       var pluck = Evme.Utils.pluck;
       var shouldUpdateIcon = false;
@@ -205,8 +206,10 @@ void function() {
 
       Evme.CollectionSettings.update(collectionSettings, data,
         function onUpdate(updatedSettings) {
-          // collection is open and apps changed
-          if (currentSettings &&
+          // repaint static apps if collection is open and apps changed
+          // noRepaint flags to override this behavior in case the caller
+          // already handles repaint (like 'moveApp' does)
+          if (!extra.noRepaint && currentSettings &&
               currentSettings.id === collectionSettings.id && 'apps' in data) {
             resultsManager.renderStaticApps(updatedSettings.apps);
           }
@@ -277,7 +280,7 @@ void function() {
         }
       };
 
-    // remove app from the open collection via settings menu
+    // remove app from the open collection
     this.removeApp = function removeApp(id) {
       var apps = currentSettings.apps.filter(function keepIt(app) {
         return app.id !== id;
@@ -285,6 +288,20 @@ void function() {
 
       if (apps.length < currentSettings.apps.length) {
         self.update(currentSettings, {'apps': apps});
+      }
+    };
+
+    // organize static apps in current open collection
+    // move app to new index
+    this.moveApp = function moveApp(appId, newIdx) {
+      var oldIdx = Evme.Utils.pluck(currentSettings.apps, 'id').indexOf(appId);
+      if (oldIdx > -1) {
+        var orderedApps = currentSettings.apps.slice();
+        orderedApps.splice(oldIdx, 1);
+        orderedApps.splice(newIdx, 0, currentSettings.apps[oldIdx]);
+        self.update(currentSettings, {'apps': orderedApps}, undefined, {
+          'noRepaint': true
+        });
       }
     };
 
@@ -502,6 +519,8 @@ void function() {
         document.removeEventListener('mozvisibilitychange', onVisibilityChange);
       }
 
+      // disable bg scroll feature when in edit mode
+      resultsManager.changeFadeOnScroll(!bool);
       return true;
     };
 
@@ -631,7 +650,8 @@ void function() {
 
   /**
    * wrapper for update calls
-   * code should not call CollectionStorage.update directly
+   * you should probably NOT call this method directly,
+   * but use Collection.update instead
    */
   Evme.CollectionSettings.update = function update(settings, data, cb) {
     var cleanData = {};
@@ -639,6 +659,13 @@ void function() {
     // remove app duplicates
     if ('apps' in data) {
       cleanData.apps = Evme.Utils.unique(data.apps, 'id');
+
+      // cloudapps: convert ids to strings
+      for (var k = 0, app; app = cleanData.apps[k++]; ) {
+        if (typeof app.id === 'number') {
+          app.id = '' + app.id;
+        }
+      }
     }
 
     // check validity of extra icons
