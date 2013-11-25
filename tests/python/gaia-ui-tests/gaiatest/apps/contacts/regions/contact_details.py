@@ -61,13 +61,9 @@ class ContactDetails(Base):
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
-    def tap_add_favorite(self):
+    def tap_add_remove_favorite(self):
         self.marionette.find_element(*self._add_remove_favorite_button_locator).tap()
-        self.wait_for_condition(lambda m: 'remove' in self.add_remove_text.lower())
-
-    def tap_remove_favorite(self):
-        self.marionette.find_element(*self._add_remove_favorite_button_locator).tap()
-        self.wait_for_condition(lambda m: 'add' in self.add_remove_text.lower())
+        self.wait_for_element_displayed(*self._add_remove_favorite_button_locator)
 
     @property
     def add_remove_text(self):
