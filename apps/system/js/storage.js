@@ -57,4 +57,4 @@ var Storage = {
   }
 };
 
-Storage.init();
+window.addEventListener('load', Storage.init.bind(Storage));

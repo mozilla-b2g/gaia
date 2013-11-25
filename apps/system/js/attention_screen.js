@@ -323,6 +323,10 @@ var AttentionScreen = {
   },
 
   screenUnlocked: function as_screenUnlocked() {
+    if (!window.WindowManager) {
+      return;
+    }
+
     // If the app behind the soon-to-be-unlocked lockscreen has an
     // attention screen we should display it
     var app = WindowManager.getCurrentDisplayedApp();
