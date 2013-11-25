@@ -294,7 +294,6 @@ navigator.mozL10n.ready(function bluetoothSettings() {
           this.disconnectOpt.style.display = 'none';
           this.connectOpt.onclick = function() {
             setDeviceConnect(self.device);
-            stopDiscovery();
           };
         }
         this.unpairOpt.onclick = function() {
@@ -721,6 +720,8 @@ navigator.mozL10n.ready(function bluetoothSettings() {
             window.alert(_('error-connect-msg'));
           }
         };
+
+        stopDiscovery();
 
         var req = defaultAdapter.connect(device);
         req.onsuccess = connectSuccess; // At least one profile is connected.
