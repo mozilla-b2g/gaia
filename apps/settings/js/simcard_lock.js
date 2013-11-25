@@ -5,7 +5,6 @@
 
 var SimPinLock = {
   dialog: document.getElementById('simpin-dialog'),
-  simSecurityDesc: document.getElementById('simCardLock-desc'),
   simPinCheckBox: document.querySelector('#simpin-enabled input'),
   changeSimPinItem: document.getElementById('simpin-change'),
   changeSimPinButton: document.querySelector('#simpin-change button'),
@@ -14,13 +13,11 @@ var SimPinLock = {
 
   updateSimCardStatus: function spl_updateSimStatus() {
     var cardStateMapping = {
-      'null': 'simCardNotReady',
-      'unknown': 'unknownSimCardState',
-      'absent': 'noSimCard'
+      'null': 'noSimCard',
+      'unknown': 'unknownSimCardState'
     };
     var cardStateL10nId = cardStateMapping[IccHelper.cardState || 'null'];
     if (cardStateL10nId) { // no SIM card
-      localize(this.simSecurityDesc, cardStateL10nId);
       this.simPinCheckBox.disabled = true;
       this.changeSimPinItem.hidden = true;
       return;
@@ -31,7 +28,6 @@ var SimPinLock = {
     var req = IccHelper.getCardLock('pin');
     req.onsuccess = function spl_checkSuccess() {
       var enabled = req.result.enabled;
-      localize(self.simSecurityDesc, enabled ? 'enabled' : 'disabled');
       self.simPinCheckBox.disabled = false;
       self.simPinCheckBox.checked = enabled;
       self.changeSimPinItem.hidden = !enabled;

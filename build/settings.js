@@ -139,9 +139,9 @@ function execute(options) {
    'camera.recording.preferredSizes': [],
    'clear.remote-windows.data': false,
    'debug.console.enabled': false,
+   'developer.menu.enabled': false,
    'debug.grid.enabled': false,
    'debug.oop.disabled': false,
-   'debug.keyboard-oop.enabled': false,
    'debug.fps.enabled': false,
    'debug.ttl.enabled': false,
    'debug.log-animations.enabled': false,
@@ -199,6 +199,7 @@ function execute(options) {
    'keyboard.wordsuggestion': true,
    'keyboard.current': 'en',
    'keyboard.ftu.enabled': false,
+   'keyboard.3rd-party-app.enabled': false,
    'language.current': 'en-US',
    'layers.draw-borders': false,
    'lockscreen.passcode-lock.code': '0000',
@@ -310,9 +311,14 @@ function execute(options) {
    'wap.push.enabled': true
   };
 
-  // We want the console to be disabled for device builds using the user variant.
-  if (config.TARGET_BUILD_VARIANT != 'user')
+  if (config.TARGET_BUILD_VARIANT != 'user') {
+    // We want the console to be disabled for device builds using the user variant.
     settings['debug.console.enabled'] = true;
+
+    // Activate developer menu under the system menu when long pressing
+    // the power button by default for devs.
+    settings['developer.menu.enabled'] = true;
+  }
 
   // Set the homescreen URL
   settings['homescreen.manifestURL'] = utils.gaiaManifestURL('homescreen',

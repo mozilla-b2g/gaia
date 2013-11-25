@@ -18,21 +18,18 @@ class TestUrlKeyboard(GaiaTestCase):
 
         # tap the field "input type=url"
         keyboard = keyboard_page.tap_url_input()
-        keyboard.switch_to_keyboard()
 
+        keyboard.switch_to_keyboard()
         # Test forward slash
         keyboard._tap('/')
-        self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(self.ui_tests.app.frame)
 
+        self.apps.switch_to_displayed_app()
         keyboard_page.switch_to_frame()
         typed_key = keyboard_page.url_input
         self.assertEqual(typed_key, u'/')
 
         # Test .com key
         keyboard.tap_dotcom()
-
-        self.marionette.switch_to_frame(self.ui_tests.app.frame)
 
         keyboard_page.switch_to_frame()
         typed_key = keyboard_page.url_input

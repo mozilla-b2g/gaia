@@ -276,7 +276,7 @@ function customizeAppPosition(data, profilePath, distributionPath) {
       if (!apps[appId]['manifestURL']) {
         throw new Error('manifestURL not found for application: ' + appId);
       }
-      app['manifestURL'] = apps[appId];
+      app['manifestURL'] = apps[appId]['manifestURL'];
       delete app.id;
       rowHomescreen.push(app);
     });

@@ -23,7 +23,8 @@ var BASE_TYPES = new Set([
  */
 var SETTINGS_KEYS = {
   ENABLED: 'keyboard.enabled-layouts',
-  DEFAULT: 'keyboard.default-layouts'
+  DEFAULT: 'keyboard.default-layouts',
+  THIRD_PARTY_APP_ENABLED: 'keyboard.3rd-party-app.enabled'
 };
 
 // In order to provide default defaults, we need to know the default keyboard
@@ -46,6 +47,11 @@ currentSettings.defaultLayouts[defaultKeyboardOrigin] = {
 
 // and also assume that the defaults are the enabled
 currentSettings.enabledLayouts = map2dClone(currentSettings.defaultLayouts);
+
+// Switch to allow/disallow 3rd-party keyboard apps to be enabled.
+var enable3rdPartyKeyboardApps = false;
+var regExpGaiaKeyboardAppsManifestURL =
+  /^(app|http):\/\/[\w\-]+\.gaiamobile.org(:\d+)?\/manifest\.webapp$/;
 
 /**
  * helper function for reading a value in one of the currentSettings
@@ -159,6 +165,21 @@ function kh_getSettings() {
   var lock = window.navigator.mozSettings.createLock();
   lock.get(SETTINGS_KEYS.DEFAULT).onsuccess = kh_parseDefault;
   lock.get(SETTINGS_KEYS.ENABLED).onsuccess = kh_parseEnabled;
+  lock.get(SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED).onsuccess =
+    kh_parse3rdPartyAppEnabled;
+}
+
+/**
+ * Parse the result from the settings query for enabling 3rd-party keyboards
+ */
+function kh_parse3rdPartyAppEnabled() {
+  var value = this.result[SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED];
+  if (typeof value === 'boolean') {
+    enable3rdPartyKeyboardApps = value;
+  } else {
+    enable3rdPartyKeyboardApps = false;
+  }
+  kh_loadedSetting(SETTINGS_KEYS.THIRD_PARTY_APP_ENABLED);
 }
 
 /**
@@ -439,6 +460,14 @@ var KeyboardHelper = exports.KeyboardHelper = {
         // Check permission
         if (app.manifest.permissions &&
             !('input' in app.manifest.permissions)) {
+          return;
+        }
+
+        if (!enable3rdPartyKeyboardApps &&
+          !regExpGaiaKeyboardAppsManifestURL.test(app.manifestURL)) {
+          console.error('A 3rd-party keyboard app is installed but ' +
+            'the feature is not enabled in this build. ' +
+            'Manifest URL: ' + app.manifestURL);
           return;
         }
 

@@ -19,7 +19,7 @@ class ContactDetails(Base):
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
-        self.wait_for_contact_details_to_load()
+        self.wait_for_condition(lambda m: m.find_element(*self._contact_name_title_locator).location['x'] == 0)
 
     @property
     def full_name(self):
@@ -36,9 +36,6 @@ class ContactDetails(Base):
     @property
     def image_style(self):
         return self.marionette.find_element(*self._contact_image_locator).get_attribute('style')
-
-    def wait_for_contact_details_to_load(self):
-        self.wait_for_element_displayed(*self._call_phone_number_button_locator)
 
     def tap_phone_number(self):
         self.marionette.find_element(*self._call_phone_number_button_locator).tap()
@@ -61,13 +58,9 @@ class ContactDetails(Base):
         from gaiatest.apps.contacts.app import Contacts
         return Contacts(self.marionette)
 
-    def tap_add_favorite(self):
+    def tap_add_remove_favorite(self):
         self.marionette.find_element(*self._add_remove_favorite_button_locator).tap()
-        self.wait_for_condition(lambda m: 'remove' in self.add_remove_text.lower())
-
-    def tap_remove_favorite(self):
-        self.marionette.find_element(*self._add_remove_favorite_button_locator).tap()
-        self.wait_for_condition(lambda m: 'add' in self.add_remove_text.lower())
+        self.wait_for_element_displayed(*self._add_remove_favorite_button_locator)
 
     @property
     def add_remove_text(self):

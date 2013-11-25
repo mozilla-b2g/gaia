@@ -86,11 +86,9 @@ suite('internet sharing > ', function() {
       assert.ok(
         mEventListeners['cardstatechange'].length > 0);
       assert.ok(
-        !mObservers[KEY_USB_TETHERING] ||
-        !mObservers[KEY_USB_TETHERING].length);
+        mObservers[KEY_USB_TETHERING].length > 0);
       assert.ok(
-        !mObservers[KEY_WIFI_HOTSPOT] ||
-        !mObservers[KEY_WIFI_HOTSPOT].length);
+        mObservers[KEY_WIFI_HOTSPOT].length > 0);
     });
     // card state from null to unknown(sim found, but not initialized)
     test('unknown sim no settings', function() {
@@ -100,11 +98,9 @@ suite('internet sharing > ', function() {
       assert.ok(
         mEventListeners['cardstatechange'].length > 0);
       assert.ok(
-        !mObservers[KEY_USB_TETHERING] ||
-        !mObservers[KEY_USB_TETHERING].length);
+        mObservers[KEY_USB_TETHERING].length > 0);
       assert.ok(
-        !mObservers[KEY_WIFI_HOTSPOT] ||
-        !mObservers[KEY_WIFI_HOTSPOT].length);
+        mObservers[KEY_WIFI_HOTSPOT].length > 0);
     });
     // card state from unknown to pinRequired
     test('sim1 pinRequired no settings', function() {
@@ -161,8 +157,8 @@ suite('internet sharing > ', function() {
     });
     // user remove sim 1
     test('sim1 removed', function() {
-      changeCardState('absent', null);
-      IccHelper.mProps['cardState'] = 'absent';
+      changeCardState(null, null);
+      IccHelper.mProps['cardState'] = null;
       IccHelper.mProps['iccInfo'] = {};
       IccHelper.mTriggerEventListeners('cardstatechange', {});
       var testSet = [{'key': KEY_USB_TETHERING, 'result': false},
@@ -184,7 +180,7 @@ suite('internet sharing > ', function() {
       // disable usb
       changeSettings(KEY_USB_TETHERING, false);
       // remove sim 1
-      changeCardState('absent', null);
+      changeCardState(null, null);
       // everything is disblaed
       assertSettingsEquals(testSet);
       // insert sim 1
@@ -199,10 +195,10 @@ suite('internet sharing > ', function() {
       // we need to keep asyncStorage under this suite.
       mocksForInternetSharing.setup();
       // setting up:
-      // absent, pinRequired, pukRequired...(non-ready): usb enabled
+      // null, pinRequired, pukRequired...(non-ready): usb enabled
       // sim1: wifi hotspot enabled
       // sim2: nothing enabled
-      changeCardState('absent', null);
+      changeCardState(null, null);
       changeSettings(KEY_USB_TETHERING, true);
       changeSettings(KEY_WIFI_HOTSPOT, false);
 
@@ -246,7 +242,7 @@ suite('internet sharing > ', function() {
     });
     // switch to no sim
     test('switch to no sim, test state', function() {
-      changeCardState('absent', null);
+      changeCardState(null, null);
       var testSet = [{'key': KEY_USB_TETHERING, 'result': true},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
       assertSettingsEquals(testSet);
@@ -265,7 +261,7 @@ suite('internet sharing > ', function() {
                              'networkLocked',
                              'corporateLocked',
                              'serviceProviderLocked'];
-      // all states linked with absent simcard.
+      // all states linked with null simcard.
       var testSet = [{'key': KEY_USB_TETHERING, 'result': true},
                      {'key': KEY_WIFI_HOTSPOT, 'result': false}];
       lockedCardState.forEach(function(state) {
