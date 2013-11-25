@@ -931,7 +931,7 @@ Page.prototype = {
           Homescreen.showAppDialog(icon);
       }
       callback();
-    } else if ('isIcon' in elem.dataset && this.olist &&
+    } else if ('isIcon' in elem.dataset && this.olist === elem.parentNode &&
                !document.body.hasAttribute('disabled-tapping')) {
       var icon = GridManager.getIcon(elem.dataset);
       if (!icon.app)
