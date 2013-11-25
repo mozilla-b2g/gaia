@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<!--
+ This Source Code Form is subject to the terms of the Mozilla Public
+ License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ You can obtain one at http://mozilla.org/MPL/2.0/.
+-->
+<!--
+ Copyright © 2013, Deutsche Telekom, Inc.
+-->
+
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>
+        </title>
+        <link rel="stylesheet" href="jquery/jquery.mobile-1.1.1.min.css" />
+        <style>
+            /* App custom styles */
+            #output {
+              width: 100%;
+              min-height: 250px;
+            }
+        </style>
+        <script src="jquery/jquery-1.7.1.min.js"></script>
+        <script src="jquery/jquery.mobile-1.1.1.min.js"></script>
+        <script src="js/uicc.js"></script>
+    </head>
+    <body>
+        <!-- Home -->
+        <div data-role="page" id="page1">
+            <div data-theme="a" data-role="header">
+                <h3>
+                    UICC Demo
+                </h3>
+            </div>
+            <div data-role="content" style="padding: 15px">
+                <div data-role="fieldcontain">
+                    <fieldset data-role="controlgroup">
+                        <label for="textarea1">
+                            Output
+                        </label></br>
+                        <textarea name="" placeholder="" id="output">
+                        </textarea>
+                    </fieldset>
+                </div>
+                <a data-role="button" data-transition="fade" href="#page1" id="openbutton">
+                    Open Channel
+                </a>
+                <a data-role="button" data-transition="fade" href="#page1" id="exchangebutton">
+                    Exchange APDU
+                </a>
+                <a data-role="button" data-transition="fade" href="#page1" id="closebutton">
+                    Close Channel
+                </a>
+
+		<a data-role="button" data-transition="fade" href="#page1" id="addlistenersbutton">
+                    Add Listeners
+                </a>
+		<a data-role="button" data-transition="fade" href="#page1" id="removelistenersbutton">
+                    Remove Listeners
+                </a>
+
+            </div>
+        </div>
+    </body>
+</html>
