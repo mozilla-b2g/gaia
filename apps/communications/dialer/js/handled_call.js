@@ -104,6 +104,7 @@ HandledCall.prototype.updateCallNumber = function hc_updateCallNumber() {
       self._cachedInfo = _('switch-calls');
       self._cachedAdditionalInfo = '';
       self.replaceAdditionalContactInfo('');
+      self.numberNode.style.fontSize = '';
     });
     return;
   }
