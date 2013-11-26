@@ -1,0 +1,18 @@
+README
+=======
+
+jsAvroPhonetic is a Javascript implementation of Avro Phonetic, an IME for Bangla.
+
+USING
+=====
+
+Get the transliterated text for any input like:
+
+```
+var parsed_text = OmicronLab.Avro.Phonetic.parse('latin_input');
+```
+
+GET THE SOURCE
+==============
+
+Original GitHub Repository: https://github.com/torifat/jsAvroPhonetic/
