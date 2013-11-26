@@ -17,6 +17,8 @@ var CACHE_VERSION = '1';
 exports.save = function htmlCacheSave(html) {
   html = encodeURIComponent(CACHE_VERSION + ':' + html);
 
+  var start = Date.now();
+
   // Set to 20 years from now.
   var expiry = Date.now() + (20 * 365 * 24 * 60 * 60 * 1000);
   expiry = (new Date(expiry)).toUTCString();
@@ -55,7 +57,7 @@ exports.save = function htmlCacheSave(html) {
   }
 
   console.log('htmlCache.save: ' + html.length + ' in ' +
-              (index) + ' segments');
+              (index) + ' segments, took ' + (Date.now() - start) + ' ms');
 };
 
 /**
