@@ -22,15 +22,10 @@
       // if either or both are falsey
       return true;
     } else {
-      // if any recipient doesn't match
-      if (a.recipients.length !== b.recipients.length) {
+      // Tests for equality of recipient arrays without
+      // regard to order
+      if (!Utils.probablyMatches(a.recipients, b.recipients)) {
         return true;
-      } else {
-        for (var i = 0; i < a.recipients.length; i++) {
-          if (!Utils.probablyMatches(a.recipients[i], b.recipients[i])) {
-            return true;
-          }
-        }
       }
       // else check whether content or subject match
       return !isEqual(a.content, b.content) ||
@@ -100,7 +95,7 @@
      *
      * Delete a draft record from the collection.
      *
-     * @param  {Draft} draft draft to delete.
+     * @param  {Draft} draft to delete.
      *
      * @return {Drafts} return the Drafts object.
      */
@@ -109,6 +104,14 @@
       var index;
 
       if (draft) {
+        // If we pass in an object with a threadId
+        // that isn't a draft, delete the drafts in the thread
+        if (!draft instanceof Draft) {
+          draftIndex.delete(draft.threadId);
+          this.store();
+          return this;
+        }
+
         thread = draftIndex.get(draft.threadId);
         index = thread.indexOf(draft);
 
@@ -127,6 +130,12 @@
         if (index > -1) {
           thread.splice(index, 1);
         }
+        // If there are no more drafts associated with a thread id
+        // remove it from the index
+        if (thread.length === 0) {
+          draftIndex.delete(draft.threadId);
+        }
+        this.store();
       }
       return this;
     },
@@ -177,6 +186,16 @@
     clear: function() {
       draftIndex = new Map();
       return this;
+    },
+    /**
+     * has
+     *
+     * Check if a threadId exists in the drafts index
+     *
+     * @return {Boolean} Return true if id is in the index.
+     */
+    has: function(id) {
+      return draftIndex.has(id);
     },
     /**
      * store

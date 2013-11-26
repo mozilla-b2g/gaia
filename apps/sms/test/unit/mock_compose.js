@@ -19,6 +19,8 @@ var MockCompose = {
 
   getText: function() {},
 
+  getDraft: function() {},
+
   mEmpty: true,
 
   mSetup: function() {

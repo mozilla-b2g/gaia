@@ -718,6 +718,9 @@ var ThreadUI = global.ThreadUI = {
       this.stopRendering();
 
       var currentActivity = ActivityHandler.currentActivity.new;
+      var currentId = Threads.currentId;
+      var pseudoId = window.location.hash.split('=')[1];
+      var draft;
       var discard;
 
       if (currentActivity) {
@@ -728,6 +731,7 @@ var ThreadUI = global.ThreadUI = {
 
       discard = (function() {
         this.cleanFields(true);
+        Drafts.delete(MessageManager.draft);
         window.location.hash = '#thread-list';
       }).bind(this);
 
@@ -1249,6 +1253,7 @@ var ThreadUI = global.ThreadUI = {
 
   // Method for rendering the list of messages using infinite scroll
   renderMessages: function thui_renderMessages(threadId, callback) {
+    var draft = MessageManager.draft;
     var onMessagesRendered = (function messagesRendered() {
       if (this.messageIndex < this.CHUNK_SIZE) {
         this.showFirstChunk();
@@ -1294,6 +1299,10 @@ var ThreadUI = global.ThreadUI = {
     };
 
     MessageManager.getMessages(renderingOptions);
+
+    // Check for drafts when rendering messages
+    Compose.fromDraft(threadId);
+
     // force the next scroll to bottom
     this.isScrolledManually = false;
   },
@@ -1908,7 +1917,10 @@ var ThreadUI = global.ThreadUI = {
   },
 
   onMessageSent: function thui_onMessageSent(message) {
-    var messageDOM = document.getElementById('message-' + message.id);
+    var threadId = message.id;
+    // store a reference to the draft so we can delete it
+    var draft;
+    var messageDOM = document.getElementById('message-' + threadId);
 
     if (!messageDOM) {
       return;
@@ -1917,6 +1929,13 @@ var ThreadUI = global.ThreadUI = {
     // Update class names to reflect message state
     messageDOM.classList.remove('sending');
     messageDOM.classList.add('sent');
+
+    // If the message we sent is associated with a threadId
+    // which has a draft, delete it
+    if (Drafts.has(threadId)) {
+      draft = Drafts.byThreadId(threadId).latest;
+      Drafts.delete(draft);
+    }
 
     // Play the audio notification
     if (this.sentAudioEnabled) {
@@ -2487,13 +2506,10 @@ var ThreadUI = global.ThreadUI = {
 
       // Pick out the threadId that matches
       // all the recipients in this draft.
-      Threads.forEach(function(t) {
-        var p = Threads.get(t.id).participants;
-        for (var i = 0; i < p.length; i++) {
-          if (Utils.probablyMatches(p[i], recipients[i])) {
-            threadId = t.id;
-            break;
-          }
+
+      Threads.forEach(function(t, id) {
+        if (Utils.probablyMatches(t.participants, recipients)) {
+          threadId = id;
         }
       });
       threadId = threadId || null;

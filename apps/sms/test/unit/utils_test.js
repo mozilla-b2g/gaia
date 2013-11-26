@@ -631,6 +631,45 @@ suite('Utils', function() {
         });
       });
     });
+
+    suite('Multirecipient comparisons', function() {
+      var reference = ['800 555 1212', '636 555 3226', '800 867 5309'];
+
+      test('Same array', function() {
+        assert.ok(
+          Utils.probablyMatches(reference, reference)
+        );
+      });
+      test('Shuffled', function() {
+        // Destructured assignment will make this easier
+        assert.ok(
+          Utils.probablyMatches(reference, [].concat(reference).reverse())
+        );
+      });
+      test('With holes', function() {
+        var removed = [].concat(reference).splice(1, 1, undefined);
+        assert.isFalse(
+          Utils.probablyMatches(reference, removed)
+        );
+      });
+      test('Different lengths', function() {
+        assert.isFalse(
+          // longer
+          Utils.probablyMatches(reference, reference.concat('800 867 5309'))
+        );
+        assert.isFalse(
+          //shorter
+          Utils.probablyMatches(reference, reference.slice(-2))
+        );
+      });
+      test('Array and string', function() {
+        assert.isFalse(
+          // String and array length are the same
+          Utils.probablyMatches(reference, '123')
+        );
+      });
+    });
+
   });
 
 

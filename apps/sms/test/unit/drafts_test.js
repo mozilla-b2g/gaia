@@ -81,6 +81,23 @@ suite('Drafts', function() {
       subject: 'This is a different subject',
       type: 'sms'
     });
+    d6 = new Draft({
+      recipients: ['123456'],
+      content: [
+        'This is a draft MMS...',
+        {
+          blob: {
+            type: 'audio/ogg',
+            size: 12345
+          },
+          name: 'audio.oga'
+        },
+        '...with a recipient and a thread'
+      ],
+      timestamp: Date.now() - (3600000 * 2),
+      threadId: 8,
+      type: 'mms'
+    });
   });
 
   suiteTeardown(function() {
@@ -181,39 +198,47 @@ suite('Drafts', function() {
     });
   });
 
-  suite('byThreadId(threadId) >', function() {
+  suite('Select drafts', function() {
     var list;
 
     suiteSetup(function() {
-      Drafts.add(d1);
-      Drafts.add(d2);
-      Drafts.add(d3);
-      Drafts.add(d4);
-      Drafts.add(d5);
+      [d1, d2, d3, d4, d5].forEach(Drafts.add, Drafts);
     });
 
     suiteTeardown(function() {
       Drafts.clear();
     });
 
-    test('get drafts for id 42', function() {
-      list = Drafts.byThreadId(42);
-      assert.equal(list.length, 1);
+    suite('byThreadId', function() {
+
+      test('get drafts for id 1', function() {
+        list = Drafts.byThreadId(1);
+        assert.equal(list.length, 1, 'One drafts returned for id 1');
+      });
+
+      test('get drafts for null id', function() {
+        list = Drafts.byThreadId(null);
+        assert.equal(list.length, 1, 'One drafts returned for null id');
+      });
+
+      test('get drafts for non-existent id', function() {
+        list = Drafts.byThreadId(10);
+        assert.equal(list.length, 0, 'No drafts returned for id 10');
+      });
     });
 
-    test('get drafts for id 1', function() {
-      list = Drafts.byThreadId(1);
-      assert.equal(list.length, 1);
-    });
+    suite('has', function() {
+      test('return false for non-existent draft', function() {
+        assert.isFalse(Drafts.has(10));
+      });
+      test('return true for null', function() {
+        assert.ok(Drafts.has(null));
+      });
+      test('return true for integer ids', function() {
+        assert.ok(Drafts.has(1));
+        assert.ok(Drafts.has(42));
+      });
 
-    test('get drafts for null id', function() {
-      list = Drafts.byThreadId(null);
-      assert.equal(list.length, 1);
-    });
-
-    test('get drafts for non-existent id', function() {
-      list = Drafts.byThreadId(10);
-      assert.equal(list.length, 0);
     });
 
     test('no drafts for a threadId returns useful state', function() {
@@ -365,7 +390,7 @@ suite('Drafts', function() {
 
   });
 
-  suite('Storage', function() {
+  suite('Storage and Retrieval', function() {
     var spy;
 
     suiteSetup(function() {
@@ -425,17 +450,9 @@ suite('Drafts', function() {
         assert.equal(elem, d2);
       });
 
-      assert.equal(Drafts.byThreadId(null).length, 3);
+      assert.equal(Drafts.byThreadId(null).length, 2);
       assert.equal(Drafts.byThreadId(5).length, 0);
     });
 
-    test('Load drafts, has no stored data', function(done) {
-      this.sinon.spy(asyncStorage, 'getItem');
-
-      Drafts.load(function(result) {
-        assert.equal(result.length, 0);
-        done();
-      });
-    });
   });
 });

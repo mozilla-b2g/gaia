@@ -235,8 +235,8 @@
     removeNonDialables: function ut_removeNonDialables(input) {
       return input.replace(rnondialablechars, '');
     },
-    // @param {String} a First number string to compare.
-    // @param {String} b Second number string to compare.
+    // @param {(String|string[])} a First recipient field.
+    // @param {(String|string[])} b Second recipient field
     //
     // Based on...
     //  - ITU-T E.123 (http://www.itu.int/rec/T-REC-E.123-200102-I/)
@@ -247,6 +247,37 @@
     probablyMatches: function ut_probablyMatches(a, b) {
       var service = navigator.mozPhoneNumberService;
 
+      // Cache if variables are arrays
+      var aIs = Array.isArray(a);
+      var bIs = Array.isArray(b);
+
+      // Check multi-repients without regard to order
+      // When ES6 syntax is allowed, replace with
+      // multiRecipientMatch([...a], [...b])
+      function multiRecipientMatch(a, b) {
+        a = aIs ? a : [a];
+        b = bIs ? b : [b];
+        var blen = b.length;
+        if (a.length !== blen) {
+          return false;
+        }
+        // Check each recipient in a against each in b
+        // Allows for any order (and fails early)
+        return a.every(function(number) {
+          for (var i = 0; i < blen; i++) {
+            if (Utils.probablyMatches(number, b[i])) {
+              return true;
+            }
+          }
+        });
+      }
+
+      // If either is an array, use multiRecipientMatch
+      if (aIs || bIs) {
+        return multiRecipientMatch(a, b);
+      }
+
+      // String comparison starts here
       if (typeof a !== 'string' || typeof b !== 'string') {
         return false;
       }
