@@ -11,7 +11,7 @@ apps/email
 apps/fl
 apps/gallery
 apps/keyboard
-apps/music
+test_apps/music2
 apps/pdfjs
 apps/video
 apps/wallpaper
