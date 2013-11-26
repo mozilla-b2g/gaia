@@ -2765,10 +2765,10 @@ return {
 
 define('pop3/pop3',['module', 'exports', 'rdcommon/log', 'net', 'crypto',
         './transport', 'mailparser/mailparser', '../mailapi/imap/imapchew',
-        './mime_mapper'],
+        './mime_mapper', '../mailapi/allback'],
 function(module, exports, log, net, crypto,
          transport, mailparser, imapchew,
-         mimeMapper) {
+         mimeMapper, allback) {
 
   /**
    * The Pop3Client modules and classes are organized according to
@@ -3288,8 +3288,20 @@ function(module, exports, log, net, crypto,
   /**
    * Fetche the headers and snippets for all messages. Only retrieves
    * messages for which filterFunc(uidl) returns true.
+   *
+   * @param {object} opts
+   * @param {function(uidl)} opts.filter Only store messages matching filter
+   * @param {function(evt)} opts.progress Progress callback
+   * @param {int} opts.checkpointInterval Call `checkpoint` every N messages
+   * @param {function(next)} opts.checkpoint Callback to periodically save state
+   * @param {function(err, numSynced)} cb
    */
-  Pop3Client.prototype.listMessages = function(filterFunc, progressCb, cb) {
+  Pop3Client.prototype.listMessages = function(opts, cb) {
+    var filterFunc = opts.filter;
+    var progressCb = opts.progress;
+    var checkpointInterval = opts.checkpointInterval || null;
+    var checkpoint = opts.checkpoint;
+
     // Get a mapping of number->UIDL.
     this._loadMessageList(function(err, unfilteredMessages) {
       if (err) { cb && cb(err); return; }
@@ -3317,41 +3329,58 @@ function(module, exports, log, net, crypto,
         console.log('POP3: ' + m.size + ' bytes: ' + m.uidl);
       });
 
-      // Download each of them.
-      var numLeft = messages.length;
-      var numErrors = 0;
-      if (numLeft === 0) {
-        cb && cb(null, 0);
-        return;
+      var totalMessages = messages.length;
+      // If we don't provide a checkpoint interval, just do all
+      // messages at once.
+      if (!checkpointInterval) {
+        checkpointInterval = totalMessages;
       }
-      messages.forEach(function(m) {
-        // If any of the messages fail to be retrieved, we abort. In
-        // theory, this should be fatal; in either case, we must only
-        // call the callback once.
-        this.downloadPartialMessageByNumber(
-          m.number,
-          function(err, msg) {
-            --numLeft;
-            if (numErrors === 0 && err) {
-              cb && cb(err);
-              numErrors++;
-              return;
-            } else if (numErrors) {
-              return; // we've already called the callback with an error
-            } else {
-              bytesFetched += m.size;
-              progressCb && progressCb({
-                totalBytes: totalBytes,
-                bytesFetched: bytesFetched,
-                size: m.size,
-                message: msg
-              });
-              if (numLeft === 0) {
-                cb && cb(null, messages.length);
-              }
-            }
-          }.bind(this));
-      }.bind(this));
+
+      // Download all of the messages in batches.
+      var nextBatch = function() {
+        console.log('POP3: Next batch. Messages left: ' + messages.length);
+        // If there are no more messages, we're done.
+        if (!messages.length) {
+          cb && cb(null, totalMessages);
+          return;
+        }
+
+        var batch = messages.splice(0, checkpointInterval);
+        var latch = allback.latch();
+
+        // Trigger a download for every message in the batch.
+        batch.forEach(function(m, idx) {
+          var messageDone = latch.defer();
+          this.downloadPartialMessageByNumber(m.number, function(err, msg) {
+            bytesFetched += m.size;
+            progressCb && progressCb({
+              totalBytes: totalBytes,
+              bytesFetched: bytesFetched,
+              size: m.size,
+              message: msg
+            });
+            messageDone(err);
+          });
+        }.bind(this));
+
+        // When all messages in this batch have completed, trigger the
+        // next batch to begin download. If `checkpoint` is provided,
+        // we'll wait for it to tell us to continue (so that we can
+        // save the database periodically or perform other
+        // housekeeping during sync).
+        latch.then(function(results) {
+          console.log('POP3: Checkpoint.');
+          if (checkpoint) {
+            checkpoint(nextBatch);
+          } else {
+            nextBatch();
+          }
+        });
+      }.bind(this);
+
+      // Kick it off, maestro.
+      nextBatch();
+
     }.bind(this));
   }
 
