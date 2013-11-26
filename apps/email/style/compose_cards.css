@@ -145,7 +145,7 @@ input.cmp-subject-text {
   border-bottom: 0.1rem solid lightgray !important;
 }
 .cmp-attachment-icon {
-  background: url("images/icons/message-list-attachment.png") no-repeat scroll center / 3rem auto transparent;
+  background: url("images/icons/message-list-attachment.png") no-repeat scroll center / 2rem auto transparent;
   display: inline-block;
   width: 2rem;
   height: 3.5rem;

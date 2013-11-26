@@ -170,7 +170,7 @@ input.msg-search-text-tease {
   font-size: 150%;
 }
 .msg-header-star-starred {
-  background: url("images/icons/message-list-star.png") no-repeat center / 3rem;
+  background: url("images/icons/message-list-star.png") no-repeat center / 2rem;
   position: absolute;
   right: -2rem;
   width: 2rem;
@@ -181,7 +181,7 @@ input.msg-search-text-tease {
   display: block;
 }
 .msg-header-attachments-yes {
-  background: url("images/icons/message-list-attachment.png") no-repeat center / 3rem;
+  background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   position: absolute;
   right: -2rem;
   width: 2rem;
@@ -278,7 +278,7 @@ input.msg-search-text-tease {
   display: inline-block;
 }
 .msg-attachment-icon {
-  background: url("images/icons/message-list-attachment.png") no-repeat center / 3rem;
+  background: url("images/icons/message-list-attachment.png") no-repeat center / 2rem;
   display: inline-block;
   width: 2rem;
   height: 2rem;
