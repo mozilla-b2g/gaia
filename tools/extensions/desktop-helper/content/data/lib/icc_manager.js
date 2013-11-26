@@ -5,6 +5,7 @@
   }
 
   FFOS_RUNTIME.makeNavigatorShim('mozIccManager', {
+    iccIds: [],
     iccInfo: {
       iccid: true
     },
