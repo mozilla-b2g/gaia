@@ -20,7 +20,12 @@ var icc = {
     this.clearMenuCache(function() {
       window.navigator.mozSetMessageHandler('icc-stkcommand',
         function callHandleSTKCommand(message) {
-          self.handleSTKCommand(message);
+          // TODO: Bug 942714 - [DSDS][Gaia] STK menu and event for DSDS
+          // Backward compatibility for both new/old format to make sure we
+          // won't break single sim behavior. The support for DSDS will be
+          // addressed in bug 942714.
+          var command = message.command || message;
+          self.handleSTKCommand(command);
         });
     });
 
