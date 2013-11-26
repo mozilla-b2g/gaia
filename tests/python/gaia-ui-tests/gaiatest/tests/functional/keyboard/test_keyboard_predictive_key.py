@@ -24,11 +24,6 @@ class TestKeyboardPredictiveKey(GaiaTestCase):
         keyboard.switch_to_keyboard()
         expected_word = 'keyboard '
         keyboard.send(expected_word[:6])
-        self.marionette.switch_to_frame()
-        self.marionette.switch_to_frame(self.ui_tests.app.frame)
-
-        keyboard_page.switch_to_frame()
-        keyboard_page.tap_text_input()
 
         # tap the first predictive word
         keyboard.tap_first_predictive_word()
