@@ -32,6 +32,15 @@ var WapPushManager = {
     * CP or SI/SL */
   _onCloseCallback: null,
 
+  /** Timer used to schedule a close operation */
+  _closeTimeout: null,
+
+  /**
+   * Number of messages that have been received but haven't been fully
+   * processed yet
+   */
+  _pendingMessages: 0,
+
   /**
    * Initialize the WAP Push manager, this only subscribes to the
    * wappush-received message handler at the moment
@@ -85,7 +94,12 @@ var WapPushManager = {
    * Closes the application whenever it is hidden
    */
   onVisibilityChange: function wpm_onVisibilityChange() {
-    this.close(/* background */ true);
+    if (document.hidden) {
+      this.close();
+    } else {
+      window.clearTimeout(this._closeTimeout);
+      this._closeTimeout = null;
+    }
   },
 
   /**
@@ -120,10 +134,12 @@ var WapPushManager = {
    * @param {Object} wapMessage The WAP Push message as provided by the system.
    */
   onWapPushReceived: function wpm_onWapPushReceived(wapMessage) {
+    this._pendingMessages++;
+
     var message = ParsedMessage.from(wapMessage, Date.now());
 
     if (!this.shouldDisplayMessage(message)) {
-      this.close(/* background */ true);
+      this.finish();
       return;
     }
 
@@ -131,12 +147,14 @@ var WapPushManager = {
      * fields then it does nothing in the current implementation and we can
      * drop it right away. */
     if (message.action === 'signal-none' && (!message.id || !message.created)) {
+      this.finish();
       return;
     }
 
     message.save(
       (function wpm_saveSuccess(status) {
         if ((status === 'discarded') || (message.action === 'signal-none')) {
+          this.finish();
           return;
         }
 
@@ -162,15 +180,15 @@ var WapPushManager = {
               this.displayWapPushMessage(message.timestamp);
             }).bind(this));
 
-          this.close(/* background */ true);
+          this.finish();
         }).bind(this);
         req.onerror = (function wpm_getAppError() {
-          this.close(/* background */ true);
+          this.finish();
         }).bind(this);
       }).bind(this),
       (function wpm_saveError(error) {
         console.log('Could not add a message to the database: ' + error + '\n');
-        this.close(/* background */ true);
+        this.finish();
       }).bind(this)
     );
   },
@@ -184,6 +202,11 @@ var WapPushManager = {
     if (!message.clicked) {
       return;
     }
+
+    /* Clear the close timer when a notification is tapped as the app will soon
+     * become visible */
+    window.clearTimeout(this._closeTimeout);
+    this._closeTimeout = null;
 
     navigator.mozApps.getSelf().onsuccess = (function wpm_gotApp(event) {
       var params = Utils.deserializeParameters(message.imageURL);
@@ -222,21 +245,46 @@ var WapPushManager = {
   },
 
   /**
-   * Closes the application, lets the event loop run once to ensure clean
-   * termination of pending events. If the background parameter is specified
-   * the the application will be closed only if it's running in the background.
-   *
-   * @param {Boolean} [background] When 'true' close the application only if
-   *        if it's running in the background.
+   * Marks a message as processed and close the application if no more messages
+   * are present and the application is not visible.
    */
-  close: function wpm_close(background) {
-    if (background) {
-      if (document.hidden) {
-        window.setTimeout(window.close);
-      }
-    } else {
-      window.setTimeout(window.close);
+  finish: function wpm_finish() {
+    this._pendingMessages--;
+
+    if (document.hidden) {
+      this.close();
     }
+  },
+
+  /**
+   * Closes the application. Whenever this function is called it
+   * starts a timer that will eventually close the application when no more
+   * messages are being processed. Calling close multiple times is safe as only
+   * one timer can be active at a time so subsequent calls will effectively be
+   * no-ops.
+   */
+  close: function wpm_close() {
+    if (this._closeTimeout !== null) {
+      // We're already trying to close the app
+      return;
+    }
+
+    /* We do not close the app immediately, instead we spin the event loop once
+     * in the hope of catching pending messages that have been sent to the app
+     * and have not yet been processed. If some messages are pending we'll
+     * reschedule the close until they've all been processed. */
+    this._closeTimeout = window.setTimeout(function delayedClose() {
+      if (this._pendingMessages > 0) {
+        // Pending messages were received since we set this timer
+        this._closeTimeout = window.setTimeout(delayedClose.bind(this), 100);
+        return;
+      }
+
+      /* There's no more pending messages and the application is in the
+       * background, close for real */
+      this._closeTimeout = null;
+      window.close();
+    }.bind(this), 100);
   },
 
   /**
