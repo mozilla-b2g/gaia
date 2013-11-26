@@ -136,7 +136,7 @@
     // Getting a new screenshot to force compositing before
     // removing the screenshot overlay if it exists.
     if (this.screenshotOverlay.classList.contains('visible')) {
-      this.ensureFullRepaint(this._hideScreenshotOverlay.bind(this));
+      this.tryWaitForFullRepaint(this._hideScreenshotOverlay.bind(this));
     }
   };
 
@@ -324,15 +324,28 @@
   /**
    * Wait for a full repaint of the mozbrowser iframe.
    */
-  AppWindow.prototype.ensureFullRepaint = function onFullRepaint(callback) {
+  AppWindow.prototype.tryWaitForFullRepaint = function onTWFRepaint(callback) {
     if (!callback)
       return;
 
     var iframe = this.iframe;
     if ('getScreenshot' in iframe) {
+      // Sometimes it takes forever to have a screenshot. And even if it is
+      // theorically better to show the frame fully rendered it makes the
+      // device feel slower than what is is if there is no user feedback
+      // quickly. So let's add a timeout...
+      var timeout = setTimeout(function ifNoScreenshoot() {
+        timeout = 0;
+        callback();
+      }, 400);
+
       var request = iframe.getScreenshot(1, 1);
       request.onsuccess = request.onerror = function onRepainted() {
-        setTimeout(callback);
+        // Ensure the callback is not called twice.
+        if (timeout !== 0) {
+          clearTimeout(timeout);
+          setTimeout(callback);
+        }
       };
     } else {
       setTimeout(callback);

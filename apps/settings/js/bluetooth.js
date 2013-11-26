@@ -596,7 +596,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         this.setAttribute('aria-disabled', true);
         stopDiscovery();
 
-        var req = defaultAdapter.pair(device);
+        var req = defaultAdapter.pair(device.address);
         pairingMode = 'active';
         pairingAddress = device.address;
         req.onerror = function bt_pairError(error) {
@@ -672,7 +672,7 @@ navigator.mozL10n.ready(function bluetoothSettings() {
         connectedAddress = null;
       }
       // backend takes responsibility to disconnect first.
-      var req = defaultAdapter.unpair(device);
+      var req = defaultAdapter.unpair(device.address);
       req.onerror = function bt_pairError() {
         showDevicePaired(true, null);
       };

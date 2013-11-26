@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Messages</title>
     <!-- Stable Building blocks -->
@@ -76,7 +77,7 @@
               <menu type="toolbar">
                 <button id="threads-delete-button" data-l10n-id="delete">delete</button>
               </menu>
-              <h1 id="threads-edit-mode" data-l10n-id="editMode">Edit mode</h1>
+              <h1 id="threads-edit-mode" data-l10n-id="deleteMessages-title">Delete messages</h1>
             </header>
           </section>
           <menu>
@@ -99,8 +100,8 @@
             <a id="messages-attach-button">
               <span class="icon icon-attachment"></span>
             </a>
-            <a id="messages-edit-icon">
-              <span class="icon icon-edit"></span>
+            <a id="messages-options-icon">
+              <span class="icon icon-options"></span>
             </a>
           </menu>
           <h1 id="messages-header-text" aria-hidden="true"></h1>
@@ -184,7 +185,7 @@
               <menu type="toolbar">
                 <button id="messages-delete-button" data-l10n-id="delete">delete</button>
               </menu>
-              <h1 id="messages-edit-mode" data-l10n-id="editMode">Edit mode</h1>
+              <h1 id="messages-edit-mode" data-l10n-id="deleteMessages-title">Delete Messages</h1>
             </header>
           </section>
           <menu>
@@ -282,6 +283,9 @@
         <span></span>
       </label>
       <section class="bubble">
+        <h1 class="subject">
+          ${subject}
+        </h1>
         <aside class="pack-end">
           <progress></progress>
         </aside>
@@ -347,6 +351,7 @@
     <div id="attachment-draft-tmpl" class="hide">
       <!--
       <head>
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
         <meta charset="utf-8">
         <base href="${baseURL}">
         <style type="text/css">

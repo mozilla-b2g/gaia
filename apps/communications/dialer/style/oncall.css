@@ -132,11 +132,12 @@
   /* call_screen.js */
   #call-screen:not([data-layout="incoming-locked"]) {
     transform: translateY(-100%);
-    transition: transform 0.5s ease;
+    transition: transform 0.5s ease 1.5s;
   }
 
   #call-screen:not([data-layout="incoming-locked"]).displayed {
     transform: translateY(0);
+    transition: transform 0.5s ease 0s;
   }
 
   #call-screen:before {
@@ -334,7 +335,7 @@
     position: absolute;
     top: 0;
     width: 100%;
-    height: 16rem;
+    height: 24rem;
 
     z-index: 500;
   }
@@ -353,6 +354,10 @@
 
     transition: background-color 0.3s linear;
     opacity: 1;
+  }
+
+  #calls > section.groupended {
+    display: none;
   }
 
   #calls > section div {
@@ -415,6 +420,7 @@
   #calls.big-duration > section .numberWrapper,
   #calls.big-duration > section .additionalContactInfo {
     background: #01c5ed;
+    transition: background-color 0.3s linear;
   }
 
   #calls.big-duration > section .numberWrapper .number {
@@ -488,7 +494,6 @@
     top: 0;
     color: black;
     font-weight: bold;
-    line-height: 6.6rem;
   }
 
   #calls.big-duration > section .duration {
@@ -524,7 +529,12 @@
     background-repeat: no-repeat;
   }
 
-  #calls > section.held {
+  #calls:not(.big-duration) > section.held,
+  #calls:not(.big-duration) > section.ended,
+  #calls.big-duration > section.held .numberWrapper,
+  #calls.big-duration > section.held .additionalContactInfo,
+  #calls.big-duration > section.ended .numberWrapper,
+  #calls.big-duration > section.ended .additionalContactInfo {
     background-color: rgba(28, 24, 24, 0.7);
   }
 
@@ -535,13 +545,8 @@
     background-repeat: no-repeat;
   }
 
-  #calls > section.held .duration,
-  #calls > section.held .additionalContactInfo,
-  #calls > section.held .numberWrapper {
-    background: none;
-  }
-
-  #calls > section.held .numberWrapper .number {
+  #calls > section.held .numberWrapper .number,
+  #calls > section.ended .numberWrapper .number {
     color: white;
   }
 
@@ -588,6 +593,22 @@
 
   #calls.big-duration .handled-call.held .direction:before {
     background-image: url('images/hold_icon.png');
+  }
+
+  #calls:not(.big-duration) > section.ended .duration .font-light {
+    font-size: 3.2rem;
+    color: white;
+  }
+
+  #calls:not(.big-duration) > section.ended .duration {
+    line-height: 8rem;
+    padding-left: 4rem;
+    left: 0;
+  }
+
+  #calls:not(.big-duration) > section.ended .numberWrapper,
+  #calls:not(.big-duration) > section.ended .additionalContactInfo {
+    display: none;
   }
 
   #incoming-container {
@@ -693,7 +714,7 @@
     right : 0;
     height: 7rem;
     width: 8rem;
-    background: url('images/proceed.png') no-repeat center center / 3rem;
+    background: url('images/proceed.png') no-repeat right 1rem center / 3rem;
   }
 
   #group-call.held #group-show {
@@ -710,6 +731,7 @@
   }
 
   #group-call .hangup-button,
+  #calls:not(.big-duration) #group-call > .duration.isTimer,
   #group-call-details-list .fake-number,
   #group-call-details-list .duration,
   #group-call-details-list .switch-calls {
@@ -782,7 +804,9 @@
     visibility: hidden;
   }
 
-  #call-screen[data-layout="connected-hold"] #co-advanced {
+  #call-screen[data-layout="connected-hold"] #co-advanced,
+  #call-screen:not(.displayed) #co-advanced,
+  #call-screen:not(.displayed) #callbar {
     pointer-events: none;
     opacity: 0.4;
   }

@@ -23,6 +23,7 @@ Contacts.config = {
 };
 
 Contacts.Selectors = {
+  body: 'body',
   bodyReady: 'body .view-body',
 
   confirmHeader: '#confirmation-message h1',
@@ -103,11 +104,28 @@ Contacts.prototype = {
     return result;
   },
 
+  waitSlideLeft: function(elementKey) {
+    this.client.waitFor(function() {
+      var location = this.client.findElement(Contacts.Selectors[elementKey])
+        .location();
+      return location.x === 0;
+    });
+  },
+
   waitForFormShown: function() {
     this.client.waitFor(function() {
       var location = this.client.findElement(Contacts.Selectors.form)
         .location();
       return location.y === 0;
+    });
+  },
+
+  waitForFormTransition: function() {
+    var selectors = Contacts.Selectors;
+    var bodyHeight = client.findElement(selectors.body).size().height;
+    this.client.waitFor(function() {
+      var location = client.findElement(selectors.form).location();
+      return location.y >= bodyHeight;
     });
   },
 
@@ -132,10 +150,7 @@ Contacts.prototype = {
 
     this.client.helper.waitForElement(selectors.formSave).click();
 
-    this.client.waitFor(function() {
-      var location = client.findElement(selectors.form).location();
-      return location.y >= 460;
-    });
+    this.waitForFormTransition();
   },
 
   addContact: function(details) {

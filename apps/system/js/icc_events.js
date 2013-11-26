@@ -26,14 +26,14 @@ var icc_events = {
       ' CellId=' + conn.voice.cell.gsmCellId +
       ' Status/Connected=' + conn.voice.connected +
       ' Status/Emergency=' + conn.voice.emergencyCallsOnly);
-    var status = icc._icc.STK_SERVICE_STATE_UNAVAILABLE;
+    var status = icc._iccManager.STK_SERVICE_STATE_UNAVAILABLE;
     if (conn.voice.connected) {
-      status = icc._icc.STK_SERVICE_STATE_NORMAL;
+      status = icc._iccManager.STK_SERVICE_STATE_NORMAL;
     } else if (conn.voice.emergencyCallsOnly) {
-      status = icc._icc.STK_SERVICE_STATE_LIMITED;
+      status = icc._iccManager.STK_SERVICE_STATE_LIMITED;
     }
     this.downloadEvent({
-      eventType: icc._icc.STK_EVENT_TYPE_LOCATION_STATUS,
+      eventType: icc._iccManager.STK_EVENT_TYPE_LOCATION_STATUS,
       locationStatus: status,
       locationInfo: {
         mcc: IccHelper.iccInfo.mcc,
@@ -55,7 +55,7 @@ var icc_events = {
       var outgoing = call.state == 'incoming';
       if (call.state == 'incoming') {
         self.downloadEvent({
-          eventType: icc._icc.STK_EVENT_TYPE_MT_CALL,
+          eventType: icc._iccManager.STK_EVENT_TYPE_MT_CALL,
           number: call.number,
           isIssuedByRemote: outgoing,
           error: null
@@ -63,7 +63,7 @@ var icc_events = {
       }
       call.addEventListener('error', function callError(err) {
         self.downloadEvent({
-          eventType: icc._icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
+          eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
           number: call.number,
           error: err
         });
@@ -73,7 +73,7 @@ var icc_events = {
         switch (call.state) {
           case 'connected':
             self.downloadEvent({
-              eventType: icc._icc.STK_EVENT_TYPE_CALL_CONNECTED,
+              eventType: icc._iccManager.STK_EVENT_TYPE_CALL_CONNECTED,
               number: call.number,
               isIssuedByRemote: outgoing
             });
@@ -81,7 +81,7 @@ var icc_events = {
           case 'disconnected':
             call.removeEventListener('statechange', callStateChange);
             self.downloadEvent({
-              eventType: icc._icc.STK_EVENT_TYPE_CALL_DISCONNECTED,
+              eventType: icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED,
               number: call.number,
               isIssuedByRemote: outgoing,
               error: null
@@ -96,7 +96,7 @@ var icc_events = {
     function icc_events_handleLanguageSelectionEvent(evt) {
       DUMP(' STK Language selection = ' + evt.settingValue);
       this.downloadEvent({
-        eventType: icc._icc.STK_EVENT_TYPE_LANGUAGE_SELECTION,
+        eventType: icc._iccManager.STK_EVENT_TYPE_LANGUAGE_SELECTION,
         language: evt.settingValue.substring(0, 2)
       });
   },
@@ -105,7 +105,7 @@ var icc_events = {
     function icc_events_handleBrowserTerminationEvent(evt) {
       DUMP(' STK Browser termination');
       this.downloadEvent({
-        eventType: icc._icc.STK_EVENT_TYPE_BROWSER_TERMINATION
+        eventType: icc._iccManager.STK_EVENT_TYPE_BROWSER_TERMINATION
       });
   },
 
@@ -113,7 +113,7 @@ var icc_events = {
     function icc_events_handleUserActivity(idleObserverObject) {
       DUMP(' STK User Activity');
       this.downloadEvent({
-        eventType: icc._icc.STK_EVENT_TYPE_USER_ACTIVITY
+        eventType: icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY
       });
       navigator.removeIdleObserver(idleObserverObject);
     },
@@ -122,7 +122,7 @@ var icc_events = {
     function icc_events_handleIdleScreenAvailableEvent() {
       DUMP(' STK IDLE screen available');
       this.downloadEvent({
-        eventType: icc._icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE
+        eventType: icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE
       });
   },
 
@@ -131,9 +131,9 @@ var icc_events = {
     for (var evt in eventList) {
       DUMP('icc_events_register - Registering event:', eventList[evt]);
       switch (eventList[evt]) {
-      case icc._icc.STK_EVENT_TYPE_MT_CALL:
-      case icc._icc.STK_EVENT_TYPE_CALL_CONNECTED:
-      case icc._icc.STK_EVENT_TYPE_CALL_DISCONNECTED:
+      case icc._iccManager.STK_EVENT_TYPE_MT_CALL:
+      case icc._iccManager.STK_EVENT_TYPE_CALL_CONNECTED:
+      case icc._iccManager.STK_EVENT_TYPE_CALL_DISCONNECTED:
         DUMP('icc_events_register - Communications changes event');
         var comm = window.navigator.mozTelephony;
         comm.addEventListener('callschanged',
@@ -141,7 +141,7 @@ var icc_events = {
             icc_events.handleCallsChanged(evt);
           });
         break;
-      case icc._icc.STK_EVENT_TYPE_LOCATION_STATUS:
+      case icc._iccManager.STK_EVENT_TYPE_LOCATION_STATUS:
         DUMP('icc_events_register - Location changes event');
 
         // XXX: check bug-926169
@@ -156,7 +156,7 @@ var icc_events = {
             icc_events.handleLocationStatus(evt);
           });
         break;
-      case icc._icc.STK_EVENT_TYPE_USER_ACTIVITY:
+      case icc._iccManager.STK_EVENT_TYPE_USER_ACTIVITY:
         DUMP('icc_events_register - User activity event');
         var stkUserActivity = {
           time: 5,
@@ -170,7 +170,7 @@ var icc_events = {
         };
         navigator.addIdleObserver(stkUserActivity);
         break;
-      case icc._icc.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
+      case icc._iccManager.STK_EVENT_TYPE_IDLE_SCREEN_AVAILABLE:
         DUMP('icc_events_register - Idle screen available event');
         window.addEventListener('lock',
           function register_icc_event_idlescreen() {
@@ -178,10 +178,10 @@ var icc_events = {
             window.removeEventListener('lock', register_icc_event_idlescreen);
           });
         break;
-      case icc._icc.STK_EVENT_TYPE_CARD_READER_STATUS:
+      case icc._iccManager.STK_EVENT_TYPE_CARD_READER_STATUS:
         DUMP('icc_events_register - TODO event: ', eventList[evt]);
         break;
-      case icc._icc.STK_EVENT_TYPE_LANGUAGE_SELECTION:
+      case icc._iccManager.STK_EVENT_TYPE_LANGUAGE_SELECTION:
         DUMP('icc_events_register - Language selection event');
         var self = this;
         window.navigator.mozSettings.addObserver('language.current',
@@ -189,7 +189,7 @@ var icc_events = {
             self.handleLanguageSelectionEvent(e);
           });
         break;
-      case icc._icc.STK_EVENT_TYPE_BROWSER_TERMINATION:
+      case icc._iccManager.STK_EVENT_TYPE_BROWSER_TERMINATION:
         DUMP('icc_events_register - Browser termination event');
         window.addEventListener('appterminated',
           function icc_events_browsertermination(e) {
@@ -203,14 +203,14 @@ var icc_events = {
             }
           });
         break;
-      case icc._icc.STK_EVENT_TYPE_DATA_AVAILABLE:
-      case icc._icc.STK_EVENT_TYPE_CHANNEL_STATUS:
-      case icc._icc.STK_EVENT_TYPE_SINGLE_ACCESS_TECHNOLOGY_CHANGED:
-      case icc._icc.STK_EVENT_TYPE_DISPLAY_PARAMETER_CHANGED:
-      case icc._icc.STK_EVENT_TYPE_LOCAL_CONNECTION:
-      case icc._icc.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
-      case icc._icc.STK_EVENT_TYPE_BROWSING_STATUS:
-      case icc._icc.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
+      case icc._iccManager.STK_EVENT_TYPE_DATA_AVAILABLE:
+      case icc._iccManager.STK_EVENT_TYPE_CHANNEL_STATUS:
+      case icc._iccManager.STK_EVENT_TYPE_SINGLE_ACCESS_TECHNOLOGY_CHANGED:
+      case icc._iccManager.STK_EVENT_TYPE_DISPLAY_PARAMETER_CHANGED:
+      case icc._iccManager.STK_EVENT_TYPE_LOCAL_CONNECTION:
+      case icc._iccManager.STK_EVENT_TYPE_NETWORK_SEARCH_MODE_CHANGED:
+      case icc._iccManager.STK_EVENT_TYPE_BROWSING_STATUS:
+      case icc._iccManager.STK_EVENT_TYPE_FRAMES_INFORMATION_CHANGED:
         DUMP('icc_events_register - TODO event: ', eventList[evt]);
         break;
       }

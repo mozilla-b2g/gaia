@@ -74,7 +74,7 @@ var Configurator = (function() {
 
   function loadSingleVariantConf() {
     loadSettingSIMPresent();
-    if (!IccHelper || !IccHelper.enabled) {
+    if (!IccHelper) {
       console.error('IccHelper isn\'t enabled. SingleVariant configuration' +
                     ' can\'t be loaded');
       return;
@@ -121,7 +121,7 @@ var Configurator = (function() {
                  loadSVConfFileError);
         IccHelper.removeEventListener('iccinfochange', iccHandler);
         // No needed anymore
-        IccHelper = iccHandler = null;
+        iccHandler = null;
         return true;
       }
       return false;

@@ -100,12 +100,14 @@ function navigationStack(currentView) {
       currentClassList.remove('hide');
     } else {
       current = document.getElementById(_currentView);
+      currentClassList = current.classList;
     }
 
     var forwardsClasses = this.transitions[transition].forwards;
     var backwardsClasses = this.transitions[transition].backwards;
 
     // Add forwards class to current view.
+    currentClassList.add('block-item');
     if (forwardsClasses.current) {
       currentClassList.add(forwardsClasses.current);
     }
@@ -113,7 +115,12 @@ function navigationStack(currentView) {
     var next = document.getElementById(nextView);
     // Add forwards class to next view.
     if (forwardsClasses.next) {
+      next.classList.add('block-item');
       next.classList.add(forwardsClasses.next);
+      next.addEventListener('animationend', function ng_onNextBackwards(ev) {
+        next.removeEventListener('animationend', ng_onNextBackwards);
+        next.classList.remove('block-item');
+      });
     }
 
     var zIndex = this.stack[this.stack.length - 1].zIndex + 1;
@@ -140,6 +147,17 @@ function navigationStack(currentView) {
     var nextView = this.stack[this.stack.length - 1];
     var transition = currentView.transition;
 
+    var next = document.getElementById(nextView.view);
+    var nextClassList;
+    // Performance is very bad when there are too many contacts so we use
+    // -moz-element and animate this 'screenshot" element.
+    if (transition.indexOf('go-deeper') === 0) {
+      next = document.getElementById(screenshotViewId);
+    } else {
+      next = document.getElementById(nextView.view);
+    }
+    nextClassList = next.classList;
+
     var forwardsClasses = this.transitions[transition].forwards;
     var backwardsClasses = this.transitions[transition].backwards;
 
@@ -149,6 +167,7 @@ function navigationStack(currentView) {
 
     // Add backwards class to current view.
     if (backwardsClasses.current) {
+      currentClassList.add('block-item');
       currentClassList.add(backwardsClasses.current);
       current.addEventListener('animationend',
         function ng_onCurrentBackwards() {
@@ -158,23 +177,21 @@ function navigationStack(currentView) {
           currentClassList.remove(forwardsClasses.next);
           currentClassList.remove(backwardsClasses.current);
           current.style.zIndex = null;
+          currentClassList.remove('block-item');
+          if (!backwardsClasses.next) {
+            nextClassList.remove('block-item');
+          }
         }
       );
     } else {
       current.style.zIndex = null;
+      currentClassList.remove('block-item');
+      if (!backwardsClasses.next) {
+        nextClassList.remove('block-item');
+      }
     }
-    var next = document.getElementById(nextView.view);
-    var nextClassList;
 
     next.style.zIndex = nextView.zIndex;
-    // Performance is very bad when there are too many contacts so we use
-    // -moz-element and animate this 'screenshot" element.
-    if (transition.indexOf('go-deeper') === 0) {
-      next = document.getElementById(screenshotViewId);
-    } else {
-      next = document.getElementById(nextView.view);
-    }
-    nextClassList = next.classList;
 
     // Add backwards class to next view.
     if (backwardsClasses.next) {
@@ -191,6 +208,7 @@ function navigationStack(currentView) {
           nextClassList.remove('search');
           nextClassList.remove('contact-list');
         }
+        nextClassList.remove('block-item');
       });
     }
 

@@ -27,7 +27,7 @@ suite('system/EdgeSwipeDetector >', function() {
     screen.id = 'screen';
     EdgeSwipeDetector.screen = screen;
     EdgeSwipeDetector.init();
-    MockSettingsListener.mCallback(true);
+    MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
   });
 
   var dialer = {
@@ -87,11 +87,11 @@ suite('system/EdgeSwipeDetector >', function() {
 
     suite('if the edges are disabled in the settings', function() {
       setup(function() {
-        MockSettingsListener.mCallback(false);
+        MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
       });
 
       teardown(function() {
-        MockSettingsListener.mCallback(true);
+        MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
       });
 
       test('the edges should not be enabled', function() {
@@ -162,7 +162,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
   suite('When the setting is enabled', function() {
     setup(function() {
-      MockSettingsListener.mCallback(false);
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
       EdgeSwipeDetector.previous.classList.add('disabled');
       EdgeSwipeDetector.next.classList.add('disabled');
 
@@ -170,13 +170,13 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     teardown(function() {
-      MockSettingsListener.mCallback(true);
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
     });
 
     test('the edges should be enabled if an app is open', function() {
       assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
-      MockSettingsListener.mCallback(true);
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
       assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
@@ -184,7 +184,7 @@ suite('system/EdgeSwipeDetector >', function() {
     test('the edges should not be enabled if the homescreen is open',
     function() {
       homescreen();
-      MockSettingsListener.mCallback(true);
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
 
       assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
@@ -193,7 +193,7 @@ suite('system/EdgeSwipeDetector >', function() {
 
   suite('When the setting is disabled', function() {
     setup(function() {
-      MockSettingsListener.mCallback(true);
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
       EdgeSwipeDetector.previous.classList.remove('disabled');
       EdgeSwipeDetector.next.classList.remove('disabled');
 
@@ -201,13 +201,13 @@ suite('system/EdgeSwipeDetector >', function() {
     });
 
     teardown(function() {
-      MockSettingsListener.mCallback(true);
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](true);
     });
 
     test('the edges should be disabled', function() {
       assert.isFalse(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isFalse(EdgeSwipeDetector.next.classList.contains('disabled'));
-      MockSettingsListener.mCallback(false);
+      MockSettingsListener.mCallbacks['edgesgesture.enabled'](false);
       assert.isTrue(EdgeSwipeDetector.previous.classList.contains('disabled'));
       assert.isTrue(EdgeSwipeDetector.next.classList.contains('disabled'));
     });
@@ -446,7 +446,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         swipe(this.sinon.clock, panel, 10, 10, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.lastCall;
         assert.equal(call.args[0], 'touchend');
@@ -457,7 +457,7 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should send a mouseup after a delay', function() {
         var sendMouseSpy = this.sinon.spy(iframe, 'sendMouseEvent');
         swipe(this.sinon.clock, panel, 10, 10, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendMouseSpy.lastCall;
         assert.equal(call.args[0], 'mouseup');
@@ -507,7 +507,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.getCall(1);
         assert.notEqual(call.args[0], 'touchstart');
@@ -518,7 +518,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.getCall(sendTouchSpy.callCount - 2);
         assert.notEqual(call.args[0], 'touchend');
@@ -529,7 +529,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.lastCall;
         assert.equal(call.args[0], 'touchend');
@@ -540,7 +540,7 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should send a mouseup after a delay', function() {
         var sendMouseSpy = this.sinon.spy(iframe, 'sendMouseEvent');
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendMouseSpy.lastCall;
         assert.equal(call.args[0], 'mouseup');
@@ -663,6 +663,20 @@ suite('system/EdgeSwipeDetector >', function() {
           assert.isTrue(snapSpy.calledBefore(endSpy));
         });
       });
+    });
+  });
+
+  suite('Debug mode', function() {
+    test('Turning it on should add the class', function() {
+      screen.classList.remove('edges-debug');
+      MockSettingsListener.mCallbacks['edgesgesture.debug'](true);
+      assert.isTrue(screen.classList.contains('edges-debug'));
+    });
+
+    test('Turning it off should remove the class', function() {
+      screen.classList.add('edges-debug');
+      MockSettingsListener.mCallbacks['edgesgesture.debug'](false);
+      assert.isFalse(screen.classList.contains('edges-debug'));
     });
   });
 });

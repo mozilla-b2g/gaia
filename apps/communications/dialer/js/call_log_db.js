@@ -498,7 +498,7 @@ var CallLogDBManager = {
    */
   _getGroupId: function getGroupId(recentCall) {
     var groupId = [Utils.getDayDate(recentCall.date),
-                   recentCall.number, recentCall.type];
+                   (recentCall.number || ''), recentCall.type];
     if (recentCall.status && recentCall.type === 'incoming') {
       groupId.push(recentCall.status);
     }

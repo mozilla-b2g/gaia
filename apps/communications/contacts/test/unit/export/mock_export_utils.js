@@ -1,3 +1,6 @@
+/* exported MockContactToVcarBlob, MockGetStorageIfAvailable,
+            MockGetUnusedFilename */
+
 'use strict';
 
 var MockGetStorageIfAvailable = function(type, size, callback) {
@@ -11,4 +14,3 @@ var MockGetUnusedFilename = function(storage, filename, callback) {
 var MockContactToVcarBlob = function(contacts, callback) {
   callback({ size: contacts.length });
 };
-

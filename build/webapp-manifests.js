@@ -119,7 +119,7 @@ function fillAppManifest(webapp) {
   if (webapp.url.indexOf('communications.gaiamobile.org') !== -1) {
     fillCommsAppManifest(webapp, webappTargetDir);
   }
-  else if (webapp.url.indexOf('keyboard.gaiamobile.org') !== -1) {
+  else if (webapp.url.indexOf('://keyboard.gaiamobile.org') !== -1) {
     let kbdConfig = require('keyboard-config');
     let kbdManifest = utils.getJSON(webapp.manifestFile);
     kbdManifest = kbdConfig.addEntryPointsToManifest(config, kbdManifest);
@@ -133,16 +133,6 @@ function fillAppManifest(webapp) {
   // appStatus == 1 means this is an installed (unprivileged) app
 
   var localId = id++;
-  // localId start from 1 in release build. For DESKTOP=1 build the system
-  // app can run inside Firefox desktop inside a regular tab and so the
-  // permissions set based on a principal are not working.
-  // To make it works the system app will be assigned an id of 0, which
-  // is the equivalent of the const NO_APP_ID.
-  if (config.DESKTOP &&
-    webappTargetDirName == ('system.' + config.GAIA_DOMAIN)) {
-    localId = 0;
-  }
-
   let url = webapp.url;
   manifests[webappTargetDirName] = {
     origin: url,

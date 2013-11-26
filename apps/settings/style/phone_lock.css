@@ -33,6 +33,7 @@
 }
 
 #phoneLock-passcode[data-passcode-status="error"][data-mode="confirm"] div.passcode-error[data-type="incorrect"],
+#phoneLock-passcode[data-passcode-status="error"][data-mode="confirmLock"] div.passcode-error[data-type="incorrect"],
 #phoneLock-passcode[data-passcode-status="error"][data-mode="edit"] div.passcode-error[data-type="incorrect"] {
   display: block;
 }
@@ -75,6 +76,7 @@
 
 #phoneLock-passcode[data-mode="create"]  [data-mode*="create"],
 #phoneLock-passcode[data-mode="confirm"] [data-mode*="confirm"],
+#phoneLock-passcode[data-mode="confirmLock"] [data-mode*="confirmLock"],
 #phoneLock-passcode[data-mode="edit"]    [data-mode*="edit"],
 #phoneLock-passcode[data-mode="new"]     [data-mode*="new"] {
   display: inherit;

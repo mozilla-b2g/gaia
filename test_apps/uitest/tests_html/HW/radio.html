@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
+    <title>Radio information test</title>
+    <script defer src="../../js/HW/radio.js"></script>
+    <link rel="stylesheet" type="text/css" href="/shared/style/switches.css">
+    <link rel="stylesheet" type="text/css" href="../../style/HW.css">
+  </head>
+  <body>
+    <div id="radio-info">
+      <p>
+        <h2>IMEI</h2>
+        <div>IMEI:<span id="IMEI"></span></div>
+      </p>
+      <p>
+        <h2>IC Card</h2>
+        <h4 id="message-icc" class="error"></h4>
+        <div id="icc-container">
+          <div>ICCIC: <span id="ICCID"></span></div>
+          <div>MSISDN(self number): <span id="MSISDN"></span></div>
+        </div>
+      </p>
+      <p>
+        <h2>Mobile networks</h2>
+        <h4 id="message-mobileConnection" class="error"></h4>
+        <div id="mobileconnection-container">
+          <h3>Voice</h3>
+          <div>current network: <span id="voice-network"></span></div>
+          <div>signal strength: <span id="voice-strength"></span></div>
+          <div>LAC/CID: <span id="voice-LAC"></span>/<span id="voice-CID"></span></div>
+          <div>network type: <span id="voice-type"></span></div>
+          <div>roaming: <span id="voice-roaming"></span></div>
+          <h3>Data</h3>
+          <div>current network: <span id="data-network"></span></div>
+          <div>signal strength: <span id="data-strength"></span></div>
+          <div>LAC/CID: <span id="data-LAC"></span>/<span id="data-CID"></span></div>
+          <div>network type: <span id="data-type"></span></div>
+          <div>roaming: <span id="data-roaming"></span></div>
+        </div>
+      </p>
+    </div>
+  </body>
+</html>

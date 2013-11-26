@@ -93,8 +93,8 @@ NetSocket.prototype._onclose = function() {
   this.emit('end');
 };
 
-exports.connect = function(port, host) {
-  return new NetSocket(port, host, false);
+exports.connect = function(port, host, crypto) {
+  return new NetSocket(port, host, !!crypto);
 };
 
 }); // end define
@@ -1238,6 +1238,10 @@ ImapConnection.prototype.delBox = function(name, cb) {
     throw new Error('Mailbox name must be a string describing the full path'
                     + ' of an existing mailbox to be deleted');
   this._send('DELETE', ' "' + escape(name) + '"', cb);
+};
+
+ImapConnection.prototype.noop = function(cb) {
+  this._send('NOOP', '', cb);
 };
 
 ImapConnection.prototype.renameBox = function(oldname, newname, cb) {

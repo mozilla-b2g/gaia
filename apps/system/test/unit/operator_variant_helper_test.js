@@ -33,7 +33,6 @@ suite('operator variant helper', function() {
   });
 
   setup(function() {
-    MockIccHelper.mProps.enabled = true;
     MockIccHelper.mProps.iccInfo = EXPECTED_ICC_INFO;
   });
 
@@ -45,8 +44,8 @@ suite('operator variant helper', function() {
     helper = null;
   });
 
-  test('icchelper disabled', function() {
-    MockIccHelper.mProps.enabled = false;
+  test('without icchelper', function() {
+    IccHelper = null;
 
     function createHelperShouldThrow() {
       helper = new OperatorVariantHelper(
@@ -61,8 +60,9 @@ suite('operator variant helper', function() {
     assert.throw(
       createHelperShouldThrow,
       Error,
-      /Expected IccHelper to be enabled./
+      /Expected IccHelper to have a value./
     );
+    IccHelper = MockIccHelper;
   });
 
   test('listen for iccinfochange (checkNow = true)', function(done) {
@@ -140,5 +140,4 @@ suite('operator variant helper', function() {
     );
     helper.listen();
   });
-
 });

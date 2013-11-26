@@ -12,7 +12,10 @@ var _ = mozL10n.get;
 var AlarmList = {
 
   alarmList: [],
-  refreshingAlarms: [],
+
+  // Lookup table mapping alarm IDs to the number "toggle" operations currently
+  // in progress.
+  toggleOperations: {},
   count: 0,
 
   get alarms() {
@@ -80,8 +83,10 @@ var AlarmList = {
     var repeat = alarm.isRepeating() ?
       alarm.summarizeDaysOfWeek() : '';
     var withRepeat = alarm.isRepeating() ? ' with-repeat' : '';
-    var isActive = alarm.registeredAlarms.normal ||
-      alarm.registeredAlarms.snooze;
+    // Because `0` is a valid value for these attributes, check for their
+    // presence with the `in` operator.
+    var isActive = 'normal' in alarm.registeredAlarms ||
+      'snooze' in alarm.registeredAlarms;
     var checked = !!isActive ? 'checked=true' : '';
 
     var d = new Date();
@@ -147,10 +152,8 @@ var AlarmList = {
       li.innerHTML = this.render(alarm);
 
       // clear the refreshing alarm's flag
-      index = this.refreshingAlarms.indexOf(id);
-
-      if (index !== -1) {
-        this.refreshingAlarms.splice(index, 1);
+      if (id in this.toggleOperations) {
+        delete this.toggleOperations[id];
       }
     }
   },
@@ -196,11 +199,8 @@ var AlarmList = {
   },
 
   toggleAlarmEnableState: function al_toggleAlarmEnableState(enabled, alarm) {
-    // Todo: queue actions instead of dropping them
-    if (this.refreshingAlarms.indexOf(alarm.id) !== -1) {
-      return;
-    }
     var changed = false;
+    var toggleOps = this.toggleOperations;
     // has a snooze active
     if (alarm.registeredAlarms.snooze !== undefined) {
       if (!enabled) {
@@ -210,9 +210,18 @@ var AlarmList = {
     }
     // normal state needs to change
     if (alarm.enabled !== enabled) {
-      this.refreshingAlarms.push(alarm.id);
+      toggleOps[alarm.id] = (toggleOps[alarm.id] || 0) + 1;
       // setEnabled saves to database
       alarm.setEnabled(!alarm.enabled, function al_putAlarm(err, alarm) {
+        toggleOps[alarm.id]--;
+
+        // If there are any pending toggle operations, the current state of
+        // the alarm is volatile, so do not update the DOM.
+        if (toggleOps[alarm.id] > 0) {
+          return;
+        }
+        delete toggleOps[alarm.id];
+
         if (alarm.enabled) {
           this.banner.show(alarm.getNextAlarmFireTime());
         }

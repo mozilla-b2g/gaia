@@ -3,7 +3,6 @@ Keyboards.mk = {
   menuLabel: 'Македонски',
   imEngine: 'latin',
   types: ['text', 'url', 'email'],
-  autoCorrectLanguage: 'mk',
   alt: {
     'е': 'ѐ',
     'и': 'ѝ'
@@ -24,7 +23,7 @@ Keyboards.mk = {
       { value: 'н' }, { value: 'м' }, { value: 'ѓ' }, { value: 'ж' },
       { value: '⌫', keyCode: KeyEvent.DOM_VK_BACK_SPACE }
     ], [
-      { value: '&nbsp', ratio: 8, keyCode: KeyboardEvent.DOM_VK_SPACE },
+      { value: '&nbsp', ratio: 9, keyCode: KeyboardEvent.DOM_VK_SPACE },
       { value: '↵', ratio: 2, keyCode: KeyEvent.DOM_VK_RETURN }
     ]
   ]

@@ -4,7 +4,7 @@ var VariantManager = {
   // This file is created during the BUILD process
   CUSTOMIZATION_FILE: '/resources/customization.json',
   init: function vm_init() {
-    if (!IccHelper || !IccHelper.enabled) {
+    if (!IccHelper) {
       console.error('Impossible to access iccInfo via IccHelper. Aborting.');
       return;
     }

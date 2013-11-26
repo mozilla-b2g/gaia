@@ -228,7 +228,7 @@ navigator.mozL10n.ready(function deviceList() {
         var progress = aItem.querySelector('progress');
         progress.classList.remove('hidden');
 
-        var req = defaultAdapter.pair(device);
+        var req = defaultAdapter.pair(device.address);
         pairingMode = 'active';
         pairingAddress = device.address;
         var msg = 'pairing with address = ' + pairingAddress;

@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+from marionette.marionette_test import SkipTest
 from gaiatest import GaiaTestCase
 from gaiatest.apps.contacts.app import Contacts
 
@@ -10,6 +11,10 @@ class TestImportContactsFromGmail(GaiaTestCase):
 
     def setUp(self):
         GaiaTestCase.setUp(self)
+        try:
+            self.testvars['email']['gmail']
+        except KeyError:
+            raise SkipTest('account details not present in test variables')
         self.connect_to_network()
 
     def test_import_contacts_from_gmail(self):

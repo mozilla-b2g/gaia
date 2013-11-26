@@ -332,7 +332,7 @@ var SimPinDialog = {
     if (!this.mobileConnection)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     this.dialogDone.onclick = this.verify.bind(this);

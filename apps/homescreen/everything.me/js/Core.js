@@ -229,12 +229,6 @@ window.Evme = new function Evme_Core() {
       'appsPerRow': data.apps.appsPerRow,
       'providers': [
       {
-        type: Evme.PROVIDER_TYPES.STATIC,
-        config: {
-          'renderer': Evme.StaticAppsRenderer,
-          'containerEl': Evme.$('.static', appsEl)[0]
-        }
-      }, {
         type: Evme.PROVIDER_TYPES.INSTALLED,
         config: {
           'renderer': Evme.InstalledAppsRenderer,

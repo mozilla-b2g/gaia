@@ -1071,6 +1071,21 @@ var GridManager = (function() {
     }
   }
 
+  /*
+   * Add the manifest to the array of installed singlevariant apps
+   * @param {string} app's manifest to add
+   */
+  function addPreviouslyInstalled(manifest) {
+    if (!isPreviouslyInstalled(manifest)) {
+      svPreviouslyInstalledApps.push({'manifest': manifest});
+    }
+  }
+
+  /*
+   * Return true if manifest is in the array of installed singleVariant apps,
+   * false otherwise
+   * @param {string} app's manifest consulted
+   */
   function isPreviouslyInstalled(manifest) {
     for (var i = 0, elemNum = svPreviouslyInstalledApps.length;
          i < elemNum; i++) {
@@ -1178,11 +1193,11 @@ var GridManager = (function() {
     var icon = new Icon(descriptor, app);
     rememberIcon(icon);
 
+    var index;
     if (gridPosition) {
-      var index = gridPosition.page || 0;
+      index = gridPosition.page || 0;
       pages[index].appendIconAt(icon, gridPosition.index || 0);
     } else {
-      var index;
       var svApp = getSingleVariantApp(app.manifestURL);
       if (svApp && !isPreviouslyInstalled(app.manifestURL)) {
         index = svApp.screen;
@@ -1190,15 +1205,23 @@ var GridManager = (function() {
         if (!Configurator.isSimPresentOnFirstBoot && index < pages.length &&
             !pages[index].hasEmptySlot()) {
           index = getFirstPageWithEmptySpace(index);
+        } else {
+          icon.descriptor.desiredScreen = index;
         }
       } else {
         index = getFirstPageWithEmptySpace(gridPageOffset);
       }
 
-      if (index < pages.length) {
-        pages[index].appendIcon(icon);
-      } else {
-        pageHelper.addPage([icon]);
+      var iconLst = [icon];
+      while (iconLst.length > 0) {
+        icon = iconLst.shift();
+        index = icon.descriptor.desiredScreen || index;
+        if (index < pages.length) {
+          iconLst = iconLst.concat(pages[index].getMisplacedIcons(index));
+          pages[index].appendIcon(icon);
+        } else {
+          pageHelper.addPage([icon]);
+        }
       }
     }
 
@@ -1370,6 +1393,8 @@ var GridManager = (function() {
     hiddenRoles: HIDDEN_ROLES,
 
     svPreviouslyInstalledApps: svPreviouslyInstalledApps,
+    isPreviouslyInstalled: isPreviouslyInstalled,
+    addPreviouslyInstalled: addPreviouslyInstalled,
 
     /*
      * Initializes the grid manager

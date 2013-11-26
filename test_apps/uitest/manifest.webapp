@@ -13,7 +13,11 @@
     "120": "/style/icons/Uitest.png"
   },
   "permissions": {
+    "browser":{},
     "geolocation":{},
+    "wifi-manage":{},
+    "mobilenetwork":{},
+    "mobileconnection":{},
     "power":{},
     "backgroundservice":{},
     "attention":{},

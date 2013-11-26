@@ -57,7 +57,7 @@ var AboutMoreInfo = {
     if (!mobileConnection)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     var deviceInfoIccid = document.getElementById('deviceInfo-iccid');

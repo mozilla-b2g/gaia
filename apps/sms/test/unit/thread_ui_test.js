@@ -1930,6 +1930,7 @@ suite('thread_ui.js >', function() {
     setup(function() {
       this.sinon.spy(Template, 'escape');
       this.sinon.stub(MockSMIL, 'parse');
+      this.sinon.spy(ThreadUI.tmpl.message, 'interpolate');
     });
 
     function buildSMS(payload) {
@@ -1954,6 +1955,22 @@ suite('thread_ui.js >', function() {
       ThreadUI.buildMessageDOM(buildMMS(payload));
       assert.ok(Template.escape.calledWith(payload));
     });
+
+    test('calls template with subject for MMS', function() {
+      ThreadUI.buildMessageDOM({
+        id: '1',
+        subject: 'subject',
+        type: 'mms',
+        deliveryInfo: [],
+        attachments: []
+      });
+      assert.ok(ThreadUI.tmpl.message.interpolate.calledWith({
+        id: '1',
+        bodyHTML: '',
+        subject: 'subject'
+      }));
+    });
+
   });
 
   suite('renderMessages()', function() {
@@ -2596,6 +2613,82 @@ suite('thread_ui.js >', function() {
       // test were relocated to link_action_handler_test.js
       // This 'context-menu' was handled properly?
       assert.isFalse(LinkActionHandler.onClick.called);
+    });
+
+  });
+
+
+  suite('updateCarrier', function() {
+    var contacts = [], details, number;
+    var threadMessages, carrierTag;
+
+    suiteSetup(function() {
+      contacts.push(new MockContact());
+      number = contacts[0].tel[0].value;
+      details = Utils.getContactDetails(number, contacts);
+    });
+
+    setup(function() {
+      loadBodyHTML('/index.html');
+      threadMessages = document.getElementById('thread-messages');
+      carrierTag = document.getElementById('contact-carrier');
+      this.sinon.spy(ThreadUI, 'updateInputHeight');
+    });
+
+    teardown(function() {
+      document.body.innerHTML = '';
+    });
+
+    test(' If there is >1 participant, hide carrier info', function() {
+      var thread = {
+        participants: [number, '123123']
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.isFalse(threadMessages.classList.contains('has-carrier'));
+    });
+
+    test(' If there is one participant & contacts', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.isTrue(threadMessages.classList.contains('has-carrier'));
+    });
+
+    test(' If there is one participant & no contacts', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, [], details);
+      assert.isFalse(threadMessages.classList.contains('has-carrier'));
+    });
+
+    test(' input height are updated properly', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.ok(ThreadUI.updateInputHeight.calledOnce);
+
+      // Change number of recipients,so now there should be no carrier
+      thread.participants.push('123123');
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.ok(ThreadUI.updateInputHeight.calledTwice);
+    });
+
+    test(' input height are not updated if its not needed', function() {
+      var thread = {
+        participants: [number]
+      };
+
+      ThreadUI.updateCarrier(thread, contacts, details);
+      ThreadUI.updateCarrier(thread, contacts, details);
+      assert.isFalse(ThreadUI.updateInputHeight.calledTwice);
     });
 
   });
@@ -3959,5 +4052,56 @@ suite('thread_ui.js >', function() {
         container.scrollTop = container.scrollHeight;
       });
     });
+  });
+
+  suite('Open options menu', function() {
+    setup(function() {
+      window.location.hash = '';
+      MockOptionMenu.mSetup();
+    });
+
+    teardown(function() {
+      window.location.hash = '';
+      MockOptionMenu.mTeardown();
+    });
+
+    suite('opens from new message', function() {
+      var options;
+      setup(function() {
+        window.location.hash = '#new';
+      });
+      teardown(function() {
+        window.location.hash = '';
+      });
+      test('should show proper options', function() {
+        ThreadUI.showOptions();
+        options = MockOptionMenu.calls[0].items;
+        assert.equal(MockOptionMenu.calls.length, 1);
+        assert.equal(options.length, 2);
+        assert.equal(options[0].l10nId, 'settings');
+      });
+    });
+
+    suite('opens from existing message', function() {
+      var options;
+      setup(function() {
+        window.location.hash = '#thread=1';
+        ThreadUI.showOptions();
+        options = MockOptionMenu.calls[0].items;
+      });
+      teardown(function() {
+        window.location.hash = '';
+      });
+      test('should show options overlay', function() {
+        assert.equal(MockOptionMenu.calls.length, 1);
+      });
+      test('should show option for deleting messages', function() {
+        assert.equal(options[0].l10nId, 'deleteMessages-label');
+      });
+      test('should show settings options last', function() {
+        assert.equal(options[options.length - 2].l10nId, 'settings');
+      });
+    });
+
   });
 });

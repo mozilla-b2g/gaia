@@ -414,7 +414,7 @@ var Calls = (function(window, document, undefined) {
 
   function initCallForwarding() {
     displayInfoForAll(_('callSettingsQuery'));
-    if (!settings || !mobileConnection || !IccHelper.enabled) {
+    if (!settings || !mobileConnection || !IccHelper) {
       displayInfoForAll(_('callSettingsQueryError'));
       return;
     }
@@ -495,7 +495,7 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallerId() {
-    if (!settings || !mobileConnection || !IccHelper.enabled) {
+    if (!settings || !mobileConnection || !IccHelper) {
       return;
     }
 
@@ -576,7 +576,7 @@ var Calls = (function(window, document, undefined) {
   }
 
   function initCallWaiting() {
-    if (!settings || !mobileConnection || !IccHelper.enabled) {
+    if (!settings || !mobileConnection || !IccHelper) {
       return;
     }
 
@@ -741,7 +741,7 @@ var Calls = (function(window, document, undefined) {
   }
 
   function updateFdnStatus() {
-    if (!IccHelper.enabled) {
+    if (!IccHelper) {
       return;
     }
 
@@ -763,15 +763,8 @@ var Calls = (function(window, document, undefined) {
     };
   }
 
-  // Call subpanel navigation control.
-  window.addEventListener('panelready', function(e) {
-    // If navigation is from #root to #call panels then update UI always.
-    if (e.detail.current !== '#call' ||
-        e.detail.previous.startsWith('#call-cf-') ||
-        e.detail.previous === '#call-voiceMailSettings') {
-      return;
-    }
-
+  // Refresh caller ID, call waiting, and call forwarding items.
+  function refreshAdvancedCallSettingItems() {
     if (!updatingInProgress) {
       updateVoiceMailItemState();
       updateFdnStatus();
@@ -782,6 +775,24 @@ var Calls = (function(window, document, undefined) {
               updateCallForwardingSubpanels();
           });
       });
+    }
+  }
+
+  // Call subpanel navigation control.
+  window.addEventListener('panelready', function(e) {
+    // If navigation is from #root to #call panels then update UI always.
+    if (e.detail.current !== '#call' ||
+        e.detail.previous.startsWith('#call-cf-') ||
+        e.detail.previous === '#call-voiceMailSettings') {
+      return;
+    }
+    refreshAdvancedCallSettingItems();
+  });
+
+  document.addEventListener('visibilitychange', function() {
+    // We need to refresh caller ID setting as it can be changed in dialer.
+    if (!document.hidden && Settings.currentPanel === '#call') {
+      refreshAdvancedCallSettingItems();
     }
   });
 

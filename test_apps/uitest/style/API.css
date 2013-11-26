@@ -18,3 +18,14 @@ p.success {
 p.error {
   color: red;
 }
+input {
+  font-size: 1.5rem;
+}
+button, input[type='button'] {
+  font-size: 2rem;
+}
+/* for mozId, smaller buttons */
+li > button, .small {
+  font-size: 1.2rem;
+}
+

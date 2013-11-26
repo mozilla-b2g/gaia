@@ -34,7 +34,7 @@
   if (!mobileConnection) {
     return;
   }
-  if (!IccHelper.enabled) {
+  if (!IccHelper) {
     return;
   }
 

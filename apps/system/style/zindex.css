@@ -19,6 +19,11 @@
 }
 */
 
+/* Home gesture panel should not be covered by any element of system */
+#screen > #bottom-panel.visible {
+  z-index: 2147483647;
+}
+
 #screen > *[data-z-index-level="poweroff-splash"] {
   z-index: 65536;
 }
@@ -65,7 +70,6 @@
 #screen > [data-z-index-level="gesture-panel"] {
   z-index: 4093;
 }
-
 
 /*
  * Promote keyboards to attention screen level when

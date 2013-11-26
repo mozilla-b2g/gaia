@@ -231,7 +231,7 @@ var LockScreen = {
     }
 
     /* icc state on lock screen */
-    if (IccHelper.enabled) {
+    if (IccHelper) {
       IccHelper.addEventListener('cardstatechange', this);
       IccHelper.addEventListener('iccinfochange', this);
     }
@@ -460,8 +460,12 @@ var LockScreen = {
           this.camera.removeChild(this.camera.firstElementChild);
         }
 
-        if (!this.locked)
+        if (!this.locked) {
           this.switchPanel();
+          this.overlay.hidden = true;
+          this.dispatchEvent('unlock', this.unlockDetail);
+          this.unlockDetail = undefined;
+        }
         break;
 
       case 'home':
@@ -785,6 +789,26 @@ var LockScreen = {
     var wasAlreadyUnlocked = !this.locked;
     this.locked = false;
 
+    this.mainScreen.focus();
+    this.mainScreen.classList.remove('locked');
+
+    // The lockscreen will be hidden, stop refreshing the clock.
+    this.clock.stop();
+
+    if (wasAlreadyUnlocked)
+      return;
+
+    this.dispatchEvent('will-unlock', detail);
+    this.writeSetting(false);
+
+    if (this.unlockSoundEnabled) {
+      var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
+      unlockAudio.play();
+    }
+
+    this.overlay.classList.toggle('no-transition', instant);
+
+    // Actually begin unlock until the foreground app is painted
     var repaintTimeout = 0;
     var nextPaint = (function() {
       clearTimeout(repaintTimeout);
@@ -792,43 +816,29 @@ var LockScreen = {
       if (currentFrame)
         currentFrame.removeNextPaintListener(nextPaint);
 
+      this.overlay.classList.add('unlocked');
+
+      // If we don't unlock instantly here,
+      // these are run in transitioned callback.
       if (instant) {
-        this.overlay.classList.add('no-transition');
         this.switchPanel();
-      } else {
-        this.overlay.classList.remove('no-transition');
-      }
+        this.overlay.hidden = true;
 
-      this.mainScreen.classList.remove('locked');
-
-      if (!wasAlreadyUnlocked) {
-        // Any changes made to this,
-        // also need to be reflected in apps/system/js/storage.js
         this.dispatchEvent('unlock', detail);
-        this.writeSetting(false);
-
-        if (instant)
-          return;
-
-        if (this.unlockSoundEnabled) {
-          var unlockAudio = new Audio('./resources/sounds/unlock.ogg');
-          unlockAudio.play();
-        }
+      } else {
+        this.unlockDetail = detail;
       }
     }).bind(this);
 
     if (currentFrame)
       currentFrame.addNextPaintListener(nextPaint);
 
+    // Give up waiting for nextpaint after 400ms
+    // XXX: Does not consider the situation where the app is painted already
+    // behind the lock screen (why?).
     repaintTimeout = setTimeout(function ensureUnlock() {
       nextPaint();
-    }, 200);
-
-    this.mainScreen.focus();
-    this.dispatchEvent('will-unlock');
-
-    // The lockscreen will be hidden, stop refreshing the clock.
-    this.clock.stop();
+    }, 400);
   },
 
   lock: function ls_lock(instant) {
@@ -838,12 +848,11 @@ var LockScreen = {
     this.switchPanel();
 
     this.overlay.focus();
-    if (instant)
-      this.overlay.classList.add('no-transition');
-    else
-      this.overlay.classList.remove('no-transition');
+    this.overlay.classList.toggle('no-transition', instant);
 
     this.mainScreen.classList.add('locked');
+    this.overlay.classList.remove('unlocked');
+    this.overlay.hidden = false;
     screen.mozLockOrientation(OrientationManager.defaultOrientation);
 
     if (!wasAlreadyLocked) {
@@ -884,12 +893,13 @@ var LockScreen = {
         var frame = document.createElement('iframe');
 
         frame.src = './camera/index.html';
-        var mainScreen = this.mainScreen;
-        frame.onload = function cameraLoaded() {
-          mainScreen.classList.add('lockscreen-camera');
+        frame.onload = (function cameraLoaded() {
+          this.mainScreen.classList.add('lockscreen-camera');
+          this.overlay.classList.add('unlocked');
+
           if (callback)
             callback();
-        };
+        }).bind(this);
         this.overlay.classList.remove('no-transition');
         this.camera.appendChild(frame);
 
@@ -911,6 +921,8 @@ var LockScreen = {
 
       case 'camera':
         this.mainScreen.classList.remove('lockscreen-camera');
+        this.overlay.classList.remove('unlocked');
+        this.overlay.hidden = false;
         break;
 
       case 'emergency-call':
@@ -966,6 +978,12 @@ var LockScreen = {
     }
 
     panel = panel || 'main';
+    if ('main' === panel) {
+      this.restoreSlide();
+      this.slideLeft.classList.remove('touched');
+      this.slideCenter.classList.remove('touched');
+      this.slideRight.classList.remove('touched');
+    }
     var overlay = this.overlay;
     var currentPanel = overlay.dataset.panel;
 
@@ -1013,7 +1031,7 @@ var LockScreen = {
     if (!conn)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     navigator.mozL10n.ready(function() {
@@ -1071,12 +1089,12 @@ var LockScreen = {
         updateConnstateLine1('emergencyCallsOnly');
 
         switch (IccHelper.cardState) {
-          case 'unknown':
-            updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
+          case null:
+            updateConnstateLine2('emergencyCallsOnly-noSIM');
             break;
 
-          case 'absent':
-            updateConnstateLine2('emergencyCallsOnly-noSIM');
+          case 'unknown':
+            updateConnstateLine2('emergencyCallsOnly-unknownSIMState');
             break;
 
           case 'pinRequired':

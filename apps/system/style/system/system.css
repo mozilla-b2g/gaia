@@ -63,6 +63,10 @@ body {
   height: 1rem;
 }
 
+#bottom-panel.visible{
+  display: block;
+}
+
 .poweroff-ring {
   display: block;
   position: absolute;

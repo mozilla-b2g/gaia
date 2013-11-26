@@ -52,20 +52,24 @@
           <span class="button icon icon-dialog">
             <select class="mail-select sup-manual-account-type">
               <option value="imap+smtp">IMAP+SMTP</option>
+              <option value="pop3+smtp">POP3+SMTP</option>
               <option value="activesync">ActiveSync</option>
             </select>
           </span>
         </li>
       </div>
 
-      <section class="sup-manual-imap-smtp" role="region">
+      <section class="sup-manual-composite" role="region">
         <header class="collapsed"></header>
         <header>
-          <h2 data-l10n-id="setup-manual-imap-header">ImaP SettingS</h2>
+          <h2 class="sup-manual-imap-title"
+              data-l10n-id="setup-manual-imap-header">ImaP SettingS</h2>
+          <h2 class="sup-manual-pop3-title"
+              data-l10n-id="setup-manual-pop3-header">Pop3 SettingS</h2>
         </header>
         <div class="sup-form">
           <p>
-            <input class="sup-manual-imap-username" type="text"
+            <input class="sup-manual-composite-username" type="text"
                    data-l10n-id="setup-manual-username"
                    x-inputmode="verbatim"
                    inputmode="verbatim"
@@ -73,7 +77,7 @@
             <button type="reset"></button>
           </p>
           <p>
-            <input class="sup-manual-imap-hostname" type="text"
+            <input class="sup-manual-composite-hostname" type="text"
                    data-l10n-id="setup-manual-hostname"
                    x-inputmode="verbatim"
                    inputmode="verbatim"
@@ -82,7 +86,7 @@
           </p>
           <li class="sup-socket-select-container">
             <span class="button icon icon-dialog">
-              <select class="mail-select sup-manual-imap-socket sup-socket-select">
+              <select class="mail-select sup-manual-composite-socket sup-socket-select">
                 <option value="SSL" data-l10n-id="setup-manual-socket-ssl">
                   SsL</option>
                 <option value="STARTTLS" data-l10n-id="setup-manual-socket-starttls">
@@ -91,7 +95,7 @@
             </span>
           </li>
           <p>
-            <input class="sup-manual-imap-port" type="text"
+            <input class="sup-manual-composite-port" type="text"
                    data-l10n-id="setup-manual-port" value="993"
                    data-maybe-required />
             <button type="reset"></button>

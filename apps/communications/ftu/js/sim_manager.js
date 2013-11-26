@@ -15,7 +15,7 @@ var SimManager = {
     if (!this.mobConn)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     _ = navigator.mozL10n.get;
@@ -74,7 +74,7 @@ var SimManager = {
   },
 
   available: function sm_available() {
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return false;
     return (IccHelper.cardState === 'ready');
   },
@@ -82,7 +82,6 @@ var SimManager = {
  /**
   * Possible values:
   *   null,
-  *   'absent',
   *   'unknown',
   *   'pinRequired',
   *   'pukRequired',
@@ -115,6 +114,11 @@ var SimManager = {
   },
 
   checkSIMButton: function sm_checkSIMButton() {
+    if (!this.mobConn) {
+      UIManager.simImport.classList.add('hidden');
+      return;
+    }
+
     var simOption = UIManager.simImportButton;
     // If there is an unlocked SIM we activate import from SIM
     if (!SimManager.alreadyImported && SimManager.available()) {

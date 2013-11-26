@@ -9,7 +9,7 @@ var SimLock = {
 
   init: function sl_init() {
     // Do not do anything if we can't have access to IccHelper API
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
     this.onClose = this.onClose.bind(this);
@@ -18,8 +18,9 @@ var SimLock = {
     window.addEventListener('appwillopen', this);
 
     // Display the dialog only after lockscreen is unlocked
+    // before the transition.
     // To prevent keyboard being displayed behind it.
-    window.addEventListener('unlock', this);
+    window.addEventListener('will-unlock', this);
 
     // always monitor card state change
     IccHelper.addEventListener('cardstatechange', this.showIfLocked.bind(this));
@@ -45,7 +46,7 @@ var SimLock = {
           this.showIfLocked();
         }
         break;
-      case 'unlock':
+      case 'will-unlock':
         // Check whether the lock screen was unlocked from the camera or not.
         // If the former is true, the SIM PIN dialog should not displayed after
         // unlock, because the camera will be opened (Bug 849718)
@@ -101,7 +102,7 @@ var SimLock = {
   },
 
   showIfLocked: function sl_showIfLocked() {
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return false;
 
     if (LockScreen.locked)
@@ -117,9 +118,8 @@ var SimLock = {
     }
 
     switch (IccHelper.cardState) {
-      // do nothing in either absent, unknown or null card states
+      // do nothing in either unknown or null card states
       case null:
-      case 'absent':
       case 'unknown':
         break;
       case 'pukRequired':

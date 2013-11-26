@@ -27,7 +27,7 @@ var OperatorVariant = (function() {
     var cardState;
 
     try {
-      if (!IccHelper || !IccHelper.enabled || !IccHelper.cardState) {
+      if (!IccHelper || !IccHelper.cardState) {
         cardState = undefined;
       } else {
         cardState = IccHelper.cardState;

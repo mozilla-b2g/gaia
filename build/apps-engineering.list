@@ -4,6 +4,7 @@ external-apps/*
 outoftree_apps/*
 showcase_apps/twittershare
 test_apps/ds-test
+test_apps/demo-keyboard
 test_apps/geoloc
 test_apps/membuster
 test_apps/music2

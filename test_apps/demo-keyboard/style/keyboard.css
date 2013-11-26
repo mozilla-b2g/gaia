@@ -1,0 +1,255 @@
+@font-face {
+  font-family: 'Keyboard Symbols';
+  font-weight: 600;
+  src: url('fonts/Keyboard-Symbols.woff');
+}
+
+* {
+  -moz-box-sizing: border-box;
+}
+
+html {
+  font-size: 10px;
+  pointer-events: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+#keyboardContainer {
+  position: absolute;
+  width: 100%;
+  height: 23rem; /* 20rem keyboard, 3rem word suggestions */
+  bottom: 0;
+  pointer-events: auto;
+  padding: 0.3rem 0;
+  font-family: sans-serif;
+}
+
+.page {
+  position: absolute;
+  width: 100%;
+  height: 20rem;
+  left:0;
+  bottom:0;
+  background-color: #6d7273;
+  z-index: 1;
+  padding-top: 0.3rem;
+}
+
+.page.hidden {
+  /*transform: translateX(100%);*/
+  /* opacity: 0.001; */
+  z-index: 0;
+}
+
+/*
+ * We could handle the shift key by switching to a completely new layout.
+ * Instead, we do it with a text transform.
+ */
+.page.shifted {
+  text-transform: capitalize;
+}
+
+/*
+ * The shift key needs a special highlighting when we are shifted.
+ * We'll need different highlighting when we're in shift lock mode.
+ * So this may have to be done with JS instead of CSS. But this works for now.
+ */
+.page.shifted .key[data-name=SHIFT] {
+  color: #00acd1;
+}
+
+.page.locked .key[data-name=SHIFT] {
+  background-color: #00acd1;
+  color: white;
+}
+
+.row {
+  text-align: center;
+  height: 5rem;
+}
+
+.key {
+  position:relative;
+  display: inline-block;
+  min-width: 2.6rem;
+  height: 4.4rem;
+
+  padding: 0 0.1rem;
+  /* if you change left and right margin here, also change them in page.js */
+  margin: 0 0.1rem 0.3rem 0.1rem;
+  border: 0.1rem solid #1b1d1d;
+  border-radius: 0.3rem;
+
+  background-color: black;
+  color: white;
+
+  font-weight: 500;
+  font-size: 2.4rem;
+  line-height: 4.4rem;
+  text-align: center;
+  vertical-align: top;
+
+  z-index: 10;
+}
+
+.key.symbolfont {
+  font-family: Keyboard Symbols;
+}
+
+.key.specialkey:not([data-name=SPACE]) {
+  border-color: #2a2c2e;
+  background-color: #44494a;
+  font-size: 1.5rem;
+}
+
+.key:not(.specialkey).touched {
+  background-color: #00acd1;
+  color: #00acd1; /* hide the text by using the same bg color */
+
+  z-index: 30;
+}
+
+.key:not(.specialkey).touched::before {
+  content: attr(data-keycap);
+
+  position: absolute;
+  display:block;
+
+  top: -5.6rem;
+  left: -0.5rem;
+  right: -0.5rem;
+  height: 5.6rem;
+  color: white;
+  background-color: #00acd1;
+  border: 0.1rem solid #1b1d1d;
+  border-radius: 0.3rem;
+
+  font-size: 3.6rem;
+  line-height: 5rem;
+  font-weight: 500;
+
+  /*
+   * we turn off the bottom border to make the popup look like
+   * an extension of the key itself. Ideally the little bit of the
+   * border that is outside of the key would still show. But I can't
+   * figure out how to get the popup to be underneath the main key.
+   */
+  border-bottom: none;
+}
+
+.key.altshown {
+  background-color: #00acd1;
+  color: #00acd1; /* hide the text by using the same bg color */
+}
+
+.altmenu {
+  position:absolute;
+  height: 9rem;
+  white-space: nowrap;
+  z-index: 30;
+  margin: 0 0.1rem 0 0; /* must match .key margin */
+}
+
+.altkey {
+  position: relative;
+  display: inline-block;
+  height: 100%;
+  min-width: 2.6rem;
+  font-family: sans-serif;
+  font-weight: 500;
+  font-size: 3.6rem;
+  line-height: 5rem;
+  /*
+   * Display the key in transparent color.
+   * We do this to set the width of the element so that it is as wide
+   * as we need for the visible ::after pseudo element
+   */
+  color: rgba(0,0,0,0);
+  padding: 0 .4rem;
+}
+
+.altkey::after {
+  content: attr(data-keycap);
+  position: absolute;
+  width: 100%;
+  height: 5rem;
+  top: 0;
+  left: 0;
+
+  background-color: #212c2c;
+  color: white;
+  text-align: center;
+  vertical-align: top;
+  border: 0.1rem solid #1b1d1d;
+}
+
+.altkey.touched::after {
+  background-color: #00acd1;
+}
+
+/*
+ * We want a curved border around the visible portion of the row, so we have
+ * to set the border on the altkey::after elements, and curve certain corners
+ * of the first and the last elements. But the corners we curve also depends
+ * on the direction the row is running in.
+ */
+.altmenu[dir='ltr'] .altkey:first-child::after {
+  border-top-left-radius: 0.3rem;
+}
+.altmenu[dir='ltr'] .altkey:last-child::after {
+  border-top-right-radius: 0.3rem;
+  border-bottom-right-radius: 0.3rem;
+}
+
+.altmenu[dir='rtl'] .altkey:first-child::after {
+  border-top-right-radius: 0.3rem;
+}
+.altmenu[dir='rtl'] .altkey:last-child::after {
+  border-top-left-radius: 0.3rem;
+  border-bottom-left-radius: 0.3rem;
+}
+
+/*
+ * The first child in a row of alternates shouldn't have a bottom border
+ */
+.altkey:first-child::after {
+  border-bottom: none;
+  min-width: 100%;
+}
+
+.suggestions {
+  display: block;
+  position: absolute;
+  height: 3rem;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: #000;
+  padding: 0 0.3rem;
+  border: none;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.suggestion {
+  display: inline-block;
+  height: 100%;       /* width set in render.js */
+  margin: 0 1%;       /* don't change without updating with in render.js */
+  border: 0;
+  overflow: hidden;
+  -moz-box-sizing: border-box;
+
+  font-size: 2.3rem;
+  line-height: 3rem;
+  height: 3rem;
+  color: #fff;
+  text-align: center;
+}
+
+.suggestion.autocorrect {
+  color: #0ac;
+}

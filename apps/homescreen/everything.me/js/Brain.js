@@ -52,7 +52,9 @@
       timeoutSetUrlAsActive = null,
       timeoutHashChange = null,
       _ = navigator.mozL10n.get,
-      mozL10nTranslate = navigator.mozL10n.translate;
+      mozL10nTranslate = navigator.mozL10n.translate,
+
+      mozSettings = navigator.mozSettings;
 
   /*
   Init sequense triggered by Core.js
@@ -1056,7 +1058,15 @@
       isRequesting = false,
       isFirstShow = true,
       requestSuggest = null,
-      isOpen = false;
+      isOpen = false,
+      SUGGESTIONS_STORAGE_KEY = 'collection-suggestion-list';
+
+    // purge cached suggestions list when changing OS language
+    if (mozSettings) {
+      mozSettings.addObserver('language.current', function onLanguageChange(e) {
+        Evme.Storage.set(SUGGESTIONS_STORAGE_KEY, null);
+      });
+    }
 
     this.show = function show() {
       isOpen = true;
@@ -1100,8 +1110,10 @@
 
     // done button clicked
     this.done = function done(data) {
-      if (data.shortcuts && data.shortcuts.length > 0) {
-        self.addShortcuts(data.shortcuts);
+      var shortcuts = data.shortcuts || [];
+      var queries = Evme.Utils.pluck(shortcuts, 'query');
+      if (queries.length > 0) {
+        addCollections(queries);
       }
     };
 
@@ -1109,142 +1121,58 @@
       if (!data || !data.query) {
         return;
       }
-
-      // create the collection (even if offline), then update with icons
       var query = data.query;
-      Evme.Collection.create({
-        'query': query,
-        'callback': updateShortcutIcons,
-        'gridPageOffset': EvmeManager.currentPageOffset
-      });
-
-      function updateShortcutIcons(collectionSettings) {
-        Evme.DoATAPI.Shortcuts.get({
-          'queries': JSON.stringify([query]),
-          '_NOCACHE': true
-        }, function onShortcutsGet(response) {
-          var shortcut = response.response.shortcuts[0],
-          shortcutIconsMap = {};
-
-          shortcut.appIds.forEach(function getIcon(appId) {
-            shortcutIconsMap[appId] = response.response.icons[appId];
-          });
-
-          Evme.Utils.roundIconsMap(shortcutIconsMap,
-            function onRoundedIcons(iconsMap) {
-              var extraIconsData =
-                shortcut.appIds.map(function wrapIcon(appId) {
-                  return {'id': appId, 'icon': iconsMap[appId]};
-                });
-
-              Evme.Collection.update(collectionSettings, {
-                'extraIconsData': extraIconsData
-              });
-            });
-        });
-      }
+      addCollections(query);
     };
-
-    // this gets a list of queries and creates shortcuts
-    this.addShortcuts = function addShortcuts(shortcuts) {
-      if (!Array.isArray(shortcuts)) {
-        shortcuts = [shortcuts];
-      }
-
-      var queries = [];
-      for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
-        queries.push(shortcut.query);
-      }
-
-      // get the query's apps (icons)
-      Evme.DoATAPI.Shortcuts.get({
-        'queries': JSON.stringify(queries),
-        '_NOCACHE': true
-      }, function onShortcutsGet(response) {
-        var shortcuts = response.response.shortcuts,
-        iconsMap = response.response.icons;
-
-        // first we need to round the icons
-        Evme.Utils.roundIconsMap(iconsMap,
-          function onRoundedIcons(roundedIconsMap) {
-            for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
-              var extraIconsData =
-                shortcut.appIds.map(function wrapIcon(appId) {
-                  return {'id': appId, 'icon': roundedIconsMap[appId]};
-                });
-
-              Evme.Collection.create({
-                'extraIconsData': extraIconsData,
-                'query': shortcut.query,
-                'gridPageOffset': EvmeManager.currentPageOffset
-              });
-            }
-          });
-      });
-    };
-
 
     // prepare and show
     this.showUI = function showUI() {
-      if (isRequesting) { return; }
+      if (isRequesting) {
+        return;
+      }
 
       isRequesting = true;
 
       Evme.Utils.isOnline(function(isOnline) {
-        if (!isOnline) {
-          window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT,
-                                        'offline-collections-more'));
+        if (isOnline) {
+          Evme.CollectionsSuggest.Loading.show();
+
+          var existingCollectionsQueries = EvmeManager.getCollectionNames();
+
+          // load suggested shortcuts from API
+          requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
+            'existing': existingCollectionsQueries
+          }, function onSuccess(data) {
+            showSuggestions(data);
+            Evme.Storage.set(SUGGESTIONS_STORAGE_KEY, data);
+          });
+        }
+        else {
           window.dispatchEvent(new CustomEvent('CollectionSuggestOffline'));
           window.setTimeout(function() {
             isRequesting = false;
           }, 200);
 
-          return;
+          // show cached suggestions list if available
+          Evme.Storage.get(SUGGESTIONS_STORAGE_KEY, function onGet(cachedData) {
+            if (cachedData) {
+              // filter out suggestions that were created
+              var gridQueries = EvmeManager.getCollectionNames(true);
+              var filteredShortcuts =
+                cachedData.response.shortcuts.filter(function filter(shortcut) {
+                  var query = shortcut.query;
+                  return query ?
+                          gridQueries.indexOf(query.toLowerCase()) < 0 : false;
+                });
+
+              cachedData.response.shortcuts = filteredShortcuts;
+              showSuggestions(cachedData);
+            } else {
+              window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT,
+                                            'offline-collections-more'));
+            }
+          });
         }
-
-        Evme.CollectionsSuggest.Loading.show();
-
-        var gridCollections = EvmeManager.getCollections();
-
-        var existingCollectionsQueries = [];
-        for (var i = 0, collection; collection = gridCollections[i++];) {
-          var name = EvmeManager.getIconName(collection.origin);
-          if (name) {
-            existingCollectionsQueries.push(name);
-          }
-        }
-
-        // load suggested shortcuts from API
-        requestSuggest = Evme.DoATAPI.Shortcuts.suggest({
-          'existing': existingCollectionsQueries
-        }, function onSuccess(data) {
-          var suggestedShortcuts = data.response.shortcuts || [],
-          icons = data.response.icons || {};
-
-          if (!isRequesting) {
-            return;
-          }
-
-          isFirstShow = false;
-          isRequesting = false;
-
-          if (suggestedShortcuts.length === 0) {
-            window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT,
-                                          'no-more-collections'));
-            Evme.CollectionsSuggest.Loading.hide();
-          } else {
-            Evme.CollectionsSuggest.load({
-              'shortcuts': suggestedShortcuts,
-              'icons': icons
-            });
-
-            Evme.CollectionsSuggest.show();
-            // setting timeout to give the select box enough time to show
-            // otherwise there's visible flickering
-            window.setTimeout(Evme.CollectionsSuggest.Loading.hide, 300);
-          }
-        });
-
       });
     };
 
@@ -1257,6 +1185,90 @@
       window.setTimeout(Evme.CollectionsSuggest.Loading.hide, 50);
       isRequesting = false;
     };
+
+    function showSuggestions(data) {
+      var suggestedShortcuts = data.response.shortcuts || [],
+          icons = data.response.icons || {};
+
+      if (!isRequesting) {
+        return;
+      }
+
+      isFirstShow = false;
+      isRequesting = false;
+
+      if (suggestedShortcuts.length === 0) {
+        window.alert(Evme.Utils.l10n(L10N_SYSTEM_ALERT, 'no-more-collections'));
+        Evme.CollectionsSuggest.Loading.hide();
+      } else {
+        Evme.CollectionsSuggest.load({
+          'shortcuts': suggestedShortcuts,
+          'icons': icons
+        });
+
+        Evme.CollectionsSuggest.show();
+        // setting timeout to give the select box enough time to show
+        // otherwise there's visible flickering
+        window.setTimeout(Evme.CollectionsSuggest.Loading.hide, 300);
+      }
+    };
+
+    // this gets a list of queries and creates collections
+    function addCollections(queries) {
+      var createdSettings = [];
+
+      if (!Array.isArray(queries)) {
+        queries = [queries];
+      }
+
+      for (var i = 0, query; query = queries[i++]; ) {
+        Evme.Collection.create({
+          'query': query,
+          'gridPageOffset': EvmeManager.currentPageOffset,
+          'callback': function onCreate(collectionSettings) {
+            createdSettings.push(collectionSettings);
+            if (createdSettings.length === queries.length) {
+              getCollectionIcons(createdSettings);
+            }
+          }
+        });
+      }
+    };
+
+    function getCollectionIcons(collectionSettingsArray) {
+      var queriesMap = {};
+
+      for (var i = 0, settings; settings = collectionSettingsArray[i++]; ) {
+        queriesMap[settings.query] = settings;
+      }
+
+      var queries = Object.keys(queriesMap);
+
+      Evme.DoATAPI.Shortcuts.get({
+        'queries': JSON.stringify(queries),
+        '_NOCACHE': true
+      }, function onShortcutsGet(response) {
+        var shortcuts = response.response.shortcuts,
+            iconsMap = response.response.icons;
+
+        // first we need to round the icons
+        Evme.Utils.roundIconsMap(iconsMap,
+          function onRoundedIcons(roundedIconsMap) {
+            for (var i = 0, shortcut; shortcut = shortcuts[i++];) {
+              var extraIconsData =
+                shortcut.appIds.map(function wrapIcon(appId) {
+                  return {'id': appId, 'icon': roundedIconsMap[appId]};
+                });
+
+              // update the matching Collection's icon
+              var collectionSettings = queriesMap[shortcut.query];
+              Evme.Collection.update(collectionSettings, {
+                'extraIconsData': extraIconsData
+              });
+            }
+          });
+      });
+    }
   };
 
   // modules/Features/Features.js

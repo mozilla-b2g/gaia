@@ -22,7 +22,6 @@ class GaiaTestOptions(BaseMarionetteOptions, GaiaOptionsMixin, EnduranceOptionsM
         HTMLReportingOptionsMixin.__init__(self, **kwargs)
         EnduranceOptionsMixin.__init__(self, **kwargs)
 
-
 class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
 
     def __init__(self, *args, **kwargs):

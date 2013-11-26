@@ -7,6 +7,7 @@ mocha.globals(['SettingsListener', 'LockScreen', 'Bluetooth', 'StatusBar',
 
 requireApp('system/test/unit/mock_window_manager.js');
 requireApp('system/test/unit/mock_navigator_moz_power.js');
+requireApp('system/test/unit/mock_sleep_menu.js');
 requireApp('system/shared/test/unit/mocks/mock_settings_listener.js');
 
 function switchProperty(originObject, prop, stub, reals, useDefineProperty) {
@@ -76,6 +77,14 @@ suite('system/ScreenManager', function() {
     teardown(function() {
       restoreProperty(navigator, 'mozTelephony', reals);
       restoreProperty(window, 'LockScreen', reals);
+    });
+
+    test('Event listener adding', function() {
+      var eventListenerStub = this.sinon.stub(window, 'addEventListener');
+      ScreenManager.init();
+      assert.isTrue(eventListenerStub.withArgs('sleep').calledOnce);
+      assert.isTrue(eventListenerStub.withArgs('wake').calledOnce);
+      assert.isTrue(eventListenerStub.withArgs('requestshutdown').calledOnce);
     });
 
     suite('power.addWakeLockListener handling', function() {
@@ -280,6 +289,7 @@ suite('system/ScreenManager', function() {
 
       test('screen off by proximity', function() {
         stubTelephony.calls = [];
+        stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._screenOffBy = 'proximity';
         ScreenManager.handleEvent({'type': 'callschanged'});
 
@@ -291,6 +301,7 @@ suite('system/ScreenManager', function() {
 
       test('screen off', function() {
         stubTelephony.calls = [];
+        stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._screenOffBy = '';
         ScreenManager.handleEvent({'type': 'callschanged'});
         assert.isFalse(stubTurnOn.called);
@@ -299,6 +310,19 @@ suite('system/ScreenManager', function() {
       test('with a call', function() {
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [{'addEventListener': stubAddListener}];
+        stubTelephony.conferenceGroup = {calls: []};
+        ScreenManager.handleEvent({'type': 'callschanged'});
+        assert.isTrue(stubAttentionScreen.show.called);
+        assert.isFalse(stubAddListener.called);
+      });
+
+      test('with a conference call', function() {
+        var stubAddListener = this.sinon.stub();
+        stubTelephony.calls = [];
+        stubTelephony.conferenceGroup = {
+          calls: [{'addEventListener': stubAddListener},
+                  {'addEventListener': stubAddListener}]
+        };
         ScreenManager.handleEvent({'type': 'callschanged'});
         assert.isTrue(stubAttentionScreen.show.called);
         assert.isFalse(stubAddListener.called);
@@ -307,6 +331,7 @@ suite('system/ScreenManager', function() {
       test('without cpuWakeLock', function() {
         var stubAddListener = this.sinon.stub();
         stubTelephony.calls = [{'addEventListener': stubAddListener}];
+        stubTelephony.conferenceGroup = {calls: []};
         ScreenManager._cpuWakeLock = null;
         ScreenManager.handleEvent({'type': 'callschanged'});
         assert.isFalse(stubAttentionScreen.show.called);
@@ -346,6 +371,20 @@ suite('system/ScreenManager', function() {
         assert.isTrue(stubAddListener.called);
         assert.isTrue(stubReqWakeLock.called);
       });
+    });
+
+    test('Testing shutdown event', function() {
+      var powerOffSpy = this.sinon.spy(MockSleepMenu, 'startPowerOff');
+      powerOffSpy.withArgs(false);
+      this.sinon.stub(ScreenManager, 'turnScreenOn');
+
+      ScreenManager.handleEvent({
+        type: 'requestshutdown',
+        detail: MockSleepMenu
+      });
+
+      assert.isTrue(ScreenManager.turnScreenOn.calledOnce);
+      assert.isTrue(powerOffSpy.withArgs(false).calledOnce);
     });
   });
 
@@ -456,6 +495,7 @@ suite('system/ScreenManager', function() {
     test('screen disabled when _deviceLightEnable is true', function() {
       ScreenManager.screenEnabled = false;
       stubTelephony.calls = [];
+      stubTelephony.conferenceGroup = {calls: []};
       ScreenManager._deviceLightEnable = true;
       ScreenManager.turnScreenOn(true);
 
@@ -476,6 +516,19 @@ suite('system/ScreenManager', function() {
     test('screen disabled with a call', function() {
       ScreenManager.screenEnabled = false;
       stubTelephony.calls = [{'state': 'connected'}];
+      stubTelephony.conferenceGroup = {calls: []};
+      ScreenManager.turnScreenOn(true);
+      assert.isTrue(stubReqWakeLock.calledWith('cpu'));
+      assert.isTrue(stubAddListener.calledWith('userproximity'));
+    });
+
+    test('screen disabled with a conference call', function() {
+      ScreenManager.screenEnabled = false;
+      stubTelephony.calls = [];
+      stubTelephony.conferenceGroup = {
+        calls: [{'addEventListener': stubAddListener},
+                {'addEventListener': stubAddListener}]
+      };
       ScreenManager.turnScreenOn(true);
       assert.isTrue(stubReqWakeLock.calledWith('cpu'));
       assert.isTrue(stubAddListener.calledWith('userproximity'));

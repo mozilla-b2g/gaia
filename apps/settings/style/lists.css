@@ -8,6 +8,7 @@ ul {
   padding: 0;
   overflow: hidden;
   list-style: none;
+  background: url(images/document_bg.png);
 }
 
 ul li {
@@ -93,7 +94,7 @@ ul li > *, ul li > label > * {
 }
 
 /* sublines */
-ul li small {
+ul li > small, ul li > label > small {
   position: absolute;
   left: 1.5rem;
   right: 1.5rem;
@@ -261,6 +262,7 @@ ul li.sound-setting > label input[type="range"] {
 ul li#brightness-manual > label input[type="range"] {
   margin: 0 auto;
   width: calc(100% - 10rem);
+  display: inline;
 }
 
 /******************************************************************************

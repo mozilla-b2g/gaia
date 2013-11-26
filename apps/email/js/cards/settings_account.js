@@ -41,7 +41,8 @@ function SettingsAccountCard(domNode, mode, args) {
 
   // ActiveSync, IMAP and SMTP are protocol names, no need to be localized
   this.nodeFromClass('tng-account-type').textContent =
-    (this.account.type === 'activesync') ? 'ActiveSync' : 'IMAP+SMTP';
+    (this.account.type === 'activesync') ? 'ActiveSync' :
+    (this.account.type === 'imap+smtp') ? 'IMAP+SMTP' : 'POP3+SMTP';
 
   // Handle default account checkbox. If already a default, then the
   // checkbox cannot be unchecked. The default is changed by going to an

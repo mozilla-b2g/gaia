@@ -343,3 +343,7 @@ li.sup-socket-select-container {
 li.sup-manual-account-type-container .button {
   margin: 0;
 }
+
+.sup-progress-container {
+  text-align: center;
+}

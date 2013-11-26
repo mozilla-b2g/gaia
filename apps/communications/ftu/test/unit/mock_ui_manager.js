@@ -37,6 +37,7 @@ var MockUIManager = {
     'xck-input',
     'xck-error',
     // Import contacts
+    'sim-import',
     'sim-import-button',
     'no-sim',
     'sd-import-button',

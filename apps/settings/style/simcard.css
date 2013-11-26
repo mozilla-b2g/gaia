@@ -25,14 +25,6 @@
  * FDN contact action menu
  */
 
-#call-fdnList-action {
-  display: none;
-}
-
-#call-fdnList-action.visible {
-  display: inline;
-}
-
 #call-fdnList-action header {
   height: 6rem;
 }

@@ -18,6 +18,8 @@ var EdgeSwipeDetector = {
 
     SettingsListener.observe('edgesgesture.enabled', false,
                              this.settingUpdate.bind(this));
+    SettingsListener.observe('edgesgesture.debug', false,
+                             this.debugUpdate.bind(this));
   },
 
   _settingEnabled: false,
@@ -25,6 +27,10 @@ var EdgeSwipeDetector = {
   settingUpdate: function esd_settingUpdate(enabled) {
     this._settingEnabled = enabled;
     this._updateEnabled();
+  },
+
+  debugUpdate: function esd_debugUpdate(enabled) {
+    this.screen.classList.toggle('edges-debug', enabled);
   },
 
   _lifecycleEnabled: false,
@@ -199,7 +205,7 @@ var EdgeSwipeDetector = {
       this._sendTouchEvent(e);
       this._iframe.sendMouseEvent('mouseup', lastTouch.pageX,
                                   lastTouch.pageY, 0, 1, 0);
-    }).bind(this), 50);
+    }).bind(this), 80);
   },
 
   _unSynthetizeEvent: function esd_unSynthetizeEvent(e) {

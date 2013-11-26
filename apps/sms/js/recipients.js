@@ -398,7 +398,7 @@
       }
     });
 
-    clone = inner.cloneNode();
+    clone = inner.cloneNode(true);
 
     // Used by the "placeholder" accessor to produce
     // new "editable" placeholders, by cloning the
@@ -415,7 +415,7 @@
       },
       placeholder: {
         get: function() {
-          var node = clone.firstElementChild.cloneNode();
+          var node = clone.firstElementChild.cloneNode(true);
           node.isPlaceholder = true;
           return node;
         }

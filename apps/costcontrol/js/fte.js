@@ -16,7 +16,7 @@
     var stepsLeft = 2;
 
     // No SIM
-    if (!IccHelper.enabled || IccHelper.cardState === 'absent') {
+    if (!IccHelper || IccHelper.cardState === 'absent') {
       hasSim = false;
       trySetup();
 

@@ -234,7 +234,7 @@ contacts.List = (function() {
       renderPhoto(node, id);
       updateRowStyle(node, true);
       updateSingleRowSelection(node, id);
-      return node.cloneNode();
+      return node.cloneNode(true);
     },
 
     getNodeById: function(id) {
@@ -357,7 +357,6 @@ contacts.List = (function() {
 
     var contactsContainer = document.createElement('ol');
     contactsContainer.id = 'contacts-list-' + group;
-    contactsContainer.className = 'group-list';
     contactsContainer.dataset.group = group;
     letteredSection.appendChild(title);
     letteredSection.appendChild(contactsContainer);
@@ -824,22 +823,39 @@ contacts.List = (function() {
     return !!photosById[id];
   };
 
+  // Utility function to manage the dataset-src URL for images.  Its important
+  // to only modify this attribute from this function in order to ensure that
+  // the URLs are properly revoked.
+  function setImageURL(img, photo) {
+    var oldURL = img.dataset.src;
+    if (oldURL) {
+      window.URL.revokeObjectURL(oldURL);
+      img.dataset.src = '';
+    }
+    if (photo) {
+      try {
+        img.dataset.src = window.URL.createObjectURL(photo);
+      } catch (err) {
+        // Warn, but do nothing else.  We cleared the old URL above.
+        console.warn('Failed to create URL for contacts image blob: ' + photo +
+                     ', error: ' + err);
+      }
+    }
+  }
+
   // "Render" the photo by setting the img tag's dataset-src attribute to the
   // value in our photo cache.  This in turn will allow the imgLoader to load
   // the image once we have stopped scrolling.
   var renderPhoto = function renderPhoto(link, id) {
     id = id || link.dataset.uuid;
     var photo = photosById[id];
-    if (!photo)
+    if (!photo) {
       return;
+    }
 
     var img = link.querySelector('aside > img');
     if (img) {
-      try {
-        img.dataset.src = window.URL.createObjectURL(photo);
-      } catch (err) {
-        img.dataset.src = '';
-      }
+      setImageURL(img, photo);
       return;
     }
     if (!photoTemplate) {
@@ -851,11 +867,7 @@ contacts.List = (function() {
 
     var figure = photoTemplate.cloneNode(true);
     var img = figure.children[0];
-    try {
-      img.dataset.src = window.URL.createObjectURL(photo);
-    } catch (err) {
-      img.dataset.src = '';
-    }
+    setImageURL(img, photo);
 
     link.insertBefore(figure, link.children[0]);
     return;
@@ -865,14 +877,16 @@ contacts.List = (function() {
   // however, so the image can be reloaded later.
   var releasePhoto = function releasePhoto(el) {
     // If the imgLoader isn't ready yet, we should have nothing to release
-    if (!imgLoader)
+    if (!imgLoader) {
       return;
+    }
 
     var img = imgLoader.releaseImage(el);
-    if (!img)
+    if (!img) {
       return;
+    }
 
-    img.dataset.src = '';
+    setImageURL(img, null);
   };
 
   var renderOrg = function renderOrg(contact, link, add) {
@@ -1074,7 +1088,7 @@ contacts.List = (function() {
     // If is favorite add as well to the favorite group
     if (isFavorite(contact)) {
       list = getGroupList('favorites');
-      var cloned = renderedNode.cloneNode();
+      var cloned = renderedNode.cloneNode(true);
       cloned.dataset.group = 'favorites';
       addToGroup(cloned, list);
     }
@@ -1681,15 +1695,19 @@ contacts.List = (function() {
   // on the screen.
   var updateRowStyle = function updateRowStyle(row, onscreen) {
     if (inSelectMode && onscreen) {
-      utils.dom.addClassToNodes(row, '.contact-checkbox',
-                           'contact-checkbox-selecting');
-      utils.dom.addClassToNodes(row, '.contact-text',
-                           'contact-text-selecting');
-    } else {
+      if (!row.dataset.selectStyleSet) {
+        utils.dom.addClassToNodes(row, '.contact-checkbox',
+                             'contact-checkbox-selecting');
+        utils.dom.addClassToNodes(row, '.contact-text',
+                             'contact-text-selecting');
+        row.dataset.selectStyleSet = true;
+      }
+    } else if (row.dataset.selectStyleSet) {
       utils.dom.removeClassFromNodes(row, '.contact-checkbox-selecting',
                                 'contact-checkbox-selecting');
       utils.dom.removeClassFromNodes(row, '.contact-text-selecting',
                                 'contact-text-selecting');
+      delete row.dataset.selectStyleSet;
     }
   };
 

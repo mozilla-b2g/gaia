@@ -162,7 +162,7 @@ if (typeof window.importer === 'undefined') {
         return false;
       },
       clone: function(node) {
-        return node.cloneNode();
+        return node.cloneNode(true);
       },
       getNodeById: function(id) {
         return contactsList.querySelector('[data-uuid="' + id + '"]');

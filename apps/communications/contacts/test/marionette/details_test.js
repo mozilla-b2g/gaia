@@ -25,7 +25,7 @@ marionette('Contacts > Details', function() {
       client.helper.waitForElement(selectors.listContactFirstText)
         .click();
 
-      client.helper.waitForElement(selectors.details);
+      subject.waitSlideLeft('details');
 
       client.helper.waitForElement(selectors.detailsTelButtonFirst)
         .click();

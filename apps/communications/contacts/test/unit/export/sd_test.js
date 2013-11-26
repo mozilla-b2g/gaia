@@ -1,11 +1,16 @@
+/* globals ContactsSDExport, mocha, MockgetDeviceStorage,
+           MockGetStorageIfAvailable, MockGetUnusedFilename */
+
+'use strict';
+
 requireApp('communications/contacts/js/export/sd.js');
 requireApp('communications/contacts/test/unit/mock_get_device_storage.js');
 requireApp('communications/contacts/test/unit/export/mock_export_utils.js');
 
 mocha.globals(
   [
-    'ContactToVcardBlob',
     '_',
+    'ContactToVcard',
     'getUnusedFilename',
     'getStorageIfAvailable'
   ]
@@ -22,11 +27,10 @@ suite('Sd export', function() {
       c2 = {}, c3 = {}, c4 = {};
   var updateSpy = null;
   var progressMock = function dummy() {};
-  var realContactToVcardBlob = null;
+  var realContactToVcard = null;
   var real_ = null;
   var realgetStorageIfAvailable = null;
   var realgetUnusedFilename = null;
-  var fileName = '';
 
   suiteSetup(function() {
     // Device storage mock
@@ -37,14 +41,13 @@ suite('Sd export', function() {
     real_ = window._;
     window._ = function() {};
 
-    //getStorageIfAvailable mock
+    // getStorageIfAvailable mock
     realgetStorageIfAvailable = window.getStorageIfAvailable;
     window.getStorageIfAvailable = MockGetStorageIfAvailable;
 
-    //getUnusedFilename mock
+    // getUnusedFilename mock
     realgetUnusedFilename = window.getUnusedFilename;
     window.getUnusedFilename = MockGetUnusedFilename;
-
   });
 
   suiteTeardown(function() {
@@ -57,52 +60,49 @@ suite('Sd export', function() {
   setup(function() {
     subject = new ContactsSDExport();
     subject.setProgressStep(progressMock);
-    realContactToVcardBlob = window.ContactToVcardBlob;
-    window.ContactToVcardBlob = function() {};
+    realContactToVcard = window.ContactToVcard;
+    window.ContactToVcard = function() {};
     updateSpy = this.sinon.stub(
       window,
-      'ContactToVcardBlob',
-      function(contact, callback) {
-        callback(contact[0]);
+      'ContactToVcard',
+      function(contacts, append, finish) {
+        append(' ', contacts.length);
+        finish();
+        /* This dummy append call is required to trigger the otherwise
+         * asynchronous completion logic within the export code. */
+        append('', 0);
       }
     );
   });
 
   teardown(function() {
-    window.ContactToVcardBlob = realContactToVcardBlob;
+    window.ContactToVcard = realContactToVcard;
   });
 
   test('Calling with 1 contact', function(done) {
     subject.setContactsToExport([c1]);
 
     subject.doExport(function onFinish(error, exported, msg) {
-      assert.equal(false, subject.hasDeterminativeProgress());
-      assert.equal(1, updateSpy.callCount);
-      assert.isNull(error);
-      assert.equal(1, exported);
-      done();
+      done(function() {
+        assert.equal(false, subject.hasDeterminativeProgress());
+        assert.equal(1, updateSpy.callCount);
+        assert.isNull(error);
+        assert.equal(1, exported);
+      });
     });
   });
 
   test('Calling with several contacts', function(done) {
     var contacts = [c1, c2, c3, c4];
-    var today = new Date();
-    var name = [
-      today.getDate(),
-      today.getMonth() + 1,
-      today.getFullYear(),
-      contacts.length
-    ].join('_')
-    .replace(/[^a-z0-9]/gi, '_')
-    .toLowerCase() +
-    '.vcf';
+
     subject.setContactsToExport(contacts);
 
     subject.doExport(function onFinish(error, exported, msg) {
-      assert.equal(1, updateSpy.callCount);
-      assert.isNull(error);
-      assert.equal(contacts.length, exported);
-      done();
+      done(function() {
+        assert.equal(1, updateSpy.callCount);
+        assert.isNull(error);
+        assert.equal(contacts.length, exported);
+      });
     });
   });
 });

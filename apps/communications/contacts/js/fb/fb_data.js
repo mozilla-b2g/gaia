@@ -3,6 +3,7 @@
 // WARNING: This file lazy loads:
 // 'shared/js/fb/fb_data_reader.js
 // 'shared/js/fb/fb_tel_index.js'
+// 'shared/js/simple_phone_matcher.js' (will be removed once bug 938265 lands)
 
 var fb = window.fb || {};
 
@@ -19,6 +20,8 @@ var fb = window.fb || {};
     var READER_LOADED_EV = 'reader_loaded';
 
     var TEL_INDEXER_JS = '/shared/js/fb/fb_tel_index.js';
+    var PHONE_MATCHER_JS = '/shared/js/simple_phone_matcher.js';
+    var FB_READER_JS = '/shared/js/fb/fb_data_reader.js';
 
     // This is needed for having proxy methods setted and ready before
     // the real reader methods (in fb_data_reader) are loaded
@@ -28,7 +31,7 @@ var fb = window.fb || {};
       proxyMethods.forEach(function(aMethod) {
         contacts[aMethod] = defaultFunction.bind(null, aMethod);
       });
-      LazyLoader.load('/shared/js/fb/fb_data_reader.js', onreaderLoaded);
+      LazyLoader.load(FB_READER_JS, onreaderLoaded);
     }
     else {
       onreaderLoaded();
@@ -92,7 +95,7 @@ var fb = window.fb || {};
     function doSave(obj, outRequest) {
       var globalId;
 
-      LazyLoader.load(TEL_INDEXER_JS, function() {
+      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS] , function() {
         datastore().add(obj).then(function success(newId) {
           globalId = newId;
           var uid = obj.uid;
@@ -112,14 +115,13 @@ var fb = window.fb || {};
       // extra checks
       if (Array.isArray(obj.tel)) {
         obj.tel.forEach(function(aTel) {
-          index().byTel[aTel.value] = newId;
+          var variants = SimplePhoneMatcher.generateVariants(aTel.value);
+
+          variants.forEach(function(aVariant) {
+            index().byTel[aVariant] = newId;
+          });
           // To avoid the '+' char
           TelIndexer.index(index().treeTel, aTel.value.substring(1), newId);
-        });
-      }
-      if (Array.isArray(obj.shortTelephone)) {
-        obj.shortTelephone.forEach(function(aTel) {
-          index().byShortTel[aTel] = newId;
         });
       }
     }
@@ -133,13 +135,12 @@ var fb = window.fb || {};
       // Need to update the tel indexes
       if (Array.isArray(deletedFriend.tel)) {
         deletedFriend.tel.forEach(function(aTel) {
-          delete index().byTel[aTel.value];
           TelIndexer.remove(index().treeTel, aTel.value.substring(1));
-        });
-      }
-      if (Array.isArray(deletedFriend.shortTelephone)) {
-        deletedFriend.shortTelephone.forEach(function(aTel) {
-          delete index().byShortTel[aTel];
+
+          var variants = SimplePhoneMatcher.generateVariants(aTel.value);
+          variants.forEach(function(aVariant) {
+            delete index().byTel[aVariant];
+          });
         });
       }
     }
@@ -184,7 +185,7 @@ var fb = window.fb || {};
     };
 
     function doUpdate(obj, outRequest) {
-      LazyLoader.load(TEL_INDEXER_JS, function() {
+      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS], function() {
         var dsId = index().byUid[obj.uid];
 
         var successCb = successUpdate.bind(null, outRequest);
@@ -194,9 +195,9 @@ var fb = window.fb || {};
           // It is necessary to get the old object and delete old indexes
           datastore().get(dsId).then(function success(oldObj) {
             reIndexByPhone(oldObj, obj, dsId);
-            return datastore().update(dsId, obj);
+            return datastore().put(obj, dsId);
           }, errorCb).then(function success() {
-            return datastore().update(INDEX_ID, index());
+            return datastore().put(index(), INDEX_ID);
           }, errorCb).then(successCb, errorCb);
         }
         else {
@@ -217,7 +218,7 @@ var fb = window.fb || {};
     }
 
     function doRemove(uid, outRequest, forceFlush) {
-      LazyLoader.load(TEL_INDEXER_JS, function() {
+      LazyLoader.load([TEL_INDEXER_JS, PHONE_MATCHER_JS], function() {
         var dsId = index().byUid[uid];
 
         var errorCb = errorRemove.bind(null, outRequest, uid);
@@ -246,7 +247,6 @@ var fb = window.fb || {};
         isIndexDirty = true;
 
         removePhoneIndex(deletedFriend);
-
         if (forceFlush) {
           var flushReq = fb.contacts.flush();
 

@@ -66,7 +66,8 @@ model.latestOnce('api', function(api) {
                   'right');
         break;
       case 'imap-disabled':
-        Cards.pushCard('setup_fix_gmail_imap', 'default', 'animate',
+      case 'pop3-disabled':
+        Cards.pushCard('setup_fix_gmail', 'default', 'animate',
                   { account: account, restoreCard: Cards.activeCardIndex },
                   'right');
         break;

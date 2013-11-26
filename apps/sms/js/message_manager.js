@@ -31,6 +31,7 @@ var MessageManager = {
     window.addEventListener('hashchange', this.onHashChange.bind(this));
     document.addEventListener('visibilitychange',
                               this.onVisibilityChange.bind(this));
+
     // Initialize DOM elements which will be used in this code
     [
       'main-wrapper', 'thread-messages'
@@ -111,9 +112,6 @@ var MessageManager = {
 
   onVisibilityChange: function mm_onVisibilityChange(e) {
     LinkActionHandler.reset();
-    ThreadListUI.updateContactsInfo();
-    ThreadUI.updateHeaderData();
-
     // If we receive a message with screen off, the height is
     // set to 0 and future checks will fail. So we update if needed
     if (!ThreadListUI.fullHeight || ThreadListUI.fullHeight === 0) {
@@ -267,9 +265,11 @@ var MessageManager = {
         break;
       case '#thread-list':
         ThreadUI.inThread = false;
-        //Keep the  visible button the :last-child
-        var editButton = document.getElementById('messages-edit-icon');
-        editButton.parentNode.appendChild(editButton);
+
+        //Keep the visible button the :last-child
+        var optionsButton = document.getElementById('messages-options-icon');
+        optionsButton.parentNode.appendChild(optionsButton);
+
         if (this.threadMessages.classList.contains('new')) {
           MessageManager.slide('right', function() {
             self.threadMessages.classList.remove('new');

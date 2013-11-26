@@ -2,25 +2,9 @@
 
 var FdnAuthorizedNumbers = {
   fdnContacts: null,
-  icc: null,
-
-  init: function() {
-    this.icc = navigator.mozIccManager ||
-      (navigator.mozMobileConnection && navigator.mozMobileConnection.icc);
-  },
 
   getContacts: function(er, cb) {
-    var request;
-    if (this.icc && this.icc.readContacts) {
-      request = this.icc.readContacts('fdn');
-    } else if (navigator.mozContacts) {
-      // Just to enable import on builds different than M-C
-      // In the longer term this line of code would disappear
-      request = navigator.mozContacts.getSimContacts('FDN');
-    } else {
-      throw new Error('Could not obtain FDN support from platform');
-    }
-
+    var request = IccHelper.readContacts('fdn');
     request.onerror = er;
     request.onsuccess = (function onsuccess() {
       var result = this.fdnContacts = request.result;
@@ -39,34 +23,32 @@ var FdnAuthorizedNumbers = {
     }).bind(this);
   },
 
-  addNumber: function(er, cb, name, number, pinCode) {
-    var contact = {
-      name: [name],
-      tel: [{ value: number }]
-    };
-
-    var request = this.icc.updateContact('fdn', contact, pinCode);
-    request.onerror = er;
-    request.onsuccess = function onsuccess() {
-      cb(contact);
-    };
-  },
-
-  updateNumber: function(er, cb, id, name, number, pinCode) {
-    this.fdnContacts[id].name[0] = name;
-    this.fdnContacts[id].tel[0].value = number;
-
-    var request = this.icc.updateContact('fdn', this.fdnContacts[id], pinCode);
-    request.onerror = er;
-    request.onsuccess = (function onsuccess() {
-      cb(this.fdnContacts[id]);
-    }).bind(this);
-  },
-
-  removeNumber: function(er, cb, id, pinCode) {
-    this.updateNumber(er, cb, id, '', '', pinCode);
+  /**
+   * mozIccManager.updateContact works like this:
+   *   - no id: create a new contact
+   *   - existing id + name and number: update a contact
+   *   - existing id + empty name and number: remove a contact
+   * This function returns an FDN contact object matching the requested action.
+   */
+  getContactInfo: function(action, contact) {
+    var simContact = {};
+    switch (action) {
+      case 'add':
+        simContact.name = [contact.name];
+        simContact.tel = [{ value: contact.number }];
+        break;
+      case 'edit':
+        simContact = this.fdnContacts[contact.id];
+        simContact.name[0] = contact.name;
+        simContact.tel[0].value = contact.number;
+        break;
+      case 'remove':
+        simContact = this.fdnContacts[contact.id];
+        simContact.name[0] = '';
+        simContact.tel[0].value = '';
+        break;
+    }
+    return simContact;
   }
 };
-
-navigator.mozL10n.ready(FdnAuthorizedNumbers.init.bind(FdnAuthorizedNumbers));
 

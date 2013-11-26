@@ -7,10 +7,11 @@
   background-color: #000;
   -moz-user-select: none;
   opacity: 1;
+  /* Utilzing a cubic bezier timing function to hide the fact
+     that we might be slow at the beginning of the transition. */
   transition:
-    transform 0.5s ease,
-    opacity 0.5s ease,
-    visibility 0.5s ease;
+    transform 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0),
+    opacity 0.5s cubic-bezier(0.7, 0.0, 1.0, 1.0),
 }
 
 #screen.active-statusbar > #lockscreen {
@@ -18,11 +19,9 @@
   height: calc(100% - 4rem);
 }
 
-#screen:not(.locked) > #lockscreen,
-#screen.lockscreen-camera > #lockscreen {
+#lockscreen.unlocked {
   transform: scale(2);
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
 }
 

@@ -192,6 +192,9 @@
 
   // // Do not use the native API.
   navigator.mozContacts = {
+    addEventListener: function(type, handler, capture) {
+      return this;
+    },
     find: function(filter) {
       // attribute DOMString     filterValue;    // e.g. 'Tom'
       // attribute DOMString     filterOp;       // e.g. 'contains'

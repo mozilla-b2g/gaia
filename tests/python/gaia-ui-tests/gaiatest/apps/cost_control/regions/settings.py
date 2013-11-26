@@ -69,6 +69,5 @@ class Settings(Base):
     def tap_done(self):
         self.wait_for_element_displayed(*self._done_button_locator)
         self.marionette.find_element(*self._done_button_locator).tap()
-        # Switch back to Cos Control app frame
-        from gaiatest.apps.cost_control.app import CostControl
-        CostControl(self.marionette).launch()
+        # Switch back to Cost Control app frame
+        self.apps.switch_to_displayed_app()

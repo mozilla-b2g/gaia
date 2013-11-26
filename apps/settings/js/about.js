@@ -49,7 +49,7 @@ var About = {
     if (!mobileConnection)
       return;
 
-    if (!IccHelper.enabled)
+    if (!IccHelper)
       return;
 
      var deviceInfoMsisdn = document.getElementById('deviceInfo-msisdn');

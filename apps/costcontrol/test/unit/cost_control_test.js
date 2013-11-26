@@ -1,17 +1,23 @@
 'use strict';
 
 requireApp('costcontrol/test/unit/mock_debug.js');
+requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
 requireApp('costcontrol/test/unit/mock_icc_helper.js');
 requireApp('costcontrol/test/unit/mock_config_manager.js');
 requireApp('costcontrol/test/unit/mock_settings_listener.js');
+requireApp('costcontrol/test/unit/mock_moz_network_stats.js');
+requireApp('costcontrol/js/networkstats_proxy.js');
 requireApp('costcontrol/js/utils/toolkit.js');
 requireApp('costcontrol/js/costcontrol.js');
 
-var realSettingsListener,
+var realCommon,
+    realMozNetworkStats,
+    realSettingsListener,
     realConfigManager,
     realIccHelper,
-    realMozMobileConnection;
+    realMozMobileConnection,
+    realNetworkstatsProxy;
 
 if (!this.SettingsListener) {
   this.SettingsListener = null;
@@ -29,6 +35,19 @@ if (!this.navigator.mozMobileConnection) {
   this.navigator.mozMobileConnection = null;
 }
 
+if (!this.NetworkstatsProxy) {
+  this.NetworkstatsProxy = null;
+}
+
+if (!this.navigator.mozNetworkStats) {
+  this.navigator.mozNetworkStats = null;
+}
+
+if (!this.Common) {
+  this.Common = null;
+}
+
+
 suite('Cost Control Service Hub Suite >', function() {
 
   suiteSetup(function() {
@@ -37,11 +56,21 @@ suite('Cost Control Service Hub Suite >', function() {
 
     realConfigManager = window.ConfigManager;
 
+    realCommon = window.Common;
+    window.Common = new MockCommon({ isValidICCID: true });
+
     realIccHelper = window.IccHelper;
     window.IccHelper = new MockIccHelper();
 
     realMozMobileConnection = window.navigator.mozMobileConnection;
     window.navigator.mozMobileConnection = new MockMozMobileConnection();
+
+    realNetworkstatsProxy = window.NetworkstatsProxy;
+    window.NetworkstatsProxy = MockMozNetworkStats;
+
+    realMozNetworkStats = window.navigator.mozNetworkStats;
+    navigator.mozNetworkStats = MockMozNetworkStats;
+
   });
 
   suiteTeardown(function() {
@@ -50,6 +79,9 @@ suite('Cost Control Service Hub Suite >', function() {
     window.ConfigManager = realConfigManager;
     window.IccHelper = realIccHelper;
     window.navigator.mozMobileConnection = realMozMobileConnection;
+    window.navigator.mozNetworkStats = realMozNetworkStats;
+    window.Common = realCommon;
+    window.NetworkstatsProxy = realNetworkstatsProxy;
   });
 
   function setupDelaySinceLastBalance(lastBalanceRequest, delay) {
@@ -109,6 +141,23 @@ suite('Cost Control Service Hub Suite >', function() {
       CostControl.getInstance(function(service) {
         service.request({type: 'balance'}, function(result) {
           assert.notEqual(result.details, 'minimum_delay');
+          done();
+        });
+      });
+    }
+  );
+
+  test(
+    'Get dataUsage correctly',
+    function(done) {
+      CostControl.init();
+      CostControl.getInstance(function(service) {
+        service.request({type: 'datausage'}, function(result) {
+
+          assert.equal(result.status, 'success');
+          assert.equal(result.data.wifi.total, 112123944);
+          assert.equal(result.data.mobile.total, 4800543137);
+
           done();
         });
       });

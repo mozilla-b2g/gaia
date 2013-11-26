@@ -115,7 +115,16 @@ Evme.Utils = new function Evme_Utils() {
    * Creates a <style> element which basically does result deduping
    * by applying a css rule {display:none} to certain results
    * This is to avoid complex JS deduping
-   * @param  {JSON object} cfg
+   *
+   * What is deduped:
+   * 1. in Search and Collections (using appUrls):
+   *    Cloud app if the equivalent native app is installed
+   * 2. in Collections (using cloudEquivs):
+   *    Cloud app if it was pinned to Collection
+   * 3. in Collections (using appUrls):
+   *    Bookmarked cloud app if it was added to Collection
+   * 4. in Search (using slugs):
+   *    MarketApp (download suggestions) if it installed
    *
    * example
    * Cloud results should be hidden if already bookmarked
@@ -134,8 +143,6 @@ Evme.Utils = new function Evme_Utils() {
    * }
    * </style>
    *
-   * More uses can be found in InstalledAppService for marketplace
-   * result deduping
    */
   this.filterProviderResults = function filterProviderResults(cfg) {
     var id = cfg.id,

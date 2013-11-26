@@ -42,7 +42,7 @@ contacts.Settings = (function() {
   // Initialise the settings screen (components, listeners ...)
   var init = function initialize() {
     // To listen to card state changes is needed for enabling import from SIM
-    if (IccHelper.enabled) {
+    if (IccHelper) {
       IccHelper.oncardstatechange = contacts.Settings.cardStateChanged;
     }
     fb.init(function onFbInit() {
@@ -241,6 +241,7 @@ contacts.Settings = (function() {
             '/shared/js/device_storage/get_storage_if_available.js',
             '/shared/js/device_storage/get_unused_filename.js',
             '/shared/js/contact2vcard.js',
+            '/shared/js/setImmediate.js',
             '/contacts/js/export/sd.js'
           ],
           function() {
@@ -254,6 +255,7 @@ contacts.Settings = (function() {
             '/shared/js/device_storage/get_storage_if_available.js',
             '/shared/js/device_storage/get_unused_filename.js',
             '/shared/js/contact2vcard.js',
+            '/shared/js/setImmediate.js',
             '/contacts/js/export/bt.js'
           ],
           function() {
@@ -299,7 +301,7 @@ contacts.Settings = (function() {
   // Options checking & updating
 
   var checkSIMCard = function checkSIMCard() {
-    if (!IccHelper.enabled) {
+    if (!IccHelper) {
       enableSIMOptions(false);
       return;
     }

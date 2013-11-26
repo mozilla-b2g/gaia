@@ -152,9 +152,8 @@
         icon.removeEventListener('load', onIconLoad);
 
         // resize to "real" size to handle pixel ratios greater than 1
-        icon.style.cssText +=
-          'width: ' + Evme.Utils.rem(canvas.width / ratio) + ';' +
-          'height: ' + Evme.Utils.rem(canvas.height / ratio) + ';';
+        icon.style.width =
+          self.elName.style.width = Evme.Utils.rem(canvas.width / ratio);
 
         el.dataset.loaded = true;
       });

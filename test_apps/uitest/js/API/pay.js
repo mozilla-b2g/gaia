@@ -41,7 +41,7 @@ var PayTests = {
 
   pay: function pt_pay(JWTs) {
     var request = navigator.mozPay(JWTs);
-    request.onsuccess = function onsuccess() {
+    request.onsuccess = function onsuccess() {
       document.getElementById('result').innerHTML = 'Payment success';
     };
     request.onerror = function onerror() {

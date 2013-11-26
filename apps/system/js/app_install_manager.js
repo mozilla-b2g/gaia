@@ -271,6 +271,17 @@ var AppInstallManager = {
       return;
     }
 
+    // Check permission level is correct
+    var hasInputPermission = (app.manifest.type === 'certified' ||
+                              app.manifest.type === 'privileged') &&
+                             (app.manifest.permissions &&
+                              'input' in app.manifest.permissions);
+    if (!hasInputPermission) {
+      console.error('third-party IME does not have correct input permission');
+      this.completedSetupTask();
+      return;
+    }
+
     // build the list of keyboard layouts
     var listHtml = '';
     var imeListWrap = Template(this.imeListTemplate);

@@ -469,8 +469,8 @@ aside.connecting {
   height: auto;
 }
 
-#hidden-wifi-authentication label span,
-#configure_network_params label span {
+#hidden-wifi-authentication label span:after,
+#configure_network_params label span:after {
   top: 2rem;
   left: 3rem;
 }
@@ -841,7 +841,7 @@ aside.connecting {
   margin: 0 3rem 0 0;
 }
 
-#welcome_browser #form_share_statistics span {
+#welcome_browser #form_share_statistics span:after {
   top: 1rem;
   left: 1rem;
 }

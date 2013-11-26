@@ -362,6 +362,9 @@ function MailAccount(api, wireRep, acctsSlice) {
    *   @case['bad-user-or-pass']
    *   @case['needs-app-pass']
    *   @case['imap-disabled']
+   *   @case['pop-server-not-great']{
+   *     The POP3 server doesn't support IDLE and TOP, so we can't use it.
+   *   }
    *   @case['connection']{
    *     Generic connection problem; this problem can quite possibly be present
    *     in conjunction with more specific problems such as a bad username /
@@ -1148,6 +1151,7 @@ MailHeader.prototype = {
   },
 
   __update: function(wireRep) {
+    this._wireRep = wireRep;
     if (wireRep.snippet !== null)
       this.snippet = wireRep.snippet;
 
@@ -1235,6 +1239,19 @@ MailHeader.prototype = {
       options = null;
     }
     this._slice._api._getBodyForMessage(this, options, callback);
+  },
+
+  /**
+   * Returns the number of bytes needed before we can display the full
+   * body. If this value is large, we should warn the user that they
+   * may be downloading a large amount of data. For IMAP, this value
+   * is the amount of data we need to render bodyReps and
+   * relatedParts; for POP3, we need the whole message.
+   */
+  get bytesToDownloadForBodyDisplay() {
+    // If this is unset (old message), default to zero so that we just
+    // won't show any warnings (rather than prompting incorrectly).
+    return this._wireRep.bytesToDownloadForBodyDisplay || 0;
   },
 
   /**
@@ -1538,6 +1555,10 @@ MailAttachment.prototype = {
   },
 
   download: function(callWhenDone, callOnProgress) {
+    if (this.isDownloaded) {
+      callWhenDone();
+      return;
+    }
     this._body._api._downloadAttachments(
       this._body, [], [this._body.attachments.indexOf(this)],
       callWhenDone, callOnProgress);
@@ -2466,7 +2487,6 @@ MailAPI.prototype = {
   _fire_sliceSplice: function ma__fire_sliceSplice(msg, slice,
                                                    transformedItems, fake) {
     var i, stopIndex, items, tempMsg;
-
     // - generate namespace-specific notifications
     slice.atTop = msg.atTop;
     slice.atBottom = msg.atBottom;
@@ -2656,10 +2676,30 @@ MailAPI.prototype = {
     if (body.onchange) {
       // there may be many kinds of updates we want to support but we only
       // support updating the bodyReps reference currently.
-      switch (msg.detail.changeType) {
-        case 'bodyReps':
-          body.bodyReps = msg.bodyInfo.bodyReps;
-          break;
+      if (msg.detail.changeDetails) {
+        for (var which in msg.detail.changeDetails) {
+          var indexes = msg.detail.changeDetails[which];
+          for (var i = 0; i < indexes.length; i++) {
+            var idx = indexes[i];
+            switch(which) {
+            case 'bodyReps':
+              body.bodyReps[idx] = msg.bodyInfo.bodyReps[idx];
+              break;
+            case 'attachments':
+              var bodyAtt = body.attachments[idx];
+              var wireAtt = msg.bodyInfo.attachments[idx];
+              bodyAtt.sizeEstimateInBytes = wireAtt.sizeEstimate;
+              bodyAtt._file = wireAtt.file;
+              break;
+            case 'relatedParts':
+              // not used currently
+              break;
+            case 'detachedAttachments':
+              // TODO: for streaming patch
+              break;
+            }
+          }
+        }
       }
 
       body.onchange(
@@ -2768,6 +2808,9 @@ MailAPI.prototype = {
    *   @case['bad-user-or-pass']{
    *     The username and password didn't check out.  We don't know which one
    *     is wrong, just that one of them is wrong.
+   *   }
+   *   @case['pop-server-not-great']{
+   *     The POP3 server doesn't support IDLE and TOP, so we can't use it.
    *   }
    *   @case['imap-disabled']{
    *     IMAP support is not enabled for the Gmail account in use.
@@ -3637,7 +3680,8 @@ define('mailapi/worker-support/configparser-main',[],function() {
     var provider = getNode('/clientConfig/emailProvider');
     // Get the first incomingServer we can use (we assume first == best).
     var incoming = getNode('incomingServer[@type="imap"] | ' +
-                           'incomingServer[@type="activesync"]', provider);
+                           'incomingServer[@type="activesync"] | ' +
+                           'incomingServer[@type="pop3"]', provider);
     var outgoing = getNode('outgoingServer[@type="smtp"]', provider);
 
     var config = null;
@@ -3652,7 +3696,9 @@ define('mailapi/worker-support/configparser-main',[],function() {
       if (incoming.getAttribute('type') === 'activesync') {
         config.type = 'activesync';
       } else if (outgoing) {
-        config.type = 'imap+smtp';
+        var isImap = incoming.getAttribute('type') === 'imap';
+
+        config.type = isImap ? 'imap+smtp' : 'pop3+smtp';
         for (var iter in Iterator(outgoing.children)) {
           var child = iter[1];
           config.outgoing[child.tagName] = child.textContent;

@@ -42,7 +42,6 @@ var TonePlayer = {
       gain.setValueAtTime(kToneVolume, now + kShortPressDuration - 0.025);
       gain.linearRampToValueAtTime(0.0, now + kShortPressDuration);
     }
-    this._playingNode.connect(this._gainNode);
 
     for (var i = 0; i < frequencies.length; ++i) {
       var oscNode = this._audioContext.createOscillator();
@@ -54,6 +53,8 @@ var TonePlayer = {
       }
       oscNode.connect(this._playingNode);
     }
+
+    this._playingNode.connect(this._gainNode);
   },
 
   stop: function tp_stop() {

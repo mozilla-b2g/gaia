@@ -27,8 +27,6 @@
   }
 
   var MockIccHelper = {
-    enabled: true,
-
     iccInfo: iccInfo,
 
     addEventListener: mnmt_addEventListener,
