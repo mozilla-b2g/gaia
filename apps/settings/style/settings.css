@@ -217,6 +217,9 @@ section li.password > p {
   line-height: 3.3rem;
 }
 
+#pwd-auth {
+  -moz-user-focus: ignore;
+}
 
 /******************************************************************************
 * Media Storage settings
