@@ -8,8 +8,10 @@
 
       FONT_SIZE = 11 * SCALE_RATIO;
 
-  Evme.MarketSearchResult = function Evme_MarketSearch(query) {
+  Evme.MarketSearchResult = function Evme_MarketSearch(data) {
     var self = this;
+    var query = data.query;
+    var label = data.label;
 
     Evme.Result.call(this);
     this.type = Evme.RESULT_TYPE.MARKET_SEARCH;
@@ -30,7 +32,7 @@
       });
 
       Evme.Utils.writeTextToCanvas({
-        'text': Evme.Utils.l10n('apps', 'market-more-apps'),
+        'text': label,
         'context': context,
         'offset': height + TEXT_MARGIN + FONT_SIZE + window.devicePixelRatio
       });
@@ -81,11 +83,9 @@
     };
 
     function render(data) {
-      var query = data.query;
-
       self.clear();
 
-      var marketSearchResult = new Evme.MarketSearchResult(query),
+      var marketSearchResult = new Evme.MarketSearchResult(data),
       el = marketSearchResult.init(app);
 
       marketSearchResult.draw(app.icon);
