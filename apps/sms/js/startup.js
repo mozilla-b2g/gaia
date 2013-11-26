@@ -39,6 +39,7 @@ var lazyLoadFiles = [
   'js/settings.js',
   'js/notify.js',
   'js/activity_handler.js',
+  'js/contact_renderer.js',
   'shared/style/input_areas.css',
   'shared/style/switches.css',
   'shared/style/confirm.css',

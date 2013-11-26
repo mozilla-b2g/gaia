@@ -15,6 +15,16 @@
 
 *********************************************************** */
 (function(window) {
+  function getAsset(filename, loadCallback) {
+    var req = new XMLHttpRequest();
+    req.open('GET', filename, true);
+    req.responseType = 'blob';
+    req.onload = function() {
+      loadCallback(req.response);
+    };
+    req.send();
+  }
+
   function stringOrBust(aObj) {
     if (typeof aObj !== 'string') {
       return undefined;
@@ -350,27 +360,48 @@
   );
 
 
-  ContactsDB.push(
-    new Contact({
-      familyName: 'Hopper',
-      givenName: 'Grace',
-      tel: {
-        value: '999'
-      }
-    })
-  );
+  var grace = new Contact({
+    familyName: 'Hopper',
+    givenName: 'Grace',
+    tel: {
+      value: '999'
+    }
+  });
 
-  ContactsDB.push(
-    new Contact({
-      familyName: 'O\'Hare',
-      givenName: 'Tom',
-      tel: {
-        value: '123456',
-        type: 'Mobile',
-        carrier: 'Nynex'
-      }
-    })
-  );
+  var tom = new Contact({
+    familyName: 'O\'Hare',
+    givenName: 'Tom',
+    tel: {
+      value: '123456',
+      type: 'Mobile',
+      carrier: 'Nynex'
+    }
+  });
+
+  var longname = new Contact({
+    familyName: 'Taumatawhakatangihangakoauauota',
+    givenName: 'Mateapokaiwhenuakitanatahu',
+    tel: [{
+        value: '+18001114321',
+          type: ['Mobile']
+    }]
+  });
+
+  getAsset('/js/desktop-only/photo-man.jpg', function(blob) {
+    tom.photo = [blob];
+  });
+
+  getAsset('/js/desktop-only/photo-woman.jpg', function(blob) {
+    grace.photo = [blob];
+  });
+
+  getAsset('/js/desktop-only/photo-man-bowtie.jpg', function(blob) {
+    longname.photo = [blob];
+  });
+
+  ContactsDB.push(grace);
+  ContactsDB.push(tom);
+  ContactsDB.push(longname);
 
   ContactsDB.push(
     new Contact({
@@ -415,19 +446,6 @@
           value: '800-BUY-A-CAR',
           type: ['Home'],
           carrier: 'Nynex'
-        }
-      ]
-    })
-  );
-
-  ContactsDB.push(
-    new Contact({
-      familyName: 'Taumatawhakatangihangakoauauota',
-      givenName: 'Mateapokaiwhenuakitanatahu',
-      tel: [
-        {
-          value: '+18001114321',
-          type: ['Mobile']
         }
       ]
     })

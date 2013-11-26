@@ -300,7 +300,7 @@
         delivery: 'sent',
         read: true,
         type: 'sms',
-        timestamp: new Date(Date.now()),
+        timestamp: new Date(),
         deliveryStatus: 'success'
       },
       {
@@ -324,6 +324,16 @@
         type: 'sms',
         deliveryStatus: 'not-applicable',
         timestamp: new Date(Date.now() - 172800000)
+      },
+      {
+        threadId: 3,
+        sender: '+18001114321',
+        body: 'I have a really long name!',
+        read: true,
+        type: 'sms',
+        deliveryStatus: 'not-applicable',
+        delivery: 'sent',
+        timestamp: new Date()
       },
       {
         threadId: 4,
@@ -507,6 +517,14 @@
         lastMessageType: 'sms',
         body: 'Sending :)',
         timestamp: new Date(Date.now() - 172800000),
+        unreadCount: 0
+      },
+      {
+        id: 3,
+        participants: ['+18001114321'],
+        lastMessageType: 'sms',
+        body: 'I have a very long name!',
+        timestamp: new Date(),
         unreadCount: 0
       },
       {

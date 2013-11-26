@@ -1,5 +1,5 @@
-/*global MocksHelper, MockL10n, ThreadUI, MockContact, Utils,
-         MockNavigatormozMobileMessage, loadBodyHTML, Compose, MessageManager */
+/*global MocksHelper, MockL10n, ThreadUI, MockNavigatormozMobileMessage,
+         loadBodyHTML, Compose, MessageManager */
 
 'use strict';
 
@@ -25,6 +25,7 @@ requireApp('sms/js/thread_list_ui.js');
 requireApp('sms/js/thread_ui.js');
 requireApp('sms/js/attachment.js');
 requireApp('sms/js/fixed_header.js');
+requireApp('sms/js/contact_renderer.js');
 
 var mHelperIntegration = new MocksHelper([
   'MessageManager',
@@ -32,7 +33,6 @@ var mHelperIntegration = new MocksHelper([
 ]).init();
 
 suite('ThreadUI Integration', function() {
-  var getContactDetails;
   var realMozL10n;
   var threadUIMozMobileMessage;
   var recipients;
@@ -555,129 +555,5 @@ suite('ThreadUI Integration', function() {
     });
     */
 
-  });
-
-  suite('Secure User Input', function() {
-    function mock(definition) {
-      return function mock() {
-        mock.called = true;
-        mock.args = [].slice.call(arguments);
-        return definition.apply(this, mock.args);
-      };
-    }
-    suiteSetup(function() {
-      getContactDetails = Utils.getContactDetails;
-      Utils.getContactDetails = mock(function(number, contacts) {
-        return {
-          isContact: !!contacts,
-          title: number
-        };
-      });
-    });
-
-    suiteTeardown(function() {
-      Utils.getContactDetails = getContactDetails;
-    });
-
-    teardown(function() {
-      ThreadUI.recipients.length = 0;
-    });
-
-    test('+99', function() {
-      var ul = document.createElement('ul');
-
-      ThreadUI.recipients.add({
-        number: '+99'
-      });
-
-      assert.doesNotThrow(function() {
-        ThreadUI.renderContact({
-          contact: {
-            name: 'Spider Monkey',
-            tel: [{ value: '...' }]
-          },
-          input: '+99',
-          target: ul,
-          isContact: true,
-          isSuggestion: true
-        });
-      });
-
-      assert.ok(Utils.getContactDetails.called);
-      assert.equal(Utils.getContactDetails.args[0], '...');
-    });
-
-    test('*67 [800]-555-1212', function(done) {
-      var ul = document.createElement('ul');
-
-      assert.doesNotThrow(function() {
-        ThreadUI.renderContact({
-          contact: {
-            name: 'Spider Monkey',
-            tel: [{ value: '...' }]
-          },
-          input: '*67 [800]-555-1212',
-          target: ul,
-          isContact: true,
-          isSuggestion: true
-        });
-      });
-      assert.ok(Utils.getContactDetails.called);
-      assert.equal(Utils.getContactDetails.args[0], '...');
-
-      done();
-    });
-
-    test('\\^$*+?.', function(done) {
-      var ul = document.createElement('ul');
-      assert.doesNotThrow(function() {
-        ThreadUI.renderContact({
-          contact: {
-            name: 'Spider Monkey',
-            tel: [{ value: '...' }]
-          },
-          input: '\\^$*+?.',
-          target: ul,
-          isContact: true,
-          isSuggestion: true
-        });
-      });
-      assert.ok(Utils.getContactDetails.called);
-      assert.equal(Utils.getContactDetails.args[0], '...');
-
-      done();
-    });
-  });
-
-  suite('Defensive Contact Rendering', function() {
-    test('has tel number', function() {
-      var ul = document.createElement('ul');
-      var contact = new MockContact();
-      var isRendered = ThreadUI.renderContact({
-        contact: contact,
-        input: contact.tel[0].value,
-        target: ul,
-        isContact: true,
-        isSuggestion: true
-      });
-
-      assert.isTrue(isRendered);
-    });
-
-    test('no tel number', function() {
-      var ul = document.createElement('ul');
-      var contact = new MockContact();
-      contact.tel = null;
-
-      var isNotRendered = ThreadUI.renderContact({
-        contact: contact,
-        input: null,
-        target: ul,
-        isContact: true,
-        isSuggestion: true
-      });
-
-      assert.isFalse(isNotRendered);
-    });
   });
 });
