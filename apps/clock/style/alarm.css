@@ -11,15 +11,17 @@ ul, ol {
 
 #alarm-new {
   position: absolute;
-  background: url(images/add_alarm.png) no-repeat center / 3.2rem;
-  background-size: 100% auto;
-  height: 2.5rem;
-  width: 3.2rem;
-  border: none;
   top: 0;
   right: 0;
+
+  width: 3rem;
+  height: 3rem;
+  border: none;
   margin-top: 2.1rem;
   margin-right: 1.5rem;
+
+  background: url(images/add_alarm.png) no-repeat center / 3rem;
+  background-size: 100% auto;
 }
 
 #alarm-edit-panel {
