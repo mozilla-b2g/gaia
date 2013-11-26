@@ -1,4 +1,4 @@
-marionette('Stopwatch Panel', function() {
+marionette('Lap creation', function() {
   var assert = require('./lib/assert');
   var Stopwatch = require('./lib/stopwatch');
   var client = marionette.client();
@@ -9,28 +9,7 @@ marionette('Stopwatch Panel', function() {
     stopwatch.launch();
   });
 
-  test('basic operation', function() {
-    assert.hasDuration(
-      stopwatch.read(),
-      0,
-      'Initialize with zero duration'
-    );
-
-    stopwatch.start();
-    assert(
-      !stopwatch.isButtonUsable('start'),
-      'Start button is not usable while stopwatch advances'
-    );
-
-    client.helper.wait(1300);
-
-    assert.hasDuration(
-      stopwatch.read(),
-      [1200, Infinity]
-    );
-  });
-
-  test('lap creation', function() {
+  test('lap advancement and ordering', function() {
     var laps;
 
     assert.equal(
@@ -38,6 +17,7 @@ marionette('Stopwatch Panel', function() {
       0,
       'Stopwatch initially displays 0 laps'
     );
+
     stopwatch.start();
 
     stopwatch.lap();
@@ -51,7 +31,7 @@ marionette('Stopwatch Panel', function() {
     assert.equal(
       laps.length,
       2,
-      'Stopwatch displays element for each lap created'
+      'Stopwatch displays element for "current" lap and each lap created'
     );
 
     assert.hasDuration(
@@ -88,33 +68,4 @@ marionette('Stopwatch Panel', function() {
       'Previously-created lap entries persist'
     );
   });
-
-  test('resetting', function() {
-    stopwatch.start();
-
-    stopwatch.lap();
-    stopwatch.lap();
-
-    assert.equal(
-      stopwatch.readLaps().length,
-      3,
-      'Stopwatch displays element for each lap created'
-    );
-
-    stopwatch.pause();
-
-    stopwatch.reset();
-
-    assert(
-      !stopwatch.isButtonUsable('reset'),
-      'Reset button is not usable after stopwatch has been reset'
-    );
-    assert.equal(
-      stopwatch.readLaps().length,
-      0,
-      'Laps are removed'
-    );
-
-  });
-
 });
