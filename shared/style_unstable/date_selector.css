@@ -14,7 +14,10 @@
   bottom: 0;
   padding: 0 0 7rem;
   color: #fff;
-  font-family: sans-serif;
+}
+
+[role="dialog"][data-type="date-selector"].generic-dialog:before {
+  display: inline;
 }
 
 [role="dialog"][data-type="date-selector"] h1 {
@@ -250,4 +253,51 @@
 
 [role="dialog"][data-type="date-selector"] menu button.full {
   width: 100%;
+}
+
+@media (min-width: 768px) {
+  /* Main dialog setup */
+  [role="dialog"][data-type="date-selector"].generic-dialog {
+    padding: 0;
+  }
+
+  [role="dialog"][data-type="date-selector"] h1 {
+    font-weight: 500;
+    font-size: 2.2rem;
+    padding: 1.1rem 0 0 4.5rem; /* 6 - 1.5 */
+    height: 7rem;
+  }
+
+  /* Date picker */
+  [role="dialog"][data-type="date-selector"] .picker-container {
+    margin: 4.5rem 4.5rem 0 4.5rem;
+    width: calc(100% - 9rem);
+  }
+
+  [role="dialog"][data-type="date-selector"] .value-picker-date-wrapper,
+  [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper,
+  [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+    width: 33%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .picker-bar-background {
+    width: 34%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .value-picker-month-wrapper {
+    left: 33%;
+    width: 33%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .value-picker-year-wrapper {
+    width: 34%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .YMD .value-picker-month-wrapper {
+    left: 33%;
+  }
+
+  [role="dialog"][data-type="date-selector"] .MDY .value-picker-date-wrapper {
+    left: 33%;
+  }
 }
