@@ -6,9 +6,9 @@ from gaiatest import GaiaTestCase
 from gaiatest.apps.system.regions.cards_view import CardsView
 
 
-class TestCardsViewThreeApps(GaiaTestCase):
+class TestCardsViewTwoApps(GaiaTestCase):
 
-    _test_apps = ["Clock", "Gallery", "Calendar"]
+    _test_apps = ["Clock", "Gallery"]
 
     def setUp(self):
         GaiaTestCase.setUp(self)
@@ -27,21 +27,18 @@ class TestCardsViewThreeApps(GaiaTestCase):
         # Pull up the cards view
         self.cards_view.open_cards_view()
 
-        # Close the current app from the cards view
-        self.cards_view.close_app(self._test_apps[2])
+        # Close the current apps from the cards view
+        self.cards_view.close_app(self._test_apps[1])
+        self.cards_view.close_app(self._test_apps[0])
 
         self.marionette.switch_to_frame()
 
         # Pull up the cards view again
         self.cards_view.open_cards_view()
 
-        # If successfully killed, the app should no longer appear in the cards view.
-        self.assertFalse(self.cards_view.is_app_present(self._test_apps[2]),
-            "Killed app not expected to appear in cards view")
+        # If successfully killed, the apps should no longer appear in the cards view and the "No recent apps" message should be displayed
+        self.assertFalse(self.cards_view.is_app_present(self._test_apps[1]),
+                         "Killed app not expected to appear in cards view")
 
-        # Check if the remaining 2 apps are visible in the cards view
-        self.assertTrue(self.cards_view.is_app_displayed(self._test_apps[0]),
-            "First opened app should be visible in cards view")
-
-        self.assertTrue(self.cards_view.is_app_displayed(self._test_apps[1]),
-            "Second app opened should be visible in cards view")
+        self.assertFalse(self.cards_view.is_app_present(self._test_apps[0]),
+                         "Killed app not expected to appear in cards view")
