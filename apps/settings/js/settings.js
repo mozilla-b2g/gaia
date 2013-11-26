@@ -770,7 +770,7 @@ window.addEventListener('load', function loadSettings() {
                      'data-connectivity'];
 
       // Disable SIM security item only in case of SIM absent.
-      var cardState = IccHelper.cardState;
+      var cardState = IccHelper && IccHelper.cardState;
       if (!disable || !cardState) {
         itemIds.push('simSecurity-settings');
       }
