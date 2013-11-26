@@ -115,6 +115,11 @@ class KeyboardPage(Base):
     _number_input_locator = (By.CSS_SELECTOR, 'input[type="number"]')
     _text_input_locator = (By.CSS_SELECTOR, 'input[type="text"]')
     _url_input_locator = (By.CSS_SELECTOR, 'input[type="url"]')
+    _frame_locator = (By.CSS_SELECTOR, "#test-iframe[src*='keyboard']")
+
+    def switch_to_frame(self):
+        keyboard_page_iframe = self.marionette.find_element(*self._frame_locator)
+        self.marionette.switch_to_frame(keyboard_page_iframe)
 
     def tap_number_input(self):
         self.marionette.find_element(*self._number_input_locator).tap()
