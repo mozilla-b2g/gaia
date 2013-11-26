@@ -35,7 +35,8 @@ class TestSmsWithAttachments(GaiaTestCase):
         camera.tap_select_button()
 
         # switch back to messages app frame
-        messages.switch_to_messages_frame()
+        self.wait_for_condition(lambda m: self.apps.displayed_app.name == messages.name)
+        self.apps.switch_to_displayed_app()
         new_message.wait_for_resizing_to_finish()
 
         #click send

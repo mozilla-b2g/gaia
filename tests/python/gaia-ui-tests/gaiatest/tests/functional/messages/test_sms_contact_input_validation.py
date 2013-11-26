@@ -17,7 +17,6 @@ class TestContactValidation(GaiaTestCase):
         keyboard = new_message.tap_recipient_section()
         keyboard.send('test_contact')
         keyboard.tap_enter()
-        self.messages.switch_to_messages_frame()
 
         # Verify if recipient is invalid and uneditable
         self.assertIn('attention', new_message.recipient_css_class)

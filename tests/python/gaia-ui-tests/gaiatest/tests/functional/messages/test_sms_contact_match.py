@@ -26,7 +26,6 @@ class TestContactMatch(GaiaTestCase):
         keyboard = new_message.tap_recipient_section()
         keyboard.send(self.contact['name'][0])
         keyboard.tap_enter()
-        self.messages.switch_to_messages_frame()
 
         # verify that contacts and tel number match
         self.assertEqual(self.contact['name'][0], new_message.first_recipient_name)
