@@ -407,6 +407,7 @@ function SimPinDialog(dialog) {
       return;
     }
 
+    options = options || {};
     _origin = options.exitPanel || Settings.currentPanel;
     Settings.currentPanel = dialogPanel;
 

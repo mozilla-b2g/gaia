@@ -8,7 +8,7 @@ from gaiatest.apps.base import Base
 
 class Language(Base):
 
-    _select_language_locator = (By.CSS_SELECTOR, '#languages li:nth-child(2) .icon-dialog select')
+    _select_language_locator = (By.CSS_SELECTOR, "select[name='language.current']")
     _back_button_locator = (By.CSS_SELECTOR, '.current header > a')
 
     def go_back(self):
@@ -20,10 +20,9 @@ class Language(Base):
 
     def select(self, match_string):
         # This needs to be duplicated from base.py for a few reasons:
-        # 1. The launch() method at the end is failing for some reason
-        # 2. When we return from the frame we don't return to the Settings app in its initial state,
+        # 1. When we return from the frame we don't return to the Settings app in its initial state,
         #    so the wait for in its launch method times out
-        # 3. We need to use in instead of == on the match text because of the directional strings
+        # 2. We need to use in instead of == on the match text because of the directional strings
 
         # have to go back to top level to get the B2G select box wrapper
         self.marionette.switch_to_frame()

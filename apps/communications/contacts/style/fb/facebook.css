@@ -1,16 +1,6 @@
 /* BB Headers */
-body[role="application"] section[role="region"] > header:first-child {
-  background-image: url(headers/images/ui/header.png);
-}
-
-body[role="application"] section[role="region"] > header menu[type="toolbar"] a:last-child,
-body[role="application"] section[role="region"] > header menu[type="toolbar"] button:last-child {
-  background-image: url(headers/images/ui/separator.png);
-}
-
-body[role="application"] section[role="region"] > header > button:after,
-body[role="application"] section[role="region"] > header > a:after {
-  background-image: url(headers/images/ui/separator.png);
+section[role="region"] > header:first-child {
+  background: #3b5998;
 }
 
 

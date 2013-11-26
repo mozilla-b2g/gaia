@@ -61,3 +61,14 @@
   font-variant-numeric: tabular-nums;
   font-weight: lighter;
 }
+
+@media (min-width: 768px) {
+  #stopwatch-controls {
+    width: auto;
+  }
+
+  #stopwatch-controls button {
+    float: none;
+    width: 40%;
+  }
+}

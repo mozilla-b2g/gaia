@@ -42,6 +42,11 @@ button::-moz-focus-inner {
   -moz-border-top-colors: #0b0b0b #999d9d;
   background-color: #6d7273;
   pointer-events: auto;
+  visibility: visible;
+}
+
+#keyboard.hide {
+  visibility: hidden;
 }
 
 /* Rows */

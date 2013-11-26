@@ -205,7 +205,7 @@ var EdgeSwipeDetector = {
       this._sendTouchEvent(e);
       this._iframe.sendMouseEvent('mouseup', lastTouch.pageX,
                                   lastTouch.pageY, 0, 1, 0);
-    }).bind(this), 50);
+    }).bind(this), 80);
   },
 
   _unSynthetizeEvent: function esd_unSynthetizeEvent(e) {

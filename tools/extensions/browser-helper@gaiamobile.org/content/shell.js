@@ -2,7 +2,7 @@
 dump('======== browser-helper: content.js loaded ========\n')
 
 function debug(str) {
-  dump('browser-helper (frame-script): ' + str + '\n');
+  //dump('browser-helper (frame-script): ' + str + '\n');
 }
 
 let CC = Components.Constructor;
@@ -171,7 +171,7 @@ SettingsListener.observe('language.current', 'en-US', function(value) {
  */
 getContentWindow().addEventListener('mozContentEvent', function(evt) {
   let detail = evt.detail;
-  dump('XXX FIXME : Got a mozContentEvent: ' + detail.type + "\n");
+  debug('XXX FIXME : Got a mozContentEvent: ' + detail.type + "\n");
 
   switch(detail.type) {
     case 'inputmethod-update-layouts':

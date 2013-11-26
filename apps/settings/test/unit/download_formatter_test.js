@@ -204,7 +204,7 @@ suite('DownloadFormatter', function() {
     var mockDownload = new MockDownload(
       {
         url: 'http://firefoxos.com/fichero.mp4',
-        started: now
+        startTime: now
       }
     );
     var expectedUUID = 'fichero.mp4' + now.getTime();
@@ -212,5 +212,3 @@ suite('DownloadFormatter', function() {
     assert.equal(retrievedUUID, expectedUUID);
   });
 });
-
-

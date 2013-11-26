@@ -1593,8 +1593,9 @@ ActiveSyncFolderConn.prototype = {
       bodyRep.content = data.content;
 
     var event = {
-      changeType: 'bodyReps',
-      indexes: [0]
+      changeDetails: {
+        bodyReps: [0]
+      }
     };
 
     this._storage.updateMessageHeader(header.date, header.id, false, header);
@@ -2406,7 +2407,6 @@ ActiveSyncJobDriver.prototype = {
         inboxStorage;
     if (inboxFolder && inboxFolder.serverId === null)
       inboxStorage = account.getFolderStorageForFolderId(inboxFolder.id);
-
     account.syncFolderList(function(err) {
       if (!err)
         account.meta.lastFolderSyncAt = Date.now();
@@ -2675,6 +2675,7 @@ function ActiveSyncAccount(universe, accountDef, folderInfos, dbConn,
 exports.Account = exports.ActiveSyncAccount = ActiveSyncAccount;
 ActiveSyncAccount.prototype = {
   type: 'activesync',
+  supportsServerFolders: true,
   toString: function asa_toString() {
     return '[ActiveSyncAccount: ' + this.id + ']';
   },

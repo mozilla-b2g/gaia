@@ -23,7 +23,7 @@ class AuthenticationDialog(Base):
         username_input.send_keys(text)
 
     def authenticate(self, username, password):
-        dialog = self.marionette.find_element(*self._auth_dialog_locator)
+        self.wait_for_element_displayed(*self._auth_dialog_locator)
         self.type_username(username)
         self.type_password(password)
 

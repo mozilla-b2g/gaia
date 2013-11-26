@@ -5,6 +5,8 @@ var MockMozMobileConnection = function(state) {
 
   if (!state.voice) {
     state.voice = {
+      connected: true,
+      relSignalStrength: 50
     };
   }
 

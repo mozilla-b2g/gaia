@@ -104,6 +104,7 @@ form[role="dialog"][data-type="confirm"] menu button:active,
 form[role="dialog"][data-type="confirm"] menu button.recommend:active,
 a.recommend[role="button"]:active  {
   border-color: #008aaa;
+  background: #008aaa;
   color: #333;
 }
 

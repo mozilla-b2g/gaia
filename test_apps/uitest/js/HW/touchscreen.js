@@ -1,7 +1,11 @@
 'use strict';
 
-// XXX this test is affected by a canvas bug 919364 which shows incorrect result
-// To use this test, you may need to use old gecko version like g18
+// test result indicator
+var Status = {
+  NOT_FINISHED: 1,
+  FINISHED: 2,
+  ABORT: 3
+};
 
 // UTILS
 var util = {
@@ -72,15 +76,21 @@ var util = {
 var test1 = function(canvas) {
   var ctx = canvas.getContext('2d');
   var circle_radius = Math.min(canvas.width, canvas.height) * 0.1;
-  var circles_coord = [[circle_radius, circle_radius],
-                       [circle_radius, canvas.height - circle_radius],
-                       [canvas.width - circle_radius, circle_radius],
-                       [canvas.width - circle_radius, canvas.height - circle_radius],
-                       [canvas.width / 2, canvas.height / 2]];
+  var circles_coord =
+                [[circle_radius, circle_radius],
+                 [circle_radius, canvas.height - circle_radius],
+                 [canvas.width - circle_radius, circle_radius],
+                 [canvas.width - circle_radius, canvas.height - circle_radius],
+                 [canvas.width / 2, canvas.height / 2]];
   var lineWidth = 2;
   var lineColor = 'red';
   var lineColorClicked = 'lime';
   var is_clicked = [];
+
+  var exitIconPositionX;
+  var exitIconPositionY;
+  var exitIconWidth;
+  var exitIconHeight;
 
   (function init() {
     util.clearScreen(ctx);
@@ -91,11 +101,24 @@ var test1 = function(canvas) {
                       circle_radius, lineWidth, lineColor);
       is_clicked[i] = false;
     }
+    // Draw exit icon
+    var image = document.getElementById('icon-exit');
+    exitIconWidth = image.width;
+    exitIconHeight = image.height;
+    // Draw icon below center
+    exitIconPositionX = (canvas.width - exitIconWidth) / 2;
+    exitIconPositionY = canvas.height * 0.65;
+    ctx.drawImage(image, exitIconPositionX, exitIconPositionY);
   })();
 
   // Touch test, change circle color if touch point is in the circle.
   // Test ends if all circles are touched
   this.test = function(x, y) {
+    // Clicked on exit button
+    if (x > exitIconPositionX && x <= exitIconPositionX + exitIconWidth &&
+       y > exitIconPositionY && y <= exitIconPositionY + exitIconHeight) {
+      return Status.ABORT;
+    }
     for (var i = 0; i < circles_coord.length; i++) {
       if (!is_clicked[i] &&
          util.distance_sqr(x, y, circles_coord[i][0], circles_coord[i][1]) <
@@ -114,11 +137,11 @@ var test1 = function(canvas) {
 
     for (var i = 0; i < circles_coord.length; i++) {
       if (!is_clicked[i]) {
-        return false;
+        return Status.NOT_FINISHED;
       }
     }
     // Test over
-    return true;
+    return Status.FINISHED;
   };
 };
 
@@ -139,6 +162,11 @@ var test2 = function(canvas) {
   var is_clicked_left = [];
   var is_clicked_right = [];
   var total_clicked = 0;
+
+  var exitIconPositionX;
+  var exitIconPositionY;
+  var exitIconWidth;
+  var exitIconHeight;
 
   (function init() {
     util.clearScreen(ctx);
@@ -187,15 +215,29 @@ var test2 = function(canvas) {
                              cube_coord_y[i + 1]);
       is_clicked_right[i] = false;
     }
+
+    // Draw exit icon
+    var image = document.getElementById('icon-exit');
+    exitIconWidth = image.width;
+    exitIconHeight = image.height;
+    exitIconPositionX = (canvas.width - exitIconWidth) / 2;
+    exitIconPositionY = (canvas.height - exitIconHeight) / 2;
+    ctx.drawImage(image, exitIconPositionX, exitIconPositionY);
   }
   )();
 
   // Touch test, fill cubes if touch point is in the cube.
   // Test ends if all cubes are touched
   this.test = function(x, y) {
+    // Clicked on exit button
+    if (x > exitIconPositionX && x <= exitIconPositionX + exitIconWidth &&
+       y > exitIconPositionY && y <= exitIconPositionY + exitIconHeight) {
+      return Status.ABORT;
+    }
+
     if (cube_coord_x[1] <= x && x <= cube_coord_x[cubes_num_horizontal - 1] &&
         cube_coord_y[1] <= y && y <= cube_coord_y[cubes_num_vertical - 1]) {
-      return false;
+      return Status.NOT_FINISHED;
     }
 
     var startXi = util.binary_search(cube_coord_x, x);
@@ -220,16 +262,16 @@ var test2 = function(canvas) {
 
     for (var i = 0; i < cubes_num_vertical; i++) {
       if (!is_clicked_left[i] || !is_clicked_right[i]) {
-        return false;
+        return Status.NOT_FINISHED;
       }
     }
     for (var i = 0; i < cubes_num_horizontal; i++) {
       if (!is_clicked_top[i] || !is_clicked_bottom[i]) {
-        return false;
+        return Status.NOT_FINISHED;
       }
     }
     // Test over
-    return true;
+    return Status.FINISHED;
   };
 };
 
@@ -241,30 +283,42 @@ var test_driver = function() {
   canvas.style.width = canvas.width + 'px';
   canvas.style.height = canvas.height + 'px';
 
+  // returns true if no other tests
   function proceed() {
     if (current_test == null) {
       current_test = new test1(canvas);
+      return false;
     }
     else if (current_test instanceof test1) {
       current_test = new test2(canvas);
+      return false;
     }
     else if (current_test instanceof test2) {
-      document.mozCancelFullScreen();
+      return true;
     }
   }
 
   proceed();
 
+  // returns whether all tests are finished
   this.touch = function(x, y) {
-    var result = current_test.test(x, y);
-    if (result) {
-      proceed();
+    var touchResult = current_test.test(x, y);
+    if (touchResult == Status.ABORT) {
+      return Status.ABORT;
     }
+    // one test finished, go on next test
+    if (touchResult == Status.FINISHED) {
+      var isAllFinished = proceed();
+      if (isAllFinished) {
+        return Status.FINISHED;
+      }
+    }
+    return Status.NOT_FINISHED;
   };
 };
 
-// Handle touch input
-// Codes modified from https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Events/Touch_events
+// Handle touch input, Codes modified from
+// https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Events/Touch_events
 var touchTest = function() {
   var ongoingTouches = [];
   var driver = null;
@@ -289,6 +343,7 @@ var touchTest = function() {
 
   function handleEvent(evt) {
     var touches = evt.changedTouches;
+    var result;
     evt.preventDefault();
 
     switch (evt.type) {
@@ -296,7 +351,7 @@ var touchTest = function() {
         for (var i = 0; i < touches.length; i++) {
           ongoingTouches.push(copyTouch(touches[i]));
           var coord = util.relMouseCoords(canvas, touches[i]);
-          driver.touch(coord.x, coord.y);
+          result = driver.touch(coord.x, coord.y);
         }
         break;
       case 'touchmove':
@@ -306,7 +361,7 @@ var touchTest = function() {
 
           if (idx >= 0) {
             var coord_last = util.relMouseCoords(canvas, ongoingTouches[idx]);
-            driver.touch(coord.x, coord.y);
+            result = driver.touch(coord.x, coord.y);
             // swap in the new touch record
             ongoingTouches.splice(idx, 1, copyTouch(touches[i]));
           } else {
@@ -332,6 +387,27 @@ var touchTest = function() {
         }
         break;
     }
+
+    // All tests over
+    if (result == Status.FINISHED || result == Status.ABORT) {
+      // Clear remaining touches
+      touches = null;
+      canvas.removeEventListener('touchstart', handleEvent, false);
+      canvas.removeEventListener('touchend', handleEvent, false);
+      canvas.removeEventListener('touchcancel', handleEvent, false);
+      canvas.removeEventListener('touchleave', handleEvent, false);
+      canvas.removeEventListener('touchmove', handleEvent, false);
+      console.log('uninitialized.');
+
+      if (result == Status.ABORT) {
+        alert('Test terminated by user');
+      } else {
+        alert('Test Success!');
+      }
+      document.mozCancelFullScreen();
+      // This is a hack to close touch test, uitest.js will close this iframe
+      window.parent.window.location.hash = '';
+    }
   }
 
   this.init = function() {
@@ -349,17 +425,24 @@ var touchTest = function() {
   };
 };
 
-window.addEventListener('load', function() {
-  document.getElementById('start').addEventListener('click', function() {
-    document.getElementById('information').classList.add('invisible');
-    document.getElementById('canvas').classList.remove('invisible');
-    document.body.mozRequestFullScreen();
-  });
-});
-
-window.addEventListener('resize', function() {
-  if (document.mozFullScreen || document.webkitIsFullScreen) {
+// XXX: There is a problem of getting into fullscreen
+// When we called mozRequestFullscreen, it actually resized two times.
+// We get almost fullscreen (except status bar) after first event, and truely
+// fullscreen after second event. So we need to wait for the second event.
+var resizedTimes = 0;
+window.addEventListener('resize', function startTest() {
+  if (resizedTimes < 1) {
+    resizedTimes++;
+  }
+  else {
+    window.removeEventListener('resize', startTest);
     var test = new touchTest;
     test.init();
   }
+});
+
+window.addEventListener('load', function() {
+  document.getElementById('canvas').classList.remove('invisible');
+  var exitButton = document.getElementById('fullscreen-exit');
+  document.body.mozRequestFullScreen();
 });

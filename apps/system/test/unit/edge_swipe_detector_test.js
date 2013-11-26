@@ -446,7 +446,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         swipe(this.sinon.clock, panel, 10, 10, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.lastCall;
         assert.equal(call.args[0], 'touchend');
@@ -457,7 +457,7 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should send a mouseup after a delay', function() {
         var sendMouseSpy = this.sinon.spy(iframe, 'sendMouseEvent');
         swipe(this.sinon.clock, panel, 10, 10, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendMouseSpy.lastCall;
         assert.equal(call.args[0], 'mouseup');
@@ -507,7 +507,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.getCall(1);
         assert.notEqual(call.args[0], 'touchstart');
@@ -518,7 +518,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.getCall(sendTouchSpy.callCount - 2);
         assert.notEqual(call.args[0], 'touchend');
@@ -529,7 +529,7 @@ suite('system/EdgeSwipeDetector >', function() {
         var sendTouchSpy = this.sinon.spy(iframe, 'sendTouchEvent');
 
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendTouchSpy.lastCall;
         assert.equal(call.args[0], 'touchend');
@@ -540,7 +540,7 @@ suite('system/EdgeSwipeDetector >', function() {
       test('it should send a mouseup after a delay', function() {
         var sendMouseSpy = this.sinon.spy(iframe, 'sendMouseEvent');
         longPress(this.sinon.clock, panel, 10, 10);
-        this.sinon.clock.tick(60);
+        this.sinon.clock.tick(90);
 
         var call = sendMouseSpy.lastCall;
         assert.equal(call.args[0], 'mouseup');

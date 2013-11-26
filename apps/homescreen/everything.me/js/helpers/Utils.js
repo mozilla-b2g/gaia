@@ -115,7 +115,16 @@ Evme.Utils = new function Evme_Utils() {
    * Creates a <style> element which basically does result deduping
    * by applying a css rule {display:none} to certain results
    * This is to avoid complex JS deduping
-   * @param  {JSON object} cfg
+   *
+   * What is deduped:
+   * 1. in Search and Collections (using appUrls):
+   *    Cloud app if the equivalent native app is installed
+   * 2. in Collections (using cloudEquivs):
+   *    Cloud app if it was pinned to Collection
+   * 3. in Collections (using appUrls):
+   *    Bookmarked cloud app if it was added to Collection
+   * 4. in Search (using slugs):
+   *    MarketApp (download suggestions) if it installed
    *
    * example
    * Cloud results should be hidden if already bookmarked
@@ -134,8 +143,6 @@ Evme.Utils = new function Evme_Utils() {
    * }
    * </style>
    *
-   * More uses can be found in InstalledAppService for marketplace
-   * result deduping
    */
   this.filterProviderResults = function filterProviderResults(cfg) {
     var id = cfg.id,
@@ -369,17 +376,17 @@ Evme.Utils = new function Evme_Utils() {
 
   this.writeTextToCanvas = function writeTextToCanvas(options) {
     var context = options.context,
-        text = options.text ? options.text.split(' ') : [],
-        offset = options.offset || 0,
-        lineWidth = 0,
-        currentLine = 0,
-        textToDraw = [],
+      text = options.text ? options.text.split(' ') : [],
+      offset = options.offset || 0,
+      lineWidth = 0,
+      currentLine = 0,
+      textToDraw = [],
 
-        WIDTH = context.canvas.width,
-        FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
-        LINE_HEIGHT = FONT_SIZE + window.devicePixelRatio;
+      WIDTH = context.canvas.width,
+      FONT_SIZE = options.fontSize || self.APPS_FONT_SIZE,
+      LINE_HEIGHT = FONT_SIZE + window.devicePixelRatio;
 
-    if (!context || !text) {
+    if (!context || !text.length) {
       return false;
     }
 
@@ -397,34 +404,34 @@ Evme.Utils = new function Evme_Utils() {
     context.shadowColor = self.APP_NAMES_SHADOW_COLOR;
 
     for (var i = 0, word; word = text[i++];) {
-    // add 1 to the word with because of the space between words
-    var size = context.measureText(word + ' ').width,
+      // add 1 to the word with because of the space between words
+      var size = context.measureText(word + ' ').width,
         draw = false,
         pushed = false;
 
-    if (lineWidth + size >= WIDTH) {
-      draw = true;
-      if (textToDraw.length === 0) {
-      textToDraw.push(word);
-      pushed = true;
+      if (lineWidth + size >= WIDTH) {
+        draw = true;
+        if (textToDraw.length === 0) {
+          textToDraw.push(word);
+          pushed = true;
+        }
+      }
+
+      if (draw) {
+        drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
+        currentLine++;
+        textToDraw = [];
+        lineWidth = 0;
+      }
+
+      if (!pushed) {
+        textToDraw.push(word);
+        lineWidth += size;
       }
     }
 
-    if (draw) {
-      drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
-      currentLine++;
-      textToDraw = [];
-      lineWidth = 0;
-    }
-
-    if (!pushed) {
-      textToDraw.push(word);
-      lineWidth += size;
-    }
-    }
-
     if (textToDraw.length > 0) {
-    drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
+      drawText(textToDraw, WIDTH / 2, offset + currentLine * LINE_HEIGHT);
     }
 
     function drawText(text, x, y) {

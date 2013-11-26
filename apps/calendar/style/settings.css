@@ -14,7 +14,6 @@ body[data-path^='/create-account'] #time-views,
 body[data-path^='/settings'] #time-views {
   position: relative;
   transform: translateX(80%);
-  box-shadow: 0.1rem 0.1rem 0.5rem 0.5rem #222;
   transition: transform 0.5s ease-in-out;
 }
 
@@ -56,7 +55,7 @@ body[data-path^='/settings'] #time-views {
   height: 100%;
   width: 100%;
   padding: 0 3rem;
-  border-bottom: 0.1rem solid #7E8C91;
+  border-bottom: 0.1rem solid #333b41;
   -moz-user-select: none;
 }
 

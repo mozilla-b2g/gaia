@@ -55,9 +55,9 @@ class ManualSetupEmail(Base):
 
     _account_type_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-account-type')
 
-    _imap_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-imap-username')
-    _imap_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-imap-hostname')
-    _imap_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-imap-port')
+    _imap_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-username')
+    _imap_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-hostname')
+    _imap_port_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-composite-port')
 
     _smtp_username_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-username')
     _smtp_hostname_locator = (By.CSS_SELECTOR, 'section.card-setup-manual-config .sup-manual-smtp-hostname')

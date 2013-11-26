@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
 
     <!-- Shared code -->
@@ -209,6 +210,9 @@
     <!-- Wifi -->
     <script defer src="js/wifi.js"></script>
 
+    <!-- Nfc -->
+    <script defer src="js/nfc_manager.js"></script>
+
     <!-- Voicemail -->
     <script defer src="js/voicemail.js"></script>
 
@@ -263,7 +267,6 @@
     <!-- homescreen from being displayed must come before this script. -->
     <link rel="stylesheet" type="text/css" href="style/window.css">
     <script defer src="js/base_ui.js"></script>
-    <script defer src="js/error.js"></script>
     <script defer src="js/app_modal_dialog.js"></script>
     <script defer src="js/window.js"></script>
     <script defer src="js/wrapper_factory.js"></script>
@@ -385,10 +388,8 @@
           data-level="100" charging hidden></div>
         <div id="statusbar-wifi" class="sb-icon sb-icon-wifi"
           data-level="4" hidden></div>
-        <div id="statusbar-data" class="sb-icon" hidden></div>
         <div id="statusbar-flight-mode" class="sb-icon sb-icon-flight-mode" hidden></div>
-        <div id="statusbar-signal" class="sb-icon sb-icon-signal"
-          data-level="5" hidden></div>
+        <div id="statusbar-connections"></div>
         <div id="statusbar-headphones" class="sb-icon sb-icon-headphones" hidden></div>
         <div id="statusbar-bluetooth-headphones" class="sb-icon sb-icon-bluetooth-headphones" hidden></div>
         <div id="statusbar-bluetooth-transferring" class="sb-icon sb-icon-bluetooth-transferring" hidden></div>

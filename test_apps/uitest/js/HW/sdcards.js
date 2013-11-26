@@ -23,12 +23,18 @@ function checkSDCards() {
     cardInfo.id = 'card' + index;
     cardInfo.classList.remove('invisible');
 
-    var cardNo = cardInfo.querySelector('#card' + index + ' > .no > span');
-    var cardStatus = cardInfo.querySelector('#card' + index + ' > .status > span');
-    var cardSpace = cardInfo.querySelector('#card' + index + ' > .space');
-    var cardSpaceTotal = cardInfo.querySelector('#card' + index + ' > .space > .totalSpace');
-    var cardSpaceFree = cardInfo.querySelector('#card' + index + ' > .space > .freeSpace');
-    var cardSpaceUsed = cardInfo.querySelector('#card' + index + ' > .space > .usedSpace');
+    var cardNo =
+      cardInfo.querySelector('#card' + index + ' > .no > span');
+    var cardStatus =
+      cardInfo.querySelector('#card' + index + ' > .status > span');
+    var cardSpace =
+      cardInfo.querySelector('#card' + index + ' > .space');
+    var cardSpaceTotal =
+      cardInfo.querySelector('#card' + index + ' > .space > .totalSpace');
+    var cardSpaceFree =
+      cardInfo.querySelector('#card' + index + ' > .space > .freeSpace');
+    var cardSpaceUsed =
+      cardInfo.querySelector('#card' + index + ' > .space > .usedSpace');
     cardNo.textContent = index;
 
     // Show availability and hide other infomation if not available
@@ -53,7 +59,8 @@ function checkSDCards() {
         cardSpaceTotal.textContent = spaceGB;
       }
       else {
-        cardSpaceTotal.textContent = parseFloat(cardSpaceTotal.textContent) + spaceGB;
+        cardSpaceTotal.textContent =
+          parseFloat(cardSpaceTotal.textContent) + spaceGB;
       }
     };
     var reqUsed = card.usedSpace();
@@ -64,7 +71,8 @@ function checkSDCards() {
         cardSpaceTotal.textContent = spaceGB;
       }
       else {
-        cardSpaceTotal.textContent = parseFloat(cardSpaceTotal.textContent) + spaceGB;
+        cardSpaceTotal.textContent =
+          parseFloat(cardSpaceTotal.textContent) + spaceGB;
       }
     };
 

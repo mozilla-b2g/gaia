@@ -1,14 +1,22 @@
 function Location(position)//location function is defining with parameter
 {
-  var latitude = position.coords.latitude; //Specifies the longitude estimate in decimal degrees. The value range is [-180.00, +180.00].
+  //Specifies the longitude estimate in decimal degrees.
+  //The value range is [-180.00, +180.00].
+  var latitude = position.coords.latitude;
   var longitude = position.coords.longitude;
-  document.getElementById('lati').innerHTML = latitude; //latitude value is defining in label element where id is lati
+  //latitude value is defining in label element where id is lati
+  document.getElementById('lati').innerHTML = latitude;
   document.getElementById('longi').innerHTML = longitude;
 }
 
-document.getElementById('submit').addEventListener('click', function findLocation() {
-  if (navigator.geolocation)//checking browser compatibility
-  {
-    navigator.geolocation.getCurrentPosition(Location);//getCurrentPosition method retrieve the current geographic location of the user
+document.getElementById('submit').addEventListener('click',
+  function findLocation() {
+    //checking browser compatibility
+    if (navigator.geolocation)
+    {
+      //getCurrentPosition method retrieve
+      //the current geographic location of the user
+      navigator.geolocation.getCurrentPosition(Location);
+    }
   }
-});
+);

@@ -7,6 +7,11 @@
   z-index: 20;
 }
 
+#views > div {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 /*=========================================*/
 
 @media only screen 

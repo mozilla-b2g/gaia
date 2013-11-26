@@ -1,100 +1,80 @@
 #evmeContainer #header {
+    background: rgba(0, 0, 0, 0.4);
     position: relative;
     z-index: 50;
-    min-height: 8rem;
+    min-height: 5rem;
+    -moz-transition: all .2s linear;
+    transition: all .2s linear;
 }
-#evmeContainer #header:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  opacity: 0;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(70, 70, 70, .3) 0%, rgba(0, 0, 0, .3) 20%);
-  transition: opacity 100ms linear;
-}
-.evme-keyboard-visible #evmeContainer #header:before,
-#evmeContainer:not(.empty-query) #header:before {
-    opacity: 1;
+
+#evmeContainer:not(.empty-query) #header,
+.evme-keyboard-visible #header {
+    background: rgba(0, 0, 0, 0.8) !important;
+    min-height: 8rem !important;
 }
 
 #evmeContainer #search-header {
     position: absolute;
     top: 0;
-    left: 0.6rem;
-    right: 0.6rem;
-    height: 3.1rem;
+    left: 0;
     z-index: 51;
-    padding-top: 0.9rem;
-    transform-origin: 0 0;
-    transition: transform 350ms ease-out;
+    width: 100%;
 }
     #evmeContainer #search-rapper {
         position: absolute;
-        top: 0.9rem;
+        top: 0;
         left: 0;
-        right: 0;
         z-index: 25;
-        vertical-align: middle;
-        height: 2.8rem;
-        line-height: 3rem;
-        transition: transform 100ms ease-out;
+        width: 100%;
     }
     body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-rapper {
-        transform: translate3d(0, 2.3rem, 0);
-        height: 3.6rem;
-        line-height: 3.6rem;
-        left: 0.5rem;
-        right: 0.5rem;
-    }
-    body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-q {
-        height: 3.6rem;
-        line-height: 3.6rem;
-    }
-    body:not(.evme-keyboard-visible) #evmeContainer.empty-query #search-q-bg {
-        background-position: 98% 1.1rem;
+        height: 5rem;
     }
 
     #evmeContainer #search-q,
     #evmeContainer #search-q-bg {
         position: relative;
-        font-size: 1.5rem;
+        border-radius: 0;
         vertical-align: middle;
-        padding: 0 0.4rem;
         text-transform: lowercase;
-        height: 100%;
-        -moz-box-sizing: border-box;
     }
     #evmeContainer #search-q::-moz-placeholder,
     #evmeContainer #search-q-bg::-moz-placeholder {
+        color: #eee;
+        opacity: 1.0;
+        font-style: italic;
+        font-weight: 300;
         text-transform: none;
     }
+    #evmeContainer #search-q:focus::-moz-placeholder,
+    #evmeContainer #search-q-bg:focus::-moz-placeholder {
+        color: #858585;
+    }
     #evmeContainer #search-header fieldset {
-        height: 100%;
         line-height: inherit;
         background: none;
-        border-radius: 0;
         border: none;
     }
     #evmeContainer #search-q {
-        border: none;
-        z-index: 10;
-        padding: 0.2rem 1.8rem 0.4rem 0.4rem;
-        width: 100%;
-        height: 2.6rem;
-        top: -0.1rem;
-        display: inline;
         background: transparent;
+        border: none;
+        width: 84%;
+        top: 1.45rem;
+        left: 1.1rem;
+        display: inline;
+        color: #fff;
+        font-size: 1.9rem;
+        font-style: normal;
+        font-weight: 400;
     }
     #evmeContainer #search-q-bg {
-        border-radius: 0.2rem;
-        box-shadow: 0.1rem 0.1rem 0 0 #ccc inset, 0 0 0 0.1rem rgba(0, 0, 0, .3);
-        background: #ffffff url('/everything.me/images/search-icon.png') no-repeat 98% 0.7rem/1.6rem;
+        background: url('/everything.me/images/search-icon.png') no-repeat 97.5% 50% transparent;
+        background-size: 3rem;
+        height: 5rem;
     }
-    #evmeContainer .clear-visible #search-q-bg {
-        background-image: none;
+    #evmeContainer .clear-visible #search-q-bg,
+    .evme-keyboard-visible #search-q-bg {
+        background: transparent;
     }
     #evmeContainer #search-q:focus {
         outline: none;
@@ -102,14 +82,13 @@
 
     #evmeContainer #button-clear {
         position: absolute;
-        top: 0rem;
-        right: -0.6rem;
+        top: 1.0rem;
+        right: 0.7rem;
         z-index: 30;
-        width: 5rem;
-        height: 5rem;
+        width: 3rem;
+        height: 3rem;
         font-size: 0;
-        background: transparent url(/everything.me/images/search-clear.png) no-repeat 2rem 1.4rem;
-        background-size: 1.7rem;
+        background: url('/everything.me/images/search-clear.png') no-repeat;
         display: none;
     }
     #evmeContainer .clear-visible #button-clear {

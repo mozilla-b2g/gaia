@@ -12,23 +12,20 @@ class TestDialerFromMessage(GaiaTestCase):
     def setUp(self):
         GaiaTestCase.setUp(self)
 
-        # Launch the SMS app
-        self.messages = Messages(self.marionette)
-        self.messages.launch()
-
     def test_dialer_from_message(self):
 
         # Send a SMS to the device
         _text_message_content = "Automated Test %s" % str(time.time())
 
-        # Tap new message
-        new_message = self.messages.tap_create_new_message()
-        new_message.type_phone_number(self.testvars['carrier']['phone_number'])
+        self.data_layer.send_sms(self.testvars['carrier']['phone_number'], _text_message_content)
 
-        new_message.type_message(_text_message_content)
+        # Open first received message
+        self.messages = Messages(self.marionette)
+        self.messages.launch()
+        self.messages.wait_for_message_received(timeout=180)
+        self.message_thread = self.messages.tap_first_received_message()
 
-        # Tap send
-        self.message_thread = new_message.tap_send()
+        # Check the phone number
         self.message_thread.tap_header()
         keypad = self.message_thread.tap_call()
         self.assertEquals(keypad.phone_number, self.testvars['carrier']['phone_number'])

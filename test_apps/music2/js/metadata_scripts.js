@@ -281,7 +281,7 @@ var BlobView = (function() {
         }
         else if (b1 < 240) {
           // 3-byte sequence
-          if (pos + 3 >= end)
+          if (pos + 2 >= end)
             fail();
           b2 = this.view.getUint8(pos + 1);
           if (b2 < 128 || b2 > 191)

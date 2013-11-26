@@ -124,6 +124,9 @@ function MessageReaderCard(domNode, mode, args) {
 
   // event handler for body change events...
   this.handleBodyChange = this.handleBodyChange.bind(this);
+
+  // whether or not we've built the body DOM the first time
+  this._builtBodyDom = false;
 }
 MessageReaderCard.prototype = {
   _contextMenuType: {
@@ -184,13 +187,7 @@ MessageReaderCard.prototype = {
   },
 
   handleBodyChange: function(evt) {
-    switch (evt.changeType) {
-      case 'bodyReps':
-        if (this.body.bodyRepsDownloaded) {
-          this.buildBodyDom();
-        }
-        break;
-    }
+    this.buildBodyDom(evt.changeDetails);
   },
 
   onBack: function(event) {
@@ -697,7 +694,16 @@ MessageReaderCard.prototype = {
                    header);
   },
 
-  buildBodyDom: function() {
+  /**
+   * Render the DOM nodes for bodyReps and the attachments container.
+   * If we have information on which parts of the message changed,
+   * only update those DOM nodes; otherwise, update the whole thing.
+   *
+   * @param {object} changeDetails
+   * @param {array} changeDetails.bodyReps An array of changed item indexes.
+   * @param {array} changeDetails.attachments An array of changed item indexes.
+   */
+  buildBodyDom: function(/* optional */ changeDetails) {
     var body = this.body;
     var domNode = this.domNode;
 
@@ -707,20 +713,59 @@ MessageReaderCard.prototype = {
         showEmbeddedImages = body.embeddedImageCount &&
                              body.embeddedImagesDownloaded;
 
-    iframeShims.bindSanitizedClickHandler(rootBodyNode,
-                                          this.onHyperlinkClick.bind(this),
-                                          rootBodyNode,
-                                          null);
+
+    // The first time we build the body DOM, do one-time bootstrapping:
+    if (!this._builtBodyDom) {
+      iframeShims.bindSanitizedClickHandler(rootBodyNode,
+                                            this.onHyperlinkClick.bind(this),
+                                            rootBodyNode,
+                                            null);
+      this._builtBodyDom = true;
+    }
+
+    // If we have fully downloaded one body part, the user has
+    // something to read so get rid of the spinner.
+    // XXX: Potentially improve the UI to show if we're still
+    // downloading the rest of the body even if we already have some
+    // of it.
+    if (reps.length && reps[0].isDownloaded) {
+      // remove progress bar if we've retrieved the first rep
+      var progressNode = rootBodyNode.querySelector('progress');
+      if (progressNode) {
+        progressNode.parentNode.removeChild(progressNode);
+      }
+    }
+
+    // The logic below depends on having removed the progress node!
 
     for (var iRep = 0; iRep < reps.length; iRep++) {
       var rep = reps[iRep];
 
+      // Create an element to hold this body rep. Even if we aren't
+      // updating this rep right now, we need to have a placeholder.
+      var repNode = rootBodyNode.childNodes[iRep];
+      if (!repNode) {
+        repNode = rootBodyNode.appendChild(document.createElement('div'));
+      }
+
+      // Skip updating this rep if it's not updated.
+      if (changeDetails && changeDetails.bodyReps &&
+          changeDetails.bodyReps.indexOf(iRep) === -1) {
+        continue;
+      }
+
+      // Wipe out the existing contents of the rep node so we can
+      // replace it. We can just nuke innerHTML since we add click
+      // handlers on the rootBodyNode, and for text/html parts the
+      // listener is a child of repNode so it will get destroyed too.
+      repNode.innerHTML = '';
+
       if (rep.type === 'plain') {
-        this._populatePlaintextBodyNode(rootBodyNode, rep.content);
+        this._populatePlaintextBodyNode(repNode, rep.content);
       }
       else if (rep.type === 'html') {
         var iframeShim = iframeShims.createAndInsertIframeForContent(
-          rep.content, this.scrollContainer, rootBodyNode, null,
+          rep.content, this.scrollContainer, repNode, null,
           'interactive', this.onHyperlinkClick.bind(this));
         var iframe = iframeShim.iframe;
         var bodyNode = iframe.contentDocument.body;
@@ -733,16 +778,10 @@ MessageReaderCard.prototype = {
         if (showEmbeddedImages)
           body.showEmbeddedImages(bodyNode, this.iframeResizeHandler);
       }
-
-      if (iRep === 0) {
-        // remove progress bar
-        var progressNode = rootBodyNode.querySelector('progress');
-        if (progressNode) {
-          progressNode.parentNode.removeChild(progressNode);
-        }
-      }
     }
 
+    // The image logic checks embedded image counts, so this should be
+    // able to run every time:
     // -- HTML-referenced Images
     var loadBar = domNode.getElementsByClassName('msg-reader-load-infobar')[0];
     if (body.embeddedImageCount && !body.embeddedImagesDownloaded) {
@@ -784,6 +823,20 @@ MessageReaderCard.prototype = {
             filesizeTemplate =
               attTemplate.getElementsByClassName('msg-attachment-filesize')[0];
         for (var iAttach = 0; iAttach < body.attachments.length; iAttach++) {
+
+          // Create an element to hold this attachment.
+          var attNode = attachmentsContainer.childNodes[iAttach];
+          if (!attNode) {
+            attNode = attachmentsContainer.appendChild(
+              document.createElement('li'));
+          }
+
+          // Skip updating this attachment if it's not updated.
+          if (changeDetails && changeDetails.attachments &&
+              changeDetails.attachments.indexOf(iAttach) === -1) {
+            continue;
+          }
+
           var attachment = body.attachments[iAttach], state;
           var extension = attachment.filename.split('.').pop();
 
@@ -800,7 +853,7 @@ MessageReaderCard.prototype = {
             attachment.sizeEstimateInBytes);
 
           var attachmentNode = attTemplate.cloneNode(true);
-          attachmentsContainer.appendChild(attachmentNode);
+          attachmentsContainer.replaceChild(attachmentNode, attNode);
           attachmentNode.getElementsByClassName('msg-attachment-download')[0]
             .addEventListener('click',
                               this.onDownloadAttachmentClick.bind(

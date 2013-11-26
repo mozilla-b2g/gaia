@@ -169,6 +169,32 @@ section {
   visibility: hidden;
 }
 
+.thumbnail-group-header {
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: #8a9699;
+  padding: 0 0 0 0.5rem;
+  height: 4rem;
+  line-height: 4rem;
+  width:100%;
+  float:left;
+}
+.thumbnail-group-container {
+  padding: 0;
+}
+
+#thumbnails>li {
+  /* no list item bullets */
+  list-style-type: none;
+}
+
+
+#thumbnails>li:first-child .thumbnail-group-header {
+  border-top: 0.1rem solid;
+  border-color:rgba(255,255,255, 0.1);
+}
+
+
 .thumbnail {
   margin-right: 0.1rem;
   margin-bottom: 0.1rem;
@@ -217,8 +243,8 @@ section {
  * give the very last thumbnail a large bottom margin so that it doesn't
  * get stuck hidden behind the overlaid toolbar.
  */
-.thumbnail:last-child {
-  margin-bottom: 4rem;
+#thumbnails>li:last-child {
+  margin-bottom: 4.5rem;
 }
 
 @media (orientation: landscape) {
@@ -359,7 +385,7 @@ a.button {
   /* for buttons that display text */
   font-size: 1.4rem;
   text-align: center;
-  line-height: 4rem;
+  line-height: 4.5rem;
 }
 
 a.button:active, a.button:focus {
@@ -373,7 +399,7 @@ a.button.disabled {
 
 footer {
   background: rgba(0, 0, 0, 0.75);
-  height: 4rem;
+  height: 4.5rem;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -421,7 +447,7 @@ footer {
 }
 
 #fullscreen-toolbar {
-  height: 4rem;
+  height: 4.5rem;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -437,7 +463,7 @@ footer {
 }
 
 #fullscreen-view.toolbarhidden #fullscreen-toolbar {
-  transform: translate(0, 4rem);
+  transform: translate(0, 4.5rem);
 }
 
 #fullscreen-view.toolbarhidden #fullscreen-back-button {
@@ -507,7 +533,7 @@ footer {
   left: 0;
   right: 0;
   top: 5rem;
-  bottom: 9rem; /* 4rem for edit-toolbar, 5rem for edit-options */
+  bottom: 9.5rem; /* 4.5rem for edit-toolbar, 5rem for edit-options */
 }
 
 #edit-preview-canvas {
@@ -531,7 +557,7 @@ footer {
   left: 0;
   width: 100%;
   height: 5rem;
-  bottom: 4rem;
+  bottom: 4.5rem;
   background: url(images/options-background.png);
 }
 
@@ -711,7 +737,7 @@ a.filter-faded {
 }
 
 #edit-toolbar {
-  height: 4rem;
+  height: 4.5rem;
   position: absolute;
   bottom: 0;
   left: 0;

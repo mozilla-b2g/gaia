@@ -1,9 +1,13 @@
+/* globals _, ContactToVcard, getStorageIfAvailable, getUnusedFilename */
+
+/* exported ContactsSDExport */
+
+'use strict';
+
 var ContactsSDExport = function ContactsSDExport() {
 
   var contacts;
   var progressStep;
-  var exported = [];
-  var notExported = [];
 
   var setContactsToExport = function setContactsToExport(cts) {
     contacts = cts;
@@ -23,9 +27,9 @@ var ContactsSDExport = function ContactsSDExport() {
 
   var hasName = function hasName(contact) {
     return (Array.isArray(contact.givenName) && contact.givenName[0] &&
-              contact.givenName[0].trim()) ||
-            (Array.isArray(contact.familyName) && contact.familyName[0] &&
-              contact.familyName[0].trim());
+            contact.givenName[0].trim()) ||
+           (Array.isArray(contact.familyName) && contact.familyName[0] &&
+            contact.familyName[0].trim());
   };
 
   var getFileName = function getFileName() {
@@ -75,51 +79,64 @@ var ContactsSDExport = function ContactsSDExport() {
     );
   };
 
-  var saveToSdcard = function saveToSdcard(storage, name, blob, callback) {
-    var request = storage.addNamed(blob, name);
-    request.onsuccess = function onSuccess() {
-      callback(null, contacts.length, null);
-    };
-    request.onerror = function onError(e) {
-      callback({
-        'reason': e
-      }, 0, e.message);
-    };
-  };
-
   var doExport = function doExport(finishCallback) {
+    /* XXX: We use a batch-conversion size of 2MiB. This ensures that the
+     * process won't go out of memory even on low-end devices. This should be
+     * revisited once append-to-file functionality becomes available. */
+    var batchSize = 2 * 1024 * 1024;
+    var count = 0;
+    var pendingBatches = 0;
+    var done = false;
+
     if (typeof finishCallback !== 'function') {
       throw new Error('SD export requires a callback function');
     }
 
-    ContactToVcardBlob(contacts, function onContacts(blob) {
-      getStorage(getFileName(), blob, function onStorage(error,
-        storage, finalName) {
-        if (error) {
-          var reason = error;
-          // numeric error means not enough space available
-          if (parseInt(error, 10) > 0) {
-            reason = 'noSpace';
-          }
-          finishCallback({
-            'reason': reason
-          }, 0, error.message);
-          return;
-        }
+    ContactToVcard(contacts, function onContacts(vcards, nCards) {
+      var blob = new Blob([vcards], {'type': 'text/vcard'});
 
-        saveToSdcard(storage, finalName, blob, finishCallback);
-      });
-    });
+      pendingBatches++;
+
+      getStorage(getFileName(), blob,
+        function onStorage(error, storage, finalName) {
+          if (error) {
+            var reason = error;
+            // numeric error means not enough space available
+            if (parseInt(error, 10) > 0) {
+              reason = 'noSpace';
+            }
+            finishCallback({
+              'reason': reason
+            }, count, error.message);
+            return;
+          }
+
+          var request = storage.addNamed(blob, finalName);
+          request.onsuccess = function onSuccess() {
+            count += nCards;
+            pendingBatches--;
+
+            if (done && (pendingBatches === 0)) {
+              finishCallback(null, count, null);
+            }
+          };
+          request.onerror = function onError(e) {
+            finishCallback({ 'reason': e }, count, e.message);
+          };
+        });
+    }, function finish() {
+      done = true;
+    }, batchSize);
   };
 
   return {
     'setContactsToExport': setContactsToExport,
-    'shouldShowProgress': function() { return true },
+    'shouldShowProgress': function shouldShowProgress() { return true; },
     'hasDeterminativeProgress': hasDeterminativeProgress,
     'getExportTitle': getExportTitle,
     'doExport': doExport,
     'setProgressStep': setProgressStep,
-    get name() { return 'SD';} // handling error messages on contacts_exporter
+    get name() { return 'SD'; } // handling error messages on contacts_exporter
   };
 
 };

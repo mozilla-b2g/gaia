@@ -1,5 +1,7 @@
 'use strict';
 
+requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
+
 var MockCommon = function(config) {
 
   function getMockRequiredMessage(mocking, parameter, isAFunction) {
@@ -12,8 +14,11 @@ var MockCommon = function(config) {
 
   config = config || {};
 
+  var fakeAllInterfaces = MockAllNetworkInterfaces;
+
   return {
     COST_CONTROL_APP: 'app://costcontrol.gaiamobile.org',
+    allNetworkInterfaces: {},
     isValidICCID: function(iccid) {
       assert.isDefined(
         config.isValidICCID,
@@ -43,6 +48,21 @@ var MockCommon = function(config) {
       var event = new CustomEvent('fakealert', { detail: msg });
       window.dispatchEvent(event);
       console.log('Alert: ' + msg);
+    },
+    getCurrentSIMInterface: function getCurrentSIMInterface() {
+      var currentSimCard = fakeAllInterfaces[1];
+      return currentSimCard;
+    },
+    getWifiInterface: function() {
+      var wifiInterface = fakeAllInterfaces[0];
+      return wifiInterface;
+    },
+    loadNetworkInterfaces: function() {
+      var self = this;
+
+      setTimeout(function() {
+        self.allNetworkInterfaces = fakeAllInterfaces;
+      }, 0);
     }
   };
 };

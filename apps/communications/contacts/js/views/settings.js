@@ -241,6 +241,7 @@ contacts.Settings = (function() {
             '/shared/js/device_storage/get_storage_if_available.js',
             '/shared/js/device_storage/get_unused_filename.js',
             '/shared/js/contact2vcard.js',
+            '/shared/js/setImmediate.js',
             '/contacts/js/export/sd.js'
           ],
           function() {
@@ -254,6 +255,7 @@ contacts.Settings = (function() {
             '/shared/js/device_storage/get_storage_if_available.js',
             '/shared/js/device_storage/get_unused_filename.js',
             '/shared/js/contact2vcard.js',
+            '/shared/js/setImmediate.js',
             '/contacts/js/export/bt.js'
           ],
           function() {

@@ -364,7 +364,7 @@ suite('ActivityPicker', function() {
       name: 'configure',
       data: {
         target: 'device',
-        section: 'carrier-mmsSettings'
+        section: 'messaging'
       }
     };
 

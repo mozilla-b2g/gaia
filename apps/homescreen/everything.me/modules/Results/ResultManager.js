@@ -21,8 +21,10 @@ Evme.ResultManager = function Evme_ResultsManager() {
       el = null,
       elHeight = null,
       scrollableEl = null,
-      appsArray = {}, appsDataArray = [],
-      numberOfApps = 0,
+
+      // list of installedApps matching current query
+      installedApps = [],
+
       scroll = null,
       reportedScrollMove = false,
       shouldFadeBG = false,
@@ -102,7 +104,7 @@ Evme.ResultManager = function Evme_ResultsManager() {
         this.clear();
       });
 
-      numberOfApps = 0;
+      installedApps = [];
 
       progressIndicator.hide();
       el.classList.remove(CLASS_HAS_MORE_APPS);
@@ -115,7 +117,14 @@ Evme.ResultManager = function Evme_ResultsManager() {
     };
 
     this.onNewQuery = function onNewQuery(data) {
-      INSTALLED in providers && providers[INSTALLED].render(data);
+      installedApps = Evme.InstalledAppsService.getMatchingApps({
+        'query': data.query,
+        'byTags': true
+      });
+
+      INSTALLED in providers && providers[INSTALLED].render({
+        'apps': installedApps
+      });
     };
 
     this.APIData = {
@@ -135,8 +144,9 @@ Evme.ResultManager = function Evme_ResultsManager() {
         handleAPIHasMoreCloudApps(response.paging);
 
         var cloudApps = [],
-        marketApps = [],
-        pageNum = response.paging.first;
+          marketApps = [],
+          pageNum = response.paging.first,
+          query = response.query;
 
       // separate cloud from marketplace apps
       response.apps.forEach(function(app) {
@@ -159,12 +169,14 @@ Evme.ResultManager = function Evme_ResultsManager() {
 
         response.nativeAppsHint && MARKETSEARCH in providers &&
           providers[MARKETSEARCH].render({
-          'query': response.query
+          'query': query,
+          'label': (installedApps.length || marketApps.length) ?
+            Evme.Utils.l10n('apps', 'market-more-apps') : query.toLowerCase()
         });
       }
 
       CLOUD in providers && providers[CLOUD].render(cloudApps, {
-        'query': response.query,
+        'query': query,
         'pageNum': pageNum,
         'requestMissingIcons': requestMissingIcons
       });

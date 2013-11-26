@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
     <meta charset="utf-8">
     <title>Usage Settings</title>
 
@@ -13,6 +14,7 @@
 
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+    <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
 
     <!-- Building blocks -->
     <link rel="stylesheet" type="text/css" href="shared/style/headers.css">
@@ -238,15 +240,29 @@
       </section>
 
       <!-- Reset confirmation -->
-      <section role="dialog" class="view" data-viewport="ethereal" id="reset-confirmation-dialog">
-        <div class="center">
-          <h3 data-l10n-id="confirmation">Confirmation</h3>
-          <p data-l10n-id="reset-confirmation-warning">All current data will be deleted. Are you sure you want to reset?</p>
-        </div>
-        <menu data-items="2">
-          <button data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>
-          <button data-l10n-id="yes" class="danger">Yes</button>
-        </menu>
+      <section role="dialog" class="view" data-viewport="ethereal" id="reset-data-dialog">
+        <form role="dialog" data-type="action">
+              <header data-l10n-id="reset-data-usage">Reset Data usage</header>
+              <menu>
+                <br/><button id="reset-data-mobile-usage" data-l10n-id="reset-mobile">Reset mobile data</button>
+                <br/><button id="reset-data-wifi-usage" data-l10n-id="reset-wifi">Reset wifi data</button>
+                <br/><button id="reset-all-data-usage" data-l10n-id="reset-all">Reset mobile & wifi data</button>
+
+                <button type="button" data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>
+
+              </menu>
+          </form>
+      </section>
+    <!-- Reset confirmation -->
+      <section role="dialog" class="view" data-viewport="ethereal" id="reset-telephony-dialog">
+          <div class="center">
+              <h3 data-l10n-id="confirmation">Confirmation</h3>
+              <p data-l10n-id="reset-confirmation-warning">All current data will be deleted. Are you sure you want to reset?</p>
+          </div>
+          <menu data-items="2">
+              <button data-l10n-id="cancel" class="close-reset-dialog">Cancel</button>
+              <button data-l10n-id="yes" class="danger">Yes</button>
+          </menu>
       </section>
     </section>
   </body>

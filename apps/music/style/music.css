@@ -586,7 +586,7 @@ body.picker-mode #title-player {
 #player-cover {
   position: relative;
   width: 100%;
-  height: calc(100% - 10rem);
+  height: calc(100% - 9.1rem);
   overflow: hidden;
 }
 
@@ -762,94 +762,104 @@ button::-moz-focus-inner {
 
 #player-seek {
   position: relative;
-  width: 100%;
-  height: 4.5rem;
-  background: url('./images/scroll_bar_bg.png');
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100% 2.1rem;
-  background-color: #151515;
-  overflow: hidden;
+  height: 4.2rem;
+  font-size: 0;
+  background-color: rgba(0,0,0, 0.85);
 }
 
 #player-seek-elapsed,
 #player-seek-bar,
 #player-seek-remaining {
+  display: inline-block;
   position: relative;
-  float: left;
+  vertical-align: top;
 }
 
 #player-seek-elapsed,
 #player-seek-remaining {
-  top: calc(50% - 0.69rem);
-  width: 18%;
-  line-height: 1.38rem;
+  width: 5.3rem;
+  line-height: 4.2rem;
   font-size: 1.4rem;
-  font-weight: 500;
-  color: #a1afb2;
-  text-align: center;
+  font-weight: 400;
+  color: #e7e7e7;
+}
+
+#player-seek-elapsed {
+  padding-left: 1.5rem;
+}
+
+#player-seek-remaining {
+  text-align: right;
+  padding-right: 1.5rem;
 }
 
 #player-seek-bar {
-  width: 60%;
+  display: inline-block;
+  width: 18.4rem;
   height: 100%;
-  padding: 0 2%;
+  z-index: 1;
 }
 
 #player-seek-bar-progress {
   pointer-events: none;
   -moz-appearance: none;
   position: absolute;
-  top: calc(50% - 0.15rem);
-  left: 2.5%;
-  width: 95%;
-  height: 0.3rem;
-  border-radius: 0.5rem;
+  top: calc(50% - 0.1rem);
+  left: 0;
+  height: 0.1rem;
   border-width: 0;
-  box-shadow: 0.1rem 0.1rem rgba(255, 255, 255, 0.2);
-  background: url("./images/timeline.png");
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  border-radius: 0;
+  background-color: #a6b4b7;
 }
 
 #player-seek-bar-progress::-moz-progress-bar {
-  border-radius: 0.5rem;
-  background: url("./images/timeline_filled.png") no-repeat 50% 50% / 100% 100%;
+  height: 0.3rem;
+  margin-top: -0.1rem;
+  background-color: #00CAF2;
 }
 
 #player-seek-bar-indicator {
   position: absolute;
-  top: calc(50% - 2.25rem);
-  width: 8.1rem;
-  height: 4.5rem;
-  background: url("./images/scrubber.png") no-repeat 50% 50% / 2.7rem;
+  top: calc(50% - 1.2rem);
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  background-color: #fff;
   pointer-events: none;
 }
 
 #player-seek-bar-indicator.highlight {
-  background-image: url("./images/scrubber_pressed.png");
-  background-size: 8.1rem 4.5rem;
+  border-radius: 0;
+}
+
+#player-seek-bar-indicator.highlight:before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 3.1rem);
+  left: calc(50% - 3.1rem);
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  border: 1.9rem solid #00CAF2;
 }
 
 #player-controls {
   position: relative;
-  width: 100%;
-  height: 5.5rem;
+  height: 4.8rem;
+  font-size: 0;
+  vertical-align: top;
+  border-top: 0.1rem solid rgba(255,255,255, 0.1);
+  background-color: #000;
   overflow: hidden;
-  background: #000;
 }
 
 #player-controls-previous,
 #player-controls-play,
 #player-controls-next {
   position: relative;
-  float: left;
   height: 100%;
   padding: 0;
-  border-width: 0;
   font-weight: 500;
-  overflow: hidden;
   background-position: center center;
   background-repeat: no-repeat;
   background-size: 3rem;
@@ -857,11 +867,11 @@ button::-moz-focus-inner {
 
 #player-controls-previous,
 #player-controls-next {
-  width: 30%;
+  width: 10.7rem;
 }
 
 #player-controls-play {
-  width: 40%;
+  width: 10.6rem;
 }
 
 #player-controls-previous {
@@ -891,7 +901,7 @@ button::-moz-focus-inner {
   background: transparent;
 }
 .player-controls-button:active {
-  background: rgb(0, 138, 170);
+  background: #00caf2;
 }
 .player-controls-button:disabled {
   opacity: 0.3;

@@ -31,10 +31,10 @@ console.error('It just helps to fake a call.');
 
     var duration = handledCall.querySelector('.duration');
     var time = duration.querySelector('span');
-    time.classList.add('isTimer');
+    duration.classList.add('isTimer');
     time.textContent = '9:42';
 
-    CallScreen.singleLine = true;
+    CallScreen.updateSingleLine();
     CallScreen.render('connected'); // Change this for various states
     CallScreen.screen.classList.add('displayed');
     CallScreen.calls.classList.add('muted');

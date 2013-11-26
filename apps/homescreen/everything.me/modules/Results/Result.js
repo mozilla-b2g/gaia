@@ -1,14 +1,6 @@
 'use strict';
 
 (function() {
-  // defined out-of-object to not take up mem for each app created
-  var SCALE_RATIO = window.devicePixelRatio || 1,
-      LINE_SPACING = 1 * SCALE_RATIO,
-      TEXT_HEIGHT = (Evme.Utils.APPS_FONT_SIZE + LINE_SPACING) * 3,
-      TEXT_WIDTH = 72 * SCALE_RATIO,
-      TEXT_MARGIN = 6 * SCALE_RATIO,
-      APP_NAME_HEIGHT = TEXT_MARGIN + TEXT_HEIGHT +
-                        Evme.Utils.APP_NAMES_SHADOW_OFFSET_Y;
 
   Evme.RESULT_TYPE = {
     CONTACT: 'contact',
@@ -152,9 +144,8 @@
         icon.removeEventListener('load', onIconLoad);
 
         // resize to "real" size to handle pixel ratios greater than 1
-        icon.style.cssText +=
-          'width: ' + Evme.Utils.rem(canvas.width / ratio) + ';' +
-          'height: ' + Evme.Utils.rem(canvas.height / ratio) + ';';
+        icon.style.width =
+          self.elName.style.width = Evme.Utils.rem(canvas.width / ratio);
 
         el.dataset.loaded = true;
       });
@@ -236,5 +227,18 @@
       });
     }
   };
+
+  var SCALE_RATIO = window.devicePixelRatio || 1,
+      LINE_SPACING = 1 * SCALE_RATIO,
+      TEXT_HEIGHT = (Evme.Utils.APPS_FONT_SIZE + LINE_SPACING) * 3,
+      TEXT_WIDTH = 72 * SCALE_RATIO,
+      TEXT_MARGIN = 6 * SCALE_RATIO,
+      APP_NAME_HEIGHT = TEXT_MARGIN + TEXT_HEIGHT +
+                        Evme.Utils.APP_NAMES_SHADOW_OFFSET_Y;
+
+  Evme.Result.prototype.TEXT_WIDTH = TEXT_WIDTH;
+  Evme.Result.prototype.TEXT_MARGIN = TEXT_MARGIN;
+  Evme.Result.prototype.APP_NAME_HEIGHT = APP_NAME_HEIGHT;
+  Evme.Result.prototype.DOWNLOAD_LABEL_FONT_SIZE = 11 * SCALE_RATIO;
 
 }());

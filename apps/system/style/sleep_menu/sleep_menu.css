@@ -196,18 +196,6 @@
     max-height: 32rem;
   }
 
-  #sleep-menu-container li:before {
-    background-color: transparent;
-  }
-
-  #sleep-menu-container li:after {
-    background-color: transparent;
-  }
-
-  #sleep-menu-container li:first-child {
-    margin-top: 3rem;
-  }
-
   #sleep-menu-container li {
     -moz-box-sizing: border-box;
     border: 0.1rem #a8a8a8;
@@ -221,26 +209,50 @@
     padding: 1rem 6rem;
   }
 
+  #sleep-menu-container li:before {
+    background-color: transparent;
+  }
+
+  #sleep-menu-container li:after {
+    background-color: transparent;
+  }
+
+  #sleep-menu-container li:first-child {
+    margin-top: 3rem;
+  }
+
+  #sleep-menu-container li:active {
+    background-position: 1rem;
+  }
+
+  #sleep-menu-container li:active + li:before {
+    background-color: transparent;
+  }
+
   #sleep-menu-container ul [data-value="airplane"],
   #sleep-menu-container ul [data-value="airplaneOff"] {
     background-image: url(/style/sleep_menu/images/airplane.png);
     background-size: 4rem;
+    background-repeat: no-repeat;
   }
 
   #sleep-menu-container ul [data-value="normal"],
   #sleep-menu-container ul [data-value="silent"] {
     background-image: url(/style/sleep_menu/images/vibration.png);
     background-size: 4rem;
+    background-repeat: no-repeat;
   }
 
   #sleep-menu-container ul [data-value="restart"] {
     background-image: url(/style/sleep_menu/images/restart.png);
     background-size: 4rem;
+    background-repeat: no-repeat;
   }
 
   #sleep-menu-container ul [data-value="power"] {
     background-image: url(/style/sleep_menu/images/power-off.png);
     background-size: 4rem;
+    background-repeat: no-repeat;
   }
 
   #sleep-menu menu {

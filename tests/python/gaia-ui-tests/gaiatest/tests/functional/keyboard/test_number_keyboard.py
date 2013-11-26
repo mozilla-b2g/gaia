@@ -21,6 +21,8 @@ class TestNumberKeyboard(GaiaTestCase):
         keyboard.switch_to_keyboard()
 
         self.assertEqual(str(keyboard.current_keyboard), 'number')
+
+        keyboard.switch_to_keyboard()
         keyboard._tap('1')
 
         self.marionette.switch_to_frame()

@@ -53,7 +53,8 @@ var MediaRecording = {
           var app = Applications.getByManifestURL(evt.detail.requestURL);
           this.origin.textContent = new ManifestHelper(app.manifest).name;
         } else {
-          this.origin.textContent = evt.detail.requestURL;
+          var pathArray = evt.detail.requestURL.split('/');
+          this.origin.textContent = pathArray[0] + '//' + pathArray[2];
         }
 
         this.updateTime(new Date());

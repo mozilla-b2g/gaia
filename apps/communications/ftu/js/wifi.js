@@ -12,7 +12,8 @@ var WifiManager = {
       this.enableDebugging(lock);
     }
 
-    this.gCurrentNetwork = this.api.connection.network;
+    this.gCurrentNetwork = this.api ? this.api.connection.network : null;
+
     if (this.gCurrentNetwork !== null) {
       this.api.forget(this.gCurrentNetwork);
       this.gCurrentNetwork = null;
@@ -23,9 +24,10 @@ var WifiManager = {
     utils.overlay.show(_('scanningNetworks'), 'spinner');
     var scanTimeout;
 
-    var req = this.api.getNetworks();
+    var req = this.api ? this.api.getNetworks() : null;
     if (!req) {
       callback();
+      return;
     }
 
     var self = this;
@@ -104,14 +106,16 @@ var WifiManager = {
        *        disconnected.
     */
     var self = this;
-    WifiManager.api.onstatuschange = function(event) {
-      WifiUI.updateNetworkStatus(self.ssid, event.status);
-      if (event.status === 'connected') {
-        if (self.networks && self.networks.length) {
-          WifiUI.renderNetworks(self.networks);
+    if (WifiManager.api) {
+      WifiManager.api.onstatuschange = function(event) {
+        WifiUI.updateNetworkStatus(self.ssid, event.status);
+        if (event.status === 'connected') {
+          if (self.networks && self.networks.length) {
+            WifiUI.renderNetworks(self.networks);
+          }
         }
-      }
-    };
+      };
+    }
   }
 };
 

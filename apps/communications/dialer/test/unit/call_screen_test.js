@@ -3,8 +3,8 @@
 mocha.globals(['resizeTo']);
 
 require('/shared/test/unit/mocks/mock_navigator_moz_settings.js');
+require('/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 requireApp('communications/dialer/test/unit/mock_moztelephony.js');
-requireApp('sms/shared/test/unit/mocks/mock_navigator_moz_apps.js');
 
 requireApp('communications/dialer/test/unit/mock_calls_handler.js');
 requireApp('communications/dialer/test/unit/mock_l10n.js');
@@ -136,19 +136,6 @@ suite('call screen', function() {
 
   suite('calls', function() {
     suite('setters', function() {
-      test('singleLine should toggle the class', function() {
-        assert.isFalse(calls.classList.contains('single-line'));
-        assert.isFalse(calls.classList.contains('big-duration'));
-
-        CallScreen.singleLine = true;
-        assert.isTrue(calls.classList.contains('single-line'));
-        assert.isTrue(calls.classList.contains('big-duration'));
-
-        CallScreen.singleLine = false;
-        assert.isFalse(calls.classList.contains('single-line'));
-        assert.isFalse(calls.classList.contains('big-duration'));
-      });
-
       test('cdmaCallWaiting should toggle the appropriate classes', function() {
         assert.isFalse(calls.classList.contains('switch'));
         assert.isFalse(callToolbar.classList.contains('no-add-call'));
@@ -173,11 +160,76 @@ suite('call screen', function() {
       );
     });
 
+    suite('updateSingleLine', function() {
+      test('should toggle single-line/big-duration class',
+      function() {
+        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(calls.classList.contains('big-duration'));
+
+        calls.innerHTML = '<section></section>';
+        CallScreen.updateSingleLine();
+        assert.isTrue(calls.classList.contains('single-line'));
+        assert.isTrue(calls.classList.contains('big-duration'));
+
+        calls.innerHTML = '<section></section>' +
+                          '<section></section>';
+        CallScreen.updateSingleLine();
+        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(calls.classList.contains('big-duration'));
+      });
+
+      test('should toggle single-line/big-duration class without visible calls',
+      function() {
+        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(calls.classList.contains('big-duration'));
+
+        calls.innerHTML = '<section></section>' +
+                          '<section hidden=""></section>';
+        CallScreen.updateSingleLine();
+        assert.isTrue(calls.classList.contains('single-line'));
+        assert.isTrue(calls.classList.contains('big-duration'));
+
+        calls.innerHTML = '<section></section>' +
+                          '<section></section>' +
+                          '<section hidden=""></section>';
+
+        CallScreen.updateSingleLine();
+        assert.isFalse(calls.classList.contains('single-line'));
+        assert.isFalse(calls.classList.contains('big-duration'));
+      });
+    });
+
     suite('insertCall', function() {
-      test('should insert the node in the calls article', function() {
+      test('should insert the node in the calls article and update calls style',
+      function() {
         var fakeNode = document.createElement('section');
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
         CallScreen.insertCall(fakeNode);
         assert.equal(fakeNode.parentNode, CallScreen.calls);
+        assert.isTrue(singleLineStub.calledOnce);
+      });
+    });
+
+    suite('removeCall', function() {
+      var fakeNode = document.createElement('section');
+      setup(function() {
+        CallScreen.insertCall(fakeNode);
+      });
+
+      test('should remove the node in the calls article and update calls style',
+      function() {
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        CallScreen.removeCall(fakeNode);
+        assert.equal(fakeNode.parentNode, null);
+        assert.isTrue(singleLineStub.calledOnce);
+      });
+
+      test('should remove the node in the groupList',
+      function() {
+        var singleLineStub = this.sinon.stub(CallScreen, 'updateSingleLine');
+        CallScreen.moveToGroup(fakeNode);
+        CallScreen.removeCall(fakeNode);
+        assert.equal(fakeNode.parentNode, null);
       });
     });
 
@@ -215,7 +267,7 @@ suite('call screen', function() {
 
       suite('once the transition ended', function() {
         setup(function() {
-          addEventListenerSpy.yield();
+          addEventListenerSpy.yield({target: screen});
         });
 
         test('should remove the event listener', function() {
@@ -420,11 +472,19 @@ suite('call screen', function() {
     });
 
     suite('once the transition ends', function() {
+      var stopPropagationStub;
+
       setup(function() {
-        addEventListenerSpy.yield();
+        stopPropagationStub = this.sinon.stub();
+        addEventListenerSpy.yield({stopPropagation: stopPropagationStub});
       });
+
       test('should remove the listener', function() {
         assert.isTrue(removeEventListenerSpy.calledWith('transitionend'));
+      });
+
+      test('should call stopPropagation', function() {
+        assert.isTrue(stopPropagationStub.calledOnce);
       });
 
       suite('after STATUS_TIME', function() {
@@ -523,6 +583,42 @@ suite('call screen', function() {
         assert.isTrue(setCallerContactImageSpy.calledOnce);
         done();
       });
+    });
+  });
+
+  suite('ticker functions > ', function() {
+    var durationNode;
+    var timeNode;
+    setup(function() {
+      this.sinon.useFakeTimers();
+
+      durationNode = document.createElement('div');
+      durationNode.className = 'duration';
+
+      timeNode = document.createElement('span');
+      durationNode.appendChild(timeNode);
+
+      CallScreen.createTicker(durationNode);
+    });
+
+    test('createTicker should set a timer on durationNode', function() {
+      assert.ok(durationNode.dataset.tickerId);
+      assert.isTrue(durationNode.classList.contains('isTimer'));
+    });
+
+    test('createTicker should update timer every second', function() {
+      this.sinon.clock.tick(1000);
+      assert.deepEqual(MockLazyL10n.keys['callDurationMinutes'], {
+        h: '00',
+        m: '00',
+        s: '01'
+      });
+    });
+
+    test('stopTicker should stop counter on durationNode', function() {
+      CallScreen.stopTicker(durationNode);
+      assert.isUndefined(durationNode.dataset.tickerId);
+      assert.isFalse(durationNode.classList.contains('isTimer'));
     });
   });
 });

@@ -37,15 +37,23 @@ function gUMItem() {
     // label button with index
     content.querySelector('[data-type="startVideoButton"]').textContent += i;
     content.querySelector('[data-type="startAudioButton"]').textContent += i;
-    content.querySelector('[data-type="startAudioVideoButton"]').textContent += i;
+    content.querySelector('[data-type="startAudioVideoButton"]').
+                                                            textContent += i;
 
-    content.querySelector('[data-type="startVideoButton"]').addEventListener('click', startVideo);
-    content.querySelector('[data-type="startAudioButton"]').addEventListener('click', startAudio);
-    content.querySelector('[data-type="startAudioVideoButton"]').addEventListener('click', startAudioVideo);
-    content.querySelector('[data-type="startDoubleRequest"]').addEventListener('click', startDoubleRequest);
-    content.querySelector('[data-type="stopButton"]').addEventListener('click', stopMedia);
-    content.querySelector('[data-type="pauseButton"]').addEventListener('click', pauseMedia);
-    content.querySelector('[data-type="snapshotButton"]').addEventListener('click', startSnapshot);
+    content.querySelector('[data-type="startVideoButton"]').
+                          addEventListener('click', startVideo);
+    content.querySelector('[data-type="startAudioButton"]').
+                          addEventListener('click', startAudio);
+    content.querySelector('[data-type="startAudioVideoButton"]').
+                          addEventListener('click', startAudioVideo);
+    content.querySelector('[data-type="startDoubleRequest"]').
+                          addEventListener('click', startDoubleRequest);
+    content.querySelector('[data-type="stopButton"]').
+                          addEventListener('click', stopMedia);
+    content.querySelector('[data-type="pauseButton"]').
+                          addEventListener('click', pauseMedia);
+    content.querySelector('[data-type="snapshotButton"]').
+                          addEventListener('click', startSnapshot);
   };
 
   function startVideo() {

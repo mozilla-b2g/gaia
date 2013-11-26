@@ -231,15 +231,24 @@ Utils.repeatString = function rep(str, times) {
 };
 
 Utils.format = {
-  time: function(hour, minute) {
+  time: function(hour, minute, opts) {
     var period = '';
-    if (Utils.is12hFormat()) {
+    opts = opts || {};
+    opts.meridian = typeof opts.meridian === 'undefined' ? true : opts.meridian;
+    var padHours = typeof opts.padHours === 'undefined' ? false : opts.padHours;
+    opts.padHours = padHours;
+
+    if (opts.meridian && Utils.is12hFormat()) {
       period = hour < 12 ? 'AM' : 'PM';
       hour = hour % 12;
-      hour = (hour == 0) ? 12 : hour;
+      hour = (hour === 0) ? 12 : hour;
     }
 
-    if (hour == 0) {
+    if (opts.padHours && hour < 10) {
+      hour = '0' + hour;
+    }
+
+    if (hour === 0) {
       hour = '00';
     }
 

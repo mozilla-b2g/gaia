@@ -112,7 +112,7 @@ var ActivityPicker = {
       name: 'configure',
       data: {
         target: 'device',
-        section: 'carrier-mmsSettings'
+        section: 'messaging'
       }
     };
 

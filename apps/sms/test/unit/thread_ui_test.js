@@ -1930,6 +1930,7 @@ suite('thread_ui.js >', function() {
     setup(function() {
       this.sinon.spy(Template, 'escape');
       this.sinon.stub(MockSMIL, 'parse');
+      this.sinon.spy(ThreadUI.tmpl.message, 'interpolate');
     });
 
     function buildSMS(payload) {
@@ -1954,6 +1955,22 @@ suite('thread_ui.js >', function() {
       ThreadUI.buildMessageDOM(buildMMS(payload));
       assert.ok(Template.escape.calledWith(payload));
     });
+
+    test('calls template with subject for MMS', function() {
+      ThreadUI.buildMessageDOM({
+        id: '1',
+        subject: 'subject',
+        type: 'mms',
+        deliveryInfo: [],
+        attachments: []
+      });
+      assert.ok(ThreadUI.tmpl.message.interpolate.calledWith({
+        id: '1',
+        bodyHTML: '',
+        subject: 'subject'
+      }));
+    });
+
   });
 
   suite('renderMessages()', function() {
@@ -3429,6 +3446,20 @@ suite('thread_ui.js >', function() {
           assert.equal(typeof calls[0].complete, 'function');
         });
       });
+    });
+
+    suite('updateHeaderData', function() {
+
+      test('callback does not exist', function() {
+        ThreadUI.updateHeaderData({});
+      });
+
+      test('callback exists', function(done) {
+        ThreadUI.updateHeaderData(function() {
+          done();
+        });
+      });
+
     });
 
     // See: utils_test.js

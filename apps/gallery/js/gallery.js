@@ -72,6 +72,7 @@ var languageDirection;
 // the photo and video databases, and has elements added and removed when
 // we receive create and delete events from the media databases.
 var files = [];
+var thumbnailList;
 
 var currentFileIndex = 0;       // What file is currently displayed
 var editedPhotoIndex;
@@ -355,6 +356,12 @@ function initThumbnails() {
     return;
   }
 
+  // configure the template id for template group
+  ThumbnailDateGroup.Template = new Template('thumbnail-group-header');
+
+  // For gallery group view initialise ThumbnailList object
+  thumbnailList = new ThumbnailList(ThumbnailDateGroup, thumbnails);
+
   // Keep track of when thumbnails are onscreen and offscreen
 /*
   // Tune for low memory usage and small batch jobes to fetch new
@@ -378,11 +385,11 @@ function initThumbnails() {
   var minimumScrollDelta = 4000;
 
   visibilityMonitor =
-    monitorChildVisibility(thumbnails,
-                           visibilityMargin,    // extra space top and bottom
-                           minimumScrollDelta,  // min scroll before we do work
-                           thumbnailOnscreen,   // set background image
-                           thumbnailOffscreen); // remove background image
+    monitorTagVisibility(thumbnails, 'li',
+                         visibilityMargin,    // extra space top and bottom
+                         minimumScrollDelta,  // min scroll before we do work
+                         thumbnailOnscreen,   // set background image
+                         thumbnailOffscreen); // remove background image
 
 
   // Handle clicks on the thumbnails we're about to create
@@ -420,8 +427,9 @@ function initThumbnails() {
 
   function thumb(fileinfo) {
     files.push(fileinfo);              // remember the file
-    var thumbnail = createThumbnail(files.length - 1); // create its thumbnail
-    thumbnails.appendChild(thumbnail); // display the thumbnail
+    // Create the thumbnail view for this file
+    // and insert it at the right spot
+    thumbnailList.addItem(fileinfo);
   }
 
   function done() {
@@ -435,6 +443,36 @@ function initThumbnails() {
   }
 }
 
+//
+// getFileIndex return position of a file thumbnail in gallery view
+// It first find thumbnail's position within its own group
+// then add the sizes of previous groups
+function getFileIndex(filename) {
+  // Get the group of the file
+  var fileGroup = thumbnailList.groupMap[filename];
+  if (!fileGroup) {
+    console.error('file group does not exist in thumbnail List', filename);
+    return -1;
+  }
+  var index = 0;
+  // Get the thumbnailItem of the file
+  var thumbnail = thumbnailList.thumbnailMap[filename];
+   // Get the index of the file in its own group
+  index = fileGroup.thumbnails.indexOf(thumbnail);
+  if (index < 0) {
+    console.error('filename does not exist in thumbnail list', filename);
+    return -1;
+  }
+  // Add to index the sizes of previous groups
+  for (var n = 0; n < thumbnailList.itemGroups.length; n++) {
+    if (thumbnailList.itemGroups[n].groupID === fileGroup.groupID) {
+      break;
+    }
+    index += thumbnailList.itemGroups[n].getCount();
+  }
+  return index;
+}
+
 function fileDeleted(filename) {
   // Find the deleted file in our files array
   for (var n = 0; n < files.length; n++) {
@@ -446,19 +484,10 @@ function fileDeleted(filename) {
     return;
 
   // Remove the image from the array
-  var deletedImageData = files.splice(n, 1)[0];
+  files.splice(n, 1)[0];
 
   // Remove the corresponding thumbnail
-  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  URL.revokeObjectURL(thumbnailElts[n].dataset.backgroundImage.slice(5, -2));
-  thumbnails.removeChild(thumbnailElts[n]);
-
-  // Change the index associated with all the thumbnails after the deleted one
-  // This keeps the data-index attribute of each thumbnail element in sync
-  // with the files[] array.
-  for (var i = n + 1; i < thumbnailElts.length; i++) {
-    thumbnailElts[i].dataset.index = i - 1;
-  }
+  thumbnailList.removeItem(filename);
 
   // Adjust currentFileIndex, too, if we have to.
   if (n < currentFileIndex)
@@ -525,32 +554,14 @@ function fileCreated(fileinfo) {
   if (currentOverlay === 'emptygallery' || currentOverlay === 'scanning')
     showOverlay(null);
 
-  // If this new image is newer than the first one, it goes first
-  // This is the most common case for photos, screenshots, and edits
-  if (files.length === 0 || fileinfo.date > files[0].date) {
-    insertPosition = 0;
-  }
-  else {
-    // Otherwise we have to search for the right insertion spot
-    insertPosition = MediaUtils.binarySearch(files, fileinfo,
-                                             compareFilesByDate);
-  }
+  // Create a thumbnailItem for this image and insert it at the right spot
+  var thumbnailItem = thumbnailList.addItem(fileinfo);
+  insertPosition = getFileIndex(fileinfo.name);
+  if (insertPosition < 0)
+    return;
 
   // Insert the image info into the array
   files.splice(insertPosition, 0, fileinfo);
-
-  // Create a thumbnail for this image and insert it at the right spot
-  var thumbnail = createThumbnail(insertPosition);
-  var thumbnailElts = thumbnails.querySelectorAll('.thumbnail');
-  if (thumbnailElts.length === 0)
-    thumbnails.appendChild(thumbnail);
-  else
-    thumbnails.insertBefore(thumbnail, thumbnailElts[insertPosition]);
-
-  // increment the index of each of the thumbnails after the new one
-  for (var i = insertPosition; i < thumbnailElts.length; i++) {
-    thumbnailElts[i].dataset.index = i + 1;
-  }
 
   if (currentFileIndex >= insertPosition)
     currentFileIndex++;
@@ -655,26 +666,6 @@ function setView(view) {
 
   // Remember the current view
   currentView = view;
-}
-
-//
-// Create a thumbnail element
-//
-function createThumbnail(imagenum) {
-  var li = document.createElement('li');
-  li.dataset.index = imagenum;
-  li.classList.add('thumbnail');
-
-  var fileinfo = files[imagenum];
-  // We revoke this url in imageDeleted
-  var url = URL.createObjectURL(fileinfo.metadata.thumbnail);
-
-  // We set the url on a data attribute and let the onscreen
-  // and offscreen callbacks below set and unset the actual
-  // background image style. This means that we don't keep
-  // images decoded if we don't need them.
-  li.dataset.backgroundImage = 'url("' + url + '")';
-  return li;
 }
 
 // monitorChildVisibility() calls this when a thumbnail comes onscreen
@@ -849,14 +840,20 @@ function thumbnailClickHandler(evt) {
 
   if (currentView === thumbnailListView || currentView === fullscreenView) {
     loader.load('js/frame_scripts.js', function() {
-      showFile(parseInt(target.dataset.index));
+      var index = getFileIndex(target.dataset.filename);
+      if (index >= 0) {
+        showFile(index);
+      }
     });
   }
   else if (currentView === thumbnailSelectView) {
     updateSelection(target);
   }
   else if (currentView === pickView) {
-    cropPickedImage(files[parseInt(target.dataset.index)]);
+    var index = getFileIndex(target.dataset.filename);
+    if (index >= 0) {
+      cropPickedImage(files[index]);
+    }
   }
 }
 
@@ -879,7 +876,10 @@ function updateSelection(thumbnail) {
   // Now update the list of selected filenames and filename->blob map
   // based on whether we selected or deselected the thumbnail
   var selected = thumbnail.classList.contains('selected');
-  var index = parseInt(thumbnail.dataset.index);
+  var index = getFileIndex(thumbnail.dataset.filename);
+  if (index < 0)
+    return;
+
   var filename = files[index].name;
 
   if (selected) {
@@ -943,7 +943,7 @@ function deleteSelectedItems() {
     // can write a more efficient deleteFiles() function.
     for (var i = 0; i < selected.length; i++) {
       selected[i].classList.toggle('selected');
-      deleteFile(parseInt(selected[i].dataset.index, 10));
+      deleteFile(getFileIndex(selected[i].dataset.filename));
     }
     clearSelection();
   });

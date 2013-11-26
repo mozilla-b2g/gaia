@@ -1,3 +1,6 @@
+/* globals CallHandler, CallLogDBManager, CallsHandler, CallScreen, LazyLoader,
+           PhoneNumberActionMenu, SettingsListener, TonePlayer, Utils */
+
 'use strict';
 
 var kFontStep = 4;
@@ -11,7 +14,7 @@ var gTonesFrequencies = {
 };
 
 var keypadSoundIsEnabled = false;
-var dtmfShortTone = false;
+var shortTone = false;
 
 function observePreferences() {
   SettingsListener.observe('phone.ring.keypad', false, function(value) {
@@ -19,7 +22,7 @@ function observePreferences() {
   });
 
   SettingsListener.observe('phone.dtmf.type', false, function(value) {
-    dtmfShortTone = (value == 'short');
+    shortTone = (value === 'short');
   });
 }
 
@@ -293,7 +296,7 @@ var KeypadManager = {
       telephony.stopTone(); // Stop previous tone before dispatching a new one
       telephony.startTone(key);
 
-      if (dtmfShortTone) {
+      if (shortTone) {
         this._dtmfToneTimer = window.setTimeout(function ch_playDTMF() {
           telephony.stopTone();
         }, this._DTMF_SHORT_TONE_LENGTH);
@@ -324,7 +327,7 @@ var KeypadManager = {
     if (key != 'delete') {
       if (keypadSoundIsEnabled) {
         // We do not support long press if not on a call
-        TonePlayer.start(gTonesFrequencies[key], !this._onCall);
+        TonePlayer.start(gTonesFrequencies[key], !this._onCall || shortTone);
       }
 
       this._playDtmfTone(key);
