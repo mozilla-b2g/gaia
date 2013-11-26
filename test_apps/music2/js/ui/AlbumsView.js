@@ -47,7 +47,8 @@ AlbumsView.prototype = {
   },
   _addAlbum: function(album) {
     this.list.addItem({
-      title: album.metadata.album,
+      option: 'album',
+      metadata: album.metadata,
       getImgUrl: function(done) {
         window.musicLibrary.musicDB.getAlbumArtAsURL(album, function(url) {
           done(url);
