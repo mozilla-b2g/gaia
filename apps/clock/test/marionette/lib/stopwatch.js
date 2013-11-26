@@ -41,5 +41,5 @@ Stopwatch.prototype.readLaps = function() {
 
 Stopwatch.prototype.isButtonUsable = function(name) {
   var button = this.el.stopwatch[name + 'Btn'];
-  return button.displayed() && !button.getAttribute('disabled');
+  return button.displayed() && button.getAttribute('disabled') === 'false';
 };
