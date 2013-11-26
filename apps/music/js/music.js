@@ -169,11 +169,6 @@ function init() {
       PlayerView.stop();
 
     ModeManager.start(MODE_TILES);
-    // Generally when the user select one of the tabs, it should trigger the
-    // css pseudo-class to highlight the selected tab, but here we manually
-    // select the mix page so we have to change the hash to it to trigger the
-    // css pseudo-class or the tab of mix page will not be highlighted.
-    window.location.hash = '#mix';
     TilesView.hideSearch();
   };
 
