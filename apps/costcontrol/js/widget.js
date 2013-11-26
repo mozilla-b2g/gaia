@@ -442,6 +442,9 @@ var Widget = (function() {
 
   return {
     init: function() {
+      SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
+        Common.loadDataSIMIccId(updateUI.bind(null, true));
+      });
       Common.waitForDOMAndMessageHandler(window, onReady);
       document.getElementById('message-handler').src = 'message_handler.html';
     }

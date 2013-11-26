@@ -374,6 +374,9 @@ var CostControlApp = (function() {
 
   return {
     init: function() {
+      SettingsListener.observe('ril.data.defaultServiceId', 0, function() {
+        Common.loadDataSIMIccId(updateUI);
+      });
       Common.waitForDOMAndMessageHandler(window, onReady);
     },
     afterFTU: function(cb) {

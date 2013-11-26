@@ -9,6 +9,7 @@ requireApp('costcontrol/test/unit/mock_debug.js');
 requireApp('costcontrol/test/unit/mock_common.js');
 requireApp('costcontrol/test/unit/mock_moz_l10n.js');
 requireApp('costcontrol/test/unit/mock_moz_mobile_connection.js');
+requireApp('costcontrol/test/unit/mock_settings_listener.js');
 requireApp('costcontrol/shared/test/unit/mocks/' +
            'mock_navigator_moz_set_message_handler.js');
 requireApp('costcontrol/test/unit/mock_icc_helper.js');
@@ -23,6 +24,7 @@ require('/shared/test/unit/load_body_html_helper.js');
 var realCommon,
     realMozMobileConnection,
     realMozL10n,
+    realSettingsListener,
     realCostControl,
     realConfigManager,
     realIccHelper,
@@ -38,6 +40,10 @@ if (!this.navigator.mozMobileConnection) {
 
 if (!this.navigator.mozL10n) {
   this.navigator.mozL10n = null;
+}
+
+if (!this.SettingsListener) {
+  this.SettingsListener = null;
 }
 
 if (!this.CostControl) {
@@ -66,6 +72,9 @@ suite('Application Startup Modes Test Suite >', function() {
     realMozL10n = window.navigator.mozL10n;
     window.navigator.mozL10n = window.MockMozL10n;
 
+    realSettingsListener = window.SettingsListener;
+    window.SettingsListener = window.MockSettingsListener;
+
     realCostControl = window.CostControl;
 
     realConfigManager = window.ConfigManager;
@@ -90,6 +99,8 @@ suite('Application Startup Modes Test Suite >', function() {
     window.CostControl = realCostControl;
     window.ConfigManager = realConfigManager;
     window.IccHelper = realIccHelper;
+    window.SettingsListener.mTeardown();
+    window.SettingsListener = realSettingsListener;
     window.navigator.mozSetMessageHandler.mTeardown();
     window.navigator.mozSetMessageHandler = realMozSetMessageHandler;
   });
