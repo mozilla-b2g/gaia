@@ -3,11 +3,12 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from marionette.by import By
-from marionette.keys import Keys
 from marionette.marionette import Actions
 
+from gaiatest import GaiaDevice
 from gaiatest.apps.base import Base
 from gaiatest.apps.base import PageRegion
+from gaiatest.apps.homescreen.app import Homescreen
 
 
 class SearchPanel(Base):
@@ -16,12 +17,18 @@ class SearchPanel(Base):
     _search_box_locator = (By.CSS_SELECTOR, '#evme-activation-icon input')
     _search_results_from_everything_me_locator = (By.CSS_SELECTOR, '#evmeAppsList li.cloud[data-name]')
     _search_results_installed_app_locator = (By.CSS_SELECTOR, '#evmeAppsList li.installed[data-name]')
+    _search_suggestion_locator = (By.CSS_SELECTOR, '#helper li[data-suggestion]')
     _category_item_locator = (By.CSS_SELECTOR, '#shortcuts-items li[data-query]')
     _loading_apps_locator = (By.CSS_SELECTOR, 'div.loading-apps')
     _app_icon_locator = (By.CSS_SELECTOR, 'li.cloud[data-name]')
 
     def type_into_search_box(self, search_term):
         self.keyboard.send(search_term)
+        # Only if the device is online do we need to wait
+        if GaiaDevice(self.marionette).is_online:
+            Homescreen(self.marionette).switch_to_homescreen_frame()
+            self.wait_for_element_displayed(*self._search_suggestion_locator)
+            self.wait_for_condition(lambda m: search_term[0].lower() in self.search_suggestion.lower())
         self.keyboard.tap_enter()
 
     def wait_for_keyboard_visible(self):
@@ -50,6 +57,10 @@ class SearchPanel(Base):
     def everything_me_apps_count(self):
         return len(self.results)
 
+    @property
+    def search_suggestion(self):
+        return self.marionette.find_element(*self._search_suggestion_locator).text
+
     def tap_category(self, category_name):
         for category in self.categories:
             if category.name.lower() == category_name.lower():
@@ -74,12 +85,15 @@ class SearchPanel(Base):
 
     class EverythingMeCategory(PageRegion):
 
+        _category_title_locator = (By.ID, 'search-title')
+
         @property
         def name(self):
             return self.root_element.get_attribute('data-query')
 
         def tap(self):
             self.root_element.tap()
+            self.wait_for_element_displayed(*self._category_title_locator)
 
     class Result(PageRegion):
 
