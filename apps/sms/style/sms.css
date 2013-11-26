@@ -781,6 +781,7 @@ form.bottom[role="search"].messages-compose-form {
   z-index: 10;
 
   display: none;
+  height: 0; /* see bug 941353 */
 
   text-align: left;
   color: black;
