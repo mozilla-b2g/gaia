@@ -160,11 +160,11 @@ var SimFdnLock = {
     this.currentContact = contact;
     this.fdnActionMenuName.textContent = contact.name;
     this.fdnActionMenuNumber.textContent = contact.number;
-    delete this.fdnActionMenu.hidden;
+    this.fdnActionMenu.classList.add('visible');
   },
 
   hideActionMenu: function() {
-    this.fdnActionMenu.hidden = true;
+    this.fdnActionMenu.classList.remove('visible');
   },
 
 
