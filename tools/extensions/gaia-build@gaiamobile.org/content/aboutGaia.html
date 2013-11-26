@@ -44,8 +44,20 @@
   <div class="lightbox-background">
     <a href="#" class="closemsg"></a>
     <div class="lightbox-container">
-			<div id="options-title"></div>
-			<div id="options-content"></div>
+			<div class="lightbox-title" id="options-title"></div>
+      <div id="operators-disabled-desc" class="description hidden">
+        Built-in apps can't be disabled for certain operators
+      </div>
+			<div class="lightbox-content hidden" id="options-content">
+        <input id="certain-mcc-mnc" type="checkbox">
+        <label for="certain-mcc-mnc">Available only for certain operators</label>
+        <hr>
+        <div id="operators-options">
+          <div id="operators"></div>
+          <div class="description">Use commas to split different mcc/mnc pairs, e.g., "310-410, 310-260" (without double quotes)</div>
+          <a id="add-operator">Add operator</a>
+        </div>
+      </div>
 			<div class="lightbox-buttons">
 				<a href="#">Close</a>
 				<a href="#" id="options-remove">Remove</a>
