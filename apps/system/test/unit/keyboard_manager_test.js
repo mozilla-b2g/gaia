@@ -144,7 +144,8 @@ suite('KeyboardManager', function() {
       }, 350);
     });
 
-    test('UpdateHeight waits for transform transition', function(next) {
+    test('UpdateHeight waits for transform transition' +
+         ' - intermittent bug 935904', function(next) {
       var called = false;
       window.addEventListener('keyboardchange', function() {
         called = true;
