@@ -18,7 +18,7 @@ var SheetsTransition = {
 
     if (this._current) {
       this._current.classList.add('inside-edges');
-      this._current.style.transition = 'transform';
+      this._current.style.transition = 'transform, opacity';
     }
 
     if (this._new) {
@@ -29,7 +29,7 @@ var SheetsTransition = {
       } else {
         this._new.dataset.zIndexLevel = 'bottom-app';
       }
-      this._new.style.transition = 'transform';
+      this._new.style.transition = 'transform, opacity';
     }
   },
 
@@ -48,6 +48,12 @@ var SheetsTransition = {
 
     this._setTranslate(this._current, progress * currentFactor * 100);
     this._setTranslate(this._new, (progress - 1) * newFactor * 100);
+
+    if (direction == 'ltr') {
+      this._setOpacity(this._new, 0.25 + progress * 0.75);
+    } else if (!overflowing) {
+      this._setOpacity(this._current, 1 - progress * 0.75);
+    }
   },
 
   end: function st_end(callback) {
@@ -81,6 +87,7 @@ var SheetsTransition = {
       }
 
       sheet.style.transform = '';
+      sheet.style.opacity = '';
 
       sheet.addEventListener('transitionend', function trWait() {
         sheet.removeEventListener('transitionend', trWait);
@@ -143,11 +150,20 @@ var SheetsTransition = {
     sheet.style.transform = 'translateX(' + percentage + '%)';
   },
 
+  _setOpacity: function st_setOpacity(sheet, opacity) {
+    if (!sheet) {
+      return;
+    }
+
+    sheet.style.opacity = opacity;
+  },
+
   _setDuration: function st_setDuration(sheet, ms) {
     if (!sheet) {
       return;
     }
 
-    sheet.style.transition = 'transform ' + ms + 'ms linear';
+    sheet.style.transition = 'transform ' + ms + 'ms linear,' +
+                             'opacity ' + ms + 'ms linear';
   }
 };

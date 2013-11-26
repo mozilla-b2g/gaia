@@ -121,6 +121,7 @@
 
 .appWindow.invoked {
   animation: invokedApp 0.6s forwards cubic-bezier(0.7, 0.0, 1.0, 1.0);
+  box-shadow: -1rem 0 rgba(0, 0, 0, 0.7);
 }
 
 .appWindow.invoking {
@@ -129,8 +130,8 @@
 
 /* Invoking app moves out */
 @keyframes invokingApp {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-20%); }
+  0%   { transform: translateX(0); opacity: 1 }
+  100% { transform: translateX(-20%); opacity: 0.25}
 }
 
 /* Invoked app moves in */
@@ -352,14 +353,18 @@
 #windows > .appWindow.inside-edges {
   opacity: 1;
   transform: translateX(0);
+
+  box-shadow: -1rem 0 rgba(0, 0, 0, 0.7);
 }
 
 #windows > .appWindow.outside-edges-left {
-  opacity: 1;
+  opacity: 0.25;
   transform: translateX(-20%);
 }
 
 #windows > .appWindow.outside-edges-right {
   opacity: 1;
-  transform: translateX(100%);
+  transform: translateX(calc(100% + 1rem));
+
+  box-shadow: -1rem 0 rgba(0, 0, 0, 0.7);
 }
