@@ -904,5 +904,8 @@ if (navigator.mozL10n.readyState == 'complete' ||
     navigator.mozL10n.readyState == 'interactive') {
   StatusBar.init();
 } else {
-  window.addEventListener('localized', StatusBar.init.bind(StatusBar));
+  window.addEventListener('localized', function statusbar_init() {
+    window.removeEventListener('localized', statusbar_init);
+    StatusBar.init();
+  });
 }
