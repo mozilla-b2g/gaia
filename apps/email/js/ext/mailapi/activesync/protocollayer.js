@@ -140,7 +140,7 @@
   // node.js
   if (typeof exports === 'object') {
     module.exports = factory();
-    this.Blob = require('w3c-blob');
+    this.Blob = require('./blob').Blob;
     var stringencoding = require('stringencoding');
     this.TextEncoder = stringencoding.TextEncoder;
     this.TextDecoder = stringencoding.TextDecoder;
@@ -181,7 +181,9 @@
     LITERAL_AC:  0xC4,
   };
 
-  var EndOfData = {};
+  var EndOfData = {
+    message: 'THIS IS AN INTERNAL CONTROL FLOW HACK THAT YOU SHOULD NOT SEE'
+  };
 
   /**
    * Create a constructor for a custom error type that works like a built-in
@@ -827,12 +829,58 @@
     },
   };
 
-  function Writer(version, pid, charset, strings) {
+  /**
+   * @param version {String}
+   *   WBXML version. v1.1 is the most recent W3C spec.  The Open Mobile
+   *   Alliance spec version is v1.3.
+   * @param pid {Number}
+   *   The public identifier.  Popular choices include 0 (it's in the string
+   *   table) and 1 (Unknown/missing).  ActiveSync uses 1.  Check your standard
+   *   for other values.
+   * @param charset {String}
+   *   This must be 'UTF-8', but conceptually it's the string value of an IANA
+   *   allocated MIB enum.  This must be UTF-8 because we use TextEncoder and
+   *   it only likes to encode into UTF-8 and UTF-16 to make the world a better
+   *   place.  We could support UTF-16 if we added a MIB entry, probably.
+   * @param [strings=null] {String[]}
+   *   A list of strings to encode into the string table.  Use `str_t` to
+   *   reference the string table by offset.  You'll want to provide an
+   *   enhancement if you really want to use this functionality because it
+   *   would be horribly painful to use as it exists.
+   * @param [dataType="arraybuffer"] {String}
+   *   The type of output desired from the Writer.  Currently supported values
+   *   are "arraybuffer" (the default) and "blob".  You must use "blob" if you
+   *   want to write Blobs into the output (currently only supported for use
+   *   by opaque()).  If using "arraybuffer", retrieve your output from the
+   *   `buffer` or `bytes` getters.  If using "blob", retrieve it using `blob`.
+   */
+  function Writer(version, pid, charset, strings, dataType) {
+    // When creating a Blob for output, we use our normal _rawbuf/_buffer/_pos
+    // logic until a Blob gets written via opaque().  At that point we wrap the
+    // ArrayBuffer into a Blob, push it into _blobs, and reset the ArrayBuffer
+    // state.
+    if (dataType === 'blob')
+      this._blobs = [];
+    else
+      this._blobs = null;
+    this.dataType = dataType || 'arraybuffer';
     this._rawbuf = new ArrayBuffer(1024);
     this._buffer = new Uint8Array(this._rawbuf);
     this._pos = 0;
     this._codepage = 0;
     this._tagStack = [];
+
+    /**
+     * @private
+     * @property _rootTagValue
+     * @type Number|null
+     *
+     * The tag value of the first tag written to the buffer, or null if no
+     * tag has yet been written.  This is used by jsas's postCommand helper
+     * method to extract the command from an already-written string as a caller
+     * convenience.  It is publicly exposed via the `firstLocalTagName` getter.
+     */
+    this._rootTagValue = null;
 
     var infos = version.split('.').map(function(x) {
       return parseInt(x);
@@ -980,6 +1028,8 @@
       else {
         this._setCodepage(tag >> 8);
         this._write((tag & 0xff) + flags);
+        if (!this._rootTagValue)
+          this._rootTagValue = tag;
       }
 
       if (attrs.length) {
@@ -1098,21 +1148,77 @@
       return this.text(Writer.ext(subtype, index, data));
     },
 
+    /**
+     * Write opaque data. (OPAQUE token followed by data).
+     *
+     * @param data {String|TypedArray|Blob}
+     *   You must have specified dataType=blob in the constructor to write a
+     *   Blob.
+     */
     opaque: function(data) {
       this._write(Tokens.OPAQUE);
-      this._write_mb_uint32(data.length);
-      if (typeof data === 'string') {
+      if (data instanceof Blob) {
+        if (!this._blobs)
+          throw new Error('Writer not opened in blob mode');
+        this._write_mb_uint32(data.size);
+        // Because we're forgetting about our typed array and its buffer, we
+        // don't need to snapshot it with a Bool or new ArrayBuffer, etc.
+        this._blobs.push(this.bytes);
+        this._blobs.push(data);
+        // reset out buffer state
+        this._rawbuf = new ArrayBuffer(1024);
+        this._buffer = new Uint8Array(this._rawbuf);
+        this._pos = 0;
+      }
+      else if (typeof data === 'string') {
+        this._write_mb_uint32(data.length);
         this._write_str(data);
       }
-      else {
+      else { // Array or Uint8Array
+        this._write_mb_uint32(data.length);
         for (var i = 0; i < data.length; i++)
           this._write(data[i]);
       }
       return this;
     },
 
+    /**
+     * Returns a fresh ArrayBuffer containing the written data.
+     *
+     * @property buffer
+     * @type ArrayBuffer
+     */
     get buffer() { return this._rawbuf.slice(0, this._pos); },
+    /**
+     * Returns a Uint8Array view on the backing raw buffer.  The backing
+     * ArrayBuffer will very likely be larger than the returned array, so be
+     * careful about making assumptions about the backing buffer.
+     *
+     * @property bytes
+     * @type Uint8Array
+     */
     get bytes() { return new Uint8Array(this._rawbuf, 0, this._pos); },
+    get blob() {
+      if (!this._blobs)
+        throw new Error("No blobs!");
+      var useBlobs = this._blobs;
+      // We don't have a concept of finalizing the stream right now, although
+      // it's pretty unlikely anyone would write to us after this given the
+      // semantics of XML documents...
+      if (this._pos)
+        useBlobs = useBlobs.concat([this.bytes]);
+      // Our existing consumers don't care about a mime type right now, but
+      // maybe there should be a way to specify one?
+      var superBlob = new Blob(useBlobs);
+      return superBlob;
+    },
+
+    /**
+     * Return the tag value of the root tag of the WBXML document.
+     */
+    get rootTag() {
+      return this._rootTagValue;
+    },
   };
 
   function EventParser() {
@@ -2926,8 +3032,9 @@
      * Send a WBXML command to the ActiveSync server and listen for the
      * response.
      *
-     * @param aCommand the WBXML representing the command or a string/tag
-     *        representing the command type for empty commands
+     * @param aCommand {WBXML.Writer|String|Number}
+     *   The WBXML representing the command or a string/tag representing the
+     *   command type for empty commands
      * @param aCallback a callback to call when the server has responded; takes
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the
@@ -2949,11 +3056,13 @@
         this.postData(aCommand, contentType, null, aCallback, aExtraParams,
                       aExtraHeaders);
       }
+      // WBXML.Writer
       else {
-        var r = new WBXML.Reader(aCommand, ASCP);
-        var commandName = r.document[0].localTagName;
-        this.postData(commandName, contentType, aCommand.buffer, aCallback,
-                      aExtraParams, aExtraHeaders, aProgressCallback);
+        var commandName = ASCP.__tagnames__[aCommand.rootTag];
+        this.postData(
+          commandName, contentType,
+          aCommand.dataType === 'blob' ? aCommand.blob : aCommand.buffer,
+          aCallback, aExtraParams, aExtraHeaders, aProgressCallback);
       }
     },
 
@@ -2962,7 +3071,7 @@
      *
      * @param aCommand a string (or WBXML tag) representing the command type
      * @param aContentType the content type of the post data
-     * @param aData the data to be posted
+     * @param aData {ArrayBuffer|Blob} the data to be posted
      * @param aCallback a callback to call when the server has responded; takes
      *        two arguments: an error status (if any) and the response as a
      *        WBXML reader. If the server returned an empty response, the

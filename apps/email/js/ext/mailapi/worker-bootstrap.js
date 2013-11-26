@@ -4666,6 +4666,15 @@ exports.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS = 14 * $date.DAY_MILLIS;
 exports.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT = 128;
 
 ////////////////////////////////////////////////////////////////////////////////
+// POP3 Sync Constants
+
+/**
+ * As we're syncing with POP3, pause every N messages to save state to disk.
+ * This value was chosen somewhat arbitrarily.
+ */
+exports.POP3_SAVE_STATE_EVERY_N_MESSAGES = 50;
+
+////////////////////////////////////////////////////////////////////////////////
 // General Sync Constants
 
 /**
@@ -4920,6 +4929,10 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   if (syncValues.hasOwnProperty('OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT'))
     exports.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT =
       syncValues.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT;
+
+  if (syncValues.hasOwnProperty('POP3_SAVE_STATE_EVERY_N_MESSAGES'))
+    exports.POP3_SAVE_STATE_EVERY_N_MESSAGES =
+      syncValues.POP3_SAVE_STATE_EVERY_N_MESSAGES;
 };
 
 }); // end define
