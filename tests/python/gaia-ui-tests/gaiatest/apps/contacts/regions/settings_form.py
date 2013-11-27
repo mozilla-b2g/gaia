@@ -15,12 +15,14 @@ class SettingsForm(Base):
     _import_from_sim_button_locator = (By.CSS_SELECTOR, 'button.icon-sim[data-l10n-id="importSim2"]')
     _import_from_sdcard_locator = (By.CSS_SELECTOR, 'button.icon-sd[data-l10n-id="importMemoryCard"]')
     _import_from_gmail_button_locator = (By.CSS_SELECTOR, 'button.icon-gmail[data-l10n-id="importGmail"]')
-    _import_from_windows_live_button_locator = (By.CSS_SELECTOR, 'button.icon-live[data-l10n-id="importLive"]')
+    _import_from_outlook_button_locator = (By.CSS_SELECTOR, 'button.icon-live[data-l10n-id="importOutlook"]')
     _back_from_import_contacts_locator = (By.ID, 'import-settings-back')
     _export_to_sd_button_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="memoryCard"]')
     _import_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="importContactsTitle"]')
     _export_contacts_locator = (By.CSS_SELECTOR, 'button[data-l10n-id="exportContactsTitle"]')
     _contacts_imported_locator = (By.CSS_SELECTOR, '.icon.icon-gmail > p > span')
+    _outlook_contacts_imported_locator = (By.CSS_SELECTOR, '.icon.icon-live > p > span')
+    _contacts_locator = (By.CSS_SELECTOR, '.block-item > p > strong')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
@@ -79,3 +81,13 @@ class SettingsForm(Base):
     def tap_back_from_import_contacts(self):
         self.wait_for_element_displayed(*self._back_from_import_contacts_locator)
         self.marionette.find_element(*self._back_from_import_contacts_locator).tap()
+
+    @property
+    def outlook_imported_contacts(self):
+        return self.marionette.find_element(*self._outlook_contacts_imported_locator).text
+
+    def tap_import_from_outlook(self):
+        self.wait_for_element_displayed(*self._import_from_outlook_button_locator)
+        self.marionette.find_element(*self._import_from_outlook_button_locator).tap()
+        from gaiatest.apps.contacts.regions.outlook import OutlookLogin
+        return OutlookLogin(self.marionette)
