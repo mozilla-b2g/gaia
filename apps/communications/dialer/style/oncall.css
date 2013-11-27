@@ -582,7 +582,7 @@
     height: 3.5rem;
     margin: 4rem 0 0 1rem;
     background-repeat: no-repeat;
-    background-size: 2.4rem;
+    background-size: 2.6rem;
   }
 
   #calls.big-duration .handled-call.incoming .direction:before {
