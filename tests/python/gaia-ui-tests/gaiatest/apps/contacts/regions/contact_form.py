@@ -146,6 +146,7 @@ class EditContact(ContactForm):
     def tap_update(self):
         self.wait_for_update_button_enabled()
         self.marionette.find_element(*self._update_locator).tap()
+        self.wait_for_element_not_displayed(*self._update_locator)
         from gaiatest.apps.contacts.regions.contact_details import ContactDetails
         return ContactDetails(self.marionette)
 
