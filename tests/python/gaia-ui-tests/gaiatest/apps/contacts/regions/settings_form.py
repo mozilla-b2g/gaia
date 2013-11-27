@@ -55,7 +55,7 @@ class SettingsForm(Base):
         self.wait_for_element_not_displayed(*self._loading_overlay_locator)
 
     def tap_export_to_sd(self):
-        self.wait_for_element_displayed(*self._export_to_sd_button_locator)
+        self.wait_for_condition(lambda m: m.find_element(*self._back_from_import_contacts_locator).location['x'] == 0)
         self.marionette.find_element(*self._export_to_sd_button_locator).tap()
         self.wait_for_element_not_displayed(*self._loading_overlay_locator)
 
