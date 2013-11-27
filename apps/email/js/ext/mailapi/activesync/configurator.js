@@ -530,6 +530,7 @@ define('mailapi/activesync/folder',
     '../date',
     '../syncbase',
     '../util',
+    'mailapi/db/mail_rep',
     'activesync/codepages/AirSync',
     'activesync/codepages/AirSyncBase',
     'activesync/codepages/ItemEstimate',
@@ -544,6 +545,7 @@ define('mailapi/activesync/folder',
     $date,
     $sync,
     $util,
+    mailRep,
     $AirSync,
     $AirSyncBase,
     $ItemEstimate,
@@ -1034,7 +1036,8 @@ ActiveSyncFolderConn.prototype = {
             break;
           case as.ApplicationData:
             try {
-              msg = folderConn._parseMessage(child, node.tag === as.Add);
+              msg = folderConn._parseMessage(child, node.tag === as.Add,
+                                             storage);
             }
             catch (ex) {
               // If we get an error, just log it and skip this message.
@@ -1045,13 +1048,7 @@ ActiveSyncFolderConn.prototype = {
           }
         }
 
-        if (node.tag === as.Add) {
-          msg.header.id = id = storage._issueNewHeaderId();
-          msg.header.suid = folderConn._storage.folderId + '/' + id;
-          msg.header.guid = '';
-        }
         msg.header.srvid = guid;
-        // XXX need to get the message's message-id header value!
 
         var collection = node.tag === as.Add ? added : changed;
         collection.push(msg);
@@ -1120,7 +1117,7 @@ ActiveSyncFolderConn.prototype = {
    *   changed one
    * @return {object} An object containing the header and body for the message
    */
-  _parseMessage: function asfc__parseMessage(node, isAdded) {
+  _parseMessage: function asfc__parseMessage(node, isAdded, storage) {
     var em = $Email.Tags;
     var asb = $AirSyncBase.Tags;
     var asbEnum = $AirSyncBase.Enums;
@@ -1128,11 +1125,16 @@ ActiveSyncFolderConn.prototype = {
     var header, body, flagHeader;
 
     if (isAdded) {
+      var newId = storage._issueNewHeaderId();
+      // note: these will be passed through mailRep.make* later
       header = {
-        id: null,
+        id: newId,
+        // This will be fixed up afterwards for control flow paranoia.
         srvid: null,
-        suid: null,
-        guid: null,
+        suid: storage.folderId + '/' + newId,
+        // ActiveSync does not/cannot tell us the Message-ID header unless we
+        // fetch the entire MIME body
+        guid: '',
         author: null,
         to: null,
         cc: null,
@@ -1325,23 +1327,35 @@ ActiveSyncFolderConn.prototype = {
           }
 
           if (isInline)
-            body.relatedParts.push(attachment);
+            body.relatedParts.push(mailRep.makeAttachmentPart(attachment));
           else
-            body.attachments.push(attachment);
+            body.attachments.push(mailRep.makeAttachmentPart(attachment));
         }
         header.hasAttachments = body.attachments.length > 0;
         break;
       }
     }
 
-    body.bodyReps = [{
+    body.bodyReps = [mailRep.makeBodyPart({
       type: bodyType,
       sizeEstimate: bodySize,
       amountDownloaded: 0,
       isDownloaded: false
-    }];
+    })];
 
-    return { header: header, body: body };
+    // If this is an add, then these are new structures so we need to normalize
+    // them.
+    if (isAdded) {
+      return {
+        header: mailRep.makeHeaderInfo(header),
+        body: mailRep.makeBodyInfo(body)
+      };
+    }
+    // It's not an add, so this is a delta, and header/body have mergeInto
+    // methods and we should not attempt to normalize them.
+    else {
+      return { header: header, body: body };
+    }
   },
 
   /**
@@ -1599,7 +1613,7 @@ ActiveSyncFolderConn.prototype = {
     };
 
     this._storage.updateMessageHeader(header.date, header.id, false, header);
-    this._storage.updateMessageBody(header, bodyInfo, event);
+    this._storage.updateMessageBody(header, bodyInfo, {}, event);
     this._storage.runAfterDeferredCalls(callback.bind(null, null, bodyInfo));
   },
 
@@ -2049,7 +2063,9 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 define('mailapi/activesync/jobs',
   [
     'rdcommon/log',
+    'mix',
     '../jobmixins',
+    'mailapi/drafts/jobs',
     'activesync/codepages/AirSync',
     'activesync/codepages/Email',
     'activesync/codepages/Move',
@@ -2059,7 +2075,9 @@ define('mailapi/activesync/jobs',
   ],
   function(
     $log,
+    mix,
     $jobmixins,
+    draftsJobs,
     $AirSync,
     $Email,
     $Move,
@@ -2328,6 +2346,7 @@ ActiveSyncJobDriver.prototype = {
   undo_move: function(op, jobDoneCallback) {
   },
 
+
   //////////////////////////////////////////////////////////////////////////////
   // delete
 
@@ -2471,32 +2490,6 @@ ActiveSyncJobDriver.prototype = {
   undo_download: $jobmixins.undo_download,
 
   //////////////////////////////////////////////////////////////////////////////
-  // saveDraft
-
-  local_do_saveDraft: $jobmixins.local_do_saveDraft,
-
-  do_saveDraft: $jobmixins.do_saveDraft,
-
-  check_saveDraft: $jobmixins.check_saveDraft,
-
-  local_undo_saveDraft: $jobmixins.local_undo_saveDraft,
-
-  undo_saveDraft: $jobmixins.undo_saveDraft,
-
-  //////////////////////////////////////////////////////////////////////////////
-  // deleteDraft
-
-  local_do_deleteDraft: $jobmixins.local_do_deleteDraft,
-
-  do_deleteDraft: $jobmixins.do_deleteDraft,
-
-  check_deleteDraft: $jobmixins.check_deleteDraft,
-
-  local_undo_deleteDraft: $jobmixins.local_undo_deleteDraft,
-
-  undo_deleteDraft: $jobmixins.undo_deleteDraft,
-
-  //////////////////////////////////////////////////////////////////////////////
   // purgeExcessMessages is a NOP for activesync
 
   local_do_purgeExcessMessages: function(op, doneCallback) {
@@ -2521,6 +2514,8 @@ ActiveSyncJobDriver.prototype = {
 
   //////////////////////////////////////////////////////////////////////////////
 };
+
+mix(ActiveSyncJobDriver.prototype, draftsJobs.draftsMixins);
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
   ActiveSyncJobDriver: {
@@ -3345,12 +3340,12 @@ ActiveSyncAccount.prototype = {
 
     // we want the bcc included because that's how we tell the server the bcc
     // results.
-    composer.withMessageBuffer({ includeBcc: true }, function(mimeBuffer) {
+    composer.withMessageBlob({ includeBcc: true }, function(mimeBlob) {
       // ActiveSync 14.0 has a completely different API for sending email. Make
       // sure we format things the right way.
       if (this.conn.currentVersion.gte('14.0')) {
         var cm = ASCP.ComposeMail.Tags;
-        var w = new $wbxml.Writer('1.3', 1, 'UTF-8');
+        var w = new $wbxml.Writer('1.3', 1, 'UTF-8', null, 'blob');
         w.stag(cm.SendMail)
            // The ClientId is defined to be for duplicate messages suppression
            // and does not need to have any uniqueness constraints apart from
@@ -3358,7 +3353,7 @@ ActiveSyncAccount.prototype = {
            .tag(cm.ClientId, Date.now().toString()+'@mozgaia')
            .tag(cm.SaveInSentItems)
            .stag(cm.Mime)
-             .opaque(mimeBuffer)
+             .opaque(mimeBlob)
            .etag()
          .etag();
 
@@ -3382,12 +3377,7 @@ ActiveSyncAccount.prototype = {
         });
       }
       else { // ActiveSync 12.x and lower
-        var encoder = new TextEncoder('UTF-8');
-
-        // On B2G 18, XHRs expect ArrayBuffers and will barf on Uint8Arrays. In
-        // the future, we can remove the last |.buffer| bit below.
-        this.conn.postData('SendMail', 'message/rfc822',
-                           encoder.encode(mimeBuffer).buffer,
+        this.conn.postData('SendMail', 'message/rfc822', mimeBlob,
                            function(aError, aResponse) {
           if (aError) {
             account._reportErrorIfNecessary(aError);

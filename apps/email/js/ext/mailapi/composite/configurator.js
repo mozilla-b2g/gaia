@@ -1379,6 +1379,7 @@ console.log('BISECT CASE', serverUIDs.length, 'curDaysDelta', curDaysDelta);
       self._storage.updateMessageBody(
         header,
         body,
+        {},
         event
       );
 
@@ -2166,13 +2167,17 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 define('mailapi/imap/jobs',
   [
     'rdcommon/log',
+    'mix',
     '../jobmixins',
+    'mailapi/drafts/jobs',
     'module',
     'exports'
   ],
   function(
     $log,
+    mix,
     $jobmixins,
+    draftsJobs,
     $module,
     exports
   ) {
@@ -2423,32 +2428,6 @@ ImapJobDriver.prototype = {
   local_undo_download: $jobmixins.local_undo_download,
 
   undo_download: $jobmixins.undo_download,
-
-  //////////////////////////////////////////////////////////////////////////////
-  // saveDraft
-
-  local_do_saveDraft: $jobmixins.local_do_saveDraft,
-
-  do_saveDraft: $jobmixins.do_saveDraft,
-
-  check_saveDraft: $jobmixins.check_saveDraft,
-
-  local_undo_saveDraft: $jobmixins.local_undo_saveDraft,
-
-  undo_saveDraft: $jobmixins.undo_saveDraft,
-
-  //////////////////////////////////////////////////////////////////////////////
-  // deleteDraft
-
-  local_do_deleteDraft: $jobmixins.local_do_deleteDraft,
-
-  do_deleteDraft: $jobmixins.do_deleteDraft,
-
-  check_deleteDraft: $jobmixins.check_deleteDraft,
-
-  local_undo_deleteDraft: $jobmixins.local_undo_deleteDraft,
-
-  undo_deleteDraft: $jobmixins.undo_deleteDraft,
 
   //////////////////////////////////////////////////////////////////////////////
   // modtags: Modify tags on messages
@@ -2872,6 +2851,7 @@ ImapJobDriver.prototype = {
     doneCallback('moot');
   },
 
+
   //////////////////////////////////////////////////////////////////////////////
   // append: Add a message to a folder
   //
@@ -3189,6 +3169,8 @@ HighLevelJobDriver.prototype = {
   undo_xcopy: function() {
   },
 };
+
+mix(ImapJobDriver.prototype, draftsJobs.draftsMixins);
 
 var LOGFAB = exports.LOGFAB = $log.register($module, {
   ImapJobDriver: {
@@ -3846,6 +3828,49 @@ var properties = {
     callback(null);
   },
 
+  /**
+   * Asynchronously save the sent message to the sent folder, if applicable.
+   * This should only be called once the SMTP send has completed.
+   *
+   * If non-gmail, append a bcc-including version of the message into the sent
+   * folder.  For gmail, the SMTP server automatically copies the message into
+   * the sent folder so we don't need to do this.
+   *
+   * There are several notable limitations with the current implementation:
+   * - We do not write a copy of the message into the sent folder locally, so
+   *   the message must be downloaded/synchronized for the user to see it.
+   * - The operation to append the message does not get persisted to disk, so
+   *   in the event the app crashes or is closed, a copy of the message will
+   *   not end up in the sent folder.  This has always been the emergent
+   *   phenomenon for IMAP, except previously we would persist the operation
+   *   and then mark it moot at 'check' time.  Our new technique of not saving
+   *   the operation is preferable for disk space reasons.  (NB: We could
+   *   persist it, but the composite Blob we build would be flattened which
+   *   could generate an I/O storm, cause temporary double-storage use, etc.)
+   */
+  saveSentMessage: function(composer) {
+    // (gmail automatically copies the message into the sent folder; we don't
+    // have to do anything)
+    if (this.isGmail) {
+      return;
+    }
+
+    composer.withMessageBlob({ includeBcc: true }, function(blob) {
+      var message = {
+        messageText: blob,
+        // do not specify date; let the server use its own timestamping
+        // since we want the approximate value of 'now' anyways.
+        flags: ['Seen'],
+      };
+
+      var sentFolder = this.getFirstFolderWithType('sent');
+      if (sentFolder) {
+        this.universe.appendMessages(sentFolder.id,
+                                     [message]);
+      }
+    }.bind(this));
+  },
+
   shutdown: function(callback) {
     CompositeIncomingAccount.prototype.shutdownFolders.call(this);
 
@@ -3907,9 +3932,45 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
 }); // end define
 ;
 /**
- * Make our TCPSocket implementation look like node's net library.
+ * Remoted network API that tries to look like node.js's "net" API.  We are
+ * expected/required to run in a worker thread where we don't have direct
+ * access to mozTCPSocket so everything has to get remitted to the main thread.
+ * Our counterpart is mailapi/worker-support/net-main.js
  *
- * We make sure to support:
+ *
+ * ## Sending lots of data: flow control, Blobs ##
+ *
+ * mozTCPSocket provides a flow-control mechanism (the return value to send
+ * indicates whether we've crossed a buffering boundary and 'ondrain' tells us
+ * when all buffered data has been sent), but does not yet support enqueueing
+ * Blobs for processing (which is part of the proposed standard at
+ * http://www.w3.org/2012/sysapps/raw-sockets/).  Also, the raw-sockets spec
+ * calls for generating the 'drain' event once our buffered amount goes back
+ * under the internal buffer target rather than waiting for it to hit zero like
+ * mozTCPSocket.
+ *
+ * Our main desire right now for flow-control is to avoid using a lot of memory
+ * and getting killed by the OOM-killer.  As such, flow control is not important
+ * to us if we're just sending something that we're already keeping in memory.
+ * The things that will kill us are giant things like attachments (or message
+ * bodies we are quoting/repeating, potentially) that we are keeping as Blobs.
+ *
+ * As such, rather than echoing the flow-control mechanisms over to this worker
+ * context, we just allow ourselves to write() a Blob and have the net-main.js
+ * side take care of streaming the Blobs over the network.
+ *
+ * Note that successfully sending a lot of data may entail holding a wake-lock
+ * to avoid having the network device we are using turned off in the middle of
+ * our sending.  The network-connection abstraction is not currently directly
+ * involved with the wake-lock management, but I could see it needing to beef up
+ * its error inference in terms of timeouts/detecting disconnections so we can
+ * avoid grabbing a wi-fi wake-lock, having our connection quietly die, and then
+ * we keep holding the wi-fi wake-lock for much longer than we should.
+ *
+ * ## Supported API Surface ##
+ *
+ * We make sure to expose the following subset of the node.js API because we
+ * have consumers that get upset if these do not exist:
  *
  * Attributes:
  * - encrypted (false, this is not the tls byproduct)
@@ -3971,8 +4032,40 @@ NetSocket.prototype.setTimeout = function() {
 };
 NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
 };
-NetSocket.prototype.write = function(buffer) {
-  this._sendMessage('write', [buffer.buffer, buffer.byteOffset, buffer.length]);
+// The semantics of node.js's socket.write does not take ownership and that's
+// how our code uses it, so we can't use transferrables by default.  However,
+// there is an optimization we want to perform related to Uint8Array.subarray().
+//
+// All the subarray does is create a view on the underlying buffer.  This is
+// important and notable because the structured clone implementation for typed
+// arrays and array buffers is *not* clever; it just serializes the entire
+// underlying buffer and the typed array as a view on that.  (This does have
+// the upside that you can transfer a whole bunch of typed arrays and only one
+// copy of the buffer.)  The good news is that ArrayBuffer.slice() does create
+// an entirely new copy of the buffer, so that works with our semantics and we
+// can use that to transfer only what needs to be transferred.
+NetSocket.prototype.write = function(u8array) {
+  if (u8array instanceof Blob) {
+    // We always send blobs in their entirety; you should slice the blob and
+    // give us that if that's what you want.
+    this._sendMessage('write', [u8array]);
+    return;
+  }
+
+  var sendArgs;
+  // Slice the underlying buffer and transfer it if the array is a subarray
+  if (u8array.byteOffset !== 0 ||
+      u8array.length !== u8array.buffer.byteLength) {
+    var buf = u8array.buffer.slice(u8array.byteOffset,
+                                   u8array.byteOffset + u8array.length);
+    this._sendMessage('write',
+                      [buf, 0, buf.byteLength],
+                      [buf]);
+  }
+  else {
+    this._sendMessage('write',
+                      [u8array.buffer, u8array.byteOffset, u8array.length]);
+  }
 };
 NetSocket.prototype.upgradeToSecure = function() {
   this._sendMessage('upgradeToSecure', []);
@@ -6070,11 +6163,13 @@ MailParser.prototype._detectHTMLCharset = function(html){
 define('mailapi/imap/imapchew',
   [
     'mimelib',
+    'mailapi/db/mail_rep',
     '../mailchew',
     'exports'
   ],
   function(
     $mimelib,
+    mailRep,
     $mailchew,
     exports
   ) {
@@ -6234,7 +6329,7 @@ function chewStructure(msg) {
 
     function makePart(partInfo, filename) {
 
-      return {
+      return mailRep.makeAttachmentPart({
         name: filename || 'unnamed-' + (++unnamedPartCounter),
         contentId: partInfo.id ? stripArrows(partInfo.id) : null,
         type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
@@ -6248,11 +6343,11 @@ function chewStructure(msg) {
         textFormat: (partInfo.params && partInfo.params.format &&
                      partInfo.params.format.toLowerCase()) || undefined
          */
-      };
+      });
     }
 
     function makeTextPart(partInfo) {
-      return {
+      return mailRep.makeBodyPart({
         type: partInfo.subtype,
         part: partInfo.partID,
         sizeEstimate: partInfo.size,
@@ -6268,7 +6363,7 @@ function chewStructure(msg) {
         // the information on the bodyRep directly?
         _partInfo: partInfo.size ? partInfo : null,
         content: ''
-      };
+      });
     }
 
     if (disposition === 'attachment') {
@@ -6368,7 +6463,7 @@ exports.chewHeaderAndBodyStructure =
   var parts = chewStructure(msg);
   var rep = {};
 
-  rep.header = {
+  rep.header = mailRep.makeHeaderInfo({
     // the FolderStorage issued id for this message (which differs from the
     // IMAP-server-issued UID so we can do speculative offline operations like
     // moves).
@@ -6399,17 +6494,17 @@ exports.chewHeaderAndBodyStructure =
 
     // we lazily fetch the snippet later on
     snippet: null
-  };
+  });
 
 
-  rep.bodyInfo = {
+  rep.bodyInfo = mailRep.makeBodyInfo({
     date: msg.date,
     size: 0,
     attachments: parts.attachments,
     relatedParts: parts.relatedParts,
     references: msg.msg.references,
     bodyReps: parts.bodyReps
-  };
+  });
 
   return rep;
 };
@@ -7724,8 +7819,12 @@ Pop3FolderSyncer.prototype = {
       console.log('POP3: Storing message ' + header.srvid +
                   ' with ' + header.bytesToDownloadForBodyDisplay +
                   ' bytesToDownload.');
-      this.storeMessage(header, message.bodyInfo, function() {
-        callback && callback(null, message.bodyInfo);
+      // Force a flush if there were any attachments so that any memory-backed
+      // Blobs get replaced with their post-save disk-backed equivalent so they
+      // can be garbage collected.
+      var flush = message.bodyInfo.attachments.length > 0;
+      this.storeMessage(header, message.bodyInfo, { flush: flush }, function() {
+        callback && callback(null, message.bodyInfo, flush);
       });
     }.bind(this));
   }),
@@ -7760,9 +7859,13 @@ Pop3FolderSyncer.prototype = {
    *
    * @param {HeaderInfo} header Message header.
    * @param {BodyInfo} bodyInfo Body information, reps, etc.
+   * @param {Object} options
+   * @param {Boolean} options.flush Force a flush so the message gets reloaded,
+   *                                replacing memory-backed Blobs with
+   *                                disk-backed ones?
    * @param {function()} callback
    */
-  storeMessage: function(header, bodyInfo, callback) {
+  storeMessage: function(header, bodyInfo, options, callback) {
     callback = callback || function() {};
     var event = {
       changeDetails: {}
@@ -7815,8 +7918,12 @@ Pop3FolderSyncer.prototype = {
           header.date, header.id, true, header, latch.defer());
         event.changeDetails.attachments = range(bodyInfo.attachments.length);
         event.changeDetails.bodyReps = range(bodyInfo.bodyReps.length);
+        var updateOptions = {};
+        if (options.flush) {
+          updateOptions.flushBecause = 'blobs';
+        }
         self.storage.updateMessageBody(
-          header, bodyInfo, event, latch.defer());
+          header, bodyInfo, updateOptions, event, latch.defer());
       }
 
       latch.then(function() {
@@ -7897,7 +8004,7 @@ Pop3FolderSyncer.prototype = {
     if (meta._TEST_pendingAdds) {
       meta._TEST_pendingAdds.forEach(function(msg) {
         callbacksWaiting++;
-        this.storeMessage(msg.header, msg.bodyInfo, latch.defer());
+        this.storeMessage(msg.header, msg.bodyInfo, {}, latch.defer());
       }, this);
       meta._TEST_pendingAdds = null;
     }
@@ -7979,7 +8086,7 @@ Pop3FolderSyncer.prototype = {
           var message = evt.message;
           var messageCb = latch.defer();
 
-          this.storeMessage(message.header, message.bodyInfo, function() {
+          this.storeMessage(message.header, message.bodyInfo, {}, function() {
             bytesStored += evt.size;
             numMessagesSynced++;
             progressCallback(0.1 + 0.7 * bytesStored / totalBytes);
@@ -8086,9 +8193,10 @@ var LOGFAB = exports.LOGFAB = log.register(module, {
 
 }); // end define
 ;
-define('mailapi/pop3/jobs',['module', 'exports', 'rdcommon/log', '../jobmixins', '../allback',
-        'pop3/pop3'],
-       function(module, exports, log, jobmixins, allback, pop3) {
+define('mailapi/pop3/jobs',['module', 'exports', 'rdcommon/log', '../allback', 'mix',
+        '../jobmixins', '../drafts/jobs', 'pop3/pop3'],
+       function(module, exports, log, allback, mix,
+                jobmixins, draftsJobs, pop3) {
 
 /**
  * Manage the jobs for a POP3 account. POP3 does not support
@@ -8197,27 +8305,23 @@ Pop3JobDriver.prototype = {
       'purgeExcessMessages');
   },
 
-  /**
-   * Add a message to a folder.
-   */
-  local_do_append: function(op, callback) {
+  local_do_saveSentDraft: function(op, callback) {
     var self = this;
     this._accessFolderForMutation(
       op.folderId, /* needConn*/ false,
       function(nullFolderConn, folderStorage) {
-        var messages = op.messages;
         var latch = allback.latch();
-        messages.forEach(function(message) {
-          var msg = pop3.Pop3Client.parseMime(message.messageText);
-          folderStorage.folderSyncer.storeMessage(
-            msg.header, msg.bodyInfo, latch.defer());
-        }, this);
+
+        folderStorage.addMessageHeader(op.headerInfo, latch.defer());
+        folderStorage.addMessageBody(op.headerInfo, op.bodyInfo, latch.defer());
+
         latch.then(function(results) {
-          callback();
+          // header/body insertion can't fail
+          callback(null, null, /* save */ true);
         });
       },
       /* no conn => no deathback required */ null,
-      'local_append');
+      'saveSentDraft');
   },
 
   do_syncFolderList: function(op, doneCallback) {
@@ -8256,28 +8360,22 @@ Pop3JobDriver.prototype = {
   do_downloadBodyReps: jobmixins.do_downloadBodyReps,
   local_do_downloadBodyReps: jobmixins.local_do_downloadBodyReps,
 
-  // Drafts can only be stored locally as well.
-  local_do_saveDraft: jobmixins.local_do_saveDraft,
-  check_saveDraft: jobmixins.check_saveDraft,
-  local_undo_saveDraft: jobmixins.local_undo_saveDraft,
-
-  local_do_deleteDraft: jobmixins.local_do_deleteDraft,
-  do_deleteDraft: jobmixins.do_deleteDraft,
-  check_deleteDraft: jobmixins.check_deleteDraft,
-  local_undo_deleteDraft: jobmixins.local_undo_deleteDraft,
-
   // These utility functions are necessary.
   postJobCleanup: jobmixins.postJobCleanup,
   allJobsDone: jobmixins.allJobsDone,
   _partitionAndAccessFoldersSequentially:
       jobmixins._partitionAndAccessFoldersSequentially
-
 };
+
+mix(Pop3JobDriver.prototype, draftsJobs.draftsMixins);
+
 
 var LOGFAB = exports.LOGFAB = log.register(module, {
   Pop3JobDriver: {
     type: log.DAEMON,
     events: {
+      savedAttachment: { storage: true, mimeType: true, size: true },
+      saveFailure: { storage: false, mimeType: false, error: false },
     },
     TEST_ONLY_events: {
       saveFailure: { filename: false },
@@ -8294,9 +8392,9 @@ var LOGFAB = exports.LOGFAB = log.register(module, {
 }); // end define
 ;
 define('mailapi/pop3/account',['rdcommon/log', '../errbackoff', '../composite/incoming', './sync',
-        './jobs', 'module', 'require', 'exports'],
+        './jobs', '../drafts/draft_rep', 'module', 'require', 'exports'],
 function(log, errbackoff, incoming, pop3sync,
-         pop3jobs, module, require, exports) {
+         pop3jobs, draftRep, module, require, exports) {
 var CompositeIncomingAccount = incoming.CompositeIncomingAccount;
 
 /**
@@ -8453,6 +8551,26 @@ var properties = {
         callback && callback(null, conn);
       }.bind(this));
     }.bind(this));
+  },
+
+  /**
+   * Save an attachment-stripped version of the sent draft to our sent folder.
+   */
+  saveSentMessage: function(composer) {
+    var sentFolder = this.getFirstFolderWithType('sent');
+    if (!sentFolder) {
+      return;
+    }
+
+    var sentStorage = this.getFolderStorageForFolderId(sentFolder.id);
+    var id = sentStorage._issueNewHeaderId();
+    var suid = sentStorage.folderId + '/' + id;
+
+    var sentPieces = draftRep.cloneDraftMessageForSentFolderWithoutAttachments(
+      composer.header, composer.body, { id: id, suid: suid });
+
+    this.universe.saveSentDraft(sentFolder.id,
+                                sentPieces.header, sentPieces.body);
   },
 
   /**
@@ -8646,8 +8764,10 @@ SmtpAccount.prototype = {
    * ]
    */
   sendMessage: function(composer, callback) {
+    console.log('smtp: requiring code');
     require(['simplesmtp/lib/client'], function ($simplesmtp) {
       var conn, bailed = false, sendingMessage = false;
+      console.log('smtp: code loaded');
 
       conn = $simplesmtp(
         this.connInfo.port, this.connInfo.hostname,
@@ -8666,6 +8786,7 @@ SmtpAccount.prototype = {
       // Send the envelope once the connection is ready (fires again after
       // ready too.)
       conn.once('idle', function() {
+          console.log('smtp: idle reached, sending envelope');
           conn.useEnvelope(composer.getEnvelope());
         });
       // Then send the actual message if everything was cool
@@ -8673,13 +8794,33 @@ SmtpAccount.prototype = {
           if (bailed)
             return;
           sendingMessage = true;
-          composer.withMessageBuffer({ includeBcc: false }, function(buffer) {
-            conn.write(buffer);
+          console.log('smtp: message reached, building message blob');
+          composer.withMessageBlob({ includeBcc: false }, function(blob) {
+            console.log('smtp: blob composed, writing blob');
+            // simplesmtp's SMTPClient does not understand Blobs, so we issue
+            // the write directly.  All that it cares about is knowing whether
+            // our data payload included a trailing \r\n.  Our long term plan
+            // to avoid this silliness is to switch to using firemail's fork of
+            // simplesmtp or something equally less hacky; see bug 885110.
+            conn.socket.write(blob);
+            // SMTPClient tracks the last bytes it has written in _lastDataBytes
+            // to this end and writes the \r\n if they aren't the last bytes
+            // written.  Since we know that mailcomposer always ends the buffer
+            // with \r\n we just set that state directly ourselves.
+            conn._lastDataBytes[0] = 0x0d;
+            conn._lastDataBytes[1] = 0x0a;
+            // put some data in the console.log if in debug mode too
+            if (conn.options.debug) {
+              console.log('CLIENT (DATA) blob of size:', blob.size);
+            }
+            // this does not actually terminate the connection; just tells the
+            // client to flush stuff, etc.
             conn.end();
           });
         });
       // And close the connection and be done once it has been sent
       conn.on('ready', function() {
+          console.log('smtp: send completed, closing connection');
           bailed = true;
           conn.close();
           callback(null);
@@ -8695,6 +8836,7 @@ SmtpAccount.prototype = {
       conn.on('rcptFailed', function(addresses) {
           // nb: this gets called all the time, even without any failures
           if (addresses.length) {
+            console.warn('smtp: nonzero bad recipients');
             bailed = true;
             // simplesmtp does't view this as fatal, so we have to close it ourself
             conn.close();
@@ -8705,6 +8847,7 @@ SmtpAccount.prototype = {
         if (bailed) // (paranoia, this shouldn't happen.)
           return;
         var reportAs = null;
+        console.error('smtp: error:', err.name);
         switch (err.name) {
           // no explicit error type is given for: a bad greeting, failure to
           // EHLO/HELO, bad login sequence, OR a data problem during send.
@@ -8743,6 +8886,7 @@ SmtpAccount.prototype = {
         // the connection gets automatically closed.
       });
       conn.on('end', function() {
+        console.log('smtp: connection ended');
         var idx = this._activeConnections.indexOf(conn);
         if (idx !== -1)
           this._activeConnections.splice(idx, 1);
@@ -8974,24 +9118,9 @@ CompositeAccount.prototype = {
     return this._sendPiece.sendMessage(
       composer,
       function(err, errDetails) {
-        // We need to append the message to the sent folder if we think we sent
-        // the message okay and this is not gmail.  gmail automatically crams
-        // the message in the sent folder for us, so if we do it, we're just
-        // going to create duplicates.
-        if (!err && !this._receivePiece.isGmail) {
-          composer.withMessageBuffer({ includeBcc: true }, function(buffer) {
-            var message = {
-              messageText: buffer,
-              // do not specify date; let the server use its own timestamping
-              // since we want the approximate value of 'now' anyways.
-              flags: ['Seen'],
-            };
-
-            var sentFolder = this.getFirstFolderWithType('sent');
-            if (sentFolder)
-              this.universe.appendMessages(sentFolder.id,
-                                           [message]);
-          }.bind(this));
+        if (!err) {
+          // The saving is done asynchronously as a best-effort.
+          this._receivePiece.saveSentMessage(composer);
         }
         callback(err, errDetails, null);
       }.bind(this));
