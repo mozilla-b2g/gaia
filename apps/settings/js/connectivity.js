@@ -22,9 +22,13 @@ var Connectivity = (function(window, document, undefined) {
   var bluetooth = getBluetooth();
   var mobileConnection = getMobileConnection();
 
-  mobileConnection.addEventListener('datachange', updateCarrier);
-  IccHelper.addEventListener('cardstatechange', updateCallSettings);
-  IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
+  if (mobileConnection) {
+    mobileConnection.addEventListener('datachange', updateCarrier);
+  }
+  if (IccHelper) {
+    IccHelper.addEventListener('cardstatechange', updateCallSettings);
+    IccHelper.addEventListener('cardstatechange', updateMessagingSettings);
+  }
 
   // XXX if wifiManager implements addEventListener function
   // we can remove these listener lists.
