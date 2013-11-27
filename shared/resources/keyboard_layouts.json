@@ -97,6 +97,9 @@
     "lij": [
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
     ],
+    "lv": [
+        {"layoutId": "lv", "appOrigin": "keyboard.gaiamobile.org"}
+    ],
     "ml": [
         {"layoutId": "en", "appOrigin": "keyboard.gaiamobile.org"}
     ],
