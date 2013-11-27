@@ -1782,6 +1782,12 @@ function showKeyboard() {
     value: ''
   };
 
+  // everything.me uses this setting to improve searches,
+  // but they really shouldn't.
+  navigator.mozSettings.createLock().set({
+    'keyboard.current': keyboardName
+  });
+
   function doShowKeyboard() {
     // Force to disable the auto correction for Greek SMS layout.
     // This is because the suggestion result is still unicode and
@@ -1834,6 +1840,12 @@ function hideKeyboard() {
   deactivateInputMethod();
 
   isKeyboardRendered = false;
+
+  // everything.me uses this setting to improve searches,
+  // but they really shouldn't.
+  navigator.mozSettings.createLock().set({
+    'keyboard.current': undefined
+  });
 }
 
 // Resize event handler
