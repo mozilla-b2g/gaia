@@ -32,9 +32,8 @@ a {
   right: 0;
   bottom: 0;
   overflow-x: auto;
-  background: url(images/bg_light.png);
-  background-size: 100% auto;
-}
+  background-color: #ffffff;
+ }
 
 [role=region].show {
   visibility: visible;
