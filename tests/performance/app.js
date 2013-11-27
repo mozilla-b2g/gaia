@@ -31,6 +31,8 @@ PerfTestApp.prototype = {
 
   selectors: {},
 
+  PERFORMANCE_ATOM: 'window.wrappedJSObject.PerformanceHelperAtom',
+
   defaultCallback: function() {
   },
 
@@ -83,30 +85,29 @@ PerfTestApp.prototype = {
       fs.readFileSync('./tests/performance/performance_helper_atom.js') + '\n'
     );
 
-    var helperObject = 'window.wrappedJSObject.PerformanceHelperAtom';
     this.client.executeScript(
-      helperObject + '.register();'
+      this.PERFORMANCE_ATOM + '.register();'
     );
   },
 
   waitForPerfEvents: function(stopEventName, callback) {
     var client = this.client;
-    var helperObject = 'window.wrappedJSObject.PerformanceHelperAtom';
+    var self = this;
 
     this.client.executeAsyncScript(
-      helperObject + '.waitForEvent("' + stopEventName + '");',
+      this.PERFORMANCE_ATOM + '.waitForEvent("' + stopEventName + '");',
       function() {
-	var runResults = client.executeScript(
-	  'return ' + helperObject + '.getMeasurements();'
-	);
+        var runResults = client.executeScript(
+          'return ' + self.PERFORMANCE_ATOM + '.getMeasurements();'
+        );
 
-	client.executeScript(
-	  helperObject + '.unregister();'
-	);
+        client.executeScript(
+          self.PERFORMANCE_ATOM + '.unregister();'
+        );
 
 	if (callback) {
 	  callback(runResults);
 	}
-      });
+    });
   }
 };

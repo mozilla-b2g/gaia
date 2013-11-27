@@ -4,7 +4,7 @@ var MarionetteHelper = requireGaia('/tests/js-marionette/helper.js');
 
 // XXX make that exportable from the mocha-proxy
 // see https://github.com/mozilla-b2g/mocha-json-proxy/pull/4
-function write(event, content) {
+function json_proxy_write(event, content) {
   var args = Array.prototype.slice.call(arguments);
 
   if (!process.env['MOCHA_PROXY_SEND_ONLY']) {
@@ -92,18 +92,9 @@ function PerformanceHelper(opts) {
 
     reportDuration: function(values, title) {
       title = title || '';
-      // this is stored in the test object
-      // because we need to access this in the Reporter
-      if (this.mozPerfDurations == null) {
-        this.mozPerfDurations = Object.create(null);
-      }
-
-      if (title in this.mozPerfDurations) {
-        var errMsg = 'reportDuration was called twice with the same title';
-        throw new Error('PerformanceHelper: ' + errMsg);
-      }
-      this.mozPerfDurations[title] = values;
-      write('mozPerfDuration', this.mozPerfDurations);
+      var mozPerfDurations = {};
+      mozPerfDurations[title] = values;
+      json_proxy_write('mozPerfDuration', mozPerfDurations);
     }
   });
 

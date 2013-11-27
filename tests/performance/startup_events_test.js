@@ -45,7 +45,7 @@ marionette('startup event test > ' + mozTestInfo.appPath + ' >', function() {
     MarionetteHelper.unlockScreen(client);
   });
 
-  test('startup', function() {
+  test('startup >', function() {
 
     performanceHelper.repeatWithDelay(function(app, next) {
 

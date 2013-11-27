@@ -19,7 +19,6 @@ var Helper = {
       }
     }, null, givenCallback);
   }
-
-}
+};
 
 module.exports = Helper;
