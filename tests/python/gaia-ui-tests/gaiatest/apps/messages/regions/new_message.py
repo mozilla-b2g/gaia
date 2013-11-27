@@ -19,11 +19,19 @@ class NewMessage(Messages):
     _message_sending_locator = (By.CSS_SELECTOR, "li.message.outgoing.sending")
     _thread_messages_locator = (By.ID, 'thread-messages')
     _message_resize_notice_locator = (By.ID, 'messages-resize-notice')
+    _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-url*=sms]')
 
     def __init__(self, marionette):
         Base.__init__(self, marionette)
+        self.switch_to_messages_frame()
         section = self.marionette.find_element(*self._thread_messages_locator)
         self.wait_for_condition(lambda m: section.location['x'] == 0)
+
+    def switch_to_messages_frame(self):
+        self.marionette.switch_to_frame()
+        self.wait_for_element_present(*self._messages_frame_locator)
+        messages_frame = self.marionette.find_element(*self._messages_frame_locator)
+        self.marionette.switch_to_frame(messages_frame)
 
     def type_phone_number(self, value):
         # tap on the parent element to activate editable
