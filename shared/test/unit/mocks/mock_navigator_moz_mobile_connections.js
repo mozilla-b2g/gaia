@@ -2,7 +2,7 @@
 
 (function() {
   function MockMobileconnection() {
-    var props = ['voice', 'data'];
+    var props = ['voice', 'data', 'iccId', 'radioState'];
     var eventListeners = null;
 
     function mnmmc_init() {

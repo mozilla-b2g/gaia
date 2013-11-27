@@ -4,7 +4,10 @@
 'use strict';
 
 function SimPinDialog(dialog) {
-  if (!IccHelper) {
+  var conns = window.navigator.mozMobileConnections;
+  var icc;
+
+  if (!conns) {
     return;
   }
 
@@ -149,7 +152,7 @@ function SimPinDialog(dialog) {
   }
 
   function unlockCardLock(options) {
-    var req = IccHelper.unlockCardLock(options);
+    var req = icc.unlockCardLock(options);
     req.onsuccess = function sp_unlockSuccess() {
       close();
       _onsuccess();
@@ -201,7 +204,7 @@ function SimPinDialog(dialog) {
   }
 
   function setCardLock(options) {
-    var req = IccHelper.setCardLock(options);
+    var req = icc.setCardLock(options);
     req.onsuccess = function spl_enableSuccess() {
       close();
       _onsuccess();
@@ -219,7 +222,7 @@ function SimPinDialog(dialog) {
   var _fdnContactInfo = {};
 
   function updateFdnContact() {
-    var req = IccHelper.updateContact('fdn', _fdnContactInfo, pinInput.value);
+    var req = icc.updateContact('fdn', _fdnContactInfo, pinInput.value);
 
     req.onsuccess = function onsuccess() {
       _onsuccess(_fdnContactInfo);
@@ -391,11 +394,24 @@ function SimPinDialog(dialog) {
     // display the number of remaining retries if necessary
     // XXX this only works with the emulator (and some commercial RIL stacks...)
     // https://bugzilla.mozilla.org/show_bug.cgi?id=905173
-    IccHelper.getCardLockRetryCount(lockType, showRetryCount);
+    icc.getCardLockRetryCount(lockType, showRetryCount);
     return action;
   }
 
   function show(action, options) {
+    var conn = conns[options.cardIndex || 0];
+
+    if (!conn) {
+      return;
+    }
+
+    var iccId = conn.iccId;
+    icc = window.navigator.mozIccManager.getIccById(iccId);
+
+    if (!icc) {
+      return;
+    }
+
     var dialogPanel = '#' + dialog.id;
     if (dialogPanel == Settings.currentPanel) {
       return;
