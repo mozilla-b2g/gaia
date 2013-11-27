@@ -760,7 +760,7 @@
     background: url(images/ActionIcon_40x40_hangup.png) no-repeat center center / 4rem;
   }
 
-  #locked-contact-photo {
+  #contact-background {
     position: absolute;
     top: 0;
     width: 100%;
@@ -782,7 +782,6 @@
   #call-screen[data-layout="connected"] #callbar-answer,
   #call-screen[data-layout="connected-hold"] #swiper-wrapper,
   #call-screen[data-layout="connected-hold"] #callbar-answer,
-  #call-screen:not([data-layout="incoming-locked"]) #locked-contact-photo,
   #call-screen:not([data-layout="incoming-locked"]) #lockscreen-header {
     display: none;
   }
