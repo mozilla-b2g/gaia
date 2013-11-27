@@ -42,7 +42,7 @@ class TestCostControlReset(GaiaTestCase):
         # disable wifi before reset data, wait for wifi to be closed, and switch back to the app
         self.data_layer.disable_wifi()
         time.sleep(1)
-        cost_control.launch()
+        self.apps.switch_to_displayed_app()
 
         # # go to settings section
         settings = cost_control.tap_settings()
