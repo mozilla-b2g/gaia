@@ -23,10 +23,10 @@ class System(Base):
         # self.wait_for_element_displayed(*self._notification_toaster_locator)
         self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == 0)
 
-    def wait_for_notification_toaster_not_displayed(self):
+    def wait_for_notification_toaster_not_displayed(self, timeout=10):
         # TODO Re-enable this when Bug 861874
         # self.wait_for_element_not_displayed(*self._notification_toaster_locator)
-        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == -50)
+        self.wait_for_condition(lambda m: m.find_element(*self._notification_toaster_locator).location['y'] == -50, timeout=timeout)
 
     def open_utility_tray(self):
         # TODO Use actions for this
