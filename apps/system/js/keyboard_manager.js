@@ -104,7 +104,7 @@ var KeyboardManager = {
     }, {});
 
     // 3rd-party keyboard apps must be run out-of-process.
-    SettingsListener.observe('keyboard.3rd-party-app.enabled', true,
+    SettingsListener.observe('keyboard.3rd-party-app.enabled', false,
       function(value) {
         this.isOutOfProcessEnabled = value;
       }.bind(this));
