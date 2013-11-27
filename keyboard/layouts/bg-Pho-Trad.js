@@ -1,5 +1,6 @@
-Keyboards.bg = {
-  menuLabel: 'Български',
+Keyboards['bg-Pho-Trad'] = {
+  label: 'Bulgarian (Phonetic)',
+  menuLabel: 'Български (Фонетична)',
   types: ['text', 'url', 'email'],
   imEngine: 'latin',
   autoCorrectLanguage: 'bg',
