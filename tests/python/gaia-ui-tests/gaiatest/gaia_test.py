@@ -1038,3 +1038,22 @@ class GaiaEnduranceTestCase(GaiaTestCase, EnduranceTestCaseMixin, MemoryEnduranc
             if self.yocto:
                 log_file.write('%s\n' % power_data_json)
 
+    def close_app(self):
+        # Close the current app (self.app) by using the home button
+        self.marionette.switch_to_frame()
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
+
+        # Bring up the cards view
+        _cards_view_locator = ('id', 'cards-view')
+        self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('holdhome'));")
+        self.wait_for_element_displayed(*_cards_view_locator)
+
+        # Sleep a bit
+        time.sleep(5)
+
+        # Tap the close icon for the current app
+        locator_part_two = '#cards-view li.card[data-origin*="%s"] .close-card' % self.app_under_test.lower()
+        _close_button_locator = ('css selector', locator_part_two)
+        close_card_app_button = self.marionette.find_element(*_close_button_locator)
+        close_card_app_button.tap()
+
