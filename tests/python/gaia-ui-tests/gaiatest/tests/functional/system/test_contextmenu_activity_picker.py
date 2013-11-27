@@ -12,9 +12,10 @@ class TestContextmenuActivityPicker(GaiaTestCase):
         self.ui_tests = UiTests(self.marionette)
         self.ui_tests.launch()
 
-        contextmenu_page = self.ui_tests.tap_contextmenu_option()
+        context_menu_page = self.ui_tests.tap_context_menu_option()
+        context_menu_page.switch_to_frame()
 
-        activities_list = contextmenu_page.long_press_contextmenu_body()
+        activities_list = context_menu_page.long_press_context_menu_body()
 
         self.assertTrue(activities_list.is_menu_visible)
         self.assertTrue(activities_list.options_count == 4)

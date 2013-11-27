@@ -5,13 +5,15 @@
 from gaiatest import GaiaTestCase
 from gaiatest.apps.ui_tests.app import UiTests
 
+
 class TestUrlKeyboard(GaiaTestCase):
 
     def test_url_keyboard(self):
         self.ui_tests = UiTests(self.marionette)
         self.ui_tests.launch()
-        self.ui_tests.tap_keyboard_option()
-        keyboard_page = self.ui_tests.switch_to_keyboard_page_frame()
+
+        keyboard_page = self.ui_tests.tap_keyboard_option()
+        keyboard_page.switch_to_frame()
 
         # tap the field "input type=url"
         keyboard = keyboard_page.tap_url_input()

@@ -1,6 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 import os
 
 from gaiatest import GaiaTestCase
@@ -32,17 +33,21 @@ class TestPersonaStandard(GaiaTestCase):
         """
         uitests = UiTests(self.marionette)
         uitests.launch()
-        uitests.tap_mozId_button()
+        moz_id = uitests.tap_moz_id_button()
+        moz_id.switch_to_frame()
 
-        persona = uitests.launch_standard_sign_in()
+        persona = moz_id.launch_standard_sign_in()
         persona.login(self.user.email, self.user.password)
 
-        uitests.switch_to_mozId_frame()
-        uitests.wait_for_login_event()
-        uitests.tap_logout_button()
-        uitests.wait_for_logout_event()
+        self.marionette.switch_to_frame()
+        self.marionette.switch_to_frame(uitests.app.frame)
 
-        assertion = uitests.get_assertion()
+        moz_id.switch_to_frame()
+        moz_id.wait_for_login_event()
+        moz_id.tap_logout_button()
+        moz_id.wait_for_logout_event()
+
+        assertion = moz_id.get_assertion()
         assertionUtil = AssertionUtil()
         unpacked = assertionUtil.unpackAssertion(assertion)
 
@@ -53,4 +58,3 @@ class TestPersonaStandard(GaiaTestCase):
         self.assertEqual(verified['status'], 'okay')
         self.assertEqual(verified['email'], self.user.email)
         self.assertEqual(verified['audience'], AUDIENCE)
-
