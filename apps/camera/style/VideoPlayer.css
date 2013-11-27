@@ -71,7 +71,7 @@
   height: 10rem;
   padding: 0;
   margin: 0;
-  background: url("images/video_pause_button.png") no-repeat center center / 9.6rem,
+  background: url("images/video_pause_button.png") no-repeat center center / 3rem,
               rgba(0,0,0,.5);
   border-radius: 5.3rem;
   border: solid #ccc 0.3rem;
@@ -80,7 +80,7 @@
 }
 
 .videoPlayerPauseButton:active {
-  background: url("images/video_pause_button.png") no-repeat center center / 9.6rem,
+  background: url("images/video_pause_button.png") no-repeat center center / 3rem,
               url("images/video_play_focus.png") no-repeat center center / 10.6rem
 }
 
