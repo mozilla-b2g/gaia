@@ -66,6 +66,7 @@ function ComposeCard(domNode, mode, args) {
   this.composer = args.composer;
   this.composerData = args.composerData || {};
   this.activity = args.activity;
+  this.sending = false;
 
   domNode.getElementsByClassName('cmp-back-btn')[0]
     .addEventListener('click', this.onBack.bind(this), false);
@@ -255,11 +256,24 @@ ComposeCard.prototype = {
         return false;
     };
 
+    // We need to save / ask about deleting the draft if:
+    // There's any recipients listed, there's a subject, there's anything in the
+    // body, there are attachments, or we already created a draft for this
+    // guy in which case we really want to provide the option to delete the
+    // draft.
     return (this.subjectNode.value || this.textBodyNode.value ||
-        !checkAddressEmpty());
+        !checkAddressEmpty() || this.composer.attachments.length ||
+        this.composer.hasDraft);
   },
 
-  _saveDraft: function() {
+  _saveDraft: function(reason) {
+    // If the send process is happening, suppress automatic saves.
+    // (Manual saves should not happen when 'sending' is true, but breaking
+    // auto-saves would be very bad form.)
+    if (this.sending && reason === 'automatic') {
+      console.log('compose: skipping autosave because send in progress');
+      return;
+    }
     this._saveStateToComposer();
     this.composer.saveDraft();
   },
@@ -576,24 +590,29 @@ ComposeCard.prototype = {
     }).bind(this);
 
     if (!this._saveNeeded()) {
+      console.log('compose: back: no save needed, exiting without prompt');
       goBack();
       return;
     }
 
+    console.log('compose: back: save needed, prompting');
     var menu = cmpDraftMenuNode.cloneNode(true);
     document.body.appendChild(menu);
     var formSubmit = (function(evt) {
       document.body.removeChild(menu);
       switch (evt.explicitOriginalTarget.id) {
         case 'cmp-draft-save':
-          this._saveDraft();
+          console.log('compose: explicit draft save on exit');
+          this._saveDraft('explicit');
           goBack();
           break;
         case 'cmp-draft-discard':
+          console.log('compose: explicit draft discard on exit');
           this.composer.abortCompositionDeleteDraft();
           goBack();
           break;
         case 'cmp-draft-cancel':
+          console.log('compose: canceled compose exit');
           break;
       }
       return false;
@@ -606,7 +625,8 @@ ComposeCard.prototype = {
    */
   onVisibilityChange: function() {
     if (document.hidden && this._saveNeeded()) {
-      this._saveDraft();
+      console.log('compose: autosaving; we became hidden and save needed.');
+      this._saveDraft('automatic');
     }
   },
 
@@ -621,8 +641,15 @@ ComposeCard.prototype = {
     var sendingTemplate = cmpSendingContainerNode;
     domNode.appendChild(sendingTemplate);
 
+    // Indicate we are sending so we can suppress any of our auto-save logic
+    // from trying to fire.
+    this.sending = true;
+
+    // Initiate the send.
+    console.log('compose: initiating send');
     this.composer.finishCompositionSendMessage(
       function callback(error , badAddress, sentDate) {
+        console.log('compose: callback triggered, err:', error);
         var activityHandler = function() {
           if (activity) {
             // Just mention the action completed, but do not give
@@ -632,12 +659,12 @@ ComposeCard.prototype = {
           }
         };
 
-        if (self.sentAudioEnabled) {
-          self.sentAudio.play();
-        }
-
         domNode.removeChild(sendingTemplate);
         if (error) {
+          // Indicate we are no longer sending so that if the user goes on to
+          // change the message, we do save it.
+          this.sending = false;
+
           // TODO: We don't have the resend now, so we use alert dialog
           //       before resend is enabled.
           // var dialog = cmpSendFailedConfirmNode.cloneNode(true);
@@ -650,6 +677,11 @@ ComposeCard.prototype = {
           alert(mozL10n.get('compose-send-message-failed'));
           return;
         }
+
+        if (self.sentAudioEnabled) {
+          self.sentAudio.play();
+        }
+
         activityHandler();
         this._closeCard();
       }.bind(this)
@@ -684,6 +716,7 @@ ComposeCard.prototype = {
     event.stopPropagation();
 
     try {
+      console.log('compose: attach: triggering web activity');
       var activity = new MozActivity({
         name: 'pick',
         data: {
@@ -693,6 +726,7 @@ ComposeCard.prototype = {
       });
       activity.onsuccess = (function success() {
         var name = activity.result.blob.name || activity.result.name;
+        console.log('compose: attach activity succes:', name);
 
         // It's possible that the name field is empty
         // we should generate a default name for it, please see

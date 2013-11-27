@@ -842,6 +842,8 @@ MessageReaderCard.prototype = {
 
           if (attachment.isDownloaded)
             state = 'downloaded';
+          else if (!attachment.isDownloadable)
+            state = 'nodownload';
           else if (MimeMapper.isSupportedType(attachment.mimetype) ||
                    MimeMapper.isSupportedExtension(extension))
             state = 'downloadable';
