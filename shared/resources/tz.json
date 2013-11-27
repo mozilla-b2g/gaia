@@ -141,7 +141,6 @@
   {"cc":"US", "offset":"-09:00,-08:00", "city":"Juneau"},
   {"cc":"US", "offset":"-05:00,-04:00", "city":"Kentucky/Louisville"},
   {"cc":"US", "offset":"-05:00,-04:00", "city":"Kentucky/Monticello"},
-  {"cc":"US", "offset":"-06:00,-05:00", "city":"Knox_IN", "id":"America/Indiana/Knox"},
   {"cc":"BQ", "offset":"-04:00,-04:00", "city":"Kralendijk", "id":"America/Curacao"},
   {"cc":"BO", "offset":"-04:00,-04:00", "city":"La_Paz"},
   {"cc":"PE", "offset":"-05:00,-05:00", "city":"Lima"},
