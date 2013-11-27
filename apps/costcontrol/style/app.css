@@ -51,7 +51,7 @@ input.error {
 
 .window {
   opacity: 1.0;
-  background: #fff;
+  background: #f4f4f4;
   transition: opacity ease 0.2s;
 }
 
@@ -74,7 +74,7 @@ input.error {
 
 .view {
   top: 9.3rem;
-  background: url(images/app/ui/pattern.png) repeat left top;
+  background: #f4f4f4;
   transform: translate(0, 0);
   transition: transform 0.5s ease,
               opacity 0.2s ease;
