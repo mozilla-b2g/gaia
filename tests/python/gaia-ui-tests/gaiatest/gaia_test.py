@@ -714,13 +714,6 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
 
 
 class GaiaTestCase(MarionetteTestCase, B2GTestCaseMixin):
-
-    _script_timeout = 60000
-    _search_timeout = 10000
-
-    # deafult timeout in seconds for the wait_for methods
-    _default_timeout = 30
-
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
         self.yocto = kwargs.pop('yocto', False)
