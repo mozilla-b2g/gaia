@@ -746,8 +746,14 @@ class GaiaTestCase(MarionetteTestCase):
                 self.device.manager.removeDir('/data/b2g/mozilla')
             self.device.start_b2g()
 
-        if not self.marionette.timeout:
-            self.marionette.set_search_timeout(10000)
+        # we need to set the default timeouts because we may have a new session
+        if self.marionette.timeout is not None:
+            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, self.marionette.timeout)
+            self.marionette.timeouts(self.marionette.TIMEOUT_SCRIPT, self.marionette.timeout)
+            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, self.marionette.timeout)
+        else:
+            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
+            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
 
         self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
@@ -805,7 +811,7 @@ class GaiaTestCase(MarionetteTestCase):
                 self.data_layer.disable_wifi()
 
             # remove data
-            self.data_layer.remove_all_contacts(self._script_timeout)
+            self.data_layer.remove_all_contacts()
 
             # reset to home screen
             self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
