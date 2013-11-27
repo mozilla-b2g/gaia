@@ -121,8 +121,10 @@ var ModalDialog = {
       case 'home':
       case 'holdhome':
         // Inline activity, which origin is different from foreground app
+        // or the homescreen app is displayed
         if (this.isVisible() &&
-            this.currentOrigin != WindowManager.getDisplayedApp())
+            (this.currentOrigin != WindowManager.getDisplayedApp() ||
+             this.currentOrigin == HomescreenLauncher.origin))
           this.cancelHandler();
         break;
 
