@@ -35,11 +35,11 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
     {
       transition: opacity .4s ease;
     }
-    .evmeScope #collection .content,
+    .evmeScope #collection > .content,
     .evmeScope #collection .header {
       transition: transform 380ms ease;
     }
-    .evmeScope #collection .content {
+    .evmeScope #collection > .content {
       position: absolute;
       top: 5.4rem;
       bottom: 0;
@@ -50,11 +50,11 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
       /* +0.8rem to accomodate for the arrow that goes out of the content */
       transform: translateY(calc(100% + 0.8rem));
     }
-    .evmeScope #collection.visible .content {
+    .evmeScope #collection.visible > .content {
       transform: translateY(0%);
     }
 
-    .evmeScope #collection .content:before {
+    .evmeScope #collection > .content:before {
       content: "";
       position: absolute;
       left: 4rem;

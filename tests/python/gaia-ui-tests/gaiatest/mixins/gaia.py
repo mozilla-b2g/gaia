@@ -71,7 +71,7 @@ class GaiaTestRunnerMixin(object):
         if not (self.testvars.get('acknowledged_risks') is True or os.environ.get('GAIATEST_ACKNOWLEDGED_RISKS')):
             url = 'https://developer.mozilla.org/en-US/docs/Gaia_Test_Runner#Risks'
             heading = 'Acknowledge risks'
-            message = 'These tests are destructive and will remove data from the target Firefox OS instance as well ' \
+            message = 'These tests are destructive and may remove data from the target Firefox OS instance as well ' \
                       'as using services that may incur costs! Before you can run these tests you must follow the ' \
                       'steps to indicate you have acknowledged the risks detailed at the following address:'
             print '\n' + '*' * 5 + ' %s ' % heading.upper() + '*' * (width - len(heading) - 7)

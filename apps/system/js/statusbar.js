@@ -64,7 +64,7 @@ var StatusBar = {
     'battery', 'wifi', 'data', 'flight-mode', 'network-activity', 'tethering',
     'alarm', 'bluetooth', 'mute', 'headphones', 'bluetooth-headphones',
     'bluetooth-transferring', 'recording', 'sms', 'geolocation', 'usb', 'label',
-    'system-downloads', 'call-forwarding', 'playing'],
+    'system-downloads', 'call-forwarding', 'playing', 'keyboard'],
 
   /* Timeout for 'recently active' indicators */
   kActiveIndicatorTimeout: 5 * 1000,
@@ -180,6 +180,8 @@ var StatusBar = {
     window.addEventListener('attentionscreenhide', this);
     // Listen to 'screenchange' from screen_manager.js
     window.addEventListener('screenchange', this);
+    window.addEventListener('appwillopen', this);
+    window.addEventListener('homescreenopening', this);
 
     // mozChromeEvent fired from Gecko is earlier been loaded,
     // so we use mozAudioChannelManager to
@@ -209,6 +211,10 @@ var StatusBar = {
     window.addEventListener('lock', this);
     window.addEventListener('unlock', this);
     window.addEventListener('lockpanelchange', this);
+
+    // Listen to the IME switcher shows/hide
+    window.addEventListener('keyboardimeswitchershow', this);
+    window.addEventListener('keyboardimeswitcherhide', this);
 
     this.systemDownloadsCount = 0;
     this.setActive(true);
@@ -287,6 +293,14 @@ var StatusBar = {
         }).bind(this));
         break;
 
+      case 'keyboardimeswitchershow':
+        this.toggleKeyboardLabel(true);
+        break;
+
+      case 'keyboardimeswitcherhide':
+        this.toggleKeyboardLabel(false);
+        break;
+
       case 'mozChromeEvent':
         switch (evt.detail.type) {
           case 'geolocation-status':
@@ -320,6 +334,13 @@ var StatusBar = {
       case 'moznetworkupload':
       case 'moznetworkdownload':
         this.update.networkActivity.call(this);
+        break;
+
+      case 'appwillopen':
+        this.element.classList.add('semi-transparent');
+        break;
+      case 'homescreenopening':
+        this.element.classList.remove('semi-transparent');
         break;
     }
   },
@@ -806,6 +827,11 @@ var StatusBar = {
     icon.hidden = !enable;
   },
 
+  toggleKeyboardLabel: function sb_toggleKeyboardLabel(enable) {
+    var icon = this.icons.keyboard;
+    icon.hidden = !enable;
+  },
+
   updateNotification: function sb_updateNotification(count) {
     var icon = this.icons.notification;
     if (!count) {
@@ -895,5 +921,8 @@ if (navigator.mozL10n.readyState == 'complete' ||
     navigator.mozL10n.readyState == 'interactive') {
   StatusBar.init();
 } else {
-  window.addEventListener('localized', StatusBar.init.bind(StatusBar));
+  window.addEventListener('localized', function statusbar_init() {
+    window.removeEventListener('localized', statusbar_init);
+    StatusBar.init();
+  });
 }

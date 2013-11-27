@@ -46,6 +46,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
     elButtonClear.addEventListener('touchstart', function onTouchStart(e) {
       e.preventDefault();
       e.stopPropagation();
+      clearTimeouts();
       clearButtonClick();
     });
 
@@ -153,9 +154,13 @@ Evme.Searchbar = new function Evme_Searchbar() {
     Evme.EventHandler.trigger(NAME, 'clearButtonClick');
   }
 
-  function inputChanged(e) {
+  function clearTimeouts() {
     window.clearTimeout(timeoutPause);
     window.clearTimeout(timeoutIdle);
+  }
+
+  function inputChanged(e) {
+    clearTimeouts();
 
     var currentValue = el.value;
 

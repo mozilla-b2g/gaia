@@ -483,7 +483,7 @@ $(PROFILE_FOLDER)/installed-extensions.json: build/additional-extensions.json $(
 ifeq ($(SIMULATOR),1)
 	# Prevent installing external firefox helper addon for the simulator
 else ifeq ($(DESKTOP),1)
-	python build/additional-extensions.py --gaia-dir="$(CURDIR)" --profile-dir="$(PROFILE_FOLDER)"
+	@$(call run-js-command, additional-extensions)
 endif
 
 profile-dir:

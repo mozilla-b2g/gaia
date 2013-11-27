@@ -12,6 +12,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     position: absolute;
     top: 0rem;
     left: 1.3rem;
+    right: 4rem;
     color: #fff;
     z-index: 50;
     height: 3rem;
@@ -75,7 +76,7 @@ body:not(.evme-keyboard-visible) .empty-query #helper-header {
     #helper-rapper.close ul {
         display: none;
     }
-    
+
     #helper-tip {
         position: absolute;
         left: 2.2rem;

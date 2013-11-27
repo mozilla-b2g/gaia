@@ -803,14 +803,6 @@ var WindowManager = (function() {
     return frame;
   }
 
-  function maybeSetFrameIsCritical(iframe, origin) {
-    // XXX Those urls needs to be built dynamically.
-    if (origin.startsWith('app://communications.gaiamobile.org/dialer') ||
-        origin.startsWith('app://clock.gaiamobile.org')) {
-      iframe.setAttribute('mozapptype', 'critical');
-    }
-  }
-
   function appendFrame(origFrame, origin, url, name, manifest, manifestURL,
                        expectingSystemMessage, stayBackground) {
     // Create the <iframe mozbrowser mozapp> that hosts the app

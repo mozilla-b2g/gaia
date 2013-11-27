@@ -97,6 +97,10 @@ li:active:not([aria-disabled="true"]) .menu-item::before,
   background-position: -12rem -6rem;
 }
 
+#menuItem-simManager::before {
+  background-position: 0 -9rem;
+}
+
 #menuItem-simSecurity::before {
   background-position: 0 -9rem;
 }
@@ -216,7 +220,7 @@ aside.connecting {
 .bluetooth-device {
   background-repeat: no-repeat;
   background-position: right 3rem top 50%; /* same position as for Wi-Fi signal levels */
-  padding-right: 3rem;
+  padding-right: 2rem;
 }
 
 .bluetooth-device:before {
@@ -225,7 +229,7 @@ aside.connecting {
   height: 3rem;
   background: url(images/bluetooth_sprite.png) no-repeat 3rem 3rem / 39rem;
   position: absolute;
-  right: 3rem;
+  right: 0;
   top: 50%;
   margin-top: -1.5rem;
 }
@@ -325,15 +329,15 @@ aside.connecting {
 }
 
 .bluetooth-type-printer:before {
-  background-position: -30rem -30rem;
+  background-position: -30rem -3rem;
 }
 
 .bluetooth-type-scanner:before {
-  background-position: -33rem -30rem;
+  background-position: -33rem -3rem;
 }
 
 .bluetooth-type-video-display:before {
-  background-position: -36rem -30rem;
+  background-position: -36rem -3rem;
 }
 
 

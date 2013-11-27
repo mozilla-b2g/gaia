@@ -160,7 +160,7 @@ var SimFdnLock = {
     this.currentContact = contact;
     this.fdnActionMenuName.textContent = contact.name;
     this.fdnActionMenuNumber.textContent = contact.number;
-    delete this.fdnActionMenu.hidden;
+    this.fdnActionMenu.hidden = false;
   },
 
   hideActionMenu: function() {

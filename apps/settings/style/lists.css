@@ -147,6 +147,7 @@ ul li > label.pack-switch {
   width: 100%;
   height: 100%;
   margin: 0;
+  overflow: visible;
 }
 
 ul li > label.pack-checkbox > span:after,

@@ -1,0 +1,55 @@
+<element name="sim-manager" extends="section">
+  <template>
+    <header>
+      <a href="#root"><span class="icon icon-back">back</span></a>
+      <h1 data-l10n-id="simManager">SIM manager</h1>
+    </header>
+    <div>
+      <ul id="sim-card-container"></ul>
+      <header>
+        <h2>SIM settings</h2>
+      </header>
+      <ul class="sim-manager-select-list">
+        <li>
+          <p data-l10n-id="sim-manager-outgoing-call">Outgoing call</p>
+          <p data-l10n-id="sim-manager-outgoing-call-desc" class="explanation">Calls will be sent from</p>
+          <span class="button icon icon-dialog">
+            <select id="sim-manager-outgoing-call-select"></select>
+          </span>
+        </li>
+        <li>
+          <p data-l10n-id="sim-manager-outgoing-messages">Outgoing messages</p>
+          <p data-l10n-id="sim-manager-outgoing-messages-desc" class="explanation">SMS will be sent from</p>
+          <span class="button icon icon-dialog">
+            <select id="sim-manager-outgoing-messages-select"></select>
+          </span>
+        </li>
+        <li>
+          <p data-l10n-id="sim-manager-outgoing-data">Data</p>
+          <p data-l10n-id="sim-manager-outgoing-data-desc" class="explanation">Internet connection, MMS and A-GPS</p>
+          <span class="button icon icon-dialog">
+            <select id="sim-manager-outgoing-data-select"></select>
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <script src="shared/js/template.js"></script>
+    <script src="js/simcard_manager_simcard_helper.js"></script>
+    <script src="js/simcard_manager_settings_helper.js"></script>
+    <script src="js/simcard_manager.js"></script>
+
+    <div id="sim-card-tmpl" hidden>
+      <!--
+      <li class="sim-card sim-card-${sim-index}">
+        <div class="sim-card-icon"></div>
+        <div class="information-container">
+          <p class="sim-card-name"></p>
+          <p class="sim-card-operator"></p>
+          <p class="sim-card-number"></p>
+        </div>
+      </li>
+      -->
+    </div>
+  </template>
+</element>

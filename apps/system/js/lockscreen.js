@@ -1071,7 +1071,7 @@ var LockScreen = {
       // 'notSearching', 'searching', 'denied', 'registered',
       // where the latter three mean the phone is trying to grab the network.
       // See https://bugzilla.mozilla.org/show_bug.cgi?id=777057
-      if ('state' in voice && voice.state == 'notSearching') {
+      if (voice && 'state' in voice && voice.state == 'notSearching') {
         updateConnstateLine1('noNetwork');
         return;
       }

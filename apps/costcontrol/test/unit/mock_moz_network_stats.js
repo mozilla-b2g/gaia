@@ -1,3 +1,5 @@
+requireApp('costcontrol/test/unit/mock_all_network_interfaces.js');
+
 var MockMozNetworkStats = (function() {
   var result1 = {
     'manifestURL': null,
@@ -68,7 +70,11 @@ var MockMozNetworkStats = (function() {
     WIFI: 0,
     MOBILE: 1,
     clearAllStats: {},
-    clearStats: function clearStats(networkInterface) {},
+    clearStats: function clearStats(networkInterface) {
+      return new MockGetSamples({
+        error: result1
+      });
+    },
     getSamples: function getSamples(networkInterface, start, end, url) {
       if (networkInterface.type === 0) {
         return new MockGetSamples({
@@ -77,6 +83,11 @@ var MockMozNetworkStats = (function() {
       }
       return new MockGetSamples({
         result: result2
+      });
+    },
+    getAvailableNetworks: function getAvailableNetworks() {
+      return new MockGetSamples({
+        result: MockAllNetworkInterfaces
       });
     }
   };

@@ -1,8 +1,44 @@
 
 /**
- * Make our TCPSocket implementation look like node's net library.
+ * Remoted network API that tries to look like node.js's "net" API.  We are
+ * expected/required to run in a worker thread where we don't have direct
+ * access to mozTCPSocket so everything has to get remitted to the main thread.
+ * Our counterpart is mailapi/worker-support/net-main.js
  *
- * We make sure to support:
+ *
+ * ## Sending lots of data: flow control, Blobs ##
+ *
+ * mozTCPSocket provides a flow-control mechanism (the return value to send
+ * indicates whether we've crossed a buffering boundary and 'ondrain' tells us
+ * when all buffered data has been sent), but does not yet support enqueueing
+ * Blobs for processing (which is part of the proposed standard at
+ * http://www.w3.org/2012/sysapps/raw-sockets/).  Also, the raw-sockets spec
+ * calls for generating the 'drain' event once our buffered amount goes back
+ * under the internal buffer target rather than waiting for it to hit zero like
+ * mozTCPSocket.
+ *
+ * Our main desire right now for flow-control is to avoid using a lot of memory
+ * and getting killed by the OOM-killer.  As such, flow control is not important
+ * to us if we're just sending something that we're already keeping in memory.
+ * The things that will kill us are giant things like attachments (or message
+ * bodies we are quoting/repeating, potentially) that we are keeping as Blobs.
+ *
+ * As such, rather than echoing the flow-control mechanisms over to this worker
+ * context, we just allow ourselves to write() a Blob and have the net-main.js
+ * side take care of streaming the Blobs over the network.
+ *
+ * Note that successfully sending a lot of data may entail holding a wake-lock
+ * to avoid having the network device we are using turned off in the middle of
+ * our sending.  The network-connection abstraction is not currently directly
+ * involved with the wake-lock management, but I could see it needing to beef up
+ * its error inference in terms of timeouts/detecting disconnections so we can
+ * avoid grabbing a wi-fi wake-lock, having our connection quietly die, and then
+ * we keep holding the wi-fi wake-lock for much longer than we should.
+ *
+ * ## Supported API Surface ##
+ *
+ * We make sure to expose the following subset of the node.js API because we
+ * have consumers that get upset if these do not exist:
  *
  * Attributes:
  * - encrypted (false, this is not the tls byproduct)
@@ -64,8 +100,40 @@ NetSocket.prototype.setTimeout = function() {
 };
 NetSocket.prototype.setKeepAlive = function(shouldKeepAlive) {
 };
-NetSocket.prototype.write = function(buffer) {
-  this._sendMessage('write', [buffer.buffer, buffer.byteOffset, buffer.length]);
+// The semantics of node.js's socket.write does not take ownership and that's
+// how our code uses it, so we can't use transferrables by default.  However,
+// there is an optimization we want to perform related to Uint8Array.subarray().
+//
+// All the subarray does is create a view on the underlying buffer.  This is
+// important and notable because the structured clone implementation for typed
+// arrays and array buffers is *not* clever; it just serializes the entire
+// underlying buffer and the typed array as a view on that.  (This does have
+// the upside that you can transfer a whole bunch of typed arrays and only one
+// copy of the buffer.)  The good news is that ArrayBuffer.slice() does create
+// an entirely new copy of the buffer, so that works with our semantics and we
+// can use that to transfer only what needs to be transferred.
+NetSocket.prototype.write = function(u8array) {
+  if (u8array instanceof Blob) {
+    // We always send blobs in their entirety; you should slice the blob and
+    // give us that if that's what you want.
+    this._sendMessage('write', [u8array]);
+    return;
+  }
+
+  var sendArgs;
+  // Slice the underlying buffer and transfer it if the array is a subarray
+  if (u8array.byteOffset !== 0 ||
+      u8array.length !== u8array.buffer.byteLength) {
+    var buf = u8array.buffer.slice(u8array.byteOffset,
+                                   u8array.byteOffset + u8array.length);
+    this._sendMessage('write',
+                      [buf, 0, buf.byteLength],
+                      [buf]);
+  }
+  else {
+    this._sendMessage('write',
+                      [u8array.buffer, u8array.byteOffset, u8array.length]);
+  }
 };
 NetSocket.prototype.upgradeToSecure = function() {
   this._sendMessage('upgradeToSecure', []);
@@ -433,11 +501,13 @@ define('pop3/transport',['exports'], function(exports) {
 define('mailapi/imap/imapchew',
   [
     'mimelib',
+    'mailapi/db/mail_rep',
     '../mailchew',
     'exports'
   ],
   function(
     $mimelib,
+    mailRep,
     $mailchew,
     exports
   ) {
@@ -597,7 +667,7 @@ function chewStructure(msg) {
 
     function makePart(partInfo, filename) {
 
-      return {
+      return mailRep.makeAttachmentPart({
         name: filename || 'unnamed-' + (++unnamedPartCounter),
         contentId: partInfo.id ? stripArrows(partInfo.id) : null,
         type: (partInfo.type + '/' + partInfo.subtype).toLowerCase(),
@@ -611,11 +681,11 @@ function chewStructure(msg) {
         textFormat: (partInfo.params && partInfo.params.format &&
                      partInfo.params.format.toLowerCase()) || undefined
          */
-      };
+      });
     }
 
     function makeTextPart(partInfo) {
-      return {
+      return mailRep.makeBodyPart({
         type: partInfo.subtype,
         part: partInfo.partID,
         sizeEstimate: partInfo.size,
@@ -631,7 +701,7 @@ function chewStructure(msg) {
         // the information on the bodyRep directly?
         _partInfo: partInfo.size ? partInfo : null,
         content: ''
-      };
+      });
     }
 
     if (disposition === 'attachment') {
@@ -731,7 +801,7 @@ exports.chewHeaderAndBodyStructure =
   var parts = chewStructure(msg);
   var rep = {};
 
-  rep.header = {
+  rep.header = mailRep.makeHeaderInfo({
     // the FolderStorage issued id for this message (which differs from the
     // IMAP-server-issued UID so we can do speculative offline operations like
     // moves).
@@ -762,17 +832,17 @@ exports.chewHeaderAndBodyStructure =
 
     // we lazily fetch the snippet later on
     snippet: null
-  };
+  });
 
 
-  rep.bodyInfo = {
+  rep.bodyInfo = mailRep.makeBodyInfo({
     date: msg.date,
     size: 0,
     attachments: parts.attachments,
     relatedParts: parts.relatedParts,
     references: msg.msg.references,
     bodyReps: parts.bodyReps
-  };
+  });
 
   return rep;
 };
@@ -1035,10 +1105,10 @@ return {
 
 define('pop3/pop3',['module', 'exports', 'rdcommon/log', 'net', 'crypto',
         './transport', 'mailparser/mailparser', '../mailapi/imap/imapchew',
-        './mime_mapper'],
+        './mime_mapper', '../mailapi/allback'],
 function(module, exports, log, net, crypto,
          transport, mailparser, imapchew,
-         mimeMapper) {
+         mimeMapper, allback) {
 
   /**
    * The Pop3Client modules and classes are organized according to
@@ -1558,8 +1628,20 @@ function(module, exports, log, net, crypto,
   /**
    * Fetche the headers and snippets for all messages. Only retrieves
    * messages for which filterFunc(uidl) returns true.
+   *
+   * @param {object} opts
+   * @param {function(uidl)} opts.filter Only store messages matching filter
+   * @param {function(evt)} opts.progress Progress callback
+   * @param {int} opts.checkpointInterval Call `checkpoint` every N messages
+   * @param {function(next)} opts.checkpoint Callback to periodically save state
+   * @param {function(err, numSynced)} cb
    */
-  Pop3Client.prototype.listMessages = function(filterFunc, progressCb, cb) {
+  Pop3Client.prototype.listMessages = function(opts, cb) {
+    var filterFunc = opts.filter;
+    var progressCb = opts.progress;
+    var checkpointInterval = opts.checkpointInterval || null;
+    var checkpoint = opts.checkpoint;
+
     // Get a mapping of number->UIDL.
     this._loadMessageList(function(err, unfilteredMessages) {
       if (err) { cb && cb(err); return; }
@@ -1587,41 +1669,58 @@ function(module, exports, log, net, crypto,
         console.log('POP3: ' + m.size + ' bytes: ' + m.uidl);
       });
 
-      // Download each of them.
-      var numLeft = messages.length;
-      var numErrors = 0;
-      if (numLeft === 0) {
-        cb && cb(null, 0);
-        return;
+      var totalMessages = messages.length;
+      // If we don't provide a checkpoint interval, just do all
+      // messages at once.
+      if (!checkpointInterval) {
+        checkpointInterval = totalMessages;
       }
-      messages.forEach(function(m) {
-        // If any of the messages fail to be retrieved, we abort. In
-        // theory, this should be fatal; in either case, we must only
-        // call the callback once.
-        this.downloadPartialMessageByNumber(
-          m.number,
-          function(err, msg) {
-            --numLeft;
-            if (numErrors === 0 && err) {
-              cb && cb(err);
-              numErrors++;
-              return;
-            } else if (numErrors) {
-              return; // we've already called the callback with an error
-            } else {
-              bytesFetched += m.size;
-              progressCb && progressCb({
-                totalBytes: totalBytes,
-                bytesFetched: bytesFetched,
-                size: m.size,
-                message: msg
-              });
-              if (numLeft === 0) {
-                cb && cb(null, messages.length);
-              }
-            }
-          }.bind(this));
-      }.bind(this));
+
+      // Download all of the messages in batches.
+      var nextBatch = function() {
+        console.log('POP3: Next batch. Messages left: ' + messages.length);
+        // If there are no more messages, we're done.
+        if (!messages.length) {
+          cb && cb(null, totalMessages);
+          return;
+        }
+
+        var batch = messages.splice(0, checkpointInterval);
+        var latch = allback.latch();
+
+        // Trigger a download for every message in the batch.
+        batch.forEach(function(m, idx) {
+          var messageDone = latch.defer();
+          this.downloadPartialMessageByNumber(m.number, function(err, msg) {
+            bytesFetched += m.size;
+            progressCb && progressCb({
+              totalBytes: totalBytes,
+              bytesFetched: bytesFetched,
+              size: m.size,
+              message: msg
+            });
+            messageDone(err);
+          });
+        }.bind(this));
+
+        // When all messages in this batch have completed, trigger the
+        // next batch to begin download. If `checkpoint` is provided,
+        // we'll wait for it to tell us to continue (so that we can
+        // save the database periodically or perform other
+        // housekeeping during sync).
+        latch.then(function(results) {
+          console.log('POP3: Checkpoint.');
+          if (checkpoint) {
+            checkpoint(nextBatch);
+          } else {
+            nextBatch();
+          }
+        });
+      }.bind(this);
+
+      // Kick it off, maestro.
+      nextBatch();
+
     }.bind(this));
   }
 

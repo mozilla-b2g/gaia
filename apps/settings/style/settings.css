@@ -76,7 +76,7 @@ section[role="region"] > div {
  */
 
 .explanation {
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 3rem;
   font-style: italic;
   font-size: 1.4rem;
   color: #505859;
@@ -217,6 +217,9 @@ section li.password > p {
   line-height: 3.3rem;
 }
 
+#pwd-auth {
+  -moz-user-focus: ignore;
+}
 
 /******************************************************************************
 * Media Storage settings

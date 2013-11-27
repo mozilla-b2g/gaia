@@ -66,7 +66,8 @@ var Settings = (function() {
       vmanager = new ViewManager();
       AutoSettings.addType('data-limit', dataLimitConfigurer);
       AutoSettings.initialize(ConfigManager, vmanager, '#settings-view');
-      configureResets();
+      configureTelephonyReset();
+      configureDataResets();
       addDoneConstrains();
 
       // Update layout when changing plantype
@@ -138,43 +139,71 @@ var Settings = (function() {
   }
 
   // Configure reset dialogs for telephony and data usage
-  function configureResets() {
-    var mode;
-    var dialog = document.getElementById('reset-confirmation-dialog');
+  function configureTelephonyReset() {
+    var telephonyDialog = document.getElementById('reset-telephony-dialog');
 
+    // Button Reset Phone Activity Settings send to confirmation dialog
     var resetTelephonyButton = document.getElementById('reset-telephony');
     resetTelephonyButton.addEventListener('click',
       function _onTelephonyReset() {
-        mode = 'telephony';
-        vmanager.changeViewTo(dialog.id);
+        vmanager.changeViewTo(telephonyDialog.id);
       }
     );
 
-    var resetDataUsage = document.getElementById('reset-data-usage');
-    resetDataUsage.addEventListener('click', function _onTelephonyReset() {
-      mode = 'data-usage';
-      vmanager.changeViewTo(dialog.id);
-    });
-
-    // Reset statistics
-    var ok = dialog.querySelector('.danger');
+    // Reset telephony statistics
+    var ok = telephonyDialog.querySelector('.danger');
     ok.addEventListener('click', function _onAcceptReset() {
-
-      // Reset data usage, take in count spent offsets to fix the charts
-      if (mode === 'data-usage') {
-        resetData();
-      }
-
-      // Reset telephony counters
-      else if (mode === 'telephony') {
-        resetTelephony();
-      }
-
+      resetTelephony();
       updateUI();
       vmanager.closeCurrentView();
     });
 
-    var cancel = dialog.querySelector('.close-reset-dialog');
+    var cancel = telephonyDialog.querySelector('.close-reset-dialog');
+    cancel.addEventListener('click', function _onCancelReset() {
+      vmanager.closeCurrentView();
+    });
+
+  }
+
+  // Configure reset dialogs for telephony and data usage
+  function configureDataResets() {
+    var dataDialog = document.getElementById('reset-data-dialog');
+
+    // Button reset Data Usage Settings send to reset data dialog
+    var resetDataUsage = document.getElementById('reset-data-usage');
+    resetDataUsage.addEventListener('click', function _onDataReset() {
+      vmanager.changeViewTo(dataDialog.id);
+    });
+
+    var resetWifiDataUsage = document.getElementById('reset-data-wifi-usage');
+    resetWifiDataUsage.addEventListener('click',
+      function _onDataReset() {
+        // Reset data wifi, take in count spent offsets to fix the charts
+        resetData('wifi');
+        updateUI();
+        vmanager.closeCurrentView();
+      });
+
+    var resetMobileDataUsage = document.
+                                      getElementById('reset-data-mobile-usage');
+    resetMobileDataUsage.addEventListener('click',
+      function _onDataReset() {
+        // Reset data mobile, take in count spent offsets to fix the charts
+        resetData('mobile');
+        updateUI();
+        vmanager.closeCurrentView();
+      });
+
+    var resetAllDataUsage = document.getElementById('reset-all-data-usage');
+    resetAllDataUsage.addEventListener('click',
+      function _onDataReset() {
+        // Reset all data usage, take in count spent offsets to fix the charts
+        resetData('all');
+        updateUI();
+        vmanager.closeCurrentView();
+      });
+
+    var cancel = dataDialog.querySelector('.close-reset-dialog');
     cancel.addEventListener('click', function _onCancelReset() {
       vmanager.closeCurrentView();
     });

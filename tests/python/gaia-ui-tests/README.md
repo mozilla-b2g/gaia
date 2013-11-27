@@ -94,6 +94,8 @@ Options:
         device back to a common state
     --yocto gather power draw data while running tests 
         (see https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Automated_testing/gaia-ui-tests/Gaia_UI_Tests_Run_Tests#Gathering_Power_Draw_Data)
+    --timeout < time in milliseconds >  to set default timeout values (30s for page load timeout, 
+        10s for search timeout and 10s for script timeout) to a common specified value
 
 Testing on a Device
 ===================

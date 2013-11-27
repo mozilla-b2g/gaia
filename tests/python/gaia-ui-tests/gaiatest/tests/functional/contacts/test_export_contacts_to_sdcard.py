@@ -30,7 +30,7 @@ class TestExportContactsToSDCard(GaiaTestCase):
         contacts_app.tap_select_all()
         contacts_app.tap_export()
 
-        self.assertIn('1/1 friends exported', contacts_app.status_message)
+        self.assertIn('1/1 contacts exported', contacts_app.status_message)
 
         vcf_files = self.data_layer.sdcard_files('.vcf')
 
