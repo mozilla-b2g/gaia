@@ -1,45 +1,98 @@
-/* -*- Mode: js2; js2-basic-offset: 2; indent-tabs-mode: nil -*- */
-/* vim: set ft=javascript sw=2 ts=2 autoindent cindent expandtab: */
-
 'use strict';
 
-// Mock public payment provider JWT
-const mockJWT = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiIxMjM0NTY3ODkiLCJhdWQiOiJNb2NrIFBheW1lbnQgUHJvdmlkZXIiLCJ0eXAiOiJtb2NrXC9wYXltZW50c1wvaW5hcHBcL3YxIiwiZXhwIjoxMzQ1MjU5ODgyLCJpYXQiOjEzNDUyNTYyODIsInJlcXVlc3QiOnsibmFtZSI6IlBpZWNlIG9mIENha2UiLCJkZXNjcmlwdGlvbiI6IlZpcnR1YWwgY2hvY29sYXRlIGNha2UgdG8gZmlsbCB5b3VyIHZpcnR1YWwgdHVtbXkiLCJwcmljZSI6W3siY291bnRyeSI6IlVTIiwiYW1vdW50IjoiNS41MCIsImN1cnJlbmN5IjoiVVNEIn0seyJjb3VudHJ5IjoiQlIiLCJhbW91bnQiOiI4LjUwIiwiY3VycmVuY3kiOiJCUkwifV19fQ.EaXnlL7LUlmYXUTty5ZkUQ7VZeCBa_edi2YXKPnjSl4';
+/*
+  Generated using following settings
+  Use jwt-simple (for nodeJS) if you want to generate other JWTs
+  iss/secret are obtained from http://marketplace-dev.allizom.org
 
-// Invalid typ JWT
-const invalidJWT = 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.IntcImF1ZFwiOiBcImNvbm5lY3QucWEtb3BlbnRlbC0wNC5oaS5pbmV0XCIsIFwiaXNzXCI6IFwiMzRYVjM3QkRSQkJGNEtaQ1M5UVVcIiwgXCJyZXF1ZXN0XCI6IHtcIm5hbWVcIjogXCJQaWNlIG9mIENha2VcIiwgXCJwcmljZVwiOiAxMC41LCBcInByaWNlVGllclwiOiAxLCBcInByb2R1Y3RkYXRhXCI6IFwidHJhbnNhY3Rpb25faWQ9MTJcIiwgXCJjdXJyZW5jeUNvZGVcIjogXCJVU0RcIiwgXCJkZXNjcmlwdGlvblwiOiBcIlZpcnR1YWwgY2hvY29sYXRlIGNha2UgdG8gZmlsbCB5b3VyIHZpcnR1YWwgdHVtbXlcIn0sIFwiZXhwXCI6IDEzNDIwMDMwNzA1MTMsIFwiaWF0XCI6IDEzNDIwMDMwNzQxMTMsIFwidHlwXCI6IFwicGF5bWVudHMvaW5hcHAvdjFcIn0i.I5rFwoBtgyTltMJ_11rHOgcto-HdFbYlIOgVOVSlJe0';
+  var header = {
+    typ: 'JWT',
+    alg: 'HS256'
+  };
+  var payload = {
+    iss: 'ce8bd650-fd98-4660-88bd-4f6fd461bb89',
+    aud: 'marketplace-dev.allizom.org',
+    typ: 'mozilla-dev/payments/pay/v1',
+    iat: 9999999999, // long enough so it will never expire
+    exp: 9999999999, // long enough so it will never expire
+    request: {
+      id: '00000',
+      pricePoint: 1,
+      name: 'testing item',
+      description: 'this is a testing item',
+      postbackURL: 'http://yourapp.com',
+      chargebackURL: 'http://yourapp.com',
+      simulate: {
+        result: 'postback'
+      }
+    }
+  };
+    
+  var secret = 'f7654c7de476318be7afced16b16ab6cb69f3dea3ea4f55' +
+               'ecf735aa575c248c537e2d50ca4f75e723b38c500d5ada4a1';
+*/
 
-var PayTests = {
+function payTest() {
+  var postbackJWT =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjZThiZDY1M' +
+    'C1mZDk4LTQ2NjAtODhiZC00ZjZmZDQ2MWJiODkiLCJhdWQiOiJtYXJrZXR' +
+    'wbGFjZS1kZXYuYWxsaXpvbS5vcmciLCJ0eXAiOiJtb3ppbGxhLWRldi9wY' +
+    'XltZW50cy9wYXkvdjEiLCJpYXQiOjk5OTk5OTk5OTksImV4cCI6OTk5OTk' +
+    '5OTk5OSwicmVxdWVzdCI6eyJpZCI6IjAwMDAwIiwicHJpY2VQb2ludCI6M' +
+    'SwibmFtZSI6InRlc3RpbmcgaXRlbSIsImRlc2NyaXB0aW9uIjoidGhpcyB' +
+    'pcyBhIHRlc3RpbmcgaXRlbSIsInBvc3RiYWNrVVJMIjoiaHR0cDovL3lvd' +
+    'XJhcHAuY29tIiwiY2hhcmdlYmFja1VSTCI6Imh0dHA6Ly95b3VyYXBwLmN' +
+    'vbSIsInNpbXVsYXRlIjp7InJlc3VsdCI6InBvc3RiYWNrIn19fQ.ADpypB' +
+    'CUWdwuVZtT8NLXMs4vndcTOZ3Dga2qrreyTl4';
+  var chargeBackJWT =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjZThiZDY1M' +
+    'C1mZDk4LTQ2NjAtODhiZC00ZjZmZDQ2MWJiODkiLCJhdWQiOiJtYXJrZXR' +
+    'wbGFjZS1kZXYuYWxsaXpvbS5vcmciLCJ0eXAiOiJtb3ppbGxhLWRldi9wY' +
+    'XltZW50cy9wYXkvdjEiLCJpYXQiOjk5OTk5OTk5OTksImV4cCI6OTk5OTk' +
+    '5OTk5OSwicmVxdWVzdCI6eyJpZCI6IjAwMDAwIiwicHJpY2VQb2ludCI6M' +
+    'SwibmFtZSI6InRlc3RpbmcgaXRlbSIsImRlc2NyaXB0aW9uIjoidGhpcyB' +
+    'pcyBhIHRlc3RpbmcgaXRlbSIsInBvc3RiYWNrVVJMIjoiaHR0cDovL3lvd' +
+    'XJhcHAuY29tIiwiY2hhcmdlYmFja1VSTCI6Imh0dHA6Ly95b3VyYXBwLmN' +
+    'vbSIsInNpbXVsYXRlIjp7InJlc3VsdCI6ImNoYXJnZWJhY2siLCJyZWFzb' +
+    '24iOiJyZWZ1bmQifX19.RNDx6OA1hgkhaufZObxQywySMlM7usnD5HzXuz' +
+    'ByzRg';
+  var invalidJWT =
+    'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJjZThiZDY1M' +
+    'C1mZDk4LTQ2NjAtODhiZC00ZjZmZDQ2MWJiODkiLCJhdWQiOiJtYXJrZXR' +
+    'wbGFjZS1kZXYuYWxsaXpvbS5vcmciLCJ0eXAiOiJpbnZhbGlkLXR5cGUgY' +
+    'mxhaGJsYWhibGFoIiwiaWF0Ijo5OTk5OTk5OTk5LCJleHAiOjk5OTk5OTk' +
+    '5OTksInJlcXVlc3QiOnsiaWQiOiIwMDAwMCIsInByaWNlUG9pbnQiOjEsI' +
+    'm5hbWUiOiJ0ZXN0aW5nIGl0ZW0iLCJkZXNjcmlwdGlvbiI6InRoaXMgaXM' +
+    'gYSB0ZXN0aW5nIGl0ZW0iLCJwb3N0YmFja1VSTCI6Imh0dHA6Ly95b3VyY' +
+    'XBwLmNvbSIsImNoYXJnZWJhY2tVUkwiOiJodHRwOi8veW91cmFwcC5jb20' +
+    'iLCJzaW11bGF0ZSI6eyJyZXN1bHQiOiJwb3N0YmFjayJ9fX0._In70JO-B' +
+    'XkL5mNz7ppBmE7gR0ITSlS-ZJ1kBIQwjTg';
 
-  testPmpp: document.getElementById('test-pmpp'),
+  var testPostback = document.getElementById('test-postback');
+  var testChargeback = document.getElementById('test-chargeback');
+  var testInvalid = document.getElementById('tests-invalid');
+  var testNojwt = document.getElementById('test-nojwt');
+  var testRepeated = document.getElementById('test-repeated');
 
-  testInvalid: document.getElementById('tests-invalid'),
-
-  testNojwt: document.getElementById('test-nojwt'),
-
-  testRepeated: document.getElementById('test-repeated'),
-
-  init: function pt_init() {
-    var self = this;
-    window.addEventListener('DOMContentLoaded', function() {
-      console.log('DOMContentLoaded');
-      self.testPmpp.addEventListener('click', function onclick() {
-        console.log('click');
-        self.pay([mockJWT]);
-      });
-      self.testInvalid.addEventListener('click', function onclick() {
-        self.pay([invalidJWT]);
-      });
-      self.testNojwt.addEventListener('click', function onclick() {
-        self.pay();
-      });
-      self.testRepeated.addEventListener('click', function onclick() {
-        self.pay([mockJWT, mockJWT]);
-      });
+  (function init() {
+    testPostback.addEventListener('click', function onclick() {
+      pay([postbackJWT]);
     });
-  },
+    testChargeback.addEventListener('click', function onclick() {
+      pay([chargeBackJWT]);
+    });
+    testInvalid.addEventListener('click', function onclick() {
+      pay([invalidJWT]);
+    });
+    testNojwt.addEventListener('click', function onclick() {
+      pay();
+    });
+    testRepeated.addEventListener('click', function onclick() {
+      pay([postbackJWT, postbackJWT]);
+    });
+  })();
 
-  pay: function pt_pay(JWTs) {
+  function pay(JWTs) {
     var request = navigator.mozPay(JWTs);
     request.onsuccess = function onsuccess() {
       document.getElementById('result').innerHTML = 'Payment success';
@@ -49,6 +102,6 @@ var PayTests = {
                                                      request.error.name;
     };
   }
-};
+}
 
-PayTests.init();
+window.addEventListener('load', payTest);
