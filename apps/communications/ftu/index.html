@@ -63,6 +63,7 @@
   <script defer type="text/javascript" src="/shared/js/fb/fb_reader_utils.js"></script>
   <script defer type="text/javascript" src="/contacts/js/fb/fb_contact_utils.js"></script>
   <script defer type="text/javascript" src="/shared/js/async_storage.js"></script>
+  <script defer type="text/javascript" src="/shared/js/mobile_operator.js"></script>
   <script defer type="text/javascript" src="/shared/js/icc_helper.js"></script>
   <script defer type="text/javascript" src="/shared/js/wifi_helper.js"></script>
   <script defer type="text/javascript" src="/ftu/js/sim_manager.js"></script>
@@ -92,12 +93,13 @@
 
   <section id="unlock-sim-screen" role="region" class="skin-organic">
     <header>
-      <h1 id="unlock-sim-header" data-l10n-id="pincode2">Enter PIN code</h1>
+      <button id="unlock-sim-back"><span class="icon icon-back">back</span></button>
+      <h1 id="unlock-sim-header"></h1>
     </header>
     <article role="main">
       <section id="pincode-screen" role="region">
-        <label id="pin-label" data-l10n-id="type_pin">Type your PIN code</label>
-        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden">Unknown tries left</label>
+        <label id="pin-label"></label>
+        <label id="pin-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="pin-input" name="simpin" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <label id="pin-error" data-l10n-id="pinError" class="hidden error">The PIN was incorrect.</label>
@@ -105,8 +107,8 @@
       </section>
 
       <section id="pukcode-screen" role="region">
-        <label id="puk-label" data-l10n-id="simLocked">The SIM card is locked</label>
-        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden">Unknown tries left</label>
+        <label id="puk-label"></label>
+        <label id="puk-retries-left" data-l10n-id="inputCodeRetriesLeft" class="retries hidden">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="puk-input" name="simpuk" type="password" x-inputmode="digit" size="8" maxlength="8" />
           <div id="puk-info" data-l10n-id="pukInfo" class="info">You must enter the Personal Unlocking Key (PUK) Code for the SIM card. Refer to your SIM card documentation or contact your carrier for more information.</div>
@@ -126,7 +128,7 @@
 
       <section id="xckcode-screen" role="region">
         <label id="xck-label" data-l10n-id="type_nck">Type your NCK code</label>
-        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden">Unknown tries left</label>
+        <label id="xck-retries-left" data-l10n-id="inputCodeRetriesLeft" class="hidden retries">Unknown tries left</label>
         <section class="input-wrapper">
           <input id="xck-input" name="simxck" type="password"  x-inputmode="digit" size="16" maxlength="16" />
           <label id="xck-error" data-l10n-id="confirm_newpin" class="hidden error"></label>
@@ -141,8 +143,54 @@
       <button id="back-sim-button" class="button-left back hidden" data-l10n-id="back">
         Back
       </button>
-      <button id="unlock-sim-button" class="recommend" data-l10n-id="send">
-        Send
+      <button id="unlock-sim-button" class="recommend" data-l10n-id="ok">
+        OK
+      </button>
+    </nav>
+  </section>
+
+  <section id="sim-info-screen" role="region" class="skin-organic">
+    <header>
+      <h1 id="sim-info-header" data-l10n-id="simManager">SIM Manager</h1>
+    </header>
+    <article role="main">
+      <section>
+        <section id="sim-info-1" class="sim-info">
+          <div class="sim-image"></div>
+          <p class="sim-title">
+            <span data-l10n-id="simDetail" data-l10n-args='{"n": "1"}'>SIM 1</span>
+            <span data-l10n-id="simDefault" class="default">(default)</span>
+          </p>
+          <p id="sim-carrier-1"  class="sim-carrier"></p>
+          <p id="sim-number-1" class="sim-number"></p>
+        </section>
+        <section id="sim-info-2" class="sim-info">
+          <div class="sim-image"></div>
+          <p class="sim-title">
+            <span data-l10n-id="simDetail" data-l10n-args='{"n": "2"}'>SIM 2</span>
+          </p>
+          <p id="sim-carrier-2"  class="sim-carrier"></p>
+          <p id="sim-number-2" class="sim-number"></p>
+        </section>
+      </section>
+      <section id="sim-info-messages">
+        <p id="sim-default-message" data-l10n-id="simDefaultMessage">
+          Outgoing calls, outgoing messasges and data connection are set to SIM 1 as default
+        </p>
+        <p id="sim-settings-message" data-l10n-id="simSettingsMessage">
+          You can change default settings at Settings&gt;SIM cards manager
+        </p>
+      </section>
+    </article>
+
+    <nav role="navigation">
+      <button id="sim-info-back" class="button-left back" data-l10n-id="navbar-back">
+        Back
+        <span></span>
+      </button>
+      <button id="sim-info-forward" class="recommend forward" data-l10n-id="navbar-next">
+        Next
+        <span></span>
       </button>
     </nav>
   </section>
