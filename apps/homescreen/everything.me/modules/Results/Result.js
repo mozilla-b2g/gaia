@@ -109,8 +109,7 @@
     this.onAppIconLoad = function onAppIconLoad() {
       // use OS icon rendering
       var iconCanvas = Icon.prototype.createCanvas(image),
-          canvas =
-            self.initIcon(iconCanvas.height - Evme.Utils.OS_ICON_PADDING),
+          canvas = self.initIcon(iconCanvas.height),
           context = canvas.getContext('2d');
 
       context.drawImage(iconCanvas, (TEXT_WIDTH - iconCanvas.width) / 2, 0);
