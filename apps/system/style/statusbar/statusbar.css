@@ -488,3 +488,8 @@ body, html {
 .sb-icon-playing {
   background-position: -18.9rem -8rem;
 }
+
+/* Keyboard IME switcher indicator */
+.sb-icon-keyboard {
+  background-position: -29.4rem -2rem;
+}
