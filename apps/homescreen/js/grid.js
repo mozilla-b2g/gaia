@@ -324,14 +324,13 @@ var GridManager = (function() {
           window.mozRequestAnimationFrame(refresh);
         };
 
-        var container = pages[currentPage].container;
-        container.addEventListener(touchmove, pan, true);
+        window.addEventListener(touchmove, pan, true);
 
         removePanHandler = function removePanHandler(e) {
           touchEndTimestamp = e ? e.timeStamp : Number.MAX_VALUE;
           window.removeEventListener(touchend, removePanHandler, true);
 
-          container.removeEventListener(touchmove, pan, true);
+          window.removeEventListener(touchmove, pan, true);
 
           window.mozRequestAnimationFrame(function panTouchEnd() {
             onTouchEnd(deltaX, e);
