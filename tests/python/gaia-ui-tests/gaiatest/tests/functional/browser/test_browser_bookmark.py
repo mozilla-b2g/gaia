@@ -25,11 +25,12 @@ class TestBrowserBookmark(GaiaTestCase):
         browser.launch()
 
         browser.go_to_url('http://mozqa.com/data/firefox/layout/mozilla.html')
-
         browser.tap_bookmark_button()
-        browser.tap_add_bookmark_to_home_screen_choice_button()
-        browser.type_bookmark_title(self.bookmark_title)
-        browser.tap_add_bookmark_to_home_screen_dialog_button()
+
+        bookmark = browser.tap_add_bookmark_to_home_screen_choice_button()
+        bookmark.switch_to_add_bookmark_frame()
+        bookmark.type_bookmark_title(self.bookmark_title)
+        bookmark.tap_add_bookmark_to_home_screen_dialog_button()
 
         # Switch to Home Screen to look for bookmark
         homescreen = Homescreen(self.marionette)
