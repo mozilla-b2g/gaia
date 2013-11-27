@@ -251,20 +251,8 @@ var Settings = {
         document.getElementById(el).hidden = true;
       });
     }
-
-    if (navigator.mozMobileConnections) {
-      if (navigator.mozMobileConnections.length == 1) {
-        // single sim
-        document.getElementById('simCardManager-settings').hidden = true;
-      } else {
-        // dsds
-        document.getElementById('simSecurity-settings').hidden = true;
-      }
-    } else {
-      // no sim
-      document.getElementById('simSecurity-settings').hidden = true;
-      document.getElementById('simCardManager-settings').hidden = true;
-    }
+    // register web activity handler
+    navigator.mozSetMessageHandler('activity', this.webActivityHandler);
 
     // preset all inputs that have a `name' attribute
     this.presetPanel();
