@@ -371,7 +371,6 @@
 
   #calls.switch > section .switch-calls {
     display: block;
-    background: #01c5ed;
     height: 8.0rem;
     width: auto;
     float: right;
@@ -413,7 +412,8 @@
   }
 
   #calls.big-duration > section .numberWrapper,
-  #calls.big-duration > section .additionalContactInfo {
+  #calls.big-duration > section .additionalContactInfo,
+  #calls.big-duration > section .switch-calls {
     background: #01c5ed;
   }
 
@@ -524,7 +524,9 @@
     background-repeat: no-repeat;
   }
 
-  #calls > section.held {
+  #calls > section.held,
+  #calls.big-duration > section.held .switch-calls,
+  #calls.big-duration > section.ended .switch-calls {
     background-color: rgba(28, 24, 24, 0.7);
   }
 
