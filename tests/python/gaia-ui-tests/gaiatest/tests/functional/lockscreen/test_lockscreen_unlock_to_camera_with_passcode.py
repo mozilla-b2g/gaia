@@ -37,6 +37,5 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         self.assertFalse(camera.is_gallery_button_visible)
 
         camera.tap_switch_source()
-        camera.wait_for_capture_ready()
 
         self.assertFalse(camera.is_gallery_button_visible)

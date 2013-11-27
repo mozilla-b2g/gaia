@@ -13,14 +13,11 @@ class Camera(Base):
 
     name = 'Camera'
 
-    _capture_button_enabled_locator = (By.CSS_SELECTOR, '#capture-button:not([disabled])')
-    _capture_button_locator = (By.ID, 'capture-button')
-    _filmstrip_image_locator = (By.CSS_SELECTOR, '#filmstrip > img.thumbnail')
+    _capture_button_locator = (By.CSS_SELECTOR, '#capture-button:not([disabled])')
+    _filmstrip_thumbnail_locator = (By.CSS_SELECTOR, '#filmstrip > img.thumbnail')
     _switch_source_button_locator = (By.ID, 'switch-button')
-    _video_capturing_locator = (By.CSS_SELECTOR, 'body.capturing')
     _video_timer_locator = (By.ID, 'video-timer')
     _filmstrip_locator = (By.ID, 'filmstrip')
-    _focus_ring_locator = (By.ID, 'focus-ring')
     _body_locator = (By.TAG_NAME, 'body')
     _gallery_button_locator = (By.ID, 'gallery-button')
 
@@ -38,16 +35,13 @@ class Camera(Base):
         # Wait for filmstrip to appear
         self.wait_for_filmstrip_visible()
 
-        # Wait for the camera's focus state to 'ready' for the next shot
-        self.wait_for_capture_ready()
-
         # Wait for filmstrip to clear
         self.wait_for_filmstrip_not_visible()
 
     def record_video(self, duration):
         # Start recording
         self.tap_capture()
-        self.wait_for_element_present(*self._video_capturing_locator)
+        self.wait_for_video_capturing()
         # Wait for duration
         timer_text = "00:%02d" % duration
         self.wait_for_condition(lambda m: m.find_element(
@@ -65,7 +59,6 @@ class Camera(Base):
 
     def tap_switch_source(self):
         self.marionette.find_element(*self._switch_source_button_locator).tap()
-        self.wait_for_capture_ready()
 
     def tap_to_display_filmstrip(self):
         self.marionette.find_element(*self._body_locator).tap()
@@ -75,7 +68,7 @@ class Camera(Base):
         self.wait_for_element_displayed(*self._select_button_locator)
 
     def wait_for_camera_ready(self):
-        self.wait_for_element_present(*self._capture_button_enabled_locator)
+        self.wait_for_element_displayed(*self._capture_button_locator)
 
     def wait_for_filmstrip_visible(self):
         self.wait_for_condition(lambda m: self.is_filmstrip_visible)
@@ -84,11 +77,9 @@ class Camera(Base):
         filmstrip = self.marionette.find_element(*self._filmstrip_locator)
         self.wait_for_condition(lambda m: filmstrip.location['y'] == (0 - filmstrip.size['height']))
 
-    def wait_for_capture_ready(self):
-        self.wait_for_condition(lambda m: self.marionette.find_element(*self._focus_ring_locator).get_attribute('data-state') is None)
-
     def wait_for_video_capturing(self):
-        self.wait_for_element_present(*self._video_capturing_locator)
+        body = self.marionette.find_element(*self._body_locator)
+        self.wait_for_condition(lambda m: 'capturing' in body.get_attribute('class'))
 
     def wait_for_video_timer_not_visible(self):
         self.wait_for_element_not_displayed(*self._video_timer_locator)
@@ -124,15 +115,15 @@ class Camera(Base):
     @property
     def filmstrip_images(self):
         return [FilmStripImage(self.marionette, image)
-                for image in self.marionette.find_elements(*self._filmstrip_image_locator)]
+                for image in self.marionette.find_elements(*self._filmstrip_thumbnail_locator)]
 
 
 class FilmStripImage(PageRegion):
 
     def tap(self):
-        self.root_element.tap()
         image_preview = ImagePreview(self.marionette)
-        self.wait_for_condition(lambda m: image_preview.is_image_preview_visible)
+        self.root_element.tap()
+        image_preview.wait_for_media_frame()
         return image_preview
 
 
@@ -147,12 +138,11 @@ class ImagePreview(Base):
         return self.is_element_displayed(*self._image_preview_locator)
 
     def wait_for_media_frame(self):
-        media_frame =  self.marionette.find_element(*self._media_frame_locator)
+        media_frame = self.marionette.find_element(*self._media_frame_locator)
         scr_height = int(self.marionette.execute_script('return window.screen.height'))
         self.wait_for_condition(lambda m: (media_frame.location['y'] + media_frame.size['height']) == scr_height)
 
     def tap_camera(self):
         self.marionette.find_element(*self._camera_button_locator).tap()
         camera = Camera(self.marionette)
-        camera.wait_for_capture_ready()
         return camera
