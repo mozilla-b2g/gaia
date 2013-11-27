@@ -708,19 +708,50 @@ var ThreadUI = global.ThreadUI = {
       this.stopRendering();
 
       var currentActivity = ActivityHandler.currentActivity.new;
+      var discard;
+
       if (currentActivity) {
         currentActivity.postResult({ success: true });
         ActivityHandler.resetActivity();
         return;
       }
-      if (Compose.isEmpty()) {
-        window.location.hash = '#thread-list';
-        return;
-      }
-      if (window.confirm(navigator.mozL10n.get('discard-sms'))) {
+
+      discard = (function() {
         this.cleanFields(true);
         window.location.hash = '#thread-list';
+      }).bind(this);
+
+      // TODO Add comment about assimilation above on line #183?
+      // Need to assimilate recipients in order to check if any entered
+      this.assimilateRecipients();
+
+      if (Compose.isEmpty() && this.recipients.length === 0) {
+        // TODO Also check for empty subject
+        discard();
+        return;
       }
+
+      var options = {
+        items: [
+          {
+            l10nId: 'save-as-draft',
+            method: function onsave() {
+              this.saveMessageDraft();
+              discard();
+            }.bind(this)
+          },
+          {
+            l10nId: 'discard-message',
+            method: discard
+          },
+          {
+            l10nId: 'cancel'
+          }
+        ]
+      };
+
+      new OptionMenu(options).show();
+
     }).bind(this);
 
     // We're waiting for the keyboard to disappear before animating back
@@ -2457,6 +2488,47 @@ var ThreadUI = global.ThreadUI = {
     if (window.location.hash.substr(0, 8) === '#thread=') {
       ThreadUI.updateHeaderData();
     }
+  },
+
+  saveMessageDraft: function thui_saveMessageDraft() {
+    var draft, recipients, content, timestamp, threadId, type;
+
+    content = Compose.getContent();
+    timestamp = Date.now();
+    type = Compose.type;
+
+    // TODO Also store subject
+
+    if (Threads.active) {
+      recipients = Threads.active.participants;
+      threadId = Threads.currentId;
+    } else {
+      recipients = this.recipients.numbers;
+
+      // Pick out the threadId that matches
+      // all the recipients in this draft.
+      Threads.forEach(function(t) {
+        var p = Threads.get(t.id).participants;
+        for (var i = 0; i < p.length; i++) {
+          if (Utils.probablyMatches(p[i], recipients[i])) {
+            threadId = t.id;
+            break;
+          }
+        }
+      });
+      threadId = threadId || null;
+    }
+
+    var draft = new Draft({
+      recipients: recipients,
+      content: content,
+      timestamp: timestamp,
+      threadId: threadId,
+      type: type
+    });
+
+    Drafts.add(draft);
+
   }
 };
 
