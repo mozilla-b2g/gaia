@@ -13,6 +13,7 @@ class Messages(Base):
     _summary_header_locator = (By.CSS_SELECTOR, "h1[data-l10n-id='messages']")
     _create_new_message_locator = (By.ID, 'icon-add')
     _messages_frame_locator = (By.CSS_SELECTOR, 'iframe[data-frame-origin*=sms]')
+    _first_message_locator = (By.ID, 'thread-1')
 
     def launch(self):
         Base.launch(self)
@@ -28,3 +29,14 @@ class Messages(Base):
         self.wait_for_element_present(*self._messages_frame_locator)
         messages_frame = self.marionette.find_element(*self._messages_frame_locator)
         self.marionette.switch_to_frame(messages_frame)
+
+    def wait_for_message_list(self):
+        self.wait_for_element_displayed(*self._summary_header_locator)
+
+    def wait_for_message_received(self, timeout=180):
+        self.wait_for_element_displayed(*self._first_message_locator, timeout=timeout)
+
+    def tap_first_received_message(self):
+        self.marionette.find_element(*self._first_message_locator).tap()
+        from gaiatest.apps.messages.regions.message_thread import MessageThread
+        return MessageThread(self.marionette)
