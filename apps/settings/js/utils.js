@@ -68,30 +68,6 @@ function openDialog(dialogID, onSubmit, onReset) {
 }
 
 /**
- * Audio Preview
- * First click = play, second click = pause.
- */
-
-function audioPreview(element, type) {
-  var audio = document.querySelector('#sound-selection audio');
-  var source = audio.src;
-  var playing = !audio.paused;
-
-  // Both ringer and notification are using notification channel
-  audio.mozAudioChannelType = 'notification';
-
-  var url = '/shared/resources/media/' + type + '/' +
-            element.querySelector('input').value;
-  audio.src = url;
-  if (source === audio.src && playing) {
-    audio.pause();
-    audio.src = '';
-  } else {
-    audio.play();
-  }
-}
-
-/**
  * JSON loader
  */
 
