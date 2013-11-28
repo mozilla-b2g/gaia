@@ -806,13 +806,9 @@ var TilesView = {
     var NUM_INITIALLY_VISIBLE_TILES = 8;
     var INITIALLY_HIDDEN_TILE_WAIT_TIME_MS = 1000;
 
-    var placeholderBackgroundClass = 'default-album-' + this.index % 10;
     var setTileBackgroundClosure = function(url) {
-      if (url) {
-        tile.style.backgroundImage = 'url(' + url + ')';
-      } else {
-        tile.classList.add(placeholderBackgroundClass);
-      }
+      url = url || generateDefaultThumbnailURL(result.metadata);
+      tile.style.backgroundImage = 'url(' + url + ')';
     };
 
     if (this.index <= NUM_INITIALLY_VISIBLE_TILES) {
@@ -909,8 +905,6 @@ var TilesView = {
     }
 
     function tv_playAlbum(data, index) {
-      var backgroundIndex = index % 10;
-
       var key = 'metadata.album';
       var range = IDBKeyRange.only(data.metadata.album);
       var direction = 'next';
@@ -929,9 +923,9 @@ var TilesView = {
 
             if (PlayerView.shuffleOption) {
               PlayerView.setShuffle(true);
-              PlayerView.play(PlayerView.shuffledList[0], backgroundIndex);
+              PlayerView.play(PlayerView.shuffledList[0]);
             } else {
-              PlayerView.play(0, backgroundIndex);
+              PlayerView.play(0);
             }
           }
         );
@@ -1003,10 +997,8 @@ function createListElement(option, data, index, highlight) {
       // the amount of total elements in the DOM tree, it can save memory
       // and gecko can render the elements faster as well.
       var setBackground = function(url) {
-        if (url)
-          li.style.backgroundImage = 'url(' + url + ')';
-        else
-          li.classList.add('default-album-' + index % 10);
+        url = url || generateDefaultThumbnailURL(data.metadata);
+        li.style.backgroundImage = 'url(' + url + ')';
       };
 
       getThumbnailURL(data, setBackground);
@@ -1557,8 +1549,8 @@ var SubListView = {
   },
 
   init: function slv_init() {
-    this.albumDefault = document.getElementById('views-sublist-header-default');
     this.albumImage = document.getElementById('views-sublist-header-image');
+    this.offscreenImage = new Image();
     this.albumName = document.getElementById('views-sublist-header-name');
     this.playAllButton = document.getElementById('views-sublist-controls-play');
     this.shuffleButton =
@@ -1566,7 +1558,6 @@ var SubListView = {
 
     this.dataSource = [];
     this.index = 0;
-    this.backgroundIndex = 0;
 
     this.view.addEventListener('click', this);
   },
@@ -1578,28 +1569,32 @@ var SubListView = {
 
     this.dataSource = [];
     this.index = 0;
-    this.albumImage.src = '';
+    this.offscreenImage.src = '';
     this.anchor.innerHTML = '';
     this.view.scrollTop = 0;
   },
 
-  setAlbumDefault: function slv_setAlbumDefault(index) {
-    var realIndex = index % 10;
-
-    this.albumDefault.classList.remove('default-album-' + this.backgroundIndex);
-    this.albumDefault.classList.add('default-album-' + realIndex);
-    this.backgroundIndex = realIndex;
-  },
-
   setAlbumSrc: function slv_setAlbumSrc(fileinfo) {
+    // See if we are viewing the predefined playlists, if so, then replace the
+    // fileinfo with the first record in the dataSource to display the first
+    // album art for every predefined playlist.
+    if (TabBar.playlistArray.indexOf(fileinfo) !== -1)
+      fileinfo = this.dataSource[0];
     // Set source to image and crop it to be fitted when it's onloded
-    displayAlbumArt(this.albumImage, fileinfo);
+    this.offscreenImage.src = '';
     this.albumImage.classList.remove('fadeIn');
-    this.albumImage.addEventListener('load', slv_showImage.bind(this));
+
+    getThumbnailURL(fileinfo, function(url) {
+      url = url || generateDefaultThumbnailURL(fileinfo.metadata);
+      this.offscreenImage.addEventListener('load', slv_showImage.bind(this));
+      this.offscreenImage.src = url;
+    }.bind(this));
 
     function slv_showImage(evt) {
       // Don't register multiple copies
       evt.target.removeEventListener('load', slv_showImage);
+      var url = 'url(' + this.offscreenImage.src + ')';
+      this.albumImage.style.backgroundImage = url;
       this.albumImage.classList.add('fadeIn');
     };
   },
@@ -1633,12 +1628,9 @@ var SubListView = {
       if (data.metadata.l10nId)
         albumNameL10nId = data.metadata.l10nId;
 
-      SubListView.setAlbumName(albumName, albumNameL10nId);
-      SubListView.setAlbumDefault(index);
       SubListView.dataSource = dataArray;
-
-      if (data.metadata.picture)
-        SubListView.setAlbumSrc(data);
+      SubListView.setAlbumName(albumName, albumNameL10nId);
+      SubListView.setAlbumSrc(data);
 
       dataArray.forEach(function(songData) {
         SubListView.update(songData);
@@ -1671,7 +1663,7 @@ var SubListView = {
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = this.dataSource;
             PlayerView.setShuffle(true);
-            PlayerView.play(PlayerView.shuffledList[0], this.backgroundIndex);
+            PlayerView.play(PlayerView.shuffledList[0]);
           }.bind(this));
           return;
         }
@@ -1700,9 +1692,9 @@ var SubListView = {
               // Here we need to create a new shuffled list
               // and start from the song which a user clicked.
               PlayerView.shuffleList(targetIndex);
-              PlayerView.play(PlayerView.shuffledList[0], this.backgroundIndex);
+              PlayerView.play(PlayerView.shuffledList[0]);
             } else {
-              PlayerView.play(targetIndex, this.backgroundIndex);
+              PlayerView.play(targetIndex);
             }
           }.bind(this));
         }
@@ -1846,7 +1838,7 @@ var SearchView = {
           } else {
             PlayerView.setSourceType(TYPE_LIST);
             PlayerView.dataSource = [data];
-            PlayerView.play(0, index);
+            PlayerView.play(0);
           }
         }.bind(this));
       } else {
