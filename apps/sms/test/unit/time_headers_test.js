@@ -28,11 +28,12 @@ suite('TimeHeaders > ', function() {
   });
 
   suite('TimeHeaders.updateAll', function() {
-    var existingTitles;
+    var existingHeaders, existingTimes;
 
     setup(function() {
       this.sinon.useFakeTimers(Date.parse('2013-01-01'));
       this.sinon.spy(MockFixedHeader, 'updateHeaderContent');
+      this.sinon.spy(TimeHeaders, 'update');
 
       var additionalDataset = [
         'data-is-thread="true"',
@@ -43,14 +44,23 @@ suite('TimeHeaders > ', function() {
       var mockThreadListMarkup = '';
 
       additionalDataset.forEach(function(dataset, i) {
-        dataset += ' data-time-update="true"' +
-          ' data-time="' + Date.now() + '"';
+        var mockDate = Date.now();
+        dataset += ' data-time-update="repeat"' +
+          ' data-time="' + mockDate + '"';
 
         mockThreadListMarkup +=
           '<header ' + dataset + '>header ' + i + '</header>' +
           '<ul>' +
-            '<li>this is a thread</li>' +
-            '<li>this is another thread</li>' +
+            '<li id="thread-1" data-time="' + mockDate + '">' +
+              '<p><time data-time-update="true" ' +
+              'data-time-only="true" data-time="' + mockDate +
+              '"></time></p>' +
+            '</li>' +
+            '<li id="thread-2" data-time="' + mockDate + '">' +
+              '<p><time data-time-update="true" ' +
+              'data-time-only="true" data-time="' + mockDate +
+              '"></time></p>' +
+            '</li>' +
           '</ul>';
       });
 
@@ -58,49 +68,182 @@ suite('TimeHeaders > ', function() {
 
       TimeHeaders.updateAll();
 
-      existingTitles = [];
+      existingHeaders = [];
+      existingTimes = [];
 
       var headers = document.querySelectorAll('header');
-      for (var i = 0, l = headers.length; i < l; i++) {
-        existingTitles[i] = headers[i].textContent;
+      for (var i = 0; i < headers.length; i++) {
+        existingHeaders[i] = headers[i].textContent;
       }
+
+      var timeElements = document.querySelectorAll('time');
+      for (var j = 0; j < timeElements.length; j++) {
+        existingTimes[j] = timeElements[j].textContent;
+      }
+
     });
 
     teardown(function() {
       document.body.innerHTML = '';
     });
 
-    test('calling after one hour should not update time headers', function() {
-      this.sinon.clock.tick(60 * 60 * 1000);
-      TimeHeaders.updateAll();
+    suite('timezone was not changed', function() {
+      test('calling at same time should not update headers ' +
+        'and time elements', function() {
+        var i = 0, l = 0;
 
-      var headers = document.querySelectorAll('header');
-      for (var i = 0, l = headers.length; i < l; i++) {
-        assert.equal(headers[i].textContent, existingTitles[i]);
-      }
-    });
+        var timeElements = document.querySelectorAll('time');
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          timeElements[i].dataset.time = Date.now();
+        }
 
-    suite('calling after one day', function() {
-      setup(function() {
-        this.sinon.clock.tick(24 * 60 * 60 * 1000);
-        this.sinon.spy(TimeHeaders, 'update');
-        TimeHeaders.updateAll();
-      });
+        TimeHeaders.updateAll('header[data-time-update]');
 
-      test('should update all date headers', function() {
         var headers = document.querySelectorAll('header');
-        for (var i = 0, l = headers.length; i < l; i++) {
-          assert.notEqual(headers[i].textContent, existingTitles[i]);
+        for (i = 0, l = headers.length; i < l; i++) {
+          assert.equal(headers[i].textContent, existingHeaders[i]);
+        }
+
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          assert.equal(timeElements[i].textContent, existingTimes[i]);
         }
       });
 
-      test('should call update 3 times', function() {
-        assert.equal(TimeHeaders.update.callCount, 3);
+      test('calling after one hour should not update time headers ' +
+        'and time elements', function() {
+        var i = 0, l = 0;
+
+        this.sinon.clock.tick(60 * 60 * 1000);
+
+        var timeElements = document.querySelectorAll('time');
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          timeElements[i].dataset.time = Date.now();
+        }
+
+        TimeHeaders.updateAll('header[data-time-update]');
+
+        var headers = document.querySelectorAll('header');
+        for (i = 0, l = headers.length; i < l; i++) {
+          assert.equal(headers[i].textContent, existingHeaders[i]);
+        }
+
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          assert.equal(timeElements[i].textContent, existingTimes[i]);
+        }
+      });
+
+      test('calling after one day should update all date headers', function() {
+        var i = 0, l = 0;
+
+        this.sinon.clock.tick(24 * 60 * 60 * 1000);
+
+        var timeElements = document.querySelectorAll('time');
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          timeElements[i].dataset.time = Date.now();
+        }
+
+        TimeHeaders.updateAll('header[data-time-update]');
+
+        var headers = document.querySelectorAll('header');
+        for (i = 0, l = headers.length; i < l; i++) {
+          assert.notEqual(headers[i].textContent, existingHeaders[i]);
+        }
+
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          assert.equal(timeElements[i].textContent, existingTimes[i]);
+        }
+
+        //should call update total 12 times
+        //setup:3(headers)+6(times), test:3(headers)
+        assert.equal(TimeHeaders.update.callCount, 12);
+      });
+
+      test('should call FixedHeader.updateHeaderContent', function() {
+        assert.ok(MockFixedHeader.updateHeaderContent.called);
       });
     });
 
-    test('should call FixedHeader.updateHeaderContent', function() {
-      assert.ok(MockFixedHeader.updateHeaderContent.called);
+    suite('timezone was changed', function() {
+      //When timezones was changed, 'visibilitychange'.
+      //Therefore 'TimeHeaders.updateAll()' is called by argument 'false'.
+      test('calling at same time should not update headers ' +
+        'and time elements', function() {
+        var i = 0, l = 0;
+
+        var timeElements = document.querySelectorAll('time');
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          timeElements[i].dataset.time = Date.now();
+        }
+
+        TimeHeaders.updateAll();
+
+        var headers = document.querySelectorAll('header');
+        for (i = 0, l = headers.length; i < l; i++) {
+          assert.equal(headers[i].textContent, existingHeaders[i]);
+        }
+
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          assert.equal(timeElements[i].textContent, existingTimes[i]);
+        }
+      });
+
+      test('calling after one hour should update all time elements',
+        function() {
+        var i = 0, l = 0;
+
+        //since we can't change timezones easily,
+        //we simulate this by changing the stored 'time' dataset
+        this.sinon.clock.tick(60 * 60 * 1000);
+
+        var timeElements = document.querySelectorAll('time');
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          timeElements[i].dataset.time = Date.now();
+        }
+
+        TimeHeaders.updateAll();
+
+        var headers = document.querySelectorAll('header');
+        for (i = 0, l = headers.length; i < l; i++) {
+          assert.equal(headers[i].textContent, existingHeaders[i]);
+        }
+
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          assert.notEqual(timeElements[i].textContent, existingTimes[i]);
+        }
+      });
+
+      test('calling after one day should update all date headers ' +
+        'and time elements', function() {
+        var i = 0, l = 0;
+
+        //since we can't change timezones easily,
+        //we simulate this by changing the stored 'time' dataset
+        this.sinon.clock.tick(24 * 60 * 60 * 1000);
+
+        var timeElements = document.querySelectorAll('time');
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          timeElements[i].dataset.time = Date.now();
+        }
+
+        TimeHeaders.updateAll();
+
+        var headers = document.querySelectorAll('header');
+        for (i = 0, l = headers.length; i < l; i++) {
+          assert.notEqual(headers[i].textContent, existingHeaders[i]);
+        }
+
+        for (i = 0, l = timeElements.length; i < l; i++) {
+          assert.notEqual(timeElements[i].textContent, existingTimes[i]);
+        }
+
+        //should call update total 18 times
+        //setup:3(headers)+6(times), test:3(headers)+6(times)
+        assert.equal(TimeHeaders.update.callCount, 18);
+      });
+
+      test('should call FixedHeader.updateHeaderContent', function() {
+        assert.ok(MockFixedHeader.updateHeaderContent.called);
+      });
     });
   });
 
@@ -109,7 +252,7 @@ suite('TimeHeaders > ', function() {
 
     setup(function() {
       subject = document.createElement('header');
-      subject.dataset.timeUpdate = 'true';
+      subject.dataset.timeUpdate = 'repeat';
       var time = Date.parse('2013-01-01');
       subject.dataset.time = time;
       formattedTime = Utils.getFormattedHour(time);
@@ -161,12 +304,10 @@ suite('TimeHeaders > ', function() {
       TimeHeaders.startScheduler();
       this.sinon.clock.tick(100 * 1000);
 
-      // we are called on start
-      assert.equal(this.callTimes[0], start);
       // Fri Jul 12 2013 16:02:00 GMT-0400 (EDT)
-      assert.equal(this.callTimes[1], 1373659320000);
+      assert.equal(this.callTimes[0], 1373659320000);
       // Fri Jul 12 2013 16:03:00 GMT-0400 (EDT)
-      assert.equal(this.callTimes[2], 1373659380000);
+      assert.equal(this.callTimes[1], 1373659380000);
     });
 
     test('multiple calls converge', function() {
@@ -176,7 +317,7 @@ suite('TimeHeaders > ', function() {
         TimeHeaders.startScheduler();
       }
       this.sinon.clock.tick(60 * 1000);
-      assert.equal(this.updateStub.callCount, 101);
+      assert.equal(this.updateStub.callCount, 1);
     });
   });
 
@@ -210,6 +351,7 @@ suite('TimeHeaders > ', function() {
     setup(function() {
       this.sinon.spy(TimeHeaders, 'startScheduler');
       this.sinon.spy(TimeHeaders, 'stopScheduler');
+      this.sinon.spy(TimeHeaders, 'updateAll');
     });
 
     suite('init itself', function() {
@@ -226,6 +368,7 @@ suite('TimeHeaders > ', function() {
         // correctly.
         assert.ok(TimeHeaders.startScheduler.calledBefore(
           TimeHeaders.stopScheduler));
+        assert.ok(TimeHeaders.updateAll.called);
       });
     });
 
@@ -236,6 +379,7 @@ suite('TimeHeaders > ', function() {
 
         TimeHeaders.startScheduler.reset();
         TimeHeaders.stopScheduler.reset();
+        TimeHeaders.updateAll.reset();
 
         isDocumentHidden = true;
         document.dispatchEvent(new CustomEvent('visibilitychange'));
@@ -244,6 +388,7 @@ suite('TimeHeaders > ', function() {
       test('TimeHeaders.stopScheduler is called', function() {
         assert.ok(TimeHeaders.stopScheduler.called);
         assert.ok(!TimeHeaders.startScheduler.called);
+        assert.ok(!TimeHeaders.updateAll.called);
       });
     });
 
@@ -260,6 +405,7 @@ suite('TimeHeaders > ', function() {
       });
 
       test('TimeHeaders.startScheduler is called', function() {
+        assert.ok(TimeHeaders.updateAll.called);
         assert.ok(TimeHeaders.startScheduler.calledBefore(
           TimeHeaders.stopScheduler));
       });
