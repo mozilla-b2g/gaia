@@ -46,24 +46,19 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
       left: 0;
       right: 0;
       z-index: 60;
-      border-top: 0.1rem solid #fff;
-      /* +0.8rem to accomodate for the arrow that goes out of the content */
-      transform: translateY(calc(100% + 0.8rem));
+      border-top: 0.1rem solid #555;
+      transform: translateY(100%);
     }
     .evmeScope #collection.visible > .content {
       transform: translateY(0%);
     }
-
-    .evmeScope #collection > .content:before {
-      content: "";
-      position: absolute;
-      left: 4rem;
-      top: -0.7rem;
-      width: 0;
-      height: 0;
-      border-left: 0.8rem solid transparent;
-      border-right: 0.8rem solid transparent;
-      border-bottom: 0.8rem solid #fff;
+    /*
+      This relates to e.me Searchbar, but have to be in grid.css
+      since when a user opens a collection for the first time
+      not all e.me assets are loaded
+    */
+    #icongrid.evme-collection-visible {
+      display: none;
     }
 
     .evmeScope #collection .header {
@@ -78,7 +73,7 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
       font-size: 1.5rem;
       font-weight: normal;
       overflow: hidden;
-      background: rgba(0, 0, 0, .7);
+      background: rgba(0, 0, 0, .8);
       transform: translateY(-100%);
     }
     .evmeScope #collection.visible .header {
@@ -97,7 +92,7 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
         position: relative;
         z-index: 50;
         height: 100%;
-        padding: 0 0 0 3.2rem;
+        padding: 0 0 0 3rem;
         margin-right: 1rem;
         font-weight: inherit;
         overflow: hidden;
@@ -137,30 +132,20 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
         background: rgba(0, 0, 0, .55);
     }
     .evmeScope #collection .header .close {
-        background: rgba(0, 0, 0, .1) url('/everything.me/images/imageclose.png') no-repeat 50% 50%/1.7rem;
+        background: transparent url('/everything.me/images/imageclose.png') no-repeat 50% 50%/1.7rem;
         position: absolute;
         top: 0;
         left: 0;
-        width: 2.5rem;
+        width: 3rem;
         height: 5.4rem;
         cursor: pointer;
         z-index: 100;
     }
-	   .evmeScope #collection .header .close:after {
-          content: "";
-          position: absolute;
-          top: 0rem;
-          bottom: 0rem;
-          right: -0.1rem;
-          width: 0.1rem;
-          background: rgba(0, 0, 0, .2);
-          border-right: 0.1rem solid rgba(255, 255, 255, .3);
-      }
     .evmeScope #collection.renaming .header .close {
       pointer-events: none;
     }
     .evmeScope #collection .header .done {
-        background: transparent url('/everything.me/images/done_icon.png') no-repeat 50% 50%/3rem;
+        background: transparent url('/everything.me/images/done_icon.png') no-repeat 1.7rem 50%/3rem;
         position: absolute;
         top: 0;
         right: 0;
@@ -169,16 +154,6 @@ body:not(.evme-loading):not(.evme-ready) #collection .evme-apps {
         cursor: pointer;
         z-index: 100;
     }
-     .evmeScope #collection .header .done:after {
-          content: "";
-          position: absolute;
-          top: 0.4rem;
-          bottom: 0.4rem;
-          left: -0.1rem;
-          width: 0.1rem;
-          background: rgba(0, 0, 0, .3);
-          border-left: 0.1rem solid rgba(255, 255, 255, .3);
-      }
       .evmeScope #collection .evme-apps {
         top: 0;
       }

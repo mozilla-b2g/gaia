@@ -342,8 +342,6 @@ void function() {
 
           self.editMode = false;
 
-          resultsManager.renderStaticApps(collectionSettings.apps);
-
           showUI();
         });
     };
@@ -380,18 +378,32 @@ void function() {
     function showUI() {
       el.style.display = 'block';
       window.setTimeout(function() {
-        el.addEventListener('transitionend', function end(e) {
-          e.target.removeEventListener('transitionend', end);
+        Evme.EventHandler.trigger(NAME, 'beforeShow');
+
+        if (el.classList.contains('visible')) {
+          onCollectionVisible();
+        } else {
+          el.addEventListener('transitionend', onCollectionVisible);
+          el.classList.add('visible');
+        }
+
+        function onCollectionVisible(e) {
+          el.removeEventListener('transitionend', onCollectionVisible);
+
+          if (currentSettings) {
+            resultsManager.renderStaticApps(currentSettings.apps);
+          }
+
           document.dispatchEvent(new CustomEvent('collectionopened'));
-        });
-        el.classList.add('visible');
-        Evme.EventHandler.trigger(NAME, 'show');
+          Evme.EventHandler.trigger(NAME, 'show');
+        }
       }, 0);
     }
 
     function hideUI() {
+      Evme.EventHandler.trigger(NAME, 'beforeHide');
       elHeader.addEventListener('transitionend', function end(e) {
-        e.target.removeEventListener('transitionend', end);
+        elHeader.removeEventListener('transitionend', end);
 
         el.style.display = 'none';
         Evme.EventHandler.trigger(NAME, 'hide');
@@ -408,7 +420,6 @@ void function() {
       title = newTitle;
 
       elTitle.innerHTML =
-              '<em></em>' +
               '<span>' + title + '</span>';
     };
 
