@@ -296,7 +296,7 @@ function transformHandler(e) {
 
 // A utility function to display the nth image or video in the specified frame
 // Used in showFile(), nextFile() and previousFile().
-function setupFrameContent(n, frame) {
+function setupFrameContent(n, frame, playNow) {
   // Make sure n is in range
   if (n < 0 || n >= files.length) {
     frame.clear();
@@ -322,6 +322,9 @@ function setupFrameContent(n, frame) {
                            fileinfo.metadata.width,
                            fileinfo.metadata.height,
                            fileinfo.metadata.rotation || 0);
+
+        if (playNow)
+          frame.video.play();
       });
     }
     else {
@@ -358,11 +361,12 @@ function resetFramesPosition() {
 
 // Switch from thumbnail list view to single-picture fullscreen view
 // and display the specified file
-function showFile(n) {
+function showFile(n, playNow) {
   setView(fullscreenView); // Switch to fullscreen mode if not already there
 
   setupFrameContent(n - 1, previousFrame);
-  setupFrameContent(n, currentFrame);
+  // If play is true, we'll automatically play the movie
+  setupFrameContent(n, currentFrame, playNow);
   setupFrameContent(n + 1, nextFrame);
   currentFileIndex = n;
 
