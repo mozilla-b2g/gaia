@@ -4,7 +4,7 @@
 }
 
 #settings li {
-  margin: 1rem 3rem;
+  margin: 1rem 1.5rem;
   list-style-type: none;
 }
 
@@ -12,7 +12,7 @@
   margin: 0;
   height: auto;
   line-height: 2rem;
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.2rem;
 }
 
 #settings li#enable-cookies {
