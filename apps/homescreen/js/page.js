@@ -507,7 +507,9 @@ Icon.prototype = {
     var localizedName;
 
     if (descriptor.type === GridItemsFactory.TYPE.COLLECTION) {
-      localizedName = navigator.mozL10n.get(manifest.name);
+      // try to translate, but fall back to current name
+      // (translation might fail for custom collection name)
+      localizedName = navigator.mozL10n.get(manifest.name) || manifest.name;
     } else {
       var iconsAndNameHolder = manifest;
       var entryPoint = descriptor.entry_point;
