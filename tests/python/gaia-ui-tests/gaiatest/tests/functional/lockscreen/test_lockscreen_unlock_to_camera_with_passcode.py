@@ -30,7 +30,7 @@ class TestCameraUnlockWithPasscode(GaiaTestCase):
         camera = self.lock_screen.unlock_to_camera()
         self.lock_screen.wait_for_lockscreen_not_visible()
 
-        self.assertFalse(self.lockscreen.is_locked)
+        self.assertTrue(self.lockscreen.is_locked)
 
         camera.switch_to_camera_frame()
 
