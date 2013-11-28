@@ -31,6 +31,7 @@ Evme.Searchbar = new function Evme_Searchbar() {
     elForm.addEventListener('submit', function oSubmit(e) {
       e.preventDefault();
       e.stopPropagation();
+      clearTimeouts();
       cbReturnPressed(e, el.value);
     });
 
@@ -153,9 +154,13 @@ Evme.Searchbar = new function Evme_Searchbar() {
     Evme.EventHandler.trigger(NAME, 'clearButtonClick');
   }
 
-  function inputChanged(e) {
+  function clearTimeouts() {
     window.clearTimeout(timeoutPause);
     window.clearTimeout(timeoutIdle);
+  }
+
+  function inputChanged(e) {
+    clearTimeouts();
 
     var currentValue = el.value;
 
