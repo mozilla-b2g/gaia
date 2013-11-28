@@ -7,9 +7,9 @@ import sys
 import textwrap
 import time
 
-from yoctopuce.yocto_api import *
-from yoctopuce.yocto_current import *
-from yoctopuce.yocto_datalogger import *
+from yoctopuce.yocto_api import YAPI, YRefParam
+from yoctopuce.yocto_current import YCurrent
+from yoctopuce.yocto_datalogger import YDataLogger
 
 class GaiaOptionsMixin(object):
 
