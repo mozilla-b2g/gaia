@@ -31,7 +31,7 @@ class GaiaTestResult(MarionetteTestResult, HTMLReportingTestResultMixin):
 
 class GaiaTextTestRunner(MarionetteTextTestRunner):
 
-    resultclass = GaiaTestResult 
+    resultclass = GaiaTestResult
 
 
 class GaiaTestRunner(BaseMarionetteTestRunner, GaiaTestRunnerMixin, HTMLReportingTestRunnerMixin):
