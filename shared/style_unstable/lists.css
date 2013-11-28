@@ -109,7 +109,7 @@
   width: 3rem;
   height: 6rem;
   background: #fff no-repeat left center / 100% auto;
-  font: 0/0 a;
+  font-size: 0;
   display: block;
   overflow: hidden;
 }
