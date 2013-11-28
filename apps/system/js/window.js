@@ -238,10 +238,10 @@
       function activitydone(e) {
         if (this.activityCaller &&
             this.activityCaller instanceof AppWindow) {
-          this.activityCaller = null;
-          this.activityCaller.activityCallee = null;
           // XXX: Do call appWindow.open()
           WindowManager.setDisplayedApp(this.activityCaller.origin);
+          this.activityCaller.activityCallee = null;
+          this.activityCaller = null;
         }
       }.bind(this));
 
