@@ -116,6 +116,8 @@ var Settings = {
 
   _currentPanel: '#root',
 
+  _currentActivity: null,
+
   get currentPanel() {
     return this._currentPanel;
   },
@@ -126,6 +128,15 @@ var Settings = {
     }
 
     if (hash == this._currentPanel) {
+      return;
+    }
+
+    // If we're handling an activity and the 'back' button is hit,
+    // close the activity.
+    // XXX this assumes the 'back' button of the activity panel
+    //     points to the root panel.
+    if (this._currentActivity !== null && hash === '#root') {
+      Settings.finishActivityRequest();
       return;
     }
 
@@ -527,11 +538,44 @@ var Settings = {
     });
   },
 
+  // An activity can be closed either by pressing the 'X' button
+  // or by a visibility change (i.e. home button or app switch).
+  finishActivityRequest: function settings_finishActivityRequest() {
+    // Remove the dialog mark to restore settings status
+    // once the animation from the activity finish
+    var currentPanel = document.querySelector('[data-dialog]');
+    document.addEventListener('visibilitychange', function restore(evt) {
+      if (document.hidden) {
+        document.removeEventListener('visibilitychange', restore);
+        // Send a result to finish this activity
+        if (currentPanel !== null) {
+          delete currentPanel.dataset.dialog;
+        }
+      }
+    });
+
+    // Send a result to finish this activity
+    if (Settings._currentActivity !== null) {
+      Settings._currentActivity.postResult(null);
+      Settings._currentActivity = null;
+    }
+  },
+
+  visibilityHandler: function settings_visibilityHandler(evt) {
+    if (document.hidden) {
+      Settings.finishActivityRequest();
+      document.removeEventListener('visibilitychange',
+        Settings.visibilityHandler);
+    }
+  },
+
   webActivityHandler: function settings_handleActivity(activityRequest) {
     var name = activityRequest.source.name;
+    var section = 'root';
+    Settings._currentActivity = activityRequest;
     switch (name) {
       case 'configure':
-        var section = activityRequest.source.data.section || 'root';
+        section = activityRequest.source.data.section || 'root';
 
         // Validate if the section exists
         var sectionElement = document.getElementById(section);
@@ -547,6 +591,17 @@ var Settings = {
           Settings.currentPanel = section;
         });
         break;
+      default:
+        Settings._currentActivity = null;
+        break;
+    }
+
+    // Mark the desired panel as a dialog
+    if (Settings._currentActivity !== null) {
+      var domSection = document.getElementById(section);
+      domSection.dataset.dialog = true;
+      document.addEventListener('visibilitychange',
+        Settings.visibilityHandler);
     }
   },
 
