@@ -98,7 +98,7 @@
   visibility: hidden;
   width: 100%;
   height: calc(100% - 4rem);
-  z-index: 10;
+  z-index: -1;
   display: block;
   overflow: auto;
 }
