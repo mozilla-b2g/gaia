@@ -600,7 +600,7 @@ navigator.mozL10n.ready(function wifiSettings() {
       var dialog = document.getElementById(dialogID);
 
       // authentication fields
-      var identity, password, showPassword, eap, simPin;
+      var identity, password, showPassword, eap;
       if (dialogID != 'wifi-status') {
         identity = dialog.querySelector('input[name=identity]');
         identity.value = network.identity || '';
@@ -616,8 +616,6 @@ navigator.mozL10n.ready(function wifiSettings() {
         };
 
         eap = dialog.querySelector('li.eap select');
-
-        simPin = dialog.querySelector('input[name=simPin]');
       }
 
       if (dialogID === 'wifi-joinHidden') {
@@ -643,13 +641,12 @@ navigator.mozL10n.ready(function wifiSettings() {
         var checkPassword = function checkPassword() {
           dialog.querySelector('button[type=submit]').disabled =
             !WifiHelper.isValidInput(key, password.value, identity.value,
-              eap.value, simPin.value);
+              eap.value);
         };
         eap.onchange = function() {
           checkPassword();
           changeDisplay(key);
         };
-        simPin.oninput = checkPassword;
         password.oninput = checkPassword;
         identity.oninput = checkPassword;
         checkPassword();
@@ -707,28 +704,22 @@ navigator.mozL10n.ready(function wifiSettings() {
       function changeDisplay(security) {
         if (dialogID !== 'wifi-status') {
           if (security === 'WEP' || security === 'WPA-PSK') {
-            simPin.parentNode.style.display = 'none';
             identity.parentNode.style.display = 'none';
             password.parentNode.style.display = 'block';
           } else if (security === 'WPA-EAP') {
             if (eap) {
               switch (eap.value) {
                 case 'SIM':
-                case 'AKA':
-                case 'AKA\'':
-                  simPin.parentNode.style.display = 'block';
                   identity.parentNode.style.display = 'none';
                   password.parentNode.style.display = 'none';
                   break;
                 default:
-                  simPin.parentNode.style.display = 'none';
                   identity.parentNode.style.display = 'block';
                   password.parentNode.style.display = 'block';
                   break;
               }
             }
           } else {
-            simPin.parentNode.style.display = 'none';
             identity.parentNode.style.display = 'none';
             password.parentNode.style.display = 'none';
           }
@@ -741,7 +732,6 @@ navigator.mozL10n.ready(function wifiSettings() {
           gWifiManager.connectionInfoUpdate = null;
         }
         if (dialogID != 'wifi-status') {
-          simPin.value = '';
           identity.value = '';
           password.value = '';
           showPassword.checked = false;
@@ -755,7 +745,7 @@ navigator.mozL10n.ready(function wifiSettings() {
         }
         if (key) {
           WifiHelper.setPassword(network, password.value, identity.value,
-            eap.value, simPin.value);
+            eap.value);
         }
         if (callback) {
           callback();

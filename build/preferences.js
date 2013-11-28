@@ -9,7 +9,7 @@ function debug(msg) {
 }
 
 function execute(options) {
-  config = options
+  config = options;
   var gaia = utils.getGaia(config);
   const prefs = [];
 
@@ -29,7 +29,7 @@ function execute(options) {
   });
 
   prefs.push(['network.http.max-connections-per-server', 15]);
-  prefs.push(["dom.mozInputMethod.enabled", true]);
+  prefs.push(['dom.mozInputMethod.enabled', true]);
 
   // for https://bugzilla.mozilla.org/show_bug.cgi?id=811605 to let user know
   //what prefs is for ril debugging
@@ -38,7 +38,10 @@ function execute(options) {
   // TODO: remove this override after having vCard/vCalendar implemented in Gaia.
   // @see bug 885683 - [Messages] MMS doesn't support sending and receiving vCard attachments.
   // @see bug 905548 - [Messages] MMS doesn't support sending and receiving vCalendar attachments.
-  prefs.push(["dom.mms.version", 0x11]);
+  prefs.push(['dom.mms.version', 0x11]);
+  // TODO: Once platform enabled unsafe WPA-EAP, we have to remove this flag here.
+  // @see Bug 790056 - Enable WPA Enterprise
+  prefs.push(['b2g.wifi.allow_unsafe_wpa_eap', true]);
 
   if (config.LOCAL_DOMAINS) {
     prefs.push(['network.dns.localDomains', domains.join(',')]);
