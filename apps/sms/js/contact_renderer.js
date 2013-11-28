@@ -170,7 +170,9 @@ ContactRenderer.prototype = {
         // only considers left aligned exact matches on words
         return new RegExp('^' + k, 'gi');
       }),
-      number: [new RegExp(escaped, 'ig')]
+      number: escsubs.map(function(k) {
+        return new RegExp(k, 'gi');
+      })
     };
 
     var include = renderPhoto ? { photoURL: true } : null;
