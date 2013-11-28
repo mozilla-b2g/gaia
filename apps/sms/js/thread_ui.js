@@ -479,13 +479,23 @@ var ThreadUI = global.ThreadUI = {
     }
   },
 
-  onMessageReceived: function thui_onMessageReceived(message) {
+  // Function for handling when a new message (sent/received)
+  // is detected
+  onMessage: function onMessage(message) {
     this.appendMessage(message);
-    this.scrollViewToBottom();
     TimeHeaders.updateAll();
+  },
+
+  onMessageReceived: function thui_onMessageReceived(message) {
+    this.onMessage(message);
     if (this.isScrolledManually) {
       this.showNewMessageNotice(message);
     }
+  },
+
+  onMessageSending: function thui_onMessageReceived(message) {
+    this.onMessage(message);
+    this.forceScrollViewToBottom();
   },
 
   onNewMessageNoticeClick: function thui_onNewMessageNoticeClick(event) {
