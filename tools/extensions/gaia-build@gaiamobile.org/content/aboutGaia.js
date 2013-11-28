@@ -7,13 +7,18 @@ const Cu = Components.utils;
 
 const PAGE_MAX_APP = 16;
 const DOCK_MAX_APP = 5;
+const MARKETPLACE_INSTALL_ORIGIN = 'https://marketplace.firefox.com';
+const EXTERNAL_APP_DIR = 'external-apps';
+const MARKETPLACE_SEARCH_HASH = '#marketplace-search-result';
+const MARKETPLACE_SEARCH_BASEURL = 'https://marketplace.firefox.com/api/v1/' +
+  'apps/search/?device=firefoxos&q=';
 
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource://gre/modules/FileUtils.jsm');
 
 const GAIA_DIR_PREF_NAME = 'extensions.gaia.dir';
 const DEFAULT_PAGE = 2;
-var require, buildModules = {};
+var utils, variant;
 
 var Homescreen = {
 
@@ -23,6 +28,8 @@ var Homescreen = {
     this.grid = document.getElementById('grid');
     this.dock = document.getElementById('dock');
     this.apps = [];
+    this.searchResultContainer =
+      document.getElementById('marketplace-search-container');
     this.addPageButton.addEventListener('click', this.addPage.bind(this));
 
     if (this.grid.children.length <= 1) {
@@ -44,6 +51,91 @@ var Homescreen = {
       this.removeApp.bind(this));
     document.getElementById('reset-gaia').addEventListener('click',
       resetGaiaPath);
+    document.getElementById('marketplace-keyword').addEventListener('click',
+      function(evt) {
+        this.select();
+      });
+    document.getElementById('marketplace-search').addEventListener('click',
+      function(evt) {
+        var keyword = document.getElementById('marketplace-keyword').value;
+        if (keyword) {
+          self.search(keyword);
+        } else {
+          alert('Please specify a keyword.');
+        }
+      });
+
+    window.addEventListener('hashchange', function(evt) {
+      var oldURL = new URL(evt.oldURL);
+      if (oldURL.hash === MARKETPLACE_SEARCH_HASH) {
+        delete self.searchResult;
+      }
+    });
+  },
+
+  search: function hs_search(keyword) {
+    var {downloadJSON} = utils;
+    this.searchResultContainer.innerHTML = 'Loading...';
+    window.location.hash = MARKETPLACE_SEARCH_HASH;
+    var self = this;
+    var url = MARKETPLACE_SEARCH_BASEURL + encodeURI(keyword);
+    downloadJSON(url, function(json) {
+      if (json) {
+        self.searchResult = json;
+        self.showSearchResult(self.searchResult);
+      } else {
+        var msg = 'Marketplace search request failed';
+        alert(msg);
+        throw new Error(msg);
+      }
+    });
+  },
+
+  showSearchResult: function hs_showSearchResult(json) {
+    var result = this.searchResultContainer;
+    while(result.firstChild) {
+      result.removeChild(result.firstChild);
+    }
+    json.objects.forEach(function(obj, index) {
+      result.appendChild(this.createSearchEntry(obj, index));
+    }.bind(this));
+  },
+
+  createSearchEntry: function hs_createSearchEntry(obj, index) {
+    const FULL_STARS = 5;
+    var container = document.createElement('a');
+    container.classList.add('marketplace-app-container');
+
+    var elements = {
+      'icon': 'img',
+      'name': 'div',
+      'author': 'div',
+      'ratings': 'div',
+      'review': 'div',
+      'type': 'div'
+    };
+    for (var key in elements) {
+      var el = document.createElement(elements[key]);
+      el.classList.add('marketplace-app-' + key);
+      container.appendChild(el);
+      elements[key] = el;
+    }
+
+    elements.name.textContent = obj.name;
+    elements.author.textContent = obj.author;
+    elements.icon.src = obj.icons['64'];
+    var ratings = Math.round(obj.ratings.average);
+    elements.ratings.innerHTML = new Array(ratings + 1).join('&#9733;');
+    var len = elements.ratings.innerHTML.length;
+    elements.ratings.innerHTML += new Array(FULL_STARS - len + 1).join('&#9734;');
+    elements.ratings.dataset.average = obj.ratings.average;
+    elements.review.textContent = obj.ratings.count + ' reviews';
+    elements.type.dataset.isPackaged = obj.is_packaged;
+
+    container.dataset.index = index;
+    container.addEventListener('click', this.addAppFromMarketplace.bind(this));
+
+    return container;
   },
 
   selectBuild: function hs_selectBuild(buildname) {
@@ -51,7 +143,7 @@ var Homescreen = {
       throw new Error('Homescreen.gaiaConfig doesn\'t exist');
     }
     var c = this.gaiaConfig;
-    var {getAppsByList} = buildModules.utils;
+    var {getAppsByList} = utils;
     var apps = getAppsByList(this.buildConfig[buildname].content,
       c.GAIA_DIR, c.GAIA_DISTRIBUTION_DIR);
     this.setApps(apps);
@@ -129,21 +221,124 @@ var Homescreen = {
     if (!this.editingAppElement) {
       throw new Error('You didn\'t select an app to edit');
     }
-
-    var name = this.editingAppElement.innerHTML;
     var availableApps = document.getElementById('available-apps');
-    availableApps.appendChild(this.createApp(name));
+    availableApps.appendChild(this.createApp(this.editingAppElement.dataset));
     this.editingAppElement.remove();
     delete this.editingAppElement;
 
     window.location.hash = '';
   },
 
+  getMetadata: function hs_getMetadata(entry, manifest, callback) {
+    var {normalizeAppId} = utils;
+    var name = normalizeAppId(entry.name)
+    var metadata = {
+      'name': name,
+      'installOrigin': MARKETPLACE_INSTALL_ORIGIN,
+      'manifestURL': entry.manifest_url,
+      'source': 'external'
+    };
+
+    if (entry.is_packaged) {
+      metadata.origin = 'app://' + name;
+      var xhr = new XMLHttpRequest();
+      xhr.open('HEAD', manifest.package_path, false);
+      xhr.addEventListener('load', function() {
+        if (xhr.status !== 200 && xhr.status !== 304) {
+          console.warn('Get header of packaged app failed, Status Code: ' +
+            xhr.status);
+          callback(metadata);
+          return;
+        }
+
+        var etag = xhr.getResponseHeader('etag');
+        if (etag) {
+          metadata.packageEtag = etag;
+        }
+        callback(metadata);
+      });
+      xhr.send();
+    } else {
+      var url = new URL(entry.manifest_url);
+      metadata.origin = url.origin;
+      callback(metadata);
+    }
+  },
+
+  filterProperties: function hs_filterProperties(obj, names) {
+    var newObj = {};
+    for (var prop in obj) {
+      if (names.indexOf(prop) >= 0) {
+        newObj[prop] = obj[prop];
+      }
+    }
+    return newObj;
+  },
+
+  processAppDownload: function hs_processAppDownload(metadata, json) {
+    var {getFile, ensureFolderExists} = utils;
+    var {downloadApp} = variant;
+    var filteredMetadata = this.filterProperties(metadata, ['origin',
+      'manifestURL', 'installOrigin', 'etag', 'packageEtag']);
+    var appPath = getFile(this.gaiaConfig.GAIA_DISTRIBUTION_DIR,
+      EXTERNAL_APP_DIR, metadata.name);
+    ensureFolderExists(appPath);
+    downloadApp(json, filteredMetadata, appPath.path, function() {
+        var {getApp} = utils;
+        var app = getApp(EXTERNAL_APP_DIR, metadata.name,
+          this.gaiaConfig.GAIA_DIR,
+          this.gaiaConfig.GAIA_DISTRIBUTION_DIR);
+        app.metadata = metadata;
+        this.apps[metadata.name] = app;
+        window.location.hash = '';
+    }.bind(this));
+  },
+
+  addAppFromMarketplace: function hs_addAppFromMarketplace(evt) {
+    var self = this;
+    var {normalizeAppId} = utils;
+    var entry = this.searchResult.objects[evt.currentTarget.dataset.index];
+    var name = normalizeAppId(entry.name);
+    if (this.apps[name]) {
+      alert(name + ' app already exists.');
+      return;
+    }
+    this.searchResultContainer.innerHTML = 'Downloading...';
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', entry.manifest_url, false);
+    xhr.addEventListener('load', function() {
+      if (xhr.status !== 200 && xhr.status !== 304) {
+        alert('Download Error, Status Code: ' + xhr.status);
+        window.location.hash = '';
+        return;
+      }
+
+      var manifest = JSON.parse(xhr.responseText);
+      self.getMetadata(entry, manifest, function(metadata) {
+        var app = self.createApp({
+          'name': metadata.name,
+          'source': 'external'
+        });
+        document.getElementById('available-apps').appendChild(app);
+        var etag = xhr.getResponseHeader('etag');
+        if (etag) {
+          metadata.etag = etag;
+        }
+        self.processAppDownload(metadata, manifest);
+      });
+    });
+    xhr.send();
+  },
+
   addToPage: function hs_addToPage(evt) {
+    var props = {};
+    Object.keys(evt.target.dataset).forEach(function(key) {
+      props[key] = evt.target.dataset[key];
+    });
     var selectedPage =
       document.querySelector('input[type=radio]:checked ~ .container');
-    var app = this.createApp(evt.target.dataset.name,
-      evt.target.dataset.entryPoint, true);
+    var app = this.createApp(props, true);
     var max = selectedPage.parentElement.id === 'dock' ?
       DOCK_MAX_APP : PAGE_MAX_APP;
     if (selectedPage.children.length < max) {
@@ -163,28 +358,37 @@ var Homescreen = {
     if (!app.manifest.icons && !app.manifest.entry_points) {
       logMissingIcon(app.name);
     } else if (!app.manifest.entry_points && app.manifest.icons) {
-      elements.push(this.createApp(app.name));
+      elements.push(this.createApp({'name': app.name}));
     } else {
       for (var entryPoint in app.manifest.entry_points) {
         if (!app.manifest.entry_points[entryPoint].icons) {
           logMissingIcon(app.name, entryPoint);
           continue;
         }
-        elements.push(this.createApp(app.name, entryPoint));
+        elements.push(this.createApp({
+          'name': app.name,
+          'entryPoint': entryPoint
+        }));
       }
     }
 
     return elements;
   },
 
-  createApp: function hs_createApp(appname, entryPoint, inPage) {
+  createApp: function hs_createApp(props, inPage) {
     var div = document.createElement('div');
     div.classList.add('app');
-    div.innerHTML = appname;
-    div.dataset.name = appname;
-    if (entryPoint) {
-      div.innerHTML += ':' + entryPoint;
-      div.dataset.entryPoint = entryPoint;
+    div.innerHTML = props.name;
+    if (props.entryPoint) {
+      div.innerHTML += ':' + props.entryPoint;
+    }
+
+    Object.keys(props).forEach(function(key) {
+      div.dataset[key] = props[key];
+    });
+
+    if (!div.dataset.source) {
+      div.dataset.source = 'builtin';
     }
 
     if (!inPage) {
@@ -243,7 +447,8 @@ var Homescreen = {
       var availableApps = document.getElementById('available-apps');
       Array.prototype.forEach.call(apps, function(app) {
         var {name, entryPoint} = app.dataset;
-        var restoredApp = self.createApp(name, entryPoint);
+        var restoredApp = self.createApp({
+          'name': name, 'entryPoint': entryPoint});
         availableApps.appendChild(restoredApp);
       });
 
@@ -263,11 +468,10 @@ var Homescreen = {
 
   save: function hs_save(evt) {
     var self = this;
-    if (!buildModules.utils) {
+    if (!utils) {
       throw new Error('utils module doesn\'t exist');
     }
 
-    var utils = buildModules.utils;
     var distDir = utils.getFile(this.gaiaConfig.GAIA_DISTRIBUTION_DIR);
     utils.ensureFolderExists(distDir);
 
@@ -288,24 +492,24 @@ var Homescreen = {
 
     Array.prototype.forEach.call(pages, function(page, index) {
       var pageArray = [];
-      Array.prototype.forEach.call(page.children, function(el) {
+      Array.prototype.forEach.call(page.children, function(el, position) {
         var parent;
-        var appname = el.dataset.name;
-        var entryPoint = el.dataset.entryPoint;
+        var {name, entryPoint} = el.dataset;
 
-        if (!self.apps[appname]) {
-          throw new Error('App doesn\'t exist: ' + appname);
+        if (!self.apps[name]) {
+          throw new Error('App doesn\'t exist: ' + name);
         }
 
-        var f = utils.getFile(self.apps[appname].path);
+        var f = utils.getFile(self.apps[name].path);
         parent = f.parent.leafName;
 
-        var appArray = [parent, appname];
+        var appArray = [parent, name];
         if (entryPoint) {
           appArray.push(entryPoint);
         }
         pageArray.push(appArray);
-        self.installedApps[appname] = self.apps[appname];
+
+        self.installedApps[name] = self.apps[name];
       });
 
       if (index !== pages.length - 1) {
@@ -337,185 +541,6 @@ var Homescreen = {
   }
 };
 
-var Gaia = {
-  _listeners: {},
-
-  loadXpcshellScript: function gaia_loadXpcshellScript(config, name) {
-    let module =
-      Cu.Sandbox(Services.scriptSecurityManager.getSystemPrincipal());
-    for (var i in config) {
-      module[i] = config[i];
-    }
-    Services.scriptloader.loadSubScript(
-      'file:///' + config.GAIA_DIR.replace(/\\/g, '/') + '/build/' + name +
-      '.js', module
-    );
-    return module;
-  },
-
-  getAppDirs: function gaia_getAppDirs(gaiaPath) {
-    let dir = new FileUtils.File(gaiaPath);
-    dir.append('apps');
-    let files = dir.directoryEntries;
-    let apps = [];
-    while (files.hasMoreElements()) {
-      let file = files.getNext().QueryInterface(Ci.nsILocalFile);
-      if (file.isDirectory()) {
-        apps.push(file.path);
-      }
-    }
-    return apps;
-  },
-
-  getConfig: function gaia_getConfig(profilePath, gaiaPath) {
-    let os = Cc['@mozilla.org/xre/app-info;1'].getService(Ci.nsIXULRuntime).OS;
-    const SEP = os === 'WINNT' ? '\\' : '/';
-    let config = {};
-    config.GAIA_DIR = gaiaPath;
-    config.PROFILE_DIR = profilePath;
-    config.PROFILE_FOLDER = 'profile-debug';
-    config.GAIA_SCHEME = 'http://';
-    config.GAIA_DOMAIN = 'gaiamobile.org';
-    config.DEBUG = 1;
-    config.DEVICE_DEBUG = 0;
-    config.LOCAL_DOMAINS = 1;
-    config.DESKTOP = 1;
-    config.HOMESCREEN = config.GAIA_SCHEME + 'system.' + config.GAIA_DOMAIN;
-    config.GAIA_PORT = ':8080';
-    config.GAIA_LOCALES_PATH = 'locales';
-    config.LOCALES_FILE = 'shared/resources/languages.json';
-    config.BUILD_APP_NAME = '*';
-    config.PRODUCTION = '0';
-    config.GAIA_OPTIMIZE = '0';
-    config.GAIA_DEV_PIXELS_PER_PX = '1';
-    config.DOGFOOD = '0';
-    config.OFFICIAL = '';
-    config.GAIA_DEFAULT_LOCALE = 'en-US';
-    config.GAIA_INLINE_LOCALES = '1';
-    config.GAIA_CONCAT_LOCALES = '1';
-    config.GAIA_ENGINE = 'xpcshell';
-    config.TARGET_BUILD_VARIANT = '';
-    config.NOFTU = '1';
-    config.REMOTE_DEBUGGER = '0';
-    config.SETTINGS_PATH = 'build/custom-settings.json';
-    config.GAIA_DISTRIBUTION_DIR = gaiaPath + SEP + 'distribution';
-    config.GAIA_BUILD_DIR = 'file://' + gaiaPath + '/build/';
-    config.GAIA_KEYBOARD_LAYOUTS = 'en,pt-BR,es,de,fr,pl';
-    return config;
-  },
-
-  getTmpFolder: function gaia_getTmpFolder(name) {
-    let file = Cc['@mozilla.org/file/directory_service;1']
-                 .getService(Ci.nsIProperties).get('TmpD', Ci.nsIFile);
-    file.append(name);
-    file.createUnique(Ci.nsIFile.DIRECTORY_TYPE, parseInt('0777', 8));
-    return file;
-  },
-
-  installExtension: function gaia_installExtension(extensionsDir, gaiaPath,
-    extName, domain) {
-    let utils = buildModules['utils'];
-    let ext = extensionsDir.clone();
-    let src = utils.getFile(gaiaPath, 'tools', 'extensions', extName);
-    let destname = extName.contains('@') ? extName : extName + '@' + domain;
-    ext.append(destname);
-    utils.writeContent(ext, src.path);
-  },
-
-  setup: function gaia_setup(gaiaPath) {
-    if (!gaiaPath) {
-      throw new Error('gaiaPath is empty');
-    }
-
-    this.profile = this.getTmpFolder('gaia');
-
-    // Generate global variables required by build scripts
-    try {
-      this.config = this.getConfig(this.profile.path, gaiaPath);
-    } catch (e) {
-      var msg = 'Can\'t load Gaia configuration, You may choose wrong gaia' +
-        ' directory';
-      throw new Error(msg);
-    }
-
-    try {
-      require = this.loadXpcshellScript(this.config,
-        'xpcshell-commonjs').require;
-    } catch (e) {
-      throw new Error('xpcshell-commonjs doesn\'t exist, you may choose wrong' +
-        ' gaia directory');
-    }
-
-    var modules = ['utils', 'preferences', 'applications-data',
-    'webapp-manifests', 'webapp-optimize', 'webapp-zip', 'settings'];
-    modules.forEach(function(m) { buildModules[m] = require(m); });
-
-    var evt = new CustomEvent('setupFinished');
-    this.dispatchEvent(evt);
-  },
-
-  install: function gaia_install() {
-    var self = this;
-    if (!this.config || !this.profile) {
-      throw new Error('config or profile doesn\'t exist');
-    }
-    var config = this.config;
-
-    // Execute all parts of the build system
-    buildModules['preferences'].execute(config);
-    buildModules['applications-data'].execute(config);
-    buildModules['webapp-manifests'].execute(config);
-    buildModules['settings'].execute(config);
-
-    // Install all helper addons
-    let extensions = this.profile.clone();
-    extensions.append('extensions');
-    buildModules['utils'].ensureFolderExists(extensions);
-
-    let exts = ['desktop-helper', 'browser-helper@gaiamobile.org', 'httpd'];
-    exts.forEach(function(ext) {
-      self.installExtension(extensions, config.GAIA_DIR, ext,
-        config.GAIA_DOMAIN);
-    });
-
-    // Launch firefox with the custom profile
-    let firefox = Cc['@mozilla.org/file/directory_service;1']
-                    .getService(Ci.nsIProperties).get('XREExeF', Ci.nsIFile);
-    let process = Cc['@mozilla.org/process/util;1']
-                    .createInstance(Ci.nsIProcess);
-    process.init(firefox);
-    let args = ['-no-remote', '-profile', config.PROFILE_DIR];
-    process.run(false, args, args.length);
-  },
-
-  addEventListener: function gaia_addEventListener(type, listener) {
-    if (!this._listeners[type]) {
-      this._listeners[type] = [];
-    }
-    this._listeners[type].push(listener);
-  },
-
-  removeEventListener: function gaia_removeEventListener(type, listener) {
-    if (this._listeners[type]) {
-      this._listeners[type].every(function(li, index) {
-        if (li === listener) {
-          this._listeners.splice(index, 1);
-          return false;
-        }
-        return true;
-      });
-    }
-  },
-
-  dispatchEvent: function gaia_dispatchEvent(event) {
-    if (this._listeners[event.type]) {
-      this._listeners[event.type].forEach(function(listener) {
-        listener(event);
-      });
-    }
-  }
-};
-
 function resetGaiaPath() {
   Homescreen.resetBuilds();
   Services.prefs.setCharPref(GAIA_DIR_PREF_NAME, '');
@@ -526,8 +551,10 @@ window.addEventListener('load', function() {
   Homescreen.init();
 
   Gaia.addEventListener('setupFinished', function() {
+    utils = Gaia.require('utils');
+    variant = Gaia.require('variant');
     Homescreen.gaiaConfig = Gaia.config;
-    var {getFile, getBuildConfig} = buildModules.utils;
+    var {getFile, getBuildConfig} = utils;
     var configs = getBuildConfig(getFile(Gaia.config.GAIA_DIR, 'build').path);
     Homescreen.setBuildConfig(configs);
   });
@@ -568,9 +595,10 @@ window.addEventListener('load', function() {
         Homescreen.selectGaiaFolder();
       }
       Gaia.profile.remove(true);
-      buildModules.utils.ensureFolderExists(Gaia.profile);
+      utils.ensureFolderExists(Gaia.profile);
       Gaia.config.GAIA_APPDIRS = installedAppPaths.join(' ');
       Gaia.install();
+      Gaia.launch();
       evt.target.textContent = original;
     }, 100);
   });

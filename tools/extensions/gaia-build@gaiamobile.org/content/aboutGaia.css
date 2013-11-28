@@ -47,6 +47,10 @@ select, button {
   border-radius: 0.4rem;
 }
 
+#available-apps div.app[data-source="external"] {
+  background-color: #fcaf3e;
+}
+
 #available-apps div.app:hover {
   background-color: #204a87;
   color: white;
@@ -155,7 +159,7 @@ select, button {
 }
 
 .page > .container {
-    margin-top: 2rem;
+  margin-top: 2rem;
 }
 
 #grid {
@@ -278,9 +282,96 @@ div.lightbox .lightbox-background .closemsg, div.lightbox .lightbox-background .
   line-height: 25rem;
 }
 
+#marketplace-search-result .lightbox-container {
+  background-color: #BEBEBE;
+}
+
 #reset-gaia {
   font-size: 0.8em;
   color: blue;
   text-decoration: underline;
   cursor: pointer;
+}
+
+.tool-section {
+  margin-bottom: 1rem;
+}
+
+.marketplace-app-container {
+  background-color: white;
+  margin: 1rem;
+  border-radius: 0.5rem;
+  position: relative;
+  height: 8rem;
+  display: block;
+}
+
+.marketplace-app-container:hover {
+  box-shadow: 0 0 0.5rem black;
+}
+
+.marketplace-app-container > * {
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+}
+
+.marketplace-app-icon {
+  left: 1rem;
+  top: 1rem;
+}
+
+.marketplace-app-ratings {
+  top: 5rem;
+  color: #3388C1;
+  font-size: 1.1em;
+}
+
+.marketplace-app-review {
+  left: 6rem;
+  top: 5.5rem;
+  font-size: 0.8em;
+  color: #3388C1;
+}
+
+.marketplace-app-name {
+  left: 6rem;
+  top: 1rem;
+  color: #333333;
+  font-family: FeuraSansWeb,"Open Sans","Helvetica Neue",Arial,sans-serif;
+  font-size: 1.4em;
+}
+
+.marketplace-app-author {
+  left: 6rem;
+  top: 3.5rem;
+  font-size: 0.8em;
+  color: #A7A7A7;
+}
+
+.noted {
+  font-size: 0.8em;
+  margin: 0.5rem;
+}
+
+.marketplace-app-type {
+  position: relative;
+  float: right;
+  margin-right: 2rem;
+  width: 10rem;
+  height: 1.5rem;
+  line-height: 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.8em;
+  text-align: center;
+  color: #FFF;
+}
+
+.marketplace-app-type[data-is-packaged="true"] {
+  background-color: #204a78;
+}
+
+.marketplace-app-type[data-is-packaged="true"]:before {
+  content: "Packaged app";
+  background-color: #204a78;
 }

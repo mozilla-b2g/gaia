@@ -63,18 +63,9 @@ function checkDownloadedApp(path) {
 
 
 //download the packaged app from manifest['package_path'] to cache path.
-function downloadPackageApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback) {
+function downloadPackageApp(manifest, metadata, appPath, callback, errCallback) {
   utils.log('variant.js',
             'download packaged app from: ' + manifest['package_path']);
-
-  // prepare metadata.
-  var metadata = {
-    'id': appId,
-    'installOrigin': installOrigin,
-    'manifestURL': manifestUrl,
-    'origin': getOrigin(manifest['package_path'])
-  };
   // write update.webapp
   utils.writeContentToFile(utils.joinPath(appPath, 'update.webapp'),
                            JSON.stringify(manifest));
@@ -89,15 +80,7 @@ function downloadPackageApp(manifestUrl, manifest, appPath, appId, origin,
                        });
 }
 
-function prepareHostedApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback) {
-  var metadata = {
-    'id': appId,
-    'installOrigin': installOrigin,
-    'manifestURL': manifestUrl,
-    'origin': origin || getOrigin(manifest['launch_path'])
-  };
-
+function prepareHostedApp(manifest, metadata, appPath, callback, errCallback) {
   // Bug 936028 - appcache needs to be removed from manifest
   if (manifest.appcache_path) {
     delete manifest.appcache_path;
@@ -112,16 +95,12 @@ function prepareHostedApp(manifestUrl, manifest, appPath, appId, origin,
   callback();
 }
 
-function downloadApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback) {
-
+function downloadApp(manifest, metadata, appPath, callback, errCallback) {
   // Determine if application is hosted or packaged and save manifest
   if (manifest['package_path']) { // packaged app
-    downloadPackageApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback);
-  } else if (origin || manifest['launch_path']) { // hosted app
-    prepareHostedApp(manifestUrl, manifest, appPath, appId, origin,
-                     installOrigin, callback, errCallback);
+    downloadPackageApp(manifest, metadata, appPath, callback, errCallback);
+  } else if (metadata.origin) { // hosted app
+    prepareHostedApp(manifest, metadata, appPath, callback, errCallback);
   } else { // error case
     errCallback(new Error('installOrigin required for app ' + appId +
                     ' in local_apps.json configuration file'));
@@ -190,8 +169,15 @@ function processApp(appId, manifestUrl, origin, installOrigin, profilePath,
     try {
       // if it is cached or the manifest file is not the same, we need to
       // download that app.
-      downloadApp(manifestUrl, json, appPath, appId, origin, installOrigin,
-                  copyAppPathToProfile, handleError);
+      var metadata = {
+        'id': appId,
+        'installOrigin': installOrigin,
+        'manifestURL': manifestUrl
+      };
+      metadata.origin = json['package_path'] ?
+        getOrigin(json['package_path']) :
+        (origin || getOrigin(json['launch_path']));
+      downloadApp(json, metadata, appPath, copyAppPathToProfile, handleError);
     } catch (ex) {
       // error found
       errorObject = ex;
@@ -445,3 +431,4 @@ function execute(options) {
 }
 
 exports.execute = execute;
+exports.downloadApp = downloadApp;
