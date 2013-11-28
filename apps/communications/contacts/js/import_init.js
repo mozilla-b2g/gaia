@@ -4,6 +4,13 @@
   var serviceName = getServiceName();
   var allowedOrigin = oauthflow.params[serviceName].appOrigin;
 
+  function notifyParent(message, origin) {
+    parent.postMessage({
+      type: message.type || '',
+      data: message.data || ''
+    }, origin);
+  }
+
   function parseParams(paramsStr) {
     var out = {};
     var paramsList;
@@ -66,12 +73,9 @@
   }
 
   function cancelCb() {
-    Curtain.hide();
-
-    parent.postMessage({
-      type: 'abort',
-      data: ''
-    }, allowedOrigin);
+    Curtain.hide(notifyParent.bind(null, {
+      type: 'abort'
+    }, allowedOrigin));
   }
 
   function tokenReady(access_token) {

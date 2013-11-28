@@ -7,13 +7,17 @@ if (typeof window.oauthFrame === 'undefined') {
     var oauthFrame = window.oauthFrame = {};
     var oauthParams = oauthflow.params;
 
-    function cancelCb() {
-      Curtain.hide();
-
+    function notifyParent(message, origin) {
       parent.postMessage({
-        type: 'abort',
-        data: ''
-      }, oauthParams[targetService].appOrigin);
+        type: message.type || '',
+        data: message.data || ''
+      }, origin);
+    }
+
+    function cancelCb() {
+      Curtain.hide(notifyParent.bind(null, {
+        type: 'abort'
+      }, oauthParams[targetService].appOrigin));
     }
 
     oauthFrame.start = function(from, service) {
