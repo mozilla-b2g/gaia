@@ -20,6 +20,8 @@ requireApp('homescreen/test/unit/mock_icon_retriever.js');
 require('/shared/js/screen_layout.js');
 requireApp('homescreen/js/icon_manager.js');
 requireApp('homescreen/js/grid_components.js');
+require('/test/unit/mock_bookmark.js');
+
 requireApp('homescreen/js/grid.js');
 
 var mocksHelperForGrid = new MocksHelper([
@@ -35,10 +37,9 @@ var mocksHelperForGrid = new MocksHelper([
   'HIDDEN_APPS',
   'ManifestHelper',
   'getDefaultIcon',
-  'Configurator'
-]);
-
-mocksHelperForGrid.init();
+  'Configurator',
+  'Bookmark'
+]).init();
 
 suite('grid.js >', function() {
   var TAP_THRESHOLD = 10;
@@ -49,10 +50,35 @@ suite('grid.js >', function() {
   var realMozApps;
   var realMozSettings;
 
-  var mocksHelper = mocksHelperForGrid;
+  mocksHelperForGrid.attachTestHelpers();
+
+  function initGridManager(done) {
+    // reseting markup before initing the grid manager
+    var fakeMarkup =
+      '<div id="icongrid" class="apps" role="main">' +
+        '<div id="landing-page" data-current-page="true">' +
+        '</div>' +
+      '</div>' +
+      '<div class="dockWrapper"></div>' +
+      '<div id="landing-overlay"></div>';
+
+    wrapperNode.innerHTML = fakeMarkup;
+
+    containerNode = document.getElementById('icongrid');
+
+    var options = {
+      gridSelector: '.apps',
+      dockSelector: '.dockWrapper',
+      tapThreshold: TAP_THRESHOLD,
+      swipeThreshold: SWIPE_THRESHOLD,
+      swipeFriction: 0.1,
+      swipeTransitionDuration: 300
+    };
+
+    GridManager.init(options, done);
+  }
 
   suiteSetup(function() {
-    mocksHelper.suiteSetup();
     realMozApps = window.navigator.mozApps;
     window.navigator.mozApps = {
       mgmt: MockAppsMgmt
@@ -65,8 +91,18 @@ suite('grid.js >', function() {
   suiteTeardown(function() {
     window.navigator.mozApps = realMozApps;
     navigator.mozSettings = realMozSettings;
+  });
 
-    mocksHelper.suiteTeardown();
+  setup(function(done) {
+    // wrapperNode markup will be added in initGridManager
+    wrapperNode = document.createElement('div');
+    document.body.appendChild(wrapperNode);
+
+    initGridManager(done);
+  });
+
+  teardown(function() {
+    wrapperNode.parentNode.removeChild(wrapperNode);
   });
 
   suite('Default icons have be initialized correctly >', function() {
@@ -91,41 +127,6 @@ suite('grid.js >', function() {
       assert.isTrue(appBlob !== bookmarkBlob);
     });
 
-  });
-
-  setup(function(done) {
-    mocksHelper.setup();
-
-    var fakeMarkup =
-      '<div id="icongrid" class="apps" role="main">' +
-        '<div id="landing-page" data-current-page="true">' +
-        '</div>' +
-      '</div>' +
-      '<div class="dockWrapper"></div>' +
-      '<div id="landing-overlay"></div>';
-
-    wrapperNode = document.createElement('div');
-    wrapperNode.innerHTML = fakeMarkup;
-    document.body.appendChild(wrapperNode);
-
-    containerNode = document.getElementById('icongrid');
-
-    var options = {
-      gridSelector: '.apps',
-      dockSelector: '.dockWrapper',
-      tapThreshold: TAP_THRESHOLD,
-      swipeThreshold: SWIPE_THRESHOLD,
-      swipeFriction: 0.1,
-      swipeTransitionDuration: 300
-    };
-
-    GridManager.init(options, done);
-  });
-
-  teardown(function() {
-    mocksHelper.teardown();
-
-    wrapperNode.parentNode.removeChild(wrapperNode);
   });
 
   function sendTouchEvent(type, node, coords) {
@@ -442,12 +443,10 @@ suite('grid.js >', function() {
     suiteSetup(function() {
       prevMaxIconNumber = MockPage.prototype.mMAX_ICON_NUMBER;
       MockPage.prototype.mMAX_ICON_NUMBER = 3;
-      MockHomeState.mUseTestGrids = true;
     });
 
     suiteTeardown(function() {
       MockPage.prototype.mMAX_ICON_NUMBER = prevMaxIconNumber;
-      MockHomeState.mUseTestGrids = false;
     });
 
     // This var shoud match the content of mock_configurator
@@ -480,31 +479,182 @@ suite('grid.js >', function() {
       }
     ];
 
-    testCases.forEach(function(testCase) {
-     test('Should save the icon with desiredPos in the first page with space:' +
-          testCase.name, function(done) {
-        Configurator.mSimPresentOnFirstBoot = false;
-        mockAppSV = new MockApp({'manifestURL': testCase.manifest});
-        MockAppsMgmt.mTriggerOninstall(mockAppSV);
+    var fixtures = [
+      [
+        {'index': 0, 'icons': []},
+        {'index': 1, 'icons': [
+          {'manifestURL': 'https://aHost/a_0_1_0',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0}
+        ]}
+      ],
+      [
+        {'index': 0, 'icons': []},
+        {'index': 1, 'icons': [
+          {'manifestURL': 'https://aHost/a_1_1_0',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a_1_1_1',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a_1_1_2',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0}
+        ]}
+      ],
+      [
+        {'index': 0, 'icons': []},
+        {'index': 1, 'icons': [
+          {'manifestURL': 'https://aHost/a_2_1_0',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a_2_1_1',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0}
+        ]},
+        {'index': 2, 'icons': [
+          {'manifestURL': 'https://aHost/a_2_2_0',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http: //inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a_2_2_1',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a_2_2_2',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0}
+        ]}
+      ],
+      [
+        {'index': 0, 'icons': []},
+        {'index': 1, 'icons': [
+          {'manifestURL': 'https://aHost/a_3_1_0',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a_3_1_1',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0}
+        ]},
+        {'index': 2, 'icons': [
+          {'manifestURL': 'https://aHost/a3_2_0',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a3_2_1',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a3_2_2',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0}
+        ]},
+        {'index': 3, 'icons': [
+          {'manifestURL': 'https://aHost/a3_3_0',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0},
+          {'manifestURL': 'https://aHost/a3_3_1',
+          'removable': true,
+          'name': 'Mock app',
+          'icon': 'http://inexistant.name/default_icon.png',
+          'isHosted': true,
+          'hasOfflineCache': false,
+          'desiredPos': 0}
+        ]}
+      ]
+    ];
 
-        setTimeout(function() {
-          var grd = MockHomeState.mLastSavedGrid;
-          var expectedPage = grd[testCase.expectedPage];
-          assert.ok(grd, 'Grid is not set');
+    testCases.forEach(function(testCase, i) {
+      suite(testCase.name, function(done) {
+        setup(function(done) {
+          MockHomeState.mTestGrids = fixtures[i];
+          initGridManager(done);
+        });
 
-          assert.equal(grd.length, testCase.expectedNumberOfPages,
-                       'Grid does not have the right number of screens');
-          assert.ok(expectedPage,
-                    'The expected screen does not exist');
-          assert.ok(expectedPage.icons && expectedPage.icons[0],
-                    'The screen does not have a icons structure');
+        test('Should save the icon with desiredPos in first page with space',
+        function(done) {
+          Configurator.mSimPresentOnFirstBoot = false;
+          mockAppSV = new MockApp({'manifestURL': testCase.manifest});
+          MockAppsMgmt.mTriggerOninstall(mockAppSV);
 
-          var expectedIcon = expectedPage && expectedPage.icons &&
-                             expectedPage.icons[expectedPage.icons.length - 1];
-          assert.equal(expectedIcon.manifestURL, testCase.manifest,
-                       'App was not installed on the correct screen');
-          done();
-        }, SAVE_STATE_WAIT_TIMEOUT);
+          setTimeout(function() {
+            done(function() {
+              var grd = MockHomeState.mLastSavedGrid;
+              var expectedPage = grd[testCase.expectedPage];
+              assert.ok(grd, 'Grid is not set');
+
+              assert.equal(grd.length, testCase.expectedNumberOfPages,
+                          'Grid does not have the right number of screens');
+              assert.ok(expectedPage,
+                        'The expected screen does not exist');
+              assert.ok(expectedPage.icons && expectedPage.icons[0],
+                        'The screen does not have a icons structure');
+
+              var expectedIcon = expectedPage && expectedPage.icons &&
+                                expectedPage.icons[
+                                  expectedPage.icons.length - 1
+                                ];
+              assert.equal(expectedIcon.manifestURL, testCase.manifest,
+                          'App was not installed on the correct screen');
+            });
+          }, SAVE_STATE_WAIT_TIMEOUT);
+        });
       });
     });
   });
@@ -570,6 +720,34 @@ suite('grid.js >', function() {
         var visibleApps = GridManager.getApps(true, true);
         assert.equal(visibleApps.length, 3);
       });
+  });
+
+  suite('init', function() {
+    suite('old-style bookmarks', function() {
+      var subject;
+
+      setup(function(done) {
+        subject = 'http://splendid-site.com';
+        MockHomeState.mTestGrids = [{
+          index: 0,
+          icons: [{
+            'bookmarkURL': subject,
+            'removable': true,
+            'name': 'Mock bookmark',
+            'icon': 'http://inexistant.name/default_icon.png',
+            'isHosted': false,
+            'hasOfflineCache': false
+          }]
+        }];
+
+        initGridManager(done);
+      });
+
+      test('still have an associated app object', function() {
+        var icon = GridManager.getIconForBookmark(subject);
+        assert.ok(icon.app);
+      });
+    });
   });
 
 });

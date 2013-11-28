@@ -985,6 +985,11 @@ var GridManager = (function() {
       // navigator.mozApps backed app will objects will be handled
       // asynchronously and therefore at a later time.
       var app = null;
+      if (descriptor.bookmarkURL && !descriptor.type) {
+        // pre-1.3 bookmarks
+        descriptor.type = GridItemsFactory.TYPE.BOOKMARK;
+      }
+
       if (descriptor.type === GridItemsFactory.TYPE.BOOKMARK ||
           descriptor.type === GridItemsFactory.TYPE.COLLECTION ||
           descriptor.role === GridItemsFactory.TYPE.COLLECTION) {
