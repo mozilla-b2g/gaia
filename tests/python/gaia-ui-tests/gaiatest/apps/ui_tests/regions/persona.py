@@ -23,6 +23,7 @@ class Persona(Base):
         return Persona(self.marionette)
 
     def switch_to_frame(self):
+        self.wait_for_element_displayed(*self._frame_locator)
         self.marionette.switch_to_frame(self.marionette.find_element(*self._frame_locator))
 
     def get_assertion(self):

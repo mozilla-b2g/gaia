@@ -24,6 +24,8 @@
         { settingName: key, settingValue: obj[key] }
       );
     }
+
+    return {};
   }
 
   function mns_clearRequests() {

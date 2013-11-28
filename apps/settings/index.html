@@ -17,6 +17,7 @@
     <link rel="stylesheet" type="text/css" href="style/lists.css">
     <link rel="stylesheet" type="text/css" href="style/icons.css">
     <link rel="stylesheet" type="text/css" href="style/settings.css">
+    <link rel="stylesheet" type="text/css" href="style/settings_large.css">
 
     <!-- Panel Stylesheets
     <link rel="stylesheet" type="text/css" href="shared/style/action_menu.css"/>
@@ -103,6 +104,7 @@
     <link rel="import" href="/elements/notifications.html">
     <link rel="import" href="/elements/date_time.html">
     <link rel="import" href="/elements/languages.html">
+    <link rel="import" href="/elements/sim_manager.html">
     <link rel="import" href="/elements/homescreen_details.html">
     <link rel="import" href="/elements/homescreen.html">
     <link rel="import" href="/elements/keyboard.html">
@@ -180,9 +182,6 @@
     <section is="call-cf-mobileBusySettings" role="region" id="call-cf-mobileBusySettings"></section>
     <!-- Connectivity :: Call :: Call Forwarding Unconditional -->
     <section is="call-cf-unconditionalSettings" role="region" id="call-cf-unconditionalSettings"></section>
-    <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Action Menu -->
-    <form hidden is="call-fndList-action" id="call-fdnList-action" role="dialog" data-type="action">
-    </form>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers :: Add -->
     <section is="call-fdnList-add" role="region" id="call-fdnList-add"></section>
     <!-- Connectivity :: Call :: Fixed Dialing Numbers (FDN) :: Authorized Numbers -->
@@ -230,6 +229,8 @@
     <section is="dateTime" role="region" id="dateTime"></section>
     <!-- Personalization :: Language & Region -->
     <section is="languages" role="region" id="languages"></section>
+    <!-- Personalization :: SIM card manager -->
+    <section is="sim-manager" role="region" id="sim-manager"></section>
     <!-- Personalization :: Homescreen :: details -->
     <section is="homescreen-details" role="region" id="homescreen-details"></section>
     <!-- Personalization :: Homescreen -->
@@ -322,6 +323,9 @@
           <li>
             <small id="wifi-desc" class="menu-item-desc"></small>
             <a id="menuItem-wifi" class="menu-item" href="#wifi" data-l10n-id="wifi">Wi-Fi</a>
+          </li>
+          <li id="simCardManager-settings">
+            <a id="menuItem-simManager" class="menu-item" href="#sim-manager" data-l10n-id="simManager">SIM manager</a>
           </li>
           <li id="call-settings">
             <small id="call-desc" class="menu-item-desc"></small>

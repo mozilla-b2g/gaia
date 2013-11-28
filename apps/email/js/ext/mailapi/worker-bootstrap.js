@@ -4624,6 +4624,33 @@ exports.OPEN_REFRESH_THRESH_MS = 10 * 60 * 1000;
 exports.GROW_REFRESH_THRESH_MS = 60 * 60 * 1000;
 
 ////////////////////////////////////////////////////////////////////////////////
+// Database Block constants
+//
+// Used to live in mailslice.js, but they got out of sync with the below which
+// caused problems.
+
+exports.EXPECTED_BLOCK_SIZE = 8;
+
+/**
+ * What is the maximum number of bytes a block should store before we split
+ * it?
+ */
+exports.MAX_BLOCK_SIZE = exports.EXPECTED_BLOCK_SIZE * 1024,
+/**
+ * How many bytes should we target for the small part when splitting 1:2?
+ */
+exports.BLOCK_SPLIT_SMALL_PART = (exports.EXPECTED_BLOCK_SIZE / 3) * 1024,
+/**
+ * How many bytes should we target for equal parts when splitting 1:1?
+ */
+exports.BLOCK_SPLIT_EQUAL_PART = (exports.EXPECTED_BLOCK_SIZE / 2) * 1024,
+/**
+ * How many bytes should we target for the large part when splitting 1:2?
+ */
+exports.BLOCK_SPLIT_LARGE_PART = (exports.EXPECTED_BLOCK_SIZE / 1.5) * 1024;
+
+
+////////////////////////////////////////////////////////////////////////////////
 // Block Purging Constants (IMAP only)
 //
 // These values are all intended for resource-constrained mobile devices.  A
@@ -4637,8 +4664,12 @@ exports.GROW_REFRESH_THRESH_MS = 60 * 60 * 1000;
  * Body sizes are most variable and should usually take up more space than their
  * owning header blocks, so it makes sense for this to be the proxy we use for
  * disk space usage/growth.
+ *
+ * This used to be 4 when EXPECTED_BLOCK_SIZE was 96, it's now 8.  A naive
+ * scaling would be by 12 to 48, but that doesn't handle that blocks can be
+ * over the limit, so we want to aim a little lower, so 32.
  */
-exports.BLOCK_PURGE_EVERY_N_NEW_BODY_BLOCKS = 4;
+exports.BLOCK_PURGE_EVERY_N_NEW_BODY_BLOCKS = 32;
 
 /**
  * How much time must have elapsed since the given messages were last
@@ -4655,15 +4686,28 @@ exports.BLOCK_PURGE_ONLY_AFTER_UNSYNCED_MS = 14 * $date.DAY_MILLIS;
  * regardless of any time considerations.
  *
  * The hypothetical upper bound for disk uage per folder is:
- *  X 'number of blocks' * 2 'types of blocks' * 96k 'maximum block size'.
+ * X 'number of blocks' * 2 'types of blocks' * 8k 'maximum block size'.  In
+ * reality, blocks can be larger than their target if they have very large
+ * bodies.
  *
- * So for the current value of 128 we are looking at 24 megabytes, which is
- * a lot.
+ * This was 128 when our target size was 96k for a total of 24 megabytes.  Now
+ * that our target size is 8k we're only scaling up by 8 instead of 12 because
+ * of the potential for a large number of overage blocks.  This takes us to a
+ * max of 1024 blocks.
  *
  * This is intended to protect people who have ridiculously high message
  * densities from time-based heuristics not discarding things fast enough.
  */
-exports.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT = 128;
+exports.BLOCK_PURGE_HARD_MAX_BLOCK_LIMIT = 1024;
+
+////////////////////////////////////////////////////////////////////////////////
+// POP3 Sync Constants
+
+/**
+ * As we're syncing with POP3, pause every N messages to save state to disk.
+ * This value was chosen somewhat arbitrarily.
+ */
+exports.POP3_SAVE_STATE_EVERY_N_MESSAGES = 50;
 
 ////////////////////////////////////////////////////////////////////////////////
 // General Sync Constants
@@ -4920,6 +4964,10 @@ exports.TEST_adjustSyncValues = function TEST_adjustSyncValues(syncValues) {
   if (syncValues.hasOwnProperty('OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT'))
     exports.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT =
       syncValues.OP_UNKNOWN_ERROR_TRY_COUNT_INCREMENT;
+
+  if (syncValues.hasOwnProperty('POP3_SAVE_STATE_EVERY_N_MESSAGES'))
+    exports.POP3_SAVE_STATE_EVERY_N_MESSAGES =
+      syncValues.POP3_SAVE_STATE_EVERY_N_MESSAGES;
 };
 
 }); // end define
@@ -5041,26 +5089,6 @@ var tupleRangeIntersectsTupleRange = exports.tupleRangeIntersectsTupleRange =
     return false;
   return true;
 };
-
-var EXPECTED_BLOCK_SIZE = 8;
-
-/**
- * What is the maximum number of bytes a block should store before we split
- * it?
- */
-var MAX_BLOCK_SIZE = EXPECTED_BLOCK_SIZE * 1024,
-/**
- * How many bytes should we target for the small part when splitting 1:2?
- */
-      BLOCK_SPLIT_SMALL_PART = (EXPECTED_BLOCK_SIZE / 3) * 1024,
-/**
- * How many bytes should we target for equal parts when splitting 1:1?
- */
-      BLOCK_SPLIT_EQUAL_PART = (EXPECTED_BLOCK_SIZE / 2) * 1024,
-/**
- * How many bytes should we target for the large part when splitting 1:2?
- */
-      BLOCK_SPLIT_LARGE_PART = (EXPECTED_BLOCK_SIZE / 1.5) * 1024;
 
 /**
  * How much progress in the range [0.0, 1.0] should we report for just having
@@ -6415,6 +6443,75 @@ FolderStorage.prototype = {
   },
 
   /**
+   * Discard the cached block that contains the message header or body in
+   * question.  This is intended to be used in cases where we want to re-read
+   * a header or body from disk to get IndexedDB file-backed Blobs to replace
+   * our (likely) memory-backed Blobs.
+   *
+   * This will log, but not throw, an error in the event the block in question
+   * is currently tracked as a dirty block or there is no block that contains
+   * the named message.  Both cases indicate an assumption that is being
+   * violated.  This should cause unit tests to fail but not break us if this
+   * happens out in the real-world.
+   *
+   * If the block is not currently loaded, no error is triggered.
+   *
+   * This method executes synchronously.
+   *
+   * @method _discardCachedBlockUsingDateAndID
+   * @param type {'header'|'body'}
+   * @param date {Number}
+   *   The timestamp of the message in question.
+   * @param id {Number}
+   *   The folder-local id we allocated for the message.  Not the SUID, not the
+   *   server-id.
+   */
+  _discardCachedBlockUsingDateAndID: function(type, date, id) {
+    var blockInfoList, loadedBlockInfoList, blockMap, dirtyMap;
+    this._LOG.discardFromBlock(type, date, id);
+    if (type === 'header') {
+      blockInfoList = this._headerBlockInfos;
+      loadedBlockInfoList = this._loadedHeaderBlockInfos;
+      blockMap = this._headerBlocks;
+      dirtyMap = this._dirtyHeaderBlocks;
+    }
+    else {
+      blockInfoList = this._bodyBlockInfos;
+      loadedBlockInfoList = this._loadedBodyBlockInfos;
+      blockMap = this._bodyBlocks;
+      dirtyMap = this._dirtyBodyBlocks;
+    }
+
+    var infoTuple = this._findRangeObjIndexForDateAndID(blockInfoList,
+                                                        date, id),
+        iInfo = infoTuple[0], info = infoTuple[1];
+    // Asking to discard something that does not exist in a block is a
+    // violated assumption.  Log an error.
+    if (!info) {
+      this._LOG.badDiscardRequest(type, date, id);
+      return;
+    }
+
+    var blockId = info.blockId;
+    // Nothing to do if the block isn't present
+    if (!blockMap.hasOwnProperty(blockId))
+      return;
+
+    // Violated assumption if the block is dirty
+    if (dirtyMap.hasOwnProperty(blockId)) {
+      this._LOG.badDiscardRequest(type, date, id);
+      return;
+    }
+
+    // Discard the block
+    delete blockMap[blockId];
+    var idxLoaded = loadedBlockInfoList.indexOf(info);
+    // Something is horribly wrong if this is -1.
+    if (idxLoaded !== -1)
+      loadedBlockInfoList.splice(idxLoaded, 1);
+  },
+
+  /**
    * Purge messages from disk storage for size and/or time reasons.  This is
    * only used for IMAP folders and we fast-path out if invoked on ActiveSync.
    *
@@ -6857,7 +6954,8 @@ FolderStorage.prototype = {
       }
       // - Is there a trailing/older dude and we fit?
       else if (iInfo < blockInfoList.length &&
-               blockInfoList[iInfo].estSize + estSizeCost < MAX_BLOCK_SIZE) {
+               (blockInfoList[iInfo].estSize + estSizeCost <
+                 $sync.MAX_BLOCK_SIZE)) {
         info = blockInfoList[iInfo];
 
         // We are chronologically/UID-ically more recent, so check the end range
@@ -6873,7 +6971,8 @@ FolderStorage.prototype = {
       }
       // - Is there a preceding/younger dude and we fit?
       else if (iInfo > 0 &&
-               blockInfoList[iInfo - 1].estSize + estSizeCost < MAX_BLOCK_SIZE){
+               (blockInfoList[iInfo - 1].estSize + estSizeCost <
+                  $sync.MAX_BLOCK_SIZE)) {
         info = blockInfoList[--iInfo];
 
         // We are chronologically less recent, so check the start range for
@@ -6932,17 +7031,17 @@ FolderStorage.prototype = {
       insertInBlock(thing, uid, info, block);
 
       // -- split if necessary
-      if (info.count > 1 && info.estSize >= MAX_BLOCK_SIZE) {
+      if (info.count > 1 && info.estSize >= $sync.MAX_BLOCK_SIZE) {
         // - figure the desired resulting sizes
         var firstBlockTarget;
         // big part to the center at the edges (favoring front edge)
         if (iInfo === 0)
-          firstBlockTarget = BLOCK_SPLIT_SMALL_PART;
+          firstBlockTarget = $sync.BLOCK_SPLIT_SMALL_PART;
         else if (iInfo === blockInfoList.length - 1)
-          firstBlockTarget = BLOCK_SPLIT_LARGE_PART;
+          firstBlockTarget = $sync.BLOCK_SPLIT_LARGE_PART;
         // otherwise equal split
         else
-          firstBlockTarget = BLOCK_SPLIT_EQUAL_PART;
+          firstBlockTarget = $sync.BLOCK_SPLIT_EQUAL_PART;
 
 
         // - split
@@ -8560,6 +8659,10 @@ FolderStorage.prototype = {
    * Add a new message to the database, generating slice notifications.
    */
   addMessageHeader: function ifs_addMessageHeader(header, callback) {
+    if (header.id == null || header.suid == null) {
+      throw new Error('No valid id: ' + header.id + ' or suid: ' + header.suid);
+    }
+
     if (this._pendingLoads.length) {
       this._deferredCalls.push(this.addMessageHeader.bind(
                                  this, header, callback));
@@ -9054,7 +9157,8 @@ FolderStorage.prototype = {
 
   /**
    * Update a message body; this should only happen because of attachments /
-   * related parts being downloaded or purged from the system.
+   * related parts being downloaded or purged from the system.  This is an
+   * asynchronous operation.
    *
    * Right now it is assumed/required that this body was retrieved via
    * getMessageBody while holding a mutex so that the body block must still
@@ -9077,8 +9181,66 @@ FolderStorage.prototype = {
    *      changedBodyInfo,
    *      { changeDetails: { bodyReps: [0], ... }, value: y }
    *    );
+   *
+   * @method updateMessageBody
+   * @param header {HeaderInfo}
+   * @param bodyInfo {BodyInfo}
+   * @param options {Object}
+   * @param [options.flushBecause] {'blobs'}
+   *   If present, indicates that we should flush the message body to disk and
+   *   read it back from IndexedDB because we are writing Blobs that are not
+   *   already known to IndexedDB and we want to replace potentially
+   *   memory-backed Blobs with disk-backed Blobs.  This is essential for
+   *   memory management.  There are currently no extenuating circumstances
+   *   where you should lie to us about this.
+   *
+   *   This inherently causes saveAccountState to be invoked, so callers should
+   *   sanity-check they aren't doing something weird to the database that could
+   *   cause a non-coherent state to appear.
+   *
+   *   If you pass a value for this, you *must* forget your reference to the
+   *   bodyInfo you pass in in order for our garbage collection to work!
+   * @param eventDetails {Object}
+   *   An event details object that describes the changes being made to the
+   *   body representation.  This object will be directly reported to clients.
+   *   If omitted, no event will be generated.  Only do this if you're doing
+   *   something that should not be made visible to anything; like while the
+   *   process of attaching
+   *
+   *   Please be sure to document everything here for now.
+   * @param eventDetails.changeDetails {Object}
+   *   An object indicating what changed in the body.  All of the following
+   *   attributes are optional.  If they aren't present, the thing didn't
+   *   change.
+   * @param eventDetails.changeDetails.bodyReps {Number[]}
+   *   The indices of the bodyReps array that changed.  In general bodyReps
+   *   should only be added or modified.  However, in the case of POP3, a
+   *   fictitious body part of type 'fake' may be created and may subsequently
+   *   be removed.  No index is generated for the removal, but this should
+   *   end up being okay because the UI should not reflect the 'fake' bodyRep
+   *   into anything.
+   * @param eventDetails.changeDetails.attachments {Number[]}
+   *   The indices of the attachments array that changed by being added or
+   *   modified.  Attachments may be detached; these indices are reported in
+   *   detachedAttachments.
+   * @param eventDetails.changeDetails.relatedParts {Number[]}
+   *   The indices of the relatedParts array that changed by being added or
+   *   modified.
+   * @param eventDetails.changeDetails.detachedAttachments {Number[]}
+   *   The indices of the attachments array that were deleted.  Note that this
+   *   should only happen for drafts and no code should really be holding onto
+   *   those bodies.  Additionally, the draft headers/bodies get nuked and
+   *   re-created every time a draft is saved, so they shouldn't hang around in
+   *   general.  However, we really do not want to allow the Blob references to
+   *   leak, so we do report this so we can clean them up in clients.  splices
+   *   for this case should be performed in the order reported.
+   * @param callback {Function}
+   *   A callback to be invoked after the body has been updated and after any
+   *   body change notifications have been handed off to the MailUniverse.  The
+   *   callback receives a reference to the updated BodyInfo object.
    */
-  updateMessageBody: function(header, bodyInfo, eventDetails, callback) {
+  updateMessageBody: function(header, bodyInfo, options, eventDetails,
+                              callback) {
     if (typeof(eventDetails) === 'function') {
       callback = eventDetails;
       eventDetails = null;
@@ -9088,7 +9250,7 @@ FolderStorage.prototype = {
     // perceived ordering relative to those that cannot be.)
     if (this._pendingLoads.length) {
       this._deferredCalls.push(this.updateMessageBody.bind(
-                                 this, header, bodyInfo,
+                                 this, header, bodyInfo, options,
                                  eventDetails, callback));
       return;
     }
@@ -9097,7 +9259,28 @@ FolderStorage.prototype = {
     var id = parseInt(suid.substring(suid.lastIndexOf('/') + 1));
     var self = this;
 
+    // (called when addMessageBody completes)
     function bodyUpdated() {
+      if (options.flushBecause) {
+        bodyInfo = null;
+        self._account.saveAccountState(
+          null, // no transaction to reuse
+          function forgetAndReGetMessageBody() {
+            // Force the block hosting the body to be discarded from the
+            // cache.
+            self.getMessageBody(suid, header.date, performNotifications);
+          },
+          'flushBody');
+      }
+      else {
+        performNotifications();
+      }
+    }
+
+    function performNotifications(refreshedBody) {
+      if (refreshedBody) {
+        bodyInfo = refreshedBody;
+      }
       if (eventDetails && self._account.universe) {
         self._account.universe.__notifyModifiedBody(
           suid, eventDetails, bodyInfo
@@ -9105,10 +9288,13 @@ FolderStorage.prototype = {
       }
 
       if (callback) {
-        callback();
+        callback(bodyInfo);
       }
     }
 
+    // We always recompute the size currently for safety reasons, but as of
+    // writing this, changes to attachments/relatedParts will not affect the
+    // body size, only changes to body reps.
     this._deleteFromBlock('body', header.date, id, function() {
       self.addMessageBody(header, bodyInfo, bodyUpdated);
     });
@@ -9167,6 +9353,8 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       // will be sufaced.)
       deleteFromBlock: { type: false, date: false, id: false },
 
+      discardFromBlock: { type: false, date: false, id: false },
+
       // This was an error but the test results viewer UI is not quite smart
       // enough to understand the difference between expected errors and
       // unexpected errors, so this is getting downgraded for now.
@@ -9194,6 +9382,7 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
       // values being ridiculous (and therefore not legal).
       badIterationStart: { date: false, id: false },
       badDeletionRequest: { type: false, date: false, id: false },
+      badDiscardRequest: { type: false, date: false, id: false },
       bodyBlockMissing: { id: false, idx: false, dict: false },
       serverIdMappingMissing: { srvid: false },
 
@@ -9206,6 +9395,293 @@ var LOGFAB = exports.LOGFAB = $log.register($module, {
     }
   },
 }); // end LOGFAB
+
+}); // end define
+;
+/**
+ * Centralize the creation of our header and body object representations.
+ *
+ * We provide constructor functions which take input objects that should
+ * basically look like the output object, but the function enforces
+ * consistency and provides the ability to assert about the state of the
+ * representation at the call-site.  We discussed making sure to check
+ * representations when we are inserting records into our database, but we
+ * might also want to opt to do it at creation time too so we can explode
+ * slightly closer to the source of the problem.
+ *
+ * This module will also provide representation checking functions to make
+ * sure all the data structures are well-formed/have no obvious problems.
+ *
+ * @module mailapi/db/mail_rep
+ **/
+
+define('mailapi/db/mail_rep',['require'],function(require) {
+
+/*
+ * @typedef[HeaderInfo @dict[
+ *   @key[id]{
+ *     An id allocated by the back-end that names the message within the folder.
+ *     We use this instead of the server-issued UID because if we used the UID
+ *     for this purpose then we would still need to issue our own temporary
+ *     speculative id's for offline operations and would need to implement
+ *     renaming and it all gets complicated.
+ *   }
+ *   @key[srvid]{
+ *     The server-issued UID for the folder, or 0 if the folder is an offline
+ *     header.
+ *   }
+ *   @key[suid]{
+ *     Basically "account id/folder id/message id", although technically the
+ *     folder id includes the account id.
+ *   }
+ *   @key[guid String]{
+ *     This is the message-id header value of the message.
+ *   }
+ *   @key[author NameAddressPair]
+ *   @key[to #:optional @listof[NameAddressPair]]
+ *   @key[cc #:optional @listof[NameAddressPair]]
+ *   @key[bcc #:optional @listof[NameAddressPair]]
+ *   @key[replyTo #:optional String]{
+ *     The contents of the reply-to header.
+ *   }
+ *   @key[date DateMS]
+ *   @key[flags @listof[String]]
+ *   @key[hasAttachments Boolean]
+ *   @key[subject @oneof [String null]]
+ *   @key[snippet @oneof[
+ *     @case[null]{
+ *       We haven't tried to generate a snippet yet.
+ *     }
+ *     @case['']{
+ *       We tried to generate a snippet, but got nothing useful.  Note that we
+ *       may try and generate a snippet from a partial body fetch; this does not
+ *       indicate that we should avoid computing a better snippet.  Whenever the
+ *       snippet is falsey and we have retrieved more body data, we should
+ *       always try and derive a snippet.
+ *     }
+ *     @case[String]{
+ *       A non-empty string means we managed to produce some snippet data.  It
+ *        is still appropriate to regenerate the snippet if more body data is
+ *        fetched since our snippet may be a fallback where we chose quoted text
+ *        instead of authored text, etc.
+ *     }
+ *   ]]
+ * ]]
+ */
+function makeHeaderInfo(raw) {
+  // All messages absolutely need the following; the caller needs to make up
+  // values if they're missing.
+  if (!raw.author)
+    throw new Error('No author?!');
+  if (!raw.date)
+    throw new Error('No date?!');
+  // We also want/require a valid id, but we check that at persistence time
+  // since POP3 assigns the id/suid slightly later on.  We check the suid at
+  // that point too.  (Checked in FolderStorage.addMessageHeader.)
+
+  return {
+    id: raw.id,
+    srvid: raw.srvid || null,
+    suid: raw.suid || null,
+    guid: raw.guid || null,
+    author: raw.author,
+    to: raw.to || null,
+    cc: raw.cc || null,
+    bcc: raw.bcc || null,
+    replyTo: raw.replyTo || null,
+    date: raw.date,
+    flags: raw.flags || [],
+    hasAttachments: raw.hasAttachments || false,
+    // These can be empty strings which are falsey, so no ||
+    subject: (raw.subject != null) ? raw.subject : null,
+    snippet: (raw.snippet != null) ? raw.snippet : null
+  };
+}
+
+/*
+ * @typedef[BodyInfo @dict[
+ *   @key[date DateMS]{
+ *     Redundantly stored date info for block splitting purposes.  We pretty
+ *     much need this no matter what because our ordering is on the tuples of
+ *     dates and UIDs, so we could have trouble efficiently locating our header
+ *     from the body without this.
+ *   }
+ *   @key[size Number]
+ *   @key[to @listof[NameAddressPair]]
+ *   @key[cc @listof[NameAddressPair]]
+ *   @key[bcc @listof[NameAddressPair]]
+ *   @key[replyTo NameAddressPair]
+ *   @key[attaching #:optional AttachmentInfo]{
+ *     Because of memory limitations, we need to encode and attach attachments
+ *     in small pieces.  An attachment in the process of being attached is
+ *     stored here until fully processed.  Its 'file' field contains a list of
+ *     Blobs.
+ *   }
+ *   @key[attachments @listof[AttachmentInfo]]{
+ *     Proper attachments for explicit downloading.
+ *   }
+ *   @key[relatedParts @oneof[null @listof[AttachmentInfo]]]{
+ *     Attachments for inline display in the contents of the (hopefully)
+ *     multipart/related message.
+ *   }
+ *   @key[references @oneof[null @listof[String]]]{
+ *     The contents of the references header as a list of de-quoted ('<' and
+ *     '>' removed) message-id's.  If there was no header, this is null.
+ *   }
+ *   @key[bodyReps @listof[BodyPartInfo]]
+ * ]]{
+ *   Information on the message body that is only for full message display.
+ *   The to/cc/bcc information may get moved up to the header in the future,
+ *   but our driving UI doesn't need it right now.
+ * }
+ */
+function makeBodyInfo(raw) {
+  if (!raw.date)
+    throw new Error('No date?!');
+  if (!raw.attachments || !raw.bodyReps)
+    throw new Error('No attachments / bodyReps?!');
+
+  return {
+    date: raw.date,
+    size: raw.size || 0,
+    attachments: raw.attachments,
+    relatedParts: raw.relatedParts || null,
+    references: raw.references || null,
+    bodyReps: raw.bodyReps
+  };
+}
+
+/*
+ * @typedef[BodyPartInfo @dict[
+ *   @key[type @oneof['plain' 'html']]{
+ *     The type of body; this is actually the MIME sub-type.
+ *   }
+ *   @key[part String]{
+ *     IMAP part number.
+ *   }
+ *   @key[sizeEstimate Number]
+ *   @key[amountDownloaded Number]
+ *   @key[isDownloaded Boolean]
+ *   @key[_partInfo #:optional RawIMAPPartInfo]
+ *   @key[content]{
+ *     The representation for 'plain' values is a `quotechew.js` processed
+ *     body representation which is pair-wise list where the first item in each
+ *     pair is a packed integer identifier and the second is a string containing
+ *     the text for that block.
+ *
+ *     The body representation for 'html' values is an already sanitized and
+ *     already quote-normalized String representation that could be directly
+ *     fed into innerHTML safely if you were so inclined.  See `htmlchew.js`
+ *     for more on that process.
+ *   }
+ * ]]
+ */
+function makeBodyPart(raw) {
+  // We don't persist body types to our representation that we don't understand.
+  if (raw.type !== 'plain' &&
+      raw.type !== 'html')
+    throw new Error('Bad body type: ' + raw.type);
+  // 0 is an okay body size, but not giving us a guess is not!
+  if (raw.sizeEstimate === undefined)
+    throw new Error('Need size estimate!');
+
+  return {
+    type: raw.type,
+    part: raw.part || null,
+    sizeEstimate: raw.sizeEstimate,
+    amountDownloaded: raw.amountDownloaded || 0,
+    isDownloaded: raw.isDownloaded || false,
+    _partInfo: raw._partInfo || null,
+    content: raw.content || ''
+  };
+}
+
+
+/*
+ * @typedef[AttachmentInfo @dict[
+ *   @key[name String]{
+ *     The filename of the attachment, if any.
+ *   }
+ *   @key[contentId String]{
+ *     The content-id of the attachment if this is a related part for inline
+ *     display.
+ *   }
+ *   @key[type String]{
+ *     The (full) mime-type of the attachment.
+ *   }
+ *   @key[part String]{
+ *     The IMAP part number for fetching the attachment.
+ *   }
+ *   @key[encoding String]{
+ *     The encoding of the attachment so we know how to decode it.  For
+ *     ActiveSync, the server takes care of this for us so there is no encoding
+ *     from our perspective.  (Although the attachment may get base64 encoded
+ *     for transport in the inline case, but that's a protocol thing and has
+ *     nothing to do with the message itself.)
+ *   }
+ *   @key[sizeEstimate Number]{
+ *     Estimated file size in bytes.  Gets updated to be the correct size on
+ *     attachment download.
+ *   }
+ *   @key[file @oneof[
+ *     @case[null]{
+ *       The attachment has not been downloaded, the file size is an estimate.
+ *     }
+ *     @case[@list["device storage type" "file path"]{
+ *       The DeviceStorage type (ex: pictures) and the path to the file within
+ *       device storage.
+ *     }
+ *     @case[HTMLBlob]{
+ *       The Blob that contains the attachment.  It can be thought of as a
+ *       handle/name to access the attachment.  IndexedDB in Gecko stores the
+ *       blobs as (quota-tracked) files on the file-system rather than inline
+ *       with the record, so the attachments don't need to count against our
+ *       block size since they are not part of the direct I/O burden for the
+ *       block.
+ *     }
+ *     @case[@listof[HTMLBlob]]{
+ *       For draft messages, a list of one or more pre-base64-encoded attachment
+ *       pieces that were sliced up in chunks due to Gecko's inability to stream
+ *       Blobs to disk off the main thread.
+ *     }
+ *   ]]
+ *   @key[charset @oneof[undefined String]]{
+ *     The character set, for example "ISO-8859-1".  If not specified, as is
+ *     likely for binary attachments, this should be null.
+ *   }
+ *   @key[textFormat @oneof[undefined String]]{
+ *     The text format, for example, "flowed" for format=flowed.  If not
+ *     specified, as is likely for binary attachments, this should be null.
+ *   }
+ * ]]
+ */
+function makeAttachmentPart(raw) {
+  // Something is very wrong if there is no size estimate.
+  if (raw.sizeEstimate === undefined)
+    throw new Error('Need size estimate!');
+
+  return {
+    // XXX ActiveSync may leave this null, although it's conceivable the
+    // server might do normalization to save us.  This needs a better treatment.
+    // IMAP generates a made-up name for us if there isn't one.
+    name: (raw.name != null) ? raw.name : null,
+    contentId: raw.contentId || null,
+    type: raw.type || 'application/octet-stream',
+    part: raw.part || null,
+    encoding: raw.encoding || null,
+    sizeEstimate: raw.sizeEstimate,
+    file: raw.file || null,
+    charset: raw.charset || null,
+    textFormat: raw.textFormat || null
+  };
+}
+
+return {
+  makeHeaderInfo: makeHeaderInfo,
+  makeBodyInfo: makeBodyInfo,
+  makeBodyPart: makeBodyPart,
+  makeAttachmentPart: makeAttachmentPart
+};
 
 }); // end define
 ;
@@ -10043,10 +10519,11 @@ function registerInstanceType(type) {
       instanceMap[thisUid] = instanceListener;
 
       return {
-        sendMessage: function sendInstanceMessage(cmd, args) {
+        sendMessage: function sendInstanceMessage(cmd, args, transferArgs) {
 //dump('\x1b[34mw => M: send: ' + type + ' ' + thisUid + ' ' + cmd + '\x1b[0m\n');
           window.postMessage({ type: type, uid: thisUid,
-                               cmd: cmd, args: args });
+                               cmd: cmd, args: args },
+                             transferArgs);
         },
         unregister: function unregisterInstance() {
           delete instanceMap[thisUid];
@@ -10361,9 +10838,17 @@ exports.do_download = function(op, callback) {
     next();
   };
   function done() {
-    folderStorage.updateMessageBody(header, bodyInfo, function() {
-      callback(downloadErr, bodyInfo, true);
-    });
+    folderStorage.updateMessageBody(
+      header, bodyInfo,
+      { flushBecause: 'blobs' },
+      {
+        changeDetails: {
+          attachments: op.attachmentIndices
+        }
+      },
+      function() {
+        callback(downloadErr, null, true);
+      });
   };
 
   self._accessFolderForMutation(folderId, true, gotConn, deadConn,
@@ -10499,7 +10984,7 @@ exports.do_downloadBodyReps = function(op, callback) {
     folderConn.downloadBodyReps(header, onDownloadReps);
   };
 
-  var onDownloadReps = function onDownloadReps(err, bodyInfo) {
+  var onDownloadReps = function onDownloadReps(err, bodyInfo, flushed) {
     if (err) {
       console.error('Error downloading reps', err);
       // fail we cannot download for some reason?
@@ -10507,8 +10992,10 @@ exports.do_downloadBodyReps = function(op, callback) {
       return;
     }
 
-    // success
-    callback(null, bodyInfo, true);
+    // Since we downloaded something, we do want to save what we downloaded,
+    // but only if the downloader didn't already force a save while flushing.
+    var save = !flushed;
+    callback(null, bodyInfo, save);
   };
 
   self._accessFolderForMutation(folderId, true, gotConn, deadConn,
@@ -10516,96 +11003,6 @@ exports.do_downloadBodyReps = function(op, callback) {
 };
 
 exports.local_do_downloadBodyReps = function(op, callback) {
-  callback(null);
-};
-
-
-exports.local_do_saveDraft = function(op, callback) {
-  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
-  if (!localDraftsFolder) {
-    callback('moot');
-    return;
-  }
-  var self = this;
-  this._accessFolderForMutation(
-    localDraftsFolder.id, /* needConn*/ false,
-    function(nullFolderConn, folderStorage) {
-      function next() {
-        if (--waitingFor === 0) {
-          callback(
-            null,
-            { suid: header.suid, date: header.date },
-            /* save account */ true);
-        }
-      }
-      var waitingFor = 2;
-
-      var header = op.header, body = op.body;
-      // fill-in header id's
-      header.id = folderStorage._issueNewHeaderId();
-      header.suid = folderStorage.folderId + '/' + header.id;
-
-      // If there already was a draft saved, delete it.
-      // Note that ordering of the removal and the addition doesn't really
-      // matter here because of our use of transactions.
-      if (op.existingNamer) {
-        waitingFor++;
-        folderStorage.deleteMessageHeaderAndBody(
-          op.existingNamer.suid, op.existingNamer.date, next);
-      }
-
-      folderStorage.addMessageHeader(header, next);
-      folderStorage.addMessageBody(header, body, next);
-    },
-    /* no conn => no deathback required */ null,
-    'saveDraft');
-};
-
-exports.do_saveDraft = function(op, callback) {
-  // there is no server component for this
-  callback(null);
-};
-exports.check_saveDraft = function(op, callback) {
-  callback(null, 'moot');
-};
-exports.local_undo_saveDraft = function(op, callback) {
-  callback(null);
-};
-exports.undo_saveDraft = function(op, callback) {
-  callback(null);
-};
-
-exports.local_do_deleteDraft = function(op, callback) {
-  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
-  if (!localDraftsFolder) {
-    callback('moot');
-    return;
-  }
-  var self = this;
-  this._accessFolderForMutation(
-    localDraftsFolder.id, /* needConn*/ false,
-    function(nullFolderConn, folderStorage) {
-      folderStorage.deleteMessageHeaderAndBody(
-        op.messageNamer.suid, op.messageNamer.date,
-        function() {
-          callback(null, null, /* save account */ true);
-        });
-    },
-    /* no conn => no deathback required */ null,
-    'deleteDraft');
-};
-
-exports.do_deleteDraft = function(op, callback) {
-  // there is no server component for this
-  callback(null);
-};
-exports.check_deleteDraft = function(op, callback) {
-  callback(null, 'moot');
-};
-exports.local_undo_deleteDraft = function(op, callback) {
-  callback(null);
-};
-exports.undo_deleteDraft = function(op, callback) {
   callback(null);
 };
 
@@ -10875,6 +11272,742 @@ exports._partitionAndAccessFoldersSequentially = function(
 };
 
 
+
+}); // end define
+;
+/**
+ * Back-end draft abstraction.
+ *
+ * Drafts are saved to folder storage and look almost exactly like received
+ * messages.  The primary difference is that attachments that are in the
+ * process of being attached are stored in an `attaching` field on the
+ * `BodyInfo` instance and that they are discarded on load if still present
+ * (indicating a crash/something like a crash during the save process).
+ *
+ **/
+
+define('mailapi/drafts/draft_rep',['require','mailapi/db/mail_rep'],function(require) {
+
+var mailRep = require('mailapi/db/mail_rep');
+
+/**
+ * Create a new header and body for a draft by extracting any useful state
+ * from the previous draft's persisted header/body and the revised draft.
+ *
+ * @method mergeDraftStates
+ * @param oldHeader {HeaderInfo}
+ * @param oldBody {BodyInfo}
+ * @param newDraftRep {DraftRep}
+ * @param newDraftInfo {Object}
+ * @param newDraftInfo.id {Number}
+ * @param newDraftInfo.suid {SUID}
+ * @param newDraftInfo.date {Number}
+ */
+function mergeDraftStates(oldHeader, oldBody,
+                          newDraftRep, newDraftInfo,
+                          universe) {
+
+  var identity = universe.getIdentityForSenderIdentityId(newDraftRep.senderId);
+
+  // -- convert from compose rep to header/body rep
+  var newHeader = mailRep.makeHeaderInfo({
+    id: newDraftInfo.id,
+    srvid: null, // stays null
+    suid: newDraftInfo.suid, // filled in by the job
+    // we currently don't generate a message-id for drafts, but we'll need to
+    // do this when we start appending to the server.
+    guid: oldHeader ? oldHeader.guid : null,
+    author: { name: identity.name, address: identity.address},
+    to: newDraftRep.to,
+    cc: newDraftRep.cc,
+    bcc: newDraftRep.bcc,
+    replyTo: identity.replyTo,
+    date: newDraftInfo.date,
+    flags: [],
+    hasAttachments: oldHeader ? oldHeader.hasAttachments : false,
+    subject: newDraftRep.subject,
+    snippet: newDraftRep.body.text.substring(0, 100),
+  });
+  var newBody = mailRep.makeBodyInfo({
+    date: newDraftInfo.date,
+    size: 0,
+    attachments: oldBody ? oldBody.attachments.concat() : [],
+    relatedParts: oldBody ? oldBody.relatedParts.concat() : [],
+    references: newDraftRep.referencesStr,
+    bodyReps: []
+  });
+  newBody.bodyReps.push(mailRep.makeBodyPart({
+    type: 'plain',
+    part: null,
+    sizeEstimate: newDraftRep.body.text.length,
+    amountDownloaded: newDraftRep.body.text.length,
+    isDownloaded: true,
+    _partInfo: {},
+    content: [0x1, newDraftRep.body.text]
+  }));
+  if (newDraftRep.body.html) {
+    newBody.bodyReps.push(mailRep.makeBodyPart({
+      type: 'html',
+      part: null,
+      sizeEstimate: newDraftRep.body.html.length,
+      amountDownloaded: newDraftRep.body.html.length,
+      isDownloaded: true,
+      _partInfo: {},
+      content: newDraftRep.body.html
+    }));
+  }
+
+  return {
+    header: newHeader,
+    body: newBody
+  };
+}
+
+function convertHeaderAndBodyToDraftRep(account, header, body) {
+  var composeBody = {
+    text: '',
+    html: null,
+  };
+
+  // Body structure should be guaranteed, but add some checks.
+  if (body.bodyReps.length >= 1 &&
+      body.bodyReps[0].type === 'plain' &&
+      body.bodyReps[0].content.length === 2 &&
+      body.bodyReps[0].content[0] === 0x1) {
+    composeBody.text = body.bodyReps[0].content[1];
+  }
+  // HTML is optional, but if present, should satisfy our guard
+  if (body.bodyReps.length == 2 &&
+      body.bodyReps[1].type === 'html') {
+    composeBody.html = body.bodyReps[1].content;
+  }
+
+  var attachments = [];
+  body.attachments.forEach(function(att) {
+    attachments.push({
+      name: att.name,
+      blob: att.file
+    });
+  });
+
+  var draftRep = {
+    identity: account.identities[0],
+    subject: header.subject,
+    body: composeBody,
+    to: header.to,
+    cc: header.cc,
+    bcc: header.bcc,
+    referencesStr: body.references,
+    attachments: attachments
+  };
+}
+
+/**
+ * Given the HeaderInfo and BodyInfo for a draft, create a new header and body
+ * suitable for saving to the sent folder for a POP3 account.  Specifically:
+ * - make sure we body.attaching does not make it through
+ * - strip the Blob references so we don't accidentally keep the base64
+ *   encoded attachment parts around forever and clog up the disk.
+ * - avoid accidental use of the same instances between the drafts folder and
+ *   the sent folder
+ *
+ * @param header {HeaderInfo}
+ * @param body {BodyInfo}
+ * @param newInfo
+ * @param newInfo.id
+ * @param newInfo.suid {SUID}
+ * @return { header, body }
+ */
+function cloneDraftMessageForSentFolderWithoutAttachments(header, body,
+                                                          newInfo) {
+  // clone the header (drops excess fields)
+  var newHeader = mailRep.makeHeaderInfo(header);
+  // clobber the id/suid
+  newHeader.id = newInfo.id;
+  newHeader.suid = newInfo.suid;
+
+  // clone the body, dropping excess fields like "attaching".
+  var newBody = mailRep.makeBodyInfo(body);
+  // transform attachments
+  if (newBody.attachments) {
+    newBody.attachments = newBody.attachments.map(function(oldAtt) {
+      var newAtt =  mailRep.makeAttachmentPart(oldAtt);
+      // mark the attachment as non-downloadable
+      newAtt.type = 'application/x-gelam-no-download';
+      // get rid of the blobs!
+      newAtt.file = null;
+      // we will keep around the sizeEstimate so they know how much they sent
+      // and we keep around encoding/charset/textFormat because we don't care
+
+      return newAtt;
+    });
+  }
+  // We currently can't generate related parts, but just in case.
+  if (newBody.relatedParts) {
+    newBody.relatedParts = [];
+  }
+  // Body parts can be transferred verbatim.
+  newBody.bodyReps = newBody.bodyReps.map(function(oldRep) {
+    return mailRep.makeBodyPart(oldRep);
+  });
+
+  return { header: newHeader, body: newBody };
+}
+
+
+return {
+  mergeDraftStates: mergeDraftStates,
+  convertHeaderAndBodyToDraftRep: convertHeaderAndBodyToDraftRep,
+  cloneDraftMessageForSentFolderWithoutAttachments:
+    cloneDraftMessageForSentFolderWithoutAttachments
+};
+
+}); // end define
+;
+/**
+ * Specialized base64 encoding routines.
+ *
+ * We have a friendly decoder routine in our node-buffer.js implementation.
+ **/
+
+define('mailapi/b64',['require'],function(require) {
+
+/**
+ * Base64 binary data from a Uint8array to a Uint8Array the way an RFC2822
+ * MIME message likes it.  Which is to say with a maximum of 76 bytes of base64
+ * encoded data followed by a \r\n.  If the last line has less than 76 bytes of
+ * encoded data we still put the \r\n on.
+ *
+ * This method came into existence because we were blowing out our memory limits
+ * which is how it justifies all this specialization. Use window.btoa if you
+ * don't need this exact logic/help.
+ */
+function mimeStyleBase64Encode(data) {
+  var wholeLines = Math.floor(data.length / 57);
+  var partialBytes = data.length - (wholeLines * 57);
+  var encodedLength = wholeLines * 78;
+  if (partialBytes) {
+    // The padding bytes mean we're always a multiple of 4 long.  And then we
+    // still want a CRLF as part of our encoding contract.
+    encodedLength += Math.ceil(partialBytes / 3) * 4 + 2;
+  }
+
+  var encoded = new Uint8Array(encodedLength);
+
+  // A nibble is 4 bits.
+  function encode6Bits(nibbly) {
+    // [0, 25] => ['A', 'Z'], 'A'.charCodeAt(0) === 65
+    if (nibbly <= 25) {
+      encoded[iWrite++] = 65 + nibbly;
+    }
+    // [26, 51] => ['a', 'z'], 'a'.charCodeAt(0) === 97
+    else if (nibbly <= 51) {
+      encoded[iWrite++] = 97 - 26 + nibbly;
+    }
+    // [52, 61] => ['0', '9'], '0'.charCodeAt(0) === 48
+    else if (nibbly <= 61) {
+      encoded[iWrite++] = 48 - 52 + nibbly;
+    }
+    // 62 is '+',  '+'.charCodeAt(0) === 43
+    else if (nibbly === 62) {
+      encoded[iWrite++] = 43;
+    }
+    // 63 is '/',  '/'.charCodeAt(0) === 47
+    else {
+      encoded[iWrite++] = 47;
+    }
+  }
+
+  var iRead = 0, iWrite = 0, bytesToRead;
+  // Steady state
+  for (bytesToRead = data.length; bytesToRead >= 3; bytesToRead -= 3) {
+    var b1 = data[iRead++], b2 = data[iRead++], b3 = data[iRead++];
+    // U = Use, i = ignore
+    // UUUUUUii
+    encode6Bits(b1 >> 2);
+    // iiiiiiUU UUUUiiii
+    encode6Bits(((b1 & 0x3) << 4) | (b2 >> 4));
+    //          iiiiUUUU UUiiiiii
+    encode6Bits(((b2 & 0xf) << 2) | (b3 >> 6));
+    //                   iiUUUUUU
+    encode6Bits(b3 & 0x3f);
+
+    // newlines; it's time to wrap every 57 bytes, or if it's our last full set
+    if ((iRead % 57) === 0 || bytesToRead === 3) {
+      encoded[iWrite++] = 13; // \r
+      encoded[iWrite++] = 10; // \n
+    }
+  }
+  // Leftovers (could be zero).
+  // If we ended on a full set in the prior loop, the newline is taken care of.
+  switch(bytesToRead) {
+    case 2:
+      b1 = data[iRead++];
+      b2 = data[iRead++];
+      encode6Bits(b1 >> 2);
+      encode6Bits(((b1 & 0x3) << 4) | (b2 >> 4));
+      encode6Bits(((b2 & 0xf) << 2) | 0);
+      encoded[iWrite++] = 61; // '='.charCodeAt(0) === 61
+      encoded[iWrite++] = 13; // \r
+      encoded[iWrite++] = 10; // \n
+      break;
+    case 1:
+      b1 = data[iRead++];
+      encode6Bits(b1 >> 2);
+      encode6Bits(((b1 & 0x3) << 4) | 0);
+      encoded[iWrite++] = 61; // '='.charCodeAt(0) === 61
+      encoded[iWrite++] = 61;
+      encoded[iWrite++] = 13; // \r
+      encoded[iWrite++] = 10; // \n
+      break;
+  }
+
+  // The code was used to help sanity check, but is inert.  Left in for
+  // reviewers or those who suspect this code! :)
+  /*
+  if (iWrite !== encodedLength)
+    throw new Error('Badly written code! iWrite: ' + iWrite +
+                    ' encoded length: ' + encodedLength);
+  */
+
+  return encoded;
+}
+
+return {
+  mimeStyleBase64Encode: mimeStyleBase64Encode
+};
+
+}); // end define
+;
+define('mailapi/async_blob_fetcher',
+  [
+    'exports'
+  ],
+  function(
+    exports
+  ) {
+
+/**
+ * Asynchronously fetch the contents of a Blob, returning a Uint8Array.
+ * Exists because there is no FileReader in Gecko workers and this totally
+ * works.  In discussion, it sounds like :sicking wants to deprecate the
+ * FileReader API anyways.
+ *
+ * Our consumer in this case is our specialized base64 encode that wants a
+ * Uint8Array since that is more compactly represented than a binary string
+ * would be.
+ *
+ * @param blob {Blob}
+ * @param callback {Function(err, Uint8Array)}
+ */
+function asyncFetchBlobAsUint8Array(blob, callback) {
+  var blobUrl = URL.createObjectURL(blob);
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', blobUrl, true);
+  xhr.responseType = 'arraybuffer';
+  xhr.onload = function() {
+    // blobs currently result in a status of 0 since there is no server.
+    if (xhr.status !== 0 && (xhr.status < 200 || xhr.status >= 300)) {
+      callback(xhr.status);
+      return;
+    }
+    callback(null, new Uint8Array(xhr.response));
+  };
+  xhr.onerror = function() {
+    callback('error');
+  };
+  try {
+    xhr.send();
+  }
+  catch(ex) {
+    console.error('XHR send() failure on blob');
+    callback('error');
+  }
+  URL.revokeObjectURL(blobUrl);
+}
+
+return {
+  asyncFetchBlobAsUint8Array: asyncFetchBlobAsUint8Array
+};
+
+}); // end define
+;
+/**
+ * Draft jobs: save/delete drafts, attach/remove attachments.  These gets mixed
+ * into the specific JobDriver implementations.
+ **/
+
+define('mailapi/drafts/jobs',['require','exports','module','mailapi/db/mail_rep','mailapi/drafts/draft_rep','mailapi/b64','mailapi/async_blob_fetcher'],function(require, exports) {
+
+var mailRep = require('mailapi/db/mail_rep');
+var draftRep = require('mailapi/drafts/draft_rep');
+var b64 = require('mailapi/b64');
+var asyncFetchBlobAsUint8Array =
+      require('mailapi/async_blob_fetcher').asyncFetchBlobAsUint8Array;
+
+var draftsMixins = exports.draftsMixins = {};
+
+////////////////////////////////////////////////////////////////////////////////
+// attachBlobToDraft
+
+/**
+ * How big a chunk of an attachment should we encode in a single read?  Because
+ * we want our base64-encoded lines to be 76 bytes long (before newlines) and
+ * there's a 4/3 expansion factor, we want to read a multiple of 57 bytes.
+ *
+ * I initially chose the largest value just under 1MiB.  This appeared too
+ * chunky on the ZTE open, so I'm halving to just under 512KiB.  Calculated via
+ * Math.floor(512 * 1024 / 57) = 9198.  The encoded size of this ends up to be
+ * 9198 * 78 which is ~700 KiB.  So together that's ~1.2 megs if we don't
+ * generate a ton of garbage by creating a lot of intermediary strings.
+ *
+ * This seems reasonable given goals of not requiring the GC to run after every
+ * block and not having us tie up the CPU too long during our encoding.
+ */
+draftsMixins.BLOB_BASE64_BATCH_CONVERT_SIZE = 9198 * 57;
+
+/**
+ * Incrementally convert an attachment into its base64 encoded attachment form
+ * which we save in chunks to IndexedDB to avoid using too much memory now or
+ * during the sending process.
+ *
+ * - Retrieve the body the draft is persisted to,
+ * - Repeat until the attachment is fully attached:
+ *   - take a chunk of the source attachment
+ *   - base64 encode it into a Blob by creating a Uint8Array and manually
+ *     encoding into that.  (We need to put a \r\n after every 76 bytes, and
+ *     doing that using window.btoa is going to create a lot of garbage. And
+ *     addressing that is no longer premature optimization.)
+ *   - update the body with that Blob
+ *   - trigger a save of the account so that IndexedDB writes the account to
+ *     disk.
+ *   - force the body block to be discarded from the cache and then re-get the
+ *     body.  We won't be saving any memory until the Blob has been written to
+ *     disk and we have forgotten all references to the in-memory Blob we wrote
+ *     to the database.  (The Blob does not magically get turned into a
+ *     reference to the database.)
+ * - Be done.  Note that we leave the "small" Blobs independent; we do not
+ *   create a super Blob.
+ *
+ * ## Logging ##
+ *
+ * We log at:
+ * - The start of the process.
+ * - For each block.
+ * - The end of the process.
+ */
+draftsMixins.local_do_attachBlobToDraft = function(op, callback) {
+  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
+  if (!localDraftsFolder) {
+    callback('moot');
+    return;
+  }
+  var self = this;
+  this._accessFolderForMutation(
+    localDraftsFolder.id, /* needConn*/ false,
+    function(nullFolderConn, folderStorage) {
+      var wholeBlob = op.attachmentDef.blob;
+
+      // - Retrieve the message
+      var header, body;
+      console.log('attachBlobToDraft: retrieving message');
+      folderStorage.getMessage(
+        op.existingNamer.suid, op.existingNamer.date, {}, gotMessage);
+      function gotMessage(records) {
+        header = records.header;
+        body = records.body;
+
+        if (!header || !body) {
+          // No header/body suggests either some major invariant is busted or
+          // one or more UIs issued attach commands after the draft was mooted.
+          callback('failure-give-up');
+          return;
+        }
+
+        body.attaching = mailRep.makeAttachmentPart({
+          name: op.attachmentDef.name,
+          type: wholeBlob.type,
+          sizeEstimate: wholeBlob.size,
+          // this is where we put the Blob segments...
+          file: [],
+        });
+
+        convertNextChunk(body);
+      }
+
+      var blobOffset = 0;
+      function convertNextChunk(refreshedBody) {
+        body = refreshedBody;
+        var nextOffset =
+              Math.min(wholeBlob.size,
+                       blobOffset + self.BLOB_BASE64_BATCH_CONVERT_SIZE);
+        console.log('attachBlobToDraft: fetching', blobOffset, 'to',
+                    nextOffset, 'of', wholeBlob.size);
+        var slicedBlob = wholeBlob.slice(blobOffset, nextOffset);
+        blobOffset = nextOffset;
+
+        asyncFetchBlobAsUint8Array(slicedBlob, gotChunk);
+      }
+
+      function gotChunk(err, binaryDataU8) {
+        console.log('attachBlobToDraft: fetched');
+        // The Blob really should not be disappear out from under us, but it
+        // could happen.
+        if (err) {
+          callback('failure-give-up');
+          return;
+        }
+
+        var lastChunk = (blobOffset >= wholeBlob.size);
+        var encodedU8 = b64.mimeStyleBase64Encode(binaryDataU8);
+        body.attaching.file.push(new Blob([encodedU8],
+                                          { type: wholeBlob.type }));
+
+        var eventDetails;
+        if (lastChunk) {
+          var attachmentIndex = body.attachments.length;
+          body.attachments.push(body.attaching);
+          delete body.attaching; // bad news for shapes, but drafts are rare.
+
+          eventDetails = {
+            changeDetails: {
+              attachments: [attachmentIndex]
+            }
+          };
+        }
+        else {
+          // Do not generate an event for intermediary states; there is nothing
+          // to observe.
+          eventDetails = null;
+        }
+
+        console.log('attachBlobToDraft: flushing');
+        folderStorage.updateMessageBody(
+          header, body, { flushBecause: 'blobs' }, eventDetails,
+          lastChunk ? bodyUpdatedAllDone : convertNextChunk);
+        body = null;
+      }
+
+      function bodyUpdatedAllDone(newBodyInfo) {
+        console.log('attachBlobToDraft: blob fully attached');
+        callback(null);
+      }
+    },
+    /* no conn => no deathback required */ null,
+    'attachBlobToDraft');
+};
+draftsMixins.do_attachBlobToDraft = function(op, callback) {
+  // there is no server component for this
+  callback(null);
+};
+draftsMixins.check_attachBlobToDraft = function(op, callback) {
+  callback(null, 'moot');
+};
+draftsMixins.local_undo_attachBlobToDraft = function(op, callback) {
+  callback(null);
+};
+draftsMixins.undo_attachBlobToDraft = function(op, callback) {
+  callback(null);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// detachAttachmentFromDraft
+
+draftsMixins.local_do_detachAttachmentFromDraft = function(op, callback) {
+  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
+  if (!localDraftsFolder) {
+    callback('moot');
+    return;
+  }
+  var self = this;
+  this._accessFolderForMutation(
+    localDraftsFolder.id, /* needConn*/ false,
+    function(nullFolderConn, folderStorage) {
+      // - Retrieve the message
+      var header, body;
+      console.log('detachAttachmentFromDraft: retrieving message');
+      folderStorage.getMessage(
+        op.existingNamer.suid, op.existingNamer.date, {}, gotMessage);
+      function gotMessage(records) {
+        header = records.header;
+        body = records.body;
+
+        if (!header || !body) {
+          // No header/body suggests either some major invariant is busted or
+          // one or more UIs issued attach commands after the draft was mooted.
+          callback('failure-give-up');
+          return;
+        }
+
+        // Just forget about the attachment.  Splice handles insane indices.
+        body.attachments.splice(op.attachmentIndex, 1);
+
+        console.log('detachAttachmentFromDraft: flushing');
+        folderStorage.updateMessageBody(
+          header, body,
+          { flushBecause: 'blobs' },
+          {
+            changeDetails: {
+              detachedAttachments: [op.attachmentIndex]
+            }
+          },
+          bodyUpdatedAllDone);
+      }
+
+      function bodyUpdatedAllDone(newBodyInfo) {
+        console.log('detachAttachmentFromDraft: blob fully detached');
+        callback(null);
+      }
+    },
+    /* no conn => no deathback required */ null,
+    'detachAttachmentFromDraft');
+};
+
+draftsMixins.do_detachAttachmentFromDraft = function(op, callback) {
+  // there is no server component for this at this time.
+  callback(null);
+};
+
+draftsMixins.check_detachAttachmentFromDraft = function(op, callback) {
+  callback(null);
+};
+
+draftsMixins.local_undo_detachAttachmentFromDraft = function(op, callback) {
+  callback(null);
+};
+
+draftsMixins.undo_detachAttachmentFromDraft = function(op, callback) {
+  callback(null);
+};
+
+
+////////////////////////////////////////////////////////////////////////////////
+// saveDraft
+
+/**
+ * Save a draft; if there already was a draft, it gets replaced.  The new
+ * draft gets a new date and id/SUID so it is logically distinct.  However,
+ * we will propagate attachment and on-server information between drafts.
+ */
+draftsMixins.local_do_saveDraft = function(op, callback) {
+  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
+  if (!localDraftsFolder) {
+    callback('moot');
+    return;
+  }
+  var self = this;
+  this._accessFolderForMutation(
+    localDraftsFolder.id, /* needConn*/ false,
+    function(nullFolderConn, folderStorage) {
+      // there's always a header add and a body add
+      var waitingForDbMods = 2;
+      function gotMessage(oldRecords) {
+        var newRecords = draftRep.mergeDraftStates(
+          oldRecords.header, oldRecords.body,
+          op.draftRep,
+          op.newDraftInfo,
+          self.account.universe);
+
+        // If there already was a draft saved, delete it.
+        // Note that ordering of the removal and the addition doesn't really
+        // matter here because of our use of transactions.
+        if (op.existingNamer) {
+          waitingForDbMods++;
+          folderStorage.deleteMessageHeaderAndBody(
+            op.existingNamer.suid, op.existingNamer.date, dbModCompleted);
+        }
+
+        folderStorage.addMessageHeader(newRecords.header, dbModCompleted);
+        folderStorage.addMessageBody(newRecords.header, newRecords.body,
+                                     dbModCompleted);
+        function dbModCompleted() {
+          if (--waitingForDbMods === 0) {
+            callback(
+              /* no error */ null,
+              /* result */ newRecords,
+              /* save account */ true);
+          }
+        }
+      }
+
+      if (op.existingNamer) {
+        folderStorage.getMessage(
+          op.existingNamer.suid, op.existingNamer.date, null, gotMessage);
+      }
+      else {
+        gotMessage({ header: null, body: null });
+      }
+    },
+    /* no conn => no deathback required */ null,
+    'saveDraft');
+};
+
+/**
+ * FUTURE WORK: Save a draft to the server; this is inherently IMAP only.
+ * Tracked on: https://bugzilla.mozilla.org/show_bug.cgi?id=799822
+ *
+ * It is very possible that we will save local drafts faster / more frequently
+ * than we can update our server state.  It only makes sense to upload the
+ * latest draft state to the server.  Because we delete our old local drafts,
+ * it's obvious when we should skip out on updating the server draft for
+ * something.
+ *
+ * Because IMAP drafts have to replace the prior drafts, we use our old 'srvid'
+ * to know what message to delete as well as what message to pull attachments
+ * from when we're in a mode where we upload attachments to drafts and CATENATE
+ * is available.
+ */
+draftsMixins.do_saveDraft = function(op, callback) {
+  callback(null);
+};
+draftsMixins.check_saveDraft = function(op, callback) {
+  callback(null, 'moot');
+};
+draftsMixins.local_undo_saveDraft = function(op, callback) {
+  callback(null);
+};
+draftsMixins.undo_saveDraft = function(op, callback) {
+  callback(null);
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// deleteDraft
+
+draftsMixins.local_do_deleteDraft = function(op, callback) {
+  var localDraftsFolder = this.account.getFirstFolderWithType('localdrafts');
+  if (!localDraftsFolder) {
+    callback('moot');
+    return;
+  }
+  var self = this;
+  this._accessFolderForMutation(
+    localDraftsFolder.id, /* needConn*/ false,
+    function(nullFolderConn, folderStorage) {
+      folderStorage.deleteMessageHeaderAndBody(
+        op.messageNamer.suid, op.messageNamer.date,
+        function() {
+          callback(null, null, /* save account */ true);
+        });
+    },
+    /* no conn => no deathback required */ null,
+    'deleteDraft');
+};
+
+draftsMixins.do_deleteDraft = function(op, callback) {
+  // there is no server component for this
+  callback(null);
+};
+draftsMixins.check_deleteDraft = function(op, callback) {
+  callback(null, 'moot');
+};
+draftsMixins.local_undo_deleteDraft = function(op, callback) {
+  callback(null);
+};
+draftsMixins.undo_deleteDraft = function(op, callback) {
+  callback(null);
+};
+
+////////////////////////////////////////////////////////////////////////////////
 
 }); // end define
 ;
@@ -11786,6 +12919,26 @@ function bit_rol(num, cnt)
 
 });
 
+/*global define*/
+define('mix',[],function() {
+  /**
+   * Mixes properties from source into target.
+   * @param  {Object} target   target of the mix.
+   * @param  {Object} source   source object providing properties to mix in.
+   * @param  {Boolean} override if target already has a the property,
+   * override it with the one from source.
+   * @return {Object}          the target object, now with the new properties
+   * mixed in.
+   */
+  return function mix(target, source, override) {
+    Object.keys(source).forEach(function(key) {
+      if (!target.hasOwnProperty(key) || override)
+        target[key] = source[key];
+    });
+    return target;
+  };
+});
+
 /**
  * mimelib now uses an 'encoding' module to wrap its use of iconv versus
  * iconv-lite.  This is a good thing from our perspective because it allows
@@ -12456,16 +13609,18 @@ MailBridge.prototype = {
   },
 
   /**
-   * Sends a notification of a change in the body.
+   * Sends a notification of a change in the body.  Because FolderStorage is
+   * the authoritative store of body representations and access is currently
+   * mediated through mutexes, this method should really only be called by
+   * FolderStorage.updateMessageBody.
    *
-   *    bridge.notifyBodyModified(
-   *      suid,
-   *      'bodyRep',
-   *      { index: 0 }
-   *      newBodyInfo
-   *    );
-   *
-   *
+   * @param suid {SUID}
+   *   The message whose body representation has been updated
+   * @param detail {Object}
+   *   See {{#crossLink "FolderStorage/updateMessageBody"}{{/crossLink}} for
+   *   more information on the structure of this object.
+   * @param body {BodyInfo}
+   *   The current representation of the body.
    */
   notifyBodyModified: function(suid, detail, body) {
     var handles = this._observedBodies[suid];
@@ -12478,7 +13633,6 @@ MailBridge.prototype = {
         // aggregate pending notifications while fetching the bodies so updates
         // never come before the actual body.
         var emit = handles[handle] || defaultHandler;
-
         emit.call(this, {
           type: 'bodyModified',
           handle: handle,
@@ -12693,11 +13847,10 @@ MailBridge.prototype = {
     var self = this;
     this.universe.downloadMessageAttachments(
       msg.suid, msg.date, msg.relPartIndices, msg.attachmentIndices,
-      function(err, bodyInfo) {
+      function(err) {
         self.__sendMessage({
           type: 'downloadedAttachments',
-          handle: msg.handle,
-          bodyInfo: err ? null : bodyInfo
+          handle: msg.handle
         });
       });
   },
@@ -12752,12 +13905,12 @@ MailBridge.prototype = {
   //////////////////////////////////////////////////////////////////////////////
   // Composition
 
-
   _cmd_beginCompose: function mb__cmd_beginCompose(msg) {
-    require(['./composer'], function ($composer) {
+    require(['mailapi/drafts/composer'], function ($composer) {
       var req = this._pendingRequests[msg.handle] = {
         type: 'compose',
         active: 'begin',
+        account: null,
         persistedNamer: null,
         die: false
       };
@@ -12768,6 +13921,7 @@ MailBridge.prototype = {
         account = this.universe.getAccountForFolderId(msg.refSuid);
       else
         account = this.universe.getAccountForMessageSuid(msg.refSuid);
+      req.account = account;
 
       identity = account.identities[0];
 
@@ -12910,16 +14064,67 @@ MailBridge.prototype = {
     }.bind(this));
   },
 
+  _cmd_attachBlobToDraft: function(msg) {
+    // for ordering consistency reasons with other draft logic, this needs to
+    // require composer as a dependency too.
+    require(['mailapi/drafts/composer'], function ($composer) {
+      var draftReq = this._pendingRequests[msg.draftHandle];
+      if (!draftReq)
+        return;
+
+      this.universe.attachBlobToDraft(
+        draftReq.account,
+        draftReq.persistedNamer,
+        msg.attachmentDef,
+        function (err) {
+          this.__sendMessage({
+            type: 'attachedBlobToDraft',
+            // Note! Our use of 'msg' here means that our reference to the Blob
+            // will be kept alive slightly longer than the job keeps it alive,
+            // but just slightly.
+            handle: msg.handle,
+            draftHandle: msg.draftHandle,
+            err: err
+          });
+        }.bind(this));
+    }.bind(this));
+  },
+
+  _cmd_detachAttachmentFromDraft: function(msg) {
+    // for ordering consistency reasons with other draft logic, this needs to
+    // require composer as a dependency too.
+    require(['mailapi/drafts/composer'], function ($composer) {
+    var req = this._pendingRequests[msg.draftHandle];
+    if (!req)
+      return;
+
+    this.universe.detachAttachmentFromDraft(
+      req.account,
+      req.persistedNamer,
+      msg.attachmentIndex,
+      function (err) {
+        this.__sendMessage({
+          type: 'detachedAttachmentFromDraft',
+          handle: msg.handle,
+          draftHandle: msg.draftHandle,
+          err: err
+        });
+      }.bind(this));
+    }.bind(this));
+  },
+
   _cmd_resumeCompose: function mb__cmd_resumeCompose(msg) {
     var req = this._pendingRequests[msg.handle] = {
       type: 'compose',
       active: 'resume',
+      account: null,
       persistedNamer: msg.messageNamer,
       die: false
     };
 
     // NB: We are not acquiring the folder mutex here because
-    var account = this.universe.getAccountForMessageSuid(msg.messageNamer.suid);
+    var account = req.account =
+          this.universe.getAccountForMessageSuid(msg.messageNamer.suid);
     var folderStorage = this.universe.getFolderStorageForMessageSuid(
                           msg.messageNamer.suid);
     var self = this;
@@ -12965,7 +14170,10 @@ MailBridge.prototype = {
           body.attachments.forEach(function(att) {
             attachments.push({
               name: att.name,
-              blob: att.file
+              blob: {
+                size: att.sizeEstimate,
+                type: att.type
+              }
             });
           });
 
@@ -12992,16 +14200,25 @@ MailBridge.prototype = {
     });
   },
 
+  /**
+   * Save a draft, delete a draft, or try and send a message.
+   *
+   * Drafts are saved in our IndexedDB storage. This is notable because we are
+   * told about attachments via their Blobs.
+   */
   _cmd_doneCompose: function mb__cmd_doneCompose(msg) {
-    require(['./composer'], function ($composer) {
+    require(['mailapi/drafts/composer'], function ($composer) {
       var req = this._pendingRequests[msg.handle], self = this;
-      if (!req)
+      if (!req) {
         return;
+      }
       if (msg.command === 'die') {
-        if (req.active)
+        if (req.active) {
           req.die = true;
-        else
+        }
+        else {
           delete this._pendingRequests[msg.handle];
+        }
         return;
       }
       var account;
@@ -13030,98 +14247,45 @@ MailBridge.prototype = {
         return;
       }
 
-
-      var wireRep = msg.state,
-          identity = this.universe.getIdentityForSenderIdentityId(
-                       wireRep.senderId);
+      var wireRep = msg.state;
       account = this.universe.getAccountForSenderIdentityId(wireRep.senderId);
-
+      var identity = this.universe.getIdentityForSenderIdentityId(
+                       wireRep.senderId);
       if (msg.command === 'send') {
-        var composer = new $composer.Composer(msg.command, wireRep,
-                                              account, identity);
+        // For a send, we first save the state of the draft, then we send it.
+        req.persistedNamer = this.universe.saveDraft(
+          account, req.persistedNamer, wireRep,
+          function(err, newRecords) {
+            var composer = new $composer.Composer(newRecords, account,
+                                                  identity);
 
-        req.active = null;
-        if (req.die)
-          delete this._pendingRequests[msg.handle];
-        account.sendMessage(composer, function(err, badAddresses) {
-          // If there was an associated/saved draft, clear it out, but there's
-          // no need to wait for that to complete.
-          if (req.persistedNamer)
-            this.universe.deleteDraft(account, req.persistedNamer);
-          this.__sendMessage({
-            type: 'doneCompose',
-            handle: msg.handle,
-            err: err,
-            badAddresses: badAddresses,
-            messageId: composer.messageId,
-            sentDate: composer.sentDate.valueOf(),
-          });
-        }.bind(this));
+            req.active = null;
+            if (req.die)
+              delete this._pendingRequests[msg.handle];
+            account.sendMessage(composer, function(err, badAddresses) {
+              if (!err) {
+              // Now that we're all successfully sent, nuke the draft
+                this.universe.deleteDraft(account, req.persistedNamer);
+              }
+              // And report success without waiting for the draft to be
+              // deleted.
+              this.__sendMessage({
+                type: 'doneCompose',
+                handle: msg.handle,
+                err: err,
+                badAddresses: badAddresses,
+                messageId: composer.messageId,
+                sentDate: composer.sentDate.valueOf(),
+              });
+            }.bind(this));
+          }.bind(this));
       }
       else if (msg.command === 'save') {
-        // -- convert from compose rep to header/body rep
-        var msgTimestamp = Date.now();
-        var header = {
-          id: null, // filled in by the job
-          srvid: null, // stays null
-          suid: null, // filled in by the job
-          guid: null, // unused
-          author: { name: identity.name, address: identity.address},
-          to: wireRep.to,
-          cc: wireRep.cc,
-          bcc: wireRep.bcc,
-          replyTo: null,
-          date: msgTimestamp,
-          flags: [],
-          hasAttachments: !!wireRep.attachments.length,
-          subject: wireRep.subject,
-          snippet: wireRep.body.text.substring(0, 100),
-        };
-        var body = {
-          date: msgTimestamp,
-          size: 0,
-          attachments: [],
-          relatedParts: [],
-          references: wireRep.referencesStr,
-          bodyReps: []
-        };
-        wireRep.attachments.forEach(function(wireAtt) {
-          body.attachments.push({
-            name: wireAtt.name,
-            contentId: null,
-            type: wireAtt.blob.type,
-            part: null,
-            encoding: null,
-            sizeEstimate: wireAtt.blob.size,
-            file: wireAtt.blob
-          });
-        });
-        body.bodyReps.push({
-          type: 'plain',
-          part: null,
-          sizeEstimate: wireRep.body.text.length,
-          amountDownloaded: wireRep.body.text.length,
-          isDownloaded: true,
-          _partInfo: {},
-          content: [0x1, wireRep.body.text]
-        });
-        if (wireRep.body.html) {
-          body.bodyReps.push({
-            type: 'html',
-            part: null,
-            sizeEstimate: wireRep.body.html.length,
-            amountDownloaded: wireRep.body.html.length,
-            isDownloaded: true,
-            _partInfo: {},
-            content: wireRep.body.html
-          });
-        }
-
-        this.universe.saveDraft(
-          account, req.persistedNamer, header, body,
-          function(err, messageNamer) {
+        // Save the draft, updating our persisted namer.
+        req.persistedNamer = this.universe.saveDraft(
+          account, req.persistedNamer, wireRep,
+          function(err) {
             req.active = null;
-            req.persistedNamer = messageNamer;
             if (req.die)
               delete self._pendingRequests[msg.handle];
             self.__sendMessage({
@@ -14529,6 +15693,7 @@ define('mailapi/mailuniverse',
     'rdcommon/log',
     'rdcommon/logreaper',
     './a64',
+    './date',
     './syncbase',
     './worker-router',
     './maildb',
@@ -14541,6 +15706,7 @@ define('mailapi/mailuniverse',
     $log,
     $logreaper,
     $a64,
+    $date,
     $syncbase,
     $router,
     $maildb,
@@ -15691,7 +16857,6 @@ MailUniverse.prototype = {
       this._opCompletionListenersByAccount[account.id](account);
       this._opCompletionListenersByAccount[account.id] = null;
     }
-
   },
 
   /**
@@ -15933,6 +17098,10 @@ MailUniverse.prototype = {
    * ]
    */
   _queueAccountOp: function(account, op, optionalCallback) {
+    // Log the op for debugging assistance
+    // TODO: Create a real logger event; this will require updating existing
+    // tests and so is not sufficiently trivial to do at this time.
+    console.log('queueOp', account.id, op.type);
     // - Name the op, register callbacks
     if (op.longtermId === null) {
       // mutation job must be persisted until completed otherwise bad thing
@@ -16190,34 +17359,162 @@ MailUniverse.prototype = {
     return longtermIds;
   },
 
-  appendMessages: function(folderId, messages) {
+  /**
+   * APPEND messages to an IMAP server without locally saving the messages.
+   * This was originally an IMAP testing operation that was co-opted to be
+   * used for saving sent messages in a corner-cutting fashion.  (The right
+   * thing for us to do would be to save the message locally too and deal with
+   * the UID implications.  But that is tricky.)
+   *
+   * See ImapAccount.saveSentMessage for more context.
+   *
+   * POP3's variation on this is saveSentDraft
+   */
+  appendMessages: function(folderId, messages, callback) {
     var account = this.getAccountForFolderId(folderId);
     var longtermId = this._queueAccountOp(
       account,
       {
         type: 'append',
-        longtermId: null,
+        // Don't persist.  See ImapAccount.saveSentMessage for our rationale.
+        longtermId: 'session',
         lifecycle: 'do',
-        // XXX supportsServerFolders is a bit of a misnomer in this
-        // case; we are doing this to make the unit tests happy.
-        // ActiveSync does not support appending messages via the
-        // ActiveSync protocol, but it supports server folders. POP3
-        // doesn't support anything. Changing this will result in some
-        // hassle we don't want to deal with right now.
-        localStatus: (account.supportsServerFolders ? 'done' : null),
-        serverStatus: (account.supportsServerFolders ? null : 'n/a'),
+        localStatus: 'done',
+        serverStatus: null,
         tryCount: 0,
         humanOp: 'append',
         messages: messages,
         folderId: folderId,
+      },
+      callback);
+    return [longtermId];
+  },
+
+  /**
+   * Save a sent POP3 message to the account's "sent" folder.  See
+   * Pop3Account.saveSentMessage for more information.
+   *
+   * IMAP's variation on this is appendMessages.
+   *
+   * @param folderId {FolderID}
+   * @param sentSafeHeader {HeaderInfo}
+   *   The header ready to be added to the sent folder; suid issued and
+   *   everything.
+   * @param sentSafeBody {BodyInfo}
+   *   The body ready to be added to the sent folder; attachment blobs stripped.
+   * @param callback {function(err)}
+   */
+  saveSentDraft: function(folderId, sentSafeHeader, sentSafeBody, callback) {
+    var account = this.getAccountForMessageSuid(sentSafeHeader.suid);
+    var longtermId = this._queueAccountOp(
+      account,
+      {
+        type: 'saveSentDraft',
+        // we can persist this since we have stripped the blobs
+        longtermId: null,
+        lifecycle: 'do',
+        localStatus: null,
+        serverStatus: 'n/a',
+        tryCount: 0,
+        humanOp: 'saveSentDraft',
+        folderId: folderId,
+        headerInfo: sentSafeHeader,
+        bodyInfo: sentSafeBody
       });
     return [longtermId];
   },
 
   /**
-   * Save a new draft or update an existing draft.
+   * Process the given attachment blob in slices into base64-encoded Blobs
+   * that we store in IndexedDB (currently).  This is a local-only operation.
+   *
+   * This function is implemented as a job/operation so it is inherently ordered
+   * relative to other draft-related calls.  But do keep in mind that you need
+   * to make sure to not destroy the underlying storage for the Blob (ex: when
+   * using DeviceStorage) until the callback has fired.
    */
-  saveDraft: function(account, existingNamer, header, body, callback) {
+  attachBlobToDraft: function(account, existingNamer, attachmentDef, callback) {
+    this._queueAccountOp(
+      account,
+      {
+        type: 'attachBlobToDraft',
+        // We don't persist the operation to disk in order to avoid having the
+        // Blob we are attaching get persisted to IndexedDB.  Better for the
+        // disk I/O to be ours from the base64 encoded writes we do even if
+        // there is a few seconds of data-loss-ish vulnerability.
+        longtermId: 'session',
+        lifecycle: 'do',
+        localStatus: null,
+        serverStatus: 'n/a', // local-only currently
+        tryCount: 0,
+        humanOp: 'attachBlobToDraft',
+        existingNamer: existingNamer,
+        attachmentDef: attachmentDef
+      },
+      callback
+    );
+  },
+
+  /**
+   * Remove an attachment from a draft.  This will not interrupt an active
+   * attaching operation or moot a pending one.  This is a local-only operation.
+   */
+  detachAttachmentFromDraft: function(account, existingNamer, attachmentIndex,
+                                      callback) {
+    this._queueAccountOp(
+      account,
+      {
+        type: 'detachAttachmentFromDraft',
+        // This is currently non-persisted for symmetry with attachBlobToDraft
+        // but could be persisted if we wanted.
+        longtermId: 'session',
+        lifecycle: 'do',
+        localStatus: null,
+        serverStatus: 'n/a', // local-only currently
+        tryCount: 0,
+        humanOp: 'detachAttachmentFromDraft',
+        existingNamer: existingNamer,
+        attachmentIndex: attachmentIndex
+      },
+      callback
+    );
+  },
+
+  /**
+   * Save a new (local) draft or update an existing (local) draft.  A new namer
+   * is synchronously created and returned which will be the name for the draft
+   * assuming the save completes successfully.
+   *
+   * This function is implemented as a job/operation so it is inherently ordered
+   * relative to other draft-related calls.
+   *
+   * @method saveDraft
+   * @param account
+   * @param [existingNamer] {MessageNamer}
+   * @param draftRep
+   * @param callback {Function}
+   * @return {MessageNamer}
+   *
+   */
+  saveDraft: function(account, existingNamer, draftRep, callback) {
+    var draftsFolderMeta = account.getFirstFolderWithType('localdrafts');
+    var draftsFolderStorage = account.getFolderStorageForFolderId(
+                                draftsFolderMeta.id);
+    var newId = draftsFolderStorage._issueNewHeaderId();
+    var newDraftInfo = {
+      id: newId,
+      suid: draftsFolderStorage.folderId + '/' + newId,
+      // There are really 3 possible values we could use for this; when the
+      // front-end initiates the draft saving, when we, the back-end observe and
+      // enqueue the request (now), or when the draft actually gets saved to
+      // disk.
+      //
+      // This value does get surfaced to the user, so we ideally want it to
+      // occur within a few seconds of when the save is initiated.  We do this
+      // here right now because we have access to $date, and we should generally
+      // be timely about receiving messages.
+      date: $date.NOW(),
+    };
     this._queueAccountOp(
       account,
       {
@@ -16229,13 +17526,23 @@ MailUniverse.prototype = {
         tryCount: 0,
         humanOp: 'saveDraft',
         existingNamer: existingNamer,
-        header: header,
-        body: body
+        newDraftInfo: newDraftInfo,
+        draftRep: draftRep,
       },
       callback
     );
+    return {
+      suid: newDraftInfo.suid,
+      date: newDraftInfo.date
+    };
   },
 
+  /**
+   * Delete an existing (local) draft.
+   *
+   * This function is implemented as a job/operation so it is inherently ordered
+   * relative to other draft-related calls.
+   */
   deleteDraft: function(account, messageNamer, callback) {
     this._queueAccountOp(
       account,

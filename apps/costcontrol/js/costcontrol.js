@@ -396,53 +396,72 @@ var CostControl = (function() {
     }
 
     var wifiInterface = Common.getWifiInterface();
-    if (wifiInterface) {
-      var wifiRequest = statistics.getSamples(wifiInterface, start, end);
+    var currentSimcardNetwork = Common.getCurrentSIMInterface();
 
-      wifiRequest.onsuccess = function _WifiData() {
+    var simRequest, wifiRequest;
+    var pendingRequests = 0;
 
-        //Recover current Simcard info
-        var currentSimcardNetwork = Common.getCurrentSIMInterface();
-        if (currentSimcardNetwork) {
-          var mobileRequest = statistics
-                                .getSamples(currentSimcardNetwork, start, end);
+    function checkForCompletion() {
+      pendingRequests--;
+      if (pendingRequests === 0) {
+        updateDataUsage();
+      }
+    };
 
-          mobileRequest.onsuccess = function _MobileData() {
+    function updateDataUsage() {
+      var fakeEmptyResult = {data: []};
+      var wifiData = adaptData(wifiRequest ? wifiRequest.result :
+                                             fakeEmptyResult);
+      var mobileData = adaptData(simRequest ? simRequest.result :
+                                              fakeEmptyResult);
 
-            var wifiData = adaptData(wifiRequest.result);
-            var mobileData = adaptData(mobileRequest.result);
-
-            var lastDataUsage = {
-              timestamp: new Date(),
-              start: start,
-              end: end,
-              today: today,
-              wifi: {
-                total: wifiData[1]
-              },
-              mobile: {
-                total: mobileData[1]
-              }
-            };
-            ConfigManager.setOption({ 'lastDataUsage': lastDataUsage },
-              function _onSetItem() {
-                debug('Statistics up to date and stored.');
-              }
-            );
-            // XXX: Enrich with the samples because I can not store them
-            lastDataUsage.wifi.samples = wifiData[0];
-            lastDataUsage.mobile.samples = mobileData[0];
-            result.status = 'success';
-            result.data = lastDataUsage;
-            debug('Returning up to date statistics.');
-            if (callback) {
-              callback(result);
-            }
-
-          };
+      var lastDataUsage = {
+        timestamp: new Date(),
+        start: start,
+        end: end,
+        today: today,
+        wifi: {
+          total: wifiData[1]
+        },
+        mobile: {
+          total: mobileData[1]
         }
       };
+
+      ConfigManager.setOption({ 'lastDataUsage': lastDataUsage },
+        function _onSetItem() {
+          debug('Statistics up to date and stored.');
+        }
+      );
+
+      // XXX: Enrich with the samples because I can not store them
+      lastDataUsage.wifi.samples = wifiData[0];
+      lastDataUsage.mobile.samples = mobileData[0];
+      result.status = 'success';
+      result.data = lastDataUsage;
+      debug('Returning up to date statistics.');
+      if (callback) {
+        callback(result);
+      }
     }
+
+    //Recover current Simcard info
+    if (currentSimcardNetwork) {
+      pendingRequests++;
+      simRequest = statistics.getSamples(currentSimcardNetwork, start, end);
+      simRequest.onsuccess = checkForCompletion;
+    }
+
+    if (wifiInterface) {
+      pendingRequests++;
+      wifiRequest = statistics.getSamples(wifiInterface, start, end);
+      wifiRequest.onsuccess = checkForCompletion;
+    }
+
+    if (pendingRequests === 0) {
+      updateDataUsage();
+    }
+
   }
 
   // Transform data usage to the model accepted by the render

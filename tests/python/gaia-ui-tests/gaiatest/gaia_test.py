@@ -29,7 +29,7 @@ class LockScreen(object):
     @property
     def is_locked(self):
         self.marionette.switch_to_frame()
-        return self.marionette.execute_script('window.wrappedJSObject.LockScreen.locked')
+        return self.marionette.execute_script('return window.wrappedJSObject.LockScreen.locked')
 
     def lock(self):
         self.marionette.switch_to_frame()
@@ -120,7 +120,8 @@ class GaiaApps(object):
     def runningApps(self):
         return self.marionette.execute_script("return GaiaApps.getRunningApps()")
 
-    def switch_to_frame(self, app_frame, url=None, timeout=30):
+    def switch_to_frame(self, app_frame, url=None, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
         self.marionette.switch_to_frame(app_frame)
         start = time.time()
         if not url:
@@ -143,7 +144,6 @@ class GaiaData(object):
         self.testvars = testvars or {}
         js = os.path.abspath(os.path.join(__file__, os.path.pardir, 'atoms', "gaia_data_layer.js"))
         self.marionette.import_script(js)
-        self.marionette.set_search_timeout(10000)
 
     def set_time(self, date_number):
         self.marionette.set_context(self.marionette.CONTEXT_CHROME)
@@ -165,12 +165,11 @@ class GaiaData(object):
         result = self.marionette.execute_async_script('return GaiaDataLayer.insertContact(%s);' % json.dumps(contact), special_powers=True)
         assert result, 'Unable to insert contact %s' % contact
 
-    def remove_all_contacts(self, default_script_timeout=60000):
+    def remove_all_contacts(self):
         self.marionette.switch_to_frame()
-        self.marionette.set_script_timeout(max(default_script_timeout, 1000 * len(self.all_contacts)))
-        result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True)
+        timeout = max(self.marionette.timeout or 60000, 1000 * len(self.all_contacts))
+        result = self.marionette.execute_async_script('return GaiaDataLayer.removeAllContacts();', special_powers=True, script_timeout=timeout)
         assert result, 'Unable to remove all contacts'
-        self.marionette.set_script_timeout(default_script_timeout)
 
     def get_setting(self, name):
         return self.marionette.execute_async_script('return GaiaDataLayer.getSetting("%s")' % name, special_powers=True)
@@ -299,7 +298,8 @@ class GaiaData(object):
         assert network, 'No WiFi network provided'
         self.enable_wifi()
         self.marionette.switch_to_frame()
-        result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network))
+        result = self.marionette.execute_async_script("return GaiaDataLayer.connectToWiFi(%s)" % json.dumps(network),
+                script_timeout = max(self.marionette.timeout, 60000))
         assert result, 'Unable to connect to WiFi network'
 
     def forget_all_networks(self):
@@ -314,7 +314,9 @@ class GaiaData(object):
 
     @property
     def known_networks(self):
-        return self.marionette.execute_async_script('return GaiaDataLayer.getKnownNetworks()')
+        known_networks = self.marionette.execute_async_script(
+            'return GaiaDataLayer.getKnownNetworks()')
+        return [n for n in known_networks if n]
 
     @property
     def active_telephony_state(self):
@@ -723,13 +725,6 @@ window.addEventListener('mozbrowserloadend', function loaded(aEvent) {
 
 
 class GaiaTestCase(MarionetteTestCase):
-
-    _script_timeout = 60000
-    _search_timeout = 10000
-
-    # deafult timeout in seconds for the wait_for methods
-    _default_timeout = 30
-
     def __init__(self, *args, **kwargs):
         self.restart = kwargs.pop('restart', False)
         self.yocto = kwargs.pop('yocto', False)
@@ -758,30 +753,47 @@ class GaiaTestCase(MarionetteTestCase):
         if self.restart and (self.device.is_android_build or self.marionette.instance):
             self.device.stop_b2g()
             if self.device.is_android_build:
-                # revert device to a clean state
-                self.device.manager.removeDir('/data/local/storage/persistent')
-                self.device.manager.removeDir('/data/b2g/mozilla')
+                self.cleanup_data()
             self.device.start_b2g()
 
-        # the emulator can be really slow!
-        self.marionette.set_script_timeout(self._script_timeout)
-        self.marionette.set_search_timeout(self._search_timeout)
+        # we need to set the default timeouts because we may have a new session
+        if self.marionette.timeout is not None:
+            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, self.marionette.timeout)
+            self.marionette.timeouts(self.marionette.TIMEOUT_SCRIPT, self.marionette.timeout)
+            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, self.marionette.timeout)
+        else:
+            self.marionette.timeouts(self.marionette.TIMEOUT_SEARCH, 10000)
+            self.marionette.timeouts(self.marionette.TIMEOUT_PAGE, 30000)
+
         self.lockscreen = LockScreen(self.marionette)
         self.apps = GaiaApps(self.marionette)
         self.data_layer = GaiaData(self.marionette, self.testvars)
         from gaiatest.apps.keyboard.app import Keyboard
         self.keyboard = Keyboard(self.marionette)
 
-        self.cleanUp()
+        if self.device.is_android_build:
+            self.cleanup_sdcard()
 
-    def cleanUp(self):
+        if self.restart:
+            self.cleanup_gaia(full_reset=False)
+        else:
+            self.cleanup_gaia(full_reset=True)
+
+    def cleanup_data(self):
+        self.device.manager.removeDir('/data/local/storage/persistent')
+        self.device.manager.removeDir('/data/b2g/mozilla')
+
+    def cleanup_sdcard(self):
+        self.device.manager.shellCheckOutput(['rm', '-r', '/sdcard/*'])
+        self.device.manager.removeDir('/sdcard/.gallery')
+
+    def cleanup_gaia(self, full_reset=True):
         # remove media
         if self.device.is_android_build:
             for filename in self.data_layer.media_files:
-                # filename is a fully qualified path
                 self.device.manager.removeFile(filename)
 
-        # Switch off keyboard FTU screen
+        # switch off keyboard FTU screen
         self.data_layer.set_setting("keyboard.ftu.enabled", False)
 
         # restore settings from testvars
@@ -790,24 +802,22 @@ class GaiaTestCase(MarionetteTestCase):
         # unlock
         self.lockscreen.unlock()
 
-        # If we are restarting all of these values are reset to default earlier in the setUp
-        if not self.restart:
-
-            # disable passcode before restore settings from testvars
+        if full_reset:
+            # disable passcode
             self.data_layer.set_setting('lockscreen.passcode-lock.code', '1111')
             self.data_layer.set_setting('lockscreen.passcode-lock.enabled', False)
 
-            # Change language back to English
+            # change language back to english
             self.data_layer.set_setting("language.current", "en-US")
 
-            # Switch off spanish keyboard before test
+            # switch off spanish keyboard
             self.data_layer.set_setting("keyboard.layouts.spanish", False)
 
-            # Set do not track pref back to the default
+            # reset do not track
             self.data_layer.set_setting('privacy.donottrackheader.value', '-1')
 
             if self.data_layer.get_setting('ril.radio.disabled'):
-                # enable the device radio, disable Airplane mode
+                # enable the device radio, disable airplane mode
                 self.data_layer.set_setting('ril.radio.disabled', False)
 
             # Re-set edge gestures pref to False
@@ -825,7 +835,7 @@ class GaiaTestCase(MarionetteTestCase):
                 self.data_layer.disable_wifi()
 
             # remove data
-            self.data_layer.remove_all_contacts(self._script_timeout)
+            self.data_layer.remove_all_contacts()
 
             # reset to home screen
             self.marionette.execute_script("window.wrappedJSObject.dispatchEvent(new Event('home'));")
@@ -895,10 +905,11 @@ class GaiaTestCase(MarionetteTestCase):
     def screen_orientation(self):
         return self.marionette.execute_script('return window.screen.mozOrientation')
 
-    def wait_for_element_present(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_present(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
 
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 return self.marionette.find_element(by, locator)
@@ -908,10 +919,11 @@ class GaiaTestCase(MarionetteTestCase):
             raise TimeoutException(
                 'Element %s not present before timeout' % locator)
 
-    def wait_for_element_not_present(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_not_present(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
 
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 self.marionette.find_element(by, locator)
@@ -921,10 +933,11 @@ class GaiaTestCase(MarionetteTestCase):
             raise TimeoutException(
                 'Element %s still present after timeout' % locator)
 
-    def wait_for_element_displayed(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_displayed(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
         e = None
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 if self.marionette.find_element(by, locator).is_displayed():
@@ -938,10 +951,11 @@ class GaiaTestCase(MarionetteTestCase):
             else:
                 raise TimeoutException('Element %s present but not displayed before timeout' % locator)
 
-    def wait_for_element_not_displayed(self, by, locator, timeout=_default_timeout):
-        timeout = float(timeout) + time.time()
+    def wait_for_element_not_displayed(self, by, locator, timeout=None):
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
 
-        while time.time() < timeout:
+        while time.time() < end_time:
             time.sleep(0.5)
             try:
                 if not self.marionette.find_element(by, locator).is_displayed():
@@ -954,11 +968,12 @@ class GaiaTestCase(MarionetteTestCase):
             raise TimeoutException(
                 'Element %s still visible after timeout' % locator)
 
-    def wait_for_condition(self, method, timeout=_default_timeout,
+    def wait_for_condition(self, method, timeout=None,
                            message="Condition timed out"):
         """Calls the method provided with the driver as an argument until the \
         return value is not False."""
-        end_time = time.time() + timeout
+        timeout = timeout or (self.marionette.timeout and self.marionette.timeout / 1000) or 30
+        end_time = float(timeout) + time.time()
         while time.time() < end_time:
             try:
                 value = method(self.marionette)

@@ -34,10 +34,7 @@ Evme.InstalledAppsRenderer = function Evme_InstalledAppsRenderer() {
   };
 
   this.render = function render(data) {
-    var apps = Evme.InstalledAppsService.getMatchingApps({
-      'query': data.query,
-      'byTags': true
-    });
+    var apps = data.apps;
 
     var newSignature = Evme.Utils.getAppsSignature(apps);
 

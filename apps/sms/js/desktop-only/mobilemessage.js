@@ -300,7 +300,7 @@
         delivery: 'sent',
         read: true,
         type: 'sms',
-        timestamp: new Date(Date.now()),
+        timestamp: new Date(),
         deliveryStatus: 'success'
       },
       {
@@ -324,6 +324,16 @@
         type: 'sms',
         deliveryStatus: 'not-applicable',
         timestamp: new Date(Date.now() - 172800000)
+      },
+      {
+        threadId: 3,
+        sender: '+18001114321',
+        body: 'I have a really long name!',
+        read: true,
+        type: 'sms',
+        deliveryStatus: 'not-applicable',
+        delivery: 'sent',
+        timestamp: new Date()
       },
       {
         threadId: 4,
@@ -490,6 +500,15 @@
         attachments: null,
         timestamp: new Date(Date.now() - 150000),
         expiryDate: new Date(Date.now() + ONE_DAY_TIME)
+      },
+      {
+        threadId: 10,
+        sender: '+12125551234',
+        read: true,
+        body: '<html>',
+        delivery: 'received',
+        type: 'sms',
+        timestamp: new Date(Date.now())
       }
     ],
     threads: [
@@ -507,6 +526,14 @@
         lastMessageType: 'sms',
         body: 'Sending :)',
         timestamp: new Date(Date.now() - 172800000),
+        unreadCount: 0
+      },
+      {
+        id: 3,
+        participants: ['+18001114321'],
+        lastMessageType: 'sms',
+        body: 'I have a very long name!',
+        timestamp: new Date(),
         unreadCount: 0
       },
       {
@@ -557,7 +584,7 @@
         id: 10,
         participants: ['+12125551234', '+15551237890'],
         lastMessageType: 'mms',
-        timestamp: new Date(new Date(now) - 874554444444),
+        timestamp: new Date(Date.now()),
         unreadCount: 0
       }
     ]

@@ -139,7 +139,8 @@ marionette('media playback tests', function() {
         });
       });
 
-      test('should play/pause from now playing widget after closing and ' +
+      // XXX: Disable the test because of http://bugzil.la/942490.
+      test.skip('should play/pause from now playing widget after closing and ' +
            'reopening music app', function() {
         music.close();
         music.launchInBackground();

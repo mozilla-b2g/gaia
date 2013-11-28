@@ -2,10 +2,10 @@
 /* vim: set shiftwidth=2 tabstop=2 autoindent cindent expandtab: */
 
 /*global Compose, Recipients, Utils, AttachmentMenu, Template, Settings,
-         URL, SMIL, Dialog, MessageManager, MozSmsFilter, LinkHelper,
+         SMIL, Dialog, MessageManager, MozSmsFilter, LinkHelper,
          ActivityPicker, ThreadListUI, OptionMenu, Threads, Contacts,
          Attachment, WaitingScreen, MozActivity, LinkActionHandler,
-          ActivityHandler, TimeHeaders */
+         ActivityHandler, TimeHeaders, ContactRenderer */
 /*exported ThreadUI */
 
 (function(global) {
@@ -64,9 +64,6 @@ var ThreadUI = global.ThreadUI = {
   _updateTimeout: null,
   init: function thui_init() {
     var templateIds = [
-      'contact',
-      'contact-photo',
-      'highlight',
       'message',
       'not-downloaded',
       'number',
@@ -240,7 +237,7 @@ var ThreadUI = global.ThreadUI = {
 
     navigator.mozContacts.addEventListener(
       'contactchange',
-      this.updateHeaderData
+      this.updateHeaderData.bind(this)
     );
 
     this.tmpl = templateIds.reduce(function(tmpls, name) {
@@ -1097,7 +1094,7 @@ var ThreadUI = global.ThreadUI = {
     }
 
     if (!thread) {
-      if (callback) {
+      if (typeof callback === 'function') {
         callback();
       }
       return;
@@ -1145,7 +1142,7 @@ var ThreadUI = global.ThreadUI = {
 
       this.updateCarrier(thread, contacts, details);
 
-      if (callback) {
+      if (typeof callback === 'function') {
         callback();
       }
     }.bind(this));
@@ -2034,167 +2031,6 @@ var ThreadUI = global.ThreadUI = {
     }).bind(this);
   },
 
-  // Returns true when a contact has been rendered
-  // Returns false when no contact has been rendered
-  renderContact: function thui_renderContact(params) {
-    /**
-     *
-     * params {
-     *   contact:
-     *     A contact object.
-     *
-     *   input:
-     *     Any input value associated with the contact,
-     *     possibly from a search or similar operation.
-     *
-     *   target:
-     *     UL node to append the rendered contact LI.
-     *
-     *   isContact:
-     *     |true| if rendering a contact from stored contacts
-     *     |false| if rendering an unknown contact
-     *
-     *   isSuggestion:
-     *     |true| if the value params.input should be
-     *     highlighted in the rendered HTML & all tel
-     *     entries should be rendered.
-     *
-     *   renderPhoto:
-     *     |true| if we want to retrieve the contact photo
-     * }
-     *
-     */
-
-    // Contact records that don't have phone numbers
-    // cannot be sent SMS or MMS messages
-    // TODO: Add email checking support for MMS
-    if (params.contact.tel === null) {
-      return false;
-    }
-
-    var contact = params.contact;
-    var input = params.input.trim();
-    var ul = params.target;
-    var isContact = params.isContact;
-    var isSuggestion = params.isSuggestion;
-    var tels = contact.tel;
-    var telsLength = tels.length;
-    var renderPhoto = params.renderPhoto;
-
-    // We search on the escaped HTML via a regular expression
-    var escaped = Utils.escapeRegex(Template.escape(input));
-    var escsubs = escaped.split(/\s+/);
-    // Build a list of regexes used for highlighting suggestions
-    var regexps = {
-      name: escsubs.map(function(k) {
-        // String matches occur on the beginning of a "word" to
-        // maintain parity with the contact search algorithm which
-        // only considers left aligned exact matches on words
-        return new RegExp('^' + k, 'gi');
-      }),
-      number: [new RegExp(escaped, 'ig')]
-    };
-
-    if (!telsLength) {
-      return false;
-    }
-
-    var include = renderPhoto ? { photoURL: true } : null;
-    var details = isContact ?
-      Utils.getContactDetails(tels[0].value, contact, include) : {
-        name: '',
-        photoURL: ''
-      };
-
-    for (var i = 0; i < telsLength; i++) {
-      var current = tels[i];
-      // Only render a contact's tel value entry for the _specified_
-      // input value when not rendering a suggestion. If the tel
-      // record value _doesn't_ match, then continue.
-      //
-      if (!isSuggestion && !Utils.probablyMatches(current.value, input)) {
-        continue;
-      }
-
-      // If rendering for contact search result suggestions, don't
-      // render contact tel records for values that are already
-      // selected as recipients. This comparison should be safe,
-      // as the value in this.recipients.numbers comes from the same
-      // source that current.value comes from.
-      if (isSuggestion && this.recipients.numbers.indexOf(current.value) > -1) {
-        continue;
-      }
-
-      var li = document.createElement('li');
-
-      var data = Utils.getDisplayObject(details.title, current);
-
-      /*jshint loopfunc: true */
-      ['name', 'number'].forEach(function(key) {
-        var escapedData = Template.escape(data[key]);
-        if (isSuggestion) {
-          // When rendering a suggestion, we highlight the matched substring.
-          // The approach is to escape the html and the search string, and
-          // then replace on all "words" (whitespace bounded strings) with
-          // the substring run through the highlight template.
-          var splitData = escapedData.split(/\s+/);
-          var loopReplaceFn = (function(match) {
-            matchFound = true;
-            // The match is safe, because splitData[i] is derived from
-            // escapedData
-            return this.tmpl.highlight.interpolate({
-              str: match
-            }, {
-              safe: ['str']
-            });
-          }).bind(this);
-          // For each "word"
-          for (var i = 0; i < splitData.length; i++) {
-            var matchFound = false;
-            // Loop over search term regexes
-            for (var k = 0; !matchFound && k < regexps[key].length; k++) {
-              splitData[i] = splitData[i].replace(
-                regexps[key][k], loopReplaceFn);
-            }
-          }
-          data[key + 'HTML'] = splitData.join(' ');
-        } else {
-          // If we have no html template injection, simply escape the data
-          data[key + 'HTML'] = escapedData;
-        }
-      }, this);
-
-      // Render contact photo only if specifically stated on the call
-      data.photoHTML = renderPhoto ?
-        this.tmpl.contactPhoto.interpolate({
-          photoURL: details.photoURL || ''
-        }) : '';
-
-      // Interpolate HTML template with data and inject.
-      // Known "safe" HTML values will not be re-sanitized.
-      if (isContact) {
-        li.innerHTML = this.tmpl.contact.interpolate(data, {
-          safe: ['nameHTML', 'numberHTML', 'srcAttr', 'photoHTML']
-        });
-        // scan for translatable stuff
-        navigator.mozL10n.translate(li);
-      } else {
-        li.innerHTML = this.tmpl.number.interpolate(data);
-      }
-      ul.appendChild(li);
-
-      // Revoke contact photo after image onload.
-      var photo = li.querySelector('img');
-      if (photo) {
-        photo.onload = photo.onerror = function revokePhotoURL() {
-          this.onload = this.onerror = null;
-          URL.revokeObjectURL(this.src);
-        };
-      }
-    }
-    return true;
-  },
-
   toFieldKeypress: function(event) {
     if (event.keyCode === 13 || event.keyCode === event.DOM_VK_ENTER) {
       this.container.textContent = '';
@@ -2362,18 +2198,19 @@ var ThreadUI = global.ThreadUI = {
       ul.removeEventListener('click', ulHandler);
     }.bind(this));
 
-    this.container.appendChild(ul);
-
     // Render each contact in the contacts results
+    var renderer = ContactRenderer.flavor('suggestion');
+
     contacts.forEach(function(contact) {
-      this.renderContact({
+      renderer.render({
         contact: contact,
         input: fValue,
         target: ul,
-        isContact: true,
-        isSuggestion: true
+        skip: this.recipients.numbers
       });
     }, this);
+
+    this.container.appendChild(ul);
   },
 
   onHeaderActivation: function thui_onHeaderActivation() {
@@ -2423,31 +2260,29 @@ var ThreadUI = global.ThreadUI = {
 
     Contacts.findByPhoneNumber(number, function(results) {
       var isContact = results && results.length;
-      var contact = isContact ? results[0] : {
-        tel: [{ value: number }]
-      };
-      var ul, id;
+      var contact = results[0];
+      var id;
+
+      var fragment;
 
       if (isContact) {
         id = contact.id;
-        ul = document.createElement('ul');
-        ul.classList.add('contact-prompt');
 
-        this.renderContact({
+        fragment = document.createDocumentFragment();
+
+        ContactRenderer.flavor('prompt').render({
           contact: contact,
           input: number,
-          target: ul,
-          isContact: isContact,
-          isSuggestion: false
+          target: fragment
         });
       }
 
       this.prompt({
         number: number,
+        header: fragment || number,
         contactId: id,
         isContact: isContact,
-        inMessage: inMessage,
-        body: ul
+        inMessage: inMessage
       });
     }.bind(this));
   },
@@ -2460,22 +2295,26 @@ var ThreadUI = global.ThreadUI = {
     this.groupView.reset();
 
     // Render the Group Participants list
+    var renderer = ContactRenderer.flavor('group-view');
+
     participants.forEach(function(participant) {
 
       Contacts.findByPhoneNumber(participant, function(results) {
         var isContact = results !== null && !!results.length;
-        var contact = isContact ? results[0] : {
-          tel: [{ value: participant }]
-        };
 
-        this.renderContact({
-          contact: contact,
-          input: participant,
-          target: ul,
-          isContact: isContact,
-          isSuggestion: false,
-          renderPhoto: true
-        });
+        if (isContact) {
+          renderer.render({
+            contact: results[0],
+            input: participant,
+            target: ul
+          });
+        } else {
+          var li = document.createElement('li');
+          li.innerHTML = this.tmpl.number.interpolate({
+            number: participant
+          });
+          ul.appendChild(li);
+        }
       }.bind(this));
     }.bind(this));
 
@@ -2504,31 +2343,26 @@ var ThreadUI = global.ThreadUI = {
     var email = opt.email || '';
     var isContact = opt.isContact || false;
     var inMessage = opt.inMessage || false;
-    var header = '';
-    var section = typeof opt.body !== 'undefined' ? opt.body : '';
+    var header = opt.header || number || email || '';
     var items = [];
     var params, props;
 
     // Create a params object.
     //  - complete: callback to be invoked when a
     //      button in the menu is pressed
-    //  - section: node to display above
-    //      the options in the option menu.
     //  - header: string or node to display in the
     //      in the header of the option menu
     //  - items: array of options to display in menu
     //
     params = {
+      classes: ['contact-prompt'],
       complete: complete,
-      section: section,
-      header: '',
+      header: header,
       items: null
     };
 
     // All non-email activations will see a "Call" option
     if (email) {
-      header = email;
-
       items.push({
         l10nId: 'sendEmail',
         method: function oCall(param) {
@@ -2537,10 +2371,6 @@ var ThreadUI = global.ThreadUI = {
         params: [email]
       });
     } else {
-      if (!isContact) {
-        header = number;
-      }
-
       items.push({
         l10nId: 'call',
         method: function oCall(param) {
@@ -2563,8 +2393,6 @@ var ThreadUI = global.ThreadUI = {
       }
     }
 
-    // Define the initial header, items and section properties
-    params.header = header;
     params.items = items;
 
     if (!isContact) {

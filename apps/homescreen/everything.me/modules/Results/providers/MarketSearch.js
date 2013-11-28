@@ -2,40 +2,42 @@
 
 (function() {
   var SCALE_RATIO = window.devicePixelRatio || 1,
-      TEXT_HEIGHT = Evme.Utils.APPS_FONT_SIZE * 3,
-      TEXT_WIDTH = 72 * SCALE_RATIO,
-      TEXT_MARGIN = 6 * SCALE_RATIO,
+      TEXT_WIDTH = Evme.Result.prototype.TEXT_WIDTH,
+      TEXT_MARGIN = Evme.Result.prototype.TEXT_MARGIN,
+      APP_NAME_HEIGHT = Evme.Result.prototype.APP_NAME_HEIGHT,
 
-      FONT_SIZE = 11 * SCALE_RATIO;
+      DOWNLOAD_LABEL_FONT_SIZE = Evme.Result.prototype.DOWNLOAD_LABEL_FONT_SIZE;
 
-  Evme.MarketSearchResult = function Evme_MarketSearch(query) {
+  Evme.MarketSearchResult = function Evme_MarketSearch(data) {
     var self = this;
+    var query = data.query;
+    var label = data.label;
 
     Evme.Result.call(this);
     this.type = Evme.RESULT_TYPE.MARKET_SEARCH;
 
     // @override
-    this.initIcon = function initIcon(height) {
+    this.drawAppName = function drawAppName() {
       var canvas = document.createElement('canvas'),
           context = canvas.getContext('2d');
 
       canvas.width = TEXT_WIDTH;
-      canvas.height = height + TEXT_MARGIN + (2 * TEXT_HEIGHT) - 1;
+      canvas.height = APP_NAME_HEIGHT + TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE;
 
       Evme.Utils.writeTextToCanvas({
         'text': Evme.Utils.l10n('apps', 'market-download'),
         'context': context,
-        'offset': height + TEXT_MARGIN,
-        'fontSize': FONT_SIZE
+        'offset': TEXT_MARGIN,
+        'fontSize': DOWNLOAD_LABEL_FONT_SIZE
       });
 
       Evme.Utils.writeTextToCanvas({
-        'text': Evme.Utils.l10n('apps', 'market-more-apps'),
+        'text': label,
         'context': context,
-        'offset': height + TEXT_MARGIN + FONT_SIZE + window.devicePixelRatio
+        'offset': TEXT_MARGIN + DOWNLOAD_LABEL_FONT_SIZE + SCALE_RATIO
       });
 
-      return canvas;
+      self.elName.src = canvas.toDataURL();
     };
 
     // @override
@@ -81,11 +83,9 @@
     };
 
     function render(data) {
-      var query = data.query;
-
       self.clear();
 
-      var marketSearchResult = new Evme.MarketSearchResult(query),
+      var marketSearchResult = new Evme.MarketSearchResult(data),
       el = marketSearchResult.init(app);
 
       marketSearchResult.draw(app.icon);

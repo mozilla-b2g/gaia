@@ -164,4 +164,42 @@ suite('Cost Control Service Hub Suite >', function() {
     }
   );
 
+  test(
+    'Get dataUsage without simcard interface',
+    function(done) {
+      sinon.stub(Common, 'getCurrentSIMInterface').returns(undefined);
+
+      CostControl.init();
+      CostControl.getInstance(function(service) {
+        service.request({type: 'datausage'}, function(result) {
+          assert.equal(result.status, 'success');
+          assert.equal(result.data.wifi.total, 112123944);
+          assert.equal(result.data.mobile.total, 0);
+          Common.getCurrentSIMInterface.restore();
+          done();
+        });
+      });
+    }
+  );
+
+  test(
+    'Get dataUsage without network interfaces',
+    function(done) {
+      sinon.stub(Common, 'getCurrentSIMInterface').returns(undefined);
+      sinon.stub(Common, 'getWifiInterface').returns(undefined);
+
+      CostControl.init();
+      CostControl.getInstance(function(service) {
+        service.request({type: 'datausage'}, function(result) {
+          assert.equal(result.status, 'success');
+          assert.equal(result.data.wifi.total, 0);
+          assert.equal(result.data.mobile.total, 0);
+
+          Common.getCurrentSIMInterface.restore();
+          Common.getWifiInterface.restore();
+          done();
+        });
+      });
+    }
+  );
 });

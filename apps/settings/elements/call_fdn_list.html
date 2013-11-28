@@ -13,6 +13,19 @@
       <h1 data-l10n-id="fdn-authorizedNumbers"> Authorized Numbers </h1>
     </header>
 
+    <form hidden id="call-fdnList-action" role="dialog" data-type="action">
+      <header>
+        <span id="fdnAction-name">John Doe</span><br />
+        <span id="fdnAction-number">+1 2345678</span>
+      </header>
+      <menu>
+        <button id="fdnAction-call" data-l10n-id="fdnAction-call"> Call </button>
+        <button id="fdnAction-edit" data-l10n-id="fdnAction-edit"> Edit contact </button>
+        <button id="fdnAction-delete" data-l10n-id="fdnAction-delete"> Delete contact </button>
+        <button id="fdnAction-cancel" data-l10n-id="cancel"> Cancel </button>
+      </menu>
+    </form>
+
     <div>
       <ul id="fdn-contactsContainer"></ul>
     </div>

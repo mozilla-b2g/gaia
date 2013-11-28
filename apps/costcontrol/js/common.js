@@ -65,7 +65,7 @@ function updateNextReset(trackingPeriod, value, callback) {
   setNextReset(nextReset, callback);
 }
 
-function resetData(onsuccess, onerror) {
+function resetData(mode, onsuccess, onerror) {
 
   // Get all availabe Interfaces
   var currentSimcardInterface = Common.getCurrentSIMInterface();
@@ -73,27 +73,33 @@ function resetData(onsuccess, onerror) {
 
   // Ask reset for all available Interfaces
   var wifiClearRequest, mobileClearRequest;
-  if (wifiInterface) {
-    wifiClearRequest = navigator.mozNetworkStats.clearStats(wifiInterface);
-  }
-  if (currentSimcardInterface) {
-    mobileClearRequest = navigator.mozNetworkStats
-                                          .clearStats(currentSimcardInterface);
-  }
 
+  // onerror callback builder
   var getOnErrorFor = function(networkInterface) {
     return function() {
-      wifiClearRequest.onerror = undefined;
-      mobileClearRequest.onerror = undefined;
-      (typeof onerror === 'function') && onerror(netWorkInterface);
+      if (wifiClearRequest) {
+        wifiClearRequest.onerror = undefined;
+      }
+      if (mobileClearRequest) {
+        mobileClearRequest.onerror = undefined;
+      }
+      (typeof onerror === 'function') && onerror(networkInterface);
     };
   };
+  if ((mode === 'all' || mode === 'wifi') && wifiInterface) {
+    wifiClearRequest = navigator.mozNetworkStats.clearStats(wifiInterface);
+    wifiClearRequest.onerror = getOnErrorFor('wi-Fi');
+  }
+  if ((mode === 'all' || mode === 'mobile') && currentSimcardInterface) {
+    mobileClearRequest = navigator.mozNetworkStats
+                                          .clearStats(currentSimcardInterface);
+    mobileClearRequest.onerror = getOnErrorFor('simcard');
+  }
 
-  wifiClearRequest.onerror = getOnErrorFor('wi-Fi');
-  mobileClearRequest.onerror = getOnErrorFor('simcard');
-
-  // Set last Reset
-  ConfigManager.setOption({ lastDataReset: new Date() });
+  if (mode === 'all') {
+    // Set last Reset
+    ConfigManager.setOption({ lastDataReset: new Date() });
+  }
 
   // call onsuccess
   if (typeof onsuccess === 'function') {
@@ -117,7 +123,7 @@ function logResetDataError(networkInterface) {
 }
 
 function resetAll(callback) {
-  resetData(thenResetTelephony, logResetDataError);
+  resetData('all', thenResetTelephony, logResetDataError);
 
   function thenResetTelephony() {
     resetTelephony(callback);
@@ -336,16 +342,22 @@ var Common = {
     return this.getInterface(findWifiInterface);
   },
 
-  loadNetworkInterfaces: function() {
+  loadNetworkInterfaces: function(onsuccess, onerror) {
     var networks = navigator.mozNetworkStats.getAvailableNetworks();
 
     networks.onsuccess = function() {
       Common.allNetworkInterfaces = networks.result;
       Common.allNetworkInterfaceLoaded = true;
+      if (onsuccess) {
+        onsuccess();
+      }
     };
 
     networks.onerror = function() {
-      debug('Error when trying to load network interfaces');
+      console.error('Error when trying to load network interfaces');
+      if (onerror) {
+        onerror();
+      }
     };
   }
 };
