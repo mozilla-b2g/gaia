@@ -14,7 +14,7 @@ html, body {
 
 #clock-view {
   width: 100%;
-  height: -moz-calc(100% - 0.13rem);
+  height: calc(100% - 0.13rem);
 
   color: black;
 }
