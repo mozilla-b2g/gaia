@@ -46,6 +46,30 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
     }
   };
 
+  // Returns the iccContactId to be used for exporting this contact
+  // undefined if not iccContactId is found
+  // url content is urn:uuid:<iccid>-icccontactid
+  var _getIccContactId = function _getIccContactId(theContact) {
+    var out;
+
+    var contactUrl = theContact.url;
+    if (Array.isArray(contactUrl)) {
+      for (var j = 0; j < contactUrl.length; j++) {
+        var aUrl = contactUrl[j];
+        if (aUrl.type.indexOf('source') !== -1 &&
+                                          aUrl.type.indexOf('sim') !== -1) {
+          var value = aUrl.value.split(':')[2];
+          var iccInfo = value.split('-');
+          if (iccInfo[0] === icc.iccInfo.iccid) {
+            out = iccInfo[1];
+            break;
+          }
+        }
+      }
+    }
+    return out;
+  };
+
   var _doExport = function _doExport(step, finishCallback) {
     if (step == contacts.length) {
       finishCallback(null, exported.length, null);
@@ -63,6 +87,13 @@ var ContactsSIMExport = function ContactsSIMExport(icc) {
     };
 
     var theContact = contacts[step];
+    var idToUpdate = _getIccContactId(theContact);
+    if (!idToUpdate) {
+      delete theContact.id;
+    }
+    else {
+      theContact.id = idToUpdate;
+    }
 
     var request = icc.updateContact('adn', theContact);
     request.onsuccess = function onsuccess() {
