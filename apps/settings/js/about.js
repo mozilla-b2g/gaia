@@ -46,8 +46,10 @@ var About = {
 
   loadHardwareInfo: function about_loadHardwareInfo() {
     var mobileConnection = getMobileConnection();
-    if (!mobileConnection)
+    if (!mobileConnection) {
+      document.getElementById('deviceinfo-phone-num').hidden = true;
       return;
+    }
 
     if (!IccHelper)
       return;
